@@ -41,6 +41,8 @@ In torrent view:
   Left      - Back to main
 
   Right     - View files
+  P         - View peer
+  O         - View trackers
 
   1         - Decrease max uploads
   2         - Increase max uploads

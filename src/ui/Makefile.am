@@ -9,6 +9,8 @@ libsub_ui_a_SOURCES = \
 	file_list.cc \
 	file_list.h \
 	root.cc \
-	root.h
+	root.h \
+	tracker_list.cc \
+	tracker_list.h
 
 INCLUDES = -I$(srcdir) -I$(srcdir)/.. -I$(top_srcdir)

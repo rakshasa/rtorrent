@@ -21,6 +21,7 @@ namespace ui {
 
 class Control;
 class FileList;
+class TrackerList;
 
 class Download {
 public:
@@ -39,7 +40,8 @@ public:
     DISPLAY_NONE,
     DISPLAY_MAIN,
     DISPLAY_PEER,
-    DISPLAY_FILE_LIST
+    DISPLAY_FILE_LIST,
+    DISPLAY_TRACKER_LIST
   } Display;
 
   // We own 'window'.
@@ -82,6 +84,7 @@ private:
   Display          m_state;
 
   FileList*        m_uiFileList;
+  TrackerList*     m_uiTrackerList;
 
   MItr             m_title;
   MItr             m_window;

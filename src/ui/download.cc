@@ -15,6 +15,7 @@
 #include "control.h"
 #include "download.h"
 #include "file_list.h"
+#include "tracker_list.h"
 
 namespace ui {
 
@@ -23,6 +24,7 @@ Download::Download(DPtr d, Control* c) :
   m_state(DISPLAY_NONE),
 
   m_uiFileList(NULL),
+  m_uiTrackerList(NULL),
 
   m_title(c->get_display().end()),
   m_window(c->get_display().end()),
@@ -60,7 +62,8 @@ Download::activate() {
   m_downloadStatus = m_control->get_display().insert(m_control->get_display().end(), new WDownloadStatus(m_download));
   m_mainStatus     = m_control->get_display().insert(m_control->get_display().end(), new WMainStatus(&m_control->get_core()));
 
-  m_uiFileList = new FileList(m_control, m_download);
+  m_uiFileList    = new FileList(m_control, m_download);
+  m_uiTrackerList = new TrackerList(m_control, m_download);
 
   m_control->get_input().push_front(m_bindings);
 
@@ -84,8 +87,10 @@ Download::disable() {
   delete *m_mainStatus;
 
   delete m_uiFileList;
+  delete m_uiTrackerList;
 
   m_uiFileList = NULL;
+  m_uiTrackerList = NULL;
 
   m_window = m_title = m_downloadStatus = m_mainStatus = m_control->get_display().end();
 
@@ -104,8 +109,9 @@ Download::activate_display(Display d) {
   case DISPLAY_MAIN:
     *m_window = wpl = new WPeerList(m_download, &m_peers, &m_focus);
 
-    (*m_bindings)['p'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_change), DISPLAY_PEER);
+    (*m_bindings)['p']       = sigc::bind(sigc::mem_fun(*this, &Download::receive_change), DISPLAY_PEER);
     (*m_bindings)[KEY_RIGHT] = sigc::bind(sigc::mem_fun(*this, &Download::receive_change), DISPLAY_FILE_LIST);
+    (*m_bindings)['o']       = sigc::bind(sigc::mem_fun(*this, &Download::receive_change), DISPLAY_TRACKER_LIST);
     break;
 
   case DISPLAY_PEER:
@@ -117,6 +123,12 @@ Download::activate_display(Display d) {
   case DISPLAY_FILE_LIST:
     m_uiFileList->activate(m_window);
     m_uiFileList->get_bindings()[KEY_LEFT] = sigc::bind(sigc::mem_fun(*this, &Download::receive_change), DISPLAY_MAIN);
+
+    break;    
+
+  case DISPLAY_TRACKER_LIST:
+    m_uiTrackerList->activate(m_window);
+    m_uiTrackerList->get_bindings()[' '] = sigc::bind(sigc::mem_fun(*this, &Download::receive_change), DISPLAY_MAIN);
 
     break;    
 
@@ -134,7 +146,7 @@ void
 Download::disable_display() {
   switch (m_state) {
   case DISPLAY_MAIN:
-    m_bindings->erase(KEY_RIGHT);
+    //m_bindings->erase(KEY_RIGHT);
 
     break;
 
@@ -145,6 +157,12 @@ Download::disable_display() {
 
   case DISPLAY_FILE_LIST:
     m_uiFileList->disable();
+    *m_window = NULL;
+
+    return;
+
+  case DISPLAY_TRACKER_LIST:
+    m_uiTrackerList->disable();
     *m_window = NULL;
 
     return;
