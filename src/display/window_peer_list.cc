@@ -2,13 +2,16 @@
 
 #include <stdexcept>
 
+#include "core/download.h"
+
 #include "canvas.h"
 #include "window_peer_list.h"
 
 namespace display {
 
-WindowPeerList::WindowPeerList(PList* l, PList::iterator* f) :
+WindowPeerList::WindowPeerList(core::Download* d, PList* l, PList::iterator* f) :
   Window(new Canvas, true),
+  m_download(d),
   m_list(l),
   m_focus(f) {
 }
@@ -59,9 +62,7 @@ WindowPeerList::redraw() {
     last = m_list->end();
   }    
 
-  uint32_t chunksTotal = m_slotChunksTotal();
-
-  if (chunksTotal <= 0)
+  if (m_download->get_download().get_chunks_total() <= 0)
     throw std::logic_error("WindowPeerList::redraw() m_slotChunksTotal() returned invalid value");
 
   while (itr != m_list->end() && y < m_canvas->get_height()) {
@@ -97,7 +98,7 @@ WindowPeerList::redraw() {
 	     itr->get_incoming_queue_size());
     x += 6;
 
-    m_canvas->print(x, y, "%3i", (itr->get_chunks_done() * 100) / chunksTotal);
+    m_canvas->print(x, y, "%3i", (itr->get_chunks_done() * 100) / m_download->get_download().get_chunks_total());
     x += 6;
 
     if (itr->get_incoming_queue_size())

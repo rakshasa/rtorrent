@@ -2,29 +2,29 @@
 #define RTORRENT_DISPLAY_PEER_LIST_H
 
 #include <list>
-#include <sigc++/slot.h>
 #include <torrent/peer.h>
 
 #include "window.h"
+
+namespace core {
+  class Download;
+}
 
 namespace display {
 
 class WindowPeerList : public Window {
 public:
   typedef std::list<torrent::Peer> PList;
-  typedef sigc::slot0<uint32_t>    SlotChunksTotal;
 
-  WindowPeerList(PList* l, PList::iterator* f);
-
-  void             slot_chunks_total(SlotChunksTotal s) { m_slotChunksTotal = s; }
+  WindowPeerList(core::Download* d, PList* l, PList::iterator* f);
 
   virtual void     redraw();
 
 private:
+  core::Download*  m_download;
+
   PList*           m_list;
   PList::iterator* m_focus;
-
-  SlotChunksTotal  m_slotChunksTotal;
 };
 
 }

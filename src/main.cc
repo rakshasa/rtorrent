@@ -93,6 +93,12 @@ load_arg_torrents(ui::Control* c, char** begin, char** end) {
 }
 
 void
+initialize_display(ui::Control* c) {
+  display::Canvas::init();
+  display::Window::slot_adjust(sigc::mem_fun(c->get_display(), &display::Manager::adjust_layout));
+}
+
+void
 initialize_core(ui::Control* c) {
   c->get_core().get_poll().slot_read_stdin(sigc::mem_fun(c->get_input(), &input::Manager::pressed));
   c->get_core().get_poll().slot_select_interrupted(sigc::ptr_fun(display::Canvas::do_update));
@@ -115,12 +121,10 @@ main(int argc, char** argv) {
 
   int firstArg = parse_options(&uiControl, argc, argv);
 
-  display::Canvas::init();
-  display::Window::slot_adjust(sigc::mem_fun(uiControl.get_display(), &display::Manager::adjust_layout));
+  initialize_display(&uiControl);
+  initialize_core(&uiControl);
 
   uiRoot.init();
-
-  initialize_core(&uiControl);
 
   load_session_torrents(&uiControl);
   load_arg_torrents(&uiControl, argv + firstArg, argv + argc);
@@ -128,6 +132,7 @@ main(int argc, char** argv) {
   uiControl.get_display().adjust_layout();
 
   while (!is_shutting_down || !torrent::get(torrent::SHUTDOWN_DONE)) {
+
     if (uiRoot.get_shutdown_received()) {
       do_shutdown(&uiControl);
       uiRoot.set_shutdown_received(false);
@@ -187,6 +192,8 @@ do_panic(int signum) {
 void
 print_help() {
   std::cout << "Rakshasa's Torrent client. <Neko-Mimi Mode-o!>" << std::endl;
+  std::cout << std::endl;
+  std::cout << "All value pairs (f.ex rate and queue size) will be in the UP/DOWN order." << std::endl;
   std::cout << std::endl;
   std::cout << "Usage: rtorrent [OPTIONS]... [FILE]... [URL]..." << std::endl;
   std::cout << "  -h                Display this very helpful text" << std::endl;

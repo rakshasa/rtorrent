@@ -13,6 +13,8 @@ libsub_display_a_SOURCES = \
 	window_download_list.h \
 	window_download_statusbar.cc \
 	window_download_statusbar.h \
+	window_file_list.cc \
+	window_file_list.h \
 	window_http_queue.cc \
 	window_http_queue.h \
 	window_input.cc \

@@ -8,8 +8,8 @@
 namespace display {
   class WindowTitle;
   class WindowPeerInfo;
-  class WindowPeerList;
   class WindowStatusbar;
+  class WindowPeerList;
   class WindowDownloadStatusbar;
 }
 
@@ -20,6 +20,7 @@ namespace core {
 namespace ui {
 
 class Control;
+class FileList;
 
 class Download {
 public:
@@ -37,7 +38,8 @@ public:
   typedef enum {
     DISPLAY_NONE,
     DISPLAY_MAIN,
-    DISPLAY_PEER
+    DISPLAY_PEER,
+    DISPLAY_FILE_LIST
   } Display;
 
   // We own 'window'.
@@ -78,6 +80,8 @@ private:
   PList::iterator  m_focus;
 
   Display          m_state;
+
+  FileList*        m_uiFileList;
 
   MItr             m_title;
   MItr             m_window;

@@ -14,12 +14,15 @@
 
 #include "control.h"
 #include "download.h"
+#include "file_list.h"
 
 namespace ui {
 
 Download::Download(DPtr d, Control* c) :
   m_download(d),
   m_state(DISPLAY_NONE),
+
+  m_uiFileList(NULL),
 
   m_title(c->get_display().end()),
   m_window(c->get_display().end()),
@@ -57,6 +60,8 @@ Download::activate() {
   m_downloadStatus = m_control->get_display().insert(m_control->get_display().end(), new WDownloadStatus(m_download));
   m_mainStatus     = m_control->get_display().insert(m_control->get_display().end(), new WMainStatus(&m_control->get_core()));
 
+  m_uiFileList = new FileList(m_control, m_download);
+
   m_control->get_input().push_front(m_bindings);
 
   activate_display(DISPLAY_MAIN);
@@ -69,14 +74,18 @@ Download::disable() {
 
   disable_display();
 
-  delete *m_title;
-  delete *m_downloadStatus;
-  delete *m_mainStatus;
-
   m_control->get_display().erase(m_window);
   m_control->get_display().erase(m_title);
   m_control->get_display().erase(m_downloadStatus);
   m_control->get_display().erase(m_mainStatus);
+
+  delete *m_title;
+  delete *m_downloadStatus;
+  delete *m_mainStatus;
+
+  delete m_uiFileList;
+
+  m_uiFileList = NULL;
 
   m_window = m_title = m_downloadStatus = m_mainStatus = m_control->get_display().end();
 
@@ -93,20 +102,23 @@ Download::activate_display(Display d) {
 
   switch (d) {
   case DISPLAY_MAIN:
-    *m_window = wpl = new WPeerList(&m_peers, &m_focus);
-
-    wpl->slot_chunks_total(sigc::mem_fun(m_download->get_download(), &torrent::Download::get_chunks_total));
+    *m_window = wpl = new WPeerList(m_download, &m_peers, &m_focus);
 
     (*m_bindings)[KEY_RIGHT] = sigc::bind(sigc::mem_fun(*this, &Download::receive_change), DISPLAY_PEER);
+    (*m_bindings)['p']       = sigc::bind(sigc::mem_fun(*this, &Download::receive_change), DISPLAY_FILE_LIST);
     break;
 
   case DISPLAY_PEER:
     *m_window = wpi = new WPeerInfo(m_download, &m_peers, &m_focus);
 
-    wpi->slot_chunks_total(sigc::mem_fun(m_download->get_download(), &torrent::Download::get_chunks_total));
-
     (*m_bindings)[' '] = sigc::bind(sigc::mem_fun(*this, &Download::receive_change), DISPLAY_MAIN);
     break;
+
+  case DISPLAY_FILE_LIST:
+    m_uiFileList->activate(m_window);
+
+    (*m_bindings)[' '] = sigc::bind(sigc::mem_fun(*this, &Download::receive_change), DISPLAY_MAIN);
+    break;    
 
   default:
     throw std::logic_error("ui::Download::activate_display(...) got wrong state");
@@ -131,10 +143,18 @@ Download::disable_display() {
 
     break;
 
+  case DISPLAY_FILE_LIST:
+    m_uiFileList->disable();
+    m_bindings->erase(' ');
+    *m_window = NULL;
+
+    return;
+
   default:
     break;
   }
 
+  // urgh, get ui's for the rest too.
   delete *m_window;
 
   *m_window = NULL;
