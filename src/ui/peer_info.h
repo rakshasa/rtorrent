@@ -24,8 +24,8 @@
 #define RTORRENT_UI_PEER_INFO_H
 
 #include "core/download.h"
-#include "display/manager.h"
-#include "input/bindings.h"
+
+#include "base_element.h"
 
 namespace display {
   class WindowPeerInfo;
@@ -35,10 +35,9 @@ namespace ui {
 
 class Control;
 
-class PeerInfo {
+class PeerInfo : public BaseElement {
 public:
   typedef display::WindowPeerInfo       WPeerInfo;
-  typedef display::Manager::iterator    MItr;
   typedef std::list<torrent::Peer>      PList;
 
   PeerInfo(core::Download* d, PList* l, PList::iterator* f);
@@ -46,14 +45,10 @@ public:
   void                activate(Control* c, MItr mItr);
   void                disable(Control* c);
 
-  input::Bindings&    get_bindings() { return m_bindings; }
-
 private:
   core::Download*     m_download;
   WPeerInfo*          m_window;
   
-  input::Bindings     m_bindings;
-
   PList*              m_list;
   PList::iterator*    m_focus;
 };

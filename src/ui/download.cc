@@ -25,12 +25,11 @@
 #include <stdexcept>
 #include <sigc++/bind.h>
 #include <torrent/torrent.h>
+#include <rak/functional.h>
 
 #include "core/download.h"
 #include "input/bindings.h"
 #include "display/window_title.h"
-#include "display/window_peer_list.h"
-#include "display/window_peer_info.h"
 #include "display/window_download_statusbar.h"
 #include "display/window_statusbar.h"
 
@@ -38,17 +37,14 @@
 #include "download.h"
 #include "file_list.h"
 #include "peer_info.h"
+#include "peer_list.h"
 #include "tracker_list.h"
 
 namespace ui {
 
 Download::Download(DPtr d, Control* c) :
   m_download(d),
-  m_state(DISPLAY_NONE),
-
-  m_uiFileList(new FileList(c, d)),
-  m_uiPeerInfo(new PeerInfo(d, &m_peers, &m_focus)),
-  m_uiTrackerList(new TrackerList(c, d)),
+  m_state(DISPLAY_MAX_SIZE),
 
   m_windowTitle(new WTitle(d->get_download().get_name())),
   m_windowDownloadStatus(new WDownloadStatus(d)),
@@ -61,11 +57,16 @@ Download::Download(DPtr d, Control* c) :
 
   m_focus = m_peers.end();
 
+  m_uiArray[DISPLAY_PEER_LIST]    = new PeerList(d, &m_peers, &m_focus);
+  m_uiArray[DISPLAY_PEER_INFO]    = new PeerInfo(d, &m_peers, &m_focus);
+  m_uiArray[DISPLAY_FILE_LIST]    = new FileList(d);
+  m_uiArray[DISPLAY_TRACKER_LIST] = new TrackerList(d);
+
   bind_keys();
 
   m_download->get_download().peer_list(m_peers);
 
-  m_connPeerConnected = m_download->get_download().signal_peer_connected(sigc::mem_fun(*this, &Download::receive_peer_connected));
+  m_connPeerConnected    = m_download->get_download().signal_peer_connected(sigc::mem_fun(*this, &Download::receive_peer_connected));
   m_connPeerDisconnected = m_download->get_download().signal_peer_disconnected(sigc::mem_fun(*this, &Download::receive_peer_disconnected));
 }
 
@@ -73,9 +74,7 @@ Download::~Download() {
   if (m_window != m_control->get_display().end())
     throw std::logic_error("ui::Download::~Download() called on an active object");
 
-  delete m_uiFileList;
-  delete m_uiPeerInfo;
-  delete m_uiTrackerList;
+  std::for_each(m_uiArray, m_uiArray + DISPLAY_MAX_SIZE, rak::call_delete<BaseElement>());
 
   delete m_windowTitle;
   delete m_windowDownloadStatus;
@@ -98,7 +97,7 @@ Download::activate() {
 
   m_control->get_input().push_front(m_bindings);
 
-  activate_display(DISPLAY_MAIN);
+  activate_display(DISPLAY_PEER_LIST);
 }
 
 void
@@ -120,35 +119,14 @@ Download::disable() {
 
 void
 Download::activate_display(Display d) {
-  WPeerList* wpl;
-
   if (m_window == m_control->get_display().end())
     throw std::logic_error("ui::Download::activate_display(...) could not find previous display iterator");
 
-  switch (d) {
-  case DISPLAY_MAIN:
-    *m_window = wpl = new WPeerList(m_download, &m_peers, &m_focus);
-
-    (*m_bindings)[KEY_RIGHT] = sigc::bind(sigc::mem_fun(*this, &Download::receive_change), DISPLAY_FILE_LIST);
-    break;
-
-  case DISPLAY_PEER:
-    m_uiPeerInfo->activate(m_control, m_window);
-    break;
-
-  case DISPLAY_FILE_LIST:
-    m_uiFileList->activate(m_window);
-    break;    
-
-  case DISPLAY_TRACKER_LIST:
-    m_uiTrackerList->activate(m_window);
-    break;    
-
-  default:
-    throw std::logic_error("ui::Download::activate_display(...) got wrong state");
-  }
+  if (d >= DISPLAY_MAX_SIZE)
+    throw std::logic_error("ui::Download::activate_display(...) out of bounds");
 
   m_state = d;
+  m_uiArray[d]->activate(m_control, m_window);
 
   m_control->get_display().adjust_layout();
 }
@@ -156,37 +134,9 @@ Download::activate_display(Display d) {
 // Does not delete disabled window.
 void
 Download::disable_display() {
-  switch (m_state) {
-  case DISPLAY_MAIN:
-    m_bindings->erase(KEY_RIGHT);
+  m_uiArray[m_state]->disable(m_control);
 
-    break;
-
-  case DISPLAY_PEER:
-    m_uiPeerInfo->disable(m_control);
-    *m_window = NULL;
-    
-    return;
-
-  case DISPLAY_FILE_LIST:
-    m_uiFileList->disable();
-    *m_window = NULL;
-
-    return;
-
-  case DISPLAY_TRACKER_LIST:
-    m_uiTrackerList->disable();
-    *m_window = NULL;
-
-    return;
-
-  default:
-    throw std::logic_error("ui::Download::disable_display() is in an invalid state");
-  }
-
-  // urgh, get ui's for the rest too.
-  delete *m_window;
-
+  m_state   = DISPLAY_MAX_SIZE;
   *m_window = NULL;
 }
 
@@ -284,16 +234,17 @@ Download::bind_keys() {
 
   (*m_bindings)['t'] = sigc::bind(sigc::mem_fun(m_download->get_download(), &torrent::Download::set_tracker_timeout), 2 * 1000000);
 
-  (*m_bindings)['p'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_change), DISPLAY_PEER);
+  (*m_bindings)['p'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_change), DISPLAY_PEER_INFO);
   (*m_bindings)['o'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_change), DISPLAY_TRACKER_LIST);
 
   (*m_bindings)[KEY_UP]   = sigc::mem_fun(*this, &Download::receive_prev);
   (*m_bindings)[KEY_DOWN] = sigc::mem_fun(*this, &Download::receive_next);
 
   // Key bindings for sub-ui's.
-  m_uiFileList->get_bindings()[KEY_LEFT] = sigc::bind(sigc::mem_fun(*this, &Download::receive_change), DISPLAY_MAIN);
-  m_uiPeerInfo->get_bindings()[' ']      = sigc::bind(sigc::mem_fun(*this, &Download::receive_change), DISPLAY_MAIN);
-  m_uiTrackerList->get_bindings()[' ']   = sigc::bind(sigc::mem_fun(*this, &Download::receive_change), DISPLAY_MAIN);
+  m_uiArray[DISPLAY_PEER_LIST]->get_bindings()[KEY_RIGHT] = sigc::bind(sigc::mem_fun(*this, &Download::receive_change), DISPLAY_FILE_LIST);
+  m_uiArray[DISPLAY_PEER_INFO]->get_bindings()[' ']       = sigc::bind(sigc::mem_fun(*this, &Download::receive_change), DISPLAY_PEER_LIST);
+  m_uiArray[DISPLAY_FILE_LIST]->get_bindings()[KEY_LEFT]  = sigc::bind(sigc::mem_fun(*this, &Download::receive_change), DISPLAY_PEER_LIST);
+  m_uiArray[DISPLAY_TRACKER_LIST]->get_bindings()[' ']    = sigc::bind(sigc::mem_fun(*this, &Download::receive_change), DISPLAY_PEER_LIST);
 }
 
 void

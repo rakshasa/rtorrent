@@ -20,41 +20,27 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef RTORRENT_UI_FILE_LIST_H
-#define RTORRENT_UI_FILE_LIST_H
+#ifndef RTORRENT_UI_BASE_ELEMENT_H
+#define RTORRENT_UI_BASE_ELEMENT_H
 
-#include "core/download.h"
-
-#include "base_element.h"
-
-namespace display {
-  class WindowFileList;
-}
+#include "display/manager.h"
+#include "input/bindings.h"
 
 namespace ui {
 
-class Control;
-
-class FileList : public BaseElement {
+class BaseElement {
 public:
-  typedef display::WindowFileList    WFileList;
+  typedef display::Manager::iterator MItr;
 
-  FileList(core::Download* d);
+  virtual ~BaseElement() {}
 
-  void                activate(Control* c, MItr mItr);
-  void                disable(Control* c);
+  virtual void        activate(Control* c, MItr mItr) = 0;
+  virtual void        disable(Control* c) = 0;
 
-private:
-  void                receive_next();
-  void                receive_prev();
+  input::Bindings&    get_bindings() { return m_bindings; }
 
-  void                receive_priority();
-
-  core::Download*     m_download;
-  WFileList*          m_window;
-  
-  // Change to unsigned, please.
-  unsigned int        m_focus;
+protected:
+  input::Bindings     m_bindings;
 };
 
 }

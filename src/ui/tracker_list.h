@@ -24,8 +24,8 @@
 #define RTORRENT_UI_TRACKER_LIST_H
 
 #include "core/download.h"
-#include "display/manager.h"
-#include "input/bindings.h"
+
+#include "base_element.h"
 
 namespace display {
   class WindowTrackerList;
@@ -35,17 +35,14 @@ namespace ui {
 
 class Control;
 
-class TrackerList {
+class TrackerList : public BaseElement {
 public:
   typedef display::WindowTrackerList    WTrackerList;
-  typedef display::Manager::iterator    MItr;
 
-  TrackerList(Control* c, core::Download* d);
+  TrackerList(core::Download* d);
 
-  void                activate(MItr mItr);
-  void                disable();
-
-  input::Bindings&    get_bindings() { return m_bindings; }
+  void                activate(Control* c, MItr mItr);
+  void                disable(Control* c);
 
 private:
   void                receive_next();
@@ -54,9 +51,6 @@ private:
   core::Download*     m_download;
   WTrackerList*       m_window;
   
-  Control*            m_control;
-  input::Bindings     m_bindings;
-
   // Change to unsigned, please.
   unsigned int        m_focus;
 };

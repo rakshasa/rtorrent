@@ -31,10 +31,9 @@
 
 namespace ui {
 
-FileList::FileList(Control* c, core::Download* d) :
+FileList::FileList(core::Download* d) :
   m_download(d),
   m_window(NULL),
-  m_control(c),
   m_focus(0) {
 
   m_bindings[' '] = sigc::mem_fun(*this, &FileList::receive_priority);
@@ -43,21 +42,21 @@ FileList::FileList(Control* c, core::Download* d) :
 }
 
 void
-FileList::activate(MItr mItr) {
+FileList::activate(Control* c, MItr mItr) {
   if (m_window != NULL)
     throw std::logic_error("ui::FileList::activate(...) called on an object in the wrong state");
 
-  m_control->get_input().push_front(&m_bindings);
+  c->get_input().push_front(&m_bindings);
 
   *mItr = m_window = new WFileList(m_download, &m_focus);
 }
 
 void
-FileList::disable() {
+FileList::disable(Control* c) {
   if (m_window == NULL)
     throw std::logic_error("ui::FileList::disable(...) called on an object in the wrong state");
 
-  m_control->get_input().erase(&m_bindings);
+  c->get_input().erase(&m_bindings);
 
   delete m_window;
   m_window = NULL;

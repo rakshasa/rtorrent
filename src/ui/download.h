@@ -30,7 +30,6 @@
 namespace display {
   class WindowTitle;
   class WindowStatusbar;
-  class WindowPeerList;
   class WindowDownloadStatusbar;
 }
 
@@ -41,14 +40,10 @@ namespace core {
 namespace ui {
 
 class Control;
-class FileList;
-class PeerInfo;
-class TrackerList;
+class BaseElement;
 
 class Download {
 public:
-  typedef display::Window                  Window;
-  typedef display::WindowPeerList          WPeerList;
   typedef display::WindowTitle             WTitle;
   typedef display::WindowStatusbar         WMainStatus;
   typedef display::WindowDownloadStatusbar WDownloadStatus;
@@ -58,11 +53,11 @@ public:
   typedef display::Manager::iterator       MItr;
 
   typedef enum {
-    DISPLAY_NONE,
-    DISPLAY_MAIN,
-    DISPLAY_PEER,
+    DISPLAY_PEER_LIST,
+    DISPLAY_PEER_INFO,
     DISPLAY_FILE_LIST,
-    DISPLAY_TRACKER_LIST
+    DISPLAY_TRACKER_LIST,
+    DISPLAY_MAX_SIZE
   } Display;
 
   // We own 'window'.
@@ -103,9 +98,7 @@ private:
 
   Display             m_state;
 
-  FileList*           m_uiFileList;
-  PeerInfo*           m_uiPeerInfo;
-  TrackerList*        m_uiTrackerList;
+  BaseElement*        m_uiArray[DISPLAY_MAX_SIZE];
 
   WTitle*             m_windowTitle;
   WDownloadStatus*    m_windowDownloadStatus;

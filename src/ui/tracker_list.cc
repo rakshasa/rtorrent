@@ -31,10 +31,9 @@
 
 namespace ui {
 
-TrackerList::TrackerList(Control* c, core::Download* d) :
+TrackerList::TrackerList(core::Download* d) :
   m_download(d),
   m_window(NULL),
-  m_control(c),
   m_focus(0) {
 
   m_bindings[KEY_DOWN] = sigc::mem_fun(*this, &TrackerList::receive_next);
@@ -42,21 +41,21 @@ TrackerList::TrackerList(Control* c, core::Download* d) :
 }
 
 void
-TrackerList::activate(MItr mItr) {
+TrackerList::activate(Control* c, MItr mItr) {
   if (m_window != NULL)
     throw std::logic_error("ui::TrackerList::activate(...) called on an object in the wrong state");
 
-  m_control->get_input().push_front(&m_bindings);
+  c->get_input().push_front(&m_bindings);
 
   *mItr = m_window = new WTrackerList(m_download, &m_focus);
 }
 
 void
-TrackerList::disable() {
+TrackerList::disable(Control* c) {
   if (m_window == NULL)
     throw std::logic_error("ui::TrackerList::disable(...) called on an object in the wrong state");
 
-  m_control->get_input().erase(&m_bindings);
+  c->get_input().erase(&m_bindings);
 
   delete m_window;
   m_window = NULL;

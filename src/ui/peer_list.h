@@ -20,41 +20,37 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef RTORRENT_UI_FILE_LIST_H
-#define RTORRENT_UI_FILE_LIST_H
+#ifndef RTORRENT_UI_PEER_LIST_H
+#define RTORRENT_UI_PEER_LIST_H
 
 #include "core/download.h"
 
 #include "base_element.h"
 
 namespace display {
-  class WindowFileList;
+  class WindowPeerList;
 }
 
 namespace ui {
 
 class Control;
 
-class FileList : public BaseElement {
+class PeerList : public BaseElement {
 public:
-  typedef display::WindowFileList    WFileList;
+  typedef display::WindowPeerList       WPeerList;
+  typedef std::list<torrent::Peer>      PList;
 
-  FileList(core::Download* d);
+  PeerList(core::Download* d, PList* l, PList::iterator* f);
 
   void                activate(Control* c, MItr mItr);
   void                disable(Control* c);
 
 private:
-  void                receive_next();
-  void                receive_prev();
-
-  void                receive_priority();
-
   core::Download*     m_download;
-  WFileList*          m_window;
+  WPeerList*          m_window;
   
-  // Change to unsigned, please.
-  unsigned int        m_focus;
+  PList*              m_list;
+  PList::iterator*    m_focus;
 };
 
 }
