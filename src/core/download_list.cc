@@ -20,13 +20,14 @@ DownloadList::insert(std::istream* str) {
   return itr;
 }
 
-void
+DownloadList::iterator
 DownloadList::erase(iterator itr) {
   (*itr)->release_download();
 
   torrent::download_remove((*itr)->get_hash());
   delete *itr;
-  Base::erase(itr);
+
+  return Base::erase(itr);
 }
 
 void

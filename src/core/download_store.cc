@@ -2,6 +2,7 @@
 
 #include <fstream>
 #include <stdexcept>
+#include <unistd.h>
 #include <torrent/bencode.h>
 #include <torrent/torrent.h>
 
@@ -30,6 +31,9 @@ DownloadStore::disable() {
 
 void
 DownloadStore::save(Download* d) {
+  if (!is_active())
+    return;
+
   std::fstream f(create_filename(d).c_str(), std::ios::out | std::ios::trunc);
 
   if (!f.is_open())
@@ -43,6 +47,10 @@ DownloadStore::save(Download* d) {
 
 void
 DownloadStore::remove(Download* d) {
+  if (!is_active())
+    return;
+
+  unlink(create_filename(d).c_str());
 }
 
 std::string

@@ -27,7 +27,7 @@ WindowPeerInfo::redraw() {
 
   int y = 0;
 
-  m_canvas->print(0, y++, "Hash: %s", utils::escape_string(m_download->get_download().get_hash()).c_str());
+  m_canvas->print(0, y++, "Hash: %s", utils::string_to_hex(m_download->get_download().get_hash()).c_str());
   m_canvas->print(0, y++, "Chunks: %u / %u * %u",
 		  m_download->get_download().get_chunks_done(),
 		  m_download->get_download().get_chunks_total(),

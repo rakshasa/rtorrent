@@ -28,7 +28,7 @@ public:
   ~DownloadList() { clear(); }
 
   iterator  insert(std::istream* str);
-  void      erase(iterator itr);
+  iterator  erase(iterator itr);
 
 private:
   void      clear();

@@ -123,7 +123,7 @@ DownloadList::receive_stop_download() {
   if ((*m_focus)->get_download().is_active())
     m_control->get_core().stop(*m_focus);
   else
-    m_control->get_core().erase(m_focus);
+    m_focus = m_control->get_core().erase(m_focus);
 }
 
 void

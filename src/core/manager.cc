@@ -39,15 +39,17 @@ Manager::insert(const std::string& uri) {
     create_http(uri);
 }
 
-void
+Manager::iterator
 Manager::erase(DownloadList::iterator itr) {
   if ((*itr)->get_download().is_active())
     throw std::logic_error("core::Manager::erase(...) called on an active download");
 
-  if ((*itr)->get_download().is_open())
-    (*itr)->close();
+  if (!(*itr)->get_download().is_open())
+    throw std::logic_error("core::Manager::erase(...) called on an closed download");
 
-  m_downloadList.erase(itr);
+  m_downloadStore.remove(*itr);
+
+  return m_downloadList.erase(itr);
 }  
 
 void

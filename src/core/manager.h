@@ -11,6 +11,7 @@ namespace core {
 
 class Manager {
 public:
+  typedef DownloadList::iterator                    iterator;
   typedef sigc::slot1<void, DownloadList::iterator> SlotReady;
   typedef sigc::slot0<void>                         SlotFailed;
 
@@ -27,7 +28,7 @@ public:
   void            cleanup();
 
   void            insert(const std::string& uri);
-  void            erase(DownloadList::iterator itr);
+  iterator        erase(DownloadList::iterator itr);
 
   void            start(Download* d);
   void            stop(Download* d);
