@@ -7,6 +7,10 @@
 
 #include "window.h"
 
+namespace core {
+  class Download;
+}
+
 namespace display {
 
 class WindowPeerInfo : public Window {
@@ -14,13 +18,15 @@ public:
   typedef std::list<torrent::Peer> PList;
   typedef sigc::slot0<uint32_t>    SlotChunksTotal;
 
-  WindowPeerInfo(PList* l, PList::iterator* f);
+  WindowPeerInfo(core::Download* d, PList* l, PList::iterator* f);
 
   void             slot_chunks_total(SlotChunksTotal s) { m_slotChunksTotal = s; }
 
   virtual void     redraw();
 
 private:
+  core::Download*  m_download;
+
   PList*           m_list;
   PList::iterator* m_focus;
 

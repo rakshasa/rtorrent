@@ -93,7 +93,7 @@ Download::activate_display(Display d) {
     break;
 
   case DISPLAY_PEER:
-    *m_window = wpi = new WPeerInfo(&m_peers, &m_focus);
+    *m_window = wpi = new WPeerInfo(m_download, &m_peers, &m_focus);
 
     wpi->slot_chunks_total(sigc::mem_fun(m_download->get_download(), &torrent::Download::get_chunks_total));
 

@@ -14,6 +14,8 @@ rtorrent_LDADD = \
 
 rtorrent_SOURCES = \
 	main.cc \
+	parse.cc \
+	parse.h \
 	signal_handler.cc \
 	signal_handler.h \
 	timer.h
