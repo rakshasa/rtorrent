@@ -27,6 +27,9 @@ int64_t Timer::m_cache;
 bool start_shutdown = false;
 bool is_shutting_down = false;
 
+void do_panic(int signum);
+void print_help();
+
 bool
 is_resized() {
   static int x = 0;
@@ -66,32 +69,6 @@ do_shutdown(ui::Control* c) {
   start_shutdown = false;
 }
 
-void
-do_panic(int signum) {
-  display::Canvas::cleanup();
-
-  std::cout << "Signal " << (signum == SIGSEGV ? "SIGSEGV" : "SIGBUS") << " recived, dumping stack:" << std::endl;
-  
-#ifdef USE_EXECINFO
-  void* stackPtrs[20];
-
-  // Print the stack and exit.
-  int stackSize = backtrace(stackPtrs, 20);
-  char** stackStrings = backtrace_symbols(stackPtrs, stackSize);
-
-  for (int i = 0; i < stackSize; ++i)
-    std::cout << i << ' ' << stackStrings[i] << std::endl;
-
-#else
-  std::cout << "Stack dump not enabled." << std::endl;
-#endif
-  
-  if (signum == SIGBUS)
-    std::cout << "A bus error might mean you ran out of diskspace." << std::endl;
-  
-  exit(-1);
-}
-
 int
 main(int argc, char** argv) {
   ui::Control uiControl;
@@ -103,6 +80,7 @@ main(int argc, char** argv) {
   SignalHandler::set_handler(SIGBUS, sigc::bind(sigc::ptr_fun(&do_panic), SIGBUS));
 
   OptionParser optionParser;
+  optionParser.insert_flag('h', sigc::ptr_fun(&print_help));
   optionParser.insert_option('p', sigc::bind(sigc::ptr_fun(OptionParser::call_int_pair),
 					     sigc::mem_fun(uiControl.get_core(), &core::Manager::set_port_range)));
 
@@ -149,9 +127,49 @@ main(int argc, char** argv) {
     display::Canvas::cleanup();
 
     std::cout << "Caught exception: \"" << e.what() << '"' << std::endl;
+    return -1;
   }
 
   uiControl.get_core().cleanup();
 
   return 0;
+}
+
+void
+do_panic(int signum) {
+  display::Canvas::cleanup();
+
+  std::cout << "Signal " << (signum == SIGSEGV ? "SIGSEGV" : "SIGBUS") << " recived, dumping stack:" << std::endl;
+  
+#ifdef USE_EXECINFO
+  void* stackPtrs[20];
+
+  // Print the stack and exit.
+  int stackSize = backtrace(stackPtrs, 20);
+  char** stackStrings = backtrace_symbols(stackPtrs, stackSize);
+
+  for (int i = 0; i < stackSize; ++i)
+    std::cout << i << ' ' << stackStrings[i] << std::endl;
+
+#else
+  std::cout << "Stack dump not enabled." << std::endl;
+#endif
+  
+  if (signum == SIGBUS)
+    std::cout << "A bus error might mean you ran out of diskspace." << std::endl;
+  
+  exit(-1);
+}
+
+void
+print_help() {
+  std::cout << "Rakshasa's Torrent client. Neko-Mimi Mode-o!" << std::endl;
+  std::cout << "Usage: rtorrent [OPTIONS]... [FILE]... [URL]..." << std::endl;
+  std::cout << std::endl;
+  std::cout << "  -h                Display this very helpfull text" << std::endl;
+  std::cout << "  -p <int>-<int>    Set port range for incoming connections" << std::endl;
+  std::cout << std::endl;
+  std::cout << "Report bugs to <jaris@ifi.uio.no>." << std::endl;
+
+  exit(0);
 }

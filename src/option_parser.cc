@@ -30,7 +30,7 @@ OptionParser::process(int argc, char** argv) {
   while ((c = getopt(argc, argv, optString.c_str())) != -1) {
     if (c == '?') {
       std::stringstream s;
-      s << "Invalid use of option flag -" << (char)optopt;
+      s << "Invalid use of option flag -" << (char)optopt << ". Try rtorrent -h for more information.";
       
       throw std::runtime_error(s.str());
 
