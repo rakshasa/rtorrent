@@ -25,6 +25,9 @@ class CurlGet : public torrent::Http {
 
   bool               is_busy() { return m_handle; }
 
+  double             get_size_done();
+  double             get_size_total();
+
  protected:
   CURL*              handle() { return m_handle; }
 

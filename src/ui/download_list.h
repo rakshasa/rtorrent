@@ -4,10 +4,11 @@
 #include <sigc++/slot.h>
 
 namespace display {
-  class WindowTitle;
   class WindowDownloadList;
-  class WindowStatusbar;
+  class WindowHttpQueue;
   class WindowInput;
+  class WindowStatusbar;
+  class WindowTitle;
 }
 
 namespace ui {
@@ -18,9 +19,11 @@ class Download;
 class DownloadList {
 public:
   typedef display::WindowDownloadList           WList;
-  typedef display::WindowTitle                  WTitle;
-  typedef display::WindowStatusbar              WStatus;
+  typedef display::WindowHttpQueue              WHttp;
   typedef display::WindowInput                  WInput;
+  typedef display::WindowStatusbar              WStatus;
+  typedef display::WindowTitle                  WTitle;
+
   typedef core::DownloadList                    DList;
 
   typedef sigc::slot1<void, const std::string&> SlotOpenUri;
@@ -63,6 +66,7 @@ private:
   WTitle*          m_title;
   WStatus*         m_status;
   WInput*          m_textInput;
+  WHttp*           m_windowHttpQueue;
 
   Download*        m_download;
 

@@ -58,6 +58,23 @@ CurlGet::close() {
   m_handle = NULL;
 }
 
+
+double
+CurlGet::get_size_done() {
+  double d = 0.0;
+  curl_easy_getinfo(m_handle, CURLINFO_SIZE_DOWNLOAD, &d);
+
+  return d;
+}
+
+double
+CurlGet::get_size_total() {
+  double d = 0.0;
+  curl_easy_getinfo(m_handle, CURLINFO_CONTENT_LENGTH_DOWNLOAD, &d);
+
+  return d;
+}
+
 void
 CurlGet::perform(CURLMsg* msg) {
   if (msg->msg != CURLMSG_DONE)

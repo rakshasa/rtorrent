@@ -3,3 +3,8 @@ up.
 
 Polling during last phase of shutdown should be very quick, don't use
 normal timeout.
+
+Make clear distinction of upload/download throttle.
+
+"Caught exception: "Tried to add an existing DownloadMain to DownloadManager""
+Properly handle duplicate torrents. 

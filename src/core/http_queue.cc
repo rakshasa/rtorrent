@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <sstream>
+#include <functional.h>
 #include <sigc++/bind.h>
 #include <sigc++/hide.h>
 #include <torrent/http.h>
@@ -14,7 +15,7 @@ namespace core {
 
 HttpQueue::iterator
 HttpQueue::insert(const std::string& url) {
-  std::auto_ptr<torrent::Http> h(m_slotFactory());
+  std::auto_ptr<CurlGet> h(m_slotFactory());
   std::auto_ptr<std::stringstream> s(new std::stringstream);
   
   h->set_url(url);
@@ -31,11 +32,15 @@ HttpQueue::insert(const std::string& url) {
   h.release();
   s.release();
 
+  m_signalInsert.emit(*itr);
+
   return itr;
 }
 
 void
 HttpQueue::erase(iterator itr) {
+  m_signalErase.emit(*itr);
+
   delete (*itr)->get_stream();
   delete *itr;
 
@@ -44,8 +49,8 @@ HttpQueue::erase(iterator itr) {
 
 void
 HttpQueue::clear() {
-  std::for_each(begin(), end(), func::on(func::call_delete(), std::mem_fun(&CurlGet::get_stream)));
-  std::for_each(begin(), end(), func::call_delete());
+  while (!empty())
+    erase(begin());
 
   Base::clear();
 }

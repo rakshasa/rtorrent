@@ -29,7 +29,7 @@ public:
   void          stop(Download* d);
 
 private:
-  void          receive_http_done(torrent::Http* http);
+  void          receive_http_done(CurlGet* http);
 
   void          create_file(const std::string& uri);
   void          create_http(const std::string& uri);

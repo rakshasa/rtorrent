@@ -61,6 +61,8 @@ do_shutdown(ui::Control* c) {
 		  std::mem_fun_ref(&core::Download::close));
 
   }
+
+  start_shutdown = false;
 }
 
 void
@@ -124,7 +126,7 @@ main(int argc, char** argv) {
   uiControl.get_display().adjust_layout();
 
   while (!is_shutting_down || !torrent::get(torrent::SHUTDOWN_DONE)) {
-    if (start_shutdown && !is_shutting_down)
+    if (start_shutdown)
       do_shutdown(&uiControl);
 
     Timer::update();

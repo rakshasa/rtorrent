@@ -6,10 +6,10 @@
 #include <istream>
 #include <sigc++/bind.h>
 #include <torrent/exceptions.h>
-#include <torrent/http.h>
 #include <torrent/torrent.h>
 
 #include "manager.h"
+#include "curl_get.h"
 
 namespace core {
 
@@ -95,7 +95,7 @@ Manager::create_http(const std::string& uri) {
 }
 
 void
-Manager::receive_http_done(torrent::Http* http) {
+Manager::receive_http_done(CurlGet* http) {
   DownloadList::iterator itr = m_downloadList.end();
 
   try {

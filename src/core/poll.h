@@ -6,17 +6,15 @@
 
 #include "curl_stack.h"
 
-namespace torrent {
-  class Http;
-}
-
 namespace core {
+
+class CurlGet;
 
 class Poll {
 public:
-  typedef sigc::slot0<void>           Slot;
-  typedef sigc::slot1<void, int>      SlotInt;
-  typedef sigc::slot0<torrent::Http*> SlotFactory;
+  typedef sigc::slot0<void>      Slot;
+  typedef sigc::slot1<void, int> SlotInt;
+  typedef sigc::slot0<CurlGet*>  SlotFactory;
 
   Poll() : m_readSet(new fd_set), m_writeSet(new fd_set), m_exceptSet(new fd_set) {}
   ~Poll() { delete m_readSet; delete m_writeSet; delete m_exceptSet; }

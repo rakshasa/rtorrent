@@ -6,10 +6,12 @@
 
 #include "input/bindings.h"
 #include "input/text_input.h"
-#include "display/window_title.h"
+
 #include "display/window_download_list.h"
-#include "display/window_statusbar.h"
+#include "display/window_http_queue.h"
 #include "display/window_input.h"
+#include "display/window_statusbar.h"
+#include "display/window_title.h"
 
 #include "control.h"
 #include "download.h"
@@ -21,6 +23,8 @@ DownloadList::DownloadList(Control* c) :
   m_title(new WTitle("rtorrent " VERSION " - " + torrent::get(torrent::LIBRARY_NAME))),
   m_status(new WStatus),
   m_textInput(new WInput(new input::TextInput)),
+  m_windowHttpQueue(new WHttp(&c->get_core().get_http_queue())),
+
   m_download(NULL),
   m_focus(c->get_core().get_download_list().end()),
   m_control(c),
@@ -31,6 +35,7 @@ DownloadList::DownloadList(Control* c) :
   bind_keys(m_bindings);
 
   m_textInput->get_input()->slot_dirty(sigc::mem_fun(*m_textInput, &WInput::mark_dirty));
+  m_windowHttpQueue->slot_adjust(sigc::mem_fun(c->get_display(), &display::Manager::adjust_layout));
 }
 
 DownloadList::~DownloadList() {
@@ -41,6 +46,7 @@ DownloadList::~DownloadList() {
 
   delete m_textInput->get_input();
   delete m_textInput;
+  delete m_windowHttpQueue;
 }
 
 void
@@ -49,6 +55,7 @@ DownloadList::activate() {
 
   m_control->get_input().push_front(m_bindings);
 
+  m_control->get_display().push_back(m_windowHttpQueue);
   m_control->get_display().push_back(m_textInput);
   m_control->get_display().push_back(m_status);
   m_control->get_display().push_front(m_window);
@@ -68,6 +75,7 @@ DownloadList::disable() {
   m_control->get_display().erase(m_window);
   m_control->get_display().erase(m_status);
   m_control->get_display().erase(m_textInput);
+  m_control->get_display().erase(m_windowHttpQueue);
 }
 
 void
