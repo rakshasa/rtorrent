@@ -23,50 +23,11 @@
 #include "config.h"
 
 #include <functional>
+#include <rak/algorithm.h>
 
 #include "path_input.h"
 
 namespace input {
-
-struct
-string_starts_with : public std::binary_function<std::string, std::string, bool> {
-  bool operator () (const std::string& complete, const std::string& base) const {
-    return !complete.compare(0, base.size(), base);
-  }
-};
-
-template <typename _InputIter>
-typename std::iterator_traits<_InputIter>::difference_type
-count_base(_InputIter __first1, _InputIter __last1,
-	   _InputIter __first2, _InputIter __last2) {
-
-  typename std::iterator_traits<_InputIter>::difference_type __n = 0;
-
-  for ( ;__first1 != __last1 && __first2 != __last2; ++__first1, ++__first2, ++__n)
-    if (*__first1 != *__first2)
-      return __n;
-
-  return __n;
-}
-
-template <typename _InputIter>
-std::string
-make_base(_InputIter __first, _InputIter __last) {
-  if (__first == __last)
-    return "";
-
-  std::string __base = *__first++;
-
-  for ( ;__first != __last; ++__first) {
-    std::string::size_type __pos = count_base(__base.begin(), __base.end(),
-					      __first->begin(), __first->end());
-
-    if (__pos < __base.size())
-      __base.resize(__pos);
-  }
-
-  return __base;
-}
 
 PathInput::PathInput() {
 }
