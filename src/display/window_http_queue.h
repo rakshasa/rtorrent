@@ -1,7 +1,6 @@
 #ifndef RTORRENT_DISPLAY_WINDOW_HTTP_QUEUE_H
 #define RTORRENT_DISPLAY_WINDOW_HTTP_QUEUE_H
 
-#include <sigc++/slot.h>
 #include <sigc++/connection.h>
 
 #include "window.h"
@@ -15,12 +14,8 @@ namespace display {
 
 class WindowHttpQueue : public Window {
 public:
-  typedef sigc::slot0<void> Slot;
-
   WindowHttpQueue(core::HttpQueue* q);
   ~WindowHttpQueue() { m_connInsert.disconnect(); m_connErase.disconnect(); }
-
-  void                slot_adjust(Slot s) { m_slotAdjust = s; }
 
   virtual void        redraw();
 
@@ -45,7 +40,6 @@ private:
   static std::string  create_name(core::CurlGet* h);
 
   core::HttpQueue*    m_queue;
-  Slot                m_slotAdjust;
   sigc::connection    m_connInsert;
   sigc::connection    m_connErase;
 

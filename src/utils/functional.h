@@ -70,6 +70,24 @@ on(Src s, Dest d) {
   return _on<Src, Dest>(s, d);
 }  
 
+// Creates a functor for accessing a member.
+template <typename Class, typename Member>
+struct _mem_ptr_ref : public std::unary_function<Class&, Member&> {
+  _mem_ptr_ref(Member Class::*m) : m_member(m) {}
+
+  Member& operator () (Class& c) {
+    return c.*m_member;
+  }
+
+  Member Class::*m_member;
+};
+
+template <typename Class, typename Member>
+inline _mem_ptr_ref<Class, Member>
+mem_ptr_ref(Member Class::*m) {
+  return _mem_ptr_ref<Class, Member>(m);
+}
+
 template <typename Cond, typename Then>
 struct _if_then {
   _if_then(Cond c, Then t) : m_cond(c), m_then(t) {}

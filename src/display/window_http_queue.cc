@@ -72,7 +72,9 @@ WindowHttpQueue::cleanup_list() {
 
 std::string
 WindowHttpQueue::create_name(core::CurlGet* h) {
-  std::string n = h->get_url().substr(h->get_url().rfind('/', h->get_url().size() - std::min((size_t)10, h->get_url().size())));
+  size_t p = h->get_url().rfind('/', h->get_url().size() - std::min<int>(10, h->get_url().size()));
+
+  std::string n = p != std::string::npos ? h->get_url().substr(p) : h->get_url();
 
   if (n.empty())
     throw std::logic_error("WindowHttpQueue::create_name(...) made a bad string");

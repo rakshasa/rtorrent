@@ -17,6 +17,8 @@ libsub_display_a_SOURCES = \
 	window_http_queue.h \
 	window_input.cc \
 	window_input.h \
+	window_log.cc \
+	window_log.h \
 	window_peer_info.cc \
 	window_peer_info.h \
 	window_peer_list.cc \

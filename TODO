@@ -8,3 +8,5 @@ Make clear distinction of upload/download throttle.
 
 "Caught exception: "Tried to add an existing DownloadMain to DownloadManager""
 Properly handle duplicate torrents. 
+
+Add log message for failed http requests.

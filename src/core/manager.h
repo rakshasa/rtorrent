@@ -6,6 +6,7 @@
 #include "hash_queue.h"
 #include "http_queue.h"
 #include "poll.h"
+#include "log.h"
 
 namespace core {
 
@@ -23,6 +24,7 @@ public:
   HttpQueue&          get_http_queue()                    { return m_httpQueue; }
 
   Poll&               get_poll()                          { return m_poll; }
+  Log&                get_log()                           { return m_log; }
 
   void                initialize();
   void                cleanup();
@@ -40,6 +42,7 @@ public:
 
 private:
   void                receive_http_done(CurlGet* http);
+  void                receive_http_failed(std::string msg);
 
   void                create_file(const std::string& uri);
   void                create_http(const std::string& uri);
@@ -50,7 +53,9 @@ private:
   DownloadStore       m_downloadStore;
   HashQueue           m_hashQueue;
   HttpQueue           m_httpQueue;
+
   Poll                m_poll;
+  Log                 m_log;
 
   std::string         m_dns;
   int                 m_portFirst;

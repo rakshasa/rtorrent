@@ -15,6 +15,7 @@
 
 #include "core/download.h"
 #include "display/canvas.h"
+#include "display/window.h"
 #include "ui/control.h"
 #include "ui/download_list.h"
 #include "input/bindings.h"
@@ -137,6 +138,7 @@ main(int argc, char** argv) {
   int firstArg = parse_options(&uiControl, argc, argv);
 
   display::Canvas::init();
+  display::Window::slot_adjust(sigc::mem_fun(uiControl.get_display(), &display::Manager::adjust_layout));
 
   ui::DownloadList uiDownloadList(&uiControl);
 

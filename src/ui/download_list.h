@@ -7,6 +7,7 @@ namespace display {
   class WindowDownloadList;
   class WindowHttpQueue;
   class WindowInput;
+  class WindowLog;
   class WindowStatusbar;
   class WindowTitle;
 }
@@ -21,6 +22,7 @@ public:
   typedef display::WindowDownloadList           WList;
   typedef display::WindowHttpQueue              WHttp;
   typedef display::WindowInput                  WInput;
+  typedef display::WindowLog                    WLog;
   typedef display::WindowStatusbar              WStatus;
   typedef display::WindowTitle                  WTitle;
 
@@ -65,6 +67,7 @@ private:
   WList*           m_window;
   WTitle*          m_title;
   WStatus*         m_status;
+  WLog*            m_windowLog;
   WInput*          m_textInput;
   WHttp*           m_windowHttpQueue;
 

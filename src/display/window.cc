@@ -7,6 +7,8 @@
 
 namespace display {
 
+Window::Slot Window::m_slotAdjust;
+
 Window::~Window() {
   delete m_canvas;
 }

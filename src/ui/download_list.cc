@@ -12,6 +12,7 @@
 #include "display/window_download_list.h"
 #include "display/window_http_queue.h"
 #include "display/window_input.h"
+#include "display/window_log.h"
 #include "display/window_statusbar.h"
 #include "display/window_title.h"
 
@@ -33,11 +34,11 @@ DownloadList::DownloadList(Control* c) :
   m_bindings(new input::Bindings) {
 
   m_window = new WList(&m_control->get_core().get_download_list(), &m_focus);
+  m_windowLog = new WLog(&m_control->get_core().get_log());
 
   bind_keys(m_bindings);
 
   m_textInput->get_input()->slot_dirty(sigc::mem_fun(*m_textInput, &WInput::mark_dirty));
-  m_windowHttpQueue->slot_adjust(sigc::mem_fun(c->get_display(), &display::Manager::adjust_layout));
 }
 
 DownloadList::~DownloadList() {
@@ -46,6 +47,7 @@ DownloadList::~DownloadList() {
   delete m_status;
   delete m_bindings;
 
+  delete m_windowLog;
   delete m_textInput->get_input();
   delete m_textInput;
   delete m_windowHttpQueue;
@@ -57,6 +59,7 @@ DownloadList::activate() {
 
   m_control->get_input().push_front(m_bindings);
 
+  m_control->get_display().push_back(m_windowLog);
   m_control->get_display().push_back(m_windowHttpQueue);
   m_control->get_display().push_back(m_textInput);
   m_control->get_display().push_back(m_status);
@@ -77,6 +80,7 @@ DownloadList::disable() {
   m_control->get_display().erase(m_window);
   m_control->get_display().erase(m_status);
   m_control->get_display().erase(m_textInput);
+  m_control->get_display().erase(m_windowLog);
   m_control->get_display().erase(m_windowHttpQueue);
 }
 

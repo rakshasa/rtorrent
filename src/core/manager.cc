@@ -99,8 +99,14 @@ Manager::receive_http_done(CurlGet* http) {
 
   } catch (torrent::local_error& e) {
     // What to do? Keep in list for now.
+    m_log.push_front(e.what());
   }
 }  
+
+void
+Manager::receive_http_failed(std::string msg) {
+  m_log.push_front("Http download error: \"" + msg + "\"");
+}
 
 void
 Manager::create_file(const std::string& uri) {
@@ -111,6 +117,7 @@ Manager::create_file(const std::string& uri) {
 
   } catch (torrent::local_error& e) {
     // What to do? Keep in list for now.
+    m_log.push_front(e.what());
   }
 }
 
@@ -119,7 +126,7 @@ Manager::create_http(const std::string& uri) {
   core::HttpQueue::iterator itr = m_httpQueue.insert(uri);
 
   (*itr)->signal_done().slots().push_front(sigc::bind(sigc::mem_fun(*this, &core::Manager::receive_http_done), *itr));
-  // Add the failed signal here.
+  (*itr)->signal_failed().slots().push_front(sigc::mem_fun(*this, &core::Manager::receive_http_failed));
 }
 
 Manager::iterator
