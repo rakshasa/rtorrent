@@ -5,6 +5,17 @@
 
 namespace func {
 
+template <typename Iterator, typename Ftor>
+inline void for_each(Iterator first, Iterator last, Ftor ftor) {
+  Iterator tmp;
+
+  while (first != last) {
+    tmp = first++;
+    
+    ftor(*tmp);
+  }
+}
+
 template <typename Type, typename Ftor>
 struct _accumulate {
   _accumulate(Type& t, Ftor f) : m_t(t), m_f(f) {}

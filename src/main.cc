@@ -124,7 +124,7 @@ main(int argc, char** argv) {
   coreManager.get_http_queue().slot_factory(poll.get_http_factory());
 
   torrent::initialize();
-  torrent::listen_open(6880, 6999);
+  torrent::listen_open(10000, 20000);
 
   for (int i = 1; i < argc; ++i)
     coreManager.insert(argv[i]);

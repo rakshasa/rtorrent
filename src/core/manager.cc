@@ -9,7 +9,6 @@
 
 #include "manager.h"
 
-
 namespace core {
 
 void

@@ -6,6 +6,7 @@
 namespace input {
 
 class Bindings;
+class TextInput;
 
 class Manager : private std::list<Bindings*> {
 public:
@@ -24,11 +25,18 @@ public:
   using Base::push_back;
   using Base::push_front;
 
+  Manager() : m_textInput(NULL) {}
+
   void erase(Bindings* b);
 
   void pressed(int key);
 
+  void set_text_input(TextInput* input = NULL) { m_textInput = input; }
+
   // Slot for unreacted keys.
+
+private:
+  TextInput* m_textInput;
 };
 
 }

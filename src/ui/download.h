@@ -27,7 +27,7 @@ public:
   typedef display::WindowPeerInfo          WPeerInfo;
   typedef display::WindowPeerList          WPeerList;
   typedef display::WindowTitle             WTitle;
-  typedef display::WindowStatusbar         WStatus;
+  typedef display::WindowStatusbar         WMainStatus;
   typedef display::WindowDownloadStatusbar WDownloadStatus;
 
   typedef core::Download*                  DPtr;
@@ -64,6 +64,9 @@ private:
   void             receive_peer_disconnected(torrent::Peer p);
 
   void             receive_throttle(int t);
+  void             receive_max_uploads(int t);
+  void             receive_min_peers(int t);
+  void             receive_max_peers(int t);
   void             receive_change(Display d);
 
   void             bind_keys(input::Bindings* b);
@@ -79,7 +82,7 @@ private:
   MItr             m_title;
   MItr             m_window;
   MItr             m_downloadStatus;
-  MItr             m_status;
+  MItr             m_mainStatus;
 
   Control*         m_control;
   input::Bindings* m_bindings;

@@ -24,7 +24,7 @@ Download::Download(DPtr d, Control* c) :
   m_title(c->get_display().end()),
   m_window(c->get_display().end()),
   m_downloadStatus(c->get_display().end()),
-  m_status(c->get_display().end()),
+  m_mainStatus(c->get_display().end()),
 
   m_control(c),
   m_bindings(new input::Bindings) {
@@ -55,7 +55,7 @@ Download::activate() {
   m_window         = m_control->get_display().insert(m_control->get_display().begin(), NULL);
   m_title          = m_control->get_display().insert(m_control->get_display().begin(), new WTitle(m_download->get_download().get_name()));
   m_downloadStatus = m_control->get_display().insert(m_control->get_display().end(), new WDownloadStatus(m_download));
-  m_status         = m_control->get_display().insert(m_control->get_display().end(), new WStatus);
+  m_mainStatus     = m_control->get_display().insert(m_control->get_display().end(), new WMainStatus);
 
   m_control->get_input().push_front(m_bindings);
 
@@ -71,14 +71,14 @@ Download::disable() {
 
   delete *m_title;
   delete *m_downloadStatus;
-  delete *m_status;
+  delete *m_mainStatus;
 
   m_control->get_display().erase(m_window);
   m_control->get_display().erase(m_title);
   m_control->get_display().erase(m_downloadStatus);
-  m_control->get_display().erase(m_status);
+  m_control->get_display().erase(m_mainStatus);
 
-  m_window = m_title = m_downloadStatus = m_status = m_control->get_display().end();
+  m_window = m_title = m_downloadStatus = m_mainStatus = m_control->get_display().end();
 
   m_control->get_input().erase(m_bindings);
 }
@@ -180,9 +180,30 @@ Download::receive_peer_disconnected(torrent::Peer p) {
 
 void
 Download::receive_throttle(int t) {
-  (*m_status)->mark_dirty();
+  (*m_mainStatus)->mark_dirty();
 
   torrent::set(torrent::THROTTLE_ROOT_CONST_RATE, torrent::get(torrent::THROTTLE_ROOT_CONST_RATE) + t * 1024);
+}
+
+void
+Download::receive_max_uploads(int t) {
+  (*m_downloadStatus)->mark_dirty();
+
+  m_download->get_download().set_uploads_max(std::max(m_download->get_download().get_uploads_max() + t, (uint32_t)2));
+}
+
+void
+Download::receive_min_peers(int t) {
+  (*m_downloadStatus)->mark_dirty();
+
+  m_download->get_download().set_peers_min(std::max(m_download->get_download().get_peers_min() + t, (uint32_t)5));
+}
+
+void
+Download::receive_max_peers(int t) {
+  (*m_downloadStatus)->mark_dirty();
+
+  m_download->get_download().set_peers_max(std::max(m_download->get_download().get_peers_max() + t, (uint32_t)5));
 }
 
 void
@@ -203,6 +224,13 @@ Download::bind_keys(input::Bindings* b) {
   (*b)['x'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_throttle), -5);
   (*b)['d'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_throttle), 50);
   (*b)['c'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_throttle), -50);
+
+  (*b)['1'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_max_uploads), -1);
+  (*b)['2'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_max_uploads), 1);
+  (*b)['3'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_min_peers), -5);
+  (*b)['4'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_min_peers), 5);
+  (*b)['5'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_max_peers), -5);
+  (*b)['6'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_max_peers), 5);
 
   (*b)['t'] = sigc::bind(sigc::mem_fun(m_download->get_download(), &torrent::Download::set_tracker_timeout), 2 * 1000000);
 

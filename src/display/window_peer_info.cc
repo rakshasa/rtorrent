@@ -33,13 +33,13 @@ WindowPeerInfo::redraw() {
 		  m_download->get_download().get_chunks_total(),
 		  m_download->get_download().get_chunks_size());
 
+  y++;
+
   if (*m_focus == m_list->end()) {
     m_canvas->print(0, y++, "No peer in focus");
 
     return;
   }
-
-  y++;
 
   m_canvas->print(0, y++, "DNS: %s:%hu", (*m_focus)->get_dns().c_str(), (*m_focus)->get_port());
   m_canvas->print(0, y++, "Id: %s" , escape_string((*m_focus)->get_id()).c_str());

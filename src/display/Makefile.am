@@ -11,6 +11,8 @@ libsub_display_a_SOURCES = \
 	window_download_statusbar.h \
 	window_download_list.cc \
 	window_download_list.h \
+	window_input.cc \
+	window_input.h \
 	window_peer_info.cc \
 	window_peer_info.h \
 	window_peer_list.cc \

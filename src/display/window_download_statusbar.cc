@@ -8,7 +8,7 @@
 namespace display {
 
 WindowDownloadStatusbar::WindowDownloadStatusbar(core::Download* d) :
-  Window(new Canvas, false, 2),
+  Window(new Canvas, false, 3),
   m_download(d) {
 }
 
@@ -36,7 +36,14 @@ WindowDownloadStatusbar::redraw() {
 		    (double)m_download->get_download().get_rate_down() / 1024.0,
 		    (double)m_download->get_download().get_bytes_up() / (double)(1 << 20));
     
-  m_canvas->print(0, 1, "Tracker: [%c:%i] %s",
+  m_canvas->print(0, 1, "Peers: %i(%i) Min/Max: %i/%i Uploads: %i",
+		  (int)m_download->get_download().get_peers_connected(),
+		  (int)m_download->get_download().get_peers_not_connected(),
+		  (int)m_download->get_download().get_peers_min(),
+		  (int)m_download->get_download().get_peers_max(),
+		  (int)m_download->get_download().get_uploads_max());
+
+  m_canvas->print(0, 2, "Tracker: [%c:%i] %s",
 		  m_download->get_download().is_tracker_busy() ? 'C' : ' ',
 		  (int)(m_download->get_download().get_tracker_timeout() / 1000000),
 		  m_download->get_tracker_msg().c_str());

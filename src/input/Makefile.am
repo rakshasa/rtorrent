@@ -4,6 +4,8 @@ libsub_input_a_SOURCES = \
 	bindings.cc \
 	bindings.h \
 	manager.cc \
-	manager.h
+	manager.h \
+	text_input.cc \
+	text_input.h
 
 INCLUDES = -I$(srcdir) -I$(srcdir)/.. -I$(top_srcdir)

@@ -5,9 +5,11 @@
 #include <sigc++/bind.h>
 
 #include "input/bindings.h"
+#include "input/text_input.h"
 #include "display/window_title.h"
 #include "display/window_download_list.h"
 #include "display/window_statusbar.h"
+#include "display/window_input.h"
 
 #include "control.h"
 #include "download.h"
@@ -22,11 +24,14 @@ DownloadList::DownloadList(core::DownloadList* l, Control* c) :
   m_list(l),
   m_focus(l->end()),
   m_control(c),
-  m_bindings(new input::Bindings) {
+  m_bindings(new input::Bindings),
+  m_windowInput(new WInput(new input::TextInput)) {
 
   m_window = new WList(m_list, &m_focus);
 
   bind_keys(m_bindings);
+
+  m_windowInput->get_input()->slot_dirty(sigc::mem_fun(*m_windowInput, &WInput::mark_dirty));
 }
 
 DownloadList::~DownloadList() {
@@ -34,10 +39,14 @@ DownloadList::~DownloadList() {
   delete m_title;
   delete m_status;
   delete m_bindings;
+
+  delete m_windowInput->get_input();
+  delete m_windowInput;
 }
 
 void
 DownloadList::activate() {
+  m_control->get_display().push_back(m_windowInput);
   m_control->get_display().push_back(m_status);
   m_control->get_display().push_front(m_window);
   m_control->get_display().push_front(m_title);
@@ -46,6 +55,7 @@ DownloadList::activate() {
 
 void
 DownloadList::disable() {
+  m_control->get_display().erase(m_windowInput);
   m_control->get_display().erase(m_title);
   m_control->get_display().erase(m_window);
   m_control->get_display().erase(m_status);
@@ -110,6 +120,27 @@ DownloadList::receive_throttle(int t) {
 }
 
 void
+DownloadList::receive_view_input() {
+  m_control->get_input().set_text_input(m_windowInput->get_input());
+
+  m_windowInput->set_focus(true);
+
+  (*m_bindings)['\n'] = sigc::mem_fun(*this, &DownloadList::receive_exit_input);
+  (*m_bindings)[KEY_ENTER] = sigc::mem_fun(*this, &DownloadList::receive_exit_input);
+}
+
+void
+DownloadList::receive_exit_input() {
+  m_control->get_input().set_text_input();
+
+  m_windowInput->get_input()->clear();
+  m_windowInput->set_focus(false);
+
+  m_bindings->erase('\n');
+  m_bindings->erase(KEY_ENTER);
+}
+
+void
 DownloadList::bind_keys(input::Bindings* b) {
   (*b)['a'] = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_throttle), 1);
   (*b)['z'] = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_throttle), -1);
@@ -122,6 +153,7 @@ DownloadList::bind_keys(input::Bindings* b) {
   (*b)[KEY_DOWN]  = sigc::mem_fun(*this, &DownloadList::receive_next);
   (*b)[KEY_RIGHT] = sigc::mem_fun(*this, &DownloadList::receive_view_download);
 
+  (*b)[KEY_BACKSPACE] = sigc::mem_fun(*this, &DownloadList::receive_view_input);
 }
 
 void

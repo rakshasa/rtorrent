@@ -23,6 +23,7 @@ public:
   int         get_y()                                          { int x, y; getyx(m_window, y, x); return y; }
   int         get_width()                                      { int x, y; getmaxyx(m_window, y, x); return x; }
   int         get_height()                                     { int x, y; getmaxyx(m_window, y, x); return y; }
+
   chtype      get_background()                                 { return getbkgd(m_window); }
   void        set_background(chtype c)                         { return wbkgdset(m_window, c); }
 
@@ -32,15 +33,6 @@ public:
 			   chtype ts, chtype bs,
 			   chtype tl, chtype tr,
 			   chtype bl, chtype br)               { wborder(m_window, ls, rs, ts, bs, tl, tr, bl, br); }
-
-  // Initialize stdscr.
-  static void init();
-  static void cleanup();
-
-  static int  get_screen_width()                               { int x, y; getmaxyx(stdscr, y, x); return x; }
-  static int  get_screen_height()                              { int x, y; getmaxyx(stdscr, y, x); return y; }
-
-  static void do_update()                                      { doupdate(); }
 
   void print(int x, int y, const char* str)                    { mvwprintw(m_window, y, x, str); }
 
@@ -65,6 +57,17 @@ public:
   template <typename A1, typename A2, typename A3, typename A4, typename A5, typename A6>
   void print(int x, int y, const char* str,
 		  A1 a1, A2 a2, A3 a3, A4 a4, A5 a5, A6 a6)    { mvwprintw(m_window, y, x, str, a1, a2, a3, a4, a5, a6); }
+
+  void set_attr(int x, int y, int n, int attr, int color)      { mvwchgat(m_window, y, x, n, attr, color, NULL); }
+
+  // Initialize stdscr.
+  static void init();
+  static void cleanup();
+
+  static int  get_screen_width()                               { int x, y; getmaxyx(stdscr, y, x); return x; }
+  static int  get_screen_height()                              { int x, y; getmaxyx(stdscr, y, x); return y; }
+
+  static void do_update()                                      { doupdate(); }
 
 private:
   Canvas(const Canvas&);

@@ -5,6 +5,7 @@ namespace display {
   class WindowTitle;
   class WindowDownloadList;
   class WindowStatusbar;
+  class WindowInput;
 }
 
 namespace ui {
@@ -17,6 +18,7 @@ public:
   typedef display::WindowDownloadList WList;
   typedef display::WindowTitle        WTitle;
   typedef display::WindowStatusbar    WStatus;
+  typedef display::WindowInput        WInput;
   typedef core::DownloadList          DList;
 
   // We own 'window'.
@@ -41,6 +43,9 @@ private:
 
   void             receive_throttle(int t);
 
+  void             receive_view_input();
+  void             receive_exit_input();
+
   void             bind_keys(input::Bindings* b);
 
   void             mark_dirty();
@@ -56,6 +61,9 @@ private:
 
   Control*         m_control;
   input::Bindings* m_bindings;
+
+  // Test
+  WInput*          m_windowInput;
 };
 
 }
