@@ -8,6 +8,10 @@
 #include "poll.h"
 #include "log.h"
 
+namespace torrent {
+  class Bencode;
+}
+
 namespace core {
 
 class Manager {
@@ -16,7 +20,7 @@ public:
   typedef sigc::slot1<void, DownloadList::iterator> SlotReady;
   typedef sigc::slot0<void>                         SlotFailed;
 
-  Manager() : m_portFirst(6890), m_portLast(6999) {}
+  Manager() : m_portFirst(6890), m_portLast(6999), m_debugTracker(-1) {}
 
   DownloadList&       get_download_list()                 { return m_downloadList; }
   DownloadStore&      get_download_store()                { return m_downloadStore; }
@@ -40,6 +44,8 @@ public:
 
   void                set_port_range(int a, int b)        { m_portFirst = a; m_portLast = b; }
 
+  void                debug_tracker()                     { m_debugTracker = 0; }
+
 private:
   void                receive_http_done(CurlGet* http);
   void                receive_http_failed(std::string msg);
@@ -48,6 +54,8 @@ private:
   void                create_http(const std::string& uri);
 
   iterator            create_final(std::istream* s);
+
+  void                receive_debug_tracker(torrent::Bencode& bencode);
 
   DownloadList        m_downloadList;
   DownloadStore       m_downloadStore;
@@ -60,6 +68,8 @@ private:
   std::string         m_dns;
   int                 m_portFirst;
   int                 m_portLast;
+
+  int                 m_debugTracker;
 };
 
 }

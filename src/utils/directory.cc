@@ -29,6 +29,7 @@ Directory::update() {
       Base::push_back(ent->d_name);
   }
 
+  closedir(d);
   Base::sort(std::less<std::string>());
 }
 

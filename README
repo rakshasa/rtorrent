@@ -1,22 +1,24 @@
 Options and flags:
 
-  -p <a-b>    Open a port in the range a to b.
+  -i <a.b.c.d>      Set the IP address sent to the tracker.
 
-  -s <dir>    Use <dir> as the session directory. The torrents will be
-              saved with the info-hash in hex as the filename.
+  -p <a-b>          Open a port in the range a to b.
+
+  -s <dir>          Use <dir> as the session directory. The torrents will be
+                    saved with the info-hash in hex as the filename.
 
 All:
 
-  Ctrl-Q  - Quit
+  Ctrl-Q    - Quit
 
-  A       - Increase Throttle by 1 KiB
-  Z       - Decrease Throttle by 1 KiB
+  A         - Increase Throttle by 1 KiB
+  Z         - Decrease Throttle by 1 KiB
 
-  S       - Increase Throttle by 5 KiB
-  X       - Decrease Throttle by 5 KiB
+  S         - Increase Throttle by 5 KiB
+  X         - Decrease Throttle by 5 KiB
 
-  D       - Increase Throttle by 50 KiB
-  C       - Decrease Throttle by 50 KiB
+  D         - Increase Throttle by 50 KiB
+  C         - Decrease Throttle by 50 KiB
 
 
 In main window:

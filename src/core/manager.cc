@@ -6,7 +6,9 @@
 #include <fstream>
 #include <istream>
 #include <sstream>
+#include <iterator>
 #include <sigc++/bind.h>
+#include <torrent/bencode.h>
 #include <torrent/exceptions.h>
 #include <torrent/torrent.h>
 
@@ -138,7 +140,23 @@ Manager::create_final(std::istream* s) {
   start(*itr);
   m_downloadStore.save(*itr);
 
+  if (m_debugTracker >= 0)
+    (*itr)->get_download().signal_tracker_succeded(sigc::mem_fun(*this, &Manager::receive_debug_tracker));
+
   return itr;
+}
+
+void
+Manager::receive_debug_tracker(torrent::Bencode& bencode) {
+  std::stringstream filename;
+  filename << "./tracker_dump." << m_debugTracker++;
+
+  std::fstream out(filename.str().c_str(), std::ios::out | std::ios::trunc);
+
+  if (!out.good())
+    return;
+
+  out << bencode;
 }
 
 }

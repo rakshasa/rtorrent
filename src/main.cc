@@ -81,6 +81,8 @@ parse_options(ui::Control* c, int argc, char** argv) {
 					     sigc::mem_fun(c->get_core(), &core::Manager::set_port_range)));
   optionParser.insert_option('s', sigc::mem_fun(c->get_core().get_download_store(), &core::DownloadStore::activate));
 
+  optionParser.insert_flag('t', sigc::mem_fun(c->get_core(), &core::Manager::debug_tracker));
+
   return optionParser.process(argc, argv);
 }
 
