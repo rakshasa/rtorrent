@@ -20,17 +20,17 @@ namespace ui {
 DownloadList::DownloadList(Control* c) :
   m_title(new WTitle("rtorrent " VERSION " - " + torrent::get(torrent::LIBRARY_NAME))),
   m_status(new WStatus),
+  m_textInput(new WInput(new input::TextInput)),
   m_download(NULL),
   m_focus(c->get_core().get_download_list().end()),
   m_control(c),
-  m_bindings(new input::Bindings),
-  m_windowInput(new WInput(new input::TextInput)) {
+  m_bindings(new input::Bindings) {
 
   m_window = new WList(&m_control->get_core().get_download_list(), &m_focus);
 
   bind_keys(m_bindings);
 
-  m_windowInput->get_input()->slot_dirty(sigc::mem_fun(*m_windowInput, &WInput::mark_dirty));
+  m_textInput->get_input()->slot_dirty(sigc::mem_fun(*m_textInput, &WInput::mark_dirty));
 }
 
 DownloadList::~DownloadList() {
@@ -39,26 +39,31 @@ DownloadList::~DownloadList() {
   delete m_status;
   delete m_bindings;
 
-  delete m_windowInput->get_input();
-  delete m_windowInput;
+  delete m_textInput->get_input();
+  delete m_textInput;
 }
 
 void
 DownloadList::activate() {
-  m_control->get_display().push_back(m_windowInput);
+  m_control->get_input().push_front(m_bindings);
+
   m_control->get_display().push_back(m_status);
   m_control->get_display().push_front(m_window);
   m_control->get_display().push_front(m_title);
-  m_control->get_input().push_front(m_bindings);
 }
 
 void
 DownloadList::disable() {
-  m_control->get_display().erase(m_windowInput);
+  if (m_textInput->get_focus()) {
+    m_textInput->get_input()->clear();
+    receive_exit_input();
+  }
+
+  m_control->get_input().erase(m_bindings);
+
   m_control->get_display().erase(m_title);
   m_control->get_display().erase(m_window);
   m_control->get_display().erase(m_status);
-  m_control->get_input().erase(m_bindings);
 }
 
 void
@@ -101,7 +106,10 @@ DownloadList::receive_stop_download() {
   if (m_focus == m_control->get_core().get_download_list().end())
     return;
 
-  m_control->get_core().stop(&*m_focus);
+  if (m_focus->get_download().is_active())
+    m_control->get_core().stop(&*m_focus);
+  else
+    m_control->get_core().erase(m_focus);
 }
 
 void
@@ -136,9 +144,13 @@ DownloadList::receive_exit_download() {
 
 void
 DownloadList::receive_view_input() {
-  m_control->get_input().set_text_input(m_windowInput->get_input());
+  m_control->get_display().erase(m_status);
+  m_control->get_display().push_back(m_textInput);
+  m_control->get_display().adjust_layout();
 
-  m_windowInput->set_focus(true);
+  m_control->get_input().set_text_input(m_textInput->get_input());
+
+  m_textInput->set_focus(true);
 
   (*m_bindings)['\n'] = sigc::mem_fun(*this, &DownloadList::receive_exit_input);
   (*m_bindings)[KEY_ENTER] = sigc::mem_fun(*this, &DownloadList::receive_exit_input);
@@ -146,12 +158,16 @@ DownloadList::receive_view_input() {
 
 void
 DownloadList::receive_exit_input() {
+  m_control->get_display().erase(m_textInput);
+  m_control->get_display().push_back(m_status);
+  m_control->get_display().adjust_layout();
+
   m_control->get_input().set_text_input();
 
-  m_slotOpenUri(m_windowInput->get_input()->str());
+  m_slotOpenUri(m_textInput->get_input()->str());
 
-  m_windowInput->get_input()->clear();
-  m_windowInput->set_focus(false);
+  m_textInput->get_input()->clear();
+  m_textInput->set_focus(false);
 
   m_bindings->erase('\n');
   m_bindings->erase(KEY_ENTER);

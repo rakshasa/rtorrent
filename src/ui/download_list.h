@@ -62,6 +62,7 @@ private:
   WList*           m_window;
   WTitle*          m_title;
   WStatus*         m_status;
+  WInput*          m_textInput;
 
   Download*        m_download;
 
@@ -72,9 +73,6 @@ private:
   input::Bindings* m_bindings;
 
   SlotOpenUri      m_slotOpenUri;
-
-  // Test
-  WInput*          m_windowInput;
 };
 
 }

@@ -46,18 +46,21 @@ set_shutdown() {
 
 void
 do_shutdown(ui::Control* c) {
-  if (is_shutting_down)
-    // Be quick about it...
-    return;
+  if (!is_shutting_down) {
+    is_shutting_down = true;
 
-  is_shutting_down = true;
+    torrent::listen_close();
 
-  torrent::listen_close();
+    std::for_each(c->get_core().get_download_list().begin(), c->get_core().get_download_list().end(),
+		  std::mem_fun_ref(&core::Download::stop));
 
-  // TODO: Set display to a safe mode.
+  } else {
+    // Close all torrents, this will stop all tracker connections and cause
+    // a quick shutdown.
+    std::for_each(c->get_core().get_download_list().begin(), c->get_core().get_download_list().end(),
+		  std::mem_fun_ref(&core::Download::close));
 
-  std::for_each(c->get_core().get_download_list().begin(), c->get_core().get_download_list().end(),
-		std::mem_fun_ref(&core::Download::stop));
+  }
 }
 
 void

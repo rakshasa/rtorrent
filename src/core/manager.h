@@ -23,6 +23,7 @@ public:
   void          cleanup();
 
   void          insert(const std::string& uri);
+  void          erase(DownloadList::iterator itr);
 
   void          start(Download* d);
   void          stop(Download* d);

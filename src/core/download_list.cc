@@ -15,7 +15,6 @@ DownloadList::insert(std::istream* str) {
   torrent::Download d = torrent::download_create(str);
 
   iterator itr = Base::insert(end(), Download());
-
   itr->set_download(d);
 
   return itr;
@@ -26,7 +25,6 @@ DownloadList::erase(iterator itr) {
   itr->release_download();
 
   torrent::download_remove(itr->get_hash());
-
   Base::erase(itr);
 }
 

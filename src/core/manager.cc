@@ -1,5 +1,6 @@
 #include "config.h"
 
+#include <stdexcept>
 #include <cstring>
 #include <fstream>
 #include <istream>
@@ -36,6 +37,17 @@ Manager::insert(const std::string& uri) {
   else
     create_http(uri);
 }
+
+void
+Manager::erase(DownloadList::iterator itr) {
+  if (itr->get_download().is_active())
+    throw std::logic_error("core::Manager::erase(...) called on an active download");
+
+  if (itr->get_download().is_open())
+    itr->close();
+
+  m_downloadList.erase(itr);
+}  
 
 void
 Manager::start(Download* d) {
