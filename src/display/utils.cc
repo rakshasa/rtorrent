@@ -22,10 +22,10 @@ print_download_status(core::Download* d) {
     str << "Inactive";
 
   } else if (!d->get_tracker_msg().empty()) {
-    str << "Tracker: " << d->get_tracker_msg();
+    str << "Tracker: [" << d->get_tracker_msg() << ']';
 
   } else {
-    str << "---";
+    //str << "---";
   }
 
   return str.str();

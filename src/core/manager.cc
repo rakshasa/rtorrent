@@ -141,7 +141,7 @@ Manager::create_final(std::istream* s) {
   m_downloadStore.save(*itr);
 
   if (m_debugTracker >= 0)
-    (*itr)->get_download().signal_tracker_succeded(sigc::mem_fun(*this, &Manager::receive_debug_tracker));
+    (*itr)->get_download().signal_tracker_dump(sigc::mem_fun(*this, &Manager::receive_debug_tracker));
 
   return itr;
 }

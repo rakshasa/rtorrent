@@ -4,6 +4,7 @@
 #include <stdexcept>
 #include <iostream>
 #include <fstream>
+#include <stdlib.h>
 #include <torrent/http.h>
 #include <torrent/torrent.h>
 #include <sigc++/bind.h>
@@ -112,6 +113,9 @@ main(int argc, char** argv) {
   ui::Root    uiRoot(&uiControl);
 
   utils::Timer::update();
+
+  srandom(utils::Timer::cache().usec());
+  srand48(utils::Timer::cache().usec());
 
   try {
 

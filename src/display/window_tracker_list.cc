@@ -43,8 +43,9 @@ WindowTrackerList::redraw() {
   while (range.first != range.second) {
     torrent::Tracker t = m_download->get_download().get_tracker(range.first);
 
-    m_canvas->print(0, pos, "%c %s",
+    m_canvas->print(0, pos, "%c %2i %s",
 		    range.first == *m_focus ? '*' : ' ',
+		    t.get_group(),
 		    t.get_url().c_str());
 
     ++range.first;
