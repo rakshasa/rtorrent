@@ -1,8 +1,10 @@
-#ifndef RTORRENT_DOWNLOADS_H
-#define RTORRENT_DOWNLOADS_H
+#ifndef RTORRENT_ENGINE_DOWNLOADS_H
+#define RTORRENT_ENGINE_DOWNLOADS_H
 
 #include <iosfwd>
 #include <torrent/download.h>
+
+namespace engine {
 
 class Downloads : private std::list<torrent::Download> {
 public:
@@ -21,5 +23,7 @@ public:
   void create(std::istream& str);
   void erase(iterator itr);
 };
+
+}
 
 #endif

@@ -1,16 +1,14 @@
 SUBDIRS = \
 	display \
+	engine \
 	input
 
 bin_PROGRAMS = rtorrent
 
 rtorrent_LDADD = \
 	$(top_srcdir)/src/display/libsub_display.a \
+	$(top_srcdir)/src/engine/libsub_engine.a \
 	$(top_srcdir)/src/input/libsub_input.a
 
 rtorrent_SOURCES = \
-	downloads.cc \
-	downloads.h \
-	main.cc \
-	poll.cc \
-	poll.h
+	main.cc

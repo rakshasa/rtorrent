@@ -1,8 +1,10 @@
-#ifndef RTORRENT_POLL_H
-#define RTORRENT_POLL_H
+#ifndef RTORRENT_ENGINE_POLL_H
+#define RTORRENT_ENGINE_POLL_H
 
 #include <sys/select.h>
 #include <sigc++/slot.h>
+
+namespace engine {
 
 class Poll {
 public:
@@ -10,7 +12,7 @@ public:
 
   Poll() : m_running(true) {}
 
-  bool      is_running()            { return m_running; }
+  bool      is_running()               { return m_running; }
 
   void      poll();
   void      work();
@@ -26,5 +28,7 @@ private:
   fd_set    m_writeSet;
   fd_set    m_exceptSet;
 };
+
+}
 
 #endif

@@ -5,6 +5,8 @@
 
 #include "poll.h"
 
+namespace engine {
+
 void
 Poll::poll() {
   FD_ZERO(&m_readSet);
@@ -32,4 +34,6 @@ Poll::work() {
     while ((key = getch()) >= 0)
       m_readStdin(key);
   }
+}
+
 }

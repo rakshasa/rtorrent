@@ -1,11 +1,11 @@
 #include "config.h"
 
-#include "window_downloads.h"
 #include "canvas.h"
+#include "window_downloads.h"
 
 namespace display {
 
-WindowDownloads::WindowDownloads(Downloads* d) :
+WindowDownloads::WindowDownloads(engine::Downloads* d) :
   Window(new Canvas, true),
   m_downloads(d) {
 }
@@ -17,7 +17,7 @@ WindowDownloads::redraw() {
 
   int pos = 1;
 
-  for (Downloads::iterator itr = m_downloads->begin(); itr != m_downloads->end(); ++itr, ++pos)
+  for (engine::Downloads::iterator itr = m_downloads->begin(); itr != m_downloads->end(); ++itr, ++pos)
     m_canvas->print(1, pos, "Download: %s", itr->get_name().c_str());
 }
 

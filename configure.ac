@@ -35,12 +35,12 @@ AC_ARG_ENABLE(werror,
 
 AC_SEARCH_LIBS(wbkgdset, ncurses curses,,echo "*** The ncurses library is required!";exit 1)
 
-PKG_CHECK_MODULES(STUFF, sigc++-2.0 libtorrent >= 0.4.8,
-	          CXXFLAGS="$CXXFLAGS $STUFF_CFLAGS";
-		  LIBS="$LIBS $STUFF_LIBS")
-
 TORRENT_CHECK_CURL()
 TORRENT_OTFD()
+
+PKG_CHECK_MODULES(STUFF, sigc++-2.0 libtorrent >= 0.4.8,
+	          CXXFLAGS="$CXXFLAGS $STUFF_CFLAGS $CURL_CFLAGS";
+		  LIBS="$LIBS $STUFF_LIBS $CURL_LIBS")
 
 AC_DEFINE(HAVE_CONFIG_H, 1, true if config.h was included)
 
@@ -48,5 +48,6 @@ AC_OUTPUT([
 	Makefile
 	src/Makefile
 	src/display/Makefile
+	src/engine/Makefile
 	src/input/Makefile
 ])

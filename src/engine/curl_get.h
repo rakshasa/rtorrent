@@ -1,5 +1,5 @@
-#ifndef LIBTORRENT_CURL_GET_H
-#define LIBTORRENT_CURL_GET_H
+#ifndef RTORRENT_ENGINE_CURL_GET_H
+#define RTORRENT_ENGINE_CURL_GET_H
 
 #include <iosfwd>
 #include <string>
@@ -8,6 +8,8 @@
 #include <sigc++/signal.h>
 
 struct CURLMsg;
+
+namespace engine {
 
 class CurlGet : public torrent::Http {
  public:
@@ -36,22 +38,24 @@ class CurlGet : public torrent::Http {
   SignalFailed&      signal_failed();
 
  protected:
-  CURL* handle() { return m_handle; }
+  CURL*              handle() { return m_handle; }
 
-  void  perform(CURLMsg* msg);
+  void               perform(CURLMsg* msg);
 
  private:
-  friend size_t curl_get_receive_write(void* data, size_t size, size_t nmemb, void* handle);
+  friend size_t      curl_get_receive_write(void* data, size_t size, size_t nmemb, void* handle);
 
-  std::string   m_url;
-  std::string   m_useragent;
-  std::ostream* m_out;
-  CURL*         m_handle;
+  std::string        m_url;
+  std::string        m_useragent;
+  std::ostream*      m_out;
+  CURL*              m_handle;
 
-  CurlStack*    m_stack;
+  CurlStack*         m_stack;
 
   sigc::signal0<void>              m_done;
   sigc::signal1<void, std::string> m_failed;
 };
+
+}
 
 #endif

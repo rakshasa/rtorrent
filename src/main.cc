@@ -3,21 +3,27 @@
 #include <iostream>
 #include <fstream>
 #include <torrent/torrent.h>
+#include <torrent/http.h>
+#include <sigc++/bind.h>
 
 #include "display/canvas.h"
 #include "display/manager.h"
 #include "display/window_downloads.h"
+
+#include "engine/poll.h"
+#include "engine/curl_stack.h"
+#include "engine/curl_get.h"
+#include "engine/downloads.h"
+
 #include "input/bindings.h"
 #include "input/manager.h"
-
-#include "poll.h"
-#include "downloads.h"
 
 int main(int argc, char** argv) {
   try {
 
-  Poll poll;
-  Downloads downloads;
+  engine::Poll poll;
+  engine::Downloads downloads;
+  engine::CurlStack curlStack;
 
   display::Canvas::init();
   display::Manager display;
@@ -31,6 +37,8 @@ int main(int argc, char** argv) {
 
   torrent::initialize();
   torrent::listen_open(6880, 6999);
+
+  torrent::Http::set_factory(sigc::bind(sigc::ptr_fun(&engine::CurlGet::new_object), &curlStack));
 
   for (int i = 1; i < argc; ++i) {
     std::fstream f(argv[i], std::ios::in);

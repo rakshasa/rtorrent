@@ -17,6 +17,9 @@ AC_DEFUN([TORRENT_CHECK_CURL], [
       if test x$ok != x0; then
         my_cv_curl_vers="$ver"
         AC_MSG_RESULT([$my_cv_curl_vers])
+
+	CURL_CFLAGS=`curl-config --cflags`
+	CURL_LIBS=`curl-config --libs`
       else
         AC_MSG_RESULT(FAILED)
         AC_MSG_ERROR([$ver is too old. Need version $check or higher.])
