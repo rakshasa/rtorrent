@@ -191,7 +191,7 @@ do_panic(int signum) {
 
 void
 print_help() {
-  std::cout << "Rakshasa's Torrent client. <Neko-Mimi Mode-o!>" << std::endl;
+  std::cout << "Rakshasa's BitTorrent client " VERSION "." << std::endl;
   std::cout << std::endl;
   std::cout << "All value pairs (f.ex rate and queue size) will be in the UP/DOWN" << std::endl;
   std::cout << "order. Use the up/down/left/right arrow keys to move between screens." << std::endl;

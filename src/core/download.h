@@ -8,6 +8,9 @@ namespace core {
 
 class Download {
 public:
+  bool               is_open()                       { return m_download.is_open(); }
+  bool               is_done()                       { return m_download.get_chunks_done() == m_download.get_chunks_total(); }
+
   void               set_download(torrent::Download d);
   void               release_download();
 

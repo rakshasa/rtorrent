@@ -1,6 +1,9 @@
 #include "config.h"
 
+#include <stdexcept>
+
 #include "core/download.h"
+#include "utils/algorithm.h"
 
 #include "window_file_list.h"
 
@@ -17,21 +20,28 @@ WindowFileList::redraw() {
   m_nextDraw = utils::Timer::cache().round_seconds() + 10 * 1000000;
   m_canvas->erase();
 
-  int y1 = 0;
-  int y2 = m_canvas->get_height();
+  int pos = 0;
 
-  m_canvas->print( 2, y1, "File");
-  m_canvas->print(55, y1, "Size");
-  m_canvas->print(62, y1, "Pri");
-  m_canvas->print(67, y1, "Cmpl");
+  m_canvas->print( 2, pos, "File");
+  m_canvas->print(55, pos, "Size");
+  m_canvas->print(62, pos, "Pri");
+  m_canvas->print(67, pos, "Cmpl");
 
-  ++y1;
+  ++pos;
 
-  unsigned int files = m_download->get_download().get_entry_size();
-  unsigned int index = std::min<unsigned>(std::max((int)*m_focus - (y2 - y1) / 2, 0), (int)files - (y2 - y1));
+  if (m_download->get_download().get_entry_size() == 0)
+    return;
 
-  while (index < files && y1 < y2) {
-    torrent::Entry e = m_download->get_download().get_entry(index);
+  if (*m_focus >= m_download->get_download().get_entry_size())
+    throw std::logic_error("WindowFileList::redraw() called on an object with a bad focus value");
+
+  typedef std::pair<unsigned int, unsigned int> Range;
+
+  Range range = utils::iterate_both_distance<unsigned int>(0, *m_focus, m_download->get_download().get_entry_size(),
+							   m_canvas->get_height());
+
+  while (range.first != range.second) {
+    torrent::Entry e = m_download->get_download().get_entry(range.first);
 
     std::string path = e.get_path();
 
@@ -60,15 +70,15 @@ WindowFileList::redraw() {
       break;
     };
 
-    m_canvas->print(0, y1, "%c %s  %5.1f   %s   %3d",
-		    index == *m_focus ? '*' : ' ',
+    m_canvas->print(0, pos, "%c %s  %5.1f   %s   %3d",
+		    range.first == *m_focus ? '*' : ' ',
 		    path.c_str(),
 		    (double)e.get_size() / (double)(1 << 20),
 		    priority.c_str(),
 		    done_percentage(e));
 
-    ++index;
-    ++y1;
+    ++range.first;
+    ++pos;
   }
 
 }
