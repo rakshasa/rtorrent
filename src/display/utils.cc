@@ -58,7 +58,7 @@ print_download_status(core::Download* d) {
 
 std::string
 print_hhmmss(utils::Timer t) {
-  std::tm *u = std::localtime(&t.tval().tv_sec);
+  std::tm *u = std::localtime(&(time_t)t.tval().tv_sec);
   
   if (u == NULL)
     return "inv_time";

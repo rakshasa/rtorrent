@@ -22,3 +22,12 @@ Make accumulate return the value, no refs please...
 >   - being able to delete not just the torrent file, but the files it
 >     created from rtorrent.  Like when you start a torrent, but it is too
 >     slow or broken or for various reasons you don't want to download it.
+
+
+Const cast problems?
+
+std::tm *u = std::localtime(&t.tval().tv_sec);
+
+Let us see the torrent comment.
+
+Why is the client lagging when downloading a http torrent? Looks like libcurl

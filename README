@@ -1,3 +1,8 @@
+LICENSE
+
+ GNU GPL, see COPYING.
+
+
 Options and flags:
 
   -i <a.b.c.d>      Set the IP address sent to the tracker.
