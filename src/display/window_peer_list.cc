@@ -98,7 +98,7 @@ WindowPeerList::redraw() {
 	     itr->get_incoming_queue_size());
     x += 6;
 
-    m_canvas->print(x, y, "%3i", (itr->get_chunks_done() * 100) / m_download->get_download().get_chunks_total());
+    m_canvas->print(x, y, "%3i", done_percentage(*itr));
     x += 6;
 
     if (itr->get_incoming_queue_size())
@@ -113,6 +113,13 @@ WindowPeerList::redraw() {
     ++y;
     ++itr;
   }
+}
+
+int
+WindowPeerList::done_percentage(torrent::Peer& p) {
+  int chunks = m_download->get_download().get_chunks_total();
+
+  return chunks ? (100 * p.get_chunks_done()) / chunks : 0;
 }
 
 }

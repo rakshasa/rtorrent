@@ -21,6 +21,8 @@ public:
   virtual void     redraw();
 
 private:
+  int              done_percentage(torrent::Peer& p);
+
   core::Download*  m_download;
 
   PList*           m_list;

@@ -108,19 +108,12 @@ if_then(Cond c, Then t) {
   return _if_then<Cond, Then>(c, t);
 }
 
-struct _call_delete
-  : public std::unary_function<void, void> {
-  
-  template <typename Type>
-  void operator () (Type* t) {
+template <typename T>
+struct call_delete : public std::unary_function<T*, void> {
+  void operator () (T* t) {
     delete t;
   }
 };
-
-inline _call_delete
-call_delete() {
-  return _call_delete();
-}
 
 }
 
