@@ -4,6 +4,8 @@
 #include <inttypes.h>
 #include <sys/time.h>
 
+namespace utils {
+
 // Don't convert negative Timer to timeval.
 class Timer {
  public:
@@ -52,5 +54,7 @@ class Timer {
   // Instantiated in torrent.cc
   static int64_t m_cache;
 };
+
+}
 
 #endif // LIBTORRENT_TIMER_H

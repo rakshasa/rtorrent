@@ -6,7 +6,7 @@
 #include "core/http_queue.h"
 
 #include "canvas.h"
-#include "functional.h"
+#include "utils/functional.h"
 #include "window_http_queue.h"
 
 namespace display {
@@ -22,10 +22,10 @@ WindowHttpQueue::WindowHttpQueue(core::HttpQueue* q) :
 
 void
 WindowHttpQueue::redraw() {
-  if (Timer::cache() - m_lastDraw < 1000000)
+  if (utils::Timer::cache() - m_lastDraw < 1000000)
     return;
 
-  m_lastDraw = Timer::cache();
+  m_lastDraw = utils::Timer::cache();
 
   cleanup_list();
 
@@ -62,7 +62,7 @@ WindowHttpQueue::redraw() {
 void
 WindowHttpQueue::cleanup_list() {
   for (Container::iterator itr = m_container.begin(); itr != m_container.end();)
-    if (itr->m_http == NULL && itr->m_timer < Timer::cache())
+    if (itr->m_http == NULL && itr->m_timer < utils::Timer::cache())
       itr = m_container.erase(itr);
     else
       ++itr;
@@ -112,7 +112,7 @@ WindowHttpQueue::receive_erase(core::CurlGet* h) {
     throw std::logic_error("WindowHttpQueue::receive_erase(...) tried to remove an object we don't have");
 
   itr->m_http = NULL;
-  itr->m_timer = Timer::cache() + 10000000;
+  itr->m_timer = utils::Timer::cache() + 10000000;
 
   mark_dirty();
 }

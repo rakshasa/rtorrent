@@ -4,7 +4,7 @@
 #include <curl/multi.h>
 #include <torrent/exceptions.h>
 
-#include "functional.h"
+#include "utils/functional.h"
 #include "curl_get.h"
 #include "curl_stack.h"
 

@@ -12,10 +12,10 @@ WindowTitle::WindowTitle(const std::string& s) :
 
 void
 WindowTitle::redraw() {
-  if (Timer::cache() - m_lastDraw < 10000000)
+  if (utils::Timer::cache() - m_lastDraw < 10000000)
     return;
 
-  m_lastDraw = Timer::cache();
+  m_lastDraw = utils::Timer::cache();
   m_canvas->erase();
 
   m_canvas->print(std::max(0, (m_canvas->get_width() - (int)m_title.size()) / 2 - 4), 0,

@@ -18,7 +18,7 @@ WindowInput::redraw() {
   if (!is_dirty())
     return;
 
-  m_lastDraw = Timer::cache();
+  m_lastDraw = utils::Timer::cache();
   m_canvas->erase();
 
   m_canvas->print(0, 0, "> %s", m_input->c_str());

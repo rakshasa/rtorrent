@@ -14,10 +14,10 @@ WindowDownloadList::WindowDownloadList(DList* l, DList::iterator* f) :
 
 void
 WindowDownloadList::redraw() {
-  if (Timer::cache() - m_lastDraw < 1000000)
+  if (utils::Timer::cache() - m_lastDraw < 1000000)
     return;
 
-  m_lastDraw = Timer::cache();
+  m_lastDraw = utils::Timer::cache();
 
   m_canvas->erase();
 

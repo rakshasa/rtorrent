@@ -2,7 +2,9 @@
 
 #include <sstream>
 
-#include "parse.h"
+#include "utils/parse.h"
+
+namespace utils {
 
 std::string
 escape_string(const std::string& src) {
@@ -21,4 +23,6 @@ escape_string(const std::string& src) {
       stream << '%' << ((unsigned char)*itr >> 4) << ((unsigned char)*itr & 0xf);
 
   return stream.str();
+}
+
 }

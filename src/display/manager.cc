@@ -3,7 +3,7 @@
 #include <stdexcept>
 #include <algorithm>
 
-#include "functional.h"
+#include "utils/functional.h"
 
 #include "canvas.h"
 #include "manager.h"

@@ -1,4 +1,4 @@
-AC_INIT(rtorrent, 0.0.2, jaris@ifi.uio.no)
+AC_INIT(rtorrent, 0.0.3, jaris@ifi.uio.no)
 
 AM_INIT_AUTOMAKE
 AM_CONFIG_HEADER(config.h)
@@ -52,4 +52,5 @@ AC_OUTPUT([
 	src/display/Makefile
 	src/input/Makefile
 	src/ui/Makefile
+	src/utils/Makefile
 ])

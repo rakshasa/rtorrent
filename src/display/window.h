@@ -1,7 +1,7 @@
 #ifndef RTORRENT_WINDOW_BASE_H
 #define RTORRENT_WINDOW_BASE_H
 
-#include "timer.h"
+#include "utils/timer.h"
 
 namespace display {
 
@@ -40,7 +40,7 @@ protected:
   bool         m_dynamic;
   int          m_minHeight;
 
-  Timer        m_lastDraw;
+  utils::Timer        m_lastDraw;
 };
 
 }

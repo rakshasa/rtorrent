@@ -5,7 +5,7 @@
 #include <sigc++/bind.h>
 
 #include "download.h"
-#include "functional.h"
+#include "utils/functional.h"
 #include "hash_queue.h"
 
 namespace core {

@@ -2,12 +2,11 @@
 
 #include <memory>
 #include <sstream>
-#include <functional.h>
 #include <sigc++/bind.h>
 #include <sigc++/hide.h>
 #include <torrent/http.h>
 
-#include "functional.h"
+#include "utils/functional.h"
 #include "http_queue.h"
 #include "curl_get.h"
 

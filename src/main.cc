@@ -17,12 +17,12 @@
 #include "ui/control.h"
 #include "ui/download_list.h"
 #include "input/bindings.h"
+#include "utils/timer.h"
 
-#include "timer.h"
 #include "signal_handler.h"
 #include "option_parser.h"
 
-int64_t Timer::m_cache;
+int64_t utils::Timer::m_cache;
 
 bool start_shutdown = false;
 bool is_shutting_down = false;
@@ -114,7 +114,7 @@ main(int argc, char** argv) {
     if (start_shutdown)
       do_shutdown(&uiControl);
 
-    Timer::update();
+    utils::Timer::update();
 
     uiControl.get_display().do_update();
 
