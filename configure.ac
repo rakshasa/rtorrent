@@ -7,10 +7,6 @@ sinclude(scripts/checks.m4)
 
 CXXFLAGS="-O3"
 
-AC_PROG_CXX
-AC_PROG_RANLIB
-AC_SYS_LARGEFILE
-
 AC_ARG_ENABLE(debug,
     [  --enable-debug          enable debug information [default=yes]],
     [
@@ -23,6 +19,10 @@ AC_ARG_ENABLE(debug,
         CXXFLAGS="$CXXFLAGS -Wall -g -DDEBUG"
     ]
 )
+
+AC_PROG_CXX
+AC_PROG_RANLIB
+AC_SYS_LARGEFILE
 
 AC_ARG_ENABLE(werror,
     [  --enable-werror         enable the -Werror flag [default=no]],
