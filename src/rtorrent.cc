@@ -3,48 +3,69 @@
 #include "display/window.h"
 #include "display/canvas.h"
 #include "display/manager.h"
+#include "input/bindings.h"
+#include "input/manager.h"
 
 class WindowTest : public display::Window {
 public:
-  WindowTest(const std::string& str) : m_str(str) {}
+  WindowTest(const std::string& str, bool reverse = false) : Window(new display::Canvas), m_str(str), m_reverse(reverse) {}
   
   virtual void redraw() {
     if (m_canvas == NULL)
       return;
+
+    if (m_reverse)
+      m_canvas->set_background(A_REVERSE);
+    else
+      m_canvas->set_background(0);
 
     m_canvas->erase();
     m_canvas->print_border('|', '|', '-', '-', '+', '+', '+', '+');
     m_canvas->print(1, 1, "%s", m_str.c_str());
   }
 
+  void reverse() {
+    m_reverse = !m_reverse;
+  }
+
 private:
   std::string m_str;
+
+  bool m_reverse;
 };  
 
 int main(int argc, char** argv) {
   display::Canvas::init();
-  display::Manager manager;
+  display::Manager display;
+  input::Manager inputManager;
 
   WindowTest window1("This is window 1");
   WindowTest window2("This is window 2");
 
-  window1.set_canvas(new display::Canvas());
-  window2.set_canvas(new display::Canvas());
+  input::Bindings bindings1;
+  input::Bindings bindings2;
 
-  manager.add(&window1);
-  manager.add(&window2);
+  inputManager.push_back(&bindings1);
+  inputManager.push_back(&bindings2);
 
-  window1.get_canvas()->set_background(A_REVERSE);
+  bindings1[KEY_LEFT] = sigc::mem_fun(window1, &WindowTest::reverse);
+  bindings2[KEY_LEFT] = sigc::mem_fun(window2, &WindowTest::reverse);
+  bindings2[KEY_RIGHT] = sigc::mem_fun(window2, &WindowTest::reverse);
 
-  manager.adjust_layout();
-  manager.do_update();
+  display.add(&window1);
+  display.add(&window2);
 
-  while (true);
+  display.adjust_layout();
+
+  while (true) {
+    display.do_update();
+    
+    inputManager.pressed(getch());
+
+    sleep(1);
+  }
 
   display::Canvas::cleanup();
-
-  delete window1.get_canvas();
-  delete window2.get_canvas();
 
   return 0;
 }

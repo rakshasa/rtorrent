@@ -41,6 +41,7 @@ Manager::adjust_row(iterator bItr, iterator eItr, int x, int y, int w, int h) {
 void
 Manager::do_update() {
   std::for_each(begin(), end(), std::mem_fun_ref(&ManagerElement::redraw));
+  std::for_each(begin(), end(), std::mem_fun_ref(&ManagerElement::refresh));
 
   Canvas::do_update();
 }

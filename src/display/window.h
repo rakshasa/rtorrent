@@ -7,11 +7,10 @@ class Canvas;
 
 class Window {
 public:
-  Window() : m_canvas(NULL) {}
+  Window(Canvas* c = NULL) : m_canvas(c) {}
   virtual ~Window() {}
 
   Canvas*      get_canvas()          { return m_canvas; }
-  void         set_canvas(Canvas* c) { m_canvas = c; }
   
   void         refresh();
   void         resize(int x, int y, int w, int h);
