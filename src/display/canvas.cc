@@ -6,8 +6,8 @@ namespace display {
 
 void
 Canvas::resize(int x, int y, int w, int h) {
-  delwin(m_window);
-  m_window = newwin(h, w, y, x);
+  wresize(m_window, h, w);
+  mvwin(m_window, y, x);
 }
 
 void

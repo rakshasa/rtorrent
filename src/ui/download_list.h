@@ -30,6 +30,9 @@ public:
   void             disable();
 
 private:
+  DownloadList(const DownloadList&);
+  void operator = (const DownloadList&);
+
   void             receive_next();
   void             receive_prev();
 

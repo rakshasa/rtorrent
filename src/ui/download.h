@@ -36,6 +36,9 @@ public:
   void             disable();
 
 private:
+  Download(const Download&);
+  void operator = (const Download&);
+
   void             receive_next();
   void             receive_prev();
 

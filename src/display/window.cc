@@ -7,6 +7,10 @@
 
 namespace display {
 
+Window::~Window() {
+  delete m_canvas;
+}
+
 void
 Window::refresh() {
   m_canvas->refresh();

@@ -65,6 +65,8 @@ Manager::adjust_layout() {
 
 void
 Manager::do_update() {
+  wnoutrefresh(stdscr);
+
   std::for_each(begin(), end(), std::mem_fun(&Window::redraw));
   std::for_each(begin(), end(), std::mem_fun(&Window::refresh));
 

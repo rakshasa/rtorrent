@@ -11,7 +11,8 @@ class Window {
 public:
   Window(Canvas* c = NULL, bool d = false, int h = 1) :
     m_canvas(c), m_dynamic(d), m_minHeight(h) {}
-  virtual ~Window() {}
+
+  virtual ~Window();
 
   bool         is_dynamic()     { return m_dynamic; }
   bool         is_dirty()       { return m_lastDraw == 0; }
