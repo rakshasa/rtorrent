@@ -24,6 +24,8 @@ public:
   using Base::push_back;
   using Base::push_front;
 
+  void erase(Bindings* b);
+
   void pressed(int key);
 
   // Slot for unreacted keys.

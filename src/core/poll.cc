@@ -1,6 +1,7 @@
 #include "config.h"
 
 #include <stdexcept>
+#include <sstream>
 #include <ncurses.h>
 #include <sigc++/bind.h>
 #include <torrent/torrent.h>
@@ -34,9 +35,13 @@ Poll::poll() {
 
   m_maxFd = select(m_maxFd, &m_readSet, &m_writeSet, &m_exceptSet, &timeout);
 
-  if (m_maxFd == EINTR)
+  if (m_maxFd >= 0)
+    return;
+
+  else if (errno == EINTR)
     m_slotSelectInterrupted();
-  else if (m_maxFd < 0)
+
+  else if (errno < 0)
     throw std::runtime_error("Poll::work(): select error");
 }
 

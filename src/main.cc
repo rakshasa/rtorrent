@@ -15,6 +15,8 @@
 
 #include "input/bindings.h"
 #include "input/manager.h"
+#include "ui/control.h"
+#include "ui/download_list.h"
 
 #include "signal_handler.h"
 
@@ -23,9 +25,6 @@ bool is_shutting_down = false;
 
 core::Poll poll;
 core::DownloadList downloads;
-
-display::Manager displayManager;
-input::Manager inputManager;
 
 void
 set_shutdown() {
@@ -51,15 +50,13 @@ main(int argc, char** argv) {
 
   display::Canvas::init();
 
-  inputManager.push_back(new input::Bindings);
+  ui::Control uiControl;
+  ui::DownloadList uiDownloadList(&downloads, &uiControl);
 
-  poll.slot_read_stdin(sigc::mem_fun(inputManager, &input::Manager::pressed));
+  uiDownloadList.activate();
+
+  poll.slot_read_stdin(sigc::mem_fun(uiControl.get_input(), &input::Manager::pressed));
   poll.register_http();
-
-  display::WindowDownloadList* wdl = new display::WindowDownloadList(&downloads);
-
-  displayManager.push_back(new display::WindowTitle);
-  displayManager.push_back(wdl);
 
   torrent::initialize();
   torrent::listen_open(6880, 6999);
@@ -71,8 +68,6 @@ main(int argc, char** argv) {
 
     itr->open();
     itr->hash_check();
-
-    wdl->set_focus(itr);
   }
 
   SignalHandler::set_handler(SIGINT, sigc::ptr_fun(&set_shutdown));
@@ -81,8 +76,8 @@ main(int argc, char** argv) {
     if (start_shutdown && !is_shutting_down)
       do_shutdown();
 
-    displayManager.adjust_layout();
-    displayManager.do_update();
+    uiControl.get_display().adjust_layout();
+    uiControl.get_display().do_update();
 
     poll.poll();
     poll.work();

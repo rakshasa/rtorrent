@@ -12,7 +12,9 @@ public:
 
   WindowDownloadList(List* d);
 
-  List::iterator get_focus()                                   { return m_focus; }
+  List*          get_list()                                  { return m_downloads; }
+
+  List::iterator get_focus()                                 { return m_focus; }
   void           set_focus(core::DownloadList::iterator itr) { m_focus = itr; }
 
   virtual void   redraw();

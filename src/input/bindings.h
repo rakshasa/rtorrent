@@ -2,6 +2,7 @@
 #define RTORRENT_INPUT_BINDINGS_H
 
 #include <map>
+#include <ncurses.h>
 #include <sigc++/slot.h>
 
 namespace input {
@@ -23,7 +24,15 @@ public:
 
   using Base::operator[];
 
-  bool pressed(int key);
+  Bindings() : m_active(true) {}
+
+  void      activate() { m_active = true; }
+  void      disable()  { m_active = false; }
+
+  bool      pressed(int key);
+
+private:
+  bool      m_active;
 };
 
 }

@@ -1,15 +1,15 @@
 #ifndef RTORRENT_DISPLAY_MANAGER_H
 #define RTORRENT_DISPLAY_MANAGER_H
 
-#include <vector>
+#include <list>
 
 namespace display {
 
 class Window;
 
-class Manager : private std::vector<Window*> {
+class Manager : private std::list<Window*> {
 public:
-  typedef std::vector<Window*> Base;
+  typedef std::list<Window*> Base;
 
   using Base::iterator;
   using Base::const_iterator;
@@ -23,7 +23,10 @@ public:
 
   using Base::insert;
   using Base::erase;
+  using Base::push_front;
   using Base::push_back;
+
+  iterator       erase(Window* w);
 
   void           adjust_layout();
   void           do_update();

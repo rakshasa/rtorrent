@@ -1,6 +1,7 @@
 #ifndef RTORRENT_DISPLAY_WINDOW_TITLE_H
 #define RTORRENT_DISPLAY_WINDOW_TITLE_H
 
+#include <string>
 #include "window.h"
 
 namespace display {
@@ -13,6 +14,8 @@ public:
 
 private:
   std::string  m_title;
+
+  int m_counter;
 };
 
 }

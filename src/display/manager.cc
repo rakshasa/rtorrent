@@ -26,6 +26,16 @@ _accumulate<Type, Ftor> accumulate(Type& t, Ftor f) {
   return _accumulate<Type, Ftor>(t, f);
 }
 
+Manager::iterator
+Manager::erase(Window* w) {
+  iterator itr = std::find(begin(), end(), w);
+
+  if (itr == end())
+    throw std::logic_error("Manager::erase(...) did not find the window");
+
+  return Base::erase(itr);
+}
+
 void
 Manager::adjust_layout() {
   int countDynamic = 0;

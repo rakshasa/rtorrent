@@ -50,4 +50,5 @@ AC_OUTPUT([
 	src/core/Makefile
 	src/display/Makefile
 	src/input/Makefile
+	src/ui/Makefile
 ])
