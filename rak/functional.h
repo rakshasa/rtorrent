@@ -3,7 +3,7 @@
 
 #include <functional>
 
-namespace utils {
+namespace rak {
 
 template <typename Type, typename Ftor>
 struct _accumulate {

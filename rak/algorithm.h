@@ -3,7 +3,7 @@
 
 #include <algorithm>
 
-namespace utils {
+namespace rak {
 
 template <typename _InputIter, typename _Function>
 _Function

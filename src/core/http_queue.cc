@@ -6,7 +6,7 @@
 #include <sigc++/hide.h>
 #include <torrent/http.h>
 
-#include "utils/functional.h"
+#include "rak/functional.h"
 #include "http_queue.h"
 #include "curl_get.h"
 

@@ -3,7 +3,7 @@
 #include <stdexcept>
 
 #include "core/download.h"
-#include "utils/algorithm.h"
+#include "rak/algorithm.h"
 
 #include "canvas.h"
 #include "window_peer_list.h"
@@ -42,10 +42,10 @@ WindowPeerList::redraw() {
 
   typedef std::pair<PList::iterator, PList::iterator> Range;
 
-  Range range = utils::advance_bidirectional(m_list->begin(),
-					     *m_focus != m_list->end() ? *m_focus : m_list->begin(),
-					     m_list->end(),
-					     m_canvas->get_height() - y);
+  Range range = rak::advance_bidirectional(m_list->begin(),
+					   *m_focus != m_list->end() ? *m_focus : m_list->begin(),
+					   m_list->end(),
+					   m_canvas->get_height() - y);
 
   if (m_download->get_download().get_chunks_total() <= 0)
     throw std::logic_error("WindowPeerList::redraw() m_slotChunksTotal() returned invalid value");

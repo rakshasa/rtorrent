@@ -10,3 +10,5 @@ Consider basing WindowPeer* on a common base class.
 
 Some kind of indication that a tracker request was tried, but won't be
 allowed since the tracker set a min interval.
+
+Make accumulate return the value, no refs please...

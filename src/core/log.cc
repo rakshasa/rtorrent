@@ -3,7 +3,7 @@
 #include <algorithm>
 
 #include "log.h"
-#include "utils/functional.h"
+#include "rak/functional.h"
 
 namespace core {
 
@@ -16,8 +16,7 @@ Log::push_front(const std::string& msg) {
 
 Log::iterator
 Log::find_older(utils::Timer t) {
-  return std::find_if(begin(), end(),
-		      utils::on(utils::mem_ptr_ref(&Type::first), std::bind2nd(std::less_equal<utils::Timer>(), t)));
+  return std::find_if(begin(), end(), rak::on(rak::mem_ptr_ref(&Type::first), std::bind2nd(std::less_equal<utils::Timer>(), t)));
 }
 
 }

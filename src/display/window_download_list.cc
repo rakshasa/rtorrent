@@ -1,7 +1,7 @@
 #include "config.h"
 
 #include "core/download.h"
-#include "utils/algorithm.h"
+#include "rak/algorithm.h"
 
 #include "canvas.h"
 #include "utils.h"
@@ -26,10 +26,10 @@ WindowDownloadList::redraw() {
 
   typedef std::pair<DList::iterator, DList::iterator> Range;
 
-  Range range = utils::advance_bidirectional(m_list->begin(),
-					     *m_focus != m_list->end() ? *m_focus : m_list->begin(),
-					     m_list->end(),
-					     m_canvas->get_height() / 3);
+  Range range = rak::advance_bidirectional(m_list->begin(),
+					   *m_focus != m_list->end() ? *m_focus : m_list->begin(),
+					   m_list->end(),
+					   m_canvas->get_height() / 3);
 
   // Make sure we properly fill out the last lines so it looks like
   // there are more torrents, yet don't hide it if we got the last one

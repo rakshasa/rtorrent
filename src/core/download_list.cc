@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <torrent/torrent.h>
 
-#include "utils/functional.h"
+#include "rak/functional.h"
 
 #include "download.h"
 #include "download_list.h"
@@ -32,7 +32,7 @@ DownloadList::erase(iterator itr) {
 
 void
 DownloadList::clear() {
-  std::for_each(begin(), end(), utils::call_delete<Download>());
+  std::for_each(begin(), end(), rak::call_delete<Download>());
 
   Base::clear();
 }

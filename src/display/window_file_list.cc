@@ -3,7 +3,7 @@
 #include <stdexcept>
 
 #include "core/download.h"
-#include "utils/algorithm.h"
+#include "rak/algorithm.h"
 
 #include "window_file_list.h"
 
@@ -37,8 +37,10 @@ WindowFileList::redraw() {
 
   typedef std::pair<unsigned int, unsigned int> Range;
 
-  Range range = utils::advance_bidirectional<unsigned int>(0, *m_focus, m_download->get_download().get_entry_size(),
-							   m_canvas->get_height());
+  Range range = rak::advance_bidirectional<unsigned int>(0,
+							 *m_focus,
+							 m_download->get_download().get_entry_size(),
+							 m_canvas->get_height());
 
   while (range.first != range.second) {
     torrent::Entry e = m_download->get_download().get_entry(range.first);

@@ -4,7 +4,7 @@
 #include <curl/multi.h>
 #include <torrent/exceptions.h>
 
-#include "utils/functional.h"
+#include "rak/functional.h"
 #include "curl_get.h"
 #include "curl_stack.h"
 
@@ -41,7 +41,7 @@ CurlStack::perform() {
 	CURLMsg* msg = curl_multi_info_read((CURLM*)m_handle, &t);
 
 	CurlGetList::iterator itr = std::find_if(m_getList.begin(), m_getList.end(),
-						 utils::equal(msg->easy_handle, std::mem_fun(&CurlGet::handle)));
+						 rak::equal(msg->easy_handle, std::mem_fun(&CurlGet::handle)));
 
 	if (itr == m_getList.end())
 	  throw torrent::client_error("Could not find CurlGet with the right easy_handle");

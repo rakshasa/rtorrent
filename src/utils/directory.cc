@@ -5,7 +5,6 @@
 #include <stdexcept>
 #include <dirent.h>
 
-#include "functional.h"
 #include "directory.h"
 
 namespace utils {
