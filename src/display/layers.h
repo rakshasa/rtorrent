@@ -1,5 +1,5 @@
-#ifndef RTORRENT_DISPLAY_MANAGER_H
-#define RTORRENT_DISPLAY_MANAGER_H
+#ifndef RTORRENT_DISPLAY_LAYERS_H
+#define RTORRENT_DISPLAY_LAYERS_H
 
 #include <list>
 
@@ -7,7 +7,7 @@ namespace display {
 
 class Canvas;
 
-class Manager : private std::list<Canvas*> {
+class Layers : private std::list<Canvas*> {
 public:
   typedef std::list<Canvas*> Base;
 

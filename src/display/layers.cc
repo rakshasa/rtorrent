@@ -1,6 +1,6 @@
 #include "config.h"
 
-#include "manager.h"
+#include "layers.h"
 #include "canvas.h"
 
 #include <functional>
@@ -9,7 +9,7 @@
 namespace display {
 
 void
-Manager::do_update() {
+Layers::do_update() {
   std::for_each(rbegin(), rend(), std::mem_fun(&Canvas::refresh));
 
   Canvas::do_update();
