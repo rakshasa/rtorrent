@@ -20,36 +20,46 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef RTORRENT_INPUT_PATH_INPUT_H
-#define RTORRENT_INPUT_PATH_INPUT_H
+#ifndef RTORRENT_UI_ELEMENT_STRING_LIST_H
+#define RTORRENT_UI_ELEMENT_STRING_LIST_H
 
-#include <sigc++/signal.h>
+#include <list>
+#include <string>
+#include <algorithm>
+#include <functional>
 
-#include "utils/directory.h"
+#include "element_base.h"
 
-#include "text_input.h"
+#include "display/window_string_list.h"
 
-namespace input {
+namespace ui {
 
-class PathInput : public TextInput {
+class Control;
+
+class ElementStringList : public ElementBase {
 public:
-  typedef std::pair<utils::Directory::iterator, utils::Directory::iterator>           Range;
-  typedef sigc::signal2<void, utils::Directory::iterator, utils::Directory::iterator> SignalShowRange;
+  typedef display::WindowStringList     WStringList;
+  typedef std::list<std::string>        List;
 
-  PathInput();
-  virtual ~PathInput() {}
+  ElementStringList();
 
-  SignalShowRange&    signal_show_range()           { return m_signalShowRange; }
+  void                activate(Control* c, MItr mItr);
+  void                disable(Control* c);
 
-  virtual bool        pressed(int key);
+  template <typename InputIter>
+  void                set_range(InputIter first, InputIter last) {
+    m_list.clear();
+
+    while (first != last)
+      m_list.push_back(*(first++));
+
+    m_window->set_range(m_list.begin(), m_list.end());
+    m_window->mark_dirty();
+  }
 
 private:
-  void                receive_do_complete();
-
-  size_type           find_last_delim();
-  Range               find_incomplete(utils::Directory& d, const std::string& f);
-
-  SignalShowRange     m_signalShowRange;
+  WStringList*        m_window;
+  List                m_list;
 };
 
 }

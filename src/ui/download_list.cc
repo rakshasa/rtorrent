@@ -25,6 +25,7 @@
 #include <stdexcept>
 #include <rak/functional.h>
 #include <sigc++/bind.h>
+#include <sigc++/hide.h>
 #include <torrent/torrent.h>
 
 #include "core/download.h"
@@ -43,6 +44,7 @@
 #include "download_list.h"
 #include "element_download_list.h"
 #include "element_log_complete.h"
+#include "element_string_list.h"
 
 namespace ui {
 
@@ -53,7 +55,6 @@ DownloadList::DownloadList(Control* c) :
 
   m_windowTitle(new WTitle("rtorrent " VERSION " - " + torrent::get(torrent::LIBRARY_NAME))),
   m_windowStatus(new WStatus(&c->get_core())),
-  m_windowTextInput(new WInput(new input::PathInput)),
   m_windowHttpQueue(new WHttp(&c->get_core().get_http_queue())),
 
   m_taskUpdate(sigc::mem_fun(*this, &DownloadList::task_update)),
@@ -69,9 +70,8 @@ DownloadList::DownloadList(Control* c) :
 
   m_windowLog                      = new WLog(&m_control->get_core().get_log_important());
 
-  bind_keys();
-
-  m_windowTextInput->get_input()->slot_dirty(sigc::mem_fun(*m_windowTextInput, &WInput::mark_dirty));
+  setup_keys();
+  setup_input();
 }
 
 DownloadList::~DownloadList() {
@@ -242,7 +242,6 @@ void
 DownloadList::receive_exit_input() {
   m_windowStatus->set_active(true);
   m_windowTextInput->set_active(false);
-  m_control->get_display().adjust_layout();
 
   m_control->get_input().set_text_input();
 
@@ -253,6 +252,8 @@ DownloadList::receive_exit_input() {
 
   m_bindings->erase('\n');
   m_bindings->erase(KEY_ENTER);
+
+  receive_change(DISPLAY_DOWNLOAD_LIST);
 }
 
 void
@@ -272,7 +273,7 @@ DownloadList::task_update() {
 }
 
 void
-DownloadList::bind_keys() {
+DownloadList::setup_keys() {
   (*m_bindings)['a']           = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_throttle), 1);
   (*m_bindings)['z']           = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_throttle), -1);
   (*m_bindings)['s']           = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_throttle), 5);
@@ -292,6 +293,19 @@ DownloadList::bind_keys() {
   (*m_bindings)['l']           = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_change), DISPLAY_LOG);
 
   m_uiArray[DISPLAY_LOG]->get_bindings()[' '] = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_change), DISPLAY_DOWNLOAD_LIST);
+}
+
+void
+DownloadList::setup_input() {
+  input::PathInput* p    = new input::PathInput;
+  ElementStringList* esl = new ElementStringList();
+  m_windowTextInput      = new WInput(p);
+
+  p->slot_dirty(sigc::mem_fun(*m_windowTextInput, &WInput::mark_dirty));
+  p->signal_show_range().connect(sigc::hide(sigc::hide(sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_change), DISPLAY_STRING_LIST))));
+  p->signal_show_range().connect(sigc::mem_fun(*esl, &ElementStringList::set_range<utils::Directory::iterator>));
+
+  m_uiArray[DISPLAY_STRING_LIST] = esl;
 }
 
 }

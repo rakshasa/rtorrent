@@ -29,6 +29,8 @@ libsub_display_a_SOURCES = \
 	window_peer_list.h \
 	window_statusbar.cc \
 	window_statusbar.h \
+	window_string_list.cc \
+	window_string_list.h \
 	window_title.cc \
 	window_title.h \
 	window_tracker_list.cc \

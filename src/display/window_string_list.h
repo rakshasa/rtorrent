@@ -20,36 +20,30 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef RTORRENT_INPUT_PATH_INPUT_H
-#define RTORRENT_INPUT_PATH_INPUT_H
+#ifndef RTORRENT_DISPLAY_WINDOW_STRING_LIST_H
+#define RTORRENT_DISPLAY_WINDOW_STRING_LIST_H
 
-#include <sigc++/signal.h>
+#include <string>
+#include <list>
 
-#include "utils/directory.h"
+#include "window.h"
 
-#include "text_input.h"
+namespace display {
 
-namespace input {
-
-class PathInput : public TextInput {
+class WindowStringList : public Window {
 public:
-  typedef std::pair<utils::Directory::iterator, utils::Directory::iterator>           Range;
-  typedef sigc::signal2<void, utils::Directory::iterator, utils::Directory::iterator> SignalShowRange;
+  typedef std::list<std::string>::iterator iterator;
 
-  PathInput();
-  virtual ~PathInput() {}
+  WindowStringList();
+  ~WindowStringList();
 
-  SignalShowRange&    signal_show_range()           { return m_signalShowRange; }
+  void             set_range(iterator first, iterator last) { m_first = first; m_last = last; }
 
-  virtual bool        pressed(int key);
+  virtual void     redraw();
 
 private:
-  void                receive_do_complete();
-
-  size_type           find_last_delim();
-  Range               find_incomplete(utils::Directory& d, const std::string& f);
-
-  SignalShowRange     m_signalShowRange;
+  iterator         m_first;
+  iterator         m_last;
 };
 
 }

@@ -68,6 +68,7 @@ public:
   typedef enum {
     DISPLAY_DOWNLOAD_LIST,
     DISPLAY_LOG,
+    DISPLAY_STRING_LIST,
     DISPLAY_MAX_SIZE
   } Display;
 
@@ -105,7 +106,9 @@ private:
   void                receive_change(Display d);
 
   void                task_update();
-  void                bind_keys();
+
+  void                setup_keys();
+  void                setup_input();
 
   Display             m_state;
 

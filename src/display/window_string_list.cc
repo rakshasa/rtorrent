@@ -20,38 +20,48 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef RTORRENT_INPUT_PATH_INPUT_H
-#define RTORRENT_INPUT_PATH_INPUT_H
+#include "config.h"
 
-#include <sigc++/signal.h>
+#include "canvas.h"
+#include "utils.h"
+#include "window_string_list.h"
 
-#include "utils/directory.h"
+namespace display {
 
-#include "text_input.h"
-
-namespace input {
-
-class PathInput : public TextInput {
-public:
-  typedef std::pair<utils::Directory::iterator, utils::Directory::iterator>           Range;
-  typedef sigc::signal2<void, utils::Directory::iterator, utils::Directory::iterator> SignalShowRange;
-
-  PathInput();
-  virtual ~PathInput() {}
-
-  SignalShowRange&    signal_show_range()           { return m_signalShowRange; }
-
-  virtual bool        pressed(int key);
-
-private:
-  void                receive_do_complete();
-
-  size_type           find_last_delim();
-  Range               find_incomplete(utils::Directory& d, const std::string& f);
-
-  SignalShowRange     m_signalShowRange;
-};
-
+WindowStringList::WindowStringList() :
+  Window(new Canvas, true) {
 }
 
-#endif
+WindowStringList::~WindowStringList() {
+}
+
+void
+WindowStringList::redraw() {
+  m_nextDraw = utils::Timer::max();
+
+  m_canvas->erase();
+
+  size_t ypos = 0;
+  size_t xpos = 1;
+  size_t width = 0;
+
+  for (iterator itr = m_first; itr != m_last; ++itr) {
+
+    if (ypos == (size_t)m_canvas->get_height()) {
+      ypos = 0;
+      xpos += width + 2;
+      
+      if (xpos >= (size_t)m_canvas->get_width())
+	break;
+    }
+
+    width = std::max(itr->size(), width);
+
+    if (xpos + itr->size() <= (size_t)m_canvas->get_width())
+      m_canvas->print(xpos, ypos++, "%s", itr->c_str());
+    else
+      m_canvas->print(xpos, ypos++, "%s", itr->substr(0, m_canvas->get_width() - xpos).c_str());
+  }
+}
+
+}

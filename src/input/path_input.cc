@@ -71,6 +71,7 @@ PathInput::receive_do_complete() {
   set_pos(dirEnd + base.size());
 
   mark_dirty();
+  m_signalShowRange.emit(r.first, r.second);
 }
 
 PathInput::size_type

@@ -20,38 +20,41 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef RTORRENT_INPUT_PATH_INPUT_H
-#define RTORRENT_INPUT_PATH_INPUT_H
+#include "config.h"
 
-#include <sigc++/signal.h>
+#include <stdexcept>
 
-#include "utils/directory.h"
+#include "control.h"
+#include "element_string_list.h"
 
-#include "text_input.h"
+namespace ui {
 
-namespace input {
-
-class PathInput : public TextInput {
-public:
-  typedef std::pair<utils::Directory::iterator, utils::Directory::iterator>           Range;
-  typedef sigc::signal2<void, utils::Directory::iterator, utils::Directory::iterator> SignalShowRange;
-
-  PathInput();
-  virtual ~PathInput() {}
-
-  SignalShowRange&    signal_show_range()           { return m_signalShowRange; }
-
-  virtual bool        pressed(int key);
-
-private:
-  void                receive_do_complete();
-
-  size_type           find_last_delim();
-  Range               find_incomplete(utils::Directory& d, const std::string& f);
-
-  SignalShowRange     m_signalShowRange;
-};
-
+ElementStringList::ElementStringList() {
+  m_list.push_back("Test string 1");
+  m_list.push_back("Test string 2");
 }
 
-#endif
+void
+ElementStringList::activate(Control* c, MItr mItr) {
+  if (m_window != NULL)
+    throw std::logic_error("ui::ElementStringList::activate(...) called on an object in the wrong state");
+
+  c->get_input().push_front(&m_bindings);
+
+  *mItr = m_window = new WStringList();
+
+  m_window->set_range(m_list.begin(), m_list.end());
+}
+
+void
+ElementStringList::disable(Control* c) {
+  if (m_window == NULL)
+    throw std::logic_error("ui::ElementStringList::disable(...) called on an object in the wrong state");
+
+  c->get_input().erase(&m_bindings);
+
+  delete m_window;
+  m_window = NULL;
+}
+
+}
