@@ -88,6 +88,8 @@ private:
   void                receive_max_peers(int t);
   void                receive_change(Display d);
 
+  void                receive_snub_peer();
+
   void                bind_keys();
 
   void                mark_dirty();

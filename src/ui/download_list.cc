@@ -29,7 +29,7 @@
 #include "core/download.h"
 
 #include "input/bindings.h"
-#include "input/text_input.h"
+#include "input/path_input.h"
 
 #include "display/window_download_list.h"
 #include "display/window_http_queue.h"
@@ -48,7 +48,7 @@ namespace ui {
 DownloadList::DownloadList(Control* c) :
   m_windowTitle(new WTitle("rtorrent " VERSION " - " + torrent::get(torrent::LIBRARY_NAME))),
   m_windowStatus(new WStatus(&c->get_core())),
-  m_windowTextInput(new WInput(new input::TextInput)),
+  m_windowTextInput(new WInput(new input::PathInput)),
   m_windowHttpQueue(new WHttp(&c->get_core().get_http_queue())),
 
   m_taskUpdate(sigc::mem_fun(*this, &DownloadList::task_update)),

@@ -24,6 +24,7 @@
 
 #include <ctime>
 #include <sstream>
+#include <iomanip>
 
 #include "core/download.h"
 #include "utils/timer.h"
@@ -63,10 +64,9 @@ print_hhmmss(utils::Timer t) {
     return "inv_time";
 
   std::stringstream str;
-  str.width(2);
   str.fill('0');
   
-  str << u->tm_hour << ':' << u->tm_min << ':' << u->tm_sec;
+  str << std::setw(2) << u->tm_hour << ':' << std::setw(2) << u->tm_min << ':' << std::setw(2) << u->tm_sec;
 
   return str.str();
 }

@@ -20,50 +20,31 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#include "config.h"
+#ifndef RTORRENT_INPUT_PATH_INPUT_H
+#define RTORRENT_INPUT_PATH_INPUT_H
 
-#include <algorithm>
-#include <functional>
-#include <stdexcept>
-#include <dirent.h>
+#include "utils/directory.h"
 
-#include "directory.h"
+#include "text_input.h"
 
-namespace utils {
+namespace input {
 
-bool
-Directory::update() {
-  if (m_path.empty())
-    throw std::logic_error("Directory::update() tried to open an empty path");
+class PathInput : public TextInput {
+public:
+  typedef std::pair<utils::Directory::iterator, utils::Directory::iterator> Range;
 
-  DIR* d = opendir(m_path.c_str());
+  PathInput();
+  virtual ~PathInput() {}
 
-  if (d == NULL)
-    return false;
+  virtual bool        pressed(int key);
 
-  struct dirent* ent;
+private:
+  void                receive_do_complete();
 
-  while ((ent = readdir(d)) != NULL) {
-    std::string de(ent->d_name);
-
-    if (!de.empty() && de[0] != '.')
-      Base::push_back(ent->d_name);
-  }
-
-  closedir(d);
-  Base::sort(std::less<std::string>());
-
-  return true;
-}
-
-Directory::Base
-Directory::make_list() {
-  Base l;
-
-  for (Base::iterator itr = begin(); itr != end(); ++itr)
-    l.push_back(m_path + *itr);
-
-  return l;
-}
+  size_type           find_last_delim();
+  Range               find_incomplete(utils::Directory& d, const std::string& f);
+};
 
 }
+
+#endif

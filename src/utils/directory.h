@@ -50,7 +50,7 @@ public:
   Directory() {}
   Directory(const std::string& path) : m_path(path) {}
 
-  void                update();
+  bool                update();
 
   const std::string&  get_path() { return m_path; }
 

@@ -80,6 +80,8 @@ Download::~Download() {
   delete m_windowDownloadStatus;
   delete m_windowMainStatus;
 
+  delete m_bindings;
+
   m_connPeerConnected.disconnect();
   m_connPeerDisconnected.disconnect();
 }
@@ -217,6 +219,16 @@ Download::receive_change(Display d) {
 }
 
 void
+Download::receive_snub_peer() {
+  if (m_focus == m_peers.end())
+    return;
+
+  m_focus->set_snubbed(!m_focus->get_snubbed());
+
+  mark_dirty();
+}
+
+void
 Download::bind_keys() {
   (*m_bindings)['a'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_throttle), 1);
   (*m_bindings)['z'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_throttle), -1);
@@ -245,6 +257,9 @@ Download::bind_keys() {
   m_uiArray[DISPLAY_PEER_INFO]->get_bindings()[' ']       = sigc::bind(sigc::mem_fun(*this, &Download::receive_change), DISPLAY_PEER_LIST);
   m_uiArray[DISPLAY_FILE_LIST]->get_bindings()[KEY_LEFT]  = sigc::bind(sigc::mem_fun(*this, &Download::receive_change), DISPLAY_PEER_LIST);
   m_uiArray[DISPLAY_TRACKER_LIST]->get_bindings()[' ']    = sigc::bind(sigc::mem_fun(*this, &Download::receive_change), DISPLAY_PEER_LIST);
+
+  m_uiArray[DISPLAY_PEER_LIST]->get_bindings()['*'] = sigc::mem_fun(*this, &Download::receive_snub_peer);
+  m_uiArray[DISPLAY_PEER_INFO]->get_bindings()['*'] = sigc::mem_fun(*this, &Download::receive_snub_peer);
 }
 
 void

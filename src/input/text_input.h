@@ -36,24 +36,29 @@ public:
   using Base::c_str;
   using Base::empty;
   using Base::size;
+  using Base::size_type;
+  using Base::npos;
 
   TextInput() : m_pos(0), m_alt(false) {}
+  virtual ~TextInput() {}
 
-  size_type get_pos()                  { return m_pos; }
+  size_type           get_pos()                  { return m_pos; }
+  void                set_pos(size_type pos)     { m_pos = pos; }
 
-  bool      pressed(int key);
+  virtual bool        pressed(int key);
 
-  void      clear()                    { m_pos = 0; m_alt = false; Base::clear(); }
+  void                clear()                    { m_pos = 0; m_alt = false; Base::clear(); }
 
-  void      slot_dirty(SlotDirty s)    { m_slotDirty = s; }
+  void                slot_dirty(SlotDirty s)    { m_slotDirty = s; }
+  void                mark_dirty()               { m_slotDirty(); }
 
-  const std::string& str()             { return *this; }
+  std::string&        str()                      { return *this; }
 
 private:
-  size_type m_pos;
+  size_type           m_pos;
 
-  bool      m_alt;
-  SlotDirty m_slotDirty;
+  bool                m_alt;
+  SlotDirty           m_slotDirty;
 };
 
 }

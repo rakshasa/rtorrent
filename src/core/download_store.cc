@@ -81,7 +81,9 @@ DownloadStore::get_formated_entries() {
     return utils::Directory();
 
   utils::Directory d(m_path);
-  d.update();
+
+  if (!d.update())
+    throw std::runtime_error("core::DownloadStore::update() could not open directory");
 
   d.erase(std::remove_if(d.begin(), d.end(), std::not1(std::ptr_fun(&DownloadStore::is_correct_format))), d.end());
 

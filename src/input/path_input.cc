@@ -20,60 +20,13 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef RTORRENT_UTILS_ALGORITHM_H
-#define RTORRENT_UTILS_ALGORITHM_H
+#include "config.h"
 
-#include <algorithm>
+#include <functional>
 
-namespace rak {
+#include "path_input.h"
 
-template <typename _InputIter, typename _Function>
-_Function
-for_each_pre(_InputIter __first, _InputIter __last, _Function __f) {
-  _InputIter __tmp;
-
-  while (__first != __last) {
-    __tmp = __first++;
-    
-    __f(*__tmp);
-  }
-
-  return __f;
-}
-
-// Return a range with a distance of no more than __distance and
-// between __first and __last, centered on __middle1.
-template <typename _InputIter, typename _Distance>
-std::pair<_InputIter, _InputIter>
-advance_bidirectional(_InputIter __first, _InputIter __middle1, _InputIter __last, _Distance __distance) {
-  _InputIter __middle2 = __middle1;
-
-  do {
-    if (!__distance)
-      break;
-
-    if (__middle1 != __first) {
-      --__middle1;
-      --__distance;
-
-    } else if (__middle2 == __last) {
-      break;
-    }
-
-    if (!__distance)
-      break;
-
-    if (__middle2 != __last) {
-      ++__middle2;
-      --__distance;
-
-    } else if (__middle1 == __first) {
-      break;
-    }
-  } while (true);
-
-  return std::make_pair(__middle1, __middle2);
-}
+namespace input {
 
 struct
 string_starts_with : public std::binary_function<std::string, std::string, bool> {
@@ -82,8 +35,6 @@ string_starts_with : public std::binary_function<std::string, std::string, bool>
   }
 };
 
-// Count the number of elements from the start of the containers to
-// the first inequal element.
 template <typename _InputIter>
 typename std::iterator_traits<_InputIter>::difference_type
 count_base(_InputIter __first1, _InputIter __last1,
@@ -99,16 +50,16 @@ count_base(_InputIter __first1, _InputIter __last1,
 }
 
 template <typename _InputIter>
-typename std::iterator_traits<_InputIter>::value_type
+std::string
 make_base(_InputIter __first, _InputIter __last) {
   if (__first == __last)
     return "";
 
-  typename std::iterator_traits<_InputIter>::value_type __base = *__first++;
+  std::string __base = *__first++;
 
   for ( ;__first != __last; ++__first) {
-    typename std::iterator_traits<_InputIter>::difference_type __pos = count_base(__base.begin(), __base.end(),
-										  __first->begin(), __first->end());
+    std::string::size_type __pos = count_base(__base.begin(), __base.end(),
+					      __first->begin(), __first->end());
 
     if (__pos < __base.size())
       __base.resize(__pos);
@@ -117,6 +68,70 @@ make_base(_InputIter __first, _InputIter __last) {
   return __base;
 }
 
+PathInput::PathInput() {
 }
 
-#endif
+bool
+PathInput::pressed(int key) {
+  if (key == '\t')
+    receive_do_complete();
+  else
+    return TextInput::pressed(key);
+
+  return true;
+}
+
+void
+PathInput::receive_do_complete() {
+  size_type dirEnd = find_last_delim();
+
+  utils::Directory dir(dirEnd != 0 ? str().substr(0, dirEnd) : "./");
+  
+  if (!dir.update() || dir.empty()) {
+    str() += "!";
+    mark_dirty();
+
+    return;
+  }
+
+  Range r = find_incomplete(dir, str().substr(dirEnd, get_pos()));
+
+  if (r.first == r.second)
+    return; // Show some nice colors here.
+
+  std::string base = make_base(r.first, r.second);
+
+  // Clear the path after the cursor to make this code cleaner. It's
+  // not really nessesary to add the complexity just because someone
+  // might start tab-completeing in the middle of a path.
+  str().resize(dirEnd);
+  str().insert(dirEnd, base);
+
+  set_pos(dirEnd + base.size());
+
+  mark_dirty();
+}
+
+PathInput::size_type
+PathInput::find_last_delim() {
+  size_type r = str().rfind('/', get_pos());
+
+  if (r == npos)
+    return 0;
+  else if (r == size())
+    return r;
+  else
+    return r + 1;
+}
+
+PathInput::Range
+PathInput::find_incomplete(utils::Directory& d, const std::string& f) {
+  Range r;
+
+  r.first  = std::find_if(d.begin(), d.end(), std::bind2nd(string_starts_with(), f));
+  r.second = std::find_if(r.first, d.end(), std::not1(std::bind2nd(string_starts_with(), f)));
+
+  return r;
+}
+
+}

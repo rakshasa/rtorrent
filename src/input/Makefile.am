@@ -5,6 +5,8 @@ libsub_input_a_SOURCES = \
 	bindings.h \
 	manager.cc \
 	manager.h \
+	path_input.cc \
+	path_input.h \
 	text_input.cc \
 	text_input.h
 
