@@ -1,5 +1,6 @@
 #include "config.h"
 
+#include <errno.h>
 #include <stdexcept>
 #include <sstream>
 #include <ncurses.h>
