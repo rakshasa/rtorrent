@@ -29,7 +29,6 @@
 
 namespace display {
   class WindowTitle;
-  class WindowPeerInfo;
   class WindowStatusbar;
   class WindowPeerList;
   class WindowDownloadStatusbar;
@@ -43,12 +42,12 @@ namespace ui {
 
 class Control;
 class FileList;
+class PeerInfo;
 class TrackerList;
 
 class Download {
 public:
   typedef display::Window                  Window;
-  typedef display::WindowPeerInfo          WPeerInfo;
   typedef display::WindowPeerList          WPeerList;
   typedef display::WindowTitle             WTitle;
   typedef display::WindowStatusbar         WMainStatus;
@@ -70,54 +69,55 @@ public:
   Download(DPtr d, Control* c);
   ~Download();
 
-  //WPeerList&       get_window()   { return *m_window; }
-  input::Bindings& get_bindings() { return *m_bindings; }
+  input::Bindings&    get_bindings() { return *m_bindings; }
 
-  void             activate();
-  void             disable();
+  void                activate();
+  void                disable();
 
-  void             activate_display(Display d);
-  void             disable_display();
+  void                activate_display(Display d);
+  void                disable_display();
 
 private:
   Download(const Download&);
   void operator = (const Download&);
 
-  void             receive_next();
-  void             receive_prev();
+  void                receive_next();
+  void                receive_prev();
 
-  void             receive_peer_connected(torrent::Peer p);
-  void             receive_peer_disconnected(torrent::Peer p);
+  void                receive_peer_connected(torrent::Peer p);
+  void                receive_peer_disconnected(torrent::Peer p);
 
-  void             receive_throttle(int t);
-  void             receive_max_uploads(int t);
-  void             receive_min_peers(int t);
-  void             receive_max_peers(int t);
-  void             receive_change(Display d);
+  void                receive_throttle(int t);
+  void                receive_max_uploads(int t);
+  void                receive_min_peers(int t);
+  void                receive_max_peers(int t);
+  void                receive_change(Display d);
 
-  void             bind_keys(input::Bindings* b);
+  void                bind_keys();
 
-  void             mark_dirty();
+  void                mark_dirty();
 
-  DPtr             m_download;
-  PList            m_peers;
-  PList::iterator  m_focus;
+  DPtr                m_download;
+  PList               m_peers;
+  PList::iterator     m_focus;
 
-  Display          m_state;
+  Display             m_state;
 
-  FileList*        m_uiFileList;
-  TrackerList*     m_uiTrackerList;
+  FileList*           m_uiFileList;
+  PeerInfo*           m_uiPeerInfo;
+  TrackerList*        m_uiTrackerList;
 
-  MItr             m_title;
-  MItr             m_window;
-  MItr             m_downloadStatus;
-  MItr             m_mainStatus;
+  WTitle*             m_windowTitle;
+  WDownloadStatus*    m_windowDownloadStatus;
+  WMainStatus*        m_windowMainStatus;
 
-  Control*         m_control;
-  input::Bindings* m_bindings;
+  MItr                m_window;
 
-  sigc::connection m_connPeerConnected;
-  sigc::connection m_connPeerDisconnected;
+  Control*            m_control;
+  input::Bindings*    m_bindings;
+
+  sigc::connection    m_connPeerConnected;
+  sigc::connection    m_connPeerDisconnected;
 };
 
 }

@@ -37,6 +37,7 @@
 #include "control.h"
 #include "download.h"
 #include "file_list.h"
+#include "peer_info.h"
 #include "tracker_list.h"
 
 namespace ui {
@@ -45,20 +46,22 @@ Download::Download(DPtr d, Control* c) :
   m_download(d),
   m_state(DISPLAY_NONE),
 
-  m_uiFileList(NULL),
-  m_uiTrackerList(NULL),
+  m_uiFileList(new FileList(c, d)),
+  m_uiPeerInfo(new PeerInfo(d, &m_peers, &m_focus)),
+  m_uiTrackerList(new TrackerList(c, d)),
 
-  m_title(c->get_display().end()),
+  m_windowTitle(new WTitle(d->get_download().get_name())),
+  m_windowDownloadStatus(new WDownloadStatus(d)),
+  m_windowMainStatus(new WMainStatus(&c->get_core())),
+
   m_window(c->get_display().end()),
-  m_downloadStatus(c->get_display().end()),
-  m_mainStatus(c->get_display().end()),
 
   m_control(c),
   m_bindings(new input::Bindings) {
 
   m_focus = m_peers.end();
 
-  bind_keys(m_bindings);
+  bind_keys();
 
   m_download->get_download().peer_list(m_peers);
 
@@ -70,6 +73,14 @@ Download::~Download() {
   if (m_window != m_control->get_display().end())
     throw std::logic_error("ui::Download::~Download() called on an active object");
 
+  delete m_uiFileList;
+  delete m_uiPeerInfo;
+  delete m_uiTrackerList;
+
+  delete m_windowTitle;
+  delete m_windowDownloadStatus;
+  delete m_windowMainStatus;
+
   m_connPeerConnected.disconnect();
   m_connPeerDisconnected.disconnect();
 }
@@ -80,12 +91,10 @@ Download::activate() {
     throw std::logic_error("ui::Download::activate() called on an already activated object");
 
   m_window         = m_control->get_display().insert(m_control->get_display().begin(), NULL);
-  m_title          = m_control->get_display().insert(m_control->get_display().begin(), new WTitle(m_download->get_download().get_name()));
-  m_downloadStatus = m_control->get_display().insert(m_control->get_display().end(), new WDownloadStatus(m_download));
-  m_mainStatus     = m_control->get_display().insert(m_control->get_display().end(), new WMainStatus(&m_control->get_core()));
 
-  m_uiFileList    = new FileList(m_control, m_download);
-  m_uiTrackerList = new TrackerList(m_control, m_download);
+  m_control->get_display().insert(m_control->get_display().begin(), m_windowTitle);
+  m_control->get_display().insert(m_control->get_display().end(), m_windowDownloadStatus);
+  m_control->get_display().insert(m_control->get_display().end(), m_windowMainStatus);
 
   m_control->get_input().push_front(m_bindings);
 
@@ -100,21 +109,11 @@ Download::disable() {
   disable_display();
 
   m_control->get_display().erase(m_window);
-  m_control->get_display().erase(m_title);
-  m_control->get_display().erase(m_downloadStatus);
-  m_control->get_display().erase(m_mainStatus);
+  m_control->get_display().erase(m_windowTitle);
+  m_control->get_display().erase(m_windowDownloadStatus);
+  m_control->get_display().erase(m_windowMainStatus);
 
-  delete *m_title;
-  delete *m_downloadStatus;
-  delete *m_mainStatus;
-
-  delete m_uiFileList;
-  delete m_uiTrackerList;
-
-  m_uiFileList = NULL;
-  m_uiTrackerList = NULL;
-
-  m_window = m_title = m_downloadStatus = m_mainStatus = m_control->get_display().end();
+  m_window = m_control->get_display().end();
 
   m_control->get_input().erase(m_bindings);
 }
@@ -122,7 +121,6 @@ Download::disable() {
 void
 Download::activate_display(Display d) {
   WPeerList* wpl;
-  WPeerInfo* wpi;
 
   if (m_window == m_control->get_display().end())
     throw std::logic_error("ui::Download::activate_display(...) could not find previous display iterator");
@@ -131,27 +129,19 @@ Download::activate_display(Display d) {
   case DISPLAY_MAIN:
     *m_window = wpl = new WPeerList(m_download, &m_peers, &m_focus);
 
-    (*m_bindings)['p']       = sigc::bind(sigc::mem_fun(*this, &Download::receive_change), DISPLAY_PEER);
     (*m_bindings)[KEY_RIGHT] = sigc::bind(sigc::mem_fun(*this, &Download::receive_change), DISPLAY_FILE_LIST);
-    (*m_bindings)['o']       = sigc::bind(sigc::mem_fun(*this, &Download::receive_change), DISPLAY_TRACKER_LIST);
     break;
 
   case DISPLAY_PEER:
-    *m_window = wpi = new WPeerInfo(m_download, &m_peers, &m_focus);
-
-    (*m_bindings)[' '] = sigc::bind(sigc::mem_fun(*this, &Download::receive_change), DISPLAY_MAIN);
+    m_uiPeerInfo->activate(m_control, m_window);
     break;
 
   case DISPLAY_FILE_LIST:
     m_uiFileList->activate(m_window);
-    m_uiFileList->get_bindings()[KEY_LEFT] = sigc::bind(sigc::mem_fun(*this, &Download::receive_change), DISPLAY_MAIN);
-
     break;    
 
   case DISPLAY_TRACKER_LIST:
     m_uiTrackerList->activate(m_window);
-    m_uiTrackerList->get_bindings()[' '] = sigc::bind(sigc::mem_fun(*this, &Download::receive_change), DISPLAY_MAIN);
-
     break;    
 
   default:
@@ -168,14 +158,15 @@ void
 Download::disable_display() {
   switch (m_state) {
   case DISPLAY_MAIN:
-    //m_bindings->erase(KEY_RIGHT);
+    m_bindings->erase(KEY_RIGHT);
 
     break;
 
   case DISPLAY_PEER:
-    m_bindings->erase(' ');
-
-    break;
+    m_uiPeerInfo->disable(m_control);
+    *m_window = NULL;
+    
+    return;
 
   case DISPLAY_FILE_LIST:
     m_uiFileList->disable();
@@ -190,7 +181,7 @@ Download::disable_display() {
     return;
 
   default:
-    break;
+    throw std::logic_error("ui::Download::disable_display() is in an invalid state");
   }
 
   // urgh, get ui's for the rest too.
@@ -239,28 +230,28 @@ Download::receive_peer_disconnected(torrent::Peer p) {
 
 void
 Download::receive_throttle(int t) {
-  (*m_mainStatus)->mark_dirty();
+  m_windowMainStatus->mark_dirty();
 
   torrent::set(torrent::THROTTLE_ROOT_CONST_RATE, torrent::get(torrent::THROTTLE_ROOT_CONST_RATE) + t * 1024);
 }
 
 void
 Download::receive_max_uploads(int t) {
-  (*m_downloadStatus)->mark_dirty();
+  m_windowDownloadStatus->mark_dirty();
 
   m_download->get_download().set_uploads_max(std::max(m_download->get_download().get_uploads_max() + t, (uint32_t)2));
 }
 
 void
 Download::receive_min_peers(int t) {
-  (*m_downloadStatus)->mark_dirty();
+  m_windowDownloadStatus->mark_dirty();
 
   m_download->get_download().set_peers_min(std::max(m_download->get_download().get_peers_min() + t, (uint32_t)5));
 }
 
 void
 Download::receive_max_peers(int t) {
-  (*m_downloadStatus)->mark_dirty();
+  m_windowDownloadStatus->mark_dirty();
 
   m_download->get_download().set_peers_max(std::max(m_download->get_download().get_peers_max() + t, (uint32_t)5));
 }
@@ -276,25 +267,33 @@ Download::receive_change(Display d) {
 }
 
 void
-Download::bind_keys(input::Bindings* b) {
-  (*b)['a'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_throttle), 1);
-  (*b)['z'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_throttle), -1);
-  (*b)['s'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_throttle), 5);
-  (*b)['x'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_throttle), -5);
-  (*b)['d'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_throttle), 50);
-  (*b)['c'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_throttle), -50);
+Download::bind_keys() {
+  (*m_bindings)['a'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_throttle), 1);
+  (*m_bindings)['z'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_throttle), -1);
+  (*m_bindings)['s'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_throttle), 5);
+  (*m_bindings)['x'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_throttle), -5);
+  (*m_bindings)['d'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_throttle), 50);
+  (*m_bindings)['c'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_throttle), -50);
 
-  (*b)['1'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_max_uploads), -1);
-  (*b)['2'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_max_uploads), 1);
-  (*b)['3'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_min_peers), -5);
-  (*b)['4'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_min_peers), 5);
-  (*b)['5'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_max_peers), -5);
-  (*b)['6'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_max_peers), 5);
+  (*m_bindings)['1'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_max_uploads), -1);
+  (*m_bindings)['2'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_max_uploads), 1);
+  (*m_bindings)['3'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_min_peers), -5);
+  (*m_bindings)['4'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_min_peers), 5);
+  (*m_bindings)['5'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_max_peers), -5);
+  (*m_bindings)['6'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_max_peers), 5);
 
-  (*b)['t'] = sigc::bind(sigc::mem_fun(m_download->get_download(), &torrent::Download::set_tracker_timeout), 2 * 1000000);
+  (*m_bindings)['t'] = sigc::bind(sigc::mem_fun(m_download->get_download(), &torrent::Download::set_tracker_timeout), 2 * 1000000);
 
-  (*b)[KEY_UP]   = sigc::mem_fun(*this, &Download::receive_prev);
-  (*b)[KEY_DOWN] = sigc::mem_fun(*this, &Download::receive_next);
+  (*m_bindings)['p'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_change), DISPLAY_PEER);
+  (*m_bindings)['o'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_change), DISPLAY_TRACKER_LIST);
+
+  (*m_bindings)[KEY_UP]   = sigc::mem_fun(*this, &Download::receive_prev);
+  (*m_bindings)[KEY_DOWN] = sigc::mem_fun(*this, &Download::receive_next);
+
+  // Key bindings for sub-ui's.
+  m_uiFileList->get_bindings()[KEY_LEFT] = sigc::bind(sigc::mem_fun(*this, &Download::receive_change), DISPLAY_MAIN);
+  m_uiPeerInfo->get_bindings()[' ']      = sigc::bind(sigc::mem_fun(*this, &Download::receive_change), DISPLAY_MAIN);
+  m_uiTrackerList->get_bindings()[' ']   = sigc::bind(sigc::mem_fun(*this, &Download::receive_change), DISPLAY_MAIN);
 }
 
 void

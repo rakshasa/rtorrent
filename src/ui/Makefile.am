@@ -8,6 +8,8 @@ libsub_ui_a_SOURCES = \
 	download_list.h \
 	file_list.cc \
 	file_list.h \
+	peer_info.cc \
+	peer_info.h \
 	root.cc \
 	root.h \
 	tracker_list.cc \
