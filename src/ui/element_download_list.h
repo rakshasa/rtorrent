@@ -24,6 +24,7 @@
 #define RTORRENT_UI_ELEMENT_DOWNLOAD_LIST_H
 
 #include "core/download_list.h"
+#include "utils/list_focus.h"
 
 #include "element_base.h"
 
@@ -37,10 +38,10 @@ class Control;
 
 class ElementDownloadList : public ElementBase {
 public:
-  typedef display::WindowDownloadList   WDownloadList;
-  typedef core::DownloadList            DList;
+  typedef display::WindowDownloadList          WDownloadList;
+  typedef utils::ListFocus<core::DownloadList> DList;
 
-  ElementDownloadList(DList* l, DList::iterator* f);
+  ElementDownloadList(DList* l);
 
   void                activate(Control* c, MItr mItr);
   void                disable(Control* c);
@@ -49,7 +50,6 @@ private:
   WDownloadList*      m_window;
   
   DList*              m_list;
-  DList::iterator*    m_focus;
 };
 
 }

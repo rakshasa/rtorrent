@@ -27,6 +27,7 @@
 
 #include "core/download_list.h"
 #include "utils/task.h"
+#include "utils/list_focus.h"
 
 namespace input {
   class Bindings;
@@ -58,7 +59,7 @@ public:
   typedef display::WindowStatusbar                 WStatus;
   typedef display::WindowTitle                     WTitle;
 
-  typedef core::DownloadList                       DList;
+  typedef utils::ListFocus<core::DownloadList>     DList;
 
   typedef sigc::slot1<void, const std::string&>    SlotOpenUri;
 
@@ -122,8 +123,7 @@ private:
 
   Download*           m_uiDownload;
 
-  DList*              m_list;
-  DList::iterator     m_focus;
+  DList               m_downloadList;
 
   Control*            m_control;
   input::Bindings*    m_bindings;

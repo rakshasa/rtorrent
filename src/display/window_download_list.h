@@ -23,22 +23,28 @@
 #ifndef RTORRENT_DISPLAY_WINDOW_DOWNLOAD_LIST_H
 #define RTORRENT_DISPLAY_WINDOW_DOWNLOAD_LIST_H
 
+#include <sigc++/connection.h>
+
 #include "window.h"
+
 #include "core/download_list.h"
+#include "utils/list_focus.h"
 
 namespace display {
 
 class WindowDownloadList : public Window {
 public:
-  typedef core::DownloadList DList;
+  typedef utils::ListFocus<core::DownloadList> DList;
 
-  WindowDownloadList(DList* l, DList::iterator* focus);
+  WindowDownloadList(DList* l);
+  ~WindowDownloadList();
 
-  virtual void     redraw();
+  virtual void        redraw();
 
 private:
-  DList*           m_list;
-  DList::iterator* m_focus;
+  DList*              m_list;
+
+  sigc::connection    m_connChanged;
 };
 
 }

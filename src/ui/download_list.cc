@@ -58,11 +58,13 @@ DownloadList::DownloadList(Control* c) :
 
   m_taskUpdate(sigc::mem_fun(*this, &DownloadList::task_update)),
   m_uiDownload(NULL),
-  m_focus(c->get_core().get_download_list().end()),
+
+  m_downloadList(&c->get_core().get_download_list()),
+
   m_control(c),
   m_bindings(new input::Bindings) {
 
-  m_uiArray[DISPLAY_DOWNLOAD_LIST] = new ElementDownloadList(&m_control->get_core().get_download_list(), &m_focus);
+  m_uiArray[DISPLAY_DOWNLOAD_LIST] = new ElementDownloadList(&m_downloadList);
   m_uiArray[DISPLAY_LOG]           = new ElementLogComplete(&m_control->get_core().get_log_complete());
 
   m_windowLog                      = new WLog(&m_control->get_core().get_log_important());
@@ -158,22 +160,12 @@ DownloadList::disable_display() {
 
 void
 DownloadList::receive_next() {
-  if (m_focus != m_control->get_core().get_download_list().end())
-    ++m_focus;
-  else
-    m_focus = m_control->get_core().get_download_list().begin();
-
-  //mark_dirty();
+  m_downloadList.inc_focus();
 }
 
 void
 DownloadList::receive_prev() {
-  if (m_focus != m_control->get_core().get_download_list().begin())
-    --m_focus;
-  else
-    m_focus = m_control->get_core().get_download_list().end();
-
-  //mark_dirty();
+  m_downloadList.dec_focus();
 }
 
 void
@@ -185,26 +177,26 @@ DownloadList::receive_throttle(int t) {
 
 void
 DownloadList::receive_start_download() {
-  if (m_focus == m_control->get_core().get_download_list().end())
+  if (m_downloadList.get_focus() == m_downloadList.end())
     return;
 
-  m_control->get_core().start(*m_focus);
+  m_control->get_core().start(*m_downloadList.get_focus());
 }
 
 void
 DownloadList::receive_stop_download() {
-  if (m_focus == m_control->get_core().get_download_list().end())
+  if (m_downloadList.get_focus() == m_downloadList.end())
     return;
 
-  if ((*m_focus)->get_download().is_active())
-    m_control->get_core().stop(*m_focus);
+  if ((*m_downloadList.get_focus())->get_download().is_active())
+    m_control->get_core().stop(*m_downloadList.get_focus());
   else
-    m_focus = m_control->get_core().erase(m_focus);
+    m_downloadList.set_focus(m_control->get_core().erase(m_downloadList.get_focus()));
 }
 
 void
 DownloadList::receive_view_download() {
-  if (m_focus == m_control->get_core().get_download_list().end())
+  if (m_downloadList.get_focus() == m_downloadList.end())
     return;
 
   if (m_uiDownload != NULL)
@@ -212,7 +204,7 @@ DownloadList::receive_view_download() {
 
   disable();
 
-  m_uiDownload = new Download(*m_focus, m_control);
+  m_uiDownload = new Download(*m_downloadList.get_focus(), m_control);
 
   m_uiDownload->activate();
   m_uiDownload->get_bindings()[KEY_LEFT] = sigc::mem_fun(*this, &DownloadList::receive_exit_download);

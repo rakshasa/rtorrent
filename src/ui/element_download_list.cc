@@ -31,11 +31,9 @@
 
 namespace ui {
 
-ElementDownloadList::ElementDownloadList(DList* l, DList::iterator* f) :
+ElementDownloadList::ElementDownloadList(DList* l) :
   m_window(NULL),
-  m_list(l),
-  m_focus(f) {
-
+  m_list(l) {
 }
 
 void
@@ -45,7 +43,7 @@ ElementDownloadList::activate(Control* c, MItr mItr) {
 
   c->get_input().push_front(&m_bindings);
 
-  *mItr = m_window = new WDownloadList(m_list, m_focus);
+  *mItr = m_window = new WDownloadList(m_list);
 }
 
 void

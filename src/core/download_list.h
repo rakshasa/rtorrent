@@ -38,6 +38,8 @@ public:
   using Base::const_iterator;
   using Base::reverse_iterator;
   using Base::const_reverse_iterator;
+  using Base::value_type;
+  using Base::pointer;
 
   using Base::begin;
   using Base::end;

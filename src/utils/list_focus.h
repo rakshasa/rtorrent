@@ -27,54 +27,93 @@
 
 namespace utils {
 
+// Can't make this class inherit privately due to gcc PR 14258.
+
 template <typename Base>
-class ListFocus : private Base {
+class ListFocus {
 public:
-  using Base::iterator;
-  using Base::const_iterator;
-  using Base::reverse_iterator;
-  using Base::const_reverse_iterator;
+  typedef typename Base::iterator                   iterator;
+  typedef typename Base::const_iterator             const_iterator;
+  typedef typename Base::reverse_iterator           reverse_iterator;
+  typedef typename Base::const_reverse_iterator     const_reverse_iterator;
 
-  using Base::value_type;
+  typedef typename Base::value_type                 value_type;
+  typedef sigc::signal0<void>                       Signal;
 
-  using Base::begin;
-  using Base::end;
-  using Base::rbegin;
-  using Base::rend;
+  ListFocus(Base* b = NULL) : m_base(b) { if (b) m_focus = b->end(); }
 
-  using Base::insert;
-  using Base::push_back;
-  using Base::push_front;
+  // Convinience functions, would have added more through using, but
+  // can't.
+  iterator            begin()                       { return m_base->begin(); }
+  iterator            end()                         { return m_base->end(); }
+  reverse_iterator    rbegin()                      { return m_base->rbegin(); }
+  reverse_iterator    rend()                        { return m_base->rend(); }
 
-  ListFocus() : m_focus(end()) {}
+  // Don't do erase on this object without making sure focus is right.
+  Base&               base()                        { return *m_base; }
 
-  // Don't do erase on this object.
-  Base&               get_list()  { return m_list; }
-  typename iterator&  get_focus() { return m_focus; }
+  iterator            get_focus()                   { return m_focus; }
+  void                set_focus(iterator itr)       { m_focus = itr; m_signalChanged.emit(); }
 
-  typename iterator   erase(typename iterator itr);
-  void                remove(typename const value_type& v);
+  // These are looping increment/decrements.
+  iterator            inc_focus();
+  iterator            dec_focus();
+
+  iterator            erase(iterator itr);
+  void                remove(const value_type& v);
 
   // Be careful with copying signals.
+  Signal&             signal_changed()              { return m_signalChanged; }
 
 private:
-  typename iterator   m_focus;
+  Base*               m_base;
+  iterator            m_focus;
+
+  Signal              m_signalChanged;
 };
 
 template <typename Base>
 typename ListFocus<Base>::iterator
-ListFocus<Base>::erase(typename iterator itr) {
-  if (itr == m_focus)
-    return m_focus = Base::erase(itr);
+ListFocus<Base>::inc_focus() {
+  if (m_focus != end())
+    ++m_focus;
   else
-    return Base::erase(itr);  
+    m_focus = begin();
+
+  m_signalChanged.emit();
+
+  return m_focus;
+}
+
+template <typename Base>
+typename ListFocus<Base>::iterator
+ListFocus<Base>::dec_focus() {
+  if (m_focus != begin())
+    --m_focus;
+  else
+    m_focus = end();
+
+  m_signalChanged.emit();
+
+  return m_focus;
+}
+
+template <typename Base>
+typename ListFocus<Base>::iterator
+ListFocus<Base>::erase(iterator itr) {
+  if (itr == m_focus)
+    return m_focus = m_base->erase(itr);
+  else
+    return m_base->erase(itr);  
+
+  m_signalChanged.emit();
 }
 
 template <typename Base>
 void
-ListFocus<Base>::remove(typename const value_type& v) {
-  typename iterator first = begin();
-  typename iterator last = end();
+ListFocus<Base>::remove(const value_type& v) {
+  iterator first = begin();
+  iterator last = end();
 
   while (first != last)
     if (*first == v)
