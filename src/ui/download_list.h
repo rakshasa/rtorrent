@@ -1,6 +1,8 @@
 #ifndef RTORRENT_UI_DOWNLOAD_LIST_H
 #define RTORRENT_UI_DOWNLOAD_LIST_H
 
+#include <sigc++/slot.h>
+
 namespace display {
   class WindowTitle;
   class WindowDownloadList;
@@ -15,21 +17,25 @@ class Download;
 
 class DownloadList {
 public:
-  typedef display::WindowDownloadList WList;
-  typedef display::WindowTitle        WTitle;
-  typedef display::WindowStatusbar    WStatus;
-  typedef display::WindowInput        WInput;
-  typedef core::DownloadList          DList;
+  typedef display::WindowDownloadList           WList;
+  typedef display::WindowTitle                  WTitle;
+  typedef display::WindowStatusbar              WStatus;
+  typedef display::WindowInput                  WInput;
+  typedef core::DownloadList                    DList;
+
+  typedef sigc::slot1<void, const std::string&> SlotOpenUri;
 
   // We own 'window'.
   DownloadList(DList* l, Control* c);
   ~DownloadList();
 
-  WList&           get_window()   { return *m_window; }
-  input::Bindings& get_bindings() { return *m_bindings; }
+  WList&           get_window()                 { return *m_window; }
+  input::Bindings& get_bindings()               { return *m_bindings; }
 
   void             activate();
   void             disable();
+
+  void             slot_open_uri(SlotOpenUri s) { m_slotOpenUri = s; }
 
 private:
   DownloadList(const DownloadList&);
@@ -61,6 +67,8 @@ private:
 
   Control*         m_control;
   input::Bindings* m_bindings;
+
+  SlotOpenUri      m_slotOpenUri;
 
   // Test
   WInput*          m_windowInput;

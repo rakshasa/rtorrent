@@ -9,13 +9,19 @@ namespace input {
 
 bool
 TextInput::pressed(int key) {
+//   std::stringstream str;
+
   if (m_alt) {
     m_alt = false;
 
     switch (key) {
-    case 'p':
-      Base::insert(m_pos, "M^p");
-      break;
+//     case 'b':
+//       Base::insert(m_pos, "M^b");
+//       break;
+
+//     case 'f':
+//       Base::insert(m_pos, "M^f");
+//       break;
 
     default:
       return false;
@@ -52,8 +58,25 @@ TextInput::pressed(int key) {
 
       break;
 
+    case 0x1B:
+      m_alt = true;
+
+      break;
+
     default:
       return false;
+
+      // Testcode.
+//       if (key == KEY_ENTER || key == '\n')
+// 	return false;
+
+//       str << "\\x" << std::hex << key;
+
+//       Base::insert(m_pos, str.str());
+
+//       m_pos += str.str().length();
+
+//       return true;
     }
   }
 
@@ -61,19 +84,6 @@ TextInput::pressed(int key) {
 
   return true;
 
-  // Testcode.
-//   if (key == KEY_ENTER || key == '\n')
-//     return false;
-
-//   std::stringstream str;
-
-//   str << "\\x" << std::hex << key;
-
-//   Base::insert(m_pos, str.str());
-
-//   m_pos += str.str().length();
-
-//   return true;
 }  
 
 }

@@ -133,6 +133,8 @@ void
 DownloadList::receive_exit_input() {
   m_control->get_input().set_text_input();
 
+  m_slotOpenUri(m_windowInput->get_input()->str());
+
   m_windowInput->get_input()->clear();
   m_windowInput->set_focus(false);
 

@@ -110,6 +110,7 @@ main(int argc, char** argv) {
   ui::DownloadList uiDownloadList(&coreManager.get_download_list(), &uiControl);
 
   uiDownloadList.activate();
+  uiDownloadList.slot_open_uri(sigc::mem_fun(coreManager, &core::Manager::insert));
 
   // Register main key events.
   input::Bindings inputMain;
