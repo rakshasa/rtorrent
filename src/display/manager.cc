@@ -10,38 +10,49 @@
 
 namespace display {
 
-void
-Manager::adjust_layout() {
-  adjust_row(begin(), end(), 0, 0, display::Canvas::get_screen_width(), display::Canvas::get_screen_height());
+template <typename Type, typename Ftor>
+struct _accumulate {
+  _accumulate(Type& t, Ftor f) : m_t(t), m_f(f) {}
+
+  template <typename Arg>
+  void operator () (Arg& a) { m_t += m_f(a); }
+
+  Type& m_t;
+  Ftor m_f;
+};
+
+template <typename Type, typename Ftor>
+_accumulate<Type, Ftor> accumulate(Type& t, Ftor f) {
+  return _accumulate<Type, Ftor>(t, f);
 }
 
 void
-Manager::adjust_row(iterator bItr, iterator eItr, int x, int y, int w, int h) {
-  int t;
-  int dist = std::distance(bItr, eItr);
+Manager::adjust_layout() {
+  int countDynamic = 0;
+  int staticHeight = 0;
 
-  switch (dist) {
-  case 1:
-    bItr->get_window()->resize(x, y, w, h);
-    break;
+  std::for_each(begin(), end(), accumulate(staticHeight, std::mem_fun(&Window::get_min_height)));
+  std::for_each(begin(), end(), accumulate(countDynamic, std::mem_fun(&Window::is_dynamic)));
 
-  case 2:
-    t = w / 2 + w % 2;
+  int dynamic = std::max(0, Canvas::get_screen_height() - staticHeight);
+  int height = 0, h;
 
-    bItr->get_window()->resize(x, y, t, h);
-    ++bItr;
-    bItr->get_window()->resize(x + t, y, w - t, h);
-    break;
+  for (iterator itr = begin(); itr != end(); ++itr, height += h) {
+    h = (*itr)->is_dynamic() ? ((dynamic + countDynamic - 1) / countDynamic) : 0;
 
-  default:
-    throw std::logic_error("Manager::adjust_row(...) got a range with invalid number of elements");
+    countDynamic--;
+    dynamic -= h;
+
+    h += (*itr)->get_min_height();
+
+    (*itr)->resize(0, height, Canvas::get_screen_width(), h);
   }
-}    
+}
 
 void
 Manager::do_update() {
-  std::for_each(begin(), end(), std::mem_fun_ref(&ManagerElement::redraw));
-  std::for_each(begin(), end(), std::mem_fun_ref(&ManagerElement::refresh));
+  std::for_each(begin(), end(), std::mem_fun(&Window::redraw));
+  std::for_each(begin(), end(), std::mem_fun(&Window::refresh));
 
   Canvas::do_update();
 }

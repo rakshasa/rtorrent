@@ -7,11 +7,13 @@ class Canvas;
 
 class Window {
 public:
-  Window(Canvas* c = NULL) : m_canvas(c) {}
+  Window(Canvas* c = NULL, bool d = false, int h = 1) :
+    m_canvas(c), m_dynamic(d), m_minHeight(h) {}
   virtual ~Window() {}
 
-  Canvas*      get_canvas()          { return m_canvas; }
-  
+  bool         is_dynamic()     { return m_dynamic; }
+  int          get_min_height() { return m_minHeight; }
+
   void         refresh();
   void         resize(int x, int y, int w, int h);
 
@@ -21,7 +23,10 @@ protected:
   Window(const Window&);
   void operator = (const Window&);
 
-  Canvas*             m_canvas;
+  Canvas*      m_canvas;
+
+  bool         m_dynamic;
+  int          m_minHeight;
 };
 
 }
