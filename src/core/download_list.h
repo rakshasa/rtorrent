@@ -26,9 +26,6 @@ public:
 
   iterator  insert(std::istream* str);
   void      erase(iterator itr);
-
-private:
-  void      receive_hash_done(const std::string& str);
 };
 
 }

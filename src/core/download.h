@@ -19,9 +19,8 @@ public:
   void               open()                          { m_download.open(); }
   void               close()                         { m_download.close(); }
 
+  void               start()                         { m_download.start(); }
   void               stop()                          { m_download.stop(); }
-
-  void               hash_check(bool resume = false) { m_download.hash_check(resume); }
 
   bool operator == (const std::string& str)          { return str == m_download.get_hash(); }
 

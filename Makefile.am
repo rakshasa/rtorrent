@@ -1,4 +1,5 @@
 SUBDIRS = src
 
 EXTRA_DIST= \
-	autogen.sh
+	autogen.sh \
+	scripts/checks.m4

@@ -20,6 +20,21 @@ Manager::insert(const std::string& uri) {
 }
 
 void
+Manager::start(Download* d) {
+  if (d->get_download().is_active())
+    return;
+
+  if (d->get_download().is_open()) {
+    d->start();
+
+  } else {
+    d->open();
+
+    m_hashQueue.insert(d, sigc::mem_fun(*d, &Download::start));
+  }
+}
+
+void
 Manager::create_file(const std::string& uri) {
   DownloadList::iterator itr = m_downloadList.end();
 
@@ -28,8 +43,7 @@ Manager::create_file(const std::string& uri) {
     
     itr = m_downloadList.insert(&f);
 
-    itr->open();
-    itr->hash_check();
+    start(&*itr);
 
   } catch (torrent::local_error& e) {
     // What to do? Keep in list for now.
@@ -51,8 +65,7 @@ Manager::receive_http_done(torrent::Http* http) {
   try {
     itr = m_downloadList.insert(http->get_stream());
 
-    itr->open();
-    itr->hash_check();
+    start(&*itr);
 
   } catch (torrent::local_error& e) {
     // What to do? Keep in list for now.

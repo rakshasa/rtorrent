@@ -2,6 +2,7 @@
 #define RTORRENT_CORE_MANAGER_H
 
 #include "download_list.h"
+#include "hash_queue.h"
 #include "http_queue.h"
 
 namespace core {
@@ -12,9 +13,12 @@ public:
   typedef sigc::slot0<void>                         SlotFailed;
 
   DownloadList& get_download_list() { return m_downloadList; }
+  HashQueue&    get_hash_queue()    { return m_hashQueue; }
   HttpQueue&    get_http_queue()    { return m_httpQueue; }
 
   void          insert(const std::string& uri);
+
+  void          start(Download* d);
 
 private:
   void          receive_http_done(torrent::Http* http);
@@ -23,6 +27,7 @@ private:
   void          create_http(const std::string& uri);
 
   DownloadList  m_downloadList;
+  HashQueue     m_hashQueue;
   HttpQueue     m_httpQueue;
 };
 

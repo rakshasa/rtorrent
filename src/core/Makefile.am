@@ -5,6 +5,8 @@ libsub_core_a_SOURCES = \
 	curl_get.h \
 	curl_stack.cc \
 	curl_stack.h \
+	hash_queue.cc \
+	hash_queue.h \
 	http_queue.cc \
 	http_queue.h \
 	download.cc \
