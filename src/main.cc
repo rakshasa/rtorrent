@@ -72,20 +72,6 @@ do_shutdown(ui::Control* c) {
   start_shutdown = false;
 }
 
-void
-test_dir(const std::string& s) {
-  utils::Directory d(s);
-
-  d.update();
-
-  std::cout << "Listing dir \"" << s << '"' << std::endl;
-
-  for (utils::Directory::iterator itr = d.begin(); itr != d.end(); ++itr)
-    std::cout << '"' << *itr << '"' << std::endl;
-
-  exit(0);
-}
-
 int
 parse_options(ui::Control* c, int argc, char** argv) {
   OptionParser optionParser;
@@ -126,10 +112,20 @@ register_main_keys(ui::Control* c, input::Bindings* b) {
   (*b)['\x11']     = sigc::ptr_fun(&set_shutdown);
 }
 
+void
+initialize_core(ui::Control* c) {
+  c->get_core().get_poll().slot_read_stdin(sigc::mem_fun(c->get_input(), &input::Manager::pressed));
+  c->get_core().get_poll().slot_select_interrupted(sigc::ptr_fun(display::Canvas::do_update));
+
+  c->get_core().initialize();
+}
+
 int
 main(int argc, char** argv) {
   ui::Control uiControl;
   input::Bindings inputMain;
+
+  utils::Timer::update();
 
   try {
 
@@ -147,10 +143,7 @@ main(int argc, char** argv) {
 
   register_main_keys(&uiControl, &inputMain);
 
-  uiControl.get_core().get_poll().slot_read_stdin(sigc::mem_fun(uiControl.get_input(), &input::Manager::pressed));
-  uiControl.get_core().get_poll().slot_select_interrupted(sigc::ptr_fun(display::Canvas::do_update));
-
-  uiControl.get_core().initialize();
+  initialize_core(&uiControl);
 
   load_session_torrents(&uiControl);
   load_arg_torrents(&uiControl, argv + firstArg, argv + argc);
@@ -162,10 +155,11 @@ main(int argc, char** argv) {
       do_shutdown(&uiControl);
 
     utils::Timer::update();
-
+    utils::TaskSchedule::perform(utils::Timer::cache());
+    
     uiControl.get_display().do_update();
 
-    uiControl.get_core().get_poll().poll();
+    uiControl.get_core().get_poll().poll(utils::TaskSchedule::get_timeout());
   }
 
   display::Canvas::cleanup();

@@ -28,6 +28,7 @@ DownloadList::DownloadList(Control* c) :
   m_textInput(new WInput(new input::TextInput)),
   m_windowHttpQueue(new WHttp(&c->get_core().get_http_queue())),
 
+  m_taskUpdate(sigc::mem_fun(*this, &DownloadList::task_update)),
   m_download(NULL),
   m_focus(c->get_core().get_download_list().end()),
   m_control(c),
@@ -55,6 +56,8 @@ DownloadList::~DownloadList() {
 
 void
 DownloadList::activate() {
+  m_taskUpdate.insert(utils::Timer::cache() + 1000000);
+
   m_textInput->set_active(false);
 
   m_control->get_input().push_front(m_bindings);
@@ -69,6 +72,8 @@ DownloadList::activate() {
 
 void
 DownloadList::disable() {
+  m_taskUpdate.remove();
+
   if (m_textInput->is_active()) {
     m_textInput->get_input()->clear();
     receive_exit_input();
@@ -189,6 +194,13 @@ DownloadList::receive_exit_input() {
 
   m_bindings->erase('\n');
   m_bindings->erase(KEY_ENTER);
+}
+
+void
+DownloadList::task_update() {
+  m_windowLog->receive_update();
+
+  m_taskUpdate.insert(utils::Timer::cache() + 1000000);
 }
 
 void

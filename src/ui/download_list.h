@@ -3,6 +3,8 @@
 
 #include <sigc++/slot.h>
 
+#include "utils/task.h"
+
 namespace display {
   class WindowDownloadList;
   class WindowHttpQueue;
@@ -60,6 +62,8 @@ private:
   void             receive_view_input();
   void             receive_exit_input();
 
+  void             task_update();
+
   void             bind_keys(input::Bindings* b);
 
   void             mark_dirty();
@@ -70,6 +74,8 @@ private:
   WLog*            m_windowLog;
   WInput*          m_textInput;
   WHttp*           m_windowHttpQueue;
+
+  utils::Task      m_taskUpdate;
 
   Download*        m_download;
 

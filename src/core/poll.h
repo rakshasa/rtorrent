@@ -4,6 +4,7 @@
 #include <sys/select.h>
 #include <sigc++/slot.h>
 
+#include "utils/timer.h"
 #include "curl_stack.h"
 
 namespace core {
@@ -19,7 +20,7 @@ public:
   Poll() : m_readSet(new fd_set), m_writeSet(new fd_set), m_exceptSet(new fd_set) {}
   ~Poll() { delete m_readSet; delete m_writeSet; delete m_exceptSet; }
 
-  void        poll();
+  void        poll(utils::Timer t);
 
   SlotFactory get_http_factory();
 

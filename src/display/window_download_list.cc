@@ -34,13 +34,13 @@ WindowDownloadList::redraw() {
     int i = 0;
     itr = last = *m_focus;
     
-    while (i < m_canvas->get_height() - y && !(itr == m_list->begin() && last == m_list->end())) {
+    while (i < m_canvas->get_height() - y - 3 && !(itr == m_list->begin() && last == m_list->end())) {
       if (last != m_list->end()) {
 	++last;
 	i += 3;
       }
 
-      if (itr != m_list->begin() && i < m_canvas->get_height() - y) {
+      if (itr != m_list->begin() && i < m_canvas->get_height() - y - 3) {
 	--itr;
 	i += 3;
       }

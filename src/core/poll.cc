@@ -13,7 +13,7 @@
 namespace core {
 
 void
-Poll::poll() {
+Poll::poll(utils::Timer timeout) {
   FD_ZERO(m_readSet);
   FD_ZERO(m_writeSet);
   FD_ZERO(m_exceptSet);
@@ -29,15 +29,11 @@ Poll::poll() {
     m_maxFd = std::max(m_maxFd, n);
   }
 
-  uint64_t t = torrent::get(torrent::TIME_SELECT);
-
-  if (t > 1000000)
-    t = 1000000;
-
-  timeval timeout = {t / 1000000, t % 1000000};
+  timeout = std::min(timeout, utils::Timer(torrent::get(torrent::TIME_SELECT)));
+  timeval t = timeout.tval();
 
   errno = 0;
-  m_maxFd = select(m_maxFd + 1, m_readSet, m_writeSet, m_exceptSet, &timeout);
+  m_maxFd = select(m_maxFd + 1, m_readSet, m_writeSet, m_exceptSet, &t);
 
   if (m_maxFd >= 0) {
     work();

@@ -3,23 +3,25 @@
 
 #include <sigc++/connection.h>
 
-#include "window.h"
+#include "core/log.h"
 
-namespace core {
-  class Log;
-}
+#include "window.h"
 
 namespace display {
 
 class WindowLog : public Window {
 public:
+  typedef core::Log::iterator iterator;
+
   WindowLog(core::Log* l);
   ~WindowLog();
 
   virtual void     redraw();
 
-private:
   void             receive_update();
+
+private:
+  inline iterator  find_older();
 
   core::Log*       m_log;
   sigc::connection m_connUpdate;

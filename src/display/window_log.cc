@@ -1,7 +1,5 @@
 #include "config.h"
 
-#include "core/log.h"
-
 #include "canvas.h"
 #include "window_log.h"
 
@@ -13,11 +11,17 @@ WindowLog::WindowLog(core::Log* l) :
 
   set_active(false);
 
-  m_connUpdate = l->signal_update().connect(sigc::mem_fun(*this, &WindowLog::receive_update));
+  // We're trying out scheduled tasks instead.
+  //m_connUpdate = l->signal_update().connect(sigc::mem_fun(*this, &WindowLog::receive_update));
 }
 
 WindowLog::~WindowLog() {
   m_connUpdate.disconnect();
+}
+
+WindowLog::iterator
+WindowLog::find_older() {
+  return m_log->find_older(utils::Timer::cache() - 10*1000000);
 }
 
 void
@@ -31,18 +35,22 @@ WindowLog::redraw() {
 
   int pos = 0;
 
-  for (core::Log::iterator itr = m_log->begin(), end = m_log->end(); itr != end; ++itr)
-    m_canvas->print(0, pos++, "Log: %s", itr->second.c_str());
+  //m_canvas->print(std::max(0, (int)m_canvas->get_width() / 2 - 5), pos++, "*** Log ***");
+  m_canvas->print(0, 0, "___");
+
+  for (core::Log::iterator itr = m_log->begin(), end = find_older(); itr != end && pos < m_minHeight; ++itr)
+    m_canvas->print(0, pos++, "<date>: %s", itr->second.c_str());
 }
 
 void
 WindowLog::receive_update() {
-  int newHeight = std::min<size_t>(m_log->size(), 5);
+  iterator itr = find_older();
+  int h = std::distance(m_log->begin(), itr);
 
-  if (newHeight != m_minHeight) {
-    m_minHeight = newHeight;
+  if (h != m_minHeight) {
+    set_active(h != 0);
 
-    set_active(m_minHeight != 0);
+    m_minHeight = h;
     m_slotAdjust();
   }
 

@@ -16,8 +16,8 @@ Log::push_front(const std::string& msg) {
 
 Log::iterator
 Log::find_older(utils::Timer t) {
-  return std::find_if(begin(), end(), func::on(func::mem_ptr_ref(&Type::first),
-					       std::bind1st(std::less_equal<utils::Timer>(), t)));
+  return std::find_if(begin(), end(),
+		      func::on(func::mem_ptr_ref(&Type::first), std::bind2nd(std::less_equal<utils::Timer>(), t)));
 }
 
 }
