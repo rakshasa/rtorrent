@@ -22,3 +22,4 @@ Make accumulate return the value, no refs please...
 >   - being able to delete not just the torrent file, but the files it
 >     created from rtorrent.  Like when you start a torrent, but it is too
 >     slow or broken or for various reasons you don't want to download it.
+	

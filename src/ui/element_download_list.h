@@ -20,44 +20,38 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#include "config.h"
+#ifndef RTORRENT_UI_ELEMENT_DOWNLOAD_LIST_H
+#define RTORRENT_UI_ELEMENT_DOWNLOAD_LIST_H
 
-#include <stdexcept>
+#include "core/download_list.h"
 
-#include "display/window_peer_info.h"
+#include "element_base.h"
 
-#include "control.h"
-#include "peer_info.h"
+namespace display {
+  class WindowDownloadList;
+}
 
 namespace ui {
 
-PeerInfo::PeerInfo(core::Download* d, PList* l, PList::iterator* f) :
-  m_download(d),
-  m_window(NULL),
-  m_list(l),
-  m_focus(f) {
+class Control;
+
+class ElementDownloadList : public ElementBase {
+public:
+  typedef display::WindowDownloadList   WDownloadList;
+  typedef core::DownloadList            DList;
+
+  ElementDownloadList(DList* l, DList::iterator* f);
+
+  void                activate(Control* c, MItr mItr);
+  void                disable(Control* c);
+
+private:
+  WDownloadList*      m_window;
+  
+  DList*              m_list;
+  DList::iterator*    m_focus;
+};
 
 }
 
-void
-PeerInfo::activate(Control* c, MItr mItr) {
-  if (m_window != NULL)
-    throw std::logic_error("ui::PeerInfo::activate(...) called on an object in the wrong state");
-
-  c->get_input().push_front(&m_bindings);
-
-  *mItr = m_window = new WPeerInfo(m_download, m_list, m_focus);
-}
-
-void
-PeerInfo::disable(Control* c) {
-  if (m_window == NULL)
-    throw std::logic_error("ui::PeerInfo::disable(...) called on an object in the wrong state");
-
-  c->get_input().erase(&m_bindings);
-
-  delete m_window;
-  m_window = NULL;
-}
-
-}
+#endif

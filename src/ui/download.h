@@ -40,7 +40,7 @@ namespace core {
 namespace ui {
 
 class Control;
-class BaseElement;
+class ElementBase;
 
 class Download {
 public:
@@ -100,7 +100,7 @@ private:
 
   Display             m_state;
 
-  BaseElement*        m_uiArray[DISPLAY_MAX_SIZE];
+  ElementBase*        m_uiArray[DISPLAY_MAX_SIZE];
 
   WTitle*             m_windowTitle;
   WDownloadStatus*    m_windowDownloadStatus;

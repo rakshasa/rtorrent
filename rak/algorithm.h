@@ -75,9 +75,10 @@ advance_bidirectional(_InputIter __first, _InputIter __middle1, _InputIter __las
   return std::make_pair(__middle1, __middle2);
 }
 
+template <typename _Value>
 struct
-string_starts_with : public std::binary_function<std::string, std::string, bool> {
-  bool operator () (const std::string& complete, const std::string& base) const {
+compare_base : public std::binary_function<_Value, _Value, bool> {
+  bool operator () (const _Value& complete, const _Value& base) const {
     return !complete.compare(0, base.size(), base);
   }
 };
@@ -110,7 +111,7 @@ make_base(_InputIter __first, _InputIter __last) {
     typename std::iterator_traits<_InputIter>::difference_type __pos = count_base(__base.begin(), __base.end(),
 										  __first->begin(), __first->end());
 
-    if (__pos < __base.size())
+    if (__pos < (typename std::iterator_traits<_InputIter>::difference_type)__base.size())
       __base.resize(__pos);
   }
 

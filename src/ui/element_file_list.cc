@@ -27,24 +27,24 @@
 #include "display/window_file_list.h"
 
 #include "control.h"
-#include "file_list.h"
+#include "element_file_list.h"
 
 namespace ui {
 
-FileList::FileList(core::Download* d) :
+ElementFileList::ElementFileList(core::Download* d) :
   m_download(d),
   m_window(NULL),
   m_focus(0) {
 
-  m_bindings[' '] = sigc::mem_fun(*this, &FileList::receive_priority);
-  m_bindings[KEY_DOWN] = sigc::mem_fun(*this, &FileList::receive_next);
-  m_bindings[KEY_UP] = sigc::mem_fun(*this, &FileList::receive_prev);
+  m_bindings[' '] = sigc::mem_fun(*this, &ElementFileList::receive_priority);
+  m_bindings[KEY_DOWN] = sigc::mem_fun(*this, &ElementFileList::receive_next);
+  m_bindings[KEY_UP] = sigc::mem_fun(*this, &ElementFileList::receive_prev);
 }
 
 void
-FileList::activate(Control* c, MItr mItr) {
+ElementFileList::activate(Control* c, MItr mItr) {
   if (m_window != NULL)
-    throw std::logic_error("ui::FileList::activate(...) called on an object in the wrong state");
+    throw std::logic_error("ui::ElementFileList::activate(...) called on an object in the wrong state");
 
   c->get_input().push_front(&m_bindings);
 
@@ -52,9 +52,9 @@ FileList::activate(Control* c, MItr mItr) {
 }
 
 void
-FileList::disable(Control* c) {
+ElementFileList::disable(Control* c) {
   if (m_window == NULL)
-    throw std::logic_error("ui::FileList::disable(...) called on an object in the wrong state");
+    throw std::logic_error("ui::ElementFileList::disable(...) called on an object in the wrong state");
 
   c->get_input().erase(&m_bindings);
 
@@ -63,9 +63,9 @@ FileList::disable(Control* c) {
 }
 
 void
-FileList::receive_next() {
+ElementFileList::receive_next() {
   if (m_window == NULL)
-    throw std::logic_error("ui::FileList::receive_next(...) called on a disabled object");
+    throw std::logic_error("ui::ElementFileList::receive_next(...) called on a disabled object");
 
   if (++m_focus >= m_download->get_download().get_entry_size())
     m_focus = 0;
@@ -74,9 +74,9 @@ FileList::receive_next() {
 }
 
 void
-FileList::receive_prev() {
+ElementFileList::receive_prev() {
   if (m_window == NULL)
-    throw std::logic_error("ui::FileList::receive_prev(...) called on a disabled object");
+    throw std::logic_error("ui::ElementFileList::receive_prev(...) called on a disabled object");
 
   if (m_download->get_download().get_entry_size() == 0)
     return;
@@ -90,9 +90,9 @@ FileList::receive_prev() {
 }
 
 void
-FileList::receive_priority() {
+ElementFileList::receive_priority() {
   if (m_window == NULL)
-    throw std::logic_error("ui::FileList::receive_prev(...) called on a disabled object");
+    throw std::logic_error("ui::ElementFileList::receive_prev(...) called on a disabled object");
 
   if (m_focus >= m_download->get_download().get_entry_size())
     return;

@@ -60,7 +60,7 @@ PathInput::receive_do_complete() {
   if (r.first == r.second)
     return; // Show some nice colors here.
 
-  std::string base = make_base(r.first, r.second);
+  std::string base = rak::make_base(r.first, r.second);
 
   // Clear the path after the cursor to make this code cleaner. It's
   // not really nessesary to add the complexity just because someone
@@ -89,8 +89,8 @@ PathInput::Range
 PathInput::find_incomplete(utils::Directory& d, const std::string& f) {
   Range r;
 
-  r.first  = std::find_if(d.begin(), d.end(), std::bind2nd(string_starts_with(), f));
-  r.second = std::find_if(r.first, d.end(), std::not1(std::bind2nd(string_starts_with(), f)));
+  r.first  = std::find_if(d.begin(), d.end(), std::bind2nd(rak::compare_base<std::string>(), f));
+  r.second = std::find_if(r.first, d.end(), std::not1(std::bind2nd(rak::compare_base<std::string>(), f)));
 
   return r;
 }

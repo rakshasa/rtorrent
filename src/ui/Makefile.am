@@ -7,15 +7,17 @@ libsub_ui_a_SOURCES = \
 	download.h \
 	download_list.cc \
 	download_list.h \
-	file_list.cc \
-	file_list.h \
-	peer_info.cc \
-	peer_info.h \
-	peer_list.cc \
-	peer_list.h \
+	element_download_list.cc \
+	element_download_list.h \
+	element_file_list.cc \
+	element_file_list.h \
+	element_peer_info.cc \
+	element_peer_info.h \
+	element_peer_list.cc \
+	element_peer_list.h \
+	element_tracker_list.cc \
+	element_tracker_list.h \
 	root.cc \
-	root.h \
-	tracker_list.cc \
-	tracker_list.h
+	root.h
 
 INCLUDES = -I$(srcdir) -I$(srcdir)/.. -I$(top_srcdir)

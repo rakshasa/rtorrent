@@ -35,10 +35,10 @@
 
 #include "control.h"
 #include "download.h"
-#include "file_list.h"
-#include "peer_info.h"
-#include "peer_list.h"
-#include "tracker_list.h"
+#include "element_file_list.h"
+#include "element_peer_info.h"
+#include "element_peer_list.h"
+#include "element_tracker_list.h"
 
 namespace ui {
 
@@ -57,10 +57,10 @@ Download::Download(DPtr d, Control* c) :
 
   m_focus = m_peers.end();
 
-  m_uiArray[DISPLAY_PEER_LIST]    = new PeerList(d, &m_peers, &m_focus);
-  m_uiArray[DISPLAY_PEER_INFO]    = new PeerInfo(d, &m_peers, &m_focus);
-  m_uiArray[DISPLAY_FILE_LIST]    = new FileList(d);
-  m_uiArray[DISPLAY_TRACKER_LIST] = new TrackerList(d);
+  m_uiArray[DISPLAY_PEER_LIST]    = new ElementPeerList(d, &m_peers, &m_focus);
+  m_uiArray[DISPLAY_PEER_INFO]    = new ElementPeerInfo(d, &m_peers, &m_focus);
+  m_uiArray[DISPLAY_FILE_LIST]    = new ElementFileList(d);
+  m_uiArray[DISPLAY_TRACKER_LIST] = new ElementTrackerList(d);
 
   bind_keys();
 
@@ -74,7 +74,7 @@ Download::~Download() {
   if (m_window != m_control->get_display().end())
     throw std::logic_error("ui::Download::~Download() called on an active object");
 
-  std::for_each(m_uiArray, m_uiArray + DISPLAY_MAX_SIZE, rak::call_delete<BaseElement>());
+  std::for_each(m_uiArray, m_uiArray + DISPLAY_MAX_SIZE, rak::call_delete<ElementBase>());
 
   delete m_windowTitle;
   delete m_windowDownloadStatus;

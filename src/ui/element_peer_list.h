@@ -20,27 +20,37 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef RTORRENT_UI_BASE_ELEMENT_H
-#define RTORRENT_UI_BASE_ELEMENT_H
+#ifndef RTORRENT_UI_ELEMENT_PEER_LIST_H
+#define RTORRENT_UI_ELEMENT_PEER_LIST_H
 
-#include "display/manager.h"
-#include "input/bindings.h"
+#include "core/download.h"
+
+#include "element_base.h"
+
+namespace display {
+  class WindowPeerList;
+}
 
 namespace ui {
 
-class BaseElement {
+class Control;
+
+class ElementPeerList : public ElementBase {
 public:
-  typedef display::Manager::iterator MItr;
+  typedef display::WindowPeerList       WPeerList;
+  typedef std::list<torrent::Peer>      PList;
 
-  virtual ~BaseElement() {}
+  ElementPeerList(core::Download* d, PList* l, PList::iterator* f);
 
-  virtual void        activate(Control* c, MItr mItr) = 0;
-  virtual void        disable(Control* c) = 0;
+  void                activate(Control* c, MItr mItr);
+  void                disable(Control* c);
 
-  input::Bindings&    get_bindings() { return m_bindings; }
-
-protected:
-  input::Bindings     m_bindings;
+private:
+  core::Download*     m_download;
+  WPeerList*          m_window;
+  
+  PList*              m_list;
+  PList::iterator*    m_focus;
 };
 
 }

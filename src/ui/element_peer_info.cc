@@ -20,43 +20,44 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef RTORRENT_UI_FILE_LIST_H
-#define RTORRENT_UI_FILE_LIST_H
+#include "config.h"
 
-#include "core/download.h"
+#include <stdexcept>
 
-#include "base_element.h"
+#include "display/window_peer_info.h"
 
-namespace display {
-  class WindowFileList;
-}
+#include "control.h"
+#include "element_peer_info.h"
 
 namespace ui {
 
-class Control;
-
-class FileList : public BaseElement {
-public:
-  typedef display::WindowFileList    WFileList;
-
-  FileList(core::Download* d);
-
-  void                activate(Control* c, MItr mItr);
-  void                disable(Control* c);
-
-private:
-  void                receive_next();
-  void                receive_prev();
-
-  void                receive_priority();
-
-  core::Download*     m_download;
-  WFileList*          m_window;
-  
-  // Change to unsigned, please.
-  unsigned int        m_focus;
-};
+ElementPeerInfo::ElementPeerInfo(core::Download* d, PList* l, PList::iterator* f) :
+  m_download(d),
+  m_window(NULL),
+  m_list(l),
+  m_focus(f) {
 
 }
 
-#endif
+void
+ElementPeerInfo::activate(Control* c, MItr mItr) {
+  if (m_window != NULL)
+    throw std::logic_error("ui::ElementPeerInfo::activate(...) called on an object in the wrong state");
+
+  c->get_input().push_front(&m_bindings);
+
+  *mItr = m_window = new WPeerInfo(m_download, m_list, m_focus);
+}
+
+void
+ElementPeerInfo::disable(Control* c) {
+  if (m_window == NULL)
+    throw std::logic_error("ui::ElementPeerInfo::disable(...) called on an object in the wrong state");
+
+  c->get_input().erase(&m_bindings);
+
+  delete m_window;
+  m_window = NULL;
+}
+
+}

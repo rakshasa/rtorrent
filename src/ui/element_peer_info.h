@@ -20,39 +20,37 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef RTORRENT_UI_TRACKER_LIST_H
-#define RTORRENT_UI_TRACKER_LIST_H
+#ifndef RTORRENT_UI_ELEMENT_PEER_INFO_H
+#define RTORRENT_UI_ELEMENT_PEER_INFO_H
 
 #include "core/download.h"
 
-#include "base_element.h"
+#include "element_base.h"
 
 namespace display {
-  class WindowTrackerList;
+  class WindowPeerInfo;
 }
 
 namespace ui {
 
 class Control;
 
-class TrackerList : public BaseElement {
+class ElementPeerInfo : public ElementBase {
 public:
-  typedef display::WindowTrackerList    WTrackerList;
+  typedef display::WindowPeerInfo       WPeerInfo;
+  typedef std::list<torrent::Peer>      PList;
 
-  TrackerList(core::Download* d);
+  ElementPeerInfo(core::Download* d, PList* l, PList::iterator* f);
 
   void                activate(Control* c, MItr mItr);
   void                disable(Control* c);
 
 private:
-  void                receive_next();
-  void                receive_prev();
-
   core::Download*     m_download;
-  WTrackerList*       m_window;
+  WPeerInfo*          m_window;
   
-  // Change to unsigned, please.
-  unsigned int        m_focus;
+  PList*              m_list;
+  PList::iterator*    m_focus;
 };
 
 }

@@ -27,23 +27,23 @@
 #include "display/window_tracker_list.h"
 
 #include "control.h"
-#include "tracker_list.h"
+#include "element_tracker_list.h"
 
 namespace ui {
 
-TrackerList::TrackerList(core::Download* d) :
+ElementTrackerList::ElementTrackerList(core::Download* d) :
   m_download(d),
   m_window(NULL),
   m_focus(0) {
 
-  m_bindings[KEY_DOWN] = sigc::mem_fun(*this, &TrackerList::receive_next);
-  m_bindings[KEY_UP] = sigc::mem_fun(*this, &TrackerList::receive_prev);
+  m_bindings[KEY_DOWN] = sigc::mem_fun(*this, &ElementTrackerList::receive_next);
+  m_bindings[KEY_UP] = sigc::mem_fun(*this, &ElementTrackerList::receive_prev);
 }
 
 void
-TrackerList::activate(Control* c, MItr mItr) {
+ElementTrackerList::activate(Control* c, MItr mItr) {
   if (m_window != NULL)
-    throw std::logic_error("ui::TrackerList::activate(...) called on an object in the wrong state");
+    throw std::logic_error("ui::ElementTrackerList::activate(...) called on an object in the wrong state");
 
   c->get_input().push_front(&m_bindings);
 
@@ -51,9 +51,9 @@ TrackerList::activate(Control* c, MItr mItr) {
 }
 
 void
-TrackerList::disable(Control* c) {
+ElementTrackerList::disable(Control* c) {
   if (m_window == NULL)
-    throw std::logic_error("ui::TrackerList::disable(...) called on an object in the wrong state");
+    throw std::logic_error("ui::ElementTrackerList::disable(...) called on an object in the wrong state");
 
   c->get_input().erase(&m_bindings);
 
@@ -62,9 +62,9 @@ TrackerList::disable(Control* c) {
 }
 
 void
-TrackerList::receive_next() {
+ElementTrackerList::receive_next() {
   if (m_window == NULL)
-    throw std::logic_error("ui::TrackerList::receive_next(...) called on a disabled object");
+    throw std::logic_error("ui::ElementTrackerList::receive_next(...) called on a disabled object");
 
   if (++m_focus >= m_download->get_download().get_tracker_size())
     m_focus = 0;
@@ -73,9 +73,9 @@ TrackerList::receive_next() {
 }
 
 void
-TrackerList::receive_prev() {
+ElementTrackerList::receive_prev() {
   if (m_window == NULL)
-    throw std::logic_error("ui::TrackerList::receive_prev(...) called on a disabled object");
+    throw std::logic_error("ui::ElementTrackerList::receive_prev(...) called on a disabled object");
 
   if (m_download->get_download().get_tracker_size() == 0)
     return;
