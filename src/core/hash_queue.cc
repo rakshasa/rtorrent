@@ -77,7 +77,6 @@ HashQueue::receive_hash_done(Base::iterator itr) {
   Base::erase(itr);
 
   s();
-
   fill_queue();
 }
 

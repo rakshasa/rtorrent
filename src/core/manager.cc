@@ -94,6 +94,7 @@ Manager::start(Download* d) {
   if (d->get_download().is_hash_checked())
     d->start();
   else
+    // This can cause infinit loops.
     m_hashQueue.insert(d, sigc::mem_fun(d, &Download::start));
 }
 

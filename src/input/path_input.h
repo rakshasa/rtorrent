@@ -34,12 +34,14 @@ namespace input {
 class PathInput : public TextInput {
 public:
   typedef std::pair<utils::Directory::iterator, utils::Directory::iterator>           Range;
+  typedef sigc::signal0<void>                                                         Signal;
   typedef sigc::signal2<void, utils::Directory::iterator, utils::Directory::iterator> SignalShowRange;
 
   PathInput();
   virtual ~PathInput() {}
 
-  SignalShowRange&    signal_show_range()           { return m_signalShowRange; }
+  Signal&             signal_show_next()          { return m_signalShowNext; }
+  SignalShowRange&    signal_show_range()         { return m_signalShowRange; }
 
   virtual bool        pressed(int key);
 
@@ -49,6 +51,9 @@ private:
   size_type           find_last_delim();
   Range               find_incomplete(utils::Directory& d, const std::string& f);
 
+  bool                m_showNext;
+
+  Signal              m_signalShowNext;
   SignalShowRange     m_signalShowRange;
 };
 

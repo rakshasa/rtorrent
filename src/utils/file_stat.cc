@@ -20,36 +20,51 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef RTORRENT_DISPLAY_WINDOW_STRING_LIST_H
-#define RTORRENT_DISPLAY_WINDOW_STRING_LIST_H
+#include "config.h"
 
-#include <string>
-#include <list>
+#include <stdexcept>
 
-#include "window.h"
+#include "file_stat.h"
 
-namespace display {
+namespace utils {
 
-class WindowStringList : public Window {
-public:
-  typedef std::list<std::string>::iterator iterator;
+void
+FileStat::update_throws(int fd) {
+  int r = update(fd);
 
-  WindowStringList();
-  ~WindowStringList();
-
-  iterator         get_draw_end()                           { return m_drawEnd; }
-
-  void             set_range(iterator first, iterator last) { m_first = m_drawEnd = first; m_last = last; }
-
-  virtual void     redraw();
-
-private:
-  iterator         m_first;
-  iterator         m_last;
-  
-  iterator         m_drawEnd;
-};
-
+  if (r < 0)
+    throw std::runtime_error(error_string(r));
 }
 
-#endif
+void
+FileStat::update_throws(const char* filename) {
+  int r = update(filename);
+
+  if (r < 0)
+    throw std::runtime_error(error_string(r));
+}
+
+std::string
+FileStat::error_string(int err) {
+  switch (err) {
+  case 0:
+    return "Success";
+
+  case EBADF:
+    return "Bad file descriptor";
+
+  case ENOENT:
+    return "Filename does not exist";
+
+  case ENOTDIR:
+    return "Path not a directory";
+
+  case EACCES:
+    return "Permission denied";
+
+  default:
+    return "Unknown error";
+  }
+}
+
+}

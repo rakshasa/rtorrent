@@ -302,6 +302,10 @@ DownloadList::setup_input() {
   m_windowTextInput      = new WInput(p);
 
   p->slot_dirty(sigc::mem_fun(*m_windowTextInput, &WInput::mark_dirty));
+
+  p->signal_show_next().connect(sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_change), DISPLAY_STRING_LIST));
+  p->signal_show_next().connect(sigc::mem_fun(*esl, &ElementStringList::next_screen));
+
   p->signal_show_range().connect(sigc::hide(sigc::hide(sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_change), DISPLAY_STRING_LIST))));
   p->signal_show_range().connect(sigc::mem_fun(*esl, &ElementStringList::set_range<utils::Directory::iterator>));
 

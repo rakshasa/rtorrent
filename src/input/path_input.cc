@@ -26,21 +26,47 @@
 #include <rak/algorithm.h>
 
 #include "path_input.h"
+#include "utils/file_stat.h"
 
 namespace input {
 
-PathInput::PathInput() {
+PathInput::PathInput() :
+  m_showNext(false) {
 }
 
 bool
 PathInput::pressed(int key) {
-  if (key == '\t')
-    receive_do_complete();
-  else
+  if (key != '\t') {
+    m_showNext = false;
     return TextInput::pressed(key);
+
+  } else if (m_showNext) {
+    m_signalShowNext.emit();
+
+  } else {
+    receive_do_complete();
+  
+    m_showNext = true;
+  }
 
   return true;
 }
+
+struct _transform_filename {
+  _transform_filename(const std::string& base) : m_base(base) {}
+
+  void operator () (std::string& filename) {
+    utils::FileStat fs;
+
+    if (fs.update((m_base + filename).c_str()))
+      return;
+
+    else if (fs.is_directory())
+      filename += '/';
+  }
+
+  const std::string& m_base;
+};
 
 void
 PathInput::receive_do_complete() {
@@ -49,11 +75,12 @@ PathInput::receive_do_complete() {
   utils::Directory dir(dirEnd != 0 ? str().substr(0, dirEnd) : "./");
   
   if (!dir.update() || dir.empty()) {
-    str() += "!";
     mark_dirty();
 
     return;
   }
+
+  std::for_each(dir.begin(), dir.end(), _transform_filename(str().substr(0, dirEnd)));
 
   Range r = find_incomplete(dir, str().substr(dirEnd, get_pos()));
 
@@ -71,7 +98,10 @@ PathInput::receive_do_complete() {
   set_pos(dirEnd + base.size());
 
   mark_dirty();
-  m_signalShowRange.emit(r.first, r.second);
+
+  // Only emit if there are more than one option.
+  if (++utils::Directory::iterator(r.first) != r.second)
+    m_signalShowRange.emit(r.first, r.second);
 }
 
 PathInput::size_type

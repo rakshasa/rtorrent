@@ -57,6 +57,8 @@ public:
     m_window->mark_dirty();
   }
 
+  void                next_screen();
+
 private:
   WStringList*        m_window;
   List                m_list;
