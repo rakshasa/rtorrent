@@ -35,6 +35,14 @@ public:
   template <typename A1, typename A2>
   void      print(int x, int y, const char* str, A1 a1, A2 a2) { mvwprintw(m_window, y, x, str, a1, a2); }
 
+  template <typename A1, typename A2, typename A3>
+  void      print(int x, int y, const char* str,
+		  A1 a1, A2 a2, A3 a3)                         { mvwprintw(m_window, y, x, str, a1, a2, a3); }
+
+  template <typename A1, typename A2, typename A3, typename A4>
+  void      print(int x, int y, const char* str,
+		  A1 a1, A2 a2, A3 a3, A4 a4)                  { mvwprintw(m_window, y, x, str, a1, a2, a3, a4); }
+
   void      print_border(chtype ls, chtype rs,
 			 chtype ts, chtype bs,
 			 chtype tl, chtype tr,

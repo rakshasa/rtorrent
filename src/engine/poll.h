@@ -4,6 +4,8 @@
 #include <sys/select.h>
 #include <sigc++/slot.h>
 
+#include "curl_stack.h"
+
 namespace engine {
 
 class Poll {
@@ -17,6 +19,8 @@ public:
   void      poll();
   void      work();
 
+  void      register_http();
+
   void      slot_read_stdin(SlotInt s) { m_readStdin = s; }
 
 private:
@@ -27,6 +31,8 @@ private:
   fd_set    m_readSet;
   fd_set    m_writeSet;
   fd_set    m_exceptSet;
+
+  CurlStack m_curlStack;
 };
 
 }

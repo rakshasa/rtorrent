@@ -7,7 +7,7 @@ libsub_display_a_SOURCES = \
 	manager.h \
 	window.cc \
 	window.h \
-	window_downloads.cc \
-	window_downloads.h
+	window_download_list.cc \
+	window_download_list.h
 
 INCLUDES = -I$(srcdir) -I$(srcdir)/.. -I$(top_srcdir)
