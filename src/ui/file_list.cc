@@ -15,6 +15,7 @@ FileList::FileList(Control* c, core::Download* d) :
   m_control(c),
   m_focus(0) {
 
+  m_bindings[' '] = sigc::mem_fun(*this, &FileList::receive_priority);
   m_bindings[KEY_DOWN] = sigc::mem_fun(*this, &FileList::receive_next);
   m_bindings[KEY_UP] = sigc::mem_fun(*this, &FileList::receive_prev);
 }
@@ -45,7 +46,7 @@ FileList::receive_next() {
   if (m_window == NULL)
     throw std::logic_error("ui::FileList::receive_next(...) called on a disabled object");
 
-  if (++m_focus >= (int)m_download->get_download().get_entry_size())
+  if (++m_focus >= m_download->get_download().get_entry_size())
     m_focus = 0;
 
   m_window->mark_dirty();
@@ -56,8 +57,44 @@ FileList::receive_prev() {
   if (m_window == NULL)
     throw std::logic_error("ui::FileList::receive_prev(...) called on a disabled object");
 
-  if (--m_focus < 0)
-    m_focus = std::max(0, (int)m_download->get_download().get_entry_size() - 1);
+  if (m_download->get_download().get_entry_size() == 0)
+    return;
+
+  if (m_focus != 0)
+    --m_focus;
+  else 
+    m_focus = m_download->get_download().get_entry_size() - 1;
+
+  m_window->mark_dirty();
+}
+
+void
+FileList::receive_priority() {
+  if (m_window == NULL)
+    throw std::logic_error("ui::FileList::receive_prev(...) called on a disabled object");
+
+  if (m_focus >= m_download->get_download().get_entry_size())
+    return;
+
+  torrent::Entry e = m_download->get_download().get_entry(m_focus);
+
+  switch (e.get_priority()) {
+  case torrent::Entry::STOPPED:
+    e.set_priority(torrent::Entry::HIGH);
+    break;
+
+  case torrent::Entry::NORMAL:
+    e.set_priority(torrent::Entry::STOPPED);
+    break;
+
+  case torrent::Entry::HIGH:
+    e.set_priority(torrent::Entry::NORMAL);
+    break;
+	
+  default:
+    e.set_priority(torrent::Entry::NORMAL);
+    break;
+  };
 
   m_window->mark_dirty();
 }

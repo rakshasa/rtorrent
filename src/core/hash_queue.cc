@@ -15,7 +15,7 @@ HashQueue::insert(Download* d, Slot s) {
   if (d->get_download().is_hash_checking())
     return;
 
-  if (std::find_if(begin(), end(), func::equal(d, std::mem_fun(&HashQueueNode::get_download))) != end())
+  if (std::find_if(begin(), end(), utils::equal(d, std::mem_fun(&HashQueueNode::get_download))) != end())
     throw std::logic_error("core::HashQueue::insert(...) received a Download that is already queued");
 
   if (d->get_download().is_hash_checked()) {
@@ -32,7 +32,7 @@ HashQueue::insert(Download* d, Slot s) {
 
 void
 HashQueue::remove(Download* d) {
-  iterator itr = std::find_if(begin(), end(), func::equal(d, std::mem_fun(&HashQueueNode::get_download)));
+  iterator itr = std::find_if(begin(), end(), utils::equal(d, std::mem_fun(&HashQueueNode::get_download)));
 
   if (itr == end())
     return;

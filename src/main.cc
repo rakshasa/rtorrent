@@ -193,7 +193,8 @@ void
 print_help() {
   std::cout << "Rakshasa's Torrent client. <Neko-Mimi Mode-o!>" << std::endl;
   std::cout << std::endl;
-  std::cout << "All value pairs (f.ex rate and queue size) will be in the UP/DOWN order." << std::endl;
+  std::cout << "All value pairs (f.ex rate and queue size) will be in the UP/DOWN" << std::endl;
+  std::cout << "order. Use the up/down/left/right arrow keys to move between screens." << std::endl;
   std::cout << std::endl;
   std::cout << "Usage: rtorrent [OPTIONS]... [FILE]... [URL]..." << std::endl;
   std::cout << "  -h                Display this very helpful text" << std::endl;
@@ -209,9 +210,11 @@ print_help() {
   std::cout << "  a,s,d,z,x,c       Adjust throttle" << std::endl;
   std::cout << std::endl;
   std::cout << "Download view keys:" << std::endl;
+  std::cout << "  spacebar          Depends on the current view" << std::endl;
   std::cout << "  1,2               Adjust max uploads" << std::endl;
   std::cout << "  3,4,5,6           Adjust min/max connected peers" << std::endl;
   std::cout << "  t                 Query tracker for more peers" << std::endl;
+  std::cout << "  p                 View peer information" << std::endl;
   std::cout << std::endl;
 
   std::cout << "Report bugs to <jaris@ifi.uio.no>." << std::endl;

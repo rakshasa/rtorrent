@@ -17,7 +17,7 @@ namespace display {
 
 class WindowFileList : public Window {
 public:
-  WindowFileList(core::Download* d, int* focus);
+  WindowFileList(core::Download* d, unsigned int* focus);
 
   virtual void     redraw();
 
@@ -26,7 +26,7 @@ private:
 
   core::Download*  m_download;
 
-  int*             m_focus;
+  unsigned int*    m_focus;
 };
 
 }

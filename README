@@ -40,7 +40,7 @@ In torrent view:
 
   Left      - Back to main
 
-  Right     - View peer
+  Right     - View files
 
   1         - Decrease max uploads
   2         - Increase max uploads
@@ -52,3 +52,11 @@ In torrent view:
   6         - Increase max peers connected
 
   T         - Query tracker
+
+In file view:
+
+  Up/Down   - Select file
+
+  Left      - Back to torrent view
+
+  SpaceBar  - Change file priority

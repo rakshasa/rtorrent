@@ -104,8 +104,8 @@ Download::activate_display(Display d) {
   case DISPLAY_MAIN:
     *m_window = wpl = new WPeerList(m_download, &m_peers, &m_focus);
 
-    (*m_bindings)[KEY_RIGHT] = sigc::bind(sigc::mem_fun(*this, &Download::receive_change), DISPLAY_PEER);
-    (*m_bindings)['p']       = sigc::bind(sigc::mem_fun(*this, &Download::receive_change), DISPLAY_FILE_LIST);
+    (*m_bindings)['p'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_change), DISPLAY_PEER);
+    (*m_bindings)[KEY_RIGHT] = sigc::bind(sigc::mem_fun(*this, &Download::receive_change), DISPLAY_FILE_LIST);
     break;
 
   case DISPLAY_PEER:
@@ -116,8 +116,8 @@ Download::activate_display(Display d) {
 
   case DISPLAY_FILE_LIST:
     m_uiFileList->activate(m_window);
+    m_uiFileList->get_bindings()[KEY_LEFT] = sigc::bind(sigc::mem_fun(*this, &Download::receive_change), DISPLAY_MAIN);
 
-    (*m_bindings)[' '] = sigc::bind(sigc::mem_fun(*this, &Download::receive_change), DISPLAY_MAIN);
     break;    
 
   default:
@@ -145,7 +145,6 @@ Download::disable_display() {
 
   case DISPLAY_FILE_LIST:
     m_uiFileList->disable();
-    m_bindings->erase(' ');
     *m_window = NULL;
 
     return;

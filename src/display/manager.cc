@@ -26,8 +26,8 @@ Manager::adjust_layout() {
   int countDynamic = 0;
   int staticHeight = 0;
 
-  std::for_each(begin(), end(), func::if_then(std::mem_fun(&Window::is_active), func::accumulate(staticHeight, std::mem_fun(&Window::get_min_height))));
-  std::for_each(begin(), end(), func::if_then(std::mem_fun(&Window::is_active), func::accumulate(countDynamic, std::mem_fun(&Window::is_dynamic))));
+  std::for_each(begin(), end(), utils::if_then(std::mem_fun(&Window::is_active), utils::accumulate(staticHeight, std::mem_fun(&Window::get_min_height))));
+  std::for_each(begin(), end(), utils::if_then(std::mem_fun(&Window::is_active), utils::accumulate(countDynamic, std::mem_fun(&Window::is_dynamic))));
 
   int dynamic = std::max(0, Canvas::get_screen_height() - staticHeight);
   int height = 0, h;
@@ -56,9 +56,9 @@ void
 Manager::do_update() {
   Canvas::refresh_std();
 
-  std::for_each(begin(), end(), func::if_then(std::mem_fun(&Window::is_active), func::if_then(std::mem_fun(&Window::is_dirty),
+  std::for_each(begin(), end(), utils::if_then(std::mem_fun(&Window::is_active), utils::if_then(std::mem_fun(&Window::is_dirty),
 											      std::mem_fun(&Window::redraw))));
-  std::for_each(begin(), end(), func::if_then(std::mem_fun(&Window::is_active), std::mem_fun(&Window::refresh)));
+  std::for_each(begin(), end(), utils::if_then(std::mem_fun(&Window::is_active), std::mem_fun(&Window::refresh)));
 
   Canvas::do_update();
 }

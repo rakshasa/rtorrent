@@ -32,7 +32,7 @@ DownloadList::erase(iterator itr) {
 
 void
 DownloadList::clear() {
-  std::for_each(begin(), end(), func::call_delete<Download>());
+  std::for_each(begin(), end(), utils::call_delete<Download>());
 
   Base::clear();
 }

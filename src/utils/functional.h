@@ -1,20 +1,9 @@
-#ifndef RTORRENT_FUNCTIONAL_H
-#define RTORRENT_FUNCTIONAL_H
+#ifndef RTORRENT_UTILS_FUNCTIONAL_H
+#define RTORRENT_UTILS_FUNCTIONAL_H
 
 #include <functional>
 
-namespace func {
-
-template <typename Iterator, typename Ftor>
-inline void for_each(Iterator first, Iterator last, Ftor ftor) {
-  Iterator tmp;
-
-  while (first != last) {
-    tmp = first++;
-    
-    ftor(*tmp);
-  }
-}
+namespace utils {
 
 template <typename Type, typename Ftor>
 struct _accumulate {

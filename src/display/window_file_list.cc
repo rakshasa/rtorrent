@@ -6,7 +6,7 @@
 
 namespace display {
 
-WindowFileList::WindowFileList(core::Download* d, int* focus) :
+WindowFileList::WindowFileList(core::Download* d, unsigned int* focus) :
   Window(new Canvas, true),
   m_download(d),
   m_focus(focus) {
@@ -27,8 +27,8 @@ WindowFileList::redraw() {
 
   ++y1;
 
-  int files = m_download->get_download().get_entry_size();
-  int index = std::min<unsigned>(std::max<signed>(*m_focus - (y2 - y1) / 2, 0), files - (y2 - y1));
+  unsigned int files = m_download->get_download().get_entry_size();
+  unsigned int index = std::min<unsigned>(std::max((int)*m_focus - (y2 - y1) / 2, 0), (int)files - (y2 - y1));
 
   while (index < files && y1 < y2) {
     torrent::Entry e = m_download->get_download().get_entry(index);

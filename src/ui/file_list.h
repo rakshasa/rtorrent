@@ -23,9 +23,13 @@ public:
   void                activate(MItr mItr);
   void                disable();
 
+  input::Bindings&    get_bindings() { return m_bindings; }
+
 private:
   void                receive_next();
   void                receive_prev();
+
+  void                receive_priority();
 
   core::Download*     m_download;
   WFileList*          m_window;
@@ -34,7 +38,7 @@ private:
   input::Bindings     m_bindings;
 
   // Change to unsigned, please.
-  int                 m_focus;
+  unsigned int        m_focus;
 };
 
 }

@@ -3,6 +3,7 @@
 #include <stdexcept>
 
 #include "core/download.h"
+#include "utils/algorithm.h"
 
 #include "canvas.h"
 #include "window_peer_list.h"
