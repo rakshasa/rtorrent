@@ -9,10 +9,10 @@ libsub_display_a_SOURCES = \
 	utils.h \
 	window.cc \
 	window.h \
-	window_download_statusbar.cc \
-	window_download_statusbar.h \
 	window_download_list.cc \
 	window_download_list.h \
+	window_download_statusbar.cc \
+	window_download_statusbar.h \
 	window_http_queue.cc \
 	window_http_queue.h \
 	window_input.cc \

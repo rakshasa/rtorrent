@@ -2,7 +2,6 @@
 
 #include <stdexcept>
 
-#include "canvas.h"
 #include "window.h"
 
 namespace display {
@@ -11,11 +10,6 @@ Window::Slot Window::m_slotAdjust;
 
 Window::~Window() {
   delete m_canvas;
-}
-
-void
-Window::refresh() {
-  m_canvas->refresh();
 }
 
 void

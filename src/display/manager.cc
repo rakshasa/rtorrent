@@ -56,7 +56,8 @@ void
 Manager::do_update() {
   Canvas::refresh_std();
 
-  std::for_each(begin(), end(), func::if_then(std::mem_fun(&Window::is_active), std::mem_fun(&Window::redraw)));
+  std::for_each(begin(), end(), func::if_then(std::mem_fun(&Window::is_active), func::if_then(std::mem_fun(&Window::is_dirty),
+											      std::mem_fun(&Window::redraw))));
   std::for_each(begin(), end(), func::if_then(std::mem_fun(&Window::is_active), std::mem_fun(&Window::refresh)));
 
   Canvas::do_update();

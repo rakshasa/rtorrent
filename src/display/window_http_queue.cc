@@ -22,10 +22,7 @@ WindowHttpQueue::WindowHttpQueue(core::HttpQueue* q) :
 
 void
 WindowHttpQueue::redraw() {
-  if (utils::Timer::cache() - m_lastDraw < 1000000)
-    return;
-
-  m_lastDraw = utils::Timer::cache();
+  m_nextDraw = utils::Timer::cache().round_seconds() + 1000000;
 
   cleanup_list();
 

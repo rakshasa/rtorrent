@@ -19,10 +19,7 @@ WindowPeerInfo::WindowPeerInfo(core::Download* d, PList* l, PList::iterator* f) 
 
 void
 WindowPeerInfo::redraw() {
-  if (utils::Timer::cache() - m_lastDraw < 1000000)
-    return;
-
-  m_lastDraw = utils::Timer::cache();
+  m_nextDraw = utils::Timer::cache().round_seconds() + 1000000;
   m_canvas->erase();
 
   int y = 0;

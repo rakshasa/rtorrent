@@ -159,6 +159,8 @@ main(int argc, char** argv) {
     utils::Timer::update();
     utils::TaskSchedule::perform(utils::Timer::cache());
     
+    // This needs to be called every second or so. Currently done by
+    // the throttle task in libtorrent.
     uiControl.get_display().do_update();
 
     uiControl.get_core().get_poll().poll(utils::TaskSchedule::get_timeout());

@@ -15,10 +15,7 @@ WindowPeerList::WindowPeerList(PList* l, PList::iterator* f) :
 
 void
 WindowPeerList::redraw() {
-  if (utils::Timer::cache() - m_lastDraw < 1000000)
-    return;
-
-  m_lastDraw = utils::Timer::cache();
+  m_nextDraw = utils::Timer::cache().round_seconds() + 1000000;
   m_canvas->erase();
 
   int x = 2;

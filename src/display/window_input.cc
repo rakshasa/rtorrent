@@ -15,10 +15,7 @@ WindowInput::WindowInput(input::TextInput* input) :
 
 void
 WindowInput::redraw() {
-  if (!is_dirty())
-    return;
-
-  m_lastDraw = utils::Timer::cache();
+  m_nextDraw = utils::Timer::max();
   m_canvas->erase();
 
   m_canvas->print(0, 0, "> %s", m_input->c_str());

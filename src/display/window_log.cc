@@ -26,10 +26,7 @@ WindowLog::find_older() {
 
 void
 WindowLog::redraw() {
-  if (!is_dirty())
-    return;
-
-  m_lastDraw = utils::Timer::cache();
+  m_nextDraw = utils::Timer::max();
 
   m_canvas->erase();
 
