@@ -5,6 +5,8 @@ libsub_display_a_SOURCES = \
 	canvas.h \
 	manager.cc \
 	manager.h \
+	utils.cc \
+	utils.h \
 	window.cc \
 	window.h \
 	window_download_statusbar.cc \

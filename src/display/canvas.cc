@@ -13,7 +13,7 @@ Canvas::resize(int x, int y, int w, int h) {
 void
 Canvas::init() {
   initscr();
-  cbreak();
+  raw();
   noecho();
   nodelay(stdscr, TRUE);
   keypad(stdscr, TRUE);
@@ -22,6 +22,7 @@ Canvas::init() {
 
 void
 Canvas::cleanup() {
+  noraw();
   endwin();
 }
 

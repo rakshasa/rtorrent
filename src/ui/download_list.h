@@ -26,7 +26,7 @@ public:
   typedef sigc::slot1<void, const std::string&> SlotOpenUri;
 
   // We own 'window'.
-  DownloadList(DList* l, Control* c);
+  DownloadList(Control* c);
   ~DownloadList();
 
   WList&           get_window()                 { return *m_window; }
@@ -44,10 +44,13 @@ private:
   void             receive_next();
   void             receive_prev();
 
+  void             receive_throttle(int t);
+
+  void             receive_start_download();
+  void             receive_stop_download();
+
   void             receive_view_download();
   void             receive_exit_download();
-
-  void             receive_throttle(int t);
 
   void             receive_view_input();
   void             receive_exit_input();

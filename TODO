@@ -1,0 +1,8 @@
+core::Manager::stop() should make sure ongoing hash checks get cleaned
+up.
+
+Polling during last phase of shutdown should be very quick, don't use
+normal timeout.
+
+Seperate out, and write code for a nice one liner status report,
+tracker, stopped/started etc info about a torrent.

@@ -12,6 +12,9 @@ namespace core {
 
 void
 HashQueue::insert(Download* d, Slot s) {
+  if (d->get_download().is_hash_checking())
+    return;
+
   if (std::find_if(begin(), end(), func::equal(d, std::mem_fun(&HashQueueNode::get_download))) != end())
     throw std::logic_error("core::HashQueue::insert(...) received a Download that is already queued");
 
@@ -52,6 +55,8 @@ HashQueue::receive_hash_done(Base::iterator itr) {
   Base::erase(itr);
 
   s();
+
+  fill_queue();
 }
 
 void

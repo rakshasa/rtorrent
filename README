@@ -1,6 +1,6 @@
 All:
 
-  Ctrl-C  - Quit
+  Ctrl-Q  - Quit
 
   A       - Increase Throttle by 1 KiB
   Z       - Decrease Throttle by 1 KiB
@@ -11,23 +11,27 @@ All:
   D       - Increase Throttle by 50 KiB
   C       - Decrease Throttle by 50 KiB
 
+
 In main window:
 
   Backspace - Activate text input for inserting urls/file
               paths. Arrows/C^f/C^b for navigation, enter/C^m.
 
-  Up/Down   - Select torrent.
+  Up/Down   - Select torrent
 
-  Right     - View torrent.
+  Right     - View torrent
+
+  Ctrl-S    - Start torrent
+  Ctrl-D    - Stop/delete torrent
 
 
 In torrent view:
 
-  Up/Down   - Select peer.
+  Up/Down   - Select peer
 
-  Left      - Back to main.
+  Left      - Back to main
 
-  Right     - View peer.
+  Right     - View peer
 
   1         - Decrease max uploads
   2         - Increase max uploads
@@ -38,3 +42,4 @@ In torrent view:
   5         - Decrease max peers connected
   6         - Increase max peers connected
 
+  T         - Query tracker

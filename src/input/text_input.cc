@@ -9,7 +9,7 @@ namespace input {
 
 bool
 TextInput::pressed(int key) {
-  //std::stringstream str;
+  std::stringstream str;
 
   if (m_alt) {
     m_alt = false;
@@ -64,19 +64,19 @@ TextInput::pressed(int key) {
       break;
 
     default:
-      return false;
+      //return false;
 
       // Testcode.
-//       if (key == KEY_ENTER || key == '\n')
-// 	return false;
+      if (key == KEY_ENTER || key == '\n')
+	return false;
 
-//       str << "\\x" << std::hex << key;
+      str << "\\x" << std::hex << key;
 
-//       Base::insert(m_pos, str.str());
+      Base::insert(m_pos, str.str());
 
-//       m_pos += str.str().length();
+      m_pos += str.str().length();
 
-//       return true;
+      return true;
     }
   }
 

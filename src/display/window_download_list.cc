@@ -1,6 +1,7 @@
 #include "config.h"
 
 #include "canvas.h"
+#include "utils.h"
 #include "window_download_list.h"
 
 namespace display {
@@ -70,9 +71,7 @@ WindowDownloadList::redraw() {
 		      (double)itr->get_download().get_rate_down() / 1024.0,
 		      (double)itr->get_download().get_bytes_up() / (double)(1 << 20));
     
-    m_canvas->print(0, pos++, "%c Tracker: %s",
-		    itr == *m_focus ? '*' : ' ',
-		    itr->get_download().is_tracker_busy() ? "Connecting" : itr->get_tracker_msg().c_str());
+    m_canvas->print(0, pos++, "%c %s", itr == *m_focus ? '*' : ' ', print_download_status(&*itr).c_str());
 
     ++itr;
   }    

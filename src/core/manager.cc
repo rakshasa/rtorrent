@@ -6,10 +6,28 @@
 #include <sigc++/bind.h>
 #include <torrent/exceptions.h>
 #include <torrent/http.h>
+#include <torrent/torrent.h>
 
 #include "manager.h"
 
 namespace core {
+
+void
+Manager::initialize() {
+  torrent::Http::set_factory(m_poll.get_http_factory());
+  m_httpQueue.slot_factory(m_poll.get_http_factory());
+
+  CurlStack::init();
+
+  torrent::initialize();
+  torrent::listen_open(10000, 20000);
+}
+
+void
+Manager::cleanup() {
+  torrent::cleanup();
+  core::CurlStack::cleanup();
+}
 
 void
 Manager::insert(const std::string& uri) {
@@ -24,14 +42,20 @@ Manager::start(Download* d) {
   if (d->get_download().is_active())
     return;
 
-  if (d->get_download().is_open()) {
-    d->start();
-
-  } else {
+  if (!d->get_download().is_open())
     d->open();
 
+  if (d->get_download().is_hash_checked())
+    d->start();
+  else
     m_hashQueue.insert(d, sigc::mem_fun(*d, &Download::start));
-  }
+}
+
+void
+Manager::stop(Download* d) {
+  m_hashQueue.remove(d);
+
+  d->stop();
 }
 
 void

@@ -14,14 +14,8 @@
 #endif
 
 #include "display/canvas.h"
-
-#include "core/poll.h"
-#include "core/curl_stack.h"
-#include "core/manager.h"
-
 #include "ui/control.h"
 #include "ui/download_list.h"
-
 #include "input/bindings.h"
 
 #include "timer.h"
@@ -31,9 +25,6 @@ int64_t Timer::m_cache;
 
 bool start_shutdown = false;
 bool is_shutting_down = false;
-
-core::Poll poll;
-core::Manager coreManager;
 
 bool
 is_resized() {
@@ -54,7 +45,7 @@ set_shutdown() {
 }
 
 void
-do_shutdown() {
+do_shutdown(ui::Control* c) {
   if (is_shutting_down)
     // Be quick about it...
     return;
@@ -65,7 +56,7 @@ do_shutdown() {
 
   // TODO: Set display to a safe mode.
 
-  std::for_each(coreManager.get_download_list().begin(), coreManager.get_download_list().end(),
+  std::for_each(c->get_core().get_download_list().begin(), c->get_core().get_download_list().end(),
 		std::mem_fun_ref(&core::Download::stop));
 }
 
@@ -97,6 +88,8 @@ do_panic(int signum) {
 
 int
 main(int argc, char** argv) {
+  ui::Control uiControl;
+
   try {
 
   SignalHandler::set_handler(SIGINT, sigc::ptr_fun(&set_shutdown));
@@ -104,43 +97,38 @@ main(int argc, char** argv) {
   SignalHandler::set_handler(SIGBUS, sigc::bind(sigc::ptr_fun(&do_panic), SIGBUS));
 
   display::Canvas::init();
-  core::CurlStack::init();
 
-  ui::Control uiControl;
-  ui::DownloadList uiDownloadList(&coreManager.get_download_list(), &uiControl);
+  ui::DownloadList uiDownloadList(&uiControl);
 
   uiDownloadList.activate();
-  uiDownloadList.slot_open_uri(sigc::mem_fun(coreManager, &core::Manager::insert));
+  uiDownloadList.slot_open_uri(sigc::mem_fun(uiControl.get_core(), &core::Manager::insert));
 
   // Register main key events.
   input::Bindings inputMain;
   uiControl.get_input().push_back(&inputMain);
 
   inputMain[KEY_RESIZE] = sigc::mem_fun(uiControl.get_display(), &display::Manager::adjust_layout);
+  inputMain['\x11'] = sigc::ptr_fun(&set_shutdown);
 
-  poll.slot_read_stdin(sigc::mem_fun(uiControl.get_input(), &input::Manager::pressed));
-  poll.slot_select_interrupted(sigc::ptr_fun(display::Canvas::do_update));
+  uiControl.get_core().get_poll().slot_read_stdin(sigc::mem_fun(uiControl.get_input(), &input::Manager::pressed));
+  uiControl.get_core().get_poll().slot_select_interrupted(sigc::ptr_fun(display::Canvas::do_update));
 
-  torrent::Http::set_factory(poll.get_http_factory());
-  coreManager.get_http_queue().slot_factory(poll.get_http_factory());
-
-  torrent::initialize();
-  torrent::listen_open(10000, 20000);
+  uiControl.get_core().initialize();
 
   for (int i = 1; i < argc; ++i)
-    coreManager.insert(argv[i]);
+    uiControl.get_core().insert(argv[i]);
 
   uiControl.get_display().adjust_layout();
 
   while (!is_shutting_down || !torrent::get(torrent::SHUTDOWN_DONE)) {
     if (start_shutdown && !is_shutting_down)
-      do_shutdown();
+      do_shutdown(&uiControl);
 
     Timer::update();
 
     uiControl.get_display().do_update();
 
-    poll.poll();
+    uiControl.get_core().get_poll().poll();
   }
 
   display::Canvas::cleanup();
@@ -151,8 +139,7 @@ main(int argc, char** argv) {
     std::cout << "Caught exception: \"" << e.what() << '"' << std::endl;
   }
 
-  torrent::cleanup();
-  core::CurlStack::cleanup();
+  uiControl.get_core().cleanup();
 
   return 0;
 }

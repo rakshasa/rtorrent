@@ -17,17 +17,16 @@
 
 namespace ui {
 
-DownloadList::DownloadList(core::DownloadList* l, Control* c) :
+DownloadList::DownloadList(Control* c) :
   m_title(new WTitle("rtorrent " VERSION " - " + torrent::get(torrent::LIBRARY_NAME))),
   m_status(new WStatus),
   m_download(NULL),
-  m_list(l),
-  m_focus(l->end()),
+  m_focus(c->get_core().get_download_list().end()),
   m_control(c),
   m_bindings(new input::Bindings),
   m_windowInput(new WInput(new input::TextInput)) {
 
-  m_window = new WList(m_list, &m_focus);
+  m_window = new WList(&m_control->get_core().get_download_list(), &m_focus);
 
   bind_keys(m_bindings);
 
@@ -64,27 +63,50 @@ DownloadList::disable() {
 
 void
 DownloadList::receive_next() {
-  if (m_focus != m_list->end())
+  if (m_focus != m_control->get_core().get_download_list().end())
     ++m_focus;
   else
-    m_focus = m_list->begin();
+    m_focus = m_control->get_core().get_download_list().begin();
 
   mark_dirty();
 }
 
 void
 DownloadList::receive_prev() {
-  if (m_focus != m_list->begin())
+  if (m_focus != m_control->get_core().get_download_list().begin())
     --m_focus;
   else
-    m_focus = m_list->end();
+    m_focus = m_control->get_core().get_download_list().end();
 
   mark_dirty();
 }
 
 void
+DownloadList::receive_throttle(int t) {
+  m_status->mark_dirty();
+
+  torrent::set(torrent::THROTTLE_ROOT_CONST_RATE, torrent::get(torrent::THROTTLE_ROOT_CONST_RATE) + t * 1024);
+}
+
+void
+DownloadList::receive_start_download() {
+  if (m_focus == m_control->get_core().get_download_list().end())
+    return;
+
+  m_control->get_core().start(&*m_focus);
+}
+
+void
+DownloadList::receive_stop_download() {
+  if (m_focus == m_control->get_core().get_download_list().end())
+    return;
+
+  m_control->get_core().stop(&*m_focus);
+}
+
+void
 DownloadList::receive_view_download() {
-  if (m_focus == m_list->end())
+  if (m_focus == m_control->get_core().get_download_list().end())
     return;
 
   if (m_download != NULL)
@@ -110,13 +132,6 @@ DownloadList::receive_exit_download() {
   activate();
 
   m_control->get_display().adjust_layout();
-}
-
-void
-DownloadList::receive_throttle(int t) {
-  m_status->mark_dirty();
-
-  torrent::set(torrent::THROTTLE_ROOT_CONST_RATE, torrent::get(torrent::THROTTLE_ROOT_CONST_RATE) + t * 1024);
 }
 
 void
@@ -150,6 +165,9 @@ DownloadList::bind_keys(input::Bindings* b) {
   (*b)['x'] = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_throttle), -5);
   (*b)['d'] = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_throttle), 50);
   (*b)['c'] = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_throttle), -50);
+
+  (*b)['\x13'] = sigc::mem_fun(*this, &DownloadList::receive_start_download);
+  (*b)['\x04'] = sigc::mem_fun(*this, &DownloadList::receive_stop_download);
 
   (*b)[KEY_UP]    = sigc::mem_fun(*this, &DownloadList::receive_prev);
   (*b)[KEY_DOWN]  = sigc::mem_fun(*this, &DownloadList::receive_next);
