@@ -54,7 +54,6 @@ equal(Type t, Ftor f) {
 
 template <typename Dest, typename Src>
 struct _on : public std::unary_function<typename Src::argument_type, typename Dest::result_type>  {
-
   _on(Dest d, Src s) : m_dest(d), m_src(s) {}
 
   typename Dest::result_type operator () (typename Src::argument_type arg) {
@@ -70,6 +69,26 @@ inline _on<Dest, Src>
 on(Dest d, Src s) {
   return _on<Dest, Src>(d, s);
 }  
+
+template <typename Cond, typename Then>
+struct _if_then {
+  _if_then(Cond c, Then t) : m_cond(c), m_then(t) {}
+
+  template <typename Arg>
+  void operator () (Arg& a) {
+    if (m_cond(a))
+      m_then(a);
+  }
+
+  Cond m_cond;
+  Then m_then;
+};
+
+template <typename Cond, typename Then>
+inline _if_then<Cond, Then>
+if_then(Cond c, Then t) {
+  return _if_then<Cond, Then>(c, t);
+}
 
 struct _call_delete
   : public std::unary_function<void, void> {

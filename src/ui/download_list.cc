@@ -45,8 +45,11 @@ DownloadList::~DownloadList() {
 
 void
 DownloadList::activate() {
+  m_textInput->set_active(false);
+
   m_control->get_input().push_front(m_bindings);
 
+  m_control->get_display().push_back(m_textInput);
   m_control->get_display().push_back(m_status);
   m_control->get_display().push_front(m_window);
   m_control->get_display().push_front(m_title);
@@ -54,7 +57,7 @@ DownloadList::activate() {
 
 void
 DownloadList::disable() {
-  if (m_textInput->get_focus()) {
+  if (m_textInput->is_active()) {
     m_textInput->get_input()->clear();
     receive_exit_input();
   }
@@ -64,6 +67,7 @@ DownloadList::disable() {
   m_control->get_display().erase(m_title);
   m_control->get_display().erase(m_window);
   m_control->get_display().erase(m_status);
+  m_control->get_display().erase(m_textInput);
 }
 
 void
@@ -144,8 +148,8 @@ DownloadList::receive_exit_download() {
 
 void
 DownloadList::receive_view_input() {
-  m_control->get_display().erase(m_status);
-  m_control->get_display().push_back(m_textInput);
+  m_status->set_active(false);
+  m_textInput->set_active(true);
   m_control->get_display().adjust_layout();
 
   m_control->get_input().set_text_input(m_textInput->get_input());
@@ -158,8 +162,8 @@ DownloadList::receive_view_input() {
 
 void
 DownloadList::receive_exit_input() {
-  m_control->get_display().erase(m_textInput);
-  m_control->get_display().push_back(m_status);
+  m_status->set_active(true);
+  m_textInput->set_active(false);
   m_control->get_display().adjust_layout();
 
   m_control->get_input().set_text_input();
