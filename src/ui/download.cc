@@ -1,6 +1,7 @@
 #include "config.h"
 
 #include <stdexcept>
+#include <sigc++/bind.h>
 #include <torrent/torrent.h>
 
 #include "input/bindings.h"
@@ -25,8 +26,7 @@ Download::Download(DPtr d, Control* c) :
   m_window = new WPeerList(&m_peers, &m_focus);
   m_window->slot_chunks_total(sigc::mem_fun(m_download->get_download(), &torrent::Download::get_chunks_total));
 
-  (*m_bindings)[KEY_UP]   = sigc::mem_fun(*this, &Download::receive_prev);
-  (*m_bindings)[KEY_DOWN] = sigc::mem_fun(*this, &Download::receive_next);
+  bind_keys(m_bindings);
 
   m_download->get_download().peer_list(m_peers);
 
@@ -96,6 +96,26 @@ Download::receive_peer_disconnected(torrent::Peer p) {
     m_focus = m_peers.erase(itr);
   else
     m_peers.erase(itr);
+}
+
+void
+Download::receive_throttle(int t) {
+  m_status->mark_dirty();
+
+  torrent::set(torrent::THROTTLE_ROOT_CONST_RATE, torrent::get(torrent::THROTTLE_ROOT_CONST_RATE) + t * 1024);
+}
+
+void
+Download::bind_keys(input::Bindings* b) {
+  (*b)['a'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_throttle), 1);
+  (*b)['z'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_throttle), -1);
+  (*b)['s'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_throttle), 5);
+  (*b)['x'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_throttle), -5);
+  (*b)['d'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_throttle), 50);
+  (*b)['c'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_throttle), -50);
+
+  (*b)[KEY_UP]   = sigc::mem_fun(*this, &Download::receive_prev);
+  (*b)[KEY_DOWN] = sigc::mem_fun(*this, &Download::receive_next);
 }
 
 void

@@ -26,16 +26,7 @@ DownloadList::DownloadList(core::DownloadList* l, Control* c) :
 
   m_window = new WList(m_list, &m_focus);
 
-  (*m_bindings)[KEY_UP]    = sigc::mem_fun(*this, &DownloadList::receive_prev);
-  (*m_bindings)[KEY_DOWN]  = sigc::mem_fun(*this, &DownloadList::receive_next);
-  (*m_bindings)[KEY_RIGHT] = sigc::mem_fun(*this, &DownloadList::receive_view_download);
-
-  (*m_bindings)['a'] = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_throttle), 1);
-  (*m_bindings)['z'] = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_throttle), -1);
-  (*m_bindings)['s'] = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_throttle), 5);
-  (*m_bindings)['x'] = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_throttle), -5);
-  (*m_bindings)['d'] = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_throttle), 50);
-  (*m_bindings)['c'] = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_throttle), -50);
+  bind_keys(m_bindings);
 }
 
 DownloadList::~DownloadList() {
@@ -115,6 +106,21 @@ DownloadList::receive_throttle(int t) {
   m_status->mark_dirty();
 
   torrent::set(torrent::THROTTLE_ROOT_CONST_RATE, torrent::get(torrent::THROTTLE_ROOT_CONST_RATE) + t * 1024);
+}
+
+void
+DownloadList::bind_keys(input::Bindings* b) {
+  (*b)['a'] = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_throttle), 1);
+  (*b)['z'] = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_throttle), -1);
+  (*b)['s'] = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_throttle), 5);
+  (*b)['x'] = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_throttle), -5);
+  (*b)['d'] = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_throttle), 50);
+  (*b)['c'] = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_throttle), -50);
+
+  (*b)[KEY_UP]    = sigc::mem_fun(*this, &DownloadList::receive_prev);
+  (*b)[KEY_DOWN]  = sigc::mem_fun(*this, &DownloadList::receive_next);
+  (*b)[KEY_RIGHT] = sigc::mem_fun(*this, &DownloadList::receive_view_download);
+
 }
 
 void

@@ -59,9 +59,8 @@ Manager::adjust_layout() {
     h += (*itr)->get_min_height();
 
     (*itr)->resize(0, height, Canvas::get_screen_width(), h);
+    (*itr)->mark_dirty();
   }
-
-  std::for_each(begin(), end(), std::mem_fun(&Window::mark_dirty));
 }
 
 void

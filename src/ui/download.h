@@ -42,6 +42,10 @@ private:
   void             receive_peer_connected(torrent::Peer p);
   void             receive_peer_disconnected(torrent::Peer p);
 
+  void             receive_throttle(int t);
+
+  void             bind_keys(input::Bindings* b);
+
   void             mark_dirty();
 
   DPtr             m_download;

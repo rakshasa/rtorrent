@@ -38,6 +38,8 @@ private:
 
   void             receive_throttle(int t);
 
+  void             bind_keys(input::Bindings* b);
+
   void             mark_dirty();
 
   WList*           m_window;

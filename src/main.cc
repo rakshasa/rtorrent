@@ -74,8 +74,12 @@ main(int argc, char** argv) {
   input::Bindings inputMain;
   uiControl.get_input().push_back(&inputMain);
 
+  inputMain[KEY_RESIZE] = sigc::mem_fun(uiControl.get_display(), &display::Manager::adjust_layout);
+
   poll.slot_read_stdin(sigc::mem_fun(uiControl.get_input(), &input::Manager::pressed));
   poll.register_http();
+
+  poll.slot_select_interrupted(sigc::ptr_fun(display::Canvas::do_update));
 
   torrent::initialize();
   torrent::listen_open(6880, 6999);
@@ -91,15 +95,14 @@ main(int argc, char** argv) {
 
   SignalHandler::set_handler(SIGINT, sigc::ptr_fun(&set_shutdown));
 
+  uiControl.get_display().adjust_layout();
+
   while (!is_shutting_down || !torrent::get(torrent::SHUTDOWN_DONE)) {
     if (start_shutdown && !is_shutting_down)
       do_shutdown();
 
     Timer::update();
 
-    if (is_resized())
-      uiControl.get_display().adjust_layout();
-  
     uiControl.get_display().do_update();
 
     poll.poll();

@@ -22,6 +22,7 @@ public:
 
 private:
   void      work();
+  void      work_input();
 
   SlotInt   m_slotReadStdin;
   Slot      m_slotSelectInterrupted;

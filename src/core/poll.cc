@@ -35,30 +35,36 @@ Poll::poll() {
 
   m_maxFd = select(m_maxFd + 1, &m_readSet, &m_writeSet, &m_exceptSet, &timeout);
 
-  if (m_maxFd >= 0)
+  if (m_maxFd >= 0) {
     work();
 
-  else if (errno == EINTR)
+  } else if (errno == EINTR) {
     m_slotSelectInterrupted();
+    work_input();
 
-  else if (errno < 0)
+  } else if (errno < 0) {
     throw std::runtime_error("Poll::work(): select error");
+  }
 }
 
 void
 Poll::work() {
-  if (FD_ISSET(0, &m_readSet)) {
-    int key;
-
-    while ((key = getch()) != ERR)
-      m_slotReadStdin(key);
-  }
+  if (FD_ISSET(0, &m_readSet))
+    work_input();
 
   if (m_curlStack.is_busy())
     m_curlStack.perform();
 
   torrent::work(&m_readSet, &m_writeSet, &m_exceptSet, m_maxFd);
 }
+
+void
+Poll::work_input() {
+  int key;
+
+  while ((key = getch()) != ERR)
+    m_slotReadStdin(key);
+}  
 
 void
 Poll::register_http() {
