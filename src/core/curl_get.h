@@ -43,6 +43,9 @@ class CurlGet : public torrent::Http {
   void               perform(CURLMsg* msg);
 
  private:
+  CurlGet(const CurlGet&);
+  void operator = (const CurlGet&);
+
   friend size_t      curl_get_receive_write(void* data, size_t size, size_t nmemb, void* handle);
 
   std::string        m_url;

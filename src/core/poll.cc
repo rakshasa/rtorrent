@@ -33,10 +33,10 @@ Poll::poll() {
 
   timeval timeout = {t / 1000000, t % 1000000};
 
-  m_maxFd = select(m_maxFd, &m_readSet, &m_writeSet, &m_exceptSet, &timeout);
+  m_maxFd = select(m_maxFd + 1, &m_readSet, &m_writeSet, &m_exceptSet, &timeout);
 
   if (m_maxFd >= 0)
-    return;
+    work();
 
   else if (errno == EINTR)
     m_slotSelectInterrupted();

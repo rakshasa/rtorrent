@@ -8,20 +8,20 @@ namespace display {
 
 class WindowDownloadList : public Window {
 public:
-  typedef core::DownloadList List;
+  typedef core::DownloadList DList;
 
-  WindowDownloadList(List* d);
+  WindowDownloadList(DList* d);
 
-  List*          get_list()                                  { return m_downloads; }
+  DList&          get_list()                     { return *m_downloads; }
 
-  List::iterator get_focus()                                 { return m_focus; }
-  void           set_focus(core::DownloadList::iterator itr) { m_focus = itr; }
+  DList::iterator get_focus()                    { return m_focus; }
+  void            set_focus(DList::iterator itr) { m_focus = itr; }
 
-  virtual void   redraw();
+  virtual void    redraw();
 
 private:
-  List*          m_downloads;
-  List::iterator m_focus;
+  DList*          m_downloads;
+  DList::iterator m_focus;
 };
 
 }

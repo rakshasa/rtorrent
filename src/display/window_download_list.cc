@@ -5,7 +5,7 @@
 
 namespace display {
 
-WindowDownloadList::WindowDownloadList(List* d) :
+WindowDownloadList::WindowDownloadList(DList* d) :
   Window(new Canvas, true),
   m_downloads(d) {
 
@@ -22,7 +22,7 @@ WindowDownloadList::redraw() {
 
   // Remember to check for end of screen too.
 
-  for (List::iterator itr = m_downloads->begin(); itr != m_downloads->end(); ++itr) {
+  for (DList::iterator itr = m_downloads->begin(); itr != m_downloads->end(); ++itr) {
     m_canvas->print(0, pos++, "%c %s",
 		    itr == m_focus ? '*' : ' ',
 		    itr->get_download().get_name().c_str());

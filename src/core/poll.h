@@ -14,7 +14,6 @@ public:
   typedef sigc::slot1<void, int> SlotInt;
 
   void      poll();
-  void      work();
 
   void      register_http();
 
@@ -22,6 +21,8 @@ public:
   void      slot_select_interrupted(Slot s) { m_slotSelectInterrupted = s; }
 
 private:
+  void      work();
+
   SlotInt   m_slotReadStdin;
   Slot      m_slotSelectInterrupted;
 

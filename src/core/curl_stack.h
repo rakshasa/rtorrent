@@ -22,14 +22,17 @@ class CurlStack {
   // TODO: Set fd_set's only once?
   void        fdset(fd_set* readfds, fd_set* writefds, fd_set* exceptfds, int* maxFd);
 
-  static void global_init();
-  static void global_cleanup();
+  static void init();
+  static void cleanup();
 
  protected:
   void        add_get(CurlGet* get);
   void        remove_get(CurlGet* get);
 
  private:
+  CurlStack(const CurlStack&);
+  void operator = (const CurlStack&);
+
   void*       m_handle;
 
   int         m_size;

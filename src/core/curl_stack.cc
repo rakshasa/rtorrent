@@ -110,12 +110,12 @@ CurlStack::remove_get(CurlGet* get) {
 }
 
 void
-CurlStack::global_init() {
+CurlStack::init() {
   curl_global_init(CURL_GLOBAL_ALL);
 }
 
 void
-CurlStack::global_cleanup() {
+CurlStack::cleanup() {
   curl_global_cleanup();
 }
 

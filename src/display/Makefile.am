@@ -7,10 +7,10 @@ libsub_display_a_SOURCES = \
 	manager.h \
 	window.cc \
 	window.h \
-	window_download.cc \
-	window_download.h \
 	window_download_list.cc \
 	window_download_list.h \
+	window_peer_list.cc \
+	window_peer_list.h \
 	window_statusbar.cc \
 	window_statusbar.h \
 	window_title.cc \

@@ -9,6 +9,7 @@
 #include "display/window_statusbar.h"
 
 #include "core/poll.h"
+#include "core/curl_stack.h"
 #include "core/download_list.h"
 
 #include "ui/control.h"
@@ -45,6 +46,7 @@ main(int argc, char** argv) {
   try {
 
   display::Canvas::init();
+  core::CurlStack::init();
 
   ui::Control uiControl;
   ui::DownloadList uiDownloadList(&downloads, &uiControl);
@@ -78,7 +80,6 @@ main(int argc, char** argv) {
     uiControl.get_display().do_update();
 
     poll.poll();
-    poll.work();
   }
 
   display::Canvas::cleanup();
@@ -90,6 +91,7 @@ main(int argc, char** argv) {
   }
 
   torrent::cleanup();
+  core::CurlStack::cleanup();
 
   return 0;
 }
