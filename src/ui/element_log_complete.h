@@ -20,43 +20,36 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#include "config.h"
+#ifndef RTORRENT_UI_ELEMENT_LOG_COMPLETE_H
+#define RTORRENT_UI_ELEMENT_LOG_COMPLETE_H
 
-#include <stdexcept>
+#include "core/log.h"
 
-#include "display/window_download_list.h"
+#include "element_base.h"
 
-#include "control.h"
-#include "element_download_list.h"
+namespace display {
+  class WindowLogComplete;
+}
 
 namespace ui {
 
-ElementDownloadList::ElementDownloadList(DList* l, DList::iterator* f) :
-  m_window(NULL),
-  m_list(l),
-  m_focus(f) {
+class Control;
+
+class ElementLogComplete : public ElementBase {
+public:
+  typedef display::WindowLogComplete    WLogComplete;
+
+  ElementLogComplete(core::Log* l);
+
+  void                activate(Control* c, MItr mItr);
+  void                disable(Control* c);
+
+private:
+  WLogComplete*       m_window;
+  
+  core::Log*          m_log;
+};
 
 }
 
-void
-ElementDownloadList::activate(Control* c, MItr mItr) {
-  if (m_window != NULL)
-    throw std::logic_error("ui::ElementDownloadList::activate(...) called on an object in the wrong state");
-
-  c->get_input().push_front(&m_bindings);
-
-  *mItr = m_window = new WDownloadList(m_list, m_focus);
-}
-
-void
-ElementDownloadList::disable(Control* c) {
-  if (m_window == NULL)
-    throw std::logic_error("ui::ElementDownloadList::disable(...) called on an object in the wrong state");
-
-  c->get_input().erase(&m_bindings);
-
-  delete m_window;
-  m_window = NULL;
-}
-
-}
+#endif

@@ -91,7 +91,7 @@ Download::activate() {
   if (m_window != m_control->get_display().end())
     throw std::logic_error("ui::Download::activate() called on an already activated object");
 
-  m_window         = m_control->get_display().insert(m_control->get_display().begin(), NULL);
+  m_window = m_control->get_display().insert(m_control->get_display().begin(), NULL);
 
   m_control->get_display().insert(m_control->get_display().begin(), m_windowTitle);
   m_control->get_display().insert(m_control->get_display().end(), m_windowDownloadStatus);
@@ -214,7 +214,6 @@ Download::receive_change(Display d) {
     return;
 
   disable_display();
-
   activate_display(d);
 }
 

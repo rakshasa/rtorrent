@@ -23,29 +23,34 @@
 #include "config.h"
 
 #include <stdexcept>
-#include <torrent/torrent.h>
+#include <rak/functional.h>
 #include <sigc++/bind.h>
+#include <torrent/torrent.h>
 
 #include "core/download.h"
 
 #include "input/bindings.h"
 #include "input/path_input.h"
 
-#include "display/window_download_list.h"
 #include "display/window_http_queue.h"
 #include "display/window_input.h"
 #include "display/window_log.h"
-#include "display/window_log_complete.h"
 #include "display/window_statusbar.h"
 #include "display/window_title.h"
 
 #include "control.h"
 #include "download.h"
 #include "download_list.h"
+#include "element_download_list.h"
+#include "element_log_complete.h"
 
 namespace ui {
 
 DownloadList::DownloadList(Control* c) :
+  m_state(DISPLAY_MAX_SIZE),
+
+  m_window(c->get_display().end()),
+
   m_windowTitle(new WTitle("rtorrent " VERSION " - " + torrent::get(torrent::LIBRARY_NAME))),
   m_windowStatus(new WStatus(&c->get_core())),
   m_windowTextInput(new WInput(new input::PathInput)),
@@ -57,17 +62,19 @@ DownloadList::DownloadList(Control* c) :
   m_control(c),
   m_bindings(new input::Bindings) {
 
-  m_windowDownloadList = new WList(&m_control->get_core().get_download_list(), &m_focus);
-  m_windowLog          = new WLog(&m_control->get_core().get_log_important());
-  m_windowLogComplete  = NULL;
+  m_uiArray[DISPLAY_DOWNLOAD_LIST] = new ElementDownloadList(&m_control->get_core().get_download_list(), &m_focus);
+  m_uiArray[DISPLAY_LOG]           = new ElementLogComplete(&m_control->get_core().get_log_complete());
 
-  bind_keys(m_bindings);
+  m_windowLog                      = new WLog(&m_control->get_core().get_log_important());
+
+  bind_keys();
 
   m_windowTextInput->get_input()->slot_dirty(sigc::mem_fun(*m_windowTextInput, &WInput::mark_dirty));
 }
 
 DownloadList::~DownloadList() {
-  delete m_windowDownloadList;
+  std::for_each(m_uiArray, m_uiArray + DISPLAY_MAX_SIZE, rak::call_delete<ElementBase>());
+
   delete m_windowTitle;
   delete m_windowStatus;
   delete m_bindings;
@@ -80,22 +87,33 @@ DownloadList::~DownloadList() {
 
 void
 DownloadList::activate() {
+  if (m_window != m_control->get_display().end())
+    throw std::logic_error("ui::Download::activate() called on an already activated object");
+
   m_taskUpdate.insert(utils::Timer::cache() + 1000000);
 
   m_windowTextInput->set_active(false);
 
-  m_control->get_input().push_front(m_bindings);
+  m_window = m_control->get_display().insert(m_control->get_display().begin(), NULL);
+  m_control->get_display().push_front(m_windowTitle);
 
   m_control->get_display().push_back(m_windowLog);
   m_control->get_display().push_back(m_windowHttpQueue);
   m_control->get_display().push_back(m_windowTextInput);
   m_control->get_display().push_back(m_windowStatus);
-  m_control->get_display().push_front(m_windowDownloadList);
-  m_control->get_display().push_front(m_windowTitle);
+
+  m_control->get_input().push_front(m_bindings);
+
+  activate_display(DISPLAY_DOWNLOAD_LIST);
 }
 
 void
 DownloadList::disable() {
+  if (m_window == m_control->get_display().end())
+    throw std::logic_error("ui::Download::disable() called on an already disabled object");
+
+  disable_display();
+
   m_taskUpdate.remove();
 
   if (m_windowTextInput->is_active()) {
@@ -103,17 +121,39 @@ DownloadList::disable() {
     receive_exit_input();
   }
 
-  if (m_windowLogComplete != NULL)
-    receive_toggle_log();
-
-  m_control->get_input().erase(m_bindings);
-
+  m_control->get_display().erase(m_window);
   m_control->get_display().erase(m_windowTitle);
-  m_control->get_display().erase(m_windowDownloadList);
   m_control->get_display().erase(m_windowStatus);
   m_control->get_display().erase(m_windowTextInput);
   m_control->get_display().erase(m_windowLog);
   m_control->get_display().erase(m_windowHttpQueue);
+
+  m_window = m_control->get_display().end();
+
+  m_control->get_input().erase(m_bindings);
+}
+
+void
+DownloadList::activate_display(Display d) {
+  if (m_window == m_control->get_display().end())
+    throw std::logic_error("ui::DownloadList::activate_display(...) could not find previous display iterator");
+
+  if (d >= DISPLAY_MAX_SIZE)
+    throw std::logic_error("ui::DownloadList::activate_display(...) out of bounds");
+
+  m_state = d;
+  m_uiArray[d]->activate(m_control, m_window);
+
+  m_control->get_display().adjust_layout();
+}
+
+// Does not delete disabled window.
+void
+DownloadList::disable_display() {
+  m_uiArray[m_state]->disable(m_control);
+
+  m_state   = DISPLAY_MAX_SIZE;
+  *m_window = NULL;
 }
 
 void
@@ -123,7 +163,7 @@ DownloadList::receive_next() {
   else
     m_focus = m_control->get_core().get_download_list().begin();
 
-  mark_dirty();
+  //mark_dirty();
 }
 
 void
@@ -133,7 +173,7 @@ DownloadList::receive_prev() {
   else
     m_focus = m_control->get_core().get_download_list().end();
 
-  mark_dirty();
+  //mark_dirty();
 }
 
 void
@@ -224,28 +264,12 @@ DownloadList::receive_exit_input() {
 }
 
 void
-DownloadList::receive_toggle_log() {
-  if (m_windowLogComplete == NULL) {
-    display::Manager::iterator itr = m_control->get_display().find(m_windowDownloadList);
+DownloadList::receive_change(Display d) {
+  if (d == m_state)
+    return;
 
-    if (itr == m_control->get_display().end())
-      throw std::logic_error("ui::DownloadList::receive_toggle_log() could not find download list");
-
-    *itr = m_windowLogComplete = new WLogComplete(&m_control->get_core().get_log_complete());
-
-  } else {
-    display::Manager::iterator itr = m_control->get_display().find(m_windowLogComplete);
-
-    if (itr == m_control->get_display().end())
-      throw std::logic_error("ui::DownloadList::receive_toggle_log() could not find download list");
-
-    *itr = m_windowDownloadList;
-
-    delete m_windowLogComplete;
-    m_windowLogComplete = NULL;
-  }
-
-  m_control->get_display().adjust_layout();
+  disable_display();
+  activate_display(d);
 }
 
 void
@@ -256,29 +280,26 @@ DownloadList::task_update() {
 }
 
 void
-DownloadList::bind_keys(input::Bindings* b) {
-  (*b)['a'] = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_throttle), 1);
-  (*b)['z'] = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_throttle), -1);
-  (*b)['s'] = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_throttle), 5);
-  (*b)['x'] = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_throttle), -5);
-  (*b)['d'] = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_throttle), 50);
-  (*b)['c'] = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_throttle), -50);
+DownloadList::bind_keys() {
+  (*m_bindings)['a']           = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_throttle), 1);
+  (*m_bindings)['z']           = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_throttle), -1);
+  (*m_bindings)['s']           = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_throttle), 5);
+  (*m_bindings)['x']           = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_throttle), -5);
+  (*m_bindings)['d']           = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_throttle), 50);
+  (*m_bindings)['c']           = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_throttle), -50);
 
-  (*b)['\x13'] = sigc::mem_fun(*this, &DownloadList::receive_start_download);
-  (*b)['\x04'] = sigc::mem_fun(*this, &DownloadList::receive_stop_download);
+  (*m_bindings)['\x13']        = sigc::mem_fun(*this, &DownloadList::receive_start_download);
+  (*m_bindings)['\x04']        = sigc::mem_fun(*this, &DownloadList::receive_stop_download);
 
-  (*b)[KEY_UP]    = sigc::mem_fun(*this, &DownloadList::receive_prev);
-  (*b)[KEY_DOWN]  = sigc::mem_fun(*this, &DownloadList::receive_next);
-  (*b)[KEY_RIGHT] = sigc::mem_fun(*this, &DownloadList::receive_view_download);
-  (*b)['l']       = sigc::mem_fun(*this, &DownloadList::receive_toggle_log);
+  (*m_bindings)['\x7f']        = sigc::mem_fun(*this, &DownloadList::receive_view_input);
+  (*m_bindings)[KEY_BACKSPACE] = sigc::mem_fun(*this, &DownloadList::receive_view_input);
 
-  (*b)['\x7f'] = sigc::mem_fun(*this, &DownloadList::receive_view_input);
-  (*b)[KEY_BACKSPACE] = sigc::mem_fun(*this, &DownloadList::receive_view_input);
-}
+  (*m_bindings)[KEY_UP]        = sigc::mem_fun(*this, &DownloadList::receive_prev);
+  (*m_bindings)[KEY_DOWN]      = sigc::mem_fun(*this, &DownloadList::receive_next);
+  (*m_bindings)[KEY_RIGHT]     = sigc::mem_fun(*this, &DownloadList::receive_view_download);
+  (*m_bindings)['l']           = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_change), DISPLAY_LOG);
 
-void
-DownloadList::mark_dirty() {
-  m_windowDownloadList->mark_dirty();
+  m_uiArray[DISPLAY_LOG]->get_bindings()[' '] = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_change), DISPLAY_DOWNLOAD_LIST);
 }
 
 }

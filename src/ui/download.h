@@ -27,6 +27,8 @@
 #include <torrent/peer.h>
 #include <sigc++/connection.h>
 
+#include "utils/list_focus.h"
+
 namespace display {
   class WindowTitle;
   class WindowStatusbar;
@@ -60,7 +62,6 @@ public:
     DISPLAY_MAX_SIZE
   } Display;
 
-  // We own 'window'.
   Download(DPtr d, Control* c);
   ~Download();
 

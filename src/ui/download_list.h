@@ -46,79 +46,89 @@ namespace ui {
 
 class Control;
 class Download;
+class ElementBase;
 
 class DownloadList {
 public:
-  typedef display::WindowDownloadList           WList;
-  typedef display::WindowHttpQueue              WHttp;
-  typedef display::WindowInput                  WInput;
-  typedef display::WindowLog                    WLog;
-  typedef display::WindowLogComplete            WLogComplete;
-  typedef display::WindowStatusbar              WStatus;
-  typedef display::WindowTitle                  WTitle;
+  typedef display::WindowDownloadList              WList;
+  typedef display::WindowHttpQueue                 WHttp;
+  typedef display::WindowInput                     WInput;
+  typedef display::WindowLog                       WLog;
+  typedef display::WindowLogComplete               WLogComplete;
+  typedef display::WindowStatusbar                 WStatus;
+  typedef display::WindowTitle                     WTitle;
 
-  typedef core::DownloadList                    DList;
+  typedef core::DownloadList                       DList;
 
-  typedef sigc::slot1<void, const std::string&> SlotOpenUri;
+  typedef sigc::slot1<void, const std::string&>    SlotOpenUri;
 
-  // We own 'window'.
+  typedef display::Manager::iterator               MItr;
+
+  typedef enum {
+    DISPLAY_DOWNLOAD_LIST,
+    DISPLAY_LOG,
+    DISPLAY_MAX_SIZE
+  } Display;
+
   DownloadList(Control* c);
   ~DownloadList();
 
-  WList&           get_window_download_list()   { return *m_windowDownloadList; }
-  input::Bindings& get_bindings()               { return *m_bindings; }
+  input::Bindings&    get_bindings()               { return *m_bindings; }
 
-  void             activate();
-  void             disable();
+  void                activate();
+  void                disable();
 
-  void             slot_open_uri(SlotOpenUri s) { m_slotOpenUri = s; }
+  void                activate_display(Display d);
+  void                disable_display();
+
+  void                slot_open_uri(SlotOpenUri s) { m_slotOpenUri = s; }
 
 private:
   DownloadList(const DownloadList&);
   void operator = (const DownloadList&);
 
-  void             receive_next();
-  void             receive_prev();
+  void                receive_next();
+  void                receive_prev();
 
-  void             receive_throttle(int t);
+  void                receive_throttle(int t);
 
-  void             receive_start_download();
-  void             receive_stop_download();
+  void                receive_start_download();
+  void                receive_stop_download();
 
-  void             receive_view_download();
-  void             receive_exit_download();
+  void                receive_view_download();
+  void                receive_exit_download();
 
-  void             receive_view_input();
-  void             receive_exit_input();
+  void                receive_view_input();
+  void                receive_exit_input();
 
-  void             receive_toggle_log();
+  void                receive_change(Display d);
 
-  void             task_update();
+  void                task_update();
+  void                bind_keys();
 
-  void             bind_keys(input::Bindings* b);
+  Display             m_state;
 
-  void             mark_dirty();
+  ElementBase*        m_uiArray[DISPLAY_MAX_SIZE];
 
-  WList*           m_windowDownloadList;
-  WTitle*          m_windowTitle;
-  WStatus*         m_windowStatus;
-  WLog*            m_windowLog;
-  WInput*          m_windowTextInput;
-  WHttp*           m_windowHttpQueue;
+  MItr                m_window;
 
-  WLogComplete*    m_windowLogComplete;
+  WTitle*             m_windowTitle;
+  WStatus*            m_windowStatus;
+  WLog*               m_windowLog;
+  WInput*             m_windowTextInput;
+  WHttp*              m_windowHttpQueue;
 
-  utils::Task      m_taskUpdate;
+  utils::Task         m_taskUpdate;
 
-  Download*        m_uiDownload;
+  Download*           m_uiDownload;
 
-  DList*           m_list;
-  DList::iterator  m_focus;
+  DList*              m_list;
+  DList::iterator     m_focus;
 
-  Control*         m_control;
-  input::Bindings* m_bindings;
+  Control*            m_control;
+  input::Bindings*    m_bindings;
 
-  SlotOpenUri      m_slotOpenUri;
+  SlotOpenUri         m_slotOpenUri;
 };
 
 }

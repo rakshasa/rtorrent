@@ -20,8 +20,8 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef LIBTORRENT_TIMER_H
-#define LIBTORRENT_TIMER_H
+#ifndef RTORRENT_UTILS_TIMER_H
+#define RTORRENT_UTILS_TIMER_H
 
 #include <limits>
 #include <inttypes.h>

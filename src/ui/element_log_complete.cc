@@ -24,34 +24,33 @@
 
 #include <stdexcept>
 
-#include "display/window_download_list.h"
+#include "display/window_log_complete.h"
 
 #include "control.h"
-#include "element_download_list.h"
+#include "element_log_complete.h"
 
 namespace ui {
 
-ElementDownloadList::ElementDownloadList(DList* l, DList::iterator* f) :
+ElementLogComplete::ElementLogComplete(core::Log* l) :
   m_window(NULL),
-  m_list(l),
-  m_focus(f) {
+  m_log(l) {
 
 }
 
 void
-ElementDownloadList::activate(Control* c, MItr mItr) {
+ElementLogComplete::activate(Control* c, MItr mItr) {
   if (m_window != NULL)
-    throw std::logic_error("ui::ElementDownloadList::activate(...) called on an object in the wrong state");
+    throw std::logic_error("ui::ElementLogComplete::activate(...) called on an object in the wrong state");
 
   c->get_input().push_front(&m_bindings);
 
-  *mItr = m_window = new WDownloadList(m_list, m_focus);
+  *mItr = m_window = new WLogComplete(m_log);
 }
 
 void
-ElementDownloadList::disable(Control* c) {
+ElementLogComplete::disable(Control* c) {
   if (m_window == NULL)
-    throw std::logic_error("ui::ElementDownloadList::disable(...) called on an object in the wrong state");
+    throw std::logic_error("ui::ElementLogComplete::disable(...) called on an object in the wrong state");
 
   c->get_input().erase(&m_bindings);
 
