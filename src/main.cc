@@ -5,8 +5,6 @@
 #include <torrent/torrent.h>
 #include <sigc++/bind.h>
 
-#define USE_EXECINFO
-
 #ifdef USE_EXECINFO
 #include <execinfo.h>
 #endif

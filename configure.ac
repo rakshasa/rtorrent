@@ -35,6 +35,7 @@ AC_ARG_ENABLE(werror,
 
 AC_SEARCH_LIBS(wbkgdset, ncurses curses,,echo "*** The ncurses library is required!";exit 1)
 
+TORRENT_CHECK_EXECINFO()
 TORRENT_CHECK_CURL()
 TORRENT_OTFD()
 

@@ -114,3 +114,20 @@ AC_DEFUN([TORRENT_OTFD], [
 
   AC_LANG_POP(C++)
 ])
+
+
+AC_DEFUN([TORRENT_CHECK_EXECINFO], [
+
+  AC_MSG_CHECKING(for execinfo.h)
+
+  AC_COMPILE_IFELSE(
+    [[#include <execinfo.h>
+      int main() { backtrace((void**)0, 0); backtrace_symbols((char**)0, 0); return 0;}
+    ]],
+    [
+      AC_MSG_RESULT(yes)
+      AC_DEFINE(USE_EXECINFO, 1, Use execinfo.h)
+    ], [
+      AC_MSG_RESULT(no)
+  ])
+])
