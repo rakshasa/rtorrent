@@ -9,4 +9,4 @@ rtorrent_LDADD = \
 	$(top_srcdir)/src/input/libsub_input.a
 
 rtorrent_SOURCES = \
-	rtorrent.cc
+	main.cc
