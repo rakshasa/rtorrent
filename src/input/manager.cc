@@ -8,9 +8,9 @@
 
 namespace input {
 
-bool
+void
 Manager::pressed(int key) {
-  return std::find_if(begin(), end(), std::bind2nd(std::mem_fun(&Bindings::pressed), key)) != end();
+  std::find_if(begin(), end(), std::bind2nd(std::mem_fun(&Bindings::pressed), key));
 }
 
 }

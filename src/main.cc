@@ -1,86 +1,49 @@
 #include <string>
 #include <stdexcept>
 #include <iostream>
+#include <fstream>
+#include <torrent/torrent.h>
 
-#include "display/window.h"
 #include "display/canvas.h"
 #include "display/manager.h"
+#include "display/window_downloads.h"
 #include "input/bindings.h"
 #include "input/manager.h"
 
-class WindowTest : public display::Window {
-public:
-  WindowTest(const std::string& str, bool reverse = false) :
-    Window(new display::Canvas, true, 3), m_str(str), m_reverse(reverse) {}
-  
-  virtual void redraw() {
-    if (m_canvas == NULL)
-      return;
-
-    if (m_reverse)
-      m_canvas->set_background(A_REVERSE);
-    else
-      m_canvas->set_background(0);
-
-    m_canvas->erase();
-    m_canvas->print_border('|', '|', '-', '-', '+', '+', '+', '+');
-    m_canvas->print(1, 1, "%s minHeight %i", m_str.c_str(), m_minHeight);
-  }
-
-  void reverse() {
-    m_reverse = !m_reverse;
-  }
-
-  void inc_min() {
-    m_minHeight++;
-  }
-
-  void dec_min() {
-    if (m_minHeight)
-      m_minHeight--;
-  }
-
-private:
-  std::string m_str;
-
-  bool m_reverse;
-};  
+#include "poll.h"
+#include "downloads.h"
 
 int main(int argc, char** argv) {
   try {
 
+  Poll poll;
+  Downloads downloads;
+
   display::Canvas::init();
   display::Manager display;
+
   input::Manager inputManager;
+  inputManager.push_back(new input::Bindings);
 
-  WindowTest window1("This is window 1");
-  WindowTest window2("This is window 2");
+  poll.slot_read_stdin(sigc::mem_fun(inputManager, &input::Manager::pressed));
 
-  input::Bindings bindings1;
-  input::Bindings bindings2;
+  display.push_back(new display::WindowDownloads(&downloads));
 
-  inputManager.push_back(&bindings1);
-  inputManager.push_back(&bindings2);
+  torrent::initialize();
+  torrent::listen_open(6880, 6999);
 
-  bindings1[KEY_LEFT] = sigc::mem_fun(window1, &WindowTest::reverse);
-  bindings1[KEY_UP] = sigc::mem_fun(window1, &WindowTest::inc_min);
-  bindings1[KEY_DOWN] = sigc::mem_fun(window1, &WindowTest::dec_min);
-  bindings1[KEY_LEFT] = sigc::mem_fun(window1, &WindowTest::reverse);
-  bindings2[KEY_LEFT] = sigc::mem_fun(window2, &WindowTest::reverse);
-  bindings2[KEY_RIGHT] = sigc::mem_fun(window2, &WindowTest::reverse);
+  for (int i = 1; i < argc; ++i) {
+    std::fstream f(argv[i], std::ios::in);
 
-  display.push_back(&window1);
-  display.push_back(&window2);
+    downloads.create(f);
+  }
 
-  display.adjust_layout();
-
-  while (true) {
+  while (poll.is_running()) {
     display.adjust_layout();
     display.do_update();
-    
-    inputManager.pressed(getch());
 
-    sleep(0);
+    poll.poll();
+    poll.work();
   }
 
   display::Canvas::cleanup();

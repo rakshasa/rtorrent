@@ -5,8 +5,9 @@ libsub_display_a_SOURCES = \
 	canvas.h \
 	manager.cc \
 	manager.h \
-	manager_element.h \
+	window.cc \
 	window.h \
-	window.cc
+	window_downloads.cc \
+	window_downloads.h
 
 INCLUDES = -I$(srcdir) -I$(srcdir)/.. -I$(top_srcdir)

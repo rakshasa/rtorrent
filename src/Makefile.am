@@ -9,4 +9,8 @@ rtorrent_LDADD = \
 	$(top_srcdir)/src/input/libsub_input.a
 
 rtorrent_SOURCES = \
-	main.cc
+	downloads.cc \
+	downloads.h \
+	main.cc \
+	poll.cc \
+	poll.h

@@ -24,7 +24,9 @@ public:
   using Base::push_back;
   using Base::push_front;
 
-  bool pressed(int key);
+  void pressed(int key);
+
+  // Slot for unreacted keys.
 };
 
 }
