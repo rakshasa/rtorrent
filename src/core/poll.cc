@@ -13,18 +13,20 @@ namespace core {
 
 void
 Poll::poll() {
-  FD_ZERO(&m_readSet);
-  FD_ZERO(&m_writeSet);
-  FD_ZERO(&m_exceptSet);
+  FD_ZERO(m_readSet);
+  FD_ZERO(m_writeSet);
+  FD_ZERO(m_exceptSet);
 
-  torrent::mark(&m_readSet, &m_writeSet, &m_exceptSet, &m_maxFd);
+  FD_SET(0, m_readSet);
 
-  m_maxFd = std::max(m_maxFd, 1);
-    
-  FD_SET(0, &m_readSet);
+  torrent::mark(m_readSet, m_writeSet, m_exceptSet, &m_maxFd);
 
-  if (m_curlStack.is_busy())
-    m_curlStack.fdset(&m_readSet, &m_writeSet, &m_exceptSet, &m_maxFd);
+  if (m_curlStack.is_busy()) {
+    int n;
+
+    m_curlStack.fdset(m_readSet, m_writeSet, m_exceptSet, &n);
+    m_maxFd = std::max(m_maxFd, n);
+  }
 
   uint64_t t = torrent::get(torrent::TIME_SELECT);
 
@@ -33,7 +35,8 @@ Poll::poll() {
 
   timeval timeout = {t / 1000000, t % 1000000};
 
-  m_maxFd = select(m_maxFd + 1, &m_readSet, &m_writeSet, &m_exceptSet, &timeout);
+  errno = 0;
+  m_maxFd = select(m_maxFd + 1, m_readSet, m_writeSet, m_exceptSet, &timeout);
 
   if (m_maxFd >= 0) {
     work();
@@ -49,13 +52,13 @@ Poll::poll() {
 
 void
 Poll::work() {
-  if (FD_ISSET(0, &m_readSet))
+  if (FD_ISSET(0, m_readSet))
     work_input();
 
   if (m_curlStack.is_busy())
     m_curlStack.perform();
 
-  torrent::work(&m_readSet, &m_writeSet, &m_exceptSet, m_maxFd);
+  torrent::work(m_readSet, m_writeSet, m_exceptSet, m_maxFd);
 }
 
 void

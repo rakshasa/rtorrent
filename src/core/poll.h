@@ -18,6 +18,9 @@ public:
   typedef sigc::slot1<void, int>      SlotInt;
   typedef sigc::slot0<torrent::Http*> SlotFactory;
 
+  Poll() : m_readSet(new fd_set), m_writeSet(new fd_set), m_exceptSet(new fd_set) {}
+  ~Poll() { delete m_readSet; delete m_writeSet; delete m_exceptSet; }
+
   void        poll();
 
   SlotFactory get_http_factory();
@@ -26,6 +29,9 @@ public:
   void        slot_select_interrupted(Slot s) { m_slotSelectInterrupted = s; }
 
 private:
+  Poll(const Poll&);
+  void operator = (const Poll&);
+
   void        work();
   void        work_input();
 
@@ -33,9 +39,9 @@ private:
   Slot        m_slotSelectInterrupted;
 
   int         m_maxFd;
-  fd_set      m_readSet;
-  fd_set      m_writeSet;
-  fd_set      m_exceptSet;
+  fd_set*     m_readSet;
+  fd_set*     m_writeSet;
+  fd_set*     m_exceptSet;
 
   CurlStack   m_curlStack;
 };

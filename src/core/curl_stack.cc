@@ -55,12 +55,8 @@ CurlStack::perform() {
 
 void
 CurlStack::fdset(fd_set* readfds, fd_set* writefds, fd_set* exceptfds, int* maxFd) {
-  int f;
-
-  if (curl_multi_fdset((CURLM*)m_handle, readfds, writefds, exceptfds, &f) > 0)
+  if (curl_multi_fdset((CURLM*)m_handle, readfds, writefds, exceptfds, maxFd) > 0)
     throw torrent::local_error("Error calling curl_multi_fdset");
-
-  *maxFd = std::max(f, *maxFd);
 }
 
 void
