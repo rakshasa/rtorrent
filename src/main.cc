@@ -6,15 +6,11 @@
 #include <sigc++/bind.h>
 
 #include "display/canvas.h"
-#include "display/manager.h"
-#include "display/window_title.h"
-#include "display/window_download_list.h"
+#include "display/window_statusbar.h"
 
 #include "core/poll.h"
 #include "core/download_list.h"
 
-#include "input/bindings.h"
-#include "input/manager.h"
 #include "ui/control.h"
 #include "ui/download_list.h"
 
@@ -52,6 +48,8 @@ main(int argc, char** argv) {
 
   ui::Control uiControl;
   ui::DownloadList uiDownloadList(&downloads, &uiControl);
+
+  uiControl.get_display().push_front(new display::WindowStatusbar);
 
   uiDownloadList.activate();
 

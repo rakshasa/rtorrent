@@ -8,14 +8,12 @@ namespace display {
 
 class WindowTitle : public Window {
 public:
-  WindowTitle();
+  WindowTitle(const std::string& s);
 
   virtual void redraw();
 
 private:
   std::string  m_title;
-
-  int m_counter;
 };
 
 }
