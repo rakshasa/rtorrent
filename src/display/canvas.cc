@@ -1,9 +1,14 @@
 #include "config.h"
 
 #include "canvas.h"
-#include <stdarg.h>
 
 namespace display {
+
+void
+Canvas::resize(int x, int y, int w, int h) {
+  delwin(m_window);
+  m_window = newwin(h, w, y, x);
+}
 
 void
 Canvas::init() {

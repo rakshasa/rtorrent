@@ -8,20 +8,20 @@ namespace display {
 
 class Canvas {
 public:
-  Canvas(int x, int y, int width = 0, int height = 0) :
+  Canvas(int x = 0, int y = 0, int width = 0, int height = 0) :
     m_window(newwin(height, width, y, x)) {}
   ~Canvas() { delwin(m_window); }
 
   void      refresh()                                          { wnoutrefresh(m_window); }
   void      redraw()                                           { redrawwin(m_window); }
 
-  void      update_size(int w, int h)                          { wresize(m_window, h, w); }
+  void      resize(int w, int h)                               { wresize(m_window, h, w); }
+  void      resize(int x, int y, int w, int h);
 
   int       get_x()                                            { int x, y; getyx(m_window, y, x); return x; }
   int       get_y()                                            { int x, y; getyx(m_window, y, x); return y; }
   int       get_width()                                        { int x, y; getmaxyx(m_window, y, x); return x; }
   int       get_height()                                       { int x, y; getmaxyx(m_window, y, x); return y; }
-
   chtype    get_background()                                   { return getbkgd(m_window); }
   void      set_background(chtype c)                           { return wbkgdset(m_window, c); }
 
@@ -43,6 +43,9 @@ public:
   // Initialize stdscr.
   static void init();
   static void cleanup();
+
+  static int  get_screen_width()                               { int x, y; getmaxyx(stdscr, y, x); return x; }
+  static int  get_screen_height()                              { int x, y; getmaxyx(stdscr, y, x); return y; }
 
   static void do_update()                                      { doupdate(); }
 

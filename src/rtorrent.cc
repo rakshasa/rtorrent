@@ -1,30 +1,50 @@
+#include <string>
+
+#include "display/window_base.h"
 #include "display/canvas.h"
-#include "display/layers.h"
+#include "display/manager.h"
+
+class WindowTest : public display::WindowBase {
+public:
+  WindowTest(const std::string& str) : m_str(str) {}
+  
+  virtual void do_update() {
+    if (m_canvas == NULL)
+      return;
+
+    m_canvas->erase();
+    m_canvas->print_border('|', '|', '-', '-', '+', '+', '+', '+');
+    m_canvas->print(1, 1, "%s", m_str.c_str());
+  }
+
+private:
+  std::string m_str;
+};  
 
 int main(int argc, char** argv) {
   display::Canvas::init();
-  display::Layers layers;
+  display::Manager manager;
 
-  display::Canvas canvas1(0, 0, 20, 0);
-  display::Canvas canvas2(15, 5, 20, 10);
+  WindowTest window1("This is window 1");
+  WindowTest window2("This is window 2");
 
-  layers.push_front(&canvas1);
-  layers.push_front(&canvas2);
+  window1.set_canvas(new display::Canvas());
+  window2.set_canvas(new display::Canvas());
 
-  canvas1.erase();
-  canvas2.erase();
-  canvas1.set_background(A_REVERSE);
+  manager.add(&window1);
+  manager.add(&window2);
 
-  canvas1.print_border('|', '|', '-', '-', '+', '+', '+', '+');
-  canvas2.print_border('|', '|', '-', '-', '+', '+', '+', '+');
+  window1.get_canvas()->set_background(A_REVERSE);
 
-  canvas1.print(2, 5, "test %i %s", 42, "bar");
-
-  layers.do_update();
+  manager.adjust_layout();
+  manager.do_update();
 
   while (true);
 
   display::Canvas::cleanup();
+
+  delete window1.get_canvas();
+  delete window2.get_canvas();
 
   return 0;
 }
