@@ -18,6 +18,7 @@
 #include "ui/download_list.h"
 #include "input/bindings.h"
 #include "utils/timer.h"
+#include "utils/directory.h"
 
 #include "signal_handler.h"
 #include "option_parser.h"
@@ -69,6 +70,20 @@ do_shutdown(ui::Control* c) {
   start_shutdown = false;
 }
 
+void
+test_dir(const std::string& s) {
+  utils::Directory d(s);
+
+  d.update();
+
+  std::cout << "Listing dir \"" << s << '"' << std::endl;
+
+  for (utils::Directory::iterator itr = d.begin(); itr != d.end(); ++itr)
+    std::cout << '"' << *itr << '"' << std::endl;
+
+  exit(0);
+}
+
 int
 main(int argc, char** argv) {
   ui::Control uiControl;
@@ -83,6 +98,9 @@ main(int argc, char** argv) {
   optionParser.insert_flag('h', sigc::ptr_fun(&print_help));
   optionParser.insert_option('p', sigc::bind(sigc::ptr_fun(OptionParser::call_int_pair),
 					     sigc::mem_fun(uiControl.get_core(), &core::Manager::set_port_range)));
+  
+  // Test function.
+  optionParser.insert_option('s', sigc::ptr_fun(&test_dir));
 
   int firstArg = optionParser.process(argc, argv);
 

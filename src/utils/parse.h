@@ -8,6 +8,7 @@ namespace utils {
 // Various functinos for manipulating strings.
 
 std::string escape_string(const std::string& src);
+std::string string_to_hex(const std::string& src);
 
 }
 
