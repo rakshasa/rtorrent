@@ -96,6 +96,7 @@ FileList::receive_priority() {
     break;
   };
 
+  m_download->get_download().update_priorities();
   m_window->mark_dirty();
 }
 
