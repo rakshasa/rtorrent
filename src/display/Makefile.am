@@ -9,6 +9,8 @@ libsub_display_a_SOURCES = \
 	window.h \
 	window_download_list.cc \
 	window_download_list.h \
+	window_peer_info.cc \
+	window_peer_info.h \
 	window_peer_list.cc \
 	window_peer_list.h \
 	window_statusbar.cc \

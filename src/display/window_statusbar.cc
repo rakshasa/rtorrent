@@ -14,6 +14,8 @@ WindowStatusbar::WindowStatusbar() :
 
 void
 WindowStatusbar::redraw() {
+  m_counter++;
+
   if (Timer::cache() - m_lastDraw < 10000000)
     return;
 
@@ -25,7 +27,7 @@ WindowStatusbar::redraw() {
 		  "",
 		  (int)torrent::get(torrent::LISTEN_PORT),
 		  (int)torrent::get(torrent::HANDSHAKES_TOTAL),
-		  ++m_counter);
+		  m_counter);
 }
 
 }

@@ -1,3 +1,5 @@
+#include "config.h"
+
 #include <string>
 #include <stdexcept>
 #include <iostream>
@@ -92,6 +94,10 @@ int
 main(int argc, char** argv) {
   try {
 
+  SignalHandler::set_handler(SIGINT, sigc::ptr_fun(&set_shutdown));
+  SignalHandler::set_handler(SIGSEGV, sigc::bind(sigc::ptr_fun(&do_panic), SIGSEGV));
+  SignalHandler::set_handler(SIGBUS, sigc::bind(sigc::ptr_fun(&do_panic), SIGBUS));
+
   display::Canvas::init();
   core::CurlStack::init();
 
@@ -122,10 +128,6 @@ main(int argc, char** argv) {
     itr->open();
     itr->hash_check();
   }
-
-  SignalHandler::set_handler(SIGINT, sigc::ptr_fun(&set_shutdown));
-  SignalHandler::set_handler(SIGSEGV, sigc::bind(sigc::ptr_fun(&do_panic), SIGSEGV));
-  SignalHandler::set_handler(SIGBUS, sigc::bind(sigc::ptr_fun(&do_panic), SIGBUS));
 
   uiControl.get_display().adjust_layout();
 

@@ -77,14 +77,15 @@ DownloadList::receive_view_download() {
   if (m_focus == m_list->end())
     return;
 
+  if (m_download != NULL)
+    throw std::logic_error("DownloadList::receive_view_download() called but m_download != NULL");
+
   disable();
 
-  m_download = new Download(m_focus, m_control);
+  m_download = new Download(&*m_focus, m_control);
 
-  m_download->get_bindings()[KEY_LEFT] = sigc::mem_fun(*this, &DownloadList::receive_exit_download);
   m_download->activate();
-
-  m_control->get_display().adjust_layout();
+  m_download->get_bindings()[KEY_LEFT] = sigc::mem_fun(*this, &DownloadList::receive_exit_download);
 }
 
 void

@@ -22,6 +22,8 @@ public:
   using Base::rend;
   using Base::find;
 
+  using Base::erase;
+
   using Base::operator[];
 
   Bindings() : m_active(true) {}
