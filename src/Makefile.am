@@ -13,6 +13,7 @@ rtorrent_LDADD = \
 	$(top_srcdir)/src/input/libsub_input.a
 
 rtorrent_SOURCES = \
+	functional.h \
 	main.cc \
 	parse.cc \
 	parse.h \

@@ -9,7 +9,7 @@ namespace input {
 
 bool
 TextInput::pressed(int key) {
-//   std::stringstream str;
+  //std::stringstream str;
 
   if (m_alt) {
     m_alt = false;
@@ -44,15 +44,15 @@ TextInput::pressed(int key) {
 
       break;
 
+    case 0x02:
     case KEY_LEFT:
-    case 0x10:
       if (m_pos != 0)
 	--m_pos;
 
       break;
 
+    case 0x06:
     case KEY_RIGHT:
-    case 0x0E:
       if (m_pos != size())
 	++m_pos;
 
