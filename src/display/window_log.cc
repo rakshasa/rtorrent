@@ -1,5 +1,7 @@
 #include "config.h"
 
+#include <ctime>
+
 #include "canvas.h"
 #include "window_log.h"
 
@@ -12,7 +14,7 @@ WindowLog::WindowLog(core::Log* l) :
   set_active(false);
 
   // We're trying out scheduled tasks instead.
-  //m_connUpdate = l->signal_update().connect(sigc::mem_fun(*this, &WindowLog::receive_update));
+  m_connUpdate = l->signal_update().connect(sigc::mem_fun(*this, &WindowLog::receive_update));
 }
 
 WindowLog::~WindowLog() {
@@ -35,14 +37,23 @@ WindowLog::redraw() {
   //m_canvas->print(std::max(0, (int)m_canvas->get_width() / 2 - 5), pos++, "*** Log ***");
   m_canvas->print(0, 0, "___");
 
-  for (core::Log::iterator itr = m_log->begin(), end = find_older(); itr != end && pos < m_minHeight; ++itr)
-    m_canvas->print(0, pos++, "<date>: %s", itr->second.c_str());
+  for (core::Log::iterator itr = m_log->begin(), end = find_older(); itr != end && pos < m_canvas->get_height(); ++itr) {
+    std::tm *t = std::localtime(&itr->first.tval().tv_sec);
+
+    if (t == NULL)
+      m_canvas->print(0, pos++, "(time error) %s",
+		      itr->second.c_str());
+    else
+      m_canvas->print(0, pos++, "(%02i:%02i:%02i) %s",
+		      t->tm_hour, t->tm_min, t->tm_sec,
+		      itr->second.c_str());
+  }
 }
 
 void
 WindowLog::receive_update() {
   iterator itr = find_older();
-  int h = std::distance(m_log->begin(), itr);
+  int h = std::min(std::distance(m_log->begin(), itr), 10);
 
   if (h != m_minHeight) {
     set_active(h != 0);

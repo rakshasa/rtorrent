@@ -11,6 +11,9 @@ void
 Log::push_front(const std::string& msg) {
   Base::push_front(Type(utils::Timer::cache(), msg));
 
+  if (size() > 50)
+    Base::pop_back();
+
   m_signalUpdate.emit();
 }
 

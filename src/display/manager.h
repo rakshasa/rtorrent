@@ -28,6 +28,8 @@ public:
 
   iterator       erase(Window* w);
 
+  iterator       find(Window* w);
+
   void           adjust_layout();
   void           do_update();
 

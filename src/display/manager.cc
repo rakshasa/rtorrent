@@ -21,6 +21,11 @@ Manager::erase(Window* w) {
   return Base::erase(itr);
 }
 
+Manager::iterator
+Manager::find(Window* w) {
+  return std::find(begin(), end(), w);
+}
+
 void
 Manager::adjust_layout() {
   int countDynamic = 0;

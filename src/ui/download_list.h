@@ -15,6 +15,7 @@ namespace display {
   class WindowHttpQueue;
   class WindowInput;
   class WindowLog;
+  class WindowLogComplete;
   class WindowStatusbar;
   class WindowTitle;
 }
@@ -30,6 +31,7 @@ public:
   typedef display::WindowHttpQueue              WHttp;
   typedef display::WindowInput                  WInput;
   typedef display::WindowLog                    WLog;
+  typedef display::WindowLogComplete            WLogComplete;
   typedef display::WindowStatusbar              WStatus;
   typedef display::WindowTitle                  WTitle;
 
@@ -41,7 +43,7 @@ public:
   DownloadList(Control* c);
   ~DownloadList();
 
-  WList&           get_window()                 { return *m_window; }
+  WList&           get_window_download_list()   { return *m_windowDownloadList; }
   input::Bindings& get_bindings()               { return *m_bindings; }
 
   void             activate();
@@ -67,22 +69,26 @@ private:
   void             receive_view_input();
   void             receive_exit_input();
 
+  void             receive_toggle_log();
+
   void             task_update();
 
   void             bind_keys(input::Bindings* b);
 
   void             mark_dirty();
 
-  WList*           m_window;
-  WTitle*          m_title;
-  WStatus*         m_status;
+  WList*           m_windowDownloadList;
+  WTitle*          m_windowTitle;
+  WStatus*         m_windowStatus;
   WLog*            m_windowLog;
-  WInput*          m_textInput;
+  WInput*          m_windowTextInput;
   WHttp*           m_windowHttpQueue;
+
+  WLogComplete*    m_windowLogComplete;
 
   utils::Task      m_taskUpdate;
 
-  Download*        m_download;
+  Download*        m_uiDownload;
 
   DList*           m_list;
   DList::iterator  m_focus;

@@ -4,6 +4,7 @@
 
 #include "core/download.h"
 #include "rak/algorithm.h"
+#include "utils/parse.h"
 
 #include "window_tracker_list.h"
 
@@ -38,18 +39,21 @@ WindowTrackerList::redraw() {
   Range range = rak::advance_bidirectional<unsigned int>(0,
 							 *m_focus,
 							 m_download->get_download().get_tracker_size(),
-							 m_canvas->get_height());
+							 (m_canvas->get_height() + 1) / 2);
 
   while (range.first != range.second) {
     torrent::Tracker t = m_download->get_download().get_tracker(range.first);
 
-    m_canvas->print(0, pos, "%c %2i %s",
+    m_canvas->print(0, pos++, "%c %s",
 		    range.first == *m_focus ? '*' : ' ',
-		    t.get_group(),
 		    t.get_url().c_str());
 
+    m_canvas->print(0, pos++, "%c Group: %2i Id: %s",
+		    range.first == *m_focus ? '*' : ' ',
+		    t.get_group(),
+		    utils::escape_string(t.get_tracker_id()).c_str());
+
     ++range.first;
-    ++pos;
   }
 }
 

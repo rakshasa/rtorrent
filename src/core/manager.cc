@@ -27,10 +27,15 @@ Manager::initialize() {
 
   torrent::initialize();
   torrent::listen_open(m_portFirst, m_portLast);
+
+  // Register log signals.
 }
 
 void
 Manager::cleanup() {
+  // Need to disconnect log signals? Not really since we won't receive
+  // any more.
+
   torrent::cleanup();
   core::CurlStack::cleanup();
 }
@@ -101,13 +106,15 @@ Manager::receive_http_done(CurlGet* http) {
 
   } catch (torrent::local_error& e) {
     // What to do? Keep in list for now.
-    m_log.push_front(e.what());
+    m_logImportant.push_front(e.what());
+    m_logComplete.push_front(e.what());
   }
 }  
 
 void
 Manager::receive_http_failed(std::string msg) {
-  m_log.push_front("Http download error: \"" + msg + "\"");
+  m_logImportant.push_front("Http download error: \"" + msg + "\"");
+  m_logComplete.push_front("Http download error: \"" + msg + "\"");
 }
 
 void
@@ -119,7 +126,8 @@ Manager::create_file(const std::string& uri) {
 
   } catch (torrent::local_error& e) {
     // What to do? Keep in list for now.
-    m_log.push_front(e.what());
+    m_logImportant.push_front(e.what());
+    m_logComplete.push_front(e.what());
   }
 }
 
@@ -142,6 +150,9 @@ Manager::create_final(std::istream* s) {
 
   if (m_debugTracker >= 0)
     (*itr)->get_download().signal_tracker_dump(sigc::mem_fun(*this, &Manager::receive_debug_tracker));
+
+  // If we want to monitor network stuff.
+  (*itr)->get_download().signal_network_log(sigc::mem_fun(m_logComplete, &Log::push_front));
 
   return itr;
 }

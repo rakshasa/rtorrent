@@ -13,6 +13,7 @@
 #include "display/window_http_queue.h"
 #include "display/window_input.h"
 #include "display/window_log.h"
+#include "display/window_log_complete.h"
 #include "display/window_statusbar.h"
 #include "display/window_title.h"
 
@@ -23,34 +24,35 @@
 namespace ui {
 
 DownloadList::DownloadList(Control* c) :
-  m_title(new WTitle("rtorrent " VERSION " - " + torrent::get(torrent::LIBRARY_NAME))),
-  m_status(new WStatus(&c->get_core())),
-  m_textInput(new WInput(new input::TextInput)),
+  m_windowTitle(new WTitle("rtorrent " VERSION " - " + torrent::get(torrent::LIBRARY_NAME))),
+  m_windowStatus(new WStatus(&c->get_core())),
+  m_windowTextInput(new WInput(new input::TextInput)),
   m_windowHttpQueue(new WHttp(&c->get_core().get_http_queue())),
 
   m_taskUpdate(sigc::mem_fun(*this, &DownloadList::task_update)),
-  m_download(NULL),
+  m_uiDownload(NULL),
   m_focus(c->get_core().get_download_list().end()),
   m_control(c),
   m_bindings(new input::Bindings) {
 
-  m_window = new WList(&m_control->get_core().get_download_list(), &m_focus);
-  m_windowLog = new WLog(&m_control->get_core().get_log());
+  m_windowDownloadList = new WList(&m_control->get_core().get_download_list(), &m_focus);
+  m_windowLog          = new WLog(&m_control->get_core().get_log_important());
+  m_windowLogComplete  = NULL;
 
   bind_keys(m_bindings);
 
-  m_textInput->get_input()->slot_dirty(sigc::mem_fun(*m_textInput, &WInput::mark_dirty));
+  m_windowTextInput->get_input()->slot_dirty(sigc::mem_fun(*m_windowTextInput, &WInput::mark_dirty));
 }
 
 DownloadList::~DownloadList() {
-  delete m_window;
-  delete m_title;
-  delete m_status;
+  delete m_windowDownloadList;
+  delete m_windowTitle;
+  delete m_windowStatus;
   delete m_bindings;
 
   delete m_windowLog;
-  delete m_textInput->get_input();
-  delete m_textInput;
+  delete m_windowTextInput->get_input();
+  delete m_windowTextInput;
   delete m_windowHttpQueue;
 }
 
@@ -58,33 +60,36 @@ void
 DownloadList::activate() {
   m_taskUpdate.insert(utils::Timer::cache() + 1000000);
 
-  m_textInput->set_active(false);
+  m_windowTextInput->set_active(false);
 
   m_control->get_input().push_front(m_bindings);
 
   m_control->get_display().push_back(m_windowLog);
   m_control->get_display().push_back(m_windowHttpQueue);
-  m_control->get_display().push_back(m_textInput);
-  m_control->get_display().push_back(m_status);
-  m_control->get_display().push_front(m_window);
-  m_control->get_display().push_front(m_title);
+  m_control->get_display().push_back(m_windowTextInput);
+  m_control->get_display().push_back(m_windowStatus);
+  m_control->get_display().push_front(m_windowDownloadList);
+  m_control->get_display().push_front(m_windowTitle);
 }
 
 void
 DownloadList::disable() {
   m_taskUpdate.remove();
 
-  if (m_textInput->is_active()) {
-    m_textInput->get_input()->clear();
+  if (m_windowTextInput->is_active()) {
+    m_windowTextInput->get_input()->clear();
     receive_exit_input();
   }
 
+  if (m_windowLogComplete != NULL)
+    receive_toggle_log();
+
   m_control->get_input().erase(m_bindings);
 
-  m_control->get_display().erase(m_title);
-  m_control->get_display().erase(m_window);
-  m_control->get_display().erase(m_status);
-  m_control->get_display().erase(m_textInput);
+  m_control->get_display().erase(m_windowTitle);
+  m_control->get_display().erase(m_windowDownloadList);
+  m_control->get_display().erase(m_windowStatus);
+  m_control->get_display().erase(m_windowTextInput);
   m_control->get_display().erase(m_windowLog);
   m_control->get_display().erase(m_windowHttpQueue);
 }
@@ -111,7 +116,7 @@ DownloadList::receive_prev() {
 
 void
 DownloadList::receive_throttle(int t) {
-  m_status->mark_dirty();
+  m_windowStatus->mark_dirty();
 
   torrent::set(torrent::THROTTLE_ROOT_CONST_RATE, torrent::get(torrent::THROTTLE_ROOT_CONST_RATE) + t * 1024);
 }
@@ -140,25 +145,25 @@ DownloadList::receive_view_download() {
   if (m_focus == m_control->get_core().get_download_list().end())
     return;
 
-  if (m_download != NULL)
-    throw std::logic_error("DownloadList::receive_view_download() called but m_download != NULL");
+  if (m_uiDownload != NULL)
+    throw std::logic_error("DownloadList::receive_view_download() called but m_uiDownload != NULL");
 
   disable();
 
-  m_download = new Download(*m_focus, m_control);
+  m_uiDownload = new Download(*m_focus, m_control);
 
-  m_download->activate();
-  m_download->get_bindings()[KEY_LEFT] = sigc::mem_fun(*this, &DownloadList::receive_exit_download);
+  m_uiDownload->activate();
+  m_uiDownload->get_bindings()[KEY_LEFT] = sigc::mem_fun(*this, &DownloadList::receive_exit_download);
 }
 
 void
 DownloadList::receive_exit_download() {
-  if (m_download == NULL)
-    throw std::logic_error("DownloadList::receive_exit_download() called but m_download == NULL");
+  if (m_uiDownload == NULL)
+    throw std::logic_error("DownloadList::receive_exit_download() called but m_uiDownload == NULL");
 
-  m_download->disable();
-  delete m_download;
-  m_download = NULL;
+  m_uiDownload->disable();
+  delete m_uiDownload;
+  m_uiDownload = NULL;
 
   activate();
 
@@ -167,13 +172,13 @@ DownloadList::receive_exit_download() {
 
 void
 DownloadList::receive_view_input() {
-  m_status->set_active(false);
-  m_textInput->set_active(true);
+  m_windowStatus->set_active(false);
+  m_windowTextInput->set_active(true);
   m_control->get_display().adjust_layout();
 
-  m_control->get_input().set_text_input(m_textInput->get_input());
+  m_control->get_input().set_text_input(m_windowTextInput->get_input());
 
-  m_textInput->set_focus(true);
+  m_windowTextInput->set_focus(true);
 
   (*m_bindings)['\n'] = sigc::mem_fun(*this, &DownloadList::receive_exit_input);
   (*m_bindings)[KEY_ENTER] = sigc::mem_fun(*this, &DownloadList::receive_exit_input);
@@ -181,19 +186,44 @@ DownloadList::receive_view_input() {
 
 void
 DownloadList::receive_exit_input() {
-  m_status->set_active(true);
-  m_textInput->set_active(false);
+  m_windowStatus->set_active(true);
+  m_windowTextInput->set_active(false);
   m_control->get_display().adjust_layout();
 
   m_control->get_input().set_text_input();
 
-  m_slotOpenUri(m_textInput->get_input()->str());
+  m_slotOpenUri(m_windowTextInput->get_input()->str());
 
-  m_textInput->get_input()->clear();
-  m_textInput->set_focus(false);
+  m_windowTextInput->get_input()->clear();
+  m_windowTextInput->set_focus(false);
 
   m_bindings->erase('\n');
   m_bindings->erase(KEY_ENTER);
+}
+
+void
+DownloadList::receive_toggle_log() {
+  if (m_windowLogComplete == NULL) {
+    display::Manager::iterator itr = m_control->get_display().find(m_windowDownloadList);
+
+    if (itr == m_control->get_display().end())
+      throw std::logic_error("ui::DownloadList::receive_toggle_log() could not find download list");
+
+    *itr = m_windowLogComplete = new WLogComplete(&m_control->get_core().get_log_complete());
+
+  } else {
+    display::Manager::iterator itr = m_control->get_display().find(m_windowLogComplete);
+
+    if (itr == m_control->get_display().end())
+      throw std::logic_error("ui::DownloadList::receive_toggle_log() could not find download list");
+
+    *itr = m_windowDownloadList;
+
+    delete m_windowLogComplete;
+    m_windowLogComplete = NULL;
+  }
+
+  m_control->get_display().adjust_layout();
 }
 
 void
@@ -218,6 +248,7 @@ DownloadList::bind_keys(input::Bindings* b) {
   (*b)[KEY_UP]    = sigc::mem_fun(*this, &DownloadList::receive_prev);
   (*b)[KEY_DOWN]  = sigc::mem_fun(*this, &DownloadList::receive_next);
   (*b)[KEY_RIGHT] = sigc::mem_fun(*this, &DownloadList::receive_view_download);
+  (*b)['l']       = sigc::mem_fun(*this, &DownloadList::receive_toggle_log);
 
   (*b)['\x7f'] = sigc::mem_fun(*this, &DownloadList::receive_view_input);
   (*b)[KEY_BACKSPACE] = sigc::mem_fun(*this, &DownloadList::receive_view_input);
@@ -225,7 +256,7 @@ DownloadList::bind_keys(input::Bindings* b) {
 
 void
 DownloadList::mark_dirty() {
-  m_window->mark_dirty();
+  m_windowDownloadList->mark_dirty();
 }
 
 }

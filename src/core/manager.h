@@ -28,7 +28,8 @@ public:
   HttpQueue&          get_http_queue()                    { return m_httpQueue; }
 
   Poll&               get_poll()                          { return m_poll; }
-  Log&                get_log()                           { return m_log; }
+  Log&                get_log_important()                 { return m_logImportant; }
+  Log&                get_log_complete()                  { return m_logComplete; }
 
   void                initialize();
   void                cleanup();
@@ -63,7 +64,8 @@ private:
   HttpQueue           m_httpQueue;
 
   Poll                m_poll;
-  Log                 m_log;
+  Log                 m_logImportant;
+  Log                 m_logComplete;
 
   std::string         m_dns;
   int                 m_portFirst;

@@ -21,6 +21,8 @@ libsub_display_a_SOURCES = \
 	window_input.h \
 	window_log.cc \
 	window_log.h \
+	window_log_complete.cc \
+	window_log_complete.h \
 	window_peer_info.cc \
 	window_peer_info.h \
 	window_peer_list.cc \
