@@ -55,7 +55,7 @@ Download::activate() {
   m_window         = m_control->get_display().insert(m_control->get_display().begin(), NULL);
   m_title          = m_control->get_display().insert(m_control->get_display().begin(), new WTitle(m_download->get_download().get_name()));
   m_downloadStatus = m_control->get_display().insert(m_control->get_display().end(), new WDownloadStatus(m_download));
-  m_mainStatus     = m_control->get_display().insert(m_control->get_display().end(), new WMainStatus);
+  m_mainStatus     = m_control->get_display().insert(m_control->get_display().end(), new WMainStatus(&m_control->get_core()));
 
   m_control->get_input().push_front(m_bindings);
 

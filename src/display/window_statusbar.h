@@ -3,16 +3,21 @@
 
 #include "window.h"
 
+namespace core {
+  class Manager;
+}
+
 namespace display {
 
 class WindowStatusbar : public Window {
 public:
-  WindowStatusbar();
+  WindowStatusbar(core::Manager* c);
 
   virtual void redraw();
 
 private:
-  int m_counter;
+  int            m_counter;
+  core::Manager* m_core;
 };
 
 }

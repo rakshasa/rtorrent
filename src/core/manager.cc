@@ -1,9 +1,11 @@
 #include "config.h"
 
 #include <stdexcept>
+#include <cstdio>
 #include <cstring>
 #include <fstream>
 #include <istream>
+#include <sstream>
 #include <sigc++/bind.h>
 #include <torrent/exceptions.h>
 #include <torrent/torrent.h>
@@ -77,16 +79,35 @@ Manager::stop(Download* d) {
 }
 
 void
-Manager::create_file(const std::string& uri) {
-  DownloadList::iterator itr = m_downloadList.end();
+Manager::set_dns(const std::string& dns) {
+  unsigned int a, b, c, d;
 
+  if (std::sscanf(dns.c_str(), "%i.%i.%i.%i", &a, &b, &c, &d) != 4 ||
+      (a >= 256 || b >= 256 || c >= 256 || d >= 256))
+    throw std::runtime_error("Tried to set invalid ip address.");
+
+  std::stringstream str;
+  str << a << '.' << b << '.' << c << '.' << d;
+
+  m_dns = str.str();
+}
+
+void
+Manager::receive_http_done(CurlGet* http) {
+  try {
+    create_final(http->get_stream());
+
+  } catch (torrent::local_error& e) {
+    // What to do? Keep in list for now.
+  }
+}  
+
+void
+Manager::create_file(const std::string& uri) {
   try {
     std::fstream f(uri.c_str(), std::ios::in);
     
-    itr = m_downloadList.insert(&f);
-
-    start(*itr);
-    m_downloadStore.save(*itr);
+    create_final(&f);
 
   } catch (torrent::local_error& e) {
     // What to do? Keep in list for now.
@@ -101,19 +122,16 @@ Manager::create_http(const std::string& uri) {
   // Add the failed signal here.
 }
 
-void
-Manager::receive_http_done(CurlGet* http) {
-  DownloadList::iterator itr = m_downloadList.end();
+Manager::iterator
+Manager::create_final(std::istream* s) {
+  iterator itr = m_downloadList.insert(s);
+  
+  (*itr)->get_download().set_ip(m_dns);
 
-  try {
-    itr = m_downloadList.insert(http->get_stream());
+  start(*itr);
+  m_downloadStore.save(*itr);
 
-    start(*itr);
-    m_downloadStore.save(*itr);
-
-  } catch (torrent::local_error& e) {
-    // What to do? Keep in list for now.
-  }
-}  
+  return itr;
+}
 
 }

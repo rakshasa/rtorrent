@@ -23,7 +23,7 @@ namespace ui {
 
 DownloadList::DownloadList(Control* c) :
   m_title(new WTitle("rtorrent " VERSION " - " + torrent::get(torrent::LIBRARY_NAME))),
-  m_status(new WStatus),
+  m_status(new WStatus(&c->get_core())),
   m_textInput(new WInput(new input::TextInput)),
   m_windowHttpQueue(new WHttp(&c->get_core().get_http_queue())),
 
