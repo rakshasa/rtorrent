@@ -53,6 +53,32 @@ DownloadStore::remove(Download* d) {
   unlink(create_filename(d).c_str());
 }
 
+utils::Directory
+DownloadStore::get_formated_entries() {
+  if (!is_active())
+    return utils::Directory();
+
+  utils::Directory d(m_path);
+  d.update();
+
+  d.erase(std::remove_if(d.begin(), d.end(), std::not1(std::ptr_fun(&DownloadStore::is_correct_format))), d.end());
+
+  return d;
+}
+
+bool
+DownloadStore::is_correct_format(std::string f) {
+  if (f.size() != 48 || f.substr(40) != ".torrent")
+    return false;
+
+  for (std::string::const_iterator itr = f.begin(); itr != f.end() - 8; ++itr)
+    if (!(*itr >= '0' && *itr <= '9') &&
+	!(*itr >= 'A' && *itr <= 'F'))
+      return false;
+
+  return true;
+}
+
 std::string
 DownloadStore::create_filename(Download* d) {
   return m_path + utils::string_to_hex(d->get_hash()) + ".torrent";

@@ -3,25 +3,31 @@
 
 #include <string>
 
+#include "utils/directory.h"
+
 namespace core {
 
 class Download;
 
 class DownloadStore {
 public:
-  
-  void activate(const std::string& path);
-  void disable();
 
-  bool is_active() { return !m_path.empty(); }
+  void              activate(const std::string& path);
+  void              disable();
 
-  void save(Download* d);
-  void remove(Download* d);
+  bool              is_active() { return !m_path.empty(); }
+
+  void              save(Download* d);
+  void              remove(Download* d);
+
+  // Currently shows all entries in the correct format.
+  utils::Directory  get_formated_entries();
 
 private:
-  std::string create_filename(Download* d);
+  static bool       is_correct_format(std::string f);
+  std::string       create_filename(Download* d);
 
-  std::string m_path;
+  std::string       m_path;
 };
 
 }

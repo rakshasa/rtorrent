@@ -85,6 +85,19 @@ test_dir(const std::string& s) {
   exit(0);
 }
 
+void
+load_session_torrents(ui::Control* c) {
+  // Load session torrents.
+  std::list<std::string> l = c->get_core().get_download_store().get_formated_entries().make_list();
+
+  std::for_each(l.begin(), l.end(), std::bind1st(std::mem_fun(&core::Manager::insert), &c->get_core()));
+}
+
+void
+load_arg_torrents(ui::Control* c, char** begin, char** end) {
+  std::for_each(begin, end, std::bind1st(std::mem_fun(&core::Manager::insert), &c->get_core()));
+}
+
 int
 main(int argc, char** argv) {
   ui::Control uiControl;
@@ -122,8 +135,8 @@ main(int argc, char** argv) {
 
   uiControl.get_core().initialize();
 
-  while (firstArg < argc)
-    uiControl.get_core().insert(argv[firstArg++]);
+  load_session_torrents(&uiControl);
+  load_arg_torrents(&uiControl, argv + firstArg, argv + argc);
 
   uiControl.get_display().adjust_layout();
 

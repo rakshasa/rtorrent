@@ -32,7 +32,7 @@ Manager::cleanup() {
 }
 
 void
-Manager::insert(const std::string& uri) {
+Manager::insert(std::string uri) {
   if (std::strncmp(uri.c_str(), "http://", 7))
     create_file(uri);
   else

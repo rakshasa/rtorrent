@@ -27,7 +27,7 @@ public:
   void            initialize();
   void            cleanup();
 
-  void            insert(const std::string& uri);
+  void            insert(std::string uri);
   iterator        erase(DownloadList::iterator itr);
 
   void            start(Download* d);

@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include <dirent.h>
 
+#include "functional.h"
 #include "directory.h"
 
 namespace utils {
@@ -28,7 +29,17 @@ Directory::update() {
       Base::push_back(ent->d_name);
   }
 
-  std::sort(begin(), end(), std::less<std::string>());
+  Base::sort(std::less<std::string>());
+}
+
+Directory::Base
+Directory::make_list() {
+  Base l;
+
+  for (Base::iterator itr = begin(); itr != end(); ++itr)
+    l.push_back(m_path + *itr);
+
+  return l;
 }
 
 }

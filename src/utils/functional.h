@@ -52,9 +52,9 @@ equal(Type t, Ftor f) {
   return _equal<Type, Ftor>(t, f);
 }
 
-template <typename Dest, typename Src>
+template <typename Src, typename Dest>
 struct _on : public std::unary_function<typename Src::argument_type, typename Dest::result_type>  {
-  _on(Dest d, Src s) : m_dest(d), m_src(s) {}
+  _on(Src s, Dest d) : m_dest(d), m_src(s) {}
 
   typename Dest::result_type operator () (typename Src::argument_type arg) {
     return m_dest(m_src(arg));
@@ -64,10 +64,10 @@ struct _on : public std::unary_function<typename Src::argument_type, typename De
   Src m_src;
 };
     
-template <typename Dest, typename Src>
-inline _on<Dest, Src>
-on(Dest d, Src s) {
-  return _on<Dest, Src>(d, s);
+template <typename Src, typename Dest>
+inline _on<Src, Dest>
+on(Src s, Dest d) {
+  return _on<Src, Dest>(s, d);
 }  
 
 template <typename Cond, typename Then>
