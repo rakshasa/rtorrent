@@ -123,7 +123,7 @@ main(int argc, char** argv) {
   for (int i = 1; i < argc; ++i) {
     std::fstream f(argv[i], std::ios::in);
 
-    core::DownloadList::iterator itr = downloads.create(f);
+    core::DownloadList::iterator itr = downloads.insert(f);
 
     itr->open();
     itr->hash_check();

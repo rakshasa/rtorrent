@@ -2,29 +2,14 @@
 
 #include <stdexcept>
 #include <algorithm>
-#include <functional>
+
+#include "functional.h"
 
 #include "canvas.h"
 #include "manager.h"
 #include "window.h"
 
 namespace display {
-
-template <typename Type, typename Ftor>
-struct _accumulate {
-  _accumulate(Type& t, Ftor f) : m_t(t), m_f(f) {}
-
-  template <typename Arg>
-  void operator () (Arg& a) { m_t += m_f(a); }
-
-  Type& m_t;
-  Ftor m_f;
-};
-
-template <typename Type, typename Ftor>
-_accumulate<Type, Ftor> accumulate(Type& t, Ftor f) {
-  return _accumulate<Type, Ftor>(t, f);
-}
 
 Manager::iterator
 Manager::erase(Window* w) {
@@ -41,8 +26,8 @@ Manager::adjust_layout() {
   int countDynamic = 0;
   int staticHeight = 0;
 
-  std::for_each(begin(), end(), accumulate(staticHeight, std::mem_fun(&Window::get_min_height)));
-  std::for_each(begin(), end(), accumulate(countDynamic, std::mem_fun(&Window::is_dynamic)));
+  std::for_each(begin(), end(), func::accumulate(staticHeight, std::mem_fun(&Window::get_min_height)));
+  std::for_each(begin(), end(), func::accumulate(countDynamic, std::mem_fun(&Window::is_dynamic)));
 
   int dynamic = std::max(0, Canvas::get_screen_height() - staticHeight);
   int height = 0, h;

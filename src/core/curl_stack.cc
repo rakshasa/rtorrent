@@ -1,32 +1,14 @@
 #include "config.h"
 
 #include <algorithm>
-#include <functional>
 #include <curl/multi.h>
 #include <torrent/exceptions.h>
 
+#include "functional.h"
 #include "curl_get.h"
 #include "curl_stack.h"
 
 namespace core {
-
-template <typename Type, typename Ftor>
-struct _equal {
-  _equal(Type t, Ftor f) : m_t(t), m_f(f) {}
-
-  template <typename Arg>
-  bool operator () (Arg& a) {
-    return m_t == m_f(a);
-  }
-
-  Type m_t;
-  Ftor m_f;
-};
-
-template <typename Type, typename Ftor>
-_equal<Type, Ftor> equal(Type t, Ftor f) {
-  return _equal<Type, Ftor>(t, f);
-}
 
 CurlStack::CurlStack() :
   m_handle((void*)curl_multi_init()),
@@ -59,10 +41,7 @@ CurlStack::perform() {
 	CURLMsg* msg = curl_multi_info_read((CURLM*)m_handle, &t);
 
 	CurlGetList::iterator itr = std::find_if(m_getList.begin(), m_getList.end(),
-						 equal(msg->easy_handle, std::mem_fun(&CurlGet::handle)));
-
-// 						 eq(call_member(&CurlGet::handle),
-// 						    value(msg->easy_handle)));
+						 func::equal(msg->easy_handle, std::mem_fun(&CurlGet::handle)));
 
 	if (itr == m_getList.end())
 	  throw torrent::client_error("Could not find CurlGet with the right easy_handle");

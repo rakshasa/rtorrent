@@ -10,7 +10,7 @@
 namespace core {
 
 DownloadList::iterator
-DownloadList::create(std::istream& str) {
+DownloadList::insert(std::istream& str) {
   torrent::Download d = torrent::download_create(str);
 
   iterator itr = Base::insert(end(), Download());
