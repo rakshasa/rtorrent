@@ -13,11 +13,13 @@ public:
   typedef sigc::slot1<void, DownloadList::iterator> SlotReady;
   typedef sigc::slot0<void>                         SlotFailed;
 
-  DownloadList& get_download_list() { return m_downloadList; }
-  HashQueue&    get_hash_queue()    { return m_hashQueue; }
-  HttpQueue&    get_http_queue()    { return m_httpQueue; }
+  Manager() : m_portFirst(6890), m_portLast(6999) {}
 
-  Poll&         get_poll()          { return m_poll; }
+  DownloadList& get_download_list()                 { return m_downloadList; }
+  HashQueue&    get_hash_queue()                    { return m_hashQueue; }
+  HttpQueue&    get_http_queue()                    { return m_httpQueue; }
+
+  Poll&         get_poll()                          { return m_poll; }
 
   void          initialize();
   void          cleanup();
@@ -27,6 +29,8 @@ public:
 
   void          start(Download* d);
   void          stop(Download* d);
+
+  void          set_port_range(int a, int b)        { m_portFirst = a; m_portLast = b; }
 
 private:
   void          receive_http_done(CurlGet* http);
@@ -38,6 +42,9 @@ private:
   HashQueue     m_hashQueue;
   HttpQueue     m_httpQueue;
   Poll          m_poll;
+
+  int           m_portFirst;
+  int           m_portLast;
 };
 
 }

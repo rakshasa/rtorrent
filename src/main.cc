@@ -20,6 +20,7 @@
 
 #include "timer.h"
 #include "signal_handler.h"
+#include "option_parser.h"
 
 int64_t Timer::m_cache;
 
@@ -101,6 +102,12 @@ main(int argc, char** argv) {
   SignalHandler::set_handler(SIGSEGV, sigc::bind(sigc::ptr_fun(&do_panic), SIGSEGV));
   SignalHandler::set_handler(SIGBUS, sigc::bind(sigc::ptr_fun(&do_panic), SIGBUS));
 
+  OptionParser optionParser;
+  optionParser.insert_option('p', sigc::bind(sigc::ptr_fun(OptionParser::call_int_pair),
+					     sigc::mem_fun(uiControl.get_core(), &core::Manager::set_port_range)));
+
+  int firstArg = optionParser.process(argc, argv);
+
   display::Canvas::init();
 
   ui::DownloadList uiDownloadList(&uiControl);
@@ -120,8 +127,8 @@ main(int argc, char** argv) {
 
   uiControl.get_core().initialize();
 
-  for (int i = 1; i < argc; ++i)
-    uiControl.get_core().insert(argv[i]);
+  while (firstArg < argc)
+    uiControl.get_core().insert(argv[firstArg++]);
 
   uiControl.get_display().adjust_layout();
 

@@ -21,7 +21,7 @@ Manager::initialize() {
   CurlStack::init();
 
   torrent::initialize();
-  torrent::listen_open(10000, 20000);
+  torrent::listen_open(m_portFirst, m_portLast);
 }
 
 void

@@ -15,6 +15,8 @@ rtorrent_LDADD = \
 rtorrent_SOURCES = \
 	functional.h \
 	main.cc \
+	option_parser.cc \
+	option_parser.h \
 	parse.cc \
 	parse.h \
 	signal_handler.cc \

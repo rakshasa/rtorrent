@@ -37,7 +37,7 @@ WindowHttpQueue::redraw() {
   } 
 
   m_canvas->erase();
-  m_canvas->print(0, 0, "Http [%2i]", m_container.size());
+  m_canvas->print(0, 0, "Http [%i]", m_queue->size());
 
   int pos = 10;
   Container::iterator itr = m_container.begin();
@@ -85,8 +85,8 @@ WindowHttpQueue::create_name(core::CurlGet* h) {
        n.substr(n.size() - 8) == ".TORRENT"))
     n = n.substr(0, n.size() - 8);
 
-  if (n.size() > 20)
-    n = n.substr(0, 20);
+  if (n.size() > 30)
+    n = n.substr(0, 30);
 
   return n;
 }
