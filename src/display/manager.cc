@@ -38,10 +38,13 @@ Manager::adjust_layout() {
   int height = 0, h;
 
   for (iterator itr = begin(); itr != end(); ++itr, height += h) {
-    h = (*itr)->is_dynamic() ? ((dynamic + countDynamic - 1) / countDynamic) : 0;
 
-    countDynamic--;
-    dynamic -= h;
+    if ((*itr)->is_dynamic()) {
+      dynamic -= h = (dynamic + countDynamic - 1) / countDynamic;
+      countDynamic--;
+    } else {
+      h = 0;
+    }
 
     h += (*itr)->get_min_height();
 

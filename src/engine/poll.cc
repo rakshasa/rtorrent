@@ -20,8 +20,7 @@ Poll::poll() {
 
   m_maxFd = std::max(m_maxFd, 1);
     
-  if (m_readStdin)
-    FD_SET(0, &m_readSet);
+  FD_SET(0, &m_readSet);
 
   if (m_curlStack.is_busy())
     m_curlStack.fdset(&m_readSet, &m_writeSet, &m_exceptSet, &m_maxFd);
@@ -35,17 +34,19 @@ Poll::poll() {
 
   m_maxFd = select(m_maxFd, &m_readSet, &m_writeSet, &m_exceptSet, &timeout);
 
-  if (m_maxFd < 0)
+  if (m_maxFd == EINTR)
+    m_slotSelectInterrupted();
+  else if (m_maxFd < 0)
     throw std::runtime_error("Poll::work(): select error");
 }
 
 void
 Poll::work() {
-  if (m_readStdin && FD_ISSET(0, &m_readSet)) {
+  if (FD_ISSET(0, &m_readSet)) {
     int key;
 
     while ((key = getch()) >= 0)
-      m_readStdin(key);
+      m_slotReadStdin(key);
   }
 
   if (m_curlStack.is_busy())

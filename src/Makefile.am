@@ -11,4 +11,6 @@ rtorrent_LDADD = \
 	$(top_srcdir)/src/input/libsub_input.a
 
 rtorrent_SOURCES = \
-	main.cc
+	main.cc \
+	signal_handler.cc \
+	signal_handler.h

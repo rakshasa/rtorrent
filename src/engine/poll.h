@@ -10,22 +10,20 @@ namespace engine {
 
 class Poll {
 public:
+  typedef sigc::slot0<void> Slot;
   typedef sigc::slot1<void, int> SlotInt;
-
-  Poll() : m_running(true) {}
-
-  bool      is_running()               { return m_running; }
 
   void      poll();
   void      work();
 
   void      register_http();
 
-  void      slot_read_stdin(SlotInt s) { m_readStdin = s; }
+  void      slot_read_stdin(SlotInt s)      { m_slotReadStdin = s; }
+  void      slot_select_interrupted(Slot s) { m_slotSelectInterrupted = s; }
 
 private:
-  bool      m_running;
-  SlotInt   m_readStdin;
+  SlotInt   m_slotReadStdin;
+  Slot      m_slotSelectInterrupted;
 
   int       m_maxFd;
   fd_set    m_readSet;

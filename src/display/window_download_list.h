@@ -13,7 +13,7 @@ class WindowDownloadList : public Window {
 public:
   WindowDownloadList(engine::DownloadList* d);
 
-  virtual void          redraw();
+  virtual void redraw();
 
 private:
   engine::DownloadList* m_downloads;

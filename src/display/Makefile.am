@@ -8,6 +8,8 @@ libsub_display_a_SOURCES = \
 	window.cc \
 	window.h \
 	window_download_list.cc \
-	window_download_list.h
+	window_download_list.h \
+	window_title.cc \
+	window_title.h
 
 INCLUDES = -I$(srcdir) -I$(srcdir)/.. -I$(top_srcdir)

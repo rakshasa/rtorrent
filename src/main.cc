@@ -7,6 +7,7 @@
 
 #include "display/canvas.h"
 #include "display/manager.h"
+#include "display/window_title.h"
 #include "display/window_download_list.h"
 
 #include "engine/poll.h"
@@ -15,24 +16,48 @@
 #include "input/bindings.h"
 #include "input/manager.h"
 
-int main(int argc, char** argv) {
+#include "signal_handler.h"
+
+bool start_shutdown = false;
+bool is_shutting_down = false;
+
+engine::Poll poll;
+engine::DownloadList downloads;
+
+display::Manager displayManager;
+input::Manager inputManager;
+
+void
+set_shutdown() {
+  start_shutdown = true;
+}
+
+void
+do_shutdown() {
+  if (is_shutting_down)
+    // Be quick about it...
+    return;
+
+  is_shutting_down = true;
+
+  torrent::listen_close();
+
+  std::for_each(downloads.begin(), downloads.end(), std::mem_fun_ref(&engine::Download::stop));
+}
+
+int
+main(int argc, char** argv) {
   try {
 
   display::Canvas::init();
-
-  engine::Poll poll;
-  engine::DownloadList downloads;
-
-  display::Manager display;
-
-  input::Manager inputManager;
 
   inputManager.push_back(new input::Bindings);
 
   poll.slot_read_stdin(sigc::mem_fun(inputManager, &input::Manager::pressed));
   poll.register_http();
 
-  display.push_back(new display::WindowDownloadList(&downloads));
+  displayManager.push_back(new display::WindowTitle);
+  displayManager.push_back(new display::WindowDownloadList(&downloads));
 
   torrent::initialize();
   torrent::listen_open(6880, 6999);
@@ -46,9 +71,14 @@ int main(int argc, char** argv) {
     itr->hash_check();
   }
 
-  while (poll.is_running()) {
-    display.adjust_layout();
-    display.do_update();
+  SignalHandler::set_handler(SIGINT, sigc::ptr_fun(&set_shutdown));
+
+  while (!is_shutting_down || !torrent::get(torrent::SHUTDOWN_DONE)) {
+    if (start_shutdown && !is_shutting_down)
+      do_shutdown();
+
+    displayManager.adjust_layout();
+    displayManager.do_update();
 
     poll.poll();
     poll.work();
@@ -61,6 +91,8 @@ int main(int argc, char** argv) {
 
     std::cout << "Caught exception: \"" << e.what() << '"' << std::endl;
   }
+
+  torrent::cleanup();
 
   return 0;
 }
