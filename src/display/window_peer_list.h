@@ -19,7 +19,7 @@ public:
   PList&          get_list()                           { return *m_list; }
 
   PList::iterator get_focus()                          { return m_focus; }
-  void            set_focus(PList::iterator itr)       { m_focus = itr; }
+  void            set_focus(PList::iterator itr)       { m_focus = itr; mark_dirty(); }
 
   void            slot_chunks_total(SlotChunksTotal s) { m_slotChunksTotal = s; }
 

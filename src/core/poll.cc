@@ -28,8 +28,8 @@ Poll::poll() {
 
   uint64_t t = torrent::get(torrent::TIME_SELECT);
 
-  if (t > 10000000)
-    t = 10000000;
+  if (t > 1000000)
+    t = 1000000;
 
   timeval timeout = {t / 1000000, t % 1000000};
 
@@ -50,7 +50,7 @@ Poll::work() {
   if (FD_ISSET(0, &m_readSet)) {
     int key;
 
-    while ((key = getch()) >= 0)
+    while ((key = getch()) != ERR)
       m_slotReadStdin(key);
   }
 

@@ -15,10 +15,14 @@ WindowDownloadList::WindowDownloadList(DList* d) :
 
 void
 WindowDownloadList::redraw() {
-  m_canvas->erase();
-  m_canvas->print_border(' ', ' ', '-', '-', ' ', ' ', ' ', ' ');
+  if (Timer::cache() - m_lastDraw < 1000000)
+    return;
 
-  int pos = 1;
+  m_lastDraw = Timer::cache();
+
+  m_canvas->erase();
+
+  int pos = 0;
 
   // Remember to check for end of screen too.
 

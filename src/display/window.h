@@ -1,6 +1,8 @@
 #ifndef RTORRENT_WINDOW_BASE_H
 #define RTORRENT_WINDOW_BASE_H
 
+#include "timer.h"
+
 namespace display {
 
 class Canvas;
@@ -17,6 +19,8 @@ public:
   void         refresh();
   void         resize(int x, int y, int w, int h);
 
+  void         mark_dirty()     { m_lastDraw = 0; }
+
   virtual void redraw() = 0;
 
 protected:
@@ -27,6 +31,8 @@ protected:
 
   bool         m_dynamic;
   int          m_minHeight;
+
+  Timer        m_lastDraw;
 };
 
 }

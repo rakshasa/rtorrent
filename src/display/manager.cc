@@ -60,6 +60,8 @@ Manager::adjust_layout() {
 
     (*itr)->resize(0, height, Canvas::get_screen_width(), h);
   }
+
+  std::for_each(begin(), end(), std::mem_fun(&Window::mark_dirty));
 }
 
 void

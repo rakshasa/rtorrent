@@ -15,13 +15,31 @@
 #include "ui/control.h"
 #include "ui/download_list.h"
 
+#include "input/bindings.h"
+
+#include "timer.h"
 #include "signal_handler.h"
+
+int64_t Timer::m_cache;
 
 bool start_shutdown = false;
 bool is_shutting_down = false;
 
 core::Poll poll;
 core::DownloadList downloads;
+
+bool
+is_resized() {
+  static int x = 0;
+  static int y = 0;
+  
+  bool r = display::Canvas::get_screen_width() != x || display::Canvas::get_screen_height() != y;
+
+  x = display::Canvas::get_screen_width();
+  y = display::Canvas::get_screen_height();
+
+  return r;
+}
 
 void
 set_shutdown() {
@@ -55,6 +73,10 @@ main(int argc, char** argv) {
 
   uiDownloadList.activate();
 
+  // Register main key events.
+  input::Bindings inputMain;
+  uiControl.get_input().push_back(&inputMain);
+
   poll.slot_read_stdin(sigc::mem_fun(uiControl.get_input(), &input::Manager::pressed));
   poll.register_http();
 
@@ -76,7 +98,11 @@ main(int argc, char** argv) {
     if (start_shutdown && !is_shutting_down)
       do_shutdown();
 
-    uiControl.get_display().adjust_layout();
+    Timer::update();
+
+    if (is_resized())
+      uiControl.get_display().adjust_layout();
+
     uiControl.get_display().do_update();
 
     poll.poll();

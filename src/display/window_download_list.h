@@ -15,7 +15,7 @@ public:
   DList&          get_list()                     { return *m_downloads; }
 
   DList::iterator get_focus()                    { return m_focus; }
-  void            set_focus(DList::iterator itr) { m_focus = itr; }
+  void            set_focus(DList::iterator itr) { m_focus = itr; mark_dirty(); }
 
   virtual void    redraw();
 
