@@ -219,6 +219,7 @@ DownloadList::bind_keys(input::Bindings* b) {
   (*b)[KEY_DOWN]  = sigc::mem_fun(*this, &DownloadList::receive_next);
   (*b)[KEY_RIGHT] = sigc::mem_fun(*this, &DownloadList::receive_view_download);
 
+  (*b)['\x7f'] = sigc::mem_fun(*this, &DownloadList::receive_view_input);
   (*b)[KEY_BACKSPACE] = sigc::mem_fun(*this, &DownloadList::receive_view_input);
 }
 

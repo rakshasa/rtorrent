@@ -32,7 +32,7 @@ TextInput::pressed(int key) {
 
   } else {
     switch (key) {
-    case 0x08:
+    case 0x7F:
     case KEY_BACKSPACE:
       if (m_pos != 0)
 	Base::erase(--m_pos, 1);
