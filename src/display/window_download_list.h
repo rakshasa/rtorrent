@@ -10,18 +10,13 @@ class WindowDownloadList : public Window {
 public:
   typedef core::DownloadList DList;
 
-  WindowDownloadList(DList* d);
+  WindowDownloadList(DList* l, DList::iterator* focus);
 
-  DList&          get_list()                     { return *m_downloads; }
-
-  DList::iterator get_focus()                    { return m_focus; }
-  void            set_focus(DList::iterator itr) { m_focus = itr; mark_dirty(); }
-
-  virtual void    redraw();
+  virtual void     redraw();
 
 private:
-  DList*          m_downloads;
-  DList::iterator m_focus;
+  DList*           m_list;
+  DList::iterator* m_focus;
 };
 
 }

@@ -14,22 +14,17 @@ public:
   typedef std::list<torrent::Peer> PList;
   typedef sigc::slot0<uint32_t>    SlotChunksTotal;
 
-  WindowPeerList(PList* l);
+  WindowPeerList(PList* l, PList::iterator* f);
 
-  PList&          get_list()                           { return *m_list; }
+  void             slot_chunks_total(SlotChunksTotal s) { m_slotChunksTotal = s; }
 
-  PList::iterator get_focus()                          { return m_focus; }
-  void            set_focus(PList::iterator itr)       { m_focus = itr; mark_dirty(); }
-
-  void            slot_chunks_total(SlotChunksTotal s) { m_slotChunksTotal = s; }
-
-  virtual void    redraw();
+  virtual void     redraw();
 
 private:
-  PList*          m_list;
-  PList::iterator m_focus;
+  PList*           m_list;
+  PList::iterator* m_focus;
 
-  SlotChunksTotal m_slotChunksTotal;
+  SlotChunksTotal  m_slotChunksTotal;
 };
 
 }

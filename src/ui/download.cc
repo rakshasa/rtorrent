@@ -6,6 +6,7 @@
 #include "input/bindings.h"
 #include "display/window_title.h"
 #include "display/window_peer_list.h"
+#include "display/window_statusbar.h"
 
 #include "control.h"
 #include "download.h"
@@ -15,10 +16,13 @@ namespace ui {
 Download::Download(DPtr d, Control* c) :
   m_download(d),
   m_title(new WTitle(d->get_download().get_name())),
+  m_status(new WStatus),
   m_control(c),
   m_bindings(new input::Bindings) {
 
-  m_window = new WPeerList(&m_peers);
+  m_focus = m_peers.end();
+
+  m_window = new WPeerList(&m_peers, &m_focus);
   m_window->slot_chunks_total(sigc::mem_fun(m_download->get_download(), &torrent::Download::get_chunks_total));
 
   (*m_bindings)[KEY_UP]   = sigc::mem_fun(*this, &Download::receive_prev);
@@ -36,11 +40,13 @@ Download::~Download() {
 
   delete m_window;
   delete m_title;
+  delete m_status;
   delete m_bindings;
 }
 
 void
 Download::activate() {
+  m_control->get_display().push_back(m_status);
   m_control->get_display().push_front(m_window);
   m_control->get_display().push_front(m_title);
   m_control->get_input().push_front(m_bindings);
@@ -50,23 +56,28 @@ void
 Download::disable() {
   m_control->get_display().erase(m_window);
   m_control->get_display().erase(m_title);
+  m_control->get_display().erase(m_status);
   m_control->get_input().erase(m_bindings);
 }
 
 void
 Download::receive_next() {
-  if (m_window->get_focus() == m_window->get_list().end())
-    m_window->set_focus(m_window->get_list().begin());
+  if (m_focus != m_peers.end())
+    ++m_focus;
   else
-    m_window->set_focus(++m_window->get_focus());
+    m_focus = m_peers.begin();
+
+  mark_dirty();
 }
 
 void
 Download::receive_prev() {
-  if (m_window->get_focus() == m_window->get_list().begin())
-    m_window->set_focus(m_window->get_list().end());
+  if (m_focus != m_peers.begin())
+    --m_focus;
   else
-    m_window->set_focus(--m_window->get_focus());
+    m_focus = m_peers.end();
+
+  mark_dirty();
 }
 
 void
@@ -81,10 +92,15 @@ Download::receive_peer_disconnected(torrent::Peer p) {
   if (itr == m_peers.end())
     throw std::logic_error("Download::receive_peer_disconnected(...) received a peer we don't have in our list");
 
-  if (itr == m_window->get_focus())
-    m_window->set_focus(m_peers.erase(itr));
+  if (itr == m_focus)
+    m_focus = m_peers.erase(itr);
   else
     m_peers.erase(itr);
+}
+
+void
+Download::mark_dirty() {
+  m_window->mark_dirty();
 }
 
 }

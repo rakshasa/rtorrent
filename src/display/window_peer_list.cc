@@ -7,10 +7,10 @@
 
 namespace display {
 
-WindowPeerList::WindowPeerList(PList* l) :
+WindowPeerList::WindowPeerList(PList* l, PList::iterator* f) :
   Window(new Canvas, true),
   m_list(l),
-  m_focus(l->end()) {
+  m_focus(f) {
 }
 
 void
@@ -41,9 +41,9 @@ WindowPeerList::redraw() {
 
   PList::iterator itr, last;
   
-  if (m_focus != m_list->end()) {
+  if (*m_focus != m_list->end()) {
     int i = 0;
-    itr = last = m_focus;
+    itr = last = *m_focus;
     
     while (i < m_canvas->get_height() - y && !(itr == m_list->begin() && last == m_list->end())) {
       if (itr != m_list->begin()) {
@@ -71,7 +71,7 @@ WindowPeerList::redraw() {
     x = 0;
 
     m_canvas->print(x, y, "%c %s",
-	     itr == m_focus ? '*' : ' ',
+	     itr == *m_focus ? '*' : ' ',
 	     itr->get_dns().c_str());
     x += 18;
 

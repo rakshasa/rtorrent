@@ -4,6 +4,7 @@
 namespace display {
   class WindowTitle;
   class WindowDownloadList;
+  class WindowStatusbar;
 }
 
 namespace ui {
@@ -15,9 +16,11 @@ class DownloadList {
 public:
   typedef display::WindowDownloadList WList;
   typedef display::WindowTitle        WTitle;
+  typedef display::WindowStatusbar    WStatus;
+  typedef core::DownloadList          DList;
 
   // We own 'window'.
-  DownloadList(core::DownloadList* l, Control* c);
+  DownloadList(DList* l, Control* c);
   ~DownloadList();
 
   WList&           get_window()   { return *m_window; }
@@ -33,10 +36,18 @@ private:
   void             receive_view_download();
   void             receive_exit_download();
 
+  void             receive_throttle(int t);
+
+  void             mark_dirty();
+
   WList*           m_window;
   WTitle*          m_title;
+  WStatus*         m_status;
 
   Download*        m_download;
+
+  DList*           m_list;
+  DList::iterator  m_focus;
 
   Control*         m_control;
   input::Bindings* m_bindings;

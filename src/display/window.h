@@ -14,6 +14,8 @@ public:
   virtual ~Window() {}
 
   bool         is_dynamic()     { return m_dynamic; }
+  bool         is_dirty()       { return m_lastDraw == 0; }
+
   int          get_min_height() { return m_minHeight; }
 
   void         refresh();

@@ -6,7 +6,6 @@
 #include <sigc++/bind.h>
 
 #include "display/canvas.h"
-#include "display/window_statusbar.h"
 
 #include "core/poll.h"
 #include "core/curl_stack.h"
@@ -69,8 +68,6 @@ main(int argc, char** argv) {
   ui::Control uiControl;
   ui::DownloadList uiDownloadList(&downloads, &uiControl);
 
-  uiControl.get_display().push_front(new display::WindowStatusbar);
-
   uiDownloadList.activate();
 
   // Register main key events.
@@ -102,7 +99,7 @@ main(int argc, char** argv) {
 
     if (is_resized())
       uiControl.get_display().adjust_layout();
-
+  
     uiControl.get_display().do_update();
 
     poll.poll();

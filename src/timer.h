@@ -44,6 +44,7 @@ class Timer {
   bool operator >  (const Timer& t) const { return m_time > t.m_time; }
   bool operator <= (const Timer& t) const { return m_time <= t.m_time; }
   bool operator >= (const Timer& t) const { return m_time >= t.m_time; }
+  bool operator == (const Timer& t) const { return m_time == t.m_time; }
 
  private:
   int64_t m_time;
