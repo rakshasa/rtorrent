@@ -8,7 +8,7 @@
 #include "poll.h"
 #include "curl_get.h"
 
-namespace engine {
+namespace core {
 
 void
 Poll::poll() {
@@ -57,7 +57,7 @@ Poll::work() {
 
 void
 Poll::register_http() {
-  torrent::Http::set_factory(sigc::bind(sigc::ptr_fun(&engine::CurlGet::new_object), &m_curlStack));
+  torrent::Http::set_factory(sigc::bind(sigc::ptr_fun(&core::CurlGet::new_object), &m_curlStack));
 }
 
 }

@@ -1,13 +1,13 @@
 SUBDIRS = \
+	core \
 	display \
-	engine \
 	input
 
 bin_PROGRAMS = rtorrent
 
 rtorrent_LDADD = \
+	$(top_srcdir)/src/core/libsub_core.a \
 	$(top_srcdir)/src/display/libsub_display.a \
-	$(top_srcdir)/src/engine/libsub_engine.a \
 	$(top_srcdir)/src/input/libsub_input.a
 
 rtorrent_SOURCES = \

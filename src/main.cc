@@ -10,8 +10,8 @@
 #include "display/window_title.h"
 #include "display/window_download_list.h"
 
-#include "engine/poll.h"
-#include "engine/download_list.h"
+#include "core/poll.h"
+#include "core/download_list.h"
 
 #include "input/bindings.h"
 #include "input/manager.h"
@@ -21,8 +21,8 @@
 bool start_shutdown = false;
 bool is_shutting_down = false;
 
-engine::Poll poll;
-engine::DownloadList downloads;
+core::Poll poll;
+core::DownloadList downloads;
 
 display::Manager displayManager;
 input::Manager inputManager;
@@ -42,7 +42,7 @@ do_shutdown() {
 
   torrent::listen_close();
 
-  std::for_each(downloads.begin(), downloads.end(), std::mem_fun_ref(&engine::Download::stop));
+  std::for_each(downloads.begin(), downloads.end(), std::mem_fun_ref(&core::Download::stop));
 }
 
 int
@@ -56,8 +56,10 @@ main(int argc, char** argv) {
   poll.slot_read_stdin(sigc::mem_fun(inputManager, &input::Manager::pressed));
   poll.register_http();
 
+  display::WindowDownloadList* wdl = new display::WindowDownloadList(&downloads);
+
   displayManager.push_back(new display::WindowTitle);
-  displayManager.push_back(new display::WindowDownloadList(&downloads));
+  displayManager.push_back(wdl);
 
   torrent::initialize();
   torrent::listen_open(6880, 6999);
@@ -65,10 +67,12 @@ main(int argc, char** argv) {
   for (int i = 1; i < argc; ++i) {
     std::fstream f(argv[i], std::ios::in);
 
-    engine::DownloadList::iterator itr = downloads.create(f);
+    core::DownloadList::iterator itr = downloads.create(f);
 
     itr->open();
     itr->hash_check();
+
+    wdl->set_focus(itr);
   }
 
   SignalHandler::set_handler(SIGINT, sigc::ptr_fun(&set_shutdown));

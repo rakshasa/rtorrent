@@ -8,7 +8,7 @@
 #include "curl_get.h"
 #include "curl_stack.h"
 
-namespace engine {
+namespace core {
 
 template <typename Type, typename Ftor>
 struct _equal {

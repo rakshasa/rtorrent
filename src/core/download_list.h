@@ -1,11 +1,11 @@
-#ifndef RTORRENT_ENGINE_DOWNLOAD_LIST_H
-#define RTORRENT_ENGINE_DOWNLOAD_LIST_H
+#ifndef RTORRENT_CORE_DOWNLOAD_LIST_H
+#define RTORRENT_CORE_DOWNLOAD_LIST_H
 
 #include <iosfwd>
 
 #include "download.h"
 
-namespace engine {
+namespace core {
 
 class DownloadList : private std::list<Download> {
 public:

@@ -2,21 +2,24 @@
 #define RTORRENT_DISPLAY_WINDOW_DOWNLOAD_LIST_H
 
 #include "window.h"
-
-namespace engine {
-  class DownloadList;
-}
+#include "core/download_list.h"
 
 namespace display {
 
 class WindowDownloadList : public Window {
 public:
-  WindowDownloadList(engine::DownloadList* d);
+  typedef core::DownloadList List;
 
-  virtual void redraw();
+  WindowDownloadList(List* d);
+
+  List::iterator get_focus()                                   { return m_focus; }
+  void           set_focus(core::DownloadList::iterator itr) { m_focus = itr; }
+
+  virtual void   redraw();
 
 private:
-  engine::DownloadList* m_downloads;
+  List*          m_downloads;
+  List::iterator m_focus;
 };
 
 }

@@ -47,7 +47,7 @@ AC_DEFINE(HAVE_CONFIG_H, 1, true if config.h was included)
 AC_OUTPUT([
 	Makefile
 	src/Makefile
+	src/core/Makefile
 	src/display/Makefile
-	src/engine/Makefile
 	src/input/Makefile
 ])

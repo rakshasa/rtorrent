@@ -7,7 +7,7 @@
 
 #include "download_list.h"
 
-namespace engine {
+namespace core {
 
 DownloadList::iterator
 DownloadList::create(std::istream& str) {

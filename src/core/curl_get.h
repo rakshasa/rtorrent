@@ -1,5 +1,5 @@
-#ifndef RTORRENT_ENGINE_CURL_GET_H
-#define RTORRENT_ENGINE_CURL_GET_H
+#ifndef RTORRENT_CORE_CURL_GET_H
+#define RTORRENT_CORE_CURL_GET_H
 
 #include <iosfwd>
 #include <string>
@@ -9,7 +9,7 @@
 
 struct CURLMsg;
 
-namespace engine {
+namespace core {
 
 class CurlGet : public torrent::Http {
  public:

@@ -1,9 +1,9 @@
-#ifndef RTORRENT_ENGINE_CURL_STACK_H
-#define RTORRENT_ENGINE_CURL_STACK_H
+#ifndef RTORRENT_CORE_CURL_STACK_H
+#define RTORRENT_CORE_CURL_STACK_H
 
 #include <list>
 
-namespace engine {
+namespace core {
 
 class CurlStack {
  public:

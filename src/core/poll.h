@@ -1,12 +1,12 @@
-#ifndef RTORRENT_ENGINE_POLL_H
-#define RTORRENT_ENGINE_POLL_H
+#ifndef RTORRENT_CORE_POLL_H
+#define RTORRENT_CORE_POLL_H
 
 #include <sys/select.h>
 #include <sigc++/slot.h>
 
 #include "curl_stack.h"
 
-namespace engine {
+namespace core {
 
 class Poll {
 public:

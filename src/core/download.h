@@ -1,10 +1,10 @@
-#ifndef RTORRENT_ENGINE_DOWNLOAD_H
-#define RTORRENT_ENGINE_DOWNLOAD_H
+#ifndef RTORRENT_CORE_DOWNLOAD_H
+#define RTORRENT_CORE_DOWNLOAD_H
 
 #include <sigc++/connection.h>
 #include <torrent/download.h>
 
-namespace engine {
+namespace core {
 
 class Download {
 public:
