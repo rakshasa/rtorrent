@@ -3,6 +3,7 @@
 #include <ctime>
 
 #include "canvas.h"
+#include "utils.h"
 #include "window_log_complete.h"
 
 namespace display {
@@ -34,17 +35,10 @@ WindowLogComplete::redraw() {
 
   m_canvas->print(std::max(0, (int)m_canvas->get_width() / 2 - 5), pos++, "*** Log ***");
 
-  for (core::Log::iterator itr = m_log->begin(), e = m_log->end(); itr != e && pos < m_canvas->get_height(); ++itr) {
-    std::tm *t = std::localtime(&itr->first.tval().tv_sec);
-
-    if (t == NULL)
-      m_canvas->print(0, pos++, "(time error) %s",
-		      itr->second.c_str());
-    else
-      m_canvas->print(0, pos++, "(%02i:%02i:%02i) %s",
-		      t->tm_hour, t->tm_min, t->tm_sec,
-		      itr->second.c_str());
-  }
+  for (core::Log::iterator itr = m_log->begin(), e = m_log->end(); itr != e && pos < m_canvas->get_height(); ++itr)
+    m_canvas->print(0, pos++, "(%s) %s",
+		    print_hhmmss(itr->first).c_str(),
+		    itr->second.c_str());
 }
 
 void
