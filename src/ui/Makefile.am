@@ -1,12 +1,12 @@
 noinst_LIBRARIES = libsub_ui.a
 
 libsub_ui_a_SOURCES = \
-	base_element.h \
 	control.h \
 	download.cc \
 	download.h \
 	download_list.cc \
 	download_list.h \
+	element_base.h \
 	element_download_list.cc \
 	element_download_list.h \
 	element_file_list.cc \
