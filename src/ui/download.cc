@@ -9,6 +9,7 @@
 #include "display/window_title.h"
 #include "display/window_peer_list.h"
 #include "display/window_peer_info.h"
+#include "display/window_download_statusbar.h"
 #include "display/window_statusbar.h"
 
 #include "control.h"
@@ -19,9 +20,12 @@ namespace ui {
 Download::Download(DPtr d, Control* c) :
   m_download(d),
   m_state(DISPLAY_NONE),
+
+  m_title(c->get_display().end()),
   m_window(c->get_display().end()),
-  m_title(new WTitle(d->get_download().get_name())),
-  m_status(new WStatus),
+  m_downloadStatus(c->get_display().end()),
+  m_status(c->get_display().end()),
+
   m_control(c),
   m_bindings(new input::Bindings) {
 
@@ -36,12 +40,11 @@ Download::Download(DPtr d, Control* c) :
 }
 
 Download::~Download() {
+  if (m_window != m_control->get_display().end())
+    throw std::logic_error("ui::Download::~Download() called on an active object");
+
   m_connPeerConnected.disconnect();
   m_connPeerDisconnected.disconnect();
-
-  delete m_title;
-  delete m_status;
-  delete m_bindings;
 }
 
 void
@@ -49,10 +52,10 @@ Download::activate() {
   if (m_window != m_control->get_display().end())
     throw std::logic_error("ui::Download::activate() called on an already activated object");
 
-  m_window = m_control->get_display().insert(m_control->get_display().begin(), NULL);
-
-  m_control->get_display().push_front(m_title);
-  m_control->get_display().push_back(m_status);
+  m_window         = m_control->get_display().insert(m_control->get_display().begin(), NULL);
+  m_title          = m_control->get_display().insert(m_control->get_display().begin(), new WTitle(m_download->get_download().get_name()));
+  m_downloadStatus = m_control->get_display().insert(m_control->get_display().end(), new WDownloadStatus(m_download));
+  m_status         = m_control->get_display().insert(m_control->get_display().end(), new WStatus);
 
   m_control->get_input().push_front(m_bindings);
 
@@ -66,13 +69,18 @@ Download::disable() {
 
   disable_display();
 
+  delete *m_title;
+  delete *m_downloadStatus;
+  delete *m_status;
+
   m_control->get_display().erase(m_window);
   m_control->get_display().erase(m_title);
+  m_control->get_display().erase(m_downloadStatus);
   m_control->get_display().erase(m_status);
 
-  m_control->get_input().erase(m_bindings);
+  m_window = m_title = m_downloadStatus = m_status = m_control->get_display().end();
 
-  m_window = m_control->get_display().end();
+  m_control->get_input().erase(m_bindings);
 }
 
 void
@@ -172,7 +180,7 @@ Download::receive_peer_disconnected(torrent::Peer p) {
 
 void
 Download::receive_throttle(int t) {
-  m_status->mark_dirty();
+  (*m_status)->mark_dirty();
 
   torrent::set(torrent::THROTTLE_ROOT_CONST_RATE, torrent::get(torrent::THROTTLE_ROOT_CONST_RATE) + t * 1024);
 }
@@ -195,6 +203,8 @@ Download::bind_keys(input::Bindings* b) {
   (*b)['x'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_throttle), -5);
   (*b)['d'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_throttle), 50);
   (*b)['c'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_throttle), -50);
+
+  (*b)['t'] = sigc::bind(sigc::mem_fun(m_download->get_download(), &torrent::Download::set_tracker_timeout), 2 * 1000000);
 
   (*b)[KEY_UP]   = sigc::mem_fun(*this, &Download::receive_prev);
   (*b)[KEY_DOWN] = sigc::mem_fun(*this, &Download::receive_next);

@@ -11,8 +11,11 @@ namespace core {
 
 DownloadList::iterator
 DownloadList::create(std::istream& str) {
-  iterator itr = Base::insert(end(), torrent::download_create(str));
+  torrent::Download d = torrent::download_create(str);
 
+  iterator itr = Base::insert(end(), Download());
+
+  itr->set_download(d);
   itr->get_download().signal_hash_done(sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_hash_done),
 						  itr->get_hash()));
 
@@ -21,6 +24,8 @@ DownloadList::create(std::istream& str) {
 
 void
 DownloadList::erase(iterator itr) {
+  itr->release_download();
+
   torrent::download_remove(itr->get_hash());
 
   Base::erase(itr);

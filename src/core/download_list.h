@@ -21,6 +21,9 @@ public:
   using Base::rbegin;
   using Base::rend;
 
+  using Base::empty;
+  using Base::size;
+
   iterator  create(std::istream& str);
   void      erase(iterator itr);
 

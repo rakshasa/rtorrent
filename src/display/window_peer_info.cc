@@ -33,8 +33,11 @@ WindowPeerInfo::redraw() {
 		  m_download->get_download().get_chunks_total(),
 		  m_download->get_download().get_chunks_size());
 
-  if (*m_focus == m_list->end())
+  if (*m_focus == m_list->end()) {
+    m_canvas->print(0, y++, "No peer in focus");
+
     return;
+  }
 
   y++;
 

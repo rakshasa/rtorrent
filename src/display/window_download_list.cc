@@ -20,11 +20,35 @@ WindowDownloadList::redraw() {
 
   m_canvas->erase();
 
-  int pos = 0;
+  if (m_list->empty())
+    return;
 
-  // Remember to check for end of screen too.
+  DList::iterator itr, last;
+  
+  int pos = 0, y = 0;
 
-  for (DList::iterator itr = m_list->begin(); itr != m_list->end(); ++itr) {
+  if (*m_focus != m_list->end()) {
+    int i = 0;
+    itr = last = *m_focus;
+    
+    while (i < m_canvas->get_height() - y && !(itr == m_list->begin() && last == m_list->end())) {
+      if (last != m_list->end()) {
+	++last;
+	i += 3;
+      }
+
+      if (itr != m_list->begin() && i < m_canvas->get_height() - y) {
+	--itr;
+	i += 3;
+      }
+    }
+
+  } else {
+    itr = m_list->begin();
+    last = m_list->end();
+  }    
+
+  while (itr != m_list->end() && y < m_canvas->get_height()) {
     m_canvas->print(0, pos++, "%c %s",
 		    itr == *m_focus ? '*' : ' ',
 		    itr->get_download().get_name().c_str());
@@ -46,11 +70,11 @@ WindowDownloadList::redraw() {
 		      (double)itr->get_download().get_rate_down() / 1024.0,
 		      (double)itr->get_download().get_bytes_up() / (double)(1 << 20));
     
-    m_canvas->print(0, pos++, "%c Tracker: [%c:%i] %s",
+    m_canvas->print(0, pos++, "%c Tracker: %s",
 		    itr == *m_focus ? '*' : ' ',
-		    itr->get_download().is_tracker_busy() ? 'C' : ' ',
-		    (int)(itr->get_download().get_tracker_timeout() / 1000000),
-		    "");
+		    itr->get_download().is_tracker_busy() ? "Connecting" : itr->get_tracker_msg().c_str());
+
+    ++itr;
   }    
 }
 

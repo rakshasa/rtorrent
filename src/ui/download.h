@@ -10,6 +10,7 @@ namespace display {
   class WindowPeerInfo;
   class WindowPeerList;
   class WindowStatusbar;
+  class WindowDownloadStatusbar;
 }
 
 namespace core {
@@ -22,21 +23,22 @@ class Control;
 
 class Download {
 public:
+  typedef display::Window                  Window;
+  typedef display::WindowPeerInfo          WPeerInfo;
+  typedef display::WindowPeerList          WPeerList;
+  typedef display::WindowTitle             WTitle;
+  typedef display::WindowStatusbar         WStatus;
+  typedef display::WindowDownloadStatusbar WDownloadStatus;
+
+  typedef core::Download*                  DPtr;
+  typedef std::list<torrent::Peer>         PList;
+  typedef display::Manager::iterator       MItr;
+
   typedef enum {
     DISPLAY_NONE,
     DISPLAY_MAIN,
     DISPLAY_PEER
   } Display;
-
-  typedef display::Window              Window;
-  typedef display::WindowPeerInfo      WPeerInfo;
-  typedef display::WindowPeerList      WPeerList;
-  typedef display::WindowTitle         WTitle;
-  typedef display::WindowStatusbar     WStatus;
-
-  typedef core::Download*              DPtr;
-  typedef std::list<torrent::Peer>     PList;
-  typedef display::Manager::iterator   MItr;
 
   // We own 'window'.
   Download(DPtr d, Control* c);
@@ -73,10 +75,11 @@ private:
   PList::iterator  m_focus;
 
   Display          m_state;
-  MItr             m_window;
 
-  WTitle*          m_title;
-  WStatus*         m_status;
+  MItr             m_title;
+  MItr             m_window;
+  MItr             m_downloadStatus;
+  MItr             m_status;
 
   Control*         m_control;
   input::Bindings* m_bindings;
