@@ -5,6 +5,12 @@
 #include <torrent/torrent.h>
 #include <sigc++/bind.h>
 
+#define USE_EXECINFO
+
+#ifdef USE_EXECINFO
+#include <execinfo.h>
+#endif
+
 #include "display/canvas.h"
 
 #include "core/poll.h"
@@ -58,6 +64,32 @@ do_shutdown() {
   std::for_each(downloads.begin(), downloads.end(), std::mem_fun_ref(&core::Download::stop));
 }
 
+void
+do_panic(int signum) {
+  display::Canvas::cleanup();
+
+  std::cout << "Signal " << (signum == SIGSEGV ? "SIGSEGV" : "SIGBUS") << " recived, dumping stack:" << std::endl;
+  
+#ifdef USE_EXECINFO
+  void* stackPtrs[20];
+
+  // Print the stack and exit.
+  int stackSize = backtrace(stackPtrs, 20);
+  char** stackStrings = backtrace_symbols(stackPtrs, stackSize);
+
+  for (int i = 0; i < stackSize; ++i)
+    std::cout << i << ' ' << stackStrings[i] << std::endl;
+
+#else
+  std::cout << "Stack dump not enabled." << std::endl;
+#endif
+  
+  if (signum == SIGBUS)
+    std::cout << "A bus error might mean you ran out of diskspace." << std::endl;
+  
+  exit(-1);
+}
+
 int
 main(int argc, char** argv) {
   try {
@@ -94,6 +126,8 @@ main(int argc, char** argv) {
   }
 
   SignalHandler::set_handler(SIGINT, sigc::ptr_fun(&set_shutdown));
+  SignalHandler::set_handler(SIGSEGV, sigc::bind(sigc::ptr_fun(&do_panic), SIGSEGV));
+  SignalHandler::set_handler(SIGBUS, sigc::bind(sigc::ptr_fun(&do_panic), SIGBUS));
 
   uiControl.get_display().adjust_layout();
 
