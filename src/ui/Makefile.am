@@ -5,6 +5,8 @@ libsub_ui_a_SOURCES = \
 	download.cc \
 	download.h \
 	download_list.cc \
-	download_list.h
+	download_list.h \
+	root.cc \
+	root.h
 
 INCLUDES = -I$(srcdir) -I$(srcdir)/.. -I$(top_srcdir)

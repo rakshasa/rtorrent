@@ -3,7 +3,12 @@
 
 #include <sigc++/slot.h>
 
+#include "core/download_list.h"
 #include "utils/task.h"
+
+namespace input {
+  class Bindings;
+}
 
 namespace display {
   class WindowDownloadList;

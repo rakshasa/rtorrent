@@ -17,17 +17,18 @@
 #include "display/canvas.h"
 #include "display/window.h"
 #include "ui/control.h"
-#include "ui/download_list.h"
+#include "ui/root.h"
 #include "input/bindings.h"
+
 #include "utils/timer.h"
 #include "utils/directory.h"
+#include "utils/task_schedule.h"
 
 #include "signal_handler.h"
 #include "option_parser.h"
 
 int64_t utils::Timer::m_cache;
 
-bool start_shutdown = false;
 bool is_shutting_down = false;
 
 void do_panic(int signum);
@@ -47,11 +48,6 @@ is_resized() {
 }
 
 void
-set_shutdown() {
-  start_shutdown = true;
-}
-
-void
 do_shutdown(ui::Control* c) {
   if (!is_shutting_down) {
     is_shutting_down = true;
@@ -66,10 +62,7 @@ do_shutdown(ui::Control* c) {
     // a quick shutdown.
     std::for_each(c->get_core().get_download_list().begin(), c->get_core().get_download_list().end(),
 		  std::mem_fun(&core::Download::close));
-
   }
-
-  start_shutdown = false;
 }
 
 int
@@ -100,21 +93,6 @@ load_arg_torrents(ui::Control* c, char** begin, char** end) {
 }
 
 void
-register_signals(ui::Control* c) {
-  SignalHandler::set_handler(SIGINT, sigc::ptr_fun(&set_shutdown));
-  SignalHandler::set_handler(SIGSEGV, sigc::bind(sigc::ptr_fun(&do_panic), SIGSEGV));
-  SignalHandler::set_handler(SIGBUS, sigc::bind(sigc::ptr_fun(&do_panic), SIGBUS));
-}
-
-void
-register_main_keys(ui::Control* c, input::Bindings* b) {
-  c->get_input().push_back(b);
-
-  (*b)[KEY_RESIZE] = sigc::mem_fun(c->get_display(), &display::Manager::adjust_layout);
-  (*b)['\x11']     = sigc::ptr_fun(&set_shutdown);
-}
-
-void
 initialize_core(ui::Control* c) {
   c->get_core().get_poll().slot_read_stdin(sigc::mem_fun(c->get_input(), &input::Manager::pressed));
   c->get_core().get_poll().slot_select_interrupted(sigc::ptr_fun(display::Canvas::do_update));
@@ -125,25 +103,22 @@ initialize_core(ui::Control* c) {
 int
 main(int argc, char** argv) {
   ui::Control uiControl;
-  input::Bindings inputMain;
+  ui::Root    uiRoot(&uiControl);
 
   utils::Timer::update();
 
   try {
 
-  register_signals(&uiControl);
+  SignalHandler::set_handler(SIGINT, sigc::bind(sigc::mem_fun(uiRoot, &ui::Root::set_shutdown_received), true));
+  SignalHandler::set_handler(SIGSEGV, sigc::bind(sigc::ptr_fun(&do_panic), SIGSEGV));
+  SignalHandler::set_handler(SIGBUS, sigc::bind(sigc::ptr_fun(&do_panic), SIGBUS));
 
   int firstArg = parse_options(&uiControl, argc, argv);
 
   display::Canvas::init();
   display::Window::slot_adjust(sigc::mem_fun(uiControl.get_display(), &display::Manager::adjust_layout));
 
-  ui::DownloadList uiDownloadList(&uiControl);
-
-  uiDownloadList.activate();
-  uiDownloadList.slot_open_uri(sigc::mem_fun(uiControl.get_core(), &core::Manager::insert));
-
-  register_main_keys(&uiControl, &inputMain);
+  uiRoot.init();
 
   initialize_core(&uiControl);
 
@@ -153,8 +128,10 @@ main(int argc, char** argv) {
   uiControl.get_display().adjust_layout();
 
   while (!is_shutting_down || !torrent::get(torrent::SHUTDOWN_DONE)) {
-    if (start_shutdown)
+    if (uiRoot.get_shutdown_received()) {
       do_shutdown(&uiControl);
+      uiRoot.set_shutdown_received(false);
+    }
 
     utils::Timer::update();
     utils::TaskSchedule::perform(utils::Timer::cache());
@@ -166,6 +143,7 @@ main(int argc, char** argv) {
     uiControl.get_core().get_poll().poll(utils::TaskSchedule::get_timeout());
   }
 
+  uiRoot.cleanup();
   display::Canvas::cleanup();
 
   } catch (std::exception& e) {
