@@ -46,8 +46,8 @@ WindowFileList::redraw() {
 
   m_canvas->print( 2, pos, "File");
   m_canvas->print(55, pos, "Size");
-  m_canvas->print(62, pos, "Pri");
-  m_canvas->print(67, pos, "Cmpl");
+  m_canvas->print(63, pos, "Pri");
+  m_canvas->print(68, pos, "Cmpl");
 
   ++pos;
 
@@ -94,7 +94,7 @@ WindowFileList::redraw() {
       break;
     };
 
-    m_canvas->print(0, pos, "%c %s  %5.1f   %s   %3d",
+    m_canvas->print(0, pos, "%c %s  %6.1f   %s   %3d",
 		    range.first == *m_focus ? '*' : ' ',
 		    path.c_str(),
 		    (double)e.get_size() / (double)(1 << 20),
