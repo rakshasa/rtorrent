@@ -6,8 +6,6 @@
 
 namespace display {
 
-class WindowBase;
-
 class Manager : private std::list<ManagerElement> {
 public:
   typedef std::list<ManagerElement> Base;
@@ -26,14 +24,14 @@ public:
     NEW_ROW = 0x1
   };
 
-  Base::iterator      add(WindowBase* w, int flags = 0)          { return Base::insert(end(), ManagerElement(w, flags)); }
+  Base::iterator add(Window* w, int flags = 0)          { return Base::insert(end(), ManagerElement(w, flags)); }
 
-  void                adjust_layout();
-  void                do_update();
+  void           adjust_layout();
+  void           do_update();
 
 private:
   // Functions for adjusting ranges in different directions.
-  void                adjust_row(iterator bItr, iterator eItr, int x, int y, int w, int h);
+  void           adjust_row(iterator bItr, iterator eItr, int x, int y, int w, int h);
 };
 
 }

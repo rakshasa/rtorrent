@@ -7,6 +7,6 @@ libsub_display_a_SOURCES = \
 	manager.h \
 	manager_element.h \
 	window.h \
-	window.cc \
+	window.cc
 
 INCLUDES = -I$(srcdir) -I$(srcdir)/.. -I$(top_srcdir)

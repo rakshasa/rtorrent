@@ -1,14 +1,14 @@
 #include <string>
 
-#include "display/window_base.h"
+#include "display/window.h"
 #include "display/canvas.h"
 #include "display/manager.h"
 
-class WindowTest : public display::WindowBase {
+class WindowTest : public display::Window {
 public:
   WindowTest(const std::string& str) : m_str(str) {}
   
-  virtual void do_update() {
+  virtual void redraw() {
     if (m_canvas == NULL)
       return;
 

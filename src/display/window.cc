@@ -1,7 +1,7 @@
 #include "config.h"
 
-#include "window_base.h"
 #include "canvas.h"
+#include "window.h"
 
 namespace display {
 

@@ -1,17 +1,14 @@
 #include "config.h"
 
 #include <stdexcept>
-#include <algo/call.h>
-#include <algo/entry.h>
-#include <algo/lambda.h>
+#include <algorithm>
+#include <functional>
 
 #include "canvas.h"
 #include "manager.h"
-#include "window_base.h"
+#include "window.h"
 
 namespace display {
-
-using namespace algo;
 
 void
 Manager::adjust_layout() {
@@ -43,7 +40,7 @@ Manager::adjust_row(iterator bItr, iterator eItr, int x, int y, int w, int h) {
 
 void
 Manager::do_update() {
-  std::for_each(begin(), end(), mem_fun(*mem_fun(_0(), &WindowBase::get_canvas), &Canvas::refresh));
+  std::for_each(begin(), end(), std::mem_fun_ref(&ManagerElement::redraw));
 
   Canvas::do_update();
 }
