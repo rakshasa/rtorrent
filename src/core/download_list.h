@@ -24,7 +24,7 @@ public:
   using Base::empty;
   using Base::size;
 
-  iterator  insert(std::istream& str);
+  iterator  insert(std::istream* str);
   void      erase(iterator itr);
 
 private:

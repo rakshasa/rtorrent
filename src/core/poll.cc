@@ -66,9 +66,9 @@ Poll::work_input() {
     m_slotReadStdin(key);
 }  
 
-void
-Poll::register_http() {
-  torrent::Http::set_factory(sigc::bind(sigc::ptr_fun(&core::CurlGet::new_object), &m_curlStack));
+Poll::SlotFactory
+Poll::get_http_factory() {
+  return sigc::bind(sigc::ptr_fun(&core::CurlGet::new_object), &m_curlStack);
 }
 
 }

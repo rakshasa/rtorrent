@@ -1,6 +1,7 @@
 #include "config.h"
 
 #include <algorithm>
+#include <stdexcept>
 #include <sigc++/bind.h>
 #include <torrent/exceptions.h>
 #include <torrent/torrent.h>
@@ -10,7 +11,7 @@
 namespace core {
 
 DownloadList::iterator
-DownloadList::insert(std::istream& str) {
+DownloadList::insert(std::istream* str) {
   torrent::Download d = torrent::download_create(str);
 
   iterator itr = Base::insert(end(), Download());

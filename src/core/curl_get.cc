@@ -1,6 +1,6 @@
 #include "config.h"
 
-#include <ostream>
+#include <iostream>
 #include <curl/curl.h>
 #include <curl/easy.h>
 #include <torrent/exceptions.h>
@@ -32,7 +32,7 @@ CurlGet::start() {
   if (is_busy())
     throw torrent::internal_error("Tried to call CurlGet::start on a busy object");
 
-  if (m_out == NULL)
+  if (m_stream == NULL)
     throw torrent::internal_error("Tried to call CurlGet::start without a valid output stream");
 
   m_handle = curl_easy_init();
@@ -64,14 +64,14 @@ CurlGet::perform(CURLMsg* msg) {
     throw torrent::client_error("CurlGet::process got CURLMSG that isn't done");
 
   if (msg->data.result == CURLE_OK)
-    m_slotDone();
+    m_signalDone.emit();
   else
-    m_slotFailed(curl_easy_strerror(msg->data.result));
+    m_signalFailed.emit(curl_easy_strerror(msg->data.result));
 }
 
 size_t
 curl_get_receive_write(void* data, size_t size, size_t nmemb, void* handle) {
-  return ((CurlGet*)handle)->m_out->write((char*)data, size * nmemb).fail() ? 0 : size * nmemb;
+  return ((CurlGet*)handle)->m_stream->write((char*)data, size * nmemb).fail() ? 0 : size * nmemb;
 }
 
 }

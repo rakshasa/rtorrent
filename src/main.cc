@@ -4,8 +4,10 @@
 #include <stdexcept>
 #include <iostream>
 #include <fstream>
+#include <torrent/http.h>
 #include <torrent/torrent.h>
 #include <sigc++/bind.h>
+#include <sigc++/retype_return.h>
 
 #ifdef USE_EXECINFO
 #include <execinfo.h>
@@ -15,6 +17,7 @@
 
 #include "core/poll.h"
 #include "core/curl_stack.h"
+#include "core/http_queue.h"
 #include "core/download_list.h"
 
 #include "ui/control.h"
@@ -32,6 +35,7 @@ bool is_shutting_down = false;
 
 core::Poll poll;
 core::DownloadList downloads;
+core::HttpQueue httpQueue;
 
 bool
 is_resized() {
@@ -113,20 +117,28 @@ main(int argc, char** argv) {
   inputMain[KEY_RESIZE] = sigc::mem_fun(uiControl.get_display(), &display::Manager::adjust_layout);
 
   poll.slot_read_stdin(sigc::mem_fun(uiControl.get_input(), &input::Manager::pressed));
-  poll.register_http();
-
   poll.slot_select_interrupted(sigc::ptr_fun(display::Canvas::do_update));
+
+  torrent::Http::set_factory(poll.get_http_factory());
+  httpQueue.slot_factory(poll.get_http_factory());
 
   torrent::initialize();
   torrent::listen_open(6880, 6999);
 
   for (int i = 1; i < argc; ++i) {
-    std::fstream f(argv[i], std::ios::in);
+    if (std::strncmp(argv[i], "http://", 7)) {
+      std::fstream f(argv[i], std::ios::in);
+      
+      core::DownloadList::iterator itr = downloads.insert(&f);
+      
+      itr->open();
+      itr->hash_check();
 
-    core::DownloadList::iterator itr = downloads.insert(f);
+    } else {
+      core::HttpQueue::iterator itr = httpQueue.insert(argv[i]);
 
-    itr->open();
-    itr->hash_check();
+      (*itr)->signal_done().slots().push_front(sigc::hide_return(sigc::bind(sigc::mem_fun(downloads, &core::DownloadList::insert), (*itr)->get_stream())));
+    }
   }
 
   uiControl.get_display().adjust_layout();

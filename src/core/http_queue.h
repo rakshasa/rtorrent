@@ -29,7 +29,9 @@ public:
   using Base::empty;
   using Base::size;
 
-  void        insert(const std::string& url);
+  // Note that any slots connected to the torrent::Http signals must be
+  // pushed in front of the erase slot added by HttpQueue::insert.
+  iterator    insert(const std::string& url);
   void        erase(iterator itr);
 
   void        clear();
@@ -37,9 +39,6 @@ public:
   void        slot_factory(SlotFactory s) { m_slotFactory = s; }
 
 private:
-  void        receive_done(iterator itr);
-  void        receive_failed(iterator itr, std::string msg);
-
   SlotFactory m_slotFactory;
 };
 
