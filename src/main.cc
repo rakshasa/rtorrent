@@ -17,8 +17,7 @@
 
 #include "core/poll.h"
 #include "core/curl_stack.h"
-#include "core/http_queue.h"
-#include "core/download_list.h"
+#include "core/manager.h"
 
 #include "ui/control.h"
 #include "ui/download_list.h"
@@ -34,8 +33,7 @@ bool start_shutdown = false;
 bool is_shutting_down = false;
 
 core::Poll poll;
-core::DownloadList downloads;
-core::HttpQueue httpQueue;
+core::Manager coreManager;
 
 bool
 is_resized() {
@@ -65,7 +63,10 @@ do_shutdown() {
 
   torrent::listen_close();
 
-  std::for_each(downloads.begin(), downloads.end(), std::mem_fun_ref(&core::Download::stop));
+  // TODO: Set display to a safe mode.
+
+  std::for_each(coreManager.get_download_list().begin(), coreManager.get_download_list().end(),
+		std::mem_fun_ref(&core::Download::stop));
 }
 
 void
@@ -106,7 +107,7 @@ main(int argc, char** argv) {
   core::CurlStack::init();
 
   ui::Control uiControl;
-  ui::DownloadList uiDownloadList(&downloads, &uiControl);
+  ui::DownloadList uiDownloadList(&coreManager.get_download_list(), &uiControl);
 
   uiDownloadList.activate();
 
@@ -120,26 +121,13 @@ main(int argc, char** argv) {
   poll.slot_select_interrupted(sigc::ptr_fun(display::Canvas::do_update));
 
   torrent::Http::set_factory(poll.get_http_factory());
-  httpQueue.slot_factory(poll.get_http_factory());
+  coreManager.get_http_queue().slot_factory(poll.get_http_factory());
 
   torrent::initialize();
   torrent::listen_open(6880, 6999);
 
-  for (int i = 1; i < argc; ++i) {
-    if (std::strncmp(argv[i], "http://", 7)) {
-      std::fstream f(argv[i], std::ios::in);
-      
-      core::DownloadList::iterator itr = downloads.insert(&f);
-      
-      itr->open();
-      itr->hash_check();
-
-    } else {
-      core::HttpQueue::iterator itr = httpQueue.insert(argv[i]);
-
-      (*itr)->signal_done().slots().push_front(sigc::hide_return(sigc::bind(sigc::mem_fun(downloads, &core::DownloadList::insert), (*itr)->get_stream())));
-    }
-  }
+  for (int i = 1; i < argc; ++i)
+    coreManager.insert(argv[i]);
 
   uiControl.get_display().adjust_layout();
 
