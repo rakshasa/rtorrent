@@ -8,6 +8,7 @@
 #include <torrent/exceptions.h>
 #include <torrent/torrent.h>
 
+#include "download.h"
 #include "manager.h"
 #include "curl_get.h"
 
@@ -40,11 +41,11 @@ Manager::insert(const std::string& uri) {
 
 void
 Manager::erase(DownloadList::iterator itr) {
-  if (itr->get_download().is_active())
+  if ((*itr)->get_download().is_active())
     throw std::logic_error("core::Manager::erase(...) called on an active download");
 
-  if (itr->get_download().is_open())
-    itr->close();
+  if ((*itr)->get_download().is_open())
+    (*itr)->close();
 
   m_downloadList.erase(itr);
 }  
@@ -60,7 +61,7 @@ Manager::start(Download* d) {
   if (d->get_download().is_hash_checked())
     d->start();
   else
-    m_hashQueue.insert(d, sigc::mem_fun(*d, &Download::start));
+    m_hashQueue.insert(d, sigc::mem_fun(d, &Download::start));
 }
 
 void
@@ -68,6 +69,9 @@ Manager::stop(Download* d) {
   m_hashQueue.remove(d);
 
   d->stop();
+
+  d->get_download().hash_save();
+  m_downloadStore.save(d);
 }
 
 void
@@ -79,7 +83,8 @@ Manager::create_file(const std::string& uri) {
     
     itr = m_downloadList.insert(&f);
 
-    start(&*itr);
+    start(*itr);
+    m_downloadStore.save(*itr);
 
   } catch (torrent::local_error& e) {
     // What to do? Keep in list for now.
@@ -101,7 +106,8 @@ Manager::receive_http_done(CurlGet* http) {
   try {
     itr = m_downloadList.insert(http->get_stream());
 
-    start(&*itr);
+    start(*itr);
+    m_downloadStore.save(*itr);
 
   } catch (torrent::local_error& e) {
     // What to do? Keep in list for now.

@@ -2,14 +2,15 @@
 #define RTORRENT_CORE_DOWNLOAD_LIST_H
 
 #include <iosfwd>
-
-#include "download.h"
+#include <list>
 
 namespace core {
 
-class DownloadList : private std::list<Download> {
+class Download;
+
+class DownloadList : private std::list<Download*> {
 public:
-  typedef std::list<Download> Base;
+  typedef std::list<Download*> Base;
 
   using Base::iterator;
   using Base::const_iterator;
@@ -24,8 +25,13 @@ public:
   using Base::empty;
   using Base::size;
 
+  ~DownloadList() { clear(); }
+
   iterator  insert(std::istream* str);
   void      erase(iterator itr);
+
+private:
+  void      clear();
 };
 
 }

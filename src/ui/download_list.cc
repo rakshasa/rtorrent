@@ -4,6 +4,8 @@
 #include <torrent/torrent.h>
 #include <sigc++/bind.h>
 
+#include "core/download.h"
+
 #include "input/bindings.h"
 #include "input/text_input.h"
 
@@ -110,7 +112,7 @@ DownloadList::receive_start_download() {
   if (m_focus == m_control->get_core().get_download_list().end())
     return;
 
-  m_control->get_core().start(&*m_focus);
+  m_control->get_core().start(*m_focus);
 }
 
 void
@@ -118,8 +120,8 @@ DownloadList::receive_stop_download() {
   if (m_focus == m_control->get_core().get_download_list().end())
     return;
 
-  if (m_focus->get_download().is_active())
-    m_control->get_core().stop(&*m_focus);
+  if ((*m_focus)->get_download().is_active())
+    m_control->get_core().stop(*m_focus);
   else
     m_control->get_core().erase(m_focus);
 }
@@ -134,7 +136,7 @@ DownloadList::receive_view_download() {
 
   disable();
 
-  m_download = new Download(&*m_focus, m_control);
+  m_download = new Download(*m_focus, m_control);
 
   m_download->activate();
   m_download->get_bindings()[KEY_LEFT] = sigc::mem_fun(*this, &DownloadList::receive_exit_download);

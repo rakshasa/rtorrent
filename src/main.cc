@@ -13,6 +13,7 @@
 #include <execinfo.h>
 #endif
 
+#include "core/download.h"
 #include "display/canvas.h"
 #include "ui/control.h"
 #include "ui/download_list.h"
@@ -57,13 +58,13 @@ do_shutdown(ui::Control* c) {
     torrent::listen_close();
 
     std::for_each(c->get_core().get_download_list().begin(), c->get_core().get_download_list().end(),
-		  std::mem_fun_ref(&core::Download::stop));
+		  std::bind1st(std::mem_fun(&core::Manager::stop), &c->get_core()));
 
   } else {
     // Close all torrents, this will stop all tracker connections and cause
     // a quick shutdown.
     std::for_each(c->get_core().get_download_list().begin(), c->get_core().get_download_list().end(),
-		  std::mem_fun_ref(&core::Download::close));
+		  std::mem_fun(&core::Download::close));
 
   }
 
@@ -98,9 +99,7 @@ main(int argc, char** argv) {
   optionParser.insert_flag('h', sigc::ptr_fun(&print_help));
   optionParser.insert_option('p', sigc::bind(sigc::ptr_fun(OptionParser::call_int_pair),
 					     sigc::mem_fun(uiControl.get_core(), &core::Manager::set_port_range)));
-  
-  // Test function.
-  optionParser.insert_option('s', sigc::ptr_fun(&test_dir));
+  optionParser.insert_option('s', sigc::mem_fun(uiControl.get_core().get_download_store(), &core::DownloadStore::activate));
 
   int firstArg = optionParser.process(argc, argv);
 

@@ -1,5 +1,5 @@
-#ifndef RTORRENT_CORE_SESSION_MANAGER_H
-#define RTORRENT_CORE_SESSION_MANAGER_H
+#ifndef RTORRENT_CORE_DOWNLOAD_STORE_H
+#define RTORRENT_CORE_DOWNLOAD_STORE_H
 
 #include <string>
 
@@ -7,7 +7,7 @@ namespace core {
 
 class Download;
 
-class SessionManager {
+class DownloadStore {
 public:
   
   void activate(const std::string& path);
@@ -19,6 +19,8 @@ public:
   void remove(Download* d);
 
 private:
+  std::string create_filename(Download* d);
+
   std::string m_path;
 };
 

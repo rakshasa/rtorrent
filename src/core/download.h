@@ -16,11 +16,11 @@ public:
   
   const std::string& get_tracker_msg()               { return m_trackerMsg; }
 
-  void               open()                          { m_download.open(); }
-  void               close()                         { m_download.close(); }
-
   void               start()                         { m_download.start(); }
   void               stop()                          { m_download.stop(); }
+
+  void               open()                          { m_download.open(); }
+  void               close()                         { m_download.close(); }
 
   bool operator == (const std::string& str)          { return str == m_download.get_hash(); }
 

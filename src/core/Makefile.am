@@ -13,6 +13,8 @@ libsub_core_a_SOURCES = \
 	download.h \
 	download_list.cc \
 	download_list.h \
+	download_store.cc \
+	download_store.h \
 	manager.cc \
 	manager.h \
 	poll.cc \
