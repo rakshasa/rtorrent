@@ -37,7 +37,7 @@ WindowFileList::redraw() {
 
   typedef std::pair<unsigned int, unsigned int> Range;
 
-  Range range = utils::iterate_both_distance<unsigned int>(0, *m_focus, m_download->get_download().get_entry_size(),
+  Range range = utils::advance_bidirectional<unsigned int>(0, *m_focus, m_download->get_download().get_entry_size(),
 							   m_canvas->get_height());
 
   while (range.first != range.second) {

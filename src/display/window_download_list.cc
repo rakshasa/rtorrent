@@ -26,7 +26,7 @@ WindowDownloadList::redraw() {
 
   typedef std::pair<DList::iterator, DList::iterator> Range;
 
-  Range range = utils::iterate_both_distance(m_list->begin(),
+  Range range = utils::advance_bidirectional(m_list->begin(),
 					     *m_focus != m_list->end() ? *m_focus : m_list->begin(),
 					     m_list->end(),
 					     m_canvas->get_height() / 3);
