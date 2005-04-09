@@ -39,7 +39,7 @@ public:
   torrent::Download& get_download()                  { return m_download; }
   std::string        get_hash()                      { return m_download.get_hash(); }
   
-  const std::string& get_tracker_msg()               { return m_trackerMsg; }
+  const std::string& get_message()                   { return m_message; }
 
   void               start()                         { m_download.start(); }
   void               stop()                          { m_download.stop(); }
@@ -51,10 +51,11 @@ public:
 
 private:
   void               receive_tracker_msg(std::string msg);
+  void               receive_storage_error(std::string msg);
 
   torrent::Download  m_download;
 
-  std::string        m_trackerMsg;
+  std::string        m_message;
 
   sigc::connection   m_connTrackerSucceded;
   sigc::connection   m_connTrackerFailed;

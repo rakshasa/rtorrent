@@ -68,6 +68,8 @@ public:
   void                set_port_range(int a, int b)            { m_portFirst = a; m_portLast = b; }
   void                set_listen_ip(const std::string& ip)    { m_listenIp = ip; }
 
+  void                set_default_root(const std::string& path);
+
   void                debug_tracker()                         { m_debugTracker = 0; }
 
 private:
@@ -95,8 +97,18 @@ private:
   int                 m_portLast;
   std::string         m_listenIp;
 
+  std::string         m_defaultRoot;
+
   int                 m_debugTracker;
 };
+
+inline void
+Manager::set_default_root(const std::string& path) {
+  m_defaultRoot = path;
+
+  if (!m_defaultRoot.empty() && *m_defaultRoot.rbegin() != '/')
+    m_defaultRoot.push_back('/');
+}
 
 }
 

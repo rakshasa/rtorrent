@@ -170,6 +170,9 @@ Manager::create_final(std::istream* s) {
   
   (*itr)->get_download().set_ip(m_dns);
 
+  if (!m_defaultRoot.empty())
+    (*itr)->get_download().set_root_dir(m_defaultRoot + ((*itr)->get_download().get_entry_size() ? (*itr)->get_download().get_name() : ""));
+
   start(*itr);
   m_downloadStore.save(*itr);
 

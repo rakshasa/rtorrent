@@ -31,6 +31,3 @@ Bug: Add the same torrent while it is hash checking.
 
 RELEASE:
 
-Enable change of default download path.
-
-Make sure we show better messages for signal_storage_error.

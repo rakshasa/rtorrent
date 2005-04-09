@@ -35,25 +35,21 @@ namespace display {
 
 std::string
 print_download_status(core::Download* d) {
-  std::stringstream str;
-
   if (d->get_download().is_hash_checking()) {
-    str << "Checking hash";
+    return "Checking hash";
 
   } else if (d->get_download().is_tracker_busy()) {
-    str << "Tracker: Connecting";
+    return "Tracker: Connecting";
 
   } else if (!d->get_download().is_active()) {
-    str << "Inactive";
+    return "Inactive";
 
-  } else if (!d->get_tracker_msg().empty()) {
-    str << "Tracker: [" << d->get_tracker_msg() << ']';
+  } else if (!d->get_message().empty()) {
+    return d->get_message();
 
   } else {
-    //str << "---";
+    return "";
   }
-
-  return str.str();
 }
 
 std::string
