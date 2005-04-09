@@ -22,6 +22,7 @@
 
 #include "config.h"
 
+#include <errno.h>
 #include <stdexcept>
 
 #include "file_stat.h"
