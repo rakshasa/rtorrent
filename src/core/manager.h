@@ -62,12 +62,13 @@ public:
   void                start(Download* d);
   void                stop(Download* d);
 
-  const std::string&  get_dns()                           { return m_dns; }
+  const std::string&  get_dns()                               { return m_dns; }
   void                set_dns(const std::string& dns);
 
-  void                set_port_range(int a, int b)        { m_portFirst = a; m_portLast = b; }
+  void                set_port_range(int a, int b)            { m_portFirst = a; m_portLast = b; }
+  void                set_listen_ip(const std::string& ip)    { m_listenIp = ip; }
 
-  void                debug_tracker()                     { m_debugTracker = 0; }
+  void                debug_tracker()                         { m_debugTracker = 0; }
 
 private:
   void                receive_http_done(CurlGet* http);
@@ -92,6 +93,7 @@ private:
   std::string         m_dns;
   int                 m_portFirst;
   int                 m_portLast;
+  std::string         m_listenIp;
 
   int                 m_debugTracker;
 };

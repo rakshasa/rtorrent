@@ -92,7 +92,10 @@ int
 parse_options(ui::Control* c, int argc, char** argv) {
   OptionParser optionParser;
   optionParser.insert_flag('h', sigc::ptr_fun(&print_help));
+
+  optionParser.insert_option('b', sigc::mem_fun(c->get_core(), &core::Manager::set_listen_ip));
   optionParser.insert_option('i', sigc::mem_fun(c->get_core(), &core::Manager::set_dns));
+
   optionParser.insert_option('p', sigc::bind(sigc::ptr_fun(OptionParser::call_int_pair),
 					     sigc::mem_fun(c->get_core(), &core::Manager::set_port_range)));
   optionParser.insert_option('s', sigc::mem_fun(c->get_core().get_download_store(), &core::DownloadStore::activate));
@@ -224,7 +227,8 @@ print_help() {
   std::cout << std::endl;
   std::cout << "Usage: rtorrent [OPTIONS]... [FILE]... [URL]..." << std::endl;
   std::cout << "  -h                Display this very helpful text" << std::endl;
-  std::cout << "  -i <a.b.c.d>      Set the IP address that is sent to the tracker" << std::endl;
+  std::cout << "  -b <a.b.c.d>      Bind the listening socket to this IP" << std::endl;
+  std::cout << "  -i <a.b.c.d>      Change the IP that is sent to the tracker" << std::endl;
   std::cout << "  -p <int>-<int>    Set port range for incoming connections" << std::endl;
   std::cout << "  -s <directory>    Set the session directory" << std::endl;
   std::cout << std::endl;

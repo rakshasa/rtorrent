@@ -26,4 +26,11 @@ Make accumulate return the value, no refs please...
 
 Make sure it gracefully handles torrents that fail to open files.
 
-Make throttle show off on 0 and up/down.
+Bug: Add the same torrent while it is hash checking.
+
+
+RELEASE:
+
+Enable change of default download path.
+
+Make sure we show better messages for signal_storage_error.

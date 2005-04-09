@@ -58,6 +58,7 @@ private:
 
   sigc::connection   m_connTrackerSucceded;
   sigc::connection   m_connTrackerFailed;
+  sigc::connection   m_connStorageError;
 };
 
 }

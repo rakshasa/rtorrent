@@ -5,10 +5,10 @@ LICENSE
 
 Options and flags:
 
+  -b <a.b.c.d>      Bind the listening socket to this IP.
   -i <a.b.c.d>      Set the IP address sent to the tracker.
 
   -p <a-b>          Open a port in the range a to b.
-
   -s <dir>          Use <dir> as the session directory. The torrents will be
                     saved with the info-hash in hex as the filename.
 
