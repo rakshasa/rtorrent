@@ -246,7 +246,7 @@ print_help() {
   std::cout << "  spacebar          Depends on the current view" << std::endl;
   std::cout << "  1,2               Adjust max uploads" << std::endl;
   std::cout << "  3,4,5,6           Adjust min/max connected peers" << std::endl;
-  std::cout << "  t                 Query tracker for more peers" << std::endl;
+  std::cout << "  t/T               Query tracker for more peers / Force query" << std::endl;
   std::cout << "  *                 Snub peer" << std::endl;
   std::cout << "  right             View files" << std::endl;
   std::cout << "  p                 View peer information" << std::endl;

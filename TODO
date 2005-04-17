@@ -24,10 +24,11 @@ Make accumulate return the value, no refs please...
 >     slow or broken or for various reasons you don't want to download it.
 
 
-Make sure it gracefully handles torrents that fail to open files.
+Show the bound listening ip.
 
 Bug: Add the same torrent while it is hash checking.
 
+Bug: Using ^s on a bad torrent does not catch the exception.
 
 RELEASE:
 

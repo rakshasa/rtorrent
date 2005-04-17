@@ -45,8 +45,6 @@ PathInput::pressed(int key) {
 
   } else {
     receive_do_complete();
-  
-    m_showNext = true;
   }
 
   return true;
@@ -100,7 +98,9 @@ PathInput::receive_do_complete() {
   mark_dirty();
 
   // Only emit if there are more than one option.
-  if (++utils::Directory::iterator(r.first) != r.second)
+  m_showNext = ++utils::Directory::iterator(r.first) != r.second;
+
+  if (m_showNext)
     m_signalShowRange.emit(r.first, r.second);
 }
 

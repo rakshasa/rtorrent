@@ -9,8 +9,17 @@ Options and flags:
   -i <a.b.c.d>      Set the IP address sent to the tracker.
 
   -p <a-b>          Open a port in the range a to b.
-  -s <dir>          Use <dir> as the session directory. The torrents will be
-                    saved with the info-hash in hex as the filename.
+
+  -d <dir>          Sets the default path where the files in the
+                    torrent are found/saved. By default it is "./".
+
+  -s <dir>          The session directory, all the torrents you add
+                    will be saved there with the info hash as a file
+                    name. When you shutdown rtorrent it will store
+                    fast-resume data in those torrents. Restarting
+                    rtorrent with the sesssion directory will restart
+                    all the torrents you had when you last quit.
+
 
 All:
 
@@ -58,7 +67,8 @@ In torrent view:
   5         - Decrease max peers connected
   6         - Increase max peers connected
 
-  T         - Query tracker
+  t         - Query tracker
+  T         - Force query tracker, ignores min reconnect time sendt by the tracker
 
 In file view:
 
