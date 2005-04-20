@@ -23,6 +23,8 @@
 #ifndef RTORRENT_CORE_MANAGER_H
 #define RTORRENT_CORE_MANAGER_H
 
+#include <iosfwd>
+
 #include "download_list.h"
 #include "download_store.h"
 #include "hash_queue.h"
@@ -81,7 +83,7 @@ private:
 
   iterator            create_final(std::istream* s);
 
-  void                receive_debug_tracker(torrent::Bencode& bencode);
+  void                receive_debug_tracker(std::istream* s);
 
   DownloadList        m_downloadList;
   DownloadStore       m_downloadStore;

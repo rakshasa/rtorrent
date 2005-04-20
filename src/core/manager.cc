@@ -186,16 +186,19 @@ Manager::create_final(std::istream* s) {
 }
 
 void
-Manager::receive_debug_tracker(torrent::Bencode& bencode) {
+Manager::receive_debug_tracker(std::istream* s) {
   std::stringstream filename;
   filename << "./tracker_dump." << m_debugTracker++;
 
   std::fstream out(filename.str().c_str(), std::ios::out | std::ios::trunc);
 
-  if (!out.good())
+  if (!out.is_open())
     return;
+  
+  s->seekg(0);
 
-  out << bencode;
+  std::copy(std::istream_iterator<char>(*s), std::istream_iterator<char>(),
+	    std::ostream_iterator<char>(out));
 }
 
 }
