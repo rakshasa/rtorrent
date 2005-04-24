@@ -30,5 +30,7 @@ Bug: Add the same torrent while it is hash checking.
 
 Bug: Using ^s on a bad torrent does not catch the exception.
 
+Show torrent creation date?
+
 RELEASE:
 

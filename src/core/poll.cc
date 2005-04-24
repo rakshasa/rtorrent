@@ -37,6 +37,9 @@ namespace core {
 
 void
 Poll::poll(utils::Timer timeout) {
+  // Do we want to clear m_maxFd in torrent::mark?
+  //m_maxFd = 0;
+
   FD_ZERO(m_readSet);
   FD_ZERO(m_writeSet);
   FD_ZERO(m_exceptSet);
@@ -46,7 +49,7 @@ Poll::poll(utils::Timer timeout) {
   torrent::mark(m_readSet, m_writeSet, m_exceptSet, &m_maxFd);
 
   if (m_curlStack.is_busy()) {
-    int n;
+    int n = 0;
 
     m_curlStack.fdset(m_readSet, m_writeSet, m_exceptSet, &n);
     m_maxFd = std::max(m_maxFd, n);
