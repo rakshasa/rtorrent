@@ -92,7 +92,8 @@ private:
   void                receive_next();
   void                receive_prev();
 
-  void                receive_throttle(int t);
+  void                receive_read_throttle(int t);
+  void                receive_write_throttle(int t);
 
   void                receive_start_download();
   void                receive_stop_download();

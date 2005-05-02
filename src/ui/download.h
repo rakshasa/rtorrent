@@ -83,7 +83,8 @@ private:
   void                receive_peer_connected(torrent::Peer p);
   void                receive_peer_disconnected(torrent::Peer p);
 
-  void                receive_throttle(int t);
+  void                receive_read_throttle(int t);
+  void                receive_write_throttle(int t);
   void                receive_max_uploads(int t);
   void                receive_min_peers(int t);
   void                receive_max_peers(int t);

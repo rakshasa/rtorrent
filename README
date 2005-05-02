@@ -25,14 +25,14 @@ All:
 
   Ctrl-Q    - Quit
 
-  A         - Increase Throttle by 1 KiB
-  Z         - Decrease Throttle by 1 KiB
+  a/A       - Increase upload/download throttle by 1 KiB
+  z/Z       - Decrease upload/download throttle by 1 KiB
 
-  S         - Increase Throttle by 5 KiB
-  X         - Decrease Throttle by 5 KiB
+  s/S       - Increase upload/download throttle by 5 KiB
+  x/X       - Decrease upload/download throttle by 5 KiB
 
-  D         - Increase Throttle by 50 KiB
-  C         - Decrease Throttle by 50 KiB
+  d/D       - Increase upload/download throttle by 50 KiB
+  c/C       - Decrease upload/download throttle by 50 KiB
 
 
 In main window:

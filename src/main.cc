@@ -239,7 +239,8 @@ print_help() {
   std::cout << "  ^s                Start torrent" << std::endl;
   std::cout << "  ^d                Stop torrent or delete a stopped torrent" << std::endl;
   std::cout << "  ^q                Initiate shutdown or skip shutdown process" << std::endl;
-  std::cout << "  a,s,d,z,x,c       Adjust throttle" << std::endl;
+  std::cout << "  a,s,d,z,x,c       Adjust upload throttle" << std::endl;
+  std::cout << "  A,S,D,Z,X,C       Adjust download throttle" << std::endl;
   std::cout << "  right             View torrent" << std::endl;
   std::cout << std::endl;
   std::cout << "Download view keys:" << std::endl;

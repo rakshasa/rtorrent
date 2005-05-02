@@ -169,7 +169,14 @@ DownloadList::receive_prev() {
 }
 
 void
-DownloadList::receive_throttle(int t) {
+DownloadList::receive_read_throttle(int t) {
+  m_windowStatus->mark_dirty();
+
+  torrent::set(torrent::THROTTLE_READ_CONST_RATE, torrent::get(torrent::THROTTLE_READ_CONST_RATE) + t * 1024);
+}
+
+void
+DownloadList::receive_write_throttle(int t) {
   m_windowStatus->mark_dirty();
 
   torrent::set(torrent::THROTTLE_ROOT_CONST_RATE, torrent::get(torrent::THROTTLE_ROOT_CONST_RATE) + t * 1024);
@@ -274,12 +281,19 @@ DownloadList::task_update() {
 
 void
 DownloadList::setup_keys() {
-  (*m_bindings)['a']           = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_throttle), 1);
-  (*m_bindings)['z']           = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_throttle), -1);
-  (*m_bindings)['s']           = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_throttle), 5);
-  (*m_bindings)['x']           = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_throttle), -5);
-  (*m_bindings)['d']           = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_throttle), 50);
-  (*m_bindings)['c']           = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_throttle), -50);
+  (*m_bindings)['a']           = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_write_throttle), 1);
+  (*m_bindings)['z']           = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_write_throttle), -1);
+  (*m_bindings)['s']           = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_write_throttle), 5);
+  (*m_bindings)['x']           = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_write_throttle), -5);
+  (*m_bindings)['d']           = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_write_throttle), 50);
+  (*m_bindings)['c']           = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_write_throttle), -50);
+
+  (*m_bindings)['A']           = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_read_throttle), 1);
+  (*m_bindings)['Z']           = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_read_throttle), -1);
+  (*m_bindings)['S']           = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_read_throttle), 5);
+  (*m_bindings)['X']           = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_read_throttle), -5);
+  (*m_bindings)['D']           = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_read_throttle), 50);
+  (*m_bindings)['C']           = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_read_throttle), -50);
 
   (*m_bindings)['\x13']        = sigc::mem_fun(*this, &DownloadList::receive_start_download);
   (*m_bindings)['\x04']        = sigc::mem_fun(*this, &DownloadList::receive_stop_download);
