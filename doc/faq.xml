@@ -1,0 +1,42 @@
+<!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook V4.1//EN">
+
+<article>
+  <title>rTorrent Frequently Asked Questions</title>
+
+  <para>
+    This is the user FAQ for Rakshasa's BitTorrent client. RTorrent is
+    an ncurses based client that uses libTorrent and is written in
+    C++. Efficiency and good code is the main goal of both projects.
+  </para>
+
+  <qandaset>
+    <qandaentry>
+      <question><para>
+        How do I add new torrents while the client is running?
+      </para></question>
+      <answer><para>
+        Use the backspace key to enter file input mode. The bottom
+        line will change into a prompt which allows you to enter URL's
+        or file paths to torrents. File name completion and directory
+        listing is supported with the tab key.
+      </para></answer>
+    </qandaentry>
+
+    <qandaentry>
+      <question><para>
+        How does the session feature work?
+      </para></questions>
+      <answer><para>
+        When you start the client you can use the "-s" switch to
+        specify a session directory. The client will save all
+        currently running torrents in the session directory and fast
+        resume data will be written when the client exits. Upon
+        restarting the client it will resume all the torrents in the
+        session directory. Note that the filenames must be in the
+        "<info_hash_hex>.torrent" format.
+      </para></answer>
+    </qandaentry>
+
+  </qandaset>
+
+</article>
