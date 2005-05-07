@@ -187,7 +187,7 @@ DownloadList::receive_start_download() {
   if (m_downloadList.get_focus() == m_downloadList.end())
     return;
 
-  m_control->get_core().start(*m_downloadList.get_focus());
+  m_control->get_core().start_safe(*m_downloadList.get_focus());
 }
 
 void

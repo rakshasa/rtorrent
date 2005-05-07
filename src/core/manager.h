@@ -64,6 +64,8 @@ public:
   void                start(Download* d);
   void                stop(Download* d);
 
+  void                start_safe(Download* d);
+
   const std::string&  get_dns()                               { return m_dns; }
   void                set_dns(const std::string& dns);
 

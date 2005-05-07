@@ -106,8 +106,20 @@ Manager::stop(Download* d) {
 
   d->stop();
 
-  d->get_download().hash_save();
+  if (d->get_download().is_hash_checked())
+    d->get_download().hash_save();
+
   m_downloadStore.save(d);
+}
+
+void
+Manager::start_safe(Download* d) {
+  try {
+    start(d);
+  } catch (torrent::local_error& e) {
+    m_logImportant.push_front(e.what());
+    m_logComplete.push_front(e.what());
+  }
 }
 
 void

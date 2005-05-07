@@ -25,15 +25,14 @@
     <qandaentry>
       <question><para>
         How does the session feature work?
-      </para></questions>
+      </para></question>
       <answer><para>
         When you start the client you can use the "-s" switch to
         specify a session directory. The client will save all
         currently running torrents in the session directory and fast
         resume data will be written when the client exits. Upon
         restarting the client it will resume all the torrents in the
-        session directory. Note that the filenames must be in the
-        "<info_hash_hex>.torrent" format.
+        session directory.
       </para></answer>
     </qandaentry>
 
