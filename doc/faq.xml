@@ -24,6 +24,20 @@
 
     <qandaentry>
       <question><para>
+        I got the message "Could not create download, failed to parse the bencoded data" when adding a torrent, what does it mean?
+      </para></question>
+      <answer><para>
+        The torrent data the library received was not a valid torrent
+        file. If this was a direct http download, try downloading the
+        torrent file and add it manually. This usually happens when
+        the torrent link uses some form of redirection that libcurl
+        does not automatically redirect. If the failure still happens,
+        make sure the file is infact an uncorrupted torrent.
+      </para></answer>
+    </qandaentry>
+
+    <qandaentry>
+      <question><para>
         How does the session feature work?
       </para></question>
       <answer><para>
@@ -33,6 +47,18 @@
         resume data will be written when the client exits. Upon
         restarting the client it will resume all the torrents in the
         session directory.
+      </para></answer>
+    </qandaentry>
+
+    <qandaentry>
+      <question><para>
+        How do i query the tracker for more peers?
+      </para></question>
+      <answer><para>
+        Go into the download view screen and press 't' to initiate a
+        new tracker request. If the tracker requires a minimum timeout
+        between requests you can override this by using the capital
+        'T'. Don't abuse this feature.
       </para></answer>
     </qandaentry>
 

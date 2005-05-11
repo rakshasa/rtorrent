@@ -32,5 +32,4 @@ Bug: Using ^s on a bad torrent does not catch the exception.
 
 Show torrent creation date?
 
-RELEASE:
-
+Recheck hash key.
