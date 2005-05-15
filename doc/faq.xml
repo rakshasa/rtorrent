@@ -62,6 +62,32 @@
       </para></answer>
     </qandaentry>
 
+    <qandaentry>
+      <question><para>
+        Why do I sometimes need to press ctrl-Q twice to exit the client?
+      </para></question>
+      <answer><para>
+        The first time you press ctrl-q you initiate the
+        shutdown. This causes rTorrent to send a stop message to the
+        trackers of each torrent, and if the tracker is slow it might
+        take more than a few seconds or until the requests time
+        out. The second time ctrl-q is pressed forces the client to
+        shutdown.
+      </para></answer>
+    </qandaentry>
+
+    <qandaentry>
+      <question><para>
+        It doesn't help how much i press ctrl-q, it still won't quit.
+      </para></question>
+      <answer><para>
+        Perhaps your terminal sends a different key-code to the
+        application. There's no configuration files for keys yet, so
+        modify rtorrent/src/ui/root.cc:56 to use whatever key you want
+        for quitting.
+      </para></answer>
+    </qandaentry>
+
   </qandaset>
 
 </article>
