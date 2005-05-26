@@ -4,34 +4,15 @@ AM_INIT_AUTOMAKE
 AM_CONFIG_HEADER(config.h)
 
 sinclude(scripts/checks.m4)
+sinclude(scripts/common.m4)
 
-CXXFLAGS="-O3"
-
-AC_ARG_ENABLE(debug,
-    [  --enable-debug          enable debug information [default=yes]],
-    [
-        if test "$enableval" = "yes"; then
-            CXXFLAGS="$CXXFLAGS -Wall -g -DDEBUG"
-        else
-            CXXFLAGS="$CXXFLAGS -Wall -DNDEBUG"
-        fi
-    ],[
-        CXXFLAGS="$CXXFLAGS -Wall -g -DDEBUG"
-    ]
-)
+TORRENT_CHECK_CXXFLAGS()
+TORRENT_ENABLE_DEBUG()
+TORRENT_ENABLE_WERROR()
 
 AC_PROG_CXX
 AC_PROG_RANLIB
 AC_SYS_LARGEFILE
-
-AC_ARG_ENABLE(werror,
-    [  --enable-werror         enable the -Werror flag [default=no]],
-    [
-        if test "$enableval" = "yes"; then
-            CXXFLAGS="$CXXFLAGS -Werror"
-        fi
-    ]
-)
 
 AC_SEARCH_LIBS(wbkgdset, ncurses curses,,echo "*** The ncurses library is required!";exit 1)
 

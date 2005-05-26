@@ -80,6 +80,7 @@ Manager::erase(DownloadList::iterator itr) {
   if (!(*itr)->get_download().is_open())
     throw std::logic_error("core::Manager::erase(...) called on an closed download");
 
+  m_hashQueue.remove(*itr);
   m_downloadStore.remove(*itr);
 
   return m_downloadList.erase(itr);
@@ -87,35 +88,36 @@ Manager::erase(DownloadList::iterator itr) {
 
 void
 Manager::start(Download* d) {
-  if (d->get_download().is_active())
-    return;
+  try {
+    if (d->get_download().is_active())
+      return;
 
-  if (!d->get_download().is_open())
-    d->open();
+    if (!d->get_download().is_open())
+      d->open();
 
-  if (d->get_download().is_hash_checked())
-    d->start();
-  else
-    // This can cause infinit loops.
-    m_hashQueue.insert(d, sigc::mem_fun(d, &Download::start));
+    if (d->get_download().is_hash_checked())
+      d->start();
+    else
+      // This can cause infinit loops.
+      m_hashQueue.insert(d, sigc::mem_fun(d, &Download::start));
+
+  } catch (torrent::local_error& e) {
+    m_logImportant.push_front(e.what());
+    m_logComplete.push_front(e.what());
+  }
 }
 
 void
 Manager::stop(Download* d) {
-  m_hashQueue.remove(d);
-
-  d->stop();
-
-  if (d->get_download().is_hash_checked())
-    d->get_download().hash_save();
-
-  m_downloadStore.save(d);
-}
-
-void
-Manager::start_safe(Download* d) {
   try {
-    start(d);
+    m_hashQueue.remove(d);
+    d->stop();
+
+    if (d->get_download().is_hash_checked())
+      d->get_download().hash_save();
+
+    m_downloadStore.save(d);
+
   } catch (torrent::local_error& e) {
     m_logImportant.push_front(e.what());
     m_logComplete.push_front(e.what());
@@ -124,6 +126,7 @@ Manager::start_safe(Download* d) {
 
 void
 Manager::set_dns(const std::string& dns) {
+  // TODO: Switch with the inet version of this thingie.
   unsigned int a, b, c, d;
 
   if (std::sscanf(dns.c_str(), "%i.%i.%i.%i", &a, &b, &c, &d) != 4 ||
@@ -137,18 +140,6 @@ Manager::set_dns(const std::string& dns) {
 }
 
 void
-Manager::receive_http_done(CurlGet* http) {
-  try {
-    create_final(http->get_stream());
-
-  } catch (torrent::local_error& e) {
-    // What to do? Keep in list for now.
-    m_logImportant.push_front(e.what());
-    m_logComplete.push_front(e.what());
-  }
-}  
-
-void
 Manager::receive_http_failed(std::string msg) {
   m_logImportant.push_front("Http download error: \"" + msg + "\"");
   m_logComplete.push_front("Http download error: \"" + msg + "\"");
@@ -156,10 +147,29 @@ Manager::receive_http_failed(std::string msg) {
 
 void
 Manager::create_file(const std::string& uri) {
+  std::fstream f(uri.c_str(), std::ios::in);
+  
+  create_final(&f);
+}
+
+void
+Manager::create_http(const std::string& uri) {
+  core::HttpQueue::iterator itr = m_httpQueue.insert(uri);
+
+  (*itr)->signal_done().slots().push_front(sigc::bind(sigc::mem_fun(*this, &core::Manager::create_final),
+						      (*itr)->get_stream()));
+  (*itr)->signal_failed().slots().push_front(sigc::mem_fun(*this, &core::Manager::receive_http_failed));
+}
+
+void
+Manager::create_final(std::istream* s) {
   try {
-    std::fstream f(uri.c_str(), std::ios::in);
-    
-    create_final(&f);
+    iterator itr = m_downloadList.insert(s);
+  
+    setup_download(*itr);
+    start(*itr);
+
+    m_downloadStore.save(*itr);
 
   } catch (torrent::local_error& e) {
     // What to do? Keep in list for now.
@@ -169,32 +179,20 @@ Manager::create_file(const std::string& uri) {
 }
 
 void
-Manager::create_http(const std::string& uri) {
-  core::HttpQueue::iterator itr = m_httpQueue.insert(uri);
-
-  (*itr)->signal_done().slots().push_front(sigc::bind(sigc::mem_fun(*this, &core::Manager::receive_http_done), *itr));
-  (*itr)->signal_failed().slots().push_front(sigc::mem_fun(*this, &core::Manager::receive_http_failed));
-}
-
-Manager::iterator
-Manager::create_final(std::istream* s) {
-  iterator itr = m_downloadList.insert(s);
-  
-  (*itr)->get_download().set_ip(m_dns);
+Manager::setup_download(Download* d) {
+  d->get_download().set_ip(m_dns);
 
   if (!m_defaultRoot.empty())
-    (*itr)->get_download().set_root_dir(m_defaultRoot + ((*itr)->get_download().get_entry_size() > 1 ? (*itr)->get_download().get_name() : ""));
-
-  start(*itr);
-  m_downloadStore.save(*itr);
+    d->get_download().set_root_dir(m_defaultRoot +
+				   (d->get_download().get_entry_size() > 1 ?
+				    d->get_download().get_name() :
+				    ""));
 
   if (m_debugTracker >= 0)
-    (*itr)->get_download().signal_tracker_dump(sigc::mem_fun(*this, &Manager::receive_debug_tracker));
+    d->get_download().signal_tracker_dump(sigc::mem_fun(*this, &Manager::receive_debug_tracker));
 
   // If we want to monitor network stuff.
-  (*itr)->get_download().signal_network_log(sigc::mem_fun(m_logComplete, &Log::push_front));
-
-  return itr;
+  d->get_download().signal_network_log(sigc::mem_fun(m_logComplete, &Log::push_front));
 }
 
 void

@@ -33,3 +33,5 @@ Bug: Using ^s on a bad torrent does not catch the exception.
 Show torrent creation date?
 
 Recheck hash key.
+
+BUG: Doesn't show the last file in the file list.

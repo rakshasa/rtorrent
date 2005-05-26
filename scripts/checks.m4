@@ -18,8 +18,8 @@ AC_DEFUN([TORRENT_CHECK_CURL], [
         my_cv_curl_vers="$ver"
         AC_MSG_RESULT([$my_cv_curl_vers])
 
-	CURL_CFLAGS=`curl-config --cflags`
-	CURL_LIBS=`curl-config --libs`
+	CURL_CFLAGS="`curl-config --cflags`"
+	CURL_LIBS="`curl-config --libs`"
       else
         AC_MSG_RESULT(FAILED)
         AC_MSG_ERROR([$ver is too old. Need version $check or higher.])
@@ -59,75 +59,4 @@ AC_DEFUN([TORRENT_CHECK_OPENSSL], [
       LIBS="$LIBS -lcrypto `pkg-config --libs-only-L openssl`",
       AC_MSG_ERROR(Could not find openssl's crypto library, try --with-openssl=PATH))
     ])
-])
-
-
-AC_DEFUN([TORRENT_MINCORE_SIGNEDNESS], [
-
-  AC_LANG_PUSH(C++)
-  AC_MSG_CHECKING(signedness of mincore parameter)
-
-  AC_COMPILE_IFELSE(
-    [[#include <sys/types.h>
-      #include <sys/mman.h>
-      void f() { mincore((void*)0, 0, (unsigned char*)0); }
-    ]],
-    [
-      AC_DEFINE(USE_MINCORE_UNSIGNED, 1, use unsigned char* in mincore)
-      AC_MSG_RESULT(unsigned)
-    ],
-    [
-      AC_COMPILE_IFELSE(
-        [[#include <sys/types.h>
-          #include <sys/mman.h>
-          void f() { mincore((void*)0, 0, (char*)0); }
-        ]],
-        [
-          AC_DEFINE(USE_MINCORE_UNSIGNED, 0, use char* in mincore)
-          AC_MSG_RESULT(signed)
-        ],
-        [
-          AC_MSG_ERROR([mincore signedness test failed])
-      ])
-  ])
-
-  AC_LANG_POP(C++)
-])
-
-
-AC_DEFUN([TORRENT_OTFD], [
-
-  AC_LANG_PUSH(C++)
-  AC_MSG_CHECKING(for proper overloaded template function disambiguation)
-
-  AC_COMPILE_IFELSE(
-    [[template <typename T> void f(T&) {}
-      template <typename T> void f(T*) {}
-      int main() { int *i = 0; f(*i); f(i); }
-    ]],
-    [
-      AC_MSG_RESULT(yes)
-    ], [
-      AC_MSG_RESULT(no)
-      AC_MSG_ERROR([your compiler does not properly handle overloaded template function disambiguation])
-  ])
-
-  AC_LANG_POP(C++)
-])
-
-
-AC_DEFUN([TORRENT_CHECK_EXECINFO], [
-
-  AC_MSG_CHECKING(for execinfo.h)
-
-  AC_COMPILE_IFELSE(
-    [[#include <execinfo.h>
-      int main() { backtrace((void**)0, 0); backtrace_symbols((char**)0, 0); return 0;}
-    ]],
-    [
-      AC_MSG_RESULT(yes)
-      AC_DEFINE(USE_EXECINFO, 1, Use execinfo.h)
-    ], [
-      AC_MSG_RESULT(no)
-  ])
 ])

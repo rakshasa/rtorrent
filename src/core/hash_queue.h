@@ -54,14 +54,16 @@ public:
   using Base::empty;
   using Base::size;
 
-  // Should it be safe to try inserting already present/checked downloads?
   void insert(Download* d, Slot s);
 
-  // It's safe to try to remove downloads not in the queue.
+  // It's safe to try to remove downloads not in the queue. The hash
+  // checking is not stopped if it has already started.
   void remove(Download* d);
 
+  iterator find(Download* d);
+
 private:
-  void receive_hash_done(Base::iterator itr);
+  void receive_hash_done(Download* d);
 
   void fill_queue();
 };
@@ -69,7 +71,9 @@ private:
 class HashQueueNode {
 public:
   HashQueueNode(Download* d, HashQueue::Slot s) : m_download(d), m_slot(s) {}
-  ~HashQueueNode()                                    { m_connection.disconnect(); }
+  ~HashQueueNode()                                    { disconnect(); }
+
+  void             disconnect()                       { m_connection.disconnect(); }
 
   Download*        get_download()                     { return m_download; }
   HashQueue::Slot  get_slot()                         { return m_slot; }

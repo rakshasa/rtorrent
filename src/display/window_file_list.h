@@ -39,6 +39,8 @@ namespace display {
 
 class WindowFileList : public Window {
 public:
+  typedef std::pair<unsigned int, unsigned int> Range;
+
   WindowFileList(core::Download* d, unsigned int* focus);
 
   virtual void     redraw();

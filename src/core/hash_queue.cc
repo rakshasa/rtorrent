@@ -34,11 +34,9 @@ namespace core {
 
 void
 HashQueue::insert(Download* d, Slot s) {
-  if (d->get_download().is_hash_checking())
+  if (d->get_download().is_hash_checking() ||
+      find(d) != end())
     return;
-
-  if (std::find_if(begin(), end(), rak::equal(d, std::mem_fun(&HashQueueNode::get_download))) != end())
-    throw std::logic_error("core::HashQueue::insert(...) received a Download that is already queued");
 
   if (d->get_download().is_hash_checked()) {
     s();
@@ -47,21 +45,23 @@ HashQueue::insert(Download* d, Slot s) {
 
   iterator itr = Base::insert(end(), new HashQueueNode(d, s));
 
-  (*itr)->set_connection(d->get_download().signal_hash_done(sigc::bind(sigc::mem_fun(*this, &HashQueue::receive_hash_done), itr)));
+  (*itr)->set_connection(d->get_download().signal_hash_done(sigc::bind(sigc::mem_fun(*this, &HashQueue::receive_hash_done),
+								       (*itr)->get_download())));
 
   fill_queue();
 }
 
 void
 HashQueue::remove(Download* d) {
-  iterator itr = std::find_if(begin(), end(), rak::equal(d, std::mem_fun(&HashQueueNode::get_download)));
+  iterator itr = find(d);
 
   if (itr == end())
     return;
 
-  if ((*itr)->get_download()->get_download().is_hash_checking())
-    // What do we do if we're already checking?
-    ;
+  // We don't do anything if we're already checking, just disconnect.
+//   if ((*itr)->get_download()->get_download().is_hash_checking()) {
+//     // What do we do if we're already checking?
+//   }
 
   delete *itr;
   Base::erase(itr);
@@ -69,13 +69,24 @@ HashQueue::remove(Download* d) {
   fill_queue();
 }
 
+HashQueue::iterator
+HashQueue::find(Download* d) {
+  return std::find_if(begin(), end(), rak::equal(d, std::mem_fun(&HashQueueNode::get_download)));
+}
+
 void
-HashQueue::receive_hash_done(Base::iterator itr) {
+HashQueue::receive_hash_done(Download* d) {
+  iterator itr = find(d);
+
+  if (itr == end())
+    return;
+
   Slot s = (*itr)->get_slot();
 
   delete *itr;
   Base::erase(itr);
 
+  // Can we call this before the delete?
   s();
   fill_queue();
 }

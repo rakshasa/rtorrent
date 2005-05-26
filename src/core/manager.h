@@ -64,8 +64,6 @@ public:
   void                start(Download* d);
   void                stop(Download* d);
 
-  void                start_safe(Download* d);
-
   const std::string&  get_dns()                               { return m_dns; }
   void                set_dns(const std::string& dns);
 
@@ -77,13 +75,14 @@ public:
   void                debug_tracker()                         { m_debugTracker = 0; }
 
 private:
-  void                receive_http_done(CurlGet* http);
   void                receive_http_failed(std::string msg);
 
   void                create_file(const std::string& uri);
   void                create_http(const std::string& uri);
 
-  iterator            create_final(std::istream* s);
+  void                create_final(std::istream* s);
+
+  void                setup_download(Download* itr);
 
   void                receive_debug_tracker(std::istream* s);
 
