@@ -31,31 +31,35 @@
 
 class OptionParser {
 public:
-  typedef sigc::slot0<void>                     SlotFlag;
-  typedef sigc::slot1<void, const std::string&> SlotOption;
-  typedef sigc::slot2<void, int, int>           SlotIntPair;
+  typedef sigc::slot0<void>                                         Slot;
+  typedef sigc::slot1<void, const std::string&>                     SlotString;
+  typedef sigc::slot2<void, const std::string&, const std::string&> SlotStringPair;
+  typedef sigc::slot2<void, int, int>                               SlotIntPair;
 
-  struct Node {
-    SlotOption m_slot;
-    bool       m_useOption;
-  };
-
-  typedef std::map<char, Node>                  Container;
-
-  void        insert_flag(char c, SlotFlag s);
-  void        insert_option(char c, SlotOption s);
+  void                insert_flag(char c, Slot s);
+  void                insert_option(char c, SlotString s);
+  void                insert_option_list(char c, SlotStringPair s);
+  void                insert_int_pair(char c, SlotIntPair s);
 
   // Returns the index of the first non-option argument.
-  int         process(int argc, char** argv);
-
-  static void call_int_pair(const std::string& str, SlotIntPair slot);
+  int                 process(int argc, char** argv);
 
 private:
-  std::string create_optstring();
+  std::string         create_optstring();
 
-  void        call_flag(char c, const std::string& arg);
+  void                call(char c, const std::string& arg);
+  static void         call_option_list(SlotStringPair slot, const std::string& arg);
+  static void         call_int_pair(SlotIntPair slot, const std::string& arg);
 
-  Container   m_container;
+  // Use pair instead?
+  struct Node {
+    SlotString          m_slot;
+    bool                m_useOption;
+  };
+
+  typedef std::map<char, Node> Container;
+
+  Container           m_container;
 };
 
 #endif

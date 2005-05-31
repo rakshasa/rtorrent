@@ -1,6 +1,3 @@
-core::Manager::stop() should make sure ongoing hash checks get cleaned
-up.
-
 Polling during last phase of shutdown should be very quick, don't use
 normal timeout.
 
@@ -34,4 +31,6 @@ Show torrent creation date?
 
 Recheck hash key.
 
-BUG: Doesn't show the last file in the file list.
+Seperate download management from core::management.
+
+Allow switching/cycling of tracker.

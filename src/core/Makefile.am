@@ -9,6 +9,7 @@ libsub_core_a_SOURCES = \
 	download.h \
 	download_list.cc \
 	download_list.h \
+	download_slot_map.h \
 	download_store.cc \
 	download_store.h \
 	hash_queue.cc \

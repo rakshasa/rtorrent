@@ -26,6 +26,7 @@
 #include <iosfwd>
 
 #include "download_list.h"
+#include "download_slot_map.h"
 #include "download_store.h"
 #include "hash_queue.h"
 #include "http_queue.h"
@@ -50,6 +51,8 @@ public:
   DownloadStore&      get_download_store()                { return m_downloadStore; }
   HashQueue&          get_hash_queue()                    { return m_hashQueue; }
   HttpQueue&          get_http_queue()                    { return m_httpQueue; }
+
+  DownloadSlotMap&    get_default_settings()              { return m_defaultSettings; }
 
   Poll&               get_poll()                          { return m_poll; }
   Log&                get_log_important()                 { return m_logImportant; }
@@ -90,6 +93,8 @@ private:
   DownloadStore       m_downloadStore;
   HashQueue           m_hashQueue;
   HttpQueue           m_httpQueue;
+
+  DownloadSlotMap     m_defaultSettings;
 
   Poll                m_poll;
   Log                 m_logImportant;

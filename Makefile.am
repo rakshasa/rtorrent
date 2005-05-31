@@ -5,4 +5,5 @@ EXTRA_DIST= \
 	doc/rtorrent.1.txt \
 	rak/algorithm.h \
 	rak/functional.h \
-	scripts/checks.m4
+	scripts/checks.m4 \
+	scripts/common.m4

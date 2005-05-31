@@ -180,6 +180,7 @@ Manager::create_final(std::istream* s) {
 
 void
 Manager::setup_download(Download* d) {
+  // These should be in m_defaultSettings.
   d->get_download().set_ip(m_dns);
 
   if (!m_defaultRoot.empty())
@@ -187,6 +188,8 @@ Manager::setup_download(Download* d) {
 				   (d->get_download().get_entry_size() > 1 ?
 				    d->get_download().get_name() :
 				    ""));
+
+  m_defaultSettings.for_each(d);
 
   if (m_debugTracker >= 0)
     d->get_download().signal_tracker_dump(sigc::mem_fun(*this, &Manager::receive_debug_tracker));

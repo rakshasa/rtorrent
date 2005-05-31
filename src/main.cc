@@ -48,6 +48,8 @@
 #include "utils/task_schedule.h"
 
 #include "signal_handler.h"
+#include "option_handler.h"
+#include "option_handler_rules.h"
 #include "option_parser.h"
 
 int64_t utils::Timer::m_cache;
@@ -89,19 +91,19 @@ do_shutdown(ui::Control* c) {
 }
 
 int
-parse_options(ui::Control* c, int argc, char** argv) {
+parse_options(ui::Control* c, OptionHandler* optionHandler, int argc, char** argv) {
   OptionParser optionParser;
+
   optionParser.insert_flag('h', sigc::ptr_fun(&print_help));
+  optionParser.insert_flag('t', sigc::mem_fun(c->get_core(), &core::Manager::debug_tracker));
 
   optionParser.insert_option('b', sigc::mem_fun(c->get_core(), &core::Manager::set_listen_ip));
   optionParser.insert_option('d', sigc::mem_fun(c->get_core(), &core::Manager::set_default_root));
   optionParser.insert_option('i', sigc::mem_fun(c->get_core(), &core::Manager::set_dns));
-
-  optionParser.insert_option('p', sigc::bind(sigc::ptr_fun(OptionParser::call_int_pair),
-					     sigc::mem_fun(c->get_core(), &core::Manager::set_port_range)));
   optionParser.insert_option('s', sigc::mem_fun(c->get_core().get_download_store(), &core::DownloadStore::activate));
 
-  optionParser.insert_flag('t', sigc::mem_fun(c->get_core(), &core::Manager::debug_tracker));
+  optionParser.insert_int_pair('p', sigc::mem_fun(c->get_core(), &core::Manager::set_port_range));
+  optionParser.insert_option_list('o', sigc::mem_fun(*optionHandler, &OptionHandler::process));
 
   return optionParser.process(argc, argv);
 }
@@ -135,52 +137,57 @@ initialize_core(ui::Control* c) {
 
 int
 main(int argc, char** argv) {
-  ui::Control uiControl;
-  ui::Root    uiRoot(&uiControl);
+  OptionHandler optionHandler;
+  ui::Control   uiControl;
+  ui::Root      uiRoot(&uiControl);
 
   utils::Timer::update();
 
   srandom(utils::Timer::cache().usec());
   srand48(utils::Timer::cache().usec());
 
+  optionHandler.insert("min_peers", new OptionHandlerDownloadMinPeers(&uiControl.get_core().get_default_settings()));
+
   try {
 
-  SignalHandler::set_ignore(SIGPIPE);
-  SignalHandler::set_handler(SIGINT, sigc::bind(sigc::mem_fun(uiRoot, &ui::Root::set_shutdown_received), true));
-  SignalHandler::set_handler(SIGSEGV, sigc::bind(sigc::ptr_fun(&do_panic), SIGSEGV));
-  SignalHandler::set_handler(SIGBUS, sigc::bind(sigc::ptr_fun(&do_panic), SIGBUS));
+    SignalHandler::set_ignore(SIGPIPE);
+    SignalHandler::set_handler(SIGINT, sigc::bind(sigc::mem_fun(uiRoot, &ui::Root::set_shutdown_received), true));
+    SignalHandler::set_handler(SIGSEGV, sigc::bind(sigc::ptr_fun(&do_panic), SIGSEGV));
+    SignalHandler::set_handler(SIGBUS, sigc::bind(sigc::ptr_fun(&do_panic), SIGBUS));
 
-  int firstArg = parse_options(&uiControl, argc, argv);
+    int firstArg = parse_options(&uiControl, &optionHandler, argc, argv);
 
-  initialize_display(&uiControl);
-  initialize_core(&uiControl);
+    initialize_display(&uiControl);
+    initialize_core(&uiControl);
 
-  uiRoot.init();
+    uiRoot.init();
 
-  load_session_torrents(&uiControl);
-  load_arg_torrents(&uiControl, argv + firstArg, argv + argc);
+    load_session_torrents(&uiControl);
+    load_arg_torrents(&uiControl, argv + firstArg, argv + argc);
 
-  uiControl.get_display().adjust_layout();
+    uiControl.get_display().adjust_layout();
 
-  while (!is_shutting_down || !torrent::get(torrent::SHUTDOWN_DONE)) {
+    while (!is_shutting_down || !torrent::get(torrent::SHUTDOWN_DONE)) {
 
-    if (uiRoot.get_shutdown_received()) {
-      do_shutdown(&uiControl);
-      uiRoot.set_shutdown_received(false);
+      if (uiRoot.get_shutdown_received()) {
+	do_shutdown(&uiControl);
+	uiRoot.set_shutdown_received(false);
+      }
+
+      utils::Timer::update();
+      utils::TaskSchedule::perform(utils::Timer::cache());
+    
+      // This needs to be called every second or so. Currently done by
+      // the throttle task in libtorrent.
+      uiControl.get_display().do_update();
+
+      uiControl.get_core().get_poll().poll(utils::TaskSchedule::get_timeout());
     }
 
-    utils::Timer::update();
-    utils::TaskSchedule::perform(utils::Timer::cache());
-    
-    // This needs to be called every second or so. Currently done by
-    // the throttle task in libtorrent.
-    uiControl.get_display().do_update();
+    uiRoot.cleanup();
+    display::Canvas::cleanup();
 
-    uiControl.get_core().get_poll().poll(utils::TaskSchedule::get_timeout());
-  }
-
-  uiRoot.cleanup();
-  display::Canvas::cleanup();
+    uiControl.get_core().cleanup();
 
   } catch (std::exception& e) {
     display::Canvas::cleanup();
@@ -188,8 +195,6 @@ main(int argc, char** argv) {
     std::cout << "Caught exception: \"" << e.what() << '"' << std::endl;
     return -1;
   }
-
-  uiControl.get_core().cleanup();
 
   return 0;
 }
