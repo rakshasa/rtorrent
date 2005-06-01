@@ -26,9 +26,8 @@
 #include <map>
 #include <string>
 
+// No members with dtor's allowed.
 struct OptionHandlerBase {
-  virtual ~OptionHandlerBase();
-
   virtual void process(const std::string& key, const std::string& arg) = 0;
 };
 

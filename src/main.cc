@@ -48,6 +48,7 @@
 #include "utils/task_schedule.h"
 
 #include "signal_handler.h"
+#include "option_file.h"
 #include "option_handler.h"
 #include "option_handler_rules.h"
 #include "option_parser.h"
@@ -109,6 +110,30 @@ parse_options(ui::Control* c, OptionHandler* optionHandler, int argc, char** arg
 }
 
 void
+initialize_option_handler(ui::Control* c, OptionHandler* optionHandler) {
+  core::DownloadSlotMap* dsm = &c->get_core().get_default_settings();
+
+  optionHandler->insert("min_peers",   new OptionHandlerDownloadInt<&apply_download_min_peers, &validate_download_peers>(dsm));
+  optionHandler->insert("max_peers",   new OptionHandlerDownloadInt<&apply_download_max_peers, &validate_download_peers>(dsm));
+  optionHandler->insert("max_uploads", new OptionHandlerDownloadInt<&apply_download_max_uploads, &validate_download_peers>(dsm));
+}
+
+void
+load_option_file(const std::string& filename, OptionHandler* optionHandler, bool require = false) {
+  std::fstream f(filename.c_str(), std::ios::in);
+
+  if (!f.is_open())
+    return;
+
+  std::cout << "Loaded option file \"" << filename << "\"" << std::endl;
+
+  OptionFile optionFile;
+
+  optionFile.slot_option(sigc::mem_fun(*optionHandler, &OptionHandler::process));
+  optionFile.process(&f);
+}
+
+void
 load_session_torrents(ui::Control* c) {
   // Load session torrents.
   std::list<std::string> l = c->get_core().get_download_store().get_formated_entries().make_list();
@@ -146,7 +171,7 @@ main(int argc, char** argv) {
   srandom(utils::Timer::cache().usec());
   srand48(utils::Timer::cache().usec());
 
-  optionHandler.insert("min_peers", new OptionHandlerDownloadMinPeers(&uiControl.get_core().get_default_settings()));
+  initialize_option_handler(&uiControl, &optionHandler);
 
   try {
 
@@ -155,6 +180,7 @@ main(int argc, char** argv) {
     SignalHandler::set_handler(SIGSEGV, sigc::bind(sigc::ptr_fun(&do_panic), SIGSEGV));
     SignalHandler::set_handler(SIGBUS, sigc::bind(sigc::ptr_fun(&do_panic), SIGBUS));
 
+    load_option_file("./test_options", &optionHandler);
     int firstArg = parse_options(&uiControl, &optionHandler, argc, argv);
 
     initialize_display(&uiControl);

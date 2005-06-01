@@ -20,51 +20,29 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#include "config.h"
+#ifndef RTORRENT_OPTION_FILE_H
+#define RTORRENT_OPTION_FILE_H
 
-#include <stdexcept>
-#include <sigc++/bind.h>
-#include <sigc++/hide.h>
+#include <iosfwd>
+#include <string>
+#include <sigc++/slot.h>
 
-#include "option_handler.h"
+class OptionFile {
+public:
+  static const int max_size_key = 64;
+  static const int max_size_opt = 512;
+  static const int max_size_line = max_size_key + max_size_opt + 64;
 
-void
-OptionHandler::insert(const std::string& key, OptionHandlerBase* opt) {
-  iterator itr = find(key);
+  typedef sigc::slot2<void, const std::string&, const std::string&> SlotStringPair;
+  
+  void                slot_option(const SlotStringPair& s) { m_slotOption = s; }
 
-  if (itr == end()) {
-    Base::insert(value_type(key, opt));
-  } else {
-    delete itr->second;
-    itr->second = opt;
-  }
-}
+  void                process(std::istream* stream);
 
-void
-OptionHandler::erase(const std::string& key) {
-  iterator itr = find(key);
+private:
+  void                parse_line(const char* line);
 
-  if (itr == end())
-    return;
+  SlotStringPair      m_slotOption;
+};
 
-  delete itr->second;
-  Base::erase(itr);
-}
-
-void
-OptionHandler::clear() {
-  for (iterator itr = begin(), last = end(); itr != last; ++itr)
-    delete itr->second;
-
-  Base::clear();
-}
-
-void
-OptionHandler::process(const std::string& key, const std::string& arg) const {
-  const_iterator itr = find(key);
-
-  if (itr == end())
-    throw std::runtime_error("Could not find option key matching \"" + key + "\"");
-
-  itr->second->process(key, arg);
-}
+#endif

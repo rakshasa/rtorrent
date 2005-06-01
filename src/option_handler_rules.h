@@ -23,25 +23,35 @@
 #ifndef RTORRENT_OPTION_HANDLER_RULES_H
 #define RTORRENT_OPTION_HANDLER_RULES_H
 
-#include "core/download_slot_map.h"
+#include <cstdio>
+#include <stdexcept>
+#include <sigc++/bind.h>
 
 #include "option_handler.h"
+#include "core/download_slot_map.h"
 
-class OptionHandlerDownloadMinPeers : public OptionHandlerBase {
+bool validate_download_peers(int arg);
+
+void apply_download_min_peers(core::Download* d, int arg);
+void apply_download_max_peers(core::Download* d, int arg);
+void apply_download_max_uploads(core::Download* d, int arg);
+
+template <void (*Apply)(core::Download*, int), bool (*Validate)(int)>
+class OptionHandlerDownloadInt : public OptionHandlerBase {
 public:
-  OptionHandlerDownloadMinPeers(core::DownloadSlotMap* m) : m_map(m) {}
-  ~OptionHandlerDownloadMinPeers();
-  
-  virtual void process(const std::string& key, const std::string& arg);
-  
-private:
-  // Move these somewhere else? A seperate file with lots of different
-  // setting appliers. Those would perform the nessesary checks
-  // themselves.
-  static void apply(core::Download* d, int arg) {
-    d->get_download().set_peers_min(arg);
+  OptionHandlerDownloadInt(core::DownloadSlotMap* m) : m_map(m) {}
+
+  virtual void process(const std::string& key, const std::string& arg) {
+    int a;
+    
+    if (std::sscanf(arg.c_str(), "%i", &a) != 1 ||
+	!Validate(a))
+      throw std::runtime_error("Invalid argument for \"" + key + "\": \"" + arg + "\"");
+    
+    (*m_map)[key] = sigc::bind(sigc::ptr_fun(Apply), a);
   }
 
+private:
   core::DownloadSlotMap* m_map;
 };
 

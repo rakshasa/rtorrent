@@ -22,49 +22,41 @@
 
 #include "config.h"
 
+#include <algorithm>
+#include <functional>
+#include <fstream>
 #include <stdexcept>
-#include <sigc++/bind.h>
-#include <sigc++/hide.h>
 
-#include "option_handler.h"
+#include "option_file.h"
 
 void
-OptionHandler::insert(const std::string& key, OptionHandlerBase* opt) {
-  iterator itr = find(key);
+OptionFile::process(std::istream* stream) {
+  char buf[max_size_line];
 
-  if (itr == end()) {
-    Base::insert(value_type(key, opt));
-  } else {
-    delete itr->second;
-    itr->second = opt;
+  while (stream->good()) {
+    stream->getline(buf, max_size_line);
+
+    parse_line(buf);
   }
 }
 
 void
-OptionHandler::erase(const std::string& key) {
-  iterator itr = find(key);
+OptionFile::parse_line(const char* line) {
+  //const char* last = std::find(line, line + max_size_line, '\0');
 
-  if (itr == end())
+  if (line[0] == '#')
     return;
 
-  delete itr->second;
-  Base::erase(itr);
-}
+  char key[64];
+  char opt[512];
 
-void
-OptionHandler::clear() {
-  for (iterator itr = begin(), last = end(); itr != last; ++itr)
-    delete itr->second;
+  int result;
 
-  Base::clear();
-}
+  // Check for empty lines, and options within "abc".
+  if ((result = std::sscanf(line, "%64s = %512s", key, opt)) == 2)
+    m_slotOption(key, opt);
 
-void
-OptionHandler::process(const std::string& key, const std::string& arg) const {
-  const_iterator itr = find(key);
-
-  if (itr == end())
-    throw std::runtime_error("Could not find option key matching \"" + key + "\"");
-
-  itr->second->process(key, arg);
+  // Don't throw on empty lines or lines with key and opt.
+  if (result == 1)
+    throw std::runtime_error("Error parseing option file.");
 }

@@ -22,23 +22,24 @@
 
 #include "config.h"
 
-#include <cstdio>
-#include <stdexcept>
-#include <sigc++/bind.h>
-
 #include "option_handler_rules.h"
 
-OptionHandlerDownloadMinPeers::~OptionHandlerDownloadMinPeers() {
+bool
+validate_download_peers(int arg) {
+  return arg > 0 && arg < (1 << 16);
 }
 
 void
-OptionHandlerDownloadMinPeers::process(const std::string& key, const std::string& arg) {
-  int a;
+apply_download_min_peers(core::Download* d, int arg) {
+  d->get_download().set_peers_min(arg);
+}
 
-  if (std::sscanf(arg.c_str(), "%i", &a) != 1 ||
-      a <= 0 ||
-      a >= (1 << 16))
-    throw std::runtime_error("Invalid argument for min peers \"" + arg + "\"");
+void
+apply_download_max_peers(core::Download* d, int arg) {
+  d->get_download().set_peers_max(arg);
+}
 
-  (*m_map)[key] = sigc::bind(sigc::ptr_fun(&OptionHandlerDownloadMinPeers::apply), a);
+void
+apply_download_max_uploads(core::Download* d, int arg) {
+  d->get_download().set_uploads_max(arg);
 }
