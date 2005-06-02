@@ -34,3 +34,5 @@ Recheck hash key.
 Seperate download management from core::management.
 
 Allow switching/cycling of tracker.
+
+Remember to add virtual dtor to OptionHandlerBase

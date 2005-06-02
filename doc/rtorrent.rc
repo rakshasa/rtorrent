@@ -1,0 +1,31 @@
+# This is an example resource file for rTorrent. Copy to
+# ~/.rtorrent.rc and enable/modify the options as needed.
+
+# Minumum amount of peers to connect per torrent, if available.
+# min_peers = 40
+
+# Minumum amount of peers to connect per torrent.
+# max_peers = 100
+
+# Maximum number of simultanious uploads per torrent.
+# max_uploads = 15
+
+# Global download rate in KiB. "0" for unlimited.
+# download_rate = 0
+
+# Global upload rate in KiB. "0" for unlimited.
+# upload_rate = 0
+
+# Default directory to save downloaded files. Note it doesn't support
+# space yet.
+# directory = ./
+
+# The ip address reported to the tracker.
+# ip = 127.0.0.1
+
+# The ip address the listening socket and outgoing connections is
+# bound to.
+# bind = 127.0.0.1
+
+# Port range to use for listening.
+# port = 6890-6999

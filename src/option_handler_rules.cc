@@ -22,11 +22,40 @@
 
 #include "config.h"
 
+#include <arpa/inet.h>
+#include <torrent/torrent.h>
+
+#include "ui/control.h"
 #include "option_handler_rules.h"
+
+bool
+validate_ip(const std::string& arg) {
+  struct in_addr addr;
+
+  return inet_aton(arg.c_str(), &addr);
+}
+
+bool
+validate_directory(const std::string& arg) {
+  return true;
+}
+
+bool
+validate_port_range(const std::string& arg) {
+  int a, b;
+    
+  return std::sscanf(arg.c_str(), "%i-%i", &a, &b) == 2 &&
+    a <= b && a > 0 && b < (1 << 16);
+}
 
 bool
 validate_download_peers(int arg) {
   return arg > 0 && arg < (1 << 16);
+}
+
+bool
+validate_rate(int arg) {
+  return arg >= 0 && arg < (1 << 24);
 }
 
 void
@@ -42,4 +71,42 @@ apply_download_max_peers(core::Download* d, int arg) {
 void
 apply_download_max_uploads(core::Download* d, int arg) {
   d->get_download().set_uploads_max(arg);
+}
+
+void
+apply_download_directory(core::Download* d, const std::string& arg) {
+  d->get_download().set_root_dir(arg +
+				 (!arg.empty() && *arg.rbegin() != '/' ? "/" : "") +
+				 (d->get_download().get_entry_size() > 1 ? d->get_download().get_name() : ""));
+}
+
+void
+apply_download_ip(core::Download* d, const std::string& arg) {
+  d->get_download().set_ip(arg);
+}
+
+void
+apply_global_download_rate(ui::Control* m, int arg) {
+  torrent::set(torrent::THROTTLE_READ_CONST_RATE, arg * 1024);
+}
+
+void
+apply_global_upload_rate(ui::Control* m, int arg) {
+  torrent::set(torrent::THROTTLE_ROOT_CONST_RATE, arg * 1024);
+}
+
+void
+apply_bind(ui::Control* m, const std::string& arg) {
+  m->get_core().set_listen_ip(arg);
+}
+
+// The arg string *must* have been checked with validate_port_range
+// first.
+void
+apply_port_range(ui::Control* m, const std::string& arg) {
+  int a = 0, b = 0;
+    
+  std::sscanf(arg.c_str(), "%i-%i", &a, &b);
+
+  m->get_core().set_port_range(a, b);
 }

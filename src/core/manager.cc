@@ -125,21 +125,6 @@ Manager::stop(Download* d) {
 }
 
 void
-Manager::set_dns(const std::string& dns) {
-  // TODO: Switch with the inet version of this thingie.
-  unsigned int a, b, c, d;
-
-  if (std::sscanf(dns.c_str(), "%i.%i.%i.%i", &a, &b, &c, &d) != 4 ||
-      (a >= 256 || b >= 256 || c >= 256 || d >= 256))
-    throw std::runtime_error("Tried to set invalid ip address.");
-
-  std::stringstream str;
-  str << a << '.' << b << '.' << c << '.' << d;
-
-  m_dns = str.str();
-}
-
-void
 Manager::receive_http_failed(std::string msg) {
   m_logImportant.push_front("Http download error: \"" + msg + "\"");
   m_logComplete.push_front("Http download error: \"" + msg + "\"");
@@ -180,15 +165,6 @@ Manager::create_final(std::istream* s) {
 
 void
 Manager::setup_download(Download* d) {
-  // These should be in m_defaultSettings.
-  d->get_download().set_ip(m_dns);
-
-  if (!m_defaultRoot.empty())
-    d->get_download().set_root_dir(m_defaultRoot +
-				   (d->get_download().get_entry_size() > 1 ?
-				    d->get_download().get_name() :
-				    ""));
-
   m_defaultSettings.for_each(d);
 
   if (m_debugTracker >= 0)

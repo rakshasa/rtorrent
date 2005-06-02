@@ -95,15 +95,16 @@ int
 parse_options(ui::Control* c, OptionHandler* optionHandler, int argc, char** argv) {
   OptionParser optionParser;
 
+  // Converted.
   optionParser.insert_flag('h', sigc::ptr_fun(&print_help));
   optionParser.insert_flag('t', sigc::mem_fun(c->get_core(), &core::Manager::debug_tracker));
 
-  optionParser.insert_option('b', sigc::mem_fun(c->get_core(), &core::Manager::set_listen_ip));
-  optionParser.insert_option('d', sigc::mem_fun(c->get_core(), &core::Manager::set_default_root));
-  optionParser.insert_option('i', sigc::mem_fun(c->get_core(), &core::Manager::set_dns));
+  optionParser.insert_option('b', sigc::bind<0>(sigc::mem_fun(*optionHandler, &OptionHandler::process), "bind"));
+  optionParser.insert_option('d', sigc::bind<0>(sigc::mem_fun(*optionHandler, &OptionHandler::process), "directory"));
+  optionParser.insert_option('i', sigc::bind<0>(sigc::mem_fun(*optionHandler, &OptionHandler::process), "ip"));
+  optionParser.insert_option('p', sigc::bind<0>(sigc::mem_fun(*optionHandler, &OptionHandler::process), "port"));
   optionParser.insert_option('s', sigc::mem_fun(c->get_core().get_download_store(), &core::DownloadStore::activate));
 
-  optionParser.insert_int_pair('p', sigc::mem_fun(c->get_core(), &core::Manager::set_port_range));
   optionParser.insert_option_list('o', sigc::mem_fun(*optionHandler, &OptionHandler::process));
 
   return optionParser.process(argc, argv);
@@ -113,9 +114,18 @@ void
 initialize_option_handler(ui::Control* c, OptionHandler* optionHandler) {
   core::DownloadSlotMap* dsm = &c->get_core().get_default_settings();
 
-  optionHandler->insert("min_peers",   new OptionHandlerDownloadInt<&apply_download_min_peers, &validate_download_peers>(dsm));
-  optionHandler->insert("max_peers",   new OptionHandlerDownloadInt<&apply_download_max_peers, &validate_download_peers>(dsm));
-  optionHandler->insert("max_uploads", new OptionHandlerDownloadInt<&apply_download_max_uploads, &validate_download_peers>(dsm));
+  optionHandler->insert("min_peers",   new OptionHandlerDownloadInt(dsm, &apply_download_min_peers, &validate_download_peers));
+  optionHandler->insert("max_peers",   new OptionHandlerDownloadInt(dsm, &apply_download_max_peers, &validate_download_peers));
+  optionHandler->insert("max_uploads", new OptionHandlerDownloadInt(dsm, &apply_download_max_uploads, &validate_download_peers));
+
+  optionHandler->insert("download_rate", new OptionHandlerInt(c, &apply_global_download_rate, &validate_rate));
+  optionHandler->insert("upload_rate", new OptionHandlerInt(c, &apply_global_upload_rate, &validate_rate));
+
+  optionHandler->insert("directory", new OptionHandlerDownloadString(dsm, &apply_download_directory, &validate_directory));
+  optionHandler->insert("ip", new OptionHandlerDownloadString(dsm, &apply_download_ip, &validate_ip));
+
+  optionHandler->insert("bind", new OptionHandlerString(c, &apply_bind, &validate_ip));
+  optionHandler->insert("port", new OptionHandlerString(c, &apply_port_range, &validate_port_range));
 }
 
 void
@@ -180,7 +190,9 @@ main(int argc, char** argv) {
     SignalHandler::set_handler(SIGSEGV, sigc::bind(sigc::ptr_fun(&do_panic), SIGSEGV));
     SignalHandler::set_handler(SIGBUS, sigc::bind(sigc::ptr_fun(&do_panic), SIGBUS));
 
-    load_option_file("./test_options", &optionHandler);
+    if (getenv("HOME"))
+      load_option_file(getenv("HOME") + std::string("/.rtorrent.rc"), &optionHandler);
+
     int firstArg = parse_options(&uiControl, &optionHandler, argc, argv);
 
     initialize_display(&uiControl);
@@ -265,6 +277,7 @@ print_help() {
   std::cout << "  -p <int>-<int>    Set port range for incoming connections" << std::endl;
   std::cout << "  -d <directory>    Save torrents to this directory by default" << std::endl;
   std::cout << "  -s <directory>    Set the session directory" << std::endl;
+  std::cout << "  -o key=opt,...    Set options, see 'rtorrent.rc' file" << std::endl;
   std::cout << std::endl;
   std::cout << "Main view keys:" << std::endl;
   std::cout << "  backspace         Add a torrent url or path" << std::endl;
