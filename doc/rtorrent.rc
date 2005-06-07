@@ -2,30 +2,36 @@
 # ~/.rtorrent.rc and enable/modify the options as needed.
 
 # Minumum amount of peers to connect per torrent, if available.
-# min_peers = 40
+#min_peers = 40
 
 # Minumum amount of peers to connect per torrent.
-# max_peers = 100
+#max_peers = 100
 
 # Maximum number of simultanious uploads per torrent.
-# max_uploads = 15
+#max_uploads = 15
 
 # Global download rate in KiB. "0" for unlimited.
-# download_rate = 0
+#download_rate = 0
 
 # Global upload rate in KiB. "0" for unlimited.
-# upload_rate = 0
+#upload_rate = 0
 
 # Default directory to save downloaded files. Note it doesn't support
 # space yet.
-# directory = ./
+#directory = ./
 
 # The ip address reported to the tracker.
-# ip = 127.0.0.1
+#ip = 127.0.0.1
 
 # The ip address the listening socket and outgoing connections is
 # bound to.
-# bind = 127.0.0.1
+#bind = 127.0.0.1
 
 # Port range to use for listening.
-# port = 6890-6999
+#port = 6890-6999
+
+# Hash read-ahead controls how many MB to request the kernel to read
+# ahead. If the value is too low the disk may not be fully utilized,
+# while if too high the kernel might not be able to keep the read
+# pages in memory thus end up trashing.
+#hash_read_ahead = 10

@@ -55,7 +55,12 @@ validate_download_peers(int arg) {
 
 bool
 validate_rate(int arg) {
-  return arg >= 0 && arg < (1 << 24);
+  return arg >= 0 && arg < (1 << 20);
+}
+
+bool
+validate_read_ahead(int arg) {
+  return arg >= 1 && arg < 64;
 }
 
 void
@@ -82,12 +87,17 @@ apply_download_directory(core::Download* d, const std::string& arg) {
 
 void
 apply_global_download_rate(ui::Control* m, int arg) {
-  torrent::set(torrent::THROTTLE_READ_CONST_RATE, arg * 1024);
+  torrent::set_read_throttle(arg * 1024);
 }
 
 void
 apply_global_upload_rate(ui::Control* m, int arg) {
-  torrent::set(torrent::THROTTLE_ROOT_CONST_RATE, arg * 1024);
+  torrent::set_write_throttle(arg * 1024);
+}
+
+void
+apply_hash_read_ahead(ui::Control* m, int arg) {
+  torrent::set_hash_read_ahead(arg << 20);
 }
 
 void

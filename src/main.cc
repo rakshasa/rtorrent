@@ -118,12 +118,13 @@ initialize_option_handler(ui::Control* c, OptionHandler* optionHandler) {
   optionHandler->insert("max_peers",   new OptionHandlerDownloadInt(dsm, &apply_download_max_peers, &validate_download_peers));
   optionHandler->insert("max_uploads", new OptionHandlerDownloadInt(dsm, &apply_download_max_uploads, &validate_download_peers));
 
-  optionHandler->insert("download_rate", new OptionHandlerInt(c, &apply_global_download_rate, &validate_rate));
-  optionHandler->insert("upload_rate", new OptionHandlerInt(c, &apply_global_upload_rate, &validate_rate));
+  optionHandler->insert("download_rate",   new OptionHandlerInt(c, &apply_global_download_rate, &validate_rate));
+  optionHandler->insert("upload_rate",     new OptionHandlerInt(c, &apply_global_upload_rate, &validate_rate));
+  optionHandler->insert("hash_read_ahead", new OptionHandlerInt(c, &apply_hash_read_ahead, &validate_read_ahead));
 
   optionHandler->insert("directory", new OptionHandlerDownloadString(dsm, &apply_download_directory, &validate_directory));
 
-  optionHandler->insert("ip", new OptionHandlerString(c, &apply_ip, &validate_ip));
+  optionHandler->insert("ip",   new OptionHandlerString(c, &apply_ip, &validate_ip));
   optionHandler->insert("bind", new OptionHandlerString(c, &apply_bind, &validate_ip));
   optionHandler->insert("port", new OptionHandlerString(c, &apply_port_range, &validate_port_range));
 }
@@ -132,10 +133,10 @@ void
 load_option_file(const std::string& filename, OptionHandler* optionHandler, bool require = false) {
   std::fstream f(filename.c_str(), std::ios::in);
 
-  if (!f.is_open())
+  if (!f.is_open()) {
+    std::cout << "Could not open option file \"" << filename << "\"" << std::endl;
     return;
-
-  std::cout << "Loaded option file \"" << filename << "\"" << std::endl;
+  }
 
   OptionFile optionFile;
 
@@ -208,7 +209,7 @@ main(int argc, char** argv) {
 
     uiControl.get_display().adjust_layout();
 
-    while (!is_shutting_down || !torrent::get(torrent::SHUTDOWN_DONE)) {
+    while (!is_shutting_down || !torrent::is_inactive()) {
 
       if (uiRoot.get_shutdown_received()) {
 	do_shutdown(&uiControl);

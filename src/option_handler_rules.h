@@ -40,6 +40,7 @@ bool validate_port_range(const std::string& arg);
 
 bool validate_download_peers(int arg);
 bool validate_rate(int arg);
+bool validate_read_ahead(int arg);
 
 void apply_download_min_peers(core::Download* d, int arg);
 void apply_download_max_peers(core::Download* d, int arg);
@@ -49,6 +50,8 @@ void apply_download_directory(core::Download* d, const std::string& arg);
 
 void apply_global_download_rate(ui::Control* m, int arg);
 void apply_global_upload_rate(ui::Control* m, int arg);
+
+void apply_hash_read_ahead(ui::Control* m, int arg);
 
 void apply_ip(ui::Control* m, const std::string& arg);
 void apply_bind(ui::Control* m, const std::string& arg);

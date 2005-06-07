@@ -55,7 +55,7 @@ Poll::poll(utils::Timer timeout) {
     m_maxFd = std::max(m_maxFd, n);
   }
 
-  timeval t = std::min(timeout, utils::Timer(torrent::get(torrent::TIME_SELECT))).tval();
+  timeval t = std::min(timeout, utils::Timer(torrent::get_next_timeout())).tval();
 
   errno = 0;
   m_maxFd = select(m_maxFd + 1, m_readSet, m_writeSet, m_exceptSet, &t);

@@ -184,14 +184,14 @@ void
 Download::receive_read_throttle(int t) {
   m_windowMainStatus->mark_dirty();
 
-  torrent::set(torrent::THROTTLE_READ_CONST_RATE, torrent::get(torrent::THROTTLE_READ_CONST_RATE) + t * 1024);
+  torrent::set_read_throttle(torrent::get_read_throttle() + t * 1024);
 }
 
 void
 Download::receive_write_throttle(int t) {
   m_windowMainStatus->mark_dirty();
 
-  torrent::set(torrent::THROTTLE_ROOT_CONST_RATE, torrent::get(torrent::THROTTLE_ROOT_CONST_RATE) + t * 1024);
+  torrent::set_write_throttle(torrent::get_write_throttle() + t * 1024);
 }
 
 void

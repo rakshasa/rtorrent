@@ -53,7 +53,7 @@ DownloadList::DownloadList(Control* c) :
 
   m_window(c->get_display().end()),
 
-  m_windowTitle(new WTitle("rtorrent " VERSION " - " + torrent::get(torrent::LIBRARY_NAME))),
+  m_windowTitle(new WTitle("rTorrent " VERSION " - libTorrent " + torrent::get_version())),
   m_windowStatus(new WStatus(&c->get_core())),
   m_windowHttpQueue(new WHttp(&c->get_core().get_http_queue())),
 
@@ -172,14 +172,14 @@ void
 DownloadList::receive_read_throttle(int t) {
   m_windowStatus->mark_dirty();
 
-  torrent::set(torrent::THROTTLE_READ_CONST_RATE, torrent::get(torrent::THROTTLE_READ_CONST_RATE) + t * 1024);
+  torrent::set_read_throttle(torrent::get_read_throttle() + t * 1024);
 }
 
 void
 DownloadList::receive_write_throttle(int t) {
   m_windowStatus->mark_dirty();
 
-  torrent::set(torrent::THROTTLE_ROOT_CONST_RATE, torrent::get(torrent::THROTTLE_ROOT_CONST_RATE) + t * 1024);
+  torrent::set_write_throttle(torrent::get_write_throttle() + t * 1024);
 }
 
 void
