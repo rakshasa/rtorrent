@@ -68,7 +68,6 @@ public:
   void                stop(Download* d);
 
   void                set_port_range(int a, int b)            { m_portFirst = a; m_portLast = b; }
-  void                set_listen_ip(const std::string& ip)    { m_listenIp = ip; }
 
   void                debug_tracker()                         { m_debugTracker = 0; }
 
@@ -97,7 +96,6 @@ private:
 
   int                 m_portFirst;
   int                 m_portLast;
-  std::string         m_listenIp;
 
   int                 m_debugTracker;
 };

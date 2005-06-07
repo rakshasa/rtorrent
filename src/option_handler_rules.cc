@@ -81,11 +81,6 @@ apply_download_directory(core::Download* d, const std::string& arg) {
 }
 
 void
-apply_download_ip(core::Download* d, const std::string& arg) {
-  d->get_download().set_ip(arg);
-}
-
-void
 apply_global_download_rate(ui::Control* m, int arg) {
   torrent::set(torrent::THROTTLE_READ_CONST_RATE, arg * 1024);
 }
@@ -97,7 +92,12 @@ apply_global_upload_rate(ui::Control* m, int arg) {
 
 void
 apply_bind(ui::Control* m, const std::string& arg) {
-  m->get_core().set_listen_ip(arg);
+  torrent::set_bind(arg);
+}
+
+void
+apply_ip(ui::Control* m, const std::string& arg) {
+  torrent::set_ip(arg);
 }
 
 // The arg string *must* have been checked with validate_port_range

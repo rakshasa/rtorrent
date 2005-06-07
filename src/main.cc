@@ -122,8 +122,8 @@ initialize_option_handler(ui::Control* c, OptionHandler* optionHandler) {
   optionHandler->insert("upload_rate", new OptionHandlerInt(c, &apply_global_upload_rate, &validate_rate));
 
   optionHandler->insert("directory", new OptionHandlerDownloadString(dsm, &apply_download_directory, &validate_directory));
-  optionHandler->insert("ip", new OptionHandlerDownloadString(dsm, &apply_download_ip, &validate_ip));
 
+  optionHandler->insert("ip", new OptionHandlerString(c, &apply_ip, &validate_ip));
   optionHandler->insert("bind", new OptionHandlerString(c, &apply_bind, &validate_ip));
   optionHandler->insert("port", new OptionHandlerString(c, &apply_port_range, &validate_port_range));
 }
@@ -189,6 +189,9 @@ main(int argc, char** argv) {
     SignalHandler::set_handler(SIGINT, sigc::bind(sigc::mem_fun(uiRoot, &ui::Root::set_shutdown_received), true));
     SignalHandler::set_handler(SIGSEGV, sigc::bind(sigc::ptr_fun(&do_panic), SIGSEGV));
     SignalHandler::set_handler(SIGBUS, sigc::bind(sigc::ptr_fun(&do_panic), SIGBUS));
+
+    // Need to initialize this before parseing options.
+    torrent::initialize();
 
     if (getenv("HOME"))
       load_option_file(getenv("HOME") + std::string("/.rtorrent.rc"), &optionHandler);

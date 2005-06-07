@@ -56,10 +56,11 @@ WindowStatusbar::redraw() {
   else
     pos = snprintf(buf + pos, 128 - pos, "%-3i", (int)torrent::get(torrent::THROTTLE_READ_CONST_RATE) / 1024);
 
-  m_canvas->print(0, 0, "Throttle U/D: %s Listen: %i Handshakes: %i",
+  m_canvas->print(0, 0, "Throttle U/D: %s  Listen: %s:%i%s  Handshakes: %i",
 		  buf,
-		  //m_core->get_dns().empty() ? "<default>" : m_core->get_dns().c_str(),
+		  !torrent::get_ip().empty() ? torrent::get_ip().c_str() : "<default>",
 		  (int)torrent::get(torrent::LISTEN_PORT),
+		  !torrent::get_bind().empty() ? ("  Bind: " + torrent::get_bind()).c_str() : "",
 		  (int)torrent::get(torrent::HANDSHAKES_TOTAL));
 }
 

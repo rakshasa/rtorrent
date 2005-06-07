@@ -46,11 +46,11 @@ void apply_download_max_peers(core::Download* d, int arg);
 void apply_download_max_uploads(core::Download* d, int arg);
 
 void apply_download_directory(core::Download* d, const std::string& arg);
-void apply_download_ip(core::Download* d, const std::string& arg);
 
 void apply_global_download_rate(ui::Control* m, int arg);
 void apply_global_upload_rate(ui::Control* m, int arg);
 
+void apply_ip(ui::Control* m, const std::string& arg);
 void apply_bind(ui::Control* m, const std::string& arg);
 void apply_port_range(ui::Control* m, const std::string& arg);
 

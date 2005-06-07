@@ -47,9 +47,9 @@ Manager::initialize() {
 
   CurlStack::init();
 
-  torrent::initialize();
+  //torrent::initialize();
 
-  if (!torrent::listen_open(m_portFirst, m_portLast, m_listenIp))
+  if (!torrent::listen_open(m_portFirst, m_portLast))
     throw std::runtime_error("Could not open port for listening.");
 
   // Register log signals.

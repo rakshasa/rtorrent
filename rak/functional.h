@@ -27,6 +27,16 @@
 
 namespace rak {
 
+template <typename Type>
+struct reference_fix {
+  typedef Type type;
+};
+
+template <typename Type>
+struct reference_fix<Type&> {
+  typedef Type type;
+};
+
 template <typename Type, typename Ftor>
 struct _accumulate {
   _accumulate(Type& t, Ftor f) : m_t(t), m_f(f) {}
@@ -43,6 +53,8 @@ inline _accumulate<Type, Ftor>
 accumulate(Type& t, Ftor f) {
   return _accumulate<Type, Ftor>(t, f);
 }
+
+// Operators:
 
 template <typename Type, typename Ftor>
 struct _equal {
@@ -63,11 +75,87 @@ equal(Type t, Ftor f) {
   return _equal<Type, Ftor>(t, f);
 }
 
+template <typename Type, typename Ftor>
+struct _less {
+  _less(Type t, Ftor f) : m_t(t), m_f(f) {}
+
+  template <typename Arg>
+  bool operator () (Arg& a) {
+    return m_t < m_f(a);
+  }
+
+  Type m_t;
+  Ftor m_f;
+};
+
+template <typename Type, typename Ftor>
+inline _less<Type, Ftor>
+less(Type t, Ftor f) {
+  return _less<Type, Ftor>(t, f);
+}
+
+template <typename Type, typename Ftor>
+struct _greater {
+  _greater(Type t, Ftor f) : m_t(t), m_f(f) {}
+
+  template <typename Arg>
+  bool operator () (Arg& a) {
+    return m_t > m_f(a);
+  }
+
+  Type m_t;
+  Ftor m_f;
+};
+
+template <typename Type, typename Ftor>
+inline _greater<Type, Ftor>
+greater(Type t, Ftor f) {
+  return _greater<Type, Ftor>(t, f);
+}
+
+template <typename Type, typename Ftor>
+struct _less_equal {
+  _less_equal(Type t, Ftor f) : m_t(t), m_f(f) {}
+
+  template <typename Arg>
+  bool operator () (Arg& a) {
+    return m_t <= m_f(a);
+  }
+
+  Type m_t;
+  Ftor m_f;
+};
+
+template <typename Type, typename Ftor>
+inline _less_equal<Type, Ftor>
+less_equal(Type t, Ftor f) {
+  return _less_equal<Type, Ftor>(t, f);
+}
+
+template <typename Type, typename Ftor>
+struct _greater_equal {
+  _greater_equal(Type t, Ftor f) : m_t(t), m_f(f) {}
+
+  template <typename Arg>
+  bool operator () (Arg& a) {
+    return m_t >= m_f(a);
+  }
+
+  Type m_t;
+  Ftor m_f;
+};
+
+template <typename Type, typename Ftor>
+inline _greater_equal<Type, Ftor>
+greater_equal(Type t, Ftor f) {
+  return _greater_equal<Type, Ftor>(t, f);
+}
+
 template <typename Src, typename Dest>
 struct _on : public std::unary_function<typename Src::argument_type, typename Dest::result_type>  {
   _on(Src s, Dest d) : m_dest(d), m_src(s) {}
 
-  typename Dest::result_type operator () (typename Src::argument_type arg) {
+  typename Dest::result_type operator () (typename reference_fix<typename Src::argument_type>::type arg) {
     return m_dest(m_src(arg));
   }
 
@@ -125,6 +213,32 @@ struct call_delete : public std::unary_function<T*, void> {
     delete t;
   }
 };
+
+template <typename Operation>
+class bind1st_t : public std::unary_function<typename Operation::second_argument_type,
+					     typename Operation::result_type> {
+protected:
+  typedef typename reference_fix<typename Operation::first_argument_type>::type value_type;
+  typedef typename reference_fix<typename Operation::second_argument_type>::type argument_type;
+
+  Operation  m_op;
+  value_type m_value;
+
+public:
+  bind1st_t(const Operation& op, const value_type v) :
+    m_op(op), m_value(v) {}
+
+  typename Operation::result_type
+  operator () (const argument_type arg) {
+    return m_op(m_value, arg);
+  }
+};	    
+
+template <typename Operation, typename Type>
+inline bind1st_t<Operation>
+bind1st(const Operation& op, const Type& val) {
+  return bind1st_t<Operation>(op, val);
+}
 
 }
 
