@@ -121,6 +121,7 @@ initialize_option_handler(ui::Control* c, OptionHandler* optionHandler) {
   optionHandler->insert("download_rate",   new OptionHandlerInt(c, &apply_global_download_rate, &validate_rate));
   optionHandler->insert("upload_rate",     new OptionHandlerInt(c, &apply_global_upload_rate, &validate_rate));
   optionHandler->insert("hash_read_ahead", new OptionHandlerInt(c, &apply_hash_read_ahead, &validate_read_ahead));
+  optionHandler->insert("max_open_files",  new OptionHandlerInt(c, &apply_max_open_files, &validate_fd));
 
   optionHandler->insert("directory", new OptionHandlerDownloadString(dsm, &apply_download_directory, &validate_directory));
 
@@ -243,6 +244,9 @@ main(int argc, char** argv) {
 
 void
 do_panic(int signum) {
+  // Use the default signal handler in the future to avoid infint
+  // loops.
+  SignalHandler::set_default(signum);
   display::Canvas::cleanup();
 
   std::cout << "Signal " << (signum == SIGSEGV ? "SIGSEGV" : "SIGBUS") << " recived, dumping stack:" << std::endl;

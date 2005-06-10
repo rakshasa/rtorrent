@@ -27,6 +27,8 @@
 
 namespace core {
 
+class CurlGet;
+
 class CurlStack {
  public:
   friend class CurlGet;

@@ -33,6 +33,8 @@ struct CURLMsg;
 
 namespace core {
 
+class CurlStack;
+
 class CurlGet : public torrent::Http {
  public:
   friend class CurlStack;

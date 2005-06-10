@@ -35,3 +35,6 @@
 # while if too high the kernel might not be able to keep the read
 # pages in memory thus end up trashing.
 #hash_read_ahead = 10
+
+# Max number of files to keep open simultaniously.
+#max_open_files = 100

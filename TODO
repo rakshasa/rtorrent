@@ -1,8 +1,6 @@
 Polling during last phase of shutdown should be very quick, don't use
 normal timeout.
 
-Make clear distinction of upload/download throttle.
-
 Consider basing WindowPeer* on a common base class.
 
 Some kind of indication that a tracker request was tried, but won't be
@@ -20,12 +18,6 @@ Make accumulate return the value, no refs please...
 >     created from rtorrent.  Like when you start a torrent, but it is too
 >     slow or broken or for various reasons you don't want to download it.
 
-
-Show the bound listening ip.
-
-Bug: Add the same torrent while it is hash checking.
-
-Bug: Using ^s on a bad torrent does not catch the exception.
 
 Show torrent creation date?
 

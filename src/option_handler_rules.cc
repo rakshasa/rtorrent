@@ -63,6 +63,11 @@ validate_read_ahead(int arg) {
   return arg >= 1 && arg < 64;
 }
 
+bool
+validate_fd(int arg) {
+  return arg >= 10 && arg < 1024;
+}
+
 void
 apply_download_min_peers(core::Download* d, int arg) {
   d->get_download().set_peers_min(arg);
@@ -98,6 +103,11 @@ apply_global_upload_rate(ui::Control* m, int arg) {
 void
 apply_hash_read_ahead(ui::Control* m, int arg) {
   torrent::set_hash_read_ahead(arg << 20);
+}
+
+void
+apply_max_open_files(ui::Control* m, int arg) {
+  torrent::set_max_open_files(arg);
 }
 
 void
