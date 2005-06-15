@@ -22,6 +22,7 @@
 
 #include "config.h"
 
+#include <netinet/in.h>
 #include <arpa/inet.h>
 #include <torrent/torrent.h>
 

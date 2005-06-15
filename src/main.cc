@@ -191,6 +191,7 @@ main(int argc, char** argv) {
     SignalHandler::set_handler(SIGINT, sigc::bind(sigc::mem_fun(uiRoot, &ui::Root::set_shutdown_received), true));
     SignalHandler::set_handler(SIGSEGV, sigc::bind(sigc::ptr_fun(&do_panic), SIGSEGV));
     SignalHandler::set_handler(SIGBUS, sigc::bind(sigc::ptr_fun(&do_panic), SIGBUS));
+    SignalHandler::set_handler(SIGFPE, sigc::bind(sigc::ptr_fun(&do_panic), SIGFPE));
 
     // Need to initialize this before parseing options.
     torrent::initialize();
@@ -249,7 +250,7 @@ do_panic(int signum) {
   SignalHandler::set_default(signum);
   display::Canvas::cleanup();
 
-  std::cout << "Signal " << (signum == SIGSEGV ? "SIGSEGV" : "SIGBUS") << " recived, dumping stack:" << std::endl;
+  std::cout << "Caught " << SignalHandler::as_string(signum) << ", dumping stack:" << std::endl;
   
 #ifdef USE_EXECINFO
   void* stackPtrs[20];

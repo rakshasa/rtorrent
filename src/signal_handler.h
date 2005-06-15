@@ -32,12 +32,14 @@ public:
 
   static const unsigned int HIGHEST_SIGNAL = 32;
   
-  static void set_default(unsigned int signum);
-  static void set_ignore(unsigned int signum);
-  static void set_handler(unsigned int signum, Slot slot);
+  static void         set_default(unsigned int signum);
+  static void         set_ignore(unsigned int signum);
+  static void         set_handler(unsigned int signum, Slot slot);
+
+  static const char*  as_string(unsigned int signum);
 
 private:
-  static void caught(int signum);
+  static void         caught(int signum);
 
   static Slot m_handlers[HIGHEST_SIGNAL];
 };
