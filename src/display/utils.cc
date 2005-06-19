@@ -22,7 +22,6 @@
 
 #include "config.h"
 
-#include <ctime>
 #include <sstream>
 #include <iomanip>
 
@@ -64,6 +63,23 @@ print_hhmmss(utils::Timer t) {
   str.fill('0');
   
   str << std::setw(2) << u->tm_hour << ':' << std::setw(2) << u->tm_min << ':' << std::setw(2) << u->tm_sec;
+
+  return str.str();
+}
+
+std::string
+print_ddmmyyyy(time_t t) {
+  std::tm *u = std::gmtime(&t);
+  
+  if (u == NULL)
+    return "inv_time";
+
+  std::stringstream str;
+  str.fill('0');
+  
+  str << std::setw(2) << u->tm_mday << '/'
+      << std::setw(2) << u->tm_mon << '/'
+      << std::setw(4) << (1900 + u->tm_year);
 
   return str.str();
 }

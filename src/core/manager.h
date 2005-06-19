@@ -67,6 +67,8 @@ public:
   void                start(Download* d);
   void                stop(Download* d);
 
+  void                check_hash(Download* d);
+
   void                set_port_range(int a, int b)            { m_portFirst = a; m_portLast = b; }
 
   void                debug_tracker()                         { m_debugTracker = 0; }

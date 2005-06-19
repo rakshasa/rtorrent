@@ -48,6 +48,8 @@ private:
   void                receive_next();
   void                receive_prev();
 
+  void                receive_cycle_group();
+
   core::Download*     m_download;
   WTrackerList*       m_window;
   

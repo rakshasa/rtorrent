@@ -8,9 +8,6 @@ allowed since the tracker set a min interval.
 
 Make accumulate return the value, no refs please...
 
->   - listing the total upload / download bandwidth at the bottom of the
->     screen;
-
 >   - seeing the number of seeds / leechers of a torrent on the main
 >     screen (and the level of distribution between leechers);
 
@@ -19,12 +16,6 @@ Make accumulate return the value, no refs please...
 >     slow or broken or for various reasons you don't want to download it.
 
 
-Show torrent creation date?
-
-Recheck hash key.
-
 Seperate download management from core::management.
 
-Allow switching/cycling of tracker.
-
-Remember to add virtual dtor to OptionHandlerBase
+Recheck hash key.

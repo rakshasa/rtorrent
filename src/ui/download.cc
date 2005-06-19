@@ -267,11 +267,12 @@ Download::bind_keys() {
   (*m_bindings)[KEY_DOWN] = sigc::mem_fun(*this, &Download::receive_next);
 
   // Key bindings for sub-ui's.
-  m_uiArray[DISPLAY_PEER_LIST]->get_bindings()[KEY_RIGHT] = sigc::bind(sigc::mem_fun(*this, &Download::receive_change), DISPLAY_FILE_LIST);
-  m_uiArray[DISPLAY_PEER_INFO]->get_bindings()[' ']       = sigc::bind(sigc::mem_fun(*this, &Download::receive_change), DISPLAY_PEER_LIST);
-  m_uiArray[DISPLAY_FILE_LIST]->get_bindings()[KEY_LEFT]  = sigc::bind(sigc::mem_fun(*this, &Download::receive_change), DISPLAY_PEER_LIST);
-  m_uiArray[DISPLAY_TRACKER_LIST]->get_bindings()[' ']    = sigc::bind(sigc::mem_fun(*this, &Download::receive_change), DISPLAY_PEER_LIST);
+  m_uiArray[DISPLAY_PEER_LIST]->get_bindings()[KEY_RIGHT]   = sigc::bind(sigc::mem_fun(*this, &Download::receive_change), DISPLAY_FILE_LIST);
+  m_uiArray[DISPLAY_PEER_INFO]->get_bindings()[KEY_LEFT]    = sigc::bind(sigc::mem_fun(*this, &Download::receive_change), DISPLAY_PEER_LIST);
+  m_uiArray[DISPLAY_FILE_LIST]->get_bindings()[KEY_LEFT]    = sigc::bind(sigc::mem_fun(*this, &Download::receive_change), DISPLAY_PEER_LIST);
+  m_uiArray[DISPLAY_TRACKER_LIST]->get_bindings()[KEY_LEFT] = sigc::bind(sigc::mem_fun(*this, &Download::receive_change), DISPLAY_PEER_LIST);
 
+  // Doesn't belong here.
   m_uiArray[DISPLAY_PEER_LIST]->get_bindings()['*'] = sigc::mem_fun(*this, &Download::receive_snub_peer);
   m_uiArray[DISPLAY_PEER_INFO]->get_bindings()['*'] = sigc::mem_fun(*this, &Download::receive_snub_peer);
 }

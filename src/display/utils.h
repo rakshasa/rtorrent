@@ -23,6 +23,7 @@
 #ifndef RTORRENT_DISPLAY_UTILS_H
 #define RTORRENT_DISPLAY_UTILS_H
 
+#include <ctime>
 #include <string>
 
 namespace core {
@@ -38,6 +39,7 @@ namespace display {
 std::string print_download_status(core::Download* d);
 
 std::string print_hhmmss(utils::Timer t);
+std::string print_ddmmyyyy(time_t t);
 
 }
 

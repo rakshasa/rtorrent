@@ -37,7 +37,8 @@ ElementTrackerList::ElementTrackerList(core::Download* d) :
   m_focus(0) {
 
   m_bindings[KEY_DOWN] = sigc::mem_fun(*this, &ElementTrackerList::receive_next);
-  m_bindings[KEY_UP] = sigc::mem_fun(*this, &ElementTrackerList::receive_prev);
+  m_bindings[KEY_UP]   = sigc::mem_fun(*this, &ElementTrackerList::receive_prev);
+  m_bindings[' ']      = sigc::mem_fun(*this, &ElementTrackerList::receive_cycle_group);
 }
 
 void
@@ -84,6 +85,19 @@ ElementTrackerList::receive_prev() {
     --m_focus;
   else 
     m_focus = m_download->get_download().get_tracker_size() - 1;
+
+  m_window->mark_dirty();
+}
+
+void
+ElementTrackerList::receive_cycle_group() {
+  if (m_window == NULL)
+    throw std::logic_error("ui::ElementTrackerList::receive_group_cycle(...) called on a disabled object");
+
+  if (m_focus >= m_download->get_download().get_tracker_size())
+    throw std::logic_error("ui::ElementTrackerList::receive_group_cycle(...) called with an invalid focus");
+
+  m_download->get_download().cycle_tracker_group(m_download->get_download().get_tracker(m_focus).get_group());
 
   m_window->mark_dirty();
 }
