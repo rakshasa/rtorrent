@@ -232,6 +232,14 @@ DownloadList::receive_exit_download() {
 }
 
 void
+DownloadList::receive_check_hash() {
+  if (m_downloadList.get_focus() == m_downloadList.end())
+    return;
+
+  m_control->get_core().check_hash(*m_downloadList.get_focus());
+}
+
+void
 DownloadList::receive_view_input() {
   m_windowStatus->set_active(false);
   m_windowTextInput->set_active(true);
@@ -297,6 +305,7 @@ DownloadList::setup_keys() {
 
   (*m_bindings)['\x13']        = sigc::mem_fun(*this, &DownloadList::receive_start_download);
   (*m_bindings)['\x04']        = sigc::mem_fun(*this, &DownloadList::receive_stop_download);
+  (*m_bindings)['\x12']        = sigc::mem_fun(*this, &DownloadList::receive_check_hash);
 
   (*m_bindings)['\x7f']        = sigc::mem_fun(*this, &DownloadList::receive_view_input);
   (*m_bindings)[KEY_BACKSPACE] = sigc::mem_fun(*this, &DownloadList::receive_view_input);

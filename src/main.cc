@@ -22,15 +22,17 @@
 
 #include "config.h"
 
-#include <string>
-#include <stdexcept>
-#include <iostream>
 #include <fstream>
+#include <iostream>
+#include <iterator>
+#include <stdexcept>
+#include <string>
 #include <stdlib.h>
-#include <torrent/http.h>
-#include <torrent/torrent.h>
+#include <sstream>
 #include <sigc++/bind.h>
 #include <sigc++/retype_return.h>
+#include <torrent/http.h>
+#include <torrent/torrent.h>
 
 #ifdef USE_EXECINFO
 #include <execinfo.h>
@@ -97,7 +99,6 @@ parse_options(ui::Control* c, OptionHandler* optionHandler, int argc, char** arg
 
   // Converted.
   optionParser.insert_flag('h', sigc::ptr_fun(&print_help));
-  optionParser.insert_flag('t', sigc::mem_fun(c->get_core(), &core::Manager::debug_tracker));
 
   optionParser.insert_option('b', sigc::bind<0>(sigc::mem_fun(*optionHandler, &OptionHandler::process), "bind"));
   optionParser.insert_option('d', sigc::bind<0>(sigc::mem_fun(*optionHandler, &OptionHandler::process), "directory"));
@@ -112,18 +113,19 @@ parse_options(ui::Control* c, OptionHandler* optionHandler, int argc, char** arg
 
 void
 initialize_option_handler(ui::Control* c, OptionHandler* optionHandler) {
-  core::DownloadSlotMap* dsm = &c->get_core().get_default_settings();
+  core::DownloadSlotMap* dsmInsert = &c->get_core().get_download_list().slot_map_insert();
 
-  optionHandler->insert("min_peers",   new OptionHandlerDownloadInt(dsm, &apply_download_min_peers, &validate_download_peers));
-  optionHandler->insert("max_peers",   new OptionHandlerDownloadInt(dsm, &apply_download_max_peers, &validate_download_peers));
-  optionHandler->insert("max_uploads", new OptionHandlerDownloadInt(dsm, &apply_download_max_uploads, &validate_download_peers));
+  optionHandler->insert("min_peers",       new OptionHandlerDownloadInt(dsmInsert, &apply_download_min_peers, &validate_download_peers));
+  optionHandler->insert("max_peers",       new OptionHandlerDownloadInt(dsmInsert, &apply_download_max_peers, &validate_download_peers));
+  optionHandler->insert("max_uploads",     new OptionHandlerDownloadInt(dsmInsert, &apply_download_max_uploads, &validate_download_peers));
 
   optionHandler->insert("download_rate",   new OptionHandlerInt(c, &apply_global_download_rate, &validate_rate));
   optionHandler->insert("upload_rate",     new OptionHandlerInt(c, &apply_global_upload_rate, &validate_rate));
   optionHandler->insert("hash_read_ahead", new OptionHandlerInt(c, &apply_hash_read_ahead, &validate_read_ahead));
   optionHandler->insert("max_open_files",  new OptionHandlerInt(c, &apply_max_open_files, &validate_fd));
 
-  optionHandler->insert("directory", new OptionHandlerDownloadString(dsm, &apply_download_directory, &validate_directory));
+  optionHandler->insert("directory",       new OptionHandlerDownloadString(dsmInsert, &apply_download_directory, &validate_directory));
+  optionHandler->insert("dump_tracker",    new OptionHandlerDownloadString(dsmInsert, &apply_download_dump_tracker, &validate_yes_no));
 
   optionHandler->insert("ip",   new OptionHandlerString(c, &apply_ip, &validate_ip));
   optionHandler->insert("bind", new OptionHandlerString(c, &apply_bind, &validate_ip));
@@ -273,6 +275,22 @@ do_panic(int signum) {
 }
 
 void
+receive_dump_tracker(std::istream* s) {
+  std::stringstream filename;
+  filename << "./tracker_dump." << utils::Timer::current().sec();
+
+  std::fstream out(filename.str().c_str(), std::ios::out | std::ios::trunc);
+
+  if (!out.is_open())
+    return;
+  
+  s->seekg(0);
+
+  std::copy(std::istream_iterator<char>(*s), std::istream_iterator<char>(),
+	    std::ostream_iterator<char>(out));
+}
+
+void
 print_help() {
   std::cout << "Rakshasa's BitTorrent client " VERSION "." << std::endl;
   std::cout << std::endl;
@@ -292,6 +310,7 @@ print_help() {
   std::cout << "  backspace         Add a torrent url or path" << std::endl;
   std::cout << "  ^s                Start torrent" << std::endl;
   std::cout << "  ^d                Stop torrent or delete a stopped torrent" << std::endl;
+  std::cout << "  ^r                Manually initiate hash checking" << std::endl;
   std::cout << "  ^q                Initiate shutdown or skip shutdown process" << std::endl;
   std::cout << "  a,s,d,z,x,c       Adjust upload throttle" << std::endl;
   std::cout << "  A,S,D,Z,X,C       Adjust download throttle" << std::endl;

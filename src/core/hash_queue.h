@@ -54,36 +54,36 @@ public:
   using Base::empty;
   using Base::size;
 
-  void insert(Download* d, Slot s);
+  void                insert(Download* d, Slot s);
 
   // It's safe to try to remove downloads not in the queue. The hash
   // checking is not stopped if it has already started.
-  void remove(Download* d);
+  void                remove(Download* d);
 
-  iterator find(Download* d);
+  iterator            find(Download* d);
 
 private:
-  void receive_hash_done(Download* d);
+  void                receive_hash_done(Download* d);
 
-  void fill_queue();
+  void                fill_queue();
 };
 
 class HashQueueNode {
 public:
   HashQueueNode(Download* d, HashQueue::Slot s) : m_download(d), m_slot(s) {}
-  ~HashQueueNode()                                    { disconnect(); }
+  ~HashQueueNode()                                       { disconnect(); }
 
-  void             disconnect()                       { m_connection.disconnect(); }
+  void                disconnect()                       { m_connection.disconnect(); }
 
-  Download*        get_download()                     { return m_download; }
-  HashQueue::Slot  get_slot()                         { return m_slot; }
+  Download*           get_download()                     { return m_download; }
+  HashQueue::Slot     get_slot()                         { return m_slot; }
 
-  void             set_connection(sigc::connection c) { m_connection = c; }
+  void                set_connection(sigc::connection c) { m_connection = c; }
 
 private:
-  Download*        m_download;
-  HashQueue::Slot  m_slot;
-  sigc::connection m_connection;
+  Download*           m_download;
+  HashQueue::Slot     m_slot;
+  sigc::connection    m_connection;
 };
 
 }

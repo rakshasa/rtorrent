@@ -36,9 +36,9 @@ public:
   typedef sigc::slot1<void, Download*>        SlotDownload;
   typedef std::map<std::string, SlotDownload> Base;
   
-  void insert(const std::string& key, SlotDownload s) { Base::operator[](key) = s; }
+  void                insert(const std::string& key, SlotDownload s)    { Base::operator[](key) = s; }
 
-  void for_each(Download* d);
+  void                for_each(Download* d);
 };
 
 inline void

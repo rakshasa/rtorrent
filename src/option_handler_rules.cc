@@ -29,6 +29,8 @@
 #include "ui/control.h"
 #include "option_handler_rules.h"
 
+void receive_dump_tracker(std::istream* s);
+
 bool
 validate_ip(const std::string& arg) {
   struct in_addr addr;
@@ -47,6 +49,11 @@ validate_port_range(const std::string& arg) {
     
   return std::sscanf(arg.c_str(), "%i-%i", &a, &b) == 2 &&
     a <= b && a > 0 && b < (1 << 16);
+}
+
+bool
+validate_yes_no(const std::string& arg) {
+  return arg == "yes" || arg == "no";
 }
 
 bool
@@ -89,6 +96,11 @@ apply_download_directory(core::Download* d, const std::string& arg) {
   d->get_download().set_root_dir(arg +
 				 (!arg.empty() && *arg.rbegin() != '/' ? "/" : "") +
 				 (d->get_download().get_entry_size() > 1 ? d->get_download().get_name() : ""));
+}
+
+void
+apply_download_dump_tracker(core::Download* d, const std::string& arg) {
+  d->get_download().signal_tracker_dump(sigc::ptr_fun(&receive_dump_tracker));
 }
 
 void

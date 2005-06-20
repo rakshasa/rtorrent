@@ -26,6 +26,8 @@
 #include <iosfwd>
 #include <list>
 
+#include "download_slot_map.h"
+
 namespace core {
 
 class Download;
@@ -51,11 +53,37 @@ public:
 
   ~DownloadList() { clear(); }
 
-  iterator  insert(std::istream* str);
-  iterator  erase(iterator itr);
+  iterator            insert(std::istream* str);
+  iterator            erase(iterator itr);
+
+  void                open(Download* d)     { m_slotMapOpen.for_each(d); }
+  void                close(Download* d)    { m_slotMapClose.for_each(d); }
+
+  void                start(Download* d)    { m_slotMapStart.for_each(d); }
+  void                stop(Download* d)     { m_slotMapStop.for_each(d); }
+
+  DownloadSlotMap&    slot_map_insert()     { return m_slotMapInsert; }
+  DownloadSlotMap&    slot_map_erase()      { return m_slotMapErase; }
+  DownloadSlotMap&    slot_map_open()       { return m_slotMapOpen; }
+  DownloadSlotMap&    slot_map_close()      { return m_slotMapClose; }
+  DownloadSlotMap&    slot_map_start()      { return m_slotMapStart; }
+  DownloadSlotMap&    slot_map_stop()       { return m_slotMapStop; }
+
+  DownloadSlotMap&    slot_map_finished()   { return m_slotMapFinished; }
 
 private:
-  void      clear();
+  void                clear();
+
+  void                finished(Download* d);
+
+  DownloadSlotMap     m_slotMapInsert;
+  DownloadSlotMap     m_slotMapErase;
+  DownloadSlotMap     m_slotMapOpen;
+  DownloadSlotMap     m_slotMapClose;
+  DownloadSlotMap     m_slotMapStart;
+  DownloadSlotMap     m_slotMapStop;
+
+  DownloadSlotMap     m_slotMapFinished;
 };
 
 }

@@ -30,6 +30,10 @@
 # Port range to use for listening.
 #port = 6890-6999
 
+#
+# Do not modify the following parameters unless you know what you're doing.
+#
+
 # Hash read-ahead controls how many MB to request the kernel to read
 # ahead. If the value is too low the disk may not be fully utilized,
 # while if too high the kernel might not be able to keep the read
@@ -38,3 +42,6 @@
 
 # Max number of files to keep open simultaniously.
 #max_open_files = 100
+
+# Dump data received from trackers to the files "./tracker_dump.<time>".
+#dump_tracker = no

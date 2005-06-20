@@ -44,8 +44,10 @@ In main window:
 
   Right     - View torrent
 
-  Ctrl-S    - Start torrent
-  Ctrl-D    - Stop/delete torrent
+  ^s        - Start torrent
+  ^d        - Stop/delete torrent
+
+  ^r        - Manually start a hash check of the torrent
 
 
 In torrent view:

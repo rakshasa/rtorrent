@@ -47,6 +47,8 @@ public:
   void               open()                          { m_download.open(); }
   void               close()                         { m_download.close(); }
 
+  void               hash_resume_save()              { m_download.hash_resume_save(); }
+
   bool operator == (const std::string& str)          { return str == m_download.get_hash(); }
 
 private:

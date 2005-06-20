@@ -22,8 +22,6 @@
 
 #include "config.h"
 
-#include <algorithm>
-#include <functional>
 #include <fstream>
 #include <stdexcept>
 

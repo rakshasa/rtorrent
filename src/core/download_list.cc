@@ -23,6 +23,7 @@
 #include "config.h"
 
 #include <algorithm>
+#include <sigc++/bind.h>
 #include <torrent/torrent.h>
 
 #include "rak/functional.h"
@@ -38,14 +39,18 @@ DownloadList::insert(std::istream* str) {
 
   iterator itr = Base::insert(end(), new Download);
   (*itr)->set_download(d);
+  (*itr)->get_download().signal_download_done(sigc::bind(sigc::mem_fun(*this, &DownloadList::finished), *itr));
+
+  m_slotMapInsert.for_each(*itr);
 
   return itr;
 }
 
 DownloadList::iterator
 DownloadList::erase(iterator itr) {
-  (*itr)->release_download();
+  m_slotMapErase.for_each(*itr);
 
+  (*itr)->release_download();
   torrent::download_remove((*itr)->get_hash());
   delete *itr;
 
@@ -57,6 +62,11 @@ DownloadList::clear() {
   std::for_each(begin(), end(), rak::call_delete<Download>());
 
   Base::clear();
+}
+
+void
+DownloadList::finished(Download* d) {
+  m_slotMapFinished.for_each(d);
 }
 
 }

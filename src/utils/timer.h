@@ -37,6 +37,7 @@ class Timer {
   Timer(timeval tv) : m_time((int64_t)(uint32_t)tv.tv_sec * 1000000 + (int64_t)(uint32_t)tv.tv_usec % 1000000) {}
 
   int64_t   usec() const                   { return m_time; }
+  int32_t   sec() const                    { return m_time / 1000000; }
   timeval   tval() const                   { return (timeval) { m_time / 1000000, m_time % 1000000}; }
 
   Timer     round_seconds() const          { return (m_time / 1000000) * 1000000; }
@@ -55,6 +56,7 @@ class Timer {
   // time. Though system calls would be more expensive than we can afford.
   static Timer cache()                     { return Timer(m_cache); }
 
+  // TODO: Create sd::numeric_limits for these?
   static Timer min()                       { return 0; }
   static Timer max()                       { return (int64_t)std::numeric_limits<time_t>::max() * 1000000; }
 

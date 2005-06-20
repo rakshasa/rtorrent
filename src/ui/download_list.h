@@ -101,6 +101,8 @@ private:
   void                receive_view_download();
   void                receive_exit_download();
 
+  void                receive_check_hash();
+
   void                receive_view_input();
   void                receive_exit_input();
 
