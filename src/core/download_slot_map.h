@@ -37,6 +37,7 @@ public:
   typedef std::map<std::string, SlotDownload> Base;
   
   void                insert(const std::string& key, SlotDownload s)    { Base::operator[](key) = s; }
+  void                erase(const std::string& key) {}
 
   void                for_each(Download* d);
 };

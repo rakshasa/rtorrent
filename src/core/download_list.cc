@@ -58,6 +58,40 @@ DownloadList::erase(iterator itr) {
 }
 
 void
+DownloadList::open(Download* d) {
+  if (d->get_download().is_open())
+    return;
+
+  m_slotMapOpen.for_each(d);
+}
+
+void
+DownloadList::close(Download* d) {
+  if (!d->get_download().is_open())
+    return;
+
+  stop(d);
+  m_slotMapClose.for_each(d);
+}
+
+void
+DownloadList::start(Download* d) {
+  if (d->get_download().is_active())
+    return;
+
+  open(d);
+  m_slotMapStart.for_each(d);
+}
+
+void
+DownloadList::stop(Download* d) {
+  if (!d->get_download().is_active())
+    return;
+
+  m_slotMapStop.for_each(d);
+}
+
+void
 DownloadList::clear() {
   std::for_each(begin(), end(), rak::call_delete<Download>());
 

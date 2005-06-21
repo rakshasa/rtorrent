@@ -40,6 +40,13 @@ Download::set_download(torrent::Download d) {
 }
 
 void
+Download::set_root_directory(const std::string& d) {
+  m_download.set_root_dir(d +
+			  (!d.empty() && *d.rbegin() != '/' ? "/" : "") +
+			  (m_download.get_entry_size() > 1 ? m_download.get_name() : ""));
+}
+
+void
 Download::release_download() {
   m_connTrackerSucceded.disconnect();
   m_connTrackerFailed.disconnect();

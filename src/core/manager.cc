@@ -56,27 +56,26 @@ Manager::initialize() {
 
   // Register slots to be called when a download is inserted/erased,
   // opened or closed.
-  m_downloadList.slot_map_insert().insert("1_connect_network_log", sigc::bind(sigc::ptr_fun(&connect_signal_network_log), sigc::mem_fun(m_logComplete, &Log::push_front)));
-  m_downloadList.slot_map_insert().insert("2_manager_start",       sigc::mem_fun(*this, &Manager::start));
-  m_downloadList.slot_map_insert().insert("3_store_save",          sigc::mem_fun(m_downloadStore, &DownloadStore::save));
+  m_downloadList.slot_map_insert().insert("2_connect_network_log", sigc::bind(sigc::ptr_fun(&connect_signal_network_log), sigc::mem_fun(m_logComplete, &Log::push_front)));
+  m_downloadList.slot_map_insert().insert("3_manager_start",       sigc::mem_fun(*this, &Manager::start));
+  m_downloadList.slot_map_insert().insert("4_store_save",          sigc::mem_fun(m_downloadStore, &DownloadStore::save));
 
   m_downloadList.slot_map_erase().insert("1_hash_queue_remove",    sigc::mem_fun(m_hashQueue, &HashQueue::remove));
   m_downloadList.slot_map_erase().insert("1_store_remove",         sigc::mem_fun(m_downloadStore, &DownloadStore::remove));
 
-  m_downloadList.slot_map_open().insert("1_download_open",         sigc::mem_fun(&Download::open));
+  //m_downloadList.slot_map_open().insert("1_download_open",         sigc::mem_fun(&Download::open));
+  m_downloadList.slot_map_open().insert("1_download_open",         sigc::mem_fun(&Download::call<void, &torrent::Download::open>));
 
   // Currently does not call stop, might want to add a function that
   // checks if we're running, and if so stop?
-  m_downloadList.slot_map_close().insert("1_download_close",       sigc::mem_fun(&Download::close));
+  m_downloadList.slot_map_close().insert("1_download_close",       sigc::mem_fun(&Download::call<void, &torrent::Download::close>));
   m_downloadList.slot_map_close().insert("1_hash_queue_remove",    sigc::mem_fun(m_hashQueue, &HashQueue::remove));
 
-  m_downloadList.slot_map_start().insert("1_download_start",       sigc::mem_fun(&Download::start));
+  m_downloadList.slot_map_start().insert("1_download_start",       sigc::mem_fun(&Download::call<void, &torrent::Download::start>));
 
-  m_downloadList.slot_map_stop().insert("1_download_stop",         sigc::mem_fun(&Download::stop));
-  m_downloadList.slot_map_stop().insert("2_hash_resume_save",      sigc::mem_fun(&Download::hash_resume_save));
+  m_downloadList.slot_map_stop().insert("1_download_stop",         sigc::mem_fun(&Download::call<void, &torrent::Download::stop>));
+  m_downloadList.slot_map_stop().insert("2_hash_resume_save",      sigc::mem_fun(&Download::call<void, &torrent::Download::hash_resume_save>));
   m_downloadList.slot_map_stop().insert("3_store_save",            sigc::mem_fun(m_downloadStore, &DownloadStore::save));
-
-  //m_downloadList.slot_map_finished().insert("1_check_hash",        sigc::mem_fun(*this, &Manager::check_hash));
 }
 
 void
@@ -146,9 +145,6 @@ Manager::check_hash(Download* d) {
   bool restart = d->get_download().is_active();
 
   try {
-    if (d->get_download().is_active())
-      m_downloadList.stop(d);
-
     m_downloadList.close(d);
     d->get_download().hash_resume_clear();
     m_downloadList.open(d);

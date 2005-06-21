@@ -44,12 +44,11 @@ bool validate_rate(int arg);
 bool validate_read_ahead(int arg);
 bool validate_fd(int arg);
 
-void apply_download_min_peers(core::Download* d, int arg);
-void apply_download_max_peers(core::Download* d, int arg);
-void apply_download_max_uploads(core::Download* d, int arg);
+void apply_download_min_peers(ui::Control* m, int arg);
+void apply_download_max_peers(ui::Control* m, int arg);
+void apply_download_max_uploads(ui::Control* m, int arg);
 
-void apply_download_directory(core::Download* d, const std::string& arg);
-void apply_download_dump_tracker(core::Download* d, const std::string& arg);
+void apply_download_directory(ui::Control* m, const std::string& arg);
 
 void apply_global_download_rate(ui::Control* m, int arg);
 void apply_global_upload_rate(ui::Control* m, int arg);
@@ -61,6 +60,7 @@ void apply_ip(ui::Control* m, const std::string& arg);
 void apply_bind(ui::Control* m, const std::string& arg);
 void apply_port_range(ui::Control* m, const std::string& arg);
 void apply_tracker_dump(ui::Control* m, const std::string& arg);
+void apply_check_hash(ui::Control* m, const std::string& arg);
 
 class OptionHandlerInt : public OptionHandlerBase {
 public:
@@ -105,51 +105,6 @@ private:
   ui::Control* m_control;
   Apply        m_apply;
   Validate     m_validate;
-};
-
-class OptionHandlerDownloadInt : public OptionHandlerBase {
-public:
-  typedef void (*Apply)(core::Download*, int);
-  typedef bool (*Validate)(int);
-
-  OptionHandlerDownloadInt(core::DownloadSlotMap* m, Apply a, Validate v) :
-    m_map(m), m_apply(a), m_validate(v) {}
-
-  virtual void process(const std::string& key, const std::string& arg) {
-    int a;
-    
-    if (std::sscanf(arg.c_str(), "%i", &a) != 1 ||
-	!m_validate(a))
-      throw std::runtime_error("Invalid argument for \"" + key + "\": \"" + arg + "\"");
-    
-    (*m_map)[key] = sigc::bind(sigc::ptr_fun(m_apply), a);
-  }
-
-private:
-  core::DownloadSlotMap* m_map;
-  Apply                  m_apply;
-  Validate               m_validate;
-};
-
-class OptionHandlerDownloadString : public OptionHandlerBase {
-public:
-  typedef void (*Apply)(core::Download*, const std::string&);
-  typedef bool (*Validate)(const std::string&);
-
-  OptionHandlerDownloadString(core::DownloadSlotMap* m, Apply a, Validate v) :
-    m_map(m), m_apply(a), m_validate(v) {}
-
-  virtual void process(const std::string& key, const std::string& arg) {
-    if (!m_validate(arg))
-      throw std::runtime_error("Invalid argument for \"" + key + "\": \"" + arg + "\"");
-    
-    (*m_map)[key] = sigc::bind(sigc::ptr_fun(m_apply), arg);
-  }
-
-private:
-  core::DownloadSlotMap* m_map;
-  Apply                  m_apply;
-  Validate               m_validate;
 };
 
 #endif

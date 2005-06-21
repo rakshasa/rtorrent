@@ -50,6 +50,7 @@ public:
   void        set_background(chtype c)                         { return wbkgdset(m_window, c); }
 
   void        erase()                                          { werase(m_window); }
+  static void erase_std()                                      { werase(stdscr); }
 
   void        print_border(chtype ls, chtype rs,
 			   chtype ts, chtype bs,

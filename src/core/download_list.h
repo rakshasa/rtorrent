@@ -56,11 +56,11 @@ public:
   iterator            insert(std::istream* str);
   iterator            erase(iterator itr);
 
-  void                open(Download* d)     { m_slotMapOpen.for_each(d); }
-  void                close(Download* d)    { m_slotMapClose.for_each(d); }
+  void                open(Download* d);
+  void                close(Download* d);
 
-  void                start(Download* d)    { m_slotMapStart.for_each(d); }
-  void                stop(Download* d)     { m_slotMapStop.for_each(d); }
+  void                start(Download* d);
+  void                stop(Download* d);
 
   DownloadSlotMap&    slot_map_insert()     { return m_slotMapInsert; }
   DownloadSlotMap&    slot_map_erase()      { return m_slotMapErase; }

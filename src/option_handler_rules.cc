@@ -29,7 +29,7 @@
 #include "ui/control.h"
 #include "option_handler_rules.h"
 
-void receive_dump_tracker(std::istream* s);
+void receive_tracker_dump(std::istream* s);
 
 bool
 validate_ip(const std::string& arg) {
@@ -73,34 +73,27 @@ validate_read_ahead(int arg) {
 
 bool
 validate_fd(int arg) {
-  return arg >= 10 && arg < 1024;
+  return arg >= 10 && arg < (1 << 16);
 }
 
 void
-apply_download_min_peers(core::Download* d, int arg) {
-  d->get_download().set_peers_min(arg);
+apply_download_min_peers(ui::Control* m, int arg) {
+  m->get_core().get_download_list().slot_map_insert().insert("1_min_peers", sigc::bind(sigc::mem_fun(&core::Download::call<void, uint32_t, &torrent::Download::set_peers_min>), arg));
 }
 
 void
-apply_download_max_peers(core::Download* d, int arg) {
-  d->get_download().set_peers_max(arg);
+apply_download_max_peers(ui::Control* m, int arg) {
+  m->get_core().get_download_list().slot_map_insert().insert("1_max_peers", sigc::bind(sigc::mem_fun(&core::Download::call<void, uint32_t, &torrent::Download::set_peers_max>), arg));
 }
 
 void
-apply_download_max_uploads(core::Download* d, int arg) {
-  d->get_download().set_uploads_max(arg);
+apply_download_max_uploads(ui::Control* m, int arg) {
+  m->get_core().get_download_list().slot_map_insert().insert("1_max_uploads", sigc::bind(sigc::mem_fun(&core::Download::call<void, uint32_t, &torrent::Download::set_uploads_max>), arg));
 }
 
 void
-apply_download_directory(core::Download* d, const std::string& arg) {
-  d->get_download().set_root_dir(arg +
-				 (!arg.empty() && *arg.rbegin() != '/' ? "/" : "") +
-				 (d->get_download().get_entry_size() > 1 ? d->get_download().get_name() : ""));
-}
-
-void
-apply_download_dump_tracker(core::Download* d, const std::string& arg) {
-  d->get_download().signal_tracker_dump(sigc::ptr_fun(&receive_dump_tracker));
+apply_download_directory(ui::Control* m, const std::string& arg) {
+  m->get_core().get_download_list().slot_map_insert().insert("1_directory", sigc::bind(sigc::mem_fun(&core::Download::set_root_directory), arg));
 }
 
 void
@@ -142,4 +135,20 @@ apply_port_range(ui::Control* m, const std::string& arg) {
   std::sscanf(arg.c_str(), "%i-%i", &a, &b);
 
   m->get_core().set_port_range(a, b);
+}
+
+void
+apply_tracker_dump(ui::Control* m, const std::string& arg) {
+  if (arg == "yes")
+    m->get_core().get_download_list().slot_map_insert().insert("1_tracker_dump", sigc::bind(sigc::mem_fun(&core::Download::call<sigc::connection, torrent::Download::SlotIStream, &torrent::Download::signal_tracker_dump>), sigc::ptr_fun(&receive_tracker_dump)));
+  else
+    m->get_core().get_download_list().slot_map_insert().erase("1_tracker_dump");
+}
+
+void
+apply_check_hash(ui::Control* m, const std::string& arg) {
+  if (arg == "yes")
+    m->get_core().get_download_list().slot_map_finished().insert("1_check_hash", sigc::mem_fun(m->get_core(), &core::Manager::check_hash));
+  else
+    m->get_core().get_download_list().slot_map_finished().erase("1_check_hash");
 }

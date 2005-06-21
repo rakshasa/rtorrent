@@ -30,6 +30,10 @@
 # Port range to use for listening.
 #port = 6890-6999
 
+# Check hash for finished torrents. Might be usefull until the bug is
+# fixed that causes lack of diskspace not to be properly reported.
+#check_hash = no
+
 #
 # Do not modify the following parameters unless you know what you're doing.
 #
@@ -44,4 +48,4 @@
 #max_open_files = 100
 
 # Dump data received from trackers to the files "./tracker_dump.<time>".
-#dump_tracker = no
+#tracker_dump = no

@@ -31,7 +31,7 @@ namespace core {
 class Download {
 public:
   bool               is_open()                       { return m_download.is_open(); }
-  bool               is_done()                       { return m_download.get_chunks_done() == m_download.get_chunks_total(); }
+  inline bool        is_done();
 
   void               set_download(torrent::Download d);
   void               release_download();
@@ -41,15 +41,15 @@ public:
   
   const std::string& get_message()                   { return m_message; }
 
-  void               start()                         { m_download.start(); }
-  void               stop()                          { m_download.stop(); }
+  void               set_root_directory(const std::string& d);
 
-  void               open()                          { m_download.open(); }
-  void               close()                         { m_download.close(); }
+  template <typename Ret, Ret (torrent::Download::*func)()>
+  void               call()                                                { (m_download.*func)(); }
 
-  void               hash_resume_save()              { m_download.hash_resume_save(); }
+  template <typename Ret, typename Arg1, Ret (torrent::Download::*func)(Arg1)>
+  void               call(Arg1 a1)                                         { (m_download.*func)(a1); }
 
-  bool operator == (const std::string& str)          { return str == m_download.get_hash(); }
+  bool operator == (const std::string& str)                                { return str == m_download.get_hash(); }
 
 private:
   void               receive_tracker_msg(std::string msg);
@@ -63,6 +63,11 @@ private:
   sigc::connection   m_connTrackerFailed;
   sigc::connection   m_connStorageError;
 };
+
+inline bool
+Download::is_done() {
+  return m_download.get_chunks_done() == m_download.get_chunks_total();
+}
 
 }
 
