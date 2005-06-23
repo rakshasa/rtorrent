@@ -45,9 +45,9 @@
 #include "ui/root.h"
 #include "input/bindings.h"
 
+#include "utils/task.h"
 #include "utils/timer.h"
 #include "utils/directory.h"
-#include "utils/task_schedule.h"
 
 #include "signal_handler.h"
 #include "option_file.h"
@@ -61,6 +61,10 @@ bool is_shutting_down = false;
 
 void do_panic(int signum);
 void print_help();
+
+namespace utils {
+  TaskScheduler taskScheduler;
+}
 
 bool
 is_resized() {
@@ -220,13 +224,15 @@ main(int argc, char** argv) {
       }
 
       utils::Timer::update();
-      utils::TaskSchedule::perform(utils::Timer::cache());
+      utils::taskScheduler.execute(utils::Timer::cache());
     
       // This needs to be called every second or so. Currently done by
       // the throttle task in libtorrent.
       uiControl.get_display().do_update();
 
-      uiControl.get_core().get_poll().poll(utils::TaskSchedule::get_timeout());
+      uiControl.get_core().get_poll().poll(!utils::taskScheduler.empty() ?
+					   utils::taskScheduler.get_next_timeout() - utils::Timer::cache() :
+					   60 * 1000000);
     }
 
     uiRoot.cleanup();

@@ -125,7 +125,7 @@ private:
   WInput*             m_windowTextInput;
   WHttp*              m_windowHttpQueue;
 
-  utils::Task         m_taskUpdate;
+  utils::TaskItem     m_taskUpdate;
 
   Download*           m_uiDownload;
 

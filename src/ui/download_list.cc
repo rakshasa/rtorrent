@@ -57,24 +57,28 @@ DownloadList::DownloadList(Control* c) :
   m_windowStatus(new WStatus(&c->get_core())),
   m_windowHttpQueue(new WHttp(&c->get_core().get_http_queue())),
 
-  m_taskUpdate(sigc::mem_fun(*this, &DownloadList::task_update)),
   m_uiDownload(NULL),
 
   m_downloadList(&c->get_core().get_download_list()),
 
   m_control(c),
-  m_bindings(new input::Bindings) {
-
+  m_bindings(new input::Bindings)
+{
   m_uiArray[DISPLAY_DOWNLOAD_LIST] = new ElementDownloadList(&m_downloadList);
   m_uiArray[DISPLAY_LOG]           = new ElementLogComplete(&m_control->get_core().get_log_complete());
-
   m_windowLog                      = new WLog(&m_control->get_core().get_log_important());
+
+  m_taskUpdate.set_iterator(utils::taskScheduler.end());
+  m_taskUpdate.set_slot(sigc::mem_fun(*this, &DownloadList::task_update)),
 
   setup_keys();
   setup_input();
 }
 
 DownloadList::~DownloadList() {
+  if (m_window != m_control->get_display().end())
+    throw std::logic_error("ui::DownloadList::~DownloadList() called on an active object");
+
   std::for_each(m_uiArray, m_uiArray + DISPLAY_MAX_SIZE, rak::call_delete<ElementBase>());
 
   delete m_windowTitle;
@@ -92,7 +96,7 @@ DownloadList::activate() {
   if (m_window != m_control->get_display().end())
     throw std::logic_error("ui::Download::activate() called on an already activated object");
 
-  m_taskUpdate.insert(utils::Timer::cache() + 1000000);
+  utils::taskScheduler.insert(&m_taskUpdate, utils::Timer::cache() + 1000000);
 
   m_windowTextInput->set_active(false);
 
@@ -116,7 +120,7 @@ DownloadList::disable() {
 
   disable_display();
 
-  m_taskUpdate.remove();
+  utils::taskScheduler.erase(&m_taskUpdate);
 
   if (m_windowTextInput->is_active()) {
     m_windowTextInput->get_input()->clear();
@@ -284,7 +288,7 @@ void
 DownloadList::task_update() {
   m_windowLog->receive_update();
 
-  m_taskUpdate.insert(utils::Timer::cache() + 1000000);
+  utils::taskScheduler.insert(&m_taskUpdate, (utils::Timer::cache() + 1000000).round_seconds());
 }
 
 void

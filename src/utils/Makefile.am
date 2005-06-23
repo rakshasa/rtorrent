@@ -9,8 +9,9 @@ libsub_utils_a_SOURCES = \
 	parse.cc \
 	parse.h \
 	task.h \
-	task_schedule.cc \
-	task_schedule.h \
+	task_item.h \
+	task_scheduler.cc \
+	task_scheduler.h \
 	timer.h
 
 INCLUDES = -I$(srcdir) -I$(srcdir)/.. -I$(top_srcdir)
