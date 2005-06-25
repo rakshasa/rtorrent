@@ -77,6 +77,8 @@ public:
 
   input::Bindings&    get_bindings()               { return *m_bindings; }
 
+  bool                is_active() const            { return m_window != m_control->get_display().end(); }
+
   void                activate();
   void                disable();
 

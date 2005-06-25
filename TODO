@@ -15,7 +15,3 @@ Make accumulate return the value, no refs please...
 >     created from rtorrent.  Like when you start a torrent, but it is too
 >     slow or broken or for various reasons you don't want to download it.
 
-
-Seperate download management from core::management.
-
-Recheck hash key.

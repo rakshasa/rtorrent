@@ -76,7 +76,7 @@ DownloadList::DownloadList(Control* c) :
 }
 
 DownloadList::~DownloadList() {
-  if (m_window != m_control->get_display().end())
+  if (is_active())
     throw std::logic_error("ui::DownloadList::~DownloadList() called on an active object");
 
   std::for_each(m_uiArray, m_uiArray + DISPLAY_MAX_SIZE, rak::call_delete<ElementBase>());
@@ -93,7 +93,7 @@ DownloadList::~DownloadList() {
 
 void
 DownloadList::activate() {
-  if (m_window != m_control->get_display().end())
+  if (is_active())
     throw std::logic_error("ui::Download::activate() called on an already activated object");
 
   utils::taskScheduler.insert(&m_taskUpdate, utils::Timer::cache() + 1000000);
@@ -115,7 +115,7 @@ DownloadList::activate() {
 
 void
 DownloadList::disable() {
-  if (m_window == m_control->get_display().end())
+  if (!is_active())
     throw std::logic_error("ui::Download::disable() called on an already disabled object");
 
   disable_display();
@@ -141,7 +141,7 @@ DownloadList::disable() {
 
 void
 DownloadList::activate_display(Display d) {
-  if (m_window == m_control->get_display().end())
+  if (!is_active())
     throw std::logic_error("ui::DownloadList::activate_display(...) could not find previous display iterator");
 
   if (d >= DISPLAY_MAX_SIZE)

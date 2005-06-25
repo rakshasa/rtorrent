@@ -118,21 +118,22 @@ parse_options(ui::Control* c, OptionHandler* optionHandler, int argc, char** arg
 void
 initialize_option_handler(ui::Control* c, OptionHandler* optionHandler) {
   optionHandler->insert("max_peers",       new OptionHandlerInt(c, &apply_download_max_peers, &validate_download_peers));
-  optionHandler->insert("max_uploads",     new OptionHandlerInt(c, &apply_download_max_uploads, &validate_download_peers));
   optionHandler->insert("min_peers",       new OptionHandlerInt(c, &apply_download_min_peers, &validate_download_peers));
+  optionHandler->insert("max_uploads",     new OptionHandlerInt(c, &apply_download_max_uploads, &validate_download_peers));
 
   optionHandler->insert("download_rate",   new OptionHandlerInt(c, &apply_global_download_rate, &validate_rate));
-  optionHandler->insert("hash_read_ahead", new OptionHandlerInt(c, &apply_hash_read_ahead, &validate_read_ahead));
-  optionHandler->insert("max_open_files",  new OptionHandlerInt(c, &apply_max_open_files, &validate_fd));
   optionHandler->insert("upload_rate",     new OptionHandlerInt(c, &apply_global_upload_rate, &validate_rate));
-
-  optionHandler->insert("check_hash",      new OptionHandlerString(c, &apply_check_hash, &validate_yes_no));
-  optionHandler->insert("directory",       new OptionHandlerString(c, &apply_download_directory, &validate_directory));
-  optionHandler->insert("tracker_dump",    new OptionHandlerString(c, &apply_tracker_dump, &validate_yes_no));
 
   optionHandler->insert("bind",            new OptionHandlerString(c, &apply_bind, &validate_ip));
   optionHandler->insert("ip",              new OptionHandlerString(c, &apply_ip, &validate_ip));
   optionHandler->insert("port",            new OptionHandlerString(c, &apply_port_range, &validate_port_range));
+
+  optionHandler->insert("check_hash",      new OptionHandlerString(c, &apply_check_hash, &validate_yes_no));
+  optionHandler->insert("directory",       new OptionHandlerString(c, &apply_download_directory, &validate_directory));
+
+  optionHandler->insert("hash_read_ahead", new OptionHandlerInt(c, &apply_hash_read_ahead, &validate_read_ahead));
+  optionHandler->insert("max_open_files",  new OptionHandlerInt(c, &apply_max_open_files, &validate_fd));
+  optionHandler->insert("tracker_dump",    new OptionHandlerString(c, &apply_tracker_dump, &validate_yes_no));
 }
 
 void

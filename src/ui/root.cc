@@ -43,6 +43,9 @@ Root::init() {
 
 void
 Root::cleanup() {
+  if (m_downloadList->is_active())
+    m_downloadList->disable();
+
   delete m_downloadList;
 
   m_control->get_input().erase(&m_bindings);
