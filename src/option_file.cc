@@ -45,16 +45,21 @@ OptionFile::parse_line(const char* line) {
   if (line[0] == '#')
     return;
 
+  int result;
   char key[64];
   char opt[512];
 
-  int result;
+  opt[0] = '\0';
 
   // Check for empty lines, and options within "abc".
-  if ((result = std::sscanf(line, "%64s = %512s", key, opt)) == 2)
-    m_slotOption(key, opt);
-
-  // Don't throw on empty lines or lines with key and opt.
-  if (result == 1)
+  if ((result = std::sscanf(line, "%64s = \"%512[^\"]s", key, opt)) != 2 &&
+      (result = std::sscanf(line, "%64s = %512s", key, opt)) != 2 &&
+      result == 1)
     throw std::runtime_error("Error parseing option file.");
+
+  if (opt[0] == '"' && opt[1] == '"')
+    opt[0] = '\0';
+
+  if (result >= 1)
+    m_slotOption(key, opt);
 }

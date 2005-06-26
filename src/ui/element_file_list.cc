@@ -37,6 +37,7 @@ ElementFileList::ElementFileList(core::Download* d) :
   m_focus(0) {
 
   m_bindings[' '] = sigc::mem_fun(*this, &ElementFileList::receive_priority);
+  m_bindings['*'] = sigc::mem_fun(*this, &ElementFileList::receive_change_all);
   m_bindings[KEY_DOWN] = sigc::mem_fun(*this, &ElementFileList::receive_next);
   m_bindings[KEY_UP] = sigc::mem_fun(*this, &ElementFileList::receive_prev);
 }
@@ -99,26 +100,44 @@ ElementFileList::receive_priority() {
 
   torrent::Entry e = m_download->get_download().get_entry(m_focus);
 
-  switch (e.get_priority()) {
-  case torrent::Entry::STOPPED:
-    e.set_priority(torrent::Entry::HIGH);
-    break;
-
-  case torrent::Entry::NORMAL:
-    e.set_priority(torrent::Entry::STOPPED);
-    break;
-
-  case torrent::Entry::HIGH:
-    e.set_priority(torrent::Entry::NORMAL);
-    break;
-	
-  default:
-    e.set_priority(torrent::Entry::NORMAL);
-    break;
-  };
+  e.set_priority(next_priority(e.get_priority()));
 
   m_download->get_download().update_priorities();
   m_window->mark_dirty();
+}
+
+void
+ElementFileList::receive_change_all() {
+  if (m_window == NULL)
+    throw std::logic_error("ui::ElementFileList::receive_prev(...) called on a disabled object");
+
+  if (m_focus >= m_download->get_download().get_entry_size())
+    return;
+
+  Priority p = next_priority(m_download->get_download().get_entry(m_focus).get_priority());
+
+  for (int i = 0, e = m_download->get_download().get_entry_size(); i != e; ++i)
+    m_download->get_download().get_entry(i).set_priority(p);
+
+  m_download->get_download().update_priorities();
+  m_window->mark_dirty();
+}
+
+ElementFileList::Priority
+ElementFileList::next_priority(Priority p) {
+  switch(p) {
+  case torrent::Entry::STOPPED:
+    return torrent::Entry::HIGH;
+
+  case torrent::Entry::NORMAL:
+    return torrent::Entry::STOPPED;
+
+  case torrent::Entry::HIGH:
+    return torrent::Entry::NORMAL;
+	
+  default:
+    return torrent::Entry::NORMAL;
+  };
 }
 
 }

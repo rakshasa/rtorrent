@@ -34,8 +34,8 @@ class Download;
 class DownloadStore {
 public:
 
-  void              activate(const std::string& path);
-  void              disable();
+  // Disable by passing an empty string.
+  void              use(const std::string& path);
 
   bool              is_active() { return !m_path.empty(); }
 

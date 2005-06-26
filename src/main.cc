@@ -108,7 +108,7 @@ parse_options(ui::Control* c, OptionHandler* optionHandler, int argc, char** arg
   optionParser.insert_option('d', sigc::bind<0>(sigc::mem_fun(*optionHandler, &OptionHandler::process), "directory"));
   optionParser.insert_option('i', sigc::bind<0>(sigc::mem_fun(*optionHandler, &OptionHandler::process), "ip"));
   optionParser.insert_option('p', sigc::bind<0>(sigc::mem_fun(*optionHandler, &OptionHandler::process), "port"));
-  optionParser.insert_option('s', sigc::mem_fun(c->get_core().get_download_store(), &core::DownloadStore::activate));
+  optionParser.insert_option('s', sigc::bind<0>(sigc::mem_fun(*optionHandler, &OptionHandler::process), "session"));
 
   optionParser.insert_option_list('o', sigc::mem_fun(*optionHandler, &OptionHandler::process));
 
@@ -133,6 +133,7 @@ initialize_option_handler(ui::Control* c, OptionHandler* optionHandler) {
 
   optionHandler->insert("hash_read_ahead", new OptionHandlerInt(c, &apply_hash_read_ahead, &validate_read_ahead));
   optionHandler->insert("max_open_files",  new OptionHandlerInt(c, &apply_max_open_files, &validate_fd));
+  optionHandler->insert("session",         new OptionHandlerString(c, &apply_session_directory, &validate_directory));
   optionHandler->insert("tracker_dump",    new OptionHandlerString(c, &apply_tracker_dump, &validate_yes_no));
 }
 

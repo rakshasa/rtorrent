@@ -26,6 +26,7 @@
 #include <torrent/torrent.h>
 #include <netinet/in.h>
 
+#include "utils/directory.h"
 #include "ui/control.h"
 #include "option_handler_rules.h"
 
@@ -38,15 +39,18 @@ validate_ip(const std::string& arg) {
   return inet_aton(arg.c_str(), &addr);
 }
 
+// We consider an empty string to be valid as this allows us to
+// disable options.
 bool
 validate_directory(const std::string& arg) {
+  //return arg.empty() || utils::Directory(arg).is_valid();
   return true;
 }
 
 bool
 validate_port_range(const std::string& arg) {
   int a, b;
-    
+  
   return std::sscanf(arg.c_str(), "%i-%i", &a, &b) == 2 &&
     a <= b && a > 0 && b < (1 << 16);
 }
@@ -93,7 +97,10 @@ apply_download_max_uploads(ui::Control* m, int arg) {
 
 void
 apply_download_directory(ui::Control* m, const std::string& arg) {
-  m->get_core().get_download_list().slot_map_insert().insert("1_directory", sigc::bind(sigc::mem_fun(&core::Download::set_root_directory), arg));
+  if (!arg.empty())
+    m->get_core().get_download_list().slot_map_insert().insert("1_directory", sigc::bind(sigc::mem_fun(&core::Download::set_root_directory), arg));
+  else
+    m->get_core().get_download_list().slot_map_insert().erase("1_directory");
 }
 
 void
@@ -151,4 +158,9 @@ apply_check_hash(ui::Control* m, const std::string& arg) {
     m->get_core().get_download_list().slot_map_finished().insert("1_check_hash", sigc::mem_fun(m->get_core(), &core::Manager::check_hash));
   else
     m->get_core().get_download_list().slot_map_finished().erase("1_check_hash");
+}
+
+void
+apply_session_directory(ui::Control* m, const std::string& arg) {
+  m->get_core().get_download_store().use(arg);
 }

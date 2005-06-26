@@ -40,11 +40,11 @@ namespace core {
 
 class Manager {
 public:
-  typedef DownloadList::iterator                    iterator;
+  typedef DownloadList::iterator                    DListItr;
   typedef sigc::slot1<void, DownloadList::iterator> SlotReady;
   typedef sigc::slot0<void>                         SlotFailed;
 
-  Manager() : m_portFirst(6890), m_portLast(6999), m_debugTracker(-1) {}
+  Manager() : m_portFirst(6890), m_portLast(6999) {}
 
   DownloadList&       get_download_list()                 { return m_downloadList; }
   DownloadStore&      get_download_store()                { return m_downloadStore; }
@@ -59,7 +59,7 @@ public:
   void                cleanup();
 
   void                insert(std::string uri);
-  iterator            erase(DownloadList::iterator itr);
+  DListItr            erase(DListItr itr);
 
   void                start(Download* d);
   void                stop(Download* d);
@@ -67,8 +67,6 @@ public:
   void                check_hash(Download* d);
 
   void                set_port_range(int a, int b)            { m_portFirst = a; m_portLast = b; }
-
-  void                debug_tracker()                         { m_debugTracker = 0; }
 
 private:
   void                create_http(const std::string& uri);
@@ -88,8 +86,6 @@ private:
 
   int                 m_portFirst;
   int                 m_portLast;
-
-  int                 m_debugTracker;
 };
 
 }

@@ -74,16 +74,16 @@ Download::~Download() {
   if (m_window != m_control->get_display().end())
     throw std::logic_error("ui::Download::~Download() called on an active object");
 
+  m_connPeerConnected.disconnect();
+  m_connPeerDisconnected.disconnect();
+
+  delete m_bindings;
+
   std::for_each(m_uiArray, m_uiArray + DISPLAY_MAX_SIZE, rak::call_delete<ElementBase>());
 
   delete m_windowTitle;
   delete m_windowDownloadStatus;
   delete m_windowMainStatus;
-
-  delete m_bindings;
-
-  m_connPeerConnected.disconnect();
-  m_connPeerDisconnected.disconnect();
 }
 
 void

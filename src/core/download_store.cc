@@ -36,19 +36,11 @@
 namespace core {
 
 void
-DownloadStore::activate(const std::string& path) {
+DownloadStore::use(const std::string& path) {
   m_path = path;
-
-  if (m_path.empty())
-    throw std::logic_error("core::DownloadStore::activate(...) received an empty path");
 
   if (*m_path.rbegin() != '/')
     m_path += '/';
-}
-
-void
-DownloadStore::disable() {
-  m_path = "";
 }
 
 void

@@ -97,8 +97,8 @@ Manager::insert(std::string uri) {
   }
 }
 
-Manager::iterator
-Manager::erase(DownloadList::iterator itr) {
+Manager::DListItr
+Manager::erase(DListItr itr) {
   if ((*itr)->get_download().is_active())
     throw std::logic_error("core::Manager::erase(...) called on an active download");
 

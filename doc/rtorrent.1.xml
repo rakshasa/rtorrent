@@ -1,6 +1,6 @@
 <!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.1//EN">
 
-<refentry id="freecell">
+<refentry id="rtorrent">
 
 
   <refmeta>
@@ -144,14 +144,14 @@
 	  <listitem><para>
             Add torrent using an URL or file path. Use
             <emphasis>tab</emphasis> to view directory content and do
-            autocomplete.
+            auto-complete.
           </para></listitem>
 	</varlistentry>
 
 	<varlistentry>
 	  <term>l</term>
 	  <listitem><para>
-            View log. Exit by pressing the spacebar.
+            View log. Exit by pressing the space-bar.
           </para></listitem>
 	</varlistentry>
 
@@ -167,8 +167,9 @@
 	<varlistentry>
 	  <term>-></term>
 	  <listitem><para>
-            View torrent file list. Use the spacebar to change file
-            priorities.
+            View torrent file list. Use the space-bar to change the
+            file priority and <emphasis>*</emphasis> to change the
+            priority of all files.
           </para></listitem>
 	</varlistentry>
 
@@ -198,7 +199,7 @@
 	  <term>o</term>
 	  <listitem><para>
             Display the tracker list. Cycle the trackers in a group
-            with the spacebar.
+            with the space-bar.
           </para></listitem>
 	</varlistentry>
 
@@ -282,7 +283,8 @@
           Session management will be enabled and the torrent files for
           all open downloads will be stored in this directory. Only
           one instance of rtorrent should be used with each session
-          directory, though at the moment no locking is done.
+          directory, though at the moment no locking is done. An empty
+          string will disable the session directory.
         </para></listitem>
       </varlistentry>
 
@@ -316,7 +318,7 @@
       <varlistentry>
         <term>max_uploads = <replaceable>value</replaceable></term>
         <listitem><para>
-          Set the maximum number of simultanious uploads per download.
+          Set the maximum number of simultaneous uploads per download.
         </para></listitem>
       </varlistentry>
 
@@ -328,7 +330,7 @@
       </varlistentry>
 
       <varlistentry>
-        <term>upload_rate = <replaceable>kb</replaceable></term>
+        <term>upload_rate = <replaceable>KB</replaceable></term>
         <listitem><para>
           Set the maximum global upload rate.
         </para></listitem>
@@ -375,10 +377,13 @@
       <varlistentry>
         <term>session = <replaceable>directory</replaceable></term>
         <listitem><para>
+
           Session management will be enabled and the torrent files for
           all open downloads will be stored in this directory. Only
           one instance of rtorrent should be used with each session
-          directory, though at the moment no locking is done.
+          directory, though at the moment no locking is done. An empty
+          string will disable the session directory.
+
         </para></listitem>
       </varlistentry>
 
@@ -407,8 +412,8 @@
       <varlistentry>
         <term>max_open_files = <replaceable>value</replaceable></term>
         <listitem><para>
-          Number of files to simultaniously keep open. Libtorrent
-          dynamicly opens and closes files when mapping files to
+          Number of files to simultaneously keep open. Libtorrent
+          dynamically opens and closes files when mapping files to
           memory.
         </para></listitem>
       </varlistentry>

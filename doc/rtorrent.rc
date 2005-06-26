@@ -21,6 +21,11 @@
 # space yet.
 #directory = ./
 
+# Default session directory. Make sure you don't run multiple instance
+# of rtorrent using the same session directory. Perhaps using a
+# relative path?
+#session = 
+
 # The ip address reported to the tracker.
 #ip = 127.0.0.1
 

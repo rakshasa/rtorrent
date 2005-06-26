@@ -32,6 +32,17 @@
 namespace utils {
 
 bool
+Directory::is_valid() const {
+  if (m_path.empty())
+    return false;
+
+  DIR* d = opendir(m_path.c_str());
+  closedir(d);
+
+  return d;
+}
+
+bool
 Directory::update() {
   if (m_path.empty())
     throw std::logic_error("Directory::update() tried to open an empty path");

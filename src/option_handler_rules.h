@@ -62,6 +62,8 @@ void apply_port_range(ui::Control* m, const std::string& arg);
 void apply_tracker_dump(ui::Control* m, const std::string& arg);
 void apply_check_hash(ui::Control* m, const std::string& arg);
 
+void apply_session_directory(ui::Control* m, const std::string& arg);
+
 class OptionHandlerInt : public OptionHandlerBase {
 public:
   typedef bool (*Validate)(int);

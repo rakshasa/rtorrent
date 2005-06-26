@@ -37,7 +37,8 @@ class Control;
 
 class ElementFileList : public ElementBase {
 public:
-  typedef display::WindowFileList    WFileList;
+  typedef torrent::Entry::Priority Priority;
+  typedef display::WindowFileList  WFileList;
 
   ElementFileList(core::Download* d);
 
@@ -49,6 +50,9 @@ private:
   void                receive_prev();
 
   void                receive_priority();
+  void                receive_change_all();
+
+  Priority            next_priority(Priority p);
 
   core::Download*     m_download;
   WFileList*          m_window;
