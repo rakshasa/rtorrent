@@ -36,7 +36,6 @@
 #include "display/window_http_queue.h"
 #include "display/window_input.h"
 #include "display/window_log.h"
-#include "display/window_statusbar.h"
 #include "display/window_title.h"
 
 #include "control.h"
@@ -54,7 +53,6 @@ DownloadList::DownloadList(Control* c) :
   m_window(c->get_display().end()),
 
   m_windowTitle(new WTitle("rTorrent " VERSION " - libTorrent " + torrent::get_version())),
-  m_windowStatus(new WStatus(&c->get_core())),
   m_windowHttpQueue(new WHttp(&c->get_core().get_http_queue())),
 
   m_uiDownload(NULL),
@@ -82,7 +80,6 @@ DownloadList::~DownloadList() {
   std::for_each(m_uiArray, m_uiArray + DISPLAY_MAX_SIZE, rak::call_delete<ElementBase>());
 
   delete m_windowTitle;
-  delete m_windowStatus;
   delete m_bindings;
 
   delete m_windowLog;
@@ -100,13 +97,11 @@ DownloadList::activate() {
 
   m_windowTextInput->set_active(false);
 
+  m_control->get_display().push_front(m_windowTextInput);
+  m_control->get_display().push_front(m_windowHttpQueue);
+  m_control->get_display().push_front(m_windowLog);
   m_window = m_control->get_display().insert(m_control->get_display().begin(), NULL);
   m_control->get_display().push_front(m_windowTitle);
-
-  m_control->get_display().push_back(m_windowLog);
-  m_control->get_display().push_back(m_windowHttpQueue);
-  m_control->get_display().push_back(m_windowTextInput);
-  m_control->get_display().push_back(m_windowStatus);
 
   m_control->get_input().push_front(m_bindings);
 
@@ -129,7 +124,6 @@ DownloadList::disable() {
 
   m_control->get_display().erase(m_window);
   m_control->get_display().erase(m_windowTitle);
-  m_control->get_display().erase(m_windowStatus);
   m_control->get_display().erase(m_windowTextInput);
   m_control->get_display().erase(m_windowLog);
   m_control->get_display().erase(m_windowHttpQueue);
@@ -170,20 +164,6 @@ DownloadList::receive_next() {
 void
 DownloadList::receive_prev() {
   m_downloadList.dec_focus();
-}
-
-void
-DownloadList::receive_read_throttle(int t) {
-  m_windowStatus->mark_dirty();
-
-  torrent::set_read_throttle(torrent::get_read_throttle() + t * 1024);
-}
-
-void
-DownloadList::receive_write_throttle(int t) {
-  m_windowStatus->mark_dirty();
-
-  torrent::set_write_throttle(torrent::get_write_throttle() + t * 1024);
 }
 
 void
@@ -245,7 +225,7 @@ DownloadList::receive_check_hash() {
 
 void
 DownloadList::receive_view_input() {
-  m_windowStatus->set_active(false);
+  //m_windowStatus->set_active(false);
   m_windowTextInput->set_active(true);
   m_control->get_display().adjust_layout();
 
@@ -259,7 +239,7 @@ DownloadList::receive_view_input() {
 
 void
 DownloadList::receive_exit_input() {
-  m_windowStatus->set_active(true);
+  //m_windowStatus->set_active(true);
   m_windowTextInput->set_active(false);
 
   m_control->get_input().set_text_input();
@@ -293,20 +273,6 @@ DownloadList::task_update() {
 
 void
 DownloadList::setup_keys() {
-  (*m_bindings)['a']           = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_write_throttle), 1);
-  (*m_bindings)['z']           = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_write_throttle), -1);
-  (*m_bindings)['s']           = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_write_throttle), 5);
-  (*m_bindings)['x']           = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_write_throttle), -5);
-  (*m_bindings)['d']           = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_write_throttle), 50);
-  (*m_bindings)['c']           = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_write_throttle), -50);
-
-  (*m_bindings)['A']           = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_read_throttle), 1);
-  (*m_bindings)['Z']           = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_read_throttle), -1);
-  (*m_bindings)['S']           = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_read_throttle), 5);
-  (*m_bindings)['X']           = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_read_throttle), -5);
-  (*m_bindings)['D']           = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_read_throttle), 50);
-  (*m_bindings)['C']           = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_read_throttle), -50);
-
   (*m_bindings)['\x13']        = sigc::mem_fun(*this, &DownloadList::receive_start_download);
   (*m_bindings)['\x04']        = sigc::mem_fun(*this, &DownloadList::receive_stop_download);
   (*m_bindings)['\x12']        = sigc::mem_fun(*this, &DownloadList::receive_check_hash);

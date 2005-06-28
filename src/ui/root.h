@@ -25,29 +25,40 @@
 
 #include "input/bindings.h"
 
+namespace display {
+  class WindowStatusbar;
+}
+
 namespace ui {
 
 class DownloadList;
 
 class Root {
 public:
-  Root(Control* c) : m_shutdownReceived(false), m_control(c), m_downloadList(NULL) {}
+  typedef display::WindowStatusbar WStatus;
 
-  void            init();
-  void            cleanup();
+  Root(Control* c);
 
-  bool            get_shutdown_received()       { return m_shutdownReceived; }
-  void            set_shutdown_received(bool v) { m_shutdownReceived = v; }
+  void                init();
+  void                cleanup();
+
+  bool                get_shutdown_received()       { return m_shutdownReceived; }
+  void                set_shutdown_received(bool v) { m_shutdownReceived = v; }
 
 private:
-  void            setup_keys();
+  void                setup_keys();
 
-  bool            m_shutdownReceived;
+  void                receive_read_throttle(int t);
+  void                receive_write_throttle(int t);
 
-  Control*        m_control;
-  DownloadList*   m_downloadList;
+  bool                m_shutdownReceived;
 
-  input::Bindings m_bindings;
+  Control*            m_control;
+  DownloadList*       m_downloadList;
+
+  WStatus*            m_windowStatus;
+
+  input::Bindings     m_bindings;
 };
 
 }

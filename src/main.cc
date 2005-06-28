@@ -107,7 +107,7 @@ parse_options(ui::Control* c, OptionHandler* optionHandler, int argc, char** arg
   optionParser.insert_option('b', sigc::bind<0>(sigc::mem_fun(*optionHandler, &OptionHandler::process), "bind"));
   optionParser.insert_option('d', sigc::bind<0>(sigc::mem_fun(*optionHandler, &OptionHandler::process), "directory"));
   optionParser.insert_option('i', sigc::bind<0>(sigc::mem_fun(*optionHandler, &OptionHandler::process), "ip"));
-  optionParser.insert_option('p', sigc::bind<0>(sigc::mem_fun(*optionHandler, &OptionHandler::process), "port"));
+  optionParser.insert_option('p', sigc::bind<0>(sigc::mem_fun(*optionHandler, &OptionHandler::process), "port_range"));
   optionParser.insert_option('s', sigc::bind<0>(sigc::mem_fun(*optionHandler, &OptionHandler::process), "session"));
 
   optionParser.insert_option_list('o', sigc::mem_fun(*optionHandler, &OptionHandler::process));
@@ -126,7 +126,8 @@ initialize_option_handler(ui::Control* c, OptionHandler* optionHandler) {
 
   optionHandler->insert("bind",            new OptionHandlerString(c, &apply_bind, &validate_ip));
   optionHandler->insert("ip",              new OptionHandlerString(c, &apply_ip, &validate_ip));
-  optionHandler->insert("port",            new OptionHandlerString(c, &apply_port_range, &validate_port_range));
+  optionHandler->insert("port_range",      new OptionHandlerString(c, &apply_port_range, &validate_port_range));
+  optionHandler->insert("port_random",     new OptionHandlerString(c, &apply_port_random, &validate_yes_no));
 
   optionHandler->insert("check_hash",      new OptionHandlerString(c, &apply_check_hash, &validate_yes_no));
   optionHandler->insert("directory",       new OptionHandlerString(c, &apply_download_directory, &validate_directory));

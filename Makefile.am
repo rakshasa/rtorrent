@@ -4,8 +4,6 @@ SUBDIRS = \
 
 EXTRA_DIST= \
 	autogen.sh \
-	doc/rtorrent.1.txt \
-	doc/rtorrent.rc \
 	rak/algorithm.h \
 	rak/functional.h \
 	scripts/checks.m4 \

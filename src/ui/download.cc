@@ -31,7 +31,6 @@
 #include "input/bindings.h"
 #include "display/window_title.h"
 #include "display/window_download_statusbar.h"
-#include "display/window_statusbar.h"
 
 #include "control.h"
 #include "download.h"
@@ -48,7 +47,6 @@ Download::Download(DPtr d, Control* c) :
 
   m_windowTitle(new WTitle(d->get_download().get_name())),
   m_windowDownloadStatus(new WDownloadStatus(d)),
-  m_windowMainStatus(new WMainStatus(&c->get_core())),
 
   m_window(c->get_display().end()),
 
@@ -83,7 +81,6 @@ Download::~Download() {
 
   delete m_windowTitle;
   delete m_windowDownloadStatus;
-  delete m_windowMainStatus;
 }
 
 void
@@ -91,11 +88,9 @@ Download::activate() {
   if (m_window != m_control->get_display().end())
     throw std::logic_error("ui::Download::activate() called on an already activated object");
 
+  m_control->get_display().push_front(m_windowDownloadStatus);
   m_window = m_control->get_display().insert(m_control->get_display().begin(), NULL);
-
-  m_control->get_display().insert(m_control->get_display().begin(), m_windowTitle);
-  m_control->get_display().insert(m_control->get_display().end(), m_windowDownloadStatus);
-  m_control->get_display().insert(m_control->get_display().end(), m_windowMainStatus);
+  m_control->get_display().push_front(m_windowTitle);
 
   m_control->get_input().push_front(m_bindings);
 
@@ -112,7 +107,6 @@ Download::disable() {
   m_control->get_display().erase(m_window);
   m_control->get_display().erase(m_windowTitle);
   m_control->get_display().erase(m_windowDownloadStatus);
-  m_control->get_display().erase(m_windowMainStatus);
 
   m_window = m_control->get_display().end();
 
@@ -181,20 +175,6 @@ Download::receive_peer_disconnected(torrent::Peer p) {
 }
 
 void
-Download::receive_read_throttle(int t) {
-  m_windowMainStatus->mark_dirty();
-
-  torrent::set_read_throttle(torrent::get_read_throttle() + t * 1024);
-}
-
-void
-Download::receive_write_throttle(int t) {
-  m_windowMainStatus->mark_dirty();
-
-  torrent::set_write_throttle(torrent::get_write_throttle() + t * 1024);
-}
-
-void
 Download::receive_max_uploads(int t) {
   m_windowDownloadStatus->mark_dirty();
 
@@ -236,20 +216,6 @@ Download::receive_snub_peer() {
 
 void
 Download::bind_keys() {
-  (*m_bindings)['a'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_write_throttle), 1);
-  (*m_bindings)['z'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_write_throttle), -1);
-  (*m_bindings)['s'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_write_throttle), 5);
-  (*m_bindings)['x'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_write_throttle), -5);
-  (*m_bindings)['d'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_write_throttle), 50);
-  (*m_bindings)['c'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_write_throttle), -50);
-
-  (*m_bindings)['A'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_read_throttle), 1);
-  (*m_bindings)['Z'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_read_throttle), -1);
-  (*m_bindings)['S'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_read_throttle), 5);
-  (*m_bindings)['X'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_read_throttle), -5);
-  (*m_bindings)['D'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_read_throttle), 50);
-  (*m_bindings)['C'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_read_throttle), -50);
-
   (*m_bindings)['1'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_max_uploads), -1);
   (*m_bindings)['2'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_max_uploads), 1);
   (*m_bindings)['3'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_min_peers), -5);

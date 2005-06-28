@@ -39,7 +39,6 @@ namespace display {
   class WindowInput;
   class WindowLog;
   class WindowLogComplete;
-  class WindowStatusbar;
   class WindowTitle;
 }
 
@@ -56,7 +55,6 @@ public:
   typedef display::WindowInput                     WInput;
   typedef display::WindowLog                       WLog;
   typedef display::WindowLogComplete               WLogComplete;
-  typedef display::WindowStatusbar                 WStatus;
   typedef display::WindowTitle                     WTitle;
 
   typedef utils::ListFocus<core::DownloadList>     DList;
@@ -94,9 +92,6 @@ private:
   void                receive_next();
   void                receive_prev();
 
-  void                receive_read_throttle(int t);
-  void                receive_write_throttle(int t);
-
   void                receive_start_download();
   void                receive_stop_download();
 
@@ -122,7 +117,6 @@ private:
   MItr                m_window;
 
   WTitle*             m_windowTitle;
-  WStatus*            m_windowStatus;
   WLog*               m_windowLog;
   WInput*             m_windowTextInput;
   WHttp*              m_windowHttpQueue;

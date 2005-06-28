@@ -22,11 +22,12 @@
 
 #include "config.h"
 
-#include "download.h"
-
+#include <stdexcept>
 #include <sigc++/bind.h>
 #include <sigc++/hide.h>
 #include <sigc++/signal.h>
+
+#include "download.h"
 
 namespace core {
 

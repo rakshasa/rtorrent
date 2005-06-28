@@ -145,6 +145,11 @@ apply_port_range(ui::Control* m, const std::string& arg) {
 }
 
 void
+apply_port_random(ui::Control* m, const std::string& arg) {
+  m->get_core().set_port_random(arg == "yes");
+}
+
+void
 apply_tracker_dump(ui::Control* m, const std::string& arg) {
   if (arg == "yes")
     m->get_core().get_download_list().slot_map_insert().insert("1_tracker_dump", sigc::bind(sigc::mem_fun(&core::Download::call<sigc::connection, torrent::Download::SlotIStream, &torrent::Download::signal_tracker_dump>), sigc::ptr_fun(&receive_tracker_dump)));
@@ -155,9 +160,9 @@ apply_tracker_dump(ui::Control* m, const std::string& arg) {
 void
 apply_check_hash(ui::Control* m, const std::string& arg) {
   if (arg == "yes")
-    m->get_core().get_download_list().slot_map_finished().insert("1_check_hash", sigc::mem_fun(m->get_core(), &core::Manager::check_hash));
+    m->get_core().get_download_list().slot_map_finished().insert("1_download_done", sigc::bind(sigc::mem_fun(m->get_core(), &core::Manager::receive_download_done), true));
   else
-    m->get_core().get_download_list().slot_map_finished().erase("1_check_hash");
+    m->get_core().get_download_list().slot_map_finished().insert("1_download_done", sigc::bind(sigc::mem_fun(m->get_core(), &core::Manager::receive_download_done), false));
 }
 
 void

@@ -59,6 +59,7 @@ void apply_max_open_files(ui::Control* m, int arg);
 void apply_ip(ui::Control* m, const std::string& arg);
 void apply_bind(ui::Control* m, const std::string& arg);
 void apply_port_range(ui::Control* m, const std::string& arg);
+void apply_port_random(ui::Control* m, const std::string& arg);
 void apply_tracker_dump(ui::Control* m, const std::string& arg);
 void apply_check_hash(ui::Control* m, const std::string& arg);
 

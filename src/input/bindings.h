@@ -31,7 +31,8 @@ namespace input {
 
 class Bindings : private std::map<int, sigc::slot0<void> > {
 public:
-  typedef std::map<int, sigc::slot0<void> > Base;
+  typedef sigc::slot0<void>    Slot;
+  typedef std::map<int, Slot > Base;
 
   using Base::iterator;
   using Base::const_iterator;
@@ -50,13 +51,15 @@ public:
 
   Bindings() : m_active(true) {}
 
-  void      activate() { m_active = true; }
-  void      disable()  { m_active = false; }
+  void                activate()          { m_active = true; }
+  void                disable()           { m_active = false; }
 
-  bool      pressed(int key);
+  bool                pressed(int key);
+
+  void                ignore(int key)     { (*this)[key] = Slot(); }
 
 private:
-  bool      m_active;
+  bool                m_active;
 };
 
 }

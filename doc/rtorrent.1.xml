@@ -352,11 +352,18 @@
       </varlistentry>
 
       <varlistentry>
-        <term>port = <replaceable>a-b</replaceable></term>
+        <term>port_range = <replaceable>a-b</replaceable></term>
         <listitem><para>
           Try to open a listening port in the range
           <emphasis>a</emphasis> up to and including
           <emphasis>b</emphasis>.
+        </para></listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>port_random = <replaceable>yes | no</replaceable></term>
+        <listitem><para>
+          Open the listening port at a random position in the port range.
         </para></listitem>
       </varlistentry>
 

@@ -97,7 +97,7 @@ ElementTrackerList::receive_cycle_group() {
   if (m_focus >= m_download->get_download().get_tracker_size())
     throw std::logic_error("ui::ElementTrackerList::receive_group_cycle(...) called with an invalid focus");
 
-  m_download->get_download().cycle_tracker_group(m_download->get_download().get_tracker(m_focus).get_group());
+  m_download->get_download().tracker_cycle_group(m_download->get_download().get_tracker(m_focus).get_group());
 
   m_window->mark_dirty();
 }

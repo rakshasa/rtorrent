@@ -43,6 +43,8 @@ public:
 
   void               set_root_directory(const std::string& d);
 
+  // Helper functions for calling functions in torrent::Download
+  // through sigc++.
   template <typename Ret, Ret (torrent::Download::*func)()>
   void               call()                                                { (m_download.*func)(); }
 

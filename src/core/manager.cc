@@ -50,13 +50,11 @@ Manager::initialize() {
   m_httpQueue.slot_factory(m_poll.get_http_factory());
 
   CurlStack::init();
-
-  if (!torrent::listen_open(m_portFirst, m_portLast))
-    throw std::runtime_error("Could not open port for listening.");
+  listen_open();
 
   // Register slots to be called when a download is inserted/erased,
   // opened or closed.
-  m_downloadList.slot_map_insert().insert("2_connect_network_log", sigc::bind(sigc::ptr_fun(&connect_signal_network_log), sigc::mem_fun(m_logComplete, &Log::push_front)));
+  m_downloadList.slot_map_insert().insert("1_connect_network_log", sigc::bind(sigc::ptr_fun(&connect_signal_network_log), sigc::mem_fun(m_logComplete, &Log::push_front)));
   m_downloadList.slot_map_insert().insert("3_manager_start",       sigc::mem_fun(*this, &Manager::start));
   m_downloadList.slot_map_insert().insert("4_store_save",          sigc::mem_fun(m_downloadStore, &DownloadStore::save));
 
@@ -76,6 +74,8 @@ Manager::initialize() {
   m_downloadList.slot_map_stop().insert("1_download_stop",         sigc::mem_fun(&Download::call<void, &torrent::Download::stop>));
   m_downloadList.slot_map_stop().insert("2_hash_resume_save",      sigc::mem_fun(&Download::call<void, &torrent::Download::hash_resume_save>));
   m_downloadList.slot_map_stop().insert("3_store_save",            sigc::mem_fun(m_downloadStore, &DownloadStore::save));
+
+  m_downloadList.slot_map_finished().insert("1_download_done",     sigc::bind(sigc::mem_fun(*this, &Manager::receive_download_done), false));
 }
 
 void
@@ -145,16 +145,7 @@ Manager::check_hash(Download* d) {
   bool restart = d->get_download().is_active();
 
   try {
-    m_downloadList.close(d);
-    d->get_download().hash_resume_clear();
-    m_downloadList.open(d);
-
-    if (d->get_download().is_hash_checking() ||
-	d->get_download().is_hash_checked())
-      throw std::logic_error("Manager::check_hash(...) closed the torrent but is_hash_check{ing,ed}() == true");
-
-    if (m_hashQueue.find(d) != m_hashQueue.end())
-      throw std::logic_error("Manager::check_hash(...) closed the torrent but it was found in m_hashQueue");
+    prepare_hash_check(d);
 
     if (restart)
       m_hashQueue.insert(d, sigc::bind(sigc::mem_fun(m_downloadList, &DownloadList::start), d));
@@ -166,6 +157,39 @@ Manager::check_hash(Download* d) {
     m_logComplete.push_front(e.what());
   }
 }  
+
+void
+Manager::receive_download_done(Download* d, bool check_hash) {
+  if (check_hash) {
+    // Start the hash checking, send completed to tracker after
+    // finishing.
+    prepare_hash_check(d);
+
+    // TODO: Need to restart the torrent.
+    m_hashQueue.insert(d, sigc::bind(sigc::mem_fun(*this, &Manager::receive_download_done_hash_checked), d));
+
+  } else {
+    receive_download_done_hash_checked(d);
+  }
+}
+
+void
+Manager::listen_open() {
+  if (m_portFirst > m_portLast)
+    throw std::runtime_error("Invalid port range for listening");
+
+  if (m_portRandom) {
+    int boundary = m_portFirst + random() % (m_portLast - m_portFirst + 1);
+
+    if (!torrent::listen_open(boundary, m_portLast) &&
+	!torrent::listen_open(m_portFirst, boundary))
+      throw std::runtime_error("Could not open port for listening.");
+
+  } else {
+    if (!torrent::listen_open(m_portFirst, m_portLast))
+      throw std::runtime_error("Could not open port for listening.");
+  }
+}
 
 void
 Manager::create_http(const std::string& uri) {
@@ -189,9 +213,33 @@ Manager::create_final(std::istream* s) {
 }
 
 void
+Manager::prepare_hash_check(Download* d) {
+  m_downloadList.close(d);
+  d->get_download().hash_resume_clear();
+  m_downloadList.open(d);
+
+  if (d->get_download().is_hash_checking() ||
+      d->get_download().is_hash_checked())
+    throw std::logic_error("Manager::check_hash(...) closed the torrent but is_hash_check{ing,ed}() == true");
+
+  if (m_hashQueue.find(d) != m_hashQueue.end())
+    throw std::logic_error("Manager::check_hash(...) closed the torrent but it was found in m_hashQueue");
+}
+
+void
 Manager::receive_http_failed(std::string msg) {
   m_logImportant.push_front("Http download error: \"" + msg + "\"");
   m_logComplete.push_front("Http download error: \"" + msg + "\"");
+}
+
+void
+Manager::receive_download_done_hash_checked(Download* d) {
+  if (!d->get_download().is_active())
+    m_downloadList.start(d);
+
+  // Don't send if we did a hash check and found incompelete chunks.
+  //if (d->is_done())
+    d->get_download().tracker_send_completed();
 }
 
 }
