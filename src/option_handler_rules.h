@@ -44,6 +44,8 @@ bool validate_rate(int arg);
 bool validate_read_ahead(int arg);
 bool validate_fd(int arg);
 
+bool validate_throttle_interval(int arg);
+
 void apply_download_min_peers(ui::Control* m, int arg);
 void apply_download_max_peers(ui::Control* m, int arg);
 void apply_download_max_uploads(ui::Control* m, int arg);
@@ -55,6 +57,7 @@ void apply_global_upload_rate(ui::Control* m, int arg);
 
 void apply_hash_read_ahead(ui::Control* m, int arg);
 void apply_max_open_files(ui::Control* m, int arg);
+void apply_throttle_interval(ui::Control* m, int arg);
 
 void apply_ip(ui::Control* m, const std::string& arg);
 void apply_bind(ui::Control* m, const std::string& arg);

@@ -58,3 +58,7 @@
 
 # Dump data received from trackers to the files "./tracker_dump.<time>".
 #tracker_dump = no
+
+# Change the interval between each throttle tick, in milliseconds. In
+# the range 1-5000 ms.
+#throttle_interval = 1000

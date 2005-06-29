@@ -80,6 +80,11 @@ validate_fd(int arg) {
   return arg >= 10 && arg < (1 << 16);
 }
 
+bool
+validate_throttle_interval(int arg) {
+  return arg > 0 && arg < 5000;
+}
+
 void
 apply_download_min_peers(ui::Control* m, int arg) {
   m->get_core().get_download_list().slot_map_insert().insert("1_min_peers", sigc::bind(sigc::mem_fun(&core::Download::call<void, uint32_t, &torrent::Download::set_peers_min>), arg));
@@ -121,6 +126,11 @@ apply_hash_read_ahead(ui::Control* m, int arg) {
 void
 apply_max_open_files(ui::Control* m, int arg) {
   torrent::set_max_open_files(arg);
+}
+
+void
+apply_throttle_interval(ui::Control* m, int arg) {
+  torrent::set_throttle_interval(arg * 1000);
 }
 
 void

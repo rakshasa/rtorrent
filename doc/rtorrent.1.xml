@@ -426,6 +426,16 @@
       </varlistentry>
 
       <varlistentry>
+        <term>throttle_interval = <replaceable>ms</replaceable></term>
+        <listitem><para>
+          Interval between throttle ticks in milli-seconds, must be
+          between <emphasis>1-5000</emphasis> and defaults to
+          <emphasis>1000</emphasis>. Shorter intervals will cause less
+          bandwidth usage spikes while requiring more CPU resources.
+        </para></listitem>
+      </varlistentry>
+
+      <varlistentry>
         <term>tracker_dump = <replaceable>yes | no</replaceable></term>
         <listitem><para>
           Dump data received from trackers to the files
