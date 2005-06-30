@@ -39,7 +39,7 @@ WindowFileList::WindowFileList(core::Download* d, unsigned int* focus) :
 
 void
 WindowFileList::redraw() {
-  m_nextDraw = utils::Timer::cache().round_seconds() + 10 * 1000000;
+  utils::displayScheduler.insert(&m_taskUpdate, utils::Timer::cache().round_seconds() + 10 * 1000000);
   m_canvas->erase();
 
   if (m_download->get_download().get_entry_size() == 0 ||

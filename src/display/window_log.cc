@@ -34,7 +34,7 @@ WindowLog::WindowLog(core::Log* l) :
   Window(new Canvas, false, 0),
   m_log(l) {
 
-  set_active(false);
+  m_active = false;
 
   // We're trying out scheduled tasks instead.
   m_connUpdate = l->signal_update().connect(sigc::mem_fun(*this, &WindowLog::receive_update));
@@ -51,8 +51,6 @@ WindowLog::find_older() {
 
 void
 WindowLog::redraw() {
-  m_nextDraw = utils::Timer::max();
-
   m_canvas->erase();
 
   int pos = 0;

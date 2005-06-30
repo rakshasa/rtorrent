@@ -37,8 +37,6 @@ WindowStringList::~WindowStringList() {
 
 void
 WindowStringList::redraw() {
-  m_nextDraw = utils::Timer::max();
-
   m_canvas->erase();
 
   size_t ypos = 0;

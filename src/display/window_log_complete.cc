@@ -49,8 +49,6 @@ WindowLogComplete::find_older() {
 
 void
 WindowLogComplete::redraw() {
-  m_nextDraw = utils::Timer::max();
-
   m_canvas->erase();
 
   int pos = 0;

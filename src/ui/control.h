@@ -27,23 +27,32 @@
 #include "display/manager.h"
 #include "input/manager.h"
 
+#include "root.h"
+
 namespace ui {
 
 class Control {
 public:
-  Control() {}
+  Control() : m_shutdownReceived(false) {}
   
-  core::Manager&    get_core()    { return m_core; }
-  display::Manager& get_display() { return m_display; }
-  input::Manager&   get_input()   { return m_input; }
+  bool                get_shutdown_received()       { return m_shutdownReceived; }
+  void                set_shutdown_received(bool v) { m_shutdownReceived = v; }
+
+  Root&               get_ui()                      { return m_ui; }
+  core::Manager&      get_core()                    { return m_core; }
+  display::Manager&   get_display()                 { return m_display; }
+  input::Manager&     get_input()                   { return m_input; }
 
 private:
   Control(const Control&);
   void operator = (const Control&);
 
-  core::Manager     m_core;
-  display::Manager  m_display;
-  input::Manager    m_input;
+  bool                m_shutdownReceived;
+
+  Root                m_ui;
+  core::Manager       m_core;
+  display::Manager    m_display;
+  input::Manager      m_input;
 };
 
 }

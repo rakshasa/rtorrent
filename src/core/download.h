@@ -25,6 +25,7 @@
 
 #include <sigc++/connection.h>
 #include <torrent/download.h>
+#include <torrent/torrent.h>
 
 namespace core {
 
@@ -38,6 +39,7 @@ public:
 
   torrent::Download& get_download()                  { return m_download; }
   std::string        get_hash()                      { return m_download.get_hash(); }
+  torrent::Bencode&  get_bencode()                   { return torrent::download_bencode(m_download.get_hash()); }
   
   const std::string& get_message()                   { return m_message; }
 

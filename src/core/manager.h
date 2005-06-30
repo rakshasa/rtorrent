@@ -61,6 +61,8 @@ public:
   void                initialize();
   void                cleanup();
 
+  void                shutdown(bool force);
+
   void                insert(std::string uri);
   DListItr            erase(DListItr itr);
 
@@ -77,10 +79,13 @@ private:
   void                create_http(const std::string& uri);
   void                create_final(std::istream* s);
 
+  void                initialize_bencode(Download* d);
+
   void                prepare_hash_check(Download* d);
 
   void                receive_http_failed(std::string msg);
   void                receive_download_done_hash_checked(Download* d);
+  void                receive_download_inserted(Download* d);
 
   DownloadList        m_downloadList;
   DownloadStore       m_downloadStore;

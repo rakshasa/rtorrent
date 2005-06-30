@@ -34,24 +34,24 @@
 
 namespace ui {
 
-Root::Root(Control* c) :
-  m_shutdownReceived(false),
-  m_control(c),
+Root::Root() :
+  m_control(NULL),
   m_downloadList(NULL),
-  m_windowStatus(NULL) {
+  m_windowStatusbar(NULL) {
 }
 
 void
-Root::init() {
-  if (m_downloadList != NULL)
+Root::init(Control* c) {
+  if (m_control != NULL)
     throw std::logic_error("Root::init() called twice on the same object");
 
+  m_control = c;
   setup_keys();
 
-  m_windowStatus = new WStatus(&m_control->get_core());
-  m_downloadList = new DownloadList(m_control);
+  m_windowStatusbar = new WStatusbar(&m_control->get_core());
+  m_downloadList =    new DownloadList(m_control);
 
-  m_control->get_display().push_back(m_windowStatus);
+  m_control->get_display().push_back(m_windowStatusbar);
 
   m_downloadList->activate();
   m_downloadList->slot_open_uri(sigc::mem_fun(m_control->get_core(), &core::Manager::insert));
@@ -59,15 +59,19 @@ Root::init() {
 
 void
 Root::cleanup() {
+  if (m_control == NULL)
+    throw std::logic_error("Root::cleanup() called twice on the same object");
+
   if (m_downloadList->is_active())
     m_downloadList->disable();
 
-  m_control->get_display().erase(m_windowStatus);
+  m_control->get_display().erase(m_windowStatusbar);
 
   delete m_downloadList;
-  delete m_windowStatus;
+  delete m_windowStatusbar;
 
   m_control->get_input().erase(&m_bindings);
+  m_control = NULL;
 }
 
 void
@@ -89,19 +93,19 @@ Root::setup_keys() {
   m_bindings['C']           = sigc::bind(sigc::mem_fun(*this, &Root::receive_read_throttle), -50);
 
   m_bindings[KEY_RESIZE]    = sigc::mem_fun(m_control->get_display(), &display::Manager::adjust_layout);
-  m_bindings['\x11']        = sigc::bind(sigc::mem_fun(*this, &Root::set_shutdown_received), true);
+  m_bindings['\x11']        = sigc::bind(sigc::mem_fun(*m_control, &Control::set_shutdown_received), true);
 }
 
 void
 Root::receive_read_throttle(int t) {
-  //m_downloadList->mark_dirty();
+  m_windowStatusbar->mark_dirty();
 
   torrent::set_read_throttle(torrent::get_read_throttle() + t * 1024);
 }
 
 void
 Root::receive_write_throttle(int t) {
-  //m_downloadList->mark_dirty();
+  m_windowStatusbar->mark_dirty();
 
   torrent::set_write_throttle(torrent::get_write_throttle() + t * 1024);
 }

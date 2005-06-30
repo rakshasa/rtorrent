@@ -41,7 +41,9 @@ bool validate_yes_no(const std::string& arg);
 
 bool validate_download_peers(int arg);
 bool validate_rate(int arg);
-bool validate_read_ahead(int arg);
+bool validate_hash_read_ahead(int arg);
+bool validate_hash_interval(int arg);
+bool validate_hash_max_tries(int arg);
 bool validate_fd(int arg);
 
 bool validate_throttle_interval(int arg);
@@ -56,6 +58,8 @@ void apply_global_download_rate(ui::Control* m, int arg);
 void apply_global_upload_rate(ui::Control* m, int arg);
 
 void apply_hash_read_ahead(ui::Control* m, int arg);
+void apply_hash_interval(ui::Control* m, int arg);
+void apply_hash_max_tries(ui::Control* m, int arg);
 void apply_max_open_files(ui::Control* m, int arg);
 void apply_throttle_interval(ui::Control* m, int arg);
 

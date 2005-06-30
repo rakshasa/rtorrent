@@ -28,6 +28,7 @@
 namespace utils {
   
 extern TaskScheduler taskScheduler;
+extern TaskScheduler displayScheduler;
   
 }
 

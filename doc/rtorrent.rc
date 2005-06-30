@@ -53,6 +53,14 @@
 # pages in memory thus end up trashing.
 #hash_read_ahead = 10
 
+# Interval between attempts to check the hash, in milliseconds.
+#hash_interval = 100
+
+# Number of attempts to check the hash while using the mincore status,
+# before forcing. Overworked systems might need lower values to get a
+# decent hash checking rate.
+#hash_max_tries = 10
+
 # Max number of files to keep open simultaniously.
 #max_open_files = 100
 

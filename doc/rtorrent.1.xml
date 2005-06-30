@@ -417,6 +417,23 @@
       </varlistentry>
 
       <varlistentry>
+        <term>hash_interval = <replaceable>ms</replaceable></term>
+        <listitem><para>
+          Interval between attempts to check the hash when the chunk
+          is not in memory, in milliseconds.
+        </para></listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>hash_max_tries = <replaceable>tries</replaceable></term>
+        <listitem><para>
+          Number of attempts to check the hash while using the mincore
+	  status, before forcing. Overworked systems might need lower
+	  values to get a decent hash checking rate.
+        </para></listitem>
+      </varlistentry>
+
+      <varlistentry>
         <term>max_open_files = <replaceable>value</replaceable></term>
         <listitem><para>
           Number of files to simultaneously keep open. Libtorrent

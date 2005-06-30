@@ -42,7 +42,6 @@
 #include "display/canvas.h"
 #include "display/window.h"
 #include "ui/control.h"
-#include "ui/root.h"
 #include "input/bindings.h"
 
 #include "utils/task.h"
@@ -64,6 +63,7 @@ void print_help();
 
 namespace utils {
   TaskScheduler taskScheduler;
+  TaskScheduler displayScheduler;
 }
 
 bool
@@ -85,15 +85,12 @@ do_shutdown(ui::Control* c) {
     is_shutting_down = true;
 
     torrent::listen_close();
-
-    std::for_each(c->get_core().get_download_list().begin(), c->get_core().get_download_list().end(),
-		  std::bind1st(std::mem_fun(&core::Manager::stop), &c->get_core()));
+    c->get_core().shutdown(false);
 
   } else {
     // Close all torrents, this will stop all tracker connections and cause
     // a quick shutdown.
-    std::for_each(c->get_core().get_download_list().begin(), c->get_core().get_download_list().end(),
-		  std::mem_fun(&core::Download::call<void, &torrent::Download::close>));
+    c->get_core().shutdown(true);
   }
 }
 
@@ -132,7 +129,9 @@ initialize_option_handler(ui::Control* c, OptionHandler* optionHandler) {
   optionHandler->insert("check_hash",        new OptionHandlerString(c, &apply_check_hash, &validate_yes_no));
   optionHandler->insert("directory",         new OptionHandlerString(c, &apply_download_directory, &validate_directory));
 
-  optionHandler->insert("hash_read_ahead",   new OptionHandlerInt(c, &apply_hash_read_ahead, &validate_read_ahead));
+  optionHandler->insert("hash_read_ahead",   new OptionHandlerInt(c, &apply_hash_read_ahead, &validate_hash_read_ahead));
+  optionHandler->insert("hash_interval",     new OptionHandlerInt(c, &apply_hash_interval, &validate_hash_interval));
+  optionHandler->insert("hash_max_tries",    new OptionHandlerInt(c, &apply_hash_max_tries, &validate_hash_max_tries));
   optionHandler->insert("max_open_files",    new OptionHandlerInt(c, &apply_max_open_files, &validate_fd));
   optionHandler->insert("throttle_interval", new OptionHandlerInt(c, &apply_throttle_interval, &validate_throttle_interval));
 
@@ -186,7 +185,6 @@ int
 main(int argc, char** argv) {
   OptionHandler optionHandler;
   ui::Control   uiControl;
-  ui::Root      uiRoot(&uiControl);
 
   utils::Timer::update();
 
@@ -198,10 +196,10 @@ main(int argc, char** argv) {
   try {
 
     SignalHandler::set_ignore(SIGPIPE);
-    SignalHandler::set_handler(SIGINT, sigc::bind(sigc::mem_fun(uiRoot, &ui::Root::set_shutdown_received), true));
+    SignalHandler::set_handler(SIGINT,  sigc::bind(sigc::mem_fun(uiControl, &ui::Control::set_shutdown_received), true));
     SignalHandler::set_handler(SIGSEGV, sigc::bind(sigc::ptr_fun(&do_panic), SIGSEGV));
-    SignalHandler::set_handler(SIGBUS, sigc::bind(sigc::ptr_fun(&do_panic), SIGBUS));
-    SignalHandler::set_handler(SIGFPE, sigc::bind(sigc::ptr_fun(&do_panic), SIGFPE));
+    SignalHandler::set_handler(SIGBUS,  sigc::bind(sigc::ptr_fun(&do_panic), SIGBUS));
+    SignalHandler::set_handler(SIGFPE,  sigc::bind(sigc::ptr_fun(&do_panic), SIGFPE));
 
     // Need to initialize this before parseing options.
     torrent::initialize();
@@ -214,7 +212,7 @@ main(int argc, char** argv) {
     initialize_display(&uiControl);
     initialize_core(&uiControl);
 
-    uiRoot.init();
+    uiControl.get_ui().init(&uiControl);
 
     load_session_torrents(&uiControl);
     load_arg_torrents(&uiControl, argv + firstArg, argv + argc);
@@ -223,9 +221,9 @@ main(int argc, char** argv) {
 
     while (!is_shutting_down || !torrent::is_inactive()) {
 
-      if (uiRoot.get_shutdown_received()) {
+      if (uiControl.get_shutdown_received()) {
 	do_shutdown(&uiControl);
-	uiRoot.set_shutdown_received(false);
+	uiControl.set_shutdown_received(false);
       }
 
       utils::Timer::update();
@@ -233,14 +231,16 @@ main(int argc, char** argv) {
     
       // This needs to be called every second or so. Currently done by
       // the throttle task in libtorrent.
-      uiControl.get_display().do_update();
+      if (!utils::displayScheduler.empty() &&
+	  utils::displayScheduler.get_next_timeout() <= utils::Timer::cache())
+	uiControl.get_display().do_update();
 
       uiControl.get_core().get_poll().poll(!utils::taskScheduler.empty() ?
 					   utils::taskScheduler.get_next_timeout() - utils::Timer::cache() :
 					   60 * 1000000);
     }
 
-    uiRoot.cleanup();
+    uiControl.get_ui().cleanup();
     uiControl.get_core().cleanup();
 
     display::Canvas::erase_std();

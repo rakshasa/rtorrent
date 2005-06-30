@@ -32,18 +32,18 @@ namespace display {
 namespace ui {
 
 class DownloadList;
+class Control;
 
 class Root {
 public:
-  typedef display::WindowStatusbar WStatus;
+  typedef display::WindowStatusbar WStatusbar;
 
-  Root(Control* c);
+  Root();
 
-  void                init();
+  void                init(Control* c);
   void                cleanup();
 
-  bool                get_shutdown_received()       { return m_shutdownReceived; }
-  void                set_shutdown_received(bool v) { m_shutdownReceived = v; }
+  WStatusbar*         window_statusbar()            { return m_windowStatusbar; }
 
 private:
   void                setup_keys();
@@ -51,12 +51,10 @@ private:
   void                receive_read_throttle(int t);
   void                receive_write_throttle(int t);
 
-  bool                m_shutdownReceived;
-
   Control*            m_control;
   DownloadList*       m_downloadList;
 
-  WStatus*            m_windowStatus;
+  WStatusbar*         m_windowStatusbar;
 
   input::Bindings     m_bindings;
 };

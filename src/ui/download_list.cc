@@ -37,6 +37,7 @@
 #include "display/window_input.h"
 #include "display/window_log.h"
 #include "display/window_title.h"
+#include "display/window_statusbar.h"
 
 #include "control.h"
 #include "download.h"
@@ -113,14 +114,14 @@ DownloadList::disable() {
   if (!is_active())
     throw std::logic_error("ui::Download::disable() called on an already disabled object");
 
-  disable_display();
-
-  utils::taskScheduler.erase(&m_taskUpdate);
-
   if (m_windowTextInput->is_active()) {
     m_windowTextInput->get_input()->clear();
     receive_exit_input();
   }
+
+  disable_display();
+
+  utils::taskScheduler.erase(&m_taskUpdate);
 
   m_control->get_display().erase(m_window);
   m_control->get_display().erase(m_windowTitle);
@@ -225,7 +226,7 @@ DownloadList::receive_check_hash() {
 
 void
 DownloadList::receive_view_input() {
-  //m_windowStatus->set_active(false);
+  m_control->get_ui().window_statusbar()->set_active(false);
   m_windowTextInput->set_active(true);
   m_control->get_display().adjust_layout();
 
@@ -239,7 +240,7 @@ DownloadList::receive_view_input() {
 
 void
 DownloadList::receive_exit_input() {
-  //m_windowStatus->set_active(true);
+  m_control->get_ui().window_statusbar()->set_active(true);
   m_windowTextInput->set_active(false);
 
   m_control->get_input().set_text_input();

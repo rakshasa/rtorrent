@@ -83,8 +83,7 @@ void
 Manager::do_update() {
   Canvas::refresh_std();
 
-  std::for_each(begin(), end(), rak::if_then(std::mem_fun(&Window::is_active), rak::if_then(std::mem_fun(&Window::is_dirty),
-											    std::mem_fun(&Window::redraw))));
+  utils::displayScheduler.execute(utils::Timer::cache());
   std::for_each(begin(), end(), rak::if_then(std::mem_fun(&Window::is_active), std::mem_fun(&Window::refresh)));
 
   Canvas::do_update();

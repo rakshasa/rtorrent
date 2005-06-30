@@ -71,8 +71,18 @@ validate_rate(int arg) {
 }
 
 bool
-validate_read_ahead(int arg) {
+validate_hash_read_ahead(int arg) {
   return arg >= 1 && arg < 64;
+}
+
+bool
+validate_hash_interval(int arg) {
+  return arg >= 1 && arg < 1000;
+}
+
+bool
+validate_hash_max_tries(int arg) {
+  return arg >= 1 && arg < 20;
 }
 
 bool
@@ -121,6 +131,16 @@ apply_global_upload_rate(ui::Control* m, int arg) {
 void
 apply_hash_read_ahead(ui::Control* m, int arg) {
   torrent::set_hash_read_ahead(arg << 20);
+}
+
+void
+apply_hash_interval(ui::Control* m, int arg) {
+  torrent::set_hash_interval(arg * 1000);
+}
+
+void
+apply_hash_max_tries(ui::Control* m, int arg) {
+  torrent::set_hash_max_tries(arg);
 }
 
 void

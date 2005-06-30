@@ -44,7 +44,7 @@ WindowHttpQueue::WindowHttpQueue(core::HttpQueue* q) :
 
 void
 WindowHttpQueue::redraw() {
-  m_nextDraw = utils::Timer::cache().round_seconds() + 1000000;
+  utils::displayScheduler.insert(&m_taskUpdate, utils::Timer::cache().round_seconds() + 1000000);
 
   cleanup_list();
 

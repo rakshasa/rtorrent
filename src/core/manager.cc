@@ -31,7 +31,6 @@
 #include <sigc++/hide.h>
 #include <torrent/bencode.h>
 #include <torrent/exceptions.h>
-#include <torrent/torrent.h>
 
 #include "download.h"
 #include "manager.h"
@@ -54,8 +53,9 @@ Manager::initialize() {
 
   // Register slots to be called when a download is inserted/erased,
   // opened or closed.
+  m_downloadList.slot_map_insert().insert("0_initialize_bencode",  sigc::mem_fun(*this, &Manager::initialize_bencode));
   m_downloadList.slot_map_insert().insert("1_connect_network_log", sigc::bind(sigc::ptr_fun(&connect_signal_network_log), sigc::mem_fun(m_logComplete, &Log::push_front)));
-  m_downloadList.slot_map_insert().insert("3_manager_start",       sigc::mem_fun(*this, &Manager::start));
+  m_downloadList.slot_map_insert().insert("3_manager_inserted",    sigc::mem_fun(*this, &Manager::receive_download_inserted));
   m_downloadList.slot_map_insert().insert("4_store_save",          sigc::mem_fun(m_downloadStore, &DownloadStore::save));
 
   m_downloadList.slot_map_erase().insert("1_hash_queue_remove",    sigc::mem_fun(m_hashQueue, &HashQueue::remove));
@@ -88,6 +88,16 @@ Manager::cleanup() {
 }
 
 void
+Manager::shutdown(bool force) {
+  if (!force)
+    std::for_each(m_downloadList.begin(), m_downloadList.end(),
+		  std::bind1st(std::mem_fun(&DownloadList::stop), &m_downloadList));
+  else
+    std::for_each(m_downloadList.begin(), m_downloadList.end(),
+		  std::bind1st(std::mem_fun(&DownloadList::close), &m_downloadList));
+}
+
+void
 Manager::insert(std::string uri) {
   if (std::strncmp(uri.c_str(), "http://", 7) == 0) {
     create_http(uri);
@@ -111,6 +121,8 @@ Manager::erase(DListItr itr) {
 void
 Manager::start(Download* d) {
   try {
+    d->get_bencode()["rtorrent"]["state"] = "started";
+
     if (d->get_download().is_active())
       return;
 
@@ -132,6 +144,8 @@ Manager::start(Download* d) {
 void
 Manager::stop(Download* d) {
   try {
+    d->get_bencode()["rtorrent"]["state"] = "stopped";
+
     m_downloadList.stop(d);
 
   } catch (torrent::local_error& e) {
@@ -213,6 +227,21 @@ Manager::create_final(std::istream* s) {
 }
 
 void
+Manager::initialize_bencode(Download* d) {
+  torrent::Bencode& bencode = d->get_bencode();
+
+  // TODO: Check that stuff are the right type, like state etc.
+  if (bencode.has_key("rtorrent") &&
+      bencode["rtorrent"].is_map() &&
+      bencode["rtorrent"].has_key("state") &&
+      bencode["rtorrent"]["state"].is_string())
+    return;
+
+  bencode.insert_key("rtorrent", torrent::Bencode(torrent::Bencode::TYPE_MAP));
+  bencode["rtorrent"].insert_key("state", "started");
+}
+
+void
 Manager::prepare_hash_check(Download* d) {
   m_downloadList.close(d);
   d->get_download().hash_resume_clear();
@@ -240,6 +269,16 @@ Manager::receive_download_done_hash_checked(Download* d) {
   // Don't send if we did a hash check and found incompelete chunks.
   //if (d->is_done())
     d->get_download().tracker_send_completed();
+}
+
+void
+Manager::receive_download_inserted(Download* d) {
+  // Check if there is an "rtorrent" section in the bencoded data.
+
+  torrent::Bencode& bencode = d->get_bencode();
+
+  if (bencode["rtorrent"]["state"].as_string() == "started")
+    start(d);
 }
 
 }

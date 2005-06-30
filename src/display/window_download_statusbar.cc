@@ -37,7 +37,7 @@ WindowDownloadStatusbar::WindowDownloadStatusbar(core::Download* d) :
 
 void
 WindowDownloadStatusbar::redraw() {
-  m_nextDraw = utils::Timer::cache().round_seconds() + 1000000;
+  utils::displayScheduler.insert(&m_taskUpdate, utils::Timer::cache().round_seconds() + 1000000);
 
   m_canvas->erase();
 

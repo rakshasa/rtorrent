@@ -37,9 +37,7 @@ WindowInput::WindowInput(input::TextInput* input) :
 
 void
 WindowInput::redraw() {
-  m_nextDraw = utils::Timer::max();
   m_canvas->erase();
-
   m_canvas->print(0, 0, "> %s", m_input->c_str());
 
   if (m_focus)

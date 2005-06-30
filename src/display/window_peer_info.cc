@@ -42,7 +42,7 @@ WindowPeerInfo::WindowPeerInfo(core::Download* d, PList* l, PList::iterator* f) 
 
 void
 WindowPeerInfo::redraw() {
-  m_nextDraw = utils::Timer::cache().round_seconds() + 1000000;
+  utils::displayScheduler.insert(&m_taskUpdate, utils::Timer::cache().round_seconds() + 1000000);
   m_canvas->erase();
 
   int y = 0;
