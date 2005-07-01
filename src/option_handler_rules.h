@@ -38,6 +38,7 @@ bool validate_ip(const std::string& arg);
 bool validate_directory(const std::string& arg);
 bool validate_port_range(const std::string& arg);
 bool validate_yes_no(const std::string& arg);
+bool validate_non_empty(const std::string& arg);
 
 bool validate_download_peers(int arg);
 bool validate_rate(int arg);
@@ -51,8 +52,10 @@ bool validate_throttle_interval(int arg);
 void apply_download_min_peers(ui::Control* m, int arg);
 void apply_download_max_peers(ui::Control* m, int arg);
 void apply_download_max_uploads(ui::Control* m, int arg);
-
 void apply_download_directory(ui::Control* m, const std::string& arg);
+
+void apply_connection_leech(ui::Control* m, const std::string& arg);
+void apply_connection_seed(ui::Control* m, const std::string& arg);
 
 void apply_global_download_rate(ui::Control* m, int arg);
 void apply_global_upload_rate(ui::Control* m, int arg);

@@ -50,6 +50,9 @@ public:
   using Base::empty;
   using Base::size;
 
+  HttpQueue() {}
+  ~HttpQueue() { clear(); }
+
   // Note that any slots connected to the CurlGet signals must be
   // pushed in front of the erase slot added by HttpQueue::insert.
   iterator    insert(const std::string& url);

@@ -1,81 +1,27 @@
+BUILDING
+
+ Run "./autogen.sh" to generate the configure scripts if
+nessesary. The man page "doc/rtorrent.1" must be generated with
+"docbook2man rtorrent.1.xml" if it is missing.
+
+ Note that rtorrent follows the development of libtorrent closely, and
+thus the versions must be in sync. This should not be nessesary in the
+future, when the library API stabilizes.
+
+USAGE
+
+ See the man page or website for instructions.
+
 LICENSE
 
  GNU GPL, see COPYING.
 
+DEPENDENCIES
 
-Options and flags:
+  libcurl >= 7.12.0
+  ncurses
 
-  -b <a.b.c.d>      Bind the listening socket to this IP.
-  -i <a.b.c.d>      Set the IP address sent to the tracker.
+CONTACT
 
-  -p <a-b>          Open a port in the range a to b.
-
-  -d <dir>          Sets the default path where the files in the
-                    torrent are found/saved. By default it is "./".
-
-  -s <dir>          The session directory, all the torrents you add
-                    will be saved there with the info hash as a file
-                    name. When you shutdown rtorrent it will store
-                    fast-resume data in those torrents. Restarting
-                    rtorrent with the sesssion directory will restart
-                    all the torrents you had when you last quit.
-
-
-All:
-
-  Ctrl-Q    - Quit
-
-  a/A       - Increase upload/download throttle by 1 KiB
-  z/Z       - Decrease upload/download throttle by 1 KiB
-
-  s/S       - Increase upload/download throttle by 5 KiB
-  x/X       - Decrease upload/download throttle by 5 KiB
-
-  d/D       - Increase upload/download throttle by 50 KiB
-  c/C       - Decrease upload/download throttle by 50 KiB
-
-
-In main window:
-
-  Backspace - Activate text input for inserting urls/file
-              paths. Arrows/C^f/C^b for navigation, enter/C^m.
-
-  Up/Down   - Select torrent
-
-  Right     - View torrent
-
-  ^s        - Start torrent
-  ^d        - Stop/delete torrent
-
-  ^r        - Manually start a hash check of the torrent
-
-
-In torrent view:
-
-  Up/Down   - Select peer
-
-  Left      - Back to main
-
-  Right     - View files
-  P         - View peer
-  O         - View trackers
-
-  1         - Decrease max uploads
-  2         - Increase max uploads
-
-  3         - Decrease min peers connected
-  4         - Increase min peers connected
-
-  5         - Decrease max peers connected
-  6         - Increase max peers connected
-
-  t         - Query tracker
-  T         - Force query tracker, ignores min reconnect time sendt by the tracker
-
-In file view:
-
-  Up/Down   - Select file
-
-  Left      - Back to torrent view
-
-  SpaceBar  - Change file priority
+ Send bug reports, suggestions and patches to <jaris@ifi.uio.no> or
+to the mailinglist.

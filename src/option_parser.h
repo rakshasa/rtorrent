@@ -36,6 +36,9 @@ public:
   typedef sigc::slot2<void, const std::string&, const std::string&> SlotStringPair;
   typedef sigc::slot2<void, int, int>                               SlotIntPair;
 
+  OptionParser() {}
+  ~OptionParser() { m_container.clear(); }
+
   void                insert_flag(char c, Slot s);
   void                insert_option(char c, SlotString s);
   void                insert_option_list(char c, SlotStringPair s);

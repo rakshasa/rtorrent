@@ -135,6 +135,9 @@ initialize_option_handler(ui::Control* c, OptionHandler* optionHandler) {
   optionHandler->insert("max_open_files",    new OptionHandlerInt(c, &apply_max_open_files, &validate_fd));
   optionHandler->insert("throttle_interval", new OptionHandlerInt(c, &apply_throttle_interval, &validate_throttle_interval));
 
+  optionHandler->insert("connection_leech",  new OptionHandlerString(c, &apply_connection_leech, &validate_non_empty));
+  optionHandler->insert("connection_seed",   new OptionHandlerString(c, &apply_connection_seed, &validate_non_empty));
+
   optionHandler->insert("session",           new OptionHandlerString(c, &apply_session_directory, &validate_directory));
   optionHandler->insert("tracker_dump",      new OptionHandlerString(c, &apply_tracker_dump, &validate_yes_no));
 }
@@ -183,10 +186,10 @@ initialize_core(ui::Control* c) {
 
 int
 main(int argc, char** argv) {
+  utils::Timer::update();
+
   OptionHandler optionHandler;
   ui::Control   uiControl;
-
-  utils::Timer::update();
 
   srandom(utils::Timer::cache().usec());
   srand48(utils::Timer::cache().usec());

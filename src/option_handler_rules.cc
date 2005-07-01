@@ -61,6 +61,11 @@ validate_yes_no(const std::string& arg) {
 }
 
 bool
+validate_non_empty(const std::string& arg) {
+  return !arg.empty();
+}
+
+bool
 validate_download_peers(int arg) {
   return arg > 0 && arg < (1 << 16);
 }
@@ -116,6 +121,16 @@ apply_download_directory(ui::Control* m, const std::string& arg) {
     m->get_core().get_download_list().slot_map_insert().insert("1_directory", sigc::bind(sigc::mem_fun(&core::Download::set_root_directory), arg));
   else
     m->get_core().get_download_list().slot_map_insert().erase("1_directory");
+}
+
+void
+apply_connection_leech(ui::Control* m, const std::string& arg) {
+  m->get_core().get_download_list().slot_map_insert().insert("1_connection_leech", sigc::bind(sigc::mem_fun(&core::Download::set_connection_leech), arg));
+}
+
+void
+apply_connection_seed(ui::Control* m, const std::string& arg) {
+  m->get_core().get_download_list().slot_map_insert().insert("1_connection_seed", sigc::bind(sigc::mem_fun(&core::Download::set_connection_seed), arg));
 }
 
 void

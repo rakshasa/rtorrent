@@ -31,6 +31,21 @@
 
 namespace core {
 
+Download::Download() :
+  m_connectionLeech("default"),
+  m_connectionSeed("default") {
+}
+
+void
+Download::start() {
+  if (is_done())
+    m_download.set_connection_type(m_connectionSeed);
+  else
+    m_download.set_connection_type(m_connectionLeech);
+
+  m_download.start();
+}
+
 void
 Download::set_download(torrent::Download d) {
   m_download = d;
@@ -49,9 +64,19 @@ Download::set_root_directory(const std::string& d) {
 
 void
 Download::release_download() {
+  if (!m_download.is_valid())
+    return;
+
   m_connTrackerSucceded.disconnect();
   m_connTrackerFailed.disconnect();
   m_connStorageError.disconnect();
+
+  m_download = torrent::Download();
+}
+
+void
+Download::receive_finished() {
+  m_download.set_connection_type(m_connectionSeed);
 }
 
 void

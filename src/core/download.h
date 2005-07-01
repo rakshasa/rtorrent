@@ -31,8 +31,13 @@ namespace core {
 
 class Download {
 public:
+  Download();
+  ~Download() { release_download(); }
+
   bool               is_open()                       { return m_download.is_open(); }
   inline bool        is_done();
+
+  void               start();
 
   void               set_download(torrent::Download d);
   void               release_download();
@@ -45,6 +50,9 @@ public:
 
   void               set_root_directory(const std::string& d);
 
+  void               set_connection_leech(const std::string& name) { m_connectionLeech = name; }
+  void               set_connection_seed(const std::string& name)  { m_connectionSeed = name; }
+
   // Helper functions for calling functions in torrent::Download
   // through sigc++.
   template <typename Ret, Ret (torrent::Download::*func)()>
@@ -55,6 +63,8 @@ public:
 
   bool operator == (const std::string& str)                                { return str == m_download.get_hash(); }
 
+  void               receive_finished();
+
 private:
   void               receive_tracker_msg(std::string msg);
   void               receive_storage_error(std::string msg);
@@ -62,6 +72,9 @@ private:
   torrent::Download  m_download;
 
   std::string        m_message;
+
+  std::string        m_connectionLeech;
+  std::string        m_connectionSeed;
 
   sigc::connection   m_connTrackerSucceded;
   sigc::connection   m_connTrackerFailed;

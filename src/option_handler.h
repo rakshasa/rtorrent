@@ -54,6 +54,9 @@ public:
 
   using Base::find;
 
+  OptionHandler() {}
+  ~OptionHandler() { clear(); }
+
   // We take over ownership of opt.
   void                insert(const std::string& key, OptionHandlerBase* opt);
   void                erase(const std::string& key);
