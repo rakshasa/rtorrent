@@ -64,8 +64,8 @@ DownloadList::iterator
 DownloadList::erase(iterator itr) {
   m_slotMapErase.for_each(*itr);
 
-  (*itr)->release_download();
   torrent::download_remove((*itr)->get_hash());
+  (*itr)->release_download();
   delete *itr;
 
   return Base::erase(itr);

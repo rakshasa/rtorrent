@@ -147,6 +147,7 @@ initialize_option_handler(ui::Control* c, OptionHandler* optionHandler) {
   optionHandler->insert("hash_interval",     new OptionHandlerInt(c, &apply_hash_interval, &validate_hash_interval));
   optionHandler->insert("hash_max_tries",    new OptionHandlerInt(c, &apply_hash_max_tries, &validate_hash_max_tries));
   optionHandler->insert("max_open_files",    new OptionHandlerInt(c, &apply_max_open_files, &validate_fd));
+  optionHandler->insert("max_open_sockets",  new OptionHandlerInt(c, &apply_max_open_sockets, &validate_fd));
   optionHandler->insert("throttle_interval", new OptionHandlerInt(c, &apply_throttle_interval, &validate_throttle_interval));
 
   optionHandler->insert("connection_leech",  new OptionHandlerString(c, &apply_connection_leech, &validate_non_empty));
@@ -299,8 +300,10 @@ do_panic(int signum) {
 #endif
   
   if (signum == SIGBUS)
-    std::cout << "A bus error might mean you ran out of diskspace." << std::endl;
+    std::cout << "A bus error propably means you ran out of diskspace." << std::endl;
   
+  std::cout << "TO AVOID CORRUPT DOWNLOADS, RUN \"touch\" ON ALL DOWNLOADED FILES OR INITATE HASH RECHECK WITH ^R ON ALL TORRENTS." << std::endl;
+
   exit(-1);
 }
 

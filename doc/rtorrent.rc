@@ -62,7 +62,10 @@
 #hash_max_tries = 10
 
 # Max number of files to keep open simultaniously.
-#max_open_files = 100
+#max_open_files = 128
+
+# Number of sockets to simultaneously keep open.
+#max_open_sockets = <no default>
 
 # Dump data received from trackers to the files "./tracker_dump.<time>".
 #tracker_dump = no

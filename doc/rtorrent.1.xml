@@ -214,7 +214,7 @@
 	  <term>t | T</term>
 	  <listitem><para>
             Initiate tracker request. Use capital T to force the
-            request, ignoring the "min interval".
+            request, ignoring the "min interval" set by the tracker.
           </para></listitem>
 	</varlistentry>
 
@@ -402,7 +402,7 @@
   <refsect1>
     <title>ADVANCED SETTINGS</title>
     <para>
-      This list contains settings normal users shouldn't need to touch.
+      This list contains settings users shouldn't need to touch.
     </para>
 
     <variablelist>
@@ -438,7 +438,17 @@
         <listitem><para>
           Number of files to simultaneously keep open. Libtorrent
           dynamically opens and closes files when mapping files to
-          memory.
+          memory. Defaults to 128.
+        </para></listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>max_open_sockets = <replaceable>value</replaceable></term>
+        <listitem><para>
+          Number of sockets to simultaneously keep open. This value is
+          set to be <emphasis>sysconf(_SC_OPEN_MAX) - 256</emphasis>
+          at startup. This gives the client 128 sockets to use as it
+          wishes.
         </para></listitem>
       </varlistentry>
 

@@ -48,6 +48,8 @@ namespace ui {
   class Control;
 }
 
+// Not pretty, but it is simple and easy to modify.
+
 bool validate_ip(const std::string& arg);
 bool validate_directory(const std::string& arg);
 bool validate_port_range(const std::string& arg);
@@ -78,6 +80,7 @@ void apply_hash_read_ahead(ui::Control* m, int arg);
 void apply_hash_interval(ui::Control* m, int arg);
 void apply_hash_max_tries(ui::Control* m, int arg);
 void apply_max_open_files(ui::Control* m, int arg);
+void apply_max_open_sockets(ui::Control* m, int arg);
 void apply_throttle_interval(ui::Control* m, int arg);
 
 void apply_ip(ui::Control* m, const std::string& arg);

@@ -106,7 +106,7 @@ validate_hash_max_tries(int arg) {
 
 bool
 validate_fd(int arg) {
-  return arg >= 10 && arg < (1 << 16);
+  return arg >= 1 && arg < (1 << 16);
 }
 
 bool
@@ -175,6 +175,11 @@ apply_hash_max_tries(ui::Control* m, int arg) {
 void
 apply_max_open_files(ui::Control* m, int arg) {
   torrent::set_max_open_files(arg);
+}
+
+void
+apply_max_open_sockets(ui::Control* m, int arg) {
+  torrent::set_max_open_sockets(arg);
 }
 
 void

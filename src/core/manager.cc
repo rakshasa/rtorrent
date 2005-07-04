@@ -80,8 +80,8 @@ Manager::initialize() {
 
   // Currently does not call stop, might want to add a function that
   // checks if we're running, and if so stop?
-  m_downloadList.slot_map_close().insert("1_download_close",       sigc::mem_fun(&Download::call<void, &torrent::Download::close>));
   m_downloadList.slot_map_close().insert("1_hash_queue_remove",    sigc::mem_fun(m_hashQueue, &HashQueue::remove));
+  m_downloadList.slot_map_close().insert("2_download_close",       sigc::mem_fun(&Download::call<void, &torrent::Download::close>));
 
   m_downloadList.slot_map_start().insert("1_download_start",       sigc::mem_fun(&Download::start));
 
@@ -89,7 +89,7 @@ Manager::initialize() {
   m_downloadList.slot_map_stop().insert("2_hash_resume_save",      sigc::mem_fun(&Download::call<void, &torrent::Download::hash_resume_save>));
   m_downloadList.slot_map_stop().insert("3_store_save",            sigc::mem_fun(m_downloadStore, &DownloadStore::save));
 
-  m_downloadList.slot_map_finished().insert("1_download_done",     sigc::bind(sigc::mem_fun(*this, &Manager::receive_download_done), false));
+  m_downloadList.slot_map_finished().insert("1_download_done",     sigc::bind(sigc::mem_fun(*this, &Manager::receive_download_done), true));
   m_downloadList.slot_map_finished().insert("2_receive_finished",  sigc::mem_fun(&Download::receive_finished));
 }
 
