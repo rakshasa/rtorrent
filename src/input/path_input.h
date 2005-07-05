@@ -40,7 +40,6 @@
 #include <sigc++/signal.h>
 
 #include "utils/directory.h"
-
 #include "text_input.h"
 
 namespace input {
