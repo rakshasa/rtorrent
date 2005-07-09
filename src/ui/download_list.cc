@@ -275,6 +275,10 @@ DownloadList::receive_exit_input(bool useDefault) {
   m_bindings->erase('\n');
   m_bindings->erase(KEY_ENTER);
 
+  // Urgh... this is ugly...
+  (*m_bindings)['\n']          = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_view_input), false);
+  (*m_bindings)[KEY_ENTER]     = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_view_input), false);
+
   receive_change(DISPLAY_DOWNLOAD_LIST);
 }
 

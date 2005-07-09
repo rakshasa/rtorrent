@@ -69,7 +69,7 @@ Manager::initialize() {
   // opened or closed.
   m_downloadList.slot_map_insert().insert("0_initialize_bencode",  sigc::mem_fun(*this, &Manager::initialize_bencode));
   m_downloadList.slot_map_insert().insert("1_connect_network_log", sigc::bind(sigc::ptr_fun(&connect_signal_network_log), sigc::mem_fun(m_logComplete, &Log::push_front)));
-  m_downloadList.slot_map_insert().insert("4_store_save",          sigc::mem_fun(m_downloadStore, &DownloadStore::save));
+  //m_downloadList.slot_map_insert().insert("4_store_save",          sigc::mem_fun(m_downloadStore, &DownloadStore::save));
 
   m_downloadList.slot_map_erase().insert("1_hash_queue_remove",    sigc::mem_fun(m_hashQueue, &HashQueue::remove));
   m_downloadList.slot_map_erase().insert("1_store_remove",         sigc::mem_fun(m_downloadStore, &DownloadStore::remove));
@@ -149,7 +149,7 @@ Manager::start(Download* d) {
     if (d->get_download().is_hash_checked())
       m_downloadList.start(d);
     else
-      // This can cause infinit loops.
+      // This can cause infinit loops?
       m_hashQueue.insert(d, sigc::bind(sigc::mem_fun(m_downloadList, &DownloadList::start), d));
 
   } catch (torrent::local_error& e) {
@@ -226,15 +226,13 @@ void
 Manager::initialize_bencode(Download* d) {
   torrent::Bencode& bencode = d->get_bencode();
 
-  // TODO: Check that stuff are the right type, like state etc.
-  if (bencode.has_key("rtorrent") &&
-      bencode["rtorrent"].is_map() &&
-      bencode["rtorrent"].has_key("state") &&
-      bencode["rtorrent"]["state"].is_string())
-    return;
-
-  bencode.insert_key("rtorrent", torrent::Bencode(torrent::Bencode::TYPE_MAP));
-  bencode["rtorrent"].insert_key("state", "started");
+  if (!bencode.has_key("rtorrent") ||
+      !bencode["rtorrent"].is_map())
+    bencode.insert_key("rtorrent", torrent::Bencode(torrent::Bencode::TYPE_MAP));
+    
+  if (!bencode["rtorrent"].has_key("state") ||
+      !bencode["rtorrent"]["state"].is_string())
+    bencode["rtorrent"].insert_key("state", "started");
 }
 
 void

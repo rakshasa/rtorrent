@@ -1,6 +1,7 @@
 noinst_LIBRARIES = libsub_ui.a
 
 libsub_ui_a_SOURCES = \
+	control.cc \
 	control.h \
 	download.cc \
 	download.h \

@@ -107,7 +107,7 @@ Root::setup_keys() {
   m_bindings['C']           = sigc::bind(sigc::mem_fun(*this, &Root::receive_read_throttle), -50);
 
   m_bindings[KEY_RESIZE]    = sigc::mem_fun(m_control->get_display(), &display::Manager::adjust_layout);
-  m_bindings['\x11']        = sigc::bind(sigc::mem_fun(*m_control, &Control::set_shutdown_received), true);
+  m_bindings['\x11']        = sigc::mem_fun(*m_control, &Control::receive_shutdown);
 }
 
 void

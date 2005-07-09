@@ -72,8 +72,6 @@
 
 int64_t utils::Timer::m_cache;
 
-bool is_shutting_down = false;
-
 void do_panic(int signum);
 void print_help();
 
@@ -93,21 +91,6 @@ is_resized() {
   y = display::Canvas::get_screen_height();
 
   return r;
-}
-
-void
-do_shutdown(ui::Control* c) {
-  if (!is_shutting_down) {
-    is_shutting_down = true;
-
-    torrent::listen_close();
-    c->get_core().shutdown(false);
-
-  } else {
-    // Close all torrents, this will stop all tracker connections and cause
-    // a quick shutdown.
-    c->get_core().shutdown(true);
-  }
 }
 
 int
@@ -233,7 +216,7 @@ main(int argc, char** argv) {
   try {
 
     SignalHandler::set_ignore(SIGPIPE);
-    SignalHandler::set_handler(SIGINT,  sigc::bind(sigc::mem_fun(uiControl, &ui::Control::set_shutdown_received), true));
+    SignalHandler::set_handler(SIGINT,  sigc::mem_fun(uiControl, &ui::Control::receive_shutdown));
     SignalHandler::set_handler(SIGSEGV, sigc::bind(sigc::ptr_fun(&do_panic), SIGSEGV));
     SignalHandler::set_handler(SIGBUS,  sigc::bind(sigc::ptr_fun(&do_panic), SIGBUS));
     SignalHandler::set_handler(SIGFPE,  sigc::bind(sigc::ptr_fun(&do_panic), SIGFPE));
@@ -256,13 +239,7 @@ main(int argc, char** argv) {
 
     uiControl.get_display().adjust_layout();
 
-    while (!is_shutting_down || !torrent::is_inactive()) {
-
-      if (uiControl.get_shutdown_received()) {
-	do_shutdown(&uiControl);
-	uiControl.set_shutdown_received(false);
-      }
-
+    while (!uiControl.is_shutdown_completed()) {
       utils::Timer::update();
       utils::taskScheduler.execute(utils::Timer::cache());
     
@@ -272,6 +249,7 @@ main(int argc, char** argv) {
 	  utils::displayScheduler.get_next_timeout() <= utils::Timer::cache())
 	uiControl.get_display().do_update();
 
+      // Do shutdown check before poll, not after.
       uiControl.get_core().get_poll().poll(!utils::taskScheduler.empty() ?
 					   utils::taskScheduler.get_next_timeout() - utils::Timer::cache() :
 					   60 * 1000000);

@@ -147,6 +147,8 @@ DownloadFactory::receive_success() {
   } else {
     if (m_start)
       m_manager->start(*itr);
+
+    m_manager->get_download_store().save(*itr);
   }
 
   m_slotFinished();

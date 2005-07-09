@@ -34,45 +34,21 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef RTORRENT_UI_CONTROL_H
-#define RTORRENT_UI_CONTROL_H
+#include "config.h"
 
-#include <torrent/torrent.h>
-
-#include "core/manager.h"
-#include "display/manager.h"
-#include "input/manager.h"
-
-#include "root.h"
+#include "control.h"
 
 namespace ui {
 
-class Control {
-public:
-  Control() : m_shutdownReceived(false) {}
-  
-  bool                is_shutdown_completed()       { return m_shutdownReceived && torrent::is_inactive(); }
-  bool                is_shutdown_received()        { return m_shutdownReceived; }
-
-  Root&               get_ui()                      { return m_ui; }
-  core::Manager&      get_core()                    { return m_core; }
-  display::Manager&   get_display()                 { return m_display; }
-  input::Manager&     get_input()                   { return m_input; }
-
-  void                receive_shutdown();
-
-private:
-  Control(const Control&);
-  void operator = (const Control&);
-
-  bool                m_shutdownReceived;
-
-  Root                m_ui;
-  core::Manager       m_core;
-  display::Manager    m_display;
-  input::Manager      m_input;
-};
-
+// I think it should be safe to initiate the shutdown from anywhere,
+// but if it isn't, use a delay task.
+void
+Control::receive_shutdown() {
+  if (!m_shutdownReceived)
+    torrent::listen_close();
+    
+  m_core.shutdown(m_shutdownReceived);
+  m_shutdownReceived = true;
 }
 
-#endif
+}
