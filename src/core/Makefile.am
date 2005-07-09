@@ -7,6 +7,8 @@ libsub_core_a_SOURCES = \
 	curl_stack.h \
 	download.cc \
 	download.h \
+	download_factory.cc \
+	download_factory.h \
 	download_list.cc \
 	download_list.h \
 	download_slot_map.h \

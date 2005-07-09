@@ -69,7 +69,6 @@ Manager::initialize() {
   // opened or closed.
   m_downloadList.slot_map_insert().insert("0_initialize_bencode",  sigc::mem_fun(*this, &Manager::initialize_bencode));
   m_downloadList.slot_map_insert().insert("1_connect_network_log", sigc::bind(sigc::ptr_fun(&connect_signal_network_log), sigc::mem_fun(m_logComplete, &Log::push_front)));
-  m_downloadList.slot_map_insert().insert("3_manager_inserted",    sigc::mem_fun(*this, &Manager::receive_download_inserted));
   m_downloadList.slot_map_insert().insert("4_store_save",          sigc::mem_fun(m_downloadStore, &DownloadStore::save));
 
   m_downloadList.slot_map_erase().insert("1_hash_queue_remove",    sigc::mem_fun(m_hashQueue, &HashQueue::remove));
@@ -112,13 +111,16 @@ Manager::shutdown(bool force) {
 		  std::bind1st(std::mem_fun(&DownloadList::close), &m_downloadList));
 }
 
-void
-Manager::insert(std::string uri) {
-  if (std::strncmp(uri.c_str(), "http://", 7) == 0) {
-    create_http(uri);
-  } else {
-    std::fstream f(uri.c_str(), std::ios::in);
-    create_final(&f);
+Manager::DListItr
+Manager::insert(std::istream* s) {
+  try {
+    return m_downloadList.insert(s);
+
+  } catch (torrent::local_error& e) {
+    m_logImportant.push_front(e.what());
+    m_logComplete.push_front(e.what());
+
+    return m_downloadList.end();
   }
 }
 
@@ -127,8 +129,8 @@ Manager::erase(DListItr itr) {
   if ((*itr)->get_download().is_active())
     throw std::logic_error("core::Manager::erase(...) called on an active download");
 
-  if (!(*itr)->get_download().is_open())
-    throw std::logic_error("core::Manager::erase(...) called on an closed download");
+//   if (!(*itr)->get_download().is_open())
+//     throw std::logic_error("core::Manager::erase(...) called on an closed download");
 
   return m_downloadList.erase(itr);
 }  
@@ -221,27 +223,6 @@ Manager::listen_open() {
 }
 
 void
-Manager::create_http(const std::string& uri) {
-  HttpQueue::iterator itr = m_httpQueue.insert(uri);
-
-  (*itr)->signal_done().slots().push_front(sigc::bind(sigc::mem_fun(*this, &Manager::create_final),
-						      (*itr)->get_stream()));
-  (*itr)->signal_failed().slots().push_front(sigc::mem_fun(*this, &Manager::receive_http_failed));
-}
-
-void
-Manager::create_final(std::istream* s) {
-  try {
-    m_downloadList.insert(s);
-
-  } catch (torrent::local_error& e) {
-    // What to do? Keep in list for now.
-    m_logImportant.push_front(e.what());
-    m_logComplete.push_front(e.what());
-  }
-}
-
-void
 Manager::initialize_bencode(Download* d) {
   torrent::Bencode& bencode = d->get_bencode();
 
@@ -284,16 +265,6 @@ Manager::receive_download_done_hash_checked(Download* d) {
   // Don't send if we did a hash check and found incompelete chunks.
   //if (d->is_done())
     d->get_download().tracker_send_completed();
-}
-
-void
-Manager::receive_download_inserted(Download* d) {
-  // Check if there is an "rtorrent" section in the bencoded data.
-
-  torrent::Bencode& bencode = d->get_bencode();
-
-  if (bencode["rtorrent"]["state"].as_string() == "started")
-    start(d);
 }
 
 }

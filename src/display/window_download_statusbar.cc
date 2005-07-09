@@ -36,6 +36,8 @@
 
 #include "config.h"
 
+#include <torrent/rate.h>
+
 #include "canvas.h"
 #include "utils.h"
 #include "window_download_statusbar.h"
@@ -59,16 +61,16 @@ WindowDownloadStatusbar::redraw() {
     m_canvas->print(0, 0, "Torrent: %.1f / %.1f MiB Rate: %5.1f / %5.1f KiB Uploaded: %.1f MiB",
 		    (double)m_download->get_download().get_bytes_done() / (double)(1 << 20),
 		    (double)m_download->get_download().get_bytes_total() / (double)(1 << 20),
-		    (double)m_download->get_download().get_rate_up() / 1024.0,
-		    (double)m_download->get_download().get_rate_down() / 1024.0,
-		    (double)m_download->get_download().get_bytes_up() / (double)(1 << 20));
+		    (double)m_download->get_download().get_write_rate().rate() / 1024.0,
+		    (double)m_download->get_download().get_read_rate().rate() / 1024.0,
+		    (double)m_download->get_download().get_write_rate().total() / (double)(1 << 20));
  
   else
     m_canvas->print(0, 0, "Torrent: Done %.1f MiB Rate: %5.1f / %5.1f KiB Uploaded: %.1f MiB",
 		    (double)m_download->get_download().get_bytes_total() / (double)(1 << 20),
-		    (double)m_download->get_download().get_rate_up() / 1024.0,
-		    (double)m_download->get_download().get_rate_down() / 1024.0,
-		    (double)m_download->get_download().get_bytes_up() / (double)(1 << 20));
+		    (double)m_download->get_download().get_write_rate().rate() / 1024.0,
+		    (double)m_download->get_download().get_read_rate().rate() / 1024.0,
+		    (double)m_download->get_download().get_write_rate().total() / (double)(1 << 20));
     
   m_canvas->print(0, 1, "Peers: %i(%i) Min/Max: %i/%i Uploads: %i",
 		  (int)m_download->get_download().get_peers_connected(),

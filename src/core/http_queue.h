@@ -69,7 +69,10 @@ public:
 
   // Note that any slots connected to the CurlGet signals must be
   // pushed in front of the erase slot added by HttpQueue::insert.
-  iterator    insert(const std::string& url);
+  //
+  // Consider adding a flag to indicate whetever HttpQueue should
+  // delete the stream.
+  iterator    insert(const std::string& url, std::iostream* s);
   void        erase(iterator itr);
 
   void        clear();

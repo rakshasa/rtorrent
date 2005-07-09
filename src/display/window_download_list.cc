@@ -36,6 +36,8 @@
 
 #include "config.h"
 
+#include <torrent/rate.h>
+
 #include "core/download.h"
 #include "rak/algorithm.h"
 
@@ -91,17 +93,17 @@ WindowDownloadList::redraw() {
       m_canvas->print(0, pos++, "%c Torrent: Done %10.1f MiB Rate: %5.1f / %5.1f KiB Uploaded: %.1f MiB",
 		      range.first == m_list->get_focus() ? '*' : ' ',
 		      (double)d.get_bytes_total() / (double)(1 << 20),
-		      (double)d.get_rate_up() / 1024.0,
-		      (double)d.get_rate_down() / 1024.0,
-		      (double)d.get_bytes_up() / (double)(1 << 20));
+		      (double)d.get_write_rate().rate() / 1024.0,
+		      (double)d.get_read_rate().rate() / 1024.0,
+		      (double)d.get_write_rate().total() / (double)(1 << 20));
     else
       m_canvas->print(0, pos++, "%c Torrent: %6.1f / %6.1f MiB Rate: %5.1f / %5.1f KiB Uploaded: %.1f MiB",
 		      range.first == m_list->get_focus() ? '*' : ' ',
 		      (double)d.get_bytes_done() / (double)(1 << 20),
 		      (double)d.get_bytes_total() / (double)(1 << 20),
-		      (double)d.get_rate_up() / 1024.0,
-		      (double)d.get_rate_down() / 1024.0,
-		      (double)d.get_bytes_up() / (double)(1 << 20));
+		      (double)d.get_write_rate().rate() / 1024.0,
+		      (double)d.get_read_rate().rate() / 1024.0,
+		      (double)d.get_write_rate().total() / (double)(1 << 20));
     
     m_canvas->print(0, pos++, "%c %s",
 		    range.first == m_list->get_focus() ? '*' : ' ',

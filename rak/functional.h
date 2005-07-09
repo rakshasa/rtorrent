@@ -228,6 +228,12 @@ struct call_delete : public std::unary_function<T*, void> {
   }
 };
 
+template <typename T>
+inline void
+call_delete_func(T* t) {
+  delete t;
+}
+
 template <typename Operation>
 class bind1st_t : public std::unary_function<typename Operation::second_argument_type,
 					     typename Operation::result_type> {

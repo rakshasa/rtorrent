@@ -68,7 +68,7 @@ Root::init(Control* c) {
   m_control->get_display().push_back(m_windowStatusbar);
 
   m_downloadList->activate();
-  m_downloadList->slot_open_uri(sigc::mem_fun(m_control->get_core(), &core::Manager::insert));
+  //  m_downloadList->slot_open_uri(sigc::mem_fun(m_control->get_core(), &core::Manager::insert));
 }
 
 void

@@ -47,12 +47,14 @@
 #include <sigc++/retype_return.h>
 #include <torrent/http.h>
 #include <torrent/torrent.h>
+#include <rak/functional.h>
 
 #ifdef USE_EXECINFO
 #include <execinfo.h>
 #endif
 
 #include "core/download.h"
+#include "core/download_factory.h"
 #include "display/canvas.h"
 #include "display/window.h"
 #include "ui/control.h"
@@ -177,12 +179,29 @@ load_session_torrents(ui::Control* c) {
   // Load session torrents.
   std::list<std::string> l = c->get_core().get_download_store().get_formated_entries().make_list();
 
-  std::for_each(l.begin(), l.end(), std::bind1st(std::mem_fun(&core::Manager::insert), &c->get_core()));
+  for (std::list<std::string>::iterator first = l.begin(), last = l.end(); first != last; ++first) {
+    core::DownloadFactory* f = new core::DownloadFactory(*first, &c->get_core());
+
+    // Replace with session torrent flag.
+    f->set_session(true);
+    f->slot_finished(sigc::bind(sigc::ptr_fun(&rak::call_delete_func<core::DownloadFactory>), f));
+    f->load();
+    f->commit();
+  }
 }
 
 void
-load_arg_torrents(ui::Control* c, char** begin, char** end) {
-  std::for_each(begin, end, std::bind1st(std::mem_fun(&core::Manager::insert), &c->get_core()));
+load_arg_torrents(ui::Control* c, char** first, char** last) {
+  //std::for_each(begin, end, std::bind1st(std::mem_fun(&core::Manager::insert), &c->get_core()));
+  for (; first != last; ++first) {
+    core::DownloadFactory* f = new core::DownloadFactory(*first, &c->get_core());
+
+    // Replace with session torrent flag.
+    f->set_start(true);
+    f->slot_finished(sigc::bind(sigc::ptr_fun(&rak::call_delete_func<core::DownloadFactory>), f));
+    f->load();
+    f->commit();
+  }
 }
 
 void

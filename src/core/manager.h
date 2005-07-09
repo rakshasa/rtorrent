@@ -77,7 +77,7 @@ public:
 
   void                shutdown(bool force);
 
-  void                insert(std::string uri);
+  DListItr            insert(std::istream* s);
   DListItr            erase(DListItr itr);
 
   void                start(Download* d);

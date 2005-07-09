@@ -34,58 +34,63 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#include "config.h"
+#ifndef RTORRENT_CORE_DOWNLOAD_FACTORY_H
+#define RTORRENT_CORE_DOWNLOAD_FACTORY_H
 
-#include <torrent/rate.h>
-#include <torrent/torrent.h>
+#include <iosfwd>
+#include <sigc++/slot.h>
 
-#include "core/manager.h"
+#include "utils/task_item.h"
+#include "http_queue.h"
 
-#include "canvas.h"
-#include "window_statusbar.h"
+namespace core {
 
-namespace display {
+class Manager;
 
-WindowStatusbar::WindowStatusbar(core::Manager* c) :
-  Window(new Canvas, false, 1),
-  m_counter(0),
-  m_core(c) {
+class DownloadFactory {
+public:
+  typedef sigc::slot<void> Slot;
+
+  // Do not destroy this object while it is in a HttpQueue.
+  DownloadFactory(const std::string& uri, Manager* m);
+  ~DownloadFactory();
+
+  // Calling of receive_load() is delayed so you can change whatever
+  // you want without fear of the slots being triggered as you call
+  // load() or commit().
+  void                load();
+  void                commit();
+
+  bool                get_session() const   { return m_session; }
+  void                set_session(bool v)   { m_session = v; }
+
+  bool                get_start() const     { return m_start; }
+  void                set_start(bool v)     { m_start = v; }
+
+  void                slot_finished(Slot s) { m_slotFinished = s; }
+
+private:
+  void                receive_load();
+  void                receive_loaded();
+  void                receive_commit();
+  void                receive_success();
+  void                receive_failed(const std::string& msg);
+
+  Manager*            m_manager;
+  std::iostream*      m_stream;
+
+  bool                m_commited;
+  bool                m_loaded;
+
+  std::string         m_uri;
+  bool                m_session;
+  bool                m_start;
+
+  Slot                m_slotFinished;
+  utils::TaskItem     m_taskLoad;
+  utils::TaskItem     m_taskCommit;
+};
+
 }
 
-void
-WindowStatusbar::redraw() {
-  utils::displayScheduler.insert(&m_taskUpdate, utils::Timer::cache().round_seconds() + 1000000);
-
-  m_canvas->erase();
-
-  // TODO: Make a buffer with size = get_width?
-  int pos = 0;
-  char buf[128];
-
-  if (torrent::get_write_throttle() == 0)
-    pos = snprintf(buf, 128, "off/");
-  else
-    pos = snprintf(buf, 128, "%3i/", torrent::get_write_throttle() / 1024);
-
-  if (torrent::get_read_throttle() == 0)
-    pos = snprintf(buf + pos, 128 - pos, "off");
-  else
-    pos = snprintf(buf + pos, 128 - pos, "%-3i", torrent::get_read_throttle() / 1024);
-
-  m_canvas->print(0, 0, "Throttle U/D: %s  Rate: %5.1f / %5.1f KiB  Listen: %s:%i%s",
-		  buf,
-		  (double)torrent::get_write_rate().rate() / 1024.0,
-		  (double)torrent::get_read_rate().rate() / 1024.0,
-		  !torrent::get_ip().empty() ? torrent::get_ip().c_str() : "<default>",
-		  (int)torrent::get_listen_port(),
-		  !torrent::get_bind().empty() ? ("  Bind: " + torrent::get_bind()).c_str() : "");
-
-  pos = snprintf(buf, 128, "[%3i/%3i/%3i]",
-		 torrent::get_total_handshakes(),
-		 torrent::get_open_sockets(),
-		 torrent::get_max_open_sockets());
-
-  m_canvas->print(m_canvas->get_width() - pos, 0, "%s", buf);
-}
-
-}
+#endif

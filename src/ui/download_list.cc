@@ -43,6 +43,7 @@
 #include <torrent/torrent.h>
 
 #include "core/download.h"
+#include "core/download_factory.h"
 
 #include "input/bindings.h"
 #include "input/path_input.h"
@@ -130,7 +131,7 @@ DownloadList::disable() {
 
   if (m_windowTextInput->is_active()) {
     m_windowTextInput->get_input()->clear();
-    receive_exit_input();
+    receive_exit_input(true);
   }
 
   disable_display();
@@ -239,7 +240,7 @@ DownloadList::receive_check_hash() {
 }
 
 void
-DownloadList::receive_view_input() {
+DownloadList::receive_view_input(bool useDefault) {
   m_control->get_ui().window_statusbar()->set_active(false);
   m_windowTextInput->set_active(true);
   m_control->get_display().adjust_layout();
@@ -248,19 +249,26 @@ DownloadList::receive_view_input() {
 
   m_windowTextInput->set_focus(true);
 
-  (*m_bindings)['\n'] = sigc::mem_fun(*this, &DownloadList::receive_exit_input);
-  (*m_bindings)[KEY_ENTER] = sigc::mem_fun(*this, &DownloadList::receive_exit_input);
+  (*m_bindings)['\n'] = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_exit_input), useDefault);
+  (*m_bindings)[KEY_ENTER] = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_exit_input), useDefault);
 }
 
 void
-DownloadList::receive_exit_input() {
+DownloadList::receive_exit_input(bool useDefault) {
   m_control->get_ui().window_statusbar()->set_active(true);
   m_windowTextInput->set_active(false);
 
   m_control->get_input().set_text_input();
 
-  m_slotOpenUri(m_windowTextInput->get_input()->str());
+  // Adding download.
+  core::DownloadFactory* f = new core::DownloadFactory(m_windowTextInput->get_input()->str(), &m_control->get_core());
 
+  f->set_start(useDefault);
+  f->slot_finished(sigc::bind(sigc::ptr_fun(&rak::call_delete_func<core::DownloadFactory>), f));
+  f->load();
+  f->commit();
+
+  // Clean up.
   m_windowTextInput->get_input()->clear();
   m_windowTextInput->set_focus(false);
 
@@ -292,8 +300,10 @@ DownloadList::setup_keys() {
   (*m_bindings)['\x04']        = sigc::mem_fun(*this, &DownloadList::receive_stop_download);
   (*m_bindings)['\x12']        = sigc::mem_fun(*this, &DownloadList::receive_check_hash);
 
-  (*m_bindings)['\x7f']        = sigc::mem_fun(*this, &DownloadList::receive_view_input);
-  (*m_bindings)[KEY_BACKSPACE] = sigc::mem_fun(*this, &DownloadList::receive_view_input);
+  (*m_bindings)['\x7f']        = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_view_input), true);
+  (*m_bindings)[KEY_BACKSPACE] = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_view_input), true);
+  (*m_bindings)['\n']          = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_view_input), false);
+  (*m_bindings)[KEY_ENTER]     = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_view_input), false);
 
   (*m_bindings)[KEY_UP]        = sigc::mem_fun(*this, &DownloadList::receive_prev);
   (*m_bindings)[KEY_DOWN]      = sigc::mem_fun(*this, &DownloadList::receive_next);
