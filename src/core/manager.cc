@@ -57,6 +57,11 @@ connect_signal_network_log(Download* d, torrent::Download::SlotString s) {
   d->get_download().signal_network_log(s);
 }
 
+static void
+connect_signal_tracker_log(Download* d, torrent::Download::SlotString s) {
+  d->get_download().signal_tracker_failed(s);
+}
+
 void
 Manager::initialize() {
   torrent::Http::set_factory(m_poll.get_http_factory());
@@ -69,6 +74,7 @@ Manager::initialize() {
   // opened or closed.
   m_downloadList.slot_map_insert().insert("0_initialize_bencode",  sigc::mem_fun(*this, &Manager::initialize_bencode));
   m_downloadList.slot_map_insert().insert("1_connect_network_log", sigc::bind(sigc::ptr_fun(&connect_signal_network_log), sigc::mem_fun(m_logComplete, &Log::push_front)));
+  m_downloadList.slot_map_insert().insert("1_connect_tracker_log", sigc::bind(sigc::ptr_fun(&connect_signal_tracker_log), sigc::mem_fun(m_logComplete, &Log::push_front)));
   //m_downloadList.slot_map_insert().insert("4_store_save",          sigc::mem_fun(m_downloadStore, &DownloadStore::save));
 
   m_downloadList.slot_map_erase().insert("1_hash_queue_remove",    sigc::mem_fun(m_hashQueue, &HashQueue::remove));
