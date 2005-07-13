@@ -58,7 +58,7 @@ public:
   typedef sigc::slot1<void, DownloadList::iterator> SlotReady;
   typedef sigc::slot0<void>                         SlotFailed;
 
-  Manager() : m_portRandom(false), m_portFirst(6890), m_portLast(6999) {}
+  Manager() : m_portRandom(false), m_portFirst(6890), m_portLast(6999), m_checkHash(true) {}
 
   DownloadList&       get_download_list()                 { return m_downloadList; }
   DownloadStore&      get_download_store()                { return m_downloadStore; }
@@ -71,6 +71,8 @@ public:
 
   void                set_port_random(bool v)             { m_portRandom = v; }
   void                set_port_range(int a, int b)        { m_portFirst = a; m_portLast = b; }
+
+  void                set_check_hash(bool state)          { m_checkHash = state; }
 
   void                initialize();
   void                cleanup();
@@ -85,8 +87,6 @@ public:
 
   void                check_hash(Download* d);
 
-  void                receive_download_done(Download* d, bool check_hash);
-
 private:
   void                listen_open();
 
@@ -100,6 +100,7 @@ private:
   void                receive_http_failed(std::string msg);
   void                receive_download_done_hash_checked(Download* d);
   void                receive_download_inserted(Download* d);
+  void                receive_download_done(Download* d);
 
   DownloadList        m_downloadList;
   DownloadStore       m_downloadStore;
@@ -113,6 +114,8 @@ private:
   bool                m_portRandom;
   int                 m_portFirst;
   int                 m_portLast;
+
+  bool                m_checkHash;
 };
 
 }

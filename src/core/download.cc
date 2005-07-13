@@ -77,6 +77,13 @@ Download::set_root_directory(const std::string& d) {
 }
 
 void
+Download::enable_udp_trackers(bool state) {
+  for (int i = 0, last = m_download.get_tracker_size(); i < last; ++i)
+    if (m_download.get_tracker(i).get_type() == torrent::Tracker::TRACKER_UDP)
+      m_download.get_tracker(i).enable(state);
+}
+
+void
 Download::release_download() {
   if (!m_download.is_valid())
     return;

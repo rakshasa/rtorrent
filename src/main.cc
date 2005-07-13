@@ -113,33 +113,34 @@ parse_options(ui::Control* c, OptionHandler* optionHandler, int argc, char** arg
 
 void
 initialize_option_handler(ui::Control* c, OptionHandler* optionHandler) {
-  optionHandler->insert("max_peers",         new OptionHandlerInt(c, &apply_download_max_peers, &validate_download_peers));
-  optionHandler->insert("min_peers",         new OptionHandlerInt(c, &apply_download_min_peers, &validate_download_peers));
-  optionHandler->insert("max_uploads",       new OptionHandlerInt(c, &apply_download_max_uploads, &validate_download_peers));
+  optionHandler->insert("max_peers",           new OptionHandlerInt(c, &apply_download_max_peers, &validate_download_peers));
+  optionHandler->insert("min_peers",           new OptionHandlerInt(c, &apply_download_min_peers, &validate_download_peers));
+  optionHandler->insert("max_uploads",         new OptionHandlerInt(c, &apply_download_max_uploads, &validate_download_peers));
 
-  optionHandler->insert("download_rate",     new OptionHandlerInt(c, &apply_global_download_rate, &validate_rate));
-  optionHandler->insert("upload_rate",       new OptionHandlerInt(c, &apply_global_upload_rate, &validate_rate));
+  optionHandler->insert("download_rate",       new OptionHandlerInt(c, &apply_global_download_rate, &validate_rate));
+  optionHandler->insert("upload_rate",         new OptionHandlerInt(c, &apply_global_upload_rate, &validate_rate));
 
-  optionHandler->insert("bind",              new OptionHandlerString(c, &apply_bind, &validate_ip));
-  optionHandler->insert("ip",                new OptionHandlerString(c, &apply_ip, &validate_ip));
-  optionHandler->insert("port_range",        new OptionHandlerString(c, &apply_port_range, &validate_port_range));
-  optionHandler->insert("port_random",       new OptionHandlerString(c, &apply_port_random, &validate_yes_no));
+  optionHandler->insert("bind",                new OptionHandlerString(c, &apply_bind, &validate_ip));
+  optionHandler->insert("ip",                  new OptionHandlerString(c, &apply_ip, &validate_ip));
+  optionHandler->insert("port_range",          new OptionHandlerString(c, &apply_port_range, &validate_port_range));
+  optionHandler->insert("port_random",         new OptionHandlerString(c, &apply_port_random, &validate_yes_no));
 
-  optionHandler->insert("check_hash",        new OptionHandlerString(c, &apply_check_hash, &validate_yes_no));
-  optionHandler->insert("directory",         new OptionHandlerString(c, &apply_download_directory, &validate_directory));
+  optionHandler->insert("check_hash",          new OptionHandlerString(c, &apply_check_hash, &validate_yes_no));
+  optionHandler->insert("directory",           new OptionHandlerString(c, &apply_download_directory, &validate_directory));
 
-  optionHandler->insert("hash_read_ahead",   new OptionHandlerInt(c, &apply_hash_read_ahead, &validate_hash_read_ahead));
-  optionHandler->insert("hash_interval",     new OptionHandlerInt(c, &apply_hash_interval, &validate_hash_interval));
-  optionHandler->insert("hash_max_tries",    new OptionHandlerInt(c, &apply_hash_max_tries, &validate_hash_max_tries));
-  optionHandler->insert("max_open_files",    new OptionHandlerInt(c, &apply_max_open_files, &validate_fd));
-  optionHandler->insert("max_open_sockets",  new OptionHandlerInt(c, &apply_max_open_sockets, &validate_fd));
-  optionHandler->insert("throttle_interval", new OptionHandlerInt(c, &apply_throttle_interval, &validate_throttle_interval));
+  optionHandler->insert("hash_read_ahead",     new OptionHandlerInt(c, &apply_hash_read_ahead, &validate_hash_read_ahead));
+  optionHandler->insert("hash_interval",       new OptionHandlerInt(c, &apply_hash_interval, &validate_hash_interval));
+  optionHandler->insert("hash_max_tries",      new OptionHandlerInt(c, &apply_hash_max_tries, &validate_hash_max_tries));
+  optionHandler->insert("max_open_files",      new OptionHandlerInt(c, &apply_max_open_files, &validate_fd));
+  optionHandler->insert("max_open_sockets",    new OptionHandlerInt(c, &apply_max_open_sockets, &validate_fd));
+  optionHandler->insert("throttle_interval",   new OptionHandlerInt(c, &apply_throttle_interval, &validate_throttle_interval));
 
-  optionHandler->insert("connection_leech",  new OptionHandlerString(c, &apply_connection_leech, &validate_non_empty));
-  optionHandler->insert("connection_seed",   new OptionHandlerString(c, &apply_connection_seed, &validate_non_empty));
+  optionHandler->insert("connection_leech",    new OptionHandlerString(c, &apply_connection_leech, &validate_non_empty));
+  optionHandler->insert("connection_seed",     new OptionHandlerString(c, &apply_connection_seed, &validate_non_empty));
 
-  optionHandler->insert("session",           new OptionHandlerString(c, &apply_session_directory, &validate_directory));
-  optionHandler->insert("tracker_dump",      new OptionHandlerString(c, &apply_tracker_dump, &validate_yes_no));
+  optionHandler->insert("session",             new OptionHandlerString(c, &apply_session_directory, &validate_directory));
+  optionHandler->insert("tracker_dump",        new OptionHandlerString(c, &apply_tracker_dump, &validate_yes_no));
+  optionHandler->insert("use_udp_trackers",    new OptionHandlerString(c, &apply_use_udp_trackers, &validate_yes_no));
 }
 
 void

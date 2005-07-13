@@ -68,6 +68,8 @@ public:
   void               set_connection_leech(const std::string& name) { m_connectionLeech = name; }
   void               set_connection_seed(const std::string& name)  { m_connectionSeed = name; }
 
+  void               enable_udp_trackers(bool state);
+
   // Helper functions for calling functions in torrent::Download
   // through sigc++.
   template <typename Ret, Ret (torrent::Download::*func)()>

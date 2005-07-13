@@ -43,6 +43,9 @@
 # fixed that causes lack of diskspace not to be properly reported.
 #check_hash = no
 
+# Set whetever the client should try to connect to UDP trackers.
+#use_udp_trackers = yes
+
 #
 # Do not modify the following parameters unless you know what you're doing.
 #
@@ -67,7 +70,8 @@
 # Number of sockets to simultaneously keep open.
 #max_open_sockets = <no default>
 
-# Dump data received from trackers to the files "./tracker_dump.<time>".
+# Dump data received from trackers to the files
+# "./tracker_dump.<time>".
 #tracker_dump = no
 
 # Change the interval between each throttle tick, in milliseconds. In

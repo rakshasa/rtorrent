@@ -116,35 +116,35 @@ validate_throttle_interval(int arg) {
 
 void
 apply_download_min_peers(ui::Control* m, int arg) {
-  m->get_core().get_download_list().slot_map_insert().insert("1_min_peers", sigc::bind(sigc::mem_fun(&core::Download::call<void, uint32_t, &torrent::Download::set_peers_min>), arg));
+  m->get_core().get_download_list().slot_map_insert()["1_min_peers"] = sigc::bind(sigc::mem_fun(&core::Download::call<void, uint32_t, &torrent::Download::set_peers_min>), arg);
 }
 
 void
 apply_download_max_peers(ui::Control* m, int arg) {
-  m->get_core().get_download_list().slot_map_insert().insert("1_max_peers", sigc::bind(sigc::mem_fun(&core::Download::call<void, uint32_t, &torrent::Download::set_peers_max>), arg));
+  m->get_core().get_download_list().slot_map_insert()["1_max_peers"] = sigc::bind(sigc::mem_fun(&core::Download::call<void, uint32_t, &torrent::Download::set_peers_max>), arg);
 }
 
 void
 apply_download_max_uploads(ui::Control* m, int arg) {
-  m->get_core().get_download_list().slot_map_insert().insert("1_max_uploads", sigc::bind(sigc::mem_fun(&core::Download::call<void, uint32_t, &torrent::Download::set_uploads_max>), arg));
+  m->get_core().get_download_list().slot_map_insert()["1_max_uploads"] = sigc::bind(sigc::mem_fun(&core::Download::call<void, uint32_t, &torrent::Download::set_uploads_max>), arg);
 }
 
 void
 apply_download_directory(ui::Control* m, const std::string& arg) {
   if (!arg.empty())
-    m->get_core().get_download_list().slot_map_insert().insert("1_directory", sigc::bind(sigc::mem_fun(&core::Download::set_root_directory), arg));
+    m->get_core().get_download_list().slot_map_insert()["1_directory"] = sigc::bind(sigc::mem_fun(&core::Download::set_root_directory), arg);
   else
     m->get_core().get_download_list().slot_map_insert().erase("1_directory");
 }
 
 void
 apply_connection_leech(ui::Control* m, const std::string& arg) {
-  m->get_core().get_download_list().slot_map_insert().insert("1_connection_leech", sigc::bind(sigc::mem_fun(&core::Download::set_connection_leech), arg));
+  m->get_core().get_download_list().slot_map_insert()["1_connection_leech"] = sigc::bind(sigc::mem_fun(&core::Download::set_connection_leech), arg);
 }
 
 void
 apply_connection_seed(ui::Control* m, const std::string& arg) {
-  m->get_core().get_download_list().slot_map_insert().insert("1_connection_seed", sigc::bind(sigc::mem_fun(&core::Download::set_connection_seed), arg));
+  m->get_core().get_download_list().slot_map_insert()["1_connection_seed"] = sigc::bind(sigc::mem_fun(&core::Download::set_connection_seed), arg);
 }
 
 void
@@ -216,17 +216,25 @@ apply_port_random(ui::Control* m, const std::string& arg) {
 void
 apply_tracker_dump(ui::Control* m, const std::string& arg) {
   if (arg == "yes")
-    m->get_core().get_download_list().slot_map_insert().insert("1_tracker_dump", sigc::bind(sigc::mem_fun(&core::Download::call<sigc::connection, torrent::Download::SlotIStream, &torrent::Download::signal_tracker_dump>), sigc::ptr_fun(&receive_tracker_dump)));
+    m->get_core().get_download_list().slot_map_insert()["1_tracker_dump"] = sigc::bind(sigc::mem_fun(&core::Download::call<sigc::connection, torrent::Download::SlotIStream, &torrent::Download::signal_tracker_dump>), sigc::ptr_fun(&receive_tracker_dump));
   else
     m->get_core().get_download_list().slot_map_insert().erase("1_tracker_dump");
 }
 
 void
+apply_use_udp_trackers(ui::Control* m, const std::string& arg) {
+  if (arg == "yes")
+    m->get_core().get_download_list().slot_map_insert().erase("1_use_udp_trackers");
+  else
+    m->get_core().get_download_list().slot_map_insert()["1_use_udp_trackers"] = sigc::bind(sigc::mem_fun(&core::Download::enable_udp_trackers), false);
+}
+
+void
 apply_check_hash(ui::Control* m, const std::string& arg) {
   if (arg == "yes")
-    m->get_core().get_download_list().slot_map_finished().insert("1_download_done", sigc::bind(sigc::mem_fun(m->get_core(), &core::Manager::receive_download_done), true));
+    m->get_core().set_check_hash(true);
   else
-    m->get_core().get_download_list().slot_map_finished().insert("1_download_done", sigc::bind(sigc::mem_fun(m->get_core(), &core::Manager::receive_download_done), false));
+    m->get_core().set_check_hash(false);
 }
 
 void

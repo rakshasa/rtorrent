@@ -72,30 +72,29 @@ Manager::initialize() {
 
   // Register slots to be called when a download is inserted/erased,
   // opened or closed.
-  m_downloadList.slot_map_insert().insert("0_initialize_bencode",  sigc::mem_fun(*this, &Manager::initialize_bencode));
-  m_downloadList.slot_map_insert().insert("1_connect_network_log", sigc::bind(sigc::ptr_fun(&connect_signal_network_log), sigc::mem_fun(m_logComplete, &Log::push_front)));
-  m_downloadList.slot_map_insert().insert("1_connect_tracker_log", sigc::bind(sigc::ptr_fun(&connect_signal_tracker_log), sigc::mem_fun(m_logComplete, &Log::push_front)));
-  //m_downloadList.slot_map_insert().insert("4_store_save",          sigc::mem_fun(m_downloadStore, &DownloadStore::save));
+  m_downloadList.slot_map_insert()["0_initialize_bencode"]  = sigc::mem_fun(*this, &Manager::initialize_bencode);
+  m_downloadList.slot_map_insert()["1_connect_network_log"] = sigc::bind(sigc::ptr_fun(&connect_signal_network_log), sigc::mem_fun(m_logComplete, &Log::push_front));
+  m_downloadList.slot_map_insert()["1_connect_tracker_log"] = sigc::bind(sigc::ptr_fun(&connect_signal_tracker_log), sigc::mem_fun(m_logComplete, &Log::push_front));
+  //m_downloadList.slot_map_insert()["1_enable_udp_trackers"] = sigc::bind(sigc::mem_fun(&core::Download::enable_udp_trackers), true);
 
-  m_downloadList.slot_map_erase().insert("1_hash_queue_remove",    sigc::mem_fun(m_hashQueue, &HashQueue::remove));
-  m_downloadList.slot_map_erase().insert("1_store_remove",         sigc::mem_fun(m_downloadStore, &DownloadStore::remove));
+  m_downloadList.slot_map_erase()["1_hash_queue_remove"]    = sigc::mem_fun(m_hashQueue, &HashQueue::remove);
+  m_downloadList.slot_map_erase()["1_store_remove"]         = sigc::mem_fun(m_downloadStore, &DownloadStore::remove);
 
-  //m_downloadList.slot_map_open().insert("1_download_open",         sigc::mem_fun(&Download::open));
-  m_downloadList.slot_map_open().insert("1_download_open",         sigc::mem_fun(&Download::call<void, &torrent::Download::open>));
+  m_downloadList.slot_map_open()["1_download_open"]         = sigc::mem_fun(&Download::call<void, &torrent::Download::open>);
 
   // Currently does not call stop, might want to add a function that
   // checks if we're running, and if so stop?
-  m_downloadList.slot_map_close().insert("1_hash_queue_remove",    sigc::mem_fun(m_hashQueue, &HashQueue::remove));
-  m_downloadList.slot_map_close().insert("2_download_close",       sigc::mem_fun(&Download::call<void, &torrent::Download::close>));
+  m_downloadList.slot_map_close()["1_hash_queue_remove"]    = sigc::mem_fun(m_hashQueue, &HashQueue::remove);
+  m_downloadList.slot_map_close()["2_download_close"]       = sigc::mem_fun(&Download::call<void, &torrent::Download::close>);
 
-  m_downloadList.slot_map_start().insert("1_download_start",       sigc::mem_fun(&Download::start));
+  m_downloadList.slot_map_start()["1_download_start"]       = sigc::mem_fun(&Download::start);
 
-  m_downloadList.slot_map_stop().insert("1_download_stop",         sigc::mem_fun(&Download::call<void, &torrent::Download::stop>));
-  m_downloadList.slot_map_stop().insert("2_hash_resume_save",      sigc::mem_fun(&Download::call<void, &torrent::Download::hash_resume_save>));
-  m_downloadList.slot_map_stop().insert("3_store_save",            sigc::mem_fun(m_downloadStore, &DownloadStore::save));
+  m_downloadList.slot_map_stop()["1_download_stop"]         = sigc::mem_fun(&Download::call<void, &torrent::Download::stop>);
+  m_downloadList.slot_map_stop()["2_hash_resume_save"]      = sigc::mem_fun(&Download::call<void, &torrent::Download::hash_resume_save>);
+  m_downloadList.slot_map_stop()["3_store_save"]            = sigc::mem_fun(m_downloadStore, &DownloadStore::save);
 
-  m_downloadList.slot_map_finished().insert("1_download_done",     sigc::bind(sigc::mem_fun(*this, &Manager::receive_download_done), true));
-  m_downloadList.slot_map_finished().insert("2_receive_finished",  sigc::mem_fun(&Download::receive_finished));
+  m_downloadList.slot_map_finished()["1_download_done"]     = sigc::mem_fun(*this, &Manager::receive_download_done);
+  m_downloadList.slot_map_finished()["2_receive_finished"]  = sigc::mem_fun(&Download::receive_finished);
 }
 
 void
@@ -196,8 +195,8 @@ Manager::check_hash(Download* d) {
 }  
 
 void
-Manager::receive_download_done(Download* d, bool check_hash) {
-  if (check_hash) {
+Manager::receive_download_done(Download* d) {
+  if (m_checkHash) {
     // Start the hash checking, send completed to tracker after
     // finishing.
     prepare_hash_check(d);
