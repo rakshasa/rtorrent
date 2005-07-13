@@ -38,6 +38,7 @@
 
 #include <sstream>
 #include <iomanip>
+#include <torrent/rate.h>
 
 #include "core/download.h"
 #include "utils/timer.h"
@@ -46,23 +47,54 @@
 
 namespace display {
 
-std::string
-print_download_status(core::Download* d) {
-  if (d->get_download().is_hash_checking()) {
-    return "Checking hash";
+char*
+print_download_title(char* buf, unsigned int length, core::Download* d) {
+  return buf + std::max(0, snprintf(buf, length, "%s",
+				    d->get_download().get_name().c_str()));
+}
 
-  } else if (d->get_download().is_tracker_busy()) {
-    return "Tracker: Connecting";
+char*
+print_download_info(char* buf, unsigned int length, core::Download* d) {
+  char* last = buf + length;
 
-  } else if (!d->get_download().is_active()) {
-    return "Inactive";
+  buf += std::max(0, snprintf(buf, last - buf, "Torrent: "));
 
-  } else if (!d->get_message().empty()) {
-    return d->get_message();
+  if (!d->get_download().is_open())
+    buf += std::max(0, snprintf(buf, last - buf, "closed            "));
+  else if (d->is_done())
+    buf += std::max(0, snprintf(buf, last - buf, "done %10.1f MB",
+				(double)d->get_download().get_bytes_total() / (double)(1 << 20)));
+  else
+    buf += std::max(0, snprintf(buf, last - buf, "%6.1f / %6.1f MB",
+				(double)d->get_download().get_bytes_done() / (double)(1 << 20),
+				(double)d->get_download().get_bytes_total() / (double)(1 << 20)));
+  
+  buf += std::max(0, snprintf(buf, last - buf, " Rate: %5.1f / %5.1f KiB Uploaded: %.1f MiB",
+			      (double)d->get_download().get_write_rate().rate() / (1 << 10),
+			      (double)d->get_download().get_read_rate().rate() / (1 << 10),
+			      (double)d->get_download().get_write_rate().total() / (1 << 20)));
 
-  } else {
-    return "";
-  }
+  return buf;
+}
+
+char*
+print_download_status(char* buf, unsigned int length, core::Download* d) {
+  if (d->get_download().is_hash_checking())
+    buf += std::max(0, snprintf(buf, length, "Checking hash"));
+
+  else if (d->get_download().is_tracker_busy())
+    buf += std::max(0, snprintf(buf, length, "Tracker: Connecting"));
+
+  else if (!d->get_download().is_active())
+    buf += std::max(0, snprintf(buf, length, "Inactive"));
+
+  else if (!d->get_message().empty())
+    buf += std::max(0, snprintf(buf, length, "%s", d->get_message().c_str()));
+
+  else
+    buf[0] = '\0';
+
+  return buf;
 }
 
 std::string

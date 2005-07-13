@@ -50,7 +50,9 @@ namespace utils {
 
 namespace display {
 
-std::string print_download_status(core::Download* d);
+char*       print_download_title(char* buf, unsigned int length, core::Download* d);
+char*       print_download_info(char* buf, unsigned int length, core::Download* d);
+char*       print_download_status(char* buf, unsigned int length, core::Download* d);
 
 std::string print_hhmmss(utils::Timer t);
 std::string print_ddmmyyyy(time_t t);
