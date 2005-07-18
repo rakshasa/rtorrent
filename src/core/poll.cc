@@ -71,19 +71,21 @@ Poll::poll(utils::Timer timeout) {
 
   timeval t = std::min(timeout, utils::Timer(torrent::get_next_timeout())).tval();
 
+  if (m_maxFd >= FD_SETSIZE)
+    throw std::runtime_error("Poll::work(): max fd >= FD_SETSIZE");
+
   errno = 0;
   m_maxFd = select(m_maxFd + 1, m_readSet, m_writeSet, m_exceptSet, &t);
 
-  if (m_maxFd >= 0) {
-    work();
+  if (m_maxFd >= 0)
+    return work();
 
-  } else if (errno == EINTR) {
+  if (errno == EINTR) {
     m_slotSelectInterrupted();
-    work_input();
-
-  } else if (errno < 0) {
-    throw std::runtime_error("Poll::work(): select error");
+    return work_input();
   }
+
+  throw std::runtime_error("Poll::work(): select error");
 }
 
 void

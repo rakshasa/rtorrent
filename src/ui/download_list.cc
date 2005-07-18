@@ -68,7 +68,7 @@ DownloadList::DownloadList(Control* c) :
 
   m_window(c->get_display().end()),
 
-  m_windowTitle(new WTitle("rTorrent " VERSION " - libTorrent " + torrent::get_version())),
+  m_windowTitle(new WTitle("rTorrent " VERSION " - libTorrent " + std::string(torrent::get_version()))),
   m_windowHttpQueue(new WHttp(&c->get_core().get_http_queue())),
 
   m_uiDownload(NULL),

@@ -41,6 +41,8 @@
 #include <cstring>
 #include <fstream>
 #include <istream>
+#include <unistd.h>
+#include <sys/select.h>
 #include <sigc++/bind.h>
 #include <sigc++/hide.h>
 #include <torrent/bencode.h>
@@ -69,6 +71,16 @@ Manager::initialize() {
 
   CurlStack::init();
   listen_open();
+
+  if (torrent::get_max_open_files() + torrent::get_max_open_sockets() + 32 > FD_SETSIZE) {
+    m_logImportant.push_front("Warning: Max open sockets and files exceeds FD_SETSIZE");
+    m_logComplete.push_front("Warning: Max open sockets and files exceeds FD_SETSIZE");
+  }    
+
+  if (torrent::get_max_open_files() + torrent::get_max_open_sockets() + 32 > (unsigned int)sysconf(_SC_OPEN_MAX)) {
+    m_logImportant.push_front("Warning: Max open sockets and files exceeds _SC_OPEN_MAX");
+    m_logComplete.push_front("Warning: Max open sockets and files exceeds _SC_OPEN_MAX");
+  }
 
   // Register slots to be called when a download is inserted/erased,
   // opened or closed.

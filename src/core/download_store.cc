@@ -67,7 +67,7 @@ DownloadStore::save(Download* d) {
   if (!f.is_open())
     throw std::runtime_error("core::DownloadStore::save(...) could not open file");
 
-  f << torrent::download_bencode(d->get_hash());
+  f << d->get_bencode();
 
   if (f.fail())
     throw std::runtime_error("core::DownloadStore::save(...) could not write torrent");

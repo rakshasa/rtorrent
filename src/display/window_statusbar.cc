@@ -76,9 +76,9 @@ WindowStatusbar::redraw() {
 		  buf,
 		  (double)torrent::get_write_rate().rate() / 1024.0,
 		  (double)torrent::get_read_rate().rate() / 1024.0,
-		  !torrent::get_ip().empty() ? torrent::get_ip().c_str() : "<default>",
+		  !torrent::get_address().empty() ? torrent::get_address().c_str() : "<default>",
 		  (int)torrent::get_listen_port(),
-		  !torrent::get_bind().empty() ? ("  Bind: " + torrent::get_bind()).c_str() : "");
+		  !torrent::get_bind_address().empty() ? ("  Bind: " + torrent::get_bind_address()).c_str() : "");
 
   pos = snprintf(buf, 128, "[%3i/%3i/%3i]",
 		 torrent::get_total_handshakes(),

@@ -189,12 +189,12 @@ apply_throttle_interval(ui::Control* m, int arg) {
 
 void
 apply_bind(ui::Control* m, const std::string& arg) {
-  torrent::set_bind(arg);
+  torrent::set_bind_address(arg);
 }
 
 void
 apply_ip(ui::Control* m, const std::string& arg) {
-  torrent::set_ip(arg);
+  torrent::set_address(arg);
 }
 
 // The arg string *must* have been checked with validate_port_range
