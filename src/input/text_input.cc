@@ -36,7 +36,6 @@
 
 #include "config.h"
 
-#include <sstream>
 #include <ncurses.h>
 
 #include "text_input.h"
@@ -45,8 +44,6 @@ namespace input {
 
 bool
 TextInput::pressed(int key) {
-  //std::stringstream str;
-
   if (m_alt) {
     m_alt = false;
 
@@ -102,18 +99,6 @@ TextInput::pressed(int key) {
 
     default:
       return false;
-
-      // Testcode.
-//       if (key == KEY_ENTER || key == '\n')
-// 	return false;
-
-//       str << "\\x" << std::hex << key;
-
-//       Base::insert(m_pos, str.str());
-
-//       m_pos += str.str().length();
-
-//       return true;
     }
   }
 

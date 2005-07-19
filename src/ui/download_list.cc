@@ -241,6 +241,9 @@ DownloadList::receive_check_hash() {
 
 void
 DownloadList::receive_view_input(bool useDefault) {
+  if (m_windowTextInput->get_active())
+    return;
+
   m_control->get_ui().window_statusbar()->set_active(false);
   m_windowTextInput->set_active(true);
   m_control->get_display().adjust_layout();
@@ -255,6 +258,9 @@ DownloadList::receive_view_input(bool useDefault) {
 
 void
 DownloadList::receive_exit_input(bool useDefault) {
+  if (!m_windowTextInput->get_active())
+    return;
+
   m_control->get_ui().window_statusbar()->set_active(true);
   m_windowTextInput->set_active(false);
 
