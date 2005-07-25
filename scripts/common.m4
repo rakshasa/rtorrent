@@ -2,17 +2,16 @@ AC_DEFUN([TORRENT_CHECK_CXXFLAGS], [
 
   AC_MSG_CHECKING([for user-defined CXXFLAGS])
 
-  if test !$CXXFLAGS; then
+  if test $CXXFLAGS; then
+    AC_MSG_RESULT([user-defined "$CXXFLAGS"])
+  else
     CXXFLAGS="-O3 -Wall"
     AC_MSG_RESULT([default "$CXXFLAGS"])
-  else
-    AC_MSG_RESULT([user-defined "$CXXFLAGS"])
   fi
 ])
 
 
 AC_DEFUN([TORRENT_ENABLE_DEBUG], [
-
   AC_ARG_ENABLE(debug,
     [  --enable-debug          enable debug information [default=yes]],
     [
@@ -28,7 +27,6 @@ AC_DEFUN([TORRENT_ENABLE_DEBUG], [
 
 
 AC_DEFUN([TORRENT_ENABLE_WERROR], [
-
   AC_ARG_ENABLE(werror,
     [  --enable-werror         enable the -Werror flag [default=no]],
     [
@@ -39,8 +37,23 @@ AC_DEFUN([TORRENT_ENABLE_WERROR], [
 ])
 
 
-AC_DEFUN([TORRENT_OTFD], [
+AC_DEFUN([TORRENT_ENABLE_UNSAFE_OPTIMIZATION], [
+  AC_ARG_ENABLE(unsafe-optimization,
+    [  --enable-unsafe-optimization
+                          enable unsafe optimization [default=yes]],
+    [
+        if test "$enableval" = "yes"; then
+            AC_DEFINE(USE_UNSAFE_OPTIMIZATION, 1, Enable possibly unsafe optimization techniques.)
+	else
+            AC_DEFINE(USE_UNSAFE_OPTIMIZATION, 0, Disable possibly unsafe optimization techniques.)
+        fi
+    ],[
+      AC_DEFINE(USE_UNSAFE_OPTIMIZATION, 0, Disable possibly unsafe optimization techniques.)
+  ])
+])
 
+
+AC_DEFUN([TORRENT_OTFD], [
   AC_LANG_PUSH(C++)
   AC_MSG_CHECKING(for proper overloaded template function disambiguation)
 
@@ -61,7 +74,6 @@ AC_DEFUN([TORRENT_OTFD], [
 
 
 AC_DEFUN([TORRENT_MINCORE_SIGNEDNESS], [
-
   AC_LANG_PUSH(C++)
   AC_MSG_CHECKING(signedness of mincore parameter)
 
@@ -93,7 +105,6 @@ AC_DEFUN([TORRENT_MINCORE_SIGNEDNESS], [
 ])
 
 AC_DEFUN([TORRENT_CHECK_EXECINFO], [
-
   AC_MSG_CHECKING(for execinfo.h)
 
   AC_COMPILE_IFELSE(

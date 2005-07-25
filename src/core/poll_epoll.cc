@@ -34,59 +34,63 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef RTORRENT_CORE_POLL_H
-#define RTORRENT_CORE_POLL_H
+#include "config.h"
 
-#include <sys/select.h>
-#include <sigc++/slot.h>
-
-#include "utils/timer.h"
-#include "curl_stack.h"
-
-namespace torrent {
-  class PollSelect;
-}
+#include "poll_epoll.h"
 
 namespace core {
 
-class CurlGet;
-
-class Poll {
-public:
-  typedef sigc::slot0<void>      Slot;
-  typedef sigc::slot1<void, int> SlotInt;
-  typedef sigc::slot0<CurlGet*>  SlotFactory;
-
-  Poll();
-  ~Poll();
-
-  void                poll(utils::Timer t);
-
-  SlotFactory         get_http_factory();
-  torrent::Poll*      get_torrent_poll()              { return reinterpret_cast<torrent::Poll*>(m_torrentPoll); }
-
-  void                slot_read_stdin(SlotInt s)      { m_slotReadStdin = s; }
-  void                slot_select_interrupted(Slot s) { m_slotSelectInterrupted = s; }
-
-private:
-  Poll(const Poll&);
-  void operator = (const Poll&);
-
-  void                work();
-  void                work_input();
-
-  SlotInt             m_slotReadStdin;
-  Slot                m_slotSelectInterrupted;
-
-  int                 m_maxFd;
-  fd_set*             m_readSet;
-  fd_set*             m_writeSet;
-  fd_set*             m_exceptSet;
-
-  CurlStack            m_curlStack;
-  torrent::PollSelect* m_torrentPoll;
-};
-
+PollEPoll::PollEPoll() {
 }
 
-#endif
+PollEPoll::~PollEPoll() {
+}
+
+void
+PollEPoll::open(torrent::Event* event) {
+}
+
+void
+PollEPoll::close(torrent::Event* event) {
+}
+
+bool
+PollEPoll::in_read(torrent::Event* event) {
+  return false;
+}
+
+bool
+PollEPoll::in_write(torrent::Event* event) {
+  return false;
+}
+
+bool
+PollEPoll::in_error(torrent::Event* event) {
+  return false;
+}
+
+void
+PollEPoll::insert_read(torrent::Event* event) {
+}
+
+void
+PollEPoll::insert_write(torrent::Event* event) {
+}
+
+void
+PollEPoll::insert_error(torrent::Event* event) {
+}
+
+void
+PollEPoll::remove_read(torrent::Event* event) {
+}
+
+void
+PollEPoll::remove_write(torrent::Event* event) {
+}
+
+void
+PollEPoll::remove_error(torrent::Event* event) {
+}
+
+}

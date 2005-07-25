@@ -18,6 +18,7 @@ AC_SEARCH_LIBS(wbkgdset, ncurses curses,,echo "*** The ncurses library is requir
 
 TORRENT_CHECK_EXECINFO()
 TORRENT_CHECK_CURL()
+TORRENT_WITHOUT_EPOLL()
 TORRENT_OTFD()
 
 PKG_CHECK_MODULES(STUFF, sigc++-2.0 libtorrent >= 0.7.1,

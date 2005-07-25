@@ -84,6 +84,7 @@ WindowPeerInfo::redraw() {
 
   m_canvas->print(0, y++, "DNS: %s:%hu", (*m_focus)->get_dns().c_str(), (*m_focus)->get_port());
   m_canvas->print(0, y++, "Id: %s" , utils::escape_string((*m_focus)->get_id()).c_str());
+  m_canvas->print(0, y++, "Options: %s" , utils::string_to_hex(std::string((*m_focus)->get_options(), 8)).c_str());
   m_canvas->print(0, y++, "Snubbed: %s", (*m_focus)->get_snubbed() ? "Yes" : "No");
 
   m_canvas->print(0, y++, "Done: %i%", done_percentage(**m_focus));

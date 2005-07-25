@@ -34,57 +34,42 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef RTORRENT_CORE_POLL_H
-#define RTORRENT_CORE_POLL_H
+#ifndef RTORRENT_CORE_POLL_EPOLL_H
+#define RTORRENT_CORE_POLL_EPOLL_H
 
-#include <sys/select.h>
-#include <sigc++/slot.h>
-
-#include "utils/timer.h"
-#include "curl_stack.h"
-
-namespace torrent {
-  class PollSelect;
-}
+#include <torrent/poll.h>
 
 namespace core {
 
-class CurlGet;
+class PollEPoll : public torrent::Poll {
+  PollEPoll();
+  virtual ~PollEPoll();
 
-class Poll {
-public:
-  typedef sigc::slot0<void>      Slot;
-  typedef sigc::slot1<void, int> SlotInt;
-  typedef sigc::slot0<CurlGet*>  SlotFactory;
+  // Add configuration options for doing stuff like setting max open
+  // sockets etc?
 
-  Poll();
-  ~Poll();
+  // torrent::Event::get_fd() is guaranteed to be valid and remain constant
+  // from open(...) is called to close(...) returns.
+  virtual void        open(torrent::Event* event);
+  virtual void        close(torrent::Event* event);
 
-  void                poll(utils::Timer t);
+  // Functions for checking whetever the torrent::Event is listening to r/w/e?
+  virtual bool        in_read(torrent::Event* event);
+  virtual bool        in_write(torrent::Event* event);
+  virtual bool        in_error(torrent::Event* event);
 
-  SlotFactory         get_http_factory();
-  torrent::Poll*      get_torrent_poll()              { return reinterpret_cast<torrent::Poll*>(m_torrentPoll); }
+  // These functions may be called on 'event's that might, or might
+  // not, already be in the set.
+  virtual void        insert_read(torrent::Event* event);
+  virtual void        insert_write(torrent::Event* event);
+  virtual void        insert_error(torrent::Event* event);
 
-  void                slot_read_stdin(SlotInt s)      { m_slotReadStdin = s; }
-  void                slot_select_interrupted(Slot s) { m_slotSelectInterrupted = s; }
+  virtual void        remove_read(torrent::Event* event);
+  virtual void        remove_write(torrent::Event* event);
+  virtual void        remove_error(torrent::Event* event);
 
 private:
-  Poll(const Poll&);
-  void operator = (const Poll&);
-
-  void                work();
-  void                work_input();
-
-  SlotInt             m_slotReadStdin;
-  Slot                m_slotSelectInterrupted;
-
-  int                 m_maxFd;
-  fd_set*             m_readSet;
-  fd_set*             m_writeSet;
-  fd_set*             m_exceptSet;
-
-  CurlStack            m_curlStack;
-  torrent::PollSelect* m_torrentPoll;
+  int                 m_fd;
 };
 
 }

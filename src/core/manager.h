@@ -58,7 +58,8 @@ public:
   typedef sigc::slot1<void, DownloadList::iterator> SlotReady;
   typedef sigc::slot0<void>                         SlotFailed;
 
-  Manager() : m_portRandom(false), m_portFirst(6890), m_portLast(6999), m_checkHash(true) {}
+  Manager();
+  ~Manager();
 
   DownloadList&       get_download_list()                 { return m_downloadList; }
   DownloadStore&      get_download_store()                { return m_downloadStore; }

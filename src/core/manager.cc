@@ -64,6 +64,16 @@ connect_signal_tracker_log(Download* d, torrent::Download::SlotString s) {
   d->get_download().signal_tracker_failed(s);
 }
 
+Manager::Manager() :
+  m_portRandom(false),
+  m_portFirst(6890),
+  m_portLast(6999),
+  m_checkHash(true) {
+}
+
+Manager::~Manager() {
+}
+
 void
 Manager::initialize() {
   torrent::Http::set_factory(m_poll.get_http_factory());

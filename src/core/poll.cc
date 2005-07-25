@@ -43,11 +43,27 @@
 #include <ncurses.h>
 #include <sigc++/bind.h>
 #include <torrent/torrent.h>
+#include <torrent/poll_select.h>
 
 #include "poll.h"
 #include "curl_get.h"
 
 namespace core {
+
+Poll::Poll() :
+  m_readSet(new fd_set),
+  m_writeSet(new fd_set),
+  m_exceptSet(new fd_set),
+  m_torrentPoll(new torrent::PollSelect)
+{
+}
+
+Poll::~Poll() {
+  delete m_readSet;
+  delete m_writeSet;
+  delete m_exceptSet;
+  delete m_torrentPoll;
+}
 
 void
 Poll::poll(utils::Timer timeout) {
@@ -60,7 +76,7 @@ Poll::poll(utils::Timer timeout) {
 
   FD_SET(0, m_readSet);
 
-  torrent::mark(m_readSet, m_writeSet, m_exceptSet, &m_maxFd);
+  m_maxFd = m_torrentPoll->mark(m_readSet, m_writeSet, m_exceptSet);
 
   if (m_curlStack.is_busy()) {
     int n = 0;
@@ -96,7 +112,9 @@ Poll::work() {
   if (m_curlStack.is_busy())
     m_curlStack.perform();
 
-  torrent::work(m_readSet, m_writeSet, m_exceptSet, m_maxFd);
+  torrent::perform();
+  m_torrentPoll->work(m_readSet, m_writeSet, m_exceptSet);
+  torrent::perform();
 }
 
 void
