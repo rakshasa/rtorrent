@@ -54,6 +54,9 @@ Manager::erase(Bindings* b) {
     throw std::logic_error("Manager::erase(...) could not find binding");
 
   Base::erase(itr);
+
+  if (std::find(begin(), end(), b) != end())
+    throw std::logic_error("Manager::erase(...) found duplicate bindings");
 }
 
 void
