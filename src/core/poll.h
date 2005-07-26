@@ -45,6 +45,7 @@
 
 namespace torrent {
   class PollSelect;
+  class PollEPoll;
 }
 
 namespace core {
@@ -84,7 +85,8 @@ private:
   fd_set*             m_exceptSet;
 
   CurlStack            m_curlStack;
-  torrent::PollSelect* m_torrentPoll;
+//   torrent::PollSelect* m_torrentPoll;
+  torrent::PollEPoll*  m_torrentPoll;
 };
 
 }

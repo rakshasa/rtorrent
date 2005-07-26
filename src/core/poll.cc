@@ -44,6 +44,7 @@
 #include <sigc++/bind.h>
 #include <torrent/torrent.h>
 #include <torrent/poll_select.h>
+#include <torrent/poll_epoll.h>
 
 #include "poll.h"
 #include "curl_get.h"
@@ -54,8 +55,11 @@ Poll::Poll() :
   m_readSet(new fd_set),
   m_writeSet(new fd_set),
   m_exceptSet(new fd_set),
-  m_torrentPoll(new torrent::PollSelect)
+//   m_torrentPoll(new torrent::PollSelect)
+  m_torrentPoll(torrent::PollEPoll::create())
 {
+  if (m_torrentPoll == NULL)
+    throw std::runtime_error("Could not initialize torrent::PollEPoll");
 }
 
 Poll::~Poll() {
@@ -76,7 +80,9 @@ Poll::poll(utils::Timer timeout) {
 
   FD_SET(0, m_readSet);
 
-  m_maxFd = m_torrentPoll->mark(m_readSet, m_writeSet, m_exceptSet);
+  FD_SET(m_torrentPoll->get_fd(), m_readSet);
+  m_maxFd = m_torrentPoll->get_fd();
+//   m_maxFd = m_torrentPoll->mark(m_readSet, m_writeSet, m_exceptSet);
 
   if (m_curlStack.is_busy()) {
     int n = 0;
@@ -113,8 +119,12 @@ Poll::work() {
     m_curlStack.perform();
 
   torrent::perform();
-  m_torrentPoll->work(m_readSet, m_writeSet, m_exceptSet);
-  torrent::perform();
+  if (FD_ISSET(m_torrentPoll->get_fd(), m_readSet)) {
+    //   m_torrentPoll->work(m_readSet, m_writeSet, m_exceptSet);
+    m_torrentPoll->wait(0);
+    m_torrentPoll->work();
+    torrent::perform();
+  }
 }
 
 void

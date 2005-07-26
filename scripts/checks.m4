@@ -75,7 +75,7 @@ AC_DEFUN([TORRENT_CHECK_XFS], [
       }
     ]],
     [
-      AC_DEFINE(HAS_XFS, 1, XFS filesystem supported.)
+      AC_DEFINE(USE_XFS, 1, Use XFS filesystem stuff.)
       AC_MSG_RESULT(yes)
     ], [
       AC_MSG_RESULT(no)
@@ -107,7 +107,7 @@ AC_DEFUN([TORRENT_CHECK_EPOLL], [
       }
     ]],
     [
-      AC_DEFINE(HAS_EPOLL, 1, epoll supported.)
+      AC_DEFINE(USE_EPOLL, 1, Use epoll.)
       AC_MSG_RESULT(yes)
     ], [
       AC_MSG_RESULT(no)
@@ -139,7 +139,7 @@ AC_DEFUN([TORRENT_CHECK_POSIX_FALLOCATE], [
       }
     ]],
     [
-      AC_DEFINE(HAS_POSIX_FALLOCATE, 1, posix_fallocate supported.)
+      AC_DEFINE(USE_POSIX_FALLOCATE, 1, posix_fallocate supported.)
       AC_MSG_RESULT(yes)
     ], [
       AC_MSG_RESULT(no)
