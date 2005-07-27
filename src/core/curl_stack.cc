@@ -37,7 +37,9 @@
 #include "config.h"
 
 #include <algorithm>
+#include <stdexcept>
 #include <curl/multi.h>
+#include <sigc++/bind.h>
 #include <torrent/exceptions.h>
 
 #include "rak/functional.h"
@@ -89,10 +91,14 @@ CurlStack::perform() {
   } while (code == CURLM_CALL_MULTI_PERFORM);
 }
 
-void
-CurlStack::fdset(fd_set* readfds, fd_set* writefds, fd_set* exceptfds, int* maxFd) {
-  if (curl_multi_fdset((CURLM*)m_handle, readfds, writefds, exceptfds, maxFd) > 0)
-    throw torrent::local_error("Error calling curl_multi_fdset");
+unsigned int
+CurlStack::fdset(fd_set* readfds, fd_set* writefds, fd_set* exceptfds) {
+  int maxFd = 0;
+
+  if (curl_multi_fdset((CURLM*)m_handle, readfds, writefds, exceptfds, &maxFd) != 0)
+    throw std::runtime_error("Error calling curl_multi_fdset");
+
+  return std::max(maxFd, 0);
 }
 
 void
@@ -121,13 +127,18 @@ CurlStack::remove_get(CurlGet* get) {
 }
 
 void
-CurlStack::init() {
+CurlStack::global_init() {
   curl_global_init(CURL_GLOBAL_ALL);
 }
 
 void
-CurlStack::cleanup() {
+CurlStack::global_cleanup() {
   curl_global_cleanup();
+}
+
+CurlStack::SlotFactory
+CurlStack::get_http_factory() {
+  return sigc::bind(sigc::ptr_fun(&CurlGet::new_object), this);
 }
 
 }

@@ -34,53 +34,65 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef RTORRENT_CORE_CURL_STACK_H
-#define RTORRENT_CORE_CURL_STACK_H
+#include "config.h"
 
-#include <list>
-#include <sigc++/slot.h>
+#include <stdexcept>
+#include <torrent/poll_select.h>
+#include <torrent/torrent.h>
+
+#include "poll_manager_select.h"
 
 namespace core {
 
-class CurlGet;
+PollManagerSelect*
+PollManagerSelect::create(int maxOpenSockets) {
+  torrent::PollSelect* p = torrent::PollSelect::create(maxOpenSockets);
 
-class CurlStack {
- public:
-  friend class CurlGet;
+  if (p == NULL)
+    return NULL;
 
-  typedef std::list<CurlGet*>   CurlGetList;
-  typedef sigc::slot0<CurlGet*> SlotFactory;
+  PollManagerSelect* manager = new PollManagerSelect(maxOpenSockets);
+  manager->m_poll = p;
 
-  CurlStack();
-  ~CurlStack();
-
-  int                 get_size() const { return m_size; }
-  bool                is_busy() const  { return !m_getList.empty(); }
-
-  void                perform();
-
-  // TODO: Set fd_set's only once?
-  unsigned int        fdset(fd_set* readfds, fd_set* writefds, fd_set* exceptfds);
-
-  SlotFactory         get_http_factory();
-
-  static void         global_init();
-  static void         global_cleanup();
-
- protected:
-  void                add_get(CurlGet* get);
-  void                remove_get(CurlGet* get);
-
- private:
-  CurlStack(const CurlStack&);
-  void operator = (const CurlStack&);
-
-  void*               m_handle;
-
-  int                 m_size;
-  CurlGetList         m_getList;
-};
-
+  return manager;
 }
 
-#endif
+PollManagerSelect::~PollManagerSelect() {
+  delete m_poll;
+}
+
+torrent::Poll*
+PollManagerSelect::get_torrent_poll() {
+  return m_poll;
+}
+
+void
+PollManagerSelect::poll(utils::Timer timeout) {
+  timeout = std::min(timeout, utils::Timer(torrent::get_next_timeout()));
+
+  FD_ZERO(m_readSet);
+  FD_ZERO(m_writeSet);
+  FD_ZERO(m_errorSet);
+
+  unsigned int maxFd = m_poll->fdset(m_readSet, m_writeSet, m_errorSet);
+
+  if (m_httpStack.is_busy())
+    maxFd = std::max(maxFd, m_httpStack.fdset(m_readSet, m_writeSet, m_errorSet));
+
+  if (maxFd >= m_maxOpenSockets)
+    throw std::runtime_error("Error polling, maxFd >= m_maxOpenSockets");
+
+  timeval t = timeout.tval();
+
+  if (select(maxFd + 1, m_readSet, m_writeSet, m_errorSet, &t) == -1)
+    return check_error();
+
+  if (m_httpStack.is_busy())
+    m_httpStack.perform();
+
+  torrent::perform();
+  m_poll->perform(m_readSet, m_writeSet, m_errorSet);
+  torrent::perform();
+}
+
+}

@@ -43,7 +43,7 @@
 #include "download_store.h"
 #include "hash_queue.h"
 #include "http_queue.h"
-#include "poll.h"
+#include "poll_manager.h"
 #include "log.h"
 
 namespace torrent {
@@ -66,7 +66,7 @@ public:
   HashQueue&          get_hash_queue()                    { return m_hashQueue; }
   HttpQueue&          get_http_queue()                    { return m_httpQueue; }
 
-  Poll&               get_poll()                          { return m_poll; }
+  PollManager*        get_poll_manager()                  { return m_pollManager; }
   Log&                get_log_important()                 { return m_logImportant; }
   Log&                get_log_complete()                  { return m_logComplete; }
 
@@ -108,7 +108,7 @@ private:
   HashQueue           m_hashQueue;
   HttpQueue           m_httpQueue;
 
-  Poll                m_poll;
+  PollManager*        m_pollManager;
   Log                 m_logImportant;
   Log                 m_logComplete;
 

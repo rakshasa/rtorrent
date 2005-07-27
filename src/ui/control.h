@@ -42,6 +42,7 @@
 #include "core/manager.h"
 #include "display/manager.h"
 #include "input/manager.h"
+#include "input/input_event.h"
 
 #include "root.h"
 
@@ -49,7 +50,8 @@ namespace ui {
 
 class Control {
 public:
-  Control() : m_shutdownReceived(false) {}
+  Control();
+  ~Control();
   
   bool                is_shutdown_completed()       { return m_shutdownReceived && torrent::is_inactive(); }
   bool                is_shutdown_received()        { return m_shutdownReceived; }
@@ -58,6 +60,10 @@ public:
   core::Manager&      get_core()                    { return m_core; }
   display::Manager&   get_display()                 { return m_display; }
   input::Manager&     get_input()                   { return m_input; }
+  input::InputEvent*  get_input_stdin()             { return m_inputStdin; }
+
+  void                initialize();
+  void                cleanup();
 
   void                receive_shutdown();
 
@@ -71,6 +77,7 @@ private:
   core::Manager       m_core;
   display::Manager    m_display;
   input::Manager      m_input;
+  input::InputEvent*  m_inputStdin;
 };
 
 }

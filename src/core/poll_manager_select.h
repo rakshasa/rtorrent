@@ -34,51 +34,30 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef RTORRENT_CORE_CURL_STACK_H
-#define RTORRENT_CORE_CURL_STACK_H
+#ifndef RTORRENT_CORE_POLL_MANAGER_SELECT_H
+#define RTORRENT_CORE_POLL_MANAGER_SELECT_H
 
-#include <list>
-#include <sigc++/slot.h>
+#include "poll_manager.h"
+
+namespace torrent {
+  class PollSelect;
+}
 
 namespace core {
 
-class CurlGet;
+class PollManagerSelect : public PollManager {
+public:
+  static PollManagerSelect* create(int maxOpenSockets);
+  ~PollManagerSelect();
 
-class CurlStack {
- public:
-  friend class CurlGet;
+  torrent::Poll*      get_torrent_poll();
 
-  typedef std::list<CurlGet*>   CurlGetList;
-  typedef sigc::slot0<CurlGet*> SlotFactory;
+  void                poll(utils::Timer timeout);
 
-  CurlStack();
-  ~CurlStack();
+private:
+  PollManagerSelect(int maxOpenSockets) : PollManager(maxOpenSockets) {}
 
-  int                 get_size() const { return m_size; }
-  bool                is_busy() const  { return !m_getList.empty(); }
-
-  void                perform();
-
-  // TODO: Set fd_set's only once?
-  unsigned int        fdset(fd_set* readfds, fd_set* writefds, fd_set* exceptfds);
-
-  SlotFactory         get_http_factory();
-
-  static void         global_init();
-  static void         global_cleanup();
-
- protected:
-  void                add_get(CurlGet* get);
-  void                remove_get(CurlGet* get);
-
- private:
-  CurlStack(const CurlStack&);
-  void operator = (const CurlStack&);
-
-  void*               m_handle;
-
-  int                 m_size;
-  CurlGetList         m_getList;
+  torrent::PollSelect* m_poll;
 };
 
 }

@@ -34,61 +34,37 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef RTORRENT_CORE_POLL_H
-#define RTORRENT_CORE_POLL_H
+#include "config.h"
 
-#include <sys/select.h>
-#include <sigc++/slot.h>
+#include <cerrno>
+#include <stdexcept>
 
-#include "utils/timer.h"
-#include "curl_stack.h"
-
-namespace torrent {
-  class PollSelect;
-  class PollEPoll;
-}
+#include "poll_manager.h"
 
 namespace core {
 
-class CurlGet;
-
-class Poll {
-public:
-  typedef sigc::slot0<void>      Slot;
-  typedef sigc::slot1<void, int> SlotInt;
-  typedef sigc::slot0<CurlGet*>  SlotFactory;
-
-  Poll();
-  ~Poll();
-
-  void                poll(utils::Timer t);
-
-  SlotFactory         get_http_factory();
-  torrent::Poll*      get_torrent_poll()              { return reinterpret_cast<torrent::Poll*>(m_torrentPoll); }
-
-  void                slot_read_stdin(SlotInt s)      { m_slotReadStdin = s; }
-  void                slot_select_interrupted(Slot s) { m_slotSelectInterrupted = s; }
-
-private:
-  Poll(const Poll&);
-  void operator = (const Poll&);
-
-  void                work();
-  void                work_input();
-
-  SlotInt             m_slotReadStdin;
-  Slot                m_slotSelectInterrupted;
-
-  int                 m_maxFd;
-  fd_set*             m_readSet;
-  fd_set*             m_writeSet;
-  fd_set*             m_exceptSet;
-
-  CurlStack            m_curlStack;
-//   torrent::PollSelect* m_torrentPoll;
-  torrent::PollEPoll*  m_torrentPoll;
-};
-
+PollManager::PollManager(int maxOpenSockets) {
+  // Add a hack here to create larger fd_set's, depending on a USE
+  // flag.
+  
+  m_maxOpenSockets = maxOpenSockets;
+  m_readSet = new fd_set;
+  m_writeSet = new fd_set;
+  m_errorSet = new fd_set;
 }
 
-#endif
+PollManager::~PollManager() {
+  delete m_readSet;
+  delete m_writeSet;
+  delete m_errorSet;
+}
+
+void
+PollManager::check_error() {
+  if (errno != EINTR)
+    throw std::runtime_error("Poll::work(): select error");
+
+  m_signalInterrupted.emit();
+}
+
+}

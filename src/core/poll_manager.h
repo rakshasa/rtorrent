@@ -34,51 +34,55 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef RTORRENT_CORE_CURL_STACK_H
-#define RTORRENT_CORE_CURL_STACK_H
+#ifndef RTORRENT_CORE_POLL_MANAGER_H
+#define RTORRENT_CORE_POLL_MANAGER_H
 
-#include <list>
-#include <sigc++/slot.h>
+#include <sys/select.h>
+#include <sigc++/signal.h>
+
+#include "curl_stack.h"
+#include "utils/timer.h"
+
+namespace torrent {
+  class Poll;
+}
 
 namespace core {
 
-class CurlGet;
+// CurlStack really should be somewhere else, but that won't happen
+// until they add an epoll friendly API.
 
-class CurlStack {
- public:
-  friend class CurlGet;
+class PollManager {
+public:
+  typedef sigc::signal0<void> Signal;
 
-  typedef std::list<CurlGet*>   CurlGetList;
-  typedef sigc::slot0<CurlGet*> SlotFactory;
+  PollManager(int maxOpenSockets);
+  virtual ~PollManager();
 
-  CurlStack();
-  ~CurlStack();
+  unsigned int        get_max_open_sockets() const { return m_maxOpenSockets; }
+  CurlStack*          get_http_stack()             { return &m_httpStack; }
 
-  int                 get_size() const { return m_size; }
-  bool                is_busy() const  { return !m_getList.empty(); }
+  virtual torrent::Poll* get_torrent_poll() = 0;
 
-  void                perform();
+  virtual void        poll(utils::Timer timeout) = 0;
 
-  // TODO: Set fd_set's only once?
-  unsigned int        fdset(fd_set* readfds, fd_set* writefds, fd_set* exceptfds);
+  // Use a signal, connect checking for input and updating the display.
+  Signal&             signal_interrupted()         { return m_signalInterrupted; }
 
-  SlotFactory         get_http_factory();
+protected:
+  PollManager(const PollManager&);
+  void operator = (const PollManager&);
 
-  static void         global_init();
-  static void         global_cleanup();
+  void                check_error();
 
- protected:
-  void                add_get(CurlGet* get);
-  void                remove_get(CurlGet* get);
+  unsigned int        m_maxOpenSockets;
+  CurlStack           m_httpStack;
 
- private:
-  CurlStack(const CurlStack&);
-  void operator = (const CurlStack&);
+  fd_set*             m_readSet;
+  fd_set*             m_writeSet;
+  fd_set*             m_errorSet;
 
-  void*               m_handle;
-
-  int                 m_size;
-  CurlGetList         m_getList;
+  Signal              m_signalInterrupted;
 };
 
 }

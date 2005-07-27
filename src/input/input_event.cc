@@ -34,53 +34,40 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef RTORRENT_CORE_CURL_STACK_H
-#define RTORRENT_CORE_CURL_STACK_H
+#include "config.h"
 
-#include <list>
-#include <sigc++/slot.h>
+#include <ncurses.h>
 
-namespace core {
+#include "input_event.h"
 
-class CurlGet;
+namespace input {
 
-class CurlStack {
- public:
-  friend class CurlGet;
-
-  typedef std::list<CurlGet*>   CurlGetList;
-  typedef sigc::slot0<CurlGet*> SlotFactory;
-
-  CurlStack();
-  ~CurlStack();
-
-  int                 get_size() const { return m_size; }
-  bool                is_busy() const  { return !m_getList.empty(); }
-
-  void                perform();
-
-  // TODO: Set fd_set's only once?
-  unsigned int        fdset(fd_set* readfds, fd_set* writefds, fd_set* exceptfds);
-
-  SlotFactory         get_http_factory();
-
-  static void         global_init();
-  static void         global_cleanup();
-
- protected:
-  void                add_get(CurlGet* get);
-  void                remove_get(CurlGet* get);
-
- private:
-  CurlStack(const CurlStack&);
-  void operator = (const CurlStack&);
-
-  void*               m_handle;
-
-  int                 m_size;
-  CurlGetList         m_getList;
-};
-
+void
+InputEvent::insert(torrent::Poll* p) {
+  p->open(this);
+  p->insert_read(this);
 }
 
-#endif
+void
+InputEvent::remove(torrent::Poll* p) {
+  p->remove_read(this);
+  p->close(this);
+}
+
+void
+InputEvent::event_read() {
+  int c = getch();
+
+  if (c != ERR)
+    m_slotPressed(c);
+}
+
+void
+InputEvent::event_write() {
+}
+
+void
+InputEvent::event_error() {
+}
+
+}

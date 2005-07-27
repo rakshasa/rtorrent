@@ -22,7 +22,11 @@ libsub_core_a_SOURCES = \
 	log.h \
 	manager.cc \
 	manager.h \
-	poll.cc \
-	poll.h
+	poll_manager.cc \
+	poll_manager.h \
+	poll_manager_epoll.cc \
+	poll_manager_epoll.h \
+	poll_manager_select.cc \
+	poll_manager_select.h
 
 INCLUDES = -I$(srcdir) -I$(srcdir)/.. -I$(top_srcdir)

@@ -36,9 +36,32 @@
 
 #include "config.h"
 
+#include <unistd.h>
+
 #include "control.h"
 
 namespace ui {
+
+Control::Control() :
+  m_shutdownReceived(false) {
+
+  m_inputStdin = new input::InputEvent(STDIN_FILENO);
+  m_inputStdin->slot_pressed(sigc::mem_fun(m_input, &input::Manager::pressed));
+}
+
+Control::~Control() {
+  delete m_inputStdin;
+}
+
+void
+Control::initialize() {
+  m_inputStdin->insert(m_core.get_poll_manager()->get_torrent_poll());
+}
+
+void
+Control::cleanup() {
+  m_inputStdin->remove(m_core.get_poll_manager()->get_torrent_poll());
+}
 
 // I think it should be safe to initiate the shutdown from anywhere,
 // but if it isn't, use a delay task.

@@ -48,9 +48,11 @@
 #include <torrent/bencode.h>
 #include <torrent/exceptions.h>
 
+#include "curl_get.h"
 #include "download.h"
 #include "manager.h"
-#include "curl_get.h"
+#include "poll_manager_epoll.h"
+#include "poll_manager_select.h"
 
 namespace core {
 
@@ -69,17 +71,26 @@ Manager::Manager() :
   m_portFirst(6890),
   m_portLast(6999),
   m_checkHash(true) {
+
+  // Consider doing this somewhere else.
+  if ((m_pollManager = PollManagerEPoll::create(sysconf(_SC_OPEN_MAX))) != NULL)
+    m_logImportant.push_front("Using 'epoll' based polling");
+  else if ((m_pollManager = PollManagerSelect::create(sysconf(_SC_OPEN_MAX))) != NULL)
+    m_logImportant.push_front("Using 'select' based polling");
+  else
+    throw std::runtime_error("Could not create any PollManager");
 }
 
 Manager::~Manager() {
+  delete m_pollManager;
 }
 
 void
 Manager::initialize() {
-  torrent::Http::set_factory(m_poll.get_http_factory());
-  m_httpQueue.slot_factory(m_poll.get_http_factory());
+  torrent::Http::set_factory(m_pollManager->get_http_stack()->get_http_factory());
+  m_httpQueue.slot_factory(m_pollManager->get_http_stack()->get_http_factory());
 
-  CurlStack::init();
+  CurlStack::global_init();
   listen_open();
 
   if (torrent::get_max_open_files() + torrent::get_max_open_sockets() + 32 > FD_SETSIZE) {
@@ -125,7 +136,7 @@ Manager::cleanup() {
   // any more.
 
   torrent::cleanup();
-  CurlStack::cleanup();
+  CurlStack::global_cleanup();
 }
 
 void

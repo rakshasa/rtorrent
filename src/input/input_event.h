@@ -34,51 +34,32 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef RTORRENT_CORE_CURL_STACK_H
-#define RTORRENT_CORE_CURL_STACK_H
+#ifndef RTORRENT_INPUT_INPUT_EVENT_H
+#define RTORRENT_INPUT_INPUT_EVENT_H
 
-#include <list>
 #include <sigc++/slot.h>
+#include <torrent/event.h>
+#include <torrent/poll.h>
 
-namespace core {
+namespace input {
 
-class CurlGet;
+class InputEvent : public torrent::Event {
+public:
+  typedef sigc::slot<void, int> SlotInt;
 
-class CurlStack {
- public:
-  friend class CurlGet;
+  InputEvent(int fd) { m_fileDesc = fd; }
 
-  typedef std::list<CurlGet*>   CurlGetList;
-  typedef sigc::slot0<CurlGet*> SlotFactory;
+  void                insert(torrent::Poll* p);
+  void                remove(torrent::Poll* p);
 
-  CurlStack();
-  ~CurlStack();
+  void                event_read();
+  void                event_write();
+  void                event_error();
 
-  int                 get_size() const { return m_size; }
-  bool                is_busy() const  { return !m_getList.empty(); }
+  void                slot_pressed(SlotInt s) { m_slotPressed = s; }
 
-  void                perform();
-
-  // TODO: Set fd_set's only once?
-  unsigned int        fdset(fd_set* readfds, fd_set* writefds, fd_set* exceptfds);
-
-  SlotFactory         get_http_factory();
-
-  static void         global_init();
-  static void         global_cleanup();
-
- protected:
-  void                add_get(CurlGet* get);
-  void                remove_get(CurlGet* get);
-
- private:
-  CurlStack(const CurlStack&);
-  void operator = (const CurlStack&);
-
-  void*               m_handle;
-
-  int                 m_size;
-  CurlGetList         m_getList;
+private:
+  SlotInt             m_slotPressed;
 };
 
 }

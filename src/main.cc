@@ -196,8 +196,8 @@ initialize_display(ui::Control* c) {
 
 void
 initialize_core(ui::Control* c) {
-  c->get_core().get_poll().slot_read_stdin(sigc::mem_fun(c->get_input(), &input::Manager::pressed));
-  c->get_core().get_poll().slot_select_interrupted(sigc::ptr_fun(display::Canvas::do_update));
+  c->get_core().get_poll_manager()->signal_interrupted().connect(sigc::mem_fun(c->get_input_stdin(), &input::InputEvent::event_read));
+  c->get_core().get_poll_manager()->signal_interrupted().connect(sigc::ptr_fun(display::Canvas::do_update));
 
   c->get_core().initialize();
 }
@@ -223,7 +223,7 @@ main(int argc, char** argv) {
     SignalHandler::set_handler(SIGFPE,  sigc::bind(sigc::ptr_fun(&do_panic), SIGFPE));
 
     // Need to initialize this before parseing options.
-    torrent::initialize(uiControl.get_core().get_poll().get_torrent_poll());
+    torrent::initialize(uiControl.get_core().get_poll_manager()->get_torrent_poll());
 
     if (getenv("HOME"))
       load_option_file(getenv("HOME") + std::string("/.rtorrent.rc"), &optionHandler);
@@ -234,6 +234,8 @@ main(int argc, char** argv) {
     initialize_core(&uiControl);
 
     uiControl.get_ui().init(&uiControl);
+
+    uiControl.initialize();
 
     load_session_torrents(&uiControl);
     load_arg_torrents(&uiControl, argv + firstArg, argv + argc);
@@ -251,10 +253,12 @@ main(int argc, char** argv) {
 	uiControl.get_display().do_update();
 
       // Do shutdown check before poll, not after.
-      uiControl.get_core().get_poll().poll(!utils::taskScheduler.empty() ?
-					   utils::taskScheduler.get_next_timeout() - utils::Timer::cache() :
-					   60 * 1000000);
+      uiControl.get_core().get_poll_manager()->poll(!utils::taskScheduler.empty() ?
+						    utils::taskScheduler.get_next_timeout() - utils::Timer::cache() :
+						    60 * 1000000);
     }
+
+    uiControl.cleanup();
 
     uiControl.get_ui().cleanup();
     uiControl.get_core().cleanup();
