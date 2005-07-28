@@ -96,6 +96,17 @@ AC_DEFUN([TORRENT_WITHOUT_XFS], [
 ])
 
 
+AC_DEFUN([TORRENT_WITH_XFS], [
+  AC_ARG_WITH(xfs,
+    [  --with-xfs           Check for XFS filesystem support],
+    [
+      if test "$withval" = "yes"; then
+        TORRENT_CHECK_XFS
+      fi
+    ])
+])
+
+
 AC_DEFUN([TORRENT_CHECK_EPOLL], [
   AC_MSG_CHECKING(for epoll support)
 
