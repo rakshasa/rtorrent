@@ -188,20 +188,6 @@ load_arg_torrents(ui::Control* c, char** first, char** last) {
   }
 }
 
-void
-initialize_display(ui::Control* c) {
-  display::Canvas::init();
-  display::Window::slot_adjust(sigc::mem_fun(c->get_display(), &display::Manager::adjust_layout));
-}
-
-void
-initialize_core(ui::Control* c) {
-  c->get_core().get_poll_manager()->signal_interrupted().connect(sigc::mem_fun(c->get_input_stdin(), &input::InputEvent::event_read));
-  c->get_core().get_poll_manager()->signal_interrupted().connect(sigc::ptr_fun(display::Canvas::do_update));
-
-  c->get_core().initialize();
-}
-
 int
 main(int argc, char** argv) {
   utils::Timer::update();
@@ -222,18 +208,12 @@ main(int argc, char** argv) {
     SignalHandler::set_handler(SIGBUS,  sigc::bind(sigc::ptr_fun(&do_panic), SIGBUS));
     SignalHandler::set_handler(SIGFPE,  sigc::bind(sigc::ptr_fun(&do_panic), SIGFPE));
 
-    // Need to initialize this before parseing options.
-    torrent::initialize(uiControl.get_core().get_poll_manager()->get_torrent_poll());
+    uiControl.get_core().initialize_first();
 
     if (getenv("HOME"))
       load_option_file(getenv("HOME") + std::string("/.rtorrent.rc"), &optionHandler);
 
     int firstArg = parse_options(&uiControl, &optionHandler, argc, argv);
-
-    initialize_display(&uiControl);
-    initialize_core(&uiControl);
-
-    uiControl.get_ui().init(&uiControl);
 
     uiControl.initialize();
 
@@ -259,14 +239,6 @@ main(int argc, char** argv) {
     }
 
     uiControl.cleanup();
-
-    uiControl.get_ui().cleanup();
-    uiControl.get_core().cleanup();
-
-    display::Canvas::erase_std();
-    display::Canvas::refresh_std();
-    display::Canvas::do_update();
-    display::Canvas::cleanup();
 
   } catch (std::exception& e) {
     display::Canvas::cleanup();

@@ -128,13 +128,27 @@ AC_DEFUN([TORRENT_CHECK_EPOLL], [
 
 AC_DEFUN([TORRENT_WITHOUT_EPOLL], [
   AC_ARG_WITH(epoll,
-    [  --without-epoll         Do not check for epoll support],
+    [  --without-epoll         Do not check for epoll support.],
     [
       if test "$withval" = "yes"; then
         TORRENT_CHECK_EPOLL
       fi
     ], [
         TORRENT_CHECK_EPOLL
+    ])
+])
+
+
+AC_DEFUN([TORRENT_WITHOUT_VARIABLE_FDSET], [
+  AC_ARG_WITH(variable-fdset,
+
+    [  --without-variable-fdset       do not use non-portable variable sized fd_set's.],
+    [
+      if test "$withval" = "yes"; then
+        AC_DEFINE(USE_VARIABLE_FDSET, 1, defined when we allow the use of fd_set's of any size)
+      fi
+    ], [
+      AC_DEFINE(USE_VARIABLE_FDSET, 1, defined when we allow the use of fd_set's of any size)
     ])
 ])
 

@@ -36,6 +36,7 @@
 
 #include "config.h"
 
+#include <cstring>
 #include <stdexcept>
 #include <torrent/poll_select.h>
 #include <torrent/torrent.h>
@@ -50,37 +51,31 @@ PollManagerSelect::create(int maxOpenSockets) {
 
   if (p == NULL)
     return NULL;
-
-  PollManagerSelect* manager = new PollManagerSelect(maxOpenSockets);
-  manager->m_poll = p;
-
-  return manager;
+  else
+    return new PollManagerSelect(p);
 }
 
 PollManagerSelect::~PollManagerSelect() {
-  delete m_poll;
-}
-
-torrent::Poll*
-PollManagerSelect::get_torrent_poll() {
-  return m_poll;
 }
 
 void
 PollManagerSelect::poll(utils::Timer timeout) {
   timeout = std::min(timeout, utils::Timer(torrent::get_next_timeout()));
 
+#if defined USE_VARIABLE_FDSET
+  std::memset(m_readSet, 0, m_setSize);
+  std::memset(m_writeSet, 0, m_setSize);
+  std::memset(m_errorSet, 0, m_setSize);
+#else
   FD_ZERO(m_readSet);
   FD_ZERO(m_writeSet);
   FD_ZERO(m_errorSet);
+#endif    
 
-  unsigned int maxFd = m_poll->fdset(m_readSet, m_writeSet, m_errorSet);
+  unsigned int maxFd = static_cast<torrent::PollSelect*>(m_poll)->fdset(m_readSet, m_writeSet, m_errorSet);
 
   if (m_httpStack.is_busy())
     maxFd = std::max(maxFd, m_httpStack.fdset(m_readSet, m_writeSet, m_errorSet));
-
-  if (maxFd >= m_maxOpenSockets)
-    throw std::runtime_error("Error polling, maxFd >= m_maxOpenSockets");
 
   timeval t = timeout.tval();
 
@@ -91,7 +86,7 @@ PollManagerSelect::poll(utils::Timer timeout) {
     m_httpStack.perform();
 
   torrent::perform();
-  m_poll->perform(m_readSet, m_writeSet, m_errorSet);
+  static_cast<torrent::PollSelect*>(m_poll)->perform(m_readSet, m_writeSet, m_errorSet);
   torrent::perform();
 }
 

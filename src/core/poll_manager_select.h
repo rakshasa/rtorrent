@@ -50,14 +50,10 @@ public:
   static PollManagerSelect* create(int maxOpenSockets);
   ~PollManagerSelect();
 
-  torrent::Poll*      get_torrent_poll();
-
   void                poll(utils::Timer timeout);
 
 private:
-  PollManagerSelect(int maxOpenSockets) : PollManager(maxOpenSockets) {}
-
-  torrent::PollSelect* m_poll;
+  PollManagerSelect(torrent::Poll* p) : PollManager(p) {}
 };
 
 }

@@ -59,7 +59,6 @@ public:
   typedef sigc::slot0<void>                         SlotFailed;
 
   Manager();
-  ~Manager();
 
   DownloadList&       get_download_list()                 { return m_downloadList; }
   DownloadStore&      get_download_store()                { return m_downloadStore; }
@@ -75,7 +74,9 @@ public:
 
   void                set_check_hash(bool state)          { m_checkHash = state; }
 
-  void                initialize();
+  // Really should find a more descriptive name.
+  void                initialize_first();
+  void                initialize_second();
   void                cleanup();
 
   void                shutdown(bool force);

@@ -39,13 +39,10 @@
 
 #include <sys/select.h>
 #include <sigc++/signal.h>
+#include <torrent/poll.h>
 
 #include "curl_stack.h"
 #include "utils/timer.h"
-
-namespace torrent {
-  class Poll;
-}
 
 namespace core {
 
@@ -56,13 +53,13 @@ class PollManager {
 public:
   typedef sigc::signal0<void> Signal;
 
-  PollManager(int maxOpenSockets);
+  PollManager(torrent::Poll* poll);
   virtual ~PollManager();
 
-  unsigned int        get_max_open_sockets() const { return m_maxOpenSockets; }
-  CurlStack*          get_http_stack()             { return &m_httpStack; }
+  unsigned int        max_open_sockets() const     { return m_poll->max_open_sockets(); }
 
-  virtual torrent::Poll* get_torrent_poll() = 0;
+  CurlStack*          get_http_stack()             { return &m_httpStack; }
+  torrent::Poll*      get_torrent_poll()           { return m_poll; }
 
   virtual void        poll(utils::Timer timeout) = 0;
 
@@ -75,9 +72,10 @@ protected:
 
   void                check_error();
 
-  unsigned int        m_maxOpenSockets;
+  torrent::Poll*      m_poll;
   CurlStack           m_httpStack;
 
+  unsigned int        m_setSize;
   fd_set*             m_readSet;
   fd_set*             m_writeSet;
   fd_set*             m_errorSet;

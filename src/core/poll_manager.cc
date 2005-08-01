@@ -43,17 +43,30 @@
 
 namespace core {
 
-PollManager::PollManager(int maxOpenSockets) {
-  // Add a hack here to create larger fd_set's, depending on a USE
-  // flag.
-  
-  m_maxOpenSockets = maxOpenSockets;
+PollManager::PollManager(torrent::Poll* poll) :
+  m_poll(poll) {
+
+  if (m_poll == NULL)
+    throw std::logic_error("PollManager::PollManager(...) received poll == NULL");
+
+#if defined USE_VARIABLE_FDSET
+  m_setSize = m_poll->max_open_sockets() / 8;
+  m_readSet = (fd_set*)new char[m_setSize];
+  m_writeSet = (fd_set*)new char[m_setSize];
+  m_errorSet = (fd_set*)new char[m_setSize];
+#else
+  if (m_poll->max_open_sockets() > FD_SETSIZE)
+    throw std::logic_error("PollManager::PollManager(...) received a max open sockets >= FD_SETSIZE, but USE_VARIABLE_FDSET was not defined");
+
+  m_setSize = FD_SETSIZE / 8;
   m_readSet = new fd_set;
   m_writeSet = new fd_set;
   m_errorSet = new fd_set;
+#endif
 }
 
 PollManager::~PollManager() {
+  delete m_poll;
   delete m_readSet;
   delete m_writeSet;
   delete m_errorSet;

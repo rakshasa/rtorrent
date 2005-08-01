@@ -67,41 +67,38 @@ connect_signal_tracker_log(Download* d, torrent::Download::SlotString s) {
 }
 
 Manager::Manager() :
+  m_pollManager(NULL),
   m_portRandom(false),
   m_portFirst(6890),
   m_portLast(6999),
   m_checkHash(true) {
+}
 
-  // Consider doing this somewhere else.
+void
+Manager::initialize_first() {
   if ((m_pollManager = PollManagerEPoll::create(sysconf(_SC_OPEN_MAX))) != NULL)
     m_logImportant.push_front("Using 'epoll' based polling");
   else if ((m_pollManager = PollManagerSelect::create(sysconf(_SC_OPEN_MAX))) != NULL)
     m_logImportant.push_front("Using 'select' based polling");
   else
     throw std::runtime_error("Could not create any PollManager");
-}
 
-Manager::~Manager() {
-  delete m_pollManager;
+  // Need to initialize this before parseing options.
+  torrent::initialize(m_pollManager->get_torrent_poll());
 }
 
 void
-Manager::initialize() {
+Manager::initialize_second() {
   torrent::Http::set_factory(m_pollManager->get_http_stack()->get_http_factory());
   m_httpQueue.slot_factory(m_pollManager->get_http_stack()->get_http_factory());
 
   CurlStack::global_init();
   listen_open();
 
-  if (torrent::get_max_open_files() + torrent::get_max_open_sockets() + 32 > FD_SETSIZE) {
-    m_logImportant.push_front("Warning: Max open sockets and files exceeds FD_SETSIZE");
-    m_logComplete.push_front("Warning: Max open sockets and files exceeds FD_SETSIZE");
+  if (torrent::get_max_open_files() + torrent::get_max_open_sockets() + 32 > m_pollManager->max_open_sockets()) {
+    m_logImportant.push_front("Warning: Max open sockets and files exceeds poll manager's max open sockets");
+    m_logComplete.push_front("Warning: Max open sockets and files exceeds poll manager's max open sockets");
   }    
-
-  if (torrent::get_max_open_files() + torrent::get_max_open_sockets() + 32 > (unsigned int)sysconf(_SC_OPEN_MAX)) {
-    m_logImportant.push_front("Warning: Max open sockets and files exceeds _SC_OPEN_MAX");
-    m_logComplete.push_front("Warning: Max open sockets and files exceeds _SC_OPEN_MAX");
-  }
 
   // Register slots to be called when a download is inserted/erased,
   // opened or closed.
@@ -137,6 +134,8 @@ Manager::cleanup() {
 
   torrent::cleanup();
   CurlStack::global_cleanup();
+
+  delete m_pollManager;
 }
 
 void

@@ -38,6 +38,9 @@
 
 #include <unistd.h>
 
+#include "display/canvas.h"
+#include "display/window.h"
+
 #include "control.h"
 
 namespace ui {
@@ -55,12 +58,30 @@ Control::~Control() {
 
 void
 Control::initialize() {
+  display::Canvas::init();
+  display::Window::slot_adjust(sigc::mem_fun(m_display, &display::Manager::adjust_layout));
+
+  m_core.get_poll_manager()->signal_interrupted().connect(sigc::mem_fun(*m_inputStdin, &input::InputEvent::event_read));
+  m_core.get_poll_manager()->signal_interrupted().connect(sigc::ptr_fun(display::Canvas::do_update));
+
+  m_core.initialize_second();
+
+  m_ui.init(this);
+
   m_inputStdin->insert(m_core.get_poll_manager()->get_torrent_poll());
 }
 
 void
 Control::cleanup() {
   m_inputStdin->remove(m_core.get_poll_manager()->get_torrent_poll());
+
+  m_ui.cleanup();
+  m_core.cleanup();
+  
+  display::Canvas::erase_std();
+  display::Canvas::refresh_std();
+  display::Canvas::do_update();
+  display::Canvas::cleanup();
 }
 
 // I think it should be safe to initiate the shutdown from anywhere,

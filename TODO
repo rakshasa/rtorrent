@@ -1,3 +1,5 @@
+See libtorrent/TODO for a list of TODO items.
+
 Polling during last phase of shutdown should be very quick, don't use
 normal timeout.
 

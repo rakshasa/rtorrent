@@ -55,9 +55,7 @@ public:
   void                poll(utils::Timer timeout);
 
 private:
-  PollManagerEPoll(int maxOpenSockets) : PollManager(maxOpenSockets) {}
-
-  torrent::PollEPoll* m_poll;
+  PollManagerEPoll(torrent::Poll* p) : PollManager(p) {}
 };
 
 }
