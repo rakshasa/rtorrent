@@ -62,14 +62,14 @@ WindowPeerList::redraw() {
   int x = 2;
   int y = 0;
 
-  m_canvas->print(x, y, "DNS");   x += 16;
-  m_canvas->print(x, y, "UP");    x += 7;
-  m_canvas->print(x, y, "DOWN");  x += 7;
-  m_canvas->print(x, y, "PEER");  x += 7;
-  m_canvas->print(x, y, "RE/LO"); x += 7;
-  m_canvas->print(x, y, "QS");    x += 6;
-  m_canvas->print(x, y, "DONE");  x += 6;
-  m_canvas->print(x, y, "REQ");   x += 6;
+  m_canvas->print(x, y, "DNS");     x += 16;
+  m_canvas->print(x, y, "UP");      x += 7;
+  m_canvas->print(x, y, "DOWN");    x += 7;
+  m_canvas->print(x, y, "PEER");    x += 7;
+  m_canvas->print(x, y, "C/RE/LO"); x += 9;
+  m_canvas->print(x, y, "QS");      x += 6;
+  m_canvas->print(x, y, "DONE");    x += 6;
+  m_canvas->print(x, y, "REQ");     x += 6;
   m_canvas->print(x, y, "SNUB");
 
   ++y;
@@ -101,12 +101,13 @@ WindowPeerList::redraw() {
     m_canvas->print(x, y, "%.1f", (double)p.get_read_rate().rate() / 1024); x += 7;
     m_canvas->print(x, y, "%.1f", (double)p.get_peer_rate().rate() / 1024); x += 7;
 
-    m_canvas->print(x, y, "%c%c/%c%c",
+    m_canvas->print(x, y, "%c/%c%c/%c%c",
+		    p.is_incoming() ? 'R' : 'L',
 		    p.get_remote_choked() ? 'c' : 'u',
 		    p.get_remote_interested() ? 'i' : 'n',
 		    p.get_local_choked() ? 'c' : 'u',
 		    p.get_local_interested() ? 'i' : 'n');
-    x += 7;
+    x += 9;
 
     m_canvas->print(x, y, "%i/%i",
 		    p.get_outgoing_queue_size(),
