@@ -72,6 +72,8 @@ accumulate(Type& t, Ftor f) {
 
 template <typename Type, typename Ftor>
 struct _equal {
+  typedef bool result_type;
+
   _equal(Type t, Ftor f) : m_t(t), m_f(f) {}
 
   template <typename Arg>
@@ -91,6 +93,8 @@ equal(Type t, Ftor f) {
 
 template <typename Type, typename Ftor>
 struct _less {
+  typedef bool result_type;
+
   _less(Type t, Ftor f) : m_t(t), m_f(f) {}
 
   template <typename Arg>
@@ -110,6 +114,8 @@ less(Type t, Ftor f) {
 
 template <typename Type, typename Ftor>
 struct _greater {
+  typedef bool result_type;
+
   _greater(Type t, Ftor f) : m_t(t), m_f(f) {}
 
   template <typename Arg>
@@ -129,6 +135,8 @@ greater(Type t, Ftor f) {
 
 template <typename Type, typename Ftor>
 struct _less_equal {
+  typedef bool result_type;
+
   _less_equal(Type t, Ftor f) : m_t(t), m_f(f) {}
 
   template <typename Arg>
@@ -148,6 +156,8 @@ less_equal(Type t, Ftor f) {
 
 template <typename Type, typename Ftor>
 struct _greater_equal {
+  typedef bool result_type;
+
   _greater_equal(Type t, Ftor f) : m_t(t), m_f(f) {}
 
   template <typename Arg>
@@ -166,10 +176,12 @@ greater_equal(Type t, Ftor f) {
 }
 
 template <typename Src, typename Dest>
-struct _on : public std::unary_function<typename Src::argument_type, typename Dest::result_type>  {
+struct _on : public std::unary_function<typename Src::argument_type, typename Dest::result_type> {
+  typedef typename Dest::result_type result_type;
+
   _on(Src s, Dest d) : m_dest(d), m_src(s) {}
 
-  typename Dest::result_type operator () (typename reference_fix<typename Src::argument_type>::type arg) {
+  result_type operator () (typename reference_fix<typename Src::argument_type>::type arg) {
     return m_dest(m_src(arg));
   }
 
@@ -258,6 +270,32 @@ template <typename Operation, typename Type>
 inline bind1st_t<Operation>
 bind1st(const Operation& op, const Type& val) {
   return bind1st_t<Operation>(op, val);
+}
+
+template <typename Operation>
+class bind2nd_t : public std::unary_function<typename Operation::first_argument_type,
+					     typename Operation::result_type> {
+protected:
+  typedef typename reference_fix<typename Operation::first_argument_type>::type argument_type;
+  typedef typename reference_fix<typename Operation::second_argument_type>::type value_type;
+
+  Operation  m_op;
+  value_type m_value;
+
+public:
+  bind2nd_t(const Operation& op, const value_type v) :
+    m_op(op), m_value(v) {}
+
+  typename Operation::result_type
+  operator () (const argument_type arg) {
+    return m_op(arg, m_value);
+  }
+};	    
+
+template <typename Operation, typename Type>
+inline bind2nd_t<Operation>
+bind2nd(const Operation& op, const Type& val) {
+  return bind2nd_t<Operation>(op, val);
 }
 
 }

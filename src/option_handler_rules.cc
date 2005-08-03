@@ -194,7 +194,7 @@ apply_bind(ui::Control* m, const std::string& arg) {
 
 void
 apply_ip(ui::Control* m, const std::string& arg) {
-  torrent::set_address(arg);
+  torrent::set_local_address(arg);
 }
 
 // The arg string *must* have been checked with validate_port_range
