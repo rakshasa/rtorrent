@@ -43,9 +43,8 @@
 
 namespace ui {
 
-ElementStringList::ElementStringList() {
-  m_list.push_back("Test string 1");
-  m_list.push_back("Test string 2");
+ElementStringList::ElementStringList() :
+  m_window(NULL) {
 }
 
 void

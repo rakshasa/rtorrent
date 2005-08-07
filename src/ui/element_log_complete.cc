@@ -48,7 +48,6 @@ namespace ui {
 ElementLogComplete::ElementLogComplete(core::Log* l) :
   m_window(NULL),
   m_log(l) {
-
 }
 
 void
