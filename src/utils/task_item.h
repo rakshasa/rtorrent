@@ -57,9 +57,10 @@ public:
   void                set_slot(Slot s)              { m_slot = s; }
 
   iterator            get_iterator()                { return m_iterator; }
+  const iterator      get_iterator() const          { return m_iterator; }
   void                set_iterator(iterator itr)    { m_iterator = itr; }
 
-  const Timer&        get_time()                    { return m_iterator->first; }
+  const Timer&        get_time() const              { return m_iterator->first; }
 
 private:
   TaskItem(const TaskItem& t);

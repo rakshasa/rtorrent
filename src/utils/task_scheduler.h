@@ -63,9 +63,9 @@ public:
 
   void                execute(Timer time);
 
-  bool                is_scheduled(TaskItem* task)        { return task->get_iterator() != end(); }
+  bool                is_scheduled(const TaskItem* task) const { return task->get_iterator() != end(); }
 
-  Timer               get_next_timeout() const            { return begin()->first; }
+  Timer               get_next_timeout() const                 { return begin()->first; }
 
 private:
   inline void         execute_task(const value_type& v);

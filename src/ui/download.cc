@@ -237,8 +237,8 @@ Download::bind_keys() {
   (*m_bindings)['5'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_max_peers), -5);
   (*m_bindings)['6'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_max_peers), 5);
 
-  (*m_bindings)['t'] = sigc::bind(sigc::bind(sigc::mem_fun(m_download->get_download(), &torrent::Download::set_tracker_timeout), false), 2 * 1000000);
-  (*m_bindings)['T'] = sigc::bind(sigc::bind(sigc::mem_fun(m_download->get_download(), &torrent::Download::set_tracker_timeout), true), 2 * 1000000);
+  (*m_bindings)['t'] = sigc::bind(sigc::mem_fun(m_download->get_download(), &torrent::Download::tracker_manual_request), false);
+  (*m_bindings)['T'] = sigc::bind(sigc::mem_fun(m_download->get_download(), &torrent::Download::tracker_manual_request), true);
 
   (*m_bindings)['p'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_change), DISPLAY_PEER_INFO);
   (*m_bindings)['o'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_change), DISPLAY_TRACKER_LIST);
