@@ -39,6 +39,7 @@
 #include <sstream>
 #include <iomanip>
 #include <torrent/rate.h>
+#include <torrent/tracker.h>
 
 #include "core/download.h"
 #include "utils/timer.h"
@@ -82,8 +83,12 @@ print_download_status(char* buf, unsigned int length, core::Download* d) {
   if (d->get_download().is_hash_checking())
     buf += std::max(0, snprintf(buf, length, "Checking hash"));
 
-  else if (d->get_download().is_tracker_busy())
-    buf += std::max(0, snprintf(buf, length, "Tracker: Connecting"));
+  else if (d->get_download().is_tracker_busy() &&
+	   d->get_download().get_tracker_focus() < d->get_download().get_tracker_size())
+    buf += std::max(0, snprintf(buf, length, "Tracker[%i:%i]: Connecting to %s",
+				d->get_download().get_tracker(d->get_download().get_tracker_focus()).get_group(),
+				d->get_download().get_tracker_focus(),
+				d->get_download().get_tracker(d->get_download().get_tracker_focus()).get_url().c_str()));
 
   else if (!d->get_download().is_active())
     buf += std::max(0, snprintf(buf, length, "Inactive"));
