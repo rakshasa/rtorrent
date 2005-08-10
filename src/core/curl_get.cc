@@ -77,7 +77,10 @@ CurlGet::start() {
   curl_easy_setopt(m_handle, CURLOPT_USERAGENT,     m_userAgent.c_str());
   curl_easy_setopt(m_handle, CURLOPT_WRITEFUNCTION, &curl_get_receive_write);
   curl_easy_setopt(m_handle, CURLOPT_WRITEDATA,     this);
-  curl_easy_setopt(m_handle, CURLOPT_FORBID_REUSE,  1);
+
+  curl_easy_setopt(m_handle, CURLOPT_FORBID_REUSE,   1);
+  curl_easy_setopt(m_handle, CURLOPT_FOLLOWLOCATION, 1);
+  curl_easy_setopt(m_handle, CURLOPT_MAXREDIRS,      5);
 
   m_stack->add_get(this);
 }
