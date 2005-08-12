@@ -95,11 +95,6 @@ Manager::initialize_second() {
   CurlStack::global_init();
   listen_open();
 
-  if (torrent::get_max_open_files() + torrent::get_max_open_sockets() + 32 > m_pollManager->max_open_sockets()) {
-    m_logImportant.push_front("Warning: Max open sockets and files exceeds poll manager's max open sockets");
-    m_logComplete.push_front("Warning: Max open sockets and files exceeds poll manager's max open sockets");
-  }    
-
   // Register slots to be called when a download is inserted/erased,
   // opened or closed.
   m_downloadList.slot_map_insert()["0_initialize_bencode"]  = sigc::mem_fun(*this, &Manager::initialize_bencode);

@@ -284,7 +284,7 @@ do_panic(int signum) {
 void
 receive_tracker_dump(std::istream* s) {
   std::stringstream filename;
-  filename << "./tracker_dump." << utils::Timer::current().sec();
+  filename << "./tracker_dump." << utils::Timer::current().seconds();
 
   std::fstream out(filename.str().c_str(), std::ios::out | std::ios::trunc);
 

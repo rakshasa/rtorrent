@@ -56,7 +56,7 @@ public:
   PollManager(torrent::Poll* poll);
   virtual ~PollManager();
 
-  unsigned int        max_open_sockets() const     { return m_poll->max_open_sockets(); }
+  unsigned int        get_open_max() const         { return m_poll->get_open_max(); }
 
   CurlStack*          get_http_stack()             { return &m_httpStack; }
   torrent::Poll*      get_torrent_poll()           { return m_poll; }
