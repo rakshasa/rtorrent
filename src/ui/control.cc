@@ -88,11 +88,14 @@ Control::cleanup() {
 // but if it isn't, use a delay task.
 void
 Control::receive_shutdown() {
-  if (!m_shutdownReceived)
+  if (!m_shutdownReceived) {
     torrent::listen_close();
     
-  m_core.shutdown(m_shutdownReceived);
-  m_shutdownReceived = true;
+    m_core.shutdown(false);
+    m_shutdownReceived = true;
+  } else {
+    m_core.shutdown(true);
+  }
 }
 
 }
