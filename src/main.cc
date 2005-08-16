@@ -225,12 +225,14 @@ main(int argc, char** argv) {
     while (!uiControl.is_shutdown_completed()) {
       utils::Timer::update();
       utils::taskScheduler.execute(utils::Timer::cache());
-    
+
       // This needs to be called every second or so. Currently done by
       // the throttle task in libtorrent.
       if (!utils::displayScheduler.empty() &&
 	  utils::displayScheduler.get_next_timeout() <= utils::Timer::cache())
 	uiControl.get_display().do_update();
+
+      //utils::Timer::update();
 
       // Do shutdown check before poll, not after.
       uiControl.get_core().get_poll_manager()->poll(!utils::taskScheduler.empty() ?
