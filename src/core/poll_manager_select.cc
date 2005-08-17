@@ -38,6 +38,8 @@
 
 #include <cstring>
 #include <stdexcept>
+#include <unistd.h>
+#include <sys/time.h>
 #include <torrent/poll_select.h>
 #include <torrent/torrent.h>
 

@@ -40,6 +40,8 @@
 
 namespace display {
 
+bool Canvas::m_isInitialized = false;
+
 void
 Canvas::resize(int x, int y, int w, int h) {
   wresize(m_window, h, w);
@@ -47,7 +49,12 @@ Canvas::resize(int x, int y, int w, int h) {
 }
 
 void
-Canvas::init() {
+Canvas::initialize() {
+  if (m_isInitialized)
+    return;
+  
+  m_isInitialized = true;
+
   initscr();
   raw();
   noecho();
@@ -58,6 +65,11 @@ Canvas::init() {
 
 void
 Canvas::cleanup() {
+  if (!m_isInitialized)
+    return;
+  
+  m_isInitialized = false;
+
   noraw();
   endwin();
 }

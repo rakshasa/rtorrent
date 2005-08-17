@@ -58,7 +58,7 @@ Control::~Control() {
 
 void
 Control::initialize() {
-  display::Canvas::init();
+  display::Canvas::initialize();
   display::Window::slot_adjust(sigc::mem_fun(m_display, &display::Manager::adjust_layout));
 
   m_core.get_poll_manager()->signal_interrupted().connect(sigc::mem_fun(*m_inputStdin, &input::InputEvent::event_read));
