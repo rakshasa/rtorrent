@@ -119,8 +119,8 @@ AC_DEFUN([TORRENT_CHECK_EXECINFO], [
   ])
 ])
 
-AC_DEFUN([TORRENT_CHECK_ALIGN], [
-  AC_MSG_CHECKING(byte alignment)
+AC_DEFUN([TORRENT_CHECK_ALIGNED], [
+  AC_MSG_CHECKING(the byte alignment)
 
   AC_RUN_IFELSE(
     [[#include <inttypes.h>
@@ -133,9 +133,9 @@ AC_DEFUN([TORRENT_CHECK_ALIGN], [
 	}
     ]],
     [
-      AC_MSG_RESULT(none)
+      AC_MSG_RESULT(none needed)
     ], [
-      AC_DEFINE(USE_ALIGN, 1, Require byte alignment)
+      AC_DEFINE(USE_ALIGNED, 1, Require byte alignment)
       AC_MSG_RESULT(required)
   ])
 ])

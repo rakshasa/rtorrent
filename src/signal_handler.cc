@@ -107,6 +107,8 @@ SignalHandler::as_string(unsigned int signum) {
     return "Timer signal";
   case SIGTERM:
     return "Termination signal";
+  case SIGBUS:
+    return "Bus error";
   default:
     return "Unlisted";
   }

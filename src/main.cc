@@ -232,8 +232,6 @@ main(int argc, char** argv) {
 	  utils::displayScheduler.get_next_timeout() <= utils::Timer::cache())
 	uiControl.get_display().do_update();
 
-      //utils::Timer::update();
-
       // Do shutdown check before poll, not after.
       uiControl.get_core().get_poll_manager()->poll(!utils::taskScheduler.empty() ?
 						    utils::taskScheduler.get_next_timeout() - utils::Timer::cache() :
