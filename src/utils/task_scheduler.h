@@ -58,6 +58,8 @@ public:
   using Base::rbegin;
   using Base::rend;
 
+  TaskScheduler() : m_entry(begin()) {}
+
   void                insert(TaskItem* task, Timer time);
   void                erase(TaskItem* task);
 
@@ -68,7 +70,7 @@ public:
   Timer               get_next_timeout() const                 { return begin()->first; }
 
 private:
-  inline void         execute_task(const value_type& v);
+  iterator            m_entry;
 };
 
 }
