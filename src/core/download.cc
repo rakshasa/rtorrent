@@ -53,9 +53,9 @@ Download::Download() :
 void
 Download::start() {
   if (is_done())
-    m_download.set_connection_type(m_connectionSeed);
+    m_download.set_connection_type(string_to_connection_type(m_connectionSeed));
   else
-    m_download.set_connection_type(m_connectionLeech);
+    m_download.set_connection_type(string_to_connection_type(m_connectionLeech));
 
   m_download.start();
 }
@@ -97,7 +97,7 @@ Download::release_download() {
 
 void
 Download::receive_finished() {
-  m_download.set_connection_type(m_connectionSeed);
+  m_download.set_connection_type(string_to_connection_type(m_connectionSeed));
 }
 
 void
@@ -111,6 +111,12 @@ Download::receive_tracker_msg(std::string msg) {
 void
 Download::receive_storage_error(std::string msg) {
   m_message = "Storage error: [" + msg + "]";
+}
+
+torrent::Download::ConnectionType
+Download::string_to_connection_type(const std::string& name) {
+  // Return default if the name isn't found.
+  return torrent::Download::CONNECTION_DEFAULT;
 }
 
 }

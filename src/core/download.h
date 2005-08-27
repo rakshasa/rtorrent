@@ -86,6 +86,8 @@ private:
   void               receive_tracker_msg(std::string msg);
   void               receive_storage_error(std::string msg);
 
+  static torrent::Download::ConnectionType string_to_connection_type(const std::string& name);
+
   torrent::Download  m_download;
 
   std::string        m_message;
