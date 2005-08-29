@@ -62,8 +62,8 @@ public:
 private:
   void                setup_keys();
 
-  void                receive_read_throttle(int t);
-  void                receive_write_throttle(int t);
+  void                receive_down_throttle(int t);
+  void                receive_up_throttle(int t);
 
   Control*            m_control;
   DownloadList*       m_downloadList;

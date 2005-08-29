@@ -116,7 +116,12 @@ Download::receive_storage_error(std::string msg) {
 torrent::Download::ConnectionType
 Download::string_to_connection_type(const std::string& name) {
   // Return default if the name isn't found.
-  return torrent::Download::CONNECTION_DEFAULT;
+  if (name == "default")
+    return torrent::Download::CONNECTION_DEFAULT;
+  else if (name == "seed")
+    return torrent::Download::CONNECTION_SEED;
+  else
+    throw std::runtime_error("Invalid connection type selected: \"" + name + "\"");
 }
 
 }

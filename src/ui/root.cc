@@ -92,36 +92,36 @@ void
 Root::setup_keys() {
   m_control->get_input().push_back(&m_bindings);
 
-  m_bindings['a']           = sigc::bind(sigc::mem_fun(*this, &Root::receive_write_throttle), 1);
-  m_bindings['z']           = sigc::bind(sigc::mem_fun(*this, &Root::receive_write_throttle), -1);
-  m_bindings['s']           = sigc::bind(sigc::mem_fun(*this, &Root::receive_write_throttle), 5);
-  m_bindings['x']           = sigc::bind(sigc::mem_fun(*this, &Root::receive_write_throttle), -5);
-  m_bindings['d']           = sigc::bind(sigc::mem_fun(*this, &Root::receive_write_throttle), 50);
-  m_bindings['c']           = sigc::bind(sigc::mem_fun(*this, &Root::receive_write_throttle), -50);
+  m_bindings['a']           = sigc::bind(sigc::mem_fun(*this, &Root::receive_up_throttle), 1);
+  m_bindings['z']           = sigc::bind(sigc::mem_fun(*this, &Root::receive_up_throttle), -1);
+  m_bindings['s']           = sigc::bind(sigc::mem_fun(*this, &Root::receive_up_throttle), 5);
+  m_bindings['x']           = sigc::bind(sigc::mem_fun(*this, &Root::receive_up_throttle), -5);
+  m_bindings['d']           = sigc::bind(sigc::mem_fun(*this, &Root::receive_up_throttle), 50);
+  m_bindings['c']           = sigc::bind(sigc::mem_fun(*this, &Root::receive_up_throttle), -50);
 
-  m_bindings['A']           = sigc::bind(sigc::mem_fun(*this, &Root::receive_read_throttle), 1);
-  m_bindings['Z']           = sigc::bind(sigc::mem_fun(*this, &Root::receive_read_throttle), -1);
-  m_bindings['S']           = sigc::bind(sigc::mem_fun(*this, &Root::receive_read_throttle), 5);
-  m_bindings['X']           = sigc::bind(sigc::mem_fun(*this, &Root::receive_read_throttle), -5);
-  m_bindings['D']           = sigc::bind(sigc::mem_fun(*this, &Root::receive_read_throttle), 50);
-  m_bindings['C']           = sigc::bind(sigc::mem_fun(*this, &Root::receive_read_throttle), -50);
+  m_bindings['A']           = sigc::bind(sigc::mem_fun(*this, &Root::receive_down_throttle), 1);
+  m_bindings['Z']           = sigc::bind(sigc::mem_fun(*this, &Root::receive_down_throttle), -1);
+  m_bindings['S']           = sigc::bind(sigc::mem_fun(*this, &Root::receive_down_throttle), 5);
+  m_bindings['X']           = sigc::bind(sigc::mem_fun(*this, &Root::receive_down_throttle), -5);
+  m_bindings['D']           = sigc::bind(sigc::mem_fun(*this, &Root::receive_down_throttle), 50);
+  m_bindings['C']           = sigc::bind(sigc::mem_fun(*this, &Root::receive_down_throttle), -50);
 
   m_bindings[KEY_RESIZE]    = sigc::mem_fun(m_control->get_display(), &display::Manager::adjust_layout);
   m_bindings['\x11']        = sigc::mem_fun(*m_control, &Control::receive_shutdown);
 }
 
 void
-Root::receive_read_throttle(int t) {
+Root::receive_down_throttle(int t) {
   m_windowStatusbar->mark_dirty();
 
-  torrent::set_read_throttle(torrent::get_read_throttle() + t * 1024);
+  torrent::set_down_throttle(torrent::get_down_throttle() + t * 1024);
 }
 
 void
-Root::receive_write_throttle(int t) {
+Root::receive_up_throttle(int t) {
   m_windowStatusbar->mark_dirty();
 
-  torrent::set_write_throttle(torrent::get_write_throttle() + t * 1024);
+  torrent::set_up_throttle(torrent::get_up_throttle() + t * 1024);
 }
 
 }

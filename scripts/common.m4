@@ -37,19 +37,14 @@ AC_DEFUN([TORRENT_ENABLE_WERROR], [
 ])
 
 
-AC_DEFUN([TORRENT_ENABLE_UNSAFE_OPTIMIZATION], [
-  AC_ARG_ENABLE(unsafe-optimization,
-    [  --enable-unsafe-optimization
-                          enable unsafe optimization [default=yes]],
+AC_DEFUN([TORRENT_ENABLE_EXTRA_DEBUG], [
+  AC_ARG_ENABLE(extra-debug,
+    [  --enable-extra-debug    enable extra debugging checks. [default=no]],
     [
         if test "$enableval" = "yes"; then
-            AC_DEFINE(USE_UNSAFE_OPTIMIZATION, 1, Enable possibly unsafe optimization techniques.)
-	else
-            AC_DEFINE(USE_UNSAFE_OPTIMIZATION, 0, Disable possibly unsafe optimization techniques.)
+            AC_DEFINE(USE_EXTRA_DEBUG, 1, Enable extra debugging checks.)
         fi
-    ],[
-      AC_DEFINE(USE_UNSAFE_OPTIMIZATION, 0, Disable possibly unsafe optimization techniques.)
-  ])
+    ])
 ])
 
 
@@ -125,10 +120,10 @@ AC_DEFUN([TORRENT_CHECK_ALIGNED], [
   AC_RUN_IFELSE(
     [[#include <inttypes.h>
       int main() {
-        char buf[5] = { 0, 0, 0, 0, 1 };
+        char buf[8] = { 0, 0, 0, 0, 1, 0, 0, 0 };
 	int i;
-        for (i = 0; i < 4; ++i)
-	  if (*(uint32_t*)(buf + 1) == 0) return -1;
+        for (i = 1; i < 4; ++i)
+	  if (*(uint32_t*)(buf + i) == 0) return -1;
 	return 0;
 	}
     ]],

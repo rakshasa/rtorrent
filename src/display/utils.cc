@@ -71,9 +71,9 @@ print_download_info(char* buf, unsigned int length, core::Download* d) {
 				(double)d->get_download().get_bytes_total() / (double)(1 << 20)));
   
   buf += std::max(0, snprintf(buf, last - buf, " Rate: %5.1f / %5.1f KB Uploaded: %.1f MB",
-			      (double)d->get_download().get_write_rate().rate() / (1 << 10),
-			      (double)d->get_download().get_read_rate().rate() / (1 << 10),
-			      (double)d->get_download().get_write_rate().total() / (1 << 20)));
+			      (double)d->get_download().get_up_rate().rate() / (1 << 10),
+			      (double)d->get_download().get_down_rate().rate() / (1 << 10),
+			      (double)d->get_download().get_up_rate().total() / (1 << 20)));
 
   return buf;
 }

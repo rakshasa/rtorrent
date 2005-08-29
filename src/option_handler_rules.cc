@@ -149,12 +149,12 @@ apply_connection_seed(ui::Control* m, const std::string& arg) {
 
 void
 apply_global_download_rate(ui::Control* m, int arg) {
-  torrent::set_read_throttle(arg * 1024);
+  torrent::set_down_throttle(arg * 1024);
 }
 
 void
 apply_global_upload_rate(ui::Control* m, int arg) {
-  torrent::set_write_throttle(arg * 1024);
+  torrent::set_up_throttle(arg * 1024);
 }
 
 void
