@@ -47,7 +47,7 @@ namespace core {
 
 Download::Download() :
   m_connectionLeech("default"),
-  m_connectionSeed("default") {
+  m_connectionSeed("seed") {
 }
 
 void
