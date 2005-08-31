@@ -45,6 +45,8 @@ namespace core {
 
 class Download {
 public:
+  typedef torrent::Download::ConnectionType ConnType;
+
   Download();
   ~Download() { release_download(); }
 
@@ -65,8 +67,12 @@ public:
 
   void               set_root_directory(const std::string& d);
 
-  void               set_connection_leech(const std::string& name) { m_connectionLeech = name; }
-  void               set_connection_seed(const std::string& name)  { m_connectionSeed = name; }
+  ConnType           get_connection_current() const                { return m_download.get_connection_type(); }
+  ConnType           get_connection_leech() const                  { return m_connectionLeech; }
+  ConnType           get_connection_seed() const                   { return m_connectionSeed; }
+
+  void               set_connection_leech(const std::string& name) { m_connectionLeech = string_to_connection_type(name); }
+  void               set_connection_seed(const std::string& name)  { m_connectionSeed = string_to_connection_type(name); }
 
   void               enable_udp_trackers(bool state);
 
@@ -82,18 +88,19 @@ public:
 
   void               receive_finished();
 
+  static ConnType    string_to_connection_type(const std::string& name);
+  static const char* connection_type_to_string(ConnType t);
+
 private:
   void               receive_tracker_msg(std::string msg);
   void               receive_storage_error(std::string msg);
-
-  static torrent::Download::ConnectionType string_to_connection_type(const std::string& name);
 
   torrent::Download  m_download;
 
   std::string        m_message;
 
-  std::string        m_connectionLeech;
-  std::string        m_connectionSeed;
+  ConnType           m_connectionLeech;
+  ConnType           m_connectionSeed;
 
   sigc::connection   m_connTrackerSucceded;
   sigc::connection   m_connTrackerFailed;

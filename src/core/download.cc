@@ -46,16 +46,16 @@
 namespace core {
 
 Download::Download() :
-  m_connectionLeech("default"),
-  m_connectionSeed("seed") {
+  m_connectionLeech(torrent::Download::CONNECTION_LEECH),
+  m_connectionSeed(torrent::Download::CONNECTION_SEED) {
 }
 
 void
 Download::start() {
   if (is_done())
-    m_download.set_connection_type(string_to_connection_type(m_connectionSeed));
+    m_download.set_connection_type(m_connectionSeed);
   else
-    m_download.set_connection_type(string_to_connection_type(m_connectionLeech));
+    m_download.set_connection_type(m_connectionLeech);
 
   m_download.start();
 }
@@ -97,7 +97,7 @@ Download::release_download() {
 
 void
 Download::receive_finished() {
-  m_download.set_connection_type(string_to_connection_type(m_connectionSeed));
+  m_download.set_connection_type(m_connectionSeed);
 }
 
 void
@@ -116,12 +116,24 @@ Download::receive_storage_error(std::string msg) {
 torrent::Download::ConnectionType
 Download::string_to_connection_type(const std::string& name) {
   // Return default if the name isn't found.
-  if (name == "default")
-    return torrent::Download::CONNECTION_DEFAULT;
+  if (name == "leech")
+    return torrent::Download::CONNECTION_LEECH;
   else if (name == "seed")
     return torrent::Download::CONNECTION_SEED;
   else
     throw std::runtime_error("Invalid connection type selected: \"" + name + "\"");
+}
+
+const char*
+Download::connection_type_to_string(torrent::Download::ConnectionType t) {
+  switch (t) {
+  case torrent::Download::CONNECTION_LEECH:
+    return "leech";
+  case torrent::Download::CONNECTION_SEED:
+    return "seed";
+  default:
+    return "unknown";
+  }
 }
 
 }
