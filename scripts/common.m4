@@ -13,7 +13,7 @@ AC_DEFUN([TORRENT_CHECK_CXXFLAGS], [
 
 AC_DEFUN([TORRENT_ENABLE_DEBUG], [
   AC_ARG_ENABLE(debug,
-    [  --enable-debug          enable debug information [default=yes]],
+    [  --enable-debug          enable debug information [[default=yes]]],
     [
         if test "$enableval" = "yes"; then
             CXXFLAGS="$CXXFLAGS -g -DDEBUG"
@@ -28,7 +28,7 @@ AC_DEFUN([TORRENT_ENABLE_DEBUG], [
 
 AC_DEFUN([TORRENT_ENABLE_WERROR], [
   AC_ARG_ENABLE(werror,
-    [  --enable-werror         enable the -Werror flag [default=no]],
+    [  --enable-werror         enable the -Werror flag [[default=no]]],
     [
         if test "$enableval" = "yes"; then
             CXXFLAGS="$CXXFLAGS -Werror"
@@ -39,7 +39,7 @@ AC_DEFUN([TORRENT_ENABLE_WERROR], [
 
 AC_DEFUN([TORRENT_ENABLE_EXTRA_DEBUG], [
   AC_ARG_ENABLE(extra-debug,
-    [  --enable-extra-debug    enable extra debugging checks. [default=no]],
+    [  --enable-extra-debug    enable extra debugging checks. [[default=no]]],
     [
         if test "$enableval" = "yes"; then
             AC_DEFINE(USE_EXTRA_DEBUG, 1, Enable extra debugging checks.)
@@ -135,3 +135,14 @@ AC_DEFUN([TORRENT_CHECK_ALIGNED], [
   ])
 ])
 
+AC_DEFUN([TORRENT_ENABLE_ALIGNED], [
+  AC_ARG_ENABLE(aligned,
+    [  --enable-aligned        enable alignment safe code [[default=check]]],
+    [
+        if test "$enableval" = "yes"; then
+          AC_DEFINE(USE_ALIGNED, 1, Require byte alignment)
+        fi
+    ],[
+        TORRENT_CHECK_ALIGNED
+  ])
+])
