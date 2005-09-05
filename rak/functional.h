@@ -1,4 +1,4 @@
-// rTorrent - BitTorrent client
+// rak - Rakshasa's toolbox
 // Copyright (C) 2005, Jari Sundell
 //
 // This program is free software; you can redistribute it and/or modify
@@ -34,8 +34,8 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef RTORRENT_UTILS_FUNCTIONAL_H
-#define RTORRENT_UTILS_FUNCTIONAL_H
+#ifndef RAK_FUNCTIONAL_H
+#define RAK_FUNCTIONAL_H
 
 #include <functional>
 
@@ -52,8 +52,8 @@ struct reference_fix<Type&> {
 };
 
 template <typename Type, typename Ftor>
-struct _accumulate {
-  _accumulate(Type& t, Ftor f) : m_t(t), m_f(f) {}
+struct accumulate_t {
+  accumulate_t(Type& t, Ftor f) : m_t(t), m_f(f) {}
 
   template <typename Arg>
   void operator () (Arg& a) { m_t += m_f(a); }
@@ -63,18 +63,18 @@ struct _accumulate {
 };
 
 template <typename Type, typename Ftor>
-inline _accumulate<Type, Ftor>
+inline accumulate_t<Type, Ftor>
 accumulate(Type& t, Ftor f) {
-  return _accumulate<Type, Ftor>(t, f);
+  return accumulate_t<Type, Ftor>(t, f);
 }
 
 // Operators:
 
 template <typename Type, typename Ftor>
-struct _equal {
+struct equal_t {
   typedef bool result_type;
 
-  _equal(Type t, Ftor f) : m_t(t), m_f(f) {}
+  equal_t(Type t, Ftor f) : m_t(t), m_f(f) {}
 
   template <typename Arg>
   bool operator () (Arg& a) {
@@ -86,16 +86,16 @@ struct _equal {
 };
 
 template <typename Type, typename Ftor>
-inline _equal<Type, Ftor>
+inline equal_t<Type, Ftor>
 equal(Type t, Ftor f) {
-  return _equal<Type, Ftor>(t, f);
+  return equal_t<Type, Ftor>(t, f);
 }
 
 template <typename Type, typename Ftor>
-struct _less {
+struct less_t {
   typedef bool result_type;
 
-  _less(Type t, Ftor f) : m_t(t), m_f(f) {}
+  less_t(Type t, Ftor f) : m_t(t), m_f(f) {}
 
   template <typename Arg>
   bool operator () (Arg& a) {
@@ -107,9 +107,9 @@ struct _less {
 };
 
 template <typename Type, typename Ftor>
-inline _less<Type, Ftor>
+inline less_t<Type, Ftor>
 less(Type t, Ftor f) {
-  return _less<Type, Ftor>(t, f);
+  return less_t<Type, Ftor>(t, f);
 }
 
 template <typename Type, typename Ftor>
@@ -134,10 +134,10 @@ greater(Type t, Ftor f) {
 }
 
 template <typename Type, typename Ftor>
-struct _less_equal {
+struct less_equal_t {
   typedef bool result_type;
 
-  _less_equal(Type t, Ftor f) : m_t(t), m_f(f) {}
+  less_equal_t(Type t, Ftor f) : m_t(t), m_f(f) {}
 
   template <typename Arg>
   bool operator () (Arg& a) {
@@ -149,16 +149,16 @@ struct _less_equal {
 };
 
 template <typename Type, typename Ftor>
-inline _less_equal<Type, Ftor>
+inline less_equal_t<Type, Ftor>
 less_equal(Type t, Ftor f) {
-  return _less_equal<Type, Ftor>(t, f);
+  return less_equal_t<Type, Ftor>(t, f);
 }
 
 template <typename Type, typename Ftor>
-struct _greater_equal {
+struct greater_equal_t {
   typedef bool result_type;
 
-  _greater_equal(Type t, Ftor f) : m_t(t), m_f(f) {}
+  greater_equal_t(Type t, Ftor f) : m_t(t), m_f(f) {}
 
   template <typename Arg>
   bool operator () (Arg& a) {
@@ -170,16 +170,16 @@ struct _greater_equal {
 };
 
 template <typename Type, typename Ftor>
-inline _greater_equal<Type, Ftor>
+inline greater_equal_t<Type, Ftor>
 greater_equal(Type t, Ftor f) {
-  return _greater_equal<Type, Ftor>(t, f);
+  return greater_equal_t<Type, Ftor>(t, f);
 }
 
 template <typename Src, typename Dest>
-struct _on : public std::unary_function<typename Src::argument_type, typename Dest::result_type> {
+struct on_t : public std::unary_function<typename Src::argument_type, typename Dest::result_type> {
   typedef typename Dest::result_type result_type;
 
-  _on(Src s, Dest d) : m_dest(d), m_src(s) {}
+  on_t(Src s, Dest d) : m_dest(d), m_src(s) {}
 
   result_type operator () (typename reference_fix<typename Src::argument_type>::type arg) {
     return m_dest(m_src(arg));
@@ -190,15 +190,15 @@ struct _on : public std::unary_function<typename Src::argument_type, typename De
 };
     
 template <typename Src, typename Dest>
-inline _on<Src, Dest>
+inline on_t<Src, Dest>
 on(Src s, Dest d) {
-  return _on<Src, Dest>(s, d);
+  return on_t<Src, Dest>(s, d);
 }  
 
 // Creates a functor for accessing a member.
 template <typename Class, typename Member>
-struct _mem_ptr_ref : public std::unary_function<Class&, Member&> {
-  _mem_ptr_ref(Member Class::*m) : m_member(m) {}
+struct mem_ptr_ref_t : public std::unary_function<Class&, Member&> {
+  mem_ptr_ref_t(Member Class::*m) : m_member(m) {}
 
   Member& operator () (Class& c) {
     return c.*m_member;
@@ -208,14 +208,14 @@ struct _mem_ptr_ref : public std::unary_function<Class&, Member&> {
 };
 
 template <typename Class, typename Member>
-inline _mem_ptr_ref<Class, Member>
+inline mem_ptr_ref_t<Class, Member>
 mem_ptr_ref(Member Class::*m) {
-  return _mem_ptr_ref<Class, Member>(m);
+  return mem_ptr_ref_t<Class, Member>(m);
 }
 
 template <typename Cond, typename Then>
-struct _if_then {
-  _if_then(Cond c, Then t) : m_cond(c), m_then(t) {}
+struct if_then_t {
+  if_then_t(Cond c, Then t) : m_cond(c), m_then(t) {}
 
   template <typename Arg>
   void operator () (Arg& a) {
@@ -228,9 +228,9 @@ struct _if_then {
 };
 
 template <typename Cond, typename Then>
-inline _if_then<Cond, Then>
+inline if_then_t<Cond, Then>
 if_then(Cond c, Then t) {
-  return _if_then<Cond, Then>(c, t);
+  return if_then_t<Cond, Then>(c, t);
 }
 
 template <typename T>

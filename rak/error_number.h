@@ -1,4 +1,4 @@
-// rTorrent - BitTorrent client
+// rak - Rakshasa's toolbox
 // Copyright (C) 2005, Jari Sundell
 //
 // This program is free software; you can redistribute it and/or modify
@@ -34,46 +34,33 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#include "config.h"
+#ifndef RAK_ERROR_NUMBER_H
+#define RAK_ERROR_NUMBER_H
 
-#include <fstream>
-#include <stdexcept>
+#include <cerrno>
+#include <cstring>
 
-#include "option_file.h"
+namespace rak {
 
-void
-OptionFile::process(std::istream* stream) {
-  char buf[max_size_line];
+class error_number {
+public:
+  error_number() : m_errno(0) {}
+  error_number(int e) : m_errno(e) {}
 
-  while (stream->good()) {
-    stream->getline(buf, max_size_line);
+  int                 value() const                { return m_errno; }
+  const char*         c_str() const                { return strerror(m_errno); }
 
-    parse_line(buf);
-  }
+  bool                is_blocked_momentary() const { return m_errno == EAGAIN || m_errno == EINTR; }
+  bool                is_blocked_prolonged() const { return m_errno == EDEADLK; }
+
+  bool                is_closed() const            { return m_errno == ECONNRESET || m_errno == ECONNABORTED; }
+
+  static error_number current()                    { return errno; }
+
+private:
+  int                 m_errno;
+};
+
 }
 
-void
-OptionFile::parse_line(const char* line) {
-  //const char* last = std::find(line, line + max_size_line, '\0');
-
-  if (line[0] == '#')
-    return;
-
-  int result;
-  char key[64];
-  char opt[512];
-
-  opt[0] = '\0';
-
-  // Check for empty lines, and options within "abc".
-  if ((result = std::sscanf(line, "%63s = \"%511[^\"]s", key, opt)) != 2 &&
-      (result = std::sscanf(line, "%63s = %511s", key, opt)) != 2 &&
-      result == 1)
-    throw std::runtime_error("Error parseing option file.");
-
-  if (opt[0] == '"' && opt[1] == '"')
-    opt[0] = '\0';
-
-  if (result >= 1)
-    m_slotOption(key, opt);
-}
+#endif

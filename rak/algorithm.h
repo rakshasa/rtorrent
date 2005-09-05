@@ -1,4 +1,4 @@
-// rTorrent - BitTorrent client
+// rak - Rakshasa's toolbox
 // Copyright (C) 2005, Jari Sundell
 //
 // This program is free software; you can redistribute it and/or modify
@@ -34,8 +34,8 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef RTORRENT_UTILS_ALGORITHM_H
-#define RTORRENT_UTILS_ALGORITHM_H
+#ifndef RAK_ALGORITHM_H
+#define RAK_ALGORITHM_H
 
 #include <algorithm>
 
