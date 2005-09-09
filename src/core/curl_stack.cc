@@ -69,7 +69,7 @@ CurlStack::perform() {
     code = curl_multi_perform((CURLM*)m_handle, &s);
 
     if (code > 0)
-      throw torrent::local_error("Error calling curl_multi_perform");
+      throw std::runtime_error("Error calling curl_multi_perform");
 
     if (s != m_size) {
       // Done with some handles.
@@ -82,7 +82,7 @@ CurlStack::perform() {
 						 rak::equal(msg->easy_handle, std::mem_fun(&CurlGet::handle)));
 
 	if (itr == m_getList.end())
-	  throw torrent::client_error("Could not find CurlGet with the right easy_handle");
+	  throw std::logic_error("Could not find CurlGet with the right easy_handle");
 	
 	(*itr)->perform(msg);
       } while (t);
@@ -110,6 +110,9 @@ CurlStack::add_get(CurlGet* get) {
 
   m_size++;
   m_getList.push_back(get);
+
+  // Curl ML suggest we need to do perform after adding a handle.
+  perform();
 }
 
 void

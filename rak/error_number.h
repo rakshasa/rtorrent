@@ -56,6 +56,7 @@ public:
   bool                is_closed() const            { return m_errno == ECONNRESET || m_errno == ECONNABORTED; }
 
   static error_number current()                    { return errno; }
+  static void         clear_global()               { errno = 0; }
 
 private:
   int                 m_errno;
