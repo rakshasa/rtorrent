@@ -92,6 +92,27 @@ equal(Type t, Ftor f) {
 }
 
 template <typename Type, typename Ftor>
+struct not_equal_t {
+  typedef bool result_type;
+
+  not_equal_t(Type t, Ftor f) : m_t(t), m_f(f) {}
+
+  template <typename Arg>
+  bool operator () (Arg& a) {
+    return m_t != m_f(a);
+  }
+
+  Type m_t;
+  Ftor m_f;
+};
+
+template <typename Type, typename Ftor>
+inline not_equal_t<Type, Ftor>
+not_equal(Type t, Ftor f) {
+  return not_equal_t<Type, Ftor>(t, f);
+}
+
+template <typename Type, typename Ftor>
 struct less_t {
   typedef bool result_type;
 

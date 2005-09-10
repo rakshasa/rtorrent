@@ -112,7 +112,7 @@ CurlStack::add_get(CurlGet* get) {
   m_getList.push_back(get);
 
   // Curl ML suggest we need to do perform after adding a handle.
-  perform();
+  //perform();
 }
 
 void
