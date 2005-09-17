@@ -79,9 +79,16 @@ PollManager::PollManager(torrent::Poll* poll) :
 
 PollManager::~PollManager() {
   delete m_poll;
+
+#if defined USE_VARIABLE_FDSET
+  delete [] m_readSet;
+  delete [] m_writeSet;
+  delete [] m_errorSet;
+#else
   delete m_readSet;
   delete m_writeSet;
   delete m_errorSet;
+#endif
 }
 
 void

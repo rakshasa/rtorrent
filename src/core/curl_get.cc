@@ -37,9 +37,9 @@
 #include "config.h"
 
 #include <iostream>
+#include <stdexcept>
 #include <curl/curl.h>
 #include <curl/easy.h>
-#include <torrent/exceptions.h>
 
 #include "curl_get.h"
 #include "curl_stack.h"
@@ -51,7 +51,7 @@ CurlGet::CurlGet(CurlStack* s) :
   m_stack(s) {
 
   if (m_stack == NULL)
-    throw torrent::client_error("Tried to create CurlGet without a valid CurlStack");
+    throw std::logic_error("Tried to create CurlGet without a valid CurlStack");
 }
 
 CurlGet::~CurlGet() {
@@ -66,10 +66,10 @@ CurlGet::new_object(CurlStack* s) {
 void
 CurlGet::start() {
   if (is_busy())
-    throw torrent::internal_error("Tried to call CurlGet::start on a busy object");
+    throw std::logic_error("Tried to call CurlGet::start on a busy object");
 
   if (m_stream == NULL)
-    throw torrent::internal_error("Tried to call CurlGet::start without a valid output stream");
+    throw std::logic_error("Tried to call CurlGet::start without a valid output stream");
 
   m_handle = curl_easy_init();
 
@@ -117,7 +117,7 @@ CurlGet::get_size_total() {
 void
 CurlGet::perform(CURLMsg* msg) {
   if (msg->msg != CURLMSG_DONE)
-    throw torrent::client_error("CurlGet::process got CURLMSG that isn't done");
+    throw std::logic_error("CurlGet::process got CURLMSG that isn't done");
 
   if (msg->data.result == CURLE_OK)
     m_signalDone.emit();

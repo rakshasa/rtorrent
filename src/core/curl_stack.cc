@@ -106,7 +106,7 @@ CurlStack::add_get(CurlGet* get) {
   CURLMcode code;
 
   if ((code = curl_multi_add_handle((CURLM*)m_handle, get->handle())) > 0)
-    throw torrent::local_error("curl_multi_add_handle \"" + std::string(curl_multi_strerror(code)));
+    throw std::logic_error("curl_multi_add_handle \"" + std::string(curl_multi_strerror(code)));
 
   m_size++;
   m_getList.push_back(get);
@@ -118,12 +118,12 @@ CurlStack::add_get(CurlGet* get) {
 void
 CurlStack::remove_get(CurlGet* get) {
   if (curl_multi_remove_handle((CURLM*)m_handle, get->handle()) > 0)
-    throw torrent::local_error("Error calling curl_multi_remove_handle");
+    throw std::logic_error("Error calling curl_multi_remove_handle");
 
   CurlGetList::iterator itr = std::find(m_getList.begin(), m_getList.end(), get);
 
   if (itr == m_getList.end())
-    throw torrent::client_error("Could not find CurlGet when calling CurlStack::remove");
+    throw std::logic_error("Could not find CurlGet when calling CurlStack::remove");
 
   m_size--;
   m_getList.erase(itr);

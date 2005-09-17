@@ -47,6 +47,7 @@
 #include <sigc++/retype_return.h>
 #include <torrent/http.h>
 #include <torrent/torrent.h>
+#include <torrent/exceptions.h>
 #include <rak/functional.h>
 
 #ifdef USE_EXECINFO
@@ -239,6 +240,12 @@ main(int argc, char** argv) {
     }
 
     uiControl.cleanup();
+
+  } catch (torrent::base_error& e) {
+    display::Canvas::cleanup();
+
+    std::cout << "Caught exception from libtorrent: \"" << e.what() << '"' << std::endl;
+    return -1;
 
   } catch (std::exception& e) {
     display::Canvas::cleanup();
