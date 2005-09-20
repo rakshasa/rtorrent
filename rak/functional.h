@@ -51,20 +51,35 @@ struct reference_fix<Type&> {
   typedef Type type;
 };
 
+template <typename Type>
+struct value_t {
+  value_t(Type v) : m_v(v) {}
+
+  Type operator () () const { return m_v; }
+
+  Type m_v;
+};
+
+template <typename Type>
+inline value_t<Type>
+value(Type v) {
+  return value_t<Type>(v);
+}
+
 template <typename Type, typename Ftor>
 struct accumulate_t {
-  accumulate_t(Type& t, Ftor f) : m_t(t), m_f(f) {}
+  accumulate_t(Type t, Ftor f) : result(t), m_f(f) {}
 
   template <typename Arg>
-  void operator () (Arg& a) { m_t += m_f(a); }
+  void operator () (const Arg& a) { result += m_f(a); }
 
-  Type& m_t;
+  Type result;
   Ftor m_f;
 };
 
 template <typename Type, typename Ftor>
 inline accumulate_t<Type, Ftor>
-accumulate(Type& t, Ftor f) {
+accumulate(Type t, Ftor f) {
   return accumulate_t<Type, Ftor>(t, f);
 }
 
@@ -222,6 +237,10 @@ struct mem_ptr_ref_t : public std::unary_function<Class&, Member&> {
   mem_ptr_ref_t(Member Class::*m) : m_member(m) {}
 
   Member& operator () (Class& c) {
+    return c.*m_member;
+  }
+
+  const Member& operator () (const Class& c) {
     return c.*m_member;
   }
 

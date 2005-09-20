@@ -64,11 +64,12 @@ Manager::find(Window* w) {
 
 void
 Manager::adjust_layout() {
-  int countDynamic = 0;
-  int staticHeight = 0;
-
-  std::for_each(begin(), end(), rak::if_then(std::mem_fun(&Window::is_active), rak::accumulate(staticHeight, std::mem_fun(&Window::get_min_height))));
-  std::for_each(begin(), end(), rak::if_then(std::mem_fun(&Window::is_active), rak::accumulate(countDynamic, std::mem_fun(&Window::is_dynamic))));
+  int staticHeight = std::for_each(begin(), end(),
+				   rak::if_then(std::mem_fun(&Window::is_active),
+						rak::accumulate(0, std::mem_fun(&Window::get_min_height)))).m_then.result;
+  int countDynamic = std::for_each(begin(), end(),
+				   rak::if_then(std::mem_fun(&Window::is_active),
+						rak::accumulate(0, std::mem_fun(&Window::is_dynamic)))).m_then.result;
 
   int dynamic = std::max(0, Canvas::get_screen_height() - staticHeight);
   int height = 0, h;
