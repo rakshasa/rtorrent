@@ -338,6 +338,33 @@ bind2nd(const Operation& op, const Type& val) {
   return bind2nd_t<Operation>(op, val);
 }
 
+// Lightweight callback function including pointer to object. Should
+// be replaced by TR1 stuff later. Requires an object to bind, instead
+// of using a seperate functor for that.
+
+template <typename Object, typename Ret>
+class mem_fn {
+public:
+  typedef Ret (Object::*Function)();
+
+  mem_fn() : m_object(NULL) {}
+  mem_fn(Object* o, Function f) : m_object(o), m_function(f) {}
+
+  bool is_valid() const { return m_object; }
+
+  Ret operator () () { return (m_object->*m_function)(); }
+  
+private:
+  Object* m_object;
+  Function m_function;
+};
+
+template <typename Object, typename Ret>
+inline mem_fn<Object, Ret>
+make_mem_fn(Object* o, Ret (Object::*f)()) {
+ return mem_fn<Object, Ret>(o, f);
+}
+
 }
 
 #endif
