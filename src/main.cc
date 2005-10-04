@@ -58,13 +58,13 @@
 #include "core/download_factory.h"
 #include "display/canvas.h"
 #include "display/window.h"
-#include "ui/control.h"
 #include "input/bindings.h"
 
 #include "utils/task.h"
 #include "utils/timer.h"
 #include "utils/directory.h"
 
+#include "control.h"
 #include "signal_handler.h"
 #include "option_file.h"
 #include "option_handler.h"
@@ -95,7 +95,7 @@ is_resized() {
 }
 
 int
-parse_options(ui::Control* c, OptionHandler* optionHandler, int argc, char** argv) {
+parse_options(Control* c, OptionHandler* optionHandler, int argc, char** argv) {
   OptionParser optionParser;
 
   // Converted.
@@ -113,7 +113,7 @@ parse_options(ui::Control* c, OptionHandler* optionHandler, int argc, char** arg
 }
 
 void
-initialize_option_handler(ui::Control* c, OptionHandler* optionHandler) {
+initialize_option_handler(Control* c, OptionHandler* optionHandler) {
   optionHandler->insert("max_peers",           new OptionHandlerInt(c, &apply_download_max_peers, &validate_download_peers));
   optionHandler->insert("min_peers",           new OptionHandlerInt(c, &apply_download_min_peers, &validate_download_peers));
   optionHandler->insert("max_uploads",         new OptionHandlerInt(c, &apply_download_max_uploads, &validate_download_peers));
@@ -160,7 +160,7 @@ load_option_file(const std::string& filename, OptionHandler* optionHandler, bool
 }
 
 void
-load_session_torrents(ui::Control* c) {
+load_session_torrents(Control* c) {
   // Load session torrents.
   std::list<std::string> l = c->get_core().get_download_store().get_formated_entries().make_list();
 
@@ -176,7 +176,7 @@ load_session_torrents(ui::Control* c) {
 }
 
 void
-load_arg_torrents(ui::Control* c, char** first, char** last) {
+load_arg_torrents(Control* c, char** first, char** last) {
   //std::for_each(begin, end, std::bind1st(std::mem_fun(&core::Manager::insert), &c->get_core()));
   for (; first != last; ++first) {
     core::DownloadFactory* f = new core::DownloadFactory(*first, &c->get_core());
@@ -194,7 +194,7 @@ main(int argc, char** argv) {
   utils::Timer::update();
 
   OptionHandler optionHandler;
-  ui::Control   uiControl;
+  Control   uiControl;
 
   srandom(utils::Timer::cache().usec());
   srand48(utils::Timer::cache().usec());
@@ -204,7 +204,7 @@ main(int argc, char** argv) {
   try {
 
     SignalHandler::set_ignore(SIGPIPE);
-    SignalHandler::set_handler(SIGINT,  sigc::mem_fun(uiControl, &ui::Control::receive_shutdown));
+    SignalHandler::set_handler(SIGINT,  sigc::mem_fun(uiControl, &Control::receive_shutdown));
     SignalHandler::set_handler(SIGSEGV, sigc::bind(sigc::ptr_fun(&do_panic), SIGSEGV));
     SignalHandler::set_handler(SIGBUS,  sigc::bind(sigc::ptr_fun(&do_panic), SIGBUS));
     SignalHandler::set_handler(SIGFPE,  sigc::bind(sigc::ptr_fun(&do_panic), SIGFPE));

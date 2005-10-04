@@ -46,9 +46,9 @@
 
 #include "display/window_string_list.h"
 
-namespace ui {
-
 class Control;
+
+namespace ui {
 
 class ElementStringList : public ElementBase {
 public:

@@ -339,16 +339,22 @@ bind2nd(const Operation& op, const Type& val) {
 }
 
 // Lightweight callback function including pointer to object. Should
-// be replaced by TR1 stuff later. Requires an object to bind, instead
-// of using a seperate functor for that.
+// be replaced by TR1 stuff later.
+
+template <typename Ret>
+class function0 {
+public:
+  virtual bool is_valid() const = 0;
+  virtual Ret operator () () = 0;
+};
 
 template <typename Object, typename Ret>
-class mem_fn {
+class mem_fn0 : public function0<Ret> {
 public:
   typedef Ret (Object::*Function)();
 
-  mem_fn() : m_object(NULL) {}
-  mem_fn(Object* o, Function f) : m_object(o), m_function(f) {}
+  mem_fn0() : m_object(NULL) {}
+  mem_fn0(Object* o, Function f) : m_object(o), m_function(f) {}
 
   bool is_valid() const { return m_object; }
 
@@ -359,10 +365,33 @@ private:
   Function m_function;
 };
 
+template <typename Object, typename Ret, typename Arg1>
+class mem_fn1 {
+public:
+  typedef Ret (Object::*Function)(Arg1);
+
+  mem_fn1() : m_object(NULL) {}
+  mem_fn1(Object* o, Function f) : m_object(o), m_function(f) {}
+
+  bool is_valid() const { return m_object; }
+
+  Ret operator () (Arg1 a1) { return (m_object->*m_function)(a1); }
+  
+private:
+  Object* m_object;
+  Function m_function;
+};
+
 template <typename Object, typename Ret>
-inline mem_fn<Object, Ret>
+inline mem_fn0<Object, Ret>
 make_mem_fn(Object* o, Ret (Object::*f)()) {
- return mem_fn<Object, Ret>(o, f);
+ return mem_fn0<Object, Ret>(o, f);
+}
+
+template <typename Object, typename Ret, typename Arg1>
+inline mem_fn1<Object, Ret, Arg1>
+make_mem_fn(Object* o, Ret (Object::*f)(Arg1)) {
+ return mem_fn1<Object, Ret, Arg1>(o, f);
 }
 
 }

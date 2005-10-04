@@ -42,13 +42,13 @@
 
 #include "element_base.h"
 
+class Control;
+
 namespace display {
   class WindowDownloadList;
 }
 
 namespace ui {
-
-class Control;
 
 class ElementDownloadList : public ElementBase {
 public:

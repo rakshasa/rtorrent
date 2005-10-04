@@ -43,8 +43,6 @@
 
 #include "control.h"
 
-namespace ui {
-
 Control::Control() :
   m_shutdownReceived(false) {
 
@@ -96,6 +94,4 @@ Control::receive_shutdown() {
   } else {
     m_core.shutdown(true);
   }
-}
-
 }

@@ -44,9 +44,7 @@
 #include "option_handler.h"
 #include "core/download_slot_map.h"
 
-namespace ui {
-  class Control;
-}
+class Control;
 
 // Not pretty, but it is simple and easy to modify.
 
@@ -65,40 +63,40 @@ bool validate_fd(int arg);
 
 bool validate_throttle_interval(int arg);
 
-void apply_download_min_peers(ui::Control* m, int arg);
-void apply_download_max_peers(ui::Control* m, int arg);
-void apply_download_max_uploads(ui::Control* m, int arg);
-void apply_download_directory(ui::Control* m, const std::string& arg);
+void apply_download_min_peers(Control* m, int arg);
+void apply_download_max_peers(Control* m, int arg);
+void apply_download_max_uploads(Control* m, int arg);
+void apply_download_directory(Control* m, const std::string& arg);
 
-void apply_connection_leech(ui::Control* m, const std::string& arg);
-void apply_connection_seed(ui::Control* m, const std::string& arg);
+void apply_connection_leech(Control* m, const std::string& arg);
+void apply_connection_seed(Control* m, const std::string& arg);
 
-void apply_global_download_rate(ui::Control* m, int arg);
-void apply_global_upload_rate(ui::Control* m, int arg);
+void apply_global_download_rate(Control* m, int arg);
+void apply_global_upload_rate(Control* m, int arg);
 
-void apply_hash_read_ahead(ui::Control* m, int arg);
-void apply_hash_interval(ui::Control* m, int arg);
-void apply_hash_max_tries(ui::Control* m, int arg);
-void apply_max_open_files(ui::Control* m, int arg);
-void apply_max_open_sockets(ui::Control* m, int arg);
-void apply_throttle_interval(ui::Control* m, int arg);
+void apply_hash_read_ahead(Control* m, int arg);
+void apply_hash_interval(Control* m, int arg);
+void apply_hash_max_tries(Control* m, int arg);
+void apply_max_open_files(Control* m, int arg);
+void apply_max_open_sockets(Control* m, int arg);
+void apply_throttle_interval(Control* m, int arg);
 
-void apply_ip(ui::Control* m, const std::string& arg);
-void apply_bind(ui::Control* m, const std::string& arg);
-void apply_port_range(ui::Control* m, const std::string& arg);
-void apply_port_random(ui::Control* m, const std::string& arg);
-void apply_tracker_dump(ui::Control* m, const std::string& arg);
-void apply_use_udp_trackers(ui::Control* m, const std::string& arg);
-void apply_check_hash(ui::Control* m, const std::string& arg);
+void apply_ip(Control* m, const std::string& arg);
+void apply_bind(Control* m, const std::string& arg);
+void apply_port_range(Control* m, const std::string& arg);
+void apply_port_random(Control* m, const std::string& arg);
+void apply_tracker_dump(Control* m, const std::string& arg);
+void apply_use_udp_trackers(Control* m, const std::string& arg);
+void apply_check_hash(Control* m, const std::string& arg);
 
-void apply_session_directory(ui::Control* m, const std::string& arg);
+void apply_session_directory(Control* m, const std::string& arg);
 
 class OptionHandlerInt : public OptionHandlerBase {
 public:
   typedef bool (*Validate)(int);
-  typedef void (*Apply)(ui::Control*, int);
+  typedef void (*Apply)(Control*, int);
 
-  OptionHandlerInt(ui::Control* c, Apply a, Validate v) :
+  OptionHandlerInt(Control* c, Apply a, Validate v) :
     m_control(c), m_apply(a), m_validate(v) {}
 
   virtual void process(const std::string& key, const std::string& arg) {
@@ -112,7 +110,7 @@ public:
   }
 
 private:
-  ui::Control* m_control;
+  Control* m_control;
   Apply        m_apply;
   Validate     m_validate;
 };
@@ -120,9 +118,9 @@ private:
 class OptionHandlerString : public OptionHandlerBase {
 public:
   typedef bool (*Validate)(const std::string&);
-  typedef void (*Apply)(ui::Control*, const std::string&);
+  typedef void (*Apply)(Control*, const std::string&);
 
-  OptionHandlerString(ui::Control* c, Apply a, Validate v) :
+  OptionHandlerString(Control* c, Apply a, Validate v) :
     m_control(c), m_apply(a), m_validate(v) {}
 
   virtual void process(const std::string& key, const std::string& arg) {
@@ -133,7 +131,7 @@ public:
   }
 
 private:
-  ui::Control* m_control;
+  Control*     m_control;
   Apply        m_apply;
   Validate     m_validate;
 };

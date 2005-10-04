@@ -43,6 +43,8 @@
 
 #include "utils/list_focus.h"
 
+class Control;
+
 namespace display {
   class WindowTitle;
   class WindowStatusbar;
@@ -55,7 +57,6 @@ namespace core {
 
 namespace ui {
 
-class Control;
 class ElementBase;
 
 class Download {

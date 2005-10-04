@@ -43,6 +43,8 @@
 #include "utils/task.h"
 #include "utils/list_focus.h"
 
+class Control;
+
 namespace input {
   class Bindings;
 }
@@ -58,7 +60,6 @@ namespace display {
 
 namespace ui {
 
-class Control;
 class Download;
 class ElementBase;
 

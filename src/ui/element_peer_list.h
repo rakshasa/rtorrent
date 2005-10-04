@@ -41,13 +41,13 @@
 
 #include "element_base.h"
 
+class Control;
+
 namespace display {
   class WindowPeerList;
 }
 
 namespace ui {
-
-class Control;
 
 class ElementPeerList : public ElementBase {
 public:

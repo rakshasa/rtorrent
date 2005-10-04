@@ -15,6 +15,8 @@ rtorrent_LDADD = \
 	$(top_srcdir)/src/utils/libsub_utils.a
 
 rtorrent_SOURCES = \
+	control.cc \
+	control.h \
 	main.cc \
 	option_file.cc \
 	option_file.h \

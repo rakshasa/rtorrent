@@ -39,6 +39,8 @@
 
 #include "input/bindings.h"
 
+class Control;
+
 namespace display {
   class WindowStatusbar;
 }
@@ -46,7 +48,6 @@ namespace display {
 namespace ui {
 
 class DownloadList;
-class Control;
 
 class Root {
 public:
