@@ -39,6 +39,7 @@
 #include <stdexcept>
 
 #include "display/window_peer_list.h"
+#include "input/manager.h"
 
 #include "control.h"
 #include "element_peer_list.h"
@@ -58,7 +59,7 @@ ElementPeerList::activate(Control* c, MItr mItr) {
   if (m_window != NULL)
     throw std::logic_error("ui::ElementPeerList::activate(...) called on an object in the wrong state");
 
-  c->get_input().push_front(&m_bindings);
+  c->input()->push_front(&m_bindings);
 
   *mItr = m_window = new WPeerList(m_download, m_list, m_focus);
 }
@@ -68,7 +69,7 @@ ElementPeerList::disable(Control* c) {
   if (m_window == NULL)
     throw std::logic_error("ui::ElementPeerList::disable(...) called on an object in the wrong state");
 
-  c->get_input().erase(&m_bindings);
+  c->input()->erase(&m_bindings);
 
   delete m_window;
   m_window = NULL;

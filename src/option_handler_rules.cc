@@ -40,7 +40,9 @@
 #include <torrent/torrent.h>
 #include <netinet/in.h>
 
+#include "core/manager.h"
 #include "utils/directory.h"
+
 #include "control.h"
 #include "option_handler_rules.h"
 
@@ -116,35 +118,35 @@ validate_throttle_interval(int arg) {
 
 void
 apply_download_min_peers(Control* m, int arg) {
-  m->get_core().get_download_list().slot_map_insert()["1_min_peers"] = sigc::bind(sigc::mem_fun(&core::Download::call<void, uint32_t, &torrent::Download::set_peers_min>), arg);
+  m->core()->get_download_list().slot_map_insert()["1_min_peers"] = sigc::bind(sigc::mem_fun(&core::Download::call<void, uint32_t, &torrent::Download::set_peers_min>), arg);
 }
 
 void
 apply_download_max_peers(Control* m, int arg) {
-  m->get_core().get_download_list().slot_map_insert()["1_max_peers"] = sigc::bind(sigc::mem_fun(&core::Download::call<void, uint32_t, &torrent::Download::set_peers_max>), arg);
+  m->core()->get_download_list().slot_map_insert()["1_max_peers"] = sigc::bind(sigc::mem_fun(&core::Download::call<void, uint32_t, &torrent::Download::set_peers_max>), arg);
 }
 
 void
 apply_download_max_uploads(Control* m, int arg) {
-  m->get_core().get_download_list().slot_map_insert()["1_max_uploads"] = sigc::bind(sigc::mem_fun(&core::Download::call<void, uint32_t, &torrent::Download::set_uploads_max>), arg);
+  m->core()->get_download_list().slot_map_insert()["1_max_uploads"] = sigc::bind(sigc::mem_fun(&core::Download::call<void, uint32_t, &torrent::Download::set_uploads_max>), arg);
 }
 
 void
 apply_download_directory(Control* m, const std::string& arg) {
   if (!arg.empty())
-    m->get_core().get_download_list().slot_map_insert()["1_directory"] = sigc::bind(sigc::mem_fun(&core::Download::set_root_directory), arg);
+    m->core()->get_download_list().slot_map_insert()["1_directory"] = sigc::bind(sigc::mem_fun(&core::Download::set_root_directory), arg);
   else
-    m->get_core().get_download_list().slot_map_insert().erase("1_directory");
+    m->core()->get_download_list().slot_map_insert().erase("1_directory");
 }
 
 void
 apply_connection_leech(Control* m, const std::string& arg) {
-  m->get_core().get_download_list().slot_map_insert()["1_connection_leech"] = sigc::bind(sigc::mem_fun(&core::Download::set_connection_leech), arg);
+  m->core()->get_download_list().slot_map_insert()["1_connection_leech"] = sigc::bind(sigc::mem_fun(&core::Download::set_connection_leech), arg);
 }
 
 void
 apply_connection_seed(Control* m, const std::string& arg) {
-  m->get_core().get_download_list().slot_map_insert()["1_connection_seed"] = sigc::bind(sigc::mem_fun(&core::Download::set_connection_seed), arg);
+  m->core()->get_download_list().slot_map_insert()["1_connection_seed"] = sigc::bind(sigc::mem_fun(&core::Download::set_connection_seed), arg);
 }
 
 void
@@ -205,39 +207,39 @@ apply_port_range(Control* m, const std::string& arg) {
     
   std::sscanf(arg.c_str(), "%i-%i", &a, &b);
 
-  m->get_core().set_port_range(a, b);
+  m->core()->set_port_range(a, b);
 }
 
 void
 apply_port_random(Control* m, const std::string& arg) {
-  m->get_core().set_port_random(arg == "yes");
+  m->core()->set_port_random(arg == "yes");
 }
 
 void
 apply_tracker_dump(Control* m, const std::string& arg) {
   if (arg == "yes")
-    m->get_core().get_download_list().slot_map_insert()["1_tracker_dump"] = sigc::bind(sigc::mem_fun(&core::Download::call<sigc::connection, torrent::Download::SlotIStream, &torrent::Download::signal_tracker_dump>), sigc::ptr_fun(&receive_tracker_dump));
+    m->core()->get_download_list().slot_map_insert()["1_tracker_dump"] = sigc::bind(sigc::mem_fun(&core::Download::call<sigc::connection, torrent::Download::SlotIStream, &torrent::Download::signal_tracker_dump>), sigc::ptr_fun(&receive_tracker_dump));
   else
-    m->get_core().get_download_list().slot_map_insert().erase("1_tracker_dump");
+    m->core()->get_download_list().slot_map_insert().erase("1_tracker_dump");
 }
 
 void
 apply_use_udp_trackers(Control* m, const std::string& arg) {
   if (arg == "yes")
-    m->get_core().get_download_list().slot_map_insert().erase("1_use_udp_trackers");
+    m->core()->get_download_list().slot_map_insert().erase("1_use_udp_trackers");
   else
-    m->get_core().get_download_list().slot_map_insert()["1_use_udp_trackers"] = sigc::bind(sigc::mem_fun(&core::Download::enable_udp_trackers), false);
+    m->core()->get_download_list().slot_map_insert()["1_use_udp_trackers"] = sigc::bind(sigc::mem_fun(&core::Download::enable_udp_trackers), false);
 }
 
 void
 apply_check_hash(Control* m, const std::string& arg) {
   if (arg == "yes")
-    m->get_core().set_check_hash(true);
+    m->core()->set_check_hash(true);
   else
-    m->get_core().set_check_hash(false);
+    m->core()->set_check_hash(false);
 }
 
 void
 apply_session_directory(Control* m, const std::string& arg) {
-  m->get_core().get_download_store().use(arg);
+  m->core()->get_download_store().use(arg);
 }

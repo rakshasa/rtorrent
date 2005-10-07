@@ -41,6 +41,7 @@
 #include <torrent/peer.h>
 #include <sigc++/connection.h>
 
+#include "display/manager.h"
 #include "utils/list_focus.h"
 
 class Control;

@@ -34,16 +34,29 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef RTORRENT_UI_CONTROL_H
-#define RTORRENT_UI_CONTROL_H
+#ifndef RTORRENT_CONTROL_H
+#define RTORRENT_CONTROL_H
 
 #include <torrent/torrent.h>
 
-#include "core/manager.h"
-#include "display/manager.h"
-#include "input/manager.h"
-#include "input/input_event.h"
-#include "ui/root.h"
+#include "utils/task.h"
+
+namespace ui {
+  class Root;
+}
+
+namespace core {
+  class Manager;
+}
+
+namespace display {
+  class Manager;
+}
+
+namespace input {
+  class InputEvent;
+  class Manager;
+}  
 
 class Control {
 public:
@@ -53,11 +66,11 @@ public:
   bool                is_shutdown_completed()       { return m_shutdownReceived && torrent::is_inactive(); }
   bool                is_shutdown_received()        { return m_shutdownReceived; }
 
-  ui::Root&           get_ui()                      { return m_ui; }
-  core::Manager&      get_core()                    { return m_core; }
-  display::Manager&   get_display()                 { return m_display; }
-  input::Manager&     get_input()                   { return m_input; }
-  input::InputEvent*  get_input_stdin()             { return m_inputStdin; }
+  ui::Root*           ui()                          { return m_ui; }
+  core::Manager*      core()                        { return m_core; }
+  display::Manager*   display()                     { return m_display; }
+  input::Manager*     input()                       { return m_input; }
+  input::InputEvent*  input_stdin()                 { return m_inputStdin; }
 
   void                initialize();
   void                cleanup();
@@ -70,11 +83,13 @@ private:
 
   bool                m_shutdownReceived;
 
-  ui::Root            m_ui;
-  core::Manager       m_core;
-  display::Manager    m_display;
-  input::Manager      m_input;
+  ui::Root*           m_ui;
+  core::Manager*      m_core;
+  display::Manager*   m_display;
+  input::Manager*     m_input;
   input::InputEvent*  m_inputStdin;
+
+  utils::TaskItem     m_taskShutdown;
 };
 
 #endif

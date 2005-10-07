@@ -56,8 +56,10 @@
 
 #include "core/download.h"
 #include "core/download_factory.h"
+#include "core/manager.h"
 #include "display/canvas.h"
 #include "display/window.h"
+#include "display/manager.h"
 #include "input/bindings.h"
 
 #include "utils/task.h"
@@ -162,10 +164,10 @@ load_option_file(const std::string& filename, OptionHandler* optionHandler, bool
 void
 load_session_torrents(Control* c) {
   // Load session torrents.
-  std::list<std::string> l = c->get_core().get_download_store().get_formated_entries().make_list();
+  std::list<std::string> l = c->core()->get_download_store().get_formated_entries().make_list();
 
   for (std::list<std::string>::iterator first = l.begin(), last = l.end(); first != last; ++first) {
-    core::DownloadFactory* f = new core::DownloadFactory(*first, &c->get_core());
+    core::DownloadFactory* f = new core::DownloadFactory(*first, c->core());
 
     // Replace with session torrent flag.
     f->set_session(true);
@@ -179,7 +181,7 @@ void
 load_arg_torrents(Control* c, char** first, char** last) {
   //std::for_each(begin, end, std::bind1st(std::mem_fun(&core::Manager::insert), &c->get_core()));
   for (; first != last; ++first) {
-    core::DownloadFactory* f = new core::DownloadFactory(*first, &c->get_core());
+    core::DownloadFactory* f = new core::DownloadFactory(*first, c->core());
 
     // Replace with session torrent flag.
     f->set_start(true);
@@ -209,7 +211,7 @@ main(int argc, char** argv) {
     SignalHandler::set_handler(SIGBUS,  sigc::bind(sigc::ptr_fun(&do_panic), SIGBUS));
     SignalHandler::set_handler(SIGFPE,  sigc::bind(sigc::ptr_fun(&do_panic), SIGFPE));
 
-    uiControl.get_core().initialize_first();
+    uiControl.core()->initialize_first();
 
     if (getenv("HOME"))
       load_option_file(getenv("HOME") + std::string("/.rtorrent.rc"), &optionHandler);
@@ -221,7 +223,7 @@ main(int argc, char** argv) {
     load_session_torrents(&uiControl);
     load_arg_torrents(&uiControl, argv + firstArg, argv + argc);
 
-    uiControl.get_display().adjust_layout();
+    uiControl.display()->adjust_layout();
 
     while (!uiControl.is_shutdown_completed()) {
       utils::Timer::update();
@@ -231,10 +233,10 @@ main(int argc, char** argv) {
       // the throttle task in libtorrent.
       if (!utils::displayScheduler.empty() &&
 	  utils::displayScheduler.get_next_timeout() <= utils::Timer::cache())
-	uiControl.get_display().do_update();
+	uiControl.display()->do_update();
 
       // Do shutdown check before poll, not after.
-      uiControl.get_core().get_poll_manager()->poll(!utils::taskScheduler.empty() ?
+      uiControl.core()->get_poll_manager()->poll(!utils::taskScheduler.empty() ?
 						    utils::taskScheduler.get_next_timeout() - utils::Timer::cache() :
 						    60 * 1000000);
     }

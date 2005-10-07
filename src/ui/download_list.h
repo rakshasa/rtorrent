@@ -40,6 +40,7 @@
 #include <sigc++/slot.h>
 
 #include "core/download_list.h"
+#include "display/manager.h"
 #include "utils/task.h"
 #include "utils/list_focus.h"
 
@@ -90,7 +91,7 @@ public:
 
   input::Bindings&    get_bindings()               { return *m_bindings; }
 
-  bool                is_active() const            { return m_window != m_control->get_display().end(); }
+  bool                is_active() const            { return m_window != m_control->display()->end(); }
 
   void                activate();
   void                disable();

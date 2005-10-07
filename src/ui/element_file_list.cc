@@ -39,6 +39,7 @@
 #include <stdexcept>
 
 #include "display/window_file_list.h"
+#include "input/manager.h"
 
 #include "control.h"
 #include "element_file_list.h"
@@ -61,7 +62,7 @@ ElementFileList::activate(Control* c, MItr mItr) {
   if (m_window != NULL)
     throw std::logic_error("ui::ElementFileList::activate(...) called on an object in the wrong state");
 
-  c->get_input().push_front(&m_bindings);
+  c->input()->push_front(&m_bindings);
 
   *mItr = m_window = new WFileList(m_download, &m_focus);
 }
@@ -71,7 +72,7 @@ ElementFileList::disable(Control* c) {
   if (m_window == NULL)
     throw std::logic_error("ui::ElementFileList::disable(...) called on an object in the wrong state");
 
-  c->get_input().erase(&m_bindings);
+  c->input()->erase(&m_bindings);
 
   delete m_window;
   m_window = NULL;

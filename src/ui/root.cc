@@ -40,9 +40,11 @@
 #include <sigc++/bind.h>
 #include <torrent/torrent.h>
 
+#include "display/window_statusbar.h"
+#include "input/manager.h"
+
 #include "control.h"
 #include "download_list.h"
-#include "display/window_statusbar.h"
 
 #include "root.h"
 
@@ -62,10 +64,10 @@ Root::init(Control* c) {
   m_control = c;
   setup_keys();
 
-  m_windowStatusbar = new WStatusbar(&m_control->get_core());
+  m_windowStatusbar = new WStatusbar(m_control->core());
   m_downloadList =    new DownloadList(m_control);
 
-  m_control->get_display().push_back(m_windowStatusbar);
+  m_control->display()->push_back(m_windowStatusbar);
 
   m_downloadList->activate();
   //  m_downloadList->slot_open_uri(sigc::mem_fun(m_control->get_core(), &core::Manager::insert));
@@ -79,18 +81,18 @@ Root::cleanup() {
   if (m_downloadList->is_active())
     m_downloadList->disable();
 
-  m_control->get_display().erase(m_windowStatusbar);
+  m_control->display()->erase(m_windowStatusbar);
 
   delete m_downloadList;
   delete m_windowStatusbar;
 
-  m_control->get_input().erase(&m_bindings);
+  m_control->input()->erase(&m_bindings);
   m_control = NULL;
 }
 
 void
 Root::setup_keys() {
-  m_control->get_input().push_back(&m_bindings);
+  m_control->input()->push_back(&m_bindings);
 
   m_bindings['a']           = sigc::bind(sigc::mem_fun(*this, &Root::receive_up_throttle), 1);
   m_bindings['z']           = sigc::bind(sigc::mem_fun(*this, &Root::receive_up_throttle), -1);
@@ -106,7 +108,7 @@ Root::setup_keys() {
   m_bindings['D']           = sigc::bind(sigc::mem_fun(*this, &Root::receive_down_throttle), 50);
   m_bindings['C']           = sigc::bind(sigc::mem_fun(*this, &Root::receive_down_throttle), -50);
 
-  m_bindings[KEY_RESIZE]    = sigc::mem_fun(m_control->get_display(), &display::Manager::adjust_layout);
+  m_bindings[KEY_RESIZE]    = sigc::mem_fun(*m_control->display(), &display::Manager::adjust_layout);
   m_bindings['\x11']        = sigc::mem_fun(*m_control, &Control::receive_shutdown);
 }
 

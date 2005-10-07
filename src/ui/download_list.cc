@@ -44,8 +44,10 @@
 
 #include "core/download.h"
 #include "core/download_factory.h"
+#include "core/manager.h"
 
 #include "input/bindings.h"
+#include "input/manager.h"
 #include "input/path_input.h"
 
 #include "display/window_http_queue.h"
@@ -60,27 +62,28 @@
 #include "element_download_list.h"
 #include "element_log_complete.h"
 #include "element_string_list.h"
+#include "root.h"
 
 namespace ui {
 
 DownloadList::DownloadList(Control* c) :
   m_state(DISPLAY_MAX_SIZE),
 
-  m_window(c->get_display().end()),
+  m_window(c->display()->end()),
 
   m_windowTitle(new WTitle("rTorrent " VERSION " - libTorrent " + std::string(torrent::get_version()))),
-  m_windowHttpQueue(new WHttp(&c->get_core().get_http_queue())),
+  m_windowHttpQueue(new WHttp(&c->core()->get_http_queue())),
 
   m_uiDownload(NULL),
 
-  m_downloadList(&c->get_core().get_download_list()),
+  m_downloadList(&c->core()->get_download_list()),
 
   m_control(c),
   m_bindings(new input::Bindings)
 {
   m_uiArray[DISPLAY_DOWNLOAD_LIST] = new ElementDownloadList(&m_downloadList);
-  m_uiArray[DISPLAY_LOG]           = new ElementLogComplete(&m_control->get_core().get_log_complete());
-  m_windowLog                      = new WLog(&m_control->get_core().get_log_important());
+  m_uiArray[DISPLAY_LOG]           = new ElementLogComplete(&m_control->core()->get_log_complete());
+  m_windowLog                      = new WLog(&m_control->core()->get_log_important());
 
   m_taskUpdate.set_iterator(utils::taskScheduler.end());
   m_taskUpdate.set_slot(sigc::mem_fun(*this, &DownloadList::task_update)),
@@ -113,13 +116,13 @@ DownloadList::activate() {
 
   m_windowTextInput->set_active(false);
 
-  m_control->get_display().push_front(m_windowTextInput);
-  m_control->get_display().push_front(m_windowHttpQueue);
-  m_control->get_display().push_front(m_windowLog);
-  m_window = m_control->get_display().insert(m_control->get_display().begin(), NULL);
-  m_control->get_display().push_front(m_windowTitle);
+  m_control->display()->push_front(m_windowTextInput);
+  m_control->display()->push_front(m_windowHttpQueue);
+  m_control->display()->push_front(m_windowLog);
+  m_window = m_control->display()->insert(m_control->display()->begin(), NULL);
+  m_control->display()->push_front(m_windowTitle);
 
-  m_control->get_input().push_front(m_bindings);
+  m_control->input()->push_front(m_bindings);
 
   activate_display(DISPLAY_DOWNLOAD_LIST);
 }
@@ -138,15 +141,15 @@ DownloadList::disable() {
 
   utils::taskScheduler.erase(&m_taskUpdate);
 
-  m_control->get_display().erase(m_window);
-  m_control->get_display().erase(m_windowTitle);
-  m_control->get_display().erase(m_windowTextInput);
-  m_control->get_display().erase(m_windowLog);
-  m_control->get_display().erase(m_windowHttpQueue);
+  m_control->display()->erase(m_window);
+  m_control->display()->erase(m_windowTitle);
+  m_control->display()->erase(m_windowTextInput);
+  m_control->display()->erase(m_windowLog);
+  m_control->display()->erase(m_windowHttpQueue);
 
-  m_window = m_control->get_display().end();
+  m_window = m_control->display()->end();
 
-  m_control->get_input().erase(m_bindings);
+  m_control->input()->erase(m_bindings);
 }
 
 void
@@ -160,7 +163,7 @@ DownloadList::activate_display(Display d) {
   m_state = d;
   m_uiArray[d]->activate(m_control, m_window);
 
-  m_control->get_display().adjust_layout();
+  m_control->display()->adjust_layout();
 }
 
 // Does not delete disabled window.
@@ -187,7 +190,7 @@ DownloadList::receive_start_download() {
   if (m_downloadList.get_focus() == m_downloadList.end())
     return;
 
-  m_control->get_core().start(*m_downloadList.get_focus());
+  m_control->core()->start(*m_downloadList.get_focus());
 }
 
 void
@@ -196,9 +199,9 @@ DownloadList::receive_stop_download() {
     return;
 
   if ((*m_downloadList.get_focus())->get_download().is_active())
-    m_control->get_core().stop(*m_downloadList.get_focus());
+    m_control->core()->stop(*m_downloadList.get_focus());
   else
-    m_downloadList.set_focus(m_control->get_core().erase(m_downloadList.get_focus()));
+    m_downloadList.set_focus(m_control->core()->erase(m_downloadList.get_focus()));
 }
 
 void
@@ -228,7 +231,7 @@ DownloadList::receive_exit_download() {
 
   activate();
 
-  m_control->get_display().adjust_layout();
+  m_control->display()->adjust_layout();
 }
 
 void
@@ -236,7 +239,7 @@ DownloadList::receive_check_hash() {
   if (m_downloadList.get_focus() == m_downloadList.end())
     return;
 
-  m_control->get_core().check_hash(*m_downloadList.get_focus());
+  m_control->core()->check_hash(*m_downloadList.get_focus());
 }
 
 void
@@ -244,11 +247,11 @@ DownloadList::receive_view_input(bool useDefault) {
   if (m_windowTextInput->get_active())
     return;
 
-  m_control->get_ui().window_statusbar()->set_active(false);
+  m_control->ui()->window_statusbar()->set_active(false);
   m_windowTextInput->set_active(true);
-  m_control->get_display().adjust_layout();
+  m_control->display()->adjust_layout();
 
-  m_control->get_input().set_text_input(m_windowTextInput->get_input());
+  m_control->input()->set_text_input(m_windowTextInput->get_input());
 
   m_windowTextInput->set_focus(true);
 
@@ -261,13 +264,13 @@ DownloadList::receive_exit_input(bool useDefault) {
   if (!m_windowTextInput->get_active())
     return;
 
-  m_control->get_ui().window_statusbar()->set_active(true);
+  m_control->ui()->window_statusbar()->set_active(true);
   m_windowTextInput->set_active(false);
 
-  m_control->get_input().set_text_input();
+  m_control->input()->set_text_input();
 
   // Adding download.
-  core::DownloadFactory* f = new core::DownloadFactory(m_windowTextInput->get_input()->str(), &m_control->get_core());
+  core::DownloadFactory* f = new core::DownloadFactory(m_windowTextInput->get_input()->str(), m_control->core());
 
   f->set_start(useDefault);
   f->slot_finished(sigc::bind(sigc::ptr_fun(&rak::call_delete_func<core::DownloadFactory>), f));

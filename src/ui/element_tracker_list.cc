@@ -39,6 +39,7 @@
 #include <stdexcept>
 
 #include "display/window_tracker_list.h"
+#include "input/manager.h"
 
 #include "control.h"
 #include "element_tracker_list.h"
@@ -60,7 +61,7 @@ ElementTrackerList::activate(Control* c, MItr mItr) {
   if (m_window != NULL)
     throw std::logic_error("ui::ElementTrackerList::activate(...) called on an object in the wrong state");
 
-  c->get_input().push_front(&m_bindings);
+  c->input()->push_front(&m_bindings);
 
   *mItr = m_window = new WTrackerList(m_download, &m_focus);
 }
@@ -70,7 +71,7 @@ ElementTrackerList::disable(Control* c) {
   if (m_window == NULL)
     throw std::logic_error("ui::ElementTrackerList::disable(...) called on an object in the wrong state");
 
-  c->get_input().erase(&m_bindings);
+  c->input()->erase(&m_bindings);
 
   delete m_window;
   m_window = NULL;

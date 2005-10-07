@@ -88,8 +88,12 @@ PollManagerEPoll::poll(utils::Timer timeout) {
 
     m_httpStack.perform();
 
-    if (!FD_ISSET(static_cast<torrent::PollEPoll*>(m_poll)->get_fd(), m_readSet))
+    if (!FD_ISSET(static_cast<torrent::PollEPoll*>(m_poll)->get_fd(), m_readSet)) {
+      // Need to call perform here so that scheduled task get done
+      // even if there's no socket events outside of the http stuff.
+      torrent::perform();
       return;
+    }
 
     // Clear the timeout since we've already used it in the select call.
     timeout = utils::Timer();

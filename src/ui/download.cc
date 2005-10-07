@@ -43,6 +43,7 @@
 
 #include "core/download.h"
 #include "input/bindings.h"
+#include "input/manager.h"
 #include "display/window_title.h"
 #include "display/window_download_statusbar.h"
 
@@ -62,7 +63,7 @@ Download::Download(DPtr d, Control* c) :
   m_windowTitle(new WTitle(d->get_download().get_name())),
   m_windowDownloadStatus(new WDownloadStatus(d)),
 
-  m_window(c->get_display().end()),
+  m_window(c->display()->end()),
 
   m_control(c),
   m_bindings(new input::Bindings) {
@@ -83,7 +84,7 @@ Download::Download(DPtr d, Control* c) :
 }
 
 Download::~Download() {
-  if (m_window != m_control->get_display().end())
+  if (m_window != m_control->display()->end())
     throw std::logic_error("ui::Download::~Download() called on an active object");
 
   m_connPeerConnected.disconnect();
@@ -99,37 +100,37 @@ Download::~Download() {
 
 void
 Download::activate() {
-  if (m_window != m_control->get_display().end())
+  if (m_window != m_control->display()->end())
     throw std::logic_error("ui::Download::activate() called on an already activated object");
 
-  m_control->get_display().push_front(m_windowDownloadStatus);
-  m_window = m_control->get_display().insert(m_control->get_display().begin(), NULL);
-  m_control->get_display().push_front(m_windowTitle);
+  m_control->display()->push_front(m_windowDownloadStatus);
+  m_window = m_control->display()->insert(m_control->display()->begin(), NULL);
+  m_control->display()->push_front(m_windowTitle);
 
-  m_control->get_input().push_front(m_bindings);
+  m_control->input()->push_front(m_bindings);
 
   activate_display(DISPLAY_PEER_LIST);
 }
 
 void
 Download::disable() {
-  if (m_window == m_control->get_display().end())
+  if (m_window == m_control->display()->end())
     throw std::logic_error("ui::Download::disable() called on an already disabled object");
 
   disable_display();
 
-  m_control->get_display().erase(m_window);
-  m_control->get_display().erase(m_windowTitle);
-  m_control->get_display().erase(m_windowDownloadStatus);
+  m_control->display()->erase(m_window);
+  m_control->display()->erase(m_windowTitle);
+  m_control->display()->erase(m_windowDownloadStatus);
 
-  m_window = m_control->get_display().end();
+  m_window = m_control->display()->end();
 
-  m_control->get_input().erase(m_bindings);
+  m_control->input()->erase(m_bindings);
 }
 
 void
 Download::activate_display(Display d) {
-  if (m_window == m_control->get_display().end())
+  if (m_window == m_control->display()->end())
     throw std::logic_error("ui::Download::activate_display(...) could not find previous display iterator");
 
   if (d >= DISPLAY_MAX_SIZE)
@@ -138,7 +139,7 @@ Download::activate_display(Display d) {
   m_state = d;
   m_uiArray[d]->activate(m_control, m_window);
 
-  m_control->get_display().adjust_layout();
+  m_control->display()->adjust_layout();
 }
 
 // Does not delete disabled window.
