@@ -61,9 +61,14 @@ connect_signal_network_log(Download* d, torrent::Download::SlotString s) {
   d->get_download().signal_network_log(s);
 }
 
+// static void
+// connect_signal_tracker_log(Download* d, torrent::Download::SlotString s) {
+//   d->get_download().signal_tracker_failed(s);
+// }
+
 static void
-connect_signal_tracker_log(Download* d, torrent::Download::SlotString s) {
-  d->get_download().signal_tracker_failed(s);
+connect_signal_storage_log(Download* d, torrent::Download::SlotString s) {
+  d->get_download().signal_storage_error(s);
 }
 
 Manager::Manager() :
@@ -99,7 +104,8 @@ Manager::initialize_second() {
   // opened or closed.
   m_downloadList.slot_map_insert()["0_initialize_bencode"]  = sigc::mem_fun(*this, &Manager::initialize_bencode);
   m_downloadList.slot_map_insert()["1_connect_network_log"] = sigc::bind(sigc::ptr_fun(&connect_signal_network_log), sigc::mem_fun(m_logComplete, &Log::push_front));
-  m_downloadList.slot_map_insert()["1_connect_tracker_log"] = sigc::bind(sigc::ptr_fun(&connect_signal_tracker_log), sigc::mem_fun(m_logComplete, &Log::push_front));
+//   m_downloadList.slot_map_insert()["1_connect_tracker_log"] = sigc::bind(sigc::ptr_fun(&connect_signal_tracker_log), sigc::mem_fun(m_logComplete, &Log::push_front));
+  m_downloadList.slot_map_insert()["1_connect_storage_log"] = sigc::bind(sigc::ptr_fun(&connect_signal_storage_log), sigc::mem_fun(m_logComplete, &Log::push_front));
   //m_downloadList.slot_map_insert()["1_enable_udp_trackers"] = sigc::bind(sigc::mem_fun(&core::Download::enable_udp_trackers), true);
 
   m_downloadList.slot_map_erase()["1_hash_queue_remove"]    = sigc::mem_fun(m_hashQueue, &HashQueue::remove);

@@ -66,7 +66,7 @@ Download::set_download(torrent::Download d) {
 
   m_connTrackerSucceded = m_download.signal_tracker_succeded(sigc::bind(sigc::mem_fun(*this, &Download::receive_tracker_msg), ""));
   m_connTrackerFailed = m_download.signal_tracker_failed(sigc::mem_fun(*this, &Download::receive_tracker_msg));
-  m_connStorageError = m_download.signal_storage_error(sigc::mem_fun(*this, &Download::receive_tracker_msg));
+  m_connStorageError = m_download.signal_storage_error(sigc::mem_fun(*this, &Download::receive_storage_error));
 }
 
 void

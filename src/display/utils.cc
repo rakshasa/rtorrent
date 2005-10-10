@@ -80,6 +80,9 @@ print_download_info(char* buf, unsigned int length, core::Download* d) {
 
 char*
 print_download_status(char* buf, unsigned int length, core::Download* d) {
+  if (!d->get_download().is_active())
+    buf += std::max(0, snprintf(buf, length, "Inactive: "));
+
   if (d->get_download().is_hash_checking())
     buf += std::max(0, snprintf(buf, length, "Checking hash"));
 
@@ -89,9 +92,6 @@ print_download_status(char* buf, unsigned int length, core::Download* d) {
 				d->get_download().get_tracker(d->get_download().get_tracker_focus()).get_group(),
 				d->get_download().get_tracker_focus(),
 				d->get_download().get_tracker(d->get_download().get_tracker_focus()).get_url().c_str()));
-
-  else if (!d->get_download().is_active())
-    buf += std::max(0, snprintf(buf, length, "Inactive"));
 
   else if (!d->get_message().empty())
     buf += std::max(0, snprintf(buf, length, "%s", d->get_message().c_str()));

@@ -90,7 +90,8 @@ DownloadList::close(Download* d) {
 
 void
 DownloadList::start(Download* d) {
-  if (d->get_download().is_active())
+  if (d->get_download().is_active() ||
+      !d->get_download().is_hash_checked())
     return;
 
   open(d);
