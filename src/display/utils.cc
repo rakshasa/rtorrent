@@ -129,7 +129,7 @@ print_ddmmyyyy(time_t t) {
   str.fill('0');
   
   str << std::setw(2) << u->tm_mday << '/'
-      << std::setw(2) << u->tm_mon << '/'
+      << std::setw(2) << (u->tm_mon + 1) << '/'
       << std::setw(4) << (1900 + u->tm_year);
 
   return str.str();

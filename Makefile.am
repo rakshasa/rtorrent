@@ -7,6 +7,7 @@ EXTRA_DIST= \
 	rak/algorithm.h \
 	rak/error_number.h \
 	rak/functional.h \
+	rak/string_manip.h \
 	rak/unordered_vector.h \
 	scripts/checks.m4 \
 	scripts/common.m4
