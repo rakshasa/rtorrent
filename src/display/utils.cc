@@ -36,6 +36,7 @@
 
 #include "config.h"
 
+#include <cstring>
 #include <sstream>
 #include <iomanip>
 #include <torrent/rate.h>
@@ -47,6 +48,16 @@
 #include "utils.h"
 
 namespace display {
+
+char*
+print_string(char* buf, unsigned int length, char* str) {
+  // We don't have any nice simple functions for copying strings that
+  // return the end address.
+  while (length-- != 0 && *str != '\0')
+    *(buf++) = *(str++);
+
+  return buf;
+}
 
 char*
 print_download_title(char* buf, unsigned int length, core::Download* d) {
@@ -102,37 +113,28 @@ print_download_status(char* buf, unsigned int length, core::Download* d) {
   return buf;
 }
 
-std::string
-print_hhmmss(utils::Timer t) {
-  time_t tv_sec = static_cast<time_t>(t.tval().tv_sec);
-  std::tm *u = std::localtime(&tv_sec);
+char*
+print_hhmmss(char* buf, unsigned int length, time_t t) {
+  std::tm *u = std::localtime(&t);
   
   if (u == NULL)
     return "inv_time";
 
-  std::stringstream str;
-  str.fill('0');
-  
-  str << std::setw(2) << u->tm_hour << ':' << std::setw(2) << u->tm_min << ':' << std::setw(2) << u->tm_sec;
+  unsigned int s = snprintf(buf, length, "%02u:%02u:%02u", u->tm_hour, u->tm_min, u->tm_sec);
 
-  return str.str();
+  return buf + std::min(s, length);
 }
 
-std::string
-print_ddmmyyyy(time_t t) {
+char*
+print_ddmmyyyy(char* buf, unsigned int length, time_t t) {
   std::tm *u = std::gmtime(&t);
   
   if (u == NULL)
     return "inv_time";
 
-  std::stringstream str;
-  str.fill('0');
-  
-  str << std::setw(2) << u->tm_mday << '/'
-      << std::setw(2) << (u->tm_mon + 1) << '/'
-      << std::setw(4) << (1900 + u->tm_year);
+  unsigned int s = snprintf(buf, length, "%02u/%02u/%04u", u->tm_mday, (u->tm_mon + 1), (1900 + u->tm_year));
 
-  return str.str();
+  return buf + std::min(s, length);
 }
 
 }

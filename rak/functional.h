@@ -393,6 +393,23 @@ private:
   Function m_function;
 };
 
+template <typename Object, typename Ret, typename Arg1>
+class const_mem_fn1 {
+public:
+  typedef Ret (Object::*Function)(Arg1) const;
+
+  const_mem_fn1() : m_object(NULL) {}
+  const_mem_fn1(Object* o, Function f) : m_object(o), m_function(f) {}
+
+  bool is_valid() const { return m_object; }
+
+  Ret operator () (Arg1 a1) { return (m_object->*m_function)(a1); }
+  
+private:
+  Object* m_object;
+  Function m_function;
+};
+
 template <typename Object, typename Ret, typename Arg1, typename Arg2>
 class mem_fn2 {
 public:
@@ -443,6 +460,12 @@ template <typename Object, typename Ret, typename Arg1>
 inline mem_fn1<Object, Ret, Arg1>
 make_mem_fn(Object* o, Ret (Object::*f)(Arg1)) {
  return mem_fn1<Object, Ret, Arg1>(o, f);
+}
+
+template <typename Object, typename Ret, typename Arg1>
+inline const_mem_fn1<Object, Ret, Arg1>
+make_mem_fn(Object* o, Ret (Object::*f)(Arg1) const) {
+ return const_mem_fn1<Object, Ret, Arg1>(o, f);
 }
 
 template <typename Object, typename Ret, typename Arg1, typename Arg2>

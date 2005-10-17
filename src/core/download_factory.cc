@@ -160,6 +160,8 @@ DownloadFactory::receive_failed(const std::string& msg) {
     throw std::logic_error("DownloadFactory::receive_success() called on an object with m_stream == NULL");
 
   // Add message to log.
+  m_manager->get_log_important().push_front(msg + ": \"" + m_uri + "\"");
+  m_manager->get_log_complete().push_front(msg + ": \"" + m_uri + "\"");
 
   m_slotFinished();
 }

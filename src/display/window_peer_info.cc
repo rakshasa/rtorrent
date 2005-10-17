@@ -69,8 +69,13 @@ WindowPeerInfo::redraw() {
 		  d.get_chunks_done(),
 		  d.get_chunks_total(),
 		  d.get_chunks_size());
-  m_canvas->print(0, y++, "Created: %s",
-		  print_ddmmyyyy(static_cast<time_t>(d.get_creation_date())).c_str());
+
+  char buffer[32], *position;
+  position = print_ddmmyyyy(buffer, 32, static_cast<time_t>(d.get_creation_date()));
+  position = print_string(position, buffer + 32 - position, " ");
+  position = print_hhmmss(position, buffer + 32 - position, static_cast<time_t>(d.get_creation_date()));
+
+  m_canvas->print(0, y++, "Created: %s", buffer);
 
   y++;
 
