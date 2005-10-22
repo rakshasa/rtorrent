@@ -80,7 +80,9 @@ WindowStatusbar::redraw() {
 		  (int)torrent::get_listen_port(),
 		  !torrent::get_bind_address().empty() ? ("  Bind: " + torrent::get_bind_address()).c_str() : "");
 
-  pos = snprintf(buf, 128, "[S %i/%i/%i] [F %i/%i]",
+  pos = snprintf(buf, 128, "[U %i/%i][S %i/%i/%i][F %i/%i]",
+		 torrent::currently_unchoked(),
+		 torrent::max_unchoked(),
 		 torrent::get_total_handshakes(),
 		 torrent::get_open_sockets(),
 		 torrent::get_max_open_sockets(),
