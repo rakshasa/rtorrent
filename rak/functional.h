@@ -411,7 +411,7 @@ private:
 };
 
 template <typename Object, typename Ret, typename Arg1, typename Arg2>
-class mem_fn2 {
+class mem_fn2 : public std::binary_function<Arg1, Arg2, Ret> {
 public:
   typedef Ret (Object::*Function)(Arg1, Arg2);
 

@@ -28,10 +28,10 @@ AC_DEFUN([TORRENT_ENABLE_DEBUG], [
 
 AC_DEFUN([TORRENT_ENABLE_WERROR], [
   AC_ARG_ENABLE(werror,
-    [  --enable-werror         enable the -Werror flag [[default=no]]],
+    [  --enable-werror         enable the -Werror and -Wall flag [[default=no]]],
     [
         if test "$enableval" = "yes"; then
-            CXXFLAGS="$CXXFLAGS -Werror"
+            CXXFLAGS="$CXXFLAGS -Werror -Wall"
         fi
   ])
 ])
