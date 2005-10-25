@@ -37,6 +37,7 @@
 #include "config.h"
 
 #include <stdexcept>
+#include <torrent/path.h>
 
 #include "core/download.h"
 #include "rak/algorithm.h"
@@ -107,12 +108,13 @@ WindowFileList::redraw() {
       break;
     };
 
-    m_canvas->print(0, pos, "%c %s  %6.1f   %s   %3d",
+    m_canvas->print(0, pos, "%c %s  %6.1f   %s   %3d  %s",
 		    range.first == *m_focus ? '*' : ' ',
 		    path.c_str(),
 		    (double)e.get_size() / (double)(1 << 20),
 		    priority.c_str(),
-		    done_percentage(e));
+		    done_percentage(e),
+		    e.path_list()->encoding().c_str());
 
     ++range.first;
     ++pos;
