@@ -394,6 +394,17 @@
         </para></listitem>
       </varlistentry>
 
+      <varlistentry>
+        <term>encoding_list = <replaceable>encoding</replaceable></term>
+        <listitem><para>
+
+          Add a preferred filename encoding to the list. The encodings
+          are attempted in the order they are inserted, if none match
+          the torrent default is used.
+
+        </para></listitem>
+      </varlistentry>
+
     </variablelist>
 
   </refsect1>

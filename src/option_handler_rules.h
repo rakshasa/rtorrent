@@ -90,6 +90,7 @@ void apply_use_udp_trackers(Control* m, const std::string& arg);
 void apply_check_hash(Control* m, const std::string& arg);
 
 void apply_session_directory(Control* m, const std::string& arg);
+void apply_encoding_list(Control* m, const std::string& arg);
 
 class OptionHandlerInt : public OptionHandlerBase {
 public:

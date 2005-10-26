@@ -243,3 +243,9 @@ void
 apply_session_directory(Control* m, const std::string& arg) {
   m->core()->get_download_store().use(arg);
 }
+
+void
+apply_encoding_list(Control* m, const std::string& arg) {
+  torrent::encoding_list()->push_back(arg);
+}
+

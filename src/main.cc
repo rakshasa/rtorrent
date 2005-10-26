@@ -142,6 +142,7 @@ initialize_option_handler(Control* c, OptionHandler* optionHandler) {
   optionHandler->insert("connection_seed",     new OptionHandlerString(c, &apply_connection_seed, &validate_non_empty));
 
   optionHandler->insert("session",             new OptionHandlerString(c, &apply_session_directory, &validate_directory));
+  optionHandler->insert("encoding_list",       new OptionHandlerString(c, &apply_encoding_list, &validate_non_empty));
   optionHandler->insert("tracker_dump",        new OptionHandlerString(c, &apply_tracker_dump, &validate_yes_no));
   optionHandler->insert("use_udp_trackers",    new OptionHandlerString(c, &apply_use_udp_trackers, &validate_yes_no));
 }
