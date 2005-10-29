@@ -46,6 +46,14 @@
 
 namespace core {
 
+size_t
+curl_get_receive_write(void* data, size_t size, size_t nmemb, void* handle) {
+  if (!((CurlGet*)handle)->get_stream()->write((char*)data, size * nmemb).fail())
+    return size * nmemb;
+  else
+    return 0;
+}
+
 CurlGet::CurlGet(CurlStack* s) :
   m_handle(NULL),
   m_stack(s) {
@@ -123,11 +131,6 @@ CurlGet::perform(CURLMsg* msg) {
     m_signalDone.emit();
   else
     m_signalFailed.emit(curl_easy_strerror(msg->data.result));
-}
-
-size_t
-curl_get_receive_write(void* data, size_t size, size_t nmemb, void* handle) {
-  return ((CurlGet*)handle)->m_stream->write((char*)data, size * nmemb).fail() ? 0 : size * nmemb;
 }
 
 }
