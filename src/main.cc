@@ -136,7 +136,6 @@ initialize_option_handler(Control* c, OptionHandler* optionHandler) {
   optionHandler->insert("hash_max_tries",      new OptionHandlerInt(c, &apply_hash_max_tries, &validate_hash_max_tries));
   optionHandler->insert("max_open_files",      new OptionHandlerInt(c, &apply_max_open_files, &validate_fd));
   optionHandler->insert("max_open_sockets",    new OptionHandlerInt(c, &apply_max_open_sockets, &validate_fd));
-  optionHandler->insert("throttle_interval",   new OptionHandlerInt(c, &apply_throttle_interval, &validate_throttle_interval));
 
   optionHandler->insert("connection_leech",    new OptionHandlerString(c, &apply_connection_leech, &validate_non_empty));
   optionHandler->insert("connection_seed",     new OptionHandlerString(c, &apply_connection_seed, &validate_non_empty));

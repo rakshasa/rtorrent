@@ -111,11 +111,6 @@ validate_fd(int arg) {
   return arg >= 1 && arg < (1 << 16);
 }
 
-bool
-validate_throttle_interval(int arg) {
-  return arg > 0 && arg < 5000;
-}
-
 void
 apply_download_min_peers(Control* m, int arg) {
   m->core()->get_download_list().slot_map_insert()["1_min_peers"] = sigc::bind(sigc::mem_fun(&core::Download::call<void, uint32_t, &torrent::Download::set_peers_min>), arg);
@@ -182,11 +177,6 @@ apply_max_open_files(Control* m, int arg) {
 void
 apply_max_open_sockets(Control* m, int arg) {
   torrent::set_max_open_sockets(arg);
-}
-
-void
-apply_throttle_interval(Control* m, int arg) {
-  torrent::set_throttle_interval(arg * 1000);
 }
 
 void

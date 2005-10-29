@@ -61,8 +61,6 @@ bool validate_hash_interval(int arg);
 bool validate_hash_max_tries(int arg);
 bool validate_fd(int arg);
 
-bool validate_throttle_interval(int arg);
-
 void apply_download_min_peers(Control* m, int arg);
 void apply_download_max_peers(Control* m, int arg);
 void apply_download_max_uploads(Control* m, int arg);
@@ -79,7 +77,6 @@ void apply_hash_interval(Control* m, int arg);
 void apply_hash_max_tries(Control* m, int arg);
 void apply_max_open_files(Control* m, int arg);
 void apply_max_open_sockets(Control* m, int arg);
-void apply_throttle_interval(Control* m, int arg);
 
 void apply_ip(Control* m, const std::string& arg);
 void apply_bind(Control* m, const std::string& arg);

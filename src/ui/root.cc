@@ -116,7 +116,7 @@ void
 Root::receive_down_throttle(int t) {
   m_windowStatusbar->mark_dirty();
 
-  torrent::set_down_throttle(torrent::get_down_throttle() + t * 1024);
+  torrent::set_down_throttle(std::max<int>(torrent::get_down_throttle() + t * 1024, 0));
 }
 
 void
