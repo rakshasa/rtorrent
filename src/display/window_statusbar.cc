@@ -44,6 +44,8 @@
 #include "canvas.h"
 #include "window_statusbar.h"
 
+extern uint32_t countTicks;
+
 namespace display {
 
 WindowStatusbar::WindowStatusbar(core::Manager* c) :
@@ -80,7 +82,9 @@ WindowStatusbar::redraw() {
 		  (int)torrent::get_listen_port(),
 		  !torrent::get_bind_address().empty() ? ("  Bind: " + torrent::get_bind_address()).c_str() : "");
 
-  pos = snprintf(buf, 128, "[U %i/%i][S %i/%i/%i][F %i/%i]",
+//   pos = snprintf(buf, 128, "[U %i/%i][S %i/%i/%i][F %i/%i]",
+  pos = snprintf(buf, 128, "%i [U %i/%i][S %i/%i/%i][F %i/%i]",
+		 countTicks,
 		 torrent::currently_unchoked(),
 		 torrent::max_unchoked(),
 		 torrent::get_total_handshakes(),
@@ -88,6 +92,8 @@ WindowStatusbar::redraw() {
 		 torrent::get_max_open_sockets(),
 		 torrent::get_open_files(),
 		 torrent::get_max_open_files());
+
+  countTicks = 0;
 
   m_canvas->print(m_canvas->get_width() - pos, 0, "%s", buf);
 }

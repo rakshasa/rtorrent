@@ -53,7 +53,7 @@ void
 DownloadStore::use(const std::string& path) {
   m_path = path;
 
-  if (*m_path.rbegin() != '/')
+  if (!m_path.empty() && *m_path.rbegin() != '/')
     m_path += '/';
 }
 

@@ -56,9 +56,9 @@ InputEvent::remove(torrent::Poll* p) {
 
 void
 InputEvent::event_read() {
-  int c = getch();
+  int c;
 
-  if (c != ERR)
+  while ((c = getch()) != ERR)
     m_slotPressed(c);
 }
 

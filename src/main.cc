@@ -75,6 +75,8 @@
 
 int64_t utils::Timer::m_cache;
 
+uint32_t countTicks = 0;
+
 void do_panic(int signum);
 void print_help();
 
@@ -226,6 +228,8 @@ main(int argc, char** argv) {
     uiControl.display()->adjust_layout();
 
     while (!uiControl.is_shutdown_completed()) {
+      countTicks++;
+
       utils::Timer::update();
       utils::taskScheduler.execute(utils::Timer::cache());
 

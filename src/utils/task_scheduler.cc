@@ -75,7 +75,7 @@ TaskScheduler::erase(TaskItem* task) {
 
 void
 TaskScheduler::execute(Timer time) {
-  m_entry = std::find_if(begin(), end(), rak::less_equal(time, rak::mem_ptr_ref(&value_type::first)));
+  m_entry = std::find_if(begin(), end(), rak::less(time, rak::mem_ptr_ref(&value_type::first)));
 
   // Since we are always using the front rather than a splice of the
   // due tasks, it is safe to erase them from within other tasks.

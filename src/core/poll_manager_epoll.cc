@@ -62,6 +62,9 @@ PollManagerEPoll::~PollManagerEPoll() {
 
 void
 PollManagerEPoll::poll(utils::Timer timeout) {
+  // Add 1ms to ensure we don't idle loop due to the lack of
+  // resolution.
+  torrent::perform();
   timeout = std::min(timeout, utils::Timer(torrent::get_next_timeout()));
 
   if (m_httpStack.is_busy()) {
@@ -101,13 +104,12 @@ PollManagerEPoll::poll(utils::Timer timeout) {
 
   // Yes, below is how much code really *should* have been in this
   // function. ;)
-  torrent::perform();
 
-  if (static_cast<torrent::PollEPoll*>(m_poll)->poll(timeout.usec() / 1000) == -1)
+  if (static_cast<torrent::PollEPoll*>(m_poll)->poll((timeout.usec() + 999) / 1000) == -1)
     return check_error();
 
-  static_cast<torrent::PollEPoll*>(m_poll)->perform();
   torrent::perform();
+  static_cast<torrent::PollEPoll*>(m_poll)->perform();
 }
 
 }
