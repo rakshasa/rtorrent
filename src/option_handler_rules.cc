@@ -41,6 +41,7 @@
 #include <netinet/in.h>
 
 #include "core/manager.h"
+#include "ui/root.h"
 #include "utils/directory.h"
 
 #include "control.h"
@@ -146,12 +147,12 @@ apply_connection_seed(Control* m, const std::string& arg) {
 
 void
 apply_global_download_rate(Control* m, int arg) {
-  torrent::set_down_throttle(arg * 1024);
+  m->ui()->receive_down_throttle(arg);
 }
 
 void
 apply_global_upload_rate(Control* m, int arg) {
-  torrent::set_up_throttle(arg * 1024);
+  m->ui()->receive_up_throttle(arg);
 }
 
 void

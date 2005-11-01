@@ -114,27 +114,29 @@ Root::setup_keys() {
 
 void
 Root::receive_down_throttle(int t) {
-  m_windowStatusbar->mark_dirty();
+  if (m_windowStatusbar != NULL)
+    m_windowStatusbar->mark_dirty();
 
   torrent::set_down_throttle(std::max<int>(torrent::get_down_throttle() + t * 1024, 0));
 }
 
 void
 Root::receive_up_throttle(int t) {
-  m_windowStatusbar->mark_dirty();
+  if (m_windowStatusbar != NULL)
+    m_windowStatusbar->mark_dirty();
 
   uint32_t throttle = std::max<int>(torrent::get_up_throttle() + t * 1024, 0);
 
   torrent::set_up_throttle(throttle);
 
-//   if (throttle == 0)
-//     torrent::set_max_unchoked(0);
+  if (throttle == 0)
+    torrent::set_max_unchoked(0);
 
-//   else if (throttle <= 10 << 10)
-//     torrent::set_max_unchoked(1 + throttle / (1 << 10));
+  else if (throttle <= 10 << 10)
+    torrent::set_max_unchoked(1 + throttle / (1 << 10));
 
-//   else
-//     torrent::set_max_unchoked(10 + throttle / (5 << 10));
+  else
+    torrent::set_max_unchoked(10 + throttle / (5 << 10));
 }
 
 }

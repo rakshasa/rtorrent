@@ -60,11 +60,11 @@ public:
 
   WStatusbar*         window_statusbar()            { return m_windowStatusbar; }
 
-private:
-  void                setup_keys();
-
   void                receive_down_throttle(int t);
   void                receive_up_throttle(int t);
+
+private:
+  void                setup_keys();
 
   Control*            m_control;
   DownloadList*       m_downloadList;

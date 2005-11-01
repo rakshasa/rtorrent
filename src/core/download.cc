@@ -52,10 +52,13 @@ Download::Download() :
 
 void
 Download::start() {
-  if (is_done())
+  if (is_done()) {
     m_download.set_connection_type(m_connectionSeed);
-  else
+    torrent::download_set_priority(m_download, 2);
+  } else {
     m_download.set_connection_type(m_connectionLeech);
+    torrent::download_set_priority(m_download, 4);
+  }
 
   m_download.start();
 }
@@ -98,6 +101,7 @@ Download::release_download() {
 void
 Download::receive_finished() {
   m_download.set_connection_type(m_connectionSeed);
+  torrent::download_set_priority(m_download, 2);
 }
 
 void
