@@ -61,13 +61,15 @@ class CurlGet : public torrent::Http {
   void               start();
   void               close();
 
-  bool               is_busy() { return m_handle; }
+  bool               is_busy()                      { return m_handle; }
 
   double             get_size_done();
   double             get_size_total();
 
+  void               set_user_agent(const char* s);
+
  protected:
-  CURL*              handle() { return m_handle; }
+  CURL*              handle()                       { return m_handle; }
 
   void               perform(CURLMsg* msg);
 

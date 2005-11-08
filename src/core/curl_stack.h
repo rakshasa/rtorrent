@@ -38,6 +38,7 @@
 #define RTORRENT_CORE_CURL_STACK_H
 
 #include <list>
+#include <string>
 #include <sigc++/slot.h>
 
 namespace core {
@@ -64,6 +65,9 @@ class CurlStack {
 
   SlotFactory         get_http_factory();
 
+  const std::string&  user_agent() const                   { return m_userAgent; }
+  void                set_user_agent(const std::string& s) { m_userAgent = s; }
+
   static void         global_init();
   static void         global_cleanup();
 
@@ -79,6 +83,8 @@ class CurlStack {
 
   int                 m_size;
   CurlGetList         m_getList;
+
+  std::string         m_userAgent;
 };
 
 }

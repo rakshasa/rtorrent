@@ -103,6 +103,8 @@ CurlStack::fdset(fd_set* readfds, fd_set* writefds, fd_set* exceptfds) {
 
 void
 CurlStack::add_get(CurlGet* get) {
+  get->set_user_agent(m_userAgent.c_str());
+
   CURLMcode code;
 
   if ((code = curl_multi_add_handle((CURLM*)m_handle, get->handle())) > 0)

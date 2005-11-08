@@ -67,6 +67,8 @@ WindowFileList::redraw() {
   m_canvas->print(55, pos, "Size");
   m_canvas->print(63, pos, "Pri");
   m_canvas->print(68, pos, "Cmpl");
+  m_canvas->print(74, pos, "Encoding");
+  m_canvas->print(84, pos, "Chunks");
 
   ++pos;
 
@@ -108,13 +110,17 @@ WindowFileList::redraw() {
       break;
     };
 
-    m_canvas->print(0, pos, "%c %s  %6.1f   %s   %3d  %s",
+    m_canvas->print(0, pos, "%c %s  %6.1f   %s   %3d  %9s",
 		    range.first == *m_focus ? '*' : ' ',
 		    path.c_str(),
 		    (double)e.get_size() / (double)(1 << 20),
 		    priority.c_str(),
 		    done_percentage(e),
 		    e.path_list()->encoding().c_str());
+
+    m_canvas->print(84, pos, "%i - %i",
+		    e.get_chunk_begin(),
+		    e.get_chunk_end());
 
     ++range.first;
     ++pos;

@@ -81,12 +81,13 @@ CurlGet::start() {
 
   m_handle = curl_easy_init();
 
-  curl_easy_setopt(m_handle, CURLOPT_URL,           m_url.c_str());
-  curl_easy_setopt(m_handle, CURLOPT_USERAGENT,     m_userAgent.c_str());
-  curl_easy_setopt(m_handle, CURLOPT_WRITEFUNCTION, &curl_get_receive_write);
-  curl_easy_setopt(m_handle, CURLOPT_WRITEDATA,     this);
+  curl_easy_setopt(m_handle, CURLOPT_URL,            m_url.c_str());
+  curl_easy_setopt(m_handle, CURLOPT_WRITEFUNCTION,  &curl_get_receive_write);
+  curl_easy_setopt(m_handle, CURLOPT_WRITEDATA,      this);
+  curl_easy_setopt(m_handle, CURLOPT_TIMEOUT,        60);
 
   curl_easy_setopt(m_handle, CURLOPT_FORBID_REUSE,   1);
+  curl_easy_setopt(m_handle, CURLOPT_NOSIGNAL,       1);
   curl_easy_setopt(m_handle, CURLOPT_FOLLOWLOCATION, 1);
   curl_easy_setopt(m_handle, CURLOPT_MAXREDIRS,      5);
 
@@ -120,6 +121,11 @@ CurlGet::get_size_total() {
   curl_easy_getinfo(m_handle, CURLINFO_CONTENT_LENGTH_DOWNLOAD, &d);
 
   return d;
+}
+
+void
+CurlGet::set_user_agent(const char* s) {
+  curl_easy_setopt(m_handle, CURLOPT_USERAGENT, s);
 }
 
 void
