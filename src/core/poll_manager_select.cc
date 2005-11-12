@@ -63,7 +63,7 @@ PollManagerSelect::~PollManagerSelect() {
 void
 PollManagerSelect::poll(utils::Timer timeout) {
   torrent::perform();
-  timeout = std::min(timeout, utils::Timer(torrent::get_next_timeout()));
+  timeout = std::min(timeout, utils::Timer(torrent::next_timeout()));
 
 #if defined USE_VARIABLE_FDSET
   std::memset(m_readSet, 0, m_setSize);

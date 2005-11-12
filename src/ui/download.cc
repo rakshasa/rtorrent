@@ -60,7 +60,7 @@ Download::Download(DPtr d, Control* c) :
   m_download(d),
   m_state(DISPLAY_MAX_SIZE),
 
-  m_windowTitle(new WTitle(d->get_download().get_name())),
+  m_windowTitle(new WTitle(d->get_download().name())),
   m_windowDownloadStatus(new WDownloadStatus(d)),
 
   m_window(c->display()->end()),
@@ -193,21 +193,21 @@ void
 Download::receive_max_uploads(int t) {
   m_windowDownloadStatus->mark_dirty();
 
-  m_download->get_download().set_uploads_max(std::max(m_download->get_download().get_uploads_max() + t, (uint32_t)2));
+  m_download->get_download().set_uploads_max(std::max(m_download->get_download().uploads_max() + t, (uint32_t)2));
 }
 
 void
 Download::receive_min_peers(int t) {
   m_windowDownloadStatus->mark_dirty();
 
-  m_download->get_download().set_peers_min(std::max(m_download->get_download().get_peers_min() + t, (uint32_t)5));
+  m_download->get_download().set_peers_min(std::max(m_download->get_download().peers_min() + t, (uint32_t)5));
 }
 
 void
 Download::receive_max_peers(int t) {
   m_windowDownloadStatus->mark_dirty();
 
-  m_download->get_download().set_peers_max(std::max(m_download->get_download().get_peers_max() + t, (uint32_t)5));
+  m_download->get_download().set_peers_max(std::max(m_download->get_download().peers_max() + t, (uint32_t)5));
 }
 
 void
@@ -224,7 +224,7 @@ Download::receive_snub_peer() {
   if (m_focus == m_peers.end())
     return;
 
-  m_focus->set_snubbed(!m_focus->get_snubbed());
+  m_focus->set_snubbed(!m_focus->is_snubbed());
 
   mark_dirty();
 }

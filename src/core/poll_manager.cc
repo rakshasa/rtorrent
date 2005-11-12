@@ -50,7 +50,7 @@ PollManager::PollManager(torrent::Poll* poll) :
     throw std::logic_error("PollManager::PollManager(...) received poll == NULL");
 
 #if defined USE_VARIABLE_FDSET
-  m_setSize = m_poll->get_open_max() / 8;
+  m_setSize = m_poll->open_max() / 8;
   m_readSet = (fd_set*)new char[m_setSize];
   m_writeSet = (fd_set*)new char[m_setSize];
   m_errorSet = (fd_set*)new char[m_setSize];
@@ -59,7 +59,7 @@ PollManager::PollManager(torrent::Poll* poll) :
   std::memset(m_writeSet, 0, m_setSize);
   std::memset(m_errorSet, 0, m_setSize);
 #else
-  if (m_poll->get_open_max() > FD_SETSIZE)
+  if (m_poll->open_max() > FD_SETSIZE)
     throw std::logic_error("PollManager::PollManager(...) received a max open sockets >= FD_SETSIZE, but USE_VARIABLE_FDSET was not defined");
 
   m_setSize = FD_SETSIZE / 8;

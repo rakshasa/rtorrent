@@ -83,7 +83,7 @@ ElementFileList::receive_next() {
   if (m_window == NULL)
     throw std::logic_error("ui::ElementFileList::receive_next(...) called on a disabled object");
 
-  if (++m_focus >= m_download->get_download().get_entry_size())
+  if (++m_focus >= m_download->get_download().size_file_entries())
     m_focus = 0;
 
   m_window->mark_dirty();
@@ -94,13 +94,13 @@ ElementFileList::receive_prev() {
   if (m_window == NULL)
     throw std::logic_error("ui::ElementFileList::receive_prev(...) called on a disabled object");
 
-  if (m_download->get_download().get_entry_size() == 0)
+  if (m_download->get_download().size_file_entries() == 0)
     return;
 
   if (m_focus != 0)
     --m_focus;
   else 
-    m_focus = m_download->get_download().get_entry_size() - 1;
+    m_focus = m_download->get_download().size_file_entries() - 1;
 
   m_window->mark_dirty();
 }
@@ -110,12 +110,12 @@ ElementFileList::receive_priority() {
   if (m_window == NULL)
     throw std::logic_error("ui::ElementFileList::receive_prev(...) called on a disabled object");
 
-  if (m_focus >= m_download->get_download().get_entry_size())
+  if (m_focus >= m_download->get_download().size_file_entries())
     return;
 
-  torrent::Entry e = m_download->get_download().get_entry(m_focus);
+  torrent::Entry e = m_download->get_download().file_entry(m_focus);
 
-  e.set_priority(next_priority(e.get_priority()));
+  e.set_priority(next_priority(e.priority()));
 
   m_download->get_download().update_priorities();
   m_window->mark_dirty();
@@ -126,13 +126,13 @@ ElementFileList::receive_change_all() {
   if (m_window == NULL)
     throw std::logic_error("ui::ElementFileList::receive_prev(...) called on a disabled object");
 
-  if (m_focus >= m_download->get_download().get_entry_size())
+  if (m_focus >= m_download->get_download().size_file_entries())
     return;
 
-  Priority p = next_priority(m_download->get_download().get_entry(m_focus).get_priority());
+  Priority p = next_priority(m_download->get_download().file_entry(m_focus).priority());
 
-  for (int i = 0, e = m_download->get_download().get_entry_size(); i != e; ++i)
-    m_download->get_download().get_entry(i).set_priority(p);
+  for (int i = 0, e = m_download->get_download().size_file_entries(); i != e; ++i)
+    m_download->get_download().file_entry(i).set_priority(p);
 
   m_download->get_download().update_priorities();
   m_window->mark_dirty();
@@ -141,11 +141,11 @@ ElementFileList::receive_change_all() {
 ElementFileList::Priority
 ElementFileList::next_priority(Priority p) {
   switch(p) {
-  case torrent::Entry::STOPPED:
+  case torrent::Entry::OFF:
     return torrent::Entry::HIGH;
 
   case torrent::Entry::NORMAL:
-    return torrent::Entry::STOPPED;
+    return torrent::Entry::OFF;
 
   case torrent::Entry::HIGH:
     return torrent::Entry::NORMAL;

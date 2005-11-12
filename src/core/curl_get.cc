@@ -48,7 +48,7 @@ namespace core {
 
 size_t
 curl_get_receive_write(void* data, size_t size, size_t nmemb, void* handle) {
-  if (!((CurlGet*)handle)->get_stream()->write((char*)data, size * nmemb).fail())
+  if (!((CurlGet*)handle)->stream()->write((char*)data, size * nmemb).fail())
     return size * nmemb;
   else
     return 0;
@@ -84,7 +84,8 @@ CurlGet::start() {
   curl_easy_setopt(m_handle, CURLOPT_URL,            m_url.c_str());
   curl_easy_setopt(m_handle, CURLOPT_WRITEFUNCTION,  &curl_get_receive_write);
   curl_easy_setopt(m_handle, CURLOPT_WRITEDATA,      this);
-  curl_easy_setopt(m_handle, CURLOPT_TIMEOUT,        60);
+  curl_easy_setopt(m_handle, CURLOPT_CONNECTTIMEOUT, 60);
+  curl_easy_setopt(m_handle, CURLOPT_TIMEOUT,        360);
 
   curl_easy_setopt(m_handle, CURLOPT_FORBID_REUSE,   1);
   curl_easy_setopt(m_handle, CURLOPT_NOSIGNAL,       1);
@@ -108,7 +109,7 @@ CurlGet::close() {
 
 
 double
-CurlGet::get_size_done() {
+CurlGet::size_done() {
   double d = 0.0;
   curl_easy_getinfo(m_handle, CURLINFO_SIZE_DOWNLOAD, &d);
 
@@ -116,7 +117,7 @@ CurlGet::get_size_done() {
 }
 
 double
-CurlGet::get_size_total() {
+CurlGet::size_total() {
   double d = 0.0;
   curl_easy_getinfo(m_handle, CURLINFO_CONTENT_LENGTH_DOWNLOAD, &d);
 

@@ -117,7 +117,7 @@ Root::receive_down_throttle(int t) {
   if (m_windowStatusbar != NULL)
     m_windowStatusbar->mark_dirty();
 
-  torrent::set_down_throttle(std::max<int>(torrent::get_down_throttle() + t * 1024, 0));
+  torrent::set_down_throttle(std::max<int>(torrent::down_throttle() + t * 1024, 0));
 }
 
 void
@@ -125,7 +125,7 @@ Root::receive_up_throttle(int t) {
   if (m_windowStatusbar != NULL)
     m_windowStatusbar->mark_dirty();
 
-  uint32_t throttle = std::max<int>(torrent::get_up_throttle() + t * 1024, 0);
+  uint32_t throttle = std::max<int>(torrent::up_throttle() + t * 1024, 0);
 
   torrent::set_up_throttle(throttle);
 

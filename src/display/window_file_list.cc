@@ -57,7 +57,7 @@ WindowFileList::redraw() {
   utils::displayScheduler.insert(&m_taskUpdate, (utils::Timer::cache() + 10 * 1000000).round_seconds());
   m_canvas->erase();
 
-  if (m_download->get_download().get_entry_size() == 0 ||
+  if (m_download->get_download().size_file_entries() == 0 ||
       m_canvas->get_height() < 2)
     return;
 
@@ -72,18 +72,18 @@ WindowFileList::redraw() {
 
   ++pos;
 
-  if (*m_focus >= m_download->get_download().get_entry_size())
+  if (*m_focus >= m_download->get_download().size_file_entries())
     throw std::logic_error("WindowFileList::redraw() called on an object with a bad focus value");
 
   Range range = rak::advance_bidirectional<unsigned int>(0,
 							 *m_focus,
-							 m_download->get_download().get_entry_size(),
+							 m_download->get_download().size_file_entries(),
 							 m_canvas->get_height() - pos);
 
   while (range.first != range.second) {
-    torrent::Entry e = m_download->get_download().get_entry(range.first);
+    torrent::Entry e = m_download->get_download().file_entry(range.first);
 
-    std::string path = e.get_path();
+    std::string path = e.path_str();
 
     if (path.length() <= 50)
       path = path + std::string(50 - path.length(), ' ');
@@ -92,8 +92,8 @@ WindowFileList::redraw() {
 
     std::string priority;
 
-    switch (e.get_priority()) {
-    case torrent::Entry::STOPPED:
+    switch (e.priority()) {
+    case torrent::Entry::OFF:
       priority = "off";
       break;
 
@@ -113,14 +113,14 @@ WindowFileList::redraw() {
     m_canvas->print(0, pos, "%c %s  %6.1f   %s   %3d  %9s",
 		    range.first == *m_focus ? '*' : ' ',
 		    path.c_str(),
-		    (double)e.get_size() / (double)(1 << 20),
+		    (double)e.size_bytes() / (double)(1 << 20),
 		    priority.c_str(),
 		    done_percentage(e),
-		    e.path_list()->encoding().c_str());
+		    e.path()->encoding().c_str());
 
     m_canvas->print(84, pos, "%i - %i",
-		    e.get_chunk_begin(),
-		    e.get_chunk_end());
+		    e.chunk_begin(),
+		    e.chunk_end());
 
     ++range.first;
     ++pos;
@@ -130,9 +130,9 @@ WindowFileList::redraw() {
 
 int
 WindowFileList::done_percentage(torrent::Entry& e) {
-  int chunks = e.get_chunk_end() - e.get_chunk_begin();
+  int chunks = e.chunk_end() - e.chunk_begin();
 
-  return chunks ? (e.get_completed() * 100) / chunks : 100;
+  return chunks ? (e.completed_chunks() * 100) / chunks : 100;
 }
 
 }

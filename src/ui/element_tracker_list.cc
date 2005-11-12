@@ -82,7 +82,7 @@ ElementTrackerList::receive_next() {
   if (m_window == NULL)
     throw std::logic_error("ui::ElementTrackerList::receive_next(...) called on a disabled object");
 
-  if (++m_focus >= m_download->get_download().get_tracker_size())
+  if (++m_focus >= m_download->get_download().size_trackers())
     m_focus = 0;
 
   m_window->mark_dirty();
@@ -93,13 +93,13 @@ ElementTrackerList::receive_prev() {
   if (m_window == NULL)
     throw std::logic_error("ui::ElementTrackerList::receive_prev(...) called on a disabled object");
 
-  if (m_download->get_download().get_tracker_size() == 0)
+  if (m_download->get_download().size_trackers() == 0)
     return;
 
   if (m_focus != 0)
     --m_focus;
   else 
-    m_focus = m_download->get_download().get_tracker_size() - 1;
+    m_focus = m_download->get_download().size_trackers() - 1;
 
   m_window->mark_dirty();
 }
@@ -109,10 +109,10 @@ ElementTrackerList::receive_cycle_group() {
   if (m_window == NULL)
     throw std::logic_error("ui::ElementTrackerList::receive_group_cycle(...) called on a disabled object");
 
-  if (m_focus >= m_download->get_download().get_tracker_size())
+  if (m_focus >= m_download->get_download().size_trackers())
     throw std::logic_error("ui::ElementTrackerList::receive_group_cycle(...) called with an invalid focus");
 
-  m_download->get_download().tracker_cycle_group(m_download->get_download().get_tracker(m_focus).get_group());
+  m_download->get_download().tracker_cycle_group(m_download->get_download().tracker(m_focus).group());
 
   m_window->mark_dirty();
 }

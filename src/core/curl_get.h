@@ -63,8 +63,8 @@ class CurlGet : public torrent::Http {
 
   bool               is_busy()                      { return m_handle; }
 
-  double             get_size_done();
-  double             get_size_total();
+  double             size_done();
+  double             size_total();
 
   void               set_user_agent(const char* s);
 

@@ -62,7 +62,7 @@ print_string(char* buf, unsigned int length, char* str) {
 char*
 print_download_title(char* buf, unsigned int length, core::Download* d) {
   return buf + std::max(0, snprintf(buf, length, "%s",
-				    d->get_download().get_name().c_str()));
+				    d->get_download().name().c_str()));
 }
 
 char*
@@ -75,16 +75,16 @@ print_download_info(char* buf, unsigned int length, core::Download* d) {
     buf += std::max(0, snprintf(buf, last - buf, "closed            "));
   else if (d->is_done())
     buf += std::max(0, snprintf(buf, last - buf, "done %10.1f MB",
-				(double)d->get_download().get_bytes_total() / (double)(1 << 20)));
+				(double)d->get_download().bytes_total() / (double)(1 << 20)));
   else
     buf += std::max(0, snprintf(buf, last - buf, "%6.1f / %6.1f MB",
-				(double)d->get_download().get_bytes_done() / (double)(1 << 20),
-				(double)d->get_download().get_bytes_total() / (double)(1 << 20)));
+				(double)d->get_download().bytes_done() / (double)(1 << 20),
+				(double)d->get_download().bytes_total() / (double)(1 << 20)));
   
   buf += std::max(0, snprintf(buf, last - buf, " Rate: %5.1f / %5.1f KB Uploaded: %.1f MB",
-			      (double)d->get_download().get_up_rate().rate() / (1 << 10),
-			      (double)d->get_download().get_down_rate().rate() / (1 << 10),
-			      (double)d->get_download().get_up_rate().total() / (1 << 20)));
+			      (double)d->get_download().up_rate().rate() / (1 << 10),
+			      (double)d->get_download().down_rate().rate() / (1 << 10),
+			      (double)d->get_download().up_rate().total() / (1 << 20)));
 
   return buf;
 }
@@ -98,11 +98,11 @@ print_download_status(char* buf, unsigned int length, core::Download* d) {
     buf += std::max(0, snprintf(buf, length, "Checking hash"));
 
   else if (d->get_download().is_tracker_busy() &&
-	   d->get_download().get_tracker_focus() < d->get_download().get_tracker_size())
+	   d->get_download().tracker_focus() < d->get_download().size_trackers())
     buf += std::max(0, snprintf(buf, length, "Tracker[%i:%i]: Connecting to %s",
-				d->get_download().get_tracker(d->get_download().get_tracker_focus()).get_group(),
-				d->get_download().get_tracker_focus(),
-				d->get_download().get_tracker(d->get_download().get_tracker_focus()).get_url().c_str()));
+				d->get_download().tracker(d->get_download().tracker_focus()).group(),
+				d->get_download().tracker_focus(),
+				d->get_download().tracker(d->get_download().tracker_focus()).url().c_str()));
 
   else if (!d->get_message().empty())
     buf += std::max(0, snprintf(buf, length, "%s", d->get_message().c_str()));

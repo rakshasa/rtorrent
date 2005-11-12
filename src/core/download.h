@@ -60,14 +60,14 @@ public:
 
   torrent::Download& get_download()                  { return m_download; }
   const torrent::Download& get_download() const      { return m_download; }
-  std::string        get_hash()                      { return m_download.get_hash(); }
-  torrent::Bencode&  get_bencode()                   { return m_download.get_bencode(); }
+  std::string        get_hash()                      { return m_download.info_hash(); }
+  torrent::Bencode&  get_bencode()                   { return m_download.bencode(); }
   
   const std::string& get_message()                   { return m_message; }
 
   void               set_root_directory(const std::string& d);
 
-  ConnType           get_connection_current() const                { return m_download.get_connection_type(); }
+  ConnType           get_connection_current() const                { return m_download.connection_type(); }
   ConnType           get_connection_leech() const                  { return m_connectionLeech; }
   ConnType           get_connection_seed() const                   { return m_connectionSeed; }
 
@@ -84,7 +84,7 @@ public:
   template <typename Ret, typename Arg1, Ret (torrent::Download::*func)(Arg1)>
   void               call(Arg1 a1)                                         { (m_download.*func)(a1); }
 
-  bool operator == (const std::string& str)                                { return str == m_download.get_hash(); }
+  bool operator == (const std::string& str)                                { return str == m_download.info_hash(); }
 
   void               receive_finished();
 
@@ -109,7 +109,7 @@ private:
 
 inline bool
 Download::is_done() {
-  return m_download.get_chunks_done() == m_download.get_chunks_total();
+  return m_download.chunks_done() == m_download.chunks_total();
 }
 
 }

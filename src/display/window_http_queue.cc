@@ -79,13 +79,13 @@ WindowHttpQueue::redraw() {
     if (itr->m_http == NULL)
       m_canvas->print(pos, 0, "%s done", itr->m_name.c_str());
 
-    else if (itr->m_http->get_size_total() == 0)
+    else if (itr->m_http->size_total() == 0)
       m_canvas->print(pos, 0, "%s ---%%", itr->m_name.c_str());
 
     else
       m_canvas->print(pos, 0, "%s %3i%%",
 		      itr->m_name.c_str(),
-		      (int)(100.0 * itr->m_http->get_size_done() / itr->m_http->get_size_total()));
+		      (int)(100.0 * itr->m_http->size_done() / itr->m_http->size_total()));
 
     pos += itr->m_name.size() + 6;
     ++itr;
@@ -105,9 +105,9 @@ WindowHttpQueue::cleanup_list() {
 
 std::string
 WindowHttpQueue::create_name(core::CurlGet* h) {
-  size_t p = h->get_url().rfind('/', h->get_url().size() - std::min<int>(10, h->get_url().size()));
+  size_t p = h->url().rfind('/', h->url().size() - std::min<int>(10, h->url().size()));
 
-  std::string n = p != std::string::npos ? h->get_url().substr(p) : h->get_url();
+  std::string n = p != std::string::npos ? h->url().substr(p) : h->url();
 
   if (n.empty())
     throw std::logic_error("WindowHttpQueue::create_name(...) made a bad string");

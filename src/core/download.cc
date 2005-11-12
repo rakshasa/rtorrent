@@ -76,14 +76,17 @@ void
 Download::set_root_directory(const std::string& d) {
   m_download.set_root_dir(d +
 			  (!d.empty() && *d.rbegin() != '/' ? "/" : "") +
-			  (m_download.get_entry_size() > 1 ? m_download.get_name() : ""));
+			  (m_download.size_file_entries() > 1 ? m_download.name() : ""));
 }
 
 void
 Download::enable_udp_trackers(bool state) {
-  for (int i = 0, last = m_download.get_tracker_size(); i < last; ++i)
-    if (m_download.get_tracker(i).get_type() == torrent::Tracker::TRACKER_UDP)
-      m_download.get_tracker(i).enable(state);
+  for (int i = 0, last = m_download.size_trackers(); i < last; ++i)
+    if (m_download.tracker(i).tracker_type() == torrent::Tracker::TRACKER_UDP)
+      if (state)
+	m_download.tracker(i).enable();
+      else
+	m_download.tracker(i).disable();
 }
 
 void

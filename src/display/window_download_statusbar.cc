@@ -80,18 +80,18 @@ WindowDownloadStatusbar::redraw() {
 // 		    (double)m_download->get_download().get_write_rate().total() / (double)(1 << 20));
     
   m_canvas->print(0, 1, "Peers: %i(%i) Min/Max: %i/%i Uploads: %i U/I: %i/%i",
-		  (int)m_download->get_download().get_peers_connected(),
-		  (int)m_download->get_download().get_peers_not_connected(),
-		  (int)m_download->get_download().get_peers_min(),
-		  (int)m_download->get_download().get_peers_max(),
-		  (int)m_download->get_download().get_uploads_max(),
+		  (int)m_download->get_download().peers_connected(),
+		  (int)m_download->get_download().peers_not_connected(),
+		  (int)m_download->get_download().peers_min(),
+		  (int)m_download->get_download().peers_max(),
+		  (int)m_download->get_download().uploads_max(),
 		  (int)m_download->get_download().peers_currently_unchoked(),
 		  (int)m_download->get_download().peers_currently_interested());
 
   position = print_download_status(buffer, last - buffer, m_download);
   m_canvas->print(0, 2, "[%c:%i] %s",
 		  m_download->get_download().is_tracker_busy() ? 'C' : ' ',
-		  (int)(m_download->get_download().get_tracker_timeout() / 1000000),
+		  (int)(m_download->get_download().tracker_timeout() / 1000000),
 		  buffer);
 }
 

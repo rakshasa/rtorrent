@@ -65,7 +65,7 @@ PollManagerEPoll::poll(utils::Timer timeout) {
   // Add 1ms to ensure we don't idle loop due to the lack of
   // resolution.
   torrent::perform();
-  timeout = std::min(timeout, utils::Timer(torrent::get_next_timeout()));
+  timeout = std::min(timeout, utils::Timer(torrent::next_timeout()));
 
   if (m_httpStack.is_busy()) {
     // When we're using libcurl we need to use select, but as this is
@@ -79,9 +79,9 @@ PollManagerEPoll::poll(utils::Timer timeout) {
     FD_ZERO(m_writeSet);
     FD_ZERO(m_errorSet);
 #endif    
-    FD_SET(static_cast<torrent::PollEPoll*>(m_poll)->get_fd(), m_readSet);
+    FD_SET(static_cast<torrent::PollEPoll*>(m_poll)->file_descriptor(), m_readSet);
 
-    unsigned int maxFd = std::max((unsigned int)static_cast<torrent::PollEPoll*>(m_poll)->get_fd(),
+    unsigned int maxFd = std::max((unsigned int)static_cast<torrent::PollEPoll*>(m_poll)->file_descriptor(),
 				  m_httpStack.fdset(m_readSet, m_writeSet, m_errorSet));
 
     timeval t = timeout.tval();
@@ -91,7 +91,7 @@ PollManagerEPoll::poll(utils::Timer timeout) {
 
     m_httpStack.perform();
 
-    if (!FD_ISSET(static_cast<torrent::PollEPoll*>(m_poll)->get_fd(), m_readSet)) {
+    if (!FD_ISSET(static_cast<torrent::PollEPoll*>(m_poll)->file_descriptor(), m_readSet)) {
       // Need to call perform here so that scheduled task get done
       // even if there's no socket events outside of the http stuff.
       torrent::perform();
