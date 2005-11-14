@@ -48,16 +48,23 @@ namespace utils {
   class Timer;
 }
 
+namespace torrent {
+  class Entry;
+}
+
 namespace display {
 
 char*       print_string(char* buf, unsigned int length, char* str);
+
+char*       print_hhmmss(char* buf, unsigned int length, time_t t);
+char*       print_ddmmyyyy(char* buf, unsigned int length, time_t t);
 
 char*       print_download_title(char* buf, unsigned int length, core::Download* d);
 char*       print_download_info(char* buf, unsigned int length, core::Download* d);
 char*       print_download_status(char* buf, unsigned int length, core::Download* d);
 
-char*       print_hhmmss(char* buf, unsigned int length, time_t t);
-char*       print_ddmmyyyy(char* buf, unsigned int length, time_t t);
+char*       print_entry_tags(char* buf, unsigned int length);
+char*       print_entry_file(char* buf, unsigned int length, const torrent::Entry& entry);
 
 }
 
