@@ -119,7 +119,8 @@ print_download_status(char* buf, unsigned int length, core::Download* d) {
     buf += std::max(0, snprintf(buf, length, "Inactive: "));
 
   if (d->get_download().is_hash_checking())
-    buf += std::max(0, snprintf(buf, length, "Checking hash"));
+    buf += std::max(0, snprintf(buf, length, "Checking hash [%2i%%]",
+				(d->get_download().chunks_hashed() * 100) / d->get_download().chunks_total()));
 
   else if (d->get_download().is_tracker_busy() &&
 	   d->get_download().tracker_focus() < d->get_download().size_trackers())

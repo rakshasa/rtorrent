@@ -176,7 +176,7 @@ Manager::erase(DListItr itr) {
 void
 Manager::start(Download* d) {
   try {
-    d->get_bencode()["rtorrent"]["state"] = "started";
+    d->get_bencode().get_key("rtorrent").get_key("state") = "started";
 
     if (d->get_download().is_active())
       return;
@@ -199,7 +199,7 @@ Manager::start(Download* d) {
 void
 Manager::stop(Download* d) {
   try {
-    d->get_bencode()["rtorrent"]["state"] = "stopped";
+    d->get_bencode().get_key("rtorrent").get_key("state") = "stopped";
 
     m_downloadList.stop(d);
 
@@ -265,12 +265,12 @@ Manager::initialize_bencode(Download* d) {
   torrent::Bencode& bencode = d->get_bencode();
 
   if (!bencode.has_key("rtorrent") ||
-      !bencode["rtorrent"].is_map())
+      !bencode.get_key("rtorrent").is_map())
     bencode.insert_key("rtorrent", torrent::Bencode(torrent::Bencode::TYPE_MAP));
     
-  if (!bencode["rtorrent"].has_key("state") ||
-      !bencode["rtorrent"]["state"].is_string())
-    bencode["rtorrent"].insert_key("state", "started");
+  if (!bencode.get_key("rtorrent").has_key("state") ||
+      !bencode.get_key("rtorrent").get_key("state").is_string())
+    bencode.get_key("rtorrent").insert_key("state", "stopped");
 }
 
 void

@@ -141,7 +141,7 @@ DownloadFactory::receive_success() {
   if (m_session) {
     torrent::Bencode& bencode = (*itr)->get_bencode();
     
-    if (bencode["rtorrent"]["state"].as_string() == "started")
+    if (bencode.get_key("rtorrent").get_key("state").as_string() == "started")
       m_manager->start(*itr);
 
   } else {
