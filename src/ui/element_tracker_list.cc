@@ -54,6 +54,7 @@ ElementTrackerList::ElementTrackerList(core::Download* d) :
   m_bindings[KEY_DOWN] = sigc::mem_fun(*this, &ElementTrackerList::receive_next);
   m_bindings[KEY_UP]   = sigc::mem_fun(*this, &ElementTrackerList::receive_prev);
   m_bindings[' ']      = sigc::mem_fun(*this, &ElementTrackerList::receive_cycle_group);
+  m_bindings['*']      = sigc::mem_fun(*this, &ElementTrackerList::receive_disable);
 }
 
 void
@@ -75,6 +76,19 @@ ElementTrackerList::disable(Control* c) {
 
   delete m_window;
   m_window = NULL;
+}
+
+void
+ElementTrackerList::receive_disable() {
+  if (m_window == NULL)
+    throw std::logic_error("ui::ElementTrackerList::receive_disable(...) called on a disabled object");
+
+  if (m_download->get_download().tracker(m_focus).is_enabled())
+    m_download->get_download().tracker(m_focus).disable();
+  else
+    m_download->get_download().tracker(m_focus).enable();
+
+  m_window->mark_dirty();
 }
 
 void

@@ -62,6 +62,8 @@ private:
   void                receive_next();
   void                receive_prev();
 
+  void                receive_disable();
+
   void                receive_cycle_group();
 
   core::Download*     m_download;
