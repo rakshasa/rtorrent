@@ -40,6 +40,7 @@
 #include <sigc++/bind.h>
 #include <sigc++/hide.h>
 #include <sigc++/signal.h>
+#include <torrent/exceptions.h>
 
 #include "download.h"
 
@@ -128,7 +129,7 @@ Download::string_to_connection_type(const std::string& name) {
   else if (name == "seed")
     return torrent::Download::CONNECTION_SEED;
   else
-    throw std::runtime_error("Invalid connection type selected: \"" + name + "\"");
+    throw torrent::input_error("Unknown peer connection type selected: \"" + name + "\"");
 }
 
 const char*

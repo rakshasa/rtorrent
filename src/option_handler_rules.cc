@@ -37,6 +37,7 @@
 #include "config.h"
 
 #include <arpa/inet.h>
+#include <torrent/exceptions.h>
 #include <torrent/torrent.h>
 #include <netinet/in.h>
 
@@ -49,67 +50,19 @@
 
 void receive_tracker_dump(std::istream* s);
 
-bool
-validate_ip(const std::string& arg) {
-  struct in_addr addr;
-
-  return inet_aton(arg.c_str(), &addr);
+void
+OptionHandlerInt::process(const std::string& key, const std::string& arg) {
+  int a;
+    
+  if (std::sscanf(arg.c_str(), "%i", &a) != 1)
+    throw torrent::input_error("Invalid argument for \"" + key + "\": \"" + arg + "\"");
+    
+  m_apply(m_control, a);
 }
 
-// We consider an empty string to be valid as this allows us to
-// disable options.
-bool
-validate_directory(const std::string& arg) {
-  //return arg.empty() || utils::Directory(arg).is_valid();
-  return true;
-}
-
-bool
-validate_port_range(const std::string& arg) {
-  int a, b;
-  
-  return std::sscanf(arg.c_str(), "%i-%i", &a, &b) == 2 &&
-    a <= b && a > 0 && b < (1 << 16);
-}
-
-bool
-validate_yes_no(const std::string& arg) {
-  return arg == "yes" || arg == "no";
-}
-
-bool
-validate_non_empty(const std::string& arg) {
-  return !arg.empty();
-}
-
-bool
-validate_download_peers(int arg) {
-  return arg > 0 && arg < (1 << 16);
-}
-
-bool
-validate_rate(int arg) {
-  return arg >= 0 && arg < (1 << 20);
-}
-
-bool
-validate_hash_read_ahead(int arg) {
-  return arg >= 1 && arg < 64;
-}
-
-bool
-validate_hash_interval(int arg) {
-  return arg >= 1 && arg < 1000;
-}
-
-bool
-validate_hash_max_tries(int arg) {
-  return arg >= 1 && arg < 20;
-}
-
-bool
-validate_fd(int arg) {
-  return arg >= 1 && arg < (1 << 16);
+void
+OptionHandlerString::process(const std::string& key, const std::string& arg) {
+  m_apply(m_control, arg);
 }
 
 void
@@ -137,22 +90,24 @@ apply_download_directory(Control* m, const std::string& arg) {
 
 void
 apply_connection_leech(Control* m, const std::string& arg) {
+  core::Download::string_to_connection_type(arg);
   m->core()->get_download_list().slot_map_insert()["1_connection_leech"] = sigc::bind(sigc::mem_fun(&core::Download::set_connection_leech), arg);
 }
 
 void
 apply_connection_seed(Control* m, const std::string& arg) {
+  core::Download::string_to_connection_type(arg);
   m->core()->get_download_list().slot_map_insert()["1_connection_seed"] = sigc::bind(sigc::mem_fun(&core::Download::set_connection_seed), arg);
 }
 
 void
 apply_global_download_rate(Control* m, int arg) {
-  m->ui()->receive_down_throttle(arg);
+  m->ui()->set_down_throttle(arg);
 }
 
 void
 apply_global_upload_rate(Control* m, int arg) {
-  m->ui()->receive_up_throttle(arg);
+  m->ui()->set_up_throttle(arg);
 }
 
 void

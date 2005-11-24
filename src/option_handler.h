@@ -77,6 +77,7 @@ public:
 
   void                clear();
 
+  // The caller must catch torrent::input_error in case of bad input.
   void                process(const std::string& key, const std::string& arg) const;
 };
 

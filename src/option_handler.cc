@@ -39,6 +39,7 @@
 #include <stdexcept>
 #include <sigc++/bind.h>
 #include <sigc++/hide.h>
+#include <torrent/exceptions.h>
 
 #include "option_handler.h"
 
@@ -78,7 +79,7 @@ OptionHandler::process(const std::string& key, const std::string& arg) const {
   const_iterator itr = find(key);
 
   if (itr == end())
-    throw std::runtime_error("Could not find option key matching \"" + key + "\"");
+    throw torrent::input_error("Could not find option key \"" + key + "\".");
 
   itr->second->process(key, arg);
 }

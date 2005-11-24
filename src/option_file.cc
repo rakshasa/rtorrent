@@ -38,18 +38,35 @@
 
 #include <fstream>
 #include <stdexcept>
+#include <stdio.h>
+#include <torrent/exceptions.h>
 
 #include "option_file.h"
 
-void
-OptionFile::process(std::istream* stream) {
-  char buf[max_size_line];
+bool
+OptionFile::process_file(const std::string& filename) {
+  std::fstream file(filename.c_str(), std::ios::in);
 
-  while (stream->good()) {
-    stream->getline(buf, max_size_line);
+  if (!file.good())
+    return false;
 
-    parse_line(buf);
+  int lineNumber = 0;
+  char buffer[max_size_line];
+
+  try {
+
+    while (file.getline(buffer, max_size_line).good()) {
+      lineNumber++;
+      parse_line(buffer);
+    }
+
+  } catch (torrent::input_error& e) {
+    snprintf(buffer, max_size_line, "Error in option file: %s:%i: %s", filename.c_str(), lineNumber, e.what());
+
+    throw std::runtime_error(buffer);
   }
+
+  return true;
 }
 
 void
@@ -69,7 +86,7 @@ OptionFile::parse_line(const char* line) {
   if ((result = std::sscanf(line, "%63s = \"%511[^\"]s", key, opt)) != 2 &&
       (result = std::sscanf(line, "%63s = %511s", key, opt)) != 2 &&
       result == 1)
-    throw std::runtime_error("Error parseing option file.");
+    throw torrent::input_error("Error parseing option file.");
 
   if (opt[0] == '"' && opt[1] == '"')
     opt[0] = '\0';

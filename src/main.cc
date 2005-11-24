@@ -100,67 +100,57 @@ is_resized() {
 
 int
 parse_options(Control* c, OptionHandler* optionHandler, int argc, char** argv) {
-  OptionParser optionParser;
+  try {
+    OptionParser optionParser;
 
-  // Converted.
-  optionParser.insert_flag('h', sigc::ptr_fun(&print_help));
+    // Converted.
+    optionParser.insert_flag('h', sigc::ptr_fun(&print_help));
 
-  optionParser.insert_option('b', sigc::bind<0>(sigc::mem_fun(*optionHandler, &OptionHandler::process), "bind"));
-  optionParser.insert_option('d', sigc::bind<0>(sigc::mem_fun(*optionHandler, &OptionHandler::process), "directory"));
-  optionParser.insert_option('i', sigc::bind<0>(sigc::mem_fun(*optionHandler, &OptionHandler::process), "ip"));
-  optionParser.insert_option('p', sigc::bind<0>(sigc::mem_fun(*optionHandler, &OptionHandler::process), "port_range"));
-  optionParser.insert_option('s', sigc::bind<0>(sigc::mem_fun(*optionHandler, &OptionHandler::process), "session"));
+    optionParser.insert_option('b', sigc::bind<0>(sigc::mem_fun(*optionHandler, &OptionHandler::process), "bind"));
+    optionParser.insert_option('d', sigc::bind<0>(sigc::mem_fun(*optionHandler, &OptionHandler::process), "directory"));
+    optionParser.insert_option('i', sigc::bind<0>(sigc::mem_fun(*optionHandler, &OptionHandler::process), "ip"));
+    optionParser.insert_option('p', sigc::bind<0>(sigc::mem_fun(*optionHandler, &OptionHandler::process), "port_range"));
+    optionParser.insert_option('s', sigc::bind<0>(sigc::mem_fun(*optionHandler, &OptionHandler::process), "session"));
 
-  optionParser.insert_option_list('o', sigc::mem_fun(*optionHandler, &OptionHandler::process));
+    optionParser.insert_option_list('o', sigc::mem_fun(*optionHandler, &OptionHandler::process));
 
-  return optionParser.process(argc, argv);
+    return optionParser.process(argc, argv);
+
+  } catch (torrent::input_error& e) {
+    throw std::runtime_error("Failed to parse command line option: " + std::string(e.what()));
+  }
 }
 
 void
 initialize_option_handler(Control* c, OptionHandler* optionHandler) {
-  optionHandler->insert("max_peers",           new OptionHandlerInt(c, &apply_download_max_peers, &validate_download_peers));
-  optionHandler->insert("min_peers",           new OptionHandlerInt(c, &apply_download_min_peers, &validate_download_peers));
-  optionHandler->insert("max_uploads",         new OptionHandlerInt(c, &apply_download_max_uploads, &validate_download_peers));
+  optionHandler->insert("max_peers",           new OptionHandlerInt(c, &apply_download_max_peers));
+  optionHandler->insert("min_peers",           new OptionHandlerInt(c, &apply_download_min_peers));
+  optionHandler->insert("max_uploads",         new OptionHandlerInt(c, &apply_download_max_uploads));
 
-  optionHandler->insert("download_rate",       new OptionHandlerInt(c, &apply_global_download_rate, &validate_rate));
-  optionHandler->insert("upload_rate",         new OptionHandlerInt(c, &apply_global_upload_rate, &validate_rate));
+  optionHandler->insert("download_rate",       new OptionHandlerInt(c, &apply_global_download_rate));
+  optionHandler->insert("upload_rate",         new OptionHandlerInt(c, &apply_global_upload_rate));
 
-  optionHandler->insert("bind",                new OptionHandlerString(c, &apply_bind, &validate_ip));
-  optionHandler->insert("ip",                  new OptionHandlerString(c, &apply_ip, &validate_ip));
-  optionHandler->insert("port_range",          new OptionHandlerString(c, &apply_port_range, &validate_port_range));
-  optionHandler->insert("port_random",         new OptionHandlerString(c, &apply_port_random, &validate_yes_no));
+  optionHandler->insert("bind",                new OptionHandlerString(c, &apply_bind));
+  optionHandler->insert("ip",                  new OptionHandlerString(c, &apply_ip));
+  optionHandler->insert("port_range",          new OptionHandlerString(c, &apply_port_range));
+  optionHandler->insert("port_random",         new OptionHandlerString(c, &apply_port_random));
 
-  optionHandler->insert("check_hash",          new OptionHandlerString(c, &apply_check_hash, &validate_yes_no));
-  optionHandler->insert("directory",           new OptionHandlerString(c, &apply_download_directory, &validate_directory));
+  optionHandler->insert("check_hash",          new OptionHandlerString(c, &apply_check_hash));
+  optionHandler->insert("directory",           new OptionHandlerString(c, &apply_download_directory));
 
-  optionHandler->insert("hash_read_ahead",     new OptionHandlerInt(c, &apply_hash_read_ahead, &validate_hash_read_ahead));
-  optionHandler->insert("hash_interval",       new OptionHandlerInt(c, &apply_hash_interval, &validate_hash_interval));
-  optionHandler->insert("hash_max_tries",      new OptionHandlerInt(c, &apply_hash_max_tries, &validate_hash_max_tries));
-  optionHandler->insert("max_open_files",      new OptionHandlerInt(c, &apply_max_open_files, &validate_fd));
-  optionHandler->insert("max_open_sockets",    new OptionHandlerInt(c, &apply_max_open_sockets, &validate_fd));
+  optionHandler->insert("hash_read_ahead",     new OptionHandlerInt(c, &apply_hash_read_ahead));
+  optionHandler->insert("hash_interval",       new OptionHandlerInt(c, &apply_hash_interval));
+  optionHandler->insert("hash_max_tries",      new OptionHandlerInt(c, &apply_hash_max_tries));
+  optionHandler->insert("max_open_files",      new OptionHandlerInt(c, &apply_max_open_files));
+  optionHandler->insert("max_open_sockets",    new OptionHandlerInt(c, &apply_max_open_sockets));
 
-  optionHandler->insert("connection_leech",    new OptionHandlerString(c, &apply_connection_leech, &validate_non_empty));
-  optionHandler->insert("connection_seed",     new OptionHandlerString(c, &apply_connection_seed, &validate_non_empty));
+  optionHandler->insert("connection_leech",    new OptionHandlerString(c, &apply_connection_leech));
+  optionHandler->insert("connection_seed",     new OptionHandlerString(c, &apply_connection_seed));
 
-  optionHandler->insert("session",             new OptionHandlerString(c, &apply_session_directory, &validate_directory));
-  optionHandler->insert("encoding_list",       new OptionHandlerString(c, &apply_encoding_list, &validate_non_empty));
-  optionHandler->insert("tracker_dump",        new OptionHandlerString(c, &apply_tracker_dump, &validate_yes_no));
-  optionHandler->insert("use_udp_trackers",    new OptionHandlerString(c, &apply_use_udp_trackers, &validate_yes_no));
-}
-
-void
-load_option_file(const std::string& filename, OptionHandler* optionHandler, bool require = false) {
-  std::fstream f(filename.c_str(), std::ios::in);
-
-  if (!f.is_open()) {
-    std::cout << "Could not open option file \"" << filename << "\"" << std::endl;
-    return;
-  }
-
-  OptionFile optionFile;
-
-  optionFile.slot_option(sigc::mem_fun(*optionHandler, &OptionHandler::process));
-  optionFile.process(&f);
+  optionHandler->insert("session",             new OptionHandlerString(c, &apply_session_directory));
+  optionHandler->insert("encoding_list",       new OptionHandlerString(c, &apply_encoding_list));
+  optionHandler->insert("tracker_dump",        new OptionHandlerString(c, &apply_tracker_dump));
+  optionHandler->insert("use_udp_trackers",    new OptionHandlerString(c, &apply_use_udp_trackers));
 }
 
 void
@@ -198,12 +188,15 @@ main(int argc, char** argv) {
   utils::Timer::update();
 
   OptionHandler optionHandler;
-  Control   uiControl;
+  Control       uiControl;
 
   srandom(utils::Timer::cache().usec());
   srand48(utils::Timer::cache().usec());
 
   initialize_option_handler(&uiControl, &optionHandler);
+
+  OptionFile optionFile;
+  optionFile.slot_option(sigc::mem_fun(optionHandler, &OptionHandler::process));
 
   try {
 
@@ -215,8 +208,8 @@ main(int argc, char** argv) {
 
     uiControl.core()->initialize_first();
 
-    if (getenv("HOME"))
-      load_option_file(getenv("HOME") + std::string("/.rtorrent.rc"), &optionHandler);
+    if (getenv("HOME") && !optionFile.process_file(getenv("HOME") + std::string("/.rtorrent.rc")))
+      uiControl.core()->get_log_important().push_front("Could not load \"~/.rtorrent.rc\".");
 
     int firstArg = parse_options(&uiControl, &optionHandler, argc, argv);
 
@@ -250,13 +243,13 @@ main(int argc, char** argv) {
   } catch (torrent::base_error& e) {
     display::Canvas::cleanup();
 
-    std::cout << "Caught exception from libtorrent: \"" << e.what() << '"' << std::endl;
+    std::cout << "Caught exception from libtorrent: " << e.what() << std::endl;
     return -1;
 
   } catch (std::exception& e) {
     display::Canvas::cleanup();
 
-    std::cout << "Caught exception: \"" << e.what() << '"' << std::endl;
+    std::cout << e.what() << std::endl;
     return -1;
   }
 
@@ -288,8 +281,6 @@ do_panic(int signum) {
   
   if (signum == SIGBUS)
     std::cout << "A bus error propably means you ran out of diskspace." << std::endl;
-  
-  std::cout << "TO AVOID CORRUPT DOWNLOADS, RUN \"touch\" ON ALL DOWNLOADED FILES OR INITATE HASH RECHECK WITH ^R ON ALL TORRENTS." << std::endl;
 
   exit(-1);
 }

@@ -94,49 +94,57 @@ void
 Root::setup_keys() {
   m_control->input()->push_back(&m_bindings);
 
-  m_bindings['a']           = sigc::bind(sigc::mem_fun(*this, &Root::receive_up_throttle), 1);
-  m_bindings['z']           = sigc::bind(sigc::mem_fun(*this, &Root::receive_up_throttle), -1);
-  m_bindings['s']           = sigc::bind(sigc::mem_fun(*this, &Root::receive_up_throttle), 5);
-  m_bindings['x']           = sigc::bind(sigc::mem_fun(*this, &Root::receive_up_throttle), -5);
-  m_bindings['d']           = sigc::bind(sigc::mem_fun(*this, &Root::receive_up_throttle), 50);
-  m_bindings['c']           = sigc::bind(sigc::mem_fun(*this, &Root::receive_up_throttle), -50);
+  m_bindings['a']           = sigc::bind(sigc::mem_fun(*this, &Root::adjust_up_throttle), 1);
+  m_bindings['z']           = sigc::bind(sigc::mem_fun(*this, &Root::adjust_up_throttle), -1);
+  m_bindings['s']           = sigc::bind(sigc::mem_fun(*this, &Root::adjust_up_throttle), 5);
+  m_bindings['x']           = sigc::bind(sigc::mem_fun(*this, &Root::adjust_up_throttle), -5);
+  m_bindings['d']           = sigc::bind(sigc::mem_fun(*this, &Root::adjust_up_throttle), 50);
+  m_bindings['c']           = sigc::bind(sigc::mem_fun(*this, &Root::adjust_up_throttle), -50);
 
-  m_bindings['A']           = sigc::bind(sigc::mem_fun(*this, &Root::receive_down_throttle), 1);
-  m_bindings['Z']           = sigc::bind(sigc::mem_fun(*this, &Root::receive_down_throttle), -1);
-  m_bindings['S']           = sigc::bind(sigc::mem_fun(*this, &Root::receive_down_throttle), 5);
-  m_bindings['X']           = sigc::bind(sigc::mem_fun(*this, &Root::receive_down_throttle), -5);
-  m_bindings['D']           = sigc::bind(sigc::mem_fun(*this, &Root::receive_down_throttle), 50);
-  m_bindings['C']           = sigc::bind(sigc::mem_fun(*this, &Root::receive_down_throttle), -50);
+  m_bindings['A']           = sigc::bind(sigc::mem_fun(*this, &Root::adjust_down_throttle), 1);
+  m_bindings['Z']           = sigc::bind(sigc::mem_fun(*this, &Root::adjust_down_throttle), -1);
+  m_bindings['S']           = sigc::bind(sigc::mem_fun(*this, &Root::adjust_down_throttle), 5);
+  m_bindings['X']           = sigc::bind(sigc::mem_fun(*this, &Root::adjust_down_throttle), -5);
+  m_bindings['D']           = sigc::bind(sigc::mem_fun(*this, &Root::adjust_down_throttle), 50);
+  m_bindings['C']           = sigc::bind(sigc::mem_fun(*this, &Root::adjust_down_throttle), -50);
 
   m_bindings[KEY_RESIZE]    = sigc::mem_fun(*m_control->display(), &display::Manager::adjust_layout);
   m_bindings['\x11']        = sigc::mem_fun(*m_control, &Control::receive_shutdown);
 }
 
 void
-Root::receive_down_throttle(int t) {
+Root::set_down_throttle(unsigned int throttle) {
   if (m_windowStatusbar != NULL)
     m_windowStatusbar->mark_dirty();
 
-  torrent::set_down_throttle(std::max<int>(torrent::down_throttle() + t * 1024, 0));
+  torrent::set_down_throttle(throttle * 1024);
 }
 
 void
-Root::receive_up_throttle(int t) {
+Root::set_up_throttle(unsigned int throttle) {
   if (m_windowStatusbar != NULL)
     m_windowStatusbar->mark_dirty();
 
-  uint32_t throttle = std::max<int>(torrent::up_throttle() + t * 1024, 0);
-
-  torrent::set_up_throttle(throttle);
+  torrent::set_up_throttle(throttle * 1024);
 
   if (throttle == 0)
     torrent::set_max_unchoked(0);
 
-  else if (throttle <= 10 << 10)
-    torrent::set_max_unchoked(1 + throttle / (1 << 10));
+  else if (throttle <= 10)
+    torrent::set_max_unchoked(1 + throttle / 1);
 
   else
-    torrent::set_max_unchoked(10 + throttle / (5 << 10));
+    torrent::set_max_unchoked(10 + throttle / 5);
+}
+
+void
+Root::adjust_down_throttle(int throttle) {
+  set_down_throttle(std::max<int>(torrent::down_throttle() / 1024 + throttle, 0));
+}
+
+void
+Root::adjust_up_throttle(int throttle) {
+  set_up_throttle(std::max<int>(torrent::up_throttle() / 1024 + throttle, 0));
 }
 
 }

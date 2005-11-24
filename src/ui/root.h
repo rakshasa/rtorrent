@@ -60,8 +60,11 @@ public:
 
   WStatusbar*         window_statusbar()            { return m_windowStatusbar; }
 
-  void                receive_down_throttle(int t);
-  void                receive_up_throttle(int t);
+  void                set_down_throttle(unsigned int throttle);
+  void                set_up_throttle(unsigned int throttle);
+
+  void                adjust_down_throttle(int throttle);
+  void                adjust_up_throttle(int throttle);
 
 private:
   void                setup_keys();

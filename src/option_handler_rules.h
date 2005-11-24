@@ -48,19 +48,6 @@ class Control;
 
 // Not pretty, but it is simple and easy to modify.
 
-bool validate_ip(const std::string& arg);
-bool validate_directory(const std::string& arg);
-bool validate_port_range(const std::string& arg);
-bool validate_yes_no(const std::string& arg);
-bool validate_non_empty(const std::string& arg);
-
-bool validate_download_peers(int arg);
-bool validate_rate(int arg);
-bool validate_hash_read_ahead(int arg);
-bool validate_hash_interval(int arg);
-bool validate_hash_max_tries(int arg);
-bool validate_fd(int arg);
-
 void apply_download_min_peers(Control* m, int arg);
 void apply_download_max_peers(Control* m, int arg);
 void apply_download_max_uploads(Control* m, int arg);
@@ -91,47 +78,30 @@ void apply_encoding_list(Control* m, const std::string& arg);
 
 class OptionHandlerInt : public OptionHandlerBase {
 public:
-  typedef bool (*Validate)(int);
   typedef void (*Apply)(Control*, int);
 
-  OptionHandlerInt(Control* c, Apply a, Validate v) :
-    m_control(c), m_apply(a), m_validate(v) {}
+  OptionHandlerInt(Control* c, Apply a) :
+    m_control(c), m_apply(a) {}
 
-  virtual void process(const std::string& key, const std::string& arg) {
-    int a;
-    
-    if (std::sscanf(arg.c_str(), "%i", &a) != 1 ||
-	!m_validate(a))
-      throw std::runtime_error("Invalid argument for \"" + key + "\": \"" + arg + "\"");
-    
-    m_apply(m_control, a);
-  }
+  virtual void process(const std::string& key, const std::string& arg);
 
 private:
   Control* m_control;
   Apply        m_apply;
-  Validate     m_validate;
 };
 
 class OptionHandlerString : public OptionHandlerBase {
 public:
-  typedef bool (*Validate)(const std::string&);
   typedef void (*Apply)(Control*, const std::string&);
 
-  OptionHandlerString(Control* c, Apply a, Validate v) :
-    m_control(c), m_apply(a), m_validate(v) {}
+  OptionHandlerString(Control* c, Apply a) :
+    m_control(c), m_apply(a) {}
 
-  virtual void process(const std::string& key, const std::string& arg) {
-    if (!m_validate(arg))
-      throw std::runtime_error("Invalid argument for \"" + key + "\": \"" + arg + "\"");
-    
-    m_apply(m_control, arg);
-  }
+  virtual void process(const std::string& key, const std::string& arg);
 
 private:
   Control*     m_control;
   Apply        m_apply;
-  Validate     m_validate;
 };
 
 #endif

@@ -37,24 +37,26 @@
 #ifndef RTORRENT_OPTION_FILE_H
 #define RTORRENT_OPTION_FILE_H
 
-#include <iosfwd>
 #include <string>
 #include <sigc++/slot.h>
 
 class OptionFile {
 public:
-  static const int max_size_key = 64;
-  static const int max_size_opt = 512;
+  static const int max_size_key = 128;
+  static const int max_size_opt = 1024;
   static const int max_size_line = max_size_key + max_size_opt + 64;
 
   typedef sigc::slot2<void, const std::string&, const std::string&> SlotStringPair;
   
-  void                slot_option(const SlotStringPair& s) { m_slotOption = s; }
+  // Returns false when the file doesn't exist or cannot be opened.
+  bool                process_file(const std::string& filename);
 
-  void                process(std::istream* stream);
+  void                slot_option(const SlotStringPair& s) { m_slotOption = s; }
 
 private:
   void                parse_line(const char* line);
+
+  static char*        fill_buffer(int fd, char* buffer, char* first, char* last);
 
   SlotStringPair      m_slotOption;
 };
