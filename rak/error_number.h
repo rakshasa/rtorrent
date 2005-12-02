@@ -47,6 +47,8 @@ public:
   error_number() : m_errno(0) {}
   error_number(int e) : m_errno(e) {}
 
+  bool                is_valid() const             { return m_errno != 0; }
+
   int                 value() const                { return m_errno; }
   const char*         c_str() const                { return strerror(m_errno); }
 
