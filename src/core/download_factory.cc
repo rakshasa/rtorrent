@@ -41,9 +41,9 @@
 #include <stdexcept>
 #include <torrent/bencode.h>
 
-#include "utils/task.h"
 #include "curl_get.h"
 #include "http_queue.h"
+#include "globals.h"
 #include "manager.h"
 
 #include "download_factory.h"
@@ -60,16 +60,16 @@ DownloadFactory::DownloadFactory(const std::string& uri, Manager* m) :
   m_session(false),
   m_start(false) {
 
-  m_taskLoad.set_iterator(utils::taskScheduler.end());
+  m_taskLoad.set_iterator(taskScheduler.end());
   m_taskLoad.set_slot(sigc::mem_fun(*this, &DownloadFactory::receive_load));
 
-  m_taskCommit.set_iterator(utils::taskScheduler.end());
+  m_taskCommit.set_iterator(taskScheduler.end());
   m_taskCommit.set_slot(sigc::mem_fun(*this, &DownloadFactory::receive_commit));
 }  
 
 DownloadFactory::~DownloadFactory() {
-  utils::taskScheduler.erase(&m_taskLoad);
-  utils::taskScheduler.erase(&m_taskCommit);
+  taskScheduler.erase(&m_taskLoad);
+  taskScheduler.erase(&m_taskCommit);
 
   delete m_stream;
   m_stream = NULL;
@@ -77,12 +77,12 @@ DownloadFactory::~DownloadFactory() {
 
 void
 DownloadFactory::load() {
-  utils::taskScheduler.insert(&m_taskLoad, utils::Timer::cache());
+  taskScheduler.insert(&m_taskLoad, cachedTime);
 }
 
 void
 DownloadFactory::commit() {
-  utils::taskScheduler.insert(&m_taskCommit, utils::Timer::cache());
+  taskScheduler.insert(&m_taskCommit, cachedTime);
 }
 
 void

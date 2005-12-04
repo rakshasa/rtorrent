@@ -37,11 +37,11 @@
 #ifndef RTORRENT_WINDOW_BASE_H
 #define RTORRENT_WINDOW_BASE_H
 
+#include <rak/timer.h>
 #include <sigc++/slot.h>
 
 #include "canvas.h"
-#include "utils/task.h"
-#include "utils/timer.h"
+#include "globals.h"
 
 namespace display {
 
@@ -57,9 +57,9 @@ public:
 
   bool                is_active()                          { return m_active; }
   bool                is_dynamic()                         { return m_dynamic; }
-  bool                is_dirty()                           { return utils::displayScheduler.is_scheduled(&m_taskUpdate); }
+  bool                is_dirty()                           { return displayScheduler.is_scheduled(&m_taskUpdate); }
 
-  //utils::Timer        get_next_draw()                      { return m_nextDraw; }
+  //utils::rak::timer   get_next_draw()                      { return m_nextDraw; }
 
   int                 get_min_height()                     { return m_minHeight; }
 
@@ -92,8 +92,8 @@ protected:
 
 inline void
 Window::mark_dirty() {
-  utils::displayScheduler.erase(&m_taskUpdate);
-  utils::displayScheduler.insert(&m_taskUpdate, utils::Timer::cache());
+  displayScheduler.erase(&m_taskUpdate);
+  displayScheduler.insert(&m_taskUpdate, cachedTime);
 }
 
 }

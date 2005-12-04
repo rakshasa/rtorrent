@@ -39,7 +39,7 @@
 
 #include <torrent/torrent.h>
 
-#include "utils/task.h"
+#include "globals.h"
 
 namespace ui {
   class Root;

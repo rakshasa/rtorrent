@@ -50,12 +50,12 @@ Window::Window(Canvas* c, bool d, int h) :
   m_dynamic(d),
   m_minHeight(h) {
 
-  m_taskUpdate.set_iterator(utils::displayScheduler.end());
+  m_taskUpdate.set_iterator(displayScheduler.end());
   m_taskUpdate.set_slot(sigc::mem_fun(*this, &Window::redraw));
 }
 
 Window::~Window() {
-  utils::displayScheduler.erase(&m_taskUpdate);
+  displayScheduler.erase(&m_taskUpdate);
   delete m_canvas;
 }
 
@@ -64,7 +64,7 @@ Window::set_active(bool a) {
   if (a)
     mark_dirty();
   else
-    utils::displayScheduler.erase(&m_taskUpdate);
+    displayScheduler.erase(&m_taskUpdate);
 
   m_active = a;
 }

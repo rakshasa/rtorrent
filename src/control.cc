@@ -59,7 +59,7 @@ Control::Control() :
 
   m_inputStdin->slot_pressed(sigc::mem_fun(m_input, &input::Manager::pressed));
 
-  m_taskShutdown.set_iterator(utils::taskScheduler.end());
+  m_taskShutdown.set_iterator(taskScheduler.end());
   m_taskShutdown.set_slot(sigc::mem_fun(*this, &Control::receive_shutdown));
 }
 
@@ -90,7 +90,7 @@ Control::initialize() {
 
 void
 Control::cleanup() {
-  utils::taskScheduler.erase(&m_taskShutdown);
+  taskScheduler.erase(&m_taskShutdown);
 
   m_inputStdin->remove(m_core->get_poll_manager()->get_torrent_poll());
 
@@ -113,8 +113,8 @@ Control::receive_shutdown() {
     m_core->shutdown(false);
     m_shutdownReceived = true;
 
-    if (!utils::taskScheduler.is_scheduled(&m_taskShutdown))
-      utils::taskScheduler.insert(&m_taskShutdown, utils::Timer::cache() + 5 * 1000000);
+    if (!taskScheduler.is_scheduled(&m_taskShutdown))
+      taskScheduler.insert(&m_taskShutdown, cachedTime + 5 * 1000000);
 
   } else {
     m_core->shutdown(true);

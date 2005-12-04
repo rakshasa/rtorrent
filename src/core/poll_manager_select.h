@@ -50,7 +50,7 @@ public:
   static PollManagerSelect* create(int maxOpenSockets);
   ~PollManagerSelect();
 
-  void                poll(utils::Timer timeout);
+  void                poll(rak::timer timeout);
 
 private:
   PollManagerSelect(torrent::Poll* p) : PollManager(p) {}

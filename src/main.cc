@@ -62,28 +62,20 @@
 #include "display/manager.h"
 #include "input/bindings.h"
 
-#include "utils/task.h"
-#include "utils/timer.h"
 #include "utils/directory.h"
 
 #include "control.h"
+#include "globals.h"
 #include "signal_handler.h"
 #include "option_file.h"
 #include "option_handler.h"
 #include "option_handler_rules.h"
 #include "option_parser.h"
 
-int64_t utils::Timer::m_cache;
-
 uint32_t countTicks = 0;
 
 void do_panic(int signum);
 void print_help();
-
-namespace utils {
-  TaskScheduler taskScheduler;
-  TaskScheduler displayScheduler;
-}
 
 bool
 is_resized() {
@@ -185,13 +177,13 @@ load_arg_torrents(Control* c, char** first, char** last) {
 
 int
 main(int argc, char** argv) {
-  utils::Timer::update();
+  cachedTime = rak::timer::current();
 
   OptionHandler optionHandler;
   Control       uiControl;
 
-  srandom(utils::Timer::cache().usec());
-  srand48(utils::Timer::cache().usec());
+  srandom(cachedTime.usec());
+  srand48(cachedTime.usec());
 
   initialize_option_handler(&uiControl, &optionHandler);
 
@@ -223,19 +215,19 @@ main(int argc, char** argv) {
     while (!uiControl.is_shutdown_completed()) {
       countTicks++;
 
-      utils::Timer::update();
-      utils::taskScheduler.execute(utils::Timer::cache());
+      cachedTime = rak::timer::current();
+      taskScheduler.execute(cachedTime);
 
       // This needs to be called every second or so. Currently done by
       // the throttle task in libtorrent.
-      if (!utils::displayScheduler.empty() &&
-	  utils::displayScheduler.get_next_timeout() <= utils::Timer::cache())
+      if (!displayScheduler.empty() &&
+	  displayScheduler.get_next_timeout() <= cachedTime)
 	uiControl.display()->do_update();
 
       // Do shutdown check before poll, not after.
-      uiControl.core()->get_poll_manager()->poll(!utils::taskScheduler.empty() ?
-						    utils::taskScheduler.get_next_timeout() - utils::Timer::cache() :
-						    60 * 1000000);
+      uiControl.core()->get_poll_manager()->poll(!taskScheduler.empty() ?
+						 taskScheduler.get_next_timeout() - cachedTime :
+						 60 * 1000000);
     }
 
     uiControl.cleanup();
@@ -288,7 +280,7 @@ do_panic(int signum) {
 void
 receive_tracker_dump(std::istream* s) {
   std::stringstream filename;
-  filename << "./tracker_dump." << utils::Timer::current().seconds();
+  filename << "./tracker_dump." << rak::timer::current().seconds();
 
   std::fstream out(filename.str().c_str(), std::ios::out | std::ios::trunc);
 

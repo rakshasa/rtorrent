@@ -63,7 +63,7 @@ private:
 
     core::CurlGet* m_http;
     std::string    m_name;
-    utils::Timer          m_timer;
+    rak::timer     m_timer;
   };
 
   typedef std::list<Node> Container;

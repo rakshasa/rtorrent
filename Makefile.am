@@ -8,6 +8,7 @@ EXTRA_DIST= \
 	rak/error_number.h \
 	rak/functional.h \
 	rak/string_manip.h \
+	rak/timer.h \
 	rak/unordered_vector.h \
 	scripts/checks.m4 \
 	scripts/common.m4

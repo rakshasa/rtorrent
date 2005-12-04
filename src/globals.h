@@ -34,16 +34,15 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef RTORRENT_UTILS_TASK_H
-#define RTORRENT_UTILS_TASK_H
+#ifndef TORRENT_GLOBALS_H
+#define TORRENT_GLOBALS_H
 
-#include "task_scheduler.h"
+#include <rak/timer.h>
 
-namespace utils {
-  
-extern TaskScheduler taskScheduler;
-extern TaskScheduler displayScheduler;
-  
-}
+#include "utils/task_scheduler.h"
+
+extern utils::TaskScheduler taskScheduler;
+extern utils::TaskScheduler displayScheduler;
+extern rak::timer           cachedTime;
 
 #endif

@@ -37,15 +37,16 @@
 #include "config.h"
 
 #include <algorithm>
+#include <rak/functional.h>
 
+#include "globals.h"
 #include "log.h"
-#include "rak/functional.h"
 
 namespace core {
 
 void
 Log::push_front(const std::string& msg) {
-  Base::push_front(Type(utils::Timer::cache(), msg));
+  Base::push_front(Type(cachedTime, msg));
 
   if (size() > 50)
     Base::pop_back();
@@ -54,8 +55,8 @@ Log::push_front(const std::string& msg) {
 }
 
 Log::iterator
-Log::find_older(utils::Timer t) {
-  return std::find_if(begin(), end(), rak::on(rak::mem_ptr_ref(&Type::first), std::bind2nd(std::less_equal<utils::Timer>(), t)));
+Log::find_older(rak::timer t) {
+  return std::find_if(begin(), end(), rak::on(rak::mem_ptr_ref(&Type::first), std::bind2nd(std::less_equal<rak::timer>(), t)));
 }
 
 }

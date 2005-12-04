@@ -36,10 +36,12 @@
 
 #include "config.h"
 
+#include <rak/algorithm.h>
+
 #include "core/download.h"
-#include "rak/algorithm.h"
 
 #include "canvas.h"
+#include "globals.h"
 #include "utils.h"
 #include "window_download_list.h"
 
@@ -58,7 +60,7 @@ WindowDownloadList::~WindowDownloadList() {
 
 void
 WindowDownloadList::redraw() {
-  utils::displayScheduler.insert(&m_taskUpdate, (utils::Timer::cache() + 1000000).round_seconds());
+  displayScheduler.insert(&m_taskUpdate, (cachedTime + 1000000).round_seconds());
 
   m_canvas->erase();
 

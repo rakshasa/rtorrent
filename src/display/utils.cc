@@ -43,7 +43,7 @@
 #include <torrent/tracker.h>
 
 #include "core/download.h"
-#include "utils/timer.h"
+#include <rak/timer.h>
 
 #include "utils.h"
 

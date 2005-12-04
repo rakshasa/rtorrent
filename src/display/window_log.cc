@@ -60,7 +60,7 @@ WindowLog::~WindowLog() {
 
 WindowLog::iterator
 WindowLog::find_older() {
-  return m_log->find_older(utils::Timer::cache() - 60*1000000);
+  return m_log->find_older(cachedTime - 60*1000000);
 }
 
 void

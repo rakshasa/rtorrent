@@ -37,10 +37,10 @@
 #include "config.h"
 
 #include <stdexcept>
+#include <rak/algorithm.h>
 #include <torrent/path.h>
 
 #include "core/download.h"
-#include "rak/algorithm.h"
 
 #include "window_file_list.h"
 
@@ -54,7 +54,7 @@ WindowFileList::WindowFileList(core::Download* d, unsigned int* focus) :
 
 void
 WindowFileList::redraw() {
-  utils::displayScheduler.insert(&m_taskUpdate, (utils::Timer::cache() + 10 * 1000000).round_seconds());
+  displayScheduler.insert(&m_taskUpdate, (cachedTime + 10 * 1000000).round_seconds());
   m_canvas->erase();
 
   if (m_download->get_download().size_file_entries() == 0 ||

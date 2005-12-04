@@ -38,9 +38,8 @@
 #define RTORRENT_UTILS_TASK_ITEM_H
 
 #include <list>
+#include <rak/timer.h>
 #include <sigc++/slot.h>
-
-#include "utils/timer.h"
 
 namespace utils {
 
@@ -48,8 +47,8 @@ namespace utils {
 
 class TaskItem {
 public:
-  typedef sigc::slot<void>                                  Slot;
-  typedef std::list<std::pair<Timer, TaskItem*> >::iterator iterator;
+  typedef sigc::slot<void>                                       Slot;
+  typedef std::list<std::pair<rak::timer, TaskItem*> >::iterator iterator;
 
   TaskItem(Slot s = Slot()) : m_slot(s) {}
 
@@ -60,7 +59,7 @@ public:
   const iterator      get_iterator() const          { return m_iterator; }
   void                set_iterator(iterator itr)    { m_iterator = itr; }
 
-  const Timer&        get_time() const              { return m_iterator->first; }
+  const rak::timer&   get_time() const              { return m_iterator->first; }
 
 private:
   TaskItem(const TaskItem& t);

@@ -38,11 +38,11 @@
 #define RTORRENT_CORE_POLL_MANAGER_H
 
 #include <sys/select.h>
+#include <rak/timer.h>
 #include <sigc++/signal.h>
 #include <torrent/poll.h>
 
 #include "curl_stack.h"
-#include "utils/timer.h"
 
 namespace core {
 
@@ -61,7 +61,7 @@ public:
   CurlStack*          get_http_stack()             { return &m_httpStack; }
   torrent::Poll*      get_torrent_poll()           { return m_poll; }
 
-  virtual void        poll(utils::Timer timeout) = 0;
+  virtual void        poll(rak::timer timeout) = 0;
 
   // Use a signal, connect checking for input and updating the display.
   Signal&             signal_interrupted()         { return m_signalInterrupted; }

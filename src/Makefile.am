@@ -17,6 +17,8 @@ rtorrent_LDADD = \
 rtorrent_SOURCES = \
 	control.cc \
 	control.h \
+	globals.cc \
+	globals.h \
 	main.cc \
 	option_file.cc \
 	option_file.h \

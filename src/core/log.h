@@ -41,13 +41,13 @@
 #include <string>
 #include <sigc++/signal.h>
 
-#include "utils/timer.h"
+#include <rak/timer.h>
 
 namespace core {
 
-class Log : private std::deque<std::pair<utils::Timer, std::string> > {
+class Log : private std::deque<std::pair<rak::timer, std::string> > {
 public:
-  typedef std::pair<utils::Timer, std::string> Type;
+  typedef std::pair<rak::timer, std::string> Type;
   typedef std::deque<Type>                     Base;
   typedef sigc::signal0<void>                  Signal;
 
@@ -66,7 +66,7 @@ public:
 
   void      push_front(const std::string& msg);
 
-  iterator  find_older(utils::Timer t);
+  iterator  find_older(rak::timer t);
 
   Signal&   signal_update() { return m_signalUpdate; }
 

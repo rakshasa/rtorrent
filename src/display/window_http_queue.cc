@@ -58,7 +58,7 @@ WindowHttpQueue::WindowHttpQueue(core::HttpQueue* q) :
 
 void
 WindowHttpQueue::redraw() {
-  utils::displayScheduler.insert(&m_taskUpdate, (utils::Timer::cache() + 1000000).round_seconds());
+  displayScheduler.insert(&m_taskUpdate, (cachedTime + 1000000).round_seconds());
 
   cleanup_list();
 
@@ -95,7 +95,7 @@ WindowHttpQueue::redraw() {
 void
 WindowHttpQueue::cleanup_list() {
   for (Container::iterator itr = m_container.begin(); itr != m_container.end();)
-    if (itr->m_http == NULL && itr->m_timer < utils::Timer::cache())
+    if (itr->m_http == NULL && itr->m_timer < cachedTime)
       itr = m_container.erase(itr);
     else
       ++itr;
@@ -147,7 +147,7 @@ WindowHttpQueue::receive_erase(core::CurlGet* h) {
     throw std::logic_error("WindowHttpQueue::receive_erase(...) tried to remove an object we don't have");
 
   itr->m_http = NULL;
-  itr->m_timer = utils::Timer::cache() + 10000000;
+  itr->m_timer = cachedTime + 10000000;
 
   mark_dirty();
 }

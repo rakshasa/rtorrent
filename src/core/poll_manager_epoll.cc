@@ -61,11 +61,11 @@ PollManagerEPoll::~PollManagerEPoll() {
 }
 
 void
-PollManagerEPoll::poll(utils::Timer timeout) {
+PollManagerEPoll::poll(rak::timer timeout) {
   // Add 1ms to ensure we don't idle loop due to the lack of
   // resolution.
   torrent::perform();
-  timeout = std::min(timeout, utils::Timer(torrent::next_timeout()));
+  timeout = std::min(timeout, rak::timer(torrent::next_timeout()));
 
   if (m_httpStack.is_busy()) {
     // When we're using libcurl we need to use select, but as this is
@@ -99,7 +99,7 @@ PollManagerEPoll::poll(utils::Timer timeout) {
     }
 
     // Clear the timeout since we've already used it in the select call.
-    timeout = utils::Timer();
+    timeout = rak::timer();
   }
 
   // Yes, below is how much code really *should* have been in this

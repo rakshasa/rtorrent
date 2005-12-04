@@ -1,4 +1,4 @@
-// rTorrent - BitTorrent client
+// rTorrent - BitTorrent library
 // Copyright (C) 2005, Jari Sundell
 //
 // This program is free software; you can redistribute it and/or modify
@@ -36,50 +36,8 @@
 
 #include "config.h"
 
-#include <ctime>
+#include "globals.h"
 
-#include "canvas.h"
-#include "utils.h"
-#include "window_log_complete.h"
-
-namespace display {
-
-WindowLogComplete::WindowLogComplete(core::Log* l) :
-  Window(new Canvas, true),
-  m_log(l) {
-
-  // We're trying out scheduled tasks instead.
-  m_connUpdate = l->signal_update().connect(sigc::mem_fun(*this, &WindowLogComplete::receive_update));
-}
-
-WindowLogComplete::~WindowLogComplete() {
-  m_connUpdate.disconnect();
-}
-
-WindowLogComplete::iterator
-WindowLogComplete::find_older() {
-  return m_log->find_older(cachedTime - 60*1000000);
-}
-
-void
-WindowLogComplete::redraw() {
-  m_canvas->erase();
-
-  int pos = 0;
-
-  m_canvas->print(std::max(0, (int)m_canvas->get_width() / 2 - 5), pos++, "*** Log ***");
-
-  for (core::Log::iterator itr = m_log->begin(), e = m_log->end(); itr != e && pos < m_canvas->get_height(); ++itr) {
-    char buffer[16];
-    print_hhmmss(buffer, 16, static_cast<time_t>(itr->first.seconds()));
-
-    m_canvas->print(0, pos++, "(%s) %s", buffer, itr->second.c_str());
-  }
-}
-
-void
-WindowLogComplete::receive_update() {
-  mark_dirty();
-}
-
-}
+utils::TaskScheduler taskScheduler;
+utils::TaskScheduler displayScheduler;
+rak::timer           cachedTime;

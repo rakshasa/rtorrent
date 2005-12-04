@@ -38,6 +38,7 @@
 #define RAK_ALGORITHM_H
 
 #include <algorithm>
+#include <functional>
 
 namespace rak {
 
@@ -90,8 +91,7 @@ advance_bidirectional(_InputIter __first, _InputIter __middle1, _InputIter __las
 }
 
 template <typename _Value>
-struct
-compare_base : public std::binary_function<_Value, _Value, bool> {
+struct compare_base : public std::binary_function<_Value, _Value, bool> {
   bool operator () (const _Value& complete, const _Value& base) const {
     return !complete.compare(0, base.size(), base);
   }

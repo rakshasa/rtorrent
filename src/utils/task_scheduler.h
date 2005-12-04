@@ -41,9 +41,9 @@
 
 namespace utils {
 
-class TaskScheduler : private std::list<std::pair<Timer, TaskItem*> > {
+class TaskScheduler : private std::list<std::pair<rak::timer, TaskItem*> > {
 public:
-  typedef std::list<std::pair<Timer, TaskItem*> > Base;
+  typedef std::list<std::pair<rak::timer, TaskItem*> > Base;
 
   using Base::value_type;
   using Base::reference;
@@ -60,14 +60,14 @@ public:
 
   TaskScheduler() : m_entry(begin()) {}
 
-  void                insert(TaskItem* task, Timer time);
+  void                insert(TaskItem* task, rak::timer time);
   void                erase(TaskItem* task);
 
-  void                execute(Timer time);
+  void                execute(rak::timer time);
 
   bool                is_scheduled(const TaskItem* task) const { return task->get_iterator() != end(); }
 
-  Timer               get_next_timeout() const                 { return begin()->first; }
+  rak::timer          get_next_timeout() const                 { return begin()->first; }
 
 private:
   iterator            m_entry;

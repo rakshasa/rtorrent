@@ -41,8 +41,9 @@
 
 #include "core/download_list.h"
 #include "display/manager.h"
-#include "utils/task.h"
 #include "utils/list_focus.h"
+
+#include "globals.h"
 
 class Control;
 

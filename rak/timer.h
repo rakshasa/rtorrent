@@ -1,4 +1,4 @@
-// rTorrent - BitTorrent client
+// libTorrent - BitTorrent library
 // Copyright (C) 2005, Jari Sundell
 //
 // This program is free software; you can redistribute it and/or modify
@@ -34,63 +34,56 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef RTORRENT_UTILS_TIMER_H
-#define RTORRENT_UTILS_TIMER_H
+#ifndef RAK_TIMER_H
+#define RAK_TIMER_H
 
 #include <inttypes.h>
 #include <sys/time.h>
 
-namespace utils {
+namespace rak {
 
 // Don't convert negative Timer to timeval and then back to Timer, that will bork.
-class Timer {
+class timer {
  public:
-  Timer() : m_time(0) {}
-  Timer(int64_t usec) : m_time(usec) {}
-  Timer(timeval tv) : m_time((int64_t)(uint32_t)tv.tv_sec * 1000000 + (int64_t)(uint32_t)tv.tv_usec % 1000000) {}
+  timer() : m_time(0) {}
+  timer(int64_t usec) : m_time(usec) {}
+  timer(timeval tv) : m_time((int64_t)(uint32_t)tv.tv_sec * 1000000 + (int64_t)(uint32_t)tv.tv_usec % 1000000) {}
 
   int32_t             seconds() const                    { return m_time / 1000000; }
   int64_t             usec() const                       { return m_time; }
 
-  Timer               round_seconds() const              { return (m_time / 1000000) * 1000000; }
+  timer               round_seconds() const              { return (m_time / 1000000) * 1000000; }
 
   timeval             tval() const                       { return (timeval) { m_time / 1000000, m_time % 1000000}; }
 
-  static Timer        current();
+  static timer        current();
 
-  // Cached time, updated in the beginning of torrent::work call.
-  // Don't use outside socket_base read/write/except or Service::service.
-  static Timer        cache()                            { return Timer(m_cache); }
+  bool                operator <  (const timer& t) const { return m_time < t.m_time; }
+  bool                operator >  (const timer& t) const { return m_time > t.m_time; }
+  bool                operator <= (const timer& t) const { return m_time <= t.m_time; }
+  bool                operator >= (const timer& t) const { return m_time >= t.m_time; }
+  bool                operator == (const timer& t) const { return m_time == t.m_time; }
+  bool                operator != (const timer& t) const { return m_time != t.m_time; }
 
-  static void         update()                           { m_cache = Timer::current().usec(); }
+  timer               operator - (const timer& t) const  { return timer(m_time - t.m_time); }
+  timer               operator + (const timer& t) const  { return timer(m_time + t.m_time); }
 
-  bool                operator <  (const Timer& t) const { return m_time < t.m_time; }
-  bool                operator >  (const Timer& t) const { return m_time > t.m_time; }
-  bool                operator <= (const Timer& t) const { return m_time <= t.m_time; }
-  bool                operator >= (const Timer& t) const { return m_time >= t.m_time; }
+  timer               operator -= (int64_t t)            { m_time -= t; return *this; }
+  timer               operator -= (const timer& t)       { m_time -= t.m_time; return *this; }
 
-  Timer               operator - (const Timer& t) const  { return Timer(m_time - t.m_time); }
-  Timer               operator + (const Timer& t) const  { return Timer(m_time + t.m_time); }
-
-  Timer               operator -= (int64_t t)            { m_time -= t; return *this; }
-  Timer               operator -= (const Timer& t)       { m_time -= t.m_time; return *this; }
-
-  Timer               operator += (int64_t t)            { m_time += t; return *this; }
-  Timer               operator += (const Timer& t)       { m_time += t.m_time; return *this; }
+  timer               operator += (int64_t t)            { m_time += t; return *this; }
+  timer               operator += (const timer& t)       { m_time += t.m_time; return *this; }
 
  private:
   int64_t             m_time;
-
-  // Instantiated in torrent.cc
-  static int64_t      m_cache;
 };
 
-inline Timer
-Timer::current() {
+inline timer
+timer::current() {
   timeval t;
   gettimeofday(&t, 0);
   
-  return Timer(t);
+  return timer(t);
 }
 
 }

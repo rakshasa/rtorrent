@@ -38,10 +38,10 @@
 
 #include <stdexcept>
 #include <algorithm>
-
-#include "rak/functional.h"
+#include <rak/functional.h>
 
 #include "canvas.h"
+#include "globals.h"
 #include "manager.h"
 #include "window.h"
 
@@ -98,7 +98,7 @@ void
 Manager::do_update() {
   Canvas::refresh_std();
 
-  utils::displayScheduler.execute(utils::Timer::cache());
+  displayScheduler.execute(cachedTime);
   std::for_each(begin(), end(), rak::if_then(std::mem_fun(&Window::is_active), std::mem_fun(&Window::refresh)));
 
   Canvas::do_update();

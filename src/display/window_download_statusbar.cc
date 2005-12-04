@@ -39,6 +39,7 @@
 #include <torrent/rate.h>
 
 #include "canvas.h"
+#include "globals.h"
 #include "utils.h"
 #include "window_download_statusbar.h"
 
@@ -53,7 +54,7 @@ WindowDownloadStatusbar::WindowDownloadStatusbar(core::Download* d) :
 
 void
 WindowDownloadStatusbar::redraw() {
-  utils::displayScheduler.insert(&m_taskUpdate, (utils::Timer::cache() + 1000000).round_seconds());
+  displayScheduler.insert(&m_taskUpdate, (cachedTime + 1000000).round_seconds());
 
   m_canvas->erase();
 
