@@ -136,6 +136,8 @@ initialize_option_handler(Control* c, OptionHandler* optionHandler) {
   optionHandler->insert("max_open_files",      new OptionHandlerInt(c, &apply_max_open_files));
   optionHandler->insert("max_open_sockets",    new OptionHandlerInt(c, &apply_max_open_sockets));
 
+  optionHandler->insert("umask",               new OptionHandlerOctal(c, &apply_umask));
+
   optionHandler->insert("connection_leech",    new OptionHandlerString(c, &apply_connection_leech));
   optionHandler->insert("connection_seed",     new OptionHandlerString(c, &apply_connection_seed));
 
@@ -143,6 +145,8 @@ initialize_option_handler(Control* c, OptionHandler* optionHandler) {
   optionHandler->insert("encoding_list",       new OptionHandlerString(c, &apply_encoding_list));
   optionHandler->insert("tracker_dump",        new OptionHandlerString(c, &apply_tracker_dump));
   optionHandler->insert("use_udp_trackers",    new OptionHandlerString(c, &apply_use_udp_trackers));
+
+  optionHandler->insert("http_proxy",          new OptionHandlerString(c, &apply_http_proxy));
 }
 
 void

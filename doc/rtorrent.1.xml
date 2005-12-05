@@ -395,6 +395,15 @@
       </varlistentry>
 
       <varlistentry>
+        <term>http_proxy = <replaceable>url</replaceable></term>
+        <listitem><para>
+
+          Use a http proxy. Use an empty string to disable.
+
+        </para></listitem>
+      </varlistentry>
+
+      <varlistentry>
         <term>encoding_list = <replaceable>encoding</replaceable></term>
         <listitem><para>
 
@@ -464,22 +473,32 @@
       </varlistentry>
 
       <varlistentry>
-        <term>throttle_interval = <replaceable>ms</replaceable></term>
+        <term>umask = <replaceable>0644</replaceable></term>
         <listitem><para>
-          Interval between throttle ticks in milli-seconds, must be
-          between <emphasis>1-5000</emphasis> and defaults to
-          <emphasis>1000</emphasis>. Shorter intervals will cause less
-          bandwidth usage spikes while requiring more CPU resources.
+
+          Set the umask for this process, which is applied to all
+          files created by the program.
+
         </para></listitem>
       </varlistentry>
 
-      <varlistentry>
-        <term>tracker_dump = <replaceable>yes | no</replaceable></term>
-        <listitem><para>
-          Dump data received from trackers to the files
-          "./tracker_dump.*".
-        </para></listitem>
-      </varlistentry>
+<!--       <varlistentry> -->
+<!--         <term>throttle_interval = <replaceable>ms</replaceable></term> -->
+<!--         <listitem><para> -->
+<!--           Interval between throttle ticks in milli-seconds, must be -->
+<!--           between <emphasis>1-5000</emphasis> and defaults to -->
+<!--           <emphasis>1000</emphasis>. Shorter intervals will cause less -->
+<!--           bandwidth usage spikes while requiring more CPU resources. -->
+<!--         </para></listitem> -->
+<!--       </varlistentry> -->
+
+<!--       <varlistentry> -->
+<!--         <term>tracker_dump = <replaceable>yes | no</replaceable></term> -->
+<!--         <listitem><para> -->
+<!--           Dump data received from trackers to the files -->
+<!--           "./tracker_dump.*". -->
+<!--         </para></listitem> -->
+<!--       </varlistentry> -->
 
     </variablelist>
 

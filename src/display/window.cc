@@ -51,7 +51,7 @@ Window::Window(Canvas* c, bool d, int h) :
   m_minHeight(h) {
 
   m_taskUpdate.set_iterator(displayScheduler.end());
-  m_taskUpdate.set_slot(sigc::mem_fun(*this, &Window::redraw));
+  m_taskUpdate.set_slot(rak::mem_fn(this, &Window::redraw));
 }
 
 Window::~Window() {

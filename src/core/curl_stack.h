@@ -68,6 +68,9 @@ class CurlStack {
   const std::string&  user_agent() const                   { return m_userAgent; }
   void                set_user_agent(const std::string& s) { m_userAgent = s; }
 
+  const std::string&  http_proxy() const                   { return m_httpProxy; }
+  void                set_http_proxy(const std::string& s) { m_httpProxy = s; }
+
   static void         global_init();
   static void         global_cleanup();
 
@@ -85,6 +88,7 @@ class CurlStack {
   CurlGetList         m_getList;
 
   std::string         m_userAgent;
+  std::string         m_httpProxy;
 };
 
 }

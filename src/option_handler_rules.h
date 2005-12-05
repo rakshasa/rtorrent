@@ -59,6 +59,8 @@ void apply_connection_seed(Control* m, const std::string& arg);
 void apply_global_download_rate(Control* m, int arg);
 void apply_global_upload_rate(Control* m, int arg);
 
+void apply_umask(Control* m, int arg);
+
 void apply_hash_read_ahead(Control* m, int arg);
 void apply_hash_interval(Control* m, int arg);
 void apply_hash_max_tries(Control* m, int arg);
@@ -73,6 +75,8 @@ void apply_tracker_dump(Control* m, const std::string& arg);
 void apply_use_udp_trackers(Control* m, const std::string& arg);
 void apply_check_hash(Control* m, const std::string& arg);
 
+void apply_http_proxy(Control* m, const std::string& arg);
+
 void apply_session_directory(Control* m, const std::string& arg);
 void apply_encoding_list(Control* m, const std::string& arg);
 
@@ -81,6 +85,20 @@ public:
   typedef void (*Apply)(Control*, int);
 
   OptionHandlerInt(Control* c, Apply a) :
+    m_control(c), m_apply(a) {}
+
+  virtual void process(const std::string& key, const std::string& arg);
+
+private:
+  Control* m_control;
+  Apply        m_apply;
+};
+
+class OptionHandlerOctal : public OptionHandlerBase {
+public:
+  typedef void (*Apply)(Control*, int);
+
+  OptionHandlerOctal(Control* c, Apply a) :
     m_control(c), m_apply(a) {}
 
   virtual void process(const std::string& key, const std::string& arg);

@@ -61,10 +61,10 @@ DownloadFactory::DownloadFactory(const std::string& uri, Manager* m) :
   m_start(false) {
 
   m_taskLoad.set_iterator(taskScheduler.end());
-  m_taskLoad.set_slot(sigc::mem_fun(*this, &DownloadFactory::receive_load));
+  m_taskLoad.set_slot(rak::mem_fn(this, &DownloadFactory::receive_load));
 
   m_taskCommit.set_iterator(taskScheduler.end());
-  m_taskCommit.set_slot(sigc::mem_fun(*this, &DownloadFactory::receive_commit));
+  m_taskCommit.set_slot(rak::mem_fn(this, &DownloadFactory::receive_commit));
 }  
 
 DownloadFactory::~DownloadFactory() {

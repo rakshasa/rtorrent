@@ -67,6 +67,7 @@ class CurlGet : public torrent::Http {
   double             size_total();
 
   void               set_user_agent(const char* s);
+  void               set_http_proxy(const char* s);
 
  protected:
   CURL*              handle()                       { return m_handle; }

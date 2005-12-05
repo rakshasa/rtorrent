@@ -133,6 +133,11 @@ CurlGet::set_user_agent(const char* s) {
 }
 
 void
+CurlGet::set_http_proxy(const char* s) {
+  curl_easy_setopt(m_handle, CURLOPT_PROXY, s);
+}
+
+void
 CurlGet::perform(CURLMsg* msg) {
   if (msg->msg != CURLMSG_DONE)
     throw std::logic_error("CurlGet::process got CURLMSG that isn't done");

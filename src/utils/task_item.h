@@ -39,7 +39,7 @@
 
 #include <list>
 #include <rak/timer.h>
-#include <sigc++/slot.h>
+#include <rak/functional_fun.h>
 
 namespace utils {
 
@@ -47,10 +47,10 @@ namespace utils {
 
 class TaskItem {
 public:
-  typedef sigc::slot<void>                                       Slot;
+  typedef rak::function<void>                                    Slot;
   typedef std::list<std::pair<rak::timer, TaskItem*> >::iterator iterator;
 
-  TaskItem(Slot s = Slot()) : m_slot(s) {}
+  TaskItem() {}
 
   Slot&               get_slot()                    { return m_slot; }
   void                set_slot(Slot s)              { m_slot = s; }

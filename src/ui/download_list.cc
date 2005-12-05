@@ -86,7 +86,7 @@ DownloadList::DownloadList(Control* c) :
   m_windowLog                      = new WLog(&m_control->core()->get_log_important());
 
   m_taskUpdate.set_iterator(taskScheduler.end());
-  m_taskUpdate.set_slot(sigc::mem_fun(*this, &DownloadList::task_update)),
+  m_taskUpdate.set_slot(rak::mem_fn(this, &DownloadList::task_update)),
 
   setup_keys();
   setup_input();

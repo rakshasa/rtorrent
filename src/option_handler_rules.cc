@@ -37,9 +37,11 @@
 #include "config.h"
 
 #include <arpa/inet.h>
+#include <netinet/in.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <torrent/exceptions.h>
 #include <torrent/torrent.h>
-#include <netinet/in.h>
 
 #include "core/manager.h"
 #include "ui/root.h"
@@ -55,7 +57,17 @@ OptionHandlerInt::process(const std::string& key, const std::string& arg) {
   int a;
     
   if (std::sscanf(arg.c_str(), "%i", &a) != 1)
-    throw torrent::input_error("Invalid argument for \"" + key + "\": \"" + arg + "\"");
+    throw torrent::input_error("Invalid argument for \"" + key + "\": \"" + arg + "\", must be an integer.");
+    
+  m_apply(m_control, a);
+}
+
+void
+OptionHandlerOctal::process(const std::string& key, const std::string& arg) {
+  int a;
+    
+  if (std::sscanf(arg.c_str(), "%o", &a) != 1)
+    throw torrent::input_error("Invalid argument for \"" + key + "\": \"" + arg + "\", must be an octal.");
     
   m_apply(m_control, a);
 }
@@ -108,6 +120,11 @@ apply_global_download_rate(Control* m, int arg) {
 void
 apply_global_upload_rate(Control* m, int arg) {
   m->ui()->set_up_throttle(arg);
+}
+
+void
+apply_umask(Control* m, int arg) {
+  umask(arg);
 }
 
 void
@@ -183,6 +200,11 @@ apply_check_hash(Control* m, const std::string& arg) {
     m->core()->set_check_hash(true);
   else
     m->core()->set_check_hash(false);
+}
+
+void
+apply_http_proxy(Control* m, const std::string& arg) {
+  m->core()->get_poll_manager()->get_http_stack()->set_http_proxy(arg);
 }
 
 void
