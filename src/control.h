@@ -89,7 +89,7 @@ private:
   input::Manager*     m_input;
   input::InputEvent*  m_inputStdin;
 
-  utils::TaskItem     m_taskShutdown;
+  rak::priority_item  m_taskShutdown;
 };
 
 #endif

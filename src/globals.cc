@@ -38,6 +38,6 @@
 
 #include "globals.h"
 
-utils::TaskScheduler taskScheduler;
-utils::TaskScheduler displayScheduler;
-rak::timer           cachedTime;
+rak::priority_queue_default taskScheduler;
+rak::priority_queue_default displayScheduler;
+rak::timer                  cachedTime;

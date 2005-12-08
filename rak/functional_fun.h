@@ -53,36 +53,36 @@
 
 namespace rak {
 
-template <typename _Result>
+template <typename Result>
 class function_base {
 public:
   virtual ~function_base() {}
 
-  virtual _Result operator () () = 0;
+  virtual Result operator () () = 0;
 };
 
-template <typename _Base>
+template <typename Base>
 struct function_ref {
-  explicit function_ref(_Base* b) : m_base(b) {}
+  explicit function_ref(Base* b) : m_base(b) {}
 
-  _Base* m_base;
+  Base* m_base;
 };
 
-template <typename _Result>
+template <typename Result>
 class function {
 public:
-  typedef _Result result_type;
-  typedef function_base<_Result> _Base;
+  typedef Result result_type;
+  typedef function_base<Result> Base;
 
   function() : m_base(0) {}
-  function(function_ref<_Base> f) : m_base(f.m_base) {}
-  explicit function(function_base<_Result>* base) { m_base = base; }
+  function(function_ref<Base> f) : m_base(f.m_base) {}
+  explicit function(function_base<Result>* base) { m_base = base; }
   
   ~function()                                     { delete m_base; }
 
   function& operator = (function& f) { m_base = f.release(); return *this; }
 
-  function& operator = (function_ref<_Base> f) {
+  function& operator = (function_ref<Base> f) {
     if (m_base != f.m_base) {
       delete m_base;
       m_base = f.m_base;
@@ -91,57 +91,57 @@ public:
     return *this;
   }
 
-  template <typename _T>
-  operator function_ref<_T> () { return function_ref<_T>(this->release()); }
+  template <typename Type>
+  operator function_ref<Type> () { return function_ref<Type>(this->release()); }
 
-  _Result operator () () { return (*m_base)(); }
+  Result operator () () { return (*m_base)(); }
 
 private:
-  _Base* release() { _Base* tmp = m_base; m_base = 0; return tmp; }
+  Base* release() { Base* tmp = m_base; m_base = 0; return tmp; }
 
-  _Base* m_base;
+  Base* m_base;
 };
 
-template <typename _Object, typename _Result>
-class _mem_fn0 : public function_base<_Result> {
+template <typename Object, typename Result>
+class _mem_fn0 : public function_base<Result> {
 public:
-  typedef _Result (_Object::*_Func)();
+  typedef Result (Object::*Func)();
 
-  _mem_fn0(_Object* object, _Func func) : m_object(object), m_func(func) {}
+  _mem_fn0(Object* object, Func func) : m_object(object), m_func(func) {}
   virtual ~_mem_fn0() {}
   
-  virtual _Result operator () () { return (m_object->*m_func)(); }
+  virtual Result operator () () { return (m_object->*m_func)(); }
 
 private:
-  _Object* m_object;
-  _Func    m_func;
+  Object* m_object;
+  Func    m_func;
 };
 
-template <typename _Object, typename _Result>
-class _const_mem_fn0 : public function_base<_Result> {
+template <typename Object, typename Result>
+class _const_mem_fn0 : public function_base<Result> {
 public:
-  typedef _Result (_Object::*_Func)() const;
+  typedef Result (Object::*Func)() const;
 
-  _const_mem_fn0(const _Object* object, _Func func) : m_object(object), m_func(func) {}
+  _const_mem_fn0(const Object* object, Func func) : m_object(object), m_func(func) {}
   virtual ~_const_mem_fn0() {}
   
-  virtual _Result operator () () { return (m_object->*m_func)(); }
+  virtual Result operator () () { return (m_object->*m_func)(); }
 
 private:
-  const _Object* m_object;
-  _Func          m_func;
+  const Object* m_object;
+  Func          m_func;
 };
 
-template <typename _Object, typename _Result>
-function<_Result>
-mem_fn(_Object* object, _Result (_Object::*func)()) {
-  return function<_Result>(static_cast<function_base<_Result>*>(new _mem_fn0<_Object, _Result>(object, func)));
+template <typename Object, typename Result>
+function<Result>
+mem_fn(Object* object, Result (Object::*func)()) {
+  return function<Result>(static_cast<function_base<Result>*>(new _mem_fn0<Object, Result>(object, func)));
 }
 
-template <typename _Object, typename _Result>
-function<_Result>
-mem_fn(const _Object* object, _Result (_Object::*func)() const) {
-  return function<_Result>(static_cast<function_base<_Result>*>(new _const_mem_fn0<_Object, _Result>(object, func)));
+template <typename Object, typename Result>
+function<Result>
+mem_fn(const Object* object, Result (Object::*func)() const) {
+  return function<Result>(static_cast<function_base<Result>*>(new _const_mem_fn0<Object, Result>(object, func)));
 }
 
 }

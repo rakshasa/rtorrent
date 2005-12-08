@@ -211,6 +211,12 @@ greater_equal(Type t, Ftor f) {
   return greater_equal_t<Type, Ftor>(t, f);
 }
 
+template<typename Tp>
+struct invert : public std::unary_function<Tp, Tp> {
+  Tp
+  operator () (const Tp& x) const { return ~x; }
+};
+
 template <typename Src, typename Dest>
 struct on_t : public std::unary_function<typename Src::argument_type, typename Dest::result_type> {
   typedef typename Dest::result_type result_type;
@@ -343,12 +349,12 @@ bind2nd(const Operation& op, const Type& val) {
 // of using a seperate functor for that.
 
 template <typename Object, typename Ret>
-class mem_fn0 {
+class mem_fun0 {
 public:
   typedef Ret (Object::*Function)();
 
-  mem_fn0() : m_object(NULL) {}
-  mem_fn0(Object* o, Function f) : m_object(o), m_function(f) {}
+  mem_fun0() : m_object(NULL) {}
+  mem_fun0(Object* o, Function f) : m_object(o), m_function(f) {}
 
   bool is_valid() const { return m_object; }
 
@@ -360,12 +366,12 @@ private:
 };
 
 template <typename Object, typename Ret>
-class const_mem_fn0 {
+class const_mem_fun0 {
 public:
   typedef Ret (Object::*Function)() const;
 
-  const_mem_fn0() : m_object(NULL) {}
-  const_mem_fn0(Object* o, Function f) : m_object(o), m_function(f) {}
+  const_mem_fun0() : m_object(NULL) {}
+  const_mem_fun0(Object* o, Function f) : m_object(o), m_function(f) {}
 
   bool is_valid() const { return m_object; }
 
@@ -377,12 +383,12 @@ private:
 };
 
 template <typename Object, typename Ret, typename Arg1>
-class mem_fn1 {
+class mem_fun1 {
 public:
   typedef Ret (Object::*Function)(Arg1);
 
-  mem_fn1() : m_object(NULL) {}
-  mem_fn1(Object* o, Function f) : m_object(o), m_function(f) {}
+  mem_fun1() : m_object(NULL) {}
+  mem_fun1(Object* o, Function f) : m_object(o), m_function(f) {}
 
   bool is_valid() const { return m_object; }
 
@@ -394,12 +400,12 @@ private:
 };
 
 template <typename Object, typename Ret, typename Arg1>
-class const_mem_fn1 {
+class const_mem_fun1 {
 public:
   typedef Ret (Object::*Function)(Arg1) const;
 
-  const_mem_fn1() : m_object(NULL) {}
-  const_mem_fn1(Object* o, Function f) : m_object(o), m_function(f) {}
+  const_mem_fun1() : m_object(NULL) {}
+  const_mem_fun1(Object* o, Function f) : m_object(o), m_function(f) {}
 
   bool is_valid() const { return m_object; }
 
@@ -411,12 +417,12 @@ private:
 };
 
 template <typename Object, typename Ret, typename Arg1, typename Arg2>
-class mem_fn2 : public std::binary_function<Arg1, Arg2, Ret> {
+class mem_fun2 : public std::binary_function<Arg1, Arg2, Ret> {
 public:
   typedef Ret (Object::*Function)(Arg1, Arg2);
 
-  mem_fn2() : m_object(NULL) {}
-  mem_fn2(Object* o, Function f) : m_object(o), m_function(f) {}
+  mem_fun2() : m_object(NULL) {}
+  mem_fun2(Object* o, Function f) : m_object(o), m_function(f) {}
 
   bool is_valid() const { return m_object; }
 
@@ -428,12 +434,12 @@ private:
 };
 
 template <typename Object, typename Ret, typename Arg1, typename Arg2, typename Arg3>
-class mem_fn3 {
+class mem_fun3 {
 public:
   typedef Ret (Object::*Function)(Arg1, Arg2, Arg3);
 
-  mem_fn3() : m_object(NULL) {}
-  mem_fn3(Object* o, Function f) : m_object(o), m_function(f) {}
+  mem_fun3() : m_object(NULL) {}
+  mem_fun3(Object* o, Function f) : m_object(o), m_function(f) {}
 
   bool is_valid() const { return m_object; }
 
@@ -445,39 +451,39 @@ private:
 };
 
 template <typename Object, typename Ret>
-inline mem_fn0<Object, Ret>
-make_mem_fn(Object* o, Ret (Object::*f)()) {
- return mem_fn0<Object, Ret>(o, f);
+inline mem_fun0<Object, Ret>
+make_mem_fun(Object* o, Ret (Object::*f)()) {
+ return mem_fun0<Object, Ret>(o, f);
 }
 
 template <typename Object, typename Ret>
-inline const_mem_fn0<Object, Ret>
-make_mem_fn(Object* o, Ret (Object::*f)() const) {
- return const_mem_fn0<Object, Ret>(o, f);
+inline const_mem_fun0<Object, Ret>
+make_mem_fun(Object* o, Ret (Object::*f)() const) {
+ return const_mem_fun0<Object, Ret>(o, f);
 }
 
 template <typename Object, typename Ret, typename Arg1>
-inline mem_fn1<Object, Ret, Arg1>
-make_mem_fn(Object* o, Ret (Object::*f)(Arg1)) {
- return mem_fn1<Object, Ret, Arg1>(o, f);
+inline mem_fun1<Object, Ret, Arg1>
+make_mem_fun(Object* o, Ret (Object::*f)(Arg1)) {
+ return mem_fun1<Object, Ret, Arg1>(o, f);
 }
 
 template <typename Object, typename Ret, typename Arg1>
-inline const_mem_fn1<Object, Ret, Arg1>
-make_mem_fn(Object* o, Ret (Object::*f)(Arg1) const) {
- return const_mem_fn1<Object, Ret, Arg1>(o, f);
+inline const_mem_fun1<Object, Ret, Arg1>
+make_mem_fun(Object* o, Ret (Object::*f)(Arg1) const) {
+ return const_mem_fun1<Object, Ret, Arg1>(o, f);
 }
 
 template <typename Object, typename Ret, typename Arg1, typename Arg2>
-inline mem_fn2<Object, Ret, Arg1, Arg2>
-make_mem_fn(Object* o, Ret (Object::*f)(Arg1, Arg2)) {
- return mem_fn2<Object, Ret, Arg1, Arg2>(o, f);
+inline mem_fun2<Object, Ret, Arg1, Arg2>
+make_mem_fun(Object* o, Ret (Object::*f)(Arg1, Arg2)) {
+ return mem_fun2<Object, Ret, Arg1, Arg2>(o, f);
 }
 
 template <typename Object, typename Ret, typename Arg1, typename Arg2, typename Arg3>
-inline mem_fn3<Object, Ret, Arg1, Arg2, Arg3>
-make_mem_fn(Object* o, Ret (Object::*f)(Arg1, Arg2, Arg3)) {
- return mem_fn3<Object, Ret, Arg1, Arg2, Arg3>(o, f);
+inline mem_fun3<Object, Ret, Arg1, Arg2, Arg3>
+make_mem_fun(Object* o, Ret (Object::*f)(Arg1, Arg2, Arg3)) {
+ return mem_fun3<Object, Ret, Arg1, Arg2, Arg3>(o, f);
 }
 
 }

@@ -59,7 +59,6 @@ Control::Control() :
 
   m_inputStdin->slot_pressed(sigc::mem_fun(m_input, &input::Manager::pressed));
 
-  m_taskShutdown.set_iterator(taskScheduler.end());
   m_taskShutdown.set_slot(rak::mem_fn(this, &Control::receive_shutdown));
 }
 
@@ -113,8 +112,8 @@ Control::receive_shutdown() {
     m_core->shutdown(false);
     m_shutdownReceived = true;
 
-    if (!taskScheduler.is_scheduled(&m_taskShutdown))
-      taskScheduler.insert(&m_taskShutdown, cachedTime + 5 * 1000000);
+    if (!m_taskShutdown.is_queued())
+      taskScheduler.push(m_taskShutdown.prepare(cachedTime + 5 * 1000000));
 
   } else {
     m_core->shutdown(true);

@@ -220,18 +220,20 @@ main(int argc, char** argv) {
       countTicks++;
 
       cachedTime = rak::timer::current();
-      taskScheduler.execute(cachedTime);
+
+      std::list<rak::priority_item*> workQueue;
+
+      std::copy(rak::queue_popper(taskScheduler, rak::priority_ready(cachedTime)), rak::queue_popper(), std::back_inserter(workQueue));
+      std::for_each(workQueue.begin(), workQueue.end(), std::mem_fun(&rak::priority_item::clear_time));
+      std::for_each(workQueue.begin(), workQueue.end(), std::mem_fun(&rak::priority_item::call));
 
       // This needs to be called every second or so. Currently done by
       // the throttle task in libtorrent.
-      if (!displayScheduler.empty() &&
-	  displayScheduler.get_next_timeout() <= cachedTime)
+      if (!displayScheduler.empty() && displayScheduler.top()->time() <= cachedTime)
 	uiControl.display()->do_update();
 
       // Do shutdown check before poll, not after.
-      uiControl.core()->get_poll_manager()->poll(!taskScheduler.empty() ?
-						 taskScheduler.get_next_timeout() - cachedTime :
-						 60 * 1000000);
+      uiControl.core()->get_poll_manager()->poll(!taskScheduler.empty() ? taskScheduler.top()->time() - cachedTime : 60 * 1000000);
     }
 
     uiControl.cleanup();

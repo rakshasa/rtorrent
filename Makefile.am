@@ -8,6 +8,8 @@ EXTRA_DIST= \
 	rak/error_number.h \
 	rak/functional.h \
 	rak/functional_fun.h \
+	rak/priority_queue.h \
+	rak/priority_queue_default.h \
 	rak/string_manip.h \
 	rak/timer.h \
 	rak/unordered_vector.h \

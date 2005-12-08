@@ -38,11 +38,10 @@
 #define TORRENT_GLOBALS_H
 
 #include <rak/timer.h>
+#include <rak/priority_queue_default.h>
 
-#include "utils/task_scheduler.h"
-
-extern utils::TaskScheduler taskScheduler;
-extern utils::TaskScheduler displayScheduler;
-extern rak::timer           cachedTime;
+extern rak::priority_queue_default taskScheduler;
+extern rak::priority_queue_default displayScheduler;
+extern rak::timer                  cachedTime;
 
 #endif

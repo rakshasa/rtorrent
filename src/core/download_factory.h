@@ -39,8 +39,8 @@
 
 #include <iosfwd>
 #include <sigc++/slot.h>
+#include <rak/priority_queue_default.h>
 
-#include "utils/task_item.h"
 #include "http_queue.h"
 
 namespace core {
@@ -87,8 +87,8 @@ private:
   bool                m_start;
 
   Slot                m_slotFinished;
-  utils::TaskItem     m_taskLoad;
-  utils::TaskItem     m_taskCommit;
+  rak::priority_item  m_taskLoad;
+  rak::priority_item  m_taskCommit;
 };
 
 }

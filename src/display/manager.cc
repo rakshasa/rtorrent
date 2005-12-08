@@ -98,7 +98,12 @@ void
 Manager::do_update() {
   Canvas::refresh_std();
 
-  displayScheduler.execute(cachedTime);
+  std::list<rak::priority_item*> workQueue;
+
+  std::copy(rak::queue_popper(displayScheduler, rak::priority_ready(cachedTime)), rak::queue_popper(), std::back_inserter(workQueue));
+  std::for_each(workQueue.begin(), workQueue.end(), std::mem_fun(&rak::priority_item::clear_time));
+  std::for_each(workQueue.begin(), workQueue.end(), std::mem_fun(&rak::priority_item::call));
+
   std::for_each(begin(), end(), rak::if_then(std::mem_fun(&Window::is_active), std::mem_fun(&Window::refresh)));
 
   Canvas::do_update();

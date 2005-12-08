@@ -85,7 +85,6 @@ DownloadList::DownloadList(Control* c) :
   m_uiArray[DISPLAY_LOG]           = new ElementLogComplete(&m_control->core()->get_log_complete());
   m_windowLog                      = new WLog(&m_control->core()->get_log_important());
 
-  m_taskUpdate.set_iterator(taskScheduler.end());
   m_taskUpdate.set_slot(rak::mem_fn(this, &DownloadList::task_update)),
 
   setup_keys();
@@ -112,7 +111,7 @@ DownloadList::activate() {
   if (is_active())
     throw std::logic_error("ui::Download::activate() called on an already activated object");
 
-  taskScheduler.insert(&m_taskUpdate, cachedTime + 1000000);
+  taskScheduler.push(m_taskUpdate.prepare(cachedTime + 1000000));
 
   m_windowTextInput->set_active(false);
 
@@ -304,7 +303,7 @@ void
 DownloadList::task_update() {
   m_windowLog->receive_update();
 
-  taskScheduler.insert(&m_taskUpdate, (cachedTime + 1000000).round_seconds());
+  taskScheduler.push(m_taskUpdate.prepare((cachedTime + 1000000).round_seconds()));
 }
 
 void

@@ -50,7 +50,6 @@ Window::Window(Canvas* c, bool d, int h) :
   m_dynamic(d),
   m_minHeight(h) {
 
-  m_taskUpdate.set_iterator(displayScheduler.end());
   m_taskUpdate.set_slot(rak::mem_fn(this, &Window::redraw));
 }
 

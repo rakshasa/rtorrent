@@ -60,10 +60,7 @@ DownloadFactory::DownloadFactory(const std::string& uri, Manager* m) :
   m_session(false),
   m_start(false) {
 
-  m_taskLoad.set_iterator(taskScheduler.end());
   m_taskLoad.set_slot(rak::mem_fn(this, &DownloadFactory::receive_load));
-
-  m_taskCommit.set_iterator(taskScheduler.end());
   m_taskCommit.set_slot(rak::mem_fn(this, &DownloadFactory::receive_commit));
 }  
 
@@ -77,12 +74,12 @@ DownloadFactory::~DownloadFactory() {
 
 void
 DownloadFactory::load() {
-  taskScheduler.insert(&m_taskLoad, cachedTime);
+  taskScheduler.push(m_taskLoad.prepare(cachedTime));
 }
 
 void
 DownloadFactory::commit() {
-  taskScheduler.insert(&m_taskCommit, cachedTime);
+  taskScheduler.push(m_taskCommit.prepare(cachedTime));
 }
 
 void

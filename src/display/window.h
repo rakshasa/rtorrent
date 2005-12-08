@@ -57,7 +57,7 @@ public:
 
   bool                is_active()                          { return m_active; }
   bool                is_dynamic()                         { return m_dynamic; }
-  bool                is_dirty()                           { return displayScheduler.is_scheduled(&m_taskUpdate); }
+  bool                is_dirty()                           { return m_taskUpdate.is_queued(); }
 
   //utils::rak::timer   get_next_draw()                      { return m_nextDraw; }
 
@@ -87,13 +87,13 @@ protected:
   bool                m_dynamic;
   int                 m_minHeight;
 
-  utils::TaskItem     m_taskUpdate;
+  rak::priority_item  m_taskUpdate;
 };
 
 inline void
 Window::mark_dirty() {
   displayScheduler.erase(&m_taskUpdate);
-  displayScheduler.insert(&m_taskUpdate, cachedTime);
+  displayScheduler.push(m_taskUpdate.prepare(cachedTime));
 }
 
 }

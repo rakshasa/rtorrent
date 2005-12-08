@@ -138,7 +138,7 @@ private:
   WInput*             m_windowTextInput;
   WHttp*              m_windowHttpQueue;
 
-  utils::TaskItem     m_taskUpdate;
+  rak::priority_item  m_taskUpdate;
 
   Download*           m_uiDownload;
 
