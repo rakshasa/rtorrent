@@ -89,7 +89,7 @@ Control::initialize() {
 
 void
 Control::cleanup() {
-  taskScheduler.erase(&m_taskShutdown);
+  taskScheduler.erase(m_taskShutdown.clear());
 
   m_inputStdin->remove(m_core->get_poll_manager()->get_torrent_poll());
 

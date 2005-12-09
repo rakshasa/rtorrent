@@ -46,7 +46,7 @@
 
 namespace rak {
 
-template <typename Value, typename Compare, typename Equal, typename Remove>
+template <typename Value, typename Compare, typename Equal>
 class priority_queue : public std::vector<Value> {
 public:
   typedef std::vector<Value>                  base_type;
@@ -59,8 +59,8 @@ public:
   using base_type::size;
   using base_type::empty;
 
-  priority_queue(Compare l = Compare(), Equal e = Equal(), Remove r = Remove())
-    : m_compare(l), m_equal(e), m_remove(r) {}
+  priority_queue(Compare l = Compare(), Equal e = Equal())
+    : m_compare(l), m_equal(e) {}
 
   const_reference top() const {
     return base_type::front();
@@ -76,16 +76,23 @@ public:
     std::push_heap(base_type::begin(), base_type::end(), m_compare);
   }
 
-  // Removes 'value' from the queue. The Remove functor must change the
-  // priority of the value such that it comes before any other in the
-  // queue.
-  void erase(value_type value) {
-    iterator itr = std::find_if(base_type::begin(), base_type::end(), std::bind2nd(m_equal, value));
+  template <typename Key>
+  iterator find(const Key& key) {
+    return std::find_if(base_type::begin(), base_type::end(), std::bind2nd(m_equal, key));
+  }
 
+  template <typename Key>
+  void erase(const Key& key) {
+    erase(find(key));
+  }
+
+  // Removes 'itr' from the queue. This assumes 'itr' has been
+  // modified such that it has a higher priority than any other
+  // element in the queue.
+  void erase(iterator itr) {
     if (itr == base_type::end())
       return;
 
-    m_remove(*itr);
     std::push_heap(base_type::begin(), ++itr, m_compare);
     pop();
   }
@@ -93,8 +100,37 @@ public:
 private:
   Compare             m_compare;
   Equal               m_equal;
-  Remove              m_remove;
 };
+
+// Iterate while the top node has higher priority, as 'Compare'
+// returns false.
+template <typename Queue, typename Compare>
+class queue_pop_iterator
+  : public std::iterator<std::forward_iterator_tag, void, void, void, void> {
+public:
+  typedef Queue container_type;
+
+  queue_pop_iterator() : m_queue(NULL) {}
+  queue_pop_iterator(Queue* q, Compare c) : m_queue(q), m_compare(c) {}
+
+  queue_pop_iterator& operator ++ ()                     { m_queue->pop(); return *this; }
+  queue_pop_iterator& operator ++ (int)                  { m_queue->pop(); return *this; }
+
+  typename container_type::const_reference operator * () { return m_queue->top(); }
+
+  bool operator != (const queue_pop_iterator& itr)       { return !m_queue->empty() && !m_compare(m_queue->top()); }
+  bool operator == (const queue_pop_iterator& itr)       { return m_queue->empty() || m_compare(m_queue->top()); }
+
+private:
+  Queue*  m_queue;
+  Compare m_compare;
+};
+
+template <typename Queue, typename Compare>
+inline queue_pop_iterator<Queue, Compare>
+queue_popper(Queue& queue, Compare comp) {
+  return queue_pop_iterator<Queue, Compare>(&queue, comp);
+}
 
 }
 

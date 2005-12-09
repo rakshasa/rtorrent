@@ -72,6 +72,18 @@ print_hhmmss(char* buf, unsigned int length, time_t t) {
 }
 
 char*
+print_hhhhmmss(char* buf, unsigned int length, time_t t) {
+  std::tm *u = std::localtime(&t);
+  
+  if (u == NULL)
+    return "inv_time";
+
+  unsigned int s = snprintf(buf, length, "%2u:%02u:%02u", u->tm_hour, u->tm_min, u->tm_sec);
+
+  return buf + std::min(s, length);
+}
+
+char*
 print_ddmmyyyy(char* buf, unsigned int length, time_t t) {
   std::tm *u = std::gmtime(&t);
   
@@ -110,6 +122,9 @@ print_download_info(char* buf, unsigned int length, core::Download* d) {
 			      (double)d->get_download().down_rate()->rate() / (1 << 10),
 			      (double)d->get_download().up_rate()->total() / (1 << 20)));
 
+  buf += std::max(0, snprintf(buf, length, " Left: "));
+  buf = print_download_time_left(buf, length, d);
+
   return buf;
 }
 
@@ -136,6 +151,21 @@ print_download_status(char* buf, unsigned int length, core::Download* d) {
     buf[0] = '\0';
 
   return buf;
+}
+
+char*
+print_download_time_left(char* buf, unsigned int length, core::Download* d) {
+  uint32_t rate;
+
+  if (!d->get_download().is_active() ||
+      (rate = d->get_download().down_rate()->rate()) < 512) {
+    buf += std::max(0, snprintf(buf, length, "--:--:--"));
+    return buf;
+  }
+  
+  time_t remaining = (d->get_download().bytes_total() - d->get_download().bytes_done()) / (rate & ~(uint32_t)(512 - 1));
+
+  return print_hhhhmmss(buf, length, remaining);
 }
 
 // char*

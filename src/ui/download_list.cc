@@ -138,7 +138,7 @@ DownloadList::disable() {
 
   disable_display();
 
-  taskScheduler.erase(&m_taskUpdate);
+  taskScheduler.erase(m_taskUpdate.clear());
 
   m_control->display()->erase(m_window);
   m_control->display()->erase(m_windowTitle);

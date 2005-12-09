@@ -54,7 +54,7 @@ Window::Window(Canvas* c, bool d, int h) :
 }
 
 Window::~Window() {
-  displayScheduler.erase(&m_taskUpdate);
+  displayScheduler.erase(m_taskUpdate.clear());
   delete m_canvas;
 }
 
@@ -63,7 +63,7 @@ Window::set_active(bool a) {
   if (a)
     mark_dirty();
   else
-    displayScheduler.erase(&m_taskUpdate);
+    displayScheduler.erase(m_taskUpdate.clear());
 
   m_active = a;
 }

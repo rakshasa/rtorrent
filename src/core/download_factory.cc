@@ -65,8 +65,8 @@ DownloadFactory::DownloadFactory(const std::string& uri, Manager* m) :
 }  
 
 DownloadFactory::~DownloadFactory() {
-  taskScheduler.erase(&m_taskLoad);
-  taskScheduler.erase(&m_taskCommit);
+  taskScheduler.erase(m_taskLoad.clear());
+  taskScheduler.erase(m_taskCommit.clear());
 
   delete m_stream;
   m_stream = NULL;

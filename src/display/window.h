@@ -92,7 +92,7 @@ protected:
 
 inline void
 Window::mark_dirty() {
-  displayScheduler.erase(&m_taskUpdate);
+  displayScheduler.erase(m_taskUpdate.clear());
   displayScheduler.push(m_taskUpdate.prepare(cachedTime));
 }
 

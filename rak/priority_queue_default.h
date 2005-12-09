@@ -47,15 +47,17 @@ namespace rak {
 
 class priority_item {
 public:
-  bool                is_queued() const           { return m_time != timer(); }
+  bool                is_queued() const             { return m_time != timer(); }
 
-  void                call()                      { m_slot(); }
-  void                set_slot(function<void> s)  { m_slot = s; }
+  void                call()                        { m_slot(); }
+  void                set_slot(function<void> s)    { m_slot = s; }
   
-  const timer&        time() const                { return m_time; }
-  void                clear_time()                { m_time = timer(); }
+  const timer&        time() const                  { return m_time; }
 
   priority_item*      prepare(const timer& t);
+  priority_item*      clear()                       { m_time = timer(); return this; }
+
+  bool                compare(const timer& t) const { return m_time > t; }
 
 private:
   timer               m_time;
@@ -72,62 +74,13 @@ priority_item::prepare(const timer& t) {
 }
 
 struct priority_compare {
-  bool operator () (const priority_item* p1, const priority_item* p2) const {
+  bool operator () (const priority_item* const p1, const priority_item* const p2) const {
     return p1->time() > p2->time();
   }
 };
 
-struct priority_erase {
-  void operator () (priority_item* p1) const {
-    p1->clear_time();
-  }
-};
-
 typedef std::equal_to<priority_item*> priority_equal;
-typedef priority_queue<priority_item*, priority_compare, priority_equal, priority_erase> priority_queue_default;
-
-template <typename Queue, typename Compare>
-class queue_pop_iterator
-  : public std::iterator<std::forward_iterator_tag, void, void, void, void> {
-public:
-  typedef Queue container_type;
-
-  queue_pop_iterator() : m_queue(NULL) {}
-  queue_pop_iterator(Queue* q, Compare c) : m_queue(q), m_compare(c) {}
-
-  queue_pop_iterator& operator ++ ()                     { m_queue->pop(); return *this; }
-  queue_pop_iterator& operator ++ (int)                  { m_queue->pop(); return *this; }
-
-  typename container_type::const_reference operator * () { return m_queue->top(); }
-
-  bool operator != (const queue_pop_iterator& itr)       { return !m_queue->empty() && m_compare(m_queue->top()); }
-  bool operator == (const queue_pop_iterator& itr)       { return m_queue->empty() || !m_compare(m_queue->top()); }
-
-private:
-  Queue*  m_queue;
-  Compare m_compare;
-};
-
-struct priority_ready {
-  priority_ready() {}
-  priority_ready(timer t) : m_timer(t) {}
-
-  bool operator () (const priority_item* p1) const {
-    return p1->time() <= m_timer;
-  }
-
-  timer m_timer;
-};
-
-inline queue_pop_iterator<priority_queue_default, priority_ready>
-queue_popper(priority_queue_default& queue, priority_ready comp) {
-  return queue_pop_iterator<priority_queue_default, priority_ready>(&queue, comp);
-}
-
-inline queue_pop_iterator<priority_queue_default, priority_ready>
-queue_popper() {
-  return queue_pop_iterator<priority_queue_default, priority_ready>();
-}
+typedef priority_queue<priority_item*, priority_compare, priority_equal> priority_queue_default;
 
 }
 
