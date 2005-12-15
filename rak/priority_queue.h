@@ -56,6 +56,8 @@ public:
   typedef typename base_type::const_iterator  const_iterator;
   typedef typename base_type::value_type      value_type;
 
+  using base_type::begin;
+  using base_type::end;
   using base_type::size;
   using base_type::empty;
 
@@ -67,34 +69,39 @@ public:
   }
 
   void pop() {
-    std::pop_heap(base_type::begin(), base_type::end(), m_compare);
+    std::pop_heap(begin(), end(), m_compare);
     base_type::pop_back();
   }
 
   void push(const value_type& value) {
     base_type::push_back(value);
-    std::push_heap(base_type::begin(), base_type::end(), m_compare);
+    std::push_heap(begin(), end(), m_compare);
   }
 
   template <typename Key>
   iterator find(const Key& key) {
-    return std::find_if(base_type::begin(), base_type::end(), std::bind2nd(m_equal, key));
+    return std::find_if(begin(), end(), std::bind2nd(m_equal, key));
   }
 
   template <typename Key>
-  void erase(const Key& key) {
-    erase(find(key));
+  bool erase(const Key& key) {
+    iterator itr = find(key);
+
+    if (itr == end())
+      return false;
+
+    erase(itr);
+    return true;
   }
 
   // Removes 'itr' from the queue. This assumes 'itr' has been
   // modified such that it has a higher priority than any other
   // element in the queue.
   void erase(iterator itr) {
-    if (itr == base_type::end())
-      return;
-
-    std::push_heap(base_type::begin(), ++itr, m_compare);
-    pop();
+//     std::push_heap(begin(), ++itr, m_compare);
+//     pop();
+    base_type::erase(itr);
+    std::make_heap(begin(), end(), m_compare);
   }
 
 private:

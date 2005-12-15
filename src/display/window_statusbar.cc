@@ -56,7 +56,7 @@ WindowStatusbar::WindowStatusbar(core::Manager* c) :
 
 void
 WindowStatusbar::redraw() {
-  displayScheduler.push(m_taskUpdate.prepare((cachedTime + 1000000).round_seconds()));
+  priority_queue_insert(&displayScheduler, &m_taskUpdate, (cachedTime + 1000000).round_seconds());
 
   m_canvas->erase();
 

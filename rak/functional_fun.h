@@ -51,6 +51,8 @@
 #ifndef RAK_FUNCTIONAL_FUN_H
 #define RAK_FUNCTIONAL_FUN_H
 
+#include <memory>
+
 namespace rak {
 
 template <typename Result>
@@ -61,45 +63,20 @@ public:
   virtual Result operator () () = 0;
 };
 
-template <typename Base>
-struct function_ref {
-  explicit function_ref(Base* b) : m_base(b) {}
-
-  Base* m_base;
-};
-
 template <typename Result>
 class function {
 public:
   typedef Result result_type;
   typedef function_base<Result> Base;
 
-  function() : m_base(0) {}
-  function(function_ref<Base> f) : m_base(f.m_base) {}
-  explicit function(function_base<Result>* base) { m_base = base; }
-  
-  ~function()                                     { delete m_base; }
+  bool is_valid() const { return m_base.get() != NULL; }
 
-  function& operator = (function& f) { m_base = f.release(); return *this; }
-
-  function& operator = (function_ref<Base> f) {
-    if (m_base != f.m_base) {
-      delete m_base;
-      m_base = f.m_base;
-    }
-
-    return *this;
-  }
-
-  template <typename Type>
-  operator function_ref<Type> () { return function_ref<Type>(this->release()); }
+  void set(Base* base) { m_base = std::auto_ptr<Base>(base); }
 
   Result operator () () { return (*m_base)(); }
 
 private:
-  Base* release() { Base* tmp = m_base; m_base = 0; return tmp; }
-
-  Base* m_base;
+  std::auto_ptr<Base> m_base;
 };
 
 template <typename Object, typename Result>
@@ -133,15 +110,15 @@ private:
 };
 
 template <typename Object, typename Result>
-function<Result>
+function_base<Result>*
 mem_fn(Object* object, Result (Object::*func)()) {
-  return function<Result>(static_cast<function_base<Result>*>(new _mem_fn0<Object, Result>(object, func)));
+  return new _mem_fn0<Object, Result>(object, func);
 }
 
 template <typename Object, typename Result>
-function<Result>
+function_base<Result>*
 mem_fn(const Object* object, Result (Object::*func)() const) {
-  return function<Result>(static_cast<function_base<Result>*>(new _const_mem_fn0<Object, Result>(object, func)));
+  return new _const_mem_fn0<Object, Result>(object, func);
 }
 
 }

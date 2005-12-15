@@ -89,7 +89,7 @@ Control::initialize() {
 
 void
 Control::cleanup() {
-  taskScheduler.erase(m_taskShutdown.clear());
+  priority_queue_erase(&taskScheduler, &m_taskShutdown);
 
   m_inputStdin->remove(m_core->get_poll_manager()->get_torrent_poll());
 
@@ -113,7 +113,7 @@ Control::receive_shutdown() {
     m_shutdownReceived = true;
 
     if (!m_taskShutdown.is_queued())
-      taskScheduler.push(m_taskShutdown.prepare(cachedTime + 5 * 1000000));
+      priority_queue_insert(&taskScheduler, &m_taskShutdown, cachedTime + 5 * 1000000);
 
   } else {
     m_core->shutdown(true);

@@ -92,8 +92,8 @@ protected:
 
 inline void
 Window::mark_dirty() {
-  displayScheduler.erase(m_taskUpdate.clear());
-  displayScheduler.push(m_taskUpdate.prepare(cachedTime));
+  priority_queue_erase(&displayScheduler, &m_taskUpdate);
+  priority_queue_insert(&displayScheduler, &m_taskUpdate, cachedTime);
 }
 
 }

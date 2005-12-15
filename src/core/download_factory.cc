@@ -65,8 +65,8 @@ DownloadFactory::DownloadFactory(const std::string& uri, Manager* m) :
 }  
 
 DownloadFactory::~DownloadFactory() {
-  taskScheduler.erase(m_taskLoad.clear());
-  taskScheduler.erase(m_taskCommit.clear());
+  priority_queue_erase(&taskScheduler, &m_taskLoad);
+  priority_queue_erase(&taskScheduler, &m_taskCommit);
 
   delete m_stream;
   m_stream = NULL;
@@ -74,12 +74,12 @@ DownloadFactory::~DownloadFactory() {
 
 void
 DownloadFactory::load() {
-  taskScheduler.push(m_taskLoad.prepare(cachedTime));
+  priority_queue_insert(&taskScheduler, &m_taskLoad, cachedTime);
 }
 
 void
 DownloadFactory::commit() {
-  taskScheduler.push(m_taskCommit.prepare(cachedTime));
+  priority_queue_insert(&taskScheduler, &m_taskCommit, cachedTime);
 }
 
 void

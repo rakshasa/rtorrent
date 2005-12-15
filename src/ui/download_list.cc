@@ -111,7 +111,7 @@ DownloadList::activate() {
   if (is_active())
     throw std::logic_error("ui::Download::activate() called on an already activated object");
 
-  taskScheduler.push(m_taskUpdate.prepare(cachedTime + 1000000));
+  priority_queue_insert(&taskScheduler, &m_taskUpdate, cachedTime + 1000000);
 
   m_windowTextInput->set_active(false);
 
@@ -138,7 +138,7 @@ DownloadList::disable() {
 
   disable_display();
 
-  taskScheduler.erase(m_taskUpdate.clear());
+  priority_queue_erase(&taskScheduler, &m_taskUpdate);
 
   m_control->display()->erase(m_window);
   m_control->display()->erase(m_windowTitle);
@@ -303,7 +303,7 @@ void
 DownloadList::task_update() {
   m_windowLog->receive_update();
 
-  taskScheduler.push(m_taskUpdate.prepare((cachedTime + 1000000).round_seconds()));
+  priority_queue_insert(&taskScheduler, &m_taskUpdate, (cachedTime + 1000000).round_seconds());
 }
 
 void

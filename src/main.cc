@@ -181,20 +181,20 @@ load_arg_torrents(Control* c, char** first, char** last) {
 
 int
 main(int argc, char** argv) {
-  cachedTime = rak::timer::current();
-
-  OptionHandler optionHandler;
-  Control       uiControl;
-
-  srandom(cachedTime.usec());
-  srand48(cachedTime.usec());
-
-  initialize_option_handler(&uiControl, &optionHandler);
-
-  OptionFile optionFile;
-  optionFile.slot_option(sigc::mem_fun(optionHandler, &OptionHandler::process));
-
   try {
+
+    cachedTime = rak::timer::current();
+
+    OptionHandler optionHandler;
+    Control       uiControl;
+    
+    srandom(cachedTime.usec());
+    srand48(cachedTime.usec());
+
+    initialize_option_handler(&uiControl, &optionHandler);
+
+    OptionFile optionFile;
+    optionFile.slot_option(sigc::mem_fun(optionHandler, &OptionHandler::process));
 
     SignalHandler::set_ignore(SIGPIPE);
     SignalHandler::set_handler(SIGINT,  sigc::mem_fun(uiControl, &Control::receive_shutdown));
@@ -221,13 +221,21 @@ main(int argc, char** argv) {
 
       cachedTime = rak::timer::current();
 
-      std::list<rak::priority_item*> workQueue;
+//       std::list<rak::priority_item*> workQueue;
 
-      std::copy(rak::queue_popper(taskScheduler, rak::bind2nd(std::mem_fun(&rak::priority_item::compare), cachedTime)),
-		rak::queue_popper(taskScheduler, rak::bind2nd(std::mem_fun(&rak::priority_item::compare), rak::timer())),
-		std::back_inserter(workQueue));
-      std::for_each(workQueue.begin(), workQueue.end(), std::mem_fun(&rak::priority_item::clear));
-      std::for_each(workQueue.begin(), workQueue.end(), std::mem_fun(&rak::priority_item::call));
+//       std::copy(rak::queue_popper(taskScheduler, rak::bind2nd(std::mem_fun(&rak::priority_item::compare), cachedTime)),
+// 		rak::queue_popper(taskScheduler, rak::bind2nd(std::mem_fun(&rak::priority_item::compare), rak::timer())),
+// 		std::back_inserter(workQueue));
+//       std::for_each(workQueue.begin(), workQueue.end(), std::mem_fun(&rak::priority_item::clear_time));
+//       std::for_each(workQueue.begin(), workQueue.end(), std::mem_fun(&rak::priority_item::call));
+
+      while (!taskScheduler.empty() && taskScheduler.top()->time() <= cachedTime) {
+	rak::priority_item* v = taskScheduler.top();
+	taskScheduler.pop();
+
+	v->clear_time();
+	v->call();
+      }
 
       // This needs to be called every second or so. Currently done by
       // the throttle task in libtorrent.
