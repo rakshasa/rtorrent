@@ -89,6 +89,8 @@ public:
 
   void                check_hash(Download* d);
 
+  void                push_log(const std::string& msg)    { m_logImportant.push_front(msg); m_logComplete.push_front(msg); }
+
 private:
   void                listen_open();
 

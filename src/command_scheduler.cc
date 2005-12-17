@@ -36,60 +36,71 @@
 
 #include "config.h"
 
-#include <stdexcept>
-#include <sigc++/bind.h>
-#include <sigc++/hide.h>
+#include <algorithm>
+#include <rak/functional.h>
 #include <torrent/exceptions.h>
 
-#include "option_handler.h"
+#include "command_scheduler.h"
+#include "command_scheduler_item.h"
 
-void
-OptionHandler::insert(const std::string& key, OptionHandlerBase* opt) {
+CommandScheduler::~CommandScheduler() {
+  std::for_each(begin(), end(), rak::call_delete<CommandSchedulerItem>());
+}
+
+CommandScheduler::iterator
+CommandScheduler::find(const std::string& key) {
+  return std::find_if(begin(), end(), rak::equal(key, std::mem_fun(&CommandSchedulerItem::key)));
+}
+
+CommandScheduler::iterator
+CommandScheduler::insert(const std::string& key) {
+  if (key.empty())
+    throw torrent::input_error("Scheduler received an empty key.");
+
   iterator itr = find(key);
 
-  if (itr == end()) {
-    Base::insert(value_type(key, opt));
-  } else {
-    delete itr->second;
-    itr->second = opt;
-  }
+  if (itr == end())
+    itr = base_type::insert(end(), NULL);
+  else
+    delete *itr;
+
+  *itr = new CommandSchedulerItem(key);
+  (*itr)->set_slot(rak::bind_mem_fn(this, &CommandScheduler::call_item, *itr));
+
+  return itr;
 }
 
 void
-OptionHandler::erase(const std::string& key) {
-  iterator itr = find(key);
-
+CommandScheduler::erase(iterator itr) {
   if (itr == end())
     return;
 
-  delete itr->second;
-  Base::erase(itr);
+  delete *itr;
+  base_type::erase(itr);
 }
 
 void
-OptionHandler::clear() {
-  for (iterator itr = begin(), last = end(); itr != last; ++itr)
-    delete itr->second;
+CommandScheduler::call_item(value_type item) {
+  if (item->is_queued())
+    throw torrent::internal_error("CommandScheduler::call_item(...) called but item is still queued.");
 
-  Base::clear();
-}
+  if (std::find(begin(), end(), item) == end())
+    throw torrent::internal_error("CommandScheduler::call_item(...) called but the item isn't in the scheduler.");
 
-void
-OptionHandler::process(const std::string& key, const std::string& arg) const {
-  const_iterator itr = find(key);
+  // Remove the item before calling the command if it should be
+  // removed.
 
-  if (itr == end())
-    throw torrent::input_error("Could not find option key \"" + key + "\".");
+  try {
+    m_slotCommand(item->command());
 
-  itr->second->process(key, arg);
-}
+  } catch (torrent::input_error& e) {
+    if (m_slotErrorMessage.is_valid())
+      m_slotErrorMessage("Scheduled command failed: " + item->key() + ": " + e.what());
+  }
 
-void
-OptionHandler::process_command(const std::string& command) const {
-  std::string::size_type pos = command.find('=');
+  uint32_t interval = item->interval();
 
-  if (pos == std::string::npos)
-    throw torrent::input_error("Option handler could not find '=' in command.");
-
-  process(command.substr(0, pos), command.substr(pos + 1, std::string::npos));
+  // Enable if we caught a torrrent::input_error?
+  if (interval != 0)
+    item->enable(interval);
 }

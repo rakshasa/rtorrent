@@ -34,68 +34,26 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef RTORRENT_CONTROL_H
-#define RTORRENT_CONTROL_H
+#include "config.h"
 
-#include <torrent/torrent.h>
+#include "command_scheduler_item.h"
 
-#include "globals.h"
-
-namespace ui {
-  class Root;
+CommandSchedulerItem::~CommandSchedulerItem() {
+  priority_queue_erase(&taskScheduler, &m_task);
 }
 
-namespace core {
-  class Manager;
+void
+CommandSchedulerItem::enable(uint32_t first) {
+  if (is_queued())
+    disable();
+
+  // If 'first' is zero then we execute the task
+  // immediately. ''interval()'' will not return zero so we never end
+  // up in an infinit loop.
+  priority_queue_insert(&taskScheduler, &m_task, (cachedTime + ((int64_t)first * 1000000)).round_seconds());
 }
 
-namespace display {
-  class Manager;
+void
+CommandSchedulerItem::disable() {
+  priority_queue_erase(&taskScheduler, &m_task);
 }
-
-namespace input {
-  class InputEvent;
-  class Manager;
-}  
-
-class CommandScheduler;
-
-class Control {
-public:
-  Control();
-  ~Control();
-  
-  bool                is_shutdown_completed()       { return m_shutdownReceived && torrent::is_inactive(); }
-  bool                is_shutdown_received()        { return m_shutdownReceived; }
-
-  void                initialize();
-  void                cleanup();
-
-  void                receive_shutdown();
-
-  ui::Root*           ui()                          { return m_ui; }
-  core::Manager*      core()                        { return m_core; }
-  display::Manager*   display()                     { return m_display; }
-  input::Manager*     input()                       { return m_input; }
-  input::InputEvent*  input_stdin()                 { return m_inputStdin; }
-
-  CommandScheduler*   command_scheduler()           { return m_commandScheduler; }
-
-private:
-  Control(const Control&);
-  void operator = (const Control&);
-
-  bool                m_shutdownReceived;
-
-  ui::Root*           m_ui;
-  core::Manager*      m_core;
-  display::Manager*   m_display;
-  input::Manager*     m_input;
-  input::InputEvent*  m_inputStdin;
-
-  CommandScheduler*   m_commandScheduler;
-
-  rak::priority_item  m_taskShutdown;
-};
-
-#endif

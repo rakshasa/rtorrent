@@ -36,10 +36,12 @@
 
 #include "config.h"
 
+#include <cstdio>
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <rak/string_manip.h>
 #include <torrent/exceptions.h>
 #include <torrent/torrent.h>
 
@@ -49,6 +51,8 @@
 
 #include "control.h"
 #include "option_handler_rules.h"
+#include "command_scheduler.h"
+#include "command_scheduler_item.h"
 
 void receive_tracker_dump(std::istream* s);
 
@@ -217,3 +221,25 @@ apply_encoding_list(Control* m, const std::string& arg) {
   torrent::encoding_list()->push_back(arg);
 }
 
+void
+apply_schedule(Control* m, const std::string& arg) {
+  int first;
+  int interval;
+  char key[21];
+  char command[2048];
+
+  if (std::sscanf(arg.c_str(), "%20[^,],%i,%i,%2047[^\n]", key, &first, &interval, command) != 4)
+    throw torrent::input_error("Invalid arguments to command.");
+
+  CommandSchedulerItem* item = *m->command_scheduler()->insert(rak::trim(std::string(key)));
+
+  item->set_command(rak::trim(std::string(command)));
+  item->set_interval(interval);
+
+  item->enable(first);
+}
+
+void
+apply_schedule_remove(Control* m, const std::string& arg) {
+  m->command_scheduler()->erase(m->command_scheduler()->find(rak::trim(arg)));
+}

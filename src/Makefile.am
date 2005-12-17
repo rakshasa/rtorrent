@@ -15,6 +15,10 @@ rtorrent_LDADD = \
 	$(top_srcdir)/src/utils/libsub_utils.a
 
 rtorrent_SOURCES = \
+	command_scheduler.cc \
+	command_scheduler.h \
+	command_scheduler_item.cc \
+	command_scheduler_item.h \
 	control.cc \
 	control.h \
 	globals.cc \

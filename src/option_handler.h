@@ -79,6 +79,9 @@ public:
 
   // The caller must catch torrent::input_error in case of bad input.
   void                process(const std::string& key, const std::string& arg) const;
+
+  // Temporary.
+  void                process_command(const std::string& command) const;
 };
 
 #endif

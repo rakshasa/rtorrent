@@ -71,6 +71,8 @@
 #include "option_handler.h"
 #include "option_handler_rules.h"
 #include "option_parser.h"
+#include "command_scheduler.h"
+#include "command_scheduler_item.h"
 
 uint32_t countTicks = 0;
 
@@ -147,6 +149,8 @@ initialize_option_handler(Control* c, OptionHandler* optionHandler) {
   optionHandler->insert("use_udp_trackers",    new OptionHandlerString(c, &apply_use_udp_trackers));
 
   optionHandler->insert("http_proxy",          new OptionHandlerString(c, &apply_http_proxy));
+  optionHandler->insert("schedule",            new OptionHandlerString(c, &apply_schedule));
+  optionHandler->insert("schedule_remove",     new OptionHandlerString(c, &apply_schedule_remove));
 }
 
 void
@@ -186,37 +190,50 @@ main(int argc, char** argv) {
     cachedTime = rak::timer::current();
 
     OptionHandler optionHandler;
-    Control       uiControl;
+    Control       control;
     
+    control.command_scheduler()->set_slot_command(rak::mem_fn(&optionHandler, &OptionHandler::process_command));
+    control.command_scheduler()->set_slot_error_message(rak::mem_fn(control.core(), &core::Manager::push_log));
+
     srandom(cachedTime.usec());
     srand48(cachedTime.usec());
 
-    initialize_option_handler(&uiControl, &optionHandler);
+    initialize_option_handler(&control, &optionHandler);
 
     OptionFile optionFile;
     optionFile.slot_option(sigc::mem_fun(optionHandler, &OptionHandler::process));
 
     SignalHandler::set_ignore(SIGPIPE);
-    SignalHandler::set_handler(SIGINT,  sigc::mem_fun(uiControl, &Control::receive_shutdown));
+    SignalHandler::set_handler(SIGINT,  sigc::mem_fun(control, &Control::receive_shutdown));
     SignalHandler::set_handler(SIGSEGV, sigc::bind(sigc::ptr_fun(&do_panic), SIGSEGV));
     SignalHandler::set_handler(SIGBUS,  sigc::bind(sigc::ptr_fun(&do_panic), SIGBUS));
     SignalHandler::set_handler(SIGFPE,  sigc::bind(sigc::ptr_fun(&do_panic), SIGFPE));
 
-    uiControl.core()->initialize_first();
+    control.core()->initialize_first();
 
     if (getenv("HOME") && !optionFile.process_file(getenv("HOME") + std::string("/.rtorrent.rc")))
-      uiControl.core()->get_log_important().push_front("Could not load \"~/.rtorrent.rc\".");
+      control.core()->get_log_important().push_front("Could not load \"~/.rtorrent.rc\".");
 
-    int firstArg = parse_options(&uiControl, &optionHandler, argc, argv);
+    int firstArg = parse_options(&control, &optionHandler, argc, argv);
 
-    uiControl.initialize();
+    control.initialize();
 
-    load_session_torrents(&uiControl);
-    load_arg_torrents(&uiControl, argv + firstArg, argv + argc);
+    // Just to make sure we did all the stuff on the queue before
+    // loading any torrents.
+    while (!taskScheduler.empty() && taskScheduler.top()->time() <= cachedTime) {
+      rak::priority_item* v = taskScheduler.top();
+      taskScheduler.pop();
 
-    uiControl.display()->adjust_layout();
+      v->clear_time();
+      v->call();
+    }
 
-    while (!uiControl.is_shutdown_completed()) {
+    load_session_torrents(&control);
+    load_arg_torrents(&control, argv + firstArg, argv + argc);
+
+    control.display()->adjust_layout();
+
+    while (!control.is_shutdown_completed()) {
       countTicks++;
 
       cachedTime = rak::timer::current();
@@ -240,13 +257,13 @@ main(int argc, char** argv) {
       // This needs to be called every second or so. Currently done by
       // the throttle task in libtorrent.
       if (!displayScheduler.empty() && displayScheduler.top()->time() <= cachedTime)
-	uiControl.display()->do_update();
+	control.display()->do_update();
 
       // Do shutdown check before poll, not after.
-      uiControl.core()->get_poll_manager()->poll(!taskScheduler.empty() ? taskScheduler.top()->time() - cachedTime : 60 * 1000000);
+      control.core()->get_poll_manager()->poll(!taskScheduler.empty() ? taskScheduler.top()->time() - cachedTime : 60 * 1000000);
     }
 
-    uiControl.cleanup();
+    control.cleanup();
 
   } catch (torrent::base_error& e) {
     display::Canvas::cleanup();

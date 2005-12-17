@@ -56,36 +56,60 @@
 namespace rak {
 
 template <typename Result>
-class function_base {
+class function_base0 {
 public:
-  virtual ~function_base() {}
+  virtual ~function_base0() {}
 
   virtual Result operator () () = 0;
 };
 
-template <typename Result>
-class function {
+template <typename Result, typename Arg1>
+class function_base1 {
 public:
-  typedef Result result_type;
-  typedef function_base<Result> Base;
+  virtual ~function_base1() {}
+
+  virtual Result operator () (Arg1 arg1) = 0;
+};
+
+template <typename Result>
+class function0 {
+public:
+  typedef Result                 result_type;
+  typedef function_base0<Result> base_type;
 
   bool is_valid() const { return m_base.get() != NULL; }
 
-  void set(Base* base) { m_base = std::auto_ptr<Base>(base); }
+  void set(base_type* base) { m_base = std::auto_ptr<base_type>(base); }
 
   Result operator () () { return (*m_base)(); }
 
 private:
-  std::auto_ptr<Base> m_base;
+  std::auto_ptr<base_type> m_base;
+};
+
+template <typename Result, typename Arg1>
+class function1 {
+public:
+  typedef Result                       result_type;
+  typedef function_base1<Result, Arg1> base_type;
+
+  bool is_valid() const { return m_base.get() != NULL; }
+
+  void set(base_type* base) { m_base = std::auto_ptr<base_type>(base); }
+
+  Result operator () (Arg1 arg1) { return (*m_base)(arg1); }
+
+private:
+  std::auto_ptr<base_type> m_base;
 };
 
 template <typename Object, typename Result>
-class _mem_fn0 : public function_base<Result> {
+class mem_fn0_t : public function_base0<Result> {
 public:
   typedef Result (Object::*Func)();
 
-  _mem_fn0(Object* object, Func func) : m_object(object), m_func(func) {}
-  virtual ~_mem_fn0() {}
+  mem_fn0_t(Object* object, Func func) : m_object(object), m_func(func) {}
+  virtual ~mem_fn0_t() {}
   
   virtual Result operator () () { return (m_object->*m_func)(); }
 
@@ -94,13 +118,28 @@ private:
   Func    m_func;
 };
 
+template <typename Object, typename Result, typename Arg1>
+class mem_fn1_t : public function_base1<Result, Arg1> {
+public:
+  typedef Result (Object::*Func)(Arg1);
+
+  mem_fn1_t(Object* object, Func func) : m_object(object), m_func(func) {}
+  virtual ~mem_fn1_t() {}
+  
+  virtual Result operator () (Arg1 arg1) { return (m_object->*m_func)(arg1); }
+
+private:
+  Object* m_object;
+  Func    m_func;
+};
+
 template <typename Object, typename Result>
-class _const_mem_fn0 : public function_base<Result> {
+class const_mem_fn0_t : public function_base0<Result> {
 public:
   typedef Result (Object::*Func)() const;
 
-  _const_mem_fn0(const Object* object, Func func) : m_object(object), m_func(func) {}
-  virtual ~_const_mem_fn0() {}
+  const_mem_fn0_t(const Object* object, Func func) : m_object(object), m_func(func) {}
+  virtual ~const_mem_fn0_t() {}
   
   virtual Result operator () () { return (m_object->*m_func)(); }
 
@@ -109,16 +148,66 @@ private:
   Func          m_func;
 };
 
+template <typename Object, typename Result, typename Arg1>
+class const_mem_fn1_t : public function_base1<Result, Arg1> {
+public:
+  typedef Result (Object::*Func)(Arg1) const;
+
+  const_mem_fn1_t(const Object* object, Func func) : m_object(object), m_func(func) {}
+  virtual ~const_mem_fn1_t() {}
+  
+  virtual Result operator () (Arg1 arg1) { return (m_object->*m_func)(arg1); }
+
+private:
+  const Object* m_object;
+  Func          m_func;
+};
+
+// Unary functor with a bound argument.
+template <typename Object, typename Result, typename Arg1>
+class mem_fn0_b1_t : public function_base0<Result> {
+public:
+  typedef Result (Object::*Func)(Arg1);
+
+  mem_fn0_b1_t(Object* object, Func func, const Arg1 arg1) : m_object(object), m_func(func), m_arg1(arg1) {}
+  virtual ~mem_fn0_b1_t() {}
+  
+  virtual Result operator () () { return (m_object->*m_func)(m_arg1); }
+
+private:
+  Object*    m_object;
+  Func       m_func;
+  const Arg1 m_arg1;
+};
+
 template <typename Object, typename Result>
-function_base<Result>*
+function_base0<Result>*
 mem_fn(Object* object, Result (Object::*func)()) {
-  return new _mem_fn0<Object, Result>(object, func);
+  return new mem_fn0_t<Object, Result>(object, func);
+}
+
+template <typename Object, typename Result, typename Arg1>
+function_base1<Result, Arg1>*
+mem_fn(Object* object, Result (Object::*func)(Arg1)) {
+  return new mem_fn1_t<Object, Result, Arg1>(object, func);
 }
 
 template <typename Object, typename Result>
-function_base<Result>*
+function_base0<Result>*
 mem_fn(const Object* object, Result (Object::*func)() const) {
-  return new _const_mem_fn0<Object, Result>(object, func);
+  return new const_mem_fn0_t<Object, Result>(object, func);
+}
+
+template <typename Object, typename Result, typename Arg1>
+function_base1<Result, Arg1>*
+mem_fn(const Object* object, Result (Object::*func)(Arg1) const) {
+  return new const_mem_fn1_t<Object, Result, Arg1>(object, func);
+}
+
+template <typename Object, typename Result, typename Arg1>
+function_base0<Result>*
+bind_mem_fn(Object* object, Result (Object::*func)(Arg1), const Arg1 arg1) {
+  return new mem_fn0_b1_t<Object, Result, Arg1>(object, func, arg1);
 }
 
 }

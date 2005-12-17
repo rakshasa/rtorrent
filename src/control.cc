@@ -46,6 +46,8 @@
 #include "input/input_event.h"
 #include "ui/root.h"
 
+#include "command_scheduler.h"
+
 #include "control.h"
 
 Control::Control() :
@@ -55,7 +57,9 @@ Control::Control() :
   m_core(new core::Manager()),
   m_display(new display::Manager()),
   m_input(new input::Manager()),
-  m_inputStdin(new input::InputEvent(STDIN_FILENO)) {
+  m_inputStdin(new input::InputEvent(STDIN_FILENO)),
+
+  m_commandScheduler(new CommandScheduler()) {
 
   m_inputStdin->slot_pressed(sigc::mem_fun(m_input, &input::Manager::pressed));
 
@@ -65,6 +69,8 @@ Control::Control() :
 Control::~Control() {
   delete m_inputStdin;
   delete m_input;
+
+  delete m_commandScheduler;
 
   delete m_ui;
   delete m_display;

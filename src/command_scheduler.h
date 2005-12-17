@@ -34,68 +34,44 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef RTORRENT_CONTROL_H
-#define RTORRENT_CONTROL_H
+#ifndef RTORRENT_COMMAND_SCHEDULER_H
+#define RTORRENT_COMMAND_SCHEDULER_H
 
-#include <torrent/torrent.h>
+#include <vector>
+#include <string>
+#include <rak/functional_fun.h>
 
-#include "globals.h"
+class CommandSchedulerItem;
 
-namespace ui {
-  class Root;
-}
-
-namespace core {
-  class Manager;
-}
-
-namespace display {
-  class Manager;
-}
-
-namespace input {
-  class InputEvent;
-  class Manager;
-}  
-
-class CommandScheduler;
-
-class Control {
+class CommandScheduler : public std::vector<CommandSchedulerItem*> {
 public:
-  Control();
-  ~Control();
-  
-  bool                is_shutdown_completed()       { return m_shutdownReceived && torrent::is_inactive(); }
-  bool                is_shutdown_received()        { return m_shutdownReceived; }
+  typedef rak::function1<void, const std::string&> SlotString;
+  typedef std::vector<CommandSchedulerItem*>       base_type;
 
-  void                initialize();
-  void                cleanup();
+  using base_type::value_type;
+  using base_type::begin;
+  using base_type::end;
 
-  void                receive_shutdown();
+  CommandScheduler() {}
+  ~CommandScheduler();
 
-  ui::Root*           ui()                          { return m_ui; }
-  core::Manager*      core()                        { return m_core; }
-  display::Manager*   display()                     { return m_display; }
-  input::Manager*     input()                       { return m_input; }
-  input::InputEvent*  input_stdin()                 { return m_inputStdin; }
+  void                set_slot_command(SlotString::base_type* s)       { m_slotCommand.set(s); }
+  void                set_slot_error_message(SlotString::base_type* s) { m_slotErrorMessage.set(s); }
 
-  CommandScheduler*   command_scheduler()           { return m_commandScheduler; }
+  // slot_error_message or something.
+
+  iterator            find(const std::string& key);
+
+  // If the key already exists then the old item is deleted. It is
+  // safe to call erase on end().
+  iterator            insert(const std::string& key);
+  void                erase(iterator itr);
 
 private:
-  Control(const Control&);
-  void operator = (const Control&);
+  void                call_item(value_type item);
 
-  bool                m_shutdownReceived;
-
-  ui::Root*           m_ui;
-  core::Manager*      m_core;
-  display::Manager*   m_display;
-  input::Manager*     m_input;
-  input::InputEvent*  m_inputStdin;
-
-  CommandScheduler*   m_commandScheduler;
-
-  rak::priority_item  m_taskShutdown;
+  SlotString          m_slotCommand;
+  SlotString          m_slotErrorMessage;
 };
 
 #endif

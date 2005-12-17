@@ -83,7 +83,7 @@ OptionFile::parse_line(const char* line) {
   opt[0] = '\0';
 
   // Check for empty lines, and options within "abc".
-  if ((result = std::sscanf(line, "%63s = \"%511[^\"]s", key, opt)) != 2 &&
+  if ((result = std::sscanf(line, "%63s = \"%511[^\"]", key, opt)) != 2 &&
       (result = std::sscanf(line, "%63s = %511s", key, opt)) != 2 &&
       result == 1)
     throw torrent::input_error("Error parseing option file.");

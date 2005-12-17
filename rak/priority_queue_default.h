@@ -56,24 +56,24 @@ public:
     m_slot.set(NULL);
   }
 
-  bool                is_valid() const                 { return m_slot.is_valid(); }
-  bool                is_queued() const                { return m_time != timer(); }
+  bool                is_valid() const                        { return m_slot.is_valid(); }
+  bool                is_queued() const                       { return m_time != timer(); }
 
-  void                call()                           { m_slot(); }
-  void                set_slot(function_base<void>* s) { m_slot.set(s); }
+  void                call()                                  { m_slot(); }
+  void                set_slot(function0<void>::base_type* s) { m_slot.set(s); }
   
-  const timer&        time() const                     { return m_time; }
-  void                clear_time()                     { m_time = timer(); }
-  void                set_time(const timer& t)         { m_time = t; }
+  const timer&        time() const                           { return m_time; }
+  void                clear_time()                           { m_time = timer(); }
+  void                set_time(const timer& t)               { m_time = t; }
 
-  bool                compare(const timer& t) const    { return m_time > t; }
+  bool                compare(const timer& t) const          { return m_time > t; }
 
 private:
   priority_item(const priority_item&);
   void operator = (const priority_item&);
 
   timer               m_time;
-  function<void>      m_slot;
+  function0<void>     m_slot;
 };
 
 struct priority_compare {
@@ -105,11 +105,13 @@ priority_queue_insert(priority_queue_default* queue, priority_item* item, timer 
 
 inline void
 priority_queue_erase(priority_queue_default* queue, priority_item* item) {
-  if (!item->is_valid())
-    throw std::logic_error("priority_queue_erase(...) called on an invalid item.");
-
   if (!item->is_queued())
     return;
+
+  // Check is_valid() after is_queued() so that it is safe to call
+  // erase on untouched instances.
+  if (!item->is_valid())
+    throw std::logic_error("priority_queue_erase(...) called on an invalid item.");
 
   // Clear time before erasing to force it to the top.
   item->clear_time();

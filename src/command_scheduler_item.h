@@ -34,68 +34,47 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef RTORRENT_CONTROL_H
-#define RTORRENT_CONTROL_H
-
-#include <torrent/torrent.h>
+#ifndef RTORRENT_COMMAND_SCHEDULER_ITEM_H
+#define RTORRENT_COMMAND_SCHEDULER_ITEM_H
 
 #include "globals.h"
 
-namespace ui {
-  class Root;
-}
-
-namespace core {
-  class Manager;
-}
-
-namespace display {
-  class Manager;
-}
-
-namespace input {
-  class InputEvent;
-  class Manager;
-}  
-
-class CommandScheduler;
-
-class Control {
+class CommandSchedulerItem {
 public:
-  Control();
-  ~Control();
-  
-  bool                is_shutdown_completed()       { return m_shutdownReceived && torrent::is_inactive(); }
-  bool                is_shutdown_received()        { return m_shutdownReceived; }
+  typedef rak::function0<void> Slot;
 
-  void                initialize();
-  void                cleanup();
+  CommandSchedulerItem(const std::string& key) : m_key(key), m_interval(0) {}
+  ~CommandSchedulerItem();
 
-  void                receive_shutdown();
+  bool                is_queued() const                       { return m_task.is_queued(); }
 
-  ui::Root*           ui()                          { return m_ui; }
-  core::Manager*      core()                        { return m_core; }
-  display::Manager*   display()                     { return m_display; }
-  input::Manager*     input()                       { return m_input; }
-  input::InputEvent*  input_stdin()                 { return m_inputStdin; }
+  //void                enable()                                { enable(interval()); }
+  void                enable(uint32_t first);
+  void                disable();
 
-  CommandScheduler*   command_scheduler()           { return m_commandScheduler; }
+  const std::string&  key() const                             { return m_key; }
+
+  const std::string&  command() const                         { return m_command; }
+  void                set_command(const std::string& s)       { m_command = s; }
+
+  // 'interval()' should in the future return some more dynamic values.
+  uint32_t            interval() const                        { return m_interval; }
+  void                set_interval(uint32_t v)                { m_interval = v; }
+
+  void                set_slot(Slot::base_type* s)            { m_task.set_slot(s); }
 
 private:
-  Control(const Control&);
-  void operator = (const Control&);
+  CommandSchedulerItem(const CommandSchedulerItem&);
+  void operator = (const CommandSchedulerItem&);
 
-  bool                m_shutdownReceived;
+  std::string         m_key;
+  std::string         m_command;
+  
+  uint32_t            m_interval;
 
-  ui::Root*           m_ui;
-  core::Manager*      m_core;
-  display::Manager*   m_display;
-  input::Manager*     m_input;
-  input::InputEvent*  m_inputStdin;
+  rak::priority_item  m_task;
 
-  CommandScheduler*   m_commandScheduler;
-
-  rak::priority_item  m_taskShutdown;
+  // Flags for various things.
 };
 
 #endif

@@ -80,6 +80,9 @@ void apply_http_proxy(Control* m, const std::string& arg);
 void apply_session_directory(Control* m, const std::string& arg);
 void apply_encoding_list(Control* m, const std::string& arg);
 
+void apply_schedule(Control* m, const std::string& arg);
+void apply_schedule_remove(Control* m, const std::string& arg);
+
 class OptionHandlerInt : public OptionHandlerBase {
 public:
   typedef void (*Apply)(Control*, int);
