@@ -79,6 +79,8 @@ public:
   void                initialize_second();
   void                cleanup();
 
+  void                listen_open();
+
   void                shutdown(bool force);
 
   DListItr            insert(std::istream* s);
@@ -92,8 +94,6 @@ public:
   void                push_log(const std::string& msg)    { m_logImportant.push_front(msg); m_logComplete.push_front(msg); }
 
 private:
-  void                listen_open();
-
   void                create_http(const std::string& uri);
   void                create_final(std::istream* s);
 

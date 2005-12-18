@@ -24,7 +24,7 @@
 # Default session directory. Make sure you don't run multiple instance
 # of rtorrent using the same session directory. Perhaps using a
 # relative path?
-#session = 
+#session = ./session
 
 # The ip address reported to the tracker.
 #ip = 127.0.0.1
@@ -70,10 +70,11 @@
 # Number of sockets to simultaneously keep open.
 #max_open_sockets = <no default>
 
-# Dump data received from trackers to the files
-# "./tracker_dump.<time>".
-#tracker_dump = no
 
-# Change the interval between each throttle tick, in milliseconds. In
-# the range 1-5000 ms.
-#throttle_interval = 1000
+# Example of scheduling commands: Switch between two ip's every 5
+# seconds.
+#schedule = "ip_tick1,5,10,ip=torretta"
+#schedule = "ip_tick2,10,10,ip=lampedusa"
+
+# Remove a scheduled event.
+#schedule_remove = "ip_tick1"

@@ -158,7 +158,15 @@ apply_max_open_sockets(Control* m, int arg) {
 
 void
 apply_bind(Control* m, const std::string& arg) {
+  bool reopenListen = torrent::listen_port();
+
+  if (reopenListen)
+    torrent::listen_close();
+
   torrent::set_bind_address(arg);
+
+  if (reopenListen)
+    m->core()->listen_open();
 }
 
 void

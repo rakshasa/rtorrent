@@ -66,20 +66,20 @@ print_hhmmss(char* buf, unsigned int length, time_t t) {
   if (u == NULL)
     return "inv_time";
 
-  unsigned int s = snprintf(buf, length, "%02u:%02u:%02u", u->tm_hour, u->tm_min, u->tm_sec);
+  unsigned int s = snprintf(buf, length, "%2u:%02u:%02u", u->tm_hour, u->tm_min, u->tm_sec);
 
   return buf + std::min(s, length);
 }
 
 char*
-print_hhhhmmss(char* buf, unsigned int length, time_t t) {
-  std::tm *u = std::localtime(&t);
+print_ddhhmm(char* buf, unsigned int length, time_t t) {
+  unsigned int s;
+
+  if (t / (24 * 3600) < 100)
+    s = snprintf(buf, length, "%2li:%02li:%02li", t / (24 * 3600), (t / 3600) % 24, (t / 60) % 60);
+  else
+    s = snprintf(buf, length, "--:--:--");
   
-  if (u == NULL)
-    return "inv_time";
-
-  unsigned int s = snprintf(buf, length, "%2u:%02u:%02u", u->tm_hour, u->tm_min, u->tm_sec);
-
   return buf + std::min(s, length);
 }
 
@@ -117,12 +117,12 @@ print_download_info(char* buf, unsigned int length, core::Download* d) {
 				(double)d->get_download().bytes_done() / (double)(1 << 20),
 				(double)d->get_download().bytes_total() / (double)(1 << 20)));
   
-  buf += std::max(0, snprintf(buf, last - buf, " Rate: %5.1f / %5.1f KB Uploaded: %.1f MB",
+  buf += std::max(0, snprintf(buf, last - buf, " Rate: %5.1f / %5.1f KB Uploaded: %7.1f MB ",
 			      (double)d->get_download().up_rate()->rate() / (1 << 10),
 			      (double)d->get_download().down_rate()->rate() / (1 << 10),
 			      (double)d->get_download().up_rate()->total() / (1 << 20)));
 
-  buf += std::max(0, snprintf(buf, length, " Left: "));
+  //buf += std::max(0, snprintf(buf, length, " Left: "));
   buf = print_download_time_left(buf, length, d);
 
   return buf;
@@ -165,7 +165,7 @@ print_download_time_left(char* buf, unsigned int length, core::Download* d) {
   
   time_t remaining = (d->get_download().bytes_total() - d->get_download().bytes_done()) / (rate & ~(uint32_t)(512 - 1));
 
-  return print_hhhhmmss(buf, length, remaining);
+  return print_ddhhmm(buf, length, remaining);
 }
 
 // char*

@@ -245,18 +245,18 @@ Manager::receive_download_done(Download* d) {
 void
 Manager::listen_open() {
   if (m_portFirst > m_portLast)
-    throw std::runtime_error("Invalid port range for listening");
+    throw torrent::input_error("Invalid port range for listening");
 
   if (m_portRandom) {
     int boundary = m_portFirst + random() % (m_portLast - m_portFirst + 1);
 
     if (!torrent::listen_open(boundary, m_portLast) &&
 	!torrent::listen_open(m_portFirst, boundary))
-      throw std::runtime_error("Could not open port for listening.");
+      throw torrent::input_error("Could not open/bind a port for listening.");
 
   } else {
     if (!torrent::listen_open(m_portFirst, m_portLast))
-      throw std::runtime_error("Could not open port for listening.");
+      throw torrent::input_error("Could not open/bind a port for listening.");
   }
 }
 

@@ -57,7 +57,7 @@ namespace display {
 char*       print_string(char* buf, unsigned int length, char* str);
 
 char*       print_hhmmss(char* buf, unsigned int length, time_t t);
-char*       print_hhhhmmss(char* buf, unsigned int length, time_t t);
+char*       print_ddhhmm(char* buf, unsigned int length, time_t t);
 char*       print_ddmmyyyy(char* buf, unsigned int length, time_t t);
 
 char*       print_download_title(char* buf, unsigned int length, core::Download* d);
