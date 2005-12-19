@@ -76,7 +76,7 @@ print_ddhhmm(char* buf, unsigned int length, time_t t) {
   unsigned int s;
 
   if (t / (24 * 3600) < 100)
-    s = snprintf(buf, length, "%2li:%02li:%02li", t / (24 * 3600), (t / 3600) % 24, (t / 60) % 60);
+    s = snprintf(buf, length, "%2i:%02i:%02i", (int)t / (24 * 3600), ((int)t / 3600) % 24, ((int)t / 60) % 60);
   else
     s = snprintf(buf, length, "--:--:--");
   

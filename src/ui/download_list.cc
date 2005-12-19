@@ -111,7 +111,7 @@ DownloadList::activate() {
   if (is_active())
     throw std::logic_error("ui::Download::activate() called on an already activated object");
 
-  priority_queue_insert(&taskScheduler, &m_taskUpdate, cachedTime + 1000000);
+  priority_queue_insert(&taskScheduler, &m_taskUpdate, cachedTime);
 
   m_windowTextInput->set_active(false);
 

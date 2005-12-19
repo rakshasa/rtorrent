@@ -93,7 +93,7 @@ protected:
 inline void
 Window::mark_dirty() {
   priority_queue_erase(&displayScheduler, &m_taskUpdate);
-  priority_queue_insert(&displayScheduler, &m_taskUpdate, cachedTime + 10);
+  priority_queue_insert(&displayScheduler, &m_taskUpdate, cachedTime + 1);
 }
 
 }
