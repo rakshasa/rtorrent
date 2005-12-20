@@ -27,11 +27,11 @@
 #session = ./session
 
 # The ip address reported to the tracker.
-#ip = 127.0.0.1
+#ip = rakshasa
 
 # The ip address the listening socket and outgoing connections is
 # bound to.
-#bind = 127.0.0.1
+#bind = rakshasa
 
 # Port range to use for listening.
 #port_range = 6890-6999
@@ -45,6 +45,10 @@
 
 # Set whetever the client should try to connect to UDP trackers.
 #use_udp_trackers = yes
+
+# Alternative calls to bind and ip that should handle dynamic ip's.
+#schedule = ip_tick,0,1800,ip=rakshasa
+#schedule = bind_tick,0,1800,bind=rakshasa
 
 #
 # Do not modify the following parameters unless you know what you're doing.

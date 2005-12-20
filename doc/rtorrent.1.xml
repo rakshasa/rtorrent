@@ -414,6 +414,28 @@
         </para></listitem>
       </varlistentry>
 
+      <varlistentry>
+        <term>schedule = <replaceable>id</replaceable>,<replaceable>start</replaceable>,<replaceable>interval</replaceable>,<replaceable>command</replaceable></term>
+        <listitem><para>
+
+Call <emphasis>command</emphasis> every <emphasis>interval</emphasis>
+seconds, starting from <emphasis>start</emphasis>. An
+<emphasis>interval</emphasis> of zero calls the task once, while a
+<emphasis>start</emphasis> of zero calls it immediately. Currently
+<emphasis>command</emphasis> is forwarded to the option handler.
+
+        </para></listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>schedule_remove = <replaceable>id</replaceable></term>
+        <listitem><para>
+
+          Delete <emphasis>id</emphasis> from the scheduler.
+
+        </para></listitem>
+      </varlistentry>
+
     </variablelist>
 
   </refsect1>

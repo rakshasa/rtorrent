@@ -65,6 +65,8 @@ public:
   
   const std::string& get_message()                   { return m_message; }
 
+  uint32_t           chunks_failed() const                         { return m_chunksFailed; }
+
   void               set_root_directory(const std::string& d);
 
   ConnType           get_connection_current() const                { return m_download.connection_type(); }
@@ -95,9 +97,12 @@ private:
   void               receive_tracker_msg(std::string msg);
   void               receive_storage_error(std::string msg);
 
+  void               receive_chunk_failed(uint32_t idx);
+
   torrent::Download  m_download;
 
   std::string        m_message;
+  uint32_t           m_chunksFailed;
 
   ConnType           m_connectionLeech;
   ConnType           m_connectionSeed;

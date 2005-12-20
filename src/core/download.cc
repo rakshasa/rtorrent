@@ -47,6 +47,7 @@
 namespace core {
 
 Download::Download() :
+  m_chunksFailed(0),
   m_connectionLeech(torrent::Download::CONNECTION_LEECH),
   m_connectionSeed(torrent::Download::CONNECTION_SEED) {
 }
@@ -71,6 +72,8 @@ Download::set_download(torrent::Download d) {
   m_connTrackerSucceded = m_download.signal_tracker_succeded(sigc::bind(sigc::mem_fun(*this, &Download::receive_tracker_msg), ""));
   m_connTrackerFailed = m_download.signal_tracker_failed(sigc::mem_fun(*this, &Download::receive_tracker_msg));
   m_connStorageError = m_download.signal_storage_error(sigc::mem_fun(*this, &Download::receive_storage_error));
+
+  m_download.signal_chunk_failed(sigc::mem_fun(*this, &Download::receive_chunk_failed));
 }
 
 void
@@ -142,6 +145,11 @@ Download::connection_type_to_string(torrent::Download::ConnectionType t) {
   default:
     return "unknown";
   }
+}
+
+void
+Download::receive_chunk_failed(uint32_t idx) {
+  m_chunksFailed++;
 }
 
 }
