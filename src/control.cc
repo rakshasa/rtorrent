@@ -87,6 +87,7 @@ Control::initialize() {
   m_core->get_poll_manager()->get_http_stack()->set_user_agent(std::string(PACKAGE "/" VERSION "/") + torrent::version());
 
   m_core->initialize_second();
+  m_core->listen_open();
 
   m_ui->init(this);
 

@@ -98,7 +98,6 @@ Manager::initialize_second() {
   m_httpQueue.slot_factory(m_pollManager->get_http_stack()->get_http_factory());
 
   CurlStack::global_init();
-  listen_open();
 
   // Register slots to be called when a download is inserted/erased,
   // opened or closed.

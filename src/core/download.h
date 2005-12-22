@@ -47,16 +47,13 @@ class Download {
 public:
   typedef torrent::Download::ConnectionType ConnType;
 
-  Download();
-  ~Download() { release_download(); }
+  Download(torrent::Download d);
+  ~Download();
 
   bool               is_open()                       { return m_download.is_open(); }
   inline bool        is_done();
 
   void               start();
-
-  void               set_download(torrent::Download d);
-  void               release_download();
 
   torrent::Download& get_download()                  { return m_download; }
   const torrent::Download& get_download() const      { return m_download; }

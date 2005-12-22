@@ -46,10 +46,29 @@
 
 namespace core {
 
-Download::Download() :
+Download::Download(torrent::Download d) :
+  m_download(d),
+
   m_chunksFailed(0),
   m_connectionLeech(torrent::Download::CONNECTION_LEECH),
   m_connectionSeed(torrent::Download::CONNECTION_SEED) {
+
+  m_connTrackerSucceded = m_download.signal_tracker_succeded(sigc::bind(sigc::mem_fun(*this, &Download::receive_tracker_msg), ""));
+  m_connTrackerFailed = m_download.signal_tracker_failed(sigc::mem_fun(*this, &Download::receive_tracker_msg));
+  m_connStorageError = m_download.signal_storage_error(sigc::mem_fun(*this, &Download::receive_storage_error));
+
+  m_download.signal_chunk_failed(sigc::mem_fun(*this, &Download::receive_chunk_failed));
+}
+
+Download::~Download() {
+  if (!m_download.is_valid())
+    return;
+
+  m_connTrackerSucceded.disconnect();
+  m_connTrackerFailed.disconnect();
+  m_connStorageError.disconnect();
+
+  m_download = torrent::Download();
 }
 
 void
@@ -63,17 +82,6 @@ Download::start() {
   }
 
   m_download.start();
-}
-
-void
-Download::set_download(torrent::Download d) {
-  m_download = d;
-
-  m_connTrackerSucceded = m_download.signal_tracker_succeded(sigc::bind(sigc::mem_fun(*this, &Download::receive_tracker_msg), ""));
-  m_connTrackerFailed = m_download.signal_tracker_failed(sigc::mem_fun(*this, &Download::receive_tracker_msg));
-  m_connStorageError = m_download.signal_storage_error(sigc::mem_fun(*this, &Download::receive_storage_error));
-
-  m_download.signal_chunk_failed(sigc::mem_fun(*this, &Download::receive_chunk_failed));
 }
 
 void
@@ -91,18 +99,6 @@ Download::enable_udp_trackers(bool state) {
 	m_download.tracker(i).enable();
       else
 	m_download.tracker(i).disable();
-}
-
-void
-Download::release_download() {
-  if (!m_download.is_valid())
-    return;
-
-  m_connTrackerSucceded.disconnect();
-  m_connTrackerFailed.disconnect();
-  m_connStorageError.disconnect();
-
-  m_download = torrent::Download();
 }
 
 void

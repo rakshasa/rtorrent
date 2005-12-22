@@ -66,21 +66,21 @@ print_hhmmss(char* buf, unsigned int length, time_t t) {
   if (u == NULL)
     return "inv_time";
 
-  unsigned int s = snprintf(buf, length, "%2u:%02u:%02u", u->tm_hour, u->tm_min, u->tm_sec);
+  int s = snprintf(buf, length, "%2u:%02u:%02u", u->tm_hour, u->tm_min, u->tm_sec);
 
-  return buf + std::min(s, length);
+  return buf + std::max(s, 0);
 }
 
 char*
 print_ddhhmm(char* buf, unsigned int length, time_t t) {
-  unsigned int s;
+  int s;
 
   if (t / (24 * 3600) < 100)
     s = snprintf(buf, length, "%2i:%02i:%02i", (int)t / (24 * 3600), ((int)t / 3600) % 24, ((int)t / 60) % 60);
   else
     s = snprintf(buf, length, "--:--:--");
   
-  return buf + std::min(s, length);
+  return buf + std::max(s, 0);
 }
 
 char*
@@ -90,37 +90,36 @@ print_ddmmyyyy(char* buf, unsigned int length, time_t t) {
   if (u == NULL)
     return "inv_time";
 
-  unsigned int s = snprintf(buf, length, "%02u/%02u/%04u", u->tm_mday, (u->tm_mon + 1), (1900 + u->tm_year));
+  int s = snprintf(buf, length, "%02u/%02u/%04u", u->tm_mday, (u->tm_mon + 1), (1900 + u->tm_year));
 
-  return buf + std::min(s, length);
+  return buf + std::max(s, 0);
 }
 
 char*
 print_download_title(char* buf, unsigned int length, core::Download* d) {
-  return buf + std::max(0, snprintf(buf, length, "%s",
-				    d->get_download().name().c_str()));
+  return buf + std::max(snprintf(buf, length, "%s", d->get_download().name().c_str()), 0);
 }
 
 char*
 print_download_info(char* buf, unsigned int length, core::Download* d) {
   char* last = buf + length;
 
-  buf += std::max(0, snprintf(buf, last - buf, "Torrent: "));
+  buf += std::max(snprintf(buf, last - buf, "Torrent: "), 0);
 
   if (!d->get_download().is_open())
-    buf += std::max(0, snprintf(buf, last - buf, "closed            "));
+    buf += std::max(snprintf(buf, last - buf, "closed            "), 0);
   else if (d->is_done())
-    buf += std::max(0, snprintf(buf, last - buf, "done %10.1f MB",
-				(double)d->get_download().bytes_total() / (double)(1 << 20)));
+    buf += std::max(snprintf(buf, last - buf, "done %10.1f MB",
+			     (double)d->get_download().bytes_total() / (double)(1 << 20)), 0);
   else
-    buf += std::max(0, snprintf(buf, last - buf, "%6.1f / %6.1f MB",
-				(double)d->get_download().bytes_done() / (double)(1 << 20),
-				(double)d->get_download().bytes_total() / (double)(1 << 20)));
+    buf += std::max(snprintf(buf, last - buf, "%6.1f / %6.1f MB",
+			     (double)d->get_download().bytes_done() / (double)(1 << 20),
+			     (double)d->get_download().bytes_total() / (double)(1 << 20)), 0);
   
-  buf += std::max(0, snprintf(buf, last - buf, " Rate: %5.1f / %5.1f KB Uploaded: %7.1f MB ",
-			      (double)d->get_download().up_rate()->rate() / (1 << 10),
-			      (double)d->get_download().down_rate()->rate() / (1 << 10),
-			      (double)d->get_download().up_rate()->total() / (1 << 20)));
+  buf += std::max(snprintf(buf, last - buf, " Rate: %5.1f / %5.1f KB Uploaded: %7.1f MB ",
+			   (double)d->get_download().up_rate()->rate() / (1 << 10),
+			   (double)d->get_download().down_rate()->rate() / (1 << 10),
+			   (double)d->get_download().up_rate()->total() / (1 << 20)), 0);
 
   //buf += std::max(0, snprintf(buf, length, " Left: "));
   buf = print_download_time_left(buf, length, d);
@@ -131,21 +130,21 @@ print_download_info(char* buf, unsigned int length, core::Download* d) {
 char*
 print_download_status(char* buf, unsigned int length, core::Download* d) {
   if (!d->get_download().is_active())
-    buf += std::max(0, snprintf(buf, length, "Inactive: "));
+    buf += std::max(snprintf(buf, length, "Inactive: "), 0);
 
   if (d->get_download().is_hash_checking())
-    buf += std::max(0, snprintf(buf, length, "Checking hash [%2i%%]",
-				(d->get_download().chunks_hashed() * 100) / d->get_download().chunks_total()));
+    buf += std::max(snprintf(buf, length, "Checking hash [%2i%%]",
+			     (d->get_download().chunks_hashed() * 100) / d->get_download().chunks_total()), 0);
 
   else if (d->get_download().is_tracker_busy() &&
 	   d->get_download().tracker_focus() < d->get_download().size_trackers())
-    buf += std::max(0, snprintf(buf, length, "Tracker[%i:%i]: Connecting to %s",
-				d->get_download().tracker(d->get_download().tracker_focus()).group(),
-				d->get_download().tracker_focus(),
-				d->get_download().tracker(d->get_download().tracker_focus()).url().c_str()));
+    buf += std::max(snprintf(buf, length, "Tracker[%i:%i]: Connecting to %s",
+			     d->get_download().tracker(d->get_download().tracker_focus()).group(),
+			     d->get_download().tracker_focus(),
+			     d->get_download().tracker(d->get_download().tracker_focus()).url().c_str()), 0);
 
   else if (!d->get_message().empty())
-    buf += std::max(0, snprintf(buf, length, "%s", d->get_message().c_str()));
+    buf += std::max(snprintf(buf, length, "%s", d->get_message().c_str()), 0);
 
   else
     buf[0] = '\0';

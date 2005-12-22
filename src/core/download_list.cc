@@ -51,8 +51,7 @@ DownloadList::iterator
 DownloadList::insert(std::istream* str) {
   torrent::Download d = torrent::download_add(str);
 
-  iterator itr = Base::insert(end(), new Download);
-  (*itr)->set_download(d);
+  iterator itr = Base::insert(end(), new Download(d));
   (*itr)->get_download().signal_download_done(sigc::bind(sigc::mem_fun(*this, &DownloadList::finished), *itr));
 
   m_slotMapInsert.for_each(*itr);
@@ -65,7 +64,6 @@ DownloadList::erase(iterator itr) {
   m_slotMapErase.for_each(*itr);
 
   torrent::download_remove((*itr)->get_download());
-  (*itr)->release_download();
   delete *itr;
 
   return Base::erase(itr);
