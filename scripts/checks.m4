@@ -174,9 +174,9 @@ AC_DEFUN([TORRENT_CHECK_POSIX_FALLOCATE], [
 
 AC_DEFUN([TORRENT_WITH_POSIX_FALLOCATE], [
   AC_ARG_WITH(posix-fallocate,
-    [  --with-fallocate        Check for posix_fallocate],
+    [  --with-posix-fallocate  Check for and use posix_fallocate to allocate files.],
     [
-      if test "$withval" = "no"; then
+      if test "$withval" = "yes"; then
         TORRENT_CHECK_POSIX_FALLOCATE
       fi
     ])

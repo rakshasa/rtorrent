@@ -77,6 +77,11 @@ void apply_check_hash(Control* m, const std::string& arg);
 
 void apply_http_proxy(Control* m, const std::string& arg);
 
+void apply_load(Control* m, const std::string& arg);
+void apply_load_run(Control* m, const std::string& arg);
+void apply_stop_untied(Control* m, const std::string& arg);
+void apply_remove_untied(Control* m, const std::string& arg);
+
 void apply_session_directory(Control* m, const std::string& arg);
 void apply_encoding_list(Control* m, const std::string& arg);
 

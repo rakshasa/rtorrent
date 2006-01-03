@@ -73,6 +73,9 @@ public:
   void               set_connection_leech(const std::string& name) { m_connectionLeech = string_to_connection_type(name); }
   void               set_connection_seed(const std::string& name)  { m_connectionSeed = string_to_connection_type(name); }
 
+  const std::string& tied_to_file() const                          { return m_tiedToFile; }
+  void               set_tied_to_file(const std::string& str)      { m_tiedToFile = str; }
+
   void               enable_udp_trackers(bool state);
 
   // Helper functions for calling functions in torrent::Download
@@ -103,6 +106,8 @@ private:
 
   ConnType           m_connectionLeech;
   ConnType           m_connectionSeed;
+
+  std::string        m_tiedToFile;
 
   sigc::connection   m_connTrackerSucceded;
   sigc::connection   m_connTrackerFailed;

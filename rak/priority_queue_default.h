@@ -86,6 +86,17 @@ typedef std::equal_to<priority_item*> priority_equal;
 typedef priority_queue<priority_item*, priority_compare, priority_equal> priority_queue_default;
 
 inline void
+priority_queue_perform(priority_queue_default* queue, timer t) {
+  while (!queue->empty() && queue->top()->time() <= t) {
+    priority_item* v = queue->top();
+    queue->pop();
+
+    v->clear_time();
+    v->call();
+  }
+}
+
+inline void
 priority_queue_insert(priority_queue_default* queue, priority_item* item, timer t) {
   if (t == timer())
     throw std::logic_error("priority_queue_insert(...) received a bad timer.");

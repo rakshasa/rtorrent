@@ -37,17 +37,21 @@
 #include "config.h"
 
 #include <cstdio>
+#include <functional>
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <rak/functional.h>
 #include <rak/string_manip.h>
+#include <torrent/bencode.h>
 #include <torrent/exceptions.h>
 #include <torrent/torrent.h>
 
 #include "core/manager.h"
 #include "ui/root.h"
 #include "utils/directory.h"
+#include "utils/file_stat.h"
 
 #include "control.h"
 #include "option_handler_rules.h"
@@ -216,6 +220,58 @@ apply_check_hash(Control* m, const std::string& arg) {
 void
 apply_http_proxy(Control* m, const std::string& arg) {
   m->core()->get_poll_manager()->get_http_stack()->set_http_proxy(arg);
+}
+
+void
+apply_load(Control* m, const std::string& arg) {
+  m->core()->try_create_download_expand(arg, false, false, true);
+}
+
+void
+apply_load_run(Control* m, const std::string& arg) {
+  m->core()->try_create_download_expand(arg, true, false, true);
+}
+
+void
+apply_stop_untied(Control* m, const std::string& arg) {
+  core::Manager::DListItr itr = m->core()->get_download_list().begin();
+
+  while ((itr = std::find_if(itr, m->core()->get_download_list().end(),
+			     rak::on(std::mem_fun(&core::Download::tied_to_file), std::not1(std::mem_fun_ref(&std::string::empty)))))
+	 != m->core()->get_download_list().end()) {
+    utils::FileStat fs;
+
+    if (fs.update((*itr)->tied_to_file().c_str()) != 0) {
+      (*itr)->set_tied_to_file(std::string());
+      (*itr)->get_bencode().get_key("rtorrent").erase_key("tied");
+
+      m->core()->stop(*itr);
+    }
+
+    ++itr;
+  }
+}
+
+void
+apply_remove_untied(Control* m, const std::string& arg) {
+  core::Manager::DListItr itr = m->core()->get_download_list().begin();
+
+  while ((itr = std::find_if(itr, m->core()->get_download_list().end(),
+			     rak::on(std::mem_fun(&core::Download::tied_to_file), std::not1(std::mem_fun_ref(&std::string::empty)))))
+	 != m->core()->get_download_list().end()) {
+    utils::FileStat fs;
+
+    if (fs.update((*itr)->tied_to_file().c_str()) != 0) {
+      (*itr)->set_tied_to_file(std::string());
+      (*itr)->get_bencode().get_key("rtorrent").erase_key("tied");
+
+      m->core()->stop(*itr);
+      itr = m->core()->erase(itr);
+
+    } else {
+      ++itr;
+    }
+  }
 }
 
 void

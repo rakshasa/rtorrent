@@ -38,12 +38,12 @@
 
 #include <stdexcept>
 #include <rak/functional.h>
+#include <rak/string_manip.h>
 #include <sigc++/bind.h>
 #include <sigc++/hide.h>
 #include <torrent/torrent.h>
 
 #include "core/download.h"
-#include "core/download_factory.h"
 #include "core/manager.h"
 
 #include "input/bindings.h"
@@ -265,16 +265,9 @@ DownloadList::receive_exit_input(bool useDefault) {
 
   m_control->ui()->window_statusbar()->set_active(true);
   m_windowTextInput->set_active(false);
-
   m_control->input()->set_text_input();
 
-  // Adding download.
-  core::DownloadFactory* f = new core::DownloadFactory(m_windowTextInput->get_input()->str(), m_control->core());
-
-  f->set_start(useDefault);
-  f->slot_finished(sigc::bind(sigc::ptr_fun(&rak::call_delete_func<core::DownloadFactory>), f));
-  f->load();
-  f->commit();
+  m_control->core()->try_create_download_expand(m_windowTextInput->get_input()->str(), useDefault);
 
   // Clean up.
   m_windowTextInput->get_input()->clear();

@@ -57,7 +57,7 @@ Directory::is_valid() const {
 }
 
 bool
-Directory::update() {
+Directory::update(bool hideDot) {
   if (m_path.empty())
     throw std::logic_error("Directory::update() tried to open an empty path");
 
@@ -71,7 +71,7 @@ Directory::update() {
   while ((ent = readdir(d)) != NULL) {
     std::string de(ent->d_name);
 
-    if (!de.empty() && de[0] != '.')
+    if (!de.empty() && (!hideDot || de[0] != '.'))
       Base::push_back(ent->d_name);
   }
 

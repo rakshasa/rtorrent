@@ -40,6 +40,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <torrent/bencode.h>
+#include <torrent/exceptions.h>
 
 #include "curl_get.h"
 #include "http_queue.h"
@@ -58,7 +59,9 @@ DownloadFactory::DownloadFactory(const std::string& uri, Manager* m) :
 
   m_uri(uri),
   m_session(false),
-  m_start(false) {
+  m_start(false),
+  m_printLog(true),
+  m_tiedToFile(false) {
 
   m_taskLoad.set_slot(rak::mem_fn(this, &DownloadFactory::receive_load));
   m_taskCommit.set_slot(rak::mem_fn(this, &DownloadFactory::receive_commit));
@@ -85,7 +88,7 @@ DownloadFactory::commit() {
 void
 DownloadFactory::receive_load() {
   if (m_stream)
-    throw std::logic_error("DownloadFactory::load() called on an object with m_stream != NULL");
+    throw torrent::client_error("DownloadFactory::load() called on an object with m_stream != NULL");
 
   if (std::strncmp(m_uri.c_str(), "http://", 7) == 0) {
     // Http handling here.
@@ -94,6 +97,8 @@ DownloadFactory::receive_load() {
 
     (*itr)->signal_done().slots().push_front(sigc::mem_fun(*this, &DownloadFactory::receive_loaded));
     (*itr)->signal_failed().slots().push_front(sigc::mem_fun(*this, &DownloadFactory::receive_failed));
+
+    m_tiedToFile = false;
 
   } else {
     m_stream = new std::fstream(m_uri.c_str(), std::ios::in);
@@ -124,9 +129,9 @@ DownloadFactory::receive_commit() {
 void
 DownloadFactory::receive_success() {
   if (m_stream == NULL)
-    throw std::logic_error("DownloadFactory::receive_success() called on an object with m_stream == NULL");
+    throw torrent::client_error("DownloadFactory::receive_success() called on an object with m_stream == NULL");
 
-  Manager::DListItr itr = m_manager->insert(m_stream);
+  Manager::DListItr itr = m_manager->insert(m_stream, m_printLog);
 
   if (itr == m_manager->get_download_list().end()) {
     // core::Manager should already have added the error message to
@@ -135,15 +140,28 @@ DownloadFactory::receive_success() {
     return;
   }
 
+  torrent::Bencode& bencode = (*itr)->get_bencode();
+
   if (m_session) {
-    torrent::Bencode& bencode = (*itr)->get_bencode();
-    
+    // Hmm... this safe?
     if (bencode.get_key("rtorrent").get_key("state").as_string() == "started")
-      m_manager->start(*itr);
+      m_manager->start(*itr, m_printLog);
+
+    if (bencode.get_key("rtorrent").has_key("tied") &&
+	bencode.get_key("rtorrent").get_key("tied").is_string())
+      (*itr)->set_tied_to_file(bencode.get_key("rtorrent").get_key("tied").as_string());
 
   } else {
+    // Remove the settings if this isn't a session torrent.
+    //bencode.erase_key("rtorrent");
+
+    if (m_tiedToFile) {
+      (*itr)->set_tied_to_file(m_uri);
+      bencode.get_key("rtorrent").insert_key("tied", m_uri);
+    }
+
     if (m_start)
-      m_manager->start(*itr);
+      m_manager->start(*itr, m_printLog);
 
     m_manager->get_download_store().save(*itr);
   }
@@ -154,11 +172,13 @@ DownloadFactory::receive_success() {
 void
 DownloadFactory::receive_failed(const std::string& msg) {
   if (m_stream == NULL)
-    throw std::logic_error("DownloadFactory::receive_success() called on an object with m_stream == NULL");
+    throw torrent::client_error("DownloadFactory::receive_success() called on an object with m_stream == NULL");
 
   // Add message to log.
-  m_manager->get_log_important().push_front(msg + ": \"" + m_uri + "\"");
-  m_manager->get_log_complete().push_front(msg + ": \"" + m_uri + "\"");
+  if (m_printLog) {
+    m_manager->get_log_important().push_front(msg + ": \"" + m_uri + "\"");
+    m_manager->get_log_complete().push_front(msg + ": \"" + m_uri + "\"");
+  }
 
   m_slotFinished();
 }

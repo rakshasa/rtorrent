@@ -64,6 +64,13 @@ public:
   using Base::empty;
   using Base::size;
 
+  Log() : m_enabled(true) {}
+
+  bool      is_enabled() const { return m_enabled; }
+
+  void      enable()           { m_enabled = true; }
+  void      disable()          { m_enabled = false; }
+
   void      push_front(const std::string& msg);
 
   iterator  find_older(rak::timer t);
@@ -71,6 +78,8 @@ public:
   Signal&   signal_update() { return m_signalUpdate; }
 
 private:
+  bool      m_enabled;
+
   Signal    m_signalUpdate;
 };
 

@@ -37,6 +37,7 @@
 #ifndef RAK_STRING_MANIP_H
 #define RAK_STRING_MANIP_H
 
+#include <algorithm>
 #include <cctype>
 
 namespace rak {
@@ -72,6 +73,58 @@ Sequence trim_end(const Sequence& seq) {
 template <typename Sequence>
 Sequence trim(const Sequence& seq) {
   return trim_begin(trim_end(seq));
+}
+
+// Consider rewritting such that m_seq is replaced by first/last.
+template <typename Sequence>
+class split_iterator_t {
+public:
+  typedef typename Sequence::const_iterator const_iterator;
+  typedef typename Sequence::value_type     value_type;
+
+  split_iterator_t() {}
+
+  split_iterator_t(const Sequence& seq, value_type delim) :
+    m_seq(&seq),
+    m_delim(delim),
+    m_pos(seq.begin()),
+    m_next(std::find(seq.begin(), seq.end(), delim)) {
+  }
+
+  Sequence operator * () { return Sequence(m_pos, m_next); }
+
+  split_iterator_t& operator ++ () {
+    m_pos = m_next;
+
+    if (m_pos == m_seq->end())
+      return *this;
+
+    m_pos++;
+    m_next = std::find(m_pos, m_seq->end(), m_delim);
+
+    return *this;
+  }
+
+  bool operator == (const split_iterator_t& itr) const { return m_pos == m_seq->end(); }
+  bool operator != (const split_iterator_t& itr) const { return m_pos != m_seq->end(); }
+
+private:
+  const Sequence* m_seq;
+  value_type      m_delim;
+  const_iterator  m_pos;
+  const_iterator  m_next;
+};
+
+template <typename Sequence>
+inline split_iterator_t<Sequence>
+split_iterator(const Sequence& seq, typename Sequence::value_type delim) {
+  return split_iterator_t<Sequence>(seq, delim);
+}
+
+template <typename Sequence>
+inline split_iterator_t<Sequence>
+split_iterator(const Sequence& seq) {
+  return split_iterator_t<Sequence>();
 }
 
 }

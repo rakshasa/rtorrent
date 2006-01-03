@@ -66,7 +66,7 @@ public:
 
   bool                is_valid() const;
 
-  bool                update();
+  bool                update(bool hideDot = true);
 
   const std::string&  get_path() { return m_path; }
 

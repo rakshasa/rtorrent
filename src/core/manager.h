@@ -83,15 +83,19 @@ public:
 
   void                shutdown(bool force);
 
-  DListItr            insert(std::istream* s);
+  DListItr            insert(std::istream* s, bool printLog = true);
   DListItr            erase(DListItr itr);
 
-  void                start(Download* d);
+  void                start(Download* d, bool printLog = true);
   void                stop(Download* d);
 
   void                check_hash(Download* d);
 
   void                push_log(const std::string& msg)    { m_logImportant.push_front(msg); m_logComplete.push_front(msg); }
+
+  // Temporary, find a better place for this.
+  void                try_create_download(const std::string& uri, bool start, bool printLog = true, bool tied = false);
+  void                try_create_download_expand(const std::string& uri, bool start, bool printLog = true, bool tied = false);
 
 private:
   void                create_http(const std::string& uri);

@@ -34,6 +34,10 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
+// The DownloadFactory class assures that loading torrents can be done
+// anywhere in the code by queueing the task. The user may change
+// settings while, or even after, the torrent is loading.
+
 #ifndef RTORRENT_CORE_DOWNLOAD_FACTORY_H
 #define RTORRENT_CORE_DOWNLOAD_FACTORY_H
 
@@ -67,6 +71,12 @@ public:
   bool                get_start() const     { return m_start; }
   void                set_start(bool v)     { m_start = v; }
 
+  bool                print_log() const        { return m_printLog; }
+  void                set_print_log(bool v)    { m_printLog = v; }
+
+  bool                tied_to_file() const     { return m_tiedToFile; }
+  void                set_tied_to_file(bool v) { m_tiedToFile = v; }
+
   void                slot_finished(Slot s) { m_slotFinished = s; }
 
 private:
@@ -85,6 +95,8 @@ private:
   std::string         m_uri;
   bool                m_session;
   bool                m_start;
+  bool                m_printLog;
+  bool                m_tiedToFile;
 
   Slot                m_slotFinished;
   rak::priority_item  m_taskLoad;

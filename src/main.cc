@@ -143,6 +143,11 @@ initialize_option_handler(Control* c, OptionHandler* optionHandler) {
   optionHandler->insert("connection_leech",    new OptionHandlerString(c, &apply_connection_leech));
   optionHandler->insert("connection_seed",     new OptionHandlerString(c, &apply_connection_seed));
 
+  optionHandler->insert("load",                new OptionHandlerString(c, &apply_load));
+  optionHandler->insert("load_run",            new OptionHandlerString(c, &apply_load_run));
+  optionHandler->insert("stop_untied",         new OptionHandlerString(c, &apply_stop_untied));
+  optionHandler->insert("remove_untied",       new OptionHandlerString(c, &apply_remove_untied));
+
   optionHandler->insert("session",             new OptionHandlerString(c, &apply_session_directory));
   optionHandler->insert("encoding_list",       new OptionHandlerString(c, &apply_encoding_list));
   optionHandler->insert("tracker_dump",        new OptionHandlerString(c, &apply_tracker_dump));
@@ -220,15 +225,15 @@ main(int argc, char** argv) {
 
     // Just to make sure we did all the stuff on the queue before
     // loading any torrents.
-    while (!taskScheduler.empty() && taskScheduler.top()->time() <= cachedTime) {
-      rak::priority_item* v = taskScheduler.top();
-      taskScheduler.pop();
+    //
+    // Remove this?
+    //rak::priority_queue_perform(&taskScheduler, cachedTime);
 
-      v->clear_time();
-      v->call();
-    }
-
+    // Load session torrents and perform scheduled tasks to ensure
+    // session torrents are loaded before arg torrents.
     load_session_torrents(&control);
+    rak::priority_queue_perform(&taskScheduler, cachedTime);
+
     load_arg_torrents(&control, argv + firstArg, argv + argc);
 
     control.display()->adjust_layout();
@@ -237,22 +242,7 @@ main(int argc, char** argv) {
       countTicks++;
 
       cachedTime = rak::timer::current();
-
-//       std::list<rak::priority_item*> workQueue;
-
-//       std::copy(rak::queue_popper(taskScheduler, rak::bind2nd(std::mem_fun(&rak::priority_item::compare), cachedTime)),
-// 		rak::queue_popper(taskScheduler, rak::bind2nd(std::mem_fun(&rak::priority_item::compare), rak::timer())),
-// 		std::back_inserter(workQueue));
-//       std::for_each(workQueue.begin(), workQueue.end(), std::mem_fun(&rak::priority_item::clear_time));
-//       std::for_each(workQueue.begin(), workQueue.end(), std::mem_fun(&rak::priority_item::call));
-
-      while (!taskScheduler.empty() && taskScheduler.top()->time() <= cachedTime) {
-	rak::priority_item* v = taskScheduler.top();
-	taskScheduler.pop();
-
-	v->clear_time();
-	v->call();
-      }
+      rak::priority_queue_perform(&taskScheduler, cachedTime);
 
       // This needs to be called every second or so. Currently done by
       // the throttle task in libtorrent.
@@ -268,7 +258,7 @@ main(int argc, char** argv) {
   } catch (torrent::base_error& e) {
     display::Canvas::cleanup();
 
-    std::cout << "Caught exception from libtorrent: " << e.what() << std::endl;
+    std::cout << "Caught exception: " << e.what() << std::endl;
     return -1;
 
   } catch (std::exception& e) {

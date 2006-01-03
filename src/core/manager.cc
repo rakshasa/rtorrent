@@ -43,6 +43,8 @@
 #include <istream>
 #include <unistd.h>
 #include <sys/select.h>
+#include <rak/regex.h>
+#include <rak/string_manip.h>
 #include <sigc++/bind.h>
 #include <sigc++/hide.h>
 #include <torrent/bencode.h>
@@ -50,6 +52,7 @@
 
 #include "curl_get.h"
 #include "download.h"
+#include "download_factory.h"
 #include "manager.h"
 #include "poll_manager_epoll.h"
 #include "poll_manager_select.h"
@@ -149,13 +152,15 @@ Manager::shutdown(bool force) {
 }
 
 Manager::DListItr
-Manager::insert(std::istream* s) {
+Manager::insert(std::istream* s, bool printLog) {
   try {
     return m_downloadList.insert(s);
 
   } catch (torrent::local_error& e) {
-    m_logImportant.push_front(e.what());
-    m_logComplete.push_front(e.what());
+    if (printLog) {
+      m_logImportant.push_front(e.what());
+      m_logComplete.push_front(e.what());
+    }
 
     return m_downloadList.end();
   }
@@ -173,7 +178,7 @@ Manager::erase(DListItr itr) {
 }  
 
 void
-Manager::start(Download* d) {
+Manager::start(Download* d, bool printLog) {
   try {
     d->get_bencode().get_key("rtorrent").get_key("state") = "started";
 
@@ -190,8 +195,10 @@ Manager::start(Download* d) {
       m_hashQueue.insert(d, sigc::bind(sigc::mem_fun(m_downloadList, &DownloadList::start), d));
 
   } catch (torrent::local_error& e) {
-    m_logImportant.push_front(e.what());
-    m_logComplete.push_front(e.what());
+    if (printLog) {
+      m_logImportant.push_front(e.what());
+      m_logComplete.push_front(e.what());
+    }
   }
 }
 
@@ -300,6 +307,76 @@ Manager::receive_download_done_hash_checked(Download* d) {
   // Don't send if we did a hash check and found incompelete chunks.
   //if (d->is_done())
     d->get_download().tracker_send_completed();
+}
+
+void
+Manager::try_create_download(const std::string& uri, bool start, bool printLog, bool tied) {
+  // Adding download.
+  DownloadFactory* f = new DownloadFactory(uri, this);
+
+  f->set_start(start);
+  f->set_print_log(printLog);
+  f->set_tied_to_file(tied);
+  f->slot_finished(sigc::bind(sigc::ptr_fun(&rak::call_delete_func<core::DownloadFactory>), f));
+  f->load();
+  f->commit();
+}
+
+// Move this somewhere better.
+void
+path_expand(std::vector<std::string>* paths, const std::string& pattern) {
+  std::vector<utils::Directory> currentCache;
+  std::vector<utils::Directory> nextCache;
+
+  rak::split_iterator_t<std::string> first = rak::split_iterator(pattern, '/');
+  rak::split_iterator_t<std::string> last = rak::split_iterator(pattern);
+    
+  if (first == last)
+    return;
+
+  // Check for initial '/' that indicates the root.
+  if ((*first).empty()) {
+    currentCache.push_back(utils::Directory("/"));
+    ++first;
+  } else {
+    currentCache.push_back(utils::Directory("./"));
+  }
+
+  // Might be an idea to use depth-first search instead.
+
+  for (; first != last; ++first) {
+    rak::regex r(*first);
+
+    if (r.pattern().empty())
+      continue;
+
+    for (std::vector<utils::Directory>::iterator itr = currentCache.begin(); itr != currentCache.end(); ++itr) {
+      itr->update(false);
+      itr->erase(std::remove_if(itr->begin(), itr->end(), std::not1(r)), itr->end());
+
+      std::transform(itr->begin(), itr->end(), std::back_inserter(nextCache), std::bind1st(std::plus<std::string>(), itr->get_path() + "/"));
+    }
+
+    currentCache.clear();
+    currentCache.swap(nextCache);
+  }
+
+  std::transform(currentCache.begin(), currentCache.end(), std::back_inserter(*paths), std::mem_fun_ref(&utils::Directory::get_path));
+}
+
+void
+Manager::try_create_download_expand(const std::string& uri, bool start, bool printLog, bool tied) {
+  std::vector<std::string> paths;
+  paths.reserve(32);
+
+  path_expand(&paths, uri);
+
+  if (!paths.empty())
+    for (std::vector<std::string>::iterator itr = paths.begin(); itr != paths.end(); ++itr)
+      try_create_download(*itr, start, printLog, tied);
+
+  else
+    try_create_download(uri, start, printLog, tied);
 }
 
 }
