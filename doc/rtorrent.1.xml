@@ -436,6 +436,32 @@ seconds, starting from <emphasis>start</emphasis>. An
         </para></listitem>
       </varlistentry>
 
+      <varlistentry>
+        <term>load = <replaceable>file</replaceable></term>
+        <term>load_start = <replaceable>file</replaceable></term>
+        <listitem><para>
+
+Load and possibly start a file, or possibly mutiple files by using the
+wildcard "*". This is meant for use with
+<emphasis>schedule</emphasis>, though ensure that the
+<emphasis>start</emphasis> is non-zero. The loaded file will be tied
+to the filename provided.
+
+        </para></listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>stop_untied =</term>
+        <term>remove_untied =</term>
+        <listitem><para>
+
+Stop or remove the torrents that are tied to filenames that has been
+deleted, the association is then cleared. Don't use
+<emphasis>remove_untied</emphasis> as it crashes the client.
+
+        </para></listitem>
+      </varlistentry>
+
     </variablelist>
 
   </refsect1>

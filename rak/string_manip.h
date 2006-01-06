@@ -39,6 +39,9 @@
 
 #include <algorithm>
 #include <cctype>
+#include <cstdlib>
+#include <iterator>
+#include <locale>
 
 namespace rak {
 
@@ -125,6 +128,82 @@ template <typename Sequence>
 inline split_iterator_t<Sequence>
 split_iterator(const Sequence& seq) {
   return split_iterator_t<Sequence>();
+}
+
+template <int pos, typename Value>
+inline char
+value_to_hexchar(Value v) {
+  v >>= pos * 4;
+  v &= 0xf;
+
+  if (v < 0xA)
+    return '0' + v;
+  else
+    return 'A' + v - 0xA;
+}
+
+template <typename InputIterator, typename OutputIterator> 
+OutputIterator
+copy_escape_html(InputIterator first, InputIterator last, OutputIterator dest) {
+  while (first != last) {
+    if (std::isalpha(*first) ||
+	std::isdigit(*first) ||
+	*first == '-') {
+      *(dest++) = *first;
+
+    } else {
+      *(dest++) = '%';
+      *(dest++) = value_to_hexchar<1>(*first);
+      *(dest++) = value_to_hexchar<0>(*first);
+    }
+
+    ++first;
+  }
+
+  return dest;
+}
+
+template <typename Sequence>
+Sequence
+copy_escape_html(const Sequence& src) {
+  Sequence dest;
+  copy_escape_html(src.begin(), src.end(), std::back_inserter(dest));
+
+  return dest;
+}
+
+// Consider support for larger than char type.
+template <typename InputIterator, typename OutputIterator> 
+OutputIterator
+transform_hex(InputIterator first, InputIterator last, OutputIterator dest) {
+  while (first != last) {
+    *(dest++) = value_to_hexchar<1>(*first);
+    *(dest++) = value_to_hexchar<0>(*first);
+
+    ++first;
+  }
+
+  return dest;
+}
+
+template <typename Sequence>
+Sequence
+transform_hex(const Sequence& src) {
+  Sequence dest;
+  transform_hex(src.begin(), src.end(), std::back_inserter(dest));
+
+  return dest;
+}
+
+template <typename Sequence>
+Sequence
+generate_random(size_t length) {
+  Sequence s;
+  s.reserve(length);
+
+  std::generate_n(std::back_inserter(s), length, &std::rand);
+
+  return s;
 }
 
 }

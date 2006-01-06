@@ -38,9 +38,9 @@
 
 #include <functional>
 #include <rak/algorithm.h>
+#include <rak/file_stat.h>
 
 #include "path_input.h"
-#include "utils/file_stat.h"
 
 namespace input {
 
@@ -68,9 +68,9 @@ struct _transform_filename {
   _transform_filename(const std::string& base) : m_base(base) {}
 
   void operator () (std::string& filename) {
-    utils::FileStat fs;
+    rak::file_stat fs;
 
-    if (fs.update((m_base + filename).c_str()))
+    if (!fs.update((m_base + filename)))
       return;
 
     else if (fs.is_directory())

@@ -116,49 +116,6 @@ parse_options(Control* c, OptionHandler* optionHandler, int argc, char** argv) {
 }
 
 void
-initialize_option_handler(Control* c, OptionHandler* optionHandler) {
-  optionHandler->insert("max_peers",           new OptionHandlerInt(c, &apply_download_max_peers));
-  optionHandler->insert("min_peers",           new OptionHandlerInt(c, &apply_download_min_peers));
-  optionHandler->insert("max_uploads",         new OptionHandlerInt(c, &apply_download_max_uploads));
-
-  optionHandler->insert("download_rate",       new OptionHandlerInt(c, &apply_global_download_rate));
-  optionHandler->insert("upload_rate",         new OptionHandlerInt(c, &apply_global_upload_rate));
-
-  optionHandler->insert("bind",                new OptionHandlerString(c, &apply_bind));
-  optionHandler->insert("ip",                  new OptionHandlerString(c, &apply_ip));
-  optionHandler->insert("port_range",          new OptionHandlerString(c, &apply_port_range));
-  optionHandler->insert("port_random",         new OptionHandlerString(c, &apply_port_random));
-
-  optionHandler->insert("check_hash",          new OptionHandlerString(c, &apply_check_hash));
-  optionHandler->insert("directory",           new OptionHandlerString(c, &apply_download_directory));
-
-  optionHandler->insert("hash_read_ahead",     new OptionHandlerInt(c, &apply_hash_read_ahead));
-  optionHandler->insert("hash_interval",       new OptionHandlerInt(c, &apply_hash_interval));
-  optionHandler->insert("hash_max_tries",      new OptionHandlerInt(c, &apply_hash_max_tries));
-  optionHandler->insert("max_open_files",      new OptionHandlerInt(c, &apply_max_open_files));
-  optionHandler->insert("max_open_sockets",    new OptionHandlerInt(c, &apply_max_open_sockets));
-
-  optionHandler->insert("umask",               new OptionHandlerOctal(c, &apply_umask));
-
-  optionHandler->insert("connection_leech",    new OptionHandlerString(c, &apply_connection_leech));
-  optionHandler->insert("connection_seed",     new OptionHandlerString(c, &apply_connection_seed));
-
-  optionHandler->insert("load",                new OptionHandlerString(c, &apply_load));
-  optionHandler->insert("load_run",            new OptionHandlerString(c, &apply_load_run));
-  optionHandler->insert("stop_untied",         new OptionHandlerString(c, &apply_stop_untied));
-  optionHandler->insert("remove_untied",       new OptionHandlerString(c, &apply_remove_untied));
-
-  optionHandler->insert("session",             new OptionHandlerString(c, &apply_session_directory));
-  optionHandler->insert("encoding_list",       new OptionHandlerString(c, &apply_encoding_list));
-  optionHandler->insert("tracker_dump",        new OptionHandlerString(c, &apply_tracker_dump));
-  optionHandler->insert("use_udp_trackers",    new OptionHandlerString(c, &apply_use_udp_trackers));
-
-  optionHandler->insert("http_proxy",          new OptionHandlerString(c, &apply_http_proxy));
-  optionHandler->insert("schedule",            new OptionHandlerString(c, &apply_schedule));
-  optionHandler->insert("schedule_remove",     new OptionHandlerString(c, &apply_schedule_remove));
-}
-
-void
 load_session_torrents(Control* c) {
   // Load session torrents.
   std::list<std::string> l = c->core()->get_download_store().get_formated_entries().make_list();
@@ -188,25 +145,28 @@ load_arg_torrents(Control* c, char** first, char** last) {
   }
 }
 
+rak::timer
+client_next_timeout() {
+  if (taskScheduler.empty())
+    return 60 * 1000000;
+  else if (taskScheduler.top()->time() <= cachedTime)
+    return 0;
+  else
+    return taskScheduler.top()->time() - cachedTime;
+}
+
 int
 main(int argc, char** argv) {
   try {
 
     cachedTime = rak::timer::current();
 
-    OptionHandler optionHandler;
     Control       control;
     
-    control.command_scheduler()->set_slot_command(rak::mem_fn(&optionHandler, &OptionHandler::process_command));
-    control.command_scheduler()->set_slot_error_message(rak::mem_fn(control.core(), &core::Manager::push_log));
-
     srandom(cachedTime.usec());
     srand48(cachedTime.usec());
 
-    initialize_option_handler(&control, &optionHandler);
-
-    OptionFile optionFile;
-    optionFile.slot_option(sigc::mem_fun(optionHandler, &OptionHandler::process));
+    initialize_option_handler(&control);
 
     SignalHandler::set_ignore(SIGPIPE);
     SignalHandler::set_handler(SIGINT,  sigc::mem_fun(control, &Control::receive_shutdown));
@@ -216,10 +176,13 @@ main(int argc, char** argv) {
 
     control.core()->initialize_first();
 
+    OptionFile optionFile;
+    optionFile.slot_option(sigc::mem_fun(control.option_handler(), &OptionHandler::process));
+
     if (getenv("HOME") && !optionFile.process_file(getenv("HOME") + std::string("/.rtorrent.rc")))
       control.core()->get_log_important().push_front("Could not load \"~/.rtorrent.rc\".");
 
-    int firstArg = parse_options(&control, &optionHandler, argc, argv);
+    int firstArg = parse_options(&control, control.option_handler(), argc, argv);
 
     control.initialize();
 
@@ -244,13 +207,8 @@ main(int argc, char** argv) {
       cachedTime = rak::timer::current();
       rak::priority_queue_perform(&taskScheduler, cachedTime);
 
-      // This needs to be called every second or so. Currently done by
-      // the throttle task in libtorrent.
-      if (!displayScheduler.empty() && displayScheduler.top()->time() <= cachedTime)
-	control.display()->do_update();
-
       // Do shutdown check before poll, not after.
-      control.core()->get_poll_manager()->poll(!taskScheduler.empty() ? taskScheduler.top()->time() - cachedTime : 60 * 1000000);
+      control.core()->get_poll_manager()->poll(client_next_timeout());
     }
 
     control.cleanup();

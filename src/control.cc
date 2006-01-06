@@ -47,6 +47,7 @@
 #include "ui/root.h"
 
 #include "command_scheduler.h"
+#include "option_handler.h"
 
 #include "control.h"
 
@@ -59,11 +60,15 @@ Control::Control() :
   m_input(new input::Manager()),
   m_inputStdin(new input::InputEvent(STDIN_FILENO)),
 
-  m_commandScheduler(new CommandScheduler()) {
+  m_commandScheduler(new CommandScheduler()),
+  m_optionHandler(new OptionHandler()) {
 
   m_inputStdin->slot_pressed(sigc::mem_fun(m_input, &input::Manager::pressed));
 
   m_taskShutdown.set_slot(rak::mem_fn(this, &Control::receive_shutdown));
+
+  m_commandScheduler->set_slot_command(rak::mem_fn(m_optionHandler, &OptionHandler::process_command));
+  m_commandScheduler->set_slot_error_message(rak::mem_fn(m_core, &core::Manager::push_log));
 }
 
 Control::~Control() {
@@ -71,6 +76,7 @@ Control::~Control() {
   delete m_input;
 
   delete m_commandScheduler;
+  delete m_optionHandler;
 
   delete m_ui;
   delete m_display;
@@ -80,7 +86,9 @@ Control::~Control() {
 void
 Control::initialize() {
   display::Canvas::initialize();
-  display::Window::slot_adjust(sigc::mem_fun(m_display, &display::Manager::adjust_layout));
+  display::Window::slot_schedule(rak::make_mem_fun(m_display, &display::Manager::schedule));
+  display::Window::slot_unschedule(rak::make_mem_fun(m_display, &display::Manager::unschedule));
+  display::Window::slot_adjust(rak::make_mem_fun(m_display, &display::Manager::adjust_layout));
 
   m_core->get_poll_manager()->signal_interrupted().connect(sigc::mem_fun(*m_inputStdin, &input::InputEvent::event_read));
   m_core->get_poll_manager()->signal_interrupted().connect(sigc::ptr_fun(display::Canvas::do_update));

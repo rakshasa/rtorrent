@@ -41,7 +41,6 @@
 #include <rak/priority_queue_default.h>
 
 extern rak::priority_queue_default taskScheduler;
-extern rak::priority_queue_default displayScheduler;
 extern rak::timer                  cachedTime;
 
 #endif

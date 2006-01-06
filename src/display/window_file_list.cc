@@ -54,7 +54,7 @@ WindowFileList::WindowFileList(core::Download* d, unsigned int* focus) :
 
 void
 WindowFileList::redraw() {
-  priority_queue_insert(&displayScheduler, &m_taskUpdate, (cachedTime + 10 * 1000000).round_seconds());
+  m_slotSchedule(this, (cachedTime + 10 * 1000000).round_seconds());
   m_canvas->erase();
 
   if (m_download->get_download().size_file_entries() == 0 ||

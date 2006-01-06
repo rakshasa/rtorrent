@@ -42,51 +42,10 @@
 #include <sigc++/bind.h>
 
 #include "option_handler.h"
-#include "core/download_slot_map.h"
 
 class Control;
 
-// Not pretty, but it is simple and easy to modify.
-
-void apply_download_min_peers(Control* m, int arg);
-void apply_download_max_peers(Control* m, int arg);
-void apply_download_max_uploads(Control* m, int arg);
-void apply_download_directory(Control* m, const std::string& arg);
-
-void apply_connection_leech(Control* m, const std::string& arg);
-void apply_connection_seed(Control* m, const std::string& arg);
-
-void apply_global_download_rate(Control* m, int arg);
-void apply_global_upload_rate(Control* m, int arg);
-
-void apply_umask(Control* m, int arg);
-
-void apply_hash_read_ahead(Control* m, int arg);
-void apply_hash_interval(Control* m, int arg);
-void apply_hash_max_tries(Control* m, int arg);
-void apply_max_open_files(Control* m, int arg);
-void apply_max_open_sockets(Control* m, int arg);
-
-void apply_ip(Control* m, const std::string& arg);
-void apply_bind(Control* m, const std::string& arg);
-void apply_port_range(Control* m, const std::string& arg);
-void apply_port_random(Control* m, const std::string& arg);
-void apply_tracker_dump(Control* m, const std::string& arg);
-void apply_use_udp_trackers(Control* m, const std::string& arg);
-void apply_check_hash(Control* m, const std::string& arg);
-
-void apply_http_proxy(Control* m, const std::string& arg);
-
-void apply_load(Control* m, const std::string& arg);
-void apply_load_run(Control* m, const std::string& arg);
-void apply_stop_untied(Control* m, const std::string& arg);
-void apply_remove_untied(Control* m, const std::string& arg);
-
-void apply_session_directory(Control* m, const std::string& arg);
-void apply_encoding_list(Control* m, const std::string& arg);
-
-void apply_schedule(Control* m, const std::string& arg);
-void apply_schedule_remove(Control* m, const std::string& arg);
+void initialize_option_handler(Control* c);
 
 class OptionHandlerInt : public OptionHandlerBase {
 public:

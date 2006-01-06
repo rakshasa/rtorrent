@@ -180,7 +180,7 @@ Manager::erase(DListItr itr) {
 void
 Manager::start(Download* d, bool printLog) {
   try {
-    d->get_bencode().get_key("rtorrent").get_key("state") = "started";
+    d->get_bencode().get_key("rtorrent").insert_key("state", "started");
 
     if (d->get_download().is_active())
       return;
@@ -205,7 +205,7 @@ Manager::start(Download* d, bool printLog) {
 void
 Manager::stop(Download* d) {
   try {
-    d->get_bencode().get_key("rtorrent").get_key("state") = "stopped";
+    d->get_bencode().get_key("rtorrent").insert_key("state", "stopped");
 
     m_downloadList.stop(d);
 

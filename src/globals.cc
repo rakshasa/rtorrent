@@ -39,5 +39,4 @@
 #include "globals.h"
 
 rak::priority_queue_default taskScheduler;
-rak::priority_queue_default displayScheduler;
 rak::timer                  cachedTime;

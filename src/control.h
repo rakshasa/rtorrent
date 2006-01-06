@@ -58,6 +58,7 @@ namespace input {
   class Manager;
 }  
 
+class OptionHandler;
 class CommandScheduler;
 
 class Control {
@@ -80,6 +81,7 @@ public:
   input::InputEvent*  input_stdin()                 { return m_inputStdin; }
 
   CommandScheduler*   command_scheduler()           { return m_commandScheduler; }
+  OptionHandler*      option_handler()              { return m_optionHandler; }
 
 private:
   Control(const Control&);
@@ -94,6 +96,7 @@ private:
   input::InputEvent*  m_inputStdin;
 
   CommandScheduler*   m_commandScheduler;
+  OptionHandler*      m_optionHandler;
 
   rak::priority_item  m_taskShutdown;
 };

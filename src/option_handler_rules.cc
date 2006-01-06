@@ -42,6 +42,7 @@
 #include <netinet/in.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <rak/file_stat.h>
 #include <rak/functional.h>
 #include <rak/string_manip.h>
 #include <torrent/bencode.h>
@@ -51,7 +52,6 @@
 #include "core/manager.h"
 #include "ui/root.h"
 #include "utils/directory.h"
-#include "utils/file_stat.h"
 
 #include "control.h"
 #include "option_handler_rules.h"
@@ -228,7 +228,7 @@ apply_load(Control* m, const std::string& arg) {
 }
 
 void
-apply_load_run(Control* m, const std::string& arg) {
+apply_load_start(Control* m, const std::string& arg) {
   m->core()->try_create_download_expand(arg, true, false, true);
 }
 
@@ -239,9 +239,9 @@ apply_stop_untied(Control* m, const std::string& arg) {
   while ((itr = std::find_if(itr, m->core()->get_download_list().end(),
 			     rak::on(std::mem_fun(&core::Download::tied_to_file), std::not1(std::mem_fun_ref(&std::string::empty)))))
 	 != m->core()->get_download_list().end()) {
-    utils::FileStat fs;
+    rak::file_stat fs;
 
-    if (fs.update((*itr)->tied_to_file().c_str()) != 0) {
+    if (!fs.update((*itr)->tied_to_file())) {
       (*itr)->set_tied_to_file(std::string());
       (*itr)->get_bencode().get_key("rtorrent").erase_key("tied");
 
@@ -259,9 +259,9 @@ apply_remove_untied(Control* m, const std::string& arg) {
   while ((itr = std::find_if(itr, m->core()->get_download_list().end(),
 			     rak::on(std::mem_fun(&core::Download::tied_to_file), std::not1(std::mem_fun_ref(&std::string::empty)))))
 	 != m->core()->get_download_list().end()) {
-    utils::FileStat fs;
+    rak::file_stat fs;
 
-    if (fs.update((*itr)->tied_to_file().c_str()) != 0) {
+    if (!fs.update((*itr)->tied_to_file())) {
       (*itr)->set_tied_to_file(std::string());
       (*itr)->get_bencode().get_key("rtorrent").erase_key("tied");
 
@@ -305,4 +305,47 @@ apply_schedule(Control* m, const std::string& arg) {
 void
 apply_schedule_remove(Control* m, const std::string& arg) {
   m->command_scheduler()->erase(m->command_scheduler()->find(rak::trim(arg)));
+}
+
+void
+initialize_option_handler(Control* c) {
+  c->option_handler()->insert("max_peers",           new OptionHandlerInt(c, &apply_download_max_peers));
+  c->option_handler()->insert("min_peers",           new OptionHandlerInt(c, &apply_download_min_peers));
+  c->option_handler()->insert("max_uploads",         new OptionHandlerInt(c, &apply_download_max_uploads));
+
+  c->option_handler()->insert("download_rate",       new OptionHandlerInt(c, &apply_global_download_rate));
+  c->option_handler()->insert("upload_rate",         new OptionHandlerInt(c, &apply_global_upload_rate));
+
+  c->option_handler()->insert("bind",                new OptionHandlerString(c, &apply_bind));
+  c->option_handler()->insert("ip",                  new OptionHandlerString(c, &apply_ip));
+  c->option_handler()->insert("port_range",          new OptionHandlerString(c, &apply_port_range));
+  c->option_handler()->insert("port_random",         new OptionHandlerString(c, &apply_port_random));
+
+  c->option_handler()->insert("check_hash",          new OptionHandlerString(c, &apply_check_hash));
+  c->option_handler()->insert("directory",           new OptionHandlerString(c, &apply_download_directory));
+
+  c->option_handler()->insert("hash_read_ahead",     new OptionHandlerInt(c, &apply_hash_read_ahead));
+  c->option_handler()->insert("hash_interval",       new OptionHandlerInt(c, &apply_hash_interval));
+  c->option_handler()->insert("hash_max_tries",      new OptionHandlerInt(c, &apply_hash_max_tries));
+  c->option_handler()->insert("max_open_files",      new OptionHandlerInt(c, &apply_max_open_files));
+  c->option_handler()->insert("max_open_sockets",    new OptionHandlerInt(c, &apply_max_open_sockets));
+
+  c->option_handler()->insert("umask",               new OptionHandlerOctal(c, &apply_umask));
+
+  c->option_handler()->insert("connection_leech",    new OptionHandlerString(c, &apply_connection_leech));
+  c->option_handler()->insert("connection_seed",     new OptionHandlerString(c, &apply_connection_seed));
+
+  c->option_handler()->insert("load",                new OptionHandlerString(c, &apply_load));
+  c->option_handler()->insert("load_start",          new OptionHandlerString(c, &apply_load_start));
+  c->option_handler()->insert("stop_untied",         new OptionHandlerString(c, &apply_stop_untied));
+  c->option_handler()->insert("remove_untied",       new OptionHandlerString(c, &apply_remove_untied));
+
+  c->option_handler()->insert("session",             new OptionHandlerString(c, &apply_session_directory));
+  c->option_handler()->insert("encoding_list",       new OptionHandlerString(c, &apply_encoding_list));
+  c->option_handler()->insert("tracker_dump",        new OptionHandlerString(c, &apply_tracker_dump));
+  c->option_handler()->insert("use_udp_trackers",    new OptionHandlerString(c, &apply_use_udp_trackers));
+
+  c->option_handler()->insert("http_proxy",          new OptionHandlerString(c, &apply_http_proxy));
+  c->option_handler()->insert("schedule",            new OptionHandlerString(c, &apply_schedule));
+  c->option_handler()->insert("schedule_remove",     new OptionHandlerString(c, &apply_schedule_remove));
 }

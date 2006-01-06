@@ -58,7 +58,7 @@ WindowHttpQueue::WindowHttpQueue(core::HttpQueue* q) :
 
 void
 WindowHttpQueue::redraw() {
-  priority_queue_insert(&displayScheduler, &m_taskUpdate, (cachedTime + 1000000).round_seconds());
+  m_slotSchedule(this, (cachedTime + 1000000).round_seconds());
 
   cleanup_list();
 

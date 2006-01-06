@@ -38,7 +38,7 @@
 #define RTORRENT_WINDOW_BASE_H
 
 #include <rak/timer.h>
-#include <sigc++/slot.h>
+#include <rak/functional.h>
 
 #include "canvas.h"
 #include "globals.h"
@@ -46,10 +46,13 @@
 namespace display {
 
 class Canvas;
+class Manager;
 
 class Window {
 public:
-  typedef sigc::slot0<void> Slot;
+  typedef rak::mem_fun0<Manager, void>                      Slot;
+  typedef rak::mem_fun1<Manager, void, Window*>             SlotWindow;
+  typedef rak::mem_fun2<Manager, void, Window*, rak::timer> SlotTimer;
 
   Window(Canvas* c = NULL, bool d = false, int h = 1);
 
@@ -59,8 +62,6 @@ public:
   bool                is_dynamic()                         { return m_dynamic; }
   bool                is_dirty()                           { return m_taskUpdate.is_queued(); }
 
-  //utils::rak::timer   get_next_draw()                      { return m_nextDraw; }
-
   int                 get_min_height()                     { return m_minHeight; }
 
   bool                get_active()                         { return m_active; }
@@ -69,16 +70,23 @@ public:
   void                refresh()                            { m_canvas->refresh(); }
   void                resize(int x, int y, int w, int h);
 
-  void                mark_dirty();
+  void                mark_dirty()                         { m_slotSchedule(this, cachedTime + 1); }
 
   virtual void        redraw() = 0;
 
+  rak::priority_item* task_update()                        { return &m_taskUpdate; }
+
+  // Slot for adjust and refresh.
+  static void         slot_schedule(SlotTimer s)           { m_slotSchedule = s; }
+  static void         slot_unschedule(SlotWindow s)        { m_slotUnschedule = s; }
   static void         slot_adjust(Slot s)                  { m_slotAdjust = s; }
 
 protected:
   Window(const Window&);
   void operator = (const Window&);
 
+  static SlotTimer    m_slotSchedule;
+  static SlotWindow   m_slotUnschedule;
   static Slot         m_slotAdjust;
 
   Canvas*             m_canvas;
@@ -89,12 +97,6 @@ protected:
 
   rak::priority_item  m_taskUpdate;
 };
-
-inline void
-Window::mark_dirty() {
-  priority_queue_erase(&displayScheduler, &m_taskUpdate);
-  priority_queue_insert(&displayScheduler, &m_taskUpdate, cachedTime + 1);
-}
 
 }
 

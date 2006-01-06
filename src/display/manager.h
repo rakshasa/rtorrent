@@ -38,6 +38,7 @@
 #define RTORRENT_DISPLAY_MANAGER_H
 
 #include <list>
+#include <rak/priority_queue_default.h>
 
 namespace display {
 
@@ -57,19 +58,32 @@ public:
   using Base::rbegin;
   using Base::rend;
 
-  using Base::insert;
-  using Base::erase;
   using Base::push_front;
   using Base::push_back;
 
-  iterator       erase(Window* w);
+  Manager();
+  ~Manager();
 
-  iterator       find(Window* w);
+  iterator            insert(iterator pos, Window* w);
+  iterator            erase(iterator pos);
+  iterator            erase(Window* w);
 
-  void           adjust_layout();
-  void           do_update();
+  iterator            find(Window* w);
+
+  void                schedule(Window* w, rak::timer t);
+  void                unschedule(Window* w);
+
+  void                adjust_layout();
 
 private:
+  void                receive_update();
+
+  void                schedule_update();
+
+  rak::timer          m_timeLastUpdate;
+
+  rak::priority_queue_default m_scheduler;
+  rak::priority_item          m_taskUpdate;
 };
 
 }

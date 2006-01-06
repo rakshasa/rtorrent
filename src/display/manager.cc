@@ -47,6 +47,28 @@
 
 namespace display {
 
+Manager::Manager() {
+  m_taskUpdate.set_slot(rak::mem_fn(this, &Manager::receive_update));
+}
+
+Manager::~Manager() {
+  priority_queue_erase(&taskScheduler, &m_taskUpdate);
+}
+
+Manager::iterator
+Manager::insert(iterator pos, Window* w) {
+  return Base::insert(pos, w);
+}
+
+// Swap with the function below.
+Manager::iterator
+Manager::erase(iterator pos) {
+  if (pos != end())
+    return erase(*pos);
+  else
+    return end();
+}
+
 Manager::iterator
 Manager::erase(Window* w) {
   iterator itr = std::find(begin(), end(), w);
@@ -60,6 +82,19 @@ Manager::erase(Window* w) {
 Manager::iterator
 Manager::find(Window* w) {
   return std::find(begin(), end(), w);
+}
+
+void
+Manager::schedule(Window* w, rak::timer t) {
+  rak::priority_queue_erase(&m_scheduler, w->task_update());
+  rak::priority_queue_insert(&m_scheduler, w->task_update(), t);
+  schedule_update();
+}
+
+void
+Manager::unschedule(Window* w) {
+  rak::priority_queue_erase(&m_scheduler, w->task_update());
+  schedule_update();
 }
 
 void
@@ -95,28 +130,30 @@ Manager::adjust_layout() {
 }
 
 void
-Manager::do_update() {
+Manager::receive_update() {
   Canvas::refresh_std();
 
-//   std::list<rak::priority_item*> workQueue;
-
-//   std::copy(rak::queue_popper(displayScheduler, rak::bind2nd(std::mem_fun(&rak::priority_item::compare), cachedTime)),
-// 	    rak::queue_popper(displayScheduler, rak::bind2nd(std::mem_fun(&rak::priority_item::compare), rak::timer())),
-// 	    std::back_inserter(workQueue));
-//   std::for_each(workQueue.begin(), workQueue.end(), std::mem_fun(&rak::priority_item::clear_time));
-//   std::for_each(workQueue.begin(), workQueue.end(), std::mem_fun(&rak::priority_item::call));
-
-  while (!displayScheduler.empty() && displayScheduler.top()->time() <= cachedTime) {
-    rak::priority_item* v = displayScheduler.top();
-    displayScheduler.pop();
-
-    v->clear_time();
-    v->call();
-  }
-
+  rak::priority_queue_perform(&m_scheduler, cachedTime);
   std::for_each(begin(), end(), rak::if_then(std::mem_fun(&Window::is_active), std::mem_fun(&Window::refresh)));
 
   Canvas::do_update();
+
+  m_timeLastUpdate = cachedTime;
+  schedule_update();
+}
+
+void
+Manager::schedule_update() {
+  if (m_scheduler.empty()) {
+    rak::priority_queue_erase(&taskScheduler, &m_taskUpdate);
+    return;
+  }
+
+  if (!m_taskUpdate.is_queued() || m_taskUpdate.time() > m_scheduler.top()->time()) {
+    rak::priority_queue_erase(&taskScheduler, &m_taskUpdate);
+    rak::priority_queue_insert(&taskScheduler, &m_taskUpdate,
+			       std::max(m_scheduler.top()->time(), m_timeLastUpdate + 100000));
+  }
 }
 
 }

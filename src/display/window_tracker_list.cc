@@ -37,10 +37,10 @@
 #include "config.h"
 
 #include <stdexcept>
+#include <rak/algorithm.h>
+#include <rak/string_manip.h>
 
 #include "core/download.h"
-#include "rak/algorithm.h"
-#include "utils/parse.h"
 
 #include "window_tracker_list.h"
 
@@ -55,7 +55,7 @@ WindowTrackerList::WindowTrackerList(core::Download* d, unsigned int* focus) :
 void
 WindowTrackerList::redraw() {
   // TODO: Make this depend on tracker signal.
-  priority_queue_insert(&displayScheduler, &m_taskUpdate, (cachedTime + 10 * 1000000).round_seconds());
+  m_slotSchedule(this, (cachedTime + 10 * 1000000).round_seconds());
   m_canvas->erase();
 
   int pos = 0;
@@ -87,7 +87,7 @@ WindowTrackerList::redraw() {
     m_canvas->print(0, pos++, "%c Group: %2i Id: %s Focus: %s Enabled: %s Open: %s",
 		    range.first == *m_focus ? '*' : ' ',
 		    t.group(),
-		    utils::escape_string(t.tracker_id()).c_str(),
+		    rak::copy_escape_html(t.tracker_id()).c_str(),
 		    range.first == m_download->get_download().tracker_focus() ? "yes" : " no",
 		    t.is_enabled() ? "yes" : " no",
 		    t.is_open() ? "yes" : " no");

@@ -34,15 +34,17 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
+// DownloadStore handles the saving and listing of session torrents.
+
 #include "config.h"
 
 #include <fstream>
-#include <stdexcept>
+#include <stdio.h>
 #include <unistd.h>
+#include <rak/string_manip.h>
 #include <torrent/bencode.h>
+#include <torrent/exceptions.h>
 #include <torrent/torrent.h>
-
-#include "utils/parse.h"
 
 #include "download.h"
 #include "download_store.h"
@@ -62,15 +64,19 @@ DownloadStore::save(Download* d) {
   if (!is_active())
     return;
 
-  std::fstream f(create_filename(d).c_str(), std::ios::out | std::ios::trunc);
+  std::fstream f((create_filename(d) + ".new").c_str(), std::ios::out | std::ios::trunc);
 
   if (!f.is_open())
-    throw std::runtime_error("core::DownloadStore::save(...) could not open file");
+    return;
 
   f << d->get_bencode();
 
   if (f.fail())
-    throw std::runtime_error("core::DownloadStore::save(...) could not write torrent");
+    return;
+
+  f.close();
+
+  ::rename((create_filename(d) + ".new").c_str(), create_filename(d).c_str());
 }
 
 void
@@ -78,7 +84,7 @@ DownloadStore::remove(Download* d) {
   if (!is_active())
     return;
 
-  unlink(create_filename(d).c_str());
+  ::unlink(create_filename(d).c_str());
 }
 
 utils::Directory
@@ -89,7 +95,7 @@ DownloadStore::get_formated_entries() {
   utils::Directory d(m_path);
 
   if (!d.update())
-    throw std::runtime_error("core::DownloadStore::update() could not open directory \"" + m_path + "\"");
+    throw torrent::storage_error("core::DownloadStore::update() could not open directory \"" + m_path + "\"");
 
   d.erase(std::remove_if(d.begin(), d.end(), std::not1(std::ptr_fun(&DownloadStore::is_correct_format))), d.end());
 
@@ -111,7 +117,7 @@ DownloadStore::is_correct_format(std::string f) {
 
 std::string
 DownloadStore::create_filename(Download* d) {
-  return m_path + utils::string_to_hex(d->get_hash()) + ".torrent";
+  return m_path + rak::transform_hex(d->get_hash()) + ".torrent";
 }
 
 }

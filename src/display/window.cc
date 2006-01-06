@@ -42,7 +42,9 @@
 
 namespace display {
 
-Window::Slot Window::m_slotAdjust;
+Window::SlotTimer  Window::m_slotSchedule;
+Window::SlotWindow Window::m_slotUnschedule;
+Window::Slot       Window::m_slotAdjust;
 
 Window::Window(Canvas* c, bool d, int h) :
   m_canvas(c),
@@ -54,7 +56,7 @@ Window::Window(Canvas* c, bool d, int h) :
 }
 
 Window::~Window() {
-  priority_queue_erase(&displayScheduler, &m_taskUpdate);
+  m_slotUnschedule(this);
   delete m_canvas;
 }
 
@@ -63,7 +65,7 @@ Window::set_active(bool a) {
   if (a)
     mark_dirty();
   else
-    priority_queue_erase(&displayScheduler, &m_taskUpdate);
+    m_slotUnschedule(this);
 
   m_active = a;
 }
