@@ -74,8 +74,6 @@
 #include "command_scheduler.h"
 #include "command_scheduler_item.h"
 
-uint32_t countTicks = 0;
-
 void do_panic(int signum);
 void print_help();
 
@@ -202,7 +200,7 @@ main(int argc, char** argv) {
     control.display()->adjust_layout();
 
     while (!control.is_shutdown_completed()) {
-      countTicks++;
+      control.inc_tick();
 
       cachedTime = rak::timer::current();
       rak::priority_queue_perform(&taskScheduler, cachedTime);

@@ -37,6 +37,7 @@
 #ifndef RTORRENT_CONTROL_H
 #define RTORRENT_CONTROL_H
 
+#include <inttypes.h>
 #include <torrent/torrent.h>
 
 #include "globals.h"
@@ -83,6 +84,9 @@ public:
   CommandScheduler*   command_scheduler()           { return m_commandScheduler; }
   OptionHandler*      option_handler()              { return m_optionHandler; }
 
+  uint64_t            tick() const                  { return m_tick; }
+  void                inc_tick()                    { m_tick++; }
+
 private:
   Control(const Control&);
   void operator = (const Control&);
@@ -97,6 +101,8 @@ private:
 
   CommandScheduler*   m_commandScheduler;
   OptionHandler*      m_optionHandler;
+
+  uint64_t            m_tick;
 
   rak::priority_item  m_taskShutdown;
 };

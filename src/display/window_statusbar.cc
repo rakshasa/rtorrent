@@ -39,19 +39,16 @@
 #include <torrent/rate.h>
 #include <torrent/torrent.h>
 
-#include "core/manager.h"
-
+#include "control.h"
 #include "canvas.h"
 #include "window_statusbar.h"
 
-extern uint32_t countTicks;
-
 namespace display {
 
-WindowStatusbar::WindowStatusbar(core::Manager* c) :
+WindowStatusbar::WindowStatusbar(Control* c) :
   Window(new Canvas, false, 1),
-  m_counter(0),
-  m_core(c) {
+  m_lastTick(0),
+  m_control(c) {
 }
 
 void
@@ -86,7 +83,7 @@ WindowStatusbar::redraw() {
   pos = snprintf(buf, 128, "[U %i/%i][S %i/%i/%i][F %i/%i]",
 #else
   pos = snprintf(buf, 128, "%i [U %i/%i][S %i/%i/%i][F %i/%i]",
-		 countTicks,
+		 (int)(m_control->tick() - m_lastTick),
 #endif
 		 torrent::currently_unchoked(),
 		 torrent::max_unchoked(),
@@ -96,9 +93,9 @@ WindowStatusbar::redraw() {
 		 torrent::open_files(),
 		 torrent::max_open_files());
 
-  countTicks = 0;
-
   m_canvas->print(m_canvas->get_width() - pos, 0, "%s", buf);
+
+  m_lastTick = m_control->tick();
 }
 
 }

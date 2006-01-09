@@ -74,6 +74,15 @@ connect_signal_storage_log(Download* d, torrent::Download::SlotString s) {
   d->get_download().signal_storage_error(s);
 }
 
+// Hmm... find some better place for all this.
+static void
+delete_tied(Download* d) {
+  // This should be configurable, need to wait for the variable
+  // thingie to be implemented.
+  if (!d->tied_to_file().empty())
+    ::unlink(d->tied_to_file().c_str());
+}
+
 Manager::Manager() :
   m_pollManager(NULL),
   m_portRandom(false),
@@ -112,6 +121,7 @@ Manager::initialize_second() {
 
   m_downloadList.slot_map_erase()["1_hash_queue_remove"]    = sigc::mem_fun(m_hashQueue, &HashQueue::remove);
   m_downloadList.slot_map_erase()["1_store_remove"]         = sigc::mem_fun(m_downloadStore, &DownloadStore::remove);
+  m_downloadList.slot_map_erase()["1_delete_tied"]          = sigc::ptr_fun(&delete_tied);
 
   m_downloadList.slot_map_open()["1_download_open"]         = sigc::mem_fun(&Download::call<void, &torrent::Download::open>);
 
@@ -350,8 +360,12 @@ path_expand(std::vector<std::string>* paths, const std::string& pattern) {
     if (r.pattern().empty())
       continue;
 
+    // Special case for ".."?
+
     for (std::vector<utils::Directory>::iterator itr = currentCache.begin(); itr != currentCache.end(); ++itr) {
-      itr->update(false);
+      // Only include filenames starting with '.' if the pattern
+      // starts with the same.
+      itr->update(r.pattern()[0] != '.');
       itr->erase(std::remove_if(itr->begin(), itr->end(), std::not1(r)), itr->end());
 
       std::transform(itr->begin(), itr->end(), std::back_inserter(nextCache), std::bind1st(std::plus<std::string>(), itr->get_path() + "/"));
@@ -370,6 +384,14 @@ Manager::try_create_download_expand(const std::string& uri, bool start, bool pri
   paths.reserve(32);
 
   path_expand(&paths, uri);
+
+  if (tied)
+    for (std::vector<std::string>::iterator itr = paths.begin(); itr != paths.end(); )
+      if (std::find_if(m_downloadList.begin(), m_downloadList.end(),
+		       rak::equal(*itr, std::mem_fun(&Download::tied_to_file))) != m_downloadList.end())
+	itr = paths.erase(itr);
+      else
+	itr++;
 
   if (!paths.empty())
     for (std::vector<std::string>::iterator itr = paths.begin(); itr != paths.end(); ++itr)

@@ -37,23 +37,23 @@
 #ifndef RTORRENT_DISPLAY_WINDOW_STATUSBAR_H
 #define RTORRENT_DISPLAY_WINDOW_STATUSBAR_H
 
+#include <inttypes.h>
+
 #include "window.h"
 
-namespace core {
-  class Manager;
-}
+class Control;
 
 namespace display {
 
 class WindowStatusbar : public Window {
 public:
-  WindowStatusbar(core::Manager* c);
+  WindowStatusbar(Control* c);
 
-  virtual void redraw();
+  virtual void   redraw();
 
 private:
-  int            m_counter;
-  core::Manager* m_core;
+  uint64_t       m_lastTick;
+  Control*       m_control;
 };
 
 }

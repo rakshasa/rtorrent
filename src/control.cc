@@ -61,7 +61,9 @@ Control::Control() :
   m_inputStdin(new input::InputEvent(STDIN_FILENO)),
 
   m_commandScheduler(new CommandScheduler()),
-  m_optionHandler(new OptionHandler()) {
+  m_optionHandler(new OptionHandler()),
+
+  m_tick(0) {
 
   m_inputStdin->slot_pressed(sigc::mem_fun(m_input, &input::Manager::pressed));
 

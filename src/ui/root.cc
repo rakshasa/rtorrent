@@ -64,7 +64,7 @@ Root::init(Control* c) {
   m_control = c;
   setup_keys();
 
-  m_windowStatusbar = new WStatusbar(m_control->core());
+  m_windowStatusbar = new WStatusbar(m_control);
   m_downloadList =    new DownloadList(m_control);
 
   m_control->display()->push_back(m_windowStatusbar);
