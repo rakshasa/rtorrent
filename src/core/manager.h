@@ -81,6 +81,8 @@ public:
 
   void                listen_open();
 
+  void                bind(const std::string& addr);
+
   void                shutdown(bool force);
 
   DListItr            insert(std::istream* s, bool printLog = true);

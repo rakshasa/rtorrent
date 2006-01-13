@@ -45,9 +45,9 @@
 #include "input/manager.h"
 #include "input/input_event.h"
 #include "ui/root.h"
+#include "utils/variable_map.h"
 
 #include "command_scheduler.h"
-#include "option_handler.h"
 
 #include "control.h"
 
@@ -61,7 +61,7 @@ Control::Control() :
   m_inputStdin(new input::InputEvent(STDIN_FILENO)),
 
   m_commandScheduler(new CommandScheduler()),
-  m_optionHandler(new OptionHandler()),
+  m_variables(new utils::VariableMap()),
 
   m_tick(0) {
 
@@ -69,7 +69,7 @@ Control::Control() :
 
   m_taskShutdown.set_slot(rak::mem_fn(this, &Control::receive_shutdown));
 
-  m_commandScheduler->set_slot_command(rak::mem_fn(m_optionHandler, &OptionHandler::process_command));
+  m_commandScheduler->set_slot_command(rak::mem_fn(m_variables, &utils::VariableMap::process_command));
   m_commandScheduler->set_slot_error_message(rak::mem_fn(m_core, &core::Manager::push_log));
 }
 
@@ -78,7 +78,7 @@ Control::~Control() {
   delete m_input;
 
   delete m_commandScheduler;
-  delete m_optionHandler;
+  delete m_variables;
 
   delete m_ui;
   delete m_display;

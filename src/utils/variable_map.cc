@@ -1,5 +1,5 @@
 // rTorrent - BitTorrent client
-// Copyright (C) 2005-2006, Jari Sundell
+// Copyright (C) 2006, Jari Sundell
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -36,60 +36,62 @@
 
 #include "config.h"
 
-#include <stdexcept>
-#include <sigc++/bind.h>
-#include <sigc++/hide.h>
+#include <algorithm>
+#include <rak/functional.h>
 #include <torrent/exceptions.h>
+#include <torrent/bencode.h>
 
-#include "option_handler.h"
+#include "variable.h"
+#include "variable_map.h"
 
-void
-OptionHandler::insert(const std::string& key, OptionHandlerBase* opt) {
-  iterator itr = find(key);
+namespace utils {
 
-  if (itr == end()) {
-    Base::insert(value_type(key, opt));
-  } else {
-    delete itr->second;
-    itr->second = opt;
-  }
+VariableMap::~VariableMap() {
+  std::for_each(base_type::begin(), base_type::end(), rak::on(rak::mem_ptr_ref(&value_type::second), rak::call_delete<Variable>()));
 }
 
 void
-OptionHandler::erase(const std::string& key) {
-  iterator itr = find(key);
+VariableMap::insert(const std::string& key, Variable* v) {
+  iterator itr = base_type::find(key);
 
-  if (itr == end())
-    return;
+  if (itr != base_type::end())
+    throw torrent::internal_error("VariableMap::insert(...) tried to insert an already existing key.");
 
-  delete itr->second;
-  Base::erase(itr);
+  base_type::insert(itr, value_type(key, v));
+}
+
+const torrent::Bencode&
+VariableMap::get(const std::string& key) {
+  iterator itr = base_type::find(key);
+
+  if (itr == base_type::end())
+    throw torrent::input_error("Variable \"" + key + "\" does not exist.");
+
+  return itr->second->get();
 }
 
 void
-OptionHandler::clear() {
-  for (iterator itr = begin(), last = end(); itr != last; ++itr)
-    delete itr->second;
+VariableMap::set(const std::string& key, const torrent::Bencode& arg) {
+  iterator itr = base_type::find(key);
 
-  Base::clear();
+  // Later, allow the user to create new variables. Have a slot to
+  // register that thing.
+  if (itr == base_type::end())
+    throw torrent::input_error("Variable \"" + key + "\" does not exist.");
+
+  itr->second->set(arg);
 }
 
 void
-OptionHandler::process(const std::string& key, const std::string& arg) const {
-  const_iterator itr = find(key);
-
-  if (itr == end())
-    throw torrent::input_error("Could not find option key \"" + key + "\".");
-
-  itr->second->process(key, arg);
-}
-
-void
-OptionHandler::process_command(const std::string& command) const {
+VariableMap::process_command(const std::string& command) {
   std::string::size_type pos = command.find('=');
 
   if (pos == std::string::npos)
     throw torrent::input_error("Option handler could not find '=' in command.");
 
-  process(command.substr(0, pos), command.substr(pos + 1, std::string::npos));
+  // Do sscanf, check for integer. Later move and make it smarter.
+
+  set(command.substr(0, pos), torrent::Bencode(command.substr(pos + 1, std::string::npos)));
+}
+
 }

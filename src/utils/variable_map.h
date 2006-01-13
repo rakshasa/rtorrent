@@ -1,5 +1,5 @@
 // rTorrent - BitTorrent client
-// Copyright (C) 2005-2006, Jari Sundell
+// Copyright (C) 2006, Jari Sundell
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -34,58 +34,44 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef RTORRENT_OPTION_HANDLER_RULES_H
-#define RTORRENT_OPTION_HANDLER_RULES_H
+#ifndef RTORRENT_UTILS_VARIABLE_MAP_H
+#define RTORRENT_UTILS_VARIABLE_MAP_H
 
-#include <cstdio>
+#include <map>
 #include <string>
-#include <stdexcept>
-#include <sigc++/bind.h>
+#include <torrent/bencode.h>
 
-class Control;
+namespace utils {
 
-void initialize_option_handler(Control* c);
+class Variable;
 
-class OptionHandlerInt {
+class VariableMap : public std::map<std::string, Variable*> {
 public:
-  typedef void (*Apply)(Control*, int);
+  typedef std::map<std::string, Variable*> base_type;
 
-  OptionHandlerInt(Control* c, Apply a) :
-    m_control(c), m_apply(a) {}
+  using base_type::iterator;
+  using base_type::value_type;
 
-  virtual void process(const std::string& key, const std::string& arg);
+  VariableMap() {}
+  ~VariableMap();
+
+  void                insert(const std::string& key, Variable* v);
+
+  // Consider taking char* start and finish instead of std::string to
+  // avoid copying. Or make a view class.
+  const torrent::Bencode& get(const std::string& key);
+
+  void                set(const std::string& key, const torrent::Bencode& arg);
+  void                set_string(const std::string& key, const std::string& arg) { set(key, torrent::Bencode(arg)); }
+
+  // Temporary.
+  void                process_command(const std::string& command);
 
 private:
-  Control* m_control;
-  Apply        m_apply;
+  VariableMap(const VariableMap&);
+  void operator = (const VariableMap&);
 };
 
-class OptionHandlerOctal {
-public:
-  typedef void (*Apply)(Control*, int);
-
-  OptionHandlerOctal(Control* c, Apply a) :
-    m_control(c), m_apply(a) {}
-
-  virtual void process(const std::string& key, const std::string& arg);
-
-private:
-  Control* m_control;
-  Apply        m_apply;
-};
-
-class OptionHandlerString {
-public:
-  typedef void (*Apply)(Control*, const std::string&);
-
-  OptionHandlerString(Control* c, Apply a) :
-    m_control(c), m_apply(a) {}
-
-  virtual void process(const std::string& key, const std::string& arg);
-
-private:
-  Control*     m_control;
-  Apply        m_apply;
-};
+}
 
 #endif

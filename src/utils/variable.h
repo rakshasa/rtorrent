@@ -1,5 +1,5 @@
 // rTorrent - BitTorrent client
-// Copyright (C) 2005-2006, Jari Sundell
+// Copyright (C) 2006, Jari Sundell
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -34,54 +34,28 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef RTORRENT_OPTION_HANDLER_H
-#define RTORRENT_OPTION_HANDLER_H
+#ifndef RTORRENT_UTILS_VARIABLE_H
+#define RTORRENT_UTILS_VARIABLE_H
 
-#include <map>
-#include <string>
+namespace torrent {
+  class Bencode;
+}
 
-// No members with dtor's allowed.
-struct OptionHandlerBase {
-  virtual ~OptionHandlerBase() {}
+namespace utils {
 
-  virtual void process(const std::string& key, const std::string& arg) = 0;
-};
-
-class OptionHandler : private std::map<std::string, OptionHandlerBase*> {
+class Variable {
 public:
-  typedef std::map<std::string, OptionHandlerBase*> Base;
-  typedef Base::value_type                          value_type;
-  typedef Base::size_type                           size_type;
+  Variable() {}
+  virtual ~Variable() {}
 
-  typedef Base::iterator                            iterator;
-  typedef Base::reverse_iterator                    reverse_iterator;
-  typedef Base::const_iterator                      const_iterator;
-  typedef Base::const_reverse_iterator              const_reverse_iterator;
+  virtual const torrent::Bencode& get() = 0;
+  virtual void set(const torrent::Bencode& arg) = 0;
 
-  using Base::empty;
-  using Base::size;
-
-  using Base::begin;
-  using Base::end;
-  using Base::rbegin;
-  using Base::rend;
-
-  using Base::find;
-
-  OptionHandler() {}
-  ~OptionHandler() { clear(); }
-
-  // We take over ownership of opt.
-  void                insert(const std::string& key, OptionHandlerBase* opt);
-  void                erase(const std::string& key);
-
-  void                clear();
-
-  // The caller must catch torrent::input_error in case of bad input.
-  void                process(const std::string& key, const std::string& arg) const;
-
-  // Temporary.
-  void                process_command(const std::string& command) const;
+protected:
+  Variable(const Variable&);
+  void operator = (const Variable&);
 };
+
+}
 
 #endif

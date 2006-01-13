@@ -1,5 +1,5 @@
 // rTorrent - BitTorrent client
-// Copyright (C) 2005-2006, Jari Sundell
+// Copyright (C) 2006, Jari Sundell
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -34,58 +34,23 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef RTORRENT_OPTION_HANDLER_RULES_H
-#define RTORRENT_OPTION_HANDLER_RULES_H
+#include "config.h"
 
-#include <cstdio>
-#include <string>
-#include <stdexcept>
-#include <sigc++/bind.h>
+#include "variable_generic.h"
 
-class Control;
+namespace utils {
 
-void initialize_option_handler(Control* c);
+// VariableString::~VariableString() {
+// }
 
-class OptionHandlerInt {
-public:
-  typedef void (*Apply)(Control*, int);
+// std::string
+// VariableString::get() {
+//   return m_variable;
+// }
 
-  OptionHandlerInt(Control* c, Apply a) :
-    m_control(c), m_apply(a) {}
+// void
+// VariableString::set(const std::string& arg) {
+//   m_variable = arg;
+// }
 
-  virtual void process(const std::string& key, const std::string& arg);
-
-private:
-  Control* m_control;
-  Apply        m_apply;
-};
-
-class OptionHandlerOctal {
-public:
-  typedef void (*Apply)(Control*, int);
-
-  OptionHandlerOctal(Control* c, Apply a) :
-    m_control(c), m_apply(a) {}
-
-  virtual void process(const std::string& key, const std::string& arg);
-
-private:
-  Control* m_control;
-  Apply        m_apply;
-};
-
-class OptionHandlerString {
-public:
-  typedef void (*Apply)(Control*, const std::string&);
-
-  OptionHandlerString(Control* c, Apply a) :
-    m_control(c), m_apply(a) {}
-
-  virtual void process(const std::string& key, const std::string& arg);
-
-private:
-  Control*     m_control;
-  Apply        m_apply;
-};
-
-#endif
+}

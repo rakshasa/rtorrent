@@ -63,12 +63,12 @@
 #include "input/bindings.h"
 
 #include "utils/directory.h"
+#include "utils/variable_map.h"
 
 #include "control.h"
 #include "globals.h"
 #include "signal_handler.h"
 #include "option_file.h"
-#include "option_handler.h"
 #include "option_handler_rules.h"
 #include "option_parser.h"
 #include "command_scheduler.h"
@@ -91,20 +91,20 @@ is_resized() {
 }
 
 int
-parse_options(Control* c, OptionHandler* optionHandler, int argc, char** argv) {
+parse_options(Control* c, utils::VariableMap* optionHandler, int argc, char** argv) {
   try {
     OptionParser optionParser;
 
     // Converted.
     optionParser.insert_flag('h', sigc::ptr_fun(&print_help));
 
-    optionParser.insert_option('b', sigc::bind<0>(sigc::mem_fun(*optionHandler, &OptionHandler::process), "bind"));
-    optionParser.insert_option('d', sigc::bind<0>(sigc::mem_fun(*optionHandler, &OptionHandler::process), "directory"));
-    optionParser.insert_option('i', sigc::bind<0>(sigc::mem_fun(*optionHandler, &OptionHandler::process), "ip"));
-    optionParser.insert_option('p', sigc::bind<0>(sigc::mem_fun(*optionHandler, &OptionHandler::process), "port_range"));
-    optionParser.insert_option('s', sigc::bind<0>(sigc::mem_fun(*optionHandler, &OptionHandler::process), "session"));
+    optionParser.insert_option('b', sigc::bind<0>(sigc::mem_fun(*optionHandler, &utils::VariableMap::set_string), "bind"));
+    optionParser.insert_option('d', sigc::bind<0>(sigc::mem_fun(*optionHandler, &utils::VariableMap::set_string), "directory"));
+    optionParser.insert_option('i', sigc::bind<0>(sigc::mem_fun(*optionHandler, &utils::VariableMap::set_string), "ip"));
+    optionParser.insert_option('p', sigc::bind<0>(sigc::mem_fun(*optionHandler, &utils::VariableMap::set_string), "port_range"));
+    optionParser.insert_option('s', sigc::bind<0>(sigc::mem_fun(*optionHandler, &utils::VariableMap::set_string), "session"));
 
-    optionParser.insert_option_list('o', sigc::mem_fun(*optionHandler, &OptionHandler::process));
+    optionParser.insert_option_list('o', sigc::mem_fun(*optionHandler, &utils::VariableMap::set_string));
 
     return optionParser.process(argc, argv);
 
@@ -175,12 +175,12 @@ main(int argc, char** argv) {
     control.core()->initialize_first();
 
     OptionFile optionFile;
-    optionFile.slot_option(sigc::mem_fun(control.option_handler(), &OptionHandler::process));
+    optionFile.slot_option(sigc::mem_fun(control.variables(), &utils::VariableMap::set));
 
     if (getenv("HOME") && !optionFile.process_file(getenv("HOME") + std::string("/.rtorrent.rc")))
       control.core()->get_log_important().push_front("Could not load \"~/.rtorrent.rc\".");
 
-    int firstArg = parse_options(&control, control.option_handler(), argc, argv);
+    int firstArg = parse_options(&control, control.variables(), argc, argv);
 
     control.initialize();
 

@@ -59,7 +59,10 @@ namespace input {
   class Manager;
 }  
 
-class OptionHandler;
+namespace utils {
+  class VariableMap;
+}
+
 class CommandScheduler;
 
 class Control {
@@ -82,7 +85,7 @@ public:
   input::InputEvent*  input_stdin()                 { return m_inputStdin; }
 
   CommandScheduler*   command_scheduler()           { return m_commandScheduler; }
-  OptionHandler*      option_handler()              { return m_optionHandler; }
+  utils::VariableMap* variables()                   { return m_variables; }
 
   uint64_t            tick() const                  { return m_tick; }
   void                inc_tick()                    { m_tick++; }
@@ -100,7 +103,7 @@ private:
   input::InputEvent*  m_inputStdin;
 
   CommandScheduler*   m_commandScheduler;
-  OptionHandler*      m_optionHandler;
+  utils::VariableMap* m_variables;
 
   uint64_t            m_tick;
 

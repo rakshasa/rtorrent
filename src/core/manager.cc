@@ -277,6 +277,18 @@ Manager::listen_open() {
 }
 
 void
+Manager::bind(const std::string& addr) {
+  if (torrent::listen_port() != 0) {
+    torrent::listen_close();
+    torrent::set_bind_address(addr);
+    listen_open();
+
+  } else {
+    torrent::set_bind_address(addr);
+  }
+}
+
+void
 Manager::initialize_bencode(Download* d) {
   torrent::Bencode& bencode = d->get_bencode();
 
