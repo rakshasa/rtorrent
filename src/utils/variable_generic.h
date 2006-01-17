@@ -39,6 +39,7 @@
 
 #include <cstdio>
 #include <string>
+#include <limits>
 #include <inttypes.h>
 #include <rak/functional_fun.h>
 #include <torrent/bencode.h>
@@ -48,19 +49,18 @@
 
 namespace utils {
 
-// class VariableS : public Variable {
-// public:
-//   VariableString(const std::string& v = "") : m_variable(v) {}
-//   virtual ~VariableString();
+class VariableValue : public Variable {
+public:
+  VariableValue(const torrent::Bencode& v = torrent::Bencode()) : m_variable(v) {}
+  virtual ~VariableValue();
 
-//   virtual const torrent::Bencode& get();
-//   virtual void set(const torrent::Bencode& arg);
+  virtual const torrent::Bencode& get();
+  virtual void        set(const torrent::Bencode& arg);
 
-// private:
-//   std::string         m_variable;
-// };
+private:
+  torrent::Bencode    m_variable;
+};
 
-// VariableSlot?
 template <typename Get = std::string, typename Set = const std::string&>
 class VariableSlotString : public Variable {
 public:
@@ -84,10 +84,16 @@ public:
   }
 
   virtual void set(const torrent::Bencode& arg) {
-    if (!arg.is_string())
+    switch (arg.get_type()) {
+    case torrent::Bencode::TYPE_STRING:
+      m_slotSet(arg.as_string());
+      break;
+    case torrent::Bencode::TYPE_NONE:
+      m_slotSet("");
+      break;
+    default:
       throw torrent::internal_error("VariableSlotString::set(...) got wrong type.");
-    
-    m_slotSet(arg.as_string());
+    }    
   }
 
 private:
@@ -103,15 +109,19 @@ private:
 template <typename Get, typename Set>
 class VariableSlotValue : public Variable {
 public:
-  typedef rak::function0<Get>       SlotGet;
-  typedef rak::function1<void, Set> SlotSet;
+  typedef rak::function0<Get>         SlotGet;
+  typedef rak::function1<void, Set>   SlotSet;
+  typedef std::pair<int64_t, int64_t> Range;
 
   VariableSlotValue(typename SlotGet::base_type* slotGet,
 		    typename SlotSet::base_type* slotSet,
-		    const char* pattern) {
+		    const char* pattern,
+		    Range range = Range(std::numeric_limits<int64_t>::min(),
+					std::numeric_limits<int64_t>::max())) {
     m_slotGet.set(slotGet);
     m_slotSet.set(slotSet);
     m_pattern = pattern;
+    m_range = range;
   }
 
   virtual ~VariableSlotValue() {}
@@ -148,6 +158,7 @@ private:
   SlotSet             m_slotSet;
 
   const char*         m_pattern;
+  Range               m_range;
 
   // Store the cache here to avoid unnessesary copying and such. This
   // should not result in any unresonable memory usage since few

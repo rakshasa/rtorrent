@@ -38,9 +38,9 @@
 #define RTORRENT_CONTROL_H
 
 #include <inttypes.h>
+#include <rak/timer.h>
+#include <rak/priority_queue_default.h>
 #include <torrent/torrent.h>
-
-#include "globals.h"
 
 namespace ui {
   class Root;

@@ -82,16 +82,83 @@ VariableMap::set(const std::string& key, const torrent::Bencode& arg) {
   itr->second->set(arg);
 }
 
+std::string::const_iterator
+parse_name(std::string::const_iterator first, std::string::const_iterator last, std::string* dest) {
+  if (first == last || !std::isalpha(*first))
+    throw torrent::input_error("Invalid start of name.");
+
+  for ( ; first != last && (std::isalnum(*first) || *first == '_'); ++first)
+    dest->push_back(*first);
+
+  return first;
+}
+
+std::string::const_iterator
+parse_unknown(std::string::const_iterator first, std::string::const_iterator last, torrent::Bencode* dest) {
+  if (*first == '"') {
+    std::string::const_iterator next = std::find_if(++first, last, std::bind2nd(std::equal_to<char>(), '"'));
+    
+    if (first == last ||
+	first == next ||
+	next == last)
+      throw torrent::input_error("Could not find closing '\"'.");
+
+    *dest = std::string(first, next);
+    return ++next;
+
+  } else {
+    // Add rak::or and check for ','.
+    std::string::const_iterator next = std::find_if(first, last, std::ptr_fun(&std::isspace));
+
+    *dest = std::string(first, next);
+    return next;
+  }
+}
+
+std::string::const_iterator
+parse_args(std::string::const_iterator first, std::string::const_iterator last, torrent::Bencode::List* dest) {
+  first = std::find_if(first, last, std::not1(std::ptr_fun(&std::isspace)));
+
+  while (first != last) {
+    dest->push_back(torrent::Bencode());
+
+    first = parse_unknown(first, last, &dest->back());
+    first = std::find_if(first, last, std::not1(std::ptr_fun(&std::isspace)));
+
+    if (first != last && *first != ',')
+      throw torrent::input_error("A string with blanks must be quoted.");
+  }
+
+  return first;
+}
+
 void
 VariableMap::process_command(const std::string& command) {
-  std::string::size_type pos = command.find('=');
+  std::string::const_iterator pos = command.begin();
+  pos = std::find_if(pos, command.end(), std::not1(std::ptr_fun(&std::isspace)));
 
-  if (pos == std::string::npos)
-    throw torrent::input_error("Option handler could not find '=' in command.");
+  if (pos == command.end() || *pos == '#')
+    return;
 
-  // Do sscanf, check for integer. Later move and make it smarter.
+  // Replace with parse_unknown?
+  std::string key;
+  pos = parse_name(pos, command.end(), &key);
+  pos = std::find_if(pos, command.end(), std::not1(std::ptr_fun(&std::isspace)));
+  
+  if (pos == command.end() || *pos != '=')
+    throw torrent::input_error("Could not find '='.");
 
-  set(command.substr(0, pos), torrent::Bencode(command.substr(pos + 1, std::string::npos)));
+  torrent::Bencode args(torrent::Bencode::TYPE_LIST);
+  parse_args(pos + 1, command.end(), &args.as_list());
+
+  if (args.as_list().empty())
+    set(key, torrent::Bencode());
+
+  else if (++args.as_list().begin() == args.as_list().end())
+    set(key, *args.as_list().begin());
+
+  else
+    set(key, args);
 }
 
 }

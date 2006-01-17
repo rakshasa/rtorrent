@@ -46,7 +46,7 @@ public:
   static const int max_size_opt = 1024;
   static const int max_size_line = max_size_key + max_size_opt + 64;
 
-  typedef sigc::slot2<void, const std::string&, const std::string&> SlotStringPair;
+  typedef sigc::slot1<void, const std::string&> SlotStringPair;
   
   // Returns false when the file doesn't exist or cannot be opened.
   bool                process_file(const std::string& filename);

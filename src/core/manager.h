@@ -69,10 +69,7 @@ public:
   Log&                get_log_important()                 { return m_logImportant; }
   Log&                get_log_complete()                  { return m_logComplete; }
 
-  void                set_port_random(bool v)             { m_portRandom = v; }
   void                set_port_range(int a, int b)        { m_portFirst = a; m_portLast = b; }
-
-  void                set_check_hash(bool state)          { m_checkHash = state; }
 
   // Really should find a more descriptive name.
   void                initialize_first();
@@ -121,11 +118,8 @@ private:
   Log                 m_logImportant;
   Log                 m_logComplete;
 
-  bool                m_portRandom;
   int                 m_portFirst;
   int                 m_portLast;
-
-  bool                m_checkHash;
 };
 
 }

@@ -5,7 +5,7 @@ AC_DEFUN([TORRENT_CHECK_CXXFLAGS], [
   if test -n "$CXXFLAGS"; then
     AC_MSG_RESULT([user-defined "$CXXFLAGS"])
   else
-    CXXFLAGS="-O3 -Wall"
+    CXXFLAGS="-O2 -Wall"
     AC_MSG_RESULT([default "$CXXFLAGS"])
   fi
 ])

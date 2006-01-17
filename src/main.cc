@@ -159,12 +159,12 @@ main(int argc, char** argv) {
 
     cachedTime = rak::timer::current();
 
-    Control       control;
+    control = new Control;
     
     srandom(cachedTime.usec());
     srand48(cachedTime.usec());
 
-    initialize_option_handler(&control);
+    initialize_option_handler(control);
 
     SignalHandler::set_ignore(SIGPIPE);
     SignalHandler::set_handler(SIGINT,  sigc::mem_fun(control, &Control::receive_shutdown));
@@ -172,17 +172,17 @@ main(int argc, char** argv) {
     SignalHandler::set_handler(SIGBUS,  sigc::bind(sigc::ptr_fun(&do_panic), SIGBUS));
     SignalHandler::set_handler(SIGFPE,  sigc::bind(sigc::ptr_fun(&do_panic), SIGFPE));
 
-    control.core()->initialize_first();
+    control->core()->initialize_first();
 
     OptionFile optionFile;
-    optionFile.slot_option(sigc::mem_fun(control.variables(), &utils::VariableMap::set));
+    optionFile.slot_option(sigc::mem_fun(control->variables(), &utils::VariableMap::process_command));
 
     if (getenv("HOME") && !optionFile.process_file(getenv("HOME") + std::string("/.rtorrent.rc")))
-      control.core()->get_log_important().push_front("Could not load \"~/.rtorrent.rc\".");
+      control->core()->get_log_important().push_front("Could not load \"~/.rtorrent.rc\".");
 
-    int firstArg = parse_options(&control, control.variables(), argc, argv);
+    int firstArg = parse_options(control, control->variables(), argc, argv);
 
-    control.initialize();
+    control->initialize();
 
     // Just to make sure we did all the stuff on the queue before
     // loading any torrents.
@@ -192,37 +192,41 @@ main(int argc, char** argv) {
 
     // Load session torrents and perform scheduled tasks to ensure
     // session torrents are loaded before arg torrents.
-    load_session_torrents(&control);
+    load_session_torrents(control);
     rak::priority_queue_perform(&taskScheduler, cachedTime);
 
-    load_arg_torrents(&control, argv + firstArg, argv + argc);
+    load_arg_torrents(control, argv + firstArg, argv + argc);
 
-    control.display()->adjust_layout();
+    control->display()->adjust_layout();
 
-    while (!control.is_shutdown_completed()) {
-      control.inc_tick();
+    while (!control->is_shutdown_completed()) {
+      control->inc_tick();
 
       cachedTime = rak::timer::current();
       rak::priority_queue_perform(&taskScheduler, cachedTime);
 
       // Do shutdown check before poll, not after.
-      control.core()->get_poll_manager()->poll(client_next_timeout());
+      control->core()->get_poll_manager()->poll(client_next_timeout());
     }
 
-    control.cleanup();
+    control->cleanup();
 
   } catch (torrent::base_error& e) {
     display::Canvas::cleanup();
+    delete control;
 
     std::cout << "Caught exception: " << e.what() << std::endl;
     return -1;
 
   } catch (std::exception& e) {
     display::Canvas::cleanup();
+    delete control;
 
     std::cout << e.what() << std::endl;
     return -1;
   }
+
+  delete control;
 
   return 0;
 }

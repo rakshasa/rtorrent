@@ -40,17 +40,17 @@
 
 namespace utils {
 
-// VariableString::~VariableString() {
-// }
+VariableValue::~VariableValue() {
+}
 
-// std::string
-// VariableString::get() {
-//   return m_variable;
-// }
+const torrent::Bencode&
+VariableValue::get() {
+  return m_variable;
+}
 
-// void
-// VariableString::set(const std::string& arg) {
-//   m_variable = arg;
-// }
+void
+VariableValue::set(const torrent::Bencode& arg) {
+  m_variable = arg;
+}
 
 }

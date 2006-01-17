@@ -40,7 +40,11 @@
 #include <rak/timer.h>
 #include <rak/priority_queue_default.h>
 
+#include "control.h"
+
 extern rak::priority_queue_default taskScheduler;
 extern rak::timer                  cachedTime;
+
+extern Control*                    control;
 
 #endif

@@ -55,6 +55,7 @@
 #include "utils/variable_generic.h"
 #include "utils/variable_map.h"
 
+#include "globals.h"
 #include "control.h"
 #include "option_handler_rules.h"
 #include "command_scheduler.h"
@@ -179,11 +180,6 @@ apply_port_range(Control* m, const std::string& arg) {
 }
 
 void
-apply_port_random(Control* m, const std::string& arg) {
-  m->core()->set_port_random(arg == "yes");
-}
-
-void
 apply_tracker_dump(Control* m, const std::string& arg) {
   if (arg == "yes")
     m->core()->get_download_list().slot_map_insert()["1_tracker_dump"] = sigc::bind(sigc::mem_fun(&core::Download::call<sigc::connection, torrent::Download::SlotIStream, &torrent::Download::signal_tracker_dump>), sigc::ptr_fun(&receive_tracker_dump));
@@ -197,14 +193,6 @@ apply_use_udp_trackers(Control* m, const std::string& arg) {
     m->core()->get_download_list().slot_map_insert().erase("1_use_udp_trackers");
   else
     m->core()->get_download_list().slot_map_insert()["1_use_udp_trackers"] = sigc::bind(sigc::mem_fun(&core::Download::enable_udp_trackers), false);
-}
-
-void
-apply_check_hash(Control* m, const std::string& arg) {
-  if (arg == "yes")
-    m->core()->set_check_hash(true);
-  else
-    m->core()->set_check_hash(false);
 }
 
 void
@@ -299,44 +287,49 @@ apply_schedule_remove(Control* m, const std::string& arg) {
 
 void
 initialize_option_handler(Control* c) {
-  c->variables()->insert("bind",                new utils::VariableSlotString<>(NULL, rak::mem_fn(c->core(), &core::Manager::bind)));
+  utils::VariableMap* variables = control->variables();
 
-  c->variables()->insert("ip",                  new utils::VariableSlotString<>(NULL, rak::bind_ptr_fn(&apply_ip, c)));
-  c->variables()->insert("port_range",          new utils::VariableSlotString<>(NULL, rak::bind_ptr_fn(&apply_port_range, c)));
-  c->variables()->insert("port_random",         new utils::VariableSlotString<>(NULL, rak::bind_ptr_fn(&apply_port_random, c)));
+  // Cleaned up.
+  variables->insert("check_hash",          new utils::VariableValue("yes"));
+  variables->insert("port_random",         new utils::VariableValue("yes"));
+  variables->insert("session",             new utils::VariableSlotString<>(NULL, rak::mem_fn(&control->core()->get_download_store(), &core::DownloadStore::use)));
 
-  c->variables()->insert("check_hash",          new utils::VariableSlotString<>(NULL, rak::bind_ptr_fn(&apply_check_hash, c)));
-  c->variables()->insert("directory",           new utils::VariableSlotString<>(NULL, rak::bind_ptr_fn(&apply_download_directory, c)));
+  // Old.
+  variables->insert("bind",                new utils::VariableSlotString<>(NULL, rak::mem_fn(control->core(), &core::Manager::bind)));
 
-  c->variables()->insert("max_peers",           new utils::VariableSlotValue<int, int>(NULL, rak::bind_ptr_fn(&apply_download_max_peers, c), "%i"));
-  c->variables()->insert("min_peers",           new utils::VariableSlotValue<int, int>(NULL, rak::bind_ptr_fn(&apply_download_min_peers, c), "%i"));
-  c->variables()->insert("max_uploads",         new utils::VariableSlotValue<int, int>(NULL, rak::bind_ptr_fn(&apply_download_max_uploads, c), "%i"));
+  variables->insert("ip",                  new utils::VariableSlotString<>(NULL, rak::bind_ptr_fn(&apply_ip, c)));
+  variables->insert("port_range",          new utils::VariableSlotString<>(NULL, rak::bind_ptr_fn(&apply_port_range, c)));
 
-  c->variables()->insert("download_rate",       new utils::VariableSlotValue<int, int>(NULL, rak::bind_ptr_fn(&apply_global_download_rate, c), "%i"));
-  c->variables()->insert("upload_rate",         new utils::VariableSlotValue<int, int>(NULL, rak::bind_ptr_fn(&apply_global_upload_rate, c), "%i"));
+  variables->insert("directory",           new utils::VariableSlotString<>(NULL, rak::bind_ptr_fn(&apply_download_directory, c)));
 
-  c->variables()->insert("hash_read_ahead",     new utils::VariableSlotValue<int, int>(NULL, rak::bind_ptr_fn(&apply_hash_read_ahead, c), "%i"));
-  c->variables()->insert("hash_interval",       new utils::VariableSlotValue<int, int>(NULL, rak::bind_ptr_fn(&apply_hash_interval, c), "%i"));
-  c->variables()->insert("hash_max_tries",      new utils::VariableSlotValue<int, int>(NULL, rak::bind_ptr_fn(&apply_hash_max_tries, c), "%i"));
-  c->variables()->insert("max_open_files",      new utils::VariableSlotValue<int, int>(NULL, rak::bind_ptr_fn(&apply_max_open_files, c), "%i"));
-  c->variables()->insert("max_open_sockets",    new utils::VariableSlotValue<int, int>(NULL, rak::bind_ptr_fn(&apply_max_open_sockets, c), "%i"));
+  variables->insert("max_peers",           new utils::VariableSlotValue<int, int>(NULL, rak::bind_ptr_fn(&apply_download_max_peers, c), "%i"));
+  variables->insert("min_peers",           new utils::VariableSlotValue<int, int>(NULL, rak::bind_ptr_fn(&apply_download_min_peers, c), "%i"));
+  variables->insert("max_uploads",         new utils::VariableSlotValue<int, int>(NULL, rak::bind_ptr_fn(&apply_download_max_uploads, c), "%i"));
 
-  c->variables()->insert("umask",               new utils::VariableSlotValue<int, int>(NULL, rak::bind_ptr_fn(&apply_umask, c), "%o"));
+  variables->insert("download_rate",       new utils::VariableSlotValue<int, int>(NULL, rak::bind_ptr_fn(&apply_global_download_rate, c), "%i"));
+  variables->insert("upload_rate",         new utils::VariableSlotValue<int, int>(NULL, rak::bind_ptr_fn(&apply_global_upload_rate, c), "%i"));
 
-  c->variables()->insert("connection_leech",    new utils::VariableSlotString<>(NULL, rak::bind_ptr_fn(&apply_connection_leech, c)));
-  c->variables()->insert("connection_seed",     new utils::VariableSlotString<>(NULL, rak::bind_ptr_fn(&apply_connection_seed, c)));
+  variables->insert("hash_read_ahead",     new utils::VariableSlotValue<int, int>(NULL, rak::bind_ptr_fn(&apply_hash_read_ahead, c), "%i"));
+  variables->insert("hash_interval",       new utils::VariableSlotValue<int, int>(NULL, rak::bind_ptr_fn(&apply_hash_interval, c), "%i"));
+  variables->insert("hash_max_tries",      new utils::VariableSlotValue<int, int>(NULL, rak::bind_ptr_fn(&apply_hash_max_tries, c), "%i"));
+  variables->insert("max_open_files",      new utils::VariableSlotValue<int, int>(NULL, rak::bind_ptr_fn(&apply_max_open_files, c), "%i"));
+  variables->insert("max_open_sockets",    new utils::VariableSlotValue<int, int>(NULL, rak::bind_ptr_fn(&apply_max_open_sockets, c), "%i"));
 
-  c->variables()->insert("load",                new utils::VariableSlotString<>(NULL, rak::bind_ptr_fn(&apply_load, c)));
-  c->variables()->insert("load_start",          new utils::VariableSlotString<>(NULL, rak::bind_ptr_fn(&apply_load_start, c)));
-  c->variables()->insert("stop_untied",         new utils::VariableSlotString<>(NULL, rak::bind_ptr_fn(&apply_stop_untied, c)));
-  c->variables()->insert("remove_untied",       new utils::VariableSlotString<>(NULL, rak::bind_ptr_fn(&apply_remove_untied, c)));
+  variables->insert("umask",               new utils::VariableSlotValue<int, int>(NULL, rak::bind_ptr_fn(&apply_umask, c), "%o"));
 
-  c->variables()->insert("session",             new utils::VariableSlotString<>(NULL, rak::bind_ptr_fn(&apply_session_directory, c)));
-  c->variables()->insert("encoding_list",       new utils::VariableSlotString<>(NULL, rak::bind_ptr_fn(&apply_encoding_list, c)));
-  c->variables()->insert("tracker_dump",        new utils::VariableSlotString<>(NULL, rak::bind_ptr_fn(&apply_tracker_dump, c)));
-  c->variables()->insert("use_udp_trackers",    new utils::VariableSlotString<>(NULL, rak::bind_ptr_fn(&apply_use_udp_trackers, c)));
+  variables->insert("connection_leech",    new utils::VariableSlotString<>(NULL, rak::bind_ptr_fn(&apply_connection_leech, c)));
+  variables->insert("connection_seed",     new utils::VariableSlotString<>(NULL, rak::bind_ptr_fn(&apply_connection_seed, c)));
 
-  c->variables()->insert("http_proxy",          new utils::VariableSlotString<>(NULL, rak::bind_ptr_fn(&apply_http_proxy, c)));
-  c->variables()->insert("schedule",            new utils::VariableSlotString<>(NULL, rak::bind_ptr_fn(&apply_schedule, c)));
-  c->variables()->insert("schedule_remove",     new utils::VariableSlotString<>(NULL, rak::bind_ptr_fn(&apply_schedule_remove, c)));
+  variables->insert("load",                new utils::VariableSlotString<>(NULL, rak::bind_ptr_fn(&apply_load, c)));
+  variables->insert("load_start",          new utils::VariableSlotString<>(NULL, rak::bind_ptr_fn(&apply_load_start, c)));
+  variables->insert("stop_untied",         new utils::VariableSlotString<>(NULL, rak::bind_ptr_fn(&apply_stop_untied, c)));
+  variables->insert("remove_untied",       new utils::VariableSlotString<>(NULL, rak::bind_ptr_fn(&apply_remove_untied, c)));
+
+  variables->insert("encoding_list",       new utils::VariableSlotString<>(NULL, rak::bind_ptr_fn(&apply_encoding_list, c)));
+  variables->insert("tracker_dump",        new utils::VariableSlotString<>(NULL, rak::bind_ptr_fn(&apply_tracker_dump, c)));
+  variables->insert("use_udp_trackers",    new utils::VariableSlotString<>(NULL, rak::bind_ptr_fn(&apply_use_udp_trackers, c)));
+
+  variables->insert("http_proxy",          new utils::VariableSlotString<>(NULL, rak::bind_ptr_fn(&apply_http_proxy, c)));
+  variables->insert("schedule",            new utils::VariableSlotString<>(NULL, rak::bind_ptr_fn(&apply_schedule, c)));
+  variables->insert("schedule_remove",     new utils::VariableSlotString<>(NULL, rak::bind_ptr_fn(&apply_schedule_remove, c)));
 }

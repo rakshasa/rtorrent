@@ -121,30 +121,31 @@ print_download_info(char* buf, unsigned int length, core::Download* d) {
 			   (double)d->get_download().down_rate()->rate() / (1 << 10),
 			   (double)d->get_download().up_rate()->total() / (1 << 20)), 0);
 
-  //buf += std::max(0, snprintf(buf, length, " Left: "));
-  buf = print_download_time_left(buf, length, d);
+  buf = print_download_time_left(buf, last - buf, d);
 
   return buf;
 }
 
 char*
 print_download_status(char* buf, unsigned int length, core::Download* d) {
+  char* last = buf + length;
+
   if (!d->get_download().is_active())
-    buf += std::max(snprintf(buf, length, "Inactive: "), 0);
+    buf += std::max(snprintf(buf, last - buf, "Inactive: "), 0);
 
   if (d->get_download().is_hash_checking())
-    buf += std::max(snprintf(buf, length, "Checking hash [%2i%%]",
+    buf += std::max(snprintf(buf, last - buf, "Checking hash [%2i%%]",
 			     (d->get_download().chunks_hashed() * 100) / d->get_download().chunks_total()), 0);
 
   else if (d->get_download().is_tracker_busy() &&
 	   d->get_download().tracker_focus() < d->get_download().size_trackers())
-    buf += std::max(snprintf(buf, length, "Tracker[%i:%i]: Connecting to %s",
+    buf += std::max(snprintf(buf, last - buf, "Tracker[%i:%i]: Connecting to %s",
 			     d->get_download().tracker(d->get_download().tracker_focus()).group(),
 			     d->get_download().tracker_focus(),
 			     d->get_download().tracker(d->get_download().tracker_focus()).url().c_str()), 0);
 
   else if (!d->get_message().empty())
-    buf += std::max(snprintf(buf, length, "%s", d->get_message().c_str()), 0);
+    buf += std::max(snprintf(buf, last - buf, "%s", d->get_message().c_str()), 0);
 
   else
     buf[0] = '\0';

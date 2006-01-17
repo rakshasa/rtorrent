@@ -57,7 +57,7 @@ OptionFile::process_file(const std::string& filename) {
 
     while (file.getline(buffer, max_size_line).good()) {
       lineNumber++;
-      parse_line(buffer);
+      m_slotOption(buffer);
     }
 
   } catch (torrent::input_error& e) {
@@ -69,28 +69,28 @@ OptionFile::process_file(const std::string& filename) {
   return true;
 }
 
-void
-OptionFile::parse_line(const char* line) {
+// void
+// OptionFile::parse_line(const char* line) {
   //const char* last = std::find(line, line + max_size_line, '\0');
 
-  if (line[0] == '#')
-    return;
+//   if (line[0] == '#')
+//     return;
 
-  int result;
-  char key[64];
-  char opt[512];
+//   int result;
+//   char key[64];
+//   char opt[512];
 
-  opt[0] = '\0';
+//   opt[0] = '\0';
 
-  // Check for empty lines, and options within "abc".
-  if ((result = std::sscanf(line, "%63s = \"%511[^\"]", key, opt)) != 2 &&
-      (result = std::sscanf(line, "%63s = %511s", key, opt)) != 2 &&
-      result == 1)
-    throw torrent::input_error("Error parseing option file.");
+//   // Check for empty lines, and options within "abc".
+//   if ((result = std::sscanf(line, "%63s = \"%511[^\"]", key, opt)) != 2 &&
+//       (result = std::sscanf(line, "%63s = %511s", key, opt)) != 2 &&
+//       result == 1)
+//     throw torrent::input_error("Error parseing option file.");
 
-  if (opt[0] == '"' && opt[1] == '"')
-    opt[0] = '\0';
+//   if (opt[0] == '"' && opt[1] == '"')
+//     opt[0] = '\0';
 
-  if (result >= 1)
-    m_slotOption(key, opt);
-}
+//   if (result >= 1)
+//     m_slotOption(key, opt);
+// }

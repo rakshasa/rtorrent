@@ -50,6 +50,9 @@
 #include <torrent/bencode.h>
 #include <torrent/exceptions.h>
 
+#include "utils/variable_map.h"
+
+#include "globals.h"
 #include "curl_get.h"
 #include "download.h"
 #include "download_factory.h"
@@ -85,10 +88,8 @@ delete_tied(Download* d) {
 
 Manager::Manager() :
   m_pollManager(NULL),
-  m_portRandom(false),
   m_portFirst(6890),
-  m_portLast(6999),
-  m_checkHash(true) {
+  m_portLast(6999) {
 }
 
 void
@@ -245,7 +246,7 @@ Manager::check_hash(Download* d) {
 
 void
 Manager::receive_download_done(Download* d) {
-  if (m_checkHash) {
+  if (control->variables()->get("check_hash").as_string() == "yes") {
     // Start the hash checking, send completed to tracker after
     // finishing.
     prepare_hash_check(d);
@@ -263,7 +264,7 @@ Manager::listen_open() {
   if (m_portFirst > m_portLast)
     throw torrent::input_error("Invalid port range for listening");
 
-  if (m_portRandom) {
+  if (control->variables()->get("port_random").as_string() == "yes") {
     int boundary = m_portFirst + random() % (m_portLast - m_portFirst + 1);
 
     if (!torrent::listen_open(boundary, m_portLast) &&
@@ -273,6 +274,7 @@ Manager::listen_open() {
   } else {
     if (!torrent::listen_open(m_portFirst, m_portLast))
       throw torrent::input_error("Could not open/bind a port for listening.");
+
   }
 }
 
