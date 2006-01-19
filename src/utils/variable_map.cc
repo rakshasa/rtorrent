@@ -60,7 +60,7 @@ VariableMap::insert(const std::string& key, Variable* v) {
   base_type::insert(itr, value_type(key, v));
 }
 
-const torrent::Bencode&
+const VariableMap::mapped_type&
 VariableMap::get(const std::string& key) {
   iterator itr = base_type::find(key);
 
@@ -71,7 +71,7 @@ VariableMap::get(const std::string& key) {
 }
 
 void
-VariableMap::set(const std::string& key, const torrent::Bencode& arg) {
+VariableMap::set(const std::string& key, const mapped_type& arg) {
   iterator itr = base_type::find(key);
 
   // Later, allow the user to create new variables. Have a slot to
@@ -94,7 +94,7 @@ parse_name(std::string::const_iterator first, std::string::const_iterator last, 
 }
 
 std::string::const_iterator
-parse_unknown(std::string::const_iterator first, std::string::const_iterator last, torrent::Bencode* dest) {
+parse_unknown(std::string::const_iterator first, std::string::const_iterator last, VariableMap::mapped_type* dest) {
   if (*first == '"') {
     std::string::const_iterator next = std::find_if(++first, last, std::bind2nd(std::equal_to<char>(), '"'));
     
@@ -116,11 +116,11 @@ parse_unknown(std::string::const_iterator first, std::string::const_iterator las
 }
 
 std::string::const_iterator
-parse_args(std::string::const_iterator first, std::string::const_iterator last, torrent::Bencode::List* dest) {
+parse_args(std::string::const_iterator first, std::string::const_iterator last, VariableMap::mapped_type::List* dest) {
   first = std::find_if(first, last, std::not1(std::ptr_fun(&std::isspace)));
 
   while (first != last) {
-    dest->push_back(torrent::Bencode());
+    dest->push_back(VariableMap::mapped_type());
 
     first = parse_unknown(first, last, &dest->back());
     first = std::find_if(first, last, std::not1(std::ptr_fun(&std::isspace)));
@@ -148,11 +148,11 @@ VariableMap::process_command(const std::string& command) {
   if (pos == command.end() || *pos != '=')
     throw torrent::input_error("Could not find '='.");
 
-  torrent::Bencode args(torrent::Bencode::TYPE_LIST);
+  mapped_type args(mapped_type::TYPE_LIST);
   parse_args(pos + 1, command.end(), &args.as_list());
 
   if (args.as_list().empty())
-    set(key, torrent::Bencode());
+    set(key, mapped_type());
 
   else if (++args.as_list().begin() == args.as_list().end())
     set(key, *args.as_list().begin());

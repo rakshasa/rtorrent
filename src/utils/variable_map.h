@@ -48,6 +48,7 @@ class Variable;
 class VariableMap : public std::map<std::string, Variable*> {
 public:
   typedef std::map<std::string, Variable*> base_type;
+  typedef torrent::Bencode                 mapped_type;
 
   using base_type::iterator;
   using base_type::value_type;
@@ -59,10 +60,11 @@ public:
 
   // Consider taking char* start and finish instead of std::string to
   // avoid copying. Or make a view class.
-  const torrent::Bencode& get(const std::string& key);
+  const mapped_type&  get(const std::string& key);
+  std::string         get_string(const std::string& key);
 
-  void                set(const std::string& key, const torrent::Bencode& arg);
-  void                set_string(const std::string& key, const std::string& arg) { set(key, torrent::Bencode(arg)); }
+  void                set(const std::string& key, const mapped_type& arg);
+  void                set_string(const std::string& key, const std::string& arg) { set(key, mapped_type(arg)); }
 
   // Temporary.
   void                process_command(const std::string& command);
@@ -71,6 +73,16 @@ private:
   VariableMap(const VariableMap&);
   void operator = (const VariableMap&);
 };
+
+inline std::string
+VariableMap::get_string(const std::string& key) {
+  const mapped_type& v = get(key);
+
+  if (v.get_type() == mapped_type::TYPE_NONE)
+    return std::string();
+  else
+    return v.as_string();
+}
 
 }
 

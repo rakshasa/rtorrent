@@ -104,26 +104,6 @@ apply_download_max_uploads(Control* m, int arg) {
 }
 
 void
-apply_download_directory(Control* m, const std::string& arg) {
-  if (!arg.empty())
-    m->core()->get_download_list().slot_map_insert()["1_directory"] = sigc::bind(sigc::mem_fun(&core::Download::set_root_directory), arg);
-  else
-    m->core()->get_download_list().slot_map_insert().erase("1_directory");
-}
-
-void
-apply_connection_leech(Control* m, const std::string& arg) {
-  core::Download::string_to_connection_type(arg);
-  m->core()->get_download_list().slot_map_insert()["1_connection_leech"] = sigc::bind(sigc::mem_fun(&core::Download::set_connection_leech), arg);
-}
-
-void
-apply_connection_seed(Control* m, const std::string& arg) {
-  core::Download::string_to_connection_type(arg);
-  m->core()->get_download_list().slot_map_insert()["1_connection_seed"] = sigc::bind(sigc::mem_fun(&core::Download::set_connection_seed), arg);
-}
-
-void
 apply_global_download_rate(Control* m, int arg) {
   m->ui()->set_down_throttle(arg);
 }
@@ -134,7 +114,7 @@ apply_global_upload_rate(Control* m, int arg) {
 }
 
 void
-apply_umask(Control* m, int arg) {
+apply_umask(int arg) {
   umask(arg);
 }
 
@@ -161,11 +141,6 @@ apply_max_open_files(Control* m, int arg) {
 void
 apply_max_open_sockets(Control* m, int arg) {
   torrent::set_max_open_sockets(arg);
-}
-
-void
-apply_ip(Control* m, const std::string& arg) {
-  torrent::set_local_address(arg);
 }
 
 // The arg string *must* have been checked with validate_port_range
@@ -215,14 +190,13 @@ apply_stop_untied(Control* m, const std::string& arg) {
   core::Manager::DListItr itr = m->core()->get_download_list().begin();
 
   while ((itr = std::find_if(itr, m->core()->get_download_list().end(),
-			     rak::on(std::mem_fun(&core::Download::tied_to_file), std::not1(std::mem_fun_ref(&std::string::empty)))))
+			     rak::on(rak::bind2nd(std::mem_fun(&core::Download::variable_string), "tied_to_file"),
+				     std::not1(std::mem_fun_ref(&std::string::empty)))))
 	 != m->core()->get_download_list().end()) {
     rak::file_stat fs;
 
-    if (!fs.update((*itr)->tied_to_file())) {
-      (*itr)->set_tied_to_file(std::string());
-      (*itr)->get_bencode().get_key("rtorrent").erase_key("tied");
-
+    if (!fs.update((*itr)->variable_string("tied_to_file"))) {
+      (*itr)->variables()->set("tied_to_file", std::string());
       m->core()->stop(*itr);
     }
 
@@ -235,14 +209,13 @@ apply_remove_untied(Control* m, const std::string& arg) {
   core::Manager::DListItr itr = m->core()->get_download_list().begin();
 
   while ((itr = std::find_if(itr, m->core()->get_download_list().end(),
-			     rak::on(std::mem_fun(&core::Download::tied_to_file), std::not1(std::mem_fun_ref(&std::string::empty)))))
+			     rak::on(rak::bind2nd(std::mem_fun(&core::Download::variable_string), "tied_to_file"),
+				     std::not1(std::mem_fun_ref(&std::string::empty)))))
 	 != m->core()->get_download_list().end()) {
     rak::file_stat fs;
 
-    if (!fs.update((*itr)->tied_to_file())) {
-      (*itr)->set_tied_to_file(std::string());
-      (*itr)->get_bencode().get_key("rtorrent").erase_key("tied");
-
+    if (!fs.update((*itr)->variable_string("tied_to_file"))) {
+      (*itr)->variables()->set("tied_to_file", std::string());
       m->core()->stop(*itr);
       itr = m->core()->erase(itr);
 
@@ -294,15 +267,18 @@ initialize_option_handler(Control* c) {
   variables->insert("port_random",         new utils::VariableValue("yes"));
   variables->insert("session",             new utils::VariableSlotString<>(NULL, rak::mem_fn(&control->core()->get_download_store(), &core::DownloadStore::use)));
 
+  variables->insert("connection_leech",    new utils::VariableValue("leech"));
+  variables->insert("connection_seed",     new utils::VariableValue("seed"));
+
+  variables->insert("directory",           new utils::VariableValue(std::string()));
+  variables->insert("ip",                  new utils::VariableSlotString<>(NULL, rak::ptr_fn(&torrent::set_local_address)));
+
   // Old.
   variables->insert("bind",                new utils::VariableSlotString<>(NULL, rak::mem_fn(control->core(), &core::Manager::bind)));
-
-  variables->insert("ip",                  new utils::VariableSlotString<>(NULL, rak::bind_ptr_fn(&apply_ip, c)));
   variables->insert("port_range",          new utils::VariableSlotString<>(NULL, rak::bind_ptr_fn(&apply_port_range, c)));
 
-  variables->insert("directory",           new utils::VariableSlotString<>(NULL, rak::bind_ptr_fn(&apply_download_directory, c)));
-
   variables->insert("max_peers",           new utils::VariableSlotValue<int, int>(NULL, rak::bind_ptr_fn(&apply_download_max_peers, c), "%i"));
+
   variables->insert("min_peers",           new utils::VariableSlotValue<int, int>(NULL, rak::bind_ptr_fn(&apply_download_min_peers, c), "%i"));
   variables->insert("max_uploads",         new utils::VariableSlotValue<int, int>(NULL, rak::bind_ptr_fn(&apply_download_max_uploads, c), "%i"));
 
@@ -315,10 +291,7 @@ initialize_option_handler(Control* c) {
   variables->insert("max_open_files",      new utils::VariableSlotValue<int, int>(NULL, rak::bind_ptr_fn(&apply_max_open_files, c), "%i"));
   variables->insert("max_open_sockets",    new utils::VariableSlotValue<int, int>(NULL, rak::bind_ptr_fn(&apply_max_open_sockets, c), "%i"));
 
-  variables->insert("umask",               new utils::VariableSlotValue<int, int>(NULL, rak::bind_ptr_fn(&apply_umask, c), "%o"));
-
-  variables->insert("connection_leech",    new utils::VariableSlotString<>(NULL, rak::bind_ptr_fn(&apply_connection_leech, c)));
-  variables->insert("connection_seed",     new utils::VariableSlotString<>(NULL, rak::bind_ptr_fn(&apply_connection_seed, c)));
+  variables->insert("umask",               new utils::VariableSlotValue<int, int>(NULL, rak::ptr_fn(&apply_umask), "%o"));
 
   variables->insert("load",                new utils::VariableSlotString<>(NULL, rak::bind_ptr_fn(&apply_load, c)));
   variables->insert("load_start",          new utils::VariableSlotString<>(NULL, rak::bind_ptr_fn(&apply_load_start, c)));

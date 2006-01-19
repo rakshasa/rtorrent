@@ -45,6 +45,8 @@
 #include <sigc++/slot.h>
 #include <rak/priority_queue_default.h>
 
+#include "utils/variable_map.h"
+
 #include "http_queue.h"
 
 namespace core {
@@ -65,6 +67,8 @@ public:
   void                load();
   void                commit();
 
+  utils::VariableMap* variables()              { return &m_variables; }
+
   bool                get_session() const   { return m_session; }
   void                set_session(bool v)   { m_session = v; }
 
@@ -73,9 +77,6 @@ public:
 
   bool                print_log() const        { return m_printLog; }
   void                set_print_log(bool v)    { m_printLog = v; }
-
-  bool                tied_to_file() const     { return m_tiedToFile; }
-  void                set_tied_to_file(bool v) { m_tiedToFile = v; }
 
   void                slot_finished(Slot s) { m_slotFinished = s; }
 
@@ -96,7 +97,8 @@ private:
   bool                m_session;
   bool                m_start;
   bool                m_printLog;
-  bool                m_tiedToFile;
+
+  utils::VariableMap  m_variables;
 
   Slot                m_slotFinished;
   rak::priority_item  m_taskLoad;

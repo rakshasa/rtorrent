@@ -42,6 +42,8 @@
 #include <torrent/bencode.h>
 #include <torrent/exceptions.h>
 
+#include "utils/variable_generic.h"
+
 #include "curl_get.h"
 #include "http_queue.h"
 #include "globals.h"
@@ -60,12 +62,16 @@ DownloadFactory::DownloadFactory(const std::string& uri, Manager* m) :
   m_uri(uri),
   m_session(false),
   m_start(false),
-  m_printLog(true),
-  m_tiedToFile(false) {
+  m_printLog(true) {
 
   m_taskLoad.set_slot(rak::mem_fn(this, &DownloadFactory::receive_load));
   m_taskCommit.set_slot(rak::mem_fn(this, &DownloadFactory::receive_commit));
-}  
+
+  m_variables.insert("connection_leech", new utils::VariableValue(control->variables()->get("connection_leech")));
+  m_variables.insert("connection_seed",  new utils::VariableValue(control->variables()->get("connection_seed")));
+  m_variables.insert("directory",        new utils::VariableValue(control->variables()->get("directory")));
+  m_variables.insert("tied_to_file",     new utils::VariableBool(false));
+}
 
 DownloadFactory::~DownloadFactory() {
   priority_queue_erase(&taskScheduler, &m_taskLoad);
@@ -98,7 +104,7 @@ DownloadFactory::receive_load() {
     (*itr)->signal_done().slots().push_front(sigc::mem_fun(*this, &DownloadFactory::receive_loaded));
     (*itr)->signal_failed().slots().push_front(sigc::mem_fun(*this, &DownloadFactory::receive_failed));
 
-    m_tiedToFile = false;
+    m_variables.set("tied_to_file", (int64_t)false);
 
   } else {
     m_stream = new std::fstream(m_uri.c_str(), std::ios::in);
@@ -140,6 +146,14 @@ DownloadFactory::receive_success() {
     return;
   }
 
+  // Move to 'rtorrent'.
+  (*itr)->variables()->set("connection_leech", m_variables.get("connection_leech"));
+  (*itr)->variables()->set("connection_seed",  m_variables.get("connection_seed"));
+  (*itr)->variables()->set("directory",        m_variables.get("directory"));
+
+//   if (control->variables()->get("peers_min")
+//   (*itr)->variables()->set("peers_min",        m_variables.get("directory"));
+
   torrent::Bencode& bencode = (*itr)->get_bencode();
 
   if (m_session) {
@@ -147,18 +161,16 @@ DownloadFactory::receive_success() {
     if (bencode.get_key("rtorrent").get_key("state").as_string() == "started")
       m_manager->start(*itr, m_printLog);
 
-    if (bencode.get_key("rtorrent").has_key("tied") &&
-	bencode.get_key("rtorrent").get_key("tied").is_string())
-      (*itr)->set_tied_to_file(bencode.get_key("rtorrent").get_key("tied").as_string());
+    // Consider adding an empty 'tied_to_file' here if not present.
 
   } else {
     // Remove the settings if this isn't a session torrent.
     //bencode.erase_key("rtorrent");
 
-    if (m_tiedToFile) {
-      (*itr)->set_tied_to_file(m_uri);
-      bencode.get_key("rtorrent").insert_key("tied", m_uri);
-    }
+    if (m_variables.get("tied_to_file").as_value())
+      (*itr)->variables()->set("tied_to_file", m_uri);
+    else
+      (*itr)->variables()->set("tied_to_file", std::string());
 
     if (m_start)
       m_manager->start(*itr, m_printLog);

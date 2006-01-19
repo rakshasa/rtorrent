@@ -41,6 +41,8 @@
 #include <torrent/download.h>
 #include <torrent/torrent.h>
 
+#include "utils/variable_map.h"
+
 namespace core {
 
 class Download {
@@ -55,6 +57,9 @@ public:
 
   void               start();
 
+  utils::VariableMap* variables()                                  { return &m_variables; }
+  std::string        variable_string(const std::string& key)       { return m_variables.get_string(key); }
+
   torrent::Download& get_download()                  { return m_download; }
   const torrent::Download& get_download() const      { return m_download; }
   std::string        get_hash()                      { return m_download.info_hash(); }
@@ -63,18 +68,6 @@ public:
   const std::string& get_message()                   { return m_message; }
 
   uint32_t           chunks_failed() const                         { return m_chunksFailed; }
-
-  void               set_root_directory(const std::string& d);
-
-  ConnType           get_connection_current() const                { return m_download.connection_type(); }
-  ConnType           get_connection_leech() const                  { return m_connectionLeech; }
-  ConnType           get_connection_seed() const                   { return m_connectionSeed; }
-
-  void               set_connection_leech(const std::string& name) { m_connectionLeech = string_to_connection_type(name); }
-  void               set_connection_seed(const std::string& name)  { m_connectionSeed = string_to_connection_type(name); }
-
-  const std::string& tied_to_file() const                          { return m_tiedToFile; }
-  void               set_tied_to_file(const std::string& str)      { m_tiedToFile = str; }
 
   void               enable_udp_trackers(bool state);
 
@@ -94,24 +87,29 @@ public:
   static const char* connection_type_to_string(ConnType t);
 
 private:
+  Download(const Download&);
+  void operator () (const Download&);
+
   void               receive_tracker_msg(std::string msg);
   void               receive_storage_error(std::string msg);
 
   void               receive_chunk_failed(uint32_t idx);
+
+  const char*        connection_current() const                    { return connection_type_to_string(m_download.connection_type()); }
+  void               set_connection_current(const std::string& t)  { return m_download.set_connection_type(string_to_connection_type(t.c_str())); }
+
+  void               set_root_directory(const std::string& d);
 
   torrent::Download  m_download;
 
   std::string        m_message;
   uint32_t           m_chunksFailed;
 
-  ConnType           m_connectionLeech;
-  ConnType           m_connectionSeed;
-
-  std::string        m_tiedToFile;
-
   sigc::connection   m_connTrackerSucceded;
   sigc::connection   m_connTrackerFailed;
   sigc::connection   m_connStorageError;
+
+  utils::VariableMap  m_variables;
 };
 
 inline bool

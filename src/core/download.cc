@@ -42,6 +42,8 @@
 #include <sigc++/signal.h>
 #include <torrent/exceptions.h>
 
+#include "utils/variable_generic.h"
+
 #include "download.h"
 
 namespace core {
@@ -49,15 +51,25 @@ namespace core {
 Download::Download(torrent::Download d) :
   m_download(d),
 
-  m_chunksFailed(0),
-  m_connectionLeech(torrent::Download::CONNECTION_LEECH),
-  m_connectionSeed(torrent::Download::CONNECTION_SEED) {
+  m_chunksFailed(0) {
 
   m_connTrackerSucceded = m_download.signal_tracker_succeded(sigc::bind(sigc::mem_fun(*this, &Download::receive_tracker_msg), ""));
   m_connTrackerFailed = m_download.signal_tracker_failed(sigc::mem_fun(*this, &Download::receive_tracker_msg));
   m_connStorageError = m_download.signal_storage_error(sigc::mem_fun(*this, &Download::receive_storage_error));
 
   m_download.signal_chunk_failed(sigc::mem_fun(*this, &Download::receive_chunk_failed));
+
+  m_variables.insert("connection_current", new utils::VariableSlotString<const char*, const std::string&>(rak::mem_fn(this, &Download::connection_current),
+													  rak::mem_fn(this, &Download::set_connection_current)));
+  m_variables.insert("connection_leech",   new utils::VariableValue(connection_type_to_string(torrent::Download::CONNECTION_LEECH)));
+  m_variables.insert("connection_seed",    new utils::VariableValue(connection_type_to_string(torrent::Download::CONNECTION_SEED)));
+  m_variables.insert("directory",          new utils::VariableSlotString<std::string, const std::string&>(NULL,
+													  rak::mem_fn(this, &Download::set_root_directory)));
+  m_variables.insert("tied_to_file",       new utils::VariableBencode(&m_download.bencode(), "tied_to_file", torrent::Bencode::TYPE_STRING));
+
+  m_variables.insert("peers_min",          new utils::VariableSlotValue<uint32_t, uint32_t>(rak::mem_fn(&m_download, &torrent::Download::peers_min),
+											    rak::mem_fn(&m_download, &torrent::Download::set_peers_min),
+											    "%u"));
 }
 
 Download::~Download() {
@@ -74,21 +86,14 @@ Download::~Download() {
 void
 Download::start() {
   if (is_done()) {
-    m_download.set_connection_type(m_connectionSeed);
+    m_download.set_connection_type(string_to_connection_type(m_variables.get("connection_seed").as_string()));
     torrent::download_set_priority(m_download, 2);
   } else {
-    m_download.set_connection_type(m_connectionLeech);
+    m_download.set_connection_type(string_to_connection_type(m_variables.get("connection_leech").as_string()));
     torrent::download_set_priority(m_download, 4);
   }
 
   m_download.start();
-}
-
-void
-Download::set_root_directory(const std::string& d) {
-  m_download.set_root_dir(d +
-			  (!d.empty() && *d.rbegin() != '/' ? "/" : "") +
-			  (m_download.size_file_entries() > 1 ? m_download.name() : ""));
 }
 
 void
@@ -103,7 +108,7 @@ Download::enable_udp_trackers(bool state) {
 
 void
 Download::receive_finished() {
-  m_download.set_connection_type(m_connectionSeed);
+  m_download.set_connection_type(string_to_connection_type(m_variables.get("connection_seed").as_string()));
   torrent::download_set_priority(m_download, 2);
 }
 
@@ -146,6 +151,17 @@ Download::connection_type_to_string(torrent::Download::ConnectionType t) {
 void
 Download::receive_chunk_failed(uint32_t idx) {
   m_chunksFailed++;
+}
+
+// Clean up.
+void
+Download::set_root_directory(const std::string& d) {
+  if (d.empty())
+    m_download.set_root_dir("./" + (m_download.size_file_entries() > 1 ? m_download.name() : std::string()));
+  else
+    m_download.set_root_dir(d +
+			    (*d.rbegin() != '/' ? "/" : "") +
+			    (m_download.size_file_entries() > 1 ? m_download.name() : ""));
 }
 
 }

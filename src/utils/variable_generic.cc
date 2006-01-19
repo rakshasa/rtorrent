@@ -53,4 +53,65 @@ VariableValue::set(const torrent::Bencode& arg) {
   m_variable = arg;
 }
 
+VariableBool::~VariableBool() {
+}
+
+const torrent::Bencode&
+VariableBool::get() {
+  return m_variable;
+}
+
+void
+VariableBool::set(const torrent::Bencode& arg) {
+  if (arg.is_value()) {
+    m_variable = arg.as_value() ? (int64_t)1 : (int64_t)0;
+
+  } else if (arg.is_string()) {
+
+    if (arg.as_string() == "yes" ||
+	arg.as_string() == "true")
+      m_variable = (int64_t)1;
+
+    else if (arg.as_string() == "no" ||
+	     arg.as_string() == "false")
+      m_variable = (int64_t)0;
+
+    else
+      throw torrent::input_error("String does not parse as a boolean.");
+
+  } else {
+    throw torrent::input_error("Input is not a boolean.");
+  }
+}
+
+VariableBencode::~VariableBencode() {
+}
+
+const torrent::Bencode&
+VariableBencode::get() {
+  return m_bencode->get_key(m_key);
+}
+
+void
+VariableBencode::set(const torrent::Bencode& arg) {
+  // Consider removing if TYPE_NONE.
+
+  switch (m_type) {
+  case torrent::Bencode::TYPE_NONE:
+    m_bencode->insert_key(m_key, arg);
+    break;
+
+  case torrent::Bencode::TYPE_STRING:
+    if (arg.get_type() == torrent::Bencode::TYPE_STRING)
+      m_bencode->insert_key(m_key, arg);
+    else
+      throw torrent::input_error("VariableBencode could not convert to string.");
+      
+    break;
+
+  default:
+    throw torrent::input_error("VariableBencode unsupported type restriction.");
+  }
+}
+
 }

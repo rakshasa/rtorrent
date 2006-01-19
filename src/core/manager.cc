@@ -80,10 +80,12 @@ connect_signal_storage_log(Download* d, torrent::Download::SlotString s) {
 // Hmm... find some better place for all this.
 static void
 delete_tied(Download* d) {
+  const std::string tie = d->variables()->get("tied_to_file").as_string();
+
   // This should be configurable, need to wait for the variable
   // thingie to be implemented.
-  if (!d->tied_to_file().empty())
-    ::unlink(d->tied_to_file().c_str());
+  if (!tie.empty())
+    ::unlink(tie.c_str());
 }
 
 Manager::Manager() :
@@ -338,9 +340,10 @@ Manager::try_create_download(const std::string& uri, bool start, bool printLog, 
   // Adding download.
   DownloadFactory* f = new DownloadFactory(uri, this);
 
+  f->variables()->set("tied_to_file", tied ? "yes" : "no");
+
   f->set_start(start);
   f->set_print_log(printLog);
-  f->set_tied_to_file(tied);
   f->slot_finished(sigc::bind(sigc::ptr_fun(&rak::call_delete_func<core::DownloadFactory>), f));
   f->load();
   f->commit();
@@ -402,7 +405,7 @@ Manager::try_create_download_expand(const std::string& uri, bool start, bool pri
   if (tied)
     for (std::vector<std::string>::iterator itr = paths.begin(); itr != paths.end(); )
       if (std::find_if(m_downloadList.begin(), m_downloadList.end(),
-		       rak::equal(*itr, std::mem_fun(&Download::tied_to_file))) != m_downloadList.end())
+		       rak::equal(*itr, rak::bind2nd(std::mem_fun(&Download::variable_string), "tied_to_file"))) != m_downloadList.end())
 	itr = paths.erase(itr);
       else
 	itr++;

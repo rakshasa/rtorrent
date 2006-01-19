@@ -61,6 +61,36 @@ private:
   torrent::Bencode    m_variable;
 };
 
+class VariableBool : public Variable {
+public:
+  VariableBool(bool state) : m_variable(state ? (int64_t)1 : (int64_t)0) {}
+  VariableBool(const torrent::Bencode& v = torrent::Bencode((int64_t)0)) { set(v); }
+  virtual ~VariableBool();
+
+  virtual const torrent::Bencode& get();
+  virtual void        set(const torrent::Bencode& arg);
+
+private:
+  torrent::Bencode    m_variable;
+};
+
+class VariableBencode : public Variable {
+public:
+  typedef torrent::Bencode::Type Type;
+
+  VariableBencode(torrent::Bencode* b, const std::string& key, Type t = torrent::Bencode::TYPE_NONE) :
+    m_bencode(b), m_key(key), m_type(t) {}
+  virtual ~VariableBencode();
+
+  virtual const torrent::Bencode& get();
+  virtual void        set(const torrent::Bencode& arg);
+
+private:
+  torrent::Bencode*   m_bencode;
+  std::string         m_key;
+  Type                m_type;
+};
+
 template <typename Get = std::string, typename Set = const std::string&>
 class VariableSlotString : public Variable {
 public:
