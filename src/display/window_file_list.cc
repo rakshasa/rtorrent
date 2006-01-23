@@ -52,6 +52,21 @@ WindowFileList::WindowFileList(core::Download* d, unsigned int* focus) :
   m_focus(focus) {
 }
 
+std::wstring
+hack_wstring(const std::string& src) {
+  size_t length = ::mbstowcs(NULL, src.c_str(), src.size());
+
+  if (length == (size_t)-1)
+    return std::wstring(L"<invalid>");
+
+  std::wstring dest;
+  dest.resize(length);
+  
+  ::mbstowcs(&*dest.begin(), src.c_str(), src.size());
+
+  return dest;
+}
+
 void
 WindowFileList::redraw() {
   m_slotSchedule(this, (cachedTime + 10 * 1000000).round_seconds());

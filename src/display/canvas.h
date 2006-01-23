@@ -51,9 +51,13 @@ public:
   void                refresh()                                               { wnoutrefresh(m_window); }
   static void         refresh_std()                                           { wnoutrefresh(stdscr); }
   void                redraw()                                                { redrawwin(m_window); }
+  static void         redraw_std()                                            { redrawwin(stdscr); }
 
   void                resize(int w, int h)                                    { wresize(m_window, h, w); }
   void                resize(int x, int y, int w, int h);
+
+  static void         resize_term(int x, int y)                               { resizeterm(y, x); }
+  static void         resize_term(std::pair<int, int> dim)                    { resizeterm(dim.second, dim.first); }
 
   int                 get_x()                                                 { int x, y; getyx(m_window, y, x); return x; }
   int                 get_y()                                                 { int x, y; getyx(m_window, y, x); return y; }
@@ -115,6 +119,8 @@ public:
 
   static int          get_screen_width()                                      { int x, y; getmaxyx(stdscr, y, x); return x; }
   static int          get_screen_height()                                     { int x, y; getmaxyx(stdscr, y, x); return y; }
+
+  static std::pair<int, int> term_size();
 
   static void         do_update()                                             { doupdate(); }
 

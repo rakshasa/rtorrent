@@ -109,6 +109,9 @@ CurlStack::add_get(CurlGet* get) {
   if (!m_httpProxy.empty())
     get->set_http_proxy(m_httpProxy.c_str());
 
+  if (!m_bindAddress.empty())
+    get->set_bind_address(m_bindAddress.c_str());
+
   CURLMcode code;
 
   if ((code = curl_multi_add_handle((CURLM*)m_handle, get->handle())) > 0)

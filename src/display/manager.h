@@ -64,6 +64,8 @@ public:
   Manager();
   ~Manager();
 
+  void                force_redraw();
+
   iterator            insert(iterator pos, Window* w);
   iterator            erase(iterator pos);
   iterator            erase(Window* w);
@@ -80,6 +82,7 @@ private:
 
   void                schedule_update();
 
+  bool                m_forceRedraw;
   rak::timer          m_timeLastUpdate;
 
   rak::priority_queue_default m_scheduler;

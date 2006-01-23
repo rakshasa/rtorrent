@@ -49,9 +49,22 @@
 
 namespace utils {
 
+class VariableAny : public Variable {
+public:
+  VariableAny(const torrent::Bencode& v = torrent::Bencode()) :
+    m_variable(v) {}
+  virtual ~VariableAny();
+
+  virtual const torrent::Bencode& get();
+  virtual void        set(const torrent::Bencode& arg);
+
+private:
+  torrent::Bencode    m_variable;
+};
+
 class VariableValue : public Variable {
 public:
-  VariableValue(const torrent::Bencode& v = torrent::Bencode()) : m_variable(v) {}
+  VariableValue(int64_t v) : m_variable(v) {}
   virtual ~VariableValue();
 
   virtual const torrent::Bencode& get();

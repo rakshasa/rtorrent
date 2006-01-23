@@ -83,7 +83,7 @@ WindowDownloadList::redraw() {
   int pos = 0;
 
   while (range.first != range.second) {
-    char buffer[m_canvas->get_width() - 2];
+    char buffer[m_canvas->get_width()];
     char* position;
     char* last = buffer + m_canvas->get_width() - 2;
 

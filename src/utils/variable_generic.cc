@@ -36,9 +36,24 @@
 
 #include "config.h"
 
+#include <cstdlib>
+
 #include "variable_generic.h"
 
 namespace utils {
+
+VariableAny::~VariableAny() {
+}
+
+const torrent::Bencode&
+VariableAny::get() {
+  return m_variable;
+}
+
+void
+VariableAny::set(const torrent::Bencode& arg) {
+  m_variable = arg;
+}
 
 VariableValue::~VariableValue() {
 }
@@ -50,7 +65,32 @@ VariableValue::get() {
 
 void
 VariableValue::set(const torrent::Bencode& arg) {
-  m_variable = arg;
+  uint64_t value;
+  const char* first;
+  char* last;
+
+  switch (arg.get_type()) {
+  case torrent::Bencode::TYPE_NONE:
+    m_variable = (int64_t)0;
+    break;
+
+  case torrent::Bencode::TYPE_VALUE:
+    m_variable = arg;
+    break;
+
+  case torrent::Bencode::TYPE_STRING:
+    first = arg.as_string().c_str();
+    value = std::strtoll(first, &last, 0);
+
+    if (last == first || *last != '\0')
+      throw torrent::input_error("Could not convert string to value.");
+
+    m_variable = value;
+    break;
+
+  default:
+    throw torrent::input_error("VariableValue unsupported type restriction.");
+  }
 }
 
 VariableBool::~VariableBool() {

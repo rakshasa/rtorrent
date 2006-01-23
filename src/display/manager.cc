@@ -47,13 +47,20 @@
 
 namespace display {
 
-Manager::Manager() {
+Manager::Manager() :
+  m_forceRedraw(false) {
   m_taskUpdate.set_slot(rak::mem_fn(this, &Manager::receive_update));
 }
 
 Manager::~Manager() {
   priority_queue_erase(&taskScheduler, &m_taskUpdate);
 }
+
+void
+Manager::force_redraw() {
+  m_forceRedraw = true;
+}
+
 
 Manager::iterator
 Manager::insert(iterator pos, Window* w) {
@@ -131,6 +138,14 @@ Manager::adjust_layout() {
 
 void
 Manager::receive_update() {
+  if (m_forceRedraw) {
+    m_forceRedraw = false;
+
+    display::Canvas::resize_term(display::Canvas::term_size());
+    Canvas::redraw_std();
+    adjust_layout();
+  }
+
   Canvas::refresh_std();
 
   rak::priority_queue_perform(&m_scheduler, cachedTime);

@@ -15,7 +15,11 @@ AC_PROG_CXX
 AC_PROG_RANLIB
 AC_SYS_LARGEFILE
 
-AC_SEARCH_LIBS(wbkgdset, ncurses curses,,echo "*** The ncurses library is required!";exit 1)
+
+AC_SEARCH_LIBS(add_wch, ncursesw,
+  AC_DEFINE(HAVE_NCURSESW, 1, defined if ncurses wide character support is available),
+  AC_SEARCH_LIBS(wbkgdset, ncurses curses,,echo "*** The ncurses library is required!";exit 1)
+)
 
 TORRENT_CHECK_EXECINFO()
 TORRENT_CHECK_CURL()

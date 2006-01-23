@@ -71,6 +71,9 @@ class CurlStack {
   const std::string&  http_proxy() const                   { return m_httpProxy; }
   void                set_http_proxy(const std::string& s) { m_httpProxy = s; }
 
+  const std::string&  bind_address() const                   { return m_bindAddress; }
+  void                set_bind_address(const std::string& s) { m_bindAddress = s; }
+
   static void         global_init();
   static void         global_cleanup();
 
@@ -89,6 +92,7 @@ class CurlStack {
 
   std::string         m_userAgent;
   std::string         m_httpProxy;
+  std::string         m_bindAddress;
 };
 
 }

@@ -92,8 +92,8 @@ Control::initialize() {
   display::Window::slot_unschedule(rak::make_mem_fun(m_display, &display::Manager::unschedule));
   display::Window::slot_adjust(rak::make_mem_fun(m_display, &display::Manager::adjust_layout));
 
-  m_core->get_poll_manager()->signal_interrupted().connect(sigc::mem_fun(*m_inputStdin, &input::InputEvent::event_read));
-  m_core->get_poll_manager()->signal_interrupted().connect(sigc::ptr_fun(display::Canvas::do_update));
+//   m_core->get_poll_manager()->signal_interrupted().connect(sigc::mem_fun(*m_inputStdin, &input::InputEvent::event_read));
+//   m_core->get_poll_manager()->signal_interrupted().connect(sigc::ptr_fun(display::Canvas::do_update));
   m_core->get_poll_manager()->get_http_stack()->set_user_agent(std::string(PACKAGE "/" VERSION "/") + torrent::version());
 
   m_core->initialize_second();

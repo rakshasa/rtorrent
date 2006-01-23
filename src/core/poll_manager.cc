@@ -95,8 +95,6 @@ void
 PollManager::check_error() {
   if (errno != EINTR)
     throw std::runtime_error("Poll::work(): select error");
-
-  m_signalInterrupted.emit();
 }
 
 }

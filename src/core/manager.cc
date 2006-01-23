@@ -290,6 +290,8 @@ Manager::bind(const std::string& addr) {
   } else {
     torrent::set_bind_address(addr);
   }
+
+  m_pollManager->get_http_stack()->set_bind_address(torrent::bind_address());
 }
 
 void

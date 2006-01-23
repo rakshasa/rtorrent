@@ -123,6 +123,8 @@ print_download_info(char* buf, unsigned int length, core::Download* d) {
 
   buf = print_download_time_left(buf, last - buf, d);
 
+  *buf = '\0';
+
   return buf;
 }
 
@@ -159,7 +161,7 @@ print_download_time_left(char* buf, unsigned int length, core::Download* d) {
 
   if (!d->get_download().is_active() ||
       (rate = d->get_download().down_rate()->rate()) < 512) {
-    buf += std::max(0, snprintf(buf, length, "--:--:--"));
+    buf += std::max(snprintf(buf, length, "--:--:--"), 0);
     return buf;
   }
   

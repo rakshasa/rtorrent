@@ -157,6 +157,9 @@ int
 main(int argc, char** argv) {
   try {
 
+    // Temporary.
+    setlocale(LC_ALL, "");
+
     cachedTime = rak::timer::current();
 
     control = new Control;
@@ -167,10 +170,11 @@ main(int argc, char** argv) {
     initialize_option_handler(control);
 
     SignalHandler::set_ignore(SIGPIPE);
-    SignalHandler::set_handler(SIGINT,  sigc::mem_fun(control, &Control::receive_shutdown));
-    SignalHandler::set_handler(SIGSEGV, sigc::bind(sigc::ptr_fun(&do_panic), SIGSEGV));
-    SignalHandler::set_handler(SIGBUS,  sigc::bind(sigc::ptr_fun(&do_panic), SIGBUS));
-    SignalHandler::set_handler(SIGFPE,  sigc::bind(sigc::ptr_fun(&do_panic), SIGFPE));
+    SignalHandler::set_handler(SIGINT,   sigc::mem_fun(control, &Control::receive_shutdown));
+    SignalHandler::set_handler(SIGWINCH, sigc::mem_fun(control->display(), &display::Manager::force_redraw));
+    SignalHandler::set_handler(SIGSEGV,  sigc::bind(sigc::ptr_fun(&do_panic), SIGSEGV));
+    SignalHandler::set_handler(SIGBUS,   sigc::bind(sigc::ptr_fun(&do_panic), SIGBUS));
+    SignalHandler::set_handler(SIGFPE,   sigc::bind(sigc::ptr_fun(&do_panic), SIGFPE));
 
     control->core()->initialize_first();
 

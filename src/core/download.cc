@@ -41,6 +41,7 @@
 #include <sigc++/hide.h>
 #include <sigc++/signal.h>
 #include <torrent/exceptions.h>
+#include <torrent/torrent.h>
 
 #include "utils/variable_generic.h"
 
@@ -61,14 +62,23 @@ Download::Download(torrent::Download d) :
 
   m_variables.insert("connection_current", new utils::VariableSlotString<const char*, const std::string&>(rak::mem_fn(this, &Download::connection_current),
 													  rak::mem_fn(this, &Download::set_connection_current)));
-  m_variables.insert("connection_leech",   new utils::VariableValue(connection_type_to_string(torrent::Download::CONNECTION_LEECH)));
-  m_variables.insert("connection_seed",    new utils::VariableValue(connection_type_to_string(torrent::Download::CONNECTION_SEED)));
+  m_variables.insert("connection_leech",   new utils::VariableAny(connection_type_to_string(torrent::Download::CONNECTION_LEECH)));
+  m_variables.insert("connection_seed",    new utils::VariableAny(connection_type_to_string(torrent::Download::CONNECTION_SEED)));
   m_variables.insert("directory",          new utils::VariableSlotString<std::string, const std::string&>(NULL,
 													  rak::mem_fn(this, &Download::set_root_directory)));
   m_variables.insert("tied_to_file",       new utils::VariableBencode(&m_download.bencode(), "tied_to_file", torrent::Bencode::TYPE_STRING));
 
-  m_variables.insert("peers_min",          new utils::VariableSlotValue<uint32_t, uint32_t>(rak::mem_fn(&m_download, &torrent::Download::peers_min),
+  m_variables.insert("min_peers",          new utils::VariableSlotValue<uint32_t, uint32_t>(rak::mem_fn(&m_download, &torrent::Download::peers_min),
 											    rak::mem_fn(&m_download, &torrent::Download::set_peers_min),
+											    "%u"));
+  m_variables.insert("max_peers",          new utils::VariableSlotValue<uint32_t, uint32_t>(rak::mem_fn(&m_download, &torrent::Download::peers_max),
+											    rak::mem_fn(&m_download, &torrent::Download::set_peers_max),
+											    "%u"));
+  m_variables.insert("max_uploads",        new utils::VariableSlotValue<uint32_t, uint32_t>(rak::mem_fn(&m_download, &torrent::Download::uploads_max),
+											    rak::mem_fn(&m_download, &torrent::Download::set_uploads_max),
+											    "%u"));
+  m_variables.insert("priority",           new utils::VariableSlotValue<uint32_t, uint32_t>(rak::mem_fn(this, &Download::priority),
+											    rak::mem_fn(this, &Download::set_priority),
 											    "%u"));
 }
 
@@ -106,10 +116,25 @@ Download::enable_udp_trackers(bool state) {
 	m_download.tracker(i).disable();
 }
 
+uint32_t
+Download::priority() {
+  return get_bencode().get_key("rtorrent").get_key("priority").as_value();
+}
+
+void
+Download::set_priority(uint32_t p) {
+  if (p >= 4)
+    throw torrent::input_error("Priority out of range.");
+
+  torrent::download_set_priority(m_download, p * 2);
+  get_bencode().get_key("rtorrent").insert_key("priority", (int64_t)p);
+}
+
 void
 Download::receive_finished() {
   m_download.set_connection_type(string_to_connection_type(m_variables.get("connection_seed").as_string()));
-  torrent::download_set_priority(m_download, 2);
+  // FIXME
+  //torrent::download_set_priority(m_download, 2);
 }
 
 void
@@ -145,6 +170,36 @@ Download::connection_type_to_string(torrent::Download::ConnectionType t) {
     return "seed";
   default:
     return "unknown";
+  }
+}
+
+uint32_t
+Download::string_to_priority(const std::string& name) {
+  if (name == "off")
+    return 0;
+  else if (name == "low")
+    return 1;
+  else if (name == "normal")
+    return 2;
+  else if (name == "high")
+    return 3;
+  else
+    throw torrent::input_error("Could not convert string to priority.");
+}
+
+const char*
+Download::priority_to_string(uint32_t p) {
+  switch (p) {
+  case 0:
+    return "off";
+  case 1:
+    return "low";
+  case 2:
+    return "normal";
+  case 3:
+    return "high";
+  default:
+    throw torrent::input_error("Priority out of range.");
   }
 }
 

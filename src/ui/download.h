@@ -105,6 +105,8 @@ private:
 
   void                receive_snub_peer();
 
+  void                receive_next_priority();
+
   void                bind_keys();
 
   void                mark_dirty();

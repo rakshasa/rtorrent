@@ -89,31 +89,6 @@ OptionHandlerString::process(const std::string& key, const std::string& arg) {
 }
 
 void
-apply_download_min_peers(Control* m, int arg) {
-  m->core()->get_download_list().slot_map_insert()["1_min_peers"] = sigc::bind(sigc::mem_fun(&core::Download::call<void, uint32_t, &torrent::Download::set_peers_min>), arg);
-}
-
-void
-apply_download_max_peers(Control* m, int arg) {
-  m->core()->get_download_list().slot_map_insert()["1_max_peers"] = sigc::bind(sigc::mem_fun(&core::Download::call<void, uint32_t, &torrent::Download::set_peers_max>), arg);
-}
-
-void
-apply_download_max_uploads(Control* m, int arg) {
-  m->core()->get_download_list().slot_map_insert()["1_max_uploads"] = sigc::bind(sigc::mem_fun(&core::Download::call<void, uint32_t, &torrent::Download::set_uploads_max>), arg);
-}
-
-void
-apply_global_download_rate(Control* m, int arg) {
-  m->ui()->set_down_throttle(arg);
-}
-
-void
-apply_global_upload_rate(Control* m, int arg) {
-  m->ui()->set_up_throttle(arg);
-}
-
-void
 apply_umask(int arg) {
   umask(arg);
 }
@@ -126,21 +101,6 @@ apply_hash_read_ahead(Control* m, int arg) {
 void
 apply_hash_interval(Control* m, int arg) {
   torrent::set_hash_interval(arg * 1000);
-}
-
-void
-apply_hash_max_tries(Control* m, int arg) {
-  torrent::set_hash_max_tries(arg);
-}
-
-void
-apply_max_open_files(Control* m, int arg) {
-  torrent::set_max_open_files(arg);
-}
-
-void
-apply_max_open_sockets(Control* m, int arg) {
-  torrent::set_max_open_sockets(arg);
 }
 
 // The arg string *must* have been checked with validate_port_range
@@ -263,33 +223,33 @@ initialize_option_handler(Control* c) {
   utils::VariableMap* variables = control->variables();
 
   // Cleaned up.
-  variables->insert("check_hash",          new utils::VariableValue("yes"));
-  variables->insert("port_random",         new utils::VariableValue("yes"));
+  variables->insert("check_hash",          new utils::VariableAny("yes"));
+  variables->insert("port_random",         new utils::VariableAny("yes"));
   variables->insert("session",             new utils::VariableSlotString<>(NULL, rak::mem_fn(&control->core()->get_download_store(), &core::DownloadStore::use)));
 
-  variables->insert("connection_leech",    new utils::VariableValue("leech"));
-  variables->insert("connection_seed",     new utils::VariableValue("seed"));
+  variables->insert("connection_leech",    new utils::VariableAny("leech"));
+  variables->insert("connection_seed",     new utils::VariableAny("seed"));
 
-  variables->insert("directory",           new utils::VariableValue(std::string()));
+  variables->insert("directory",           new utils::VariableAny(std::string()));
   variables->insert("ip",                  new utils::VariableSlotString<>(NULL, rak::ptr_fn(&torrent::set_local_address)));
+  variables->insert("bind",                new utils::VariableSlotString<>(NULL, rak::mem_fn(control->core(), &core::Manager::bind)));
+
+  variables->insert("min_peers",           new utils::VariableValue(40));
+  variables->insert("max_peers",           new utils::VariableValue(100));
+  variables->insert("max_uploads",         new utils::VariableValue(15));
+
+  variables->insert("download_rate",       new utils::VariableSlotValue<uint32_t, unsigned int>(NULL, rak::mem_fn(control->ui(), &ui::Root::set_down_throttle), "%i"));
+  variables->insert("upload_rate",         new utils::VariableSlotValue<uint32_t, unsigned int>(NULL, rak::mem_fn(control->ui(), &ui::Root::set_up_throttle), "%i"));
+
+  variables->insert("hash_max_tries",      new utils::VariableSlotValue<int, uint32_t>(NULL, rak::ptr_fn(&torrent::set_hash_max_tries), "%i"));
+  variables->insert("max_open_files",      new utils::VariableSlotValue<int, uint32_t>(NULL, rak::ptr_fn(&torrent::set_max_open_files), "%i"));
+  variables->insert("max_open_sockets",    new utils::VariableSlotValue<int, uint32_t>(NULL, rak::ptr_fn(&torrent::set_max_open_sockets), "%i"));
 
   // Old.
-  variables->insert("bind",                new utils::VariableSlotString<>(NULL, rak::mem_fn(control->core(), &core::Manager::bind)));
   variables->insert("port_range",          new utils::VariableSlotString<>(NULL, rak::bind_ptr_fn(&apply_port_range, c)));
-
-  variables->insert("max_peers",           new utils::VariableSlotValue<int, int>(NULL, rak::bind_ptr_fn(&apply_download_max_peers, c), "%i"));
-
-  variables->insert("min_peers",           new utils::VariableSlotValue<int, int>(NULL, rak::bind_ptr_fn(&apply_download_min_peers, c), "%i"));
-  variables->insert("max_uploads",         new utils::VariableSlotValue<int, int>(NULL, rak::bind_ptr_fn(&apply_download_max_uploads, c), "%i"));
-
-  variables->insert("download_rate",       new utils::VariableSlotValue<int, int>(NULL, rak::bind_ptr_fn(&apply_global_download_rate, c), "%i"));
-  variables->insert("upload_rate",         new utils::VariableSlotValue<int, int>(NULL, rak::bind_ptr_fn(&apply_global_upload_rate, c), "%i"));
 
   variables->insert("hash_read_ahead",     new utils::VariableSlotValue<int, int>(NULL, rak::bind_ptr_fn(&apply_hash_read_ahead, c), "%i"));
   variables->insert("hash_interval",       new utils::VariableSlotValue<int, int>(NULL, rak::bind_ptr_fn(&apply_hash_interval, c), "%i"));
-  variables->insert("hash_max_tries",      new utils::VariableSlotValue<int, int>(NULL, rak::bind_ptr_fn(&apply_hash_max_tries, c), "%i"));
-  variables->insert("max_open_files",      new utils::VariableSlotValue<int, int>(NULL, rak::bind_ptr_fn(&apply_max_open_files, c), "%i"));
-  variables->insert("max_open_sockets",    new utils::VariableSlotValue<int, int>(NULL, rak::bind_ptr_fn(&apply_max_open_sockets, c), "%i"));
 
   variables->insert("umask",               new utils::VariableSlotValue<int, int>(NULL, rak::ptr_fn(&apply_umask), "%o"));
 

@@ -67,9 +67,9 @@ DownloadFactory::DownloadFactory(const std::string& uri, Manager* m) :
   m_taskLoad.set_slot(rak::mem_fn(this, &DownloadFactory::receive_load));
   m_taskCommit.set_slot(rak::mem_fn(this, &DownloadFactory::receive_commit));
 
-  m_variables.insert("connection_leech", new utils::VariableValue(control->variables()->get("connection_leech")));
-  m_variables.insert("connection_seed",  new utils::VariableValue(control->variables()->get("connection_seed")));
-  m_variables.insert("directory",        new utils::VariableValue(control->variables()->get("directory")));
+  m_variables.insert("connection_leech", new utils::VariableAny(control->variables()->get("connection_leech")));
+  m_variables.insert("connection_seed",  new utils::VariableAny(control->variables()->get("connection_seed")));
+  m_variables.insert("directory",        new utils::VariableAny(control->variables()->get("directory")));
   m_variables.insert("tied_to_file",     new utils::VariableBool(false));
 }
 
@@ -150,9 +150,16 @@ DownloadFactory::receive_success() {
   (*itr)->variables()->set("connection_leech", m_variables.get("connection_leech"));
   (*itr)->variables()->set("connection_seed",  m_variables.get("connection_seed"));
   (*itr)->variables()->set("directory",        m_variables.get("directory"));
+  (*itr)->variables()->set("min_peers",        control->variables()->get("min_peers"));
+  (*itr)->variables()->set("max_peers",        control->variables()->get("max_peers"));
+  (*itr)->variables()->set("max_uploads",      control->variables()->get("max_uploads"));
 
-//   if (control->variables()->get("peers_min")
-//   (*itr)->variables()->set("peers_min",        m_variables.get("directory"));
+  if ((*itr)->get_bencode().get_key("rtorrent").has_key("priority") &&
+      (*itr)->get_bencode().get_key("rtorrent").get_key("priority").is_value())
+    (*itr)->variables()->set("priority", (*itr)->get_bencode().get_key("rtorrent").get_key("priority").as_value() % 4);
+  else
+    (*itr)->variables()->set("priority", (int64_t)2);
+			     
 
   torrent::Bencode& bencode = (*itr)->get_bencode();
 

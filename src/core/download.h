@@ -71,6 +71,9 @@ public:
 
   void               enable_udp_trackers(bool state);
 
+  uint32_t           priority();
+  void               set_priority(uint32_t p);
+
   // Helper functions for calling functions in torrent::Download
   // through sigc++.
   template <typename Ret, Ret (torrent::Download::*func)()>
@@ -85,6 +88,9 @@ public:
 
   static ConnType    string_to_connection_type(const std::string& name);
   static const char* connection_type_to_string(ConnType t);
+
+  static uint32_t    string_to_priority(const std::string& name);
+  static const char* priority_to_string(uint32_t p);
 
 private:
   Download(const Download&);

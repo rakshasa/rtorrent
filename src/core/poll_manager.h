@@ -63,9 +63,6 @@ public:
 
   virtual void        poll(rak::timer timeout) = 0;
 
-  // Use a signal, connect checking for input and updating the display.
-  Signal&             signal_interrupted()         { return m_signalInterrupted; }
-
 protected:
   PollManager(const PollManager&);
   void operator = (const PollManager&);
@@ -79,8 +76,6 @@ protected:
   fd_set*             m_readSet;
   fd_set*             m_writeSet;
   fd_set*             m_errorSet;
-
-  Signal              m_signalInterrupted;
 };
 
 }
