@@ -87,13 +87,13 @@ WindowDownloadList::redraw() {
     char* position;
     char* last = buffer + m_canvas->get_width() - 2;
 
-    position = print_download_title(buffer, last - buffer, *range.first);
+    position = print_download_title(buffer, last, *range.first);
     m_canvas->print(0, pos++, "%c %s", range.first == m_list->get_focus() ? '*' : ' ', buffer);
     
-    position = print_download_info(buffer, last - buffer, *range.first);
+    position = print_download_info(buffer, last, *range.first);
     m_canvas->print(0, pos++, "%c %s", range.first == m_list->get_focus() ? '*' : ' ', buffer);
 
-    position = print_download_status(buffer, last - buffer, *range.first);
+    position = print_download_status(buffer, last, *range.first);
     m_canvas->print(0, pos++, "%c %s", range.first == m_list->get_focus() ? '*' : ' ', buffer);
 
     ++range.first;

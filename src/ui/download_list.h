@@ -115,6 +115,9 @@ private:
   void                receive_view_download();
   void                receive_exit_download();
 
+  void                receive_next_priority();
+  void                receive_prev_priority();
+
   void                receive_check_hash();
 
   void                receive_view_input(bool useDefault);

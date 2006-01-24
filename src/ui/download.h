@@ -88,6 +88,9 @@ public:
   void                activate_display(Display d);
   void                disable_display();
 
+  void                receive_next_priority();
+  void                receive_prev_priority();
+
 private:
   Download(const Download&);
   void operator = (const Download&);
@@ -104,8 +107,6 @@ private:
   void                receive_change(Display d);
 
   void                receive_snub_peer();
-
-  void                receive_next_priority();
 
   void                bind_keys();
 

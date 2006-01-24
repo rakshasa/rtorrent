@@ -52,21 +52,26 @@ namespace torrent {
   class Entry;
 }
 
+class Control;
+
 namespace display {
 
-char*       print_string(char* buf, unsigned int length, char* str);
+char*       print_string(char* first, char* last, char* str);
 
-char*       print_hhmmss(char* buf, unsigned int length, time_t t);
-char*       print_ddhhmm(char* buf, unsigned int length, time_t t);
-char*       print_ddmmyyyy(char* buf, unsigned int length, time_t t);
+char*       print_hhmmss(char* first, char* last, time_t t);
+char*       print_ddhhmm(char* first, char* last, time_t t);
+char*       print_ddmmyyyy(char* first, char* last, time_t t);
 
-char*       print_download_title(char* buf, unsigned int length, core::Download* d);
-char*       print_download_info(char* buf, unsigned int length, core::Download* d);
-char*       print_download_status(char* buf, unsigned int length, core::Download* d);
-char*       print_download_time_left(char* buf, unsigned int length, core::Download* d);
+char*       print_download_title(char* first, char* last, core::Download* d);
+char*       print_download_info(char* first, char* last, core::Download* d);
+char*       print_download_status(char* first, char* last, core::Download* d);
+char*       print_download_time_left(char* first, char* last, core::Download* d);
 
-char*       print_entry_tags(char* buf, unsigned int length);
-char*       print_entry_file(char* buf, unsigned int length, const torrent::Entry& entry);
+char*       print_entry_tags(char* first, char* last);
+char*       print_entry_file(char* first, char* last, const torrent::Entry& entry);
+
+char*       print_status_info(char* first, char* last);
+char*       print_status_extra(char* first, char* last, Control* c);
 
 }
 

@@ -235,6 +235,11 @@ Download::receive_next_priority() {
 }
 
 void
+Download::receive_prev_priority() {
+  m_download->set_priority((m_download->priority() - 1) % 4);
+}
+
+void
 Download::bind_keys() {
   (*m_bindings)['1'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_max_uploads), -1);
   (*m_bindings)['2'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_max_uploads), 1);
@@ -243,6 +248,7 @@ Download::bind_keys() {
   (*m_bindings)['5'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_max_peers), -5);
   (*m_bindings)['6'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_max_peers), 5);
   (*m_bindings)['+'] = sigc::mem_fun(*this, &Download::receive_next_priority);
+  (*m_bindings)['-'] = sigc::mem_fun(*this, &Download::receive_prev_priority);
 
   (*m_bindings)['t'] = sigc::bind(sigc::mem_fun(m_download->get_download(), &torrent::Download::tracker_manual_request), false);
   (*m_bindings)['T'] = sigc::bind(sigc::mem_fun(m_download->get_download(), &torrent::Download::tracker_manual_request), true);

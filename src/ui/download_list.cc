@@ -234,6 +234,22 @@ DownloadList::receive_exit_download() {
 }
 
 void
+DownloadList::receive_next_priority() {
+  if (m_downloadList.get_focus() == m_downloadList.end())
+    return;
+
+  (*m_downloadList.get_focus())->set_priority(((*m_downloadList.get_focus())->priority() + 1) % 4);
+}
+
+void
+DownloadList::receive_prev_priority() {
+  if (m_downloadList.get_focus() == m_downloadList.end())
+    return;
+
+  (*m_downloadList.get_focus())->set_priority(((*m_downloadList.get_focus())->priority() - 1) % 4);
+}
+
+void
 DownloadList::receive_check_hash() {
   if (m_downloadList.get_focus() == m_downloadList.end())
     return;
@@ -304,6 +320,8 @@ DownloadList::setup_keys() {
   (*m_bindings)['\x13']        = sigc::mem_fun(*this, &DownloadList::receive_start_download);
   (*m_bindings)['\x04']        = sigc::mem_fun(*this, &DownloadList::receive_stop_download);
   (*m_bindings)['\x12']        = sigc::mem_fun(*this, &DownloadList::receive_check_hash);
+  (*m_bindings)['+']           = sigc::mem_fun(*this, &DownloadList::receive_next_priority);
+  (*m_bindings)['-']           = sigc::mem_fun(*this, &DownloadList::receive_prev_priority);
 
   (*m_bindings)['\x7f']        = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_view_input), true);
   (*m_bindings)[KEY_BACKSPACE] = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_view_input), true);

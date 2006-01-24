@@ -126,7 +126,7 @@ Download::set_priority(uint32_t p) {
   if (p >= 4)
     throw torrent::input_error("Priority out of range.");
 
-  torrent::download_set_priority(m_download, p * 2);
+  torrent::download_set_priority(m_download, p * p);
   get_bencode().get_key("rtorrent").insert_key("priority", (int64_t)p);
 }
 
