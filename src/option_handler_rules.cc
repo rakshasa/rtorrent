@@ -197,20 +197,23 @@ apply_encoding_list(Control* m, const std::string& arg) {
 
 void
 apply_schedule(Control* m, const std::string& arg) {
-  int first;
-  int interval;
   char key[21];
+  char bufAbsolute[21];
+  char bufInterval[21];
   char command[2048];
 
-  if (std::sscanf(arg.c_str(), "%20[^,],%i,%i,%2047[^\n]", key, &first, &interval, command) != 4)
+  if (std::sscanf(arg.c_str(), "%20[^,],%20[^,],%20[^,],%2047[^\n]", key, bufAbsolute, bufInterval, command) != 4)
     throw torrent::input_error("Invalid arguments to command.");
+
+  uint32_t absolute = CommandScheduler::parse_absolute(bufAbsolute);
+  uint32_t interval = CommandScheduler::parse_interval(bufInterval);
 
   CommandSchedulerItem* item = *m->command_scheduler()->insert(rak::trim(std::string(key)));
 
   item->set_command(rak::trim(std::string(command)));
   item->set_interval(interval);
 
-  item->enable(first);
+  item->enable((cachedTime + rak::timer(absolute) * 1000000).round_seconds());
 }
 
 void
@@ -244,6 +247,8 @@ initialize_option_handler(Control* c) {
   variables->insert("hash_max_tries",      new utils::VariableSlotValue<int, uint32_t>(NULL, rak::ptr_fn(&torrent::set_hash_max_tries), "%i"));
   variables->insert("max_open_files",      new utils::VariableSlotValue<int, uint32_t>(NULL, rak::ptr_fn(&torrent::set_max_open_files), "%i"));
   variables->insert("max_open_sockets",    new utils::VariableSlotValue<int, uint32_t>(NULL, rak::ptr_fn(&torrent::set_max_open_sockets), "%i"));
+
+  variables->insert("print",               new utils::VariableSlotString<>(NULL, rak::mem_fn(control->core(), &core::Manager::push_log)));
 
   // Old.
   variables->insert("port_range",          new utils::VariableSlotString<>(NULL, rak::bind_ptr_fn(&apply_port_range, c)));

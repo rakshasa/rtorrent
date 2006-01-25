@@ -37,6 +37,7 @@
 #include "config.h"
 
 #include <algorithm>
+#include <cstdlib>
 #include <rak/functional.h>
 #include <torrent/exceptions.h>
 
@@ -98,9 +99,73 @@ CommandScheduler::call_item(value_type item) {
       m_slotErrorMessage("Scheduled command failed: " + item->key() + ": " + e.what());
   }
 
-  uint32_t interval = item->interval();
+  // Still schedule if we caught a torrrent::input_error?
+  rak::timer next = item->next_time_scheduled();
 
-  // Enable if we caught a torrrent::input_error?
-  if (interval != 0)
-    item->enable(interval);
+  if (next == rak::timer()) {
+    // Remove from scheduler?
+    return;
+  }
+
+  if (next <= cachedTime)
+    throw torrent::internal_error("CommandScheduler::call_item(...) tried to schedule a zero interval item.");
+
+  item->enable(next);
+}
+
+uint32_t
+CommandScheduler::parse_absolute(const char* str) {
+  Time result = parse_time(str);
+
+  switch (result.first) {
+  case 1:
+    return result.second;
+
+  case 2:
+    return (result.second - cachedTime.seconds() % 3600) % 3600;
+
+  case 0:
+  default:
+    throw torrent::input_error("Could not parse interval.");
+  }
+}
+
+uint32_t
+CommandScheduler::parse_interval(const char* str) {
+  Time result = parse_time(str);
+
+  if (result.first == 0)
+    throw torrent::input_error("Could not parse interval.");
+  
+  return result.second;
+}
+
+CommandScheduler::Time
+CommandScheduler::parse_time(const char* str) {
+  Time result(0, 0);
+
+  while (true) {
+    char* pos;
+    result.first++;
+    result.second += strtol(str, &pos, 10);
+
+    if (pos == str || result.second < 0)
+      return Time(0, 0);
+
+    while (std::isspace(*pos))
+      ++pos;
+
+    if (*pos == '\0')
+      return result;
+
+    if (*pos != ':' || result.first > 3)
+      return Time(0, 0);
+
+    if (result.first < 3)
+      result.second *= 60;
+    else
+      result.second *= 24;
+
+    str = pos + 1;
+  }
 }

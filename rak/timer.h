@@ -67,6 +67,8 @@ class timer {
 
   timer               operator - (const timer& t) const  { return timer(m_time - t.m_time); }
   timer               operator + (const timer& t) const  { return timer(m_time + t.m_time); }
+  timer               operator * (int64_t t) const       { return timer(m_time * t); }
+  timer               operator / (int64_t t) const       { return timer(m_time / t); }
 
   timer               operator -= (int64_t t)            { m_time -= t; return *this; }
   timer               operator -= (const timer& t)       { m_time -= t.m_time; return *this; }

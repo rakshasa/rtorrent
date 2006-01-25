@@ -48,8 +48,7 @@ public:
 
   bool                is_queued() const                       { return m_task.is_queued(); }
 
-  //void                enable()                                { enable(interval()); }
-  void                enable(uint32_t first);
+  void                enable(rak::timer t);
   void                disable();
 
   const std::string&  key() const                             { return m_key; }
@@ -61,6 +60,9 @@ public:
   uint32_t            interval() const                        { return m_interval; }
   void                set_interval(uint32_t v)                { m_interval = v; }
 
+  rak::timer          time_scheduled() const                  { return m_timeScheduled; }
+  rak::timer          next_time_scheduled() const;
+
   void                set_slot(Slot::base_type* s)            { m_task.set_slot(s); }
 
 private:
@@ -71,6 +73,7 @@ private:
   std::string         m_command;
   
   uint32_t            m_interval;
+  rak::timer          m_timeScheduled;
 
   rak::priority_item  m_task;
 

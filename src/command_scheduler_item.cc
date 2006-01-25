@@ -36,6 +36,8 @@
 
 #include "config.h"
 
+#include <torrent/exceptions.h>
+
 #include "command_scheduler_item.h"
 
 CommandSchedulerItem::~CommandSchedulerItem() {
@@ -43,17 +45,40 @@ CommandSchedulerItem::~CommandSchedulerItem() {
 }
 
 void
-CommandSchedulerItem::enable(uint32_t first) {
+CommandSchedulerItem::enable(rak::timer t) {
+  if (t == rak::timer())
+    throw torrent::internal_error("CommandSchedulerItem::enable() t == rak::timer().");
+
   if (is_queued())
     disable();
 
   // If 'first' is zero then we execute the task
   // immediately. ''interval()'' will not return zero so we never end
   // up in an infinit loop.
-  priority_queue_insert(&taskScheduler, &m_task, (cachedTime + ((int64_t)first * 1000000)).round_seconds());
+  m_timeScheduled = t;
+  priority_queue_insert(&taskScheduler, &m_task, t);
 }
 
 void
 CommandSchedulerItem::disable() {
+  m_timeScheduled = rak::timer();
   priority_queue_erase(&taskScheduler, &m_task);
+}
+
+rak::timer
+CommandSchedulerItem::next_time_scheduled() const {
+  if (m_interval == 0)
+    return rak::timer();
+
+  if (m_timeScheduled == rak::timer())
+    throw torrent::internal_error("CommandSchedulerItem::next_time_scheduled() m_timeScheduled == rak::timer().");
+
+  rak::timer next = m_timeScheduled;
+
+  // This should be done in a non-looping manner.
+  do {
+    next += rak::timer(m_interval) * 1000000;
+  } while (next <= cachedTime.round_seconds());
+
+  return next;
 }

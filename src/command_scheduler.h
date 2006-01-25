@@ -46,6 +46,7 @@ class CommandSchedulerItem;
 class CommandScheduler : public std::vector<CommandSchedulerItem*> {
 public:
   typedef rak::function1<void, const std::string&> SlotString;
+  typedef std::pair<int, int>                      Time;
   typedef std::vector<CommandSchedulerItem*>       base_type;
 
   using base_type::value_type;
@@ -66,6 +67,11 @@ public:
   // safe to call erase on end().
   iterator            insert(const std::string& key);
   void                erase(iterator itr);
+
+  static uint32_t     parse_absolute(const char* str);
+  static uint32_t     parse_interval(const char* str);
+
+  static Time         parse_time(const char* str);
 
 private:
   void                call_item(value_type item);
