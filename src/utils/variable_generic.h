@@ -91,8 +91,11 @@ class VariableBencode : public Variable {
 public:
   typedef torrent::Bencode::Type Type;
 
-  VariableBencode(torrent::Bencode* b, const std::string& key, Type t = torrent::Bencode::TYPE_NONE) :
-    m_bencode(b), m_key(key), m_type(t) {}
+  VariableBencode(torrent::Bencode* b,
+		  const std::string& root,
+		  const std::string& key,
+		  Type t = torrent::Bencode::TYPE_NONE) :
+    m_bencode(b), m_root(root), m_key(key), m_type(t) {}
   virtual ~VariableBencode();
 
   virtual const torrent::Bencode& get();
@@ -100,6 +103,7 @@ public:
 
 private:
   torrent::Bencode*   m_bencode;
+  std::string         m_root;
   std::string         m_key;
   Type                m_type;
 };

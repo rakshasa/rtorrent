@@ -129,21 +129,30 @@ VariableBencode::~VariableBencode() {
 
 const torrent::Bencode&
 VariableBencode::get() {
-  return m_bencode->get_key(m_key);
+  if (m_root.empty())
+    return m_bencode->get_key(m_key);
+  else
+    return m_bencode->get_key(m_root).get_key(m_key);
 }
 
 void
 VariableBencode::set(const torrent::Bencode& arg) {
   // Consider removing if TYPE_NONE.
+  torrent::Bencode* root;
+
+  if (m_root.empty())
+    root = m_bencode;
+  else
+    root = &m_bencode->get_key(m_root);
 
   switch (m_type) {
   case torrent::Bencode::TYPE_NONE:
-    m_bencode->insert_key(m_key, arg);
+    root->insert_key(m_key, arg);
     break;
 
   case torrent::Bencode::TYPE_STRING:
     if (arg.get_type() == torrent::Bencode::TYPE_STRING)
-      m_bencode->insert_key(m_key, arg);
+      root->insert_key(m_key, arg);
     else
       throw torrent::input_error("VariableBencode could not convert to string.");
       

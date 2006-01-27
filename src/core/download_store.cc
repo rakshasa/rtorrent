@@ -71,7 +71,18 @@ DownloadStore::save(Download* d) {
 
   f << d->get_bencode();
 
-  if (f.fail())
+  if (!f.good())
+    return;
+
+  f.close();
+
+  // Test the new file, to ensure it is a valid bencode string.
+  f.open((create_filename(d) + ".new").c_str(), std::ios::in);
+
+  torrent::Bencode tmp;
+  f >> tmp;
+
+  if (!f.good())
     return;
 
   f.close();

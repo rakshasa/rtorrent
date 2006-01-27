@@ -67,6 +67,7 @@ public:
   // safe to call erase on end().
   iterator            insert(const std::string& key);
   void                erase(iterator itr);
+  void                erase(const std::string& key)                    { erase(find(key)); }
 
   static uint32_t     parse_absolute(const char* str);
   static uint32_t     parse_interval(const char* str);

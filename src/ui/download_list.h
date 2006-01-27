@@ -87,6 +87,14 @@ public:
     DISPLAY_MAX_SIZE
   } Display;
 
+  typedef enum {
+    INPUT_NONE,
+    INPUT_LOAD_DEFAULT,
+    INPUT_LOAD_MODIFIED,
+    INPUT_CHANGE_DIRECTORY,
+    INPUT_COMMAND
+  } Input;
+
   DownloadList(Control* c);
   ~DownloadList();
 
@@ -120,10 +128,12 @@ private:
 
   void                receive_check_hash();
 
-  void                receive_view_input(bool useDefault);
-  void                receive_exit_input(bool useDefault);
+  void                receive_view_input(Input type);
+  void                receive_exit_input(Input type);
 
   void                receive_change(Display d);
+
+  void                receive_download_erased(core::Download* d);
 
   void                task_update();
 

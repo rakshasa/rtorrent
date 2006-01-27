@@ -68,29 +68,3 @@ OptionFile::process_file(const std::string& filename) {
 
   return true;
 }
-
-// void
-// OptionFile::parse_line(const char* line) {
-  //const char* last = std::find(line, line + max_size_line, '\0');
-
-//   if (line[0] == '#')
-//     return;
-
-//   int result;
-//   char key[64];
-//   char opt[512];
-
-//   opt[0] = '\0';
-
-//   // Check for empty lines, and options within "abc".
-//   if ((result = std::sscanf(line, "%63s = \"%511[^\"]", key, opt)) != 2 &&
-//       (result = std::sscanf(line, "%63s = %511s", key, opt)) != 2 &&
-//       result == 1)
-//     throw torrent::input_error("Error parseing option file.");
-
-//   if (opt[0] == '"' && opt[1] == '"')
-//     opt[0] = '\0';
-
-//   if (result >= 1)
-//     m_slotOption(key, opt);
-// }

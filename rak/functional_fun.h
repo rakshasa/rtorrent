@@ -224,49 +224,49 @@ private:
   Arg1    m_arg1;
 };
 
-template <typename Object, typename Result>
+template <typename Result, typename Object>
 function_base0<Result>*
 mem_fn(Object* object, Result (Object::*func)()) {
   return new mem_fn0_t<Object, Result>(object, func);
 }
 
-template <typename Object, typename Result, typename Arg1>
+template <typename Arg1, typename Result, typename Object>
 function_base1<Result, Arg1>*
 mem_fn(Object* object, Result (Object::*func)(Arg1)) {
   return new mem_fn1_t<Object, Result, Arg1>(object, func);
 }
 
-template <typename Object, typename Result>
+template <typename Result, typename Object>
 function_base0<Result>*
 mem_fn(const Object* object, Result (Object::*func)() const) {
   return new const_mem_fn0_t<Object, Result>(object, func);
 }
 
-template <typename Object, typename Result, typename Arg1>
+template <typename Arg1, typename Result, typename Object>
 function_base1<Result, Arg1>*
 mem_fn(const Object* object, Result (Object::*func)(Arg1) const) {
   return new const_mem_fn1_t<Object, Result, Arg1>(object, func);
 }
 
-template <typename Object, typename Result, typename Arg1>
+template <typename Arg1, typename Result, typename Object>
 function_base0<Result>*
 bind_mem_fn(Object* object, Result (Object::*func)(Arg1), const Arg1 arg1) {
   return new mem_fn0_b1_t<Object, Result, Arg1>(object, func, arg1);
 }
 
-template <typename Result, typename Arg1>
+template <typename Arg1, typename Result>
 function_base1<Result, Arg1>*
 ptr_fn(Result (*func)(Arg1)) {
   return new ptr_fn1_t<Result, Arg1>(func);
 }
 
-template <typename Result, typename Arg1>
+template <typename Arg1, typename Result>
 function_base0<Result>*
 bind_ptr_fn(Result (*func)(Arg1), const Arg1 arg1) {
   return new ptr_fn0_b1_t<Result, Arg1>(func, arg1);
 }
 
-template <typename Result, typename Arg1, typename Arg2>
+template <typename Arg1, typename Arg2, typename Result>
 function_base1<Result, Arg2>*
 bind_ptr_fn(Result (*func)(Arg1, Arg2), const Arg1 arg1) {
   return new ptr_fn1_b1_t<Result, Arg1, Arg2>(func, arg1);

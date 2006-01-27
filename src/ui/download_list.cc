@@ -41,6 +41,7 @@
 #include <rak/string_manip.h>
 #include <sigc++/bind.h>
 #include <sigc++/hide.h>
+#include <torrent/exceptions.h>
 #include <torrent/torrent.h>
 
 #include "core/download.h"
@@ -123,6 +124,8 @@ DownloadList::activate() {
 
   m_control->input()->push_front(m_bindings);
 
+  m_control->core()->get_download_list().slot_map_erase().insert("0_download_list", sigc::mem_fun(this, &DownloadList::receive_download_erased));
+
   activate_display(DISPLAY_DOWNLOAD_LIST);
 }
 
@@ -133,7 +136,7 @@ DownloadList::disable() {
 
   if (m_windowTextInput->is_active()) {
     m_windowTextInput->get_input()->clear();
-    receive_exit_input(true);
+    receive_exit_input(INPUT_NONE);
   }
 
   disable_display();
@@ -258,7 +261,7 @@ DownloadList::receive_check_hash() {
 }
 
 void
-DownloadList::receive_view_input(bool useDefault) {
+DownloadList::receive_view_input(Input type) {
   if (m_windowTextInput->get_active())
     return;
 
@@ -270,20 +273,52 @@ DownloadList::receive_view_input(bool useDefault) {
 
   m_windowTextInput->set_focus(true);
 
-  (*m_bindings)['\n'] = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_exit_input), useDefault);
-  (*m_bindings)[KEY_ENTER] = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_exit_input), useDefault);
+  if (type == INPUT_CHANGE_DIRECTORY) {
+    m_windowTextInput->get_input()->str() = m_control->variables()->get_string("directory");
+    m_windowTextInput->get_input()->set_pos(m_windowTextInput->get_input()->str().length());
+  }
+
+  (*m_bindings)['\n']      = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_exit_input), type);
+  (*m_bindings)[KEY_ENTER] = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_exit_input), type);
+  (*m_bindings)['\x07']    = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_exit_input), INPUT_NONE);
 }
 
 void
-DownloadList::receive_exit_input(bool useDefault) {
+DownloadList::receive_exit_input(Input type) {
   if (!m_windowTextInput->get_active())
     return;
 
   m_control->ui()->window_statusbar()->set_active(true);
   m_windowTextInput->set_active(false);
   m_control->input()->set_text_input();
+    
+  try {
 
-  m_control->core()->try_create_download_expand(m_windowTextInput->get_input()->str(), useDefault);
+    switch (type) {
+    case INPUT_NONE:
+      break;
+
+    case INPUT_LOAD_DEFAULT:
+    case INPUT_LOAD_MODIFIED:
+      m_control->core()->try_create_download_expand(m_windowTextInput->get_input()->str(), type == INPUT_LOAD_DEFAULT);
+      break;
+
+    case INPUT_CHANGE_DIRECTORY:
+      if (m_downloadList.get_focus() == m_downloadList.end())
+	throw torrent::input_error("No download in focus to change root directory.");
+
+      (*m_downloadList.get_focus())->variables()->set("directory", rak::trim(m_windowTextInput->get_input()->str()));
+      m_control->core()->push_log("New root dir \"" + (*m_downloadList.get_focus())->variables()->get_string("directory") + "\"");
+      break;
+
+    case INPUT_COMMAND:
+      m_control->variables()->process_command(m_windowTextInput->get_input()->str());
+      break;
+    }
+
+  } catch (torrent::input_error& e) {
+    m_control->core()->push_log(e.what());
+  }
 
   // Clean up.
   m_windowTextInput->get_input()->clear();
@@ -293,8 +328,8 @@ DownloadList::receive_exit_input(bool useDefault) {
   m_bindings->erase(KEY_ENTER);
 
   // Urgh... this is ugly...
-  (*m_bindings)['\n']          = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_view_input), false);
-  (*m_bindings)[KEY_ENTER]     = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_view_input), false);
+  (*m_bindings)['\n']          = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_view_input), INPUT_LOAD_MODIFIED);
+  (*m_bindings)[KEY_ENTER]     = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_view_input), INPUT_LOAD_MODIFIED);
 
   receive_change(DISPLAY_DOWNLOAD_LIST);
 }
@@ -306,6 +341,18 @@ DownloadList::receive_change(Display d) {
 
   disable_display();
   activate_display(d);
+}
+
+void
+DownloadList::receive_download_erased(core::Download* d) {
+  if (m_downloadList.get_focus() == m_downloadList.end() ||
+      *m_downloadList.get_focus() != d)
+    return;
+
+  if (m_uiDownload != NULL)
+    receive_exit_download();
+
+  receive_next();
 }
 
 void
@@ -323,10 +370,12 @@ DownloadList::setup_keys() {
   (*m_bindings)['+']           = sigc::mem_fun(*this, &DownloadList::receive_next_priority);
   (*m_bindings)['-']           = sigc::mem_fun(*this, &DownloadList::receive_prev_priority);
 
-  (*m_bindings)['\x7f']        = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_view_input), true);
-  (*m_bindings)[KEY_BACKSPACE] = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_view_input), true);
-  (*m_bindings)['\n']          = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_view_input), false);
-  (*m_bindings)[KEY_ENTER]     = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_view_input), false);
+  (*m_bindings)['\x7f']        = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_view_input), INPUT_LOAD_DEFAULT);
+  (*m_bindings)[KEY_BACKSPACE] = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_view_input), INPUT_LOAD_DEFAULT);
+  (*m_bindings)['\n']          = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_view_input), INPUT_LOAD_MODIFIED);
+  (*m_bindings)[KEY_ENTER]     = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_view_input), INPUT_LOAD_MODIFIED);
+  (*m_bindings)['\x0F']        = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_view_input), INPUT_CHANGE_DIRECTORY);
+  (*m_bindings)['\x10']        = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_view_input), INPUT_COMMAND);
 
   (*m_bindings)[KEY_UP]        = sigc::mem_fun(*this, &DownloadList::receive_prev);
   (*m_bindings)[KEY_DOWN]      = sigc::mem_fun(*this, &DownloadList::receive_next);

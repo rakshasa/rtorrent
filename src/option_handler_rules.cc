@@ -61,32 +61,30 @@
 #include "command_scheduler.h"
 #include "command_scheduler_item.h"
 
-void receive_tracker_dump(std::istream* s);
+// void
+// OptionHandlerInt::process(const std::string& key, const std::string& arg) {
+//   int a;
+    
+//   if (std::sscanf(arg.c_str(), "%i", &a) != 1)
+//     throw torrent::input_error("Invalid argument for \"" + key + "\": \"" + arg + "\", must be an integer.");
+    
+//   m_apply(m_control, a);
+// }
 
-void
-OptionHandlerInt::process(const std::string& key, const std::string& arg) {
-  int a;
+// void
+// OptionHandlerOctal::process(const std::string& key, const std::string& arg) {
+//   int a;
     
-  if (std::sscanf(arg.c_str(), "%i", &a) != 1)
-    throw torrent::input_error("Invalid argument for \"" + key + "\": \"" + arg + "\", must be an integer.");
+//   if (std::sscanf(arg.c_str(), "%o", &a) != 1)
+//     throw torrent::input_error("Invalid argument for \"" + key + "\": \"" + arg + "\", must be an octal.");
     
-  m_apply(m_control, a);
-}
+//   m_apply(m_control, a);
+// }
 
-void
-OptionHandlerOctal::process(const std::string& key, const std::string& arg) {
-  int a;
-    
-  if (std::sscanf(arg.c_str(), "%o", &a) != 1)
-    throw torrent::input_error("Invalid argument for \"" + key + "\": \"" + arg + "\", must be an octal.");
-    
-  m_apply(m_control, a);
-}
-
-void
-OptionHandlerString::process(const std::string& key, const std::string& arg) {
-  m_apply(m_control, arg);
-}
+// void
+// OptionHandlerString::process(const std::string& key, const std::string& arg) {
+//   m_apply(m_control, arg);
+// }
 
 void
 apply_umask(int arg) {
@@ -112,22 +110,6 @@ apply_port_range(Control* m, const std::string& arg) {
   std::sscanf(arg.c_str(), "%i-%i", &a, &b);
 
   m->core()->set_port_range(a, b);
-}
-
-void
-apply_tracker_dump(Control* m, const std::string& arg) {
-  if (arg == "yes")
-    m->core()->get_download_list().slot_map_insert()["1_tracker_dump"] = sigc::bind(sigc::mem_fun(&core::Download::call<sigc::connection, torrent::Download::SlotIStream, &torrent::Download::signal_tracker_dump>), sigc::ptr_fun(&receive_tracker_dump));
-  else
-    m->core()->get_download_list().slot_map_insert().erase("1_tracker_dump");
-}
-
-void
-apply_use_udp_trackers(Control* m, const std::string& arg) {
-  if (arg == "yes")
-    m->core()->get_download_list().slot_map_insert().erase("1_use_udp_trackers");
-  else
-    m->core()->get_download_list().slot_map_insert()["1_use_udp_trackers"] = sigc::bind(sigc::mem_fun(&core::Download::enable_udp_trackers), false);
 }
 
 void
@@ -186,11 +168,6 @@ apply_remove_untied(Control* m, const std::string& arg) {
 }
 
 void
-apply_session_directory(Control* m, const std::string& arg) {
-  m->core()->get_download_store().use(arg);
-}
-
-void
 apply_encoding_list(Control* m, const std::string& arg) {
   torrent::encoding_list()->push_back(arg);
 }
@@ -217,23 +194,19 @@ apply_schedule(Control* m, const std::string& arg) {
 }
 
 void
-apply_schedule_remove(Control* m, const std::string& arg) {
-  m->command_scheduler()->erase(m->command_scheduler()->find(rak::trim(arg)));
-}
-
-void
 initialize_option_handler(Control* c) {
   utils::VariableMap* variables = control->variables();
 
   // Cleaned up.
   variables->insert("check_hash",          new utils::VariableAny("yes"));
+  variables->insert("use_udp_trackers",    new utils::VariableAny("yes"));
   variables->insert("port_random",         new utils::VariableAny("yes"));
   variables->insert("session",             new utils::VariableSlotString<>(NULL, rak::mem_fn(&control->core()->get_download_store(), &core::DownloadStore::use)));
 
   variables->insert("connection_leech",    new utils::VariableAny("leech"));
   variables->insert("connection_seed",     new utils::VariableAny("seed"));
 
-  variables->insert("directory",           new utils::VariableAny(std::string()));
+  variables->insert("directory",           new utils::VariableAny("./"));
   variables->insert("ip",                  new utils::VariableSlotString<>(NULL, rak::ptr_fn(&torrent::set_local_address)));
   variables->insert("bind",                new utils::VariableSlotString<>(NULL, rak::mem_fn(control->core(), &core::Manager::bind)));
 
@@ -250,6 +223,8 @@ initialize_option_handler(Control* c) {
 
   variables->insert("print",               new utils::VariableSlotString<>(NULL, rak::mem_fn(control->core(), &core::Manager::push_log)));
 
+  variables->insert("schedule_remove",     new utils::VariableSlotString<>(NULL, rak::mem_fn<const std::string&>(c->command_scheduler(), &CommandScheduler::erase)));
+
   // Old.
   variables->insert("port_range",          new utils::VariableSlotString<>(NULL, rak::bind_ptr_fn(&apply_port_range, c)));
 
@@ -264,10 +239,7 @@ initialize_option_handler(Control* c) {
   variables->insert("remove_untied",       new utils::VariableSlotString<>(NULL, rak::bind_ptr_fn(&apply_remove_untied, c)));
 
   variables->insert("encoding_list",       new utils::VariableSlotString<>(NULL, rak::bind_ptr_fn(&apply_encoding_list, c)));
-  variables->insert("tracker_dump",        new utils::VariableSlotString<>(NULL, rak::bind_ptr_fn(&apply_tracker_dump, c)));
-  variables->insert("use_udp_trackers",    new utils::VariableSlotString<>(NULL, rak::bind_ptr_fn(&apply_use_udp_trackers, c)));
 
   variables->insert("http_proxy",          new utils::VariableSlotString<>(NULL, rak::bind_ptr_fn(&apply_http_proxy, c)));
   variables->insert("schedule",            new utils::VariableSlotString<>(NULL, rak::bind_ptr_fn(&apply_schedule, c)));
-  variables->insert("schedule_remove",     new utils::VariableSlotString<>(NULL, rak::bind_ptr_fn(&apply_schedule_remove, c)));
 }

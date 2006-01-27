@@ -146,38 +146,62 @@ DownloadFactory::receive_success() {
     return;
   }
 
+  torrent::Bencode& root = (*itr)->get_bencode();
+
+  if (!m_session) {
+    // We only allow session torrents to keep their
+    // 'rtorrent/libtorrent' sections.
+    root.erase_key("rtorrent");
+    root.erase_key("libtorrent");
+  }
+
+  if (!root.has_key("rtorrent") ||
+      !root.get_key("rtorrent").is_map())
+    root.insert_key("rtorrent", torrent::Bencode(torrent::Bencode::TYPE_MAP));
+    
+  torrent::Bencode& rtorrent = root.get_key("rtorrent");
+
+  if (!rtorrent.has_key("state") ||
+      !rtorrent.get_key("state").is_string() ||
+      (rtorrent.get_key("state").as_string() != "stopped" &&
+       rtorrent.get_key("state").as_string() != "started"))
+    rtorrent.insert_key("state", "stopped");
+  
+  if (!rtorrent.has_key("tied_to_file") ||
+      !rtorrent.get_key("tied_to_file").is_string())
+    rtorrent.insert_key("tied_to_file", std::string());
+
+  if (rtorrent.has_key("priority") &&
+      rtorrent.get_key("priority").is_value())
+    (*itr)->variables()->set("priority", rtorrent.get_key("priority").as_value() % 4);
+  else
+    (*itr)->variables()->set("priority", (int64_t)2);
+
   // Move to 'rtorrent'.
   (*itr)->variables()->set("connection_leech", m_variables.get("connection_leech"));
   (*itr)->variables()->set("connection_seed",  m_variables.get("connection_seed"));
-  (*itr)->variables()->set("directory",        m_variables.get("directory"));
   (*itr)->variables()->set("min_peers",        control->variables()->get("min_peers"));
   (*itr)->variables()->set("max_peers",        control->variables()->get("max_peers"));
   (*itr)->variables()->set("max_uploads",      control->variables()->get("max_uploads"));
 
-  if ((*itr)->get_bencode().get_key("rtorrent").has_key("priority") &&
-      (*itr)->get_bencode().get_key("rtorrent").get_key("priority").is_value())
-    (*itr)->variables()->set("priority", (*itr)->get_bencode().get_key("rtorrent").get_key("priority").as_value() % 4);
-  else
-    (*itr)->variables()->set("priority", (int64_t)2);
-			     
-
-  torrent::Bencode& bencode = (*itr)->get_bencode();
+  if (control->variables()->get("use_udp_trackers").as_string() == "no")
+    (*itr)->enable_udp_trackers(false);
 
   if (m_session) {
-    // Hmm... this safe?
-    if (bencode.get_key("rtorrent").get_key("state").as_string() == "started")
+    if (!rtorrent.has_key("directory") ||
+	!rtorrent.get_key("directory").is_string())
+      (*itr)->variables()->set("directory", m_variables.get("directory"));
+    else
+      (*itr)->variables()->set("directory", rtorrent.get_key("directory"));
+
+    if ((*itr)->variables()->get_string("state") == "started")
       m_manager->start(*itr, m_printLog);
 
-    // Consider adding an empty 'tied_to_file' here if not present.
-
   } else {
-    // Remove the settings if this isn't a session torrent.
-    //bencode.erase_key("rtorrent");
+    (*itr)->variables()->set("directory", m_variables.get("directory"));
 
     if (m_variables.get("tied_to_file").as_value())
       (*itr)->variables()->set("tied_to_file", m_uri);
-    else
-      (*itr)->variables()->set("tied_to_file", std::string());
 
     if (m_start)
       m_manager->start(*itr, m_printLog);

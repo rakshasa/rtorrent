@@ -38,6 +38,7 @@
 
 #include <algorithm>
 #include <cstdlib>
+#include <time.h>
 #include <rak/functional.h>
 #include <torrent/exceptions.h>
 
@@ -117,12 +118,24 @@ uint32_t
 CommandScheduler::parse_absolute(const char* str) {
   Time result = parse_time(str);
 
+  // Do the local time thing.
+  struct tm local;
+
   switch (result.first) {
   case 1:
     return result.second;
 
   case 2:
-    return (result.second - cachedTime.seconds() % 3600) % 3600;
+    if (localtime_r(&cachedTime.tval().tv_sec, &local) == NULL)
+      throw torrent::input_error("Could not convert unix time to local time.");
+
+    return (result.second + 3600 - 60 * local.tm_min - local.tm_sec) % 3600;
+
+  case 3:
+    if (localtime_r(&cachedTime.tval().tv_sec, &local) == NULL)
+      throw torrent::input_error("Could not convert unix time to local time.");
+
+    return (result.second + 24 * 3600 - 3600 * local.tm_hour - 60 * local.tm_min - local.tm_sec) % (24 * 3600);
 
   case 0:
   default:

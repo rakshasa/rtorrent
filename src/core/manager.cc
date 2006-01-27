@@ -116,7 +116,7 @@ Manager::initialize_second() {
 
   // Register slots to be called when a download is inserted/erased,
   // opened or closed.
-  m_downloadList.slot_map_insert()["0_initialize_bencode"]  = sigc::mem_fun(*this, &Manager::initialize_bencode);
+  //  m_downloadList.slot_map_insert()["0_initialize_bencode"]  = sigc::mem_fun(*this, &Manager::initialize_bencode);
   m_downloadList.slot_map_insert()["1_connect_network_log"] = sigc::bind(sigc::ptr_fun(&connect_signal_network_log), sigc::mem_fun(m_logComplete, &Log::push_front));
 //   m_downloadList.slot_map_insert()["1_connect_tracker_log"] = sigc::bind(sigc::ptr_fun(&connect_signal_tracker_log), sigc::mem_fun(m_logComplete, &Log::push_front));
   m_downloadList.slot_map_insert()["1_connect_storage_log"] = sigc::bind(sigc::ptr_fun(&connect_signal_storage_log), sigc::mem_fun(m_logComplete, &Log::push_front));
@@ -193,7 +193,7 @@ Manager::erase(DListItr itr) {
 void
 Manager::start(Download* d, bool printLog) {
   try {
-    d->get_bencode().get_key("rtorrent").insert_key("state", "started");
+    d->variables()->set("state", "started");
 
     if (d->get_download().is_active())
       return;
@@ -218,7 +218,7 @@ Manager::start(Download* d, bool printLog) {
 void
 Manager::stop(Download* d) {
   try {
-    d->get_bencode().get_key("rtorrent").insert_key("state", "stopped");
+    d->variables()->set("state", "stopped");
 
     m_downloadList.stop(d);
 
@@ -295,19 +295,6 @@ Manager::bind(const std::string& addr) {
 }
 
 void
-Manager::initialize_bencode(Download* d) {
-  torrent::Bencode& bencode = d->get_bencode();
-
-  if (!bencode.has_key("rtorrent") ||
-      !bencode.get_key("rtorrent").is_map())
-    bencode.insert_key("rtorrent", torrent::Bencode(torrent::Bencode::TYPE_MAP));
-    
-  if (!bencode.get_key("rtorrent").has_key("state") ||
-      !bencode.get_key("rtorrent").get_key("state").is_string())
-    bencode.get_key("rtorrent").insert_key("state", "stopped");
-}
-
-void
 Manager::prepare_hash_check(Download* d) {
   m_downloadList.close(d);
   d->get_download().hash_resume_clear();
@@ -334,7 +321,7 @@ Manager::receive_download_done_hash_checked(Download* d) {
 
   // Don't send if we did a hash check and found incompelete chunks.
   //if (d->is_done())
-    d->get_download().tracker_send_completed();
+  d->get_download().tracker_send_completed();
 }
 
 void

@@ -84,6 +84,7 @@ WindowPeerInfo::redraw() {
 		  m_download->variables()->get("connection_seed").as_string().c_str(),
 		  m_download->variables()->get("connection_leech").as_string().c_str());
 
+  m_canvas->print(0, y++, "Directory:    %s", m_download->variable_string("directory").c_str());
   m_canvas->print(0, y++, "Tied to file: %s", m_download->variable_string("tied_to_file").c_str());
 
   y++;

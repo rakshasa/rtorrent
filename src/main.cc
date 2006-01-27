@@ -188,12 +188,6 @@ main(int argc, char** argv) {
 
     control->initialize();
 
-    // Just to make sure we did all the stuff on the queue before
-    // loading any torrents.
-    //
-    // Remove this?
-    //rak::priority_queue_perform(&taskScheduler, cachedTime);
-
     // Load session torrents and perform scheduled tasks to ensure
     // session torrents are loaded before arg torrents.
     load_session_torrents(control);
