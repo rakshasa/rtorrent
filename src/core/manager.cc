@@ -107,6 +107,7 @@ Manager::initialize_first() {
   torrent::initialize(m_pollManager->get_torrent_poll());
 }
 
+// Most of this should be possible to move out.
 void
 Manager::initialize_second() {
   torrent::Http::set_factory(m_pollManager->get_http_stack()->get_http_factory());
@@ -116,11 +117,8 @@ Manager::initialize_second() {
 
   // Register slots to be called when a download is inserted/erased,
   // opened or closed.
-  //  m_downloadList.slot_map_insert()["0_initialize_bencode"]  = sigc::mem_fun(*this, &Manager::initialize_bencode);
   m_downloadList.slot_map_insert()["1_connect_network_log"] = sigc::bind(sigc::ptr_fun(&connect_signal_network_log), sigc::mem_fun(m_logComplete, &Log::push_front));
-//   m_downloadList.slot_map_insert()["1_connect_tracker_log"] = sigc::bind(sigc::ptr_fun(&connect_signal_tracker_log), sigc::mem_fun(m_logComplete, &Log::push_front));
   m_downloadList.slot_map_insert()["1_connect_storage_log"] = sigc::bind(sigc::ptr_fun(&connect_signal_storage_log), sigc::mem_fun(m_logComplete, &Log::push_front));
-  //m_downloadList.slot_map_insert()["1_enable_udp_trackers"] = sigc::bind(sigc::mem_fun(&core::Download::enable_udp_trackers), true);
 
   m_downloadList.slot_map_erase()["1_hash_queue_remove"]    = sigc::mem_fun(m_hashQueue, &HashQueue::remove);
   m_downloadList.slot_map_erase()["1_store_remove"]         = sigc::mem_fun(m_downloadStore, &DownloadStore::remove);
@@ -319,9 +317,12 @@ Manager::receive_download_done_hash_checked(Download* d) {
   if (!d->get_download().is_active())
     m_downloadList.start(d);
 
+  if (control->variables()->get_string("session_on_completion") == "yes")
+    m_downloadStore.save(d);
+
   // Don't send if we did a hash check and found incompelete chunks.
-  //if (d->is_done())
-  d->get_download().tracker_send_completed();
+  if (d->is_done())
+    d->get_download().tracker_send_completed();
 }
 
 void

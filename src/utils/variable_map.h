@@ -61,7 +61,7 @@ public:
   // Consider taking char* start and finish instead of std::string to
   // avoid copying. Or make a view class.
   const mapped_type&  get(const std::string& key);
-  std::string         get_string(const std::string& key);
+  const std::string&  get_string(const std::string& key)                         { return get(key).as_string(); }
 
   void                set(const std::string& key, const mapped_type& arg);
   void                set_string(const std::string& key, const std::string& arg) { set(key, mapped_type(arg)); }
@@ -73,16 +73,6 @@ private:
   VariableMap(const VariableMap&);
   void operator = (const VariableMap&);
 };
-
-inline std::string
-VariableMap::get_string(const std::string& key) {
-  const mapped_type& v = get(key);
-
-  if (v.get_type() == mapped_type::TYPE_NONE)
-    return std::string();
-  else
-    return v.as_string();
-}
 
 }
 

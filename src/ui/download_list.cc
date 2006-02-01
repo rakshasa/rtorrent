@@ -73,11 +73,11 @@ DownloadList::DownloadList(Control* c) :
   m_window(c->display()->end()),
 
   m_windowTitle(new WTitle("rTorrent " VERSION " - libTorrent " + std::string(torrent::version()))),
-  m_windowHttpQueue(new WHttp(&c->core()->get_http_queue())),
+  m_windowHttpQueue(new WHttp(&c->core()->http_queue())),
 
   m_uiDownload(NULL),
 
-  m_downloadList(&c->core()->get_download_list()),
+  m_downloadList(&c->core()->download_list()),
 
   m_control(c),
   m_bindings(new input::Bindings)
@@ -124,7 +124,7 @@ DownloadList::activate() {
 
   m_control->input()->push_front(m_bindings);
 
-  m_control->core()->get_download_list().slot_map_erase().insert("0_download_list", sigc::mem_fun(this, &DownloadList::receive_download_erased));
+  m_control->core()->download_list().slot_map_erase().insert("0_download_list", sigc::mem_fun(this, &DownloadList::receive_download_erased));
 
   activate_display(DISPLAY_DOWNLOAD_LIST);
 }

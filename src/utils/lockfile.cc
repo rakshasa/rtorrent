@@ -34,43 +34,42 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef RTORRENT_CORE_DOWNLOAD_STORE_H
-#define RTORRENT_CORE_DOWNLOAD_STORE_H
+#include "config.h"
 
-#include <string>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
-#include "utils/directory.h"
-#include "utils/lockfile.h"
+#include "lockfile.h"
 
-namespace core {
+namespace utils {
 
-class Download;
+bool
+Lockfile::try_lock() {
+  if (m_path.empty()) {
+    m_id = "foo";
+    return true;
+  }
 
-class DownloadStore {
-public:
+  // Just do a simple locking for now that isn't safe for network
+  // devices.
+  int fd = ::open(m_path.c_str(), O_RDWR | O_CREAT | O_EXCL);
 
-  bool                is_enabled()                            { return m_lockfile.is_locked(); }
+  if (fd == -1)
+    return false;
 
-  void                enable(bool lock);
-  void                disable();
+  m_id = "foo";
+  ::close(fd);
 
-  const std::string&  path() const                            { return m_path; }
-  void                set_path(const std::string& path);
-
-  void                save(Download* d);
-  void                remove(Download* d);
-
-  // Currently shows all entries in the correct format.
-  utils::Directory    get_formated_entries();
-
-private:
-  static bool         is_correct_format(std::string f);
-  std::string         create_filename(Download* d);
-
-  std::string         m_path;
-  utils::Lockfile     m_lockfile;
-};
-
+  return true;
 }
 
-#endif
+bool
+Lockfile::unlock() {
+  if (m_path.empty())
+    return true;
+  else
+    return ::unlink(m_path.c_str()) != -1;
+}
+
+}

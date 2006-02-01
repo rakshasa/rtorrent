@@ -110,7 +110,7 @@ Root::setup_keys() {
 
   //m_bindings[KEY_RESIZE]    = sigc::mem_fun(*m_control->display(), &display::Manager::adjust_layout);
   m_bindings['\x0C']        = sigc::mem_fun(m_control->display(), &display::Manager::force_redraw);
-  m_bindings['\x11']        = sigc::mem_fun(m_control, &Control::receive_shutdown);
+  m_bindings['\x11']        = sigc::mem_fun(m_control, &Control::receive_normal_shutdown);
 }
 
 void

@@ -34,41 +34,29 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef RTORRENT_CORE_DOWNLOAD_STORE_H
-#define RTORRENT_CORE_DOWNLOAD_STORE_H
+#ifndef RTORRENT_UTILS_LOCKFILE_H
+#define RTORRENT_UTILS_LOCKFILE_H
 
 #include <string>
 
-#include "utils/directory.h"
-#include "utils/lockfile.h"
+namespace utils {
 
-namespace core {
-
-class Download;
-
-class DownloadStore {
+class Lockfile {
 public:
+  
+  bool                is_locked() const                 { return !m_id.empty(); }
 
-  bool                is_enabled()                            { return m_lockfile.is_locked(); }
+  // If the path is empty no lock file will be created, although
+  // is_locked() will return true.
+  bool                try_lock();
+  bool                unlock();
 
-  void                enable(bool lock);
-  void                disable();
-
-  const std::string&  path() const                            { return m_path; }
-  void                set_path(const std::string& path);
-
-  void                save(Download* d);
-  void                remove(Download* d);
-
-  // Currently shows all entries in the correct format.
-  utils::Directory    get_formated_entries();
+  const std::string&  path() const                      { return m_path; }
+  void                set_path(const std::string& path) { m_path = path; }
 
 private:
-  static bool         is_correct_format(std::string f);
-  std::string         create_filename(Download* d);
-
   std::string         m_path;
-  utils::Lockfile     m_lockfile;
+  std::string         m_id;
 };
 
 }

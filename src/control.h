@@ -70,13 +70,16 @@ public:
   Control();
   ~Control();
   
-  bool                is_shutdown_completed()       { return m_shutdownReceived && torrent::is_inactive(); }
+  bool                is_shutdown_completed()       { return m_shutdownQuick && torrent::is_inactive(); }
   bool                is_shutdown_received()        { return m_shutdownReceived; }
 
   void                initialize();
   void                cleanup();
 
-  void                receive_shutdown();
+  void                handle_shutdown();
+
+  void                receive_normal_shutdown()     { m_shutdownReceived = true; }
+  void                receive_quick_shutdown()      { m_shutdownReceived = true; m_shutdownQuick = true; }
 
   ui::Root*           ui()                          { return m_ui; }
   core::Manager*      core()                        { return m_core; }
@@ -95,6 +98,7 @@ private:
   void operator = (const Control&);
 
   bool                m_shutdownReceived;
+  bool                m_shutdownQuick;
 
   ui::Root*           m_ui;
   core::Manager*      m_core;

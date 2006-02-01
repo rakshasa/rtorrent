@@ -37,6 +37,8 @@
 #ifndef RTORRENT_UTILS_VARIABLE_H
 #define RTORRENT_UTILS_VARIABLE_H
 
+#include <string>
+
 namespace torrent {
   class Bencode;
 }
@@ -49,7 +51,7 @@ public:
   virtual ~Variable() {}
 
   virtual const torrent::Bencode& get() = 0;
-  virtual void set(const torrent::Bencode& arg) = 0;
+  virtual void                    set(const torrent::Bencode& arg) = 0;
 
 protected:
   Variable(const Variable&);

@@ -34,6 +34,9 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
+// Parts of this seems ugly in an attempt to avoid copying
+// data. Propably need to rewrite torrent::Bencode.
+
 #ifndef RTORRENT_UTILS_VARIABLE_GENERIC_H
 #define RTORRENT_UTILS_VARIABLE_GENERIC_H
 
@@ -56,7 +59,7 @@ public:
   virtual ~VariableAny();
 
   virtual const torrent::Bencode& get();
-  virtual void        set(const torrent::Bencode& arg);
+  virtual void                    set(const torrent::Bencode& arg);
 
 private:
   torrent::Bencode    m_variable;
@@ -68,7 +71,7 @@ public:
   virtual ~VariableValue();
 
   virtual const torrent::Bencode& get();
-  virtual void        set(const torrent::Bencode& arg);
+  virtual void                    set(const torrent::Bencode& arg);
 
 private:
   torrent::Bencode    m_variable;

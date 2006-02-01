@@ -37,55 +37,8 @@
 #ifndef RTORRENT_OPTION_HANDLER_RULES_H
 #define RTORRENT_OPTION_HANDLER_RULES_H
 
-#include <cstdio>
-#include <string>
-#include <stdexcept>
-#include <sigc++/bind.h>
-
 class Control;
 
 void initialize_option_handler(Control* c);
-
-class OptionHandlerInt {
-public:
-  typedef void (*Apply)(Control*, int);
-
-  OptionHandlerInt(Control* c, Apply a) :
-    m_control(c), m_apply(a) {}
-
-  virtual void process(const std::string& key, const std::string& arg);
-
-private:
-  Control* m_control;
-  Apply        m_apply;
-};
-
-class OptionHandlerOctal {
-public:
-  typedef void (*Apply)(Control*, int);
-
-  OptionHandlerOctal(Control* c, Apply a) :
-    m_control(c), m_apply(a) {}
-
-  virtual void process(const std::string& key, const std::string& arg);
-
-private:
-  Control* m_control;
-  Apply        m_apply;
-};
-
-class OptionHandlerString {
-public:
-  typedef void (*Apply)(Control*, const std::string&);
-
-  OptionHandlerString(Control* c, Apply a) :
-    m_control(c), m_apply(a) {}
-
-  virtual void process(const std::string& key, const std::string& arg);
-
-private:
-  Control*     m_control;
-  Apply        m_apply;
-};
 
 #endif

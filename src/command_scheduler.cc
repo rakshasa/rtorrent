@@ -40,6 +40,7 @@
 #include <cstdlib>
 #include <time.h>
 #include <rak/functional.h>
+#include <rak/string_manip.h>
 #include <torrent/exceptions.h>
 
 #include "command_scheduler.h"
@@ -112,6 +113,27 @@ CommandScheduler::call_item(value_type item) {
     throw torrent::internal_error("CommandScheduler::call_item(...) tried to schedule a zero interval item.");
 
   item->enable(next);
+}
+
+void
+CommandScheduler::parse(const std::string& arg) {
+  char key[21];
+  char bufAbsolute[21];
+  char bufInterval[21];
+  char command[2048];
+
+  if (std::sscanf(arg.c_str(), "%20[^,],%20[^,],%20[^,],%2047[^\n]", key, bufAbsolute, bufInterval, command) != 4)
+    throw torrent::input_error("Invalid arguments to command.");
+
+  uint32_t absolute = parse_absolute(bufAbsolute);
+  uint32_t interval = parse_interval(bufInterval);
+
+  CommandSchedulerItem* item = *insert(rak::trim(std::string(key)));
+
+  item->set_command(rak::trim(std::string(command)));
+  item->set_interval(interval);
+
+  item->enable((cachedTime + rak::timer(absolute) * 1000000).round_seconds());
 }
 
 uint32_t

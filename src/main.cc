@@ -77,19 +77,6 @@
 void do_panic(int signum);
 void print_help();
 
-bool
-is_resized() {
-  static int x = 0;
-  static int y = 0;
-  
-  bool r = display::Canvas::get_screen_width() != x || display::Canvas::get_screen_height() != y;
-
-  x = display::Canvas::get_screen_width();
-  y = display::Canvas::get_screen_height();
-
-  return r;
-}
-
 int
 parse_options(Control* c, utils::VariableMap* optionHandler, int argc, char** argv) {
   try {
@@ -116,7 +103,7 @@ parse_options(Control* c, utils::VariableMap* optionHandler, int argc, char** ar
 void
 load_session_torrents(Control* c) {
   // Load session torrents.
-  std::list<std::string> l = c->core()->get_download_store().get_formated_entries().make_list();
+  std::list<std::string> l = c->core()->download_store().get_formated_entries().make_list();
 
   for (std::list<std::string>::iterator first = l.begin(), last = l.end(); first != last; ++first) {
     core::DownloadFactory* f = new core::DownloadFactory(*first, c->core());
@@ -170,7 +157,8 @@ main(int argc, char** argv) {
     initialize_option_handler(control);
 
     SignalHandler::set_ignore(SIGPIPE);
-    SignalHandler::set_handler(SIGINT,   sigc::mem_fun(control, &Control::receive_shutdown));
+    SignalHandler::set_handler(SIGINT,   sigc::mem_fun(control, &Control::receive_normal_shutdown));
+    SignalHandler::set_handler(SIGTERM,  sigc::mem_fun(control, &Control::receive_quick_shutdown));
     SignalHandler::set_handler(SIGWINCH, sigc::mem_fun(control->display(), &display::Manager::force_redraw));
     SignalHandler::set_handler(SIGSEGV,  sigc::bind(sigc::ptr_fun(&do_panic), SIGSEGV));
     SignalHandler::set_handler(SIGBUS,   sigc::bind(sigc::ptr_fun(&do_panic), SIGBUS));
@@ -198,6 +186,9 @@ main(int argc, char** argv) {
     control->display()->adjust_layout();
 
     while (!control->is_shutdown_completed()) {
+      if (control->is_shutdown_received())
+	control->handle_shutdown();
+
       control->inc_tick();
 
       cachedTime = rak::timer::current();

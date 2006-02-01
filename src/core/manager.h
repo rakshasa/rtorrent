@@ -60,10 +60,10 @@ public:
 
   Manager();
 
-  DownloadList&       get_download_list()                 { return m_downloadList; }
-  DownloadStore&      get_download_store()                { return m_downloadStore; }
-  HashQueue&          get_hash_queue()                    { return m_hashQueue; }
-  HttpQueue&          get_http_queue()                    { return m_httpQueue; }
+  DownloadList&       download_list()                 { return m_downloadList; }
+  DownloadStore&      download_store()                { return m_downloadStore; }
+  HashQueue&          hash_queue()                    { return m_hashQueue; }
+  HttpQueue&          http_queue()                    { return m_httpQueue; }
 
   PollManager*        get_poll_manager()                  { return m_pollManager; }
   Log&                get_log_important()                 { return m_logImportant; }

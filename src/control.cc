@@ -67,7 +67,7 @@ Control::Control() :
 
   m_inputStdin->slot_pressed(sigc::mem_fun(m_input, &input::Manager::pressed));
 
-  m_taskShutdown.set_slot(rak::mem_fn(this, &Control::receive_shutdown));
+  m_taskShutdown.set_slot(rak::mem_fn(this, &Control::handle_shutdown));
 
   m_commandScheduler->set_slot_command(rak::mem_fn(m_variables, &utils::VariableMap::process_command));
   m_commandScheduler->set_slot_error_message(rak::mem_fn(m_core, &core::Manager::push_log));
@@ -98,6 +98,7 @@ Control::initialize() {
 
   m_core->initialize_second();
   m_core->listen_open();
+  m_core->download_store().enable(m_variables->get_string("session_lock") == "yes");
 
   m_ui->init(this);
 
@@ -110,6 +111,8 @@ Control::cleanup() {
 
   m_inputStdin->remove(m_core->get_poll_manager()->get_torrent_poll());
 
+  m_core->download_store().disable();
+
   m_ui->cleanup();
   m_core->cleanup();
   
@@ -119,15 +122,11 @@ Control::cleanup() {
   display::Canvas::cleanup();
 }
 
-// I think it should be safe to initiate the shutdown from anywhere,
-// but if it isn't, use a delay task.
 void
-Control::receive_shutdown() {
-  if (!m_shutdownReceived) {
+Control::handle_shutdown() {
+  if (!m_shutdownQuick) {
     torrent::listen_close();
-    
     m_core->shutdown(false);
-    m_shutdownReceived = true;
 
     if (!m_taskShutdown.is_queued())
       priority_queue_insert(&taskScheduler, &m_taskShutdown, cachedTime + 5 * 1000000);
@@ -135,4 +134,7 @@ Control::receive_shutdown() {
   } else {
     m_core->shutdown(true);
   }
+
+  m_shutdownQuick = true;
+  m_shutdownReceived = false;
 }

@@ -37,9 +37,7 @@
 #include "config.h"
 
 #include <cstdio>
-#include <functional>
-#include <arpa/inet.h>
-#include <netinet/in.h>
+#include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <rak/file_stat.h>
@@ -59,36 +57,16 @@
 #include "control.h"
 #include "option_handler_rules.h"
 #include "command_scheduler.h"
-#include "command_scheduler_item.h"
-
-// void
-// OptionHandlerInt::process(const std::string& key, const std::string& arg) {
-//   int a;
-    
-//   if (std::sscanf(arg.c_str(), "%i", &a) != 1)
-//     throw torrent::input_error("Invalid argument for \"" + key + "\": \"" + arg + "\", must be an integer.");
-    
-//   m_apply(m_control, a);
-// }
-
-// void
-// OptionHandlerOctal::process(const std::string& key, const std::string& arg) {
-//   int a;
-    
-//   if (std::sscanf(arg.c_str(), "%o", &a) != 1)
-//     throw torrent::input_error("Invalid argument for \"" + key + "\": \"" + arg + "\", must be an octal.");
-    
-//   m_apply(m_control, a);
-// }
-
-// void
-// OptionHandlerString::process(const std::string& key, const std::string& arg) {
-//   m_apply(m_control, arg);
-// }
 
 void
 apply_umask(int arg) {
   umask(arg);
+}
+
+void
+apply_working_directory(const std::string& path) {
+  if (chdir(path.c_str()) != 0)
+    throw torrent::input_error("Could not change working directory.");
 }
 
 void
@@ -129,12 +107,12 @@ apply_load_start(Control* m, const std::string& arg) {
 
 void
 apply_stop_untied(Control* m, const std::string& arg) {
-  core::Manager::DListItr itr = m->core()->get_download_list().begin();
+  core::Manager::DListItr itr = m->core()->download_list().begin();
 
-  while ((itr = std::find_if(itr, m->core()->get_download_list().end(),
+  while ((itr = std::find_if(itr, m->core()->download_list().end(),
 			     rak::on(rak::bind2nd(std::mem_fun(&core::Download::variable_string), "tied_to_file"),
 				     std::not1(std::mem_fun_ref(&std::string::empty)))))
-	 != m->core()->get_download_list().end()) {
+	 != m->core()->download_list().end()) {
     rak::file_stat fs;
 
     if (!fs.update((*itr)->variable_string("tied_to_file"))) {
@@ -148,12 +126,12 @@ apply_stop_untied(Control* m, const std::string& arg) {
 
 void
 apply_remove_untied(Control* m, const std::string& arg) {
-  core::Manager::DListItr itr = m->core()->get_download_list().begin();
+  core::Manager::DListItr itr = m->core()->download_list().begin();
 
-  while ((itr = std::find_if(itr, m->core()->get_download_list().end(),
+  while ((itr = std::find_if(itr, m->core()->download_list().end(),
 			     rak::on(rak::bind2nd(std::mem_fun(&core::Download::variable_string), "tied_to_file"),
 				     std::not1(std::mem_fun_ref(&std::string::empty)))))
-	 != m->core()->get_download_list().end()) {
+	 != m->core()->download_list().end()) {
     rak::file_stat fs;
 
     if (!fs.update((*itr)->variable_string("tied_to_file"))) {
@@ -173,40 +151,22 @@ apply_encoding_list(Control* m, const std::string& arg) {
 }
 
 void
-apply_schedule(Control* m, const std::string& arg) {
-  char key[21];
-  char bufAbsolute[21];
-  char bufInterval[21];
-  char command[2048];
-
-  if (std::sscanf(arg.c_str(), "%20[^,],%20[^,],%20[^,],%2047[^\n]", key, bufAbsolute, bufInterval, command) != 4)
-    throw torrent::input_error("Invalid arguments to command.");
-
-  uint32_t absolute = CommandScheduler::parse_absolute(bufAbsolute);
-  uint32_t interval = CommandScheduler::parse_interval(bufInterval);
-
-  CommandSchedulerItem* item = *m->command_scheduler()->insert(rak::trim(std::string(key)));
-
-  item->set_command(rak::trim(std::string(command)));
-  item->set_interval(interval);
-
-  item->enable((cachedTime + rak::timer(absolute) * 1000000).round_seconds());
-}
-
-void
 initialize_option_handler(Control* c) {
   utils::VariableMap* variables = control->variables();
 
   // Cleaned up.
-  variables->insert("check_hash",          new utils::VariableAny("yes"));
-  variables->insert("use_udp_trackers",    new utils::VariableAny("yes"));
-  variables->insert("port_random",         new utils::VariableAny("yes"));
-  variables->insert("session",             new utils::VariableSlotString<>(NULL, rak::mem_fn(&control->core()->get_download_store(), &core::DownloadStore::use)));
+  variables->insert("check_hash",            new utils::VariableAny("yes"));
+  variables->insert("use_udp_trackers",      new utils::VariableAny("yes"));
+  variables->insert("port_random",           new utils::VariableAny("yes"));
+  variables->insert("session",               new utils::VariableSlotString<>(NULL, rak::mem_fn(&control->core()->download_store(), &core::DownloadStore::set_path)));
+  variables->insert("session_lock",          new utils::VariableAny("yes"));
+  variables->insert("session_on_completion", new utils::VariableAny("yes"));
 
   variables->insert("connection_leech",    new utils::VariableAny("leech"));
   variables->insert("connection_seed",     new utils::VariableAny("seed"));
 
   variables->insert("directory",           new utils::VariableAny("./"));
+  variables->insert("working_directory",   new utils::VariableSlotString<>(NULL, rak::ptr_fn(&apply_working_directory)));
   variables->insert("ip",                  new utils::VariableSlotString<>(NULL, rak::ptr_fn(&torrent::set_local_address)));
   variables->insert("bind",                new utils::VariableSlotString<>(NULL, rak::mem_fn(control->core(), &core::Manager::bind)));
 
@@ -223,6 +183,7 @@ initialize_option_handler(Control* c) {
 
   variables->insert("print",               new utils::VariableSlotString<>(NULL, rak::mem_fn(control->core(), &core::Manager::push_log)));
 
+  variables->insert("schedule",            new utils::VariableSlotString<>(NULL, rak::mem_fn<const std::string&>(c->command_scheduler(), &CommandScheduler::parse)));
   variables->insert("schedule_remove",     new utils::VariableSlotString<>(NULL, rak::mem_fn<const std::string&>(c->command_scheduler(), &CommandScheduler::erase)));
 
   // Old.
@@ -241,5 +202,4 @@ initialize_option_handler(Control* c) {
   variables->insert("encoding_list",       new utils::VariableSlotString<>(NULL, rak::bind_ptr_fn(&apply_encoding_list, c)));
 
   variables->insert("http_proxy",          new utils::VariableSlotString<>(NULL, rak::bind_ptr_fn(&apply_http_proxy, c)));
-  variables->insert("schedule",            new utils::VariableSlotString<>(NULL, rak::bind_ptr_fn(&apply_schedule, c)));
 }

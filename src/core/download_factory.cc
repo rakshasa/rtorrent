@@ -99,7 +99,7 @@ DownloadFactory::receive_load() {
   if (std::strncmp(m_uri.c_str(), "http://", 7) == 0) {
     // Http handling here.
     m_stream = new std::stringstream;
-    HttpQueue::iterator itr = m_manager->get_http_queue().insert(m_uri, m_stream);
+    HttpQueue::iterator itr = m_manager->http_queue().insert(m_uri, m_stream);
 
     (*itr)->signal_done().slots().push_front(sigc::mem_fun(*this, &DownloadFactory::receive_loaded));
     (*itr)->signal_failed().slots().push_front(sigc::mem_fun(*this, &DownloadFactory::receive_failed));
@@ -139,7 +139,7 @@ DownloadFactory::receive_success() {
 
   Manager::DListItr itr = m_manager->insert(m_stream, m_printLog);
 
-  if (itr == m_manager->get_download_list().end()) {
+  if (itr == m_manager->download_list().end()) {
     // core::Manager should already have added the error message to
     // the log.
     m_slotFinished();
@@ -206,7 +206,7 @@ DownloadFactory::receive_success() {
     if (m_start)
       m_manager->start(*itr, m_printLog);
 
-    m_manager->get_download_store().save(*itr);
+    m_manager->download_store().save(*itr);
   }
 
   m_slotFinished();

@@ -52,16 +52,44 @@
 namespace core {
 
 void
-DownloadStore::use(const std::string& path) {
-  m_path = path;
+DownloadStore::enable(bool lock) {
+  if (is_enabled())
+    throw torrent::input_error("Session directory already enabled.");
 
-  if (!m_path.empty() && *m_path.rbegin() != '/')
-    m_path += '/';
+  if (m_path.empty())
+    return;
+
+  if (lock)
+    m_lockfile.set_path(m_path + "rtorrent.lock");
+  else
+    m_lockfile.set_path(std::string());
+
+  if (!m_lockfile.try_lock())
+    throw torrent::input_error("Could not lock session directory: \"" + m_path + "\".");
+}
+
+void
+DownloadStore::disable() {
+  if (!is_enabled())
+    return;
+
+  m_lockfile.unlock();
+}
+
+void
+DownloadStore::set_path(const std::string& path) {
+  if (is_enabled())
+    throw torrent::input_error("Tried to change session directory while it is enabled.");
+
+  if (!path.empty() && *path.rbegin() != '/')
+    m_path = path + '/';
+  else
+    m_path = path;
 }
 
 void
 DownloadStore::save(Download* d) {
-  if (!is_active())
+  if (!is_enabled())
     return;
 
   std::fstream f((create_filename(d) + ".new").c_str(), std::ios::out | std::ios::trunc);
@@ -92,7 +120,7 @@ DownloadStore::save(Download* d) {
 
 void
 DownloadStore::remove(Download* d) {
-  if (!is_active())
+  if (!is_enabled())
     return;
 
   ::unlink(create_filename(d).c_str());
@@ -100,7 +128,7 @@ DownloadStore::remove(Download* d) {
 
 utils::Directory
 DownloadStore::get_formated_entries() {
-  if (!is_active())
+  if (!is_enabled())
     return utils::Directory();
 
   utils::Directory d(m_path);

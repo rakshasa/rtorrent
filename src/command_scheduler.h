@@ -69,6 +69,8 @@ public:
   void                erase(iterator itr);
   void                erase(const std::string& key)                    { erase(find(key)); }
 
+  void                parse(const std::string& arg);
+
   static uint32_t     parse_absolute(const char* str);
   static uint32_t     parse_interval(const char* str);
 
