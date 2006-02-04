@@ -36,7 +36,7 @@
 
 #include "config.h"
 
-#include <cstdlib>
+#include <stdlib.h>
 
 #include "variable_generic.h"
 
@@ -80,7 +80,7 @@ VariableValue::set(const torrent::Bencode& arg) {
 
   case torrent::Bencode::TYPE_STRING:
     first = arg.as_string().c_str();
-    value = std::strtoll(first, &last, 0);
+    value = strtoll(first, &last, 0);
 
     if (last == first || *last != '\0')
       throw torrent::input_error("Could not convert string to value.");
