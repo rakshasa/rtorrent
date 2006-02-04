@@ -34,6 +34,12 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
+// A simple, and not guaranteed atomic, lockfile implementation. It
+// saves the hostname and pid in the lock file, which may be accessed
+// by Lockfile::locked_by(). If the path is an empty string then no
+// lockfile will be created when Lockfile::try_lock() is called, still
+// it will set the locked state of the Lockfile instance.
+
 #ifndef RTORRENT_UTILS_LOCKFILE_H
 #define RTORRENT_UTILS_LOCKFILE_H
 
@@ -43,8 +49,9 @@ namespace utils {
 
 class Lockfile {
 public:
+  Lockfile() : m_locked(false) {}
   
-  bool                is_locked() const                 { return !m_id.empty(); }
+  bool                is_locked() const                 { return m_locked; }
 
   // If the path is empty no lock file will be created, although
   // is_locked() will return true.
@@ -54,9 +61,11 @@ public:
   const std::string&  path() const                      { return m_path; }
   void                set_path(const std::string& path) { m_path = path; }
 
+  std::string         locked_by() const;
+
 private:
   std::string         m_path;
-  std::string         m_id;
+  bool                m_locked;
 };
 
 }

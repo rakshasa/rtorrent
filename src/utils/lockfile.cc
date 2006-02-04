@@ -36,9 +36,12 @@
 
 #include "config.h"
 
+#include <cctype>
+#include <cstring>
+#include <fcntl.h>
+#include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <fcntl.h>
 
 #include "lockfile.h"
 
@@ -47,29 +50,60 @@ namespace utils {
 bool
 Lockfile::try_lock() {
   if (m_path.empty()) {
-    m_id = "foo";
+    m_locked = true;
     return true;
   }
 
   // Just do a simple locking for now that isn't safe for network
   // devices.
-  int fd = ::open(m_path.c_str(), O_RDWR | O_CREAT | O_EXCL);
+  int fd = ::open(m_path.c_str(), O_RDWR | O_CREAT | O_EXCL, 0444);
 
   if (fd == -1)
     return false;
 
-  m_id = "foo";
+  char buf[256];
+  int pos = ::gethostname(buf, 255);
+
+  if (pos == 0) {
+    ::snprintf(buf + std::strlen(buf), 255, ":+%i\n", ::getpid());
+    ::write(fd, buf, std::strlen(buf));
+  }
+
   ::close(fd);
 
+  m_locked = true;
   return true;
 }
 
 bool
 Lockfile::unlock() {
+  m_locked = false;
+
   if (m_path.empty())
     return true;
   else
     return ::unlink(m_path.c_str()) != -1;
+}
+
+struct lockfile_valid_char {
+  bool operator () (char c) {
+    return !std::isgraph(c);
+  }
+};
+
+std::string
+Lockfile::locked_by() const {
+  int fd = ::open(m_path.c_str(), O_RDONLY);
+  
+  if (fd < 0)
+    return "<error>";
+
+  char buf[256];
+  int pos = read(fd, buf, 255);
+
+  ::close(fd);
+
+  return std::string(buf, std::find_if(buf, buf + std::max(pos, 0), lockfile_valid_char()));
 }
 
 }

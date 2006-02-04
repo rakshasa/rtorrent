@@ -47,6 +47,7 @@
 #include <torrent/exceptions.h>
 #include <torrent/torrent.h>
 
+#include "core/download.h"
 #include "core/manager.h"
 #include "ui/root.h"
 #include "utils/directory.h"
@@ -159,7 +160,7 @@ initialize_option_handler(Control* c) {
   variables->insert("use_udp_trackers",      new utils::VariableAny("yes"));
   variables->insert("port_random",           new utils::VariableAny("yes"));
   variables->insert("session",               new utils::VariableSlotString<>(NULL, rak::mem_fn(&control->core()->download_store(), &core::DownloadStore::set_path)));
-  variables->insert("session_lock",          new utils::VariableAny("yes"));
+  variables->insert("session_lock",          new utils::VariableAny("no"));
   variables->insert("session_on_completion", new utils::VariableAny("yes"));
 
   variables->insert("connection_leech",    new utils::VariableAny("leech"));

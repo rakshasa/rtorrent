@@ -124,7 +124,7 @@ DownloadList::activate() {
 
   m_control->input()->push_front(m_bindings);
 
-  m_control->core()->download_list().slot_map_erase().insert("0_download_list", sigc::mem_fun(this, &DownloadList::receive_download_erased));
+  m_control->core()->download_list().slot_map_erase()["0_download_list"] = sigc::mem_fun(this, &DownloadList::receive_download_erased);
 
   activate_display(DISPLAY_DOWNLOAD_LIST);
 }

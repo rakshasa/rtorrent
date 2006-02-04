@@ -67,11 +67,6 @@ connect_signal_network_log(Download* d, torrent::Download::SlotString s) {
   d->get_download().signal_network_log(s);
 }
 
-// static void
-// connect_signal_tracker_log(Download* d, torrent::Download::SlotString s) {
-//   d->get_download().signal_tracker_failed(s);
-// }
-
 static void
 connect_signal_storage_log(Download* d, torrent::Download::SlotString s) {
   d->get_download().signal_storage_error(s);

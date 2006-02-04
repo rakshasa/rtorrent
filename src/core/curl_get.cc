@@ -152,9 +152,7 @@ CurlGet::perform(CURLMsg* msg) {
   else
     m_signalFailed.emit(curl_easy_strerror(msg->data.result));
 
-  if (m_handle != NULL)
-    throw std::logic_error("CurlGet::perform finished but the object wasn't closed.");
-
+  // Do nothing below after emitting the signals.
 }
 
 }

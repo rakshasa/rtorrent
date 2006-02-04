@@ -49,6 +49,7 @@
 #include "globals.h"
 #include "manager.h"
 
+#include "download.h"
 #include "download_factory.h"
 
 namespace core {

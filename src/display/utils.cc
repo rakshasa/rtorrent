@@ -164,12 +164,20 @@ print_download_info(char* first, char* last, core::Download* d) {
 		       (double)d->get_download().bytes_done() / (double)(1 << 20),
 		       (double)d->get_download().bytes_total() / (double)(1 << 20));
   
-  first = print_buffer(first, last, " Rate: %5.1f / %5.1f KB Uploaded: %7.1f MB ",
+  first = print_buffer(first, last, " Rate: %5.1f / %5.1f KB Uploaded: %7.1f MB",
 		     (double)d->get_download().up_rate()->rate() / (1 << 10),
 		     (double)d->get_download().down_rate()->rate() / (1 << 10),
 		     (double)d->get_download().up_rate()->total() / (1 << 20));
 
-  first = print_download_time_left(first, last, d);
+  if (d->get_download().is_active() && !d->is_done()) {
+    first = print_buffer(first, last, " ");
+    first = print_download_percentage_done(first, last, d);
+
+    first = print_buffer(first, last, " ");
+    first = print_download_time_left(first, last, d);
+  } else {
+    first = print_buffer(first, last, "               ");
+  }
 
   if (d->priority() != 2)
     first = print_buffer(first, last, " [%s]", core::Download::priority_to_string(d->priority()));
@@ -210,15 +218,23 @@ print_download_status(char* first, char* last, core::Download* d) {
 
 char*
 print_download_time_left(char* first, char* last, core::Download* d) {
-  uint32_t rate;
+  uint32_t rate = d->get_download().down_rate()->rate();
 
-  if (!d->get_download().is_active() ||
-      (rate = d->get_download().down_rate()->rate()) < 512)
+  if (rate < 512)
     return print_buffer(first, last, "--:--:--");
   
   time_t remaining = (d->get_download().bytes_total() - d->get_download().bytes_done()) / (rate & ~(uint32_t)(512 - 1));
 
   return print_ddhhmm(first, last, remaining);
+}
+
+char*
+print_download_percentage_done(char* first, char* last, core::Download* d) {
+  if (!d->is_open() || d->is_done())
+    //return print_buffer(first, last, "[--%%]");
+    return print_buffer(first, last, "     ");
+  else
+    return print_buffer(first, last, "[%2u%%]", (d->get_download().chunks_done() * 100) / d->get_download().chunks_total());
 }
 
 char*

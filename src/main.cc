@@ -250,22 +250,6 @@ do_panic(int signum) {
 }
 
 void
-receive_tracker_dump(std::istream* s) {
-  std::stringstream filename;
-  filename << "./tracker_dump." << rak::timer::current().seconds();
-
-  std::fstream out(filename.str().c_str(), std::ios::out | std::ios::trunc);
-
-  if (!out.is_open())
-    return;
-  
-  s->seekg(0);
-
-  std::copy(std::istream_iterator<char>(*s), std::istream_iterator<char>(),
-	    std::ostream_iterator<char>(out));
-}
-
-void
 print_help() {
   std::cout << "Rakshasa's BitTorrent client version " VERSION "." << std::endl;
   std::cout << std::endl;

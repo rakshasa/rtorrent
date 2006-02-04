@@ -97,14 +97,14 @@ Download::~Download() {
 
 void
 Download::start() {
-  if (is_done()) {
+  if (is_done())
     m_download.set_connection_type(string_to_connection_type(m_variables.get("connection_seed").as_string()));
-    torrent::download_set_priority(m_download, 2);
-  } else {
+  else
     m_download.set_connection_type(string_to_connection_type(m_variables.get("connection_leech").as_string()));
-    torrent::download_set_priority(m_download, 4);
-  }
 
+  // Update the priority to ensure it has the correct
+  // seeding/unfinished modifiers.
+  set_priority(priority());
   m_download.start();
 }
 
@@ -128,7 +128,12 @@ Download::set_priority(uint32_t p) {
   if (p >= 4)
     throw torrent::input_error("Priority out of range.");
 
-  torrent::download_set_priority(m_download, p * p);
+  // Seeding torrents get half the priority of unfinished torrents.
+  if (!is_done())
+    torrent::download_set_priority(m_download, p * p * 2);
+  else
+    torrent::download_set_priority(m_download, p * p);
+
   get_bencode().get_key("rtorrent").insert_key("priority", (int64_t)p);
 }
 

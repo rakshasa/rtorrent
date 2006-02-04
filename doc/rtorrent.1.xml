@@ -140,6 +140,21 @@
 	</varlistentry>
 
 	<varlistentry>
+	  <term>^O</term>
+	  <listitem><para>
+            Change the destination directory of the download. The
+            torrent must be closed.
+          </para></listitem>
+	</varlistentry>
+
+	<varlistentry>
+	  <term>+ | -</term>
+	  <listitem><para>
+            Change the priority of the download.
+          </para></listitem>
+	</varlistentry>
+
+	<varlistentry>
 	  <term>backspace</term>
 	  <listitem><para>
             Add torrent using an URL or file path. Use
@@ -152,6 +167,13 @@
 	  <term>l</term>
 	  <listitem><para>
             View log. Exit by pressing the space-bar.
+          </para></listitem>
+	</varlistentry>
+
+	<varlistentry>
+	  <term>^P</term>
+	  <listitem><para>
+            Call commands or change settings.
           </para></listitem>
 	</varlistentry>
 
@@ -424,6 +446,11 @@ seconds, starting from <emphasis>start</emphasis>. An
 <emphasis>start</emphasis> of zero calls it immediately. Currently
 <emphasis>command</emphasis> is forwarded to the option handler.
 
+<emphasis>start</emphasis> and <emphasis>interval</emphasis> may
+optionally use a time format, <emphasis>dd:hh:mm:ss</emphasis>. F.ex to
+start a task every day at <emphasis>18:00</emphasis>, use
+<emphasis>18:00:00</emphasis>.
+
         </para></listitem>
       </varlistentry>
 
@@ -455,9 +482,8 @@ to the filename provided.
         <term>remove_untied =</term>
         <listitem><para>
 
-Stop or remove the torrents that are tied to filenames that has been
-deleted, the association is then cleared. Don't use
-<emphasis>remove_untied</emphasis> as it crashes the client.
+Stop or remove the torrents that are tied to filenames that have been
+deleted, the association is then cleared.
 
         </para></listitem>
       </varlistentry>
@@ -530,23 +556,34 @@ deleted, the association is then cleared. Don't use
         </para></listitem>
       </varlistentry>
 
-<!--       <varlistentry> -->
-<!--         <term>throttle_interval = <replaceable>ms</replaceable></term> -->
-<!--         <listitem><para> -->
-<!--           Interval between throttle ticks in milli-seconds, must be -->
-<!--           between <emphasis>1-5000</emphasis> and defaults to -->
-<!--           <emphasis>1000</emphasis>. Shorter intervals will cause less -->
-<!--           bandwidth usage spikes while requiring more CPU resources. -->
-<!--         </para></listitem> -->
-<!--       </varlistentry> -->
+      <varlistentry>
+        <term>working_directory = <replaceable>directory</replaceable></term>
+        <listitem><para>
 
-<!--       <varlistentry> -->
-<!--         <term>tracker_dump = <replaceable>yes | no</replaceable></term> -->
-<!--         <listitem><para> -->
-<!--           Dump data received from trackers to the files -->
-<!--           "./tracker_dump.*". -->
-<!--         </para></listitem> -->
-<!--       </varlistentry> -->
+Changes the working directory of the process using
+<emphasis>chdir</emphasis>.
+
+        </para></listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>session_on_completion = <replaceable>yes</replaceable></term>
+        <listitem><para>
+
+Controls whetever the session torrent is updated when a torrent
+finishes. By default on.
+
+        </para></listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>session_lock = <replaceable>yes</replaceable></term>
+        <listitem><para>
+
+Controls whetever a lock file is created in the session directory.
+
+        </para></listitem>
+      </varlistentry>
 
     </variablelist>
 

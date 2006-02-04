@@ -39,8 +39,9 @@
 
 #include <iosfwd>
 #include <list>
-
-#include "download_slot_map.h"
+#include <map>
+#include <string>
+#include <sigc++/slot.h>
 
 namespace core {
 
@@ -52,7 +53,8 @@ class Download;
 
 class DownloadList : private std::list<Download*> {
 public:
-  typedef std::list<Download*> Base;
+  typedef std::list<Download*>                                 Base;
+  typedef std::map<std::string, sigc::slot1<void, Download*> > SlotMap;
 
   using Base::iterator;
   using Base::const_iterator;
@@ -80,28 +82,28 @@ public:
   void                start(Download* d);
   void                stop(Download* d);
 
-  DownloadSlotMap&    slot_map_insert()     { return m_slotMapInsert; }
-  DownloadSlotMap&    slot_map_erase()      { return m_slotMapErase; }
-  DownloadSlotMap&    slot_map_open()       { return m_slotMapOpen; }
-  DownloadSlotMap&    slot_map_close()      { return m_slotMapClose; }
-  DownloadSlotMap&    slot_map_start()      { return m_slotMapStart; }
-  DownloadSlotMap&    slot_map_stop()       { return m_slotMapStop; }
+  SlotMap&            slot_map_insert()     { return m_slotMapInsert; }
+  SlotMap&            slot_map_erase()      { return m_slotMapErase; }
+  SlotMap&            slot_map_open()       { return m_slotMapOpen; }
+  SlotMap&            slot_map_close()      { return m_slotMapClose; }
+  SlotMap&            slot_map_start()      { return m_slotMapStart; }
+  SlotMap&            slot_map_stop()       { return m_slotMapStop; }
 
-  DownloadSlotMap&    slot_map_finished()   { return m_slotMapFinished; }
+  SlotMap&            slot_map_finished()   { return m_slotMapFinished; }
 
 private:
   void                clear();
 
   void                finished(Download* d);
 
-  DownloadSlotMap     m_slotMapInsert;
-  DownloadSlotMap     m_slotMapErase;
-  DownloadSlotMap     m_slotMapOpen;
-  DownloadSlotMap     m_slotMapClose;
-  DownloadSlotMap     m_slotMapStart;
-  DownloadSlotMap     m_slotMapStop;
+  SlotMap             m_slotMapInsert;
+  SlotMap             m_slotMapErase;
+  SlotMap             m_slotMapOpen;
+  SlotMap             m_slotMapClose;
+  SlotMap             m_slotMapStart;
+  SlotMap             m_slotMapStop;
 
-  DownloadSlotMap     m_slotMapFinished;
+  SlotMap             m_slotMapFinished;
 };
 
 }

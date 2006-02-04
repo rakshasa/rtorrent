@@ -47,6 +47,16 @@
 
 namespace core {
 
+struct download_list_call {
+  download_list_call(Download* d) : m_download(d) {}
+
+  void operator () (const DownloadList::SlotMap::value_type& s) {
+    s.second(m_download);
+  }
+
+  Download* m_download;
+};    
+
 DownloadList::iterator
 DownloadList::insert(std::istream* str) {
   torrent::Download d = torrent::download_add(str);
@@ -54,14 +64,14 @@ DownloadList::insert(std::istream* str) {
   iterator itr = Base::insert(end(), new Download(d));
   (*itr)->get_download().signal_download_done(sigc::bind(sigc::mem_fun(*this, &DownloadList::finished), *itr));
 
-  m_slotMapInsert.for_each(*itr);
+  std::for_each(m_slotMapInsert.begin(), m_slotMapInsert.end(), download_list_call(*itr));
 
   return itr;
 }
 
 DownloadList::iterator
 DownloadList::erase(iterator itr) {
-  m_slotMapErase.for_each(*itr);
+  std::for_each(m_slotMapErase.begin(), m_slotMapErase.end(), download_list_call(*itr));
 
   torrent::download_remove((*itr)->get_download());
   delete *itr;
@@ -74,7 +84,7 @@ DownloadList::open(Download* d) {
   if (d->get_download().is_open())
     return;
 
-  m_slotMapOpen.for_each(d);
+  std::for_each(m_slotMapOpen.begin(), m_slotMapOpen.end(), download_list_call(d));
 }
 
 void
@@ -83,7 +93,7 @@ DownloadList::close(Download* d) {
     return;
 
   stop(d);
-  m_slotMapClose.for_each(d);
+  std::for_each(m_slotMapClose.begin(), m_slotMapClose.end(), download_list_call(d));
 }
 
 void
@@ -93,7 +103,7 @@ DownloadList::start(Download* d) {
     return;
 
   open(d);
-  m_slotMapStart.for_each(d);
+  std::for_each(m_slotMapStart.begin(), m_slotMapStart.end(), download_list_call(d));
 }
 
 void
@@ -101,7 +111,7 @@ DownloadList::stop(Download* d) {
   if (!d->get_download().is_active())
     return;
 
-  m_slotMapStop.for_each(d);
+  std::for_each(m_slotMapStop.begin(), m_slotMapStop.end(), download_list_call(d));
 }
 
 void
@@ -113,7 +123,7 @@ DownloadList::clear() {
 
 void
 DownloadList::finished(Download* d) {
-  m_slotMapFinished.for_each(d);
+  std::for_each(m_slotMapFinished.begin(), m_slotMapFinished.end(), download_list_call(d));
 }
 
 }
