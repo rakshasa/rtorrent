@@ -211,7 +211,7 @@ Download::priority_to_string(uint32_t p) {
 }
 
 void
-Download::receive_chunk_failed(uint32_t idx) {
+Download::receive_chunk_failed(__UNUSED uint32_t idx) {
   m_chunksFailed++;
 }
 

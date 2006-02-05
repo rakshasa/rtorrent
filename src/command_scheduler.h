@@ -39,6 +39,7 @@
 
 #include <vector>
 #include <string>
+#include <inttypes.h>
 #include <rak/functional_fun.h>
 
 class CommandSchedulerItem;

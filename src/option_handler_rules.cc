@@ -71,12 +71,12 @@ apply_working_directory(const std::string& path) {
 }
 
 void
-apply_hash_read_ahead(Control* m, int arg) {
+apply_hash_read_ahead(__UNUSED Control* m, int arg) {
   torrent::set_hash_read_ahead(arg << 20);
 }
 
 void
-apply_hash_interval(Control* m, int arg) {
+apply_hash_interval(__UNUSED Control* m, int arg) {
   torrent::set_hash_interval(arg * 1000);
 }
 
@@ -107,7 +107,7 @@ apply_load_start(Control* m, const std::string& arg) {
 }
 
 void
-apply_stop_untied(Control* m, const std::string& arg) {
+apply_stop_untied(Control* m, __UNUSED const std::string& arg) {
   core::Manager::DListItr itr = m->core()->download_list().begin();
 
   while ((itr = std::find_if(itr, m->core()->download_list().end(),
@@ -126,7 +126,7 @@ apply_stop_untied(Control* m, const std::string& arg) {
 }
 
 void
-apply_remove_untied(Control* m, const std::string& arg) {
+apply_remove_untied(Control* m, __UNUSED const std::string& arg) {
   core::Manager::DListItr itr = m->core()->download_list().begin();
 
   while ((itr = std::find_if(itr, m->core()->download_list().end(),
@@ -147,7 +147,7 @@ apply_remove_untied(Control* m, const std::string& arg) {
 }
 
 void
-apply_encoding_list(Control* m, const std::string& arg) {
+apply_encoding_list(__UNUSED Control* m, const std::string& arg) {
   torrent::encoding_list()->push_back(arg);
 }
 

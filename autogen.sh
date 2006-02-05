@@ -6,7 +6,7 @@ echo aclocal...
     exit 1
 }
 
-aclocal -I . ${ACLOCAL_FLAGS}
+aclocal -I . -I ./scripts ${ACLOCAL_FLAGS}
 
 echo autoheader...
 (autoheader --version) < /dev/null > /dev/null 2>&1 || {

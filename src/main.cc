@@ -78,7 +78,7 @@ void do_panic(int signum);
 void print_help();
 
 int
-parse_options(Control* c, utils::VariableMap* optionHandler, int argc, char** argv) {
+parse_options(__UNUSED Control* c, utils::VariableMap* optionHandler, int argc, char** argv) {
   try {
     OptionParser optionParser;
 

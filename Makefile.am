@@ -16,4 +16,7 @@ EXTRA_DIST= \
 	rak/timer.h \
 	rak/unordered_vector.h \
 	scripts/checks.m4 \
-	scripts/common.m4
+	scripts/common.m4 \
+	scripts/attributes.m4
+
+ACLOCAL_AMFLAGS = -I scripts
