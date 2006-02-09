@@ -44,14 +44,18 @@
 #define RTORRENT_UTILS_LOCKFILE_H
 
 #include <string>
+#include <sys/types.h>
 
 namespace utils {
 
 class Lockfile {
 public:
+  typedef std::pair<std::string, pid_t> process_type;
+
   Lockfile() : m_locked(false) {}
   
   bool                is_locked() const                 { return m_locked; }
+  bool                is_stale();
 
   // If the path is empty no lock file will be created, although
   // is_locked() will return true.
@@ -61,7 +65,8 @@ public:
   const std::string&  path() const                      { return m_path; }
   void                set_path(const std::string& path) { m_path = path; }
 
-  std::string         locked_by() const;
+  std::string         locked_by_as_string() const;
+  process_type        locked_by() const;
 
 private:
   std::string         m_path;

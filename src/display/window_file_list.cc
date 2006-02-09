@@ -69,7 +69,7 @@ hack_wstring(const std::string& src) {
 
 void
 WindowFileList::redraw() {
-  m_slotSchedule(this, (cachedTime + 10 * 1000000).round_seconds());
+  m_slotSchedule(this, (cachedTime + rak::timer::from_seconds(10)).round_seconds());
   m_canvas->erase();
 
   if (m_download->get_download().size_file_entries() == 0 ||

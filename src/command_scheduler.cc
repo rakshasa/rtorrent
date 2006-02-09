@@ -133,7 +133,7 @@ CommandScheduler::parse(const std::string& arg) {
   item->set_command(rak::trim(std::string(command)));
   item->set_interval(interval);
 
-  item->enable((cachedTime + rak::timer(absolute) * 1000000).round_seconds());
+  item->enable((cachedTime + rak::timer::from_seconds(absolute)).round_seconds());
 }
 
 uint32_t

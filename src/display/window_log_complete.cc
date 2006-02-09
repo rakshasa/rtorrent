@@ -58,7 +58,7 @@ WindowLogComplete::~WindowLogComplete() {
 
 WindowLogComplete::iterator
 WindowLogComplete::find_older() {
-  return m_log->find_older(cachedTime - 60*1000000);
+  return m_log->find_older(cachedTime - rak::timer::from_seconds(60));
 }
 
 void

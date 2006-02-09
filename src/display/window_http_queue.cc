@@ -58,7 +58,7 @@ WindowHttpQueue::WindowHttpQueue(core::HttpQueue* q) :
 
 void
 WindowHttpQueue::redraw() {
-  m_slotSchedule(this, (cachedTime + 1000000).round_seconds());
+  m_slotSchedule(this, (cachedTime + rak::timer::from_seconds(1)).round_seconds());
 
   cleanup_list();
 
@@ -147,7 +147,7 @@ WindowHttpQueue::receive_erase(core::CurlGet* h) {
     throw std::logic_error("WindowHttpQueue::receive_erase(...) tried to remove an object we don't have");
 
   itr->m_http = NULL;
-  itr->m_timer = cachedTime + 10000000;
+  itr->m_timer = cachedTime + rak::timer::from_seconds(1);
 
   mark_dirty();
 }

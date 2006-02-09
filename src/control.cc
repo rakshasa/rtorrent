@@ -128,7 +128,7 @@ Control::handle_shutdown() {
     m_core->shutdown(false);
 
     if (!m_taskShutdown.is_queued())
-      priority_queue_insert(&taskScheduler, &m_taskShutdown, cachedTime + 5 * 1000000);
+      priority_queue_insert(&taskScheduler, &m_taskShutdown, cachedTime + rak::timer::from_seconds(5));
 
   } else {
     m_core->shutdown(true);

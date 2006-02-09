@@ -359,7 +359,7 @@ void
 DownloadList::task_update() {
   m_windowLog->receive_update();
 
-  priority_queue_insert(&taskScheduler, &m_taskUpdate, (cachedTime + 1000000).round_seconds());
+  priority_queue_insert(&taskScheduler, &m_taskUpdate, (cachedTime + rak::timer::from_seconds(1)).round_seconds());
 }
 
 void

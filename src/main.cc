@@ -133,7 +133,7 @@ load_arg_torrents(Control* c, char** first, char** last) {
 rak::timer
 client_next_timeout() {
   if (taskScheduler.empty())
-    return 60 * 1000000;
+    return rak::timer::from_seconds(60);
   else if (taskScheduler.top()->time() <= cachedTime)
     return 0;
   else

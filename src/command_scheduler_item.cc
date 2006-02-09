@@ -77,7 +77,7 @@ CommandSchedulerItem::next_time_scheduled() const {
 
   // This should be done in a non-looping manner.
   do {
-    next += rak::timer(m_interval) * 1000000;
+    next += rak::timer::from_seconds(m_interval);
   } while (next <= cachedTime.round_seconds());
 
   return next;
