@@ -9,6 +9,7 @@ EXTRA_DIST= \
 	rak/file_stat.h \
 	rak/functional.h \
 	rak/functional_fun.h \
+	rak/path.h \
 	rak/priority_queue.h \
 	rak/priority_queue_default.h \
 	rak/regex.h \

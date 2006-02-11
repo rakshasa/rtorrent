@@ -24,8 +24,6 @@ rtorrent_SOURCES = \
 	globals.cc \
 	globals.h \
 	main.cc \
-	option_file.cc \
-	option_file.h \
 	option_handler_rules.cc \
 	option_handler_rules.h \
 	option_parser.cc \

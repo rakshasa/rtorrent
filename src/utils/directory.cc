@@ -40,6 +40,7 @@
 #include <functional>
 #include <stdexcept>
 #include <dirent.h>
+#include <rak/path.h>
 
 #include "directory.h"
 
@@ -50,7 +51,7 @@ Directory::is_valid() const {
   if (m_path.empty())
     return false;
 
-  DIR* d = opendir(m_path.c_str());
+  DIR* d = opendir(rak::path_expand(m_path).c_str());
   closedir(d);
 
   return d;
@@ -61,7 +62,7 @@ Directory::update(bool hideDot) {
   if (m_path.empty())
     throw std::logic_error("Directory::update() tried to open an empty path");
 
-  DIR* d = opendir(m_path.c_str());
+  DIR* d = opendir(rak::path_expand(m_path).c_str());
 
   if (d == NULL)
     return false;

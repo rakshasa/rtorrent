@@ -39,6 +39,7 @@
 #include <fstream>
 #include <sstream>
 #include <stdexcept>
+#include <rak/path.h>
 #include <torrent/bencode.h>
 #include <torrent/exceptions.h>
 
@@ -108,7 +109,7 @@ DownloadFactory::receive_load() {
     m_variables.set("tied_to_file", (int64_t)false);
 
   } else {
-    m_stream = new std::fstream(m_uri.c_str(), std::ios::in);
+    m_stream = new std::fstream(rak::path_expand(m_uri).c_str(), std::ios::in);
 
     if (m_stream->good())
       receive_loaded();

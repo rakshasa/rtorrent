@@ -36,9 +36,12 @@
 
 #include "config.h"
 
-#include <cctype>
 #include <algorithm>
+#include <cstdio>
+#include <cctype>
+#include <fstream>
 #include <rak/functional.h>
+#include <rak/path.h>
 #include <torrent/exceptions.h>
 #include <torrent/bencode.h>
 
@@ -83,6 +86,12 @@ VariableMap::set(const std::string& key, const mapped_type& arg) {
   itr->second->set(arg);
 }
 
+struct variable_map_is_space : std::unary_function<char, bool> {
+  bool operator () (char c) const {
+    return std::isspace(c);
+  }
+};
+
 std::string::const_iterator
 parse_name(std::string::const_iterator first, std::string::const_iterator last, std::string* dest) {
   if (first == last || !std::isalpha(*first))
@@ -109,7 +118,7 @@ parse_unknown(std::string::const_iterator first, std::string::const_iterator las
 
   } else {
     // Add rak::or and check for ','.
-    std::string::const_iterator next = std::find_if(first, last, std::ptr_fun(&std::isspace));
+    std::string::const_iterator next = std::find_if(first, last, variable_map_is_space());
 
     *dest = std::string(first, next);
     return next;
@@ -118,13 +127,13 @@ parse_unknown(std::string::const_iterator first, std::string::const_iterator las
 
 std::string::const_iterator
 parse_args(std::string::const_iterator first, std::string::const_iterator last, VariableMap::mapped_type::List* dest) {
-  first = std::find_if(first, last, std::not1(std::ptr_fun(&std::isspace)));
+  first = std::find_if(first, last, std::not1(variable_map_is_space()));
 
   while (first != last) {
     dest->push_back(VariableMap::mapped_type());
 
     first = parse_unknown(first, last, &dest->back());
-    first = std::find_if(first, last, std::not1(std::ptr_fun(&std::isspace)));
+    first = std::find_if(first, last, std::not1(variable_map_is_space()));
 
     if (first != last && *first != ',')
       throw torrent::input_error("A string with blanks must be quoted.");
@@ -136,7 +145,7 @@ parse_args(std::string::const_iterator first, std::string::const_iterator last, 
 void
 VariableMap::process_command(const std::string& command) {
   std::string::const_iterator pos = command.begin();
-  pos = std::find_if(pos, command.end(), std::not1(std::ptr_fun(&std::isspace)));
+  pos = std::find_if(pos, command.end(), std::not1(variable_map_is_space()));
 
   if (pos == command.end() || *pos == '#')
     return;
@@ -144,7 +153,7 @@ VariableMap::process_command(const std::string& command) {
   // Replace with parse_unknown?
   std::string key;
   pos = parse_name(pos, command.end(), &key);
-  pos = std::find_if(pos, command.end(), std::not1(std::ptr_fun(&std::isspace)));
+  pos = std::find_if(pos, command.end(), std::not1(variable_map_is_space()));
   
   if (pos == command.end() || *pos != '=')
     throw torrent::input_error("Could not find '='.");
@@ -160,6 +169,44 @@ VariableMap::process_command(const std::string& command) {
 
   else
     set(key, args);
+}
+
+bool
+VariableMap::process_file(const std::string& path) {
+  std::fstream file(rak::path_expand(path).c_str(), std::ios::in);
+
+  if (!file.good())
+    return false;
+
+  int lineNumber = 0;
+  char buffer[max_size_line];
+
+  try {
+
+    while (file.getline(buffer, max_size_line).good()) {
+      lineNumber++;
+      // Would be nice to make this zero-copy.
+      process_command(buffer);
+    }
+
+  } catch (torrent::input_error& e) {
+    snprintf(buffer, max_size_line, "Error in option file: %s:%i: %s", path.c_str(), lineNumber, e.what());
+
+    throw torrent::input_error(buffer);
+  }
+
+  return true;
+}
+
+void
+VariableMap::process_file_throw(const std::string& path) {
+  if (!process_file(path))
+    throw torrent::input_error("Could not open option file: " + path);
+}
+
+void
+VariableMap::process_file_nothrow(const std::string& path) {
+  process_file(path);
 }
 
 }

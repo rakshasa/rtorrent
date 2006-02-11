@@ -68,7 +68,6 @@
 #include "control.h"
 #include "globals.h"
 #include "signal_handler.h"
-#include "option_file.h"
 #include "option_handler_rules.h"
 #include "option_parser.h"
 #include "command_scheduler.h"
@@ -166,10 +165,8 @@ main(int argc, char** argv) {
 
     control->core()->initialize_first();
 
-    OptionFile optionFile;
-    optionFile.slot_option(sigc::mem_fun(control->variables(), &utils::VariableMap::process_command));
-
-    if (getenv("HOME") && !optionFile.process_file(getenv("HOME") + std::string("/.rtorrent.rc")))
+    // Move env and go through "try_import".
+    if (!control->variables()->process_file("~/.rtorrent.rc"))
       control->core()->get_log_important().push_front("Could not load \"~/.rtorrent.rc\".");
 
     int firstArg = parse_options(control, control->variables(), argc, argv);

@@ -1,4 +1,4 @@
-// rTorrent - BitTorrent client
+// rak - Rakshasa's toolbox
 // Copyright (C) 2005-2006, Jari Sundell
 //
 // This program is free software; you can redistribute it and/or modify
@@ -34,31 +34,30 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef RTORRENT_OPTION_FILE_H
-#define RTORRENT_OPTION_FILE_H
+// Various functions for manipulating file paths. Also consider making
+// a directory iterator.
 
+#ifndef RAK_PATH_H
+#define RAK_PATH_H
+
+#include <cstdlib>
 #include <string>
-#include <sigc++/slot.h>
 
-class OptionFile {
-public:
-  static const int max_size_key = 128;
-  static const int max_size_opt = 1024;
-  static const int max_size_line = max_size_key + max_size_opt + 64;
+namespace rak {
 
-  typedef sigc::slot1<void, const std::string&> SlotStringPair;
+inline std::string
+path_expand(const std::string& path) {
+  if (path.empty() || path[0] != '~')
+    return path;
+
+  char* home = std::getenv("HOME");
+
+  if (home == NULL)
+    return path;
   
-  // Returns false when the file doesn't exist or cannot be opened.
-  bool                process_file(const std::string& filename);
+  return home + path.substr(1);
+}
 
-  void                slot_option(const SlotStringPair& s) { m_slotOption = s; }
-
-private:
-  void                parse_line(const char* line);
-
-  static char*        fill_buffer(int fd, char* buffer, char* first, char* last);
-
-  SlotStringPair      m_slotOption;
-};
+}
 
 #endif

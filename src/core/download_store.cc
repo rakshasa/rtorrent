@@ -41,6 +41,7 @@
 #include <fstream>
 #include <stdio.h>
 #include <unistd.h>
+#include <rak/path.h>
 #include <rak/string_manip.h>
 #include <torrent/bencode.h>
 #include <torrent/exceptions.h>
@@ -82,9 +83,9 @@ DownloadStore::set_path(const std::string& path) {
     throw torrent::input_error("Tried to change session directory while it is enabled.");
 
   if (!path.empty() && *path.rbegin() != '/')
-    m_path = path + '/';
+    m_path = rak::path_expand(path + '/');
   else
-    m_path = path;
+    m_path = rak::path_expand(path);
 }
 
 void

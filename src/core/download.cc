@@ -40,6 +40,7 @@
 #include <sigc++/bind.h>
 #include <sigc++/hide.h>
 #include <sigc++/signal.h>
+#include <rak/path.h>
 #include <torrent/exceptions.h>
 #include <torrent/torrent.h>
 
@@ -217,15 +218,19 @@ Download::receive_chunk_failed(__UNUSED uint32_t idx) {
 
 // Clean up.
 void
-Download::set_root_directory(const std::string& d) {
-  if (d.empty())
+Download::set_root_directory(const std::string& path) {
+  if (path.empty()) {
     m_download.set_root_dir("./" + (m_download.size_file_entries() > 1 ? m_download.name() : std::string()));
-  else
-    m_download.set_root_dir(d +
-			    (*d.rbegin() != '/' ? "/" : "") +
-			    (m_download.size_file_entries() > 1 ? m_download.name() : ""));
 
-  m_download.bencode().get_key("rtorrent").insert_key("directory", d);
+  } else {
+    std::string fullPath = rak::path_expand(path);
+
+    m_download.set_root_dir(fullPath +
+			    (*fullPath.rbegin() != '/' ? "/" : "") +
+			    (m_download.size_file_entries() > 1 ? m_download.name() : ""));
+  }
+
+  m_download.bencode().get_key("rtorrent").insert_key("directory", path);
 }
 
 }

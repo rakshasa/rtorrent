@@ -104,7 +104,7 @@ private:
   const char*        connection_current() const                    { return connection_type_to_string(m_download.connection_type()); }
   void               set_connection_current(const std::string& t)  { return m_download.set_connection_type(string_to_connection_type(t.c_str())); }
 
-  void               set_root_directory(const std::string& d);
+  void               set_root_directory(const std::string& path);
 
   torrent::Download  m_download;
 

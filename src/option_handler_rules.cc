@@ -42,6 +42,7 @@
 #include <sys/stat.h>
 #include <rak/file_stat.h>
 #include <rak/functional.h>
+#include <rak/path.h>
 #include <rak/string_manip.h>
 #include <torrent/bencode.h>
 #include <torrent/exceptions.h>
@@ -116,7 +117,7 @@ apply_stop_untied(Control* m, __UNUSED const std::string& arg) {
 	 != m->core()->download_list().end()) {
     rak::file_stat fs;
 
-    if (!fs.update((*itr)->variable_string("tied_to_file"))) {
+    if (!fs.update(rak::path_expand((*itr)->variable_string("tied_to_file")))) {
       (*itr)->variables()->set("tied_to_file", std::string());
       m->core()->stop(*itr);
     }
@@ -135,7 +136,7 @@ apply_remove_untied(Control* m, __UNUSED const std::string& arg) {
 	 != m->core()->download_list().end()) {
     rak::file_stat fs;
 
-    if (!fs.update((*itr)->variable_string("tied_to_file"))) {
+    if (!fs.update(rak::path_expand((*itr)->variable_string("tied_to_file")))) {
       (*itr)->variables()->set("tied_to_file", std::string());
       m->core()->stop(*itr);
       itr = m->core()->erase(itr);
@@ -183,6 +184,8 @@ initialize_option_handler(Control* c) {
   variables->insert("max_open_sockets",    new utils::VariableSlotValue<int, uint32_t>(NULL, rak::ptr_fn(&torrent::set_max_open_sockets), "%i"));
 
   variables->insert("print",               new utils::VariableSlotString<>(NULL, rak::mem_fn(control->core(), &core::Manager::push_log)));
+  variables->insert("import",              new utils::VariableSlotString<>(NULL, rak::mem_fn(control->variables(), &utils::VariableMap::process_file_throw)));
+  variables->insert("try_import",          new utils::VariableSlotString<>(NULL, rak::mem_fn(control->variables(), &utils::VariableMap::process_file_nothrow)));
 
   variables->insert("schedule",            new utils::VariableSlotString<>(NULL, rak::mem_fn<const std::string&>(c->command_scheduler(), &CommandScheduler::parse)));
   variables->insert("schedule_remove",     new utils::VariableSlotString<>(NULL, rak::mem_fn<const std::string&>(c->command_scheduler(), &CommandScheduler::erase)));

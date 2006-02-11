@@ -39,6 +39,7 @@
 
 #include <map>
 #include <string>
+#include <iosfwd>
 #include <torrent/bencode.h>
 
 namespace utils {
@@ -49,6 +50,10 @@ class VariableMap : public std::map<std::string, Variable*> {
 public:
   typedef std::map<std::string, Variable*> base_type;
   typedef torrent::Bencode                 mapped_type;
+
+  static const int max_size_key = 128;
+  static const int max_size_opt = 1024;
+  static const int max_size_line = max_size_key + max_size_opt + 64;
 
   using base_type::iterator;
   using base_type::value_type;
@@ -66,8 +71,12 @@ public:
   void                set(const std::string& key, const mapped_type& arg);
   void                set_string(const std::string& key, const std::string& arg) { set(key, mapped_type(arg)); }
 
-  // Temporary.
+  // Relocate.
   void                process_command(const std::string& command);
+  void                process_stream(std::istream* str);
+  bool                process_file(const std::string& path);
+  void                process_file_throw(const std::string& path);
+  void                process_file_nothrow(const std::string& path);
 
 private:
   VariableMap(const VariableMap&);
