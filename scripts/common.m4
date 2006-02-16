@@ -78,6 +78,7 @@ AC_DEFUN([TORRENT_MINCORE_SIGNEDNESS], [
       void f() { mincore((void*)0, 0, (unsigned char*)0); }
     ]],
     [
+      AC_DEFINE(USE_MINCORE, 1, Use mincore)
       AC_DEFINE(USE_MINCORE_UNSIGNED, 1, use unsigned char* in mincore)
       AC_MSG_RESULT(unsigned)
     ],
@@ -88,15 +89,32 @@ AC_DEFUN([TORRENT_MINCORE_SIGNEDNESS], [
           void f() { mincore((void*)0, 0, (char*)0); }
         ]],
         [
+          AC_DEFINE(USE_MINCORE, 1, Use mincore)
           AC_DEFINE(USE_MINCORE_UNSIGNED, 0, use char* in mincore)
           AC_MSG_RESULT(signed)
         ],
         [
-          AC_MSG_ERROR([mincore signedness test failed])
+          AC_MSG_RESULT(none)
       ])
   ])
 
   AC_LANG_POP(C++)
+])
+
+AC_DEFUN([TORRENT_CHECK_MADVISE], [
+  AC_MSG_CHECKING(for madvise)
+
+  AC_COMPILE_IFELSE(
+    [[#include <sys/types.h>
+          #include <sys/mman.h>
+          void f() { static char test[1024]; madvise((void *)test, sizeof(test), MADV_NORMAL); }
+    ]],
+    [
+      AC_MSG_RESULT(yes)
+      AC_DEFINE(USE_MADVISE, 1, Use madvise)
+    ], [
+      AC_MSG_RESULT(no)
+  ])
 ])
 
 AC_DEFUN([TORRENT_CHECK_EXECINFO], [

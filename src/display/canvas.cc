@@ -38,6 +38,7 @@
 
 #include <unistd.h>
 #include <sys/ioctl.h>
+#include <sys/termios.h>
 
 #include "canvas.h"
 

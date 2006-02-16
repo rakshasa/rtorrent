@@ -23,6 +23,7 @@
       <command>rtorrent</command>
       <arg choice="opt">-h</arg>
       <arg choice="opt">-o key1=opt1,...</arg>
+      <arg choice="opt">-O key=opt</arg>
       <arg choice="opt" rep="repeat">URL | FILE</arg>
     </cmdsynopsis>
   </refsynopsisdiv>
@@ -283,10 +284,13 @@
 
       <varlistentry>
         <term>-o key1=opt1,...</term>
+        <term>-O key=opt</term>
         <listitem><para>
-          Set any number of options, see the
-          SETTINGS section. The options given here
-          override the resource files.
+
+Set any number of options, see the SETTINGS section. The options given
+here override the resource files. Use capital <emphasis>-O</emphasis>
+to allow comma in the option.
+
         </para></listitem>
       </varlistentry>
 

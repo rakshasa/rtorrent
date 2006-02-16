@@ -52,6 +52,7 @@ WindowFileList::WindowFileList(core::Download* d, unsigned int* focus) :
   m_focus(focus) {
 }
 
+/*
 std::wstring
 hack_wstring(const std::string& src) {
   size_t length = ::mbstowcs(NULL, src.c_str(), src.size());
@@ -66,6 +67,7 @@ hack_wstring(const std::string& src) {
 
   return dest;
 }
+*/
 
 void
 WindowFileList::redraw() {

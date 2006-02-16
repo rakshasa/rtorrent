@@ -36,15 +36,9 @@
 
 #include "config.h"
 
-#include <fstream>
 #include <iostream>
-#include <iterator>
-#include <stdexcept>
 #include <string>
-#include <stdlib.h>
-#include <sstream>
 #include <sigc++/bind.h>
-#include <sigc++/retype_return.h>
 #include <torrent/http.h>
 #include <torrent/torrent.h>
 #include <torrent/exceptions.h>
@@ -77,25 +71,26 @@ void do_panic(int signum);
 void print_help();
 
 int
-parse_options(__UNUSED Control* c, utils::VariableMap* optionHandler, int argc, char** argv) {
+parse_options(Control* c, int argc, char** argv) {
   try {
     OptionParser optionParser;
 
     // Converted.
     optionParser.insert_flag('h', sigc::ptr_fun(&print_help));
 
-    optionParser.insert_option('b', sigc::bind<0>(sigc::mem_fun(*optionHandler, &utils::VariableMap::set_string), "bind"));
-    optionParser.insert_option('d', sigc::bind<0>(sigc::mem_fun(*optionHandler, &utils::VariableMap::set_string), "directory"));
-    optionParser.insert_option('i', sigc::bind<0>(sigc::mem_fun(*optionHandler, &utils::VariableMap::set_string), "ip"));
-    optionParser.insert_option('p', sigc::bind<0>(sigc::mem_fun(*optionHandler, &utils::VariableMap::set_string), "port_range"));
-    optionParser.insert_option('s', sigc::bind<0>(sigc::mem_fun(*optionHandler, &utils::VariableMap::set_string), "session"));
+    optionParser.insert_option('b', sigc::bind<0>(sigc::mem_fun(c->variables(), &utils::VariableMap::set_string), "bind"));
+    optionParser.insert_option('d', sigc::bind<0>(sigc::mem_fun(c->variables(), &utils::VariableMap::set_string), "directory"));
+    optionParser.insert_option('i', sigc::bind<0>(sigc::mem_fun(c->variables(), &utils::VariableMap::set_string), "ip"));
+    optionParser.insert_option('p', sigc::bind<0>(sigc::mem_fun(c->variables(), &utils::VariableMap::set_string), "port_range"));
+    optionParser.insert_option('s', sigc::bind<0>(sigc::mem_fun(c->variables(), &utils::VariableMap::set_string), "session"));
 
-    optionParser.insert_option_list('o', sigc::mem_fun(*optionHandler, &utils::VariableMap::set_string));
+    optionParser.insert_option('O', sigc::mem_fun(c->variables(), &utils::VariableMap::process_command));
+    optionParser.insert_option_list('o', sigc::mem_fun(c->variables(), &utils::VariableMap::set_string));
 
     return optionParser.process(argc, argv);
 
   } catch (torrent::input_error& e) {
-    throw std::runtime_error("Failed to parse command line option: " + std::string(e.what()));
+    throw torrent::input_error("Failed to parse command line option: " + std::string(e.what()));
   }
 }
 
@@ -169,7 +164,7 @@ main(int argc, char** argv) {
     if (!control->variables()->process_file("~/.rtorrent.rc"))
       control->core()->get_log_important().push_front("Could not load \"~/.rtorrent.rc\".");
 
-    int firstArg = parse_options(control, control->variables(), argc, argv);
+    int firstArg = parse_options(control, argc, argv);
 
     control->initialize();
 
@@ -180,7 +175,11 @@ main(int argc, char** argv) {
 
     load_arg_torrents(control, argv + firstArg, argv + argc);
 
+    // Make sure we update the display before any scheduled tasks can
+    // run, so that loading of torrents doesn't look like it hangs on
+    // startup.
     control->display()->adjust_layout();
+    control->display()->receive_update();
 
     while (!control->is_shutdown_completed()) {
       if (control->is_shutdown_received())

@@ -76,10 +76,9 @@ public:
   void                unschedule(Window* w);
 
   void                adjust_layout();
-
-private:
   void                receive_update();
 
+private:
   void                schedule_update();
 
   bool                m_forceRedraw;
