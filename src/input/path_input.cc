@@ -39,6 +39,7 @@
 #include <functional>
 #include <rak/algorithm.h>
 #include <rak/file_stat.h>
+#include <rak/path.h>
 
 #include "path_input.h"
 
@@ -70,7 +71,7 @@ struct _transform_filename {
   void operator () (std::string& filename) {
     rak::file_stat fs;
 
-    if (!fs.update((m_base + filename)))
+    if (!fs.update(rak::path_expand(m_base + filename)))
       return;
 
     else if (fs.is_directory())

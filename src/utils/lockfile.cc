@@ -124,7 +124,7 @@ Lockfile::locked_by() const {
     return process_type(std::string(), 0);
 
   char first[256];
-  char* last = first + std::max(read(fd, first, 255), 0);
+  char* last = first + std::max<ssize_t>(read(fd, first, 255), 0);
 
   *last = '\0';
   ::close(fd);
