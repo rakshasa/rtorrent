@@ -160,6 +160,7 @@ initialize_option_handler(Control* c) {
   variables->insert("check_hash",            new utils::VariableAny("yes"));
   variables->insert("use_udp_trackers",      new utils::VariableAny("yes"));
   variables->insert("port_random",           new utils::VariableAny("yes"));
+
   variables->insert("session",               new utils::VariableSlotString<>(NULL, rak::mem_fn(&control->core()->download_store(), &core::DownloadStore::set_path)));
   variables->insert("session_lock",          new utils::VariableAny("yes"));
   variables->insert("session_on_completion", new utils::VariableAny("yes"));
@@ -178,6 +179,7 @@ initialize_option_handler(Control* c) {
 
   variables->insert("download_rate",       new utils::VariableSlotValue<uint32_t, unsigned int>(NULL, rak::mem_fn(control->ui(), &ui::Root::set_down_throttle), "%i"));
   variables->insert("upload_rate",         new utils::VariableSlotValue<uint32_t, unsigned int>(NULL, rak::mem_fn(control->ui(), &ui::Root::set_up_throttle), "%i"));
+  variables->insert("upload_total_clear",    new utils::VariableAny("no"));
 
   variables->insert("hash_max_tries",      new utils::VariableSlotValue<int, uint32_t>(NULL, rak::ptr_fn(&torrent::set_hash_max_tries), "%i"));
   variables->insert("max_open_files",      new utils::VariableSlotValue<int, uint32_t>(NULL, rak::ptr_fn(&torrent::set_max_open_files), "%i"));

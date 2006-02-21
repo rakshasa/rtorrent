@@ -186,8 +186,16 @@ DownloadFactory::receive_success() {
   (*itr)->variables()->set("max_peers",        control->variables()->get("max_peers"));
   (*itr)->variables()->set("max_uploads",      control->variables()->get("max_uploads"));
 
-  if (control->variables()->get("use_udp_trackers").as_string() == "no")
+  if (control->variables()->get_string("use_udp_trackers") == "no")
     (*itr)->enable_udp_trackers(false);
+
+  // Move some of this to "rtorrent".
+  if (root.has_key("libtorrent resume")) {
+    torrent::Bencode& libtorrent = root.get_key("libtorrent resume");
+    
+    if (control->variables()->get_string("upload_total_clear") == "yes")
+      libtorrent.erase_key("total_uploaded");
+  }
 
   if (m_session) {
     if (!rtorrent.has_key("directory") ||
