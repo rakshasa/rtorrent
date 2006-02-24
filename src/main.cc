@@ -196,18 +196,11 @@ main(int argc, char** argv) {
 
     control->cleanup();
 
-  } catch (torrent::base_error& e) {
-    display::Canvas::cleanup();
-    delete control;
-
-    std::cout << "Caught exception: " << e.what() << std::endl;
-    return -1;
-
   } catch (std::exception& e) {
     display::Canvas::cleanup();
     delete control;
 
-    std::cout << e.what() << std::endl;
+    std::cout << "rtorrent: " << e.what() << std::endl;
     return -1;
   }
 

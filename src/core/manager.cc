@@ -256,6 +256,9 @@ Manager::receive_download_done(Download* d) {
 
 void
 Manager::listen_open() {
+  if (control->variables()->get_string("port_open") != "yes")
+    return;
+
   if (m_portFirst > m_portLast)
     throw torrent::input_error("Invalid port range for listening");
 

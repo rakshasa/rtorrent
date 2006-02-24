@@ -159,6 +159,7 @@ initialize_option_handler(Control* c) {
   // Cleaned up.
   variables->insert("check_hash",            new utils::VariableAny("yes"));
   variables->insert("use_udp_trackers",      new utils::VariableAny("yes"));
+  variables->insert("port_open",             new utils::VariableAny("yes"));
   variables->insert("port_random",           new utils::VariableAny("yes"));
 
   variables->insert("session",               new utils::VariableSlotString<>(NULL, rak::mem_fn(&control->core()->download_store(), &core::DownloadStore::set_path)));
