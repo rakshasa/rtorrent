@@ -40,6 +40,7 @@
 
 #include "core/manager.h"
 #include "display/canvas.h"
+#include "display/client_info.h"
 #include "display/window.h"
 #include "display/manager.h"
 #include "input/manager.h"
@@ -64,6 +65,8 @@ Control::Control() :
   m_commandScheduler(new CommandScheduler()),
   m_variables(new utils::VariableMap()),
 
+  m_clientInfo(new display::ClientInfo),
+
   m_tick(0) {
 
   m_inputStdin->slot_pressed(sigc::mem_fun(m_input, &input::Manager::pressed));
@@ -84,6 +87,8 @@ Control::~Control() {
   delete m_ui;
   delete m_display;
   delete m_core;
+
+  delete m_clientInfo;
 }
 
 void

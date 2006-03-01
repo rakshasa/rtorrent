@@ -43,6 +43,7 @@
 #include "rak/algorithm.h"
 
 #include "canvas.h"
+#include "client_info.h"
 #include "window_peer_list.h"
 
 namespace display {
@@ -124,6 +125,13 @@ WindowPeerList::redraw() {
 
     if (p.is_snubbed())
       m_canvas->print(x, y, "*");
+
+    x += 5;
+
+    char buf[128];
+    control->client_info()->print(buf, buf + 128, p.id().c_str());
+
+    m_canvas->print(x, y, "%s", buf);
 
     ++y;
     ++range.first;

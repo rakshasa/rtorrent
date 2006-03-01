@@ -52,6 +52,7 @@ namespace core {
 
 namespace display {
   class Manager;
+  class ClientInfo;
 }
 
 namespace input {
@@ -90,6 +91,8 @@ public:
   CommandScheduler*   command_scheduler()           { return m_commandScheduler; }
   utils::VariableMap* variables()                   { return m_variables; }
 
+  display::ClientInfo* client_info()                { return m_clientInfo; }
+
   uint64_t            tick() const                  { return m_tick; }
   void                inc_tick()                    { m_tick++; }
 
@@ -108,6 +111,8 @@ private:
 
   CommandScheduler*   m_commandScheduler;
   utils::VariableMap* m_variables;
+
+  display::ClientInfo* m_clientInfo;
 
   uint64_t            m_tick;
 

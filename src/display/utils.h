@@ -74,6 +74,103 @@ char*       print_entry_file(char* first, char* last, const torrent::Entry& entr
 char*       print_status_info(char* first, char* last);
 char*       print_status_extra(char* first, char* last, Control* c);
 
+inline char*
+print_buffer(char* first, char* last, const char* format) {
+  if (first >= last)
+    return first;
+
+  int s = snprintf(first, last - first, format);
+
+  if (s < 0)
+    return first;
+  else
+    return std::min(first + s, last);
+}
+
+template <typename Arg1>
+inline char*
+print_buffer(char* first, char* last, const char* format, const Arg1& arg1) {
+  if (first >= last)
+    return first;
+
+  int s = snprintf(first, last - first, format, arg1);
+
+  if (s < 0)
+    return first;
+  else
+    return std::min(first + s, last);
+}
+
+template <typename Arg1, typename Arg2>
+inline char*
+print_buffer(char* first, char* last, const char* format, const Arg1& arg1, const Arg2& arg2) {
+  if (first >= last)
+    return first;
+
+  int s = snprintf(first, last - first, format, arg1, arg2);
+
+  if (s < 0)
+    return first;
+  else
+    return std::min(first + s, last);
+}
+
+template <typename Arg1, typename Arg2, typename Arg3>
+inline char*
+print_buffer(char* first, char* last, const char* format, const Arg1& arg1, const Arg2& arg2, const Arg3& arg3) {
+  if (first >= last)
+    return first;
+
+  int s = snprintf(first, last - first, format, arg1, arg2, arg3);
+
+  if (s < 0)
+    return first;
+  else
+    return std::min(first + s, last);
+}
+
+template <typename Arg1, typename Arg2, typename Arg3, typename Arg4>
+inline char*
+print_buffer(char* first, char* last, const char* format, const Arg1& arg1, const Arg2& arg2, const Arg3& arg3, const Arg4& arg4) {
+  if (first >= last)
+    return first;
+
+  int s = snprintf(first, last - first, format, arg1, arg2, arg3, arg4);
+
+  if (s < 0)
+    return first;
+  else
+    return std::min(first + s, last);
+}
+
+template <typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5>
+inline char*
+print_buffer(char* first, char* last, const char* format, const Arg1& arg1, const Arg2& arg2, const Arg3& arg3, const Arg4& arg4, const Arg5& arg5) {
+  if (first >= last)
+    return first;
+
+  int s = snprintf(first, last - first, format, arg1, arg2, arg3, arg4, arg5);
+
+  if (s < 0)
+    return first;
+  else
+    return std::min(first + s, last);
+}
+
+template <typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6>
+inline char*
+print_buffer(char* first, char* last, const char* format, const Arg1& arg1, const Arg2& arg2, const Arg3& arg3, const Arg4& arg4, const Arg5& arg5, const Arg6& arg6) {
+  if (first >= last)
+    return first;
+
+  int s = snprintf(first, last - first, format, arg1, arg2, arg3, arg4, arg5, arg6);
+
+  if (s < 0)
+    return first;
+  else
+    return std::min(first + s, last);
+}
+
 }
 
 #endif

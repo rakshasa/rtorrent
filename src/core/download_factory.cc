@@ -42,6 +42,7 @@
 #include <rak/path.h>
 #include <torrent/bencode.h>
 #include <torrent/exceptions.h>
+#include <torrent/rate.h>
 
 #include "utils/variable_generic.h"
 
@@ -189,14 +190,12 @@ DownloadFactory::receive_success() {
   if (control->variables()->get_string("use_udp_trackers") == "no")
     (*itr)->enable_udp_trackers(false);
 
-  // Move some of this to "rtorrent".
-  if (root.has_key("libtorrent resume")) {
-    torrent::Bencode& libtorrent = root.get_key("libtorrent resume");
-    
-    if (control->variables()->get_string("upload_total_clear") == "yes")
-      libtorrent.erase_key("total_uploaded");
-  }
+  if (control->variables()->get_string("upload_total_clear") == "yes")
+    rtorrent.erase_key("total_uploaded");
 
+  else if (rtorrent.has_key("total_uploaded") && rtorrent.get_key("total_uploaded").is_value())
+    (*itr)->get_download().up_rate()->set_total(rtorrent.get_key("total_uploaded").as_value());
+    
   if (m_session) {
     if (!rtorrent.has_key("directory") ||
 	!rtorrent.get_key("directory").is_string())

@@ -50,61 +50,6 @@
 
 namespace display {
 
-inline char*
-print_buffer(char* first, char* last, const char* format) {
-  if (first >= last)
-    return first;
-
-  int s = snprintf(first, last - first, format);
-
-  if (s < 0)
-    return first;
-  else
-    return std::min(first + s, last);
-}
-
-template <typename Arg1>
-inline char*
-print_buffer(char* first, char* last, const char* format, const Arg1& arg1) {
-  if (first >= last)
-    return first;
-
-  int s = snprintf(first, last - first, format, arg1);
-
-  if (s < 0)
-    return first;
-  else
-    return std::min(first + s, last);
-}
-
-template <typename Arg1, typename Arg2>
-inline char*
-print_buffer(char* first, char* last, const char* format, const Arg1& arg1, const Arg2& arg2) {
-  if (first >= last)
-    return first;
-
-  int s = snprintf(first, last - first, format, arg1, arg2);
-
-  if (s < 0)
-    return first;
-  else
-    return std::min(first + s, last);
-}
-
-template <typename Arg1, typename Arg2, typename Arg3>
-inline char*
-print_buffer(char* first, char* last, const char* format, const Arg1& arg1, const Arg2& arg2, const Arg3& arg3) {
-  if (first >= last)
-    return first;
-
-  int s = snprintf(first, last - first, format, arg1, arg2, arg3);
-
-  if (s < 0)
-    return first;
-  else
-    return std::min(first + s, last);
-}
-
 char*
 print_string(char* first, char* last, char* str) {
   // We don't have any nice simple functions for copying strings that

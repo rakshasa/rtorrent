@@ -46,6 +46,7 @@
 #include <torrent/bencode.h>
 #include <torrent/exceptions.h>
 #include <torrent/torrent.h>
+#include <torrent/rate.h>
 
 #include "download.h"
 #include "download_store.h"
@@ -97,6 +98,9 @@ DownloadStore::save(Download* d) {
 
   if (!f.is_open())
     return;
+
+  // Move this somewhere else.
+  d->get_bencode().get_key("rtorrent").insert_key("total_uploaded", d->get_download().up_rate()->total());
 
   f << d->get_bencode();
 

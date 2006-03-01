@@ -3,6 +3,8 @@ noinst_LIBRARIES = libsub_display.a
 libsub_display_a_SOURCES = \
 	canvas.cc \
 	canvas.h \
+	client_info.cc \
+	client_info.h \
 	manager.cc \
 	manager.h \
 	utils.cc \
