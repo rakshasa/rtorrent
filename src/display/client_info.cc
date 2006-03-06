@@ -38,6 +38,7 @@
 
 #include <cctype>
 #include <cstring>
+#include <rak/string_manip.h>
 #include <torrent/exceptions.h>
 
 #include "client_info.h"
@@ -85,17 +86,17 @@ ClientInfo::ClientInfo() {
   insert(TYPE_AZUREUS, "SZ", "Shareaza");
   insert(TYPE_AZUREUS, "RT", "Retriever");
 
-  m_containers[TYPE_THREE_COMPACT].reserve(10);
+  m_containers[TYPE_COMPACT].reserve(10);
 
-  insert(TYPE_THREE_COMPACT, "A", "ABC");
-  insert(TYPE_THREE_COMPACT, "T", "BitTornado");
-  insert(TYPE_THREE_COMPACT, "S", "Shadow's client");
-  insert(TYPE_THREE_COMPACT, "U", "UPnP NAT Bit Torrent");
-  insert(TYPE_THREE_COMPACT, "O", "Osprey Permaseed");
+  insert(TYPE_COMPACT, "A", "ABC");
+  insert(TYPE_COMPACT, "T", "BitTornado");
+  insert(TYPE_COMPACT, "S", "Shadow's client");
+  insert(TYPE_COMPACT, "U", "UPnP NAT Bit Torrent");
+  insert(TYPE_COMPACT, "O", "Osprey Permaseed");
 
-  m_containers[TYPE_THREE_SPARSE].reserve(4);
+  m_containers[TYPE_MAINLINE].reserve(4);
 
-  insert(TYPE_THREE_SPARSE, "M", "Mainline");
+  insert(TYPE_MAINLINE, "M", "Mainline");
 }
 
 void
@@ -108,20 +109,19 @@ ClientInfo::insert(Type t, const char* key, const char* name) {
   if (keySize != std::strlen(key))
     throw torrent::input_error("Client info key size not what was expected.");
 
-  // Check if it is already present.
+  // Check if it is already present, not entirely optimal when
+  // initializing but this only get run once.
+  iterator itr = std::find_if(m_containers[t].begin(), m_containers[t].end(), client_info_equal(key, sizeof_key(t)));
+  
+  if (itr == m_containers[t].end())
+    itr = m_containers[t].insert(m_containers[t].end(), value_type());
 
-  value_type v;
-
-  std::memcpy(v.first, key, keySize);
-  v.second = name;
-
-  m_containers[t].push_back(v);
+  std::memcpy(itr->first, key, keySize);
+  itr->second = name;
 }
 
 char*
 ClientInfo::print(char* first, char* last, const char* id) {
-
-  // Start with an UDP0 test.
 
   if (id[0] == '-' && id[7] == '-' &&
       std::isalpha(id[1]) && std::isalpha(id[2]) &&
@@ -132,37 +132,51 @@ ClientInfo::print(char* first, char* last, const char* id) {
 				client_info_equal(id + 1, sizeof_key(TYPE_AZUREUS)));
 
     if (itr != m_containers[TYPE_AZUREUS].end())
-      first = print_buffer(first, last, "%s %c.%c.%c.%c", itr->second, id[3], id[4], id[5], id[6]);
+      first = print_buffer(first, last, "%s %hhu.%hhu.%hhu.%hhu", itr->second,
+			   rak::hexchar_to_value(id[3]), rak::hexchar_to_value(id[4]),
+			   rak::hexchar_to_value(id[5]), rak::hexchar_to_value(id[6]));
     
     else
-      first = print_buffer(first, last, "unknown %c%c %c.%c.%c.%c", id[1], id[2], id[3], id[4], id[5], id[6]);
+      first = print_buffer(first, last, "unknown %c%c %hhu.%hhu.%hhu.%hhu", id[1], id[2],
+			   rak::hexchar_to_value(id[3]), rak::hexchar_to_value(id[4]),
+			   rak::hexchar_to_value(id[5]), rak::hexchar_to_value(id[6]));
 
   } else if (std::isalpha(id[0]) && id[4] == '-' &&
 	     std::isxdigit(id[1]) && std::isxdigit(id[2]) && std::isxdigit(id[3])) {
     // TYPE_THREE_COMPACT.
 
-    iterator itr = std::find_if(m_containers[TYPE_THREE_COMPACT].begin(), m_containers[TYPE_THREE_COMPACT].end(),
-				client_info_equal(id, sizeof_key(TYPE_THREE_COMPACT)));
+    iterator itr = std::find_if(m_containers[TYPE_COMPACT].begin(), m_containers[TYPE_COMPACT].end(),
+				client_info_equal(id, sizeof_key(TYPE_COMPACT)));
 
-    if (itr != m_containers[TYPE_THREE_COMPACT].end())
-      first = print_buffer(first, last, "%s %c.%c.%c", itr->second, id[1], id[2], id[3]);
+    if (itr != m_containers[TYPE_COMPACT].end())
+      first = print_buffer(first, last, "%s %hhu.%hhu.%hhu", itr->second,
+			   rak::hexchar_to_value(id[1]), rak::hexchar_to_value(id[2]), rak::hexchar_to_value(id[3]));
     
     else
-      first = print_buffer(first, last, "unknown %c %c.%c.%c", id[0], id[1], id[2], id[3]);
+      first = print_buffer(first, last, "unknown %c %hhu.%hhu.%hhu", id[0],
+			   rak::hexchar_to_value(id[1]), rak::hexchar_to_value(id[2]), rak::hexchar_to_value(id[3]));
     
   } else if (std::isalpha(id[0]) && id[2] == '-' && id[4] == '-' && id[6] == '-' &&
 	     std::isxdigit(id[1]) && std::isxdigit(id[3]) && std::isxdigit(id[5])) {
     // TYPE_THREE_SPARSE.
 
-    iterator itr = std::find_if(m_containers[TYPE_THREE_SPARSE].begin(), m_containers[TYPE_THREE_SPARSE].end(),
-				client_info_equal(id, sizeof_key(TYPE_THREE_SPARSE)));
+    iterator itr = std::find_if(m_containers[TYPE_MAINLINE].begin(), m_containers[TYPE_MAINLINE].end(),
+				client_info_equal(id, sizeof_key(TYPE_MAINLINE)));
 
-    if (itr != m_containers[TYPE_THREE_SPARSE].end())
-      first = print_buffer(first, last, "%s %c.%c.%c", itr->second, id[1], id[3], id[5]);
+    if (itr != m_containers[TYPE_MAINLINE].end())
+      first = print_buffer(first, last, "%s %hhu.%hhu.%hhu", itr->second,
+			   rak::hexchar_to_value(id[1]), rak::hexchar_to_value(id[3]), rak::hexchar_to_value(id[5]));
     
     else
-      first = print_buffer(first, last, "unknown %c %c.%c.%c", id[0], id[1], id[3], id[5]);
+      first = print_buffer(first, last, "unknown %c %hhu.%hhu.%hhu", id[0],
+			   rak::hexchar_to_value(id[1]), rak::hexchar_to_value(id[3]), rak::hexchar_to_value(id[5]));
     
+
+  // And then the incompatible idiots that make life difficult for us
+  // others. (There's '3' schemes to choose from already...)
+
+  // Well... fuck this... I don't feel like adding the rest of the
+  // checks as they wouldn't be possible to remove/modify.
 
   } else {
     first = print_buffer(first, last, "unknown");

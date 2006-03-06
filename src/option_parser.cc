@@ -37,6 +37,7 @@
 #include "config.h"
 
 #include <cstdio>
+#include <getopt.h>
 #include <stdexcept>
 #include <unistd.h>
 #include <sigc++/bind.h>

@@ -241,6 +241,20 @@
           </para></listitem>
 	</varlistentry>
 
+	<varlistentry>
+	  <term>k</term>
+	  <listitem><para>
+Disconnect peer.
+          </para></listitem>
+	</varlistentry>
+
+	<varlistentry>
+	  <term>*</term>
+	  <listitem><para>
+Choke/Snubb peer.
+          </para></listitem>
+	</varlistentry>
+
       </variablelist>
 
     </refsect2>

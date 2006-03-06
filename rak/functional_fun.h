@@ -34,7 +34,7 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-// This file contains functors that wrap function points and member
+// This file contains functors that wrap function pointers and member
 // function pointers.
 //
 // 'fn' functors are polymorphic and derives from 'rak::function' and

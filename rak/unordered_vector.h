@@ -75,8 +75,12 @@ public:
   using Base::push_back;
   using Base::pop_back;
 
+  // Use the range erase function, the single element erase gets
+  // overloaded.
+  using Base::erase;
+
   iterator            insert(iterator position, const value_type& x);
-  iterator            erase(iterator position);  
+  iterator            erase(iterator position);
 
 private:
 };

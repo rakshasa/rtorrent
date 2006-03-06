@@ -130,6 +130,19 @@ split_iterator(__UNUSED const Sequence& seq) {
   return split_iterator_t<Sequence>();
 }
 
+// Could optimize this abit.
+inline char
+hexchar_to_value(char c) {
+  if (c >= '0' && c <= '9')
+    return c - '0';
+
+  else if (c >= 'A' && c <= 'F')
+    return 10 + c - 'A';
+    
+  else
+    return 10 + c - 'a';
+}
+
 template <int pos, typename Value>
 inline char
 value_to_hexchar(Value v) {

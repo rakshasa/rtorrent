@@ -1,4 +1,4 @@
-// libTorrent - BitTorrent library
+// rak - Rakshasa's toolbox
 // Copyright (C) 2005-2006, Jari Sundell
 //
 // This program is free software; you can redistribute it and/or modify

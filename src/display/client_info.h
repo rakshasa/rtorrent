@@ -54,8 +54,8 @@ public:
 
   typedef enum {
     TYPE_AZUREUS,
-    TYPE_THREE_COMPACT,
-    TYPE_THREE_SPARSE,
+    TYPE_COMPACT,
+    TYPE_MAINLINE,
     TYPE_MAXSIZE
   } Type;
 
@@ -67,10 +67,10 @@ public:
 
   size_type           sizeof_key(Type t) {
     switch (t) {
-    case TYPE_AZUREUS:       return 2;
-    case TYPE_THREE_COMPACT: return 1;
-    case TYPE_THREE_SPARSE:  return 1;
-    case TYPE_MAXSIZE:       return 0;
+    case TYPE_AZUREUS:  return 2;
+    case TYPE_COMPACT:  return 1;
+    case TYPE_MAINLINE: return 1;
+    case TYPE_MAXSIZE:  return 0;
     }
   }
 

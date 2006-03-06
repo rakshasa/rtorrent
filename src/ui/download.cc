@@ -172,6 +172,16 @@ Download::receive_prev() {
 }
 
 void
+Download::receive_disconnect_peer() {
+  if (m_focus == m_peers.end())
+    return;
+
+  m_download->get_download().disconnect_peer(*m_focus);
+
+  mark_dirty();
+}
+
+void
 Download::receive_peer_connected(torrent::Peer p) {
   m_peers.push_back(p);
 }
@@ -249,6 +259,8 @@ Download::bind_keys() {
   (*m_bindings)['6'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_max_peers), 5);
   (*m_bindings)['+'] = sigc::mem_fun(*this, &Download::receive_next_priority);
   (*m_bindings)['-'] = sigc::mem_fun(*this, &Download::receive_prev_priority);
+
+  (*m_bindings)['k'] = sigc::mem_fun(*this, &Download::receive_disconnect_peer);
 
   (*m_bindings)['t'] = sigc::bind(sigc::mem_fun(m_download->get_download(), &torrent::Download::tracker_manual_request), false);
   (*m_bindings)['T'] = sigc::bind(sigc::mem_fun(m_download->get_download(), &torrent::Download::tracker_manual_request), true);

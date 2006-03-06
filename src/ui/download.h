@@ -98,6 +98,8 @@ private:
   void                receive_next();
   void                receive_prev();
 
+  void                receive_disconnect_peer();
+
   void                receive_peer_connected(torrent::Peer p);
   void                receive_peer_disconnected(torrent::Peer p);
 
