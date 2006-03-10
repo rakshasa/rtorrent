@@ -44,6 +44,12 @@ namespace rak {
 
 class error_number {
 public:
+  static const int e_again       = EAGAIN;
+  static const int e_intr        = EINTR;
+  static const int e_deadlk      = EDEADLK;
+  static const int e_connreset   = ECONNRESET;
+  static const int e_connaborted = ECONNABORTED;
+
   error_number() : m_errno(0) {}
   error_number(int e) : m_errno(e) {}
 
@@ -52,10 +58,10 @@ public:
   int                 value() const                { return m_errno; }
   const char*         c_str() const                { return strerror(m_errno); }
 
-  bool                is_blocked_momentary() const { return m_errno == EAGAIN || m_errno == EINTR; }
-  bool                is_blocked_prolonged() const { return m_errno == EDEADLK; }
+  bool                is_blocked_momentary() const { return m_errno == e_again || m_errno == e_intr; }
+  bool                is_blocked_prolonged() const { return m_errno == e_deadlk; }
 
-  bool                is_closed() const            { return m_errno == ECONNRESET || m_errno == ECONNABORTED; }
+  bool                is_closed() const            { return m_errno == e_connreset || m_errno == e_connaborted; }
 
   static error_number current()                    { return errno; }
   static void         clear_global()               { errno = 0; }

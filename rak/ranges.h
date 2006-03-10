@@ -67,13 +67,14 @@ public:
 //   void                erase(value_type r);
 
   // Find the first ranges that has an end greater than index.
-  inline iterator     find(Type index);
+  iterator            find(Type index);
+  const_iterator      find(Type index) const;
 
   // Use find with no closest match.
-  inline bool         has(Type index);
+  bool                has(Type index) const;
 
 private:
-  inline void         unify(iterator itr);
+  void                unify(iterator itr);
 };
 
 template <typename Type>
@@ -109,10 +110,16 @@ ranges<Type>::find(Type index) {
   return std::find_if(begin(), end(), rak::less(index, rak::mem_ptr_ref(&value_type::second)));
 }
 
+template <typename Type>
+inline typename ranges<Type>::const_iterator
+ranges<Type>::find(Type index) const {
+  return std::find_if(begin(), end(), rak::less(index, rak::mem_ptr_ref(&value_type::second)));
+}
+
 // Use find with no closest match.
 template <typename Type>
 inline bool
-ranges<Type>::has(Type index) {
+ranges<Type>::has(Type index) const {
   const_iterator itr = find(index);
 
   return itr != end() && index >= itr->first;
