@@ -37,6 +37,7 @@
 #include "config.h"
 
 #include <stdexcept>
+#include <rak/socket_address.h>
 #include <rak/string_manip.h>
 #include <torrent/rate.h>
 
@@ -101,8 +102,11 @@ WindowPeerInfo::redraw() {
 
   m_canvas->print(0, y++, "*** Peer Info ***");
 
-  m_canvas->print(0, y++, "DNS: %s:%hu", (*m_focus)->address().c_str(), (*m_focus)->port());
-  m_canvas->print(0, y++, "Id: %s" , rak::copy_escape_html((*m_focus)->id()).c_str());
+  m_canvas->print(0, y++, "IP: %s:%hu",
+		  rak::socket_address::cast_from((*m_focus)->address())->address_str().c_str(),
+		  rak::socket_address::cast_from((*m_focus)->address())->port());
+
+  m_canvas->print(0, y++, "ID: %s" , rak::copy_escape_html((*m_focus)->id()).c_str());
 
   char buf[128];
   control->client_info()->print(buf, buf + 128, (*m_focus)->id().c_str());

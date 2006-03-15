@@ -78,7 +78,8 @@ public:
 
   void                listen_open();
 
-  void                bind(const std::string& addr);
+  void                set_bind_address(const std::string& addr);
+  void                set_local_address(const std::string& addr);
 
   void                shutdown(bool force);
 

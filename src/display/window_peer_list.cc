@@ -37,6 +37,7 @@
 #include "config.h"
 
 #include <stdexcept>
+#include <rak/socket_address.h>
 #include <torrent/rate.h>
 
 #include "core/download.h"
@@ -63,7 +64,7 @@ WindowPeerList::redraw() {
   int x = 2;
   int y = 0;
 
-  m_canvas->print(x, y, "DNS");     x += 16;
+  m_canvas->print(x, y, "IP");     x += 16;
   m_canvas->print(x, y, "UP");      x += 7;
   m_canvas->print(x, y, "DOWN");    x += 7;
   m_canvas->print(x, y, "PEER");    x += 7;
@@ -95,7 +96,7 @@ WindowPeerList::redraw() {
 
     m_canvas->print(x, y, "%c %s",
 		    range.first == *m_focus ? '*' : ' ',
-		    p.address().c_str());
+		    rak::socket_address::cast_from(p.address())->address_str().c_str());
     x += 18;
 
     m_canvas->print(x, y, "%.1f", (double)p.up_rate()->rate() / 1024); x += 7;

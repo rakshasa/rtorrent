@@ -90,6 +90,8 @@ public:
   bool                set_address_str(const std::string& a)   { return set_address_c_str(a.c_str()); }
   bool                set_address_c_str(const char* a);
 
+  uint32_t            length() const;
+
   socket_address_inet*        sa_inet()                       { return reinterpret_cast<socket_address_inet*>(this); }
   socket_address_inet6*       sa_inet6()                      { return reinterpret_cast<socket_address_inet6*>(this); }
 
@@ -108,6 +110,9 @@ public:
   // extranous bytes and ensure it does not go beyond the size of this
   // struct.
   void                copy(const socket_address& src, size_t length);
+
+  static socket_address*       cast_from(sockaddr* sa)        { return reinterpret_cast<socket_address*>(sa); }
+  static const socket_address* cast_from(const sockaddr* sa)  { return reinterpret_cast<const socket_address*>(sa); }
 
   // The different families will be sorted according to the
   // sa_family_t's numeric value.
@@ -252,6 +257,17 @@ socket_address::set_address_c_str(const char* a) {
   } else {
     return false;
   }
+}
+
+// Is the zero length really needed, should we require some length?
+inline uint32_t
+socket_address::length() const {
+  switch(family()) {
+  case af_inet:
+    return sizeof(sockaddr_in);
+  default:
+    return 0;
+  }      
 }
 
 inline void

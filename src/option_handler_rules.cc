@@ -166,13 +166,13 @@ initialize_option_handler(Control* c) {
   variables->insert("session_lock",          new utils::VariableAny("yes"));
   variables->insert("session_on_completion", new utils::VariableAny("yes"));
 
-  variables->insert("connection_leech",    new utils::VariableAny("leech"));
-  variables->insert("connection_seed",     new utils::VariableAny("seed"));
+  variables->insert("connection_leech",      new utils::VariableAny("leech"));
+  variables->insert("connection_seed",       new utils::VariableAny("seed"));
 
-  variables->insert("directory",           new utils::VariableAny("./"));
-  variables->insert("working_directory",   new utils::VariableSlotString<>(NULL, rak::ptr_fn(&apply_working_directory)));
-  variables->insert("ip",                  new utils::VariableSlotString<>(NULL, rak::ptr_fn(&torrent::set_local_address)));
-  variables->insert("bind",                new utils::VariableSlotString<>(NULL, rak::mem_fn(control->core(), &core::Manager::bind)));
+  variables->insert("directory",             new utils::VariableAny("./"));
+  variables->insert("working_directory",     new utils::VariableSlotString<>(NULL, rak::ptr_fn(&apply_working_directory)));
+  variables->insert("bind",                  new utils::VariableSlotString<>(NULL, rak::mem_fn(control->core(), &core::Manager::set_bind_address)));
+  variables->insert("ip",                    new utils::VariableSlotString<>(NULL, rak::mem_fn(control->core(), &core::Manager::set_local_address)));
 
   variables->insert("min_peers",           new utils::VariableValue(40));
   variables->insert("max_peers",           new utils::VariableValue(100));

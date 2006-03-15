@@ -66,6 +66,7 @@ TextInput::pressed(int key) {
   } else {
     switch (key) {
     case 0x7F:
+    case 'h' - 'a' + 1: // ^H
     case KEY_BACKSPACE:
       if (m_pos != 0)
 	Base::erase(--m_pos, 1);
@@ -90,6 +91,23 @@ TextInput::pressed(int key) {
       if (m_pos != size())
 	++m_pos;
 
+      break;
+
+    case KEY_HOME:
+      m_pos = 0;
+      break;
+
+    case KEY_END:
+      m_pos = size();
+      break;
+
+    case 'u' - 'a' + 1: // ^U
+      Base::erase(0, m_pos);
+      m_pos = 0;
+      break;
+
+    case 'k' - 'a' + 1: // ^K
+      Base::erase(m_pos, size()-m_pos);
       break;
 
     case 0x1B:

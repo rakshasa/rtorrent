@@ -107,6 +107,27 @@ equal(Type t, Ftor f) {
 }
 
 template <typename Type, typename Ftor>
+struct equal_ptr_t {
+  typedef bool result_type;
+
+  equal_ptr_t(Type* t, Ftor f) : m_t(t), m_f(f) {}
+
+  template <typename Arg>
+  bool operator () (const Arg& a) {
+    return *m_t == *m_f(a);
+  }
+
+  Type* m_t;
+  Ftor  m_f;
+};
+
+template <typename Type, typename Ftor>
+inline equal_ptr_t<Type, Ftor>
+equal_ptr(Type* t, Ftor f) {
+  return equal_ptr_t<Type, Ftor>(t, f);
+}
+
+template <typename Type, typename Ftor>
 struct not_equal_t {
   typedef bool result_type;
 

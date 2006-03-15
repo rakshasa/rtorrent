@@ -39,12 +39,13 @@
 #include <cstring>
 #include <sstream>
 #include <iomanip>
+#include <rak/socket_address.h>
+#include <rak/timer.h>
 #include <torrent/exceptions.h>
 #include <torrent/rate.h>
 #include <torrent/tracker.h>
 
 #include "core/download.h"
-#include <rak/timer.h>
 
 #include "utils.h"
 
@@ -88,6 +89,19 @@ print_ddmmyyyy(char* first, char* last, time_t t) {
     throw torrent::internal_error("print_ddmmyyyy(...) failed.");
 
   return print_buffer(first, last, "%02u/%02u/%04u", u->tm_mday, (u->tm_mon + 1), (1900 + u->tm_year));
+}
+
+char*
+print_address(char* first, char* last, const rak::socket_address* sa) {
+  if (!sa->address_c_str(first, last - first))
+    return first;
+
+  return std::find(first, last, '\0');
+}
+
+inline char*
+print_address(char* first, char* last, const sockaddr* sa) {
+  return print_address(first, last, rak::socket_address::cast_from(sa));
 }
 
 char*
@@ -198,17 +212,18 @@ print_status_info(char* first, char* last) {
 		       (double)torrent::up_rate()->rate() / 1024.0,
 		       (double)torrent::down_rate()->rate() / 1024.0);
 
-  first = print_buffer(first, last, " [Listen %s:%u]",
-		       torrent::local_address().c_str(),
-		       (unsigned int)torrent::listen_port());
+  first = print_buffer(first, last, " [Listen ");
+  first = print_address(first, last, torrent::local_address());
+  first = print_buffer(first, last, ":%u]", (unsigned int)torrent::listen_port());
   
   if (first > last)
     throw torrent::internal_error("print_status_info(...) wrote past end of the buffer.");
 
-  std::string bindAddress = torrent::bind_address();
-
-  if (!bindAddress.empty())
-    first = print_buffer(first, last, " [Bind %s]", bindAddress.c_str());
+  if (!rak::socket_address::cast_from(torrent::bind_address())->is_address_any()) {
+    first = print_buffer(first, last, " [Bind ");
+    first = print_address(first, last, torrent::bind_address());
+    first = print_buffer(first, last, "]");
+  }
 
   return first;
 }

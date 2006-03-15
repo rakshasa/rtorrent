@@ -43,6 +43,7 @@
 #include <istream>
 #include <unistd.h>
 #include <sys/select.h>
+#include <rak/address_info.h>
 #include <rak/regex.h>
 #include <rak/string_manip.h>
 #include <sigc++/bind.h>
@@ -277,17 +278,51 @@ Manager::listen_open() {
 }
 
 void
-Manager::bind(const std::string& addr) {
-  if (torrent::listen_port() != 0) {
-    torrent::listen_close();
-    torrent::set_bind_address(addr);
-    listen_open();
+Manager::set_bind_address(const std::string& addr) {
+  int err;
+  rak::address_info* ai;
 
-  } else {
-    torrent::set_bind_address(addr);
+  if ((err = rak::address_info::get_address_info(addr.c_str(), PF_INET, SOCK_STREAM, &ai)) != 0)
+    throw torrent::input_error("Could not set bind address: " + std::string(rak::address_info::strerror(err)) + ".");
+  
+  try {
+
+    if (torrent::listen_port() != 0) {
+      torrent::listen_close();
+      torrent::set_bind_address(ai->address()->c_sockaddr());
+      listen_open();
+
+    } else {
+      torrent::set_bind_address(ai->address()->c_sockaddr());
+    }
+
+    rak::address_info::free_address_info(ai);
+
+    m_pollManager->get_http_stack()->set_bind_address(addr);
+
+  } catch (torrent::input_error& e) {
+    throw e;
   }
+}
 
-  m_pollManager->get_http_stack()->set_bind_address(torrent::bind_address());
+void
+Manager::set_local_address(const std::string& addr) {
+  int err;
+  rak::address_info* ai;
+
+  if ((err = rak::address_info::get_address_info(addr.c_str(), PF_INET, SOCK_STREAM, &ai)) != 0)
+    throw torrent::input_error("Could not set local address: " + std::string(rak::address_info::strerror(err)) + ".");
+  
+  try {
+
+    torrent::set_local_address(ai->address()->c_sockaddr());
+    rak::address_info::free_address_info(ai);
+
+    m_pollManager->get_http_stack()->set_bind_address(addr);
+
+  } catch (torrent::input_error& e) {
+    throw e;
+  }
 }
 
 void
