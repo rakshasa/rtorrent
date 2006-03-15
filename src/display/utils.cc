@@ -42,6 +42,7 @@
 #include <rak/socket_address.h>
 #include <rak/timer.h>
 #include <torrent/exceptions.h>
+#include <torrent/connection_manager.h>
 #include <torrent/rate.h>
 #include <torrent/tracker.h>
 
@@ -212,16 +213,20 @@ print_status_info(char* first, char* last) {
 		       (double)torrent::up_rate()->rate() / 1024.0,
 		       (double)torrent::down_rate()->rate() / 1024.0);
 
-  first = print_buffer(first, last, " [Listen ");
-  first = print_address(first, last, torrent::local_address());
-  first = print_buffer(first, last, ":%u]", (unsigned int)torrent::listen_port());
+  first = print_buffer(first, last, " [Port: %i]", (unsigned int)torrent::listen_port());
+
+  if (!rak::socket_address::cast_from(torrent::connection_manager()->local_address())->is_address_any()) {
+    first = print_buffer(first, last, " [Local ");
+    first = print_address(first, last, torrent::connection_manager()->local_address());
+    first = print_buffer(first, last, "]");
+  }
   
   if (first > last)
     throw torrent::internal_error("print_status_info(...) wrote past end of the buffer.");
 
-  if (!rak::socket_address::cast_from(torrent::bind_address())->is_address_any()) {
+  if (!rak::socket_address::cast_from(torrent::connection_manager()->bind_address())->is_address_any()) {
     first = print_buffer(first, last, " [Bind ");
-    first = print_address(first, last, torrent::bind_address());
+    first = print_address(first, last, torrent::connection_manager()->bind_address());
     first = print_buffer(first, last, "]");
   }
 
