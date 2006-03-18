@@ -56,6 +56,9 @@ public:
   inline bool        is_done();
 
   void               start();
+  void               stop();
+
+  // Add functions like pause/etc.
 
   utils::VariableMap* variables()                                  { return &m_variables; }
   std::string        variable_string(const std::string& key)       { return m_variables.get_string(key); }

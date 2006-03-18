@@ -106,7 +106,13 @@ Download::start() {
   // Update the priority to ensure it has the correct
   // seeding/unfinished modifiers.
   set_priority(priority());
+
   m_download.start();
+}
+
+void
+Download::stop() {
+  m_download.stop();
 }
 
 void

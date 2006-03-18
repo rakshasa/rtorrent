@@ -148,8 +148,6 @@ main(int argc, char** argv) {
     srandom(cachedTime.usec());
     srand48(cachedTime.usec());
 
-    initialize_option_handler(control);
-
     SignalHandler::set_ignore(SIGPIPE);
     SignalHandler::set_handler(SIGINT,   sigc::mem_fun(control, &Control::receive_normal_shutdown));
     SignalHandler::set_handler(SIGTERM,  sigc::mem_fun(control, &Control::receive_quick_shutdown));
@@ -159,6 +157,10 @@ main(int argc, char** argv) {
     SignalHandler::set_handler(SIGFPE,   sigc::bind(sigc::ptr_fun(&do_panic), SIGFPE));
 
     control->core()->initialize_first();
+
+    // Initialize option handlers after libtorrent to ensure
+    // torrent::ConnectionManager* is valid etc.
+    initialize_option_handler(control);
 
     // Move env and go through "try_import".
     if (!control->variables()->process_file("~/.rtorrent.rc"))

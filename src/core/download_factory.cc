@@ -140,7 +140,7 @@ DownloadFactory::receive_success() {
   if (m_stream == NULL)
     throw torrent::client_error("DownloadFactory::receive_success() called on an object with m_stream == NULL");
 
-  Manager::DListItr itr = m_manager->insert(m_stream, m_printLog);
+  DownloadList::iterator itr = m_manager->download_list().insert(m_stream, m_printLog);
 
   if (itr == m_manager->download_list().end()) {
     // core::Manager should already have added the error message to
@@ -190,10 +190,7 @@ DownloadFactory::receive_success() {
   if (control->variables()->get_string("use_udp_trackers") == "no")
     (*itr)->enable_udp_trackers(false);
 
-  if (control->variables()->get_string("upload_total_clear") == "yes")
-    rtorrent.erase_key("total_uploaded");
-
-  else if (rtorrent.has_key("total_uploaded") && rtorrent.get_key("total_uploaded").is_value())
+  if (rtorrent.has_key("total_uploaded") && rtorrent.get_key("total_uploaded").is_value())
     (*itr)->get_download().up_rate()->set_total(rtorrent.get_key("total_uploaded").as_value());
     
   if (m_session) {
@@ -204,7 +201,7 @@ DownloadFactory::receive_success() {
       (*itr)->variables()->set("directory", rtorrent.get_key("directory"));
 
     if ((*itr)->variables()->get_string("state") == "started")
-      m_manager->start(*itr, m_printLog);
+      m_manager->download_list().resume(*itr);
 
   } else {
     (*itr)->variables()->set("directory", m_variables.get("directory"));
@@ -213,7 +210,7 @@ DownloadFactory::receive_success() {
       (*itr)->variables()->set("tied_to_file", m_uri);
 
     if (m_start)
-      m_manager->start(*itr, m_printLog);
+      m_manager->download_list().start(*itr);
 
     m_manager->download_store().save(*itr);
   }

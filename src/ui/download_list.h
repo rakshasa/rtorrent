@@ -119,6 +119,7 @@ private:
 
   void                receive_start_download();
   void                receive_stop_download();
+  void                receive_close_download();
 
   void                receive_view_download();
   void                receive_exit_download();

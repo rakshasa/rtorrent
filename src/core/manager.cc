@@ -130,7 +130,7 @@ Manager::initialize_second() {
 
   m_downloadList.slot_map_start()["1_download_start"]       = sigc::mem_fun(&Download::start);
 
-  m_downloadList.slot_map_stop()["1_download_stop"]         = sigc::mem_fun(&Download::call<void, &torrent::Download::stop>);
+  m_downloadList.slot_map_stop()["1_download_stop"]         = sigc::mem_fun(&Download::stop);
   m_downloadList.slot_map_stop()["2_hash_resume_save"]      = sigc::mem_fun(&Download::call<void, &torrent::Download::hash_resume_save>);
   m_downloadList.slot_map_stop()["3_store_save"]            = sigc::mem_fun(m_downloadStore, &DownloadStore::save);
 
@@ -152,75 +152,9 @@ Manager::cleanup() {
 void
 Manager::shutdown(bool force) {
   if (!force)
-    std::for_each(m_downloadList.begin(), m_downloadList.end(),
-		  std::bind1st(std::mem_fun(&DownloadList::stop), &m_downloadList));
+    std::for_each(m_downloadList.begin(), m_downloadList.end(), std::bind1st(std::mem_fun(&DownloadList::pause), &m_downloadList));
   else
-    std::for_each(m_downloadList.begin(), m_downloadList.end(),
-		  std::bind1st(std::mem_fun(&DownloadList::close), &m_downloadList));
-}
-
-Manager::DListItr
-Manager::insert(std::istream* s, bool printLog) {
-  try {
-    return m_downloadList.insert(s);
-
-  } catch (torrent::local_error& e) {
-    if (printLog) {
-      m_logImportant.push_front(e.what());
-      m_logComplete.push_front(e.what());
-    }
-
-    return m_downloadList.end();
-  }
-}
-
-Manager::DListItr
-Manager::erase(DListItr itr) {
-  if ((*itr)->get_download().is_active())
-    throw std::logic_error("core::Manager::erase(...) called on an active download");
-
-//   if (!(*itr)->get_download().is_open())
-//     throw std::logic_error("core::Manager::erase(...) called on an closed download");
-
-  return m_downloadList.erase(itr);
-}  
-
-void
-Manager::start(Download* d, bool printLog) {
-  try {
-    d->variables()->set("state", "started");
-
-    if (d->get_download().is_active())
-      return;
-
-    if (!d->get_download().is_open())
-      m_downloadList.open(d);
-
-    if (d->get_download().is_hash_checked())
-      m_downloadList.start(d);
-    else
-      // This can cause infinit loops?
-      m_hashQueue.insert(d, sigc::bind(sigc::mem_fun(m_downloadList, &DownloadList::start), d));
-
-  } catch (torrent::local_error& e) {
-    if (printLog) {
-      m_logImportant.push_front(e.what());
-      m_logComplete.push_front(e.what());
-    }
-  }
-}
-
-void
-Manager::stop(Download* d) {
-  try {
-    d->variables()->set("state", "stopped");
-
-    m_downloadList.stop(d);
-
-  } catch (torrent::local_error& e) {
-    m_logImportant.push_front(e.what());
-    m_logComplete.push_front(e.what());
-  }
+    std::for_each(m_downloadList.begin(), m_downloadList.end(), std::bind1st(std::mem_fun(&DownloadList::close), &m_downloadList));
 }
 
 void
@@ -231,7 +165,7 @@ Manager::check_hash(Download* d) {
     prepare_hash_check(d);
 
     if (restart)
-      m_hashQueue.insert(d, sigc::bind(sigc::mem_fun(m_downloadList, &DownloadList::start), d));
+      m_hashQueue.insert(d, sigc::bind(sigc::mem_fun(m_downloadList, &DownloadList::resume), d));
     else
       m_hashQueue.insert(d, sigc::slot0<void>());
 
@@ -350,8 +284,7 @@ Manager::receive_http_failed(std::string msg) {
 
 void
 Manager::receive_download_done_hash_checked(Download* d) {
-  if (!d->get_download().is_active())
-    m_downloadList.start(d);
+  m_downloadList.resume(d);
 
   if (control->variables()->get_string("session_on_completion") == "yes")
     m_downloadStore.save(d);

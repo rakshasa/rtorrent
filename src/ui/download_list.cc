@@ -192,7 +192,7 @@ DownloadList::receive_start_download() {
   if (m_downloadList.get_focus() == m_downloadList.end())
     return;
 
-  m_control->core()->start(*m_downloadList.get_focus());
+  m_control->core()->download_list().start(*m_downloadList.get_focus());
 }
 
 void
@@ -201,9 +201,17 @@ DownloadList::receive_stop_download() {
     return;
 
   if ((*m_downloadList.get_focus())->get_download().is_active())
-    m_control->core()->stop(*m_downloadList.get_focus());
+    m_control->core()->download_list().stop(*m_downloadList.get_focus());
   else
-    m_downloadList.set_focus(m_control->core()->erase(m_downloadList.get_focus()));
+    m_downloadList.set_focus(m_control->core()->download_list().erase(m_downloadList.get_focus()));
+}
+
+void
+DownloadList::receive_close_download() {
+  if (m_downloadList.get_focus() == m_downloadList.end())
+    return;
+
+  m_control->core()->download_list().close(*m_downloadList.get_focus());
 }
 
 void
@@ -308,7 +316,7 @@ DownloadList::receive_exit_input(Input type) {
 	throw torrent::input_error("No download in focus to change root directory.");
 
       (*m_downloadList.get_focus())->variables()->set("directory", rak::trim(m_windowTextInput->get_input()->str()));
-      m_control->core()->push_log("New root dir \"" + (*m_downloadList.get_focus())->variables()->get_string("directory") + "\"");
+      m_control->core()->push_log("New root dir \"" + (*m_downloadList.get_focus())->variables()->get_string("directory") + "\" for torrent.");
       break;
 
     case INPUT_COMMAND:
@@ -366,6 +374,7 @@ void
 DownloadList::setup_keys() {
   (*m_bindings)['\x13']        = sigc::mem_fun(*this, &DownloadList::receive_start_download);
   (*m_bindings)['\x04']        = sigc::mem_fun(*this, &DownloadList::receive_stop_download);
+  (*m_bindings)['\x0B']        = sigc::mem_fun(*this, &DownloadList::receive_close_download);
   (*m_bindings)['\x12']        = sigc::mem_fun(*this, &DownloadList::receive_check_hash);
   (*m_bindings)['+']           = sigc::mem_fun(*this, &DownloadList::receive_next_priority);
   (*m_bindings)['-']           = sigc::mem_fun(*this, &DownloadList::receive_prev_priority);

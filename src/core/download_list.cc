@@ -38,9 +38,13 @@
 
 #include <algorithm>
 #include <sigc++/bind.h>
+#include <torrent/exceptions.h>
 #include <torrent/torrent.h>
 
 #include "rak/functional.h"
+
+#include "globals.h"
+#include "manager.h"
 
 #include "download.h"
 #include "download_list.h"
@@ -58,19 +62,33 @@ struct download_list_call {
 };    
 
 DownloadList::iterator
-DownloadList::insert(std::istream* str) {
-  torrent::Download d = torrent::download_add(str);
+DownloadList::insert(std::istream* str, bool printLog) {
+  try {
 
-  iterator itr = Base::insert(end(), new Download(d));
-  (*itr)->get_download().signal_download_done(sigc::bind(sigc::mem_fun(*this, &DownloadList::finished), *itr));
+    torrent::Download d = torrent::download_add(str);
 
-  std::for_each(m_slotMapInsert.begin(), m_slotMapInsert.end(), download_list_call(*itr));
+    iterator itr = Base::insert(end(), new Download(d));
 
-  return itr;
+    (*itr)->get_download().signal_download_done(sigc::bind(sigc::mem_fun(*this, &DownloadList::finished), *itr));
+    std::for_each(m_slotMapInsert.begin(), m_slotMapInsert.end(), download_list_call(*itr));
+
+    return itr;
+
+  } catch (torrent::local_error& e) {
+    if (printLog)
+      control->core()->push_log(e.what());
+
+    return end();
+  }
 }
 
 DownloadList::iterator
 DownloadList::erase(iterator itr) {
+  // Make safe to erase active downloads.
+
+  if ((*itr)->get_download().is_active())
+    throw std::logic_error("DownloadList::erase(...) called on an active download.");
+
   std::for_each(m_slotMapErase.begin(), m_slotMapErase.end(), download_list_call(*itr));
 
   torrent::download_remove((*itr)->get_download());
@@ -81,37 +99,72 @@ DownloadList::erase(iterator itr) {
 
 void
 DownloadList::open(Download* d) {
-  if (d->get_download().is_open())
-    return;
+  try {
 
-  std::for_each(m_slotMapOpen.begin(), m_slotMapOpen.end(), download_list_call(d));
+    if (!d->get_download().is_open())
+      std::for_each(m_slotMapOpen.begin(), m_slotMapOpen.end(), download_list_call(d));
+
+  } catch (torrent::local_error& e) {
+    control->core()->push_log(e.what());
+  }
 }
 
 void
 DownloadList::close(Download* d) {
-  if (!d->get_download().is_open())
-    return;
+  try {
 
-  stop(d);
-  std::for_each(m_slotMapClose.begin(), m_slotMapClose.end(), download_list_call(d));
+    if (d->get_download().is_active())
+      std::for_each(m_slotMapStop.begin(), m_slotMapStop.end(), download_list_call(d));
+
+    if (d->get_download().is_open())
+      std::for_each(m_slotMapClose.begin(), m_slotMapClose.end(), download_list_call(d));
+
+  } catch (torrent::local_error& e) {
+    control->core()->push_log(e.what());
+  }
 }
 
 void
 DownloadList::start(Download* d) {
-  if (d->get_download().is_active() ||
-      !d->get_download().is_hash_checked())
-    return;
+  d->variables()->set("state", "started");
 
-  open(d);
-  std::for_each(m_slotMapStart.begin(), m_slotMapStart.end(), download_list_call(d));
+  resume(d);
 }
 
 void
 DownloadList::stop(Download* d) {
-  if (!d->get_download().is_active())
-    return;
+  d->variables()->set("state", "stopped");
 
-  std::for_each(m_slotMapStop.begin(), m_slotMapStop.end(), download_list_call(d));
+  pause(d);
+}
+
+void
+DownloadList::resume(Download* d) {
+  try {
+    if (!d->get_download().is_open())
+      std::for_each(m_slotMapOpen.begin(), m_slotMapOpen.end(), download_list_call(d));
+      
+    if (d->get_download().is_hash_checked())
+      std::for_each(m_slotMapStart.begin(), m_slotMapStart.end(), download_list_call(d));
+    else
+      // TODO: This can cause infinit looping?
+      control->core()->hash_queue().insert(d, sigc::bind(sigc::mem_fun(*this, &DownloadList::resume), d));
+
+  } catch (torrent::local_error& e) {
+    control->core()->push_log(e.what());
+  }
+}
+
+void
+DownloadList::pause(Download* d) {
+  try {
+
+    if (d->get_download().is_active())
+      std::for_each(m_slotMapStop.begin(), m_slotMapStop.end(), download_list_call(d));
+
+  } catch (torrent::local_error& e) {
+    control->core()->push_log(e.what());
+  }
 }
 
 void

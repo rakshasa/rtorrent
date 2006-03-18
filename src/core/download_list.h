@@ -73,7 +73,7 @@ public:
 
   ~DownloadList() { clear(); }
 
-  iterator            insert(std::istream* str);
+  iterator            insert(std::istream* str, bool printLog);
   iterator            erase(iterator itr);
 
   void                open(Download* d);
@@ -81,6 +81,10 @@ public:
 
   void                start(Download* d);
   void                stop(Download* d);
+
+  // These do not change the rtorrent:state.
+  void                resume(Download* d);
+  void                pause(Download* d);
 
   SlotMap&            slot_map_insert()     { return m_slotMapInsert; }
   SlotMap&            slot_map_erase()      { return m_slotMapErase; }
