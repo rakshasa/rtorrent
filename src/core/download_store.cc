@@ -43,10 +43,11 @@
 #include <unistd.h>
 #include <rak/path.h>
 #include <rak/string_manip.h>
-#include <torrent/bencode.h>
+#include <torrent/object.h>
 #include <torrent/exceptions.h>
 #include <torrent/torrent.h>
 #include <torrent/rate.h>
+#include <torrent/object_stream.h>
 
 #include "download.h"
 #include "download_store.h"
@@ -112,7 +113,7 @@ DownloadStore::save(Download* d) {
   // Test the new file, to ensure it is a valid bencode string.
   f.open((create_filename(d) + ".new").c_str(), std::ios::in);
 
-  torrent::Bencode tmp;
+  torrent::Object tmp;
   f >> tmp;
 
   if (!f.good())

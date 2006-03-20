@@ -40,7 +40,7 @@
 #include <string>
 
 namespace torrent {
-  class Bencode;
+  class Object;
 }
 
 namespace utils {
@@ -50,8 +50,8 @@ public:
   Variable() {}
   virtual ~Variable() {}
 
-  virtual const torrent::Bencode& get() = 0;
-  virtual void                    set(const torrent::Bencode& arg) = 0;
+  virtual const torrent::Object& get() = 0;
+  virtual void                    set(const torrent::Object& arg) = 0;
 
 protected:
   Variable(const Variable&);

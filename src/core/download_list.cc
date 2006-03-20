@@ -37,8 +37,11 @@
 #include "config.h"
 
 #include <algorithm>
+#include <iostream>
 #include <sigc++/bind.h>
 #include <torrent/exceptions.h>
+#include <torrent/object.h>
+#include <torrent/object_stream.h>
 #include <torrent/torrent.h>
 
 #include "rak/functional.h"
@@ -63,9 +66,17 @@ struct download_list_call {
 
 DownloadList::iterator
 DownloadList::insert(std::istream* str, bool printLog) {
+  torrent::Object* object = new torrent::Object;
+
   try {
 
-    torrent::Download d = torrent::download_add(str);
+    *str >> *object;
+    
+    // Catch, delete.
+    if (str->fail())
+      throw torrent::input_error("Could not create download, the input is not a valid torrent.");
+
+    torrent::Download d = torrent::download_add(object);
 
     iterator itr = Base::insert(end(), new Download(d));
 
@@ -75,6 +86,8 @@ DownloadList::insert(std::istream* str, bool printLog) {
     return itr;
 
   } catch (torrent::local_error& e) {
+    delete object;
+
     if (printLog)
       control->core()->push_log(e.what());
 

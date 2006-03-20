@@ -40,7 +40,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <rak/path.h>
-#include <torrent/bencode.h>
+#include <torrent/object.h>
 #include <torrent/exceptions.h>
 #include <torrent/rate.h>
 
@@ -149,7 +149,7 @@ DownloadFactory::receive_success() {
     return;
   }
 
-  torrent::Bencode& root = (*itr)->get_bencode();
+  torrent::Object& root = (*itr)->get_bencode();
 
   if (!m_session) {
     // We only allow session torrents to keep their
@@ -160,9 +160,9 @@ DownloadFactory::receive_success() {
 
   if (!root.has_key("rtorrent") ||
       !root.get_key("rtorrent").is_map())
-    root.insert_key("rtorrent", torrent::Bencode(torrent::Bencode::TYPE_MAP));
+    root.insert_key("rtorrent", torrent::Object(torrent::Object::TYPE_MAP));
     
-  torrent::Bencode& rtorrent = root.get_key("rtorrent");
+  torrent::Object& rtorrent = root.get_key("rtorrent");
 
   if (!rtorrent.has_key("state") ||
       !rtorrent.get_key("state").is_string() ||

@@ -40,7 +40,7 @@
 #include <map>
 #include <string>
 #include <iosfwd>
-#include <torrent/bencode.h>
+#include <torrent/object.h>
 
 namespace utils {
 
@@ -49,7 +49,7 @@ class Variable;
 class VariableMap : public std::map<std::string, Variable*> {
 public:
   typedef std::map<std::string, Variable*> base_type;
-  typedef torrent::Bencode                 mapped_type;
+  typedef torrent::Object                  mapped_type;
 
   static const int max_size_key = 128;
   static const int max_size_opt = 1024;

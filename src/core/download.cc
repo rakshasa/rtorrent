@@ -65,8 +65,8 @@ Download::Download(torrent::Download d) :
 													  rak::mem_fn(this, &Download::set_connection_current)));
   m_variables.insert("connection_leech",   new utils::VariableAny(connection_type_to_string(torrent::Download::CONNECTION_LEECH)));
   m_variables.insert("connection_seed",    new utils::VariableAny(connection_type_to_string(torrent::Download::CONNECTION_SEED)));
-  m_variables.insert("state",              new utils::VariableBencode(&m_download.bencode(), "rtorrent", "state", torrent::Bencode::TYPE_STRING));
-  m_variables.insert("tied_to_file",       new utils::VariableBencode(&m_download.bencode(), "rtorrent", "tied_to_file", torrent::Bencode::TYPE_STRING));
+  m_variables.insert("state",              new utils::VariableObject(&m_download.bencode(), "rtorrent", "state", torrent::Object::TYPE_STRING));
+  m_variables.insert("tied_to_file",       new utils::VariableObject(&m_download.bencode(), "rtorrent", "tied_to_file", torrent::Object::TYPE_STRING));
 
   m_variables.insert("directory",          new utils::VariableSlotString<>(rak::mem_fn(&m_download, &torrent::Download::root_dir),
 									   rak::mem_fn(this, &Download::set_root_directory)));

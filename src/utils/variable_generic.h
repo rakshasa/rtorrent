@@ -35,7 +35,7 @@
 //           3185 Skoppum, NORWAY
 
 // Parts of this seems ugly in an attempt to avoid copying
-// data. Propably need to rewrite torrent::Bencode.
+// data. Propably need to rewrite torrent::Object.
 
 #ifndef RTORRENT_UTILS_VARIABLE_GENERIC_H
 #define RTORRENT_UTILS_VARIABLE_GENERIC_H
@@ -45,7 +45,7 @@
 #include <limits>
 #include <inttypes.h>
 #include <rak/functional_fun.h>
-#include <torrent/bencode.h>
+#include <torrent/object.h>
 #include <torrent/exceptions.h>
 
 #include "variable.h"
@@ -54,15 +54,15 @@ namespace utils {
 
 class VariableAny : public Variable {
 public:
-  VariableAny(const torrent::Bencode& v = torrent::Bencode()) :
+  VariableAny(const torrent::Object& v = torrent::Object()) :
     m_variable(v) {}
   virtual ~VariableAny();
 
-  virtual const torrent::Bencode& get();
-  virtual void                    set(const torrent::Bencode& arg);
+  virtual const torrent::Object&  get();
+  virtual void                    set(const torrent::Object& arg);
 
 private:
-  torrent::Bencode    m_variable;
+  torrent::Object    m_variable;
 };
 
 class VariableValue : public Variable {
@@ -70,42 +70,42 @@ public:
   VariableValue(int64_t v) : m_variable(v) {}
   virtual ~VariableValue();
 
-  virtual const torrent::Bencode& get();
-  virtual void                    set(const torrent::Bencode& arg);
+  virtual const torrent::Object& get();
+  virtual void                    set(const torrent::Object& arg);
 
 private:
-  torrent::Bencode    m_variable;
+  torrent::Object    m_variable;
 };
 
 class VariableBool : public Variable {
 public:
   VariableBool(bool state) : m_variable(state ? (int64_t)1 : (int64_t)0) {}
-  VariableBool(const torrent::Bencode& v = torrent::Bencode((int64_t)0)) { set(v); }
+  VariableBool(const torrent::Object& v = torrent::Object((int64_t)0)) { set(v); }
   virtual ~VariableBool();
 
-  virtual const torrent::Bencode& get();
-  virtual void        set(const torrent::Bencode& arg);
+  virtual const torrent::Object& get();
+  virtual void        set(const torrent::Object& arg);
 
 private:
-  torrent::Bencode    m_variable;
+  torrent::Object    m_variable;
 };
 
-class VariableBencode : public Variable {
+class VariableObject : public Variable {
 public:
-  typedef torrent::Bencode::Type Type;
+  typedef torrent::Object::type_type Type;
 
-  VariableBencode(torrent::Bencode* b,
+  VariableObject(torrent::Object* b,
 		  const std::string& root,
 		  const std::string& key,
-		  Type t = torrent::Bencode::TYPE_NONE) :
+		  Type t = torrent::Object::TYPE_NONE) :
     m_bencode(b), m_root(root), m_key(key), m_type(t) {}
-  virtual ~VariableBencode();
+  virtual ~VariableObject();
 
-  virtual const torrent::Bencode& get();
-  virtual void        set(const torrent::Bencode& arg);
+  virtual const torrent::Object& get();
+  virtual void        set(const torrent::Object& arg);
 
 private:
-  torrent::Bencode*   m_bencode;
+  torrent::Object*   m_bencode;
   std::string         m_root;
   std::string         m_key;
   Type                m_type;
@@ -124,7 +124,7 @@ public:
 
   virtual ~VariableSlotString() {}
 
-  virtual const torrent::Bencode& get() {
+  virtual const torrent::Object& get() {
     m_cache = m_slotGet();
 
     if (!m_cache.is_string())
@@ -133,12 +133,12 @@ public:
     return m_cache;
   }
 
-  virtual void set(const torrent::Bencode& arg) {
-    switch (arg.get_type()) {
-    case torrent::Bencode::TYPE_STRING:
+  virtual void set(const torrent::Object& arg) {
+    switch (arg.type()) {
+    case torrent::Object::TYPE_STRING:
       m_slotSet(arg.as_string());
       break;
-    case torrent::Bencode::TYPE_NONE:
+    case torrent::Object::TYPE_NONE:
       m_slotSet("");
       break;
     default:
@@ -153,7 +153,7 @@ private:
   // Store the cache here to avoid unnessesary copying and such. This
   // should not result in any unresonable memory usage since few
   // strings will be very large.
-  torrent::Bencode    m_cache;
+  torrent::Object    m_cache;
 };
 
 template <typename Get, typename Set>
@@ -176,7 +176,7 @@ public:
 
   virtual ~VariableSlotValue() {}
 
-  virtual const torrent::Bencode& get() {
+  virtual const torrent::Object& get() {
     m_cache = m_slotGet();
 
     // Need this?
@@ -186,7 +186,7 @@ public:
     return m_cache;
   }
 
-  virtual void set(const torrent::Bencode& arg) {
+  virtual void set(const torrent::Object& arg) {
     if (arg.is_string()) {
       Set v;
 
@@ -213,7 +213,7 @@ private:
   // Store the cache here to avoid unnessesary copying and such. This
   // should not result in any unresonable memory usage since few
   // strings will be very large.
-  torrent::Bencode    m_cache;
+  torrent::Object    m_cache;
 };
 
 }

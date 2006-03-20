@@ -43,7 +43,7 @@
 #include <rak/functional.h>
 #include <rak/path.h>
 #include <torrent/exceptions.h>
-#include <torrent/bencode.h>
+#include <torrent/object.h>
 
 #include "variable.h"
 #include "variable_map.h"
@@ -126,7 +126,7 @@ parse_unknown(std::string::const_iterator first, std::string::const_iterator las
 }
 
 std::string::const_iterator
-parse_args(std::string::const_iterator first, std::string::const_iterator last, VariableMap::mapped_type::List* dest) {
+parse_args(std::string::const_iterator first, std::string::const_iterator last, VariableMap::mapped_type::list_type* dest) {
   first = std::find_if(first, last, std::not1(variable_map_is_space()));
 
   while (first != last) {

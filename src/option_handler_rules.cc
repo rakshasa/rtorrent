@@ -44,7 +44,7 @@
 #include <rak/functional.h>
 #include <rak/path.h>
 #include <rak/string_manip.h>
-#include <torrent/bencode.h>
+#include <torrent/object.h>
 #include <torrent/connection_manager.h>
 #include <torrent/exceptions.h>
 #include <torrent/torrent.h>

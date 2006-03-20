@@ -45,40 +45,40 @@ namespace utils {
 VariableAny::~VariableAny() {
 }
 
-const torrent::Bencode&
+const torrent::Object&
 VariableAny::get() {
   return m_variable;
 }
 
 void
-VariableAny::set(const torrent::Bencode& arg) {
+VariableAny::set(const torrent::Object& arg) {
   m_variable = arg;
 }
 
 VariableValue::~VariableValue() {
 }
 
-const torrent::Bencode&
+const torrent::Object&
 VariableValue::get() {
   return m_variable;
 }
 
 void
-VariableValue::set(const torrent::Bencode& arg) {
+VariableValue::set(const torrent::Object& arg) {
   uint64_t value;
   const char* first;
   char* last;
 
-  switch (arg.get_type()) {
-  case torrent::Bencode::TYPE_NONE:
+  switch (arg.type()) {
+  case torrent::Object::TYPE_NONE:
     m_variable = (int64_t)0;
     break;
 
-  case torrent::Bencode::TYPE_VALUE:
+  case torrent::Object::TYPE_VALUE:
     m_variable = arg;
     break;
 
-  case torrent::Bencode::TYPE_STRING:
+  case torrent::Object::TYPE_STRING:
     first = arg.as_string().c_str();
     value = strtoll(first, &last, 0);
 
@@ -96,13 +96,13 @@ VariableValue::set(const torrent::Bencode& arg) {
 VariableBool::~VariableBool() {
 }
 
-const torrent::Bencode&
+const torrent::Object&
 VariableBool::get() {
   return m_variable;
 }
 
 void
-VariableBool::set(const torrent::Bencode& arg) {
+VariableBool::set(const torrent::Object& arg) {
   if (arg.is_value()) {
     m_variable = arg.as_value() ? (int64_t)1 : (int64_t)0;
 
@@ -124,11 +124,11 @@ VariableBool::set(const torrent::Bencode& arg) {
   }
 }
 
-VariableBencode::~VariableBencode() {
+VariableObject::~VariableObject() {
 }
 
-const torrent::Bencode&
-VariableBencode::get() {
+const torrent::Object&
+VariableObject::get() {
   if (m_root.empty())
     return m_bencode->get_key(m_key);
   else
@@ -136,9 +136,9 @@ VariableBencode::get() {
 }
 
 void
-VariableBencode::set(const torrent::Bencode& arg) {
+VariableObject::set(const torrent::Object& arg) {
   // Consider removing if TYPE_NONE.
-  torrent::Bencode* root;
+  torrent::Object* root;
 
   if (m_root.empty())
     root = m_bencode;
@@ -146,20 +146,20 @@ VariableBencode::set(const torrent::Bencode& arg) {
     root = &m_bencode->get_key(m_root);
 
   switch (m_type) {
-  case torrent::Bencode::TYPE_NONE:
+  case torrent::Object::TYPE_NONE:
     root->insert_key(m_key, arg);
     break;
 
-  case torrent::Bencode::TYPE_STRING:
-    if (arg.get_type() == torrent::Bencode::TYPE_STRING)
+  case torrent::Object::TYPE_STRING:
+    if (arg.type() == torrent::Object::TYPE_STRING)
       root->insert_key(m_key, arg);
     else
-      throw torrent::input_error("VariableBencode could not convert to string.");
+      throw torrent::input_error("VariableObject could not convert to string.");
       
     break;
 
   default:
-    throw torrent::input_error("VariableBencode unsupported type restriction.");
+    throw torrent::input_error("VariableObject unsupported type restriction.");
   }
 }
 

@@ -48,7 +48,7 @@
 #include <rak/string_manip.h>
 #include <sigc++/bind.h>
 #include <sigc++/hide.h>
-#include <torrent/bencode.h>
+#include <torrent/object.h>
 #include <torrent/connection_manager.h>
 #include <torrent/exceptions.h>
 
