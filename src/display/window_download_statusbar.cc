@@ -65,7 +65,7 @@ WindowDownloadStatusbar::redraw() {
   position = print_download_info(buffer, last, m_download);
   m_canvas->print(0, 0, "%s", buffer);
 
-  position = buffer + std::max(snprintf(buffer, last - buffer, "Peers: %i(%i) Min/Max: %i/%i Uploads: %i U/I: %i/%i Failed: %i",
+  position = buffer + std::max(snprintf(buffer, last - buffer, "Peers: %i(%i) Min/Max: %i/%i Uploads: %i U/I/C: %i/%i/%i Failed: %i",
 					(int)m_download->get_download().peers_connected(),
 					(int)m_download->get_download().peers_not_connected(),
 					(int)m_download->get_download().peers_min(),
@@ -73,6 +73,7 @@ WindowDownloadStatusbar::redraw() {
 					(int)m_download->get_download().uploads_max(),
 					(int)m_download->get_download().peers_currently_unchoked(),
 					(int)m_download->get_download().peers_currently_interested(),
+					(int)m_download->get_download().peers_complete(),
 					(int)m_download->chunks_failed()),
 			       0);
 //   position = buffer + std::max(snprintf(position, last - buffer, " Priority: %s",

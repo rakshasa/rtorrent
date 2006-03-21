@@ -39,8 +39,6 @@
 #include <stdexcept>
 #include <cstdio>
 #include <cstring>
-#include <fstream>
-#include <istream>
 #include <unistd.h>
 #include <sys/select.h>
 #include <rak/address_info.h>
@@ -201,12 +199,12 @@ Manager::listen_open() {
   if (control->variables()->get("port_random").as_string() == "yes") {
     int boundary = m_portFirst + random() % (m_portLast - m_portFirst + 1);
 
-    if (!torrent::listen_open(boundary, m_portLast) &&
-	!torrent::listen_open(m_portFirst, boundary))
+    if (!torrent::connection_manager()->listen_open(boundary, m_portLast) &&
+	!torrent::connection_manager()->listen_open(m_portFirst, boundary))
       throw torrent::input_error("Could not open/bind a port for listening.");
 
   } else {
-    if (!torrent::listen_open(m_portFirst, m_portLast))
+    if (!torrent::connection_manager()->listen_open(m_portFirst, m_portLast))
       throw torrent::input_error("Could not open/bind a port for listening.");
 
   }
@@ -222,8 +220,8 @@ Manager::set_bind_address(const std::string& addr) {
   
   try {
 
-    if (torrent::listen_port() != 0) {
-      torrent::listen_close();
+    if (torrent::connection_manager()->listen_port() != 0) {
+      torrent::connection_manager()->listen_close();
       torrent::connection_manager()->set_bind_address(ai->address()->c_sockaddr());
       listen_open();
 

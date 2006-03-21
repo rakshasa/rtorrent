@@ -213,7 +213,7 @@ print_status_info(char* first, char* last) {
 		       (double)torrent::up_rate()->rate() / 1024.0,
 		       (double)torrent::down_rate()->rate() / 1024.0);
 
-  first = print_buffer(first, last, " [Port: %i]", (unsigned int)torrent::listen_port());
+  first = print_buffer(first, last, " [Port: %i]", (unsigned int)torrent::connection_manager()->listen_port());
 
   if (!rak::socket_address::cast_from(torrent::connection_manager()->local_address())->is_address_any()) {
     first = print_buffer(first, last, " [Local ");

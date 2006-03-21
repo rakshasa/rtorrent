@@ -37,6 +37,7 @@
 #include "config.h"
 
 #include <unistd.h>
+#include <torrent/connection_manager.h>
 
 #include "core/manager.h"
 #include "display/canvas.h"
@@ -129,7 +130,7 @@ Control::cleanup() {
 void
 Control::handle_shutdown() {
   if (!m_shutdownQuick) {
-    torrent::listen_close();
+    torrent::connection_manager()->listen_close();
     m_core->shutdown(false);
 
     if (!m_taskShutdown.is_queued())
