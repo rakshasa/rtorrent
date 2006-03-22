@@ -36,57 +36,49 @@
 
 #include "config.h"
 
-#include <torrent/rate.h>
-
-#include "canvas.h"
-#include "globals.h"
-#include "utils.h"
-#include "window_download_statusbar.h"
+#include <stdexcept>
+#include <rak/string_manip.h>
 
 #include "core/download.h"
 
+#include "window_download_chunks_seen.h"
+
 namespace display {
 
-WindowDownloadStatusbar::WindowDownloadStatusbar(core::Download* d) :
-  Window(new Canvas, false, 3),
+WindowDownloadChunksSeen::WindowDownloadChunksSeen(core::Download* d) :
+  Window(new Canvas, true),
   m_download(d) {
 }
 
 void
-WindowDownloadStatusbar::redraw() {
-  m_slotSchedule(this, (cachedTime + rak::timer::from_seconds(1)).round_seconds());
-
+WindowDownloadChunksSeen::redraw() {
+  // TODO: Make this depend on tracker signal.
+  m_slotSchedule(this, (cachedTime + rak::timer::from_seconds(10)).round_seconds());
   m_canvas->erase();
 
-  char buffer[m_canvas->get_width()];
-  char* position;
-  char* last = buffer + m_canvas->get_width() - 2;
+  if (m_canvas->get_height() < 3 || m_canvas->get_width() < 10)
+    return;
 
-  position = print_download_info(buffer, last, m_download);
-  m_canvas->print(0, 0, "%s", buffer);
+  m_canvas->print(2, 0, "Chunks seen: [C/A %i/%i]",
+		  (int)m_download->get_download().peers_complete(),
+		  (int)m_download->get_download().peers_accounted());
 
-  position = buffer + std::max(snprintf(buffer, last - buffer, "Peers: %i(%i) Min/Max: %i/%i Uploads: %i U/I/C/A: %i/%i/%i/%i Failed: %i",
-					(int)m_download->get_download().peers_connected(),
-					(int)m_download->get_download().peers_not_connected(),
-					(int)m_download->get_download().peers_min(),
-					(int)m_download->get_download().peers_max(),
-					(int)m_download->get_download().uploads_max(),
-					(int)m_download->get_download().peers_currently_unchoked(),
-					(int)m_download->get_download().peers_currently_interested(),
-					(int)m_download->get_download().peers_complete(),
-					(int)m_download->get_download().peers_accounted(),
-					(int)m_download->chunks_failed()),
-			       0);
-//   position = buffer + std::max(snprintf(position, last - buffer, " Priority: %s",
-// 					core::Download::priority_to_string(m_download->variables()->get("priority").as_value())),
-// 			       0);
-  m_canvas->print(0, 1, "%s", buffer);
+  const uint8_t* seen = m_download->get_download().chunks_seen();
+  const uint8_t* last = seen + m_download->get_download().chunks_total();
 
-  position = print_download_status(buffer, last, m_download);
-  m_canvas->print(0, 2, "[%c:%i] %s",
-		  m_download->get_download().is_tracker_busy() ? 'C' : ' ',
-		  (int)(m_download->get_download().tracker_timeout() / 1000000),
-		  buffer);
+  if (seen == NULL) {
+    m_canvas->print(2, 2, "Not available.");
+    return;
+  }
+
+  for (int y = 1; y < m_canvas->get_height() && seen != last; ++y) {
+
+    for (int x = 2; x < m_canvas->get_width() && seen != last; ++x) {
+      m_canvas->print(x, y, "%c", rak::value_to_hexchar<0>(std::min<uint8_t>(*seen, 0xF)));
+
+      seen++;
+    }
+  }
 }
 
 }

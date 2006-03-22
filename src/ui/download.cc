@@ -53,6 +53,7 @@
 #include "element_peer_info.h"
 #include "element_peer_list.h"
 #include "element_tracker_list.h"
+#include "element_chunks_seen.h"
 
 namespace ui {
 
@@ -74,6 +75,7 @@ Download::Download(DPtr d, Control* c) :
   m_uiArray[DISPLAY_PEER_INFO]    = new ElementPeerInfo(d, &m_peers, &m_focus);
   m_uiArray[DISPLAY_FILE_LIST]    = new ElementFileList(d);
   m_uiArray[DISPLAY_TRACKER_LIST] = new ElementTrackerList(d);
+  m_uiArray[DISPLAY_CHUNKS_SEEN]  = new ElementChunksSeen(d);
 
   bind_keys();
 
@@ -267,6 +269,7 @@ Download::bind_keys() {
 
   (*m_bindings)['p'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_change), DISPLAY_PEER_INFO);
   (*m_bindings)['o'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_change), DISPLAY_TRACKER_LIST);
+  (*m_bindings)['i'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_change), DISPLAY_CHUNKS_SEEN);
 
   (*m_bindings)[KEY_UP]   = sigc::mem_fun(*this, &Download::receive_prev);
   (*m_bindings)[KEY_DOWN] = sigc::mem_fun(*this, &Download::receive_next);
@@ -276,6 +279,7 @@ Download::bind_keys() {
   m_uiArray[DISPLAY_PEER_INFO]->get_bindings()[KEY_LEFT]    = sigc::bind(sigc::mem_fun(*this, &Download::receive_change), DISPLAY_PEER_LIST);
   m_uiArray[DISPLAY_FILE_LIST]->get_bindings()[KEY_LEFT]    = sigc::bind(sigc::mem_fun(*this, &Download::receive_change), DISPLAY_PEER_LIST);
   m_uiArray[DISPLAY_TRACKER_LIST]->get_bindings()[KEY_LEFT] = sigc::bind(sigc::mem_fun(*this, &Download::receive_change), DISPLAY_PEER_LIST);
+  m_uiArray[DISPLAY_CHUNKS_SEEN]->get_bindings()[KEY_LEFT]  = sigc::bind(sigc::mem_fun(*this, &Download::receive_change), DISPLAY_PEER_LIST);
 
   // Doesn't belong here.
   m_uiArray[DISPLAY_PEER_LIST]->get_bindings()['*'] = sigc::mem_fun(*this, &Download::receive_snub_peer);

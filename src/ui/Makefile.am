@@ -6,6 +6,8 @@ libsub_ui_a_SOURCES = \
 	download_list.cc \
 	download_list.h \
 	element_base.h \
+	element_chunks_seen.cc \
+	element_chunks_seen.h \
 	element_download_list.cc \
 	element_download_list.h \
 	element_file_list.cc \

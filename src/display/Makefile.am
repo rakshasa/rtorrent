@@ -11,6 +11,8 @@ libsub_display_a_SOURCES = \
 	utils.h \
 	window.cc \
 	window.h \
+	window_download_chunks_seen.cc \
+	window_download_chunks_seen.h \
 	window_download_list.cc \
 	window_download_list.h \
 	window_download_statusbar.cc \
