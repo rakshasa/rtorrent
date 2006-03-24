@@ -39,6 +39,7 @@
 
 #include <string>
 #include <vector>
+#include <inttypes.h>
 
 namespace display {
 
