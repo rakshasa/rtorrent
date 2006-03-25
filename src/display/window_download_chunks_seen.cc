@@ -36,6 +36,7 @@
 
 #include "config.h"
 
+#include <cmath>
 #include <stdexcept>
 #include <rak/string_manip.h>
 
@@ -56,28 +57,45 @@ WindowDownloadChunksSeen::redraw() {
   m_slotSchedule(this, (cachedTime + rak::timer::from_seconds(10)).round_seconds());
   m_canvas->erase();
 
-  if (m_canvas->get_height() < 3 || m_canvas->get_width() < 10)
+  if (m_canvas->get_height() < 3 || m_canvas->get_width() < 18)
     return;
 
-  m_canvas->print(2, 0, "Chunks seen: [C/A %i/%i]",
+  m_canvas->print(2, 0, "Chunks seen: [C/A/D %i/%i/%.2f]",
 		  (int)m_download->get_download().peers_complete(),
-		  (int)m_download->get_download().peers_accounted());
+		  (int)m_download->get_download().peers_accounted(),
+		  std::floor(m_download->distributed_copies() * 100.0f) / 100.0f);
 
   const uint8_t* seen = m_download->get_download().chunks_seen();
-  const uint8_t* last = seen + m_download->get_download().chunks_total();
 
   if (seen == NULL) {
     m_canvas->print(2, 2, "Not available.");
     return;
   }
 
-  for (int y = 1; y < m_canvas->get_height() && seen != last; ++y) {
+  char buffer[m_canvas->get_width()];
+  char* position;
+  char* end = buffer + m_canvas->get_width() - 2;
 
-    for (int x = 2; x < m_canvas->get_width() && seen != last; ++x) {
-      m_canvas->print(x, y, "%c", rak::value_to_hexchar<0>(std::min<uint8_t>(*seen, 0xF)));
+  const uint8_t* chunk = seen;
+  const uint8_t* last = seen + m_download->get_download().chunks_total();
 
-      seen++;
+  for (int y = 1; y < m_canvas->get_height() && chunk < last; ++y) {
+    position = buffer + std::max(snprintf(buffer, end - buffer, "%5d", chunk - seen), 0);
+
+    while (chunk < last) {
+      if ((chunk - seen) % 10 == 0) {
+	if (end - position < 11)
+	  break;
+
+	*position++ = ' ';
+      }
+
+      *position++ = rak::value_to_hexchar<0>(std::min<uint8_t>(*chunk, 0xF));
+      chunk++;
     }
+
+    *position = 0;
+    m_canvas->print(0, y, "%s", buffer);
   }
 }
 

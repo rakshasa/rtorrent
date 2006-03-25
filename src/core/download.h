@@ -95,6 +95,8 @@ public:
   static uint32_t    string_to_priority(const std::string& name);
   static const char* priority_to_string(uint32_t p);
 
+  float              distributed_copies() const;
+
 private:
   Download(const Download&);
   void operator () (const Download&);
