@@ -38,8 +38,9 @@
 
 #include <stdexcept>
 #include <sigc++/bind.h>
-#include <torrent/torrent.h>
 #include <rak/functional.h>
+#include <torrent/torrent.h>
+#include <torrent/tracker_list.h>
 
 #include "core/download.h"
 #include "input/bindings.h"
@@ -252,38 +253,43 @@ Download::receive_prev_priority() {
 }
 
 void
+Download::receive_manual_request(bool force) {
+  m_download->get_download().tracker_list().manual_request(force);
+}
+
+void
 Download::bind_keys() {
-  (*m_bindings)['1'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_max_uploads), -1);
-  (*m_bindings)['2'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_max_uploads), 1);
-  (*m_bindings)['3'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_min_peers), -5);
-  (*m_bindings)['4'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_min_peers), 5);
-  (*m_bindings)['5'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_max_peers), -5);
-  (*m_bindings)['6'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_max_peers), 5);
-  (*m_bindings)['+'] = sigc::mem_fun(*this, &Download::receive_next_priority);
-  (*m_bindings)['-'] = sigc::mem_fun(*this, &Download::receive_prev_priority);
+  (*m_bindings)['1'] = sigc::bind(sigc::mem_fun(this, &Download::receive_max_uploads), -1);
+  (*m_bindings)['2'] = sigc::bind(sigc::mem_fun(this, &Download::receive_max_uploads), 1);
+  (*m_bindings)['3'] = sigc::bind(sigc::mem_fun(this, &Download::receive_min_peers), -5);
+  (*m_bindings)['4'] = sigc::bind(sigc::mem_fun(this, &Download::receive_min_peers), 5);
+  (*m_bindings)['5'] = sigc::bind(sigc::mem_fun(this, &Download::receive_max_peers), -5);
+  (*m_bindings)['6'] = sigc::bind(sigc::mem_fun(this, &Download::receive_max_peers), 5);
+  (*m_bindings)['+'] = sigc::mem_fun(this, &Download::receive_next_priority);
+  (*m_bindings)['-'] = sigc::mem_fun(this, &Download::receive_prev_priority);
 
-  (*m_bindings)['k'] = sigc::mem_fun(*this, &Download::receive_disconnect_peer);
+  (*m_bindings)['k'] = sigc::mem_fun(this, &Download::receive_disconnect_peer);
 
-  (*m_bindings)['t'] = sigc::bind(sigc::mem_fun(m_download->get_download(), &torrent::Download::tracker_manual_request), false);
-  (*m_bindings)['T'] = sigc::bind(sigc::mem_fun(m_download->get_download(), &torrent::Download::tracker_manual_request), true);
+  (*m_bindings)['t'] = sigc::bind(sigc::mem_fun(this, &Download::receive_manual_request), false);
+  (*m_bindings)['T'] = sigc::bind(sigc::mem_fun(this, &Download::receive_manual_request), true);
 
-  (*m_bindings)['p'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_change), DISPLAY_PEER_INFO);
-  (*m_bindings)['o'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_change), DISPLAY_TRACKER_LIST);
-  (*m_bindings)['i'] = sigc::bind(sigc::mem_fun(*this, &Download::receive_change), DISPLAY_CHUNKS_SEEN);
+  (*m_bindings)['p'] = sigc::bind(sigc::mem_fun(this, &Download::receive_change), DISPLAY_PEER_INFO);
+  (*m_bindings)['o'] = sigc::bind(sigc::mem_fun(this, &Download::receive_change), DISPLAY_TRACKER_LIST);
+  (*m_bindings)['i'] = sigc::bind(sigc::mem_fun(this, &Download::receive_change), DISPLAY_CHUNKS_SEEN);
 
-  (*m_bindings)[KEY_UP]   = sigc::mem_fun(*this, &Download::receive_prev);
-  (*m_bindings)[KEY_DOWN] = sigc::mem_fun(*this, &Download::receive_next);
+  (*m_bindings)[KEY_UP]   = sigc::mem_fun(this, &Download::receive_prev);
+  (*m_bindings)[KEY_DOWN] = sigc::mem_fun(this, &Download::receive_next);
 
   // Key bindings for sub-ui's.
-  m_uiArray[DISPLAY_PEER_LIST]->get_bindings()[KEY_RIGHT]   = sigc::bind(sigc::mem_fun(*this, &Download::receive_change), DISPLAY_FILE_LIST);
-  m_uiArray[DISPLAY_PEER_INFO]->get_bindings()[KEY_LEFT]    = sigc::bind(sigc::mem_fun(*this, &Download::receive_change), DISPLAY_PEER_LIST);
-  m_uiArray[DISPLAY_FILE_LIST]->get_bindings()[KEY_LEFT]    = sigc::bind(sigc::mem_fun(*this, &Download::receive_change), DISPLAY_PEER_LIST);
-  m_uiArray[DISPLAY_TRACKER_LIST]->get_bindings()[KEY_LEFT] = sigc::bind(sigc::mem_fun(*this, &Download::receive_change), DISPLAY_PEER_LIST);
-  m_uiArray[DISPLAY_CHUNKS_SEEN]->get_bindings()[KEY_LEFT]  = sigc::bind(sigc::mem_fun(*this, &Download::receive_change), DISPLAY_PEER_LIST);
+  m_uiArray[DISPLAY_PEER_LIST]->get_bindings()[KEY_RIGHT]   = sigc::bind(sigc::mem_fun(this, &Download::receive_change), DISPLAY_FILE_LIST);
+  m_uiArray[DISPLAY_PEER_INFO]->get_bindings()[KEY_LEFT]    = sigc::bind(sigc::mem_fun(this, &Download::receive_change), DISPLAY_PEER_LIST);
+  m_uiArray[DISPLAY_FILE_LIST]->get_bindings()[KEY_LEFT]    = sigc::bind(sigc::mem_fun(this, &Download::receive_change), DISPLAY_PEER_LIST);
+  m_uiArray[DISPLAY_TRACKER_LIST]->get_bindings()[KEY_LEFT] = sigc::bind(sigc::mem_fun(this, &Download::receive_change), DISPLAY_PEER_LIST);
+  m_uiArray[DISPLAY_CHUNKS_SEEN]->get_bindings()[KEY_LEFT]  = sigc::bind(sigc::mem_fun(this, &Download::receive_change), DISPLAY_PEER_LIST);
 
   // Doesn't belong here.
-  m_uiArray[DISPLAY_PEER_LIST]->get_bindings()['*'] = sigc::mem_fun(*this, &Download::receive_snub_peer);
-  m_uiArray[DISPLAY_PEER_INFO]->get_bindings()['*'] = sigc::mem_fun(*this, &Download::receive_snub_peer);
+  m_uiArray[DISPLAY_PEER_LIST]->get_bindings()['*'] = sigc::mem_fun(this, &Download::receive_snub_peer);
+  m_uiArray[DISPLAY_PEER_INFO]->get_bindings()['*'] = sigc::mem_fun(this, &Download::receive_snub_peer);
 }
 
 void

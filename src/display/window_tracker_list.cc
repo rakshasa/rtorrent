@@ -39,6 +39,7 @@
 #include <stdexcept>
 #include <rak/algorithm.h>
 #include <rak/string_manip.h>
+#include <torrent/tracker_list.h>
 
 #include "core/download.h"
 
@@ -64,21 +65,20 @@ WindowTrackerList::redraw() {
 
   ++pos;
 
-  if (m_download->get_download().size_trackers() == 0)
+  torrent::TrackerList tl = m_download->get_download().tracker_list();
+
+  if (tl.size() == 0)
     return;
 
-  if (*m_focus >= m_download->get_download().size_trackers())
-    throw std::logic_error("WindowTrackerList::redraw() called on an object with a bad focus value");
+  if (*m_focus >= tl.size())
+    throw std::logic_error("WindowTrackerList::redraw() called on an object with a bad focus value.");
 
   typedef std::pair<unsigned int, unsigned int> Range;
 
-  Range range = rak::advance_bidirectional<unsigned int>(0,
-							 *m_focus,
-							 m_download->get_download().size_trackers(),
-							 (m_canvas->get_height() + 1) / 2);
+  Range range = rak::advance_bidirectional<unsigned int>(0, *m_focus, tl.size(), (m_canvas->get_height() + 1) / 2);
 
   while (range.first != range.second) {
-    torrent::Tracker t = m_download->get_download().tracker(range.first);
+    torrent::Tracker t = tl.get(range.first);
 
     m_canvas->print(0, pos++, "%c %s",
 		    range.first == *m_focus ? '*' : ' ',
@@ -88,7 +88,7 @@ WindowTrackerList::redraw() {
 		    range.first == *m_focus ? '*' : ' ',
 		    t.group(),
 		    rak::copy_escape_html(t.tracker_id()).c_str(),
-		    range.first == m_download->get_download().tracker_focus() ? "yes" : " no",
+		    range.first == tl.focus() ? "yes" : " no",
 		    t.is_enabled() ? "yes" : " no",
 		    t.is_open() ? "yes" : " no",
 		    t.scrape_complete(),

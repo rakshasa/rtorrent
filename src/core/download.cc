@@ -43,6 +43,7 @@
 #include <rak/path.h>
 #include <torrent/exceptions.h>
 #include <torrent/torrent.h>
+#include <torrent/tracker_list.h>
 
 #include "utils/variable_generic.h"
 
@@ -117,12 +118,14 @@ Download::stop() {
 
 void
 Download::enable_udp_trackers(bool state) {
-  for (int i = 0, last = m_download.size_trackers(); i < last; ++i)
-    if (m_download.tracker(i).tracker_type() == torrent::Tracker::TRACKER_UDP)
+  torrent::TrackerList tl = m_download.tracker_list();
+
+  for (int i = 0, last = tl.size(); i < last; ++i)
+    if (tl.get(i).tracker_type() == torrent::Tracker::TRACKER_UDP)
       if (state)
-	m_download.tracker(i).enable();
+	tl.get(i).enable();
       else
-	m_download.tracker(i).disable();
+	tl.get(i).disable();
 }
 
 uint32_t

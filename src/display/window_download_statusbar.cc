@@ -37,6 +37,7 @@
 #include "config.h"
 
 #include <torrent/rate.h>
+#include <torrent/tracker_list.h>
 
 #include "canvas.h"
 #include "globals.h"
@@ -85,7 +86,7 @@ WindowDownloadStatusbar::redraw() {
   position = print_download_status(buffer, last, m_download);
   m_canvas->print(0, 2, "[%c:%i] %s",
 		  m_download->get_download().is_tracker_busy() ? 'C' : ' ',
-		  (int)(m_download->get_download().tracker_timeout() / 1000000),
+		  (int)(m_download->get_download().tracker_list().timeout() / 1000000),
 		  buffer);
 }
 

@@ -45,6 +45,7 @@
 #include <torrent/connection_manager.h>
 #include <torrent/rate.h>
 #include <torrent/tracker.h>
+#include <torrent/tracker_list.h>
 
 #include "core/download.h"
 
@@ -76,7 +77,7 @@ print_hhmmss(char* first, char* last, time_t t) {
 char*
 print_ddhhmm(char* first, char* last, time_t t) {
   if (t / (24 * 3600) < 100)
-    return print_buffer(first, last, "%2i:%02i:%02i", (int)t / (24 * 3600), ((int)t / 3600) % 24, ((int)t / 60) % 60);
+    return print_buffer(first, last, "%2id %2i:%02i", (int)t / (24 * 3600), ((int)t / 3600) % 24, ((int)t / 60) % 60);
   else
     return print_buffer(first, last, "--:--:--");
 }
@@ -158,13 +159,13 @@ print_download_status(char* first, char* last, core::Download* d) {
 		       (d->get_download().chunks_hashed() * 100) / d->get_download().chunks_total());
 
   else if (d->get_download().is_tracker_busy() &&
-	   d->get_download().tracker_focus() < d->get_download().size_trackers())
-    first = print_buffer(first, last, "Tracker[%i:%i]: Connecting to %s",
-		       d->get_download().tracker(d->get_download().tracker_focus()).group(),
-		       d->get_download().tracker_focus(),
-		       d->get_download().tracker(d->get_download().tracker_focus()).url().c_str());
+	   d->get_download().tracker_list().focus() < d->get_download().tracker_list().size()) {
+    torrent::TrackerList tl = d->get_download().tracker_list();
 
-  else if (!d->get_message().empty())
+    first = print_buffer(first, last, "Tracker[%i:%i]: Connecting to %s",
+			 tl.get(tl.focus()).group(), tl.focus(), tl.get(tl.focus()).url().c_str());
+
+  } else if (!d->get_message().empty())
     first = print_buffer(first, last, "%s", d->get_message().c_str());
 
   else

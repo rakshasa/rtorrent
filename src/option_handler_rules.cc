@@ -48,6 +48,7 @@
 #include <torrent/connection_manager.h>
 #include <torrent/exceptions.h>
 #include <torrent/torrent.h>
+#include <torrent/tracker_list.h>
 
 #include "core/download.h"
 #include "core/manager.h"
@@ -154,6 +155,25 @@ apply_encoding_list(__UNUSED Control* m, const std::string& arg) {
 }
 
 void
+apply_enable_trackers(Control* m, __UNUSED const std::string& arg) {
+  bool state = (arg != "no");
+
+  for (core::Manager::DListItr itr = m->core()->download_list().begin(), last = m->core()->download_list().end(); itr != last; ++itr) {
+
+    torrent::TrackerList tl = (*itr)->get_download().tracker_list();
+
+    for (int i = 0, last = tl.size(); i < last; ++i)
+      if (state)
+	tl.get(i).enable();
+      else
+	tl.get(i).disable();
+
+    if (state && control->variables()->get_string("use_udp_trackers") == "no")
+      (*itr)->enable_udp_trackers(false);
+  }    
+}
+
+void
 initialize_option_handler(Control* c) {
   utils::VariableMap* variables = control->variables();
 
@@ -211,6 +231,8 @@ initialize_option_handler(Control* c) {
   variables->insert("load_start",          new utils::VariableSlotString<>(NULL, rak::bind_ptr_fn(&apply_load_start, c)));
   variables->insert("stop_untied",         new utils::VariableSlotString<>(NULL, rak::bind_ptr_fn(&apply_stop_untied, c)));
   variables->insert("remove_untied",       new utils::VariableSlotString<>(NULL, rak::bind_ptr_fn(&apply_remove_untied, c)));
+
+  variables->insert("enable_trackers",     new utils::VariableSlotString<>(NULL, rak::bind_ptr_fn(&apply_enable_trackers, c)));
 
   variables->insert("encoding_list",       new utils::VariableSlotString<>(NULL, rak::bind_ptr_fn(&apply_encoding_list, c)));
 

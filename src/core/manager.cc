@@ -49,6 +49,7 @@
 #include <torrent/object.h>
 #include <torrent/connection_manager.h>
 #include <torrent/exceptions.h>
+#include <torrent/tracker_list.h>
 
 #include "utils/variable_map.h"
 
@@ -63,12 +64,12 @@
 namespace core {
 
 static void
-connect_signal_network_log(Download* d, torrent::Download::SlotString s) {
+connect_signal_network_log(Download* d, torrent::Download::slot_string_type s) {
   d->get_download().signal_network_log(s);
 }
 
 static void
-connect_signal_storage_log(Download* d, torrent::Download::SlotString s) {
+connect_signal_storage_log(Download* d, torrent::Download::slot_string_type s) {
   d->get_download().signal_storage_error(s);
 }
 
@@ -289,7 +290,7 @@ Manager::receive_download_done_hash_checked(Download* d) {
 
   // Don't send if we did a hash check and found incompelete chunks.
   if (d->is_done())
-    d->get_download().tracker_send_completed();
+    d->get_download().tracker_list().send_completed();
 }
 
 void
