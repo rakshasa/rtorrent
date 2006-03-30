@@ -43,6 +43,7 @@
 #include <rak/path.h>
 #include <torrent/exceptions.h>
 #include <torrent/torrent.h>
+#include <torrent/tracker.h>
 #include <torrent/tracker_list.h>
 
 #include "utils/variable_generic.h"
@@ -53,6 +54,7 @@ namespace core {
 
 Download::Download(torrent::Download d) :
   m_download(d),
+  m_fileList(d.file_list()),
 
   m_chunksFailed(0) {
 
@@ -69,8 +71,8 @@ Download::Download(torrent::Download d) :
   m_variables.insert("state",              new utils::VariableObject(&m_download.bencode(), "rtorrent", "state", torrent::Object::TYPE_STRING));
   m_variables.insert("tied_to_file",       new utils::VariableObject(&m_download.bencode(), "rtorrent", "tied_to_file", torrent::Object::TYPE_STRING));
 
-  m_variables.insert("directory",          new utils::VariableSlotString<>(rak::mem_fn(&m_download, &torrent::Download::root_dir),
-									   rak::mem_fn(this, &Download::set_root_directory)));
+  m_variables.insert("directory",          new utils::VariableSlotString<const std::string&>(rak::mem_fn(&m_fileList, &torrent::FileList::root_dir),
+											     rak::mem_fn(this, &Download::set_root_directory)));
 
   m_variables.insert("min_peers",          new utils::VariableSlotValue<uint32_t, uint32_t>(rak::mem_fn(&m_download, &torrent::Download::peers_min),
 											    rak::mem_fn(&m_download, &torrent::Download::set_peers_min),
@@ -251,14 +253,14 @@ Download::receive_chunk_failed(__UNUSED uint32_t idx) {
 void
 Download::set_root_directory(const std::string& path) {
   if (path.empty()) {
-    m_download.set_root_dir("./" + (m_download.size_file_entries() > 1 ? m_download.name() : std::string()));
+    m_fileList.set_root_dir("./" + (m_fileList.size() > 1 ? m_download.name() : std::string()));
 
   } else {
     std::string fullPath = rak::path_expand(path);
 
-    m_download.set_root_dir(fullPath +
+    m_fileList.set_root_dir(fullPath +
 			    (*fullPath.rbegin() != '/' ? "/" : "") +
-			    (m_download.size_file_entries() > 1 ? m_download.name() : ""));
+			    (m_fileList.size() > 1 ? m_download.name() : ""));
   }
 
   m_download.bencode().get_key("rtorrent").insert_key("directory", path);

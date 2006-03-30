@@ -39,6 +39,7 @@
 
 #include <sigc++/connection.h>
 #include <torrent/download.h>
+#include <torrent/file_list.h>
 #include <torrent/torrent.h>
 
 #include "utils/variable_map.h"
@@ -62,6 +63,8 @@ public:
 
   utils::VariableMap* variables()                                  { return &m_variables; }
   std::string        variable_string(const std::string& key)       { return m_variables.get_string(key); }
+
+  torrent::FileList* file_list()                                   { return &m_fileList; }
 
   torrent::Download& get_download()                  { return m_download; }
   const torrent::Download& get_download() const      { return m_download; }
@@ -111,7 +114,9 @@ private:
 
   void               set_root_directory(const std::string& path);
 
+  // Store the FileList instance so we can use slots etc on it.
   torrent::Download  m_download;
+  torrent::FileList  m_fileList;
 
   std::string        m_message;
   uint32_t           m_chunksFailed;

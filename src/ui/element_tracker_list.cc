@@ -37,6 +37,7 @@
 #include "config.h"
 
 #include <torrent/exceptions.h>
+#include <torrent/tracker.h>
 #include <torrent/tracker_list.h>
 
 #include "display/window_tracker_list.h"

@@ -36,7 +36,8 @@
 
 #include "config.h"
 
-#include <stdexcept>
+#include <torrent/exceptions.h>
+#include <torrent/file_list.h>
 
 #include "display/window_file_list.h"
 #include "input/manager.h"
@@ -60,7 +61,7 @@ ElementFileList::ElementFileList(core::Download* d) :
 void
 ElementFileList::activate(Control* c, MItr mItr) {
   if (m_window != NULL)
-    throw std::logic_error("ui::ElementFileList::activate(...) called on an object in the wrong state");
+    throw torrent::internal_error("ui::ElementFileList::activate(...) called on an object in the wrong state");
 
   c->input()->push_front(&m_bindings);
 
@@ -70,7 +71,7 @@ ElementFileList::activate(Control* c, MItr mItr) {
 void
 ElementFileList::disable(Control* c) {
   if (m_window == NULL)
-    throw std::logic_error("ui::ElementFileList::disable(...) called on an object in the wrong state");
+    throw torrent::internal_error("ui::ElementFileList::disable(...) called on an object in the wrong state");
 
   c->input()->erase(&m_bindings);
 
@@ -81,9 +82,9 @@ ElementFileList::disable(Control* c) {
 void
 ElementFileList::receive_next() {
   if (m_window == NULL)
-    throw std::logic_error("ui::ElementFileList::receive_next(...) called on a disabled object");
+    throw torrent::internal_error("ui::ElementFileList::receive_next(...) called on a disabled object");
 
-  if (++m_focus >= m_download->get_download().size_file_entries())
+  if (++m_focus >= m_download->get_download().file_list().size())
     m_focus = 0;
 
   m_window->mark_dirty();
@@ -92,15 +93,17 @@ ElementFileList::receive_next() {
 void
 ElementFileList::receive_prev() {
   if (m_window == NULL)
-    throw std::logic_error("ui::ElementFileList::receive_prev(...) called on a disabled object");
+    throw torrent::internal_error("ui::ElementFileList::receive_prev(...) called on a disabled object");
 
-  if (m_download->get_download().size_file_entries() == 0)
+  torrent::FileList fl = m_download->get_download().file_list();
+
+  if (fl.size() == 0)
     return;
 
   if (m_focus != 0)
     --m_focus;
   else 
-    m_focus = m_download->get_download().size_file_entries() - 1;
+    m_focus = fl.size() - 1;
 
   m_window->mark_dirty();
 }
@@ -108,14 +111,16 @@ ElementFileList::receive_prev() {
 void
 ElementFileList::receive_priority() {
   if (m_window == NULL)
-    throw std::logic_error("ui::ElementFileList::receive_prev(...) called on a disabled object");
+    throw torrent::internal_error("ui::ElementFileList::receive_prev(...) called on a disabled object");
 
-  if (m_focus >= m_download->get_download().size_file_entries())
+  torrent::FileList fl = m_download->get_download().file_list();
+
+  if (m_focus >= fl.size())
     return;
 
-  torrent::Entry e = m_download->get_download().file_entry(m_focus);
+  torrent::File file = fl.get(m_focus);
 
-  e.set_priority(next_priority(e.priority()));
+  file.set_priority(next_priority(file.priority()));
 
   m_download->get_download().update_priorities();
   m_window->mark_dirty();
@@ -124,15 +129,17 @@ ElementFileList::receive_priority() {
 void
 ElementFileList::receive_change_all() {
   if (m_window == NULL)
-    throw std::logic_error("ui::ElementFileList::receive_prev(...) called on a disabled object");
+    throw torrent::internal_error("ui::ElementFileList::receive_prev(...) called on a disabled object");
 
-  if (m_focus >= m_download->get_download().size_file_entries())
+  torrent::FileList fl = m_download->get_download().file_list();
+
+  if (m_focus >= fl.size())
     return;
 
-  Priority p = next_priority(m_download->get_download().file_entry(m_focus).priority());
+  Priority p = next_priority(fl.get(m_focus).priority());
 
-  for (int i = 0, e = m_download->get_download().size_file_entries(); i != e; ++i)
-    m_download->get_download().file_entry(i).set_priority(p);
+  for (int i = 0, last = fl.size(); i != last; ++i)
+    fl.get(i).set_priority(p);
 
   m_download->get_download().update_priorities();
   m_window->mark_dirty();
@@ -140,18 +147,20 @@ ElementFileList::receive_change_all() {
 
 ElementFileList::Priority
 ElementFileList::next_priority(Priority p) {
+  // Ahh... do +1 modulo.
+
   switch(p) {
-  case torrent::Entry::OFF:
-    return torrent::Entry::HIGH;
+  case torrent::File::OFF:
+    return torrent::File::HIGH;
 
-  case torrent::Entry::NORMAL:
-    return torrent::Entry::OFF;
+  case torrent::File::NORMAL:
+    return torrent::File::OFF;
 
-  case torrent::Entry::HIGH:
-    return torrent::Entry::NORMAL;
+  case torrent::File::HIGH:
+    return torrent::File::NORMAL;
 	
   default:
-    return torrent::Entry::NORMAL;
+    return torrent::File::NORMAL;
   };
 }
 

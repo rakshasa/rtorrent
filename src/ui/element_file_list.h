@@ -37,6 +37,8 @@
 #ifndef RTORRENT_UI_ELEMENT_FILE_LIST_H
 #define RTORRENT_UI_ELEMENT_FILE_LIST_H
 
+#include <torrent/file.h>
+
 #include "core/download.h"
 
 #include "element_base.h"
@@ -51,7 +53,7 @@ namespace ui {
 
 class ElementFileList : public ElementBase {
 public:
-  typedef torrent::Entry::Priority Priority;
+  typedef torrent::File::Priority Priority;
   typedef display::WindowFileList  WFileList;
 
   ElementFileList(core::Download* d);

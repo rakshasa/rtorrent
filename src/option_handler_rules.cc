@@ -48,6 +48,7 @@
 #include <torrent/connection_manager.h>
 #include <torrent/exceptions.h>
 #include <torrent/torrent.h>
+#include <torrent/tracker.h>
 #include <torrent/tracker_list.h>
 
 #include "core/download.h"

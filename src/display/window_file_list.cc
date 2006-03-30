@@ -38,6 +38,8 @@
 
 #include <stdexcept>
 #include <rak/algorithm.h>
+#include <torrent/file.h>
+#include <torrent/file_list.h>
 #include <torrent/path.h>
 
 #include "core/download.h"
@@ -74,8 +76,9 @@ WindowFileList::redraw() {
   m_slotSchedule(this, (cachedTime + rak::timer::from_seconds(10)).round_seconds());
   m_canvas->erase();
 
-  if (m_download->get_download().size_file_entries() == 0 ||
-      m_canvas->get_height() < 2)
+  torrent::FileList fl = m_download->get_download().file_list();
+
+  if (fl.size() == 0 || m_canvas->get_height() < 2)
     return;
 
   int pos = 0;
@@ -89,16 +92,13 @@ WindowFileList::redraw() {
 
   ++pos;
 
-  if (*m_focus >= m_download->get_download().size_file_entries())
+  if (*m_focus >= fl.size())
     throw std::logic_error("WindowFileList::redraw() called on an object with a bad focus value");
 
-  Range range = rak::advance_bidirectional<unsigned int>(0,
-							 *m_focus,
-							 m_download->get_download().size_file_entries(),
-							 m_canvas->get_height() - pos);
+  Range range = rak::advance_bidirectional<unsigned int>(0, *m_focus, fl.size(), m_canvas->get_height() - pos);
 
   while (range.first != range.second) {
-    torrent::Entry e = m_download->get_download().file_entry(range.first);
+    torrent::File e = fl.get(range.first);
 
     std::string path = e.path_str();
 
@@ -110,15 +110,15 @@ WindowFileList::redraw() {
     std::string priority;
 
     switch (e.priority()) {
-    case torrent::Entry::OFF:
+    case torrent::File::OFF:
       priority = "off";
       break;
 
-    case torrent::Entry::NORMAL:
+    case torrent::File::NORMAL:
       priority = "   ";
       break;
 
-    case torrent::Entry::HIGH:
+    case torrent::File::HIGH:
       priority = "hig";
       break;
 
@@ -146,7 +146,7 @@ WindowFileList::redraw() {
 }
 
 int
-WindowFileList::done_percentage(torrent::Entry& e) {
+WindowFileList::done_percentage(torrent::File& e) {
   int chunks = e.chunk_end() - e.chunk_begin();
 
   return chunks ? (e.completed_chunks() * 100) / chunks : 100;

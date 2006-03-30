@@ -39,6 +39,7 @@
 #include <stdexcept>
 #include <rak/algorithm.h>
 #include <rak/string_manip.h>
+#include <torrent/tracker.h>
 #include <torrent/tracker_list.h>
 
 #include "core/download.h"
