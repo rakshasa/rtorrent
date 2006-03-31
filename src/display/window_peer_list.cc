@@ -86,7 +86,7 @@ WindowPeerList::redraw() {
 					   m_list->end(),
 					   m_canvas->get_height() - y);
 
-  if (m_download->get_download().chunks_total() <= 0)
+  if (m_download->download()->chunks_total() <= 0)
     throw std::logic_error("WindowPeerList::redraw() m_slotChunksTotal() returned invalid value");
 
   while (range.first != range.second) {
@@ -141,7 +141,7 @@ WindowPeerList::redraw() {
 
 int
 WindowPeerList::done_percentage(torrent::Peer& p) {
-  int chunks = m_download->get_download().chunks_total();
+  int chunks = m_download->download()->chunks_total();
 
   return chunks ? (100 * p.chunks_done()) / chunks : 0;
 }

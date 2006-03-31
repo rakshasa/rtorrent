@@ -121,7 +121,7 @@ apply_stop_untied(Control* m, __UNUSED const std::string& arg) {
     rak::file_stat fs;
 
     if (!fs.update(rak::path_expand((*itr)->variable_string("tied_to_file")))) {
-      (*itr)->variables()->set("tied_to_file", std::string());
+      (*itr)->variable()->set("tied_to_file", std::string());
       m->core()->download_list().stop(*itr);
     }
 
@@ -140,7 +140,7 @@ apply_remove_untied(Control* m, __UNUSED const std::string& arg) {
     rak::file_stat fs;
 
     if (!fs.update(rak::path_expand((*itr)->variable_string("tied_to_file")))) {
-      (*itr)->variables()->set("tied_to_file", std::string());
+      (*itr)->variable()->set("tied_to_file", std::string());
       m->core()->download_list().stop(*itr);
       itr = m->core()->download_list().erase(itr);
 
@@ -161,7 +161,7 @@ apply_enable_trackers(Control* m, __UNUSED const std::string& arg) {
 
   for (core::Manager::DListItr itr = m->core()->download_list().begin(), last = m->core()->download_list().end(); itr != last; ++itr) {
 
-    torrent::TrackerList tl = (*itr)->get_download().tracker_list();
+    torrent::TrackerList tl = (*itr)->download()->tracker_list();
 
     for (int i = 0, last = tl.size(); i < last; ++i)
       if (state)
@@ -169,14 +169,14 @@ apply_enable_trackers(Control* m, __UNUSED const std::string& arg) {
       else
 	tl.get(i).disable();
 
-    if (state && control->variables()->get_string("use_udp_trackers") == "no")
+    if (state && control->variable()->get_string("use_udp_trackers") == "no")
       (*itr)->enable_udp_trackers(false);
   }    
 }
 
 void
 initialize_option_handler(Control* c) {
-  utils::VariableMap* variables = control->variables();
+  utils::VariableMap* variables = control->variable();
 
   // Cleaned up.
   variables->insert("check_hash",            new utils::VariableAny("yes"));
@@ -208,8 +208,8 @@ initialize_option_handler(Control* c) {
   variables->insert("max_open_sockets",    new utils::VariableSlotValue<int, uint32_t>(NULL, rak::ptr_fn(&torrent::set_max_open_sockets), "%i"));
 
   variables->insert("print",               new utils::VariableSlotString<>(NULL, rak::mem_fn(control->core(), &core::Manager::push_log)));
-  variables->insert("import",              new utils::VariableSlotString<>(NULL, rak::mem_fn(control->variables(), &utils::VariableMap::process_file_throw)));
-  variables->insert("try_import",          new utils::VariableSlotString<>(NULL, rak::mem_fn(control->variables(), &utils::VariableMap::process_file_nothrow)));
+  variables->insert("import",              new utils::VariableSlotString<>(NULL, rak::mem_fn(control->variable(), &utils::VariableMap::process_file_throw)));
+  variables->insert("try_import",          new utils::VariableSlotString<>(NULL, rak::mem_fn(control->variable(), &utils::VariableMap::process_file_nothrow)));
 
   variables->insert("schedule",            new utils::VariableSlotString<>(NULL, rak::mem_fn<const std::string&>(c->command_scheduler(), &CommandScheduler::parse)));
   variables->insert("schedule_remove",     new utils::VariableSlotString<>(NULL, rak::mem_fn<const std::string&>(c->command_scheduler(), &CommandScheduler::erase)));

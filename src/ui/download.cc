@@ -62,7 +62,7 @@ Download::Download(DPtr d, Control* c) :
   m_download(d),
   m_state(DISPLAY_MAX_SIZE),
 
-  m_windowTitle(new WTitle(d->get_download().name())),
+  m_windowTitle(new WTitle(d->download()->name())),
   m_windowDownloadStatus(new WDownloadStatus(d)),
 
   m_window(c->display()->end()),
@@ -80,10 +80,10 @@ Download::Download(DPtr d, Control* c) :
 
   bind_keys();
 
-  m_download->get_download().peer_list(m_peers);
+  m_download->download()->peer_list(m_peers);
 
-  m_connPeerConnected    = m_download->get_download().signal_peer_connected(sigc::mem_fun(*this, &Download::receive_peer_connected));
-  m_connPeerDisconnected = m_download->get_download().signal_peer_disconnected(sigc::mem_fun(*this, &Download::receive_peer_disconnected));
+  m_connPeerConnected    = m_download->download()->signal_peer_connected(sigc::mem_fun(*this, &Download::receive_peer_connected));
+  m_connPeerDisconnected = m_download->download()->signal_peer_disconnected(sigc::mem_fun(*this, &Download::receive_peer_disconnected));
 }
 
 Download::~Download() {
@@ -179,7 +179,7 @@ Download::receive_disconnect_peer() {
   if (m_focus == m_peers.end())
     return;
 
-  m_download->get_download().disconnect_peer(*m_focus);
+  m_download->download()->disconnect_peer(*m_focus);
 
   mark_dirty();
 }
@@ -206,21 +206,21 @@ void
 Download::receive_max_uploads(int t) {
   m_windowDownloadStatus->mark_dirty();
 
-  m_download->get_download().set_uploads_max(std::max(m_download->get_download().uploads_max() + t, (uint32_t)2));
+  m_download->download()->set_uploads_max(std::max(m_download->download()->uploads_max() + t, (uint32_t)2));
 }
 
 void
 Download::receive_min_peers(int t) {
   m_windowDownloadStatus->mark_dirty();
 
-  m_download->get_download().set_peers_min(std::max(m_download->get_download().peers_min() + t, (uint32_t)5));
+  m_download->download()->set_peers_min(std::max(m_download->download()->peers_min() + t, (uint32_t)5));
 }
 
 void
 Download::receive_max_peers(int t) {
   m_windowDownloadStatus->mark_dirty();
 
-  m_download->get_download().set_peers_max(std::max(m_download->get_download().peers_max() + t, (uint32_t)5));
+  m_download->download()->set_peers_max(std::max(m_download->download()->peers_max() + t, (uint32_t)5));
 }
 
 void
@@ -253,11 +253,6 @@ Download::receive_prev_priority() {
 }
 
 void
-Download::receive_manual_request(bool force) {
-  m_download->get_download().tracker_list().manual_request(force);
-}
-
-void
 Download::bind_keys() {
   (*m_bindings)['1'] = sigc::bind(sigc::mem_fun(this, &Download::receive_max_uploads), -1);
   (*m_bindings)['2'] = sigc::bind(sigc::mem_fun(this, &Download::receive_max_uploads), 1);
@@ -270,8 +265,8 @@ Download::bind_keys() {
 
   (*m_bindings)['k'] = sigc::mem_fun(this, &Download::receive_disconnect_peer);
 
-  (*m_bindings)['t'] = sigc::bind(sigc::mem_fun(this, &Download::receive_manual_request), false);
-  (*m_bindings)['T'] = sigc::bind(sigc::mem_fun(this, &Download::receive_manual_request), true);
+  (*m_bindings)['t'] = sigc::bind(sigc::mem_fun(m_download->tracker_list(), &torrent::TrackerList::manual_request), false);
+  (*m_bindings)['T'] = sigc::bind(sigc::mem_fun(m_download->tracker_list(), &torrent::TrackerList::manual_request), true);
 
   (*m_bindings)['p'] = sigc::bind(sigc::mem_fun(this, &Download::receive_change), DISPLAY_PEER_INFO);
   (*m_bindings)['o'] = sigc::bind(sigc::mem_fun(this, &Download::receive_change), DISPLAY_TRACKER_LIST);

@@ -61,11 +61,11 @@ WindowDownloadChunksSeen::redraw() {
     return;
 
   m_canvas->print(2, 0, "Chunks seen: [C/A/D %i/%i/%.2f]",
-		  (int)m_download->get_download().peers_complete(),
-		  (int)m_download->get_download().peers_accounted(),
+		  (int)m_download->download()->peers_complete(),
+		  (int)m_download->download()->peers_accounted(),
 		  std::floor(m_download->distributed_copies() * 100.0f) / 100.0f);
 
-  const uint8_t* seen = m_download->get_download().chunks_seen();
+  const uint8_t* seen = m_download->download()->chunks_seen();
 
   if (seen == NULL) {
     m_canvas->print(2, 2, "Not available.");
@@ -77,7 +77,7 @@ WindowDownloadChunksSeen::redraw() {
   char* end = buffer + m_canvas->get_width() - 2;
 
   const uint8_t* chunk = seen;
-  const uint8_t* last = seen + m_download->get_download().chunks_total();
+  const uint8_t* last = seen + m_download->download()->chunks_total();
 
   for (int y = 1; y < m_canvas->get_height() && chunk < last; ++y) {
     position = buffer + std::max(snprintf(buffer, end - buffer, "%5d", chunk - seen), 0);

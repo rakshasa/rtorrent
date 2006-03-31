@@ -78,14 +78,14 @@ parse_options(Control* c, int argc, char** argv) {
     // Converted.
     optionParser.insert_flag('h', sigc::ptr_fun(&print_help));
 
-    optionParser.insert_option('b', sigc::bind<0>(sigc::mem_fun(c->variables(), &utils::VariableMap::set_string), "bind"));
-    optionParser.insert_option('d', sigc::bind<0>(sigc::mem_fun(c->variables(), &utils::VariableMap::set_string), "directory"));
-    optionParser.insert_option('i', sigc::bind<0>(sigc::mem_fun(c->variables(), &utils::VariableMap::set_string), "ip"));
-    optionParser.insert_option('p', sigc::bind<0>(sigc::mem_fun(c->variables(), &utils::VariableMap::set_string), "port_range"));
-    optionParser.insert_option('s', sigc::bind<0>(sigc::mem_fun(c->variables(), &utils::VariableMap::set_string), "session"));
+    optionParser.insert_option('b', sigc::bind<0>(sigc::mem_fun(c->variable(), &utils::VariableMap::set_string), "bind"));
+    optionParser.insert_option('d', sigc::bind<0>(sigc::mem_fun(c->variable(), &utils::VariableMap::set_string), "directory"));
+    optionParser.insert_option('i', sigc::bind<0>(sigc::mem_fun(c->variable(), &utils::VariableMap::set_string), "ip"));
+    optionParser.insert_option('p', sigc::bind<0>(sigc::mem_fun(c->variable(), &utils::VariableMap::set_string), "port_range"));
+    optionParser.insert_option('s', sigc::bind<0>(sigc::mem_fun(c->variable(), &utils::VariableMap::set_string), "session"));
 
-    optionParser.insert_option('O', sigc::mem_fun(c->variables(), &utils::VariableMap::process_command));
-    optionParser.insert_option_list('o', sigc::mem_fun(c->variables(), &utils::VariableMap::set_string));
+    optionParser.insert_option('O', sigc::mem_fun(c->variable(), &utils::VariableMap::process_command));
+    optionParser.insert_option_list('o', sigc::mem_fun(c->variable(), &utils::VariableMap::set_string));
 
     return optionParser.process(argc, argv);
 
@@ -163,7 +163,7 @@ main(int argc, char** argv) {
     initialize_option_handler(control);
 
     // Move env and go through "try_import".
-    if (!control->variables()->process_file("~/.rtorrent.rc"))
+    if (!control->variable()->process_file("~/.rtorrent.rc"))
       control->core()->get_log_important().push_front("Could not load \"~/.rtorrent.rc\".");
 
     int firstArg = parse_options(control, argc, argv);

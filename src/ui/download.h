@@ -110,7 +110,6 @@ private:
   void                receive_change(Display d);
 
   void                receive_snub_peer();
-  void                receive_manual_request(bool force);
 
   void                bind_keys();
 

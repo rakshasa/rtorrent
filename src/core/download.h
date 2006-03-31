@@ -40,6 +40,7 @@
 #include <sigc++/connection.h>
 #include <torrent/download.h>
 #include <torrent/file_list.h>
+#include <torrent/tracker_list.h>
 #include <torrent/torrent.h>
 
 #include "utils/variable_map.h"
@@ -48,90 +49,91 @@ namespace core {
 
 class Download {
 public:
-  typedef torrent::Download::ConnectionType ConnType;
+  typedef torrent::Download             download_type;
+  typedef torrent::FileList             file_list_type;
+  typedef torrent::TrackerList          tracker_list_type;
+  typedef download_type::ConnectionType connection_type;
+  typedef utils::VariableMap            variable_map_type;
 
-  Download(torrent::Download d);
+  Download(download_type d);
   ~Download();
 
-  bool               is_open()                       { return m_download.is_open(); }
-  inline bool        is_done();
+  bool                is_open() const                          { return m_download.is_open(); }
+  inline bool         is_done() const                          { return m_download.chunks_done() == m_download.chunks_total(); }
 
-  void               start();
-  void               stop();
+  void                start();
+  void                stop();
 
   // Add functions like pause/etc.
 
-  utils::VariableMap* variables()                                  { return &m_variables; }
-  std::string        variable_string(const std::string& key)       { return m_variables.get_string(key); }
+  variable_map_type*  variable()                               { return &m_variables; }
+  std::string         variable_string(const std::string& key)  { return m_variables.get_string(key); }
 
-  torrent::FileList* file_list()                                   { return &m_fileList; }
+  download_type*       download()                              { return &m_download; }
+  const download_type* download() const                        { return &m_download; }
 
-  torrent::Download& get_download()                  { return m_download; }
-  const torrent::Download& get_download() const      { return m_download; }
-  std::string        get_hash()                      { return m_download.info_hash(); }
-  torrent::Object&   get_bencode()                   { return m_download.bencode(); }
-  
-  const std::string& get_message()                   { return m_message; }
+  torrent::Object*    bencode()                                { return m_download.bencode(); }
+  file_list_type*     file_list()                              { return &m_fileList; }
+  tracker_list_type*  tracker_list()                           { return &m_trackerList; }
 
-  uint32_t           chunks_failed() const                         { return m_chunksFailed; }
+  const std::string&  info_hash() const                        { return m_download.info_hash(); }
+  const std::string&  message() const                          { return m_message; }
 
-  void               enable_udp_trackers(bool state);
+  uint32_t            chunks_failed() const                    { return m_chunksFailed; }
 
-  uint32_t           priority();
-  void               set_priority(uint32_t p);
+  void                enable_udp_trackers(bool state);
 
-  // Helper functions for calling functions in torrent::Download
+  uint32_t            priority();
+  void                set_priority(uint32_t p);
+
+  // Helper functions for calling functions in download_type
   // through sigc++.
-  template <typename Ret, Ret (torrent::Download::*func)()>
-  void               call()                                                { (m_download.*func)(); }
+  template <typename Ret, Ret (download_type::*func)()>
+  void                call()                                                { (m_download.*func)(); }
 
-  template <typename Ret, typename Arg1, Ret (torrent::Download::*func)(Arg1)>
-  void               call(Arg1 a1)                                         { (m_download.*func)(a1); }
+  template <typename Ret, typename Arg1, Ret (download_type::*func)(Arg1)>
+  void                call(Arg1 a1)                                         { (m_download.*func)(a1); }
 
   bool operator == (const std::string& str)                                { return str == m_download.info_hash(); }
 
-  void               receive_finished();
+  void                receive_finished();
 
-  static ConnType    string_to_connection_type(const std::string& name);
-  static const char* connection_type_to_string(ConnType t);
+  static connection_type string_to_connection_type(const std::string& name);
+  static const char*     connection_type_to_string(connection_type t);
 
-  static uint32_t    string_to_priority(const std::string& name);
-  static const char* priority_to_string(uint32_t p);
+  static uint32_t     string_to_priority(const std::string& name);
+  static const char*  priority_to_string(uint32_t p);
 
-  float              distributed_copies() const;
+  float               distributed_copies() const;
 
 private:
   Download(const Download&);
   void operator () (const Download&);
 
-  void               receive_tracker_msg(std::string msg);
-  void               receive_storage_error(std::string msg);
+  void                receive_tracker_msg(std::string msg);
+  void                receive_storage_error(std::string msg);
 
-  void               receive_chunk_failed(uint32_t idx);
+  void                receive_chunk_failed(uint32_t idx);
 
-  const char*        connection_current() const                    { return connection_type_to_string(m_download.connection_type()); }
-  void               set_connection_current(const std::string& t)  { return m_download.set_connection_type(string_to_connection_type(t.c_str())); }
+  const char*         connection_current() const                    { return connection_type_to_string(m_download.connection_type()); }
+  void                set_connection_current(const std::string& t)  { return m_download.set_connection_type(string_to_connection_type(t.c_str())); }
 
-  void               set_root_directory(const std::string& path);
+  void                set_root_directory(const std::string& path);
 
   // Store the FileList instance so we can use slots etc on it.
-  torrent::Download  m_download;
-  torrent::FileList  m_fileList;
+  download_type       m_download;
+  file_list_type      m_fileList;
+  tracker_list_type   m_trackerList;
 
-  std::string        m_message;
-  uint32_t           m_chunksFailed;
+  std::string         m_message;
+  uint32_t            m_chunksFailed;
 
-  sigc::connection   m_connTrackerSucceded;
-  sigc::connection   m_connTrackerFailed;
-  sigc::connection   m_connStorageError;
+  variable_map_type   m_variables;
 
-  utils::VariableMap  m_variables;
+  sigc::connection    m_connTrackerSucceded;
+  sigc::connection    m_connTrackerFailed;
+  sigc::connection    m_connStorageError;
 };
-
-inline bool
-Download::is_done() {
-  return m_download.chunks_done() == m_download.chunks_total();
-}
 
 }
 

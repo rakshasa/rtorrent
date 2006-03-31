@@ -65,18 +65,18 @@ namespace core {
 
 static void
 connect_signal_network_log(Download* d, torrent::Download::slot_string_type s) {
-  d->get_download().signal_network_log(s);
+  d->download()->signal_network_log(s);
 }
 
 static void
 connect_signal_storage_log(Download* d, torrent::Download::slot_string_type s) {
-  d->get_download().signal_storage_error(s);
+  d->download()->signal_storage_error(s);
 }
 
 // Hmm... find some better place for all this.
 static void
 delete_tied(Download* d) {
-  const std::string tie = d->variables()->get("tied_to_file").as_string();
+  const std::string tie = d->variable()->get("tied_to_file").as_string();
 
   // This should be configurable, need to wait for the variable
   // thingie to be implemented.
@@ -158,7 +158,7 @@ Manager::shutdown(bool force) {
 
 void
 Manager::check_hash(Download* d) {
-  bool restart = d->get_download().is_active();
+  bool restart = d->download()->is_active();
 
   try {
     prepare_hash_check(d);
@@ -176,7 +176,7 @@ Manager::check_hash(Download* d) {
 
 void
 Manager::receive_download_done(Download* d) {
-  if (control->variables()->get("check_hash").as_string() == "yes") {
+  if (control->variable()->get("check_hash").as_string() == "yes") {
     // Start the hash checking, send completed to tracker after
     // finishing.
     prepare_hash_check(d);
@@ -191,13 +191,13 @@ Manager::receive_download_done(Download* d) {
 
 void
 Manager::listen_open() {
-  if (control->variables()->get_string("port_open") != "yes")
+  if (control->variable()->get_string("port_open") != "yes")
     return;
 
   if (m_portFirst > m_portLast)
     throw torrent::input_error("Invalid port range for listening");
 
-  if (control->variables()->get("port_random").as_string() == "yes") {
+  if (control->variable()->get("port_random").as_string() == "yes") {
     int boundary = m_portFirst + random() % (m_portLast - m_portFirst + 1);
 
     if (!torrent::connection_manager()->listen_open(boundary, m_portLast) &&
@@ -264,11 +264,11 @@ Manager::set_local_address(const std::string& addr) {
 void
 Manager::prepare_hash_check(Download* d) {
   m_downloadList.close(d);
-  d->get_download().hash_resume_clear();
+  d->download()->hash_resume_clear();
   m_downloadList.open(d);
 
-  if (d->get_download().is_hash_checking() ||
-      d->get_download().is_hash_checked())
+  if (d->download()->is_hash_checking() ||
+      d->download()->is_hash_checked())
     throw std::logic_error("Manager::check_hash(...) closed the torrent but is_hash_check{ing,ed}() == true");
 
   if (m_hashQueue.find(d) != m_hashQueue.end())
@@ -285,12 +285,12 @@ void
 Manager::receive_download_done_hash_checked(Download* d) {
   m_downloadList.resume(d);
 
-  if (control->variables()->get_string("session_on_completion") == "yes")
+  if (control->variable()->get_string("session_on_completion") == "yes")
     m_downloadStore.save(d);
 
   // Don't send if we did a hash check and found incompelete chunks.
   if (d->is_done())
-    d->get_download().tracker_list().send_completed();
+    d->download()->tracker_list().send_completed();
 }
 
 void
@@ -298,7 +298,7 @@ Manager::try_create_download(const std::string& uri, bool start, bool printLog, 
   // Adding download.
   DownloadFactory* f = new DownloadFactory(uri, this);
 
-  f->variables()->set("tied_to_file", tied ? "yes" : "no");
+  f->variable()->set("tied_to_file", tied ? "yes" : "no");
 
   f->set_start(start);
   f->set_print_log(printLog);

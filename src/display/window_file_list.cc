@@ -76,7 +76,7 @@ WindowFileList::redraw() {
   m_slotSchedule(this, (cachedTime + rak::timer::from_seconds(10)).round_seconds());
   m_canvas->erase();
 
-  torrent::FileList fl = m_download->get_download().file_list();
+  torrent::FileList fl = m_download->download()->file_list();
 
   if (fl.size() == 0 || m_canvas->get_height() < 2)
     return;

@@ -82,10 +82,10 @@ ElementChunksSeen::disable(Control* c) {
 //   if (m_window == NULL)
 //     throw std::logic_error("ui::ElementChunksSeen::receive_disable(...) called on a disabled object");
 
-//   if (m_download->get_download().tracker(m_focus).is_enabled())
-//     m_download->get_download().tracker(m_focus).disable();
+//   if (m_download->download()->tracker(m_focus).is_enabled())
+//     m_download->download()->tracker(m_focus).disable();
 //   else
-//     m_download->get_download().tracker(m_focus).enable();
+//     m_download->download()->tracker(m_focus).enable();
 
 //   m_window->mark_dirty();
 // }

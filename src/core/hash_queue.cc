@@ -48,19 +48,19 @@ namespace core {
 
 void
 HashQueue::insert(Download* d, Slot s) {
-  if (d->get_download().is_hash_checking() ||
+  if (d->download()->is_hash_checking() ||
       find(d) != end())
     return;
 
-  if (d->get_download().is_hash_checked()) {
+  if (d->download()->is_hash_checked()) {
     s();
     return;
   }
 
   iterator itr = Base::insert(end(), new HashQueueNode(d, s));
 
-  (*itr)->set_connection(d->get_download().signal_hash_done(sigc::bind(sigc::mem_fun(*this, &HashQueue::receive_hash_done),
-								       (*itr)->get_download())));
+  (*itr)->set_connection(d->download()->signal_hash_done(sigc::bind(sigc::mem_fun(*this, &HashQueue::receive_hash_done),
+								       (*itr)->download())));
 
   fill_queue();
 }
@@ -73,7 +73,7 @@ HashQueue::remove(Download* d) {
     return;
 
   // We don't do anything if we're already checking, just disconnect.
-//   if ((*itr)->get_download()->get_download().is_hash_checking()) {
+//   if ((*itr)->download()->download()->is_hash_checking()) {
 //     // What do we do if we're already checking?
 //   }
 
@@ -85,7 +85,7 @@ HashQueue::remove(Download* d) {
 
 HashQueue::iterator
 HashQueue::find(Download* d) {
-  return std::find_if(begin(), end(), rak::equal(d, std::mem_fun(&HashQueueNode::get_download)));
+  return std::find_if(begin(), end(), rak::equal(d, std::mem_fun(&HashQueueNode::download)));
 }
 
 void
@@ -107,13 +107,13 @@ HashQueue::receive_hash_done(Download* d) {
 
 void
 HashQueue::fill_queue() {
-  if (empty() || front()->get_download()->get_download().is_hash_checking())
+  if (empty() || front()->download()->download()->is_hash_checking())
     return;
 
-  if (front()->get_download()->get_download().is_hash_checked())
+  if (front()->download()->download()->is_hash_checked())
     throw std::logic_error("core::HashQueue::fill_queue() encountered a checked hash");
   
-  front()->get_download()->get_download().hash_check();
+  front()->download()->download()->hash_check();
 }
 
 }

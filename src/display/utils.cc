@@ -108,29 +108,29 @@ print_address(char* first, char* last, const sockaddr* sa) {
 
 char*
 print_download_title(char* first, char* last, core::Download* d) {
-  return print_buffer(first, last, " %s", d->get_download().name().c_str());
+  return print_buffer(first, last, " %s", d->download()->name().c_str());
 }
 
 char*
 print_download_info(char* first, char* last, core::Download* d) {
   first = print_buffer(first, last, "Torrent: ");
 
-  if (!d->get_download().is_open())
+  if (!d->download()->is_open())
     first = print_buffer(first, last, "closed            ");
 
   else if (d->is_done())
-    first = print_buffer(first, last, "done %10.1f MB", (double)d->get_download().bytes_total() / (double)(1 << 20));
+    first = print_buffer(first, last, "done %10.1f MB", (double)d->download()->bytes_total() / (double)(1 << 20));
   else
     first = print_buffer(first, last, "%6.1f / %6.1f MB",
-		       (double)d->get_download().bytes_done() / (double)(1 << 20),
-		       (double)d->get_download().bytes_total() / (double)(1 << 20));
+		       (double)d->download()->bytes_done() / (double)(1 << 20),
+		       (double)d->download()->bytes_total() / (double)(1 << 20));
   
   first = print_buffer(first, last, " Rate: %5.1f / %5.1f KB Uploaded: %7.1f MB",
-		     (double)d->get_download().up_rate()->rate() / (1 << 10),
-		     (double)d->get_download().down_rate()->rate() / (1 << 10),
-		     (double)d->get_download().up_rate()->total() / (1 << 20));
+		     (double)d->download()->up_rate()->rate() / (1 << 10),
+		     (double)d->download()->down_rate()->rate() / (1 << 10),
+		     (double)d->download()->up_rate()->total() / (1 << 20));
 
-  if (d->get_download().is_active() && !d->is_done()) {
+  if (d->download()->is_active() && !d->is_done()) {
     first = print_buffer(first, last, " ");
     first = print_download_percentage_done(first, last, d);
 
@@ -151,25 +151,25 @@ print_download_info(char* first, char* last, core::Download* d) {
 
 char*
 print_download_status(char* first, char* last, core::Download* d) {
-  if (!d->get_download().is_active())
+  if (!d->download()->is_active())
     first = print_buffer(first, last, "Inactive: ");
 
-  if (d->get_download().is_hash_checking())
+  if (d->download()->is_hash_checking()) {
     first = print_buffer(first, last, "Checking hash [%2i%%]",
-		       (d->get_download().chunks_hashed() * 100) / d->get_download().chunks_total());
+		       (d->download()->chunks_hashed() * 100) / d->download()->chunks_total());
 
-  else if (d->get_download().is_tracker_busy() &&
-	   d->get_download().tracker_list().focus() < d->get_download().tracker_list().size()) {
-    torrent::TrackerList tl = d->get_download().tracker_list();
+  } else if (d->tracker_list()->is_busy() && d->tracker_list()->focus() < d->tracker_list()->size()) {
+    torrent::TrackerList* tl = d->tracker_list();
 
     first = print_buffer(first, last, "Tracker[%i:%i]: Connecting to %s",
-			 tl.get(tl.focus()).group(), tl.focus(), tl.get(tl.focus()).url().c_str());
+			 tl->get(tl->focus()).group(), tl->focus(), tl->get(tl->focus()).url().c_str());
 
-  } else if (!d->get_message().empty())
-    first = print_buffer(first, last, "%s", d->get_message().c_str());
+  } else if (!d->message().empty()) {
+    first = print_buffer(first, last, "%s", d->message().c_str());
 
-  else
+  } else {
     *first = '\0';
+  }
 
   if (first > last)
     throw torrent::internal_error("print_download_status(...) wrote past end of the buffer.");
@@ -179,12 +179,12 @@ print_download_status(char* first, char* last, core::Download* d) {
 
 char*
 print_download_time_left(char* first, char* last, core::Download* d) {
-  uint32_t rate = d->get_download().down_rate()->rate();
+  uint32_t rate = d->download()->down_rate()->rate();
 
   if (rate < 512)
     return print_buffer(first, last, "--:--:--");
   
-  time_t remaining = (d->get_download().bytes_total() - d->get_download().bytes_done()) / (rate & ~(uint32_t)(512 - 1));
+  time_t remaining = (d->download()->bytes_total() - d->download()->bytes_done()) / (rate & ~(uint32_t)(512 - 1));
 
   return print_ddhhmm(first, last, remaining);
 }
@@ -195,7 +195,7 @@ print_download_percentage_done(char* first, char* last, core::Download* d) {
     //return print_buffer(first, last, "[--%%]");
     return print_buffer(first, last, "     ");
   else
-    return print_buffer(first, last, "[%2u%%]", (d->get_download().chunks_done() * 100) / d->get_download().chunks_total());
+    return print_buffer(first, last, "[%2u%%]", (d->download()->chunks_done() * 100) / d->download()->chunks_total());
 }
 
 char*

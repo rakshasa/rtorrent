@@ -67,7 +67,7 @@ public:
   void                load();
   void                commit();
 
-  utils::VariableMap* variables()              { return &m_variables; }
+  utils::VariableMap* variable()            { return &m_variables; }
 
   bool                get_session() const   { return m_session; }
   void                set_session(bool v)   { m_session = v; }
@@ -75,8 +75,8 @@ public:
   bool                get_start() const     { return m_start; }
   void                set_start(bool v)     { m_start = v; }
 
-  bool                print_log() const        { return m_printLog; }
-  void                set_print_log(bool v)    { m_printLog = v; }
+  bool                print_log() const     { return m_printLog; }
+  void                set_print_log(bool v) { m_printLog = v; }
 
   void                slot_finished(Slot s) { m_slotFinished = s; }
 

@@ -80,7 +80,7 @@ DownloadList::insert(std::istream* str, bool printLog) {
 
     iterator itr = Base::insert(end(), new Download(d));
 
-    (*itr)->get_download().signal_download_done(sigc::bind(sigc::mem_fun(*this, &DownloadList::finished), *itr));
+    (*itr)->download()->signal_download_done(sigc::bind(sigc::mem_fun(*this, &DownloadList::finished), *itr));
     std::for_each(m_slotMapInsert.begin(), m_slotMapInsert.end(), download_list_call(*itr));
 
     return itr;
@@ -99,12 +99,12 @@ DownloadList::iterator
 DownloadList::erase(iterator itr) {
   // Make safe to erase active downloads.
 
-  if ((*itr)->get_download().is_active())
+  if ((*itr)->download()->is_active())
     throw std::logic_error("DownloadList::erase(...) called on an active download.");
 
   std::for_each(m_slotMapErase.begin(), m_slotMapErase.end(), download_list_call(*itr));
 
-  torrent::download_remove((*itr)->get_download());
+  torrent::download_remove(*(*itr)->download());
   delete *itr;
 
   return Base::erase(itr);
@@ -114,7 +114,7 @@ void
 DownloadList::open(Download* d) {
   try {
 
-    if (!d->get_download().is_open())
+    if (!d->download()->is_open())
       std::for_each(m_slotMapOpen.begin(), m_slotMapOpen.end(), download_list_call(d));
 
   } catch (torrent::local_error& e) {
@@ -126,10 +126,10 @@ void
 DownloadList::close(Download* d) {
   try {
 
-    if (d->get_download().is_active())
+    if (d->download()->is_active())
       std::for_each(m_slotMapStop.begin(), m_slotMapStop.end(), download_list_call(d));
 
-    if (d->get_download().is_open())
+    if (d->download()->is_open())
       std::for_each(m_slotMapClose.begin(), m_slotMapClose.end(), download_list_call(d));
 
   } catch (torrent::local_error& e) {
@@ -139,14 +139,14 @@ DownloadList::close(Download* d) {
 
 void
 DownloadList::start(Download* d) {
-  d->variables()->set("state", "started");
+  d->variable()->set("state", "started");
 
   resume(d);
 }
 
 void
 DownloadList::stop(Download* d) {
-  d->variables()->set("state", "stopped");
+  d->variable()->set("state", "stopped");
 
   pause(d);
 }
@@ -154,10 +154,10 @@ DownloadList::stop(Download* d) {
 void
 DownloadList::resume(Download* d) {
   try {
-    if (!d->get_download().is_open())
+    if (!d->download()->is_open())
       std::for_each(m_slotMapOpen.begin(), m_slotMapOpen.end(), download_list_call(d));
       
-    if (d->get_download().is_hash_checked())
+    if (d->download()->is_hash_checked())
       std::for_each(m_slotMapStart.begin(), m_slotMapStart.end(), download_list_call(d));
     else
       // TODO: This can cause infinit looping?
@@ -172,7 +172,7 @@ void
 DownloadList::pause(Download* d) {
   try {
 
-    if (d->get_download().is_active())
+    if (d->download()->is_active())
       std::for_each(m_slotMapStop.begin(), m_slotMapStop.end(), download_list_call(d));
 
   } catch (torrent::local_error& e) {

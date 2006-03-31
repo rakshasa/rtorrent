@@ -94,11 +94,26 @@ AC_DEFUN([TORRENT_MINCORE_SIGNEDNESS], [
           AC_MSG_RESULT(signed)
         ],
         [
-          AC_MSG_RESULT(none)
+          AC_MSG_ERROR([failed, do *not* attempt to use --disable-mincore unless you are running Win32.])
       ])
   ])
 
   AC_LANG_POP(C++)
+])
+
+AC_DEFUN([TORRENT_MINCORE], [
+  AC_ARG_ENABLE(mincore,
+    [  --disable-mincore       disable mincore check [[default=enable]]],
+    [
+      if test "$enableval" = "yes"; then
+        TORRENT_MINCORE_SIGNEDNESS()
+      else
+	AC_MSG_CHECKING(for mincore)
+	AC_MSG_RESULT(disabled)
+      fi
+    ],[
+        TORRENT_MINCORE_SIGNEDNESS()
+    ])
 ])
 
 AC_DEFUN([TORRENT_CHECK_MADVISE], [

@@ -70,9 +70,9 @@ DownloadFactory::DownloadFactory(const std::string& uri, Manager* m) :
   m_taskLoad.set_slot(rak::mem_fn(this, &DownloadFactory::receive_load));
   m_taskCommit.set_slot(rak::mem_fn(this, &DownloadFactory::receive_commit));
 
-  m_variables.insert("connection_leech", new utils::VariableAny(control->variables()->get("connection_leech")));
-  m_variables.insert("connection_seed",  new utils::VariableAny(control->variables()->get("connection_seed")));
-  m_variables.insert("directory",        new utils::VariableAny(control->variables()->get("directory")));
+  m_variables.insert("connection_leech", new utils::VariableAny(control->variable()->get("connection_leech")));
+  m_variables.insert("connection_seed",  new utils::VariableAny(control->variable()->get("connection_seed")));
+  m_variables.insert("directory",        new utils::VariableAny(control->variable()->get("directory")));
   m_variables.insert("tied_to_file",     new utils::VariableBool(false));
 }
 
@@ -149,65 +149,65 @@ DownloadFactory::receive_success() {
     return;
   }
 
-  torrent::Object& root = (*itr)->get_bencode();
+  torrent::Object* root = (*itr)->bencode();
 
   if (!m_session) {
     // We only allow session torrents to keep their
     // 'rtorrent/libtorrent' sections.
-    root.erase_key("rtorrent");
-    root.erase_key("libtorrent");
+    root->erase_key("rtorrent");
+    root->erase_key("libtorrent");
   }
 
-  if (!root.has_key("rtorrent") ||
-      !root.get_key("rtorrent").is_map())
-    root.insert_key("rtorrent", torrent::Object(torrent::Object::TYPE_MAP));
+  if (!root->has_key("rtorrent") ||
+      !root->get_key("rtorrent").is_map())
+    root->insert_key("rtorrent", torrent::Object(torrent::Object::TYPE_MAP));
     
-  torrent::Object& rtorrent = root.get_key("rtorrent");
+  torrent::Object* rtorrent = &root->get_key("rtorrent");
 
-  if (!rtorrent.has_key("state") ||
-      !rtorrent.get_key("state").is_string() ||
-      (rtorrent.get_key("state").as_string() != "stopped" &&
-       rtorrent.get_key("state").as_string() != "started"))
-    rtorrent.insert_key("state", "stopped");
+  if (!rtorrent->has_key("state") ||
+      !rtorrent->get_key("state").is_string() ||
+      (rtorrent->get_key("state").as_string() != "stopped" &&
+       rtorrent->get_key("state").as_string() != "started"))
+    rtorrent->insert_key("state", "stopped");
   
-  if (!rtorrent.has_key("tied_to_file") ||
-      !rtorrent.get_key("tied_to_file").is_string())
-    rtorrent.insert_key("tied_to_file", std::string());
+  if (!rtorrent->has_key("tied_to_file") ||
+      !rtorrent->get_key("tied_to_file").is_string())
+    rtorrent->insert_key("tied_to_file", std::string());
 
-  if (rtorrent.has_key("priority") &&
-      rtorrent.get_key("priority").is_value())
-    (*itr)->variables()->set("priority", rtorrent.get_key("priority").as_value() % 4);
+  if (rtorrent->has_key("priority") &&
+      rtorrent->get_key("priority").is_value())
+    (*itr)->variable()->set("priority", rtorrent->get_key("priority").as_value() % 4);
   else
-    (*itr)->variables()->set("priority", (int64_t)2);
+    (*itr)->variable()->set("priority", (int64_t)2);
 
   // Move to 'rtorrent'.
-  (*itr)->variables()->set("connection_leech", m_variables.get("connection_leech"));
-  (*itr)->variables()->set("connection_seed",  m_variables.get("connection_seed"));
-  (*itr)->variables()->set("min_peers",        control->variables()->get("min_peers"));
-  (*itr)->variables()->set("max_peers",        control->variables()->get("max_peers"));
-  (*itr)->variables()->set("max_uploads",      control->variables()->get("max_uploads"));
+  (*itr)->variable()->set("connection_leech", m_variables.get("connection_leech"));
+  (*itr)->variable()->set("connection_seed",  m_variables.get("connection_seed"));
+  (*itr)->variable()->set("min_peers",        control->variable()->get("min_peers"));
+  (*itr)->variable()->set("max_peers",        control->variable()->get("max_peers"));
+  (*itr)->variable()->set("max_uploads",      control->variable()->get("max_uploads"));
 
-  if (control->variables()->get_string("use_udp_trackers") == "no")
+  if (control->variable()->get_string("use_udp_trackers") == "no")
     (*itr)->enable_udp_trackers(false);
 
-  if (rtorrent.has_key("total_uploaded") && rtorrent.get_key("total_uploaded").is_value())
-    (*itr)->get_download().up_rate()->set_total(rtorrent.get_key("total_uploaded").as_value());
+  if (rtorrent->has_key("total_uploaded") && rtorrent->get_key("total_uploaded").is_value())
+    (*itr)->download()->up_rate()->set_total(rtorrent->get_key("total_uploaded").as_value());
     
   if (m_session) {
-    if (!rtorrent.has_key("directory") ||
-	!rtorrent.get_key("directory").is_string())
-      (*itr)->variables()->set("directory", m_variables.get("directory"));
+    if (!rtorrent->has_key("directory") ||
+	!rtorrent->get_key("directory").is_string())
+      (*itr)->variable()->set("directory", m_variables.get("directory"));
     else
-      (*itr)->variables()->set("directory", rtorrent.get_key("directory"));
+      (*itr)->variable()->set("directory", rtorrent->get_key("directory"));
 
-    if ((*itr)->variables()->get_string("state") == "started")
+    if ((*itr)->variable()->get_string("state") == "started")
       m_manager->download_list().resume(*itr);
 
   } else {
-    (*itr)->variables()->set("directory", m_variables.get("directory"));
+    (*itr)->variable()->set("directory", m_variables.get("directory"));
 
     if (m_variables.get("tied_to_file").as_value())
-      (*itr)->variables()->set("tied_to_file", m_uri);
+      (*itr)->variable()->set("tied_to_file", m_uri);
 
     if (m_start)
       m_manager->download_list().start(*itr);

@@ -66,7 +66,7 @@ WindowTrackerList::redraw() {
 
   ++pos;
 
-  torrent::TrackerList tl = m_download->get_download().tracker_list();
+  torrent::TrackerList tl = m_download->download()->tracker_list();
 
   if (tl.size() == 0)
     return;

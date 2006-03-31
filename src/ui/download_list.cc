@@ -200,7 +200,7 @@ DownloadList::receive_stop_download() {
   if (m_downloadList.get_focus() == m_downloadList.end())
     return;
 
-  if ((*m_downloadList.get_focus())->get_download().is_active())
+  if ((*m_downloadList.get_focus())->download()->is_active())
     m_control->core()->download_list().stop(*m_downloadList.get_focus());
   else
     m_downloadList.set_focus(m_control->core()->download_list().erase(m_downloadList.get_focus()));
@@ -282,7 +282,7 @@ DownloadList::receive_view_input(Input type) {
   m_windowTextInput->set_focus(true);
 
   if (type == INPUT_CHANGE_DIRECTORY) {
-    m_windowTextInput->get_input()->str() = m_control->variables()->get_string("directory");
+    m_windowTextInput->get_input()->str() = m_control->variable()->get_string("directory");
     m_windowTextInput->get_input()->set_pos(m_windowTextInput->get_input()->str().length());
   }
 
@@ -315,12 +315,12 @@ DownloadList::receive_exit_input(Input type) {
       if (m_downloadList.get_focus() == m_downloadList.end())
 	throw torrent::input_error("No download in focus to change root directory.");
 
-      (*m_downloadList.get_focus())->variables()->set("directory", rak::trim(m_windowTextInput->get_input()->str()));
-      m_control->core()->push_log("New root dir \"" + (*m_downloadList.get_focus())->variables()->get_string("directory") + "\" for torrent.");
+      (*m_downloadList.get_focus())->variable()->set("directory", rak::trim(m_windowTextInput->get_input()->str()));
+      m_control->core()->push_log("New root dir \"" + (*m_downloadList.get_focus())->variable()->get_string("directory") + "\" for torrent.");
       break;
 
     case INPUT_COMMAND:
-      m_control->variables()->process_command(m_windowTextInput->get_input()->str());
+      m_control->variable()->process_command(m_windowTextInput->get_input()->str());
       break;
     }
 

@@ -52,9 +52,10 @@
 
 namespace core {
 
-Download::Download(torrent::Download d) :
+Download::Download(download_type d) :
   m_download(d),
   m_fileList(d.file_list()),
+  m_trackerList(d.tracker_list()),
 
   m_chunksFailed(0) {
 
@@ -66,22 +67,22 @@ Download::Download(torrent::Download d) :
 
   m_variables.insert("connection_current", new utils::VariableSlotString<const char*, const std::string&>(rak::mem_fn(this, &Download::connection_current),
 													  rak::mem_fn(this, &Download::set_connection_current)));
-  m_variables.insert("connection_leech",   new utils::VariableAny(connection_type_to_string(torrent::Download::CONNECTION_LEECH)));
-  m_variables.insert("connection_seed",    new utils::VariableAny(connection_type_to_string(torrent::Download::CONNECTION_SEED)));
-  m_variables.insert("state",              new utils::VariableObject(&m_download.bencode(), "rtorrent", "state", torrent::Object::TYPE_STRING));
-  m_variables.insert("tied_to_file",       new utils::VariableObject(&m_download.bencode(), "rtorrent", "tied_to_file", torrent::Object::TYPE_STRING));
+  m_variables.insert("connection_leech",   new utils::VariableAny(connection_type_to_string(download_type::CONNECTION_LEECH)));
+  m_variables.insert("connection_seed",    new utils::VariableAny(connection_type_to_string(download_type::CONNECTION_SEED)));
+  m_variables.insert("state",              new utils::VariableObject(bencode(), "rtorrent", "state", torrent::Object::TYPE_STRING));
+  m_variables.insert("tied_to_file",       new utils::VariableObject(bencode(), "rtorrent", "tied_to_file", torrent::Object::TYPE_STRING));
 
   m_variables.insert("directory",          new utils::VariableSlotString<const std::string&>(rak::mem_fn(&m_fileList, &torrent::FileList::root_dir),
 											     rak::mem_fn(this, &Download::set_root_directory)));
 
-  m_variables.insert("min_peers",          new utils::VariableSlotValue<uint32_t, uint32_t>(rak::mem_fn(&m_download, &torrent::Download::peers_min),
-											    rak::mem_fn(&m_download, &torrent::Download::set_peers_min),
+  m_variables.insert("min_peers",          new utils::VariableSlotValue<uint32_t, uint32_t>(rak::mem_fn(&m_download, &download_type::peers_min),
+											    rak::mem_fn(&m_download, &download_type::set_peers_min),
 											    "%u"));
-  m_variables.insert("max_peers",          new utils::VariableSlotValue<uint32_t, uint32_t>(rak::mem_fn(&m_download, &torrent::Download::peers_max),
-											    rak::mem_fn(&m_download, &torrent::Download::set_peers_max),
+  m_variables.insert("max_peers",          new utils::VariableSlotValue<uint32_t, uint32_t>(rak::mem_fn(&m_download, &download_type::peers_max),
+											    rak::mem_fn(&m_download, &download_type::set_peers_max),
 											    "%u"));
-  m_variables.insert("max_uploads",        new utils::VariableSlotValue<uint32_t, uint32_t>(rak::mem_fn(&m_download, &torrent::Download::uploads_max),
-											    rak::mem_fn(&m_download, &torrent::Download::set_uploads_max),
+  m_variables.insert("max_uploads",        new utils::VariableSlotValue<uint32_t, uint32_t>(rak::mem_fn(&m_download, &download_type::uploads_max),
+											    rak::mem_fn(&m_download, &download_type::set_uploads_max),
 											    "%u"));
   m_variables.insert("priority",           new utils::VariableSlotValue<uint32_t, uint32_t>(rak::mem_fn(this, &Download::priority),
 											    rak::mem_fn(this, &Download::set_priority),
@@ -96,7 +97,7 @@ Download::~Download() {
   m_connTrackerFailed.disconnect();
   m_connStorageError.disconnect();
 
-  m_download = torrent::Download();
+  m_download = download_type();
 }
 
 void
@@ -132,7 +133,7 @@ Download::enable_udp_trackers(bool state) {
 
 uint32_t
 Download::priority() {
-  return get_bencode().get_key("rtorrent").get_key("priority").as_value();
+  return bencode()->get_key("rtorrent").get_key("priority").as_value();
 }
 
 void
@@ -146,7 +147,7 @@ Download::set_priority(uint32_t p) {
   else
     torrent::download_set_priority(m_download, p * p);
 
-  get_bencode().get_key("rtorrent").insert_key("priority", (int64_t)p);
+  bencode()->get_key("rtorrent").insert_key("priority", (int64_t)p);
 }
 
 void
@@ -169,23 +170,23 @@ Download::receive_storage_error(std::string msg) {
   m_message = "Storage error: [" + msg + "]";
 }
 
-torrent::Download::ConnectionType
+Download::download_type::ConnectionType
 Download::string_to_connection_type(const std::string& name) {
   // Return default if the name isn't found.
   if (name == "leech")
-    return torrent::Download::CONNECTION_LEECH;
+    return download_type::CONNECTION_LEECH;
   else if (name == "seed")
-    return torrent::Download::CONNECTION_SEED;
+    return download_type::CONNECTION_SEED;
   else
     throw torrent::input_error("Unknown peer connection type selected: \"" + name + "\"");
 }
 
 const char*
-Download::connection_type_to_string(torrent::Download::ConnectionType t) {
+Download::connection_type_to_string(download_type::ConnectionType t) {
   switch (t) {
-  case torrent::Download::CONNECTION_LEECH:
+  case download_type::CONNECTION_LEECH:
     return "leech";
-  case torrent::Download::CONNECTION_SEED:
+  case download_type::CONNECTION_SEED:
     return "seed";
   default:
     return "unknown";
@@ -263,7 +264,7 @@ Download::set_root_directory(const std::string& path) {
 			    (m_fileList.size() > 1 ? m_download.name() : ""));
   }
 
-  m_download.bencode().get_key("rtorrent").insert_key("directory", path);
+  bencode()->get_key("rtorrent").insert_key("directory", path);
 }
 
 }

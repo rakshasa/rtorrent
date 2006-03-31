@@ -101,9 +101,9 @@ DownloadStore::save(Download* d) {
     return;
 
   // Move this somewhere else.
-  d->get_bencode().get_key("rtorrent").insert_key("total_uploaded", d->get_download().up_rate()->total());
+  d->bencode()->get_key("rtorrent").insert_key("total_uploaded", d->download()->up_rate()->total());
 
-  f << d->get_bencode();
+  f << *d->bencode();
 
   if (!f.good())
     return;
@@ -162,7 +162,7 @@ DownloadStore::is_correct_format(std::string f) {
 
 std::string
 DownloadStore::create_filename(Download* d) {
-  return m_path + rak::transform_hex(d->get_hash()) + ".torrent";
+  return m_path + rak::transform_hex(d->info_hash()) + ".torrent";
 }
 
 }

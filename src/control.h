@@ -89,7 +89,7 @@ public:
   input::InputEvent*  input_stdin()                 { return m_inputStdin; }
 
   CommandScheduler*   command_scheduler()           { return m_commandScheduler; }
-  utils::VariableMap* variables()                   { return m_variables; }
+  utils::VariableMap* variable()                    { return m_variables; }
 
   display::ClientInfo* client_info()                { return m_clientInfo; }
 

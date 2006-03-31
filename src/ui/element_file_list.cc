@@ -84,7 +84,7 @@ ElementFileList::receive_next() {
   if (m_window == NULL)
     throw torrent::internal_error("ui::ElementFileList::receive_next(...) called on a disabled object");
 
-  if (++m_focus >= m_download->get_download().file_list().size())
+  if (++m_focus >= m_download->download()->file_list().size())
     m_focus = 0;
 
   m_window->mark_dirty();
@@ -95,7 +95,7 @@ ElementFileList::receive_prev() {
   if (m_window == NULL)
     throw torrent::internal_error("ui::ElementFileList::receive_prev(...) called on a disabled object");
 
-  torrent::FileList fl = m_download->get_download().file_list();
+  torrent::FileList fl = m_download->download()->file_list();
 
   if (fl.size() == 0)
     return;
@@ -113,7 +113,7 @@ ElementFileList::receive_priority() {
   if (m_window == NULL)
     throw torrent::internal_error("ui::ElementFileList::receive_prev(...) called on a disabled object");
 
-  torrent::FileList fl = m_download->get_download().file_list();
+  torrent::FileList fl = m_download->download()->file_list();
 
   if (m_focus >= fl.size())
     return;
@@ -122,7 +122,7 @@ ElementFileList::receive_priority() {
 
   file.set_priority(next_priority(file.priority()));
 
-  m_download->get_download().update_priorities();
+  m_download->download()->update_priorities();
   m_window->mark_dirty();
 }
 
@@ -131,7 +131,7 @@ ElementFileList::receive_change_all() {
   if (m_window == NULL)
     throw torrent::internal_error("ui::ElementFileList::receive_prev(...) called on a disabled object");
 
-  torrent::FileList fl = m_download->get_download().file_list();
+  torrent::FileList fl = m_download->download()->file_list();
 
   if (m_focus >= fl.size())
     return;
@@ -141,7 +141,7 @@ ElementFileList::receive_change_all() {
   for (int i = 0, last = fl.size(); i != last; ++i)
     fl.get(i).set_priority(p);
 
-  m_download->get_download().update_priorities();
+  m_download->download()->update_priorities();
   m_window->mark_dirty();
 }
 

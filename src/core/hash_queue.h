@@ -89,7 +89,7 @@ public:
 
   void                disconnect()                       { m_connection.disconnect(); }
 
-  Download*           get_download()                     { return m_download; }
+  Download*           download()                         { return m_download; }
   HashQueue::Slot     get_slot()                         { return m_slot; }
 
   void                set_connection(sigc::connection c) { m_connection = c; }

@@ -85,7 +85,7 @@ ElementTrackerList::receive_disable() {
   if (m_window == NULL)
     throw torrent::internal_error("ui::ElementTrackerList::receive_disable(...) called on a disabled object");
 
-  torrent::Tracker t = m_download->get_download().tracker_list().get(m_focus);
+  torrent::Tracker t = m_download->download()->tracker_list().get(m_focus);
 
   if (t.is_enabled())
     t.disable();
@@ -100,7 +100,7 @@ ElementTrackerList::receive_next() {
   if (m_window == NULL)
     throw torrent::internal_error("ui::ElementTrackerList::receive_next(...) called on a disabled object");
 
-  if (++m_focus >= m_download->get_download().tracker_list().size())
+  if (++m_focus >= m_download->download()->tracker_list().size())
     m_focus = 0;
 
   m_window->mark_dirty();
@@ -111,13 +111,13 @@ ElementTrackerList::receive_prev() {
   if (m_window == NULL)
     throw torrent::internal_error("ui::ElementTrackerList::receive_prev(...) called on a disabled object");
 
-  if (m_download->get_download().tracker_list().size() == 0)
+  if (m_download->download()->tracker_list().size() == 0)
     return;
 
   if (m_focus != 0)
     --m_focus;
   else 
-    m_focus = m_download->get_download().tracker_list().size() - 1;
+    m_focus = m_download->download()->tracker_list().size() - 1;
 
   m_window->mark_dirty();
 }
@@ -127,7 +127,7 @@ ElementTrackerList::receive_cycle_group() {
   if (m_window == NULL)
     throw torrent::internal_error("ui::ElementTrackerList::receive_group_cycle(...) called on a disabled object");
 
-  torrent::TrackerList tl = m_download->get_download().tracker_list();
+  torrent::TrackerList tl = m_download->download()->tracker_list();
 
   if (m_focus >= tl.size())
     throw torrent::internal_error("ui::ElementTrackerList::receive_group_cycle(...) called with an invalid focus");
