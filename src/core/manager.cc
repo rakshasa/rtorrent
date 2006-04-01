@@ -39,6 +39,7 @@
 #include <stdexcept>
 #include <cstdio>
 #include <cstring>
+#include <fstream>
 #include <unistd.h>
 #include <sys/select.h>
 #include <rak/address_info.h>
@@ -71,6 +72,30 @@ connect_signal_network_log(Download* d, torrent::Download::slot_string_type s) {
 static void
 connect_signal_storage_log(Download* d, torrent::Download::slot_string_type s) {
   d->download()->signal_storage_error(s);
+}
+
+// Need a proper logging class for this.
+static void
+connect_signal_tracker_dump(Download* d, torrent::Download::slot_dump_type s) {
+  if (!control->variable()->get_string("tracker_dump").empty())
+    d->download()->signal_tracker_dump(s);
+}
+
+static void
+receive_tracker_dump(const std::string& url, const char* data, size_t size) {
+  const std::string& filename = control->variable()->get_string("tracker_dump");
+
+  if (filename.empty())
+    return;
+
+  std::fstream fstr(filename.c_str(), std::ios::out | std::ios::app);
+
+  if (!fstr.is_open())
+    return;
+
+  fstr << "url: " << url << std::endl << "---" << std::endl;
+  fstr.write(data, size);
+  fstr << std::endl <<"---" << std::endl;
 }
 
 // Hmm... find some better place for all this.
@@ -113,8 +138,9 @@ Manager::initialize_second() {
 
   // Register slots to be called when a download is inserted/erased,
   // opened or closed.
-  m_downloadList.slot_map_insert()["1_connect_network_log"] = sigc::bind(sigc::ptr_fun(&connect_signal_network_log), sigc::mem_fun(m_logComplete, &Log::push_front));
-  m_downloadList.slot_map_insert()["1_connect_storage_log"] = sigc::bind(sigc::ptr_fun(&connect_signal_storage_log), sigc::mem_fun(m_logComplete, &Log::push_front));
+  m_downloadList.slot_map_insert()["1_connect_network_log"]  = sigc::bind(sigc::ptr_fun(&connect_signal_network_log), sigc::mem_fun(m_logComplete, &Log::push_front));
+  m_downloadList.slot_map_insert()["1_connect_storage_log"]  = sigc::bind(sigc::ptr_fun(&connect_signal_storage_log), sigc::mem_fun(m_logComplete, &Log::push_front));
+  m_downloadList.slot_map_insert()["1_connect_tracker_dump"] = sigc::bind(sigc::ptr_fun(&connect_signal_tracker_dump), sigc::ptr_fun(&receive_tracker_dump));
 
   m_downloadList.slot_map_erase()["1_hash_queue_remove"]    = sigc::mem_fun(m_hashQueue, &HashQueue::remove);
   m_downloadList.slot_map_erase()["1_store_remove"]         = sigc::mem_fun(m_downloadStore, &DownloadStore::remove);

@@ -219,6 +219,13 @@
 	</varlistentry>
 
 	<varlistentry>
+	  <term>i</term>
+	  <listitem><para>
+Display chunk rarity.
+          </para></listitem>
+	</varlistentry>
+
+	<varlistentry>
 	  <term>o</term>
 	  <listitem><para>
             Display the tracker list. Cycle the trackers in a group
@@ -599,6 +606,18 @@ finishes. By default on.
         <listitem><para>
 
 Controls whetever a lock file is created in the session directory.
+
+        </para></listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>tracker_dump = <replaceable>filename</replaceable></term>
+        <listitem><para>
+
+Dump tracker requests to <emphasis>filename</emphasis>, disable by
+supplying an empty string. Only torrents loaded while
+<emphasis>tracker_dump</emphasis> contains a non-empty string will be
+logged at the moment, although disabling it will work as expected.
 
         </para></listitem>
       </varlistentry>

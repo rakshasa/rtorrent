@@ -184,6 +184,8 @@ initialize_option_handler(Control* c) {
   variables->insert("port_open",             new utils::VariableAny("yes"));
   variables->insert("port_random",           new utils::VariableAny("yes"));
 
+  variables->insert("tracker_dump",          new utils::VariableAny(std::string()));
+
   variables->insert("session",               new utils::VariableSlotString<>(NULL, rak::mem_fn(&control->core()->download_store(), &core::DownloadStore::set_path)));
   variables->insert("session_lock",          new utils::VariableAny("yes"));
   variables->insert("session_on_completion", new utils::VariableAny("yes"));

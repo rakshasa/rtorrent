@@ -158,24 +158,20 @@ DownloadFactory::receive_success() {
     root->erase_key("libtorrent");
   }
 
-  if (!root->has_key("rtorrent") ||
-      !root->get_key("rtorrent").is_map())
+  if (!root->has_key_map("rtorrent"))
     root->insert_key("rtorrent", torrent::Object(torrent::Object::TYPE_MAP));
     
   torrent::Object* rtorrent = &root->get_key("rtorrent");
 
-  if (!rtorrent->has_key("state") ||
-      !rtorrent->get_key("state").is_string() ||
+  if (!rtorrent->has_key_string("state") ||
       (rtorrent->get_key("state").as_string() != "stopped" &&
        rtorrent->get_key("state").as_string() != "started"))
     rtorrent->insert_key("state", "stopped");
   
-  if (!rtorrent->has_key("tied_to_file") ||
-      !rtorrent->get_key("tied_to_file").is_string())
+  if (!rtorrent->has_key_string("tied_to_file"))
     rtorrent->insert_key("tied_to_file", std::string());
 
-  if (rtorrent->has_key("priority") &&
-      rtorrent->get_key("priority").is_value())
+  if (rtorrent->has_key_value("priority"))
     (*itr)->variable()->set("priority", rtorrent->get_key("priority").as_value() % 4);
   else
     (*itr)->variable()->set("priority", (int64_t)2);
@@ -190,12 +186,11 @@ DownloadFactory::receive_success() {
   if (control->variable()->get_string("use_udp_trackers") == "no")
     (*itr)->enable_udp_trackers(false);
 
-  if (rtorrent->has_key("total_uploaded") && rtorrent->get_key("total_uploaded").is_value())
+  if (rtorrent->has_key_value("total_uploaded"))
     (*itr)->download()->up_rate()->set_total(rtorrent->get_key("total_uploaded").as_value());
     
   if (m_session) {
-    if (!rtorrent->has_key("directory") ||
-	!rtorrent->get_key("directory").is_string())
+    if (!rtorrent->has_key_string("directory"))
       (*itr)->variable()->set("directory", m_variables.get("directory"));
     else
       (*itr)->variable()->set("directory", rtorrent->get_key("directory"));
