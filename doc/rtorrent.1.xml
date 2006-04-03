@@ -474,7 +474,7 @@ seconds, starting from <emphasis>start</emphasis>. An
 <emphasis>start</emphasis> and <emphasis>interval</emphasis> may
 optionally use a time format, <emphasis>dd:hh:mm:ss</emphasis>. F.ex to
 start a task every day at <emphasis>18:00</emphasis>, use
-<emphasis>18:00:00</emphasis>.
+<emphasis>18:00:00,24:00:00</emphasis>.
 
         </para></listitem>
       </varlistentry>
@@ -618,6 +618,17 @@ Dump tracker requests to <emphasis>filename</emphasis>, disable by
 supplying an empty string. Only torrents loaded while
 <emphasis>tracker_dump</emphasis> contains a non-empty string will be
 logged at the moment, although disabling it will work as expected.
+
+        </para></listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>tos = <replaceable>default|lowdelay|throughput|reliability|mincost</replaceable></term>
+        <listitem><para>
+
+Change the TOS of peer connections, by default set to
+<emphasis>throughput</emphasis>. If the option is set to
+<emphasis>default</emphasis> then the system default TOS is used.
 
         </para></listitem>
       </varlistentry>

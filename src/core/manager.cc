@@ -43,6 +43,7 @@
 #include <unistd.h>
 #include <sys/select.h>
 #include <rak/address_info.h>
+#include <rak/error_number.h>
 #include <rak/regex.h>
 #include <rak/string_manip.h>
 #include <sigc++/bind.h>
@@ -226,15 +227,16 @@ Manager::listen_open() {
   if (control->variable()->get("port_random").as_string() == "yes") {
     int boundary = m_portFirst + random() % (m_portLast - m_portFirst + 1);
 
-    if (!torrent::connection_manager()->listen_open(boundary, m_portLast) &&
-	!torrent::connection_manager()->listen_open(m_portFirst, boundary))
-      throw torrent::input_error("Could not open/bind a port for listening.");
+    if (torrent::connection_manager()->listen_open(boundary, m_portLast) ||
+	torrent::connection_manager()->listen_open(m_portFirst, boundary))
+      return;
 
   } else {
-    if (!torrent::connection_manager()->listen_open(m_portFirst, m_portLast))
-      throw torrent::input_error("Could not open/bind a port for listening.");
-
+    if (torrent::connection_manager()->listen_open(m_portFirst, m_portLast))
+      return;
   }
+
+  throw torrent::input_error("Could not open/bind a port for listening: " + std::string(rak::error_number::current().c_str()));
 }
 
 void

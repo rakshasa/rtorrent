@@ -80,7 +80,7 @@ WindowDownloadChunksSeen::redraw() {
   const uint8_t* last = seen + m_download->download()->chunks_total();
 
   for (int y = 1; y < m_canvas->get_height() && chunk < last; ++y) {
-    position = buffer + std::max(snprintf(buffer, end - buffer, "%5d", chunk - seen), 0);
+    position = buffer + std::max(snprintf(buffer, end - buffer, "%5d", (int)(chunk - seen)), 0);
 
     while (chunk < last) {
       if ((chunk - seen) % 10 == 0) {

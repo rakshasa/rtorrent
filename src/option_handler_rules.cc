@@ -175,6 +175,29 @@ apply_enable_trackers(Control* m, __UNUSED const std::string& arg) {
 }
 
 void
+apply_tos(const std::string& arg) {
+  torrent::ConnectionManager* cm = torrent::connection_manager();
+
+  if (arg == "default")
+    cm->set_priority(torrent::ConnectionManager::iptos_default);
+
+  else if (arg == "lowdelay")
+    cm->set_priority(torrent::ConnectionManager::iptos_lowdelay);
+
+  else if (arg == "throughput")
+    cm->set_priority(torrent::ConnectionManager::iptos_throughput);
+
+  else if (arg == "reliability")
+    cm->set_priority(torrent::ConnectionManager::iptos_reliability);
+
+  else if (arg == "mincost")
+    cm->set_priority(torrent::ConnectionManager::iptos_mincost);
+
+  else 
+    throw torrent::input_error("Invalid TOS identifier.");
+}
+
+void
 initialize_option_handler(Control* c) {
   utils::VariableMap* variables = control->variable();
 
@@ -198,29 +221,31 @@ initialize_option_handler(Control* c) {
   variables->insert("bind",                  new utils::VariableSlotString<>(NULL, rak::mem_fn(control->core(), &core::Manager::set_bind_address)));
   variables->insert("ip",                    new utils::VariableSlotString<>(NULL, rak::mem_fn(control->core(), &core::Manager::set_local_address)));
 
-  variables->insert("min_peers",           new utils::VariableValue(40));
-  variables->insert("max_peers",           new utils::VariableValue(100));
-  variables->insert("max_uploads",         new utils::VariableValue(15));
+  variables->insert("tos",                   new utils::VariableSlotString<>(NULL, rak::ptr_fn(&apply_tos)));
 
-  variables->insert("download_rate",       new utils::VariableSlotValue<uint32_t, unsigned int>(NULL, rak::mem_fn(control->ui(), &ui::Root::set_down_throttle), "%i"));
-  variables->insert("upload_rate",         new utils::VariableSlotValue<uint32_t, unsigned int>(NULL, rak::mem_fn(control->ui(), &ui::Root::set_up_throttle), "%i"));
+  variables->insert("min_peers",             new utils::VariableValue(40));
+  variables->insert("max_peers",             new utils::VariableValue(100));
+  variables->insert("max_uploads",           new utils::VariableValue(15));
 
-  variables->insert("hash_max_tries",      new utils::VariableSlotValue<int, uint32_t>(NULL, rak::ptr_fn(&torrent::set_hash_max_tries), "%i"));
-  variables->insert("max_open_files",      new utils::VariableSlotValue<int, uint32_t>(NULL, rak::ptr_fn(&torrent::set_max_open_files), "%i"));
-  variables->insert("max_open_sockets",    new utils::VariableSlotValue<int, uint32_t>(NULL, rak::ptr_fn(&torrent::set_max_open_sockets), "%i"));
+  variables->insert("download_rate",         new utils::VariableSlotValue<uint32_t, unsigned int>(NULL, rak::mem_fn(control->ui(), &ui::Root::set_down_throttle), "%i"));
+  variables->insert("upload_rate",           new utils::VariableSlotValue<uint32_t, unsigned int>(NULL, rak::mem_fn(control->ui(), &ui::Root::set_up_throttle), "%i"));
 
-  variables->insert("print",               new utils::VariableSlotString<>(NULL, rak::mem_fn(control->core(), &core::Manager::push_log)));
-  variables->insert("import",              new utils::VariableSlotString<>(NULL, rak::mem_fn(control->variable(), &utils::VariableMap::process_file_throw)));
-  variables->insert("try_import",          new utils::VariableSlotString<>(NULL, rak::mem_fn(control->variable(), &utils::VariableMap::process_file_nothrow)));
+  variables->insert("hash_max_tries",        new utils::VariableSlotValue<int, uint32_t>(NULL, rak::ptr_fn(&torrent::set_hash_max_tries), "%i"));
+  variables->insert("max_open_files",        new utils::VariableSlotValue<int, uint32_t>(NULL, rak::ptr_fn(&torrent::set_max_open_files), "%i"));
+  variables->insert("max_open_sockets",      new utils::VariableSlotValue<int, uint32_t>(NULL, rak::ptr_fn(&torrent::set_max_open_sockets), "%i"));
 
-  variables->insert("schedule",            new utils::VariableSlotString<>(NULL, rak::mem_fn<const std::string&>(c->command_scheduler(), &CommandScheduler::parse)));
-  variables->insert("schedule_remove",     new utils::VariableSlotString<>(NULL, rak::mem_fn<const std::string&>(c->command_scheduler(), &CommandScheduler::erase)));
+  variables->insert("print",                 new utils::VariableSlotString<>(NULL, rak::mem_fn(control->core(), &core::Manager::push_log)));
+  variables->insert("import",                new utils::VariableSlotString<>(NULL, rak::mem_fn(control->variable(), &utils::VariableMap::process_file_throw)));
+  variables->insert("try_import",            new utils::VariableSlotString<>(NULL, rak::mem_fn(control->variable(), &utils::VariableMap::process_file_nothrow)));
 
-  variables->insert("send_buffer_size",    new utils::VariableSlotValue<int, uint32_t>(NULL, rak::mem_fn(torrent::connection_manager(),
-													 &torrent::ConnectionManager::set_send_buffer_size), "%u"));
+  variables->insert("schedule",              new utils::VariableSlotString<>(NULL, rak::mem_fn<const std::string&>(c->command_scheduler(), &CommandScheduler::parse)));
+  variables->insert("schedule_remove",       new utils::VariableSlotString<>(NULL, rak::mem_fn<const std::string&>(c->command_scheduler(), &CommandScheduler::erase)));
+
+  variables->insert("send_buffer_size",      new utils::VariableSlotValue<int, uint32_t>(NULL, rak::mem_fn(torrent::connection_manager(),
+													   &torrent::ConnectionManager::set_send_buffer_size), "%u"));
   
-  variables->insert("receive_buffer_size", new utils::VariableSlotValue<int, uint32_t>(NULL, rak::mem_fn(torrent::connection_manager(),
-													 &torrent::ConnectionManager::set_receive_buffer_size), "%u"));
+  variables->insert("receive_buffer_size",   new utils::VariableSlotValue<int, uint32_t>(NULL, rak::mem_fn(torrent::connection_manager(),
+													   &torrent::ConnectionManager::set_receive_buffer_size), "%u"));
   
   // Old.
   variables->insert("port_range",          new utils::VariableSlotString<>(NULL, rak::bind_ptr_fn(&apply_port_range, c)));

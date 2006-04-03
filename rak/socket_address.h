@@ -64,7 +64,7 @@ class socket_address {
 public:
   static const sa_family_t af_local  = AF_LOCAL;
   static const sa_family_t af_unix   = AF_UNIX;
-  static const sa_family_t af_file   = AF_FILE;
+  //  static const sa_family_t af_file   = AF_FILE;
   static const sa_family_t af_inet   = AF_INET;
   static const sa_family_t af_inet6  = AF_INET6;
   static const sa_family_t af_unspec = AF_UNSPEC;
