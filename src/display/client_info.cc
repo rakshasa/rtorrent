@@ -62,7 +62,7 @@ struct client_info_equal {
 };
 
 ClientInfo::ClientInfo() {
-  m_containers[TYPE_AZUREUS].reserve(28);
+  m_containers[TYPE_AZUREUS].reserve(30);
 
   insert(TYPE_AZUREUS, "AZ", "Azureus");
   insert(TYPE_AZUREUS, "BC", "BitComet");
@@ -85,6 +85,7 @@ ClientInfo::ClientInfo() {
   insert(TYPE_AZUREUS, "QT", "Qt 4 Torrent example");
   insert(TYPE_AZUREUS, "SZ", "Shareaza");
   insert(TYPE_AZUREUS, "RT", "Retriever");
+  insert(TYPE_AZUREUS, "CD", "Enhanced CTorrent");
 
   m_containers[TYPE_COMPACT].reserve(10);
 
@@ -94,7 +95,7 @@ ClientInfo::ClientInfo() {
   insert(TYPE_COMPACT, "U", "UPnP NAT Bit Torrent");
   insert(TYPE_COMPACT, "O", "Osprey Permaseed");
 
-  m_containers[TYPE_MAINLINE].reserve(4);
+  m_containers[TYPE_MAINLINE].reserve(5);
 
   insert(TYPE_MAINLINE, "M", "Mainline");
 }

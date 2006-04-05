@@ -78,6 +78,37 @@ Sequence trim(const Sequence& seq) {
   return trim_begin(trim_end(seq));
 }
 
+template <typename Sequence>
+Sequence trim_begin_classic(const Sequence& seq) {
+  if (seq.empty() || !std::isspace(*seq.begin(), std::locale::classic()))
+    return seq;
+
+  typename Sequence::size_type pos = 0;
+
+  while (pos != seq.length() && std::isspace(seq[pos], std::locale::classic()))
+    pos++;
+
+  return seq.substr(pos, seq.length() - pos);
+}
+
+template <typename Sequence>
+Sequence trim_end_classic(const Sequence& seq) {
+  if (seq.empty() || !std::isspace(*(--seq.end()), std::locale::classic()))
+    return seq;
+
+  typename Sequence::size_type pos = seq.size();
+
+  while (pos != 0 && std::isspace(seq[pos - 1], std::locale::classic()))
+    pos--;
+
+  return seq.substr(0, pos);
+}
+
+template <typename Sequence>
+Sequence trim_classic(const Sequence& seq) {
+  return trim_begin_classic(trim_end_classic(seq));
+}
+
 // Consider rewritting such that m_seq is replaced by first/last.
 template <typename Sequence>
 class split_iterator_t {
@@ -159,8 +190,8 @@ template <typename InputIterator, typename OutputIterator>
 OutputIterator
 copy_escape_html(InputIterator first, InputIterator last, OutputIterator dest) {
   while (first != last) {
-    if (std::isalpha(*first) ||
-	std::isdigit(*first) ||
+    if (std::isalpha(*first, std::locale::classic()) ||
+	std::isdigit(*first, std::locale::classic()) ||
 	*first == '-') {
       *(dest++) = *first;
 

@@ -44,11 +44,12 @@ namespace rak {
 
 class error_number {
 public:
+  static const int e_access      = EACCES;
   static const int e_again       = EAGAIN;
-  static const int e_intr        = EINTR;
-  static const int e_deadlk      = EDEADLK;
   static const int e_connreset   = ECONNRESET;
   static const int e_connaborted = ECONNABORTED;
+  static const int e_deadlk      = EDEADLK;
+  static const int e_intr        = EINTR;
 
   error_number() : m_errno(0) {}
   error_number(int e) : m_errno(e) {}
@@ -65,6 +66,8 @@ public:
 
   static error_number current()                    { return errno; }
   static void         clear_global()               { errno = 0; }
+
+  bool operator == (const error_number& e) const   { return m_errno == e.m_errno; }
 
 private:
   int                 m_errno;

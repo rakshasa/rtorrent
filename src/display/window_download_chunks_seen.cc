@@ -39,6 +39,7 @@
 #include <cmath>
 #include <stdexcept>
 #include <rak/string_manip.h>
+#include <torrent/bitfield.h>
 
 #include "core/download.h"
 
@@ -72,30 +73,34 @@ WindowDownloadChunksSeen::redraw() {
     return;
   }
 
-  char buffer[m_canvas->get_width()];
-  char* position;
-  char* end = buffer + m_canvas->get_width() - 2;
-
   const uint8_t* chunk = seen;
   const uint8_t* last = seen + m_download->download()->chunks_total();
 
+  const torrent::Bitfield* bitfield = m_download->download()->bitfield();
+
   for (int y = 1; y < m_canvas->get_height() && chunk < last; ++y) {
-    position = buffer + std::max(snprintf(buffer, end - buffer, "%5d", (int)(chunk - seen)), 0);
+    m_canvas->print(0, y, "%5d ", (int)(chunk - seen));
 
     while (chunk < last) {
+      chtype attr;
+
+      if (bitfield->get(chunk - seen))
+	attr = A_NORMAL;
+//    else if (foo->is_downloading(chunk - seen))
+//	attr = A_UNDERLINE;
+      else
+	attr = A_BOLD;
+
+      m_canvas->print_char(attr | rak::value_to_hexchar<0>(std::min<uint8_t>(*chunk, 0xF)));
+      chunk++;
+
       if ((chunk - seen) % 10 == 0) {
-	if (end - position < 11)
+	if (m_canvas->get_x() + 12 > m_canvas->get_width())
 	  break;
 
-	*position++ = ' ';
+	m_canvas->print_char(' ');
       }
-
-      *position++ = rak::value_to_hexchar<0>(std::min<uint8_t>(*chunk, 0xF));
-      chunk++;
     }
-
-    *position = 0;
-    m_canvas->print(0, y, "%s", buffer);
   }
 }
 

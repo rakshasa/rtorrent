@@ -39,6 +39,7 @@
 #include <stdexcept>
 #include <rak/socket_address.h>
 #include <torrent/rate.h>
+#include <torrent/piece.h>
 
 #include "core/download.h"
 #include "rak/algorithm.h"
@@ -120,7 +121,7 @@ WindowPeerList::redraw() {
     x += 6;
 
     if (p.incoming_queue_size())
-      m_canvas->print(x, y, "%i", p.incoming_index(0));
+      m_canvas->print(x, y, "%i", p.incoming_queue(0)->index());
 
     x += 6;
 
