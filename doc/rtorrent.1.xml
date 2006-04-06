@@ -221,14 +221,18 @@
 	<varlistentry>
 	  <term>i</term>
 	  <listitem><para>
+
 Display chunk rarity.
+
           </para></listitem>
 	</varlistentry>
 
 	<varlistentry>
 	  <term>o</term>
 	  <listitem><para>
-            Display the tracker list. Cycle the trackers in a group
+
+Display the tracker list. Cycle the trackers in a group
+
             with the space-bar.
           </para></listitem>
 	</varlistentry>
@@ -236,29 +240,37 @@ Display chunk rarity.
 	<varlistentry>
 	  <term>p</term>
 	  <listitem><para>
-            View peer and torrent information.
+
+View peer and torrent information.
+
           </para></listitem>
 	</varlistentry>
 
 	<varlistentry>
 	  <term>t | T</term>
 	  <listitem><para>
-            Initiate tracker request. Use capital T to force the
-            request, ignoring the "min interval" set by the tracker.
+
+Initiate tracker request. Use capital T to force the request, ignoring
+the "min interval" set by the tracker.
+
           </para></listitem>
 	</varlistentry>
 
 	<varlistentry>
 	  <term>k</term>
 	  <listitem><para>
+
 Disconnect peer.
+
           </para></listitem>
 	</varlistentry>
 
 	<varlistentry>
 	  <term>*</term>
 	  <listitem><para>
+
 Choke/Snubb peer.
+
           </para></listitem>
 	</varlistentry>
 
@@ -277,29 +289,37 @@ Choke/Snubb peer.
       <varlistentry>
         <term>-b <replaceable>a.b.c.d</replaceable></term>
         <listitem><para>
-          Bind listening socket and outgoing connections to this
-          network interface address.
+
+Bind listening socket and outgoing connections to this network
+interface address.
+
         </para></listitem>
       </varlistentry>
 
       <varlistentry>
         <term>-d <replaceable>directory</replaceable></term>
         <listitem><para>
-          Set the default download directory. Defaults to "./".
+
+Set the default download directory. Defaults to "./".
+
         </para></listitem>
       </varlistentry>
 
       <varlistentry>
         <term>-h</term>
         <listitem><para>
-          Display help and exit.
+
+Display help and exit.
+
         </para></listitem>
       </varlistentry>
 
       <varlistentry>
         <term>-i <replaceable>a.b.c.d</replaceable></term>
         <listitem><para>
-          Set the address reported to the tracker.
+
+Set the address reported to the tracker.
+
         </para></listitem>
       </varlistentry>
 
@@ -318,20 +338,23 @@ to allow comma in the option.
       <varlistentry>
         <term>-p <replaceable>a-b</replaceable></term>
         <listitem><para>
-          Try to open a listening port in the range
-          <emphasis>a</emphasis> up to and including
-          <emphasis>b</emphasis>.
+
+Try to open a listening port in the range <emphasis>a</emphasis> up to
+and including <emphasis>b</emphasis>.
+
         </para></listitem>
       </varlistentry>
 
       <varlistentry>
         <term>-s <replaceable>directory</replaceable></term>
         <listitem><para>
-          Session management will be enabled and the torrent files for
-          all open downloads will be stored in this directory. Only
-          one instance of rtorrent should be used with each session
-          directory, though at the moment no locking is done. An empty
-          string will disable the session directory.
+
+Session management will be enabled and the torrent files for all open
+downloads will be stored in this directory. Only one instance of
+rtorrent should be used with each session directory, though at the
+moment no locking is done. An empty string will disable the session
+directory.
+
         </para></listitem>
       </varlistentry>
 
@@ -350,81 +373,101 @@ to allow comma in the option.
       <varlistentry>
         <term>max_peers = <replaceable>value</replaceable></term>
         <listitem><para>
-          Set the maximum number of peers to allow in each download.
+
+Set the maximum number of peers to allow in each download.
+
         </para></listitem>
       </varlistentry>
 
       <varlistentry>
         <term>min_peers = <replaceable>value</replaceable></term>
         <listitem><para>
-          Set the minimum number of peers to try to connect to in each
-          download.
+
+Set the minimum number of peers to try to connect to in each download.
+
         </para></listitem>
       </varlistentry>
 
       <varlistentry>
         <term>max_uploads = <replaceable>value</replaceable></term>
         <listitem><para>
-          Set the maximum number of simultaneous uploads per download.
+
+Set the maximum number of simultaneous uploads per download.
+
         </para></listitem>
       </varlistentry>
 
       <varlistentry>
         <term>download_rate = <replaceable>KB</replaceable></term>
         <listitem><para>
-          Set the maximum global download rate.
+
+Set the maximum global download rate.
+
         </para></listitem>
       </varlistentry>
 
       <varlistentry>
         <term>upload_rate = <replaceable>KB</replaceable></term>
         <listitem><para>
-          Set the maximum global upload rate.
+
+Set the maximum global upload rate.
+
         </para></listitem>
       </varlistentry>
 
       <varlistentry>
         <term>bind = <replaceable>a.b.c.d</replaceable></term>
         <listitem><para>
-          Bind listening socket and outgoing connections to this
-          network interface address.
+
+Bind listening socket and outgoing connections to this network
+interface address.
+
         </para></listitem>
       </varlistentry>
 
       <varlistentry>
         <term>ip = <replaceable>a.b.c.d</replaceable></term>
         <listitem><para>
-          Set the address reported to the tracker.
+
+Set the address reported to the tracker.
+
         </para></listitem>
       </varlistentry>
 
       <varlistentry>
         <term>port_range = <replaceable>a-b</replaceable></term>
         <listitem><para>
-          Try to open a listening port in the range
-          <emphasis>a</emphasis> up to and including
-          <emphasis>b</emphasis>.
+
+Try to open a listening port in the range <emphasis>a</emphasis> up to
+and including <emphasis>b</emphasis>.
+
         </para></listitem>
       </varlistentry>
 
       <varlistentry>
         <term>port_random = <replaceable>yes | no</replaceable></term>
         <listitem><para>
-          Open the listening port at a random position in the port range.
+
+Open the listening port at a random position in the port range.
+
         </para></listitem>
       </varlistentry>
 
       <varlistentry>
         <term>check_hash = <replaceable>yes | no</replaceable></term>
         <listitem><para>
-          Perform hash check on finished downloads.
+
+Perform hash check on finished downloads.
+
         </para></listitem>
       </varlistentry>
 
       <varlistentry>
         <term>directory = <replaceable>directory</replaceable></term>
         <listitem><para>
-          Set the default download directory. Defaults to "./".
+
+Set the default download directory. Defaults to "./".
+
         </para></listitem>
       </varlistentry>
 
@@ -432,11 +475,11 @@ to allow comma in the option.
         <term>session = <replaceable>directory</replaceable></term>
         <listitem><para>
 
-          Session management will be enabled and the torrent files for
-          all open downloads will be stored in this directory. Only
-          one instance of rtorrent should be used with each session
-          directory, though at the moment no locking is done. An empty
-          string will disable the session directory.
+Session management will be enabled and the torrent files for all open
+downloads will be stored in this directory. Only one instance of
+rtorrent should be used with each session directory, though at the
+moment no locking is done. An empty string will disable the session
+directory.
 
         </para></listitem>
       </varlistentry>
@@ -445,7 +488,7 @@ to allow comma in the option.
         <term>http_proxy = <replaceable>url</replaceable></term>
         <listitem><para>
 
-          Use a http proxy. Use an empty string to disable.
+Use a http proxy. Use an empty string to disable.
 
         </para></listitem>
       </varlistentry>
@@ -454,9 +497,9 @@ to allow comma in the option.
         <term>encoding_list = <replaceable>encoding</replaceable></term>
         <listitem><para>
 
-          Add a preferred filename encoding to the list. The encodings
-          are attempted in the order they are inserted, if none match
-          the torrent default is used.
+Add a preferred filename encoding to the list. The encodings are
+attempted in the order they are inserted, if none match the torrent
+default is used.
 
         </para></listitem>
       </varlistentry>
@@ -483,7 +526,18 @@ start a task every day at <emphasis>18:00</emphasis>, use
         <term>schedule_remove = <replaceable>id</replaceable></term>
         <listitem><para>
 
-          Delete <emphasis>id</emphasis> from the scheduler.
+Delete <emphasis>id</emphasis> from the scheduler.
+
+        </para></listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>stop_untied =</term>
+        <term>remove_untied =</term>
+        <listitem><para>
+
+Stop or remove the torrents that are tied to filenames that have been
+deleted, the association is then cleared.
 
         </para></listitem>
       </varlistentry>
@@ -503,12 +557,12 @@ to the filename provided.
       </varlistentry>
 
       <varlistentry>
-        <term>stop_untied =</term>
-        <term>remove_untied =</term>
+        <term>import = <replaceable>file</replaceable></term>
+        <term>try_import = <replaceable>file</replaceable></term>
         <listitem><para>
 
-Stop or remove the torrents that are tied to filenames that have been
-deleted, the association is then cleared.
+Load a resource file. <emphasis>try_import</emphasis> does not throw
+torrent::input_error exception on bad input.
 
         </para></listitem>
       </varlistentry>
@@ -529,45 +583,53 @@ deleted, the association is then cleared.
       <varlistentry>
         <term>hash_read_ahead = <replaceable>MB</replaceable></term>
         <listitem><para>
-          Configure how far ahead we ask the kernel to read when doing
-          hash checking. The hash checker uses madvise(...,
-          MADV_WILLNEED) for the requests.
+
+Configure how far ahead we ask the kernel to read when doing hash
+checking. The hash checker uses madvise(..., MADV_WILLNEED) for the
+requests.
+
         </para></listitem>
       </varlistentry>
 
       <varlistentry>
         <term>hash_interval = <replaceable>ms</replaceable></term>
         <listitem><para>
-          Interval between attempts to check the hash when the chunk
-          is not in memory, in milliseconds.
+
+Interval between attempts to check the hash when the chunk is not in
+memory, in milliseconds.
+
         </para></listitem>
       </varlistentry>
 
       <varlistentry>
         <term>hash_max_tries = <replaceable>tries</replaceable></term>
         <listitem><para>
-          Number of attempts to check the hash while using the mincore
-	  status, before forcing. Overworked systems might need lower
-	  values to get a decent hash checking rate.
+
+Number of attempts to check the hash while using the mincore status,
+before forcing. Overworked systems might need lower values to get a
+decent hash checking rate.
+
         </para></listitem>
       </varlistentry>
 
       <varlistentry>
         <term>max_open_files = <replaceable>value</replaceable></term>
         <listitem><para>
-          Number of files to simultaneously keep open. Libtorrent
-          dynamically opens and closes files when mapping files to
-          memory. Defaults to 128.
+
+Number of files to simultaneously keep open. Libtorrent dynamically
+opens and closes files when mapping files to memory. Defaults to 128.
+
         </para></listitem>
       </varlistentry>
 
       <varlistentry>
         <term>max_open_sockets = <replaceable>value</replaceable></term>
         <listitem><para>
-          Number of sockets to simultaneously keep open. This value is
-          set to be <emphasis>sysconf(_SC_OPEN_MAX) - 256</emphasis>
-          at startup. This gives the client 128 sockets to use as it
-          wishes.
+
+Number of sockets to simultaneously keep open. This value is set to be
+<emphasis>sysconf(_SC_OPEN_MAX) - 256</emphasis> at startup. This
+gives the client 128 sockets to use as it wishes.
+
         </para></listitem>
       </varlistentry>
 
@@ -575,8 +637,8 @@ deleted, the association is then cleared.
         <term>umask = <replaceable>0644</replaceable></term>
         <listitem><para>
 
-          Set the umask for this process, which is applied to all
-          files created by the program.
+Set the umask for this process, which is applied to all files created
+by the program.
 
         </para></listitem>
       </varlistentry>

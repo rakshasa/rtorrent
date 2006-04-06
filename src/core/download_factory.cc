@@ -36,6 +36,7 @@
 
 #include "config.h"
 
+#include <cstdlib>
 #include <fstream>
 #include <sstream>
 #include <stdexcept>
@@ -182,6 +183,14 @@ DownloadFactory::receive_success() {
   (*itr)->variable()->set("min_peers",        control->variable()->get("min_peers"));
   (*itr)->variable()->set("max_peers",        control->variable()->get("max_peers"));
   (*itr)->variable()->set("max_uploads",      control->variable()->get("max_uploads"));
+
+  if (rtorrent->has_key_value("key")) {
+    (*itr)->tracker_list()->set_key(rtorrent->get_key("key").as_value());
+
+  } else {
+    (*itr)->tracker_list()->set_key(rand() % (std::numeric_limits<uint32_t>::max() - 1) + 1);
+    rtorrent->insert_key("key", (*itr)->tracker_list()->key());
+  }
 
   if (control->variable()->get_string("use_udp_trackers") == "no")
     (*itr)->enable_udp_trackers(false);
