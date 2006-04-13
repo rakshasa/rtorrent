@@ -258,9 +258,9 @@ Manager::set_bind_address(const std::string& addr) {
       torrent::connection_manager()->set_bind_address(ai->address()->c_sockaddr());
     }
 
-    rak::address_info::free_address_info(ai);
+    m_pollManager->get_http_stack()->set_bind_address(!ai->address()->is_address_any() ? ai->address()->address_str() : std::string());
 
-    m_pollManager->get_http_stack()->set_bind_address(addr);
+    rak::address_info::free_address_info(ai);
 
   } catch (torrent::input_error& e) {
     rak::address_info::free_address_info(ai);

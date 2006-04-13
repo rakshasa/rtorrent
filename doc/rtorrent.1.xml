@@ -673,6 +673,25 @@ Controls whetever a lock file is created in the session directory.
       </varlistentry>
 
       <varlistentry>
+        <term>use_udp_trackers = <replaceable>yes</replaceable></term>
+        <listitem><para>
+
+Use UDP trackers. Disable if you are behind a firewall etc that does
+not allow connections to UDP trackers.
+
+        </para></listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>enable_trackers = <replaceable>yes</replaceable></term>
+        <listitem><para>
+
+Set to <emphasis>no</emphasis> to disable tracker requests.
+
+        </para></listitem>
+      </varlistentry>
+
+      <varlistentry>
         <term>tracker_dump = <replaceable>filename</replaceable></term>
         <listitem><para>
 

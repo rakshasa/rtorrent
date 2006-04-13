@@ -181,3 +181,23 @@ AC_DEFUN([TORRENT_WITH_POSIX_FALLOCATE], [
       fi
     ])
 ])
+
+AC_DEFUN([TORRENT_WITHOUT_NCURSESW], [
+  AC_ARG_WITH(ncursesw,
+    [  --without-ncursesw      Don't try to use wide char ncurses.],
+    [
+      if test "$withval" = "no"; then
+	AC_SEARCH_LIBS(add_wch, ncursesw,
+	  AC_DEFINE(HAVE_NCURSESW, 1, defined if ncurses wide character support is available),
+	  AC_SEARCH_LIBS(wbkgdset, ncurses curses,,echo "*** The ncurses library is required!";exit 1)
+        )
+      else
+	AC_SEARCH_LIBS(wbkgdset, ncurses curses,,echo "*** The ncurses library is required!";exit 1)
+      fi
+    ],[
+      AC_SEARCH_LIBS(add_wch, ncursesw,
+	AC_DEFINE(HAVE_NCURSESW, 1, defined if ncurses wide character support is available),
+	AC_SEARCH_LIBS(wbkgdset, ncurses curses,,echo "*** The ncurses library is required!";exit 1)
+      )
+    ])
+])

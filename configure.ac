@@ -12,17 +12,12 @@ AC_PROG_CXX
 AC_PROG_LIBTOOL
 AC_SYS_LARGEFILE
 
-
-AC_SEARCH_LIBS(add_wch, ncursesw,
-  AC_DEFINE(HAVE_NCURSESW, 1, defined if ncurses wide character support is available),
-  AC_SEARCH_LIBS(wbkgdset, ncurses curses,,echo "*** The ncurses library is required!";exit 1)
-)
-
 TORRENT_CHECK_EXECINFO()
 TORRENT_CHECK_CURL()
 TORRENT_OTFD()
 
 TORRENT_WITHOUT_VARIABLE_FDSET()
+TORRENT_WITHOUT_NCURSESW()
 
 PKG_CHECK_MODULES(STUFF, sigc++-2.0 libtorrent >= 0.9.0,
 	          CXXFLAGS="$CXXFLAGS $STUFF_CFLAGS $CURL_CFLAGS";
