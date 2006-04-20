@@ -37,6 +37,7 @@
 #include "config.h"
 
 #include <unistd.h>
+#include <sys/stat.h>
 #include <torrent/connection_manager.h>
 
 #include "core/manager.h"
@@ -142,4 +143,11 @@ Control::handle_shutdown() {
 
   m_shutdownQuick = true;
   m_shutdownReceived = false;
+}
+
+void
+Control::set_umask(mode_t m) {
+  ::umask(m);
+
+  m_umask = m;
 }

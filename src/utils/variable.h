@@ -37,25 +37,33 @@
 #ifndef RTORRENT_UTILS_VARIABLE_H
 #define RTORRENT_UTILS_VARIABLE_H
 
-#include <string>
-
-namespace torrent {
-  class Object;
-}
+#include <torrent/object.h>
 
 namespace utils {
 
 class Variable {
 public:
+  typedef torrent::Object::value_type  value_type;
+  typedef torrent::Object::string_type string_type;
+  typedef torrent::Object::list_type   list_type;
+  typedef torrent::Object::map_type    map_type;
+  typedef torrent::Object::key_type    key_type;
+
   Variable() {}
   virtual ~Variable() {}
 
   virtual const torrent::Object& get() = 0;
-  virtual void                    set(const torrent::Object& arg) = 0;
+  virtual void                   set(const torrent::Object& arg) = 0;
 
 protected:
   Variable(const Variable&);
   void operator = (const Variable&);
+
+  static const char*  string_to_value_unit(const char* pos, value_type* value, int base, int unit);
+
+  // Temporary hack, until torrent::Object is extended to allow
+  // references so we can return a copy, not a const reference.
+  static const torrent::Object m_emptyObject;
 };
 
 }

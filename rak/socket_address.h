@@ -93,18 +93,21 @@ public:
   uint32_t            length() const;
 
   socket_address_inet*        sa_inet()                       { return reinterpret_cast<socket_address_inet*>(this); }
-  socket_address_inet6*       sa_inet6()                      { return reinterpret_cast<socket_address_inet6*>(this); }
-
   const socket_address_inet*  sa_inet() const                 { return reinterpret_cast<const socket_address_inet*>(this); }
-  const socket_address_inet6* sa_inet6() const                { return reinterpret_cast<const socket_address_inet6*>(this); }
 
   sockaddr*           c_sockaddr()                            { return &m_sa.m_sockaddr; }
   sockaddr_in*        c_sockaddr_inet()                       { return &m_sa.m_sockaddrInet; }
-  sockaddr_in6*       c_sockaddr_inet6()                      { return &m_sa.m_sockaddrInet6; }
 
   const sockaddr*     c_sockaddr() const                      { return &m_sa.m_sockaddr; }
   const sockaddr_in*  c_sockaddr_inet() const                 { return &m_sa.m_sockaddrInet; }
+
+#ifdef RAK_USE_INET6
+  socket_address_inet6*       sa_inet6()                      { return reinterpret_cast<socket_address_inet6*>(this); }
+  const socket_address_inet6* sa_inet6() const                { return reinterpret_cast<const socket_address_inet6*>(this); }
+
+  sockaddr_in6*       c_sockaddr_inet6()                      { return &m_sa.m_sockaddrInet6; }
   const sockaddr_in6* c_sockaddr_inet6() const                { return &m_sa.m_sockaddrInet6; }
+#endif
 
   // Copy a socket address which has the length 'length. Zero out any
   // extranous bytes and ensure it does not go beyond the size of this
@@ -123,7 +126,9 @@ private:
   union sa_union {
     sockaddr            m_sockaddr;
     sockaddr_in         m_sockaddrInet;
+#ifdef RAK_USE_INET6
     sockaddr_in6        m_sockaddrInet6;
+#endif
   };
 
   sa_union            m_sa;

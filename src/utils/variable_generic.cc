@@ -163,4 +163,58 @@ VariableObject::set(const torrent::Object& arg) {
   }
 }
 
+// 
+// New and prettified.
+//
+
+const torrent::Object&
+VariableValueSlot::get() {
+  m_cache = m_slotGet() / m_unit;
+
+  return m_cache;
+}
+
+void
+VariableValueSlot::set(const torrent::Object& arg) {
+  value_type value;
+
+  switch (arg.type()) {
+  case torrent::Object::TYPE_STRING:
+    string_to_value_unit(arg.as_string().c_str(), &value, m_base, m_unit);
+
+    // Check if we hit the end of the input.
+
+    m_slotSet(value);
+    break;
+
+  case torrent::Object::TYPE_VALUE:
+    m_slotSet(arg.as_value());
+    break;
+
+  default:
+    throw torrent::input_error("Not a value");
+  }
+}
+
+const torrent::Object&
+VariableStringSlot::get() {
+  m_cache = m_slotGet();
+
+  return m_cache;
+}
+
+void
+VariableStringSlot::set(const torrent::Object& arg) {
+  switch (arg.type()) {
+  case torrent::Object::TYPE_STRING:
+    m_slotSet(arg.as_string());
+    break;
+  case torrent::Object::TYPE_NONE:
+    m_slotSet(std::string());
+    break;
+  default:
+    throw torrent::input_error("Not a string.");
+  }
+}
+
 }

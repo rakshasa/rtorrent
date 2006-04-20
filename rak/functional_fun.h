@@ -77,11 +77,12 @@ public:
   typedef Result                 result_type;
   typedef function_base0<Result> base_type;
 
-  bool is_valid() const { return m_base.get() != NULL; }
+  bool                is_valid() const     { return m_base.get() != NULL; }
 
-  void set(base_type* base) { m_base = std::auto_ptr<base_type>(base); }
+  void                set(base_type* base) { m_base = std::auto_ptr<base_type>(base); }
+  base_type*          release()            { return m_base.release(); }
 
-  Result operator () () { return (*m_base)(); }
+  Result operator () ()                    { return (*m_base)(); }
 
 private:
   std::auto_ptr<base_type> m_base;
@@ -93,14 +94,43 @@ public:
   typedef Result                       result_type;
   typedef function_base1<Result, Arg1> base_type;
 
-  bool is_valid() const { return m_base.get() != NULL; }
+  bool                is_valid() const     { return m_base.get() != NULL; }
 
-  void set(base_type* base) { m_base = std::auto_ptr<base_type>(base); }
+  void                set(base_type* base) { m_base = std::auto_ptr<base_type>(base); }
+  base_type*          release()            { return m_base.release(); }
 
-  Result operator () (Arg1 arg1) { return (*m_base)(arg1); }
+  Result operator () (Arg1 arg1)           { return (*m_base)(arg1); }
 
 private:
   std::auto_ptr<base_type> m_base;
+};
+
+template <typename Result>
+class ptr_fn0_t : public function_base0<Result> {
+public:
+  typedef Result (*Func)();
+
+  ptr_fn0_t(Func func) : m_func(func) {}
+  virtual ~ptr_fn0_t() {}
+  
+  virtual Result operator () () { return m_func(); }
+
+private:
+  Func    m_func;
+};
+
+template <typename Result, typename Arg1>
+class ptr_fn1_t : public function_base1<Result, Arg1> {
+public:
+  typedef Result (*Func)(Arg1);
+
+  ptr_fn1_t(Func func) : m_func(func) {}
+  virtual ~ptr_fn1_t() {}
+  
+  virtual Result operator () (Arg1 arg1) { return m_func(arg1); }
+
+private:
+  Func    m_func;
 };
 
 template <typename Object, typename Result>
@@ -181,20 +211,6 @@ private:
 };
 
 template <typename Result, typename Arg1>
-class ptr_fn1_t : public function_base1<Result, Arg1> {
-public:
-  typedef Result (*Func)(Arg1);
-
-  ptr_fn1_t(Func func) : m_func(func) {}
-  virtual ~ptr_fn1_t() {}
-  
-  virtual Result operator () (Arg1 arg1) { return m_func(arg1); }
-
-private:
-  Func    m_func;
-};
-
-template <typename Result, typename Arg1>
 class ptr_fn0_b1_t : public function_base0<Result> {
 public:
   typedef Result (*Func)(Arg1);
@@ -224,52 +240,135 @@ private:
   Arg1    m_arg1;
 };
 
+template <typename Result>
+class value_fn0_t : public function_base0<Result> {
+public:
+  value_fn0_t(const Result& val) : m_value(val) {}
+  
+  virtual Result operator () () { return m_value; }
+
+private:
+  Result  m_value;
+};
+
+template <typename Result, typename SrcResult>
+class convert_fn0_t : public function_base0<Result> {
+public:
+  typedef function0<SrcResult> src_type;
+
+  convert_fn0_t(typename src_type::base_type* object) { m_object.set(object); }
+  virtual ~convert_fn0_t() {}
+  
+  virtual Result operator () () {
+    return m_object();
+  }
+
+private:
+  src_type m_object;
+};
+
+template <typename Result, typename Arg1, typename SrcResult, typename SrcArg1>
+class convert_fn1_t : public function_base1<Result, Arg1> {
+public:
+  typedef function1<SrcResult, SrcArg1> src_type;
+
+  convert_fn1_t(typename src_type::base_type* object) { m_object.set(object); }
+  virtual ~convert_fn1_t() {}
+  
+  virtual Result operator () (Arg1 arg1) {
+    return m_object(arg1);
+  }
+
+private:
+  src_type m_object;
+};
+
+template <typename Result>
+inline function_base0<Result>*
+ptr_fn(Result (*func)()) {
+  return new ptr_fn0_t<Result>(func);
+}
+
+template <typename Arg1, typename Result>
+inline function_base1<Result, Arg1>*
+ptr_fn(Result (*func)(Arg1)) {
+  return new ptr_fn1_t<Result, Arg1>(func);
+}
+
 template <typename Result, typename Object>
-function_base0<Result>*
+inline function_base0<Result>*
 mem_fn(Object* object, Result (Object::*func)()) {
   return new mem_fn0_t<Object, Result>(object, func);
 }
 
 template <typename Arg1, typename Result, typename Object>
-function_base1<Result, Arg1>*
+inline function_base1<Result, Arg1>*
 mem_fn(Object* object, Result (Object::*func)(Arg1)) {
   return new mem_fn1_t<Object, Result, Arg1>(object, func);
 }
 
 template <typename Result, typename Object>
-function_base0<Result>*
+inline function_base0<Result>*
 mem_fn(const Object* object, Result (Object::*func)() const) {
   return new const_mem_fn0_t<Object, Result>(object, func);
 }
 
 template <typename Arg1, typename Result, typename Object>
-function_base1<Result, Arg1>*
+inline function_base1<Result, Arg1>*
 mem_fn(const Object* object, Result (Object::*func)(Arg1) const) {
   return new const_mem_fn1_t<Object, Result, Arg1>(object, func);
 }
 
 template <typename Arg1, typename Result, typename Object>
-function_base0<Result>*
+inline function_base0<Result>*
 bind_mem_fn(Object* object, Result (Object::*func)(Arg1), const Arg1 arg1) {
   return new mem_fn0_b1_t<Object, Result, Arg1>(object, func, arg1);
 }
 
 template <typename Arg1, typename Result>
-function_base1<Result, Arg1>*
-ptr_fn(Result (*func)(Arg1)) {
-  return new ptr_fn1_t<Result, Arg1>(func);
-}
-
-template <typename Arg1, typename Result>
-function_base0<Result>*
+inline function_base0<Result>*
 bind_ptr_fn(Result (*func)(Arg1), const Arg1 arg1) {
   return new ptr_fn0_b1_t<Result, Arg1>(func, arg1);
 }
 
 template <typename Arg1, typename Arg2, typename Result>
-function_base1<Result, Arg2>*
+inline function_base1<Result, Arg2>*
 bind_ptr_fn(Result (*func)(Arg1, Arg2), const Arg1 arg1) {
   return new ptr_fn1_b1_t<Result, Arg1, Arg2>(func, arg1);
+}
+
+template <typename Result>
+inline function_base0<Result>*
+value_fn(const Result& val) {
+  return new value_fn0_t<Result>(val);
+}
+
+template <typename Result, typename SrcResult>
+inline function_base0<Result>*
+convert_fn(function_base0<SrcResult>* src) {
+  return new convert_fn0_t<Result, SrcResult>(src);
+}
+
+// This overload ensures that if we try to convert to the same type,
+// it will optimize away the unneeded layer.
+template <typename Result>
+inline function_base0<Result>*
+convert_fn(function_base0<Result>* src) {
+  return src;
+}
+
+template <typename Result, typename Arg1, typename SrcResult, typename SrcArg1>
+inline function_base1<Result, Arg1>*
+convert_fn(function_base1<SrcResult, SrcArg1>* src) {
+  return new convert_fn1_t<Result, Arg1, SrcResult, SrcArg1>(src);
+}
+
+// This overload ensures that if we try to convert to the same type,
+// it will optimize away the unneeded layer.
+template <typename Result, typename Arg1>
+inline function_base1<Result, Arg1>*
+convert_fn(function_base1<Result, Arg1>* src) {
+  return src;
 }
 
 }

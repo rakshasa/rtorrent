@@ -6,6 +6,7 @@ libsub_utils_a_SOURCES = \
 	list_focus.h \
 	lockfile.cc \
 	lockfile.h \
+	variable.cc \
 	variable.h \
 	variable_generic.cc \
 	variable_generic.h \

@@ -64,11 +64,6 @@
 #include "command_scheduler.h"
 
 void
-apply_umask(int arg) {
-  umask(arg);
-}
-
-void
 apply_working_directory(const std::string& path) {
   if (chdir(path.c_str()) != 0)
     throw torrent::input_error("Could not change working directory.");
@@ -209,7 +204,8 @@ initialize_option_handler(Control* c) {
 
   variables->insert("tracker_dump",          new utils::VariableAny(std::string()));
 
-  variables->insert("session",               new utils::VariableSlotString<>(NULL, rak::mem_fn(&control->core()->download_store(), &core::DownloadStore::set_path)));
+  variables->insert("session",               new utils::VariableStringSlot(rak::mem_fn(&control->core()->download_store(), &core::DownloadStore::path),
+									   rak::mem_fn(&control->core()->download_store(), &core::DownloadStore::set_path)));
   variables->insert("session_lock",          new utils::VariableAny("yes"));
   variables->insert("session_on_completion", new utils::VariableAny("yes"));
 
@@ -217,52 +213,59 @@ initialize_option_handler(Control* c) {
   variables->insert("connection_seed",       new utils::VariableAny("seed"));
 
   variables->insert("directory",             new utils::VariableAny("./"));
-  variables->insert("working_directory",     new utils::VariableSlotString<>(NULL, rak::ptr_fn(&apply_working_directory)));
-  variables->insert("bind",                  new utils::VariableSlotString<>(NULL, rak::mem_fn(control->core(), &core::Manager::set_bind_address)));
-  variables->insert("ip",                    new utils::VariableSlotString<>(NULL, rak::mem_fn(control->core(), &core::Manager::set_local_address)));
 
-  variables->insert("tos",                   new utils::VariableSlotString<>(NULL, rak::ptr_fn(&apply_tos)));
+  variables->insert("working_directory",     new utils::VariableStringSlot(rak::value_fn(std::string()), rak::ptr_fn(&apply_working_directory)));
+  variables->insert("tos",                   new utils::VariableStringSlot(rak::value_fn(std::string()), rak::ptr_fn(&apply_tos)));
+
+  variables->insert("bind",                  new utils::VariableStringSlot(rak::mem_fn(control->core(), &core::Manager::bind_address),
+									   rak::mem_fn(control->core(), &core::Manager::set_bind_address)));
+  variables->insert("ip",                    new utils::VariableStringSlot(rak::mem_fn(control->core(), &core::Manager::local_address),
+									   rak::mem_fn(control->core(), &core::Manager::set_local_address)));
 
   variables->insert("min_peers",             new utils::VariableValue(40));
   variables->insert("max_peers",             new utils::VariableValue(100));
   variables->insert("max_uploads",           new utils::VariableValue(15));
 
-  variables->insert("download_rate",         new utils::VariableSlotValue<uint32_t, unsigned int>(NULL, rak::mem_fn(control->ui(), &ui::Root::set_down_throttle), "%i"));
-  variables->insert("upload_rate",           new utils::VariableSlotValue<uint32_t, unsigned int>(NULL, rak::mem_fn(control->ui(), &ui::Root::set_up_throttle), "%i"));
+  variables->insert("download_rate",         new utils::VariableValueSlot(rak::ptr_fn(&torrent::down_throttle), rak::mem_fn(control->ui(), &ui::Root::set_down_throttle_i64),
+									  0, (1 << 10)));
+  variables->insert("upload_rate",           new utils::VariableValueSlot(rak::ptr_fn(&torrent::up_throttle), rak::mem_fn(control->ui(), &ui::Root::set_up_throttle_i64),
+									  0, (1 << 10)));
 
-  variables->insert("hash_max_tries",        new utils::VariableSlotValue<int, uint32_t>(NULL, rak::ptr_fn(&torrent::set_hash_max_tries), "%i"));
-  variables->insert("max_open_files",        new utils::VariableSlotValue<int, uint32_t>(NULL, rak::ptr_fn(&torrent::set_max_open_files), "%i"));
-  variables->insert("max_open_sockets",      new utils::VariableSlotValue<int, uint32_t>(NULL, rak::ptr_fn(&torrent::set_max_open_sockets), "%i"));
+  variables->insert("hash_max_tries",        new utils::VariableValueSlot(rak::ptr_fn(&torrent::hash_max_tries), rak::ptr_fn(&torrent::set_hash_max_tries)));
+  variables->insert("max_open_files",        new utils::VariableValueSlot(rak::ptr_fn(&torrent::max_open_files), rak::ptr_fn(&torrent::set_max_open_files)));
+  variables->insert("max_open_sockets",      new utils::VariableValueSlot(rak::ptr_fn(&torrent::max_open_sockets), rak::ptr_fn(&torrent::set_max_open_sockets)));
 
-  variables->insert("print",                 new utils::VariableSlotString<>(NULL, rak::mem_fn(control->core(), &core::Manager::push_log)));
-  variables->insert("import",                new utils::VariableSlotString<>(NULL, rak::mem_fn(control->variable(), &utils::VariableMap::process_file_throw)));
-  variables->insert("try_import",            new utils::VariableSlotString<>(NULL, rak::mem_fn(control->variable(), &utils::VariableMap::process_file_nothrow)));
+  variables->insert("print",                 new utils::VariableStringSlot(rak::value_fn(std::string()),
+									   rak::mem_fn(control->core(), &core::Manager::push_log)));
+  variables->insert("import",                new utils::VariableStringSlot(rak::value_fn(std::string()),
+									   rak::mem_fn(control->variable(), &utils::VariableMap::process_file_throw)));
+  variables->insert("try_import",            new utils::VariableStringSlot(rak::value_fn(std::string()),
+									   rak::mem_fn(control->variable(), &utils::VariableMap::process_file_nothrow)));
 
-  variables->insert("schedule",              new utils::VariableSlotString<>(NULL, rak::mem_fn<const std::string&>(c->command_scheduler(), &CommandScheduler::parse)));
-  variables->insert("schedule_remove",       new utils::VariableSlotString<>(NULL, rak::mem_fn<const std::string&>(c->command_scheduler(), &CommandScheduler::erase)));
+  variables->insert("schedule",              new utils::VariableStringSlot(rak::value_fn(std::string()),
+									   rak::mem_fn<const std::string&>(c->command_scheduler(), &CommandScheduler::parse)));
+  variables->insert("schedule_remove",       new utils::VariableStringSlot(rak::value_fn(std::string()),
+									   rak::mem_fn<const std::string&>(c->command_scheduler(), &CommandScheduler::erase)));
 
-  variables->insert("send_buffer_size",      new utils::VariableSlotValue<int, uint32_t>(NULL, rak::mem_fn(torrent::connection_manager(),
-													   &torrent::ConnectionManager::set_send_buffer_size), "%u"));
+  variables->insert("send_buffer_size",      new utils::VariableValueSlot(rak::mem_fn(torrent::connection_manager(), &torrent::ConnectionManager::send_buffer_size),
+									  rak::mem_fn(torrent::connection_manager(), &torrent::ConnectionManager::set_send_buffer_size)));
   
-  variables->insert("receive_buffer_size",   new utils::VariableSlotValue<int, uint32_t>(NULL, rak::mem_fn(torrent::connection_manager(),
-													   &torrent::ConnectionManager::set_receive_buffer_size), "%u"));
+  variables->insert("receive_buffer_size",   new utils::VariableValueSlot(rak::mem_fn(torrent::connection_manager(), &torrent::ConnectionManager::receive_buffer_size),
+									  rak::mem_fn(torrent::connection_manager(), &torrent::ConnectionManager::set_receive_buffer_size)));
   
-  // Old.
-  variables->insert("port_range",          new utils::VariableSlotString<>(NULL, rak::bind_ptr_fn(&apply_port_range, c)));
+  variables->insert("port_range",            new utils::VariableStringSlot(rak::value_fn(std::string()), rak::bind_ptr_fn(&apply_port_range, c)));
 
-  variables->insert("hash_read_ahead",     new utils::VariableSlotValue<int, int>(NULL, rak::bind_ptr_fn(&apply_hash_read_ahead, c), "%i"));
-  variables->insert("hash_interval",       new utils::VariableSlotValue<int, int>(NULL, rak::bind_ptr_fn(&apply_hash_interval, c), "%i"));
+  variables->insert("hash_read_ahead",       new utils::VariableValueSlot(rak::ptr_fn(torrent::hash_read_ahead), rak::bind_ptr_fn(&apply_hash_read_ahead, c)));
+  variables->insert("hash_interval",         new utils::VariableValueSlot(rak::ptr_fn(torrent::hash_interval), rak::bind_ptr_fn(&apply_hash_interval, c)));
 
-  variables->insert("umask",               new utils::VariableSlotValue<int, int>(NULL, rak::ptr_fn(&apply_umask), "%o"));
+  variables->insert("umask",                 new utils::VariableValueSlot(rak::mem_fn(control, &Control::umask), rak::mem_fn(control, &Control::set_umask), 8));
 
-  variables->insert("load",                new utils::VariableSlotString<>(NULL, rak::bind_ptr_fn(&apply_load, c)));
-  variables->insert("load_start",          new utils::VariableSlotString<>(NULL, rak::bind_ptr_fn(&apply_load_start, c)));
-  variables->insert("stop_untied",         new utils::VariableSlotString<>(NULL, rak::bind_ptr_fn(&apply_stop_untied, c)));
-  variables->insert("remove_untied",       new utils::VariableSlotString<>(NULL, rak::bind_ptr_fn(&apply_remove_untied, c)));
+  variables->insert("load",                  new utils::VariableStringSlot(rak::value_fn(std::string()), rak::bind_ptr_fn(&apply_load, c)));
+  variables->insert("load_start",            new utils::VariableStringSlot(rak::value_fn(std::string()), rak::bind_ptr_fn(&apply_load_start, c)));
+  variables->insert("stop_untied",           new utils::VariableStringSlot(rak::value_fn(std::string()), rak::bind_ptr_fn(&apply_stop_untied, c)));
+  variables->insert("remove_untied",         new utils::VariableStringSlot(rak::value_fn(std::string()), rak::bind_ptr_fn(&apply_remove_untied, c)));
 
-  variables->insert("enable_trackers",     new utils::VariableSlotString<>(NULL, rak::bind_ptr_fn(&apply_enable_trackers, c)));
-
-  variables->insert("encoding_list",       new utils::VariableSlotString<>(NULL, rak::bind_ptr_fn(&apply_encoding_list, c)));
-
-  variables->insert("http_proxy",          new utils::VariableSlotString<>(NULL, rak::bind_ptr_fn(&apply_http_proxy, c)));
+  variables->insert("enable_trackers",       new utils::VariableStringSlot(rak::value_fn(std::string()), rak::bind_ptr_fn(&apply_enable_trackers, c)));
+  variables->insert("encoding_list",         new utils::VariableStringSlot(rak::value_fn(std::string()), rak::bind_ptr_fn(&apply_encoding_list, c)));
+  variables->insert("http_proxy",            new utils::VariableStringSlot(rak::value_fn(std::string()), rak::bind_ptr_fn(&apply_http_proxy, c)));
 }

@@ -38,6 +38,7 @@
 #define RTORRENT_CONTROL_H
 
 #include <inttypes.h>
+#include <sys/types.h>
 #include <rak/timer.h>
 #include <rak/priority_queue_default.h>
 #include <torrent/torrent.h>
@@ -96,6 +97,9 @@ public:
   uint64_t            tick() const                  { return m_tick; }
   void                inc_tick()                    { m_tick++; }
 
+  mode_t              umask() const                 { return m_umask; }
+  void                set_umask(mode_t m);
+
 private:
   Control(const Control&);
   void operator = (const Control&);
@@ -115,6 +119,7 @@ private:
   display::ClientInfo* m_clientInfo;
 
   uint64_t            m_tick;
+  mode_t              m_umask;
 
   rak::priority_item  m_taskShutdown;
 };

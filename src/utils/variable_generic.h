@@ -111,110 +111,68 @@ private:
   Type                m_type;
 };
 
-template <typename Get = std::string, typename Set = const std::string&>
-class VariableSlotString : public Variable {
+//
+// New and pretty.
+//
+
+class VariableValueSlot : public Variable {
 public:
-  typedef rak::function0<Get>       SlotGet;
-  typedef rak::function1<void, Set> SlotSet;
+  typedef rak::function0<value_type>        slot_get_type;
+  typedef rak::function1<void, value_type>  slot_set_type;
+  typedef std::pair<value_type, value_type> range_type;
 
-  VariableSlotString(typename SlotGet::base_type* slotGet, typename SlotSet::base_type* slotSet) {
-    m_slotGet.set(slotGet);
-    m_slotSet.set(slotSet);
+  template <typename SlotGet, typename SlotSet>
+  VariableValueSlot(SlotGet* slotGet, SlotSet* slotSet, unsigned int base = 0, unsigned int unit = 1,
+		    range_type range = range_type(std::numeric_limits<value_type>::min(), std::numeric_limits<value_type>::max())) :
+    m_base(base),
+    m_unit(unit),
+    m_range(range) {
+
+    m_slotGet.set(rak::convert_fn<value_type>(slotGet));
+    m_slotSet.set(rak::convert_fn<void, value_type>(slotSet));
   }
 
-  virtual ~VariableSlotString() {}
-
-  virtual const torrent::Object& get() {
-    m_cache = m_slotGet();
-
-    if (!m_cache.is_string())
-      throw torrent::internal_error("VariableSlotString::get() got wrong type.");
-
-    return m_cache;
-  }
-
-  virtual void set(const torrent::Object& arg) {
-    switch (arg.type()) {
-    case torrent::Object::TYPE_STRING:
-      m_slotSet(arg.as_string());
-      break;
-    case torrent::Object::TYPE_NONE:
-      m_slotSet("");
-      break;
-    default:
-      throw torrent::internal_error("VariableSlotString::set(...) got wrong type.");
-    }    
-  }
+  virtual const torrent::Object& get();
+  virtual void                   set(const torrent::Object& arg);
 
 private:
-  SlotGet             m_slotGet;
-  SlotSet             m_slotSet;
+  slot_get_type       m_slotGet;
+  slot_set_type       m_slotSet;
+
+  unsigned int        m_base;
+  unsigned int        m_unit;
+  range_type          m_range;
 
   // Store the cache here to avoid unnessesary copying and such. This
   // should not result in any unresonable memory usage since few
   // strings will be very large.
-  torrent::Object    m_cache;
+  torrent::Object     m_cache;
 };
 
-template <typename Get, typename Set>
-class VariableSlotValue : public Variable {
+class VariableStringSlot : public Variable {
 public:
-  typedef rak::function0<Get>         SlotGet;
-  typedef rak::function1<void, Set>   SlotSet;
-  typedef std::pair<int64_t, int64_t> Range;
+  typedef rak::function0<string_type>              slot_get_type;
+  typedef rak::function1<void, const string_type&> slot_set_type;
 
-  VariableSlotValue(typename SlotGet::base_type* slotGet,
-		    typename SlotSet::base_type* slotSet,
-		    const char* pattern,
-		    Range range = Range(std::numeric_limits<int64_t>::min(),
-					std::numeric_limits<int64_t>::max())) {
-    m_slotGet.set(slotGet);
-    m_slotSet.set(slotSet);
-    m_pattern = pattern;
-    m_range = range;
+  template <typename SlotGet, typename SlotSet>
+  VariableStringSlot(SlotGet* slotGet, SlotSet* slotSet) {
+    m_slotGet.set(rak::convert_fn<string_type>(slotGet));
+    m_slotSet.set(rak::convert_fn<void, const string_type&>(slotSet));
   }
 
-  virtual ~VariableSlotValue() {}
-
-  virtual const torrent::Object& get() {
-    m_cache = m_slotGet();
-
-    // Need this?
-    if (!m_cache.is_value())
-      throw torrent::internal_error("VariableSlotValue::get() got wrong type.");
-
-    return m_cache;
-  }
-
-  virtual void set(const torrent::Object& arg) {
-    if (arg.is_string()) {
-      Set v;
-
-      if (std::sscanf(arg.as_string().c_str(), m_pattern, &v) != 1)
-	throw torrent::input_error("Not a value.");
-      
-      m_slotSet(v);
-
-    } else if (arg.is_value()) {
-      m_slotSet(arg.as_value());
-
-    } else {
-      throw torrent::input_error("Not a value");
-    }
-  }
+  virtual const torrent::Object& get();
+  virtual void                   set(const torrent::Object& arg);
 
 private:
-  SlotGet             m_slotGet;
-  SlotSet             m_slotSet;
-
-  const char*         m_pattern;
-  Range               m_range;
+  slot_get_type       m_slotGet;
+  slot_set_type       m_slotSet;
 
   // Store the cache here to avoid unnessesary copying and such. This
   // should not result in any unresonable memory usage since few
   // strings will be very large.
-  torrent::Object    m_cache;
+  torrent::Object     m_cache;
 };
+
 
 }
 

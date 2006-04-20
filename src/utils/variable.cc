@@ -1,5 +1,5 @@
 // rTorrent - BitTorrent client
-// Copyright (C) 2005-2006, Jari Sundell
+// Copyright (C) 2006, Jari Sundell
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -34,54 +34,59 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef RTORRENT_UI_ROOT_H
-#define RTORRENT_UI_ROOT_H
+#include "config.h"
 
-#include <inttypes.h>
-#include "input/bindings.h"
+#include <torrent/exceptions.h>
 
-class Control;
+#include "variable.h"
 
-namespace display {
-  class WindowStatusbar;
+namespace utils {
+
+const torrent::Object Variable::m_emptyObject;
+
+const char*
+Variable::string_to_value_unit(const char* pos, value_type* value, int base, int unit) {
+  char* last;
+
+  *value = strtoll(pos, &last, base);
+
+  if (last == pos)
+    throw torrent::input_error("Could not convert string to value.");
+
+  switch (*last) {
+  case 'b':
+  case 'B':
+    ++last;
+    break;
+
+  case 'k':
+  case 'K':
+    *value = *value << 10;
+    ++last;
+    break;
+
+  case 'm':
+  case 'M':
+    *value = *value << 20;
+    ++last;
+    break;
+
+  case 'g':
+  case 'G':
+    *value = *value << 30;
+    ++last;
+    break;
+
+  case ' ':
+  case '\0':
+    *value = *value * unit;
+    break;
+
+  default:
+    throw torrent::input_error("Could not parse value.");
+  }
+
+  return last;
 }
 
-namespace ui {
-
-class DownloadList;
-
-class Root {
-public:
-  typedef display::WindowStatusbar WStatusbar;
-
-  Root();
-
-  void                init(Control* c);
-  void                cleanup();
-
-  WStatusbar*         window_statusbar()            { return m_windowStatusbar; }
-
-  void                set_down_throttle(unsigned int throttle);
-  void                set_up_throttle(unsigned int throttle);
-
-  // Rename to raw or something, make base function.
-  void                set_down_throttle_i64(int64_t throttle) { set_down_throttle(throttle >> 10); }
-  void                set_up_throttle_i64(int64_t throttle)   { set_up_throttle(throttle >> 10); }
-
-  void                adjust_down_throttle(int throttle);
-  void                adjust_up_throttle(int throttle);
-
-private:
-  void                setup_keys();
-
-  Control*            m_control;
-  DownloadList*       m_downloadList;
-
-  WStatusbar*         m_windowStatusbar;
-
-  input::Bindings     m_bindings;
-};
-
 }
-
-#endif
