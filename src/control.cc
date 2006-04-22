@@ -41,6 +41,8 @@
 #include <torrent/connection_manager.h>
 
 #include "core/manager.h"
+#include "core/view_manager.h"
+
 #include "display/canvas.h"
 #include "display/client_info.h"
 #include "display/window.h"
@@ -59,7 +61,6 @@ Control::Control() :
   m_shutdownQuick(false),
 
   m_ui(new ui::Root()),
-  m_core(new core::Manager()),
   m_display(new display::Manager()),
   m_input(new input::Manager()),
   m_inputStdin(new input::InputEvent(STDIN_FILENO)),
@@ -70,6 +71,9 @@ Control::Control() :
   m_clientInfo(new display::ClientInfo),
 
   m_tick(0) {
+
+  m_core = new core::Manager();
+  m_viewManager = new core::ViewManager(&m_core->download_list());
 
   m_inputStdin->slot_pressed(sigc::mem_fun(m_input, &input::Manager::pressed));
 
@@ -104,7 +108,7 @@ Control::initialize() {
 
   m_core->initialize_second();
   m_core->listen_open();
-  m_core->download_store().enable(m_variables->get_string("session_lock") == "yes");
+  m_core->download_store().enable(m_variables->get_value("session_lock"));
 
   m_ui->init(this);
 
@@ -150,4 +154,10 @@ Control::set_umask(mode_t m) {
   ::umask(m);
 
   m_umask = m;
+}
+
+void
+Control::set_working_directory(const std::string& dir) {
+  if (::chdir(dir.c_str()) != 0)
+    throw torrent::input_error("Could not change working directory.");
 }

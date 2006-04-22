@@ -27,6 +27,10 @@ libsub_core_a_SOURCES = \
 	poll_manager_epoll.cc \
 	poll_manager_epoll.h \
 	poll_manager_select.cc \
-	poll_manager_select.h
+	poll_manager_select.h \
+	view_downloads.cc \
+	view_downloads.h \
+	view_manager.cc \
+	view_manager.h
 
 INCLUDES = -I$(srcdir) -I$(srcdir)/.. -I$(top_srcdir)

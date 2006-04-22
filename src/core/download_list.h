@@ -74,6 +74,8 @@ public:
   ~DownloadList() { clear(); }
 
   iterator            insert(std::istream* str, bool printLog);
+
+  void                erase(Download* d);
   iterator            erase(iterator itr);
 
   void                open(Download* d);
@@ -94,6 +96,15 @@ public:
   SlotMap&            slot_map_stop()       { return m_slotMapStop; }
 
   SlotMap&            slot_map_finished()   { return m_slotMapFinished; }
+
+  bool                has_slot_insert(const std::string& key) const   { return m_slotMapInsert.find(key) != m_slotMapInsert.end(); }
+  bool                has_slot_erase(const std::string& key) const    { return m_slotMapErase.find(key) != m_slotMapErase.end(); }
+  bool                has_slot_open(const std::string& key) const     { return m_slotMapOpen.find(key) != m_slotMapOpen.end(); }
+  bool                has_slot_close(const std::string& key) const    { return m_slotMapClose.find(key) != m_slotMapClose.end(); }
+  bool                has_slot_start(const std::string& key) const    { return m_slotMapStart.find(key) != m_slotMapStart.end(); }
+  bool                has_slot_stop(const std::string& key) const     { return m_slotMapStop.find(key) != m_slotMapStop.end(); }
+
+  bool                has_slot_finished(const std::string& key) const { return m_slotMapFinished.find(key) != m_slotMapFinished.end(); }
 
 private:
   void                clear();

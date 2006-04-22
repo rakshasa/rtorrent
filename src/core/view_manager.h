@@ -34,32 +34,58 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef RTORRENT_DISPLAY_WINDOW_DOWNLOAD_LIST_H
-#define RTORRENT_DISPLAY_WINDOW_DOWNLOAD_LIST_H
+#ifndef RTORRENT_CORE_VIEW_MANAGER_H
+#define RTORRENT_CORE_VIEW_MANAGER_H
 
-#include <sigc++/connection.h>
-
-#include "window.h"
-
-#include "core/download_list.h"
+#include <rak/unordered_vector.h>
 
 namespace core {
-  class ViewDownloads;
-}
 
-namespace display {
+class ViewDownloads;
 
-class WindowDownloadList : public Window {
+class ViewManager : public rak::unordered_vector<ViewDownloads*> {
 public:
-  WindowDownloadList(core::ViewDownloads* l);
-  ~WindowDownloadList();
+  typedef rak::unordered_vector<ViewDownloads*> base_type;
+  
+  using base_type::iterator;
+  using base_type::const_iterator;
+  using base_type::reverse_iterator;
+  using base_type::const_reverse_iterator;
+  
+  using base_type::size_type;
 
-  virtual void        redraw();
+  using base_type::begin;
+  using base_type::end;
+  using base_type::rbegin;
+  using base_type::rend;
+
+  using base_type::empty;
+  using base_type::size;
+
+  ViewManager(DownloadList* dl);
+  ~ViewManager() { clear(); }
+
+  // Ffff... Just throwing together an interface, need to think some
+  // more on this.
+
+  void                clear();
+
+  iterator            insert(const std::string& name);
+
+  // When erasing, just 'disable' the view so that the users won't
+  // suddenly find their pointer dangling?
+
+  iterator            find(const std::string& name);
+  iterator            find_throw(const std::string& name);
+
+  void                sort(const std::string& name, const std::string& sort);
+
+  // For now, just take the sort type as a string. Later might move
+  // this lookup outside.
+  void                set_sort_new(const std::string& name, const std::string& sort);
 
 private:
-  core::ViewDownloads* m_view;
-
-  sigc::connection     m_connChanged;
+  DownloadList*       m_list;
 };
 
 }

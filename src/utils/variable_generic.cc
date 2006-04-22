@@ -42,9 +42,6 @@
 
 namespace utils {
 
-VariableAny::~VariableAny() {
-}
-
 const torrent::Object&
 VariableAny::get() {
   return m_variable;
@@ -53,14 +50,6 @@ VariableAny::get() {
 void
 VariableAny::set(const torrent::Object& arg) {
   m_variable = arg;
-}
-
-VariableValue::~VariableValue() {
-}
-
-const torrent::Object&
-VariableValue::get() {
-  return m_variable;
 }
 
 void
@@ -93,38 +82,29 @@ VariableValue::set(const torrent::Object& arg) {
   }
 }
 
-VariableBool::~VariableBool() {
-}
-
-const torrent::Object&
-VariableBool::get() {
-  return m_variable;
-}
-
 void
 VariableBool::set(const torrent::Object& arg) {
-  if (arg.is_value()) {
+  switch (arg.type()) {
+  case torrent::Object::TYPE_VALUE:
     m_variable = arg.as_value() ? (int64_t)1 : (int64_t)0;
+    break;
 
-  } else if (arg.is_string()) {
-
-    if (arg.as_string() == "yes" ||
-	arg.as_string() == "true")
+  case torrent::Object::TYPE_STRING:
+    // Move the checks into some is_true, is_false think in Variable.
+    if (arg.as_string() == "yes" || arg.as_string() == "true")
       m_variable = (int64_t)1;
 
-    else if (arg.as_string() == "no" ||
-	     arg.as_string() == "false")
+    else if (arg.as_string() == "no" || arg.as_string() == "false")
       m_variable = (int64_t)0;
 
     else
       throw torrent::input_error("String does not parse as a boolean.");
 
-  } else {
+    break;
+
+  default:
     throw torrent::input_error("Input is not a boolean.");
   }
-}
-
-VariableObject::~VariableObject() {
 }
 
 const torrent::Object&

@@ -53,6 +53,7 @@
 
 #include "core/download.h"
 #include "core/manager.h"
+#include "core/view_manager.h"
 #include "ui/root.h"
 #include "utils/directory.h"
 #include "utils/variable_generic.h"
@@ -62,12 +63,6 @@
 #include "control.h"
 #include "option_handler_rules.h"
 #include "command_scheduler.h"
-
-void
-apply_working_directory(const std::string& path) {
-  if (chdir(path.c_str()) != 0)
-    throw torrent::input_error("Could not change working directory.");
-}
 
 void
 apply_hash_read_ahead(__UNUSED Control* m, int arg) {
@@ -88,11 +83,6 @@ apply_port_range(Control* m, const std::string& arg) {
   std::sscanf(arg.c_str(), "%i-%i", &a, &b);
 
   m->core()->set_port_range(a, b);
-}
-
-void
-apply_http_proxy(Control* m, const std::string& arg) {
-  m->core()->get_poll_manager()->get_http_stack()->set_http_proxy(arg);
 }
 
 void
@@ -164,7 +154,7 @@ apply_enable_trackers(Control* m, __UNUSED const std::string& arg) {
       else
 	tl.get(i).disable();
 
-    if (state && control->variable()->get_string("use_udp_trackers") == "no")
+    if (state && !control->variable()->get_value("use_udp_trackers"))
       (*itr)->enable_udp_trackers(false);
   }    
 }
@@ -193,34 +183,75 @@ apply_tos(const std::string& arg) {
 }
 
 void
+apply_view_add(Control* control, const std::string& arg) {
+  // Restrict the range of characters.
+
+  control->view_manager()->insert(rak::trim(arg));
+}
+
+void
+apply_view_sort(Control* control, const std::string& arg) {
+  rak::split_iterator_t<std::string> itr = rak::split_iterator(arg, ',');
+
+  std::string name = rak::trim(*itr);
+  ++itr;
+  
+  std::string sort = rak::trim(*itr);
+  ++itr;
+
+  if (name.empty() || sort.empty() || itr != rak::split_iterator(arg))
+    throw torrent::input_error("Invalid number of arguments.");
+
+  control->view_manager()->sort(name, sort);
+}
+
+void
+apply_view_sort_new(Control* control, const std::string& arg) {
+  rak::split_iterator_t<std::string> itr = rak::split_iterator(arg, ',');
+
+  std::string name = rak::trim(*itr);
+  ++itr;
+  
+  std::string sort = rak::trim(*itr);
+  ++itr;
+
+  if (name.empty() || sort.empty() || itr != rak::split_iterator(arg))
+    throw torrent::input_error("Invalid number of arguments.");
+
+  control->view_manager()->set_sort_new(name, sort);
+}
+
+void
 initialize_option_handler(Control* c) {
   utils::VariableMap* variables = control->variable();
 
   // Cleaned up.
-  variables->insert("check_hash",            new utils::VariableAny("yes"));
-  variables->insert("use_udp_trackers",      new utils::VariableAny("yes"));
-  variables->insert("port_open",             new utils::VariableAny("yes"));
-  variables->insert("port_random",           new utils::VariableAny("yes"));
+  variables->insert("check_hash",            new utils::VariableBool(true));
+  variables->insert("use_udp_trackers",      new utils::VariableBool(true));
+  variables->insert("port_open",             new utils::VariableBool(true));
+  variables->insert("port_random",           new utils::VariableBool(true));
 
   variables->insert("tracker_dump",          new utils::VariableAny(std::string()));
 
   variables->insert("session",               new utils::VariableStringSlot(rak::mem_fn(&control->core()->download_store(), &core::DownloadStore::path),
 									   rak::mem_fn(&control->core()->download_store(), &core::DownloadStore::set_path)));
-  variables->insert("session_lock",          new utils::VariableAny("yes"));
-  variables->insert("session_on_completion", new utils::VariableAny("yes"));
+  variables->insert("session_lock",          new utils::VariableBool(true));
+  variables->insert("session_on_completion", new utils::VariableBool(true));
 
   variables->insert("connection_leech",      new utils::VariableAny("leech"));
   variables->insert("connection_seed",       new utils::VariableAny("seed"));
 
   variables->insert("directory",             new utils::VariableAny("./"));
 
-  variables->insert("working_directory",     new utils::VariableStringSlot(rak::value_fn(std::string()), rak::ptr_fn(&apply_working_directory)));
   variables->insert("tos",                   new utils::VariableStringSlot(rak::value_fn(std::string()), rak::ptr_fn(&apply_tos)));
 
   variables->insert("bind",                  new utils::VariableStringSlot(rak::mem_fn(control->core(), &core::Manager::bind_address),
 									   rak::mem_fn(control->core(), &core::Manager::set_bind_address)));
   variables->insert("ip",                    new utils::VariableStringSlot(rak::mem_fn(control->core(), &core::Manager::local_address),
 									   rak::mem_fn(control->core(), &core::Manager::set_local_address)));
+
+  variables->insert("http_proxy",            new utils::VariableStringSlot(rak::mem_fn(c->core()->get_poll_manager()->get_http_stack(), &core::CurlStack::http_proxy),
+									   rak::mem_fn(c->core()->get_poll_manager()->get_http_stack(), &core::CurlStack::set_http_proxy)));
 
   variables->insert("min_peers",             new utils::VariableValue(40));
   variables->insert("max_peers",             new utils::VariableValue(100));
@@ -242,6 +273,10 @@ initialize_option_handler(Control* c) {
   variables->insert("try_import",            new utils::VariableStringSlot(rak::value_fn(std::string()),
 									   rak::mem_fn(control->variable(), &utils::VariableMap::process_file_nothrow)));
 
+  variables->insert("view_add",              new utils::VariableStringSlot(rak::value_fn(std::string()), rak::bind_ptr_fn(&apply_view_add, c)));
+  variables->insert("view_sort",             new utils::VariableStringSlot(rak::value_fn(std::string()), rak::bind_ptr_fn(&apply_view_sort, c)));
+  variables->insert("view_sort_new",         new utils::VariableStringSlot(rak::value_fn(std::string()), rak::bind_ptr_fn(&apply_view_sort_new, c)));
+
   variables->insert("schedule",              new utils::VariableStringSlot(rak::value_fn(std::string()),
 									   rak::mem_fn<const std::string&>(c->command_scheduler(), &CommandScheduler::parse)));
   variables->insert("schedule_remove",       new utils::VariableStringSlot(rak::value_fn(std::string()),
@@ -258,7 +293,10 @@ initialize_option_handler(Control* c) {
   variables->insert("hash_read_ahead",       new utils::VariableValueSlot(rak::ptr_fn(torrent::hash_read_ahead), rak::bind_ptr_fn(&apply_hash_read_ahead, c)));
   variables->insert("hash_interval",         new utils::VariableValueSlot(rak::ptr_fn(torrent::hash_interval), rak::bind_ptr_fn(&apply_hash_interval, c)));
 
-  variables->insert("umask",                 new utils::VariableValueSlot(rak::mem_fn(control, &Control::umask), rak::mem_fn(control, &Control::set_umask), 8));
+  variables->insert("umask",                 new utils::VariableValueSlot(rak::mem_fn(control, &Control::umask),
+									  rak::mem_fn(control, &Control::set_umask), 8));
+  variables->insert("working_directory",     new utils::VariableStringSlot(rak::mem_fn(control, &Control::working_directory),
+									   rak::mem_fn(control, &Control::set_working_directory)));
 
   variables->insert("load",                  new utils::VariableStringSlot(rak::value_fn(std::string()), rak::bind_ptr_fn(&apply_load, c)));
   variables->insert("load_start",            new utils::VariableStringSlot(rak::value_fn(std::string()), rak::bind_ptr_fn(&apply_load_start, c)));
@@ -267,5 +305,4 @@ initialize_option_handler(Control* c) {
 
   variables->insert("enable_trackers",       new utils::VariableStringSlot(rak::value_fn(std::string()), rak::bind_ptr_fn(&apply_enable_trackers, c)));
   variables->insert("encoding_list",         new utils::VariableStringSlot(rak::value_fn(std::string()), rak::bind_ptr_fn(&apply_encoding_list, c)));
-  variables->insert("http_proxy",            new utils::VariableStringSlot(rak::value_fn(std::string()), rak::bind_ptr_fn(&apply_http_proxy, c)));
 }

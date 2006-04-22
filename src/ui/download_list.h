@@ -39,13 +39,16 @@
 
 #include <sigc++/slot.h>
 
-#include "core/download_list.h"
 #include "display/manager.h"
-#include "utils/list_focus.h"
 
 #include "globals.h"
 
 class Control;
+
+namespace core {
+  class Download;
+  class ViewDownloads;
+}
 
 namespace input {
   class Bindings;
@@ -73,8 +76,6 @@ public:
   typedef display::WindowLog                       WLog;
   typedef display::WindowLogComplete               WLogComplete;
   typedef display::WindowTitle                     WTitle;
-
-  typedef utils::ListFocus<core::DownloadList>     DList;
 
   typedef sigc::slot1<void, const std::string&>    SlotOpenUri;
 
@@ -156,7 +157,7 @@ private:
 
   Download*           m_uiDownload;
 
-  DList               m_downloadList;
+  core::ViewDownloads* m_view;
 
   Control*            m_control;
   input::Bindings*    m_bindings;

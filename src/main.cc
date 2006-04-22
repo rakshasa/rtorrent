@@ -162,6 +162,9 @@ main(int argc, char** argv) {
     // torrent::ConnectionManager* is valid etc.
     initialize_option_handler(control);
 
+    control->variable()->process_command("view_add = main");
+    control->variable()->process_command("view_sort_new = main,name");
+
     // Move env and go through "try_import".
     if (!control->variable()->process_file("~/.rtorrent.rc"))
       control->core()->get_log_important().push_front("Could not load \"~/.rtorrent.rc\".");

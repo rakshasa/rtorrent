@@ -49,6 +49,7 @@ namespace ui {
 
 namespace core {
   class Manager;
+  class ViewManager;
 }
 
 namespace display {
@@ -83,8 +84,10 @@ public:
   void                receive_normal_shutdown()     { m_shutdownReceived = true; }
   void                receive_quick_shutdown()      { m_shutdownReceived = true; m_shutdownQuick = true; }
 
-  ui::Root*           ui()                          { return m_ui; }
   core::Manager*      core()                        { return m_core; }
+  core::ViewManager*  view_manager()                { return m_viewManager; }
+
+  ui::Root*           ui()                          { return m_ui; }
   display::Manager*   display()                     { return m_display; }
   input::Manager*     input()                       { return m_input; }
   input::InputEvent*  input_stdin()                 { return m_inputStdin; }
@@ -100,6 +103,9 @@ public:
   mode_t              umask() const                 { return m_umask; }
   void                set_umask(mode_t m);
 
+  const std::string&  working_directory() const     { return m_workingDirectory; }
+  void                set_working_directory(const std::string& dir);
+
 private:
   Control(const Control&);
   void operator = (const Control&);
@@ -107,8 +113,10 @@ private:
   bool                m_shutdownReceived;
   bool                m_shutdownQuick;
 
-  ui::Root*           m_ui;
   core::Manager*      m_core;
+  core::ViewManager*  m_viewManager;
+
+  ui::Root*           m_ui;
   display::Manager*   m_display;
   input::Manager*     m_input;
   input::InputEvent*  m_inputStdin;
@@ -119,7 +127,9 @@ private:
   display::ClientInfo* m_clientInfo;
 
   uint64_t            m_tick;
+
   mode_t              m_umask;
+  std::string         m_workingDirectory;
 
   rak::priority_item  m_taskShutdown;
 };

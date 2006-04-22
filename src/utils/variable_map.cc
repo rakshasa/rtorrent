@@ -65,8 +65,8 @@ VariableMap::insert(const std::string& key, Variable* v) {
 }
 
 const VariableMap::mapped_type&
-VariableMap::get(const std::string& key) {
-  iterator itr = base_type::find(key);
+VariableMap::get(const std::string& key) const {
+  const_iterator itr = base_type::find(key);
 
   if (itr == base_type::end())
     throw torrent::input_error("Variable \"" + key + "\" does not exist.");

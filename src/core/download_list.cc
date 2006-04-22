@@ -95,10 +95,17 @@ DownloadList::insert(std::istream* str, bool printLog) {
   }
 }
 
+void
+DownloadList::erase(Download* d) {
+  erase(std::find(begin(), end(), d));
+}
+
 DownloadList::iterator
 DownloadList::erase(iterator itr) {
-  // Make safe to erase active downloads.
+  if (itr == end())
+    throw torrent::internal_error("DownloadList::erase(...) could not find download.");
 
+  // Make safe to erase active downloads.
   if ((*itr)->download()->is_active())
     throw std::logic_error("DownloadList::erase(...) called on an active download.");
 

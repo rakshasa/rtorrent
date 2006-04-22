@@ -203,7 +203,7 @@ Manager::check_hash(Download* d) {
 
 void
 Manager::receive_download_done(Download* d) {
-  if (control->variable()->get("check_hash").as_string() == "yes") {
+  if (control->variable()->get_value("check_hash")) {
     // Start the hash checking, send completed to tracker after
     // finishing.
     prepare_hash_check(d);
@@ -218,13 +218,13 @@ Manager::receive_download_done(Download* d) {
 
 void
 Manager::listen_open() {
-  if (control->variable()->get_string("port_open") != "yes")
+  if (!control->variable()->get_value("port_open"))
     return;
 
   if (m_portFirst > m_portLast)
     throw torrent::input_error("Invalid port range for listening");
 
-  if (control->variable()->get("port_random").as_string() == "yes") {
+  if (control->variable()->get_value("port_random")) {
     int boundary = m_portFirst + random() % (m_portLast - m_portFirst + 1);
 
     if (torrent::connection_manager()->listen_open(boundary, m_portLast) ||
@@ -323,7 +323,7 @@ void
 Manager::receive_download_done_hash_checked(Download* d) {
   m_downloadList.resume(d);
 
-  if (control->variable()->get_string("session_on_completion") == "yes")
+  if (control->variable()->get_value("session_on_completion"))
     m_downloadStore.save(d);
 
   // Don't send if we did a hash check and found incompelete chunks.

@@ -192,7 +192,7 @@ DownloadFactory::receive_success() {
     rtorrent->insert_key("key", (*itr)->tracker_list()->key());
   }
 
-  if (control->variable()->get_string("use_udp_trackers") == "no")
+  if (!control->variable()->get_value("use_udp_trackers"))
     (*itr)->enable_udp_trackers(false);
 
   if (rtorrent->has_key_value("total_uploaded"))

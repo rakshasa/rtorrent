@@ -56,38 +56,26 @@ class VariableAny : public Variable {
 public:
   VariableAny(const torrent::Object& v = torrent::Object()) :
     m_variable(v) {}
-  virtual ~VariableAny();
 
   virtual const torrent::Object&  get();
   virtual void                    set(const torrent::Object& arg);
 
-private:
+protected:
   torrent::Object    m_variable;
 };
 
-class VariableValue : public Variable {
+class VariableValue : public VariableAny {
 public:
-  VariableValue(int64_t v) : m_variable(v) {}
-  virtual ~VariableValue();
+  VariableValue(int64_t v) { m_variable = v; }
 
-  virtual const torrent::Object& get();
-  virtual void                    set(const torrent::Object& arg);
-
-private:
-  torrent::Object    m_variable;
-};
-
-class VariableBool : public Variable {
-public:
-  VariableBool(bool state) : m_variable(state ? (int64_t)1 : (int64_t)0) {}
-  VariableBool(const torrent::Object& v = torrent::Object((int64_t)0)) { set(v); }
-  virtual ~VariableBool();
-
-  virtual const torrent::Object& get();
   virtual void        set(const torrent::Object& arg);
+};
 
-private:
-  torrent::Object    m_variable;
+class VariableBool : public VariableAny {
+public:
+  VariableBool(bool state = false)  { m_variable = state ? (int64_t)1 : (int64_t)0; }
+
+  virtual void        set(const torrent::Object& arg);
 };
 
 class VariableObject : public Variable {
@@ -99,13 +87,12 @@ public:
 		  const std::string& key,
 		  Type t = torrent::Object::TYPE_NONE) :
     m_bencode(b), m_root(root), m_key(key), m_type(t) {}
-  virtual ~VariableObject();
 
   virtual const torrent::Object& get();
   virtual void        set(const torrent::Object& arg);
 
 private:
-  torrent::Object*   m_bencode;
+  torrent::Object*    m_bencode;
   std::string         m_root;
   std::string         m_key;
   Type                m_type;

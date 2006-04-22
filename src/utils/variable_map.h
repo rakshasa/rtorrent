@@ -50,6 +50,7 @@ class VariableMap : public std::map<std::string, Variable*> {
 public:
   typedef std::map<std::string, Variable*> base_type;
   typedef torrent::Object                  mapped_type;
+  typedef mapped_type::value_type          mapped_value_type;
 
   static const int max_size_key = 128;
   static const int max_size_opt = 1024;
@@ -65,8 +66,9 @@ public:
 
   // Consider taking char* start and finish instead of std::string to
   // avoid copying. Or make a view class.
-  const mapped_type&  get(const std::string& key);
-  const std::string&  get_string(const std::string& key)                         { return get(key).as_string(); }
+  const mapped_type&  get(const std::string& key) const;
+  const std::string&  get_string(const std::string& key) const                   { return get(key).as_string(); }
+  mapped_value_type   get_value(const std::string& key) const                    { return get(key).as_value(); }
 
   void                set(const std::string& key, const mapped_type& arg);
   void                set_string(const std::string& key, const std::string& arg) { set(key, mapped_type(arg)); }

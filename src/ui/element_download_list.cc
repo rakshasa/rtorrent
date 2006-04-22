@@ -46,9 +46,9 @@
 
 namespace ui {
 
-ElementDownloadList::ElementDownloadList(DList* l) :
+ElementDownloadList::ElementDownloadList(core::ViewDownloads* l) :
   m_window(NULL),
-  m_list(l) {
+  m_view(l) {
 }
 
 void
@@ -58,7 +58,7 @@ ElementDownloadList::activate(Control* c, MItr mItr) {
 
   c->input()->push_front(&m_bindings);
 
-  *mItr = m_window = new WDownloadList(m_list);
+  *mItr = m_window = new WDownloadList(m_view);
 }
 
 void
