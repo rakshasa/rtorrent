@@ -46,6 +46,7 @@
 #ifndef RTORRENT_CORE_VIEW_DOWNLOADS_H
 #define RTORRENT_CORE_VIEW_DOWNLOADS_H
 
+#include <memory>
 #include <string>
 #include <vector>
 #include <sigc++/signal.h>
@@ -54,17 +55,12 @@ namespace core {
 
 class Download;
 class DownloadList;
+class ViewSort;
 
 class ViewDownloads : public std::vector<core::Download*> {
 public:
   typedef std::vector<core::Download*> base_type;
   typedef sigc::signal0<void>          signal_type;
-
-  // Switch with a base class that defines some function. We might
-  // want to include some parameters etc.
-  //
-  // Also, it should be possible to check the focus index etc.
-  typedef bool (*sort_slot)(core::Download* d1, core::Download* d2);
 
   using base_type::iterator;
   using base_type::const_iterator;
@@ -95,10 +91,14 @@ public:
   void                next_focus();
   void                prev_focus();
 
-  void                sort(sort_slot s);
+  void                sort(const ViewSort* s);
 
-  void                set_sort_new(sort_slot s)               { m_sortNew = s; }
+  // This is set to ViewNone by default by ViewManager before
+  // initialize is called.
+  void                set_sort_new(const ViewSort* s)         { m_sortNew = s; }
 
+  // Don't connect any slots until after initialize else it get's
+  // triggered when adding the Download's in DownloadList.
   signal_type&        signal_changed()                        { return m_signalChanged; }
 
 private:
@@ -117,11 +117,23 @@ private:
   core::DownloadList* m_list;
   size_type           m_focus;
 
-  sort_slot           m_sortNew;
+  const ViewSort*     m_sortNew;
 
   // Timer, last changed.
 
   signal_type         m_signalChanged;
+};
+
+class ViewSort {
+public:
+  virtual ~ViewSort() {}
+
+  // Add various extra stuff here, like bool flags for can sort new,
+  // normal etc.
+
+  // How to take focus into account?
+
+  virtual bool compare(Download* d1, Download* d2) const = 0;
 };
 
 }

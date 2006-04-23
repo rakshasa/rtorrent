@@ -37,15 +37,19 @@
 #ifndef RTORRENT_CORE_VIEW_MANAGER_H
 #define RTORRENT_CORE_VIEW_MANAGER_H
 
+#include <map>
+#include <string>
 #include <rak/unordered_vector.h>
 
 namespace core {
 
 class ViewDownloads;
+class ViewSort;
 
 class ViewManager : public rak::unordered_vector<ViewDownloads*> {
 public:
   typedef rak::unordered_vector<ViewDownloads*> base_type;
+  typedef std::map<std::string, ViewSort*>      sort_map;
   
   using base_type::iterator;
   using base_type::const_iterator;
@@ -86,6 +90,8 @@ public:
 
 private:
   DownloadList*       m_list;
+
+  sort_map            m_sort;
 };
 
 }

@@ -225,7 +225,6 @@ void
 initialize_option_handler(Control* c) {
   utils::VariableMap* variables = control->variable();
 
-  // Cleaned up.
   variables->insert("check_hash",            new utils::VariableBool(true));
   variables->insert("use_udp_trackers",      new utils::VariableBool(true));
   variables->insert("port_open",             new utils::VariableBool(true));
@@ -266,8 +265,7 @@ initialize_option_handler(Control* c) {
   variables->insert("max_open_files",        new utils::VariableValueSlot(rak::ptr_fn(&torrent::max_open_files), rak::ptr_fn(&torrent::set_max_open_files)));
   variables->insert("max_open_sockets",      new utils::VariableValueSlot(rak::ptr_fn(&torrent::max_open_sockets), rak::ptr_fn(&torrent::set_max_open_sockets)));
 
-  variables->insert("print",                 new utils::VariableStringSlot(rak::value_fn(std::string()),
-									   rak::mem_fn(control->core(), &core::Manager::push_log)));
+  variables->insert("print",                 new utils::VariableStringSlot(rak::value_fn(std::string()), rak::mem_fn(control->core(), &core::Manager::push_log)));
   variables->insert("import",                new utils::VariableStringSlot(rak::value_fn(std::string()),
 									   rak::mem_fn(control->variable(), &utils::VariableMap::process_file_throw)));
   variables->insert("try_import",            new utils::VariableStringSlot(rak::value_fn(std::string()),
@@ -293,8 +291,7 @@ initialize_option_handler(Control* c) {
   variables->insert("hash_read_ahead",       new utils::VariableValueSlot(rak::ptr_fn(torrent::hash_read_ahead), rak::bind_ptr_fn(&apply_hash_read_ahead, c)));
   variables->insert("hash_interval",         new utils::VariableValueSlot(rak::ptr_fn(torrent::hash_interval), rak::bind_ptr_fn(&apply_hash_interval, c)));
 
-  variables->insert("umask",                 new utils::VariableValueSlot(rak::mem_fn(control, &Control::umask),
-									  rak::mem_fn(control, &Control::set_umask), 8));
+  variables->insert("umask",                 new utils::VariableValueSlot(rak::mem_fn(control, &Control::umask), rak::mem_fn(control, &Control::set_umask), 8));
   variables->insert("working_directory",     new utils::VariableStringSlot(rak::mem_fn(control, &Control::working_directory),
 									   rak::mem_fn(control, &Control::set_working_directory)));
 

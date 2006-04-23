@@ -75,10 +75,10 @@ ViewDownloads::initialize(const std::string& name, core::DownloadList* list) {
   m_list = list;
   m_focus = 0;
 
+  std::for_each(m_list->begin(), m_list->end(), std::bind1st(std::mem_fun(&ViewDownloads::received_insert), this));
+
   m_list->slot_map_insert()[key] = sigc::mem_fun(this, &ViewDownloads::received_insert);
   m_list->slot_map_erase()[key]  = sigc::mem_fun(this, &ViewDownloads::received_erase);
-
-  // Add from download, do various stuff to them.
 }
 
 void
@@ -101,11 +101,22 @@ ViewDownloads::prev_focus() {
   m_signalChanged.emit();
 }
 
+// Also add focus thingie here.
+struct view_downloads_compare : std::binary_function<Download*, Download*, bool> {
+  view_downloads_compare(const ViewSort* s) : m_sort(s) {}
+
+  bool operator () (Download* d1, Download* d2) const {
+    return m_sort->compare(d1, d2);
+  }
+
+  const ViewSort* m_sort;
+};
+
 void
-ViewDownloads::sort(sort_slot s) {
+ViewDownloads::sort(const ViewSort* s) {
   Download* curFocus = focus() != end() ? *focus() : NULL;
 
-  std::sort(begin(), end(), std::ptr_fun(s));
+  std::sort(begin(), end(), view_downloads_compare(s));
 
   m_focus = position(std::find(begin(), end(), curFocus));
   m_signalChanged.emit();
@@ -113,9 +124,7 @@ ViewDownloads::sort(sort_slot s) {
 
 void
 ViewDownloads::received_insert(core::Download* d) {
-  iterator itr = m_sortNew != NULL ?
-    std::find_if(begin(), end(), std::bind1st(std::ptr_fun(m_sortNew), d)) :
-    end();
+  iterator itr = std::find_if(begin(), end(), std::bind1st(view_downloads_compare(m_sortNew), d));
 
   if (m_focus >= position(itr))
     m_focus++;

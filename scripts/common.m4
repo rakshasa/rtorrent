@@ -168,6 +168,7 @@ AC_DEFUN([TORRENT_CHECK_ALIGNED], [
   ])
 ])
 
+
 AC_DEFUN([TORRENT_ENABLE_ALIGNED], [
   AC_ARG_ENABLE(aligned,
     [  --enable-aligned        enable alignment safe code [[default=check]]],
@@ -178,4 +179,15 @@ AC_DEFUN([TORRENT_ENABLE_ALIGNED], [
     ],[
         TORRENT_CHECK_ALIGNED
   ])
+])
+
+
+AC_DEFUN([TORRENT_DISABLE_IPV6], [
+  AC_ARG_ENABLE(ipv6,
+    [  --enable-ipv6           disable ipv6 [[default=no]]],
+    [
+        if test "$enableval" = "yes"; then
+            AC_DEFINE(RAK_USE_INET6, 1, enable ipv6 stuff)
+        fi
+    ])
 ])

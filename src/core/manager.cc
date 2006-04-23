@@ -291,8 +291,6 @@ Manager::set_local_address(const std::string& addr) {
     torrent::connection_manager()->set_local_address(ai->address()->c_sockaddr());
     rak::address_info::free_address_info(ai);
 
-    m_pollManager->get_http_stack()->set_bind_address(addr);
-
   } catch (torrent::input_error& e) {
     rak::address_info::free_address_info(ai);
     throw e;
