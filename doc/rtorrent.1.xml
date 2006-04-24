@@ -572,6 +572,7 @@ torrent::input_error exception on bad input.
   </refsect1>
 
 
+
   <refsect1>
     <title>ADVANCED SETTINGS</title>
     <para>

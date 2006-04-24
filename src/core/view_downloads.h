@@ -49,6 +49,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+//#include <rak/timer.h>
 #include <sigc++/signal.h>
 
 namespace core {
@@ -61,6 +62,7 @@ class ViewDownloads : public std::vector<core::Download*> {
 public:
   typedef std::vector<core::Download*> base_type;
   typedef sigc::signal0<void>          signal_type;
+  typedef std::vector<const ViewSort*> sort_list;
 
   using base_type::iterator;
   using base_type::const_iterator;
@@ -77,7 +79,7 @@ public:
   using base_type::empty;
   using base_type::size;
 
-  ViewDownloads() : m_sortNew(NULL) {}
+  ViewDownloads() {}
   ~ViewDownloads();
 
   void                initialize(const std::string& name, core::DownloadList* list);
@@ -91,11 +93,10 @@ public:
   void                next_focus();
   void                prev_focus();
 
-  void                sort(const ViewSort* s);
+  void                sort();
 
-  // This is set to ViewNone by default by ViewManager before
-  // initialize is called.
-  void                set_sort_new(const ViewSort* s)         { m_sortNew = s; }
+  void                set_sort_new(const sort_list& s)        { m_sortNew = s; }
+  void                set_sort_current(const sort_list& s)    { m_sortCurrent = s; }
 
   // Don't connect any slots until after initialize else it get's
   // triggered when adding the Download's in DownloadList.
@@ -117,7 +118,8 @@ private:
   core::DownloadList* m_list;
   size_type           m_focus;
 
-  const ViewSort*     m_sortNew;
+  sort_list           m_sortNew;
+  sort_list           m_sortCurrent;
 
   // Timer, last changed.
 
@@ -132,8 +134,9 @@ public:
   // normal etc.
 
   // How to take focus into account?
+  //virtual bool filter(Download* d1) const { return true; }
 
-  virtual bool compare(Download* d1, Download* d2) const = 0;
+  virtual bool less(Download* d1, Download* d2) const = 0;
 };
 
 }

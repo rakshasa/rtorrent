@@ -101,22 +101,31 @@ ViewDownloads::prev_focus() {
   m_signalChanged.emit();
 }
 
-// Also add focus thingie here.
+// Also add focus thingie here?
 struct view_downloads_compare : std::binary_function<Download*, Download*, bool> {
-  view_downloads_compare(const ViewSort* s) : m_sort(s) {}
+  view_downloads_compare(const ViewDownloads::sort_list& s) : m_sort(s) {}
 
   bool operator () (Download* d1, Download* d2) const {
-    return m_sort->compare(d1, d2);
+    for (ViewDownloads::sort_list::const_iterator itr = m_sort.begin(), last = m_sort.end(); itr != last; ++itr)
+      if ((*itr)->less(d1, d2))
+	return true;
+      else if ((*itr)->less(d2, d1))
+	return false;
+
+    // Since we're testing equivalence, return false if we're
+    // equal. This is a requirement for the stl sorting algorithms.
+    return false;
   }
 
-  const ViewSort* m_sort;
+  const ViewDownloads::sort_list& m_sort;
 };
 
 void
-ViewDownloads::sort(const ViewSort* s) {
+ViewDownloads::sort() {
   Download* curFocus = focus() != end() ? *focus() : NULL;
 
-  std::sort(begin(), end(), view_downloads_compare(s));
+  // Don't go randomly switching around equivalent elements.
+  std::stable_sort(begin(), end(), view_downloads_compare(m_sortCurrent));
 
   m_focus = position(std::find(begin(), end(), curFocus));
   m_signalChanged.emit();

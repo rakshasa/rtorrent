@@ -67,6 +67,7 @@ struct download_list_call {
 DownloadList::iterator
 DownloadList::insert(std::istream* str, bool printLog) {
   torrent::Object* object = new torrent::Object;
+  torrent::Download download;
 
   try {
 
@@ -76,14 +77,7 @@ DownloadList::insert(std::istream* str, bool printLog) {
     if (str->fail())
       throw torrent::input_error("Could not create download, the input is not a valid torrent.");
 
-    torrent::Download d = torrent::download_add(object);
-
-    iterator itr = Base::insert(end(), new Download(d));
-
-    (*itr)->download()->signal_download_done(sigc::bind(sigc::mem_fun(*this, &DownloadList::finished), *itr));
-    std::for_each(m_slotMapInsert.begin(), m_slotMapInsert.end(), download_list_call(*itr));
-
-    return itr;
+    download = torrent::download_add(object);
 
   } catch (torrent::local_error& e) {
     delete object;
@@ -93,6 +87,18 @@ DownloadList::insert(std::istream* str, bool printLog) {
 
     return end();
   }
+
+  iterator itr = Base::insert(end(), new Download(download));
+
+  try {
+    (*itr)->download()->signal_download_done(sigc::bind(sigc::mem_fun(*this, &DownloadList::finished), *itr));
+    std::for_each(m_slotMapInsert.begin(), m_slotMapInsert.end(), download_list_call(*itr));
+
+  } catch (torrent::local_error& e) {
+    throw torrent::internal_error("Caught during DownloadList::insert part 2: " + std::string(e.what()));
+  }
+
+  return itr;
 }
 
 void

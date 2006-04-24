@@ -46,16 +46,9 @@
 
 namespace core {
 
-class ViewSortFirst : public ViewSort {
-public:
-  virtual bool compare(Download* d1, Download* d2) const {
-    return true;
-  }
-};
-
 class ViewSortName : public ViewSort {
 public:
-  virtual bool compare(Download* d1, Download* d2) const {
+  virtual bool less(Download* d1, Download* d2) const {
     return d1->download()->name() < d2->download()->name();
   }
 };
@@ -65,9 +58,9 @@ public:
   ViewSortVariable(const std::string& name, const std::string& value) :
     m_name(name), m_value(value) {}
 
-  virtual bool compare(Download* d1, Download* d2) const {
+  virtual bool less(Download* d1, Download* d2) const {
     return
-      d1->variable()->get_string(m_name) == m_value ||
+      d1->variable()->get_string(m_name) == m_value &&
       d2->variable()->get_string(m_name) != m_value;
   }
 
@@ -81,42 +74,24 @@ public:
   ViewSortReverse(ViewSort* s) : m_sort(s) {}
   ~ViewSortReverse() { delete m_sort; }
 
-  virtual bool compare(Download* d1, Download* d2) const {
-    return m_sort->compare(d2, d1);
+  virtual bool less(Download* d1, Download* d2) const {
+    return m_sort->less(d2, d1);
   }
 
 private:
   ViewSort* m_sort;
 };
 
-// Hmm, use a list in ViewDownloads instead?
-class ViewSortAnd : public ViewSort {
-public:
-  ViewSortAnd(ViewSort* s1, ViewSort* s2) : m_sort1(s1), m_sort2(s2) {}
-  ~ViewSortAnd() { delete m_sort1; delete m_sort2; }
-
-  virtual bool compare(Download* d1, Download* d2) const {
-    return m_sort1->compare(d1, d2) && m_sort2->compare(d1, d2);
-  }
-
-private:
-  ViewSort* m_sort1;
-  ViewSort* m_sort2;
-};
-
 ViewManager::ViewManager(DownloadList* dl) :
   m_list(dl) {
 
-  m_sort["first"]        = new ViewSortFirst();
-  m_sort["last"]         = new ViewSortReverse(new ViewSortFirst());
+//   m_sort["first"]        = new ViewSortNot(new ViewSort());
+//   m_sort["last"]         = new ViewSort();
   m_sort["name"]         = new ViewSortName();
   m_sort["name_reverse"] = new ViewSortReverse(new ViewSortName());
 
   m_sort["started"]      = new ViewSortVariable("state", "started");
-  m_sort["started_name"] = new ViewSortAnd(new ViewSortVariable("state", "started"), new ViewSortName());
-
   m_sort["stopped"]      = new ViewSortVariable("state", "stopped");
-  m_sort["stopped_name"] = new ViewSortAnd(new ViewSortVariable("state", "stopped"), new ViewSortName());
 }
 
 void
@@ -133,8 +108,6 @@ ViewManager::insert(const std::string& name) {
     throw torrent::internal_error("ViewManager::insert(...) name already inserted.");
 
   ViewDownloads* view = new ViewDownloads();
-
-  view->set_sort_new(m_sort["last"]);
   view->initialize(name, m_list);
 
   return base_type::insert(end(), view);
@@ -155,28 +128,42 @@ ViewManager::find_throw(const std::string& name) {
   return itr;
 }
 
-void
-ViewManager::sort(const std::string& name, const std::string& sort) {
-  iterator viewItr = find_throw(name);
+inline ViewManager::sort_list
+ViewManager::build_list(const sort_args& args) {
+  ViewDownloads::sort_list sortList;
+  sortList.reserve(args.size());
 
-  sort_map::const_iterator sortItr = m_sort.find(sort);
+  for (sort_args::const_iterator itr = args.begin(), last = args.end(); itr != last; ++itr) {
+    sort_map::const_iterator sortItr = m_sort.find(*itr);
 
-  if (sortItr == m_sort.end())
-    throw torrent::input_error("Invalid sorting identifier.");
+    if (sortItr == m_sort.end())
+      throw torrent::input_error("Invalid sorting identifier.");
 
-  (*viewItr)->sort(sortItr->second);
+    sortList.push_back(sortItr->second);
+  }
+
+  return sortList;
 }
 
 void
-ViewManager::set_sort_new(const std::string& name, const std::string& sort) {
+ViewManager::sort(const std::string& name) {
   iterator viewItr = find_throw(name);
 
-  sort_map::const_iterator sortItr = m_sort.find(sort);
+  (*viewItr)->sort();
+}
 
-  if (sortItr == m_sort.end())
-    throw torrent::input_error("Invalid sorting identifier.");
+void
+ViewManager::set_sort_new(const std::string& name, const sort_args& sort) {
+  iterator viewItr = find_throw(name);
 
-  (*viewItr)->set_sort_new(sortItr->second);
+  (*viewItr)->set_sort_new(build_list(sort));
+}
+
+void
+ViewManager::set_sort_current(const std::string& name, const sort_args& sort) {
+  iterator viewItr = find_throw(name);
+
+  (*viewItr)->set_sort_current(build_list(sort));
 }
 
 }

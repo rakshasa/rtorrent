@@ -41,6 +41,8 @@
 #include <string>
 #include <rak/unordered_vector.h>
 
+#include "view_downloads.h"
+
 namespace core {
 
 class ViewDownloads;
@@ -50,6 +52,8 @@ class ViewManager : public rak::unordered_vector<ViewDownloads*> {
 public:
   typedef rak::unordered_vector<ViewDownloads*> base_type;
   typedef std::map<std::string, ViewSort*>      sort_map;
+  typedef ViewDownloads::sort_list              sort_list;
+  typedef std::list<std::string>                sort_args;
   
   using base_type::iterator;
   using base_type::const_iterator;
@@ -75,6 +79,7 @@ public:
   void                clear();
 
   iterator            insert(const std::string& name);
+  void                insert_throw(const std::string& name) { insert(name); }
 
   // When erasing, just 'disable' the view so that the users won't
   // suddenly find their pointer dangling?
@@ -82,13 +87,14 @@ public:
   iterator            find(const std::string& name);
   iterator            find_throw(const std::string& name);
 
-  void                sort(const std::string& name, const std::string& sort);
+  void                sort(const std::string& name);
 
-  // For now, just take the sort type as a string. Later might move
-  // this lookup outside.
-  void                set_sort_new(const std::string& name, const std::string& sort);
+  void                set_sort_new(const std::string& name, const sort_args& sort);
+  void                set_sort_current(const std::string& name, const sort_args& sort);
 
 private:
+  inline sort_list    build_list(const sort_args& args);
+
   DownloadList*       m_list;
 
   sort_map            m_sort;
