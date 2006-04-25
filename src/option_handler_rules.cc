@@ -53,6 +53,7 @@
 
 #include "core/download.h"
 #include "core/manager.h"
+#include "core/scheduler.h"
 #include "core/view_manager.h"
 #include "ui/root.h"
 #include "utils/directory.h"
@@ -225,6 +226,11 @@ apply_view_sort_new(Control* control, const std::string& arg) {
 }
 
 void
+apply_download_scheduler(core::Scheduler* scheduler, __UNUSED const std::string& arg) {
+  scheduler->update();
+}
+
+void
 initialize_option_handler(Control* c) {
   utils::VariableMap* variables = control->variable();
 
@@ -283,6 +289,8 @@ initialize_option_handler(Control* c) {
 									   rak::mem_fn<const std::string&>(c->command_scheduler(), &CommandScheduler::parse)));
   variables->insert("schedule_remove",       new utils::VariableStringSlot(rak::value_fn(std::string()),
 									   rak::mem_fn<const std::string&>(c->command_scheduler(), &CommandScheduler::erase)));
+
+  variables->insert("download_scheduler",    new utils::VariableStringSlot(rak::value_fn(std::string()), rak::bind_ptr_fn(&apply_download_scheduler, c->scheduler())));
 
   variables->insert("send_buffer_size",      new utils::VariableValueSlot(rak::mem_fn(torrent::connection_manager(), &torrent::ConnectionManager::send_buffer_size),
 									  rak::mem_fn(torrent::connection_manager(), &torrent::ConnectionManager::set_send_buffer_size)));

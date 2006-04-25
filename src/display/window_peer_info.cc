@@ -66,6 +66,9 @@ WindowPeerInfo::redraw() {
   m_canvas->erase();
 
   int y = 0;
+  char buffer[256];
+  char* position;
+
   torrent::Download* d = m_download->download();
 
   m_canvas->print(0, y++, "Hash:    %s", rak::transform_hex(d->info_hash()).c_str());
@@ -75,12 +78,13 @@ WindowPeerInfo::redraw() {
 		  d->chunks_total(),
 		  d->chunks_size());
 
-  char buffer[32], *position;
-  position = print_ddmmyyyy(buffer, buffer + 32, static_cast<time_t>(d->creation_date()));
-  position = print_string(position, buffer + 32, " ");
-  position = print_hhmmss(position, buffer + 32, static_cast<time_t>(d->creation_date()));
+  y++;
 
-  m_canvas->print(0, y++, "Created: %s", buffer);
+  position = print_date(buffer, buffer + 256, static_cast<time_t>(d->creation_date()));
+  m_canvas->print(0, y++, "Created:       %s", buffer);
+
+  position = print_timer(buffer, buffer + 256, static_cast<time_t>(m_download->variable()->get_value("state_changed")));
+  m_canvas->print(0, y++, "State Changed: %s", buffer);
 
   y++;
 
@@ -138,6 +142,23 @@ WindowPeerInfo::done_percentage(torrent::Peer& p) {
   int chunks = m_download->download()->chunks_total();
 
   return chunks ? (100 * p.chunks_done()) / chunks : 0;
+}
+
+char*
+WindowPeerInfo::print_date(char* buf, char* end, time_t t) {
+  buf = print_ddmmyyyy(buf, end, t);
+  buf = print_string(buf, end, " ");
+  buf = print_hhmmss_local(buf, end, t);
+
+  return buf;
+}
+
+char*
+WindowPeerInfo::print_timer(char* buf, char* end, time_t t) {
+  if (t == 0)
+    return print_string(buf, end, "--:--:--");
+  else
+    return print_hhmmss(buf, end, cachedTime.seconds() - t);
 }
 
 }

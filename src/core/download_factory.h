@@ -87,6 +87,8 @@ private:
   void                receive_success();
   void                receive_failed(const std::string& msg);
 
+  void                initialize_rtorrent(Download* download, torrent::Object* rtorrent);
+
   Manager*            m_manager;
   std::iostream*      m_stream;
 

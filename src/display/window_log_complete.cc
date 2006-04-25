@@ -71,7 +71,7 @@ WindowLogComplete::redraw() {
 
   for (core::Log::iterator itr = m_log->begin(), e = m_log->end(); itr != e && pos < m_canvas->get_height(); ++itr) {
     char buffer[16];
-    print_hhmmss(buffer, buffer + 16, static_cast<time_t>(itr->first.seconds()));
+    print_hhmmss_local(buffer, buffer + 16, static_cast<time_t>(itr->first.seconds()));
 
     m_canvas->print(0, pos++, "(%s) %s", buffer, itr->second.c_str());
   }

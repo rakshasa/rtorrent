@@ -60,8 +60,8 @@ Download::Download(download_type d) :
   m_chunksFailed(0) {
 
   m_connTrackerSucceded = m_download.signal_tracker_succeded(sigc::bind(sigc::mem_fun(*this, &Download::receive_tracker_msg), ""));
-  m_connTrackerFailed = m_download.signal_tracker_failed(sigc::mem_fun(*this, &Download::receive_tracker_msg));
-  m_connStorageError = m_download.signal_storage_error(sigc::mem_fun(*this, &Download::receive_storage_error));
+  m_connTrackerFailed   = m_download.signal_tracker_failed(sigc::mem_fun(*this, &Download::receive_tracker_msg));
+  m_connStorageError    = m_download.signal_storage_error(sigc::mem_fun(*this, &Download::receive_storage_error));
 
   m_download.signal_chunk_failed(sigc::mem_fun(*this, &Download::receive_chunk_failed));
 
@@ -72,6 +72,11 @@ Download::Download(download_type d) :
   m_variables.insert("connection_seed",    new utils::VariableAny(connection_type_to_string(download_type::CONNECTION_SEED)));
   m_variables.insert("state",              new utils::VariableObject(bencode(), "rtorrent", "state", torrent::Object::TYPE_STRING));
   m_variables.insert("tied_to_file",       new utils::VariableObject(bencode(), "rtorrent", "tied_to_file", torrent::Object::TYPE_STRING));
+
+  // The "state_changed" variable is required to be a valid unix time
+  // value, it indicates the last time the torrent changed its state,
+  // resume/pause.
+  m_variables.insert("state_changed",      new utils::VariableObject(bencode(), "rtorrent", "state_changed", torrent::Object::TYPE_VALUE));
 
   m_variables.insert("directory",          new utils::VariableStringSlot(rak::mem_fn(&m_fileList, &torrent::FileList::root_dir),
 									 rak::mem_fn(this, &Download::set_root_directory)));

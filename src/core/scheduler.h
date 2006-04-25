@@ -34,62 +34,49 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#include "config.h"
+#ifndef RTORRENT_CORE_SCHEDULER_H
+#define RTORRENT_CORE_SCHEDULER_H
 
-#include <ctime>
+#include <map>
+#include <string>
+#include <inttypes.h>
 
-#include "canvas.h"
-#include "utils.h"
-#include "window_log.h"
+#include "view_downloads.h"
 
-namespace display {
+namespace core {
 
-WindowLog::WindowLog(core::Log* l) :
-  Window(new Canvas, false, 0),
-  m_log(l) {
+class DownloadList;
+class ViewDownloads;
 
-  m_active = false;
+class Scheduler {
+public:
+  typedef uint32_t size_type;
 
-  // We're trying out scheduled tasks instead.
-  m_connUpdate = l->signal_update().connect(sigc::mem_fun(*this, &WindowLog::receive_update));
-}
+  static const size_type unlimited = ~size_type();
 
-WindowLog::~WindowLog() {
-  m_connUpdate.disconnect();
-}
+  Scheduler(DownloadList* dl);
+  ~Scheduler();
 
-WindowLog::iterator
-WindowLog::find_older() {
-  return m_log->find_older(cachedTime - rak::timer::from_seconds(60));
-}
+  void                set_view(ViewDownloads* view);
 
-void
-WindowLog::redraw() {
-  m_canvas->erase();
+  size_type           max_active() const          { return m_maxActive; }
+  void                set_max_active(size_type v) { m_maxActive = v; }
 
-  int pos = 0;
+  size_type           cycle() const               { return m_cycle; }
+  void                set_cycle(size_type v)      { m_cycle = v; }
 
-  for (core::Log::iterator itr = m_log->begin(), end = find_older(); itr != end && pos < m_canvas->get_height(); ++itr) {
-    char buffer[16];
-    print_hhmmss_local(buffer, buffer + 16, static_cast<time_t>(itr->first.seconds()));
+  size_type           active() const;
 
-    m_canvas->print(0, pos++, "(%s) %s", buffer, itr->second.c_str());
-  }
-}
+  void                update();
 
-void
-WindowLog::receive_update() {
-  iterator itr = find_older();
-  int h = std::min(std::distance(m_log->begin(), itr), (std::iterator_traits<iterator>::difference_type)10);
+private:
+  ViewDownloads*      m_view;
+  DownloadList*       m_downloadList;
 
-  if (h != m_minHeight) {
-    set_active(h != 0);
-
-    m_minHeight = h;
-    m_slotAdjust();
-  }
-
-  mark_dirty();
-}
+  size_type           m_maxActive;
+  size_type           m_cycle;
+};
 
 }
+
+#endif

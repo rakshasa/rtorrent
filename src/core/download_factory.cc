@@ -164,18 +164,7 @@ DownloadFactory::receive_success() {
     
   torrent::Object* rtorrent = &root->get_key("rtorrent");
 
-  if (!rtorrent->has_key_string("state") ||
-      (rtorrent->get_key("state").as_string() != "stopped" &&
-       rtorrent->get_key("state").as_string() != "started"))
-    rtorrent->insert_key("state", "stopped");
-  
-  if (!rtorrent->has_key_string("tied_to_file"))
-    rtorrent->insert_key("tied_to_file", std::string());
-
-  if (rtorrent->has_key_value("priority"))
-    (*itr)->variable()->set("priority", rtorrent->get_key("priority").as_value() % 4);
-  else
-    (*itr)->variable()->set("priority", (int64_t)2);
+  initialize_rtorrent(*itr, rtorrent);
 
   // Move to 'rtorrent'.
   (*itr)->variable()->set("connection_leech", m_variables.get("connection_leech"));
@@ -184,20 +173,9 @@ DownloadFactory::receive_success() {
   (*itr)->variable()->set("max_peers",        control->variable()->get("max_peers"));
   (*itr)->variable()->set("max_uploads",      control->variable()->get("max_uploads"));
 
-  if (rtorrent->has_key_value("key")) {
-    (*itr)->tracker_list()->set_key(rtorrent->get_key("key").as_value());
-
-  } else {
-    (*itr)->tracker_list()->set_key(rand() % (std::numeric_limits<uint32_t>::max() - 1) + 1);
-    rtorrent->insert_key("key", (*itr)->tracker_list()->key());
-  }
-
   if (!control->variable()->get_value("use_udp_trackers"))
     (*itr)->enable_udp_trackers(false);
 
-  if (rtorrent->has_key_value("total_uploaded"))
-    (*itr)->download()->up_rate()->set_total(rtorrent->get_key("total_uploaded").as_value());
-    
   if (m_session) {
     if (!rtorrent->has_key_string("directory"))
       (*itr)->variable()->set("directory", m_variables.get("directory"));
@@ -234,6 +212,38 @@ DownloadFactory::receive_failed(const std::string& msg) {
   }
 
   m_slotFinished();
+}
+
+void
+DownloadFactory::initialize_rtorrent(Download* download, torrent::Object* rtorrent) {
+  if (!rtorrent->has_key_string("state") ||
+      (rtorrent->get_key("state").as_string() != "stopped" && rtorrent->get_key("state").as_string() != "started")) {
+    rtorrent->insert_key("state", "stopped");
+    rtorrent->insert_key("state_changed", cachedTime.seconds());
+
+  } else if (!rtorrent->has_key_value("state_changed") ||
+	     rtorrent->get_key("state_changed").as_value() > cachedTime.seconds() || rtorrent->get_key("state_changed").as_value() == 0) {
+    rtorrent->insert_key("state_changed", cachedTime.seconds());
+  }
+
+  if (!rtorrent->has_key_string("tied_to_file"))
+    rtorrent->insert_key("tied_to_file", std::string());
+
+  if (rtorrent->has_key_value("priority"))
+    download->variable()->set("priority", rtorrent->get_key("priority").as_value() % 4);
+  else
+    download->variable()->set("priority", (int64_t)2);
+
+  if (rtorrent->has_key_value("key")) {
+    download->tracker_list()->set_key(rtorrent->get_key("key").as_value());
+
+  } else {
+    download->tracker_list()->set_key(rand() % (std::numeric_limits<uint32_t>::max() - 1) + 1);
+    rtorrent->insert_key("key", download->tracker_list()->key());
+  }
+
+  if (rtorrent->has_key_value("total_uploaded"))
+    download->download()->up_rate()->set_total(rtorrent->get_key("total_uploaded").as_value());
 }
 
 }

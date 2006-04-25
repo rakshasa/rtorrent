@@ -69,6 +69,19 @@ private:
   std::string m_value;
 };
 
+class ViewSortVariableValue : public ViewSort {
+public:
+  ViewSortVariableValue(const std::string& name) :
+    m_name(name) {}
+
+  virtual bool less(Download* d1, Download* d2) const {
+    return d1->variable()->get_value(m_name) < d2->variable()->get_value(m_name);
+  }
+
+private:
+  std::string m_name;
+};
+
 class ViewSortReverse : public ViewSort {
 public:
   ViewSortReverse(ViewSort* s) : m_sort(s) {}
@@ -87,11 +100,14 @@ ViewManager::ViewManager(DownloadList* dl) :
 
 //   m_sort["first"]        = new ViewSortNot(new ViewSort());
 //   m_sort["last"]         = new ViewSort();
-  m_sort["name"]         = new ViewSortName();
-  m_sort["name_reverse"] = new ViewSortReverse(new ViewSortName());
+  m_sort["name"]          = new ViewSortName();
+  m_sort["name_reverse"]  = new ViewSortReverse(new ViewSortName());
 
-  m_sort["started"]      = new ViewSortVariable("state", "started");
-  m_sort["stopped"]      = new ViewSortVariable("state", "stopped");
+  m_sort["started"]       = new ViewSortVariable("state", "started");
+  m_sort["stopped"]       = new ViewSortVariable("state", "stopped");
+
+  m_sort["state_changed"]         = new ViewSortVariableValue("state_changed");
+  m_sort["state_changed_reverse"] = new ViewSortReverse(new ViewSortVariableValue("state_changed"));
 }
 
 void

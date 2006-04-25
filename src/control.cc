@@ -42,6 +42,7 @@
 
 #include "core/manager.h"
 #include "core/view_manager.h"
+#include "core/scheduler.h"
 
 #include "display/canvas.h"
 #include "display/client_info.h"
@@ -72,8 +73,9 @@ Control::Control() :
 
   m_tick(0) {
 
-  m_core = new core::Manager();
+  m_core        = new core::Manager();
   m_viewManager = new core::ViewManager(&m_core->download_list());
+  m_scheduler   = new core::Scheduler(&m_core->download_list());
 
   m_inputStdin->slot_pressed(sigc::mem_fun(m_input, &input::Manager::pressed));
 
@@ -109,6 +111,8 @@ Control::initialize() {
   m_core->initialize_second();
   m_core->listen_open();
   m_core->download_store().enable(m_variables->get_value("session_lock"));
+
+  m_scheduler->set_view(*m_viewManager->find_throw("scheduler"));
 
   m_ui->init(this);
 

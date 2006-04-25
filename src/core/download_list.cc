@@ -176,6 +176,8 @@ DownloadList::resume(Download* d) {
       // TODO: This can cause infinit looping?
       control->core()->hash_queue().insert(d, sigc::bind(sigc::mem_fun(*this, &DownloadList::resume), d));
 
+    d->variable()->set("state_changed", cachedTime.seconds());
+
   } catch (torrent::local_error& e) {
     control->core()->push_log(e.what());
   }
@@ -187,6 +189,8 @@ DownloadList::pause(Download* d) {
 
     if (d->download()->is_active())
       std::for_each(m_slotMapStop.begin(), m_slotMapStop.end(), download_list_call(d));
+
+    d->variable()->set("state_changed", cachedTime.seconds());
 
   } catch (torrent::local_error& e) {
     control->core()->push_log(e.what());

@@ -131,11 +131,19 @@ VariableObject::set(const torrent::Object& arg) {
     break;
 
   case torrent::Object::TYPE_STRING:
-    if (arg.type() == torrent::Object::TYPE_STRING)
+    if (arg.is_string())
       root->insert_key(m_key, arg);
     else
       throw torrent::input_error("VariableObject could not convert to string.");
       
+    break;
+
+  case torrent::Object::TYPE_VALUE:
+    if (arg.is_value())
+      root->insert_key(m_key, arg);
+    else
+      throw torrent::input_error("VariableObject could not convert to value.");
+
     break;
 
   default:

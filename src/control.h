@@ -50,6 +50,7 @@ namespace ui {
 namespace core {
   class Manager;
   class ViewManager;
+  class Scheduler;
 }
 
 namespace display {
@@ -86,6 +87,7 @@ public:
 
   core::Manager*      core()                        { return m_core; }
   core::ViewManager*  view_manager()                { return m_viewManager; }
+  core::Scheduler*    scheduler()                   { return m_scheduler; }
 
   ui::Root*           ui()                          { return m_ui; }
   display::Manager*   display()                     { return m_display; }
@@ -115,6 +117,7 @@ private:
 
   core::Manager*      m_core;
   core::ViewManager*  m_viewManager;
+  core::Scheduler*    m_scheduler;
 
   ui::Root*           m_ui;
   display::Manager*   m_display;

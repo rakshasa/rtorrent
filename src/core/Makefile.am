@@ -28,6 +28,8 @@ libsub_core_a_SOURCES = \
 	poll_manager_epoll.h \
 	poll_manager_select.cc \
 	poll_manager_select.h \
+	scheduler.cc \
+	scheduler.h \
 	view_downloads.cc \
 	view_downloads.h \
 	view_manager.cc \

@@ -59,6 +59,7 @@ public:
   ~Download();
 
   bool                is_open() const                          { return m_download.is_open(); }
+  bool                is_active() const                        { return m_download.is_active(); }
   inline bool         is_done() const                          { return m_download.chunks_done() == m_download.chunks_total(); }
 
   void                start();

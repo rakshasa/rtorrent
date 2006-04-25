@@ -37,6 +37,7 @@
 #ifndef RTORRENT_DISPLAY_PEER_INFO_H
 #define RTORRENT_DISPLAY_PEER_INFO_H
 
+#include <ctime>
 #include <list>
 #include <torrent/peer.h>
 
@@ -54,15 +55,18 @@ public:
 
   WindowPeerInfo(core::Download* d, PList* l, PList::iterator* f);
 
-  virtual void     redraw();
+  virtual void        redraw();
 
 private:
-  int              done_percentage(torrent::Peer& p);
+  int                 done_percentage(torrent::Peer& p);
 
-  core::Download*  m_download;
+  char*               print_date(char* buf, char* end, time_t t);
+  char*               print_timer(char* buf, char* end, time_t t);
 
-  PList*           m_list;
-  PList::iterator* m_focus;
+  core::Download*     m_download;
+
+  PList*              m_list;
+  PList::iterator*    m_focus;
 };
 
 }
