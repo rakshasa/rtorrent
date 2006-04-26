@@ -51,9 +51,14 @@ class ViewSort;
 class ViewManager : public rak::unordered_vector<ViewDownloads*> {
 public:
   typedef rak::unordered_vector<ViewDownloads*> base_type;
+
   typedef std::map<std::string, ViewSort*>      sort_map;
   typedef ViewDownloads::sort_list              sort_list;
   typedef std::list<std::string>                sort_args;
+  
+  typedef std::map<std::string, ViewFilter*>    filter_map;
+  typedef ViewDownloads::filter_list            filter_list;
+  typedef std::list<std::string>                filter_args;
   
   using base_type::iterator;
   using base_type::const_iterator;
@@ -92,12 +97,16 @@ public:
   void                set_sort_new(const std::string& name, const sort_args& sort);
   void                set_sort_current(const std::string& name, const sort_args& sort);
 
+  void                set_filter(const std::string& name, const filter_args& args);
+
 private:
-  inline sort_list    build_list(const sort_args& args);
+  inline sort_list    build_sort_list(const sort_args& args);
+  inline filter_list  build_filter_list(const sort_args& args);
 
   DownloadList*       m_list;
 
   sort_map            m_sort;
+  filter_map          m_filter;
 };
 
 }

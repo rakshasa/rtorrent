@@ -42,6 +42,11 @@
 //
 // Do we want to be able to modify the underlying DownloadList from
 // here?
+//
+// ViewDownloads::m_size indicates the number of Download's that
+// remain visible, e.g. has not been filtered out. The Download's that
+// were filtered are still in the underlying vector, but cannot be
+// accessed through the normal stl container functions.
 
 #ifndef RTORRENT_CORE_VIEW_DOWNLOADS_H
 #define RTORRENT_CORE_VIEW_DOWNLOADS_H
@@ -57,12 +62,14 @@ namespace core {
 class Download;
 class DownloadList;
 class ViewSort;
+class ViewFilter;
 
 class ViewDownloads : public std::vector<core::Download*> {
 public:
-  typedef std::vector<core::Download*> base_type;
-  typedef sigc::signal0<void>          signal_type;
-  typedef std::vector<const ViewSort*> sort_list;
+  typedef std::vector<core::Download*>   base_type;
+  typedef sigc::signal0<void>            signal_type;
+  typedef std::vector<const ViewSort*>   sort_list;
+  typedef std::vector<const ViewFilter*> filter_list;
 
   using base_type::iterator;
   using base_type::const_iterator;
@@ -72,12 +79,7 @@ public:
   using base_type::size_type;
 
   using base_type::begin;
-  using base_type::end;
   using base_type::rbegin;
-  using base_type::rend;
-
-  using base_type::empty;
-  using base_type::size;
 
   ViewDownloads() {}
   ~ViewDownloads();
@@ -85,6 +87,18 @@ public:
   void                initialize(const std::string& name, core::DownloadList* list);
 
   const std::string&  name() const                            { return m_name; }
+
+  bool                empty() const                           { return m_size == 0; }
+  size_type           size() const                            { return m_size; }
+
+  // Perhaps this should be renamed?
+  iterator            end()                                   { return begin() + m_size; }
+  const_iterator      end() const                             { return begin() + m_size; }
+
+//   using base_type::rend;
+
+  iterator            end_filtered()                          { return base_type::end(); }
+  const_iterator      end_filtered() const                    { return base_type::end(); }
 
   iterator            focus()                                 { return begin() + m_focus; }
   const_iterator      focus() const                           { return begin() + m_focus; }
@@ -98,6 +112,10 @@ public:
   void                set_sort_new(const sort_list& s)        { m_sortNew = s; }
   void                set_sort_current(const sort_list& s)    { m_sortCurrent = s; }
 
+  // Need to explicity trigger filtering.
+  void                filter();
+  void                set_filter(const filter_list& s)        { m_filter = s; }
+
   // Don't connect any slots until after initialize else it get's
   // triggered when adding the Download's in DownloadList.
   signal_type&        signal_changed()                        { return m_signalChanged; }
@@ -109,17 +127,21 @@ private:
   void                received_insert(core::Download* d);
   void                received_erase(core::Download* d);
 
-  size_type           position(const_iterator itr) const      { return (size_type)(itr - begin()); }
+  size_type           position(const_iterator itr) const      { return itr - begin(); }
 
   // An received thing for changed status so we can sort and filter.
 
   std::string         m_name;
 
   core::DownloadList* m_list;
+
+  size_type           m_size;
   size_type           m_focus;
 
   sort_list           m_sortNew;
   sort_list           m_sortCurrent;
+
+  filter_list         m_filter;
 
   // Timer, last changed.
 
@@ -130,13 +152,14 @@ class ViewSort {
 public:
   virtual ~ViewSort() {}
 
-  // Add various extra stuff here, like bool flags for can sort new,
-  // normal etc.
-
-  // How to take focus into account?
-  //virtual bool filter(Download* d1) const { return true; }
-
   virtual bool less(Download* d1, Download* d2) const = 0;
+};
+
+class ViewFilter {
+public:
+  virtual ~ViewFilter() {}
+
+  virtual bool operator () (Download* d1) const = 0;
 };
 
 }

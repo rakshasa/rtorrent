@@ -226,6 +226,27 @@ apply_view_sort_new(Control* control, const std::string& arg) {
 }
 
 void
+apply_view_filter(Control* control, const std::string& arg) {
+  rak::split_iterator_t<std::string> itr = rak::split_iterator(arg, ',');
+
+  std::string name = rak::trim(*itr);
+  
+  if (name.empty())
+    throw torrent::input_error("First argument must be a string.");
+
+  core::ViewManager::filter_args filterArgs;
+
+  while (++itr != rak::split_iterator(arg)) {
+    filterArgs.push_back(rak::trim(*itr));
+
+    if (filterArgs.back().empty())
+      throw torrent::input_error("One of the arguments is empty.");
+  }
+
+  control->view_manager()->set_filter(name, filterArgs);
+}
+
+void
 apply_download_scheduler(core::Scheduler* scheduler, __UNUSED const std::string& arg) {
   scheduler->update();
 }
@@ -284,6 +305,8 @@ initialize_option_handler(Control* c) {
   variables->insert("view_sort",             new utils::VariableStringSlot(rak::value_fn(std::string()), rak::mem_fn(c->view_manager(), &core::ViewManager::sort)));
   variables->insert("view_sort_new",         new utils::VariableStringSlot(rak::value_fn(std::string()), rak::bind_ptr_fn(&apply_view_sort_new, c)));
   variables->insert("view_sort_current",     new utils::VariableStringSlot(rak::value_fn(std::string()), rak::bind_ptr_fn(&apply_view_sort_current, c)));
+
+  variables->insert("view_filter",           new utils::VariableStringSlot(rak::value_fn(std::string()), rak::bind_ptr_fn(&apply_view_filter, c)));
 
   variables->insert("schedule",              new utils::VariableStringSlot(rak::value_fn(std::string()),
 									   rak::mem_fn<const std::string&>(c->command_scheduler(), &CommandScheduler::parse)));

@@ -73,6 +73,7 @@ ViewDownloads::initialize(const std::string& name, core::DownloadList* list) {
   m_name = name;
 
   m_list = list;
+  m_size = 0;
   m_focus = 0;
 
   std::for_each(m_list->begin(), m_list->end(), std::bind1st(std::mem_fun(&ViewDownloads::received_insert), this));
@@ -101,6 +102,9 @@ ViewDownloads::prev_focus() {
   m_signalChanged.emit();
 }
 
+// Need to use wrapper-functors so it will properly call the virtual
+// functions.
+
 // Also add focus thingie here?
 struct view_downloads_compare : std::binary_function<Download*, Download*, bool> {
   view_downloads_compare(const ViewDownloads::sort_list& s) : m_sort(s) {}
@@ -120,6 +124,22 @@ struct view_downloads_compare : std::binary_function<Download*, Download*, bool>
   const ViewDownloads::sort_list& m_sort;
 };
 
+struct view_downloads_filter : std::unary_function<Download*, bool> {
+  view_downloads_filter(const ViewDownloads::filter_list& s) : m_filter(s) {}
+
+  bool operator () (Download* d1) const {
+    for (ViewDownloads::filter_list::const_iterator itr = m_filter.begin(), last = m_filter.end(); itr != last; ++itr)
+      if (!(**itr)(d1))
+	return false;
+
+    // The default filter action is to return true, to not filter the
+    // download out.
+    return true;
+  }
+
+  const ViewDownloads::filter_list& m_filter;
+};
+
 void
 ViewDownloads::sort() {
   Download* curFocus = focus() != end() ? *focus() : NULL;
@@ -132,11 +152,32 @@ ViewDownloads::sort() {
 }
 
 void
-ViewDownloads::received_insert(core::Download* d) {
-  iterator itr = std::find_if(begin(), end(), std::bind1st(view_downloads_compare(m_sortNew), d));
+ViewDownloads::filter() {
+  iterator split = std::stable_partition(base_type::begin(), base_type::end(), view_downloads_filter(m_filter));
 
-  if (m_focus >= position(itr))
-    m_focus++;
+  m_size = position(split);
+
+  // Fix focus
+  m_focus = std::min(m_focus, m_size);
+}
+
+void
+ViewDownloads::received_insert(core::Download* d) {
+  // Chagne according to filtered/not.
+  iterator itr;
+  
+  if (view_downloads_filter(m_filter)(d)) {
+    itr = std::find_if(begin(), end(), std::bind1st(view_downloads_compare(m_sortNew), d));
+
+    m_size++;
+    m_focus += (m_focus >= position(itr));
+
+  } else {
+    itr = end_filtered();
+  }
+
+  if (m_focus > m_size)
+    throw torrent::internal_error("ViewDownloads::received_insert(...) m_focus > m_size.");
 
   base_type::insert(itr, d);
   m_signalChanged.emit();
@@ -144,13 +185,13 @@ ViewDownloads::received_insert(core::Download* d) {
 
 void
 ViewDownloads::received_erase(core::Download* d) {
-  iterator itr = std::find(begin(), end(), d);
+  iterator itr = std::find(begin(), end_filtered(), d);
 
-  if (itr == end())
+  if (itr == end_filtered())
     return;
 
-  if (m_focus > position(itr))
-    m_focus--;
+  m_size -= (itr < end());
+  m_focus -= (m_focus > position(itr));
 
   base_type::erase(itr);
   m_signalChanged.emit();

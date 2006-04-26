@@ -163,6 +163,7 @@ main(int argc, char** argv) {
     initialize_option_handler(control);
 
     control->variable()->process_command("view_add = main");
+    control->variable()->process_command("view_filter = main,started");
     control->variable()->process_command("view_sort_new = main,name");
     control->variable()->process_command("view_sort_current = main,name");
 
@@ -170,8 +171,8 @@ main(int argc, char** argv) {
     control->variable()->process_command("view_add = scheduler");
     control->variable()->process_command("view_sort_new = scheduler,state_changed"); // add started?
     control->variable()->process_command("view_sort_current = scheduler,state_changed");
-    
-//     control->variable()->process_command("schedule = scheduler,10,10,download_scheduler=");
+
+    //    control->variable()->process_command("schedule = scheduler,10,10,download_scheduler=");
 
     // Move env and go through "try_import".
 //     if (!control->variable()->process_file("~/.rtorrent.rc"))

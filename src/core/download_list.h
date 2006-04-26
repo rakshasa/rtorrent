@@ -73,7 +73,10 @@ public:
 
   ~DownloadList() { clear(); }
 
-  iterator            insert(std::istream* str, bool printLog);
+  // Might move this to DownloadFactory.
+  Download*           create(std::istream* str, bool printLog);
+
+  iterator            insert(Download* d);
 
   void                erase(Download* d);
   iterator            erase(iterator itr);

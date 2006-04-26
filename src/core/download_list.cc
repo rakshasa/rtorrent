@@ -64,13 +64,12 @@ struct download_list_call {
   Download* m_download;
 };    
 
-DownloadList::iterator
-DownloadList::insert(std::istream* str, bool printLog) {
+Download*
+DownloadList::create(std::istream* str, bool printLog) {
   torrent::Object* object = new torrent::Object;
   torrent::Download download;
 
   try {
-
     *str >> *object;
     
     // Catch, delete.
@@ -85,16 +84,25 @@ DownloadList::insert(std::istream* str, bool printLog) {
     if (printLog)
       control->core()->push_log(e.what());
 
-    return end();
+    return NULL;
   }
 
-  iterator itr = Base::insert(end(), new Download(download));
+  // There's no non-critical exceptions that should be throwable by
+  // the ctor, so don't catch.
+  return new Download(download);
+}
+
+DownloadList::iterator
+DownloadList::insert(Download* d) {
+  iterator itr = Base::insert(end(), d);
 
   try {
     (*itr)->download()->signal_download_done(sigc::bind(sigc::mem_fun(*this, &DownloadList::finished), *itr));
     std::for_each(m_slotMapInsert.begin(), m_slotMapInsert.end(), download_list_call(*itr));
 
   } catch (torrent::local_error& e) {
+    // Should perhaps relax this, just print an error and remove the
+    // downloads?
     throw torrent::internal_error("Caught during DownloadList::insert part 2: " + std::string(e.what()));
   }
 
@@ -152,14 +160,14 @@ DownloadList::close(Download* d) {
 
 void
 DownloadList::start(Download* d) {
-  d->variable()->set("state", "started");
+  d->variable()->set("state", (int64_t)1);
 
   resume(d);
 }
 
 void
 DownloadList::stop(Download* d) {
-  d->variable()->set("state", "stopped");
+  d->variable()->set("state", (int64_t)0);
 
   pause(d);
 }

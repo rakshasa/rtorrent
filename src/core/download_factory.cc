@@ -141,16 +141,16 @@ DownloadFactory::receive_success() {
   if (m_stream == NULL)
     throw torrent::client_error("DownloadFactory::receive_success() called on an object with m_stream == NULL");
 
-  DownloadList::iterator itr = m_manager->download_list().insert(m_stream, m_printLog);
+  Download* download = m_manager->download_list().create(m_stream, m_printLog);
 
-  if (itr == m_manager->download_list().end()) {
+  if (download == NULL) {
     // core::Manager should already have added the error message to
     // the log.
     m_slotFinished();
     return;
   }
 
-  torrent::Object* root = (*itr)->bencode();
+  torrent::Object* root = download->bencode();
 
   if (!m_session) {
     // We only allow session torrents to keep their
@@ -164,37 +164,46 @@ DownloadFactory::receive_success() {
     
   torrent::Object* rtorrent = &root->get_key("rtorrent");
 
-  initialize_rtorrent(*itr, rtorrent);
+  initialize_rtorrent(download, rtorrent);
+
+  if (m_manager->download_list().insert(download) == m_manager->download_list().end()) {
+    // ATM doesn't really ever get here.
+    delete download;
+
+    m_slotFinished();
+    return;
+  }
 
   // Move to 'rtorrent'.
-  (*itr)->variable()->set("connection_leech", m_variables.get("connection_leech"));
-  (*itr)->variable()->set("connection_seed",  m_variables.get("connection_seed"));
-  (*itr)->variable()->set("min_peers",        control->variable()->get("min_peers"));
-  (*itr)->variable()->set("max_peers",        control->variable()->get("max_peers"));
-  (*itr)->variable()->set("max_uploads",      control->variable()->get("max_uploads"));
+  download->variable()->set("connection_leech", m_variables.get("connection_leech"));
+  download->variable()->set("connection_seed",  m_variables.get("connection_seed"));
+  download->variable()->set("min_peers",        control->variable()->get("min_peers"));
+  download->variable()->set("max_peers",        control->variable()->get("max_peers"));
+  download->variable()->set("max_uploads",      control->variable()->get("max_uploads"));
 
   if (!control->variable()->get_value("use_udp_trackers"))
-    (*itr)->enable_udp_trackers(false);
+    download->enable_udp_trackers(false);
 
   if (m_session) {
     if (!rtorrent->has_key_string("directory"))
-      (*itr)->variable()->set("directory", m_variables.get("directory"));
+      download->variable()->set("directory", m_variables.get("directory"));
     else
-      (*itr)->variable()->set("directory", rtorrent->get_key("directory"));
+      download->variable()->set("directory", rtorrent->get_key("directory"));
 
-    if ((*itr)->variable()->get_string("state") == "started")
-      m_manager->download_list().resume(*itr);
+    if (download->variable()->get_value("state") == 1)
+      m_manager->download_list().resume(download);
 
   } else {
-    (*itr)->variable()->set("directory", m_variables.get("directory"));
+    download->variable()->set("directory", m_variables.get("directory"));
 
     if (m_variables.get("tied_to_file").as_value())
-      (*itr)->variable()->set("tied_to_file", m_uri);
+      download->variable()->set("tied_to_file", m_uri);
 
+    // Use the state thingie here, move below.
     if (m_start)
-      m_manager->download_list().start(*itr);
+      m_manager->download_list().start(download);
 
-    m_manager->download_store().save(*itr);
+    m_manager->download_store().save(download);
   }
 
   m_slotFinished();
@@ -216,9 +225,8 @@ DownloadFactory::receive_failed(const std::string& msg) {
 
 void
 DownloadFactory::initialize_rtorrent(Download* download, torrent::Object* rtorrent) {
-  if (!rtorrent->has_key_string("state") ||
-      (rtorrent->get_key("state").as_string() != "stopped" && rtorrent->get_key("state").as_string() != "started")) {
-    rtorrent->insert_key("state", "stopped");
+  if (!rtorrent->has_key_value("state") || rtorrent->get_key("state").as_value() > 1) {
+    rtorrent->insert_key("state", (int64_t)m_start);
     rtorrent->insert_key("state_changed", cachedTime.seconds());
 
   } else if (!rtorrent->has_key_value("state_changed") ||

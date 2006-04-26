@@ -95,6 +95,22 @@ private:
   ViewSort* m_sort;
 };
 
+class ViewFilterVariableValue : public ViewFilter {
+public:
+  ViewFilterVariableValue(const std::string& name, torrent::Object::value_type v) :
+    m_name(name), m_value(v) {}
+
+  virtual bool operator () (Download* d1) const {
+    return d1->variable()->get_value(m_name) == m_value;
+  }
+
+private:
+  std::string                 m_name;
+  torrent::Object::value_type m_value;
+};
+
+// Really need to implement a factory and allow options in the sort
+// statements.
 ViewManager::ViewManager(DownloadList* dl) :
   m_list(dl) {
 
@@ -103,11 +119,13 @@ ViewManager::ViewManager(DownloadList* dl) :
   m_sort["name"]          = new ViewSortName();
   m_sort["name_reverse"]  = new ViewSortReverse(new ViewSortName());
 
-  m_sort["started"]       = new ViewSortVariable("state", "started");
-  m_sort["stopped"]       = new ViewSortVariable("state", "stopped");
+  m_sort["stopped"]       = new ViewSortVariableValue("state");
+  m_sort["started"]       = new ViewSortReverse(new ViewSortVariableValue("state"));
 
   m_sort["state_changed"]         = new ViewSortVariableValue("state_changed");
   m_sort["state_changed_reverse"] = new ViewSortReverse(new ViewSortVariableValue("state_changed"));
+
+  m_filter["started"]     = new ViewFilterVariableValue("state", 1);
 }
 
 void
@@ -145,7 +163,7 @@ ViewManager::find_throw(const std::string& name) {
 }
 
 inline ViewManager::sort_list
-ViewManager::build_list(const sort_args& args) {
+ViewManager::build_sort_list(const sort_args& args) {
   ViewDownloads::sort_list sortList;
   sortList.reserve(args.size());
 
@@ -165,6 +183,9 @@ void
 ViewManager::sort(const std::string& name) {
   iterator viewItr = find_throw(name);
 
+  // Should we rename sort, or add a seperate function?
+  (*viewItr)->filter();
+
   (*viewItr)->sort();
 }
 
@@ -172,14 +193,38 @@ void
 ViewManager::set_sort_new(const std::string& name, const sort_args& sort) {
   iterator viewItr = find_throw(name);
 
-  (*viewItr)->set_sort_new(build_list(sort));
+  (*viewItr)->set_sort_new(build_sort_list(sort));
 }
 
 void
 ViewManager::set_sort_current(const std::string& name, const sort_args& sort) {
   iterator viewItr = find_throw(name);
 
-  (*viewItr)->set_sort_current(build_list(sort));
+  (*viewItr)->set_sort_current(build_sort_list(sort));
+}
+
+inline ViewManager::filter_list
+ViewManager::build_filter_list(const filter_args& args) {
+  ViewDownloads::filter_list filterList;
+  filterList.reserve(args.size());
+
+  for (filter_args::const_iterator itr = args.begin(), last = args.end(); itr != last; ++itr) {
+    filter_map::const_iterator filterItr = m_filter.find(*itr);
+
+    if (filterItr == m_filter.end())
+      throw torrent::input_error("Invalid filtering identifier.");
+
+    filterList.push_back(filterItr->second);
+  }
+
+  return filterList;
+}
+
+void
+ViewManager::set_filter(const std::string& name, const filter_args& args) {
+  iterator viewItr = find_throw(name);
+
+  (*viewItr)->set_filter(build_filter_list(args));
 }
 
 }

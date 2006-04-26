@@ -108,9 +108,8 @@ Root::setup_keys() {
   m_bindings['D']           = sigc::bind(sigc::mem_fun(*this, &Root::adjust_down_throttle), 50);
   m_bindings['C']           = sigc::bind(sigc::mem_fun(*this, &Root::adjust_down_throttle), -50);
 
-  //m_bindings[KEY_RESIZE]    = sigc::mem_fun(*m_control->display(), &display::Manager::adjust_layout);
-  m_bindings['\x0C']        = sigc::mem_fun(m_control->display(), &display::Manager::force_redraw);
-  m_bindings['\x11']        = sigc::mem_fun(m_control, &Control::receive_normal_shutdown);
+  m_bindings['\x0C']        = sigc::mem_fun(m_control->display(), &display::Manager::force_redraw); // ^L
+  m_bindings['\x11']        = sigc::mem_fun(m_control, &Control::receive_normal_shutdown); // ^Q
 }
 
 void
