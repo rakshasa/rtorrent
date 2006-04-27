@@ -137,6 +137,8 @@ private:
 
   void                receive_download_erased(core::Download* d);
 
+  void                receive_change_view(const std::string& name);
+
   void                task_update();
 
   void                setup_keys();

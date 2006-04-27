@@ -92,7 +92,11 @@ public:
   iterator            find(const std::string& name);
   iterator            find_throw(const std::string& name);
 
-  void                sort(const std::string& name);
+  // If ViewDownloads::last_changed() is less than 'timeout' seconds
+  // ago, don't sort.
+  //
+  // Find a better name for 'timeout'.
+  void                sort(const std::string& name, uint32_t timeout = 0);
 
   void                set_sort_new(const std::string& name, const sort_args& sort);
   void                set_sort_current(const std::string& name, const sort_args& sort);

@@ -184,6 +184,52 @@ apply_tos(const std::string& arg) {
 }
 
 void
+apply_view_filter(Control* control, const std::string& arg) {
+  rak::split_iterator_t<std::string> itr = rak::split_iterator(arg, ',');
+
+  std::string name = rak::trim(*itr);
+  
+  if (name.empty())
+    throw torrent::input_error("First argument must be a string.");
+
+  core::ViewManager::filter_args filterArgs;
+
+  while (++itr != rak::split_iterator(arg)) {
+    filterArgs.push_back(rak::trim(*itr));
+
+    if (filterArgs.back().empty())
+      throw torrent::input_error("One of the arguments is empty.");
+  }
+
+  control->view_manager()->set_filter(name, filterArgs);
+}
+
+void
+apply_view_sort(Control* control, const std::string& arg) {
+  rak::split_iterator_t<std::string> itr = rak::split_iterator(arg, ',');
+
+  std::string name = rak::trim(*itr);
+  ++itr;
+
+  if (name.empty())
+    throw torrent::input_error("First argument must be a string.");
+
+  // Need some generic tools for this, rather than hacking up
+  // something every time...
+  std::string arg1;
+  int32_t value = 0;
+
+  if (itr != rak::split_iterator(arg) && !(arg1 = *itr).empty()) {
+    char* endPtr;
+
+    if ((value = strtol(arg1.c_str(), &endPtr, 0)) < 0 || *endPtr != '\0')
+      throw torrent::input_error("Second argument must be a value.");
+  }
+      
+  control->view_manager()->sort(name, value);
+}
+
+void
 apply_view_sort_current(Control* control, const std::string& arg) {
   rak::split_iterator_t<std::string> itr = rak::split_iterator(arg, ',');
 
@@ -223,27 +269,6 @@ apply_view_sort_new(Control* control, const std::string& arg) {
   }
 
   control->view_manager()->set_sort_new(name, sortArgs);
-}
-
-void
-apply_view_filter(Control* control, const std::string& arg) {
-  rak::split_iterator_t<std::string> itr = rak::split_iterator(arg, ',');
-
-  std::string name = rak::trim(*itr);
-  
-  if (name.empty())
-    throw torrent::input_error("First argument must be a string.");
-
-  core::ViewManager::filter_args filterArgs;
-
-  while (++itr != rak::split_iterator(arg)) {
-    filterArgs.push_back(rak::trim(*itr));
-
-    if (filterArgs.back().empty())
-      throw torrent::input_error("One of the arguments is empty.");
-  }
-
-  control->view_manager()->set_filter(name, filterArgs);
 }
 
 void
@@ -302,11 +327,11 @@ initialize_option_handler(Control* c) {
 									   rak::mem_fn(control->variable(), &utils::VariableMap::process_file_nothrow)));
 
   variables->insert("view_add",              new utils::VariableStringSlot(rak::value_fn(std::string()), rak::mem_fn(c->view_manager(), &core::ViewManager::insert_throw)));
-  variables->insert("view_sort",             new utils::VariableStringSlot(rak::value_fn(std::string()), rak::mem_fn(c->view_manager(), &core::ViewManager::sort)));
+  variables->insert("view_filter",           new utils::VariableStringSlot(rak::value_fn(std::string()), rak::bind_ptr_fn(&apply_view_filter, c)));
+
+  variables->insert("view_sort",             new utils::VariableStringSlot(rak::value_fn(std::string()), rak::bind_ptr_fn(&apply_view_sort, c)));
   variables->insert("view_sort_new",         new utils::VariableStringSlot(rak::value_fn(std::string()), rak::bind_ptr_fn(&apply_view_sort_new, c)));
   variables->insert("view_sort_current",     new utils::VariableStringSlot(rak::value_fn(std::string()), rak::bind_ptr_fn(&apply_view_sort_current, c)));
-
-  variables->insert("view_filter",           new utils::VariableStringSlot(rak::value_fn(std::string()), rak::bind_ptr_fn(&apply_view_filter, c)));
 
   variables->insert("schedule",              new utils::VariableStringSlot(rak::value_fn(std::string()),
 									   rak::mem_fn<const std::string&>(c->command_scheduler(), &CommandScheduler::parse)));

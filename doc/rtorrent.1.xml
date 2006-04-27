@@ -427,6 +427,7 @@ interface address.
 
       <varlistentry>
         <term>ip = <replaceable>a.b.c.d</replaceable></term>
+        <term>ip = <replaceable>hostname</replaceable></term>
         <listitem><para>
 
 Set the address reported to the tracker.

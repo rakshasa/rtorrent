@@ -83,11 +83,14 @@ DownloadList::DownloadList(Control* c) :
   m_control(c),
   m_bindings(new input::Bindings)
 {
-  m_view = *c->view_manager()->find_throw("main");
-
-  m_uiArray[DISPLAY_DOWNLOAD_LIST] = new ElementDownloadList(m_view);
+  m_uiArray[DISPLAY_DOWNLOAD_LIST] = new ElementDownloadList();
   m_uiArray[DISPLAY_LOG]           = new ElementLogComplete(&m_control->core()->get_log_complete());
   m_windowLog                      = new WLog(&m_control->core()->get_log_important());
+
+  receive_change_view("main");
+
+  if (m_view == NULL)
+    throw torrent::internal_error("View \"main\" must be present to initialize the main display.");
 
   m_taskUpdate.set_slot(rak::mem_fn(this, &DownloadList::task_update)),
 
@@ -183,11 +186,13 @@ DownloadList::disable_display() {
 void
 DownloadList::receive_next() {
   m_view->next_focus();
+  m_view->set_last_changed();
 }
 
 void
 DownloadList::receive_prev() {
   m_view->prev_focus();
+  m_view->set_last_changed();
 }
 
 void
@@ -366,6 +371,26 @@ DownloadList::receive_download_erased(core::Download* d) {
 }
 
 void
+DownloadList::receive_change_view(const std::string& name) {
+  core::ViewManager::iterator itr = m_control->view_manager()->find(name);
+
+  if (itr == m_control->view_manager()->end()) {
+    m_control->core()->push_log("Could not find view \"" + name + "\".");
+    return;
+  }
+
+  m_view = *itr;
+  m_view->sort();
+
+  ElementDownloadList* ui = dynamic_cast<ElementDownloadList*>(m_uiArray[DISPLAY_DOWNLOAD_LIST]);
+
+  if (ui == NULL)
+    throw torrent::internal_error("DownloadList::receive_change_view(...) could not cast ui.");
+
+  ui->set_view(m_view);
+}
+
+void
 DownloadList::task_update() {
   m_windowLog->receive_update();
 
@@ -392,6 +417,12 @@ DownloadList::setup_keys() {
   (*m_bindings)[KEY_DOWN]      = sigc::mem_fun(*this, &DownloadList::receive_next);
   (*m_bindings)[KEY_RIGHT]     = sigc::mem_fun(*this, &DownloadList::receive_view_download);
   (*m_bindings)['l']           = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_change), DISPLAY_LOG);
+
+  (*m_bindings)['1']           = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_change_view), "main");
+  (*m_bindings)['2']           = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_change_view), "started");
+  (*m_bindings)['3']           = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_change_view), "stopped");
+  (*m_bindings)['4']           = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_change_view), "finished");
+  (*m_bindings)['5']           = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_change_view), "incomplete");
 
   m_uiArray[DISPLAY_LOG]->get_bindings()[' '] = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_change), DISPLAY_DOWNLOAD_LIST);
 }

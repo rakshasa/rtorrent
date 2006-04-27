@@ -27,11 +27,13 @@
 #schedule = untied_directory,5,5,stop_untied=
 
 # The ip address reported to the tracker.
-#ip = rakshasa
+#ip = 127.0.0.1
+#ip = rakshasa.no
 
 # The ip address the listening socket and outgoing connections is
 # bound to.
-#bind = rakshasa
+#bind = 127.0.0.1
+#bind = rakshasa.no
 
 # Port range to use for listening.
 #port_range = 6890-6999

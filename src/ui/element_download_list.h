@@ -38,6 +38,7 @@
 #define RTORRENT_UI_ELEMENT_DOWNLOAD_LIST_H
 
 #include "core/download_list.h"
+#include "display/window_download_list.h"
 
 #include "element_base.h"
 
@@ -47,20 +48,18 @@ namespace core {
   class ViewDownloads;
 }
 
-namespace display {
-  class WindowDownloadList;
-}
-
 namespace ui {
 
 class ElementDownloadList : public ElementBase {
 public:
   typedef display::WindowDownloadList WDownloadList;
 
-  ElementDownloadList(core::ViewDownloads* l);
+  ElementDownloadList() : m_window(NULL), m_view(NULL) {}
 
   void                activate(Control* c, MItr mItr);
   void                disable(Control* c);
+
+  void                set_view(core::ViewDownloads* l);
 
 private:
   WDownloadList*       m_window;

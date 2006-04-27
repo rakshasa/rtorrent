@@ -76,6 +76,8 @@ ViewDownloads::initialize(const std::string& name, core::DownloadList* list) {
   m_size = 0;
   m_focus = 0;
 
+  set_last_changed(rak::timer());
+
   std::for_each(m_list->begin(), m_list->end(), std::bind1st(std::mem_fun(&ViewDownloads::received_insert), this));
 
   m_list->slot_map_insert()[key] = sigc::mem_fun(this, &ViewDownloads::received_insert);
@@ -111,9 +113,9 @@ struct view_downloads_compare : std::binary_function<Download*, Download*, bool>
 
   bool operator () (Download* d1, Download* d2) const {
     for (ViewDownloads::sort_list::const_iterator itr = m_sort.begin(), last = m_sort.end(); itr != last; ++itr)
-      if ((*itr)->less(d1, d2))
+      if ((**itr)(d1, d2))
 	return true;
-      else if ((*itr)->less(d2, d1))
+      else if ((**itr)(d2, d1))
 	return false;
 
     // Since we're testing equivalence, return false if we're

@@ -38,18 +38,12 @@
 
 #include <stdexcept>
 
-#include "display/window_download_list.h"
 #include "input/manager.h"
 
 #include "control.h"
 #include "element_download_list.h"
 
 namespace ui {
-
-ElementDownloadList::ElementDownloadList(core::ViewDownloads* l) :
-  m_window(NULL),
-  m_view(l) {
-}
 
 void
 ElementDownloadList::activate(Control* c, MItr mItr) {
@@ -58,7 +52,10 @@ ElementDownloadList::activate(Control* c, MItr mItr) {
 
   c->input()->push_front(&m_bindings);
 
-  *mItr = m_window = new WDownloadList(m_view);
+  m_window = new WDownloadList();
+  m_window->set_view(m_view);
+
+  *mItr = m_window;
 }
 
 void
@@ -70,6 +67,17 @@ ElementDownloadList::disable(Control* c) {
 
   delete m_window;
   m_window = NULL;
+}
+
+void
+ElementDownloadList::set_view(core::ViewDownloads* l) {
+  m_view = l;
+
+  if (m_window == NULL)
+    return;
+
+  m_window->set_view(l);
+  m_window->mark_dirty();
 }
 
 }

@@ -163,11 +163,32 @@ main(int argc, char** argv) {
     initialize_option_handler(control);
 
     control->variable()->process_command("view_add = main");
-    control->variable()->process_command("view_filter = main,started");
     control->variable()->process_command("view_sort_new = main,name");
     control->variable()->process_command("view_sort_current = main,name");
 
-    // Changing these will bork the scheduler.
+    control->variable()->process_command("view_add = started");
+    control->variable()->process_command("view_filter = started,started");
+    control->variable()->process_command("view_sort_new = started,name");
+    control->variable()->process_command("view_sort_current = started,name");
+
+    control->variable()->process_command("view_add = stopped");
+    control->variable()->process_command("view_filter = stopped,stopped");
+    control->variable()->process_command("view_sort_new = stopped,name");
+    control->variable()->process_command("view_sort_current = stopped,name");
+
+    control->variable()->process_command("view_add = finished");
+    //control->variable()->process_command("view_filter = finished,stopped");
+    control->variable()->process_command("view_sort_new = finished,state_changed");
+    control->variable()->process_command("view_sort_current = finished,state_changed_reverse");
+
+    control->variable()->process_command("schedule = view_main,10,10,view_sort=main,30");
+    control->variable()->process_command("schedule = view_started,10,10,view_sort=started");
+    control->variable()->process_command("schedule = view_stopped,10,10,view_sort=stopped");
+    control->variable()->process_command("schedule = view_finished,10,10,view_sort=finished,30");
+
+    //control->variable()->process_command("schedule = scheduler,10,10,download_scheduler=");
+
+    // Changing these will bork the (non-existant) scheduler.
     control->variable()->process_command("view_add = scheduler");
     control->variable()->process_command("view_sort_new = scheduler,state_changed"); // add started?
     control->variable()->process_command("view_sort_current = scheduler,state_changed");

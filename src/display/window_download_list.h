@@ -51,10 +51,12 @@ namespace display {
 
 class WindowDownloadList : public Window {
 public:
-  WindowDownloadList(core::ViewDownloads* l);
+  WindowDownloadList() : Window(new Canvas, true), m_view(NULL) {}
   ~WindowDownloadList();
 
   virtual void        redraw();
+
+  void                set_view(core::ViewDownloads* l);
 
 private:
   core::ViewDownloads* m_view;

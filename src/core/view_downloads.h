@@ -37,11 +37,9 @@
 // Provides a filtered and sorted list of downloads that can be
 // updated auto-magically.
 //
-// We don't worry about std::vector's insert/erase performance as it
-// get's called so often, better with cache locality.
-//
-// Do we want to be able to modify the underlying DownloadList from
-// here?
+// We don't worry about std::vector's insert/erase performance as the
+// elements get accessed often but not modified, better with cache
+// locality.
 //
 // ViewDownloads::m_size indicates the number of Download's that
 // remain visible, e.g. has not been filtered out. The Download's that
@@ -54,8 +52,10 @@
 #include <memory>
 #include <string>
 #include <vector>
-//#include <rak/timer.h>
+#include <rak/timer.h>
 #include <sigc++/signal.h>
+
+#include "globals.h"
 
 namespace core {
 
@@ -116,6 +116,15 @@ public:
   void                filter();
   void                set_filter(const filter_list& s)        { m_filter = s; }
 
+  // The time of the last change to the view, semantics of this is
+  // user-dependent. Used by f.ex. ViewManager to decide if it should
+  // sort and/or filter a view.
+  //
+  // Currently initialized to rak::timer(), though perhaps we should
+  // use cachedTimer.
+  rak::timer          last_changed() const                                 { return m_lastChanged; }
+  void                set_last_changed(const rak::timer& t = ::cachedTime) { m_lastChanged = t; }
+
   // Don't connect any slots until after initialize else it get's
   // triggered when adding the Download's in DownloadList.
   signal_type&        signal_changed()                        { return m_signalChanged; }
@@ -143,8 +152,7 @@ private:
 
   filter_list         m_filter;
 
-  // Timer, last changed.
-
+  rak::timer          m_lastChanged;
   signal_type         m_signalChanged;
 };
 
@@ -152,7 +160,7 @@ class ViewSort {
 public:
   virtual ~ViewSort() {}
 
-  virtual bool less(Download* d1, Download* d2) const = 0;
+  virtual bool operator () (Download* d1, Download* d2) const = 0;
 };
 
 class ViewFilter {

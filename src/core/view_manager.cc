@@ -40,6 +40,8 @@
 #include <rak/functional.h>
 #include <torrent/exceptions.h>
 
+#include "globals.h"
+
 #include "download.h"
 #include "view_downloads.h"
 #include "view_manager.h"
@@ -48,7 +50,7 @@ namespace core {
 
 class ViewSortName : public ViewSort {
 public:
-  virtual bool less(Download* d1, Download* d2) const {
+  virtual bool operator () (Download* d1, Download* d2) const {
     return d1->download()->name() < d2->download()->name();
   }
 };
@@ -58,7 +60,7 @@ public:
   ViewSortVariable(const std::string& name, const std::string& value) :
     m_name(name), m_value(value) {}
 
-  virtual bool less(Download* d1, Download* d2) const {
+  virtual bool operator () (Download* d1, Download* d2) const {
     return
       d1->variable()->get_string(m_name) == m_value &&
       d2->variable()->get_string(m_name) != m_value;
@@ -74,7 +76,7 @@ public:
   ViewSortVariableValue(const std::string& name) :
     m_name(name) {}
 
-  virtual bool less(Download* d1, Download* d2) const {
+  virtual bool operator () (Download* d1, Download* d2) const {
     return d1->variable()->get_value(m_name) < d2->variable()->get_value(m_name);
   }
 
@@ -87,8 +89,8 @@ public:
   ViewSortReverse(ViewSort* s) : m_sort(s) {}
   ~ViewSortReverse() { delete m_sort; }
 
-  virtual bool less(Download* d1, Download* d2) const {
-    return m_sort->less(d2, d1);
+  virtual bool operator () (Download* d1, Download* d2) const {
+    return (*m_sort)(d2, d1);
   }
 
 private:
@@ -126,6 +128,7 @@ ViewManager::ViewManager(DownloadList* dl) :
   m_sort["state_changed_reverse"] = new ViewSortReverse(new ViewSortVariableValue("state_changed"));
 
   m_filter["started"]     = new ViewFilterVariableValue("state", 1);
+  m_filter["stopped"]     = new ViewFilterVariableValue("state", 0);
 }
 
 void
@@ -180,8 +183,11 @@ ViewManager::build_sort_list(const sort_args& args) {
 }
 
 void
-ViewManager::sort(const std::string& name) {
+ViewManager::sort(const std::string& name, uint32_t timeout) {
   iterator viewItr = find_throw(name);
+
+  if ((*viewItr)->last_changed() + rak::timer::from_seconds(timeout) > cachedTime)
+    return;
 
   // Should we rename sort, or add a seperate function?
   (*viewItr)->filter();

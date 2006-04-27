@@ -48,15 +48,18 @@
 
 namespace display {
 
-WindowDownloadList::WindowDownloadList(core::ViewDownloads* l) :
-  Window(new Canvas, true),
-  m_view(l) {
-
-  m_connChanged = m_view->signal_changed().connect(sigc::mem_fun(*this, &Window::mark_dirty));
-}
-
 WindowDownloadList::~WindowDownloadList() {
   m_connChanged.disconnect();
+}
+
+void
+WindowDownloadList::set_view(core::ViewDownloads* l) {
+  m_view = l;
+
+  m_connChanged.disconnect();
+
+  if (m_view != NULL)
+    m_connChanged = m_view->signal_changed().connect(sigc::mem_fun(*this, &Window::mark_dirty));
 }
 
 void
@@ -65,7 +68,12 @@ WindowDownloadList::redraw() {
 
   m_canvas->erase();
 
-  if (m_view->empty() || m_canvas->get_width() < 5)
+  if (m_view == NULL)
+    return;
+
+  m_canvas->print(0, 0, "%s", ("[View: " + m_view->name() + "]").c_str());
+
+  if (m_view->empty() || m_canvas->get_width() < 5 || m_canvas->get_height() < 2)
     return;
 
   typedef std::pair<core::ViewDownloads::iterator, core::ViewDownloads::iterator> Range;
@@ -81,7 +89,7 @@ WindowDownloadList::redraw() {
   if (range.second != m_view->end())
     ++range.second;
 
-  int pos = 0;
+  int pos = 1;
 
   while (range.first != range.second) {
     char buffer[m_canvas->get_width()];
