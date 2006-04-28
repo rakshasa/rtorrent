@@ -41,12 +41,12 @@
 #include <string>
 #include <inttypes.h>
 
-#include "view_downloads.h"
+#include "view.h"
 
 namespace core {
 
 class DownloadList;
-class ViewDownloads;
+class View;
 
 class Scheduler {
 public:
@@ -57,7 +57,7 @@ public:
   Scheduler(DownloadList* dl);
   ~Scheduler();
 
-  void                set_view(ViewDownloads* view);
+  void                set_view(View* view);
 
   size_type           max_active() const          { return m_maxActive; }
   void                set_max_active(size_type v) { m_maxActive = v; }
@@ -70,7 +70,7 @@ public:
   void                update();
 
 private:
-  ViewDownloads*      m_view;
+  View*               m_view;
   DownloadList*       m_downloadList;
 
   size_type           m_maxActive;

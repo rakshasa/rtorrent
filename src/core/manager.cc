@@ -59,6 +59,7 @@
 #include "curl_get.h"
 #include "download.h"
 #include "download_factory.h"
+#include "hash_queue.h"
 #include "manager.h"
 #include "poll_manager_epoll.h"
 #include "poll_manager_select.h"
@@ -114,6 +115,14 @@ Manager::Manager() :
   m_pollManager(NULL),
   m_portFirst(6890),
   m_portLast(6999) {
+
+  m_downloadList = new DownloadList();
+  m_hashQueue = new HashQueue(m_downloadList);
+}
+
+Manager::~Manager() {
+  delete m_hashQueue;
+  delete m_downloadList;
 }
 
 void
@@ -139,29 +148,20 @@ Manager::initialize_second() {
 
   // Register slots to be called when a download is inserted/erased,
   // opened or closed.
-  m_downloadList.slot_map_insert()["1_connect_network_log"]  = sigc::bind(sigc::ptr_fun(&connect_signal_network_log), sigc::mem_fun(m_logComplete, &Log::push_front));
-  m_downloadList.slot_map_insert()["1_connect_storage_log"]  = sigc::bind(sigc::ptr_fun(&connect_signal_storage_log), sigc::mem_fun(m_logComplete, &Log::push_front));
-  m_downloadList.slot_map_insert()["1_connect_tracker_dump"] = sigc::bind(sigc::ptr_fun(&connect_signal_tracker_dump), sigc::ptr_fun(&receive_tracker_dump));
+  m_downloadList->slot_map_insert()["1_connect_network_log"]  = sigc::bind(sigc::ptr_fun(&connect_signal_network_log), sigc::mem_fun(m_logComplete, &Log::push_front));
+  m_downloadList->slot_map_insert()["1_connect_storage_log"]  = sigc::bind(sigc::ptr_fun(&connect_signal_storage_log), sigc::mem_fun(m_logComplete, &Log::push_front));
+  m_downloadList->slot_map_insert()["1_connect_tracker_dump"] = sigc::bind(sigc::ptr_fun(&connect_signal_tracker_dump), sigc::ptr_fun(&receive_tracker_dump));
 
-  m_downloadList.slot_map_erase()["1_hash_queue_remove"]    = sigc::mem_fun(m_hashQueue, &HashQueue::remove);
-  m_downloadList.slot_map_erase()["1_store_remove"]         = sigc::mem_fun(m_downloadStore, &DownloadStore::remove);
-  m_downloadList.slot_map_erase()["1_delete_tied"]          = sigc::ptr_fun(&delete_tied);
+  m_downloadList->slot_map_erase()["1_hash_queue_remove"]    = sigc::mem_fun(m_hashQueue, &HashQueue::remove);
+  m_downloadList->slot_map_erase()["1_store_remove"]         = sigc::mem_fun(m_downloadStore, &DownloadStore::remove);
+  m_downloadList->slot_map_erase()["1_delete_tied"]          = sigc::ptr_fun(&delete_tied);
 
-  m_downloadList.slot_map_open()["1_download_open"]         = sigc::mem_fun(&Download::call<void, &torrent::Download::open>);
+  m_downloadList->slot_map_open()["1_download_open"]         = sigc::mem_fun(&Download::call<void, &torrent::Download::open>);
 
   // Currently does not call stop, might want to add a function that
   // checks if we're running, and if so stop?
-  m_downloadList.slot_map_close()["1_hash_queue_remove"]    = sigc::mem_fun(m_hashQueue, &HashQueue::remove);
-  m_downloadList.slot_map_close()["2_download_close"]       = sigc::mem_fun(&Download::call<void, &torrent::Download::close>);
-
-  m_downloadList.slot_map_start()["1_download_start"]       = sigc::mem_fun(&Download::start);
-
-  m_downloadList.slot_map_stop()["1_download_stop"]         = sigc::mem_fun(&Download::stop);
-  m_downloadList.slot_map_stop()["2_hash_resume_save"]      = sigc::mem_fun(&Download::call<void, &torrent::Download::hash_resume_save>);
-  m_downloadList.slot_map_stop()["3_store_save"]            = sigc::mem_fun(m_downloadStore, &DownloadStore::save);
-
-  m_downloadList.slot_map_finished()["1_download_done"]     = sigc::mem_fun(*this, &Manager::receive_download_done);
-  m_downloadList.slot_map_finished()["2_receive_finished"]  = sigc::mem_fun(&Download::receive_finished);
+  m_downloadList->slot_map_close()["1_hash_queue_remove"]    = sigc::mem_fun(m_hashQueue, &HashQueue::remove);
+  m_downloadList->slot_map_close()["2_download_close"]       = sigc::mem_fun(&Download::call<void, &torrent::Download::close>);
 }
 
 void
@@ -178,42 +178,9 @@ Manager::cleanup() {
 void
 Manager::shutdown(bool force) {
   if (!force)
-    std::for_each(m_downloadList.begin(), m_downloadList.end(), std::bind1st(std::mem_fun(&DownloadList::pause), &m_downloadList));
+    std::for_each(m_downloadList->begin(), m_downloadList->end(), std::bind1st(std::mem_fun(&DownloadList::pause), &m_downloadList));
   else
-    std::for_each(m_downloadList.begin(), m_downloadList.end(), std::bind1st(std::mem_fun(&DownloadList::close), &m_downloadList));
-}
-
-void
-Manager::check_hash(Download* d) {
-  bool restart = d->download()->is_active();
-
-  try {
-    prepare_hash_check(d);
-
-    if (restart)
-      m_hashQueue.insert(d, sigc::bind(sigc::mem_fun(m_downloadList, &DownloadList::resume), d));
-    else
-      m_hashQueue.insert(d, sigc::slot0<void>());
-
-  } catch (torrent::local_error& e) {
-    m_logImportant.push_front(e.what());
-    m_logComplete.push_front(e.what());
-  }
-}  
-
-void
-Manager::receive_download_done(Download* d) {
-  if (control->variable()->get_value("check_hash")) {
-    // Start the hash checking, send completed to tracker after
-    // finishing.
-    prepare_hash_check(d);
-
-    // TODO: Need to restart the torrent.
-    m_hashQueue.insert(d, sigc::bind(sigc::mem_fun(*this, &Manager::receive_download_done_hash_checked), d));
-
-  } else {
-    receive_download_done_hash_checked(d);
-  }
+    std::for_each(m_downloadList->begin(), m_downloadList->end(), std::bind1st(std::mem_fun(&DownloadList::close), &m_downloadList));
 }
 
 void
@@ -298,35 +265,9 @@ Manager::set_local_address(const std::string& addr) {
 }
 
 void
-Manager::prepare_hash_check(Download* d) {
-  m_downloadList.close(d);
-  d->download()->hash_resume_clear();
-  m_downloadList.open(d);
-
-  if (d->download()->is_hash_checking() ||
-      d->download()->is_hash_checked())
-    throw std::logic_error("Manager::check_hash(...) closed the torrent but is_hash_check{ing,ed}() == true");
-
-  if (m_hashQueue.find(d) != m_hashQueue.end())
-    throw std::logic_error("Manager::check_hash(...) closed the torrent but it was found in m_hashQueue");
-}
-
-void
 Manager::receive_http_failed(std::string msg) {
   m_logImportant.push_front("Http download error: \"" + msg + "\"");
   m_logComplete.push_front("Http download error: \"" + msg + "\"");
-}
-
-void
-Manager::receive_download_done_hash_checked(Download* d) {
-  m_downloadList.resume(d);
-
-  if (control->variable()->get_value("session_on_completion"))
-    m_downloadStore.save(d);
-
-  // Don't send if we did a hash check and found incompelete chunks.
-  if (d->is_done())
-    d->download()->tracker_list().send_completed();
 }
 
 void
@@ -398,8 +339,8 @@ Manager::try_create_download_expand(const std::string& uri, bool start, bool pri
 
   if (tied)
     for (std::vector<std::string>::iterator itr = paths.begin(); itr != paths.end(); )
-      if (std::find_if(m_downloadList.begin(), m_downloadList.end(),
-		       rak::equal(*itr, rak::bind2nd(std::mem_fun(&Download::variable_string), "tied_to_file"))) != m_downloadList.end())
+      if (std::find_if(m_downloadList->begin(), m_downloadList->end(),
+		       rak::equal(*itr, rak::bind2nd(std::mem_fun(&Download::variable_string), "tied_to_file"))) != m_downloadList->end())
 	itr = paths.erase(itr);
       else
 	itr++;

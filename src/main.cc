@@ -162,9 +162,14 @@ main(int argc, char** argv) {
     // torrent::ConnectionManager* is valid etc.
     initialize_option_handler(control);
 
+    // Currently not doing any sorting on main.
     control->variable()->process_command("view_add = main");
-    control->variable()->process_command("view_sort_new = main,name");
-    control->variable()->process_command("view_sort_current = main,name");
+    control->variable()->process_command("view_sort_new = main");
+    control->variable()->process_command("view_sort_current = main");
+
+    control->variable()->process_command("view_add = name");
+    control->variable()->process_command("view_sort_new = name,name");
+    control->variable()->process_command("view_sort_current = name,name");
 
     control->variable()->process_command("view_add = started");
     control->variable()->process_command("view_filter = started,started");
@@ -176,15 +181,22 @@ main(int argc, char** argv) {
     control->variable()->process_command("view_sort_new = stopped,name");
     control->variable()->process_command("view_sort_current = stopped,name");
 
-    control->variable()->process_command("view_add = finished");
-    //control->variable()->process_command("view_filter = finished,stopped");
-    control->variable()->process_command("view_sort_new = finished,state_changed");
-    control->variable()->process_command("view_sort_current = finished,state_changed_reverse");
+    control->variable()->process_command("view_add = complete");
+    control->variable()->process_command("view_filter = complete,complete");
+    control->variable()->process_command("view_sort_new = complete,state_changed");
+    control->variable()->process_command("view_sort_current = complete,state_changed_reverse");
 
-    control->variable()->process_command("schedule = view_main,10,10,view_sort=main,30");
-    control->variable()->process_command("schedule = view_started,10,10,view_sort=started");
-    control->variable()->process_command("schedule = view_stopped,10,10,view_sort=stopped");
-    control->variable()->process_command("schedule = view_finished,10,10,view_sort=finished,30");
+    control->variable()->process_command("view_add = incomplete");
+    control->variable()->process_command("view_filter = incomplete,incomplete");
+    control->variable()->process_command("view_sort_new = incomplete,state_changed");
+    control->variable()->process_command("view_sort_current = incomplete,state_changed_reverse");
+
+    control->variable()->process_command("schedule = view_main,10,10,view_sort=main,20");
+    control->variable()->process_command("schedule = view_name,10,10,view_sort=main,20");
+    control->variable()->process_command("schedule = view_started,10,10,view_sort=started,20");
+    control->variable()->process_command("schedule = view_stopped,10,10,view_sort=stopped,20");
+    control->variable()->process_command("schedule = view_complete,10,10,view_sort=complete,20");
+    control->variable()->process_command("schedule = view_incomplete,10,10,view_sort=incomplete,20");
 
     //control->variable()->process_command("schedule = scheduler,10,10,download_scheduler=");
 

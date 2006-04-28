@@ -41,7 +41,6 @@
 
 #include "download_list.h"
 #include "download_store.h"
-#include "hash_queue.h"
 #include "http_queue.h"
 #include "poll_manager.h"
 #include "log.h"
@@ -52,6 +51,8 @@ namespace torrent {
 
 namespace core {
 
+class HashQueue;
+
 class Manager {
 public:
   typedef DownloadList::iterator                    DListItr;
@@ -59,11 +60,13 @@ public:
   typedef sigc::slot0<void>                         SlotFailed;
 
   Manager();
+  ~Manager();
 
-  DownloadList&       download_list()                 { return m_downloadList; }
   DownloadStore&      download_store()                { return m_downloadStore; }
-  HashQueue&          hash_queue()                    { return m_hashQueue; }
   HttpQueue&          http_queue()                    { return m_httpQueue; }
+
+  DownloadList*       download_list()                     { return m_downloadList; }
+  HashQueue*          hash_queue()                        { return m_hashQueue; }
 
   PollManager*        get_poll_manager()                  { return m_pollManager; }
   Log&                get_log_important()                 { return m_logImportant; }
@@ -86,8 +89,6 @@ public:
 
   void                shutdown(bool force);
 
-  void                check_hash(Download* d);
-
   void                push_log(const std::string& msg)    { m_logImportant.push_front(msg); m_logComplete.push_front(msg); }
 
   // Temporary, find a better place for this.
@@ -100,16 +101,11 @@ private:
 
   void                initialize_bencode(Download* d);
 
-  void                prepare_hash_check(Download* d);
-
   void                receive_http_failed(std::string msg);
-  void                receive_download_done_hash_checked(Download* d);
-  void                receive_download_inserted(Download* d);
-  void                receive_download_done(Download* d);
 
-  DownloadList        m_downloadList;
+  DownloadList*       m_downloadList;
   DownloadStore       m_downloadStore;
-  HashQueue           m_hashQueue;
+  HashQueue*          m_hashQueue;
   HttpQueue           m_httpQueue;
 
   PollManager*        m_pollManager;

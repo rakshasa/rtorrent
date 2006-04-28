@@ -47,17 +47,19 @@
 #include "rak/functional.h"
 
 #include "globals.h"
+#include "hash_queue.h"
 #include "manager.h"
 
 #include "download.h"
 #include "download_list.h"
+#include "download_store.h"
 
 namespace core {
 
 struct download_list_call {
   download_list_call(Download* d) : m_download(d) {}
 
-  void operator () (const DownloadList::SlotMap::value_type& s) {
+  void operator () (const DownloadList::slot_map::value_type& s) {
     s.second(m_download);
   }
 
@@ -94,10 +96,10 @@ DownloadList::create(std::istream* str, bool printLog) {
 
 DownloadList::iterator
 DownloadList::insert(Download* d) {
-  iterator itr = Base::insert(end(), d);
+  iterator itr = base_type::insert(end(), d);
 
   try {
-    (*itr)->download()->signal_download_done(sigc::bind(sigc::mem_fun(*this, &DownloadList::finished), *itr));
+    (*itr)->download()->signal_download_done(sigc::bind(sigc::mem_fun(*this, &DownloadList::received_finished), d));
     std::for_each(m_slotMapInsert.begin(), m_slotMapInsert.end(), download_list_call(*itr));
 
   } catch (torrent::local_error& e) {
@@ -128,7 +130,7 @@ DownloadList::erase(iterator itr) {
   torrent::download_remove(*(*itr)->download());
   delete *itr;
 
-  return Base::erase(itr);
+  return base_type::erase(itr);
 }
 
 void
@@ -173,18 +175,32 @@ DownloadList::stop(Download* d) {
 }
 
 void
-DownloadList::resume(Download* d) {
+DownloadList::resume(Download* download) {
   try {
-    if (!d->download()->is_open())
-      std::for_each(m_slotMapOpen.begin(), m_slotMapOpen.end(), download_list_call(d));
-      
-    if (d->download()->is_hash_checked())
-      std::for_each(m_slotMapStart.begin(), m_slotMapStart.end(), download_list_call(d));
-    else
-      // TODO: This can cause infinit looping?
-      control->core()->hash_queue().insert(d, sigc::bind(sigc::mem_fun(*this, &DownloadList::resume), d));
 
-    d->variable()->set("state_changed", cachedTime.seconds());
+    if (!download->download()->is_open())
+      std::for_each(m_slotMapOpen.begin(), m_slotMapOpen.end(), download_list_call(download));
+
+    if (download->download()->is_hash_checked()) {
+
+      if (download->is_done())
+	download->set_connection_type(download->variable()->get_string("connection_seed"));
+      else
+	download->set_connection_type(download->variable()->get_string("connection_leech"));
+
+      // Update the priority to ensure it has the correct
+      // seeding/unfinished modifiers.
+      download->set_priority(download->priority());
+      download->download()->start();
+
+      std::for_each(m_slotMapStart.begin(), m_slotMapStart.end(), download_list_call(download));
+
+    } else {
+      // TODO: This can cause infinit looping?
+      control->core()->hash_queue()->insert(download);
+    }
+
+    download->variable()->set("state_changed", cachedTime.seconds());
 
   } catch (torrent::local_error& e) {
     control->core()->push_log(e.what());
@@ -192,13 +208,20 @@ DownloadList::resume(Download* d) {
 }
 
 void
-DownloadList::pause(Download* d) {
+DownloadList::pause(Download* download) {
   try {
 
-    if (d->download()->is_active())
-      std::for_each(m_slotMapStop.begin(), m_slotMapStop.end(), download_list_call(d));
+    download->download()->stop();
+    download->download()->hash_resume_save();
+    
+    if (download->download()->is_active())
+      std::for_each(m_slotMapStop.begin(), m_slotMapStop.end(), download_list_call(download));
 
-    d->variable()->set("state_changed", cachedTime.seconds());
+    download->variable()->set("state_changed", cachedTime.seconds());
+
+    // Save the state after all the slots, etc have been called so we
+    // include the modifications they may make.
+    control->core()->download_store().save(download);
 
   } catch (torrent::local_error& e) {
     control->core()->push_log(e.what());
@@ -209,12 +232,70 @@ void
 DownloadList::clear() {
   std::for_each(begin(), end(), rak::call_delete<Download>());
 
-  Base::clear();
+  base_type::clear();
 }
 
 void
-DownloadList::finished(Download* d) {
-  std::for_each(m_slotMapFinished.begin(), m_slotMapFinished.end(), download_list_call(d));
+DownloadList::check_hash(Download* d) {
+  close(d);
+  d->download()->hash_resume_clear();
+  open(d);
+
+  control->core()->hash_queue()->insert(d);
+}
+
+void
+DownloadList::hash_done(Download* download) {
+  if (!download->download()->is_hash_checked() || download->download()->is_hash_checking())
+    throw torrent::internal_error("DownloadList::hash_done(...) download in invalid state.");
+
+  // Need to find some sane conditional here. Can we check the total
+  // downloaded to ensure something was transferred, thus we didn't
+  // just hash an already completed torrent with lacking session data?
+  //
+  // Perhaps we should use a seperate variable or state, and check
+  // that. Thus we can bork the download if the hash check doesn't
+  // confirm all the data, avoiding large BW usage on f.ex. the
+  // ReiserFS bug with >4GB files.
+
+  // Use just is_done(), have another if statement inside.
+  if (download->is_done() && download->variable()->get_value("complete") == 0) { 
+
+    if (control->variable()->get_value("session_on_completion"))
+      control->core()->download_store().save(download);
+
+    // Send a "truly finished message from here.
+    confirm_finished(download);
+  }
+
+  if (download->variable()->get_value("state") == 1)
+    resume(download);
+}
+
+void
+DownloadList::received_finished(Download* download) {
+  if (control->variable()->get_value("check_hash")) {
+    // Set some 'checking_finished_thingie' variable to make hash_done
+    // trigger correctly, also so it can bork on missing data.
+
+    check_hash(download);
+
+  } else {
+    confirm_finished(download);
+  }
+}
+
+void
+DownloadList::confirm_finished(Download* download) {
+  // FIXME
+  //torrent::download_set_priority(m_download, 2);
+
+  download->variable()->set("complete", (int64_t)1);
+  download->set_connection_type(download->variable()->get_string("connection_seed"));
+
+  download->download()->tracker_list().send_completed();
+
+  std::for_each(m_slotMapFinished.begin(), m_slotMapFinished.end(), download_list_call(download));
 }
 
 }

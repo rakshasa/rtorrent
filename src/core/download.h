@@ -62,11 +62,6 @@ public:
   bool                is_active() const                        { return m_download.is_active(); }
   inline bool         is_done() const                          { return m_download.chunks_done() == m_download.chunks_total(); }
 
-  void                start();
-  void                stop();
-
-  // Add functions like pause/etc.
-
   variable_map_type*  variable()                               { return &m_variables; }
   std::string         variable_string(const std::string& key)  { return m_variables.get_string(key); }
 
@@ -97,7 +92,7 @@ public:
 
   bool operator == (const std::string& str)                                { return str == m_download.info_hash(); }
 
-  void                receive_finished();
+  void                set_connection_type(const std::string& t) { m_download.set_connection_type(string_to_connection_type(t)); }
 
   static connection_type string_to_connection_type(const std::string& name);
   static const char*     connection_type_to_string(connection_type t);

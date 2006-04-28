@@ -71,6 +71,7 @@ Download::Download(download_type d) :
   m_variables.insert("connection_leech",   new utils::VariableAny(connection_type_to_string(download_type::CONNECTION_LEECH)));
   m_variables.insert("connection_seed",    new utils::VariableAny(connection_type_to_string(download_type::CONNECTION_SEED)));
   m_variables.insert("state",              new utils::VariableObject(bencode(), "rtorrent", "state", torrent::Object::TYPE_VALUE));
+  m_variables.insert("complete",           new utils::VariableObject(bencode(), "rtorrent", "complete", torrent::Object::TYPE_VALUE));
   m_variables.insert("tied_to_file",       new utils::VariableObject(bencode(), "rtorrent", "tied_to_file", torrent::Object::TYPE_STRING));
 
   // The "state_changed" variable is required to be a valid unix time
@@ -103,25 +104,6 @@ Download::~Download() {
 }
 
 void
-Download::start() {
-  if (is_done())
-    m_download.set_connection_type(string_to_connection_type(m_variables.get("connection_seed").as_string()));
-  else
-    m_download.set_connection_type(string_to_connection_type(m_variables.get("connection_leech").as_string()));
-
-  // Update the priority to ensure it has the correct
-  // seeding/unfinished modifiers.
-  set_priority(priority());
-
-  m_download.start();
-}
-
-void
-Download::stop() {
-  m_download.stop();
-}
-
-void
 Download::enable_udp_trackers(bool state) {
   torrent::TrackerList tl = m_download.tracker_list();
 
@@ -150,13 +132,6 @@ Download::set_priority(uint32_t p) {
     torrent::download_set_priority(m_download, p * p);
 
   bencode()->get_key("rtorrent").insert_key("priority", (int64_t)p);
-}
-
-void
-Download::receive_finished() {
-  m_download.set_connection_type(string_to_connection_type(m_variables.get("connection_seed").as_string()));
-  // FIXME
-  //torrent::download_set_priority(m_download, 2);
 }
 
 void

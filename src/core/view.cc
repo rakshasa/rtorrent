@@ -43,11 +43,11 @@
 #include "download.h"
 #include "download_list.h"
 
-#include "view_downloads.h"
+#include "view.h"
 
 namespace core {
 
-ViewDownloads::~ViewDownloads() {
+View::~View() {
   if (m_name.empty())
     return;
 
@@ -58,17 +58,17 @@ ViewDownloads::~ViewDownloads() {
 }
 
 void
-ViewDownloads::initialize(const std::string& name, core::DownloadList* list) {
+View::initialize(const std::string& name, core::DownloadList* list) {
   if (!m_name.empty())
-    throw torrent::internal_error("ViewDownloads::initialize(...) called on an already initialized view.");
+    throw torrent::internal_error("View::initialize(...) called on an already initialized view.");
 
   if (name.empty())
-    throw torrent::internal_error("ViewDownloads::initialize(...) called with an empty name.");
+    throw torrent::internal_error("View::initialize(...) called with an empty name.");
 
   std::string key = "0_view_" + name;
 
   if (list->has_slot_insert(key) || list->has_slot_erase(key))
-    throw torrent::internal_error("ViewDownloads::initialize(...) duplicate key name found in DownloadList.");
+    throw torrent::internal_error("View::initialize(...) duplicate key name found in DownloadList.");
 
   m_name = name;
 
@@ -78,14 +78,14 @@ ViewDownloads::initialize(const std::string& name, core::DownloadList* list) {
 
   set_last_changed(rak::timer());
 
-  std::for_each(m_list->begin(), m_list->end(), std::bind1st(std::mem_fun(&ViewDownloads::received_insert), this));
+  std::for_each(m_list->begin(), m_list->end(), std::bind1st(std::mem_fun(&View::received_insert), this));
 
-  m_list->slot_map_insert()[key] = sigc::mem_fun(this, &ViewDownloads::received_insert);
-  m_list->slot_map_erase()[key]  = sigc::mem_fun(this, &ViewDownloads::received_erase);
+  m_list->slot_map_insert()[key] = sigc::mem_fun(this, &View::received_insert);
+  m_list->slot_map_erase()[key]  = sigc::mem_fun(this, &View::received_erase);
 }
 
 void
-ViewDownloads::next_focus() {
+View::next_focus() {
   if (empty())
     return;
 
@@ -95,7 +95,7 @@ ViewDownloads::next_focus() {
 }
 
 void
-ViewDownloads::prev_focus() {
+View::prev_focus() {
   if (empty())
     return;
 
@@ -109,10 +109,10 @@ ViewDownloads::prev_focus() {
 
 // Also add focus thingie here?
 struct view_downloads_compare : std::binary_function<Download*, Download*, bool> {
-  view_downloads_compare(const ViewDownloads::sort_list& s) : m_sort(s) {}
+  view_downloads_compare(const View::sort_list& s) : m_sort(s) {}
 
   bool operator () (Download* d1, Download* d2) const {
-    for (ViewDownloads::sort_list::const_iterator itr = m_sort.begin(), last = m_sort.end(); itr != last; ++itr)
+    for (View::sort_list::const_iterator itr = m_sort.begin(), last = m_sort.end(); itr != last; ++itr)
       if ((**itr)(d1, d2))
 	return true;
       else if ((**itr)(d2, d1))
@@ -123,14 +123,14 @@ struct view_downloads_compare : std::binary_function<Download*, Download*, bool>
     return false;
   }
 
-  const ViewDownloads::sort_list& m_sort;
+  const View::sort_list& m_sort;
 };
 
 struct view_downloads_filter : std::unary_function<Download*, bool> {
-  view_downloads_filter(const ViewDownloads::filter_list& s) : m_filter(s) {}
+  view_downloads_filter(const View::filter_list& s) : m_filter(s) {}
 
   bool operator () (Download* d1) const {
-    for (ViewDownloads::filter_list::const_iterator itr = m_filter.begin(), last = m_filter.end(); itr != last; ++itr)
+    for (View::filter_list::const_iterator itr = m_filter.begin(), last = m_filter.end(); itr != last; ++itr)
       if (!(**itr)(d1))
 	return false;
 
@@ -139,11 +139,11 @@ struct view_downloads_filter : std::unary_function<Download*, bool> {
     return true;
   }
 
-  const ViewDownloads::filter_list& m_filter;
+  const View::filter_list& m_filter;
 };
 
 void
-ViewDownloads::sort() {
+View::sort() {
   Download* curFocus = focus() != end() ? *focus() : NULL;
 
   // Don't go randomly switching around equivalent elements.
@@ -154,7 +154,7 @@ ViewDownloads::sort() {
 }
 
 void
-ViewDownloads::filter() {
+View::filter() {
   iterator split = std::stable_partition(base_type::begin(), base_type::end(), view_downloads_filter(m_filter));
 
   m_size = position(split);
@@ -164,7 +164,7 @@ ViewDownloads::filter() {
 }
 
 void
-ViewDownloads::received_insert(core::Download* d) {
+View::received_insert(core::Download* d) {
   // Chagne according to filtered/not.
   iterator itr;
   
@@ -179,14 +179,14 @@ ViewDownloads::received_insert(core::Download* d) {
   }
 
   if (m_focus > m_size)
-    throw torrent::internal_error("ViewDownloads::received_insert(...) m_focus > m_size.");
+    throw torrent::internal_error("View::received_insert(...) m_focus > m_size.");
 
   base_type::insert(itr, d);
   m_signalChanged.emit();
 }
 
 void
-ViewDownloads::received_erase(core::Download* d) {
+View::received_erase(core::Download* d) {
   iterator itr = std::find(begin(), end_filtered(), d);
 
   if (itr == end_filtered())

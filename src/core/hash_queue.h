@@ -44,13 +44,13 @@
 namespace core {
 
 class Download;
+class DownloadList;
 
 class HashQueueNode;
 
 class HashQueue : private std::list<HashQueueNode*> {
 public:
   typedef std::list<HashQueueNode*> Base;
-  typedef sigc::slot0<void>         Slot;
 
   using Base::iterator;
   using Base::const_iterator;
@@ -68,7 +68,10 @@ public:
   using Base::empty;
   using Base::size;
 
-  void                insert(Download* d, Slot s);
+  // Replace 'dl' with a slot.
+  HashQueue(DownloadList* dl) : m_downloadList(dl) {}
+
+  void                insert(Download* d);
 
   // It's safe to try to remove downloads not in the queue. The hash
   // checking is not stopped if it has already started.
@@ -80,23 +83,22 @@ private:
   void                receive_hash_done(Download* d);
 
   void                fill_queue();
+
+  DownloadList*       m_downloadList;
 };
 
 class HashQueueNode {
 public:
-  HashQueueNode(Download* d, HashQueue::Slot s) : m_download(d), m_slot(s) {}
+  HashQueueNode(Download* d) : m_download(d) {}
   ~HashQueueNode()                                       { disconnect(); }
 
   void                disconnect()                       { m_connection.disconnect(); }
-
   Download*           download()                         { return m_download; }
-  HashQueue::Slot     get_slot()                         { return m_slot; }
 
   void                set_connection(sigc::connection c) { m_connection = c; }
 
 private:
   Download*           m_download;
-  HashQueue::Slot     m_slot;
   sigc::connection    m_connection;
 };
 

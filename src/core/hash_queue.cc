@@ -41,26 +41,29 @@
 #include <sigc++/bind.h>
 
 #include "download.h"
+#include "download_list.h"
 #include "rak/functional.h"
 #include "hash_queue.h"
 
 namespace core {
 
 void
-HashQueue::insert(Download* d, Slot s) {
-  if (d->download()->is_hash_checking() ||
-      find(d) != end())
+HashQueue::insert(Download* download) {
+  if (download->download()->is_hash_checking() ||
+      find(download) != end())
     return;
 
-  if (d->download()->is_hash_checked()) {
-    s();
+  if (download->download()->is_hash_checked()) {
+    m_downloadList->hash_done(download);
     return;
   }
 
-  iterator itr = Base::insert(end(), new HashQueueNode(d, s));
+  if (find(download) != end())
+    throw torrent::internal_error("HashQueue::insert(...) download already in queue.");
 
-  (*itr)->set_connection(d->download()->signal_hash_done(sigc::bind(sigc::mem_fun(*this, &HashQueue::receive_hash_done),
-								       (*itr)->download())));
+  iterator itr = Base::insert(end(), new HashQueueNode(download));
+
+  (*itr)->set_connection(download->download()->signal_hash_done(sigc::bind(sigc::mem_fun(*this, &HashQueue::receive_hash_done), download)));
 
   fill_queue();
 }
@@ -95,13 +98,10 @@ HashQueue::receive_hash_done(Download* d) {
   if (itr == end())
     return;
 
-  Slot s = (*itr)->get_slot();
-
   delete *itr;
   Base::erase(itr);
 
-  // Can we call this before the delete?
-  s();
+  m_downloadList->hash_done(d);
   fill_queue();
 }
 

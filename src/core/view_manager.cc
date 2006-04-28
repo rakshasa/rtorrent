@@ -43,7 +43,7 @@
 #include "globals.h"
 
 #include "download.h"
-#include "view_downloads.h"
+#include "view.h"
 #include "view_manager.h"
 
 namespace core {
@@ -123,17 +123,21 @@ ViewManager::ViewManager(DownloadList* dl) :
 
   m_sort["stopped"]       = new ViewSortVariableValue("state");
   m_sort["started"]       = new ViewSortReverse(new ViewSortVariableValue("state"));
+  m_sort["complete"]      = new ViewSortVariableValue("complete");
+  m_sort["incomplete"]    = new ViewSortReverse(new ViewSortVariableValue("complete"));
 
   m_sort["state_changed"]         = new ViewSortVariableValue("state_changed");
   m_sort["state_changed_reverse"] = new ViewSortReverse(new ViewSortVariableValue("state_changed"));
 
   m_filter["started"]     = new ViewFilterVariableValue("state", 1);
   m_filter["stopped"]     = new ViewFilterVariableValue("state", 0);
+  m_filter["complete"]    = new ViewFilterVariableValue("complete", 1);
+  m_filter["incomplete"]  = new ViewFilterVariableValue("complete", 0);
 }
 
 void
 ViewManager::clear() {
-  std::for_each(begin(), end(), rak::call_delete<ViewDownloads>());
+  std::for_each(begin(), end(), rak::call_delete<View>());
   std::for_each(m_sort.begin(), m_sort.end(), rak::on(rak::mem_ptr_ref(&sort_map::value_type::second), rak::call_delete<ViewSort>()));
 
   base_type::clear();
@@ -144,7 +148,7 @@ ViewManager::insert(const std::string& name) {
   if (find(name) != end())
     throw torrent::internal_error("ViewManager::insert(...) name already inserted.");
 
-  ViewDownloads* view = new ViewDownloads();
+  View* view = new View();
   view->initialize(name, m_list);
 
   return base_type::insert(end(), view);
@@ -152,12 +156,12 @@ ViewManager::insert(const std::string& name) {
 
 ViewManager::iterator
 ViewManager::find(const std::string& name) {
-  return std::find_if(begin(), end(), rak::equal(name, std::mem_fun(&ViewDownloads::name)));
+  return std::find_if(begin(), end(), rak::equal(name, std::mem_fun(&View::name)));
 }
 
 ViewManager::iterator
 ViewManager::find_throw(const std::string& name) {
-  iterator itr = std::find_if(begin(), end(), rak::equal(name, std::mem_fun(&ViewDownloads::name)));
+  iterator itr = std::find_if(begin(), end(), rak::equal(name, std::mem_fun(&View::name)));
 
   if (itr == end())
     throw torrent::input_error("Could not find view: " + name);
@@ -167,7 +171,7 @@ ViewManager::find_throw(const std::string& name) {
 
 inline ViewManager::sort_list
 ViewManager::build_sort_list(const sort_args& args) {
-  ViewDownloads::sort_list sortList;
+  View::sort_list sortList;
   sortList.reserve(args.size());
 
   for (sort_args::const_iterator itr = args.begin(), last = args.end(); itr != last; ++itr) {
@@ -211,7 +215,7 @@ ViewManager::set_sort_current(const std::string& name, const sort_args& sort) {
 
 inline ViewManager::filter_list
 ViewManager::build_filter_list(const filter_args& args) {
-  ViewDownloads::filter_list filterList;
+  View::filter_list filterList;
   filterList.reserve(args.size());
 
   for (filter_args::const_iterator itr = args.begin(), last = args.end(); itr != last; ++itr) {

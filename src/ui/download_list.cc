@@ -47,7 +47,7 @@
 #include "core/download.h"
 #include "core/download_list.h"
 #include "core/manager.h"
-#include "core/view_downloads.h"
+#include "core/view.h"
 #include "core/view_manager.h"
 
 #include "input/bindings.h"
@@ -130,7 +130,7 @@ DownloadList::activate() {
 
   m_control->input()->push_front(m_bindings);
 
-  m_control->core()->download_list().slot_map_erase()["0_download_list"] = sigc::mem_fun(this, &DownloadList::receive_download_erased);
+  m_control->core()->download_list()->slot_map_erase()["0_download_list"] = sigc::mem_fun(this, &DownloadList::receive_download_erased);
 
   activate_display(DISPLAY_DOWNLOAD_LIST);
 }
@@ -200,7 +200,8 @@ DownloadList::receive_start_download() {
   if (m_view->focus() == m_view->end())
     return;
 
-  m_control->core()->download_list().start(*m_view->focus());
+  m_control->core()->download_list()->start(*m_view->focus());
+  m_view->set_last_changed();
 }
 
 void
@@ -209,9 +210,11 @@ DownloadList::receive_stop_download() {
     return;
 
   if ((*m_view->focus())->download()->is_active())
-    m_control->core()->download_list().stop(*m_view->focus());
+    m_control->core()->download_list()->stop(*m_view->focus());
   else
-    m_control->core()->download_list().erase(*m_view->focus());
+    m_control->core()->download_list()->erase(*m_view->focus());
+
+  m_view->set_last_changed();
 }
 
 void
@@ -219,7 +222,8 @@ DownloadList::receive_close_download() {
   if (m_view->focus() == m_view->end())
     return;
 
-  m_control->core()->download_list().close(*m_view->focus());
+  m_control->core()->download_list()->close(*m_view->focus());
+  m_view->set_last_changed();
 }
 
 void
@@ -247,6 +251,7 @@ DownloadList::receive_exit_download() {
   delete m_uiDownload;
   m_uiDownload = NULL;
 
+  m_view->set_last_changed();
   activate();
 
   m_control->display()->adjust_layout();
@@ -273,7 +278,8 @@ DownloadList::receive_check_hash() {
   if (m_view->focus() == m_view->end())
     return;
 
-  m_control->core()->check_hash(*m_view->focus());
+  // Catch here?
+  m_control->core()->download_list()->check_hash(*m_view->focus());
 }
 
 void
@@ -419,10 +425,11 @@ DownloadList::setup_keys() {
   (*m_bindings)['l']           = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_change), DISPLAY_LOG);
 
   (*m_bindings)['1']           = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_change_view), "main");
-  (*m_bindings)['2']           = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_change_view), "started");
-  (*m_bindings)['3']           = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_change_view), "stopped");
-  (*m_bindings)['4']           = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_change_view), "finished");
-  (*m_bindings)['5']           = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_change_view), "incomplete");
+  (*m_bindings)['2']           = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_change_view), "name");
+  (*m_bindings)['3']           = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_change_view), "started");
+  (*m_bindings)['4']           = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_change_view), "stopped");
+  (*m_bindings)['5']           = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_change_view), "complete");
+  (*m_bindings)['6']           = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_change_view), "incomplete");
 
   m_uiArray[DISPLAY_LOG]->get_bindings()[' '] = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_change), DISPLAY_DOWNLOAD_LIST);
 }

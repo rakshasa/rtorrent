@@ -141,7 +141,7 @@ DownloadFactory::receive_success() {
   if (m_stream == NULL)
     throw torrent::client_error("DownloadFactory::receive_success() called on an object with m_stream == NULL");
 
-  Download* download = m_manager->download_list().create(m_stream, m_printLog);
+  Download* download = m_manager->download_list()->create(m_stream, m_printLog);
 
   if (download == NULL) {
     // core::Manager should already have added the error message to
@@ -166,7 +166,7 @@ DownloadFactory::receive_success() {
 
   initialize_rtorrent(download, rtorrent);
 
-  if (m_manager->download_list().insert(download) == m_manager->download_list().end()) {
+  if (m_manager->download_list()->insert(download) == m_manager->download_list()->end()) {
     // ATM doesn't really ever get here.
     delete download;
 
@@ -191,7 +191,7 @@ DownloadFactory::receive_success() {
       download->variable()->set("directory", rtorrent->get_key("directory"));
 
     if (download->variable()->get_value("state") == 1)
-      m_manager->download_list().resume(download);
+      m_manager->download_list()->resume(download);
 
   } else {
     download->variable()->set("directory", m_variables.get("directory"));
@@ -201,7 +201,7 @@ DownloadFactory::receive_success() {
 
     // Use the state thingie here, move below.
     if (m_start)
-      m_manager->download_list().start(download);
+      m_manager->download_list()->start(download);
 
     m_manager->download_store().save(download);
   }
@@ -233,6 +233,9 @@ DownloadFactory::initialize_rtorrent(Download* download, torrent::Object* rtorre
 	     rtorrent->get_key("state_changed").as_value() > cachedTime.seconds() || rtorrent->get_key("state_changed").as_value() == 0) {
     rtorrent->insert_key("state_changed", cachedTime.seconds());
   }
+
+  if (!rtorrent->has_key_value("complete"))
+    rtorrent->insert_key("complete", (int64_t)0);
 
   if (!rtorrent->has_key_string("tied_to_file"))
     rtorrent->insert_key("tied_to_file", std::string());

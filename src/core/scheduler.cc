@@ -42,7 +42,7 @@
 #include "download.h"
 #include "download_list.h"
 #include "scheduler.h"
-#include "view_downloads.h"
+#include "view.h"
 
 namespace core {
 
@@ -59,7 +59,7 @@ Scheduler::~Scheduler() {
 }
 
 void
-Scheduler::set_view(ViewDownloads* view) {
+Scheduler::set_view(View* view) {
   m_view = view;
 }
 
@@ -80,7 +80,7 @@ Scheduler::update() {
   // inactive we can switch with.
   size_type target = m_maxActive - std::min(m_cycle, m_maxActive);
 
-  for (ViewDownloads::iterator itr = m_view->begin(), last = m_view->end(); curActive > target; ++itr) {
+  for (View::iterator itr = m_view->begin(), last = m_view->end(); curActive > target; ++itr) {
     if (itr == last)
       throw torrent::internal_error("Scheduler::update() loop bork.");
 
@@ -92,7 +92,7 @@ Scheduler::update() {
 
   m_view->sort();
 
-  for (ViewDownloads::iterator itr = m_view->begin(), last = m_view->end(); curActive < m_maxActive; ++itr) {
+  for (View::iterator itr = m_view->begin(), last = m_view->end(); curActive < m_maxActive; ++itr) {
     if (itr == last)
       throw torrent::internal_error("Scheduler::update() loop bork.");
 

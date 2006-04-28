@@ -44,7 +44,7 @@
 #include "core/download_list.h"
 
 namespace core {
-  class ViewDownloads;
+  class View;
 }
 
 namespace display {
@@ -56,12 +56,12 @@ public:
 
   virtual void        redraw();
 
-  void                set_view(core::ViewDownloads* l);
+  void                set_view(core::View* l);
 
 private:
-  core::ViewDownloads* m_view;
+  core::View*         m_view;
 
-  sigc::connection     m_connChanged;
+  sigc::connection    m_connChanged;
 };
 
 }

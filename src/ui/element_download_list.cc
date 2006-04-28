@@ -70,7 +70,7 @@ ElementDownloadList::disable(Control* c) {
 }
 
 void
-ElementDownloadList::set_view(core::ViewDownloads* l) {
+ElementDownloadList::set_view(core::View* l) {
   m_view = l;
 
   if (m_window == NULL)

@@ -41,23 +41,23 @@
 #include <string>
 #include <rak/unordered_vector.h>
 
-#include "view_downloads.h"
+#include "view.h"
 
 namespace core {
 
-class ViewDownloads;
+class View;
 class ViewSort;
 
-class ViewManager : public rak::unordered_vector<ViewDownloads*> {
+class ViewManager : public rak::unordered_vector<View*> {
 public:
-  typedef rak::unordered_vector<ViewDownloads*> base_type;
+  typedef rak::unordered_vector<View*> base_type;
 
   typedef std::map<std::string, ViewSort*>      sort_map;
-  typedef ViewDownloads::sort_list              sort_list;
+  typedef View::sort_list                       sort_list;
   typedef std::list<std::string>                sort_args;
   
   typedef std::map<std::string, ViewFilter*>    filter_map;
-  typedef ViewDownloads::filter_list            filter_list;
+  typedef View::filter_list                     filter_list;
   typedef std::list<std::string>                filter_args;
   
   using base_type::iterator;
@@ -92,8 +92,8 @@ public:
   iterator            find(const std::string& name);
   iterator            find_throw(const std::string& name);
 
-  // If ViewDownloads::last_changed() is less than 'timeout' seconds
-  // ago, don't sort.
+  // If View::last_changed() is less than 'timeout' seconds ago, don't
+  // sort.
   //
   // Find a better name for 'timeout'.
   void                sort(const std::string& name, uint32_t timeout = 0);

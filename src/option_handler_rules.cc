@@ -98,17 +98,17 @@ apply_load_start(Control* m, const std::string& arg) {
 
 void
 apply_stop_untied(Control* m, __UNUSED const std::string& arg) {
-  core::Manager::DListItr itr = m->core()->download_list().begin();
+  core::Manager::DListItr itr = m->core()->download_list()->begin();
 
-  while ((itr = std::find_if(itr, m->core()->download_list().end(),
+  while ((itr = std::find_if(itr, m->core()->download_list()->end(),
 			     rak::on(rak::bind2nd(std::mem_fun(&core::Download::variable_string), "tied_to_file"),
 				     std::not1(std::mem_fun_ref(&std::string::empty)))))
-	 != m->core()->download_list().end()) {
+	 != m->core()->download_list()->end()) {
     rak::file_stat fs;
 
     if (!fs.update(rak::path_expand((*itr)->variable_string("tied_to_file")))) {
       (*itr)->variable()->set("tied_to_file", std::string());
-      m->core()->download_list().stop(*itr);
+      m->core()->download_list()->stop(*itr);
     }
 
     ++itr;
@@ -117,18 +117,18 @@ apply_stop_untied(Control* m, __UNUSED const std::string& arg) {
 
 void
 apply_remove_untied(Control* m, __UNUSED const std::string& arg) {
-  core::Manager::DListItr itr = m->core()->download_list().begin();
+  core::Manager::DListItr itr = m->core()->download_list()->begin();
 
-  while ((itr = std::find_if(itr, m->core()->download_list().end(),
+  while ((itr = std::find_if(itr, m->core()->download_list()->end(),
 			     rak::on(rak::bind2nd(std::mem_fun(&core::Download::variable_string), "tied_to_file"),
 				     std::not1(std::mem_fun_ref(&std::string::empty)))))
-	 != m->core()->download_list().end()) {
+	 != m->core()->download_list()->end()) {
     rak::file_stat fs;
 
     if (!fs.update(rak::path_expand((*itr)->variable_string("tied_to_file")))) {
       (*itr)->variable()->set("tied_to_file", std::string());
-      m->core()->download_list().stop(*itr);
-      itr = m->core()->download_list().erase(itr);
+      m->core()->download_list()->stop(*itr);
+      itr = m->core()->download_list()->erase(itr);
 
     } else {
       ++itr;
@@ -145,7 +145,7 @@ void
 apply_enable_trackers(Control* m, __UNUSED const std::string& arg) {
   bool state = (arg != "no");
 
-  for (core::Manager::DListItr itr = m->core()->download_list().begin(), last = m->core()->download_list().end(); itr != last; ++itr) {
+  for (core::Manager::DListItr itr = m->core()->download_list()->begin(), last = m->core()->download_list()->end(); itr != last; ++itr) {
 
     torrent::TrackerList tl = (*itr)->download()->tracker_list();
 

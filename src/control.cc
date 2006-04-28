@@ -74,8 +74,8 @@ Control::Control() :
   m_tick(0) {
 
   m_core        = new core::Manager();
-  m_viewManager = new core::ViewManager(&m_core->download_list());
-  m_scheduler   = new core::Scheduler(&m_core->download_list());
+  m_viewManager = new core::ViewManager(m_core->download_list());
+  m_scheduler   = new core::Scheduler(m_core->download_list());
 
   m_inputStdin->slot_pressed(sigc::mem_fun(m_input, &input::Manager::pressed));
 

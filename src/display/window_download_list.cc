@@ -39,7 +39,7 @@
 #include <rak/algorithm.h>
 
 #include "core/download.h"
-#include "core/view_downloads.h"
+#include "core/view.h"
 
 #include "canvas.h"
 #include "globals.h"
@@ -53,7 +53,7 @@ WindowDownloadList::~WindowDownloadList() {
 }
 
 void
-WindowDownloadList::set_view(core::ViewDownloads* l) {
+WindowDownloadList::set_view(core::View* l) {
   m_view = l;
 
   m_connChanged.disconnect();
@@ -76,7 +76,7 @@ WindowDownloadList::redraw() {
   if (m_view->empty() || m_canvas->get_width() < 5 || m_canvas->get_height() < 2)
     return;
 
-  typedef std::pair<core::ViewDownloads::iterator, core::ViewDownloads::iterator> Range;
+  typedef std::pair<core::View::iterator, core::View::iterator> Range;
 
   Range range = rak::advance_bidirectional(m_view->begin(),
 					   m_view->focus() != m_view->end() ? m_view->focus() : m_view->begin(),

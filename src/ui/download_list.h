@@ -47,7 +47,7 @@ class Control;
 
 namespace core {
   class Download;
-  class ViewDownloads;
+  class View;
 }
 
 namespace input {
@@ -159,7 +159,7 @@ private:
 
   Download*           m_uiDownload;
 
-  core::ViewDownloads* m_view;
+  core::View*         m_view;
 
   Control*            m_control;
   input::Bindings*    m_bindings;

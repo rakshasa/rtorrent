@@ -45,7 +45,7 @@
 class Control;
 
 namespace core {
-  class ViewDownloads;
+  class View;
 }
 
 namespace ui {
@@ -59,11 +59,11 @@ public:
   void                activate(Control* c, MItr mItr);
   void                disable(Control* c);
 
-  void                set_view(core::ViewDownloads* l);
+  void                set_view(core::View* l);
 
 private:
   WDownloadList*       m_window;
-  core::ViewDownloads* m_view;
+  core::View*          m_view;
 };
 
 }
