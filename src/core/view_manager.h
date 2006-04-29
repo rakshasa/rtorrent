@@ -45,7 +45,6 @@
 
 namespace core {
 
-class View;
 class ViewSort;
 
 class ViewManager : public rak::unordered_vector<View*> {

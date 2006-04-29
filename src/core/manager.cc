@@ -155,13 +155,6 @@ Manager::initialize_second() {
   m_downloadList->slot_map_erase()["1_hash_queue_remove"]    = sigc::mem_fun(m_hashQueue, &HashQueue::remove);
   m_downloadList->slot_map_erase()["1_store_remove"]         = sigc::mem_fun(m_downloadStore, &DownloadStore::remove);
   m_downloadList->slot_map_erase()["1_delete_tied"]          = sigc::ptr_fun(&delete_tied);
-
-  m_downloadList->slot_map_open()["1_download_open"]         = sigc::mem_fun(&Download::call<void, &torrent::Download::open>);
-
-  // Currently does not call stop, might want to add a function that
-  // checks if we're running, and if so stop?
-  m_downloadList->slot_map_close()["1_hash_queue_remove"]    = sigc::mem_fun(m_hashQueue, &HashQueue::remove);
-  m_downloadList->slot_map_close()["2_download_close"]       = sigc::mem_fun(&Download::call<void, &torrent::Download::close>);
 }
 
 void
@@ -177,10 +170,16 @@ Manager::cleanup() {
 
 void
 Manager::shutdown(bool force) {
+  // This doesn't trigger a compiler error on gcc-3.4.5 for some reason.
+//   if (!force)
+//     std::for_each(m_downloadList->begin(), m_downloadList->end(), std::bind1st(std::mem_fun(&DownloadList::pause), &m_downloadList));
+//   else
+//     std::for_each(m_downloadList->begin(), m_downloadList->end(), std::bind1st(std::mem_fun(&DownloadList::close), &m_downloadList));
+
   if (!force)
-    std::for_each(m_downloadList->begin(), m_downloadList->end(), std::bind1st(std::mem_fun(&DownloadList::pause), &m_downloadList));
+    std::for_each(m_downloadList->begin(), m_downloadList->end(), std::bind1st(std::mem_fun(&DownloadList::pause), m_downloadList));
   else
-    std::for_each(m_downloadList->begin(), m_downloadList->end(), std::bind1st(std::mem_fun(&DownloadList::close), &m_downloadList));
+    std::for_each(m_downloadList->begin(), m_downloadList->end(), std::bind1st(std::mem_fun(&DownloadList::close), m_downloadList));
 }
 
 void

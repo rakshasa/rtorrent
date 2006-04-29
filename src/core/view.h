@@ -41,7 +41,7 @@
 // elements get accessed often but not modified, better with cache
 // locality.
 //
-// ViewDownloads::m_size indicates the number of Download's that
+// View::m_size indicates the number of Download's that
 // remain visible, e.g. has not been filtered out. The Download's that
 // were filtered are still in the underlying vector, but cannot be
 // accessed through the normal stl container functions.
@@ -64,7 +64,7 @@ class DownloadList;
 class ViewSort;
 class ViewFilter;
 
-class ViewDownloads : public std::vector<core::Download*> {
+class View : public std::vector<core::Download*> {
 public:
   typedef std::vector<core::Download*>   base_type;
   typedef sigc::signal0<void>            signal_type;
@@ -81,8 +81,8 @@ public:
   using base_type::begin;
   using base_type::rbegin;
 
-  ViewDownloads() {}
-  ~ViewDownloads();
+  View() {}
+  ~View();
 
   void                initialize(const std::string& name, core::DownloadList* list);
 
@@ -130,8 +130,8 @@ public:
   signal_type&        signal_changed()                        { return m_signalChanged; }
 
 private:
-  ViewDownloads(const ViewDownloads&);
-  void operator = (const ViewDownloads&);
+  View(const View&);
+  void operator = (const View&);
 
   void                received_insert(core::Download* d);
   void                received_erase(core::Download* d);

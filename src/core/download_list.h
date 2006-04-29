@@ -83,7 +83,10 @@ public:
   iterator            erase(iterator itr);
 
   void                open(Download* d);
+  void                open_throw(Download* d);
+
   void                close(Download* d);
+  void                close_throw(Download* d);
 
   void                start(Download* d);
   void                stop(Download* d);
@@ -124,6 +127,8 @@ public:
   bool                has_slot_finished(const std::string& key) const   { return m_slotMapFinished.find(key) != m_slotMapFinished.end(); }
 
 private:
+  inline void         check_contains(Download* d);
+
   void                clear();
 
   void                received_finished(Download* d);

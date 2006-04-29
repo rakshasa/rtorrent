@@ -56,6 +56,14 @@
 
 namespace core {
 
+inline void
+DownloadList::check_contains(Download* d) {
+#ifdef USE_EXTRA_DEBUG
+  if (std::find(begin(), end(), d) == end())
+    throw torrent::internal_error("DownloadList::check_contains(...) failed.");
+#endif
+}
+
 struct download_list_call {
   download_list_call(Download* d) : m_download(d) {}
 
@@ -95,11 +103,11 @@ DownloadList::create(std::istream* str, bool printLog) {
 }
 
 DownloadList::iterator
-DownloadList::insert(Download* d) {
-  iterator itr = base_type::insert(end(), d);
+DownloadList::insert(Download* download) {
+  iterator itr = base_type::insert(end(), download);
 
   try {
-    (*itr)->download()->signal_download_done(sigc::bind(sigc::mem_fun(*this, &DownloadList::received_finished), d));
+    (*itr)->download()->signal_download_done(sigc::bind(sigc::mem_fun(*this, &DownloadList::received_finished), download));
     std::for_each(m_slotMapInsert.begin(), m_slotMapInsert.end(), download_list_call(*itr));
 
   } catch (torrent::local_error& e) {
@@ -112,8 +120,10 @@ DownloadList::insert(Download* d) {
 }
 
 void
-DownloadList::erase(Download* d) {
-  erase(std::find(begin(), end(), d));
+DownloadList::erase(Download* download) {
+  check_contains(download);
+
+  erase(std::find(begin(), end(), download));
 }
 
 DownloadList::iterator
@@ -123,7 +133,7 @@ DownloadList::erase(iterator itr) {
 
   // Make safe to erase active downloads.
   if ((*itr)->download()->is_active())
-    throw std::logic_error("DownloadList::erase(...) called on an active download.");
+    throw torrent::internal_error("DownloadList::erase(...) called on an active download.");
 
   std::for_each(m_slotMapErase.begin(), m_slotMapErase.end(), download_list_call(*itr));
 
@@ -134,11 +144,10 @@ DownloadList::erase(iterator itr) {
 }
 
 void
-DownloadList::open(Download* d) {
+DownloadList::open(Download* download) {
   try {
 
-    if (!d->download()->is_open())
-      std::for_each(m_slotMapOpen.begin(), m_slotMapOpen.end(), download_list_call(d));
+    open_throw(download);
 
   } catch (torrent::local_error& e) {
     control->core()->push_log(e.what());
@@ -146,14 +155,22 @@ DownloadList::open(Download* d) {
 }
 
 void
-DownloadList::close(Download* d) {
+DownloadList::open_throw(Download* download) {
+  check_contains(download);
+
+  if (download->download()->is_open())
+    return;
+  
+  download->download()->open();
+
+  std::for_each(m_slotMapOpen.begin(), m_slotMapOpen.end(), download_list_call(download));
+}
+
+void
+DownloadList::close(Download* download) {
   try {
 
-    if (d->download()->is_active())
-      std::for_each(m_slotMapStop.begin(), m_slotMapStop.end(), download_list_call(d));
-
-    if (d->download()->is_open())
-      std::for_each(m_slotMapClose.begin(), m_slotMapClose.end(), download_list_call(d));
+    close_throw(download);
 
   } catch (torrent::local_error& e) {
     control->core()->push_log(e.what());
@@ -161,25 +178,49 @@ DownloadList::close(Download* d) {
 }
 
 void
-DownloadList::start(Download* d) {
-  d->variable()->set("state", (int64_t)1);
+DownloadList::close_throw(Download* download) {
+  check_contains(download);
 
-  resume(d);
+  if (!download->download()->is_open())
+    return;
+
+  if (download->download()->is_active())
+    pause(download);
+  
+  control->core()->hash_queue()->remove(download);
+  download->download()->close();
+
+  std::for_each(m_slotMapClose.begin(), m_slotMapClose.end(), download_list_call(download));
 }
 
 void
-DownloadList::stop(Download* d) {
-  d->variable()->set("state", (int64_t)0);
+DownloadList::start(Download* download) {
+  check_contains(download);
 
-  pause(d);
+  download->variable()->set("state", (int64_t)1);
+
+  resume(download);
+}
+
+void
+DownloadList::stop(Download* download) {
+  check_contains(download);
+
+  download->variable()->set("state", (int64_t)0);
+
+  pause(download);
 }
 
 void
 DownloadList::resume(Download* download) {
+  check_contains(download);
+
   try {
 
-    if (!download->download()->is_open())
-      std::for_each(m_slotMapOpen.begin(), m_slotMapOpen.end(), download_list_call(download));
+    if (download->download()->is_active())
+      return;
+
+    open_throw(download);
 
     if (download->download()->is_hash_checked()) {
 
@@ -209,13 +250,17 @@ DownloadList::resume(Download* download) {
 
 void
 DownloadList::pause(Download* download) {
+  check_contains(download);
+
   try {
+
+    if (!download->download()->is_active())
+      return;
 
     download->download()->stop();
     download->download()->hash_resume_save();
     
-    if (download->download()->is_active())
-      std::for_each(m_slotMapStop.begin(), m_slotMapStop.end(), download_list_call(download));
+    std::for_each(m_slotMapStop.begin(), m_slotMapStop.end(), download_list_call(download));
 
     download->variable()->set("state_changed", cachedTime.seconds());
 
@@ -236,16 +281,26 @@ DownloadList::clear() {
 }
 
 void
-DownloadList::check_hash(Download* d) {
-  close(d);
-  d->download()->hash_resume_clear();
-  open(d);
+DownloadList::check_hash(Download* download) {
+  check_contains(download);
 
-  control->core()->hash_queue()->insert(d);
+  try {
+
+    close_throw(download);
+    download->download()->hash_resume_clear();
+    open_throw(download);
+
+    control->core()->hash_queue()->insert(download);
+
+  } catch (torrent::local_error& e) {
+    control->core()->push_log(e.what());
+  }
 }
 
 void
 DownloadList::hash_done(Download* download) {
+  check_contains(download);
+
   if (!download->download()->is_hash_checked() || download->download()->is_hash_checking())
     throw torrent::internal_error("DownloadList::hash_done(...) download in invalid state.");
 
@@ -274,6 +329,8 @@ DownloadList::hash_done(Download* download) {
 
 void
 DownloadList::received_finished(Download* download) {
+  check_contains(download);
+
   if (control->variable()->get_value("check_hash")) {
     // Set some 'checking_finished_thingie' variable to make hash_done
     // trigger correctly, also so it can bork on missing data.
@@ -287,6 +344,8 @@ DownloadList::received_finished(Download* download) {
 
 void
 DownloadList::confirm_finished(Download* download) {
+  check_contains(download);
+
   // FIXME
   //torrent::download_set_priority(m_download, 2);
 
