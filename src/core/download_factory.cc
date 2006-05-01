@@ -54,6 +54,7 @@
 
 #include "download.h"
 #include "download_factory.h"
+#include "download_store.h"
 
 namespace core {
 
@@ -103,7 +104,7 @@ DownloadFactory::receive_load() {
   if (std::strncmp(m_uri.c_str(), "http://", 7) == 0) {
     // Http handling here.
     m_stream = new std::stringstream;
-    HttpQueue::iterator itr = m_manager->http_queue().insert(m_uri, m_stream);
+    HttpQueue::iterator itr = m_manager->http_queue()->insert(m_uri, m_stream);
 
     (*itr)->signal_done().slots().push_front(sigc::mem_fun(*this, &DownloadFactory::receive_loaded));
     (*itr)->signal_failed().slots().push_front(sigc::mem_fun(*this, &DownloadFactory::receive_failed));
@@ -190,7 +191,10 @@ DownloadFactory::receive_success() {
     else
       download->variable()->set("directory", rtorrent->get_key("directory"));
 
-    if (download->variable()->get_value("state") == 1)
+    // This torrent was queued for hashing or hashing when the session
+    // file was saved. Or it was in a started state.
+    if (download->variable()->get_value("hashing") != Download::variable_hashing_stopped ||
+	download->variable()->get_value("state") != 0)
       m_manager->download_list()->resume(download);
 
   } else {
@@ -203,7 +207,7 @@ DownloadFactory::receive_success() {
     if (m_start)
       m_manager->download_list()->start(download);
 
-    m_manager->download_store().save(download);
+    m_manager->download_store()->save(download);
   }
 
   m_slotFinished();
@@ -236,6 +240,9 @@ DownloadFactory::initialize_rtorrent(Download* download, torrent::Object* rtorre
 
   if (!rtorrent->has_key_value("complete"))
     rtorrent->insert_key("complete", (int64_t)0);
+
+  if (!rtorrent->has_key_value("hashing"))
+    rtorrent->insert_key("hashing", Download::variable_hashing_stopped);
 
   if (!rtorrent->has_key_string("tied_to_file"))
     rtorrent->insert_key("tied_to_file", std::string());

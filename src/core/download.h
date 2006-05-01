@@ -55,6 +55,10 @@ public:
   typedef download_type::ConnectionType connection_type;
   typedef utils::VariableMap            variable_map_type;
 
+  static const int64_t variable_hashing_stopped = 0;
+  static const int64_t variable_hashing_started = 1;
+  static const int64_t variable_hashing_last    = 2;
+
   Download(download_type d);
   ~Download();
 
@@ -73,7 +77,9 @@ public:
   tracker_list_type*  tracker_list()                           { return &m_trackerList; }
 
   const std::string&  info_hash() const                        { return m_download.info_hash(); }
+
   const std::string&  message() const                          { return m_message; }
+  void                set_message(const std::string& msg)      { m_message = msg; }
 
   uint32_t            chunks_failed() const                    { return m_chunksFailed; }
 

@@ -50,6 +50,7 @@
 
 #include "core/download.h"
 #include "core/download_factory.h"
+#include "core/download_store.h"
 #include "core/manager.h"
 #include "display/canvas.h"
 #include "display/window.h"
@@ -97,7 +98,7 @@ parse_options(Control* c, int argc, char** argv) {
 void
 load_session_torrents(Control* c) {
   // Load session torrents.
-  std::list<std::string> l = c->core()->download_store().get_formated_entries().make_list();
+  std::list<std::string> l = c->core()->download_store()->get_formated_entries().make_list();
 
   for (std::list<std::string>::iterator first = l.begin(), last = l.end(); first != last; ++first) {
     core::DownloadFactory* f = new core::DownloadFactory(*first, c->core());
@@ -164,8 +165,6 @@ main(int argc, char** argv) {
 
     // Currently not doing any sorting on main.
     control->variable()->process_command("view_add = main");
-    control->variable()->process_command("view_sort_new = main");
-    control->variable()->process_command("view_sort_current = main");
 
     control->variable()->process_command("view_add = name");
     control->variable()->process_command("view_sort_new = name,name");
@@ -192,13 +191,14 @@ main(int argc, char** argv) {
     control->variable()->process_command("view_sort_current = incomplete,state_changed_reverse");
 
     control->variable()->process_command("schedule = view_main,10,10,view_sort=main,20");
-    control->variable()->process_command("schedule = view_name,10,10,view_sort=main,20");
-    control->variable()->process_command("schedule = view_started,10,10,view_sort=started,20");
-    control->variable()->process_command("schedule = view_stopped,10,10,view_sort=stopped,20");
-    control->variable()->process_command("schedule = view_complete,10,10,view_sort=complete,20");
-    control->variable()->process_command("schedule = view_incomplete,10,10,view_sort=incomplete,20");
+    control->variable()->process_command("schedule = view_name,10,10,view_sort=name,20");
+    control->variable()->process_command("schedule = view_started,10,10,view_sort=started,5");
+    control->variable()->process_command("schedule = view_stopped,10,10,view_sort=stopped,5");
+    control->variable()->process_command("schedule = view_complete,10,10,view_sort=complete,5");
+    control->variable()->process_command("schedule = view_incomplete,10,10,view_sort=incomplete,5");
 
     //control->variable()->process_command("schedule = scheduler,10,10,download_scheduler=");
+    control->variable()->process_command("schedule = session_save,1800,1800,session_save=");
 
     // Changing these will bork the (non-existant) scheduler.
     control->variable()->process_command("view_add = scheduler");

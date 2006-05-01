@@ -77,8 +77,6 @@ public:
   void                process_command(const std::string& command);
   void                process_stream(std::istream* str);
   bool                process_file(const std::string& path);
-  void                process_file_throw(const std::string& path);
-  void                process_file_nothrow(const std::string& path);
 
 private:
   VariableMap(const VariableMap&);

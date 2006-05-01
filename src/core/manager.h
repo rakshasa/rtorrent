@@ -40,8 +40,6 @@
 #include <iosfwd>
 
 #include "download_list.h"
-#include "download_store.h"
-#include "http_queue.h"
 #include "poll_manager.h"
 #include "log.h"
 
@@ -51,7 +49,9 @@ namespace torrent {
 
 namespace core {
 
+class DownloadStore;
 class HashQueue;
+class HttpQueue;
 
 class Manager {
 public:
@@ -62,11 +62,12 @@ public:
   Manager();
   ~Manager();
 
-  DownloadStore&      download_store()                { return m_downloadStore; }
-  HttpQueue&          http_queue()                    { return m_httpQueue; }
 
   DownloadList*       download_list()                     { return m_downloadList; }
+  DownloadStore*      download_store()                    { return m_downloadStore; }
+
   HashQueue*          hash_queue()                        { return m_hashQueue; }
+  HttpQueue*          http_queue()                        { return m_httpQueue; }
 
   PollManager*        get_poll_manager()                  { return m_pollManager; }
   Log&                get_log_important()                 { return m_logImportant; }
@@ -104,9 +105,9 @@ private:
   void                receive_http_failed(std::string msg);
 
   DownloadList*       m_downloadList;
-  DownloadStore       m_downloadStore;
+  DownloadStore*      m_downloadStore;
   HashQueue*          m_hashQueue;
-  HttpQueue           m_httpQueue;
+  HttpQueue*          m_httpQueue;
 
   PollManager*        m_pollManager;
   Log                 m_logImportant;

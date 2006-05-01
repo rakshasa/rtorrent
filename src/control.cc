@@ -41,6 +41,7 @@
 #include <torrent/connection_manager.h>
 
 #include "core/manager.h"
+#include "core/download_store.h"
 #include "core/view_manager.h"
 #include "core/scheduler.h"
 
@@ -110,7 +111,7 @@ Control::initialize() {
 
   m_core->initialize_second();
   m_core->listen_open();
-  m_core->download_store().enable(m_variables->get_value("session_lock"));
+  m_core->download_store()->enable(m_variables->get_value("session_lock"));
 
   m_scheduler->set_view(*m_viewManager->find_throw("scheduler"));
 
@@ -125,7 +126,7 @@ Control::cleanup() {
 
   m_inputStdin->remove(m_core->get_poll_manager()->get_torrent_poll());
 
-  m_core->download_store().disable();
+  m_core->download_store()->disable();
 
   m_ui->cleanup();
   m_core->cleanup();

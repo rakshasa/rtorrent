@@ -36,8 +36,8 @@
 
 #include "config.h"
 
-#include <cerrno>
 #include <stdexcept>
+#include <rak/error_number.h>
 
 #include "poll_manager.h"
 
@@ -93,8 +93,8 @@ PollManager::~PollManager() {
 
 void
 PollManager::check_error() {
-  if (errno != EINTR)
-    throw std::runtime_error("Poll::work(): select error");
+  if (rak::error_number::current().value() != rak::error_number::e_intr)
+    throw std::runtime_error("Poll::work(): " + std::string(rak::error_number::current().c_str()));
 }
 
 }

@@ -198,15 +198,4 @@ VariableMap::process_file(const std::string& path) {
   return true;
 }
 
-void
-VariableMap::process_file_throw(const std::string& path) {
-  if (!process_file(path))
-    throw torrent::input_error("Could not open option file: " + path);
-}
-
-void
-VariableMap::process_file_nothrow(const std::string& path) {
-  process_file(path);
-}
-
 }

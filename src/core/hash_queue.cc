@@ -49,8 +49,7 @@ namespace core {
 
 void
 HashQueue::insert(Download* download) {
-  if (download->download()->is_hash_checking() ||
-      find(download) != end())
+  if (download->download()->is_hash_checking() || find(download) != end())
     return;
 
   if (download->download()->is_hash_checked()) {

@@ -52,6 +52,7 @@
 #include <torrent/tracker_list.h>
 
 #include "core/download.h"
+#include "core/download_store.h"
 #include "core/manager.h"
 #include "core/scheduler.h"
 #include "core/view_manager.h"
@@ -97,7 +98,7 @@ apply_load_start(Control* m, const std::string& arg) {
 }
 
 void
-apply_stop_untied(Control* m, __UNUSED const std::string& arg) {
+apply_stop_untied(Control* m) {
   core::Manager::DListItr itr = m->core()->download_list()->begin();
 
   while ((itr = std::find_if(itr, m->core()->download_list()->end(),
@@ -116,7 +117,7 @@ apply_stop_untied(Control* m, __UNUSED const std::string& arg) {
 }
 
 void
-apply_remove_untied(Control* m, __UNUSED const std::string& arg) {
+apply_remove_untied(Control* m) {
   core::Manager::DListItr itr = m->core()->download_list()->begin();
 
   while ((itr = std::find_if(itr, m->core()->download_list()->end(),
@@ -272,8 +273,15 @@ apply_view_sort_new(Control* control, const std::string& arg) {
 }
 
 void
-apply_download_scheduler(core::Scheduler* scheduler, __UNUSED const std::string& arg) {
-  scheduler->update();
+apply_import(const std::string& path) {
+  if (!control->variable()->process_file(path))
+    throw torrent::input_error("Could not open option file: " + path);
+}
+
+void
+apply_try_import(const std::string& path) {
+  if (!control->variable()->process_file(path))
+    control->core()->push_log("Could not read resource file: " + path);
 }
 
 void
@@ -287,10 +295,11 @@ initialize_option_handler(Control* c) {
 
   variables->insert("tracker_dump",          new utils::VariableAny(std::string()));
 
-  variables->insert("session",               new utils::VariableStringSlot(rak::mem_fn(&control->core()->download_store(), &core::DownloadStore::path),
-									   rak::mem_fn(&control->core()->download_store(), &core::DownloadStore::set_path)));
+  variables->insert("session",               new utils::VariableStringSlot(rak::mem_fn(control->core()->download_store(), &core::DownloadStore::path),
+									   rak::mem_fn(control->core()->download_store(), &core::DownloadStore::set_path)));
   variables->insert("session_lock",          new utils::VariableBool(true));
   variables->insert("session_on_completion", new utils::VariableBool(true));
+  variables->insert("session_save",          new utils::VariableVoidSlot(rak::mem_fn(c->core()->download_list(), &core::DownloadList::session_save)));
 
   variables->insert("connection_leech",      new utils::VariableAny("leech"));
   variables->insert("connection_seed",       new utils::VariableAny("seed"));
@@ -321,10 +330,8 @@ initialize_option_handler(Control* c) {
   variables->insert("max_open_sockets",      new utils::VariableValueSlot(rak::ptr_fn(&torrent::max_open_sockets), rak::ptr_fn(&torrent::set_max_open_sockets)));
 
   variables->insert("print",                 new utils::VariableStringSlot(rak::value_fn(std::string()), rak::mem_fn(control->core(), &core::Manager::push_log)));
-  variables->insert("import",                new utils::VariableStringSlot(rak::value_fn(std::string()),
-									   rak::mem_fn(control->variable(), &utils::VariableMap::process_file_throw)));
-  variables->insert("try_import",            new utils::VariableStringSlot(rak::value_fn(std::string()),
-									   rak::mem_fn(control->variable(), &utils::VariableMap::process_file_nothrow)));
+  variables->insert("import",                new utils::VariableStringSlot(rak::value_fn(std::string()), rak::ptr_fn(&apply_import)));
+  variables->insert("try_import",            new utils::VariableStringSlot(rak::value_fn(std::string()), rak::ptr_fn(&apply_try_import)));
 
   variables->insert("view_add",              new utils::VariableStringSlot(rak::value_fn(std::string()), rak::mem_fn(c->view_manager(), &core::ViewManager::insert_throw)));
   variables->insert("view_filter",           new utils::VariableStringSlot(rak::value_fn(std::string()), rak::bind_ptr_fn(&apply_view_filter, c)));
@@ -333,12 +340,11 @@ initialize_option_handler(Control* c) {
   variables->insert("view_sort_new",         new utils::VariableStringSlot(rak::value_fn(std::string()), rak::bind_ptr_fn(&apply_view_sort_new, c)));
   variables->insert("view_sort_current",     new utils::VariableStringSlot(rak::value_fn(std::string()), rak::bind_ptr_fn(&apply_view_sort_current, c)));
 
-  variables->insert("schedule",              new utils::VariableStringSlot(rak::value_fn(std::string()),
-									   rak::mem_fn<const std::string&>(c->command_scheduler(), &CommandScheduler::parse)));
+  variables->insert("schedule",              new utils::VariableStringSlot(rak::value_fn(std::string()), rak::mem_fn(c->command_scheduler(), &CommandScheduler::parse)));
   variables->insert("schedule_remove",       new utils::VariableStringSlot(rak::value_fn(std::string()),
 									   rak::mem_fn<const std::string&>(c->command_scheduler(), &CommandScheduler::erase)));
 
-  variables->insert("download_scheduler",    new utils::VariableStringSlot(rak::value_fn(std::string()), rak::bind_ptr_fn(&apply_download_scheduler, c->scheduler())));
+  variables->insert("download_scheduler",    new utils::VariableVoidSlot(rak::mem_fn(control->scheduler(), &core::Scheduler::update)));
 
   variables->insert("send_buffer_size",      new utils::VariableValueSlot(rak::mem_fn(torrent::connection_manager(), &torrent::ConnectionManager::send_buffer_size),
 									  rak::mem_fn(torrent::connection_manager(), &torrent::ConnectionManager::set_send_buffer_size)));
@@ -357,8 +363,8 @@ initialize_option_handler(Control* c) {
 
   variables->insert("load",                  new utils::VariableStringSlot(rak::value_fn(std::string()), rak::bind_ptr_fn(&apply_load, c)));
   variables->insert("load_start",            new utils::VariableStringSlot(rak::value_fn(std::string()), rak::bind_ptr_fn(&apply_load_start, c)));
-  variables->insert("stop_untied",           new utils::VariableStringSlot(rak::value_fn(std::string()), rak::bind_ptr_fn(&apply_stop_untied, c)));
-  variables->insert("remove_untied",         new utils::VariableStringSlot(rak::value_fn(std::string()), rak::bind_ptr_fn(&apply_remove_untied, c)));
+  variables->insert("stop_untied",           new utils::VariableVoidSlot(rak::bind_ptr_fn(&apply_stop_untied, c)));
+  variables->insert("remove_untied",         new utils::VariableVoidSlot(rak::bind_ptr_fn(&apply_remove_untied, c)));
 
   variables->insert("enable_trackers",       new utils::VariableStringSlot(rak::value_fn(std::string()), rak::bind_ptr_fn(&apply_enable_trackers, c)));
   variables->insert("encoding_list",         new utils::VariableStringSlot(rak::value_fn(std::string()), rak::bind_ptr_fn(&apply_encoding_list, c)));

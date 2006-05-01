@@ -156,6 +156,16 @@ VariableObject::set(const torrent::Object& arg) {
 //
 
 const torrent::Object&
+VariableVoidSlot::get() {
+  return m_cache;
+}
+
+void
+VariableVoidSlot::set(const torrent::Object& arg) {
+  m_slotSet();
+}
+
+const torrent::Object&
 VariableValueSlot::get() {
   m_cache = m_slotGet() / m_unit;
 

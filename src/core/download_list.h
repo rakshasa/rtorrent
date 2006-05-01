@@ -72,7 +72,9 @@ public:
   using base_type::empty;
   using base_type::size;
 
-  ~DownloadList() { clear(); }
+  ~DownloadList();
+
+  void                session_save();
 
   // Might move this to DownloadFactory.
   Download*           create(std::istream* str, bool printLog);
@@ -95,7 +97,11 @@ public:
   void                resume(Download* d);
   void                pause(Download* d);
 
+  void                save(Download* d);
+
   void                check_hash(Download* d);
+  void                check_hash_throw(Download* d);
+
   void                hash_done(Download* d);
 
   slot_map&           slot_map_insert()                                 { return m_slotMapInsert; }
@@ -128,8 +134,6 @@ public:
 
 private:
   inline void         check_contains(Download* d);
-
-  void                clear();
 
   void                received_finished(Download* d);
   void                confirm_finished(Download* d);

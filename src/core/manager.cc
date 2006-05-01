@@ -59,7 +59,9 @@
 #include "curl_get.h"
 #include "download.h"
 #include "download_factory.h"
+#include "download_store.h"
 #include "hash_queue.h"
+#include "http_queue.h"
 #include "manager.h"
 #include "poll_manager_epoll.h"
 #include "poll_manager_select.h"
@@ -116,13 +118,19 @@ Manager::Manager() :
   m_portFirst(6890),
   m_portLast(6999) {
 
+  m_downloadStore = new DownloadStore();
   m_downloadList = new DownloadList();
+
+  m_httpQueue = new HttpQueue();
   m_hashQueue = new HashQueue(m_downloadList);
 }
 
 Manager::~Manager() {
-  delete m_hashQueue;
   delete m_downloadList;
+  delete m_hashQueue;
+
+  delete m_downloadStore;
+  delete m_httpQueue;
 }
 
 void
@@ -142,7 +150,7 @@ Manager::initialize_first() {
 void
 Manager::initialize_second() {
   torrent::Http::set_factory(m_pollManager->get_http_stack()->get_http_factory());
-  m_httpQueue.slot_factory(m_pollManager->get_http_stack()->get_http_factory());
+  m_httpQueue->slot_factory(m_pollManager->get_http_stack()->get_http_factory());
 
   CurlStack::global_init();
 
@@ -152,8 +160,6 @@ Manager::initialize_second() {
   m_downloadList->slot_map_insert()["1_connect_storage_log"]  = sigc::bind(sigc::ptr_fun(&connect_signal_storage_log), sigc::mem_fun(m_logComplete, &Log::push_front));
   m_downloadList->slot_map_insert()["1_connect_tracker_dump"] = sigc::bind(sigc::ptr_fun(&connect_signal_tracker_dump), sigc::ptr_fun(&receive_tracker_dump));
 
-  m_downloadList->slot_map_erase()["1_hash_queue_remove"]    = sigc::mem_fun(m_hashQueue, &HashQueue::remove);
-  m_downloadList->slot_map_erase()["1_store_remove"]         = sigc::mem_fun(m_downloadStore, &DownloadStore::remove);
   m_downloadList->slot_map_erase()["1_delete_tied"]          = sigc::ptr_fun(&delete_tied);
 }
 

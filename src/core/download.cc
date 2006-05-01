@@ -70,8 +70,16 @@ Download::Download(download_type d) :
 
   m_variables.insert("connection_leech",   new utils::VariableAny(connection_type_to_string(download_type::CONNECTION_LEECH)));
   m_variables.insert("connection_seed",    new utils::VariableAny(connection_type_to_string(download_type::CONNECTION_SEED)));
+
+  // 0 - stopped
+  // 1 - started
   m_variables.insert("state",              new utils::VariableObject(bencode(), "rtorrent", "state", torrent::Object::TYPE_VALUE));
   m_variables.insert("complete",           new utils::VariableObject(bencode(), "rtorrent", "complete", torrent::Object::TYPE_VALUE));
+
+  // 0 - Not hashing
+  // 1 - Normal hashing
+  // 2 - Download finished, hashing
+  m_variables.insert("hashing",            new utils::VariableObject(bencode(), "rtorrent", "hashing", torrent::Object::TYPE_VALUE));
   m_variables.insert("tied_to_file",       new utils::VariableObject(bencode(), "rtorrent", "tied_to_file", torrent::Object::TYPE_STRING));
 
   // The "state_changed" variable is required to be a valid unix time

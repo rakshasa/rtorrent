@@ -102,6 +102,26 @@ private:
 // New and pretty.
 //
 
+class VariableVoidSlot : public Variable {
+public:
+  typedef rak::function0<void> slot_set_type;
+
+  VariableVoidSlot(slot_set_type::base_type* slotSet) {
+    m_slotSet.set(slotSet);
+  }
+
+  virtual const torrent::Object& get();
+  virtual void                   set(const torrent::Object& arg);
+
+private:
+  slot_set_type       m_slotSet;
+
+  // Store the cache here to avoid unnessesary copying and such. This
+  // should not result in any unresonable memory usage since few
+  // strings will be very large.
+  torrent::Object     m_cache;
+};
+
 class VariableValueSlot : public Variable {
 public:
   typedef rak::function0<value_type>        slot_get_type;
@@ -159,7 +179,6 @@ private:
   // strings will be very large.
   torrent::Object     m_cache;
 };
-
 
 }
 
