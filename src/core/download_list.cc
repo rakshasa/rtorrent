@@ -155,6 +155,11 @@ DownloadList::erase(iterator itr) {
   return base_type::erase(itr);
 }
 
+// void
+// DownloadList::save(Download* d) {
+  
+// }
+
 void
 DownloadList::open(Download* download) {
   try {
@@ -204,7 +209,9 @@ DownloadList::close_throw(Download* download) {
   // better crash protection, save regulary in addition to this.
   //
   // Used to be in pause, but this was wrong for rehashing etc.
-  control->core()->download_store()->save(download);
+  //
+  // Reconsider this save. Should be done explicitly when shutting down.
+  //control->core()->download_store()->save(download);
   control->core()->hash_queue()->remove(download);
 
   download->download()->close();
@@ -312,11 +319,6 @@ DownloadList::pause(Download* download) {
 }
 
 void
-DownloadList::save(Download* d) {
-  
-}
-
-void
 DownloadList::check_hash(Download* download) {
   check_contains(download);
 
@@ -337,7 +339,10 @@ DownloadList::check_hash_throw(Download* download) {
 
   close_throw(download);
   download->download()->hash_resume_clear();
+
   open_throw(download);
+  download->download()->hash_resume_save();
+
 
   // If any more stuff is added here, make sure resume etc are still
   // correct.
@@ -427,12 +432,12 @@ DownloadList::confirm_finished(Download* download) {
 
   download->download()->tracker_list().send_completed();
 
+  download->download()->hash_resume_save();
+
   // Do this before the slots are called in case one of them closes
   // the download.
-  if (!download->is_active() && control->variable()->get_value("session_on_completion") == 1) {
-    download->download()->hash_resume_save();
+  if (!download->is_active() && control->variable()->get_value("session_on_completion") == 1)
     control->core()->download_store()->save(download);
-  }
 
   std::for_each(m_slotMapFinished.begin(), m_slotMapFinished.end(), download_list_call(download));
 }

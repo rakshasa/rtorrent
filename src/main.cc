@@ -244,6 +244,8 @@ main(int argc, char** argv) {
       control->core()->get_poll_manager()->poll(client_next_timeout());
     }
 
+    control->core()->download_list()->session_save();
+
     control->cleanup();
 
   } catch (std::exception& e) {

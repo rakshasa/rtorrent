@@ -84,6 +84,8 @@ public:
   void                erase(Download* d);
   iterator            erase(iterator itr);
 
+  //void                save(Download* d);
+
   void                open(Download* d);
   void                open_throw(Download* d);
 
@@ -96,8 +98,6 @@ public:
   // These do not change the rtorrent:state.
   void                resume(Download* d);
   void                pause(Download* d);
-
-  void                save(Download* d);
 
   void                check_hash(Download* d);
   void                check_hash_throw(Download* d);
