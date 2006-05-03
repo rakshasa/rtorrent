@@ -48,6 +48,13 @@
 
 namespace core {
 
+class ViewSortFalse : public ViewSort {
+public:
+  virtual bool operator () (Download* d1, Download* d2) const {
+    return false;
+  }
+};
+
 class ViewSortName : public ViewSort {
 public:
   virtual bool operator () (Download* d1, Download* d2) const {
@@ -117,7 +124,7 @@ ViewManager::ViewManager(DownloadList* dl) :
   m_list(dl) {
 
 //   m_sort["first"]        = new ViewSortNot(new ViewSort());
-//   m_sort["last"]         = new ViewSort();
+  m_sort["last"]          = new ViewSortFalse();
   m_sort["name"]          = new ViewSortName();
   m_sort["name_reverse"]  = new ViewSortReverse(new ViewSortName());
 

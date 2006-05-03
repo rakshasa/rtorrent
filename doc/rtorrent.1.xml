@@ -120,6 +120,15 @@
 	</varlistentry>
 
 	<varlistentry>
+	  <term>1 - 6</term>
+	  <listitem><para>
+
+Change view.
+
+          </para></listitem>
+	</varlistentry>
+
+	<varlistentry>
 	  <term>^s</term>
 	  <listitem><para>
             Start download.
@@ -269,7 +278,7 @@ Disconnect peer.
 	  <term>*</term>
 	  <listitem><para>
 
-Choke/Snubb peer.
+Choke/Snub peer.
 
           </para></listitem>
 	</varlistentry>
@@ -548,8 +557,8 @@ deleted, the association is then cleared.
         <term>load_start = <replaceable>file</replaceable></term>
         <listitem><para>
 
-Load and possibly start a file, or possibly mutiple files by using the
-wildcard "*". This is meant for use with
+Load and possibly start a file, or possibly multiple files by using the
+wild-card "*". This is meant for use with
 <emphasis>schedule</emphasis>, though ensure that the
 <emphasis>start</emphasis> is non-zero. The loaded file will be tied
 to the filename provided.
@@ -564,6 +573,78 @@ to the filename provided.
 
 Load a resource file. <emphasis>try_import</emphasis> does not throw
 torrent::input_error exception on bad input.
+
+        </para></listitem>
+      </varlistentry>
+
+    </variablelist>
+
+  </refsect1>
+
+
+  <refsect1>
+    <title>DISPLAY SETTINGS</title>
+    <para>
+      Display related settings.
+    </para>
+
+    <variablelist>
+
+      <varlistentry>
+        <term>view_add = <replaceable>name</replaceable></term>
+        <listitem><para>
+
+Create a new view.
+
+        </para></listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>view_sort = <replaceable>name</replaceable></term>
+        <term>view_sort = <replaceable>name</replaceable>,<replaceable>seconds</replaceable></term>
+        <listitem><para>
+
+Sort a view according the the criteria set by
+<emphasis>view_sort_current</emphasis>. If the optional argument is
+supplied, the view is not sorted if a change happened during the last
+<emphasis>seconds</emphasis>. This command is meant to be used with
+<emphasis>schedule</emphasis>.
+
+        </para></listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>view_sort_new = <replaceable>name</replaceable>,<replaceable>...</replaceable></term>
+        <term>view_sort_current = <replaceable>name</replaceable>,<replaceable>...</replaceable></term>
+        <listitem><para>
+
+Set the sorting criteria for when new elements inserted or
+<emphasis>view_sort</emphasis> is called. The list can contain any
+number of criteria, including zero, from the following:
+
+        </para><para>
+
+<emphasis>name</emphasis>, <emphasis>name_reverse</emphasis>,
+<emphasis>stopped</emphasis>, <emphasis>started</emphasis>,
+<emphasis>complete</emphasis>, <emphasis>incomplete</emphasis>,
+<emphasis>state_changed</emphasis>,
+<emphasis>state_changed_reverse</emphasis>
+
+        </para></listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>view_filter = <replaceable>name</replaceable>,<replaceable>...</replaceable></term>
+        <listitem><para>
+
+Set a list of filter to apply when new new downloads are added and
+when <emphasis>view_sort</emphasis> gets called. All filters must
+match for the download to be included.
+
+        </para><para>
+
+<emphasis>stopped</emphasis>, <emphasis>started</emphasis>,
+<emphasis>complete</emphasis>, <emphasis>incomplete</emphasis>,
 
         </para></listitem>
       </varlistentry>
@@ -659,8 +740,8 @@ Changes the working directory of the process using
         <term>session_on_completion = <replaceable>yes</replaceable></term>
         <listitem><para>
 
-Controls whetever the session torrent is updated when a torrent
-finishes. By default on.
+Controls if the session torrent is saved when a torrent finishes. By
+default on.
 
         </para></listitem>
       </varlistentry>
@@ -669,7 +750,16 @@ finishes. By default on.
         <term>session_lock = <replaceable>yes</replaceable></term>
         <listitem><para>
 
-Controls whetever a lock file is created in the session directory.
+Controls if a lock file is created in the session directory on startup.
+
+        </para></listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>session_save = </term>
+        <listitem><para>
+
+Save the session files for all downloads.
 
         </para></listitem>
       </varlistentry>

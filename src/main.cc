@@ -165,6 +165,7 @@ main(int argc, char** argv) {
 
     // Currently not doing any sorting on main.
     control->variable()->process_command("view_add = main");
+    //control->variable()->process_command("view_sort_current = name,started,name");
 
     control->variable()->process_command("view_add = name");
     control->variable()->process_command("view_sort_new = name,name");
@@ -207,11 +208,6 @@ main(int argc, char** argv) {
 
     //    control->variable()->process_command("schedule = scheduler,10,10,download_scheduler=");
 
-    // Move env and go through "try_import".
-//     if (!control->variable()->process_file("~/.rtorrent.rc"))
-//       control->core()->get_log_important().push_front("Could not load \"~/.rtorrent.rc\".");
-
-    // Complain.
     control->variable()->process_command("try_import = ~/.rtorrent.rc");
 
     int firstArg = parse_options(control, argc, argv);

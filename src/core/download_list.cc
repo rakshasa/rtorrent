@@ -339,10 +339,7 @@ DownloadList::check_hash_throw(Download* download) {
 
   close_throw(download);
   download->download()->hash_resume_clear();
-
   open_throw(download);
-  download->download()->hash_resume_save();
-
 
   // If any more stuff is added here, make sure resume etc are still
   // correct.
@@ -353,7 +350,9 @@ void
 DownloadList::hash_done(Download* download) {
   check_contains(download);
 
-  if (!download->download()->is_hash_checked() || download->download()->is_hash_checking())
+  if (!download->download()->is_hash_checked() ||
+      download->download()->is_hash_checking() ||
+      download->download()->is_active())
     throw torrent::internal_error("DownloadList::hash_done(...) download in invalid state.");
 
   // Need to find some sane conditional here. Can we check the total
@@ -375,6 +374,10 @@ DownloadList::hash_done(Download* download) {
     if (download->is_done())
       download->variable()->set("complete", (int64_t)1);
     
+    // Save resume data so we update time-stamps and priorities if
+    // they were invalid/changed when loading.
+    download->download()->hash_resume_save();
+
     if (download->variable()->get_value("state") == 1)
       resume(download);
 
@@ -432,12 +435,12 @@ DownloadList::confirm_finished(Download* download) {
 
   download->download()->tracker_list().send_completed();
 
-  download->download()->hash_resume_save();
-
   // Do this before the slots are called in case one of them closes
   // the download.
-  if (!download->is_active() && control->variable()->get_value("session_on_completion") == 1)
+  if (!download->is_active() && control->variable()->get_value("session_on_completion") == 1) {
+    download->download()->hash_resume_save();
     control->core()->download_store()->save(download);
+  }
 
   std::for_each(m_slotMapFinished.begin(), m_slotMapFinished.end(), download_list_call(download));
 }
