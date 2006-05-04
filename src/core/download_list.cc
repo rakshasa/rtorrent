@@ -272,10 +272,17 @@ DownloadList::resume(Download* download) {
       return;
     }
 
-    if (download->is_done())
+    if (download->is_done()) {
       download->set_connection_type(download->variable()->get_string("connection_seed"));
-    else
+    } else {
       download->set_connection_type(download->variable()->get_string("connection_leech"));
+
+      // For the moment, clear the resume data so we force hash-check
+      // on non-complete downloads after a crash. This shouldn't be
+      // needed, but for some reason linux 2.6 is very lazy about
+      // updating mtime.
+      download->download()->hash_resume_clear();
+    }
 
     // Update the priority to ensure it has the correct
     // seeding/unfinished modifiers.
