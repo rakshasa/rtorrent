@@ -47,6 +47,13 @@
 
 namespace core {
 
+bool
+HashQueue::is_queued(Download* download) const {
+  return
+    download->download()->is_hash_checking() ||
+    std::find_if(begin(), end(), rak::equal(download, std::mem_fun(&HashQueueNode::download))) != end();
+}
+
 void
 HashQueue::insert(Download* download) {
   if (download->download()->is_hash_checking() || find(download) != end())

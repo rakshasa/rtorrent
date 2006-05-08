@@ -64,9 +64,9 @@ class DownloadList;
 class ViewSort;
 class ViewFilter;
 
-class View : public std::vector<core::Download*> {
+class View : private std::vector<Download*> {
 public:
-  typedef std::vector<core::Download*>   base_type;
+  typedef std::vector<Download*>         base_type;
   typedef sigc::signal0<void>            signal_type;
   typedef std::vector<const ViewSort*>   sort_list;
   typedef std::vector<const ViewFilter*> filter_list;
@@ -78,13 +78,10 @@ public:
   
   using base_type::size_type;
 
-  using base_type::begin;
-  using base_type::rbegin;
-
   View() {}
   ~View();
 
-  void                initialize(const std::string& name, core::DownloadList* list);
+  void                initialize(const std::string& name, DownloadList* dlist);
 
   const std::string&  name() const                            { return m_name; }
 
@@ -92,10 +89,14 @@ public:
   size_type           size() const                            { return m_size; }
 
   // Perhaps this should be renamed?
-  iterator            end()                                   { return begin() + m_size; }
-  const_iterator      end() const                             { return begin() + m_size; }
+  iterator            begin_visible()                         { return begin(); }
+  const_iterator      begin_visible() const                   { return begin(); }
 
-//   using base_type::rend;
+  iterator            end_visible()                           { return begin() + m_size; }
+  const_iterator      end_visible() const                     { return begin() + m_size; }
+
+  iterator            begin_filtered()                        { return begin() + m_size; }
+  const_iterator      begin_filtered() const                  { return begin() + m_size; }
 
   iterator            end_filtered()                          { return base_type::end(); }
   const_iterator      end_filtered() const                    { return base_type::end(); }
@@ -114,7 +115,9 @@ public:
 
   // Need to explicity trigger filtering.
   void                filter();
+
   void                set_filter(const filter_list& s)        { m_filter = s; }
+  void                set_filter_on(int event);
 
   // The time of the last change to the view, semantics of this is
   // user-dependent. Used by f.ex. ViewManager to decide if it should
@@ -133,8 +136,12 @@ private:
   View(const View&);
   void operator = (const View&);
 
-  void                received_insert(core::Download* d);
-  void                received_erase(core::Download* d);
+  void                push_back(Download* d)                  { base_type::push_back(d); }
+
+  inline void         insert_visible(Download* d);
+  inline void         erase(iterator itr);
+
+  void                received(Download* d, int event);
 
   size_type           position(const_iterator itr) const      { return itr - begin(); }
 
@@ -142,7 +149,7 @@ private:
 
   std::string         m_name;
 
-  core::DownloadList* m_list;
+  DownloadList*       m_list;
 
   size_type           m_size;
   size_type           m_focus;

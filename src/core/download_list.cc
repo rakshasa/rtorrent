@@ -74,7 +74,8 @@ struct download_list_call {
   Download* m_download;
 };    
 
-DownloadList::~DownloadList() {
+void
+DownloadList::clear() {
   std::for_each(begin(), end(), std::bind1st(std::mem_fun(&DownloadList::close), this));
   std::for_each(begin(), end(), rak::call_delete<Download>());
 
@@ -120,7 +121,7 @@ DownloadList::insert(Download* download) {
 
   try {
     (*itr)->download()->signal_download_done(sigc::bind(sigc::mem_fun(*this, &DownloadList::received_finished), download));
-    std::for_each(m_slotMapInsert.begin(), m_slotMapInsert.end(), download_list_call(*itr));
+    std::for_each(slot_map_insert().begin(), slot_map_insert().end(), download_list_call(*itr));
 
   } catch (torrent::local_error& e) {
     // Should perhaps relax this, just print an error and remove the
@@ -147,7 +148,7 @@ DownloadList::erase(iterator itr) {
 
   control->core()->download_store()->remove(*itr);
 
-  std::for_each(m_slotMapErase.begin(), m_slotMapErase.end(), download_list_call(*itr));
+  std::for_each(slot_map_erase().begin(), slot_map_erase().end(), download_list_call(*itr));
 
   torrent::download_remove(*(*itr)->download());
   delete *itr;
@@ -180,7 +181,7 @@ DownloadList::open_throw(Download* download) {
   
   download->download()->open();
 
-  std::for_each(m_slotMapOpen.begin(), m_slotMapOpen.end(), download_list_call(download));
+  std::for_each(slot_map_open().begin(), slot_map_open().end(), download_list_call(download));
 }
 
 void
@@ -212,11 +213,20 @@ DownloadList::close_throw(Download* download) {
   //
   // Reconsider this save. Should be done explicitly when shutting down.
   //control->core()->download_store()->save(download);
-  control->core()->hash_queue()->remove(download);
 
-  download->download()->close();
+  if (control->core()->hash_queue()->is_queued(download)) {
+    control->core()->hash_queue()->remove(download);
+    download->download()->close();
 
-  std::for_each(m_slotMapClose.begin(), m_slotMapClose.end(), download_list_call(download));
+    // Hash removed slot must be called after close as we can't atm
+    // stop already started hash checks except through close.
+    std::for_each(slot_map_hash_removed().begin(), slot_map_hash_removed().end(), download_list_call(download));
+
+  } else {
+    download->download()->close();
+  }
+
+  std::for_each(slot_map_close().begin(), slot_map_close().end(), download_list_call(download));
 }
 
 void
@@ -249,7 +259,7 @@ DownloadList::resume(Download* download) {
     // Properly escape when resume get's called during hashing. The
     // 'state' is changed by the call to DownloadList::start so it
     // will automagically start afterwards.
-    if (control->core()->hash_queue()->find(download) != control->core()->hash_queue()->end())
+    if (control->core()->hash_queue()->is_queued(download))
       return;
 
     download->variable()->set("state_changed", cachedTime.seconds());
@@ -269,6 +279,8 @@ DownloadList::resume(Download* download) {
 	download->variable()->set("hashing", Download::variable_hashing_started);
 
       control->core()->hash_queue()->insert(download);
+      std::for_each(slot_map_hash_queued().begin(), slot_map_hash_queued().end(), download_list_call(download));
+
       return;
     }
 
@@ -289,7 +301,7 @@ DownloadList::resume(Download* download) {
     download->set_priority(download->priority());
     download->download()->start();
 
-    std::for_each(m_slotMapStart.begin(), m_slotMapStart.end(), download_list_call(download));
+    std::for_each(slot_map_start().begin(), slot_map_start().end(), download_list_call(download));
 
   } catch (torrent::local_error& e) {
     control->core()->push_log(e.what());
@@ -302,9 +314,13 @@ DownloadList::pause(Download* download) {
 
   try {
 
-    // Make sure we don't start hash checking a download that we won't
-    // start.
-    control->core()->hash_queue()->remove(download);
+    if (control->core()->hash_queue()->is_queued(download)) {
+      control->core()->hash_queue()->remove(download);
+
+      // Hash removed slot must be called after close as we can't atm
+      // stop already started hash checks except through close.
+      std::for_each(slot_map_hash_removed().begin(), slot_map_hash_removed().end(), download_list_call(download));
+    }
 
     if (!download->download()->is_active())
       return;
@@ -312,7 +328,7 @@ DownloadList::pause(Download* download) {
     download->download()->stop();
     download->download()->hash_resume_save();
     
-    std::for_each(m_slotMapStop.begin(), m_slotMapStop.end(), download_list_call(download));
+    std::for_each(slot_map_stop().begin(), slot_map_stop().end(), download_list_call(download));
 
     download->variable()->set("state_changed", cachedTime.seconds());
 
@@ -351,6 +367,7 @@ DownloadList::check_hash_throw(Download* download) {
   // If any more stuff is added here, make sure resume etc are still
   // correct.
   control->core()->hash_queue()->insert(download);
+  std::for_each(slot_map_hash_queued().begin(), slot_map_hash_queued().end(), download_list_call(download));
 }
 
 void
@@ -388,7 +405,7 @@ DownloadList::hash_done(Download* download) {
     if (download->variable()->get_value("state") == 1)
       resume(download);
 
-    return;
+    break;
 
   case Download::variable_hashing_last:
 
@@ -403,7 +420,7 @@ DownloadList::hash_done(Download* download) {
       download->set_message("Hash check on download completion found bad chunks.");
     }
     
-    return;
+    break;
 
   case Download::variable_hashing_stopped:
   default:
@@ -411,6 +428,8 @@ DownloadList::hash_done(Download* download) {
     download->set_message("Hash check completed but the \"hashing\" variable is in an invalid state.");
     return;
   }
+
+  std::for_each(slot_map_hash_done().begin(), slot_map_hash_done().end(), download_list_call(download));
 }
 
 void
@@ -449,7 +468,7 @@ DownloadList::confirm_finished(Download* download) {
     control->core()->download_store()->save(download);
   }
 
-  std::for_each(m_slotMapFinished.begin(), m_slotMapFinished.end(), download_list_call(download));
+  std::for_each(slot_map_finished().begin(), slot_map_finished().end(), download_list_call(download));
 }
 
 }

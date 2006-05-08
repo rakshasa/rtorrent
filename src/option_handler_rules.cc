@@ -206,6 +206,27 @@ apply_view_filter(Control* control, const std::string& arg) {
 }
 
 void
+apply_view_filter_on(Control* control, const std::string& arg) {
+  rak::split_iterator_t<std::string> itr = rak::split_iterator(arg, ',');
+
+  std::string name = rak::trim(*itr);
+  
+  if (name.empty())
+    throw torrent::input_error("First argument must be a string.");
+
+  core::ViewManager::filter_args filterArgs;
+
+  while (++itr != rak::split_iterator(arg)) {
+    filterArgs.push_back(rak::trim(*itr));
+
+    if (filterArgs.back().empty())
+      throw torrent::input_error("One of the arguments is empty.");
+  }
+
+  control->view_manager()->set_filter_on(name, filterArgs);
+}
+
+void
 apply_view_sort(Control* control, const std::string& arg) {
   rak::split_iterator_t<std::string> itr = rak::split_iterator(arg, ',');
 
@@ -335,6 +356,7 @@ initialize_option_handler(Control* c) {
 
   variables->insert("view_add",              new utils::VariableStringSlot(rak::value_fn(std::string()), rak::mem_fn(c->view_manager(), &core::ViewManager::insert_throw)));
   variables->insert("view_filter",           new utils::VariableStringSlot(rak::value_fn(std::string()), rak::bind_ptr_fn(&apply_view_filter, c)));
+  variables->insert("view_filter_on",        new utils::VariableStringSlot(rak::value_fn(std::string()), rak::bind_ptr_fn(&apply_view_filter_on, c)));
 
   variables->insert("view_sort",             new utils::VariableStringSlot(rak::value_fn(std::string()), rak::bind_ptr_fn(&apply_view_sort, c)));
   variables->insert("view_sort_new",         new utils::VariableStringSlot(rak::value_fn(std::string()), rak::bind_ptr_fn(&apply_view_sort_new, c)));

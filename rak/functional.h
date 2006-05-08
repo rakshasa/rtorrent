@@ -350,7 +350,7 @@ public:
     m_op(op), m_value(v) {}
 
   typename Operation::result_type
-  operator () (const argument_type arg) {
+  operator () (argument_type arg) {
     return m_op(arg, m_value);
   }
 

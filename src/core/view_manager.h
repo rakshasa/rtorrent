@@ -101,6 +101,7 @@ public:
   void                set_sort_current(const std::string& name, const sort_args& sort);
 
   void                set_filter(const std::string& name, const filter_args& args);
+  void                set_filter_on(const std::string& name, const filter_args& args);
 
 private:
   inline sort_list    build_sort_list(const sort_args& args);

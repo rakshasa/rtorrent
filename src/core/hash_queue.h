@@ -71,6 +71,8 @@ public:
   // Replace 'dl' with a slot.
   HashQueue(DownloadList* dl) : m_downloadList(dl) {}
 
+  bool                is_queued(Download* download) const;
+
   void                insert(Download* d);
 
   // It's safe to try to remove downloads not in the queue. The hash

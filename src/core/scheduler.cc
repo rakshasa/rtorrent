@@ -65,7 +65,7 @@ Scheduler::set_view(View* view) {
 
 Scheduler::size_type
 Scheduler::active() const {
-  return std::count_if(m_view->begin(), m_view->end(), std::mem_fun(&Download::is_active));
+  return std::count_if(m_view->begin_visible(), m_view->end_visible(), std::mem_fun(&Download::is_active));
 }
 
 void
@@ -80,7 +80,7 @@ Scheduler::update() {
   // inactive we can switch with.
   size_type target = m_maxActive - std::min(m_cycle, m_maxActive);
 
-  for (View::iterator itr = m_view->begin(), last = m_view->end(); curActive > target; ++itr) {
+  for (View::iterator itr = m_view->begin_visible(), last = m_view->end_visible(); curActive > target; ++itr) {
     if (itr == last)
       throw torrent::internal_error("Scheduler::update() loop bork.");
 
@@ -92,7 +92,7 @@ Scheduler::update() {
 
   m_view->sort();
 
-  for (View::iterator itr = m_view->begin(), last = m_view->end(); curActive < m_maxActive; ++itr) {
+  for (View::iterator itr = m_view->begin_visible(), last = m_view->end_visible(); curActive < m_maxActive; ++itr) {
     if (itr == last)
       throw torrent::internal_error("Scheduler::update() loop bork.");
 

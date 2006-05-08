@@ -43,6 +43,9 @@
 #include "globals.h"
 
 #include "download.h"
+#include "download_list.h"
+#include "hash_queue.h"
+#include "manager.h"
 #include "view.h"
 #include "view_manager.h"
 
@@ -118,6 +121,13 @@ private:
   torrent::Object::value_type m_value;
 };
 
+class ViewFilterHashing : public ViewFilter {
+public:
+  virtual bool operator () (Download* d1) const {
+    return control->core()->hash_queue()->is_queued(d1);
+  }
+};
+
 // Really need to implement a factory and allow options in the sort
 // statements.
 ViewManager::ViewManager(DownloadList* dl) :
@@ -140,6 +150,7 @@ ViewManager::ViewManager(DownloadList* dl) :
   m_filter["stopped"]     = new ViewFilterVariableValue("state", 0);
   m_filter["complete"]    = new ViewFilterVariableValue("complete", 1);
   m_filter["incomplete"]  = new ViewFilterVariableValue("complete", 0);
+  m_filter["hashing"]     = new ViewFilterHashing();
 }
 
 void
@@ -242,6 +253,36 @@ ViewManager::set_filter(const std::string& name, const filter_args& args) {
   iterator viewItr = find_throw(name);
 
   (*viewItr)->set_filter(build_filter_list(args));
+}
+
+void
+ViewManager::set_filter_on(const std::string& name, const filter_args& args) {
+  iterator viewItr = find_throw(name);
+
+  for (filter_args::const_iterator itr = args.begin(); itr != args.end(); ++itr) {
+
+    if (*itr == "start")
+      (*viewItr)->set_filter_on(DownloadList::SLOTS_START);
+
+    else if (*itr == "stop")
+      (*viewItr)->set_filter_on(DownloadList::SLOTS_STOP);
+
+    else if (*itr == "hash_queued")
+      (*viewItr)->set_filter_on(DownloadList::SLOTS_HASH_QUEUED);
+
+    else if (*itr == "hash_removed")
+      (*viewItr)->set_filter_on(DownloadList::SLOTS_HASH_REMOVED);
+
+    else if (*itr == "hash_done")
+      (*viewItr)->set_filter_on(DownloadList::SLOTS_HASH_DONE);
+
+    else if (*itr == "finished")
+      (*viewItr)->set_filter_on(DownloadList::SLOTS_FINISHED);
+
+    else
+      throw torrent::input_error("Invalid filter on identifier.");
+
+  }
 }
 
 }

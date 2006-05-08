@@ -38,6 +38,8 @@
 
 #include <algorithm>
 #include <functional>
+#include <rak/functional.h>
+#include <sigc++/bind.h>
 #include <torrent/download.h>
 
 #include "download.h"
@@ -51,14 +53,11 @@ View::~View() {
   if (m_name.empty())
     return;
 
-  std::string key = "0_view_" + m_name;
-
-  m_list->slot_map_insert().erase(key);
-  m_list->slot_map_erase().erase(key);
+  std::for_each(m_list->slot_map_begin(), m_list->slot_map_end(), rak::bind2nd(std::ptr_fun(&DownloadList::erase_key), "0_view_" + m_name));
 }
 
 void
-View::initialize(const std::string& name, core::DownloadList* list) {
+View::initialize(const std::string& name, core::DownloadList* dlist) {
   if (!m_name.empty())
     throw torrent::internal_error("View::initialize(...) called on an already initialized view.");
 
@@ -67,21 +66,22 @@ View::initialize(const std::string& name, core::DownloadList* list) {
 
   std::string key = "0_view_" + name;
 
-  if (list->has_slot_insert(key) || list->has_slot_erase(key))
+  if (dlist->has_slot_insert(key) || dlist->has_slot_erase(key))
     throw torrent::internal_error("View::initialize(...) duplicate key name found in DownloadList.");
 
   m_name = name;
+  m_list = dlist;
 
-  m_list = list;
-  m_size = 0;
+  // Urgh, wrong. No filtering being done.
+  std::for_each(m_list->begin(), m_list->end(), rak::bind1st(std::mem_fun(&View::push_back), this));
+
+  m_size = base_type::size();
   m_focus = 0;
 
+  m_list->slot_map_insert()[key] = sigc::bind(sigc::mem_fun(this, &View::received), (int)DownloadList::SLOTS_INSERT);
+  m_list->slot_map_erase()[key]  = sigc::bind(sigc::mem_fun(this, &View::received), (int)DownloadList::SLOTS_ERASE);
+
   set_last_changed(rak::timer());
-
-  std::for_each(m_list->begin(), m_list->end(), std::bind1st(std::mem_fun(&View::received_insert), this));
-
-  m_list->slot_map_insert()[key] = sigc::mem_fun(this, &View::received_insert);
-  m_list->slot_map_erase()[key]  = sigc::mem_fun(this, &View::received_erase);
 }
 
 void
@@ -144,12 +144,12 @@ struct view_downloads_filter : std::unary_function<Download*, bool> {
 
 void
 View::sort() {
-  Download* curFocus = focus() != end() ? *focus() : NULL;
+  Download* curFocus = focus() != end_visible() ? *focus() : NULL;
 
   // Don't go randomly switching around equivalent elements.
-  std::stable_sort(begin(), end(), view_downloads_compare(m_sortCurrent));
+  std::stable_sort(begin(), end_visible(), view_downloads_compare(m_sortCurrent));
 
-  m_focus = position(std::find(begin(), end(), curFocus));
+  m_focus = position(std::find(begin(), end_visible(), curFocus));
   m_signalChanged.emit();
 }
 
@@ -164,38 +164,84 @@ View::filter() {
 }
 
 void
-View::received_insert(core::Download* d) {
-  // Chagne according to filtered/not.
-  iterator itr;
-  
-  if (view_downloads_filter(m_filter)(d)) {
-    itr = std::find_if(begin(), end(), std::bind1st(view_downloads_compare(m_sortNew), d));
+View::set_filter_on(int event) {
+  if (event == DownloadList::SLOTS_INSERT || event == DownloadList::SLOTS_ERASE || event >= DownloadList::SLOTS_MAX_SIZE)
+    throw torrent::internal_error("View::filter_on(...) invalid event.");
 
-    m_size++;
-    m_focus += (m_focus >= position(itr));
-
-  } else {
-    itr = end_filtered();
-  }
-
-  if (m_focus > m_size)
-    throw torrent::internal_error("View::received_insert(...) m_focus > m_size.");
-
-  base_type::insert(itr, d);
-  m_signalChanged.emit();
+  m_list->slots(event)["0_view_" + m_name]  = sigc::bind(sigc::mem_fun(this, &View::received), event);
 }
 
-void
-View::received_erase(core::Download* d) {
-  iterator itr = std::find(begin(), end_filtered(), d);
+inline void
+View::insert_visible(Download* d) {
+  iterator itr = std::find_if(begin_visible(), end_visible(), std::bind1st(view_downloads_compare(m_sortNew), d));
 
+  m_size++;
+  m_focus += (m_focus >= position(itr));
+
+  base_type::insert(itr, d);
+}
+
+inline void
+View::erase(iterator itr) {
   if (itr == end_filtered())
-    return;
+    throw torrent::internal_error("View::erase_visible(...) iterator out of range.");
 
-  m_size -= (itr < end());
+  m_size -= (itr < end_visible());
   m_focus -= (m_focus > position(itr));
 
   base_type::erase(itr);
+}
+
+void
+View::received(core::Download* download, int event) {
+  iterator itr = std::find(base_type::begin(), base_type::end(), download);
+
+  switch (event) {
+  case DownloadList::SLOTS_INSERT:
+  
+    if (itr != base_type::end())
+      throw torrent::internal_error("View::received(..., SLOTS_INSERT) already inserted.");
+
+    if (view_downloads_filter(m_filter)(download))
+      insert_visible(download);
+    else
+      base_type::insert(end_filtered(), download);
+
+    if (m_focus > m_size)
+      throw torrent::internal_error("View::received(...) m_focus > m_size.");
+
+    break;
+
+  case DownloadList::SLOTS_ERASE:
+    erase(itr);
+    break;
+
+  default:
+    if (itr == end_filtered())
+      throw torrent::internal_error("View::received(..., SLOTS_*) could not find download.");
+
+    if (view_downloads_filter(m_filter)(download)) {
+      
+      if (itr < end_visible())
+	return;
+
+      // Use base_type::erase as we don't need to modify m_size nor
+      // m_focus.
+      base_type::erase(itr);
+      insert_visible(download);
+
+    } else {
+
+      if (itr >= begin_filtered())
+	return;
+
+      erase(itr);
+      base_type::push_back(download);
+    }
+
+    break;
+  }
+
   m_signalChanged.emit();
 }
 

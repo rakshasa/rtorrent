@@ -62,7 +62,6 @@ public:
   Manager();
   ~Manager();
 
-
   DownloadList*       download_list()                     { return m_downloadList; }
   DownloadStore*      download_store()                    { return m_downloadStore; }
 

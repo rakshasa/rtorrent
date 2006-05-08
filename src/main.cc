@@ -173,30 +173,40 @@ main(int argc, char** argv) {
 
     control->variable()->process_command("view_add = started");
     control->variable()->process_command("view_filter = started,started");
+    control->variable()->process_command("view_filter_on = started,start,stop");
     control->variable()->process_command("view_sort_new = started,name");
     control->variable()->process_command("view_sort_current = started,name");
 
     control->variable()->process_command("view_add = stopped");
     control->variable()->process_command("view_filter = stopped,stopped");
+    control->variable()->process_command("view_filter_on = stopped,start,stop");
     control->variable()->process_command("view_sort_new = stopped,name");
     control->variable()->process_command("view_sort_current = stopped,name");
 
     control->variable()->process_command("view_add = complete");
     control->variable()->process_command("view_filter = complete,complete");
+    control->variable()->process_command("view_filter_on = complete,hash_done,finished");
     control->variable()->process_command("view_sort_new = complete,state_changed");
     control->variable()->process_command("view_sort_current = complete,state_changed_reverse");
 
     control->variable()->process_command("view_add = incomplete");
     control->variable()->process_command("view_filter = incomplete,incomplete");
+    control->variable()->process_command("view_filter_on = incomplete,hash_done,finished");
     control->variable()->process_command("view_sort_new = incomplete,state_changed");
     control->variable()->process_command("view_sort_current = incomplete,state_changed_reverse");
 
+    control->variable()->process_command("view_add = hashing");
+    control->variable()->process_command("view_filter = hashing,hashing");
+    control->variable()->process_command("view_filter_on = hashing,hash_queued,hash_removed,hash_done");
+    control->variable()->process_command("view_sort_new = hashing,state_changed");
+    control->variable()->process_command("view_sort_current = hashing,state_changed");
+
     control->variable()->process_command("schedule = view_main,10,10,view_sort=main,20");
     control->variable()->process_command("schedule = view_name,10,10,view_sort=name,20");
-    control->variable()->process_command("schedule = view_started,10,10,view_sort=started,5");
-    control->variable()->process_command("schedule = view_stopped,10,10,view_sort=stopped,5");
-    control->variable()->process_command("schedule = view_complete,10,10,view_sort=complete,5");
-    control->variable()->process_command("schedule = view_incomplete,10,10,view_sort=incomplete,5");
+//     control->variable()->process_command("schedule = view_started,10,10,view_sort=started,5");
+//     control->variable()->process_command("schedule = view_stopped,10,10,view_sort=stopped,5");
+//     control->variable()->process_command("schedule = view_complete,10,10,view_sort=complete,5");
+//     control->variable()->process_command("schedule = view_incomplete,10,10,view_sort=incomplete,5");
 
     //control->variable()->process_command("schedule = scheduler,10,10,download_scheduler=");
     control->variable()->process_command("schedule = session_save,1800,1800,session_save=");

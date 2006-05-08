@@ -197,7 +197,7 @@ DownloadList::receive_prev() {
 
 void
 DownloadList::receive_start_download() {
-  if (m_view->focus() == m_view->end())
+  if (m_view->focus() == m_view->end_visible())
     return;
 
   m_control->core()->download_list()->start(*m_view->focus());
@@ -206,7 +206,7 @@ DownloadList::receive_start_download() {
 
 void
 DownloadList::receive_stop_download() {
-  if (m_view->focus() == m_view->end())
+  if (m_view->focus() == m_view->end_visible())
     return;
 
   if ((*m_view->focus())->download()->is_active())
@@ -219,7 +219,7 @@ DownloadList::receive_stop_download() {
 
 void
 DownloadList::receive_close_download() {
-  if (m_view->focus() == m_view->end())
+  if (m_view->focus() == m_view->end_visible())
     return;
 
   m_control->core()->download_list()->close(*m_view->focus());
@@ -228,7 +228,7 @@ DownloadList::receive_close_download() {
 
 void
 DownloadList::receive_view_download() {
-  if (m_view->focus() == m_view->end())
+  if (m_view->focus() == m_view->end_visible())
     return;
 
   if (m_uiDownload != NULL)
@@ -259,7 +259,7 @@ DownloadList::receive_exit_download() {
 
 void
 DownloadList::receive_next_priority() {
-  if (m_view->focus() == m_view->end())
+  if (m_view->focus() == m_view->end_visible())
     return;
 
   (*m_view->focus())->set_priority(((*m_view->focus())->priority() + 1) % 4);
@@ -267,7 +267,7 @@ DownloadList::receive_next_priority() {
 
 void
 DownloadList::receive_prev_priority() {
-  if (m_view->focus() == m_view->end())
+  if (m_view->focus() == m_view->end_visible())
     return;
 
   (*m_view->focus())->set_priority(((*m_view->focus())->priority() - 1) % 4);
@@ -275,7 +275,7 @@ DownloadList::receive_prev_priority() {
 
 void
 DownloadList::receive_check_hash() {
-  if (m_view->focus() == m_view->end())
+  if (m_view->focus() == m_view->end_visible())
     return;
 
   // Catch here?
@@ -326,7 +326,7 @@ DownloadList::receive_exit_input(Input type) {
       break;
 
     case INPUT_CHANGE_DIRECTORY:
-      if (m_view->focus() == m_view->end())
+      if (m_view->focus() == m_view->end_visible())
 	throw torrent::input_error("No download in focus to change root directory.");
 
       (*m_view->focus())->variable()->set("directory", rak::trim(m_windowTextInput->get_input()->str()));
@@ -367,7 +367,7 @@ DownloadList::receive_change(Display d) {
 
 void
 DownloadList::receive_download_erased(core::Download* d) {
-  if (m_view->focus() == m_view->end() || *m_view->focus() != d)
+  if (m_view->focus() == m_view->end_visible() || *m_view->focus() != d)
     return;
 
   if (m_uiDownload != NULL)
@@ -430,6 +430,7 @@ DownloadList::setup_keys() {
   (*m_bindings)['4']           = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_change_view), "stopped");
   (*m_bindings)['5']           = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_change_view), "complete");
   (*m_bindings)['6']           = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_change_view), "incomplete");
+  (*m_bindings)['7']           = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_change_view), "hashing");
 
   m_uiArray[DISPLAY_LOG]->get_bindings()[' '] = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_change), DISPLAY_DOWNLOAD_LIST);
 }

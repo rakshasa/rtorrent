@@ -72,7 +72,7 @@ public:
   using base_type::empty;
   using base_type::size;
 
-  ~DownloadList();
+  void                clear();
 
   void                session_save();
 
@@ -104,12 +104,41 @@ public:
 
   void                hash_done(Download* d);
 
-  slot_map&           slot_map_insert()                                 { return m_slotMapInsert; }
-  slot_map&           slot_map_erase()                                  { return m_slotMapErase; }
-  slot_map&           slot_map_open()                                   { return m_slotMapOpen; }
-  slot_map&           slot_map_close()                                  { return m_slotMapClose; }
-  slot_map&           slot_map_start()                                  { return m_slotMapStart; }
-  slot_map&           slot_map_stop()                                   { return m_slotMapStop; }
+  enum {
+    SLOTS_INSERT,
+    SLOTS_ERASE,
+    SLOTS_OPEN,
+    SLOTS_CLOSE,
+    SLOTS_START,
+    SLOTS_STOP,
+    SLOTS_HASH_QUEUED,
+    SLOTS_HASH_REMOVED,
+    SLOTS_HASH_DONE,
+    SLOTS_FINISHED,
+
+    SLOTS_MAX_SIZE
+  };
+
+  slot_map&           slots(int m)                                      { return m_slotMaps[m]; }
+  const slot_map&     slots(int m) const                                { return m_slotMaps[m]; }
+
+  slot_map*           slot_map_begin()                                  { return m_slotMaps; }
+  const slot_map*     slot_map_begin() const                            { return m_slotMaps; }
+  slot_map*           slot_map_end()                                    { return m_slotMaps + SLOTS_MAX_SIZE; }
+  const slot_map*     slot_map_end() const                              { return m_slotMaps + SLOTS_MAX_SIZE; }
+
+  slot_map&           slot_map_insert()                                 { return m_slotMaps[SLOTS_INSERT]; }
+  const slot_map&     slot_map_insert() const                           { return m_slotMaps[SLOTS_INSERT]; }
+  slot_map&           slot_map_erase()                                  { return m_slotMaps[SLOTS_ERASE]; }
+  const slot_map&     slot_map_erase() const                            { return m_slotMaps[SLOTS_ERASE]; }
+  slot_map&           slot_map_open()                                   { return m_slotMaps[SLOTS_OPEN]; }
+  const slot_map&     slot_map_open() const                             { return m_slotMaps[SLOTS_OPEN]; }
+  slot_map&           slot_map_close()                                  { return m_slotMaps[SLOTS_CLOSE]; }
+  const slot_map&     slot_map_close() const                            { return m_slotMaps[SLOTS_CLOSE]; }
+  slot_map&           slot_map_start()                                  { return m_slotMaps[SLOTS_START]; }
+  const slot_map&     slot_map_start() const                            { return m_slotMaps[SLOTS_START]; }
+  slot_map&           slot_map_stop()                                   { return m_slotMaps[SLOTS_STOP]; }
+  const slot_map&     slot_map_stop() const                             { return m_slotMaps[SLOTS_STOP]; }
 
   // The finished slots will be called when an active download with
   // "finished" == 0 performs a hash check which returns a done
@@ -119,18 +148,27 @@ public:
   // Also we need to handle cases when a hashing torrent starts up
   // after a shutdown.
 
-  slot_map&           slot_map_hash_done()                              { return m_slotMapHashDone; }
-  slot_map&           slot_map_finished()                               { return m_slotMapFinished; }
+  slot_map&           slot_map_hash_queued()                            { return m_slotMaps[SLOTS_HASH_QUEUED]; }
+  const slot_map&     slot_map_hash_queued() const                      { return m_slotMaps[SLOTS_HASH_QUEUED]; }
+  slot_map&           slot_map_hash_removed()                           { return m_slotMaps[SLOTS_HASH_REMOVED]; }
+  const slot_map&     slot_map_hash_removed() const                     { return m_slotMaps[SLOTS_HASH_REMOVED]; }
+  slot_map&           slot_map_hash_done()                              { return m_slotMaps[SLOTS_HASH_DONE]; }
+  const slot_map&     slot_map_hash_done() const                        { return m_slotMaps[SLOTS_HASH_DONE]; }
+  slot_map&           slot_map_finished()                               { return m_slotMaps[SLOTS_FINISHED]; }
+  const slot_map&     slot_map_finished() const                         { return m_slotMaps[SLOTS_FINISHED]; }
 
-  bool                has_slot_insert(const std::string& key) const     { return m_slotMapInsert.find(key) != m_slotMapInsert.end(); }
-  bool                has_slot_erase(const std::string& key) const      { return m_slotMapErase.find(key) != m_slotMapErase.end(); }
-  bool                has_slot_open(const std::string& key) const       { return m_slotMapOpen.find(key) != m_slotMapOpen.end(); }
-  bool                has_slot_close(const std::string& key) const      { return m_slotMapClose.find(key) != m_slotMapClose.end(); }
-  bool                has_slot_start(const std::string& key) const      { return m_slotMapStart.find(key) != m_slotMapStart.end(); }
-  bool                has_slot_stop(const std::string& key) const       { return m_slotMapStop.find(key) != m_slotMapStop.end(); }
+  bool                has_slot_insert(const std::string& key) const     { return slot_map_insert().find(key) != slot_map_insert().end(); }
+  bool                has_slot_erase(const std::string& key) const      { return slot_map_erase().find(key) != slot_map_erase().end(); }
+  bool                has_slot_open(const std::string& key) const       { return slot_map_open().find(key) != slot_map_open().end(); }
+  bool                has_slot_close(const std::string& key) const      { return slot_map_close().find(key) != slot_map_close().end(); }
+  bool                has_slot_start(const std::string& key) const      { return slot_map_start().find(key) != slot_map_start().end(); }
+  bool                has_slot_stop(const std::string& key) const       { return slot_map_stop().find(key) != slot_map_stop().end(); }
 
-  bool                has_slot_hash_done(const std::string& key) const  { return m_slotMapFinished.find(key) != m_slotMapFinished.end(); }
-  bool                has_slot_finished(const std::string& key) const   { return m_slotMapFinished.find(key) != m_slotMapFinished.end(); }
+  bool                has_slot_hash_queued(const std::string& key) const{ return slot_map_hash_queued().find(key) != slot_map_hash_queued().end(); }
+  bool                has_slot_hash_done(const std::string& key) const  { return slot_map_hash_done().find(key) != slot_map_hash_done().end(); }
+  bool                has_slot_finished(const std::string& key) const   { return slot_map_finished().find(key) != slot_map_finished().end(); }
+
+  static void         erase_key(slot_map& sm, const std::string& key)   { sm.erase(key); }
 
 private:
   inline void         check_contains(Download* d);
@@ -138,15 +176,7 @@ private:
   void                received_finished(Download* d);
   void                confirm_finished(Download* d);
 
-  slot_map            m_slotMapInsert;
-  slot_map            m_slotMapErase;
-  slot_map            m_slotMapOpen;
-  slot_map            m_slotMapClose;
-  slot_map            m_slotMapStart;
-  slot_map            m_slotMapStop;
-
-  slot_map            m_slotMapHashDone;
-  slot_map            m_slotMapFinished;
+  slot_map            m_slotMaps[SLOTS_MAX_SIZE];
 };
 
 }

@@ -343,32 +343,42 @@ value_fn(const Result& val) {
   return new value_fn0_t<Result>(val);
 }
 
+template <typename A, typename B>
+struct equal_types_t {
+  typedef A first_type;
+  typedef B second_type;
+
+  const static int result = 0;
+};
+
+template <typename A>
+struct equal_types_t<A, A> {
+  typedef A first_type;
+  typedef A second_type;
+
+  const static int result = 1;
+};
+
 template <typename Result, typename SrcResult>
 inline function_base0<Result>*
 convert_fn(function_base0<SrcResult>* src) {
-  return new convert_fn0_t<Result, SrcResult>(src);
-}
-
-// This overload ensures that if we try to convert to the same type,
-// it will optimize away the unneeded layer.
-template <typename Result>
-inline function_base0<Result>*
-convert_fn(function_base0<Result>* src) {
-  return src;
+  if (equal_types_t<function_base0<Result>, function_base0<SrcResult> >::result)
+    // The pointer cast never gets done if the types are different,
+    // but needs to be here to pleasant the compiler.
+    return reinterpret_cast<typename equal_types_t<function_base0<Result>, function_base0<SrcResult> >::first_type*>(src);
+  else
+    return new convert_fn0_t<Result, SrcResult>(src);
 }
 
 template <typename Result, typename Arg1, typename SrcResult, typename SrcArg1>
 inline function_base1<Result, Arg1>*
 convert_fn(function_base1<SrcResult, SrcArg1>* src) {
-  return new convert_fn1_t<Result, Arg1, SrcResult, SrcArg1>(src);
-}
-
-// This overload ensures that if we try to convert to the same type,
-// it will optimize away the unneeded layer.
-template <typename Result, typename Arg1>
-inline function_base1<Result, Arg1>*
-convert_fn(function_base1<Result, Arg1>* src) {
-  return src;
+  if (equal_types_t<function_base1<Result, Arg1>, function_base1<SrcResult, SrcArg1> >::result)
+    // The pointer cast never gets done if the types are different,
+    // but needs to be here to pleasant the compiler.
+    return reinterpret_cast<typename equal_types_t<function_base1<Result, Arg1>, function_base1<SrcResult, SrcArg1> >::first_type*>(src);
+  else
+    return new convert_fn1_t<Result, Arg1, SrcResult, SrcArg1>(src);
 }
 
 }

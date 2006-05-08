@@ -160,13 +160,15 @@ Manager::initialize_second() {
   m_downloadList->slot_map_insert()["1_connect_storage_log"]  = sigc::bind(sigc::ptr_fun(&connect_signal_storage_log), sigc::mem_fun(m_logComplete, &Log::push_front));
   m_downloadList->slot_map_insert()["1_connect_tracker_dump"] = sigc::bind(sigc::ptr_fun(&connect_signal_tracker_dump), sigc::ptr_fun(&receive_tracker_dump));
 
-  m_downloadList->slot_map_erase()["1_delete_tied"]          = sigc::ptr_fun(&delete_tied);
+  m_downloadList->slot_map_erase()["1_delete_tied"] = sigc::ptr_fun(&delete_tied);
 }
 
 void
 Manager::cleanup() {
   // Need to disconnect log signals? Not really since we won't receive
   // any more.
+
+  m_downloadList->clear();
 
   torrent::cleanup();
   CurlStack::global_cleanup();
