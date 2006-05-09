@@ -119,6 +119,8 @@ public:
   void                set_filter(const filter_list& s)        { m_filter = s; }
   void                set_filter_on(int event);
 
+  void                clear_filter_on();
+
   // The time of the last change to the view, semantics of this is
   // user-dependent. Used by f.ex. ViewManager to decide if it should
   // sort and/or filter a view.

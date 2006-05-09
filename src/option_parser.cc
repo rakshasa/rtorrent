@@ -74,6 +74,7 @@ OptionParser::process(int argc, char** argv) {
   int c;
   std::string optString = create_optstring();
 
+  optind = 0;
   opterr = 0;
 
   while ((c = getopt(argc, argv, optString.c_str())) != -1)
@@ -83,6 +84,21 @@ OptionParser::process(int argc, char** argv) {
       call(c, optarg ? optarg : "");
 
   return optind;
+}
+
+bool
+OptionParser::has_flag(char flag, int argc, char** argv) {
+  int result;
+  char options[2] = { flag, '\0' };
+
+  optind = 0;
+  opterr = 0;
+
+  while ((result = getopt(argc, argv, options)) != -1)
+    if (result == flag)
+      return true;
+
+  return false;
 }
 
 std::string

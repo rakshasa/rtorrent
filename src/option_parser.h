@@ -61,6 +61,8 @@ public:
   // Returns the index of the first non-option argument.
   int                 process(int argc, char** argv);
 
+  static bool         has_flag(char flag, int argc, char** argv);
+
 private:
   std::string         create_optstring();
 

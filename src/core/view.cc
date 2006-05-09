@@ -53,7 +53,8 @@ View::~View() {
   if (m_name.empty())
     return;
 
-  std::for_each(m_list->slot_map_begin(), m_list->slot_map_end(), rak::bind2nd(std::ptr_fun(&DownloadList::erase_key), "0_view_" + m_name));
+  std::for_each(m_list->slot_map_begin(), m_list->slot_map_end(),
+		rak::bind2nd(std::ptr_fun(&DownloadList::erase_key), "0_view_" + m_name));
 }
 
 void
@@ -171,6 +172,14 @@ View::set_filter_on(int event) {
   m_list->slots(event)["0_view_" + m_name]  = sigc::bind(sigc::mem_fun(this, &View::received), event);
 }
 
+void
+View::clear_filter_on() {
+  // Don't clear insert and erase as these are required to keep the
+  // View up-to-date with the available downloads.
+  std::for_each(m_list->slot_map_begin() + DownloadList::SLOTS_OPEN, m_list->slot_map_end(),
+		rak::bind2nd(std::ptr_fun(&DownloadList::erase_key), "0_view_" + m_name));
+}
+
 inline void
 View::insert_visible(Download* d) {
   iterator itr = std::find_if(begin_visible(), end_visible(), std::bind1st(view_downloads_compare(m_sortNew), d));
@@ -222,12 +231,9 @@ View::received(core::Download* download, int event) {
 
     if (view_downloads_filter(m_filter)(download)) {
       
-      if (itr < end_visible())
-	return;
-
-      // Use base_type::erase as we don't need to modify m_size nor
-      // m_focus.
-      base_type::erase(itr);
+      // Erase even if it is in visible so that the download is
+      // re-sorted.
+      erase(itr);
       insert_visible(download);
 
     } else {

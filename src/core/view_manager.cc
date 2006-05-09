@@ -83,15 +83,19 @@ private:
 
 class ViewSortVariableValue : public ViewSort {
 public:
-  ViewSortVariableValue(const std::string& name) :
+  ViewSortVariableValue(const std::string& name, bool reverse = false) :
     m_name(name) {}
 
   virtual bool operator () (Download* d1, Download* d2) const {
-    return d1->variable()->get_value(m_name) < d2->variable()->get_value(m_name);
+    if (m_reverse)
+      return d2->variable()->get_value(m_name) < d1->variable()->get_value(m_name);
+    else
+      return d1->variable()->get_value(m_name) < d2->variable()->get_value(m_name);
   }
 
 private:
   std::string m_name;
+  bool        m_reverse;
 };
 
 class ViewSortReverse : public ViewSort {
@@ -109,23 +113,17 @@ private:
 
 class ViewFilterVariableValue : public ViewFilter {
 public:
-  ViewFilterVariableValue(const std::string& name, torrent::Object::value_type v) :
-    m_name(name), m_value(v) {}
+  ViewFilterVariableValue(const std::string& name, torrent::Object::value_type v, bool inverse = false) :
+    m_name(name), m_value(v), m_inverse(inverse) {}
 
   virtual bool operator () (Download* d1) const {
-    return d1->variable()->get_value(m_name) == m_value;
+    return (d1->variable()->get_value(m_name) == m_value) != m_inverse;
   }
 
 private:
   std::string                 m_name;
   torrent::Object::value_type m_value;
-};
-
-class ViewFilterHashing : public ViewFilter {
-public:
-  virtual bool operator () (Download* d1) const {
-    return control->core()->hash_queue()->is_queued(d1);
-  }
+  bool                        m_inverse;
 };
 
 // Really need to implement a factory and allow options in the sort
@@ -139,18 +137,18 @@ ViewManager::ViewManager(DownloadList* dl) :
   m_sort["name_reverse"]  = new ViewSortReverse(new ViewSortName());
 
   m_sort["stopped"]       = new ViewSortVariableValue("state");
-  m_sort["started"]       = new ViewSortReverse(new ViewSortVariableValue("state"));
+  m_sort["started"]       = new ViewSortVariableValue("state", true);
   m_sort["complete"]      = new ViewSortVariableValue("complete");
-  m_sort["incomplete"]    = new ViewSortReverse(new ViewSortVariableValue("complete"));
+  m_sort["incomplete"]    = new ViewSortVariableValue("complete", true);
 
   m_sort["state_changed"]         = new ViewSortVariableValue("state_changed");
-  m_sort["state_changed_reverse"] = new ViewSortReverse(new ViewSortVariableValue("state_changed"));
+  m_sort["state_changed_reverse"] = new ViewSortVariableValue("state_changed", true);
 
   m_filter["started"]     = new ViewFilterVariableValue("state", 1);
   m_filter["stopped"]     = new ViewFilterVariableValue("state", 0);
-  m_filter["complete"]    = new ViewFilterVariableValue("complete", 1);
+  m_filter["complete"]    = new ViewFilterVariableValue("complete", 0, false);
   m_filter["incomplete"]  = new ViewFilterVariableValue("complete", 0);
-  m_filter["hashing"]     = new ViewFilterHashing();
+  m_filter["hashing"]     = new ViewFilterVariableValue("hashing", 0, true);
 }
 
 void
@@ -258,6 +256,8 @@ ViewManager::set_filter(const std::string& name, const filter_args& args) {
 void
 ViewManager::set_filter_on(const std::string& name, const filter_args& args) {
   iterator viewItr = find_throw(name);
+
+  (*viewItr)->clear_filter_on();
 
   for (filter_args::const_iterator itr = args.begin(); itr != args.end(); ++itr) {
 

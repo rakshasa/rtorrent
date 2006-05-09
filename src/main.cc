@@ -78,6 +78,7 @@ parse_options(Control* c, int argc, char** argv) {
 
     // Converted.
     optionParser.insert_flag('h', sigc::ptr_fun(&print_help));
+    optionParser.insert_flag('n', OptionParser::Slot());
 
     optionParser.insert_option('b', sigc::bind<0>(sigc::mem_fun(c->variable(), &utils::VariableMap::set_string), "bind"));
     optionParser.insert_option('d', sigc::bind<0>(sigc::mem_fun(c->variable(), &utils::VariableMap::set_string), "directory"));
@@ -218,7 +219,10 @@ main(int argc, char** argv) {
 
     //    control->variable()->process_command("schedule = scheduler,10,10,download_scheduler=");
 
-    control->variable()->process_command("try_import = ~/.rtorrent.rc");
+    if (OptionParser::has_flag('n', argc, argv))
+      control->core()->push_log("Ignoring ~/.rtorrent.rc.");
+    else
+      control->variable()->process_command("try_import = ~/.rtorrent.rc");
 
     int firstArg = parse_options(control, argc, argv);
 
@@ -305,6 +309,7 @@ print_help() {
   std::cout << std::endl;
   std::cout << "Usage: rtorrent [OPTIONS]... [FILE]... [URL]..." << std::endl;
   std::cout << "  -h                Display this very helpful text" << std::endl;
+  std::cout << "  -n                Don't try to load ~/.rtorrent.rc on startup" << std::endl;
   std::cout << "  -b <a.b.c.d>      Bind the listening socket to this IP" << std::endl;
   std::cout << "  -i <a.b.c.d>      Change the IP that is sent to the tracker" << std::endl;
   std::cout << "  -p <int>-<int>    Set port range for incoming connections" << std::endl;

@@ -453,11 +453,10 @@ void
 DownloadList::confirm_finished(Download* download) {
   check_contains(download);
 
-  // FIXME
-  //torrent::download_set_priority(m_download, 2);
-
   download->variable()->set("complete", (int64_t)1);
+
   download->set_connection_type(download->variable()->get_string("connection_seed"));
+  download->set_priority(download->priority());
 
   download->download()->tracker_list().send_completed();
 

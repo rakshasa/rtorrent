@@ -22,6 +22,7 @@
     <cmdsynopsis>
       <command>rtorrent</command>
       <arg choice="opt">-h</arg>
+      <arg choice="opt">-n</arg>
       <arg choice="opt">-o key1=opt1,...</arg>
       <arg choice="opt">-O key=opt</arg>
       <arg choice="opt" rep="repeat">URL | FILE</arg>
@@ -328,6 +329,15 @@ Display help and exit.
         <listitem><para>
 
 Set the address reported to the tracker.
+
+        </para></listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-n</term>
+        <listitem><para>
+
+Don't load ~/.rtorrent.rc on startup.
 
         </para></listitem>
       </varlistentry>
