@@ -130,21 +130,32 @@ Change view.
 	</varlistentry>
 
 	<varlistentry>
-	  <term>^s</term>
+	  <term>^S</term>
 	  <listitem><para>
             Start download.
           </para></listitem>
 	</varlistentry>
 
 	<varlistentry>
-	  <term>^d</term>
+	  <term>^D</term>
 	  <listitem><para>
-            Stop an active download, or remove a stopped download.
+
+Stop an active download, or remove a stopped download.
+
           </para></listitem>
 	</varlistentry>
 
 	<varlistentry>
-	  <term>^r</term>
+	  <term>^K</term>
+	  <listitem><para>
+
+Close a torrent and its files.
+
+          </para></listitem>
+	</varlistentry>
+
+	<varlistentry>
+	  <term>^R</term>
 	  <listitem><para>
             Initiate hash check of torrent.
           </para></listitem>
@@ -553,11 +564,13 @@ Delete <emphasis>id</emphasis> from the scheduler.
 
       <varlistentry>
         <term>stop_untied =</term>
+        <term>close_untied =</term>
         <term>remove_untied =</term>
         <listitem><para>
 
-Stop or remove the torrents that are tied to filenames that have been
-deleted, the association is then cleared.
+Stop, close or remove the torrents that are tied to filenames that
+have been deleted, the association with the file is then cleared so
+the event will not trigger more than once.
 
         </para></listitem>
       </varlistentry>

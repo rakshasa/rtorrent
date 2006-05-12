@@ -49,6 +49,10 @@ public:
   static const int e_connreset   = ECONNRESET;
   static const int e_connaborted = ECONNABORTED;
   static const int e_deadlk      = EDEADLK;
+
+  static const int e_noent       = ENOENT;
+  static const int e_notdir      = ENOTDIR;
+  
   static const int e_intr        = EINTR;
 
   error_number() : m_errno(0) {}
@@ -63,6 +67,8 @@ public:
   bool                is_blocked_prolonged() const { return m_errno == e_deadlk; }
 
   bool                is_closed() const            { return m_errno == e_connreset || m_errno == e_connaborted; }
+
+  bool                is_bad_path() const          { return m_errno == e_noent || m_errno == e_notdir || m_errno == e_access; }
 
   static error_number current()                    { return errno; }
   static void         clear_global()               { errno = 0; }

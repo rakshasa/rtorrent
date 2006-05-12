@@ -41,6 +41,7 @@
 #include <fstream>
 #include <stdio.h>
 #include <unistd.h>
+#include <rak/error_number.h>
 #include <rak/path.h>
 #include <rak/string_manip.h>
 #include <torrent/object.h>
@@ -68,7 +69,10 @@ DownloadStore::enable(bool lock) {
     m_lockfile.set_path(std::string());
 
   if (!m_lockfile.try_lock())
-    throw torrent::input_error("Could not lock session directory: \"" + m_path + "\", held by \"" + m_lockfile.locked_by_as_string() + "\".");
+    if (rak::error_number::current().is_bad_path())
+      throw torrent::input_error("Could not lock session directory: \"" + m_path + "\", " + rak::error_number::current().c_str());
+    else
+      throw torrent::input_error("Could not lock session directory: \"" + m_path + "\", held by \"" + m_lockfile.locked_by_as_string() + "\".");
 }
 
 void

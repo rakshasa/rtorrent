@@ -117,6 +117,25 @@ apply_stop_untied(Control* m) {
 }
 
 void
+apply_close_untied(Control* m) {
+  core::Manager::DListItr itr = m->core()->download_list()->begin();
+
+  while ((itr = std::find_if(itr, m->core()->download_list()->end(),
+			     rak::on(rak::bind2nd(std::mem_fun(&core::Download::variable_string), "tied_to_file"),
+				     std::not1(std::mem_fun_ref(&std::string::empty)))))
+	 != m->core()->download_list()->end()) {
+    rak::file_stat fs;
+
+    if (!fs.update(rak::path_expand((*itr)->variable_string("tied_to_file")))) {
+      (*itr)->variable()->set("tied_to_file", std::string());
+      m->core()->download_list()->close(*itr);
+    }
+
+    ++itr;
+  }
+}
+
+void
 apply_remove_untied(Control* m) {
   core::Manager::DListItr itr = m->core()->download_list()->begin();
 
@@ -386,6 +405,7 @@ initialize_option_handler(Control* c) {
   variables->insert("load",                  new utils::VariableStringSlot(rak::value_fn(std::string()), rak::bind_ptr_fn(&apply_load, c)));
   variables->insert("load_start",            new utils::VariableStringSlot(rak::value_fn(std::string()), rak::bind_ptr_fn(&apply_load_start, c)));
   variables->insert("stop_untied",           new utils::VariableVoidSlot(rak::bind_ptr_fn(&apply_stop_untied, c)));
+  variables->insert("close_untied",          new utils::VariableVoidSlot(rak::bind_ptr_fn(&apply_close_untied, c)));
   variables->insert("remove_untied",         new utils::VariableVoidSlot(rak::bind_ptr_fn(&apply_remove_untied, c)));
 
   variables->insert("enable_trackers",       new utils::VariableStringSlot(rak::value_fn(std::string()), rak::bind_ptr_fn(&apply_enable_trackers, c)));

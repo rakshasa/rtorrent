@@ -146,7 +146,7 @@ ViewManager::ViewManager(DownloadList* dl) :
 
   m_filter["started"]     = new ViewFilterVariableValue("state", 1);
   m_filter["stopped"]     = new ViewFilterVariableValue("state", 0);
-  m_filter["complete"]    = new ViewFilterVariableValue("complete", 0, false);
+  m_filter["complete"]    = new ViewFilterVariableValue("complete", 0, true);
   m_filter["incomplete"]  = new ViewFilterVariableValue("complete", 0);
   m_filter["hashing"]     = new ViewFilterVariableValue("hashing", 0, true);
 }
