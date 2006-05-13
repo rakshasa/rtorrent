@@ -50,8 +50,8 @@ namespace torrent {
 namespace core {
 
 class DownloadStore;
-class HashQueue;
 class HttpQueue;
+class View;
 
 class Manager {
 public:
@@ -65,8 +65,10 @@ public:
   DownloadList*       download_list()                     { return m_downloadList; }
   DownloadStore*      download_store()                    { return m_downloadStore; }
 
-  HashQueue*          hash_queue()                        { return m_hashQueue; }
   HttpQueue*          http_queue()                        { return m_httpQueue; }
+
+  View*               hashing_view()                      { return m_hashingView; }
+  void                set_hashing_view(View* v);
 
   PollManager*        get_poll_manager()                  { return m_pollManager; }
   Log&                get_log_important()                 { return m_logImportant; }
@@ -103,10 +105,13 @@ private:
 
   void                receive_http_failed(std::string msg);
 
+  void                receive_hashing_changed();
+
   DownloadList*       m_downloadList;
   DownloadStore*      m_downloadStore;
-  HashQueue*          m_hashQueue;
   HttpQueue*          m_httpQueue;
+
+  View*               m_hashingView;
 
   PollManager*        m_pollManager;
   Log                 m_logImportant;

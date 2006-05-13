@@ -79,7 +79,7 @@ print_hhmmss_local(char* first, char* last, time_t t) {
   
   if (u == NULL)
     //return "inv_time";
-    throw torrent::internal_error("print_hhmmss_local(...) failed.");
+    throw torrent::client_error("print_hhmmss_local(...) failed.");
 
   return print_buffer(first, last, "%2u:%02u:%02u", u->tm_hour, u->tm_min, u->tm_sec);
 }
@@ -98,7 +98,7 @@ print_ddmmyyyy(char* first, char* last, time_t t) {
   
   if (u == NULL)
     //return "inv_time";
-    throw torrent::internal_error("print_ddmmyyyy(...) failed.");
+    throw torrent::client_error("print_ddmmyyyy(...) failed.");
 
   return print_buffer(first, last, "%02u/%02u/%04u", u->tm_mday, (u->tm_mon + 1), (1900 + u->tm_year));
 }
@@ -154,17 +154,17 @@ print_download_info(char* first, char* last, core::Download* d) {
     first = print_buffer(first, last, " [%s]", core::Download::priority_to_string(d->priority()));
 
   if (first > last)
-    throw torrent::internal_error("print_download_info(...) wrote past end of the buffer.");
+    throw torrent::client_error("print_download_info(...) wrote past end of the buffer.");
 
   return first;
 }
 
 char*
 print_download_status(char* first, char* last, core::Download* d) {
-  if (!d->download()->is_active())
+  if (!d->is_active())
     first = print_buffer(first, last, "Inactive: ");
 
-  if (d->download()->is_hash_checking()) {
+  if (d->is_hash_checking()) {
     first = print_buffer(first, last, "Checking hash [%2i%%]",
 		       (d->download()->chunks_hashed() * 100) / d->download()->chunks_total());
 
@@ -182,7 +182,7 @@ print_download_status(char* first, char* last, core::Download* d) {
   }
 
   if (first > last)
-    throw torrent::internal_error("print_download_status(...) wrote past end of the buffer.");
+    throw torrent::client_error("print_download_status(...) wrote past end of the buffer.");
 
   return first;
 }
@@ -233,7 +233,7 @@ print_status_info(char* first, char* last) {
   }
   
   if (first > last)
-    throw torrent::internal_error("print_status_info(...) wrote past end of the buffer.");
+    throw torrent::client_error("print_status_info(...) wrote past end of the buffer.");
 
   if (!rak::socket_address::cast_from(torrent::connection_manager()->bind_address())->is_address_any()) {
     first = print_buffer(first, last, " [Bind ");

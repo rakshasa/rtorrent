@@ -44,7 +44,6 @@
 
 #include "download.h"
 #include "download_list.h"
-#include "hash_queue.h"
 #include "manager.h"
 #include "view.h"
 #include "view_manager.h"
@@ -162,7 +161,7 @@ ViewManager::clear() {
 ViewManager::iterator
 ViewManager::insert(const std::string& name) {
   if (find(name) != end())
-    throw torrent::internal_error("ViewManager::insert(...) name already inserted.");
+    throw torrent::client_error("ViewManager::insert(...) name already inserted.");
 
   View* view = new View();
   view->initialize(name, m_list);

@@ -100,9 +100,6 @@ public:
   void                pause(Download* d);
 
   void                check_hash(Download* d);
-  void                check_hash_throw(Download* d);
-
-  void                hash_done(Download* d);
 
   enum {
     SLOTS_INSERT,
@@ -171,6 +168,9 @@ public:
   static void         erase_key(slot_map& sm, const std::string& key)   { sm.erase(key); }
 
 private:
+  void                hash_done(Download* d);
+  void                hash_clear(Download* d);
+
   inline void         check_contains(Download* d);
 
   void                received_finished(Download* d);

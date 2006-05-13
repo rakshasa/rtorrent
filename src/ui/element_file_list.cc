@@ -61,7 +61,7 @@ ElementFileList::ElementFileList(core::Download* d) :
 void
 ElementFileList::activate(Control* c, MItr mItr) {
   if (m_window != NULL)
-    throw torrent::internal_error("ui::ElementFileList::activate(...) called on an object in the wrong state");
+    throw torrent::client_error("ui::ElementFileList::activate(...) called on an object in the wrong state");
 
   c->input()->push_front(&m_bindings);
 
@@ -71,7 +71,7 @@ ElementFileList::activate(Control* c, MItr mItr) {
 void
 ElementFileList::disable(Control* c) {
   if (m_window == NULL)
-    throw torrent::internal_error("ui::ElementFileList::disable(...) called on an object in the wrong state");
+    throw torrent::client_error("ui::ElementFileList::disable(...) called on an object in the wrong state");
 
   c->input()->erase(&m_bindings);
 
@@ -82,7 +82,7 @@ ElementFileList::disable(Control* c) {
 void
 ElementFileList::receive_next() {
   if (m_window == NULL)
-    throw torrent::internal_error("ui::ElementFileList::receive_next(...) called on a disabled object");
+    throw torrent::client_error("ui::ElementFileList::receive_next(...) called on a disabled object");
 
   if (++m_focus >= m_download->download()->file_list().size())
     m_focus = 0;
@@ -93,7 +93,7 @@ ElementFileList::receive_next() {
 void
 ElementFileList::receive_prev() {
   if (m_window == NULL)
-    throw torrent::internal_error("ui::ElementFileList::receive_prev(...) called on a disabled object");
+    throw torrent::client_error("ui::ElementFileList::receive_prev(...) called on a disabled object");
 
   torrent::FileList fl = m_download->download()->file_list();
 
@@ -111,7 +111,7 @@ ElementFileList::receive_prev() {
 void
 ElementFileList::receive_priority() {
   if (m_window == NULL)
-    throw torrent::internal_error("ui::ElementFileList::receive_prev(...) called on a disabled object");
+    throw torrent::client_error("ui::ElementFileList::receive_prev(...) called on a disabled object");
 
   torrent::FileList fl = m_download->download()->file_list();
 
@@ -129,7 +129,7 @@ ElementFileList::receive_priority() {
 void
 ElementFileList::receive_change_all() {
   if (m_window == NULL)
-    throw torrent::internal_error("ui::ElementFileList::receive_prev(...) called on a disabled object");
+    throw torrent::client_error("ui::ElementFileList::receive_prev(...) called on a disabled object");
 
   torrent::FileList fl = m_download->download()->file_list();
 

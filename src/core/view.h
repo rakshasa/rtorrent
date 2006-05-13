@@ -85,7 +85,8 @@ public:
 
   const std::string&  name() const                            { return m_name; }
 
-  bool                empty() const                           { return m_size == 0; }
+  bool                empty_visible() const                   { return m_size == 0; }
+
   size_type           size() const                            { return m_size; }
 
   // Perhaps this should be renamed?

@@ -14,8 +14,6 @@ libsub_core_a_SOURCES = \
 	download_slot_map.h \
 	download_store.cc \
 	download_store.h \
-	hash_queue.cc \
-	hash_queue.h \
 	http_queue.cc \
 	http_queue.h \
 	log.cc \

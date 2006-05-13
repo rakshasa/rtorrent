@@ -85,10 +85,10 @@ CommandScheduler::erase(iterator itr) {
 void
 CommandScheduler::call_item(value_type item) {
   if (item->is_queued())
-    throw torrent::internal_error("CommandScheduler::call_item(...) called but item is still queued.");
+    throw torrent::client_error("CommandScheduler::call_item(...) called but item is still queued.");
 
   if (std::find(begin(), end(), item) == end())
-    throw torrent::internal_error("CommandScheduler::call_item(...) called but the item isn't in the scheduler.");
+    throw torrent::client_error("CommandScheduler::call_item(...) called but the item isn't in the scheduler.");
 
   // Remove the item before calling the command if it should be
   // removed.
@@ -110,7 +110,7 @@ CommandScheduler::call_item(value_type item) {
   }
 
   if (next <= cachedTime)
-    throw torrent::internal_error("CommandScheduler::call_item(...) tried to schedule a zero interval item.");
+    throw torrent::client_error("CommandScheduler::call_item(...) tried to schedule a zero interval item.");
 
   item->enable(next);
 }

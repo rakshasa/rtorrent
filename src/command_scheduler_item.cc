@@ -47,7 +47,7 @@ CommandSchedulerItem::~CommandSchedulerItem() {
 void
 CommandSchedulerItem::enable(rak::timer t) {
   if (t == rak::timer())
-    throw torrent::internal_error("CommandSchedulerItem::enable() t == rak::timer().");
+    throw torrent::client_error("CommandSchedulerItem::enable() t == rak::timer().");
 
   if (is_queued())
     disable();
@@ -71,7 +71,7 @@ CommandSchedulerItem::next_time_scheduled() const {
     return rak::timer();
 
   if (m_timeScheduled == rak::timer())
-    throw torrent::internal_error("CommandSchedulerItem::next_time_scheduled() m_timeScheduled == rak::timer().");
+    throw torrent::client_error("CommandSchedulerItem::next_time_scheduled() m_timeScheduled == rak::timer().");
 
   rak::timer next = m_timeScheduled;
 

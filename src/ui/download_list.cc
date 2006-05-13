@@ -90,7 +90,7 @@ DownloadList::DownloadList(Control* c) :
   receive_change_view("main");
 
   if (m_view == NULL)
-    throw torrent::internal_error("View \"main\" must be present to initialize the main display.");
+    throw torrent::client_error("View \"main\" must be present to initialize the main display.");
 
   m_taskUpdate.set_slot(rak::mem_fn(this, &DownloadList::task_update)),
 
@@ -209,7 +209,7 @@ DownloadList::receive_stop_download() {
   if (m_view->focus() == m_view->end_visible())
     return;
 
-  if ((*m_view->focus())->download()->is_active())
+  if ((*m_view->focus())->variable()->get_value("state") == 1)
     m_control->core()->download_list()->stop(*m_view->focus());
   else
     m_control->core()->download_list()->erase(*m_view->focus());
@@ -391,7 +391,7 @@ DownloadList::receive_change_view(const std::string& name) {
   ElementDownloadList* ui = dynamic_cast<ElementDownloadList*>(m_uiArray[DISPLAY_DOWNLOAD_LIST]);
 
   if (ui == NULL)
-    throw torrent::internal_error("DownloadList::receive_change_view(...) could not cast ui.");
+    throw torrent::client_error("DownloadList::receive_change_view(...) could not cast ui.");
 
   ui->set_view(m_view);
 }

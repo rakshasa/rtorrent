@@ -56,15 +56,25 @@ public:
   typedef utils::VariableMap            variable_map_type;
 
   static const int64_t variable_hashing_stopped = 0;
-  static const int64_t variable_hashing_started = 1;
+  static const int64_t variable_hashing_initial = 1;
   static const int64_t variable_hashing_last    = 2;
+  static const int64_t variable_hashing_rehash  = 3;
 
   Download(download_type d);
   ~Download();
 
   bool                is_open() const                          { return m_download.is_open(); }
   bool                is_active() const                        { return m_download.is_active(); }
-  inline bool         is_done() const                          { return m_download.chunks_done() == m_download.chunks_total(); }
+  bool                is_done() const                          { return m_download.chunks_done() == m_download.chunks_total(); }
+
+  // FIXME: Fixed a bug in libtorrent that caused is_hash_checked to
+  // return true when the torrent is closed. Remove this redundant
+  // test in the next milestone.
+  bool                is_hash_checked() const                  { return m_download.is_open() && m_download.is_hash_checked(); }
+  bool                is_hash_checking() const                 { return m_download.is_hash_checking(); }
+
+  bool                is_hash_failed() const                   { return m_hashFailed; }
+  void                set_hash_failed(bool v)                  { m_hashFailed = v; }
 
   variable_map_type*  variable()                               { return &m_variables; }
   std::string         variable_string(const std::string& key)  { return m_variables.get_string(key); }
@@ -126,6 +136,8 @@ private:
   download_type       m_download;
   file_list_type      m_fileList;
   tracker_list_type   m_trackerList;
+
+  bool                m_hashFailed;
 
   std::string         m_message;
   uint32_t            m_chunksFailed;

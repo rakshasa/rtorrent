@@ -82,7 +82,7 @@ Scheduler::update() {
 
   for (View::iterator itr = m_view->begin_visible(), last = m_view->end_visible(); curActive > target; ++itr) {
     if (itr == last)
-      throw torrent::internal_error("Scheduler::update() loop bork.");
+      throw torrent::client_error("Scheduler::update() loop bork.");
 
     if ((*itr)->is_active()) {
       m_downloadList->pause(*itr);
@@ -94,7 +94,7 @@ Scheduler::update() {
 
   for (View::iterator itr = m_view->begin_visible(), last = m_view->end_visible(); curActive < m_maxActive; ++itr) {
     if (itr == last)
-      throw torrent::internal_error("Scheduler::update() loop bork.");
+      throw torrent::client_error("Scheduler::update() loop bork.");
 
     if (!(*itr)->is_active()) {
       m_downloadList->resume(*itr);

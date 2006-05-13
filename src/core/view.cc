@@ -60,15 +60,15 @@ View::~View() {
 void
 View::initialize(const std::string& name, core::DownloadList* dlist) {
   if (!m_name.empty())
-    throw torrent::internal_error("View::initialize(...) called on an already initialized view.");
+    throw torrent::client_error("View::initialize(...) called on an already initialized view.");
 
   if (name.empty())
-    throw torrent::internal_error("View::initialize(...) called with an empty name.");
+    throw torrent::client_error("View::initialize(...) called with an empty name.");
 
   std::string key = "0_view_" + name;
 
   if (dlist->has_slot_insert(key) || dlist->has_slot_erase(key))
-    throw torrent::internal_error("View::initialize(...) duplicate key name found in DownloadList.");
+    throw torrent::client_error("View::initialize(...) duplicate key name found in DownloadList.");
 
   m_name = name;
   m_list = dlist;
@@ -167,7 +167,7 @@ View::filter() {
 void
 View::set_filter_on(int event) {
   if (event == DownloadList::SLOTS_INSERT || event == DownloadList::SLOTS_ERASE || event >= DownloadList::SLOTS_MAX_SIZE)
-    throw torrent::internal_error("View::filter_on(...) invalid event.");
+    throw torrent::client_error("View::filter_on(...) invalid event.");
 
   m_list->slots(event)["0_view_" + m_name]  = sigc::bind(sigc::mem_fun(this, &View::received), event);
 }
@@ -193,7 +193,7 @@ View::insert_visible(Download* d) {
 inline void
 View::erase(iterator itr) {
   if (itr == end_filtered())
-    throw torrent::internal_error("View::erase_visible(...) iterator out of range.");
+    throw torrent::client_error("View::erase_visible(...) iterator out of range.");
 
   m_size -= (itr < end_visible());
   m_focus -= (m_focus > position(itr));
@@ -209,7 +209,7 @@ View::received(core::Download* download, int event) {
   case DownloadList::SLOTS_INSERT:
   
     if (itr != base_type::end())
-      throw torrent::internal_error("View::received(..., SLOTS_INSERT) already inserted.");
+      throw torrent::client_error("View::received(..., SLOTS_INSERT) already inserted.");
 
     if (view_downloads_filter(m_filter)(download))
       insert_visible(download);
@@ -217,7 +217,7 @@ View::received(core::Download* download, int event) {
       base_type::insert(end_filtered(), download);
 
     if (m_focus > m_size)
-      throw torrent::internal_error("View::received(...) m_focus > m_size.");
+      throw torrent::client_error("View::received(...) m_focus > m_size.");
 
     break;
 
@@ -227,7 +227,7 @@ View::received(core::Download* download, int event) {
 
   default:
     if (itr == end_filtered())
-      throw torrent::internal_error("View::received(..., SLOTS_*) could not find download.");
+      throw torrent::client_error("View::received(..., SLOTS_*) could not find download.");
 
     if (view_downloads_filter(m_filter)(download)) {
       

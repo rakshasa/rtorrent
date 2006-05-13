@@ -60,11 +60,11 @@
 #include "download.h"
 #include "download_factory.h"
 #include "download_store.h"
-#include "hash_queue.h"
 #include "http_queue.h"
 #include "manager.h"
 #include "poll_manager_epoll.h"
 #include "poll_manager_select.h"
+#include "view.h"
 
 namespace core {
 
@@ -114,6 +114,8 @@ delete_tied(Download* d) {
 }
 
 Manager::Manager() :
+  m_hashingView(NULL),
+
   m_pollManager(NULL),
   m_portFirst(6890),
   m_portLast(6999) {
@@ -122,15 +124,22 @@ Manager::Manager() :
   m_downloadList = new DownloadList();
 
   m_httpQueue = new HttpQueue();
-  m_hashQueue = new HashQueue(m_downloadList);
 }
 
 Manager::~Manager() {
   delete m_downloadList;
-  delete m_hashQueue;
 
   delete m_downloadStore;
   delete m_httpQueue;
+}
+
+void
+Manager::set_hashing_view(View* v) {
+  if (v == NULL || m_hashingView != NULL)
+    throw torrent::client_error("Manager::set_hashing_view(...) received NULL or is already set.");
+
+  m_hashingView = v;
+  v->signal_changed().connect(sigc::mem_fun(this, &Manager::receive_hashing_changed));
 }
 
 void
@@ -358,6 +367,34 @@ Manager::try_create_download_expand(const std::string& uri, bool start, bool pri
 
   else
     try_create_download(uri, start, printLog, tied);
+}
+
+// DownloadList's hashing related functions don't actually start the
+// hashing, it only reacts to events. This functions checks the
+// hashing view and starts hashing if nessesary.
+void
+Manager::receive_hashing_changed() {
+  if (m_hashingView->empty_visible() ||
+      std::find_if(m_hashingView->begin_visible(), m_hashingView->end_visible(), std::mem_fun(&Download::is_hash_checking)) != m_hashingView->end_visible())
+    return;
+
+  for (View::iterator itr = m_hashingView->begin_visible(), last = m_hashingView->end_visible(); itr != last; ++itr) {
+
+    try {
+
+      if ((*itr)->is_hash_checked())
+	throw torrent::client_error("core::Manager::receive_hashing_changed() hash already checked.");
+  
+      m_downloadList->open_throw(*itr);
+      (*itr)->download()->hash_check();
+
+      return;
+
+    } catch (torrent::local_error& e) {
+      (*itr)->set_hash_failed(true);
+      push_log(e.what());
+    }
+  }
 }
 
 }

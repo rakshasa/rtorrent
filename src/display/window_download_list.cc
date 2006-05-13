@@ -73,7 +73,7 @@ WindowDownloadList::redraw() {
 
   m_canvas->print(0, 0, "%s", ("[View: " + m_view->name() + "]").c_str());
 
-  if (m_view->empty() || m_canvas->get_width() < 5 || m_canvas->get_height() < 2)
+  if (m_view->empty_visible() || m_canvas->get_width() < 5 || m_canvas->get_height() < 2)
     return;
 
   typedef std::pair<core::View::iterator, core::View::iterator> Range;
