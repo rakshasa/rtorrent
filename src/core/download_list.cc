@@ -432,10 +432,17 @@ void
 DownloadList::hash_clear(Download* download) {
   check_contains(download);
 
+  // Set hash failed so close_throw won't cause the hash queue to
+  // reopen this download.
+  download->set_hash_failed(true);
+
   close_throw(download);
   download->download()->hash_resume_clear();
 
   download->set_hash_failed(false);
+
+  if (download->is_open())
+    throw torrent::internal_error("DownloadList::hash_clear(...) download still open.");
 
   // If any more stuff is added here, make sure resume etc are still
   // correct.

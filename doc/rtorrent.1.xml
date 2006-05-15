@@ -740,6 +740,16 @@ gives the client 128 sockets to use as it wishes.
       </varlistentry>
 
       <varlistentry>
+        <term>send_buffer_size = <replaceable>value</replaceable></term>
+        <term>receive_buffer_size = <replaceable>value</replaceable></term>
+        <listitem><para>
+
+Adjust the send and receive buffer size for socket.
+
+        </para></listitem>
+      </varlistentry>
+
+      <varlistentry>
         <term>umask = <replaceable>0644</replaceable></term>
         <listitem><para>
 
