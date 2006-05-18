@@ -405,16 +405,10 @@ DownloadList::hash_done(Download* download) {
 
   case Download::variable_hashing_last:
 
-    if (download->is_done()) {
-
+    if (download->is_done())
       confirm_finished(download);
-
-      if (download->variable()->get_value("state") == 1)
-	resume(download);
-
-    } else {
+    else
       download->set_message("Hash check on download completion found bad chunks.");
-    }
     
     break;
 
@@ -475,8 +469,6 @@ DownloadList::confirm_finished(Download* download) {
   download->set_connection_type(download->variable()->get_string("connection_seed"));
   download->set_priority(download->priority());
 
-  download->download()->tracker_list().send_completed();
-
   // Do this before the slots are called in case one of them closes
   // the download.
   if (!download->is_active() && control->variable()->get_value("session_on_completion") == 1) {
@@ -485,6 +477,11 @@ DownloadList::confirm_finished(Download* download) {
   }
 
   std::for_each(slot_map_finished().begin(), slot_map_finished().end(), download_list_call(download));
+
+  if (!download->is_active() && download->variable()->get_value("state") == 1)
+    resume(download);
+
+  download->download()->tracker_list().send_completed();
 }
 
 }
