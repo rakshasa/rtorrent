@@ -140,7 +140,7 @@ DownloadFactory::receive_commit() {
 void
 DownloadFactory::receive_success() {
   if (m_stream == NULL)
-    throw torrent::client_error("DownloadFactory::receive_success() called on an object with m_stream == NULL");
+    throw torrent::client_error("DownloadFactory::receive_success() called on an object with m_stream == NULL.");
 
   Download* download = m_manager->download_list()->create(m_stream, m_printLog);
 
@@ -167,14 +167,6 @@ DownloadFactory::receive_success() {
 
   initialize_rtorrent(download, rtorrent);
 
-  if (m_manager->download_list()->insert(download) == m_manager->download_list()->end()) {
-    // ATM doesn't really ever get here.
-    delete download;
-
-    m_slotFinished();
-    return;
-  }
-
   // Move to 'rtorrent'.
   download->variable()->set("connection_leech", m_variables.get("connection_leech"));
   download->variable()->set("connection_seed",  m_variables.get("connection_seed"));
@@ -185,12 +177,25 @@ DownloadFactory::receive_success() {
   if (!control->variable()->get_value("use_udp_trackers"))
     download->enable_udp_trackers(false);
 
-  if (m_session) {
-    if (!rtorrent->has_key_string("directory"))
-      download->variable()->set("directory", m_variables.get("directory"));
-    else
-      download->variable()->set("directory", rtorrent->get_key("directory"));
+  if (!rtorrent->has_key_string("directory"))
+    download->variable()->set("directory", m_variables.get("directory"));
+  else
+    download->variable()->set("directory", rtorrent->get_key("directory"));
 
+  if (!m_session && m_variables.get("tied_to_file").as_value())
+    download->variable()->set("tied_to_file", m_uri);
+
+  // The action of inserting might cause the torrent to be
+  // opened/started or such. Figure out a nicer way of handling this.
+  if (m_manager->download_list()->insert(download) == m_manager->download_list()->end()) {
+    // ATM doesn't really ever get here.
+    delete download;
+
+    m_slotFinished();
+    return;
+  }
+
+  if (m_session) {
     // This torrent was queued for hashing or hashing when the session
     // file was saved. Or it was in a started state.
     if (download->variable()->get_value("hashing") != Download::variable_hashing_stopped ||
@@ -198,11 +203,6 @@ DownloadFactory::receive_success() {
       m_manager->download_list()->resume(download);
 
   } else {
-    download->variable()->set("directory", m_variables.get("directory"));
-
-    if (m_variables.get("tied_to_file").as_value())
-      download->variable()->set("tied_to_file", m_uri);
-
     // Use the state thingie here, move below.
     if (m_start)
       m_manager->download_list()->start(download);

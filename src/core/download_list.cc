@@ -371,6 +371,9 @@ void
 DownloadList::hash_done(Download* download) {
   check_contains(download);
 
+  if (!download->is_open())
+    throw torrent::client_error("DownloadList::hash_done(...) !download->is_open().");
+
   if (!download->is_hash_checked() || download->is_hash_checking() || download->is_active())
     throw torrent::client_error("DownloadList::hash_done(...) download in invalid state.");
 

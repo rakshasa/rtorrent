@@ -36,7 +36,10 @@
 
 #include "config.h"
 
+#include <algorithm>
+#include <cstring>
 #include <cstdio>
+#include <functional>
 #include <getopt.h>
 #include <stdexcept>
 #include <unistd.h>
@@ -88,17 +91,9 @@ OptionParser::process(int argc, char** argv) {
 
 bool
 OptionParser::has_flag(char flag, int argc, char** argv) {
-  int result;
-  char options[2] = { flag, '\0' };
+  char options[3] = { '-', flag, '\0' };
 
-  optind = 0;
-  opterr = 0;
-
-  while ((result = getopt(argc, argv, options)) != -1)
-    if (result == flag)
-      return true;
-
-  return false;
+  return std::find_if(argv, argv + argc, std::not1(std::bind1st(std::ptr_fun(&std::strcmp), options))) != argv + argc;
 }
 
 std::string

@@ -83,7 +83,7 @@ private:
 class ViewSortVariableValue : public ViewSort {
 public:
   ViewSortVariableValue(const std::string& name, bool reverse = false) :
-    m_name(name) {}
+    m_name(name), m_reverse(reverse) {}
 
   virtual bool operator () (Download* d1, Download* d2) const {
     if (m_reverse)
