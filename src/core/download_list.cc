@@ -374,8 +374,15 @@ DownloadList::hash_done(Download* download) {
   if (!download->is_open())
     throw torrent::client_error("DownloadList::hash_done(...) !download->is_open().");
 
-  if (!download->is_hash_checked() || download->is_hash_checking() || download->is_active())
+  if (download->is_hash_checking() || download->is_active())
     throw torrent::client_error("DownloadList::hash_done(...) download in invalid state.");
+
+  if (!download->is_hash_checked()) {
+    download->set_hash_failed(true);
+    
+    std::for_each(slot_map_hash_done().begin(), slot_map_hash_done().end(), download_list_call(download));
+    return;
+  }
 
   // Need to find some sane conditional here. Can we check the total
   // downloaded to ensure something was transferred, thus we didn't
