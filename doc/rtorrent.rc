@@ -26,6 +26,9 @@
 #schedule = watch_directory,5,5,load_start=./watch/*.torrent
 #schedule = untied_directory,5,5,stop_untied=
 
+# Close torrents when diskspace is low.
+#schedule = untied_directory,5,60,close_low_diskspace=100M
+
 # The ip address reported to the tracker.
 #ip = 127.0.0.1
 #ip = rakshasa.no

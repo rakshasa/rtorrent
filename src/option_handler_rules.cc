@@ -41,12 +41,15 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <rak/file_stat.h>
+#include <rak/fs_stat.h>
 #include <rak/functional.h>
 #include <rak/path.h>
 #include <rak/string_manip.h>
 #include <torrent/object.h>
 #include <torrent/connection_manager.h>
 #include <torrent/exceptions.h>
+#include <torrent/file.h>
+#include <torrent/path.h>
 #include <torrent/torrent.h>
 #include <torrent/tracker.h>
 #include <torrent/tracker_list.h>
@@ -153,6 +156,28 @@ apply_remove_untied(Control* m) {
     } else {
       ++itr;
     }
+  }
+}
+
+void
+apply_close_low_diskspace(Control* m, int64_t arg) {
+  core::Manager::DListItr itr = m->core()->download_list()->begin();
+
+  while ((itr = std::find_if(itr, m->core()->download_list()->end(),
+                             rak::equal(true, std::mem_fun(&core::Download::is_downloading))))
+	 != m->core()->download_list()->end()) {
+    rak::fs_stat stat;
+    std::string path = (*itr)->file_list()->root_dir() + (*itr)->file_list()->get(0).path()->as_string();
+
+    if (!stat.update(path)) {
+      m->core()->push_log(std::string("Cannot read free diskspace: ") + strerror(errno) + " for " + path);
+
+    } else if (stat.bytes_avail() < arg) {
+      m->core()->download_list()->close(*itr);
+      (*itr)->set_message(std::string("Low diskspace"));
+    }
+
+    ++itr;
   }
 }
 
@@ -407,6 +432,7 @@ initialize_option_handler(Control* c) {
   variables->insert("stop_untied",           new utils::VariableVoidSlot(rak::bind_ptr_fn(&apply_stop_untied, c)));
   variables->insert("close_untied",          new utils::VariableVoidSlot(rak::bind_ptr_fn(&apply_close_untied, c)));
   variables->insert("remove_untied",         new utils::VariableVoidSlot(rak::bind_ptr_fn(&apply_remove_untied, c)));
+  variables->insert("close_low_diskspace",    new utils::VariableValueSlot(rak::value_fn(int64_t()), rak::bind_ptr_fn(&apply_close_low_diskspace, c)));
 
   variables->insert("enable_trackers",       new utils::VariableStringSlot(rak::value_fn(std::string()), rak::bind_ptr_fn(&apply_enable_trackers, c)));
   variables->insert("encoding_list",         new utils::VariableStringSlot(rak::value_fn(std::string()), rak::bind_ptr_fn(&apply_encoding_list, c)));

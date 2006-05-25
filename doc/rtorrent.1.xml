@@ -576,6 +576,17 @@ the event will not trigger more than once.
       </varlistentry>
 
       <varlistentry>
+        <term>close_low_diskspace = <replaceable>space</replaceable></term>
+        <listitem><para>
+
+Close any active torrents on filesystems with less than
+<emphasis>space</emphasis> diskspace left. Use with
+<emphasis>schedule</emphasis>.
+
+        </para></listitem>
+      </varlistentry>
+
+      <varlistentry>
         <term>load = <replaceable>file</replaceable></term>
         <term>load_start = <replaceable>file</replaceable></term>
         <listitem><para>

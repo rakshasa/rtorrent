@@ -175,7 +175,7 @@ bool
 VariableMap::process_file(const std::string& path) {
   std::fstream file(rak::path_expand(path).c_str(), std::ios::in);
 
-  if (!file.good())
+  if (!file.is_open())
     return false;
 
   int lineNumber = 0;

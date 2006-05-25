@@ -201,3 +201,119 @@ AC_DEFUN([TORRENT_WITHOUT_NCURSESW], [
       )
     ])
 ])
+
+AC_DEFUN([TORRENT_CHECK_STATVFS], [
+  AC_CHECK_HEADERS(sys/vfs.h sys/statvfs.h sys/statfs.h)
+
+  AC_MSG_CHECKING(for statvfs)
+
+  AC_TRY_LINK(
+    [
+      #if HAVE_SYS_VFS_H
+      #include <sys/vfs.h>
+      #endif
+      #if HAVE_SYS_STATVFS_H
+      #include <sys/statvfs.h>
+      #endif
+      #if HAVE_SYS_STATFS_H
+      #include <sys/statfs.h>
+      #endif
+    ],[
+      struct statvfs s; fsblkcnt_t c;
+      statvfs("", &s);
+      fstatvfs(0, &s);
+    ],
+    [
+      AC_DEFINE(FS_STAT_FD, [fstatvfs(fd, &m_stat) == 0], Function to determine filesystem stats from fd)
+      AC_DEFINE(FS_STAT_FN, [statvfs(fn, &m_stat) == 0], Function to determine filesystem stats from filename)
+      AC_DEFINE(FS_STAT_STRUCT, [struct statvfs], Type of second argument to statfs function)
+      AC_DEFINE(FS_STAT_SIZE_TYPE, [unsigned long], Type of block size member in stat struct)
+      AC_DEFINE(FS_STAT_COUNT_TYPE, [fsblkcnt_t], Type of block count member in stat struct)
+      AC_MSG_RESULT(ok)
+      have_stat_vfs=yes
+    ],
+    [
+      AC_MSG_RESULT(no)
+      have_stat_vfs=no
+    ])
+])
+
+AC_DEFUN([TORRENT_CHECK_STATFS], [
+  AC_CHECK_HEADERS(sys/statfs.h sys/param.h sys/mount.h)
+
+  AC_MSG_CHECKING(for statfs)
+
+  AC_TRY_LINK(
+    [
+      #if HAVE_SYS_STATFS_H
+      #include <sys/statfs.h>
+      #endif
+      #if HAVE_SYS_PARAM_H
+      #include <sys/param.h>
+      #endif
+      #if HAVE_SYS_MOUNT_H
+      #include <sys/mount.h>
+      #endif
+    ],[
+      struct statfs s;
+      statfs("", &s);
+      fstatfs(0, &s);
+    ],
+    [
+      AC_DEFINE(FS_STAT_FD, [fstatfs(fd, &m_stat) == 0], Function to determine filesystem stats from fd)
+      AC_DEFINE(FS_STAT_FN, [statfs(fn, &m_stat) == 0], Function to determine filesystem stats from filename)
+      AC_DEFINE(FS_STAT_STRUCT, [struct statfs], Type of second argument to statfs function)
+      AC_DEFINE(FS_STAT_SIZE_TYPE, [long], Type of block size member in stat struct)
+      AC_DEFINE(FS_STAT_COUNT_TYPE, [long], Type of block count member in stat struct)
+      AC_MSG_RESULT(ok)
+    ],
+    [
+      AC_MSG_RESULT(no)
+    ])
+])
+
+AC_DEFUN([TORRENT_DISABLED_STATFS], [
+      AC_DEFINE(FS_STAT_FD, [(errno = ENOSYS) == 0], Function to determine filesystem stats from fd)
+      AC_DEFINE(FS_STAT_FN, [(errno = ENOSYS) == 0], Function to determine filesystem stats from filename)
+      AC_DEFINE(FS_STAT_STRUCT, [struct {blocksize_type  f_bsize; blockcount_type f_bavail;}], Type of second argument to statfs function)
+      AC_DEFINE(FS_STAT_SIZE_TYPE, [int], Type of block size member in stat struct)
+      AC_DEFINE(FS_STAT_COUNT_TYPE, [int], Type of block count member in stat struct)
+      AC_MSG_RESULT(No filesystem stats available)
+])
+
+AC_DEFUN([TORRENT_WITHOUT_STATVFS], [
+  AC_ARG_WITH(statvfs,
+    [  --without-statvfs       Don't try to use statvfs to find free diskspace.],
+    [
+      if test "$withval" = "yes"; then
+        TORRENT_CHECK_STATVFS
+      else
+        have_stat_vfs=no
+      fi
+    ],
+    [
+      TORRENT_CHECK_STATVFS
+    ])
+])
+
+AC_DEFUN([TORRENT_WITHOUT_STATFS], [
+  AC_ARG_WITH(statfs,
+    [  --without-statfs        Don't try to use statfs to find free diskspace.],
+    [
+      if test "$have_stat_vfs" = "no"; then
+        if test "$withval" = "yes"; then
+          TORRENT_CHECK_STATFS
+        else
+          TORRENT_DISABLED_STATFS
+        fi
+      fi
+    ],
+    [
+      if test "$have_stat_vfs" = "no"; then
+        TORRENT_CHECK_STATFS
+        if test "$have_stat_vfs" = "no"; then
+          TORRENT_DISABLED_STATFS
+        fi
+      fi
+    ])
+])
