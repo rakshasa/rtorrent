@@ -100,6 +100,8 @@ Download::Download(download_type d) :
 									rak::mem_fn(&m_download, &download_type::set_uploads_max)));
   m_variables.insert("priority",           new utils::VariableValueSlot(rak::mem_fn(this, &Download::priority),
 									rak::mem_fn(this, &Download::set_priority)));
+
+  m_variables.insert("ignore_ratio",       new utils::VariableObject(bencode(), "rtorrent", "ignore_ratio", torrent::Object::TYPE_VALUE));
 }
 
 Download::~Download() {

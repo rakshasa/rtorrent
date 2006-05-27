@@ -6,7 +6,7 @@ echo aclocal...
     exit 1
 }
 
-aclocal -I . -I ./scripts ${ACLOCAL_FLAGS}
+aclocal -I ./scripts -I . ${ACLOCAL_FLAGS}
 
 echo autoheader...
 (autoheader --version) < /dev/null > /dev/null 2>&1 || {
@@ -17,12 +17,16 @@ echo autoheader...
 autoheader
 
 echo libtoolize...
-(libtoolize --version) < /dev/null > /dev/null 2>&1 || {
-    echo libtoolize not found
-    exit 1
-}
+if ( (libtoolize --version) < /dev/null > /dev/null 2>&1 ) ; then
+    libtoolize --automake --copy --force
 
-libtoolize --automake --copy --force
+elif ( (glibtoolize --version) < /dev/null > /dev/null 2>&1 ); then
+    glibtoolize --automake --copy --force
+
+else
+    echo libtoolize nor glibtoolize not found
+    exit 1
+fi
 
 echo automake...
 (automake --version) < /dev/null > /dev/null 2>&1 || {

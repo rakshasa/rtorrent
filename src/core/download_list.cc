@@ -287,7 +287,7 @@ DownloadList::resume(Download* download) {
       // Set 'hashing' to started if hashing wasn't started, else keep
       // the old value.
       if (download->variable()->get_value("hashing") == Download::variable_hashing_stopped)
-	download->variable()->set("hashing", Download::variable_hashing_initial);
+        download->variable()->set("hashing", Download::variable_hashing_initial);
 
       std::for_each(slot_map_hash_queued().begin(), slot_map_hash_queued().end(), download_list_call(download));
       return;
@@ -401,11 +401,16 @@ DownloadList::hash_done(Download* download) {
   case Download::variable_hashing_rehash:
     // Normal re/hashing.
 
-    if (download->is_done())
-      download->variable()->set("complete", (int64_t)1);
-    
+    // If the download was previously completed but the files were
+    // f.ex deleted, then we clear the state and complete.
+    if (!download->variable()->get_value("complete") && download->is_done()) {
+      download->variable()->set("state", (int64_t)0);
+      download->set_message("Download registered as completed, but hash check returned unfinished chunks.");
+    }
+
     // Save resume data so we update time-stamps and priorities if
-    // they were invalid/changed when loading.
+    // they were invalid/changed while loading/hashing.
+    download->variable()->set("complete", (int64_t)download->is_done());
     download->download()->hash_resume_save();
 
     if (download->variable()->get_value("state") == 1)

@@ -55,11 +55,11 @@ public:
   virtual const torrent::Object& get() = 0;
   virtual void                   set(const torrent::Object& arg) = 0;
 
+  static const char*  string_to_value_unit(const char* pos, value_type* value, int base, int unit);
+
 protected:
   Variable(const Variable&);
   void operator = (const Variable&);
-
-  static const char*  string_to_value_unit(const char* pos, value_type* value, int base, int unit);
 
   // Temporary hack, until torrent::Object is extended to allow
   // references so we can return a copy, not a const reference.

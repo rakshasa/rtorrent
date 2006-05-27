@@ -67,6 +67,7 @@ public:
   bool                is_active() const                        { return m_download.is_active(); }
   bool                is_done() const                          { return m_download.chunks_done() == m_download.chunks_total(); }
   bool                is_downloading() const                   { return is_active() && !is_done(); }
+  bool                is_seeding() const                       { return is_active() && is_done(); }
 
   // FIXME: Fixed a bug in libtorrent that caused is_hash_checked to
   // return true when the torrent is closed. Remove this redundant

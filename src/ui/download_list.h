@@ -130,6 +130,8 @@ private:
 
   void                receive_check_hash();
 
+  void                receive_ignore_ratio();
+
   void                receive_view_input(Input type);
   void                receive_exit_input(Input type);
 

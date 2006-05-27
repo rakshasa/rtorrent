@@ -132,13 +132,13 @@ print_download_info(char* first, char* last, core::Download* d) {
     first = print_buffer(first, last, "done %10.1f MB", (double)d->download()->bytes_total() / (double)(1 << 20));
   else
     first = print_buffer(first, last, "%6.1f / %6.1f MB",
-		       (double)d->download()->bytes_done() / (double)(1 << 20),
-		       (double)d->download()->bytes_total() / (double)(1 << 20));
+                         (double)d->download()->bytes_done() / (double)(1 << 20),
+                         (double)d->download()->bytes_total() / (double)(1 << 20));
   
   first = print_buffer(first, last, " Rate: %5.1f / %5.1f KB Uploaded: %7.1f MB",
-		     (double)d->download()->up_rate()->rate() / (1 << 10),
-		     (double)d->download()->down_rate()->rate() / (1 << 10),
-		     (double)d->download()->up_rate()->total() / (1 << 20));
+                       (double)d->download()->up_rate()->rate() / (1 << 10),
+                       (double)d->download()->down_rate()->rate() / (1 << 10),
+                       (double)d->download()->up_rate()->total() / (1 << 20));
 
   if (d->download()->is_active() && !d->is_done()) {
     first = print_buffer(first, last, " ");
@@ -149,6 +149,10 @@ print_download_info(char* first, char* last, core::Download* d) {
   } else {
     first = print_buffer(first, last, "               ");
   }
+
+  if (d->download()->bytes_done() > 0)
+    first = print_buffer(first, last, " R: %3.2f",
+                         (double)(100 * d->download()->up_rate()->total() / d->download()->bytes_done()) / 100);
 
   if (d->priority() != 2)
     first = print_buffer(first, last, " [%s]", core::Download::priority_to_string(d->priority()));
@@ -166,13 +170,13 @@ print_download_status(char* first, char* last, core::Download* d) {
 
   if (d->is_hash_checking()) {
     first = print_buffer(first, last, "Checking hash [%2i%%]",
-		       (d->download()->chunks_hashed() * 100) / d->download()->chunks_total());
+                         (d->download()->chunks_hashed() * 100) / d->download()->chunks_total());
 
   } else if (d->tracker_list()->is_busy() && d->tracker_list()->focus() < d->tracker_list()->size()) {
     torrent::TrackerList* tl = d->tracker_list();
 
     first = print_buffer(first, last, "Tracker[%i:%i]: Connecting to %s",
-			 tl->get(tl->focus()).group(), tl->focus(), tl->get(tl->focus()).url().c_str());
+                         tl->get(tl->focus()).group(), tl->focus(), tl->get(tl->focus()).url().c_str());
 
   } else if (!d->message().empty()) {
     first = print_buffer(first, last, "%s", d->message().c_str());
@@ -221,8 +225,8 @@ print_status_info(char* first, char* last) {
     first = print_buffer(first, last, "/%3i KB]", torrent::down_throttle() / 1024);
   
   first = print_buffer(first, last, " [Rate %5.1f/%5.1f KB]",
-		       (double)torrent::up_rate()->rate() / 1024.0,
-		       (double)torrent::down_rate()->rate() / 1024.0);
+                       (double)torrent::up_rate()->rate() / 1024.0,
+                       (double)torrent::down_rate()->rate() / 1024.0);
 
   first = print_buffer(first, last, " [Port: %i]", (unsigned int)torrent::connection_manager()->listen_port());
 
@@ -247,17 +251,17 @@ print_status_info(char* first, char* last) {
 char*
 print_status_extra(char* first, char* last, __UNUSED Control* c) {
   first = print_buffer(first, last, " [U %i/%i]",
-		       torrent::currently_unchoked(),
-		       torrent::max_unchoked());
+                       torrent::currently_unchoked(),
+                       torrent::max_unchoked());
 
   first = print_buffer(first, last, " [S %i/%i/%i]",
-		       torrent::total_handshakes(),
-		       torrent::open_sockets(),
-		       torrent::max_open_sockets());
-		       
+                       torrent::total_handshakes(),
+                       torrent::open_sockets(),
+                       torrent::max_open_sockets());
+                       
   first = print_buffer(first, last, " [F %i/%i]",
-		       torrent::open_files(),
-		       torrent::max_open_files());
+                       torrent::open_files(),
+                       torrent::max_open_files());
 
   return first;
 }

@@ -264,6 +264,9 @@ DownloadFactory::initialize_rtorrent(Download* download, torrent::Object* rtorre
 
   if (rtorrent->has_key_value("total_uploaded"))
     download->download()->up_rate()->set_total(rtorrent->get_key("total_uploaded").as_value());
+
+  if (!rtorrent->has_key_value("ignore_ratio"))
+    rtorrent->insert_key("ignore_ratio", (int64_t)0);
 }
 
 }

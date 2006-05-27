@@ -50,6 +50,7 @@
 #include <torrent/exceptions.h>
 #include <torrent/file.h>
 #include <torrent/path.h>
+#include <torrent/rate.h>
 #include <torrent/torrent.h>
 #include <torrent/tracker.h>
 #include <torrent/tracker_list.h>
@@ -175,6 +176,40 @@ apply_close_low_diskspace(Control* m, int64_t arg) {
     } else if (stat.bytes_avail() < arg) {
       m->core()->download_list()->close(*itr);
       (*itr)->set_message(std::string("Low diskspace"));
+    }
+
+    ++itr;
+  }
+}
+
+void
+apply_stop_on_ratio(Control* m, const std::string& arg) {
+  int64_t min_Ratio = 0;	// first argument:  minimum ratio to reach
+  int64_t min_Upload = 0;	// second argument: minimum upload amount to reach [optional]
+  int64_t max_Ratio = 0;	// third argument:  maximum ratio to reach [optional]
+
+  rak::split_iterator_t<std::string> sitr = rak::split_iterator(arg, ',');
+
+  utils::Variable::string_to_value_unit(rak::trim(*sitr).c_str(), &min_Ratio, 0, 1);
+
+  if (++sitr != rak::split_iterator(arg))
+    utils::Variable::string_to_value_unit(rak::trim(*sitr).c_str(), &min_Upload, 0, 1);
+
+  if (++sitr != rak::split_iterator(arg))
+    utils::Variable::string_to_value_unit(rak::trim(*sitr).c_str(), &max_Ratio, 0, 1);
+
+  core::Manager::DListItr itr = m->core()->download_list()->begin();
+
+  while ((itr = std::find_if(itr, m->core()->download_list()->end(),
+                             rak::equal(true, std::mem_fun(&core::Download::is_seeding))))
+	 != m->core()->download_list()->end()) {
+    int64_t totalUpload = (*itr)->download()->up_rate()->total();
+    int64_t totalDone = (*itr)->download()->bytes_done();
+
+    if ((totalUpload >= min_Upload && totalUpload * 100 >= totalDone * min_Ratio) ||
+        (max_Ratio > 0 && totalUpload * 100 > totalDone * max_Ratio)) {
+      if ((*itr)->variable()->get_value("ignore_ratio") <= 0)
+        m->core()->download_list()->stop(*itr);
     }
 
     ++itr;
@@ -432,7 +467,8 @@ initialize_option_handler(Control* c) {
   variables->insert("stop_untied",           new utils::VariableVoidSlot(rak::bind_ptr_fn(&apply_stop_untied, c)));
   variables->insert("close_untied",          new utils::VariableVoidSlot(rak::bind_ptr_fn(&apply_close_untied, c)));
   variables->insert("remove_untied",         new utils::VariableVoidSlot(rak::bind_ptr_fn(&apply_remove_untied, c)));
-  variables->insert("close_low_diskspace",    new utils::VariableValueSlot(rak::value_fn(int64_t()), rak::bind_ptr_fn(&apply_close_low_diskspace, c)));
+  variables->insert("close_low_diskspace",   new utils::VariableValueSlot(rak::value_fn(int64_t()), rak::bind_ptr_fn(&apply_close_low_diskspace, c)));
+  variables->insert("stop_on_ratio",         new utils::VariableStringSlot(rak::value_fn(std::string()), rak::bind_ptr_fn(&apply_stop_on_ratio, c)));
 
   variables->insert("enable_trackers",       new utils::VariableStringSlot(rak::value_fn(std::string()), rak::bind_ptr_fn(&apply_enable_trackers, c)));
   variables->insert("encoding_list",         new utils::VariableStringSlot(rak::value_fn(std::string()), rak::bind_ptr_fn(&apply_encoding_list, c)));

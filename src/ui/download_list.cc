@@ -283,6 +283,20 @@ DownloadList::receive_check_hash() {
 }
 
 void
+DownloadList::receive_ignore_ratio() {
+  if (m_view->focus() == m_view->end_visible())
+    return;
+
+  if ((*m_view->focus())->variable()->get_value("ignore_ratio") > 0) {
+    (*m_view->focus())->variable()->set("ignore_ratio", (int64_t)0);
+    m_control->core()->push_log("Torrent set to stop when reaching upload ratio.");
+  } else {
+    (*m_view->focus())->variable()->set("ignore_ratio", (int64_t)1);
+    m_control->core()->push_log("Torrent set to no longer stop when reaching upload ratio.");
+  }
+}
+
+void
 DownloadList::receive_view_input(Input type) {
   if (m_windowTextInput->get_active())
     return;
@@ -411,6 +425,7 @@ DownloadList::setup_keys() {
   (*m_bindings)['\x12']        = sigc::mem_fun(*this, &DownloadList::receive_check_hash);
   (*m_bindings)['+']           = sigc::mem_fun(*this, &DownloadList::receive_next_priority);
   (*m_bindings)['-']           = sigc::mem_fun(*this, &DownloadList::receive_prev_priority);
+  (*m_bindings)['I']           = sigc::mem_fun(*this, &DownloadList::receive_ignore_ratio);
 
   (*m_bindings)['\x7f']        = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_view_input), INPUT_LOAD_DEFAULT);
   (*m_bindings)[KEY_BACKSPACE] = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_view_input), INPUT_LOAD_DEFAULT);

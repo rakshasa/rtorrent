@@ -325,6 +325,7 @@ print_help() {
   std::cout << "  ^q                Initiate shutdown or skip shutdown process" << std::endl;
   std::cout << "  a,s,d,z,x,c       Adjust upload throttle" << std::endl;
   std::cout << "  A,S,D,Z,X,C       Adjust download throttle" << std::endl;
+  std::cout << "  I                 Toggle whether torrent ignores ratio settings" << std::endl;
   std::cout << "  right             View torrent" << std::endl;
   std::cout << std::endl;
   std::cout << "Download view keys:" << std::endl;

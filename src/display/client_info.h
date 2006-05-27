@@ -71,6 +71,7 @@ public:
     case TYPE_AZUREUS:  return 2;
     case TYPE_COMPACT:  return 1;
     case TYPE_MAINLINE: return 1;
+    default:
     case TYPE_MAXSIZE:  return 0;
     }
   }
