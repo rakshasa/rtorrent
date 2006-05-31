@@ -243,7 +243,7 @@ main(int argc, char** argv) {
 
     while (!control->is_shutdown_completed()) {
       if (control->is_shutdown_received())
-	control->handle_shutdown();
+        control->handle_shutdown();
 
       control->inc_tick();
 
