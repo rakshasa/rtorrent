@@ -49,12 +49,19 @@ namespace display {
 
 class WindowDownloadChunksSeen : public Window {
 public:
-  WindowDownloadChunksSeen(core::Download* d);
+  WindowDownloadChunksSeen(core::Download* d, unsigned int* focus);
 
   virtual void     redraw();
 
+  unsigned int     rows() const;
+  unsigned int     chunks_per_row() const   { return (m_canvas->get_width() - 6) / 11 * 10; }
+
+  unsigned int     max_focus() const        { return std::max<int>(rows() - get_height() + 1, 0); }
+
 private:
   core::Download*  m_download;
+
+  unsigned int*    m_focus;
 };
 
 }

@@ -62,13 +62,15 @@ public:
   bool                is_dynamic()                         { return m_dynamic; }
   bool                is_dirty()                           { return m_taskUpdate.is_queued(); }
 
-  int                 get_min_height()                     { return m_minHeight; }
+  int                 get_min_height() const               { return m_minHeight; }
 
   bool                get_active()                         { return m_active; }
   void                set_active(bool a);
 
   void                refresh()                            { m_canvas->refresh(); }
   void                resize(int x, int y, int w, int h);
+
+  int                 get_height() const                   { return m_canvas->get_height(); }
 
   void                mark_dirty()                         { m_slotSchedule(this, cachedTime + 1); }
 

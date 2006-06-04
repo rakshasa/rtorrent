@@ -60,9 +60,16 @@ public:
 
 private:
 //   void                receive_disable();
+  void                receive_next();
+  void                receive_prev();
+  void                receive_pagenext();
+  void                receive_pageprev();
 
   core::Download*     m_download;
   WChunksSeen*        m_window;
+
+  unsigned int        m_focus;
+  
 };
 
 }

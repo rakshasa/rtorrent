@@ -48,10 +48,13 @@ namespace ui {
 
 ElementChunksSeen::ElementChunksSeen(core::Download* d) :
   m_download(d),
-  m_window(NULL) {
+  m_window(NULL),
+  m_focus(0) {
 
-//   m_bindings[KEY_DOWN] = sigc::mem_fun(*this, &ElementChunksSeen::receive_next);
-//   m_bindings[KEY_UP]   = sigc::mem_fun(*this, &ElementChunksSeen::receive_prev);
+  m_bindings[KEY_DOWN]  = sigc::mem_fun(*this, &ElementChunksSeen::receive_next);
+  m_bindings[KEY_UP]    = sigc::mem_fun(*this, &ElementChunksSeen::receive_prev);
+  m_bindings[KEY_NPAGE] = sigc::mem_fun(*this, &ElementChunksSeen::receive_pagenext);
+  m_bindings[KEY_PPAGE] = sigc::mem_fun(*this, &ElementChunksSeen::receive_pageprev);
 //   m_bindings[' ']      = sigc::mem_fun(*this, &ElementChunksSeen::receive_cycle_group);
 //   m_bindings['*']      = sigc::mem_fun(*this, &ElementChunksSeen::receive_disable);
 }
@@ -63,7 +66,7 @@ ElementChunksSeen::activate(Control* c, MItr mItr) {
 
   c->input()->push_front(&m_bindings);
 
-  *mItr = m_window = new WChunksSeen(m_download);
+  *mItr = m_window = new WChunksSeen(m_download, &m_focus);
 }
 
 void
@@ -89,5 +92,65 @@ ElementChunksSeen::disable(Control* c) {
 
 //   m_window->mark_dirty();
 // }
+
+void
+ElementChunksSeen::receive_next() {
+  if (m_window == NULL)
+    throw torrent::client_error("ui::ElementChunksSeen::receive_next(...) called on a disabled object");
+
+  if (++m_focus > m_window->max_focus())
+    m_focus = 0;
+
+  m_window->mark_dirty();
+}
+
+void
+ElementChunksSeen::receive_prev() {
+  if (m_window == NULL)
+    throw torrent::client_error("ui::ElementChunksSeen::receive_prev(...) called on a disabled object");
+
+  if (m_focus > 0)
+    --m_focus;
+  else
+    m_focus = m_window->max_focus();
+
+  m_window->mark_dirty();
+}
+
+void
+ElementChunksSeen::receive_pagenext() {
+  if (m_window == NULL)
+    throw torrent::client_error("ui::ElementChunksSeen::receive_pagenext(...) called on a disabled object");
+
+  unsigned int visible = m_window->get_height() - 1;
+  unsigned int scrollable = std::max<int>(m_window->rows() - visible, 0);
+
+  if (scrollable == 0 || m_focus == scrollable)
+    m_focus = 0;
+  else if (m_focus + visible / 2 < scrollable)
+    m_focus += visible / 2;
+  else 
+    m_focus = scrollable;
+
+  m_window->mark_dirty();
+}
+
+void
+ElementChunksSeen::receive_pageprev() {
+  if (m_window == NULL)
+    throw torrent::client_error("ui::ElementChunksSeen::receive_pageprev(...) called on a disabled object");
+
+  unsigned int visible = m_window->get_height() - 1;
+  unsigned int scrollable = std::max<int>(m_window->rows() - visible, 0);
+
+  if (m_focus > visible / 2)
+    m_focus -= visible / 2;
+  else if (scrollable > 0 && m_focus == 0)
+    m_focus = scrollable;
+  else
+    m_focus = 0;
+
+  m_window->mark_dirty();
+}
 
 }

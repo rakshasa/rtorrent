@@ -56,6 +56,8 @@ ElementFileList::ElementFileList(core::Download* d) :
   m_bindings['*'] = sigc::mem_fun(*this, &ElementFileList::receive_change_all);
   m_bindings[KEY_DOWN] = sigc::mem_fun(*this, &ElementFileList::receive_next);
   m_bindings[KEY_UP] = sigc::mem_fun(*this, &ElementFileList::receive_prev);
+  m_bindings[KEY_NPAGE] = sigc::mem_fun(*this, &ElementFileList::receive_pagenext);
+  m_bindings[KEY_PPAGE] = sigc::mem_fun(*this, &ElementFileList::receive_pageprev);
 }
 
 void
@@ -104,6 +106,45 @@ ElementFileList::receive_prev() {
     --m_focus;
   else 
     m_focus = fl.size() - 1;
+
+  m_window->mark_dirty();
+}
+
+void
+ElementFileList::receive_pagenext() {
+  if (m_window == NULL)
+    throw torrent::client_error("ui::ElementFileList::receive_pagenext(...) called on a disabled object");
+
+  unsigned int count = (m_window->get_height() - 1) / 2;
+
+  if (m_focus + count < m_download->download()->file_list().size())
+    m_focus += count;
+  else if (m_focus == m_download->download()->file_list().size() - 1)
+    m_focus = 0;
+  else 
+    m_focus = m_download->download()->file_list().size() - 1;
+
+  m_window->mark_dirty();
+}
+
+void
+ElementFileList::receive_pageprev() {
+  if (m_window == NULL)
+    throw torrent::client_error("ui::ElementFileList::receive_pageprev(...) called on a disabled object");
+
+  torrent::FileList fl = m_download->download()->file_list();
+
+  if (fl.size() == 0)
+    return;
+
+  unsigned int count = (m_window->get_height() - 1) / 2;
+
+  if (m_focus > count)
+    m_focus -= count;
+  else if (m_focus == 0)
+    m_focus = fl.size() - 1;
+  else
+    m_focus = 0;
 
   m_window->mark_dirty();
 }

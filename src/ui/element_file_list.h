@@ -64,6 +64,8 @@ public:
 private:
   void                receive_next();
   void                receive_prev();
+  void                receive_pagenext();
+  void                receive_pageprev();
 
   void                receive_priority();
   void                receive_change_all();
