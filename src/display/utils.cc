@@ -89,7 +89,7 @@ print_ddhhmm(char* first, char* last, time_t t) {
   if (t / (24 * 3600) < 100)
     return print_buffer(first, last, "%2id %2i:%02i", (int)t / (24 * 3600), ((int)t / 3600) % 24, ((int)t / 60) % 60);
   else
-    return print_buffer(first, last, "--:--:--");
+    return print_buffer(first, last, "--d --:--");
 }
 
 char*
@@ -147,7 +147,7 @@ print_download_info(char* first, char* last, core::Download* d) {
     first = print_buffer(first, last, " ");
     first = print_download_time_left(first, last, d);
   } else {
-    first = print_buffer(first, last, "               ");
+    first = print_buffer(first, last, "                ");
   }
 
   if (d->download()->bytes_done() > 0)
@@ -196,7 +196,7 @@ print_download_time_left(char* first, char* last, core::Download* d) {
   uint32_t rate = d->download()->down_rate()->rate();
 
   if (rate < 512)
-    return print_buffer(first, last, "--:--:--");
+    return print_buffer(first, last, "--d --:--");
   
   time_t remaining = (d->download()->bytes_total() - d->download()->bytes_done()) / (rate & ~(uint32_t)(512 - 1));
 
