@@ -150,17 +150,17 @@ ElementFileList::next_priority(Priority p) {
   // Ahh... do +1 modulo.
 
   switch(p) {
-  case torrent::File::OFF:
-    return torrent::File::HIGH;
+  case torrent::PRIORITY_OFF:
+    return torrent::PRIORITY_HIGH;
 
-  case torrent::File::NORMAL:
-    return torrent::File::OFF;
+  case torrent::PRIORITY_NORMAL:
+    return torrent::PRIORITY_OFF;
 
-  case torrent::File::HIGH:
-    return torrent::File::NORMAL;
-	
+  case torrent::PRIORITY_HIGH:
+    return torrent::PRIORITY_NORMAL;
+    
   default:
-    return torrent::File::NORMAL;
+    return torrent::PRIORITY_NORMAL;
   };
 }
 

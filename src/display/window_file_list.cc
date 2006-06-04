@@ -110,15 +110,15 @@ WindowFileList::redraw() {
     std::string priority;
 
     switch (e.priority()) {
-    case torrent::File::OFF:
+    case torrent::PRIORITY_OFF:
       priority = "off";
       break;
 
-    case torrent::File::NORMAL:
+    case torrent::PRIORITY_NORMAL:
       priority = "   ";
       break;
 
-    case torrent::File::HIGH:
+    case torrent::PRIORITY_HIGH:
       priority = "hig";
       break;
 
@@ -128,18 +128,18 @@ WindowFileList::redraw() {
     };
 
     m_canvas->print(0, pos, "%c %s  %6.1f   %s   %3d  %9s",
-		    range.first == *m_focus ? '*' : ' ',
-		    path.c_str(),
-		    (double)e.size_bytes() / (double)(1 << 20),
-		    priority.c_str(),
-		    done_percentage(e),
-		    e.path()->encoding().c_str());
+                    range.first == *m_focus ? '*' : ' ',
+                    path.c_str(),
+                    (double)e.size_bytes() / (double)(1 << 20),
+                    priority.c_str(),
+                    done_percentage(e),
+                    e.path()->encoding().c_str());
 
     m_canvas->print(84, pos, "%i - %i %c%c",
-		    e.chunk_begin(),
-		    e.chunk_begin() != e.chunk_end() ? (e.chunk_end() - 1) : e.chunk_end(),
-		    e.is_created() ? 'E' : 'M',
-		    e.is_correct_size() ? 'C' : 'W');
+                    e.chunk_begin(),
+                    e.chunk_begin() != e.chunk_end() ? (e.chunk_end() - 1) : e.chunk_end(),
+                    e.is_created() ? 'E' : 'M',
+                    e.is_correct_size() ? 'C' : 'W');
 
     ++range.first;
     ++pos;

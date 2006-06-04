@@ -53,7 +53,7 @@ namespace ui {
 
 class ElementFileList : public ElementBase {
 public:
-  typedef torrent::File::Priority Priority;
+  typedef torrent::priority_t Priority;
   typedef display::WindowFileList  WFileList;
 
   ElementFileList(core::Download* d);
