@@ -112,9 +112,10 @@ DownloadFactory::receive_load() {
     m_variables.set("tied_to_file", (int64_t)false);
 
   } else {
-    m_stream = new std::fstream(rak::path_expand(m_uri).c_str(), std::ios::in | std::ios::binary);
+    std::fstream* stream = new std::fstream(rak::path_expand(m_uri).c_str(), std::ios::in | std::ios::binary);
+    m_stream = stream;
 
-    if (m_stream->good())
+    if (stream->is_open())
       receive_loaded();
     else
       receive_failed("Could not open file");
@@ -201,7 +202,7 @@ DownloadFactory::receive_success() {
     // This torrent was queued for hashing or hashing when the session
     // file was saved. Or it was in a started state.
     if (download->variable()->get_value("hashing") != Download::variable_hashing_stopped ||
-	download->variable()->get_value("state") != 0)
+        download->variable()->get_value("state") != 0)
       m_manager->download_list()->resume(download);
 
   } else {
@@ -236,7 +237,7 @@ DownloadFactory::initialize_rtorrent(Download* download, torrent::Object* rtorre
     rtorrent->insert_key("state_changed", cachedTime.seconds());
 
   } else if (!rtorrent->has_key_value("state_changed") ||
-	     rtorrent->get_key("state_changed").as_value() > cachedTime.seconds() || rtorrent->get_key("state_changed").as_value() == 0) {
+             rtorrent->get_key("state_changed").as_value() > cachedTime.seconds() || rtorrent->get_key("state_changed").as_value() == 0) {
     rtorrent->insert_key("state_changed", cachedTime.seconds());
   }
 

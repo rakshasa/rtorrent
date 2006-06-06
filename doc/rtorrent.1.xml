@@ -614,7 +614,9 @@ Use with <emphasis>schedule</emphasis>.
 
       <varlistentry>
         <term>load = <replaceable>file</replaceable></term>
+        <term>load_verbose = <replaceable>file</replaceable></term>
         <term>load_start = <replaceable>file</replaceable></term>
+        <term>load_start_verbose = <replaceable>file</replaceable></term>
         <listitem><para>
 
 Load and possibly start a file, or possibly multiple files by using the

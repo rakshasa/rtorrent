@@ -97,18 +97,27 @@ apply_load(Control* m, const std::string& arg) {
 }
 
 void
+apply_load_verbose(Control* m, const std::string& arg) {
+  m->core()->try_create_download_expand(arg, false, true, true);
+}
+
+void
 apply_load_start(Control* m, const std::string& arg) {
   m->core()->try_create_download_expand(arg, true, false, true);
+}
+
+void
+apply_load_start_verbose(Control* m, const std::string& arg) {
+  m->core()->try_create_download_expand(arg, true, true, true);
 }
 
 void
 apply_stop_untied(Control* m) {
   core::Manager::DListItr itr = m->core()->download_list()->begin();
 
-  while ((itr = std::find_if(itr, m->core()->download_list()->end(),
-			     rak::on(rak::bind2nd(std::mem_fun(&core::Download::variable_string), "tied_to_file"),
-				     std::not1(std::mem_fun_ref(&std::string::empty)))))
-	 != m->core()->download_list()->end()) {
+  while ((itr = std::find_if(itr, m->core()->download_list()->end(), rak::on(rak::bind2nd(std::mem_fun(&core::Download::variable_string), "tied_to_file"),
+                                                                             std::not1(std::mem_fun_ref(&std::string::empty)))))
+         != m->core()->download_list()->end()) {
     rak::file_stat fs;
 
     if (!fs.update(rak::path_expand((*itr)->variable_string("tied_to_file")))) {
@@ -124,10 +133,9 @@ void
 apply_close_untied(Control* m) {
   core::Manager::DListItr itr = m->core()->download_list()->begin();
 
-  while ((itr = std::find_if(itr, m->core()->download_list()->end(),
-			     rak::on(rak::bind2nd(std::mem_fun(&core::Download::variable_string), "tied_to_file"),
-				     std::not1(std::mem_fun_ref(&std::string::empty)))))
-	 != m->core()->download_list()->end()) {
+  while ((itr = std::find_if(itr, m->core()->download_list()->end(), rak::on(rak::bind2nd(std::mem_fun(&core::Download::variable_string), "tied_to_file"),
+                                                                             std::not1(std::mem_fun_ref(&std::string::empty)))))
+         != m->core()->download_list()->end()) {
     rak::file_stat fs;
 
     if (!fs.update(rak::path_expand((*itr)->variable_string("tied_to_file")))) {
@@ -143,10 +151,9 @@ void
 apply_remove_untied(Control* m) {
   core::Manager::DListItr itr = m->core()->download_list()->begin();
 
-  while ((itr = std::find_if(itr, m->core()->download_list()->end(),
-			     rak::on(rak::bind2nd(std::mem_fun(&core::Download::variable_string), "tied_to_file"),
-				     std::not1(std::mem_fun_ref(&std::string::empty)))))
-	 != m->core()->download_list()->end()) {
+  while ((itr = std::find_if(itr, m->core()->download_list()->end(), rak::on(rak::bind2nd(std::mem_fun(&core::Download::variable_string), "tied_to_file"),
+                                                                             std::not1(std::mem_fun_ref(&std::string::empty)))))
+         != m->core()->download_list()->end()) {
     rak::file_stat fs;
 
     if (!fs.update(rak::path_expand((*itr)->variable_string("tied_to_file")))) {
@@ -164,9 +171,8 @@ void
 apply_close_low_diskspace(Control* m, int64_t arg) {
   core::Manager::DListItr itr = m->core()->download_list()->begin();
 
-  while ((itr = std::find_if(itr, m->core()->download_list()->end(),
-                             rak::equal(true, std::mem_fun(&core::Download::is_downloading))))
-	 != m->core()->download_list()->end()) {
+  while ((itr = std::find_if(itr, m->core()->download_list()->end(), rak::equal(true, std::mem_fun(&core::Download::is_downloading))))
+         != m->core()->download_list()->end()) {
     rak::fs_stat stat;
     std::string path = (*itr)->file_list()->root_dir() + (*itr)->file_list()->get(0).path()->as_string();
 
@@ -184,9 +190,9 @@ apply_close_low_diskspace(Control* m, int64_t arg) {
 
 void
 apply_stop_on_ratio(Control* m, const std::string& arg) {
-  int64_t min_Ratio = 0;	// first argument:  minimum ratio to reach
-  int64_t min_Upload = 0;	// second argument: minimum upload amount to reach [optional]
-  int64_t max_Ratio = 0;	// third argument:  maximum ratio to reach [optional]
+  int64_t min_Ratio = 0;  // first argument:  minimum ratio to reach
+  int64_t min_Upload = 0; // second argument: minimum upload amount to reach [optional]
+  int64_t max_Ratio = 0;  // third argument:  maximum ratio to reach [optional]
 
   rak::split_iterator_t<std::string> sitr = rak::split_iterator(arg, ',');
 
@@ -200,9 +206,8 @@ apply_stop_on_ratio(Control* m, const std::string& arg) {
 
   core::Manager::DListItr itr = m->core()->download_list()->begin();
 
-  while ((itr = std::find_if(itr, m->core()->download_list()->end(),
-                             rak::equal(true, std::mem_fun(&core::Download::is_seeding))))
-	 != m->core()->download_list()->end()) {
+  while ((itr = std::find_if(itr, m->core()->download_list()->end(), rak::equal(true, std::mem_fun(&core::Download::is_seeding))))
+         != m->core()->download_list()->end()) {
     int64_t totalUpload = (*itr)->download()->up_rate()->total();
     int64_t totalDone = (*itr)->download()->bytes_done();
 
@@ -231,9 +236,9 @@ apply_enable_trackers(Control* m, __UNUSED const std::string& arg) {
 
     for (int i = 0, last = tl.size(); i < last; ++i)
       if (state)
-	tl.get(i).enable();
+        tl.get(i).enable();
       else
-	tl.get(i).disable();
+        tl.get(i).disable();
 
     if (state && !control->variable()->get_value("use_udp_trackers"))
       (*itr)->enable_udp_trackers(false);
@@ -396,7 +401,7 @@ initialize_option_handler(Control* c) {
   variables->insert("tracker_dump",          new utils::VariableAny(std::string()));
 
   variables->insert("session",               new utils::VariableStringSlot(rak::mem_fn(control->core()->download_store(), &core::DownloadStore::path),
-									   rak::mem_fn(control->core()->download_store(), &core::DownloadStore::set_path)));
+                                                                           rak::mem_fn(control->core()->download_store(), &core::DownloadStore::set_path)));
   variables->insert("session_lock",          new utils::VariableBool(true));
   variables->insert("session_on_completion", new utils::VariableBool(true));
   variables->insert("session_save",          new utils::VariableVoidSlot(rak::mem_fn(c->core()->download_list(), &core::DownloadList::session_save)));
@@ -409,21 +414,21 @@ initialize_option_handler(Control* c) {
   variables->insert("tos",                   new utils::VariableStringSlot(rak::value_fn(std::string()), rak::ptr_fn(&apply_tos)));
 
   variables->insert("bind",                  new utils::VariableStringSlot(rak::mem_fn(control->core(), &core::Manager::bind_address),
-									   rak::mem_fn(control->core(), &core::Manager::set_bind_address)));
+                                                                           rak::mem_fn(control->core(), &core::Manager::set_bind_address)));
   variables->insert("ip",                    new utils::VariableStringSlot(rak::mem_fn(control->core(), &core::Manager::local_address),
-									   rak::mem_fn(control->core(), &core::Manager::set_local_address)));
+                                                                           rak::mem_fn(control->core(), &core::Manager::set_local_address)));
 
   variables->insert("http_proxy",            new utils::VariableStringSlot(rak::mem_fn(c->core()->get_poll_manager()->get_http_stack(), &core::CurlStack::http_proxy),
-									   rak::mem_fn(c->core()->get_poll_manager()->get_http_stack(), &core::CurlStack::set_http_proxy)));
+                                                                           rak::mem_fn(c->core()->get_poll_manager()->get_http_stack(), &core::CurlStack::set_http_proxy)));
 
   variables->insert("min_peers",             new utils::VariableValue(40));
   variables->insert("max_peers",             new utils::VariableValue(100));
   variables->insert("max_uploads",           new utils::VariableValue(15));
 
   variables->insert("download_rate",         new utils::VariableValueSlot(rak::ptr_fn(&torrent::down_throttle), rak::mem_fn(control->ui(), &ui::Root::set_down_throttle_i64),
-									  0, (1 << 10)));
+                                                                          0, (1 << 10)));
   variables->insert("upload_rate",           new utils::VariableValueSlot(rak::ptr_fn(&torrent::up_throttle), rak::mem_fn(control->ui(), &ui::Root::set_up_throttle_i64),
-									  0, (1 << 10)));
+                                                                          0, (1 << 10)));
 
   variables->insert("hash_max_tries",        new utils::VariableValueSlot(rak::ptr_fn(&torrent::hash_max_tries), rak::ptr_fn(&torrent::set_hash_max_tries)));
   variables->insert("max_open_files",        new utils::VariableValueSlot(rak::ptr_fn(&torrent::max_open_files), rak::ptr_fn(&torrent::set_max_open_files)));
@@ -443,15 +448,15 @@ initialize_option_handler(Control* c) {
 
   variables->insert("schedule",              new utils::VariableStringSlot(rak::value_fn(std::string()), rak::mem_fn(c->command_scheduler(), &CommandScheduler::parse)));
   variables->insert("schedule_remove",       new utils::VariableStringSlot(rak::value_fn(std::string()),
-									   rak::mem_fn<const std::string&>(c->command_scheduler(), &CommandScheduler::erase)));
+                                                                           rak::mem_fn<const std::string&>(c->command_scheduler(), &CommandScheduler::erase)));
 
   variables->insert("download_scheduler",    new utils::VariableVoidSlot(rak::mem_fn(control->scheduler(), &core::Scheduler::update)));
 
   variables->insert("send_buffer_size",      new utils::VariableValueSlot(rak::mem_fn(torrent::connection_manager(), &torrent::ConnectionManager::send_buffer_size),
-									  rak::mem_fn(torrent::connection_manager(), &torrent::ConnectionManager::set_send_buffer_size)));
+                                                                          rak::mem_fn(torrent::connection_manager(), &torrent::ConnectionManager::set_send_buffer_size)));
   
   variables->insert("receive_buffer_size",   new utils::VariableValueSlot(rak::mem_fn(torrent::connection_manager(), &torrent::ConnectionManager::receive_buffer_size),
-									  rak::mem_fn(torrent::connection_manager(), &torrent::ConnectionManager::set_receive_buffer_size)));
+                                                                          rak::mem_fn(torrent::connection_manager(), &torrent::ConnectionManager::set_receive_buffer_size)));
   
   variables->insert("port_range",            new utils::VariableStringSlot(rak::value_fn(std::string()), rak::bind_ptr_fn(&apply_port_range, c)));
 
@@ -460,10 +465,12 @@ initialize_option_handler(Control* c) {
 
   variables->insert("umask",                 new utils::VariableValueSlot(rak::mem_fn(control, &Control::umask), rak::mem_fn(control, &Control::set_umask), 8));
   variables->insert("working_directory",     new utils::VariableStringSlot(rak::mem_fn(control, &Control::working_directory),
-									   rak::mem_fn(control, &Control::set_working_directory)));
+                                                                           rak::mem_fn(control, &Control::set_working_directory)));
 
   variables->insert("load",                  new utils::VariableStringSlot(rak::value_fn(std::string()), rak::bind_ptr_fn(&apply_load, c)));
+  variables->insert("load_verbose",          new utils::VariableStringSlot(rak::value_fn(std::string()), rak::bind_ptr_fn(&apply_load_verbose, c)));
   variables->insert("load_start",            new utils::VariableStringSlot(rak::value_fn(std::string()), rak::bind_ptr_fn(&apply_load_start, c)));
+  variables->insert("load_start_verbose",    new utils::VariableStringSlot(rak::value_fn(std::string()), rak::bind_ptr_fn(&apply_load_start_verbose, c)));
   variables->insert("stop_untied",           new utils::VariableVoidSlot(rak::bind_ptr_fn(&apply_stop_untied, c)));
   variables->insert("close_untied",          new utils::VariableVoidSlot(rak::bind_ptr_fn(&apply_close_untied, c)));
   variables->insert("remove_untied",         new utils::VariableVoidSlot(rak::bind_ptr_fn(&apply_remove_untied, c)));

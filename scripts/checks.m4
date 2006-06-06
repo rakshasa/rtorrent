@@ -47,7 +47,7 @@ AC_DEFUN([TORRENT_CHECK_OPENSSL], [
 	PKG_CHECK_MODULES(OPENSSL, openssl,
 	                  CXXFLAGS="$CXXFLAGS `pkg-config --cflags openssl`";
                           LIBS="$LIBS -lcrypto `pkg-config --libs-only-L openssl`",
-		          AC_MSG_ERROR(Could not find openssl's crypto library, try --with-openssl=PATH))
+		          AC_MSG_ERROR([Could not find openssl's crypto library], [try --with-openssl=PATH]))
 
         else
 	  CXXFLAGS="$CXXFLAGS -I$withval/include"
@@ -57,7 +57,7 @@ AC_DEFUN([TORRENT_CHECK_OPENSSL], [
       PKG_CHECK_MODULES(OPENSSL, openssl,
       CXXFLAGS="$CXXFLAGS `pkg-config --cflags openssl`";
       LIBS="$LIBS -lcrypto `pkg-config --libs-only-L openssl`",
-      AC_MSG_ERROR(Could not find openssl's crypto library, try --with-openssl=PATH))
+      AC_MSG_ERROR([Could not find openssl's crypto library], [try --with-openssl=PATH]))
     ])
 ])
 

@@ -316,6 +316,9 @@ path_expand(std::vector<std::string>* paths, const std::string& pattern) {
   if ((*first).empty()) {
     currentCache.push_back(utils::Directory("/"));
     ++first;
+  } else if (rak::trim(*first) == "~") {
+    currentCache.push_back(utils::Directory("~/"));
+    ++first;
   } else {
     currentCache.push_back(utils::Directory("./"));
   }
@@ -349,17 +352,17 @@ path_expand(std::vector<std::string>* paths, const std::string& pattern) {
 void
 Manager::try_create_download_expand(const std::string& uri, bool start, bool printLog, bool tied) {
   std::vector<std::string> paths;
-  paths.reserve(32);
+  paths.reserve(256);
 
   path_expand(&paths, uri);
 
   if (tied)
     for (std::vector<std::string>::iterator itr = paths.begin(); itr != paths.end(); )
-      if (std::find_if(m_downloadList->begin(), m_downloadList->end(),
-		       rak::equal(*itr, rak::bind2nd(std::mem_fun(&Download::variable_string), "tied_to_file"))) != m_downloadList->end())
-	itr = paths.erase(itr);
+      if (std::find_if(m_downloadList->begin(), m_downloadList->end(), rak::equal(*itr, rak::bind2nd(std::mem_fun(&Download::variable_string), "tied_to_file")))
+          != m_downloadList->end())
+        itr = paths.erase(itr);
       else
-	itr++;
+        itr++;
 
   if (!paths.empty())
     for (std::vector<std::string>::iterator itr = paths.begin(); itr != paths.end(); ++itr)
@@ -383,10 +386,10 @@ Manager::receive_hashing_changed() {
     try {
 
       if ((*itr)->is_hash_checked())
-	throw torrent::client_error("core::Manager::receive_hashing_changed() hash already checked.");
+        throw torrent::client_error("core::Manager::receive_hashing_changed() hash already checked.");
   
       if ((*itr)->is_hash_failed())
-	continue;
+        continue;
 
       m_downloadList->open_throw(*itr);
       (*itr)->download()->hash_check();
