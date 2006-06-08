@@ -317,10 +317,10 @@ path_expand(std::vector<std::string>* paths, const std::string& pattern) {
     currentCache.push_back(utils::Directory("/"));
     ++first;
   } else if (rak::trim(*first) == "~") {
-    currentCache.push_back(utils::Directory("~/"));
+    currentCache.push_back(utils::Directory("~"));
     ++first;
   } else {
-    currentCache.push_back(utils::Directory("./"));
+    currentCache.push_back(utils::Directory("."));
   }
 
   // Might be an idea to use depth-first search instead.
