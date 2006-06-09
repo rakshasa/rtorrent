@@ -22,6 +22,8 @@ libsub_ui_a_SOURCES = \
 	element_string_list.h \
 	element_tracker_list.cc \
 	element_tracker_list.h \
+	element_transfer_list.cc \
+	element_transfer_list.h \
 	root.cc \
 	root.h
 
