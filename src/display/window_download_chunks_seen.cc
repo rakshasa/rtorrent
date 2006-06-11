@@ -40,6 +40,8 @@
 #include <stdexcept>
 #include <rak/string_manip.h>
 #include <torrent/bitfield.h>
+#include <torrent/transfer_list.h>
+#include <torrent/block_list.h>
 
 #include "core/download.h"
 
@@ -74,12 +76,25 @@ WindowDownloadChunksSeen::redraw() {
     return;
   }
 
+  if (!m_download->is_done()) { 
+    m_canvas->print(36, 0, "X downloaded    missing    downloading");
+    m_canvas->print_char(50, 0, 'X' | A_BOLD);
+    m_canvas->print_char(61, 0, 'X' | A_REVERSE);
+  }
+
   *m_focus = std::min(*m_focus, max_focus());
 
   const uint8_t* chunk = seen + *m_focus * chunks_per_row();
   const uint8_t* last = seen + m_download->download()->chunks_total();
 
   const torrent::Bitfield* bitfield = m_download->download()->bitfield();
+  const torrent::TransferList* transfers = m_download->download()->transfer_list();
+  std::vector<uint32_t> transferChunks(transfers->size(), 0);
+
+  std::transform(transfers->begin(), transfers->end(), transferChunks.begin(), std::mem_fun(&torrent::BlockList::index));
+  std::sort(transferChunks.begin(), transferChunks.end());
+
+  std::vector<uint32_t>::const_iterator itrTransfer = transferChunks.begin();
 
   for (int y = 1; y < m_canvas->get_height() && chunk < last; ++y) {
     m_canvas->print(0, y, "%5d ", (int)(chunk - seen));
@@ -87,12 +102,14 @@ WindowDownloadChunksSeen::redraw() {
     while (chunk < last) {
       chtype attr;
 
-      if (bitfield->get(chunk - seen))
+      if (bitfield->get(chunk - seen)) {
         attr = A_NORMAL;
-//    else if (foo->is_downloading(chunk - seen))
-//     attr = A_UNDERLINE;
-      else
+      } else if (itrTransfer != transferChunks.end() && (uint32_t)(chunk - seen) == *itrTransfer) {
+        attr = A_REVERSE;
+        itrTransfer++;
+      } else {
         attr = A_BOLD;
+      }
 
       m_canvas->print_char(attr | rak::value_to_hexchar<0>(std::min<uint8_t>(*chunk, 0xF)));
       chunk++;
