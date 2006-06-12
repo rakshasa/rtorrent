@@ -38,9 +38,11 @@
 
 #include <cmath>
 #include <stdexcept>
+#include <rak/functional.h>
 #include <rak/string_manip.h>
 #include <torrent/bitfield.h>
 #include <torrent/transfer_list.h>
+#include <torrent/block.h>
 #include <torrent/block_list.h>
 
 #include "core/download.h"
@@ -77,9 +79,10 @@ WindowDownloadChunksSeen::redraw() {
   }
 
   if (!m_download->is_done()) { 
-    m_canvas->print(36, 0, "X downloaded    missing    downloading");
+    m_canvas->print(36, 0, "X downloaded    missing    queued    downloading");
     m_canvas->print_char(50, 0, 'X' | A_BOLD);
-    m_canvas->print_char(61, 0, 'X' | A_REVERSE);
+    m_canvas->print_char(61, 0, 'X' | A_BOLD | A_UNDERLINE);
+    m_canvas->print_char(71, 0, 'X' | A_REVERSE);
   }
 
   *m_focus = std::min(*m_focus, max_focus());
@@ -89,12 +92,12 @@ WindowDownloadChunksSeen::redraw() {
 
   const torrent::Bitfield* bitfield = m_download->download()->bitfield();
   const torrent::TransferList* transfers = m_download->download()->transfer_list();
-  std::vector<uint32_t> transferChunks(transfers->size(), 0);
+  std::vector<torrent::BlockList*> transferChunks(transfers->size(), 0);
 
-  std::transform(transfers->begin(), transfers->end(), transferChunks.begin(), std::mem_fun(&torrent::BlockList::index));
-  std::sort(transferChunks.begin(), transferChunks.end());
+  std::copy(transfers->begin(), transfers->end(), transferChunks.begin());
+  std::sort(transferChunks.begin(), transferChunks.end(), rak::less2(std::mem_fun(&torrent::BlockList::index), std::mem_fun(&torrent::BlockList::index)));
 
-  std::vector<uint32_t>::const_iterator itrTransfer = transferChunks.begin();
+  std::vector<torrent::BlockList*>::const_iterator itrTransfer = transferChunks.begin();
 
   for (int y = 1; y < m_canvas->get_height() && chunk < last; ++y) {
     m_canvas->print(0, y, "%5u ", (int)(chunk - seen));
@@ -104,8 +107,11 @@ WindowDownloadChunksSeen::redraw() {
 
       if (bitfield->get(chunk - seen)) {
         attr = A_NORMAL;
-      } else if (itrTransfer != transferChunks.end() && (uint32_t)(chunk - seen) == *itrTransfer) {
-        attr = A_REVERSE;
+      } else if (itrTransfer != transferChunks.end() && (uint32_t)(chunk - seen) == (*itrTransfer)->index()) {
+        if (std::find_if((*itrTransfer)->begin(), (*itrTransfer)->end(), std::mem_fun_ref(&torrent::Block::is_transfering)) != (*itrTransfer)->end())
+          attr = A_REVERSE;
+        else
+          attr = A_BOLD | A_UNDERLINE;
         itrTransfer++;
       } else {
         attr = A_BOLD;

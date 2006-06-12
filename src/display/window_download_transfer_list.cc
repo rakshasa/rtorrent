@@ -78,16 +78,31 @@ WindowDownloadTransferList::redraw() {
 
     // Handle window size.
     for (torrent::BlockList::const_iterator bItr = (*itr)->begin(), bLast = (*itr)->end(); bItr != bLast; ++bItr) {
-      chtype attr;
+      char id;
+      chtype attr = A_NORMAL;
 
-      // Add is_transfering.
-
-      if (bItr->is_finished())
-        attr = A_NORMAL;
-      else
+      if (bItr->transfers()->size() >= 1) {
         attr = A_BOLD;
+        id = key_id(bItr->transfers()->back()->const_peer_info());
 
-      m_canvas->print_char(attr | 'X');
+        if (bItr->transfers()->size() > 1)
+          id = std::tolower(id);
+
+      } else if (bItr->queued()->size() >= 1) {
+        id = key_id(bItr->queued()->back()->const_peer_info());
+
+        if (bItr->queued()->size() > 1)
+          id = std::tolower(id);
+
+      } else if (bItr->is_finished()) {
+        // Temporary until 
+        id = '*';
+
+      } else {
+        id = '.';
+      }
+
+      m_canvas->print_char(attr | id);
     }      
   }
 }
@@ -99,6 +114,40 @@ WindowDownloadTransferList::rows() const {
 
 //   return (m_download->download()->chunks_total() + chunks_per_row() - 1) / chunks_per_row();
   return 0;
+}
+
+char
+WindowDownloadTransferList::key_id(torrent::BlockTransfer::key_type key) {
+  uint32_t oldestTime = cachedTime.seconds();
+  assigned_vector::iterator oldestItr = m_assigned.begin();
+
+  for (assigned_vector::iterator itr = m_assigned.begin(), last = m_assigned.end(); itr != last; ++itr) {
+    if (itr->m_key == key) {
+      itr->m_last = cachedTime.seconds();
+      return itr->m_id;
+    }
+
+    if (itr->m_last < oldestTime) {
+      oldestTime = itr->m_last;
+      oldestItr = itr;
+    }
+  }
+
+  if (oldestItr == m_assigned.end() || cachedTime.seconds() - oldestTime <= 60) {
+    // We didn't find any previously used id's to take over.
+
+    // Return 'f' when we run out of characters.
+    if (m_assigned.size() >= ('Z' - 'A'))
+      return 'Z';
+
+    char id = 'A' + m_assigned.size();
+
+    m_assigned.push_back(assigned_type(key, cachedTime.seconds(), id));
+    return id;
+
+  } else {
+    return oldestItr->m_id;
+  }
 }
 
 }

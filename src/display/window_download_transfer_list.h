@@ -50,20 +50,30 @@ namespace display {
 
 class WindowDownloadTransferList : public Window {
 public:
+  struct assigned_type {
+    assigned_type(torrent::BlockTransfer::key_type key, uint32_t last, char id) : m_key(key), m_last(last), m_id(id) { }
+    
+    torrent::BlockTransfer::key_type m_key;    
+    uint32_t m_last;
+    char m_id;
+  };
+
+  typedef std::vector<assigned_type> assigned_vector;
+
   WindowDownloadTransferList(core::Download* d, unsigned int* focus);
 
-  virtual void     redraw();
+  virtual void        redraw();
 
-  unsigned int     rows() const;
-
-  unsigned int     max_focus() const        { return std::max<int>(rows() - get_height() + 1, 0); }
+  unsigned int        rows() const;
+  unsigned int        max_focus() const        { return std::max<int>(rows() - get_height() + 1, 0); }
 
 private:
-  char             peer_id(torrent::BlockTransfer::key_type key);
+  char                key_id(torrent::BlockTransfer::key_type key);
 
-  core::Download*  m_download;
+  core::Download*     m_download;
 
-  unsigned int*    m_focus;
+  unsigned int*       m_focus;
+  assigned_vector     m_assigned;
 };
 
 }

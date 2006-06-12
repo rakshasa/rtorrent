@@ -169,6 +169,24 @@ less(Type t, Ftor f) {
   return less_t<Type, Ftor>(t, f);
 }
 
+template <typename FtorA, typename FtorB>
+struct less2_t : public std::binary_function<typename FtorA::argument_type, typename FtorB::argument_type, bool> {
+  less2_t(FtorA f_a, FtorB f_b) : m_f_a(f_a), m_f_b(f_b) {}
+
+  bool operator () (typename FtorA::argument_type a, typename FtorB::argument_type b) {
+    return m_f_a(a) < m_f_b(b);
+  }
+
+  FtorA m_f_a;
+  FtorB m_f_b;
+};
+
+template <typename FtorA, typename FtorB>
+inline less2_t<FtorA, FtorB>
+less2(FtorA f_a, FtorB f_b) {
+  return less2_t<FtorA,FtorB>(f_a,f_b);
+}
+
 template <typename Type, typename Ftor>
 struct _greater {
   typedef bool result_type;
