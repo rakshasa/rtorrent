@@ -38,6 +38,7 @@
 #define RTORRENT_DISPLAY_WINDOW_DOWNLOAD_TRANSFER_LIST_H
 
 #include <list>
+#include <torrent/block_transfer.h>
 
 #include "window.h"
 
@@ -58,6 +59,8 @@ public:
   unsigned int     max_focus() const        { return std::max<int>(rows() - get_height() + 1, 0); }
 
 private:
+  char             peer_id(torrent::BlockTransfer::key_type key);
+
   core::Download*  m_download;
 
   unsigned int*    m_focus;

@@ -74,10 +74,21 @@ WindowDownloadTransferList::redraw() {
   // prettify this. (This is a very subtle hint)
 
   for (int y = 1; y < m_canvas->get_height() && itr != transfers->end(); ++y, ++itr) {
-    m_canvas->print(0, y, "%5u %3u %s",
-                    (*itr)->index(),
-                    (*itr)->finished(),
-                    (*itr)->is_all_finished() ? "done" : "    ");
+    m_canvas->print(0, y, "%5u ", (*itr)->index());
+
+    // Handle window size.
+    for (torrent::BlockList::const_iterator bItr = (*itr)->begin(), bLast = (*itr)->end(); bItr != bLast; ++bItr) {
+      chtype attr;
+
+      // Add is_transfering.
+
+      if (bItr->is_finished())
+        attr = A_NORMAL;
+      else
+        attr = A_BOLD;
+
+      m_canvas->print_char(attr | 'X');
+    }      
   }
 }
 

@@ -79,9 +79,9 @@ WindowDownloadList::redraw() {
   typedef std::pair<core::View::iterator, core::View::iterator> Range;
 
   Range range = rak::advance_bidirectional(m_view->begin_visible(),
-					   m_view->focus() != m_view->end_visible() ? m_view->focus() : m_view->begin_visible(),
-					   m_view->end_visible(),
-					   m_canvas->get_height() / 3);
+                                           m_view->focus() != m_view->end_visible() ? m_view->focus() : m_view->begin_visible(),
+                                           m_view->end_visible(),
+                                           m_canvas->get_height() / 3);
 
   // Make sure we properly fill out the last lines so it looks like
   // there are more torrents, yet don't hide it if we got the last one

@@ -97,7 +97,7 @@ WindowDownloadChunksSeen::redraw() {
   std::vector<uint32_t>::const_iterator itrTransfer = transferChunks.begin();
 
   for (int y = 1; y < m_canvas->get_height() && chunk < last; ++y) {
-    m_canvas->print(0, y, "%5d ", (int)(chunk - seen));
+    m_canvas->print(0, y, "%5u ", (int)(chunk - seen));
 
     while (chunk < last) {
       chtype attr;
