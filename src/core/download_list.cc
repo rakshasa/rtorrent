@@ -403,7 +403,7 @@ DownloadList::hash_done(Download* download) {
 
     // If the download was previously completed but the files were
     // f.ex deleted, then we clear the state and complete.
-    if (!download->variable()->get_value("complete") && download->is_done()) {
+    if (download->variable()->get_value("complete") && !download->is_done()) {
       download->variable()->set("state", (int64_t)0);
       download->set_message("Download registered as completed, but hash check returned unfinished chunks.");
     }
