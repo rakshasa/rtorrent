@@ -259,7 +259,7 @@ DownloadFactory::initialize_rtorrent(Download* download, torrent::Object* rtorre
     download->tracker_list()->set_key(rtorrent->get_key("key").as_value());
 
   } else {
-    download->tracker_list()->set_key(rand() % (std::numeric_limits<uint32_t>::max() - 1) + 1);
+    download->tracker_list()->set_key(random() % (std::numeric_limits<uint32_t>::max() - 1) + 1);
     rtorrent->insert_key("key", download->tracker_list()->key());
   }
 

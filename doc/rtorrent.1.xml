@@ -495,7 +495,7 @@ Open the listening port at a random position in the port range.
         <term>check_hash = <replaceable>yes | no</replaceable></term>
         <listitem><para>
 
-Perform hash check on finished downloads.
+Perform hash check on torrents that have finished downloading.
 
         </para></listitem>
       </varlistentry>

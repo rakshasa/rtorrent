@@ -56,6 +56,7 @@
 #include <torrent/tracker_list.h>
 
 #include "core/download.h"
+#include "core/download_list.h"
 #include "core/download_store.h"
 #include "core/manager.h"
 #include "core/scheduler.h"
@@ -69,6 +70,11 @@
 #include "control.h"
 #include "option_handler_rules.h"
 #include "command_scheduler.h"
+
+namespace core {
+  extern void
+  path_expand(std::vector<std::string>* paths, const std::string& pattern);
+}
 
 void
 apply_hash_read_ahead(__UNUSED Control* m, int arg) {
@@ -112,6 +118,22 @@ apply_load_start_verbose(Control* m, const std::string& arg) {
 }
 
 void
+apply_start_tied(Control* m, const std::string& arg) {
+  std::vector<std::string> paths;
+  paths.reserve(256);
+
+  core::path_expand(&paths, arg);
+
+  for (std::vector<std::string>::iterator itr = paths.begin(); itr != paths.end(); ++itr) {
+    core::DownloadList::iterator dItr = std::find_if(m->core()->download_list()->begin(), m->core()->download_list()->end(),
+                                                     rak::equal(*itr, rak::bind2nd(std::mem_fun(&core::Download::variable_string), "tied_to_file")));
+
+    if (dItr != m->core()->download_list()->end())
+      m->core()->download_list()->start(*dItr);
+  }
+}
+
+void
 apply_stop_untied(Control* m) {
   core::Manager::DListItr itr = m->core()->download_list()->begin();
 
@@ -121,7 +143,7 @@ apply_stop_untied(Control* m) {
     rak::file_stat fs;
 
     if (!fs.update(rak::path_expand((*itr)->variable_string("tied_to_file")))) {
-      (*itr)->variable()->set("tied_to_file", std::string());
+//       (*itr)->variable()->set("tied_to_file", std::string());
       m->core()->download_list()->stop(*itr);
     }
 
@@ -139,7 +161,7 @@ apply_close_untied(Control* m) {
     rak::file_stat fs;
 
     if (!fs.update(rak::path_expand((*itr)->variable_string("tied_to_file")))) {
-      (*itr)->variable()->set("tied_to_file", std::string());
+//       (*itr)->variable()->set("tied_to_file", std::string());
       m->core()->download_list()->close(*itr);
     }
 
@@ -157,7 +179,7 @@ apply_remove_untied(Control* m) {
     rak::file_stat fs;
 
     if (!fs.update(rak::path_expand((*itr)->variable_string("tied_to_file")))) {
-      (*itr)->variable()->set("tied_to_file", std::string());
+//       (*itr)->variable()->set("tied_to_file", std::string());
       m->core()->download_list()->stop(*itr);
       itr = m->core()->download_list()->erase(itr);
 
@@ -471,9 +493,12 @@ initialize_option_handler(Control* c) {
   variables->insert("load_verbose",          new utils::VariableStringSlot(rak::value_fn(std::string()), rak::bind_ptr_fn(&apply_load_verbose, c)));
   variables->insert("load_start",            new utils::VariableStringSlot(rak::value_fn(std::string()), rak::bind_ptr_fn(&apply_load_start, c)));
   variables->insert("load_start_verbose",    new utils::VariableStringSlot(rak::value_fn(std::string()), rak::bind_ptr_fn(&apply_load_start_verbose, c)));
+
+  variables->insert("start_tied",            new utils::VariableStringSlot(rak::value_fn(std::string()), rak::bind_ptr_fn(&apply_start_tied, c)));
   variables->insert("stop_untied",           new utils::VariableVoidSlot(rak::bind_ptr_fn(&apply_stop_untied, c)));
   variables->insert("close_untied",          new utils::VariableVoidSlot(rak::bind_ptr_fn(&apply_close_untied, c)));
   variables->insert("remove_untied",         new utils::VariableVoidSlot(rak::bind_ptr_fn(&apply_remove_untied, c)));
+
   variables->insert("close_low_diskspace",   new utils::VariableValueSlot(rak::value_fn(int64_t()), rak::bind_ptr_fn(&apply_close_low_diskspace, c)));
   variables->insert("stop_on_ratio",         new utils::VariableStringSlot(rak::value_fn(std::string()), rak::bind_ptr_fn(&apply_stop_on_ratio, c)));
 
