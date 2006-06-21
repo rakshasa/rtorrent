@@ -53,8 +53,7 @@ View::~View() {
   if (m_name.empty())
     return;
 
-  std::for_each(m_list->slot_map_begin(), m_list->slot_map_end(),
-		rak::bind2nd(std::ptr_fun(&DownloadList::erase_key), "0_view_" + m_name));
+  std::for_each(m_list->slot_map_begin(), m_list->slot_map_end(), rak::bind2nd(std::ptr_fun(&DownloadList::erase_key), "0_view_" + m_name));
 }
 
 void
@@ -115,9 +114,9 @@ struct view_downloads_compare : std::binary_function<Download*, Download*, bool>
   bool operator () (Download* d1, Download* d2) const {
     for (View::sort_list::const_iterator itr = m_sort.begin(), last = m_sort.end(); itr != last; ++itr)
       if ((**itr)(d1, d2))
-	return true;
+        return true;
       else if ((**itr)(d2, d1))
-	return false;
+        return false;
 
     // Since we're testing equivalence, return false if we're
     // equal. This is a requirement for the stl sorting algorithms.
@@ -133,7 +132,7 @@ struct view_downloads_filter : std::unary_function<Download*, bool> {
   bool operator () (Download* d1) const {
     for (View::filter_list::const_iterator itr = m_filter.begin(), last = m_filter.end(); itr != last; ++itr)
       if (!(**itr)(d1))
-	return false;
+        return false;
 
     // The default filter action is to return true, to not filter the
     // download out.
@@ -176,8 +175,7 @@ void
 View::clear_filter_on() {
   // Don't clear insert and erase as these are required to keep the
   // View up-to-date with the available downloads.
-  std::for_each(m_list->slot_map_begin() + DownloadList::SLOTS_OPEN, m_list->slot_map_end(),
-		rak::bind2nd(std::ptr_fun(&DownloadList::erase_key), "0_view_" + m_name));
+  std::for_each(m_list->slot_map_begin() + DownloadList::SLOTS_OPEN, m_list->slot_map_end(), rak::bind2nd(std::ptr_fun(&DownloadList::erase_key), "0_view_" + m_name));
 }
 
 inline void
@@ -239,7 +237,7 @@ View::received(core::Download* download, int event) {
     } else {
 
       if (itr >= begin_filtered())
-	return;
+        return;
 
       erase(itr);
       base_type::push_back(download);

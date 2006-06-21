@@ -208,7 +208,7 @@ DownloadFactory::receive_success() {
   } else {
     // Use the state thingie here, move below.
     if (m_start)
-      m_manager->download_list()->start(download);
+      m_manager->download_list()->start_normal(download);
 
     m_manager->download_store()->save(download);
   }

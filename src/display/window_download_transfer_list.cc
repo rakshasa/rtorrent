@@ -81,33 +81,23 @@ WindowDownloadTransferList::redraw() {
       char id;
       chtype attr = A_NORMAL;
 
-      if (bItr->transfers()->size() >= 1) {
+      if (bItr->is_finished()) {
+        attr = A_REVERSE;
+        id = key_id(bItr->leader()->const_peer_info());
         
-        if (bItr->leader() != NULL) {
-          attr = A_REVERSE;
-          id = key_id(bItr->leader()->const_peer_info());
-        } else {
-          attr = A_REVERSE | A_UNDERLINE;
-          id = key_id(bItr->transfers()->back()->const_peer_info());
-        }
-
-        if (bItr->transfers()->size() > 1)
-          attr = A_BOLD;
+      } else if (bItr->is_transfering()) {
+        attr = A_BOLD;
+        id = key_id(bItr->leader()->const_peer_info());
 
       } else if (bItr->queued()->size() >= 1) {
-        id = key_id(bItr->queued()->back()->const_peer_info());
-
-        if (bItr->queued()->size() > 1)
-          attr = A_BOLD;
-
-      } else if (bItr->is_finished()) {
-        // Temporary until we fix the code so transfers are kept
-        // around.
-        id = '*';
+        id = std::tolower(key_id(bItr->queued()->back()->const_peer_info()));
 
       } else {
         id = '.';
       }
+
+      if (bItr->size_all() > 1)
+        attr |= A_UNDERLINE;
 
       m_canvas->print_char(attr | id);
     }      

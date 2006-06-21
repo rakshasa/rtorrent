@@ -160,19 +160,17 @@ DownloadList::erase(iterator itr) {
   return base_type::erase(itr);
 }
 
-// void
-// DownloadList::save(Download* d) {
-  
-// }
-
-void
+bool
 DownloadList::open(Download* download) {
   try {
 
     open_throw(download);
 
+    return true;
+
   } catch (torrent::local_error& e) {
     control->core()->push_log(e.what());
+    return false;
   }
 }
 
@@ -203,14 +201,15 @@ void
 DownloadList::close_throw(Download* download) {
   check_contains(download);
 
+  // When pause gets called it will clear the initial hash check state
+  // and set hash failed. This should ensure hashing doesn't restart
+  // until resume gets called.
+  pause(download);
+
+  // Check for is_open after pause due to hashing.
   if (!download->is_open())
     return;
 
-  // When pause gets called it will clear the initial hash checking. 
-
-  if (download->is_active())
-    pause(download);
-  
   // Save the torrent on close, this covers shutdown and if a torrent
   // is manually closed which would clear the progress data. For
   // better crash protection, save regulary in addition to this.
@@ -220,39 +219,35 @@ DownloadList::close_throw(Download* download) {
   // Reconsider this save. Should be done explicitly when shutting down.
   //control->core()->download_store()->save(download);
 
-  // FIXME: Urgh, need to do something sane when closing a download
-  // that has been queued for hashing. ATM just close the torrent and
-  // call the hash_removed slots. This might open and restart the
-  // hashing of this torrent.
-
-//   if (download->is_hash_checking()) {
-//     download->download()->close();
-
-//     // Hash removed slot must be called after close as we can't atm
-//     // stop already started hash checks except through close.
-//     std::for_each(slot_map_hash_removed().begin(), slot_map_hash_removed().end(), download_list_call(download));
-
-//   } else {
-//     download->download()->close();
-//   }
-
-  // But this isn't correct either, i think... ATM do the borking
-  // thing, the hash queue won't be updated. Need to properly handle
-  // erasing a download.
-
-  // Propably should do its own thingie in erase rather than calling
-  // close.
-
   download->download()->close();
+
+  if (!download->is_hash_failed() &&
+      download->variable()->get_value("state") != 0 &&
+      download->variable()->get_value("hashing") != Download::variable_hashing_stopped)
+    throw torrent::client_error("DownloadList::close_throw(...) called but we're going into a hashing loop.");
 
   std::for_each(slot_map_hash_removed().begin(), slot_map_hash_removed().end(), download_list_call(download));
   std::for_each(slot_map_close().begin(), slot_map_close().end(), download_list_call(download));
 }
 
 void
-DownloadList::start(Download* download) {
+DownloadList::start_normal(Download* download) {
   check_contains(download);
 
+  // Clear hash failed as we're doing a manual start and want to try
+  // hashing again.
+  download->set_hash_failed(false);
+  download->variable()->set("state", (int64_t)1);
+
+  resume(download);
+}
+
+void
+DownloadList::start_try(Download* download) {
+  check_contains(download);
+
+  // Don't clear the hash failed as this function is used by scripts,
+  // etc.
   download->variable()->set("state", (int64_t)1);
 
   resume(download);
@@ -282,20 +277,19 @@ DownloadList::resume(Download* download) {
     // It is also assumed the is_hash_checked flag gets cleared when
     // 'hashing' was set.
     if (!download->is_hash_checked()) {
-      download->set_hash_failed(false);
-
-      // Set 'hashing' to started if hashing wasn't started, else keep
-      // the old value.
-      if (download->variable()->get_value("hashing") == Download::variable_hashing_stopped)
+      // If the hash failed flag wasn't cleared then hashing won't be
+      // initiated. The check here is just for convenience so the hash
+      // queue doesn't need to check it.
+      if (!download->is_hash_failed() && download->variable()->get_value("hashing") == Download::variable_hashing_stopped)
         download->variable()->set("hashing", Download::variable_hashing_initial);
 
       std::for_each(slot_map_hash_queued().begin(), slot_map_hash_queued().end(), download_list_call(download));
       return;
     }
 
-    download->variable()->set("state_changed", cachedTime.seconds());
-
     open_throw(download);
+
+    download->variable()->set("state_changed", cachedTime.seconds());
 
     if (download->is_done()) {
       download->set_connection_type(download->variable()->get_string("connection_seed"));
@@ -327,12 +321,9 @@ DownloadList::pause(Download* download) {
 
   try {
 
-    // Don't stop if we're doing the final hashing.
-    if (download->variable()->get_value("hashing") == Download::variable_hashing_initial) {
+    // Clear initial hashing, but retain the other types.
+    if (download->variable()->get_value("hashing") == Download::variable_hashing_initial)
       download->variable()->set("hashing", Download::variable_hashing_stopped);
-
-      std::for_each(slot_map_hash_removed().begin(), slot_map_hash_removed().end(), download_list_call(download));
-    }
 
     if (!download->download()->is_active())
       return;
@@ -341,6 +332,7 @@ DownloadList::pause(Download* download) {
     download->download()->hash_resume_save();
     
     std::for_each(slot_map_stop().begin(), slot_map_stop().end(), download_list_call(download));
+    std::for_each(slot_map_hash_removed().begin(), slot_map_hash_removed().end(), download_list_call(download));
 
     download->variable()->set("state_changed", cachedTime.seconds());
 
@@ -359,8 +351,10 @@ DownloadList::check_hash(Download* download) {
 
   try {
 
-    download->variable()->set("hashing", Download::variable_hashing_rehash);
-    hash_clear(download);
+    if (download->variable()->get_value("hashing") != Download::variable_hashing_stopped)
+      return;
+
+    hash_queue(download, Download::variable_hashing_rehash);
 
   } catch (torrent::local_error& e) {
     control->core()->push_log(e.what());
@@ -438,12 +432,11 @@ DownloadList::hash_done(Download* download) {
 }
 
 void
-DownloadList::hash_clear(Download* download) {
+DownloadList::hash_queue(Download* download, int type) {
   check_contains(download);
 
-  // Set hash failed so close_throw won't cause the hash queue to
-  // reopen this download.
-  download->set_hash_failed(true);
+  if (download->variable()->get_value("hashing") != Download::variable_hashing_stopped)
+    throw torrent::client_error("DownloadList::hash_queue(...) hashing already queued.");
 
   close_throw(download);
   download->download()->hash_resume_clear();
@@ -465,9 +458,7 @@ DownloadList::received_finished(Download* download) {
   if (control->variable()->get_value("check_hash")) {
     // Set some 'checking_finished_thingie' variable to make hash_done
     // trigger correctly, also so it can bork on missing data.
-
-    download->variable()->set("hashing", Download::variable_hashing_last);
-    hash_clear(download);
+    hash_queue(download, Download::variable_hashing_last);
 
   } else {
     confirm_finished(download);

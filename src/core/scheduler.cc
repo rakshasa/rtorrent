@@ -97,7 +97,7 @@ Scheduler::update() {
       throw torrent::client_error("Scheduler::update() loop bork.");
 
     if (!(*itr)->is_active()) {
-      m_downloadList->resume(*itr);
+      m_downloadList->start_try(*itr);
       ++curActive;
     }      
   }

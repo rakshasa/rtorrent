@@ -86,16 +86,16 @@ public:
 
   //void                save(Download* d);
 
-  void                open(Download* d);
+  bool                open(Download* d);
   void                open_throw(Download* d);
 
   void                close(Download* d);
   void                close_throw(Download* d);
 
-  void                start(Download* d);
+  void                start_normal(Download* d);
+  void                start_try(Download* d);
   void                stop(Download* d);
 
-  // These do not change the rtorrent:state.
   void                resume(Download* d);
   void                pause(Download* d);
 
@@ -169,7 +169,7 @@ public:
 
 private:
   void                hash_done(Download* d);
-  void                hash_clear(Download* d);
+  void                hash_queue(Download* d, int type);
 
   inline void         check_contains(Download* d);
 

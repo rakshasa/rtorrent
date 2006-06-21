@@ -385,8 +385,8 @@ Manager::receive_hashing_changed() {
 
     try {
 
-      if ((*itr)->is_hash_checked())
-        throw torrent::client_error("core::Manager::receive_hashing_changed() hash already checked.");
+      if ((*itr)->is_hash_checked() || (*itr)->is_hash_checking())
+        throw torrent::client_error("core::Manager::receive_hashing_changed() hash already checked or checking.");
   
       if ((*itr)->is_hash_failed())
         continue;

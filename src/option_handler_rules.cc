@@ -129,7 +129,7 @@ apply_start_tied(Control* m, const std::string& arg) {
                                                      rak::equal(*itr, rak::bind2nd(std::mem_fun(&core::Download::variable_string), "tied_to_file")));
 
     if (dItr != m->core()->download_list()->end())
-      m->core()->download_list()->start(*dItr);
+      m->core()->download_list()->start_try(*dItr);
   }
 }
 
