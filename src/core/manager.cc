@@ -105,12 +105,15 @@ receive_tracker_dump(const std::string& url, const char* data, size_t size) {
 // Hmm... find some better place for all this.
 static void
 delete_tied(Download* d) {
-  const std::string tie = d->variable()->get("tied_to_file").as_string();
+  const std::string tie = d->variable()->get_string("tied_to_file");
 
   // This should be configurable, need to wait for the variable
   // thingie to be implemented.
-  if (!tie.empty())
-    ::unlink(tie.c_str());
+  if (tie.empty())
+    return;
+
+  if (::unlink(tie.c_str()) == -1)
+    control->core()->push_log("Could not unlink tied file: " + std::string(rak::error_number::current().c_str()));
 }
 
 Manager::Manager() :
