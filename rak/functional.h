@@ -460,13 +460,17 @@ template <typename Object, typename Ret, typename Arg1, typename Arg2>
 class mem_fun2 : public std::binary_function<Arg1, Arg2, Ret> {
 public:
   typedef Ret (Object::*Function)(Arg1, Arg2);
+  typedef Object object_type;
 
   mem_fun2() : m_object(NULL) {}
   mem_fun2(Object* o, Function f) : m_object(o), m_function(f) {}
 
-  bool is_valid() const { return m_object; }
+  bool         is_valid() const { return m_object; }
 
-  Ret operator () (Arg1 a1, Arg2 a2) { return (m_object->*m_function)(a1, a2); }
+  object_type*       object() { return m_object; }
+  const object_type* object() const { return m_object; }
+
+  Ret          operator () (Arg1 a1, Arg2 a2) { return (m_object->*m_function)(a1, a2); }
   
 private:
   Object* m_object;

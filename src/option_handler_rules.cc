@@ -235,7 +235,7 @@ apply_stop_on_ratio(Control* m, const std::string& arg) {
 
     if ((totalUpload >= min_Upload && totalUpload * 100 >= totalDone * min_Ratio) ||
         (max_Ratio > 0 && totalUpload * 100 > totalDone * max_Ratio)) {
-      if ((*itr)->variable()->get_value("ignore_ratio") <= 0)
+      if ((*itr)->variable()->get_value("ignore_ratio") == 0)
         m->core()->download_list()->stop(*itr);
     }
 

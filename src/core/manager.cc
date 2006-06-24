@@ -45,6 +45,7 @@
 #include <rak/address_info.h>
 #include <rak/error_number.h>
 #include <rak/regex.h>
+#include <rak/path.h>
 #include <rak/string_manip.h>
 #include <sigc++/bind.h>
 #include <sigc++/hide.h>
@@ -112,7 +113,7 @@ delete_tied(Download* d) {
   if (tie.empty())
     return;
 
-  if (::unlink(tie.c_str()) == -1)
+  if (::unlink(rak::path_expand(tie).c_str()) == -1)
     control->core()->push_log("Could not unlink tied file: " + std::string(rak::error_number::current().c_str()));
 }
 
