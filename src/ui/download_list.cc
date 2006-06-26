@@ -297,6 +297,18 @@ DownloadList::receive_ignore_ratio() {
 }
 
 void
+DownloadList::receive_clear_tied() {
+  if (m_view->focus() == m_view->end_visible())
+    return;
+
+  if (!(*m_view->focus())->variable()->get_string("tied_to_file").empty()) {
+    (*m_view->focus())->variable()->set("tied_to_file", std::string());
+
+    m_control->core()->push_log("Cleared tied to file association for download.");
+  }
+}
+
+void
 DownloadList::receive_view_input(Input type) {
   if (m_windowTextInput->get_active())
     return;
@@ -426,6 +438,7 @@ DownloadList::setup_keys() {
   (*m_bindings)['+']           = sigc::mem_fun(*this, &DownloadList::receive_next_priority);
   (*m_bindings)['-']           = sigc::mem_fun(*this, &DownloadList::receive_prev_priority);
   (*m_bindings)['I']           = sigc::mem_fun(*this, &DownloadList::receive_ignore_ratio);
+  (*m_bindings)['U']           = sigc::mem_fun(*this, &DownloadList::receive_clear_tied);
 
   (*m_bindings)['\x7f']        = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_view_input), INPUT_LOAD_DEFAULT);
   (*m_bindings)[KEY_BACKSPACE] = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_view_input), INPUT_LOAD_DEFAULT);

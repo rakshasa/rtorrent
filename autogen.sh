@@ -16,15 +16,17 @@ echo autoheader...
 
 autoheader
 
-echo libtoolize...
-if ( (libtoolize --version) < /dev/null > /dev/null 2>&1 ) ; then
-    libtoolize --automake --copy --force
-
-elif ( (glibtoolize --version) < /dev/null > /dev/null 2>&1 ); then
+echo -n "libtoolize... "
+if ( (glibtoolize --version) < /dev/null > /dev/null 2>&1 ); then
+    echo "using glibtoolize"
     glibtoolize --automake --copy --force
 
+elif ( (libtoolize --version) < /dev/null > /dev/null 2>&1 ) ; then
+    echo "using libtoolize"
+    libtoolize --automake --copy --force
+
 else
-    echo libtoolize nor glibtoolize not found
+    echo "libtoolize nor glibtoolize not found"
     exit 1
 fi
 
