@@ -221,9 +221,7 @@ DownloadList::close_throw(Download* download) {
 
   download->download()->close();
 
-  if (!download->is_hash_failed() &&
-      download->variable()->get_value("state") != 0 &&
-      download->variable()->get_value("hashing") != Download::variable_hashing_stopped)
+  if (!download->is_hash_failed() && download->variable()->get_value("hashing") != Download::variable_hashing_stopped)
     throw torrent::client_error("DownloadList::close_throw(...) called but we're going into a hashing loop.");
 
   std::for_each(slot_map_hash_removed().begin(), slot_map_hash_removed().end(), download_list_call(download));
@@ -245,6 +243,12 @@ DownloadList::start_normal(Download* download) {
 void
 DownloadList::start_try(Download* download) {
   check_contains(download);
+
+  // Also don't start if the state is one of those that indicate we
+  // were manually stopped?
+
+  if (download->is_hash_failed())
+    return;
 
   // Don't clear the hash failed as this function is used by scripts,
   // etc.
@@ -321,9 +325,9 @@ DownloadList::pause(Download* download) {
 
   try {
 
-    // Clear initial hashing, but retain the other types.
-    if (download->variable()->get_value("hashing") == Download::variable_hashing_initial)
-      download->variable()->set("hashing", Download::variable_hashing_stopped);
+    // Always clear hashing on pause. When a hashing request is added,
+    // it should have cleared the hash resume data.
+    download->variable()->set_value("hashing", Download::variable_hashing_stopped);
 
     if (!download->download()->is_active())
       return;
@@ -388,7 +392,7 @@ DownloadList::hash_done(Download* download) {
   // ReiserFS bug with >4GB files.
 
   int64_t hashing = download->variable()->get_value("hashing");
-  download->variable()->set("hashing", Download::variable_hashing_stopped);
+  download->variable()->set_value("hashing", Download::variable_hashing_stopped);
 
   switch (hashing) {
   case Download::variable_hashing_initial:
@@ -442,6 +446,7 @@ DownloadList::hash_queue(Download* download, int type) {
   download->download()->hash_resume_clear();
 
   download->set_hash_failed(false);
+  download->variable()->set_value("hashing", type);
 
   if (download->is_open())
     throw torrent::internal_error("DownloadList::hash_clear(...) download still open.");

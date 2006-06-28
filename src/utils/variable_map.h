@@ -72,6 +72,7 @@ public:
 
   void                set(const std::string& key, const mapped_type& arg);
   void                set_string(const std::string& key, const std::string& arg) { set(key, mapped_type(arg)); }
+  void                set_value(const std::string& key, mapped_value_type arg)   { set(key, mapped_type(arg)); }
 
   // Relocate.
   void                process_command(const std::string& command);

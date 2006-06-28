@@ -129,7 +129,7 @@ Download::enable_udp_trackers(bool state) {
 
 uint32_t
 Download::priority() {
-  return bencode()->get_key("rtorrent").get_key("priority").as_value();
+  return bencode()->get_key("rtorrent").get_key_value("priority");
 }
 
 void

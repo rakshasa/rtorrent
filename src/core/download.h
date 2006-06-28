@@ -55,10 +55,10 @@ public:
   typedef download_type::ConnectionType connection_type;
   typedef utils::VariableMap            variable_map_type;
 
-  static const int64_t variable_hashing_stopped = 0;
-  static const int64_t variable_hashing_initial = 1;
-  static const int64_t variable_hashing_last    = 2;
-  static const int64_t variable_hashing_rehash  = 3;
+  static const int variable_hashing_stopped = 0;
+  static const int variable_hashing_initial = 1;
+  static const int variable_hashing_last    = 2;
+  static const int variable_hashing_rehash  = 3;
 
   Download(download_type d);
   ~Download();

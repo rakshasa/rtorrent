@@ -232,12 +232,12 @@ DownloadFactory::receive_failed(const std::string& msg) {
 
 void
 DownloadFactory::initialize_rtorrent(Download* download, torrent::Object* rtorrent) {
-  if (!rtorrent->has_key_value("state") || rtorrent->get_key("state").as_value() > 1) {
+  if (!rtorrent->has_key_value("state") || rtorrent->get_key_value("state") > 1) {
     rtorrent->insert_key("state", (int64_t)m_start);
     rtorrent->insert_key("state_changed", cachedTime.seconds());
 
   } else if (!rtorrent->has_key_value("state_changed") ||
-             rtorrent->get_key("state_changed").as_value() > cachedTime.seconds() || rtorrent->get_key("state_changed").as_value() == 0) {
+             rtorrent->get_key_value("state_changed") > cachedTime.seconds() || rtorrent->get_key_value("state_changed") == 0) {
     rtorrent->insert_key("state_changed", cachedTime.seconds());
   }
 
@@ -245,18 +245,18 @@ DownloadFactory::initialize_rtorrent(Download* download, torrent::Object* rtorre
     rtorrent->insert_key("complete", (int64_t)0);
 
   if (!rtorrent->has_key_value("hashing"))
-    rtorrent->insert_key("hashing", Download::variable_hashing_stopped);
+    rtorrent->insert_key("hashing", (int64_t)Download::variable_hashing_stopped);
 
   if (!rtorrent->has_key_string("tied_to_file"))
     rtorrent->insert_key("tied_to_file", std::string());
 
   if (rtorrent->has_key_value("priority"))
-    download->variable()->set("priority", rtorrent->get_key("priority").as_value() % 4);
+    download->variable()->set("priority", rtorrent->get_key_value("priority") % 4);
   else
     download->variable()->set("priority", (int64_t)2);
 
   if (rtorrent->has_key_value("key")) {
-    download->tracker_list()->set_key(rtorrent->get_key("key").as_value());
+    download->tracker_list()->set_key(rtorrent->get_key_value("key"));
 
   } else {
     download->tracker_list()->set_key(random() % (std::numeric_limits<uint32_t>::max() - 1) + 1);
@@ -264,7 +264,7 @@ DownloadFactory::initialize_rtorrent(Download* download, torrent::Object* rtorre
   }
 
   if (rtorrent->has_key_value("total_uploaded"))
-    download->download()->up_rate()->set_total(rtorrent->get_key("total_uploaded").as_value());
+    download->download()->up_rate()->set_total(rtorrent->get_key_value("total_uploaded"));
 
   if (!rtorrent->has_key_value("ignore_ratio"))
     rtorrent->insert_key("ignore_ratio", (int64_t)0);
