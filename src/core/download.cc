@@ -68,7 +68,7 @@ Download::Download(download_type d) :
   m_download.signal_chunk_failed(sigc::mem_fun(*this, &Download::receive_chunk_failed));
 
   m_variables.insert("connection_current", new utils::VariableStringSlot(rak::mem_fn(this, &Download::connection_current),
-									 rak::mem_fn(this, &Download::set_connection_current)));
+                                                                         rak::mem_fn(this, &Download::set_connection_current)));
 
   m_variables.insert("connection_leech",   new utils::VariableAny(connection_type_to_string(download_type::CONNECTION_LEECH)));
   m_variables.insert("connection_seed",    new utils::VariableAny(connection_type_to_string(download_type::CONNECTION_SEED)));
@@ -89,17 +89,12 @@ Download::Download(download_type d) :
   // resume/pause.
   m_variables.insert("state_changed",      new utils::VariableObject(bencode(), "rtorrent", "state_changed", torrent::Object::TYPE_VALUE));
 
-  m_variables.insert("directory",          new utils::VariableStringSlot(rak::mem_fn(&m_fileList, &torrent::FileList::root_dir),
-									 rak::mem_fn(this, &Download::set_root_directory)));
+  m_variables.insert("directory",          new utils::VariableStringSlot(rak::mem_fn(&m_fileList, &torrent::FileList::root_dir), rak::mem_fn(this, &Download::set_root_directory)));
 
-  m_variables.insert("min_peers",          new utils::VariableValueSlot(rak::mem_fn(&m_download, &download_type::peers_min),
-									rak::mem_fn(&m_download, &download_type::set_peers_min)));
-  m_variables.insert("max_peers",          new utils::VariableValueSlot(rak::mem_fn(&m_download, &download_type::peers_max),
-									rak::mem_fn(&m_download, &download_type::set_peers_max)));
-  m_variables.insert("max_uploads",        new utils::VariableValueSlot(rak::mem_fn(&m_download, &download_type::uploads_max),
-									rak::mem_fn(&m_download, &download_type::set_uploads_max)));
-  m_variables.insert("priority",           new utils::VariableValueSlot(rak::mem_fn(this, &Download::priority),
-									rak::mem_fn(this, &Download::set_priority)));
+  m_variables.insert("min_peers",          new utils::VariableValueSlot(rak::mem_fn(&m_download, &download_type::peers_min), rak::mem_fn(&m_download, &download_type::set_peers_min)));
+  m_variables.insert("max_peers",          new utils::VariableValueSlot(rak::mem_fn(&m_download, &download_type::peers_max), rak::mem_fn(&m_download, &download_type::set_peers_max)));
+  m_variables.insert("max_uploads",        new utils::VariableValueSlot(rak::mem_fn(&m_download, &download_type::uploads_max), rak::mem_fn(&m_download, &download_type::set_uploads_max)));
+  m_variables.insert("priority",           new utils::VariableValueSlot(rak::mem_fn(this, &Download::priority), rak::mem_fn(this, &Download::set_priority)));
 
   m_variables.insert("ignore_ratio",       new utils::VariableObject(bencode(), "rtorrent", "ignore_ratio", torrent::Object::TYPE_VALUE));
 }

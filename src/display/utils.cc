@@ -123,12 +123,14 @@ print_download_title(char* first, char* last, core::Download* d) {
 
 char*
 print_download_info(char* first, char* last, core::Download* d) {
-  first = print_buffer(first, last, "Torrent: ");
-
   if (!d->download()->is_open())
-    first = print_buffer(first, last, "closed            ");
+    first = print_buffer(first, last, "[CLOSED]  ");
+  else if (!d->download()->is_active())
+    first = print_buffer(first, last, "[OPEN]    ");
+  else
+    first = print_buffer(first, last, "          ");
 
-  else if (d->is_done())
+  if (d->is_done())
     first = print_buffer(first, last, "done %10.1f MB", (double)d->download()->bytes_total() / (double)(1 << 20));
   else
     first = print_buffer(first, last, "%6.1f / %6.1f MB",

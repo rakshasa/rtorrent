@@ -104,8 +104,9 @@ DownloadStore::save(Download* d) {
   if (!f.is_open())
     return;
 
-  // Move this somewhere else.
+  // Move this somewhere else?
   d->bencode()->get_key("rtorrent").insert_key("total_uploaded", d->download()->up_rate()->total());
+  d->bencode()->get_key("rtorrent").insert_key("chunks_done", d->download()->chunks_done());
 
   f << *d->bencode();
 

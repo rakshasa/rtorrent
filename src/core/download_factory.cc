@@ -266,6 +266,9 @@ DownloadFactory::initialize_rtorrent(Download* download, torrent::Object* rtorre
   if (rtorrent->has_key_value("total_uploaded"))
     download->download()->up_rate()->set_total(rtorrent->get_key_value("total_uploaded"));
 
+  if (rtorrent->has_key_value("chunks_done"))
+    download->download()->set_chunks_done(std::min<uint32_t>(rtorrent->get_key_value("chunks_done"), download->download()->chunks_total()));
+
   if (!rtorrent->has_key_value("ignore_ratio"))
     rtorrent->insert_key("ignore_ratio", (int64_t)0);
 }
