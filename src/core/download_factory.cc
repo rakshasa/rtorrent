@@ -44,6 +44,7 @@
 #include <torrent/object.h>
 #include <torrent/exceptions.h>
 #include <torrent/rate.h>
+#include <torrent/resume.h>
 
 #include "utils/variable_generic.h"
 
@@ -185,6 +186,13 @@ DownloadFactory::receive_success() {
 
   if (!m_session && m_variables.get("tied_to_file").as_value())
     download->variable()->set("tied_to_file", m_uri);
+
+  torrent::Object& resumeObject = root->has_key_map("libtorrent_resume")
+    ? root->get_key("libtorrent_resume")
+    : root->insert_key("libtorrent_resume", torrent::Object(torrent::Object::TYPE_MAP));
+
+  torrent::resume_load_addresses(*download->download(), resumeObject);
+  torrent::resume_load_file_priorities(*download->download(), resumeObject);
 
   // The action of inserting might cause the torrent to be
   // opened/started or such. Figure out a nicer way of handling this.

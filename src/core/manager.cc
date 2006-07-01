@@ -52,6 +52,7 @@
 #include <torrent/object.h>
 #include <torrent/connection_manager.h>
 #include <torrent/exceptions.h>
+#include <torrent/resume.h>
 #include <torrent/tracker_list.h>
 
 #include "utils/variable_map.h"
@@ -104,9 +105,9 @@ receive_tracker_dump(const std::string& url, const char* data, size_t size) {
 }
 
 // Hmm... find some better place for all this.
-static void
-delete_tied(Download* d) {
-  const std::string tie = d->variable()->get_string("tied_to_file");
+void
+Manager::delete_tied(Download* d) {
+  const std::string& tie = d->variable()->get_string("tied_to_file");
 
   // This should be configurable, need to wait for the variable
   // thingie to be implemented.
@@ -114,7 +115,9 @@ delete_tied(Download* d) {
     return;
 
   if (::unlink(rak::path_expand(tie).c_str()) == -1)
-    control->core()->push_log("Could not unlink tied file: " + std::string(rak::error_number::current().c_str()));
+    push_log("Could not unlink tied file: " + std::string(rak::error_number::current().c_str()));
+
+  d->variable()->set("tied_to_file", std::string());
 }
 
 Manager::Manager() :
@@ -173,7 +176,7 @@ Manager::initialize_second() {
   m_downloadList->slot_map_insert()["1_connect_storage_log"]  = sigc::bind(sigc::ptr_fun(&connect_signal_storage_log), sigc::mem_fun(m_logComplete, &Log::push_front));
   m_downloadList->slot_map_insert()["1_connect_tracker_dump"] = sigc::bind(sigc::ptr_fun(&connect_signal_tracker_dump), sigc::ptr_fun(&receive_tracker_dump));
 
-  m_downloadList->slot_map_erase()["1_delete_tied"] = sigc::ptr_fun(&delete_tied);
+  m_downloadList->slot_map_erase()["1_delete_tied"] = sigc::mem_fun(this, &Manager::delete_tied);
 }
 
 void
@@ -215,7 +218,7 @@ Manager::listen_open() {
     int boundary = m_portFirst + random() % (m_portLast - m_portFirst + 1);
 
     if (torrent::connection_manager()->listen_open(boundary, m_portLast) ||
-	torrent::connection_manager()->listen_open(m_portFirst, boundary))
+        torrent::connection_manager()->listen_open(m_portFirst, boundary))
       return;
 
   } else {
@@ -396,6 +399,8 @@ Manager::receive_hashing_changed() {
         continue;
 
       m_downloadList->open_throw(*itr);
+
+      torrent::resume_load_progress(*(*itr)->download(), (*itr)->download()->bencode()->get_key("libtorrent_resume"));
       (*itr)->download()->hash_check();
 
       return;

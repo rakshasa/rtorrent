@@ -97,6 +97,8 @@ public:
   void                try_create_download(const std::string& uri, bool start, bool printLog = true, bool tied = false);
   void                try_create_download_expand(const std::string& uri, bool start, bool printLog = true, bool tied = false);
 
+  void                delete_tied(Download* d);
+
 private:
   void                create_http(const std::string& uri);
   void                create_final(std::istream* s);

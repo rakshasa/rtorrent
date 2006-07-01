@@ -42,6 +42,7 @@
 #include <torrent/exceptions.h>
 #include <torrent/object.h>
 #include <torrent/object_stream.h>
+#include <torrent/resume.h>
 #include <torrent/torrent.h>
 
 #include "rak/functional.h"
@@ -304,7 +305,7 @@ DownloadList::resume(Download* download) {
       // on non-complete downloads after a crash. This shouldn't be
       // needed, but for some reason linux 2.6 is very lazy about
       // updating mtime.
-      download->download()->hash_resume_clear();
+      torrent::resume_clear_progress(*download->download(), download->download()->bencode()->get_key("libtorrent_resume"));
     }
 
     // Update the priority to ensure it has the correct
@@ -333,7 +334,7 @@ DownloadList::pause(Download* download) {
       return;
 
     download->download()->stop();
-    download->download()->hash_resume_save();
+    torrent::resume_save_progress(*download->download(), download->download()->bencode()->get_key("libtorrent_resume"));
     
     std::for_each(slot_map_stop().begin(), slot_map_stop().end(), download_list_call(download));
     std::for_each(slot_map_hash_removed().begin(), slot_map_hash_removed().end(), download_list_call(download));
@@ -409,7 +410,7 @@ DownloadList::hash_done(Download* download) {
     // Save resume data so we update time-stamps and priorities if
     // they were invalid/changed while loading/hashing.
     download->variable()->set("complete", (int64_t)download->is_done());
-    download->download()->hash_resume_save();
+    torrent::resume_save_progress(*download->download(), download->download()->bencode()->get_key("libtorrent_resume"));
 
     if (download->variable()->get_value("state") == 1)
       resume(download);
@@ -443,7 +444,7 @@ DownloadList::hash_queue(Download* download, int type) {
     throw torrent::client_error("DownloadList::hash_queue(...) hashing already queued.");
 
   close_throw(download);
-  download->download()->hash_resume_clear();
+  torrent::resume_clear_progress(*download->download(), download->download()->bencode()->get_key("libtorrent_resume"));
 
   download->set_hash_failed(false);
   download->variable()->set_value("hashing", type);
@@ -482,8 +483,8 @@ DownloadList::confirm_finished(Download* download) {
 
   // Do this before the slots are called in case one of them closes
   // the download.
-  if (!download->is_active() && control->variable()->get_value("session_on_completion") == 1) {
-    download->download()->hash_resume_save();
+  if (!download->is_active() && control->variable()->get_value("session_on_completion") != 0) {
+    torrent::resume_save_progress(*download->download(), download->download()->bencode()->get_key("libtorrent_resume"));
     control->core()->download_store()->save(download);
   }
 

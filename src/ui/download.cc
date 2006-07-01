@@ -284,6 +284,7 @@ Download::bind_keys() {
   m_uiArray[DISPLAY_FILE_LIST]->get_bindings()[KEY_LEFT]    = sigc::bind(sigc::mem_fun(this, &Download::receive_change), DISPLAY_PEER_LIST);
   m_uiArray[DISPLAY_TRACKER_LIST]->get_bindings()[KEY_LEFT] = sigc::bind(sigc::mem_fun(this, &Download::receive_change), DISPLAY_PEER_LIST);
   m_uiArray[DISPLAY_CHUNKS_SEEN]->get_bindings()[KEY_LEFT]  = sigc::bind(sigc::mem_fun(this, &Download::receive_change), DISPLAY_PEER_LIST);
+  m_uiArray[DISPLAY_TRANSFER_LIST]->get_bindings()[KEY_LEFT]= sigc::bind(sigc::mem_fun(this, &Download::receive_change), DISPLAY_PEER_LIST);
 
   // Doesn't belong here.
   m_uiArray[DISPLAY_PEER_LIST]->get_bindings()['*'] = sigc::mem_fun(this, &Download::receive_snub_peer);

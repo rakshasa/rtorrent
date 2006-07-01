@@ -73,7 +73,7 @@ WindowDownloadChunksSeen::redraw() {
 
   const uint8_t* seen = m_download->download()->chunks_seen();
 
-  if (seen == NULL) {
+  if (seen == NULL || m_download->download()->bitfield()->empty()) {
     m_canvas->print(2, 2, "Not available.");
     return;
   }

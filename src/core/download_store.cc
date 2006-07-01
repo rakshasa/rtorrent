@@ -48,6 +48,7 @@
 #include <torrent/exceptions.h>
 #include <torrent/torrent.h>
 #include <torrent/rate.h>
+#include <torrent/resume.h>
 #include <torrent/object_stream.h>
 
 #include "download.h"
@@ -107,6 +108,9 @@ DownloadStore::save(Download* d) {
   // Move this somewhere else?
   d->bencode()->get_key("rtorrent").insert_key("total_uploaded", d->download()->up_rate()->total());
   d->bencode()->get_key("rtorrent").insert_key("chunks_done", d->download()->chunks_done());
+
+  torrent::resume_save_addresses(*d->download(), d->download()->bencode()->get_key("libtorrent_resume"));
+  torrent::resume_save_file_priorities(*d->download(), d->download()->bencode()->get_key("libtorrent_resume"));
 
   f << *d->bencode();
 

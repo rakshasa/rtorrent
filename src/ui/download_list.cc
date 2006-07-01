@@ -301,8 +301,11 @@ DownloadList::receive_clear_tied() {
   if (m_view->focus() == m_view->end_visible())
     return;
 
-  if (!(*m_view->focus())->variable()->get_string("tied_to_file").empty()) {
-    (*m_view->focus())->variable()->set("tied_to_file", std::string());
+  const std::string& tiedFile = (*m_view->focus())->variable()->get_string("tied_to_file");
+
+  if (!tiedFile.empty()) {
+    // Move this into core?
+    m_control->core()->delete_tied(*m_view->focus());
 
     m_control->core()->push_log("Cleared tied to file association for download.");
   }

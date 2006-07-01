@@ -141,7 +141,7 @@ main(int argc, char** argv) {
   try {
 
     // Temporary.
-    //setlocale(LC_ALL, "");
+    setlocale(LC_ALL, "");
 
     cachedTime = rak::timer::current();
 
