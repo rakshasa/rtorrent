@@ -328,7 +328,12 @@ DownloadList::pause(Download* download) {
 
     // Always clear hashing on pause. When a hashing request is added,
     // it should have cleared the hash resume data.
-    download->variable()->set_value("hashing", Download::variable_hashing_stopped);
+    if (download->variable()->get_value("hashing") != Download::variable_hashing_stopped) {
+      download->download()->hash_stop();
+      download->variable()->set_value("hashing", Download::variable_hashing_stopped);
+
+      std::for_each(slot_map_hash_removed().begin(), slot_map_hash_removed().end(), download_list_call(download));
+    }
 
     if (!download->download()->is_active())
       return;
@@ -337,7 +342,6 @@ DownloadList::pause(Download* download) {
     torrent::resume_save_progress(*download->download(), download->download()->bencode()->get_key("libtorrent_resume"));
     
     std::for_each(slot_map_stop().begin(), slot_map_stop().end(), download_list_call(download));
-    std::for_each(slot_map_hash_removed().begin(), slot_map_hash_removed().end(), download_list_call(download));
 
     download->variable()->set("state_changed", cachedTime.seconds());
 
@@ -488,12 +492,14 @@ DownloadList::confirm_finished(Download* download) {
     control->core()->download_store()->save(download);
   }
 
+  // Send the completed request before resuming so we don't reset the
+  // up/downloaded baseline.
+  download->download()->tracker_list().send_completed();
+
   std::for_each(slot_map_finished().begin(), slot_map_finished().end(), download_list_call(download));
 
   if (!download->is_active() && download->variable()->get_value("state") == 1)
     resume(download);
-
-  download->download()->tracker_list().send_completed();
 }
 
 }

@@ -198,7 +198,7 @@ main(int argc, char** argv) {
 
     // The hashing view does not include stopped torrents.
     control->variable()->process_command("view_add = hashing");
-    control->variable()->process_command("view_filter = hashing,hashing,started");
+    control->variable()->process_command("view_filter = hashing,hashing");
     control->variable()->process_command("view_filter_on = hashing,hash_queued,hash_removed,hash_done");
     control->variable()->process_command("view_sort_new = hashing,state_changed");
     control->variable()->process_command("view_sort_current = hashing,state_changed");
