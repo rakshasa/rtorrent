@@ -126,10 +126,10 @@ load_arg_torrents(Control* c, char** first, char** last) {
   }
 }
 
-rak::timer
-client_next_timeout() {
+static inline rak::timer
+client_next_timeout(Control* c) {
   if (taskScheduler.empty())
-    return rak::timer::from_seconds(60);
+    return c->is_shutdown_started() ? rak::timer::from_milliseconds(100) : rak::timer::from_seconds(60);
   else if (taskScheduler.top()->time() <= cachedTime)
     return 0;
   else
@@ -252,7 +252,7 @@ main(int argc, char** argv) {
       rak::priority_queue_perform(&taskScheduler, cachedTime);
 
       // Do shutdown check before poll, not after.
-      control->core()->get_poll_manager()->poll(client_next_timeout());
+      control->core()->get_poll_manager()->poll(client_next_timeout(control));
     }
 
     control->core()->download_list()->session_save();
