@@ -384,12 +384,48 @@ Manager::try_create_download_expand(const std::string& uri, bool start, bool pri
 // hashing view and starts hashing if nessesary.
 void
 Manager::receive_hashing_changed() {
-  if (m_hashingView->empty_visible() ||
-      std::find_if(m_hashingView->begin_visible(), m_hashingView->end_visible(), std::mem_fun(&Download::is_hash_checking)) != m_hashingView->end_visible())
+  bool foundHashing = false;
+  
+  // Try quick hashing all those with hashing == initial, set them to
+  // something else when failed.
+  for (View::iterator itr = m_hashingView->begin_visible(), last = m_hashingView->end_visible(); itr != last; ++itr)
+    try {
+
+      if ((*itr)->is_hash_checking()) {
+        foundHashing = true;
+        continue;
+      }
+
+      if ((*itr)->is_hash_checked())
+        throw torrent::client_error("core::Manager::receive_hashing_changed() hash already checked or checking.");
+  
+      if ((*itr)->is_hash_failed() || (*itr)->variable()->get_value("hashing") != Download::variable_hashing_initial)
+        continue;
+
+      m_downloadList->open_throw(*itr);
+      torrent::resume_load_progress(*(*itr)->download(), (*itr)->download()->bencode()->get_key("libtorrent_resume"));
+
+      if ((*itr)->download()->hash_check(true)) {
+        // Set this to exit the function so that the delayed hash done
+        // signal gets triggered before we try any real hashing.
+        foundHashing = true;
+
+      } else {
+        // Temporary hack.
+        (*itr)->download()->hash_stop();
+      }
+
+      (*itr)->variable()->set_value("hashing", Download::variable_hashing_rehash);
+
+    } catch (torrent::local_error& e) {
+      (*itr)->set_hash_failed(true);
+      push_log(e.what());
+    }
+
+  if (foundHashing)
     return;
 
-  for (View::iterator itr = m_hashingView->begin_visible(), last = m_hashingView->end_visible(); itr != last; ++itr) {
-
+  for (View::iterator itr = m_hashingView->begin_visible(), last = m_hashingView->end_visible(); itr != last; ++itr)
     try {
 
       if ((*itr)->is_hash_checked() || (*itr)->is_hash_checking())
@@ -399,9 +435,9 @@ Manager::receive_hashing_changed() {
         continue;
 
       m_downloadList->open_throw(*itr);
-
       torrent::resume_load_progress(*(*itr)->download(), (*itr)->download()->bencode()->get_key("libtorrent_resume"));
-      (*itr)->download()->hash_check();
+
+      (*itr)->download()->hash_check(false);
 
       return;
 
@@ -409,7 +445,6 @@ Manager::receive_hashing_changed() {
       (*itr)->set_hash_failed(true);
       push_log(e.what());
     }
-  }
 }
 
 }

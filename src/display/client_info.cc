@@ -52,7 +52,7 @@ struct client_info_equal {
   bool operator () (const ClientInfo::value_type& v) const {
     for (ClientInfo::size_type i = 0; i < m_size; ++i)
       if (v.first[i] != m_key[i])
-	return false;
+        return false;
 
     return true;
   }
@@ -65,16 +65,18 @@ ClientInfo::ClientInfo() {
   m_containers[TYPE_AZUREUS].reserve(30);
 
   insert(TYPE_AZUREUS, "AZ", "Azureus");
+  insert(TYPE_AZUREUS, "BB", "BitBuddy");
   insert(TYPE_AZUREUS, "BC", "BitComet");
   insert(TYPE_AZUREUS, "UT", "uTorrent");
   insert(TYPE_AZUREUS, "lt", "libTorrent");
-  insert(TYPE_AZUREUS, "BB", "BitBuddy");
   insert(TYPE_AZUREUS, "CT", "CTorrent");
   insert(TYPE_AZUREUS, "MT", "MoonlightTorrent");
   insert(TYPE_AZUREUS, "LT", "libtorrent");
+  insert(TYPE_AZUREUS, "KT", "KTorrent");
   insert(TYPE_AZUREUS, "BX", "Bittorrent X");
   insert(TYPE_AZUREUS, "TS", "Torrentstorm");
   insert(TYPE_AZUREUS, "TN", "TorrentDotNET");
+  insert(TYPE_AZUREUS, "TR", "Transmission");
   insert(TYPE_AZUREUS, "SS", "SwarmScope");
   insert(TYPE_AZUREUS, "XT", "XanTorrent");
   insert(TYPE_AZUREUS, "BS", "BTSlave");

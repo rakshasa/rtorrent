@@ -468,6 +468,8 @@ initialize_option_handler(Control* c) {
   variables->insert("view_sort_new",         new utils::VariableStringSlot(rak::value_fn(std::string()), rak::bind_ptr_fn(&apply_view_sort_new, c)));
   variables->insert("view_sort_current",     new utils::VariableStringSlot(rak::value_fn(std::string()), rak::bind_ptr_fn(&apply_view_sort_current, c)));
 
+  variables->insert("key_layout",            new utils::VariableAny(std::string("qwerty")));
+
   variables->insert("schedule",              new utils::VariableStringSlot(rak::value_fn(std::string()), rak::mem_fn(c->command_scheduler(), &CommandScheduler::parse)));
   variables->insert("schedule_remove",       new utils::VariableStringSlot(rak::value_fn(std::string()),
                                                                            rak::mem_fn<const std::string&>(c->command_scheduler(), &CommandScheduler::erase)));

@@ -74,7 +74,8 @@ WindowPeerList::redraw() {
   m_canvas->print(x, y, "QS");      x += 6;
   m_canvas->print(x, y, "DONE");    x += 6;
   m_canvas->print(x, y, "REQ");     x += 6;
-  m_canvas->print(x, y, "SNUB");
+  m_canvas->print(x, y, "SNUB");    x += 6;
+  m_canvas->print(x, y, "FAILED");
 
   ++y;
 
@@ -129,7 +130,12 @@ WindowPeerList::redraw() {
     if (p.is_snubbed())
       m_canvas->print(x, y, "*");
 
-    x += 5;
+    x += 6;
+
+    if (p.failed_counter() != 0)
+      m_canvas->print(x, y, "%u", p.failed_counter());
+
+    x += 7;
 
     char buf[128];
     control->client_info()->print(buf, buf + 128, p.id().c_str());

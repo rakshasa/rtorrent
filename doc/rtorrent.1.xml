@@ -199,12 +199,23 @@ Close a torrent and its files.
           </para></listitem>
 	</varlistentry>
 
-	<varlistentry>
-	  <term>I</term>
-	  <listitem><para>
-            Toggle whether torrent ignores ratio settings.
+        <varlistentry>
+          <term>U</term>
+          <listitem><para>
+
+Delete the file the torrent is tied to, and clear the association.
+
           </para></listitem>
-	</varlistentry>
+        </varlistentry>
+
+        <varlistentry>
+          <term>I</term>
+          <listitem><para>
+
+Toggle whether torrent ignores ratio settings.
+
+          </para></listitem>
+        </varlistentry>
 
       </variablelist>
 
@@ -245,6 +256,15 @@ Close a torrent and its files.
             Adjust max peers.
           </para></listitem>
 	</varlistentry>
+
+        <varlistentry>
+          <term>u</term>
+          <listitem><para>
+
+Display transfering blocks.
+
+          </para></listitem>
+        </varlistentry>
 
 	<varlistentry>
 	  <term>i</term>
@@ -570,14 +590,22 @@ Delete <emphasis>id</emphasis> from the scheduler.
       </varlistentry>
 
       <varlistentry>
+        <term>start_tied =</term>
+        <listitem><para>
+
+Start torrents that are tied to filenames that have been re-added.
+
+        </para></listitem>
+      </varlistentry>
+
+      <varlistentry>
         <term>stop_untied =</term>
         <term>close_untied =</term>
         <term>remove_untied =</term>
         <listitem><para>
 
 Stop, close or remove the torrents that are tied to filenames that
-have been deleted, the association with the file is then cleared so
-the event will not trigger more than once.
+have been deleted. Clear the association with the 'U' key.
 
         </para></listitem>
       </varlistentry>
@@ -645,7 +673,7 @@ torrent::input_error exception on bad input.
 
 
   <refsect1>
-    <title>DISPLAY SETTINGS</title>
+    <title>USER-INTERFACE SETTINGS</title>
     <para>
       Display related settings.
     </para>
@@ -700,13 +728,22 @@ number of criteria, including zero, from the following:
         <listitem><para>
 
 Set a list of filter to apply when new new downloads are added and
-when <emphasis>view_sort</emphasis> gets called. All filters must
+when <emphasis>view_sort</emphasis> is called. All filters must
 match for the download to be included.
 
         </para><para>
 
 <emphasis>stopped</emphasis>, <emphasis>started</emphasis>,
 <emphasis>complete</emphasis>, <emphasis>incomplete</emphasis>,
+
+        </para></listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>key_layout = <replaceable>querty|azerty</replaceable></term>
+        <listitem><para>
+
+Change the key-bindings.
 
         </para></listitem>
       </varlistentry>

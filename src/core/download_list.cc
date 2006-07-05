@@ -283,9 +283,11 @@ DownloadList::resume(Download* download) {
     // 'hashing' was set.
     if (!download->is_hash_checked()) {
       // If the hash failed flag wasn't cleared then hashing won't be
-      // initiated. The check here is just for convenience so the hash
-      // queue doesn't need to check it.
-      if (!download->is_hash_failed() && download->variable()->get_value("hashing") == Download::variable_hashing_stopped)
+      // initiated.
+      if (download->is_hash_failed())
+        return;
+
+      if (download->variable()->get_value("hashing") == Download::variable_hashing_stopped)
         download->variable()->set("hashing", Download::variable_hashing_initial);
 
       std::for_each(slot_map_hash_queued().begin(), slot_map_hash_queued().end(), download_list_call(download));
