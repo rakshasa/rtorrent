@@ -210,7 +210,7 @@ DownloadList::receive_stop_download() {
     return;
 
   if ((*m_view->focus())->variable()->get_value("state") == 1)
-    m_control->core()->download_list()->stop(*m_view->focus());
+    m_control->core()->download_list()->stop_normal(*m_view->focus());
   else
     m_control->core()->download_list()->erase(*m_view->focus());
 
@@ -222,6 +222,7 @@ DownloadList::receive_close_download() {
   if (m_view->focus() == m_view->end_visible())
     return;
 
+  m_control->core()->download_list()->stop_normal(*m_view->focus());
   m_control->core()->download_list()->close(*m_view->focus());
   m_view->set_last_changed();
 }
@@ -287,12 +288,12 @@ DownloadList::receive_ignore_ratio() {
   if (m_view->focus() == m_view->end_visible())
     return;
 
-  if ((*m_view->focus())->variable()->get_value("ignore_ratio") > 0) {
-    (*m_view->focus())->variable()->set("ignore_ratio", (int64_t)0);
-    m_control->core()->push_log("Torrent set to stop when reaching upload ratio.");
+  if ((*m_view->focus())->variable()->get_value("ignore_commands") != 0) {
+    (*m_view->focus())->variable()->set("ignore_commands", (int64_t)0);
+    m_control->core()->push_log("Torrent set to heed commands.");
   } else {
-    (*m_view->focus())->variable()->set("ignore_ratio", (int64_t)1);
-    m_control->core()->push_log("Torrent set to no longer stop when reaching upload ratio.");
+    (*m_view->focus())->variable()->set("ignore_commands", (int64_t)1);
+    m_control->core()->push_log("Torrent set to ignore commands");
   }
 }
 
@@ -356,7 +357,7 @@ DownloadList::receive_exit_input(Input type) {
 
     case INPUT_CHANGE_DIRECTORY:
       if (m_view->focus() == m_view->end_visible())
-	throw torrent::input_error("No download in focus to change root directory.");
+        throw torrent::input_error("No download in focus to change root directory.");
 
       (*m_view->focus())->variable()->set("directory", rak::trim(m_windowTextInput->get_input()->str()));
       m_control->core()->push_log("New root dir \"" + (*m_view->focus())->variable()->get_string("directory") + "\" for torrent.");

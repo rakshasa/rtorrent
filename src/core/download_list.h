@@ -72,6 +72,8 @@ public:
   using base_type::empty;
   using base_type::size;
 
+  DownloadList() { }
+
   void                clear();
 
   void                session_save();
@@ -93,8 +95,10 @@ public:
   void                close_throw(Download* d);
 
   void                start_normal(Download* d);
-  void                start_try(Download* d);
-  void                stop(Download* d);
+  bool                start_try(Download* d);
+
+  void                stop_normal(Download* d);
+  bool                stop_try(Download* d);
 
   void                resume(Download* d);
   void                pause(Download* d);
@@ -168,6 +172,9 @@ public:
   static void         erase_key(slot_map& sm, const std::string& key)   { sm.erase(key); }
 
 private:
+  DownloadList(const DownloadList&);
+  void operator = (const DownloadList&);
+
   void                hash_done(Download* d);
   void                hash_queue(Download* d, int type);
 

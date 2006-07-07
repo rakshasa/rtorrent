@@ -176,6 +176,15 @@ DownloadFactory::receive_success() {
   download->variable()->set("max_peers",        control->variable()->get("max_peers"));
   download->variable()->set("max_uploads",      control->variable()->get("max_uploads"));
 
+  if (!control->variable()->get_value("timeout_sync") != 0)
+    download->variable()->set("timeout_sync", control->variable()->get("timeout_sync"));
+
+  if (!control->variable()->get_value("timeout_safe_sync") != 0)
+    download->variable()->set("timeout_safe_sync", control->variable()->get("timeout_safe_sync"));
+
+  if (!control->variable()->get_value("max_chunks_queued") != 0)
+    download->variable()->set("max_chunks_queued", control->variable()->get("max_chunks_queued"));
+
   if (!control->variable()->get_value("use_udp_trackers"))
     download->enable_udp_trackers(false);
 
@@ -277,8 +286,8 @@ DownloadFactory::initialize_rtorrent(Download* download, torrent::Object* rtorre
   if (rtorrent->has_key_value("chunks_done"))
     download->download()->set_chunks_done(std::min<uint32_t>(rtorrent->get_key_value("chunks_done"), download->download()->chunks_total()));
 
-  if (!rtorrent->has_key_value("ignore_ratio"))
-    rtorrent->insert_key("ignore_ratio", (int64_t)0);
+  if (!rtorrent->has_key_value("ignore_commands"))
+    rtorrent->insert_key("ignore_commands", (int64_t)0);
 }
 
 }

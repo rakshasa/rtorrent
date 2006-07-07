@@ -241,30 +241,44 @@ DownloadList::start_normal(Download* download) {
   resume(download);
 }
 
-void
+bool
 DownloadList::start_try(Download* download) {
   check_contains(download);
 
   // Also don't start if the state is one of those that indicate we
   // were manually stopped?
 
-  if (download->is_hash_failed())
-    return;
+  if (download->is_hash_failed() || download->variable()->get_value("ignore_commands") != 0)
+    return false;
 
   // Don't clear the hash failed as this function is used by scripts,
   // etc.
   download->variable()->set("state", (int64_t)1);
 
   resume(download);
+  return true;
 }
 
 void
-DownloadList::stop(Download* download) {
+DownloadList::stop_normal(Download* download) {
   check_contains(download);
 
   download->variable()->set("state", (int64_t)0);
 
   pause(download);
+}
+
+bool
+DownloadList::stop_try(Download* download) {
+  check_contains(download);
+
+  if (download->variable()->get_value("ignore_commands") != 0)
+    return false;
+
+  download->variable()->set("state", (int64_t)0);
+
+  pause(download);
+  return true;
 }
 
 void
