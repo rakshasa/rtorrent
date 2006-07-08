@@ -184,6 +184,9 @@ DownloadFactory::receive_success() {
 
   if (!control->variable()->get_value("max_chunks_queued") != 0)
     download->variable()->set("max_chunks_queued", control->variable()->get("max_chunks_queued"));
+  else
+    // Temporary until we fix the library.
+    download->variable()->set("max_chunks_queued", (512 << 20) / download->download()->chunks_size());
 
   if (!control->variable()->get_value("use_udp_trackers"))
     download->enable_udp_trackers(false);

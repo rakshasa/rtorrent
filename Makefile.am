@@ -15,6 +15,7 @@ EXTRA_DIST= \
 	rak/partial_queue.h \
 	rak/priority_queue.h \
 	rak/priority_queue_default.h \
+	rak/ranges.h \
 	rak/regex.h \
 	rak/socket_address.h \
 	rak/string_manip.h \
