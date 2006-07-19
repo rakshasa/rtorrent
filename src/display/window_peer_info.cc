@@ -40,7 +40,7 @@
 #include <rak/socket_address.h>
 #include <rak/string_manip.h>
 #include <torrent/rate.h>
-#include <torrent/connection_manager.h>
+#include <torrent/chunk_manager.h>
 
 #include "core/download.h"
 
@@ -73,10 +73,7 @@ WindowPeerInfo::redraw() {
 
   m_canvas->print(0, y++, "Hash:    %s", rak::transform_hex(d->info_hash()).c_str());
   m_canvas->print(0, y++, "Id:      %s", rak::copy_escape_html(d->local_id()).c_str());
-  m_canvas->print(0, y++, "Chunks:  %u / %u * %u",
-		  d->chunks_done(),
-		  d->chunks_total(),
-		  d->chunks_size());
+  m_canvas->print(0, y++, "Chunks:  %u / %u * %u", d->chunks_done(), d->chunks_total(), d->chunks_size());
 
   y++;
 
@@ -89,9 +86,9 @@ WindowPeerInfo::redraw() {
   y++;
 
   m_canvas->print(0, y++, "Connection Type: %s ( %s / %s )",
-		  m_download->variable()->get("connection_current").as_string().c_str(),
-		  m_download->variable()->get("connection_seed").as_string().c_str(),
-		  m_download->variable()->get("connection_leech").as_string().c_str());
+                  m_download->variable()->get("connection_current").as_string().c_str(),
+                  m_download->variable()->get("connection_seed").as_string().c_str(),
+                  m_download->variable()->get("connection_leech").as_string().c_str());
   m_canvas->print(0, y++, "Priority:        %u", torrent::download_priority(*m_download->download()));
 
   m_canvas->print(0, y++, "Directory:       %s", m_download->variable_string("directory").c_str());
@@ -103,7 +100,10 @@ WindowPeerInfo::redraw() {
 //   m_canvas->print(0, y++, "SndBuf:          %u", torrent::connection_manager()->send_buffer_size());
 //   m_canvas->print(0, y++, "RcvBuf:          %u", torrent::connection_manager()->receive_buffer_size());
 
-//   y++;
+  m_canvas->print(0, y++, "MemUsage:        %llu", torrent::chunk_manager()->memory_usage());
+  m_canvas->print(0, y++, "MaxMemUsage:     %llu", torrent::chunk_manager()->max_memory_usage());
+
+  y++;
 
   if (*m_focus == m_list->end()) {
     m_canvas->print(0, y++, "No peer in focus");
@@ -114,8 +114,8 @@ WindowPeerInfo::redraw() {
   m_canvas->print(0, y++, "*** Peer Info ***");
 
   m_canvas->print(0, y++, "IP: %s:%hu",
-		  rak::socket_address::cast_from((*m_focus)->address())->address_str().c_str(),
-		  rak::socket_address::cast_from((*m_focus)->address())->port());
+                  rak::socket_address::cast_from((*m_focus)->address())->address_str().c_str(),
+                  rak::socket_address::cast_from((*m_focus)->address())->port());
 
   m_canvas->print(0, y++, "ID: %s" , rak::copy_escape_html((*m_focus)->id()).c_str());
 
@@ -131,10 +131,10 @@ WindowPeerInfo::redraw() {
   m_canvas->print(0, y++, "Done: %i%", done_percentage(**m_focus));
 
   m_canvas->print(0, y++, "Rate: %5.1f/%5.1f KB Total: %.1f/%.1f MB",
-		  (double)(*m_focus)->up_rate()->rate() / (double)(1 << 10),
-		  (double)(*m_focus)->down_rate()->rate() / (double)(1 << 10),
-		  (double)(*m_focus)->up_rate()->total() / (double)(1 << 20),
-		  (double)(*m_focus)->down_rate()->total() / (double)(1 << 20));
+                  (double)(*m_focus)->up_rate()->rate() / (double)(1 << 10),
+                  (double)(*m_focus)->down_rate()->rate() / (double)(1 << 10),
+                  (double)(*m_focus)->up_rate()->total() / (double)(1 << 20),
+                  (double)(*m_focus)->down_rate()->total() / (double)(1 << 20));
 }
 
 int

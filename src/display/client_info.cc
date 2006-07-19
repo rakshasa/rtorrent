@@ -72,6 +72,7 @@ ClientInfo::ClientInfo() {
   insert(TYPE_AZUREUS, "CT", "CTorrent");
   insert(TYPE_AZUREUS, "MT", "MoonlightTorrent");
   insert(TYPE_AZUREUS, "LT", "libtorrent");
+  insert(TYPE_AZUREUS, "LP", "Lphant");
   insert(TYPE_AZUREUS, "KT", "KTorrent");
   insert(TYPE_AZUREUS, "BX", "Bittorrent X");
   insert(TYPE_AZUREUS, "TS", "Torrentstorm");

@@ -229,6 +229,7 @@ AC_DEFUN([TORRENT_CHECK_STATVFS], [
       AC_DEFINE(FS_STAT_STRUCT, [struct statvfs], Type of second argument to statfs function)
       AC_DEFINE(FS_STAT_SIZE_TYPE, [unsigned long], Type of block size member in stat struct)
       AC_DEFINE(FS_STAT_COUNT_TYPE, [fsblkcnt_t], Type of block count member in stat struct)
+      AC_DEFINE(FS_STAT_BLOCK_SIZE, [(m_stat.f_frsize)], Determine the block size)
       AC_MSG_RESULT(ok)
       have_stat_vfs=yes
     ],
@@ -265,6 +266,7 @@ AC_DEFUN([TORRENT_CHECK_STATFS], [
       AC_DEFINE(FS_STAT_STRUCT, [struct statfs], Type of second argument to statfs function)
       AC_DEFINE(FS_STAT_SIZE_TYPE, [long], Type of block size member in stat struct)
       AC_DEFINE(FS_STAT_COUNT_TYPE, [long], Type of block count member in stat struct)
+      AC_DEFINE(FS_STAT_BLOCK_SIZE, [(m_stat.f_bsize)], Determine the block size)
       AC_MSG_RESULT(ok)
     ],
     [
@@ -278,6 +280,7 @@ AC_DEFUN([TORRENT_DISABLED_STATFS], [
       AC_DEFINE(FS_STAT_STRUCT, [struct {blocksize_type  f_bsize; blockcount_type f_bavail;}], Type of second argument to statfs function)
       AC_DEFINE(FS_STAT_SIZE_TYPE, [int], Type of block size member in stat struct)
       AC_DEFINE(FS_STAT_COUNT_TYPE, [int], Type of block count member in stat struct)
+      AC_DEFINE(FS_STAT_BLOCK_SIZE, [(4096)], Determine the block size)
       AC_MSG_RESULT(No filesystem stats available)
 ])
 

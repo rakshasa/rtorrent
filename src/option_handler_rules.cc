@@ -46,6 +46,7 @@
 #include <rak/path.h>
 #include <rak/string_manip.h>
 #include <torrent/object.h>
+#include <torrent/chunk_manager.h>
 #include <torrent/connection_manager.h>
 #include <torrent/exceptions.h>
 #include <torrent/file.h>
@@ -213,8 +214,10 @@ apply_stop_on_ratio(Control* m, const std::string& arg) {
     int64_t totalUpload = (*itr)->download()->up_rate()->total();
     int64_t totalDone = (*itr)->download()->bytes_done();
 
-    if ((totalUpload >= minUpload && totalUpload * 100 >= totalDone * minRatio) || (maxRatio > 0 && totalUpload * 100 > totalDone * maxRatio))
-        m->core()->download_list()->stop_try(*itr);
+    if ((totalUpload >= minUpload && totalUpload * 100 >= totalDone * minRatio) || (maxRatio > 0 && totalUpload * 100 > totalDone * maxRatio)) {
+      m->core()->download_list()->stop_try(*itr);
+      (*itr)->variable()->set("ignore_commands", (int64_t)1);
+    }
 
     ++itr;
   }
@@ -463,6 +466,9 @@ initialize_option_handler(Control* c) {
   variables->insert("receive_buffer_size",   new utils::VariableValueSlot(rak::mem_fn(torrent::connection_manager(), &torrent::ConnectionManager::receive_buffer_size),
                                                                           rak::mem_fn(torrent::connection_manager(), &torrent::ConnectionManager::set_receive_buffer_size)));
   
+  variables->insert("max_memory_usage",      new utils::VariableValueSlot(rak::mem_fn(torrent::chunk_manager(), &torrent::ChunkManager::max_memory_usage),
+                                                                          rak::mem_fn(torrent::chunk_manager(), &torrent::ChunkManager::set_max_memory_usage)));
+
   variables->insert("port_range",            new utils::VariableStringSlot(rak::value_fn(std::string()), rak::bind_ptr_fn(&apply_port_range, c)));
 
   variables->insert("hash_read_ahead",       new utils::VariableValueSlot(rak::ptr_fn(torrent::hash_read_ahead), rak::bind_ptr_fn(&apply_hash_read_ahead, c)));

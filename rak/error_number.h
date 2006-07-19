@@ -51,6 +51,7 @@ public:
   static const int e_deadlk      = EDEADLK;
 
   static const int e_noent       = ENOENT;
+  static const int e_nomem       = ENOMEM;
   static const int e_notdir      = ENOTDIR;
   
   static const int e_intr        = EINTR;
