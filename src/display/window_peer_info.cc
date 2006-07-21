@@ -104,6 +104,7 @@ WindowPeerInfo::redraw() {
   m_canvas->print(0, y++, "Max Memory Usage: %llu MB", torrent::chunk_manager()->max_memory_usage() / (1 << 20));
 
   m_canvas->print(0, y++, "Free Diskspace:   %llu MB", m_download->download()->free_diskspace() / (1 << 20));
+  m_canvas->print(0, y++, "Safe Diskspace:   %llu MB", torrent::chunk_manager()->safe_free_diskspace() / (1 << 20));
 
   y++;
 

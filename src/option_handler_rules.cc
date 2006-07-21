@@ -428,9 +428,6 @@ initialize_option_handler(Control* c) {
   variables->insert("max_uploads",           new utils::VariableValue(15));
   variables->insert("max_chunks_queued",     new utils::VariableValue(0));
 
-  variables->insert("timeout_sync",          new utils::VariableValue(0));
-  variables->insert("timeout_safe_sync",     new utils::VariableValue(0));
-
   variables->insert("download_rate",         new utils::VariableValueSlot(rak::ptr_fn(&torrent::down_throttle), rak::mem_fn(control->ui(), &ui::Root::set_down_throttle_i64),
                                                                           0, (1 << 10)));
   variables->insert("upload_rate",           new utils::VariableValueSlot(rak::ptr_fn(&torrent::up_throttle), rak::mem_fn(control->ui(), &ui::Root::set_up_throttle_i64),
@@ -468,6 +465,12 @@ initialize_option_handler(Control* c) {
   
   variables->insert("max_memory_usage",      new utils::VariableValueSlot(rak::mem_fn(torrent::chunk_manager(), &torrent::ChunkManager::max_memory_usage),
                                                                           rak::mem_fn(torrent::chunk_manager(), &torrent::ChunkManager::set_max_memory_usage)));
+
+  variables->insert("timeout_sync",          new utils::VariableValueSlot(rak::mem_fn(torrent::chunk_manager(), &torrent::ChunkManager::timeout_sync),
+                                                                          rak::mem_fn(torrent::chunk_manager(), &torrent::ChunkManager::set_timeout_sync)));
+
+  variables->insert("timeout_safe_sync",     new utils::VariableValueSlot(rak::mem_fn(torrent::chunk_manager(), &torrent::ChunkManager::timeout_safe_sync),
+                                                                          rak::mem_fn(torrent::chunk_manager(), &torrent::ChunkManager::set_timeout_safe_sync)));
 
   variables->insert("port_range",            new utils::VariableStringSlot(rak::value_fn(std::string()), rak::bind_ptr_fn(&apply_port_range, c)));
 

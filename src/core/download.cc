@@ -94,10 +94,6 @@ Download::Download(download_type d) :
   m_variables.insert("min_peers",          new utils::VariableValueSlot(rak::mem_fn(&m_download, &download_type::peers_min), rak::mem_fn(&m_download, &download_type::set_peers_min)));
   m_variables.insert("max_peers",          new utils::VariableValueSlot(rak::mem_fn(&m_download, &download_type::peers_max), rak::mem_fn(&m_download, &download_type::set_peers_max)));
   m_variables.insert("max_uploads",        new utils::VariableValueSlot(rak::mem_fn(&m_download, &download_type::uploads_max), rak::mem_fn(&m_download, &download_type::set_uploads_max)));
-  m_variables.insert("max_chunks_queued",  new utils::VariableValueSlot(rak::mem_fn(&m_download, &download_type::max_chunks_queued), rak::mem_fn(&m_download, &download_type::set_max_chunks_queued)));
-
-  m_variables.insert("timeout_sync",       new utils::VariableValueSlot(rak::mem_fn(&m_download, &download_type::timeout_sync), rak::mem_fn(&m_download, &download_type::set_timeout_sync)));
-  m_variables.insert("timeout_safe_sync",  new utils::VariableValueSlot(rak::mem_fn(&m_download, &download_type::timeout_safe_sync), rak::mem_fn(&m_download, &download_type::set_timeout_safe_sync)));
 
   m_variables.insert("priority",           new utils::VariableValueSlot(rak::mem_fn(this, &Download::priority), rak::mem_fn(this, &Download::set_priority)));
 
