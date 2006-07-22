@@ -107,11 +107,11 @@ Manager::unschedule(Window* w) {
 void
 Manager::adjust_layout() {
   int staticHeight = std::for_each(begin(), end(),
-				   rak::if_then(std::mem_fun(&Window::is_active),
-						rak::accumulate(0, std::mem_fun(&Window::get_min_height)))).m_then.result;
+                                   rak::if_then(std::mem_fun(&Window::is_active),
+                                                rak::accumulate(0, std::mem_fun(&Window::get_min_height)))).m_then.result;
   int countDynamic = std::for_each(begin(), end(),
-				   rak::if_then(std::mem_fun(&Window::is_active),
-						rak::accumulate(0, std::mem_fun(&Window::is_dynamic)))).m_then.result;
+                                   rak::if_then(std::mem_fun(&Window::is_active),
+                                                rak::accumulate(0, std::mem_fun(&Window::is_dynamic)))).m_then.result;
 
   int dynamic = std::max(0, Canvas::get_screen_height() - staticHeight);
   int height = 0, h;
@@ -166,8 +166,7 @@ Manager::schedule_update() {
 
   if (!m_taskUpdate.is_queued() || m_taskUpdate.time() > m_scheduler.top()->time()) {
     rak::priority_queue_erase(&taskScheduler, &m_taskUpdate);
-    rak::priority_queue_insert(&taskScheduler, &m_taskUpdate,
-			       std::max(m_scheduler.top()->time(), m_timeLastUpdate + 50000));
+    rak::priority_queue_insert(&taskScheduler, &m_taskUpdate, std::max(m_scheduler.top()->time(), m_timeLastUpdate + 50000));
   }
 }
 

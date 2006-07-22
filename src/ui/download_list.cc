@@ -264,6 +264,7 @@ DownloadList::receive_next_priority() {
     return;
 
   (*m_view->focus())->set_priority(((*m_view->focus())->priority() + 1) % 4);
+  (*m_window)->mark_dirty();
 }
 
 void
@@ -272,6 +273,7 @@ DownloadList::receive_prev_priority() {
     return;
 
   (*m_view->focus())->set_priority(((*m_view->focus())->priority() - 1) % 4);
+  (*m_window)->mark_dirty();
 }
 
 void

@@ -109,8 +109,11 @@ DownloadStore::save(Download* d) {
   d->bencode()->get_key("rtorrent").insert_key("total_uploaded", d->download()->up_rate()->total());
   d->bencode()->get_key("rtorrent").insert_key("chunks_done", d->download()->chunks_done());
 
-  torrent::resume_save_addresses(*d->download(), d->download()->bencode()->get_key("libtorrent_resume"));
-  torrent::resume_save_file_priorities(*d->download(), d->download()->bencode()->get_key("libtorrent_resume"));
+  torrent::Object& resumeObject = d->download()->bencode()->get_key("libtorrent_resume");
+
+  torrent::resume_save_addresses(*d->download(), resumeObject);
+  torrent::resume_save_file_priorities(*d->download(), resumeObject);
+  torrent::resume_save_tracker_settings(*d->download(), resumeObject);
 
   f << *d->bencode();
 

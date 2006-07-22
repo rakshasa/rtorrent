@@ -321,7 +321,7 @@ DownloadList::resume(Download* download) {
       // on non-complete downloads after a crash. This shouldn't be
       // needed, but for some reason linux 2.6 is very lazy about
       // updating mtime.
-      torrent::resume_clear_progress(*download->download(), download->download()->bencode()->get_key("libtorrent_resume"));
+      torrent::resume_save_progress(*download->download(), download->download()->bencode()->get_key("libtorrent_resume"), true);
     }
 
     // Update the priority to ensure it has the correct

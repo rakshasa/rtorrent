@@ -193,6 +193,7 @@ DownloadFactory::receive_success() {
 
   torrent::resume_load_addresses(*download->download(), resumeObject);
   torrent::resume_load_file_priorities(*download->download(), resumeObject);
+  torrent::resume_load_tracker_settings(*download->download(), resumeObject);
 
   // The action of inserting might cause the torrent to be
   // opened/started or such. Figure out a nicer way of handling this.
