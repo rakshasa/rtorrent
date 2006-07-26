@@ -58,8 +58,10 @@ public:
 
   ElementFileList(core::Download* d);
 
-  void                activate(Control* c, MItr mItr);
-  void                disable(Control* c);
+  void                activate(display::Frame* frame);
+  void                disable();
+
+  display::Window*    window();
 
 private:
   void                receive_next();

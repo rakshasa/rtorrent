@@ -43,7 +43,15 @@
 class Control;
 
 namespace display {
+  class Frame;
+  class WindowTitle;
+  class WindowHttpQueue;
+  class WindowInput;
   class WindowStatusbar;
+}
+
+namespace input {
+  class TextInput;
 }
 
 namespace ui {
@@ -52,6 +60,9 @@ class DownloadList;
 
 class Root {
 public:
+  typedef display::WindowTitle     WTitle;
+  typedef display::WindowHttpQueue WHttpQueue;
+  typedef display::WindowInput     WInput;
   typedef display::WindowStatusbar WStatusbar;
 
   Root();
@@ -59,7 +70,9 @@ public:
   void                init(Control* c);
   void                cleanup();
 
-  WStatusbar*         window_statusbar()            { return m_windowStatusbar; }
+  WTitle*             window_title()                          { return m_windowTitle; }
+  WStatusbar*         window_statusbar()                      { return m_windowStatusbar; }
+  WInput*             window_input()                          { return m_windowInput; }
 
   void                set_down_throttle(unsigned int throttle);
   void                set_up_throttle(unsigned int throttle);
@@ -71,12 +84,20 @@ public:
   void                adjust_down_throttle(int throttle);
   void                adjust_up_throttle(int throttle);
 
+  void                enable_input(input::TextInput* input);
+  void                disable_input();
+
+  input::TextInput*   current_input();
+
 private:
   void                setup_keys();
 
   Control*            m_control;
   DownloadList*       m_downloadList;
 
+  WTitle*             m_windowTitle;
+  WHttpQueue*         m_windowHttpQueue;
+  WInput*             m_windowInput;
   WStatusbar*         m_windowStatusbar;
 
   input::Bindings     m_bindings;

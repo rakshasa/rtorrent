@@ -83,9 +83,7 @@ WindowHttpQueue::redraw() {
       m_canvas->print(pos, 0, "%s ---%%", itr->m_name.c_str());
 
     else
-      m_canvas->print(pos, 0, "%s %3i%%",
-		      itr->m_name.c_str(),
-		      (int)(100.0 * itr->m_http->size_done() / itr->m_http->size_total()));
+      m_canvas->print(pos, 0, "%s %3i%%", itr->m_name.c_str(), (int)(100.0 * itr->m_http->size_done() / itr->m_http->size_total()));
 
     pos += itr->m_name.size() + 6;
     ++itr;
@@ -140,8 +138,7 @@ WindowHttpQueue::receive_insert(core::CurlGet* h) {
 
 void
 WindowHttpQueue::receive_erase(core::CurlGet* h) {
-  Container::iterator itr = std::find_if(m_container.begin(), m_container.end(),
-					 rak::equal(h, std::mem_fun_ref(&Node::get_http)));
+  Container::iterator itr = std::find_if(m_container.begin(), m_container.end(), rak::equal(h, std::mem_fun_ref(&Node::get_http)));
 
   if (itr == m_container.end())
     throw std::logic_error("WindowHttpQueue::receive_erase(...) tried to remove an object we don't have");

@@ -49,6 +49,7 @@ namespace display {
 
 Manager::Manager() :
   m_forceRedraw(false) {
+
   m_taskUpdate.set_slot(rak::mem_fn(this, &Manager::receive_update));
 }
 
@@ -59,36 +60,6 @@ Manager::~Manager() {
 void
 Manager::force_redraw() {
   m_forceRedraw = true;
-}
-
-
-Manager::iterator
-Manager::insert(iterator pos, Window* w) {
-  return Base::insert(pos, w);
-}
-
-// Swap with the function below.
-Manager::iterator
-Manager::erase(iterator pos) {
-  if (pos != end())
-    return erase(*pos);
-  else
-    return end();
-}
-
-Manager::iterator
-Manager::erase(Window* w) {
-  iterator itr = std::find(begin(), end(), w);
-
-  if (itr == end())
-    throw std::logic_error("Manager::erase(...) did not find the window");
-
-  return Base::erase(itr);
-}
-
-Manager::iterator
-Manager::find(Window* w) {
-  return std::find(begin(), end(), w);
 }
 
 void
@@ -106,34 +77,7 @@ Manager::unschedule(Window* w) {
 
 void
 Manager::adjust_layout() {
-  int staticHeight = std::for_each(begin(), end(),
-                                   rak::if_then(std::mem_fun(&Window::is_active),
-                                                rak::accumulate(0, std::mem_fun(&Window::get_min_height)))).m_then.result;
-  int countDynamic = std::for_each(begin(), end(),
-                                   rak::if_then(std::mem_fun(&Window::is_active),
-                                                rak::accumulate(0, std::mem_fun(&Window::is_dynamic)))).m_then.result;
-
-  int dynamic = std::max(0, Canvas::get_screen_height() - staticHeight);
-  int height = 0, h;
-
-  for (iterator itr = begin(); itr != end(); ++itr, height += h) {
-    h = 0;
-
-    if (!(*itr)->is_active())
-      continue;
-
-    if ((*itr)->is_dynamic()) {
-      dynamic -= h = (dynamic + countDynamic - 1) / countDynamic;
-      countDynamic--;
-    } else {
-      h = 0;
-    }
-
-    h += (*itr)->get_min_height();
-
-    (*itr)->resize(0, height, Canvas::get_screen_width(), h);
-    (*itr)->mark_dirty();
-  }
+  m_rootFrame.balance(0, 0, Canvas::get_screen_width(), Canvas::get_screen_height());
 }
 
 void
@@ -149,7 +93,9 @@ Manager::receive_update() {
   Canvas::refresh_std();
 
   rak::priority_queue_perform(&m_scheduler, cachedTime);
-  std::for_each(begin(), end(), rak::if_then(std::mem_fun(&Window::is_active), std::mem_fun(&Window::refresh)));
+
+//   std::for_each(begin(), end(), rak::if_then(std::mem_fun(&Window::is_active), std::mem_fun(&Window::refresh)));
+  m_rootFrame.refresh();
 
   Canvas::do_update();
 

@@ -46,12 +46,6 @@
 
 namespace display {
 
-WindowStatusbar::WindowStatusbar(Control* c) :
-  Window(new Canvas, false, 1),
-  m_lastTick(0),
-  m_control(c) {
-}
-
 void
 WindowStatusbar::redraw() {
   m_slotSchedule(this, (cachedTime + rak::timer::from_seconds(1)).round_seconds());
@@ -101,12 +95,11 @@ WindowStatusbar::redraw() {
   last = last - (position - buffer);
 
   if (last > buffer) {
-    position = print_status_extra(buffer, last, m_control);
+    position = print_status_extra(buffer, last, control);
     m_canvas->print(m_canvas->get_width() - (position - buffer), 0, "%s", buffer);
   }
 
-
-  m_lastTick = m_control->tick();
+  m_lastTick = control->tick();
 }
 
 }

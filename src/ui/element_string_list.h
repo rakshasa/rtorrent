@@ -57,8 +57,10 @@ public:
 
   ElementStringList();
 
-  void                activate(Control* c, MItr mItr);
-  void                disable(Control* c);
+  void                activate(display::Frame* frame);
+  void                disable();
+
+  display::Window*    window() { return m_window; }
 
   template <typename InputIter>
   void                set_range(InputIter first, InputIter last) {

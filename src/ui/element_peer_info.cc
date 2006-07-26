@@ -36,7 +36,7 @@
 
 #include "config.h"
 
-#include <stdexcept>
+#include <torrent/exceptions.h>
 
 #include "display/window_peer_info.h"
 #include "input/manager.h"
@@ -55,24 +55,30 @@ ElementPeerInfo::ElementPeerInfo(core::Download* d, PList* l, PList::iterator* f
 }
 
 void
-ElementPeerInfo::activate(Control* c, MItr mItr) {
-  if (m_window != NULL)
-    throw std::logic_error("ui::ElementPeerInfo::activate(...) called on an object in the wrong state");
+ElementPeerInfo::activate(display::Frame* frame) {
+  if (is_active())
+    throw torrent::client_error("ui::ElementPeerInfo::activate(...) is_active().");
 
-  c->input()->push_front(&m_bindings);
+  control->input()->push_front(&m_bindings);
 
-  *mItr = m_window = new WPeerInfo(m_download, m_list, m_focus);
+  m_window = new WPeerInfo(m_download, m_list, m_focus);
+  m_frame = frame;
 }
 
 void
-ElementPeerInfo::disable(Control* c) {
-  if (m_window == NULL)
-    throw std::logic_error("ui::ElementPeerInfo::disable(...) called on an object in the wrong state");
+ElementPeerInfo::disable() {
+  if (!is_active())
+    throw torrent::client_error("ui::ElementPeerInfo::disable(...) !is_active().");
 
-  c->input()->erase(&m_bindings);
+  control->input()->erase(&m_bindings);
 
   delete m_window;
   m_window = NULL;
+}
+
+display::Window*
+ElementPeerInfo::window() {
+  return m_window;
 }
 
 }

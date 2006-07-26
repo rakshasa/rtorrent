@@ -55,8 +55,10 @@ public:
 
   ElementLogComplete(core::Log* l);
 
-  void                activate(Control* c, MItr mItr);
-  void                disable(Control* c);
+  void                activate(display::Frame* frame);
+  void                disable();
+
+  display::Window*    window();
 
 private:
   WLogComplete*       m_window;

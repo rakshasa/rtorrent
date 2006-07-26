@@ -36,8 +36,10 @@
 
 #include "config.h"
 
-#include <stdexcept>
+#include <torrent/exceptions.h>
 
+#include "display/frame.h"
+#include "display/manager.h"
 #include "input/manager.h"
 
 #include "control.h"
@@ -46,24 +48,30 @@
 namespace ui {
 
 void
-ElementDownloadList::activate(Control* c, MItr mItr) {
-  if (m_window != NULL)
-    throw std::logic_error("ui::ElementDownloadList::activate(...) called on an object in the wrong state");
+ElementDownloadList::activate(display::Frame* frame) {
+  if (is_active())
+    throw torrent::client_error("ui::ElementDownloadList::activate(...) is_active().");
 
-  c->input()->push_front(&m_bindings);
+  control->input()->push_front(&m_bindings);
 
   m_window = new WDownloadList();
   m_window->set_view(m_view);
 
-  *mItr = m_window;
+  m_frame = frame;
+  m_frame->initialize_window(m_window);
+
+  control->display()->schedule(m_window, cachedTime);
 }
 
 void
-ElementDownloadList::disable(Control* c) {
-  if (m_window == NULL)
-    throw std::logic_error("ui::ElementDownloadList::disable(...) called on an object in the wrong state");
+ElementDownloadList::disable() {
+  if (!is_active())
+    throw torrent::client_error("ui::ElementDownloadList::disable(...) !is_active().");
 
-  c->input()->erase(&m_bindings);
+  control->input()->erase(&m_bindings);
+
+  m_frame->clear();
+  m_frame = NULL;
 
   delete m_window;
   m_window = NULL;

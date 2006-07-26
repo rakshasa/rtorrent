@@ -47,6 +47,7 @@
 class Control;
 
 namespace display {
+  class Frame;
   class WindowTitle;
   class WindowStatusbar;
   class WindowDownloadStatusbar;
@@ -62,12 +63,10 @@ class ElementBase;
 
 class Download {
 public:
-  typedef display::WindowTitle             WTitle;
   typedef display::WindowDownloadStatusbar WDownloadStatus;
 
   typedef core::Download*                  DPtr;
   typedef std::list<torrent::Peer>         PList;
-  typedef display::Manager::iterator       MItr;
 
   typedef enum {
     DISPLAY_PEER_LIST,
@@ -122,12 +121,10 @@ private:
 
   Display             m_state;
 
+  display::Frame*     m_frame;
   ElementBase*        m_uiArray[DISPLAY_MAX_SIZE];
 
-  WTitle*             m_windowTitle;
   WDownloadStatus*    m_windowDownloadStatus;
-
-  MItr                m_window;
 
   Control*            m_control;
   input::Bindings*    m_bindings;

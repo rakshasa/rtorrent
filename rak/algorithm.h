@@ -56,6 +56,15 @@ for_each_pre(_InputIter __first, _InputIter __last, _Function __f) {
   return __f;
 }
 
+template <typename InputIter, typename Function, typename Accumulator>
+Accumulator
+accumulate(InputIter first, InputIter last, Function function, Accumulator acc) {
+  while (first != last)
+    acc += function(*first++);
+
+  return acc;
+}
+
 // Return a range with a distance of no more than __distance and
 // between __first and __last, centered on __middle1.
 template <typename _InputIter, typename _Distance>

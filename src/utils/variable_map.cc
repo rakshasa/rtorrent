@@ -108,9 +108,7 @@ parse_unknown(std::string::const_iterator first, std::string::const_iterator las
   if (*first == '"') {
     std::string::const_iterator next = std::find_if(++first, last, std::bind2nd(std::equal_to<char>(), '"'));
     
-    if (first == last ||
-	first == next ||
-	next == last)
+    if (first == last || first == next || next == last)
       throw torrent::input_error("Could not find closing '\"'.");
 
     *dest = std::string(first, next);

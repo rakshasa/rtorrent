@@ -37,23 +37,32 @@
 #ifndef RTORRENT_UI_ELEMENT_BASE_H
 #define RTORRENT_UI_ELEMENT_BASE_H
 
-#include "display/manager.h"
 #include "input/bindings.h"
+
+namespace display {
+  class Frame;
+  class Window;
+}
 
 namespace ui {
 
 class ElementBase {
 public:
-  typedef display::Manager::iterator MItr;
-
+  ElementBase() : m_frame(NULL) {}
   virtual ~ElementBase() {}
 
-  virtual void        activate(Control* c, MItr mItr) = 0;
-  virtual void        disable(Control* c) = 0;
+  bool                is_active() const { return m_frame != NULL; }
 
-  input::Bindings&    get_bindings() { return m_bindings; }
+  input::Bindings&    bindings()        { return m_bindings; }
+
+  virtual void        activate(display::Frame* frame) = 0;
+  virtual void        disable() = 0;
+
+  virtual display::Window* window() = 0;
 
 protected:
+  display::Frame*     m_frame;
+
   input::Bindings     m_bindings;
 };
 

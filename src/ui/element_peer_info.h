@@ -56,8 +56,10 @@ public:
 
   ElementPeerInfo(core::Download* d, PList* l, PList::iterator* f);
 
-  void                activate(Control* c, MItr mItr);
-  void                disable(Control* c);
+  void                activate(display::Frame* frame);
+  void                disable();
+
+  display::Window*    window();
 
 private:
   core::Download*     m_download;

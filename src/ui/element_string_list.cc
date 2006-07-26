@@ -36,7 +36,7 @@
 
 #include "config.h"
 
-#include <stdexcept>
+#include <torrent/exceptions.h>
 
 #include "input/manager.h"
 
@@ -50,23 +50,24 @@ ElementStringList::ElementStringList() :
 }
 
 void
-ElementStringList::activate(Control* c, MItr mItr) {
-  if (m_window != NULL)
-    throw std::logic_error("ui::ElementStringList::activate(...) called on an object in the wrong state");
+ElementStringList::activate(display::Frame* frame) {
+  if (is_active())
+    throw torrent::client_error("ui::ElementStringList::activate(...) is_active().");
 
-  c->input()->push_front(&m_bindings);
+  control->input()->push_front(&m_bindings);
 
-  *mItr = m_window = new WStringList();
+  m_window = new WStringList();
+  m_frame = frame;
 
   m_window->set_range(m_list.begin(), m_list.end());
 }
 
 void
-ElementStringList::disable(Control* c) {
-  if (m_window == NULL)
-    throw std::logic_error("ui::ElementStringList::disable(...) called on an object in the wrong state");
+ElementStringList::disable() {
+  if (!is_active())
+    throw torrent::client_error("ui::ElementStringList::disable(...) !is_active().");
 
-  c->input()->erase(&m_bindings);
+  control->input()->erase(&m_bindings);
 
   delete m_window;
   m_window = NULL;

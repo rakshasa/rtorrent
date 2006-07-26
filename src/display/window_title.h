@@ -44,12 +44,15 @@ namespace display {
 
 class WindowTitle : public Window {
 public:
-  WindowTitle(const std::string& s);
+  WindowTitle() : Window(new Canvas, false, 1) {}
 
-  virtual void redraw();
+  const std::string&  title() const                       { return m_title; }
+  void                set_title(const std::string& title) { m_title = title; mark_dirty(); }
+
+  virtual void        redraw();
 
 private:
-  std::string  m_title;
+  std::string         m_title;
 };
 
 }

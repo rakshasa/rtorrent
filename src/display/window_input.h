@@ -47,18 +47,19 @@ namespace display {
 
 class WindowInput : public Window {
 public:
-  WindowInput(input::TextInput* input);
+  WindowInput() : Window(new Canvas, false, 1), m_input(NULL), m_focus(false) {}
 
-  input::TextInput* get_input()       { return m_input; }
+  input::TextInput*   input()                            { return m_input; }
+  void                set_input(input::TextInput* input) { m_input = input; }
 
-  bool              get_focus()       { return m_focus; }
-  void              set_focus(bool f) { mark_dirty(); m_focus = f; }
+  bool                focus() const                      { return m_focus; }
+  void                set_focus(bool f)                  { mark_dirty(); m_focus = f; }
 
-  virtual void      redraw();
+  virtual void        redraw();
 
 private:
-  input::TextInput* m_input;
-  bool              m_focus;
+  input::TextInput*   m_input;
+  bool                m_focus;
 };
 
 }

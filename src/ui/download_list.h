@@ -41,6 +41,7 @@
 
 #include "display/manager.h"
 
+#include "element_base.h"
 #include "globals.h"
 
 class Control;
@@ -55,33 +56,28 @@ namespace input {
 }
 
 namespace display {
+  class Frame;
   class WindowDownloadList;
   class WindowHttpQueue;
   class WindowInput;
   class WindowLog;
   class WindowLogComplete;
-  class WindowTitle;
 }
 
 namespace ui {
 
 class Download;
-class ElementBase;
 
-class DownloadList {
+class DownloadList : public ElementBase {
 public:
   typedef display::WindowDownloadList              WList;
-  typedef display::WindowHttpQueue                 WHttp;
-  typedef display::WindowInput                     WInput;
   typedef display::WindowLog                       WLog;
   typedef display::WindowLogComplete               WLogComplete;
-  typedef display::WindowTitle                     WTitle;
 
   typedef sigc::slot1<void, const std::string&>    SlotOpenUri;
 
-  typedef display::Manager::iterator               MItr;
-
   typedef enum {
+    DISPLAY_NONE,
     DISPLAY_DOWNLOAD_LIST,
     DISPLAY_LOG,
     DISPLAY_STRING_LIST,
@@ -96,18 +92,15 @@ public:
     INPUT_COMMAND
   } Input;
 
-  DownloadList(Control* c);
+  DownloadList();
   ~DownloadList();
 
-  input::Bindings&    get_bindings()               { return *m_bindings; }
-
-  bool                is_active() const            { return m_window != m_control->display()->end(); }
-
-  void                activate();
+  void                activate(display::Frame* frame);
   void                disable();
 
   void                activate_display(Display d);
-  void                disable_display();
+
+  display::Window*    window();
 
   void                slot_open_uri(SlotOpenUri s) { m_slotOpenUri = s; }
 
@@ -136,8 +129,6 @@ private:
   void                receive_view_input(Input type);
   void                receive_exit_input(Input type);
 
-  void                receive_change(Display d);
-
   void                receive_download_erased(core::Download* d);
 
   void                receive_change_view(const std::string& name);
@@ -151,21 +142,13 @@ private:
 
   ElementBase*        m_uiArray[DISPLAY_MAX_SIZE];
 
-  MItr                m_window;
-
-  WTitle*             m_windowTitle;
   WLog*               m_windowLog;
-  WInput*             m_windowTextInput;
-  WHttp*              m_windowHttpQueue;
 
   rak::priority_item  m_taskUpdate;
 
   Download*           m_uiDownload;
 
   core::View*         m_view;
-
-  Control*            m_control;
-  input::Bindings*    m_bindings;
 
   SlotOpenUri         m_slotOpenUri;
 };

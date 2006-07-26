@@ -69,27 +69,27 @@ TextInput::pressed(int key) {
     case 'h' - 'a' + 1: // ^H
     case KEY_BACKSPACE:
       if (m_pos != 0)
-	Base::erase(--m_pos, 1);
+        Base::erase(--m_pos, 1);
 
       break;
 
     case KEY_DC:
       if (m_pos != size())
-	Base::erase(m_pos, 1);
+        Base::erase(m_pos, 1);
 
       break;
 
     case 0x02:
     case KEY_LEFT:
       if (m_pos != 0)
-	--m_pos;
+        --m_pos;
 
       break;
 
     case 0x06:
     case KEY_RIGHT:
       if (m_pos != size())
-	++m_pos;
+        ++m_pos;
 
       break;
 

@@ -36,8 +36,10 @@
 
 #include "config.h"
 
-#include <stdexcept>
+#include <torrent/exceptions.h>
 
+#include "display/frame.h"
+#include "display/manager.h"
 #include "display/window_log_complete.h"
 #include "input/manager.h"
 
@@ -52,24 +54,37 @@ ElementLogComplete::ElementLogComplete(core::Log* l) :
 }
 
 void
-ElementLogComplete::activate(Control* c, MItr mItr) {
-  if (m_window != NULL)
-    throw std::logic_error("ui::ElementLogComplete::activate(...) called on an object in the wrong state");
+ElementLogComplete::activate(display::Frame* frame) {
+  if (is_active())
+    throw torrent::client_error("ui::ElementLogComplete::activate(...) is_active().");
 
-  c->input()->push_front(&m_bindings);
+  control->input()->push_front(&m_bindings);
 
-  *mItr = m_window = new WLogComplete(m_log);
+  m_window = new WLogComplete(m_log);
+
+  m_frame = frame;
+  m_frame->initialize_window(m_window);
+
+  control->display()->schedule(m_window, cachedTime);
 }
 
 void
-ElementLogComplete::disable(Control* c) {
-  if (m_window == NULL)
-    throw std::logic_error("ui::ElementLogComplete::disable(...) called on an object in the wrong state");
+ElementLogComplete::disable() {
+  if (!is_active())
+    throw torrent::client_error("ui::ElementLogComplete::disable(...) !is_active().");
 
-  c->input()->erase(&m_bindings);
+  control->input()->erase(&m_bindings);
+
+  m_frame->clear();
+  m_frame = NULL;
 
   delete m_window;
   m_window = NULL;
+}
+
+display::Window*
+ElementLogComplete::window() {
+  return m_window;
 }
 
 }

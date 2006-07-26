@@ -41,19 +41,16 @@
 
 #include "window.h"
 
-class Control;
-
 namespace display {
 
 class WindowStatusbar : public Window {
 public:
-  WindowStatusbar(Control* c);
+  WindowStatusbar() : Window(new Canvas, false, 1), m_lastTick(0) {}
 
   virtual void   redraw();
 
 private:
   uint64_t       m_lastTick;
-  Control*       m_control;
 };
 
 }

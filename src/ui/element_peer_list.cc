@@ -36,7 +36,7 @@
 
 #include "config.h"
 
-#include <stdexcept>
+#include <torrent/exceptions.h>
 
 #include "display/window_peer_list.h"
 #include "input/manager.h"
@@ -55,24 +55,30 @@ ElementPeerList::ElementPeerList(core::Download* d, PList* l, PList::iterator* f
 }
 
 void
-ElementPeerList::activate(Control* c, MItr mItr) {
-  if (m_window != NULL)
-    throw std::logic_error("ui::ElementPeerList::activate(...) called on an object in the wrong state");
+ElementPeerList::activate(display::Frame* frame) {
+  if (is_active())
+    throw torrent::client_error("ui::ElementPeerList::activate(...) is_active().");
 
-  c->input()->push_front(&m_bindings);
+  control->input()->push_front(&m_bindings);
 
-  *mItr = m_window = new WPeerList(m_download, m_list, m_focus);
+  m_window = new WPeerList(m_download, m_list, m_focus);
+  m_frame = frame;
 }
 
 void
-ElementPeerList::disable(Control* c) {
-  if (m_window == NULL)
-    throw std::logic_error("ui::ElementPeerList::disable(...) called on an object in the wrong state");
+ElementPeerList::disable() {
+  if (!is_active())
+    throw torrent::client_error("ui::ElementPeerList::disable(...) !is_active().");
 
-  c->input()->erase(&m_bindings);
+  control->input()->erase(&m_bindings);
 
   delete m_window;
   m_window = NULL;
+}
+
+display::Window*
+ElementPeerList::window() {
+  return m_window;
 }
 
 }

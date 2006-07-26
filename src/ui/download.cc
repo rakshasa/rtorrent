@@ -50,6 +50,7 @@
 
 #include "control.h"
 #include "download.h"
+#include "root.h"
 #include "element_file_list.h"
 #include "element_peer_info.h"
 #include "element_peer_list.h"
@@ -63,10 +64,7 @@ Download::Download(DPtr d, Control* c) :
   m_download(d),
   m_state(DISPLAY_MAX_SIZE),
 
-  m_windowTitle(new WTitle(d->download()->name())),
   m_windowDownloadStatus(new WDownloadStatus(d)),
-
-  m_window(c->display()->end()),
 
   m_control(c),
   m_bindings(new input::Bindings) {
@@ -89,8 +87,8 @@ Download::Download(DPtr d, Control* c) :
 }
 
 Download::~Download() {
-  if (m_window != m_control->display()->end())
-    throw std::logic_error("ui::Download::~Download() called on an active object");
+//   if (m_window != m_control->display()->end())
+//     throw std::logic_error("ui::Download::~Download() called on an active object");
 
   m_connPeerConnected.disconnect();
   m_connPeerDisconnected.disconnect();
@@ -99,18 +97,19 @@ Download::~Download() {
 
   std::for_each(m_uiArray, m_uiArray + DISPLAY_MAX_SIZE, rak::call_delete<ElementBase>());
 
-  delete m_windowTitle;
   delete m_windowDownloadStatus;
 }
 
 void
 Download::activate() {
-  if (m_window != m_control->display()->end())
-    throw std::logic_error("ui::Download::activate() called on an already activated object");
+//   if (m_window != m_control->display()->end())
+//     throw std::logic_error("ui::Download::activate() called on an already activated object");
 
-  m_control->display()->push_front(m_windowDownloadStatus);
-  m_window = m_control->display()->insert(m_control->display()->begin(), NULL);
-  m_control->display()->push_front(m_windowTitle);
+  m_control->ui()->window_title()->set_title(m_download->download()->name());
+
+//   m_control->display()->push_front(m_windowDownloadStatus);
+//   m_window = m_control->display()->insert(m_control->display()->begin(), NULL);
+//   m_control->display()->push_front(m_control->ui()->window_title());
 
   m_control->input()->push_front(m_bindings);
 
@@ -119,30 +118,30 @@ Download::activate() {
 
 void
 Download::disable() {
-  if (m_window == m_control->display()->end())
-    throw std::logic_error("ui::Download::disable() called on an already disabled object");
+//   if (m_window == m_control->display()->end())
+//     throw std::logic_error("ui::Download::disable() called on an already disabled object");
 
   disable_display();
 
-  m_control->display()->erase(m_window);
-  m_control->display()->erase(m_windowTitle);
-  m_control->display()->erase(m_windowDownloadStatus);
+//   m_control->display()->erase(m_window);
+//   m_control->display()->erase(m_control->ui()->window_title());
+//   m_control->display()->erase(m_windowDownloadStatus);
 
-  m_window = m_control->display()->end();
+//   m_window = m_control->display()->end();
 
   m_control->input()->erase(m_bindings);
 }
 
 void
 Download::activate_display(Display d) {
-  if (m_window == m_control->display()->end())
-    throw std::logic_error("ui::Download::activate_display(...) could not find previous display iterator");
+//   if (m_window == m_control->display()->end())
+//     throw std::logic_error("ui::Download::activate_display(...) could not find previous display iterator");
 
   if (d >= DISPLAY_MAX_SIZE)
     throw std::logic_error("ui::Download::activate_display(...) out of bounds");
 
   m_state = d;
-  m_uiArray[d]->activate(m_control, m_window);
+//   m_uiArray[d]->activate(m_control, m_window);
 
   m_control->display()->adjust_layout();
 }
@@ -150,10 +149,10 @@ Download::activate_display(Display d) {
 // Does not delete disabled window.
 void
 Download::disable_display() {
-  m_uiArray[m_state]->disable(m_control);
+  m_uiArray[m_state]->disable();
 
   m_state   = DISPLAY_MAX_SIZE;
-  *m_window = NULL;
+//   *m_window = NULL;
 }
 
 void
@@ -279,21 +278,21 @@ Download::bind_keys() {
   (*m_bindings)[KEY_DOWN] = sigc::mem_fun(this, &Download::receive_next);
 
   // Key bindings for sub-ui's.
-  m_uiArray[DISPLAY_PEER_LIST]->get_bindings()[KEY_RIGHT]   = sigc::bind(sigc::mem_fun(this, &Download::receive_change), DISPLAY_FILE_LIST);
-  m_uiArray[DISPLAY_PEER_INFO]->get_bindings()[KEY_LEFT]    = sigc::bind(sigc::mem_fun(this, &Download::receive_change), DISPLAY_PEER_LIST);
-  m_uiArray[DISPLAY_FILE_LIST]->get_bindings()[KEY_LEFT]    = sigc::bind(sigc::mem_fun(this, &Download::receive_change), DISPLAY_PEER_LIST);
-  m_uiArray[DISPLAY_TRACKER_LIST]->get_bindings()[KEY_LEFT] = sigc::bind(sigc::mem_fun(this, &Download::receive_change), DISPLAY_PEER_LIST);
-  m_uiArray[DISPLAY_CHUNKS_SEEN]->get_bindings()[KEY_LEFT]  = sigc::bind(sigc::mem_fun(this, &Download::receive_change), DISPLAY_PEER_LIST);
-  m_uiArray[DISPLAY_TRANSFER_LIST]->get_bindings()[KEY_LEFT]= sigc::bind(sigc::mem_fun(this, &Download::receive_change), DISPLAY_PEER_LIST);
+  m_uiArray[DISPLAY_PEER_LIST]->bindings()[KEY_RIGHT]   = sigc::bind(sigc::mem_fun(this, &Download::receive_change), DISPLAY_FILE_LIST);
+  m_uiArray[DISPLAY_PEER_INFO]->bindings()[KEY_LEFT]    = sigc::bind(sigc::mem_fun(this, &Download::receive_change), DISPLAY_PEER_LIST);
+  m_uiArray[DISPLAY_FILE_LIST]->bindings()[KEY_LEFT]    = sigc::bind(sigc::mem_fun(this, &Download::receive_change), DISPLAY_PEER_LIST);
+  m_uiArray[DISPLAY_TRACKER_LIST]->bindings()[KEY_LEFT] = sigc::bind(sigc::mem_fun(this, &Download::receive_change), DISPLAY_PEER_LIST);
+  m_uiArray[DISPLAY_CHUNKS_SEEN]->bindings()[KEY_LEFT]  = sigc::bind(sigc::mem_fun(this, &Download::receive_change), DISPLAY_PEER_LIST);
+  m_uiArray[DISPLAY_TRANSFER_LIST]->bindings()[KEY_LEFT]= sigc::bind(sigc::mem_fun(this, &Download::receive_change), DISPLAY_PEER_LIST);
 
   // Doesn't belong here.
-  m_uiArray[DISPLAY_PEER_LIST]->get_bindings()['*'] = sigc::mem_fun(this, &Download::receive_snub_peer);
-  m_uiArray[DISPLAY_PEER_INFO]->get_bindings()['*'] = sigc::mem_fun(this, &Download::receive_snub_peer);
+  m_uiArray[DISPLAY_PEER_LIST]->bindings()['*'] = sigc::mem_fun(this, &Download::receive_snub_peer);
+  m_uiArray[DISPLAY_PEER_INFO]->bindings()['*'] = sigc::mem_fun(this, &Download::receive_snub_peer);
 }
 
 void
 Download::mark_dirty() {
-  (*m_window)->mark_dirty();
+//   (*m_window)->mark_dirty();
 }
 
 }

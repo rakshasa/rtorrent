@@ -40,43 +40,27 @@
 #include <list>
 #include <rak/priority_queue_default.h>
 
+#include "frame.h"
+
 namespace display {
 
 class Window;
 
-class Manager : private std::list<Window*> {
+class Manager {
 public:
-  typedef std::list<Window*> Base;
-
-  using Base::iterator;
-  using Base::const_iterator;
-  using Base::reverse_iterator;
-  using Base::const_reverse_iterator;
-
-  using Base::begin;
-  using Base::end;
-  using Base::rbegin;
-  using Base::rend;
-
-  using Base::push_front;
-  using Base::push_back;
-
   Manager();
   ~Manager();
 
   void                force_redraw();
-
-  iterator            insert(iterator pos, Window* w);
-  iterator            erase(iterator pos);
-  iterator            erase(Window* w);
-
-  iterator            find(Window* w);
 
   void                schedule(Window* w, rak::timer t);
   void                unschedule(Window* w);
 
   void                adjust_layout();
   void                receive_update();
+
+  // New interface.
+  Frame*              root_frame() { return &m_rootFrame; }
 
 private:
   void                schedule_update();
@@ -86,6 +70,9 @@ private:
 
   rak::priority_queue_default m_scheduler;
   rak::priority_item          m_taskUpdate;
+
+  // New interface.
+  Frame               m_rootFrame;
 };
 
 }

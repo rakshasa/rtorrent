@@ -61,24 +61,30 @@ ElementFileList::ElementFileList(core::Download* d) :
 }
 
 void
-ElementFileList::activate(Control* c, MItr mItr) {
+ElementFileList::activate(display::Frame* frame) {
   if (m_window != NULL)
-    throw torrent::client_error("ui::ElementFileList::activate(...) called on an object in the wrong state");
+    throw torrent::client_error("ui::ElementFileList::activate(...) is_active().");
 
-  c->input()->push_front(&m_bindings);
+  control->input()->push_front(&m_bindings);
 
-  *mItr = m_window = new WFileList(m_download, &m_focus);
+//   *mItr = m_window = new WFileList(m_download, &m_focus);
+  m_frame = frame;
 }
 
 void
-ElementFileList::disable(Control* c) {
+ElementFileList::disable() {
   if (m_window == NULL)
-    throw torrent::client_error("ui::ElementFileList::disable(...) called on an object in the wrong state");
+    throw torrent::client_error("ui::ElementFileList::disable(...) !is_active().");
 
-  c->input()->erase(&m_bindings);
+  control->input()->erase(&m_bindings);
 
   delete m_window;
   m_window = NULL;
+}
+
+display::Window*
+ElementFileList::window() {
+  return m_window;
 }
 
 void

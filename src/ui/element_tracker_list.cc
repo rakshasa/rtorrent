@@ -60,24 +60,30 @@ ElementTrackerList::ElementTrackerList(core::Download* d) :
 }
 
 void
-ElementTrackerList::activate(Control* c, MItr mItr) {
+ElementTrackerList::activate(display::Frame* frame) {
   if (m_window != NULL)
-    throw torrent::client_error("ui::ElementTrackerList::activate(...) called on an object in the wrong state");
+    throw torrent::client_error("ui::ElementTrackerList::activate(...) is_active().");
 
-  c->input()->push_front(&m_bindings);
+  control->input()->push_front(&m_bindings);
 
-  *mItr = m_window = new WTrackerList(m_download, &m_focus);
+  m_window = new WTrackerList(m_download, &m_focus);
+  m_frame = frame;
 }
 
 void
-ElementTrackerList::disable(Control* c) {
+ElementTrackerList::disable() {
   if (m_window == NULL)
-    throw torrent::client_error("ui::ElementTrackerList::disable(...) called on an object in the wrong state");
+    throw torrent::client_error("ui::ElementTrackerList::disable(...) !is_active().");
 
-  c->input()->erase(&m_bindings);
+  control->input()->erase(&m_bindings);
 
   delete m_window;
   m_window = NULL;
+}
+
+display::Window*
+ElementTrackerList::window() {
+  return m_window;
 }
 
 void

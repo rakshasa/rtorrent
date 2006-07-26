@@ -41,8 +41,14 @@
 #include <sigc++/bind.h>
 #include <torrent/torrent.h>
 
+#include "core/manager.h"
+#include "display/frame.h"
+#include "display/window_http_queue.h"
+#include "display/window_title.h"
+#include "display/window_input.h"
 #include "display/window_statusbar.h"
 #include "input/manager.h"
+#include "input/text_input.h"
 #include "utils/variable_map.h"
 
 #include "control.h"
@@ -55,6 +61,9 @@ namespace ui {
 Root::Root() :
   m_control(NULL),
   m_downloadList(NULL),
+  m_windowTitle(NULL),
+  m_windowHttpQueue(NULL),
+  m_windowInput(NULL),
   m_windowStatusbar(NULL) {
 }
 
@@ -64,15 +73,30 @@ Root::init(Control* c) {
     throw std::logic_error("Root::init() called twice on the same object");
 
   m_control = c;
+
+  m_windowTitle     = new WTitle();
+  m_windowHttpQueue = new WHttpQueue(control->core()->http_queue());
+  m_windowInput     = new WInput();
+  m_windowStatusbar = new WStatusbar();
+
+  m_downloadList    = new DownloadList();
+
+  display::Frame* rootFrame = m_control->display()->root_frame();
+
+  rootFrame->initialize_container(display::Frame::TYPE_ROW, 5);
+  rootFrame->frame(0)->initialize_window(m_windowTitle);
+  rootFrame->frame(2)->initialize_window(m_windowHttpQueue);
+  rootFrame->frame(3)->initialize_window(m_windowInput);
+  rootFrame->frame(4)->initialize_window(m_windowStatusbar);
+
+  m_control->display()->schedule(m_windowTitle, cachedTime);
+  m_control->display()->schedule(m_windowStatusbar, cachedTime);
+
+  m_windowInput->set_active(false);
+
   setup_keys();
 
-  m_windowStatusbar = new WStatusbar(m_control);
-  m_downloadList =    new DownloadList(m_control);
-
-  m_control->display()->push_back(m_windowStatusbar);
-
-  m_downloadList->activate();
-  //  m_downloadList->slot_open_uri(sigc::mem_fun(m_control->get_core(), &core::Manager::insert));
+  m_downloadList->activate(rootFrame->frame(1));
 }
 
 void
@@ -83,9 +107,13 @@ Root::cleanup() {
   if (m_downloadList->is_active())
     m_downloadList->disable();
 
-  m_control->display()->erase(m_windowStatusbar);
+  m_control->display()->root_frame()->clear();
 
   delete m_downloadList;
+
+  delete m_windowTitle;
+  delete m_windowHttpQueue;
+  delete m_windowInput;
   delete m_windowStatusbar;
 
   m_control->input()->erase(&m_bindings);
@@ -156,6 +184,45 @@ Root::adjust_down_throttle(int throttle) {
 void
 Root::adjust_up_throttle(int throttle) {
   set_up_throttle(std::max<int>(torrent::up_throttle() / 1024 + throttle, 0));
+}
+
+void
+Root::enable_input(input::TextInput* input) {
+  if (m_windowInput->input() != NULL)
+    throw torrent::client_error("Root::enable_input(...) m_windowInput->input() != NULL.");
+
+  input->slot_dirty(sigc::mem_fun(m_windowInput, &WInput::mark_dirty));
+
+  m_windowStatusbar->set_active(false);
+
+  m_windowInput->set_active(true);
+  m_windowInput->set_focus(true);
+  m_windowInput->set_input(input);
+
+  control->input()->set_text_input(input);
+  control->display()->adjust_layout();
+}
+
+void
+Root::disable_input() {
+  if (m_windowInput->input() == NULL)
+    throw torrent::client_error("Root::disable_input() m_windowInput->input() == NULL.");
+
+  m_windowInput->input()->slot_dirty(sigc::slot0<void>());
+
+  m_windowStatusbar->set_active(true);
+
+  m_windowInput->set_active(false);
+  m_windowInput->set_focus(false);
+  m_windowInput->set_input(NULL);
+
+  control->input()->set_text_input(NULL);
+  control->display()->adjust_layout();
+}
+
+input::TextInput*
+Root::current_input() {
+  return m_windowInput->input();
 }
 
 }
