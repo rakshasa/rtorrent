@@ -50,29 +50,37 @@ class Manager;
 
 class Window {
 public:
+  typedef uint32_t extent_type;
+
   typedef rak::mem_fun0<Manager, void>                      Slot;
   typedef rak::mem_fun1<Manager, void, Window*>             SlotWindow;
   typedef rak::mem_fun2<Manager, void, Window*, rak::timer> SlotTimer;
 
-  Window(Canvas* c = NULL, bool d = false, int h = 1);
+  static const int flag_active         = (1 << 0);
+  static const int flag_width_dynamic  = (1 << 1);
+  static const int flag_height_dynamic = (1 << 2);
+
+  Window(Canvas* canvas, int flags, extent_type minWidth, extent_type minHeight);
 
   virtual ~Window();
 
-  bool                is_active()                          { return m_active; }
-  bool                is_dynamic()                         { return m_dynamic; }
+  bool                is_active() const                    { return m_flags & flag_active; }
+  void                set_active(bool state);
+
+  bool                is_width_dynamic() const             { return m_flags & flag_width_dynamic; }
+  bool                is_height_dynamic() const            { return m_flags & flag_height_dynamic; }
+
   bool                is_dirty()                           { return m_taskUpdate.is_queued(); }
+  void                mark_dirty()                         { m_slotSchedule(this, cachedTime + 1); }
 
-  int                 get_min_height() const               { return m_minHeight; }
+  extent_type         min_width() const                    { return m_minWidth; }
+  extent_type         min_height() const                   { return m_minHeight; }
 
-  bool                get_active()                         { return m_active; }
-  void                set_active(bool a);
+  extent_type         width() const                        { return m_canvas->width(); }
+  extent_type         height() const                       { return m_canvas->height(); }
 
   void                refresh()                            { m_canvas->refresh(); }
   void                resize(int x, int y, int w, int h);
-
-  int                 get_height() const                   { return m_canvas->get_height(); }
-
-  void                mark_dirty()                         { m_slotSchedule(this, cachedTime + 1); }
 
   virtual void        redraw() = 0;
 
@@ -93,9 +101,10 @@ protected:
 
   Canvas*             m_canvas;
 
-  bool                m_active;
-  bool                m_dynamic;
-  int                 m_minHeight;
+  int                 m_flags;
+
+  extent_type         m_minWidth;
+  extent_type         m_minHeight;
 
   rak::priority_item  m_taskUpdate;
 };

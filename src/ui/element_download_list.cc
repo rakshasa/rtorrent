@@ -55,6 +55,7 @@ ElementDownloadList::activate(display::Frame* frame) {
   control->input()->push_front(&m_bindings);
 
   m_window = new WDownloadList();
+  m_window->set_active(true);
   m_window->set_view(m_view);
 
   m_frame = frame;

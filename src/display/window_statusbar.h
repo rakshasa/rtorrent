@@ -45,7 +45,9 @@ namespace display {
 
 class WindowStatusbar : public Window {
 public:
-  WindowStatusbar() : Window(new Canvas, false, 1), m_lastTick(0) {}
+  WindowStatusbar() :
+    Window(new Canvas, flag_width_dynamic, 0, 1),
+    m_lastTick(0) {}
 
   virtual void   redraw();
 

@@ -52,7 +52,7 @@
 namespace display {
 
 WindowDownloadChunksSeen::WindowDownloadChunksSeen(core::Download* d, unsigned int *focus) :
-  Window(new Canvas, true),
+  Window(new Canvas, flag_width_dynamic | flag_height_dynamic, 0, 0),
   m_download(d),
   m_focus(focus) {
 }
@@ -63,7 +63,7 @@ WindowDownloadChunksSeen::redraw() {
   m_slotSchedule(this, (cachedTime + rak::timer::from_seconds(10)).round_seconds());
   m_canvas->erase();
 
-  if (m_canvas->get_height() < 3 || m_canvas->get_width() < 18)
+  if (m_canvas->height() < 3 || m_canvas->width() < 18)
     return;
 
   m_canvas->print(2, 0, "Chunks seen: [C/A/D %i/%i/%.2f]",
@@ -102,7 +102,7 @@ WindowDownloadChunksSeen::redraw() {
   while (itrTransfer != transferChunks.end() && (uint32_t)(chunk - seen) > (*itrTransfer)->index())
     itrTransfer++;
 
-  for (int y = 1; y < m_canvas->get_height() && chunk < last; ++y) {
+  for (int y = 1; y < m_canvas->height() && chunk < last; ++y) {
     m_canvas->print(0, y, "%5u ", (int)(chunk - seen));
 
     while (chunk < last) {
@@ -124,7 +124,7 @@ WindowDownloadChunksSeen::redraw() {
       chunk++;
 
       if ((chunk - seen) % 10 == 0) {
-        if (m_canvas->get_x() + 12 > m_canvas->get_width())
+        if (m_canvas->get_x() + 12 > m_canvas->width())
           break;
 
         m_canvas->print_char(' ');
@@ -135,7 +135,7 @@ WindowDownloadChunksSeen::redraw() {
 
 unsigned int
 WindowDownloadChunksSeen::rows() const {
-  if (m_canvas->get_width() < 18)
+  if (m_canvas->width() < 18)
     return 0;
 
   return (m_download->download()->chunks_total() + chunks_per_row() - 1) / chunks_per_row();

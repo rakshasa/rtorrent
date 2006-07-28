@@ -59,7 +59,8 @@ public:
 
   Frame();
 
-  bool                is_dynamic() const;
+  bool                is_width_dynamic() const;
+  bool                is_height_dynamic() const;
 
   pair_type           preferred_size() const;
 
@@ -80,7 +81,8 @@ public:
   void                set_container_size(size_type size);
 
   void                initialize_window(Window* window);
-  void                initialize_container(Type containerType, size_type size);
+  void                initialize_row(size_type size);
+  void                initialize_column(size_type size);
 
   void                clear();
 

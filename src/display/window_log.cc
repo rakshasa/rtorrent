@@ -45,10 +45,8 @@
 namespace display {
 
 WindowLog::WindowLog(core::Log* l) :
-  Window(new Canvas, false, 0),
+  Window(new Canvas, flag_width_dynamic, 0, 0),
   m_log(l) {
-
-  m_active = false;
 
   // We're trying out scheduled tasks instead.
   m_connUpdate = l->signal_update().connect(sigc::mem_fun(*this, &WindowLog::receive_update));
@@ -69,7 +67,7 @@ WindowLog::redraw() {
 
   int pos = 0;
 
-  for (core::Log::iterator itr = m_log->begin(), end = find_older(); itr != end && pos < m_canvas->get_height(); ++itr) {
+  for (core::Log::iterator itr = m_log->begin(), end = find_older(); itr != end && pos < m_canvas->height(); ++itr) {
     char buffer[16];
     print_hhmmss_local(buffer, buffer + 16, static_cast<time_t>(itr->first.seconds()));
 
@@ -80,7 +78,7 @@ WindowLog::redraw() {
 void
 WindowLog::receive_update() {
   iterator itr = find_older();
-  int h = std::min(std::distance(m_log->begin(), itr), (std::iterator_traits<iterator>::difference_type)10);
+  extent_type h = std::min(std::distance(m_log->begin(), itr), (std::iterator_traits<iterator>::difference_type)10);
 
   if (h != m_minHeight) {
     set_active(h != 0);

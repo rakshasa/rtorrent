@@ -38,7 +38,8 @@
 #define RTORRENT_INPUT_TEXT_INPUT_H
 
 #include <string>
-#include <sigc++/slot.h>
+
+#include "bindings.h"
 
 namespace input {
 
@@ -68,11 +69,15 @@ public:
 
   std::string&        str()                      { return *this; }
 
+  Bindings&           bindings()                 { return m_bindings; }
+
 private:
   size_type           m_pos;
 
   bool                m_alt;
   SlotDirty           m_slotDirty;
+
+  Bindings            m_bindings;
 };
 
 }

@@ -48,7 +48,7 @@
 namespace display {
 
 WindowHttpQueue::WindowHttpQueue(core::HttpQueue* q) :
-  Window(new Canvas, false, 1),
+  Window(new Canvas, flag_width_dynamic, 0, 1),
   m_queue(q) {
   
   set_active(false);
@@ -75,7 +75,7 @@ WindowHttpQueue::redraw() {
   int pos = 10;
   Container::iterator itr = m_container.begin();
 
-  while (itr != m_container.end() && pos + 20 < m_canvas->get_width()) {
+  while (itr != m_container.end() && pos + 20 < m_canvas->width()) {
     if (itr->m_http == NULL)
       m_canvas->print(pos, 0, "%s done", itr->m_name.c_str());
 

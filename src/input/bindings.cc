@@ -44,7 +44,7 @@ namespace input {
 
 bool
 Bindings::pressed(int key) {
-  if (!m_active)
+  if (!m_enabled)
     return false;
 
   const_iterator itr = find(key);

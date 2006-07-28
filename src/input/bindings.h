@@ -63,17 +63,17 @@ public:
 
   using Base::operator[];
 
-  Bindings() : m_active(true) {}
+  Bindings() : m_enabled(true) {}
 
-  void                activate()          { m_active = true; }
-  void                disable()           { m_active = false; }
+  void                enable()           { m_enabled = true; }
+  void                disable()          { m_enabled = false; }
 
   bool                pressed(int key);
 
   void                ignore(int key)     { (*this)[key] = Slot(); }
 
 private:
-  bool                m_active;
+  bool                m_enabled;
 };
 
 }

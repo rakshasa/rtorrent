@@ -61,6 +61,7 @@ ElementLogComplete::activate(display::Frame* frame) {
   control->input()->push_front(&m_bindings);
 
   m_window = new WLogComplete(m_log);
+  m_window->set_active(true);
 
   m_frame = frame;
   m_frame->initialize_window(m_window);

@@ -65,7 +65,7 @@ public:
   virtual void        redraw();
 
   unsigned int        rows() const;
-  unsigned int        max_focus() const        { return std::max<int>(rows() - get_height() + 1, 0); }
+  unsigned int        max_focus() const        { return std::max<int>(rows() - height() + 1, 0); }
 
 private:
   char                key_id(torrent::BlockTransfer::key_type key);

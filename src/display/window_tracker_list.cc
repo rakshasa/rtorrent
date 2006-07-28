@@ -49,7 +49,7 @@
 namespace display {
 
 WindowTrackerList::WindowTrackerList(core::Download* d, unsigned int* focus) :
-  Window(new Canvas, true),
+  Window(new Canvas, flag_width_dynamic | flag_height_dynamic, 0, 0),
   m_download(d),
   m_focus(focus) {
 }
@@ -74,24 +74,24 @@ WindowTrackerList::redraw() {
 
   typedef std::pair<unsigned int, unsigned int> Range;
 
-  Range range = rak::advance_bidirectional<unsigned int>(0, *m_focus, tl->size(), (m_canvas->get_height() + 1) / 2);
+  Range range = rak::advance_bidirectional<unsigned int>(0, *m_focus, tl->size(), (m_canvas->height() + 1) / 2);
 
   while (range.first != range.second) {
     torrent::Tracker t = tl->get(range.first);
 
     m_canvas->print(0, pos++, "%c %s",
-		    range.first == *m_focus ? '*' : ' ',
-		    t.url().c_str());
+                    range.first == *m_focus ? '*' : ' ',
+                    t.url().c_str());
 
     m_canvas->print(0, pos++, "%c Group: %2i Id: %s Focus: %s Enabled: %s Open: %s S/L: %u/%u",
-		    range.first == *m_focus ? '*' : ' ',
-		    t.group(),
-		    rak::copy_escape_html(t.tracker_id()).c_str(),
-		    range.first == tl->focus() ? "yes" : " no",
-		    t.is_enabled() ? "yes" : " no",
-		    t.is_open() ? "yes" : " no",
-		    t.scrape_complete(),
-		    t.scrape_incomplete());
+                    range.first == *m_focus ? '*' : ' ',
+                    t.group(),
+                    rak::copy_escape_html(t.tracker_id()).c_str(),
+                    range.first == tl->focus() ? "yes" : " no",
+                    t.is_enabled() ? "yes" : " no",
+                    t.is_open() ? "yes" : " no",
+                    t.scrape_complete(),
+                    t.scrape_incomplete());
 
     ++range.first;
   }

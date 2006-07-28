@@ -121,7 +121,7 @@ ElementFileList::receive_pagenext() {
   if (m_window == NULL)
     throw torrent::client_error("ui::ElementFileList::receive_pagenext(...) called on a disabled object");
 
-  unsigned int count = (m_window->get_height() - 1) / 2;
+  unsigned int count = (m_window->height() - 1) / 2;
 
   if (m_focus + count < m_download->download()->file_list().size())
     m_focus += count;
@@ -143,7 +143,7 @@ ElementFileList::receive_pageprev() {
   if (fl.size() == 0)
     return;
 
-  unsigned int count = (m_window->get_height() - 1) / 2;
+  unsigned int count = (m_window->height() - 1) / 2;
 
   if (m_focus > count)
     m_focus -= count;

@@ -51,7 +51,9 @@ namespace display {
 
 class WindowDownloadList : public Window {
 public:
-  WindowDownloadList() : Window(new Canvas, true), m_view(NULL) {}
+  WindowDownloadList() :
+    Window(new Canvas, flag_width_dynamic | flag_height_dynamic, 120, 1),
+    m_view(NULL) {}
   ~WindowDownloadList();
 
   virtual void        redraw();

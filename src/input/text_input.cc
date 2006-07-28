@@ -44,7 +44,10 @@ namespace input {
 
 bool
 TextInput::pressed(int key) {
-  if (m_alt) {
+  if (m_bindings.pressed(key)) {
+    return true;
+
+  } else if (m_alt) {
     m_alt = false;
 
     switch (key) {
@@ -123,7 +126,6 @@ TextInput::pressed(int key) {
   m_slotDirty();
 
   return true;
-
 }  
 
 }

@@ -46,28 +46,37 @@ Window::SlotTimer  Window::m_slotSchedule;
 Window::SlotWindow Window::m_slotUnschedule;
 Window::Slot       Window::m_slotAdjust;
 
-Window::Window(Canvas* c, bool d, int h) :
-  m_canvas(c),
-  m_active(true),
-  m_dynamic(d),
-  m_minHeight(h) {
+Window::Window(Canvas* canvas, int flags, extent_type minWidth, extent_type minHeight) :
+  m_canvas(canvas),
+  m_flags(flags),
+  m_minWidth(minWidth),
+  m_minHeight(minHeight) {
 
   m_taskUpdate.set_slot(rak::mem_fn(this, &Window::redraw));
+
+  if (flags & flag_active)
+    mark_dirty();
 }
 
 Window::~Window() {
-  m_slotUnschedule(this);
+  if (is_active())
+    m_slotUnschedule(this);
+
   delete m_canvas;
 }
 
 void
-Window::set_active(bool a) {
-  if (a)
-    mark_dirty();
-  else
-    m_slotUnschedule(this);
+Window::set_active(bool state) {
+  if (state == is_active())
+    return;
 
-  m_active = a;
+  if (state) {
+    m_flags |= flag_active;
+    mark_dirty();
+  } else {
+    m_flags &= ~flag_active;
+    m_slotUnschedule(this);
+  }
 }
 
 void

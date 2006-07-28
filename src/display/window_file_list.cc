@@ -49,7 +49,7 @@
 namespace display {
 
 WindowFileList::WindowFileList(core::Download* d, unsigned int* focus) :
-  Window(new Canvas, true),
+  Window(new Canvas, flag_width_dynamic | flag_height_dynamic, 0, 0),
   m_download(d),
   m_focus(focus) {
 }
@@ -78,7 +78,7 @@ WindowFileList::redraw() {
 
   torrent::FileList fl = m_download->download()->file_list();
 
-  if (fl.size() == 0 || m_canvas->get_height() < 2)
+  if (fl.size() == 0 || m_canvas->height() < 2)
     return;
 
   int pos = 0;
@@ -95,7 +95,7 @@ WindowFileList::redraw() {
   if (*m_focus >= fl.size())
     throw std::logic_error("WindowFileList::redraw() called on an object with a bad focus value");
 
-  Range range = rak::advance_bidirectional<unsigned int>(0, *m_focus, fl.size(), m_canvas->get_height() - pos);
+  Range range = rak::advance_bidirectional<unsigned int>(0, *m_focus, fl.size(), m_canvas->height() - pos);
 
   while (range.first != range.second) {
     torrent::File e = fl.get(range.first);

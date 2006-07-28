@@ -37,6 +37,8 @@
 #ifndef RTORRENT_DISPLAY_WINDOW_INPUT_H
 #define RTORRENT_DISPLAY_WINDOW_INPUT_H
 
+#include <string>
+
 #include "window.h"
 
 namespace input {
@@ -47,10 +49,16 @@ namespace display {
 
 class WindowInput : public Window {
 public:
-  WindowInput() : Window(new Canvas, false, 1), m_input(NULL), m_focus(false) {}
+  WindowInput() :
+    Window(new Canvas, flag_width_dynamic, 0, 1),
+    m_input(NULL),
+    m_focus(false) {}
 
   input::TextInput*   input()                            { return m_input; }
   void                set_input(input::TextInput* input) { m_input = input; }
+
+  const std::string&  title() const                      { return m_title; }
+  void                set_title(const std::string& str)  { m_title = str; }
 
   bool                focus() const                      { return m_focus; }
   void                set_focus(bool f)                  { mark_dirty(); m_focus = f; }
@@ -59,6 +67,8 @@ public:
 
 private:
   input::TextInput*   m_input;
+  std::string         m_title;
+
   bool                m_focus;
 };
 

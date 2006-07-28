@@ -53,9 +53,9 @@ WindowStatusbar::redraw() {
   m_canvas->erase();
 
   // TODO: Make a buffer with size = get_width?
-  char buffer[m_canvas->get_width() + 1];
+  char buffer[m_canvas->width() + 1];
   char* position;
-  char* last = buffer + m_canvas->get_width();
+  char* last = buffer + m_canvas->width();
 
 //   if (torrent::up_throttle() == 0)
 //     position = std::max(snprintf(buffer, 128, "off/"), 0);
@@ -96,7 +96,7 @@ WindowStatusbar::redraw() {
 
   if (last > buffer) {
     position = print_status_extra(buffer, last, control);
-    m_canvas->print(m_canvas->get_width() - (position - buffer), 0, "%s", buffer);
+    m_canvas->print(m_canvas->width() - (position - buffer), 0, "%s", buffer);
   }
 
   m_lastTick = control->tick();

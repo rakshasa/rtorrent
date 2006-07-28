@@ -52,7 +52,7 @@
 namespace display {
 
 WindowPeerList::WindowPeerList(core::Download* d, PList* l, PList::iterator* f) :
-  Window(new Canvas, true),
+  Window(new Canvas, flag_width_dynamic | flag_height_dynamic, 0, 0),
   m_download(d),
   m_list(l),
   m_focus(f) {
@@ -87,7 +87,7 @@ WindowPeerList::redraw() {
   Range range = rak::advance_bidirectional(m_list->begin(),
                                            *m_focus != m_list->end() ? *m_focus : m_list->begin(),
                                            m_list->end(),
-                                           m_canvas->get_height() - y);
+                                           m_canvas->height() - y);
 
   if (m_download->download()->chunks_total() <= 0)
     throw std::logic_error("WindowPeerList::redraw() m_slotChunksTotal() returned invalid value");

@@ -56,18 +56,39 @@ Frame::Frame() :
 }
 
 bool
-Frame::is_dynamic() const {
+Frame::is_width_dynamic() const {
   switch (m_type) {
   case TYPE_NONE:
     return false;
 
   case TYPE_WINDOW:
-    return m_window->is_active() && m_window->is_dynamic();
+    return m_window->is_active() && m_window->is_width_dynamic();
 
   case TYPE_ROW:
   case TYPE_COLUMN:
     for (size_type i = 0; i < m_containerSize; ++i)
-      if (m_container[i]->is_dynamic())
+      if (m_container[i]->is_width_dynamic())
+        return true;
+
+    return false;
+  }
+
+  return false;
+}
+
+bool
+Frame::is_height_dynamic() const {
+  switch (m_type) {
+  case TYPE_NONE:
+    return false;
+
+  case TYPE_WINDOW:
+    return m_window->is_active() && m_window->is_height_dynamic();
+
+  case TYPE_ROW:
+  case TYPE_COLUMN:
+    for (size_type i = 0; i < m_containerSize; ++i)
+      if (m_container[i]->is_height_dynamic())
         return true;
 
     return false;
@@ -83,7 +104,10 @@ Frame::preferred_size() const {
     return pair_type(0, 0);
 
   case TYPE_WINDOW:
-    return m_window->is_active() ? pair_type(0, m_window->get_min_height()) : pair_type(0, 0);
+    if (m_window->is_active())
+      return pair_type(std::max<uint32_t>(m_window->min_width(), 1), std::max<uint32_t>(m_window->min_height(), 1));
+    else
+      return pair_type(0, 0);
 
   case TYPE_ROW:
   case TYPE_COLUMN:
@@ -129,14 +153,29 @@ Frame::initialize_window(Window* window) {
 }
 
 void
-Frame::initialize_container(Type containerType, size_type size) {
-  if (m_type != TYPE_NONE || (containerType != TYPE_ROW && containerType != TYPE_COLUMN))
+Frame::initialize_row(size_type size) {
+  if (m_type != TYPE_NONE)
     throw torrent::client_error("Frame::initialize_container(...) Invalid state.");
 
   if (size > max_size)
     throw torrent::client_error("Frame::initialize_container(...) size >= max_size.");
 
-  m_type = containerType;
+  m_type = TYPE_ROW;
+  m_containerSize = size;
+
+  for (size_type i = 0; i < m_containerSize; ++i)
+    m_container[i] = new Frame();
+}
+
+void
+Frame::initialize_column(size_type size) {
+  if (m_type != TYPE_NONE)
+    throw torrent::client_error("Frame::initialize_container(...) Invalid state.");
+
+  if (size > max_size)
+    throw torrent::client_error("Frame::initialize_container(...) size >= max_size.");
+
+  m_type = TYPE_COLUMN;
   m_containerSize = size;
 
   for (size_type i = 0; i < m_containerSize; ++i)
@@ -193,47 +232,78 @@ Frame::balance(uint32_t x, uint32_t y, uint32_t width, uint32_t height) {
     return;
 
   if (m_type == TYPE_WINDOW) {
-    if (m_window->is_active())
-      m_window->resize(x, y, width, height);
+    if (!m_window->is_active())
+      return;
 
+    m_window->resize(x, y, width, height);
+    m_window->mark_dirty();
     return;
   }
 
-  uint32_t size;
+  // Find the size of the static frames. The dynamic frames are added
+  // to a temporary list for the second pass. Each frame uses the
+  // m_width and m_height as temporary storage for width and height in
+  // this algorithm.
+  size_type dynamicSize = 0;
+  Frame* dynamicFrames[max_size];
+
+  int remaining = m_type == TYPE_ROW ? height : width;
+  
+  for (Frame **itr = m_container, **last = m_container + m_containerSize; itr != last; ++itr) {
+    pair_type p = (*itr)->preferred_size();
+    (*itr)->m_width = p.first;
+    (*itr)->m_height = p.second;
+
+    if ((m_type == TYPE_ROW && (*itr)->is_height_dynamic()) || (m_type == TYPE_COLUMN && (*itr)->is_width_dynamic()))
+      dynamicFrames[dynamicSize++] = *itr;
+    else
+      remaining -= m_type == TYPE_ROW ? p.second : p.first;
+  }
+  
+  // Sort the dynamic frames by the min size in the direction we are
+  // interested in. Then try to satisfy the largest first, and if we
+  // have any remaining space we can use that to extend it and any
+  // following frames.
+  //
+  // Else if we're short, only give each what they require.
 
   if (m_type == TYPE_ROW)
-    size = height - std::min(height, preferred_size().second);
+    std::sort(dynamicFrames, dynamicFrames + dynamicSize, rak::greater2(rak::mem_ptr(&Frame::m_height), rak::mem_ptr(&Frame::m_height)));
   else
-    size = width - std::min(width, preferred_size().first);
+    std::sort(dynamicFrames, dynamicFrames + dynamicSize, rak::greater2(rak::mem_ptr(&Frame::m_width), rak::mem_ptr(&Frame::m_width)));
 
-  uint32_t dynamicCount = std::count_if(m_container, m_container + m_containerSize, std::mem_fun(&Frame::is_dynamic));
+  for (Frame **itr = dynamicFrames, **last = dynamicFrames + dynamicSize; itr != last; ++itr, --dynamicSize) {
+    uint32_t s = std::max<uint32_t>((std::max(remaining, 0) + dynamicSize - 1) / dynamicSize,
+                                    m_type == TYPE_ROW ? (*itr)->m_height : (*itr)->m_width);
+    
+    remaining -= s;
+    
+    if (m_type == TYPE_ROW)
+      (*itr)->m_height = s;
+    else
+      (*itr)->m_width = s;
+  }
+
+  // Expand/shrink m_w/h according to what is required to fill the min
+  // height/width.
+//   if (m_type == TYPE_ROW)
+//     m_height -= remaining;
+//   else
+//     m_width -= remaining;
 
   for (Frame **itr = m_container, **last = m_container + m_containerSize; itr != last; ++itr) {
-    uint32_t s;
-
-    if ((*itr)->is_dynamic()) {
-      s = (size + dynamicCount - 1) / dynamicCount;
-
-      size -= s;
-      dynamicCount--;
-
-    } else {
-      s = 0;
-    }
-
     if (m_type == TYPE_ROW) {
-      s += (*itr)->preferred_size().second;
-
-      (*itr)->balance(x, y, m_width, s);
-      y += s;
+      (*itr)->balance(x, y, m_width, (*itr)->m_height);
+      y += (*itr)->m_height;
 
     } else {
-      s += (*itr)->preferred_size().first;
-
-      (*itr)->balance(x, y, s, height);
-      x += s;
+      (*itr)->balance(x, y, (*itr)->m_width, m_height);
+      x += (*itr)->m_width;
     }
   }
+
+  if ((m_type == TYPE_ROW && y != m_height) || (m_type == TYPE_COLUMN && x != m_width))
+    throw torrent::client_error("Frame::balance(...) The algorithm did not end up with the correct remainder.");
 }
 
 }

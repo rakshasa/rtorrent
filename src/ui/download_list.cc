@@ -117,11 +117,7 @@ DownloadList::disable() {
   if (!is_active())
     throw std::logic_error("ui::DownloadList::disable() called on an already disabled object");
 
-//   if (m_windowTextInput->is_active()) {
-//     m_windowTextInput->get_input()->clear();
-//     receive_exit_input(INPUT_NONE);
-//   }
-
+  receive_exit_input(INPUT_NONE);
   activate_display(DISPLAY_NONE);
 
   m_frame = NULL;
@@ -133,10 +129,10 @@ DownloadList::disable() {
 void
 DownloadList::activate_display(Display displayType) {
   if (!is_active())
-    throw std::logic_error("ui::DownloadList::activate_display(...) !is_active().");
+    throw torrent::client_error("ui::DownloadList::activate_display(...) !is_active().");
 
   if (displayType >= DISPLAY_MAX_SIZE)
-    throw std::logic_error("ui::DownloadList::activate_display(...) out of bounds");
+    throw torrent::client_error("ui::DownloadList::activate_display(...) out of bounds");
 
   if (displayType == m_state)
     return;
@@ -146,6 +142,11 @@ DownloadList::activate_display(Display displayType) {
   // Cleanup previous state.
   switch (m_state) {
   case DISPLAY_DOWNLOAD_LIST:
+    m_uiArray[DISPLAY_DOWNLOAD_LIST]->disable();
+    m_uiArray[DISPLAY_LOG]->disable();
+    m_frame->clear();
+    break;
+
   case DISPLAY_LOG:
     m_uiArray[m_state]->disable();
     break;
@@ -162,19 +163,25 @@ DownloadList::activate_display(Display displayType) {
     break;
 
   case DISPLAY_DOWNLOAD_LIST:
-    control->ui()->window_title()->set_title("rTorrent " VERSION " - libTorrent " + std::string(torrent::version()));
+    m_frame->initialize_column(2);
 
-    m_uiArray[displayType]->activate(m_frame);
+    m_uiArray[DISPLAY_DOWNLOAD_LIST]->activate(m_frame->frame(0));
+    m_uiArray[DISPLAY_LOG]->activate(m_frame->frame(1));
     break;
 
   case DISPLAY_LOG:
-    control->ui()->window_title()->set_title("Log");
-
     m_uiArray[displayType]->activate(m_frame);
     break;
 
   default:
     break;
+  }
+
+  // Set title.
+  switch (displayType) {
+  case DISPLAY_DOWNLOAD_LIST: control->ui()->window_title()->set_title("rTorrent " VERSION " - libTorrent " + std::string(torrent::version())); break;
+  case DISPLAY_LOG:           control->ui()->window_title()->set_title("Log"); break;
+  default: break;
   }
 
   control->display()->adjust_layout();
@@ -224,8 +231,10 @@ DownloadList::receive_close_download() {
   if (m_view->focus() == m_view->end_visible())
     return;
 
-  control->core()->download_list()->stop_normal(*m_view->focus());
-  control->core()->download_list()->close(*m_view->focus());
+  core::Download* download = *m_view->focus();
+
+  control->core()->download_list()->stop_normal(download);
+  control->core()->download_list()->close(download);
   m_view->set_last_changed();
 }
 
@@ -323,23 +332,39 @@ DownloadList::receive_view_input(Input type) {
 
   input::PathInput* input = new input::PathInput;
 
+  const char* title;
+
   switch (type) {
+  case INPUT_LOAD_DEFAULT:
+    title = "load_start";
+    break;
+
+  case INPUT_LOAD_MODIFIED:
+    title = "load";
+    break;
+
   case INPUT_CHANGE_DIRECTORY:
+    title = "change_directory";
+
     input->str() = control->variable()->get_string("directory");
     input->set_pos(input->str().length());
 
     break;
 
-  default:
+  case INPUT_COMMAND:
+    title = "command";
     break;
+
+  default:
+    throw torrent::client_error("DownloadList::receive_view_input(...) Invalid input type.");
   }
 
-  control->ui()->enable_input(input);
+  input->bindings()['\n']      = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_exit_input), type);
+  input->bindings()[KEY_ENTER] = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_exit_input), type);
+  input->bindings()['\x07']    = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_exit_input), INPUT_NONE);
 
-  // These bindings should be moved to f.ex TextInput?
-  m_bindings['\n']      = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_exit_input), type);
-  m_bindings[KEY_ENTER] = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_exit_input), type);
-  m_bindings['\x07']    = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_exit_input), INPUT_NONE);
+  m_bindings.disable();
+  control->ui()->enable_input(title, input);
 }
 
 void
@@ -351,14 +376,7 @@ DownloadList::receive_exit_input(Input type) {
     return;
 
   control->ui()->disable_input();
-
-  // Urgh... this is ugly...
-  m_bindings.erase('\n');
-  m_bindings.erase(KEY_ENTER);
-  m_bindings.erase('\x07');
-
-  m_bindings['\n']          = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_view_input), INPUT_LOAD_MODIFIED);
-  m_bindings[KEY_ENTER]     = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_view_input), INPUT_LOAD_MODIFIED);
+  m_bindings.enable();
 
   try {
 
@@ -382,6 +400,9 @@ DownloadList::receive_exit_input(Input type) {
     case INPUT_COMMAND:
       control->variable()->process_command(input->str());
       break;
+
+    default:
+      throw torrent::client_error("DownloadList::receive_exit_input(...) Invalid input type.");
     }
 
   } catch (torrent::input_error& e) {
@@ -460,8 +481,8 @@ DownloadList::setup_keys() {
   m_bindings['6']           = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_change_view), "incomplete");
   m_bindings['7']           = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_change_view), "hashing");
 
-  m_uiArray[DISPLAY_LOG]->bindings()[' ']       = sigc::bind(sigc::mem_fun(*this, &DownloadList::activate_display), DISPLAY_DOWNLOAD_LIST);
-  m_uiArray[DISPLAY_LOG]->bindings()[KEY_RIGHT] = sigc::bind(sigc::mem_fun(*this, &DownloadList::activate_display), DISPLAY_DOWNLOAD_LIST);
+  m_uiArray[DISPLAY_LOG]->bindings()[' ']      = sigc::bind(sigc::mem_fun(*this, &DownloadList::activate_display), DISPLAY_DOWNLOAD_LIST);
+  m_uiArray[DISPLAY_LOG]->bindings()[KEY_LEFT] = sigc::bind(sigc::mem_fun(*this, &DownloadList::activate_display), DISPLAY_DOWNLOAD_LIST);
 }
 
 // void

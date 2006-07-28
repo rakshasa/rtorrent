@@ -83,16 +83,14 @@ Root::init(Control* c) {
 
   display::Frame* rootFrame = m_control->display()->root_frame();
 
-  rootFrame->initialize_container(display::Frame::TYPE_ROW, 5);
+  rootFrame->initialize_row(5);
   rootFrame->frame(0)->initialize_window(m_windowTitle);
   rootFrame->frame(2)->initialize_window(m_windowHttpQueue);
   rootFrame->frame(3)->initialize_window(m_windowInput);
   rootFrame->frame(4)->initialize_window(m_windowStatusbar);
 
-  m_control->display()->schedule(m_windowTitle, cachedTime);
-  m_control->display()->schedule(m_windowStatusbar, cachedTime);
-
-  m_windowInput->set_active(false);
+  m_windowTitle->set_active(true);
+  m_windowStatusbar->set_active(true);
 
   setup_keys();
 
@@ -187,7 +185,7 @@ Root::adjust_up_throttle(int throttle) {
 }
 
 void
-Root::enable_input(input::TextInput* input) {
+Root::enable_input(const std::string& title, input::TextInput* input) {
   if (m_windowInput->input() != NULL)
     throw torrent::client_error("Root::enable_input(...) m_windowInput->input() != NULL.");
 
@@ -196,8 +194,9 @@ Root::enable_input(input::TextInput* input) {
   m_windowStatusbar->set_active(false);
 
   m_windowInput->set_active(true);
-  m_windowInput->set_focus(true);
   m_windowInput->set_input(input);
+  m_windowInput->set_title(title);
+  m_windowInput->set_focus(true);
 
   control->input()->set_text_input(input);
   control->display()->adjust_layout();

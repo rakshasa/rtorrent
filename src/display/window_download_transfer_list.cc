@@ -49,7 +49,7 @@
 namespace display {
 
 WindowDownloadTransferList::WindowDownloadTransferList(core::Download* d, unsigned int *focus) :
-  Window(new Canvas, true),
+  Window(new Canvas, flag_width_dynamic | flag_height_dynamic, 0, 0),
   m_download(d),
   m_focus(focus) {
 }
@@ -60,7 +60,7 @@ WindowDownloadTransferList::redraw() {
   m_slotSchedule(this, (cachedTime + rak::timer::from_seconds(1)).round_seconds());
   m_canvas->erase();
 
-  if (m_canvas->get_height() < 3 || m_canvas->get_width() < 18)
+  if (m_canvas->height() < 3 || m_canvas->width() < 18)
     return;
 
   const torrent::TransferList* transfers = m_download->download()->transfer_list();
@@ -73,7 +73,7 @@ WindowDownloadTransferList::redraw() {
   // is just something i threw in there, someone really should
   // prettify this. (This is a very subtle hint)
 
-  for (int y = 1; y < m_canvas->get_height() && itr != transfers->end(); ++y, ++itr) {
+  for (int y = 1; y < m_canvas->height() && itr != transfers->end(); ++y, ++itr) {
     m_canvas->print(0, y, "%5u [P: %u F: %u]", (*itr)->index(), (*itr)->priority(), (*itr)->failed());
 
     // Handle window size.
@@ -106,7 +106,7 @@ WindowDownloadTransferList::redraw() {
 
 unsigned int
 WindowDownloadTransferList::rows() const {
-  if (m_canvas->get_width() < 18)
+  if (m_canvas->width() < 18)
     return 0;
 
 //   return (m_download->download()->chunks_total() + chunks_per_row() - 1) / chunks_per_row();

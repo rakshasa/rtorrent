@@ -61,8 +61,8 @@ public:
 
   int                 get_x()                                                 { int x, y; getyx(m_window, y, x); return x; }
   int                 get_y()                                                 { int x, y; getyx(m_window, y, x); return y; }
-  int                 get_width()                                             { int x, y; getmaxyx(m_window, y, x); return x; }
-  int                 get_height()                                            { int x, y; getmaxyx(m_window, y, x); return y; }
+  int                 width()                                                 { int x, y; getmaxyx(m_window, y, x); return x; }
+  int                 height()                                                { int x, y; getmaxyx(m_window, y, x); return y; }
 
   chtype              get_background()                                        { return getbkgd(m_window); }
   void                set_background(chtype c)                                { return wbkgdset(m_window, c); }
