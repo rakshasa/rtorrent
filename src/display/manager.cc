@@ -93,8 +93,6 @@ Manager::receive_update() {
   Canvas::refresh_std();
 
   rak::priority_queue_perform(&m_scheduler, cachedTime);
-
-//   std::for_each(begin(), end(), rak::if_then(std::mem_fun(&Window::is_active), std::mem_fun(&Window::refresh)));
   m_rootFrame.refresh();
 
   Canvas::do_update();

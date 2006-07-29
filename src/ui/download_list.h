@@ -77,7 +77,7 @@ public:
   typedef sigc::slot1<void, const std::string&>    SlotOpenUri;
 
   typedef enum {
-    DISPLAY_NONE,
+    DISPLAY_DOWNLOAD,
     DISPLAY_DOWNLOAD_LIST,
     DISPLAY_LOG,
     DISPLAY_STRING_LIST,
@@ -100,7 +100,7 @@ public:
 
   void                activate_display(Display d);
 
-  display::Window*    window();
+  display::Window*    window() { return NULL; }
 
   void                slot_open_uri(SlotOpenUri s) { m_slotOpenUri = s; }
 
@@ -114,9 +114,6 @@ private:
   void                receive_start_download();
   void                receive_stop_download();
   void                receive_close_download();
-
-  void                receive_view_download();
-  void                receive_exit_download();
 
   void                receive_next_priority();
   void                receive_prev_priority();
@@ -141,14 +138,11 @@ private:
   Display             m_state;
 
   ElementBase*        m_uiArray[DISPLAY_MAX_SIZE];
-
   WLog*               m_windowLog;
 
-  rak::priority_item  m_taskUpdate;
-
-  Download*           m_uiDownload;
-
   core::View*         m_view;
+
+  rak::priority_item  m_taskUpdate;
 
   SlotOpenUri         m_slotOpenUri;
 };

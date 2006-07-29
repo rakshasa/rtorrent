@@ -57,8 +57,9 @@ public:
   typedef rak::mem_fun2<Manager, void, Window*, rak::timer> SlotTimer;
 
   static const int flag_active         = (1 << 0);
-  static const int flag_width_dynamic  = (1 << 1);
-  static const int flag_height_dynamic = (1 << 2);
+  static const int flag_offscreen      = (1 << 1);
+  static const int flag_width_dynamic  = (1 << 2);
+  static const int flag_height_dynamic = (1 << 3);
 
   Window(Canvas* canvas, int flags, extent_type minWidth, extent_type minHeight);
 
@@ -66,6 +67,9 @@ public:
 
   bool                is_active() const                    { return m_flags & flag_active; }
   void                set_active(bool state);
+
+  bool                is_offscreen() const                 { return m_flags & flag_offscreen; }
+  void                set_offscreen(bool state)            { if (state) m_flags |= flag_offscreen; else m_flags &= ~flag_offscreen; }
 
   bool                is_width_dynamic() const             { return m_flags & flag_width_dynamic; }
   bool                is_height_dynamic() const            { return m_flags & flag_height_dynamic; }

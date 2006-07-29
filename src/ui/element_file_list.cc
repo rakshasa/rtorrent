@@ -39,6 +39,7 @@
 #include <torrent/exceptions.h>
 #include <torrent/file_list.h>
 
+#include "display/frame.h"
 #include "display/window_file_list.h"
 #include "input/manager.h"
 
@@ -67,8 +68,11 @@ ElementFileList::activate(display::Frame* frame) {
 
   control->input()->push_front(&m_bindings);
 
-//   *mItr = m_window = new WFileList(m_download, &m_focus);
+  m_window = new WFileList(m_download, &m_focus);
+  m_window->set_active(true);
+
   m_frame = frame;
+  m_frame->initialize_window(m_window);
 }
 
 void
@@ -77,6 +81,9 @@ ElementFileList::disable() {
     throw torrent::client_error("ui::ElementFileList::disable(...) !is_active().");
 
   control->input()->erase(&m_bindings);
+
+  m_frame->clear();
+  m_frame = NULL;
 
   delete m_window;
   m_window = NULL;

@@ -207,7 +207,7 @@ Frame::refresh() {
     break;
 
   case TYPE_WINDOW:
-    if (m_window->is_active())
+    if (m_window->is_active() && !m_window->is_offscreen())
       m_window->refresh();
 
     break;
@@ -232,9 +232,14 @@ Frame::balance(uint32_t x, uint32_t y, uint32_t width, uint32_t height) {
     return;
 
   if (m_type == TYPE_WINDOW) {
-    if (!m_window->is_active())
+    // Ensure that we don't draw windows that are offscreen or have
+    // zero extent.
+    if (width == 0 || height == 0 || !m_window->is_active()) {
+      m_window->set_offscreen(true);
       return;
+    }
 
+    m_window->set_offscreen(false);
     m_window->resize(x, y, width, height);
     m_window->mark_dirty();
     return;
@@ -284,26 +289,20 @@ Frame::balance(uint32_t x, uint32_t y, uint32_t width, uint32_t height) {
       (*itr)->m_width = s;
   }
 
-  // Expand/shrink m_w/h according to what is required to fill the min
-  // height/width.
-//   if (m_type == TYPE_ROW)
-//     m_height -= remaining;
-//   else
-//     m_width -= remaining;
-
   for (Frame **itr = m_container, **last = m_container + m_containerSize; itr != last; ++itr) {
     if (m_type == TYPE_ROW) {
-      (*itr)->balance(x, y, m_width, (*itr)->m_height);
+      (*itr)->balance(x, y, m_width, std::min((*itr)->m_height, height));
+
       y += (*itr)->m_height;
+      height -= (*itr)->m_height;
 
     } else {
-      (*itr)->balance(x, y, (*itr)->m_width, m_height);
+      (*itr)->balance(x, y, std::min((*itr)->m_width, width), m_height);
+
       x += (*itr)->m_width;
+      width -= (*itr)->m_width;
     }
   }
-
-  if ((m_type == TYPE_ROW && y != m_height) || (m_type == TYPE_COLUMN && x != m_width))
-    throw torrent::client_error("Frame::balance(...) The algorithm did not end up with the correct remainder.");
 }
 
 }

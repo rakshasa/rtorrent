@@ -46,16 +46,16 @@ Window::SlotTimer  Window::m_slotSchedule;
 Window::SlotWindow Window::m_slotUnschedule;
 Window::Slot       Window::m_slotAdjust;
 
+// When constructing the window we set flag_offscreen so that redraw
+// doesn't get triggered until after a successful Frame::balance call.
+
 Window::Window(Canvas* canvas, int flags, extent_type minWidth, extent_type minHeight) :
   m_canvas(canvas),
-  m_flags(flags),
+  m_flags(flags | flag_offscreen),
   m_minWidth(minWidth),
   m_minHeight(minHeight) {
 
   m_taskUpdate.set_slot(rak::mem_fn(this, &Window::redraw));
-
-  if (flags & flag_active)
-    mark_dirty();
 }
 
 Window::~Window() {
@@ -71,8 +71,11 @@ Window::set_active(bool state) {
     return;
 
   if (state) {
-    m_flags |= flag_active;
+    // Set offscreen so we don't try rendering before Frame::balance
+    // has been called.
+    m_flags |= flag_active | flag_offscreen;
     mark_dirty();
+
   } else {
     m_flags &= ~flag_active;
     m_slotUnschedule(this);

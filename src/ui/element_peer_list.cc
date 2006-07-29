@@ -38,6 +38,7 @@
 
 #include <torrent/exceptions.h>
 
+#include "display/frame.h"
 #include "display/window_peer_list.h"
 #include "input/manager.h"
 
@@ -51,7 +52,6 @@ ElementPeerList::ElementPeerList(core::Download* d, PList* l, PList::iterator* f
   m_window(NULL),
   m_list(l),
   m_focus(f) {
-
 }
 
 void
@@ -62,7 +62,10 @@ ElementPeerList::activate(display::Frame* frame) {
   control->input()->push_front(&m_bindings);
 
   m_window = new WPeerList(m_download, m_list, m_focus);
+  m_window->set_active(true);
+
   m_frame = frame;
+  m_frame->initialize_window(m_window);
 }
 
 void
@@ -71,6 +74,9 @@ ElementPeerList::disable() {
     throw torrent::client_error("ui::ElementPeerList::disable(...) !is_active().");
 
   control->input()->erase(&m_bindings);
+
+  m_frame->clear();
+  m_frame = NULL;
 
   delete m_window;
   m_window = NULL;

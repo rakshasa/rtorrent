@@ -38,6 +38,7 @@
 
 #include <torrent/exceptions.h>
 
+#include "display/frame.h"
 #include "display/window_download_chunks_seen.h"
 #include "input/manager.h"
 
@@ -67,7 +68,10 @@ ElementChunksSeen::activate(display::Frame* frame) {
   control->input()->push_front(&m_bindings);
 
   m_window = new WChunksSeen(m_download, &m_focus);
+  m_window->set_active(true);
+
   m_frame = frame;
+  m_frame->initialize_window(m_window);
 }
 
 void
@@ -76,6 +80,9 @@ ElementChunksSeen::disable() {
     throw torrent::client_error("ui::ElementChunksSeen::disable(...) !is_active().");
 
   control->input()->erase(&m_bindings);
+
+  m_frame->clear();
+  m_frame = NULL;
 
   delete m_window;
   m_window = NULL;

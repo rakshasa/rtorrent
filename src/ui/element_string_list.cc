@@ -38,6 +38,7 @@
 
 #include <torrent/exceptions.h>
 
+#include "display/frame.h"
 #include "input/manager.h"
 
 #include "control.h"
@@ -57,9 +58,10 @@ ElementStringList::activate(display::Frame* frame) {
   control->input()->push_front(&m_bindings);
 
   m_window = new WStringList();
-  m_frame = frame;
+  m_window->set_active(true);
 
-  m_window->set_range(m_list.begin(), m_list.end());
+  m_frame = frame;
+  m_frame->initialize_window(m_window);
 }
 
 void
@@ -68,6 +70,9 @@ ElementStringList::disable() {
     throw torrent::client_error("ui::ElementStringList::disable(...) !is_active().");
 
   control->input()->erase(&m_bindings);
+
+  m_frame->clear();
+  m_frame = NULL;
 
   delete m_window;
   m_window = NULL;

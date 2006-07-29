@@ -40,6 +40,7 @@
 #include <torrent/tracker.h>
 #include <torrent/tracker_list.h>
 
+#include "display/frame.h"
 #include "display/window_tracker_list.h"
 #include "input/manager.h"
 
@@ -67,7 +68,10 @@ ElementTrackerList::activate(display::Frame* frame) {
   control->input()->push_front(&m_bindings);
 
   m_window = new WTrackerList(m_download, &m_focus);
+  m_window->set_active(true);
+
   m_frame = frame;
+  m_frame->initialize_window(m_window);
 }
 
 void
@@ -76,6 +80,9 @@ ElementTrackerList::disable() {
     throw torrent::client_error("ui::ElementTrackerList::disable(...) !is_active().");
 
   control->input()->erase(&m_bindings);
+
+  m_frame->clear();
+  m_frame = NULL;
 
   delete m_window;
   m_window = NULL;

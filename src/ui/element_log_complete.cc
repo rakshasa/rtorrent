@@ -65,8 +65,6 @@ ElementLogComplete::activate(display::Frame* frame) {
 
   m_frame = frame;
   m_frame->initialize_window(m_window);
-
-  control->display()->schedule(m_window, cachedTime);
 }
 
 void

@@ -38,6 +38,7 @@
 
 #include <torrent/exceptions.h>
 
+#include "display/frame.h"
 #include "display/window_download_transfer_list.h"
 #include "input/manager.h"
 
@@ -67,7 +68,10 @@ ElementTransferList::activate(display::Frame* frame) {
   control->input()->push_front(&m_bindings);
 
   m_window = new WTransferList(m_download, &m_focus);
+  m_window->set_active(true);
+
   m_frame = frame;
+  m_frame->initialize_window(m_window);
 }
 
 void
@@ -76,6 +80,9 @@ ElementTransferList::disable() {
     throw torrent::client_error("ui::ElementTransferList::disable(...) !is_active().");
 
   control->input()->erase(&m_bindings);
+
+  m_frame->clear();
+  m_frame = NULL;
 
   delete m_window;
   m_window = NULL;
@@ -101,60 +108,60 @@ ElementTransferList::window() {
 
 void
 ElementTransferList::receive_next() {
-//   if (m_window == NULL)
-//     throw torrent::client_error("ui::ElementTransferList::receive_next(...) called on a disabled object");
+  if (m_window == NULL)
+    throw torrent::client_error("ui::ElementTransferList::receive_next(...) called on a disabled object");
 
-//   if (++m_focus > m_window->max_focus())
-//     m_focus = 0;
+  if (++m_focus > m_window->max_focus())
+    m_focus = 0;
 
 //   m_window->mark_dirty();
 }
 
 void
 ElementTransferList::receive_prev() {
-//   if (m_window == NULL)
-//     throw torrent::client_error("ui::ElementTransferList::receive_prev(...) called on a disabled object");
+  if (m_window == NULL)
+    throw torrent::client_error("ui::ElementTransferList::receive_prev(...) called on a disabled object");
 
-//   if (m_focus > 0)
-//     --m_focus;
-//   else
-//     m_focus = m_window->max_focus();
+  if (m_focus > 0)
+    --m_focus;
+  else
+    m_focus = m_window->max_focus();
 
 //   m_window->mark_dirty();
 }
 
 void
 ElementTransferList::receive_pagenext() {
-//   if (m_window == NULL)
-//     throw torrent::client_error("ui::ElementTransferList::receive_pagenext(...) called on a disabled object");
+  if (m_window == NULL)
+    throw torrent::client_error("ui::ElementTransferList::receive_pagenext(...) called on a disabled object");
 
-//   unsigned int visible = m_window->height() - 1;
-//   unsigned int scrollable = std::max<int>(m_window->rows() - visible, 0);
+  unsigned int visible = m_window->height() - 1;
+  unsigned int scrollable = std::max<int>(m_window->rows() - visible, 0);
 
-//   if (scrollable == 0 || m_focus == scrollable)
-//     m_focus = 0;
-//   else if (m_focus + visible / 2 < scrollable)
-//     m_focus += visible / 2;
-//   else 
-//     m_focus = scrollable;
+  if (scrollable == 0 || m_focus == scrollable)
+    m_focus = 0;
+  else if (m_focus + visible / 2 < scrollable)
+    m_focus += visible / 2;
+  else 
+    m_focus = scrollable;
 
 //   m_window->mark_dirty();
 }
 
 void
 ElementTransferList::receive_pageprev() {
-//   if (m_window == NULL)
-//     throw torrent::client_error("ui::ElementTransferList::receive_pageprev(...) called on a disabled object");
+  if (m_window == NULL)
+    throw torrent::client_error("ui::ElementTransferList::receive_pageprev(...) called on a disabled object");
 
-//   unsigned int visible = m_window->height() - 1;
-//   unsigned int scrollable = std::max<int>(m_window->rows() - visible, 0);
+  unsigned int visible = m_window->height() - 1;
+  unsigned int scrollable = std::max<int>(m_window->rows() - visible, 0);
 
-//   if (m_focus > visible / 2)
-//     m_focus -= visible / 2;
-//   else if (scrollable > 0 && m_focus == 0)
-//     m_focus = scrollable;
-//   else
-//     m_focus = 0;
+  if (m_focus > visible / 2)
+    m_focus -= visible / 2;
+  else if (scrollable > 0 && m_focus == 0)
+    m_focus = scrollable;
+  else
+    m_focus = 0;
 
 //   m_window->mark_dirty();
 }

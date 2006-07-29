@@ -44,12 +44,9 @@
 #include "display/manager.h"
 #include "utils/list_focus.h"
 
-class Control;
+#include "element_base.h"
 
 namespace display {
-  class Frame;
-  class WindowTitle;
-  class WindowStatusbar;
   class WindowDownloadStatusbar;
 }
 
@@ -59,9 +56,7 @@ namespace core {
 
 namespace ui {
 
-class ElementBase;
-
-class Download {
+class Download : public ElementBase {
 public:
   typedef display::WindowDownloadStatusbar WDownloadStatus;
 
@@ -78,19 +73,18 @@ public:
     DISPLAY_MAX_SIZE
   } Display;
 
-  Download(DPtr d, Control* c);
+  Download(DPtr d);
   ~Download();
 
-  input::Bindings&    get_bindings() { return *m_bindings; }
-
-  void                activate();
+  void                activate(display::Frame* frame);
   void                disable();
 
   void                activate_display(Display d);
-  void                disable_display();
 
   void                receive_next_priority();
   void                receive_prev_priority();
+
+  display::Window*    window() { return NULL; }
 
 private:
   Download(const Download&);
@@ -120,14 +114,9 @@ private:
   PList::iterator     m_focus;
 
   Display             m_state;
-
-  display::Frame*     m_frame;
   ElementBase*        m_uiArray[DISPLAY_MAX_SIZE];
 
   WDownloadStatus*    m_windowDownloadStatus;
-
-  Control*            m_control;
-  input::Bindings*    m_bindings;
 
   sigc::connection    m_connPeerConnected;
   sigc::connection    m_connPeerDisconnected;

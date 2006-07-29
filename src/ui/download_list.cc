@@ -68,10 +68,9 @@
 namespace ui {
 
 DownloadList::DownloadList() :
-  m_state(DISPLAY_NONE),
+  m_state(DISPLAY_MAX_SIZE) {
 
-  m_uiDownload(NULL) {
-
+  m_uiArray[DISPLAY_DOWNLOAD]      = NULL;
   m_uiArray[DISPLAY_DOWNLOAD_LIST] = new ElementDownloadList();
   m_uiArray[DISPLAY_LOG]           = new ElementLogComplete(&control->core()->get_log_complete());
   m_uiArray[DISPLAY_STRING_LIST]   = new ElementStringList();
@@ -118,7 +117,7 @@ DownloadList::disable() {
     throw std::logic_error("ui::DownloadList::disable() called on an already disabled object");
 
   receive_exit_input(INPUT_NONE);
-  activate_display(DISPLAY_NONE);
+  activate_display(DISPLAY_MAX_SIZE);
 
   m_frame = NULL;
 
@@ -131,23 +130,34 @@ DownloadList::activate_display(Display displayType) {
   if (!is_active())
     throw torrent::client_error("ui::DownloadList::activate_display(...) !is_active().");
 
-  if (displayType >= DISPLAY_MAX_SIZE)
+  if (displayType > DISPLAY_MAX_SIZE)
     throw torrent::client_error("ui::DownloadList::activate_display(...) out of bounds");
 
   if (displayType == m_state)
     return;
 
-  // Don't use default.
-
   // Cleanup previous state.
   switch (m_state) {
+  case DISPLAY_DOWNLOAD:
+    m_uiArray[m_state]->disable();
+
+    delete m_uiArray[m_state];
+    m_uiArray[m_state] = NULL;
+
+    control->input()->push_front(&m_bindings);
+    break;
+    
   case DISPLAY_DOWNLOAD_LIST:
     m_uiArray[DISPLAY_DOWNLOAD_LIST]->disable();
-    m_uiArray[DISPLAY_LOG]->disable();
+
+    m_windowLog->set_active(false);
+    m_frame->frame(1)->clear();
+
     m_frame->clear();
     break;
 
   case DISPLAY_LOG:
+  case DISPLAY_STRING_LIST:
     m_uiArray[m_state]->disable();
     break;
     
@@ -159,17 +169,37 @@ DownloadList::activate_display(Display displayType) {
 
   // Initialize new state.
   switch (displayType) {
-  case DISPLAY_NONE:
-    break;
+  case DISPLAY_DOWNLOAD:
+    // If no download has the focus, just return to the download list.
+    if (m_view->focus() == m_view->end_visible()) {
+      m_state = DISPLAY_MAX_SIZE;
+
+      activate_display(DISPLAY_DOWNLOAD_LIST);
+      return;
+
+    } else {
+      control->input()->erase(&m_bindings);
+
+      Download* download = new Download(*m_view->focus());
+
+      download->activate(m_frame);
+      download->bindings()[KEY_LEFT] = sigc::bind(sigc::mem_fun(*this, &DownloadList::activate_display), DISPLAY_DOWNLOAD_LIST);
+    
+      m_uiArray[DISPLAY_DOWNLOAD] = download;
+      break;
+    }
 
   case DISPLAY_DOWNLOAD_LIST:
-    m_frame->initialize_column(2);
+    m_frame->initialize_row(2);
 
     m_uiArray[DISPLAY_DOWNLOAD_LIST]->activate(m_frame->frame(0));
-    m_uiArray[DISPLAY_LOG]->activate(m_frame->frame(1));
+
+    m_frame->frame(1)->initialize_window(m_windowLog);
+    m_windowLog->set_active(true);
     break;
 
   case DISPLAY_LOG:
+  case DISPLAY_STRING_LIST:
     m_uiArray[displayType]->activate(m_frame);
     break;
 
@@ -185,11 +215,6 @@ DownloadList::activate_display(Display displayType) {
   }
 
   control->display()->adjust_layout();
-}
-
-display::Window*
-DownloadList::window() {
-  return NULL;
 }
 
 void
@@ -236,37 +261,6 @@ DownloadList::receive_close_download() {
   control->core()->download_list()->stop_normal(download);
   control->core()->download_list()->close(download);
   m_view->set_last_changed();
-}
-
-void
-DownloadList::receive_view_download() {
-  if (m_view->focus() == m_view->end_visible())
-    return;
-
-  if (m_uiDownload != NULL)
-    throw std::logic_error("DownloadList::receive_view_download() called but m_uiDownload != NULL");
-
-  disable();
-
-  m_uiDownload = new Download(*m_view->focus(), control);
-
-  m_uiDownload->activate();
-  m_uiDownload->get_bindings()[KEY_LEFT] = sigc::mem_fun(*this, &DownloadList::receive_exit_download);
-}
-
-void
-DownloadList::receive_exit_download() {
-  if (m_uiDownload == NULL)
-    throw std::logic_error("DownloadList::receive_exit_download() called but m_uiDownload == NULL");
-
-  m_uiDownload->disable();
-  delete m_uiDownload;
-  m_uiDownload = NULL;
-
-  m_view->set_last_changed();
-  activate(m_frame);
-
-  control->display()->adjust_layout();
 }
 
 void
@@ -359,6 +353,14 @@ DownloadList::receive_view_input(Input type) {
     throw torrent::client_error("DownloadList::receive_view_input(...) Invalid input type.");
   }
 
+  ElementStringList* esl = dynamic_cast<ElementStringList*>(m_uiArray[DISPLAY_STRING_LIST]);
+
+  input->signal_show_next().connect(sigc::bind(sigc::mem_fun(*this, &DownloadList::activate_display), DISPLAY_STRING_LIST));
+  input->signal_show_next().connect(sigc::mem_fun(*esl, &ElementStringList::next_screen));
+
+  input->signal_show_range().connect(sigc::hide(sigc::hide(sigc::bind(sigc::mem_fun(*this, &DownloadList::activate_display), DISPLAY_STRING_LIST))));
+  input->signal_show_range().connect(sigc::mem_fun(*esl, &ElementStringList::set_range<utils::Directory::iterator>));
+
   input->bindings()['\n']      = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_exit_input), type);
   input->bindings()[KEY_ENTER] = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_exit_input), type);
   input->bindings()['\x07']    = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_exit_input), INPUT_NONE);
@@ -409,6 +411,8 @@ DownloadList::receive_exit_input(Input type) {
     control->core()->push_log(e.what());
   }
 
+  activate_display(DISPLAY_DOWNLOAD_LIST);
+
   delete input;
 }
 
@@ -417,9 +421,7 @@ DownloadList::receive_download_erased(core::Download* d) {
   if (m_view->focus() == m_view->end_visible() || *m_view->focus() != d)
     return;
 
-  if (m_uiDownload != NULL)
-    receive_exit_download();
-
+  activate_display(DISPLAY_DOWNLOAD_LIST);
   receive_next();
 }
 
@@ -470,7 +472,7 @@ DownloadList::setup_keys() {
 
   m_bindings[KEY_UP]        = sigc::mem_fun(*this, &DownloadList::receive_prev);
   m_bindings[KEY_DOWN]      = sigc::mem_fun(*this, &DownloadList::receive_next);
-  m_bindings[KEY_RIGHT]     = sigc::mem_fun(*this, &DownloadList::receive_view_download);
+  m_bindings[KEY_RIGHT]     = sigc::bind(sigc::mem_fun(*this, &DownloadList::activate_display), DISPLAY_DOWNLOAD);
   m_bindings['l']           = sigc::bind(sigc::mem_fun(*this, &DownloadList::activate_display), DISPLAY_LOG);
 
   m_bindings['1']           = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_change_view), "main");
