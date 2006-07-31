@@ -65,7 +65,7 @@ ElementTrackerList::activate(display::Frame* frame) {
   if (m_window != NULL)
     throw torrent::client_error("ui::ElementTrackerList::activate(...) is_active().");
 
-  control->input()->push_front(&m_bindings);
+  control->input()->push_back(&m_bindings);
 
   m_window = new WTrackerList(m_download, &m_focus);
   m_window->set_active(true);

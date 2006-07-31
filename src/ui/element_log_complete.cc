@@ -58,7 +58,7 @@ ElementLogComplete::activate(display::Frame* frame) {
   if (is_active())
     throw torrent::client_error("ui::ElementLogComplete::activate(...) is_active().");
 
-  control->input()->push_front(&m_bindings);
+  control->input()->push_back(&m_bindings);
 
   m_window = new WLogComplete(m_log);
   m_window->set_active(true);

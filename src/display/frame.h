@@ -87,6 +87,8 @@ public:
   void                clear();
 
   void                refresh();
+  void                redraw();
+
   void                balance(uint32_t x, uint32_t y, uint32_t width, uint32_t height);
 
 private:

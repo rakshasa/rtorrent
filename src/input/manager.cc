@@ -61,10 +61,10 @@ Manager::erase(Bindings* b) {
 
 void
 Manager::pressed(int key) {
-  if (m_textInput != NULL && m_textInput->pressed(key))
-    return;
-
-  std::find_if(begin(), end(), std::bind2nd(std::mem_fun(&Bindings::pressed), key));
+  if (m_textInput != NULL)
+    m_textInput->pressed(key);
+  else
+    std::find_if(rbegin(), rend(), std::bind2nd(std::mem_fun(&Bindings::pressed), key));
 }
 
 }

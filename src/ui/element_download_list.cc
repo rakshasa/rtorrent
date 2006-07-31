@@ -36,8 +36,13 @@
 
 #include "config.h"
 
+#include <sigc++/bind.h>
 #include <torrent/exceptions.h>
 
+#include "core/download.h"
+#include "core/manager.h"
+#include "core/view.h"
+#include "core/view_manager.h"
 #include "display/frame.h"
 #include "display/manager.h"
 #include "input/manager.h"
@@ -47,12 +52,42 @@
 
 namespace ui {
 
+ElementDownloadList::ElementDownloadList() :
+  m_window(NULL),
+  m_view(NULL) {
+
+  receive_change_view("main");
+
+  if (m_view == NULL)
+    throw torrent::client_error("View \"main\" must be present to initialize the main display.");
+
+  m_bindings['\x13']        = sigc::mem_fun(*this, &ElementDownloadList::receive_start_download);
+  m_bindings['\x04']        = sigc::mem_fun(*this, &ElementDownloadList::receive_stop_download);
+  m_bindings['\x0B']        = sigc::mem_fun(*this, &ElementDownloadList::receive_close_download);
+  m_bindings['\x12']        = sigc::mem_fun(*this, &ElementDownloadList::receive_check_hash);
+  m_bindings['+']           = sigc::mem_fun(*this, &ElementDownloadList::receive_next_priority);
+  m_bindings['-']           = sigc::mem_fun(*this, &ElementDownloadList::receive_prev_priority);
+  m_bindings['I']           = sigc::mem_fun(*this, &ElementDownloadList::receive_ignore_ratio);
+  m_bindings['U']           = sigc::mem_fun(*this, &ElementDownloadList::receive_clear_tied);
+
+  m_bindings['1']           = sigc::bind(sigc::mem_fun(*this, &ElementDownloadList::receive_change_view), "main");
+  m_bindings['2']           = sigc::bind(sigc::mem_fun(*this, &ElementDownloadList::receive_change_view), "name");
+  m_bindings['3']           = sigc::bind(sigc::mem_fun(*this, &ElementDownloadList::receive_change_view), "started");
+  m_bindings['4']           = sigc::bind(sigc::mem_fun(*this, &ElementDownloadList::receive_change_view), "stopped");
+  m_bindings['5']           = sigc::bind(sigc::mem_fun(*this, &ElementDownloadList::receive_change_view), "complete");
+  m_bindings['6']           = sigc::bind(sigc::mem_fun(*this, &ElementDownloadList::receive_change_view), "incomplete");
+  m_bindings['7']           = sigc::bind(sigc::mem_fun(*this, &ElementDownloadList::receive_change_view), "hashing");
+
+  m_bindings[KEY_UP]        = sigc::mem_fun(*this, &ElementDownloadList::receive_prev);
+  m_bindings[KEY_DOWN]      = sigc::mem_fun(*this, &ElementDownloadList::receive_next);
+}
+
 void
 ElementDownloadList::activate(display::Frame* frame) {
   if (is_active())
     throw torrent::client_error("ui::ElementDownloadList::activate(...) is_active().");
 
-  control->input()->push_front(&m_bindings);
+  control->input()->push_back(&m_bindings);
 
   m_window = new WDownloadList();
   m_window->set_active(true);
@@ -60,8 +95,6 @@ ElementDownloadList::activate(display::Frame* frame) {
 
   m_frame = frame;
   m_frame->initialize_window(m_window);
-
-  control->display()->schedule(m_window, cachedTime);
 }
 
 void
@@ -81,12 +114,129 @@ ElementDownloadList::disable() {
 void
 ElementDownloadList::set_view(core::View* l) {
   m_view = l;
+  m_view->sort();
 
   if (m_window == NULL)
     return;
 
   m_window->set_view(l);
   m_window->mark_dirty();
+}
+
+void
+ElementDownloadList::receive_next() {
+  m_view->next_focus();
+  m_view->set_last_changed();
+}
+
+void
+ElementDownloadList::receive_prev() {
+  m_view->prev_focus();
+  m_view->set_last_changed();
+}
+
+void
+ElementDownloadList::receive_start_download() {
+  if (m_view->focus() == m_view->end_visible())
+    return;
+
+  control->core()->download_list()->start_normal(*m_view->focus());
+  m_view->set_last_changed();
+}
+
+void
+ElementDownloadList::receive_stop_download() {
+  if (m_view->focus() == m_view->end_visible())
+    return;
+
+  if ((*m_view->focus())->variable()->get_value("state") == 1)
+    control->core()->download_list()->stop_normal(*m_view->focus());
+  else
+    control->core()->download_list()->erase(*m_view->focus());
+
+  m_view->set_last_changed();
+}
+
+void
+ElementDownloadList::receive_close_download() {
+  if (m_view->focus() == m_view->end_visible())
+    return;
+
+  core::Download* download = *m_view->focus();
+
+  download->variable()->set("ignore_commands", (int64_t)1);
+
+  control->core()->download_list()->stop_normal(download);
+  control->core()->download_list()->close(download);
+  m_view->set_last_changed();
+}
+
+void
+ElementDownloadList::receive_next_priority() {
+  if (m_view->focus() == m_view->end_visible())
+    return;
+
+  (*m_view->focus())->set_priority(((*m_view->focus())->priority() + 1) % 4);
+  m_window->mark_dirty();
+}
+
+void
+ElementDownloadList::receive_prev_priority() {
+  if (m_view->focus() == m_view->end_visible())
+    return;
+
+  (*m_view->focus())->set_priority(((*m_view->focus())->priority() - 1) % 4);
+  m_window->mark_dirty();
+}
+
+void
+ElementDownloadList::receive_check_hash() {
+  if (m_view->focus() == m_view->end_visible())
+    return;
+
+  // Catch here?
+  control->core()->download_list()->check_hash(*m_view->focus());
+}
+
+void
+ElementDownloadList::receive_ignore_ratio() {
+  if (m_view->focus() == m_view->end_visible())
+    return;
+
+  if ((*m_view->focus())->variable()->get_value("ignore_commands") != 0) {
+    (*m_view->focus())->variable()->set("ignore_commands", (int64_t)0);
+    control->core()->push_log("Torrent set to heed commands.");
+  } else {
+    (*m_view->focus())->variable()->set("ignore_commands", (int64_t)1);
+    control->core()->push_log("Torrent set to ignore commands.");
+  }
+}
+
+void
+ElementDownloadList::receive_clear_tied() {
+  if (m_view->focus() == m_view->end_visible())
+    return;
+
+  const std::string& tiedFile = (*m_view->focus())->variable()->get_string("tied_to_file");
+
+  if (!tiedFile.empty()) {
+    // Move this into core?
+    control->core()->delete_tied(*m_view->focus());
+
+    control->core()->push_log("Cleared tied to file association for download.");
+  }
+}
+
+void
+ElementDownloadList::receive_change_view(const std::string& name) {
+  core::ViewManager::iterator itr = control->view_manager()->find(name);
+
+  if (itr == control->view_manager()->end()) {
+    control->core()->push_log("Could not find view \"" + name + "\".");
+    return;
+  }
+
+  set_view(*itr);
 }
 
 }

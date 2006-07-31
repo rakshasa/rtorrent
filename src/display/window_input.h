@@ -61,7 +61,7 @@ public:
   void                set_title(const std::string& str)  { m_title = str; }
 
   bool                focus() const                      { return m_focus; }
-  void                set_focus(bool f)                  { mark_dirty(); m_focus = f; }
+  void                set_focus(bool f)                  { m_focus = f; if (is_active()) mark_dirty(); }
 
   virtual void        redraw();
 

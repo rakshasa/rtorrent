@@ -87,7 +87,9 @@ Manager::receive_update() {
 
     display::Canvas::resize_term(display::Canvas::term_size());
     Canvas::redraw_std();
+
     adjust_layout();
+    m_rootFrame.redraw();
   }
 
   Canvas::refresh_std();

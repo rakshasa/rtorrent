@@ -37,16 +37,16 @@
 #ifndef RTORRENT_INPUT_MANAGER_H
 #define RTORRENT_INPUT_MANAGER_H
 
-#include <list>
+#include <vector>
 
 namespace input {
 
 class Bindings;
 class TextInput;
 
-class Manager : private std::list<Bindings*> {
+class Manager : private std::vector<Bindings*> {
 public:
-  typedef std::list<Bindings*> Base;
+  typedef std::vector<Bindings*> Base;
 
   using Base::iterator;
   using Base::const_iterator;
@@ -59,7 +59,6 @@ public:
   using Base::rend;
 
   using Base::push_back;
-  using Base::push_front;
 
   Manager() : m_textInput(NULL) {}
 
@@ -68,8 +67,6 @@ public:
   void pressed(int key);
 
   void set_text_input(TextInput* input = NULL) { m_textInput = input; }
-
-  // Slot for unreacted keys.
 
 private:
   TextInput* m_textInput;

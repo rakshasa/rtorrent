@@ -59,7 +59,7 @@ ElementPeerList::activate(display::Frame* frame) {
   if (is_active())
     throw torrent::client_error("ui::ElementPeerList::activate(...) is_active().");
 
-  control->input()->push_front(&m_bindings);
+  control->input()->push_back(&m_bindings);
 
   m_window = new WPeerList(m_download, m_list, m_focus);
   m_window->set_active(true);

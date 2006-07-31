@@ -54,18 +54,34 @@ class ElementDownloadList : public ElementBase {
 public:
   typedef display::WindowDownloadList WDownloadList;
 
-  ElementDownloadList() : m_window(NULL), m_view(NULL) {}
+  ElementDownloadList();
 
   void                activate(display::Frame* frame);
   void                disable();
 
-  display::Window*    window() { return m_window; }
-
+  core::View*         view() { return m_view; }
   void                set_view(core::View* l);
 
+  void                receive_next();
+  void                receive_prev();
+
+  void                receive_start_download();
+  void                receive_stop_download();
+  void                receive_close_download();
+
+  void                receive_next_priority();
+  void                receive_prev_priority();
+
+  void                receive_check_hash();
+
+  void                receive_ignore_ratio();
+  void                receive_clear_tied();
+
+  void                receive_change_view(const std::string& name);
+
 private:
-  WDownloadList*       m_window;
-  core::View*          m_view;
+  WDownloadList*      m_window;
+  core::View*         m_view;
 };
 
 }

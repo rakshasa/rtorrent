@@ -100,7 +100,7 @@ public:
 
   void                activate_display(Display d);
 
-  display::Window*    window() { return NULL; }
+  core::View*         current_view();
 
   void                slot_open_uri(SlotOpenUri s) { m_slotOpenUri = s; }
 
@@ -108,29 +108,10 @@ private:
   DownloadList(const DownloadList&);
   void operator = (const DownloadList&);
 
-  void                receive_next();
-  void                receive_prev();
-
-  void                receive_start_download();
-  void                receive_stop_download();
-  void                receive_close_download();
-
-  void                receive_next_priority();
-  void                receive_prev_priority();
-
-  void                receive_check_hash();
-
-  void                receive_ignore_ratio();
-  void                receive_clear_tied();
-
   void                receive_view_input(Input type);
   void                receive_exit_input(Input type);
 
   void                receive_download_erased(core::Download* d);
-
-  void                receive_change_view(const std::string& name);
-
-  void                task_update();
 
   void                setup_keys();
   void                setup_input();
@@ -139,10 +120,6 @@ private:
 
   ElementBase*        m_uiArray[DISPLAY_MAX_SIZE];
   WLog*               m_windowLog;
-
-  core::View*         m_view;
-
-  rak::priority_item  m_taskUpdate;
 
   SlotOpenUri         m_slotOpenUri;
 };

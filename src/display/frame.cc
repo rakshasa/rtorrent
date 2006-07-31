@@ -222,6 +222,27 @@ Frame::refresh() {
 }
 
 void
+Frame::redraw() {
+  switch (m_type) {
+  case TYPE_NONE:
+    break;
+
+  case TYPE_WINDOW:
+    if (m_window->is_active() && !m_window->is_offscreen())
+      m_window->redraw();
+
+    break;
+
+  case TYPE_ROW:
+  case TYPE_COLUMN:
+    for (Frame **itr = m_container, **last = m_container + m_containerSize; itr != last; ++itr)
+      (*itr)->redraw();
+
+    break;
+  }
+}
+
+void
 Frame::balance(uint32_t x, uint32_t y, uint32_t width, uint32_t height) {
   m_positionX = x;
   m_positionY = y;
@@ -288,6 +309,10 @@ Frame::balance(uint32_t x, uint32_t y, uint32_t width, uint32_t height) {
     else
       (*itr)->m_width = s;
   }
+
+  // Use the pre-calculated frame sizes to balance the sub-frames. If
+  // the frame is too small, it will set the remaining windows to zero
+  // extent which will flag them as offscreen.
 
   for (Frame **itr = m_container, **last = m_container + m_containerSize; itr != last; ++itr) {
     if (m_type == TYPE_ROW) {

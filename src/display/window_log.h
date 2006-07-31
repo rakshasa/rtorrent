@@ -52,15 +52,17 @@ public:
   WindowLog(core::Log* l);
   ~WindowLog();
 
-  virtual void     redraw();
+  virtual void        redraw();
 
-  void             receive_update();
+  void                receive_update();
 
 private:
-  inline iterator  find_older();
+  inline iterator     find_older();
 
-  core::Log*       m_log;
-  sigc::connection m_connUpdate;
+  core::Log*          m_log;
+  sigc::connection    m_connUpdate;
+
+  rak::priority_item  m_taskUpdate;
 };
 
 }

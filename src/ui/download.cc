@@ -99,7 +99,7 @@ Download::activate(display::Frame* frame) {
   if (is_active())
     throw torrent::client_error("ui::Download::activate() called on an already activated object.");
 
-  control->input()->push_front(&m_bindings);
+  control->input()->push_back(&m_bindings);
 
   m_frame = frame;
   activate_display(DISPLAY_PEER_LIST);

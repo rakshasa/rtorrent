@@ -48,11 +48,14 @@ WindowLog::WindowLog(core::Log* l) :
   Window(new Canvas, flag_width_dynamic, 0, 0),
   m_log(l) {
 
+  m_taskUpdate.set_slot(rak::mem_fn(this, &WindowLog::receive_update)),
+
   // We're trying out scheduled tasks instead.
   m_connUpdate = l->signal_update().connect(sigc::mem_fun(*this, &WindowLog::receive_update));
 }
 
 WindowLog::~WindowLog() {
+  priority_queue_erase(&taskScheduler, &m_taskUpdate);
   m_connUpdate.disconnect();
 }
 
@@ -75,19 +78,28 @@ WindowLog::redraw() {
   }
 }
 
+// When WindowLog is activated, call receive_update() to ensure it
+// gets updated.
 void
 WindowLog::receive_update() {
+  if (!is_active())
+    return;
+
   iterator itr = find_older();
   extent_type h = std::min(std::distance(m_log->begin(), itr), (std::iterator_traits<iterator>::difference_type)10);
 
   if (h != m_minHeight) {
-    set_active(h != 0);
-
     m_minHeight = h;
     m_slotAdjust();
+
+  } else {
+    mark_dirty();
   }
 
-  mark_dirty();
+  priority_queue_erase(&taskScheduler, &m_taskUpdate);
+
+  if (h != 0)
+    priority_queue_insert(&taskScheduler, &m_taskUpdate, (cachedTime + rak::timer::from_seconds(30)).round_seconds());
 }
 
 }

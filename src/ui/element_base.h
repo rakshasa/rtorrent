@@ -58,8 +58,6 @@ public:
   virtual void        activate(display::Frame* frame) = 0;
   virtual void        disable() = 0;
 
-  virtual display::Window* window() = 0;
-
 protected:
   display::Frame*     m_frame;
 
