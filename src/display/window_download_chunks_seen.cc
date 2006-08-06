@@ -52,7 +52,7 @@
 namespace display {
 
 WindowDownloadChunksSeen::WindowDownloadChunksSeen(core::Download* d, unsigned int *focus) :
-  Window(new Canvas, flag_width_dynamic | flag_height_dynamic, 0, 0),
+  Window(new Canvas, 0, 0, 0, extent_full, extent_full),
   m_download(d),
   m_focus(focus) {
 }
@@ -102,7 +102,7 @@ WindowDownloadChunksSeen::redraw() {
   while (itrTransfer != transferChunks.end() && (uint32_t)(chunk - seen) > (*itrTransfer)->index())
     itrTransfer++;
 
-  for (int y = 1; y < m_canvas->height() && chunk < last; ++y) {
+  for (unsigned int y = 1; y < m_canvas->height() && chunk < last; ++y) {
     m_canvas->print(0, y, "%5u ", (int)(chunk - seen));
 
     while (chunk < last) {

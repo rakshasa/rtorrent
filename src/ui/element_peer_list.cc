@@ -55,11 +55,12 @@ ElementPeerList::ElementPeerList(core::Download* d, PList* l, PList::iterator* f
 }
 
 void
-ElementPeerList::activate(display::Frame* frame) {
+ElementPeerList::activate(display::Frame* frame, bool focus) {
   if (is_active())
     throw torrent::client_error("ui::ElementPeerList::activate(...) is_active().");
 
-  control->input()->push_back(&m_bindings);
+  if (focus)
+    control->input()->push_back(&m_bindings);
 
   m_window = new WPeerList(m_download, m_list, m_focus);
   m_window->set_active(true);
@@ -80,11 +81,6 @@ ElementPeerList::disable() {
 
   delete m_window;
   m_window = NULL;
-}
-
-display::Window*
-ElementPeerList::window() {
-  return m_window;
 }
 
 }

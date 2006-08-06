@@ -64,6 +64,7 @@ public:
   typedef std::list<torrent::Peer>         PList;
 
   typedef enum {
+    DISPLAY_MENU,
     DISPLAY_PEER_LIST,
     DISPLAY_PEER_INFO,
     DISPLAY_FILE_LIST,
@@ -76,10 +77,13 @@ public:
   Download(DPtr d);
   ~Download();
 
-  void                activate(display::Frame* frame);
+  void                activate(display::Frame* frame, bool focus = true);
   void                disable();
 
-  void                activate_display(Display d);
+  void                activate_display(Display d, bool focusDisplay);
+
+  void                activate_display_focus(Display d) { activate_display(d, true); }
+  void                activate_display_menu(Display d)  { activate_display(d, false); }
 
   void                receive_next_priority();
   void                receive_prev_priority();
@@ -101,13 +105,10 @@ private:
   void                receive_max_uploads(int t);
   void                receive_min_peers(int t);
   void                receive_max_peers(int t);
-  void                receive_change(Display d);
 
   void                receive_snub_peer();
 
   void                bind_keys();
-
-  void                mark_dirty();
 
   DPtr                m_download;
   PList               m_peers;
@@ -115,6 +116,8 @@ private:
 
   Display             m_state;
   ElementBase*        m_uiArray[DISPLAY_MAX_SIZE];
+
+  bool                m_focusDisplay;
 
   WDownloadStatus*    m_windowDownloadStatus;
 

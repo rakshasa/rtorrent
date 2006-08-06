@@ -39,6 +39,7 @@
 #include <unistd.h>
 #include <sys/ioctl.h>
 #include <sys/termios.h>
+#include <torrent/exceptions.h>
 
 #include "canvas.h"
 
@@ -50,6 +51,28 @@ void
 Canvas::resize(int x, int y, int w, int h) {
   wresize(m_window, h, w);
   mvwin(m_window, y, x);
+}
+
+void
+Canvas::print_attributes(unsigned int x, unsigned int y, const char* first, const char* last, const attributes_list* attributes) {
+  move(x, y);
+
+  int attr = A_NORMAL;
+  attributes_list::const_iterator attrItr = attributes->begin();
+
+  while (first != last) {
+    if (attrItr != attributes->end() && attrItr->position() == first) {
+      attr = attrItr->attributes();
+      // Set colors or something.
+
+      attrItr++;
+      continue;
+    }
+
+    waddch(m_window, *first++ | attr);
+  }
+
+  // Reset the color.
 }
 
 void

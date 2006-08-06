@@ -51,6 +51,7 @@
 #include "download.h"
 #include "root.h"
 #include "element_file_list.h"
+#include "element_menu.h"
 #include "element_peer_info.h"
 #include "element_peer_list.h"
 #include "element_tracker_list.h"
@@ -62,11 +63,25 @@ namespace ui {
 Download::Download(DPtr d) :
   m_download(d),
   m_state(DISPLAY_MAX_SIZE),
-
-  m_windowDownloadStatus(new WDownloadStatus(d)) {
+  m_focusDisplay(false) {
 
   m_focus = m_peers.end();
 
+  m_windowDownloadStatus = new WDownloadStatus(d);
+  m_windowDownloadStatus->set_bottom(true);
+
+  ElementMenu* elementMenu = new ElementMenu;
+
+  elementMenu->push_back("Peer List",     sigc::bind(sigc::mem_fun(this, &Download::activate_display_focus), DISPLAY_PEER_LIST));
+//   elementMenu->push_back("Peer Info",     sigc::bind(sigc::mem_fun(this, &Download::activate_display_focus), DISPLAY_PEER_INFO));
+  elementMenu->push_back("File List",     sigc::bind(sigc::mem_fun(this, &Download::activate_display_focus), DISPLAY_FILE_LIST));
+  elementMenu->push_back("Tracker List",  sigc::bind(sigc::mem_fun(this, &Download::activate_display_focus), DISPLAY_TRACKER_LIST));
+  elementMenu->push_back("Chunks Seen",   sigc::bind(sigc::mem_fun(this, &Download::activate_display_focus), DISPLAY_CHUNKS_SEEN));
+  elementMenu->push_back("Transfer List", sigc::bind(sigc::mem_fun(this, &Download::activate_display_focus), DISPLAY_TRANSFER_LIST));
+
+  elementMenu->focus_next();
+
+  m_uiArray[DISPLAY_MENU]          = elementMenu;
   m_uiArray[DISPLAY_PEER_LIST]     = new ElementPeerList(d, &m_peers, &m_focus);
   m_uiArray[DISPLAY_PEER_INFO]     = new ElementPeerInfo(d, &m_peers, &m_focus);
   m_uiArray[DISPLAY_FILE_LIST]     = new ElementFileList(d);
@@ -95,14 +110,19 @@ Download::~Download() {
 }
 
 void
-Download::activate(display::Frame* frame) {
+Download::activate(display::Frame* frame, bool focus) {
   if (is_active())
     throw torrent::client_error("ui::Download::activate() called on an already activated object.");
 
   control->input()->push_back(&m_bindings);
 
   m_frame = frame;
-  activate_display(DISPLAY_PEER_LIST);
+  m_frame->initialize_row(2);
+
+  m_frame->frame(1)->initialize_window(m_windowDownloadStatus);
+  m_windowDownloadStatus->set_active(true);
+
+  activate_display_menu(DISPLAY_PEER_LIST);
 }
 
 void
@@ -112,35 +132,42 @@ Download::disable() {
 
   control->input()->erase(&m_bindings);
 
-  activate_display(DISPLAY_MAX_SIZE);
+  activate_display_focus(DISPLAY_MAX_SIZE);
+
+  m_windowDownloadStatus->set_active(false);
+  m_frame->clear();
+
   m_frame = NULL;
 }
 
 void
-Download::activate_display(Display displayType) {
+Download::activate_display(Display displayType, bool focusDisplay) {
   if (!is_active())
     throw torrent::client_error("ui::Download::activate_display(...) !is_active().");
 
   if (displayType > DISPLAY_MAX_SIZE)
     throw torrent::client_error("ui::Download::activate_display(...) out of bounds");
 
-  if (displayType == m_state)
+  if (focusDisplay == m_focusDisplay && displayType == m_state)
     return;
+
+  display::Frame* frame = m_frame->frame(0);
 
   // Cleanup previous state.
   switch (m_state) {
+  case DISPLAY_MENU:
+    break;
+
   case DISPLAY_PEER_LIST:
   case DISPLAY_PEER_INFO:
   case DISPLAY_FILE_LIST:
   case DISPLAY_TRACKER_LIST:
   case DISPLAY_CHUNKS_SEEN:
   case DISPLAY_TRANSFER_LIST:
+    m_uiArray[DISPLAY_MENU]->disable();
     m_uiArray[m_state]->disable();
 
-    m_windowDownloadStatus->set_active(false);
-    m_frame->frame(1)->clear();
-
-    m_frame->clear();
+    frame->clear();
     break;
 
   case DISPLAY_MAX_SIZE:
@@ -148,21 +175,23 @@ Download::activate_display(Display displayType) {
   }
 
   m_state = displayType;
+  m_focusDisplay = focusDisplay;
 
   // Initialize new state.
   switch (displayType) {
+  case DISPLAY_MENU:
+    break;
+
   case DISPLAY_PEER_LIST:
   case DISPLAY_PEER_INFO:
   case DISPLAY_FILE_LIST:
   case DISPLAY_TRACKER_LIST:
   case DISPLAY_CHUNKS_SEEN:
   case DISPLAY_TRANSFER_LIST:
-    m_frame->initialize_row(2);
+    frame->initialize_column(2);
 
-    m_uiArray[displayType]->activate(m_frame->frame(0));
-
-    m_frame->frame(1)->initialize_window(m_windowDownloadStatus);
-    m_windowDownloadStatus->set_active(true);
+    m_uiArray[DISPLAY_MENU]->activate(frame->frame(0), !focusDisplay);
+    m_uiArray[displayType]->activate(frame->frame(1), focusDisplay);
     break;
 
   case DISPLAY_MAX_SIZE:
@@ -185,7 +214,7 @@ Download::receive_next() {
   else
     m_focus = m_peers.begin();
 
-  mark_dirty();
+//   mark_dirty();
 }
 
 void
@@ -195,7 +224,7 @@ Download::receive_prev() {
   else
     m_focus = m_peers.end();
 
-  mark_dirty();
+//   mark_dirty();
 }
 
 void
@@ -205,7 +234,7 @@ Download::receive_disconnect_peer() {
 
   m_download->download()->disconnect_peer(*m_focus);
 
-  mark_dirty();
+//   mark_dirty();
 }
 
 void
@@ -248,21 +277,13 @@ Download::receive_max_peers(int t) {
 }
 
 void
-Download::receive_change(Display d) {
-  if (d == m_state)
-    return;
-
-  activate_display(d);
-}
-
-void
 Download::receive_snub_peer() {
   if (m_focus == m_peers.end())
     return;
 
   m_focus->set_snubbed(!m_focus->is_snubbed());
 
-  mark_dirty();
+//   mark_dirty();
 }
 
 void
@@ -291,30 +312,25 @@ Download::bind_keys() {
   m_bindings['t'] = sigc::bind(sigc::mem_fun(m_download->tracker_list(), &torrent::TrackerList::manual_request), false);
   m_bindings['T'] = sigc::bind(sigc::mem_fun(m_download->tracker_list(), &torrent::TrackerList::manual_request), true);
 
-  m_bindings['p'] = sigc::bind(sigc::mem_fun(this, &Download::receive_change), DISPLAY_PEER_INFO);
-  m_bindings['o'] = sigc::bind(sigc::mem_fun(this, &Download::receive_change), DISPLAY_TRACKER_LIST);
-  m_bindings['i'] = sigc::bind(sigc::mem_fun(this, &Download::receive_change), DISPLAY_CHUNKS_SEEN);
-  m_bindings['u'] = sigc::bind(sigc::mem_fun(this, &Download::receive_change), DISPLAY_TRANSFER_LIST);
+  m_bindings['p'] = sigc::bind(sigc::mem_fun(this, &Download::activate_display_focus), DISPLAY_PEER_INFO);
+  m_bindings['o'] = sigc::bind(sigc::mem_fun(this, &Download::activate_display_focus), DISPLAY_TRACKER_LIST);
+  m_bindings['i'] = sigc::bind(sigc::mem_fun(this, &Download::activate_display_focus), DISPLAY_CHUNKS_SEEN);
+  m_bindings['u'] = sigc::bind(sigc::mem_fun(this, &Download::activate_display_focus), DISPLAY_TRANSFER_LIST);
 
   m_bindings[KEY_UP]   = sigc::mem_fun(this, &Download::receive_prev);
   m_bindings[KEY_DOWN] = sigc::mem_fun(this, &Download::receive_next);
 
   // Key bindings for sub-ui's.
-  m_uiArray[DISPLAY_PEER_LIST]->bindings()[KEY_RIGHT]   = sigc::bind(sigc::mem_fun(this, &Download::receive_change), DISPLAY_FILE_LIST);
-  m_uiArray[DISPLAY_PEER_INFO]->bindings()[KEY_LEFT]    = sigc::bind(sigc::mem_fun(this, &Download::receive_change), DISPLAY_PEER_LIST);
-  m_uiArray[DISPLAY_FILE_LIST]->bindings()[KEY_LEFT]    = sigc::bind(sigc::mem_fun(this, &Download::receive_change), DISPLAY_PEER_LIST);
-  m_uiArray[DISPLAY_TRACKER_LIST]->bindings()[KEY_LEFT] = sigc::bind(sigc::mem_fun(this, &Download::receive_change), DISPLAY_PEER_LIST);
-  m_uiArray[DISPLAY_CHUNKS_SEEN]->bindings()[KEY_LEFT]  = sigc::bind(sigc::mem_fun(this, &Download::receive_change), DISPLAY_PEER_LIST);
-  m_uiArray[DISPLAY_TRANSFER_LIST]->bindings()[KEY_LEFT]= sigc::bind(sigc::mem_fun(this, &Download::receive_change), DISPLAY_PEER_LIST);
+  m_uiArray[DISPLAY_PEER_LIST]->bindings()[KEY_LEFT]    = sigc::bind(sigc::mem_fun(this, &Download::activate_display_focus), DISPLAY_MENU);
+  m_uiArray[DISPLAY_PEER_INFO]->bindings()[KEY_LEFT]    = sigc::bind(sigc::mem_fun(this, &Download::activate_display_focus), DISPLAY_MENU);
+  m_uiArray[DISPLAY_FILE_LIST]->bindings()[KEY_LEFT]    = sigc::bind(sigc::mem_fun(this, &Download::activate_display_focus), DISPLAY_MENU);
+  m_uiArray[DISPLAY_TRACKER_LIST]->bindings()[KEY_LEFT] = sigc::bind(sigc::mem_fun(this, &Download::activate_display_focus), DISPLAY_MENU);
+  m_uiArray[DISPLAY_CHUNKS_SEEN]->bindings()[KEY_LEFT]  = sigc::bind(sigc::mem_fun(this, &Download::activate_display_focus), DISPLAY_MENU);
+  m_uiArray[DISPLAY_TRANSFER_LIST]->bindings()[KEY_LEFT]= sigc::bind(sigc::mem_fun(this, &Download::activate_display_focus), DISPLAY_MENU);
 
   // Doesn't belong here.
   m_uiArray[DISPLAY_PEER_LIST]->bindings()['*'] = sigc::mem_fun(this, &Download::receive_snub_peer);
   m_uiArray[DISPLAY_PEER_INFO]->bindings()['*'] = sigc::mem_fun(this, &Download::receive_snub_peer);
-}
-
-void
-Download::mark_dirty() {
-//   (*m_window)->mark_dirty();
 }
 
 }

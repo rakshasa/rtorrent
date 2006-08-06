@@ -50,7 +50,7 @@ namespace display {
 class WindowInput : public Window {
 public:
   WindowInput() :
-    Window(new Canvas, flag_width_dynamic, 0, 1),
+    Window(new Canvas, 0, 0, 1, extent_full, 1),
     m_input(NULL),
     m_focus(false) {}
 

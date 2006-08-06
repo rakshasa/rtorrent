@@ -49,11 +49,15 @@ Window::Slot       Window::m_slotAdjust;
 // When constructing the window we set flag_offscreen so that redraw
 // doesn't get triggered until after a successful Frame::balance call.
 
-Window::Window(Canvas* canvas, int flags, extent_type minWidth, extent_type minHeight) :
+Window::Window(Canvas* canvas, int flags, extent_type minWidth, extent_type minHeight, extent_type maxWidth, extent_type maxHeight) :
   m_canvas(canvas),
   m_flags(flags | flag_offscreen),
+
   m_minWidth(minWidth),
-  m_minHeight(minHeight) {
+  m_minHeight(minHeight),
+
+  m_maxWidth(maxWidth),
+  m_maxHeight(maxHeight) {
 
   m_taskUpdate.set_slot(rak::mem_fn(this, &Window::redraw));
 }

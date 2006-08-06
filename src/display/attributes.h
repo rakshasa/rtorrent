@@ -34,25 +34,47 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef RTORRENT_DISPLAY_WINDOW_STATUSBAR_H
-#define RTORRENT_DISPLAY_WINDOW_STATUSBAR_H
+#ifndef RTORRENT_DISPLAY_ATTRIBUTES_H
+#define RTORRENT_DISPLAY_ATTRIBUTES_H
 
-#include <inttypes.h>
+#include <string>
+#include <vector>
+#include <ncurses.h>
 
-#include "window.h"
+// Let us hail the creators of curses for being idiots. The only
+// clever move they made was in the naming.
+#undef timeout
+#undef move
 
 namespace display {
 
-class WindowStatusbar : public Window {
+class Attributes {
 public:
-  WindowStatusbar() :
-    Window(new Canvas, 0, 0, 1, extent_full, extent_static),
-    m_lastTick(0) {}
+  static const int a_invalid = ~int();
+  static const int a_normal  = A_NORMAL;
+  static const int a_bold    = A_BOLD;
+  static const int a_reverse = A_REVERSE;
 
-  virtual void   redraw();
+  static const int color_invalid = ~int();
+  static const int color_default = 0;
+
+  Attributes() {}
+  Attributes(const char* pos, int attr, int col) :
+    m_position(pos), m_attributes(attr), m_colors(col) {}
+
+  const char*         position() const              { return m_position; }
+  void                set_position(const char* pos) { m_position = pos; }
+
+  int                 attributes() const            { return m_attributes; }
+  void                set_attributes(int attr)      { m_attributes = attr; }
+
+  int                 colors() const                { return m_colors; }
+  void                set_colors(int col)           { m_colors = col; }
 
 private:
-  uint64_t       m_lastTick;
+  const char*         m_position;
+  int                 m_attributes;
+  int                 m_colors;
 };
 
 }

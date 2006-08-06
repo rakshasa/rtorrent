@@ -56,11 +56,12 @@ ElementPeerInfo::ElementPeerInfo(core::Download* d, PList* l, PList::iterator* f
 }
 
 void
-ElementPeerInfo::activate(display::Frame* frame) {
+ElementPeerInfo::activate(display::Frame* frame, bool focus) {
   if (is_active())
     throw torrent::client_error("ui::ElementPeerInfo::activate(...) is_active().");
 
-  control->input()->push_back(&m_bindings);
+  if (focus)
+    control->input()->push_back(&m_bindings);
 
   m_window = new WPeerInfo(m_download, m_list, m_focus);
   m_window->set_active(true);

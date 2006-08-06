@@ -34,25 +34,66 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef RTORRENT_DISPLAY_WINDOW_STATUSBAR_H
-#define RTORRENT_DISPLAY_WINDOW_STATUSBAR_H
+#ifndef RTORRENT_UI_ELEMENT_MENU_H
+#define RTORRENT_UI_ELEMENT_MENU_H
 
-#include <inttypes.h>
+#include <sigc++/slot.h>
 
-#include "window.h"
+#include "core/download.h"
+
+#include "element_base.h"
 
 namespace display {
+  class WindowText;
+}
 
-class WindowStatusbar : public Window {
+namespace ui {
+
+struct ElementMenuEntry;
+
+class ElementMenu : public ElementBase, public std::vector<ElementMenuEntry*> {
 public:
-  WindowStatusbar() :
-    Window(new Canvas, 0, 0, 1, extent_full, extent_static),
-    m_lastTick(0) {}
+  typedef ElementMenuEntry            entry_type;
+  typedef std::vector<entry_type*>    base_type;
+  typedef sigc::slot0<void>           slot_type;
 
-  virtual void   redraw();
+  typedef display::WindowText         WindowText;
+
+  typedef uint32_t                    size_type;
+
+  typedef base_type::value_type       value_type;
+  typedef base_type::reference        reference;
+  typedef base_type::iterator         iterator;
+  typedef base_type::const_iterator   const_iterator;
+  typedef base_type::reverse_iterator reverse_iterator;
+
+  using base_type::empty;
+  using base_type::size;
+
+  static const size_type focus_invalid = ~size_type();
+
+  ElementMenu();
+  ~ElementMenu();
+
+  void                activate(display::Frame* frame, bool focus = false);
+  void                disable();
+
+  // Consider returning a pointer that can be used to manipulate
+  // entries, f.ex disabling them.
+
+  void                push_back(const std::string& name,
+                                const slot_type& slotSelect = slot_type(),
+                                const slot_type& slotFocus = slot_type());
+
+  void                focus_next();
+  void                focus_prev();
+
+  void                focus_select();
 
 private:
-  uint64_t       m_lastTick;
+  WindowText*         m_window;
+
+  size_type           m_focus;
 };
 
 }

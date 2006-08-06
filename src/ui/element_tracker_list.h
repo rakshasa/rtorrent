@@ -55,7 +55,7 @@ public:
 
   ElementTrackerList(core::Download* d);
 
-  void                activate(display::Frame* frame);
+  void                activate(display::Frame* frame, bool focus = true);
   void                disable();
 
   display::Window*    window();

@@ -52,7 +52,7 @@ namespace display {
 class WindowDownloadList : public Window {
 public:
   WindowDownloadList() :
-    Window(new Canvas, flag_width_dynamic | flag_height_dynamic, 120, 1),
+    Window(new Canvas, 0, 120, 1, extent_full, extent_full),
     m_view(NULL) {}
   ~WindowDownloadList();
 

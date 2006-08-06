@@ -51,7 +51,7 @@
 namespace utils {
 
 VariableMap::~VariableMap() {
-  std::for_each(base_type::begin(), base_type::end(), rak::on(rak::mem_ptr_ref(&value_type::second), rak::call_delete<Variable>()));
+  std::for_each(base_type::begin(), base_type::end(), rak::on(rak::mem_ref(&value_type::second), rak::call_delete<Variable>()));
 }
 
 void

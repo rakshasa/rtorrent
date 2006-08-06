@@ -38,7 +38,7 @@
 
 #include <algorithm>
 #include <functional>
-#include <stdexcept>
+#include <torrent/exceptions.h>
 
 #include "manager.h"
 #include "bindings.h"
@@ -51,12 +51,12 @@ Manager::erase(Bindings* b) {
   iterator itr = std::find(begin(), end(), b);
 
   if (itr == end())
-    throw std::logic_error("Manager::erase(...) could not find binding");
+    return;
 
   Base::erase(itr);
 
   if (std::find(begin(), end(), b) != end())
-    throw std::logic_error("Manager::erase(...) found duplicate bindings");
+    throw torrent::client_error("Manager::erase(...) found duplicate bindings.");
 }
 
 void

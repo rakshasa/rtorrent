@@ -49,7 +49,7 @@
 namespace display {
 
 WindowFileList::WindowFileList(core::Download* d, unsigned int* focus) :
-  Window(new Canvas, flag_width_dynamic | flag_height_dynamic, 0, 0),
+  Window(new Canvas, 0, 0, 0, extent_full, extent_full),
   m_download(d),
   m_focus(focus) {
 }

@@ -55,7 +55,7 @@ public:
 
   input::Bindings&    bindings()        { return m_bindings; }
 
-  virtual void        activate(display::Frame* frame) = 0;
+  virtual void        activate(display::Frame* frame, bool focus = true) = 0;
   virtual void        disable() = 0;
 
 protected:

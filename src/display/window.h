@@ -56,12 +56,17 @@ public:
   typedef rak::mem_fun1<Manager, void, Window*>             SlotWindow;
   typedef rak::mem_fun2<Manager, void, Window*, rak::timer> SlotTimer;
 
-  static const int flag_active         = (1 << 0);
-  static const int flag_offscreen      = (1 << 1);
-  static const int flag_width_dynamic  = (1 << 2);
-  static const int flag_height_dynamic = (1 << 3);
+  static const int flag_active    = (1 << 0);
+  static const int flag_offscreen = (1 << 1);
+  static const int flag_left      = (1 << 2);
+  static const int flag_bottom    = (1 << 3);
 
-  Window(Canvas* canvas, int flags, extent_type minWidth, extent_type minHeight);
+  static const extent_type extent_static = extent_type();
+  static const extent_type extent_full   = ~extent_type();
+
+  Window(Canvas* canvas, int flags,
+         extent_type minWidth, extent_type minHeight,
+         extent_type maxWidth, extent_type maxHeight);
 
   virtual ~Window();
 
@@ -71,14 +76,23 @@ public:
   bool                is_offscreen() const                 { return m_flags & flag_offscreen; }
   void                set_offscreen(bool state)            { if (state) m_flags |= flag_offscreen; else m_flags &= ~flag_offscreen; }
 
-  bool                is_width_dynamic() const             { return m_flags & flag_width_dynamic; }
-  bool                is_height_dynamic() const            { return m_flags & flag_height_dynamic; }
+  bool                is_left() const                      { return m_flags & flag_left; }
+  void                set_left(bool state)                 { if (state) m_flags |= flag_left; else m_flags &= ~flag_left; }
+
+  bool                is_bottom() const                    { return m_flags & flag_bottom; }
+  void                set_bottom(bool state)               { if (state) m_flags |= flag_bottom; else m_flags &= ~flag_bottom; }
+
+  bool                is_width_dynamic() const             { return m_maxWidth > m_minWidth; }
+  bool                is_height_dynamic() const            { return m_maxHeight > m_minHeight; }
 
   bool                is_dirty()                           { return m_taskUpdate.is_queued(); }
   void                mark_dirty()                         { m_slotSchedule(this, cachedTime + 1); }
 
   extent_type         min_width() const                    { return m_minWidth; }
   extent_type         min_height() const                   { return m_minHeight; }
+
+  extent_type         max_width() const                    { return std::max(m_maxWidth, m_minWidth); }
+  extent_type         max_height() const                   { return std::max(m_maxHeight, m_minHeight); }
 
   extent_type         width() const                        { return m_canvas->width(); }
   extent_type         height() const                       { return m_canvas->height(); }
@@ -109,6 +123,9 @@ protected:
 
   extent_type         m_minWidth;
   extent_type         m_minHeight;
+
+  extent_type         m_maxWidth;
+  extent_type         m_maxHeight;
 
   rak::priority_item  m_taskUpdate;
 };

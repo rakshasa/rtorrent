@@ -44,7 +44,7 @@ namespace display {
 
 class WindowTitle : public Window {
 public:
-  WindowTitle() : Window(new Canvas, flag_width_dynamic, 0, 1) {}
+  WindowTitle() : Window(new Canvas, 0, 0, 1, extent_full, extent_static) {}
 
   const std::string&  title() const                       { return m_title; }
   void                set_title(const std::string& title) { m_title = title; mark_dirty(); }

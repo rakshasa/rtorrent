@@ -54,7 +54,7 @@ ElementLogComplete::ElementLogComplete(core::Log* l) :
 }
 
 void
-ElementLogComplete::activate(display::Frame* frame) {
+ElementLogComplete::activate(display::Frame* frame, bool focus) {
   if (is_active())
     throw torrent::client_error("ui::ElementLogComplete::activate(...) is_active().");
 

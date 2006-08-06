@@ -43,7 +43,7 @@
 namespace display {
 
 WindowStringList::WindowStringList() :
-  Window(new Canvas, flag_width_dynamic | flag_height_dynamic, 0, 0) {
+  Window(new Canvas, 0, 0, 0, extent_full, extent_full) {
 }
 
 WindowStringList::~WindowStringList() {

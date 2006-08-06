@@ -34,27 +34,29 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef RTORRENT_DISPLAY_WINDOW_STATUSBAR_H
-#define RTORRENT_DISPLAY_WINDOW_STATUSBAR_H
+#include "config.h"
 
-#include <inttypes.h>
+#include <algorithm>
+#include <rak/functional.h>
 
-#include "window.h"
+#include "text_element_list.h"
 
 namespace display {
 
-class WindowStatusbar : public Window {
-public:
-  WindowStatusbar() :
-    Window(new Canvas, 0, 0, 1, extent_full, extent_static),
-    m_lastTick(0) {}
-
-  virtual void   redraw();
-
-private:
-  uint64_t       m_lastTick;
-};
-
+void
+TextElementList::clear() {
+  std::for_each(begin(), end(), rak::call_delete<TextElement>());
+  base_type::clear();
 }
 
-#endif
+char*
+TextElementList::print(char* first, const char* last, Canvas::attributes_list* attributes, void* object) {
+  // Call print for each element even if first == last so that any
+  // attributes gets added to the list.
+  for (iterator itr = begin(); itr != end(); ++itr)
+    first = (*itr)->print(first, last, attributes, object);
+
+  return first;
+}
+
+}

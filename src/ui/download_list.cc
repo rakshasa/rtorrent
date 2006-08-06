@@ -55,7 +55,6 @@
 
 #include "display/window_log.h"
 #include "display/window_title.h"
-#include "display/window_statusbar.h"
 
 #include "control.h"
 #include "download.h"
@@ -90,7 +89,7 @@ DownloadList::~DownloadList() {
 }
 
 void
-DownloadList::activate(display::Frame* frame) {
+DownloadList::activate(display::Frame* frame, bool focus) {
   if (is_active())
     throw torrent::client_error("ui::DownloadList::activate() called on an already activated object");
 

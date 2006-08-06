@@ -91,6 +91,7 @@ Root::init(Control* c) {
 
   m_windowTitle->set_active(true);
   m_windowStatusbar->set_active(true);
+  m_windowStatusbar->set_bottom(true);
 
   setup_keys();
 

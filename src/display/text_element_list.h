@@ -34,25 +34,38 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef RTORRENT_DISPLAY_WINDOW_STATUSBAR_H
-#define RTORRENT_DISPLAY_WINDOW_STATUSBAR_H
+#ifndef RTORRENT_DISPLAY_TEXT_ELEMENT_LIST_H
+#define RTORRENT_DISPLAY_TEXT_ELEMENT_LIST_H
 
-#include <inttypes.h>
-
-#include "window.h"
+#include "text_element.h"
 
 namespace display {
 
-class WindowStatusbar : public Window {
+class TextElementList : public TextElement, public std::vector<TextElement*> {
 public:
-  WindowStatusbar() :
-    Window(new Canvas, 0, 0, 1, extent_full, extent_static),
-    m_lastTick(0) {}
+  typedef std::vector<TextElement*>   base_type;
 
-  virtual void   redraw();
+  typedef base_type::value_type       value_type;
+  typedef base_type::reference        reference;
+  typedef base_type::iterator         iterator;
+  typedef base_type::const_iterator   const_iterator;
+  typedef base_type::reverse_iterator reverse_iterator;
 
-private:
-  uint64_t       m_lastTick;
+  using base_type::empty;
+  using base_type::size;
+
+  using base_type::begin;
+  using base_type::end;
+  using base_type::rbegin;
+  using base_type::rend;
+
+  using base_type::push_back;
+
+  virtual ~TextElementList() { clear(); }
+
+  void                clear();
+
+  virtual char*       print(char* first, const char* last, Canvas::attributes_list* attributes, void* object);
 };
 
 }

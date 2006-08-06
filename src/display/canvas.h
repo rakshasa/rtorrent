@@ -38,12 +38,16 @@
 #define RTORRENT_DISPLAY_CANVAS_H
 
 #include <string>
-#include <ncurses.h>
+#include <vector>
+
+#include "attributes.h"
 
 namespace display {
 
 class Canvas {
 public:
+  typedef std::vector<Attributes> attributes_list;
+
   Canvas(int x = 0, int y = 0, int width = 0, int height = 0) :
     m_window(newwin(height, width, y, x)) {}
   ~Canvas() { delwin(m_window); }
@@ -59,10 +63,13 @@ public:
   static void         resize_term(int x, int y)                               { resizeterm(y, x); }
   static void         resize_term(std::pair<int, int> dim)                    { resizeterm(dim.second, dim.first); }
 
-  int                 get_x()                                                 { int x, y; getyx(m_window, y, x); return x; }
-  int                 get_y()                                                 { int x, y; getyx(m_window, y, x); return y; }
-  int                 width()                                                 { int x, y; getmaxyx(m_window, y, x); return x; }
-  int                 height()                                                { int x, y; getmaxyx(m_window, y, x); return y; }
+  unsigned int        get_x()                                                 { int x, y; getyx(m_window, y, x); return x; }
+  unsigned int        get_y()                                                 { int x, y; getyx(m_window, y, x); return y; }
+
+  unsigned int        width()                                                 { int x, y; getmaxyx(m_window, y, x); return x; }
+  unsigned int        height()                                                { int x, y; getmaxyx(m_window, y, x); return y; }
+
+  void                move(unsigned int x, unsigned int y)                    { wmove(m_window, y, x); }
 
   chtype              get_background()                                        { return getbkgd(m_window); }
   void                set_background(chtype c)                                { return wbkgdset(m_window, c); }
@@ -79,43 +86,14 @@ public:
   // since the string shall always be a C string choosen at
   // compiletime. Might cause extra copying of the string?
 
-  void                print(int x, int y, char* str)                          { mvwprintw(m_window, y, x, str); }
+  void                print(unsigned int x, unsigned int y, const char* str, ...);
 
-  template <typename A1>
-  void                print(int x, int y, char* str, A1 a1)                   { mvwprintw(m_window, y, x, str, a1); }
+  void                print_attributes(unsigned int x, unsigned int y, const char* first, const char* last, const attributes_list* attributes);
 
-  template <typename A1, typename A2>
-  void                print(int x, int y, char* str, A1 a1, A2 a2)            { mvwprintw(m_window, y, x, str, a1, a2); }
+  void                print_char(const chtype ch)                                 { waddch(m_window, ch); }
+  void                print_char(unsigned int x, unsigned int y, const chtype ch) { mvwaddch(m_window, y, x, ch); }
 
-  template <typename A1, typename A2, typename A3>
-  void                print(int x, int y, char* str,
-                            A1 a1, A2 a2, A3 a3)                              { mvwprintw(m_window, y, x, str, a1, a2, a3); }
-
-  template <typename A1, typename A2, typename A3, typename A4>
-  void                print(int x, int y, char* str,
-                            A1 a1, A2 a2, A3 a3, A4 a4)                       { mvwprintw(m_window, y, x, str, a1, a2, a3, a4); }
-
-  template <typename A1, typename A2, typename A3, typename A4, typename A5>
-  void                print(int x, int y, char* str,
-                            A1 a1, A2 a2, A3 a3, A4 a4, A5 a5)                { mvwprintw(m_window, y, x, str, a1, a2, a3, a4, a5); }
-
-  template <typename A1, typename A2, typename A3, typename A4, typename A5, typename A6>
-  void                print(int x, int y, char* str,
-                            A1 a1, A2 a2, A3 a3, A4 a4, A5 a5, A6 a6)         { mvwprintw(m_window, y, x, str, a1, a2, a3, a4, a5, a6); }
-
-  template <typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7>
-  void                print(int x, int y, char* str,
-                            A1 a1, A2 a2, A3 a3, A4 a4, A5 a5, A6 a6, A7 a7)  { mvwprintw(m_window, y, x, str, a1, a2, a3, a4, a5, a6, a7); }
-
-  template <typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8>
-  void                print(int x, int y, char* str,
-                            A1 a1, A2 a2, A3 a3, A4 a4, A5 a5, A6 a6, A7 a7, A8 a8) { mvwprintw(m_window, y, x, str, a1, a2, a3, a4, a5, a6, a7, a8); }
-
-  void                print_char(const chtype ch) { waddch(m_window, ch); }
-
-  void                print_char(int x, int y, const chtype ch) { mvwaddch(m_window, y, x, ch); }
-
-  void                set_attr(int x, int y, int n, int attr, int color)      { mvwchgat(m_window, y, x, n, attr, color, NULL); }
+  void                set_attr(unsigned int x, unsigned int y, unsigned int n, int attr, int color) { mvwchgat(m_window, y, x, n, attr, color, NULL); }
 
   // Initialize stdscr.
   static void         initialize();
@@ -137,9 +115,15 @@ private:
   WINDOW*             m_window;
 };
 
-// Undefines 'timeout' that ncurses defines which screws up the global
-// namespace. Idiots; Especially you, ESR.
-#undef timeout
+inline void
+Canvas::print(unsigned int x, unsigned int y, const char* str, ...) {
+  va_list arglist;
+
+  va_start(arglist, str);
+  wmove(m_window, y, x);
+  vw_printw(m_window, str, arglist);
+  va_end(arglist);
+}
 
 }
 

@@ -62,11 +62,12 @@ ElementFileList::ElementFileList(core::Download* d) :
 }
 
 void
-ElementFileList::activate(display::Frame* frame) {
+ElementFileList::activate(display::Frame* frame, bool focus) {
   if (m_window != NULL)
     throw torrent::client_error("ui::ElementFileList::activate(...) is_active().");
 
-  control->input()->push_back(&m_bindings);
+  if (focus)
+    control->input()->push_back(&m_bindings);
 
   m_window = new WFileList(m_download, &m_focus);
   m_window->set_active(true);

@@ -49,7 +49,7 @@
 namespace display {
 
 WindowDownloadStatusbar::WindowDownloadStatusbar(core::Download* d) :
-  Window(new Canvas, flag_width_dynamic, 0, 3),
+  Window(new Canvas, 0, 0, 3, extent_full, extent_static),
   m_download(d) {
 }
 

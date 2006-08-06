@@ -95,7 +95,7 @@ public:
   DownloadList();
   ~DownloadList();
 
-  void                activate(display::Frame* frame);
+  void                activate(display::Frame* frame, bool focus = true);
   void                disable();
 
   void                activate_display(Display d);

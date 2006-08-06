@@ -34,27 +34,53 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef RTORRENT_DISPLAY_WINDOW_STATUSBAR_H
-#define RTORRENT_DISPLAY_WINDOW_STATUSBAR_H
+#include "config.h"
 
-#include <inttypes.h>
+#include <algorithm>
+#include <rak/functional.h>
 
-#include "window.h"
+#include "canvas.h"
+#include "utils.h"
+#include "window_text.h"
 
 namespace display {
 
-class WindowStatusbar : public Window {
-public:
-  WindowStatusbar() :
-    Window(new Canvas, 0, 0, 1, extent_full, extent_static),
-    m_lastTick(0) {}
-
-  virtual void   redraw();
-
-private:
-  uint64_t       m_lastTick;
-};
-
+void
+WindowText::clear() {
+  std::for_each(begin(), end(), rak::call_delete<TextElement>());
+  base_type::clear();
 }
 
-#endif
+void
+WindowText::push_back(TextElement* element) {
+  base_type::push_back(element);
+
+//   m_minHeight = size();
+  m_maxHeight = size();
+
+  // Check if active, if so do the update thingie. Or be lazy?
+}
+
+void
+WindowText::redraw() {
+  m_canvas->erase();
+
+  unsigned int position = 0;
+
+  for (iterator itr = begin(); itr != end() && position < m_canvas->height(); ++itr, ++position) {
+    if (*itr == NULL)
+      continue;
+
+    char buffer[m_canvas->width() + 1];
+
+    // Add a print function that sets up attributes etc?
+    Canvas::attributes_list attributes;
+    attributes.push_back(Attributes(buffer, Attributes::a_normal, Attributes::color_default));
+
+    char* last = (*itr)->print(buffer, buffer + m_canvas->width(), &attributes, NULL);
+
+    m_canvas->print_attributes(0, position, buffer, last, &attributes);
+  }
+}
+
+}

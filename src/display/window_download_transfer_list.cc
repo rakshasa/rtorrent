@@ -49,7 +49,7 @@
 namespace display {
 
 WindowDownloadTransferList::WindowDownloadTransferList(core::Download* d, unsigned int *focus) :
-  Window(new Canvas, flag_width_dynamic | flag_height_dynamic, 0, 0),
+  Window(new Canvas, 0, 0, 0, extent_full, extent_full),
   m_download(d),
   m_focus(focus) {
 }
@@ -73,7 +73,7 @@ WindowDownloadTransferList::redraw() {
   // is just something i threw in there, someone really should
   // prettify this. (This is a very subtle hint)
 
-  for (int y = 1; y < m_canvas->height() && itr != transfers->end(); ++y, ++itr) {
+  for (unsigned int y = 1; y < m_canvas->height() && itr != transfers->end(); ++y, ++itr) {
     m_canvas->print(0, y, "%5u [P: %u F: %u]", (*itr)->index(), (*itr)->priority(), (*itr)->failed());
 
     // Handle window size.

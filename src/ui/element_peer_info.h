@@ -56,7 +56,7 @@ public:
 
   ElementPeerInfo(core::Download* d, PList* l, PList::iterator* f);
 
-  void                activate(display::Frame* frame);
+  void                activate(display::Frame* frame, bool focus = true);
   void                disable();
 
   display::Window*    window();

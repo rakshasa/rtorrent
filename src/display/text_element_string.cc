@@ -34,27 +34,43 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef RTORRENT_DISPLAY_WINDOW_STATUSBAR_H
-#define RTORRENT_DISPLAY_WINDOW_STATUSBAR_H
+#include "config.h"
 
-#include <inttypes.h>
+#include <cstring>
 
-#include "window.h"
+#include "text_element_string.h"
 
 namespace display {
 
-class WindowStatusbar : public Window {
-public:
-  WindowStatusbar() :
-    Window(new Canvas, 0, 0, 1, extent_full, extent_static),
-    m_lastTick(0) {}
+char*
+TextElementString::print(char* first, const char* last, Canvas::attributes_list* attributes, void* object) {
+  size_t length = std::min<size_t>(last - first, m_string.size());
+  
+  if (length == 0)
+    return first;
 
-  virtual void   redraw();
+  std::memcpy(first, m_string.c_str(), length);
 
-private:
-  uint64_t       m_lastTick;
-};
+  // Move this stuff into a function in TextElement.
+  Attributes base = attributes->back();
+  Attributes current(NULL, m_attributes, Attributes::color_invalid);
 
+  if (current.attributes() == Attributes::a_invalid)
+    current.set_attributes(base.attributes());
+  else if (current.attributes() != base.attributes())
+    current.set_position(first);
+
+  if (current.colors() == Attributes::color_invalid)
+    current.set_colors(base.colors());
+  else if (current.colors() != base.colors())
+    current.set_position(first);
+
+  if (current.position() != NULL) {
+    attributes->push_back(current);
+    attributes->push_back(Attributes(first + length, base.attributes(), base.colors()));
+  }
+
+  return first + length;
 }
 
-#endif
+}

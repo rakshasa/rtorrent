@@ -61,11 +61,12 @@ ElementTransferList::ElementTransferList(core::Download* d) :
 }
 
 void
-ElementTransferList::activate(display::Frame* frame) {
+ElementTransferList::activate(display::Frame* frame, bool focus) {
   if (is_active())
     throw torrent::client_error("ui::ElementTransferList::activate(...) is_active().");
 
-  control->input()->push_back(&m_bindings);
+  if (focus)
+    control->input()->push_back(&m_bindings);
 
   m_window = new WTransferList(m_download, &m_focus);
   m_window->set_active(true);

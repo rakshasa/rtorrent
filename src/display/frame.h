@@ -45,6 +45,9 @@ class Window;
 
 class Frame {
 public:
+  typedef uint32_t                       extent_type;
+  typedef uint32_t                       size_type;
+
   enum Type {
     TYPE_NONE,
     TYPE_WINDOW,
@@ -52,8 +55,19 @@ public:
     TYPE_COLUMN
   };
 
-  typedef uint32_t                      size_type;
-  typedef std::pair<uint32_t, uint32_t> pair_type;
+  struct bounds_type {
+    bounds_type() {}
+    bounds_type(extent_type minW, extent_type minH, extent_type maxW, extent_type maxH) :
+      minWidth(minW), minHeight(minH), maxWidth(maxW), maxHeight(maxH) {}
+
+    extent_type minWidth;
+    extent_type minHeight;
+
+    extent_type maxWidth;
+    extent_type maxHeight;
+  };
+
+  typedef std::pair<Frame*, bounds_type> dynamic_type;
 
   static const size_type max_size = 5;
 
@@ -62,7 +76,10 @@ public:
   bool                is_width_dynamic() const;
   bool                is_height_dynamic() const;
 
-  pair_type           preferred_size() const;
+  bool                has_left_frame() const;
+  bool                has_bottom_frame() const;
+
+  bounds_type         preferred_size() const;
 
   uint32_t            position_x() const                { return m_positionX; }
   uint32_t            position_y() const                { return m_positionY; }
@@ -92,6 +109,10 @@ public:
   void                balance(uint32_t x, uint32_t y, uint32_t width, uint32_t height);
 
 private:
+  inline void         balance_window(uint32_t x, uint32_t y, uint32_t width, uint32_t height);
+  inline void         balance_row(uint32_t x, uint32_t y, uint32_t width, uint32_t height);
+  inline void         balance_column(uint32_t x, uint32_t y, uint32_t width, uint32_t height);
+
   Type                m_type;
 
   uint32_t            m_positionX;

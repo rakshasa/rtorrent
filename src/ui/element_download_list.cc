@@ -83,7 +83,7 @@ ElementDownloadList::ElementDownloadList() :
 }
 
 void
-ElementDownloadList::activate(display::Frame* frame) {
+ElementDownloadList::activate(display::Frame* frame, bool focus) {
   if (is_active())
     throw torrent::client_error("ui::ElementDownloadList::activate(...) is_active().");
 

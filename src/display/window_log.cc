@@ -45,7 +45,7 @@
 namespace display {
 
 WindowLog::WindowLog(core::Log* l) :
-  Window(new Canvas, flag_width_dynamic, 0, 0),
+  Window(new Canvas, 0, 0, 0, extent_full, extent_static),
   m_log(l) {
 
   m_taskUpdate.set_slot(rak::mem_fn(this, &WindowLog::receive_update)),
@@ -68,13 +68,13 @@ void
 WindowLog::redraw() {
   m_canvas->erase();
 
-  int pos = 0;
+  int pos = m_canvas->height();
 
-  for (core::Log::iterator itr = m_log->begin(), end = find_older(); itr != end && pos < m_canvas->height(); ++itr) {
+  for (core::Log::iterator itr = m_log->begin(), last = find_older(); itr != last && pos > 0; ++itr, --pos) {
     char buffer[16];
     print_hhmmss_local(buffer, buffer + 16, static_cast<time_t>(itr->first.seconds()));
 
-    m_canvas->print(0, pos++, "(%s) %s", buffer, itr->second.c_str());
+    m_canvas->print(0, pos - 1, "(%s) %s", buffer, itr->second.c_str());
   }
 }
 
@@ -86,10 +86,11 @@ WindowLog::receive_update() {
     return;
 
   iterator itr = find_older();
-  extent_type h = std::min(std::distance(m_log->begin(), itr), (std::iterator_traits<iterator>::difference_type)10);
+  extent_type height = std::min(std::distance(m_log->begin(), itr), (std::iterator_traits<iterator>::difference_type)10);
 
-  if (h != m_minHeight) {
-    m_minHeight = h;
+  if (height != m_maxHeight) {
+    m_minHeight = height != 0 ? 1 : 0;
+    m_maxHeight = height;
     m_slotAdjust();
 
   } else {
@@ -98,7 +99,7 @@ WindowLog::receive_update() {
 
   priority_queue_erase(&taskScheduler, &m_taskUpdate);
 
-  if (h != 0)
+  if (height != 0)
     priority_queue_insert(&taskScheduler, &m_taskUpdate, (cachedTime + rak::timer::from_seconds(30)).round_seconds());
 }
 

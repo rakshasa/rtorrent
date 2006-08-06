@@ -14,6 +14,8 @@ libsub_ui_a_SOURCES = \
 	element_file_list.h \
 	element_log_complete.cc \
 	element_log_complete.h \
+	element_menu.cc \
+	element_menu.h \
 	element_peer_info.cc \
 	element_peer_info.h \
 	element_peer_list.cc \

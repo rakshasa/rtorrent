@@ -56,7 +56,7 @@ public:
 
   ElementDownloadList();
 
-  void                activate(display::Frame* frame);
+  void                activate(display::Frame* frame, bool focus = true);
   void                disable();
 
   core::View*         view() { return m_view; }

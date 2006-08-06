@@ -317,14 +317,10 @@ mem_ptr(Member Class::*m) {
 }
 
 template <typename Class, typename Member>
-struct mem_ptr_ref_t : public std::unary_function<Class&, Member&> {
-  mem_ptr_ref_t(Member Class::*m) : m_member(m) {}
+struct mem_ref_t : public std::unary_function<Class&, Member&> {
+  mem_ref_t(Member Class::*m) : m_member(m) {}
 
   Member& operator () (Class& c) {
-    return c.*m_member;
-  }
-
-  const Member& operator () (const Class& c) {
     return c.*m_member;
   }
 
@@ -332,9 +328,26 @@ struct mem_ptr_ref_t : public std::unary_function<Class&, Member&> {
 };
 
 template <typename Class, typename Member>
-inline mem_ptr_ref_t<Class, Member>
-mem_ptr_ref(Member Class::*m) {
-  return mem_ptr_ref_t<Class, Member>(m);
+struct const_mem_ref_t : public std::unary_function<const Class&, const Member&> {
+  const_mem_ref_t(const Member Class::*m) : m_member(m) {}
+
+  const Member& operator () (const Class& c) {
+    return c.*m_member;
+  }
+
+  const Member Class::*m_member;
+};
+
+template <typename Class, typename Member>
+inline mem_ref_t<Class, Member>
+mem_ref(Member Class::*m) {
+  return mem_ref_t<Class, Member>(m);
+}
+
+template <typename Class, typename Member>
+inline const_mem_ref_t<Class, Member>
+const_mem_ref(const Member Class::*m) {
+  return const_mem_ref_t<Class, Member>(m);
 }
 
 template <typename Cond, typename Then>
@@ -415,7 +428,7 @@ protected:
   Operation  m_op;
   value_type m_value;
 
-};	    
+};
 
 template <typename Operation, typename Type>
 inline bind2nd_t<Operation>

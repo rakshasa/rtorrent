@@ -34,25 +34,23 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef RTORRENT_DISPLAY_WINDOW_STATUSBAR_H
-#define RTORRENT_DISPLAY_WINDOW_STATUSBAR_H
+#ifndef RTORRENT_DISPLAY_TEXT_ELEMENT_H
+#define RTORRENT_DISPLAY_TEXT_ELEMENT_H
 
-#include <inttypes.h>
+#include <vector>
 
-#include "window.h"
+#include "display/canvas.h"
 
 namespace display {
 
-class WindowStatusbar : public Window {
+class TextElement {
 public:
-  WindowStatusbar() :
-    Window(new Canvas, 0, 0, 1, extent_full, extent_static),
-    m_lastTick(0) {}
+  virtual ~TextElement() {}
 
-  virtual void   redraw();
-
-private:
-  uint64_t       m_lastTick;
+  // The last element must point to a valid memory location into which
+  // the caller must write a '\0' to terminate the c string. The
+  // attributes must contain at least one attribute.
+  virtual char*       print(char* first, const char* last, Canvas::attributes_list* attributes, void* object) = 0;
 };
 
 }
