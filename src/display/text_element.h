@@ -45,12 +45,18 @@ namespace display {
 
 class TextElement {
 public:
+  typedef uint32_t extent_type;
+
+  static const extent_type extent_full   = ~extent_type();
+
   virtual ~TextElement() {}
 
   // The last element must point to a valid memory location into which
   // the caller must write a '\0' to terminate the c string. The
   // attributes must contain at least one attribute.
   virtual char*       print(char* first, const char* last, Canvas::attributes_list* attributes, void* object) = 0;
+
+  virtual extent_type max_length() = 0;
 };
 
 }

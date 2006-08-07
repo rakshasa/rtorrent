@@ -59,4 +59,20 @@ TextElementList::print(char* first, const char* last, Canvas::attributes_list* a
   return first;
 }
 
+TextElementList::extent_type
+TextElementList::max_length() {
+  size_type length = 0;
+
+  for (iterator itr = begin(); itr != end(); ++itr) {
+    size_type l = (*itr)->max_length();
+
+    if (l == extent_full)
+      return extent_full;
+    
+    length += l;
+  }
+  
+  return length;
+}
+
 }

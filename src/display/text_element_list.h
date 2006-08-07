@@ -66,6 +66,8 @@ public:
   void                clear();
 
   virtual char*       print(char* first, const char* last, Canvas::attributes_list* attributes, void* object);
+
+  virtual extent_type max_length();
 };
 
 }

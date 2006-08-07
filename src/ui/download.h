@@ -66,7 +66,6 @@ public:
   typedef enum {
     DISPLAY_MENU,
     DISPLAY_PEER_LIST,
-    DISPLAY_PEER_INFO,
     DISPLAY_FILE_LIST,
     DISPLAY_TRACKER_LIST,
     DISPLAY_CHUNKS_SEEN,
@@ -94,25 +93,13 @@ private:
   Download(const Download&);
   void operator = (const Download&);
 
-  void                receive_next();
-  void                receive_prev();
-
-  void                receive_disconnect_peer();
-
-  void                receive_peer_connected(torrent::Peer p);
-  void                receive_peer_disconnected(torrent::Peer p);
-
   void                receive_max_uploads(int t);
   void                receive_min_peers(int t);
   void                receive_max_peers(int t);
 
-  void                receive_snub_peer();
-
   void                bind_keys();
 
   DPtr                m_download;
-  PList               m_peers;
-  PList::iterator     m_focus;
 
   Display             m_state;
   ElementBase*        m_uiArray[DISPLAY_MAX_SIZE];
@@ -120,9 +107,6 @@ private:
   bool                m_focusDisplay;
 
   WDownloadStatus*    m_windowDownloadStatus;
-
-  sigc::connection    m_connPeerConnected;
-  sigc::connection    m_connPeerDisconnected;
 };
 
 }

@@ -48,7 +48,9 @@ namespace ui {
 
 class ElementBase {
 public:
-  ElementBase() : m_frame(NULL) {}
+  typedef sigc::slot0<void> slot_type;
+
+  ElementBase() : m_frame(NULL), m_focus(false) {}
   virtual ~ElementBase() {}
 
   bool                is_active() const { return m_frame != NULL; }
@@ -58,10 +60,14 @@ public:
   virtual void        activate(display::Frame* frame, bool focus = true) = 0;
   virtual void        disable() = 0;
 
+  void                slot_exit(const slot_type& s) { m_slotExit = s; }
+
 protected:
   display::Frame*     m_frame;
+  bool                m_focus;
 
   input::Bindings     m_bindings;
+  slot_type           m_slotExit;
 };
 
 }

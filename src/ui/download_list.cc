@@ -174,7 +174,7 @@ DownloadList::activate_display(Display displayType) {
       Download* download = new Download(*current_view()->focus());
 
       download->activate(m_frame);
-      download->bindings()[KEY_LEFT] = sigc::bind(sigc::mem_fun(*this, &DownloadList::activate_display), DISPLAY_DOWNLOAD_LIST);
+      download->slot_exit(sigc::bind(sigc::mem_fun(*this, &DownloadList::activate_display), DISPLAY_DOWNLOAD_LIST));
     
       m_uiArray[DISPLAY_DOWNLOAD] = download;
       break;

@@ -56,6 +56,8 @@ public:
 
   virtual char*       print(char* first, const char* last, Canvas::attributes_list* attributes, void* object);
 
+  virtual extent_type max_length();
+
 private:
   std::string         m_string;
   int                 m_attributes;

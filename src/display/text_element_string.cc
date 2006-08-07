@@ -73,4 +73,9 @@ TextElementString::print(char* first, const char* last, Canvas::attributes_list*
   return first + length;
 }
 
+TextElementString::extent_type
+TextElementString::max_length() {
+  return m_string.size();
+}
+
 }

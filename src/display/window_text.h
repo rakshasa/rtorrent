@@ -62,7 +62,7 @@ public:
   using base_type::rbegin;
   using base_type::rend;
 
-  WindowText() : Window(new Canvas, 0, 0, 0, extent_full, extent_static) {}
+  WindowText() : Window(new Canvas, 0, 0, 0, extent_static, extent_static) {}
   ~WindowText() { clear(); }
 
   void                clear();

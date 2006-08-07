@@ -58,6 +58,9 @@ WindowText::push_back(TextElement* element) {
 //   m_minHeight = size();
   m_maxHeight = size();
 
+  if (element != NULL)
+    m_maxWidth = std::max(m_maxWidth, element->max_length() + 2);
+
   // Check if active, if so do the update thingie. Or be lazy?
 }
 

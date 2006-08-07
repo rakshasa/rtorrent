@@ -57,12 +57,14 @@ struct ElementMenuEntry {
 
 ElementMenu::ElementMenu() :
   m_window(new WindowText),
-  m_focus(focus_invalid) {
+  m_entry(entry_invalid) {
 
-  // Move bindings.
-  m_bindings[KEY_UP]    = sigc::mem_fun(this, &ElementMenu::focus_prev);
-  m_bindings[KEY_DOWN]  = sigc::mem_fun(this, &ElementMenu::focus_next);
-  m_bindings[KEY_RIGHT] = sigc::mem_fun(this, &ElementMenu::focus_select);
+  // Move bindings into a function that defines default bindings.
+  m_bindings[KEY_LEFT] = sigc::mem_fun(&m_slotExit, &slot_type::operator());  
+
+  m_bindings[KEY_UP]    = sigc::mem_fun(this, &ElementMenu::entry_prev);
+  m_bindings[KEY_DOWN]  = sigc::mem_fun(this, &ElementMenu::entry_next);
+  m_bindings[KEY_RIGHT] = sigc::mem_fun(this, &ElementMenu::entry_select);
 }
 
 ElementMenu::~ElementMenu() {
@@ -77,10 +79,14 @@ ElementMenu::activate(display::Frame* frame, bool focus) {
   if (focus)
     control->input()->push_back(&m_bindings);
 
-  m_window->set_active(true);
+  m_focus = focus;
 
   m_frame = frame;
   m_frame->initialize_window(m_window);
+
+  m_window->set_active(true);
+
+  focus_entry(m_entry);
 }
 
 void
@@ -115,47 +121,72 @@ ElementMenu::push_back(const std::string& name, const slot_type& slotSelect, con
 }
 
 void
-ElementMenu::focus_next() {
-  if (empty() || (size() == 1 && m_focus == 0))
+ElementMenu::entry_next() {
+  if (empty() || (size() == 1 && m_entry == 0))
     return;
 
-  if (m_focus < size())
-    base_type::operator[](m_focus)->m_element->set_attributes(display::Attributes::a_normal);
+  unfocus_entry(m_entry);
   
-  if (++m_focus >= size())
-    m_focus = 0;
+  if (++m_entry >= size())
+    m_entry = 0;
 
-  base_type::operator[](m_focus)->m_slotFocus();
-  base_type::operator[](m_focus)->m_element->set_attributes(display::Attributes::a_reverse);
+  focus_entry(m_entry);
+  base_type::operator[](m_entry)->m_slotFocus();
 
   m_window->mark_dirty();
 }
 
 void
-ElementMenu::focus_prev() {
-  if (empty() || (size() == 1 && m_focus == 0))
+ElementMenu::entry_prev() {
+  if (empty() || (size() == 1 && m_entry == 0))
     return;
 
-  if (m_focus < size())
-    base_type::operator[](m_focus)->m_element->set_attributes(display::Attributes::a_normal);
-  
-  if (--m_focus >= size())
-    m_focus = size() - 1;
+  unfocus_entry(m_entry);
 
-  base_type::operator[](m_focus)->m_slotFocus();
-  base_type::operator[](m_focus)->m_element->set_attributes(display::Attributes::a_reverse);
+  if (--m_entry >= size())
+    m_entry = size() - 1;
+
+  focus_entry(m_entry);
+  base_type::operator[](m_entry)->m_slotFocus();
 
   m_window->mark_dirty();
 }
 
 void
-ElementMenu::focus_select() {
-  if (m_focus >= size())
+ElementMenu::entry_select() {
+  if (m_entry >= size())
     return;
 
-  base_type::operator[](m_focus)->m_slotSelect();
+  base_type::operator[](m_entry)->m_slotSelect();
 
   m_window->mark_dirty();
+}
+
+void
+ElementMenu::set_entry(size_type idx) {
+  unfocus_entry(m_entry);
+
+  m_entry = idx;
+  focus_entry(m_entry);
+}
+
+inline void
+ElementMenu::focus_entry(size_type idx) {
+  if (idx >= size())
+    return;
+
+  if (m_focus)
+    base_type::operator[](idx)->m_element->set_attributes(display::Attributes::a_reverse);
+  else
+    base_type::operator[](idx)->m_element->set_attributes(display::Attributes::a_bold);
+}
+
+inline void
+ElementMenu::unfocus_entry(size_type idx) {
+  if (idx >= size())
+    return;
+
+  base_type::operator[](idx)->m_element->set_attributes(display::Attributes::a_normal);
 }
 
 }

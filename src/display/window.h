@@ -86,7 +86,7 @@ public:
   bool                is_height_dynamic() const            { return m_maxHeight > m_minHeight; }
 
   bool                is_dirty()                           { return m_taskUpdate.is_queued(); }
-  void                mark_dirty()                         { m_slotSchedule(this, cachedTime + 1); }
+  void                mark_dirty()                         { if (!is_active()) return; m_slotSchedule(this, cachedTime + 1); }
 
   extent_type         min_width() const                    { return m_minWidth; }
   extent_type         min_height() const                   { return m_minHeight; }

@@ -52,7 +52,6 @@
 #include "root.h"
 #include "element_file_list.h"
 #include "element_menu.h"
-#include "element_peer_info.h"
 #include "element_peer_list.h"
 #include "element_tracker_list.h"
 #include "element_chunks_seen.h"
@@ -65,44 +64,52 @@ Download::Download(DPtr d) :
   m_state(DISPLAY_MAX_SIZE),
   m_focusDisplay(false) {
 
-  m_focus = m_peers.end();
-
   m_windowDownloadStatus = new WDownloadStatus(d);
   m_windowDownloadStatus->set_bottom(true);
 
   ElementMenu* elementMenu = new ElementMenu;
 
-  elementMenu->push_back("Peer List",     sigc::bind(sigc::mem_fun(this, &Download::activate_display_focus), DISPLAY_PEER_LIST));
-//   elementMenu->push_back("Peer Info",     sigc::bind(sigc::mem_fun(this, &Download::activate_display_focus), DISPLAY_PEER_INFO));
-  elementMenu->push_back("File List",     sigc::bind(sigc::mem_fun(this, &Download::activate_display_focus), DISPLAY_FILE_LIST));
-  elementMenu->push_back("Tracker List",  sigc::bind(sigc::mem_fun(this, &Download::activate_display_focus), DISPLAY_TRACKER_LIST));
-  elementMenu->push_back("Chunks Seen",   sigc::bind(sigc::mem_fun(this, &Download::activate_display_focus), DISPLAY_CHUNKS_SEEN));
-  elementMenu->push_back("Transfer List", sigc::bind(sigc::mem_fun(this, &Download::activate_display_focus), DISPLAY_TRANSFER_LIST));
+  elementMenu->push_back("Peer List",
+                         sigc::bind(sigc::mem_fun(this, &Download::activate_display_focus), DISPLAY_PEER_LIST),
+                         sigc::bind(sigc::mem_fun(this, &Download::activate_display_menu), DISPLAY_PEER_LIST));
+//   elementMenu->push_back("Peer Info",
+//                          sigc::bind(sigc::mem_fun(this, &Download::activate_display_focus), DISPLAY_PEER_INFO),
+//                          sigc::bind(sigc::mem_fun(this, &Download::activate_display_menu), DISPLAY_PEER_INFO));
+  elementMenu->push_back("File List",
+                         sigc::bind(sigc::mem_fun(this, &Download::activate_display_focus), DISPLAY_FILE_LIST),
+                         sigc::bind(sigc::mem_fun(this, &Download::activate_display_menu), DISPLAY_FILE_LIST));
+  elementMenu->push_back("Tracker List",
+                         sigc::bind(sigc::mem_fun(this, &Download::activate_display_focus), DISPLAY_TRACKER_LIST),
+                         sigc::bind(sigc::mem_fun(this, &Download::activate_display_menu), DISPLAY_TRACKER_LIST));
+  elementMenu->push_back("Chunks Seen",
+                         sigc::bind(sigc::mem_fun(this, &Download::activate_display_focus), DISPLAY_CHUNKS_SEEN),
+                         sigc::bind(sigc::mem_fun(this, &Download::activate_display_menu), DISPLAY_CHUNKS_SEEN));
+  elementMenu->push_back("Transfer List",
+                         sigc::bind(sigc::mem_fun(this, &Download::activate_display_focus), DISPLAY_TRANSFER_LIST),
+                         sigc::bind(sigc::mem_fun(this, &Download::activate_display_menu), DISPLAY_TRANSFER_LIST));
 
-  elementMenu->focus_next();
+  elementMenu->set_entry(0);
 
   m_uiArray[DISPLAY_MENU]          = elementMenu;
-  m_uiArray[DISPLAY_PEER_LIST]     = new ElementPeerList(d, &m_peers, &m_focus);
-  m_uiArray[DISPLAY_PEER_INFO]     = new ElementPeerInfo(d, &m_peers, &m_focus);
+  m_uiArray[DISPLAY_PEER_LIST]     = new ElementPeerList(d);
   m_uiArray[DISPLAY_FILE_LIST]     = new ElementFileList(d);
   m_uiArray[DISPLAY_TRACKER_LIST]  = new ElementTrackerList(d);
   m_uiArray[DISPLAY_CHUNKS_SEEN]   = new ElementChunksSeen(d);
   m_uiArray[DISPLAY_TRANSFER_LIST] = new ElementTransferList(d);
 
+  m_uiArray[DISPLAY_MENU]->slot_exit(sigc::mem_fun(&m_slotExit, &slot_type::operator()));
+  m_uiArray[DISPLAY_PEER_LIST]->slot_exit(sigc::bind(sigc::mem_fun(this, &Download::activate_display_menu), DISPLAY_PEER_LIST));
+  m_uiArray[DISPLAY_FILE_LIST]->slot_exit(sigc::bind(sigc::mem_fun(this, &Download::activate_display_menu), DISPLAY_FILE_LIST));
+  m_uiArray[DISPLAY_TRACKER_LIST]->slot_exit(sigc::bind(sigc::mem_fun(this, &Download::activate_display_menu), DISPLAY_TRACKER_LIST));
+  m_uiArray[DISPLAY_CHUNKS_SEEN]->slot_exit(sigc::bind(sigc::mem_fun(this, &Download::activate_display_menu), DISPLAY_CHUNKS_SEEN));
+  m_uiArray[DISPLAY_TRANSFER_LIST]->slot_exit(sigc::bind(sigc::mem_fun(this, &Download::activate_display_menu), DISPLAY_TRANSFER_LIST));
+
   bind_keys();
-
-  m_download->download()->peer_list(m_peers);
-
-  m_connPeerConnected    = m_download->download()->signal_peer_connected(sigc::mem_fun(*this, &Download::receive_peer_connected));
-  m_connPeerDisconnected = m_download->download()->signal_peer_disconnected(sigc::mem_fun(*this, &Download::receive_peer_disconnected));
 }
 
 Download::~Download() {
   if (is_active())
     throw torrent::client_error("ui::Download::~Download() called on an active object.");
-
-  m_connPeerConnected.disconnect();
-  m_connPeerDisconnected.disconnect();
 
   std::for_each(m_uiArray, m_uiArray + DISPLAY_MAX_SIZE, rak::call_delete<ElementBase>());
 
@@ -159,7 +166,6 @@ Download::activate_display(Display displayType, bool focusDisplay) {
     break;
 
   case DISPLAY_PEER_LIST:
-  case DISPLAY_PEER_INFO:
   case DISPLAY_FILE_LIST:
   case DISPLAY_TRACKER_LIST:
   case DISPLAY_CHUNKS_SEEN:
@@ -183,7 +189,6 @@ Download::activate_display(Display displayType, bool focusDisplay) {
     break;
 
   case DISPLAY_PEER_LIST:
-  case DISPLAY_PEER_INFO:
   case DISPLAY_FILE_LIST:
   case DISPLAY_TRACKER_LIST:
   case DISPLAY_CHUNKS_SEEN:
@@ -208,54 +213,6 @@ Download::activate_display(Display displayType, bool focusDisplay) {
 }
 
 void
-Download::receive_next() {
-  if (m_focus != m_peers.end())
-    ++m_focus;
-  else
-    m_focus = m_peers.begin();
-
-//   mark_dirty();
-}
-
-void
-Download::receive_prev() {
-  if (m_focus != m_peers.begin())
-    --m_focus;
-  else
-    m_focus = m_peers.end();
-
-//   mark_dirty();
-}
-
-void
-Download::receive_disconnect_peer() {
-  if (m_focus == m_peers.end())
-    return;
-
-  m_download->download()->disconnect_peer(*m_focus);
-
-//   mark_dirty();
-}
-
-void
-Download::receive_peer_connected(torrent::Peer p) {
-  m_peers.push_back(p);
-}
-
-void
-Download::receive_peer_disconnected(torrent::Peer p) {
-  PList::iterator itr = std::find(m_peers.begin(), m_peers.end(), p);
-
-  if (itr == m_peers.end())
-    throw std::logic_error("Download::receive_peer_disconnected(...) received a peer we don't have in our list");
-
-  if (itr == m_focus)
-    m_focus = m_peers.erase(itr);
-  else
-    m_peers.erase(itr);
-}
-
-void
 Download::receive_max_uploads(int t) {
   m_windowDownloadStatus->mark_dirty();
 
@@ -274,16 +231,6 @@ Download::receive_max_peers(int t) {
   m_windowDownloadStatus->mark_dirty();
 
   m_download->download()->set_peers_max(std::max(m_download->download()->peers_max() + t, (uint32_t)5));
-}
-
-void
-Download::receive_snub_peer() {
-  if (m_focus == m_peers.end())
-    return;
-
-  m_focus->set_snubbed(!m_focus->is_snubbed());
-
-//   mark_dirty();
 }
 
 void
@@ -307,30 +254,13 @@ Download::bind_keys() {
   m_bindings['+'] = sigc::mem_fun(this, &Download::receive_next_priority);
   m_bindings['-'] = sigc::mem_fun(this, &Download::receive_prev_priority);
 
-  m_bindings['k'] = sigc::mem_fun(this, &Download::receive_disconnect_peer);
-
   m_bindings['t'] = sigc::bind(sigc::mem_fun(m_download->tracker_list(), &torrent::TrackerList::manual_request), false);
   m_bindings['T'] = sigc::bind(sigc::mem_fun(m_download->tracker_list(), &torrent::TrackerList::manual_request), true);
 
-  m_bindings['p'] = sigc::bind(sigc::mem_fun(this, &Download::activate_display_focus), DISPLAY_PEER_INFO);
+  m_bindings['p'] = sigc::bind(sigc::mem_fun(this, &Download::activate_display_focus), DISPLAY_PEER_LIST);
   m_bindings['o'] = sigc::bind(sigc::mem_fun(this, &Download::activate_display_focus), DISPLAY_TRACKER_LIST);
   m_bindings['i'] = sigc::bind(sigc::mem_fun(this, &Download::activate_display_focus), DISPLAY_CHUNKS_SEEN);
   m_bindings['u'] = sigc::bind(sigc::mem_fun(this, &Download::activate_display_focus), DISPLAY_TRANSFER_LIST);
-
-  m_bindings[KEY_UP]   = sigc::mem_fun(this, &Download::receive_prev);
-  m_bindings[KEY_DOWN] = sigc::mem_fun(this, &Download::receive_next);
-
-  // Key bindings for sub-ui's.
-  m_uiArray[DISPLAY_PEER_LIST]->bindings()[KEY_LEFT]    = sigc::bind(sigc::mem_fun(this, &Download::activate_display_focus), DISPLAY_MENU);
-  m_uiArray[DISPLAY_PEER_INFO]->bindings()[KEY_LEFT]    = sigc::bind(sigc::mem_fun(this, &Download::activate_display_focus), DISPLAY_MENU);
-  m_uiArray[DISPLAY_FILE_LIST]->bindings()[KEY_LEFT]    = sigc::bind(sigc::mem_fun(this, &Download::activate_display_focus), DISPLAY_MENU);
-  m_uiArray[DISPLAY_TRACKER_LIST]->bindings()[KEY_LEFT] = sigc::bind(sigc::mem_fun(this, &Download::activate_display_focus), DISPLAY_MENU);
-  m_uiArray[DISPLAY_CHUNKS_SEEN]->bindings()[KEY_LEFT]  = sigc::bind(sigc::mem_fun(this, &Download::activate_display_focus), DISPLAY_MENU);
-  m_uiArray[DISPLAY_TRANSFER_LIST]->bindings()[KEY_LEFT]= sigc::bind(sigc::mem_fun(this, &Download::activate_display_focus), DISPLAY_MENU);
-
-  // Doesn't belong here.
-  m_uiArray[DISPLAY_PEER_LIST]->bindings()['*'] = sigc::mem_fun(this, &Download::receive_snub_peer);
-  m_uiArray[DISPLAY_PEER_INFO]->bindings()['*'] = sigc::mem_fun(this, &Download::receive_snub_peer);
 }
 
 }

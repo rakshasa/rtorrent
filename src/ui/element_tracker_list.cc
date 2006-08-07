@@ -54,6 +54,8 @@ ElementTrackerList::ElementTrackerList(core::Download* d) :
   m_window(NULL),
   m_focus(0) {
 
+  m_bindings[KEY_LEFT] = sigc::mem_fun(&m_slotExit, &slot_type::operator());
+
   m_bindings[KEY_DOWN] = sigc::mem_fun(*this, &ElementTrackerList::receive_next);
   m_bindings[KEY_UP]   = sigc::mem_fun(*this, &ElementTrackerList::receive_prev);
   m_bindings[' ']      = sigc::mem_fun(*this, &ElementTrackerList::receive_cycle_group);

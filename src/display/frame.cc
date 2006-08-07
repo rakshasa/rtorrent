@@ -475,7 +475,7 @@ Frame::balance_column(uint32_t x, uint32_t y, uint32_t width, uint32_t height) {
 
     (*itr)->balance(x, y, std::min((*itr)->m_width, width), m_height);
 
-    y += (*itr)->m_width;
+    x += (*itr)->m_width;
     width -= (*itr)->m_width;
   }
 }

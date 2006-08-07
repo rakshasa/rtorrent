@@ -70,7 +70,7 @@ public:
   using base_type::empty;
   using base_type::size;
 
-  static const size_type focus_invalid = ~size_type();
+  static const size_type entry_invalid = ~size_type();
 
   ElementMenu();
   ~ElementMenu();
@@ -85,15 +85,21 @@ public:
                                 const slot_type& slotSelect = slot_type(),
                                 const slot_type& slotFocus = slot_type());
 
-  void                focus_next();
-  void                focus_prev();
+  void                entry_next();
+  void                entry_prev();
 
-  void                focus_select();
+  void                entry_select();
+
+  // Does not trigger the callback.
+  void                set_entry(size_type idx);
 
 private:
+  inline void         focus_entry(size_type idx);
+  inline void         unfocus_entry(size_type idx);
+
   WindowText*         m_window;
 
-  size_type           m_focus;
+  size_type           m_entry;
 };
 
 }

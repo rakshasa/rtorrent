@@ -36,9 +36,12 @@
 
 #include "config.h"
 
+#include <sigc++/bind.h>
 #include <torrent/exceptions.h>
 
 #include "display/frame.h"
+#include "display/manager.h"
+#include "display/window_peer_info.h"
 #include "display/window_peer_list.h"
 #include "input/manager.h"
 
@@ -47,11 +50,27 @@
 
 namespace ui {
 
-ElementPeerList::ElementPeerList(core::Download* d, PList* l, PList::iterator* f) :
+ElementPeerList::ElementPeerList(core::Download* d) :
   m_download(d),
-  m_window(NULL),
-  m_list(l),
-  m_focus(f) {
+  m_state(DISPLAY_MAX_SIZE) {
+
+  m_listItr = m_list.end();
+
+  m_download->download()->peer_list(m_list);
+
+  m_connPeerConnected    = m_download->download()->signal_peer_connected(sigc::mem_fun(*this, &ElementPeerList::receive_peer_connected));
+  m_connPeerDisconnected = m_download->download()->signal_peer_disconnected(sigc::mem_fun(*this, &ElementPeerList::receive_peer_disconnected));
+
+  m_bindings['k']       = sigc::mem_fun(this, &ElementPeerList::receive_disconnect_peer);
+  m_bindings['*']       = sigc::mem_fun(this, &ElementPeerList::receive_snub_peer);
+  m_bindings[KEY_UP]    = sigc::mem_fun(this, &ElementPeerList::receive_prev);
+  m_bindings[KEY_DOWN]  = sigc::mem_fun(this, &ElementPeerList::receive_next);
+  m_bindings[KEY_RIGHT] = sigc::bind(sigc::mem_fun(this, &ElementPeerList::activate_display), DISPLAY_INFO);
+}
+
+ElementPeerList::~ElementPeerList() {
+  m_connPeerConnected.disconnect();
+  m_connPeerDisconnected.disconnect();
 }
 
 void
@@ -62,11 +81,13 @@ ElementPeerList::activate(display::Frame* frame, bool focus) {
   if (focus)
     control->input()->push_back(&m_bindings);
 
-  m_window = new WPeerList(m_download, m_list, m_focus);
-  m_window->set_active(true);
-
   m_frame = frame;
-  m_frame->initialize_window(m_window);
+  m_focus = focus;
+
+  m_window[DISPLAY_LIST] = new display::WindowPeerList(m_download, &m_list, &m_listItr);
+  m_window[DISPLAY_INFO] = new display::WindowPeerInfo(m_download, &m_list, &m_listItr);
+
+  activate_display(DISPLAY_LIST);
 }
 
 void
@@ -76,11 +97,112 @@ ElementPeerList::disable() {
 
   control->input()->erase(&m_bindings);
 
+  activate_display(DISPLAY_MAX_SIZE);
+
   m_frame->clear();
   m_frame = NULL;
 
-  delete m_window;
-  m_window = NULL;
+  std::for_each(m_window, m_window + DISPLAY_MAX_SIZE, rak::call_delete<display::Window>());
+}
+
+void
+ElementPeerList::activate_display(Display display) {
+  if (display == m_state)
+    return;
+
+  switch (m_state) {
+  case DISPLAY_INFO:
+  case DISPLAY_LIST:
+    m_bindings.erase(KEY_LEFT);
+
+    m_window[m_state]->set_active(false);
+    m_frame->clear();
+    break;
+
+  case DISPLAY_MAX_SIZE:
+    break;
+  }
+
+  m_state = display;
+
+  switch (m_state) {
+  case DISPLAY_INFO:
+    m_bindings[KEY_LEFT] = sigc::bind(sigc::mem_fun(this, &ElementPeerList::activate_display), DISPLAY_LIST);
+
+    m_window[m_state]->set_active(true);
+    m_frame->initialize_window(m_window[m_state]);
+    break;
+
+  case DISPLAY_LIST:
+    m_bindings[KEY_LEFT] = sigc::mem_fun(&m_slotExit, &slot_type::operator());
+
+    m_window[m_state]->set_active(true);
+    m_frame->initialize_window(m_window[m_state]);
+    break;
+
+  case DISPLAY_MAX_SIZE:
+    break;
+  }
+
+  control->display()->adjust_layout();
+}
+
+void
+ElementPeerList::receive_next() {
+  if (m_listItr != m_list.end())
+    ++m_listItr;
+  else
+    m_listItr = m_list.begin();
+
+  m_window[m_state]->mark_dirty();
+}
+
+void
+ElementPeerList::receive_prev() {
+  if (m_listItr != m_list.begin())
+    --m_listItr;
+  else
+    m_listItr = m_list.end();
+
+  m_window[m_state]->mark_dirty();
+}
+
+void
+ElementPeerList::receive_disconnect_peer() {
+  if (m_listItr == m_list.end())
+    return;
+
+  m_download->download()->disconnect_peer(*m_listItr);
+
+  m_window[m_state]->mark_dirty();
+}
+
+void
+ElementPeerList::receive_peer_connected(torrent::Peer p) {
+  m_list.push_back(p);
+}
+
+void
+ElementPeerList::receive_peer_disconnected(torrent::Peer p) {
+  PList::iterator itr = std::find(m_list.begin(), m_list.end(), p);
+
+  if (itr == m_list.end())
+    throw torrent::client_error("ElementPeerList::receive_peer_disconnected(...) itr == m_list.end().");
+
+  if (itr == m_listItr)
+    m_listItr = m_list.erase(itr);
+  else
+    m_list.erase(itr);
+}
+
+void
+ElementPeerList::receive_snub_peer() {
+  if (m_listItr == m_list.end())
+    return;
+
+  m_listItr->set_snubbed(!m_listItr->is_snubbed());
+
+  m_window[m_state]->mark_dirty();
 }
 
 }

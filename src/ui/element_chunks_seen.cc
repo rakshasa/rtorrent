@@ -52,12 +52,12 @@ ElementChunksSeen::ElementChunksSeen(core::Download* d) :
   m_window(NULL),
   m_focus(0) {
 
+  m_bindings[KEY_LEFT] = sigc::mem_fun(&m_slotExit, &slot_type::operator());
+
   m_bindings[KEY_DOWN]  = sigc::mem_fun(*this, &ElementChunksSeen::receive_next);
   m_bindings[KEY_UP]    = sigc::mem_fun(*this, &ElementChunksSeen::receive_prev);
   m_bindings[KEY_NPAGE] = sigc::mem_fun(*this, &ElementChunksSeen::receive_pagenext);
   m_bindings[KEY_PPAGE] = sigc::mem_fun(*this, &ElementChunksSeen::receive_pageprev);
-//   m_bindings[' ']      = sigc::mem_fun(*this, &ElementChunksSeen::receive_cycle_group);
-//   m_bindings['*']      = sigc::mem_fun(*this, &ElementChunksSeen::receive_disable);
 }
 
 void

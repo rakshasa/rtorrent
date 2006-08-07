@@ -41,28 +41,47 @@
 
 #include "element_base.h"
 
-namespace display {
-  class WindowPeerList;
-}
-
 namespace ui {
 
 class ElementPeerList : public ElementBase {
 public:
-  typedef display::WindowPeerList       WPeerList;
-  typedef std::list<torrent::Peer>      PList;
+  typedef std::list<torrent::Peer> PList;
 
-  ElementPeerList(core::Download* d, PList* l, PList::iterator* f);
+  typedef enum {
+    DISPLAY_LIST,
+    DISPLAY_INFO,
+    DISPLAY_MAX_SIZE
+  } Display;
+
+  ElementPeerList(core::Download* d);
+  ~ElementPeerList();
 
   void                activate(display::Frame* frame, bool focus = true);
   void                disable();
 
+  void                activate_display(Display display);
+
 private:
+  void                receive_next();
+  void                receive_prev();
+
+  void                receive_disconnect_peer();
+
+  void                receive_peer_connected(torrent::Peer p);
+  void                receive_peer_disconnected(torrent::Peer p);
+
+  void                receive_snub_peer();
+
   core::Download*     m_download;
-  WPeerList*          m_window;
   
-  PList*              m_list;
-  PList::iterator*    m_focus;
+  Display             m_state;
+  display::Window*    m_window[DISPLAY_MAX_SIZE];
+  
+  PList               m_list;
+  PList::iterator     m_listItr;
+
+  sigc::connection    m_connPeerConnected;
+  sigc::connection    m_connPeerDisconnected;
 };
 
 }
