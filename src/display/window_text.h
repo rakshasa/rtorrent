@@ -62,7 +62,8 @@ public:
   using base_type::rbegin;
   using base_type::rend;
 
-  WindowText() : Window(new Canvas, 0, 0, 0, extent_static, extent_static) {}
+  WindowText(void* object = NULL, extent_type margin = 0) :
+    Window(new Canvas, 0, 0, 0, extent_static, extent_static), m_object(object), m_margin(margin) {}
   ~WindowText() { clear(); }
 
   void                clear();
@@ -70,6 +71,11 @@ public:
   void                push_back(TextElement* element);
 
   virtual void        redraw();
+
+private:
+  void*               m_object;
+
+  extent_type         m_margin;
 };
 
 }

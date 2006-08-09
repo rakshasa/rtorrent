@@ -38,6 +38,7 @@
 #define RTORRENT_DISPLAY_TEXT_ELEMENT_H
 
 #include <vector>
+#include <inttypes.h>
 
 #include "display/canvas.h"
 

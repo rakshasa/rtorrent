@@ -162,11 +162,17 @@ VariableVoidSlot::get() {
 
 void
 VariableVoidSlot::set(const torrent::Object& arg) {
+  if (!m_slotSet.is_valid())
+    return;
+
   m_slotSet();
 }
 
 const torrent::Object&
 VariableValueSlot::get() {
+  if (!m_slotGet.is_valid())
+    return m_cache;
+
   m_cache = m_slotGet() / m_unit;
 
   return m_cache;
@@ -174,6 +180,9 @@ VariableValueSlot::get() {
 
 void
 VariableValueSlot::set(const torrent::Object& arg) {
+  if (!m_slotSet.is_valid())
+    return;
+
   value_type value;
 
   switch (arg.type()) {
@@ -196,6 +205,9 @@ VariableValueSlot::set(const torrent::Object& arg) {
 
 const torrent::Object&
 VariableStringSlot::get() {
+  if (!m_slotGet.is_valid())
+    return m_cache;
+
   m_cache = m_slotGet();
 
   return m_cache;
@@ -203,6 +215,9 @@ VariableStringSlot::get() {
 
 void
 VariableStringSlot::set(const torrent::Object& arg) {
+  if (!m_slotSet.is_valid())
+    return;
+
   switch (arg.type()) {
   case torrent::Object::TYPE_STRING:
     m_slotSet(arg.as_string());

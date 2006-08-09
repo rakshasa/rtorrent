@@ -40,41 +40,36 @@
 
 #include "display/frame.h"
 #include "display/window_text.h"
+#include "display/text_element_list.h"
 #include "display/text_element_string.h"
 #include "input/manager.h"
 
 #include "control.h"
-#include "element_menu.h"
+#include "element_text.h"
 
 namespace ui {
 
-struct ElementMenuEntry {
-  display::TextElementStringBase* m_element;
-
-  ElementMenu::slot_type          m_slotFocus;
-  ElementMenu::slot_type          m_slotSelect;
-};
-
-ElementMenu::ElementMenu() :
-  m_window(new WindowText(NULL, 2)),
-  m_entry(entry_invalid) {
+ElementText::ElementText(void *object) :
+  m_window(new WindowText(object)),
+  m_column(0),
+  m_columnWidth(0) {
 
   // Move bindings into a function that defines default bindings.
   m_bindings[KEY_LEFT] = sigc::mem_fun(&m_slotExit, &slot_type::operator());  
 
-  m_bindings[KEY_UP]    = sigc::mem_fun(this, &ElementMenu::entry_prev);
-  m_bindings[KEY_DOWN]  = sigc::mem_fun(this, &ElementMenu::entry_next);
-  m_bindings[KEY_RIGHT] = sigc::mem_fun(this, &ElementMenu::entry_select);
+//   m_bindings[KEY_UP]    = sigc::mem_fun(this, &ElementText::entry_prev);
+//   m_bindings[KEY_DOWN]  = sigc::mem_fun(this, &ElementText::entry_next);
+//   m_bindings[KEY_RIGHT] = sigc::mem_fun(this, &ElementText::entry_select);
 }
 
-ElementMenu::~ElementMenu() {
+ElementText::~ElementText() {
   delete m_window;
 }
 
 void
-ElementMenu::activate(display::Frame* frame, bool focus) {
+ElementText::activate(display::Frame* frame, bool focus) {
   if (is_active())
-    throw torrent::client_error("ui::ElementMenu::activate(...) is_active().");
+    throw torrent::client_error("ui::ElementText::activate(...) is_active().");
 
   if (focus)
     control->input()->push_back(&m_bindings);
@@ -85,14 +80,12 @@ ElementMenu::activate(display::Frame* frame, bool focus) {
   m_frame->initialize_window(m_window);
 
   m_window->set_active(true);
-
-  focus_entry(m_entry);
 }
 
 void
-ElementMenu::disable() {
+ElementText::disable() {
   if (!is_active())
-    throw torrent::client_error("ui::ElementMenu::disable(...) !is_active().");
+    throw torrent::client_error("ui::ElementText::disable(...) !is_active().");
 
   control->input()->erase(&m_bindings);
 
@@ -103,17 +96,8 @@ ElementMenu::disable() {
 }
 
 void
-ElementMenu::push_back(const char* name, const slot_type& slotSelect, const slot_type& slotFocus) {
-  entry_type* entry = new entry_type;
-
-  entry->m_element    = new display::TextElementCString(name);
-  entry->m_slotSelect = slotSelect;
-  entry->m_slotFocus  = slotFocus;
-
-  m_window->push_back(NULL);
-  m_window->push_back(entry->m_element);
-
-  base_type::push_back(entry);
+ElementText::push_back(display::TextElement* entry) {
+  m_window->push_back(entry);
 
   // For the moment, don't bother doing anything if the window is
   // already active.
@@ -121,72 +105,17 @@ ElementMenu::push_back(const char* name, const slot_type& slotSelect, const slot
 }
 
 void
-ElementMenu::entry_next() {
-  if (empty() || (size() == 1 && m_entry == 0))
-    return;
+ElementText::push_column(display::TextElement* entry1, display::TextElement* entry2) {
+  m_columnWidth = std::max(entry1->max_length(), m_column);
 
-  unfocus_entry(m_entry);
-  
-  if (++m_entry >= size())
-    m_entry = 0;
+  display::TextElementList* list = new display::TextElementList;
+  list->set_column(m_column);
+  list->set_column_width(&m_columnWidth);
 
-  focus_entry(m_entry);
-  base_type::operator[](m_entry)->m_slotFocus();
+  list->push_back(entry1);
+  list->push_back(entry2);
 
-  m_window->mark_dirty();
-}
-
-void
-ElementMenu::entry_prev() {
-  if (empty() || (size() == 1 && m_entry == 0))
-    return;
-
-  unfocus_entry(m_entry);
-
-  if (--m_entry >= size())
-    m_entry = size() - 1;
-
-  focus_entry(m_entry);
-  base_type::operator[](m_entry)->m_slotFocus();
-
-  m_window->mark_dirty();
-}
-
-void
-ElementMenu::entry_select() {
-  if (m_entry >= size())
-    return;
-
-  base_type::operator[](m_entry)->m_slotSelect();
-
-  m_window->mark_dirty();
-}
-
-void
-ElementMenu::set_entry(size_type idx) {
-  unfocus_entry(m_entry);
-
-  m_entry = idx;
-  focus_entry(m_entry);
-}
-
-inline void
-ElementMenu::focus_entry(size_type idx) {
-  if (idx >= size())
-    return;
-
-  if (m_focus)
-    base_type::operator[](idx)->m_element->set_attributes(display::Attributes::a_reverse);
-  else
-    base_type::operator[](idx)->m_element->set_attributes(display::Attributes::a_bold);
-}
-
-inline void
-ElementMenu::unfocus_entry(size_type idx) {
-  if (idx >= size())
-    return;
-
-  base_type::operator[](idx)->m_element->set_attributes(display::Attributes::a_normal);
+  push_back(list);
 }
 
 }

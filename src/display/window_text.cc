@@ -58,8 +58,14 @@ WindowText::push_back(TextElement* element) {
 //   m_minHeight = size();
   m_maxHeight = size();
 
-  if (element != NULL)
-    m_maxWidth = std::max(m_maxWidth, element->max_length() + 2);
+  if (element != NULL) {
+    extent_type width = element->max_length();
+
+    if (width == extent_full)
+      m_maxWidth = extent_full;
+    else
+      m_maxWidth = std::max(m_maxWidth, element->max_length() + m_margin);
+  }
 
   // Check if active, if so do the update thingie. Or be lazy?
 }
@@ -80,7 +86,7 @@ WindowText::redraw() {
     Canvas::attributes_list attributes;
     attributes.push_back(Attributes(buffer, Attributes::a_normal, Attributes::color_default));
 
-    char* last = (*itr)->print(buffer, buffer + m_canvas->width(), &attributes, NULL);
+    char* last = (*itr)->print(buffer, buffer + m_canvas->width(), &attributes, m_object);
 
     m_canvas->print_attributes(0, position, buffer, last, &attributes);
   }

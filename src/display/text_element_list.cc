@@ -51,20 +51,33 @@ TextElementList::clear() {
 
 char*
 TextElementList::print(char* first, const char* last, Canvas::attributes_list* attributes, void* object) {
+  int column = m_columnWidth != NULL ? m_column : 0;
+
   // Call print for each element even if first == last so that any
   // attributes gets added to the list.
   for (iterator itr = begin(); itr != end(); ++itr)
-    first = (*itr)->print(first, last, attributes, object);
+    if (column-- > 0) {
+      const char* columnEnd = std::min<const char*>(last, first + *m_columnWidth);
+
+      first = (*itr)->print(first, columnEnd, attributes, object);
+
+      std::memset(first, ' ', columnEnd - first);
+      first += columnEnd - first;
+
+    } else {
+      first = (*itr)->print(first, last, attributes, object);
+    }
 
   return first;
 }
 
 TextElementList::extent_type
 TextElementList::max_length() {
-  size_type length = 0;
+  extent_type length = 0;
+  int column = m_columnWidth != NULL ? m_column : 0;
 
   for (iterator itr = begin(); itr != end(); ++itr) {
-    size_type l = (*itr)->max_length();
+    extent_type l = column-- > 0 ? std::min((*itr)->max_length(), *m_columnWidth) : (*itr)->max_length();
 
     if (l == extent_full)
       return extent_full;

@@ -36,21 +36,12 @@
 
 #include "config.h"
 
-#include <cstring>
-
 #include "text_element_string.h"
 
 namespace display {
 
 char*
-TextElementString::print(char* first, const char* last, Canvas::attributes_list* attributes, void* object) {
-  size_t length = std::min<size_t>(last - first, m_string.size());
-  
-  if (length == 0)
-    return first;
-
-  std::memcpy(first, m_string.c_str(), length);
-
+TextElementStringBase::print(char* first, const char* last, Canvas::attributes_list* attributes, void* object) {
   // Move this stuff into a function in TextElement.
   Attributes base = attributes->back();
   Attributes current(NULL, m_attributes, Attributes::color_invalid);
@@ -65,17 +56,33 @@ TextElementString::print(char* first, const char* last, Canvas::attributes_list*
   else if (current.colors() != base.colors())
     current.set_position(first);
 
+  first = copy_string(first, last, object);
+
   if (current.position() != NULL) {
     attributes->push_back(current);
-    attributes->push_back(Attributes(first + length, base.attributes(), base.colors()));
+    attributes->push_back(Attributes(first, base.attributes(), base.colors()));
   }
+
+  return first;
+}
+
+char*
+TextElementString::copy_string(char* first, const char* last, void* object) {
+  extent_type length = std::min<extent_type>(last - first, m_string.size());
+  
+  if (length == 0)
+    return first;
+
+  std::memcpy(first, m_string.c_str(), std::min<extent_type>(length, last - first));
 
   return first + length;
 }
 
-TextElementString::extent_type
-TextElementString::max_length() {
-  return m_string.size();
+char*
+TextElementCString::copy_string(char* first, const char* last, void* object) {
+  std::memcpy(first, m_string, std::min<extent_type>(m_length, last - first));
+
+  return first + m_length;
 }
 
 }

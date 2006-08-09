@@ -167,6 +167,12 @@ public:
     m_slotSet.set(rak::convert_fn<void, const string_type&>(slotSet));
   }
 
+  template <typename SlotGet>
+  VariableStringSlot(SlotGet* slotGet, void* slotSet) {
+    m_slotGet.set(rak::convert_fn<string_type>(slotGet));
+    m_slotSet.set(NULL);
+  }
+
   virtual const torrent::Object& get();
   virtual void                   set(const torrent::Object& arg);
 

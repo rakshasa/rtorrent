@@ -37,31 +37,104 @@
 #ifndef RTORRENT_DISPLAY_TEXT_ELEMENT_LIST_H
 #define RTORRENT_DISPLAY_TEXT_ELEMENT_LIST_H
 
+#include <iterator>
 #include <string>
+#include <cstring>
 
 #include "text_element.h"
 
 namespace display {
 
-class TextElementString : public TextElement {
+class TextElementStringBase : public TextElement {
 public:
-  TextElementString() {}
-  TextElementString(const std::string& s, int attributes = Attributes::a_invalid) : m_string(s), m_attributes(attributes) {}
-
-  const std::string&  str() const                   { return m_string; }
-  void                set_str(const std::string& s) { m_string = s; }
-
   int                 attributes() const            { return m_attributes; }
   void                set_attributes(int a)         { m_attributes = a; }
 
   virtual char*       print(char* first, const char* last, Canvas::attributes_list* attributes, void* object);
 
-  virtual extent_type max_length();
+protected:
+  virtual char*       copy_string(char* first, const char* last, void* object) = 0;
 
-private:
-  std::string         m_string;
   int                 m_attributes;
 };
+
+class TextElementString : public TextElementStringBase {
+public:
+  TextElementString(const std::string& s, int attributes = Attributes::a_invalid) :
+    m_string(s) { m_attributes = attributes; }
+
+  const std::string&  str() const                   { return m_string; }
+  void                set_str(const std::string& s) { m_string = s; }
+
+private:
+  virtual extent_type max_length()                  { return m_string.size(); }
+
+  virtual char*       copy_string(char* first, const char* last, void* object);
+
+  std::string         m_string;
+};
+
+class TextElementCString : public TextElementStringBase {
+public:
+  TextElementCString(const char* s, int attributes = Attributes::a_invalid) :
+    m_length(std::strlen(s)), m_string(s) {
+    m_attributes = attributes;
+  }
+
+private:
+  virtual extent_type max_length()                  { return m_length; }
+
+  virtual char*       copy_string(char* first, const char* last, void* object);
+
+  extent_type         m_length;
+  const char*         m_string;
+};
+
+template <typename slot_type>
+class TextElementStringSlot : public TextElementStringBase {
+public:
+  typedef typename slot_type::argument_type arg1_type;
+  typedef typename slot_type::result_type   result_type;
+
+  TextElementStringSlot(const slot_type& slot, int attributes = Attributes::a_invalid) :
+    m_length(extent_full), m_slot(slot) {
+    m_attributes = attributes;
+  }
+
+private:
+  virtual extent_type max_length()                  { return m_length; }
+
+  virtual char* copy_string(char* first, const char* last, void* object) {
+    arg1_type arg1 = reinterpret_cast<arg1_type>(object);
+
+    if (arg1 == NULL)
+      return first;
+
+    result_type result = m_slot(arg1);
+    extent_type length = std::min<extent_type>(result_length(&result), last - first);
+
+    std::memcpy(first, result_buffer(&result), length);
+
+    return first + length;
+  }
+
+  template <typename Result>
+  extent_type result_length(Result* result)      { return result->size(); }
+  extent_type result_length(const char** result) { return std::strlen(*result); }
+
+  template <typename Result>
+  const char* result_buffer(Result* result)      { return result->c_str(); }
+  const char* result_buffer(const char** result) { return *result; }
+
+  extent_type         m_length;
+  slot_type           m_slot;
+};
+
+template <typename slot_type>
+inline TextElementStringSlot<slot_type>*
+text_element_string_slot(const slot_type& slot, int attributes = Attributes::a_invalid) {
+  return new TextElementStringSlot<slot_type>(slot, attributes);
+}
 
 }
 

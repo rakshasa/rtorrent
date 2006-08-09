@@ -38,6 +38,7 @@
 
 #include <sigc++/bind.h>
 #include <rak/functional.h>
+#include <rak/string_manip.h>
 #include <torrent/exceptions.h>
 #include <torrent/torrent.h>
 #include <torrent/tracker_list.h>
@@ -47,11 +48,14 @@
 #include "display/window_title.h"
 #include "display/window_download_statusbar.h"
 
+#include "display/text_element_string.h"
+
 #include "control.h"
 #include "download.h"
 #include "root.h"
 #include "element_file_list.h"
 #include "element_menu.h"
+#include "element_text.h"
 #include "element_peer_list.h"
 #include "element_tracker_list.h"
 #include "element_chunks_seen.h"
@@ -59,7 +63,7 @@
 
 namespace ui {
 
-Download::Download(DPtr d) :
+Download::Download(core::Download* d) :
   m_download(d),
   m_state(DISPLAY_MAX_SIZE),
   m_focusDisplay(false) {
@@ -67,31 +71,9 @@ Download::Download(DPtr d) :
   m_windowDownloadStatus = new WDownloadStatus(d);
   m_windowDownloadStatus->set_bottom(true);
 
-  ElementMenu* elementMenu = new ElementMenu;
-
-  elementMenu->push_back("Peer List",
-                         sigc::bind(sigc::mem_fun(this, &Download::activate_display_focus), DISPLAY_PEER_LIST),
-                         sigc::bind(sigc::mem_fun(this, &Download::activate_display_menu), DISPLAY_PEER_LIST));
-//   elementMenu->push_back("Peer Info",
-//                          sigc::bind(sigc::mem_fun(this, &Download::activate_display_focus), DISPLAY_PEER_INFO),
-//                          sigc::bind(sigc::mem_fun(this, &Download::activate_display_menu), DISPLAY_PEER_INFO));
-  elementMenu->push_back("File List",
-                         sigc::bind(sigc::mem_fun(this, &Download::activate_display_focus), DISPLAY_FILE_LIST),
-                         sigc::bind(sigc::mem_fun(this, &Download::activate_display_menu), DISPLAY_FILE_LIST));
-  elementMenu->push_back("Tracker List",
-                         sigc::bind(sigc::mem_fun(this, &Download::activate_display_focus), DISPLAY_TRACKER_LIST),
-                         sigc::bind(sigc::mem_fun(this, &Download::activate_display_menu), DISPLAY_TRACKER_LIST));
-  elementMenu->push_back("Chunks Seen",
-                         sigc::bind(sigc::mem_fun(this, &Download::activate_display_focus), DISPLAY_CHUNKS_SEEN),
-                         sigc::bind(sigc::mem_fun(this, &Download::activate_display_menu), DISPLAY_CHUNKS_SEEN));
-  elementMenu->push_back("Transfer List",
-                         sigc::bind(sigc::mem_fun(this, &Download::activate_display_focus), DISPLAY_TRANSFER_LIST),
-                         sigc::bind(sigc::mem_fun(this, &Download::activate_display_menu), DISPLAY_TRANSFER_LIST));
-
-  elementMenu->set_entry(0);
-
-  m_uiArray[DISPLAY_MENU]          = elementMenu;
+  m_uiArray[DISPLAY_MENU]          = create_menu();
   m_uiArray[DISPLAY_PEER_LIST]     = new ElementPeerList(d);
+  m_uiArray[DISPLAY_INFO]          = create_info();
   m_uiArray[DISPLAY_FILE_LIST]     = new ElementFileList(d);
   m_uiArray[DISPLAY_TRACKER_LIST]  = new ElementTrackerList(d);
   m_uiArray[DISPLAY_CHUNKS_SEEN]   = new ElementChunksSeen(d);
@@ -99,6 +81,7 @@ Download::Download(DPtr d) :
 
   m_uiArray[DISPLAY_MENU]->slot_exit(sigc::mem_fun(&m_slotExit, &slot_type::operator()));
   m_uiArray[DISPLAY_PEER_LIST]->slot_exit(sigc::bind(sigc::mem_fun(this, &Download::activate_display_menu), DISPLAY_PEER_LIST));
+  m_uiArray[DISPLAY_INFO]->slot_exit(sigc::bind(sigc::mem_fun(this, &Download::activate_display_menu), DISPLAY_INFO));
   m_uiArray[DISPLAY_FILE_LIST]->slot_exit(sigc::bind(sigc::mem_fun(this, &Download::activate_display_menu), DISPLAY_FILE_LIST));
   m_uiArray[DISPLAY_TRACKER_LIST]->slot_exit(sigc::bind(sigc::mem_fun(this, &Download::activate_display_menu), DISPLAY_TRACKER_LIST));
   m_uiArray[DISPLAY_CHUNKS_SEEN]->slot_exit(sigc::bind(sigc::mem_fun(this, &Download::activate_display_menu), DISPLAY_CHUNKS_SEEN));
@@ -114,6 +97,48 @@ Download::~Download() {
   std::for_each(m_uiArray, m_uiArray + DISPLAY_MAX_SIZE, rak::call_delete<ElementBase>());
 
   delete m_windowDownloadStatus;
+}
+
+inline ElementBase*
+Download::create_menu() {
+  ElementMenu* element = new ElementMenu;
+
+  element->push_back("Peer List",
+                     sigc::bind(sigc::mem_fun(this, &Download::activate_display_focus), DISPLAY_PEER_LIST),
+                     sigc::bind(sigc::mem_fun(this, &Download::activate_display_menu), DISPLAY_PEER_LIST));
+  element->push_back("Info",
+                     sigc::bind(sigc::mem_fun(this, &Download::activate_display_focus), DISPLAY_INFO),
+                     sigc::bind(sigc::mem_fun(this, &Download::activate_display_menu), DISPLAY_INFO));
+  element->push_back("File List",
+                     sigc::bind(sigc::mem_fun(this, &Download::activate_display_focus), DISPLAY_FILE_LIST),
+                     sigc::bind(sigc::mem_fun(this, &Download::activate_display_menu), DISPLAY_FILE_LIST));
+  element->push_back("Tracker List",
+                     sigc::bind(sigc::mem_fun(this, &Download::activate_display_focus), DISPLAY_TRACKER_LIST),
+                     sigc::bind(sigc::mem_fun(this, &Download::activate_display_menu), DISPLAY_TRACKER_LIST));
+  element->push_back("Chunks Seen",
+                     sigc::bind(sigc::mem_fun(this, &Download::activate_display_focus), DISPLAY_CHUNKS_SEEN),
+                     sigc::bind(sigc::mem_fun(this, &Download::activate_display_menu), DISPLAY_CHUNKS_SEEN));
+  element->push_back("Transfer List",
+                     sigc::bind(sigc::mem_fun(this, &Download::activate_display_focus), DISPLAY_TRANSFER_LIST),
+                     sigc::bind(sigc::mem_fun(this, &Download::activate_display_menu), DISPLAY_TRANSFER_LIST));
+
+  element->set_entry(0);
+
+  return element;
+}
+
+inline ElementBase*
+Download::create_info() {
+  ElementText* element = new ElementText(m_download);
+
+  element->set_column(1);
+
+  element->push_column(new display::TextElementCString("Name:"),      display::text_element_string_slot(rak::on(std::mem_fun(&core::Download::c_download), std::mem_fun(&torrent::Download::name))));
+  element->push_column(new display::TextElementCString("Info Hash:"), display::text_element_string_slot(std::mem_fun(&core::Download::info_hash_hex)));
+
+  element->set_column_width(element->column_width() + 1);
+
+  return element;
 }
 
 void
@@ -166,6 +191,7 @@ Download::activate_display(Display displayType, bool focusDisplay) {
     break;
 
   case DISPLAY_PEER_LIST:
+  case DISPLAY_INFO:
   case DISPLAY_FILE_LIST:
   case DISPLAY_TRACKER_LIST:
   case DISPLAY_CHUNKS_SEEN:
@@ -189,6 +215,7 @@ Download::activate_display(Display displayType, bool focusDisplay) {
     break;
 
   case DISPLAY_PEER_LIST:
+  case DISPLAY_INFO:
   case DISPLAY_FILE_LIST:
   case DISPLAY_TRACKER_LIST:
   case DISPLAY_CHUNKS_SEEN:

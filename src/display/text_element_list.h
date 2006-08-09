@@ -61,13 +61,21 @@ public:
 
   using base_type::push_back;
 
+  TextElementList() : m_column(0), m_columnWidth(0) {}
   virtual ~TextElementList() { clear(); }
 
   void                clear();
 
+  void                set_column(unsigned int column)      { m_column = column; }
+  void                set_column_width(extent_type* width) { m_columnWidth = width; }
+
   virtual char*       print(char* first, const char* last, Canvas::attributes_list* attributes, void* object);
 
   virtual extent_type max_length();
+
+private:
+  unsigned int        m_column;
+  extent_type*        m_columnWidth;
 };
 
 }

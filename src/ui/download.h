@@ -60,12 +60,12 @@ class Download : public ElementBase {
 public:
   typedef display::WindowDownloadStatusbar WDownloadStatus;
 
-  typedef core::Download*                  DPtr;
   typedef std::list<torrent::Peer>         PList;
 
   typedef enum {
     DISPLAY_MENU,
     DISPLAY_PEER_LIST,
+    DISPLAY_INFO,
     DISPLAY_FILE_LIST,
     DISPLAY_TRACKER_LIST,
     DISPLAY_CHUNKS_SEEN,
@@ -73,7 +73,7 @@ public:
     DISPLAY_MAX_SIZE
   } Display;
 
-  Download(DPtr d);
+  Download(core::Download* d);
   ~Download();
 
   void                activate(display::Frame* frame, bool focus = true);
@@ -93,13 +93,16 @@ private:
   Download(const Download&);
   void operator = (const Download&);
 
+  inline ElementBase* create_menu();
+  inline ElementBase* create_info();
+
   void                receive_max_uploads(int t);
   void                receive_min_peers(int t);
   void                receive_max_peers(int t);
 
   void                bind_keys();
 
-  DPtr                m_download;
+  core::Download*     m_download;
 
   Display             m_state;
   ElementBase*        m_uiArray[DISPLAY_MAX_SIZE];

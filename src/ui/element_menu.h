@@ -81,7 +81,8 @@ public:
   // Consider returning a pointer that can be used to manipulate
   // entries, f.ex disabling them.
 
-  void                push_back(const std::string& name,
+  // The c string is not copied nor freed, so it should be constant.
+  void                push_back(const char* name,
                                 const slot_type& slotSelect = slot_type(),
                                 const slot_type& slotFocus = slot_type());
 
