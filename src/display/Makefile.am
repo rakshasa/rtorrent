@@ -17,6 +17,8 @@ libsub_display_a_SOURCES = \
 	text_element_list.h \
 	text_element_string.cc \
 	text_element_string.h \
+	text_element_value.cc \
+	text_element_value.h \
 	window.cc \
 	window.h \
 	window_download_chunks_seen.cc \

@@ -36,63 +36,35 @@
 
 #include "config.h"
 
-#include <algorithm>
-#include <rak/functional.h>
-#include <torrent/exceptions.h>
-
-#include "text_element_list.h"
+#include "text_element_value.h"
 
 namespace display {
 
-void
-TextElementList::clear() {
-  std::for_each(begin(), end(), rak::call_delete<TextElement>());
-  base_type::clear();
-}
-
 char*
-TextElementList::print(char* first, const char* last, Canvas::attributes_list* attributes, void* object) {
-  int column = m_columnWidth != NULL ? m_column : 0;
+TextElementValueBase::print(char* first, const char* last, Canvas::attributes_list* attributes, void* object) {
+  // Move this stuff into a function in TextElement.
+  Attributes base = attributes->back();
+  Attributes current(NULL, m_attributes, Attributes::color_invalid);
 
-  // Call print for each element even if first == last so that any
-  // attributes gets added to the list.
-  for (iterator itr = begin(); itr != end(); ++itr)
-    if (column-- > 0) {
-      const char* columnEnd = std::min<const char*>(last, first + *m_columnWidth);
+  if (current.attributes() == Attributes::a_invalid)
+    current.set_attributes(base.attributes());
+  else if (current.attributes() != base.attributes())
+    current.set_position(first);
 
-      if (columnEnd < first || columnEnd > last)
-        throw torrent::client_error("TextElementList::print(...) columnEnd < first || columnEnd > last.");
+  if (current.colors() == Attributes::color_invalid)
+    current.set_colors(base.colors());
+  else if (current.colors() != base.colors())
+    current.set_position(first);
 
-      first = (*itr)->print(first, columnEnd, attributes, object);
+//   first += std::max(snprintf(first, last - first + 1, m_format, value(object)), 0);
+  first += std::max(snprintf(first, last - first, "%lld", value(object)), 0);
 
-      if (first > columnEnd)
-        throw torrent::client_error("TextElementList::print(...) first > columnEnd.");
-
-      std::memset(first, ' ', columnEnd - first);
-      first += columnEnd - first;
-
-    } else {
-      first = (*itr)->print(first, last, attributes, object);
-    }
+  if (current.position() != NULL) {
+    attributes->push_back(current);
+    attributes->push_back(Attributes(first, base.attributes(), base.colors()));
+  }
 
   return first;
-}
-
-TextElementList::extent_type
-TextElementList::max_length() {
-  extent_type length = 0;
-  int column = m_columnWidth != NULL ? m_column : 0;
-
-  for (iterator itr = begin(); itr != end(); ++itr) {
-    extent_type l = column-- > 0 ? std::min((*itr)->max_length(), *m_columnWidth) : (*itr)->max_length();
-
-    if (l == extent_full)
-      return extent_full;
-    
-    length += l;
-  }
-  
-  return length;
 }
 
 }

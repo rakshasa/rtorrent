@@ -34,65 +34,64 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#include "config.h"
+#ifndef RTORRENT_UI_ELEMENT_TEXT_H
+#define RTORRENT_UI_ELEMENT_TEXT_H
 
-#include <algorithm>
-#include <rak/functional.h>
-#include <torrent/exceptions.h>
+#include <sigc++/slot.h>
 
-#include "text_element_list.h"
+#include "core/download.h"
+#include "display/text_element_string.h"
+
+#include "element_base.h"
 
 namespace display {
-
-void
-TextElementList::clear() {
-  std::for_each(begin(), end(), rak::call_delete<TextElement>());
-  base_type::clear();
+  class WindowText;
+  class TextElement;
 }
 
-char*
-TextElementList::print(char* first, const char* last, Canvas::attributes_list* attributes, void* object) {
-  int column = m_columnWidth != NULL ? m_column : 0;
+namespace ui {
 
-  // Call print for each element even if first == last so that any
-  // attributes gets added to the list.
-  for (iterator itr = begin(); itr != end(); ++itr)
-    if (column-- > 0) {
-      const char* columnEnd = std::min<const char*>(last, first + *m_columnWidth);
+struct text_element_wrapper;
 
-      if (columnEnd < first || columnEnd > last)
-        throw torrent::client_error("TextElementList::print(...) columnEnd < first || columnEnd > last.");
+class ElementText : public ElementBase {
+public:
+  typedef display::WindowText         WindowText;
 
-      first = (*itr)->print(first, columnEnd, attributes, object);
+  typedef uint32_t                    size_type;
+  typedef uint32_t                    extent_type;
 
-      if (first > columnEnd)
-        throw torrent::client_error("TextElementList::print(...) first > columnEnd.");
+  ElementText(void *object);
+  ~ElementText();
 
-      std::memset(first, ' ', columnEnd - first);
-      first += columnEnd - first;
+  void                activate(display::Frame* frame, bool focus = false);
+  void                disable();
 
-    } else {
-      first = (*itr)->print(first, last, attributes, object);
-    }
+  // Consider returning a pointer that can be used to manipulate
+  // entries, f.ex disabling them.
 
-  return first;
-}
+  void                push_back(text_element_wrapper entry);
 
-TextElementList::extent_type
-TextElementList::max_length() {
-  extent_type length = 0;
-  int column = m_columnWidth != NULL ? m_column : 0;
+  void                push_column(text_element_wrapper entry1, text_element_wrapper entry2);
 
-  for (iterator itr = begin(); itr != end(); ++itr) {
-    extent_type l = column-- > 0 ? std::min((*itr)->max_length(), *m_columnWidth) : (*itr)->max_length();
+  void                set_column(unsigned int column)     { m_column = column; }
 
-    if (l == extent_full)
-      return extent_full;
-    
-    length += l;
-  }
-  
-  return length;
-}
+  extent_type         column_width() const                { return m_columnWidth; }
+  void                set_column_width(extent_type width) { m_columnWidth = width; }
+
+private:
+  WindowText*         m_window;
+
+  unsigned int        m_column;
+  extent_type         m_columnWidth;
+};
+
+struct text_element_wrapper {
+  text_element_wrapper(const char* cstr) : m_element(new display::TextElementCString(cstr)) {}
+  text_element_wrapper(display::TextElement* element) : m_element(element) {}
+
+  display::TextElement* m_element;
+};  
 
 }
+
+#endif

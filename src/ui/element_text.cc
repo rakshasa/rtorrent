@@ -41,7 +41,6 @@
 #include "display/frame.h"
 #include "display/window_text.h"
 #include "display/text_element_list.h"
-#include "display/text_element_string.h"
 #include "input/manager.h"
 
 #include "control.h"
@@ -96,8 +95,8 @@ ElementText::disable() {
 }
 
 void
-ElementText::push_back(display::TextElement* entry) {
-  m_window->push_back(entry);
+ElementText::push_back(text_element_wrapper entry) {
+  m_window->push_back(entry.m_element);
 
   // For the moment, don't bother doing anything if the window is
   // already active.
@@ -105,15 +104,15 @@ ElementText::push_back(display::TextElement* entry) {
 }
 
 void
-ElementText::push_column(display::TextElement* entry1, display::TextElement* entry2) {
-  m_columnWidth = std::max(entry1->max_length(), m_column);
+ElementText::push_column(text_element_wrapper entry1, text_element_wrapper entry2) {
+  m_columnWidth = std::max(entry1.m_element->max_length(), m_columnWidth);
 
   display::TextElementList* list = new display::TextElementList;
   list->set_column(m_column);
   list->set_column_width(&m_columnWidth);
 
-  list->push_back(entry1);
-  list->push_back(entry2);
+  list->push_back(entry1.m_element);
+  list->push_back(entry2.m_element);
 
   push_back(list);
 }

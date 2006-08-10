@@ -70,19 +70,18 @@ char*
 TextElementString::copy_string(char* first, const char* last, void* object) {
   extent_type length = std::min<extent_type>(last - first, m_string.size());
   
-  if (length == 0)
-    return first;
-
-  std::memcpy(first, m_string.c_str(), std::min<extent_type>(length, last - first));
+  std::memcpy(first, m_string.c_str(), length);
 
   return first + length;
 }
 
 char*
 TextElementCString::copy_string(char* first, const char* last, void* object) {
-  std::memcpy(first, m_string, std::min<extent_type>(m_length, last - first));
+  extent_type length = std::min<extent_type>(last - first, m_length);
 
-  return first + m_length;
+  std::memcpy(first, m_string, length);
+
+  return first + length;
 }
 
 }

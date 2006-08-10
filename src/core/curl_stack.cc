@@ -74,17 +74,16 @@ CurlStack::perform() {
     if (s != m_size) {
       // Done with some handles.
       int t;
+      CURLMsg* msg;
 
-      do {
-        CURLMsg* msg = curl_multi_info_read((CURLM*)m_handle, &t);
-
+      while ((msg = curl_multi_info_read((CURLM*)m_handle, &t)) != NULL) {
         CurlGetList::iterator itr = std::find_if(m_getList.begin(), m_getList.end(), rak::equal(msg->easy_handle, std::mem_fun(&CurlGet::handle)));
 
         if (itr == m_getList.end())
           throw std::logic_error("Could not find CurlGet with the right easy_handle");
         
         (*itr)->perform(msg);
-      } while (t);
+      }
     }
 
   } while (code == CURLM_CALL_MULTI_PERFORM);

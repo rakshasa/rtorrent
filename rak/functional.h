@@ -384,16 +384,11 @@ call_delete_func(T* t) {
 }
 
 template <typename Operation>
-class bind1st_t : public std::unary_function<typename Operation::second_argument_type,
-					     typename Operation::result_type> {
-protected:
-  typedef typename reference_fix<typename Operation::first_argument_type>::type value_type;
+class bind1st_t : public std::unary_function<typename Operation::second_argument_type, typename Operation::result_type> {
+public:
+  typedef typename reference_fix<typename Operation::first_argument_type>::type  value_type;
   typedef typename reference_fix<typename Operation::second_argument_type>::type argument_type;
 
-  Operation  m_op;
-  value_type m_value;
-
-public:
   bind1st_t(const Operation& op, const value_type v) :
     m_op(op), m_value(v) {}
 
@@ -401,7 +396,11 @@ public:
   operator () (const argument_type arg) {
     return m_op(m_value, arg);
   }
-};	    
+
+protected:
+  Operation  m_op;
+  value_type m_value;
+};
 
 template <typename Operation, typename Type>
 inline bind1st_t<Operation>
@@ -410,8 +409,7 @@ bind1st(const Operation& op, const Type& val) {
 }
 
 template <typename Operation>
-class bind2nd_t : public std::unary_function<typename Operation::first_argument_type,
-					     typename Operation::result_type> {
+class bind2nd_t : public std::unary_function<typename Operation::first_argument_type, typename Operation::result_type> {
 public:
   typedef typename reference_fix<typename Operation::first_argument_type>::type argument_type;
   typedef typename reference_fix<typename Operation::second_argument_type>::type value_type;
@@ -427,7 +425,6 @@ public:
 protected:
   Operation  m_op;
   value_type m_value;
-
 };
 
 template <typename Operation, typename Type>

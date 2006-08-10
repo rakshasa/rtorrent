@@ -93,6 +93,8 @@ public:
   const std::string&  info_hash() const                        { return m_download.info_hash(); }
   std::string         info_hash_hex() const                    { return rak::transform_hex(m_download.info_hash()); }
 
+  std::string         local_id_escaped() const                 { return rak::copy_escape_html(m_download.local_id()); }
+
   const std::string&  message() const                          { return m_message; }
   void                set_message(const std::string& msg)      { m_message = msg; }
 

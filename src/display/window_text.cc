@@ -75,6 +75,7 @@ WindowText::redraw() {
   m_canvas->erase();
 
   unsigned int position = 0;
+  Canvas::attributes_list attributes;
 
   for (iterator itr = begin(); itr != end() && position < m_canvas->height(); ++itr, ++position) {
     if (*itr == NULL)
@@ -83,7 +84,7 @@ WindowText::redraw() {
     char buffer[m_canvas->width() + 1];
 
     // Add a print function that sets up attributes etc?
-    Canvas::attributes_list attributes;
+    attributes.clear();
     attributes.push_back(Attributes(buffer, Attributes::a_normal, Attributes::color_default));
 
     char* last = (*itr)->print(buffer, buffer + m_canvas->width(), &attributes, m_object);

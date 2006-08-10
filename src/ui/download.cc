@@ -49,6 +49,7 @@
 #include "display/window_download_statusbar.h"
 
 #include "display/text_element_string.h"
+#include "display/text_element_value.h"
 
 #include "control.h"
 #include "download.h"
@@ -133,8 +134,17 @@ Download::create_info() {
 
   element->set_column(1);
 
-  element->push_column(new display::TextElementCString("Name:"),      display::text_element_string_slot(rak::on(std::mem_fun(&core::Download::c_download), std::mem_fun(&torrent::Download::name))));
-  element->push_column(new display::TextElementCString("Info Hash:"), display::text_element_string_slot(std::mem_fun(&core::Download::info_hash_hex)));
+  // Get these bindings with some kind of string map.
+
+  element->push_column("Name:",      display::text_element_string_slot(rak::on(std::mem_fun(&core::Download::c_download), std::mem_fun(&torrent::Download::name))));
+  element->push_column("Local Id:",  display::text_element_string_slot(std::mem_fun(&core::Download::local_id_escaped)));
+  element->push_column("Info Hash:", display::text_element_string_slot(std::mem_fun(&core::Download::info_hash_hex)));
+
+  element->push_back("");
+  element->push_column("Directory:",    display::text_element_string_slot(rak::on(std::mem_fun(&core::Download::file_list), std::mem_fun(&torrent::FileList::root_dir))));
+  element->push_column("Tied to File:", display::text_element_string_slot(rak::bind2nd(std::mem_fun(&core::Download::variable_string), "tied_to_file")));
+
+  element->push_column("Priority:",     display::text_element_value_slot(rak::bind2nd(std::mem_fun(&core::Download::variable_value), "priority")));
 
   element->set_column_width(element->column_width() + 1);
 

@@ -34,106 +34,88 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef RTORRENT_DISPLAY_TEXT_ELEMENT_STRING_H
-#define RTORRENT_DISPLAY_TEXT_ELEMENT_STRING_H
+#ifndef RTORRENT_DISPLAY_TEXT_ELEMENT_VALUE_H
+#define RTORRENT_DISPLAY_TEXT_ELEMENT_VALUE_H
 
-#include <iterator>
-#include <string>
 #include <cstring>
+#include <inttypes.h>
 
 #include "text_element.h"
 
 namespace display {
 
-class TextElementStringBase : public TextElement {
+class TextElementValueBase : public TextElement {
 public:
+  static const extent_type max_format_length = 12;
+
   int                 attributes() const            { return m_attributes; }
   void                set_attributes(int a)         { m_attributes = a; }
+
+  void                set_format(const char* f);
 
   virtual char*       print(char* first, const char* last, Canvas::attributes_list* attributes, void* object);
 
 protected:
-  virtual char*       copy_string(char* first, const char* last, void* object) = 0;
+  virtual int64_t     value(void* object) = 0;
 
   int                 m_attributes;
+  char                m_format[max_format_length];
 };
 
-class TextElementString : public TextElementStringBase {
+inline void
+TextElementValueBase::set_format(const char* f) {
+  std::strncpy(m_format, f, max_format_length);
+  m_format[max_format_length - 1] = '\0';
+}
+
+class TextElementValue : public TextElementValueBase {
 public:
-  TextElementString(const std::string& s, int attributes = Attributes::a_invalid) :
-    m_string(s) { m_attributes = attributes; }
-
-  const std::string&  str() const                   { return m_string; }
-  void                set_str(const std::string& s) { m_string = s; }
-
-private:
-  virtual extent_type max_length()                  { return m_string.size(); }
-
-  virtual char*       copy_string(char* first, const char* last, void* object);
-
-  std::string         m_string;
-};
-
-class TextElementCString : public TextElementStringBase {
-public:
-  TextElementCString(const char* s, int attributes = Attributes::a_invalid) :
-    m_length(std::strlen(s)), m_string(s) {
+  TextElementValue(int64_t value, int attributes = Attributes::a_invalid) : m_value(value) {
     m_attributes = attributes;
+    set_format("%lld");
   }
 
+  int64_t             value() const                 { return m_value; }
+  void                set_value(int64_t v)          { m_value = v; }
+
 private:
-  virtual extent_type max_length()                  { return m_length; }
+  virtual extent_type max_length()                  { return 12; }
 
-  virtual char*       copy_string(char* first, const char* last, void* object);
+  virtual int64_t     value(void* object)           { return m_value; }
 
-  extent_type         m_length;
-  const char*         m_string;
+  int64_t             m_value;
 };
 
 template <typename slot_type>
-class TextElementStringSlot : public TextElementStringBase {
+class TextElementValueSlot : public TextElementValueBase {
 public:
   typedef typename slot_type::argument_type arg1_type;
   typedef typename slot_type::result_type   result_type;
 
-  TextElementStringSlot(const slot_type& slot, int attributes = Attributes::a_invalid) :
-    m_length(extent_full), m_slot(slot) {
+  TextElementValueSlot(const slot_type& slot, int attributes = Attributes::a_invalid) : m_slot(slot) {
     m_attributes = attributes;
+    set_format("%lld");
   }
 
 private:
-  virtual extent_type max_length()                  { return m_length; }
+  virtual extent_type max_length()                  { return 12; }
 
-  virtual char* copy_string(char* first, const char* last, void* object) {
+  virtual int64_t value(void* object) {
     arg1_type arg1 = reinterpret_cast<arg1_type>(object);
 
     if (arg1 == NULL)
-      return first;
+      return 0;
 
-    result_type result = m_slot(arg1);
-    extent_type length = std::min<extent_type>(result_length(&result), last - first);
-
-    std::memcpy(first, result_buffer(&result), length);
-
-    return first + length;
+    return m_slot(arg1);
   }
 
-  template <typename Result>
-  extent_type result_length(Result* result)      { return result->size(); }
-  extent_type result_length(const char** result) { return std::strlen(*result); }
-
-  template <typename Result>
-  const char* result_buffer(Result* result)      { return result->c_str(); }
-  const char* result_buffer(const char** result) { return *result; }
-
-  extent_type         m_length;
   slot_type           m_slot;
 };
 
 template <typename slot_type>
-inline TextElementStringSlot<slot_type>*
-text_element_string_slot(const slot_type& slot, int attributes = Attributes::a_invalid) {
-  return new TextElementStringSlot<slot_type>(slot, attributes);
+inline TextElementValueSlot<slot_type>*
+text_element_value_slot(const slot_type& slot, int attributes = Attributes::a_invalid) {
+  return new TextElementValueSlot<slot_type>(slot, attributes);
 }
 
 }
