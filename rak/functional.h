@@ -440,6 +440,7 @@ bind2nd(const Operation& op, const Type& val) {
 template <typename Object, typename Ret>
 class mem_fun0 {
 public:
+  typedef Ret result_type;
   typedef Ret (Object::*Function)();
 
   mem_fun0() : m_object(NULL) {}
@@ -457,6 +458,7 @@ private:
 template <typename Object, typename Ret>
 class const_mem_fun0 {
 public:
+  typedef Ret result_type;
   typedef Ret (Object::*Function)() const;
 
   const_mem_fun0() : m_object(NULL) {}
@@ -474,6 +476,7 @@ private:
 template <typename Object, typename Ret, typename Arg1>
 class mem_fun1 {
 public:
+  typedef Ret result_type;
   typedef Ret (Object::*Function)(Arg1);
 
   mem_fun1() : m_object(NULL) {}
@@ -491,6 +494,7 @@ private:
 template <typename Object, typename Ret, typename Arg1>
 class const_mem_fun1 {
 public:
+  typedef Ret result_type;
   typedef Ret (Object::*Function)(Arg1) const;
 
   const_mem_fun1() : m_object(NULL) {}
@@ -508,6 +512,7 @@ private:
 template <typename Object, typename Ret, typename Arg1, typename Arg2>
 class mem_fun2 : public std::binary_function<Arg1, Arg2, Ret> {
 public:
+  typedef Ret result_type;
   typedef Ret (Object::*Function)(Arg1, Arg2);
   typedef Object object_type;
 
@@ -529,6 +534,7 @@ private:
 template <typename Object, typename Ret, typename Arg1, typename Arg2, typename Arg3>
 class mem_fun3 {
 public:
+  typedef Ret result_type;
   typedef Ret (Object::*Function)(Arg1, Arg2, Arg3);
 
   mem_fun3() : m_object(NULL) {}

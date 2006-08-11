@@ -61,7 +61,7 @@ Canvas::print_attributes(unsigned int x, unsigned int y, const char* first, cons
   attributes_list::const_iterator attrItr = attributes->begin();
 
   while (first != last) {
-    if (attrItr != attributes->end() && attrItr->position() == first) {
+    if (attrItr != attributes->end() && attrItr->position() <= first) {
       attr = attrItr->attributes();
       // Set colors or something.
 

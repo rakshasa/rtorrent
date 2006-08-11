@@ -40,6 +40,8 @@
 #include <rak/functional.h>
 #include <rak/string_manip.h>
 #include <torrent/exceptions.h>
+#include <torrent/chunk_manager.h>
+#include <torrent/connection_manager.h>
 #include <torrent/torrent.h>
 #include <torrent/tracker_list.h>
 
@@ -104,22 +106,22 @@ inline ElementBase*
 Download::create_menu() {
   ElementMenu* element = new ElementMenu;
 
-  element->push_back("Peer List",
+  element->push_back("Peer list",
                      sigc::bind(sigc::mem_fun(this, &Download::activate_display_focus), DISPLAY_PEER_LIST),
                      sigc::bind(sigc::mem_fun(this, &Download::activate_display_menu), DISPLAY_PEER_LIST));
   element->push_back("Info",
                      sigc::bind(sigc::mem_fun(this, &Download::activate_display_focus), DISPLAY_INFO),
                      sigc::bind(sigc::mem_fun(this, &Download::activate_display_menu), DISPLAY_INFO));
-  element->push_back("File List",
+  element->push_back("File list",
                      sigc::bind(sigc::mem_fun(this, &Download::activate_display_focus), DISPLAY_FILE_LIST),
                      sigc::bind(sigc::mem_fun(this, &Download::activate_display_menu), DISPLAY_FILE_LIST));
-  element->push_back("Tracker List",
+  element->push_back("Tracker kist",
                      sigc::bind(sigc::mem_fun(this, &Download::activate_display_focus), DISPLAY_TRACKER_LIST),
                      sigc::bind(sigc::mem_fun(this, &Download::activate_display_menu), DISPLAY_TRACKER_LIST));
-  element->push_back("Chunks Seen",
+  element->push_back("Chunks seen",
                      sigc::bind(sigc::mem_fun(this, &Download::activate_display_focus), DISPLAY_CHUNKS_SEEN),
                      sigc::bind(sigc::mem_fun(this, &Download::activate_display_menu), DISPLAY_CHUNKS_SEEN));
-  element->push_back("Transfer List",
+  element->push_back("Transfer list",
                      sigc::bind(sigc::mem_fun(this, &Download::activate_display_focus), DISPLAY_TRANSFER_LIST),
                      sigc::bind(sigc::mem_fun(this, &Download::activate_display_menu), DISPLAY_TRANSFER_LIST));
 
@@ -137,14 +139,43 @@ Download::create_info() {
   // Get these bindings with some kind of string map.
 
   element->push_column("Name:",      display::text_element_string_slot(rak::on(std::mem_fun(&core::Download::c_download), std::mem_fun(&torrent::Download::name))));
-  element->push_column("Local Id:",  display::text_element_string_slot(std::mem_fun(&core::Download::local_id_escaped)));
-  element->push_column("Info Hash:", display::text_element_string_slot(std::mem_fun(&core::Download::info_hash_hex)));
+  element->push_column("Local id:",  display::text_element_string_slot(std::mem_fun(&core::Download::local_id_escaped)));
+  element->push_column("Info hash:", display::text_element_string_slot(std::mem_fun(&core::Download::info_hash_hex)));
+  element->push_column("Created:",
+                       display::text_element_value_slot(rak::on(std::mem_fun(&core::Download::c_download), std::mem_fun(&torrent::Download::creation_date)),
+                                                        display::TextElementValueBase::flag_date), " ",
+                       display::text_element_value_slot(rak::on(std::mem_fun(&core::Download::c_download), std::mem_fun(&torrent::Download::creation_date)),
+                                                        display::TextElementValueBase::flag_time));
 
   element->push_back("");
   element->push_column("Directory:",    display::text_element_string_slot(rak::on(std::mem_fun(&core::Download::file_list), std::mem_fun(&torrent::FileList::root_dir))));
-  element->push_column("Tied to File:", display::text_element_string_slot(rak::bind2nd(std::mem_fun(&core::Download::variable_string), "tied_to_file")));
+  element->push_column("Tied to file:", display::text_element_string_slot(rak::bind2nd(std::mem_fun(&core::Download::variable_string), "tied_to_file")));
 
-  element->push_column("Priority:",     display::text_element_value_slot(rak::bind2nd(std::mem_fun(&core::Download::variable_value), "priority")));
+  element->push_back("");
+  element->push_column("Chunks:",
+                       display::text_element_value_slot(rak::on(std::mem_fun(&core::Download::c_download), std::mem_fun(&torrent::Download::chunks_done))), " / ",
+                       display::text_element_value_slot(rak::on(std::mem_fun(&core::Download::c_download), std::mem_fun(&torrent::Download::chunks_total))), " * ",
+                       display::text_element_value_slot(rak::on(std::mem_fun(&core::Download::c_download), std::mem_fun(&torrent::Download::chunks_size))));
+  element->push_column("Priority:",      display::text_element_value_slot(rak::bind2nd(std::mem_fun(&core::Download::variable_value), "priority")));
+
+  element->push_column("State changed:", display::text_element_value_slot(rak::bind2nd(std::mem_fun(&core::Download::variable_value), "state_changed"),
+                                                                          display::TextElementValueBase::flag_timer | display::TextElementValueBase::flag_elapsed));
+
+  element->push_back("");
+  element->push_column("Memory usage:",     display::text_element_value_void(rak::make_mem_fun(torrent::chunk_manager(), &torrent::ChunkManager::memory_usage),
+                                                                             display::TextElementValueBase::flag_mb), " MB");
+  element->push_column("Max memory usage:", display::text_element_value_void(rak::make_mem_fun(torrent::chunk_manager(), &torrent::ChunkManager::max_memory_usage),
+                                                                             display::TextElementValueBase::flag_mb), " MB");
+  element->push_column("Free diskspace:",   display::text_element_value_slot(rak::on(std::mem_fun(&core::Download::c_download), std::mem_fun(&torrent::Download::free_diskspace)),
+                                                                             display::TextElementValueBase::flag_mb), " MB");
+  element->push_column("Safe diskspace:",   display::text_element_value_void(rak::make_mem_fun(torrent::chunk_manager(), &torrent::ChunkManager::safe_free_diskspace),
+                                                                             display::TextElementValueBase::flag_mb), " MB");
+
+  element->push_back("");
+  element->push_column("Send buffer:",    display::text_element_value_void(rak::make_mem_fun(torrent::connection_manager(), &torrent::ConnectionManager::send_buffer_size),
+                                                                           display::TextElementValueBase::flag_kb), " KB");
+  element->push_column("Receive buffer:", display::text_element_value_void(rak::make_mem_fun(torrent::connection_manager(), &torrent::ConnectionManager::receive_buffer_size),
+                                                                           display::TextElementValueBase::flag_kb), " KB");
 
   element->set_column_width(element->column_width() + 1);
 

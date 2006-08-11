@@ -36,6 +36,7 @@
 
 #include "config.h"
 
+#include "globals.h"
 #include "text_element_value.h"
 
 namespace display {
@@ -56,8 +57,51 @@ TextElementValueBase::print(char* first, const char* last, Canvas::attributes_li
   else if (current.colors() != base.colors())
     current.set_position(first);
 
-//   first += std::max(snprintf(first, last - first + 1, m_format, value(object)), 0);
-  first += std::max(snprintf(first, last - first, "%lld", value(object)), 0);
+  int64_t val = value(object);
+
+  if (m_flags & flag_elapsed)
+    val = cachedTime.seconds() - val;
+  else if (m_flags & flag_remaining)
+    val = val - cachedTime.seconds();
+
+  if (m_flags & flag_usec)
+    val = rak::timer(val).seconds();
+
+  if (m_flags & flag_timer) {
+    if (val == 0)
+      first += std::max(snprintf(first, last - first + 1, "--:--:--"), 0);
+    else
+      first += std::max(snprintf(first, last - first + 1, "%2d:%02d:%02d", (int)(val / 3600), (int)((val / 60) % 60), (int)(val % 60)), 0);
+
+  } else if (m_flags & flag_date) {
+    time_t t = val;
+    std::tm *u = std::gmtime(&t);
+  
+    if (u == NULL)
+      return first;
+
+    first += std::max(snprintf(first, last - first + 1, "%02u/%02u/%04u", u->tm_mday, (u->tm_mon + 1), (1900 + u->tm_year)), 0);
+
+  } else if (m_flags & flag_time) {
+    time_t t = val;
+    std::tm *u = std::gmtime(&t);
+  
+    if (u == NULL)
+      return first;
+
+    first += std::max(snprintf(first, last - first + 1, "%2d:%02d:%02d", u->tm_hour, u->tm_min, u->tm_sec), 0);
+
+  } else if (m_flags & flag_kb) {
+    // Just use a default width of 5 for now.
+    first += std::max(snprintf(first, last - first + 1, "%5.1f", (double)val / (1 << 10)), 0);
+
+  } else if (m_flags & flag_mb) {
+    // Just use a default width of 5 for now.
+    first += std::max(snprintf(first, last - first + 1, "%8.1f", (double)val / (1 << 20)), 0);
+
+  } else {
+    first += std::max(snprintf(first, last - first + 1, "%lld", val), 0);
+  }
 
   if (current.position() != NULL) {
     attributes->push_back(current);
