@@ -42,7 +42,7 @@
 namespace display {
 
 char*
-TextElementValueBase::print(char* first, const char* last, Canvas::attributes_list* attributes, void* object) {
+TextElementValueBase::print(char* first, char* last, Canvas::attributes_list* attributes, void* object) {
   // Move this stuff into a function in TextElement.
   Attributes base = attributes->back();
   Attributes current(NULL, m_attributes, Attributes::color_invalid);
@@ -59,6 +59,7 @@ TextElementValueBase::print(char* first, const char* last, Canvas::attributes_li
 
   int64_t val = value(object);
 
+  // Transform the value if needed.
   if (m_flags & flag_elapsed)
     val = cachedTime.seconds() - val;
   else if (m_flags & flag_remaining)
@@ -67,7 +68,11 @@ TextElementValueBase::print(char* first, const char* last, Canvas::attributes_li
   if (m_flags & flag_usec)
     val = rak::timer(val).seconds();
 
-  if (m_flags & flag_timer) {
+  // Print the value.
+  if (first == last) {
+    // Do nothing, but ensure that the last attributes are set.
+
+  } else if (m_flags & flag_timer) {
     if (val == 0)
       first += std::max(snprintf(first, last - first + 1, "--:--:--"), 0);
     else

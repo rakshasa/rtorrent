@@ -68,6 +68,9 @@ public:
 
   void                clear();
 
+  void*               object() const           { return m_object; }
+  void                set_object(void* object) { m_object = object; }
+
   void                push_back(TextElement* element);
 
   virtual void        redraw();

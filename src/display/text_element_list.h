@@ -69,7 +69,7 @@ public:
   void                set_column(unsigned int column)      { m_column = column; }
   void                set_column_width(extent_type* width) { m_columnWidth = width; }
 
-  virtual char*       print(char* first, const char* last, Canvas::attributes_list* attributes, void* object);
+  virtual char*       print(char* first, char* last, Canvas::attributes_list* attributes, void* object);
 
   virtual extent_type max_length();
 

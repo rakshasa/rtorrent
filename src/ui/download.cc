@@ -50,8 +50,7 @@
 #include "display/window_title.h"
 #include "display/window_download_statusbar.h"
 
-#include "display/text_element_string.h"
-#include "display/text_element_value.h"
+#include "display/text_element_helpers.h"
 
 #include "control.h"
 #include "download.h"
@@ -132,50 +131,38 @@ Download::create_menu() {
 
 inline ElementBase*
 Download::create_info() {
+  using namespace display::helpers;
+
   ElementText* element = new ElementText(m_download);
 
   element->set_column(1);
 
   // Get these bindings with some kind of string map.
 
-  element->push_column("Name:",      display::text_element_string_slot(rak::on(std::mem_fun(&core::Download::c_download), std::mem_fun(&torrent::Download::name))));
-  element->push_column("Local id:",  display::text_element_string_slot(std::mem_fun(&core::Download::local_id_escaped)));
-  element->push_column("Info hash:", display::text_element_string_slot(std::mem_fun(&core::Download::info_hash_hex)));
-  element->push_column("Created:",
-                       display::text_element_value_slot(rak::on(std::mem_fun(&core::Download::c_download), std::mem_fun(&torrent::Download::creation_date)),
-                                                        display::TextElementValueBase::flag_date), " ",
-                       display::text_element_value_slot(rak::on(std::mem_fun(&core::Download::c_download), std::mem_fun(&torrent::Download::creation_date)),
-                                                        display::TextElementValueBase::flag_time));
+  element->push_column("Name:",             te_string(&torrent::Download::name));
+  element->push_column("Local id:",         te_string(&torrent::Download::local_id, string_base::flag_escape_html));
+  element->push_column("Info hash:",        te_string(&torrent::Download::info_hash, string_base::flag_escape_hex));
+  element->push_column("Created:",          te_value(&torrent::Download::creation_date, value_base::flag_date), " ", te_value(&torrent::Download::creation_date, value_base::flag_time));
 
   element->push_back("");
-  element->push_column("Directory:",    display::text_element_string_slot(rak::on(std::mem_fun(&core::Download::file_list), std::mem_fun(&torrent::FileList::root_dir))));
-  element->push_column("Tied to file:", display::text_element_string_slot(rak::bind2nd(std::mem_fun(&core::Download::variable_string), "tied_to_file")));
+  element->push_column("Directory:",        te_string(&torrent::FileList::root_dir));
+  element->push_column("Tied to file:",     te_variable_string("tied_to_file"));
 
   element->push_back("");
-  element->push_column("Chunks:",
-                       display::text_element_value_slot(rak::on(std::mem_fun(&core::Download::c_download), std::mem_fun(&torrent::Download::chunks_done))), " / ",
-                       display::text_element_value_slot(rak::on(std::mem_fun(&core::Download::c_download), std::mem_fun(&torrent::Download::chunks_total))), " * ",
-                       display::text_element_value_slot(rak::on(std::mem_fun(&core::Download::c_download), std::mem_fun(&torrent::Download::chunks_size))));
-  element->push_column("Priority:",      display::text_element_value_slot(rak::bind2nd(std::mem_fun(&core::Download::variable_value), "priority")));
+  element->push_column("Chunks:",           te_value(&torrent::Download::chunks_done), " / ", te_value(&torrent::Download::chunks_total), " * ", te_value(&torrent::Download::chunks_size));
+  element->push_column("Priority:",         te_variable_value("priority"));
 
-  element->push_column("State changed:", display::text_element_value_slot(rak::bind2nd(std::mem_fun(&core::Download::variable_value), "state_changed"),
-                                                                          display::TextElementValueBase::flag_timer | display::TextElementValueBase::flag_elapsed));
+  element->push_column("State changed:",    te_variable_value("state_changed", value_base::flag_timer | value_base::flag_elapsed));
 
   element->push_back("");
-  element->push_column("Memory usage:",     display::text_element_value_void(rak::make_mem_fun(torrent::chunk_manager(), &torrent::ChunkManager::memory_usage),
-                                                                             display::TextElementValueBase::flag_mb), " MB");
-  element->push_column("Max memory usage:", display::text_element_value_void(rak::make_mem_fun(torrent::chunk_manager(), &torrent::ChunkManager::max_memory_usage),
-                                                                             display::TextElementValueBase::flag_mb), " MB");
-  element->push_column("Free diskspace:",   display::text_element_value_slot(rak::on(std::mem_fun(&core::Download::c_download), std::mem_fun(&torrent::Download::free_diskspace)),
-                                                                             display::TextElementValueBase::flag_mb), " MB");
-  element->push_column("Safe diskspace:",   display::text_element_value_void(rak::make_mem_fun(torrent::chunk_manager(), &torrent::ChunkManager::safe_free_diskspace),
-                                                                             display::TextElementValueBase::flag_mb), " MB");
+  element->push_column("Memory usage:",     te_value(&torrent::ChunkManager::memory_usage, value_base::flag_mb), " MB");
+  element->push_column("Max memory usage:", te_value(&torrent::ChunkManager::max_memory_usage, value_base::flag_mb), " MB");
+  element->push_column("Free diskspace:",   te_value(&torrent::Download::free_diskspace, value_base::flag_mb), " MB");
+  element->push_column("Safe diskspace:",   te_value(&torrent::ChunkManager::safe_free_diskspace, value_base::flag_mb), " MB");
 
   element->push_back("");
-  element->push_column("Send buffer:",    display::text_element_value_void(rak::make_mem_fun(torrent::connection_manager(), &torrent::ConnectionManager::send_buffer_size),
-                                                                           display::TextElementValueBase::flag_kb), " KB");
-  element->push_column("Receive buffer:", display::text_element_value_void(rak::make_mem_fun(torrent::connection_manager(), &torrent::ConnectionManager::receive_buffer_size),
-                                                                           display::TextElementValueBase::flag_kb), " KB");
+  element->push_column("Send buffer:",      te_value(&torrent::ConnectionManager::send_buffer_size, value_base::flag_kb), " KB");
+  element->push_column("Receive buffer:",   te_value(&torrent::ConnectionManager::receive_buffer_size, value_base::flag_kb), " KB");
 
   element->set_column_width(element->column_width() + 1);
 

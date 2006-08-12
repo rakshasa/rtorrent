@@ -52,6 +52,7 @@ public:
   typedef std::pair<char[key_size], const char*> value_type;
   typedef std::vector<value_type>                container_type;
   typedef container_type::iterator               iterator;
+  typedef container_type::const_iterator         const_iterator;
 
   typedef enum {
     TYPE_AZUREUS,
@@ -64,9 +65,13 @@ public:
 
   void                insert(Type t, const char* key, const char* name);
 
-  char*               print(char* first, char* last, const char* id);
+  char*               print(char* first, char* last, const char* id) const;
 
-  size_type           sizeof_key(Type t) {
+  // Fix this...
+  std::string         str(const char* id) const;
+  std::string         str_str(const std::string& id) const { return str(id.c_str()); }
+
+  size_type           sizeof_key(Type t) const {
     switch (t) {
     case TYPE_AZUREUS:  return 2;
     case TYPE_COMPACT:  return 1;

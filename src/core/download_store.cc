@@ -166,7 +166,7 @@ DownloadStore::is_correct_format(std::string f) {
 
   for (std::string::const_iterator itr = f.begin(); itr != f.end() - 8; ++itr)
     if (!(*itr >= '0' && *itr <= '9') &&
-	!(*itr >= 'A' && *itr <= 'F'))
+        !(*itr >= 'A' && *itr <= 'F'))
       return false;
 
   return true;
@@ -174,7 +174,7 @@ DownloadStore::is_correct_format(std::string f) {
 
 std::string
 DownloadStore::create_filename(Download* d) {
-  return m_path + rak::transform_hex(d->info_hash()) + ".torrent";
+  return m_path + rak::transform_hex(d->download()->info_hash()) + ".torrent";
 }
 
 }

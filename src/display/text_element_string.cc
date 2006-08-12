@@ -36,12 +36,14 @@
 
 #include "config.h"
 
+#include <rak/string_manip.h>
+
 #include "text_element_string.h"
 
 namespace display {
 
 char*
-TextElementStringBase::print(char* first, const char* last, Canvas::attributes_list* attributes, void* object) {
+TextElementStringBase::print(char* first, char* last, Canvas::attributes_list* attributes, void* object) {
   // Move this stuff into a function in TextElement.
   Attributes base = attributes->back();
   Attributes current(NULL, m_attributes, Attributes::color_invalid);
@@ -56,7 +58,24 @@ TextElementStringBase::print(char* first, const char* last, Canvas::attributes_l
   else if (current.colors() != base.colors())
     current.set_position(first);
 
-  first = copy_string(first, last, object);
+  if (first == last) {
+    // Do nothing, but ensure that the last attributes are set.
+
+  } else if (m_flags & flag_escape_hex) {
+    char buffer[last - first];
+    char* bufferLast = copy_string(buffer, buffer + (last - first), object);
+
+    first = rak::transform_hex(buffer, bufferLast, first, last);
+
+  } else if (m_flags & flag_escape_html) {
+    char buffer[last - first];
+    char* bufferLast = copy_string(buffer, buffer + (last - first), object);
+
+    first = rak::copy_escape_html(buffer, bufferLast, first, last);
+
+  } else {
+    first = copy_string(first, last, object);
+  }  
 
   if (current.position() != NULL) {
     attributes->push_back(current);
@@ -67,7 +86,7 @@ TextElementStringBase::print(char* first, const char* last, Canvas::attributes_l
 }
 
 char*
-TextElementString::copy_string(char* first, const char* last, void* object) {
+TextElementString::copy_string(char* first, char* last, void* object) {
   extent_type length = std::min<extent_type>(last - first, m_string.size());
   
   std::memcpy(first, m_string.c_str(), length);
@@ -76,7 +95,7 @@ TextElementString::copy_string(char* first, const char* last, void* object) {
 }
 
 char*
-TextElementCString::copy_string(char* first, const char* last, void* object) {
+TextElementCString::copy_string(char* first, char* last, void* object) {
   extent_type length = std::min<extent_type>(last - first, m_length);
 
   std::memcpy(first, m_string, length);

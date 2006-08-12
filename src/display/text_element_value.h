@@ -46,13 +46,13 @@ namespace display {
 
 class TextElementValueBase : public TextElement {
 public:
-  static const int flag_normal    = (1 << 0);
-  static const int flag_timer     = (1 << 1);
-  static const int flag_date      = (1 << 2);
-  static const int flag_time      = (1 << 3);
+  static const int flag_normal    = 0;
+  static const int flag_timer     = (1 << 0);
+  static const int flag_date      = (1 << 1);
+  static const int flag_time      = (1 << 2);
 
-  static const int flag_kb        = (1 << 4);
-  static const int flag_mb        = (1 << 5);
+  static const int flag_kb        = (1 << 3);
+  static const int flag_mb        = (1 << 4);
 
   static const int flag_elapsed   = (1 << 8);
   static const int flag_remaining = (1 << 9);
@@ -64,7 +64,7 @@ public:
   int                 attributes() const            { return m_attributes; }
   void                set_attributes(int a)         { m_attributes = a; }
 
-  virtual char*       print(char* first, const char* last, Canvas::attributes_list* attributes, void* object);
+  virtual char*       print(char* first, char* last, Canvas::attributes_list* attributes, void* object);
 
 protected:
   virtual int64_t     value(void* object) = 0;

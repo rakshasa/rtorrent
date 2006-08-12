@@ -41,11 +41,11 @@
 
 #include "core/download.h"
 #include "display/text_element_string.h"
+#include "display/window_text.h"
 
 #include "element_base.h"
 
 namespace display {
-  class WindowText;
   class TextElement;
 }
 
@@ -62,6 +62,9 @@ public:
 
   ElementText(void *object);
   ~ElementText();
+
+  void*               object() const           { return m_window->object(); }
+  void                set_object(void* object) { m_window->set_object(object); m_window->mark_dirty(); }
 
   void                activate(display::Frame* frame, bool focus = false);
   void                disable();
@@ -81,7 +84,11 @@ public:
 
   void                push_column(text_element_wrapper entry1, text_element_wrapper entry2,
                                   text_element_wrapper entry3, text_element_wrapper entry4,
-                                  text_element_wrapper entry5, text_element_wrapper entry6a);
+                                  text_element_wrapper entry5);
+
+  void                push_column(text_element_wrapper entry1, text_element_wrapper entry2,
+                                  text_element_wrapper entry3, text_element_wrapper entry4,
+                                  text_element_wrapper entry5, text_element_wrapper entry6);
 
   void                set_column(unsigned int column)     { m_column = column; }
 

@@ -43,6 +43,8 @@
 
 namespace ui {
 
+class ElementText;
+
 class ElementPeerList : public ElementBase {
 public:
   typedef std::list<torrent::Peer> PList;
@@ -62,6 +64,8 @@ public:
   void                activate_display(Display display);
 
 private:
+  inline ElementText* create_info();
+
   void                receive_next();
   void                receive_prev();
 
@@ -72,11 +76,15 @@ private:
 
   void                receive_snub_peer();
 
+  inline void         updated_itr();
+
   core::Download*     m_download;
   
   Display             m_state;
-  display::Window*    m_window[DISPLAY_MAX_SIZE];
+  display::Window*    m_windowList;
   
+  ElementText*        m_elementInfo;
+
   PList               m_list;
   PList::iterator     m_listItr;
 

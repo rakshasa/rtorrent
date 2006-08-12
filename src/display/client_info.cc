@@ -125,55 +125,55 @@ ClientInfo::insert(Type t, const char* key, const char* name) {
 }
 
 char*
-ClientInfo::print(char* first, char* last, const char* id) {
+ClientInfo::print(char* first, char* last, const char* id) const {
 
   if (id[0] == '-' && id[7] == '-' &&
       std::isalpha(id[1]) && std::isalpha(id[2]) &&
       std::isxdigit(id[3]) && std::isxdigit(id[4]) && std::isxdigit(id[5]) && std::isxdigit(id[6])) {
     // TYPE_AZUREUS.
 
-    iterator itr = std::find_if(m_containers[TYPE_AZUREUS].begin(), m_containers[TYPE_AZUREUS].end(),
-				client_info_equal(id + 1, sizeof_key(TYPE_AZUREUS)));
+    const_iterator itr = std::find_if(m_containers[TYPE_AZUREUS].begin(), m_containers[TYPE_AZUREUS].end(),
+                                      client_info_equal(id + 1, sizeof_key(TYPE_AZUREUS)));
 
     if (itr != m_containers[TYPE_AZUREUS].end())
       first = print_buffer(first, last, "%s %hhu.%hhu.%hhu.%hhu", itr->second,
-			   rak::hexchar_to_value(id[3]), rak::hexchar_to_value(id[4]),
-			   rak::hexchar_to_value(id[5]), rak::hexchar_to_value(id[6]));
+                           rak::hexchar_to_value(id[3]), rak::hexchar_to_value(id[4]),
+                           rak::hexchar_to_value(id[5]), rak::hexchar_to_value(id[6]));
     
     else
       first = print_buffer(first, last, "unknown %c%c %hhu.%hhu.%hhu.%hhu", id[1], id[2],
-			   rak::hexchar_to_value(id[3]), rak::hexchar_to_value(id[4]),
-			   rak::hexchar_to_value(id[5]), rak::hexchar_to_value(id[6]));
+                           rak::hexchar_to_value(id[3]), rak::hexchar_to_value(id[4]),
+                           rak::hexchar_to_value(id[5]), rak::hexchar_to_value(id[6]));
 
   } else if (std::isalpha(id[0]) && id[4] == '-' &&
-	     std::isxdigit(id[1]) && std::isxdigit(id[2]) && std::isxdigit(id[3])) {
+             std::isxdigit(id[1]) && std::isxdigit(id[2]) && std::isxdigit(id[3])) {
     // TYPE_THREE_COMPACT.
 
-    iterator itr = std::find_if(m_containers[TYPE_COMPACT].begin(), m_containers[TYPE_COMPACT].end(),
-				client_info_equal(id, sizeof_key(TYPE_COMPACT)));
+    const_iterator itr = std::find_if(m_containers[TYPE_COMPACT].begin(), m_containers[TYPE_COMPACT].end(),
+                                      client_info_equal(id, sizeof_key(TYPE_COMPACT)));
 
     if (itr != m_containers[TYPE_COMPACT].end())
       first = print_buffer(first, last, "%s %hhu.%hhu.%hhu", itr->second,
-			   rak::hexchar_to_value(id[1]), rak::hexchar_to_value(id[2]), rak::hexchar_to_value(id[3]));
+                           rak::hexchar_to_value(id[1]), rak::hexchar_to_value(id[2]), rak::hexchar_to_value(id[3]));
     
     else
       first = print_buffer(first, last, "unknown %c %hhu.%hhu.%hhu", id[0],
-			   rak::hexchar_to_value(id[1]), rak::hexchar_to_value(id[2]), rak::hexchar_to_value(id[3]));
+                           rak::hexchar_to_value(id[1]), rak::hexchar_to_value(id[2]), rak::hexchar_to_value(id[3]));
     
   } else if (std::isalpha(id[0]) && id[2] == '-' && id[4] == '-' && id[6] == '-' &&
-	     std::isxdigit(id[1]) && std::isxdigit(id[3]) && std::isxdigit(id[5])) {
+             std::isxdigit(id[1]) && std::isxdigit(id[3]) && std::isxdigit(id[5])) {
     // TYPE_THREE_SPARSE.
 
-    iterator itr = std::find_if(m_containers[TYPE_MAINLINE].begin(), m_containers[TYPE_MAINLINE].end(),
-				client_info_equal(id, sizeof_key(TYPE_MAINLINE)));
+    const_iterator itr = std::find_if(m_containers[TYPE_MAINLINE].begin(), m_containers[TYPE_MAINLINE].end(),
+                                      client_info_equal(id, sizeof_key(TYPE_MAINLINE)));
 
     if (itr != m_containers[TYPE_MAINLINE].end())
       first = print_buffer(first, last, "%s %hhu.%hhu.%hhu", itr->second,
-			   rak::hexchar_to_value(id[1]), rak::hexchar_to_value(id[3]), rak::hexchar_to_value(id[5]));
+                           rak::hexchar_to_value(id[1]), rak::hexchar_to_value(id[3]), rak::hexchar_to_value(id[5]));
     
     else
       first = print_buffer(first, last, "unknown %c %hhu.%hhu.%hhu", id[0],
-			   rak::hexchar_to_value(id[1]), rak::hexchar_to_value(id[3]), rak::hexchar_to_value(id[5]));
+                           rak::hexchar_to_value(id[1]), rak::hexchar_to_value(id[3]), rak::hexchar_to_value(id[5]));
     
 
   // And then the incompatible idiots that make life difficult for us
@@ -187,6 +187,14 @@ ClientInfo::print(char* first, char* last, const char* id) {
   }
 
   return first;
+}
+
+std::string
+ClientInfo::str(const char* id) const {
+  char buf[128];
+  print(buf, buf + 127, id);
+
+  return std::string(buf);
 }
 
 }

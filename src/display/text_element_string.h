@@ -47,21 +47,33 @@ namespace display {
 
 class TextElementStringBase : public TextElement {
 public:
+  static const int flag_normal      = 0;
+  static const int flag_escape_hex  = (1 << 0);
+  static const int flag_escape_html = (1 << 1);
+
+  static const int flag_fixed_width = (1 << 8);
+
+  int                 flags() const                 { return m_flags; }
+  void                set_flags(int flags)          { m_flags = flags; }
+
   int                 attributes() const            { return m_attributes; }
   void                set_attributes(int a)         { m_attributes = a; }
 
-  virtual char*       print(char* first, const char* last, Canvas::attributes_list* attributes, void* object);
+  virtual char*       print(char* first, char* last, Canvas::attributes_list* attributes, void* object);
 
 protected:
-  virtual char*       copy_string(char* first, const char* last, void* object) = 0;
+  virtual char*       copy_string(char* first, char* last, void* object) = 0;
 
+  int                 m_flags;
   int                 m_attributes;
 };
 
 class TextElementString : public TextElementStringBase {
 public:
-  TextElementString(const std::string& s, int attributes = Attributes::a_invalid) :
-    m_string(s) { m_attributes = attributes; }
+  TextElementString(const std::string& s, int flags = flag_normal, int attributes = Attributes::a_invalid) : m_string(s) {
+    m_flags = flags;
+    m_attributes = attributes;
+  }
 
   const std::string&  str() const                   { return m_string; }
   void                set_str(const std::string& s) { m_string = s; }
@@ -69,22 +81,22 @@ public:
 private:
   virtual extent_type max_length()                  { return m_string.size(); }
 
-  virtual char*       copy_string(char* first, const char* last, void* object);
+  virtual char*       copy_string(char* first, char* last, void* object);
 
   std::string         m_string;
 };
 
 class TextElementCString : public TextElementStringBase {
 public:
-  TextElementCString(const char* s, int attributes = Attributes::a_invalid) :
-    m_length(std::strlen(s)), m_string(s) {
+  TextElementCString(const char* s, int flags = flag_normal, int attributes = Attributes::a_invalid) : m_length(std::strlen(s)), m_string(s) {
+    m_flags = flags;
     m_attributes = attributes;
   }
 
 private:
   virtual extent_type max_length()                  { return m_length; }
 
-  virtual char*       copy_string(char* first, const char* last, void* object);
+  virtual char*       copy_string(char* first, char* last, void* object);
 
   extent_type         m_length;
   const char*         m_string;
@@ -96,15 +108,15 @@ public:
   typedef typename slot_type::argument_type arg1_type;
   typedef typename slot_type::result_type   result_type;
 
-  TextElementStringSlot(const slot_type& slot, int attributes = Attributes::a_invalid) :
-    m_length(extent_full), m_slot(slot) {
+  TextElementStringSlot(const slot_type& slot, int flags, int attributes, extent_type length) : m_length(length), m_slot(slot) {
+    m_flags = flags;
     m_attributes = attributes;
   }
 
 private:
   virtual extent_type max_length()                  { return m_length; }
 
-  virtual char* copy_string(char* first, const char* last, void* object) {
+  virtual char* copy_string(char* first, char* last, void* object) {
     arg1_type arg1 = reinterpret_cast<arg1_type>(object);
 
     if (arg1 == NULL)
@@ -119,8 +131,14 @@ private:
   }
 
   template <typename Result>
-  extent_type result_length(Result* result)      { return result->size(); }
-  extent_type result_length(const char** result) { return std::strlen(*result); }
+  extent_type result_length(Result* result)      { return std::min<extent_type>(result->size(), m_length); }
+
+  extent_type result_length(const char** result) {
+    if (m_flags & flag_fixed_width)
+      return m_length;
+    else
+      return std::min<extent_type>(std::strlen(*result), m_length);
+  }
 
   template <typename Result>
   const char* result_buffer(Result* result)      { return result->c_str(); }
@@ -132,8 +150,11 @@ private:
 
 template <typename slot_type>
 inline TextElementStringSlot<slot_type>*
-text_element_string_slot(const slot_type& slot, int attributes = Attributes::a_invalid) {
-  return new TextElementStringSlot<slot_type>(slot, attributes);
+text_element_string_slot(const slot_type& slot,
+                         int flags = TextElementStringBase::flag_normal,
+                         int attributes = Attributes::a_invalid,
+                         TextElement::extent_type length = TextElement::extent_full) {
+  return new TextElementStringSlot<slot_type>(slot, flags, attributes, length);
 }
 
 }

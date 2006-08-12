@@ -38,15 +38,18 @@
 
 #include <sigc++/bind.h>
 #include <torrent/exceptions.h>
+#include <torrent/rate.h>
 
+#include "display/client_info.h"
 #include "display/frame.h"
 #include "display/manager.h"
-#include "display/window_peer_info.h"
+#include "display/text_element_helpers.h"
 #include "display/window_peer_list.h"
 #include "input/manager.h"
 
 #include "control.h"
 #include "element_peer_list.h"
+#include "element_text.h"
 
 namespace ui {
 
@@ -61,16 +64,60 @@ ElementPeerList::ElementPeerList(core::Download* d) :
   m_connPeerConnected    = m_download->download()->signal_peer_connected(sigc::mem_fun(*this, &ElementPeerList::receive_peer_connected));
   m_connPeerDisconnected = m_download->download()->signal_peer_disconnected(sigc::mem_fun(*this, &ElementPeerList::receive_peer_disconnected));
 
+  m_windowList  = new display::WindowPeerList(m_download, &m_list, &m_listItr);
+  m_elementInfo = create_info();
+
+  m_elementInfo->slot_exit(sigc::bind(sigc::mem_fun(this, &ElementPeerList::activate_display), DISPLAY_LIST));
+
   m_bindings['k']       = sigc::mem_fun(this, &ElementPeerList::receive_disconnect_peer);
   m_bindings['*']       = sigc::mem_fun(this, &ElementPeerList::receive_snub_peer);
   m_bindings[KEY_UP]    = sigc::mem_fun(this, &ElementPeerList::receive_prev);
   m_bindings[KEY_DOWN]  = sigc::mem_fun(this, &ElementPeerList::receive_next);
+  m_bindings[KEY_LEFT]  = sigc::mem_fun(&m_slotExit, &slot_type::operator());  
   m_bindings[KEY_RIGHT] = sigc::bind(sigc::mem_fun(this, &ElementPeerList::activate_display), DISPLAY_INFO);
 }
 
 ElementPeerList::~ElementPeerList() {
   m_connPeerConnected.disconnect();
   m_connPeerDisconnected.disconnect();
+
+  delete m_windowList;
+  delete m_elementInfo;
+}
+
+inline ElementText*
+ElementPeerList::create_info() {
+  using namespace display::helpers;
+
+  ElementText* element = new ElementText(NULL);
+
+  element->set_column(1);
+
+  // Get these bindings with some kind of string map.
+
+  element->push_back("Peer info:");
+
+  element->push_back("");
+  element->push_column("Address:",
+                       display::text_element_string_slot(rak::on(std::mem_fun(&torrent::Peer::address), std::ptr_fun(&te_address))), ":",
+                       display::text_element_value_slot(rak::on(std::mem_fun(&torrent::Peer::address), std::ptr_fun(&te_port))));
+
+  element->push_column("Id:",      display::text_element_string_slot(std::mem_fun(&torrent::Peer::id), string_base::flag_escape_html));
+  element->push_column("Client:",  display::text_element_string_slot(rak::on(std::mem_fun(&torrent::Peer::id), rak::make_mem_fun(control->client_info(), &display::ClientInfo::str_str))));
+  element->push_column("Options:", display::text_element_string_slot(std::mem_fun(&torrent::Peer::options), string_base::flag_escape_hex | string_base::flag_fixed_width, 0, 8));
+
+  element->push_back("");
+  element->push_column("Done:", display::text_element_value_slot(rak::on(std::mem_fun(&torrent::Peer::bitfield), std::ptr_fun(&te_bitfield_percentage))));
+  element->push_column("Rate:",
+                       display::text_element_value_slot(rak::on(std::mem_fun(&torrent::Peer::up_rate), std::mem_fun(&torrent::Rate::rate)), value_base::flag_kb), " / ",
+                       display::text_element_value_slot(rak::on(std::mem_fun(&torrent::Peer::down_rate), std::mem_fun(&torrent::Rate::rate)), value_base::flag_kb), " KB");
+  element->push_column("Total:",
+                       display::text_element_value_slot(rak::on(std::mem_fun(&torrent::Peer::up_rate), std::mem_fun(&torrent::Rate::total)), value_base::flag_mb), " / ",
+                       display::text_element_value_slot(rak::on(std::mem_fun(&torrent::Peer::down_rate), std::mem_fun(&torrent::Rate::total)), value_base::flag_mb), " MB");
+
+  element->set_column_width(element->column_width() + 1);
+
+  return element;
 }
 
 void
@@ -83,9 +130,6 @@ ElementPeerList::activate(display::Frame* frame, bool focus) {
 
   m_frame = frame;
   m_focus = focus;
-
-  m_window[DISPLAY_LIST] = new display::WindowPeerList(m_download, &m_list, &m_listItr);
-  m_window[DISPLAY_INFO] = new display::WindowPeerInfo(m_download, &m_list, &m_listItr);
 
   activate_display(DISPLAY_LIST);
 }
@@ -101,8 +145,6 @@ ElementPeerList::disable() {
 
   m_frame->clear();
   m_frame = NULL;
-
-  std::for_each(m_window, m_window + DISPLAY_MAX_SIZE, rak::call_delete<display::Window>());
 }
 
 void
@@ -112,10 +154,11 @@ ElementPeerList::activate_display(Display display) {
 
   switch (m_state) {
   case DISPLAY_INFO:
-  case DISPLAY_LIST:
-    m_bindings.erase(KEY_LEFT);
+    m_elementInfo->disable();
+    break;
 
-    m_window[m_state]->set_active(false);
+  case DISPLAY_LIST:
+    m_windowList->set_active(false);
     m_frame->clear();
     break;
 
@@ -127,17 +170,12 @@ ElementPeerList::activate_display(Display display) {
 
   switch (m_state) {
   case DISPLAY_INFO:
-    m_bindings[KEY_LEFT] = sigc::bind(sigc::mem_fun(this, &ElementPeerList::activate_display), DISPLAY_LIST);
-
-    m_window[m_state]->set_active(true);
-    m_frame->initialize_window(m_window[m_state]);
+    m_elementInfo->activate(m_frame, true);
     break;
 
   case DISPLAY_LIST:
-    m_bindings[KEY_LEFT] = sigc::mem_fun(&m_slotExit, &slot_type::operator());
-
-    m_window[m_state]->set_active(true);
-    m_frame->initialize_window(m_window[m_state]);
+    m_windowList->set_active(true);
+    m_frame->initialize_window(m_windowList);
     break;
 
   case DISPLAY_MAX_SIZE:
@@ -154,7 +192,7 @@ ElementPeerList::receive_next() {
   else
     m_listItr = m_list.begin();
 
-  m_window[m_state]->mark_dirty();
+  updated_itr();
 }
 
 void
@@ -164,7 +202,7 @@ ElementPeerList::receive_prev() {
   else
     m_listItr = m_list.end();
 
-  m_window[m_state]->mark_dirty();
+  updated_itr();
 }
 
 void
@@ -173,8 +211,6 @@ ElementPeerList::receive_disconnect_peer() {
     return;
 
   m_download->download()->disconnect_peer(*m_listItr);
-
-  m_window[m_state]->mark_dirty();
 }
 
 void
@@ -193,6 +229,8 @@ ElementPeerList::receive_peer_disconnected(torrent::Peer p) {
     m_listItr = m_list.erase(itr);
   else
     m_list.erase(itr);
+
+  updated_itr();
 }
 
 void
@@ -202,7 +240,13 @@ ElementPeerList::receive_snub_peer() {
 
   m_listItr->set_snubbed(!m_listItr->is_snubbed());
 
-  m_window[m_state]->mark_dirty();
+  updated_itr();
+}
+
+inline void
+ElementPeerList::updated_itr() {
+  m_windowList->mark_dirty();
+  m_elementInfo->set_object(m_listItr != m_list.end() ? &*m_listItr : NULL);
 }
 
 }

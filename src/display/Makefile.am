@@ -13,6 +13,7 @@ libsub_display_a_SOURCES = \
 	utils.cc \
 	utils.h \
 	text_element.h \
+	text_element_helpers.h \
 	text_element_list.cc \
 	text_element_list.h \
 	text_element_string.cc \
@@ -39,8 +40,6 @@ libsub_display_a_SOURCES = \
 	window_log.h \
 	window_log_complete.cc \
 	window_log_complete.h \
-	window_peer_info.cc \
-	window_peer_info.h \
 	window_peer_list.cc \
 	window_peer_list.h \
 	window_statusbar.cc \
