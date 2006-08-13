@@ -66,6 +66,9 @@ public:
   void*               object() const           { return m_window->object(); }
   void                set_object(void* object) { m_window->set_object(object); m_window->mark_dirty(); }
 
+  uint32_t            interval() const         { return m_window->interval(); }
+  void                set_interval(uint32_t i) { m_window->set_interval(i); m_window->mark_dirty(); }
+
   void                activate(display::Frame* frame, bool focus = false);
   void                disable();
 

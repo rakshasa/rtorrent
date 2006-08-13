@@ -50,6 +50,7 @@ public:
 
   static const extent_type extent_full   = ~extent_type();
 
+  TextElement() {}
   virtual ~TextElement() {}
 
   // The last element must point to a valid memory location into which
@@ -58,6 +59,10 @@ public:
   virtual char*       print(char* first, char* last, Canvas::attributes_list* attributes, void* object) = 0;
 
   virtual extent_type max_length() = 0;
+
+private:
+  TextElement(const TextElement&);
+  void operator = (const TextElement&);
 };
 
 }

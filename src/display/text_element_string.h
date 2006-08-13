@@ -78,9 +78,9 @@ public:
   const std::string&  str() const                   { return m_string; }
   void                set_str(const std::string& s) { m_string = s; }
 
-private:
   virtual extent_type max_length()                  { return m_string.size(); }
 
+private:
   virtual char*       copy_string(char* first, char* last, void* object);
 
   std::string         m_string;
@@ -93,9 +93,9 @@ public:
     m_attributes = attributes;
   }
 
-private:
   virtual extent_type max_length()                  { return m_length; }
 
+private:
   virtual char*       copy_string(char* first, char* last, void* object);
 
   extent_type         m_length;
@@ -113,16 +113,14 @@ public:
     m_attributes = attributes;
   }
 
-private:
   virtual extent_type max_length()                  { return m_length; }
 
+private:
   virtual char* copy_string(char* first, char* last, void* object) {
-    arg1_type arg1 = reinterpret_cast<arg1_type>(object);
-
-    if (arg1 == NULL)
+    if (object == NULL)
       return first;
 
-    result_type result = m_slot(arg1);
+    result_type result = m_slot(reinterpret_cast<arg1_type>(object));
     extent_type length = std::min<extent_type>(result_length(&result), last - first);
 
     std::memcpy(first, result_buffer(&result), length);

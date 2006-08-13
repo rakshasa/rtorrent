@@ -466,6 +466,9 @@ initialize_option_handler(Control* c) {
   variables->insert("max_memory_usage",      new utils::VariableValueSlot(rak::mem_fn(torrent::chunk_manager(), &torrent::ChunkManager::max_memory_usage),
                                                                           rak::mem_fn(torrent::chunk_manager(), &torrent::ChunkManager::set_max_memory_usage)));
 
+  variables->insert("safe_sync",             new utils::VariableValueSlot(rak::mem_fn(torrent::chunk_manager(), &torrent::ChunkManager::safe_sync),
+                                                                          rak::mem_fn(torrent::chunk_manager(), &torrent::ChunkManager::set_safe_sync)));
+
   variables->insert("timeout_sync",          new utils::VariableValueSlot(rak::mem_fn(torrent::chunk_manager(), &torrent::ChunkManager::timeout_sync),
                                                                           rak::mem_fn(torrent::chunk_manager(), &torrent::ChunkManager::set_timeout_sync)));
 

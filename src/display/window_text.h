@@ -46,7 +46,7 @@ namespace display {
 
 class WindowText : public Window, public std::vector<TextElement*> {
 public:
-  typedef std::vector<TextElement*> base_type;
+  typedef std::vector<TextElement*>   base_type;
 
   typedef base_type::value_type       value_type;
   typedef base_type::reference        reference;
@@ -63,13 +63,16 @@ public:
   using base_type::rend;
 
   WindowText(void* object = NULL, extent_type margin = 0) :
-    Window(new Canvas, 0, 0, 0, extent_static, extent_static), m_object(object), m_margin(margin) {}
+    Window(new Canvas, 0, 0, 0, extent_static, extent_static), m_object(object), m_margin(margin), m_interval(0) {}
   ~WindowText() { clear(); }
 
   void                clear();
 
   void*               object() const           { return m_object; }
   void                set_object(void* object) { m_object = object; }
+
+  uint32_t            interval() const         { return m_interval; }
+  void                set_interval(uint32_t i) { m_interval = i; }
 
   void                push_back(TextElement* element);
 
@@ -79,6 +82,7 @@ private:
   void*               m_object;
 
   extent_type         m_margin;
+  uint32_t            m_interval;
 };
 
 }

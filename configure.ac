@@ -28,6 +28,7 @@ PKG_CHECK_MODULES(STUFF, sigc++-2.0 libtorrent >= 0.10.1,
 		  LIBS="$LIBS $STUFF_LIBS $CURL_LIBS")
 
 AC_DEFINE(HAVE_CONFIG_H, 1, true if config.h was included)
+AC_DEFINE(USER_AGENT, [std::string(PACKAGE "/" VERSION "/") + torrent::version()], Http user agent)
 
 CC_ATTRIBUTE_UNUSED(
 	AC_DEFINE([__UNUSED], [__attribute__((unused))], [Wrapper around unused attribute]),

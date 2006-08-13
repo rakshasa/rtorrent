@@ -50,6 +50,7 @@
 #include "display/window_title.h"
 #include "display/window_download_statusbar.h"
 
+#include "display/text_element_lambda.h"
 #include "display/text_element_helpers.h"
 
 #include "control.h"
@@ -136,6 +137,7 @@ Download::create_info() {
   ElementText* element = new ElementText(m_download);
 
   element->set_column(1);
+  element->set_interval(1);
 
   // Get these bindings with some kind of string map.
 
@@ -161,6 +163,7 @@ Download::create_info() {
   element->push_column("Safe diskspace:",   te_value(&torrent::ChunkManager::safe_free_diskspace, value_base::flag_mb), " MB");
 
   element->push_back("");
+  element->push_column("Safe sync:",        display::text_element_branch_void(rak::make_mem_fun(torrent::chunk_manager(), &torrent::ChunkManager::safe_sync), te_string("yes"), te_string("no")));
   element->push_column("Send buffer:",      te_value(&torrent::ConnectionManager::send_buffer_size, value_base::flag_kb), " KB");
   element->push_column("Receive buffer:",   te_value(&torrent::ConnectionManager::receive_buffer_size, value_base::flag_kb), " KB");
 

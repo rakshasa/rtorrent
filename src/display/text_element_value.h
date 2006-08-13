@@ -83,9 +83,9 @@ public:
   int64_t             value() const                 { return m_value; }
   void                set_value(int64_t v)          { m_value = v; }
 
-private:
   virtual extent_type max_length()                  { return 12; }
 
+private:
   virtual int64_t     value(void* object)           { return m_value; }
 
   int64_t             m_value;
@@ -101,9 +101,9 @@ public:
     m_attributes = attributes;
   }
 
-private:
   virtual extent_type max_length()        { return 12; }
 
+private:
   virtual int64_t     value(void* object) { return m_slot(); }
 
   slot_type           m_slot;
@@ -120,16 +120,14 @@ public:
     m_attributes = attributes;
   }
 
-private:
   virtual extent_type max_length()                  { return 12; }
 
+private:
   virtual int64_t value(void* object) {
-    arg1_type arg1 = reinterpret_cast<arg1_type>(object);
-
-    if (arg1 == NULL)
+    if (object == NULL)
       return 0;
 
-    return m_slot(arg1);
+    return m_slot(reinterpret_cast<arg1_type>(object));
   }
 
   slot_type           m_slot;

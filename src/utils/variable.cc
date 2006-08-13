@@ -47,11 +47,16 @@ const torrent::Object Variable::m_emptyObject;
 const char*
 Variable::string_to_value_unit(const char* pos, value_type* value, int base, int unit) {
   char* last;
-
   *value = strtoll(pos, &last, base);
 
-  if (last == pos)
+  if (last == pos) {
+    if (strcasecmp(pos, "no") == 0) { *value = 0; return pos + strlen("no"); }
+    if (strcasecmp(pos, "yes") == 0) { *value = 1; return pos + strlen("yes"); }
+    if (strcasecmp(pos, "true") == 0) { *value = 1; return pos + strlen("true"); }
+    if (strcasecmp(pos, "false") == 0) { *value = 0; return pos + strlen("false"); }
+
     throw torrent::input_error("Could not convert string to value.");
+  }
 
   switch (*last) {
   case 'b':

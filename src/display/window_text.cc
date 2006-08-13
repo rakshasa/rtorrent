@@ -72,6 +72,9 @@ WindowText::push_back(TextElement* element) {
 
 void
 WindowText::redraw() {
+  if (m_interval != 0)
+    m_slotSchedule(this, (cachedTime + rak::timer::from_seconds(m_interval)).round_seconds());
+
   m_canvas->erase();
 
   unsigned int position = 0;

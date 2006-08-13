@@ -53,6 +53,11 @@ typedef TextElementValueBase  value_base;
 
 // String stuff:
 
+inline TextElementStringBase*
+te_string(const char* str) {
+  return new display::TextElementCString(str);
+}
+
 // template <typename Object, typename Return>
 // inline TextElementStringBase*
 // te_string(Return (Object::*fptr)() const, const Object* object, int attributes = Attributes::a_invalid) {
