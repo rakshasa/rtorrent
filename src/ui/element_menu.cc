@@ -55,16 +55,35 @@ struct ElementMenuEntry {
   ElementMenu::slot_type          m_slotSelect;
 };
 
+inline void
+ElementMenu::focus_entry(size_type idx) {
+  if (idx >= size())
+    return;
+
+  if (m_focus)
+    base_type::operator[](idx)->m_element->set_attributes(display::Attributes::a_reverse);
+  else
+    base_type::operator[](idx)->m_element->set_attributes(display::Attributes::a_bold);
+}
+
+inline void
+ElementMenu::unfocus_entry(size_type idx) {
+  if (idx >= size())
+    return;
+
+  base_type::operator[](idx)->m_element->set_attributes(display::Attributes::a_normal);
+}
+
 ElementMenu::ElementMenu() :
   m_window(new WindowText(NULL, 2)),
   m_entry(entry_invalid) {
 
   // Move bindings into a function that defines default bindings.
   m_bindings[KEY_LEFT] = sigc::mem_fun(&m_slotExit, &slot_type::operator());  
-
-  m_bindings[KEY_UP]    = sigc::mem_fun(this, &ElementMenu::entry_prev);
-  m_bindings[KEY_DOWN]  = sigc::mem_fun(this, &ElementMenu::entry_next);
   m_bindings[KEY_RIGHT] = sigc::mem_fun(this, &ElementMenu::entry_select);
+
+  m_bindings[KEY_UP]   = m_bindings['P' - '@'] = sigc::mem_fun(this, &ElementMenu::entry_prev);
+  m_bindings[KEY_DOWN] = m_bindings['N' - '@'] = sigc::mem_fun(this, &ElementMenu::entry_next);
 }
 
 ElementMenu::~ElementMenu() {
@@ -80,13 +99,12 @@ ElementMenu::activate(display::Frame* frame, bool focus) {
     control->input()->push_back(&m_bindings);
 
   m_focus = focus;
+  focus_entry(m_entry);
 
   m_frame = frame;
   m_frame->initialize_window(m_window);
 
   m_window->set_active(true);
-
-  focus_entry(m_entry);
 }
 
 void
@@ -158,35 +176,23 @@ ElementMenu::entry_select() {
     return;
 
   base_type::operator[](m_entry)->m_slotSelect();
-
   m_window->mark_dirty();
 }
 
 void
-ElementMenu::set_entry(size_type idx) {
+ElementMenu::set_entry(size_type idx, bool triggerSlot) {
+  if (idx == m_entry)
+    return;
+
   unfocus_entry(m_entry);
 
   m_entry = idx;
   focus_entry(m_entry);
-}
 
-inline void
-ElementMenu::focus_entry(size_type idx) {
-  if (idx >= size())
-    return;
+  if (triggerSlot)
+    base_type::operator[](m_entry)->m_slotFocus();
 
-  if (m_focus)
-    base_type::operator[](idx)->m_element->set_attributes(display::Attributes::a_reverse);
-  else
-    base_type::operator[](idx)->m_element->set_attributes(display::Attributes::a_bold);
-}
-
-inline void
-ElementMenu::unfocus_entry(size_type idx) {
-  if (idx >= size())
-    return;
-
-  base_type::operator[](idx)->m_element->set_attributes(display::Attributes::a_normal);
+  m_window->mark_dirty();
 }
 
 }

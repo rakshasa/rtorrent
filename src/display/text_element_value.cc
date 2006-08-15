@@ -72,6 +72,23 @@ TextElementValueBase::print(char* first, char* last, Canvas::attributes_list* at
   if (first == last) {
     // Do nothing, but ensure that the last attributes are set.
 
+  } else if (m_flags & flag_kb) {
+    // Just use a default width of 5 for now.
+    first += std::max(snprintf(first, last - first + 1, "%5.1f", (double)val / (1 << 10)), 0);
+
+  } else if (m_flags & flag_mb) {
+    // Just use a default width of 8 for now.
+    first += std::max(snprintf(first, last - first + 1, "%8.1f", (double)val / (1 << 20)), 0);
+
+  } else if (m_flags & flag_xb) {
+
+    if (val < (int64_t(1) << 30))
+      first += std::max(snprintf(first, last - first + 1, "%5.1f MB", (double)val / (int64_t(1) << 20)), 0);
+    else if (val < (int64_t(1) << 40))
+      first += std::max(snprintf(first, last - first + 1, "%5.1f GB", (double)val / (int64_t(1) << 30)), 0);
+    else
+      first += std::max(snprintf(first, last - first + 1, "%5.1f TB", (double)val / (int64_t(1) << 40)), 0);
+
   } else if (m_flags & flag_timer) {
     if (val == 0)
       first += std::max(snprintf(first, last - first + 1, "--:--:--"), 0);
@@ -95,14 +112,6 @@ TextElementValueBase::print(char* first, char* last, Canvas::attributes_list* at
       return first;
 
     first += std::max(snprintf(first, last - first + 1, "%2d:%02d:%02d", u->tm_hour, u->tm_min, u->tm_sec), 0);
-
-  } else if (m_flags & flag_kb) {
-    // Just use a default width of 5 for now.
-    first += std::max(snprintf(first, last - first + 1, "%5.1f", (double)val / (1 << 10)), 0);
-
-  } else if (m_flags & flag_mb) {
-    // Just use a default width of 5 for now.
-    first += std::max(snprintf(first, last - first + 1, "%8.1f", (double)val / (1 << 20)), 0);
 
   } else {
     first += std::max(snprintf(first, last - first + 1, "%lld", val), 0);

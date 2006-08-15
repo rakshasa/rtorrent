@@ -425,6 +425,8 @@ initialize_option_handler(Control* c) {
 
   variables->insert("min_peers",             new utils::VariableValue(40));
   variables->insert("max_peers",             new utils::VariableValue(100));
+  variables->insert("min_peers_seed",        new utils::VariableValue(-1));
+  variables->insert("max_peers_seed",        new utils::VariableValue(-1));
   variables->insert("max_uploads",           new utils::VariableValue(15));
   variables->insert("max_chunks_queued",     new utils::VariableValue(0));
 

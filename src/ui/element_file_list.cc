@@ -57,10 +57,11 @@ ElementFileList::ElementFileList(core::Download* d) :
 
   m_bindings[' '] = sigc::mem_fun(*this, &ElementFileList::receive_priority);
   m_bindings['*'] = sigc::mem_fun(*this, &ElementFileList::receive_change_all);
-  m_bindings[KEY_DOWN] = sigc::mem_fun(*this, &ElementFileList::receive_next);
-  m_bindings[KEY_UP] = sigc::mem_fun(*this, &ElementFileList::receive_prev);
   m_bindings[KEY_NPAGE] = sigc::mem_fun(*this, &ElementFileList::receive_pagenext);
   m_bindings[KEY_PPAGE] = sigc::mem_fun(*this, &ElementFileList::receive_pageprev);
+
+  m_bindings[KEY_DOWN] = m_bindings['P' - '@'] = sigc::mem_fun(*this, &ElementFileList::receive_next);
+  m_bindings[KEY_UP]   = m_bindings['N' - '@'] = sigc::mem_fun(*this, &ElementFileList::receive_prev);
 }
 
 void

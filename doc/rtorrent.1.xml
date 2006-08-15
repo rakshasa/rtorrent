@@ -446,6 +446,26 @@ Set the minimum number of peers to try to connect to in each download.
       </varlistentry>
 
       <varlistentry>
+        <term>max_peers_seed = <replaceable>value</replaceable></term>
+        <listitem><para>
+
+Set the maximum number of peers to allow while seeding, or -1 (default) to use
+max_peers.
+
+        </para></listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>min_peers_seed = <replaceable>value</replaceable></term>
+        <listitem><para>
+
+Set the minimum number of peers to try to connect to while seeding, or -1 (default) to use
+min_peers.
+
+        </para></listitem>
+      </varlistentry>
+
+      <varlistentry>
         <term>max_uploads = <replaceable>value</replaceable></term>
         <listitem><para>
 
@@ -757,7 +777,10 @@ Change the key-bindings.
   <refsect1>
     <title>ADVANCED SETTINGS</title>
     <para>
-      This list contains settings users shouldn't need to touch.
+
+This list contains settings users shouldn't need to touch, some may
+even cause crashes or similar if incorrectly set.
+
     </para>
 
     <variablelist>
@@ -790,6 +813,16 @@ memory, in milliseconds.
 Number of attempts to check the hash while using the mincore status,
 before forcing. Overworked systems might need lower values to get a
 decent hash checking rate.
+
+        </para></listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>safe_sync = <replaceable>yes|no</replaceable></term>
+        <listitem><para>
+
+Always use MS_SYNC rather than MS_ASYNC when syncing chunks. This may
+be nessesary in case of filesystem bugs like NFS in linux ~2.6.13.
 
         </para></listitem>
       </varlistentry>
@@ -924,7 +957,9 @@ Change the TOS of peer connections, by default set to
     <title>AUTHORS</title>
     <para>
       <simplelist type="vert">
-	<member>Jari "Rakshasa" Sundell <email>jaris@ifi.uio.no</email></member>
+
+<member>Jari "Rakshasa" Sundell <email>jaris@ifi.uio.no</email></member>
+
       </simplelist>
     </para>
   </refsect1>

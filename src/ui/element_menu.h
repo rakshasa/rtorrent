@@ -91,12 +91,12 @@ public:
 
   void                entry_select();
 
-  // Does not trigger the callback.
-  void                set_entry(size_type idx);
+  void                set_entry(size_type idx, bool triggerSlot);
+  void                set_entry_trigger(size_type idx) { set_entry(idx, true); }
 
 private:
-  inline void         focus_entry(size_type idx);
-  inline void         unfocus_entry(size_type idx);
+  void                focus_entry(size_type idx);
+  void                unfocus_entry(size_type idx);
 
   WindowText*         m_window;
 

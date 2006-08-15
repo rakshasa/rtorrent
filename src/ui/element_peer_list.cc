@@ -72,10 +72,11 @@ ElementPeerList::ElementPeerList(core::Download* d) :
 
   m_bindings['k']       = sigc::mem_fun(this, &ElementPeerList::receive_disconnect_peer);
   m_bindings['*']       = sigc::mem_fun(this, &ElementPeerList::receive_snub_peer);
-  m_bindings[KEY_UP]    = sigc::mem_fun(this, &ElementPeerList::receive_prev);
-  m_bindings[KEY_DOWN]  = sigc::mem_fun(this, &ElementPeerList::receive_next);
   m_bindings[KEY_LEFT]  = sigc::mem_fun(&m_slotExit, &slot_type::operator());  
   m_bindings[KEY_RIGHT] = sigc::bind(sigc::mem_fun(this, &ElementPeerList::activate_display), DISPLAY_INFO);
+
+  m_bindings[KEY_UP]   = m_bindings['P' - '@'] = sigc::mem_fun(this, &ElementPeerList::receive_prev);
+  m_bindings[KEY_DOWN] = m_bindings['N' - '@'] = sigc::mem_fun(this, &ElementPeerList::receive_next);
 }
 
 ElementPeerList::~ElementPeerList() {
@@ -113,11 +114,11 @@ ElementPeerList::create_info() {
   element->push_column("Snubbed:", display::text_element_branch(std::mem_fun(&torrent::Peer::is_snubbed), te_string("yes"), te_string("no")));
   element->push_column("Done:",    display::text_element_value_slot(rak::on(std::mem_fun(&torrent::Peer::bitfield), std::ptr_fun(&te_bitfield_percentage))));
   element->push_column("Rate:",
-                       display::text_element_value_slot(rak::on(std::mem_fun(&torrent::Peer::up_rate), std::mem_fun(&torrent::Rate::rate)), value_base::flag_kb), " / ",
+                       display::text_element_value_slot(rak::on(std::mem_fun(&torrent::Peer::up_rate), std::mem_fun(&torrent::Rate::rate)), value_base::flag_kb), " KB / ",
                        display::text_element_value_slot(rak::on(std::mem_fun(&torrent::Peer::down_rate), std::mem_fun(&torrent::Rate::rate)), value_base::flag_kb), " KB");
   element->push_column("Total:",
-                       display::text_element_value_slot(rak::on(std::mem_fun(&torrent::Peer::up_rate), std::mem_fun(&torrent::Rate::total)), value_base::flag_mb), " / ",
-                       display::text_element_value_slot(rak::on(std::mem_fun(&torrent::Peer::down_rate), std::mem_fun(&torrent::Rate::total)), value_base::flag_mb), " MB");
+                       display::text_element_value_slot(rak::on(std::mem_fun(&torrent::Peer::up_rate), std::mem_fun(&torrent::Rate::total)), value_base::flag_xb), " / ",
+                       display::text_element_value_slot(rak::on(std::mem_fun(&torrent::Peer::down_rate), std::mem_fun(&torrent::Rate::total)), value_base::flag_xb));
 
   element->set_column_width(element->column_width() + 1);
 

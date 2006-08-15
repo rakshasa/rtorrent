@@ -53,6 +53,7 @@ public:
 
   static const int flag_kb        = (1 << 3);
   static const int flag_mb        = (1 << 4);
+  static const int flag_xb        = (1 << 5);
 
   static const int flag_elapsed   = (1 << 8);
   static const int flag_remaining = (1 << 9);

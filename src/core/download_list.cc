@@ -439,10 +439,12 @@ DownloadList::hash_done(Download* download) {
 
   case Download::variable_hashing_last:
 
-    if (download->is_done())
+    if (download->is_done()) {
       confirm_finished(download);
-    else
-      download->set_message("Hash check on download completion found bad chunks.");
+    } else {
+      download->set_message("Hash check on download completion found bad chunks, consider using \"safe_sync\".");
+      control->core()->push_log("Hash check on download completion found bad chunks, consider using \"safe_sync\".");
+    }
     
     break;
 
@@ -500,6 +502,12 @@ DownloadList::confirm_finished(Download* download) {
 
   download->set_connection_type(download->variable()->get_string("connection_seed"));
   download->set_priority(download->priority());
+
+  if (download->variable_value("min_peers") == control->variable()->get_value("min_peers") && control->variable()->get_value("min_peers_seed") >= 0)
+    download->variable()->set("min_peers", control->variable()->get("min_peers_seed"));
+
+  if (download->variable_value("max_peers") == control->variable()->get_value("max_peers") && control->variable()->get_value("max_peers_seed") >= 0)
+    download->variable()->set("max_peers", control->variable()->get("max_peers_seed"));
 
   // Do this before the slots are called in case one of them closes
   // the download.
