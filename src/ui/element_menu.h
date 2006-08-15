@@ -45,17 +45,22 @@
 
 namespace display {
   class WindowText;
+  class TextElementStringBase;
 }
 
 namespace ui {
 
-struct ElementMenuEntry;
+struct ElementMenuEntry {
+  display::TextElementStringBase* m_element;
 
-class ElementMenu : public ElementBase, public std::vector<ElementMenuEntry*> {
+  sigc::slot0<void>   m_slotFocus;
+  sigc::slot0<void>   m_slotSelect;
+};
+
+class ElementMenu : public ElementBase, public std::vector<ElementMenuEntry> {
 public:
-  typedef ElementMenuEntry            entry_type;
-  typedef std::vector<entry_type*>    base_type;
-  typedef sigc::slot0<void>           slot_type;
+  typedef std::vector<ElementMenuEntry> base_type;
+  typedef sigc::slot0<void>             slot_type;
 
   typedef display::WindowText         WindowText;
 

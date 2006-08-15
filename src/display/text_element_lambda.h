@@ -48,6 +48,7 @@ public:
   
   TextElementBranchVoid(const slot_type& slot, TextElement* branch1, TextElement* branch2) :
     m_slot(slot), m_branch1(branch1), m_branch2(branch2) {}
+  ~TextElementBranchVoid() { delete m_branch1; delete m_branch2; }
 
   virtual char* print(char* first, char* last, Canvas::attributes_list* attributes, void* object) {
     if (m_slot())
@@ -76,6 +77,7 @@ public:
   
   TextElementBranch(const slot_type& slot, TextElement* branch1, TextElement* branch2) :
     m_slot(slot), m_branch1(branch1), m_branch2(branch2) {}
+  ~TextElementBranch() { delete m_branch1; delete m_branch2; }
 
   virtual char* print(char* first, char* last, Canvas::attributes_list* attributes, void* object) {
     if (object == NULL)

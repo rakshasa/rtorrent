@@ -85,8 +85,10 @@ public:
   bool                is_width_dynamic() const             { return m_maxWidth > m_minWidth; }
   bool                is_height_dynamic() const            { return m_maxHeight > m_minHeight; }
 
+  // Do not call mark_dirty() from withing redraw() as it may cause
+  // infinite looping in the display scheduler.
   bool                is_dirty()                           { return m_taskUpdate.is_queued(); }
-  void                mark_dirty()                         { if (!is_active()) return; m_slotSchedule(this, cachedTime + 1); }
+  void                mark_dirty()                         { if (!is_active()) return; m_slotSchedule(this, cachedTime); }
 
   extent_type         min_width() const                    { return m_minWidth; }
   extent_type         min_height() const                   { return m_minHeight; }

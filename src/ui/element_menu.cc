@@ -48,22 +48,15 @@
 
 namespace ui {
 
-struct ElementMenuEntry {
-  display::TextElementStringBase* m_element;
-
-  ElementMenu::slot_type          m_slotFocus;
-  ElementMenu::slot_type          m_slotSelect;
-};
-
 inline void
 ElementMenu::focus_entry(size_type idx) {
   if (idx >= size())
     return;
 
   if (m_focus)
-    base_type::operator[](idx)->m_element->set_attributes(display::Attributes::a_reverse);
+    base_type::operator[](idx).m_element->set_attributes(display::Attributes::a_reverse);
   else
-    base_type::operator[](idx)->m_element->set_attributes(display::Attributes::a_bold);
+    base_type::operator[](idx).m_element->set_attributes(display::Attributes::a_bold);
 }
 
 inline void
@@ -71,7 +64,7 @@ ElementMenu::unfocus_entry(size_type idx) {
   if (idx >= size())
     return;
 
-  base_type::operator[](idx)->m_element->set_attributes(display::Attributes::a_normal);
+  base_type::operator[](idx).m_element->set_attributes(display::Attributes::a_normal);
 }
 
 ElementMenu::ElementMenu() :
@@ -79,7 +72,7 @@ ElementMenu::ElementMenu() :
   m_entry(entry_invalid) {
 
   // Move bindings into a function that defines default bindings.
-  m_bindings[KEY_LEFT] = sigc::mem_fun(&m_slotExit, &slot_type::operator());  
+  m_bindings[KEY_LEFT]  = sigc::mem_fun(&m_slotExit, &slot_type::operator());  
   m_bindings[KEY_RIGHT] = sigc::mem_fun(this, &ElementMenu::entry_select);
 
   m_bindings[KEY_UP]   = m_bindings['P' - '@'] = sigc::mem_fun(this, &ElementMenu::entry_prev);
@@ -122,7 +115,7 @@ ElementMenu::disable() {
 
 void
 ElementMenu::push_back(const char* name, const slot_type& slotSelect, const slot_type& slotFocus) {
-  entry_type* entry = new entry_type;
+  iterator entry = base_type::insert(end(), value_type());
 
   entry->m_element    = new display::TextElementCString(name);
   entry->m_slotSelect = slotSelect;
@@ -130,8 +123,6 @@ ElementMenu::push_back(const char* name, const slot_type& slotSelect, const slot
 
   m_window->push_back(NULL);
   m_window->push_back(entry->m_element);
-
-  base_type::push_back(entry);
 
   // For the moment, don't bother doing anything if the window is
   // already active.
@@ -149,7 +140,7 @@ ElementMenu::entry_next() {
     m_entry = 0;
 
   focus_entry(m_entry);
-  base_type::operator[](m_entry)->m_slotFocus();
+  base_type::operator[](m_entry).m_slotFocus();
 
   m_window->mark_dirty();
 }
@@ -165,7 +156,7 @@ ElementMenu::entry_prev() {
     m_entry = size() - 1;
 
   focus_entry(m_entry);
-  base_type::operator[](m_entry)->m_slotFocus();
+  base_type::operator[](m_entry).m_slotFocus();
 
   m_window->mark_dirty();
 }
@@ -175,7 +166,7 @@ ElementMenu::entry_select() {
   if (m_entry >= size())
     return;
 
-  base_type::operator[](m_entry)->m_slotSelect();
+  base_type::operator[](m_entry).m_slotSelect();
   m_window->mark_dirty();
 }
 
@@ -190,7 +181,7 @@ ElementMenu::set_entry(size_type idx, bool triggerSlot) {
   focus_entry(m_entry);
 
   if (triggerSlot)
-    base_type::operator[](m_entry)->m_slotFocus();
+    base_type::operator[](m_entry).m_slotFocus();
 
   m_window->mark_dirty();
 }

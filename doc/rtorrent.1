@@ -3,7 +3,7 @@
 .\" <http://shell.ipoline.com/~elmert/comp/docbook2X/> 
 .\" Please send any bug reports, improvements, comments, patches, 
 .\" etc. to Steve Cheng <steve@ggi-project.org>.
-.TH "RTORRENT" "1" "05 July 2006" "BitTorrent client for ncurses" ""
+.TH "RTORRENT" "1" "15 August 2006" "BitTorrent client for ncurses" ""
 
 .SH NAME
 rtorrent \- a BitTorrent client for ncurses
@@ -168,6 +168,14 @@ Set the maximum number of peers to allow in each download.
 \fBmin_peers = \fIvalue\fB\fR
 Set the minimum number of peers to try to connect to in each download.
 .TP
+\fBmax_peers_seed = \fIvalue\fB\fR
+Set the maximum number of peers to allow while seeding, or -1 (default) to use
+max_peers.
+.TP
+\fBmin_peers_seed = \fIvalue\fB\fR
+Set the minimum number of peers to try to connect to while seeding, or -1 (default) to use
+min_peers.
+.TP
 \fBmax_uploads = \fIvalue\fB\fR
 Set the maximum number of simultaneous uploads per download.
 .TP
@@ -318,7 +326,8 @@ match for the download to be included.
 Change the key-bindings.
 .SH "ADVANCED SETTINGS"
 .PP
-This list contains settings users shouldn't need to touch.
+This list contains settings users shouldn't need to touch, some may
+even cause crashes or similar if incorrectly set.
 .TP
 \fBhash_read_ahead = \fIMB\fB\fR
 Configure how far ahead we ask the kernel to read when doing hash
@@ -333,6 +342,10 @@ memory, in milliseconds.
 Number of attempts to check the hash while using the mincore status,
 before forcing. Overworked systems might need lower values to get a
 decent hash checking rate.
+.TP
+\fBsafe_sync = \fIyes|no\fB\fR
+Always use MS_SYNC rather than MS_ASYNC when syncing chunks. This may
+be nessesary in case of filesystem bugs like NFS in linux ~2.6.13.
 .TP
 \fBmax_open_files = \fIvalue\fB\fR
 Number of files to simultaneously keep open. Libtorrent dynamically

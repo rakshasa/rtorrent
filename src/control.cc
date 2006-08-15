@@ -93,9 +93,12 @@ Control::~Control() {
   delete m_commandScheduler;
   delete m_variables;
 
+  delete m_viewManager;
+
   delete m_ui;
   delete m_display;
   delete m_core;
+  delete m_scheduler;
 
   delete m_clientInfo;
 }

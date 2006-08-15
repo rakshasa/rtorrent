@@ -98,7 +98,8 @@ WindowHttpQueue::cleanup_list() {
     else
       ++itr;
 
-  mark_dirty();
+  // Bad, can't have this here as it is called from redraw().
+  //   mark_dirty();
 }
 
 std::string
