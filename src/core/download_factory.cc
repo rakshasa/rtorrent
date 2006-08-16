@@ -172,19 +172,17 @@ DownloadFactory::receive_success() {
   // Move to 'rtorrent'.
   download->variable()->set("connection_leech", m_variables.get("connection_leech"));
   download->variable()->set("connection_seed",  m_variables.get("connection_seed"));
+
   download->variable()->set("max_uploads",      control->variable()->get("max_uploads"));
+  download->variable()->set("min_peers",        control->variable()->get("min_peers"));
+  download->variable()->set("max_peers",        control->variable()->get("max_peers"));
 
   if (download->variable()->get_value("complete") != 0) {
-
     if (control->variable()->get_value("min_peers_seed") >= 0)
       download->variable()->set("min_peers", control->variable()->get("min_peers_seed"));
-    else
-      download->variable()->set("min_peers", control->variable()->get("min_peers"));
 
     if (control->variable()->get_value("max_peers_seed") >= 0)
       download->variable()->set("max_peers", control->variable()->get("max_peers_seed"));
-    else
-      download->variable()->set("max_peers", control->variable()->get("max_peers"));
   }
 
   if (!control->variable()->get_value("use_udp_trackers"))
