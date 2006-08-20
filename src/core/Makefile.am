@@ -24,6 +24,8 @@ libsub_core_a_SOURCES = \
 	poll_manager.h \
 	poll_manager_epoll.cc \
 	poll_manager_epoll.h \
+	poll_manager_kqueue.cc \
+	poll_manager_kqueue.h \
 	poll_manager_select.cc \
 	poll_manager_select.h \
 	scheduler.cc \

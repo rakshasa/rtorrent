@@ -139,6 +139,17 @@ AC_DEFUN([TORRENT_WITHOUT_EPOLL], [
 ])
 
 
+AC_DEFUN([TORRENT_WITH_KQUEUE], [
+  AC_ARG_WITH(kqueue,
+    [  --with-kqueue                  enable kqueue. [[default=no]]],
+    [
+        if test "$withval" = "yes"; then
+            AC_DEFINE(USE_KQUEUE, 1, Enable kqueue.)
+        fi
+    ])
+])
+
+
 AC_DEFUN([TORRENT_WITHOUT_VARIABLE_FDSET], [
   AC_ARG_WITH(variable-fdset,
 

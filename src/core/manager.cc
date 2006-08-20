@@ -65,6 +65,7 @@
 #include "http_queue.h"
 #include "manager.h"
 #include "poll_manager_epoll.h"
+#include "poll_manager_kqueue.h"
 #include "poll_manager_select.h"
 #include "view.h"
 
@@ -153,8 +154,13 @@ void
 Manager::initialize_first() {
   if ((m_pollManager = PollManagerEPoll::create(sysconf(_SC_OPEN_MAX))) != NULL)
     m_logImportant.push_front("Using 'epoll' based polling.");
+
+  else if ((m_pollManager = PollManagerKQueue::create(sysconf(_SC_OPEN_MAX))) != NULL)
+    m_logImportant.push_front("Using 'kqueue' based polling.");
+
   else if ((m_pollManager = PollManagerSelect::create(sysconf(_SC_OPEN_MAX))) != NULL)
     m_logImportant.push_front("Using 'select' based polling.");
+
   else
     throw std::runtime_error("Could not create any PollManager.");
 
