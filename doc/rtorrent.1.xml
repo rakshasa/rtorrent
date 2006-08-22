@@ -34,11 +34,16 @@
     <title>DESCRIPTION</title>
 
     <para>
-      <command>rtorrent</command> is a BitTorrent client for ncurses,
-      using the <emphasis>libtorrent</emphasis> library. The client
-      and library is written in C++ with emphasis on speed and
-      efficiency, while delivering equivalent features to those found
-      in GUI based clients in an ncurses client.
+<command>rtorrent</command> is a BitTorrent client for ncurses, using
+the <emphasis>libtorrent</emphasis> library. The client and library is
+written in C++ with emphasis on speed and efficiency, while delivering
+equivalent features to those found in GUI based clients in an ncurses
+client.
+    </para>
+
+    <para>
+Most of the options below have their own default unit in addition to
+supporting B, K, M and G suffixes.
     </para>
 
   </refsect1>
@@ -636,7 +641,7 @@ have been deleted. Clear the association with the 'U' key.
 
 Close any active torrents on filesystems with less than
 <emphasis>space</emphasis> diskspace left. Use with
-<emphasis>schedule</emphasis>.
+the <emphasis>schedule</emphasis> option.
 
         </para></listitem>
       </varlistentry>
@@ -651,11 +656,11 @@ Stop torrents when they reach the given upload ratio
 <emphasis>min_ratio</emphasis> in percent. If the optional
 <emphasis>min_upload</emphasis> is given, require a total
 upload amount of this many bytes as well. If the optional
-<emphasis>max_ratio></emphasis> is given, stop the torrent
+<emphasis>max_ratio</emphasis> is given, stop the torrent
 when reaching this ratio regardless of the total upload
 amount. Exclude certain torrent by pressing 
 <emphasis>Shift+I</emphasis> in the downlist list.
-Use with <emphasis>schedule</emphasis>.
+Use with the <emphasis>schedule</emphasis> option.
 
         </para></listitem>
       </varlistentry>
@@ -844,6 +849,17 @@ opens and closes files when mapping files to memory. Defaults to 128.
 Number of sockets to simultaneously keep open. This value is set to be
 <emphasis>sysconf(_SC_OPEN_MAX) - 256</emphasis> at startup. This
 gives the client 128 sockets to use as it wishes.
+
+        </para></listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>max_memory_usage = <replaceable>bytes</replaceable></term>
+        <listitem><para>
+
+Set the max amount of memory space used to mapping file chunks. This
+may also be set using <emphasis>ulimit -m</emphasis> where 3/4 will be
+allocated to file chunks.
 
         </para></listitem>
       </varlistentry>
