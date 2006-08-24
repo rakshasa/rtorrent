@@ -68,16 +68,12 @@ supporting B, K, M and G suffixes.
 	</varlistentry>
 
 	<varlistentry>
-	  <term>up | down</term>
+	  <term>up | down | left | right arrow keys</term>
+	  <term>^P | ^N | ^B | ^F</term>
 	  <listitem><para>
-            Select item.
-          </para></listitem>
-	</varlistentry>
-
-	<varlistentry>
-	  <term><-</term>
-	  <listitem><para>
-            Go back to the previous screen.
+Select entries or change windows. The right arrow key or ^F is often
+used for viewing details about the selected entry, while the left
+arrow key or ^B often returns to the previous screen.
           </para></listitem>
 	</varlistentry>
 
@@ -121,104 +117,94 @@ supporting B, K, M and G suffixes.
 	<varlistentry>
 	  <term>-></term>
 	  <listitem><para>
-            View download.
+View download.
           </para></listitem>
 	</varlistentry>
 
 	<varlistentry>
 	  <term>1 - 7</term>
 	  <listitem><para>
-
 Change view.
-
           </para></listitem>
 	</varlistentry>
 
 	<varlistentry>
 	  <term>^S</term>
 	  <listitem><para>
-            Start download.
+Start download.
           </para></listitem>
 	</varlistentry>
 
 	<varlistentry>
 	  <term>^D</term>
 	  <listitem><para>
-
 Stop an active download, or remove a stopped download.
-
           </para></listitem>
 	</varlistentry>
 
 	<varlistentry>
 	  <term>^K</term>
 	  <listitem><para>
-
 Close a torrent and its files.
-
           </para></listitem>
 	</varlistentry>
 
 	<varlistentry>
 	  <term>^R</term>
 	  <listitem><para>
-            Initiate hash check of torrent.
+Initiate hash check of torrent.
           </para></listitem>
 	</varlistentry>
 
 	<varlistentry>
 	  <term>^O</term>
 	  <listitem><para>
-            Change the destination directory of the download. The
-            torrent must be closed.
+Change the destination directory of the download. The torrent must be
+closed.
+          </para></listitem>
+	</varlistentry>
+
+	<varlistentry>
+	  <term>^X</term>
+	  <listitem><para>
+Call commands or change settings.
           </para></listitem>
 	</varlistentry>
 
 	<varlistentry>
 	  <term>+ | -</term>
 	  <listitem><para>
-            Change the priority of the download.
+Change the priority of the download.
           </para></listitem>
 	</varlistentry>
 
 	<varlistentry>
 	  <term>backspace</term>
 	  <listitem><para>
-            Add torrent using an URL or file path. Use
-            <emphasis>tab</emphasis> to view directory content and do
-            auto-complete.
+Add torrent using an URL or file path. Use
+<emphasis>tab</emphasis> to view directory content and do
+auto-complete.
           </para></listitem>
 	</varlistentry>
 
 	<varlistentry>
 	  <term>l</term>
 	  <listitem><para>
-            View log. Exit by pressing the space-bar.
-          </para></listitem>
-	</varlistentry>
-
-	<varlistentry>
-	  <term>^P</term>
-	  <listitem><para>
-            Call commands or change settings.
+View log. Exit by pressing the space-bar.
           </para></listitem>
 	</varlistentry>
 
         <varlistentry>
           <term>U</term>
           <listitem><para>
-
 Delete the file the torrent is tied to, and clear the association.
-
           </para></listitem>
         </varlistentry>
 
         <varlistentry>
           <term>I</term>
           <listitem><para>
-
 Toggle whether torrent ignores ratio settings.
-
           </para></listitem>
         </varlistentry>
 
@@ -234,16 +220,15 @@ Toggle whether torrent ignores ratio settings.
 	<varlistentry>
 	  <term>-></term>
 	  <listitem><para>
-            View torrent file list. Use the space-bar to change the
-            file priority and <emphasis>*</emphasis> to change the
-            priority of all files.
+View torrent file list. Use the space-bar to change the file priority
+and <emphasis>*</emphasis> to change the priority of all files.
           </para></listitem>
 	</varlistentry>
 
 	<varlistentry>
 	  <term>1 | 2</term>
 	  <listitem><para>
-            Adjust max uploads.
+Adjust max uploads.
           </para></listitem>
 	</varlistentry>
 
@@ -251,79 +236,65 @@ Toggle whether torrent ignores ratio settings.
 	<varlistentry>
 	  <term>3 | 4</term>
 	  <listitem><para>
-            Adjust min peers.
+Adjust min peers.
           </para></listitem>
 	</varlistentry>
 
 	<varlistentry>
 	  <term>5 | 6</term>
 	  <listitem><para>
-            Adjust max peers.
+Adjust max peers.
           </para></listitem>
 	</varlistentry>
 
         <varlistentry>
           <term>u</term>
           <listitem><para>
-
 Display transfering blocks.
-
           </para></listitem>
         </varlistentry>
 
 	<varlistentry>
 	  <term>i</term>
 	  <listitem><para>
-
 Display chunk rarity.
-
           </para></listitem>
 	</varlistentry>
 
 	<varlistentry>
 	  <term>o</term>
 	  <listitem><para>
-
-Display the tracker list. Cycle the trackers in a group
-
-            with the space-bar.
+Display the tracker list. Cycle the trackers in a group with the
+space-bar.
           </para></listitem>
 	</varlistentry>
 
 	<varlistentry>
 	  <term>p</term>
 	  <listitem><para>
-
 View peer and torrent information.
-
           </para></listitem>
 	</varlistentry>
 
 	<varlistentry>
 	  <term>t | T</term>
 	  <listitem><para>
-
 Initiate tracker request. Use capital T to force the request, ignoring
 the "min interval" set by the tracker.
-
           </para></listitem>
 	</varlistentry>
 
 	<varlistentry>
 	  <term>k</term>
 	  <listitem><para>
-
 Disconnect peer.
-
           </para></listitem>
 	</varlistentry>
 
 	<varlistentry>
 	  <term>*</term>
 	  <listitem><para>
-
 Choke/Snub peer.
-
           </para></listitem>
 	</varlistentry>
 
@@ -342,46 +313,36 @@ Choke/Snub peer.
       <varlistentry>
         <term>-b <replaceable>a.b.c.d</replaceable></term>
         <listitem><para>
-
 Bind listening socket and outgoing connections to this network
 interface address.
-
         </para></listitem>
       </varlistentry>
 
       <varlistentry>
         <term>-d <replaceable>directory</replaceable></term>
         <listitem><para>
-
 Set the default download directory. Defaults to "./".
-
         </para></listitem>
       </varlistentry>
 
       <varlistentry>
         <term>-h</term>
         <listitem><para>
-
 Display help and exit.
-
         </para></listitem>
       </varlistentry>
 
       <varlistentry>
         <term>-i <replaceable>a.b.c.d</replaceable></term>
         <listitem><para>
-
 Set the address reported to the tracker.
-
         </para></listitem>
       </varlistentry>
 
       <varlistentry>
         <term>-n</term>
         <listitem><para>
-
 Don't load ~/.rtorrent.rc on startup.
-
         </para></listitem>
       </varlistentry>
 
@@ -389,34 +350,28 @@ Don't load ~/.rtorrent.rc on startup.
         <term>-o key1=opt1,...</term>
         <term>-O key=opt</term>
         <listitem><para>
-
 Set any number of options, see the SETTINGS section. The options given
 here override the resource files. Use capital <emphasis>-O</emphasis>
 to allow comma in the option.
-
         </para></listitem>
       </varlistentry>
 
       <varlistentry>
         <term>-p <replaceable>a-b</replaceable></term>
         <listitem><para>
-
 Try to open a listening port in the range <emphasis>a</emphasis> up to
 and including <emphasis>b</emphasis>.
-
         </para></listitem>
       </varlistentry>
 
       <varlistentry>
         <term>-s <replaceable>directory</replaceable></term>
         <listitem><para>
-
 Session management will be enabled and the torrent files for all open
 downloads will be stored in this directory. Only one instance of
 rtorrent should be used with each session directory, though at the
 moment no locking is done. An empty string will disable the session
 directory.
-
         </para></listitem>
       </varlistentry>
 
@@ -435,75 +390,59 @@ directory.
       <varlistentry>
         <term>max_peers = <replaceable>value</replaceable></term>
         <listitem><para>
-
 Set the maximum number of peers to allow in each download.
-
         </para></listitem>
       </varlistentry>
 
       <varlistentry>
         <term>min_peers = <replaceable>value</replaceable></term>
         <listitem><para>
-
 Set the minimum number of peers to try to connect to in each download.
-
         </para></listitem>
       </varlistentry>
 
       <varlistentry>
         <term>max_peers_seed = <replaceable>value</replaceable></term>
         <listitem><para>
-
 Set the maximum number of peers to allow while seeding, or -1 (default) to use
 max_peers.
-
         </para></listitem>
       </varlistentry>
 
       <varlistentry>
         <term>min_peers_seed = <replaceable>value</replaceable></term>
         <listitem><para>
-
 Set the minimum number of peers to try to connect to while seeding, or -1 (default) to use
 min_peers.
-
         </para></listitem>
       </varlistentry>
 
       <varlistentry>
         <term>max_uploads = <replaceable>value</replaceable></term>
         <listitem><para>
-
 Set the maximum number of simultaneous uploads per download.
-
         </para></listitem>
       </varlistentry>
 
       <varlistentry>
         <term>download_rate = <replaceable>KB</replaceable></term>
         <listitem><para>
-
 Set the maximum global download rate.
-
         </para></listitem>
       </varlistentry>
 
       <varlistentry>
         <term>upload_rate = <replaceable>KB</replaceable></term>
         <listitem><para>
-
 Set the maximum global upload rate.
-
         </para></listitem>
       </varlistentry>
 
       <varlistentry>
         <term>bind = <replaceable>a.b.c.d</replaceable></term>
         <listitem><para>
-
 Bind listening socket and outgoing connections to this network
 interface address.
-
         </para></listitem>
       </varlistentry>
 
@@ -511,86 +450,69 @@ interface address.
         <term>ip = <replaceable>a.b.c.d</replaceable></term>
         <term>ip = <replaceable>hostname</replaceable></term>
         <listitem><para>
-
 Set the address reported to the tracker.
-
         </para></listitem>
       </varlistentry>
 
       <varlistentry>
         <term>port_range = <replaceable>a-b</replaceable></term>
         <listitem><para>
-
 Try to open a listening port in the range <emphasis>a</emphasis> up to
 and including <emphasis>b</emphasis>.
-
         </para></listitem>
       </varlistentry>
 
       <varlistentry>
         <term>port_random = <replaceable>yes | no</replaceable></term>
         <listitem><para>
-
 Open the listening port at a random position in the port range.
-
         </para></listitem>
       </varlistentry>
 
       <varlistentry>
         <term>check_hash = <replaceable>yes | no</replaceable></term>
         <listitem><para>
-
 Perform hash check on torrents that have finished downloading.
-
         </para></listitem>
       </varlistentry>
 
       <varlistentry>
         <term>directory = <replaceable>directory</replaceable></term>
         <listitem><para>
-
 Set the default download directory. Defaults to "./".
-
         </para></listitem>
       </varlistentry>
 
       <varlistentry>
         <term>session = <replaceable>directory</replaceable></term>
         <listitem><para>
-
 Session management will be enabled and the torrent files for all open
 downloads will be stored in this directory. Only one instance of
 rtorrent should be used with each session directory, though at the
 moment no locking is done. An empty string will disable the session
 directory.
-
         </para></listitem>
       </varlistentry>
 
       <varlistentry>
         <term>http_proxy = <replaceable>url</replaceable></term>
         <listitem><para>
-
 Use a http proxy. Use an empty string to disable.
-
         </para></listitem>
       </varlistentry>
 
       <varlistentry>
         <term>encoding_list = <replaceable>encoding</replaceable></term>
         <listitem><para>
-
 Add a preferred filename encoding to the list. The encodings are
 attempted in the order they are inserted, if none match the torrent
 default is used.
-
         </para></listitem>
       </varlistentry>
 
       <varlistentry>
         <term>schedule = <replaceable>id</replaceable>,<replaceable>start</replaceable>,<replaceable>interval</replaceable>,<replaceable>command</replaceable></term>
         <listitem><para>
-
 Call <emphasis>command</emphasis> every <emphasis>interval</emphasis>
 seconds, starting from <emphasis>start</emphasis>. An
 <emphasis>interval</emphasis> of zero calls the task once, while a
@@ -601,25 +523,20 @@ seconds, starting from <emphasis>start</emphasis>. An
 optionally use a time format, <emphasis>dd:hh:mm:ss</emphasis>. F.ex to
 start a task every day at <emphasis>18:00</emphasis>, use
 <emphasis>18:00:00,24:00:00</emphasis>.
-
         </para></listitem>
       </varlistentry>
 
       <varlistentry>
         <term>schedule_remove = <replaceable>id</replaceable></term>
         <listitem><para>
-
 Delete <emphasis>id</emphasis> from the scheduler.
-
         </para></listitem>
       </varlistentry>
 
       <varlistentry>
         <term>start_tied =</term>
         <listitem><para>
-
 Start torrents that are tied to filenames that have been re-added.
-
         </para></listitem>
       </varlistentry>
 
@@ -628,21 +545,17 @@ Start torrents that are tied to filenames that have been re-added.
         <term>close_untied =</term>
         <term>remove_untied =</term>
         <listitem><para>
-
 Stop, close or remove the torrents that are tied to filenames that
 have been deleted. Clear the association with the 'U' key.
-
         </para></listitem>
       </varlistentry>
 
       <varlistentry>
         <term>close_low_diskspace = <replaceable>space</replaceable></term>
         <listitem><para>
-
 Close any active torrents on filesystems with less than
 <emphasis>space</emphasis> diskspace left. Use with
 the <emphasis>schedule</emphasis> option.
-
         </para></listitem>
       </varlistentry>
 
@@ -651,7 +564,6 @@ the <emphasis>schedule</emphasis> option.
         <term>stop_on_ratio = <replaceable>min_ratio</replaceable>,<replaceable>min_upload</replaceable></term>
         <term>stop_on_ratio = <replaceable>min_ratio</replaceable>,<replaceable>min_upload</replaceable>,<replaceable>max_ratio</replaceable></term>
         <listitem><para>
-
 Stop torrents when they reach the given upload ratio
 <emphasis>min_ratio</emphasis> in percent. If the optional
 <emphasis>min_upload</emphasis> is given, require a total
@@ -661,7 +573,6 @@ when reaching this ratio regardless of the total upload
 amount. Exclude certain torrent by pressing 
 <emphasis>Shift+I</emphasis> in the downlist list.
 Use with the <emphasis>schedule</emphasis> option.
-
         </para></listitem>
       </varlistentry>
 
@@ -671,13 +582,11 @@ Use with the <emphasis>schedule</emphasis> option.
         <term>load_start = <replaceable>file</replaceable></term>
         <term>load_start_verbose = <replaceable>file</replaceable></term>
         <listitem><para>
-
 Load and possibly start a file, or possibly multiple files by using the
 wild-card "*". This is meant for use with
 <emphasis>schedule</emphasis>, though ensure that the
 <emphasis>start</emphasis> is non-zero. The loaded file will be tied
 to the filename provided.
-
         </para></listitem>
       </varlistentry>
 
@@ -685,10 +594,8 @@ to the filename provided.
         <term>import = <replaceable>file</replaceable></term>
         <term>try_import = <replaceable>file</replaceable></term>
         <listitem><para>
-
 Load a resource file. <emphasis>try_import</emphasis> does not throw
 torrent::input_error exception on bad input.
-
         </para></listitem>
       </varlistentry>
 
@@ -708,9 +615,7 @@ torrent::input_error exception on bad input.
       <varlistentry>
         <term>view_add = <replaceable>name</replaceable></term>
         <listitem><para>
-
 Create a new view.
-
         </para></listitem>
       </varlistentry>
 
@@ -718,13 +623,11 @@ Create a new view.
         <term>view_sort = <replaceable>name</replaceable></term>
         <term>view_sort = <replaceable>name</replaceable>,<replaceable>seconds</replaceable></term>
         <listitem><para>
-
 Sort a view according the the criteria set by
 <emphasis>view_sort_current</emphasis>. If the optional argument is
 supplied, the view is not sorted if a change happened during the last
 <emphasis>seconds</emphasis>. This command is meant to be used with
 <emphasis>schedule</emphasis>.
-
         </para></listitem>
       </varlistentry>
 

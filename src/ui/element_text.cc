@@ -54,11 +54,11 @@ ElementText::ElementText(void *object) :
   m_columnWidth(0) {
 
   // Move bindings into a function that defines default bindings.
-  m_bindings[KEY_LEFT] = sigc::mem_fun(&m_slotExit, &slot_type::operator());  
+  m_bindings[KEY_LEFT] = m_bindings['B' - '@'] = sigc::mem_fun(&m_slotExit, &slot_type::operator());  
 
 //   m_bindings[KEY_UP]    = sigc::mem_fun(this, &ElementText::entry_prev);
 //   m_bindings[KEY_DOWN]  = sigc::mem_fun(this, &ElementText::entry_next);
-//   m_bindings[KEY_RIGHT] = sigc::mem_fun(this, &ElementText::entry_select);
+//   m_bindings[KEY_RIGHT] = m_bindings['F' - '@'] = sigc::mem_fun(this, &ElementText::entry_select);
 }
 
 ElementText::~ElementText() {

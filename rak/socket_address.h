@@ -76,8 +76,8 @@ public:
   // Should we need to set AF_UNSPEC?
   void                clear()                                 { std::memset(this, 0, sizeof(socket_address)); set_family(); }
 
-  sa_family_t         family() const                          { return m_sa.m_sockaddr.sa_family; }
-  void                set_family()                            { m_sa.m_sockaddr.sa_family = af_unspec; }
+  sa_family_t         family() const                          { return m_sockaddr.sa_family; }
+  void                set_family()                            { m_sockaddr.sa_family = af_unspec; }
 
   uint16_t            port() const;
   void                set_port(uint16_t p);
@@ -95,18 +95,18 @@ public:
   socket_address_inet*        sa_inet()                       { return reinterpret_cast<socket_address_inet*>(this); }
   const socket_address_inet*  sa_inet() const                 { return reinterpret_cast<const socket_address_inet*>(this); }
 
-  sockaddr*           c_sockaddr()                            { return &m_sa.m_sockaddr; }
-  sockaddr_in*        c_sockaddr_inet()                       { return &m_sa.m_sockaddrInet; }
+  sockaddr*           c_sockaddr()                            { return &m_sockaddr; }
+  sockaddr_in*        c_sockaddr_inet()                       { return &m_sockaddrInet; }
 
-  const sockaddr*     c_sockaddr() const                      { return &m_sa.m_sockaddr; }
-  const sockaddr_in*  c_sockaddr_inet() const                 { return &m_sa.m_sockaddrInet; }
+  const sockaddr*     c_sockaddr() const                      { return &m_sockaddr; }
+  const sockaddr_in*  c_sockaddr_inet() const                 { return &m_sockaddrInet; }
 
 #ifdef RAK_USE_INET6
   socket_address_inet6*       sa_inet6()                      { return reinterpret_cast<socket_address_inet6*>(this); }
   const socket_address_inet6* sa_inet6() const                { return reinterpret_cast<const socket_address_inet6*>(this); }
 
-  sockaddr_in6*       c_sockaddr_inet6()                      { return &m_sa.m_sockaddrInet6; }
-  const sockaddr_in6* c_sockaddr_inet6() const                { return &m_sa.m_sockaddrInet6; }
+  sockaddr_in6*       c_sockaddr_inet6()                      { return &m_sockaddrInet6; }
+  const sockaddr_in6* c_sockaddr_inet6() const                { return &m_sockaddrInet6; }
 #endif
 
   // Copy a socket address which has the length 'length. Zero out any
@@ -120,18 +120,21 @@ public:
   // The different families will be sorted according to the
   // sa_family_t's numeric value.
   bool                operator == (const socket_address& rhs) const;
-  bool                operator < (const socket_address& rhs) const;
+  bool                operator  < (const socket_address& rhs) const;
+
+  bool                operator == (const sockaddr& rhs) const { return *this == *cast_from(&rhs); }
+  bool                operator == (const sockaddr* rhs) const { return *this == *cast_from(rhs); }
+  bool                operator  < (const sockaddr& rhs) const { return *this == *cast_from(&rhs); }
+  bool                operator  < (const sockaddr* rhs) const { return *this == *cast_from(rhs); }
 
 private:
-  union sa_union {
+  union {
     sockaddr            m_sockaddr;
     sockaddr_in         m_sockaddrInet;
 #ifdef RAK_USE_INET6
     sockaddr_in6        m_sockaddrInet6;
 #endif
   };
-
-  sa_union            m_sa;
 };
 
 // Remeber to set the AF_INET.
@@ -179,6 +182,50 @@ public:
 
 private:
   struct sockaddr_in  m_sockaddr;
+};
+
+// Unique key for the address, excluding port numbers etc.
+class socket_address_key {
+public:
+//   socket_address_host_key() {}
+
+  socket_address_key(const socket_address& sa) {
+    *this = sa;
+  }
+
+  socket_address_key& operator = (const socket_address& sa) {
+    if (sa.family() == 0) {
+      std::memset(this, 0, sizeof(socket_address_key));
+
+    } else if (sa.family() == socket_address::af_inet) {
+      // Using hardware order as we use operator < to compare when
+      // using inet only.
+      m_addr.s_addr = sa.sa_inet()->address_h();
+
+    } else {
+      // When we implement INET6 handling, embed the ipv4 address in
+      // the ipv6 address.
+      throw std::logic_error("socket_address_key(...) received an unsupported protocol family.");
+    }
+
+    return *this;
+  }
+
+//   socket_address_key& operator = (const socket_address_key& sa) {
+//   }
+
+  bool operator < (const socket_address_key& sa) const {
+    // Compare the memory area instead.
+    return m_addr.s_addr < sa.m_addr.s_addr;
+  }    
+
+private:
+  union {
+    in_addr m_addr;
+// #ifdef RAK_USE_INET6
+//     in_addr6 m_addr6;
+// #endif
+  };
 };
 
 inline bool
