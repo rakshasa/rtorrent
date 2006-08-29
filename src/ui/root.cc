@@ -129,6 +129,12 @@ Root::setup_keys() {
     m_bindings['Q']           = sigc::bind(sigc::mem_fun(*this, &Root::adjust_down_throttle), 1);
     m_bindings['W']           = sigc::bind(sigc::mem_fun(*this, &Root::adjust_down_throttle), -1);
 
+  } else if (strcasecmp(control->variable()->get_string("key_layout").c_str(), "qwertz") == 0) {
+    m_bindings['a']           = sigc::bind(sigc::mem_fun(*this, &Root::adjust_up_throttle), 1);
+    m_bindings['y']           = sigc::bind(sigc::mem_fun(*this, &Root::adjust_up_throttle), -1);
+    m_bindings['A']           = sigc::bind(sigc::mem_fun(*this, &Root::adjust_down_throttle), 1);
+    m_bindings['Y']           = sigc::bind(sigc::mem_fun(*this, &Root::adjust_down_throttle), -1);
+
   } else {
     m_bindings['a']           = sigc::bind(sigc::mem_fun(*this, &Root::adjust_up_throttle), 1);
     m_bindings['z']           = sigc::bind(sigc::mem_fun(*this, &Root::adjust_up_throttle), -1);
