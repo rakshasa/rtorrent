@@ -331,3 +331,24 @@ AC_DEFUN([TORRENT_WITHOUT_STATFS], [
       fi
     ])
 ])
+
+AC_DEFUN([TORRENT_WITH_ADDRESS_SPACE], [
+  AC_ARG_WITH(address-space,
+    AC_HELP_STRING([--with-address-space=MB], [Change the default address space size, default 1024 MB.]),
+    [
+      if test ! -z $withval -a "$withval" != "yes" -a "$withval" != "no"; then
+        AC_DEFINE_UNQUOTED(DEFAULT_ADDRESS_SPACE_SIZE, [$withval])
+      else
+        AC_MSG_ERROR(--with-address-space requires a parameter.)
+      fi
+    ],
+    [
+      AC_CHECK_SIZEOF(long)
+
+      if test "$ac_cv_sizeof_long" = "4"; then
+        AC_DEFINE(DEFAULT_ADDRESS_SPACE_SIZE, 4096, Default address space size.)
+      else
+        AC_DEFINE(DEFAULT_ADDRESS_SPACE_SIZE, 1024, Default address space size.)
+      fi
+    ])
+])

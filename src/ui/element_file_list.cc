@@ -40,6 +40,7 @@
 #include <torrent/file_list.h>
 
 #include "display/frame.h"
+#include "display/manager.h"
 #include "display/window_file_list.h"
 #include "input/manager.h"
 
@@ -77,6 +78,8 @@ ElementFileList::activate(display::Frame* frame, bool focus) {
 
   m_frame = frame;
   m_frame->initialize_window(m_window);
+
+//   control->display()->adjust_layout();
 }
 
 void

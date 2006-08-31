@@ -63,7 +63,7 @@ public:
   Frame*              root_frame() { return &m_rootFrame; }
 
 private:
-  void                schedule_update();
+  void                schedule_update(uint32_t minInterval);
 
   bool                m_forceRedraw;
   rak::timer          m_timeLastUpdate;

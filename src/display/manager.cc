@@ -66,19 +66,21 @@ void
 Manager::schedule(Window* w, rak::timer t) {
   rak::priority_queue_erase(&m_scheduler, w->task_update());
   rak::priority_queue_insert(&m_scheduler, w->task_update(), t);
-  schedule_update();
+  schedule_update(50000);
 }
 
 void
 Manager::unschedule(Window* w) {
   rak::priority_queue_erase(&m_scheduler, w->task_update());
-  schedule_update();
+  schedule_update(50000);
 }
 
 void
 Manager::adjust_layout() {
   Canvas::redraw_std();
   m_rootFrame.balance(0, 0, Canvas::get_screen_width(), Canvas::get_screen_height());
+
+  schedule_update(0);
 }
 
 void
@@ -101,11 +103,11 @@ Manager::receive_update() {
   Canvas::do_update();
 
   m_timeLastUpdate = cachedTime;
-  schedule_update();
+  schedule_update(50000);
 }
 
 void
-Manager::schedule_update() {
+Manager::schedule_update(uint32_t minInterval) {
   if (m_scheduler.empty()) {
     rak::priority_queue_erase(&taskScheduler, &m_taskUpdate);
     return;
@@ -113,7 +115,7 @@ Manager::schedule_update() {
 
   if (!m_taskUpdate.is_queued() || m_taskUpdate.time() > m_scheduler.top()->time()) {
     rak::priority_queue_erase(&taskScheduler, &m_taskUpdate);
-    rak::priority_queue_insert(&taskScheduler, &m_taskUpdate, std::max(m_scheduler.top()->time(), m_timeLastUpdate + 50000));
+    rak::priority_queue_insert(&taskScheduler, &m_taskUpdate, std::max(m_scheduler.top()->time(), m_timeLastUpdate + minInterval));
   }
 }
 
