@@ -56,15 +56,6 @@ for_each_pre(_InputIter __first, _InputIter __last, _Function __f) {
   return __f;
 }
 
-template <typename InputIter, typename Function, typename Accumulator>
-Accumulator
-accumulate(InputIter first, InputIter last, Function function, Accumulator acc) {
-  while (first != last)
-    acc += function(*first++);
-
-  return acc;
-}
-
 // Return a range with a distance of no more than __distance and
 // between __first and __last, centered on __middle1.
 template <typename _InputIter, typename _Distance>
@@ -76,6 +67,17 @@ advance_bidirectional(_InputIter __first, _InputIter __middle1, _InputIter __las
     if (!__distance)
       break;
 
+    if (__middle2 != __last) {
+      ++__middle2;
+      --__distance;
+
+    } else if (__middle1 == __first) {
+      break;
+    }
+
+    if (!__distance)
+      break;
+
     if (__middle1 != __first) {
       --__middle1;
       --__distance;
@@ -84,16 +86,6 @@ advance_bidirectional(_InputIter __first, _InputIter __middle1, _InputIter __las
       break;
     }
 
-    if (!__distance)
-      break;
-
-    if (__middle2 != __last) {
-      ++__middle2;
-      --__distance;
-
-    } else if (__middle1 == __first) {
-      break;
-    }
   } while (true);
 
   return std::make_pair(__middle1, __middle2);
