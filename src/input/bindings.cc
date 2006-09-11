@@ -49,10 +49,11 @@ Bindings::pressed(int key) {
 
   const_iterator itr = find(key);
 
-  if (itr != end())
-    itr->second();
+  if (itr == end())
+    return false;
 
-  return itr != end();
+  itr->second();
+  return true;
 }
 
 }

@@ -223,9 +223,6 @@ Download::activate_display(Display displayType, bool focusDisplay) {
 
   // Cleanup previous state.
   switch (m_state) {
-  case DISPLAY_MENU:
-    break;
-
   case DISPLAY_PEER_LIST:
   case DISPLAY_INFO:
   case DISPLAY_FILE_LIST:
@@ -238,6 +235,7 @@ Download::activate_display(Display displayType, bool focusDisplay) {
     frame->clear();
     break;
 
+  case DISPLAY_MENU:
   case DISPLAY_MAX_SIZE:
     break;
   }
@@ -247,9 +245,6 @@ Download::activate_display(Display displayType, bool focusDisplay) {
 
   // Initialize new state.
   switch (displayType) {
-  case DISPLAY_MENU:
-    break;
-
   case DISPLAY_PEER_LIST:
   case DISPLAY_INFO:
   case DISPLAY_FILE_LIST:
@@ -262,6 +257,7 @@ Download::activate_display(Display displayType, bool focusDisplay) {
     m_uiArray[displayType]->activate(frame->frame(1), focusDisplay);
     break;
 
+  case DISPLAY_MENU:
   case DISPLAY_MAX_SIZE:
     break;
   }
