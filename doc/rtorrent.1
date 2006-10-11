@@ -3,7 +3,7 @@
 .\" <http://shell.ipoline.com/~elmert/comp/docbook2X/> 
 .\" Please send any bug reports, improvements, comments, patches, 
 .\" etc. to Steve Cheng <steve@ggi-project.org>.
-.TH "RTORRENT" "1" "15 August 2006" "BitTorrent client for ncurses" ""
+.TH "RTORRENT" "1" "11 October 2006" "BitTorrent client for ncurses" ""
 
 .SH NAME
 rtorrent \- a BitTorrent client for ncurses
@@ -13,11 +13,14 @@ rtorrent \- a BitTorrent client for ncurses
 
 .SH "DESCRIPTION"
 .PP
-\fBrtorrent\fR is a BitTorrent client for ncurses,
-using the \fBlibtorrent\fR library. The client
-and library is written in C++ with emphasis on speed and
-efficiency, while delivering equivalent features to those found
-in GUI based clients in an ncurses client.
+\fBrtorrent\fR is a BitTorrent client for ncurses, using
+the \fBlibtorrent\fR library. The client and library is
+written in C++ with emphasis on speed and efficiency, while delivering
+equivalent features to those found in GUI based clients in an ncurses
+client.
+.PP
+Most of the options below have their own default unit in addition to
+supporting B, K, M and G suffixes.
 .SH "KEYBOARD CONTROL"
 .PP
 .SS "GLOBAL KEYS"
@@ -26,11 +29,12 @@ in GUI based clients in an ncurses client.
 Initiate shutdown, press again to force the shutdown and
 skip sending the stop signal to trackers.
 .TP
-\fBup | down\fR
-Select item.
+\fBup | down | left | right arrow keys\fR
 .TP
-\fB<-\fR
-Go back to the previous screen.
+\fB^P | ^N | ^B | ^F\fR
+Select entries or change windows. The right arrow key or ^F is often
+used for viewing details about the selected entry, while the left
+arrow key or ^B often returns to the previous screen.
 .TP
 \fBa | s | d\fR
 Increase the upload throttle by 1/5/50 KB.
@@ -64,8 +68,11 @@ Close a torrent and its files.
 Initiate hash check of torrent.
 .TP
 \fB^O\fR
-Change the destination directory of the download. The
-torrent must be closed.
+Change the destination directory of the download. The torrent must be
+closed.
+.TP
+\fB^X\fR
+Call commands or change settings.
 .TP
 \fB+ | -\fR
 Change the priority of the download.
@@ -78,9 +85,6 @@ auto-complete.
 \fBl\fR
 View log. Exit by pressing the space-bar.
 .TP
-\fB^P\fR
-Call commands or change settings.
-.TP
 \fBU\fR
 Delete the file the torrent is tied to, and clear the association.
 .TP
@@ -89,9 +93,8 @@ Toggle whether torrent ignores ratio settings.
 .SS "DOWNLOAD VIEW KEYS"
 .TP
 \fB->\fR
-View torrent file list. Use the space-bar to change the
-file priority and \fB*\fR to change the
-priority of all files.
+View torrent file list. Use the space-bar to change the file priority
+and \fB*\fR to change the priority of all files.
 .TP
 \fB1 | 2\fR
 Adjust max uploads.
@@ -109,8 +112,8 @@ Display transfering blocks.
 Display chunk rarity.
 .TP
 \fBo\fR
-Display the tracker list. Cycle the trackers in a group
-with the space-bar.
+Display the tracker list. Cycle the trackers in a group with the
+space-bar.
 .TP
 \fBp\fR
 View peer and torrent information.
@@ -185,6 +188,10 @@ Set the maximum global download rate.
 \fBupload_rate = \fIKB\fB\fR
 Set the maximum global upload rate.
 .TP
+\fBtracker_numwant = \fInumber\fB\fR
+Set the numwant field sent to the tracker, which indicates how many
+peers we want. A negative value disables this feature.
+.TP
 \fBbind = \fIa.b.c.d\fB\fR
 Bind listening socket and outgoing connections to this network
 interface address.
@@ -250,7 +257,7 @@ have been deleted. Clear the association with the 'U' key.
 \fBclose_low_diskspace = \fIspace\fB\fR
 Close any active torrents on filesystems with less than
 \fBspace\fR diskspace left. Use with
-\fBschedule\fR\&.
+the \fBschedule\fR option.
 .TP
 \fBstop_on_ratio = \fImin_ratio\fB\fR
 .TP
@@ -261,11 +268,11 @@ Stop torrents when they reach the given upload ratio
 \fBmin_ratio\fR in percent. If the optional
 \fBmin_upload\fR is given, require a total
 upload amount of this many bytes as well. If the optional
-\fBmax_ratio>\fR is given, stop the torrent
+\fBmax_ratio\fR is given, stop the torrent
 when reaching this ratio regardless of the total upload
 amount. Exclude certain torrent by pressing 
 \fBShift+I\fR in the downlist list.
-Use with \fBschedule\fR\&.
+Use with the \fBschedule\fR option.
 .TP
 \fBload = \fIfile\fB\fR
 .TP
@@ -355,6 +362,11 @@ opens and closes files when mapping files to memory. Defaults to 128.
 Number of sockets to simultaneously keep open. This value is set to be
 \fBsysconf(_SC_OPEN_MAX) - 256\fR at startup. This
 gives the client 128 sockets to use as it wishes.
+.TP
+\fBmax_memory_usage = \fIbytes\fB\fR
+Set the max amount of memory space used to mapping file chunks. This
+may also be set using \fBulimit -m\fR where 3/4 will be
+allocated to file chunks.
 .TP
 \fBsend_buffer_size = \fIvalue\fB\fR
 .TP

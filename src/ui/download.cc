@@ -172,6 +172,10 @@ Download::create_info() {
   element->push_column("Send buffer:",      te_value(&torrent::ConnectionManager::send_buffer_size, value_base::flag_kb), " KB");
   element->push_column("Receive buffer:",   te_value(&torrent::ConnectionManager::receive_buffer_size, value_base::flag_kb), " KB");
 
+  element->push_back("");
+  element->push_column("Upload:",           te_variable_value("up_rate", value_base::flag_kb), " KB / ", te_variable_value("down_total", value_base::flag_xb));
+  element->push_column("Download:",         te_variable_value("down_rate", value_base::flag_kb), " KB / ", te_variable_value("down_total", value_base::flag_xb));
+
   element->set_column_width(element->column_width() + 1);
 
   return element;

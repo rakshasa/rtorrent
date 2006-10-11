@@ -435,6 +435,8 @@ initialize_option_handler(Control* c) {
   variables->insert("upload_rate",           new utils::VariableValueSlot(rak::ptr_fn(&torrent::up_throttle), rak::mem_fn(control->ui(), &ui::Root::set_up_throttle_i64),
                                                                           0, (1 << 10)));
 
+  variables->insert("tracker_numwant",       new utils::VariableValue(-1));
+
   variables->insert("hash_max_tries",        new utils::VariableValueSlot(rak::ptr_fn(&torrent::hash_max_tries), rak::ptr_fn(&torrent::set_hash_max_tries)));
   variables->insert("max_open_files",        new utils::VariableValueSlot(rak::ptr_fn(&torrent::max_open_files), rak::ptr_fn(&torrent::set_max_open_files)));
   variables->insert("max_open_sockets",      new utils::VariableValueSlot(rak::ptr_fn(&torrent::max_open_sockets), rak::ptr_fn(&torrent::set_max_open_sockets)));

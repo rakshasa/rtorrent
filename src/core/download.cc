@@ -42,6 +42,7 @@
 #include <sigc++/signal.h>
 #include <rak/path.h>
 #include <torrent/exceptions.h>
+#include <torrent/rate.h>
 #include <torrent/torrent.h>
 #include <torrent/tracker.h>
 #include <torrent/tracker_list.h>
@@ -97,7 +98,14 @@ Download::Download(download_type d) :
   m_variables.insert("max_peers",          new utils::VariableValueSlot(rak::mem_fn(&m_download, &download_type::peers_max), rak::mem_fn(&m_download, &download_type::set_peers_max)));
   m_variables.insert("max_uploads",        new utils::VariableValueSlot(rak::mem_fn(&m_download, &download_type::uploads_max), rak::mem_fn(&m_download, &download_type::set_uploads_max)));
 
+  m_variables.insert("up_rate",            new utils::VariableValueSlot(rak::mem_fn(m_download.up_rate(), &torrent::Rate::rate), NULL));
+  m_variables.insert("up_total",           new utils::VariableValueSlot(rak::mem_fn(m_download.up_rate(), &torrent::Rate::total), NULL));
+  m_variables.insert("down_rate",          new utils::VariableValueSlot(rak::mem_fn(m_download.down_rate(), &torrent::Rate::rate), NULL));
+  m_variables.insert("down_total",         new utils::VariableValueSlot(rak::mem_fn(m_download.down_rate(), &torrent::Rate::total), NULL));
+
   m_variables.insert("priority",           new utils::VariableValueSlot(rak::mem_fn(this, &Download::priority), rak::mem_fn(this, &Download::set_priority)));
+
+  m_variables.insert("tracker_numwant",    new utils::VariableValueSlot(rak::mem_fn(&m_trackerList, &tracker_list_type::numwant), rak::mem_fn(&m_trackerList, &tracker_list_type::set_numwant)));
 
   m_variables.insert("ignore_commands",    new utils::VariableObject(bencode(), "rtorrent", "ignore_commands", torrent::Object::TYPE_VALUE));
 }

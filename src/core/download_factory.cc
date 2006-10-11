@@ -176,6 +176,7 @@ DownloadFactory::receive_success() {
   download->variable()->set("max_uploads",      control->variable()->get("max_uploads"));
   download->variable()->set("min_peers",        control->variable()->get("min_peers"));
   download->variable()->set("max_peers",        control->variable()->get("max_peers"));
+  download->variable()->set("tracker_numwant",  control->variable()->get("tracker_numwant"));
 
   if (download->variable()->get_value("complete") != 0) {
     if (control->variable()->get_value("min_peers_seed") >= 0)

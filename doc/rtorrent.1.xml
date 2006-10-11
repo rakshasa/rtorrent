@@ -439,6 +439,14 @@ Set the maximum global upload rate.
       </varlistentry>
 
       <varlistentry>
+        <term>tracker_numwant = <replaceable>number</replaceable></term>
+        <listitem><para>
+Set the numwant field sent to the tracker, which indicates how many
+peers we want. A negative value disables this feature.
+        </para></listitem>
+      </varlistentry>
+
+      <varlistentry>
         <term>bind = <replaceable>a.b.c.d</replaceable></term>
         <listitem><para>
 Bind listening socket and outgoing connections to this network

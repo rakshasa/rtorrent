@@ -139,6 +139,17 @@ public:
     m_slotSet.set(rak::convert_fn<void, value_type>(slotSet));
   }
 
+  template <typename SlotGet>
+  VariableValueSlot(SlotGet* slotGet, void* slotSet, unsigned int base = 0, unsigned int unit = 1,
+		    range_type range = range_type(std::numeric_limits<value_type>::min(), std::numeric_limits<value_type>::max())) :
+    m_base(base),
+    m_unit(unit),
+    m_range(range) {
+
+    m_slotGet.set(rak::convert_fn<value_type>(slotGet));
+    m_slotSet.set(NULL);
+  }
+
   virtual const torrent::Object& get();
   virtual void                   set(const torrent::Object& arg);
 
