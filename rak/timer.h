@@ -37,6 +37,7 @@
 #ifndef RAK_TIMER_H
 #define RAK_TIMER_H
 
+#include <limits>
 #include <inttypes.h>
 #include <sys/time.h>
 
@@ -59,6 +60,8 @@ class timer {
   static timer        current();
   static timer        from_seconds(uint32_t seconds)      { return rak::timer((uint64_t)seconds * 1000000); }
   static timer        from_milliseconds(uint32_t seconds) { return rak::timer((uint64_t)seconds * 1000); }
+
+  static timer        max()                              { return std::numeric_limits<int64_t>::max(); }
 
   bool                operator <  (const timer& t) const { return m_time < t.m_time; }
   bool                operator >  (const timer& t) const { return m_time > t.m_time; }
