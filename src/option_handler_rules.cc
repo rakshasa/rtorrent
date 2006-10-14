@@ -229,6 +229,36 @@ apply_encoding_list(__UNUSED Control* m, const std::string& arg) {
 }
 
 void
+apply_encryption_options(const std::string& arg) {
+  rak::split_iterator_t<std::string> sitr = rak::split_iterator(arg, ',');
+  uint32_t options_mask = torrent::ConnectionManager::encryption_none;
+
+  while (sitr != rak::split_iterator(arg)) {
+    std::string opt = rak::trim(*sitr);
+    ++sitr;
+
+    if (opt == "none")
+      options_mask = torrent::ConnectionManager::encryption_none;
+    else if (opt == "allow_incoming")
+      options_mask |= torrent::ConnectionManager::encryption_allow_incoming;
+    else if (opt == "try_outgoing")
+      options_mask |= torrent::ConnectionManager::encryption_try_outgoing;
+    else if (opt == "require")
+      options_mask |= torrent::ConnectionManager::encryption_require;
+    else if (opt == "require_RC4")
+      options_mask |= torrent::ConnectionManager::encryption_require_RC4;
+    else if (opt == "enable_retry")
+      options_mask |= torrent::ConnectionManager::encryption_enable_retry;
+    else if (opt == "prefer_plaintext")
+      options_mask |= torrent::ConnectionManager::encryption_prefer_plaintext;
+    else
+      throw torrent::input_error("Invalid encryption option '" + opt + "'.");
+  }
+
+  torrent::connection_manager()->set_encryption_options(options_mask);
+}
+
+void
 apply_enable_trackers(Control* m, __UNUSED const std::string& arg) {
   bool state = (arg != "no");
 
@@ -503,4 +533,7 @@ initialize_option_handler(Control* c) {
 
   variables->insert("enable_trackers",       new utils::VariableStringSlot(rak::value_fn(std::string()), rak::bind_ptr_fn(&apply_enable_trackers, c)));
   variables->insert("encoding_list",         new utils::VariableStringSlot(rak::value_fn(std::string()), rak::bind_ptr_fn(&apply_encoding_list, c)));
+
+  variables->insert("encryption_options",    new utils::VariableStringSlot(rak::value_fn(std::string()), rak::ptr_fn(&apply_encryption_options)));
+  variables->insert("handshake_log",         new utils::VariableBool(false));
 }

@@ -65,6 +65,15 @@
 #schedule = ip_tick,0,1800,ip=rakshasa
 #schedule = bind_tick,0,1800,bind=rakshasa
 
+# Encryption options, set to none (default) or any combination of the following:
+# allow_incoming, try_outgoing, require, require_RC4, enable_retry, prefer_plaintext
+#
+# The example value allows incoming encrypted connections, starts unencrypted
+# outgoing connections but retries with encryption if they fail, preferring
+# plaintext to RC4 encryption after the encrypted handshake
+#
+# encryption_options = allow_incoming,enable_retry,prefer_plaintext
+
 #
 # Do not modify the following parameters unless you know what you're doing.
 #

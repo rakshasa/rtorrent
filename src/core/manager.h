@@ -39,6 +39,8 @@
 
 #include <iosfwd>
 
+#include <torrent/connection_manager.h>
+
 #include "download_list.h"
 #include "poll_manager.h"
 #include "log.h"
@@ -92,6 +94,8 @@ public:
   void                shutdown(bool force);
 
   void                push_log(const std::string& msg)    { m_logImportant.push_front(msg); m_logComplete.push_front(msg); }
+
+  void                handshake_log(const sockaddr* sa, torrent::ConnectionManager::HandshakeMessage msg, int err, std::string hash);
 
   // Temporary, find a better place for this.
   void                try_create_download(const std::string& uri, bool start, bool printLog = true, bool tied = false);

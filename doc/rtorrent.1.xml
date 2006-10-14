@@ -519,6 +519,30 @@ default is used.
       </varlistentry>
 
       <varlistentry>
+        <term>encryption_options = <replaceable>option</replaceable>,<replaceable>...</replaceable></term>
+        <listitem><para>
+
+Set how rtorrent should deal with encrypted Bittorrent connections. By
+default, encryption is disabled, equivalent to specifying the option
+<emphasis>none</emphasis>. Alternatively, any number of the following
+options may be specified:
+
+        </para><para>
+
+<emphasis>allow_incoming</emphasis> (allow incoming encrypted connections), 
+<emphasis>try_outgoing</emphasis> (use encryption for outgoing connections),
+<emphasis>require</emphasis> (disable unencrypted handshakes), 
+<emphasis>require_RC4</emphasis> (also disable plaintext transmission after the
+initial encrypted handshake),
+<emphasis>enable_retry</emphasis> (if the initial outgoing connection fails, retry
+with encryption turned on if it was off or off if it was on), 
+<emphasis>prefer_plaintext</emphasis> (choose plaintext when peer offers a choice 
+between plaintext transmission and RC4 encryption, otherwise RC4 will be used).
+
+        </para></listitem>
+      </varlistentry>
+
+      <varlistentry>
         <term>schedule = <replaceable>id</replaceable>,<replaceable>start</replaceable>,<replaceable>interval</replaceable>,<replaceable>command</replaceable></term>
         <listitem><para>
 Call <emphasis>command</emphasis> every <emphasis>interval</emphasis>
@@ -871,6 +895,16 @@ logged at the moment, although disabling it will work as expected.
 Change the TOS of peer connections, by default set to
 <emphasis>throughput</emphasis>. If the option is set to
 <emphasis>default</emphasis> then the system default TOS is used.
+
+        </para></listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>handshake_log = <replaceable>yes</replaceable></term>
+        <listitem><para>
+
+Enable logging of the peer handshake. This generates a large number of
+log messages, but may be useful to debug connection problems.
 
         </para></listitem>
       </varlistentry>

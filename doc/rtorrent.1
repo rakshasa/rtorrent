@@ -3,7 +3,7 @@
 .\" <http://shell.ipoline.com/~elmert/comp/docbook2X/> 
 .\" Please send any bug reports, improvements, comments, patches, 
 .\" etc. to Steve Cheng <steve@ggi-project.org>.
-.TH "RTORRENT" "1" "11 October 2006" "BitTorrent client for ncurses" ""
+.TH "RTORRENT" "1" "14 October 2006" "BitTorrent client for ncurses" ""
 
 .SH NAME
 rtorrent \- a BitTorrent client for ncurses
@@ -229,6 +229,22 @@ Add a preferred filename encoding to the list. The encodings are
 attempted in the order they are inserted, if none match the torrent
 default is used.
 .TP
+\fBencryption_options = \fIoption\fB,\fI\&...\fB\fR
+Set how rtorrent should deal with encrypted Bittorrent connections. By
+default, encryption is disabled, equivalent to specifying the option
+\fBnone\fR\&. Alternatively, any number of the following
+options may be specified:
+
+\fBallow_incoming\fR (allow incoming encrypted connections), 
+\fBtry_outgoing\fR (use encryption for outgoing connections),
+\fBrequire\fR (disable unencrypted handshakes), 
+\fBrequire_RC4\fR (also disable plaintext transmission after the
+initial encrypted handshake),
+\fBenable_retry\fR (if the initial outgoing connection fails, retry
+with encryption turned on if it was off or off if it was on), 
+\fBprefer_plaintext\fR (choose plaintext when peer offers a choice 
+between plaintext transmission and RC4 encryption, otherwise RC4 will be used).
+.TP
 \fBschedule = \fIid\fB,\fIstart\fB,\fIinterval\fB,\fIcommand\fB\fR
 Call \fBcommand\fR every \fBinterval\fR
 seconds, starting from \fBstart\fR\&. An
@@ -408,6 +424,10 @@ logged at the moment, although disabling it will work as expected.
 Change the TOS of peer connections, by default set to
 \fBthroughput\fR\&. If the option is set to
 \fBdefault\fR then the system default TOS is used.
+.TP
+\fBhandshake_log = \fIyes\fB\fR
+Enable logging of the peer handshake. This generates a large number of
+log messages, but may be useful to debug connection problems.
 .SH "AUTHORS"
 .PP
 

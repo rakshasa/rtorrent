@@ -51,6 +51,7 @@
 #include <sigc++/hide.h>
 #include <torrent/object.h>
 #include <torrent/connection_manager.h>
+#include <torrent/error.h>
 #include <torrent/exceptions.h>
 #include <torrent/resume.h>
 #include <torrent/tracker_list.h>
@@ -103,6 +104,60 @@ receive_tracker_dump(const std::string& url, const char* data, size_t size) {
   fstr << "url: " << url << std::endl << "---" << std::endl;
   fstr.write(data, size);
   fstr << std::endl <<"---" << std::endl;
+}
+
+void
+Manager::handshake_log(const sockaddr* sa, torrent::ConnectionManager::HandshakeMessage msg, int err, std::string hash) {
+  if (!control->variable()->get_value("handshake_log"))
+    return;
+  
+  std::string peer;
+  std::string download;
+
+  const rak::socket_address* socketAddress = rak::socket_address::cast_from(sa);
+  if (socketAddress->is_valid()) {
+    char port[6];
+    snprintf(port, sizeof(port), "%d", socketAddress->port());
+    peer = socketAddress->address_str() + ":" + port;
+  } else {
+    peer = "(unknown)";
+  }
+
+  torrent::Download d = torrent::download_find(hash);
+  if (d.is_valid())
+    download = ": " + d.name();
+  else
+    download = "";
+
+  switch (msg) {
+  case torrent::ConnectionManager::handshake_incoming:
+    m_logComplete.push_front("Incoming connection from " + peer + download);
+    break;
+  case torrent::ConnectionManager::handshake_outgoing_encrypted:
+    m_logComplete.push_front("Outgoing encrypted connection to " + peer + download);
+    break;
+  case torrent::ConnectionManager::handshake_outgoing:
+    m_logComplete.push_front("Outgoing connection to " + peer + download);
+    break;
+  case torrent::ConnectionManager::handshake_success:
+    m_logComplete.push_front("Successful handshake: " + peer + download);
+    break;
+  case torrent::ConnectionManager::handshake_dropped:
+    m_logComplete.push_front("Dropped handshake: " + peer + " - " + torrent::strerror(err) + download);
+    break;
+  case torrent::ConnectionManager::handshake_failed:
+    m_logComplete.push_front("Handshake failed: " + peer + " - " + torrent::strerror(err) + download);
+    break;
+  case torrent::ConnectionManager::handshake_retry_plaintext:
+    m_logComplete.push_front("Trying again without encryption: " + peer + download);
+    break;
+  case torrent::ConnectionManager::handshake_retry_encrypted:
+    m_logComplete.push_front("Trying again encrypted: " + peer + download);
+    break;
+  default:
+    m_logComplete.push_front("Unknown handshake message for " + peer + download);
+    break;
+  }
 }
 
 // Hmm... find some better place for all this.
@@ -183,6 +238,8 @@ Manager::initialize_second() {
   m_downloadList->slot_map_insert()["1_connect_tracker_dump"] = sigc::bind(sigc::ptr_fun(&connect_signal_tracker_dump), sigc::ptr_fun(&receive_tracker_dump));
 
   m_downloadList->slot_map_erase()["1_delete_tied"] = sigc::mem_fun(this, &Manager::delete_tied);
+
+  torrent::connection_manager()->set_signal_handshake_log(sigc::mem_fun(this, &Manager::handshake_log));
 }
 
 void

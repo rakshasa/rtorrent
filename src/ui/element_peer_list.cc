@@ -109,6 +109,7 @@ ElementPeerList::create_info() {
   element->push_column("Client:",    display::text_element_string_slot(rak::on(std::mem_fun(&torrent::Peer::id), rak::make_mem_fun(control->client_info(), &display::ClientInfo::str_str))));
   element->push_column("Options:",   display::text_element_string_slot(std::mem_fun(&torrent::Peer::options), string_base::flag_escape_hex | string_base::flag_fixed_width, 0, 8));
   element->push_column("Connected:", display::text_element_branch(std::mem_fun(&torrent::Peer::is_incoming), te_string("incoming"), te_string("outgoing")));
+  element->push_column("Encrypted:", display::text_element_branch3(std::mem_fun(&torrent::Peer::is_encrypted), te_string("yes"), std::mem_fun(&torrent::Peer::is_obfuscated), te_string("handshake"), te_string("no")));
 
   element->push_back("");
   element->push_column("Snubbed:", display::text_element_branch(std::mem_fun(&torrent::Peer::is_snubbed), te_string("yes"), te_string("no")));
