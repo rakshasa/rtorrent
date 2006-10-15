@@ -519,7 +519,7 @@ default is used.
       </varlistentry>
 
       <varlistentry>
-        <term>encryption_options = <replaceable>option</replaceable>,<replaceable>...</replaceable></term>
+        <term>encryption = <replaceable>option</replaceable>,<replaceable>...</replaceable></term>
         <listitem><para>
 
 Set how rtorrent should deal with encrypted Bittorrent connections. By
