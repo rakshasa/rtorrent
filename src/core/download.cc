@@ -102,6 +102,8 @@ Download::Download(download_type d) :
   m_variables.insert("up_total",           new utils::VariableValueSlot(rak::mem_fn(m_download.up_rate(), &torrent::Rate::total), NULL));
   m_variables.insert("down_rate",          new utils::VariableValueSlot(rak::mem_fn(m_download.down_rate(), &torrent::Rate::rate), NULL));
   m_variables.insert("down_total",         new utils::VariableValueSlot(rak::mem_fn(m_download.down_rate(), &torrent::Rate::total), NULL));
+  m_variables.insert("skip_rate",          new utils::VariableValueSlot(rak::mem_fn(m_download.skip_rate(), &torrent::Rate::rate), NULL));
+  m_variables.insert("skip_total",         new utils::VariableValueSlot(rak::mem_fn(m_download.skip_rate(), &torrent::Rate::total), NULL));
 
   m_variables.insert("priority",           new utils::VariableValueSlot(rak::mem_fn(this, &Download::priority), rak::mem_fn(this, &Download::set_priority)));
 

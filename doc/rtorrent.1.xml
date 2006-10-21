@@ -439,14 +439,6 @@ Set the maximum global upload rate.
       </varlistentry>
 
       <varlistentry>
-        <term>tracker_numwant = <replaceable>number</replaceable></term>
-        <listitem><para>
-Set the numwant field sent to the tracker, which indicates how many
-peers we want. A negative value disables this feature.
-        </para></listitem>
-      </varlistentry>
-
-      <varlistentry>
         <term>bind = <replaceable>a.b.c.d</replaceable></term>
         <listitem><para>
 Bind listening socket and outgoing connections to this network
@@ -628,6 +620,52 @@ to the filename provided.
         <listitem><para>
 Load a resource file. <emphasis>try_import</emphasis> does not throw
 torrent::input_error exception on bad input.
+        </para></listitem>
+      </varlistentry>
+
+    </variablelist>
+
+  </refsect1>
+
+  <refsect1>
+    <title>TRACKER RELATED SETTINGS</title>
+    <para>
+Tracker related settings.
+    </para>
+
+    <variablelist>
+
+      <varlistentry>
+        <term>enable_trackers = <replaceable>yes</replaceable></term>
+        <listitem><para>
+Set to <emphasis>no</emphasis> to disable all tracker requests. Useful
+for disabling rtorrent with the <emphasis>schedule</emphasis> command.
+        </para></listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>tracker_dump = <replaceable>filename</replaceable></term>
+        <listitem><para>
+Dump tracker requests to <emphasis>filename</emphasis>, disable by
+supplying an empty string. Only torrents loaded while
+<emphasis>tracker_dump</emphasis> contains a non-empty string will be
+logged at the moment, although disabling it will work as expected.
+        </para></listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>tracker_numwant = <replaceable>number</replaceable></term>
+        <listitem><para>
+Set the numwant field sent to the tracker, which indicates how many
+peers we want. A negative value disables this feature.
+        </para></listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>use_udp_trackers = <replaceable>yes</replaceable></term>
+        <listitem><para>
+Use UDP trackers. Disable if you are behind a firewall, etc, that does
+not allow connections to UDP trackers.
         </para></listitem>
       </varlistentry>
 
@@ -853,37 +891,6 @@ Controls if a lock file is created in the session directory on startup.
         <listitem><para>
 
 Save the session files for all downloads.
-
-        </para></listitem>
-      </varlistentry>
-
-      <varlistentry>
-        <term>use_udp_trackers = <replaceable>yes</replaceable></term>
-        <listitem><para>
-
-Use UDP trackers. Disable if you are behind a firewall etc that does
-not allow connections to UDP trackers.
-
-        </para></listitem>
-      </varlistentry>
-
-      <varlistentry>
-        <term>enable_trackers = <replaceable>yes</replaceable></term>
-        <listitem><para>
-
-Set to <emphasis>no</emphasis> to disable tracker requests.
-
-        </para></listitem>
-      </varlistentry>
-
-      <varlistentry>
-        <term>tracker_dump = <replaceable>filename</replaceable></term>
-        <listitem><para>
-
-Dump tracker requests to <emphasis>filename</emphasis>, disable by
-supplying an empty string. Only torrents loaded while
-<emphasis>tracker_dump</emphasis> contains a non-empty string will be
-logged at the moment, although disabling it will work as expected.
 
         </para></listitem>
       </varlistentry>

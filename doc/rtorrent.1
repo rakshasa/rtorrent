@@ -3,7 +3,7 @@
 .\" <http://shell.ipoline.com/~elmert/comp/docbook2X/> 
 .\" Please send any bug reports, improvements, comments, patches, 
 .\" etc. to Steve Cheng <steve@ggi-project.org>.
-.TH "RTORRENT" "1" "15 October 2006" "BitTorrent client for ncurses" ""
+.TH "RTORRENT" "1" "21 October 2006" "BitTorrent client for ncurses" ""
 
 .SH NAME
 rtorrent \- a BitTorrent client for ncurses
@@ -188,10 +188,6 @@ Set the maximum global download rate.
 \fBupload_rate = \fIKB\fB\fR
 Set the maximum global upload rate.
 .TP
-\fBtracker_numwant = \fInumber\fB\fR
-Set the numwant field sent to the tracker, which indicates how many
-peers we want. A negative value disables this feature.
-.TP
 \fBbind = \fIa.b.c.d\fB\fR
 Bind listening socket and outgoing connections to this network
 interface address.
@@ -308,6 +304,27 @@ to the filename provided.
 \fBtry_import = \fIfile\fB\fR
 Load a resource file. \fBtry_import\fR does not throw
 torrent::input_error exception on bad input.
+.SH "TRACKER RELATED SETTINGS"
+.PP
+Tracker related settings.
+.TP
+\fBenable_trackers = \fIyes\fB\fR
+Set to \fBno\fR to disable all tracker requests. Useful
+for disabling rtorrent with the \fBschedule\fR command.
+.TP
+\fBtracker_dump = \fIfilename\fB\fR
+Dump tracker requests to \fBfilename\fR, disable by
+supplying an empty string. Only torrents loaded while
+\fBtracker_dump\fR contains a non-empty string will be
+logged at the moment, although disabling it will work as expected.
+.TP
+\fBtracker_numwant = \fInumber\fB\fR
+Set the numwant field sent to the tracker, which indicates how many
+peers we want. A negative value disables this feature.
+.TP
+\fBuse_udp_trackers = \fIyes\fB\fR
+Use UDP trackers. Disable if you are behind a firewall, etc, that does
+not allow connections to UDP trackers.
 .SH "USER-INTERFACE SETTINGS"
 .PP
 Display related settings.
@@ -406,19 +423,6 @@ Controls if a lock file is created in the session directory on startup.
 .TP
 \fBsession_save = \fR
 Save the session files for all downloads.
-.TP
-\fBuse_udp_trackers = \fIyes\fB\fR
-Use UDP trackers. Disable if you are behind a firewall etc that does
-not allow connections to UDP trackers.
-.TP
-\fBenable_trackers = \fIyes\fB\fR
-Set to \fBno\fR to disable tracker requests.
-.TP
-\fBtracker_dump = \fIfilename\fB\fR
-Dump tracker requests to \fBfilename\fR, disable by
-supplying an empty string. Only torrents loaded while
-\fBtracker_dump\fR contains a non-empty string will be
-logged at the moment, although disabling it will work as expected.
 .TP
 \fBtos = \fIdefault|lowdelay|throughput|reliability|mincost\fB\fR
 Change the TOS of peer connections, by default set to
