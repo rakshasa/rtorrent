@@ -449,6 +449,8 @@ initialize_option_handler(Control* c) {
                                                                            rak::mem_fn(control->core(), &core::Manager::set_bind_address)));
   variables->insert("ip",                    new utils::VariableStringSlot(rak::mem_fn(control->core(), &core::Manager::local_address),
                                                                            rak::mem_fn(control->core(), &core::Manager::set_local_address)));
+  variables->insert("connection_proxy",      new utils::VariableStringSlot(rak::mem_fn(control->core(), &core::Manager::proxy_address),
+                                                                           rak::mem_fn(control->core(), &core::Manager::set_proxy_address)));
 
   variables->insert("http_proxy",            new utils::VariableStringSlot(rak::mem_fn(c->core()->get_poll_manager()->get_http_stack(), &core::CurlStack::http_proxy),
                                                                            rak::mem_fn(c->core()->get_poll_manager()->get_http_stack(), &core::CurlStack::set_http_proxy)));

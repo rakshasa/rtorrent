@@ -91,6 +91,9 @@ public:
   std::string         local_address() const;
   void                set_local_address(const std::string& addr);
 
+  std::string         proxy_address() const;
+  void                set_proxy_address(const std::string& addr);
+
   void                shutdown(bool force);
 
   void                push_log(const std::string& msg)    { m_logImportant.push_front(msg); m_logComplete.push_front(msg); }

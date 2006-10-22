@@ -133,11 +133,14 @@ Manager::handshake_log(const sockaddr* sa, torrent::ConnectionManager::Handshake
   case torrent::ConnectionManager::handshake_incoming:
     m_logComplete.push_front("Incoming connection from " + peer + download);
     break;
+  case torrent::ConnectionManager::handshake_outgoing:
+    m_logComplete.push_front("Outgoing connection to " + peer + download);
+    break;
   case torrent::ConnectionManager::handshake_outgoing_encrypted:
     m_logComplete.push_front("Outgoing encrypted connection to " + peer + download);
     break;
-  case torrent::ConnectionManager::handshake_outgoing:
-    m_logComplete.push_front("Outgoing connection to " + peer + download);
+  case torrent::ConnectionManager::handshake_outgoing_proxy:
+    m_logComplete.push_front("Outgoing proxy connection to " + peer + download);
     break;
   case torrent::ConnectionManager::handshake_success:
     m_logComplete.push_front("Successful handshake: " + peer + download);
@@ -342,6 +345,42 @@ Manager::set_local_address(const std::string& addr) {
   try {
 
     torrent::connection_manager()->set_local_address(ai->address()->c_sockaddr());
+    rak::address_info::free_address_info(ai);
+
+  } catch (torrent::input_error& e) {
+    rak::address_info::free_address_info(ai);
+    throw e;
+  }
+}
+
+std::string
+Manager::proxy_address() const {
+  return rak::socket_address::cast_from(torrent::connection_manager()->proxy_address())->address_str();
+}
+
+void
+Manager::set_proxy_address(const std::string& addr) {
+  int port;
+  rak::address_info* ai;
+
+  char buf[addr.length() + 1];
+
+  int err = std::sscanf(addr.c_str(), "%[^:]:%i", buf, &port);
+
+  if (err <= 0)
+    throw torrent::input_error("Could not parse proxy address.");
+
+  if (err == 1)
+    port = 80;
+
+  if ((err = rak::address_info::get_address_info(buf, PF_INET, SOCK_STREAM, &ai)) != 0)
+    throw torrent::input_error("Could not set proxy address: " + std::string(rak::address_info::strerror(err)) + ".");
+  
+  try {
+
+    ai->address()->set_port(port);
+    torrent::connection_manager()->set_proxy_address(ai->address()->c_sockaddr());
+    
     rak::address_info::free_address_info(ai);
 
   } catch (torrent::input_error& e) {
