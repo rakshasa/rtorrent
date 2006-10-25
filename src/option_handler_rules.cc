@@ -279,25 +279,28 @@ apply_enable_trackers(Control* m, __UNUSED const std::string& arg) {
 
 void
 apply_tos(const std::string& arg) {
+  utils::Variable::value_type value;
   torrent::ConnectionManager* cm = torrent::connection_manager();
 
   if (arg == "default")
-    cm->set_priority(torrent::ConnectionManager::iptos_default);
+    value = torrent::ConnectionManager::iptos_default;
 
   else if (arg == "lowdelay")
-    cm->set_priority(torrent::ConnectionManager::iptos_lowdelay);
+    value = torrent::ConnectionManager::iptos_lowdelay;
 
   else if (arg == "throughput")
-    cm->set_priority(torrent::ConnectionManager::iptos_throughput);
+    value = torrent::ConnectionManager::iptos_throughput;
 
   else if (arg == "reliability")
-    cm->set_priority(torrent::ConnectionManager::iptos_reliability);
+    value = torrent::ConnectionManager::iptos_reliability;
 
   else if (arg == "mincost")
-    cm->set_priority(torrent::ConnectionManager::iptos_mincost);
+    value = torrent::ConnectionManager::iptos_mincost;
 
-  else 
+  else if (!utils::Variable::string_to_value_unit_nothrow(arg.c_str(), &value, 16, 0))
     throw torrent::input_error("Invalid TOS identifier.");
+
+  cm->set_priority(value);
 }
 
 void

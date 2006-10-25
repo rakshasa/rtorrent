@@ -56,6 +56,7 @@ public:
   virtual void                   set(const torrent::Object& arg) = 0;
 
   static const char*  string_to_value_unit(const char* pos, value_type* value, int base, int unit);
+  static bool         string_to_value_unit_nothrow(const char* pos, value_type* value, int base, int unit);
 
 protected:
   Variable(const Variable&);

@@ -3,7 +3,7 @@
 .\" <http://shell.ipoline.com/~elmert/comp/docbook2X/> 
 .\" Please send any bug reports, improvements, comments, patches, 
 .\" etc. to Steve Cheng <steve@ggi-project.org>.
-.TH "RTORRENT" "1" "21 October 2006" "BitTorrent client for ncurses" ""
+.TH "RTORRENT" "1" "25 October 2006" "BitTorrent client for ncurses" ""
 
 .SH NAME
 rtorrent \- a BitTorrent client for ncurses
@@ -425,9 +425,12 @@ Controls if a lock file is created in the session directory on startup.
 Save the session files for all downloads.
 .TP
 \fBtos = \fIdefault|lowdelay|throughput|reliability|mincost\fB\fR
+.TP
+\fBtos = \fIhex\fB\fR
 Change the TOS of peer connections, by default set to
 \fBthroughput\fR\&. If the option is set to
-\fBdefault\fR then the system default TOS is used.
+\fBdefault\fR then the system default TOS is used. A
+hex value may be used for non-standard settings.
 .TP
 \fBhandshake_log = \fIyes\fB\fR
 Enable logging of the peer handshake. This generates a large number of

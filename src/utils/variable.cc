@@ -94,4 +94,15 @@ Variable::string_to_value_unit(const char* pos, value_type* value, int base, int
   return last;
 }
 
+bool
+Variable::string_to_value_unit_nothrow(const char* pos, value_type* value, int base, int unit) {
+  try {
+    string_to_value_unit(pos, value, base, unit);
+
+    return true;
+  } catch (const torrent::input_error& e) {
+    return false;
+  }
+}
+
 }

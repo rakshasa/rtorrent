@@ -897,12 +897,12 @@ Save the session files for all downloads.
 
       <varlistentry>
         <term>tos = <replaceable>default|lowdelay|throughput|reliability|mincost</replaceable></term>
+        <term>tos = <replaceable>hex</replaceable></term>
         <listitem><para>
-
 Change the TOS of peer connections, by default set to
 <emphasis>throughput</emphasis>. If the option is set to
-<emphasis>default</emphasis> then the system default TOS is used.
-
+<emphasis>default</emphasis> then the system default TOS is used. A
+hex value may be used for non-standard settings.
         </para></listitem>
       </varlistentry>
 
