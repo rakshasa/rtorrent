@@ -58,6 +58,25 @@ AC_DEFUN([CC_ATTRIBUTE_INTERNAL], [
 	fi
 ])
 
+AC_DEFUN([CC_ATTRIBUTE_DEFAULT], [
+	AC_CACHE_CHECK([if compiler supports __attribute__((visibility("default")))],
+		[cc_cv_attribute_default],
+		[AC_COMPILE_IFELSE([
+			void __attribute__((visibility("default"))) default_function() { }
+			],
+			[cc_cv_attribute_default=yes],
+			[cc_cv_attribute_default=no])
+		])
+	
+	if test "x$cc_cv_attribute_default" = "xyes"; then
+		AC_DEFINE([SUPPORT_ATTRIBUTE_DEFAULT], 1, [Define this if the compiler supports the default visibility attribute])
+		$1
+	else
+		true
+		$2
+	fi
+])
+
 AC_DEFUN([CC_ATTRIBUTE_NONNULL], [
 	AC_CACHE_CHECK([if compiler supports __attribute__((nonnull()))],
 		[cc_cv_attribute_nonnull],
