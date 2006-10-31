@@ -40,6 +40,7 @@
 #include <string>
 #include <vector>
 #include <inttypes.h>
+#include <torrent/hash_string.h>
 
 namespace display {
 
@@ -70,6 +71,7 @@ public:
   // Fix this...
   std::string         str(const char* id) const;
   std::string         str_str(const std::string& id) const { return str(id.c_str()); }
+  std::string         hash_str(const torrent::HashString& id) const { return str(id.c_str()); }
 
   size_type           sizeof_key(Type t) const {
     switch (t) {

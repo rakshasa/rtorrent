@@ -265,10 +265,19 @@ transform_hex(InputIterator first1, InputIterator last1, OutputIterator first2, 
 }
 
 template <typename Sequence>
-Sequence
+inline Sequence
 transform_hex(const Sequence& src) {
   Sequence dest;
   transform_hex(src.begin(), src.end(), std::back_inserter(dest));
+
+  return dest;
+}
+
+template <typename Iterator>
+inline std::string
+transform_hex(Iterator first, Iterator last) {
+  std::string dest;
+  transform_hex(first, last, std::back_inserter(dest));
 
   return dest;
 }

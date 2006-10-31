@@ -107,7 +107,7 @@ receive_tracker_dump(const std::string& url, const char* data, size_t size) {
 }
 
 void
-Manager::handshake_log(const sockaddr* sa, torrent::ConnectionManager::HandshakeMessage msg, int err, std::string hash) {
+Manager::handshake_log(const sockaddr* sa, torrent::ConnectionManager::HandshakeMessage msg, int err, const torrent::HashString* hash) {
   if (!control->variable()->get_value("handshake_log"))
     return;
   
@@ -115,6 +115,7 @@ Manager::handshake_log(const sockaddr* sa, torrent::ConnectionManager::Handshake
   std::string download;
 
   const rak::socket_address* socketAddress = rak::socket_address::cast_from(sa);
+
   if (socketAddress->is_valid()) {
     char port[6];
     snprintf(port, sizeof(port), "%d", socketAddress->port());
@@ -123,10 +124,11 @@ Manager::handshake_log(const sockaddr* sa, torrent::ConnectionManager::Handshake
     peer = "(unknown)";
   }
 
-  torrent::Download d = torrent::download_find(hash);
-  if (d.is_valid())
-    download = ": " + d.name();
-  else
+//   torrent::Download d = torrent::download_find(hash);
+
+//   if (d.is_valid())
+//     download = ": " + d.name();
+//   else
     download = "";
 
   switch (msg) {

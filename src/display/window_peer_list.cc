@@ -138,7 +138,7 @@ WindowPeerList::redraw() {
     x += 7;
 
     char buf[128];
-    control->client_info()->print(buf, buf + 128, p.id().c_str());
+    control->client_info()->print(buf, buf + 128, p.id().data());
 
     m_canvas->print(x, y, "%s", buf);
 

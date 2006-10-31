@@ -41,6 +41,7 @@
 #include <sigc++/connection.h>
 #include <torrent/download.h>
 #include <torrent/file_list.h>
+#include <torrent/hash_string.h>
 #include <torrent/tracker_list.h>
 #include <torrent/torrent.h>
 

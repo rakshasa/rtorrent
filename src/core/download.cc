@@ -92,7 +92,7 @@ Download::Download(download_type d) :
 
   m_variables.insert("directory",          new utils::VariableStringSlot(rak::mem_fn(&m_fileList, &torrent::FileList::root_dir), rak::mem_fn(this, &Download::set_root_directory)));
 
-  m_variables.insert("info_hash",          new utils::VariableStringSlot(rak::mem_fn(&m_download, &torrent::Download::info_hash), NULL));
+//   m_variables.insert("info_hash",          new utils::VariableStringSlot(rak::mem_fn(&m_download, &torrent::Download::info_hash), NULL));
 
   m_variables.insert("min_peers",          new utils::VariableValueSlot(rak::mem_fn(&m_download, &download_type::peers_min), rak::mem_fn(&m_download, &download_type::set_peers_min)));
   m_variables.insert("max_peers",          new utils::VariableValueSlot(rak::mem_fn(&m_download, &download_type::peers_max), rak::mem_fn(&m_download, &download_type::set_peers_max)));
