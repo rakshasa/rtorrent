@@ -53,6 +53,7 @@ public:
   static const int e_noent       = ENOENT;
   static const int e_nomem       = ENOMEM;
   static const int e_notdir      = ENOTDIR;
+  static const int e_isdir       = EISDIR;
   
   static const int e_intr        = EINTR;
 
@@ -73,6 +74,7 @@ public:
 
   static error_number current()                    { return errno; }
   static void         clear_global()               { errno = 0; }
+  static void         set_global(error_number err) { errno = err.m_errno; }
 
   bool operator == (const error_number& e) const   { return m_errno == e.m_errno; }
 
