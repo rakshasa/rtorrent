@@ -176,6 +176,7 @@ Download::create_info() {
   element->push_column("Upload:",           te_variable_value("up_rate", value_base::flag_kb), " KB / ", te_variable_value("up_total", value_base::flag_xb));
   element->push_column("Download:",         te_variable_value("down_rate", value_base::flag_kb), " KB / ", te_variable_value("down_total", value_base::flag_xb));
   element->push_column("Skipped:",          te_variable_value("skip_rate", value_base::flag_kb), " KB / ", te_variable_value("skip_total", value_base::flag_xb));
+  element->push_column("Preload:",          te_value(&torrent::ChunkManager::preload_type), " / ", te_value(&torrent::ChunkManager::stats_preloaded), " / ", te_value(&torrent::ChunkManager::stats_not_preloaded));
 
   element->set_column_width(element->column_width() + 1);
 
