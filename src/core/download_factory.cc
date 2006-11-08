@@ -157,7 +157,8 @@ DownloadFactory::receive_success() {
 
   if (!m_session) {
     // We only allow session torrents to keep their
-    // 'rtorrent/libtorrent' sections.
+    // 'rtorrent/libtorrent' sections. The "fast_resume" section
+    // should be safe to keep.
     root->erase_key("rtorrent");
     root->erase_key("libtorrent");
   }
