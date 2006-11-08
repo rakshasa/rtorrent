@@ -38,7 +38,7 @@
 #define RTORRENT_UI_DOWNLOAD_H
 
 #include <list>
-#include <torrent/peer.h>
+#include <torrent/peer/peer.h>
 #include <sigc++/connection.h>
 
 #include "display/manager.h"

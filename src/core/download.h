@@ -104,12 +104,12 @@ public:
   // Helper functions for calling functions in download_type
   // through sigc++.
   template <typename Ret, Ret (download_type::*func)()>
-  void                call()                                                { (m_download.*func)(); }
+  void                call()                                               { (m_download.*func)(); }
 
   template <typename Ret, typename Arg1, Ret (download_type::*func)(Arg1)>
-  void                call(Arg1 a1)                                         { (m_download.*func)(a1); }
+  void                call(Arg1 a1)                                        { (m_download.*func)(a1); }
 
-  bool operator == (const std::string& str)                                { return str == m_download.info_hash(); }
+  bool                operator == (const std::string& str) const;
 
   void                set_connection_type(const std::string& t) { m_download.set_connection_type(string_to_connection_type(t)); }
 
@@ -151,6 +151,11 @@ private:
   sigc::connection    m_connTrackerFailed;
   sigc::connection    m_connStorageError;
 };
+
+inline bool
+Download::operator == (const std::string& str) const {
+  return str.size() == torrent::HashString::size_data && *torrent::HashString::cast_from(str) == m_download.info_hash();
+}
 
 }
 

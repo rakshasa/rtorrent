@@ -38,7 +38,7 @@
 #define RTORRENT_DISPLAY_PEER_LIST_H
 
 #include <list>
-#include <torrent/peer.h>
+#include <torrent/peer/peer.h>
 
 #include "window.h"
 

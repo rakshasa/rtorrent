@@ -41,9 +41,9 @@
 #include <rak/functional.h>
 #include <rak/string_manip.h>
 #include <torrent/bitfield.h>
-#include <torrent/transfer_list.h>
-#include <torrent/block.h>
-#include <torrent/block_list.h>
+#include <torrent/data/block.h>
+#include <torrent/data/block_list.h>
+#include <torrent/data/transfer_list.h>
 
 #include "core/download.h"
 

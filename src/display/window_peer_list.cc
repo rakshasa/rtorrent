@@ -38,9 +38,9 @@
 
 #include <stdexcept>
 #include <rak/socket_address.h>
-#include <torrent/block_transfer.h>
 #include <torrent/rate.h>
-#include <torrent/piece.h>
+#include <torrent/data/block_transfer.h>
+#include <torrent/data/piece.h>
 
 #include "core/download.h"
 #include "rak/algorithm.h"

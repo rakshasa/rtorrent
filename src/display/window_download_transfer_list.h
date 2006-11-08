@@ -38,7 +38,7 @@
 #define RTORRENT_DISPLAY_WINDOW_DOWNLOAD_TRANSFER_LIST_H
 
 #include <list>
-#include <torrent/block_transfer.h>
+#include <torrent/data/block_transfer.h>
 
 #include "window.h"
 
