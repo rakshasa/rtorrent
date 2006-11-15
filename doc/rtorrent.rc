@@ -72,7 +72,7 @@
 # outgoing connections but retries with encryption if they fail, preferring
 # plaintext to RC4 encryption after the encrypted handshake
 #
-# encryption_options = allow_incoming,enable_retry,prefer_plaintext
+# encryption = allow_incoming,enable_retry,prefer_plaintext
 
 #
 # Do not modify the following parameters unless you know what you're doing.

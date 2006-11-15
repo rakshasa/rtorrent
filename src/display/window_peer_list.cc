@@ -41,6 +41,7 @@
 #include <torrent/rate.h>
 #include <torrent/data/block_transfer.h>
 #include <torrent/data/piece.h>
+#include <torrent/peer/client_list.h>
 
 #include "core/download.h"
 #include "rak/algorithm.h"
@@ -138,7 +139,11 @@ WindowPeerList::redraw() {
     x += 7;
 
     char buf[128];
-    control->client_info()->print(buf, buf + 128, p.id().data());
+    torrent::ClientInfo clientInfo = torrent::client_list()->parse_id(p.id());
+
+    std::strncpy(buf, clientInfo.short_description(), 128);
+
+//     control->client_info()->print(buf, buf + 128, p.id().data());
 
     m_canvas->print(x, y, "%s", buf);
 
