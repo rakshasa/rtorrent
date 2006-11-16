@@ -46,6 +46,7 @@
 #include <torrent/rate.h>
 #include <torrent/tracker.h>
 #include <torrent/tracker_list.h>
+#include <torrent/peer/client_info.h>
 
 #include "core/download.h"
 
@@ -219,6 +220,14 @@ print_download_percentage_done(char* first, char* last, core::Download* d) {
     return print_buffer(first, last, "     ");
   else
     return print_buffer(first, last, "[%2u%%]", (d->download()->chunks_done() * 100) / d->download()->chunks_total());
+}
+
+char*
+print_client_version(char* first, char* last, const torrent::ClientInfo& clientInfo) {
+  return print_buffer(first, last, "%s %hhu.%hhu.%hhu.%hhu",
+                      clientInfo.short_description(),
+                      clientInfo.version()[0], clientInfo.version()[1],
+                      clientInfo.version()[2], clientInfo.version()[3]);
 }
 
 char*

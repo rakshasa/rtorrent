@@ -48,6 +48,7 @@
 
 #include "canvas.h"
 #include "client_info.h"
+#include "utils.h"
 #include "window_peer_list.h"
 
 namespace display {
@@ -139,11 +140,10 @@ WindowPeerList::redraw() {
     x += 7;
 
     char buf[128];
-    torrent::ClientInfo clientInfo = torrent::client_list()->parse_id(p.id());
+    torrent::ClientInfo clientInfo;
+    torrent::client_list()->retrieve_id(&clientInfo, p.id());
 
-    std::strncpy(buf, clientInfo.short_description(), 128);
-
-//     control->client_info()->print(buf, buf + 128, p.id().data());
+    print_client_version(buf, buf + 128, clientInfo);
 
     m_canvas->print(x, y, "%s", buf);
 

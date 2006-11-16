@@ -49,6 +49,7 @@ namespace utils {
 }
 
 namespace torrent {
+  class ClientInfo;
   class Entry;
 }
 
@@ -68,6 +69,8 @@ char*       print_download_info(char* first, char* last, core::Download* d);
 char*       print_download_status(char* first, char* last, core::Download* d);
 char*       print_download_time_left(char* first, char* last, core::Download* d);
 char*       print_download_percentage_done(char* first, char* last, core::Download* d);
+
+char*       print_client_version(char* first, char* last, const torrent::ClientInfo& clientInfo);
 
 char*       print_entry_tags(char* first, char* last);
 char*       print_entry_file(char* first, char* last, const torrent::Entry& entry);
