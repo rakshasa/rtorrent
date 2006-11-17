@@ -47,7 +47,6 @@
 #include "rak/algorithm.h"
 
 #include "canvas.h"
-#include "client_info.h"
 #include "utils.h"
 #include "window_peer_list.h"
 
@@ -140,10 +139,7 @@ WindowPeerList::redraw() {
     x += 7;
 
     char buf[128];
-    torrent::ClientInfo clientInfo;
-    torrent::client_list()->retrieve_id(&clientInfo, p.id());
-
-    print_client_version(buf, buf + 128, clientInfo);
+    print_client_version(buf, buf + 128, p.info()->client_info());
 
     m_canvas->print(x, y, "%s", buf);
 

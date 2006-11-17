@@ -46,7 +46,6 @@
 #include "core/scheduler.h"
 
 #include "display/canvas.h"
-#include "display/client_info.h"
 #include "display/window.h"
 #include "display/manager.h"
 #include "input/manager.h"
@@ -69,8 +68,6 @@ Control::Control() :
 
   m_commandScheduler(new CommandScheduler()),
   m_variables(new utils::VariableMap()),
-
-  m_clientInfo(new display::ClientInfo),
 
   m_tick(0) {
 
@@ -99,8 +96,6 @@ Control::~Control() {
   delete m_display;
   delete m_core;
   delete m_scheduler;
-
-  delete m_clientInfo;
 }
 
 void

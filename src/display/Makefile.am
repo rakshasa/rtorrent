@@ -4,8 +4,6 @@ libsub_display_a_SOURCES = \
 	attributes.h \
 	canvas.cc \
 	canvas.h \
-	client_info.cc \
-	client_info.h \
 	frame.cc \
 	frame.h \
 	manager.cc \

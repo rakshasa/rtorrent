@@ -40,12 +40,13 @@
 #include <torrent/exceptions.h>
 #include <torrent/rate.h>
 #include <torrent/hash_string.h>
+#include <torrent/peer/peer_info.h>
 
-#include "display/client_info.h"
 #include "display/frame.h"
 #include "display/manager.h"
 #include "display/text_element_helpers.h"
 #include "display/text_element_lambda.h"
+#include "display/utils.h"
 #include "display/window_peer_list.h"
 #include "input/manager.h"
 
@@ -88,6 +89,14 @@ ElementPeerList::~ElementPeerList() {
   delete m_elementInfo;
 }
 
+std::string
+te_client_version(const torrent::PeerInfo* info) {
+  char buf[128];
+  display::print_client_version(buf, buf + 128, info->client_info());
+
+  return buf;
+}
+
 inline ElementText*
 ElementPeerList::create_info() {
   using namespace display::helpers;
@@ -107,7 +116,8 @@ ElementPeerList::create_info() {
                        display::text_element_value_slot(rak::on(std::mem_fun(&torrent::Peer::address), std::ptr_fun(&te_port))));
 
   element->push_column("Id:",        display::text_element_string_slot(std::mem_fun(&torrent::Peer::id), string_base::flag_escape_html));
-  element->push_column("Client:",    display::text_element_string_slot(rak::on(std::mem_fun(&torrent::Peer::id), rak::make_mem_fun(control->client_info(), &display::ClientInfo::hash_str))));
+//   element->push_column("Client:",    display::text_element_string_slot(rak::on(std::mem_fun(&torrent::Peer::id), rak::make_mem_fun(control->client_info(), &display::ClientInfo::hash_str))));
+  element->push_column("Client:",    display::text_element_string_slot(rak::on(std::mem_fun(&torrent::Peer::info), std::ptr_fun(&te_client_version))));
   element->push_column("Options:",   display::text_element_string_slot(std::mem_fun(&torrent::Peer::options), string_base::flag_escape_hex | string_base::flag_fixed_width, 0, 8));
   element->push_column("Connected:", display::text_element_branch(std::mem_fun(&torrent::Peer::is_incoming), te_string("incoming"), te_string("outgoing")));
   element->push_column("Encrypted:", display::text_element_branch3(std::mem_fun(&torrent::Peer::is_encrypted), te_string("yes"), std::mem_fun(&torrent::Peer::is_obfuscated), te_string("handshake"), te_string("no")));
