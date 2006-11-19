@@ -42,6 +42,7 @@
 #include <torrent/data/block_transfer.h>
 #include <torrent/data/piece.h>
 #include <torrent/peer/client_list.h>
+#include <torrent/peer/peer_info.h>
 
 #include "core/download.h"
 #include "rak/algorithm.h"
