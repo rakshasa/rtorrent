@@ -98,9 +98,9 @@ WindowFileList::redraw() {
   Range range = rak::advance_bidirectional<unsigned int>(0, *m_focus, fl.size(), m_canvas->height() - pos);
 
   while (range.first != range.second) {
-    torrent::File e = fl.get(range.first);
+    torrent::File* e = fl.get(range.first);
 
-    std::string path = e.path_str();
+    std::string path = e->path()->as_string();
 
     if (path.length() <= 50)
       path = path + std::string(50 - path.length(), ' ');
@@ -109,7 +109,7 @@ WindowFileList::redraw() {
 
     std::string priority;
 
-    switch (e.priority()) {
+    switch (e->priority()) {
     case torrent::PRIORITY_OFF:
       priority = "off";
       break;
@@ -130,16 +130,16 @@ WindowFileList::redraw() {
     m_canvas->print(0, pos, "%c %s  %6.1f   %s   %3d  %9s",
                     range.first == *m_focus ? '*' : ' ',
                     path.c_str(),
-                    (double)e.size_bytes() / (double)(1 << 20),
+                    (double)e->size_bytes() / (double)(1 << 20),
                     priority.c_str(),
                     done_percentage(e),
-                    e.path()->encoding().c_str());
+                    e->path()->encoding().c_str());
 
     m_canvas->print(84, pos, "%i - %i %c%c",
-                    e.chunk_begin(),
-                    e.chunk_begin() != e.chunk_end() ? (e.chunk_end() - 1) : e.chunk_end(),
-                    e.is_created() ? 'E' : 'M',
-                    e.is_correct_size() ? 'C' : 'W');
+                    e->range().first,
+                    e->range().first != e->range().second ? (e->range().second - 1) : e->range().second,
+                    e->is_created() ? 'E' : 'M',
+                    e->is_correct_size() ? 'C' : 'W');
 
     ++range.first;
     ++pos;
@@ -148,10 +148,10 @@ WindowFileList::redraw() {
 }
 
 int
-WindowFileList::done_percentage(torrent::File& e) {
-  int chunks = e.chunk_end() - e.chunk_begin();
+WindowFileList::done_percentage(torrent::File* e) {
+  int chunks = e->range().second - e->range().first;
 
-  return chunks ? (e.completed_chunks() * 100) / chunks : 100;
+  return chunks ? (e->completed_chunks() * 100) / chunks : 100;
 }
 
 }

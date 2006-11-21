@@ -60,7 +60,7 @@ public:
   virtual void     redraw();
 
 private:
-  int              done_percentage(torrent::File& e);
+  int              done_percentage(torrent::File* e);
 
   core::Download*  m_download;
 

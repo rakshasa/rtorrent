@@ -179,9 +179,9 @@ ElementFileList::receive_priority() {
   if (m_focus >= fl.size())
     return;
 
-  torrent::File file = fl.get(m_focus);
+  torrent::File* file = fl.get(m_focus);
 
-  file.set_priority(next_priority(file.priority()));
+  file->set_priority(next_priority(file->priority()));
 
   m_download->download()->update_priorities();
   m_window->mark_dirty();
@@ -197,10 +197,10 @@ ElementFileList::receive_change_all() {
   if (m_focus >= fl.size())
     return;
 
-  Priority p = next_priority(fl.get(m_focus).priority());
+  Priority p = next_priority(fl.get(m_focus)->priority());
 
   for (int i = 0, last = fl.size(); i != last; ++i)
-    fl.get(i).set_priority(p);
+    fl.get(i)->set_priority(p);
 
   m_download->download()->update_priorities();
   m_window->mark_dirty();
