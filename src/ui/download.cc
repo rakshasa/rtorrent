@@ -42,6 +42,7 @@
 #include <torrent/exceptions.h>
 #include <torrent/chunk_manager.h>
 #include <torrent/connection_manager.h>
+#include <torrent/file_list.h>
 #include <torrent/torrent.h>
 #include <torrent/tracker_list.h>
 
@@ -164,7 +165,7 @@ Download::create_info() {
   element->push_back("");
   element->push_column("Memory usage:",     te_value(&torrent::ChunkManager::memory_usage, value_base::flag_mb), " MB");
   element->push_column("Max memory usage:", te_value(&torrent::ChunkManager::max_memory_usage, value_base::flag_mb), " MB");
-  element->push_column("Free diskspace:",   te_value(&torrent::Download::free_diskspace, value_base::flag_mb), " MB");
+  element->push_column("Free diskspace:",   te_value(&torrent::FileList::free_diskspace, value_base::flag_mb), " MB");
   element->push_column("Safe diskspace:",   te_value(&torrent::ChunkManager::safe_free_diskspace, value_base::flag_mb), " MB");
 
   element->push_back("");

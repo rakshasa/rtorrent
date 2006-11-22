@@ -76,9 +76,9 @@ WindowFileList::redraw() {
   m_slotSchedule(this, (cachedTime + rak::timer::from_seconds(10)).round_seconds());
   m_canvas->erase();
 
-  torrent::FileList fl = m_download->download()->file_list();
+  torrent::FileList* fl = m_download->download()->file_list();
 
-  if (fl.size() == 0 || m_canvas->height() < 2)
+  if (fl->size_files() == 0 || m_canvas->height() < 2)
     return;
 
   int pos = 0;
@@ -92,13 +92,13 @@ WindowFileList::redraw() {
 
   ++pos;
 
-  if (*m_focus >= fl.size())
+  if (*m_focus >= fl->size_files())
     throw std::logic_error("WindowFileList::redraw() called on an object with a bad focus value");
 
-  Range range = rak::advance_bidirectional<unsigned int>(0, *m_focus, fl.size(), m_canvas->height() - pos);
+  Range range = rak::advance_bidirectional<unsigned int>(0, *m_focus, fl->size_files(), m_canvas->height() - pos);
 
   while (range.first != range.second) {
-    torrent::File* e = fl.get(range.first);
+    torrent::File* e = fl->at_index(range.first);
 
     std::string path = e->path()->as_string();
 

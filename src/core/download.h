@@ -40,7 +40,6 @@
 #include <rak/string_manip.h>
 #include <sigc++/connection.h>
 #include <torrent/download.h>
-#include <torrent/file_list.h>
 #include <torrent/hash_string.h>
 #include <torrent/tracker_list.h>
 #include <torrent/torrent.h>
@@ -52,7 +51,6 @@ namespace core {
 class Download {
 public:
   typedef torrent::Download             download_type;
-  typedef torrent::FileList             file_list_type;
   typedef torrent::TrackerList          tracker_list_type;
   typedef download_type::ConnectionType connection_type;
   typedef utils::VariableMap            variable_map_type;
@@ -87,8 +85,10 @@ public:
   download_type*       download()                              { return &m_download; }
   const download_type* c_download() const                      { return &m_download; }
 
+  torrent::FileList*  file_list()                              { return m_download.file_list(); }
+  const torrent::FileList* c_file_list() const                 { return m_download.file_list(); }
+
   torrent::Object*    bencode()                                { return m_download.bencode(); }
-  file_list_type*     file_list()                              { return &m_fileList; }
   tracker_list_type*  tracker_list()                           { return &m_trackerList; }
 
   const std::string&  message() const                          { return m_message; }
@@ -137,7 +137,6 @@ private:
 
   // Store the FileList instance so we can use slots etc on it.
   download_type       m_download;
-  file_list_type      m_fileList;
   tracker_list_type   m_trackerList;
 
   bool                m_hashFailed;

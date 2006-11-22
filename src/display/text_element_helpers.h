@@ -95,6 +95,12 @@ te_value(Return (torrent::Download::*fptr)() const, int flags = TextElementValue
   return display::text_element_value_slot(rak::on(std::mem_fun(&core::Download::c_download), std::mem_fun(fptr)), flags, attributes);
 }
 
+template <typename Return>
+inline TextElementValueBase*
+te_value(Return (torrent::FileList::*fptr)() const, int flags = TextElementValueBase::flag_normal, int attributes = Attributes::a_invalid) {
+  return display::text_element_value_slot(rak::on(std::mem_fun(&core::Download::c_file_list), std::mem_fun(fptr)), flags, attributes);
+}
+
 inline TextElementValueBase*
 te_variable_value(const std::string& variable, int flags = TextElementValueBase::flag_normal, int attributes = Attributes::a_invalid) {
   return display::text_element_value_slot(rak::bind2nd(std::mem_fun(&core::Download::variable_value), variable), flags, attributes);

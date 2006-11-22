@@ -42,6 +42,7 @@
 #include <sigc++/signal.h>
 #include <rak/path.h>
 #include <torrent/exceptions.h>
+#include <torrent/file_list.h>
 #include <torrent/rate.h>
 #include <torrent/torrent.h>
 #include <torrent/tracker.h>
@@ -55,7 +56,6 @@ namespace core {
 
 Download::Download(download_type d) :
   m_download(d),
-  m_fileList(d.file_list()),
   m_trackerList(d.tracker_list()),
 
   m_hashFailed(false),
@@ -90,7 +90,7 @@ Download::Download(download_type d) :
   // resume/pause.
   m_variables.insert("state_changed",      new utils::VariableObject(bencode(), "rtorrent", "state_changed", torrent::Object::TYPE_VALUE));
 
-  m_variables.insert("directory",          new utils::VariableStringSlot(rak::mem_fn(&m_fileList, &torrent::FileList::root_dir), rak::mem_fn(this, &Download::set_root_directory)));
+  m_variables.insert("directory",          new utils::VariableStringSlot(rak::mem_fn(m_download.file_list(), &torrent::FileList::root_dir), rak::mem_fn(this, &Download::set_root_directory)));
 
 //   m_variables.insert("info_hash",          new utils::VariableStringSlot(rak::mem_fn(&m_download, &torrent::Download::info_hash), NULL));
 
@@ -250,15 +250,17 @@ Download::receive_chunk_failed(__UNUSED uint32_t idx) {
 // Clean up.
 void
 Download::set_root_directory(const std::string& path) {
+  torrent::FileList* fileList = m_download.file_list();
+
   if (path.empty()) {
-    m_fileList.set_root_dir("./" + (m_fileList.size() > 1 ? m_download.name() : std::string()));
+    fileList->set_root_dir("./" + (fileList->size_files() > 1 ? m_download.name() : std::string()));
 
   } else {
     std::string fullPath = rak::path_expand(path);
 
-    m_fileList.set_root_dir(fullPath +
-			    (*fullPath.rbegin() != '/' ? "/" : "") +
-			    (m_fileList.size() > 1 ? m_download.name() : ""));
+    fileList->set_root_dir(fullPath +
+                           (*fullPath.rbegin() != '/' ? "/" : "") +
+                           (fileList->size_files() > 1 ? m_download.name() : ""));
   }
 
   bencode()->get_key("rtorrent").insert_key("directory", path);

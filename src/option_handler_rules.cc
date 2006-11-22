@@ -50,6 +50,7 @@
 #include <torrent/connection_manager.h>
 #include <torrent/exceptions.h>
 #include <torrent/file.h>
+#include <torrent/file_list.h>
 #include <torrent/path.h>
 #include <torrent/rate.h>
 #include <torrent/torrent.h>
@@ -175,7 +176,7 @@ apply_close_low_diskspace(Control* m, int64_t arg) {
   core::Manager::DListItr itr = m->core()->download_list()->begin();
 
   while ((itr = std::find_if(itr, m->core()->download_list()->end(), std::mem_fun(&core::Download::is_downloading))) != m->core()->download_list()->end()) {
-    if ((*itr)->download()->free_diskspace() < (uint64_t)arg) {
+    if ((*itr)->file_list()->free_diskspace() < (uint64_t)arg) {
       m->core()->download_list()->close(*itr);
 
       (*itr)->set_hash_failed(true);

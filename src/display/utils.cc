@@ -43,6 +43,7 @@
 #include <rak/timer.h>
 #include <torrent/exceptions.h>
 #include <torrent/connection_manager.h>
+#include <torrent/file_list.h>
 #include <torrent/rate.h>
 #include <torrent/tracker.h>
 #include <torrent/tracker_list.h>
@@ -132,11 +133,11 @@ print_download_info(char* first, char* last, core::Download* d) {
     first = print_buffer(first, last, "          ");
 
   if (d->is_done())
-    first = print_buffer(first, last, "done %10.1f MB", (double)d->download()->bytes_total() / (double)(1 << 20));
+    first = print_buffer(first, last, "done %10.1f MB", (double)d->download()->file_list()->size_bytes() / (double)(1 << 20));
   else
     first = print_buffer(first, last, "%6.1f / %6.1f MB",
                          (double)d->download()->bytes_done() / (double)(1 << 20),
-                         (double)d->download()->bytes_total() / (double)(1 << 20));
+                         (double)d->download()->file_list()->size_bytes() / (double)(1 << 20));
   
   first = print_buffer(first, last, " Rate: %5.1f / %5.1f KB Uploaded: %7.1f MB",
                        (double)d->download()->up_rate()->rate() / (1 << 10),
@@ -208,7 +209,7 @@ print_download_time_left(char* first, char* last, core::Download* d) {
   if (rate < 512)
     return print_buffer(first, last, "--d --:--");
   
-  time_t remaining = (d->download()->bytes_total() - d->download()->bytes_done()) / (rate & ~(uint32_t)(512 - 1));
+  time_t remaining = (d->download()->file_list()->size_bytes() - d->download()->bytes_done()) / (rate & ~(uint32_t)(512 - 1));
 
   return print_ddhhmm(first, last, remaining);
 }
