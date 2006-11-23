@@ -49,13 +49,13 @@
 #include <torrent/chunk_manager.h>
 #include <torrent/connection_manager.h>
 #include <torrent/exceptions.h>
-#include <torrent/file.h>
-#include <torrent/file_list.h>
 #include <torrent/path.h>
 #include <torrent/rate.h>
 #include <torrent/torrent.h>
 #include <torrent/tracker.h>
 #include <torrent/tracker_list.h>
+#include <torrent/data/file.h>
+#include <torrent/data/file_list.h>
 
 #include "core/download.h"
 #include "core/download_list.h"

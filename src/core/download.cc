@@ -42,11 +42,11 @@
 #include <sigc++/signal.h>
 #include <rak/path.h>
 #include <torrent/exceptions.h>
-#include <torrent/file_list.h>
 #include <torrent/rate.h>
 #include <torrent/torrent.h>
 #include <torrent/tracker.h>
 #include <torrent/tracker_list.h>
+#include <torrent/data/file_list.h>
 
 #include "utils/variable_generic.h"
 

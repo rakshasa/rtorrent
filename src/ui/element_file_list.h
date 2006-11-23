@@ -37,7 +37,7 @@
 #ifndef RTORRENT_UI_ELEMENT_FILE_LIST_H
 #define RTORRENT_UI_ELEMENT_FILE_LIST_H
 
-#include <torrent/file.h>
+#include <torrent/common.h>
 
 #include "core/download.h"
 

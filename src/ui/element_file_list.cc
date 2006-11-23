@@ -37,7 +37,8 @@
 #include "config.h"
 
 #include <torrent/exceptions.h>
-#include <torrent/file_list.h>
+#include <torrent/data/file.h>
+#include <torrent/data/file_list.h>
 
 #include "display/frame.h"
 #include "display/manager.h"

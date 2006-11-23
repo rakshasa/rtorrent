@@ -38,9 +38,9 @@
 
 #include <stdexcept>
 #include <rak/algorithm.h>
-#include <torrent/file.h>
-#include <torrent/file_list.h>
 #include <torrent/path.h>
+#include <torrent/data/file.h>
+#include <torrent/data/file_list.h>
 
 #include "core/download.h"
 
