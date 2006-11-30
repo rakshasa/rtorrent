@@ -98,6 +98,10 @@ Download::Download(download_type d) :
   m_variables.insert("max_peers",          new utils::VariableValueSlot(rak::mem_fn(&m_download, &download_type::peers_max), rak::mem_fn(&m_download, &download_type::set_peers_max)));
   m_variables.insert("max_uploads",        new utils::VariableValueSlot(rak::mem_fn(&m_download, &download_type::uploads_max), rak::mem_fn(&m_download, &download_type::set_uploads_max)));
 
+  m_variables.insert("max_file_size",      new utils::VariableValueSlot(rak::mem_fn(file_list(), &file_list_type::max_file_size), rak::mem_fn(file_list(), &file_list_type::set_max_file_size)));
+//   m_variables.insert("split_file_size",    new utils::VariableValueSlot(rak::mem_fn(file_list(), &file_list_type::split_file_size), rak::mem_fn(file_list(), &file_list_type::set_split_file_size)));
+//   m_variables.insert("split_suffix",       new utils::VariableStringSlot(rak::mem_fn(file_list(), &file_list_type::split_suffix), rak::mem_fn(file_list(), &file_list_type::set_split_suffix)));
+
   m_variables.insert("up_rate",            new utils::VariableValueSlot(rak::mem_fn(m_download.up_rate(), &torrent::Rate::rate), NULL));
   m_variables.insert("up_total",           new utils::VariableValueSlot(rak::mem_fn(m_download.up_rate(), &torrent::Rate::total), NULL));
   m_variables.insert("down_rate",          new utils::VariableValueSlot(rak::mem_fn(m_download.down_rate(), &torrent::Rate::rate), NULL));

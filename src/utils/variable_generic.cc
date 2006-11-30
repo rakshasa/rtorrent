@@ -54,9 +54,7 @@ VariableAny::set(const torrent::Object& arg) {
 
 void
 VariableValue::set(const torrent::Object& arg) {
-  uint64_t value;
-  const char* first;
-  char* last;
+  int64_t value;
 
   switch (arg.type()) {
   case torrent::Object::TYPE_NONE:
@@ -68,11 +66,7 @@ VariableValue::set(const torrent::Object& arg) {
     break;
 
   case torrent::Object::TYPE_STRING:
-    first = arg.as_string().c_str();
-    value = strtoll(first, &last, 0);
-
-    if (last == first || *last != '\0')
-      throw torrent::input_error("Could not convert string to value.");
+    string_to_value_unit(arg.as_string().c_str(), &value, 0, 1);
 
     m_variable = value;
     break;

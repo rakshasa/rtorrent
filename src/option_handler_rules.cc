@@ -519,6 +519,10 @@ initialize_option_handler(Control* c) {
                                                                           rak::mem_fn(torrent::chunk_manager(), &torrent::ChunkManager::set_preload_required_rate),
                                                                           0, (1 << 10)));
 
+  variables->insert("max_file_size",         new utils::VariableValue(-1));
+  variables->insert("split_file_size",       new utils::VariableValue(-1));
+  variables->insert("split_suffix",          new utils::VariableAny(""));
+
   variables->insert("port_range",            new utils::VariableStringSlot(rak::value_fn(std::string()), rak::bind_ptr_fn(&apply_port_range, c)));
 
   variables->insert("hash_read_ahead",       new utils::VariableValueSlot(rak::ptr_fn(torrent::hash_read_ahead), rak::bind_ptr_fn(&apply_hash_read_ahead, c)));

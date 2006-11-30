@@ -190,6 +190,15 @@ DownloadFactory::receive_success() {
   if (!control->variable()->get_value("use_udp_trackers"))
     download->enable_udp_trackers(false);
 
+  if (control->variable()->get_value("max_file_size") > 0)
+    download->variable()->set("max_file_size", control->variable()->get("max_file_size"));
+
+//   if (control->variable()->get_value("split_file_size") >= 0)
+//     download->variable()->set("split_file_size", control->variable()->get("split_file_size"));
+
+//   if (!control->variable()->get_string("split_suffix").empty())
+//     download->variable()->set("split_suffix", control->variable()->get("split_suffix"));
+
   if (!rtorrent->has_key_string("directory"))
     download->variable()->set("directory", m_variables.get("directory"));
   else
