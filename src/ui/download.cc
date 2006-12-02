@@ -157,7 +157,7 @@ Download::create_info() {
   element->push_column("Tied to file:",     te_variable_string("tied_to_file"));
 
   element->push_back("");
-  element->push_column("Chunks:",           te_value(&torrent::Download::chunks_done), " / ", te_value(&torrent::Download::chunks_total), " * ", te_value(&torrent::Download::chunks_size));
+  element->push_column("Chunks:",           te_value(&torrent::FileList::completed_chunks), " / ", te_value(&torrent::FileList::size_chunks), " * ", te_value(&torrent::FileList::chunk_size));
   element->push_column("Priority:",         te_variable_value("priority"));
 
   element->push_column("State changed:",    te_variable_value("state_changed", value_base::flag_timer | value_base::flag_elapsed));

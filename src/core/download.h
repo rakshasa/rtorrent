@@ -43,6 +43,7 @@
 #include <torrent/hash_string.h>
 #include <torrent/tracker_list.h>
 #include <torrent/torrent.h>
+#include <torrent/data/file_list.h>
 
 #include "utils/variable_map.h"
 
@@ -66,7 +67,7 @@ public:
 
   bool                is_open() const                          { return m_download.is_open(); }
   bool                is_active() const                        { return m_download.is_active(); }
-  bool                is_done() const                          { return m_download.chunks_done() == m_download.chunks_total(); }
+  bool                is_done() const                          { return m_download.file_list()->is_done(); }
   bool                is_downloading() const                   { return is_active() && !is_done(); }
   bool                is_seeding() const                       { return is_active() && is_done(); }
 

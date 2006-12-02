@@ -73,7 +73,7 @@ WindowDownloadChunksSeen::redraw() {
 
   const uint8_t* seen = m_download->download()->chunks_seen();
 
-  if (seen == NULL || m_download->download()->bitfield()->empty()) {
+  if (seen == NULL || m_download->download()->file_list()->bitfield()->empty()) {
     m_canvas->print(2, 2, "Not available.");
     return;
   }
@@ -88,9 +88,9 @@ WindowDownloadChunksSeen::redraw() {
   *m_focus = std::min(*m_focus, max_focus());
 
   const uint8_t* chunk = seen + *m_focus * chunks_per_row();
-  const uint8_t* last = seen + m_download->download()->chunks_total();
+  const uint8_t* last = seen + m_download->download()->file_list()->size_chunks();
 
-  const torrent::Bitfield* bitfield = m_download->download()->bitfield();
+  const torrent::Bitfield* bitfield = m_download->download()->file_list()->bitfield();
   const torrent::TransferList* transfers = m_download->download()->transfer_list();
   std::vector<torrent::BlockList*> transferChunks(transfers->size(), 0);
 
@@ -138,7 +138,7 @@ WindowDownloadChunksSeen::rows() const {
   if (m_canvas->width() < 18)
     return 0;
 
-  return (m_download->download()->chunks_total() + chunks_per_row() - 1) / chunks_per_row();
+  return (m_download->download()->file_list()->size_chunks() + chunks_per_row() - 1) / chunks_per_row();
 }
 
 }

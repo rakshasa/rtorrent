@@ -181,7 +181,7 @@ print_download_status(char* first, char* last, core::Download* d) {
 
   if (d->is_hash_checking()) {
     first = print_buffer(first, last, "Checking hash [%2i%%]",
-                         (d->download()->chunks_hashed() * 100) / d->download()->chunks_total());
+                         (d->download()->chunks_hashed() * 100) / d->download()->file_list()->size_chunks());
 
   } else if (d->tracker_list()->is_busy() && d->tracker_list()->focus() < d->tracker_list()->size()) {
     torrent::TrackerList* tl = d->tracker_list();
@@ -220,7 +220,7 @@ print_download_percentage_done(char* first, char* last, core::Download* d) {
     //return print_buffer(first, last, "[--%%]");
     return print_buffer(first, last, "     ");
   else
-    return print_buffer(first, last, "[%2u%%]", (d->download()->chunks_done() * 100) / d->download()->chunks_total());
+    return print_buffer(first, last, "[%2u%%]", (d->download()->file_list()->completed_chunks() * 100) / d->download()->file_list()->size_chunks());
 }
 
 char*

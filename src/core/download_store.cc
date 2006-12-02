@@ -107,7 +107,7 @@ DownloadStore::save(Download* d) {
 
   // Move this somewhere else?
   d->bencode()->get_key("rtorrent").insert_key("total_uploaded", d->download()->up_rate()->total());
-  d->bencode()->get_key("rtorrent").insert_key("chunks_done", d->download()->chunks_done());
+  d->bencode()->get_key("rtorrent").insert_key("chunks_done", d->download()->file_list()->completed_chunks());
 
   torrent::Object& resumeObject = d->download()->bencode()->get_key("libtorrent_resume");
 

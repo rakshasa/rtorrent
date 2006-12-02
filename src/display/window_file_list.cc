@@ -98,7 +98,7 @@ WindowFileList::redraw() {
   Range range = rak::advance_bidirectional<unsigned int>(0, *m_focus, fl->size_files(), m_canvas->height() - pos);
 
   while (range.first != range.second) {
-    torrent::File* e = fl->at_index(range.first);
+    torrent::File* e = *(fl->begin() + range.first);
 
     std::string path = e->path()->as_string();
 

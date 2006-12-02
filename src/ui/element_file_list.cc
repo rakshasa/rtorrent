@@ -181,7 +181,7 @@ ElementFileList::receive_priority() {
   if (m_focus >= fl->size_files())
     return;
 
-  torrent::File* file = fl->at_index(m_focus);
+  torrent::File* file = *(fl->begin() + m_focus);
 
   file->set_priority(next_priority(file->priority()));
 
@@ -199,10 +199,10 @@ ElementFileList::receive_change_all() {
   if (m_focus >= fl->size_files())
     return;
 
-  Priority p = next_priority(fl->at_index(m_focus)->priority());
+  Priority p = next_priority((*(fl->begin() + m_focus))->priority());
 
-  for (int i = 0, last = fl->size_files(); i != last; ++i)
-    fl->at_index(i)->set_priority(p);
+  for (torrent::FileList::iterator itr = fl->begin(), last = fl->end(); itr != last; ++itr)
+    (*itr)->set_priority(p);
 
   m_download->download()->update_priorities();
   m_window->mark_dirty();

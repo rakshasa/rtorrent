@@ -227,7 +227,7 @@ Download::priority_to_string(uint32_t p) {
 float
 Download::distributed_copies() const {
   const uint8_t* avail = m_download.chunks_seen();
-  const uint8_t* end = avail + m_download.chunks_total();
+  const uint8_t* end = avail + m_download.file_list()->size_chunks();
 
   if (avail == NULL)
     return 0;
@@ -243,7 +243,7 @@ Download::distributed_copies() const {
       num = 1;
     }
 
-  return minAvail + 1 - (float)num / m_download.chunks_total();
+  return minAvail + 1 - (float)num / m_download.file_list()->size_chunks();
 }
 
 void
