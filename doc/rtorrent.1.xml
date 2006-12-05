@@ -751,6 +751,42 @@ Change the key-bindings.
   </refsect1>
 
 
+  <refsect1>
+    <title>FILE-SYSTEM SETTINGS</title>
+    <para>
+      File-system related settings.
+    </para>
+
+    <variablelist>
+
+      <varlistentry>
+        <term>max_file_size = <replaceable>size</replaceable></term>
+        <listitem><para>
+Set the maximum size a file can have. Disable by
+passing <emphasis>-1</emphasis>.
+        </para></listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>split_file_size = <replaceable>size</replaceable></term>
+        <listitem><para>
+Split files in a torrent larger than <emphasis>size</emphasis> into
+seperate files. Disable by passing <emphasis>-1</emphasis>.
+        </para></listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>split_suffix = <replaceable>string</replaceable></term>
+        <listitem><para>
+Set the suffix used on split files. Defaults
+to <emphasis>.part</emphasis>.
+        </para></listitem>
+      </varlistentry>
+
+    </variablelist>
+
+  </refsect1>
+
 
   <refsect1>
     <title>ADVANCED SETTINGS</title>

@@ -45,6 +45,7 @@
 #include <torrent/exceptions.h>
 #include <torrent/rate.h>
 #include <torrent/resume.h>
+#include <torrent/data/file_utils.h>
 
 #include "utils/variable_generic.h"
 
@@ -193,11 +194,14 @@ DownloadFactory::receive_success() {
   if (control->variable()->get_value("max_file_size") > 0)
     download->variable()->set("max_file_size", control->variable()->get("max_file_size"));
 
-//   if (control->variable()->get_value("split_file_size") >= 0)
-//     download->variable()->set("split_file_size", control->variable()->get("split_file_size"));
-
-//   if (!control->variable()->get_string("split_suffix").empty())
-//     download->variable()->set("split_suffix", control->variable()->get("split_suffix"));
+  // Check first if we already have these values set in the session
+  // torrent, so that it is safe to change the values.
+  //
+  // Need to also catch the exceptions.
+  if (control->variable()->get_value("split_file_size") >= 0)
+    torrent::file_split_all(download->download()->file_list(),
+                            control->variable()->get_value("split_file_size"),
+                            control->variable()->get_string("split_suffix"));
 
   if (!rtorrent->has_key_string("directory"))
     download->variable()->set("directory", m_variables.get("directory"));

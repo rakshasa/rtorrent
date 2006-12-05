@@ -521,7 +521,7 @@ initialize_option_handler(Control* c) {
 
   variables->insert("max_file_size",         new utils::VariableValue(-1));
   variables->insert("split_file_size",       new utils::VariableValue(-1));
-  variables->insert("split_suffix",          new utils::VariableAny(""));
+  variables->insert("split_suffix",          new utils::VariableAny(".part"));
 
   variables->insert("port_range",            new utils::VariableStringSlot(rak::value_fn(std::string()), rak::bind_ptr_fn(&apply_port_range, c)));
 
