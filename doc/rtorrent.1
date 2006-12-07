@@ -3,7 +3,7 @@
 .\" <http://shell.ipoline.com/~elmert/comp/docbook2X/> 
 .\" Please send any bug reports, improvements, comments, patches, 
 .\" etc. to Steve Cheng <steve@ggi-project.org>.
-.TH "RTORRENT" "1" "25 October 2006" "BitTorrent client for ncurses" ""
+.TH "RTORRENT" "1" "07 December 2006" "BitTorrent client for ncurses" ""
 
 .SH NAME
 rtorrent \- a BitTorrent client for ncurses
@@ -364,6 +364,21 @@ match for the download to be included.
 .TP
 \fBkey_layout = \fIqwerty|azerty|qwertz\fB\fR
 Change the key-bindings.
+.SH "FILE-SYSTEM SETTINGS"
+.PP
+File-system related settings.
+.TP
+\fBmax_file_size = \fIsize\fB\fR
+Set the maximum size a file can have. Disable by
+passing \fB-1\fR\&.
+.TP
+\fBsplit_file_size = \fIsize\fB\fR
+Split files in a torrent larger than \fBsize\fR into
+seperate files. Disable by passing \fB-1\fR\&.
+.TP
+\fBsplit_suffix = \fIstring\fB\fR
+Set the suffix used on split files. Defaults
+to \fB\&.part\fR\&.
 .SH "ADVANCED SETTINGS"
 .PP
 This list contains settings users shouldn't need to touch, some may
