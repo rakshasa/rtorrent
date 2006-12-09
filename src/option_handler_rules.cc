@@ -469,7 +469,8 @@ initialize_option_handler(Control* c) {
 
   variables->insert("hash_max_tries",        new utils::VariableValueSlot(rak::ptr_fn(&torrent::hash_max_tries), rak::ptr_fn(&torrent::set_hash_max_tries)));
   variables->insert("max_open_files",        new utils::VariableValueSlot(rak::ptr_fn(&torrent::max_open_files), rak::ptr_fn(&torrent::set_max_open_files)));
-  variables->insert("max_open_sockets",      new utils::VariableValueSlot(rak::ptr_fn(&torrent::max_open_sockets), rak::ptr_fn(&torrent::set_max_open_sockets)));
+  variables->insert("max_open_sockets",      new utils::VariableValueSlot(rak::mem_fn(torrent::connection_manager(), &torrent::ConnectionManager::max_size),
+                                                                          rak::mem_fn(torrent::connection_manager(), &torrent::ConnectionManager::set_max_size)));
 
   variables->insert("print",                 new utils::VariableStringSlot(rak::value_fn(std::string()), rak::mem_fn(control->core(), &core::Manager::push_log)));
   variables->insert("import",                new utils::VariableStringSlot(rak::value_fn(std::string()), rak::ptr_fn(&apply_import)));
