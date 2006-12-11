@@ -69,7 +69,7 @@ ElementFileList::ElementFileList(core::Download* d) :
 void
 ElementFileList::activate(display::Frame* frame, bool focus) {
   if (m_window != NULL)
-    throw torrent::client_error("ui::ElementFileList::activate(...) is_active().");
+    throw torrent::internal_error("ui::ElementFileList::activate(...) is_active().");
 
   if (focus)
     control->input()->push_back(&m_bindings);
@@ -86,7 +86,7 @@ ElementFileList::activate(display::Frame* frame, bool focus) {
 void
 ElementFileList::disable() {
   if (m_window == NULL)
-    throw torrent::client_error("ui::ElementFileList::disable(...) !is_active().");
+    throw torrent::internal_error("ui::ElementFileList::disable(...) !is_active().");
 
   control->input()->erase(&m_bindings);
 
@@ -105,7 +105,7 @@ ElementFileList::window() {
 void
 ElementFileList::receive_next() {
   if (m_window == NULL)
-    throw torrent::client_error("ui::ElementFileList::receive_next(...) called on a disabled object");
+    throw torrent::internal_error("ui::ElementFileList::receive_next(...) called on a disabled object");
 
   if (++m_focus >= m_download->download()->file_list()->size_files())
     m_focus = 0;
@@ -116,7 +116,7 @@ ElementFileList::receive_next() {
 void
 ElementFileList::receive_prev() {
   if (m_window == NULL)
-    throw torrent::client_error("ui::ElementFileList::receive_prev(...) called on a disabled object");
+    throw torrent::internal_error("ui::ElementFileList::receive_prev(...) called on a disabled object");
 
   torrent::FileList* fl = m_download->download()->file_list();
 
@@ -134,7 +134,7 @@ ElementFileList::receive_prev() {
 void
 ElementFileList::receive_pagenext() {
   if (m_window == NULL)
-    throw torrent::client_error("ui::ElementFileList::receive_pagenext(...) called on a disabled object");
+    throw torrent::internal_error("ui::ElementFileList::receive_pagenext(...) called on a disabled object");
 
   unsigned int count = (m_window->height() - 1) / 2;
   torrent::FileList* fl = m_download->download()->file_list();
@@ -152,7 +152,7 @@ ElementFileList::receive_pagenext() {
 void
 ElementFileList::receive_pageprev() {
   if (m_window == NULL)
-    throw torrent::client_error("ui::ElementFileList::receive_pageprev(...) called on a disabled object");
+    throw torrent::internal_error("ui::ElementFileList::receive_pageprev(...) called on a disabled object");
 
   torrent::FileList* fl = m_download->download()->file_list();
 
@@ -174,7 +174,7 @@ ElementFileList::receive_pageprev() {
 void
 ElementFileList::receive_priority() {
   if (m_window == NULL)
-    throw torrent::client_error("ui::ElementFileList::receive_prev(...) called on a disabled object");
+    throw torrent::internal_error("ui::ElementFileList::receive_prev(...) called on a disabled object");
 
   torrent::FileList* fl = m_download->download()->file_list();
 
@@ -192,7 +192,7 @@ ElementFileList::receive_priority() {
 void
 ElementFileList::receive_change_all() {
   if (m_window == NULL)
-    throw torrent::client_error("ui::ElementFileList::receive_prev(...) called on a disabled object");
+    throw torrent::internal_error("ui::ElementFileList::receive_prev(...) called on a disabled object");
 
   torrent::FileList* fl = m_download->download()->file_list();
 

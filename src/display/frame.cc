@@ -172,7 +172,7 @@ Frame::preferred_size() const {
 void
 Frame::set_container_size(size_type size) {
   if ((m_type != TYPE_ROW && m_type != TYPE_COLUMN) || size >= max_size)
-    throw torrent::client_error("Frame::set_container_size(...) Bad state.");
+    throw torrent::internal_error("Frame::set_container_size(...) Bad state.");
 
   while (m_containerSize > size) {
     delete m_container[--m_containerSize];
@@ -187,7 +187,7 @@ Frame::set_container_size(size_type size) {
 void
 Frame::initialize_window(Window* window) {
   if (m_type != TYPE_NONE)
-    throw torrent::client_error("Frame::initialize_window(...) m_type != TYPE_NONE.");
+    throw torrent::internal_error("Frame::initialize_window(...) m_type != TYPE_NONE.");
 
   m_type = TYPE_WINDOW;
   m_window = window;
@@ -196,10 +196,10 @@ Frame::initialize_window(Window* window) {
 void
 Frame::initialize_row(size_type size) {
   if (m_type != TYPE_NONE)
-    throw torrent::client_error("Frame::initialize_container(...) Invalid state.");
+    throw torrent::internal_error("Frame::initialize_container(...) Invalid state.");
 
   if (size > max_size)
-    throw torrent::client_error("Frame::initialize_container(...) size >= max_size.");
+    throw torrent::internal_error("Frame::initialize_container(...) size >= max_size.");
 
   m_type = TYPE_ROW;
   m_containerSize = size;
@@ -211,10 +211,10 @@ Frame::initialize_row(size_type size) {
 void
 Frame::initialize_column(size_type size) {
   if (m_type != TYPE_NONE)
-    throw torrent::client_error("Frame::initialize_container(...) Invalid state.");
+    throw torrent::internal_error("Frame::initialize_container(...) Invalid state.");
 
   if (size > max_size)
-    throw torrent::client_error("Frame::initialize_container(...) size >= max_size.");
+    throw torrent::internal_error("Frame::initialize_container(...) size >= max_size.");
 
   m_type = TYPE_COLUMN;
   m_containerSize = size;

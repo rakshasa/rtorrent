@@ -68,7 +68,7 @@ ElementText::~ElementText() {
 void
 ElementText::activate(display::Frame* frame, bool focus) {
   if (is_active())
-    throw torrent::client_error("ui::ElementText::activate(...) is_active().");
+    throw torrent::internal_error("ui::ElementText::activate(...) is_active().");
 
   if (focus)
     control->input()->push_back(&m_bindings);
@@ -84,7 +84,7 @@ ElementText::activate(display::Frame* frame, bool focus) {
 void
 ElementText::disable() {
   if (!is_active())
-    throw torrent::client_error("ui::ElementText::disable(...) !is_active().");
+    throw torrent::internal_error("ui::ElementText::disable(...) !is_active().");
 
   control->input()->erase(&m_bindings);
 

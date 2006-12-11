@@ -59,7 +59,7 @@ ElementDownloadList::ElementDownloadList() :
   receive_change_view("main");
 
   if (m_view == NULL)
-    throw torrent::client_error("View \"main\" must be present to initialize the main display.");
+    throw torrent::internal_error("View \"main\" must be present to initialize the main display.");
 
   m_bindings['\x13']        = sigc::mem_fun(*this, &ElementDownloadList::receive_start_download);
   m_bindings['\x04']        = sigc::mem_fun(*this, &ElementDownloadList::receive_stop_download);
@@ -85,7 +85,7 @@ ElementDownloadList::ElementDownloadList() :
 void
 ElementDownloadList::activate(display::Frame* frame, bool focus) {
   if (is_active())
-    throw torrent::client_error("ui::ElementDownloadList::activate(...) is_active().");
+    throw torrent::internal_error("ui::ElementDownloadList::activate(...) is_active().");
 
   control->input()->push_back(&m_bindings);
 
@@ -100,7 +100,7 @@ ElementDownloadList::activate(display::Frame* frame, bool focus) {
 void
 ElementDownloadList::disable() {
   if (!is_active())
-    throw torrent::client_error("ui::ElementDownloadList::disable(...) !is_active().");
+    throw torrent::internal_error("ui::ElementDownloadList::disable(...) !is_active().");
 
   control->input()->erase(&m_bindings);
 

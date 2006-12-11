@@ -96,7 +96,7 @@ Download::Download(core::Download* d) :
 
 Download::~Download() {
   if (is_active())
-    throw torrent::client_error("ui::Download::~Download() called on an active object.");
+    throw torrent::internal_error("ui::Download::~Download() called on an active object.");
 
   std::for_each(m_uiArray, m_uiArray + DISPLAY_MAX_SIZE, rak::call_delete<ElementBase>());
 
@@ -187,7 +187,7 @@ Download::create_info() {
 void
 Download::activate(display::Frame* frame, bool focus) {
   if (is_active())
-    throw torrent::client_error("ui::Download::activate() called on an already activated object.");
+    throw torrent::internal_error("ui::Download::activate() called on an already activated object.");
 
   control->input()->push_back(&m_bindings);
 
@@ -203,7 +203,7 @@ Download::activate(display::Frame* frame, bool focus) {
 void
 Download::disable() {
   if (!is_active())
-    throw torrent::client_error("ui::Download::disable() called on an already disabled object.");
+    throw torrent::internal_error("ui::Download::disable() called on an already disabled object.");
 
   control->input()->erase(&m_bindings);
 
@@ -218,10 +218,10 @@ Download::disable() {
 void
 Download::activate_display(Display displayType, bool focusDisplay) {
   if (!is_active())
-    throw torrent::client_error("ui::Download::activate_display(...) !is_active().");
+    throw torrent::internal_error("ui::Download::activate_display(...) !is_active().");
 
   if (displayType > DISPLAY_MAX_SIZE)
-    throw torrent::client_error("ui::Download::activate_display(...) out of bounds");
+    throw torrent::internal_error("ui::Download::activate_display(...) out of bounds");
 
   if (focusDisplay == m_focusDisplay && displayType == m_state)
     return;

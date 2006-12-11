@@ -204,7 +204,7 @@ Manager::~Manager() {
 void
 Manager::set_hashing_view(View* v) {
   if (v == NULL || m_hashingView != NULL)
-    throw torrent::client_error("Manager::set_hashing_view(...) received NULL or is already set.");
+    throw torrent::internal_error("Manager::set_hashing_view(...) received NULL or is already set.");
 
   m_hashingView = v;
   v->signal_changed().connect(sigc::mem_fun(this, &Manager::receive_hashing_changed));
@@ -501,7 +501,7 @@ Manager::receive_hashing_changed() {
       }
 
       if ((*itr)->is_hash_checked())
-        throw torrent::client_error("core::Manager::receive_hashing_changed() hash already checked or checking.");
+        throw torrent::internal_error("core::Manager::receive_hashing_changed() hash already checked or checking.");
   
       if ((*itr)->is_hash_failed() || (*itr)->variable()->get_value("hashing") != Download::variable_hashing_initial)
         continue;
@@ -533,7 +533,7 @@ Manager::receive_hashing_changed() {
     try {
 
       if ((*itr)->is_hash_checked() || (*itr)->is_hash_checking())
-        throw torrent::client_error("core::Manager::receive_hashing_changed() hash already checked or checking.");
+        throw torrent::internal_error("core::Manager::receive_hashing_changed() hash already checked or checking.");
   
       if ((*itr)->is_hash_failed())
         continue;

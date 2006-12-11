@@ -140,7 +140,7 @@ ElementPeerList::create_info() {
 void
 ElementPeerList::activate(display::Frame* frame, bool focus) {
   if (is_active())
-    throw torrent::client_error("ui::ElementPeerList::activate(...) is_active().");
+    throw torrent::internal_error("ui::ElementPeerList::activate(...) is_active().");
 
   if (focus)
     control->input()->push_back(&m_bindings);
@@ -154,7 +154,7 @@ ElementPeerList::activate(display::Frame* frame, bool focus) {
 void
 ElementPeerList::disable() {
   if (!is_active())
-    throw torrent::client_error("ui::ElementPeerList::disable(...) !is_active().");
+    throw torrent::internal_error("ui::ElementPeerList::disable(...) !is_active().");
 
   control->input()->erase(&m_bindings);
 
@@ -240,7 +240,7 @@ ElementPeerList::receive_peer_disconnected(torrent::Peer p) {
   PList::iterator itr = std::find(m_list.begin(), m_list.end(), p);
 
   if (itr == m_list.end())
-    throw torrent::client_error("ElementPeerList::receive_peer_disconnected(...) itr == m_list.end().");
+    throw torrent::internal_error("ElementPeerList::receive_peer_disconnected(...) itr == m_list.end().");
 
   if (itr == m_listItr)
     m_listItr = m_list.erase(itr);

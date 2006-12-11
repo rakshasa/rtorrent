@@ -66,7 +66,7 @@ ElementTrackerList::ElementTrackerList(core::Download* d) :
 void
 ElementTrackerList::activate(display::Frame* frame, bool focus) {
   if (m_window != NULL)
-    throw torrent::client_error("ui::ElementTrackerList::activate(...) is_active().");
+    throw torrent::internal_error("ui::ElementTrackerList::activate(...) is_active().");
 
   if (focus)
     control->input()->push_back(&m_bindings);
@@ -81,7 +81,7 @@ ElementTrackerList::activate(display::Frame* frame, bool focus) {
 void
 ElementTrackerList::disable() {
   if (m_window == NULL)
-    throw torrent::client_error("ui::ElementTrackerList::disable(...) !is_active().");
+    throw torrent::internal_error("ui::ElementTrackerList::disable(...) !is_active().");
 
   control->input()->erase(&m_bindings);
 
@@ -100,7 +100,7 @@ ElementTrackerList::window() {
 void
 ElementTrackerList::receive_disable() {
   if (m_window == NULL)
-    throw torrent::client_error("ui::ElementTrackerList::receive_disable(...) called on a disabled object");
+    throw torrent::internal_error("ui::ElementTrackerList::receive_disable(...) called on a disabled object");
 
   torrent::Tracker t = m_download->download()->tracker_list().get(m_focus);
 
@@ -115,7 +115,7 @@ ElementTrackerList::receive_disable() {
 void
 ElementTrackerList::receive_next() {
   if (m_window == NULL)
-    throw torrent::client_error("ui::ElementTrackerList::receive_next(...) called on a disabled object");
+    throw torrent::internal_error("ui::ElementTrackerList::receive_next(...) called on a disabled object");
 
   if (++m_focus >= m_download->download()->tracker_list().size())
     m_focus = 0;
@@ -126,7 +126,7 @@ ElementTrackerList::receive_next() {
 void
 ElementTrackerList::receive_prev() {
   if (m_window == NULL)
-    throw torrent::client_error("ui::ElementTrackerList::receive_prev(...) called on a disabled object");
+    throw torrent::internal_error("ui::ElementTrackerList::receive_prev(...) called on a disabled object");
 
   if (m_download->download()->tracker_list().size() == 0)
     return;
@@ -142,12 +142,12 @@ ElementTrackerList::receive_prev() {
 void
 ElementTrackerList::receive_cycle_group() {
   if (m_window == NULL)
-    throw torrent::client_error("ui::ElementTrackerList::receive_group_cycle(...) called on a disabled object");
+    throw torrent::internal_error("ui::ElementTrackerList::receive_group_cycle(...) called on a disabled object");
 
   torrent::TrackerList tl = m_download->download()->tracker_list();
 
   if (m_focus >= tl.size())
-    throw torrent::client_error("ui::ElementTrackerList::receive_group_cycle(...) called with an invalid focus");
+    throw torrent::internal_error("ui::ElementTrackerList::receive_group_cycle(...) called with an invalid focus");
 
   tl.cycle_group(tl.get(m_focus).group());
 

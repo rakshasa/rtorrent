@@ -91,7 +91,7 @@ DownloadList::~DownloadList() {
 void
 DownloadList::activate(display::Frame* frame, bool focus) {
   if (is_active())
-    throw torrent::client_error("ui::DownloadList::activate() called on an already activated object");
+    throw torrent::internal_error("ui::DownloadList::activate() called on an already activated object");
 
   m_frame = frame;
 
@@ -122,10 +122,10 @@ DownloadList::current_view() {
 void
 DownloadList::activate_display(Display displayType) {
   if (!is_active())
-    throw torrent::client_error("ui::DownloadList::activate_display(...) !is_active().");
+    throw torrent::internal_error("ui::DownloadList::activate_display(...) !is_active().");
 
   if (displayType > DISPLAY_MAX_SIZE)
-    throw torrent::client_error("ui::DownloadList::activate_display(...) out of bounds");
+    throw torrent::internal_error("ui::DownloadList::activate_display(...) out of bounds");
 
   if (displayType == m_state)
     return;
@@ -240,7 +240,7 @@ DownloadList::receive_view_input(Input type) {
     break;
 
   default:
-    throw torrent::client_error("DownloadList::receive_view_input(...) Invalid input type.");
+    throw torrent::internal_error("DownloadList::receive_view_input(...) Invalid input type.");
   }
 
   ElementStringList* esl = dynamic_cast<ElementStringList*>(m_uiArray[DISPLAY_STRING_LIST]);
@@ -292,7 +292,7 @@ DownloadList::receive_exit_input(Input type) {
       break;
 
     default:
-      throw torrent::client_error("DownloadList::receive_exit_input(...) Invalid input type.");
+      throw torrent::internal_error("DownloadList::receive_exit_input(...) Invalid input type.");
     }
 
   } catch (torrent::input_error& e) {

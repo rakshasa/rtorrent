@@ -61,12 +61,12 @@ TextElementList::print(char* first, char* last, Canvas::attributes_list* attribu
       char* columnEnd = std::min(last, first + *m_columnWidth);
 
       if (columnEnd < first || columnEnd > last)
-        throw torrent::client_error("TextElementList::print(...) columnEnd < first || columnEnd > last.");
+        throw torrent::internal_error("TextElementList::print(...) columnEnd < first || columnEnd > last.");
 
       first = (*itr)->print(first, columnEnd, attributes, object);
 
       if (first > columnEnd)
-        throw torrent::client_error("TextElementList::print(...) first > columnEnd.");
+        throw torrent::internal_error("TextElementList::print(...) first > columnEnd.");
 
       std::memset(first, ' ', columnEnd - first);
       first = columnEnd;

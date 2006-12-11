@@ -86,7 +86,7 @@ ElementMenu::~ElementMenu() {
 void
 ElementMenu::activate(display::Frame* frame, bool focus) {
   if (is_active())
-    throw torrent::client_error("ui::ElementMenu::activate(...) is_active().");
+    throw torrent::internal_error("ui::ElementMenu::activate(...) is_active().");
 
   if (focus)
     control->input()->push_back(&m_bindings);
@@ -103,7 +103,7 @@ ElementMenu::activate(display::Frame* frame, bool focus) {
 void
 ElementMenu::disable() {
   if (!is_active())
-    throw torrent::client_error("ui::ElementMenu::disable(...) !is_active().");
+    throw torrent::internal_error("ui::ElementMenu::disable(...) !is_active().");
 
   control->input()->erase(&m_bindings);
 

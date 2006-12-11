@@ -101,7 +101,7 @@ DownloadFactory::commit() {
 void
 DownloadFactory::receive_load() {
   if (m_stream)
-    throw torrent::client_error("DownloadFactory::load() called on an object with m_stream != NULL");
+    throw torrent::internal_error("DownloadFactory::load() called on an object with m_stream != NULL");
 
   if (std::strncmp(m_uri.c_str(), "http://", 7) == 0) {
     // Http handling here.
@@ -143,7 +143,7 @@ DownloadFactory::receive_commit() {
 void
 DownloadFactory::receive_success() {
   if (m_stream == NULL)
-    throw torrent::client_error("DownloadFactory::receive_success() called on an object with m_stream == NULL.");
+    throw torrent::internal_error("DownloadFactory::receive_success() called on an object with m_stream == NULL.");
 
   Download* download = m_manager->download_list()->create(m_stream, m_printLog);
 
@@ -252,7 +252,7 @@ DownloadFactory::receive_success() {
 void
 DownloadFactory::receive_failed(const std::string& msg) {
   if (m_stream == NULL)
-    throw torrent::client_error("DownloadFactory::receive_success() called on an object with m_stream == NULL");
+    throw torrent::internal_error("DownloadFactory::receive_success() called on an object with m_stream == NULL");
 
   // Add message to log.
   if (m_printLog) {

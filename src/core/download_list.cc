@@ -60,7 +60,7 @@ inline void
 DownloadList::check_contains(Download* d) {
 #ifdef USE_EXTRA_DEBUG
   if (std::find(begin(), end(), d) == end())
-    throw torrent::client_error("DownloadList::check_contains(...) failed.");
+    throw torrent::internal_error("DownloadList::check_contains(...) failed.");
 #endif
 }
 
@@ -128,7 +128,7 @@ DownloadList::insert(Download* download) {
   } catch (torrent::local_error& e) {
     // Should perhaps relax this, just print an error and remove the
     // downloads?
-    throw torrent::client_error("Caught during DownloadList::insert(...): " + std::string(e.what()));
+    throw torrent::internal_error("Caught during DownloadList::insert(...): " + std::string(e.what()));
   }
 
   return itr;
@@ -144,7 +144,7 @@ DownloadList::erase(Download* download) {
 DownloadList::iterator
 DownloadList::erase(iterator itr) {
   if (itr == end())
-    throw torrent::client_error("DownloadList::erase(...) could not find download.");
+    throw torrent::internal_error("DownloadList::erase(...) could not find download.");
 
   // Makes sure close doesn't restart hashing of this download.
   (*itr)->set_hash_failed(true);
@@ -223,7 +223,7 @@ DownloadList::close_throw(Download* download) {
   download->download()->close();
 
   if (!download->is_hash_failed() && download->variable()->get_value("hashing") != Download::variable_hashing_stopped)
-    throw torrent::client_error("DownloadList::close_throw(...) called but we're going into a hashing loop.");
+    throw torrent::internal_error("DownloadList::close_throw(...) called but we're going into a hashing loop.");
 
   std::for_each(slot_map_hash_removed().begin(), slot_map_hash_removed().end(), download_list_call(download));
   std::for_each(slot_map_close().begin(), slot_map_close().end(), download_list_call(download));
@@ -391,10 +391,10 @@ DownloadList::hash_done(Download* download) {
   check_contains(download);
 
   if (!download->is_open())
-    throw torrent::client_error("DownloadList::hash_done(...) !download->is_open().");
+    throw torrent::internal_error("DownloadList::hash_done(...) !download->is_open().");
 
   if (download->is_hash_checking() || download->is_active())
-    throw torrent::client_error("DownloadList::hash_done(...) download in invalid state.");
+    throw torrent::internal_error("DownloadList::hash_done(...) download in invalid state.");
 
   if (!download->is_hash_checked()) {
     download->set_hash_failed(true);
@@ -463,7 +463,7 @@ DownloadList::hash_queue(Download* download, int type) {
   check_contains(download);
 
   if (download->variable()->get_value("hashing") != Download::variable_hashing_stopped)
-    throw torrent::client_error("DownloadList::hash_queue(...) hashing already queued.");
+    throw torrent::internal_error("DownloadList::hash_queue(...) hashing already queued.");
 
   close_throw(download);
   torrent::resume_clear_progress(*download->download(), download->download()->bencode()->get_key("libtorrent_resume"));

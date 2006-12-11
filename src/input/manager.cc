@@ -56,7 +56,7 @@ Manager::erase(Bindings* b) {
   Base::erase(itr);
 
   if (std::find(begin(), end(), b) != end())
-    throw torrent::client_error("Manager::erase(...) found duplicate bindings.");
+    throw torrent::internal_error("Manager::erase(...) found duplicate bindings.");
 }
 
 void

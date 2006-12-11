@@ -56,7 +56,7 @@ ElementLogComplete::ElementLogComplete(core::Log* l) :
 void
 ElementLogComplete::activate(display::Frame* frame, bool focus) {
   if (is_active())
-    throw torrent::client_error("ui::ElementLogComplete::activate(...) is_active().");
+    throw torrent::internal_error("ui::ElementLogComplete::activate(...) is_active().");
 
   control->input()->push_back(&m_bindings);
 
@@ -70,7 +70,7 @@ ElementLogComplete::activate(display::Frame* frame, bool focus) {
 void
 ElementLogComplete::disable() {
   if (!is_active())
-    throw torrent::client_error("ui::ElementLogComplete::disable(...) !is_active().");
+    throw torrent::internal_error("ui::ElementLogComplete::disable(...) !is_active().");
 
   control->input()->erase(&m_bindings);
 

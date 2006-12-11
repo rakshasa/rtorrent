@@ -194,7 +194,7 @@ Root::adjust_up_throttle(int throttle) {
 void
 Root::enable_input(const std::string& title, input::TextInput* input) {
   if (m_windowInput->input() != NULL)
-    throw torrent::client_error("Root::enable_input(...) m_windowInput->input() != NULL.");
+    throw torrent::internal_error("Root::enable_input(...) m_windowInput->input() != NULL.");
 
   input->slot_dirty(sigc::mem_fun(m_windowInput, &WInput::mark_dirty));
 
@@ -215,7 +215,7 @@ Root::enable_input(const std::string& title, input::TextInput* input) {
 void
 Root::disable_input() {
   if (m_windowInput->input() == NULL)
-    throw torrent::client_error("Root::disable_input() m_windowInput->input() == NULL.");
+    throw torrent::internal_error("Root::disable_input() m_windowInput->input() == NULL.");
 
   m_windowInput->input()->slot_dirty(sigc::slot0<void>());
 

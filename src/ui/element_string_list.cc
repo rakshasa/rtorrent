@@ -53,7 +53,7 @@ ElementStringList::ElementStringList() :
 void
 ElementStringList::activate(display::Frame* frame, bool focus) {
   if (is_active())
-    throw torrent::client_error("ui::ElementStringList::activate(...) is_active().");
+    throw torrent::internal_error("ui::ElementStringList::activate(...) is_active().");
 
   control->input()->push_back(&m_bindings);
 
@@ -67,7 +67,7 @@ ElementStringList::activate(display::Frame* frame, bool focus) {
 void
 ElementStringList::disable() {
   if (!is_active())
-    throw torrent::client_error("ui::ElementStringList::disable(...) !is_active().");
+    throw torrent::internal_error("ui::ElementStringList::disable(...) !is_active().");
 
   control->input()->erase(&m_bindings);
 

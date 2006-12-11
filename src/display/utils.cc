@@ -81,7 +81,7 @@ print_hhmmss_local(char* first, char* last, time_t t) {
   
   if (u == NULL)
     //return "inv_time";
-    throw torrent::client_error("print_hhmmss_local(...) failed.");
+    throw torrent::internal_error("print_hhmmss_local(...) failed.");
 
   return print_buffer(first, last, "%2u:%02u:%02u", u->tm_hour, u->tm_min, u->tm_sec);
 }
@@ -100,7 +100,7 @@ print_ddmmyyyy(char* first, char* last, time_t t) {
   
   if (u == NULL)
     //return "inv_time";
-    throw torrent::client_error("print_ddmmyyyy(...) failed.");
+    throw torrent::internal_error("print_ddmmyyyy(...) failed.");
 
   return print_buffer(first, last, "%02u/%02u/%04u", u->tm_mday, (u->tm_mon + 1), (1900 + u->tm_year));
 }
@@ -165,7 +165,7 @@ print_download_info(char* first, char* last, core::Download* d) {
     first = print_buffer(first, last, "]");
 
   if (first > last)
-    throw torrent::client_error("print_download_info(...) wrote past end of the buffer.");
+    throw torrent::internal_error("print_download_info(...) wrote past end of the buffer.");
 
   return first;
 }
@@ -197,7 +197,7 @@ print_download_status(char* first, char* last, core::Download* d) {
   }
 
   if (first > last)
-    throw torrent::client_error("print_download_status(...) wrote past end of the buffer.");
+    throw torrent::internal_error("print_download_status(...) wrote past end of the buffer.");
 
   return first;
 }
@@ -266,7 +266,7 @@ print_status_info(char* first, char* last) {
   }
   
   if (first > last)
-    throw torrent::client_error("print_status_info(...) wrote past end of the buffer.");
+    throw torrent::internal_error("print_status_info(...) wrote past end of the buffer.");
 
   if (!rak::socket_address::cast_from(torrent::connection_manager()->bind_address())->is_address_any()) {
     first = print_buffer(first, last, " [Bind ");

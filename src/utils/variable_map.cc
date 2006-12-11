@@ -59,7 +59,7 @@ VariableMap::insert(const std::string& key, Variable* v) {
   iterator itr = base_type::find(key);
 
   if (itr != base_type::end())
-    throw torrent::client_error("VariableMap::insert(...) tried to insert an already existing key.");
+    throw torrent::internal_error("VariableMap::insert(...) tried to insert an already existing key.");
 
   base_type::insert(itr, value_type(key, v));
 }

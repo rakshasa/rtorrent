@@ -63,7 +63,7 @@ ElementChunksSeen::ElementChunksSeen(core::Download* d) :
 void
 ElementChunksSeen::activate(display::Frame* frame, bool focus) {
   if (is_active())
-    throw torrent::client_error("ui::ElementChunksSeen::activate(...) is_active().");
+    throw torrent::internal_error("ui::ElementChunksSeen::activate(...) is_active().");
 
   if (focus)
     control->input()->push_back(&m_bindings);
@@ -78,7 +78,7 @@ ElementChunksSeen::activate(display::Frame* frame, bool focus) {
 void
 ElementChunksSeen::disable() {
   if (!is_active())
-    throw torrent::client_error("ui::ElementChunksSeen::disable(...) !is_active().");
+    throw torrent::internal_error("ui::ElementChunksSeen::disable(...) !is_active().");
 
   control->input()->erase(&m_bindings);
 
@@ -110,7 +110,7 @@ ElementChunksSeen::window() {
 void
 ElementChunksSeen::receive_next() {
   if (m_window == NULL)
-    throw torrent::client_error("ui::ElementChunksSeen::receive_next(...) called on a disabled object");
+    throw torrent::internal_error("ui::ElementChunksSeen::receive_next(...) called on a disabled object");
 
   if (++m_focus > m_window->max_focus())
     m_focus = 0;
@@ -121,7 +121,7 @@ ElementChunksSeen::receive_next() {
 void
 ElementChunksSeen::receive_prev() {
   if (m_window == NULL)
-    throw torrent::client_error("ui::ElementChunksSeen::receive_prev(...) called on a disabled object");
+    throw torrent::internal_error("ui::ElementChunksSeen::receive_prev(...) called on a disabled object");
 
   if (m_focus > 0)
     --m_focus;
@@ -134,7 +134,7 @@ ElementChunksSeen::receive_prev() {
 void
 ElementChunksSeen::receive_pagenext() {
   if (m_window == NULL)
-    throw torrent::client_error("ui::ElementChunksSeen::receive_pagenext(...) called on a disabled object");
+    throw torrent::internal_error("ui::ElementChunksSeen::receive_pagenext(...) called on a disabled object");
 
   unsigned int visible = m_window->height() - 1;
   unsigned int scrollable = std::max<int>(m_window->rows() - visible, 0);
@@ -152,7 +152,7 @@ ElementChunksSeen::receive_pagenext() {
 void
 ElementChunksSeen::receive_pageprev() {
   if (m_window == NULL)
-    throw torrent::client_error("ui::ElementChunksSeen::receive_pageprev(...) called on a disabled object");
+    throw torrent::internal_error("ui::ElementChunksSeen::receive_pageprev(...) called on a disabled object");
 
   unsigned int visible = m_window->height() - 1;
   unsigned int scrollable = std::max<int>(m_window->rows() - visible, 0);
