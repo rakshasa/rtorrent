@@ -107,7 +107,7 @@ receive_tracker_dump(const std::string& url, const char* data, size_t size) {
 }
 
 void
-Manager::handshake_log(const sockaddr* sa, torrent::ConnectionManager::HandshakeMessage msg, int err, const torrent::HashString* hash) {
+Manager::handshake_log(const sockaddr* sa, int msg, int err, const torrent::HashString* hash) {
   if (!control->variable()->get_value("handshake_log"))
     return;
   
