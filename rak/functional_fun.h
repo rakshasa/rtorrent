@@ -210,6 +210,22 @@ private:
   const Arg1 m_arg1;
 };
 
+template <typename Object, typename Result, typename Arg1, typename Arg2>
+class mem_fn1_b2_t : public function_base1<Result, Arg1> {
+public:
+  typedef Result (Object::*Func)(Arg1, Arg2);
+
+  mem_fn1_b2_t(Object* object, Func func, const Arg2 arg2) : m_object(object), m_func(func), m_arg2(arg2) {}
+  virtual ~mem_fn1_b2_t() {}
+  
+  virtual Result operator () (const Arg1 arg1) { return (m_object->*m_func)(arg1, m_arg2); }
+
+private:
+  Object*    m_object;
+  Func       m_func;
+  const Arg2 m_arg2;
+};
+
 template <typename Result, typename Arg1>
 class ptr_fn0_b1_t : public function_base0<Result> {
 public:
@@ -323,6 +339,12 @@ template <typename Arg1, typename Result, typename Object>
 inline function_base0<Result>*
 bind_mem_fn(Object* object, Result (Object::*func)(Arg1), const Arg1 arg1) {
   return new mem_fn0_b1_t<Object, Result, Arg1>(object, func, arg1);
+}
+
+template <typename Arg1, typename Arg2, typename Result, typename Object>
+inline function_base1<Result, Arg1>*
+bind2_mem_fn(Object* object, Result (Object::*func)(Arg1, Arg2), const Arg2 arg2) {
+  return new mem_fn1_b2_t<Object, Result, Arg1, Arg2>(object, func, arg2);
 }
 
 template <typename Arg1, typename Result>

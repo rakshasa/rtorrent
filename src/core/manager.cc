@@ -503,7 +503,9 @@ Manager::receive_hashing_changed() {
       if ((*itr)->is_hash_checked())
         throw torrent::internal_error("core::Manager::receive_hashing_changed() hash already checked or checking.");
   
-      if ((*itr)->is_hash_failed() || (*itr)->variable()->get_value("hashing") != Download::variable_hashing_initial)
+      if ((*itr)->is_hash_failed() ||
+          (*itr)->variable()->get_value("hashing") != Download::variable_hashing_initial ||
+          (*itr)->download()->chunks_hashed() != 0)
         continue;
 
       m_downloadList->open_throw(*itr);

@@ -46,25 +46,28 @@ namespace rak {
 template <typename Type>
 class ranges : private std::vector<std::pair<Type, Type> > {
 public:
-  typedef std::vector<std::pair<Type, Type> > Base;
-  typedef typename Base::value_type           value_type;
-  typedef typename Base::reference            reference;
-  typedef typename Base::iterator             iterator;
-  typedef typename Base::const_iterator       const_iterator;
-  typedef typename Base::reverse_iterator     reverse_iterator;
+  typedef std::vector<std::pair<Type, Type> >  base_type;
+  typedef typename base_type::value_type       value_type;
+  typedef typename base_type::reference        reference;
+  typedef typename base_type::iterator         iterator;
+  typedef typename base_type::const_iterator   const_iterator;
+  typedef typename base_type::reverse_iterator reverse_iterator;
 
-  using Base::clear;
-  using Base::size;
-  using Base::begin;
-  using Base::end;
-  using Base::rbegin;
-  using Base::rend;
+  using base_type::clear;
+  using base_type::size;
+  using base_type::begin;
+  using base_type::end;
+  using base_type::rbegin;
+  using base_type::rend;
+
+  using base_type::front;
+  using base_type::back;
 
   void                insert(Type first, Type last) { insert(std::make_pair(first, last)); }
-//   void                erase(Type first, Type last)  { erase(std::make_pair(first, last)); }
+  void                erase(Type first, Type last)  { erase(std::make_pair(first, last)); }
 
   void                insert(value_type r);
-//   void                erase(value_type r);
+  void                erase(value_type r);
 
   // Find the first ranges that has an end greater than index.
   iterator            find(Type index);
@@ -72,9 +75,6 @@ public:
 
   // Use find with no closest match.
   bool                has(Type index) const;
-
-private:
-  void                unify(iterator itr);
 };
 
 template <typename Type>
@@ -88,20 +88,54 @@ ranges<Type>::insert(value_type r) {
   if (first == end() || r.second < first->first) {
     // The new range is before the first, after the last or between
     // two ranges.
-    Base::insert(first, r);
-    return;
-  }
-  
-  first->first = std::min(r.first, first->first);
-  first->second = std::max(r.second, first->second);
+    base_type::insert(first, r);
 
-  unify(first);
+  } else {
+    first->first = std::min(r.first, first->first);
+    first->second = std::max(r.second, first->second);
+
+    iterator last = std::find_if(first, end(), rak::less(first->second, rak::const_mem_ref(&value_type::second)));
+
+    if (last != end() && first->second >= last->first)
+      first->second = (last++)->second;
+
+    base_type::erase(first + 1, last);
+  }
 }
 
-// template <typename Type>
-// void
-// ranges<Type>::erase(value_type r) {
-// }
+template <typename Type>
+void
+ranges<Type>::erase(value_type r) {
+  if (r.first >= r.second)
+    return;
+
+  iterator first = std::find_if(begin(), end(), rak::less(r.first, rak::const_mem_ref(&value_type::second)));
+  iterator last  = std::find_if(first, end(), rak::less(r.second, rak::const_mem_ref(&value_type::second)));
+
+  if (first == end())
+    return;
+
+  if (first == last) {
+
+    if (r.first > first->first) {
+      std::swap(first->first, r.second);
+      base_type::insert(first, value_type(r.second, r.first));
+
+    } else if (r.second > first->first) {
+      first->first = r.second;
+    }
+
+  } else {
+
+    if (r.first > first->first)
+      (first++)->second = r.first;
+    
+    if (last != end() && r.second > last->first)
+      last->first = r.second;
+
+    base_type::erase(first, last);
+  }
+}
 
 // Find the first ranges that has an end greater than index.
 template <typename Type>
@@ -118,20 +152,11 @@ ranges<Type>::find(Type index) const {
 
 // Use find with no closest match.
 template <typename Type>
-inline bool
+bool
 ranges<Type>::has(Type index) const {
   const_iterator itr = find(index);
 
   return itr != end() && index >= itr->first;
-}
-
-template <typename Type>
-inline void
-ranges<Type>::unify(iterator first) {
-  iterator last = std::find_if((first + 1), end(), rak::less(first->second, rak::const_mem_ref(&value_type::first)));
-
-  first->second = std::max(first->second, (last - 1)->second);
-  Base::erase((first + 1), last);
 }
 
 }
