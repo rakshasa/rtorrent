@@ -95,9 +95,16 @@ DownloadList::create(std::istream* str, bool printLog) {
   try {
     *str >> *object;
     
-    // Catch, delete.
-    if (str->fail())
-      throw torrent::input_error("Could not create download, the input is not a valid torrent.");
+    // Don't throw input_error from here as gcc-3.3.5 produces bad
+    // code.
+    if (str->fail()) {
+      delete object;
+
+      if (printLog)
+        control->core()->push_log("Could not create download, the input is not a valid torrent.");
+
+      return NULL;
+    }
 
     download = torrent::download_add(object);
 
@@ -389,9 +396,6 @@ DownloadList::check_hash(Download* download) {
 void
 DownloadList::hash_done(Download* download) {
   check_contains(download);
-
-  if (!download->is_open())
-    throw torrent::internal_error("DownloadList::hash_done(...) !download->is_open().");
 
   if (download->is_hash_checking() || download->is_active())
     throw torrent::internal_error("DownloadList::hash_done(...) download in invalid state.");
