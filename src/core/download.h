@@ -37,15 +37,17 @@
 #ifndef RTORRENT_CORE_DOWNLOAD_H
 #define RTORRENT_CORE_DOWNLOAD_H
 
-#include <rak/string_manip.h>
 #include <sigc++/connection.h>
 #include <torrent/download.h>
 #include <torrent/hash_string.h>
 #include <torrent/tracker_list.h>
-#include <torrent/torrent.h>
 #include <torrent/data/file_list.h>
 
 #include "utils/variable_map.h"
+
+namespace torrent {
+  class TrackerList;
+}
 
 namespace core {
 

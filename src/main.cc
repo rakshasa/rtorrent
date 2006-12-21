@@ -36,6 +36,7 @@
 
 #include "config.h"
 
+#include <cstdlib>
 #include <iostream>
 #include <string>
 #include <sigc++/bind.h>
@@ -298,7 +299,7 @@ do_panic(int signum) {
   if (signum == SIGBUS)
     std::cout << "A bus error propably means you ran out of diskspace." << std::endl;
 
-  exit(-1);
+  std::abort();
 }
 
 void

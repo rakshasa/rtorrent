@@ -40,6 +40,7 @@
 #include <rak/functional.h>
 #include <rak/socket_address.h>
 #include <torrent/bitfield.h>
+#include <torrent/torrent.h>
 
 #include "core/download.h"
 

@@ -44,6 +44,7 @@
 #include <torrent/exceptions.h>
 #include <torrent/connection_manager.h>
 #include <torrent/rate.h>
+#include <torrent/torrent.h>
 #include <torrent/tracker.h>
 #include <torrent/tracker_list.h>
 #include <torrent/data/file_list.h>

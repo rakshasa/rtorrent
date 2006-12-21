@@ -135,11 +135,12 @@ WindowFileList::redraw() {
                     done_percentage(e),
                     e->path()->encoding().c_str());
 
-    m_canvas->print(84, pos, "%i - %i %c%c",
+    m_canvas->print(84, pos, "%i - %i %c%c %u",
                     e->range().first,
                     e->range().first != e->range().second ? (e->range().second - 1) : e->range().second,
                     e->is_created() ? 'E' : 'M',
-                    e->is_correct_size() ? 'C' : 'W');
+                    e->is_correct_size() ? 'C' : 'W',
+                    e->path_match_depth());
 
     ++range.first;
     ++pos;
