@@ -56,7 +56,7 @@ public:
   unsigned int     rows() const;
   unsigned int     chunks_per_row() const   { return (width() - 6) / 11 * 10; }
 
-  unsigned int     max_focus() const        { return std::max<int>(rows() - height() + 1, 0); }
+  unsigned int     max_focus() const        { return std::max<int>(rows() - height() / 2 + 1, 0); }
 
 private:
   core::Download*  m_download;

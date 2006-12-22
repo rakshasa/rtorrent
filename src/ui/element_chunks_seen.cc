@@ -54,8 +54,8 @@ ElementChunksSeen::ElementChunksSeen(core::Download* d) :
 
   m_bindings[KEY_LEFT] = m_bindings['B' - '@'] = sigc::mem_fun(&m_slotExit, &slot_type::operator());
 
-  m_bindings[KEY_DOWN]  = sigc::mem_fun(*this, &ElementChunksSeen::receive_next);
-  m_bindings[KEY_UP]    = sigc::mem_fun(*this, &ElementChunksSeen::receive_prev);
+  m_bindings[KEY_DOWN]  = m_bindings['N' - '@'] = sigc::mem_fun(*this, &ElementChunksSeen::receive_next);
+  m_bindings[KEY_UP]    = m_bindings['P' - '@'] = sigc::mem_fun(*this, &ElementChunksSeen::receive_prev);
   m_bindings[KEY_NPAGE] = sigc::mem_fun(*this, &ElementChunksSeen::receive_pagenext);
   m_bindings[KEY_PPAGE] = sigc::mem_fun(*this, &ElementChunksSeen::receive_pageprev);
 }
@@ -137,14 +137,14 @@ ElementChunksSeen::receive_pagenext() {
     throw torrent::internal_error("ui::ElementChunksSeen::receive_pagenext(...) called on a disabled object");
 
   unsigned int visible = m_window->height() - 1;
-  unsigned int scrollable = std::max<int>(m_window->rows() - visible, 0);
+  unsigned int maxFocus = m_window->max_focus();
 
-  if (scrollable == 0 || m_focus == scrollable)
+  if (maxFocus == 0 || m_focus == maxFocus)
     m_focus = 0;
-  else if (m_focus + visible / 2 < scrollable)
+  else if (m_focus + visible / 2 < maxFocus)
     m_focus += visible / 2;
   else 
-    m_focus = scrollable;
+    m_focus = maxFocus;
 
   m_window->mark_dirty();
 }
@@ -155,12 +155,12 @@ ElementChunksSeen::receive_pageprev() {
     throw torrent::internal_error("ui::ElementChunksSeen::receive_pageprev(...) called on a disabled object");
 
   unsigned int visible = m_window->height() - 1;
-  unsigned int scrollable = std::max<int>(m_window->rows() - visible, 0);
+  unsigned int maxFocus = m_window->max_focus();
 
   if (m_focus > visible / 2)
     m_focus -= visible / 2;
-  else if (scrollable > 0 && m_focus == 0)
-    m_focus = scrollable;
+  else if (maxFocus > 0 && m_focus == 0)
+    m_focus = maxFocus;
   else
     m_focus = 0;
 

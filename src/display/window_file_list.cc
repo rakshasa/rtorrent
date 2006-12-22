@@ -71,6 +71,72 @@ hack_wstring(const std::string& src) {
 }
 */
 
+// A special purpose iterator class for iterating through FileList as
+// a dired structure.
+class file_path_iterator {
+public:
+  typedef torrent::FileList::iterator iterator;
+  typedef torrent::File&              reference;
+  typedef torrent::File*              pointer;
+
+  file_path_iterator() {}
+  explicit file_path_iterator(iterator pos, uint32_t depth = 0) : m_position(pos), m_depth(depth) {}
+
+  bool                is_file() const  { return m_depth >= 0 && m_depth + 1 == (int32_t)(*m_position)->path()->size(); }
+  bool                is_empty() const { return (*m_position)->path()->size() == 0; }
+
+  bool                is_entering() const { return m_depth >= 0 && m_depth + 1 != (int32_t)(*m_position)->path()->size(); }
+  bool                is_leaving() const  { return m_depth < 0; }
+
+  uint32_t            depth() const       { return std::abs(m_depth); }
+
+  iterator            base() const { return m_position; }
+
+  reference           operator *() const  { return **m_position; }
+  pointer             operator ->() const { return *m_position; }
+  
+  file_path_iterator  operator ++();
+
+  friend bool         operator == (const file_path_iterator& left, const file_path_iterator& right);
+  friend bool         operator != (const file_path_iterator& left, const file_path_iterator& right);
+
+private:
+  iterator            m_position;
+  int32_t             m_depth;
+};
+
+file_path_iterator
+file_path_iterator::operator ++() {
+  int32_t sizePath = (*m_position)->path()->size();
+
+  if (sizePath == 0) {
+    m_position++;
+    return *this;
+  }
+
+  m_depth++;
+  
+  if (m_depth == sizePath)
+    m_depth = -m_depth + 1;
+
+  if (-m_depth == (int32_t)(*m_position)->match_depth_next()) {
+    m_depth = -m_depth;
+    m_position++;
+  }
+
+  return *this;
+}
+
+bool
+operator == (const file_path_iterator& left, const file_path_iterator& right) {
+  return left.m_position == right.m_position && left.m_depth == right.m_depth;
+}
+
+bool
+operator != (const file_path_iterator& left, const file_path_iterator& right) {
+  return left.m_position != right.m_position || left.m_depth != right.m_depth;
+}
+
 void
 WindowFileList::redraw() {
   m_slotSchedule(this, (cachedTime + rak::timer::from_seconds(10)).round_seconds());
@@ -81,7 +147,7 @@ WindowFileList::redraw() {
   if (fl->size_files() == 0 || m_canvas->height() < 2)
     return;
 
-  int pos = 0;
+  unsigned int pos = 0;
 
   m_canvas->print( 2, pos, "File");
   m_canvas->print(55, pos, "Size");
@@ -95,57 +161,69 @@ WindowFileList::redraw() {
   if (*m_focus >= fl->size_files())
     throw std::logic_error("WindowFileList::redraw() called on an object with a bad focus value");
 
-  Range range = rak::advance_bidirectional<unsigned int>(0, *m_focus, fl->size_files(), m_canvas->height() - pos);
+  std::pair<unsigned int, unsigned int> range = rak::advance_bidirectional<unsigned int>(0, *m_focus, fl->size_files(), m_canvas->height() - pos);
 
-  while (range.first != range.second) {
-    torrent::File* e = *(fl->begin() + range.first);
+  file_path_iterator first(fl->begin() + range.first, (*(fl->begin() + range.first))->match_depth_prev());
+  file_path_iterator last(fl->end());
 
-    std::string path = e->path()->as_string();
+  while (pos != m_canvas->height() && first != last) {
+    if (first.is_empty()) {
+      m_canvas->print(0, pos, "EMPTY");
 
-    if (path.length() <= 50)
-      path = path + std::string(50 - path.length(), ' ');
-    else
-      path = path.substr(0, 50);
+    } else if (first.is_entering()) {
+      m_canvas->print(first.depth(), pos, "\\ %s", 
+                      first.depth() < first->path()->size() ? first->path()->at(first.depth()).c_str() : "UNKNOWN");
 
-    std::string priority;
+    } else if (first.is_leaving()) {
+      m_canvas->print(first.depth(), pos, "/");
 
-    switch (e->priority()) {
-    case torrent::PRIORITY_OFF:
-      priority = "off";
-      break;
+    } else if (first.is_file()) {
+      torrent::File* e = &*first;
 
-    case torrent::PRIORITY_NORMAL:
-      priority = "   ";
-      break;
+      std::string priority;
 
-    case torrent::PRIORITY_HIGH:
-      priority = "hig";
-      break;
+      switch (e->priority()) {
+      case torrent::PRIORITY_OFF:
+        priority = "off";
+        break;
 
-    default:
-      priority = "BUG";
-      break;
-    };
+      case torrent::PRIORITY_NORMAL:
+        priority = "   ";
+        break;
 
-    m_canvas->print(0, pos, "%c %s  %6.1f   %s   %3d  %9s",
-                    range.first == *m_focus ? '*' : ' ',
-                    path.c_str(),
-                    (double)e->size_bytes() / (double)(1 << 20),
-                    priority.c_str(),
-                    done_percentage(e),
-                    e->path()->encoding().c_str());
+      case torrent::PRIORITY_HIGH:
+        priority = "hig";
+        break;
 
-    m_canvas->print(84, pos, "%i - %i %c%c %u",
-                    e->range().first,
-                    e->range().first != e->range().second ? (e->range().second - 1) : e->range().second,
-                    e->is_created() ? 'E' : 'M',
-                    e->is_correct_size() ? 'C' : 'W',
-                    e->path_match_depth());
+      default:
+        priority = "BUG";
+        break;
+      };
 
-    ++range.first;
+      m_canvas->print(first.depth(), pos, "| %s",
+                      first.depth() < first->path()->size() ? first->path()->at(first.depth()).c_str() : "UNKNOWN");
+
+      //  %6.1f   %s   %3d  %9s",
+      //                       (double)e->size_bytes() / (double)(1 << 20),
+      //                       priority.c_str(),
+      //                       done_percentage(e),
+      //                       e->path()->encoding().c_str());
+
+      m_canvas->print(104, pos, "%i - %i %c%c %u %u",
+                      e->range().first,
+                      e->range().first != e->range().second ? (e->range().second - 1) : e->range().second,
+                      e->is_created() ? 'E' : 'M',
+                      e->is_correct_size() ? 'C' : 'W',
+                      e->match_depth_prev(),
+                      e->match_depth_next());
+
+    } else {
+      m_canvas->print(0, pos, "BORK BORK");
+    }
+
+    ++first;
     ++pos;
   }
-
 }
 
 int
