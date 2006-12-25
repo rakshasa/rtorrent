@@ -36,6 +36,7 @@
 
 #include "config.h"
 
+#include <rak/algorithm.h>
 #include <torrent/exceptions.h>
 #include <torrent/data/file.h>
 #include <torrent/data/file_list.h>
@@ -53,7 +54,7 @@ namespace ui {
 ElementFileList::ElementFileList(core::Download* d) :
   m_download(d),
   m_window(NULL),
-  m_focus(0) {
+  m_focus(iterator(d->download()->file_list()->begin())) {
 
   m_bindings[KEY_LEFT] = m_bindings['B' - '@'] = sigc::mem_fun(&m_slotExit, &slot_type::operator());
 
@@ -104,47 +105,38 @@ ElementFileList::window() {
 
 void
 ElementFileList::receive_next() {
-  if (m_window == NULL)
-    throw torrent::internal_error("ui::ElementFileList::receive_next(...) called on a disabled object");
+  torrent::FileList* fl = m_download->download()->file_list();
 
-  if (++m_focus >= m_download->download()->file_list()->size_files())
-    m_focus = 0;
+  if (m_focus == iterator(fl->end()) || ++m_focus == iterator(fl->end()))
+    m_focus = iterator(fl->begin());
 
   m_window->mark_dirty();
 }
 
 void
 ElementFileList::receive_prev() {
-  if (m_window == NULL)
-    throw torrent::internal_error("ui::ElementFileList::receive_prev(...) called on a disabled object");
-
   torrent::FileList* fl = m_download->download()->file_list();
 
-  if (fl->size_files() == 0)
-    return;
+  if (m_focus == iterator(fl->begin()))
+    m_focus = iterator(fl->end());
 
-  if (m_focus != 0)
-    --m_focus;
-  else 
-    m_focus = fl->size_files() - 1;
-
+  m_focus--;
   m_window->mark_dirty();
 }
 
 void
 ElementFileList::receive_pagenext() {
-  if (m_window == NULL)
-    throw torrent::internal_error("ui::ElementFileList::receive_pagenext(...) called on a disabled object");
-
-  unsigned int count = (m_window->height() - 1) / 2;
   torrent::FileList* fl = m_download->download()->file_list();
 
-  if (m_focus + count < fl->size_files())
-    m_focus += count;
-  else if (m_focus == fl->size_files() - 1)
-    m_focus = 0;
-  else 
-    m_focus = fl->size_files() - 1;
+  if (m_focus == --iterator(fl->end())) {
+    m_focus = iterator(fl->begin());
+
+  } else {
+    m_focus = rak::advance_forward(m_focus, iterator(fl->end()), (m_window->height() - 1) / 2);
+
+    if (m_focus == iterator(fl->end()))
+      m_focus = --iterator(fl->end());
+  }
 
   m_window->mark_dirty();
 }
@@ -156,17 +148,10 @@ ElementFileList::receive_pageprev() {
 
   torrent::FileList* fl = m_download->download()->file_list();
 
-  if (fl->size_files() == 0)
-    return;
-
-  unsigned int count = (m_window->height() - 1) / 2;
-
-  if (m_focus > count)
-    m_focus -= count;
-  else if (m_focus == 0)
-    m_focus = fl->size_files() - 1;
+  if (m_focus == iterator(fl->begin()))
+    m_focus = --iterator(fl->end());
   else
-    m_focus = 0;
+    m_focus = rak::advance_backward(m_focus, iterator(fl->begin()), (m_window->height() - 1) / 2);
 
   m_window->mark_dirty();
 }
@@ -176,14 +161,16 @@ ElementFileList::receive_priority() {
   if (m_window == NULL)
     throw torrent::internal_error("ui::ElementFileList::receive_prev(...) called on a disabled object");
 
-  torrent::FileList* fl = m_download->download()->file_list();
+  // Fix priorities.
 
-  if (m_focus >= fl->size_files())
-    return;
+//   torrent::FileList* fl = m_download->download()->file_list();
 
-  torrent::File* file = *(fl->begin() + m_focus);
+//   if (m_focus >= fl->size_files())
+//     return;
 
-  file->set_priority(next_priority(file->priority()));
+//   torrent::File* file = *(fl->begin() + m_focus);
+
+//   file->set_priority(next_priority(file->priority()));
 
   m_download->download()->update_priorities();
   m_window->mark_dirty();
@@ -194,15 +181,15 @@ ElementFileList::receive_change_all() {
   if (m_window == NULL)
     throw torrent::internal_error("ui::ElementFileList::receive_prev(...) called on a disabled object");
 
-  torrent::FileList* fl = m_download->download()->file_list();
+//   torrent::FileList* fl = m_download->download()->file_list();
 
-  if (m_focus >= fl->size_files())
-    return;
+//   if (m_focus >= fl->size_files())
+//     return;
 
-  Priority p = next_priority((*(fl->begin() + m_focus))->priority());
+//   Priority p = next_priority((*(fl->begin() + m_focus))->priority());
 
-  for (torrent::FileList::iterator itr = fl->begin(), last = fl->end(); itr != last; ++itr)
-    (*itr)->set_priority(p);
+//   for (torrent::FileList::iterator itr = fl->begin(), last = fl->end(); itr != last; ++itr)
+//     (*itr)->set_priority(p);
 
   m_download->download()->update_priorities();
   m_window->mark_dirty();

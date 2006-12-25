@@ -91,6 +91,28 @@ advance_bidirectional(_InputIter __first, _InputIter __middle1, _InputIter __las
   return std::make_pair(__middle1, __middle2);
 }
 
+template <typename _InputIter, typename _Distance>
+_InputIter
+advance_forward(_InputIter __first, _InputIter __last, _Distance __distance) {
+  while (__first != __last && __distance != 0) {
+    __first++;
+    __distance--;
+  }
+
+  return __first;
+}
+
+template <typename _InputIter, typename _Distance>
+_InputIter
+advance_backward(_InputIter __first, _InputIter __last, _Distance __distance) {
+  while (__first != __last && __distance != 0) {
+    __first--;
+    __distance--;
+  }
+
+  return __first;
+}
+
 template <typename _Value>
 struct compare_base : public std::binary_function<_Value, _Value, bool> {
   bool operator () (const _Value& complete, const _Value& base) const {
@@ -132,6 +154,8 @@ make_base(_InputIter __first, _InputIter __last) {
 
   return __base;
 }
+
+
 
 }
 

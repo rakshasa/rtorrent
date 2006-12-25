@@ -38,6 +38,7 @@
 #define RTORRENT_UI_ELEMENT_FILE_LIST_H
 
 #include <torrent/common.h>
+#include <torrent/data/file_list_iterator.h>
 
 #include "core/download.h"
 
@@ -55,6 +56,8 @@ class ElementFileList : public ElementBase {
 public:
   typedef torrent::priority_t Priority;
   typedef display::WindowFileList  WFileList;
+
+  typedef torrent::FileListIterator iterator;
 
   ElementFileList(core::Download* d);
 
@@ -78,7 +81,7 @@ private:
   WFileList*          m_window;
   
   // Change to unsigned, please.
-  unsigned int        m_focus;
+  iterator            m_focus;
 };
 
 }

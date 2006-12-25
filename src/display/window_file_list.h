@@ -43,6 +43,7 @@
 
 namespace torrent {
   class File;
+  class FileListIterator;
 }
 
 namespace core {
@@ -53,16 +54,17 @@ namespace display {
 
 class WindowFileList : public Window {
 public:
-  WindowFileList(core::Download* d, unsigned int* focus);
+  typedef torrent::FileListIterator iterator;
 
-  virtual void     redraw();
+  WindowFileList(core::Download* d, iterator* focus);
+
+  virtual void        redraw();
 
 private:
-  int              done_percentage(torrent::File* e);
+  int                 done_percentage(torrent::File* e);
 
-  core::Download*  m_download;
-
-  unsigned int*    m_focus;
+  core::Download*     m_download;
+  iterator*           m_focus;
 };
 
 }

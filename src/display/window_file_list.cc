@@ -41,6 +41,7 @@
 #include <torrent/path.h>
 #include <torrent/data/file.h>
 #include <torrent/data/file_list.h>
+#include <torrent/data/file_list_iterator.h>
 
 #include "core/download.h"
 
@@ -48,7 +49,7 @@
 
 namespace display {
 
-WindowFileList::WindowFileList(core::Download* d, unsigned int* focus) :
+WindowFileList::WindowFileList(core::Download* d, iterator* focus) :
   Window(new Canvas, 0, 0, 0, extent_full, extent_full),
   m_download(d),
   m_focus(focus) {
@@ -71,72 +72,6 @@ hack_wstring(const std::string& src) {
 }
 */
 
-// A special purpose iterator class for iterating through FileList as
-// a dired structure.
-class file_path_iterator {
-public:
-  typedef torrent::FileList::iterator iterator;
-  typedef torrent::File&              reference;
-  typedef torrent::File*              pointer;
-
-  file_path_iterator() {}
-  explicit file_path_iterator(iterator pos, uint32_t depth = 0) : m_position(pos), m_depth(depth) {}
-
-  bool                is_file() const  { return m_depth >= 0 && m_depth + 1 == (int32_t)(*m_position)->path()->size(); }
-  bool                is_empty() const { return (*m_position)->path()->size() == 0; }
-
-  bool                is_entering() const { return m_depth >= 0 && m_depth + 1 != (int32_t)(*m_position)->path()->size(); }
-  bool                is_leaving() const  { return m_depth < 0; }
-
-  uint32_t            depth() const       { return std::abs(m_depth); }
-
-  iterator            base() const { return m_position; }
-
-  reference           operator *() const  { return **m_position; }
-  pointer             operator ->() const { return *m_position; }
-  
-  file_path_iterator  operator ++();
-
-  friend bool         operator == (const file_path_iterator& left, const file_path_iterator& right);
-  friend bool         operator != (const file_path_iterator& left, const file_path_iterator& right);
-
-private:
-  iterator            m_position;
-  int32_t             m_depth;
-};
-
-file_path_iterator
-file_path_iterator::operator ++() {
-  int32_t sizePath = (*m_position)->path()->size();
-
-  if (sizePath == 0) {
-    m_position++;
-    return *this;
-  }
-
-  m_depth++;
-  
-  if (m_depth == sizePath)
-    m_depth = -m_depth + 1;
-
-  if (-m_depth == (int32_t)(*m_position)->match_depth_next()) {
-    m_depth = -m_depth;
-    m_position++;
-  }
-
-  return *this;
-}
-
-bool
-operator == (const file_path_iterator& left, const file_path_iterator& right) {
-  return left.m_position == right.m_position && left.m_depth == right.m_depth;
-}
-
-bool
-operator != (const file_path_iterator& left, const file_path_iterator& right) {
-  return left.m_position != right.m_position || left.m_depth != right.m_depth;
-}
-
 void
 WindowFileList::redraw() {
   m_slotSchedule(this, (cachedTime + rak::timer::from_seconds(10)).round_seconds());
@@ -158,27 +93,30 @@ WindowFileList::redraw() {
 
   ++pos;
 
-  if (*m_focus >= fl->size_files())
-    throw std::logic_error("WindowFileList::redraw() called on an object with a bad focus value");
+//   if (m_focus->first >= fl->size_files() || m_focus->second >= (*(fl->begin() + m_focus->first))->path()->size())
+//     throw torrent::internal_error("WindowFileList::redraw() called on an object with a bad focus value.");
 
-  std::pair<unsigned int, unsigned int> range = rak::advance_bidirectional<unsigned int>(0, *m_focus, fl->size_files(), m_canvas->height() - pos);
+//   std::pair<unsigned int, unsigned int> range = rak::advance_bidirectional<unsigned int>(0, *m_focus, fl->size_files(), m_canvas->height() - pos);
 
-  file_path_iterator first(fl->begin() + range.first, (*(fl->begin() + range.first))->match_depth_prev());
-  file_path_iterator last(fl->end());
+//   iterator first(fl->begin() + range.first, (*(fl->begin() + range.first))->match_depth_prev());
+//   iterator last(fl->end());
 
-  while (pos != m_canvas->height() && first != last) {
-    if (first.is_empty()) {
+  std::pair<iterator, iterator> range =
+    rak::advance_bidirectional<iterator>(iterator(fl->begin()), *m_focus, iterator(fl->end()), m_canvas->height() - pos);
+
+  while (pos != m_canvas->height() && range.first != range.second) {
+    if (range.first.is_empty()) {
       m_canvas->print(0, pos, "EMPTY");
 
-    } else if (first.is_entering()) {
-      m_canvas->print(first.depth(), pos, "\\ %s", 
-                      first.depth() < first->path()->size() ? first->path()->at(first.depth()).c_str() : "UNKNOWN");
+    } else if (range.first.is_entering()) {
+      m_canvas->print(range.first.depth(), pos, "\\ %s", 
+                      range.first.depth() < (*range.first)->path()->size() ? (*range.first)->path()->at(range.first.depth()).c_str() : "UNKNOWN");
 
-    } else if (first.is_leaving()) {
-      m_canvas->print(first.depth(), pos, "/");
+    } else if (range.first.is_leaving()) {
+      m_canvas->print(range.first.depth(), pos, "/");
 
-    } else if (first.is_file()) {
-      torrent::File* e = &*first;
+    } else if (range.first.is_file()) {
+      torrent::File* e = *range.first;
 
       std::string priority;
 
@@ -200,8 +138,8 @@ WindowFileList::redraw() {
         break;
       };
 
-      m_canvas->print(first.depth(), pos, "| %s",
-                      first.depth() < first->path()->size() ? first->path()->at(first.depth()).c_str() : "UNKNOWN");
+      m_canvas->print(range.first.depth(), pos, "| %s",
+                      range.first.depth() < (*range.first)->path()->size() ? (*range.first)->path()->at(range.first.depth()).c_str() : "UNKNOWN");
 
       //  %6.1f   %s   %3d  %9s",
       //                       (double)e->size_bytes() / (double)(1 << 20),
@@ -221,7 +159,7 @@ WindowFileList::redraw() {
       m_canvas->print(0, pos, "BORK BORK");
     }
 
-    ++first;
+    ++range.first;
     ++pos;
   }
 }
