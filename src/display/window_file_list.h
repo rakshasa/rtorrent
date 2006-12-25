@@ -56,7 +56,7 @@ class WindowFileList : public Window {
 public:
   typedef torrent::FileListIterator iterator;
 
-  WindowFileList(core::Download* d, iterator* focus);
+  WindowFileList(core::Download* d, iterator* selected);
 
   virtual void        redraw();
 
@@ -64,7 +64,7 @@ private:
   int                 done_percentage(torrent::File* e);
 
   core::Download*     m_download;
-  iterator*           m_focus;
+  iterator*           m_selected;
 };
 
 }

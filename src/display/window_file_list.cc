@@ -49,10 +49,10 @@
 
 namespace display {
 
-WindowFileList::WindowFileList(core::Download* d, iterator* focus) :
+WindowFileList::WindowFileList(core::Download* d, iterator* selected) :
   Window(new Canvas, 0, 0, 0, extent_full, extent_full),
   m_download(d),
-  m_focus(focus) {
+  m_selected(selected) {
 }
 
 /*
@@ -93,30 +93,21 @@ WindowFileList::redraw() {
 
   ++pos;
 
-//   if (m_focus->first >= fl->size_files() || m_focus->second >= (*(fl->begin() + m_focus->first))->path()->size())
-//     throw torrent::internal_error("WindowFileList::redraw() called on an object with a bad focus value.");
+  iterator itr = rak::advance_bidirectional<iterator>(iterator(fl->begin()), *m_selected, iterator(fl->end()), m_canvas->height() - pos).first;
 
-//   std::pair<unsigned int, unsigned int> range = rak::advance_bidirectional<unsigned int>(0, *m_focus, fl->size_files(), m_canvas->height() - pos);
-
-//   iterator first(fl->begin() + range.first, (*(fl->begin() + range.first))->match_depth_prev());
-//   iterator last(fl->end());
-
-  std::pair<iterator, iterator> range =
-    rak::advance_bidirectional<iterator>(iterator(fl->begin()), *m_focus, iterator(fl->end()), m_canvas->height() - pos);
-
-  while (pos != m_canvas->height() && range.first != range.second) {
-    if (range.first.is_empty()) {
+  while (pos != m_canvas->height() && itr != iterator(fl->end())) {
+    if (itr.is_empty()) {
       m_canvas->print(0, pos, "EMPTY");
 
-    } else if (range.first.is_entering()) {
-      m_canvas->print(range.first.depth(), pos, "\\ %s", 
-                      range.first.depth() < (*range.first)->path()->size() ? (*range.first)->path()->at(range.first.depth()).c_str() : "UNKNOWN");
+    } else if (itr.is_entering()) {
+      m_canvas->print(itr.depth(), pos, "\\ %s", 
+                      itr.depth() < (*itr)->path()->size() ? (*itr)->path()->at(itr.depth()).c_str() : "UNKNOWN");
 
-    } else if (range.first.is_leaving()) {
-      m_canvas->print(range.first.depth(), pos, "/");
+    } else if (itr.is_leaving()) {
+      m_canvas->print(itr.depth(), pos, "/");
 
-    } else if (range.first.is_file()) {
-      torrent::File* e = *range.first;
+    } else if (itr.is_file()) {
+      torrent::File* e = *itr;
 
       std::string priority;
 
@@ -138,8 +129,8 @@ WindowFileList::redraw() {
         break;
       };
 
-      m_canvas->print(range.first.depth(), pos, "| %s",
-                      range.first.depth() < (*range.first)->path()->size() ? (*range.first)->path()->at(range.first.depth()).c_str() : "UNKNOWN");
+      m_canvas->print(itr.depth(), pos, "| %s",
+                      itr.depth() < (*itr)->path()->size() ? (*itr)->path()->at(itr.depth()).c_str() : "UNKNOWN");
 
       //  %6.1f   %s   %3d  %9s",
       //                       (double)e->size_bytes() / (double)(1 << 20),
@@ -159,7 +150,10 @@ WindowFileList::redraw() {
       m_canvas->print(0, pos, "BORK BORK");
     }
 
-    ++range.first;
+    if (itr == *m_selected)
+      m_canvas->set_attr(0, pos, m_canvas->width(), is_focused() ? A_REVERSE : A_BOLD, COLOR_PAIR(0));
+
+    ++itr;
     ++pos;
   }
 }

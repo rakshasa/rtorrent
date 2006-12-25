@@ -58,8 +58,9 @@ public:
 
   static const int flag_active    = (1 << 0);
   static const int flag_offscreen = (1 << 1);
-  static const int flag_left      = (1 << 2);
-  static const int flag_bottom    = (1 << 3);
+  static const int flag_focused   = (1 << 2);
+  static const int flag_left      = (1 << 3);
+  static const int flag_bottom    = (1 << 4);
 
   static const extent_type extent_static = extent_type();
   static const extent_type extent_full   = ~extent_type();
@@ -75,6 +76,9 @@ public:
 
   bool                is_offscreen() const                 { return m_flags & flag_offscreen; }
   void                set_offscreen(bool state)            { if (state) m_flags |= flag_offscreen; else m_flags &= ~flag_offscreen; }
+
+  bool                is_focused() const                   { return m_flags & flag_focused; }
+  void                set_focused(bool state)              { if (state) m_flags |= flag_focused; else m_flags &= ~flag_focused; }
 
   bool                is_left() const                      { return m_flags & flag_left; }
   void                set_left(bool state)                 { if (state) m_flags |= flag_left; else m_flags &= ~flag_left; }

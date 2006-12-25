@@ -81,7 +81,7 @@ private:
   WFileList*          m_window;
   
   // Change to unsigned, please.
-  iterator            m_focus;
+  iterator            m_selected;
 };
 
 }

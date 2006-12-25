@@ -54,7 +54,7 @@ namespace ui {
 ElementFileList::ElementFileList(core::Download* d) :
   m_download(d),
   m_window(NULL),
-  m_focus(iterator(d->download()->file_list()->begin())) {
+  m_selected(iterator(d->download()->file_list()->begin())) {
 
   m_bindings[KEY_LEFT] = m_bindings['B' - '@'] = sigc::mem_fun(&m_slotExit, &slot_type::operator());
 
@@ -75,8 +75,9 @@ ElementFileList::activate(display::Frame* frame, bool focus) {
   if (focus)
     control->input()->push_back(&m_bindings);
 
-  m_window = new WFileList(m_download, &m_focus);
+  m_window = new WFileList(m_download, &m_selected);
   m_window->set_active(true);
+  m_window->set_focused(focus);
 
   m_frame = frame;
   m_frame->initialize_window(m_window);
@@ -107,8 +108,8 @@ void
 ElementFileList::receive_next() {
   torrent::FileList* fl = m_download->download()->file_list();
 
-  if (m_focus == iterator(fl->end()) || ++m_focus == iterator(fl->end()))
-    m_focus = iterator(fl->begin());
+  if (m_selected == iterator(fl->end()) || ++m_selected == iterator(fl->end()))
+    m_selected = iterator(fl->begin());
 
   m_window->mark_dirty();
 }
@@ -117,10 +118,10 @@ void
 ElementFileList::receive_prev() {
   torrent::FileList* fl = m_download->download()->file_list();
 
-  if (m_focus == iterator(fl->begin()))
-    m_focus = iterator(fl->end());
+  if (m_selected == iterator(fl->begin()))
+    m_selected = iterator(fl->end());
 
-  m_focus--;
+  m_selected--;
   m_window->mark_dirty();
 }
 
@@ -128,14 +129,14 @@ void
 ElementFileList::receive_pagenext() {
   torrent::FileList* fl = m_download->download()->file_list();
 
-  if (m_focus == --iterator(fl->end())) {
-    m_focus = iterator(fl->begin());
+  if (m_selected == --iterator(fl->end())) {
+    m_selected = iterator(fl->begin());
 
   } else {
-    m_focus = rak::advance_forward(m_focus, iterator(fl->end()), (m_window->height() - 1) / 2);
+    m_selected = rak::advance_forward(m_selected, iterator(fl->end()), (m_window->height() - 1) / 2);
 
-    if (m_focus == iterator(fl->end()))
-      m_focus = --iterator(fl->end());
+    if (m_selected == iterator(fl->end()))
+      m_selected = --iterator(fl->end());
   }
 
   m_window->mark_dirty();
@@ -148,10 +149,10 @@ ElementFileList::receive_pageprev() {
 
   torrent::FileList* fl = m_download->download()->file_list();
 
-  if (m_focus == iterator(fl->begin()))
-    m_focus = --iterator(fl->end());
+  if (m_selected == iterator(fl->begin()))
+    m_selected = --iterator(fl->end());
   else
-    m_focus = rak::advance_backward(m_focus, iterator(fl->begin()), (m_window->height() - 1) / 2);
+    m_selected = rak::advance_backward(m_selected, iterator(fl->begin()), (m_window->height() - 1) / 2);
 
   m_window->mark_dirty();
 }
@@ -165,10 +166,10 @@ ElementFileList::receive_priority() {
 
 //   torrent::FileList* fl = m_download->download()->file_list();
 
-//   if (m_focus >= fl->size_files())
+//   if (m_selected >= fl->size_files())
 //     return;
 
-//   torrent::File* file = *(fl->begin() + m_focus);
+//   torrent::File* file = *(fl->begin() + m_selected);
 
 //   file->set_priority(next_priority(file->priority()));
 
@@ -183,10 +184,10 @@ ElementFileList::receive_change_all() {
 
 //   torrent::FileList* fl = m_download->download()->file_list();
 
-//   if (m_focus >= fl->size_files())
+//   if (m_selected >= fl->size_files())
 //     return;
 
-//   Priority p = next_priority((*(fl->begin() + m_focus))->priority());
+//   Priority p = next_priority((*(fl->begin() + m_selected))->priority());
 
 //   for (torrent::FileList::iterator itr = fl->begin(), last = fl->end(); itr != last; ++itr)
 //     (*itr)->set_priority(p);
