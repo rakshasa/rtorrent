@@ -52,6 +52,8 @@ namespace display {
 
 namespace ui {
 
+class ElementText;
+
 class ElementFileList : public ElementBase {
 public:
   typedef torrent::priority_t Priority;
@@ -59,12 +61,18 @@ public:
 
   typedef torrent::FileListIterator iterator;
 
+  typedef enum {
+    DISPLAY_LIST,
+    DISPLAY_INFO,
+    DISPLAY_MAX_SIZE
+  } Display;
+
   ElementFileList(core::Download* d);
 
   void                activate(display::Frame* frame, bool focus = true);
   void                disable();
 
-  display::Window*    window();
+  void                activate_display(Display display);
 
 private:
   void                receive_next();
@@ -77,8 +85,13 @@ private:
 
   Priority            next_priority(Priority p);
 
+  void                update_itr();
+
   core::Download*     m_download;
+
+  Display             m_state;
   WFileList*          m_window;
+  ElementText*        m_elementInfo;
   
   // Change to unsigned, please.
   iterator            m_selected;

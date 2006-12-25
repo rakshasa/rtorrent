@@ -76,7 +76,7 @@ private:
 
   void                receive_snub_peer();
 
-  void                updated_itr();
+  void                update_itr();
 
   core::Download*     m_download;
   

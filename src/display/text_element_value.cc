@@ -82,12 +82,14 @@ TextElementValueBase::print(char* first, char* last, Canvas::attributes_list* at
 
   } else if (m_flags & flag_xb) {
 
-    if (val < (int64_t(1) << 30))
-      first += std::max(snprintf(first, last - first + 1, "%5.1f MB", (double)val / (int64_t(1) << 20)), 0);
+    if (val < (int64_t(1) << 20))
+      first += std::max(snprintf(first, last - first + 1, "%5.1f Kb", (double)val / (int64_t(1) << 10)), 0);
+    else if (val < (int64_t(1) << 30))
+      first += std::max(snprintf(first, last - first + 1, "%5.1f Mb", (double)val / (int64_t(1) << 20)), 0);
     else if (val < (int64_t(1) << 40))
-      first += std::max(snprintf(first, last - first + 1, "%5.1f GB", (double)val / (int64_t(1) << 30)), 0);
+      first += std::max(snprintf(first, last - first + 1, "%5.1f Gb", (double)val / (int64_t(1) << 30)), 0);
     else
-      first += std::max(snprintf(first, last - first + 1, "%5.1f TB", (double)val / (int64_t(1) << 40)), 0);
+      first += std::max(snprintf(first, last - first + 1, "%5.1f Tb", (double)val / (int64_t(1) << 40)), 0);
 
   } else if (m_flags & flag_timer) {
     if (val == 0)

@@ -209,7 +209,7 @@ ElementPeerList::receive_next() {
   else
     m_listItr = m_list.begin();
 
-  updated_itr();
+  update_itr();
 }
 
 void
@@ -219,7 +219,7 @@ ElementPeerList::receive_prev() {
   else
     m_listItr = m_list.end();
 
-  updated_itr();
+  update_itr();
 }
 
 void
@@ -247,7 +247,7 @@ ElementPeerList::receive_peer_disconnected(torrent::Peer p) {
   else
     m_list.erase(itr);
 
-  updated_itr();
+  update_itr();
 }
 
 void
@@ -257,11 +257,11 @@ ElementPeerList::receive_snub_peer() {
 
   m_listItr->set_snubbed(!m_listItr->is_snubbed());
 
-  updated_itr();
+  update_itr();
 }
 
 void
-ElementPeerList::updated_itr() {
+ElementPeerList::update_itr() {
   m_windowList->mark_dirty();
   m_elementInfo->set_object(m_listItr != m_list.end() ? &*m_listItr : NULL);
 }

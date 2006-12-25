@@ -36,6 +36,7 @@
 
 #include "config.h"
 
+#include <sigc++/bind.h>
 #include <rak/algorithm.h>
 #include <torrent/exceptions.h>
 #include <torrent/data/file.h>
@@ -43,20 +44,28 @@
 
 #include "display/frame.h"
 #include "display/manager.h"
+#include "display/text_element_helpers.h"
+#include "display/text_element_lambda.h"
 #include "display/window_file_list.h"
 #include "input/manager.h"
 
 #include "control.h"
 #include "element_file_list.h"
+#include "element_text.h"
 
 namespace ui {
 
 ElementFileList::ElementFileList(core::Download* d) :
   m_download(d),
+
+  m_state(DISPLAY_MAX_SIZE),
   m_window(NULL),
+  m_elementInfo(NULL),
+
   m_selected(iterator(d->download()->file_list()->begin())) {
 
-  m_bindings[KEY_LEFT] = m_bindings['B' - '@'] = sigc::mem_fun(&m_slotExit, &slot_type::operator());
+  m_bindings[KEY_LEFT] = m_bindings['B' - '@']  = sigc::mem_fun(&m_slotExit, &slot_type::operator());
+  m_bindings[KEY_RIGHT] = m_bindings['F' - '@'] = sigc::bind(sigc::mem_fun(this, &ElementFileList::activate_display), DISPLAY_INFO);
 
   m_bindings[' '] = sigc::mem_fun(*this, &ElementFileList::receive_priority);
   m_bindings['*'] = sigc::mem_fun(*this, &ElementFileList::receive_change_all);
@@ -65,6 +74,42 @@ ElementFileList::ElementFileList(core::Download* d) :
 
   m_bindings[KEY_DOWN] = m_bindings['N' - '@'] = sigc::mem_fun(*this, &ElementFileList::receive_next);
   m_bindings[KEY_UP]   = m_bindings['P' - '@'] = sigc::mem_fun(*this, &ElementFileList::receive_prev);
+}
+
+const char*
+element_file_list_filename(const torrent::File* file) {
+  if (file->path()->empty())
+    return "EMPTY";
+
+  return file->path()->rbegin()->c_str();
+}
+
+inline ElementText*
+element_file_list_create_info() {
+  using namespace display::helpers;
+
+  ElementText* element = new ElementText(NULL);
+
+  element->set_column(1);
+  element->set_interval(1);
+
+  element->push_back("File info:");
+  element->push_back("");
+  
+  element->push_column("Filename:", display::text_element_string_slot(std::ptr_fun(&element_file_list_filename)));
+  element->push_back("");
+  
+  element->push_column("Size:", display::text_element_value_slot(std::mem_fun(&torrent::File::size_bytes), value_base::flag_xb));
+  element->push_column("Chunks:",
+                       display::text_element_value_slot(std::mem_fun(&torrent::File::completed_chunks)), " / ",
+                       display::text_element_value_slot(std::mem_fun(&torrent::File::size_chunks)));
+  element->push_column("Range:",
+                       display::text_element_value_slot(std::mem_fun(&torrent::File::range_first)), " - ",
+                       display::text_element_value_slot(std::mem_fun(&torrent::File::range_second)));
+
+  element->set_column_width(element->column_width() + 1);
+
+  return element;
 }
 
 void
@@ -79,10 +124,11 @@ ElementFileList::activate(display::Frame* frame, bool focus) {
   m_window->set_active(true);
   m_window->set_focused(focus);
 
-  m_frame = frame;
-  m_frame->initialize_window(m_window);
+  m_elementInfo = element_file_list_create_info();
+  m_elementInfo->slot_exit(sigc::bind(sigc::mem_fun(this, &ElementFileList::activate_display), DISPLAY_LIST));
 
-//   control->display()->adjust_layout();
+  m_frame = frame;
+  activate_display(DISPLAY_LIST);
 }
 
 void
@@ -92,16 +138,54 @@ ElementFileList::disable() {
 
   control->input()->erase(&m_bindings);
 
+  activate_display(DISPLAY_MAX_SIZE);
+
   m_frame->clear();
   m_frame = NULL;
 
   delete m_window;
   m_window = NULL;
+
+  delete m_elementInfo;
+  m_elementInfo = NULL;
 }
 
-display::Window*
-ElementFileList::window() {
-  return m_window;
+void
+ElementFileList::activate_display(Display display) {
+  if (display == m_state)
+    return;
+
+  switch (m_state) {
+  case DISPLAY_INFO:
+    m_elementInfo->disable();
+    break;
+
+  case DISPLAY_LIST:
+    m_window->set_active(false);
+    m_frame->clear();
+    break;
+
+  case DISPLAY_MAX_SIZE:
+    break;
+  }
+
+  m_state = display;
+
+  switch (m_state) {
+  case DISPLAY_INFO:
+    m_elementInfo->activate(m_frame, true);
+    break;
+
+  case DISPLAY_LIST:
+    m_window->set_active(true);
+    m_frame->initialize_window(m_window);
+    break;
+
+  case DISPLAY_MAX_SIZE:
+    break;
+  }
+
+  control->display()->adjust_layout();
 }
 
 void
@@ -111,7 +195,7 @@ ElementFileList::receive_next() {
   if (m_selected == iterator(fl->end()) || ++m_selected == iterator(fl->end()))
     m_selected = iterator(fl->begin());
 
-  m_window->mark_dirty();
+  update_itr();
 }
 
 void
@@ -122,7 +206,7 @@ ElementFileList::receive_prev() {
     m_selected = iterator(fl->end());
 
   m_selected--;
-  m_window->mark_dirty();
+  update_itr();
 }
 
 void
@@ -139,7 +223,7 @@ ElementFileList::receive_pagenext() {
       m_selected = --iterator(fl->end());
   }
 
-  m_window->mark_dirty();
+  update_itr();
 }
 
 void
@@ -154,7 +238,7 @@ ElementFileList::receive_pageprev() {
   else
     m_selected = rak::advance_backward(m_selected, iterator(fl->begin()), (m_window->height() - 1) / 2);
 
-  m_window->mark_dirty();
+  update_itr();
 }
 
 void
@@ -174,7 +258,7 @@ ElementFileList::receive_priority() {
 //   file->set_priority(next_priority(file->priority()));
 
   m_download->download()->update_priorities();
-  m_window->mark_dirty();
+  update_itr();
 }
 
 void
@@ -193,7 +277,7 @@ ElementFileList::receive_change_all() {
 //     (*itr)->set_priority(p);
 
   m_download->download()->update_priorities();
-  m_window->mark_dirty();
+  update_itr();
 }
 
 ElementFileList::Priority
@@ -213,6 +297,12 @@ ElementFileList::next_priority(Priority p) {
   default:
     return torrent::PRIORITY_NORMAL;
   };
+}
+
+void
+ElementFileList::update_itr() {
+  m_window->mark_dirty();
+  m_elementInfo->set_object(*m_selected.base());
 }
 
 }

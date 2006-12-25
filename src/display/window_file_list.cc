@@ -97,19 +97,19 @@ WindowFileList::redraw() {
 
   while (pos != m_canvas->height() && itr != iterator(fl->end())) {
     if (itr.is_empty()) {
-      m_canvas->print(0, pos, "EMPTY");
+      m_canvas->print(12, pos, "EMPTY");
 
     } else if (itr.is_entering()) {
-      m_canvas->print(itr.depth(), pos, "\\ %s", 
+      m_canvas->print(12 + itr.depth(), pos, "\\ %s", 
                       itr.depth() < (*itr)->path()->size() ? (*itr)->path()->at(itr.depth()).c_str() : "UNKNOWN");
 
     } else if (itr.is_leaving()) {
-      m_canvas->print(itr.depth(), pos, "/");
+      m_canvas->print(12 + itr.depth() - 1, pos, "/");
 
     } else if (itr.is_file()) {
       torrent::File* e = *itr;
 
-      std::string priority;
+      const char* priority;
 
       switch (e->priority()) {
       case torrent::PRIORITY_OFF:
@@ -129,7 +129,18 @@ WindowFileList::redraw() {
         break;
       };
 
-      m_canvas->print(itr.depth(), pos, "| %s",
+      m_canvas->print(0, pos, "%3d", done_percentage(e));
+
+      int64_t val = e->size_bytes();
+
+      if (val < (int64_t(1) << 30))
+        m_canvas->print(4, pos, "%5.1fMb", (double)val / (int64_t(1) << 20));
+      else if (val < (int64_t(1) << 40))
+        m_canvas->print(4, pos, "%5.1fGb", (double)val / (int64_t(1) << 30));
+      else
+        m_canvas->print(4, pos, "%5.1fTb", (double)val / (int64_t(1) << 40));
+
+      m_canvas->print(12 + itr.depth(), pos, "| %s",
                       itr.depth() < (*itr)->path()->size() ? (*itr)->path()->at(itr.depth()).c_str() : "UNKNOWN");
 
       //  %6.1f   %s   %3d  %9s",
@@ -138,13 +149,13 @@ WindowFileList::redraw() {
       //                       done_percentage(e),
       //                       e->path()->encoding().c_str());
 
-      m_canvas->print(104, pos, "%i - %i %c%c %u %u",
-                      e->range().first,
-                      e->range().first != e->range().second ? (e->range().second - 1) : e->range().second,
-                      e->is_created() ? 'E' : 'M',
-                      e->is_correct_size() ? 'C' : 'W',
-                      e->match_depth_prev(),
-                      e->match_depth_next());
+//       m_canvas->print(104, pos, "%i - %i %c%c %u %u",
+//                       e->range().first,
+//                       e->range().first != e->range().second ? (e->range().second - 1) : e->range().second,
+//                       e->is_created() ? 'E' : 'M',
+//                       e->is_correct_size() ? 'C' : 'W',
+//                       e->match_depth_prev(),
+//                       e->match_depth_next());
 
     } else {
       m_canvas->print(0, pos, "BORK BORK");
