@@ -77,11 +77,14 @@ ElementFileList::ElementFileList(core::Download* d) :
 }
 
 const char*
-element_file_list_filename(const torrent::File* file) {
-  if (file->path()->empty())
+element_file_list_filename(const torrent::FileListIterator* itr) {
+  if ((**itr)->path()->empty())
     return "EMPTY";
 
-  return file->path()->rbegin()->c_str();
+  if (itr->depth() >= (**itr)->path()->size())
+    return "ERROR";
+
+  return (**itr)->path()->at(itr->depth()).c_str();
 }
 
 inline ElementText*
@@ -99,13 +102,9 @@ element_file_list_create_info() {
   element->push_column("Filename:", display::text_element_string_slot(std::ptr_fun(&element_file_list_filename)));
   element->push_back("");
   
-  element->push_column("Size:", display::text_element_value_slot(std::mem_fun(&torrent::File::size_bytes), value_base::flag_xb));
-  element->push_column("Chunks:",
-                       display::text_element_value_slot(std::mem_fun(&torrent::File::completed_chunks)), " / ",
-                       display::text_element_value_slot(std::mem_fun(&torrent::File::size_chunks)));
-  element->push_column("Range:",
-                       display::text_element_value_slot(std::mem_fun(&torrent::File::range_first)), " - ",
-                       display::text_element_value_slot(std::mem_fun(&torrent::File::range_second)));
+  element->push_column("Size:",   te_value(&torrent::File::size_bytes, value_base::flag_xb));
+  element->push_column("Chunks:", te_value(&torrent::File::completed_chunks), " / ", te_value(&torrent::File::size_chunks));
+  element->push_column("Range:",  te_value(&torrent::File::range_first), " - ", te_value(&torrent::File::range_second));
 
   element->set_column_width(element->column_width() + 1);
 
@@ -126,8 +125,10 @@ ElementFileList::activate(display::Frame* frame, bool focus) {
 
   m_elementInfo = element_file_list_create_info();
   m_elementInfo->slot_exit(sigc::bind(sigc::mem_fun(this, &ElementFileList::activate_display), DISPLAY_LIST));
+  m_elementInfo->set_object(&m_selected);
 
   m_frame = frame;
+
   activate_display(DISPLAY_LIST);
 }
 
@@ -246,16 +247,9 @@ ElementFileList::receive_priority() {
   if (m_window == NULL)
     throw torrent::internal_error("ui::ElementFileList::receive_prev(...) called on a disabled object");
 
-  // Fix priorities.
+  // Check if we're focused on a directory.
 
-//   torrent::FileList* fl = m_download->download()->file_list();
-
-//   if (m_selected >= fl->size_files())
-//     return;
-
-//   torrent::File* file = *(fl->begin() + m_selected);
-
-//   file->set_priority(next_priority(file->priority()));
+  m_selected.file()->set_priority(next_priority(m_selected.file()->priority()));
 
   m_download->download()->update_priorities();
   update_itr();
@@ -266,15 +260,11 @@ ElementFileList::receive_change_all() {
   if (m_window == NULL)
     throw torrent::internal_error("ui::ElementFileList::receive_prev(...) called on a disabled object");
 
-//   torrent::FileList* fl = m_download->download()->file_list();
+  Priority p = next_priority(m_selected.file()->priority());
+  torrent::FileList* fl = m_download->download()->file_list();
 
-//   if (m_selected >= fl->size_files())
-//     return;
-
-//   Priority p = next_priority((*(fl->begin() + m_selected))->priority());
-
-//   for (torrent::FileList::iterator itr = fl->begin(), last = fl->end(); itr != last; ++itr)
-//     (*itr)->set_priority(p);
+  for (torrent::FileList::iterator itr = fl->begin(), last = fl->end(); itr != last; ++itr)
+    (*itr)->set_priority(p);
 
   m_download->download()->update_priorities();
   update_itr();
@@ -302,7 +292,7 @@ ElementFileList::next_priority(Priority p) {
 void
 ElementFileList::update_itr() {
   m_window->mark_dirty();
-  m_elementInfo->set_object(*m_selected.base());
+  m_elementInfo->mark_dirty();
 }
 
 }

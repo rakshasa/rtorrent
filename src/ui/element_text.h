@@ -72,6 +72,8 @@ public:
   void                activate(display::Frame* frame, bool focus = false);
   void                disable();
 
+  void                mark_dirty()             { m_window->mark_dirty(); }
+
   // Consider returning a pointer that can be used to manipulate
   // entries, f.ex disabling them.
 

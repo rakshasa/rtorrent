@@ -41,6 +41,7 @@
 #include <rak/socket_address.h>
 #include <torrent/bitfield.h>
 #include <torrent/torrent.h>
+#include <torrent/data/file_list_iterator.h>
 
 #include "core/download.h"
 
@@ -100,6 +101,12 @@ template <typename Return>
 inline TextElementValueBase*
 te_value(Return (torrent::FileList::*fptr)() const, int flags = TextElementValueBase::flag_normal, int attributes = Attributes::a_invalid) {
   return display::text_element_value_slot(rak::on(std::mem_fun(&core::Download::c_file_list), std::mem_fun(fptr)), flags, attributes);
+}
+
+template <typename Return>
+inline TextElementValueBase*
+te_value(Return (torrent::File::*fptr)() const, int flags = TextElementValueBase::flag_normal, int attributes = Attributes::a_invalid) {
+  return display::text_element_value_slot(rak::on(std::mem_fun(&torrent::FileListIterator::file), std::mem_fun(fptr)), flags, attributes);
 }
 
 inline TextElementValueBase*
