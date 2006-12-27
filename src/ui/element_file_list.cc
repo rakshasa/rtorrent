@@ -242,14 +242,41 @@ ElementFileList::receive_pageprev() {
   update_itr();
 }
 
+// Take a range as input and return the next entry at the same
+// directory depth as first. If the returned iterator equals 'last' or
+// is_leaving() == true then the search failed. UHM... wrong...
+
+torrent::FileListIterator
+next_current_depth(torrent::FileListIterator first, torrent::FileListIterator last) {
+  if (first == last)
+    return first;
+
+  uint32_t depth = (first++).depth();
+
+  while (first != last && (first.depth() > depth || first.is_leaving()))
+    ++first;
+
+  return first;
+}
+
 void
 ElementFileList::receive_priority() {
   if (m_window == NULL)
     throw torrent::internal_error("ui::ElementFileList::receive_prev(...) called on a disabled object");
 
-  // Check if we're focused on a directory.
+  torrent::FileList* fl = m_download->download()->file_list();
 
-  m_selected.file()->set_priority(next_priority(m_selected.file()->priority()));
+  iterator first = m_selected; 
+  iterator last = next_current_depth(m_selected, iterator(fl->end()));
+
+  Priority priority = next_priority(m_selected.file()->priority());
+
+  while (first != last) {
+    if (first.is_file())
+      first.file()->set_priority(priority);
+
+    first++;
+  }
 
   m_download->download()->update_priorities();
   update_itr();

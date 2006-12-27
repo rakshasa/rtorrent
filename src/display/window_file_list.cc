@@ -114,21 +114,15 @@ WindowFileList::redraw() {
 
       int64_t val = e->size_bytes();
 
-      if (val < (int64_t(1) << 30))
-        m_canvas->print(8, pos, "%5.1fMb", (double)val / (int64_t(1) << 20));
-      else if (val < (int64_t(1) << 40))
-        m_canvas->print(8, pos, "%5.1fGb", (double)val / (int64_t(1) << 30));
+      if (val < (int64_t(1000) << 20))
+        m_canvas->print(8, pos, "%5.1f M", (double)val / (int64_t(1) << 20));
+      else if (val < (int64_t(1000) << 30))
+        m_canvas->print(8, pos, "%5.1f G", (double)val / (int64_t(1) << 30));
       else
-        m_canvas->print(8, pos, "%5.1fTb", (double)val / (int64_t(1) << 40));
+        m_canvas->print(8, pos, "%5.1f T", (double)val / (int64_t(1) << 40));
 
       m_canvas->print(16 + itr.depth(), pos, "| %s",
                       itr.depth() < (*itr)->path()->size() ? (*itr)->path()->at(itr.depth()).c_str() : "UNKNOWN");
-
-      //  %6.1f   %s   %3d  %9s",
-      //                       (double)e->size_bytes() / (double)(1 << 20),
-      //                       priority.c_str(),
-      //                       done_percentage(e),
-      //                       e->path()->encoding().c_str());
 
 //       m_canvas->print(104, pos, "%i - %i %c%c %u %u",
 //                       e->range().first,

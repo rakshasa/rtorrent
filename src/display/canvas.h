@@ -93,7 +93,6 @@ public:
   void                print_char(const chtype ch)                                 { waddch(m_window, ch); }
   void                print_char(unsigned int x, unsigned int y, const chtype ch) { mvwaddch(m_window, y, x, ch); }
 
-  void                set_attr(int attr, int color)                                                 { wattr_set(m_window, attr, color, NULL); }
   void                set_attr(unsigned int x, unsigned int y, unsigned int n, int attr, int color) { mvwchgat(m_window, y, x, n, attr, color, NULL); }
 
   // Initialize stdscr.
