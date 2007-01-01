@@ -556,9 +556,9 @@ make_mem_fun(Object* o, Ret (Object::*f)()) {
 }
 
 template <typename Object, typename Ret>
-inline const_mem_fun0<Object, Ret>
-make_mem_fun(Object* o, Ret (Object::*f)() const) {
- return const_mem_fun0<Object, Ret>(o, f);
+inline const_mem_fun0<const Object, Ret>
+make_mem_fun(const Object* o, Ret (Object::*f)() const) {
+ return const_mem_fun0<const Object, Ret>(o, f);
 }
 
 template <typename Object, typename Ret, typename Arg1>

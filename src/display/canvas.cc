@@ -57,19 +57,14 @@ void
 Canvas::print_attributes(unsigned int x, unsigned int y, const char* first, const char* last, const attributes_list* attributes) {
   move(x, y);
 
-  int attr = A_NORMAL;
   attributes_list::const_iterator attrItr = attributes->begin();
+  Attributes current = Attributes(first, Attributes::a_normal, Attributes::color_default);
 
   while (first != last) {
-    if (attrItr != attributes->end() && attrItr->position() <= first) {
-      attr = attrItr->attributes();
-      // Set colors or something.
+    if (attrItr != attributes->end() && first >= attrItr->position())
+      current = *attrItr++;
 
-      attrItr++;
-      continue;
-    }
-
-    waddch(m_window, *first++ | attr);
+    waddch(m_window, *first++ | current.attributes());
   }
 
   // Reset the color.

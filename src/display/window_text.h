@@ -62,8 +62,7 @@ public:
   using base_type::rbegin;
   using base_type::rend;
 
-  WindowText(void* object = NULL, extent_type margin = 0) :
-    Window(new Canvas, 0, 0, 0, extent_static, extent_static), m_object(object), m_margin(margin), m_interval(0) {}
+  WindowText(void* object = NULL, extent_type margin = 0);
   ~WindowText() { clear(); }
 
   void                clear();

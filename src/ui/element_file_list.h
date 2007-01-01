@@ -56,9 +56,7 @@ class ElementText;
 
 class ElementFileList : public ElementBase {
 public:
-  typedef torrent::priority_t Priority;
-  typedef display::WindowFileList  WFileList;
-
+  typedef display::WindowFileList   WFileList;
   typedef torrent::FileListIterator iterator;
 
   typedef enum {
@@ -82,8 +80,6 @@ private:
 
   void                receive_priority();
   void                receive_change_all();
-
-  Priority            next_priority(Priority p);
 
   void                update_itr();
 

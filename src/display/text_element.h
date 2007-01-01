@@ -60,6 +60,8 @@ public:
 
   virtual extent_type max_length() = 0;
 
+  static void         push_attribute(Canvas::attributes_list* attributes, Attributes value);
+
 private:
   TextElement(const TextElement&);
   void operator = (const TextElement&);

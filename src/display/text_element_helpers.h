@@ -45,6 +45,7 @@
 
 #include "core/download.h"
 
+#include "text_element_lambda.h"
 #include "text_element_string.h"
 #include "text_element_value.h"
 
@@ -57,36 +58,42 @@ typedef TextElementValueBase  value_base;
 
 inline TextElementStringBase*
 te_string(const char* str) {
-  return new display::TextElementCString(str);
+  return new TextElementCString(str);
 }
 
 // template <typename Object, typename Return>
 // inline TextElementStringBase*
 // te_string(Return (Object::*fptr)() const, const Object* object, int attributes = Attributes::a_invalid) {
-//   return display::text_element_string_void(rak::make_mem_fun(object, fptr), attributes);
+//   return text_element_string_void(rak::make_mem_fun(object, fptr), attributes);
 // }
+
+template <typename Return, typename Arg1>
+inline TextElementStringBase*
+te_string(Return (*fptr)(Arg1), int flags = TextElementStringBase::flag_normal, int attributes = Attributes::a_invalid) {
+  return text_element_string_slot(std::ptr_fun(fptr), flags, attributes);
+}
 
 template <typename Return>
 inline TextElementStringBase*
 te_string(Return (core::Download::*fptr)() const, int flags = TextElementStringBase::flag_normal, int attributes = Attributes::a_invalid) {
-  return display::text_element_string_slot(std::mem_fun(fptr), flags, attributes);
+  return text_element_string_slot(std::mem_fun(fptr), flags, attributes);
 }
 
 template <typename Return>
 inline TextElementStringBase*
 te_string(Return (torrent::Download::*fptr)() const, int flags = TextElementStringBase::flag_normal, int attributes = Attributes::a_invalid) {
-  return display::text_element_string_slot(rak::on(std::mem_fun(&core::Download::c_download), std::mem_fun(fptr)), flags, attributes);
+  return text_element_string_slot(rak::on(std::mem_fun(&core::Download::c_download), std::mem_fun(fptr)), flags, attributes);
 }
 
 template <typename Return>
 inline TextElementStringBase*
 te_string(Return (torrent::FileList::*fptr)() const, int flags = TextElementStringBase::flag_normal, int attributes = Attributes::a_invalid) {
-  return display::text_element_string_slot(rak::on(std::mem_fun(&core::Download::file_list), std::mem_fun(fptr)), flags, attributes);
+  return text_element_string_slot(rak::on(std::mem_fun(&core::Download::file_list), std::mem_fun(fptr)), flags, attributes);
 }
 
 inline TextElementStringBase*
 te_variable_string(const std::string& variable, int flags = TextElementStringBase::flag_normal, int attributes = Attributes::a_invalid) {
-  return display::text_element_string_slot(rak::bind2nd(std::mem_fun(&core::Download::variable_string), variable), flags, attributes);
+  return text_element_string_slot(rak::bind2nd(std::mem_fun(&core::Download::variable_string), variable), flags, attributes);
 }
 
 // Value stuff:
@@ -94,36 +101,36 @@ te_variable_string(const std::string& variable, int flags = TextElementStringBas
 template <typename Return>
 inline TextElementValueBase*
 te_value(Return (torrent::Download::*fptr)() const, int flags = TextElementValueBase::flag_normal, int attributes = Attributes::a_invalid) {
-  return display::text_element_value_slot(rak::on(std::mem_fun(&core::Download::c_download), std::mem_fun(fptr)), flags, attributes);
+  return text_element_value_slot(rak::on(std::mem_fun(&core::Download::c_download), std::mem_fun(fptr)), flags, attributes);
 }
 
 template <typename Return>
 inline TextElementValueBase*
 te_value(Return (torrent::FileList::*fptr)() const, int flags = TextElementValueBase::flag_normal, int attributes = Attributes::a_invalid) {
-  return display::text_element_value_slot(rak::on(std::mem_fun(&core::Download::c_file_list), std::mem_fun(fptr)), flags, attributes);
+  return text_element_value_slot(rak::on(std::mem_fun(&core::Download::c_file_list), std::mem_fun(fptr)), flags, attributes);
 }
 
 template <typename Return>
 inline TextElementValueBase*
 te_value(Return (torrent::File::*fptr)() const, int flags = TextElementValueBase::flag_normal, int attributes = Attributes::a_invalid) {
-  return display::text_element_value_slot(rak::on(std::mem_fun(&torrent::FileListIterator::file), std::mem_fun(fptr)), flags, attributes);
+  return text_element_value_slot(rak::on(std::mem_fun(&torrent::FileListIterator::file), std::mem_fun(fptr)), flags, attributes);
 }
 
 inline TextElementValueBase*
 te_variable_value(const std::string& variable, int flags = TextElementValueBase::flag_normal, int attributes = Attributes::a_invalid) {
-  return display::text_element_value_slot(rak::bind2nd(std::mem_fun(&core::Download::variable_value), variable), flags, attributes);
+  return text_element_value_slot(rak::bind2nd(std::mem_fun(&core::Download::variable_value), variable), flags, attributes);
 }
 
 template <typename Return>
 inline TextElementValueBase*
 te_value(Return (torrent::ChunkManager::*fptr)() const, int flags = TextElementValueBase::flag_normal, int attributes = Attributes::a_invalid) {
-  return display::text_element_value_void(rak::make_mem_fun(torrent::chunk_manager(), fptr), flags, attributes);
+  return text_element_value_void(rak::make_mem_fun(torrent::chunk_manager(), fptr), flags, attributes);
 }
 
 template <typename Return>
 inline TextElementValueBase*
 te_value(Return (torrent::ConnectionManager::*fptr)() const, int flags = TextElementValueBase::flag_normal, int attributes = Attributes::a_invalid) {
-  return display::text_element_value_void(rak::make_mem_fun(torrent::connection_manager(), fptr), flags, attributes);
+  return text_element_value_void(rak::make_mem_fun(torrent::connection_manager(), fptr), flags, attributes);
 }
 
 // Various:
@@ -141,6 +148,32 @@ te_address(const ::sockaddr* address) {
 inline unsigned int
 te_port(const ::sockaddr* address) {
   return rak::socket_address::cast_from(address)->port();
+}
+
+// Lambda
+
+template <typename Return>
+inline TextElement*
+te_branch(Return (*fptr)(), TextElement* branch1, TextElement* branch2) {
+  return text_element_branch_void(std::mem_fun(fptr), branch1, branch2);
+}
+
+template <typename Return, typename Arg1>
+inline TextElement*
+te_branch(Return (*fptr)(Arg1), TextElement* branch1, TextElement* branch2) {
+  return text_element_branch(std::mem_fun(fptr), branch1, branch2);
+}
+
+template <typename Return, typename Object>
+inline TextElement*
+te_branch(Return (Object::*fptr)() const, TextElement* branch1, TextElement* branch2) {
+  return text_element_branch(std::mem_fun(fptr), branch1, branch2);
+}
+
+template <typename Return, typename Object>
+inline TextElement*
+te_branch(Return (Object::*fptr)() const, const Object* object, TextElement* branch1, TextElement* branch2) {
+  return text_element_branch_void(rak::make_mem_fun(object, fptr), branch1, branch2);
 }
 
 } }

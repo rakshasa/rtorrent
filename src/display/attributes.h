@@ -61,6 +61,8 @@ public:
   Attributes() {}
   Attributes(const char* pos, int attr, int col) :
     m_position(pos), m_attributes(attr), m_colors(col) {}
+  Attributes(const char* pos, const Attributes& old) :
+    m_position(pos), m_attributes(old.m_attributes), m_colors(old.m_colors) {}
 
   const char*         position() const              { return m_position; }
   void                set_position(const char* pos) { m_position = pos; }

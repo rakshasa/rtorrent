@@ -169,7 +169,7 @@ Download::create_info() {
   element->push_column("Safe diskspace:",   te_value(&torrent::ChunkManager::safe_free_diskspace, value_base::flag_mb), " MB");
 
   element->push_back("");
-  element->push_column("Safe sync:",        display::text_element_branch_void(rak::make_mem_fun(torrent::chunk_manager(), &torrent::ChunkManager::safe_sync), te_string("yes"), te_string("no")));
+  element->push_column("Safe sync:",        te_branch(&torrent::ChunkManager::safe_sync, torrent::chunk_manager(), te_string("yes"), te_string("no")));
   element->push_column("Send buffer:",      te_value(&torrent::ConnectionManager::send_buffer_size, value_base::flag_kb), " KB");
   element->push_column("Receive buffer:",   te_value(&torrent::ConnectionManager::receive_buffer_size, value_base::flag_kb), " KB");
 
