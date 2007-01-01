@@ -462,15 +462,15 @@ public:
   typedef Ret (Object::*Function)() const;
 
   const_mem_fun0() : m_object(NULL) {}
-  const_mem_fun0(Object* o, Function f) : m_object(o), m_function(f) {}
+  const_mem_fun0(const Object* o, Function f) : m_object(o), m_function(f) {}
 
   bool is_valid() const { return m_object; }
 
-  Ret operator () () { return (m_object->*m_function)(); }
+  Ret operator () () const { return (m_object->*m_function)(); }
   
 private:
-  Object* m_object;
-  Function m_function;
+  const Object* m_object;
+  Function      m_function;
 };
 
 template <typename Object, typename Ret, typename Arg1>
@@ -498,15 +498,15 @@ public:
   typedef Ret (Object::*Function)(Arg1) const;
 
   const_mem_fun1() : m_object(NULL) {}
-  const_mem_fun1(Object* o, Function f) : m_object(o), m_function(f) {}
+  const_mem_fun1(const Object* o, Function f) : m_object(o), m_function(f) {}
 
   bool is_valid() const { return m_object; }
 
-  Ret operator () (Arg1 a1) { return (m_object->*m_function)(a1); }
+  Ret operator () (Arg1 a1) const { return (m_object->*m_function)(a1); }
   
 private:
-  Object* m_object;
-  Function m_function;
+  const Object* m_object;
+  Function      m_function;
 };
 
 template <typename Object, typename Ret, typename Arg1, typename Arg2>
@@ -556,9 +556,9 @@ make_mem_fun(Object* o, Ret (Object::*f)()) {
 }
 
 template <typename Object, typename Ret>
-inline const_mem_fun0<const Object, Ret>
+inline const_mem_fun0<Object, Ret>
 make_mem_fun(const Object* o, Ret (Object::*f)() const) {
- return const_mem_fun0<const Object, Ret>(o, f);
+ return const_mem_fun0<Object, Ret>(o, f);
 }
 
 template <typename Object, typename Ret, typename Arg1>
@@ -569,7 +569,7 @@ make_mem_fun(Object* o, Ret (Object::*f)(Arg1)) {
 
 template <typename Object, typename Ret, typename Arg1>
 inline const_mem_fun1<Object, Ret, Arg1>
-make_mem_fun(Object* o, Ret (Object::*f)(Arg1) const) {
+make_mem_fun(const Object* o, Ret (Object::*f)(Arg1) const) {
  return const_mem_fun1<Object, Ret, Arg1>(o, f);
 }
 

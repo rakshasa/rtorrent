@@ -409,13 +409,13 @@ apply_view_sort_new(Control* control, const std::string& arg) {
 
 void
 apply_import(const std::string& path) {
-  if (!control->variable()->process_file(path))
+  if (!control->variable()->process_file(path.c_str()))
     throw torrent::input_error("Could not open option file: " + path);
 }
 
 void
 apply_try_import(const std::string& path) {
-  if (!control->variable()->process_file(path))
+  if (!control->variable()->process_file(path.c_str()))
     control->core()->push_log("Could not read resource file: " + path);
 }
 

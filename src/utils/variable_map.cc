@@ -55,7 +55,7 @@ VariableMap::~VariableMap() {
 }
 
 void
-VariableMap::insert(const std::string& key, Variable* v) {
+VariableMap::insert(key_type key, Variable* v) {
   iterator itr = base_type::find(key);
 
   if (itr != base_type::end())
@@ -65,23 +65,23 @@ VariableMap::insert(const std::string& key, Variable* v) {
 }
 
 const VariableMap::mapped_type&
-VariableMap::get(const std::string& key) const {
+VariableMap::get(key_type key) const {
   const_iterator itr = base_type::find(key);
 
   if (itr == base_type::end())
-    throw torrent::input_error("Variable \"" + key + "\" does not exist.");
+    throw torrent::input_error("Variable \"" + std::string(key) + "\" does not exist.");
 
   return itr->second->get();
 }
 
 void
-VariableMap::set(const std::string& key, const mapped_type& arg) {
+VariableMap::set(key_type key, const mapped_type& arg) {
   iterator itr = base_type::find(key);
 
   // Later, allow the user to create new variables. Have a slot to
   // register that thing.
   if (itr == base_type::end())
-    throw torrent::input_error("Variable \"" + key + "\" does not exist.");
+    throw torrent::input_error("Variable \"" + std::string(key) + "\" does not exist.");
 
   itr->second->set(arg);
 }
@@ -160,17 +160,17 @@ VariableMap::process_command(const std::string& command) {
   parse_args(pos + 1, command.end(), &args.as_list());
 
   if (args.as_list().empty())
-    set(key, mapped_type());
+    set(key.c_str(), mapped_type());
 
   else if (++args.as_list().begin() == args.as_list().end())
-    set(key, *args.as_list().begin());
+    set(key.c_str(), *args.as_list().begin());
 
   else
-    set(key, args);
+    set(key.c_str(), args);
 }
 
 bool
-VariableMap::process_file(const std::string& path) {
+VariableMap::process_file(key_type path) {
   std::fstream file(rak::path_expand(path).c_str(), std::ios::in);
 
   if (!file.is_open())
@@ -188,7 +188,7 @@ VariableMap::process_file(const std::string& path) {
     }
 
   } catch (torrent::input_error& e) {
-    snprintf(buffer, max_size_line, "Error in option file: %s:%i: %s", path.c_str(), lineNumber, e.what());
+    snprintf(buffer, max_size_line, "Error in option file: %s:%i: %s", path, lineNumber, e.what());
 
     throw torrent::input_error(buffer);
   }

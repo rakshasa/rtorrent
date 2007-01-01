@@ -38,6 +38,7 @@
 #define RTORRENT_CORE_VIEW_MANAGER_H
 
 #include <map>
+#include <cstring>
 #include <string>
 #include <rak/unordered_vector.h>
 
@@ -45,17 +46,21 @@
 
 namespace core {
 
+struct view_manager_comp : public std::binary_function<const char*, const char*, bool> {
+  bool operator () (const char* arg1, const char* arg2) const { return std::strcmp(arg1, arg2) < 0; }
+};
+
 class ViewSort;
 
 class ViewManager : public rak::unordered_vector<View*> {
 public:
   typedef rak::unordered_vector<View*> base_type;
 
-  typedef std::map<std::string, ViewSort*>      sort_map;
+  typedef std::map<const char*, ViewSort*, view_manager_comp> sort_map;
   typedef View::sort_list                       sort_list;
   typedef std::list<std::string>                sort_args;
   
-  typedef std::map<std::string, ViewFilter*>    filter_map;
+  typedef std::map<const char*, ViewFilter*, view_manager_comp> filter_map;
   typedef View::filter_list                     filter_list;
   typedef std::list<std::string>                filter_args;
   

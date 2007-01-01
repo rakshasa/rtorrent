@@ -39,45 +39,58 @@
 
 #include <map>
 #include <string>
+#include <cstring>
 #include <iosfwd>
 #include <torrent/object.h>
 
+namespace torrent {
+  class Object;
+}
+
 namespace utils {
+
+struct variable_map_comp : public std::binary_function<const char*, const char*, bool> {
+  bool operator () (const char* arg1, const char* arg2) const { return std::strcmp(arg1, arg2) < 0; }
+};
 
 class Variable;
 
-class VariableMap : public std::map<std::string, Variable*> {
+class VariableMap : public std::map<const char*, Variable*, variable_map_comp> {
 public:
-  typedef std::map<std::string, Variable*> base_type;
-  typedef torrent::Object                  mapped_type;
-  typedef mapped_type::value_type          mapped_value_type;
+  typedef std::map<const char*, Variable*, variable_map_comp> base_type;
+
+  typedef torrent::Object         mapped_type;
+  typedef mapped_type::value_type mapped_value_type;
 
   static const int max_size_key = 128;
   static const int max_size_opt = 1024;
   static const int max_size_line = max_size_key + max_size_opt + 64;
 
   using base_type::iterator;
+  using base_type::key_type;
   using base_type::value_type;
 
   VariableMap() {}
   ~VariableMap();
 
-  void                insert(const std::string& key, Variable* v);
+  void                insert(key_type key, Variable* v);
 
   // Consider taking char* start and finish instead of std::string to
   // avoid copying. Or make a view class.
-  const mapped_type&  get(const std::string& key) const;
-  const std::string&  get_string(const std::string& key) const                   { return get(key).as_string(); }
-  mapped_value_type   get_value(const std::string& key) const                    { return get(key).as_value(); }
+  const mapped_type&  get(key_type key) const;
+  const std::string&  get_string(key_type key) const                 { return get(key).as_string(); }
+  mapped_value_type   get_value(key_type key) const                  { return get(key).as_value(); }
 
-  void                set(const std::string& key, const mapped_type& arg);
-  void                set_string(const std::string& key, const std::string& arg) { set(key, mapped_type(arg)); }
-  void                set_value(const std::string& key, mapped_value_type arg)   { set(key, mapped_type(arg)); }
+  void                set(key_type key, const mapped_type& arg);
+  void                set_string(key_type key, const std::string& arg) { set(key, mapped_type(arg)); }
+  void                set_value(key_type key, mapped_value_type arg)   { set(key, mapped_type(arg)); }
+
+  void                set_std_string(const std::string& key, const std::string& arg) { set(key.c_str(), mapped_type(arg)); }
 
   // Relocate.
   void                process_command(const std::string& command);
   void                process_stream(std::istream* str);
-  bool                process_file(const std::string& path);
+  bool                process_file(key_type path);
 
 private:
   VariableMap(const VariableMap&);

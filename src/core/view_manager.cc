@@ -66,8 +66,7 @@ public:
 
 class ViewSortVariable : public ViewSort {
 public:
-  ViewSortVariable(const std::string& name, const std::string& value) :
-    m_name(name), m_value(value) {}
+  ViewSortVariable(const char* name, const char* value) : m_name(name), m_value(value) {}
 
   virtual bool operator () (Download* d1, Download* d2) const {
     return
@@ -76,14 +75,13 @@ public:
   }
 
 private:
-  std::string m_name;
-  std::string m_value;
+  const char* m_name;
+  const char* m_value;
 };
 
 class ViewSortVariableValue : public ViewSort {
 public:
-  ViewSortVariableValue(const std::string& name, bool reverse = false) :
-    m_name(name), m_reverse(reverse) {}
+  ViewSortVariableValue(const char* name, bool reverse = false) : m_name(name), m_reverse(reverse) {}
 
   virtual bool operator () (Download* d1, Download* d2) const {
     if (m_reverse)
@@ -93,7 +91,7 @@ public:
   }
 
 private:
-  std::string m_name;
+  const char* m_name;
   bool        m_reverse;
 };
 
@@ -112,7 +110,7 @@ private:
 
 class ViewFilterVariableValue : public ViewFilter {
 public:
-  ViewFilterVariableValue(const std::string& name, torrent::Object::value_type v, bool inverse = false) :
+  ViewFilterVariableValue(const char* name, torrent::Object::value_type v, bool inverse = false) :
     m_name(name), m_value(v), m_inverse(inverse) {}
 
   virtual bool operator () (Download* d1) const {
@@ -120,7 +118,7 @@ public:
   }
 
 private:
-  std::string                 m_name;
+  const char*                 m_name;
   torrent::Object::value_type m_value;
   bool                        m_inverse;
 };
@@ -191,7 +189,7 @@ ViewManager::build_sort_list(const sort_args& args) {
   sortList.reserve(args.size());
 
   for (sort_args::const_iterator itr = args.begin(), last = args.end(); itr != last; ++itr) {
-    sort_map::const_iterator sortItr = m_sort.find(*itr);
+    sort_map::const_iterator sortItr = m_sort.find(itr->c_str());
 
     if (sortItr == m_sort.end())
       throw torrent::input_error("Invalid sorting identifier.");
@@ -235,7 +233,7 @@ ViewManager::build_filter_list(const filter_args& args) {
   filterList.reserve(args.size());
 
   for (filter_args::const_iterator itr = args.begin(), last = args.end(); itr != last; ++itr) {
-    filter_map::const_iterator filterItr = m_filter.find(*itr);
+    filter_map::const_iterator filterItr = m_filter.find(itr->c_str());
 
     if (filterItr == m_filter.end())
       throw torrent::input_error("Invalid filtering identifier.");

@@ -82,9 +82,13 @@ public:
   bool                is_hash_failed() const                   { return m_hashFailed; }
   void                set_hash_failed(bool v)                  { m_hashFailed = v; }
 
-  variable_map_type*  variable()                                     { return &m_variables; }
-  int64_t             variable_value(const std::string& key) const   { return m_variables.get_value(key); }
-  const std::string&  variable_string(const std::string& key) const  { return m_variables.get_string(key); }
+  variable_map_type*  variable()                               { return &m_variables; }
+
+  int64_t             variable_value(const std::string& key) const  { return m_variables.get_value(key.c_str()); }
+  const std::string&  variable_string(const std::string& key) const { return m_variables.get_string(key.c_str()); }
+
+  int64_t             variable_value_c(const char* key) const  { return m_variables.get_value(key); }
+  const std::string&  variable_string_c(const char* key) const { return m_variables.get_string(key); }
 
   download_type*       download()                              { return &m_download; }
   const download_type* c_download() const                      { return &m_download; }

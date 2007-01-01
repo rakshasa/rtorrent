@@ -88,7 +88,7 @@ parse_options(Control* c, int argc, char** argv) {
     optionParser.insert_option('s', sigc::bind<0>(sigc::mem_fun(c->variable(), &utils::VariableMap::set_string), "session"));
 
     optionParser.insert_option('O', sigc::mem_fun(c->variable(), &utils::VariableMap::process_command));
-    optionParser.insert_option_list('o', sigc::mem_fun(c->variable(), &utils::VariableMap::set_string));
+    optionParser.insert_option_list('o', sigc::mem_fun(c->variable(), &utils::VariableMap::set_std_string));
 
     return optionParser.process(argc, argv);
 
