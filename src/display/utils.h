@@ -76,7 +76,7 @@ char*       print_entry_tags(char* first, char* last);
 char*       print_entry_file(char* first, char* last, const torrent::Entry& entry);
 
 char*       print_status_info(char* first, char* last);
-char*       print_status_extra(char* first, char* last, Control* c);
+char*       print_status_extra(char* first, char* last);
 
 inline char*
 print_buffer(char* first, char* last, const char* format) {

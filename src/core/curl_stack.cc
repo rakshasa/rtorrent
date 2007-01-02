@@ -37,7 +37,6 @@
 #include "config.h"
 
 #include <algorithm>
-#include <stdexcept>
 #include <curl/multi.h>
 #include <sigc++/bind.h>
 #include <torrent/exceptions.h>
@@ -50,39 +49,51 @@ namespace core {
 
 CurlStack::CurlStack() :
   m_handle((void*)curl_multi_init()),
-  m_size(0) {
+  m_active(0),
+  m_maxActive(32) {
 }
 
 CurlStack::~CurlStack() {
-  while (!m_getList.empty())
-    m_getList.front()->close();
+  while (!empty())
+    front()->close();
 
   curl_multi_cleanup((CURLM*)m_handle);
 }
 
+CurlGet*
+CurlStack::new_object() {
+  return new CurlGet(this);
+}
+
 void
 CurlStack::perform() {
-  int s;
   CURLMcode code;
 
   do {
-    code = curl_multi_perform((CURLM*)m_handle, &s);
+    int count;
+    code = curl_multi_perform((CURLM*)m_handle, &count);
 
     if (code > 0)
-      throw std::runtime_error("Error calling curl_multi_perform");
+      throw torrent::internal_error("Error calling curl_multi_perform.");
 
-    if (s != m_size) {
+    if ((unsigned int)count != size()) {
       // Done with some handles.
       int t;
       CURLMsg* msg;
 
       while ((msg = curl_multi_info_read((CURLM*)m_handle, &t)) != NULL) {
-        CurlGetList::iterator itr = std::find_if(m_getList.begin(), m_getList.end(), rak::equal(msg->easy_handle, std::mem_fun(&CurlGet::handle)));
+        if (msg->msg != CURLMSG_DONE)
+          throw torrent::internal_error("CurlStack::perform() msg->msg != CURLMSG_DONE.");
 
-        if (itr == m_getList.end())
-          throw std::logic_error("Could not find CurlGet with the right easy_handle");
+        iterator itr = std::find_if(begin(), end(), rak::equal(msg->easy_handle, std::mem_fun(&CurlGet::handle)));
+
+        if (itr == end())
+          throw torrent::internal_error("Could not find CurlGet with the right easy_handle.");
         
-        (*itr)->perform(msg);
+        if (msg->data.result == CURLE_OK)
+          (*itr)->signal_done().emit();
+        else
+          (*itr)->signal_failed().emit(curl_easy_strerror(msg->data.result));
       }
     }
 
@@ -94,7 +105,7 @@ CurlStack::fdset(fd_set* readfds, fd_set* writefds, fd_set* exceptfds) {
   int maxFd = 0;
 
   if (curl_multi_fdset((CURLM*)m_handle, readfds, writefds, exceptfds, &maxFd) != 0)
-    throw std::runtime_error("Error calling curl_multi_fdset");
+    throw torrent::internal_error("Error calling curl_multi_fdset.");
 
   return std::max(maxFd, 0);
 }
@@ -102,38 +113,54 @@ CurlStack::fdset(fd_set* readfds, fd_set* writefds, fd_set* exceptfds) {
 void
 CurlStack::add_get(CurlGet* get) {
   if (!m_userAgent.empty())
-    get->set_user_agent(m_userAgent.c_str());
+    curl_easy_setopt(get->handle(), CURLOPT_USERAGENT, m_userAgent.c_str());
 
   if (!m_httpProxy.empty())
-    get->set_http_proxy(m_httpProxy.c_str());
+    curl_easy_setopt(get->handle(), CURLOPT_PROXY, m_httpProxy.c_str());
 
   if (!m_bindAddress.empty())
-    get->set_bind_address(m_bindAddress.c_str());
+    curl_easy_setopt(get->handle(), CURLOPT_INTERFACE, m_bindAddress.c_str());
 
-  CURLMcode code;
+  base_type::push_back(get);
 
-  if ((code = curl_multi_add_handle((CURLM*)m_handle, get->handle())) > 0)
-    throw std::logic_error("curl_multi_add_handle \"" + std::string(curl_multi_strerror(code)));
+  if (m_active >= m_maxActive)
+    return;
 
-  m_size++;
-  m_getList.push_back(get);
-
-  // Curl ML suggest we need to do perform after adding a handle.
-  //perform();
+  m_active++;
+  get->set_active(true);
+  
+  if (curl_multi_add_handle((CURLM*)m_handle, get->handle()) > 0)
+    throw torrent::internal_error("Error calling curl_multi_add_handle.");
 }
 
 void
 CurlStack::remove_get(CurlGet* get) {
+  iterator itr = std::find(begin(), end(), get);
+
+  if (itr == end())
+    throw torrent::internal_error("Could not find CurlGet when calling CurlStack::remove.");
+
+  base_type::erase(itr);
+
+  // The CurlGet object was never activated, so we just skip this one.
+  if (!get->is_active())
+    return;
+
+  get->set_active(false);
+
   if (curl_multi_remove_handle((CURLM*)m_handle, get->handle()) > 0)
-    throw std::logic_error("Error calling curl_multi_remove_handle");
+    throw torrent::internal_error("Error calling curl_multi_remove_handle.");
 
-  CurlGetList::iterator itr = std::find(m_getList.begin(), m_getList.end(), get);
+  if (m_active == m_maxActive &&
+      (itr = std::find_if(begin(), end(), std::not1(std::mem_fun(&CurlGet::is_active)))) != end()) {
+    (*itr)->set_active(true);
 
-  if (itr == m_getList.end())
-    throw std::logic_error("Could not find CurlGet when calling CurlStack::remove");
+    if (curl_multi_add_handle((CURLM*)m_handle, (*itr)->handle()) > 0)
+      throw torrent::internal_error("Error calling curl_multi_add_handle.");
 
-  m_size--;
-  m_getList.erase(itr);
+  } else {
+    m_active--;
+  }
 }
 
 void
@@ -144,11 +171,6 @@ CurlStack::global_init() {
 void
 CurlStack::global_cleanup() {
   curl_global_cleanup();
-}
-
-CurlStack::SlotFactory
-CurlStack::get_http_factory() {
-  return sigc::bind(sigc::ptr_fun(&CurlGet::new_object), this);
 }
 
 }

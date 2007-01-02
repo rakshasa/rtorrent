@@ -36,7 +36,6 @@
 
 #include "config.h"
 
-#include <stdexcept>
 #include <cstdio>
 #include <cstring>
 #include <fstream>
@@ -231,8 +230,8 @@ Manager::initialize_first() {
 // Most of this should be possible to move out.
 void
 Manager::initialize_second() {
-  torrent::Http::set_factory(m_pollManager->get_http_stack()->get_http_factory());
-  m_httpQueue->slot_factory(m_pollManager->get_http_stack()->get_http_factory());
+  torrent::Http::set_factory(sigc::mem_fun(m_pollManager->get_http_stack(), &CurlStack::new_object));
+  m_httpQueue->slot_factory(sigc::mem_fun(m_pollManager->get_http_stack(), &CurlStack::new_object));
 
   CurlStack::global_init();
 

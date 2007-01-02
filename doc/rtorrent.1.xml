@@ -845,8 +845,9 @@ be nessesary in case of filesystem bugs like NFS in linux ~2.6.13.
         <term>max_open_files = <replaceable>value</replaceable></term>
         <listitem><para>
 
-Number of files to simultaneously keep open. Libtorrent dynamically
-opens and closes files when mapping files to memory. Defaults to 128.
+Number of files to simultaneously keep open. LibTorrent dynamically
+opens and closes files as necessary when mapping files to
+memory. Default is based on sysconf(_SC_OPEN_MAX).
 
         </para></listitem>
       </varlistentry>
@@ -855,9 +856,18 @@ opens and closes files when mapping files to memory. Defaults to 128.
         <term>max_open_sockets = <replaceable>value</replaceable></term>
         <listitem><para>
 
-Number of sockets to simultaneously keep open. This value is set to be
-<emphasis>sysconf(_SC_OPEN_MAX) - 256</emphasis> at startup. This
-gives the client 128 sockets to use as it wishes.
+Number of network sockets to simultaneously keep open. This value is
+set to a reasonable value based on <emphasis>sysconf(_SC_OPEN_MAX)</emphasis>.
+
+        </para></listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>max_open_http = <replaceable>value</replaceable></term>
+        <listitem><para>
+
+Number of sockets to simultaneously keep open. This value is set
+to <emphasis>32</emphasis> by default.
 
         </para></listitem>
       </varlistentry>

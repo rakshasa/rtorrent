@@ -51,12 +51,9 @@ namespace core {
 HttpQueue::iterator
 HttpQueue::insert(const std::string& url, std::iostream* s) {
   std::auto_ptr<CurlGet> h(m_slotFactory());
-  //std::auto_ptr<std::stringstream> s(new std::stringstream);
   
   h->set_url(url);
-  //h->set_stream(s.get());
   h->set_stream(s);
-  h->set_user_agent("rtorrent/" VERSION);
 
   iterator itr = Base::insert(end(), h.get());
 
@@ -66,8 +63,6 @@ HttpQueue::insert(const std::string& url, std::iostream* s) {
   (*itr)->start();
 
   h.release();
-  //s.release();
-
   m_signalInsert.emit(*itr);
 
   return itr;
@@ -77,9 +72,7 @@ void
 HttpQueue::erase(iterator itr) {
   m_signalErase.emit(*itr);
 
-  //delete (*itr)->get_stream();
   delete *itr;
-
   Base::erase(itr);
 }
 

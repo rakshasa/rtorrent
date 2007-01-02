@@ -37,7 +37,7 @@
 #ifndef RTORRENT_CORE_CURL_STACK_H
 #define RTORRENT_CORE_CURL_STACK_H
 
-#include <list>
+#include <deque>
 #include <string>
 #include <sigc++/slot.h>
 
@@ -45,31 +45,56 @@ namespace core {
 
 class CurlGet;
 
-class CurlStack {
+// By using a deque instead of vector we allow for cheaper removal of
+// the oldest elements, those that will be first in the in the
+// deque.
+//
+// This should fit well with the use-case of a http stack, thus
+// we get most of the cache locality benefits of a vector with fast
+// removal of elements.
+
+class CurlStack : std::deque<CurlGet*> {
  public:
   friend class CurlGet;
 
-  typedef std::list<CurlGet*>   CurlGetList;
-  typedef sigc::slot0<CurlGet*> SlotFactory;
+  typedef std::deque<CurlGet*> base_type;
+
+  using base_type::value_type;
+  using base_type::iterator;
+  using base_type::const_iterator;
+  using base_type::reverse_iterator;
+  using base_type::const_reverse_iterator;
+
+  using base_type::begin;
+  using base_type::end;
+  using base_type::rbegin;
+  using base_type::rend;
+
+  using base_type::back;
+  using base_type::front;
+
+  using base_type::size;
+  using base_type::empty;
 
   CurlStack();
   ~CurlStack();
 
-  int                 get_size() const { return m_size; }
-  bool                is_busy() const  { return !m_getList.empty(); }
+  CurlGet*            new_object();
 
   void                perform();
 
   // TODO: Set fd_set's only once?
   unsigned int        fdset(fd_set* readfds, fd_set* writefds, fd_set* exceptfds);
 
-  SlotFactory         get_http_factory();
+  unsigned int        active() const                         { return m_active; }
+  unsigned int        max_active() const                     { return m_maxActive; }
+  void                set_max_active(unsigned int a)         { m_maxActive = a; }
 
-  const std::string&  user_agent() const                   { return m_userAgent; }
-  void                set_user_agent(const std::string& s) { m_userAgent = s; }
+  const std::string&  user_agent() const                     { return m_userAgent; }
+  void                set_user_agent(const std::string& s)   { m_userAgent = s; }
 
-  const std::string&  http_proxy() const                   { return m_httpProxy; }
-  void                set_http_proxy(const std::string& s) { m_httpProxy = s; }
+  const std::string&  http_proxy() const                     { return m_httpProxy; }
+  void                set_http_proxy(const std::string& s)   { m_httpProxy = s; }
 
   const std::string&  bind_address() const                   { return m_bindAddress; }
   void                set_bind_address(const std::string& s) { m_bindAddress = s; }
@@ -87,8 +112,8 @@ class CurlStack {
 
   void*               m_handle;
 
-  int                 m_size;
-  CurlGetList         m_getList;
+  unsigned int        m_active;
+  unsigned int        m_maxActive;
 
   std::string         m_userAgent;
   std::string         m_httpProxy;

@@ -68,7 +68,7 @@ PollManagerKQueue::poll(rak::timer timeout) {
   torrent::perform();
   timeout = std::min(timeout, rak::timer(torrent::next_timeout())) + 1000;
 
-  if (m_httpStack.is_busy()) {
+  if (!m_httpStack.empty()) {
     // When we're using libcurl we need to use select, but as this is
     // inefficient we try avoiding it whenever possible.
 #if defined USE_VARIABLE_FDSET

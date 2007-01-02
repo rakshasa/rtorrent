@@ -37,9 +37,9 @@
 #include "config.h"
 
 #include <iostream>
-#include <stdexcept>
 #include <curl/curl.h>
 #include <curl/easy.h>
+#include <torrent/exceptions.h>
 
 #include "curl_get.h"
 #include "curl_stack.h"
@@ -54,30 +54,17 @@ curl_get_receive_write(void* data, size_t size, size_t nmemb, void* handle) {
     return 0;
 }
 
-CurlGet::CurlGet(CurlStack* s) :
-  m_handle(NULL),
-  m_stack(s) {
-
-  if (m_stack == NULL)
-    throw std::logic_error("Tried to create CurlGet without a valid CurlStack");
-}
-
 CurlGet::~CurlGet() {
   close();
-}
-
-CurlGet*
-CurlGet::new_object(CurlStack* s) {
-  return new CurlGet(s);
 }
 
 void
 CurlGet::start() {
   if (is_busy())
-    throw std::logic_error("Tried to call CurlGet::start on a busy object");
+    throw torrent::internal_error("Tried to call CurlGet::start on a busy object.");
 
   if (m_stream == NULL)
-    throw std::logic_error("Tried to call CurlGet::start without a valid output stream");
+    throw torrent::internal_error("Tried to call CurlGet::start without a valid output stream.");
 
   m_handle = curl_easy_init();
 
@@ -125,34 +112,6 @@ CurlGet::size_total() {
   curl_easy_getinfo(m_handle, CURLINFO_CONTENT_LENGTH_DOWNLOAD, &d);
 
   return d;
-}
-
-void
-CurlGet::set_user_agent(const char* s) {
-  curl_easy_setopt(m_handle, CURLOPT_USERAGENT, s);
-}
-
-void
-CurlGet::set_http_proxy(const char* s) {
-  curl_easy_setopt(m_handle, CURLOPT_PROXY, s);
-}
-
-void
-CurlGet::set_bind_address(const char* s) {
-  curl_easy_setopt(m_handle, CURLOPT_INTERFACE, s);
-}
-
-void
-CurlGet::perform(CURLMsg* msg) {
-  if (msg->msg != CURLMSG_DONE)
-    throw std::logic_error("CurlGet::process got CURLMSG that isn't done");
-
-  if (msg->data.result == CURLE_OK)
-    m_signalDone.emit();
-  else
-    m_signalFailed.emit(curl_easy_strerror(msg->data.result));
-
-  // Do nothing below after emitting the signals.
 }
 
 }

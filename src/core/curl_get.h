@@ -40,47 +40,38 @@
 #include <iosfwd>
 #include <string>
 #include <curl/curl.h>
-#include <torrent/http.h>
 #include <sigc++/signal.h>
-
-struct CURLMsg;
+#include <torrent/http.h>
 
 namespace core {
 
 class CurlStack;
 
 class CurlGet : public torrent::Http {
- public:
-  friend class CurlStack;
-
-  CurlGet(CurlStack* s);
+public:
+  CurlGet(CurlStack* s) : m_active(false), m_handle(NULL), m_stack(s) {}
   virtual ~CurlGet();
-
-  static CurlGet*    new_object(CurlStack* s);
 
   void               start();
   void               close();
 
-  bool               is_busy()                      { return m_handle; }
+  bool               is_busy() const    { return m_handle; }
+  bool               is_active() const  { return m_active; }
+
+  void               set_active(bool a) { m_active = a; }
 
   double             size_done();
   double             size_total();
 
-  void               set_user_agent(const char* s);
-  void               set_http_proxy(const char* s);
-  void               set_bind_address(const char* s);
+  CURL*              handle()           { return m_handle; }
 
- protected:
-  CURL*              handle()                       { return m_handle; }
-
-  void               perform(CURLMsg* msg);
-
- private:
+private:
   CurlGet(const CurlGet&);
   void operator = (const CurlGet&);
 
-  CURL*              m_handle;
+  bool               m_active;
 
+  CURL*              m_handle;
   CurlStack*         m_stack;
 };
 

@@ -471,6 +471,8 @@ initialize_option_handler(Control* c) {
   variables->insert("max_open_files",        new utils::VariableValueSlot(rak::ptr_fn(&torrent::max_open_files), rak::ptr_fn(&torrent::set_max_open_files)));
   variables->insert("max_open_sockets",      new utils::VariableValueSlot(rak::mem_fn(torrent::connection_manager(), &torrent::ConnectionManager::max_size),
                                                                           rak::mem_fn(torrent::connection_manager(), &torrent::ConnectionManager::set_max_size)));
+  variables->insert("max_open_http",         new utils::VariableValueSlot(rak::mem_fn(c->core()->get_poll_manager()->get_http_stack(), &core::CurlStack::max_active),
+                                                                          rak::mem_fn(c->core()->get_poll_manager()->get_http_stack(), &core::CurlStack::set_max_active)));
 
   variables->insert("print",                 new utils::VariableStringSlot(rak::value_fn(std::string()), rak::mem_fn(control->core(), &core::Manager::push_log)));
   variables->insert("import",                new utils::VariableStringSlot(rak::value_fn(std::string()), rak::ptr_fn(&apply_import)));

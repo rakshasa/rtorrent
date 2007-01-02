@@ -51,7 +51,9 @@
 #include <torrent/peer/client_info.h>
 
 #include "core/download.h"
+#include "core/manager.h"
 
+#include "globals.h"
 #include "utils.h"
 
 namespace display {
@@ -279,10 +281,14 @@ print_status_info(char* first, char* last) {
 }
 
 char*
-print_status_extra(char* first, char* last, __UNUSED Control* c) {
+print_status_extra(char* first, char* last) {
   first = print_buffer(first, last, " [U %i/%i]",
                        torrent::currently_unchoked(),
                        torrent::max_unchoked());
+
+  first = print_buffer(first, last, " [H %u/%u]",
+                       control->core()->get_poll_manager()->get_http_stack()->active(),
+                       control->core()->get_poll_manager()->get_http_stack()->max_active());                       
 
   first = print_buffer(first, last, " [S %i/%i/%i]",
                        torrent::total_handshakes(),
