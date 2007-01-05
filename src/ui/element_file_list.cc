@@ -62,13 +62,15 @@ ElementFileList::ElementFileList(core::Download* d) :
   m_window(NULL),
   m_elementInfo(NULL),
 
-  m_selected(iterator(d->download()->file_list()->begin())) {
+  m_selected(iterator(d->download()->file_list()->begin())),
+  m_collapsed(false) {
 
   m_bindings[KEY_LEFT] = m_bindings['B' - '@']  = sigc::mem_fun(&m_slotExit, &slot_type::operator());
-  m_bindings[KEY_RIGHT] = m_bindings['F' - '@'] = sigc::bind(sigc::mem_fun(this, &ElementFileList::activate_display), DISPLAY_INFO);
+  m_bindings[KEY_RIGHT] = m_bindings['F' - '@'] = sigc::mem_fun(*this, &ElementFileList::receive_select);
 
   m_bindings[' '] = sigc::mem_fun(*this, &ElementFileList::receive_priority);
   m_bindings['*'] = sigc::mem_fun(*this, &ElementFileList::receive_change_all);
+  m_bindings['/'] = sigc::mem_fun(*this, &ElementFileList::receive_collapse);
   m_bindings[KEY_NPAGE] = sigc::mem_fun(*this, &ElementFileList::receive_pagenext);
   m_bindings[KEY_PPAGE] = sigc::mem_fun(*this, &ElementFileList::receive_pageprev);
 
@@ -119,7 +121,7 @@ ElementFileList::activate(display::Frame* frame, bool focus) {
   if (focus)
     control->input()->push_back(&m_bindings);
 
-  m_window = new WFileList(m_download, &m_selected);
+  m_window = new WFileList(this);
   m_window->set_active(true);
   m_window->set_focused(focus);
 
@@ -193,7 +195,12 @@ void
 ElementFileList::receive_next() {
   torrent::FileList* fl = m_download->download()->file_list();
 
-  if (m_selected == iterator(fl->end()) || ++m_selected == iterator(fl->end()))
+  if (is_collapsed())
+    m_selected.forward_current_depth();
+  else
+    m_selected++;
+
+  if (m_selected == iterator(fl->end()))
     m_selected = iterator(fl->begin());
 
   update_itr();
@@ -206,7 +213,11 @@ ElementFileList::receive_prev() {
   if (m_selected == iterator(fl->begin()))
     m_selected = iterator(fl->end());
 
-  m_selected--;
+  if (is_collapsed())
+    m_selected.backward_current_depth();
+  else
+    m_selected--;
+
   update_itr();
 }
 
@@ -230,7 +241,7 @@ ElementFileList::receive_pagenext() {
 void
 ElementFileList::receive_pageprev() {
   if (m_window == NULL)
-    throw torrent::internal_error("ui::ElementFileList::receive_pageprev(...) called on a disabled object");
+    return;
 
   torrent::FileList* fl = m_download->download()->file_list();
 
@@ -242,33 +253,29 @@ ElementFileList::receive_pageprev() {
   update_itr();
 }
 
-// Take a range as input and return the next entry at the same
-// directory depth as first. If the returned iterator equals 'last' or
-// is_leaving() == true then the search failed. UHM... wrong...
+void
+ElementFileList::receive_select() {
+  if (m_window == NULL || m_state != DISPLAY_LIST)
+    return;
 
-torrent::FileListIterator
-next_current_depth(torrent::FileListIterator first, torrent::FileListIterator last) {
-  if (first == last)
-    return first;
-
-  uint32_t depth = (first++).depth();
-
-  while (first != last && (first.depth() > depth || first.is_leaving()))
-    ++first;
-
-  return first;
+  if (is_collapsed() && !m_selected.is_file()) {
+    m_selected++;
+    m_window->mark_dirty();
+  } else {
+    activate_display(DISPLAY_INFO);
+  }
 }
 
 void
 ElementFileList::receive_priority() {
   if (m_window == NULL)
-    throw torrent::internal_error("ui::ElementFileList::receive_prev(...) called on a disabled object");
+    return;
 
-  torrent::FileList* fl = m_download->download()->file_list();
   torrent::priority_t priority = torrent::priority_t((m_selected.file()->priority() + 2) % 3);
 
   iterator first = m_selected; 
-  iterator last = next_current_depth(m_selected, iterator(fl->end()));
+  iterator last = m_selected;
+  last.forward_current_depth();
 
   while (first != last) {
     if (first.is_file())
@@ -284,7 +291,7 @@ ElementFileList::receive_priority() {
 void
 ElementFileList::receive_change_all() {
   if (m_window == NULL)
-    throw torrent::internal_error("ui::ElementFileList::receive_prev(...) called on a disabled object");
+    return;
 
   torrent::FileList* fl = m_download->download()->file_list();
   torrent::priority_t priority = torrent::priority_t((m_selected.file()->priority() + 2) % 3);
@@ -294,6 +301,15 @@ ElementFileList::receive_change_all() {
 
   m_download->download()->update_priorities();
   update_itr();
+}
+
+void
+ElementFileList::receive_collapse() {
+  if (m_window == NULL)
+    return;
+
+  set_collapsed(!is_collapsed());
+  m_window->mark_dirty();
 }
 
 void

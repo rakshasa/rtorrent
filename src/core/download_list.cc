@@ -315,7 +315,8 @@ DownloadList::resume(Download* download) {
       return;
     }
 
-    open_throw(download);
+    // This will never actually do anything due to the above hash check.
+    // open_throw(download);
 
     download->variable()->set("state_changed", cachedTime.seconds());
 

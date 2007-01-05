@@ -44,8 +44,6 @@
 
 #include "element_base.h"
 
-class Control;
-
 namespace display {
   class WindowFileList;
 }
@@ -72,14 +70,23 @@ public:
 
   void                activate_display(Display display);
 
+  bool                is_collapsed() const  { return m_collapsed; }
+  void                set_collapsed(bool s) { m_collapsed = s; }
+
+  iterator            selected() const      { return m_selected; }
+  core::Download*     download() const      { return m_download; }
+
 private:
   void                receive_next();
   void                receive_prev();
   void                receive_pagenext();
   void                receive_pageprev();
 
+  void                receive_select();
+
   void                receive_priority();
   void                receive_change_all();
+  void                receive_collapse();
 
   void                update_itr();
 
@@ -91,6 +98,7 @@ private:
   
   // Change to unsigned, please.
   iterator            m_selected;
+  bool                m_collapsed;
 };
 
 }

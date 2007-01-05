@@ -491,65 +491,58 @@ Manager::receive_hashing_changed() {
   
   // Try quick hashing all those with hashing == initial, set them to
   // something else when failed.
-  for (View::iterator itr = m_hashingView->begin_visible(), last = m_hashingView->end_visible(); itr != last; ++itr)
-    try {
-
-      if ((*itr)->is_hash_checking()) {
-        foundHashing = true;
-        continue;
-      }
-
-      if ((*itr)->is_hash_checked())
-        throw torrent::internal_error("core::Manager::receive_hashing_changed() hash already checked or checking.");
+  for (View::iterator itr = m_hashingView->begin_visible(), last = m_hashingView->end_visible(); itr != last; ++itr) {
+    if ((*itr)->is_hash_checked())
+      throw torrent::internal_error("core::Manager::receive_hashing_changed() hash already checked or checking.");
   
-      if ((*itr)->is_hash_failed() ||
-          (*itr)->variable()->get_value("hashing") != Download::variable_hashing_initial ||
-          (*itr)->download()->chunks_hashed() != 0)
-        continue;
+    if ((*itr)->is_hash_checking()) {
+      foundHashing = true;
+      continue;
+    }
 
+    if ((*itr)->is_hash_failed())
+      continue;
+
+    bool tryQuick =
+      (*itr)->variable()->get_value("hashing") == Download::variable_hashing_initial &&
+      (*itr)->download()->file_list()->bitfield()->empty();
+
+    if (!tryQuick && foundHashing)
+      continue;
+
+    try {
       m_downloadList->open_throw(*itr);
-      torrent::resume_load_progress(*(*itr)->download(), (*itr)->download()->bencode()->get_key("libtorrent_resume"));
 
-      if ((*itr)->download()->hash_check(true)) {
-        // Set this to exit the function so that the delayed hash done
-        // signal gets triggered before we try any real hashing.
-        foundHashing = true;
+      // Since the bitfield is allocated on loading of resume load or
+      // hash start, and unallocated on close, we know that if it it
+      // not empty then we have loaded any existing resume data.
+      if ((*itr)->download()->file_list()->bitfield()->empty())
+        torrent::resume_load_progress(*(*itr)->download(), (*itr)->download()->bencode()->get_key("libtorrent_resume"));
+
+      // Need to clean up the below.
+      if (tryQuick) {
+        if (!(*itr)->download()->hash_check(true))
+          // Temporary hack.
+          (*itr)->download()->hash_stop();
+
+        // Make sure we don't repeat the quick hashing.
+        (*itr)->variable()->set_value("hashing", Download::variable_hashing_rehash);
 
       } else {
-        // Temporary hack.
-        (*itr)->download()->hash_stop();
+        (*itr)->download()->hash_check(false);
       }
 
-      (*itr)->variable()->set_value("hashing", Download::variable_hashing_rehash);
-
     } catch (torrent::local_error& e) {
-      (*itr)->set_hash_failed(true);
-      push_log(e.what());
+      if (tryQuick) {
+        // Make sure we don't repeat the quick hashing.
+        (*itr)->variable()->set_value("hashing", Download::variable_hashing_rehash);
+
+      } else {
+        (*itr)->set_hash_failed(true);
+        push_log(e.what());
+      }
     }
-
-  if (foundHashing)
-    return;
-
-  for (View::iterator itr = m_hashingView->begin_visible(), last = m_hashingView->end_visible(); itr != last; ++itr)
-    try {
-
-      if ((*itr)->is_hash_checked() || (*itr)->is_hash_checking())
-        throw torrent::internal_error("core::Manager::receive_hashing_changed() hash already checked or checking.");
-  
-      if ((*itr)->is_hash_failed())
-        continue;
-
-      m_downloadList->open_throw(*itr);
-      torrent::resume_load_progress(*(*itr)->download(), (*itr)->download()->bencode()->get_key("libtorrent_resume"));
-
-      (*itr)->download()->hash_check(false);
-
-      return;
-
-    } catch (torrent::local_error& e) {
-      (*itr)->set_hash_failed(true);
-      push_log(e.what());
-    }
+  }
 }
 
 }

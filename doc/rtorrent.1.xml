@@ -221,7 +221,8 @@ Toggle whether torrent ignores ratio settings.
 	  <term>-></term>
 	  <listitem><para>
 View torrent file list. Use the space-bar to change the file priority
-and <emphasis>*</emphasis> to change the priority of all files.
+and <emphasis>*</emphasis> to change the priority of all
+files. Use <emphasis>/</emphasis> to collapse the directories. OUTDATED
           </para></listitem>
 	</varlistentry>
 

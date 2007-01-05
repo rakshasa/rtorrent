@@ -37,34 +37,33 @@
 #ifndef RTORRENT_DISPLAY_FILE_LIST_H
 #define RTORRENT_DISPLAY_FILE_LIST_H
 
-#include <list>
-
 #include "window.h"
+
+namespace ui {
+  class ElementFileList;
+}
 
 namespace torrent {
   class File;
   class FileListIterator;
-}
-
-namespace core {
-  class Download;
+  class file_list_collapsed_iterator;
 }
 
 namespace display {
 
 class WindowFileList : public Window {
 public:
-  typedef torrent::FileListIterator iterator;
+  typedef torrent::FileListIterator             iterator;
+  typedef torrent::file_list_collapsed_iterator collapsed_iterator;
 
-  WindowFileList(core::Download* d, iterator* selected);
+  WindowFileList(const ui::ElementFileList* element);
 
   virtual void        redraw();
 
 private:
   int                 done_percentage(torrent::File* e);
 
-  core::Download*     m_download;
-  iterator*           m_selected;
+  const ui::ElementFileList* m_element;
 };
 
 }

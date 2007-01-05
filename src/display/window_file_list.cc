@@ -36,23 +36,24 @@
 
 #include "config.h"
 
-#include <stdexcept>
-#include <rak/algorithm.h>
 #include <torrent/path.h>
 #include <torrent/data/file.h>
 #include <torrent/data/file_list.h>
 #include <torrent/data/file_list_iterator.h>
 
 #include "core/download.h"
+#include "ui/element_file_list.h"
 
 #include "window_file_list.h"
 
 namespace display {
 
-WindowFileList::WindowFileList(core::Download* d, iterator* selected) :
+// Don't really like the direction of the element dependency, but
+// don't really feel like making a seperate class for containing the
+// necessary information.
+WindowFileList::WindowFileList(const ui::ElementFileList* element) :
   Window(new Canvas, 0, 0, 0, extent_full, extent_full),
-  m_download(d),
-  m_selected(selected) {
+  m_element(element) {
 }
 
 /*
@@ -77,17 +78,50 @@ WindowFileList::redraw() {
   m_slotSchedule(this, (cachedTime + rak::timer::from_seconds(10)).round_seconds());
   m_canvas->erase();
 
-  torrent::FileList* fl = m_download->download()->file_list();
+  torrent::FileList* fl = m_element->download()->download()->file_list();
 
   if (fl->size_files() == 0 || m_canvas->height() < 2)
     return;
 
-  unsigned int pos = 0;
-  iterator itr = rak::advance_bidirectional<iterator>(iterator(fl->begin()), *m_selected, iterator(fl->end()), m_canvas->height() - 1).first;
+  iterator entries[m_canvas->height() - 1];
 
+  unsigned int last = 0;
+
+  for (iterator itr = m_element->selected(); last != m_canvas->height() - 1; ) {
+    if (m_element->is_collapsed())
+      itr.forward_current_depth();
+    else
+      ++itr;
+
+    entries[last++] = itr;
+
+    if (itr == iterator(fl->end()))
+      break;
+  }
+
+  unsigned int first = m_canvas->height() - 1;
+
+  for (iterator itr = m_element->selected(); first >= last || first > (m_canvas->height() - 1) / 2; ) {
+    entries[--first] = itr;
+
+    if (itr == iterator(fl->begin()))
+      break;
+
+    if (m_element->is_collapsed())
+      itr.backward_current_depth();
+    else
+      --itr;
+  }
+
+  unsigned int pos = 0;
   m_canvas->print(0, pos++, "Cmp Pri  Size   Filename");
 
-  while (pos != m_canvas->height() && itr != iterator(fl->end())) {
+  while (pos != m_canvas->height()) {
+    iterator itr = entries[first];
+
+    if (itr == iterator(fl->end()))
+      break;
+
     if (itr.is_empty()) {
       m_canvas->print(16, pos, "EMPTY");
 
@@ -136,11 +170,11 @@ WindowFileList::redraw() {
       m_canvas->print(0, pos, "BORK BORK");
     }
 
-    if (itr == *m_selected)
+    if (itr == m_element->selected())
       m_canvas->set_attr(0, pos, m_canvas->width(), is_focused() ? A_REVERSE : A_BOLD, COLOR_PAIR(0));
 
-    ++itr;
-    ++pos;
+    pos++;
+    first = (first + 1) % (m_canvas->height() - 1);
   }
 }
 
