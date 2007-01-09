@@ -297,7 +297,7 @@ do_panic(int signum) {
 #endif
   
   if (signum == SIGBUS)
-    std::cout << "A bus error propably means you ran out of diskspace." << std::endl;
+    std::cout << "A bus error probably means you ran out of diskspace." << std::endl;
 
   std::abort();
 }
