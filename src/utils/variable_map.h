@@ -87,8 +87,12 @@ public:
 
   void                set_std_string(const std::string& key, const std::string& arg) { set(key.c_str(), mapped_type(arg)); }
 
-  // Relocate.
-  void                process_command(const std::string& command);
+  const char*         process_single(const char* first);
+  const char*         process_single(const char* first, const char* last);
+  void                process_std_single(const std::string& cmd)       { process_single(cmd.c_str(), cmd.c_str() + cmd.size()); }
+
+  void                process_multiple(const char* first);
+
   void                process_stream(std::istream* str);
   bool                process_file(key_type path);
 

@@ -87,7 +87,7 @@ parse_options(Control* c, int argc, char** argv) {
     optionParser.insert_option('p', sigc::bind<0>(sigc::mem_fun(c->variable(), &utils::VariableMap::set_string), "port_range"));
     optionParser.insert_option('s', sigc::bind<0>(sigc::mem_fun(c->variable(), &utils::VariableMap::set_string), "session"));
 
-    optionParser.insert_option('O', sigc::mem_fun(c->variable(), &utils::VariableMap::process_command));
+    optionParser.insert_option('O', sigc::mem_fun(c->variable(), &utils::VariableMap::process_std_single));
     optionParser.insert_option_list('o', sigc::mem_fun(c->variable(), &utils::VariableMap::set_std_string));
 
     return optionParser.process(argc, argv);
@@ -165,66 +165,68 @@ main(int argc, char** argv) {
     // torrent::ConnectionManager* is valid etc.
     initialize_option_handler(control);
 
-    // Currently not doing any sorting on main.
-    control->variable()->process_command("view_add = main");
-    //control->variable()->process_command("view_sort_current = name,started,name");
+    control->variable()->process_multiple
+      (
+       // Currently not doing any sorting on main.
+       "view_add = main\n"
 
-    control->variable()->process_command("view_add = name");
-    control->variable()->process_command("view_sort_new = name,name");
-    control->variable()->process_command("view_sort_current = name,name");
+       "view_add = name\n"
+       "view_sort_new = name,name\n"
+       "view_sort_current = name,name\n"
 
-    control->variable()->process_command("view_add = started");
-    control->variable()->process_command("view_filter = started,started");
-    control->variable()->process_command("view_filter_on = started,start,stop");
-    control->variable()->process_command("view_sort_new = started,name");
-    control->variable()->process_command("view_sort_current = started,name");
+       "view_add = started\n"
+       "view_filter = started,started\n"
+       "view_filter_on = started,start,stop\n"
+       "view_sort_new = started,name\n"
+       "view_sort_current = started,name\n"
 
-    control->variable()->process_command("view_add = stopped");
-    control->variable()->process_command("view_filter = stopped,stopped");
-    control->variable()->process_command("view_filter_on = stopped,start,stop");
-    control->variable()->process_command("view_sort_new = stopped,name");
-    control->variable()->process_command("view_sort_current = stopped,name");
+       "view_add = stopped\n"
+       "view_filter = stopped,stopped\n"
+       "view_filter_on = stopped,start,stop\n"
+       "view_sort_new = stopped,name\n"
+       "view_sort_current = stopped,name\n"
 
-    control->variable()->process_command("view_add = complete");
-    control->variable()->process_command("view_filter = complete,complete");
-    control->variable()->process_command("view_filter_on = complete,hash_done,finished");
-    control->variable()->process_command("view_sort_new = complete,state_changed");
-    control->variable()->process_command("view_sort_current = complete,state_changed_reverse");
+       "view_add = complete\n"
+       "view_filter = complete,complete\n"
+       "view_filter_on = complete,hash_done,finished\n"
+       "view_sort_new = complete,state_changed\n"
+       "view_sort_current = complete,state_changed_reverse\n"
 
-    control->variable()->process_command("view_add = incomplete");
-    control->variable()->process_command("view_filter = incomplete,incomplete");
-    control->variable()->process_command("view_filter_on = incomplete,hash_done,finished");
-    control->variable()->process_command("view_sort_new = incomplete,state_changed");
-    control->variable()->process_command("view_sort_current = incomplete,state_changed_reverse");
+       "view_add = incomplete\n"
+       "view_filter = incomplete,incomplete\n"
+       "view_filter_on = incomplete,hash_done,finished\n"
+       "view_sort_new = incomplete,state_changed\n"
+       "view_sort_current = incomplete,state_changed_reverse\n"
 
-    // The hashing view does not include stopped torrents.
-    control->variable()->process_command("view_add = hashing");
-    control->variable()->process_command("view_filter = hashing,hashing");
-    control->variable()->process_command("view_filter_on = hashing,hash_queued,hash_removed,hash_done");
-    control->variable()->process_command("view_sort_new = hashing,state_changed");
-    control->variable()->process_command("view_sort_current = hashing,state_changed");
+       // The hashing view does not include stopped torrents.
+       "view_add = hashing\n"
+       "view_filter = hashing,hashing\n"
+       "view_filter_on = hashing,hash_queued,hash_removed,hash_done\n"
+       "view_sort_new = hashing,state_changed\n"
+       "view_sort_current = hashing,state_changed\n"
 
-    control->variable()->process_command("schedule = view_main,10,10,view_sort=main,20");
-    control->variable()->process_command("schedule = view_name,10,10,view_sort=name,20");
-//     control->variable()->process_command("schedule = view_started,10,10,view_sort=started,5");
-//     control->variable()->process_command("schedule = view_stopped,10,10,view_sort=stopped,5");
-//     control->variable()->process_command("schedule = view_complete,10,10,view_sort=complete,5");
-//     control->variable()->process_command("schedule = view_incomplete,10,10,view_sort=incomplete,5");
+       "schedule = view_main,10,10,view_sort=main,20\n"
+       "schedule = view_name,10,10,view_sort=name,20\n"
+       //     "schedule = view_started,10,10,view_sort=started,5\n"
+       //     "schedule = view_stopped,10,10,view_sort=stopped,5\n"
+       //     "schedule = view_complete,10,10,view_sort=complete,5\n"
+       //     "schedule = view_incomplete,10,10,view_sort=incomplete,5\n"
 
-    //control->variable()->process_command("schedule = scheduler,10,10,download_scheduler=");
-    control->variable()->process_command("schedule = session_save,1800,1800,session_save=");
+       //"schedule = scheduler,10,10,download_scheduler=\n"
+       "schedule = session_save,1800,1800,session_save=\n"
 
-    // Changing these will bork the (non-existant) scheduler.
-    control->variable()->process_command("view_add = scheduler");
-    control->variable()->process_command("view_sort_new = scheduler,state_changed"); // add started?
-    control->variable()->process_command("view_sort_current = scheduler,state_changed");
+       // Changing these will bork the (non-existant) scheduler.
+       "view_add = scheduler\n"
+       "view_sort_new = scheduler,state_changed\n" // add started?
+       "view_sort_current = scheduler,state_changed\n"
 
-    //    control->variable()->process_command("schedule = scheduler,10,10,download_scheduler=");
+       //    "schedule = scheduler,10,10,download_scheduler=\n"
+       );
 
     if (OptionParser::has_flag('n', argc, argv))
       control->core()->push_log("Ignoring ~/.rtorrent.rc.");
     else
-      control->variable()->process_command("try_import = ~/.rtorrent.rc");
+      control->variable()->process_single("try_import = ~/.rtorrent.rc");
 
     int firstArg = parse_options(control, argc, argv);
 

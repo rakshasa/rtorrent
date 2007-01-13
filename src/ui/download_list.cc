@@ -288,7 +288,7 @@ DownloadList::receive_exit_input(Input type) {
       break;
 
     case INPUT_COMMAND:
-      control->variable()->process_command(input->str());
+      control->variable()->process_std_single(input->str());
       break;
 
     default:

@@ -92,8 +92,15 @@ struct variable_map_is_space : std::unary_function<char, bool> {
   }
 };
 
-std::string::const_iterator
-parse_name(std::string::const_iterator first, std::string::const_iterator last, std::string* dest) {
+struct variable_map_is_newline : std::unary_function<char, bool> {
+  bool operator () (char c) const {
+    return c == '\n' || c == '\0';
+  }
+};
+
+// Use a static length buffer for dest.
+const char*
+parse_name(const char* first, const char* last, std::string* dest) {
   if (first == last || !std::isalpha(*first))
     throw torrent::input_error("Invalid start of name.");
 
@@ -103,10 +110,10 @@ parse_name(std::string::const_iterator first, std::string::const_iterator last, 
   return first;
 }
 
-std::string::const_iterator
-parse_unknown(std::string::const_iterator first, std::string::const_iterator last, VariableMap::mapped_type* dest) {
+const char*
+parse_unknown(const char* first, const char* last, VariableMap::mapped_type* dest) {
   if (*first == '"') {
-    std::string::const_iterator next = std::find_if(++first, last, std::bind2nd(std::equal_to<char>(), '"'));
+    const char* next = std::find_if(++first, last, std::bind2nd(std::equal_to<char>(), '"'));
     
     if (first == last || first == next || next == last)
       throw torrent::input_error("Could not find closing '\"'.");
@@ -116,15 +123,15 @@ parse_unknown(std::string::const_iterator first, std::string::const_iterator las
 
   } else {
     // Add rak::or and check for ','.
-    std::string::const_iterator next = std::find_if(first, last, variable_map_is_space());
+    const char* next = std::find_if(first, last, variable_map_is_space());
 
     *dest = std::string(first, next);
     return next;
   }
 }
 
-std::string::const_iterator
-parse_args(std::string::const_iterator first, std::string::const_iterator last, VariableMap::mapped_type::list_type* dest) {
+const char*
+parse_args(const char* first, const char* last, VariableMap::mapped_type::list_type* dest) {
   first = std::find_if(first, last, std::not1(variable_map_is_space()));
 
   while (first != last) {
@@ -140,24 +147,29 @@ parse_args(std::string::const_iterator first, std::string::const_iterator last, 
   return first;
 }
 
-void
-VariableMap::process_command(const std::string& command) {
-  std::string::const_iterator pos = command.begin();
-  pos = std::find_if(pos, command.end(), std::not1(variable_map_is_space()));
+const char*
+VariableMap::process_single(const char* first) {
+  // This could be optimized, but dunno if there's any point in doing
+  // it.
+  return process_single(first, first + std::strlen(first));
+}
 
-  if (pos == command.end() || *pos == '#')
-    return;
+const char*
+VariableMap::process_single(const char* first, const char* last) {
+  first = std::find_if(first, last, std::not1(variable_map_is_space()));
 
-  // Replace with parse_unknown?
-  std::string key;
-  pos = parse_name(pos, command.end(), &key);
-  pos = std::find_if(pos, command.end(), std::not1(variable_map_is_space()));
+  if (first == last || *first == '#')
+    return last;
   
-  if (pos == command.end() || *pos != '=')
+  std::string key;
+  first = parse_name(first, last, &key);
+  first = std::find_if(first, last, std::not1(variable_map_is_space()));
+  
+  if (first == last || *first != '=')
     throw torrent::input_error("Could not find '='.");
 
   mapped_type args(mapped_type::TYPE_LIST);
-  parse_args(pos + 1, command.end(), &args.as_list());
+  first = parse_args(first + 1, last, &args.as_list());
 
   if (args.as_list().empty())
     set(key.c_str(), mapped_type());
@@ -167,6 +179,57 @@ VariableMap::process_command(const std::string& command) {
 
   else
     set(key.c_str(), args);
+
+  return std::find_if(first, last, std::not1(variable_map_is_space()));
+}
+
+// void
+// VariableMap::process_command(const std::string& command) {
+//   std::string::const_iterator pos = command.begin();
+//   pos = std::find_if(pos, command.end(), std::not1(variable_map_is_space()));
+
+//   if (pos == command.end() || *pos == '#')
+//     return;
+
+//   // Replace with parse_unknown?
+//   std::string key;
+//   pos = parse_name(pos, command.end(), &key);
+//   pos = std::find_if(pos, command.end(), std::not1(variable_map_is_space()));
+  
+//   if (pos == command.end() || *pos != '=')
+//     throw torrent::input_error("Could not find '='.");
+
+//   mapped_type args(mapped_type::TYPE_LIST);
+//   parse_args(pos + 1, command.end(), &args.as_list());
+
+//   if (args.as_list().empty())
+//     set(key.c_str(), mapped_type());
+
+//   else if (++args.as_list().begin() == args.as_list().end())
+//     set(key.c_str(), *args.as_list().begin());
+
+//   else
+//     set(key.c_str(), args);
+
+
+// Consider what the command scheduler should do.
+
+void
+VariableMap::process_multiple(const char* first) {
+  while (first != '\0') {
+    const char* last = first;
+
+    while (*last != '\n' && *last != '\0') last++;
+
+    // Should we check the return value? Probably not necessary as
+    // parse_args throws on unquoted multi-word input.
+    process_single(first, last);
+
+    if (*last == '\0')
+      return;
+
+    first = last + 1;
+  }
 }
 
 bool
@@ -184,7 +247,7 @@ VariableMap::process_file(key_type path) {
     while (file.getline(buffer, max_size_line).good()) {
       lineNumber++;
       // Would be nice to make this zero-copy.
-      process_command(buffer);
+      process_single(buffer, buffer + std::strlen(buffer));
     }
 
   } catch (torrent::input_error& e) {
