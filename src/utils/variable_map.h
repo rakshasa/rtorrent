@@ -73,6 +73,9 @@ public:
   VariableMap() {}
   ~VariableMap();
 
+  bool                has(const char* key) const        { return base_type::find(key) != base_type::end(); }
+  bool                has(const std::string& key) const { return has(key.c_str()); }
+
   void                insert(key_type key, Variable* v);
 
   // Consider taking char* start and finish instead of std::string to

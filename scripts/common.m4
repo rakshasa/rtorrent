@@ -75,6 +75,7 @@ AC_DEFUN([TORRENT_MINCORE_SIGNEDNESS], [
   AC_COMPILE_IFELSE(
     [[#include <sys/types.h>
       #include <sys/mman.h>
+      #include <unistd.h>
       void f() { mincore((char*)0, 0, (unsigned char*)0); }
     ]],
     [
@@ -86,6 +87,7 @@ AC_DEFUN([TORRENT_MINCORE_SIGNEDNESS], [
       AC_COMPILE_IFELSE(
         [[#include <sys/types.h>
           #include <sys/mman.h>
+          #include <unistd.h>
           void f() { mincore((char*)0, 0, (char*)0); }
         ]],
         [
