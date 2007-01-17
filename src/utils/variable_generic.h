@@ -49,6 +49,7 @@
 #include <torrent/exceptions.h>
 
 #include "variable.h"
+#include "core/download.h"
 
 namespace utils {
 
@@ -82,17 +83,13 @@ class VariableObject : public Variable {
 public:
   typedef torrent::Object::type_type Type;
 
-  VariableObject(torrent::Object* b,
-		  const std::string& root,
-		  const std::string& key,
-		  Type t = torrent::Object::TYPE_NONE) :
-    m_bencode(b), m_root(root), m_key(key), m_type(t) {}
+  VariableObject(const std::string& root, const std::string& key, Type t = torrent::Object::TYPE_NONE) :
+    m_root(root), m_key(key), m_type(t) {}
 
-  virtual const torrent::Object& get();
-  virtual void        set(const torrent::Object& arg);
+  virtual const torrent::Object& get_d(core::Download* download);
+  virtual void        set_d(core::Download* download, const torrent::Object& arg);
 
 private:
-  torrent::Object*    m_bencode;
   std::string         m_root;
   std::string         m_key;
   Type                m_type;
@@ -169,27 +166,54 @@ private:
 
 class VariableStringSlot : public Variable {
 public:
-  typedef rak::function0<string_type>              slot_get_type;
-  typedef rak::function1<void, const string_type&> slot_set_type;
+  typedef rak::function0<string_type>                               slot_get_type;
+  typedef rak::function1<string_type, core::Download*>              slot_get_d_type;
+  typedef rak::function1<void, const string_type&>                  slot_set_type;
+  typedef rak::function2<void, core::Download*, const string_type&> slot_set_d_type;
 
   template <typename SlotGet, typename SlotSet>
   VariableStringSlot(SlotGet* slotGet, SlotSet* slotSet) {
     m_slotGet.set(rak::convert_fn<string_type>(slotGet));
     m_slotSet.set(rak::convert_fn<void, const string_type&>(slotSet));
+    m_slotGetDownload.set(NULL);
+    m_slotSetDownload.set(NULL);
   }
 
-  template <typename SlotGet>
-  VariableStringSlot(SlotGet* slotGet, void* slotSet) {
-    m_slotGet.set(rak::convert_fn<string_type>(slotGet));
+  template <typename SlotGetDownload>
+  VariableStringSlot(void* slotGet, void* slotSet, SlotGetDownload* slotGetDownload, void* slotSetDownload) {
+    m_slotGet.set(NULL);
     m_slotSet.set(NULL);
+    m_slotGetDownload.set(rak::convert_fn<string_type, core::Download*>(slotGetDownload));
+    m_slotSetDownload.set(NULL);
   }
+
+  template <typename SlotGetDownload, typename SlotSetDownload>
+  VariableStringSlot(void* slotGet, void* slotSet, SlotGetDownload* slotGetDownload, SlotSetDownload* slotSetDownload) {
+    m_slotGet.set(NULL);
+    m_slotSet.set(NULL);
+    m_slotGetDownload.set(rak::convert_fn<string_type, core::Download*>(slotGetDownload));
+    m_slotSetDownload.set(rak::convert_fn<void, core::Download*, const string_type&>(slotSetDownload));
+  }
+
+//   template <typename SlotGet, typename SlotSet, typename SlotGetDownload, typename SlotSetDownload>
+//   VariableStringSlot(SlotGet* slotGet, SlotSet* slotSet, SlotGetDownload* slotGetDownload, SlotSetDownload* slotSetDownload) {
+//     m_slotGet.set(slotGet != NULL ? rak::convert_fn<string_type>(slotGet) : NULL);
+//     m_slotSet.set(slotSet != NULL ? rak::convert_fn<void, const string_type&>(slotSet) : NULL);
+//     m_slotGetDownload.set(slotGetDownload != NULL ? rak::convert_fn<string_type, core::Download*>(slotGetDownload) : NULL);
+//     m_slotSetDownload.set(slotSetDownload != NULL ? rak::convert_fn<void, core::Download*, const string_type&>(slotSetDownload) : NULL);
+//   }
 
   virtual const torrent::Object& get();
   virtual void                   set(const torrent::Object& arg);
 
+  virtual const torrent::Object& get_d(core::Download* download);
+  virtual void                   set_d(core::Download* download, const torrent::Object& arg);
+
 private:
   slot_get_type       m_slotGet;
   slot_set_type       m_slotSet;
+  slot_get_d_type     m_slotGetDownload;
+  slot_set_d_type     m_slotSetDownload;
 
   // Store the cache here to avoid unnessesary copying and such. This
   // should not result in any unresonable memory usage since few

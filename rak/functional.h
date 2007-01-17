@@ -294,6 +294,26 @@ on(Src s, Dest d) {
   return on_t<Src, Dest>(s, d);
 }  
 
+template <typename Src, typename Dest>
+struct on2_t : public std::binary_function<typename Src::argument_type, typename Dest::second_argument_type, typename Dest::result_type> {
+  typedef typename Dest::result_type result_type;
+
+  on2_t(Src s, Dest d) : m_dest(d), m_src(s) {}
+
+  result_type operator () (typename reference_fix<typename Src::argument_type>::type first, typename reference_fix<typename Dest::second_argument_type>::type second) {
+    return m_dest(m_src(first), second);
+  }
+
+  Dest m_dest;
+  Src m_src;
+};
+    
+template <typename Src, typename Dest>
+inline on2_t<Src, Dest>
+on2(Src s, Dest d) {
+  return on2_t<Src, Dest>(s, d);
+}  
+
 // Creates a functor for accessing a member.
 template <typename Class, typename Member>
 struct mem_ptr_t : public std::unary_function<Class*, Member&> {

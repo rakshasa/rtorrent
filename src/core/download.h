@@ -82,14 +82,6 @@ public:
   bool                is_hash_failed() const                   { return m_hashFailed; }
   void                set_hash_failed(bool v)                  { m_hashFailed = v; }
 
-  variable_map_type*  variable()                               { return &m_variables; }
-
-  int64_t             variable_value(const std::string& key) const  { return m_variables.get_value(key.c_str()); }
-  const std::string&  variable_string(const std::string& key) const { return m_variables.get_string(key.c_str()); }
-
-  int64_t             variable_value_c(const char* key) const  { return m_variables.get_value(key); }
-  const std::string&  variable_string_c(const char* key) const { return m_variables.get_string(key); }
-
   download_type*       download()                              { return &m_download; }
   const download_type* c_download() const                      { return &m_download; }
 
@@ -109,13 +101,18 @@ public:
   uint32_t            priority();
   void                set_priority(uint32_t p);
 
-  // Helper functions for calling functions in download_type
-  // through sigc++.
-  template <typename Ret, Ret (download_type::*func)()>
-  void                call()                                               { (m_download.*func)(); }
+//   variable_map_type*  variable()                               { return &m_variables; }
 
-  template <typename Ret, typename Arg1, Ret (download_type::*func)(Arg1)>
-  void                call(Arg1 a1)                                        { (m_download.*func)(a1); }
+  int64_t             get_value(const char* key)                { return m_variables.get_d_value(this, key); }
+  const std::string&  get_string(const char* key)               { return m_variables.get_d_string(this, key); }
+
+  int64_t             get_std_value(const std::string& key)     { return m_variables.get_d_value(this, key.c_str()); }
+  const std::string&  get_std_string(const std::string& key)    { return m_variables.get_d_string(this, key.c_str()); }
+
+  void                set(const char* key, const torrent::Object& value)    { return m_variables.set_d(this, key, value); }
+
+  void                set_value(const char* key, int64_t value)             { return m_variables.set_d_value(this, key, value); }
+  void                set_string(const char* key, const std::string& value) { return m_variables.set_d_string(this, key, value); }
 
   bool                operator == (const std::string& str) const;
 

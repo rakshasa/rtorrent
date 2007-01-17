@@ -74,6 +74,16 @@ VariableMap::get(key_type key) const {
   return itr->second->get();
 }
 
+const VariableMap::mapped_type&
+VariableMap::get_d(core::Download* download, key_type key) const {
+  const_iterator itr = base_type::find(key);
+
+  if (itr == base_type::end())
+    throw torrent::input_error("Variable \"" + std::string(key) + "\" does not exist.");
+
+  return itr->second->get_d(download);
+}
+
 void
 VariableMap::set(key_type key, const mapped_type& arg) {
   iterator itr = base_type::find(key);
@@ -84,6 +94,18 @@ VariableMap::set(key_type key, const mapped_type& arg) {
     throw torrent::input_error("Variable \"" + std::string(key) + "\" does not exist.");
 
   itr->second->set(arg);
+}
+
+void
+VariableMap::set_d(core::Download* download, key_type key, const mapped_type& arg) {
+  iterator itr = base_type::find(key);
+
+  // Later, allow the user to create new variables. Have a slot to
+  // register that thing.
+  if (itr == base_type::end())
+    throw torrent::input_error("Variable \"" + std::string(key) + "\" does not exist.");
+
+  itr->second->set_d(download, arg);
 }
 
 struct variable_map_is_space : std::unary_function<char, bool> {

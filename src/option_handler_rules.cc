@@ -78,6 +78,17 @@ namespace core {
   path_expand(std::vector<std::string>* paths, const std::string& pattern);
 }
 
+// void
+// apply_new_string(const std::string& args) {
+//   std::string::const_iterator split = std::find(args.begin(), args.end(), ',');
+
+//   std::string key = 
+
+//   if (control->variable()->has(args))
+
+//   variables->insert("tracker_dump",          new utils::VariableAny(std::string()));
+// }
+
 void
 apply_hash_read_ahead(__UNUSED Control* m, int arg) {
   torrent::set_hash_read_ahead(arg << 20);
@@ -122,11 +133,11 @@ apply_load_start_verbose(Control* m, const std::string& arg) {
 void
 apply_start_tied(Control* m) {
   for (core::DownloadList::iterator itr = m->core()->download_list()->begin(); itr != m->core()->download_list()->end(); ++itr) {
-    if ((*itr)->variable_value("state") == 1)
+    if ((*itr)->get_value("state") == 1)
       continue;
 
     rak::file_stat fs;
-    const std::string& tiedToFile = (*itr)->variable_string("tied_to_file");
+    const std::string& tiedToFile = (*itr)->get_string("tied_to_file");
 
     if (!tiedToFile.empty() && fs.update(rak::path_expand(tiedToFile)))
       m->core()->download_list()->start_try(*itr);
@@ -136,11 +147,11 @@ apply_start_tied(Control* m) {
 void
 apply_stop_untied(Control* m) {
   for (core::DownloadList::iterator itr = m->core()->download_list()->begin(); itr != m->core()->download_list()->end(); ++itr) {
-    if ((*itr)->variable_value("state") == 0)
+    if ((*itr)->get_value("state") == 0)
       continue;
 
     rak::file_stat fs;
-    const std::string& tiedToFile = (*itr)->variable_string("tied_to_file");
+    const std::string& tiedToFile = (*itr)->get_string("tied_to_file");
 
     if (!tiedToFile.empty() && !fs.update(rak::path_expand(tiedToFile)))
       m->core()->download_list()->stop_try(*itr);
@@ -151,7 +162,7 @@ void
 apply_close_untied(Control* m) {
   for (core::DownloadList::iterator itr = m->core()->download_list()->begin(); itr != m->core()->download_list()->end(); ++itr) {
     rak::file_stat fs;
-    const std::string& tiedToFile = (*itr)->variable_string("tied_to_file");
+    const std::string& tiedToFile = (*itr)->get_string("tied_to_file");
 
     if (!tiedToFile.empty() && !fs.update(rak::path_expand(tiedToFile)) && m->core()->download_list()->stop_try(*itr))
       m->core()->download_list()->close(*itr);
@@ -162,7 +173,7 @@ void
 apply_remove_untied(Control* m) {
   for (core::DownloadList::iterator itr = m->core()->download_list()->begin(); itr != m->core()->download_list()->end(); ) {
     rak::file_stat fs;
-    const std::string& tiedToFile = (*itr)->variable_string("tied_to_file");
+    const std::string& tiedToFile = (*itr)->get_string("tied_to_file");
 
     if (!tiedToFile.empty() && !fs.update(rak::path_expand(tiedToFile)) && m->core()->download_list()->stop_try(*itr))
       itr = m->core()->download_list()->erase(itr);
@@ -211,12 +222,29 @@ apply_stop_on_ratio(Control* m, const std::string& arg) {
 
     if ((totalUpload >= minUpload && totalUpload * 100 >= totalDone * minRatio) || (maxRatio > 0 && totalUpload * 100 > totalDone * maxRatio)) {
       m->core()->download_list()->stop_try(*itr);
-      (*itr)->variable()->set("ignore_commands", (int64_t)1);
+      (*itr)->set("ignore_commands", (int64_t)1);
     }
 
     ++itr;
   }
 }
+
+// void
+// apply_on_finished(const std::string& arg) {
+//   std::string::const_iterator itr = std::find(arg.begin(), arg.end(), ',');
+
+//   std::string key   = rak::trim(std::string(arg.begin(), itr));
+//   std::string value = rak::trim(std::string(itr != arg.end() ? itr + 1 : itr, arg.end()));
+
+//   if (key.empty())
+//     throw torrent::input_error("Empty key.");
+
+//   if (value.empty())
+//     control->core()->download_list()->slot_map_finished().erase("0_finished_" + key);
+//   else
+//     control->core()->download_list()->slot_map_finished().insert("0_finished_" + key, );
+//   ->process_std_single(value);
+// }
 
 void
 apply_encoding_list(__UNUSED Control* m, const std::string& arg) {
@@ -547,6 +575,8 @@ initialize_option_handler(Control* c) {
 
   variables->insert("close_low_diskspace",   new utils::VariableValueSlot(rak::value_fn(int64_t()), rak::bind_ptr_fn(&apply_close_low_diskspace, c)));
   variables->insert("stop_on_ratio",         new utils::VariableStringSlot(rak::value_fn(std::string()), rak::bind_ptr_fn(&apply_stop_on_ratio, c)));
+
+//   variables->insert("on_finished",           new utils::VariableStringSlot(rak::value_fn(std::string()), rak::ptr_fn(&apply_on_finished)));
 
   variables->insert("enable_trackers",       new utils::VariableStringSlot(rak::value_fn(std::string()), rak::bind_ptr_fn(&apply_enable_trackers, c)));
   variables->insert("encoding_list",         new utils::VariableStringSlot(rak::value_fn(std::string()), rak::bind_ptr_fn(&apply_encoding_list, c)));

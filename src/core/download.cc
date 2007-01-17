@@ -36,11 +36,11 @@
 
 #include "config.h"
 
-#include <stdexcept>
 #include <sigc++/bind.h>
 #include <sigc++/hide.h>
 #include <sigc++/signal.h>
 #include <rak/path.h>
+#include <rak/functional.h>
 #include <torrent/exceptions.h>
 #include <torrent/rate.h>
 #include <torrent/torrent.h>
@@ -68,29 +68,32 @@ Download::Download(download_type d) :
 
   m_download.signal_chunk_failed(sigc::mem_fun(*this, &Download::receive_chunk_failed));
 
-  m_variables.insert("connection_current", new utils::VariableStringSlot(rak::mem_fn(this, &Download::connection_current),
-                                                                         rak::mem_fn(this, &Download::set_connection_current)));
+  m_variables.insert("connection_current", new utils::VariableStringSlot(NULL, NULL,
+                                                                         rak::ftor_fn1(std::mem_fun(&Download::connection_current)),
+                                                                         rak::ftor_fn2(std::mem_fun(&Download::set_connection_current))));
 
   m_variables.insert("connection_leech",   new utils::VariableAny(connection_type_to_string(download_type::CONNECTION_LEECH)));
   m_variables.insert("connection_seed",    new utils::VariableAny(connection_type_to_string(download_type::CONNECTION_SEED)));
 
   // 0 - stopped
   // 1 - started
-  m_variables.insert("state",              new utils::VariableObject(bencode(), "rtorrent", "state", torrent::Object::TYPE_VALUE));
-  m_variables.insert("complete",           new utils::VariableObject(bencode(), "rtorrent", "complete", torrent::Object::TYPE_VALUE));
+  m_variables.insert("state",              new utils::VariableObject("rtorrent", "state", torrent::Object::TYPE_VALUE));
+  m_variables.insert("complete",           new utils::VariableObject("rtorrent", "complete", torrent::Object::TYPE_VALUE));
 
   // 0 - Not hashing
   // 1 - Normal hashing
   // 2 - Download finished, hashing
-  m_variables.insert("hashing",            new utils::VariableObject(bencode(), "rtorrent", "hashing", torrent::Object::TYPE_VALUE));
-  m_variables.insert("tied_to_file",       new utils::VariableObject(bencode(), "rtorrent", "tied_to_file", torrent::Object::TYPE_STRING));
+  m_variables.insert("hashing",            new utils::VariableObject("rtorrent", "hashing", torrent::Object::TYPE_VALUE));
+  m_variables.insert("tied_to_file",       new utils::VariableObject("rtorrent", "tied_to_file", torrent::Object::TYPE_STRING));
 
   // The "state_changed" variable is required to be a valid unix time
   // value, it indicates the last time the torrent changed its state,
   // resume/pause.
-  m_variables.insert("state_changed",      new utils::VariableObject(bencode(), "rtorrent", "state_changed", torrent::Object::TYPE_VALUE));
+  m_variables.insert("state_changed",      new utils::VariableObject("rtorrent", "state_changed", torrent::Object::TYPE_VALUE));
 
-  m_variables.insert("directory",          new utils::VariableStringSlot(rak::mem_fn(m_download.file_list(), &torrent::FileList::root_dir), rak::mem_fn(this, &Download::set_root_directory)));
+  m_variables.insert("directory",          new utils::VariableStringSlot(NULL, NULL,
+                                                                         rak::ftor_fn1(rak::on(std::mem_fun(&Download::file_list), std::mem_fun(&torrent::FileList::root_dir))),
+                                                                         rak::ftor_fn2(std::mem_fun(&Download::set_root_directory))));
 
 //   m_variables.insert("info_hash",          new utils::VariableStringSlot(rak::mem_fn(&m_download, &torrent::Download::info_hash), NULL));
 
@@ -113,7 +116,7 @@ Download::Download(download_type d) :
 
   m_variables.insert("tracker_numwant",    new utils::VariableValueSlot(rak::mem_fn(&m_trackerList, &tracker_list_type::numwant), rak::mem_fn(&m_trackerList, &tracker_list_type::set_numwant)));
 
-  m_variables.insert("ignore_commands",    new utils::VariableObject(bencode(), "rtorrent", "ignore_commands", torrent::Object::TYPE_VALUE));
+  m_variables.insert("ignore_commands",    new utils::VariableObject("rtorrent", "ignore_commands", torrent::Object::TYPE_VALUE));
 }
 
 Download::~Download() {

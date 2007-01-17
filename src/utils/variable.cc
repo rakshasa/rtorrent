@@ -44,6 +44,26 @@ namespace utils {
 
 const torrent::Object Variable::m_emptyObject;
 
+// Consider throwing an exception.
+const torrent::Object&
+Variable::get() {
+  return m_emptyObject;
+}
+
+void
+Variable::set(const torrent::Object& arg) {
+}
+
+const torrent::Object&
+Variable::get_d(core::Download* download) {
+  return get();
+}
+
+void
+Variable::set_d(core::Download* download, const torrent::Object& arg) {
+  set(arg);
+}
+
 const char*
 Variable::string_to_value_unit(const char* pos, value_type* value, int base, int unit) {
   char* last;

@@ -149,7 +149,7 @@ ElementDownloadList::receive_stop_download() {
   if (m_view->focus() == m_view->end_visible())
     return;
 
-  if ((*m_view->focus())->variable()->get_value("state") == 1)
+  if ((*m_view->focus())->get_value("state") == 1)
     control->core()->download_list()->stop_normal(*m_view->focus());
   else
     control->core()->download_list()->erase(*m_view->focus());
@@ -164,7 +164,7 @@ ElementDownloadList::receive_close_download() {
 
   core::Download* download = *m_view->focus();
 
-  download->variable()->set("ignore_commands", (int64_t)1);
+  download->set("ignore_commands", (int64_t)1);
 
   control->core()->download_list()->stop_normal(download);
   control->core()->download_list()->close(download);
@@ -203,11 +203,11 @@ ElementDownloadList::receive_ignore_ratio() {
   if (m_view->focus() == m_view->end_visible())
     return;
 
-  if ((*m_view->focus())->variable()->get_value("ignore_commands") != 0) {
-    (*m_view->focus())->variable()->set("ignore_commands", (int64_t)0);
+  if ((*m_view->focus())->get_value("ignore_commands") != 0) {
+    (*m_view->focus())->set("ignore_commands", (int64_t)0);
     control->core()->push_log("Torrent set to heed commands.");
   } else {
-    (*m_view->focus())->variable()->set("ignore_commands", (int64_t)1);
+    (*m_view->focus())->set("ignore_commands", (int64_t)1);
     control->core()->push_log("Torrent set to ignore commands.");
   }
 }
@@ -217,7 +217,7 @@ ElementDownloadList::receive_clear_tied() {
   if (m_view->focus() == m_view->end_visible())
     return;
 
-  const std::string& tiedFile = (*m_view->focus())->variable()->get_string("tied_to_file");
+  const std::string& tiedFile = (*m_view->focus())->get_string("tied_to_file");
 
   if (!tiedFile.empty()) {
     // Move this into core?

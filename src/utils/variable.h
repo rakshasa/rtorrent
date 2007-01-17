@@ -39,6 +39,10 @@
 
 #include <torrent/object.h>
 
+namespace core {
+  class Download;
+}
+
 namespace utils {
 
 class Variable {
@@ -52,8 +56,12 @@ public:
   Variable() {}
   virtual ~Variable() {}
 
-  virtual const torrent::Object& get() = 0;
-  virtual void                   set(const torrent::Object& arg) = 0;
+  virtual const torrent::Object& get();
+  virtual void                   set(const torrent::Object& arg);
+
+  // The default action is to throw away the 'download' argument.
+  virtual const torrent::Object& get_d(core::Download* download);
+  virtual void                   set_d(core::Download* download, const torrent::Object& arg);
 
   static const char*  string_to_value_unit(const char* pos, value_type* value, int base, int unit);
   static bool         string_to_value_unit_nothrow(const char* pos, value_type* value, int base, int unit);

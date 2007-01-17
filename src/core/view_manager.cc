@@ -70,8 +70,8 @@ public:
 
   virtual bool operator () (Download* d1, Download* d2) const {
     return
-      d1->variable()->get_string(m_name) == m_value &&
-      d2->variable()->get_string(m_name) != m_value;
+      d1->get_string(m_name) == m_value &&
+      d2->get_string(m_name) != m_value;
   }
 
 private:
@@ -85,9 +85,9 @@ public:
 
   virtual bool operator () (Download* d1, Download* d2) const {
     if (m_reverse)
-      return d2->variable()->get_value(m_name) < d1->variable()->get_value(m_name);
+      return d2->get_value(m_name) < d1->get_value(m_name);
     else
-      return d1->variable()->get_value(m_name) < d2->variable()->get_value(m_name);
+      return d1->get_value(m_name) < d2->get_value(m_name);
   }
 
 private:
@@ -114,7 +114,7 @@ public:
     m_name(name), m_value(v), m_inverse(inverse) {}
 
   virtual bool operator () (Download* d1) const {
-    return (d1->variable()->get_value(m_name) == m_value) != m_inverse;
+    return (d1->get_value(m_name) == m_value) != m_inverse;
   }
 
 private:

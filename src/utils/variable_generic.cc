@@ -102,22 +102,22 @@ VariableBool::set(const torrent::Object& arg) {
 }
 
 const torrent::Object&
-VariableObject::get() {
+VariableObject::get_d(core::Download* download) {
   if (m_root.empty())
-    return m_bencode->get_key(m_key);
+    return download->bencode()->get_key(m_key);
   else
-    return m_bencode->get_key(m_root).get_key(m_key);
+    return download->bencode()->get_key(m_root).get_key(m_key);
 }
 
 void
-VariableObject::set(const torrent::Object& arg) {
+VariableObject::set_d(core::Download* download, const torrent::Object& arg) {
   // Consider removing if TYPE_NONE.
   torrent::Object* root;
 
   if (m_root.empty())
-    root = m_bencode;
+    root = download->bencode();
   else
-    root = &m_bencode->get_key(m_root);
+    root = &download->bencode()->get_key(m_root);
 
   switch (m_type) {
   case torrent::Object::TYPE_NONE:
@@ -200,7 +200,7 @@ VariableValueSlot::set(const torrent::Object& arg) {
 const torrent::Object&
 VariableStringSlot::get() {
   if (!m_slotGet.is_valid())
-    return m_cache;
+    return m_cache = torrent::Object();
 
   m_cache = m_slotGet();
 
@@ -221,6 +221,53 @@ VariableStringSlot::set(const torrent::Object& arg) {
     break;
   default:
     throw torrent::input_error("Not a string.");
+  }
+}
+
+const torrent::Object&
+VariableStringSlot::get_d(core::Download* download) {
+  // Should clear the cache.
+  if (!m_slotGetDownload.is_valid()) {
+    if (!m_slotGet.is_valid())
+      return m_cache = torrent::Object();
+
+    m_cache = m_slotGet();
+
+  } else {
+    m_cache = m_slotGetDownload(download);
+  }
+  
+  return m_cache;
+}
+
+void
+VariableStringSlot::set_d(core::Download* download, const torrent::Object& arg) {
+  if (!m_slotSetDownload.is_valid()) {
+    if (!m_slotSet.is_valid())
+      return;
+
+    switch (arg.type()) {
+    case torrent::Object::TYPE_STRING:
+      m_slotSet(arg.as_string());
+      break;
+    case torrent::Object::TYPE_NONE:
+      m_slotSet(std::string());
+      break;
+    default:
+      throw torrent::input_error("Not a string.");
+    }
+
+  } else {
+    switch (arg.type()) {
+    case torrent::Object::TYPE_STRING:
+      m_slotSetDownload(download, arg.as_string());
+      break;
+    case torrent::Object::TYPE_NONE:
+      m_slotSetDownload(download, std::string());
+      break;
+    default:
+      throw torrent::input_error("Not a string.");
+    }
   }
 }
 

@@ -52,6 +52,7 @@
 #define RAK_FUNCTIONAL_FUN_H
 
 #include <memory>
+#include <functional>
 
 namespace rak {
 
@@ -64,11 +65,19 @@ public:
 };
 
 template <typename Result, typename Arg1>
-class function_base1 {
+class function_base1 : public std::unary_function<Arg1, Result> {
 public:
   virtual ~function_base1() {}
 
   virtual Result operator () (Arg1 arg1) = 0;
+};
+
+template <typename Result, typename Arg1, typename Arg2>
+class function_base2 : public std::binary_function<Arg1, Arg2, Result> {
+public:
+  virtual ~function_base2() {}
+
+  virtual Result operator () (Arg1 arg1, Arg2 arg2) = 0;
 };
 
 template <typename Result>
@@ -100,6 +109,23 @@ public:
   base_type*          release()            { return m_base.release(); }
 
   Result operator () (Arg1 arg1)           { return (*m_base)(arg1); }
+
+private:
+  std::auto_ptr<base_type> m_base;
+};
+
+template <typename Result, typename Arg1, typename Arg2>
+class function2 {
+public:
+  typedef Result                             result_type;
+  typedef function_base2<Result, Arg1, Arg2> base_type;
+
+  bool                is_valid() const     { return m_base.get() != NULL; }
+
+  void                set(base_type* base) { m_base = std::auto_ptr<base_type>(base); }
+  base_type*          release()            { return m_base.release(); }
+
+  Result operator () (Arg1 arg1, Arg2 arg2) { return (*m_base)(arg1, arg2); }
 
 private:
   std::auto_ptr<base_type> m_base;
@@ -256,6 +282,37 @@ private:
   Arg1    m_arg1;
 };
 
+template <typename Ftor>
+class ftor_fn1_t : public function_base1<typename Ftor::result_type, typename Ftor::argument_type> {
+public:
+  typedef typename Ftor::result_type result_type;
+  typedef typename Ftor::argument_type argument_type;
+
+  ftor_fn1_t(Ftor ftor) : m_ftor(ftor) {}
+  virtual ~ftor_fn1_t() {}
+  
+  virtual result_type operator () (argument_type arg1) { return m_ftor(arg1); }
+
+private:
+  Ftor    m_ftor;
+};
+
+template <typename Ftor>
+class ftor_fn2_t : public function_base2<typename Ftor::result_type, typename Ftor::first_argument_type, typename Ftor::second_argument_type> {
+public:
+  typedef typename Ftor::result_type result_type;
+  typedef typename Ftor::first_argument_type first_argument_type;
+  typedef typename Ftor::second_argument_type second_argument_type;
+
+  ftor_fn2_t(Ftor ftor) : m_ftor(ftor) {}
+  virtual ~ftor_fn2_t() {}
+  
+  virtual result_type operator () (first_argument_type arg1, second_argument_type arg2) { return m_ftor(arg1, arg2); }
+
+private:
+  Ftor    m_ftor;
+};
+
 template <typename Result>
 class value_fn0_t : public function_base0<Result> {
 public:
@@ -293,6 +350,22 @@ public:
   
   virtual Result operator () (Arg1 arg1) {
     return m_object(arg1);
+  }
+
+private:
+  src_type m_object;
+};
+
+template <typename Result, typename Arg1, typename Arg2, typename SrcResult, typename SrcArg1, typename SrcArg2>
+class convert_fn2_t : public function_base2<Result, Arg1, Arg2> {
+public:
+  typedef function2<SrcResult, SrcArg1, SrcArg2> src_type;
+
+  convert_fn2_t(typename src_type::base_type* object) { m_object.set(object); }
+  virtual ~convert_fn2_t() {}
+  
+  virtual Result operator () (Arg1 arg1, Arg2 arg2) {
+    return m_object(arg1, arg2);
   }
 
 private:
@@ -359,6 +432,18 @@ bind_ptr_fn(Result (*func)(Arg1, Arg2), const Arg1 arg1) {
   return new ptr_fn1_b1_t<Result, Arg1, Arg2>(func, arg1);
 }
 
+template <typename Ftor>
+inline function_base1<typename Ftor::result_type, typename Ftor::argument_type>*
+ftor_fn1(Ftor ftor) {
+  return new ftor_fn1_t<Ftor>(ftor);
+}
+
+template <typename Ftor>
+inline function_base2<typename Ftor::result_type, typename Ftor::first_argument_type, typename Ftor::second_argument_type>*
+ftor_fn2(Ftor ftor) {
+  return new ftor_fn2_t<Ftor>(ftor);
+}
+
 template <typename Result>
 inline function_base0<Result>*
 value_fn(const Result& val) {
@@ -401,6 +486,17 @@ convert_fn(function_base1<SrcResult, SrcArg1>* src) {
     return reinterpret_cast<typename equal_types_t<function_base1<Result, Arg1>, function_base1<SrcResult, SrcArg1> >::first_type*>(src);
   else
     return new convert_fn1_t<Result, Arg1, SrcResult, SrcArg1>(src);
+}
+
+template <typename Result, typename Arg1, typename Arg2, typename SrcResult, typename SrcArg1, typename SrcArg2>
+inline function_base2<Result, Arg1, Arg2>*
+convert_fn(function_base2<SrcResult, SrcArg1, SrcArg2>* src) {
+  if (equal_types_t<function_base2<Result, Arg1, Arg2>, function_base2<SrcResult, SrcArg1, SrcArg2> >::result)
+    // The pointer cast never gets done if the types are different,
+    // but needs to be here to pleasant the compiler.
+    return reinterpret_cast<typename equal_types_t<function_base2<Result, Arg1, Arg2>, function_base2<SrcResult, SrcArg1, SrcArg2> >::first_type*>(src);
+  else
+    return new convert_fn2_t<Result, Arg1, Arg2, SrcResult, SrcArg1, SrcArg2>(src);
 }
 
 }

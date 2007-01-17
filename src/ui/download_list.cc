@@ -283,8 +283,8 @@ DownloadList::receive_exit_input(Input type) {
       if (current_view()->focus() == current_view()->end_visible())
         throw torrent::input_error("No download in focus to change root directory.");
 
-      (*current_view()->focus())->variable()->set("directory", rak::trim(input->str()));
-      control->core()->push_log("New root directory \"" + (*current_view()->focus())->variable()->get_string("directory") + "\" for torrent.");
+      (*current_view()->focus())->set("directory", rak::trim(input->str()));
+      control->core()->push_log("New root directory \"" + (*current_view()->focus())->get_string("directory") + "\" for torrent.");
       break;
 
     case INPUT_COMMAND:

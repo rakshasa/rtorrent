@@ -166,8 +166,8 @@ Manager::handshake_log(const sockaddr* sa, int msg, int err, const torrent::Hash
 
 // Hmm... find some better place for all this.
 void
-Manager::delete_tied(Download* d) {
-  const std::string& tie = d->variable()->get_string("tied_to_file");
+Manager::delete_tied(Download* download) {
+  const std::string& tie = download->get_string("tied_to_file");
 
   // This should be configurable, need to wait for the variable
   // thingie to be implemented.
@@ -177,7 +177,7 @@ Manager::delete_tied(Download* d) {
   if (::unlink(rak::path_expand(tie).c_str()) == -1)
     push_log("Could not unlink tied file: " + std::string(rak::error_number::current().c_str()));
 
-  d->variable()->set("tied_to_file", std::string());
+  download->set("tied_to_file", std::string());
 }
 
 Manager::Manager() :
@@ -468,7 +468,7 @@ Manager::try_create_download_expand(const std::string& uri, bool start, bool pri
 
   if (tied)
     for (std::vector<std::string>::iterator itr = paths.begin(); itr != paths.end(); )
-      if (std::find_if(m_downloadList->begin(), m_downloadList->end(), rak::equal(*itr, rak::bind2nd(std::mem_fun(&Download::variable_string), "tied_to_file")))
+      if (std::find_if(m_downloadList->begin(), m_downloadList->end(), rak::equal(*itr, rak::bind2nd(std::mem_fun(&Download::get_string), "tied_to_file")))
           != m_downloadList->end())
         itr = paths.erase(itr);
       else
@@ -504,7 +504,7 @@ Manager::receive_hashing_changed() {
       continue;
 
     bool tryQuick =
-      (*itr)->variable()->get_value("hashing") == Download::variable_hashing_initial &&
+      (*itr)->get_value("hashing") == Download::variable_hashing_initial &&
       (*itr)->download()->file_list()->bitfield()->empty();
 
     if (!tryQuick && foundHashing)
@@ -526,7 +526,7 @@ Manager::receive_hashing_changed() {
           (*itr)->download()->hash_stop();
 
         // Make sure we don't repeat the quick hashing.
-        (*itr)->variable()->set_value("hashing", Download::variable_hashing_rehash);
+        (*itr)->set_value("hashing", Download::variable_hashing_rehash);
 
       } else {
         (*itr)->download()->hash_check(false);
@@ -535,7 +535,7 @@ Manager::receive_hashing_changed() {
     } catch (torrent::local_error& e) {
       if (tryQuick) {
         // Make sure we don't repeat the quick hashing.
-        (*itr)->variable()->set_value("hashing", Download::variable_hashing_rehash);
+        (*itr)->set_value("hashing", Download::variable_hashing_rehash);
 
       } else {
         (*itr)->set_hash_failed(true);

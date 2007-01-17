@@ -43,6 +43,10 @@
 #include <iosfwd>
 #include <torrent/object.h>
 
+namespace core {
+  class Download;
+}
+
 namespace torrent {
   class Object;
 }
@@ -78,15 +82,25 @@ public:
 
   void                insert(key_type key, Variable* v);
 
-  // Consider taking char* start and finish instead of std::string to
-  // avoid copying. Or make a view class.
+  // Consider uninlining the helper functions.
+
   const mapped_type&  get(key_type key) const;
-  const std::string&  get_string(key_type key) const                 { return get(key).as_string(); }
-  mapped_value_type   get_value(key_type key) const                  { return get(key).as_value(); }
+  const mapped_type&  get_d(core::Download* download, key_type key) const;
+
+  const std::string&  get_string(key_type key) const                             { return get(key).as_string(); }
+  const std::string&  get_d_string(core::Download* download, key_type key) const { return get_d(download, key).as_string(); }
+
+  mapped_value_type   get_value(key_type key) const                              { return get(key).as_value(); }
+  mapped_value_type   get_d_value(core::Download* download, key_type key) const  { return get_d(download, key).as_value(); }
 
   void                set(key_type key, const mapped_type& arg);
-  void                set_string(key_type key, const std::string& arg) { set(key, mapped_type(arg)); }
-  void                set_value(key_type key, mapped_value_type arg)   { set(key, mapped_type(arg)); }
+  void                set_d(core::Download* download, key_type key, const mapped_type& arg);
+
+  void                set_string(key_type key, const std::string& arg)                             { set(key, mapped_type(arg)); }
+  void                set_d_string(core::Download* download, key_type key, const std::string& arg) { set_d(download, key, mapped_type(arg)); }
+
+  void                set_value(key_type key, mapped_value_type arg)                               { set(key, mapped_type(arg)); }
+  void                set_d_value(core::Download* download, key_type key, mapped_value_type arg)   { set_d(download, key, mapped_type(arg)); }
 
   void                set_std_string(const std::string& key, const std::string& arg) { set(key.c_str(), mapped_type(arg)); }
 
