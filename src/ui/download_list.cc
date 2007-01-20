@@ -56,6 +56,8 @@
 #include "display/window_log.h"
 #include "display/window_title.h"
 
+#include "utils/variable_map.h"
+
 #include "control.h"
 #include "download.h"
 #include "download_list.h"

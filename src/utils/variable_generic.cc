@@ -234,9 +234,7 @@ VariableStringSlot::get() {
   if (!m_slotGet.is_valid())
     return m_cache = torrent::Object();
 
-  m_cache = m_slotGet();
-
-  return m_cache;
+  return m_cache = m_slotGet();
 }
 
 void

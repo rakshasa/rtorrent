@@ -59,6 +59,7 @@
 
 #include "globals.h"
 #include "curl_get.h"
+#include "control.h"
 #include "download.h"
 #include "download_factory.h"
 #include "download_store.h"
@@ -241,7 +242,7 @@ Manager::initialize_second() {
   m_downloadList->slot_map_insert()["1_connect_storage_log"]  = sigc::bind(sigc::ptr_fun(&connect_signal_storage_log), sigc::mem_fun(m_logComplete, &Log::push_front));
   m_downloadList->slot_map_insert()["1_connect_tracker_dump"] = sigc::bind(sigc::ptr_fun(&connect_signal_tracker_dump), sigc::ptr_fun(&receive_tracker_dump));
 
-  m_downloadList->slot_map_erase()["1_delete_tied"] = sigc::mem_fun(this, &Manager::delete_tied);
+  m_downloadList->slot_map_erase()["9_delete_tied"] = sigc::mem_fun(this, &Manager::delete_tied);
 
   torrent::connection_manager()->set_signal_handshake_log(sigc::mem_fun(this, &Manager::handshake_log));
 }

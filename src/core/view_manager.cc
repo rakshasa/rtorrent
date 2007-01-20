@@ -39,6 +39,7 @@
 #include <algorithm>
 #include <rak/functional.h>
 #include <torrent/exceptions.h>
+#include <torrent/object.h>
 
 #include "globals.h"
 

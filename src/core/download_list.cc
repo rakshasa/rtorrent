@@ -39,14 +39,16 @@
 #include <algorithm>
 #include <iostream>
 #include <sigc++/bind.h>
+#include <rak/functional.h>
 #include <torrent/exceptions.h>
 #include <torrent/object.h>
 #include <torrent/object_stream.h>
 #include <torrent/resume.h>
 #include <torrent/torrent.h>
 
-#include "rak/functional.h"
+#include "utils/variable_map.h"
 
+#include "control.h"
 #include "globals.h"
 #include "manager.h"
 

@@ -50,6 +50,7 @@
 #include "utils/variable_generic.h"
 
 #include "curl_get.h"
+#include "control.h"
 #include "http_queue.h"
 #include "globals.h"
 #include "manager.h"

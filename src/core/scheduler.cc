@@ -38,6 +38,7 @@
 
 #include <algorithm>
 #include <rak/functional.h>
+#include <torrent/exceptions.h>
 
 #include "download.h"
 #include "download_list.h"

@@ -234,6 +234,12 @@ public:
   typedef rak::function0<string_type>              slot_get_type;
   typedef rak::function1<void, const string_type&> slot_set_type;
 
+  template <typename SlotSet>
+  VariableStringSlot(void* slotGet, SlotSet* slotSet) {
+    m_slotGet.set(NULL);
+    m_slotSet.set(rak::convert_fn<void, const string_type&>(slotSet));
+  }
+
   template <typename SlotGet, typename SlotSet>
   VariableStringSlot(SlotGet* slotGet, SlotSet* slotSet) {
     m_slotGet.set(rak::convert_fn<string_type>(slotGet));
@@ -257,6 +263,12 @@ class VariableDownloadStringSlot : public Variable {
 public:
   typedef rak::function1<string_type, core::Download*>              slot_get_d_type;
   typedef rak::function2<void, core::Download*, const string_type&> slot_set_d_type;
+
+  template <typename SlotSetDownload>
+  VariableDownloadStringSlot(void* slotGetDownload, SlotSetDownload* slotSetDownload) {
+    m_slotGetDownload.set(NULL);
+    m_slotSetDownload.set(rak::convert_fn<void, core::Download*, const string_type&>(slotSetDownload));
+  }
 
   template <typename SlotGetDownload, typename SlotSetDownload>
   VariableDownloadStringSlot(SlotGetDownload* slotGetDownload, SlotSetDownload* slotSetDownload) {

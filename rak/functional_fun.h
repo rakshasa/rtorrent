@@ -159,6 +159,20 @@ private:
   Func    m_func;
 };
 
+template <typename Result, typename Arg1, typename Arg2>
+class ptr_fn2_t : public function_base2<Result, Arg1, Arg2> {
+public:
+  typedef Result (*Func)(Arg1, Arg2);
+
+  ptr_fn2_t(Func func) : m_func(func) {}
+  virtual ~ptr_fn2_t() {}
+  
+  virtual Result operator () (Arg1 arg1, Arg2 arg2) { return m_func(arg1, arg2); }
+
+private:
+  Func    m_func;
+};
+
 template <typename Object, typename Result>
 class mem_fn0_t : public function_base0<Result> {
 public:
@@ -382,6 +396,12 @@ template <typename Arg1, typename Result>
 inline function_base1<Result, Arg1>*
 ptr_fn(Result (*func)(Arg1)) {
   return new ptr_fn1_t<Result, Arg1>(func);
+}
+
+template <typename Arg1, typename Arg2, typename Result>
+inline function_base2<Result, Arg1, Arg2>*
+ptr_fn(Result (*func)(Arg1, Arg2)) {
+  return new ptr_fn2_t<Result, Arg1, Arg2>(func);
 }
 
 template <typename Result, typename Object>

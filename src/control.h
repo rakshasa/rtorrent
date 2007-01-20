@@ -95,7 +95,9 @@ public:
   input::InputEvent*  input_stdin()                 { return m_inputStdin; }
 
   CommandScheduler*   command_scheduler()           { return m_commandScheduler; }
+
   utils::VariableMap* variable()                    { return m_variables; }
+  utils::VariableMap* download_variables()          { return m_downloadVariables; }
 
   uint64_t            tick() const                  { return m_tick; }
   void                inc_tick()                    { m_tick++; }
@@ -124,6 +126,7 @@ private:
 
   CommandScheduler*   m_commandScheduler;
   utils::VariableMap* m_variables;
+  utils::VariableMap* m_downloadVariables;
 
   uint64_t            m_tick;
 

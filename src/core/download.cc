@@ -49,30 +49,12 @@
 #include <torrent/data/file_list.h>
 
 #include "utils/variable_generic.h"
+#include "utils/variable_map.h"
 
+#include "control.h"
 #include "download.h"
 
 namespace core {
-
-template <typename Target, typename GetFunc, typename SetFunc>
-utils::Variable*
-var_d_value(Target target, GetFunc getFunc, SetFunc setFunc) {
-  return new utils::VariableDownloadValueSlot(rak::ftor_fn1(rak::on(std::mem_fun(target), std::mem_fun(getFunc))),
-                                              rak::ftor_fn2(rak::on2(std::mem_fun(target), std::mem_fun(setFunc))));
-}
-
-template <typename Target, typename GetFunc, typename SetFunc>
-utils::Variable*
-var_d2_value(Target target, GetFunc getFunc, SetFunc setFunc) {
-  return new utils::VariableDownloadValueSlot(rak::ftor_fn1(rak::on(rak::on(std::mem_fun(&Download::download), std::mem_fun(target)), std::mem_fun(getFunc))),
-                                              rak::ftor_fn2(rak::on2(rak::on(std::mem_fun(&Download::download), std::mem_fun(target)), std::mem_fun(setFunc))));
-}
-
-template <typename Target, typename GetFunc>
-utils::Variable*
-var_d2_get_value(Target target, GetFunc getFunc) {
-  return new utils::VariableDownloadValueSlot(rak::ftor_fn1(rak::on(rak::on(std::mem_fun(&Download::download), std::mem_fun(target)), std::mem_fun(getFunc))), NULL);
-}
 
 Download::Download(download_type d) :
   m_download(d),
@@ -87,51 +69,6 @@ Download::Download(download_type d) :
   m_connStorageError    = m_download.signal_storage_error(sigc::mem_fun(*this, &Download::receive_storage_error));
 
   m_download.signal_chunk_failed(sigc::mem_fun(*this, &Download::receive_chunk_failed));
-
-  m_variables.insert("connection_current", new utils::VariableDownloadStringSlot(rak::ftor_fn1(std::mem_fun(&Download::connection_current)),
-                                                                                 rak::ftor_fn2(std::mem_fun(&Download::set_connection_current))));
-
-  m_variables.insert("connection_leech",   new utils::VariableAny(connection_type_to_string(download_type::CONNECTION_LEECH)));
-  m_variables.insert("connection_seed",    new utils::VariableAny(connection_type_to_string(download_type::CONNECTION_SEED)));
-
-  // 0 - stopped
-  // 1 - started
-  m_variables.insert("state",              new utils::VariableObject("rtorrent", "state", torrent::Object::TYPE_VALUE));
-  m_variables.insert("complete",           new utils::VariableObject("rtorrent", "complete", torrent::Object::TYPE_VALUE));
-
-  // 0 - Not hashing
-  // 1 - Normal hashing
-  // 2 - Download finished, hashing
-  m_variables.insert("hashing",            new utils::VariableObject("rtorrent", "hashing", torrent::Object::TYPE_VALUE));
-  m_variables.insert("tied_to_file",       new utils::VariableObject("rtorrent", "tied_to_file", torrent::Object::TYPE_STRING));
-
-  // The "state_changed" variable is required to be a valid unix time
-  // value, it indicates the last time the torrent changed its state,
-  // resume/pause.
-  m_variables.insert("state_changed",      new utils::VariableObject("rtorrent", "state_changed", torrent::Object::TYPE_VALUE));
-
-  m_variables.insert("directory",          new utils::VariableDownloadStringSlot(rak::ftor_fn1(rak::on(std::mem_fun(&Download::file_list), std::mem_fun(&torrent::FileList::root_dir))),
-                                                                                 rak::ftor_fn2(std::mem_fun(&Download::set_root_directory))));
-  m_variables.insert("min_peers",          var_d_value(&Download::download, &download_type::peers_min, &download_type::set_peers_min));
-  m_variables.insert("max_peers",          var_d_value(&Download::download, &download_type::peers_max, &download_type::set_peers_max));
-  m_variables.insert("max_uploads",        var_d_value(&Download::download, &download_type::uploads_max, &download_type::set_uploads_max));
-
-  m_variables.insert("max_file_size",      var_d_value(&Download::file_list, &file_list_type::max_file_size, &file_list_type::set_max_file_size));
-
-//   m_variables.insert("split_file_size",    new utils::VariableValueSlot(rak::mem_fn(file_list(), &file_list_type::split_file_size), rak::mem_fn(file_list(), &file_list_type::set_split_file_size)));
-//   m_variables.insert("split_suffix",       new utils::VariableStringSlot(rak::mem_fn(file_list(), &file_list_type::split_suffix), rak::mem_fn(file_list(), &file_list_type::set_split_suffix)));
-
-  m_variables.insert("up_rate",            var_d2_get_value(&download_type::mutable_up_rate, &torrent::Rate::rate));
-  m_variables.insert("up_total",           var_d2_get_value(&download_type::mutable_up_rate, &torrent::Rate::total));
-  m_variables.insert("down_rate",          var_d2_get_value(&download_type::mutable_down_rate, &torrent::Rate::rate));
-  m_variables.insert("down_total",         var_d2_get_value(&download_type::mutable_down_rate, &torrent::Rate::total));
-  m_variables.insert("skip_rate",          var_d2_get_value(&download_type::mutable_skip_rate, &torrent::Rate::rate));
-  m_variables.insert("skip_total",         var_d2_get_value(&download_type::mutable_skip_rate, &torrent::Rate::total));
-
-  m_variables.insert("priority",           new utils::VariableDownloadValueSlot(rak::ftor_fn1(std::mem_fun(&Download::priority)), rak::ftor_fn2(std::mem_fun(&Download::set_priority))));
-  m_variables.insert("tracker_numwant",    var_d_value(&Download::tracker_list, &tracker_list_type::numwant, &tracker_list_type::set_numwant));
-
-  m_variables.insert("ignore_commands",    new utils::VariableObject("rtorrent", "ignore_commands", torrent::Object::TYPE_VALUE));
 }
 
 Download::~Download() {
@@ -268,6 +205,14 @@ void
 Download::receive_chunk_failed(__UNUSED uint32_t idx) {
   m_chunksFailed++;
 }
+
+int64_t            Download::get_value(const char* key)                            { return control->download_variables()->get_d_value(this, key); }
+const std::string& Download::get_string(const char* key)                           { return control->download_variables()->get_d_string(this, key); }
+int64_t            Download::get_std_value(const std::string& key)                 { return control->download_variables()->get_d_value(this, key.c_str()); }
+const std::string& Download::get_std_string(const std::string& key)                { return control->download_variables()->get_d_string(this, key.c_str()); }
+void               Download::set(const char* key, const torrent::Object& value)    { return control->download_variables()->set_d(this, key, value); }
+void               Download::set_value(const char* key, int64_t value)             { return control->download_variables()->set_d_value(this, key, value); }
+void               Download::set_string(const char* key, const std::string& value) { return control->download_variables()->set_d_string(this, key, value); }
 
 // Clean up.
 void

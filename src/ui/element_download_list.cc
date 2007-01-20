@@ -38,6 +38,7 @@
 
 #include <sigc++/bind.h>
 #include <torrent/exceptions.h>
+#include <torrent/object.h>
 
 #include "core/download.h"
 #include "core/manager.h"

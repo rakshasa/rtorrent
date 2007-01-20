@@ -163,7 +163,8 @@ main(int argc, char** argv) {
 
     // Initialize option handlers after libtorrent to ensure
     // torrent::ConnectionManager* is valid etc.
-    initialize_option_handler(control);
+    initialize_variables();
+    initialize_download_variables();
 
     control->variable()->process_multiple
       (

@@ -53,6 +53,7 @@
 #include "core/download.h"
 #include "core/manager.h"
 
+#include "control.h"
 #include "globals.h"
 #include "utils.h"
 

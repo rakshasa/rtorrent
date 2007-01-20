@@ -68,6 +68,7 @@ Control::Control() :
 
   m_commandScheduler(new CommandScheduler()),
   m_variables(new utils::VariableMap()),
+  m_downloadVariables(new utils::VariableMap()),
 
   m_tick(0) {
 
@@ -89,6 +90,7 @@ Control::~Control() {
 
   delete m_commandScheduler;
   delete m_variables;
+  delete m_downloadVariables;
 
   delete m_viewManager;
 

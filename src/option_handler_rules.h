@@ -39,6 +39,7 @@
 
 class Control;
 
-void initialize_option_handler(Control* c);
+void initialize_variables();
+void initialize_download_variables();
 
 #endif

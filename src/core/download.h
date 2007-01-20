@@ -43,7 +43,7 @@
 #include <torrent/tracker_list.h>
 #include <torrent/data/file_list.h>
 
-#include "utils/variable_map.h"
+#include "globals.h"
 
 namespace torrent {
   class TrackerList;
@@ -57,7 +57,6 @@ public:
   typedef torrent::FileList             file_list_type;
   typedef torrent::TrackerList          tracker_list_type;
   typedef download_type::ConnectionType connection_type;
-  typedef utils::VariableMap            variable_map_type;
 
   static const int variable_hashing_stopped = 0;
   static const int variable_hashing_initial = 1;
@@ -101,18 +100,18 @@ public:
   uint32_t            priority();
   void                set_priority(uint32_t p);
 
-//   variable_map_type*  variable()                               { return &m_variables; }
+  int64_t             get_value(const char* key);
+  const std::string&  get_string(const char* key);
 
-  int64_t             get_value(const char* key)                { return m_variables.get_d_value(this, key); }
-  const std::string&  get_string(const char* key)               { return m_variables.get_d_string(this, key); }
+  int64_t             get_std_value(const std::string& key);
+  const std::string&  get_std_string(const std::string& key);
 
-  int64_t             get_std_value(const std::string& key)     { return m_variables.get_d_value(this, key.c_str()); }
-  const std::string&  get_std_string(const std::string& key)    { return m_variables.get_d_string(this, key.c_str()); }
+  void                set(const char* key, const torrent::Object& value);
 
-  void                set(const char* key, const torrent::Object& value)    { return m_variables.set_d(this, key, value); }
+  void                set_value(const char* key, int64_t value);
+  void                set_string(const char* key, const std::string& value);
 
-  void                set_value(const char* key, int64_t value)             { return m_variables.set_d_value(this, key, value); }
-  void                set_string(const char* key, const std::string& value) { return m_variables.set_d_string(this, key, value); }
+  void                set_root_directory(const std::string& path);
 
   bool                operator == (const std::string& str) const;
 
@@ -120,6 +119,9 @@ public:
 
   static connection_type string_to_connection_type(const std::string& name);
   static const char*     connection_type_to_string(connection_type t);
+
+  const char*         connection_current() const                    { return connection_type_to_string(m_download.connection_type()); }
+  void                set_connection_current(const std::string& t)  { return m_download.set_connection_type(string_to_connection_type(t.c_str())); }
 
   static uint32_t     string_to_priority(const std::string& name);
   static const char*  priority_to_string(uint32_t p);
@@ -135,11 +137,6 @@ private:
 
   void                receive_chunk_failed(uint32_t idx);
 
-  const char*         connection_current() const                    { return connection_type_to_string(m_download.connection_type()); }
-  void                set_connection_current(const std::string& t)  { return m_download.set_connection_type(string_to_connection_type(t.c_str())); }
-
-  void                set_root_directory(const std::string& path);
-
   // Store the FileList instance so we can use slots etc on it.
   download_type       m_download;
   tracker_list_type   m_trackerList;
@@ -148,8 +145,6 @@ private:
 
   std::string         m_message;
   uint32_t            m_chunksFailed;
-
-  variable_map_type   m_variables;
 
   sigc::connection    m_connTrackerSucceded;
   sigc::connection    m_connTrackerFailed;

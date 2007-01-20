@@ -41,6 +41,7 @@
 #include <rak/functional.h>
 #include <sigc++/bind.h>
 #include <torrent/download.h>
+#include <torrent/exceptions.h>
 
 #include "download.h"
 #include "download_list.h"

@@ -205,6 +205,35 @@ VariableMap::process_single(const char* first, const char* last) {
   return std::find_if(first, last, std::not1(variable_map_is_space()));
 }
 
+const char*
+VariableMap::process_d_single(core::Download* download, const char* first, const char* last) {
+  first = std::find_if(first, last, std::not1(variable_map_is_space()));
+
+  if (first == last || *first == '#')
+    return last;
+  
+  std::string key;
+  first = parse_name(first, last, &key);
+  first = std::find_if(first, last, std::not1(variable_map_is_space()));
+  
+  if (first == last || *first != '=')
+    throw torrent::input_error("Could not find '='.");
+
+  mapped_type args(mapped_type::TYPE_LIST);
+  first = parse_args(first + 1, last, &args.as_list());
+
+  if (args.as_list().empty())
+    set_d(download, key.c_str(), mapped_type());
+
+  else if (++args.as_list().begin() == args.as_list().end())
+    set_d(download, key.c_str(), *args.as_list().begin());
+
+  else
+    set_d(download, key.c_str(), args);
+
+  return std::find_if(first, last, std::not1(variable_map_is_space()));
+}
+
 // void
 // VariableMap::process_command(const std::string& command) {
 //   std::string::const_iterator pos = command.begin();

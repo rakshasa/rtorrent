@@ -96,8 +96,9 @@ public:
   void                set(key_type key, const mapped_type& arg);
   void                set_d(core::Download* download, key_type key, const mapped_type& arg);
 
-  void                set_string(key_type key, const std::string& arg)                             { set(key, mapped_type(arg)); }
-  void                set_d_string(core::Download* download, key_type key, const std::string& arg) { set_d(download, key, mapped_type(arg)); }
+  void                set_string(key_type key, const std::string& arg)                                           { set(key, mapped_type(arg)); }
+  void                set_d_string(core::Download* download, key_type key, const std::string& arg)               { set_d(download, key, mapped_type(arg)); }
+  void                set_d_std_string(core::Download* download, const std::string& key, const std::string& arg) { set_d(download, key.c_str(), mapped_type(arg)); }
 
   void                set_value(key_type key, mapped_value_type arg)                               { set(key, mapped_type(arg)); }
   void                set_d_value(core::Download* download, key_type key, mapped_value_type arg)   { set_d(download, key, mapped_type(arg)); }
@@ -107,6 +108,9 @@ public:
   const char*         process_single(const char* first);
   const char*         process_single(const char* first, const char* last);
   void                process_std_single(const std::string& cmd)       { process_single(cmd.c_str(), cmd.c_str() + cmd.size()); }
+
+  const char*         process_d_single(core::Download* download, const char* first, const char* last);
+  void                process_d_std_single(core::Download* download, const std::string& cmd)     { process_d_single(download, cmd.c_str(), cmd.c_str() + cmd.size()); }
 
   void                process_multiple(const char* first);
 

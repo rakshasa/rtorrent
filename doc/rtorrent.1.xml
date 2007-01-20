@@ -585,23 +585,6 @@ the <emphasis>schedule</emphasis> option.
       </varlistentry>
 
       <varlistentry>
-        <term>stop_on_ratio = <replaceable>min_ratio</replaceable></term>
-        <term>stop_on_ratio = <replaceable>min_ratio</replaceable>,<replaceable>min_upload</replaceable></term>
-        <term>stop_on_ratio = <replaceable>min_ratio</replaceable>,<replaceable>min_upload</replaceable>,<replaceable>max_ratio</replaceable></term>
-        <listitem><para>
-Stop torrents when they reach the given upload ratio
-<emphasis>min_ratio</emphasis> in percent. If the optional
-<emphasis>min_upload</emphasis> is given, require a total
-upload amount of this many bytes as well. If the optional
-<emphasis>max_ratio</emphasis> is given, stop the torrent
-when reaching this ratio regardless of the total upload
-amount. Exclude certain torrent by pressing 
-<emphasis>Shift+I</emphasis> in the downlist list.
-Use with the <emphasis>schedule</emphasis> option.
-        </para></listitem>
-      </varlistentry>
-
-      <varlistentry>
         <term>load = <replaceable>file</replaceable></term>
         <term>load_verbose = <replaceable>file</replaceable></term>
         <term>load_start = <replaceable>file</replaceable></term>
@@ -621,6 +604,40 @@ to the filename provided.
         <listitem><para>
 Load a resource file. <emphasis>try_import</emphasis> does not throw
 torrent::input_error exception on bad input.
+        </para></listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>stop_on_ratio = <replaceable>min_ratio</replaceable></term>
+        <term>stop_on_ratio = <replaceable>min_ratio</replaceable>,<replaceable>min_upload</replaceable></term>
+        <term>stop_on_ratio = <replaceable>min_ratio</replaceable>,<replaceable>min_upload</replaceable>,<replaceable>max_ratio</replaceable></term>
+        <listitem><para>
+Stop torrents when they reach the given upload ratio
+<emphasis>min_ratio</emphasis> in percent. If the optional
+<emphasis>min_upload</emphasis> is given, require a total
+upload amount of this many bytes as well. If the optional
+<emphasis>max_ratio</emphasis> is given, stop the torrent
+when reaching this ratio regardless of the total upload
+amount. Exclude certain torrent by pressing 
+<emphasis>Shift+I</emphasis> in the downlist list.
+Use with the <emphasis>schedule</emphasis> option.
+        </para></listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>on_insert = <replaceable>id</replaceable>,<replaceable>command</replaceable></term>
+        <term>on_erase = <replaceable>id</replaceable>,<replaceable>command</replaceable></term>
+        <term>on_open = <replaceable>id</replaceable>,<replaceable>command</replaceable></term>
+        <term>on_close = <replaceable>id</replaceable>,<replaceable>command</replaceable></term>
+        <term>on_start = <replaceable>id</replaceable>,<replaceable>command</replaceable></term>
+        <term>on_stop = <replaceable>id</replaceable>,<replaceable>command</replaceable></term>
+        <term>on_hash_queued = <replaceable>id</replaceable>,<replaceable>command</replaceable></term>
+        <term>on_hash_removed = <replaceable>id</replaceable>,<replaceable>command</replaceable></term>
+        <term>on_hash_done = <replaceable>id</replaceable>,<replaceable>command</replaceable></term>
+        <term>on_finished = <replaceable>id</replaceable>,<replaceable>command</replaceable></term>
+        <listitem><para>
+Call a command on a download when its state changes. Only a subset of
+commands are available.
         </para></listitem>
       </varlistentry>
 
@@ -781,6 +798,38 @@ seperate files. Disable by passing <emphasis>-1</emphasis>.
         <listitem><para>
 Set the suffix used on split files. Defaults
 to <emphasis>.part</emphasis>.
+        </para></listitem>
+      </varlistentry>
+
+    </variablelist>
+
+  </refsect1>
+
+
+  <refsect1>
+    <title>DOWNLOAD SETTINGS</title>
+    <para>
+Settings that require a download as a target, requireing it to be
+called through f.ex <emphasis>on_finished</emphasis>.
+    </para>
+
+    <variablelist>
+
+      <varlistentry>
+        <term>create_link = <replaceable>type</replaceable>,<replaceable>path</replaceable>,<replaceable>suffix</replaceable></term>
+        <term>delete_link = <replaceable>type</replaceable>,<replaceable>path</replaceable>,<replaceable>suffix</replaceable></term>
+        <listitem><para>
+
+Create or delete a symbolic link. The link path is the concatenation
+of <emphasis>path</emphasis>, the result of
+the <emphasis>type</emphasis> on the download,
+and <emphasis>suffix</emphasis>.
+
+        </para><para>
+
+Available types are; <emphasis>tied</emphasis> is the path of the file
+this download is tied to, see <emphasis>start_tied</emphasis>.
+
         </para></listitem>
       </varlistentry>
 
