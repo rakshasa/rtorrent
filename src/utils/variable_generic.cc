@@ -42,15 +42,8 @@
 
 namespace utils {
 
-const torrent::Object&
-VariableAny::get() {
-  return m_variable;
-}
-
-void
-VariableAny::set(const torrent::Object& arg) {
-  m_variable = arg;
-}
+const torrent::Object& VariableAny::get() { return m_variable; }
+void VariableAny::set(const torrent::Object& arg) { m_variable = arg; }
 
 void
 VariableValue::set(const torrent::Object& arg) {
@@ -145,6 +138,11 @@ VariableObject::set_d(core::Download* download, const torrent::Object& arg) {
   }
 }
 
+const torrent::Object& VariableDownload::get() { return m_global->get(); }
+const torrent::Object& VariableDownload::get_d(core::Download* download) { return m_download->get_d(download); }
+void VariableDownload::set(const torrent::Object& arg) { m_global->set(arg); }
+void VariableDownload::set_d(core::Download* download, const torrent::Object& arg) { m_download->set_d(download, arg); }
+
 // 
 // New and prettified.
 //
@@ -165,7 +163,7 @@ VariableVoidSlot::set(const torrent::Object& arg) {
 const torrent::Object&
 VariableValueSlot::get() {
   if (!m_slotGet.is_valid())
-    return m_cache;
+    return m_cache = torrent::Object();
 
   m_cache = m_slotGet() / m_unit;
 
@@ -190,6 +188,40 @@ VariableValueSlot::set(const torrent::Object& arg) {
 
   case torrent::Object::TYPE_VALUE:
     m_slotSet(arg.as_value());
+    break;
+
+  default:
+    throw torrent::input_error("Not a value");
+  }
+}
+
+const torrent::Object&
+VariableDownloadValueSlot::get_d(core::Download* download) {
+  // Should clear the cache.
+  if (!m_slotGetDownload.is_valid())
+    return m_cache = torrent::Object();
+
+  return m_cache = m_slotGetDownload(download) / m_unit;
+}
+
+void
+VariableDownloadValueSlot::set_d(core::Download* download, const torrent::Object& arg) {
+  if (!m_slotSetDownload.is_valid())
+    return;
+
+  value_type value;
+
+  switch (arg.type()) {
+  case torrent::Object::TYPE_STRING:
+    string_to_value_unit(arg.as_string().c_str(), &value, m_base, m_unit);
+
+    // Check if we hit the end of the input.
+
+    m_slotSetDownload(download, value);
+    break;
+
+  case torrent::Object::TYPE_VALUE:
+    m_slotSetDownload(download, arg.as_value());
     break;
 
   default:
@@ -225,49 +257,28 @@ VariableStringSlot::set(const torrent::Object& arg) {
 }
 
 const torrent::Object&
-VariableStringSlot::get_d(core::Download* download) {
+VariableDownloadStringSlot::get_d(core::Download* download) {
   // Should clear the cache.
-  if (!m_slotGetDownload.is_valid()) {
-    if (!m_slotGet.is_valid())
-      return m_cache = torrent::Object();
+  if (!m_slotGetDownload.is_valid())
+    return m_cache = torrent::Object();
 
-    m_cache = m_slotGet();
-
-  } else {
-    m_cache = m_slotGetDownload(download);
-  }
-  
-  return m_cache;
+  return m_cache = m_slotGetDownload(download);
 }
 
 void
-VariableStringSlot::set_d(core::Download* download, const torrent::Object& arg) {
-  if (!m_slotSetDownload.is_valid()) {
-    if (!m_slotSet.is_valid())
-      return;
+VariableDownloadStringSlot::set_d(core::Download* download, const torrent::Object& arg) {
+  if (!m_slotSetDownload.is_valid())
+    return;
 
-    switch (arg.type()) {
-    case torrent::Object::TYPE_STRING:
-      m_slotSet(arg.as_string());
-      break;
-    case torrent::Object::TYPE_NONE:
-      m_slotSet(std::string());
-      break;
-    default:
-      throw torrent::input_error("Not a string.");
-    }
-
-  } else {
-    switch (arg.type()) {
-    case torrent::Object::TYPE_STRING:
-      m_slotSetDownload(download, arg.as_string());
-      break;
-    case torrent::Object::TYPE_NONE:
-      m_slotSetDownload(download, std::string());
-      break;
-    default:
-      throw torrent::input_error("Not a string.");
-    }
+  switch (arg.type()) {
+  case torrent::Object::TYPE_STRING:
+    m_slotSetDownload(download, arg.as_string());
+    break;
+  case torrent::Object::TYPE_NONE:
+    m_slotSetDownload(download, std::string());
+    break;
+  default:
+    throw torrent::input_error("Not a string.");
   }
 }
 

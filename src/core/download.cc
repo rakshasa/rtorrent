@@ -54,6 +54,26 @@
 
 namespace core {
 
+template <typename Target, typename GetFunc, typename SetFunc>
+utils::Variable*
+var_d_value(Target target, GetFunc getFunc, SetFunc setFunc) {
+  return new utils::VariableDownloadValueSlot(rak::ftor_fn1(rak::on(std::mem_fun(target), std::mem_fun(getFunc))),
+                                              rak::ftor_fn2(rak::on2(std::mem_fun(target), std::mem_fun(setFunc))));
+}
+
+template <typename Target, typename GetFunc, typename SetFunc>
+utils::Variable*
+var_d2_value(Target target, GetFunc getFunc, SetFunc setFunc) {
+  return new utils::VariableDownloadValueSlot(rak::ftor_fn1(rak::on(rak::on(std::mem_fun(&Download::download), std::mem_fun(target)), std::mem_fun(getFunc))),
+                                              rak::ftor_fn2(rak::on2(rak::on(std::mem_fun(&Download::download), std::mem_fun(target)), std::mem_fun(setFunc))));
+}
+
+template <typename Target, typename GetFunc>
+utils::Variable*
+var_d2_get_value(Target target, GetFunc getFunc) {
+  return new utils::VariableDownloadValueSlot(rak::ftor_fn1(rak::on(rak::on(std::mem_fun(&Download::download), std::mem_fun(target)), std::mem_fun(getFunc))), NULL);
+}
+
 Download::Download(download_type d) :
   m_download(d),
   m_trackerList(d.tracker_list()),
@@ -68,9 +88,8 @@ Download::Download(download_type d) :
 
   m_download.signal_chunk_failed(sigc::mem_fun(*this, &Download::receive_chunk_failed));
 
-  m_variables.insert("connection_current", new utils::VariableStringSlot(NULL, NULL,
-                                                                         rak::ftor_fn1(std::mem_fun(&Download::connection_current)),
-                                                                         rak::ftor_fn2(std::mem_fun(&Download::set_connection_current))));
+  m_variables.insert("connection_current", new utils::VariableDownloadStringSlot(rak::ftor_fn1(std::mem_fun(&Download::connection_current)),
+                                                                                 rak::ftor_fn2(std::mem_fun(&Download::set_connection_current))));
 
   m_variables.insert("connection_leech",   new utils::VariableAny(connection_type_to_string(download_type::CONNECTION_LEECH)));
   m_variables.insert("connection_seed",    new utils::VariableAny(connection_type_to_string(download_type::CONNECTION_SEED)));
@@ -91,30 +110,26 @@ Download::Download(download_type d) :
   // resume/pause.
   m_variables.insert("state_changed",      new utils::VariableObject("rtorrent", "state_changed", torrent::Object::TYPE_VALUE));
 
-  m_variables.insert("directory",          new utils::VariableStringSlot(NULL, NULL,
-                                                                         rak::ftor_fn1(rak::on(std::mem_fun(&Download::file_list), std::mem_fun(&torrent::FileList::root_dir))),
-                                                                         rak::ftor_fn2(std::mem_fun(&Download::set_root_directory))));
+  m_variables.insert("directory",          new utils::VariableDownloadStringSlot(rak::ftor_fn1(rak::on(std::mem_fun(&Download::file_list), std::mem_fun(&torrent::FileList::root_dir))),
+                                                                                 rak::ftor_fn2(std::mem_fun(&Download::set_root_directory))));
+  m_variables.insert("min_peers",          var_d_value(&Download::download, &download_type::peers_min, &download_type::set_peers_min));
+  m_variables.insert("max_peers",          var_d_value(&Download::download, &download_type::peers_max, &download_type::set_peers_max));
+  m_variables.insert("max_uploads",        var_d_value(&Download::download, &download_type::uploads_max, &download_type::set_uploads_max));
 
-//   m_variables.insert("info_hash",          new utils::VariableStringSlot(rak::mem_fn(&m_download, &torrent::Download::info_hash), NULL));
+  m_variables.insert("max_file_size",      var_d_value(&Download::file_list, &file_list_type::max_file_size, &file_list_type::set_max_file_size));
 
-  m_variables.insert("min_peers",          new utils::VariableValueSlot(rak::mem_fn(&m_download, &download_type::peers_min), rak::mem_fn(&m_download, &download_type::set_peers_min)));
-  m_variables.insert("max_peers",          new utils::VariableValueSlot(rak::mem_fn(&m_download, &download_type::peers_max), rak::mem_fn(&m_download, &download_type::set_peers_max)));
-  m_variables.insert("max_uploads",        new utils::VariableValueSlot(rak::mem_fn(&m_download, &download_type::uploads_max), rak::mem_fn(&m_download, &download_type::set_uploads_max)));
-
-  m_variables.insert("max_file_size",      new utils::VariableValueSlot(rak::mem_fn(file_list(), &file_list_type::max_file_size), rak::mem_fn(file_list(), &file_list_type::set_max_file_size)));
 //   m_variables.insert("split_file_size",    new utils::VariableValueSlot(rak::mem_fn(file_list(), &file_list_type::split_file_size), rak::mem_fn(file_list(), &file_list_type::set_split_file_size)));
 //   m_variables.insert("split_suffix",       new utils::VariableStringSlot(rak::mem_fn(file_list(), &file_list_type::split_suffix), rak::mem_fn(file_list(), &file_list_type::set_split_suffix)));
 
-  m_variables.insert("up_rate",            new utils::VariableValueSlot(rak::mem_fn(m_download.up_rate(), &torrent::Rate::rate), NULL));
-  m_variables.insert("up_total",           new utils::VariableValueSlot(rak::mem_fn(m_download.up_rate(), &torrent::Rate::total), NULL));
-  m_variables.insert("down_rate",          new utils::VariableValueSlot(rak::mem_fn(m_download.down_rate(), &torrent::Rate::rate), NULL));
-  m_variables.insert("down_total",         new utils::VariableValueSlot(rak::mem_fn(m_download.down_rate(), &torrent::Rate::total), NULL));
-  m_variables.insert("skip_rate",          new utils::VariableValueSlot(rak::mem_fn(m_download.skip_rate(), &torrent::Rate::rate), NULL));
-  m_variables.insert("skip_total",         new utils::VariableValueSlot(rak::mem_fn(m_download.skip_rate(), &torrent::Rate::total), NULL));
+  m_variables.insert("up_rate",            var_d2_get_value(&download_type::mutable_up_rate, &torrent::Rate::rate));
+  m_variables.insert("up_total",           var_d2_get_value(&download_type::mutable_up_rate, &torrent::Rate::total));
+  m_variables.insert("down_rate",          var_d2_get_value(&download_type::mutable_down_rate, &torrent::Rate::rate));
+  m_variables.insert("down_total",         var_d2_get_value(&download_type::mutable_down_rate, &torrent::Rate::total));
+  m_variables.insert("skip_rate",          var_d2_get_value(&download_type::mutable_skip_rate, &torrent::Rate::rate));
+  m_variables.insert("skip_total",         var_d2_get_value(&download_type::mutable_skip_rate, &torrent::Rate::total));
 
-  m_variables.insert("priority",           new utils::VariableValueSlot(rak::mem_fn(this, &Download::priority), rak::mem_fn(this, &Download::set_priority)));
-
-  m_variables.insert("tracker_numwant",    new utils::VariableValueSlot(rak::mem_fn(&m_trackerList, &tracker_list_type::numwant), rak::mem_fn(&m_trackerList, &tracker_list_type::set_numwant)));
+  m_variables.insert("priority",           new utils::VariableDownloadValueSlot(rak::ftor_fn1(std::mem_fun(&Download::priority)), rak::ftor_fn2(std::mem_fun(&Download::set_priority))));
+  m_variables.insert("tracker_numwant",    var_d_value(&Download::tracker_list, &tracker_list_type::numwant, &tracker_list_type::set_numwant));
 
   m_variables.insert("ignore_commands",    new utils::VariableObject("rtorrent", "ignore_commands", torrent::Object::TYPE_VALUE));
 }

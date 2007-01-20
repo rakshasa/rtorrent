@@ -79,6 +79,22 @@ public:
   virtual void        set(const torrent::Object& arg);
 };
 
+class VariableDownload : public Variable {
+public:
+  VariableDownload(Variable* varGlobal, Variable* varDownload) :
+    m_global(varGlobal), m_download(varDownload) {}
+
+  virtual const torrent::Object&  get();
+  virtual void                    set(const torrent::Object& arg);
+
+  virtual const torrent::Object&  get_d(core::Download* download);
+  virtual void                    set_d(core::Download* download, const torrent::Object& arg);
+
+protected:
+  Variable*           m_global;
+  Variable*           m_download;
+};
+
 class VariableObject : public Variable {
 public:
   typedef torrent::Object::type_type Type;
@@ -121,8 +137,9 @@ private:
 
 class VariableValueSlot : public Variable {
 public:
-  typedef rak::function0<value_type>        slot_get_type;
-  typedef rak::function1<void, value_type>  slot_set_type;
+  typedef rak::function0<value_type>                        slot_get_type;
+  typedef rak::function1<void, value_type>                  slot_set_type;
+
   typedef std::pair<value_type, value_type> range_type;
 
   template <typename SlotGet, typename SlotSet>
@@ -164,54 +181,93 @@ private:
   torrent::Object     m_cache;
 };
 
-class VariableStringSlot : public Variable {
+class VariableDownloadValueSlot : public Variable {
 public:
-  typedef rak::function0<string_type>                               slot_get_type;
-  typedef rak::function1<string_type, core::Download*>              slot_get_d_type;
-  typedef rak::function1<void, const string_type&>                  slot_set_type;
-  typedef rak::function2<void, core::Download*, const string_type&> slot_set_d_type;
+  typedef rak::function1<value_type, core::Download*>       slot_get_d_type;
+  typedef rak::function2<void, core::Download*, value_type> slot_set_d_type;
 
-  template <typename SlotGet, typename SlotSet>
-  VariableStringSlot(SlotGet* slotGet, SlotSet* slotSet) {
-    m_slotGet.set(rak::convert_fn<string_type>(slotGet));
-    m_slotSet.set(rak::convert_fn<void, const string_type&>(slotSet));
-    m_slotGetDownload.set(NULL);
-    m_slotSetDownload.set(NULL);
+  typedef std::pair<value_type, value_type> range_type;
+
+  template <typename SlotGetDownload, typename SlotSetDownload>
+  VariableDownloadValueSlot(SlotGetDownload* slotGetDownload, SlotSetDownload* slotSetDownload,
+                            unsigned int base = 0, unsigned int unit = 1,
+                            range_type range = range_type(std::numeric_limits<value_type>::min(), std::numeric_limits<value_type>::max())) :
+    m_base(base),
+    m_unit(unit),
+    m_range(range) {
+
+    m_slotGetDownload.set(rak::convert_fn<value_type, core::Download*>(slotGetDownload));
+    m_slotSetDownload.set(rak::convert_fn<void, core::Download*, value_type>(slotSetDownload));
   }
 
   template <typename SlotGetDownload>
-  VariableStringSlot(void* slotGet, void* slotSet, SlotGetDownload* slotGetDownload, void* slotSetDownload) {
-    m_slotGet.set(NULL);
-    m_slotSet.set(NULL);
-    m_slotGetDownload.set(rak::convert_fn<string_type, core::Download*>(slotGetDownload));
+  VariableDownloadValueSlot(SlotGetDownload* slotGetDownload, void* slotSetDownload,
+                            unsigned int base = 0, unsigned int unit = 1,
+                            range_type range = range_type(std::numeric_limits<value_type>::min(), std::numeric_limits<value_type>::max())) :
+    m_base(base),
+    m_unit(unit),
+    m_range(range) {
+
+    m_slotGetDownload.set(rak::convert_fn<value_type, core::Download*>(slotGetDownload));
     m_slotSetDownload.set(NULL);
   }
-
-  template <typename SlotGetDownload, typename SlotSetDownload>
-  VariableStringSlot(void* slotGet, void* slotSet, SlotGetDownload* slotGetDownload, SlotSetDownload* slotSetDownload) {
-    m_slotGet.set(NULL);
-    m_slotSet.set(NULL);
-    m_slotGetDownload.set(rak::convert_fn<string_type, core::Download*>(slotGetDownload));
-    m_slotSetDownload.set(rak::convert_fn<void, core::Download*, const string_type&>(slotSetDownload));
-  }
-
-//   template <typename SlotGet, typename SlotSet, typename SlotGetDownload, typename SlotSetDownload>
-//   VariableStringSlot(SlotGet* slotGet, SlotSet* slotSet, SlotGetDownload* slotGetDownload, SlotSetDownload* slotSetDownload) {
-//     m_slotGet.set(slotGet != NULL ? rak::convert_fn<string_type>(slotGet) : NULL);
-//     m_slotSet.set(slotSet != NULL ? rak::convert_fn<void, const string_type&>(slotSet) : NULL);
-//     m_slotGetDownload.set(slotGetDownload != NULL ? rak::convert_fn<string_type, core::Download*>(slotGetDownload) : NULL);
-//     m_slotSetDownload.set(slotSetDownload != NULL ? rak::convert_fn<void, core::Download*, const string_type&>(slotSetDownload) : NULL);
-//   }
-
-  virtual const torrent::Object& get();
-  virtual void                   set(const torrent::Object& arg);
 
   virtual const torrent::Object& get_d(core::Download* download);
   virtual void                   set_d(core::Download* download, const torrent::Object& arg);
 
 private:
+  slot_get_d_type     m_slotGetDownload;
+  slot_set_d_type     m_slotSetDownload;
+
+  unsigned int        m_base;
+  unsigned int        m_unit;
+  range_type          m_range;
+
+  // Store the cache here to avoid unnessesary copying and such. This
+  // should not result in any unresonable memory usage since few
+  // strings will be very large.
+  torrent::Object     m_cache;
+};
+
+class VariableStringSlot : public Variable {
+public:
+  typedef rak::function0<string_type>              slot_get_type;
+  typedef rak::function1<void, const string_type&> slot_set_type;
+
+  template <typename SlotGet, typename SlotSet>
+  VariableStringSlot(SlotGet* slotGet, SlotSet* slotSet) {
+    m_slotGet.set(rak::convert_fn<string_type>(slotGet));
+    m_slotSet.set(rak::convert_fn<void, const string_type&>(slotSet));
+  }
+
+  virtual const torrent::Object& get();
+  virtual void                   set(const torrent::Object& arg);
+
+private:
   slot_get_type       m_slotGet;
   slot_set_type       m_slotSet;
+
+  // Store the cache here to avoid unnessesary copying and such. This
+  // should not result in any unresonable memory usage since few
+  // strings will be very large.
+  torrent::Object     m_cache;
+};
+
+class VariableDownloadStringSlot : public Variable {
+public:
+  typedef rak::function1<string_type, core::Download*>              slot_get_d_type;
+  typedef rak::function2<void, core::Download*, const string_type&> slot_set_d_type;
+
+  template <typename SlotGetDownload, typename SlotSetDownload>
+  VariableDownloadStringSlot(SlotGetDownload* slotGetDownload, SlotSetDownload* slotSetDownload) {
+    m_slotGetDownload.set(rak::convert_fn<string_type, core::Download*>(slotGetDownload));
+    m_slotSetDownload.set(rak::convert_fn<void, core::Download*, const string_type&>(slotSetDownload));
+  }
+
+  virtual const torrent::Object& get_d(core::Download* download);
+  virtual void                   set_d(core::Download* download, const torrent::Object& arg);
+
+private:
   slot_get_d_type     m_slotGetDownload;
   slot_set_d_type     m_slotSetDownload;
 
