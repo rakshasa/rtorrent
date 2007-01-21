@@ -827,8 +827,9 @@ and <emphasis>suffix</emphasis>.
 
         </para><para>
 
-Available types are; <emphasis>tied</emphasis> is the path of the file
-this download is tied to, see <emphasis>start_tied</emphasis>.
+Available types are; <emphasis>base</emphasis> uses the base path of
+the download, <emphasis>tied</emphasis> uses the path of the file the
+download is tied to, see <emphasis>start_tied</emphasis>.
 
         </para></listitem>
       </varlistentry>

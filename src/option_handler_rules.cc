@@ -628,18 +628,26 @@ apply_d_create_link(core::Download* download, const std::string& args) {
   std::string target;
   std::string link;
 
-  if (type == "tied") {
-    target = rak::path_expand(download->get_string("tied_to_file"));
-    link = rak::path_expand(prefix + target.substr(target.rfind('/') != std::string::npos ? target.rfind('/') + 1 : 0) + postfix);
+  if (type == "base") {
+    target = download->get_string("base_path");
+    link = rak::path_expand(prefix + download->get_string("base_path") + postfix);
+
+  } else if (type == "tied") {
+    target = download->get_string("base_path");
+    link = rak::path_expand(download->get_string("tied_to_file"));
+
+    if (link.empty())
+      return;
+
+    link = rak::path_expand(prefix + link + postfix);
+
   } else {
     throw torrent::input_error("Unknown type argument.");
   }
 
-  if (target.empty())
-    return;
-
   if (symlink(target.c_str(), link.c_str()) == -1)
-    ; //    control->core()->push_log("create_link failed: " + std::string(rak::error_number::current().c_str()));
+//     control->core()->push_log("create_link failed: " + std::string(rak::error_number::current().c_str()));
+    control->core()->push_log("create_link failed: " + std::string(rak::error_number::current().c_str()) + " to " + target);
 }
 
 void
@@ -653,18 +661,22 @@ apply_d_delete_link(core::Download* download, const std::string& args) {
   if (type.empty())
     throw torrent::input_error("Invalid arguments.");
 
-  std::string target;
   std::string link;
 
-  if (type == "tied") {
-    target = rak::path_expand(download->get_string("tied_to_file"));
-    link = rak::path_expand(prefix + target.substr(target.rfind('/') != std::string::npos ? target.rfind('/') + 1 : 0) + postfix);
+  if (type == "base") {
+    link = rak::path_expand(prefix + download->get_string("base_path") + postfix);
+
+  } else if (type == "tied") {
+    link = rak::path_expand(download->get_string("tied_to_file"));
+
+    if (link.empty())
+      return;
+
+    link = rak::path_expand(prefix + link + postfix);
+
   } else {
     throw torrent::input_error("Unknown type argument.");
   }
-
-  if (target.empty())
-    return;
 
   rak::file_stat fileStat;
   rak::error_number::clear_global();
@@ -672,6 +684,14 @@ apply_d_delete_link(core::Download* download, const std::string& args) {
   if (!fileStat.update_link(link) || !fileStat.is_link() ||
       unlink(link.c_str()) == -1)
     ; //     control->core()->push_log("delete_link failed: " + std::string(rak::error_number::current().c_str()));
+}
+
+std::string
+retrieve_d_base_path(core::Download* download) {
+  if (download->file_list()->is_multi_file())
+    return download->file_list()->root_dir();
+  else
+    return download->file_list()->at(0)->frozen_path();
 }
 
 void
@@ -702,6 +722,8 @@ initialize_download_variables() {
 
   variables->insert("directory",          new utils::VariableDownloadStringSlot(rak::ftor_fn1(rak::on(std::mem_fun(&core::Download::file_list), std::mem_fun(&torrent::FileList::root_dir))),
                                                                                 rak::ftor_fn2(std::mem_fun(&core::Download::set_root_directory))));
+  variables->insert("base_path",          new utils::VariableDownloadStringSlot(rak::ptr_fn(&retrieve_d_base_path), NULL));
+
   variables->insert("min_peers",          var_d_value(&core::Download::download, &torrent::Download::peers_min, &torrent::Download::set_peers_min));
   variables->insert("max_peers",          var_d_value(&core::Download::download, &torrent::Download::peers_max, &torrent::Download::set_peers_max));
   variables->insert("max_uploads",        var_d_value(&core::Download::download, &torrent::Download::uploads_max, &torrent::Download::set_uploads_max));

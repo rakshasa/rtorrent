@@ -270,6 +270,12 @@ public:
     m_slotSetDownload.set(rak::convert_fn<void, core::Download*, const string_type&>(slotSetDownload));
   }
 
+  template <typename SlotGetDownload>
+  VariableDownloadStringSlot(SlotGetDownload* slotGetDownload, void* slotSetDownload) {
+    m_slotGetDownload.set(rak::convert_fn<string_type, core::Download*>(slotGetDownload));
+    m_slotSetDownload.set(NULL);
+  }
+
   template <typename SlotGetDownload, typename SlotSetDownload>
   VariableDownloadStringSlot(SlotGetDownload* slotGetDownload, SlotSetDownload* slotSetDownload) {
     m_slotGetDownload.set(rak::convert_fn<string_type, core::Download*>(slotGetDownload));
