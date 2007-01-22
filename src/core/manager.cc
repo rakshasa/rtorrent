@@ -494,7 +494,7 @@ Manager::receive_hashing_changed() {
   // something else when failed.
   for (View::iterator itr = m_hashingView->begin_visible(), last = m_hashingView->end_visible(); itr != last; ++itr) {
     if ((*itr)->is_hash_checked())
-      throw torrent::internal_error("core::Manager::receive_hashing_changed() hash already checked or checking.");
+      throw torrent::internal_error("core::Manager::receive_hashing_changed() (*itr)->is_hash_checked().");
   
     if ((*itr)->is_hash_checking()) {
       foundHashing = true;
@@ -522,16 +522,20 @@ Manager::receive_hashing_changed() {
 
       // Need to clean up the below.
       if (tryQuick) {
-        if (!(*itr)->download()->hash_check(true))
-          // Temporary hack.
-          (*itr)->download()->hash_stop();
+        if ((*itr)->download()->hash_check(true))
+          continue;
 
         // Make sure we don't repeat the quick hashing.
-        (*itr)->set_value("hashing", Download::variable_hashing_rehash);
+        (*itr)->download()->hash_stop();
 
-      } else {
-        (*itr)->download()->hash_check(false);
+        if (foundHashing) {
+          (*itr)->set_value("hashing", Download::variable_hashing_rehash);
+          continue;
+        }
       }
+
+      (*itr)->download()->hash_check(false);
+      foundHashing = true;
 
     } catch (torrent::local_error& e) {
       if (tryQuick) {
