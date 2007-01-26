@@ -516,16 +516,15 @@ Manager::receive_hashing_changed() {
 
       // Since the bitfield is allocated on loading of resume load or
       // hash start, and unallocated on close, we know that if it it
-      // not empty then we have loaded any existing resume data.
+      // not empty then we have already loaded any existing resume
+      // data.
       if ((*itr)->download()->file_list()->bitfield()->empty())
         torrent::resume_load_progress(*(*itr)->download(), (*itr)->download()->bencode()->get_key("libtorrent_resume"));
 
-      // Need to clean up the below.
       if (tryQuick) {
         if ((*itr)->download()->hash_check(true))
           continue;
 
-        // Make sure we don't repeat the quick hashing.
         (*itr)->download()->hash_stop();
 
         if (foundHashing) {

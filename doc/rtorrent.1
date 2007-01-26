@@ -3,7 +3,7 @@
 .\" <http://shell.ipoline.com/~elmert/comp/docbook2X/> 
 .\" Please send any bug reports, improvements, comments, patches, 
 .\" etc. to Steve Cheng <steve@ggi-project.org>.
-.TH "RTORRENT" "1" "07 December 2006" "BitTorrent client for ncurses" ""
+.TH "RTORRENT" "1" "26 January 2007" "BitTorrent client for ncurses" ""
 
 .SH NAME
 rtorrent \- a BitTorrent client for ncurses
@@ -94,7 +94,8 @@ Toggle whether torrent ignores ratio settings.
 .TP
 \fB->\fR
 View torrent file list. Use the space-bar to change the file priority
-and \fB*\fR to change the priority of all files.
+and \fB*\fR to change the priority of all
+files. Use \fB/\fR to collapse the directories. OUTDATED
 .TP
 \fB1 | 2\fR
 Adjust max uploads.
@@ -271,21 +272,6 @@ Close any active torrents on filesystems with less than
 \fBspace\fR diskspace left. Use with
 the \fBschedule\fR option.
 .TP
-\fBstop_on_ratio = \fImin_ratio\fB\fR
-.TP
-\fBstop_on_ratio = \fImin_ratio\fB,\fImin_upload\fB\fR
-.TP
-\fBstop_on_ratio = \fImin_ratio\fB,\fImin_upload\fB,\fImax_ratio\fB\fR
-Stop torrents when they reach the given upload ratio
-\fBmin_ratio\fR in percent. If the optional
-\fBmin_upload\fR is given, require a total
-upload amount of this many bytes as well. If the optional
-\fBmax_ratio\fR is given, stop the torrent
-when reaching this ratio regardless of the total upload
-amount. Exclude certain torrent by pressing 
-\fBShift+I\fR in the downlist list.
-Use with the \fBschedule\fR option.
-.TP
 \fBload = \fIfile\fB\fR
 .TP
 \fBload_verbose = \fIfile\fB\fR
@@ -304,6 +290,43 @@ to the filename provided.
 \fBtry_import = \fIfile\fB\fR
 Load a resource file. \fBtry_import\fR does not throw
 torrent::input_error exception on bad input.
+.TP
+\fBstop_on_ratio = \fImin_ratio\fB\fR
+.TP
+\fBstop_on_ratio = \fImin_ratio\fB,\fImin_upload\fB\fR
+.TP
+\fBstop_on_ratio = \fImin_ratio\fB,\fImin_upload\fB,\fImax_ratio\fB\fR
+Stop torrents when they reach the given upload ratio
+\fBmin_ratio\fR in percent. If the optional
+\fBmin_upload\fR is given, require a total
+upload amount of this many bytes as well. If the optional
+\fBmax_ratio\fR is given, stop the torrent
+when reaching this ratio regardless of the total upload
+amount. Exclude certain torrent by pressing 
+\fBShift+I\fR in the downlist list.
+Use with the \fBschedule\fR option.
+.TP
+\fBon_insert = \fIid\fB,\fIcommand\fB\fR
+.TP
+\fBon_erase = \fIid\fB,\fIcommand\fB\fR
+.TP
+\fBon_open = \fIid\fB,\fIcommand\fB\fR
+.TP
+\fBon_close = \fIid\fB,\fIcommand\fB\fR
+.TP
+\fBon_start = \fIid\fB,\fIcommand\fB\fR
+.TP
+\fBon_stop = \fIid\fB,\fIcommand\fB\fR
+.TP
+\fBon_hash_queued = \fIid\fB,\fIcommand\fB\fR
+.TP
+\fBon_hash_removed = \fIid\fB,\fIcommand\fB\fR
+.TP
+\fBon_hash_done = \fIid\fB,\fIcommand\fB\fR
+.TP
+\fBon_finished = \fIid\fB,\fIcommand\fB\fR
+Call a command on a download when its state changes. Only a subset of
+commands are available.
 .SH "TRACKER RELATED SETTINGS"
 .PP
 Tracker related settings.
@@ -379,6 +402,23 @@ seperate files. Disable by passing \fB-1\fR\&.
 \fBsplit_suffix = \fIstring\fB\fR
 Set the suffix used on split files. Defaults
 to \fB\&.part\fR\&.
+.SH "DOWNLOAD SETTINGS"
+.PP
+Settings that require a download as a target, the options need to be
+called through f.ex \fBon_finished\fR\&.
+.TP
+\fBcreate_link = \fItype\fB,\fIpath\fB,\fIsuffix\fB\fR
+.TP
+\fBdelete_link = \fItype\fB,\fIpath\fB,\fIsuffix\fB\fR
+Create or delete a symbolic link. The link path is the concatenation
+of \fBpath\fR, the result of
+the \fBtype\fR on the download,
+and \fBsuffix\fR\&.
+
+Available types are; \fBbase_path\fR uses the base path
+of the download, \fBbase_filename\fR uses the base
+filename of the download, \fBtied\fR uses the path of
+the file the download is tied to, see \fBstart_tied\fR\&.
 .SH "ADVANCED SETTINGS"
 .PP
 This list contains settings users shouldn't need to touch, some may
@@ -403,13 +443,19 @@ Always use MS_SYNC rather than MS_ASYNC when syncing chunks. This may
 be nessesary in case of filesystem bugs like NFS in linux ~2.6.13.
 .TP
 \fBmax_open_files = \fIvalue\fB\fR
-Number of files to simultaneously keep open. Libtorrent dynamically
-opens and closes files when mapping files to memory. Defaults to 128.
+Number of files to simultaneously keep open. LibTorrent dynamically
+opens and closes files as necessary when mapping files to
+memory. Default is based on sysconf(_SC_OPEN_MAX).
+You probably only think you know what this option does, so don't touch
+it.
 .TP
 \fBmax_open_sockets = \fIvalue\fB\fR
-Number of sockets to simultaneously keep open. This value is set to be
-\fBsysconf(_SC_OPEN_MAX) - 256\fR at startup. This
-gives the client 128 sockets to use as it wishes.
+Number of network sockets to simultaneously keep open. This value is
+set to a reasonable value based on \fBsysconf(_SC_OPEN_MAX)\fR\&.
+.TP
+\fBmax_open_http = \fIvalue\fB\fR
+Number of sockets to simultaneously keep open. This value is set
+to \fB32\fR by default.
 .TP
 \fBmax_memory_usage = \fIbytes\fB\fR
 Set the max amount of memory space used to mapping file chunks. This

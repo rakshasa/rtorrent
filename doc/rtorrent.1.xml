@@ -809,8 +809,10 @@ to <emphasis>.part</emphasis>.
   <refsect1>
     <title>DOWNLOAD SETTINGS</title>
     <para>
-Settings that require a download as a target, requireing it to be
+
+Settings that require a download as a target, the options need to be
 called through f.ex <emphasis>on_finished</emphasis>.
+
     </para>
 
     <variablelist>
@@ -900,6 +902,9 @@ be nessesary in case of filesystem bugs like NFS in linux ~2.6.13.
 Number of files to simultaneously keep open. LibTorrent dynamically
 opens and closes files as necessary when mapping files to
 memory. Default is based on sysconf(_SC_OPEN_MAX).
+
+You probably only think you know what this option does, so don't touch
+it.
 
         </para></listitem>
       </varlistentry>
