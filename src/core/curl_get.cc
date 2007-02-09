@@ -81,6 +81,7 @@ CurlGet::start() {
   curl_easy_setopt(m_handle, CURLOPT_NOSIGNAL,       1);
   curl_easy_setopt(m_handle, CURLOPT_FOLLOWLOCATION, 1);
   curl_easy_setopt(m_handle, CURLOPT_MAXREDIRS,      5);
+  curl_easy_setopt(m_handle, CURLOPT_IPRESOLVE,      CURL_IPRESOLVE_V4);
 
   m_stack->add_get(this);
 }

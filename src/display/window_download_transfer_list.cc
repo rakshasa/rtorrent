@@ -78,6 +78,13 @@ WindowDownloadTransferList::redraw() {
 
     // Handle window size.
     for (torrent::BlockList::const_iterator bItr = (*itr)->begin(), bLast = (*itr)->end(); bItr != bLast; ++bItr) {
+      if (m_canvas->get_x() >= m_canvas->width() - 1) {
+        if (++y >= m_canvas->height())
+          break;
+
+        m_canvas->move(17, y);
+      }
+
       char id;
       chtype attr = A_NORMAL;
 
@@ -100,7 +107,7 @@ WindowDownloadTransferList::redraw() {
         attr |= A_UNDERLINE;
 
       m_canvas->print_char(attr | id);
-    }      
+    }
   }
 }
 

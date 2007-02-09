@@ -66,6 +66,9 @@ Variable::set_d(core::Download* download, const torrent::Object& arg) {
 
 const char*
 Variable::string_to_value_unit(const char* pos, value_type* value, int base, int unit) {
+  if (unit <= 0)
+    throw torrent::input_error("Variable::string_to_value_unit(...) received unit <= 0.");
+
   char* last;
   *value = strtoll(pos, &last, base);
 

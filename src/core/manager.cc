@@ -488,7 +488,8 @@ Manager::try_create_download_expand(const std::string& uri, bool start, bool pri
 // hashing view and starts hashing if nessesary.
 void
 Manager::receive_hashing_changed() {
-  bool foundHashing = false;
+  bool foundHashing = std::find_if(m_hashingView->begin_visible(), m_hashingView->end_visible(),
+                                   std::mem_fun(&Download::is_hash_checking)) != m_hashingView->end_visible();
   
   // Try quick hashing all those with hashing == initial, set them to
   // something else when failed.
@@ -496,12 +497,7 @@ Manager::receive_hashing_changed() {
     if ((*itr)->is_hash_checked())
       throw torrent::internal_error("core::Manager::receive_hashing_changed() (*itr)->is_hash_checked().");
   
-    if ((*itr)->is_hash_checking()) {
-      foundHashing = true;
-      continue;
-    }
-
-    if ((*itr)->is_hash_failed())
+    if ((*itr)->is_hash_checking() || (*itr)->is_hash_failed())
       continue;
 
     bool tryQuick =

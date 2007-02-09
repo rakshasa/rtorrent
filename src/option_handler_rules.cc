@@ -320,7 +320,7 @@ apply_tos(const std::string& arg) {
   else if (arg == "mincost")
     value = torrent::ConnectionManager::iptos_mincost;
 
-  else if (!utils::Variable::string_to_value_unit_nothrow(arg.c_str(), &value, 16, 0))
+  else if (!utils::Variable::string_to_value_unit_nothrow(arg.c_str(), &value, 16, 1))
     throw torrent::input_error("Invalid TOS identifier.");
 
   cm->set_priority(value);
