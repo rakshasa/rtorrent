@@ -36,6 +36,7 @@
 
 #include "config.h"
 
+#include <algorithm>
 #include <cctype>
 #include <cerrno>
 #include <cstring>

@@ -43,6 +43,7 @@
 
 #include <sys/types.h>
 
+#include <algorithm>
 #include <functional>
 #include <string>
 #include <list>
