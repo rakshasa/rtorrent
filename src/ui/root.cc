@@ -171,12 +171,15 @@ Root::set_up_throttle(unsigned int throttle) {
 
   torrent::set_up_throttle(throttle * 1024);
 
-  if (throttle == 0)
+  if (throttle == 0) {
     torrent::set_max_unchoked(0);
+    return;
+  }
 
-  else if (throttle <= 10)
+  throttle /= control->variable()->get_value("max_uploads_div");
+
+  if (throttle <= 10)
     torrent::set_max_unchoked(1 + throttle / 1);
-
   else
     torrent::set_max_unchoked(10 + throttle / 5);
 }

@@ -486,6 +486,7 @@ initialize_variables() {
   variables->insert("min_peers_seed",        new utils::VariableValue(-1));
   variables->insert("max_peers_seed",        new utils::VariableValue(-1));
   variables->insert("max_uploads",           new utils::VariableValue(15));
+  variables->insert("max_uploads_div",       new utils::VariableValue(1));
   variables->insert("max_chunks_queued",     new utils::VariableValue(0));
 
   variables->insert("download_rate",         new utils::VariableValueSlot(rak::ptr_fn(&torrent::down_throttle), rak::mem_fn(control->ui(), &ui::Root::set_down_throttle_i64),
