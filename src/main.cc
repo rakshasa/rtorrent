@@ -206,6 +206,12 @@ main(int argc, char** argv) {
        "view_sort_new = hashing,state_changed\n"
        "view_sort_current = hashing,state_changed\n"
 
+       "view_add = seeding\n"
+       "view_filter = seeding,started,complete\n"
+       "view_filter_on = seeding,start,stop\n"
+       "view_sort_new = seeding,state_changed\n"
+       "view_sort_current = seeding,state_changed_reverse\n"
+
        "schedule = view_main,10,10,view_sort=main,20\n"
        "schedule = view_name,10,10,view_sort=name,20\n"
        //     "schedule = view_started,10,10,view_sort=started,5\n"
