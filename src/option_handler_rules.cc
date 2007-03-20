@@ -481,15 +481,19 @@ initialize_variables() {
   variables->insert("http_proxy",            new utils::VariableStringSlot(rak::mem_fn(control->core()->get_poll_manager()->get_http_stack(), &core::CurlStack::http_proxy),
                                                                            rak::mem_fn(control->core()->get_poll_manager()->get_http_stack(), &core::CurlStack::set_http_proxy)));
 
+  variables->insert("max_chunks_queued",     new utils::VariableValue(0));
   variables->insert("min_peers",             new utils::VariableValue(40));
   variables->insert("max_peers",             new utils::VariableValue(100));
   variables->insert("min_peers_seed",        new utils::VariableValue(-1));
   variables->insert("max_peers_seed",        new utils::VariableValue(-1));
+
   variables->insert("max_uploads",           new utils::VariableValue(15));
   variables->insert("max_uploads_div",       new utils::VariableValue(1));
-  variables->insert("max_chunks_queued",     new utils::VariableValue(0));
-
-  variables->insert("max_downloads_hack",    new utils::VariableValueSlot(rak::ptr_fn(&torrent::max_download_unchoked), rak::ptr_fn(&torrent::set_max_download_unchoked)));
+  variables->insert("max_uploads_global",    new utils::VariableValueSlot(rak::mem_fn(control->ui(), &ui::Root::max_uploads_global),
+                                                                          rak::mem_fn(control->ui(), &ui::Root::set_max_uploads_global)));
+  variables->insert("max_downloads_div",     new utils::VariableValue(0));
+  variables->insert("max_downloads_global",  new utils::VariableValueSlot(rak::mem_fn(control->ui(), &ui::Root::max_downloads_global),
+                                                                          rak::mem_fn(control->ui(), &ui::Root::set_max_downloads_global)));
 
   variables->insert("download_rate",         new utils::VariableValueSlot(rak::ptr_fn(&torrent::down_throttle), rak::mem_fn(control->ui(), &ui::Root::set_down_throttle_i64),
                                                                           0, (1 << 10)));

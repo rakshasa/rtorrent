@@ -389,57 +389,6 @@ directory.
     <variablelist>
 
       <varlistentry>
-        <term>max_peers = <replaceable>value</replaceable></term>
-        <listitem><para>
-Set the maximum number of peers to allow in each download.
-        </para></listitem>
-      </varlistentry>
-
-      <varlistentry>
-        <term>min_peers = <replaceable>value</replaceable></term>
-        <listitem><para>
-Set the minimum number of peers to try to connect to in each download.
-        </para></listitem>
-      </varlistentry>
-
-      <varlistentry>
-        <term>max_peers_seed = <replaceable>value</replaceable></term>
-        <listitem><para>
-Set the maximum number of peers to allow while seeding, or -1 (default) to use
-max_peers.
-        </para></listitem>
-      </varlistentry>
-
-      <varlistentry>
-        <term>min_peers_seed = <replaceable>value</replaceable></term>
-        <listitem><para>
-Set the minimum number of peers to try to connect to while seeding, or -1 (default) to use
-min_peers.
-        </para></listitem>
-      </varlistentry>
-
-      <varlistentry>
-        <term>max_uploads = <replaceable>value</replaceable></term>
-        <listitem><para>
-Set the maximum number of simultaneous uploads per download.
-        </para></listitem>
-      </varlistentry>
-
-      <varlistentry>
-        <term>download_rate = <replaceable>KB</replaceable></term>
-        <listitem><para>
-Set the maximum global download rate.
-        </para></listitem>
-      </varlistentry>
-
-      <varlistentry>
-        <term>upload_rate = <replaceable>KB</replaceable></term>
-        <listitem><para>
-Set the maximum global upload rate.
-        </para></listitem>
-      </varlistentry>
-
-      <varlistentry>
         <term>bind = <replaceable>a.b.c.d</replaceable></term>
         <listitem><para>
 Bind listening socket and outgoing connections to this network
@@ -638,6 +587,69 @@ Use with the <emphasis>schedule</emphasis> option.
         <listitem><para>
 Call a command on a download when its state changes. Only a subset of
 commands are available.
+        </para></listitem>
+      </varlistentry>
+
+    </variablelist>
+
+  </refsect1>
+
+  <refsect1>
+    <title>THROTTLE SETTINGS</title>
+<!--     <para> -->
+
+<!--     </para> -->
+
+    <variablelist>
+
+      <varlistentry>
+        <term>upload_rate = <replaceable>KB</replaceable></term>
+        <term>download_rate = <replaceable>KB</replaceable></term>
+        <listitem><para>
+Set the maximum global uploand and download rates.
+        </para></listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>min_peers = <replaceable>value</replaceable></term>
+        <term>max_peers = <replaceable>value</replaceable></term>
+        <listitem><para>
+Set the minimum and maximum number of peers to allow in each download.
+        </para></listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>min_peers_seed = <replaceable>value</replaceable></term>
+        <term>max_peers_seed = <replaceable>value</replaceable></term>
+        <listitem><para>
+Set the minimum nad maximum number of peers to allow while seeding, or
+-1 (default) to use max_peers.
+        </para></listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>max_uploads = <replaceable>value</replaceable></term>
+        <listitem><para>
+Set the maximum number of simultaneous uploads per download.
+        </para></listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>max_uploads_div = <replaceable>value</replaceable></term>
+        <term>max_downloads_div = <replaceable>value</replaceable></term>
+        <listitem><para>
+Change the divider used to calculate the max upload and download slots
+to use when the throttle is changed. Disable by
+setting <emphasis>0</emphasis>.
+        </para></listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>max_uploads_global = <replaceable>value</replaceable></term>
+        <term>max_downloads_global = <replaceable>value</replaceable></term>
+        <listitem><para>
+Max upload and download slots allowed. Disable by
+setting <emphasis>0</emphasis>.
         </para></listitem>
       </varlistentry>
 
