@@ -768,7 +768,7 @@ match for the download to be included.
       </varlistentry>
 
       <varlistentry>
-        <term>key_layout = <replaceable>qwerty|azerty|qwertz</replaceable></term>
+        <term>key_layout = <replaceable>qwerty|azerty|qwertz|dvorak</replaceable></term>
         <listitem><para>
 
 Change the key-bindings.
