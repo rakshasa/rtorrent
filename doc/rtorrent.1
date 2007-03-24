@@ -3,7 +3,7 @@
 .\" <http://shell.ipoline.com/~elmert/comp/docbook2X/> 
 .\" Please send any bug reports, improvements, comments, patches, 
 .\" etc. to Steve Cheng <steve@ggi-project.org>.
-.TH "RTORRENT" "1" "26 January 2007" "BitTorrent client for ncurses" ""
+.TH "RTORRENT" "1" "24 March 2007" "BitTorrent client for ncurses" ""
 
 .SH NAME
 rtorrent \- a BitTorrent client for ncurses
@@ -166,29 +166,6 @@ directory.
 .SH "GENERAL SETTINGS"
 .PP
 .TP
-\fBmax_peers = \fIvalue\fB\fR
-Set the maximum number of peers to allow in each download.
-.TP
-\fBmin_peers = \fIvalue\fB\fR
-Set the minimum number of peers to try to connect to in each download.
-.TP
-\fBmax_peers_seed = \fIvalue\fB\fR
-Set the maximum number of peers to allow while seeding, or -1 (default) to use
-max_peers.
-.TP
-\fBmin_peers_seed = \fIvalue\fB\fR
-Set the minimum number of peers to try to connect to while seeding, or -1 (default) to use
-min_peers.
-.TP
-\fBmax_uploads = \fIvalue\fB\fR
-Set the maximum number of simultaneous uploads per download.
-.TP
-\fBdownload_rate = \fIKB\fB\fR
-Set the maximum global download rate.
-.TP
-\fBupload_rate = \fIKB\fB\fR
-Set the maximum global upload rate.
-.TP
 \fBbind = \fIa.b.c.d\fB\fR
 Bind listening socket and outgoing connections to this network
 interface address.
@@ -327,6 +304,39 @@ Use with the \fBschedule\fR option.
 \fBon_finished = \fIid\fB,\fIcommand\fB\fR
 Call a command on a download when its state changes. Only a subset of
 commands are available.
+.SH "THROTTLE SETTINGS"
+.TP
+\fBupload_rate = \fIKB\fB\fR
+.TP
+\fBdownload_rate = \fIKB\fB\fR
+Set the maximum global uploand and download rates.
+.TP
+\fBmin_peers = \fIvalue\fB\fR
+.TP
+\fBmax_peers = \fIvalue\fB\fR
+Set the minimum and maximum number of peers to allow in each download.
+.TP
+\fBmin_peers_seed = \fIvalue\fB\fR
+.TP
+\fBmax_peers_seed = \fIvalue\fB\fR
+Set the minimum nad maximum number of peers to allow while seeding, or
+-1 (default) to use max_peers.
+.TP
+\fBmax_uploads = \fIvalue\fB\fR
+Set the maximum number of simultaneous uploads per download.
+.TP
+\fBmax_uploads_div = \fIvalue\fB\fR
+.TP
+\fBmax_downloads_div = \fIvalue\fB\fR
+Change the divider used to calculate the max upload and download slots
+to use when the throttle is changed. Disable by
+setting \fB0\fR\&.
+.TP
+\fBmax_uploads_global = \fIvalue\fB\fR
+.TP
+\fBmax_downloads_global = \fIvalue\fB\fR
+Max upload and download slots allowed. Disable by
+setting \fB0\fR\&.
 .SH "TRACKER RELATED SETTINGS"
 .PP
 Tracker related settings.
