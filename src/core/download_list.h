@@ -92,6 +92,7 @@ public:
   void                open_throw(Download* d);
 
   void                close(Download* d);
+  void                close_quick(Download* d);
   void                close_throw(Download* d);
 
   void                start_normal(Download* d);
