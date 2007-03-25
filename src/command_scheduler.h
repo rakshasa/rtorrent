@@ -70,7 +70,7 @@ public:
   void                erase(iterator itr);
   void                erase(const std::string& key)                    { erase(find(key)); }
 
-  void                parse(const std::string& arg);
+  void                parse(const std::string& key, const std::string& bufAbsolute, const std::string& bufInterval, const std::string& command);
 
   static uint32_t     parse_absolute(const char* str);
   static uint32_t     parse_interval(const char* str);

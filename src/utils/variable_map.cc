@@ -45,6 +45,7 @@
 #include <torrent/exceptions.h>
 #include <torrent/object.h>
 
+#include "parse.h"
 #include "variable.h"
 #include "variable_map.h"
 
@@ -133,43 +134,6 @@ parse_name(const char* first, const char* last, std::string* dest) {
 }
 
 const char*
-parse_unknown(const char* first, const char* last, VariableMap::mapped_type* dest) {
-  if (*first == '"') {
-    const char* next = std::find_if(++first, last, std::bind2nd(std::equal_to<char>(), '"'));
-    
-    if (first == last || first == next || next == last)
-      throw torrent::input_error("Could not find closing '\"'.");
-
-    *dest = std::string(first, next);
-    return ++next;
-
-  } else {
-    // Add rak::or and check for ','.
-    const char* next = std::find_if(first, last, variable_map_is_space());
-
-    *dest = std::string(first, next);
-    return next;
-  }
-}
-
-const char*
-parse_args(const char* first, const char* last, VariableMap::mapped_type::list_type* dest) {
-  first = std::find_if(first, last, std::not1(variable_map_is_space()));
-
-  while (first != last) {
-    dest->push_back(VariableMap::mapped_type());
-
-    first = parse_unknown(first, last, &dest->back());
-    first = std::find_if(first, last, std::not1(variable_map_is_space()));
-
-    if (first != last && *first != ',')
-      throw torrent::input_error("A string with blanks must be quoted.");
-  }
-
-  return first;
-}
-
-const char*
 VariableMap::process_single(const char* first) {
   // This could be optimized, but dunno if there's any point in doing
   // it.
@@ -190,19 +154,12 @@ VariableMap::process_single(const char* first, const char* last) {
   if (first == last || *first != '=')
     throw torrent::input_error("Could not find '='.");
 
-  mapped_type args(mapped_type::TYPE_LIST);
-  first = parse_args(first + 1, last, &args.as_list());
+  mapped_type args;
+  first = parse_whole_list(first + 1, last, &args);
 
-  if (args.as_list().empty())
-    set(key.c_str(), mapped_type());
+  set(key.c_str(), args);
 
-  else if (++args.as_list().begin() == args.as_list().end())
-    set(key.c_str(), *args.as_list().begin());
-
-  else
-    set(key.c_str(), args);
-
-  return std::find_if(first, last, std::not1(variable_map_is_space()));
+  return first;
 }
 
 const char*
@@ -219,67 +176,36 @@ VariableMap::process_d_single(core::Download* download, const char* first, const
   if (first == last || *first != '=')
     throw torrent::input_error("Could not find '='.");
 
-  mapped_type args(mapped_type::TYPE_LIST);
-  first = parse_args(first + 1, last, &args.as_list());
+  mapped_type args;
+  first = parse_whole_list(first + 1, last, &args);
 
-  if (args.as_list().empty())
-    set_d(download, key.c_str(), mapped_type());
+  set_d(download, key.c_str(), args);
 
-  else if (++args.as_list().begin() == args.as_list().end())
-    set_d(download, key.c_str(), *args.as_list().begin());
-
-  else
-    set_d(download, key.c_str(), args);
-
-  return std::find_if(first, last, std::not1(variable_map_is_space()));
+  return first;
 }
-
-// void
-// VariableMap::process_command(const std::string& command) {
-//   std::string::const_iterator pos = command.begin();
-//   pos = std::find_if(pos, command.end(), std::not1(variable_map_is_space()));
-
-//   if (pos == command.end() || *pos == '#')
-//     return;
-
-//   // Replace with parse_unknown?
-//   std::string key;
-//   pos = parse_name(pos, command.end(), &key);
-//   pos = std::find_if(pos, command.end(), std::not1(variable_map_is_space()));
-  
-//   if (pos == command.end() || *pos != '=')
-//     throw torrent::input_error("Could not find '='.");
-
-//   mapped_type args(mapped_type::TYPE_LIST);
-//   parse_args(pos + 1, command.end(), &args.as_list());
-
-//   if (args.as_list().empty())
-//     set(key.c_str(), mapped_type());
-
-//   else if (++args.as_list().begin() == args.as_list().end())
-//     set(key.c_str(), *args.as_list().begin());
-
-//   else
-//     set(key.c_str(), args);
-
 
 // Consider what the command scheduler should do.
 
 void
 VariableMap::process_multiple(const char* first) {
-  while (first != '\0') {
-    const char* last = first;
+  try {
+    while (first != '\0') {
+      const char* last = first;
 
-    while (*last != '\n' && *last != '\0') last++;
+      while (*last != '\n' && *last != '\0') last++;
 
-    // Should we check the return value? Probably not necessary as
-    // parse_args throws on unquoted multi-word input.
-    process_single(first, last);
+      // Should we check the return value? Probably not necessary as
+      // parse_args throws on unquoted multi-word input.
+      process_single(first, last);
 
-    if (*last == '\0')
-      return;
+      if (*last == '\0')
+        return;
 
-    first = last + 1;
+      first = last + 1;
+    }
+
+  } catch (torrent::input_error& e) {
+    throw torrent::input_error(std::string("Error parsing multi-line option: ") + e.what());
   }
 }
 

@@ -38,6 +38,7 @@
 
 #include <stdlib.h>
 
+#include "parse.h"
 #include "variable_generic.h"
 
 namespace utils {
@@ -249,6 +250,9 @@ VariableStringSlot::set(const torrent::Object& arg) {
   case torrent::Object::TYPE_NONE:
     m_slotSet(std::string());
     break;
+  case torrent::Object::TYPE_LIST:
+    m_slotSet(convert_list_to_string(arg));
+    break;
   default:
     throw torrent::input_error("Not a string.");
   }
@@ -277,6 +281,32 @@ VariableDownloadStringSlot::set_d(core::Download* download, const torrent::Objec
     break;
   default:
     throw torrent::input_error("Not a string.");
+  }
+}
+
+void
+VariableListSlot::set(const torrent::Object& arg) {
+  switch (arg.type()) {
+//   case torrent::Object::TYPE_STRING:
+//     break;
+  case torrent::Object::TYPE_LIST:
+    m_slotSet(arg.as_list());
+    break;
+  default:
+    throw torrent::input_error("Not a list.");
+  }
+}
+
+void
+VariableDownloadListSlot::set_d(core::Download* download, const torrent::Object& arg) {
+  switch (arg.type()) {
+//   case torrent::Object::TYPE_STRING:
+//     break;
+  case torrent::Object::TYPE_LIST:
+    m_slotSet(download, arg.as_list());
+    break;
+  default:
+    throw torrent::input_error("Not a list.");
   }
 }
 
