@@ -210,7 +210,7 @@ apply_stop_on_ratio(const torrent::Object::list_type& args) {
 
 void
 apply_on_state_change(core::DownloadList::slot_map* slotMap, const torrent::Object::list_type& args) {
-  if (args.size() != 2)
+  if (args.size() < 2)
     throw torrent::input_error("Too few arguments.");
 
   if (args.front().as_string().empty())
@@ -221,7 +221,8 @@ apply_on_state_change(core::DownloadList::slot_map* slotMap, const torrent::Obje
   if (args.back().as_string().empty())
     slotMap->erase(key);
   else
-    (*slotMap)[key] = sigc::bind(sigc::mem_fun(control->download_variables(), &utils::VariableMap::process_d_std_single), args.back().as_string());
+    (*slotMap)[key] = sigc::bind(sigc::mem_fun(control->download_variables(), &utils::VariableMap::process_d_std_single),
+                                 utils::convert_list_to_command(++args.begin(), args.end()));
 }
 
 void
@@ -406,17 +407,16 @@ apply_try_import(const std::string& path) {
 
 void
 apply_schedule(const torrent::Object::list_type& args) {
-  if (args.size() != 4)
-    throw torrent::input_error("Wrong argument count.");
+  if (args.size() < 4)
+    throw torrent::input_error("Too few arguments.");
 
   torrent::Object::list_type::const_iterator itr = args.begin();
 
   const std::string& arg1 = (itr++)->as_string();
   const std::string& arg2 = (itr++)->as_string();
   const std::string& arg3 = (itr++)->as_string();
-  const std::string& arg4 = (itr++)->as_string();
 
-  control->command_scheduler()->parse(arg1, arg2, arg3, arg4);
+  control->command_scheduler()->parse(arg1, arg2, arg3, utils::convert_list_to_command(itr, args.end()));
 }
 
 void
