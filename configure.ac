@@ -26,6 +26,10 @@ PKG_CHECK_MODULES(STUFF, sigc++-2.0 libcurl >= 7.12.0 libtorrent >= 0.11.3,
 	          CXXFLAGS="$CXXFLAGS $STUFF_CFLAGS";
 		  LIBS="$LIBS $STUFF_LIBS")
 
+AC_LANG_PUSH(C++)
+TORRENT_WITH_FASTCGI
+AC_LANG_POP(C++)
+
 AC_DEFINE(HAVE_CONFIG_H, 1, true if config.h was included)
 AC_DEFINE(USER_AGENT, [std::string(PACKAGE "/" VERSION "/") + torrent::version()], Http user agent)
 
@@ -41,6 +45,7 @@ AC_OUTPUT([
 	src/core/Makefile
 	src/display/Makefile
 	src/input/Makefile
+	src/rpc/Makefile
 	src/ui/Makefile
 	src/utils/Makefile
 ])

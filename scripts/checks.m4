@@ -288,3 +288,54 @@ AC_DEFUN([TORRENT_WITH_ADDRESS_SPACE], [
       fi
     ])
 ])
+
+
+AC_DEFUN([TORRENT_WITH_FASTCGI], [
+  AC_ARG_WITH(fastcgi,
+    [  --with-fastcgi=PATH      Enable FastCGI RPC support.],
+    [
+      AC_MSG_CHECKING(for FastCGI)
+
+      if test "$withval" = "no"; then
+        AC_MSG_RESULT(no)
+
+      elif test "$withval" = "yes"; then
+        CXXFLAGS="$CXXFLAGS"
+	LIBS="$LIBS -lfcgi"        
+
+        AC_TRY_LINK(
+        [ #include <fcgiapp.h>
+        ],[ FCGX_Init(); ],
+        [
+          AC_MSG_RESULT(ok)
+        ],
+        [
+          AC_MSG_RESULT(not found)
+          AC_MSG_ERROR(Could not compile FastCGI test.)
+        ])
+
+        AC_DEFINE(HAVE_FASTCGI, 1, Support for FastCGI.)
+
+      else
+        CXXFLAGS="$CXXFLAGS -I$withval/include"
+	LIBS="$LIBS -lfcgi -L$withval/lib"
+
+        AC_TRY_LINK(
+        [ #include <fcgiapp.h>
+        ],[ FCGX_Init(); ],
+        [
+          AC_MSG_RESULT(ok)
+        ],
+        [
+          AC_MSG_RESULT(not found)
+          AC_MSG_ERROR(Could not compile FastCGI test.)
+        ])
+
+        AC_DEFINE(HAVE_FASTCGI, 1, Support for FastCGI.)
+      fi
+    ],[
+      AC_MSG_CHECKING(for FastCGI)
+      AC_MSG_RESULT(no)
+    ])
+])
+

@@ -62,6 +62,10 @@ namespace input {
   class Manager;
 }  
 
+namespace rpc {
+  class FastCgi;
+}
+
 namespace utils {
   class VariableMap;
 }
@@ -99,6 +103,9 @@ public:
   utils::VariableMap* variable()                    { return m_variables; }
   utils::VariableMap* download_variables()          { return m_downloadVariables; }
 
+  rpc::FastCgi*       fast_cgi()                    { return m_fastCgi; }
+  void                set_fast_cgi(rpc::FastCgi* f) { m_fastCgi = f; }
+
   uint64_t            tick() const                  { return m_tick; }
   void                inc_tick()                    { m_tick++; }
 
@@ -127,6 +134,8 @@ private:
   CommandScheduler*   m_commandScheduler;
   utils::VariableMap* m_variables;
   utils::VariableMap* m_downloadVariables;
+
+  rpc::FastCgi*       m_fastCgi;
 
   uint64_t            m_tick;
 

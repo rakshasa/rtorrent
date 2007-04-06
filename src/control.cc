@@ -50,6 +50,7 @@
 #include "display/manager.h"
 #include "input/manager.h"
 #include "input/input_event.h"
+#include "rpc/fast_cgi.h"
 #include "ui/root.h"
 #include "utils/variable_map.h"
 
@@ -69,6 +70,8 @@ Control::Control() :
   m_commandScheduler(new CommandScheduler()),
   m_variables(new utils::VariableMap()),
   m_downloadVariables(new utils::VariableMap()),
+
+  m_fastCgi(NULL),
 
   m_tick(0) {
 
@@ -123,6 +126,8 @@ Control::initialize() {
 
 void
 Control::cleanup() {
+  delete m_fastCgi; m_fastCgi = NULL;
+
   priority_queue_erase(&taskScheduler, &m_taskShutdown);
 
   m_inputStdin->remove(m_core->get_poll_manager()->get_torrent_poll());

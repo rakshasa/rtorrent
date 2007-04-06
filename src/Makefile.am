@@ -2,6 +2,7 @@ SUBDIRS = \
 	core \
 	display \
 	input \
+	rpc \
 	ui \
 	utils
 
@@ -12,6 +13,7 @@ rtorrent_LDADD = \
 	$(top_srcdir)/src/core/libsub_core.a \
 	$(top_srcdir)/src/display/libsub_display.a \
 	$(top_srcdir)/src/input/libsub_input.a \
+	$(top_srcdir)/src/rpc/libsub_rpc.a \
 	$(top_srcdir)/src/utils/libsub_utils.a
 
 rtorrent_SOURCES = \

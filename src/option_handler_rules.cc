@@ -64,6 +64,7 @@
 #include "core/manager.h"
 #include "core/scheduler.h"
 #include "core/view_manager.h"
+#include "rpc/fast_cgi.h"
 #include "ui/root.h"
 #include "utils/directory.h"
 #include "utils/parse.h"
@@ -304,6 +305,14 @@ apply_tos(const std::string& arg) {
 }
 
 void
+apply_fast_cgi(const std::string& arg) {
+  if (control->fast_cgi() != NULL)
+    throw torrent::input_error("FastCGI already enabled.");
+
+  control->set_fast_cgi(new rpc::FastCgi(arg));
+}
+
+void
 apply_view_filter(const torrent::Object::list_type& args) {
   if (args.size() < 1)
     throw torrent::input_error("Too few arguments.");
@@ -452,6 +461,7 @@ initialize_variables() {
 
   variables->insert("http_proxy",            new utils::VariableStringSlot(rak::mem_fn(control->core()->get_poll_manager()->get_http_stack(), &core::CurlStack::http_proxy),
                                                                            rak::mem_fn(control->core()->get_poll_manager()->get_http_stack(), &core::CurlStack::set_http_proxy)));
+  variables->insert("fast_cgi",              new utils::VariableStringSlot(NULL, rak::ptr_fn(&apply_fast_cgi)));
 
   variables->insert("max_chunks_queued",     new utils::VariableValue(0));
   variables->insert("min_peers",             new utils::VariableValue(40));
