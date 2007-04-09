@@ -42,20 +42,31 @@
 typedef struct _xmlrpc_env xmlrpc_env;
 typedef struct _xmlrpc_registry xmlrpc_registry;
 
+namespace torrent {
+  class Object;
+}
+
 namespace rpc {
 
 class XmlRpc {
 public:
   typedef rak::function2<bool, const char*, uint32_t> slot_write;
+  typedef rak::function2<const torrent::Object&, const char*, const torrent::Object&> slot_call_command;
 
   XmlRpc();
   ~XmlRpc();
 
   bool                process(const char* inBuffer, uint32_t length, slot_write slotWrite);
 
+  void                set_slot_call_command_get(slot_call_command::base_type* s) { m_slotGet.set(s); }
+  void                set_slot_call_command_set(slot_call_command::base_type* s) { m_slotSet.set(s); }
+
 private:
   xmlrpc_env*         m_env;
   xmlrpc_registry*    m_registry;
+
+  slot_call_command   m_slotGet;
+  slot_call_command   m_slotSet;
 };
 
 }

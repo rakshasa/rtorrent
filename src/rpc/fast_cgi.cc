@@ -43,14 +43,13 @@
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <rak/functional_fun.h>
-#include <torrent/exceptions.h>
 
 #include "globals.h"
 #include "control.h"
 #include "core/manager.h"
-
 #endif
+
+#include <torrent/exceptions.h>
 
 #include "fast_cgi.h"
 
@@ -174,7 +173,7 @@ void FastCgi::event_read() {}
 void FastCgi::event_write() {}
 void FastCgi::event_error() {}
 
-void FastCgi::receive_write(const char* buffer, uint32_t length);
+bool FastCgi::receive_write(const char* buffer, uint32_t length) { return false; }
 
 #endif
 

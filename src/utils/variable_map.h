@@ -117,6 +117,11 @@ public:
   void                process_stream(std::istream* str);
   bool                process_file(key_type path);
 
+  // The new API, which is atm just a wrapper over the old and
+  // requires seperate calls to get and set. These will be merged.
+  const mapped_type&  call_command_get(key_type key, const mapped_type& arg);
+  const mapped_type&  call_command_set(key_type key, const mapped_type& arg);
+
 private:
   VariableMap(const VariableMap&);
   void operator = (const VariableMap&);

@@ -172,15 +172,22 @@ VariableValueSlot::get() {
 }
 
 void
-VariableValueSlot::set(const torrent::Object& arg) {
+VariableValueSlot::set(const torrent::Object& rawArg) {
   if (!m_slotSet.is_valid())
     return;
 
+  const torrent::Object* arg;
+
+  if (rawArg.type() == torrent::Object::TYPE_LIST && rawArg.as_list().size() == 1)
+    arg = &rawArg.as_list().front();
+  else
+    arg = &rawArg;
+
   value_type value;
 
-  switch (arg.type()) {
+  switch (arg->type()) {
   case torrent::Object::TYPE_STRING:
-    string_to_value_unit(arg.as_string().c_str(), &value, m_base, m_unit);
+    string_to_value_unit(arg->as_string().c_str(), &value, m_base, m_unit);
 
     // Check if we hit the end of the input.
 
@@ -188,7 +195,7 @@ VariableValueSlot::set(const torrent::Object& arg) {
     break;
 
   case torrent::Object::TYPE_VALUE:
-    m_slotSet(arg.as_value());
+    m_slotSet(arg->as_value());
     break;
 
   default:

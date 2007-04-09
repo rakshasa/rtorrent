@@ -236,4 +236,16 @@ VariableMap::process_file(key_type path) {
   return true;
 }
 
+const VariableMap::mapped_type&
+VariableMap::call_command_get(key_type key, const mapped_type& arg) {
+  return get(key);
+}
+
+const VariableMap::mapped_type&
+VariableMap::call_command_set(key_type key, const mapped_type& arg) {
+  set(key, arg);
+
+  return Variable::m_emptyObject;
+}
+
 }

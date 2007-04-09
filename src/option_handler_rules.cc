@@ -312,6 +312,8 @@ apply_fast_cgi(const std::string& arg) {
 
   if (control->xmlrpc() == NULL) {
     control->set_xmlrpc(new rpc::XmlRpc);
+    control->xmlrpc()->set_slot_call_command_get(rak::mem_fn(control->variable(), &utils::VariableMap::call_command_get));
+    control->xmlrpc()->set_slot_call_command_set(rak::mem_fn(control->variable(), &utils::VariableMap::call_command_set));
   }
 
   control->set_fast_cgi(new rpc::FastCgi(arg));

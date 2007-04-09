@@ -38,14 +38,10 @@
 #define RTORRENT_RPC_FAST_CGI_H
 
 #include <string>
+#include <rak/functional_fun.h>
 #include <torrent/event.h>
 
 struct FCGX_Request;
-
-namespace rak {
-  template <typename Result, typename Arg1, typename Arg2> class function2;
-  template <typename Result, typename Arg1, typename Arg2, typename Arg3> class function3;
-}
 
 namespace rpc {
 

@@ -36,37 +36,128 @@
 
 #include "config.h"
 
+#ifdef HAVE_XMLRPC_C
+#include <stdlib.h>
 #include <xmlrpc.h>
 #include <xmlrpc_server.h>
+#endif
+
+#include <torrent/object.h>
+#include <torrent/exceptions.h>
 
 #include "xmlrpc.h"
 
 namespace rpc {
 
-xmlrpc_value*
-xmlrpc_test_add(xmlrpc_env* env, xmlrpc_value* value, void* serverInfo) {
-  // Grabbed from the XMLRPC-C examples.
-  xmlrpc_int32 x, y, z;
+#ifdef HAVE_XMLRPC_C
 
-  /* Parse our argument array. */
-  xmlrpc_parse_value(env, value, "(ii)", &x, &y);
+struct server_info_t {
+  server_info_t(const char* command, XmlRpc::slot_call_command* callCommand) :
+    m_command(command), m_callCommand(callCommand) {}
+
+  const char*                m_command;
+  XmlRpc::slot_call_command* m_callCommand;
+};
+
+xmlrpc_value*
+xmlrpc_call_command(xmlrpc_env* env, xmlrpc_value* args, void* voidServerInfo) {
+  torrent::Object object(torrent::Object::TYPE_LIST);
+  torrent::Object::list_type& objectList = object.as_list();
+
+  if (xmlrpc_value_type(args) != XMLRPC_TYPE_ARRAY)
+    throw torrent::internal_error("xmlrpc_value_type(args) != XMLRPC_TYPE_ARRAY");
+
+  unsigned int last = xmlrpc_array_size(env, args);
+
   if (env->fault_occurred)
     return NULL;
 
-  /* Add our two numbers. */
-  z = x + y;
+  for (unsigned int i = 0; i != last; i++) {
+    xmlrpc_value* value;
+    xmlrpc_array_read_item(env, args, i, &value);
 
-  /* Return our result. */
-  return xmlrpc_build_value(env, "i", z);
+    if (env->fault_occurred)
+      return NULL;
+
+    switch (xmlrpc_value_type(value)) {
+    case XMLRPC_TYPE_INT:
+      int v;
+      xmlrpc_read_int(env, value, &v);
+      
+      objectList.push_back(torrent::Object((int64_t)v));
+      break;
+
+//     case XMLRPC_TYPE_BOOL:
+//     case XMLRPC_TYPE_DOUBLE:
+//     case XMLRPC_TYPE_DATETIME:
+
+    case XMLRPC_TYPE_STRING:
+      const char* valueString;
+      xmlrpc_read_string(env, value, &valueString);
+
+      if (env->fault_occurred)
+        return NULL;
+
+      objectList.push_back(torrent::Object(std::string(valueString)));
+
+      // Urgh, seriously?
+      ::free((void*)valueString);
+      break;
+
+//     case XMLRPC_TYPE_BASE64:
+//     case XMLRPC_TYPE_ARRAY:
+//     case XMLRPC_TYPE_STRUCT:
+//     case XMLRPC_TYPE_C_PTR:
+//     case XMLRPC_TYPE_NIL:
+//     case XMLRPC_TYPE_DEAD:
+    default:
+      xmlrpc_env_set_fault(env, XMLRPC_TYPE_ERROR, "Unsupported type found.");
+      return NULL;
+    }
+
+    if (env->fault_occurred)
+      return NULL;
+  }
+
+  try {
+    server_info_t* serverInfo = reinterpret_cast<server_info_t*>(voidServerInfo);
+
+    const torrent::Object& resultObject = (*serverInfo->m_callCommand)(serverInfo->m_command, object);
+
+    xmlrpc_value* result;
+    xmlrpc_int32  tmpInt;
+
+    switch (resultObject.type()) {
+    case torrent::Object::TYPE_VALUE:
+      tmpInt = resultObject.as_value();
+      result = xmlrpc_build_value(env, "i", tmpInt);
+      break;
+
+    case torrent::Object::TYPE_STRING:
+      result = xmlrpc_string_new(env, resultObject.as_string().c_str());
+      break;
+
+    default:
+      tmpInt = 1;
+      result = xmlrpc_build_value(env, "i", tmpInt);
+    }
+
+    return result;
+
+  } catch (torrent::local_error& e) {
+    xmlrpc_env_set_fault(env, XMLRPC_PARSE_ERROR, e.what());
+    return NULL;
+  }
 }
 
 XmlRpc::XmlRpc() : m_env(new xmlrpc_env) {
   xmlrpc_env_init(m_env);
-
   m_registry = xmlrpc_registry_new(m_env);
 
-  // Move this out.
-  xmlrpc_registry_add_method_w_doc(m_env, m_registry, NULL, "my.test", &xmlrpc_test_add, new int, "i:ii", "Not much.");
+  xmlrpc_registry_add_method_w_doc(m_env, m_registry, NULL, "call.set_upload_rate", &xmlrpc_call_command, new server_info_t("upload_rate", &m_slotSet), "i:i", "");
+  xmlrpc_registry_add_method_w_doc(m_env, m_registry, NULL, "call.get_upload_rate", &xmlrpc_call_command, new server_info_t("upload_rate", &m_slotGet), "i:", "");
+
+  xmlrpc_registry_add_method_w_doc(m_env, m_registry, NULL, "call.get_directory",   &xmlrpc_call_command, new server_info_t("directory", &m_slotGet), "s:", "");
 }
 
 XmlRpc::~XmlRpc() {
@@ -89,5 +180,14 @@ XmlRpc::process(const char* inBuffer, uint32_t length, slot_write slotWrite) {
   xmlrpc_env_clean(&localEnv);
   return result;
 }
+
+#else
+
+XmlRpc::XmlRpc() { throw torrent::resource_error("XMLRPC not supported."); }
+XmlRpc::~XmlRpc() {}
+
+bool XmlRpc::process(const char* inBuffer, uint32_t length, slot_write slotWrite) { return false; }
+
+#endif
 
 }
