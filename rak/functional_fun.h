@@ -80,6 +80,14 @@ public:
   virtual Result operator () (Arg1 arg1, Arg2 arg2) = 0;
 };
 
+template <typename Result, typename Arg1, typename Arg2, typename Arg3>
+class function_base3 {
+public:
+  virtual ~function_base3() {}
+
+  virtual Result operator () (Arg1 arg1, Arg2 arg2, Arg3 arg3) = 0;
+};
+
 template <typename Result>
 class function0 {
 public:
@@ -126,6 +134,23 @@ public:
   base_type*          release()            { return m_base.release(); }
 
   Result operator () (Arg1 arg1, Arg2 arg2) { return (*m_base)(arg1, arg2); }
+
+private:
+  std::auto_ptr<base_type> m_base;
+};
+
+template <typename Result, typename Arg1, typename Arg2, typename Arg3>
+class function3 {
+public:
+  typedef Result                                   result_type;
+  typedef function_base3<Result, Arg1, Arg2, Arg3> base_type;
+
+  bool                is_valid() const     { return m_base.get() != NULL; }
+
+  void                set(base_type* base) { m_base = std::auto_ptr<base_type>(base); }
+  base_type*          release()            { return m_base.release(); }
+
+  Result operator () (Arg1 arg1, Arg2 arg2, Arg3 arg3) { return (*m_base)(arg1, arg2, arg3); }
 
 private:
   std::auto_ptr<base_type> m_base;
@@ -197,6 +222,36 @@ public:
   virtual ~mem_fn1_t() {}
   
   virtual Result operator () (Arg1 arg1) { return (m_object->*m_func)(arg1); }
+
+private:
+  Object* m_object;
+  Func    m_func;
+};
+
+template <typename Object, typename Result, typename Arg1, typename Arg2, typename Arg3>
+class mem_fn3_t : public function_base3<Result, Arg1, Arg2, Arg3> {
+public:
+  typedef Result (Object::*Func)(Arg1, Arg2, Arg3);
+
+  mem_fn3_t(Object* object, Func func) : m_object(object), m_func(func) {}
+  virtual ~mem_fn3_t() {}
+  
+  virtual Result operator () (Arg1 arg1, Arg2 arg2, Arg3 arg3) { return (m_object->*m_func)(arg1, arg2, arg3); }
+
+private:
+  Object* m_object;
+  Func    m_func;
+};
+
+template <typename Object, typename Result, typename Arg1, typename Arg2>
+class mem_fn2_t : public function_base2<Result, Arg1, Arg2> {
+public:
+  typedef Result (Object::*Func)(Arg1, Arg2);
+
+  mem_fn2_t(Object* object, Func func) : m_object(object), m_func(func) {}
+  virtual ~mem_fn2_t() {}
+  
+  virtual Result operator () (Arg1 arg1, Arg2 arg2) { return (m_object->*m_func)(arg1, arg2); }
 
 private:
   Object* m_object;
@@ -414,6 +469,18 @@ template <typename Arg1, typename Result, typename Object>
 inline function_base1<Result, Arg1>*
 mem_fn(Object* object, Result (Object::*func)(Arg1)) {
   return new mem_fn1_t<Object, Result, Arg1>(object, func);
+}
+
+template <typename Arg1, typename Arg2, typename Result, typename Object>
+inline function_base2<Result, Arg1, Arg2>*
+mem_fn(Object* object, Result (Object::*func)(Arg1, Arg2)) {
+  return new mem_fn2_t<Object, Result, Arg1, Arg2>(object, func);
+}
+
+template <typename Arg1, typename Arg2, typename Arg3, typename Result, typename Object>
+inline function_base3<Result, Arg1, Arg2, Arg3>*
+mem_fn(Object* object, Result (Object::*func)(Arg1, Arg2, Arg3)) {
+  return new mem_fn3_t<Object, Result, Arg1, Arg2, Arg3>(object, func);
 }
 
 template <typename Result, typename Object>

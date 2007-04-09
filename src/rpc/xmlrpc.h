@@ -34,46 +34,28 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef RTORRENT_RPC_FAST_CGI_H
-#define RTORRENT_RPC_FAST_CGI_H
+#ifndef RTORRENT_RPC_XMLRPC_H
+#define RTORRENT_RPC_XMLRPC_H
 
-#include <string>
-#include <torrent/event.h>
+#include <rak/functional_fun.h>
 
-struct FCGX_Request;
-
-namespace rak {
-  template <typename Result, typename Arg1, typename Arg2> class function2;
-  template <typename Result, typename Arg1, typename Arg2, typename Arg3> class function3;
-}
+typedef struct _xmlrpc_env xmlrpc_env;
+typedef struct _xmlrpc_registry xmlrpc_registry;
 
 namespace rpc {
 
-class FastCgi : public torrent::Event {
+class XmlRpc {
 public:
-  typedef rak::function2<bool, const char*, uint32_t>             slot_write;
-  typedef rak::function3<bool, const char*, uint32_t, slot_write> slot_process;
+  typedef rak::function2<bool, const char*, uint32_t> slot_write;
 
-  FastCgi(const std::string& path);
-  virtual ~FastCgi();
+  XmlRpc();
+  ~XmlRpc();
 
-  const std::string   path() const { return m_path; }
-
-  void                set_slot_process(slot_process::base_type* s) { m_slotProcess.set(s); }
-
-  virtual void        event_read();
-  virtual void        event_write();
-  virtual void        event_error();
-
-  bool                receive_write(const char* buffer, uint32_t length);
+  bool                process(const char* inBuffer, uint32_t length, slot_write slotWrite);
 
 private:
-  static bool         m_initialized;
-
-  FCGX_Request*       m_request;
-  std::string         m_path;
-
-  slot_process        m_slotProcess;
+  xmlrpc_env*         m_env;
+  xmlrpc_registry*    m_registry;
 };
 
 }

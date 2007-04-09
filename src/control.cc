@@ -51,6 +51,7 @@
 #include "input/manager.h"
 #include "input/input_event.h"
 #include "rpc/fast_cgi.h"
+#include "rpc/xmlrpc.h"
 #include "ui/root.h"
 #include "utils/variable_map.h"
 
@@ -72,6 +73,7 @@ Control::Control() :
   m_downloadVariables(new utils::VariableMap()),
 
   m_fastCgi(NULL),
+  m_xmlrpc(NULL),
 
   m_tick(0) {
 
@@ -127,6 +129,7 @@ Control::initialize() {
 void
 Control::cleanup() {
   delete m_fastCgi; m_fastCgi = NULL;
+  delete m_xmlrpc;  m_xmlrpc = NULL;
 
   priority_queue_erase(&taskScheduler, &m_taskShutdown);
 

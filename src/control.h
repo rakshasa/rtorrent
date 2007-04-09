@@ -64,6 +64,7 @@ namespace input {
 
 namespace rpc {
   class FastCgi;
+  class XmlRpc;
 }
 
 namespace utils {
@@ -106,6 +107,9 @@ public:
   rpc::FastCgi*       fast_cgi()                    { return m_fastCgi; }
   void                set_fast_cgi(rpc::FastCgi* f) { m_fastCgi = f; }
 
+  rpc::XmlRpc*        xmlrpc()                      { return m_xmlrpc; }
+  void                set_xmlrpc(rpc::XmlRpc* f)    { m_xmlrpc = f; }
+
   uint64_t            tick() const                  { return m_tick; }
   void                inc_tick()                    { m_tick++; }
 
@@ -136,6 +140,7 @@ private:
   utils::VariableMap* m_downloadVariables;
 
   rpc::FastCgi*       m_fastCgi;
+  rpc::XmlRpc*        m_xmlrpc;
 
   uint64_t            m_tick;
 

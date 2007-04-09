@@ -28,6 +28,7 @@ PKG_CHECK_MODULES(STUFF, sigc++-2.0 libcurl >= 7.12.0 libtorrent >= 0.11.3,
 
 AC_LANG_PUSH(C++)
 TORRENT_WITH_FASTCGI
+TORRENT_WITH_XMLRPC_C
 AC_LANG_POP(C++)
 
 AC_DEFINE(HAVE_CONFIG_H, 1, true if config.h was included)

@@ -43,6 +43,7 @@
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <rak/functional_fun.h>
 #include <torrent/exceptions.h>
 
 #include "globals.h"
@@ -116,6 +117,7 @@ FastCgi::event_read() {
   int length;
   char* endPtr;
   char* buffer = NULL;
+  slot_write slotWrite;
 
   const char* contentLength = FCGX_GetParam("CONTENT_LENGTH", m_request->envp);
 
@@ -131,14 +133,15 @@ FastCgi::event_read() {
     goto event_read_exit;
   }
 
-  if (FCGX_PutS("This worked!!!", m_request->out) == -1) {
+  slotWrite.set(rak::mem_fn(this, &FastCgi::receive_write));
+
+  if (!m_slotProcess(buffer, length, slotWrite) ||
+      FCGX_FFlush(m_request->out) == -1) {
     control->core()->push_log("FastCGI could not write data.");
     goto event_read_exit;
   }
 
-  control->core()->push_log("Got a message: " + std::string(buffer, buffer + 30));
-
-  FCGX_Finish_r(m_request);
+  control->core()->push_log("Processed an XMLRPC call.");
 
 event_read_exit:
   FCGX_Finish_r(m_request);
@@ -154,6 +157,15 @@ FastCgi::event_error() {
   throw torrent::internal_error("FastCgi::event_error().");
 }
 
+bool
+FastCgi::receive_write(const char* buffer, uint32_t length) {
+  return
+    FCGX_FPrintF(m_request->out,
+                 "Content-type: text/plain\r\n"
+                 "Content-length: %i\r\n\r\n", length) != -1 &&
+    FCGX_PutStr(buffer, length, m_request->out) != -1;
+}
+
 #else
 
 FastCgi::FastCgi(const std::string& path) { throw torrent::resource_error("FastCGI not supported."); }
@@ -161,6 +173,8 @@ FastCgi::~FastCgi() {}
 void FastCgi::event_read() {}
 void FastCgi::event_write() {}
 void FastCgi::event_error() {}
+
+void FastCgi::receive_write(const char* buffer, uint32_t length);
 
 #endif
 

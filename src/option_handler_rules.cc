@@ -65,6 +65,7 @@
 #include "core/scheduler.h"
 #include "core/view_manager.h"
 #include "rpc/fast_cgi.h"
+#include "rpc/xmlrpc.h"
 #include "ui/root.h"
 #include "utils/directory.h"
 #include "utils/parse.h"
@@ -309,7 +310,12 @@ apply_fast_cgi(const std::string& arg) {
   if (control->fast_cgi() != NULL)
     throw torrent::input_error("FastCGI already enabled.");
 
+  if (control->xmlrpc() == NULL) {
+    control->set_xmlrpc(new rpc::XmlRpc);
+  }
+
   control->set_fast_cgi(new rpc::FastCgi(arg));
+  control->fast_cgi()->set_slot_process(rak::mem_fn(control->xmlrpc(), &rpc::XmlRpc::process));
 }
 
 void

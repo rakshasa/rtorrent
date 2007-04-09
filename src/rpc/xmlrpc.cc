@@ -34,48 +34,60 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef RTORRENT_RPC_FAST_CGI_H
-#define RTORRENT_RPC_FAST_CGI_H
+#include "config.h"
 
-#include <string>
-#include <torrent/event.h>
+#include <xmlrpc.h>
+#include <xmlrpc_server.h>
 
-struct FCGX_Request;
-
-namespace rak {
-  template <typename Result, typename Arg1, typename Arg2> class function2;
-  template <typename Result, typename Arg1, typename Arg2, typename Arg3> class function3;
-}
+#include "xmlrpc.h"
 
 namespace rpc {
 
-class FastCgi : public torrent::Event {
-public:
-  typedef rak::function2<bool, const char*, uint32_t>             slot_write;
-  typedef rak::function3<bool, const char*, uint32_t, slot_write> slot_process;
+xmlrpc_value*
+xmlrpc_test_add(xmlrpc_env* env, xmlrpc_value* value, void* serverInfo) {
+  // Grabbed from the XMLRPC-C examples.
+  xmlrpc_int32 x, y, z;
 
-  FastCgi(const std::string& path);
-  virtual ~FastCgi();
+  /* Parse our argument array. */
+  xmlrpc_parse_value(env, value, "(ii)", &x, &y);
+  if (env->fault_occurred)
+    return NULL;
 
-  const std::string   path() const { return m_path; }
+  /* Add our two numbers. */
+  z = x + y;
 
-  void                set_slot_process(slot_process::base_type* s) { m_slotProcess.set(s); }
-
-  virtual void        event_read();
-  virtual void        event_write();
-  virtual void        event_error();
-
-  bool                receive_write(const char* buffer, uint32_t length);
-
-private:
-  static bool         m_initialized;
-
-  FCGX_Request*       m_request;
-  std::string         m_path;
-
-  slot_process        m_slotProcess;
-};
-
+  /* Return our result. */
+  return xmlrpc_build_value(env, "i", z);
 }
 
-#endif
+XmlRpc::XmlRpc() : m_env(new xmlrpc_env) {
+  xmlrpc_env_init(m_env);
+
+  m_registry = xmlrpc_registry_new(m_env);
+
+  // Move this out.
+  xmlrpc_registry_add_method_w_doc(m_env, m_registry, NULL, "my.test", &xmlrpc_test_add, new int, "i:ii", "Not much.");
+}
+
+XmlRpc::~XmlRpc() {
+  xmlrpc_registry_free(m_registry);
+  xmlrpc_env_clean(m_env);
+  delete m_env;
+}
+
+bool
+XmlRpc::process(const char* inBuffer, uint32_t length, slot_write slotWrite) {
+  xmlrpc_env localEnv;
+  xmlrpc_env_init(&localEnv);
+
+  xmlrpc_mem_block* memblock = xmlrpc_registry_process_call(&localEnv, m_registry, NULL, inBuffer, length);
+
+  bool result = slotWrite((const char*)xmlrpc_mem_block_contents(memblock),
+                          xmlrpc_mem_block_size(memblock));
+
+  xmlrpc_mem_block_free(memblock);
+  xmlrpc_env_clean(&localEnv);
+  return result;
+}
+
+}
