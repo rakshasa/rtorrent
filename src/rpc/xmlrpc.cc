@@ -72,6 +72,7 @@ xmlrpc_call_command(xmlrpc_env* env, xmlrpc_value* args, void* voidServerInfo) {
   if (env->fault_occurred)
     return NULL;
 
+  // Move this into a helper function.
   for (unsigned int i = 0; i != last; i++) {
     xmlrpc_value* value;
     xmlrpc_array_read_item(env, args, i, &value);
@@ -153,6 +154,8 @@ xmlrpc_call_command(xmlrpc_env* env, xmlrpc_value* args, void* voidServerInfo) {
 XmlRpc::XmlRpc() : m_env(new xmlrpc_env) {
   xmlrpc_env_init(m_env);
   m_registry = xmlrpc_registry_new(m_env);
+
+  // Add a helper function for this...
 
   xmlrpc_registry_add_method_w_doc(m_env, m_registry, NULL, "call.set_upload_rate", &xmlrpc_call_command, new server_info_t("upload_rate", &m_slotSet), "i:i", "");
   xmlrpc_registry_add_method_w_doc(m_env, m_registry, NULL, "call.get_upload_rate", &xmlrpc_call_command, new server_info_t("upload_rate", &m_slotGet), "i:", "");
