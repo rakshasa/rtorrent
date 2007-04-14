@@ -501,7 +501,7 @@ void
 DownloadList::received_finished(Download* download) {
   check_contains(download);
 
-  if (control->variable()->get_value("check_hash")) {
+  if (control->variable()->get_value("get_check_hash")) {
     // Set some 'checking_finished_thingie' variable to make hash_done
     // trigger correctly, also so it can bork on missing data.
     hash_queue(download, Download::variable_hashing_last);
@@ -521,15 +521,15 @@ DownloadList::confirm_finished(Download* download) {
   download->set_connection_type(download->get_string("connection_seed"));
   download->set_priority(download->priority());
 
-  if (download->get_value("min_peers") == control->variable()->get_value("min_peers") && control->variable()->get_value("min_peers_seed") >= 0)
-    download->set("min_peers", control->variable()->get("min_peers_seed"));
+  if (download->get_value("min_peers") == control->variable()->get_value("get_min_peers") && control->variable()->get_value("get_min_peers_seed") >= 0)
+    download->set("min_peers", control->variable()->get("get_min_peers_seed"));
 
-  if (download->get_value("max_peers") == control->variable()->get_value("max_peers") && control->variable()->get_value("max_peers_seed") >= 0)
-    download->set("max_peers", control->variable()->get("max_peers_seed"));
+  if (download->get_value("max_peers") == control->variable()->get_value("get_max_peers") && control->variable()->get_value("get_max_peers_seed") >= 0)
+    download->set("max_peers", control->variable()->get("get_max_peers_seed"));
 
   // Do this before the slots are called in case one of them closes
   // the download.
-  if (!download->is_active() && control->variable()->get_value("session_on_completion") != 0) {
+  if (!download->is_active() && control->variable()->get_value("get_session_on_completion") != 0) {
     torrent::resume_save_progress(*download->download(), download->download()->bencode()->get_key("libtorrent_resume"));
     control->core()->download_store()->save(download);
   }

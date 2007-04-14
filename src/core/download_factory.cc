@@ -176,32 +176,32 @@ DownloadFactory::receive_success() {
   download->set("connection_leech", m_variables.get("connection_leech"));
   download->set("connection_seed",  m_variables.get("connection_seed"));
 
-  download->set("max_uploads",      control->variable()->get("max_uploads"));
-  download->set("min_peers",        control->variable()->get("min_peers"));
-  download->set("max_peers",        control->variable()->get("max_peers"));
-  download->set("tracker_numwant",  control->variable()->get("tracker_numwant"));
+  download->set("max_uploads",      control->variable()->get("get_max_uploads"));
+  download->set("min_peers",        control->variable()->get("get_min_peers"));
+  download->set("max_peers",        control->variable()->get("get_max_peers"));
+  download->set("tracker_numwant",  control->variable()->get("get_tracker_numwant"));
 
   if (download->get_value("complete") != 0) {
-    if (control->variable()->get_value("min_peers_seed") >= 0)
-      download->set("min_peers", control->variable()->get("min_peers_seed"));
+    if (control->variable()->get_value("get_min_peers_seed") >= 0)
+      download->set("min_peers", control->variable()->get("get_min_peers_seed"));
 
-    if (control->variable()->get_value("max_peers_seed") >= 0)
-      download->set("max_peers", control->variable()->get("max_peers_seed"));
+    if (control->variable()->get_value("get_max_peers_seed") >= 0)
+      download->set("max_peers", control->variable()->get("get_max_peers_seed"));
   }
 
-  if (!control->variable()->get_value("use_udp_trackers"))
+  if (!control->variable()->get_value("get_use_udp_trackers"))
     download->enable_udp_trackers(false);
 
-  if (control->variable()->get_value("max_file_size") > 0)
-    download->set("max_file_size", control->variable()->get("max_file_size"));
+  if (control->variable()->get_value("get_max_file_size") > 0)
+    download->set("max_file_size", control->variable()->get("get_max_file_size"));
 
   // Check first if we already have these values set in the session
   // torrent, so that it is safe to change the values.
   //
   // Need to also catch the exceptions.
-  if (control->variable()->get_value("split_file_size") >= 0)
+  if (control->variable()->get_value("get_split_file_size") >= 0)
     torrent::file_split_all(download->download()->file_list(),
-                            control->variable()->get_value("split_file_size"),
+                            control->variable()->get_value("get_split_file_size"),
                             control->variable()->get_string("split_suffix"));
 
   if (!rtorrent->has_key_string("directory"))

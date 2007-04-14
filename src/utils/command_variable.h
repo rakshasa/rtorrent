@@ -34,56 +34,34 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef RTORRENT_UTILS_VARIABLE_H
-#define RTORRENT_UTILS_VARIABLE_H
+#ifndef RTORRENT_UTILS_COMMAND_VARIABLES_H
+#define RTORRENT_UTILS_COMMAND_VARIABLES_H
 
+#include <string>
+#include <limits>
+#include <inttypes.h>
 #include <torrent/object.h>
 
-namespace core {
-  class Download;
-}
+#include "variable.h"
 
 namespace utils {
 
-class Variable {
+class CommandVariable : public Variable {
 public:
-  typedef torrent::Object::value_type  value_type;
-  typedef torrent::Object::string_type string_type;
-  typedef torrent::Object::list_type   list_type;
-  typedef torrent::Object::map_type    map_type;
-  typedef torrent::Object::key_type    key_type;
+  CommandVariable(const torrent::Object& v = torrent::Object()) : m_variable(v) {}
+  
+  static const torrent::Object& set_bool(Variable* rawVariable, const torrent::Object& args);
+  static const torrent::Object& get_bool(Variable* rawVariable, const torrent::Object& args);
 
-  Variable() {}
-  virtual ~Variable() {}
+  static const torrent::Object& set_value(Variable* rawVariable, const torrent::Object& args);
+  static const torrent::Object& get_value(Variable* rawVariable, const torrent::Object& args);
 
-  virtual const torrent::Object& get();
-  virtual void                   set(const torrent::Object& arg);
+  static const torrent::Object& set_string(Variable* rawVariable, const torrent::Object& args);
+  static const torrent::Object& get_string(Variable* rawVariable, const torrent::Object& args);
 
-  // The default action is to throw away the 'download' argument.
-  virtual const torrent::Object& get_d(core::Download* download);
-  virtual void                   set_d(core::Download* download, const torrent::Object& arg);
-
-  static const char*  string_to_value_unit(const char* pos, value_type* value, int base, int unit);
-  static bool         string_to_value_unit_nothrow(const char* pos, value_type* value, int base, int unit);
-
-  static const torrent::Object& to_single_argument(const torrent::Object& args);
-
-  // Temporary hack, until torrent::Object is extended to allow
-  // references so we can return a copy, not a const reference.
-  static const torrent::Object m_emptyObject;
-
-protected:
-  Variable(const Variable&);
-  void operator = (const Variable&);
+private:
+  torrent::Object    m_variable;
 };
-
-inline const torrent::Object&
-Variable::to_single_argument(const torrent::Object& args) {
-  if (args.type() == torrent::Object::TYPE_LIST && args.as_list().size() == 1)
-    return args.as_list().front();
-  else
-    return args;
-}
 
 }
 

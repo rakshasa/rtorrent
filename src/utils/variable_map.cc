@@ -51,18 +51,24 @@
 
 namespace utils {
 
+struct variable_map_get_ptr : std::unary_function<VariableMap::value_type&, Variable*> {
+  Variable* operator () (VariableMap::value_type& value) { return value.second.m_variable; }
+};
+
 VariableMap::~VariableMap() {
-  std::for_each(base_type::begin(), base_type::end(), rak::on(rak::mem_ref(&value_type::second), rak::call_delete<Variable>()));
+  for (iterator itr = base_type::begin(), last = base_type::end(); itr != last; itr++)
+    if (!(itr->second.m_flags & flag_dont_delete))
+      delete itr->second.m_variable;
 }
 
 void
-VariableMap::insert(key_type key, Variable* v) {
+VariableMap::insert(key_type key, Variable* variable, generic_slot genericSlot, int flags) {
   iterator itr = base_type::find(key);
 
   if (itr != base_type::end())
     throw torrent::internal_error("VariableMap::insert(...) tried to insert an already existing key.");
 
-  base_type::insert(itr, value_type(key, v));
+  base_type::insert(itr, value_type(key, variable_map_data_type(variable, genericSlot, NULL, flags)));
 }
 
 const VariableMap::mapped_type&
@@ -72,7 +78,10 @@ VariableMap::get(key_type key) const {
   if (itr == base_type::end())
     throw torrent::input_error("Variable \"" + std::string(key) + "\" does not exist.");
 
-  return itr->second->get();
+  if (itr->second.m_genericSlot != NULL)
+    return itr->second.m_genericSlot(itr->second.m_variable, torrent::Object());
+
+  return itr->second.m_variable->get();
 }
 
 const VariableMap::mapped_type&
@@ -82,7 +91,13 @@ VariableMap::get_d(core::Download* download, key_type key) const {
   if (itr == base_type::end())
     throw torrent::input_error("Variable \"" + std::string(key) + "\" does not exist.");
 
-  return itr->second->get_d(download);
+  if (itr->second.m_downloadSlot != NULL)
+    return itr->second.m_downloadSlot(itr->second.m_variable, download, torrent::Object());
+
+  if (itr->second.m_genericSlot != NULL)
+    return itr->second.m_genericSlot(itr->second.m_variable, torrent::Object());
+
+  return itr->second.m_variable->get_d(download);
 }
 
 void
@@ -94,7 +109,12 @@ VariableMap::set(key_type key, const mapped_type& arg) {
   if (itr == base_type::end())
     throw torrent::input_error("Variable \"" + std::string(key) + "\" does not exist.");
 
-  itr->second->set(arg);
+  if (itr->second.m_genericSlot != NULL) {
+    itr->second.m_genericSlot(itr->second.m_variable, arg);
+    return;
+  }
+
+  itr->second.m_variable->set(arg);
 }
 
 void
@@ -106,7 +126,17 @@ VariableMap::set_d(core::Download* download, key_type key, const mapped_type& ar
   if (itr == base_type::end())
     throw torrent::input_error("Variable \"" + std::string(key) + "\" does not exist.");
 
-  itr->second->set_d(download, arg);
+  if (itr->second.m_downloadSlot != NULL) {
+    itr->second.m_downloadSlot(itr->second.m_variable, download, arg);
+    return;
+  }
+
+  if (itr->second.m_genericSlot != NULL) {
+    itr->second.m_genericSlot(itr->second.m_variable, arg);
+    return;
+  }
+
+  itr->second.m_variable->set_d(download, arg);
 }
 
 struct variable_map_is_space : std::unary_function<char, bool> {
@@ -237,12 +267,41 @@ VariableMap::process_file(key_type path) {
 }
 
 const VariableMap::mapped_type&
+VariableMap::call_command(key_type key, const mapped_type& arg) {
+  const_iterator itr = base_type::find(key);
+
+  if (itr == base_type::end())
+    throw torrent::input_error("Variable \"" + std::string(key) + "\" does not exist.");
+
+  if (itr->second.m_genericSlot == NULL)
+    throw torrent::input_error("Variable does not have a generic slot.");
+
+  return itr->second.m_genericSlot(itr->second.m_variable, arg);
+}
+
+const VariableMap::mapped_type&
 VariableMap::call_command_get(key_type key, const mapped_type& arg) {
+  const_iterator itr = base_type::find(key);
+
+  if (itr == base_type::end())
+    throw torrent::input_error("Variable \"" + std::string(key) + "\" does not exist.");
+
+  if (itr->second.m_genericSlot != NULL)
+    return itr->second.m_genericSlot(itr->second.m_variable, arg);
+
   return get(key);
 }
 
 const VariableMap::mapped_type&
 VariableMap::call_command_set(key_type key, const mapped_type& arg) {
+  const_iterator itr = base_type::find(key);
+
+  if (itr == base_type::end())
+    throw torrent::input_error("Variable \"" + std::string(key) + "\" does not exist.");
+
+  if (itr->second.m_genericSlot != NULL)
+    return itr->second.m_genericSlot(itr->second.m_variable, arg);
+
   set(key, arg);
 
   return Variable::m_emptyObject;

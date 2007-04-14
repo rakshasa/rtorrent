@@ -108,7 +108,7 @@ receive_tracker_dump(const std::string& url, const char* data, size_t size) {
 
 void
 Manager::handshake_log(const sockaddr* sa, int msg, int err, const torrent::HashString* hash) {
-  if (!control->variable()->get_value("handshake_log"))
+  if (!control->variable()->get_value("get_handshake_log"))
     return;
   
   std::string peer;
@@ -276,13 +276,13 @@ Manager::shutdown(bool force) {
 
 void
 Manager::listen_open() {
-  if (!control->variable()->get_value("port_open"))
+  if (!control->variable()->get_value("get_port_open"))
     return;
 
   if (m_portFirst > m_portLast)
     throw torrent::input_error("Invalid port range for listening");
 
-  if (control->variable()->get_value("port_random")) {
+  if (control->variable()->get_value("get_port_random")) {
     int boundary = m_portFirst + random() % (m_portLast - m_portFirst + 1);
 
     if (torrent::connection_manager()->listen_open(boundary, m_portLast) ||

@@ -185,14 +185,14 @@ Root::set_down_throttle(unsigned int throttle) {
 
   torrent::set_down_throttle(throttle * 1024);
 
-  int64_t div = control->variable()->get_value("max_downloads_div");
+  int64_t div = control->variable()->get_value("get_max_downloads_div");
 
   if (throttle == 0 || div <= 0) {
     torrent::set_max_download_unchoked(m_maxDownloadsGlobal);
     return;
   }
 
-  throttle /= control->variable()->get_value("max_downloads_div");
+  throttle /= control->variable()->get_value("get_max_downloads_div");
 
   unsigned int maxUnchoked;
 
@@ -214,14 +214,14 @@ Root::set_up_throttle(unsigned int throttle) {
 
   torrent::set_up_throttle(throttle * 1024);
 
-  int64_t div = control->variable()->get_value("max_uploads_div");
+  int64_t div = control->variable()->get_value("get_max_uploads_div");
 
   if (throttle == 0 || div <= 0) {
     torrent::set_max_unchoked(m_maxUploadsGlobal);
     return;
   }
 
-  throttle /= control->variable()->get_value("max_uploads_div");
+  throttle /= control->variable()->get_value("get_max_uploads_div");
 
   unsigned int maxUnchoked;
 

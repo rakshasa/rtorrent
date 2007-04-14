@@ -67,6 +67,7 @@
 #include "rpc/fast_cgi.h"
 #include "rpc/xmlrpc.h"
 #include "ui/root.h"
+#include "utils/command_variable.h"
 #include "utils/directory.h"
 #include "utils/parse.h"
 #include "utils/variable_generic.h"
@@ -274,7 +275,7 @@ apply_enable_trackers(const std::string& arg) {
       else
         tl.get(i).disable();
 
-    if (state && !control->variable()->get_value("use_udp_trackers"))
+    if (state && !control->variable()->get_value("get_use_udp_trackers"))
       (*itr)->enable_udp_trackers(false);
   }    
 }
@@ -437,20 +438,49 @@ apply_schedule(const torrent::Object::list_type& args) {
 }
 
 void
+add_variable(const char* getKey, const char* setKey, const char* defaultSetKey,
+             utils::VariableMap::generic_slot getSlot, utils::VariableMap::generic_slot setSlot,
+             const torrent::Object& defaultObject) {
+  utils::Variable* variable = new utils::CommandVariable(defaultObject);
+
+  control->variable()->insert(getKey, variable, getSlot);
+  control->variable()->insert(setKey, variable, setSlot, utils::VariableMap::flag_dont_delete);
+
+  if (defaultSetKey)
+    control->variable()->insert(defaultSetKey, variable, setSlot, utils::VariableMap::flag_dont_delete);
+}
+
+inline void
+add_variable_bool(const char* getKey, const char* setKey, const char* defaultSetKey, bool defaultObject) {
+  add_variable(getKey, setKey, defaultSetKey, &utils::CommandVariable::get_bool, &utils::CommandVariable::set_bool, (uint64_t)defaultObject);
+}
+
+inline void
+add_variable_value(const char* getKey, const char* setKey, const char* defaultSetKey, int64_t defaultObject) {
+  add_variable(getKey, setKey, defaultSetKey, &utils::CommandVariable::get_value, &utils::CommandVariable::set_value, defaultObject);
+}
+
+inline void
+add_variable_string(const char* getKey, const char* setKey, const char* defaultSetKey, const char* defaultObject) {
+  add_variable(getKey, setKey, defaultSetKey, &utils::CommandVariable::get_string, &utils::CommandVariable::set_string, std::string(defaultObject));
+}
+
+void
 initialize_variables() {
   utils::VariableMap* variables = control->variable();
 
-  variables->insert("check_hash",            new utils::VariableBool(true));
-  variables->insert("use_udp_trackers",      new utils::VariableBool(true));
-  variables->insert("port_open",             new utils::VariableBool(true));
-  variables->insert("port_random",           new utils::VariableBool(true));
+  add_variable_bool("get_check_hash",            "set_check_hash", "check_hash", true);
+  add_variable_bool("get_use_udp_trackers",      "set_use_udp_trackers", "use_udp_trackers", true);
+  add_variable_bool("get_port_open",             "set_port_open", "port_open", true);
+  add_variable_bool("get_port_random",           "set_port_random", "port_random", true);
+  add_variable_bool("get_handshake_log",         "set_handshake_log", "handshake_log", false);
+  add_variable_bool("get_session_lock",          "set_session_lock", "session_lock", true);
+  add_variable_bool("get_session_on_completion", "set_session_on_completion", "session_on_completion", true);
 
   variables->insert("tracker_dump",          new utils::VariableAny(std::string()));
 
   variables->insert("session",               new utils::VariableStringSlot(rak::mem_fn(control->core()->download_store(), &core::DownloadStore::path),
                                                                            rak::mem_fn(control->core()->download_store(), &core::DownloadStore::set_path)));
-  variables->insert("session_lock",          new utils::VariableBool(true));
-  variables->insert("session_on_completion", new utils::VariableBool(true));
   variables->insert("session_save",          new utils::VariableVoidSlot(rak::mem_fn(control->core()->download_list(), &core::DownloadList::session_save)));
 
   variables->insert("connection_leech",      new utils::VariableAny("leech"));
@@ -471,17 +501,17 @@ initialize_variables() {
                                                                            rak::mem_fn(control->core()->get_poll_manager()->get_http_stack(), &core::CurlStack::set_http_proxy)));
   variables->insert("fast_cgi",              new utils::VariableStringSlot(NULL, rak::ptr_fn(&apply_fast_cgi)));
 
-  variables->insert("max_chunks_queued",     new utils::VariableValue(0));
-  variables->insert("min_peers",             new utils::VariableValue(40));
-  variables->insert("max_peers",             new utils::VariableValue(100));
-  variables->insert("min_peers_seed",        new utils::VariableValue(-1));
-  variables->insert("max_peers_seed",        new utils::VariableValue(-1));
+//   add_variable_value("get_max_chunks_queued",    "set_max_chunks_queued", "max_chunks_queued", 0);
+  add_variable_value("get_min_peers",            "set_min_peers", "min_peers", 40);
+  add_variable_value("get_max_peers",            "set_max_peers", "max_peers", 100);
+  add_variable_value("get_min_peers_seed",       "set_min_peers_seed", "min_peers_seed", -1);
+  add_variable_value("get_max_peers_seed",       "set_max_peers_seed", "max_peers_seed", -1);
 
-  variables->insert("max_uploads",           new utils::VariableValue(15));
-  variables->insert("max_uploads_div",       new utils::VariableValue(1));
+  add_variable_value("get_max_uploads",          "set_max_uploads", "max_uploads", 15);
+  add_variable_value("get_max_uploads_div",      "set_max_uploads_div", "max_uploads_div", 1);
   variables->insert("max_uploads_global",    new utils::VariableValueSlot(rak::mem_fn(control->ui(), &ui::Root::max_uploads_global),
                                                                           rak::mem_fn(control->ui(), &ui::Root::set_max_uploads_global)));
-  variables->insert("max_downloads_div",     new utils::VariableValue(0));
+  add_variable_value("get_max_downloads_div",    "set_max_downloads_div", "max_downloads_div", 0);
   variables->insert("max_downloads_global",  new utils::VariableValueSlot(rak::mem_fn(control->ui(), &ui::Root::max_downloads_global),
                                                                           rak::mem_fn(control->ui(), &ui::Root::set_max_downloads_global)));
 
@@ -490,7 +520,7 @@ initialize_variables() {
   variables->insert("upload_rate",           new utils::VariableValueSlot(rak::ptr_fn(&torrent::up_throttle), rak::mem_fn(control->ui(), &ui::Root::set_up_throttle_i64),
                                                                           0, (1 << 10)));
 
-  variables->insert("tracker_numwant",       new utils::VariableValue(-1));
+  add_variable_value("get_tracker_numwant",      "set_tracker_numwant", "tracker_numwant", -1);
 
   variables->insert("hash_max_tries",        new utils::VariableValueSlot(rak::ptr_fn(&torrent::hash_max_tries), rak::ptr_fn(&torrent::set_hash_max_tries)));
   variables->insert("max_open_files",        new utils::VariableValueSlot(rak::ptr_fn(&torrent::max_open_files), rak::ptr_fn(&torrent::set_max_open_files)));
@@ -546,8 +576,8 @@ initialize_variables() {
                                                                           rak::mem_fn(torrent::chunk_manager(), &torrent::ChunkManager::set_preload_required_rate),
                                                                           0, (1 << 10)));
 
-  variables->insert("max_file_size",         new utils::VariableValue(-1));
-  variables->insert("split_file_size",       new utils::VariableValue(-1));
+  add_variable_value("get_max_file_size",        "set_max_file_size", "max_file_size", -1);
+  add_variable_value("get_split_file_size",      "set_split_file_size", "split_file_size", -1);
   variables->insert("split_suffix",          new utils::VariableAny(".part"));
 
   variables->insert("port_range",            new utils::VariableStringSlot(NULL, rak::ptr_fn(&apply_port_range)));
@@ -587,7 +617,6 @@ initialize_variables() {
   variables->insert("encoding_list",         new utils::VariableStringSlot(NULL, rak::ptr_fn(&apply_encoding_list)));
 
   variables->insert("encryption",            new utils::VariableListSlot(rak::ptr_fn(&apply_encryption)));
-  variables->insert("handshake_log",         new utils::VariableBool(false));
 }
 
 template <typename Target, typename GetFunc, typename SetFunc>

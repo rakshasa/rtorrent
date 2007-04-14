@@ -51,6 +51,69 @@ namespace rpc {
 
 #ifdef HAVE_XMLRPC_C
 
+torrent::Object
+xmlrpc_to_object(xmlrpc_env* env, xmlrpc_value* value) {
+  switch (xmlrpc_value_type(value)) {
+  case XMLRPC_TYPE_INT:
+    int v;
+    xmlrpc_read_int(env, value, &v);
+      
+    return torrent::Object((int64_t)v);
+
+    //     case XMLRPC_TYPE_BOOL:
+    //     case XMLRPC_TYPE_DOUBLE:
+    //     case XMLRPC_TYPE_DATETIME:
+
+  case XMLRPC_TYPE_STRING:
+  {
+    const char* valueString;
+    xmlrpc_read_string(env, value, &valueString);
+
+    if (env->fault_occurred)
+      return torrent::Object();
+
+    torrent::Object result = torrent::Object(std::string(valueString));
+
+    // Urgh, seriously?
+    ::free((void*)valueString);
+    return result;
+  }
+
+    //     case XMLRPC_TYPE_BASE64:
+  case XMLRPC_TYPE_ARRAY:
+  {
+    torrent::Object result(torrent::Object::TYPE_LIST);
+    torrent::Object::list_type& listRef = result.as_list();
+
+    unsigned int last = xmlrpc_array_size(env, value);
+
+    if (env->fault_occurred)
+      return torrent::Object();
+
+    // Move this into a helper function.
+    for (unsigned int i = 0; i != last; i++) {
+      xmlrpc_value* tmp;
+      xmlrpc_array_read_item(env, value, i, &tmp);
+
+      if (env->fault_occurred)
+        return torrent::Object();
+
+      listRef.push_back(xmlrpc_to_object(env, tmp));
+    }
+
+    return result;
+  }
+
+  //     case XMLRPC_TYPE_STRUCT:
+    //     case XMLRPC_TYPE_C_PTR:
+    //     case XMLRPC_TYPE_NIL:
+    //     case XMLRPC_TYPE_DEAD:
+  default:
+    xmlrpc_env_set_fault(env, XMLRPC_TYPE_ERROR, "Unsupported type found.");
+    return torrent::Object();
+  }
+}
+
 struct server_info_t {
   server_info_t(const char* command, XmlRpc::slot_call_command* callCommand) :
     m_command(command), m_callCommand(callCommand) {}
@@ -61,64 +124,10 @@ struct server_info_t {
 
 xmlrpc_value*
 xmlrpc_call_command(xmlrpc_env* env, xmlrpc_value* args, void* voidServerInfo) {
-  torrent::Object object(torrent::Object::TYPE_LIST);
-  torrent::Object::list_type& objectList = object.as_list();
-
-  if (xmlrpc_value_type(args) != XMLRPC_TYPE_ARRAY)
-    throw torrent::internal_error("xmlrpc_value_type(args) != XMLRPC_TYPE_ARRAY");
-
-  unsigned int last = xmlrpc_array_size(env, args);
+  torrent::Object object = xmlrpc_to_object(env, args);
 
   if (env->fault_occurred)
     return NULL;
-
-  // Move this into a helper function.
-  for (unsigned int i = 0; i != last; i++) {
-    xmlrpc_value* value;
-    xmlrpc_array_read_item(env, args, i, &value);
-
-    if (env->fault_occurred)
-      return NULL;
-
-    switch (xmlrpc_value_type(value)) {
-    case XMLRPC_TYPE_INT:
-      int v;
-      xmlrpc_read_int(env, value, &v);
-      
-      objectList.push_back(torrent::Object((int64_t)v));
-      break;
-
-//     case XMLRPC_TYPE_BOOL:
-//     case XMLRPC_TYPE_DOUBLE:
-//     case XMLRPC_TYPE_DATETIME:
-
-    case XMLRPC_TYPE_STRING:
-      const char* valueString;
-      xmlrpc_read_string(env, value, &valueString);
-
-      if (env->fault_occurred)
-        return NULL;
-
-      objectList.push_back(torrent::Object(std::string(valueString)));
-
-      // Urgh, seriously?
-      ::free((void*)valueString);
-      break;
-
-//     case XMLRPC_TYPE_BASE64:
-//     case XMLRPC_TYPE_ARRAY:
-//     case XMLRPC_TYPE_STRUCT:
-//     case XMLRPC_TYPE_C_PTR:
-//     case XMLRPC_TYPE_NIL:
-//     case XMLRPC_TYPE_DEAD:
-    default:
-      xmlrpc_env_set_fault(env, XMLRPC_TYPE_ERROR, "Unsupported type found.");
-      return NULL;
-    }
-
-    if (env->fault_occurred)
-      return NULL;
-  }
 
   try {
     server_info_t* serverInfo = reinterpret_cast<server_info_t*>(voidServerInfo);

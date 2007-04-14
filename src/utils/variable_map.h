@@ -59,20 +59,42 @@ struct variable_map_comp : public std::binary_function<const char*, const char*,
 
 class Variable;
 
-class VariableMap : public std::map<const char*, Variable*, variable_map_comp> {
+struct variable_map_data_type {
+  // Some commands will need to share data, like get/set a variable. So
+  // instead of using a single virtual member function, each command
+  // will register a member function pointer to be used instead.
+  typedef const torrent::Object& (*generic_slot)(Variable*, const torrent::Object&);
+  typedef const torrent::Object& (*download_slot)(Variable*, core::Download*, const torrent::Object&);
+
+  variable_map_data_type(Variable* variable, generic_slot genericSlot, download_slot downloadSlot, int flags) :
+    m_variable(variable), m_genericSlot(genericSlot), m_downloadSlot(downloadSlot), m_flags(flags) {}
+
+  Variable*     m_variable;
+  generic_slot  m_genericSlot;
+  download_slot m_downloadSlot;
+
+  int           m_flags;
+};
+
+class VariableMap : public std::map<const char*, variable_map_data_type, variable_map_comp> {
 public:
-  typedef std::map<const char*, Variable*, variable_map_comp> base_type;
+  typedef std::map<const char*, variable_map_data_type, variable_map_comp> base_type;
+
+  typedef variable_map_data_type::generic_slot  generic_slot;
+  typedef variable_map_data_type::download_slot download_slot;
 
   typedef torrent::Object         mapped_type;
   typedef mapped_type::value_type mapped_value_type;
+
+  using base_type::iterator;
+  using base_type::key_type;
+  using base_type::value_type;
 
   static const int max_size_key = 128;
   static const int max_size_opt = 1024;
   static const int max_size_line = max_size_key + max_size_opt + 64;
 
-  using base_type::iterator;
-  using base_type::key_type;
-  using base_type::value_type;
+  static const int flag_dont_delete = 0x1;
 
   VariableMap() {}
   ~VariableMap();
@@ -80,7 +102,9 @@ public:
   bool                has(const char* key) const        { return base_type::find(key) != base_type::end(); }
   bool                has(const std::string& key) const { return has(key.c_str()); }
 
-  void                insert(key_type key, Variable* v);
+  // Allow NULL slot as a temporary compatibility hack.
+
+  void                insert(key_type key, Variable* variable, generic_slot genericSlot = NULL, int flags = 0);
 
   // Consider uninlining the helper functions.
 
@@ -119,6 +143,8 @@ public:
 
   // The new API, which is atm just a wrapper over the old and
   // requires seperate calls to get and set. These will be merged.
+  const mapped_type&  call_command(key_type key, const mapped_type& arg);
+
   const mapped_type&  call_command_get(key_type key, const mapped_type& arg);
   const mapped_type&  call_command_set(key_type key, const mapped_type& arg);
 

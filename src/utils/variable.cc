@@ -47,11 +47,13 @@ const torrent::Object Variable::m_emptyObject;
 // Consider throwing an exception.
 const torrent::Object&
 Variable::get() {
-  return m_emptyObject;
+//   return m_emptyObject;
+  throw torrent::internal_error("Variable::get() called.");
 }
 
 void
 Variable::set(const torrent::Object& arg) {
+  throw torrent::internal_error("Variable::set() called.");
 }
 
 const torrent::Object&

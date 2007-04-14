@@ -1,6 +1,8 @@
 noinst_LIBRARIES = libsub_utils.a
 
 libsub_utils_a_SOURCES = \
+	command_variable.cc \
+	command_variable.h \
 	directory.cc \
 	directory.h \
 	list_focus.h \
