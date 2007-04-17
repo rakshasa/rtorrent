@@ -295,21 +295,6 @@ private:
   torrent::Object     m_cache;
 };
 
-class VariableListSlot : public Variable {
-public:
-  typedef rak::function1<void, const list_type&> slot_set_type;
-
-  template <typename SlotSet>
-  VariableListSlot(SlotSet* slotSet) {
-    m_slotSet.set(slotSet);
-  }
-
-  virtual void        set(const torrent::Object& arg);
-
-private:
-  slot_set_type       m_slotSet;
-};
-
 class VariableDownloadListSlot : public Variable {
 public:
   typedef rak::function2<void, core::Download*, const list_type&> slot_set_type;

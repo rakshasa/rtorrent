@@ -75,9 +75,9 @@ DownloadFactory::DownloadFactory(const std::string& uri, Manager* m) :
   m_taskLoad.set_slot(rak::mem_fn(this, &DownloadFactory::receive_load));
   m_taskCommit.set_slot(rak::mem_fn(this, &DownloadFactory::receive_commit));
 
-  m_variables.insert("connection_leech", new utils::VariableAny(control->variable()->get("connection_leech")));
-  m_variables.insert("connection_seed",  new utils::VariableAny(control->variable()->get("connection_seed")));
-  m_variables.insert("directory",        new utils::VariableAny(control->variable()->get("directory")));
+  m_variables.insert("connection_leech", new utils::VariableAny(control->variable()->get("get_connection_leech")));
+  m_variables.insert("connection_seed",  new utils::VariableAny(control->variable()->get("get_connection_seed")));
+  m_variables.insert("directory",        new utils::VariableAny(control->variable()->get("get_directory")));
   m_variables.insert("tied_to_file",     new utils::VariableBool(false));
 }
 

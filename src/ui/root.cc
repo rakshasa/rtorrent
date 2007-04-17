@@ -126,19 +126,21 @@ void
 Root::setup_keys() {
   m_control->input()->push_back(&m_bindings);
 
-  if (strcasecmp(control->variable()->get_string("key_layout").c_str(), "azerty") == 0) {
+  const std::string& keyLayout = control->variable()->get_string("get_key_layout");
+
+  if (strcasecmp(keyLayout.c_str(), "azerty") == 0) {
     m_bindings['q']           = sigc::bind(sigc::mem_fun(*this, &Root::adjust_up_throttle), 1);
     m_bindings['w']           = sigc::bind(sigc::mem_fun(*this, &Root::adjust_up_throttle), -1);
     m_bindings['Q']           = sigc::bind(sigc::mem_fun(*this, &Root::adjust_down_throttle), 1);
     m_bindings['W']           = sigc::bind(sigc::mem_fun(*this, &Root::adjust_down_throttle), -1);
 
-  } else if (strcasecmp(control->variable()->get_string("key_layout").c_str(), "qwertz") == 0) {
+  } else if (strcasecmp(keyLayout.c_str(), "qwertz") == 0) {
     m_bindings['a']           = sigc::bind(sigc::mem_fun(*this, &Root::adjust_up_throttle), 1);
     m_bindings['y']           = sigc::bind(sigc::mem_fun(*this, &Root::adjust_up_throttle), -1);
     m_bindings['A']           = sigc::bind(sigc::mem_fun(*this, &Root::adjust_down_throttle), 1);
     m_bindings['Y']           = sigc::bind(sigc::mem_fun(*this, &Root::adjust_down_throttle), -1);
 
-  } else if (strcasecmp(control->variable()->get_string("key_layout").c_str(), "dvorak") == 0) {
+  } else if (strcasecmp(keyLayout.c_str(), "dvorak") == 0) {
     m_bindings['a']           = sigc::bind(sigc::mem_fun(*this, &Root::adjust_up_throttle), 1);
     m_bindings[';']           = sigc::bind(sigc::mem_fun(*this, &Root::adjust_up_throttle), -1);
     m_bindings['A']           = sigc::bind(sigc::mem_fun(*this, &Root::adjust_down_throttle), 1);
@@ -151,7 +153,7 @@ Root::setup_keys() {
     m_bindings['Z']           = sigc::bind(sigc::mem_fun(*this, &Root::adjust_down_throttle), -1);
   }
 
-  if (strcasecmp(control->variable()->get_string("key_layout").c_str(), "dvorak") != 0) {
+  if (strcasecmp(keyLayout.c_str(), "dvorak") != 0) {
     m_bindings['s']           = sigc::bind(sigc::mem_fun(*this, &Root::adjust_up_throttle), 5);
     m_bindings['x']           = sigc::bind(sigc::mem_fun(*this, &Root::adjust_up_throttle), -5);
     m_bindings['S']           = sigc::bind(sigc::mem_fun(*this, &Root::adjust_down_throttle), 5);

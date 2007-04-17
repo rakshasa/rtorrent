@@ -162,9 +162,11 @@ main(int argc, char** argv) {
     control->core()->initialize_first();
 
     // Initialize option handlers after libtorrent to ensure
-    // torrent::ConnectionManager* is valid etc.
+    // torrent::ConnectionManager* are valid etc.
     initialize_variables();
     initialize_download_variables();
+    initialize_command_events();
+    initialize_command_ui();
 
     control->variable()->process_multiple
       (

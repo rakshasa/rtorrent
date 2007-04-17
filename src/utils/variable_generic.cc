@@ -292,19 +292,6 @@ VariableDownloadStringSlot::set_d(core::Download* download, const torrent::Objec
 }
 
 void
-VariableListSlot::set(const torrent::Object& arg) {
-  switch (arg.type()) {
-//   case torrent::Object::TYPE_STRING:
-//     break;
-  case torrent::Object::TYPE_LIST:
-    m_slotSet(arg.as_list());
-    break;
-  default:
-    throw torrent::input_error("Not a list.");
-  }
-}
-
-void
 VariableDownloadListSlot::set_d(core::Download* download, const torrent::Object& arg) {
   switch (arg.type()) {
 //   case torrent::Object::TYPE_STRING:

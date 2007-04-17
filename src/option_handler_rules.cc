@@ -67,6 +67,7 @@
 #include "rpc/fast_cgi.h"
 #include "rpc/xmlrpc.h"
 #include "ui/root.h"
+#include "utils/command_slot.h"
 #include "utils/command_variable.h"
 #include "utils/directory.h"
 #include "utils/parse.h"
@@ -182,7 +183,9 @@ apply_close_low_diskspace(int64_t arg) {
 }
 
 void
-apply_stop_on_ratio(const torrent::Object::list_type& args) {
+apply_stop_on_ratio(const torrent::Object& rawArgs) {
+  const torrent::Object::list_type& args = rawArgs.as_list();
+
   if (args.empty())
     throw torrent::input_error("Too few arguments.");
 
@@ -212,29 +215,14 @@ apply_stop_on_ratio(const torrent::Object::list_type& args) {
 }
 
 void
-apply_on_state_change(core::DownloadList::slot_map* slotMap, const torrent::Object::list_type& args) {
-  if (args.size() < 2)
-    throw torrent::input_error("Too few arguments.");
-
-  if (args.front().as_string().empty())
-    throw torrent::input_error("Empty key.");
-
-  std::string key = "1_state_" + args.front().as_string();
-
-  if (args.back().as_string().empty())
-    slotMap->erase(key);
-  else
-    (*slotMap)[key] = sigc::bind(sigc::mem_fun(control->download_variables(), &utils::VariableMap::process_d_std_single),
-                                 utils::convert_list_to_command(++args.begin(), args.end()));
-}
-
-void
 apply_encoding_list(const std::string& arg) {
   torrent::encoding_list()->push_back(arg);
 }
 
 void
-apply_encryption(const torrent::Object::list_type& args) {
+apply_encryption(const torrent::Object& rawArgs) {
+  const torrent::Object::list_type& args = rawArgs.as_list();
+
   uint32_t options_mask = torrent::ConnectionManager::encryption_none;
 
   for (torrent::Object::list_type::const_iterator itr = args.begin(), last = args.end(); itr != last; itr++) {
@@ -322,96 +310,6 @@ apply_fast_cgi(const std::string& arg) {
 }
 
 void
-apply_view_filter(const torrent::Object::list_type& args) {
-  if (args.size() < 1)
-    throw torrent::input_error("Too few arguments.");
-
-  const std::string& name = args.front().as_string();
-  
-  if (name.empty())
-    throw torrent::input_error("First argument must be a string.");
-
-  core::ViewManager::filter_args filterArgs;
-
-  for (torrent::Object::list_type::const_iterator itr = ++args.begin(), last = args.end(); itr != last; itr++)
-    filterArgs.push_back(itr->as_string());
-
-  control->view_manager()->set_filter(name, filterArgs);
-}
-
-void
-apply_view_filter_on(const torrent::Object::list_type& args) {
-  if (args.size() < 1)
-    throw torrent::input_error("Too few arguments.");
-
-  const std::string& name = args.front().as_string();
-  
-  if (name.empty())
-    throw torrent::input_error("First argument must be a string.");
-
-  core::ViewManager::filter_args filterArgs;
-
-  for (torrent::Object::list_type::const_iterator itr = ++args.begin(), last = args.end(); itr != last; itr++)
-    filterArgs.push_back(itr->as_string());
-
-  control->view_manager()->set_filter_on(name, filterArgs);
-}
-
-void
-apply_view_sort(const torrent::Object::list_type& args) {
-  if (args.size() <= 0 || args.size() > 2)
-    throw torrent::input_error("Wrong argument count.");
-
-  const std::string& name = args.front().as_string();
-
-  if (name.empty())
-    throw torrent::input_error("First argument must be a string.");
-
-  int32_t value = 0;
-
-  if (args.size() == 2)
-    value = utils::convert_to_value(args.back());
-
-  control->view_manager()->sort(name, value);
-}
-
-void
-apply_view_sort_current(const torrent::Object::list_type& args) {
-  if (args.size() < 1)
-    throw torrent::input_error("Too few arguments.");
-
-  const std::string& name = args.front().as_string();
-  
-  if (name.empty())
-    throw torrent::input_error("First argument must be a string.");
-
-  core::ViewManager::sort_args sortArgs;
-
-  for (torrent::Object::list_type::const_iterator itr = ++args.begin(), last = args.end(); itr != last; itr++)
-    sortArgs.push_back(itr->as_string());
-
-  control->view_manager()->set_sort_current(name, sortArgs);
-}
-
-void
-apply_view_sort_new(const torrent::Object::list_type& args) {
-  if (args.size() < 1)
-    throw torrent::input_error("Too few arguments.");
-
-  const std::string& name = args.front().as_string();
-  
-  if (name.empty())
-    throw torrent::input_error("First argument must be a string.");
-
-  core::ViewManager::sort_args sortArgs;
-
-  for (torrent::Object::list_type::const_iterator itr = ++args.begin(), last = args.end(); itr != last; itr++)
-    sortArgs.push_back(itr->as_string());
-
-  control->view_manager()->set_sort_new(name, sortArgs);
-}
-
-void
 apply_import(const std::string& path) {
   if (!control->variable()->process_file(path.c_str()))
     throw torrent::input_error("Could not open option file: " + path);
@@ -424,7 +322,9 @@ apply_try_import(const std::string& path) {
 }
 
 void
-apply_schedule(const torrent::Object::list_type& args) {
+apply_schedule(const torrent::Object& rawArgs) {
+  const torrent::Object::list_type& args = rawArgs.as_list();
+
   if (args.size() < 4)
     throw torrent::input_error("Too few arguments.");
 
@@ -450,43 +350,40 @@ add_variable(const char* getKey, const char* setKey, const char* defaultSetKey,
     control->variable()->insert(defaultSetKey, variable, setSlot, utils::VariableMap::flag_dont_delete);
 }
 
-inline void
-add_variable_bool(const char* getKey, const char* setKey, const char* defaultSetKey, bool defaultObject) {
-  add_variable(getKey, setKey, defaultSetKey, &utils::CommandVariable::get_bool, &utils::CommandVariable::set_bool, (uint64_t)defaultObject);
-}
+#define ADD_VARIABLE_BOOL(key, defaultValue) \
+add_variable("get_" key, "set_" key, key, &utils::CommandVariable::get_bool, &utils::CommandVariable::set_bool, (int64_t)defaultValue);
 
-inline void
-add_variable_value(const char* getKey, const char* setKey, const char* defaultSetKey, int64_t defaultObject) {
-  add_variable(getKey, setKey, defaultSetKey, &utils::CommandVariable::get_value, &utils::CommandVariable::set_value, defaultObject);
-}
+#define ADD_VARIABLE_VALUE(key, defaultValue) \
+add_variable("get_" key, "set_" key, key, &utils::CommandVariable::get_value, &utils::CommandVariable::set_value, (int64_t)defaultValue);
 
-inline void
-add_variable_string(const char* getKey, const char* setKey, const char* defaultSetKey, const char* defaultObject) {
-  add_variable(getKey, setKey, defaultSetKey, &utils::CommandVariable::get_string, &utils::CommandVariable::set_string, std::string(defaultObject));
-}
+#define ADD_VARIABLE_STRING(key, defaultValue) \
+add_variable("get_" key, "set_" key, key, &utils::CommandVariable::get_string, &utils::CommandVariable::set_string, std::string(defaultValue));
+
+#define ADD_COMMAND_SLOT(key, function, slot) \
+variables->insert(key, new utils::CommandSlot(slot), &utils::CommandSlot::function);
 
 void
 initialize_variables() {
   utils::VariableMap* variables = control->variable();
 
-  add_variable_bool("get_check_hash",            "set_check_hash", "check_hash", true);
-  add_variable_bool("get_use_udp_trackers",      "set_use_udp_trackers", "use_udp_trackers", true);
-  add_variable_bool("get_port_open",             "set_port_open", "port_open", true);
-  add_variable_bool("get_port_random",           "set_port_random", "port_random", true);
-  add_variable_bool("get_handshake_log",         "set_handshake_log", "handshake_log", false);
-  add_variable_bool("get_session_lock",          "set_session_lock", "session_lock", true);
-  add_variable_bool("get_session_on_completion", "set_session_on_completion", "session_on_completion", true);
+  ADD_VARIABLE_BOOL("check_hash", true);
+  ADD_VARIABLE_BOOL("use_udp_trackers", true);
+  ADD_VARIABLE_BOOL("port_open", true);
+  ADD_VARIABLE_BOOL("port_random", true);
+  ADD_VARIABLE_BOOL("handshake_log", false);
+  ADD_VARIABLE_BOOL("session_lock", true);
+  ADD_VARIABLE_BOOL("session_on_completion", true);
 
-  variables->insert("tracker_dump",          new utils::VariableAny(std::string()));
+  ADD_VARIABLE_STRING("tracker_dump", "");
 
   variables->insert("session",               new utils::VariableStringSlot(rak::mem_fn(control->core()->download_store(), &core::DownloadStore::path),
                                                                            rak::mem_fn(control->core()->download_store(), &core::DownloadStore::set_path)));
   variables->insert("session_save",          new utils::VariableVoidSlot(rak::mem_fn(control->core()->download_list(), &core::DownloadList::session_save)));
 
-  variables->insert("connection_leech",      new utils::VariableAny("leech"));
-  variables->insert("connection_seed",       new utils::VariableAny("seed"));
+  ADD_VARIABLE_STRING("connection_leech", "leech");
+  ADD_VARIABLE_STRING("connection_seed", "seed");
 
-  variables->insert("directory",             new utils::VariableAny("./"));
+  ADD_VARIABLE_STRING("directory", "./");
 
   variables->insert("tos",                   new utils::VariableStringSlot(NULL, rak::ptr_fn(&apply_tos)));
 
@@ -501,17 +398,17 @@ initialize_variables() {
                                                                            rak::mem_fn(control->core()->get_poll_manager()->get_http_stack(), &core::CurlStack::set_http_proxy)));
   variables->insert("fast_cgi",              new utils::VariableStringSlot(NULL, rak::ptr_fn(&apply_fast_cgi)));
 
-//   add_variable_value("get_max_chunks_queued",    "set_max_chunks_queued", "max_chunks_queued", 0);
-  add_variable_value("get_min_peers",            "set_min_peers", "min_peers", 40);
-  add_variable_value("get_max_peers",            "set_max_peers", "max_peers", 100);
-  add_variable_value("get_min_peers_seed",       "set_min_peers_seed", "min_peers_seed", -1);
-  add_variable_value("get_max_peers_seed",       "set_max_peers_seed", "max_peers_seed", -1);
+//   ADD_VARIABLE_VALUE("max_chunks_queued", 0);
+  ADD_VARIABLE_VALUE("min_peers", 40);
+  ADD_VARIABLE_VALUE("max_peers", 100);
+  ADD_VARIABLE_VALUE("min_peers_seed", -1);
+  ADD_VARIABLE_VALUE("max_peers_seed", -1);
 
-  add_variable_value("get_max_uploads",          "set_max_uploads", "max_uploads", 15);
-  add_variable_value("get_max_uploads_div",      "set_max_uploads_div", "max_uploads_div", 1);
+  ADD_VARIABLE_VALUE("max_uploads", 15);
+  ADD_VARIABLE_VALUE("max_uploads_div", 1);
   variables->insert("max_uploads_global",    new utils::VariableValueSlot(rak::mem_fn(control->ui(), &ui::Root::max_uploads_global),
                                                                           rak::mem_fn(control->ui(), &ui::Root::set_max_uploads_global)));
-  add_variable_value("get_max_downloads_div",    "set_max_downloads_div", "max_downloads_div", 0);
+  ADD_VARIABLE_VALUE("max_downloads_div", 0);
   variables->insert("max_downloads_global",  new utils::VariableValueSlot(rak::mem_fn(control->ui(), &ui::Root::max_downloads_global),
                                                                           rak::mem_fn(control->ui(), &ui::Root::set_max_downloads_global)));
 
@@ -520,7 +417,7 @@ initialize_variables() {
   variables->insert("upload_rate",           new utils::VariableValueSlot(rak::ptr_fn(&torrent::up_throttle), rak::mem_fn(control->ui(), &ui::Root::set_up_throttle_i64),
                                                                           0, (1 << 10)));
 
-  add_variable_value("get_tracker_numwant",      "set_tracker_numwant", "tracker_numwant", -1);
+  ADD_VARIABLE_VALUE("tracker_numwant", -1);
 
   variables->insert("hash_max_tries",        new utils::VariableValueSlot(rak::ptr_fn(&torrent::hash_max_tries), rak::ptr_fn(&torrent::set_hash_max_tries)));
   variables->insert("max_open_files",        new utils::VariableValueSlot(rak::ptr_fn(&torrent::max_open_files), rak::ptr_fn(&torrent::set_max_open_files)));
@@ -529,21 +426,11 @@ initialize_variables() {
   variables->insert("max_open_http",         new utils::VariableValueSlot(rak::mem_fn(control->core()->get_poll_manager()->get_http_stack(), &core::CurlStack::max_active),
                                                                           rak::mem_fn(control->core()->get_poll_manager()->get_http_stack(), &core::CurlStack::set_max_active)));
 
-  variables->insert("print",                 new utils::VariableStringSlot(NULL, rak::mem_fn(control->core(), &core::Manager::push_log)));
   variables->insert("import",                new utils::VariableStringSlot(NULL, rak::ptr_fn(&apply_import)));
   variables->insert("try_import",            new utils::VariableStringSlot(NULL, rak::ptr_fn(&apply_try_import)));
 
-  variables->insert("view_add",              new utils::VariableStringSlot(NULL, rak::mem_fn(control->view_manager(), &core::ViewManager::insert_throw)));
-  variables->insert("view_filter",           new utils::VariableListSlot(rak::ptr_fn(&apply_view_filter)));
-  variables->insert("view_filter_on",        new utils::VariableListSlot(rak::ptr_fn(&apply_view_filter_on)));
-
-  variables->insert("view_sort",             new utils::VariableListSlot(rak::ptr_fn(&apply_view_sort)));
-  variables->insert("view_sort_new",         new utils::VariableListSlot(rak::ptr_fn(&apply_view_sort_new)));
-  variables->insert("view_sort_current",     new utils::VariableListSlot(rak::ptr_fn(&apply_view_sort_current)));
-
-  variables->insert("key_layout",            new utils::VariableAny(std::string("qwerty")));
-
-  variables->insert("schedule",              new utils::VariableListSlot(rak::ptr_fn(&apply_schedule)));
+  ADD_COMMAND_SLOT("schedule",       call_list, rak::ptr_fn(&apply_schedule));
+//   variables->insert("schedule",              new utils::VariableListSlot(rak::ptr_fn(&apply_schedule)));
   variables->insert("schedule_remove",       new utils::VariableStringSlot(NULL, rak::mem_fn<const std::string&>(control->command_scheduler(), &CommandScheduler::erase)));
 
   variables->insert("download_scheduler",    new utils::VariableVoidSlot(rak::mem_fn(control->scheduler(), &core::Scheduler::update)));
@@ -576,9 +463,9 @@ initialize_variables() {
                                                                           rak::mem_fn(torrent::chunk_manager(), &torrent::ChunkManager::set_preload_required_rate),
                                                                           0, (1 << 10)));
 
-  add_variable_value("get_max_file_size",        "set_max_file_size", "max_file_size", -1);
-  add_variable_value("get_split_file_size",      "set_split_file_size", "split_file_size", -1);
-  variables->insert("split_suffix",          new utils::VariableAny(".part"));
+  ADD_VARIABLE_VALUE("max_file_size", -1);
+  ADD_VARIABLE_VALUE("split_file_size", -1);
+  ADD_VARIABLE_STRING("split_suffix", ".part");
 
   variables->insert("port_range",            new utils::VariableStringSlot(NULL, rak::ptr_fn(&apply_port_range)));
 
@@ -600,23 +487,20 @@ initialize_variables() {
   variables->insert("remove_untied",         new utils::VariableVoidSlot(rak::ptr_fn(&apply_remove_untied)));
 
   variables->insert("close_low_diskspace",   new utils::VariableValueSlot(rak::value_fn(int64_t()), rak::ptr_fn(&apply_close_low_diskspace)));
-  variables->insert("stop_on_ratio",         new utils::VariableListSlot(rak::ptr_fn(&apply_stop_on_ratio)));
-
-  variables->insert("on_insert",             new utils::VariableListSlot(rak::bind_ptr_fn(&apply_on_state_change, &control->core()->download_list()->slot_map_insert())));
-  variables->insert("on_erase",              new utils::VariableListSlot(rak::bind_ptr_fn(&apply_on_state_change, &control->core()->download_list()->slot_map_erase())));
-  variables->insert("on_open",               new utils::VariableListSlot(rak::bind_ptr_fn(&apply_on_state_change, &control->core()->download_list()->slot_map_open())));
-  variables->insert("on_close",              new utils::VariableListSlot(rak::bind_ptr_fn(&apply_on_state_change, &control->core()->download_list()->slot_map_close())));
-  variables->insert("on_start",              new utils::VariableListSlot(rak::bind_ptr_fn(&apply_on_state_change, &control->core()->download_list()->slot_map_start())));
-  variables->insert("on_stop",               new utils::VariableListSlot(rak::bind_ptr_fn(&apply_on_state_change, &control->core()->download_list()->slot_map_stop())));
-  variables->insert("on_hash_queued",        new utils::VariableListSlot(rak::bind_ptr_fn(&apply_on_state_change, &control->core()->download_list()->slot_map_hash_queued())));
-  variables->insert("on_hash_removed",       new utils::VariableListSlot(rak::bind_ptr_fn(&apply_on_state_change, &control->core()->download_list()->slot_map_hash_removed())));
-  variables->insert("on_hash_done",          new utils::VariableListSlot(rak::bind_ptr_fn(&apply_on_state_change, &control->core()->download_list()->slot_map_hash_done())));
-  variables->insert("on_finished",           new utils::VariableListSlot(rak::bind_ptr_fn(&apply_on_state_change, &control->core()->download_list()->slot_map_finished())));
+  ADD_COMMAND_SLOT("stop_on_ratio",       call_list, rak::ptr_fn(&apply_stop_on_ratio));
+//   variables->insert("stop_on_ratio",         new utils::VariableListSlot(rak::ptr_fn(&apply_stop_on_ratio)));
 
   variables->insert("enable_trackers",       new utils::VariableStringSlot(NULL, rak::ptr_fn(&apply_enable_trackers)));
   variables->insert("encoding_list",         new utils::VariableStringSlot(NULL, rak::ptr_fn(&apply_encoding_list)));
 
-  variables->insert("encryption",            new utils::VariableListSlot(rak::ptr_fn(&apply_encryption)));
+  ADD_COMMAND_SLOT("encryption",       call_list, rak::ptr_fn(&apply_encryption));
+//   variables->insert("encryption",            new utils::VariableListSlot(rak::ptr_fn(&apply_encryption)));
+
+  // Move to command_ui.cc.
+  variables->insert("print",                 new utils::VariableStringSlot(NULL, rak::mem_fn(control->core(), &core::Manager::push_log)));
+
+  variables->insert("view_add",              new utils::VariableStringSlot(NULL, rak::mem_fn(control->view_manager(), &core::ViewManager::insert_throw)));
+  ADD_VARIABLE_STRING("key_layout", "qwerty");
 }
 
 template <typename Target, typename GetFunc, typename SetFunc>

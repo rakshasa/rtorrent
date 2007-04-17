@@ -169,7 +169,9 @@ XmlRpc::XmlRpc() : m_env(new xmlrpc_env) {
   xmlrpc_registry_add_method_w_doc(m_env, m_registry, NULL, "call.set_upload_rate", &xmlrpc_call_command, new server_info_t("upload_rate", &m_slotSet), "i:i", "");
   xmlrpc_registry_add_method_w_doc(m_env, m_registry, NULL, "call.get_upload_rate", &xmlrpc_call_command, new server_info_t("upload_rate", &m_slotGet), "i:", "");
 
-  xmlrpc_registry_add_method_w_doc(m_env, m_registry, NULL, "call.get_directory",   &xmlrpc_call_command, new server_info_t("directory", &m_slotGet), "s:", "");
+  xmlrpc_registry_add_method_w_doc(m_env, m_registry, NULL, "call.get_directory",   &xmlrpc_call_command, new server_info_t("get_directory", &m_slotGet), "s:", "");
+
+  xmlrpc_registry_add_method_w_doc(m_env, m_registry, NULL, "call.print",           &xmlrpc_call_command, new server_info_t("print", &m_slotSet), "i:s", "");
 }
 
 XmlRpc::~XmlRpc() {

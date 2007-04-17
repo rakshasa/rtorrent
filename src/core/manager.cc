@@ -85,13 +85,13 @@ connect_signal_storage_log(Download* d, torrent::Download::slot_string_type s) {
 // Need a proper logging class for this.
 static void
 connect_signal_tracker_dump(Download* d, torrent::Download::slot_dump_type s) {
-  if (!control->variable()->get_string("tracker_dump").empty())
+  if (!control->variable()->get_string("get_tracker_dump").empty())
     d->download()->signal_tracker_dump(s);
 }
 
 static void
 receive_tracker_dump(const std::string& url, const char* data, size_t size) {
-  const std::string& filename = control->variable()->get_string("tracker_dump");
+  const std::string& filename = control->variable()->get_string("get_tracker_dump");
 
   if (filename.empty())
     return;
