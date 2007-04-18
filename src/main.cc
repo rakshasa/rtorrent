@@ -71,6 +71,7 @@
 
 void do_panic(int signum);
 void print_help();
+void initialize_commands();
 
 int
 parse_options(Control* c, int argc, char** argv) {
@@ -163,10 +164,7 @@ main(int argc, char** argv) {
 
     // Initialize option handlers after libtorrent to ensure
     // torrent::ConnectionManager* are valid etc.
-    initialize_variables();
-    initialize_download_variables();
-    initialize_command_events();
-    initialize_command_ui();
+    initialize_commands();
 
     control->variable()->process_multiple
       (

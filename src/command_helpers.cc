@@ -34,49 +34,44 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef RTORRENT_UTILS_COMMAND_SLOT_H
-#define RTORRENT_UTILS_COMMAND_SLOT_H
+#include "config.h"
 
-#include <string>
-#include <limits>
-#include <inttypes.h>
-#include <torrent/object.h>
-#include <rak/functional_fun.h>
+#include <torrent/exceptions.h>
 
-#include "variable.h"
+#include "utils/command_slot.h"
+#include "utils/command_variable.h"
 
-namespace utils {
+#include "globals.h"
+#include "control.h"
+#include "command_helpers.h"
 
-// The CommandSlot class uses union instead of creating multiple
-// derived classes so that it is possible to create an array
-// containing different slot types.
+utils::CommandSlot      commandSlots[COMMAND_SLOTS_SIZE];
+utils::CommandSlot*     commandSlotsItr = commandSlots;
+utils::CommandVariable  commandVariables[COMMAND_VARIABLES_SIZE];
+utils::CommandVariable* commandVariablesItr = commandVariables;
 
-class CommandSlot : public Variable {
-public:
-  // For now, only return void.
-  typedef rak::function1<void, const torrent::Object&> slot_type;
+void
+initialize_commands() {
+  initialize_variables();
+  initialize_download_variables();
+  initialize_command_events();
+  initialize_command_ui();
 
-//   template <typename SlotSet>
-//   CommandSlot(SlotSet* slotSet) {
-//     m_slotSet.set(slotSet);
-//   }
-  
-  CommandSlot() {}
-
-  CommandSlot(slot_type::base_type* s) {
-    m_slot.set(s);
-  }
-
-  void                set_slot(slot_type::base_type* s) { m_slot.set(s); }
-
-  static const torrent::Object& call_list(Variable* rawVariable, const torrent::Object& args);
-
-//   static const torrent::Object& get_list(Variable* rawVariable, const torrent::Object& args);
-
-private:
-  slot_type           m_slot;
-};
-
+  if (commandSlotsItr != commandSlots + COMMAND_SLOTS_SIZE ||
+      commandVariablesItr != commandVariables + COMMAND_VARIABLES_SIZE)
+    throw torrent::internal_error("initialize_commands() static command array size mismatch.");
 }
 
-#endif
+void
+add_variable(const char* getKey, const char* setKey, const char* defaultSetKey,
+             utils::VariableMap::generic_slot getSlot, utils::VariableMap::generic_slot setSlot,
+             const torrent::Object& defaultObject) {
+  utils::CommandVariable* variable = commandVariablesItr++;
+  variable->set_variable(defaultObject);
+
+  control->variable()->insert(getKey, variable, getSlot, utils::VariableMap::flag_dont_delete);
+  control->variable()->insert(setKey, variable, setSlot, utils::VariableMap::flag_dont_delete);
+
+  if (defaultSetKey)
+    control->variable()->insert(defaultSetKey, variable, setSlot, utils::VariableMap::flag_dont_delete);
+}

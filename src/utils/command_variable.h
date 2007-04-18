@@ -50,6 +50,9 @@ class CommandVariable : public Variable {
 public:
   CommandVariable(const torrent::Object& v = torrent::Object()) : m_variable(v) {}
   
+  const torrent::Object& variable() const                         { return m_variable; }
+  void                   set_variable(const torrent::Object& var) { m_variable = var; }
+
   static const torrent::Object& set_bool(Variable* rawVariable, const torrent::Object& args);
   static const torrent::Object& get_bool(Variable* rawVariable, const torrent::Object& args);
 

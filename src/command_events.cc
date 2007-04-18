@@ -37,15 +37,17 @@
 #include "config.h"
 
 #include <sigc++/bind.h>
+#include <torrent/rate.h>
 
+#include "core/download.h"
 #include "core/download_list.h"
 #include "core/manager.h"
 #include "utils/command_slot.h"
 #include "utils/parse.h"
-#include "utils/variable_map.h"
 
 #include "globals.h"
 #include "control.h"
+#include "command_helpers.h"
 
 void
 apply_on_state_change(core::DownloadList::slot_map* slotMap, const torrent::Object& rawArgs) {
@@ -66,8 +68,39 @@ apply_on_state_change(core::DownloadList::slot_map* slotMap, const torrent::Obje
                                  utils::convert_list_to_command(++args.begin(), args.end()));
 }
 
-#define ADD_COMMAND_SLOT(key, function, slot) \
-variables->insert(key, new utils::CommandSlot(slot), &utils::CommandSlot::function);
+void
+apply_stop_on_ratio(const torrent::Object& rawArgs) {
+  const torrent::Object::list_type& args = rawArgs.as_list();
+
+  if (args.empty())
+    throw torrent::input_error("Too few arguments.");
+
+  torrent::Object::list_type::const_iterator argItr = args.begin();
+
+  // first argument:  minimum ratio to reach
+  // second argument: minimum upload amount to reach [optional]
+  // third argument:  maximum ratio to reach [optional]
+  int64_t minRatio  = utils::convert_to_value(*argItr++);
+  int64_t minUpload = argItr != args.end() ? utils::convert_to_value(*argItr++) : 0;
+  int64_t maxRatio  = argItr != args.end() ? utils::convert_to_value(*argItr++) : 0;
+
+  core::DownloadList* downloadList = control->core()->download_list();
+  core::Manager::DListItr itr = downloadList->begin();
+
+  while ((itr = std::find_if(itr, downloadList->end(), std::mem_fun(&core::Download::is_seeding)))
+         != downloadList->end()) {
+    int64_t totalDone   = (*itr)->download()->bytes_done();
+    int64_t totalUpload = (*itr)->download()->up_rate()->total();
+
+    if ((totalUpload >= minUpload && totalUpload * 100 >= totalDone * minRatio) ||
+        (maxRatio > 0 && totalUpload * 100 > totalDone * maxRatio)) {
+      downloadList->stop_try(*itr);
+      (*itr)->set("ignore_commands", (int64_t)1);
+    }
+
+    ++itr;
+  }
+}
 
 void
 initialize_command_events() {
@@ -84,4 +117,6 @@ initialize_command_events() {
   ADD_COMMAND_SLOT("on_hash_removed", call_list, rak::bind_ptr_fn(&apply_on_state_change, &downloadList->slot_map_hash_removed()));
   ADD_COMMAND_SLOT("on_hash_done",    call_list, rak::bind_ptr_fn(&apply_on_state_change, &downloadList->slot_map_hash_done()));
   ADD_COMMAND_SLOT("on_finished",     call_list, rak::bind_ptr_fn(&apply_on_state_change, &downloadList->slot_map_finished()));
+
+  ADD_COMMAND_SLOT("stop_on_ratio",   call_list, rak::ptr_fn(&apply_stop_on_ratio));
 }

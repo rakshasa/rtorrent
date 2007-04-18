@@ -44,10 +44,10 @@
 #include "core/view_manager.h"
 #include "utils/command_slot.h"
 #include "utils/parse.h"
-#include "utils/variable_map.h"
 
 #include "globals.h"
 #include "control.h"
+#include "command_helpers.h"
 
 typedef void (core::ViewManager::*view_filter_slot)(const std::string&, const core::ViewManager::sort_args&);
 
@@ -90,9 +90,6 @@ apply_view_sort(const torrent::Object& rawArgs) {
 
   control->view_manager()->sort(name, value);
 }
-
-#define ADD_COMMAND_SLOT(key, function, slot) \
-variables->insert(key, new utils::CommandSlot(slot), &utils::CommandSlot::function);
 
 void
 initialize_command_ui() {

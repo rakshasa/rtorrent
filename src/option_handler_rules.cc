@@ -78,6 +78,7 @@
 #include "control.h"
 #include "option_handler_rules.h"
 #include "command_scheduler.h"
+#include "command_helpers.h"
 
 namespace core {
   extern void
@@ -176,38 +177,6 @@ apply_close_low_diskspace(int64_t arg) {
 
       (*itr)->set_hash_failed(true);
       (*itr)->set_message(std::string("Low diskspace."));
-    }
-
-    ++itr;
-  }
-}
-
-void
-apply_stop_on_ratio(const torrent::Object& rawArgs) {
-  const torrent::Object::list_type& args = rawArgs.as_list();
-
-  if (args.empty())
-    throw torrent::input_error("Too few arguments.");
-
-  torrent::Object::list_type::const_iterator argItr = args.begin();
-
-  // first argument:  minimum ratio to reach
-  // second argument: minimum upload amount to reach [optional]
-  // third argument:  maximum ratio to reach [optional]
-  int64_t minRatio  = utils::convert_to_value(*argItr++);
-  int64_t minUpload = argItr != args.end() ? utils::convert_to_value(*argItr++) : 0;
-  int64_t maxRatio  = argItr != args.end() ? utils::convert_to_value(*argItr++) : 0;
-
-  core::Manager::DListItr itr = control->core()->download_list()->begin();
-
-  while ((itr = std::find_if(itr, control->core()->download_list()->end(), std::mem_fun(&core::Download::is_seeding))) != control->core()->download_list()->end()) {
-    int64_t totalUpload = (*itr)->download()->up_rate()->total();
-    int64_t totalDone = (*itr)->download()->bytes_done();
-
-    if ((totalUpload >= minUpload && totalUpload * 100 >= totalDone * minRatio) ||
-        (maxRatio > 0 && totalUpload * 100 > totalDone * maxRatio)) {
-      control->core()->download_list()->stop_try(*itr);
-      (*itr)->set("ignore_commands", (int64_t)1);
     }
 
     ++itr;
@@ -338,31 +307,6 @@ apply_schedule(const torrent::Object& rawArgs) {
 }
 
 void
-add_variable(const char* getKey, const char* setKey, const char* defaultSetKey,
-             utils::VariableMap::generic_slot getSlot, utils::VariableMap::generic_slot setSlot,
-             const torrent::Object& defaultObject) {
-  utils::Variable* variable = new utils::CommandVariable(defaultObject);
-
-  control->variable()->insert(getKey, variable, getSlot);
-  control->variable()->insert(setKey, variable, setSlot, utils::VariableMap::flag_dont_delete);
-
-  if (defaultSetKey)
-    control->variable()->insert(defaultSetKey, variable, setSlot, utils::VariableMap::flag_dont_delete);
-}
-
-#define ADD_VARIABLE_BOOL(key, defaultValue) \
-add_variable("get_" key, "set_" key, key, &utils::CommandVariable::get_bool, &utils::CommandVariable::set_bool, (int64_t)defaultValue);
-
-#define ADD_VARIABLE_VALUE(key, defaultValue) \
-add_variable("get_" key, "set_" key, key, &utils::CommandVariable::get_value, &utils::CommandVariable::set_value, (int64_t)defaultValue);
-
-#define ADD_VARIABLE_STRING(key, defaultValue) \
-add_variable("get_" key, "set_" key, key, &utils::CommandVariable::get_string, &utils::CommandVariable::set_string, std::string(defaultValue));
-
-#define ADD_COMMAND_SLOT(key, function, slot) \
-variables->insert(key, new utils::CommandSlot(slot), &utils::CommandSlot::function);
-
-void
 initialize_variables() {
   utils::VariableMap* variables = control->variable();
 
@@ -430,7 +374,6 @@ initialize_variables() {
   variables->insert("try_import",            new utils::VariableStringSlot(NULL, rak::ptr_fn(&apply_try_import)));
 
   ADD_COMMAND_SLOT("schedule",       call_list, rak::ptr_fn(&apply_schedule));
-//   variables->insert("schedule",              new utils::VariableListSlot(rak::ptr_fn(&apply_schedule)));
   variables->insert("schedule_remove",       new utils::VariableStringSlot(NULL, rak::mem_fn<const std::string&>(control->command_scheduler(), &CommandScheduler::erase)));
 
   variables->insert("download_scheduler",    new utils::VariableVoidSlot(rak::mem_fn(control->scheduler(), &core::Scheduler::update)));
@@ -487,14 +430,11 @@ initialize_variables() {
   variables->insert("remove_untied",         new utils::VariableVoidSlot(rak::ptr_fn(&apply_remove_untied)));
 
   variables->insert("close_low_diskspace",   new utils::VariableValueSlot(rak::value_fn(int64_t()), rak::ptr_fn(&apply_close_low_diskspace)));
-  ADD_COMMAND_SLOT("stop_on_ratio",       call_list, rak::ptr_fn(&apply_stop_on_ratio));
-//   variables->insert("stop_on_ratio",         new utils::VariableListSlot(rak::ptr_fn(&apply_stop_on_ratio)));
 
   variables->insert("enable_trackers",       new utils::VariableStringSlot(NULL, rak::ptr_fn(&apply_enable_trackers)));
   variables->insert("encoding_list",         new utils::VariableStringSlot(NULL, rak::ptr_fn(&apply_encoding_list)));
 
   ADD_COMMAND_SLOT("encryption",       call_list, rak::ptr_fn(&apply_encryption));
-//   variables->insert("encryption",            new utils::VariableListSlot(rak::ptr_fn(&apply_encryption)));
 
   // Move to command_ui.cc.
   variables->insert("print",                 new utils::VariableStringSlot(NULL, rak::mem_fn(control->core(), &core::Manager::push_log)));
