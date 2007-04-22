@@ -38,8 +38,7 @@
 
 #ifdef HAVE_XMLRPC_C
 #include <stdlib.h>
-#include <xmlrpc.h>
-#include <xmlrpc_server.h>
+#include <xmlrpc-c/server.h>
 #endif
 
 #include <torrent/object.h>

@@ -77,7 +77,7 @@ AC_DEFUN([TORRENT_WITHOUT_EPOLL], [
 
 AC_DEFUN([TORRENT_WITH_KQUEUE], [
   AC_ARG_WITH(kqueue,
-    [  --with-kqueue                  enable kqueue. [[default=no]]],
+    [  --with-kqueue           enable kqueue. [[default=no]]],
     [
         if test "$withval" = "yes"; then
             AC_DEFINE(USE_KQUEUE, 1, Enable kqueue.)
@@ -354,7 +354,7 @@ AC_DEFUN([TORRENT_WITH_XMLRPC_C], [
         LIBS="$LIBS `xmlrpc-c-config --libs server-util` -lxmlrpc_server"
 
         AC_TRY_LINK(
-        [ #include <xmlrpc_server.h>
+        [ #include <xmlrpc-c/server.h>
         ],[ xmlrpc_registry_new(NULL); ],
         [
           AC_MSG_RESULT(ok)
