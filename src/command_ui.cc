@@ -36,6 +36,7 @@
 
 #include "config.h"
 
+#include <rak/functional.h>
 #include <rak/functional_fun.h>
 #include <sigc++/bind.h>
 
@@ -43,6 +44,7 @@
 #include "core/manager.h"
 #include "core/view_manager.h"
 #include "utils/command_slot.h"
+#include "utils/command_variable.h"
 #include "utils/parse.h"
 
 #include "globals.h"
@@ -51,7 +53,7 @@
 
 typedef void (core::ViewManager::*view_filter_slot)(const std::string&, const core::ViewManager::sort_args&);
 
-void
+torrent::Object
 apply_view_filter(view_filter_slot viewFilterSlot, const torrent::Object& rawArgs) {
   const torrent::Object::list_type& args = rawArgs.as_list();
 
@@ -69,9 +71,11 @@ apply_view_filter(view_filter_slot viewFilterSlot, const torrent::Object& rawArg
     filterArgs.push_back(itr->as_string());
 
   (control->view_manager()->*viewFilterSlot)(name, filterArgs);
+
+  return torrent::Object();
 }
 
-void
+torrent::Object
 apply_view_sort(const torrent::Object& rawArgs) {
   const torrent::Object::list_type& args = rawArgs.as_list();
 
@@ -89,6 +93,8 @@ apply_view_sort(const torrent::Object& rawArgs) {
     value = utils::convert_to_value(args.back());
 
   control->view_manager()->sort(name, value);
+
+  return torrent::Object();
 }
 
 void
@@ -96,10 +102,18 @@ initialize_command_ui() {
   utils::VariableMap* variables = control->variable();
 //   core::DownloadList* downloadList = control->core()->download_list();
 
+  ADD_VARIABLE_STRING("key_layout", "qwerty");
+
+  ADD_COMMAND_SLOT("view_add",          call_string, utils::object_string_fn(rak::make_mem_fun(control->view_manager(), &core::ViewManager::insert_throw)));
+
   ADD_COMMAND_SLOT("view_filter",       call_list, rak::bind_ptr_fn(&apply_view_filter, &core::ViewManager::set_filter));
   ADD_COMMAND_SLOT("view_filter_on",    call_list, rak::bind_ptr_fn(&apply_view_filter, &core::ViewManager::set_filter_on));
 
   ADD_COMMAND_SLOT("view_sort",         call_list, rak::ptr_fn(&apply_view_sort));
   ADD_COMMAND_SLOT("view_sort_new",     call_list, rak::bind_ptr_fn(&apply_view_filter, &core::ViewManager::set_sort_new));
   ADD_COMMAND_SLOT("view_sort_current", call_list, rak::bind_ptr_fn(&apply_view_filter, &core::ViewManager::set_sort_current));
+
+//   ADD_COMMAND_SLOT("view_sort_current", call_list, rak::bind_ptr_fn(&apply_view_filter, &core::ViewManager::set_sort_current));
+
+  ADD_COMMAND_SLOT("print",             call_string, utils::object_string_fn(rak::make_mem_fun(control->core(), &core::Manager::push_log)));
 }

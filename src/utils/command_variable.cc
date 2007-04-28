@@ -40,7 +40,10 @@
 
 namespace utils {
 
-const torrent::Object&
+extern CommandVariable  commandVariables[10];
+extern CommandVariable* commandVariablesItr;
+
+const torrent::Object
 CommandVariable::set_bool(Variable* rawVariable, const torrent::Object& rawArgs) {
   CommandVariable* variable = static_cast<CommandVariable*>(rawVariable);
 
@@ -71,14 +74,14 @@ CommandVariable::set_bool(Variable* rawVariable, const torrent::Object& rawArgs)
   return variable->m_variable;
 }
 
-const torrent::Object&
+const torrent::Object
 CommandVariable::get_bool(Variable* rawVariable, const torrent::Object& args) {
   CommandVariable* variable = static_cast<CommandVariable*>(rawVariable);
 
   return variable->m_variable;
 }
 
-const torrent::Object&
+const torrent::Object
 CommandVariable::set_value(Variable* rawVariable, const torrent::Object& rawArgs) {
   CommandVariable* variable = static_cast<CommandVariable*>(rawVariable);
 
@@ -107,14 +110,14 @@ CommandVariable::set_value(Variable* rawVariable, const torrent::Object& rawArgs
   return variable->m_variable;
 }
 
-const torrent::Object&
+const torrent::Object
 CommandVariable::get_value(Variable* rawVariable, const torrent::Object& args) {
   CommandVariable* variable = static_cast<CommandVariable*>(rawVariable);
 
   return variable->m_variable;
 }
 
-const torrent::Object&
+const torrent::Object
 CommandVariable::set_string(Variable* rawVariable, const torrent::Object& rawArgs) {
   CommandVariable* variable = static_cast<CommandVariable*>(rawVariable);
 
@@ -140,7 +143,7 @@ CommandVariable::set_string(Variable* rawVariable, const torrent::Object& rawArg
   return variable->m_variable;
 }
 
-const torrent::Object&
+const torrent::Object
 CommandVariable::get_string(Variable* rawVariable, const torrent::Object& args) {
   CommandVariable* variable = static_cast<CommandVariable*>(rawVariable);
 

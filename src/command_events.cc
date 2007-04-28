@@ -36,6 +36,9 @@
 
 #include "config.h"
 
+#include <functional>
+#include <rak/file_stat.h>
+#include <rak/path.h>
 #include <sigc++/bind.h>
 #include <torrent/rate.h>
 
@@ -49,7 +52,7 @@
 #include "control.h"
 #include "command_helpers.h"
 
-void
+torrent::Object
 apply_on_state_change(core::DownloadList::slot_map* slotMap, const torrent::Object& rawArgs) {
   const torrent::Object::list_type& args = rawArgs.as_list();
 
@@ -66,9 +69,11 @@ apply_on_state_change(core::DownloadList::slot_map* slotMap, const torrent::Obje
   else
     (*slotMap)[key] = sigc::bind(sigc::mem_fun(control->download_variables(), &utils::VariableMap::process_d_std_single),
                                  utils::convert_list_to_command(++args.begin(), args.end()));
+
+  return torrent::Object();
 }
 
-void
+torrent::Object
 apply_stop_on_ratio(const torrent::Object& rawArgs) {
   const torrent::Object::list_type& args = rawArgs.as_list();
 
@@ -100,6 +105,68 @@ apply_stop_on_ratio(const torrent::Object& rawArgs) {
 
     ++itr;
   }
+
+  return torrent::Object();
+}
+
+torrent::Object
+apply_start_tied() {
+  for (core::DownloadList::iterator itr = control->core()->download_list()->begin(); itr != control->core()->download_list()->end(); ++itr) {
+    if ((*itr)->get_value("state") == 1)
+      continue;
+
+    rak::file_stat fs;
+    const std::string& tiedToFile = (*itr)->get_string("tied_to_file");
+
+    if (!tiedToFile.empty() && fs.update(rak::path_expand(tiedToFile)))
+      control->core()->download_list()->start_try(*itr);
+  }
+
+  return torrent::Object();
+}
+
+torrent::Object
+apply_stop_untied() {
+  for (core::DownloadList::iterator itr = control->core()->download_list()->begin(); itr != control->core()->download_list()->end(); ++itr) {
+    if ((*itr)->get_value("state") == 0)
+      continue;
+
+    rak::file_stat fs;
+    const std::string& tiedToFile = (*itr)->get_string("tied_to_file");
+
+    if (!tiedToFile.empty() && !fs.update(rak::path_expand(tiedToFile)))
+      control->core()->download_list()->stop_try(*itr);
+  }
+
+  return torrent::Object();
+}
+
+torrent::Object
+apply_close_untied() {
+  for (core::DownloadList::iterator itr = control->core()->download_list()->begin(); itr != control->core()->download_list()->end(); ++itr) {
+    rak::file_stat fs;
+    const std::string& tiedToFile = (*itr)->get_string("tied_to_file");
+
+    if (!tiedToFile.empty() && !fs.update(rak::path_expand(tiedToFile)) && control->core()->download_list()->stop_try(*itr))
+      control->core()->download_list()->close(*itr);
+  }
+
+  return torrent::Object();
+}
+
+torrent::Object
+apply_remove_untied() {
+  for (core::DownloadList::iterator itr = control->core()->download_list()->begin(); itr != control->core()->download_list()->end(); ) {
+    rak::file_stat fs;
+    const std::string& tiedToFile = (*itr)->get_string("tied_to_file");
+
+    if (!tiedToFile.empty() && !fs.update(rak::path_expand(tiedToFile)) && control->core()->download_list()->stop_try(*itr))
+      itr = control->core()->download_list()->erase(itr);
+    else
+      ++itr;
+  }
+
+  return torrent::Object();
 }
 
 void
@@ -119,4 +186,9 @@ initialize_command_events() {
   ADD_COMMAND_SLOT("on_finished",     call_list, rak::bind_ptr_fn(&apply_on_state_change, &downloadList->slot_map_finished()));
 
   ADD_COMMAND_SLOT("stop_on_ratio",   call_list, rak::ptr_fn(&apply_stop_on_ratio));
+
+  ADD_COMMAND_SLOT("start_tied",      call_string, utils::object_fn(&apply_start_tied));
+  ADD_COMMAND_SLOT("stop_untied",     call_string, utils::object_fn(&apply_stop_untied));
+  ADD_COMMAND_SLOT("close_untied",    call_string, utils::object_fn(&apply_close_untied));
+  ADD_COMMAND_SLOT("remove_untied",   call_string, utils::object_fn(&apply_remove_untied));
 }

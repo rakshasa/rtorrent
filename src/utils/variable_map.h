@@ -63,8 +63,8 @@ struct variable_map_data_type {
   // Some commands will need to share data, like get/set a variable. So
   // instead of using a single virtual member function, each command
   // will register a member function pointer to be used instead.
-  typedef const torrent::Object& (*generic_slot)(Variable*, const torrent::Object&);
-  typedef const torrent::Object& (*download_slot)(Variable*, core::Download*, const torrent::Object&);
+  typedef const torrent::Object (*generic_slot)(Variable*, const torrent::Object&);
+  typedef const torrent::Object (*download_slot)(Variable*, core::Download*, const torrent::Object&);
 
   variable_map_data_type(Variable* variable, generic_slot genericSlot, download_slot downloadSlot, int flags) :
     m_variable(variable), m_genericSlot(genericSlot), m_downloadSlot(downloadSlot), m_flags(flags) {}
@@ -108,11 +108,11 @@ public:
 
   // Consider uninlining the helper functions.
 
-  const mapped_type&  get(key_type key) const;
-  const mapped_type&  get_d(core::Download* download, key_type key) const;
+  const mapped_type  get(key_type key) const;
+  const mapped_type  get_d(core::Download* download, key_type key) const;
 
-  const std::string&  get_string(key_type key) const                             { return get(key).as_string(); }
-  const std::string&  get_d_string(core::Download* download, key_type key) const { return get_d(download, key).as_string(); }
+  const std::string  get_string(key_type key) const                             { return get(key).as_string(); }
+  const std::string  get_d_string(core::Download* download, key_type key) const { return get_d(download, key).as_string(); }
 
   mapped_value_type   get_value(key_type key) const                              { return get(key).as_value(); }
   mapped_value_type   get_d_value(core::Download* download, key_type key) const  { return get_d(download, key).as_value(); }
@@ -143,10 +143,10 @@ public:
 
   // The new API, which is atm just a wrapper over the old and
   // requires seperate calls to get and set. These will be merged.
-  const mapped_type&  call_command(key_type key, const mapped_type& arg);
+  const mapped_type   call_command(key_type key, const mapped_type& arg);
 
-  const mapped_type&  call_command_get(key_type key, const mapped_type& arg);
-  const mapped_type&  call_command_set(key_type key, const mapped_type& arg);
+  const mapped_type   call_command_get(key_type key, const mapped_type& arg);
+  const mapped_type   call_command_set(key_type key, const mapped_type& arg);
 
 private:
   VariableMap(const VariableMap&);

@@ -207,9 +207,9 @@ Download::receive_chunk_failed(__UNUSED uint32_t idx) {
 }
 
 int64_t            Download::get_value(const char* key)                            { return control->download_variables()->get_d_value(this, key); }
-const std::string& Download::get_string(const char* key)                           { return control->download_variables()->get_d_string(this, key); }
+const std::string Download::get_string(const char* key)                           { return control->download_variables()->get_d_string(this, key); }
 int64_t            Download::get_std_value(const std::string& key)                 { return control->download_variables()->get_d_value(this, key.c_str()); }
-const std::string& Download::get_std_string(const std::string& key)                { return control->download_variables()->get_d_string(this, key.c_str()); }
+const std::string Download::get_std_string(const std::string& key)                { return control->download_variables()->get_d_string(this, key.c_str()); }
 void               Download::set(const char* key, const torrent::Object& value)    { return control->download_variables()->set_d(this, key, value); }
 void               Download::set_value(const char* key, int64_t value)             { return control->download_variables()->set_d_value(this, key, value); }
 void               Download::set_string(const char* key, const std::string& value) { return control->download_variables()->set_d_string(this, key, value); }

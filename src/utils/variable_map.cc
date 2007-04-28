@@ -71,7 +71,7 @@ VariableMap::insert(key_type key, Variable* variable, generic_slot genericSlot, 
   base_type::insert(itr, value_type(key, variable_map_data_type(variable, genericSlot, NULL, flags)));
 }
 
-const VariableMap::mapped_type&
+const VariableMap::mapped_type
 VariableMap::get(key_type key) const {
   const_iterator itr = base_type::find(key);
 
@@ -84,7 +84,7 @@ VariableMap::get(key_type key) const {
   return itr->second.m_variable->get();
 }
 
-const VariableMap::mapped_type&
+const VariableMap::mapped_type
 VariableMap::get_d(core::Download* download, key_type key) const {
   const_iterator itr = base_type::find(key);
 
@@ -266,7 +266,7 @@ VariableMap::process_file(key_type path) {
   return true;
 }
 
-const VariableMap::mapped_type&
+const VariableMap::mapped_type
 VariableMap::call_command(key_type key, const mapped_type& arg) {
   const_iterator itr = base_type::find(key);
 
@@ -279,7 +279,7 @@ VariableMap::call_command(key_type key, const mapped_type& arg) {
   return itr->second.m_genericSlot(itr->second.m_variable, arg);
 }
 
-const VariableMap::mapped_type&
+const VariableMap::mapped_type
 VariableMap::call_command_get(key_type key, const mapped_type& arg) {
   const_iterator itr = base_type::find(key);
 
@@ -292,7 +292,7 @@ VariableMap::call_command_get(key_type key, const mapped_type& arg) {
   return get(key);
 }
 
-const VariableMap::mapped_type&
+const VariableMap::mapped_type
 VariableMap::call_command_set(key_type key, const mapped_type& arg) {
   const_iterator itr = base_type::find(key);
 

@@ -39,9 +39,5 @@
 
 class Control;
 
-void initialize_variables();
-void initialize_download_variables();
-void initialize_command_events();
-void initialize_command_ui();
 
 #endif

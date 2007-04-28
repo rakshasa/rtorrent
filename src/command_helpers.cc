@@ -55,6 +55,7 @@ initialize_commands() {
   initialize_variables();
   initialize_download_variables();
   initialize_command_events();
+  initialize_command_network();
   initialize_command_ui();
 
   if (commandSlotsItr != commandSlots + COMMAND_SLOTS_SIZE ||

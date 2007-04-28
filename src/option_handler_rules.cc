@@ -99,73 +99,10 @@ namespace core {
 void apply_hash_read_ahead(int arg) { torrent::set_hash_read_ahead(arg << 20); }
 void apply_hash_interval(int arg)   { torrent::set_hash_interval(arg * 1000); }
 
-// The arg string *must* have been checked with validate_port_range
-// first.
-void
-apply_port_range(const std::string& arg) {
-  int a = 0, b = 0;
-    
-  std::sscanf(arg.c_str(), "%i-%i", &a, &b);
-
-  control->core()->set_port_range(a, b);
-}
-
 void apply_load(const std::string& arg)               { control->core()->try_create_download_expand(arg, false, false, true); }
 void apply_load_verbose(const std::string& arg)       { control->core()->try_create_download_expand(arg, false, true, true); }
 void apply_load_start(const std::string& arg)         { control->core()->try_create_download_expand(arg, true, false, true); }
 void apply_load_start_verbose(const std::string& arg) { control->core()->try_create_download_expand(arg, true, true, true); }
-
-void
-apply_start_tied() {
-  for (core::DownloadList::iterator itr = control->core()->download_list()->begin(); itr != control->core()->download_list()->end(); ++itr) {
-    if ((*itr)->get_value("state") == 1)
-      continue;
-
-    rak::file_stat fs;
-    const std::string& tiedToFile = (*itr)->get_string("tied_to_file");
-
-    if (!tiedToFile.empty() && fs.update(rak::path_expand(tiedToFile)))
-      control->core()->download_list()->start_try(*itr);
-  }
-}
-
-void
-apply_stop_untied() {
-  for (core::DownloadList::iterator itr = control->core()->download_list()->begin(); itr != control->core()->download_list()->end(); ++itr) {
-    if ((*itr)->get_value("state") == 0)
-      continue;
-
-    rak::file_stat fs;
-    const std::string& tiedToFile = (*itr)->get_string("tied_to_file");
-
-    if (!tiedToFile.empty() && !fs.update(rak::path_expand(tiedToFile)))
-      control->core()->download_list()->stop_try(*itr);
-  }
-}
-
-void
-apply_close_untied() {
-  for (core::DownloadList::iterator itr = control->core()->download_list()->begin(); itr != control->core()->download_list()->end(); ++itr) {
-    rak::file_stat fs;
-    const std::string& tiedToFile = (*itr)->get_string("tied_to_file");
-
-    if (!tiedToFile.empty() && !fs.update(rak::path_expand(tiedToFile)) && control->core()->download_list()->stop_try(*itr))
-      control->core()->download_list()->close(*itr);
-  }
-}
-
-void
-apply_remove_untied() {
-  for (core::DownloadList::iterator itr = control->core()->download_list()->begin(); itr != control->core()->download_list()->end(); ) {
-    rak::file_stat fs;
-    const std::string& tiedToFile = (*itr)->get_string("tied_to_file");
-
-    if (!tiedToFile.empty() && !fs.update(rak::path_expand(tiedToFile)) && control->core()->download_list()->stop_try(*itr))
-      itr = control->core()->download_list()->erase(itr);
-    else
-      ++itr;
-  }
-}
 
 void
 apply_close_low_diskspace(int64_t arg) {
@@ -186,36 +123,6 @@ apply_close_low_diskspace(int64_t arg) {
 void
 apply_encoding_list(const std::string& arg) {
   torrent::encoding_list()->push_back(arg);
-}
-
-void
-apply_encryption(const torrent::Object& rawArgs) {
-  const torrent::Object::list_type& args = rawArgs.as_list();
-
-  uint32_t options_mask = torrent::ConnectionManager::encryption_none;
-
-  for (torrent::Object::list_type::const_iterator itr = args.begin(), last = args.end(); itr != last; itr++) {
-    const std::string& opt = itr->as_string();
-
-    if (opt == "none")
-      options_mask = torrent::ConnectionManager::encryption_none;
-    else if (opt == "allow_incoming")
-      options_mask |= torrent::ConnectionManager::encryption_allow_incoming;
-    else if (opt == "try_outgoing")
-      options_mask |= torrent::ConnectionManager::encryption_try_outgoing;
-    else if (opt == "require")
-      options_mask |= torrent::ConnectionManager::encryption_require;
-    else if (opt == "require_RC4" || opt == "require_rc4")
-      options_mask |= torrent::ConnectionManager::encryption_require_RC4;
-    else if (opt == "enable_retry")
-      options_mask |= torrent::ConnectionManager::encryption_enable_retry;
-    else if (opt == "prefer_plaintext")
-      options_mask |= torrent::ConnectionManager::encryption_prefer_plaintext;
-    else
-      throw torrent::input_error("Invalid encryption option '" + opt + "'.");
-  }
-
-  torrent::connection_manager()->set_encryption_options(options_mask);
 }
 
 void
@@ -290,7 +197,7 @@ apply_try_import(const std::string& path) {
     control->core()->push_log("Could not read resource file: " + path);
 }
 
-void
+torrent::Object
 apply_schedule(const torrent::Object& rawArgs) {
   const torrent::Object::list_type& args = rawArgs.as_list();
 
@@ -304,6 +211,8 @@ apply_schedule(const torrent::Object& rawArgs) {
   const std::string& arg3 = (itr++)->as_string();
 
   control->command_scheduler()->parse(arg1, arg2, arg3, utils::convert_list_to_command(itr, args.end()));
+
+  return torrent::Object();
 }
 
 void
@@ -311,9 +220,7 @@ initialize_variables() {
   utils::VariableMap* variables = control->variable();
 
   ADD_VARIABLE_BOOL("check_hash", true);
-  ADD_VARIABLE_BOOL("use_udp_trackers", true);
-  ADD_VARIABLE_BOOL("port_open", true);
-  ADD_VARIABLE_BOOL("port_random", true);
+
   ADD_VARIABLE_BOOL("handshake_log", false);
   ADD_VARIABLE_BOOL("session_lock", true);
   ADD_VARIABLE_BOOL("session_on_completion", true);
@@ -323,9 +230,6 @@ initialize_variables() {
   variables->insert("session",               new utils::VariableStringSlot(rak::mem_fn(control->core()->download_store(), &core::DownloadStore::path),
                                                                            rak::mem_fn(control->core()->download_store(), &core::DownloadStore::set_path)));
   variables->insert("session_save",          new utils::VariableVoidSlot(rak::mem_fn(control->core()->download_list(), &core::DownloadList::session_save)));
-
-  ADD_VARIABLE_STRING("connection_leech", "leech");
-  ADD_VARIABLE_STRING("connection_seed", "seed");
 
   ADD_VARIABLE_STRING("directory", "./");
 
@@ -343,16 +247,8 @@ initialize_variables() {
   variables->insert("fast_cgi",              new utils::VariableStringSlot(NULL, rak::ptr_fn(&apply_fast_cgi)));
 
 //   ADD_VARIABLE_VALUE("max_chunks_queued", 0);
-  ADD_VARIABLE_VALUE("min_peers", 40);
-  ADD_VARIABLE_VALUE("max_peers", 100);
-  ADD_VARIABLE_VALUE("min_peers_seed", -1);
-  ADD_VARIABLE_VALUE("max_peers_seed", -1);
-
-  ADD_VARIABLE_VALUE("max_uploads", 15);
-  ADD_VARIABLE_VALUE("max_uploads_div", 1);
   variables->insert("max_uploads_global",    new utils::VariableValueSlot(rak::mem_fn(control->ui(), &ui::Root::max_uploads_global),
                                                                           rak::mem_fn(control->ui(), &ui::Root::set_max_uploads_global)));
-  ADD_VARIABLE_VALUE("max_downloads_div", 0);
   variables->insert("max_downloads_global",  new utils::VariableValueSlot(rak::mem_fn(control->ui(), &ui::Root::max_downloads_global),
                                                                           rak::mem_fn(control->ui(), &ui::Root::set_max_downloads_global)));
 
@@ -360,8 +256,6 @@ initialize_variables() {
                                                                           0, (1 << 10)));
   variables->insert("upload_rate",           new utils::VariableValueSlot(rak::ptr_fn(&torrent::up_throttle), rak::mem_fn(control->ui(), &ui::Root::set_up_throttle_i64),
                                                                           0, (1 << 10)));
-
-  ADD_VARIABLE_VALUE("tracker_numwant", -1);
 
   variables->insert("hash_max_tries",        new utils::VariableValueSlot(rak::ptr_fn(&torrent::hash_max_tries), rak::ptr_fn(&torrent::set_hash_max_tries)));
   variables->insert("max_open_files",        new utils::VariableValueSlot(rak::ptr_fn(&torrent::max_open_files), rak::ptr_fn(&torrent::set_max_open_files)));
@@ -410,8 +304,6 @@ initialize_variables() {
   ADD_VARIABLE_VALUE("split_file_size", -1);
   ADD_VARIABLE_STRING("split_suffix", ".part");
 
-  variables->insert("port_range",            new utils::VariableStringSlot(NULL, rak::ptr_fn(&apply_port_range)));
-
   variables->insert("hash_read_ahead",       new utils::VariableValueSlot(rak::ptr_fn(torrent::hash_read_ahead), rak::ptr_fn(&apply_hash_read_ahead)));
   variables->insert("hash_interval",         new utils::VariableValueSlot(rak::ptr_fn(torrent::hash_interval), rak::ptr_fn(&apply_hash_interval)));
 
@@ -424,23 +316,10 @@ initialize_variables() {
   variables->insert("load_start",            new utils::VariableStringSlot(NULL, rak::ptr_fn(&apply_load_start)));
   variables->insert("load_start_verbose",    new utils::VariableStringSlot(NULL, rak::ptr_fn(&apply_load_start_verbose)));
 
-  variables->insert("start_tied",            new utils::VariableVoidSlot(rak::ptr_fn(&apply_start_tied)));
-  variables->insert("stop_untied",           new utils::VariableVoidSlot(rak::ptr_fn(&apply_stop_untied)));
-  variables->insert("close_untied",          new utils::VariableVoidSlot(rak::ptr_fn(&apply_close_untied)));
-  variables->insert("remove_untied",         new utils::VariableVoidSlot(rak::ptr_fn(&apply_remove_untied)));
-
   variables->insert("close_low_diskspace",   new utils::VariableValueSlot(rak::value_fn(int64_t()), rak::ptr_fn(&apply_close_low_diskspace)));
 
   variables->insert("enable_trackers",       new utils::VariableStringSlot(NULL, rak::ptr_fn(&apply_enable_trackers)));
   variables->insert("encoding_list",         new utils::VariableStringSlot(NULL, rak::ptr_fn(&apply_encoding_list)));
-
-  ADD_COMMAND_SLOT("encryption",       call_list, rak::ptr_fn(&apply_encryption));
-
-  // Move to command_ui.cc.
-  variables->insert("print",                 new utils::VariableStringSlot(NULL, rak::mem_fn(control->core(), &core::Manager::push_log)));
-
-  variables->insert("view_add",              new utils::VariableStringSlot(NULL, rak::mem_fn(control->view_manager(), &core::ViewManager::insert_throw)));
-  ADD_VARIABLE_STRING("key_layout", "qwerty");
 }
 
 template <typename Target, typename GetFunc, typename SetFunc>

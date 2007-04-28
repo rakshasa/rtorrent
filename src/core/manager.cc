@@ -184,9 +184,7 @@ Manager::delete_tied(Download* download) {
 Manager::Manager() :
   m_hashingView(NULL),
 
-  m_pollManager(NULL),
-  m_portFirst(6890),
-  m_portLast(6999) {
+  m_pollManager(NULL) {
 
   m_downloadStore = new DownloadStore();
   m_downloadList = new DownloadList();
@@ -276,25 +274,40 @@ Manager::shutdown(bool force) {
 
 void
 Manager::listen_open() {
+  // This stuff really should be moved outside of manager, make it
+  // part of the init script.
   if (!control->variable()->get_value("get_port_open"))
     return;
 
-  if (m_portFirst > m_portLast)
-    throw torrent::input_error("Invalid port range for listening");
+  int portFirst, portLast;
+  torrent::Object portRange = control->variable()->get("get_port_range");
+
+  if (portRange.is_string()) {
+    if (std::sscanf(portRange.as_string().c_str(), "%i-%i", &portFirst, &portLast) != 2)
+      throw torrent::input_error("Invalid port_range argument.");
+    
+//   } else if (portRange.is_list()) {
+
+  } else {
+    throw torrent::input_error("Invalid port_range argument.");
+  }
+
+  if (portFirst > portLast || portLast >= (1 << 16))
+    throw torrent::input_error("Invalid port range.");
 
   if (control->variable()->get_value("get_port_random")) {
-    int boundary = m_portFirst + random() % (m_portLast - m_portFirst + 1);
+    int boundary = portFirst + random() % (portLast - portFirst + 1);
 
-    if (torrent::connection_manager()->listen_open(boundary, m_portLast) ||
-        torrent::connection_manager()->listen_open(m_portFirst, boundary))
+    if (torrent::connection_manager()->listen_open(boundary, portLast) ||
+        torrent::connection_manager()->listen_open(portFirst, boundary))
       return;
 
   } else {
-    if (torrent::connection_manager()->listen_open(m_portFirst, m_portLast))
+    if (torrent::connection_manager()->listen_open(portFirst, portLast))
       return;
   }
 
-  throw torrent::input_error("Could not open/bind a port for listening: " + std::string(rak::error_number::current().c_str()));
+  throw torrent::input_error("Could not open/bind port for listening: " + std::string(rak::error_number::current().c_str()));
 }
 
 std::string

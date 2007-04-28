@@ -40,7 +40,7 @@
 
 namespace utils {
 
-const torrent::Object&
+const torrent::Object
 CommandSlot::call_list(Variable* rawVariable, const torrent::Object& rawArgs) {
   CommandSlot* command = static_cast<CommandSlot*>(rawVariable);
 
@@ -74,13 +74,29 @@ CommandSlot::call_list(Variable* rawVariable, const torrent::Object& rawArgs) {
 //   case torrent::Object::TYPE_STRING:
 //     break;
   case torrent::Object::TYPE_LIST:
-    command->m_slot(rawArgs);
-    break;
+    return command->m_slot(rawArgs);
   default:
     throw torrent::input_error("Not a list.");
   }
+}
 
-  return m_emptyObject;
+const torrent::Object
+CommandSlot::call_string(Variable* rawVariable, const torrent::Object& rawArgs) {
+  CommandSlot* command = static_cast<CommandSlot*>(rawVariable);
+
+  const torrent::Object& arg = to_single_argument(rawArgs);
+
+  switch (arg.type()) {
+//   case torrent::Object::TYPE_VALUE:
+//     break;
+
+  case torrent::Object::TYPE_STRING:
+    return command->m_slot(arg);
+    break;
+
+  default:
+    throw torrent::input_error("Not a string.");
+  }
 }
 
 // const torrent::Object&

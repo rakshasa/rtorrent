@@ -74,8 +74,6 @@ public:
   Log&                get_log_important()                 { return m_logImportant; }
   Log&                get_log_complete()                  { return m_logComplete; }
 
-  void                set_port_range(int a, int b)        { m_portFirst = a; m_portLast = b; }
-
   // Really should find a more descriptive name.
   void                initialize_first();
   void                initialize_second();
@@ -123,9 +121,6 @@ private:
   PollManager*        m_pollManager;
   Log                 m_logImportant;
   Log                 m_logComplete;
-
-  int                 m_portFirst;
-  int                 m_portLast;
 };
 
 }

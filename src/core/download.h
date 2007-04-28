@@ -101,10 +101,10 @@ public:
   void                set_priority(uint32_t p);
 
   int64_t             get_value(const char* key);
-  const std::string&  get_string(const char* key);
+  const std::string  get_string(const char* key);
 
   int64_t             get_std_value(const std::string& key);
-  const std::string&  get_std_string(const std::string& key);
+  const std::string  get_std_string(const std::string& key);
 
   void                set(const char* key, const torrent::Object& value);
 

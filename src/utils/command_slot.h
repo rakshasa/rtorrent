@@ -37,6 +37,7 @@
 #ifndef RTORRENT_UTILS_COMMAND_SLOT_H
 #define RTORRENT_UTILS_COMMAND_SLOT_H
 
+#include <functional>
 #include <string>
 #include <limits>
 #include <inttypes.h>
@@ -53,8 +54,7 @@ namespace utils {
 
 class CommandSlot : public Variable {
 public:
-  // For now, only return void.
-  typedef rak::function1<void, const torrent::Object&> slot_type;
+  typedef rak::function1<torrent::Object, const torrent::Object&> slot_type;
 
 //   template <typename SlotSet>
 //   CommandSlot(SlotSet* slotSet) {
@@ -69,13 +69,72 @@ public:
 
   void                set_slot(slot_type::base_type* s) { m_slot.set(s); }
 
-  static const torrent::Object& call_list(Variable* rawVariable, const torrent::Object& args);
+  static const torrent::Object call_list(Variable* rawVariable, const torrent::Object& args);
+  static const torrent::Object call_string(Variable* rawVariable, const torrent::Object& args);
 
 //   static const torrent::Object& get_list(Variable* rawVariable, const torrent::Object& args);
 
 private:
   slot_type           m_slot;
 };
+
+// Some slots that convert torrent::Object arguments to proper
+// function calls.
+
+template <typename Func, typename Result = typename Func::result_type>
+class object_void_fn_t : public rak::function_base1<torrent::Object, const torrent::Object&> {
+public:
+  object_void_fn_t(Func func) : m_func(func) {}
+  
+  virtual torrent::Object operator () (const torrent::Object& arg1) { return torrent::Object(m_func()); }
+
+private:
+  Func m_func;
+};
+
+template <typename Func>
+class object_void_fn_t<Func, void> : public rak::function_base1<torrent::Object, const torrent::Object&> {
+public:
+  object_void_fn_t(Func func) : m_func(func) {}
+  
+  virtual torrent::Object operator () (const torrent::Object& arg1) {
+    m_func();
+    return torrent::Object();
+  }
+
+private:
+  Func m_func;
+};
+
+template <typename Func, typename Result = typename Func::result_type>
+class object_string_fn1_t : public rak::function_base1<torrent::Object, const torrent::Object&> {
+public:
+  object_string_fn1_t(Func func) : m_func(func) {}
+  
+  virtual torrent::Object operator () (const torrent::Object& arg1) { return torrent::Object(m_func(arg1.as_string())); }
+
+private:
+  Func m_func;
+};
+
+template <typename Func>
+class object_string_fn1_t<Func, void> : public rak::function_base1<torrent::Object, const torrent::Object&> {
+public:
+  object_string_fn1_t(Func func) : m_func(func) {}
+  
+  virtual torrent::Object operator () (const torrent::Object& arg1) {
+    m_func(arg1.as_string());
+
+    return torrent::Object();
+  }
+
+private:
+  Func m_func;
+};
+
+template <typename Return> object_void_fn_t<Return (*)(void), Return>* object_fn(Return (*func)(void)) { return new object_void_fn_t<Return (*)(void), Return>(func); }
+
+template <typename Func> object_string_fn1_t<Func>* object_string_fn(Func func) { return new object_string_fn1_t<Func>(func); }
 
 }
 

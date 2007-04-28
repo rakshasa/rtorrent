@@ -46,8 +46,8 @@ namespace utils {
 
 // By using a static array we avoid allocating the variables on the
 // heap. This should reduce memory use and improve cache locality.
-#define COMMAND_SLOTS_SIZE     18
-#define COMMAND_VARIABLES_SIZE 23
+#define COMMAND_SLOTS_SIZE     24
+#define COMMAND_VARIABLES_SIZE 24
 
 extern utils::CommandSlot      commandSlots[COMMAND_SLOTS_SIZE];
 extern utils::CommandSlot*     commandSlotsItr;
@@ -57,6 +57,7 @@ extern utils::CommandVariable* commandVariablesItr;
 void initialize_variables();
 void initialize_download_variables();
 void initialize_command_events();
+void initialize_command_network();
 void initialize_command_ui();
 
 void initialize_commands();
