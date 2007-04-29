@@ -52,6 +52,15 @@ parse_skip_wspace(const char* first, const char* last) {
 }
 
 const char*
+parse_skip_wspace(const char* first) {
+  // Assume iswspace('\0') == false.
+  while (std::iswspace(*first))
+    first++;
+
+  return first;
+}
+
+const char*
 parse_string(const char* first, const char* last, std::string* dest) {
   if (first == last)
     return first;
@@ -99,6 +108,26 @@ parse_whole_string(const char* first, const char* last, std::string* dest) {
 
 const char*
 parse_value(const char* src, int64_t* value, int base, int unit) {
+  const char* last = parse_value_nothrow(src, value, base, unit);
+
+  if (last == src)
+    throw torrent::input_error("Could not convert string to value.");
+
+  return last;
+}
+
+bool
+parse_whole_value_nothrow(const char* src, int64_t* value, int base, int unit) {
+  const char* last = parse_value_nothrow(src, value, base, unit);
+
+  if (last == src || *parse_skip_wspace(last) != '\0')
+    return false;
+
+  return true;
+}
+
+const char*
+parse_value_nothrow(const char* src, int64_t* value, int base, int unit) {
   if (unit <= 0)
     throw torrent::input_error("Variable::string_to_value_unit(...) received unit <= 0.");
 
@@ -111,7 +140,7 @@ parse_value(const char* src, int64_t* value, int base, int unit) {
     if (strcasecmp(src, "true") == 0) { *value = 1; return src + strlen("true"); }
     if (strcasecmp(src, "false") == 0) { *value = 0; return src + strlen("false"); }
 
-    throw torrent::input_error("Could not convert string to value.");
+    return src;
   }
 
   switch (*last) {
@@ -267,26 +296,39 @@ convert_list_to_command(torrent::Object::list_type::const_iterator first,
 
 int64_t
 convert_to_value(const torrent::Object& src, int base, int unit) {
+  int64_t value;
+
+  if (!convert_to_value_nothrow(src, &value, base, unit))
+    throw torrent::input_error("Not convertible to a value.");
+
+  return value;
+}
+
+bool
+convert_to_value_nothrow(const torrent::Object& src, int64_t* value, int base, int unit) {
   const torrent::Object& unpacked = (src.is_list() && src.as_list().size() == 1) ? src.as_list().front() : src;
 
   switch (unpacked.type()) {
   case torrent::Object::TYPE_VALUE:
-    return unpacked.as_value();
+    *value = unpacked.as_value();
+    break;
 
   case torrent::Object::TYPE_STRING:
-    int64_t tmp;
-
-    if (parse_skip_wspace(parse_value(unpacked.as_string().c_str(), &tmp, base, unit),
+    if (parse_skip_wspace(parse_value(unpacked.as_string().c_str(), value, base, unit),
                           unpacked.as_string().c_str() + unpacked.as_string().size()) != unpacked.as_string().c_str() + unpacked.as_string().size())
-      throw torrent::input_error("Junk at end of value.");
+      return false;
 
-    return tmp;
+    break;
 
   case torrent::Object::TYPE_NONE:
-    return 0;
+    *value = 0;
+    break;
+
   default:
-    throw torrent::input_error("Not convertible to a value.");
+    return false;
   }
+  
+  return true;
 }
 
 }

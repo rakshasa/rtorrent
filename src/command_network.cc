@@ -83,6 +83,36 @@ apply_encryption(const torrent::Object& rawArgs) {
   return torrent::Object();
 }
 
+torrent::Object
+apply_tos(const torrent::Object& rawArg) {
+  utils::Variable::value_type value;
+  torrent::ConnectionManager* cm = torrent::connection_manager();
+
+  const std::string& arg = rawArg.as_string();
+
+  if (arg == "default")
+    value = torrent::ConnectionManager::iptos_default;
+
+  else if (arg == "lowdelay")
+    value = torrent::ConnectionManager::iptos_lowdelay;
+
+  else if (arg == "throughput")
+    value = torrent::ConnectionManager::iptos_throughput;
+
+  else if (arg == "reliability")
+    value = torrent::ConnectionManager::iptos_reliability;
+
+  else if (arg == "mincost")
+    value = torrent::ConnectionManager::iptos_mincost;
+
+  else if (!utils::Variable::string_to_value_unit_nothrow(arg.c_str(), &value, 16, 1))
+    throw torrent::input_error("Invalid TOS identifier.");
+
+  cm->set_priority(value);
+
+  return torrent::Object();
+}
+
 void
 initialize_command_network() {
   utils::VariableMap* variables = control->variable();
@@ -92,7 +122,7 @@ initialize_command_network() {
 
   ADD_VARIABLE_BOOL("port_open", true);
   ADD_VARIABLE_BOOL("port_random", true);
-  ADD_VARIABLE_STRING("port_range", "6890-6999");
+  ADD_VARIABLE_STRING("port_range", "6881-6999");
 
   ADD_VARIABLE_STRING("connection_leech", "leech");
   ADD_VARIABLE_STRING("connection_seed", "seed");
@@ -110,4 +140,18 @@ initialize_command_network() {
   ADD_VARIABLE_VALUE("tracker_numwant", -1);
 
   ADD_COMMAND_SLOT("encryption",       call_list, rak::ptr_fn(&apply_encryption));
+
+  ADD_COMMAND_SLOT("tos",              call_string, rak::ptr_fn(&apply_tos));
+
+  ADD_COMMAND_SLOT("bind",             call_string,  utils::object_string_fn(rak::make_mem_fun(control->core(), &core::Manager::set_bind_address)))
+  ADD_COMMAND_COPY("set_bind",         call_string)
+  ADD_COMMAND_SLOT("get_bind",         call_unknown, utils::object_void_fn(rak::make_mem_fun(control->core(), &core::Manager::bind_address)))
+
+  ADD_COMMAND_SLOT("ip",               call_string,  utils::object_string_fn(rak::make_mem_fun(control->core(), &core::Manager::set_local_address)))
+  ADD_COMMAND_COPY("set_ip",           call_string)
+  ADD_COMMAND_SLOT("get_ip",           call_unknown, utils::object_void_fn(rak::make_mem_fun(control->core(), &core::Manager::local_address)))
+
+  ADD_COMMAND_SLOT("proxy_address",     call_string,  utils::object_string_fn(rak::make_mem_fun(control->core(), &core::Manager::set_proxy_address)))
+  ADD_COMMAND_COPY("set_proxy_address", call_string)
+  ADD_COMMAND_SLOT("get_proxy_address", call_unknown, utils::object_void_fn(rak::make_mem_fun(control->core(), &core::Manager::proxy_address)))
 }

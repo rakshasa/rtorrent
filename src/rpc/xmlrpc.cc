@@ -169,6 +169,13 @@ XmlRpc::XmlRpc() : m_env(new xmlrpc_env) {
   xmlrpc_registry_add_method_w_doc(m_env, m_registry, NULL, "call.get_upload_rate", &xmlrpc_call_command, new server_info_t("upload_rate", &m_slotGet), "i:", "");
 
   xmlrpc_registry_add_method_w_doc(m_env, m_registry, NULL, "call.get_directory",   &xmlrpc_call_command, new server_info_t("get_directory", &m_slotGet), "s:", "");
+  xmlrpc_registry_add_method_w_doc(m_env, m_registry, NULL, "call.set_directory",   &xmlrpc_call_command, new server_info_t("set_directory", &m_slotSet), "i:s", "");
+
+  xmlrpc_registry_add_method_w_doc(m_env, m_registry, NULL, "call.get_bind",        &xmlrpc_call_command, new server_info_t("get_bind", &m_slotGet), "s:", "");
+  xmlrpc_registry_add_method_w_doc(m_env, m_registry, NULL, "call.set_bind",        &xmlrpc_call_command, new server_info_t("set_bind", &m_slotSet), "i:s", "");
+
+  xmlrpc_registry_add_method_w_doc(m_env, m_registry, NULL, "call.get_ip",          &xmlrpc_call_command, new server_info_t("get_ip", &m_slotGet), "s:", "");
+  xmlrpc_registry_add_method_w_doc(m_env, m_registry, NULL, "call.set_ip",          &xmlrpc_call_command, new server_info_t("set_ip", &m_slotSet), "i:s", "");
 
   xmlrpc_registry_add_method_w_doc(m_env, m_registry, NULL, "call.print",           &xmlrpc_call_command, new server_info_t("print", &m_slotSet), "i:s", "");
 }

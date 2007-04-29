@@ -69,6 +69,8 @@ public:
 
   void                set_slot(slot_type::base_type* s) { m_slot.set(s); }
 
+  static const torrent::Object call_unknown(Variable* rawVariable, const torrent::Object& args);
+
   static const torrent::Object call_list(Variable* rawVariable, const torrent::Object& args);
   static const torrent::Object call_string(Variable* rawVariable, const torrent::Object& args);
 
@@ -134,6 +136,7 @@ private:
 
 template <typename Return> object_void_fn_t<Return (*)(void), Return>* object_fn(Return (*func)(void)) { return new object_void_fn_t<Return (*)(void), Return>(func); }
 
+template <typename Func> object_void_fn_t<Func>*    object_void_fn(Func func)   { return new object_void_fn_t<Func>(func); }
 template <typename Func> object_string_fn1_t<Func>* object_string_fn(Func func) { return new object_string_fn1_t<Func>(func); }
 
 }

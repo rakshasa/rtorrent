@@ -41,6 +41,13 @@
 namespace utils {
 
 const torrent::Object
+CommandSlot::call_unknown(Variable* rawVariable, const torrent::Object& rawArgs) {
+  CommandSlot* command = static_cast<CommandSlot*>(rawVariable);
+
+  return command->m_slot(rawArgs);
+}
+
+const torrent::Object
 CommandSlot::call_list(Variable* rawVariable, const torrent::Object& rawArgs) {
   CommandSlot* command = static_cast<CommandSlot*>(rawVariable);
 

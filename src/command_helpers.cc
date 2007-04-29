@@ -58,8 +58,13 @@ initialize_commands() {
   initialize_command_network();
   initialize_command_ui();
 
+#ifdef ADDING_COMMANDS 
+  if (commandSlotsItr > commandSlots + COMMAND_SLOTS_SIZE ||
+      commandVariablesItr > commandVariables + COMMAND_VARIABLES_SIZE)
+#else
   if (commandSlotsItr != commandSlots + COMMAND_SLOTS_SIZE ||
       commandVariablesItr != commandVariables + COMMAND_VARIABLES_SIZE)
+#endif
     throw torrent::internal_error("initialize_commands() static command array size mismatch.");
 }
 

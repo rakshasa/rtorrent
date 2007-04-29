@@ -46,8 +46,10 @@ namespace utils {
 
 // By using a static array we avoid allocating the variables on the
 // heap. This should reduce memory use and improve cache locality.
-#define COMMAND_SLOTS_SIZE     24
-#define COMMAND_VARIABLES_SIZE 24
+#define COMMAND_SLOTS_SIZE     50
+#define COMMAND_VARIABLES_SIZE 50
+
+#define ADDING_COMMANDS
 
 extern utils::CommandSlot      commandSlots[COMMAND_SLOTS_SIZE];
 extern utils::CommandSlot*     commandSlotsItr;
@@ -79,5 +81,8 @@ add_variable("get_" key, "set_" key, key, &utils::CommandVariable::get_string, &
 #define ADD_COMMAND_SLOT(key, function, slot) \
   commandSlotsItr->set_slot(slot); \
   variables->insert(key, commandSlotsItr++, &utils::CommandSlot::function, utils::VariableMap::flag_dont_delete);
+
+#define ADD_COMMAND_COPY(key, function) \
+  variables->insert(key, (commandSlotsItr - 1), &utils::CommandSlot::function, utils::VariableMap::flag_dont_delete);
 
 #endif

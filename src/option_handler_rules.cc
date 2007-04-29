@@ -145,32 +145,6 @@ apply_enable_trackers(const std::string& arg) {
 }
 
 void
-apply_tos(const std::string& arg) {
-  utils::Variable::value_type value;
-  torrent::ConnectionManager* cm = torrent::connection_manager();
-
-  if (arg == "default")
-    value = torrent::ConnectionManager::iptos_default;
-
-  else if (arg == "lowdelay")
-    value = torrent::ConnectionManager::iptos_lowdelay;
-
-  else if (arg == "throughput")
-    value = torrent::ConnectionManager::iptos_throughput;
-
-  else if (arg == "reliability")
-    value = torrent::ConnectionManager::iptos_reliability;
-
-  else if (arg == "mincost")
-    value = torrent::ConnectionManager::iptos_mincost;
-
-  else if (!utils::Variable::string_to_value_unit_nothrow(arg.c_str(), &value, 16, 1))
-    throw torrent::input_error("Invalid TOS identifier.");
-
-  cm->set_priority(value);
-}
-
-void
 apply_fast_cgi(const std::string& arg) {
   if (control->fast_cgi() != NULL)
     throw torrent::input_error("FastCGI already enabled.");
@@ -232,15 +206,6 @@ initialize_variables() {
   variables->insert("session_save",          new utils::VariableVoidSlot(rak::mem_fn(control->core()->download_list(), &core::DownloadList::session_save)));
 
   ADD_VARIABLE_STRING("directory", "./");
-
-  variables->insert("tos",                   new utils::VariableStringSlot(NULL, rak::ptr_fn(&apply_tos)));
-
-  variables->insert("bind",                  new utils::VariableStringSlot(rak::mem_fn(control->core(), &core::Manager::bind_address),
-                                                                           rak::mem_fn(control->core(), &core::Manager::set_bind_address)));
-  variables->insert("ip",                    new utils::VariableStringSlot(rak::mem_fn(control->core(), &core::Manager::local_address),
-                                                                           rak::mem_fn(control->core(), &core::Manager::set_local_address)));
-  variables->insert("connection_proxy",      new utils::VariableStringSlot(rak::mem_fn(control->core(), &core::Manager::proxy_address),
-                                                                           rak::mem_fn(control->core(), &core::Manager::set_proxy_address)));
 
   variables->insert("http_proxy",            new utils::VariableStringSlot(rak::mem_fn(control->core()->get_poll_manager()->get_http_stack(), &core::CurlStack::http_proxy),
                                                                            rak::mem_fn(control->core()->get_poll_manager()->get_http_stack(), &core::CurlStack::set_http_proxy)));
