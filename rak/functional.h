@@ -457,6 +457,23 @@ bind2nd(const Operation& op, const Type& val) {
 // be replaced by TR1 stuff later. Requires an object to bind, instead
 // of using a seperate functor for that.
 
+template <typename Ret>
+class ptr_fun0 {
+public:
+  typedef Ret result_type;
+  typedef Ret (*Function)();
+
+  ptr_fun0() {}
+  ptr_fun0(Function f) : m_function(f) {}
+
+  bool is_valid() const { return m_function; }
+
+  Ret operator () () { return m_function(); }
+  
+private:
+  Function m_function;
+};
+
 template <typename Object, typename Ret>
 class mem_fun0 {
 public:
@@ -568,6 +585,10 @@ private:
   Object* m_object;
   Function m_function;
 };
+
+template <typename Ret>
+inline ptr_fun0<Ret>
+ptr_fun(Ret (*f)()) { return ptr_fun0<Ret>(f); }
 
 template <typename Object, typename Ret>
 inline mem_fun0<Object, Ret>

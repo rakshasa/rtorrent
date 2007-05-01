@@ -56,12 +56,6 @@ extern utils::CommandSlot*     commandSlotsItr;
 extern utils::CommandVariable  commandVariables[COMMAND_VARIABLES_SIZE];
 extern utils::CommandVariable* commandVariablesItr;
 
-void initialize_variables();
-void initialize_download_variables();
-void initialize_command_events();
-void initialize_command_network();
-void initialize_command_ui();
-
 void initialize_commands();
 
 void
@@ -84,5 +78,20 @@ add_variable("get_" key, "set_" key, key, &utils::CommandVariable::get_string, &
 
 #define ADD_COMMAND_COPY(key, function) \
   variables->insert(key, (commandSlotsItr - 1), &utils::CommandSlot::function, utils::VariableMap::flag_dont_delete);
+
+#define ADD_COMMAND_VALUE_TRI(key, set, get) \
+  ADD_COMMAND_SLOT(key,        call_value, utils::object_value_fn(set))      \
+  ADD_COMMAND_COPY("set_" key, call_value) \
+  ADD_COMMAND_SLOT("get_" key, call_unknown, utils::object_void_fn(get))
+
+#define ADD_COMMAND_VALUE_TRI_KB(key, set, get) \
+  ADD_COMMAND_SLOT(key,        call_value_kb, utils::object_value_fn(set)) \
+  ADD_COMMAND_COPY("set_" key, call_value) \
+  ADD_COMMAND_SLOT("get_" key, call_unknown, utils::object_void_fn(get))
+
+#define ADD_COMMAND_STRING_TRI(key, set, get) \
+  ADD_COMMAND_SLOT(key,        call_string, utils::object_string_fn(set))      \
+  ADD_COMMAND_COPY("set_" key, call_string) \
+  ADD_COMMAND_SLOT("get_" key, call_unknown, utils::object_void_fn(get))
 
 #endif

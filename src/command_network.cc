@@ -43,6 +43,7 @@
 
 #include "core/download_list.h"
 #include "core/manager.h"
+#include "ui/root.h"
 #include "utils/command_slot.h"
 #include "utils/command_variable.h"
 #include "utils/variable_map.h"
@@ -137,21 +138,16 @@ initialize_command_network() {
 
   ADD_VARIABLE_VALUE("max_downloads_div", 0);
 
+  ADD_COMMAND_VALUE_TRI_KB("download_rate", rak::make_mem_fun(control->ui(), &ui::Root::set_down_throttle_i64), rak::ptr_fun(&torrent::down_throttle));
+  ADD_COMMAND_VALUE_TRI_KB("upload_rate",   rak::make_mem_fun(control->ui(), &ui::Root::set_up_throttle_i64), rak::ptr_fun(&torrent::up_throttle));
+
   ADD_VARIABLE_VALUE("tracker_numwant", -1);
 
   ADD_COMMAND_SLOT("encryption",       call_list, rak::ptr_fn(&apply_encryption));
 
   ADD_COMMAND_SLOT("tos",              call_string, rak::ptr_fn(&apply_tos));
 
-  ADD_COMMAND_SLOT("bind",             call_string,  utils::object_string_fn(rak::make_mem_fun(control->core(), &core::Manager::set_bind_address)))
-  ADD_COMMAND_COPY("set_bind",         call_string)
-  ADD_COMMAND_SLOT("get_bind",         call_unknown, utils::object_void_fn(rak::make_mem_fun(control->core(), &core::Manager::bind_address)))
-
-  ADD_COMMAND_SLOT("ip",               call_string,  utils::object_string_fn(rak::make_mem_fun(control->core(), &core::Manager::set_local_address)))
-  ADD_COMMAND_COPY("set_ip",           call_string)
-  ADD_COMMAND_SLOT("get_ip",           call_unknown, utils::object_void_fn(rak::make_mem_fun(control->core(), &core::Manager::local_address)))
-
-  ADD_COMMAND_SLOT("proxy_address",     call_string,  utils::object_string_fn(rak::make_mem_fun(control->core(), &core::Manager::set_proxy_address)))
-  ADD_COMMAND_COPY("set_proxy_address", call_string)
-  ADD_COMMAND_SLOT("get_proxy_address", call_unknown, utils::object_void_fn(rak::make_mem_fun(control->core(), &core::Manager::proxy_address)))
+  ADD_COMMAND_STRING_TRI("bind",          rak::make_mem_fun(control->core(), &core::Manager::set_bind_address), rak::make_mem_fun(control->core(), &core::Manager::bind_address));
+  ADD_COMMAND_STRING_TRI("ip",            rak::make_mem_fun(control->core(), &core::Manager::set_local_address), rak::make_mem_fun(control->core(), &core::Manager::local_address));
+  ADD_COMMAND_STRING_TRI("proxy_address", rak::make_mem_fun(control->core(), &core::Manager::set_proxy_address), rak::make_mem_fun(control->core(), &core::Manager::proxy_address));
 }

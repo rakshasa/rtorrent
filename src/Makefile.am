@@ -20,6 +20,7 @@ rtorrent_SOURCES = \
 	command_events.cc \
 	command_helpers.cc \
 	command_helpers.h \
+	command_local.cc \
 	command_network.cc \
 	command_ui.cc \
 	command_scheduler.cc \

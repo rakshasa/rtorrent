@@ -217,11 +217,6 @@ initialize_variables() {
   variables->insert("max_downloads_global",  new utils::VariableValueSlot(rak::mem_fn(control->ui(), &ui::Root::max_downloads_global),
                                                                           rak::mem_fn(control->ui(), &ui::Root::set_max_downloads_global)));
 
-  variables->insert("download_rate",         new utils::VariableValueSlot(rak::ptr_fn(&torrent::down_throttle), rak::mem_fn(control->ui(), &ui::Root::set_down_throttle_i64),
-                                                                          0, (1 << 10)));
-  variables->insert("upload_rate",           new utils::VariableValueSlot(rak::ptr_fn(&torrent::up_throttle), rak::mem_fn(control->ui(), &ui::Root::set_up_throttle_i64),
-                                                                          0, (1 << 10)));
-
   variables->insert("hash_max_tries",        new utils::VariableValueSlot(rak::ptr_fn(&torrent::hash_max_tries), rak::ptr_fn(&torrent::set_hash_max_tries)));
   variables->insert("max_open_files",        new utils::VariableValueSlot(rak::ptr_fn(&torrent::max_open_files), rak::ptr_fn(&torrent::set_max_open_files)));
   variables->insert("max_open_sockets",      new utils::VariableValueSlot(rak::mem_fn(torrent::connection_manager(), &torrent::ConnectionManager::max_size),
@@ -243,32 +238,6 @@ initialize_variables() {
   variables->insert("receive_buffer_size",   new utils::VariableValueSlot(rak::mem_fn(torrent::connection_manager(), &torrent::ConnectionManager::receive_buffer_size),
                                                                           rak::mem_fn(torrent::connection_manager(), &torrent::ConnectionManager::set_receive_buffer_size)));
   
-  variables->insert("max_memory_usage",      new utils::VariableValueSlot(rak::mem_fn(torrent::chunk_manager(), &torrent::ChunkManager::max_memory_usage),
-                                                                          rak::mem_fn(torrent::chunk_manager(), &torrent::ChunkManager::set_max_memory_usage)));
-
-  variables->insert("safe_sync",             new utils::VariableValueSlot(rak::mem_fn(torrent::chunk_manager(), &torrent::ChunkManager::safe_sync),
-                                                                          rak::mem_fn(torrent::chunk_manager(), &torrent::ChunkManager::set_safe_sync)));
-
-  variables->insert("timeout_sync",          new utils::VariableValueSlot(rak::mem_fn(torrent::chunk_manager(), &torrent::ChunkManager::timeout_sync),
-                                                                          rak::mem_fn(torrent::chunk_manager(), &torrent::ChunkManager::set_timeout_sync)));
-
-  variables->insert("timeout_safe_sync",     new utils::VariableValueSlot(rak::mem_fn(torrent::chunk_manager(), &torrent::ChunkManager::timeout_safe_sync),
-                                                                          rak::mem_fn(torrent::chunk_manager(), &torrent::ChunkManager::set_timeout_safe_sync)));
-
-  variables->insert("preload_type",          new utils::VariableValueSlot(rak::mem_fn(torrent::chunk_manager(), &torrent::ChunkManager::preload_type),
-                                                                          rak::mem_fn(torrent::chunk_manager(), &torrent::ChunkManager::set_preload_type)));
-
-  variables->insert("preload_min_size",      new utils::VariableValueSlot(rak::mem_fn(torrent::chunk_manager(), &torrent::ChunkManager::preload_min_size),
-                                                                          rak::mem_fn(torrent::chunk_manager(), &torrent::ChunkManager::set_preload_min_size)));
-
-  variables->insert("preload_required_rate", new utils::VariableValueSlot(rak::mem_fn(torrent::chunk_manager(), &torrent::ChunkManager::preload_required_rate),
-                                                                          rak::mem_fn(torrent::chunk_manager(), &torrent::ChunkManager::set_preload_required_rate),
-                                                                          0, (1 << 10)));
-
-  ADD_VARIABLE_VALUE("max_file_size", -1);
-  ADD_VARIABLE_VALUE("split_file_size", -1);
-  ADD_VARIABLE_STRING("split_suffix", ".part");
-
   variables->insert("hash_read_ahead",       new utils::VariableValueSlot(rak::ptr_fn(torrent::hash_read_ahead), rak::ptr_fn(&apply_hash_read_ahead)));
   variables->insert("hash_interval",         new utils::VariableValueSlot(rak::ptr_fn(torrent::hash_interval), rak::ptr_fn(&apply_hash_interval)));
 

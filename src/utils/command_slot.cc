@@ -36,6 +36,8 @@
 
 #include "config.h"
 
+#include "utils/parse.h"
+
 #include "command_slot.h"
 
 namespace utils {
@@ -84,6 +86,30 @@ CommandSlot::call_list(Variable* rawVariable, const torrent::Object& rawArgs) {
     return command->m_slot(rawArgs);
   default:
     throw torrent::input_error("Not a list.");
+  }
+}
+
+const torrent::Object
+CommandSlot::call_value_base(Variable* rawVariable, const torrent::Object& rawArgs, int base, int unit) {
+  CommandSlot* command = static_cast<CommandSlot*>(rawVariable);
+
+  const torrent::Object& arg = to_single_argument(rawArgs);
+
+  switch (arg.type()) {
+  case torrent::Object::TYPE_VALUE:
+    return command->m_slot(arg);
+
+  case torrent::Object::TYPE_STRING:
+  {
+    torrent::Object argValue(torrent::Object::TYPE_VALUE);
+
+    if (!utils::parse_whole_value_nothrow(arg.as_string().c_str(), &argValue.as_value(), base, unit))
+      throw torrent::input_error("Not a value.");
+
+    return command->m_slot(argValue);
+  }
+  default:
+    throw torrent::input_error("Not a value.");
   }
 }
 

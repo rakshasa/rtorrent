@@ -74,6 +74,14 @@ public:
   static const torrent::Object call_list(Variable* rawVariable, const torrent::Object& args);
   static const torrent::Object call_string(Variable* rawVariable, const torrent::Object& args);
 
+  static const torrent::Object call_value_base(Variable* rawVariable, const torrent::Object& args, int base, int unit);
+
+  static const torrent::Object call_value(Variable* rawVariable, const torrent::Object& args) { return call_value_base(rawVariable, args, 0, 1); }
+  static const torrent::Object call_value_kb(Variable* rawVariable, const torrent::Object& args) { return call_value_base(rawVariable, args, 0, 1 << 10); }
+
+  template <int base, int unit>
+  static const torrent::Object call_value(Variable* rawVariable, const torrent::Object& args)  { return call_value_base(rawVariable, args, base, unit); }
+
 //   static const torrent::Object& get_list(Variable* rawVariable, const torrent::Object& args);
 
 private:
@@ -101,6 +109,32 @@ public:
   
   virtual torrent::Object operator () (const torrent::Object& arg1) {
     m_func();
+    return torrent::Object();
+  }
+
+private:
+  Func m_func;
+};
+
+template <typename Func, typename Result = typename Func::result_type>
+class object_value_fn1_t : public rak::function_base1<torrent::Object, const torrent::Object&> {
+public:
+  object_value_fn1_t(Func func) : m_func(func) {}
+  
+  virtual torrent::Object operator () (const torrent::Object& arg1) { return torrent::Object((int64_t)m_func(arg1.as_value())); }
+
+private:
+  Func m_func;
+};
+
+template <typename Func>
+class object_value_fn1_t<Func, void> : public rak::function_base1<torrent::Object, const torrent::Object&> {
+public:
+  object_value_fn1_t(Func func) : m_func(func) {}
+  
+  virtual torrent::Object operator () (const torrent::Object& arg1) {
+    m_func(arg1.as_value());
+
     return torrent::Object();
   }
 
@@ -137,6 +171,7 @@ private:
 template <typename Return> object_void_fn_t<Return (*)(void), Return>* object_fn(Return (*func)(void)) { return new object_void_fn_t<Return (*)(void), Return>(func); }
 
 template <typename Func> object_void_fn_t<Func>*    object_void_fn(Func func)   { return new object_void_fn_t<Func>(func); }
+template <typename Func> object_value_fn1_t<Func>*  object_value_fn(Func func)  { return new object_value_fn1_t<Func>(func); }
 template <typename Func> object_string_fn1_t<Func>* object_string_fn(Func func) { return new object_string_fn1_t<Func>(func); }
 
 }
