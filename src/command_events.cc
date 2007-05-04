@@ -46,11 +46,13 @@
 #include "core/download_list.h"
 #include "core/manager.h"
 #include "utils/command_slot.h"
+#include "utils/command_variable.h"
 #include "utils/parse.h"
 
 #include "globals.h"
 #include "control.h"
 #include "command_helpers.h"
+#include "command_scheduler.h"
 
 torrent::Object
 apply_on_state_change(core::DownloadList::slot_map* slotMap, const torrent::Object& rawArgs) {
@@ -169,10 +171,57 @@ apply_remove_untied() {
   return torrent::Object();
 }
 
+torrent::Object
+apply_schedule(const torrent::Object& rawArgs) {
+  const torrent::Object::list_type& args = rawArgs.as_list();
+
+  if (args.size() < 4)
+    throw torrent::input_error("Too few arguments.");
+
+  torrent::Object::list_type::const_iterator itr = args.begin();
+
+  const std::string& arg1 = (itr++)->as_string();
+  const std::string& arg2 = (itr++)->as_string();
+  const std::string& arg3 = (itr++)->as_string();
+
+  control->command_scheduler()->parse(arg1, arg2, arg3, utils::convert_list_to_command(itr, args.end()));
+
+  return torrent::Object();
+}
+
+void apply_load(const std::string& arg)               { control->core()->try_create_download_expand(arg, false, false, true); }
+void apply_load_verbose(const std::string& arg)       { control->core()->try_create_download_expand(arg, false, true, true); }
+void apply_load_start(const std::string& arg)         { control->core()->try_create_download_expand(arg, true, false, true); }
+void apply_load_start_verbose(const std::string& arg) { control->core()->try_create_download_expand(arg, true, true, true); }
+
+void apply_import(const std::string& path)     { if (!control->variable()->process_file(path.c_str())) throw torrent::input_error("Could not open option file: " + path); }
+void apply_try_import(const std::string& path) { if (!control->variable()->process_file(path.c_str())) control->core()->push_log("Could not read resource file: " + path); }
+
+void
+apply_close_low_diskspace(int64_t arg) {
+  core::Manager::DListItr itr = control->core()->download_list()->begin();
+
+  while ((itr = std::find_if(itr, control->core()->download_list()->end(), std::mem_fun(&core::Download::is_downloading))) != control->core()->download_list()->end()) {
+    if ((*itr)->file_list()->free_diskspace() < (uint64_t)arg) {
+      control->core()->download_list()->close(*itr);
+
+      (*itr)->set_hash_failed(true);
+      (*itr)->set_message(std::string("Low diskspace."));
+    }
+
+    ++itr;
+  }
+}
+
 void
 initialize_command_events() {
   utils::VariableMap* variables = control->variable();
   core::DownloadList* downloadList = control->core()->download_list();
+
+  ADD_VARIABLE_BOOL("check_hash", true);
+
+  ADD_VARIABLE_BOOL("session_lock", true);
+  ADD_VARIABLE_BOOL("session_on_completion", true);
 
   ADD_COMMAND_SLOT_PRIVATE("on_insert",       call_list, rak::bind_ptr_fn(&apply_on_state_change, &downloadList->slot_map_insert()));
   ADD_COMMAND_SLOT_PRIVATE("on_erase",        call_list, rak::bind_ptr_fn(&apply_on_state_change, &downloadList->slot_map_erase()));
@@ -191,4 +240,17 @@ initialize_command_events() {
   ADD_COMMAND_SLOT_PRIVATE("stop_untied",     call_string, utils::object_fn(&apply_stop_untied));
   ADD_COMMAND_SLOT_PRIVATE("close_untied",    call_string, utils::object_fn(&apply_close_untied));
   ADD_COMMAND_SLOT_PRIVATE("remove_untied",   call_string, utils::object_fn(&apply_remove_untied));
+
+  ADD_COMMAND_LIST("schedule",                rak::ptr_fn(&apply_schedule));
+  ADD_COMMAND_STRING_UN("schedule_remove",    rak::make_mem_fun(control->command_scheduler(), &CommandScheduler::erase_str));
+
+  ADD_COMMAND_STRING_UN("import",                std::ptr_fun(&apply_import));
+  ADD_COMMAND_STRING_UN("try_import",            std::ptr_fun(&apply_try_import));
+
+  ADD_COMMAND_STRING_UN("load",                  std::ptr_fun(&apply_load));
+  ADD_COMMAND_STRING_UN("load_verbose",          std::ptr_fun(&apply_load_verbose));
+  ADD_COMMAND_STRING_UN("load_start",            std::ptr_fun(&apply_load_start));
+  ADD_COMMAND_STRING_UN("load_start_verbose",    std::ptr_fun(&apply_load_start_verbose));
+
+  ADD_COMMAND_VALUE_UN("close_low_diskspace",    std::ptr_fun(&apply_close_low_diskspace));
 }

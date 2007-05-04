@@ -38,11 +38,17 @@
 
 #include <functional>
 #include <rak/file_stat.h>
-#include <torrent/torrent.h>
 #include <torrent/connection_manager.h>
+#include <torrent/tracker.h>
+#include <torrent/tracker_list.h>
+#include <torrent/torrent.h>
 
+#include "core/download.h"
 #include "core/download_list.h"
+#include "core/download_store.h"
 #include "core/manager.h"
+#include "rpc/fast_cgi.h"
+#include "rpc/xmlrpc.h"
 #include "ui/root.h"
 #include "utils/command_slot.h"
 #include "utils/command_variable.h"
@@ -114,10 +120,53 @@ apply_tos(const torrent::Object& rawArg) {
   return torrent::Object();
 }
 
+void apply_hash_read_ahead(int arg)              { torrent::set_hash_read_ahead(arg << 20); }
+void apply_hash_interval(int arg)                { torrent::set_hash_interval(arg * 1000); }
+void apply_encoding_list(const std::string& arg) { torrent::encoding_list()->push_back(arg); }
+
+void
+apply_enable_trackers(int64_t arg) {
+  for (core::Manager::DListItr itr = control->core()->download_list()->begin(), last = control->core()->download_list()->end(); itr != last; ++itr) {
+
+    torrent::TrackerList tl = (*itr)->download()->tracker_list();
+
+    for (int i = 0, last = tl.size(); i < last; ++i)
+      if (arg)
+        tl.get(i).enable();
+      else
+        tl.get(i).disable();
+
+    if (arg && !control->variable()->get_value("get_use_udp_trackers"))
+      (*itr)->enable_udp_trackers(false);
+  }    
+}
+
+void
+apply_fast_cgi(const std::string& arg) {
+  if (control->fast_cgi() != NULL)
+    throw torrent::input_error("FastCGI already enabled.");
+
+  if (control->xmlrpc() == NULL) {
+    control->set_xmlrpc(new rpc::XmlRpc);
+    control->xmlrpc()->set_slot_call_command(rak::mem_fn(control->variable(), &utils::VariableMap::call_command));
+
+    for (utils::VariableMap::const_iterator itr = control->variable()->begin(), last = control->variable()->end(); itr != last; itr++)
+      if (itr->second.m_flags & utils::VariableMap::flag_public_xmlrpc)
+        control->xmlrpc()->insert_command(itr->first, itr->second.m_parm, itr->second.m_doc);
+  }
+
+  control->set_fast_cgi(new rpc::FastCgi(arg));
+  control->fast_cgi()->set_slot_process(rak::mem_fn(control->xmlrpc(), &rpc::XmlRpc::process));
+}
+
 void
 initialize_command_network() {
   utils::VariableMap* variables = control->variable();
 //   core::DownloadList* downloadList = control->core()->download_list();
+  torrent::ConnectionManager* cm = torrent::connection_manager();
+  core::CurlStack* httpStack = control->core()->get_poll_manager()->get_http_stack();
+  core::DownloadList*  dList = control->core()->download_list();
+  core::DownloadStore* dStore = control->core()->download_store();
 
   ADD_VARIABLE_BOOL("use_udp_trackers", true);
 
@@ -150,4 +199,36 @@ initialize_command_network() {
   ADD_COMMAND_STRING_TRI("bind",          rak::make_mem_fun(control->core(), &core::Manager::set_bind_address), rak::make_mem_fun(control->core(), &core::Manager::bind_address));
   ADD_COMMAND_STRING_TRI("ip",            rak::make_mem_fun(control->core(), &core::Manager::set_local_address), rak::make_mem_fun(control->core(), &core::Manager::local_address));
   ADD_COMMAND_STRING_TRI("proxy_address", rak::make_mem_fun(control->core(), &core::Manager::set_proxy_address), rak::make_mem_fun(control->core(), &core::Manager::proxy_address));
+  ADD_COMMAND_STRING_TRI("http_proxy",    rak::make_mem_fun(httpStack, &core::CurlStack::set_http_proxy), rak::make_mem_fun(httpStack, &core::CurlStack::http_proxy));
+
+  ADD_COMMAND_VALUE_TRI("send_buffer_size",    rak::make_mem_fun(cm, &torrent::ConnectionManager::set_send_buffer_size), rak::make_mem_fun(cm, &torrent::ConnectionManager::send_buffer_size));
+  ADD_COMMAND_VALUE_TRI("receive_buffer_size", rak::make_mem_fun(cm, &torrent::ConnectionManager::set_receive_buffer_size), rak::make_mem_fun(cm, &torrent::ConnectionManager::receive_buffer_size));
+
+  ADD_COMMAND_VALUE_TRI("max_uploads_global",   rak::make_mem_fun(control->ui(), &ui::Root::set_max_uploads_global), rak::make_mem_fun(control->ui(), &ui::Root::max_uploads_global));
+  ADD_COMMAND_VALUE_TRI("max_downloads_global", rak::make_mem_fun(control->ui(), &ui::Root::set_max_downloads_global), rak::make_mem_fun(control->ui(), &ui::Root::max_downloads_global));
+
+  ADD_COMMAND_VALUE_TRI("hash_max_tries",       std::ptr_fun(&torrent::set_hash_max_tries), rak::ptr_fun(&torrent::hash_max_tries));
+  ADD_COMMAND_VALUE_TRI("max_open_files",       std::ptr_fun(&torrent::set_max_open_files), rak::ptr_fun(&torrent::max_open_files));
+  ADD_COMMAND_VALUE_TRI("max_open_sockets",     rak::make_mem_fun(cm, &torrent::ConnectionManager::set_max_size), rak::make_mem_fun(cm, &torrent::ConnectionManager::max_size));
+  ADD_COMMAND_VALUE_TRI("max_open_http",        rak::make_mem_fun(httpStack, &core::CurlStack::set_max_active), rak::make_mem_fun(httpStack, &core::CurlStack::max_active));
+
+  ADD_COMMAND_STRING_UN("fast_cgi",             std::ptr_fun(&apply_fast_cgi));
+
+  ADD_COMMAND_VALUE_TRI("hash_read_ahead",      std::ptr_fun(&apply_hash_read_ahead), rak::ptr_fun(torrent::hash_read_ahead));
+  ADD_COMMAND_VALUE_TRI("hash_interval",        std::ptr_fun(&apply_hash_interval), rak::ptr_fun(torrent::hash_interval));
+
+  ADD_COMMAND_VALUE_UN("enable_trackers",       std::ptr_fun(&apply_enable_trackers));
+  ADD_COMMAND_STRING_UN("encoding_list",        std::ptr_fun(&apply_encoding_list));
+
+  // Not really network stuff:
+  ADD_VARIABLE_BOOL("handshake_log", false);
+  ADD_VARIABLE_STRING("tracker_dump", "");
+
+  ADD_VARIABLE_STRING("directory", "./");
+
+  ADD_COMMAND_STRING_TRI("session",            rak::make_mem_fun(dStore, &core::DownloadStore::set_path), rak::make_mem_fun(dStore, &core::DownloadStore::path));
+  ADD_COMMAND_VOID("session_save",             rak::make_mem_fun(dList, &core::DownloadList::session_save));
+
+//   ADD_VARIABLE_VALUE_TRI_OCT("umask",               rak::mem_fn(control, &Control::set_umask), rak::mem_fn(control, &Control::umask));
+  ADD_COMMAND_STRING_TRI("working_directory",  rak::make_mem_fun(control, &Control::set_working_directory), rak::make_mem_fun(control, &Control::working_directory));
 }

@@ -46,8 +46,8 @@ namespace utils {
 
 // By using a static array we avoid allocating the variables on the
 // heap. This should reduce memory use and improve cache locality.
-#define COMMAND_SLOTS_SIZE     50
-#define COMMAND_VARIABLES_SIZE 50
+#define COMMAND_SLOTS_SIZE     100
+#define COMMAND_VARIABLES_SIZE 100
 
 #define ADDING_COMMANDS
 
@@ -101,8 +101,20 @@ add_variable("get_" key, "set_" key, key, &utils::CommandVariable::get_string, &
   ADD_COMMAND_COPY("set_" key, call_string, "i:s", "") \
   ADD_COMMAND_SLOT("get_" key, call_unknown, utils::object_void_fn(get), "s:", "")
 
+#define ADD_COMMAND_VOID(key, slot) \
+  ADD_COMMAND_SLOT(key, call_unknown, utils::object_void_fn(slot), "i:", "")
+
+#define ADD_COMMAND_VALUE(key, slot) \
+  ADD_COMMAND_SLOT(key, call_value, slot, "i:i", "")
+
+#define ADD_COMMAND_VALUE_UN(key, slot) \
+  ADD_COMMAND_SLOT(key, call_value, utils::object_value_fn(slot), "i:i", "")
+
 #define ADD_COMMAND_STRING(key, slot) \
   ADD_COMMAND_SLOT(key, call_string, slot, "i:s", "")
+
+#define ADD_COMMAND_STRING_UN(key, slot) \
+  ADD_COMMAND_SLOT(key, call_string, utils::object_string_fn(slot), "i:s", "")
 
 #define ADD_COMMAND_LIST(key, slot) \
   ADD_COMMAND_SLOT(key, call_list, slot, "i:", "")
