@@ -48,6 +48,8 @@
 
 namespace rpc {
 
+XmlRpc::slot_call_command XmlRpc::m_slotCall;
+
 #ifdef HAVE_XMLRPC_C
 
 torrent::Object
@@ -113,25 +115,15 @@ xmlrpc_to_object(xmlrpc_env* env, xmlrpc_value* value) {
   }
 }
 
-struct server_info_t {
-  server_info_t(const char* command, XmlRpc::slot_call_command* callCommand) :
-    m_command(command), m_callCommand(callCommand) {}
-
-  const char*                m_command;
-  XmlRpc::slot_call_command* m_callCommand;
-};
-
 xmlrpc_value*
-xmlrpc_call_command(xmlrpc_env* env, xmlrpc_value* args, void* voidServerInfo) {
+XmlRpc::call_command(xmlrpc_env* env, xmlrpc_value* args, void* voidServerInfo) {
   torrent::Object object = xmlrpc_to_object(env, args);
 
   if (env->fault_occurred)
     return NULL;
 
   try {
-    server_info_t* serverInfo = reinterpret_cast<server_info_t*>(voidServerInfo);
-
-    const torrent::Object& resultObject = (*serverInfo->m_callCommand)(serverInfo->m_command, object);
+    const torrent::Object& resultObject = XmlRpc::m_slotCall((const char*)voidServerInfo, object);
 
     xmlrpc_value* result;
     xmlrpc_int32  tmpInt;
@@ -162,22 +154,6 @@ xmlrpc_call_command(xmlrpc_env* env, xmlrpc_value* args, void* voidServerInfo) {
 XmlRpc::XmlRpc() : m_env(new xmlrpc_env) {
   xmlrpc_env_init(m_env);
   m_registry = xmlrpc_registry_new(m_env);
-
-  // Add a helper function for this...
-
-  xmlrpc_registry_add_method_w_doc(m_env, m_registry, NULL, "call.set_upload_rate", &xmlrpc_call_command, new server_info_t("upload_rate", &m_slotSet), "i:i", "");
-  xmlrpc_registry_add_method_w_doc(m_env, m_registry, NULL, "call.get_upload_rate", &xmlrpc_call_command, new server_info_t("upload_rate", &m_slotGet), "i:", "");
-
-  xmlrpc_registry_add_method_w_doc(m_env, m_registry, NULL, "call.get_directory",   &xmlrpc_call_command, new server_info_t("get_directory", &m_slotGet), "s:", "");
-  xmlrpc_registry_add_method_w_doc(m_env, m_registry, NULL, "call.set_directory",   &xmlrpc_call_command, new server_info_t("set_directory", &m_slotSet), "i:s", "");
-
-  xmlrpc_registry_add_method_w_doc(m_env, m_registry, NULL, "call.get_bind",        &xmlrpc_call_command, new server_info_t("get_bind", &m_slotGet), "s:", "");
-  xmlrpc_registry_add_method_w_doc(m_env, m_registry, NULL, "call.set_bind",        &xmlrpc_call_command, new server_info_t("set_bind", &m_slotSet), "i:s", "");
-
-  xmlrpc_registry_add_method_w_doc(m_env, m_registry, NULL, "call.get_ip",          &xmlrpc_call_command, new server_info_t("get_ip", &m_slotGet), "s:", "");
-  xmlrpc_registry_add_method_w_doc(m_env, m_registry, NULL, "call.set_ip",          &xmlrpc_call_command, new server_info_t("set_ip", &m_slotSet), "i:s", "");
-
-  xmlrpc_registry_add_method_w_doc(m_env, m_registry, NULL, "call.print",           &xmlrpc_call_command, new server_info_t("print", &m_slotSet), "i:s", "");
 }
 
 XmlRpc::~XmlRpc() {
@@ -199,6 +175,11 @@ XmlRpc::process(const char* inBuffer, uint32_t length, slot_write slotWrite) {
   xmlrpc_mem_block_free(memblock);
   xmlrpc_env_clean(&localEnv);
   return result;
+}
+
+void
+XmlRpc::insert_command(const char* name, const char* parm, const char* doc) {
+  xmlrpc_registry_add_method_w_doc(m_env, m_registry, NULL, name, &XmlRpc::call_command, const_cast<char*>(name), parm, doc);
 }
 
 #else

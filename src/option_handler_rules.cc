@@ -151,8 +151,11 @@ apply_fast_cgi(const std::string& arg) {
 
   if (control->xmlrpc() == NULL) {
     control->set_xmlrpc(new rpc::XmlRpc);
-    control->xmlrpc()->set_slot_call_command_get(rak::mem_fn(control->variable(), &utils::VariableMap::call_command_get));
-    control->xmlrpc()->set_slot_call_command_set(rak::mem_fn(control->variable(), &utils::VariableMap::call_command_set));
+    control->xmlrpc()->set_slot_call_command(rak::mem_fn(control->variable(), &utils::VariableMap::call_command));
+
+    for (utils::VariableMap::const_iterator itr = control->variable()->begin(), last = control->variable()->end(); itr != last; itr++)
+      if (itr->second.m_flags & utils::VariableMap::flag_public_xmlrpc)
+        control->xmlrpc()->insert_command(itr->first, itr->second.m_parm, itr->second.m_doc);
   }
 
   control->set_fast_cgi(new rpc::FastCgi(arg));
@@ -227,7 +230,7 @@ initialize_variables() {
   variables->insert("import",                new utils::VariableStringSlot(NULL, rak::ptr_fn(&apply_import)));
   variables->insert("try_import",            new utils::VariableStringSlot(NULL, rak::ptr_fn(&apply_try_import)));
 
-  ADD_COMMAND_SLOT("schedule",       call_list, rak::ptr_fn(&apply_schedule));
+  ADD_COMMAND_LIST("schedule",               rak::ptr_fn(&apply_schedule));
   variables->insert("schedule_remove",       new utils::VariableStringSlot(NULL, rak::mem_fn<const std::string&>(control->command_scheduler(), &CommandScheduler::erase)));
 
   variables->insert("download_scheduler",    new utils::VariableVoidSlot(rak::mem_fn(control->scheduler(), &core::Scheduler::update)));

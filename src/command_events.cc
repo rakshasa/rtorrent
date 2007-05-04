@@ -174,21 +174,21 @@ initialize_command_events() {
   utils::VariableMap* variables = control->variable();
   core::DownloadList* downloadList = control->core()->download_list();
 
-  ADD_COMMAND_SLOT("on_insert",       call_list, rak::bind_ptr_fn(&apply_on_state_change, &downloadList->slot_map_insert()));
-  ADD_COMMAND_SLOT("on_erase",        call_list, rak::bind_ptr_fn(&apply_on_state_change, &downloadList->slot_map_erase()));
-  ADD_COMMAND_SLOT("on_open",         call_list, rak::bind_ptr_fn(&apply_on_state_change, &downloadList->slot_map_open()));
-  ADD_COMMAND_SLOT("on_close",        call_list, rak::bind_ptr_fn(&apply_on_state_change, &downloadList->slot_map_close()));
-  ADD_COMMAND_SLOT("on_start",        call_list, rak::bind_ptr_fn(&apply_on_state_change, &downloadList->slot_map_start()));
-  ADD_COMMAND_SLOT("on_stop",         call_list, rak::bind_ptr_fn(&apply_on_state_change, &downloadList->slot_map_stop()));
-  ADD_COMMAND_SLOT("on_hash_queued",  call_list, rak::bind_ptr_fn(&apply_on_state_change, &downloadList->slot_map_hash_queued()));
-  ADD_COMMAND_SLOT("on_hash_removed", call_list, rak::bind_ptr_fn(&apply_on_state_change, &downloadList->slot_map_hash_removed()));
-  ADD_COMMAND_SLOT("on_hash_done",    call_list, rak::bind_ptr_fn(&apply_on_state_change, &downloadList->slot_map_hash_done()));
-  ADD_COMMAND_SLOT("on_finished",     call_list, rak::bind_ptr_fn(&apply_on_state_change, &downloadList->slot_map_finished()));
+  ADD_COMMAND_SLOT_PRIVATE("on_insert",       call_list, rak::bind_ptr_fn(&apply_on_state_change, &downloadList->slot_map_insert()));
+  ADD_COMMAND_SLOT_PRIVATE("on_erase",        call_list, rak::bind_ptr_fn(&apply_on_state_change, &downloadList->slot_map_erase()));
+  ADD_COMMAND_SLOT_PRIVATE("on_open",         call_list, rak::bind_ptr_fn(&apply_on_state_change, &downloadList->slot_map_open()));
+  ADD_COMMAND_SLOT_PRIVATE("on_close",        call_list, rak::bind_ptr_fn(&apply_on_state_change, &downloadList->slot_map_close()));
+  ADD_COMMAND_SLOT_PRIVATE("on_start",        call_list, rak::bind_ptr_fn(&apply_on_state_change, &downloadList->slot_map_start()));
+  ADD_COMMAND_SLOT_PRIVATE("on_stop",         call_list, rak::bind_ptr_fn(&apply_on_state_change, &downloadList->slot_map_stop()));
+  ADD_COMMAND_SLOT_PRIVATE("on_hash_queued",  call_list, rak::bind_ptr_fn(&apply_on_state_change, &downloadList->slot_map_hash_queued()));
+  ADD_COMMAND_SLOT_PRIVATE("on_hash_removed", call_list, rak::bind_ptr_fn(&apply_on_state_change, &downloadList->slot_map_hash_removed()));
+  ADD_COMMAND_SLOT_PRIVATE("on_hash_done",    call_list, rak::bind_ptr_fn(&apply_on_state_change, &downloadList->slot_map_hash_done()));
+  ADD_COMMAND_SLOT_PRIVATE("on_finished",     call_list, rak::bind_ptr_fn(&apply_on_state_change, &downloadList->slot_map_finished()));
 
-  ADD_COMMAND_SLOT("stop_on_ratio",   call_list, rak::ptr_fn(&apply_stop_on_ratio));
+  ADD_COMMAND_SLOT_PRIVATE("stop_on_ratio",   call_list, rak::ptr_fn(&apply_stop_on_ratio));
 
-  ADD_COMMAND_SLOT("start_tied",      call_string, utils::object_fn(&apply_start_tied));
-  ADD_COMMAND_SLOT("stop_untied",     call_string, utils::object_fn(&apply_stop_untied));
-  ADD_COMMAND_SLOT("close_untied",    call_string, utils::object_fn(&apply_close_untied));
-  ADD_COMMAND_SLOT("remove_untied",   call_string, utils::object_fn(&apply_remove_untied));
+  ADD_COMMAND_SLOT_PRIVATE("start_tied",      call_string, utils::object_fn(&apply_start_tied));
+  ADD_COMMAND_SLOT_PRIVATE("stop_untied",     call_string, utils::object_fn(&apply_stop_untied));
+  ADD_COMMAND_SLOT_PRIVATE("close_untied",    call_string, utils::object_fn(&apply_close_untied));
+  ADD_COMMAND_SLOT_PRIVATE("remove_untied",   call_string, utils::object_fn(&apply_remove_untied));
 }

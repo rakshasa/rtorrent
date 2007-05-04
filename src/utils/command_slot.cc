@@ -97,6 +97,7 @@ CommandSlot::call_value_base(Variable* rawVariable, const torrent::Object& rawAr
 
   switch (arg.type()) {
   case torrent::Object::TYPE_VALUE:
+    // Should shift this one too, so it gives the right unit.
     return command->m_slot(arg);
 
   case torrent::Object::TYPE_STRING:

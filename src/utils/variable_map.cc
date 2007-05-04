@@ -62,13 +62,14 @@ VariableMap::~VariableMap() {
 }
 
 void
-VariableMap::insert(key_type key, Variable* variable, generic_slot genericSlot, int flags) {
+VariableMap::insert(key_type key, Variable* variable, generic_slot genericSlot, int flags,
+                    const char* parm, const char* doc) {
   iterator itr = base_type::find(key);
 
   if (itr != base_type::end())
     throw torrent::internal_error("VariableMap::insert(...) tried to insert an already existing key.");
 
-  base_type::insert(itr, value_type(key, variable_map_data_type(variable, genericSlot, NULL, flags)));
+  base_type::insert(itr, value_type(key, variable_map_data_type(variable, genericSlot, NULL, flags, parm, doc)));
 }
 
 const VariableMap::mapped_type
@@ -277,34 +278,6 @@ VariableMap::call_command(key_type key, const mapped_type& arg) {
     throw torrent::input_error("Variable does not have a generic slot.");
 
   return itr->second.m_genericSlot(itr->second.m_variable, arg);
-}
-
-const VariableMap::mapped_type
-VariableMap::call_command_get(key_type key, const mapped_type& arg) {
-  const_iterator itr = base_type::find(key);
-
-  if (itr == base_type::end())
-    throw torrent::input_error("Variable \"" + std::string(key) + "\" does not exist.");
-
-  if (itr->second.m_genericSlot != NULL)
-    return itr->second.m_genericSlot(itr->second.m_variable, arg);
-
-  return get(key);
-}
-
-const VariableMap::mapped_type
-VariableMap::call_command_set(key_type key, const mapped_type& arg) {
-  const_iterator itr = base_type::find(key);
-
-  if (itr == base_type::end())
-    throw torrent::input_error("Variable \"" + std::string(key) + "\" does not exist.");
-
-  if (itr->second.m_genericSlot != NULL)
-    return itr->second.m_genericSlot(itr->second.m_variable, arg);
-
-  set(key, arg);
-
-  return Variable::m_emptyObject;
 }
 
 }

@@ -66,14 +66,18 @@ struct variable_map_data_type {
   typedef const torrent::Object (*generic_slot)(Variable*, const torrent::Object&);
   typedef const torrent::Object (*download_slot)(Variable*, core::Download*, const torrent::Object&);
 
-  variable_map_data_type(Variable* variable, generic_slot genericSlot, download_slot downloadSlot, int flags) :
-    m_variable(variable), m_genericSlot(genericSlot), m_downloadSlot(downloadSlot), m_flags(flags) {}
+  variable_map_data_type(Variable* variable, generic_slot genericSlot, download_slot downloadSlot, int flags,
+                         const char* parm, const char* doc) :
+    m_variable(variable), m_genericSlot(genericSlot), m_downloadSlot(downloadSlot), m_flags(flags), m_parm(parm), m_doc(doc) {}
 
   Variable*     m_variable;
   generic_slot  m_genericSlot;
   download_slot m_downloadSlot;
 
   int           m_flags;
+
+  const char*   m_parm;
+  const char*   m_doc;
 };
 
 class VariableMap : public std::map<const char*, variable_map_data_type, variable_map_comp> {
@@ -90,11 +94,15 @@ public:
   using base_type::key_type;
   using base_type::value_type;
 
+  using base_type::begin;
+  using base_type::end;
+
   static const int max_size_key = 128;
   static const int max_size_opt = 1024;
   static const int max_size_line = max_size_key + max_size_opt + 64;
 
-  static const int flag_dont_delete = 0x1;
+  static const int flag_dont_delete   = 0x1;
+  static const int flag_public_xmlrpc = 0x2;
 
   VariableMap() {}
   ~VariableMap();
@@ -104,15 +112,16 @@ public:
 
   // Allow NULL slot as a temporary compatibility hack.
 
-  void                insert(key_type key, Variable* variable, generic_slot genericSlot = NULL, int flags = 0);
+  void                insert(key_type key, Variable* variable, generic_slot genericSlot = NULL, int flags = 0,
+                             const char* parm = "", const char* doc = "");
 
   // Consider uninlining the helper functions.
 
-  const mapped_type  get(key_type key) const;
-  const mapped_type  get_d(core::Download* download, key_type key) const;
+  const mapped_type   get(key_type key) const;
+  const mapped_type   get_d(core::Download* download, key_type key) const;
 
-  const std::string  get_string(key_type key) const                             { return get(key).as_string(); }
-  const std::string  get_d_string(core::Download* download, key_type key) const { return get_d(download, key).as_string(); }
+  const std::string   get_string(key_type key) const                             { return get(key).as_string(); }
+  const std::string   get_d_string(core::Download* download, key_type key) const { return get_d(download, key).as_string(); }
 
   mapped_value_type   get_value(key_type key) const                              { return get(key).as_value(); }
   mapped_value_type   get_d_value(core::Download* download, key_type key) const  { return get_d(download, key).as_value(); }
@@ -144,9 +153,6 @@ public:
   // The new API, which is atm just a wrapper over the old and
   // requires seperate calls to get and set. These will be merged.
   const mapped_type   call_command(key_type key, const mapped_type& arg);
-
-  const mapped_type   call_command_get(key_type key, const mapped_type& arg);
-  const mapped_type   call_command_set(key_type key, const mapped_type& arg);
 
 private:
   VariableMap(const VariableMap&);

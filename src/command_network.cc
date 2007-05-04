@@ -143,9 +143,9 @@ initialize_command_network() {
 
   ADD_VARIABLE_VALUE("tracker_numwant", -1);
 
-  ADD_COMMAND_SLOT("encryption",       call_list, rak::ptr_fn(&apply_encryption));
+  ADD_COMMAND_LIST("encryption",          rak::ptr_fn(&apply_encryption));
 
-  ADD_COMMAND_SLOT("tos",              call_string, rak::ptr_fn(&apply_tos));
+  ADD_COMMAND_STRING("tos",               rak::ptr_fn(&apply_tos));
 
   ADD_COMMAND_STRING_TRI("bind",          rak::make_mem_fun(control->core(), &core::Manager::set_bind_address), rak::make_mem_fun(control->core(), &core::Manager::bind_address));
   ADD_COMMAND_STRING_TRI("ip",            rak::make_mem_fun(control->core(), &core::Manager::set_local_address), rak::make_mem_fun(control->core(), &core::Manager::local_address));
