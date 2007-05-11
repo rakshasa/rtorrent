@@ -44,8 +44,7 @@
 #include <iosfwd>
 #include <sigc++/slot.h>
 #include <rak/priority_queue_default.h>
-
-#include "utils/variable_map.h"
+#include <torrent/object.h>
 
 #include "http_queue.h"
 
@@ -67,7 +66,7 @@ public:
   void                load();
   void                commit();
 
-  utils::VariableMap* variable()            { return &m_variables; }
+  torrent::Object::map_type& variables()    { return m_variables; }
 
   bool                get_session() const   { return m_session; }
   void                set_session(bool v)   { m_session = v; }
@@ -100,7 +99,7 @@ private:
   bool                m_start;
   bool                m_printLog;
 
-  utils::VariableMap  m_variables;
+  torrent::Object::map_type m_variables;
 
   Slot                m_slotFinished;
   rak::priority_item  m_taskLoad;

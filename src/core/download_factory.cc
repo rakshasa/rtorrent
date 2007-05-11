@@ -48,6 +48,7 @@
 #include <torrent/data/file_utils.h>
 
 #include "utils/variable_generic.h"
+#include "utils/variable_map.h"
 
 #include "curl_get.h"
 #include "control.h"
@@ -75,10 +76,10 @@ DownloadFactory::DownloadFactory(const std::string& uri, Manager* m) :
   m_taskLoad.set_slot(rak::mem_fn(this, &DownloadFactory::receive_load));
   m_taskCommit.set_slot(rak::mem_fn(this, &DownloadFactory::receive_commit));
 
-  m_variables.insert("connection_leech", new utils::VariableAny(control->variable()->get("get_connection_leech")));
-  m_variables.insert("connection_seed",  new utils::VariableAny(control->variable()->get("get_connection_seed")));
-  m_variables.insert("directory",        new utils::VariableAny(control->variable()->get("get_directory")));
-  m_variables.insert("tied_to_file",     new utils::VariableBool(false));
+  m_variables["connection_leech"] = control->variable()->call_command_void("get_connection_leech");
+  m_variables["connection_seed"]  = control->variable()->call_command_void("get_connection_seed");
+  m_variables["directory"]        = control->variable()->call_command_void("directory");
+  m_variables["tied_to_file"]     = torrent::Object((int64_t)false);
 }
 
 DownloadFactory::~DownloadFactory() {
@@ -112,7 +113,7 @@ DownloadFactory::receive_load() {
     (*itr)->signal_done().slots().push_front(sigc::mem_fun(*this, &DownloadFactory::receive_loaded));
     (*itr)->signal_failed().slots().push_front(sigc::mem_fun(*this, &DownloadFactory::receive_failed));
 
-    m_variables.set("tied_to_file", (int64_t)false);
+    m_variables["tied_to_file"] = (int64_t)false;
 
   } else {
     std::fstream* stream = new std::fstream(rak::path_expand(m_uri).c_str(), std::ios::in | std::ios::binary);
@@ -173,43 +174,43 @@ DownloadFactory::receive_success() {
   initialize_rtorrent(download, rtorrent);
 
   // Move to 'rtorrent'.
-  download->set("connection_leech", m_variables.get("connection_leech"));
-  download->set("connection_seed",  m_variables.get("connection_seed"));
+  download->set("connection_leech", m_variables["connection_leech"]);
+  download->set("connection_seed",  m_variables["get_connection_seed"]);
 
-  download->set("max_uploads",      control->variable()->get("get_max_uploads"));
-  download->set("min_peers",        control->variable()->get("get_min_peers"));
-  download->set("max_peers",        control->variable()->get("get_max_peers"));
-  download->set("tracker_numwant",  control->variable()->get("get_tracker_numwant"));
+  download->set("max_uploads",      control->variable()->call_command_void("get_max_uploads"));
+  download->set("min_peers",        control->variable()->call_command_void("get_min_peers"));
+  download->set("max_peers",        control->variable()->call_command_void("get_max_peers"));
+  download->set("tracker_numwant",  control->variable()->call_command_void("get_tracker_numwant"));
 
   if (download->get_value("complete") != 0) {
-    if (control->variable()->get_value("get_min_peers_seed") >= 0)
-      download->set("min_peers", control->variable()->get("get_min_peers_seed"));
+    if (control->variable()->call_command_value("get_min_peers_seed") >= 0)
+      download->set("min_peers", control->variable()->call_command_void("get_min_peers_seed"));
 
-    if (control->variable()->get_value("get_max_peers_seed") >= 0)
-      download->set("max_peers", control->variable()->get("get_max_peers_seed"));
+    if (control->variable()->call_command_value("get_max_peers_seed") >= 0)
+      download->set("max_peers", control->variable()->call_command_void("get_max_peers_seed"));
   }
 
-  if (!control->variable()->get_value("get_use_udp_trackers"))
+  if (!control->variable()->call_command_value("get_use_udp_trackers"))
     download->enable_udp_trackers(false);
 
-  if (control->variable()->get_value("get_max_file_size") > 0)
-    download->set("max_file_size", control->variable()->get("get_max_file_size"));
+  if (control->variable()->call_command_value("get_max_file_size") > 0)
+    download->set("max_file_size", control->variable()->call_command_void("get_max_file_size"));
 
   // Check first if we already have these values set in the session
   // torrent, so that it is safe to change the values.
   //
   // Need to also catch the exceptions.
-  if (control->variable()->get_value("get_split_file_size") >= 0)
+  if (control->variable()->call_command_value("get_split_file_size") >= 0)
     torrent::file_split_all(download->download()->file_list(),
-                            control->variable()->get_value("get_split_file_size"),
-                            control->variable()->get_string("split_suffix"));
+                            control->variable()->call_command_value("get_split_file_size"),
+                            control->variable()->call_command_string("split_suffix"));
 
   if (!rtorrent->has_key_string("directory"))
-    download->set("directory", m_variables.get("directory"));
+    download->set("directory", m_variables["get_directory"]);
   else
     download->set("directory", rtorrent->get_key("directory"));
 
-  if (!m_session && m_variables.get("tied_to_file").as_value())
+  if (!m_session && m_variables["tied_to_file"].as_value())
     download->set("tied_to_file", m_uri);
 
   torrent::Object& resumeObject = root->has_key_map("libtorrent_resume")

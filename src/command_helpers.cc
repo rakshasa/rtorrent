@@ -51,6 +51,7 @@ utils::CommandVariable  commandVariables[COMMAND_VARIABLES_SIZE];
 utils::CommandVariable* commandVariablesItr = commandVariables;
 
 void initialize_download_variables();
+void initialize_command_download();
 void initialize_command_events();
 void initialize_command_local();
 void initialize_command_network();
@@ -59,6 +60,7 @@ void initialize_command_ui();
 void
 initialize_commands() {
   initialize_download_variables();
+  initialize_command_download();
   initialize_command_events();
   initialize_command_network();
   initialize_command_local();

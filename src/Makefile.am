@@ -17,6 +17,7 @@ rtorrent_LDADD = \
 	$(top_srcdir)/src/utils/libsub_utils.a
 
 rtorrent_SOURCES = \
+	command_download.cc \
 	command_events.cc \
 	command_helpers.cc \
 	command_helpers.h \

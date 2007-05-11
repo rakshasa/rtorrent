@@ -116,7 +116,7 @@ Control::initialize() {
 
   m_core->initialize_second();
   m_core->listen_open();
-  m_core->download_store()->enable(m_variables->get_value("get_session_lock"));
+  m_core->download_store()->enable(m_variables->call_command_value("get_session_lock"));
 
   m_core->set_hashing_view(*m_viewManager->find_throw("hashing"));
   m_scheduler->set_view(*m_viewManager->find_throw("scheduler"));

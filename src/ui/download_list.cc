@@ -232,7 +232,7 @@ DownloadList::receive_view_input(Input type) {
   case INPUT_CHANGE_DIRECTORY:
     title = "change_directory";
 
-    input->str() = control->variable()->get_string("get_directory");
+    input->str() = control->variable()->call_command_string("get_directory");
     input->set_pos(input->str().length());
 
     break;

@@ -136,7 +136,7 @@ apply_enable_trackers(int64_t arg) {
       else
         tl.get(i).disable();
 
-    if (arg && !control->variable()->get_value("get_use_udp_trackers"))
+    if (arg && !control->variable()->call_command_value("get_use_udp_trackers"))
       (*itr)->enable_udp_trackers(false);
   }    
 }

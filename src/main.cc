@@ -82,14 +82,14 @@ parse_options(Control* c, int argc, char** argv) {
     optionParser.insert_flag('h', sigc::ptr_fun(&print_help));
     optionParser.insert_flag('n', OptionParser::Slot());
 
-    optionParser.insert_option('b', sigc::bind<0>(sigc::mem_fun(c->variable(), &utils::VariableMap::set_string), "bind"));
-    optionParser.insert_option('d', sigc::bind<0>(sigc::mem_fun(c->variable(), &utils::VariableMap::set_string), "directory"));
-    optionParser.insert_option('i', sigc::bind<0>(sigc::mem_fun(c->variable(), &utils::VariableMap::set_string), "ip"));
-    optionParser.insert_option('p', sigc::bind<0>(sigc::mem_fun(c->variable(), &utils::VariableMap::set_string), "port_range"));
-    optionParser.insert_option('s', sigc::bind<0>(sigc::mem_fun(c->variable(), &utils::VariableMap::set_string), "session"));
+    optionParser.insert_option('b', sigc::bind<0>(sigc::mem_fun(c->variable(), &utils::VariableMap::call_command_set_string), "bind"));
+    optionParser.insert_option('d', sigc::bind<0>(sigc::mem_fun(c->variable(), &utils::VariableMap::call_command_set_string), "directory"));
+    optionParser.insert_option('i', sigc::bind<0>(sigc::mem_fun(c->variable(), &utils::VariableMap::call_command_set_string), "ip"));
+    optionParser.insert_option('p', sigc::bind<0>(sigc::mem_fun(c->variable(), &utils::VariableMap::call_command_set_string), "port_range"));
+    optionParser.insert_option('s', sigc::bind<0>(sigc::mem_fun(c->variable(), &utils::VariableMap::call_command_set_string), "session"));
 
     optionParser.insert_option('O', sigc::mem_fun(c->variable(), &utils::VariableMap::process_std_single));
-    optionParser.insert_option_list('o', sigc::mem_fun(c->variable(), &utils::VariableMap::set_std_string));
+    optionParser.insert_option_list('o', sigc::mem_fun(c->variable(), &utils::VariableMap::call_command_set_std_string));
 
     return optionParser.process(argc, argv);
 

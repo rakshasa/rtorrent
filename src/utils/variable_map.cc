@@ -73,19 +73,6 @@ VariableMap::insert(key_type key, Variable* variable, generic_slot genericSlot, 
 }
 
 const VariableMap::mapped_type
-VariableMap::get(key_type key) const {
-  const_iterator itr = base_type::find(key);
-
-  if (itr == base_type::end())
-    throw torrent::input_error("Variable \"" + std::string(key) + "\" does not exist.");
-
-  if (itr->second.m_genericSlot != NULL)
-    return itr->second.m_genericSlot(itr->second.m_variable, torrent::Object());
-
-  return itr->second.m_variable->get();
-}
-
-const VariableMap::mapped_type
 VariableMap::get_d(core::Download* download, key_type key) const {
   const_iterator itr = base_type::find(key);
 
@@ -99,23 +86,6 @@ VariableMap::get_d(core::Download* download, key_type key) const {
     return itr->second.m_genericSlot(itr->second.m_variable, torrent::Object());
 
   return itr->second.m_variable->get_d(download);
-}
-
-void
-VariableMap::set(key_type key, const mapped_type& arg) {
-  iterator itr = base_type::find(key);
-
-  // Later, allow the user to create new variables. Have a slot to
-  // register that thing.
-  if (itr == base_type::end())
-    throw torrent::input_error("Variable \"" + std::string(key) + "\" does not exist.");
-
-  if (itr->second.m_genericSlot != NULL) {
-    itr->second.m_genericSlot(itr->second.m_variable, arg);
-    return;
-  }
-
-  itr->second.m_variable->set(arg);
 }
 
 void
@@ -188,7 +158,7 @@ VariableMap::process_single(const char* first, const char* last) {
   mapped_type args;
   first = parse_whole_list(first + 1, last, &args);
 
-  set(key.c_str(), args);
+  call_command(key.c_str(), args);
 
   return first;
 }

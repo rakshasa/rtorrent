@@ -85,13 +85,13 @@ connect_signal_storage_log(Download* d, torrent::Download::slot_string_type s) {
 // Need a proper logging class for this.
 static void
 connect_signal_tracker_dump(Download* d, torrent::Download::slot_dump_type s) {
-  if (!control->variable()->get_string("get_tracker_dump").empty())
+  if (!control->variable()->call_command_string("get_tracker_dump").empty())
     d->download()->signal_tracker_dump(s);
 }
 
 static void
 receive_tracker_dump(const std::string& url, const char* data, size_t size) {
-  const std::string& filename = control->variable()->get_string("get_tracker_dump");
+  const std::string& filename = control->variable()->call_command_string("get_tracker_dump");
 
   if (filename.empty())
     return;
@@ -108,7 +108,7 @@ receive_tracker_dump(const std::string& url, const char* data, size_t size) {
 
 void
 Manager::handshake_log(const sockaddr* sa, int msg, int err, const torrent::HashString* hash) {
-  if (!control->variable()->get_value("get_handshake_log"))
+  if (!control->variable()->call_command_value("get_handshake_log"))
     return;
   
   std::string peer;
@@ -276,11 +276,11 @@ void
 Manager::listen_open() {
   // This stuff really should be moved outside of manager, make it
   // part of the init script.
-  if (!control->variable()->get_value("get_port_open"))
+  if (!control->variable()->call_command_value("get_port_open"))
     return;
 
   int portFirst, portLast;
-  torrent::Object portRange = control->variable()->get("get_port_range");
+  torrent::Object portRange = control->variable()->call_command_void("get_port_range");
 
   if (portRange.is_string()) {
     if (std::sscanf(portRange.as_string().c_str(), "%i-%i", &portFirst, &portLast) != 2)
@@ -295,7 +295,7 @@ Manager::listen_open() {
   if (portFirst > portLast || portLast >= (1 << 16))
     throw torrent::input_error("Invalid port range.");
 
-  if (control->variable()->get_value("get_port_random")) {
+  if (control->variable()->call_command_value("get_port_random")) {
     int boundary = portFirst + random() % (portLast - portFirst + 1);
 
     if (torrent::connection_manager()->listen_open(boundary, portLast) ||
@@ -415,7 +415,7 @@ Manager::try_create_download(const std::string& uri, bool start, bool printLog, 
   // Adding download.
   DownloadFactory* f = new DownloadFactory(uri, this);
 
-  f->variable()->set("tied_to_file", tied ? "yes" : "no");
+  f->variables()["tied_to_file"] = (int64_t)tied;
 
   f->set_start(start);
   f->set_print_log(printLog);

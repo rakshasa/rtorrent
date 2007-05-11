@@ -116,27 +116,14 @@ public:
                              const char* parm = "", const char* doc = "");
 
   // Consider uninlining the helper functions.
-
-  const mapped_type   get(key_type key) const;
   const mapped_type   get_d(core::Download* download, key_type key) const;
-
-  const std::string   get_string(key_type key) const                             { return get(key).as_string(); }
   const std::string   get_d_string(core::Download* download, key_type key) const { return get_d(download, key).as_string(); }
-
-  mapped_value_type   get_value(key_type key) const                              { return get(key).as_value(); }
   mapped_value_type   get_d_value(core::Download* download, key_type key) const  { return get_d(download, key).as_value(); }
 
-  void                set(key_type key, const mapped_type& arg);
   void                set_d(core::Download* download, key_type key, const mapped_type& arg);
-
-  void                set_string(key_type key, const std::string& arg)                                           { set(key, mapped_type(arg)); }
   void                set_d_string(core::Download* download, key_type key, const std::string& arg)               { set_d(download, key, mapped_type(arg)); }
   void                set_d_std_string(core::Download* download, const std::string& key, const std::string& arg) { set_d(download, key.c_str(), mapped_type(arg)); }
-
-  void                set_value(key_type key, mapped_value_type arg)                               { set(key, mapped_type(arg)); }
   void                set_d_value(core::Download* download, key_type key, mapped_value_type arg)   { set_d(download, key, mapped_type(arg)); }
-
-  void                set_std_string(const std::string& key, const std::string& arg) { set(key.c_str(), mapped_type(arg)); }
 
   const char*         process_single(const char* first);
   const char*         process_single(const char* first, const char* last);
@@ -153,6 +140,12 @@ public:
   // The new API, which is atm just a wrapper over the old and
   // requires seperate calls to get and set. These will be merged.
   const mapped_type   call_command(key_type key, const mapped_type& arg);
+  const mapped_type   call_command_void(key_type key)   { return call_command(key, torrent::Object()); }
+  const std::string   call_command_string(key_type key) { return call_command(key, torrent::Object()).as_string(); }
+  mapped_value_type   call_command_value(key_type key)  { return call_command(key, torrent::Object()).as_value(); }
+
+  void                call_command_set_string(key_type key, const std::string& arg)               { call_command(key, mapped_type(arg)); }
+  void                call_command_set_std_string(const std::string& key, const std::string& arg) { call_command(key.c_str(), mapped_type(arg)); }
 
 private:
   VariableMap(const VariableMap&);
