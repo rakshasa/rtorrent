@@ -112,7 +112,7 @@ public:
 
   // Allow NULL slot as a temporary compatibility hack.
 
-  void                insert(key_type key, Variable* variable, generic_slot genericSlot = NULL, int flags = 0,
+  void                insert(key_type key, Variable* variable, generic_slot genericSlot = NULL, download_slot downloadSlot = NULL, int flags = 0,
                              const char* parm = "", const char* doc = "");
 
   // Consider uninlining the helper functions.
@@ -146,6 +146,8 @@ public:
 
   void                call_command_set_string(key_type key, const std::string& arg)               { call_command(key, mapped_type(arg)); }
   void                call_command_set_std_string(const std::string& key, const std::string& arg) { call_command(key.c_str(), mapped_type(arg)); }
+
+  const mapped_type   call_command_d(key_type key, core::Download* download, const mapped_type& arg);
 
 private:
   VariableMap(const VariableMap&);

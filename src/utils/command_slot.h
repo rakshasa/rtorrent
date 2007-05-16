@@ -38,7 +38,6 @@
 #define RTORRENT_UTILS_COMMAND_SLOT_H
 
 #include <functional>
-#include <string>
 #include <limits>
 #include <inttypes.h>
 #include <torrent/object.h>
@@ -47,10 +46,6 @@
 #include "variable.h"
 
 namespace utils {
-
-// The CommandSlot class uses union instead of creating multiple
-// derived classes so that it is possible to create an array
-// containing different slot types.
 
 class CommandSlot : public Variable {
 public:

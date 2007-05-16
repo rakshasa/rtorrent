@@ -78,7 +78,7 @@ DownloadFactory::DownloadFactory(const std::string& uri, Manager* m) :
 
   m_variables["connection_leech"] = control->variable()->call_command_void("get_connection_leech");
   m_variables["connection_seed"]  = control->variable()->call_command_void("get_connection_seed");
-  m_variables["directory"]        = control->variable()->call_command_void("directory");
+  m_variables["directory"]        = control->variable()->call_command_void("get_directory");
   m_variables["tied_to_file"]     = torrent::Object((int64_t)false);
 }
 
@@ -175,7 +175,7 @@ DownloadFactory::receive_success() {
 
   // Move to 'rtorrent'.
   download->set("connection_leech", m_variables["connection_leech"]);
-  download->set("connection_seed",  m_variables["get_connection_seed"]);
+  download->set("connection_seed",  m_variables["connection_seed"]);
 
   download->set("max_uploads",      control->variable()->call_command_void("get_max_uploads"));
   download->set("min_peers",        control->variable()->call_command_void("get_min_peers"));
@@ -206,7 +206,7 @@ DownloadFactory::receive_success() {
                             control->variable()->call_command_string("split_suffix"));
 
   if (!rtorrent->has_key_string("directory"))
-    download->set("directory", m_variables["get_directory"]);
+    download->set("directory", m_variables["directory"]);
   else
     download->set("directory", rtorrent->get_key("directory"));
 

@@ -191,31 +191,6 @@ apply_d_delete_link(core::Download* download, const torrent::Object::list_type& 
     ; //     control->core()->push_log("delete_link failed: " + std::string(rak::error_number::current().c_str()));
 }
 
-std::string
-retrieve_d_base_path(core::Download* download) {
-  if (download->file_list()->is_multi_file())
-    return download->file_list()->root_dir();
-  else
-    return download->file_list()->at(0)->frozen_path();
-}
-
-std::string
-retrieve_d_base_filename(core::Download* download) {
-  std::string base;
-
-  if (download->file_list()->is_multi_file())
-    base = download->file_list()->root_dir();
-  else
-    base = download->file_list()->at(0)->frozen_path();
-
-  std::string::size_type split = base.rfind('/');
-
-  if (split == std::string::npos)
-    return base;
-  else
-    return base.substr(split + 1);
-}
-
 void
 initialize_download_variables() {
   utils::VariableMap* variables = control->download_variables();
@@ -244,8 +219,6 @@ initialize_download_variables() {
 
   variables->insert("directory",          new utils::VariableDownloadStringSlot(rak::ftor_fn1(rak::on(std::mem_fun(&core::Download::file_list), std::mem_fun(&torrent::FileList::root_dir))),
                                                                                 rak::ftor_fn2(std::mem_fun(&core::Download::set_root_directory))));
-  variables->insert("base_path",          new utils::VariableDownloadStringSlot(rak::ptr_fn(&retrieve_d_base_path), NULL));
-  variables->insert("base_filename",      new utils::VariableDownloadStringSlot(rak::ptr_fn(&retrieve_d_base_filename), NULL));
 
   variables->insert("min_peers",          var_d_value(&core::Download::download, &torrent::Download::peers_min, &torrent::Download::set_peers_min));
   variables->insert("max_peers",          var_d_value(&core::Download::download, &torrent::Download::peers_max, &torrent::Download::set_peers_max));

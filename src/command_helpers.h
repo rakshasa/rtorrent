@@ -42,19 +42,23 @@
 namespace utils {
   class CommandSlot;
   class CommandVariable;
+  class CommandDownloadSlot;
 }
 
 // By using a static array we avoid allocating the variables on the
 // heap. This should reduce memory use and improve cache locality.
-#define COMMAND_SLOTS_SIZE     100
-#define COMMAND_VARIABLES_SIZE 100
+#define COMMAND_SLOTS_SIZE          100
+#define COMMAND_VARIABLES_SIZE      100
+#define COMMAND_DOWNLOAD_SLOTS_SIZE 50
 
 #define ADDING_COMMANDS
 
-extern utils::CommandSlot      commandSlots[COMMAND_SLOTS_SIZE];
-extern utils::CommandSlot*     commandSlotsItr;
-extern utils::CommandVariable  commandVariables[COMMAND_VARIABLES_SIZE];
-extern utils::CommandVariable* commandVariablesItr;
+extern utils::CommandSlot          commandSlots[COMMAND_SLOTS_SIZE];
+extern utils::CommandSlot*         commandSlotsItr;
+extern utils::CommandVariable      commandVariables[COMMAND_VARIABLES_SIZE];
+extern utils::CommandVariable*     commandVariablesItr;
+extern utils::CommandDownloadSlot  commandDownloadSlots[COMMAND_DOWNLOAD_SLOTS_SIZE];
+extern utils::CommandDownloadSlot* commandDownloadSlotsItr;
 
 void initialize_commands();
 
@@ -74,17 +78,17 @@ add_variable("get_" key, "set_" key, key, &utils::CommandVariable::get_string, &
 
 #define ADD_COMMAND_SLOT(key, function, slot, parm, doc)    \
   commandSlotsItr->set_slot(slot); \
-  variables->insert(key, commandSlotsItr++, &utils::CommandSlot::function, utils::VariableMap::flag_dont_delete | utils::VariableMap::flag_public_xmlrpc, parm, doc);
+  variables->insert(key, commandSlotsItr++, &utils::CommandSlot::function, NULL, utils::VariableMap::flag_dont_delete | utils::VariableMap::flag_public_xmlrpc, parm, doc);
 
 #define ADD_COMMAND_SLOT_PRIVATE(key, function, slot) \
   commandSlotsItr->set_slot(slot); \
-  variables->insert(key, commandSlotsItr++, &utils::CommandSlot::function, utils::VariableMap::flag_dont_delete);
+  variables->insert(key, commandSlotsItr++, &utils::CommandSlot::function, NULL, utils::VariableMap::flag_dont_delete);
 
 #define ADD_COMMAND_COPY(key, function, parm, doc) \
-  variables->insert(key, (commandSlotsItr - 1), &utils::CommandSlot::function, utils::VariableMap::flag_dont_delete | utils::VariableMap::flag_public_xmlrpc, parm, doc);
+  variables->insert(key, (commandSlotsItr - 1), &utils::CommandSlot::function, NULL, utils::VariableMap::flag_dont_delete | utils::VariableMap::flag_public_xmlrpc, parm, doc);
 
 #define ADD_COMMAND_COPY_PRIVATE(key, function) \
-  variables->insert(key, (commandSlotsItr - 1), &utils::CommandSlot::function, utils::VariableMap::flag_dont_delete);
+  variables->insert(key, (commandSlotsItr - 1), &utils::CommandSlot::function, NULL, utils::VariableMap::flag_dont_delete);
 
 #define ADD_COMMAND_VALUE_TRI(key, set, get) \
   ADD_COMMAND_SLOT_PRIVATE(key,        call_value, utils::object_value_fn(set))      \

@@ -37,9 +37,52 @@
 #include "config.h"
 
 #include <functional>
+#include <torrent/data/file.h>
+#include <torrent/data/file_list.h>
+
+#include "core/download.h"
+#include "utils/command_download_slot.h"
+
+#include "globals.h"
+#include "control.h"
+#include "command_helpers.h"
+
+std::string
+retrieve_d_base_path(core::Download* download) {
+  if (download->file_list()->is_multi_file())
+    return download->file_list()->root_dir();
+  else
+    return download->file_list()->at(0)->frozen_path();
+}
+
+std::string
+retrieve_d_base_filename(core::Download* download) {
+  std::string base;
+
+  if (download->file_list()->is_multi_file())
+    base = download->file_list()->root_dir();
+  else
+    base = download->file_list()->at(0)->frozen_path();
+
+  std::string::size_type split = base.rfind('/');
+
+  if (split == std::string::npos)
+    return base;
+  else
+    return base.substr(split + 1);
+}
+
+#define ADD_COMMAND_DOWNLOAD_SLOT(key, function, slot, parm, doc)    \
+  commandDownloadSlotsItr->set_slot(slot); \
+  variables->insert(key, commandDownloadSlotsItr++, NULL, &utils::CommandDownloadSlot::function, utils::VariableMap::flag_dont_delete | utils::VariableMap::flag_public_xmlrpc, parm, doc);
+
+#define ADD_COMMAND_DOWNLOAD_VOID(key, slot) \
+  ADD_COMMAND_DOWNLOAD_SLOT(key, call_unknown, utils::object_d_fn(slot), "i:", "")
 
 void
 initialize_command_download() {
-//   utils::VariableMap* variables = control->variable();
+  utils::VariableMap* variables = control->download_variables();
 
+  ADD_COMMAND_DOWNLOAD_VOID("base_path", &retrieve_d_base_path);
+  ADD_COMMAND_DOWNLOAD_VOID("base_filename", &retrieve_d_base_filename);
 }

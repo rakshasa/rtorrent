@@ -40,15 +40,18 @@
 
 #include "utils/command_slot.h"
 #include "utils/command_variable.h"
+#include "utils/command_download_slot.h"
 
 #include "globals.h"
 #include "control.h"
 #include "command_helpers.h"
 
-utils::CommandSlot      commandSlots[COMMAND_SLOTS_SIZE];
-utils::CommandSlot*     commandSlotsItr = commandSlots;
-utils::CommandVariable  commandVariables[COMMAND_VARIABLES_SIZE];
-utils::CommandVariable* commandVariablesItr = commandVariables;
+utils::CommandSlot          commandSlots[COMMAND_SLOTS_SIZE];
+utils::CommandSlot*         commandSlotsItr = commandSlots;
+utils::CommandVariable      commandVariables[COMMAND_VARIABLES_SIZE];
+utils::CommandVariable*     commandVariablesItr = commandVariables;
+utils::CommandDownloadSlot  commandDownloadSlots[COMMAND_DOWNLOAD_SLOTS_SIZE];
+utils::CommandDownloadSlot* commandDownloadSlotsItr = commandDownloadSlots;
 
 void initialize_download_variables();
 void initialize_command_download();
@@ -83,9 +86,9 @@ add_variable(const char* getKey, const char* setKey, const char* defaultSetKey,
   utils::CommandVariable* variable = commandVariablesItr++;
   variable->set_variable(defaultObject);
 
-  control->variable()->insert(getKey, variable, getSlot, utils::VariableMap::flag_dont_delete);
-  control->variable()->insert(setKey, variable, setSlot, utils::VariableMap::flag_dont_delete);
+  control->variable()->insert(getKey, variable, getSlot, NULL, utils::VariableMap::flag_dont_delete);
+  control->variable()->insert(setKey, variable, setSlot, NULL, utils::VariableMap::flag_dont_delete);
 
   if (defaultSetKey)
-    control->variable()->insert(defaultSetKey, variable, setSlot, utils::VariableMap::flag_dont_delete);
+    control->variable()->insert(defaultSetKey, variable, setSlot, NULL, utils::VariableMap::flag_dont_delete);
 }
