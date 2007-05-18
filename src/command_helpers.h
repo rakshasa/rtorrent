@@ -123,5 +123,4 @@ add_variable("get_" key, "set_" key, key, &utils::CommandVariable::get_string, &
 #define ADD_COMMAND_LIST(key, slot) \
   ADD_COMMAND_SLOT(key, call_list, slot, "i:", "")
 
-
 #endif

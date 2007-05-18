@@ -334,9 +334,9 @@ DownloadList::resume(Download* download) {
     download->set("set_state_changed", cachedTime.seconds());
 
     if (download->is_done()) {
-      download->set_connection_type(download->get_string("connection_seed"));
+      download->set_connection_type(download->get_string("get_connection_seed"));
     } else {
-      download->set_connection_type(download->get_string("connection_leech"));
+      download->set_connection_type(download->get_string("get_connection_leech"));
 
       // For the moment, clear the resume data so we force hash-check
       // on non-complete downloads after a crash. This shouldn't be
@@ -518,14 +518,14 @@ DownloadList::confirm_finished(Download* download) {
 
   download->set("set_complete", (int64_t)1);
 
-  download->set_connection_type(download->get_string("connection_seed"));
+  download->set_connection_type(download->get_string("get_connection_seed"));
   download->set_priority(download->priority());
 
-  if (download->get_value("min_peers") == control->variable()->call_command_value("get_min_peers") && control->variable()->call_command_value("get_min_peers_seed") >= 0)
-    download->set("min_peers", control->variable()->call_command_void("get_min_peers_seed"));
+  if (download->get_value("get_min_peers") == control->variable()->call_command_value("get_min_peers") && control->variable()->call_command_value("get_min_peers_seed") >= 0)
+    download->set("set_min_peers", control->variable()->call_command_void("get_min_peers_seed"));
 
-  if (download->get_value("max_peers") == control->variable()->call_command_value("get_max_peers") && control->variable()->call_command_value("get_max_peers_seed") >= 0)
-    download->set("max_peers", control->variable()->call_command_void("get_max_peers_seed"));
+  if (download->get_value("get_max_peers") == control->variable()->call_command_value("get_max_peers") && control->variable()->call_command_value("get_max_peers_seed") >= 0)
+    download->set("set_max_peers", control->variable()->call_command_void("get_max_peers_seed"));
 
   // Do this before the slots are called in case one of them closes
   // the download.

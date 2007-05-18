@@ -86,9 +86,9 @@ private:
 // function calls.
 
 template <typename Func, typename Result = typename Func::result_type>
-class object_d_void_fn_t : public rak::function_base2<torrent::Object, core::Download*, const torrent::Object&> {
+class object_void_d_fn_t : public rak::function_base2<torrent::Object, core::Download*, const torrent::Object&> {
 public:
-  object_d_void_fn_t(Func func) : m_func(func) {}
+  object_void_d_fn_t(Func func) : m_func(func) {}
   
   virtual torrent::Object operator () (core::Download* download, const torrent::Object& arg1) { return torrent::Object(m_func(download)); }
 
@@ -96,80 +96,72 @@ private:
   Func m_func;
 };
 
-// template <typename Func>
-// class object_void_fn_t<Func, void> : public rak::function_base1<torrent::Object, const torrent::Object&> {
-// public:
-//   object_void_fn_t(Func func) : m_func(func) {}
+template <typename Func>
+class object_void_d_fn_t<Func, void> : public rak::function_base2<torrent::Object, core::Download*, const torrent::Object&> {
+public:
+  object_void_d_fn_t(Func func) : m_func(func) {}
   
-//   virtual torrent::Object operator () (const torrent::Object& arg1) {
-//     m_func();
-//     return torrent::Object();
-//   }
+  virtual torrent::Object operator () (core::Download* download, const torrent::Object& arg1) {
+    m_func(download);
+    return torrent::Object();
+  }
 
-// private:
-//   Func m_func;
-// };
+private:
+  Func m_func;
+};
 
-// template <typename Func, typename Result = typename Func::result_type>
-// class object_value_fn1_t : public rak::function_base1<torrent::Object, const torrent::Object&> {
-// public:
-//   object_value_fn1_t(Func func) : m_func(func) {}
+template <typename Func, typename Result = typename Func::result_type>
+class object_value_d_fn1_t : public rak::function_base2<torrent::Object, core::Download*, const torrent::Object&> {
+public:
+  object_value_d_fn1_t(Func func) : m_func(func) {}
   
-//   virtual torrent::Object operator () (const torrent::Object& arg1) { return torrent::Object((int64_t)m_func(arg1.as_value())); }
+  virtual torrent::Object operator () (core::Download* download, const torrent::Object& arg1) {
+    return torrent::Object((int64_t)m_func(download, arg1.as_value()));
+  }
 
-// private:
-//   Func m_func;
-// };
+private:
+  Func m_func;
+};
 
-// template <typename Func>
-// class object_value_fn1_t<Func, void> : public rak::function_base1<torrent::Object, const torrent::Object&> {
-// public:
-//   object_value_fn1_t(Func func) : m_func(func) {}
+template <typename Func>
+class object_value_d_fn1_t<Func, void> : public rak::function_base2<torrent::Object, core::Download*, const torrent::Object&> {
+public:
+  object_value_d_fn1_t(Func func) : m_func(func) {}
   
-//   virtual torrent::Object operator () (const torrent::Object& arg1) {
-//     m_func(arg1.as_value());
+  virtual torrent::Object operator () (core::Download* download, const torrent::Object& arg1) {
+    m_func(download, arg1.as_value());
+    return torrent::Object();
+  }
 
-//     return torrent::Object();
-//   }
+private:
+  Func m_func;
+};
 
-// private:
-//   Func m_func;
-// };
-
-// template <typename Func, typename Result = typename Func::result_type>
-// class object_string_fn1_t : public rak::function_base1<torrent::Object, const torrent::Object&> {
-// public:
-//   object_string_fn1_t(Func func) : m_func(func) {}
+template <typename Func, typename Result = typename Func::result_type>
+class object_string_d_fn1_t : public rak::function_base2<torrent::Object, core::Download*, const torrent::Object&> {
+public:
+  object_string_d_fn1_t(Func func) : m_func(func) {}
   
-//   virtual torrent::Object operator () (const torrent::Object& arg1) { return torrent::Object(m_func(arg1.as_string())); }
+  virtual torrent::Object operator () (core::Download* download, const torrent::Object& arg1) { return torrent::Object(m_func(download, arg1.as_string())); }
 
-// private:
-//   Func m_func;
-// };
+private:
+  Func m_func;
+};
 
-// template <typename Func>
-// class object_string_fn1_t<Func, void> : public rak::function_base1<torrent::Object, const torrent::Object&> {
-// public:
-//   object_string_fn1_t(Func func) : m_func(func) {}
+template <typename Func>
+class object_string_d_fn1_t<Func, void> : public rak::function_base2<torrent::Object, core::Download*, const torrent::Object&> {
+public:
+  object_string_d_fn1_t(Func func) : m_func(func) {}
   
-//   virtual torrent::Object operator () (const torrent::Object& arg1) {
-//     m_func(arg1.as_string());
+  virtual torrent::Object operator () (core::Download* download, const torrent::Object& arg1) {
+    m_func(download, arg1.as_string());
 
-//     return torrent::Object();
-//   }
+    return torrent::Object();
+  }
 
-// private:
-//   Func m_func;
-// };
-
-template <typename Return> object_d_void_fn_t<Return (*)(core::Download*), Return>*
-object_d_fn(Return (*func)(core::Download*)) {
-  return new object_d_void_fn_t<Return (*)(core::Download*), Return>(func);
-}
-
-// template <typename Func> object_void_fn_t<Func>*    object_void_fn(Func func)   { return new object_void_fn_t<Func>(func); }
-// template <typename Func> object_value_fn1_t<Func>*  object_value_fn(Func func)  { return new object_value_fn1_t<Func>(func); }
-// template <typename Func> object_string_fn1_t<Func>* object_string_fn(Func func) { return new object_string_fn1_t<Func>(func); }
+private:
+  Func m_func;
+};
 
 class set_variable_d_fn_t : public rak::function_base2<torrent::Object, core::Download*, const torrent::Object&> {
 public:
@@ -192,6 +184,15 @@ private:
   const char*         m_firstKey;
   const char*         m_secondKey;
 };
+
+template <typename Return> object_void_d_fn_t<Return (*)(core::Download*), Return>*
+object_d_fn(Return (*func)(core::Download*)) {
+  return new object_void_d_fn_t<Return (*)(core::Download*), Return>(func);
+}
+
+template <typename Func> object_void_d_fn_t<Func>*    object_void_d_fn(Func func)   { return new object_void_d_fn_t<Func>(func); }
+template <typename Func> object_value_d_fn1_t<Func>*  object_value_d_fn(Func func)  { return new object_value_d_fn1_t<Func>(func); }
+template <typename Func> object_string_d_fn1_t<Func>* object_string_d_fn(Func func) { return new object_string_d_fn1_t<Func>(func); }
 
 inline set_variable_d_fn_t*
 set_variable_d_fn(const char* firstKey, const char* secondKey) { return new set_variable_d_fn_t(firstKey, secondKey); }

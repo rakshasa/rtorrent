@@ -64,7 +64,6 @@
 #include "control.h"
 #include "globals.h"
 #include "signal_handler.h"
-#include "option_handler_rules.h"
 #include "option_parser.h"
 #include "command_scheduler.h"
 #include "command_scheduler_item.h"

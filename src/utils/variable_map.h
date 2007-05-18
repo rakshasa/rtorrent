@@ -96,6 +96,7 @@ public:
 
   using base_type::begin;
   using base_type::end;
+  using base_type::find;
 
   static const int max_size_key = 128;
   static const int max_size_opt = 1024;
@@ -114,6 +115,8 @@ public:
 
   void                insert(key_type key, Variable* variable, generic_slot genericSlot = NULL, download_slot downloadSlot = NULL, int flags = 0,
                              const char* parm = "", const char* doc = "");
+
+  void                insert(key_type key, const variable_map_data_type src);
 
   // Consider uninlining the helper functions.
   const mapped_type   get_d(core::Download* download, key_type key) const;

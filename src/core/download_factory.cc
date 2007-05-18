@@ -174,27 +174,27 @@ DownloadFactory::receive_success() {
   initialize_rtorrent(download, rtorrent);
 
   // Move to 'rtorrent'.
-  download->set("connection_leech", m_variables["connection_leech"]);
-  download->set("connection_seed",  m_variables["connection_seed"]);
+  download->set("set_connection_leech", m_variables["connection_leech"]);
+  download->set("set_connection_seed",  m_variables["connection_seed"]);
 
-  download->set("max_uploads",      control->variable()->call_command_void("get_max_uploads"));
-  download->set("min_peers",        control->variable()->call_command_void("get_min_peers"));
-  download->set("max_peers",        control->variable()->call_command_void("get_max_peers"));
-  download->set("tracker_numwant",  control->variable()->call_command_void("get_tracker_numwant"));
+  download->set("set_max_uploads",      control->variable()->call_command_void("get_max_uploads"));
+  download->set("set_min_peers",        control->variable()->call_command_void("get_min_peers"));
+  download->set("set_max_peers",        control->variable()->call_command_void("get_max_peers"));
+  download->set("set_tracker_numwant",  control->variable()->call_command_void("get_tracker_numwant"));
 
   if (download->get_value("get_complete") != 0) {
     if (control->variable()->call_command_value("get_min_peers_seed") >= 0)
-      download->set("min_peers", control->variable()->call_command_void("get_min_peers_seed"));
+      download->set("set_min_peers", control->variable()->call_command_void("get_min_peers_seed"));
 
     if (control->variable()->call_command_value("get_max_peers_seed") >= 0)
-      download->set("max_peers", control->variable()->call_command_void("get_max_peers_seed"));
+      download->set("set_max_peers", control->variable()->call_command_void("get_max_peers_seed"));
   }
 
   if (!control->variable()->call_command_value("get_use_udp_trackers"))
     download->enable_udp_trackers(false);
 
   if (control->variable()->call_command_value("get_max_file_size") > 0)
-    download->set("max_file_size", control->variable()->call_command_void("get_max_file_size"));
+    download->set("set_max_file_size", control->variable()->call_command_void("get_max_file_size"));
 
   // Check first if we already have these values set in the session
   // torrent, so that it is safe to change the values.
@@ -206,9 +206,9 @@ DownloadFactory::receive_success() {
                             control->variable()->call_command_string("split_suffix"));
 
   if (!rtorrent->has_key_string("directory"))
-    download->set("directory", m_variables["directory"]);
+    download->set("set_directory", m_variables["directory"]);
   else
-    download->set("directory", rtorrent->get_key("directory"));
+    download->set("set_directory", rtorrent->get_key("directory"));
 
   if (!m_session && m_variables["tied_to_file"].as_value())
     download->set("set_tied_to_file", m_uri);
@@ -286,9 +286,9 @@ DownloadFactory::initialize_rtorrent(Download* download, torrent::Object* rtorre
     rtorrent->insert_key("tied_to_file", std::string());
 
   if (rtorrent->has_key_value("priority"))
-    download->set("priority", rtorrent->get_key_value("priority") % 4);
+    download->set("set_priority", rtorrent->get_key_value("priority") % 4);
   else
-    download->set("priority", (int64_t)2);
+    download->set("set_priority", (int64_t)2);
 
   if (rtorrent->has_key_value("key")) {
     download->tracker_list()->set_key(rtorrent->get_key_value("key"));

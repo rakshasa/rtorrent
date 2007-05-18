@@ -158,7 +158,7 @@ Download::create_info() {
 
   element->push_back("");
   element->push_column("Chunks:",           te_value(&torrent::FileList::completed_chunks), " / ", te_value(&torrent::FileList::size_chunks), " * ", te_value(&torrent::FileList::chunk_size));
-  element->push_column("Priority:",         te_variable_value("priority"));
+  element->push_column("Priority:",         te_variable_value("get_priority"));
 
   element->push_column("State changed:",    te_variable_value("get_state_changed", value_base::flag_timer | value_base::flag_elapsed));
 
@@ -174,9 +174,9 @@ Download::create_info() {
   element->push_column("Receive buffer:",   te_value(&torrent::ConnectionManager::receive_buffer_size, value_base::flag_kb), " KB");
 
   element->push_back("");
-  element->push_column("Upload:",           te_variable_value("up_rate", value_base::flag_kb), " KB / ", te_variable_value("up_total", value_base::flag_xb));
-  element->push_column("Download:",         te_variable_value("down_rate", value_base::flag_kb), " KB / ", te_variable_value("down_total", value_base::flag_xb));
-  element->push_column("Skipped:",          te_variable_value("skip_rate", value_base::flag_kb), " KB / ", te_variable_value("skip_total", value_base::flag_xb));
+  element->push_column("Upload:",           te_variable_value("get_up_rate", value_base::flag_kb), " KB / ", te_variable_value("get_up_total", value_base::flag_xb));
+  element->push_column("Download:",         te_variable_value("get_down_rate", value_base::flag_kb), " KB / ", te_variable_value("get_down_total", value_base::flag_xb));
+  element->push_column("Skipped:",          te_variable_value("get_skip_rate", value_base::flag_kb), " KB / ", te_variable_value("get_skip_total", value_base::flag_xb));
   element->push_column("Preload:",          te_value(&torrent::ChunkManager::preload_type), " / ", te_value(&torrent::ChunkManager::stats_preloaded), " / ", te_value(&torrent::ChunkManager::stats_not_preloaded));
 
   element->set_column_width(element->column_width() + 1);

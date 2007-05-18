@@ -72,6 +72,17 @@ VariableMap::insert(key_type key, Variable* variable, generic_slot genericSlot, 
   base_type::insert(itr, value_type(key, variable_map_data_type(variable, genericSlot, downloadSlot, flags, parm, doc)));
 }
 
+void
+VariableMap::insert(key_type key, const variable_map_data_type src) {
+  iterator itr = base_type::find(key);
+
+  if (itr != base_type::end())
+    throw torrent::internal_error("VariableMap::insert(...) tried to insert an already existing key.");
+
+  base_type::insert(itr, value_type(key, variable_map_data_type(src.m_variable, src.m_genericSlot, src.m_downloadSlot,
+                                                                src.m_flags | flag_dont_delete, src.m_parm, src.m_doc)));
+}
+
 const VariableMap::mapped_type
 VariableMap::get_d(core::Download* download, key_type key) const {
   const_iterator itr = base_type::find(key);

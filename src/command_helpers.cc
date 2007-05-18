@@ -53,7 +53,6 @@ utils::CommandVariable*     commandVariablesItr = commandVariables;
 utils::CommandDownloadSlot  commandDownloadSlots[COMMAND_DOWNLOAD_SLOTS_SIZE];
 utils::CommandDownloadSlot* commandDownloadSlotsItr = commandDownloadSlots;
 
-void initialize_download_variables();
 void initialize_command_download();
 void initialize_command_events();
 void initialize_command_local();
@@ -62,12 +61,11 @@ void initialize_command_ui();
 
 void
 initialize_commands() {
-  initialize_download_variables();
-  initialize_command_download();
   initialize_command_events();
   initialize_command_network();
   initialize_command_local();
   initialize_command_ui();
+  initialize_command_download();
 
 #ifdef ADDING_COMMANDS 
   if (commandSlotsItr > commandSlots + COMMAND_SLOTS_SIZE ||
@@ -86,8 +84,8 @@ add_variable(const char* getKey, const char* setKey, const char* defaultSetKey,
   utils::CommandVariable* variable = commandVariablesItr++;
   variable->set_variable(defaultObject);
 
-  control->variable()->insert(getKey, variable, getSlot, NULL, utils::VariableMap::flag_dont_delete);
-  control->variable()->insert(setKey, variable, setSlot, NULL, utils::VariableMap::flag_dont_delete);
+  control->variable()->insert(getKey, variable, getSlot, NULL, utils::VariableMap::flag_dont_delete | utils::VariableMap::flag_public_xmlrpc);
+  control->variable()->insert(setKey, variable, setSlot, NULL, utils::VariableMap::flag_dont_delete | utils::VariableMap::flag_public_xmlrpc);
 
   if (defaultSetKey)
     control->variable()->insert(defaultSetKey, variable, setSlot, NULL, utils::VariableMap::flag_dont_delete);

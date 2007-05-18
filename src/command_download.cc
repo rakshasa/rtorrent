@@ -40,12 +40,14 @@
 #include <rak/file_stat.h>
 #include <rak/error_number.h>
 #include <rak/path.h>
+#include <torrent/rate.h>
 #include <torrent/data/file.h>
 #include <torrent/data/file_list.h>
 
 #include "core/download.h"
 #include "core/manager.h"
 #include "utils/command_slot.h"
+#include "utils/command_variable.h"
 #include "utils/command_download_slot.h"
 
 #include "globals.h"
@@ -187,7 +189,31 @@ apply_d_delete_link(core::Download* download, const torrent::Object& rawArgs) {
 
 #define ADD_COMMAND_DOWNLOAD_VARIABLE_STRING(key, firstKey, secondKey) \
   ADD_COMMAND_DOWNLOAD_SLOT("get_" key, call_unknown, utils::get_variable_d_fn(firstKey, secondKey), "i:", ""); \
-  ADD_COMMAND_DOWNLOAD_SLOT("set_" key, call_string,   utils::set_variable_d_fn(firstKey, secondKey), "i:s", "");
+  ADD_COMMAND_DOWNLOAD_SLOT("set_" key, call_string,  utils::set_variable_d_fn(firstKey, secondKey), "i:s", "");
+
+#define ADD_COMMAND_DOWNLOAD_VALUE_BI(key, set, get) \
+  ADD_COMMAND_DOWNLOAD_SLOT("set_" key, call_value, utils::object_value_d_fn(set), "i:i", "") \
+  ADD_COMMAND_DOWNLOAD_SLOT("get_" key, call_unknown, utils::object_void_d_fn(get), "i:", "")
+
+#define ADD_COMMAND_DOWNLOAD_VALUE_MEM_BI(key, target, set, get) \
+  ADD_COMMAND_DOWNLOAD_VALUE_BI(key, rak::on2(std::mem_fun(target), std::mem_fun(set)), rak::on(std::mem_fun(target), std::mem_fun(get)));
+
+#define ADD_COMMAND_DOWNLOAD_VALUE_MEM_UNI(key, target, get) \
+  ADD_COMMAND_DOWNLOAD_SLOT("get_" key, call_unknown, utils::object_void_d_fn(rak::on(rak::on(std::mem_fun(&core::Download::download), std::mem_fun(target)), std::mem_fun(get))), "i:", "");
+
+#define ADD_COMMAND_DOWNLOAD_STRING_BI(key, set, get) \
+  ADD_COMMAND_DOWNLOAD_SLOT("set_" key, call_string, utils::object_string_d_fn(set), "i:s", "") \
+  ADD_COMMAND_DOWNLOAD_SLOT("get_" key, call_unknown, utils::object_void_d_fn(get), "s:", "")
+
+void
+add_copy_to_download(const char* key) {
+  utils::VariableMap::iterator itr = control->variable()->find(key);
+
+  if (itr == control->variable()->end())
+    throw torrent::internal_error("add_copy_to_download(...) key not found.");
+
+  control->download_variables()->insert(key, itr->second);
+}
 
 void
 initialize_command_download() {
@@ -199,7 +225,7 @@ initialize_command_download() {
   ADD_COMMAND_DOWNLOAD_LIST("create_link", rak::ptr_fn(&apply_d_create_link));
   ADD_COMMAND_DOWNLOAD_LIST("delete_link", rak::ptr_fn(&apply_d_delete_link));
 
-  ADD_COMMAND_STRING_UN("print", rak::make_mem_fun(control->core(), &core::Manager::push_log));
+  add_copy_to_download("print");
 
   // 0 - stopped
   // 1 - started
@@ -217,4 +243,34 @@ initialize_command_download() {
   // resume/pause.
   ADD_COMMAND_DOWNLOAD_VARIABLE_VALUE("state_changed", "rtorrent", "state_changed");
   ADD_COMMAND_DOWNLOAD_VARIABLE_VALUE("ignore_commands", "rtorrent", "ignore_commands");
+
+  ADD_COMMAND_DOWNLOAD_STRING_BI("connection_current", std::mem_fun(&core::Download::set_connection_current), std::mem_fun(&core::Download::connection_current));
+
+  add_copy_to_download("get_connection_leech");
+  add_copy_to_download("set_connection_leech");
+  add_copy_to_download("get_connection_seed");
+  add_copy_to_download("set_connection_seed");
+
+  ADD_COMMAND_DOWNLOAD_VALUE_MEM_BI("max_file_size", &core::Download::file_list, &torrent::FileList::set_max_file_size, &torrent::FileList::max_file_size);
+
+  ADD_COMMAND_DOWNLOAD_VALUE_MEM_BI("min_peers",     &core::Download::download, &torrent::Download::set_peers_min, &torrent::Download::peers_min);
+  ADD_COMMAND_DOWNLOAD_VALUE_MEM_BI("max_peers",     &core::Download::download, &torrent::Download::set_peers_max, &torrent::Download::peers_max);
+  ADD_COMMAND_DOWNLOAD_VALUE_MEM_BI("max_uploads",   &core::Download::download, &torrent::Download::set_uploads_max, &torrent::Download::uploads_max);
+
+  ADD_COMMAND_DOWNLOAD_VALUE_MEM_UNI("up_rate",    &torrent::Download::mutable_up_rate, &torrent::Rate::rate);
+  ADD_COMMAND_DOWNLOAD_VALUE_MEM_UNI("up_total",   &torrent::Download::mutable_up_rate, &torrent::Rate::total);
+  ADD_COMMAND_DOWNLOAD_VALUE_MEM_UNI("down_rate",  &torrent::Download::mutable_down_rate, &torrent::Rate::rate);
+  ADD_COMMAND_DOWNLOAD_VALUE_MEM_UNI("down_total", &torrent::Download::mutable_down_rate, &torrent::Rate::total);
+  ADD_COMMAND_DOWNLOAD_VALUE_MEM_UNI("skip_rate",  &torrent::Download::mutable_skip_rate, &torrent::Rate::rate);
+  ADD_COMMAND_DOWNLOAD_VALUE_MEM_UNI("skip_total", &torrent::Download::mutable_skip_rate, &torrent::Rate::total);
+
+  //   variables->insert("split_file_size",    new utils::VariableValueSlot(rak::mem_fn(file_list(), &torrent::FileList::split_file_size),
+  //                                                                         rak::mem_fn(file_list(), &torrent::FileList::set_split_file_size)));
+  //   variables->insert("split_suffix",       new utils::VariableStringSlot(rak::mem_fn(file_list(), &torrent::FileList::split_suffix),
+  //                                                                          rak::mem_fn(file_list(), &torrent::FileList::set_split_suffix)));
+
+  ADD_COMMAND_DOWNLOAD_VALUE_MEM_BI("tracker_numwant", &core::Download::tracker_list, &torrent::TrackerList::set_numwant, &torrent::TrackerList::numwant);
+
+  ADD_COMMAND_DOWNLOAD_STRING_BI("directory", std::mem_fun(&core::Download::set_root_directory), rak::on(std::mem_fun(&core::Download::file_list), std::mem_fun(&torrent::FileList::root_dir)));
+  ADD_COMMAND_DOWNLOAD_VALUE_BI("priority", std::mem_fun(&core::Download::set_priority), std::mem_fun(&core::Download::priority));
 }
