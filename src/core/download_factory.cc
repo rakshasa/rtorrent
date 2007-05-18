@@ -182,7 +182,7 @@ DownloadFactory::receive_success() {
   download->set("max_peers",        control->variable()->call_command_void("get_max_peers"));
   download->set("tracker_numwant",  control->variable()->call_command_void("get_tracker_numwant"));
 
-  if (download->get_value("complete") != 0) {
+  if (download->get_value("get_complete") != 0) {
     if (control->variable()->call_command_value("get_min_peers_seed") >= 0)
       download->set("min_peers", control->variable()->call_command_void("get_min_peers_seed"));
 
@@ -211,7 +211,7 @@ DownloadFactory::receive_success() {
     download->set("directory", rtorrent->get_key("directory"));
 
   if (!m_session && m_variables["tied_to_file"].as_value())
-    download->set("tied_to_file", m_uri);
+    download->set("set_tied_to_file", m_uri);
 
   torrent::Object& resumeObject = root->has_key_map("libtorrent_resume")
     ? root->get_key("libtorrent_resume")
@@ -236,8 +236,8 @@ DownloadFactory::receive_success() {
   if (m_session) {
     // This torrent was queued for hashing or hashing when the session
     // file was saved. Or it was in a started state.
-    if (download->get_value("hashing") != Download::variable_hashing_stopped ||
-        download->get_value("state") != 0)
+    if (download->get_value("get_hashing") != Download::variable_hashing_stopped ||
+        download->get_value("get_state") != 0)
       m_manager->download_list()->resume(download);
 
   } else {

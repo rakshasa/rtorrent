@@ -171,6 +171,33 @@ object_d_fn(Return (*func)(core::Download*)) {
 // template <typename Func> object_value_fn1_t<Func>*  object_value_fn(Func func)  { return new object_value_fn1_t<Func>(func); }
 // template <typename Func> object_string_fn1_t<Func>* object_string_fn(Func func) { return new object_string_fn1_t<Func>(func); }
 
+class set_variable_d_fn_t : public rak::function_base2<torrent::Object, core::Download*, const torrent::Object&> {
+public:
+  set_variable_d_fn_t(const char* firstKey, const char* secondKey) : m_firstKey(firstKey), m_secondKey(secondKey) {}
+  
+  virtual torrent::Object operator () (core::Download* download, const torrent::Object& arg1);
+
+private:
+  const char*         m_firstKey;
+  const char*         m_secondKey;
+};
+
+class get_variable_d_fn_t : public rak::function_base2<torrent::Object, core::Download*, const torrent::Object&> {
+public:
+  get_variable_d_fn_t(const char* firstKey, const char* secondKey) : m_firstKey(firstKey), m_secondKey(secondKey) {}
+  
+  virtual torrent::Object operator () (core::Download* download, const torrent::Object& arg1);
+
+private:
+  const char*         m_firstKey;
+  const char*         m_secondKey;
+};
+
+inline set_variable_d_fn_t*
+set_variable_d_fn(const char* firstKey, const char* secondKey) { return new set_variable_d_fn_t(firstKey, secondKey); }
+inline get_variable_d_fn_t*
+get_variable_d_fn(const char* firstKey, const char* secondKey) { return new get_variable_d_fn_t(firstKey, secondKey); }
+
 }
 
 #endif

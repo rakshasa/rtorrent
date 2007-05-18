@@ -36,6 +36,7 @@
 
 #include "config.h"
 
+#include "core/download.h"
 #include "utils/parse.h"
 
 #include "command_download_slot.h"
@@ -139,5 +140,23 @@ CommandDownloadSlot::call_string(Variable* rawVariable, core::Download* download
 
 //   return variable->m_variable;
 // }
+
+torrent::Object
+set_variable_d_fn_t::operator () (core::Download* download, const torrent::Object& arg1) {
+  if (m_firstKey == NULL)
+    download->bencode()->get_key(m_secondKey) = arg1;
+  else
+    download->bencode()->get_key(m_firstKey).get_key(m_secondKey) = arg1;
+
+  return torrent::Object();
+}
+
+torrent::Object
+get_variable_d_fn_t::operator () (core::Download* download, const torrent::Object& arg1) {
+  if (m_firstKey == NULL)
+    return download->bencode()->get_key(m_secondKey);
+  else
+    return download->bencode()->get_key(m_firstKey).get_key(m_secondKey);
+}
 
 }

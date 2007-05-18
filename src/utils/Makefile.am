@@ -3,10 +3,10 @@ noinst_LIBRARIES = libsub_utils.a
 libsub_utils_a_SOURCES = \
 	command_slot.cc \
 	command_slot.h \
-	command_download_slot.cc \
-	command_download_slot.h \
 	command_variable.cc \
 	command_variable.h \
+	command_download_slot.cc \
+	command_download_slot.h \
 	directory.cc \
 	directory.h \
 	list_focus.h \

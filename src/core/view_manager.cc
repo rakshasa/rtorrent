@@ -134,19 +134,19 @@ ViewManager::ViewManager(DownloadList* dl) :
   m_sort["name"]          = new ViewSortName();
   m_sort["name_reverse"]  = new ViewSortReverse(new ViewSortName());
 
-  m_sort["stopped"]       = new ViewSortVariableValue("state");
-  m_sort["started"]       = new ViewSortVariableValue("state", true);
-  m_sort["complete"]      = new ViewSortVariableValue("complete");
-  m_sort["incomplete"]    = new ViewSortVariableValue("complete", true);
+  m_sort["stopped"]       = new ViewSortVariableValue("get_state");
+  m_sort["started"]       = new ViewSortVariableValue("get_state", true);
+  m_sort["complete"]      = new ViewSortVariableValue("get_complete");
+  m_sort["incomplete"]    = new ViewSortVariableValue("get_complete", true);
 
-  m_sort["state_changed"]         = new ViewSortVariableValue("state_changed");
-  m_sort["state_changed_reverse"] = new ViewSortVariableValue("state_changed", true);
+  m_sort["state_changed"]         = new ViewSortVariableValue("get_state_changed");
+  m_sort["state_changed_reverse"] = new ViewSortVariableValue("get_state_changed", true);
 
-  m_filter["started"]     = new ViewFilterVariableValue("state", 1);
-  m_filter["stopped"]     = new ViewFilterVariableValue("state", 0);
-  m_filter["complete"]    = new ViewFilterVariableValue("complete", 0, true);
-  m_filter["incomplete"]  = new ViewFilterVariableValue("complete", 0);
-  m_filter["hashing"]     = new ViewFilterVariableValue("hashing", 0, true);
+  m_filter["started"]     = new ViewFilterVariableValue("get_state", 1);
+  m_filter["stopped"]     = new ViewFilterVariableValue("get_state", 0);
+  m_filter["complete"]    = new ViewFilterVariableValue("get_complete", 0, true);
+  m_filter["incomplete"]  = new ViewFilterVariableValue("get_complete", 0);
+  m_filter["hashing"]     = new ViewFilterVariableValue("get_hashing", 0, true);
 }
 
 void

@@ -40,9 +40,6 @@
 
 namespace utils {
 
-extern CommandVariable  commandVariables[10];
-extern CommandVariable* commandVariablesItr;
-
 const torrent::Object
 CommandVariable::set_bool(Variable* rawVariable, const torrent::Object& rawArgs) {
   CommandVariable* variable = static_cast<CommandVariable*>(rawVariable);

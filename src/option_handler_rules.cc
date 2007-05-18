@@ -106,92 +106,6 @@ var_d2_get_value(Target target, GetFunc getFunc) {
 }
 
 void
-apply_d_create_link(core::Download* download, const torrent::Object::list_type& args) {
-  if (args.size() != 3)
-    throw torrent::input_error("Wrong argument count.");
-
-  torrent::Object::list_type::const_iterator itr = args.begin();
-
-  const std::string& type    = (itr++)->as_string();
-  const std::string& prefix  = (itr++)->as_string();
-  const std::string& postfix = (itr++)->as_string();
-  
-  if (type.empty())
-    throw torrent::input_error("Invalid arguments.");
-
-  std::string target;
-  std::string link;
-
-  if (type == "base_path") {
-    target = download->get_string("base_path");
-    link = rak::path_expand(prefix + download->get_string("base_path") + postfix);
-
-  } else if (type == "base_filename") {
-    target = download->get_string("base_path");
-    link = rak::path_expand(prefix + download->get_string("base_filename") + postfix);
-
-  } else if (type == "tied") {
-    link = rak::path_expand(download->get_string("tied_to_file"));
-
-    if (link.empty())
-      return;
-
-    link = rak::path_expand(prefix + link + postfix);
-    target = download->get_string("base_path");
-
-  } else {
-    throw torrent::input_error("Unknown type argument.");
-  }
-
-  if (symlink(target.c_str(), link.c_str()) == -1)
-//     control->core()->push_log("create_link failed: " + std::string(rak::error_number::current().c_str()));
-//     control->core()->push_log("create_link failed: " + std::string(rak::error_number::current().c_str()) + " to " + target);
-    ; // Disabled.
-}
-
-void
-apply_d_delete_link(core::Download* download, const torrent::Object::list_type& args) {
-  if (args.size() != 3)
-    throw torrent::input_error("Wrong argument count.");
-
-  torrent::Object::list_type::const_iterator itr = args.begin();
-
-  const std::string& type    = (itr++)->as_string();
-  const std::string& prefix  = (itr++)->as_string();
-  const std::string& postfix = (itr++)->as_string();
-  
-  if (type.empty())
-    throw torrent::input_error("Invalid arguments.");
-
-  std::string link;
-
-  if (type == "base_path") {
-    link = rak::path_expand(prefix + download->get_string("base_path") + postfix);
-
-  } else if (type == "base_filename") {
-    link = rak::path_expand(prefix + download->get_string("base_filename") + postfix);
-
-  } else if (type == "tied") {
-    link = rak::path_expand(download->get_string("tied_to_file"));
-
-    if (link.empty())
-      return;
-
-    link = rak::path_expand(prefix + link + postfix);
-
-  } else {
-    throw torrent::input_error("Unknown type argument.");
-  }
-
-  rak::file_stat fileStat;
-  rak::error_number::clear_global();
-
-  if (!fileStat.update_link(link) || !fileStat.is_link() ||
-      unlink(link.c_str()) == -1)
-    ; //     control->core()->push_log("delete_link failed: " + std::string(rak::error_number::current().c_str()));
-}
-
-void
 initialize_download_variables() {
   utils::VariableMap* variables = control->download_variables();
 
@@ -200,22 +114,6 @@ initialize_download_variables() {
 
   variables->insert("connection_leech",   new utils::VariableAny(core::Download::connection_type_to_string(torrent::Download::CONNECTION_LEECH)));
   variables->insert("connection_seed",    new utils::VariableAny(core::Download::connection_type_to_string(torrent::Download::CONNECTION_SEED)));
-
-  // 0 - stopped
-  // 1 - started
-  variables->insert("state",              new utils::VariableObject("rtorrent", "state", torrent::Object::TYPE_VALUE));
-  variables->insert("complete",           new utils::VariableObject("rtorrent", "complete", torrent::Object::TYPE_VALUE));
-
-  // 0 - Not hashing
-  // 1 - Normal hashing
-  // 2 - Download finished, hashing
-  variables->insert("hashing",            new utils::VariableObject("rtorrent", "hashing", torrent::Object::TYPE_VALUE));
-  variables->insert("tied_to_file",       new utils::VariableObject("rtorrent", "tied_to_file", torrent::Object::TYPE_STRING));
-
-  // The "state_changed" variable is required to be a valid unix time
-  // value, it indicates the last time the torrent changed its state,
-  // resume/pause.
-  variables->insert("state_changed",      new utils::VariableObject("rtorrent", "state_changed", torrent::Object::TYPE_VALUE));
 
   variables->insert("directory",          new utils::VariableDownloadStringSlot(rak::ftor_fn1(rak::on(std::mem_fun(&core::Download::file_list), std::mem_fun(&torrent::FileList::root_dir))),
                                                                                 rak::ftor_fn2(std::mem_fun(&core::Download::set_root_directory))));
@@ -241,10 +139,5 @@ initialize_download_variables() {
   variables->insert("priority",           new utils::VariableDownloadValueSlot(rak::ftor_fn1(std::mem_fun(&core::Download::priority)), rak::ftor_fn2(std::mem_fun(&core::Download::set_priority))));
   variables->insert("tracker_numwant",    var_d_value(&core::Download::tracker_list, &torrent::TrackerList::numwant, &torrent::TrackerList::set_numwant));
 
-  variables->insert("ignore_commands",    new utils::VariableObject("rtorrent", "ignore_commands", torrent::Object::TYPE_VALUE));
-
   // Hmm... do we need dupicates?
-  variables->insert("print",              new utils::VariableStringSlot(NULL, rak::mem_fn(control->core(), &core::Manager::push_log)));
-  variables->insert("create_link",        new utils::VariableDownloadListSlot(rak::ptr_fn(&apply_d_create_link)));
-  variables->insert("delete_link",        new utils::VariableDownloadListSlot(rak::ptr_fn(&apply_d_delete_link)));
 }
