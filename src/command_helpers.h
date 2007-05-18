@@ -82,13 +82,13 @@ add_variable("get_" key, "set_" key, key, &utils::CommandVariable::get_string, &
 
 #define ADD_COMMAND_SLOT_PRIVATE(key, function, slot) \
   commandSlotsItr->set_slot(slot); \
-  variables->insert(key, commandSlotsItr++, &utils::CommandSlot::function, NULL, utils::VariableMap::flag_dont_delete);
+  variables->insert(key, commandSlotsItr++, &utils::CommandSlot::function, NULL, utils::VariableMap::flag_dont_delete, NULL, NULL);
 
 #define ADD_COMMAND_COPY(key, function, parm, doc) \
   variables->insert(key, (commandSlotsItr - 1), &utils::CommandSlot::function, NULL, utils::VariableMap::flag_dont_delete | utils::VariableMap::flag_public_xmlrpc, parm, doc);
 
 #define ADD_COMMAND_COPY_PRIVATE(key, function) \
-  variables->insert(key, (commandSlotsItr - 1), &utils::CommandSlot::function, NULL, utils::VariableMap::flag_dont_delete);
+  variables->insert(key, (commandSlotsItr - 1), &utils::CommandSlot::function, NULL, utils::VariableMap::flag_dont_delete, NULL, NULL);
 
 #define ADD_COMMAND_VALUE_TRI(key, set, get) \
   ADD_COMMAND_SLOT_PRIVATE(key,        call_value, utils::object_value_fn(set))      \

@@ -113,8 +113,8 @@ public:
 
   // Allow NULL slot as a temporary compatibility hack.
 
-  void                insert(key_type key, Variable* variable, generic_slot genericSlot = NULL, download_slot downloadSlot = NULL, int flags = 0,
-                             const char* parm = "", const char* doc = "");
+  void                insert(key_type key, Variable* variable, generic_slot genericSlot, download_slot downloadSlot, int flags,
+                             const char* parm, const char* doc);
 
   void                insert(key_type key, const variable_map_data_type src);
 

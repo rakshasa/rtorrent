@@ -150,9 +150,19 @@ apply_fast_cgi(const std::string& arg) {
     control->set_xmlrpc(new rpc::XmlRpc);
     control->xmlrpc()->set_slot_call_command(rak::mem_fn(control->variable(), &utils::VariableMap::call_command));
 
+    unsigned int count = 0;
+
     for (utils::VariableMap::const_iterator itr = control->variable()->begin(), last = control->variable()->end(); itr != last; itr++)
-      if (itr->second.m_flags & utils::VariableMap::flag_public_xmlrpc)
+      if (itr->second.m_flags & utils::VariableMap::flag_public_xmlrpc) {
         control->xmlrpc()->insert_command(itr->first, itr->second.m_parm, itr->second.m_doc);
+
+        count++;
+      }
+
+    char buffer[128];
+    sprintf(buffer, "FastCGI initialized with %u functions.", count);
+
+    control->core()->push_log(buffer);
   }
 
   control->set_fast_cgi(new rpc::FastCgi(arg));

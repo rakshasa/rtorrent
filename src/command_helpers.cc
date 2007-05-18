@@ -84,9 +84,9 @@ add_variable(const char* getKey, const char* setKey, const char* defaultSetKey,
   utils::CommandVariable* variable = commandVariablesItr++;
   variable->set_variable(defaultObject);
 
-  control->variable()->insert(getKey, variable, getSlot, NULL, utils::VariableMap::flag_dont_delete | utils::VariableMap::flag_public_xmlrpc);
-  control->variable()->insert(setKey, variable, setSlot, NULL, utils::VariableMap::flag_dont_delete | utils::VariableMap::flag_public_xmlrpc);
+  control->variable()->insert(getKey, variable, getSlot, NULL, utils::VariableMap::flag_dont_delete | utils::VariableMap::flag_public_xmlrpc, "i:", "");
+  control->variable()->insert(setKey, variable, setSlot, NULL, utils::VariableMap::flag_dont_delete | utils::VariableMap::flag_public_xmlrpc, "i:", "");
 
   if (defaultSetKey)
-    control->variable()->insert(defaultSetKey, variable, setSlot, NULL, utils::VariableMap::flag_dont_delete);
+    control->variable()->insert(defaultSetKey, variable, setSlot, NULL, utils::VariableMap::flag_dont_delete, "i:", "");
 }

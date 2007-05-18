@@ -179,7 +179,15 @@ XmlRpc::process(const char* inBuffer, uint32_t length, slot_write slotWrite) {
 
 void
 XmlRpc::insert_command(const char* name, const char* parm, const char* doc) {
-  xmlrpc_registry_add_method_w_doc(m_env, m_registry, NULL, name, &XmlRpc::call_command, const_cast<char*>(name), parm, doc);
+  xmlrpc_env localEnv;
+  xmlrpc_env_init(&localEnv);
+
+  xmlrpc_registry_add_method_w_doc(&localEnv, m_registry, NULL, name, &XmlRpc::call_command, const_cast<char*>(name), parm, doc);
+
+  if (localEnv.fault_occurred)
+    throw torrent::internal_error("Fault occured while inserting xmlrpc call.");
+
+  xmlrpc_env_clean(&localEnv);
 }
 
 #else
