@@ -51,6 +51,7 @@
 #include "input/manager.h"
 #include "input/input_event.h"
 #include "rpc/fast_cgi.h"
+#include "rpc/scgi.h"
 #include "rpc/xmlrpc.h"
 #include "ui/root.h"
 #include "utils/variable_map.h"
@@ -73,6 +74,7 @@ Control::Control() :
   m_downloadVariables(new utils::VariableMap()),
 
   m_fastCgi(NULL),
+  m_scgi(NULL),
   m_xmlrpc(NULL),
 
   m_tick(0) {
@@ -129,6 +131,7 @@ Control::initialize() {
 void
 Control::cleanup() {
   delete m_fastCgi; m_fastCgi = NULL;
+  delete m_scgi;    m_scgi = NULL;
   delete m_xmlrpc;  m_xmlrpc = NULL;
 
   priority_queue_erase(&taskScheduler, &m_taskShutdown);
@@ -161,6 +164,11 @@ Control::handle_shutdown() {
 
   m_shutdownQuick = true;
   m_shutdownReceived = false;
+}
+
+torrent::Poll*
+Control::poll() {
+  return m_core->get_poll_manager()->get_torrent_poll();
 }
 
 void

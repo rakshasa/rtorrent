@@ -14,6 +14,8 @@ libsub_utils_a_SOURCES = \
 	lockfile.h \
 	parse.cc \
 	parse.h \
+	socket_fd.cc \
+	socket_fd.h \
 	variable.cc \
 	variable.h \
 	variable_generic.cc \

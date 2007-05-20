@@ -48,6 +48,7 @@
 #include "core/download_store.h"
 #include "core/manager.h"
 #include "rpc/fast_cgi.h"
+#include "rpc/scgi.h"
 #include "rpc/xmlrpc.h"
 #include "ui/root.h"
 #include "utils/command_slot.h"
@@ -142,31 +143,49 @@ apply_enable_trackers(int64_t arg) {
 }
 
 void
+initialize_xmlrpc() {
+  control->set_xmlrpc(new rpc::XmlRpc);
+  control->xmlrpc()->set_slot_call_command(rak::mem_fn(control->variable(), &utils::VariableMap::call_command));
+
+  unsigned int count = 0;
+
+  for (utils::VariableMap::const_iterator itr = control->variable()->begin(), last = control->variable()->end(); itr != last; itr++)
+    if (itr->second.m_flags & utils::VariableMap::flag_public_xmlrpc) {
+      control->xmlrpc()->insert_command(itr->first, itr->second.m_parm, itr->second.m_doc);
+
+      count++;
+    }
+
+  char buffer[128];
+  sprintf(buffer, "XMLRPC initialized with %u functions.", count);
+
+  control->core()->push_log(buffer);
+}
+
+void
 apply_fast_cgi(const std::string& arg) {
   if (control->fast_cgi() != NULL)
     throw torrent::input_error("FastCGI already enabled.");
 
-  if (control->xmlrpc() == NULL) {
-    control->set_xmlrpc(new rpc::XmlRpc);
-    control->xmlrpc()->set_slot_call_command(rak::mem_fn(control->variable(), &utils::VariableMap::call_command));
-
-    unsigned int count = 0;
-
-    for (utils::VariableMap::const_iterator itr = control->variable()->begin(), last = control->variable()->end(); itr != last; itr++)
-      if (itr->second.m_flags & utils::VariableMap::flag_public_xmlrpc) {
-        control->xmlrpc()->insert_command(itr->first, itr->second.m_parm, itr->second.m_doc);
-
-        count++;
-      }
-
-    char buffer[128];
-    sprintf(buffer, "FastCGI initialized with %u functions.", count);
-
-    control->core()->push_log(buffer);
-  }
+  if (control->xmlrpc() == NULL)
+    initialize_xmlrpc();
 
   control->set_fast_cgi(new rpc::FastCgi(arg));
   control->fast_cgi()->set_slot_process(rak::mem_fn(control->xmlrpc(), &rpc::XmlRpc::process));
+}
+
+void
+apply_scgi(const std::string& arg) {
+  if (control->fast_cgi() != NULL)
+    throw torrent::input_error("FastCGI already enabled.");
+
+  if (control->xmlrpc() == NULL)
+    initialize_xmlrpc();
+
+  // Fix this...
+  control->set_scgi(new rpc::SCgi);
+  control->scgi()->open(5000);
+  control->scgi()->set_slot_process(rak::mem_fn(control->xmlrpc(), &rpc::XmlRpc::process));
 }
 
 void
@@ -223,6 +242,7 @@ initialize_command_network() {
   ADD_COMMAND_VALUE_TRI("max_open_http",        rak::make_mem_fun(httpStack, &core::CurlStack::set_max_active), rak::make_mem_fun(httpStack, &core::CurlStack::max_active));
 
   ADD_COMMAND_STRING_UN("fast_cgi",             std::ptr_fun(&apply_fast_cgi));
+  ADD_COMMAND_STRING_UN("scgi",                 std::ptr_fun(&apply_scgi));
 
   ADD_COMMAND_VALUE_TRI("hash_read_ahead",      std::ptr_fun(&apply_hash_read_ahead), rak::ptr_fun(torrent::hash_read_ahead));
   ADD_COMMAND_VALUE_TRI("hash_interval",        std::ptr_fun(&apply_hash_interval), rak::ptr_fun(torrent::hash_interval));

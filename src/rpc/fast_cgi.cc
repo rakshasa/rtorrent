@@ -113,6 +113,11 @@ FastCgi::event_read() {
     return;
   }
 
+//   int flags = fcntl(((FCGX_Request*)m_request)->ipcFd, F_GETFL);
+
+//   if (fcntl(((FCGX_Request*)m_request)->ipcFd, F_SETFL, flags & ~O_NONBLOCK) != 0)
+//     throw torrent::internal_error("FastCgi::event_read() could not set socket flags.");
+
   int length;
   char* endPtr;
   char* buffer = NULL;
