@@ -36,10 +36,11 @@
 
 #include "config.h"
 
+#include <rak/socket_address.h>
+#include <sys/un.h>
 #include <torrent/connection_manager.h>
 #include <torrent/poll.h>
 #include <torrent/torrent.h>
-#include <rak/socket_address.h>
 #include <torrent/exceptions.h>
 
 #include "utils/socket_fd.h"
@@ -62,21 +63,43 @@ SCgi::~SCgi() {
   get_fd().clear();
 }
 
-bool
-SCgi::open(uint16_t port) {
+void
+SCgi::open_port(uint16_t port) {
+  rak::socket_address sa;
+  sa.sa_inet()->clear();
+  sa.sa_inet()->set_port(port);
+
   if (!get_fd().open_stream())
-    throw torrent::resource_error("Could not allocate socket for listening.");
+    throw torrent::resource_error("Could not open socket for listening.");
 
+  open(sa.c_sockaddr(), sa.length());
+}
+
+void
+SCgi::open_named(const std::string& filename) {
+  if (filename.empty() || filename.size() > 4096)
+    throw torrent::resource_error("Invalid filename length.");
+
+  char buffer[sizeof(sockaddr_un) + filename.size()];
+  sockaddr_un* sa = reinterpret_cast<sockaddr_un*>(buffer);
+
+  sa->sun_family = AF_LOCAL;
+  std::memcpy(sa->sun_path, filename.c_str(), filename.size() + 1);
+
+  if (!get_fd().open_local())
+    throw torrent::resource_error("Could not open socket for listening.");
+
+  open(sa, offsetof(struct sockaddr_un, sun_path) + filename.size() + 1);
+}
+
+void
+SCgi::open(void* sa, unsigned int length) {
   try {
-    rak::socket_address sa;
-    sa.sa_inet()->clear();
-    sa.sa_inet()->set_port(port);
-
     if (!get_fd().set_nonblock() ||
         !get_fd().set_reuse_address(true) ||
-        !get_fd().bind(sa) ||
+        !get_fd().bind(*reinterpret_cast<rak::socket_address*>(sa), length) ||
         !get_fd().listen(10))
-      throw torrent::resource_error("Could not allocate socket for listening.");
+      throw torrent::resource_error("Could not prepare socket for listening.");
 
     torrent::connection_manager()->inc_socket_count();
 
@@ -90,8 +113,6 @@ SCgi::open(uint16_t port) {
 
     throw e;
   }
-
-  return true;
 }
 
 void

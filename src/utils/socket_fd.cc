@@ -120,6 +120,11 @@ SocketFd::open_datagram() {
   return (m_fd = socket(PF_INET, SOCK_DGRAM, 0)) != -1;
 }
 
+bool
+SocketFd::open_local() {
+  return (m_fd = socket(PF_LOCAL, SOCK_DGRAM, 0)) != -1;
+}
+
 void
 SocketFd::close() {
   if (::close(m_fd) && errno == EBADF)
@@ -131,6 +136,13 @@ SocketFd::bind(const rak::socket_address& sa) {
   check_valid();
 
   return !::bind(m_fd, sa.c_sockaddr(), sa.length());
+}
+
+bool
+SocketFd::bind(const rak::socket_address& sa, unsigned int length) {
+  check_valid();
+
+  return !::bind(m_fd, sa.c_sockaddr(), length);
 }
 
 bool

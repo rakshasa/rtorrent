@@ -96,7 +96,10 @@ SCgiTask::event_read() {
   // Don't bother caching the parsed values, as we're likely to
   // receive all the data we need the first time.
   char* current;
+  char* contentPos;
+
   int headerSize = strtol(m_buffer, &current, 0);
+  int contentSize;
 
   if (current == m_buffer || current == m_position)
     // Need to validate the header size.
@@ -111,8 +114,7 @@ SCgiTask::event_read() {
   if (std::memcmp(current, "CONTENT_LENGTH", 15) != 0)
     goto event_read_failed;
 
-  char* contentPos;
-  int contentSize = strtol(current + 15, &contentPos, 0);
+  contentSize = strtol(current + 15, &contentPos, 0);
 
   if (*contentPos != '\0' || contentSize <= 0)
     goto event_read_failed;

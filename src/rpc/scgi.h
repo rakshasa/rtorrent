@@ -57,7 +57,8 @@ public:
   SCgi() {}
   virtual ~SCgi();
 
-  bool                open(uint16_t port);
+  void                open_port(uint16_t port);
+  void                open_named(const std::string& filename);
 
   const std::string   path() const { return m_path; }
 
@@ -72,10 +73,10 @@ public:
   utils::SocketFd&    get_fd()            { return *reinterpret_cast<utils::SocketFd*>(&m_fileDesc); }
 
 private:
+  void                open(void* sa, unsigned int length);
+
   std::string         m_path;
-
   slot_process        m_slotProcess;
-
   SCgiTask            m_task[10];
 };
 

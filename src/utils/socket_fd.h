@@ -69,11 +69,13 @@ public:
 
   bool                open_stream();
   bool                open_datagram();
+  bool                open_local();
   void                close();
 
   void                clear()                                 { m_fd = -1; }
 
   bool                bind(const rak::socket_address& sa);
+  bool                bind(const rak::socket_address& sa, unsigned int length);
   bool                connect(const rak::socket_address& sa);
 
   bool                listen(int size);

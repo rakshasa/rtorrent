@@ -38,6 +38,7 @@
 
 #include <functional>
 #include <rak/file_stat.h>
+#include <rak/path.h>
 #include <torrent/connection_manager.h>
 #include <torrent/tracker.h>
 #include <torrent/tracker_list.h>
@@ -184,7 +185,25 @@ apply_scgi(const std::string& arg) {
 
   // Fix this...
   control->set_scgi(new rpc::SCgi);
-  control->scgi()->open(5000);
+
+  try {
+    int port;
+    char dummy;
+
+    if (std::sscanf(arg.c_str(), ":%i%c", &port, &dummy) == 1) {
+      if (port <= 0 || port >= (1 << 16))
+        throw torrent::input_error("Invalid port number.");
+
+      control->scgi()->open_port(port);
+
+    } else {
+      control->scgi()->open_named(rak::path_expand(arg));
+    }
+
+  } catch (torrent::local_error& e) {
+    throw torrent::input_error(e.what());
+  }
+
   control->scgi()->set_slot_process(rak::mem_fn(control->xmlrpc(), &rpc::XmlRpc::process));
 }
 
