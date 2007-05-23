@@ -67,7 +67,7 @@ SCgiTask::open(SCgi* parent, int fd) {
   control->poll()->insert_read(this);
   control->poll()->insert_error(this);
 
-  scgiTimer = rak::timer::current();
+//   scgiTimer = rak::timer::current();
 }
 
 void

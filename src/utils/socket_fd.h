@@ -59,6 +59,9 @@ public:
 
   bool                set_nonblock();
   bool                set_reuse_address(bool state);
+  bool                set_dont_route(bool state);
+
+  bool                set_bind_to_device(const char* device);
 
   bool                set_priority(priority_type p);
 

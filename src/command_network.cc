@@ -178,7 +178,7 @@ apply_fast_cgi(const std::string& arg) {
 
 void
 apply_scgi(const std::string& arg, int type) {
-  if (control->fast_cgi() != NULL)
+  if (control->scgi() != NULL)
     throw torrent::input_error("SCGI already enabled.");
 
   if (control->xmlrpc() == NULL)
@@ -187,34 +187,36 @@ apply_scgi(const std::string& arg, int type) {
   // Fix this...
   control->set_scgi(new rpc::SCgi);
 
+  rak::address_info* ai = NULL;
+  rak::socket_address sa;
+  rak::socket_address* saPtr;
+
   try {
-    int port;
+    int port, err;
     char dummy;
     char address[1024];
 
     switch (type) {
     case 1:
       if (std::sscanf(arg.c_str(), ":%i%c", &port, &dummy) == 1) {
-        if (port <= 0 || port >= (1 << 16))
-          throw torrent::input_error("Invalid port number.");
-
-        control->scgi()->open_port(port);
+        sa.sa_inet()->clear();
+        saPtr = &sa;
 
       } else if (std::sscanf(arg.c_str(), "%1023[^:]:%i%c", address, &port, &dummy) == 2) {
-        if (port <= 0 || port >= (1 << 16))
-          throw torrent::input_error("Invalid port number.");
-
-        int err;
-        rak::address_info* ai;
-
         if ((err = rak::address_info::get_address_info(address, PF_INET, SOCK_STREAM, &ai)) != 0)
           throw torrent::input_error("Could not bind address: " + std::string(rak::address_info::strerror(err)) + ".");
 
-        control->scgi()->open(ai->address()->c_sockaddr(), ai->address()->length());
+        saPtr = ai->address();
 
       } else {
         throw torrent::input_error("Could not parse address.");
       }
+
+      if (port <= 0 || port >= (1 << 16))
+        throw torrent::input_error("Invalid port number.");
+
+      saPtr->set_port(port);
+      control->scgi()->open_port(saPtr, saPtr->length(), control->variable()->call_command_value("get_scgi_dont_route"));
 
       break;
 
@@ -224,7 +226,11 @@ apply_scgi(const std::string& arg, int type) {
       break;
     }
 
+    rak::address_info::free_address_info(ai);
+
   } catch (torrent::local_error& e) {
+    rak::address_info::free_address_info(ai);
+
     throw torrent::input_error(e.what());
   }
 
@@ -289,6 +295,7 @@ initialize_command_network() {
   ADD_COMMAND_STRING_UN("fast_cgi",             std::ptr_fun(&apply_fast_cgi));
   ADD_COMMAND_STRING_UN("scgi_port",            rak::bind2nd(std::ptr_fun(&apply_scgi), 1));
   ADD_COMMAND_STRING_UN("scgi_local",           rak::bind2nd(std::ptr_fun(&apply_scgi), 2));
+  ADD_VARIABLE_BOOL("scgi_dont_route", false);
 
   ADD_COMMAND_VALUE_TRI("hash_read_ahead",      std::ptr_fun(&apply_hash_read_ahead), rak::ptr_fun(torrent::hash_read_ahead));
   ADD_COMMAND_VALUE_TRI("hash_interval",        std::ptr_fun(&apply_hash_interval), rak::ptr_fun(torrent::hash_interval));

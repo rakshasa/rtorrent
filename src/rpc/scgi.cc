@@ -36,6 +36,7 @@
 
 #include "config.h"
 
+#include <rak/error_number.h>
 #include <rak/socket_address.h>
 #include <sys/un.h>
 #include <torrent/connection_manager.h>
@@ -71,15 +72,12 @@ SCgi::~SCgi() {
 }
 
 void
-SCgi::open_port(uint16_t port) {
-  rak::socket_address sa;
-  sa.sa_inet()->clear();
-  sa.sa_inet()->set_port(port);
+SCgi::open_port(void* sa, unsigned int length, bool dontRoute) {
+  if (!get_fd().open_stream() ||
+      (dontRoute && !get_fd().set_dont_route(true)))
+    throw torrent::resource_error("Could not open socket for listening: " + std::string(rak::error_number::current().c_str()));
 
-  if (!get_fd().open_stream())
-    throw torrent::resource_error("Could not open socket for listening.");
-
-  open(sa.c_sockaddr(), sa.length());
+  open(sa, length);
 }
 
 void
@@ -107,7 +105,7 @@ SCgi::open(void* sa, unsigned int length) {
         !get_fd().set_reuse_address(true) ||
         !get_fd().bind(*reinterpret_cast<rak::socket_address*>(sa), length) ||
         !get_fd().listen(max_tasks))
-      throw torrent::resource_error("Could not prepare socket for listening.");
+      throw torrent::resource_error("Could not prepare socket for listening: " + std::string(rak::error_number::current().c_str()));
 
     torrent::connection_manager()->inc_socket_count();
 

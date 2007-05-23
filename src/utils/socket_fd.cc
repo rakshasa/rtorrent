@@ -42,6 +42,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
+#include <net/if.h>
 #include <netinet/in.h>
 #include <netinet/in_systm.h>
 #include <netinet/ip.h>
@@ -80,6 +81,23 @@ SocketFd::set_reuse_address(bool state) {
 
   return setsockopt(m_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == 0;
 }
+
+bool
+SocketFd::set_dont_route(bool state) {
+  check_valid();
+  int opt = state;
+
+  return setsockopt(m_fd, SOL_SOCKET, SO_DONTROUTE, &opt, sizeof(opt)) == 0;
+}
+
+// bool
+// SocketFd::set_bind_to_device(const char* device) {
+//   check_valid();
+//   struct ifreq ifr;
+//   strncpy(ifr.ifr_name, device, IFNAMSIZ);
+
+//   return setsockopt(m_fd, SOL_SOCKET, SO_BINDTODEVICE, &ifr, sizeof(ifr)) == 0;
+// }
 
 bool
 SocketFd::set_send_buffer_size(uint32_t s) {
