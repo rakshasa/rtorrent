@@ -37,6 +37,7 @@
 #include "config.h"
 
 #include <functional>
+#include <rak/address_info.h>
 #include <rak/file_stat.h>
 #include <rak/path.h>
 #include <torrent/connection_manager.h>
@@ -176,9 +177,9 @@ apply_fast_cgi(const std::string& arg) {
 }
 
 void
-apply_scgi(const std::string& arg) {
+apply_scgi(const std::string& arg, int type) {
   if (control->fast_cgi() != NULL)
-    throw torrent::input_error("FastCGI already enabled.");
+    throw torrent::input_error("SCGI already enabled.");
 
   if (control->xmlrpc() == NULL)
     initialize_xmlrpc();
@@ -189,15 +190,38 @@ apply_scgi(const std::string& arg) {
   try {
     int port;
     char dummy;
+    char address[1024];
 
-    if (std::sscanf(arg.c_str(), ":%i%c", &port, &dummy) == 1) {
-      if (port <= 0 || port >= (1 << 16))
-        throw torrent::input_error("Invalid port number.");
+    switch (type) {
+    case 1:
+      if (std::sscanf(arg.c_str(), ":%i%c", &port, &dummy) == 1) {
+        if (port <= 0 || port >= (1 << 16))
+          throw torrent::input_error("Invalid port number.");
 
-      control->scgi()->open_port(port);
+        control->scgi()->open_port(port);
 
-    } else {
+      } else if (std::sscanf(arg.c_str(), "%1023[^:]:%i%c", address, &port, &dummy) == 2) {
+        if (port <= 0 || port >= (1 << 16))
+          throw torrent::input_error("Invalid port number.");
+
+        int err;
+        rak::address_info* ai;
+
+        if ((err = rak::address_info::get_address_info(address, PF_INET, SOCK_STREAM, &ai)) != 0)
+          throw torrent::input_error("Could not bind address: " + std::string(rak::address_info::strerror(err)) + ".");
+
+        control->scgi()->open(ai->address()->c_sockaddr(), ai->address()->length());
+
+      } else {
+        throw torrent::input_error("Could not parse address.");
+      }
+
+      break;
+
+    case 2:
+    default:
       control->scgi()->open_named(rak::path_expand(arg));
+      break;
     }
 
   } catch (torrent::local_error& e) {
@@ -248,6 +272,8 @@ initialize_command_network() {
   ADD_COMMAND_STRING_TRI("ip",            rak::make_mem_fun(control->core(), &core::Manager::set_local_address), rak::make_mem_fun(control->core(), &core::Manager::local_address));
   ADD_COMMAND_STRING_TRI("proxy_address", rak::make_mem_fun(control->core(), &core::Manager::set_proxy_address), rak::make_mem_fun(control->core(), &core::Manager::proxy_address));
   ADD_COMMAND_STRING_TRI("http_proxy",    rak::make_mem_fun(httpStack, &core::CurlStack::set_http_proxy), rak::make_mem_fun(httpStack, &core::CurlStack::http_proxy));
+  ADD_COMMAND_STRING_TRI("http_capath",   rak::make_mem_fun(httpStack, &core::CurlStack::set_http_capath), rak::make_mem_fun(httpStack, &core::CurlStack::http_capath));
+  ADD_COMMAND_STRING_TRI("http_cacert",   rak::make_mem_fun(httpStack, &core::CurlStack::set_http_cacert), rak::make_mem_fun(httpStack, &core::CurlStack::http_cacert));
 
   ADD_COMMAND_VALUE_TRI("send_buffer_size",    rak::make_mem_fun(cm, &torrent::ConnectionManager::set_send_buffer_size), rak::make_mem_fun(cm, &torrent::ConnectionManager::send_buffer_size));
   ADD_COMMAND_VALUE_TRI("receive_buffer_size", rak::make_mem_fun(cm, &torrent::ConnectionManager::set_receive_buffer_size), rak::make_mem_fun(cm, &torrent::ConnectionManager::receive_buffer_size));
@@ -261,7 +287,8 @@ initialize_command_network() {
   ADD_COMMAND_VALUE_TRI("max_open_http",        rak::make_mem_fun(httpStack, &core::CurlStack::set_max_active), rak::make_mem_fun(httpStack, &core::CurlStack::max_active));
 
   ADD_COMMAND_STRING_UN("fast_cgi",             std::ptr_fun(&apply_fast_cgi));
-  ADD_COMMAND_STRING_UN("scgi",                 std::ptr_fun(&apply_scgi));
+  ADD_COMMAND_STRING_UN("scgi_port",            rak::bind2nd(std::ptr_fun(&apply_scgi), 1));
+  ADD_COMMAND_STRING_UN("scgi_local",           rak::bind2nd(std::ptr_fun(&apply_scgi), 2));
 
   ADD_COMMAND_VALUE_TRI("hash_read_ahead",      std::ptr_fun(&apply_hash_read_ahead), rak::ptr_fun(torrent::hash_read_ahead));
   ADD_COMMAND_VALUE_TRI("hash_interval",        std::ptr_fun(&apply_hash_interval), rak::ptr_fun(torrent::hash_interval));

@@ -98,6 +98,12 @@ class CurlStack : std::deque<CurlGet*> {
 
   const std::string&  bind_address() const                   { return m_bindAddress; }
   void                set_bind_address(const std::string& s) { m_bindAddress = s; }
+  
+  const std::string&  http_capath() const                    { return m_httpCaPath; }
+  void                set_http_capath(const std::string& s)  { m_httpCaPath = s; }
+
+  const std::string&  http_cacert() const                    { return m_httpCaCert; }
+  void                set_http_cacert(const std::string& s)  { m_httpCaCert = s; }
 
   static void         global_init();
   static void         global_cleanup();
@@ -118,6 +124,8 @@ class CurlStack : std::deque<CurlGet*> {
   std::string         m_userAgent;
   std::string         m_httpProxy;
   std::string         m_bindAddress;
+  std::string         m_httpCaPath;
+  std::string         m_httpCaCert;
 };
 
 }

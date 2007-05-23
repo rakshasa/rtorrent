@@ -48,6 +48,12 @@
 #include "globals.h"
 #include "scgi.h"
 
+// Test:
+// #include "core/manager.h"
+// #include <rak/timer.h>
+
+// static rak::timer scgiTimer;
+
 namespace rpc {
 
 void
@@ -60,6 +66,8 @@ SCgiTask::open(SCgi* parent, int fd) {
   control->poll()->open(this);
   control->poll()->insert_read(this);
   control->poll()->insert_error(this);
+
+  scgiTimer = rak::timer::current();
 }
 
 void
@@ -77,6 +85,11 @@ SCgiTask::close() {
 
   delete [] m_buffer;
   m_buffer = NULL;
+
+  // Test
+//   char buffer[512];
+//   sprintf(buffer, "SCgi system call processed: %i", (int)(rak::timer::current() - scgiTimer).usec());
+//   control->core()->push_log(std::string(buffer));
 }
 
 void
@@ -162,19 +175,18 @@ SCgiTask::event_error() {
 
 bool
 SCgiTask::receive_write(const char* buffer, uint32_t length) {
-  if (length + 44 > m_bufferSize) {
+  if (length + 256 > m_bufferSize) {
     delete [] m_buffer;
-    m_buffer = new char[length + 44];
+    m_buffer = new char[length + 256];
   }
 
-  // Try writing as much as possible from here, before copying
-  // anything.
+  // Who ever bothers to check the return value?
+  int headerSize = sprintf(m_buffer, "Status: 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %i\r\n\r\n", length);
 
   m_position = m_buffer;
-  m_bufferSize = length + 44;
+  m_bufferSize = length + headerSize;
   
-  std::memcpy(m_buffer, "Status: 200 OK\r\nContent-Type: text/plain\r\n\r\n", 44);
-  std::memcpy(m_buffer + 44, buffer, length);
+  std::memcpy(m_buffer + headerSize, buffer, length);
 
   event_write();
 

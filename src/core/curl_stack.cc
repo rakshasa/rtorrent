@@ -121,6 +121,12 @@ CurlStack::add_get(CurlGet* get) {
   if (!m_bindAddress.empty())
     curl_easy_setopt(get->handle(), CURLOPT_INTERFACE, m_bindAddress.c_str());
 
+  if (!m_httpCaPath.empty())
+    curl_easy_setopt(get->handle(), CURLOPT_CAPATH, m_httpCaPath.c_str());
+
+  if (!m_httpCaCert.empty())
+    curl_easy_setopt(get->handle(), CURLOPT_CAINFO, m_httpCaCert.c_str());
+
   base_type::push_back(get);
 
   if (m_active >= m_maxActive)

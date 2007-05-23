@@ -55,12 +55,19 @@ SCgi::~SCgi() {
   if (!get_fd().is_valid())
     return;
 
+  for (SCgiTask* itr = m_task, *last = m_task + max_tasks; itr != last; ++itr)
+    if (itr->is_open())
+      itr->close();
+
   control->poll()->remove_read(this);
   control->poll()->remove_error(this);
   control->poll()->close(this);
 
   get_fd().close();
   get_fd().clear();
+
+  if (!m_path.empty())
+    ::unlink(m_path.c_str());
 }
 
 void
@@ -90,6 +97,7 @@ SCgi::open_named(const std::string& filename) {
     throw torrent::resource_error("Could not open socket for listening.");
 
   open(sa, offsetof(struct sockaddr_un, sun_path) + filename.size() + 1);
+  m_path = filename;
 }
 
 void
@@ -98,7 +106,7 @@ SCgi::open(void* sa, unsigned int length) {
     if (!get_fd().set_nonblock() ||
         !get_fd().set_reuse_address(true) ||
         !get_fd().bind(*reinterpret_cast<rak::socket_address*>(sa), length) ||
-        !get_fd().listen(10))
+        !get_fd().listen(max_tasks))
       throw torrent::resource_error("Could not prepare socket for listening.");
 
     torrent::connection_manager()->inc_socket_count();
@@ -121,9 +129,9 @@ SCgi::event_read() {
   utils::SocketFd fd;
 
   while ((fd = get_fd().accept(&sa)).is_valid()) {
-    SCgiTask* task = std::find_if(m_task, m_task + 10, std::mem_fun_ref(&SCgiTask::is_available));
+    SCgiTask* task = std::find_if(m_task, m_task + max_tasks, std::mem_fun_ref(&SCgiTask::is_available));
 
-    if (task == task + 10) {
+    if (task == task + max_tasks) {
       // Ergh... just closing for now.
       fd.close();
       continue;

@@ -54,8 +54,12 @@ public:
   typedef rak::function2<bool, const char*, uint32_t>             slot_write;
   typedef rak::function3<bool, const char*, uint32_t, slot_write> slot_process;
 
+  static const int max_tasks = 10;
+
   SCgi() {}
   virtual ~SCgi();
+
+  void                open(void* sa, unsigned int length);
 
   void                open_port(uint16_t port);
   void                open_named(const std::string& filename);
@@ -73,11 +77,9 @@ public:
   utils::SocketFd&    get_fd()            { return *reinterpret_cast<utils::SocketFd*>(&m_fileDesc); }
 
 private:
-  void                open(void* sa, unsigned int length);
-
   std::string         m_path;
   slot_process        m_slotProcess;
-  SCgiTask            m_task[10];
+  SCgiTask            m_task[max_tasks];
 };
 
 }
