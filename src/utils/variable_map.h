@@ -118,16 +118,6 @@ public:
 
   void                insert(key_type key, const variable_map_data_type src);
 
-  // Consider uninlining the helper functions.
-  const mapped_type   get_d(core::Download* download, key_type key) const;
-  const std::string   get_d_string(core::Download* download, key_type key) const { return get_d(download, key).as_string(); }
-  mapped_value_type   get_d_value(core::Download* download, key_type key) const  { return get_d(download, key).as_value(); }
-
-  void                set_d(core::Download* download, key_type key, const mapped_type& arg);
-  void                set_d_string(core::Download* download, key_type key, const std::string& arg)               { set_d(download, key, mapped_type(arg)); }
-  void                set_d_std_string(core::Download* download, const std::string& key, const std::string& arg) { set_d(download, key.c_str(), mapped_type(arg)); }
-  void                set_d_value(core::Download* download, key_type key, mapped_value_type arg)   { set_d(download, key, mapped_type(arg)); }
-
   const char*         process_single(const char* first);
   const char*         process_single(const char* first, const char* last);
   void                process_std_single(const std::string& cmd)       { process_single(cmd.c_str(), cmd.c_str() + cmd.size()); }
@@ -151,6 +141,13 @@ public:
   void                call_command_set_std_string(const std::string& key, const std::string& arg) { call_command(key.c_str(), mapped_type(arg)); }
 
   const mapped_type   call_command_d(key_type key, core::Download* download, const mapped_type& arg);
+  const mapped_type   call_command_d_void(key_type key, core::Download* download)   { return call_command_d(key, download, torrent::Object()); }
+  const std::string   call_command_d_string(key_type key, core::Download* download) { return call_command_d(key, download, torrent::Object()).as_string(); }
+  mapped_value_type   call_command_d_value(key_type key, core::Download* download)  { return call_command_d(key, download, torrent::Object()).as_value(); }
+
+  void                call_command_d_set_value(key_type key, core::Download* download, mapped_value_type arg)                 { call_command_d(key, download, mapped_type(arg)); }
+  void                call_command_d_set_string(key_type key, core::Download* download, const std::string& arg)               { call_command_d(key, download, mapped_type(arg)); }
+  void                call_command_d_set_std_string(const std::string& key, core::Download* download, const std::string& arg) { call_command_d(key.c_str(), download, mapped_type(arg)); }
 
 private:
   VariableMap(const VariableMap&);

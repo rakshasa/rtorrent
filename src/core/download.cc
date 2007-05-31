@@ -48,7 +48,6 @@
 #include <torrent/tracker_list.h>
 #include <torrent/data/file_list.h>
 
-#include "utils/variable_generic.h"
 #include "utils/variable_map.h"
 
 #include "control.h"
@@ -206,13 +205,14 @@ Download::receive_chunk_failed(__UNUSED uint32_t idx) {
   m_chunksFailed++;
 }
 
-int64_t            Download::get_value(const char* key)                            { return control->download_variables()->get_d_value(this, key); }
-const std::string Download::get_string(const char* key)                           { return control->download_variables()->get_d_string(this, key); }
-int64_t            Download::get_std_value(const std::string& key)                 { return control->download_variables()->get_d_value(this, key.c_str()); }
-const std::string Download::get_std_string(const std::string& key)                { return control->download_variables()->get_d_string(this, key.c_str()); }
-void               Download::set(const char* key, const torrent::Object& value)    { return control->download_variables()->set_d(this, key, value); }
-void               Download::set_value(const char* key, int64_t value)             { return control->download_variables()->set_d_value(this, key, value); }
-void               Download::set_string(const char* key, const std::string& value) { return control->download_variables()->set_d_string(this, key, value); }
+int64_t            Download::get_value(const char* key)                            { return control->download_variables()->call_command_d_value(key, this); }
+const std::string Download::get_string(const char* key)                           { return control->download_variables()->call_command_d_string(key, this); }
+int64_t            Download::get_std_value(const std::string& key)                 { return control->download_variables()->call_command_d_value(key.c_str(), this); }
+const std::string Download::get_std_string(const std::string& key)                { return control->download_variables()->call_command_d_string(key.c_str(), this); }
+
+void               Download::set(const char* key, const torrent::Object& value)    { control->download_variables()->call_command_d(key, this, value); }
+void               Download::set_value(const char* key, int64_t value)             { control->download_variables()->call_command_d_set_value(key, this, value); }
+void               Download::set_string(const char* key, const std::string& value) { control->download_variables()->call_command_d_set_string(key, this, value); }
 
 // Clean up.
 void

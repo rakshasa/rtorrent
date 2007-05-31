@@ -291,11 +291,11 @@ AC_DEFUN([TORRENT_WITH_ADDRESS_SPACE], [
 
 
 AC_DEFUN([TORRENT_WITH_FASTCGI], [
-  AC_MSG_CHECKING(for FastCGI)
-
   AC_ARG_WITH(fastcgi,
-    [  --with-fastcgi=PATH      Enable FastCGI RPC support.],
+    [  --with-fastcgi=PATH      Enable FastCGI RPC support. (DO NOT USE)],
     [
+      AC_MSG_CHECKING([for FastCGI (DO NOT USE)])
+
       if test "$withval" = "no"; then
         AC_MSG_RESULT(no)
 
@@ -333,8 +333,6 @@ AC_DEFUN([TORRENT_WITH_FASTCGI], [
 
         AC_DEFINE(HAVE_FASTCGI, 1, Support for FastCGI.)
       fi
-    ],[
-      AC_MSG_RESULT(ignored)
     ])
 ])
 

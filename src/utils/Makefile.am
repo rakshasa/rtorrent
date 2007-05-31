@@ -18,8 +18,6 @@ libsub_utils_a_SOURCES = \
 	socket_fd.h \
 	variable.cc \
 	variable.h \
-	variable_generic.cc \
-	variable_generic.h \
 	variable_map.cc \
 	variable_map.h
 

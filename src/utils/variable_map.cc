@@ -83,44 +83,6 @@ VariableMap::insert(key_type key, const variable_map_data_type src) {
                                                                 src.m_flags | flag_dont_delete, src.m_parm, src.m_doc)));
 }
 
-const VariableMap::mapped_type
-VariableMap::get_d(core::Download* download, key_type key) const {
-  const_iterator itr = base_type::find(key);
-
-  if (itr == base_type::end())
-    throw torrent::input_error("Variable \"" + std::string(key) + "\" does not exist.");
-
-  if (itr->second.m_downloadSlot != NULL)
-    return itr->second.m_downloadSlot(itr->second.m_variable, download, torrent::Object());
-
-  if (itr->second.m_genericSlot != NULL)
-    return itr->second.m_genericSlot(itr->second.m_variable, torrent::Object());
-
-  return itr->second.m_variable->get_d(download);
-}
-
-void
-VariableMap::set_d(core::Download* download, key_type key, const mapped_type& arg) {
-  iterator itr = base_type::find(key);
-
-  // Later, allow the user to create new variables. Have a slot to
-  // register that thing.
-  if (itr == base_type::end())
-    throw torrent::input_error("Variable \"" + std::string(key) + "\" does not exist.");
-
-  if (itr->second.m_downloadSlot != NULL) {
-    itr->second.m_downloadSlot(itr->second.m_variable, download, arg);
-    return;
-  }
-
-  if (itr->second.m_genericSlot != NULL) {
-    itr->second.m_genericSlot(itr->second.m_variable, arg);
-    return;
-  }
-
-  itr->second.m_variable->set_d(download, arg);
-}
-
 struct variable_map_is_space : std::unary_function<char, bool> {
   bool operator () (char c) const {
     return std::isspace(c);
@@ -191,7 +153,7 @@ VariableMap::process_d_single(core::Download* download, const char* first, const
   mapped_type args;
   first = parse_whole_list(first + 1, last, &args);
 
-  set_d(download, key.c_str(), args);
+  call_command_d(key.c_str(), download, args);
 
   return first;
 }

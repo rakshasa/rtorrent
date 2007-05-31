@@ -54,37 +54,18 @@ const torrent::Object
 CommandDownloadSlot::call_list(Variable* rawVariable, core::Download* download, const torrent::Object& rawArgs) {
   CommandDownloadSlot* command = static_cast<CommandDownloadSlot*>(rawVariable);
 
-//   const torrent::Object& arg = to_single_argument(rawArgs);
-
-//   switch (arg.type()) {
-//   case torrent::Object::TYPE_VALUE:
-//     variable->m_variable = arg.as_value() ? (int64_t)1 : (int64_t)0;
-//     break;
-
-//   case torrent::Object::TYPE_STRING:
-//     // Move the checks into some is_true, is_false think in Variable.
-//     if (arg.as_string() == "yes" || arg.as_string() == "true")
-//       variable->m_variable = (int64_t)1;
-
-//     else if (arg.as_string() == "no" || arg.as_string() == "false")
-//       variable->m_variable = (int64_t)0;
-
-//     else
-//       throw torrent::input_error("String does not parse as a boolean.");
-
-//     break;
-
-//   default:
-//     throw torrent::input_error("Input is not a boolean.");
-//   }
-
-//   return variable->m_variable;
-
   switch (rawArgs.type()) {
-//   case torrent::Object::TYPE_STRING:
-//     break;
   case torrent::Object::TYPE_LIST:
     return command->m_slot(download, rawArgs);
+
+  case torrent::Object::TYPE_VALUE:
+  case torrent::Object::TYPE_STRING:
+  {
+    torrent::Object tmpList(torrent::Object::TYPE_LIST);
+    tmpList.as_list().push_back(rawArgs);
+
+    return command->m_slot(download, tmpList);
+  }
   default:
     throw torrent::input_error("Not a list.");
   }
@@ -122,24 +103,22 @@ CommandDownloadSlot::call_string(Variable* rawVariable, core::Download* download
   const torrent::Object& arg = to_single_argument(rawArgs);
 
   switch (arg.type()) {
-//   case torrent::Object::TYPE_VALUE:
-//     break;
-
   case torrent::Object::TYPE_STRING:
     return command->m_slot(download, arg);
-    break;
+
+  case torrent::Object::TYPE_NONE:
+    throw torrent::input_error("CDS: void.");
+
+  case torrent::Object::TYPE_VALUE:
+    throw torrent::input_error("CDS: value.");
+
+  case torrent::Object::TYPE_LIST:
+    throw torrent::input_error("CDS: list.");
 
   default:
     throw torrent::input_error("Not a string.");
   }
 }
-
-// const torrent::Object&
-// CommandDownloadSlot::get_generic(Variable* rawVariable, const torrent::Object& args) {
-//   CommandVariable* variable = static_cast<CommandVariable*>(rawVariable);
-
-//   return variable->m_variable;
-// }
 
 torrent::Object
 set_variable_d_fn_t::operator () (core::Download* download, const torrent::Object& arg1) {
