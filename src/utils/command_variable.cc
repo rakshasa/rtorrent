@@ -37,6 +37,7 @@
 #include "config.h"
 
 #include "command_variable.h"
+#include "parse.h"
 
 namespace utils {
 
@@ -44,7 +45,7 @@ const torrent::Object
 CommandVariable::set_bool(Variable* rawVariable, const torrent::Object& rawArgs) {
   CommandVariable* variable = static_cast<CommandVariable*>(rawVariable);
 
-  const torrent::Object& arg = to_single_argument(rawArgs);
+  const torrent::Object& arg = convert_to_single_argument(rawArgs);
 
   switch (arg.type()) {
   case torrent::Object::TYPE_VALUE:
@@ -82,7 +83,7 @@ const torrent::Object
 CommandVariable::set_value(Variable* rawVariable, const torrent::Object& rawArgs) {
   CommandVariable* variable = static_cast<CommandVariable*>(rawVariable);
 
-  const torrent::Object& arg = to_single_argument(rawArgs);
+  const torrent::Object& arg = convert_to_single_argument(rawArgs);
 
   switch (arg.type()) {
   case torrent::Object::TYPE_NONE:
@@ -95,7 +96,7 @@ CommandVariable::set_value(Variable* rawVariable, const torrent::Object& rawArgs
 
   case torrent::Object::TYPE_STRING:
     int64_t value;
-    string_to_value_unit(arg.as_string().c_str(), &value, 0, 1);
+    parse_whole_value(arg.as_string().c_str(), &value, 0, 1);
 
     variable->m_variable = value;
     break;
@@ -118,7 +119,7 @@ const torrent::Object
 CommandVariable::set_string(Variable* rawVariable, const torrent::Object& rawArgs) {
   CommandVariable* variable = static_cast<CommandVariable*>(rawVariable);
 
-  const torrent::Object& arg = to_single_argument(rawArgs);
+  const torrent::Object& arg = convert_to_single_argument(rawArgs);
 
   switch (arg.type()) {
   case torrent::Object::TYPE_NONE:

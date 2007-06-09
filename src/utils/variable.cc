@@ -42,92 +42,68 @@
 
 namespace utils {
 
-const torrent::Object Variable::m_emptyObject;
+// const char*
+// Variable::string_to_value_unit(const char* pos, value_type* value, int base, int unit) {
+//   if (unit <= 0)
+//     throw torrent::input_error("Variable::string_to_value_unit(...) received unit <= 0.");
 
-// Consider throwing an exception.
-const torrent::Object&
-Variable::get() {
-//   return m_emptyObject;
-  throw torrent::internal_error("Variable::get() called.");
-}
+//   char* last;
+//   *value = strtoll(pos, &last, base);
 
-void
-Variable::set(const torrent::Object& arg) {
-  throw torrent::internal_error("Variable::set() called.");
-}
+//   if (last == pos) {
+//     if (strcasecmp(pos, "no") == 0) { *value = 0; return pos + strlen("no"); }
+//     if (strcasecmp(pos, "yes") == 0) { *value = 1; return pos + strlen("yes"); }
+//     if (strcasecmp(pos, "true") == 0) { *value = 1; return pos + strlen("true"); }
+//     if (strcasecmp(pos, "false") == 0) { *value = 0; return pos + strlen("false"); }
 
-const torrent::Object&
-Variable::get_d(core::Download* download) {
-  return get();
-}
+//     throw torrent::input_error("Could not convert string to value.");
+//   }
 
-void
-Variable::set_d(core::Download* download, const torrent::Object& arg) {
-  set(arg);
-}
+//   switch (*last) {
+//   case 'b':
+//   case 'B':
+//     ++last;
+//     break;
 
-const char*
-Variable::string_to_value_unit(const char* pos, value_type* value, int base, int unit) {
-  if (unit <= 0)
-    throw torrent::input_error("Variable::string_to_value_unit(...) received unit <= 0.");
+//   case 'k':
+//   case 'K':
+//     *value = *value << 10;
+//     ++last;
+//     break;
 
-  char* last;
-  *value = strtoll(pos, &last, base);
+//   case 'm':
+//   case 'M':
+//     *value = *value << 20;
+//     ++last;
+//     break;
 
-  if (last == pos) {
-    if (strcasecmp(pos, "no") == 0) { *value = 0; return pos + strlen("no"); }
-    if (strcasecmp(pos, "yes") == 0) { *value = 1; return pos + strlen("yes"); }
-    if (strcasecmp(pos, "true") == 0) { *value = 1; return pos + strlen("true"); }
-    if (strcasecmp(pos, "false") == 0) { *value = 0; return pos + strlen("false"); }
+//   case 'g':
+//   case 'G':
+//     *value = *value << 30;
+//     ++last;
+//     break;
 
-    throw torrent::input_error("Could not convert string to value.");
-  }
+//   case ' ':
+//   case '\0':
+//     *value = *value * unit;
+//     break;
 
-  switch (*last) {
-  case 'b':
-  case 'B':
-    ++last;
-    break;
+//   default:
+//     throw torrent::input_error("Could not parse value.");
+//   }
 
-  case 'k':
-  case 'K':
-    *value = *value << 10;
-    ++last;
-    break;
+//   return last;
+// }
 
-  case 'm':
-  case 'M':
-    *value = *value << 20;
-    ++last;
-    break;
+// bool
+// Variable::string_to_value_unit_nothrow(const char* pos, value_type* value, int base, int unit) {
+//   try {
+//     string_to_value_unit(pos, value, base, unit);
 
-  case 'g':
-  case 'G':
-    *value = *value << 30;
-    ++last;
-    break;
-
-  case ' ':
-  case '\0':
-    *value = *value * unit;
-    break;
-
-  default:
-    throw torrent::input_error("Could not parse value.");
-  }
-
-  return last;
-}
-
-bool
-Variable::string_to_value_unit_nothrow(const char* pos, value_type* value, int base, int unit) {
-  try {
-    string_to_value_unit(pos, value, base, unit);
-
-    return true;
-  } catch (const torrent::input_error& e) {
-    return false;
-  }
-}
+//     return true;
+//   } catch (const torrent::input_error& e) {
+//     return false;
+//   }
+// }
 
 }

@@ -55,6 +55,7 @@
 #include "ui/root.h"
 #include "utils/command_slot.h"
 #include "utils/command_variable.h"
+#include "utils/parse.h"
 #include "utils/variable_map.h"
 
 #include "globals.h"
@@ -115,7 +116,7 @@ apply_tos(const torrent::Object& rawArg) {
   else if (arg == "mincost")
     value = torrent::ConnectionManager::iptos_mincost;
 
-  else if (!utils::Variable::string_to_value_unit_nothrow(arg.c_str(), &value, 16, 1))
+  else if (!utils::parse_whole_value_nothrow(arg.c_str(), &value, 16, 1))
     throw torrent::input_error("Invalid TOS identifier.");
 
   cm->set_priority(value);

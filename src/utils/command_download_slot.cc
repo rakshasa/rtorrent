@@ -75,7 +75,7 @@ const torrent::Object
 CommandDownloadSlot::call_value_base(Variable* rawVariable, core::Download* download, const torrent::Object& rawArgs, int base, int unit) {
   CommandDownloadSlot* command = static_cast<CommandDownloadSlot*>(rawVariable);
 
-  const torrent::Object& arg = to_single_argument(rawArgs);
+  const torrent::Object& arg = convert_to_single_argument(rawArgs);
 
   switch (arg.type()) {
   case torrent::Object::TYPE_VALUE:
@@ -100,7 +100,7 @@ const torrent::Object
 CommandDownloadSlot::call_string(Variable* rawVariable, core::Download* download, const torrent::Object& rawArgs) {
   CommandDownloadSlot* command = static_cast<CommandDownloadSlot*>(rawVariable);
 
-  const torrent::Object& arg = to_single_argument(rawArgs);
+  const torrent::Object& arg = convert_to_single_argument(rawArgs);
 
   switch (arg.type()) {
   case torrent::Object::TYPE_STRING:

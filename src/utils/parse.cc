@@ -45,7 +45,7 @@ namespace utils {
 
 const char*
 parse_skip_wspace(const char* first, const char* last) {
-  while (first != last && std::iswspace(*first))
+  while (first != last && std::isspace(*first))
     first++;
 
   return first;
@@ -53,8 +53,8 @@ parse_skip_wspace(const char* first, const char* last) {
 
 const char*
 parse_skip_wspace(const char* first) {
-  // Assume iswspace('\0') == false.
-  while (std::iswspace(*first))
+  // Assume isspace('\0') == false.
+  while (std::isspace(*first))
     first++;
 
   return first;
@@ -76,7 +76,7 @@ parse_string(const char* first, const char* last, std::string* dest) {
         return ++first;
 
     } else {
-      if (parse_is_seperator(*first) || std::iswspace(*first))
+      if (parse_is_seperator(*first) || std::isspace(*first))
         return first;
     }
         
@@ -94,7 +94,7 @@ parse_string(const char* first, const char* last, std::string* dest) {
   return first;
 }
 
-const char*
+void
 parse_whole_string(const char* first, const char* last, std::string* dest) {
   first = parse_skip_wspace(first, last);
   first = parse_string(first, last, dest);
@@ -102,8 +102,6 @@ parse_whole_string(const char* first, const char* last, std::string* dest) {
    
   if (first != last)
     throw torrent::input_error("Junk at end of input.");
-
-  return first;
 }
 
 const char*
@@ -114,6 +112,14 @@ parse_value(const char* src, int64_t* value, int base, int unit) {
     throw torrent::input_error("Could not convert string to value.");
 
   return last;
+}
+
+void
+parse_whole_value(const char* src, int64_t* value, int base, int unit) {
+  const char* last = parse_value_nothrow(src, value, base, unit);
+
+  if (last == src || *parse_skip_wspace(last) != '\0')
+    throw torrent::input_error("Could not convert string to value.");
 }
 
 bool
@@ -184,7 +190,7 @@ parse_list(const char* first, const char* last, torrent::Object* dest) {
   return first;
 }
 
-const char*
+void
 parse_whole_list(const char* first, const char* last, torrent::Object* dest) {
   std::string str;
 
@@ -204,8 +210,6 @@ parse_whole_list(const char* first, const char* last, torrent::Object* dest) {
 
   if (first != last)
     throw torrent::input_error("Junk at end of input.");
-
-  return first;
 }
 
 std::string

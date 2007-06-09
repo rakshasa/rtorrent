@@ -129,11 +129,11 @@ VariableMap::process_single(const char* first, const char* last) {
     throw torrent::input_error("Could not find '='.");
 
   mapped_type args;
-  first = parse_whole_list(first + 1, last, &args);
+  parse_whole_list(first + 1, last, &args);
 
   call_command(key.c_str(), args);
 
-  return first;
+  return last;
 }
 
 const char*
@@ -151,11 +151,11 @@ VariableMap::process_d_single(core::Download* download, const char* first, const
     throw torrent::input_error("Could not find '='.");
 
   mapped_type args;
-  first = parse_whole_list(first + 1, last, &args);
+  parse_whole_list(first + 1, last, &args);
 
   call_command_d(key.c_str(), download, args);
 
-  return first;
+  return last;
 }
 
 // Consider what the command scheduler should do.
