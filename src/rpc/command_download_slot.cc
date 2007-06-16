@@ -37,7 +37,7 @@
 #include "config.h"
 
 #include "core/download.h"
-#include "utils/parse.h"
+#include "rpc/parse.h"
 
 #include "command_download_slot.h"
 

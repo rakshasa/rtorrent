@@ -47,7 +47,8 @@
 #include "core/manager.h"
 #include "rpc/command_slot.h"
 #include "rpc/command_variable.h"
-#include "utils/parse.h"
+#include "rpc/parse.h"
+#include "rpc/parse_commands.h"
 
 #include "globals.h"
 #include "control.h"
@@ -69,7 +70,7 @@ apply_on_state_change(core::DownloadList::slot_map* slotMap, const torrent::Obje
   if (args.back().as_string().empty())
     slotMap->erase(key);
   else
-    (*slotMap)[key] = sigc::bind(sigc::mem_fun(control->download_variables(), &utils::VariableMap::process_d_std_single),
+    (*slotMap)[key] = sigc::bind(sigc::bind<0>(&utils::parse_command_d_single_std, control->download_variables()),
                                  utils::convert_list_to_command(++args.begin(), args.end()));
 
   return torrent::Object();
@@ -194,8 +195,8 @@ void apply_load_verbose(const std::string& arg)       { control->core()->try_cre
 void apply_load_start(const std::string& arg)         { control->core()->try_create_download_expand(arg, true, false, true); }
 void apply_load_start_verbose(const std::string& arg) { control->core()->try_create_download_expand(arg, true, true, true); }
 
-void apply_import(const std::string& path)     { if (!control->variable()->process_file(path.c_str())) throw torrent::input_error("Could not open option file: " + path); }
-void apply_try_import(const std::string& path) { if (!control->variable()->process_file(path.c_str())) control->core()->push_log("Could not read resource file: " + path); }
+void apply_import(const std::string& path)     { if (!utils::parse_command_file(control->variable(), path)) throw torrent::input_error("Could not open option file: " + path); }
+void apply_try_import(const std::string& path) { if (!utils::parse_command_file(control->variable(), path)) control->core()->push_log("Could not read resource file: " + path); }
 
 void
 apply_close_low_diskspace(int64_t arg) {

@@ -57,6 +57,7 @@
 #include "display/window_title.h"
 
 #include "utils/variable_map.h"
+#include "rpc/parse_commands.h"
 
 #include "control.h"
 #include "download.h"
@@ -290,7 +291,7 @@ DownloadList::receive_exit_input(Input type) {
       break;
 
     case INPUT_COMMAND:
-      control->variable()->process_std_single(input->str());
+      utils::parse_command_single_std(control->variable(), input->str());
       break;
 
     default:

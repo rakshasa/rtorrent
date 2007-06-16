@@ -58,6 +58,7 @@
 #include "display/manager.h"
 #include "input/bindings.h"
 
+#include "rpc/parse_commands.h"
 #include "utils/directory.h"
 #include "utils/variable_map.h"
 
@@ -87,7 +88,7 @@ parse_options(Control* c, int argc, char** argv) {
     optionParser.insert_option('p', sigc::bind<0>(sigc::mem_fun(c->variable(), &utils::VariableMap::call_command_set_string), "port_range"));
     optionParser.insert_option('s', sigc::bind<0>(sigc::mem_fun(c->variable(), &utils::VariableMap::call_command_set_string), "session"));
 
-    optionParser.insert_option('O', sigc::mem_fun(c->variable(), &utils::VariableMap::process_std_single));
+    optionParser.insert_option('O', sigc::bind<0>(&utils::parse_command_single_std, c->variable()));
     optionParser.insert_option_list('o', sigc::mem_fun(c->variable(), &utils::VariableMap::call_command_set_std_string));
 
     return optionParser.process(argc, argv);
@@ -165,8 +166,7 @@ main(int argc, char** argv) {
     // torrent::ConnectionManager* are valid etc.
     initialize_commands();
 
-    control->variable()->process_multiple
-      (
+    utils::parse_command_multiple(control->variable(),
        // Currently not doing any sorting on main.
        "view_add = main\n"
 
@@ -227,12 +227,12 @@ main(int argc, char** argv) {
        "view_sort_current = scheduler,state_changed\n"
 
        //    "schedule = scheduler,10,10,download_scheduler=\n"
-       );
+    );
 
     if (OptionParser::has_flag('n', argc, argv))
       control->core()->push_log("Ignoring ~/.rtorrent.rc.");
     else
-      control->variable()->process_single("try_import = ~/.rtorrent.rc");
+      utils::parse_command_single(control->variable(), "try_import = ~/.rtorrent.rc");
 
     int firstArg = parse_options(control, argc, argv);
 

@@ -51,6 +51,7 @@
 #include "input/manager.h"
 #include "input/input_event.h"
 #include "rpc/fast_cgi.h"
+#include "rpc/parse_commands.h"
 #include "rpc/scgi.h"
 #include "rpc/xmlrpc.h"
 #include "ui/root.h"
@@ -87,7 +88,7 @@ Control::Control() :
 
   m_taskShutdown.set_slot(rak::mem_fn(this, &Control::handle_shutdown));
 
-  m_commandScheduler->set_slot_command(rak::mem_fn(m_variables, &utils::VariableMap::process_std_single));
+  m_commandScheduler->set_slot_command(rak::bind_ptr_fn(&utils::parse_command_single_std, m_variables));
   m_commandScheduler->set_slot_error_message(rak::mem_fn(m_core, &core::Manager::push_log));
 }
 

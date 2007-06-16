@@ -36,7 +36,7 @@
 
 #include "config.h"
 
-#include "utils/parse.h"
+#include "rpc/parse.h"
 
 #include "command_variable.h"
 

@@ -10,6 +10,10 @@ libsub_rpc_a_SOURCES = \
 	command_download_slot.h \
 	fast_cgi.cc \
 	fast_cgi.h \
+	parse.cc \
+	parse.h \
+	parse_commands.cc \
+	parse_commands.h \
 	scgi.cc \
 	scgi.h \
 	scgi_task.cc \

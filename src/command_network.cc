@@ -53,7 +53,7 @@
 #include "ui/root.h"
 #include "rpc/command_slot.h"
 #include "rpc/command_variable.h"
-#include "utils/parse.h"
+#include "rpc/parse.h"
 #include "utils/variable_map.h"
 
 #include "globals.h"

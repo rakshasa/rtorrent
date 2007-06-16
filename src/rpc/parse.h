@@ -34,6 +34,9 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
+#ifndef RTORRENT_RPC_PARSE_H
+#define RTORRENT_RPC_PARSE_H
+
 #include <string>
 #include <torrent/object.h>
 
@@ -81,3 +84,5 @@ convert_to_single_argument(const torrent::Object& args) {
 }
 
 }
+
+#endif

@@ -45,7 +45,7 @@
 #include "core/view_manager.h"
 #include "rpc/command_slot.h"
 #include "rpc/command_variable.h"
-#include "utils/parse.h"
+#include "rpc/parse.h"
 
 #include "globals.h"
 #include "control.h"

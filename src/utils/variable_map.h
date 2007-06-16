@@ -70,7 +70,7 @@ struct variable_map_data_type {
                          const char* parm, const char* doc) :
     m_variable(variable), m_genericSlot(genericSlot), m_downloadSlot(downloadSlot), m_flags(flags), m_parm(parm), m_doc(doc) {}
 
-  Command*     m_variable;
+  Command*      m_variable;
   generic_slot  m_genericSlot;
   download_slot m_downloadSlot;
 
@@ -111,27 +111,11 @@ public:
   bool                has(const char* key) const        { return base_type::find(key) != base_type::end(); }
   bool                has(const std::string& key) const { return has(key.c_str()); }
 
-  // Allow NULL slot as a temporary compatibility hack.
-
   void                insert(key_type key, Command* variable, generic_slot genericSlot, download_slot downloadSlot, int flags,
                              const char* parm, const char* doc);
 
   void                insert(key_type key, const variable_map_data_type src);
 
-  const char*         process_single(const char* first);
-  const char*         process_single(const char* first, const char* last);
-  void                process_std_single(const std::string& cmd)       { process_single(cmd.c_str(), cmd.c_str() + cmd.size()); }
-
-  const char*         process_d_single(core::Download* download, const char* first, const char* last);
-  void                process_d_std_single(core::Download* download, const std::string& cmd)     { process_d_single(download, cmd.c_str(), cmd.c_str() + cmd.size()); }
-
-  void                process_multiple(const char* first);
-
-  void                process_stream(std::istream* str);
-  bool                process_file(key_type path);
-
-  // The new API, which is atm just a wrapper over the old and
-  // requires seperate calls to get and set. These will be merged.
   const mapped_type   call_command(key_type key, const mapped_type& arg);
   const mapped_type   call_command_void(key_type key)   { return call_command(key, torrent::Object()); }
   const std::string   call_command_string(key_type key) { return call_command(key, torrent::Object()).as_string(); }
