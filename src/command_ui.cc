@@ -99,7 +99,7 @@ apply_view_sort(const torrent::Object& rawArgs) {
 
 void
 initialize_command_ui() {
-  utils::VariableMap* variables = control->variable();
+  utils::CommandMap* variables = control->variable();
 //   core::DownloadList* downloadList = control->core()->download_list();
 
   ADD_VARIABLE_STRING("key_layout", "qwerty");

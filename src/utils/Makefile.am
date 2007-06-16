@@ -7,8 +7,6 @@ libsub_utils_a_SOURCES = \
 	lockfile.cc \
 	lockfile.h \
 	socket_fd.cc \
-	socket_fd.h \
-	variable_map.cc \
-	variable_map.h
+	socket_fd.h
 
 INCLUDES = -I$(srcdir) -I$(srcdir)/.. -I$(top_srcdir)

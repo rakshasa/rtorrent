@@ -49,7 +49,7 @@
 #include "display/window_statusbar.h"
 #include "input/manager.h"
 #include "input/text_input.h"
-#include "utils/variable_map.h"
+#include "rpc/command_map.h"
 
 #include "control.h"
 #include "download_list.h"

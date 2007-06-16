@@ -48,7 +48,7 @@
 #include <torrent/tracker_list.h>
 #include <torrent/data/file_list.h>
 
-#include "utils/variable_map.h"
+#include "rpc/command_map.h"
 
 #include "control.h"
 #include "download.h"

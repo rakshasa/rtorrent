@@ -34,39 +34,34 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef RTORRENT_UTILS_VARIABLE_MAP_H
-#define RTORRENT_UTILS_VARIABLE_MAP_H
+#ifndef RTORRENT_UTILS_COMMAND_MAP_H
+#define RTORRENT_UTILS_COMMAND_MAP_H
 
 #include <map>
 #include <string>
 #include <cstring>
-#include <iosfwd>
 #include <torrent/object.h>
 
 namespace core {
   class Download;
 }
 
-namespace torrent {
-  class Object;
-}
-
 namespace utils {
-
-struct variable_map_comp : public std::binary_function<const char*, const char*, bool> {
-  bool operator () (const char* arg1, const char* arg2) const { return std::strcmp(arg1, arg2) < 0; }
-};
 
 class Command;
 
-struct variable_map_data_type {
+struct command_map_comp : public std::binary_function<const char*, const char*, bool> {
+  bool operator () (const char* arg1, const char* arg2) const { return std::strcmp(arg1, arg2) < 0; }
+};
+
+struct command_map_data_type {
   // Some commands will need to share data, like get/set a variable. So
   // instead of using a single virtual member function, each command
   // will register a member function pointer to be used instead.
   typedef const torrent::Object (*generic_slot)(Command*, const torrent::Object&);
   typedef const torrent::Object (*download_slot)(Command*, core::Download*, const torrent::Object&);
 
-  variable_map_data_type(Command* variable, generic_slot genericSlot, download_slot downloadSlot, int flags,
+  command_map_data_type(Command* variable, generic_slot genericSlot, download_slot downloadSlot, int flags,
                          const char* parm, const char* doc) :
     m_variable(variable), m_genericSlot(genericSlot), m_downloadSlot(downloadSlot), m_flags(flags), m_parm(parm), m_doc(doc) {}
 
@@ -80,12 +75,12 @@ struct variable_map_data_type {
   const char*   m_doc;
 };
 
-class VariableMap : public std::map<const char*, variable_map_data_type, variable_map_comp> {
+class CommandMap : public std::map<const char*, command_map_data_type, command_map_comp> {
 public:
-  typedef std::map<const char*, variable_map_data_type, variable_map_comp> base_type;
+  typedef std::map<const char*, command_map_data_type, command_map_comp> base_type;
 
-  typedef variable_map_data_type::generic_slot  generic_slot;
-  typedef variable_map_data_type::download_slot download_slot;
+  typedef command_map_data_type::generic_slot  generic_slot;
+  typedef command_map_data_type::download_slot download_slot;
 
   typedef torrent::Object         mapped_type;
   typedef mapped_type::value_type mapped_value_type;
@@ -105,8 +100,8 @@ public:
   static const int flag_dont_delete   = 0x1;
   static const int flag_public_xmlrpc = 0x2;
 
-  VariableMap() {}
-  ~VariableMap();
+  CommandMap() {}
+  ~CommandMap();
 
   bool                has(const char* key) const        { return base_type::find(key) != base_type::end(); }
   bool                has(const std::string& key) const { return has(key.c_str()); }
@@ -114,7 +109,7 @@ public:
   void                insert(key_type key, Command* variable, generic_slot genericSlot, download_slot downloadSlot, int flags,
                              const char* parm, const char* doc);
 
-  void                insert(key_type key, const variable_map_data_type src);
+  void                insert(key_type key, const command_map_data_type src);
 
   const mapped_type   call_command(key_type key, const mapped_type& arg);
   const mapped_type   call_command_void(key_type key)   { return call_command(key, torrent::Object()); }
@@ -134,8 +129,8 @@ public:
   void                call_command_d_set_std_string(const std::string& key, core::Download* download, const std::string& arg) { call_command_d(key.c_str(), download, mapped_type(arg)); }
 
 private:
-  VariableMap(const VariableMap&);
-  void operator = (const VariableMap&);
+  CommandMap(const CommandMap&);
+  void operator = (const CommandMap&);
 };
 
 }

@@ -175,7 +175,7 @@ apply_d_delete_link(core::Download* download, const torrent::Object& rawArgs) {
 
 #define ADD_COMMAND_DOWNLOAD_SLOT(key, function, slot, parm, doc)    \
   commandDownloadSlotsItr->set_slot(slot); \
-  variables->insert(key, commandDownloadSlotsItr++, NULL, &utils::CommandDownloadSlot::function, utils::VariableMap::flag_dont_delete | utils::VariableMap::flag_public_xmlrpc, parm, doc);
+  variables->insert(key, commandDownloadSlotsItr++, NULL, &utils::CommandDownloadSlot::function, utils::CommandMap::flag_dont_delete | utils::CommandMap::flag_public_xmlrpc, parm, doc);
 
 #define ADD_COMMAND_DOWNLOAD_VOID(key, slot) \
   ADD_COMMAND_DOWNLOAD_SLOT(key, call_unknown, utils::object_d_fn(slot), "i:", "")
@@ -207,7 +207,7 @@ apply_d_delete_link(core::Download* download, const torrent::Object& rawArgs) {
 
 void
 add_copy_to_download(const char* key) {
-  utils::VariableMap::iterator itr = control->variable()->find(key);
+  utils::CommandMap::iterator itr = control->variable()->find(key);
 
   if (itr == control->variable()->end())
     throw torrent::internal_error("add_copy_to_download(...) key not found.");
@@ -217,7 +217,7 @@ add_copy_to_download(const char* key) {
 
 void
 initialize_command_download() {
-  utils::VariableMap* variables = control->download_variables();
+  utils::CommandMap* variables = control->download_variables();
 
   ADD_COMMAND_DOWNLOAD_VOID("base_path", &retrieve_d_base_path);
   ADD_COMMAND_DOWNLOAD_VOID("base_filename", &retrieve_d_base_filename);

@@ -46,7 +46,7 @@
 #include "core/manager.h"
 #include "rpc/command_slot.h"
 #include "rpc/command_variable.h"
-#include "utils/variable_map.h"
+#include "rpc/command_map.h"
 
 #include "globals.h"
 #include "control.h"
@@ -56,7 +56,7 @@ typedef torrent::ChunkManager CM_t;
 
 void
 initialize_command_local() {
-  utils::VariableMap*    variables = control->variable();
+  utils::CommandMap*    variables = control->variable();
 //   core::DownloadList* downloadList = control->core()->download_list();
   torrent::ChunkManager* chunkManager = torrent::chunk_manager();
   core::DownloadList*    dList = control->core()->download_list();

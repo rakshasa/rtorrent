@@ -56,7 +56,7 @@
 #include "display/window_log.h"
 #include "display/window_title.h"
 
-#include "utils/variable_map.h"
+#include "rpc/command_map.h"
 #include "rpc/parse_commands.h"
 
 #include "control.h"

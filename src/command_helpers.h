@@ -37,7 +37,7 @@
 #ifndef RTORRENT_UTILS_COMMAND_HELPERS_H
 #define RTORRENT_UTILS_COMMAND_HELPERS_H
 
-#include "utils/variable_map.h"
+#include "rpc/command_map.h"
 
 namespace utils {
   class CommandSlot;
@@ -64,7 +64,7 @@ void initialize_commands();
 
 void
 add_variable(const char* getKey, const char* setKey, const char* defaultSetKey,
-             utils::VariableMap::generic_slot getSlot, utils::VariableMap::generic_slot setSlot,
+             utils::CommandMap::generic_slot getSlot, utils::CommandMap::generic_slot setSlot,
              const torrent::Object& defaultObject);
 
 #define ADD_VARIABLE_BOOL(key, defaultValue) \
@@ -78,17 +78,17 @@ add_variable("get_" key, "set_" key, key, &utils::CommandVariable::get_string, &
 
 #define ADD_COMMAND_SLOT(key, function, slot, parm, doc)    \
   commandSlotsItr->set_slot(slot); \
-  variables->insert(key, commandSlotsItr++, &utils::CommandSlot::function, NULL, utils::VariableMap::flag_dont_delete | utils::VariableMap::flag_public_xmlrpc, parm, doc);
+  variables->insert(key, commandSlotsItr++, &utils::CommandSlot::function, NULL, utils::CommandMap::flag_dont_delete | utils::CommandMap::flag_public_xmlrpc, parm, doc);
 
 #define ADD_COMMAND_SLOT_PRIVATE(key, function, slot) \
   commandSlotsItr->set_slot(slot); \
-  variables->insert(key, commandSlotsItr++, &utils::CommandSlot::function, NULL, utils::VariableMap::flag_dont_delete, NULL, NULL);
+  variables->insert(key, commandSlotsItr++, &utils::CommandSlot::function, NULL, utils::CommandMap::flag_dont_delete, NULL, NULL);
 
 #define ADD_COMMAND_COPY(key, function, parm, doc) \
-  variables->insert(key, (commandSlotsItr - 1), &utils::CommandSlot::function, NULL, utils::VariableMap::flag_dont_delete | utils::VariableMap::flag_public_xmlrpc, parm, doc);
+  variables->insert(key, (commandSlotsItr - 1), &utils::CommandSlot::function, NULL, utils::CommandMap::flag_dont_delete | utils::CommandMap::flag_public_xmlrpc, parm, doc);
 
 #define ADD_COMMAND_COPY_PRIVATE(key, function) \
-  variables->insert(key, (commandSlotsItr - 1), &utils::CommandSlot::function, NULL, utils::VariableMap::flag_dont_delete, NULL, NULL);
+  variables->insert(key, (commandSlotsItr - 1), &utils::CommandSlot::function, NULL, utils::CommandMap::flag_dont_delete, NULL, NULL);
 
 #define ADD_COMMAND_VALUE_TRI(key, set, get) \
   ADD_COMMAND_SLOT_PRIVATE(key, call_value, utils::object_value_fn(set))      \

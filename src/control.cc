@@ -55,7 +55,7 @@
 #include "rpc/scgi.h"
 #include "rpc/xmlrpc.h"
 #include "ui/root.h"
-#include "utils/variable_map.h"
+#include "rpc/command_map.h"
 
 #include "command_scheduler.h"
 
@@ -71,8 +71,8 @@ Control::Control() :
   m_inputStdin(new input::InputEvent(STDIN_FILENO)),
 
   m_commandScheduler(new CommandScheduler()),
-  m_variables(new utils::VariableMap()),
-  m_downloadVariables(new utils::VariableMap()),
+  m_variables(new utils::CommandMap()),
+  m_downloadVariables(new utils::CommandMap()),
 
   m_fastCgi(NULL),
   m_scgi(NULL),

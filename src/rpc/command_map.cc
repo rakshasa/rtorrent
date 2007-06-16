@@ -45,45 +45,45 @@
 #include <torrent/exceptions.h>
 #include <torrent/object.h>
 
-#include "rpc/command.h"
-#include "variable_map.h"
+#include "command.h"
+#include "command_map.h"
 
 namespace utils {
 
-struct variable_map_get_ptr : std::unary_function<VariableMap::value_type&, Command*> {
-  Command* operator () (VariableMap::value_type& value) { return value.second.m_variable; }
+struct command_map_get_ptr : std::unary_function<CommandMap::value_type&, Command*> {
+  Command* operator () (CommandMap::value_type& value) { return value.second.m_variable; }
 };
 
-VariableMap::~VariableMap() {
+CommandMap::~CommandMap() {
   for (iterator itr = base_type::begin(), last = base_type::end(); itr != last; itr++)
     if (!(itr->second.m_flags & flag_dont_delete))
       delete itr->second.m_variable;
 }
 
 void
-VariableMap::insert(key_type key, Command* variable, generic_slot genericSlot, download_slot downloadSlot, int flags,
+CommandMap::insert(key_type key, Command* variable, generic_slot genericSlot, download_slot downloadSlot, int flags,
                     const char* parm, const char* doc) {
   iterator itr = base_type::find(key);
 
   if (itr != base_type::end())
-    throw torrent::internal_error("VariableMap::insert(...) tried to insert an already existing key.");
+    throw torrent::internal_error("CommandMap::insert(...) tried to insert an already existing key.");
 
-  base_type::insert(itr, value_type(key, variable_map_data_type(variable, genericSlot, downloadSlot, flags, parm, doc)));
+  base_type::insert(itr, value_type(key, command_map_data_type(variable, genericSlot, downloadSlot, flags, parm, doc)));
 }
 
 void
-VariableMap::insert(key_type key, const variable_map_data_type src) {
+CommandMap::insert(key_type key, const command_map_data_type src) {
   iterator itr = base_type::find(key);
 
   if (itr != base_type::end())
-    throw torrent::internal_error("VariableMap::insert(...) tried to insert an already existing key.");
+    throw torrent::internal_error("CommandMap::insert(...) tried to insert an already existing key.");
 
-  base_type::insert(itr, value_type(key, variable_map_data_type(src.m_variable, src.m_genericSlot, src.m_downloadSlot,
+  base_type::insert(itr, value_type(key, command_map_data_type(src.m_variable, src.m_genericSlot, src.m_downloadSlot,
                                                                 src.m_flags | flag_dont_delete, src.m_parm, src.m_doc)));
 }
 
-const VariableMap::mapped_type
-VariableMap::call_command(key_type key, const mapped_type& arg) {
+const CommandMap::mapped_type
+CommandMap::call_command(key_type key, const mapped_type& arg) {
   const_iterator itr = base_type::find(key);
 
   if (itr == base_type::end())
@@ -95,8 +95,8 @@ VariableMap::call_command(key_type key, const mapped_type& arg) {
   return itr->second.m_genericSlot(itr->second.m_variable, arg);
 }
 
-const VariableMap::mapped_type
-VariableMap::call_command_d(key_type key, core::Download* download, const mapped_type& arg) {
+const CommandMap::mapped_type
+CommandMap::call_command_d(key_type key, core::Download* download, const mapped_type& arg) {
   const_iterator itr = base_type::find(key);
 
   if (itr == base_type::end())

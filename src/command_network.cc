@@ -54,7 +54,7 @@
 #include "rpc/command_slot.h"
 #include "rpc/command_variable.h"
 #include "rpc/parse.h"
-#include "utils/variable_map.h"
+#include "rpc/command_map.h"
 
 #include "globals.h"
 #include "control.h"
@@ -146,12 +146,12 @@ apply_enable_trackers(int64_t arg) {
 void
 initialize_xmlrpc() {
   control->set_xmlrpc(new rpc::XmlRpc);
-  control->xmlrpc()->set_slot_call_command(rak::mem_fn(control->variable(), &utils::VariableMap::call_command));
+  control->xmlrpc()->set_slot_call_command(rak::mem_fn(control->variable(), &utils::CommandMap::call_command));
 
   unsigned int count = 0;
 
-  for (utils::VariableMap::const_iterator itr = control->variable()->begin(), last = control->variable()->end(); itr != last; itr++)
-    if (itr->second.m_flags & utils::VariableMap::flag_public_xmlrpc) {
+  for (utils::CommandMap::const_iterator itr = control->variable()->begin(), last = control->variable()->end(); itr != last; itr++)
+    if (itr->second.m_flags & utils::CommandMap::flag_public_xmlrpc) {
       control->xmlrpc()->insert_command(itr->first, itr->second.m_parm, itr->second.m_doc);
 
       count++;
@@ -238,7 +238,7 @@ apply_scgi(const std::string& arg, int type) {
 
 void
 initialize_command_network() {
-  utils::VariableMap* variables = control->variable();
+  utils::CommandMap* variables = control->variable();
 //   core::DownloadList* downloadList = control->core()->download_list();
   torrent::ConnectionManager* cm = torrent::connection_manager();
   core::CurlStack* httpStack = control->core()->get_poll_manager()->get_http_stack();

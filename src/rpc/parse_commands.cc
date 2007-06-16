@@ -45,17 +45,17 @@
 
 #include "parse.h"
 #include "parse_commands.h"
-#include "utils/variable_map.h"
+#include "command_map.h"
 
 namespace utils {
 
-struct variable_map_is_space : std::unary_function<char, bool> {
+struct command_map_is_space : std::unary_function<char, bool> {
   bool operator () (char c) const {
     return std::isspace(c);
   }
 };
 
-struct variable_map_is_newline : std::unary_function<char, bool> {
+struct command_map_is_newline : std::unary_function<char, bool> {
   bool operator () (char c) const {
     return c == '\n' || c == '\0';
   }
@@ -74,13 +74,13 @@ parse_command_name(const char* first, const char* last, std::string* dest) {
 }
 
 const char*
-parse_command_single(VariableMap* varMap, const char* first) {
+parse_command_single(CommandMap* varMap, const char* first) {
   return parse_command_single(varMap, first, first + std::strlen(first));
 }
 
 const char*
-parse_command_single(VariableMap* varMap, const char* first, const char* last) {
-  first = std::find_if(first, last, std::not1(variable_map_is_space()));
+parse_command_single(CommandMap* varMap, const char* first, const char* last) {
+  first = std::find_if(first, last, std::not1(command_map_is_space()));
 
   if (first == last || *first == '#')
     return last;
@@ -88,7 +88,7 @@ parse_command_single(VariableMap* varMap, const char* first, const char* last) {
   // Avoid using a string here?
   std::string key;
   first = parse_command_name(first, last, &key);
-  first = std::find_if(first, last, std::not1(variable_map_is_space()));
+  first = std::find_if(first, last, std::not1(command_map_is_space()));
   
   if (first == last || *first != '=')
     throw torrent::input_error("Could not find '='.");
@@ -102,15 +102,15 @@ parse_command_single(VariableMap* varMap, const char* first, const char* last) {
 }
 
 const char*
-parse_command_d_single(VariableMap* varMap, core::Download* download, const char* first, const char* last) {
-  first = std::find_if(first, last, std::not1(variable_map_is_space()));
+parse_command_d_single(CommandMap* varMap, core::Download* download, const char* first, const char* last) {
+  first = std::find_if(first, last, std::not1(command_map_is_space()));
 
   if (first == last || *first == '#')
     return last;
   
   std::string key;
   first = parse_command_name(first, last, &key);
-  first = std::find_if(first, last, std::not1(variable_map_is_space()));
+  first = std::find_if(first, last, std::not1(command_map_is_space()));
   
   if (first == last || *first != '=')
     throw torrent::input_error("Could not find '='.");
@@ -124,7 +124,7 @@ parse_command_d_single(VariableMap* varMap, core::Download* download, const char
 }
 
 void
-parse_command_multiple(VariableMap* varMap, const char* first) {
+parse_command_multiple(CommandMap* varMap, const char* first) {
   try {
     while (first != '\0') {
       const char* last = first;
@@ -147,7 +147,7 @@ parse_command_multiple(VariableMap* varMap, const char* first) {
 }
 
 bool
-parse_command_file(VariableMap* varMap, const std::string& path) {
+parse_command_file(CommandMap* varMap, const std::string& path) {
   std::fstream file(rak::path_expand(path).c_str(), std::ios::in);
 
   if (!file.is_open())

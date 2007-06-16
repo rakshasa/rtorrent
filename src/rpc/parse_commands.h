@@ -45,25 +45,25 @@ namespace core {
 
 namespace utils {
 
-class VariableMap;
+class CommandMap;
 
 const char* parse_command_name(const char* first, const char* last, std::string* dest);
 
-const char* parse_command_single(VariableMap* varMap, const char* first);
-const char* parse_command_single(VariableMap* varMap, const char* first, const char* last);
+const char* parse_command_single(CommandMap* varMap, const char* first);
+const char* parse_command_single(CommandMap* varMap, const char* first, const char* last);
 
-const char* parse_command_d_single(VariableMap* varMap, core::Download* download, const char* first, const char* last);
+const char* parse_command_d_single(CommandMap* varMap, core::Download* download, const char* first, const char* last);
 
-void        parse_command_multiple(VariableMap* varMap, const char* first);
-bool        parse_command_file(VariableMap* varMap, const std::string& path);
+void        parse_command_multiple(CommandMap* varMap, const char* first);
+bool        parse_command_file(CommandMap* varMap, const std::string& path);
 
 inline void
-parse_command_single_std(VariableMap* varMap, const std::string& cmd) {
+parse_command_single_std(CommandMap* varMap, const std::string& cmd) {
   parse_command_single(varMap, cmd.c_str(), cmd.c_str() + cmd.size());
 }
 
 inline void
-parse_command_d_single_std(VariableMap* varMap, core::Download* download, const std::string& cmd) {
+parse_command_d_single_std(CommandMap* varMap, core::Download* download, const std::string& cmd) {
   parse_command_d_single(varMap, download, cmd.c_str(), cmd.c_str() + cmd.size());
 }
 

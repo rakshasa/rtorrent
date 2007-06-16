@@ -79,14 +79,14 @@ initialize_commands() {
 
 void
 add_variable(const char* getKey, const char* setKey, const char* defaultSetKey,
-             utils::VariableMap::generic_slot getSlot, utils::VariableMap::generic_slot setSlot,
+             utils::CommandMap::generic_slot getSlot, utils::CommandMap::generic_slot setSlot,
              const torrent::Object& defaultObject) {
   utils::CommandVariable* variable = commandVariablesItr++;
   variable->set_variable(defaultObject);
 
-  control->variable()->insert(getKey, variable, getSlot, NULL, utils::VariableMap::flag_dont_delete | utils::VariableMap::flag_public_xmlrpc, "i:", "");
-  control->variable()->insert(setKey, variable, setSlot, NULL, utils::VariableMap::flag_dont_delete | utils::VariableMap::flag_public_xmlrpc, "i:", "");
+  control->variable()->insert(getKey, variable, getSlot, NULL, utils::CommandMap::flag_dont_delete | utils::CommandMap::flag_public_xmlrpc, "i:", "");
+  control->variable()->insert(setKey, variable, setSlot, NULL, utils::CommandMap::flag_dont_delete | utils::CommandMap::flag_public_xmlrpc, "i:", "");
 
   if (defaultSetKey)
-    control->variable()->insert(defaultSetKey, variable, setSlot, NULL, utils::VariableMap::flag_dont_delete, "i:", "");
+    control->variable()->insert(defaultSetKey, variable, setSlot, NULL, utils::CommandMap::flag_dont_delete, "i:", "");
 }

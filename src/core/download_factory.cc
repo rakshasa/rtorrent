@@ -47,7 +47,7 @@
 #include <torrent/resume.h>
 #include <torrent/data/file_utils.h>
 
-#include "utils/variable_map.h"
+#include "rpc/command_map.h"
 
 #include "curl_get.h"
 #include "control.h"

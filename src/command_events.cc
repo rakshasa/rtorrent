@@ -216,7 +216,7 @@ apply_close_low_diskspace(int64_t arg) {
 
 void
 initialize_command_events() {
-  utils::VariableMap* variables = control->variable();
+  utils::CommandMap* variables = control->variable();
   core::DownloadList* downloadList = control->core()->download_list();
 
   ADD_VARIABLE_BOOL("check_hash", true);

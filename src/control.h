@@ -69,7 +69,7 @@ namespace rpc {
 }
 
 namespace utils {
-  class VariableMap;
+  class CommandMap;
 }
 
 class CommandScheduler;
@@ -104,8 +104,8 @@ public:
 
   CommandScheduler*   command_scheduler()           { return m_commandScheduler; }
 
-  utils::VariableMap* variable()                    { return m_variables; }
-  utils::VariableMap* download_variables()          { return m_downloadVariables; }
+  utils::CommandMap*  variable()                    { return m_variables; }
+  utils::CommandMap*  download_variables()          { return m_downloadVariables; }
 
   rpc::FastCgi*       fast_cgi()                    { return m_fastCgi; }
   void                set_fast_cgi(rpc::FastCgi* f) { m_fastCgi = f; }
@@ -142,8 +142,8 @@ private:
   input::InputEvent*  m_inputStdin;
 
   CommandScheduler*   m_commandScheduler;
-  utils::VariableMap* m_variables;
-  utils::VariableMap* m_downloadVariables;
+  utils::CommandMap*  m_variables;
+  utils::CommandMap*  m_downloadVariables;
 
   rpc::FastCgi*       m_fastCgi;
   rpc::SCgi*          m_scgi;

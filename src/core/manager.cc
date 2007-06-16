@@ -55,7 +55,7 @@
 #include <torrent/resume.h>
 #include <torrent/tracker_list.h>
 
-#include "utils/variable_map.h"
+#include "rpc/command_map.h"
 
 #include "globals.h"
 #include "curl_get.h"
