@@ -1,12 +1,6 @@
 noinst_LIBRARIES = libsub_utils.a
 
 libsub_utils_a_SOURCES = \
-	command_slot.cc \
-	command_slot.h \
-	command_variable.cc \
-	command_variable.h \
-	command_download_slot.cc \
-	command_download_slot.h \
 	directory.cc \
 	directory.h \
 	list_focus.h \
@@ -16,8 +10,6 @@ libsub_utils_a_SOURCES = \
 	parse.h \
 	socket_fd.cc \
 	socket_fd.h \
-	variable.cc \
-	variable.h \
 	variable_map.cc \
 	variable_map.h
 

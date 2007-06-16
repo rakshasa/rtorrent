@@ -46,13 +46,13 @@
 #include <torrent/object.h>
 
 #include "parse.h"
-#include "variable.h"
+#include "rpc/command.h"
 #include "variable_map.h"
 
 namespace utils {
 
-struct variable_map_get_ptr : std::unary_function<VariableMap::value_type&, Variable*> {
-  Variable* operator () (VariableMap::value_type& value) { return value.second.m_variable; }
+struct variable_map_get_ptr : std::unary_function<VariableMap::value_type&, Command*> {
+  Command* operator () (VariableMap::value_type& value) { return value.second.m_variable; }
 };
 
 VariableMap::~VariableMap() {
@@ -62,7 +62,7 @@ VariableMap::~VariableMap() {
 }
 
 void
-VariableMap::insert(key_type key, Variable* variable, generic_slot genericSlot, download_slot downloadSlot, int flags,
+VariableMap::insert(key_type key, Command* variable, generic_slot genericSlot, download_slot downloadSlot, int flags,
                     const char* parm, const char* doc) {
   iterator itr = base_type::find(key);
 
@@ -215,10 +215,10 @@ VariableMap::call_command(key_type key, const mapped_type& arg) {
   const_iterator itr = base_type::find(key);
 
   if (itr == base_type::end())
-    throw torrent::input_error("Variable \"" + std::string(key) + "\" does not exist.");
+    throw torrent::input_error("Command \"" + std::string(key) + "\" does not exist.");
 
   if (itr->second.m_genericSlot == NULL)
-    throw torrent::input_error("Variable does not have a generic slot.");
+    throw torrent::input_error("Command does not have a generic slot.");
 
   return itr->second.m_genericSlot(itr->second.m_variable, arg);
 }
@@ -228,11 +228,11 @@ VariableMap::call_command_d(key_type key, core::Download* download, const mapped
   const_iterator itr = base_type::find(key);
 
   if (itr == base_type::end())
-    throw torrent::input_error("Variable \"" + std::string(key) + "\" does not exist.");
+    throw torrent::input_error("Command \"" + std::string(key) + "\" does not exist.");
 
   if (itr->second.m_downloadSlot == NULL) {
     if (itr->second.m_genericSlot == NULL)
-      throw torrent::input_error("Variable does not have a generic slot.");
+      throw torrent::input_error("Command does not have a generic slot.");
 
     return itr->second.m_genericSlot(itr->second.m_variable, arg);
   }

@@ -46,15 +46,13 @@
 #include <torrent/torrent.h>
 
 #include "core/download.h"
-#include "core/download_list.h"
-#include "core/download_store.h"
 #include "core/manager.h"
 #include "rpc/fast_cgi.h"
 #include "rpc/scgi.h"
 #include "rpc/xmlrpc.h"
 #include "ui/root.h"
-#include "utils/command_slot.h"
-#include "utils/command_variable.h"
+#include "rpc/command_slot.h"
+#include "rpc/command_variable.h"
 #include "utils/parse.h"
 #include "utils/variable_map.h"
 
@@ -96,7 +94,7 @@ apply_encryption(const torrent::Object& rawArgs) {
 
 torrent::Object
 apply_tos(const torrent::Object& rawArg) {
-  utils::Variable::value_type value;
+  utils::Command::value_type value;
   torrent::ConnectionManager* cm = torrent::connection_manager();
 
   const std::string& arg = rawArg.as_string();
@@ -244,8 +242,6 @@ initialize_command_network() {
 //   core::DownloadList* downloadList = control->core()->download_list();
   torrent::ConnectionManager* cm = torrent::connection_manager();
   core::CurlStack* httpStack = control->core()->get_poll_manager()->get_http_stack();
-  core::DownloadList*  dList = control->core()->download_list();
-  core::DownloadStore* dStore = control->core()->download_store();
 
   ADD_VARIABLE_BOOL("use_udp_trackers", true);
 
@@ -307,12 +303,4 @@ initialize_command_network() {
   // Not really network stuff:
   ADD_VARIABLE_BOOL("handshake_log", false);
   ADD_VARIABLE_STRING("tracker_dump", "");
-
-  ADD_VARIABLE_STRING("directory", "./");
-
-  ADD_COMMAND_STRING_TRI("session",            rak::make_mem_fun(dStore, &core::DownloadStore::set_path), rak::make_mem_fun(dStore, &core::DownloadStore::path));
-  ADD_COMMAND_VOID("session_save",             rak::make_mem_fun(dList, &core::DownloadList::session_save));
-
-//   ADD_VARIABLE_VALUE_TRI_OCT("umask",               rak::mem_fn(control, &Control::set_umask), rak::mem_fn(control, &Control::umask));
-  ADD_COMMAND_STRING_TRI("working_directory",  rak::make_mem_fun(control, &Control::set_working_directory), rak::make_mem_fun(control, &Control::working_directory));
 }

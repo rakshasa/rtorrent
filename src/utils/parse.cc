@@ -135,7 +135,7 @@ parse_whole_value_nothrow(const char* src, int64_t* value, int base, int unit) {
 const char*
 parse_value_nothrow(const char* src, int64_t* value, int base, int unit) {
   if (unit <= 0)
-    throw torrent::input_error("Variable::string_to_value_unit(...) received unit <= 0.");
+    throw torrent::input_error("Command::string_to_value_unit(...) received unit <= 0.");
 
   char* last;
   *value = strtoll(src, &last, base);

@@ -43,7 +43,7 @@
 #include <torrent/object.h>
 #include <rak/functional_fun.h>
 
-#include "variable.h"
+#include "rpc/command.h"
 
 namespace core {
   class Download;
@@ -51,7 +51,7 @@ namespace core {
 
 namespace utils {
 
-class CommandDownloadSlot : public Variable {
+class CommandDownloadSlot : public Command {
 public:
   typedef rak::function2<torrent::Object, core::Download*, const torrent::Object&> slot_type;
 
@@ -63,20 +63,20 @@ public:
 
   void                set_slot(slot_type::base_type* s) { m_slot.set(s); }
 
-  static const torrent::Object call_unknown(Variable* rawVariable, core::Download* download, const torrent::Object& args);
+  static const torrent::Object call_unknown(Command* rawCommand, core::Download* download, const torrent::Object& args);
 
-  static const torrent::Object call_list(Variable* rawVariable, core::Download* download, const torrent::Object& args);
-  static const torrent::Object call_string(Variable* rawVariable, core::Download* download, const torrent::Object& args);
+  static const torrent::Object call_list(Command* rawCommand, core::Download* download, const torrent::Object& args);
+  static const torrent::Object call_string(Command* rawCommand, core::Download* download, const torrent::Object& args);
 
-  static const torrent::Object call_value_base(Variable* rawVariable, core::Download* download, const torrent::Object& args, int base, int unit);
+  static const torrent::Object call_value_base(Command* rawCommand, core::Download* download, const torrent::Object& args, int base, int unit);
 
-  static const torrent::Object call_value(Variable* rawVariable, core::Download* download, const torrent::Object& args) { return call_value_base(rawVariable, download, args, 0, 1); }
-  static const torrent::Object call_value_kb(Variable* rawVariable, core::Download* download, const torrent::Object& args) { return call_value_base(rawVariable, download, args, 0, 1 << 10); }
+  static const torrent::Object call_value(Command* rawCommand, core::Download* download, const torrent::Object& args) { return call_value_base(rawCommand, download, args, 0, 1); }
+  static const torrent::Object call_value_kb(Command* rawCommand, core::Download* download, const torrent::Object& args) { return call_value_base(rawCommand, download, args, 0, 1 << 10); }
 
   template <int base, int unit>
-  static const torrent::Object call_value(Variable* rawVariable, core::Download* download, const torrent::Object& args)  { return call_value_base(rawVariable, download, args, base, unit); }
+  static const torrent::Object call_value(Command* rawCommand, core::Download* download, const torrent::Object& args)  { return call_value_base(rawCommand, download, args, base, unit); }
 
-//   static const torrent::Object& get_list(Variable* rawVariable, const torrent::Object& args);
+//   static const torrent::Object& get_list(Command* rawCommand, const torrent::Object& args);
 
 private:
   slot_type           m_slot;

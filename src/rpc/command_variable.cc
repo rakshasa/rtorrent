@@ -36,14 +36,15 @@
 
 #include "config.h"
 
+#include "utils/parse.h"
+
 #include "command_variable.h"
-#include "parse.h"
 
 namespace utils {
 
 const torrent::Object
-CommandVariable::set_bool(Variable* rawVariable, const torrent::Object& rawArgs) {
-  CommandVariable* variable = static_cast<CommandVariable*>(rawVariable);
+CommandVariable::set_bool(Command* rawCommand, const torrent::Object& rawArgs) {
+  CommandVariable* variable = static_cast<CommandVariable*>(rawCommand);
 
   const torrent::Object& arg = convert_to_single_argument(rawArgs);
 
@@ -53,7 +54,7 @@ CommandVariable::set_bool(Variable* rawVariable, const torrent::Object& rawArgs)
     break;
 
   case torrent::Object::TYPE_STRING:
-    // Move the checks into some is_true, is_false think in Variable.
+    // Move the checks into some is_true, is_false think in Command.
     if (arg.as_string() == "yes" || arg.as_string() == "true")
       variable->m_variable = (int64_t)1;
 
@@ -73,15 +74,15 @@ CommandVariable::set_bool(Variable* rawVariable, const torrent::Object& rawArgs)
 }
 
 const torrent::Object
-CommandVariable::get_bool(Variable* rawVariable, const torrent::Object& args) {
-  CommandVariable* variable = static_cast<CommandVariable*>(rawVariable);
+CommandVariable::get_bool(Command* rawCommand, const torrent::Object& args) {
+  CommandVariable* variable = static_cast<CommandVariable*>(rawCommand);
 
   return variable->m_variable;
 }
 
 const torrent::Object
-CommandVariable::set_value(Variable* rawVariable, const torrent::Object& rawArgs) {
-  CommandVariable* variable = static_cast<CommandVariable*>(rawVariable);
+CommandVariable::set_value(Command* rawCommand, const torrent::Object& rawArgs) {
+  CommandVariable* variable = static_cast<CommandVariable*>(rawCommand);
 
   const torrent::Object& arg = convert_to_single_argument(rawArgs);
 
@@ -102,22 +103,22 @@ CommandVariable::set_value(Variable* rawVariable, const torrent::Object& rawArgs
     break;
 
   default:
-    throw torrent::input_error("VariableValue unsupported type restriction.");
+    throw torrent::input_error("CommandValue unsupported type restriction.");
   }
 
   return variable->m_variable;
 }
 
 const torrent::Object
-CommandVariable::get_value(Variable* rawVariable, const torrent::Object& args) {
-  CommandVariable* variable = static_cast<CommandVariable*>(rawVariable);
+CommandVariable::get_value(Command* rawCommand, const torrent::Object& args) {
+  CommandVariable* variable = static_cast<CommandVariable*>(rawCommand);
 
   return variable->m_variable;
 }
 
 const torrent::Object
-CommandVariable::set_string(Variable* rawVariable, const torrent::Object& rawArgs) {
-  CommandVariable* variable = static_cast<CommandVariable*>(rawVariable);
+CommandVariable::set_string(Command* rawCommand, const torrent::Object& rawArgs) {
+  CommandVariable* variable = static_cast<CommandVariable*>(rawCommand);
 
   const torrent::Object& arg = convert_to_single_argument(rawArgs);
 
@@ -142,8 +143,8 @@ CommandVariable::set_string(Variable* rawVariable, const torrent::Object& rawArg
 }
 
 const torrent::Object
-CommandVariable::get_string(Variable* rawVariable, const torrent::Object& args) {
-  CommandVariable* variable = static_cast<CommandVariable*>(rawVariable);
+CommandVariable::get_string(Command* rawCommand, const torrent::Object& args) {
+  CommandVariable* variable = static_cast<CommandVariable*>(rawCommand);
 
   return variable->m_variable;
 }

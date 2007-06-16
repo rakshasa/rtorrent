@@ -42,25 +42,25 @@
 #include <inttypes.h>
 #include <torrent/object.h>
 
-#include "variable.h"
+#include "rpc/command.h"
 
 namespace utils {
 
-class CommandVariable : public Variable {
+class CommandVariable : public Command {
 public:
   CommandVariable(const torrent::Object& v = torrent::Object()) : m_variable(v) {}
   
   const torrent::Object variable() const                         { return m_variable; }
   void                  set_variable(const torrent::Object& var) { m_variable = var; }
 
-  static const torrent::Object set_bool(Variable* rawVariable, const torrent::Object& args);
-  static const torrent::Object get_bool(Variable* rawVariable, const torrent::Object& args);
+  static const torrent::Object set_bool(Command* rawCommand, const torrent::Object& args);
+  static const torrent::Object get_bool(Command* rawCommand, const torrent::Object& args);
 
-  static const torrent::Object set_value(Variable* rawVariable, const torrent::Object& args);
-  static const torrent::Object get_value(Variable* rawVariable, const torrent::Object& args);
+  static const torrent::Object set_value(Command* rawCommand, const torrent::Object& args);
+  static const torrent::Object get_value(Command* rawCommand, const torrent::Object& args);
 
-  static const torrent::Object set_string(Variable* rawVariable, const torrent::Object& args);
-  static const torrent::Object get_string(Variable* rawVariable, const torrent::Object& args);
+  static const torrent::Object set_string(Command* rawCommand, const torrent::Object& args);
+  static const torrent::Object get_string(Command* rawCommand, const torrent::Object& args);
 
 private:
   torrent::Object    m_variable;

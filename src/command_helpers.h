@@ -91,19 +91,24 @@ add_variable("get_" key, "set_" key, key, &utils::CommandVariable::get_string, &
   variables->insert(key, (commandSlotsItr - 1), &utils::CommandSlot::function, NULL, utils::VariableMap::flag_dont_delete, NULL, NULL);
 
 #define ADD_COMMAND_VALUE_TRI(key, set, get) \
-  ADD_COMMAND_SLOT_PRIVATE(key,        call_value, utils::object_value_fn(set))      \
-  ADD_COMMAND_COPY("set_" key, call_value, "i:i", "")                      \
-  ADD_COMMAND_SLOT("get_" key, call_unknown, utils::object_void_fn(get), "i:", "")
+  ADD_COMMAND_SLOT_PRIVATE(key, call_value, utils::object_value_fn(set))      \
+  ADD_COMMAND_COPY("set_" key,  call_value, "i:i", "")                      \
+  ADD_COMMAND_SLOT("get_" key,  call_unknown, utils::object_void_fn(get), "i:", "")
 
 #define ADD_COMMAND_VALUE_TRI_KB(key, set, get) \
-  ADD_COMMAND_SLOT_PRIVATE(key,        call_value_kb, utils::object_value_fn(set)) \
-  ADD_COMMAND_COPY("set_" key, call_value, "i:i", "")                      \
-  ADD_COMMAND_SLOT("get_" key, call_unknown, utils::object_void_fn(get), "i:", "")
+  ADD_COMMAND_SLOT_PRIVATE(key, call_value_kb, utils::object_value_fn(set)) \
+  ADD_COMMAND_COPY("set_" key,  call_value, "i:i", "")                      \
+  ADD_COMMAND_SLOT("get_" key,  call_unknown, utils::object_void_fn(get), "i:", "")
+
+#define ADD_COMMAND_VALUE_TRI_OCT(key, set, get) \
+  ADD_COMMAND_SLOT_PRIVATE(key, call_value_oct, utils::object_value_fn(set)) \
+  ADD_COMMAND_COPY("set_" key,  call_value, "i:i", "")                      \
+  ADD_COMMAND_SLOT("get_" key,  call_unknown, utils::object_void_fn(get), "i:", "")
 
 #define ADD_COMMAND_STRING_TRI(key, set, get) \
-  ADD_COMMAND_SLOT_PRIVATE(key,        call_string, utils::object_string_fn(set))      \
-  ADD_COMMAND_COPY("set_" key, call_string, "i:s", "") \
-  ADD_COMMAND_SLOT("get_" key, call_unknown, utils::object_void_fn(get), "s:", "")
+  ADD_COMMAND_SLOT_PRIVATE(key, call_string, utils::object_string_fn(set))      \
+  ADD_COMMAND_COPY("set_" key,  call_string, "i:s", "") \
+  ADD_COMMAND_SLOT("get_" key,  call_unknown, utils::object_void_fn(get), "s:", "")
 
 #define ADD_COMMAND_VOID(key, slot) \
   ADD_COMMAND_SLOT(key, call_unknown, utils::object_void_fn(slot), "i:", "")

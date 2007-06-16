@@ -57,20 +57,20 @@ struct variable_map_comp : public std::binary_function<const char*, const char*,
   bool operator () (const char* arg1, const char* arg2) const { return std::strcmp(arg1, arg2) < 0; }
 };
 
-class Variable;
+class Command;
 
 struct variable_map_data_type {
   // Some commands will need to share data, like get/set a variable. So
   // instead of using a single virtual member function, each command
   // will register a member function pointer to be used instead.
-  typedef const torrent::Object (*generic_slot)(Variable*, const torrent::Object&);
-  typedef const torrent::Object (*download_slot)(Variable*, core::Download*, const torrent::Object&);
+  typedef const torrent::Object (*generic_slot)(Command*, const torrent::Object&);
+  typedef const torrent::Object (*download_slot)(Command*, core::Download*, const torrent::Object&);
 
-  variable_map_data_type(Variable* variable, generic_slot genericSlot, download_slot downloadSlot, int flags,
+  variable_map_data_type(Command* variable, generic_slot genericSlot, download_slot downloadSlot, int flags,
                          const char* parm, const char* doc) :
     m_variable(variable), m_genericSlot(genericSlot), m_downloadSlot(downloadSlot), m_flags(flags), m_parm(parm), m_doc(doc) {}
 
-  Variable*     m_variable;
+  Command*     m_variable;
   generic_slot  m_genericSlot;
   download_slot m_downloadSlot;
 
@@ -113,7 +113,7 @@ public:
 
   // Allow NULL slot as a temporary compatibility hack.
 
-  void                insert(key_type key, Variable* variable, generic_slot genericSlot, download_slot downloadSlot, int flags,
+  void                insert(key_type key, Command* variable, generic_slot genericSlot, download_slot downloadSlot, int flags,
                              const char* parm, const char* doc);
 
   void                insert(key_type key, const variable_map_data_type src);

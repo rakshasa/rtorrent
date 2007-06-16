@@ -43,8 +43,8 @@
 // #include "core/download_list.h"
 #include "core/manager.h"
 #include "core/view_manager.h"
-#include "utils/command_slot.h"
-#include "utils/command_variable.h"
+#include "rpc/command_slot.h"
+#include "rpc/command_variable.h"
 #include "utils/parse.h"
 
 #include "globals.h"

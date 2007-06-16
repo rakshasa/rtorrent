@@ -39,13 +39,9 @@
 
 #include <torrent/object.h>
 
-namespace core {
-  class Download;
-}
-
 namespace utils {
 
-class Variable {
+class Command {
 public:
   typedef torrent::Object::value_type  value_type;
   typedef torrent::Object::string_type string_type;
@@ -53,12 +49,12 @@ public:
   typedef torrent::Object::map_type    map_type;
   typedef torrent::Object::key_type    key_type;
 
-  Variable() {}
-  virtual ~Variable() {}
+  Command() {}
+  virtual ~Command() {}
 
 protected:
-  Variable(const Variable&);
-  void operator = (const Variable&);
+  Command(const Command&);
+  void operator = (const Command&);
 };
 
 }

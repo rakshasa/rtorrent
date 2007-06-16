@@ -38,9 +38,9 @@
 
 #include <torrent/exceptions.h>
 
-#include "utils/command_slot.h"
-#include "utils/command_variable.h"
-#include "utils/command_download_slot.h"
+#include "rpc/command_slot.h"
+#include "rpc/command_variable.h"
+#include "rpc/command_download_slot.h"
 
 #include "globals.h"
 #include "control.h"

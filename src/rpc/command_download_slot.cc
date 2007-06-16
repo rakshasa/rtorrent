@@ -44,15 +44,15 @@
 namespace utils {
 
 const torrent::Object
-CommandDownloadSlot::call_unknown(Variable* rawVariable, core::Download* download, const torrent::Object& rawArgs) {
-  CommandDownloadSlot* command = static_cast<CommandDownloadSlot*>(rawVariable);
+CommandDownloadSlot::call_unknown(Command* rawCommand, core::Download* download, const torrent::Object& rawArgs) {
+  CommandDownloadSlot* command = static_cast<CommandDownloadSlot*>(rawCommand);
 
   return command->m_slot(download, rawArgs);
 }
 
 const torrent::Object
-CommandDownloadSlot::call_list(Variable* rawVariable, core::Download* download, const torrent::Object& rawArgs) {
-  CommandDownloadSlot* command = static_cast<CommandDownloadSlot*>(rawVariable);
+CommandDownloadSlot::call_list(Command* rawCommand, core::Download* download, const torrent::Object& rawArgs) {
+  CommandDownloadSlot* command = static_cast<CommandDownloadSlot*>(rawCommand);
 
   switch (rawArgs.type()) {
   case torrent::Object::TYPE_LIST:
@@ -72,8 +72,8 @@ CommandDownloadSlot::call_list(Variable* rawVariable, core::Download* download, 
 }
 
 const torrent::Object
-CommandDownloadSlot::call_value_base(Variable* rawVariable, core::Download* download, const torrent::Object& rawArgs, int base, int unit) {
-  CommandDownloadSlot* command = static_cast<CommandDownloadSlot*>(rawVariable);
+CommandDownloadSlot::call_value_base(Command* rawCommand, core::Download* download, const torrent::Object& rawArgs, int base, int unit) {
+  CommandDownloadSlot* command = static_cast<CommandDownloadSlot*>(rawCommand);
 
   const torrent::Object& arg = convert_to_single_argument(rawArgs);
 
@@ -97,8 +97,8 @@ CommandDownloadSlot::call_value_base(Variable* rawVariable, core::Download* down
 }
 
 const torrent::Object
-CommandDownloadSlot::call_string(Variable* rawVariable, core::Download* download, const torrent::Object& rawArgs) {
-  CommandDownloadSlot* command = static_cast<CommandDownloadSlot*>(rawVariable);
+CommandDownloadSlot::call_string(Command* rawCommand, core::Download* download, const torrent::Object& rawArgs) {
+  CommandDownloadSlot* command = static_cast<CommandDownloadSlot*>(rawCommand);
 
   const torrent::Object& arg = convert_to_single_argument(rawArgs);
 

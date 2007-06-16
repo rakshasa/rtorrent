@@ -43,15 +43,15 @@
 namespace utils {
 
 const torrent::Object
-CommandSlot::call_unknown(Variable* rawVariable, const torrent::Object& rawArgs) {
-  CommandSlot* command = static_cast<CommandSlot*>(rawVariable);
+CommandSlot::call_unknown(Command* rawCommand, const torrent::Object& rawArgs) {
+  CommandSlot* command = static_cast<CommandSlot*>(rawCommand);
 
   return command->m_slot(rawArgs);
 }
 
 const torrent::Object
-CommandSlot::call_list(Variable* rawVariable, const torrent::Object& rawArgs) {
-  CommandSlot* command = static_cast<CommandSlot*>(rawVariable);
+CommandSlot::call_list(Command* rawCommand, const torrent::Object& rawArgs) {
+  CommandSlot* command = static_cast<CommandSlot*>(rawCommand);
 
   switch (rawArgs.type()) {
   case torrent::Object::TYPE_LIST:
@@ -71,8 +71,8 @@ CommandSlot::call_list(Variable* rawVariable, const torrent::Object& rawArgs) {
 }
 
 const torrent::Object
-CommandSlot::call_value_base(Variable* rawVariable, const torrent::Object& rawArgs, int base, int unit) {
-  CommandSlot* command = static_cast<CommandSlot*>(rawVariable);
+CommandSlot::call_value_base(Command* rawCommand, const torrent::Object& rawArgs, int base, int unit) {
+  CommandSlot* command = static_cast<CommandSlot*>(rawCommand);
 
   const torrent::Object& arg = convert_to_single_argument(rawArgs);
 
@@ -96,8 +96,8 @@ CommandSlot::call_value_base(Variable* rawVariable, const torrent::Object& rawAr
 }
 
 const torrent::Object
-CommandSlot::call_string(Variable* rawVariable, const torrent::Object& rawArgs) {
-  CommandSlot* command = static_cast<CommandSlot*>(rawVariable);
+CommandSlot::call_string(Command* rawCommand, const torrent::Object& rawArgs) {
+  CommandSlot* command = static_cast<CommandSlot*>(rawCommand);
 
   const torrent::Object& arg = convert_to_single_argument(rawArgs);
 
@@ -115,8 +115,8 @@ CommandSlot::call_string(Variable* rawVariable, const torrent::Object& rawArgs) 
 }
 
 // const torrent::Object&
-// CommandSlot::get_generic(Variable* rawVariable, const torrent::Object& args) {
-//   CommandVariable* variable = static_cast<CommandVariable*>(rawVariable);
+// CommandSlot::get_generic(Command* rawCommand, const torrent::Object& args) {
+//   CommandVariable* variable = static_cast<CommandVariable*>(rawCommand);
 
 //   return variable->m_variable;
 // }
