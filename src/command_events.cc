@@ -39,12 +39,15 @@
 #include <functional>
 #include <rak/file_stat.h>
 #include <rak/path.h>
+#include <rak/string_manip.h>
 #include <sigc++/bind.h>
 #include <torrent/rate.h>
+#include <torrent/hash_string.h>
 
 #include "core/download.h"
 #include "core/download_list.h"
 #include "core/manager.h"
+#include "core/view_manager.h"
 #include "rpc/command_slot.h"
 #include "rpc/command_variable.h"
 #include "rpc/parse.h"
@@ -162,10 +165,15 @@ apply_remove_untied() {
     rak::file_stat fs;
     const std::string& tiedToFile = rpc::call_command_d_string("get_d_tied_to_file", *itr);
 
-    if (!tiedToFile.empty() && !fs.update(rak::path_expand(tiedToFile)) && control->core()->download_list()->stop_try(*itr))
+    if (!tiedToFile.empty() && !fs.update(rak::path_expand(tiedToFile))) {
+      // Need to clear tied_to_file so it doesn't try to delete it.
+      rpc::call_command_d("set_d_tied_to_file", *itr, std::string());
+
       itr = control->core()->download_list()->erase(itr);
-    else
+
+    } else {
       ++itr;
+    }
   }
 
   return torrent::Object();
@@ -213,6 +221,34 @@ apply_close_low_diskspace(int64_t arg) {
   }
 }
 
+torrent::Object
+apply_download_list(const torrent::Object& rawArgs) {
+  const torrent::Object::list_type& args = rawArgs.as_list();
+  torrent::Object::list_type::const_iterator argsItr = args.begin();
+
+  core::ViewManager* viewManager = control->view_manager();
+  core::ViewManager::iterator viewItr;
+
+  if (argsItr != args.end())
+    viewItr = viewManager->find((argsItr++)->as_string());
+  else
+    viewItr = viewManager->find("main");
+
+  if (viewItr == viewManager->end())
+    throw torrent::input_error("Could not find view.");
+
+  torrent::Object result(torrent::Object::TYPE_LIST);
+  torrent::Object::list_type& resultList = result.as_list();
+
+  for (core::View::const_iterator itr = (*viewItr)->begin_visible(), last = (*viewItr)->end_visible(); itr != last; itr++) {
+    const torrent::HashString* hashString = &(*itr)->download()->info_hash();
+
+    resultList.push_back(rak::transform_hex(hashString->begin(), hashString->end()));
+  }
+
+  return result;
+}
+
 void
 initialize_command_events() {
   core::DownloadList* downloadList = control->core()->download_list();
@@ -252,4 +288,6 @@ initialize_command_events() {
   ADD_COMMAND_STRING_UN("load_start_verbose",    std::ptr_fun(&apply_load_start_verbose));
 
   ADD_COMMAND_VALUE_UN("close_low_diskspace",    std::ptr_fun(&apply_close_low_diskspace));
+
+  ADD_COMMAND_LIST("download_list",              rak::ptr_fn(&apply_download_list));
 }

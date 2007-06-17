@@ -116,6 +116,33 @@ xmlrpc_to_object(xmlrpc_env* env, xmlrpc_value* value) {
 }
 
 xmlrpc_value*
+object_to_xmlrpc(xmlrpc_env* env, const torrent::Object& object) {
+  xmlrpc_value* result;
+  xmlrpc_int32  tmpInt;
+
+  switch (object.type()) {
+  case torrent::Object::TYPE_VALUE:
+    tmpInt = object.as_value();
+    return xmlrpc_build_value(env, "i", tmpInt);
+
+  case torrent::Object::TYPE_STRING:
+    return xmlrpc_string_new(env, object.as_string().c_str());
+
+  case torrent::Object::TYPE_LIST:
+    result = xmlrpc_array_new(env);
+
+    for (torrent::Object::list_type::const_iterator itr = object.as_list().begin(), last = object.as_list().end(); itr != last; itr++)
+      xmlrpc_array_append_item(env, result, object_to_xmlrpc(env, *itr));
+
+    return result;
+
+  default:
+    tmpInt = 0;
+    return xmlrpc_build_value(env, "i", tmpInt);
+  }
+}
+
+xmlrpc_value*
 XmlRpc::call_command(xmlrpc_env* env, xmlrpc_value* args, void* voidServerInfo) {
   torrent::Object object = xmlrpc_to_object(env, args);
 
@@ -123,27 +150,7 @@ XmlRpc::call_command(xmlrpc_env* env, xmlrpc_value* args, void* voidServerInfo) 
     return NULL;
 
   try {
-    const torrent::Object& resultObject = XmlRpc::m_slotCall((const char*)voidServerInfo, object);
-
-    xmlrpc_value* result;
-    xmlrpc_int32  tmpInt;
-
-    switch (resultObject.type()) {
-    case torrent::Object::TYPE_VALUE:
-      tmpInt = resultObject.as_value();
-      result = xmlrpc_build_value(env, "i", tmpInt);
-      break;
-
-    case torrent::Object::TYPE_STRING:
-      result = xmlrpc_string_new(env, resultObject.as_string().c_str());
-      break;
-
-    default:
-      tmpInt = 1;
-      result = xmlrpc_build_value(env, "i", tmpInt);
-    }
-
-    return result;
+    return object_to_xmlrpc(env, XmlRpc::m_slotCall((const char*)voidServerInfo, object));
 
   } catch (torrent::local_error& e) {
     xmlrpc_env_set_fault(env, XMLRPC_PARSE_ERROR, e.what());

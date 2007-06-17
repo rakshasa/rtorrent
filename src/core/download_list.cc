@@ -145,8 +145,6 @@ DownloadList::insert(Download* download) {
 
 void
 DownloadList::erase(Download* download) {
-  check_contains(download);
-
   erase(std::find(begin(), end(), download));
 }
 
