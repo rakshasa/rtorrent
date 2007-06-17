@@ -154,13 +154,13 @@ Download::create_info() {
 
   element->push_back("");
   element->push_column("Directory:",        te_string(&torrent::FileList::root_dir));
-  element->push_column("Tied to file:",     te_variable_string("get_tied_to_file"));
+  element->push_column("Tied to file:",     te_variable_string("get_d_tied_to_file"));
 
   element->push_back("");
   element->push_column("Chunks:",           te_value(&torrent::FileList::completed_chunks), " / ", te_value(&torrent::FileList::size_chunks), " * ", te_value(&torrent::FileList::chunk_size));
-  element->push_column("Priority:",         te_variable_value("get_priority"));
+  element->push_column("Priority:",         te_variable_value("get_d_priority"));
 
-  element->push_column("State changed:",    te_variable_value("get_state_changed", value_base::flag_timer | value_base::flag_elapsed));
+  element->push_column("State changed:",    te_variable_value("get_d_state_changed", value_base::flag_timer | value_base::flag_elapsed));
 
   element->push_back("");
   element->push_column("Memory usage:",     te_value(&torrent::ChunkManager::memory_usage, value_base::flag_mb), " MB");
@@ -174,9 +174,9 @@ Download::create_info() {
   element->push_column("Receive buffer:",   te_value(&torrent::ConnectionManager::receive_buffer_size, value_base::flag_kb), " KB");
 
   element->push_back("");
-  element->push_column("Upload:",           te_variable_value("get_up_rate", value_base::flag_kb), " KB / ", te_variable_value("get_up_total", value_base::flag_xb));
-  element->push_column("Download:",         te_variable_value("get_down_rate", value_base::flag_kb), " KB / ", te_variable_value("get_down_total", value_base::flag_xb));
-  element->push_column("Skipped:",          te_variable_value("get_skip_rate", value_base::flag_kb), " KB / ", te_variable_value("get_skip_total", value_base::flag_xb));
+  element->push_column("Upload:",           te_variable_value("get_d_up_rate", value_base::flag_kb), " KB / ", te_variable_value("get_d_up_total", value_base::flag_xb));
+  element->push_column("Download:",         te_variable_value("get_d_down_rate", value_base::flag_kb), " KB / ", te_variable_value("get_d_down_total", value_base::flag_xb));
+  element->push_column("Skipped:",          te_variable_value("get_d_skip_rate", value_base::flag_kb), " KB / ", te_variable_value("get_d_skip_total", value_base::flag_xb));
   element->push_column("Preload:",          te_value(&torrent::ChunkManager::preload_type), " / ", te_value(&torrent::ChunkManager::stats_preloaded), " / ", te_value(&torrent::ChunkManager::stats_not_preloaded));
 
   element->set_column_width(element->column_width() + 1);

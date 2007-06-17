@@ -55,7 +55,6 @@
 #include "rpc/scgi.h"
 #include "rpc/xmlrpc.h"
 #include "ui/root.h"
-#include "rpc/command_map.h"
 
 #include "command_scheduler.h"
 
@@ -71,8 +70,6 @@ Control::Control() :
   m_inputStdin(new input::InputEvent(STDIN_FILENO)),
 
   m_commandScheduler(new CommandScheduler()),
-  m_variables(new utils::CommandMap()),
-  m_downloadVariables(new utils::CommandMap()),
 
   m_fastCgi(NULL),
   m_scgi(NULL),
@@ -88,7 +85,7 @@ Control::Control() :
 
   m_taskShutdown.set_slot(rak::mem_fn(this, &Control::handle_shutdown));
 
-  m_commandScheduler->set_slot_command(rak::bind_ptr_fn(&utils::parse_command_single_std, m_variables));
+  m_commandScheduler->set_slot_command(rak::ptr_fn(&rpc::parse_command_single_std));
   m_commandScheduler->set_slot_error_message(rak::mem_fn(m_core, &core::Manager::push_log));
 }
 
@@ -97,8 +94,6 @@ Control::~Control() {
   delete m_input;
 
   delete m_commandScheduler;
-  delete m_variables;
-  delete m_downloadVariables;
 
   delete m_viewManager;
 
@@ -119,7 +114,7 @@ Control::initialize() {
 
   m_core->initialize_second();
   m_core->listen_open();
-  m_core->download_store()->enable(m_variables->call_command_value("get_session_lock"));
+  m_core->download_store()->enable(rpc::call_command_value("get_session_lock"));
 
   m_core->set_hashing_view(*m_viewManager->find_throw("hashing"));
   m_scheduler->set_view(*m_viewManager->find_throw("scheduler"));

@@ -55,7 +55,7 @@
 #include <torrent/resume.h>
 #include <torrent/tracker_list.h>
 
-#include "rpc/command_map.h"
+#include "rpc/parse_commands.h"
 
 #include "globals.h"
 #include "curl_get.h"
@@ -85,13 +85,13 @@ connect_signal_storage_log(Download* d, torrent::Download::slot_string_type s) {
 // Need a proper logging class for this.
 static void
 connect_signal_tracker_dump(Download* d, torrent::Download::slot_dump_type s) {
-  if (!control->variable()->call_command_string("get_tracker_dump").empty())
+  if (!rpc::call_command_string("get_tracker_dump").empty())
     d->download()->signal_tracker_dump(s);
 }
 
 static void
 receive_tracker_dump(const std::string& url, const char* data, size_t size) {
-  const std::string& filename = control->variable()->call_command_string("get_tracker_dump");
+  const std::string& filename = rpc::call_command_string("get_tracker_dump");
 
   if (filename.empty())
     return;
@@ -108,7 +108,7 @@ receive_tracker_dump(const std::string& url, const char* data, size_t size) {
 
 void
 Manager::handshake_log(const sockaddr* sa, int msg, int err, const torrent::HashString* hash) {
-  if (!control->variable()->call_command_value("get_handshake_log"))
+  if (!rpc::call_command_value("get_handshake_log"))
     return;
   
   std::string peer;
@@ -168,7 +168,7 @@ Manager::handshake_log(const sockaddr* sa, int msg, int err, const torrent::Hash
 // Hmm... find some better place for all this.
 void
 Manager::delete_tied(Download* download) {
-  const std::string& tie = download->get_string("get_tied_to_file");
+  const std::string& tie = rpc::call_command_d_string("get_d_tied_to_file", download);
 
   // This should be configurable, need to wait for the variable
   // thingie to be implemented.
@@ -178,7 +178,7 @@ Manager::delete_tied(Download* download) {
   if (::unlink(rak::path_expand(tie).c_str()) == -1)
     push_log("Could not unlink tied file: " + std::string(rak::error_number::current().c_str()));
 
-  download->set("set_tied_to_file", std::string());
+  rpc::call_command_d("set_d_tied_to_file", download, std::string());
 }
 
 Manager::Manager() :
@@ -276,11 +276,11 @@ void
 Manager::listen_open() {
   // This stuff really should be moved outside of manager, make it
   // part of the init script.
-  if (!control->variable()->call_command_value("get_port_open"))
+  if (!rpc::call_command_value("get_port_open"))
     return;
 
   int portFirst, portLast;
-  torrent::Object portRange = control->variable()->call_command_void("get_port_range");
+  torrent::Object portRange = rpc::call_command_void("get_port_range");
 
   if (portRange.is_string()) {
     if (std::sscanf(portRange.as_string().c_str(), "%i-%i", &portFirst, &portLast) != 2)
@@ -295,7 +295,7 @@ Manager::listen_open() {
   if (portFirst > portLast || portLast >= (1 << 16))
     throw torrent::input_error("Invalid port range.");
 
-  if (control->variable()->call_command_value("get_port_random")) {
+  if (rpc::call_command_value("get_port_random")) {
     int boundary = portFirst + random() % (portLast - portFirst + 1);
 
     if (torrent::connection_manager()->listen_open(boundary, portLast) ||
@@ -473,6 +473,11 @@ path_expand(std::vector<std::string>* paths, const std::string& pattern) {
   std::transform(currentCache.begin(), currentCache.end(), std::back_inserter(*paths), std::mem_fun_ref(&utils::Directory::get_path));
 }
 
+bool
+manager_equal_tied(const std::string& path, Download* download) {
+  return path == rpc::call_command_d_string("get_d_tied_to_file", download);
+}
+
 void
 Manager::try_create_download_expand(const std::string& uri, bool start, bool printLog, bool tied) {
   std::vector<std::string> paths;
@@ -482,7 +487,7 @@ Manager::try_create_download_expand(const std::string& uri, bool start, bool pri
 
   if (tied)
     for (std::vector<std::string>::iterator itr = paths.begin(); itr != paths.end(); )
-      if (std::find_if(m_downloadList->begin(), m_downloadList->end(), rak::equal(*itr, rak::bind2nd(std::mem_fun(&Download::get_string), "get_tied_to_file")))
+      if (std::find_if(m_downloadList->begin(), m_downloadList->end(), rak::bind1st(std::ptr_fun(&manager_equal_tied), *itr))
           != m_downloadList->end())
         itr = paths.erase(itr);
       else
@@ -514,7 +519,7 @@ Manager::receive_hashing_changed() {
       continue;
 
     bool tryQuick =
-      (*itr)->get_value("get_hashing") == Download::variable_hashing_initial &&
+      rpc::call_command_d_value("get_d_hashing", *itr) == Download::variable_hashing_initial &&
       (*itr)->download()->file_list()->bitfield()->empty();
 
     if (!tryQuick && foundHashing)
@@ -537,7 +542,7 @@ Manager::receive_hashing_changed() {
         (*itr)->download()->hash_stop();
 
         if (foundHashing) {
-          (*itr)->set_value("set_hashing", Download::variable_hashing_rehash);
+          rpc::call_command_d_set_value("set_d_hashing", *itr, Download::variable_hashing_rehash);
           continue;
         }
       }
@@ -548,7 +553,7 @@ Manager::receive_hashing_changed() {
     } catch (torrent::local_error& e) {
       if (tryQuick) {
         // Make sure we don't repeat the quick hashing.
-        (*itr)->set_value("set_hashing", Download::variable_hashing_rehash);
+        rpc::call_command_d_set_value("set_d_hashing", *itr, Download::variable_hashing_rehash);
 
       } else {
         (*itr)->set_hash_failed(true);

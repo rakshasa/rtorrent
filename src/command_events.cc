@@ -70,8 +70,7 @@ apply_on_state_change(core::DownloadList::slot_map* slotMap, const torrent::Obje
   if (args.back().as_string().empty())
     slotMap->erase(key);
   else
-    (*slotMap)[key] = sigc::bind(sigc::bind<0>(&utils::parse_command_d_single_std, control->download_variables()),
-                                 utils::convert_list_to_command(++args.begin(), args.end()));
+    (*slotMap)[key] = sigc::bind(sigc::ptr_fun(&rpc::parse_command_d_single_std), rpc::convert_list_to_command(++args.begin(), args.end()));
 
   return torrent::Object();
 }
@@ -88,9 +87,9 @@ apply_stop_on_ratio(const torrent::Object& rawArgs) {
   // first argument:  minimum ratio to reach
   // second argument: minimum upload amount to reach [optional]
   // third argument:  maximum ratio to reach [optional]
-  int64_t minRatio  = utils::convert_to_value(*argItr++);
-  int64_t minUpload = argItr != args.end() ? utils::convert_to_value(*argItr++) : 0;
-  int64_t maxRatio  = argItr != args.end() ? utils::convert_to_value(*argItr++) : 0;
+  int64_t minRatio  = rpc::convert_to_value(*argItr++);
+  int64_t minUpload = argItr != args.end() ? rpc::convert_to_value(*argItr++) : 0;
+  int64_t maxRatio  = argItr != args.end() ? rpc::convert_to_value(*argItr++) : 0;
 
   core::DownloadList* downloadList = control->core()->download_list();
   core::Manager::DListItr itr = downloadList->begin();
@@ -103,7 +102,7 @@ apply_stop_on_ratio(const torrent::Object& rawArgs) {
     if ((totalUpload >= minUpload && totalUpload * 100 >= totalDone * minRatio) ||
         (maxRatio > 0 && totalUpload * 100 > totalDone * maxRatio)) {
       downloadList->stop_try(*itr);
-      (*itr)->set("set_ignore_commands", (int64_t)1);
+      rpc::call_command_d("set_d_ignore_commands", *itr, (int64_t)1);
     }
 
     ++itr;
@@ -115,11 +114,11 @@ apply_stop_on_ratio(const torrent::Object& rawArgs) {
 torrent::Object
 apply_start_tied() {
   for (core::DownloadList::iterator itr = control->core()->download_list()->begin(); itr != control->core()->download_list()->end(); ++itr) {
-    if ((*itr)->get_value("get_state") == 1)
+    if (rpc::call_command_d_value("get_d_state", *itr) == 1)
       continue;
 
     rak::file_stat fs;
-    const std::string& tiedToFile = (*itr)->get_string("get_tied_to_file");
+    const std::string& tiedToFile = rpc::call_command_d_string("get_d_tied_to_file", *itr);
 
     if (!tiedToFile.empty() && fs.update(rak::path_expand(tiedToFile)))
       control->core()->download_list()->start_try(*itr);
@@ -131,11 +130,11 @@ apply_start_tied() {
 torrent::Object
 apply_stop_untied() {
   for (core::DownloadList::iterator itr = control->core()->download_list()->begin(); itr != control->core()->download_list()->end(); ++itr) {
-    if ((*itr)->get_value("get_state") == 0)
+    if (rpc::call_command_d_value("get_d_state", *itr) == 0)
       continue;
 
     rak::file_stat fs;
-    const std::string& tiedToFile = (*itr)->get_string("get_tied_to_file");
+    const std::string& tiedToFile = rpc::call_command_d_string("get_d_tied_to_file", *itr);
 
     if (!tiedToFile.empty() && !fs.update(rak::path_expand(tiedToFile)))
       control->core()->download_list()->stop_try(*itr);
@@ -148,7 +147,7 @@ torrent::Object
 apply_close_untied() {
   for (core::DownloadList::iterator itr = control->core()->download_list()->begin(); itr != control->core()->download_list()->end(); ++itr) {
     rak::file_stat fs;
-    const std::string& tiedToFile = (*itr)->get_string("get_tied_to_file");
+    const std::string& tiedToFile = rpc::call_command_d_string("get_d_tied_to_file", *itr);
 
     if (!tiedToFile.empty() && !fs.update(rak::path_expand(tiedToFile)) && control->core()->download_list()->stop_try(*itr))
       control->core()->download_list()->close(*itr);
@@ -161,7 +160,7 @@ torrent::Object
 apply_remove_untied() {
   for (core::DownloadList::iterator itr = control->core()->download_list()->begin(); itr != control->core()->download_list()->end(); ) {
     rak::file_stat fs;
-    const std::string& tiedToFile = (*itr)->get_string("get_tied_to_file");
+    const std::string& tiedToFile = rpc::call_command_d_string("get_d_tied_to_file", *itr);
 
     if (!tiedToFile.empty() && !fs.update(rak::path_expand(tiedToFile)) && control->core()->download_list()->stop_try(*itr))
       itr = control->core()->download_list()->erase(itr);
@@ -185,7 +184,7 @@ apply_schedule(const torrent::Object& rawArgs) {
   const std::string& arg2 = (itr++)->as_string();
   const std::string& arg3 = (itr++)->as_string();
 
-  control->command_scheduler()->parse(arg1, arg2, arg3, utils::convert_list_to_command(itr, args.end()));
+  control->command_scheduler()->parse(arg1, arg2, arg3, rpc::convert_list_to_command(itr, args.end()));
 
   return torrent::Object();
 }
@@ -195,8 +194,8 @@ void apply_load_verbose(const std::string& arg)       { control->core()->try_cre
 void apply_load_start(const std::string& arg)         { control->core()->try_create_download_expand(arg, true, false, true); }
 void apply_load_start_verbose(const std::string& arg) { control->core()->try_create_download_expand(arg, true, true, true); }
 
-void apply_import(const std::string& path)     { if (!utils::parse_command_file(control->variable(), path)) throw torrent::input_error("Could not open option file: " + path); }
-void apply_try_import(const std::string& path) { if (!utils::parse_command_file(control->variable(), path)) control->core()->push_log("Could not read resource file: " + path); }
+void apply_import(const std::string& path)     { if (!rpc::parse_command_file(path)) throw torrent::input_error("Could not open option file: " + path); }
+void apply_try_import(const std::string& path) { if (!rpc::parse_command_file(path)) control->core()->push_log("Could not read resource file: " + path); }
 
 void
 apply_close_low_diskspace(int64_t arg) {
@@ -216,7 +215,6 @@ apply_close_low_diskspace(int64_t arg) {
 
 void
 initialize_command_events() {
-  utils::CommandMap* variables = control->variable();
   core::DownloadList* downloadList = control->core()->download_list();
 
   ADD_VARIABLE_BOOL("check_hash", true);
@@ -237,10 +235,10 @@ initialize_command_events() {
 
   ADD_COMMAND_SLOT_PRIVATE("stop_on_ratio",   call_list, rak::ptr_fn(&apply_stop_on_ratio));
 
-  ADD_COMMAND_SLOT_PRIVATE("start_tied",      call_string, utils::object_fn(&apply_start_tied));
-  ADD_COMMAND_SLOT_PRIVATE("stop_untied",     call_string, utils::object_fn(&apply_stop_untied));
-  ADD_COMMAND_SLOT_PRIVATE("close_untied",    call_string, utils::object_fn(&apply_close_untied));
-  ADD_COMMAND_SLOT_PRIVATE("remove_untied",   call_string, utils::object_fn(&apply_remove_untied));
+  ADD_COMMAND_SLOT_PRIVATE("start_tied",      call_string, rpc::object_fn(&apply_start_tied));
+  ADD_COMMAND_SLOT_PRIVATE("stop_untied",     call_string, rpc::object_fn(&apply_stop_untied));
+  ADD_COMMAND_SLOT_PRIVATE("close_untied",    call_string, rpc::object_fn(&apply_close_untied));
+  ADD_COMMAND_SLOT_PRIVATE("remove_untied",   call_string, rpc::object_fn(&apply_remove_untied));
 
   ADD_COMMAND_LIST("schedule",                rak::ptr_fn(&apply_schedule));
   ADD_COMMAND_STRING_UN("schedule_remove",    rak::make_mem_fun(control->command_scheduler(), &CommandScheduler::erase_str));

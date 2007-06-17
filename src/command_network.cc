@@ -54,7 +54,7 @@
 #include "rpc/command_slot.h"
 #include "rpc/command_variable.h"
 #include "rpc/parse.h"
-#include "rpc/command_map.h"
+#include "rpc/parse_commands.h"
 
 #include "globals.h"
 #include "control.h"
@@ -94,7 +94,7 @@ apply_encryption(const torrent::Object& rawArgs) {
 
 torrent::Object
 apply_tos(const torrent::Object& rawArg) {
-  utils::Command::value_type value;
+  rpc::Command::value_type value;
   torrent::ConnectionManager* cm = torrent::connection_manager();
 
   const std::string& arg = rawArg.as_string();
@@ -114,7 +114,7 @@ apply_tos(const torrent::Object& rawArg) {
   else if (arg == "mincost")
     value = torrent::ConnectionManager::iptos_mincost;
 
-  else if (!utils::parse_whole_value_nothrow(arg.c_str(), &value, 16, 1))
+  else if (!rpc::parse_whole_value_nothrow(arg.c_str(), &value, 16, 1))
     throw torrent::input_error("Invalid TOS identifier.");
 
   cm->set_priority(value);
@@ -138,7 +138,7 @@ apply_enable_trackers(int64_t arg) {
       else
         tl.get(i).disable();
 
-    if (arg && !control->variable()->call_command_value("get_use_udp_trackers"))
+    if (arg && !rpc::call_command_value("get_use_udp_trackers"))
       (*itr)->enable_udp_trackers(false);
   }    
 }
@@ -146,12 +146,12 @@ apply_enable_trackers(int64_t arg) {
 void
 initialize_xmlrpc() {
   control->set_xmlrpc(new rpc::XmlRpc);
-  control->xmlrpc()->set_slot_call_command(rak::mem_fn(control->variable(), &utils::CommandMap::call_command));
+  control->xmlrpc()->set_slot_call_command(rak::ptr_fn(&rpc::call_command));
 
   unsigned int count = 0;
 
-  for (utils::CommandMap::const_iterator itr = control->variable()->begin(), last = control->variable()->end(); itr != last; itr++)
-    if (itr->second.m_flags & utils::CommandMap::flag_public_xmlrpc) {
+  for (rpc::CommandMap::const_iterator itr = rpc::commands.begin(), last = rpc::commands.end(); itr != last; itr++)
+    if (itr->second.m_flags & rpc::CommandMap::flag_public_xmlrpc) {
       control->xmlrpc()->insert_command(itr->first, itr->second.m_parm, itr->second.m_doc);
 
       count++;
@@ -215,7 +215,7 @@ apply_scgi(const std::string& arg, int type) {
         throw torrent::input_error("Invalid port number.");
 
       saPtr->set_port(port);
-      control->scgi()->open_port(saPtr, saPtr->length(), control->variable()->call_command_value("get_scgi_dont_route"));
+      control->scgi()->open_port(saPtr, saPtr->length(), rpc::call_command_value("get_scgi_dont_route"));
 
       break;
 
@@ -238,7 +238,6 @@ apply_scgi(const std::string& arg, int type) {
 
 void
 initialize_command_network() {
-  utils::CommandMap* variables = control->variable();
 //   core::DownloadList* downloadList = control->core()->download_list();
   torrent::ConnectionManager* cm = torrent::connection_manager();
   core::CurlStack* httpStack = control->core()->get_poll_manager()->get_http_stack();

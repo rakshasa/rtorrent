@@ -47,6 +47,7 @@
 #include "display/frame.h"
 #include "display/manager.h"
 #include "input/manager.h"
+#include "rpc/parse_commands.h"
 
 #include "control.h"
 #include "element_download_list.h"
@@ -151,7 +152,7 @@ ElementDownloadList::receive_stop_download() {
   if (m_view->focus() == m_view->end_visible())
     return;
 
-  if ((*m_view->focus())->get_value("get_state") == 1)
+  if (rpc::call_command_d_value("get_d_state", *m_view->focus()) == 1)
     control->core()->download_list()->stop_normal(*m_view->focus());
   else
     control->core()->download_list()->erase(*m_view->focus());
@@ -166,7 +167,7 @@ ElementDownloadList::receive_close_download() {
 
   core::Download* download = *m_view->focus();
 
-  download->set("set_ignore_commands", (int64_t)1);
+  rpc::call_command_d("set_d_ignore_commands", download, (int64_t)1);
 
   control->core()->download_list()->stop_normal(download);
   control->core()->download_list()->close(download);
@@ -205,11 +206,11 @@ ElementDownloadList::receive_ignore_ratio() {
   if (m_view->focus() == m_view->end_visible())
     return;
 
-  if ((*m_view->focus())->get_value("get_ignore_commands") != 0) {
-    (*m_view->focus())->set("set_ignore_commands", (int64_t)0);
+  if (rpc::call_command_d_value("get_d_ignore_commands", *m_view->focus()) != 0) {
+    rpc::call_command_d_set_value("set_d_ignore_commands", *m_view->focus(), (int64_t)0);
     control->core()->push_log("Torrent set to heed commands.");
   } else {
-    (*m_view->focus())->set("set_ignore_commands", (int64_t)1);
+    rpc::call_command_d_set_value("set_d_ignore_commands", *m_view->focus(), (int64_t)1);
     control->core()->push_log("Torrent set to ignore commands.");
   }
 }
@@ -219,7 +220,7 @@ ElementDownloadList::receive_clear_tied() {
   if (m_view->focus() == m_view->end_visible())
     return;
 
-  const std::string& tiedFile = (*m_view->focus())->get_string("get_tied_to_file");
+  const std::string& tiedFile = rpc::call_command_d_string("get_d_tied_to_file", *m_view->focus());
 
   if (!tiedFile.empty()) {
     // Move this into core?

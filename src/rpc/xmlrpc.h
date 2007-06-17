@@ -52,7 +52,7 @@ namespace rpc {
 class XmlRpc {
 public:
   typedef rak::function2<bool, const char*, uint32_t> slot_write;
-  typedef rak::function2<const torrent::Object, const char*, const torrent::Object&> slot_call_command;
+  typedef rak::function2<torrent::Object, const char*, const torrent::Object&> slot_call_command;
 
   XmlRpc();
   ~XmlRpc();

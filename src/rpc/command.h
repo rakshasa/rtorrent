@@ -34,12 +34,12 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef RTORRENT_UTILS_VARIABLE_H
-#define RTORRENT_UTILS_VARIABLE_H
+#ifndef RTORRENT_RPC_VARIABLE_H
+#define RTORRENT_RPC_VARIABLE_H
 
 #include <torrent/object.h>
 
-namespace utils {
+namespace rpc {
 
 class Command {
 public:

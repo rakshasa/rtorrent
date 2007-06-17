@@ -41,7 +41,7 @@
 
 #include "parse.h"
 
-namespace utils {
+namespace rpc {
 
 const char*
 parse_skip_wspace(const char* first, const char* last) {

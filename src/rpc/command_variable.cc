@@ -36,11 +36,10 @@
 
 #include "config.h"
 
-#include "rpc/parse.h"
-
+#include "parse.h"
 #include "command_variable.h"
 
-namespace utils {
+namespace rpc {
 
 const torrent::Object
 CommandVariable::set_bool(Command* rawCommand, const torrent::Object& rawArgs) {

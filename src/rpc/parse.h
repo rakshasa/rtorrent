@@ -40,7 +40,7 @@
 #include <string>
 #include <torrent/object.h>
 
-namespace utils {
+namespace rpc {
 
 // parse_* functions do the bare minimum necessary to parse what was
 // asked for. If a whitespace is found, it will be treated as empty

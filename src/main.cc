@@ -60,7 +60,6 @@
 
 #include "rpc/parse_commands.h"
 #include "utils/directory.h"
-#include "rpc/command_map.h"
 
 #include "control.h"
 #include "globals.h"
@@ -82,14 +81,14 @@ parse_options(Control* c, int argc, char** argv) {
     optionParser.insert_flag('h', sigc::ptr_fun(&print_help));
     optionParser.insert_flag('n', OptionParser::Slot());
 
-    optionParser.insert_option('b', sigc::bind<0>(sigc::mem_fun(c->variable(), &utils::CommandMap::call_command_set_string), "bind"));
-    optionParser.insert_option('d', sigc::bind<0>(sigc::mem_fun(c->variable(), &utils::CommandMap::call_command_set_string), "directory"));
-    optionParser.insert_option('i', sigc::bind<0>(sigc::mem_fun(c->variable(), &utils::CommandMap::call_command_set_string), "ip"));
-    optionParser.insert_option('p', sigc::bind<0>(sigc::mem_fun(c->variable(), &utils::CommandMap::call_command_set_string), "port_range"));
-    optionParser.insert_option('s', sigc::bind<0>(sigc::mem_fun(c->variable(), &utils::CommandMap::call_command_set_string), "session"));
+    optionParser.insert_option('b', sigc::bind<0>(sigc::ptr_fun(&rpc::call_command_set_string), "bind"));
+    optionParser.insert_option('d', sigc::bind<0>(sigc::ptr_fun(&rpc::call_command_set_string), "directory"));
+    optionParser.insert_option('i', sigc::bind<0>(sigc::ptr_fun(&rpc::call_command_set_string), "ip"));
+    optionParser.insert_option('p', sigc::bind<0>(sigc::ptr_fun(&rpc::call_command_set_string), "port_range"));
+    optionParser.insert_option('s', sigc::bind<0>(sigc::ptr_fun(&rpc::call_command_set_string), "session"));
 
-    optionParser.insert_option('O', sigc::bind<0>(&utils::parse_command_single_std, c->variable()));
-    optionParser.insert_option_list('o', sigc::mem_fun(c->variable(), &utils::CommandMap::call_command_set_std_string));
+    optionParser.insert_option('O', sigc::ptr_fun(&rpc::parse_command_single_std));
+    optionParser.insert_option_list('o', sigc::ptr_fun(&rpc::call_command_set_std_string));
 
     return optionParser.process(argc, argv);
 
@@ -166,7 +165,7 @@ main(int argc, char** argv) {
     // torrent::ConnectionManager* are valid etc.
     initialize_commands();
 
-    utils::parse_command_multiple(control->variable(),
+    rpc::parse_command_multiple(
        // Currently not doing any sorting on main.
        "view_add = main\n"
 
@@ -232,7 +231,7 @@ main(int argc, char** argv) {
     if (OptionParser::has_flag('n', argc, argv))
       control->core()->push_log("Ignoring ~/.rtorrent.rc.");
     else
-      utils::parse_command_single(control->variable(), "try_import = ~/.rtorrent.rc");
+      rpc::parse_command_single("try_import = ~/.rtorrent.rc");
 
     int firstArg = parse_options(control, argc, argv);
 

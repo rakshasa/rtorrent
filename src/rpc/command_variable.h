@@ -34,17 +34,17 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef RTORRENT_UTILS_COMMAND_VARIABLES_H
-#define RTORRENT_UTILS_COMMAND_VARIABLES_H
+#ifndef RTORRENT_RPC_COMMAND_VARIABLES_H
+#define RTORRENT_RPC_COMMAND_VARIABLES_H
 
 #include <string>
 #include <limits>
 #include <inttypes.h>
 #include <torrent/object.h>
 
-#include "rpc/command.h"
+#include "command.h"
 
-namespace utils {
+namespace rpc {
 
 class CommandVariable : public Command {
 public:

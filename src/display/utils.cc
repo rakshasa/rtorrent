@@ -52,6 +52,7 @@
 
 #include "core/download.h"
 #include "core/manager.h"
+#include "rpc/parse_commands.h"
 
 #include "control.h"
 #include "globals.h"
@@ -159,8 +160,8 @@ print_download_info(char* first, char* last, core::Download* d) {
   }
 
   first = print_buffer(first, last, " [%c%c R: %3.2f",
-                       d->get_string("get_tied_to_file").empty() ? ' ' : 'T',
-                       d->get_value("get_ignore_commands") == 0 ? ' ' : 'I',
+                       rpc::call_command_d_string("get_d_tied_to_file", d).empty() ? ' ' : 'T',
+                       rpc::call_command_d_value("get_d_ignore_commands", d) == 0 ? ' ' : 'I',
                        d->download()->bytes_done() > 0 ? (double)(100 * d->download()->up_rate()->total() / d->download()->bytes_done()) / 100 : 0.0);
 
   if (d->priority() != 2)
@@ -178,7 +179,7 @@ char*
 print_download_status(char* first, char* last, core::Download* d) {
   if (d->is_active())
     ;
-  else if (d->get_value("get_hashing") != 0)
+  else if (rpc::call_command_d_value("get_d_hashing", d) != 0)
     first = print_buffer(first, last, "Hashing: ");
   else if (!d->is_active())
     first = print_buffer(first, last, "Inactive: ");

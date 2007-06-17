@@ -34,8 +34,8 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef RTORRENT_UTILS_COMMAND_SLOT_H
-#define RTORRENT_UTILS_COMMAND_SLOT_H
+#ifndef RTORRENT_RPC_COMMAND_SLOT_H
+#define RTORRENT_RPC_COMMAND_SLOT_H
 
 #include <functional>
 #include <limits>
@@ -43,9 +43,9 @@
 #include <torrent/object.h>
 #include <rak/functional_fun.h>
 
-#include "rpc/command.h"
+#include "command.h"
 
-namespace utils {
+namespace rpc {
 
 class CommandSlot : public Command {
 public:

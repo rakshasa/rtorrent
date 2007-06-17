@@ -45,9 +45,10 @@
 
 #include "parse.h"
 #include "parse_commands.h"
-#include "command_map.h"
 
-namespace utils {
+namespace rpc {
+
+CommandMap commands;
 
 struct command_map_is_space : std::unary_function<char, bool> {
   bool operator () (char c) const {
@@ -74,12 +75,12 @@ parse_command_name(const char* first, const char* last, std::string* dest) {
 }
 
 const char*
-parse_command_single(CommandMap* varMap, const char* first) {
-  return parse_command_single(varMap, first, first + std::strlen(first));
+parse_command_single(const char* first) {
+  return parse_command_single(first, first + std::strlen(first));
 }
 
 const char*
-parse_command_single(CommandMap* varMap, const char* first, const char* last) {
+parse_command_single(const char* first, const char* last) {
   first = std::find_if(first, last, std::not1(command_map_is_space()));
 
   if (first == last || *first == '#')
@@ -96,13 +97,13 @@ parse_command_single(CommandMap* varMap, const char* first, const char* last) {
   torrent::Object args;
   parse_whole_list(first + 1, last, &args);
 
-  varMap->call_command(key.c_str(), args);
+  commands.call_command(key.c_str(), args);
 
   return last;
 }
 
 const char*
-parse_command_d_single(CommandMap* varMap, core::Download* download, const char* first, const char* last) {
+parse_command_d_single(core::Download* download, const char* first, const char* last) {
   first = std::find_if(first, last, std::not1(command_map_is_space()));
 
   if (first == last || *first == '#')
@@ -118,13 +119,13 @@ parse_command_d_single(CommandMap* varMap, core::Download* download, const char*
   torrent::Object args;
   parse_whole_list(first + 1, last, &args);
 
-  varMap->call_command_d(key.c_str(), download, args);
+  commands.call_command_d(key.c_str(), download, args);
 
   return last;
 }
 
 void
-parse_command_multiple(CommandMap* varMap, const char* first) {
+parse_command_multiple(const char* first) {
   try {
     while (first != '\0') {
       const char* last = first;
@@ -133,7 +134,7 @@ parse_command_multiple(CommandMap* varMap, const char* first) {
 
       // Should we check the return value? Probably not necessary as
       // parse_args throws on unquoted multi-word input.
-      parse_command_single(varMap, first, last);
+      parse_command_single(first, last);
 
       if (*last == '\0')
         return;
@@ -147,7 +148,7 @@ parse_command_multiple(CommandMap* varMap, const char* first) {
 }
 
 bool
-parse_command_file(CommandMap* varMap, const std::string& path) {
+parse_command_file(const std::string& path) {
   std::fstream file(rak::path_expand(path).c_str(), std::ios::in);
 
   if (!file.is_open())
@@ -161,7 +162,7 @@ parse_command_file(CommandMap* varMap, const std::string& path) {
     while (file.getline(buffer, 2048).good()) {
       lineNumber++;
       // Would be nice to make this zero-copy.
-      parse_command_single(varMap, buffer, buffer + std::strlen(buffer));
+      parse_command_single(buffer, buffer + std::strlen(buffer));
     }
 
   } catch (torrent::input_error& e) {

@@ -68,10 +68,6 @@ namespace rpc {
   class XmlRpc;
 }
 
-namespace utils {
-  class CommandMap;
-}
-
 class CommandScheduler;
 
 class Control {
@@ -103,9 +99,6 @@ public:
   input::InputEvent*  input_stdin()                 { return m_inputStdin; }
 
   CommandScheduler*   command_scheduler()           { return m_commandScheduler; }
-
-  utils::CommandMap*  variable()                    { return m_variables; }
-  utils::CommandMap*  download_variables()          { return m_downloadVariables; }
 
   rpc::FastCgi*       fast_cgi()                    { return m_fastCgi; }
   void                set_fast_cgi(rpc::FastCgi* f) { m_fastCgi = f; }
@@ -142,8 +135,6 @@ private:
   input::InputEvent*  m_inputStdin;
 
   CommandScheduler*   m_commandScheduler;
-  utils::CommandMap*  m_variables;
-  utils::CommandMap*  m_downloadVariables;
 
   rpc::FastCgi*       m_fastCgi;
   rpc::SCgi*          m_scgi;

@@ -47,7 +47,7 @@
 #include <torrent/resume.h>
 #include <torrent/data/file_utils.h>
 
-#include "rpc/command_map.h"
+#include "rpc/parse_commands.h"
 
 #include "curl_get.h"
 #include "control.h"
@@ -75,9 +75,9 @@ DownloadFactory::DownloadFactory(const std::string& uri, Manager* m) :
   m_taskLoad.set_slot(rak::mem_fn(this, &DownloadFactory::receive_load));
   m_taskCommit.set_slot(rak::mem_fn(this, &DownloadFactory::receive_commit));
 
-  m_variables["connection_leech"] = control->variable()->call_command_void("get_connection_leech");
-  m_variables["connection_seed"]  = control->variable()->call_command_void("get_connection_seed");
-  m_variables["directory"]        = control->variable()->call_command_void("get_directory");
+  m_variables["connection_leech"] = rpc::call_command_void("get_connection_leech");
+  m_variables["connection_seed"]  = rpc::call_command_void("get_connection_seed");
+  m_variables["directory"]        = rpc::call_command_void("get_directory");
   m_variables["tied_to_file"]     = torrent::Object((int64_t)false);
 }
 
@@ -173,44 +173,44 @@ DownloadFactory::receive_success() {
   initialize_rtorrent(download, rtorrent);
 
   // Move to 'rtorrent'.
-  download->set("set_connection_leech", m_variables["connection_leech"]);
-  download->set("set_connection_seed",  m_variables["connection_seed"]);
+  rpc::call_command_d("set_d_connection_leech", download, m_variables["connection_leech"]);
+  rpc::call_command_d("set_d_connection_seed", download,  m_variables["connection_seed"]);
 
-  download->set("set_max_uploads",      control->variable()->call_command_void("get_max_uploads"));
-  download->set("set_min_peers",        control->variable()->call_command_void("get_min_peers"));
-  download->set("set_max_peers",        control->variable()->call_command_void("get_max_peers"));
-  download->set("set_tracker_numwant",  control->variable()->call_command_void("get_tracker_numwant"));
+  rpc::call_command_d("set_d_max_uploads", download,      rpc::call_command_void("get_max_uploads"));
+  rpc::call_command_d("set_d_min_peers", download,        rpc::call_command_void("get_min_peers"));
+  rpc::call_command_d("set_d_max_peers", download,        rpc::call_command_void("get_max_peers"));
+  rpc::call_command_d("set_d_tracker_numwant", download,  rpc::call_command_void("get_tracker_numwant"));
 
-  if (download->get_value("get_complete") != 0) {
-    if (control->variable()->call_command_value("get_min_peers_seed") >= 0)
-      download->set("set_min_peers", control->variable()->call_command_void("get_min_peers_seed"));
+  if (rpc::call_command_d_value("get_d_complete", download) != 0) {
+    if (rpc::call_command_value("get_min_peers_seed") >= 0)
+      rpc::call_command_d("set_d_min_peers", download, rpc::call_command_void("get_min_peers_seed"));
 
-    if (control->variable()->call_command_value("get_max_peers_seed") >= 0)
-      download->set("set_max_peers", control->variable()->call_command_void("get_max_peers_seed"));
+    if (rpc::call_command_value("get_max_peers_seed") >= 0)
+      rpc::call_command_d("set_d_max_peers", download, rpc::call_command_void("get_max_peers_seed"));
   }
 
-  if (!control->variable()->call_command_value("get_use_udp_trackers"))
+  if (!rpc::call_command_value("get_use_udp_trackers"))
     download->enable_udp_trackers(false);
 
-  if (control->variable()->call_command_value("get_max_file_size") > 0)
-    download->set("set_max_file_size", control->variable()->call_command_void("get_max_file_size"));
+  if (rpc::call_command_value("get_max_file_size") > 0)
+    rpc::call_command_d("set_d_max_file_size", download, rpc::call_command_void("get_max_file_size"));
 
   // Check first if we already have these values set in the session
   // torrent, so that it is safe to change the values.
   //
   // Need to also catch the exceptions.
-  if (control->variable()->call_command_value("get_split_file_size") >= 0)
+  if (rpc::call_command_value("get_split_file_size") >= 0)
     torrent::file_split_all(download->download()->file_list(),
-                            control->variable()->call_command_value("get_split_file_size"),
-                            control->variable()->call_command_string("split_suffix"));
+                            rpc::call_command_value("get_split_file_size"),
+                            rpc::call_command_string("split_suffix"));
 
   if (!rtorrent->has_key_string("directory"))
-    download->set("set_directory", m_variables["directory"]);
+    rpc::call_command_d("set_d_directory", download, m_variables["directory"]);
   else
-    download->set("set_directory", rtorrent->get_key("directory"));
+    rpc::call_command_d("set_d_directory", download, rtorrent->get_key("directory"));
 
   if (!m_session && m_variables["tied_to_file"].as_value())
-    download->set("set_tied_to_file", m_uri);
+    rpc::call_command_d("set_d_tied_to_file", download, m_uri);
 
   torrent::Object& resumeObject = root->has_key_map("libtorrent_resume")
     ? root->get_key("libtorrent_resume")
@@ -235,8 +235,8 @@ DownloadFactory::receive_success() {
   if (m_session) {
     // This torrent was queued for hashing or hashing when the session
     // file was saved. Or it was in a started state.
-    if (download->get_value("get_hashing") != Download::variable_hashing_stopped ||
-        download->get_value("get_state") != 0)
+    if (rpc::call_command_d_value("get_d_hashing", download) != Download::variable_hashing_stopped ||
+        rpc::call_command_d_value("get_d_state", download) != 0)
       m_manager->download_list()->resume(download);
 
   } else {
@@ -285,9 +285,9 @@ DownloadFactory::initialize_rtorrent(Download* download, torrent::Object* rtorre
     rtorrent->insert_key("tied_to_file", std::string());
 
   if (rtorrent->has_key_value("priority"))
-    download->set("set_priority", rtorrent->get_key_value("priority") % 4);
+    rpc::call_command_d("set_d_priority", download, rtorrent->get_key_value("priority") % 4);
   else
-    download->set("set_priority", (int64_t)2);
+    rpc::call_command_d("set_d_priority", download, (int64_t)2);
 
   if (rtorrent->has_key_value("key")) {
     download->tracker_list()->set_key(rtorrent->get_key_value("key"));

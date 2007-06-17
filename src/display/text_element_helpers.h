@@ -44,6 +44,7 @@
 #include <torrent/data/file_list_iterator.h>
 
 #include "core/download.h"
+#include "rpc/parse_commands.h"
 
 #include "text_element_lambda.h"
 #include "text_element_string.h"
@@ -92,8 +93,8 @@ te_string(Return (torrent::FileList::*fptr)() const, int flags = TextElementStri
 }
 
 inline TextElementStringBase*
-te_variable_string(const std::string& variable, int flags = TextElementStringBase::flag_normal, int attributes = Attributes::a_invalid) {
-  return text_element_string_slot(rak::bind2nd(std::mem_fun(&core::Download::get_std_string), variable), flags, attributes);
+te_variable_string(const char* variable, int flags = TextElementStringBase::flag_normal, int attributes = Attributes::a_invalid) {
+  return text_element_string_slot(rak::bind1st(std::ptr_fun(&rpc::call_command_d_string), variable), flags, attributes);
 }
 
 // Value stuff:
@@ -117,8 +118,8 @@ te_value(Return (torrent::File::*fptr)() const, int flags = TextElementValueBase
 }
 
 inline TextElementValueBase*
-te_variable_value(const std::string& variable, int flags = TextElementValueBase::flag_normal, int attributes = Attributes::a_invalid) {
-  return text_element_value_slot(rak::bind2nd(std::mem_fun(&core::Download::get_std_value), variable), flags, attributes);
+te_variable_value(const char* variable, int flags = TextElementValueBase::flag_normal, int attributes = Attributes::a_invalid) {
+  return text_element_value_slot(rak::bind1st(std::ptr_fun(&rpc::call_command_d_value), variable), flags, attributes);
 }
 
 template <typename Return>

@@ -42,6 +42,8 @@
 #include <torrent/object.h>
 
 #include "globals.h"
+#include "control.h"
+#include "rpc/parse_commands.h"
 
 #include "download.h"
 #include "download_list.h"
@@ -71,8 +73,8 @@ public:
 
   virtual bool operator () (Download* d1, Download* d2) const {
     return
-      d1->get_string(m_name) == m_value &&
-      d2->get_string(m_name) != m_value;
+      rpc::call_command_d_string(m_name, d1) == m_value &&
+      rpc::call_command_d_string(m_name, d2) != m_value;
   }
 
 private:
@@ -86,9 +88,9 @@ public:
 
   virtual bool operator () (Download* d1, Download* d2) const {
     if (m_reverse)
-      return d2->get_value(m_name) < d1->get_value(m_name);
+      return rpc::call_command_d_value(m_name, d2) < rpc::call_command_d_value(m_name, d1);
     else
-      return d1->get_value(m_name) < d2->get_value(m_name);
+      return rpc::call_command_d_value(m_name, d1) < rpc::call_command_d_value(m_name, d2);
   }
 
 private:
@@ -115,7 +117,7 @@ public:
     m_name(name), m_value(v), m_inverse(inverse) {}
 
   virtual bool operator () (Download* d1) const {
-    return (d1->get_value(m_name) == m_value) != m_inverse;
+    return (rpc::call_command_d_value(m_name, d1) == m_value) != m_inverse;
   }
 
 private:
@@ -134,19 +136,19 @@ ViewManager::ViewManager(DownloadList* dl) :
   m_sort["name"]          = new ViewSortName();
   m_sort["name_reverse"]  = new ViewSortReverse(new ViewSortName());
 
-  m_sort["stopped"]       = new ViewSortVariableValue("get_state");
-  m_sort["started"]       = new ViewSortVariableValue("get_state", true);
-  m_sort["complete"]      = new ViewSortVariableValue("get_complete");
-  m_sort["incomplete"]    = new ViewSortVariableValue("get_complete", true);
+  m_sort["stopped"]       = new ViewSortVariableValue("get_d_state");
+  m_sort["started"]       = new ViewSortVariableValue("get_d_state", true);
+  m_sort["complete"]      = new ViewSortVariableValue("get_d_complete");
+  m_sort["incomplete"]    = new ViewSortVariableValue("get_d_complete", true);
 
-  m_sort["state_changed"]         = new ViewSortVariableValue("get_state_changed");
-  m_sort["state_changed_reverse"] = new ViewSortVariableValue("get_state_changed", true);
+  m_sort["state_changed"]         = new ViewSortVariableValue("get_d_state_changed");
+  m_sort["state_changed_reverse"] = new ViewSortVariableValue("get_d_state_changed", true);
 
-  m_filter["started"]     = new ViewFilterVariableValue("get_state", 1);
-  m_filter["stopped"]     = new ViewFilterVariableValue("get_state", 0);
-  m_filter["complete"]    = new ViewFilterVariableValue("get_complete", 0, true);
-  m_filter["incomplete"]  = new ViewFilterVariableValue("get_complete", 0);
-  m_filter["hashing"]     = new ViewFilterVariableValue("get_hashing", 0, true);
+  m_filter["started"]     = new ViewFilterVariableValue("get_d_state", 1);
+  m_filter["stopped"]     = new ViewFilterVariableValue("get_d_state", 0);
+  m_filter["complete"]    = new ViewFilterVariableValue("get_d_complete", 0, true);
+  m_filter["incomplete"]  = new ViewFilterVariableValue("get_d_complete", 0);
+  m_filter["hashing"]     = new ViewFilterVariableValue("get_d_hashing", 0, true);
 }
 
 void

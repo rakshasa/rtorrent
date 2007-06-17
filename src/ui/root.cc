@@ -49,7 +49,7 @@
 #include "display/window_statusbar.h"
 #include "input/manager.h"
 #include "input/text_input.h"
-#include "rpc/command_map.h"
+#include "rpc/parse_commands.h"
 
 #include "control.h"
 #include "download_list.h"
@@ -126,7 +126,7 @@ void
 Root::setup_keys() {
   m_control->input()->push_back(&m_bindings);
 
-  const std::string& keyLayout = control->variable()->call_command_string("get_key_layout");
+  const std::string& keyLayout = rpc::call_command_string("get_key_layout");
 
   if (strcasecmp(keyLayout.c_str(), "azerty") == 0) {
     m_bindings['q']           = sigc::bind(sigc::mem_fun(*this, &Root::adjust_up_throttle), 1);
@@ -187,14 +187,14 @@ Root::set_down_throttle(unsigned int throttle) {
 
   torrent::set_down_throttle(throttle * 1024);
 
-  int64_t div = control->variable()->call_command_value("get_max_downloads_div");
+  int64_t div = rpc::call_command_value("get_max_downloads_div");
 
   if (throttle == 0 || div <= 0) {
     torrent::set_max_download_unchoked(m_maxDownloadsGlobal);
     return;
   }
 
-  throttle /= control->variable()->call_command_value("get_max_downloads_div");
+  throttle /= rpc::call_command_value("get_max_downloads_div");
 
   unsigned int maxUnchoked;
 
@@ -216,14 +216,14 @@ Root::set_up_throttle(unsigned int throttle) {
 
   torrent::set_up_throttle(throttle * 1024);
 
-  int64_t div = control->variable()->call_command_value("get_max_uploads_div");
+  int64_t div = rpc::call_command_value("get_max_uploads_div");
 
   if (throttle == 0 || div <= 0) {
     torrent::set_max_unchoked(m_maxUploadsGlobal);
     return;
   }
 
-  throttle /= control->variable()->call_command_value("get_max_uploads_div");
+  throttle /= rpc::call_command_value("get_max_uploads_div");
 
   unsigned int maxUnchoked;
 

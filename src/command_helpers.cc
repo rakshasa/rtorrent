@@ -46,12 +46,12 @@
 #include "control.h"
 #include "command_helpers.h"
 
-utils::CommandSlot          commandSlots[COMMAND_SLOTS_SIZE];
-utils::CommandSlot*         commandSlotsItr = commandSlots;
-utils::CommandVariable      commandVariables[COMMAND_VARIABLES_SIZE];
-utils::CommandVariable*     commandVariablesItr = commandVariables;
-utils::CommandDownloadSlot  commandDownloadSlots[COMMAND_DOWNLOAD_SLOTS_SIZE];
-utils::CommandDownloadSlot* commandDownloadSlotsItr = commandDownloadSlots;
+rpc::CommandSlot          commandSlots[COMMAND_SLOTS_SIZE];
+rpc::CommandSlot*         commandSlotsItr = commandSlots;
+rpc::CommandVariable      commandVariables[COMMAND_VARIABLES_SIZE];
+rpc::CommandVariable*     commandVariablesItr = commandVariables;
+rpc::CommandDownloadSlot  commandDownloadSlots[COMMAND_DOWNLOAD_SLOTS_SIZE];
+rpc::CommandDownloadSlot* commandDownloadSlotsItr = commandDownloadSlots;
 
 void initialize_command_download();
 void initialize_command_events();
@@ -79,14 +79,14 @@ initialize_commands() {
 
 void
 add_variable(const char* getKey, const char* setKey, const char* defaultSetKey,
-             utils::CommandMap::generic_slot getSlot, utils::CommandMap::generic_slot setSlot,
+             rpc::CommandMap::generic_slot getSlot, rpc::CommandMap::generic_slot setSlot,
              const torrent::Object& defaultObject) {
-  utils::CommandVariable* variable = commandVariablesItr++;
+  rpc::CommandVariable* variable = commandVariablesItr++;
   variable->set_variable(defaultObject);
 
-  control->variable()->insert(getKey, variable, getSlot, NULL, utils::CommandMap::flag_dont_delete | utils::CommandMap::flag_public_xmlrpc, "i:", "");
-  control->variable()->insert(setKey, variable, setSlot, NULL, utils::CommandMap::flag_dont_delete | utils::CommandMap::flag_public_xmlrpc, "i:", "");
+  rpc::commands.insert(getKey, variable, getSlot, NULL, rpc::CommandMap::flag_dont_delete | rpc::CommandMap::flag_public_xmlrpc, "i:", "");
+  rpc::commands.insert(setKey, variable, setSlot, NULL, rpc::CommandMap::flag_dont_delete | rpc::CommandMap::flag_public_xmlrpc, "i:", "");
 
   if (defaultSetKey)
-    control->variable()->insert(defaultSetKey, variable, setSlot, NULL, utils::CommandMap::flag_dont_delete, "i:", "");
+    rpc::commands.insert(defaultSetKey, variable, setSlot, NULL, rpc::CommandMap::flag_dont_delete, "i:", "");
 }

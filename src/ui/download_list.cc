@@ -56,7 +56,6 @@
 #include "display/window_log.h"
 #include "display/window_title.h"
 
-#include "rpc/command_map.h"
 #include "rpc/parse_commands.h"
 
 #include "control.h"
@@ -233,7 +232,7 @@ DownloadList::receive_view_input(Input type) {
   case INPUT_CHANGE_DIRECTORY:
     title = "change_directory";
 
-    input->str() = control->variable()->call_command_string("get_directory");
+    input->str() = rpc::call_command_string("get_directory");
     input->set_pos(input->str().length());
 
     break;
@@ -286,12 +285,12 @@ DownloadList::receive_exit_input(Input type) {
       if (current_view()->focus() == current_view()->end_visible())
         throw torrent::input_error("No download in focus to change root directory.");
 
-      control->download_variables()->call_command_d("set_directory", *current_view()->focus(), rak::trim(input->str()));
-      control->core()->push_log("New root directory \"" + (*current_view()->focus())->get_string("get_directory") + "\" for torrent.");
+      rpc::call_command_d("set_d_directory", *current_view()->focus(), rak::trim(input->str()));
+      control->core()->push_log("New root directory \"" + rpc::call_command_d_string("get_d_directory", *current_view()->focus()) + "\" for torrent.");
       break;
 
     case INPUT_COMMAND:
-      utils::parse_command_single_std(control->variable(), input->str());
+      rpc::parse_command_single_std(input->str());
       break;
 
     default:

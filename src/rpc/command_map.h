@@ -34,8 +34,8 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef RTORRENT_UTILS_COMMAND_MAP_H
-#define RTORRENT_UTILS_COMMAND_MAP_H
+#ifndef RTORRENT_RPC_COMMAND_MAP_H
+#define RTORRENT_RPC_COMMAND_MAP_H
 
 #include <map>
 #include <string>
@@ -46,7 +46,7 @@ namespace core {
   class Download;
 }
 
-namespace utils {
+namespace rpc {
 
 class Command;
 
@@ -93,10 +93,6 @@ public:
   using base_type::end;
   using base_type::find;
 
-  static const int max_size_key = 128;
-  static const int max_size_opt = 1024;
-  static const int max_size_line = max_size_key + max_size_opt + 64;
-
   static const int flag_dont_delete   = 0x1;
   static const int flag_public_xmlrpc = 0x2;
 
@@ -112,21 +108,21 @@ public:
   void                insert(key_type key, const command_map_data_type src);
 
   const mapped_type   call_command(key_type key, const mapped_type& arg);
-  const mapped_type   call_command_void(key_type key)   { return call_command(key, torrent::Object()); }
-  const std::string   call_command_string(key_type key) { return call_command(key, torrent::Object()).as_string(); }
-  mapped_value_type   call_command_value(key_type key)  { return call_command(key, torrent::Object()).as_value(); }
+//   const mapped_type   call_command_void(key_type key)   { return call_command(key, torrent::Object()); }
+//   const std::string   call_command_string(key_type key) { return call_command(key, torrent::Object()).as_string(); }
+//   mapped_value_type   call_command_value(key_type key)  { return call_command(key, torrent::Object()).as_value(); }
 
-  void                call_command_set_string(key_type key, const std::string& arg)               { call_command(key, mapped_type(arg)); }
-  void                call_command_set_std_string(const std::string& key, const std::string& arg) { call_command(key.c_str(), mapped_type(arg)); }
+//   void                call_command_set_string(key_type key, const std::string& arg)               { call_command(key, mapped_type(arg)); }
+//   void                call_command_set_std_string(const std::string& key, const std::string& arg) { call_command(key.c_str(), mapped_type(arg)); }
 
   const mapped_type   call_command_d(key_type key, core::Download* download, const mapped_type& arg);
-  const mapped_type   call_command_d_void(key_type key, core::Download* download)   { return call_command_d(key, download, torrent::Object()); }
-  const std::string   call_command_d_string(key_type key, core::Download* download) { return call_command_d(key, download, torrent::Object()).as_string(); }
-  mapped_value_type   call_command_d_value(key_type key, core::Download* download)  { return call_command_d(key, download, torrent::Object()).as_value(); }
+//   const mapped_type   call_command_d_void(key_type key, core::Download* download)   { return call_command_d(key, download, torrent::Object()); }
+//   const std::string   call_command_d_string(key_type key, core::Download* download) { return call_command_d(key, download, torrent::Object()).as_string(); }
+//   mapped_value_type   call_command_d_value(key_type key, core::Download* download)  { return call_command_d(key, download, torrent::Object()).as_value(); }
 
-  void                call_command_d_set_value(key_type key, core::Download* download, mapped_value_type arg)                 { call_command_d(key, download, mapped_type(arg)); }
-  void                call_command_d_set_string(key_type key, core::Download* download, const std::string& arg)               { call_command_d(key, download, mapped_type(arg)); }
-  void                call_command_d_set_std_string(const std::string& key, core::Download* download, const std::string& arg) { call_command_d(key.c_str(), download, mapped_type(arg)); }
+//   void                call_command_d_set_value(key_type key, core::Download* download, mapped_value_type arg)                 { call_command_d(key, download, mapped_type(arg)); }
+//   void                call_command_d_set_string(key_type key, core::Download* download, const std::string& arg)               { call_command_d(key, download, mapped_type(arg)); }
+//   void                call_command_d_set_std_string(const std::string& key, core::Download* download, const std::string& arg) { call_command_d(key.c_str(), download, mapped_type(arg)); }
 
 private:
   CommandMap(const CommandMap&);

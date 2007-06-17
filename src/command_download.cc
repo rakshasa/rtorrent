@@ -99,21 +99,21 @@ apply_d_create_link(core::Download* download, const torrent::Object& rawArgs) {
   std::string link;
 
   if (type == "base_path") {
-    target = download->get_string("base_path");
-    link = rak::path_expand(prefix + download->get_string("base_path") + postfix);
+    target = rpc::call_command_d_string("get_d_base_path", download);
+    link = rak::path_expand(prefix + rpc::call_command_d_string("get_d_base_path", download) + postfix);
 
   } else if (type == "base_filename") {
-    target = download->get_string("base_path");
-    link = rak::path_expand(prefix + download->get_string("base_filename") + postfix);
+    target = rpc::call_command_d_string("get_d_base_path", download);
+    link = rak::path_expand(prefix + rpc::call_command_d_string("get_d_base_filename", download) + postfix);
 
   } else if (type == "tied") {
-    link = rak::path_expand(download->get_string("get_tied_to_file"));
+    link = rak::path_expand(rpc::call_command_d_string("get_d_tied_to_file", download));
 
     if (link.empty())
       return torrent::Object();
 
     link = rak::path_expand(prefix + link + postfix);
-    target = download->get_string("base_path");
+    target = rpc::call_command_d_string("get_d_base_path", download);
 
   } else {
     throw torrent::input_error("Unknown type argument.");
@@ -146,13 +146,13 @@ apply_d_delete_link(core::Download* download, const torrent::Object& rawArgs) {
   std::string link;
 
   if (type == "base_path") {
-    link = rak::path_expand(prefix + download->get_string("base_path") + postfix);
+    link = rak::path_expand(prefix + rpc::call_command_d_string("get_d_base_path", download) + postfix);
 
   } else if (type == "base_filename") {
-    link = rak::path_expand(prefix + download->get_string("base_filename") + postfix);
+    link = rak::path_expand(prefix + rpc::call_command_d_string("get_d_base_filename", download) + postfix);
 
   } else if (type == "tied") {
-    link = rak::path_expand(download->get_string("get_tied_to_file"));
+    link = rak::path_expand(rpc::call_command_d_string("get_d_tied_to_file", download));
 
     if (link.empty())
       return torrent::Object();
@@ -175,57 +175,57 @@ apply_d_delete_link(core::Download* download, const torrent::Object& rawArgs) {
 
 #define ADD_COMMAND_DOWNLOAD_SLOT(key, function, slot, parm, doc)    \
   commandDownloadSlotsItr->set_slot(slot); \
-  variables->insert(key, commandDownloadSlotsItr++, NULL, &utils::CommandDownloadSlot::function, utils::CommandMap::flag_dont_delete | utils::CommandMap::flag_public_xmlrpc, parm, doc);
+  rpc::commands.insert(key, commandDownloadSlotsItr++, NULL, &rpc::CommandDownloadSlot::function, rpc::CommandMap::flag_dont_delete, parm, doc);
+
+//   rpc::commands.insert(key, commandDownloadSlotsItr++, NULL, &rpc::CommandDownloadSlot::function, rpc::CommandMap::flag_dont_delete | rpc::CommandMap::flag_public_xmlrpc, parm, doc);
 
 #define ADD_COMMAND_DOWNLOAD_VOID(key, slot) \
-  ADD_COMMAND_DOWNLOAD_SLOT(key, call_unknown, utils::object_d_fn(slot), "i:", "")
+  ADD_COMMAND_DOWNLOAD_SLOT("get_d_" key, call_unknown, rpc::object_d_fn(slot), "i:", "")
 
 #define ADD_COMMAND_DOWNLOAD_LIST(key, slot) \
   ADD_COMMAND_DOWNLOAD_SLOT(key, call_list, slot, "i:", "")
 
 #define ADD_COMMAND_DOWNLOAD_VARIABLE_VALUE(key, firstKey, secondKey) \
-  ADD_COMMAND_DOWNLOAD_SLOT("get_" key, call_unknown, utils::get_variable_d_fn(firstKey, secondKey), "i:", ""); \
-  ADD_COMMAND_DOWNLOAD_SLOT("set_" key, call_value,   utils::set_variable_d_fn(firstKey, secondKey), "i:i", "");
+  ADD_COMMAND_DOWNLOAD_SLOT("get_d_" key, call_unknown, rpc::get_variable_d_fn(firstKey, secondKey), "i:", ""); \
+  ADD_COMMAND_DOWNLOAD_SLOT("set_d_" key, call_value,   rpc::set_variable_d_fn(firstKey, secondKey), "i:i", "");
 
 #define ADD_COMMAND_DOWNLOAD_VARIABLE_STRING(key, firstKey, secondKey) \
-  ADD_COMMAND_DOWNLOAD_SLOT("get_" key, call_unknown, utils::get_variable_d_fn(firstKey, secondKey), "i:", ""); \
-  ADD_COMMAND_DOWNLOAD_SLOT("set_" key, call_string,  utils::set_variable_d_fn(firstKey, secondKey), "i:s", "");
+  ADD_COMMAND_DOWNLOAD_SLOT("get_d_" key, call_unknown, rpc::get_variable_d_fn(firstKey, secondKey), "i:", ""); \
+  ADD_COMMAND_DOWNLOAD_SLOT("set_d_" key, call_string,  rpc::set_variable_d_fn(firstKey, secondKey), "i:s", "");
 
 #define ADD_COMMAND_DOWNLOAD_VALUE_BI(key, set, get) \
-  ADD_COMMAND_DOWNLOAD_SLOT("set_" key, call_value, utils::object_value_d_fn(set), "i:i", "") \
-  ADD_COMMAND_DOWNLOAD_SLOT("get_" key, call_unknown, utils::object_void_d_fn(get), "i:", "")
+  ADD_COMMAND_DOWNLOAD_SLOT("set_d_" key, call_value, rpc::object_value_d_fn(set), "i:i", "") \
+  ADD_COMMAND_DOWNLOAD_SLOT("get_d_" key, call_unknown, rpc::object_void_d_fn(get), "i:", "")
 
 #define ADD_COMMAND_DOWNLOAD_VALUE_MEM_BI(key, target, set, get) \
   ADD_COMMAND_DOWNLOAD_VALUE_BI(key, rak::on2(std::mem_fun(target), std::mem_fun(set)), rak::on(std::mem_fun(target), std::mem_fun(get)));
 
 #define ADD_COMMAND_DOWNLOAD_VALUE_MEM_UNI(key, target, get) \
-  ADD_COMMAND_DOWNLOAD_SLOT("get_" key, call_unknown, utils::object_void_d_fn(rak::on(rak::on(std::mem_fun(&core::Download::download), std::mem_fun(target)), std::mem_fun(get))), "i:", "");
+  ADD_COMMAND_DOWNLOAD_SLOT("get_d_" key, call_unknown, rpc::object_void_d_fn(rak::on(rak::on(std::mem_fun(&core::Download::download), std::mem_fun(target)), std::mem_fun(get))), "i:", "");
 
 #define ADD_COMMAND_DOWNLOAD_STRING_BI(key, set, get) \
-  ADD_COMMAND_DOWNLOAD_SLOT("set_" key, call_string, utils::object_string_d_fn(set), "i:s", "") \
-  ADD_COMMAND_DOWNLOAD_SLOT("get_" key, call_unknown, utils::object_void_d_fn(get), "s:", "")
+  ADD_COMMAND_DOWNLOAD_SLOT("set_d_" key, call_string, rpc::object_string_d_fn(set), "i:s", "") \
+  ADD_COMMAND_DOWNLOAD_SLOT("get_d_" key, call_unknown, rpc::object_void_d_fn(get), "s:", "")
 
 void
-add_copy_to_download(const char* key) {
-  utils::CommandMap::iterator itr = control->variable()->find(key);
+add_copy_to_download(const char* src, const char* dest) {
+  rpc::CommandMap::iterator itr = rpc::commands.find(src);
 
-  if (itr == control->variable()->end())
+  if (itr == rpc::commands.end())
     throw torrent::internal_error("add_copy_to_download(...) key not found.");
 
-  control->download_variables()->insert(key, itr->second);
+  rpc::commands.insert(dest, itr->second);
 }
 
 void
 initialize_command_download() {
-  utils::CommandMap* variables = control->download_variables();
-
   ADD_COMMAND_DOWNLOAD_VOID("base_path", &retrieve_d_base_path);
   ADD_COMMAND_DOWNLOAD_VOID("base_filename", &retrieve_d_base_filename);
 
   ADD_COMMAND_DOWNLOAD_LIST("create_link", rak::ptr_fn(&apply_d_create_link));
   ADD_COMMAND_DOWNLOAD_LIST("delete_link", rak::ptr_fn(&apply_d_delete_link));
 
-  add_copy_to_download("print");
+//   add_copy_to_download("print");
 
   // 0 - stopped
   // 1 - started
@@ -246,10 +246,10 @@ initialize_command_download() {
 
   ADD_COMMAND_DOWNLOAD_STRING_BI("connection_current", std::mem_fun(&core::Download::set_connection_current), std::mem_fun(&core::Download::connection_current));
 
-  add_copy_to_download("get_connection_leech");
-  add_copy_to_download("set_connection_leech");
-  add_copy_to_download("get_connection_seed");
-  add_copy_to_download("set_connection_seed");
+  add_copy_to_download("get_connection_leech", "get_d_connection_leech");
+  add_copy_to_download("set_connection_leech", "set_d_connection_leech");
+  add_copy_to_download("get_connection_seed", "get_d_connection_seed");
+  add_copy_to_download("set_connection_seed", "set_d_connection_seed");
 
   ADD_COMMAND_DOWNLOAD_VALUE_MEM_BI("max_file_size", &core::Download::file_list, &torrent::FileList::set_max_file_size, &torrent::FileList::max_file_size);
 
@@ -264,9 +264,9 @@ initialize_command_download() {
   ADD_COMMAND_DOWNLOAD_VALUE_MEM_UNI("skip_rate",  &torrent::Download::mutable_skip_rate, &torrent::Rate::rate);
   ADD_COMMAND_DOWNLOAD_VALUE_MEM_UNI("skip_total", &torrent::Download::mutable_skip_rate, &torrent::Rate::total);
 
-  //   variables->insert("split_file_size",    new utils::VariableValueSlot(rak::mem_fn(file_list(), &torrent::FileList::split_file_size),
+  //   rpc::commands.insert("split_file_size",    new rpc::VariableValueSlot(rak::mem_fn(file_list(), &torrent::FileList::split_file_size),
   //                                                                         rak::mem_fn(file_list(), &torrent::FileList::set_split_file_size)));
-  //   variables->insert("split_suffix",       new utils::VariableStringSlot(rak::mem_fn(file_list(), &torrent::FileList::split_suffix),
+  //   rpc::commands.insert("split_suffix",       new rpc::VariableStringSlot(rak::mem_fn(file_list(), &torrent::FileList::split_suffix),
   //                                                                          rak::mem_fn(file_list(), &torrent::FileList::set_split_suffix)));
 
   ADD_COMMAND_DOWNLOAD_VALUE_MEM_BI("tracker_numwant", &core::Download::tracker_list, &torrent::TrackerList::set_numwant, &torrent::TrackerList::numwant);

@@ -39,33 +39,55 @@
 
 #include <string>
 
+#include "command_map.h"
+
 namespace core {
   class Download;
 }
 
-namespace utils {
+namespace rpc {
 
-class CommandMap;
+// class CommandMap;
 
 const char* parse_command_name(const char* first, const char* last, std::string* dest);
 
-const char* parse_command_single(CommandMap* varMap, const char* first);
-const char* parse_command_single(CommandMap* varMap, const char* first, const char* last);
+const char* parse_command_single(const char* first);
+const char* parse_command_single(const char* first, const char* last);
 
-const char* parse_command_d_single(CommandMap* varMap, core::Download* download, const char* first, const char* last);
+const char* parse_command_d_single(core::Download* download, const char* first, const char* last);
 
-void        parse_command_multiple(CommandMap* varMap, const char* first);
-bool        parse_command_file(CommandMap* varMap, const std::string& path);
+void        parse_command_multiple(const char* first);
+bool        parse_command_file(const std::string& path);
 
 inline void
-parse_command_single_std(CommandMap* varMap, const std::string& cmd) {
-  parse_command_single(varMap, cmd.c_str(), cmd.c_str() + cmd.size());
+parse_command_single_std(const std::string& cmd) {
+  parse_command_single(cmd.c_str(), cmd.c_str() + cmd.size());
 }
 
 inline void
-parse_command_d_single_std(CommandMap* varMap, core::Download* download, const std::string& cmd) {
-  parse_command_d_single(varMap, download, cmd.c_str(), cmd.c_str() + cmd.size());
+parse_command_d_single_std(core::Download* download, const std::string& cmd) {
+  parse_command_d_single(download, cmd.c_str(), cmd.c_str() + cmd.size());
 }
+
+// Move to anoher file?
+extern CommandMap commands;
+
+inline torrent::Object call_command(const char* key, const torrent::Object& obj) { return commands.call_command(key, obj); }
+inline torrent::Object call_command_void(const char* key)   { return commands.call_command(key, torrent::Object()); }
+inline std::string     call_command_string(const char* key) { return commands.call_command(key, torrent::Object()).as_string(); }
+inline int64_t         call_command_value(const char* key)  { return commands.call_command(key, torrent::Object()).as_value(); }
+
+inline void            call_command_set_string(const char* key, const std::string& arg)            { commands.call_command(key, torrent::Object(arg)); }
+inline void            call_command_set_std_string(const std::string& key, const std::string& arg) { commands.call_command(key.c_str(), torrent::Object(arg)); }
+
+inline torrent::Object call_command_d(const char* key, core::Download* download, const torrent::Object& obj)   { return commands.call_command_d(key, download, obj); }
+inline torrent::Object call_command_d_void(const char* key, core::Download* download)   { return commands.call_command_d(key, download, torrent::Object()); }
+inline std::string     call_command_d_string(const char* key, core::Download* download) { return commands.call_command_d(key, download, torrent::Object()).as_string(); }
+inline int64_t         call_command_d_value(const char* key, core::Download* download)  { return commands.call_command_d(key, download, torrent::Object()).as_value(); }
+
+inline void            call_command_d_set_value(const char* key, core::Download* download, int64_t arg)                        { commands.call_command_d(key, download, torrent::Object(arg)); }
+inline void            call_command_d_set_string(const char* key, core::Download* download, const std::string& arg)            { commands.call_command_d(key, download, torrent::Object(arg)); }
+inline void            call_command_d_set_std_string(const std::string& key, core::Download* download, const std::string& arg) { commands.call_command_d(key.c_str(), download, torrent::Object(arg)); }
 
 }
 

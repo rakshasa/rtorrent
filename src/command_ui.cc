@@ -90,7 +90,7 @@ apply_view_sort(const torrent::Object& rawArgs) {
   int32_t value = 0;
 
   if (args.size() == 2)
-    value = utils::convert_to_value(args.back());
+    value = rpc::convert_to_value(args.back());
 
   control->view_manager()->sort(name, value);
 
@@ -99,12 +99,9 @@ apply_view_sort(const torrent::Object& rawArgs) {
 
 void
 initialize_command_ui() {
-  utils::CommandMap* variables = control->variable();
-//   core::DownloadList* downloadList = control->core()->download_list();
-
   ADD_VARIABLE_STRING("key_layout", "qwerty");
 
-  ADD_COMMAND_STRING("view_add", utils::object_string_fn(rak::make_mem_fun(control->view_manager(), &core::ViewManager::insert_throw)));
+  ADD_COMMAND_STRING("view_add",        rpc::object_string_fn(rak::make_mem_fun(control->view_manager(), &core::ViewManager::insert_throw)));
 
   ADD_COMMAND_LIST("view_filter",       rak::bind_ptr_fn(&apply_view_filter, &core::ViewManager::set_filter));
   ADD_COMMAND_LIST("view_filter_on",    rak::bind_ptr_fn(&apply_view_filter, &core::ViewManager::set_filter_on));
@@ -115,5 +112,5 @@ initialize_command_ui() {
 
 //   ADD_COMMAND_LIST("view_sort_current", rak::bind_ptr_fn(&apply_view_filter, &core::ViewManager::set_sort_current));
 
-  ADD_COMMAND_STRING("print",           utils::object_string_fn(rak::make_mem_fun(control->core(), &core::Manager::push_log)));
+  ADD_COMMAND_STRING("print",           rpc::object_string_fn(rak::make_mem_fun(control->core(), &core::Manager::push_log)));
 }

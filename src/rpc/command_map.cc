@@ -48,7 +48,7 @@
 #include "command.h"
 #include "command_map.h"
 
-namespace utils {
+namespace rpc {
 
 struct command_map_get_ptr : std::unary_function<CommandMap::value_type&, Command*> {
   Command* operator () (CommandMap::value_type& value) { return value.second.m_variable; }

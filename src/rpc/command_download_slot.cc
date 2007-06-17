@@ -37,11 +37,11 @@
 #include "config.h"
 
 #include "core/download.h"
-#include "rpc/parse.h"
+#include "parse.h"
 
 #include "command_download_slot.h"
 
-namespace utils {
+namespace rpc {
 
 const torrent::Object
 CommandDownloadSlot::call_unknown(Command* rawCommand, core::Download* download, const torrent::Object& rawArgs) {
@@ -86,7 +86,7 @@ CommandDownloadSlot::call_value_base(Command* rawCommand, core::Download* downlo
   {
     torrent::Object argValue(torrent::Object::TYPE_VALUE);
 
-    if (!utils::parse_whole_value_nothrow(arg.as_string().c_str(), &argValue.as_value(), base, unit))
+    if (!parse_whole_value_nothrow(arg.as_string().c_str(), &argValue.as_value(), base, unit))
       throw torrent::input_error("Not a value.");
 
     return command->m_slot(download, argValue);
