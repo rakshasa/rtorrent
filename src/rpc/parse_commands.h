@@ -80,7 +80,7 @@ inline int64_t         call_command_value(const char* key)  { return commands.ca
 inline void            call_command_set_string(const char* key, const std::string& arg)            { commands.call_command(key, torrent::Object(arg)); }
 inline void            call_command_set_std_string(const std::string& key, const std::string& arg) { commands.call_command(key.c_str(), torrent::Object(arg)); }
 
-inline torrent::Object call_command_d(const char* key, core::Download* download, const torrent::Object& obj)   { return commands.call_command_d(key, download, obj); }
+inline torrent::Object call_command_d(const char* key, core::Download* download, const torrent::Object& obj) { return commands.call_command_d(key, download, obj); }
 inline torrent::Object call_command_d_void(const char* key, core::Download* download)   { return commands.call_command_d(key, download, torrent::Object()); }
 inline std::string     call_command_d_string(const char* key, core::Download* download) { return commands.call_command_d(key, download, torrent::Object()).as_string(); }
 inline int64_t         call_command_d_value(const char* key, core::Download* download)  { return commands.call_command_d(key, download, torrent::Object()).as_value(); }
@@ -88,6 +88,17 @@ inline int64_t         call_command_d_value(const char* key, core::Download* dow
 inline void            call_command_d_set_value(const char* key, core::Download* download, int64_t arg)                        { commands.call_command_d(key, download, torrent::Object(arg)); }
 inline void            call_command_d_set_string(const char* key, core::Download* download, const std::string& arg)            { commands.call_command_d(key, download, torrent::Object(arg)); }
 inline void            call_command_d_set_std_string(const std::string& key, core::Download* download, const std::string& arg) { commands.call_command_d(key.c_str(), download, torrent::Object(arg)); }
+
+inline torrent::Object
+call_command_d_range(const char* key, core::Download* download, torrent::Object::list_type::const_iterator first, torrent::Object::list_type::const_iterator last) {
+  torrent::Object rawArgs(torrent::Object::TYPE_LIST);
+  torrent::Object::list_type& args = rawArgs.as_list();
+  
+  while (first != last)
+    args.push_back(*first++);
+
+  return commands.call_command_d(key, download, rawArgs);
+}
 
 }
 

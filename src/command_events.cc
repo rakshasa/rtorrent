@@ -249,6 +249,38 @@ apply_download_list(const torrent::Object& rawArgs) {
   return result;
 }
 
+torrent::Object
+apply_call_download(const torrent::Object& rawArgs) {
+  const torrent::Object::list_type&          args = rawArgs.as_list();
+  torrent::Object::list_type::const_iterator argsItr = args.begin();
+
+  if (argsItr == args.end() || ++argsItr == args.end())
+    throw torrent::input_error("Too few arguments.");
+
+  const torrent::Object::string_type& infoHash = args.begin()->as_string();
+
+  core::DownloadList*          dList = control->core()->download_list();
+  core::DownloadList::iterator dItr  = dList->end();
+
+  if (infoHash.size() == 40)
+    dItr = dList->find_hex(infoHash.c_str());
+
+  if (dItr == dList->end())
+    throw torrent::input_error("Not a valid info-hash.");
+
+  torrent::Object result;
+  const char*     command = (argsItr++)->as_string().c_str();
+
+  if (argsItr == args.end())
+    result = rpc::call_command_d(command, *dItr, torrent::Object());
+  else if (argsItr == --args.end())
+    result = rpc::call_command_d(command, *dItr, *argsItr);
+  else
+    result = rpc::call_command_d_range(command, *dItr, argsItr, args.end());
+
+  return result;
+}
+
 void
 initialize_command_events() {
   core::DownloadList* downloadList = control->core()->download_list();
@@ -290,4 +322,5 @@ initialize_command_events() {
   ADD_COMMAND_VALUE_UN("close_low_diskspace",    std::ptr_fun(&apply_close_low_diskspace));
 
   ADD_COMMAND_LIST("download_list",              rak::ptr_fn(&apply_download_list));
+  ADD_COMMAND_LIST("call_download",              rak::ptr_fn(&apply_call_download));
 }

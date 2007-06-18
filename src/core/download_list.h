@@ -78,6 +78,8 @@ public:
 
   void                session_save();
 
+  iterator            find_hex(const char* hash);
+
   // Might move this to DownloadFactory.
   Download*           create(std::istream* str, bool printLog);
 

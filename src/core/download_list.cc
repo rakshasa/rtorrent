@@ -40,7 +40,10 @@
 #include <iostream>
 #include <sigc++/bind.h>
 #include <rak/functional.h>
+#include <rak/string_manip.h>
 #include <torrent/exceptions.h>
+#include <torrent/download.h>
+#include <torrent/hash_string.h>
 #include <torrent/object.h>
 #include <torrent/object_stream.h>
 #include <torrent/resume.h>
@@ -87,6 +90,16 @@ DownloadList::clear() {
 void
 DownloadList::session_save() {
   std::for_each(begin(), end(), std::bind1st(std::mem_fun(&DownloadStore::save), control->core()->download_store()));
+}
+
+DownloadList::iterator
+DownloadList::find_hex(const char* hash) {
+  torrent::HashString key;
+
+  for (torrent::HashString::iterator itr = key.begin(), last = key.end(); itr != last; itr++, hash += 2)
+    *itr = (rak::hexchar_to_value(*hash) << 4) + rak::hexchar_to_value(*(hash + 1));
+
+  return std::find_if(begin(), end(), rak::equal(key, rak::on(std::mem_fun(&Download::download), std::mem_fun(&torrent::Download::info_hash))));
 }
 
 Download*
