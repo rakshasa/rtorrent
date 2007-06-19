@@ -321,11 +321,12 @@ XmlRpc::insert_command(const char* name, const char* parm, const char* doc, bool
 XmlRpc::XmlRpc() { throw torrent::resource_error("XMLRPC not supported."); }
 XmlRpc::~XmlRpc() {}
 
-void XmlRpc::insert_command(const char* name, const char* parm, const char* doc) {}
+void XmlRpc::insert_command(const char* name, const char* parm, const char* doc, bool onDownload) {}
 
 bool XmlRpc::process(const char* inBuffer, uint32_t length, slot_write slotWrite) { return false; }
 
 xmlrpc_value* XmlRpc::call_command(xmlrpc_env* env, xmlrpc_value* args, void* voidServerInfo) { return NULL; }
+xmlrpc_value* call_command_d(xmlrpc_env* env, xmlrpc_value* args, void* voidServerInfo) { return NULL; }
 
 #endif
 
