@@ -103,6 +103,13 @@ DownloadList::find_hex(const char* hash) {
 }
 
 Download*
+DownloadList::find_hex_ptr(const char* hash) {
+  iterator itr = find_hex(hash);
+
+  return itr != end() ? *itr : NULL;
+}
+
+Download*
 DownloadList::create(std::istream* str, bool printLog) {
   torrent::Object* object = new torrent::Object;
   torrent::Download download;

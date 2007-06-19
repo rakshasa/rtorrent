@@ -146,16 +146,23 @@ apply_enable_trackers(int64_t arg) {
 void
 initialize_xmlrpc() {
   control->set_xmlrpc(new rpc::XmlRpc);
-  control->xmlrpc()->set_slot_call_command(rak::ptr_fn(&rpc::call_command));
+  rpc::XmlRpc::set_slot_find_download(rak::mem_fn(control->core()->download_list(), &core::DownloadList::find_hex_ptr));
 
   unsigned int count = 0;
 
-  for (rpc::CommandMap::const_iterator itr = rpc::commands.begin(), last = rpc::commands.end(); itr != last; itr++)
-    if (itr->second.m_flags & rpc::CommandMap::flag_public_xmlrpc) {
-      control->xmlrpc()->insert_command(itr->first, itr->second.m_parm, itr->second.m_doc);
+  for (rpc::CommandMap::const_iterator itr = rpc::commands.begin(), last = rpc::commands.end(); itr != last; itr++) {
+    if (!(itr->second.m_flags & rpc::CommandMap::flag_public_xmlrpc))
+      continue;
 
-      count++;
-    }
+    if (itr->second.m_genericSlot != NULL)
+      control->xmlrpc()->insert_command(itr->first, itr->second.m_parm, itr->second.m_doc, false);
+    else if (itr->second.m_downloadSlot != NULL)
+      control->xmlrpc()->insert_command(itr->first, itr->second.m_parm, itr->second.m_doc, true);
+    else
+      throw torrent::internal_error("XMLRPC: Bad entry.");
+
+    count++;
+  }
 
   char buffer[128];
   sprintf(buffer, "XMLRPC initialized with %u functions.", count);

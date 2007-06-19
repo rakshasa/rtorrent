@@ -43,6 +43,10 @@ typedef struct _xmlrpc_env xmlrpc_env;
 typedef struct _xmlrpc_value xmlrpc_value;
 typedef struct _xmlrpc_registry xmlrpc_registry;
 
+namespace core {
+  class Download;
+}
+
 namespace torrent {
   class Object;
 }
@@ -51,24 +55,29 @@ namespace rpc {
 
 class XmlRpc {
 public:
-  typedef rak::function2<bool, const char*, uint32_t> slot_write;
-  typedef rak::function2<torrent::Object, const char*, const torrent::Object&> slot_call_command;
+  typedef rak::function1<core::Download*, const char*> slot_find_download;
+  typedef rak::function2<bool, const char*, uint32_t>  slot_write;
 
   XmlRpc();
   ~XmlRpc();
 
   bool                process(const char* inBuffer, uint32_t length, slot_write slotWrite);
 
-  void                insert_command(const char* name, const char* parm, const char* doc);
+  void                insert_command(const char* name, const char* parm, const char* doc, bool onDownload);
+
+  static void         set_slot_find_download(slot_find_download::base_type* slot) { m_slotFindDownload.set(slot); }
 
   static xmlrpc_value* call_command(xmlrpc_env* env, xmlrpc_value* args, void* voidServerInfo);
-  static void          set_slot_call_command(slot_call_command::base_type* s) { m_slotCall.set(s); }
+  static xmlrpc_value* call_command_d(xmlrpc_env* env, xmlrpc_value* args, void* voidServerInfo);
 
 private:
+  static core::Download* xmlrpc_to_download(xmlrpc_env* env, xmlrpc_value* value);
+  static torrent::Object xmlrpc_to_object_d(xmlrpc_env* env, xmlrpc_value* value, core::Download** download);
+
   xmlrpc_env*         m_env;
   xmlrpc_registry*    m_registry;
 
-  static slot_call_command m_slotCall;
+  static slot_find_download m_slotFindDownload;
 };
 
 }

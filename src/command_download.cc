@@ -177,35 +177,37 @@ apply_d_delete_link(core::Download* download, const torrent::Object& rawArgs) {
   commandDownloadSlotsItr->set_slot(slot); \
   rpc::commands.insert(key, commandDownloadSlotsItr++, NULL, &rpc::CommandDownloadSlot::function, rpc::CommandMap::flag_dont_delete, parm, doc);
 
-//   rpc::commands.insert(key, commandDownloadSlotsItr++, NULL, &rpc::CommandDownloadSlot::function, rpc::CommandMap::flag_dont_delete | rpc::CommandMap::flag_public_xmlrpc, parm, doc);
+#define ADD_COMMAND_DOWNLOAD_SLOT_PUBLIC(key, function, slot, parm, doc)    \
+  commandDownloadSlotsItr->set_slot(slot); \
+  rpc::commands.insert(key, commandDownloadSlotsItr++, NULL, &rpc::CommandDownloadSlot::function, rpc::CommandMap::flag_dont_delete | rpc::CommandMap::flag_public_xmlrpc, parm, doc);
 
 #define ADD_COMMAND_DOWNLOAD_VOID(key, slot) \
-  ADD_COMMAND_DOWNLOAD_SLOT("get_d_" key, call_unknown, rpc::object_d_fn(slot), "i:", "")
+  ADD_COMMAND_DOWNLOAD_SLOT_PUBLIC("get_d_" key, call_unknown, rpc::object_d_fn(slot), "i:", "")
 
 #define ADD_COMMAND_DOWNLOAD_LIST(key, slot) \
-  ADD_COMMAND_DOWNLOAD_SLOT(key, call_list, slot, "i:", "")
+  ADD_COMMAND_DOWNLOAD_SLOT_PUBLIC(key, call_list, slot, "i:", "")
 
 #define ADD_COMMAND_DOWNLOAD_VARIABLE_VALUE(key, firstKey, secondKey) \
-  ADD_COMMAND_DOWNLOAD_SLOT("get_d_" key, call_unknown, rpc::get_variable_d_fn(firstKey, secondKey), "i:", ""); \
+  ADD_COMMAND_DOWNLOAD_SLOT_PUBLIC("get_d_" key, call_unknown, rpc::get_variable_d_fn(firstKey, secondKey), "i:", ""); \
   ADD_COMMAND_DOWNLOAD_SLOT("set_d_" key, call_value,   rpc::set_variable_d_fn(firstKey, secondKey), "i:i", "");
 
 #define ADD_COMMAND_DOWNLOAD_VARIABLE_STRING(key, firstKey, secondKey) \
-  ADD_COMMAND_DOWNLOAD_SLOT("get_d_" key, call_unknown, rpc::get_variable_d_fn(firstKey, secondKey), "i:", ""); \
+  ADD_COMMAND_DOWNLOAD_SLOT_PUBLIC("get_d_" key, call_unknown, rpc::get_variable_d_fn(firstKey, secondKey), "i:", ""); \
   ADD_COMMAND_DOWNLOAD_SLOT("set_d_" key, call_string,  rpc::set_variable_d_fn(firstKey, secondKey), "i:s", "");
 
 #define ADD_COMMAND_DOWNLOAD_VALUE_BI(key, set, get) \
-  ADD_COMMAND_DOWNLOAD_SLOT("set_d_" key, call_value, rpc::object_value_d_fn(set), "i:i", "") \
-  ADD_COMMAND_DOWNLOAD_SLOT("get_d_" key, call_unknown, rpc::object_void_d_fn(get), "i:", "")
+  ADD_COMMAND_DOWNLOAD_SLOT_PUBLIC("set_d_" key, call_value, rpc::object_value_d_fn(set), "i:i", "") \
+  ADD_COMMAND_DOWNLOAD_SLOT_PUBLIC("get_d_" key, call_unknown, rpc::object_void_d_fn(get), "i:", "")
 
 #define ADD_COMMAND_DOWNLOAD_VALUE_MEM_BI(key, target, set, get) \
   ADD_COMMAND_DOWNLOAD_VALUE_BI(key, rak::on2(std::mem_fun(target), std::mem_fun(set)), rak::on(std::mem_fun(target), std::mem_fun(get)));
 
 #define ADD_COMMAND_DOWNLOAD_VALUE_MEM_UNI(key, target, get) \
-  ADD_COMMAND_DOWNLOAD_SLOT("get_d_" key, call_unknown, rpc::object_void_d_fn(rak::on(rak::on(std::mem_fun(&core::Download::download), std::mem_fun(target)), std::mem_fun(get))), "i:", "");
+  ADD_COMMAND_DOWNLOAD_SLOT_PUBLIC("get_d_" key, call_unknown, rpc::object_void_d_fn(rak::on(rak::on(std::mem_fun(&core::Download::download), std::mem_fun(target)), std::mem_fun(get))), "i:", "");
 
 #define ADD_COMMAND_DOWNLOAD_STRING_BI(key, set, get) \
-  ADD_COMMAND_DOWNLOAD_SLOT("set_d_" key, call_string, rpc::object_string_d_fn(set), "i:s", "") \
-  ADD_COMMAND_DOWNLOAD_SLOT("get_d_" key, call_unknown, rpc::object_void_d_fn(get), "s:", "")
+  ADD_COMMAND_DOWNLOAD_SLOT_PUBLIC("set_d_" key, call_string, rpc::object_string_d_fn(set), "i:s", "") \
+  ADD_COMMAND_DOWNLOAD_SLOT_PUBLIC("get_d_" key, call_unknown, rpc::object_void_d_fn(get), "s:", "")
 
 void
 add_copy_to_download(const char* src, const char* dest) {
@@ -224,8 +226,6 @@ initialize_command_download() {
 
   ADD_COMMAND_DOWNLOAD_LIST("create_link", rak::ptr_fn(&apply_d_create_link));
   ADD_COMMAND_DOWNLOAD_LIST("delete_link", rak::ptr_fn(&apply_d_delete_link));
-
-//   add_copy_to_download("print");
 
   // 0 - stopped
   // 1 - started
