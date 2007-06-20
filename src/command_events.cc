@@ -229,7 +229,7 @@ apply_download_list(const torrent::Object& rawArgs) {
   core::ViewManager* viewManager = control->view_manager();
   core::ViewManager::iterator viewItr;
 
-  if (argsItr != args.end())
+  if (argsItr != args.end() && !(argsItr++)->as_string().empty())
     viewItr = viewManager->find((argsItr++)->as_string());
   else
     viewItr = viewManager->find("main");

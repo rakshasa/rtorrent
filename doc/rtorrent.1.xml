@@ -699,6 +699,15 @@ not allow connections to UDP trackers.
         </para></listitem>
       </varlistentry>
 
+      <varlistentry>
+        <term>http_capath = <replaceable>path</replaceable></term>
+        <term>http_cacert = <replaceable>filename</replaceable></term>
+        <listitem><para>
+Set the certificates to use in http requests. See Curl's
+CURLOPT_CAPATH and CURLOPT_CAINFO options for further information.
+        </para></listitem>
+      </varlistentry>
+
     </variablelist>
 
   </refsect1>

@@ -3,7 +3,7 @@
 .\" <http://shell.ipoline.com/~elmert/comp/docbook2X/> 
 .\" Please send any bug reports, improvements, comments, patches, 
 .\" etc. to Steve Cheng <steve@ggi-project.org>.
-.TH "RTORRENT" "1" "24 March 2007" "BitTorrent client for ncurses" ""
+.TH "RTORRENT" "1" "20 June 2007" "BitTorrent client for ncurses" ""
 
 .SH NAME
 rtorrent \- a BitTorrent client for ncurses
@@ -358,6 +358,12 @@ peers we want. A negative value disables this feature.
 \fBuse_udp_trackers = \fIyes\fB\fR
 Use UDP trackers. Disable if you are behind a firewall, etc, that does
 not allow connections to UDP trackers.
+.TP
+\fBhttp_capath = \fIpath\fB\fR
+.TP
+\fBhttp_cacert = \fIfilename\fB\fR
+Set the certificates to use in http requests. See Curl's
+CURLOPT_CAPATH and CURLOPT_CAINFO options for further information.
 .SH "USER-INTERFACE SETTINGS"
 .PP
 Display related settings.
