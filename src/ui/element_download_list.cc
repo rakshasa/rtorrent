@@ -223,10 +223,9 @@ ElementDownloadList::receive_clear_tied() {
   const std::string& tiedFile = rpc::call_command_d_string("get_d_tied_to_file", *m_view->focus());
 
   if (!tiedFile.empty()) {
-    // Move this into core?
-    control->core()->delete_tied(*m_view->focus());
+    rpc::call_command_d_void("d_delete_tied", *m_view->focus());
 
-    control->core()->push_log("Cleared tied to file association for download.");
+    control->core()->push_log("Cleared tied to file association for the selected download.");
   }
 }
 

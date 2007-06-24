@@ -104,17 +104,6 @@ public:
 
   bool                operator == (const std::string& str) const;
 
-  void                set_connection_type(const std::string& t) { m_download.set_connection_type(string_to_connection_type(t)); }
-
-  static connection_type string_to_connection_type(const std::string& name);
-  static const char*     connection_type_to_string(connection_type t);
-
-  const char*         connection_current() const                    { return connection_type_to_string(m_download.connection_type()); }
-  void                set_connection_current(const std::string& t)  { return m_download.set_connection_type(string_to_connection_type(t.c_str())); }
-
-  static uint32_t     string_to_priority(const std::string& name);
-  static const char*  priority_to_string(uint32_t p);
-
   float               distributed_copies() const;
 
 private:

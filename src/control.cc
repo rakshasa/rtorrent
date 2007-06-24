@@ -50,13 +50,12 @@
 #include "display/manager.h"
 #include "input/manager.h"
 #include "input/input_event.h"
+#include "rpc/command_scheduler.h"
 #include "rpc/fast_cgi.h"
 #include "rpc/parse_commands.h"
 #include "rpc/scgi.h"
 #include "rpc/xmlrpc.h"
 #include "ui/root.h"
-
-#include "command_scheduler.h"
 
 #include "control.h"
 
@@ -69,7 +68,7 @@ Control::Control() :
   m_input(new input::Manager()),
   m_inputStdin(new input::InputEvent(STDIN_FILENO)),
 
-  m_commandScheduler(new CommandScheduler()),
+  m_commandScheduler(new rpc::CommandScheduler()),
 
   m_fastCgi(NULL),
   m_scgi(NULL),
@@ -85,7 +84,6 @@ Control::Control() :
 
   m_taskShutdown.set_slot(rak::mem_fn(this, &Control::handle_shutdown));
 
-  m_commandScheduler->set_slot_command(rak::ptr_fn(&rpc::parse_command_single_std));
   m_commandScheduler->set_slot_error_message(rak::mem_fn(m_core, &core::Manager::push_log));
 }
 

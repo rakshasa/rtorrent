@@ -58,6 +58,8 @@
 #include "display/manager.h"
 #include "input/bindings.h"
 
+#include "rpc/command_scheduler.h"
+#include "rpc/command_scheduler_item.h"
 #include "rpc/parse_commands.h"
 #include "utils/directory.h"
 
@@ -65,8 +67,6 @@
 #include "globals.h"
 #include "signal_handler.h"
 #include "option_parser.h"
-#include "command_scheduler.h"
-#include "command_scheduler_item.h"
 
 void do_panic(int signum);
 void print_help();

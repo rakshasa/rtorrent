@@ -24,10 +24,6 @@ rtorrent_SOURCES = \
 	command_local.cc \
 	command_network.cc \
 	command_ui.cc \
-	command_scheduler.cc \
-	command_scheduler.h \
-	command_scheduler_item.cc \
-	command_scheduler_item.h \
 	control.cc \
 	control.h \
 	globals.cc \

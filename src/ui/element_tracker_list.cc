@@ -73,6 +73,7 @@ ElementTrackerList::activate(display::Frame* frame, bool focus) {
 
   m_window = new WTrackerList(m_download, &m_focus);
   m_window->set_active(true);
+  m_window->set_focused(focus);
 
   m_frame = frame;
   m_frame->initialize_window(m_window);

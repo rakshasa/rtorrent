@@ -63,12 +63,11 @@ namespace input {
 }  
 
 namespace rpc {
+  class CommandScheduler;
   class FastCgi;
   class SCgi;
   class XmlRpc;
 }
-
-class CommandScheduler;
 
 class Control {
 public:
@@ -98,7 +97,7 @@ public:
   input::Manager*     input()                       { return m_input; }
   input::InputEvent*  input_stdin()                 { return m_inputStdin; }
 
-  CommandScheduler*   command_scheduler()           { return m_commandScheduler; }
+  rpc::CommandScheduler* command_scheduler()        { return m_commandScheduler; }
 
   rpc::FastCgi*       fast_cgi()                    { return m_fastCgi; }
   void                set_fast_cgi(rpc::FastCgi* f) { m_fastCgi = f; }
@@ -134,7 +133,7 @@ private:
   input::Manager*     m_input;
   input::InputEvent*  m_inputStdin;
 
-  CommandScheduler*   m_commandScheduler;
+  rpc::CommandScheduler* m_commandScheduler;
 
   rpc::FastCgi*       m_fastCgi;
   rpc::SCgi*          m_scgi;

@@ -352,9 +352,9 @@ DownloadList::resume(Download* download) {
     rpc::call_command_d("set_d_state_changed", download, cachedTime.seconds());
 
     if (download->is_done()) {
-      download->set_connection_type(rpc::call_command_d_string("get_d_connection_seed", download));
+      rpc::call_command_d("set_d_connection_current", download, rpc::call_command_d_void("get_d_connection_seed", download));
     } else {
-      download->set_connection_type(rpc::call_command_d_string("get_d_connection_leech", download));
+      rpc::call_command_d("set_d_connection_current", download, rpc::call_command_d_void("get_d_connection_leech", download));
 
       // For the moment, clear the resume data so we force hash-check
       // on non-complete downloads after a crash. This shouldn't be
@@ -536,7 +536,7 @@ DownloadList::confirm_finished(Download* download) {
 
   rpc::call_command_d("set_d_complete", download, (int64_t)1);
 
-  download->set_connection_type(rpc::call_command_d_string("get_d_connection_seed", download));
+  rpc::call_command_d("set_d_connection_current", download, rpc::call_command_d_void("get_d_connection_seed", download));
   download->set_priority(download->priority());
 
   if (rpc::call_command_d_value("get_d_min_peers", download) == rpc::call_command_value("get_min_peers") && rpc::call_command_value("get_min_peers_seed") >= 0)

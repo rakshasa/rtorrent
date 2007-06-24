@@ -161,6 +161,7 @@ Download::create_info() {
   element->push_column("Priority:",         te_variable_value("get_d_priority"));
 
   element->push_column("State changed:",    te_variable_value("get_d_state_changed", value_base::flag_timer | value_base::flag_elapsed));
+  element->push_column("Connection type:",  te_variable_string("get_d_connection_current"));
 
   element->push_back("");
   element->push_column("Memory usage:",     te_value(&torrent::ChunkManager::memory_usage, value_base::flag_mb), " MB");

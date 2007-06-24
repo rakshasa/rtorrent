@@ -165,7 +165,7 @@ print_download_info(char* first, char* last, core::Download* d) {
                        d->download()->bytes_done() > 0 ? (double)(100 * d->download()->up_rate()->total() / d->download()->bytes_done()) / 100 : 0.0);
 
   if (d->priority() != 2)
-    first = print_buffer(first, last, " %s]", core::Download::priority_to_string(d->priority()));
+    first = print_buffer(first, last, " %s]", rpc::call_command_d_string("get_d_priority_str", d).c_str());
   else
     first = print_buffer(first, last, "]");
 

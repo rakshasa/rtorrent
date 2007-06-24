@@ -125,59 +125,6 @@ Download::receive_storage_error(std::string msg) {
   m_message = "Storage error: [" + msg + "]";
 }
 
-Download::download_type::ConnectionType
-Download::string_to_connection_type(const std::string& name) {
-  // Return default if the name isn't found.
-  if (name == "leech")
-    return download_type::CONNECTION_LEECH;
-  else if (name == "seed")
-    return download_type::CONNECTION_SEED;
-  else
-    throw torrent::input_error("Unknown peer connection type selected: \"" + name + "\"");
-}
-
-const char*
-Download::connection_type_to_string(download_type::ConnectionType t) {
-  switch (t) {
-  case download_type::CONNECTION_LEECH:
-    return "leech";
-  case download_type::CONNECTION_SEED:
-    return "seed";
-  default:
-    return "unknown";
-  }
-}
-
-uint32_t
-Download::string_to_priority(const std::string& name) {
-  if (name == "off")
-    return 0;
-  else if (name == "low")
-    return 1;
-  else if (name == "normal")
-    return 2;
-  else if (name == "high")
-    return 3;
-  else
-    throw torrent::input_error("Could not convert string to priority.");
-}
-
-const char*
-Download::priority_to_string(uint32_t p) {
-  switch (p) {
-  case 0:
-    return "off";
-  case 1:
-    return "low";
-  case 2:
-    return "normal";
-  case 3:
-    return "high";
-  default:
-    throw torrent::input_error("Priority out of range.");
-  }
-}
-
 float
 Download::distributed_copies() const {
   const uint8_t* avail = m_download.chunks_seen();

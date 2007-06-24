@@ -37,13 +37,7 @@
 #ifndef RTORRENT_DISPLAY_TRACKER_LIST_H
 #define RTORRENT_DISPLAY_TRACKER_LIST_H
 
-#include <list>
-
 #include "window.h"
-
-namespace torrent {
-  class Tracker;
-}
 
 namespace core {
   class Download;

@@ -40,6 +40,8 @@
 
 #include "command_scheduler_item.h"
 
+namespace rpc {
+
 CommandSchedulerItem::~CommandSchedulerItem() {
   priority_queue_erase(&taskScheduler, &m_task);
 }
@@ -81,4 +83,6 @@ CommandSchedulerItem::next_time_scheduled() const {
   } while (next <= cachedTime.round_seconds());
 
   return next;
+}
+
 }

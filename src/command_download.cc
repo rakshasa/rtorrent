@@ -173,6 +173,61 @@ apply_d_delete_link(core::Download* download, const torrent::Object& rawArgs) {
   return torrent::Object();
 }
 
+void
+apply_d_delete_tied(core::Download* download) {
+  const std::string& tie = rpc::call_command_d_string("get_d_tied_to_file", download);
+
+  if (tie.empty())
+    return;
+
+  if (::unlink(rak::path_expand(tie).c_str()) == -1)
+    control->core()->push_log("Could not unlink tied file: " + std::string(rak::error_number::current().c_str()));
+
+  rpc::call_command_d("set_d_tied_to_file", download, std::string());
+}
+
+void
+apply_d_connection_type(core::Download* download, const std::string& name) {
+  torrent::Download::ConnectionType connType;
+
+  if (name == "leech")
+    connType = torrent::Download::CONNECTION_LEECH;
+  else if (name == "seed")
+    connType = torrent::Download::CONNECTION_SEED;
+  else
+    throw torrent::input_error("Unknown peer connection type selected.");
+
+  download->download()->set_connection_type(connType);
+}
+
+const char*
+retrieve_d_connection_type(core::Download* download) {
+  switch (download->download()->connection_type()) {
+  case torrent::Download::CONNECTION_LEECH:
+    return "leech";
+  case torrent::Download::CONNECTION_SEED:
+    return "seed";
+  default:
+    return "unknown";
+  }
+}
+
+const char*
+retrieve_d_priority_str(core::Download* download) {
+  switch (download->priority()) {
+  case 0:
+    return "off";
+  case 1:
+    return "low";
+  case 2:
+    return "normal";
+  case 3:
+    return "high";
+  default:
+    throw torrent::input_error("Priority out of range.");
+  }
+}
+
 #define ADD_COMMAND_DOWNLOAD_SLOT(key, function, slot, parm, doc)    \
   commandDownloadSlotsItr->set_slot(slot); \
   rpc::commands.insert(key, commandDownloadSlotsItr++, NULL, &rpc::CommandDownloadSlot::function, rpc::CommandMap::flag_dont_delete, parm, doc);
@@ -183,6 +238,9 @@ apply_d_delete_link(core::Download* download, const torrent::Object& rawArgs) {
 
 #define ADD_COMMAND_DOWNLOAD_VOID(key, slot) \
   ADD_COMMAND_DOWNLOAD_SLOT_PUBLIC("get_d_" key, call_unknown, rpc::object_d_fn(slot), "i:", "")
+
+#define ADD_COMMAND_DOWNLOAD_V_VOID(key, slot) \
+  ADD_COMMAND_DOWNLOAD_SLOT_PUBLIC("d_" key, call_unknown, rpc::object_d_fn(slot), "i:", "")
 
 #define ADD_COMMAND_DOWNLOAD_LIST(key, slot) \
   ADD_COMMAND_DOWNLOAD_SLOT_PUBLIC(key, call_list, slot, "i:", "")
@@ -205,6 +263,9 @@ apply_d_delete_link(core::Download* download, const torrent::Object& rawArgs) {
 #define ADD_COMMAND_DOWNLOAD_VALUE_MEM_UNI(key, target, get) \
   ADD_COMMAND_DOWNLOAD_SLOT_PUBLIC("get_d_" key, call_unknown, rpc::object_void_d_fn(rak::on(rak::on(std::mem_fun(&core::Download::download), std::mem_fun(target)), std::mem_fun(get))), "i:", "");
 
+#define ADD_COMMAND_DOWNLOAD_STRING_UNI(key, get) \
+  ADD_COMMAND_DOWNLOAD_SLOT_PUBLIC("get_d_" key, call_unknown, rpc::object_void_d_fn(get), "s:", "")
+
 #define ADD_COMMAND_DOWNLOAD_STRING_BI(key, set, get) \
   ADD_COMMAND_DOWNLOAD_SLOT_PUBLIC("set_d_" key, call_string, rpc::object_string_d_fn(set), "i:s", "") \
   ADD_COMMAND_DOWNLOAD_SLOT_PUBLIC("get_d_" key, call_unknown, rpc::object_void_d_fn(get), "s:", "")
@@ -224,8 +285,9 @@ initialize_command_download() {
   ADD_COMMAND_DOWNLOAD_VOID("base_path", &retrieve_d_base_path);
   ADD_COMMAND_DOWNLOAD_VOID("base_filename", &retrieve_d_base_filename);
 
-  ADD_COMMAND_DOWNLOAD_LIST("create_link", rak::ptr_fn(&apply_d_create_link));
-  ADD_COMMAND_DOWNLOAD_LIST("delete_link", rak::ptr_fn(&apply_d_delete_link));
+  ADD_COMMAND_DOWNLOAD_LIST("create_link",   rak::ptr_fn(&apply_d_create_link));
+  ADD_COMMAND_DOWNLOAD_LIST("delete_link",   rak::ptr_fn(&apply_d_delete_link));
+  ADD_COMMAND_DOWNLOAD_V_VOID("delete_tied", &apply_d_delete_tied);
 
   // 0 - stopped
   // 1 - started
@@ -244,7 +306,7 @@ initialize_command_download() {
   ADD_COMMAND_DOWNLOAD_VARIABLE_VALUE("state_changed", "rtorrent", "state_changed");
   ADD_COMMAND_DOWNLOAD_VARIABLE_VALUE("ignore_commands", "rtorrent", "ignore_commands");
 
-  ADD_COMMAND_DOWNLOAD_STRING_BI("connection_current", std::mem_fun(&core::Download::set_connection_current), std::mem_fun(&core::Download::connection_current));
+  ADD_COMMAND_DOWNLOAD_STRING_BI("connection_current", std::ptr_fun(&apply_d_connection_type), std::ptr_fun(&retrieve_d_connection_type));
 
   add_copy_to_download("get_connection_leech", "get_d_connection_leech");
   add_copy_to_download("set_connection_leech", "set_d_connection_leech");
@@ -271,6 +333,7 @@ initialize_command_download() {
 
   ADD_COMMAND_DOWNLOAD_VALUE_MEM_BI("tracker_numwant", &core::Download::tracker_list, &torrent::TrackerList::set_numwant, &torrent::TrackerList::numwant);
 
-  ADD_COMMAND_DOWNLOAD_STRING_BI("directory", std::mem_fun(&core::Download::set_root_directory), rak::on(std::mem_fun(&core::Download::file_list), std::mem_fun(&torrent::FileList::root_dir)));
-  ADD_COMMAND_DOWNLOAD_VALUE_BI("priority", std::mem_fun(&core::Download::set_priority), std::mem_fun(&core::Download::priority));
+  ADD_COMMAND_DOWNLOAD_STRING_BI("directory",     std::mem_fun(&core::Download::set_root_directory), rak::on(std::mem_fun(&core::Download::file_list), std::mem_fun(&torrent::FileList::root_dir)));
+  ADD_COMMAND_DOWNLOAD_VALUE_BI("priority",       std::mem_fun(&core::Download::set_priority), std::mem_fun(&core::Download::priority));
+  ADD_COMMAND_DOWNLOAD_STRING_UNI("priority_str", std::ptr_fun(&retrieve_d_priority_str));
 }

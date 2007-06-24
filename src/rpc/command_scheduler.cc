@@ -45,6 +45,9 @@
 
 #include "command_scheduler.h"
 #include "command_scheduler_item.h"
+#include "parse_commands.h"
+
+namespace rpc {
 
 CommandScheduler::~CommandScheduler() {
   std::for_each(begin(), end(), rak::call_delete<CommandSchedulerItem>());
@@ -94,7 +97,7 @@ CommandScheduler::call_item(value_type item) {
   // removed.
 
   try {
-    m_slotCommand(item->command());
+    rpc::parse_command_single_std(item->command());
 
   } catch (torrent::input_error& e) {
     if (m_slotErrorMessage.is_valid())
@@ -208,4 +211,6 @@ CommandScheduler::parse_time(const char* str) {
 
     str = pos + 1;
   }
+}
+
 }

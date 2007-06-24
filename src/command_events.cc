@@ -48,6 +48,7 @@
 #include "core/download_list.h"
 #include "core/manager.h"
 #include "core/view_manager.h"
+#include "rpc/command_scheduler.h"
 #include "rpc/command_slot.h"
 #include "rpc/command_variable.h"
 #include "rpc/parse.h"
@@ -56,7 +57,6 @@
 #include "globals.h"
 #include "control.h"
 #include "command_helpers.h"
-#include "command_scheduler.h"
 
 torrent::Object
 apply_on_state_change(core::DownloadList::slot_map* slotMap, const torrent::Object& rawArgs) {
@@ -309,18 +309,18 @@ initialize_command_events() {
   ADD_COMMAND_SLOT_PRIVATE("remove_untied",   call_string, rpc::object_fn(&apply_remove_untied));
 
   ADD_COMMAND_LIST("schedule",                rak::ptr_fn(&apply_schedule));
-  ADD_COMMAND_STRING_UN("schedule_remove",    rak::make_mem_fun(control->command_scheduler(), &CommandScheduler::erase_str));
+  ADD_COMMAND_STRING_UN("schedule_remove",    rak::make_mem_fun(control->command_scheduler(), &rpc::CommandScheduler::erase_str));
 
-  ADD_COMMAND_STRING_UN("import",                std::ptr_fun(&apply_import));
-  ADD_COMMAND_STRING_UN("try_import",            std::ptr_fun(&apply_try_import));
+  ADD_COMMAND_STRING_UN("import",             std::ptr_fun(&apply_import));
+  ADD_COMMAND_STRING_UN("try_import",         std::ptr_fun(&apply_try_import));
 
-  ADD_COMMAND_STRING_UN("load",                  std::ptr_fun(&apply_load));
-  ADD_COMMAND_STRING_UN("load_verbose",          std::ptr_fun(&apply_load_verbose));
-  ADD_COMMAND_STRING_UN("load_start",            std::ptr_fun(&apply_load_start));
-  ADD_COMMAND_STRING_UN("load_start_verbose",    std::ptr_fun(&apply_load_start_verbose));
+  ADD_COMMAND_STRING_UN("load",               std::ptr_fun(&apply_load));
+  ADD_COMMAND_STRING_UN("load_verbose",       std::ptr_fun(&apply_load_verbose));
+  ADD_COMMAND_STRING_UN("load_start",         std::ptr_fun(&apply_load_start));
+  ADD_COMMAND_STRING_UN("load_start_verbose", std::ptr_fun(&apply_load_start_verbose));
 
-  ADD_COMMAND_VALUE_UN("close_low_diskspace",    std::ptr_fun(&apply_close_low_diskspace));
+  ADD_COMMAND_VALUE_UN("close_low_diskspace", std::ptr_fun(&apply_close_low_diskspace));
 
-  ADD_COMMAND_LIST("download_list",              rak::ptr_fn(&apply_download_list));
-  ADD_COMMAND_LIST("call_download",              rak::ptr_fn(&apply_call_download));
+  ADD_COMMAND_LIST("download_list",           rak::ptr_fn(&apply_download_list));
+  ADD_COMMAND_LIST("call_download",           rak::ptr_fn(&apply_call_download));
 }

@@ -34,50 +34,56 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef RTORRENT_COMMAND_SCHEDULER_ITEM_H
-#define RTORRENT_COMMAND_SCHEDULER_ITEM_H
+#ifndef RTORRENT_COMMAND_SCHEDULER_H
+#define RTORRENT_COMMAND_SCHEDULER_H
 
-#include "globals.h"
+#include <vector>
+#include <string>
+#include <inttypes.h>
+#include <rak/functional_fun.h>
 
-class CommandSchedulerItem {
+namespace rpc {
+
+class CommandSchedulerItem;
+
+class CommandScheduler : public std::vector<CommandSchedulerItem*> {
 public:
-  typedef rak::function0<void> Slot;
+  typedef rak::function1<void, const std::string&> SlotString;
+  typedef std::pair<int, int>                      Time;
+  typedef std::vector<CommandSchedulerItem*>       base_type;
 
-  CommandSchedulerItem(const std::string& key) : m_key(key), m_interval(0) {}
-  ~CommandSchedulerItem();
+  using base_type::value_type;
+  using base_type::begin;
+  using base_type::end;
 
-  bool                is_queued() const                       { return m_task.is_queued(); }
+  CommandScheduler() {}
+  ~CommandScheduler();
 
-  void                enable(rak::timer t);
-  void                disable();
+  void                set_slot_error_message(SlotString::base_type* s) { m_slotErrorMessage.set(s); }
 
-  const std::string&  key() const                             { return m_key; }
+  // slot_error_message or something.
 
-  const std::string&  command() const                         { return m_command; }
-  void                set_command(const std::string& s)       { m_command = s; }
+  iterator            find(const std::string& key);
 
-  // 'interval()' should in the future return some more dynamic values.
-  uint32_t            interval() const                        { return m_interval; }
-  void                set_interval(uint32_t v)                { m_interval = v; }
+  // If the key already exists then the old item is deleted. It is
+  // safe to call erase on end().
+  iterator            insert(const std::string& key);
+  void                erase(iterator itr);
+  void                erase_str(const std::string& key)                { erase(find(key)); }
 
-  rak::timer          time_scheduled() const                  { return m_timeScheduled; }
-  rak::timer          next_time_scheduled() const;
+  void                parse(const std::string& key, const std::string& bufAbsolute, const std::string& bufInterval, const std::string& command);
 
-  void                set_slot(Slot::base_type* s)            { m_task.set_slot(s); }
+  static uint32_t     parse_absolute(const char* str);
+  static uint32_t     parse_interval(const char* str);
+
+  static Time         parse_time(const char* str);
 
 private:
-  CommandSchedulerItem(const CommandSchedulerItem&);
-  void operator = (const CommandSchedulerItem&);
+  void                call_item(value_type item);
 
-  std::string         m_key;
-  std::string         m_command;
-  
-  uint32_t            m_interval;
-  rak::timer          m_timeScheduled;
-
-  rak::priority_item  m_task;
-
-  // Flags for various things.
+  SlotString          m_slotErrorMessage;
 };
+
+}
 
 #endif

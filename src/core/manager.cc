@@ -165,22 +165,6 @@ Manager::handshake_log(const sockaddr* sa, int msg, int err, const torrent::Hash
   }
 }
 
-// Hmm... find some better place for all this.
-void
-Manager::delete_tied(Download* download) {
-  const std::string& tie = rpc::call_command_d_string("get_d_tied_to_file", download);
-
-  // This should be configurable, need to wait for the variable
-  // thingie to be implemented.
-  if (tie.empty())
-    return;
-
-  if (::unlink(rak::path_expand(tie).c_str()) == -1)
-    push_log("Could not unlink tied file: " + std::string(rak::error_number::current().c_str()));
-
-  rpc::call_command_d("set_d_tied_to_file", download, std::string());
-}
-
 Manager::Manager() :
   m_hashingView(NULL),
 
@@ -240,7 +224,7 @@ Manager::initialize_second() {
   m_downloadList->slot_map_insert()["1_connect_storage_log"]  = sigc::bind(sigc::ptr_fun(&connect_signal_storage_log), sigc::mem_fun(m_logComplete, &Log::push_front));
   m_downloadList->slot_map_insert()["1_connect_tracker_dump"] = sigc::bind(sigc::ptr_fun(&connect_signal_tracker_dump), sigc::ptr_fun(&receive_tracker_dump));
 
-  m_downloadList->slot_map_erase()["9_delete_tied"] = sigc::mem_fun(this, &Manager::delete_tied);
+  m_downloadList->slot_map_erase()["9_delete_tied"] = sigc::bind<0>(&rpc::call_command_d_v_void, "d_delete_tied");
 
   torrent::connection_manager()->set_signal_handshake_log(sigc::mem_fun(this, &Manager::handshake_log));
 }
@@ -260,12 +244,6 @@ Manager::cleanup() {
 
 void
 Manager::shutdown(bool force) {
-  // This doesn't trigger a compiler error on gcc-3.4.5 for some reason.
-//   if (!force)
-//     std::for_each(m_downloadList->begin(), m_downloadList->end(), std::bind1st(std::mem_fun(&DownloadList::pause), &m_downloadList));
-//   else
-//     std::for_each(m_downloadList->begin(), m_downloadList->end(), std::bind1st(std::mem_fun(&DownloadList::close), &m_downloadList));
-
   if (!force)
     std::for_each(m_downloadList->begin(), m_downloadList->end(), std::bind1st(std::mem_fun(&DownloadList::pause), m_downloadList));
   else

@@ -85,6 +85,8 @@ inline torrent::Object call_command_d_void(const char* key, core::Download* down
 inline std::string     call_command_d_string(const char* key, core::Download* download) { return commands.call_command_d(key, download, torrent::Object()).as_string(); }
 inline int64_t         call_command_d_value(const char* key, core::Download* download)  { return commands.call_command_d(key, download, torrent::Object()).as_value(); }
 
+inline void            call_command_d_v_void(const char* key, core::Download* download) { commands.call_command_d(key, download, torrent::Object()); }
+
 inline void            call_command_d_set_value(const char* key, core::Download* download, int64_t arg)                        { commands.call_command_d(key, download, torrent::Object(arg)); }
 inline void            call_command_d_set_string(const char* key, core::Download* download, const std::string& arg)            { commands.call_command_d(key, download, torrent::Object(arg)); }
 inline void            call_command_d_set_std_string(const std::string& key, core::Download* download, const std::string& arg) { commands.call_command_d(key.c_str(), download, torrent::Object(arg)); }
