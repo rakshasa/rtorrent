@@ -177,6 +177,12 @@ te_branch(Return (Object::*fptr)() const, const Object* object, TextElement* bra
   return text_element_branch_void(rak::make_mem_fun(object, fptr), branch1, branch2);
 }
 
+template <typename Return1, typename Return2, typename Object1, typename Object2>
+inline TextElement*
+te_branch(Return1 (Object1::*fptr1)() const, Return2 (Object2::*fptr2)() const, TextElement* branch1, TextElement* branch2) {
+  return text_element_branch(rak::on(std::mem_fun(fptr1), std::mem_fun(fptr2)), branch1, branch2);
+}
+
 } }
 
 #endif
