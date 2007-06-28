@@ -151,27 +151,32 @@ XmlRpc::xmlrpc_to_object_d(xmlrpc_env* env, xmlrpc_value* value, core::Download*
   switch (xmlrpc_value_type(value)) {
   case XMLRPC_TYPE_STRING:
     *download = xmlrpc_to_download(env, value);
-    return torrent::Object();
+    break;
 
   case XMLRPC_TYPE_ARRAY:
   {
     unsigned int last = xmlrpc_array_size(env, value);
 
-    if (env->fault_occurred || last < 1)
-      return torrent::Object();
+    if (env->fault_occurred)
+      break;
+
+    if (last < 1) {
+      xmlrpc_env_set_fault(env, XMLRPC_TYPE_ERROR, "Unsupported type found.");
+      break;
+    }
 
     // Need to decref.
     xmlrpc_value* tmpDownload;
     xmlrpc_array_read_item(env, value, 0, &tmpDownload);
 
     if (env->fault_occurred)
-      return torrent::Object();
+      break;
 
     *download = xmlrpc_to_download(env, tmpDownload);
     xmlrpc_DECREF(tmpDownload);
 
     if (env->fault_occurred)
-      return torrent::Object();
+      break;
 
     torrent::Object result;
 
@@ -186,7 +191,7 @@ XmlRpc::xmlrpc_to_object_d(xmlrpc_env* env, xmlrpc_value* value, core::Download*
         xmlrpc_array_read_item(env, value, i, &tmp);
 
         if (env->fault_occurred)
-          return torrent::Object();
+          break;
 
         listRef.push_back(xmlrpc_to_object(env, tmp));
         xmlrpc_DECREF(tmp);
@@ -200,7 +205,7 @@ XmlRpc::xmlrpc_to_object_d(xmlrpc_env* env, xmlrpc_value* value, core::Download*
       xmlrpc_array_read_item(env, value, 1, &tmp);
 
       if (env->fault_occurred)
-        return torrent::Object();
+        break;
 
       result = xmlrpc_to_object(env, tmp);
       xmlrpc_DECREF(tmp);
@@ -211,8 +216,9 @@ XmlRpc::xmlrpc_to_object_d(xmlrpc_env* env, xmlrpc_value* value, core::Download*
 
   default:
     xmlrpc_env_set_fault(env, XMLRPC_TYPE_ERROR, "Unsupported type found.");
-    return torrent::Object();
   }
+
+  return torrent::Object();
 }
 
 xmlrpc_value*
@@ -260,7 +266,7 @@ XmlRpc::call_command(xmlrpc_env* env, xmlrpc_value* args, void* voidServerInfo) 
 
 xmlrpc_value*
 XmlRpc::call_command_d(xmlrpc_env* env, xmlrpc_value* args, void* voidServerInfo) {
-  core::Download* download;
+  core::Download* download = NULL;
   torrent::Object object = xmlrpc_to_object_d(env, args, &download);
 
   if (env->fault_occurred)
