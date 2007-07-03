@@ -102,7 +102,7 @@ CommandMap::call_command_d(key_type key, core::Download* download, const mapped_
   if (itr == base_type::end())
     throw torrent::input_error("Command \"" + std::string(key) + "\" does not exist.");
 
-  if (itr->second.m_downloadSlot == NULL) {
+  if (itr->second.m_downloadSlot == NULL || download == NULL) {
     if (itr->second.m_genericSlot == NULL)
       throw torrent::input_error("Command does not have a generic slot.");
 

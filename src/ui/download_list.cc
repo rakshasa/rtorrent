@@ -292,7 +292,7 @@ DownloadList::receive_exit_input(Input type) {
       break;
 
     case INPUT_COMMAND:
-      rpc::parse_command_single_std(input->str());
+      rpc::parse_command_d_single_std(current_view()->focus() != current_view()->end_visible() ? *current_view()->focus() : NULL, input->str());
       break;
 
     default:
