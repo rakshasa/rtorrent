@@ -39,10 +39,6 @@
 
 #include <rak/functional_fun.h>
 
-typedef struct _xmlrpc_env xmlrpc_env;
-typedef struct _xmlrpc_value xmlrpc_value;
-typedef struct _xmlrpc_registry xmlrpc_registry;
-
 namespace core {
   class Download;
 }
@@ -58,6 +54,10 @@ public:
   typedef rak::function1<core::Download*, const char*> slot_find_download;
   typedef rak::function2<bool, const char*, uint32_t>  slot_write;
 
+  static const int dialect_generic = 0;
+  static const int dialect_i8      = 1;
+  static const int dialect_apache  = 2;
+
   XmlRpc();
   ~XmlRpc();
 
@@ -65,17 +65,21 @@ public:
 
   void                insert_command(const char* name, const char* parm, const char* doc, bool onDownload);
 
+  static int          dialect() { return m_dialect; }
+  void                set_dialect(int dialect);
+
+  static slot_find_download& get_slot_find_download() { return m_slotFindDownload; }
   static void         set_slot_find_download(slot_find_download::base_type* slot) { m_slotFindDownload.set(slot); }
 
-  static xmlrpc_value* call_command(xmlrpc_env* env, xmlrpc_value* args, void* voidServerInfo);
-  static xmlrpc_value* call_command_d(xmlrpc_env* env, xmlrpc_value* args, void* voidServerInfo);
-
 private:
-  static core::Download* xmlrpc_to_download(xmlrpc_env* env, xmlrpc_value* value);
-  static torrent::Object xmlrpc_to_object_d(xmlrpc_env* env, xmlrpc_value* value, core::Download** download);
+//   xmlrpc_env*         m_env;
+//   xmlrpc_registry*    m_registry;
 
-  xmlrpc_env*         m_env;
-  xmlrpc_registry*    m_registry;
+  void*               m_env;
+  void*               m_registry;
+
+  // Meh.
+  static int                m_dialect;
 
   static slot_find_download m_slotFindDownload;
 };

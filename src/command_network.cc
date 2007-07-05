@@ -244,6 +244,25 @@ apply_scgi(const std::string& arg, int type) {
 }
 
 void
+apply_xmlrpc_dialect(const std::string& arg) {
+  if (control->xmlrpc() == NULL)
+    initialize_xmlrpc();
+
+  int value;
+
+  if (arg == "i8")
+    value = rpc::XmlRpc::dialect_i8;
+  else if (arg == "apache")
+    value = rpc::XmlRpc::dialect_apache;
+  else if (arg == "generic")
+    value = rpc::XmlRpc::dialect_generic;
+  else
+    value = -1;
+
+  control->xmlrpc()->set_dialect(value);
+}
+
+void
 initialize_command_network() {
 //   core::DownloadList* downloadList = control->core()->download_list();
   torrent::ConnectionManager* cm = torrent::connection_manager();
@@ -299,6 +318,7 @@ initialize_command_network() {
   ADD_COMMAND_STRING_UN("scgi_port",            rak::bind2nd(std::ptr_fun(&apply_scgi), 1));
   ADD_COMMAND_STRING_UN("scgi_local",           rak::bind2nd(std::ptr_fun(&apply_scgi), 2));
   ADD_VARIABLE_BOOL("scgi_dont_route", false);
+  ADD_COMMAND_STRING_UN("xmlrpc_dialect",       std::ptr_fun(&apply_xmlrpc_dialect));
 
   ADD_COMMAND_VALUE_TRI("hash_read_ahead",      std::ptr_fun(&apply_hash_read_ahead), rak::ptr_fun(torrent::hash_read_ahead));
   ADD_COMMAND_VALUE_TRI("hash_interval",        std::ptr_fun(&apply_hash_interval), rak::ptr_fun(torrent::hash_interval));
