@@ -40,6 +40,7 @@
 #include <string>
 
 #include "command_map.h"
+#include "xmlrpc.h"
 
 namespace core {
   class Download;
@@ -47,7 +48,9 @@ namespace core {
 
 namespace rpc {
 
-// class CommandMap;
+// Move to another file?
+extern CommandMap commands;
+extern XmlRpc     xmlrpc;
 
 const char* parse_command_name(const char* first, const char* last, std::string* dest);
 
@@ -68,9 +71,6 @@ inline void
 parse_command_d_single_std(core::Download* download, const std::string& cmd) {
   parse_command_d_single(download, cmd.c_str(), cmd.c_str() + cmd.size());
 }
-
-// Move to anoher file?
-extern CommandMap commands;
 
 inline torrent::Object call_command(const char* key, const torrent::Object& obj) { return commands.call_command(key, obj); }
 inline torrent::Object call_command_void(const char* key)   { return commands.call_command(key, torrent::Object()); }

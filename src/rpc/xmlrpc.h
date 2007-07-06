@@ -58,30 +58,30 @@ public:
   static const int dialect_i8      = 1;
   static const int dialect_apache  = 2;
 
-  XmlRpc();
-  ~XmlRpc();
+  XmlRpc() : m_env(NULL), m_registry(NULL), m_dialect(dialect_i8) {}
+
+  bool                is_valid() const { return m_env != NULL; }
+
+  void                initialize();
+  void                cleanup();
 
   bool                process(const char* inBuffer, uint32_t length, slot_write slotWrite);
 
   void                insert_command(const char* name, const char* parm, const char* doc, bool onDownload);
 
-  static int          dialect() { return m_dialect; }
+  int                 dialect() { return m_dialect; }
   void                set_dialect(int dialect);
 
-  static slot_find_download& get_slot_find_download() { return m_slotFindDownload; }
-  static void         set_slot_find_download(slot_find_download::base_type* slot) { m_slotFindDownload.set(slot); }
+  slot_find_download& get_slot_find_download()                                    { return m_slotFindDownload; }
+  void                set_slot_find_download(slot_find_download::base_type* slot) { m_slotFindDownload.set(slot); }
 
 private:
-//   xmlrpc_env*         m_env;
-//   xmlrpc_registry*    m_registry;
-
   void*               m_env;
   void*               m_registry;
 
-  // Meh.
-  static int                m_dialect;
+  int                 m_dialect;
 
-  static slot_find_download m_slotFindDownload;
+  slot_find_download  m_slotFindDownload;
 };
 
 }

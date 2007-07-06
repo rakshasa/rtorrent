@@ -49,15 +49,6 @@
 
 namespace rpc {
 
-// Ugly...
-#ifdef XMLRPC_HAVE_I8
-int XmlRpc::m_dialect = dialect_i8;
-#else
-int XmlRpc::m_dialect = dialect_generic;
-#endif
-
-XmlRpc::slot_find_download XmlRpc::m_slotFindDownload;
-
 #ifdef HAVE_XMLRPC_C
 
 xmlrpc_value*   xmlrpc_call_command(xmlrpc_env* env, xmlrpc_value* args, void* voidServerInfo);
@@ -152,7 +143,7 @@ xmlrpc_to_download(xmlrpc_env* env, xmlrpc_value* value) {
       return NULL;
 
     if (std::strlen(valueString) != 40 ||
-        (download = XmlRpc::get_slot_find_download()(valueString)) == NULL)
+        (download = xmlrpc.get_slot_find_download()(valueString)) == NULL)
       xmlrpc_env_set_fault(env, XMLRPC_TYPE_ERROR, "Could not find info-hash.");
 
     // Urgh, seriously?
@@ -248,7 +239,7 @@ object_to_xmlrpc(xmlrpc_env* env, const torrent::Object& object) {
   case torrent::Object::TYPE_VALUE:
 
 #ifdef XMLRPC_HAVE_I8
-    if (XmlRpc::dialect() != XmlRpc::dialect_generic)
+    if (xmlrpc::dialect() != XmlRpc::dialect_generic)
       return xmlrpc_i8_new(env, object.as_value());
 #else
     return xmlrpc_int_new(env, object.as_value());
@@ -258,13 +249,14 @@ object_to_xmlrpc(xmlrpc_env* env, const torrent::Object& object) {
     return xmlrpc_string_new(env, object.as_string().c_str());
 
   case torrent::Object::TYPE_LIST:
+  {
     xmlrpc_value* result = xmlrpc_array_new(env);
     
     for (torrent::Object::list_type::const_iterator itr = object.as_list().begin(), last = object.as_list().end(); itr != last; itr++)
       xmlrpc_array_append_item(env, result, object_to_xmlrpc(env, *itr));
 
     return result;
-
+  }
   default:
     return xmlrpc_int_new(env, 0);
   }
@@ -303,20 +295,23 @@ xmlrpc_call_command_d(xmlrpc_env* env, xmlrpc_value* args, void* voidServerInfo)
   }
 }
 
-XmlRpc::XmlRpc() :
-  m_env(new xmlrpc_env) {
-
-// #ifdef XMLRPC_HAVE_I8
-//   m_dialect(dialect_i8) {
-// #else
-//   m_dialect(dialect_generic) {
-// #endif
+void
+XmlRpc::initialize() {
+#ifndef XMLRPC_HAVE_I8
+  m_dialect = dialect_generic;
+#endif
   
+  m_env = new xmlrpc_env;
+
   xmlrpc_env_init((xmlrpc_env*)m_env);
   m_registry = xmlrpc_registry_new((xmlrpc_env*)m_env);
 }
 
-XmlRpc::~XmlRpc() {
+void
+XmlRpc::cleanup() {
+  if (!is_valid())
+    return;
+
   xmlrpc_registry_free((xmlrpc_registry*)m_registry);
   xmlrpc_env_clean((xmlrpc_env*)m_env);
   delete (xmlrpc_env*)m_env;
@@ -354,6 +349,9 @@ XmlRpc::insert_command(const char* name, const char* parm, const char* doc, bool
 
 void
 XmlRpc::set_dialect(int dialect) {
+  if (!is_valid())
+    throw torrent::input_error("Cannot select XMLRPC dialect before it is initialized.");
+
   xmlrpc_env localEnv;
   xmlrpc_env_init(&localEnv);
 
@@ -376,8 +374,10 @@ XmlRpc::set_dialect(int dialect) {
     throw torrent::input_error("Unsupported XMLRPC dialect selected.");
   }
 
-  if (localEnv.fault_occurred)
+  if (localEnv.fault_occurred) {
+    xmlrpc_env_clean(&localEnv);
     throw torrent::input_error("Unsupported XMLRPC dialect selected.");
+  }
 
   xmlrpc_env_clean(&localEnv);
   m_dialect = dialect;
@@ -385,15 +385,13 @@ XmlRpc::set_dialect(int dialect) {
 
 #else
 
-XmlRpc::XmlRpc() : m_dialect(dialect_generic) { throw torrent::resource_error("XMLRPC not supported."); }
-XmlRpc::~XmlRpc() {}
+void XmlRpc::initialize() { throw torrent::resource_error("XMLRPC not supported."); }
+void XmlRpc::cleanup() {}
 
 void XmlRpc::insert_command(const char* name, const char* parm, const char* doc, bool onDownload) {}
+void XmlRpc::set_dialect(__UNUSED int dialect) {}
 
 bool XmlRpc::process(const char* inBuffer, uint32_t length, slot_write slotWrite) { return false; }
-
-xmlrpc_value* XmlRpc::call_command(xmlrpc_env* env, xmlrpc_value* args, void* voidServerInfo) { return NULL; }
-xmlrpc_value* call_command_d(xmlrpc_env* env, xmlrpc_value* args, void* voidServerInfo) { return NULL; }
 
 #endif
 

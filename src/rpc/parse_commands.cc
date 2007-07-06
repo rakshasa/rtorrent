@@ -49,6 +49,7 @@
 namespace rpc {
 
 CommandMap commands;
+XmlRpc     xmlrpc;
 
 struct command_map_is_space : std::unary_function<char, bool> {
   bool operator () (char c) const {

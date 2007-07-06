@@ -99,14 +99,8 @@ public:
 
   rpc::CommandScheduler* command_scheduler()        { return m_commandScheduler; }
 
-  rpc::FastCgi*       fast_cgi()                    { return m_fastCgi; }
-  void                set_fast_cgi(rpc::FastCgi* f) { m_fastCgi = f; }
-
   rpc::SCgi*          scgi()                        { return m_scgi; }
   void                set_scgi(rpc::SCgi* f)        { m_scgi = f; }
-
-  rpc::XmlRpc*        xmlrpc()                      { return m_xmlrpc; }
-  void                set_xmlrpc(rpc::XmlRpc* f)    { m_xmlrpc = f; }
 
   uint64_t            tick() const                  { return m_tick; }
   void                inc_tick()                    { m_tick++; }
@@ -135,9 +129,7 @@ private:
 
   rpc::CommandScheduler* m_commandScheduler;
 
-  rpc::FastCgi*       m_fastCgi;
   rpc::SCgi*          m_scgi;
-  rpc::XmlRpc*        m_xmlrpc;
 
   uint64_t            m_tick;
 

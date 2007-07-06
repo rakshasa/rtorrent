@@ -51,10 +51,8 @@
 #include "input/manager.h"
 #include "input/input_event.h"
 #include "rpc/command_scheduler.h"
-#include "rpc/fast_cgi.h"
 #include "rpc/parse_commands.h"
 #include "rpc/scgi.h"
-#include "rpc/xmlrpc.h"
 #include "ui/root.h"
 
 #include "control.h"
@@ -70,9 +68,7 @@ Control::Control() :
 
   m_commandScheduler(new rpc::CommandScheduler()),
 
-  m_fastCgi(NULL),
   m_scgi(NULL),
-  m_xmlrpc(NULL),
 
   m_tick(0) {
 
@@ -124,9 +120,8 @@ Control::initialize() {
 
 void
 Control::cleanup() {
-  delete m_fastCgi; m_fastCgi = NULL;
   delete m_scgi;    m_scgi = NULL;
-  delete m_xmlrpc;  m_xmlrpc = NULL;
+  rpc::xmlrpc.cleanup();
 
   priority_queue_erase(&taskScheduler, &m_taskShutdown);
 

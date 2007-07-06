@@ -47,9 +47,7 @@
 
 #include "core/download.h"
 #include "core/manager.h"
-#include "rpc/fast_cgi.h"
 #include "rpc/scgi.h"
-#include "rpc/xmlrpc.h"
 #include "ui/root.h"
 #include "rpc/command_slot.h"
 #include "rpc/command_variable.h"
@@ -145,8 +143,8 @@ apply_enable_trackers(int64_t arg) {
 
 void
 initialize_xmlrpc() {
-  control->set_xmlrpc(new rpc::XmlRpc);
-  rpc::XmlRpc::set_slot_find_download(rak::mem_fn(control->core()->download_list(), &core::DownloadList::find_hex_ptr));
+  rpc::xmlrpc.initialize();
+  rpc::xmlrpc.set_slot_find_download(rak::mem_fn(control->core()->download_list(), &core::DownloadList::find_hex_ptr));
 
   unsigned int count = 0;
 
@@ -155,9 +153,9 @@ initialize_xmlrpc() {
       continue;
 
     if (itr->second.m_genericSlot != NULL)
-      control->xmlrpc()->insert_command(itr->first, itr->second.m_parm, itr->second.m_doc, false);
+      rpc::xmlrpc.insert_command(itr->first, itr->second.m_parm, itr->second.m_doc, false);
     else if (itr->second.m_downloadSlot != NULL)
-      control->xmlrpc()->insert_command(itr->first, itr->second.m_parm, itr->second.m_doc, true);
+      rpc::xmlrpc.insert_command(itr->first, itr->second.m_parm, itr->second.m_doc, true);
     else
       throw torrent::internal_error("XMLRPC: Bad entry.");
 
@@ -171,23 +169,11 @@ initialize_xmlrpc() {
 }
 
 void
-apply_fast_cgi(const std::string& arg) {
-  if (control->fast_cgi() != NULL)
-    throw torrent::input_error("FastCGI already enabled.");
-
-  if (control->xmlrpc() == NULL)
-    initialize_xmlrpc();
-
-  control->set_fast_cgi(new rpc::FastCgi(arg));
-  control->fast_cgi()->set_slot_process(rak::mem_fn(control->xmlrpc(), &rpc::XmlRpc::process));
-}
-
-void
 apply_scgi(const std::string& arg, int type) {
   if (control->scgi() != NULL)
     throw torrent::input_error("SCGI already enabled.");
 
-  if (control->xmlrpc() == NULL)
+  if (!rpc::xmlrpc.is_valid())
     initialize_xmlrpc();
 
   // Fix this...
@@ -240,14 +226,11 @@ apply_scgi(const std::string& arg, int type) {
     throw torrent::input_error(e.what());
   }
 
-  control->scgi()->set_slot_process(rak::mem_fn(control->xmlrpc(), &rpc::XmlRpc::process));
+  control->scgi()->set_slot_process(rak::mem_fn(&rpc::xmlrpc, &rpc::XmlRpc::process));
 }
 
 void
 apply_xmlrpc_dialect(const std::string& arg) {
-  if (control->xmlrpc() == NULL)
-    initialize_xmlrpc();
-
   int value;
 
   if (arg == "i8")
@@ -259,7 +242,7 @@ apply_xmlrpc_dialect(const std::string& arg) {
   else
     value = -1;
 
-  control->xmlrpc()->set_dialect(value);
+  rpc::xmlrpc.set_dialect(value);
 }
 
 void
@@ -314,7 +297,6 @@ initialize_command_network() {
   ADD_COMMAND_VALUE_TRI("max_open_sockets",     rak::make_mem_fun(cm, &torrent::ConnectionManager::set_max_size), rak::make_mem_fun(cm, &torrent::ConnectionManager::max_size));
   ADD_COMMAND_VALUE_TRI("max_open_http",        rak::make_mem_fun(httpStack, &core::CurlStack::set_max_active), rak::make_mem_fun(httpStack, &core::CurlStack::max_active));
 
-  ADD_COMMAND_STRING_UN("fast_cgi",             std::ptr_fun(&apply_fast_cgi));
   ADD_COMMAND_STRING_UN("scgi_port",            rak::bind2nd(std::ptr_fun(&apply_scgi), 1));
   ADD_COMMAND_STRING_UN("scgi_local",           rak::bind2nd(std::ptr_fun(&apply_scgi), 2));
   ADD_VARIABLE_BOOL("scgi_dont_route", false);
