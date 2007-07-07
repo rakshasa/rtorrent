@@ -144,7 +144,7 @@ WindowFileList::redraw() {
       default: priority = "BUG"; break;
       };
 
-      m_canvas->print(0, pos, "%3d %s", done_percentage(e), priority);
+      m_canvas->print(0, pos, "%3d %s ", done_percentage(e), priority);
 
       int64_t val = e->size_bytes();
 
