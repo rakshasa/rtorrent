@@ -96,6 +96,14 @@ WindowTrackerList::redraw() {
                     tracker.scrape_complete(),
                     tracker.scrape_incomplete());
 
+//     m_canvas->print(4, pos++, "Id: %s Focus: %s Enabled: %s Open: %s Timer: %u/%u",
+//                     rak::copy_escape_html(tracker.tracker_id()).c_str(),
+//                     range.first == tl->focus() ? "yes" : " no",
+//                     tracker.is_enabled() ? "yes" : " no",
+//                     tracker.is_open() ? "yes" : " no",
+//                     tracker.normal_interval(),
+//                     tracker.min_interval());
+
     if (range.first == *m_focus) {
       m_canvas->set_attr(0, pos - 2, m_canvas->width(), is_focused() ? A_REVERSE : A_BOLD, COLOR_PAIR(0));
       m_canvas->set_attr(0, pos - 1, m_canvas->width(), is_focused() ? A_REVERSE : A_BOLD, COLOR_PAIR(0));
