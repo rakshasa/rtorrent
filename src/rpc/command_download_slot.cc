@@ -106,14 +106,14 @@ CommandDownloadSlot::call_string(Command* rawCommand, core::Download* download, 
   case torrent::Object::TYPE_STRING:
     return command->m_slot(download, arg);
 
-  case torrent::Object::TYPE_NONE:
-    throw torrent::input_error("CDS: void.");
+//   case torrent::Object::TYPE_NONE:
+//     throw torrent::input_error("CDS: void.");
 
-  case torrent::Object::TYPE_VALUE:
-    throw torrent::input_error("CDS: value.");
+//   case torrent::Object::TYPE_VALUE:
+//     throw torrent::input_error("CDS: value.");
 
-  case torrent::Object::TYPE_LIST:
-    throw torrent::input_error("CDS: list.");
+//   case torrent::Object::TYPE_LIST:
+//     throw torrent::input_error("CDS: list.");
 
   default:
     throw torrent::input_error("Not a string.");

@@ -75,40 +75,17 @@ parse_command_name(const char* first, const char* last, std::string* dest) {
   return first;
 }
 
-const char*
+void
 parse_command_single(const char* first) {
-  return parse_command_single(first, first + std::strlen(first));
+  parse_command_single(first, first + std::strlen(first));
 }
 
-const char*
-parse_command_single(const char* first, const char* last) {
-  first = std::find_if(first, last, std::not1(command_map_is_space()));
-
-  if (first == last || *first == '#')
-    return last;
-  
-  // Avoid using a string here?
-  std::string key;
-  first = parse_command_name(first, last, &key);
-  first = std::find_if(first, last, std::not1(command_map_is_space()));
-  
-  if (first == last || *first != '=')
-    throw torrent::input_error("Could not find '='.");
-
-  torrent::Object args;
-  parse_whole_list(first + 1, last, &args);
-
-  commands.call_command(key.c_str(), args);
-
-  return last;
-}
-
-const char*
+torrent::Object
 parse_command_d_single(core::Download* download, const char* first, const char* last) {
   first = std::find_if(first, last, std::not1(command_map_is_space()));
 
   if (first == last || *first == '#')
-    return last;
+    return torrent::Object();
   
   std::string key;
   first = parse_command_name(first, last, &key);
@@ -120,9 +97,24 @@ parse_command_d_single(core::Download* download, const char* first, const char* 
   torrent::Object args;
   parse_whole_list(first + 1, last, &args);
 
-  commands.call_command_d(key.c_str(), download, args);
+  if (args.is_list()) {
+    for (torrent::Object::list_type::iterator itr = args.as_list().begin(), last = args.as_list().begin(); itr != last; itr++) {
+      if (!itr->is_string())
+        continue;
 
-  return last;
+      const std::string& str = itr->as_string();
+
+      if (*str.c_str() == '$')
+        *itr = parse_command_d_single(download, str.c_str() + 1, str.c_str() + str.size());
+    }
+
+  } else if (*args.as_string().c_str() == '$') {
+    const std::string& str = args.as_string();
+
+    args = parse_command_d_single(download, str.c_str() + 1, str.c_str() + str.size());
+  }
+
+  return commands.call_command_d(key.c_str(), download, args);
 }
 
 void

@@ -257,6 +257,17 @@ object_to_xmlrpc(xmlrpc_env* env, const torrent::Object& object) {
 
     return result;
   }
+
+  case torrent::Object::TYPE_MAP:
+  {
+    xmlrpc_value* result = xmlrpc_struct_new(env);
+    
+    for (torrent::Object::map_type::const_iterator itr = object.as_map().begin(), last = object.as_map().end(); itr != last; itr++)
+      xmlrpc_struct_set_value(env, result, itr->first.c_str(), object_to_xmlrpc(env, itr->second));
+
+    return result;
+  }
+
   default:
     return xmlrpc_int_new(env, 0);
   }

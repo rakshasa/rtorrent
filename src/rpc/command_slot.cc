@@ -114,11 +114,4 @@ CommandSlot::call_string(Command* rawCommand, const torrent::Object& rawArgs) {
   }
 }
 
-// const torrent::Object&
-// CommandSlot::get_generic(Command* rawCommand, const torrent::Object& args) {
-//   CommandVariable* variable = static_cast<CommandVariable*>(rawCommand);
-
-//   return variable->m_variable;
-// }
-
 }

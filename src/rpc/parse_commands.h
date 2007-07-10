@@ -54,10 +54,10 @@ extern XmlRpc     xmlrpc;
 
 const char* parse_command_name(const char* first, const char* last, std::string* dest);
 
-const char* parse_command_single(const char* first);
-const char* parse_command_single(const char* first, const char* last);
+void        parse_command_single(const char* first);
 
-const char* parse_command_d_single(core::Download* download, const char* first, const char* last);
+torrent::Object        parse_command_d_single(core::Download* download, const char* first, const char* last);
+inline torrent::Object parse_command_single(const char* first, const char* last) { return parse_command_d_single(NULL, first, last); }
 
 void        parse_command_multiple(const char* first);
 bool        parse_command_file(const std::string& path);
