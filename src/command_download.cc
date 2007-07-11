@@ -228,47 +228,50 @@ retrieve_d_priority_str(core::Download* download) {
   }
 }
 
-#define ADD_COMMAND_DOWNLOAD_SLOT(key, function, slot, parm, doc)    \
+#define ADD_C_DOWNLOAD_SLOT(key, function, slot, parm, doc)    \
   commandDownloadSlotsItr->set_slot(slot); \
   rpc::commands.insert(key, commandDownloadSlotsItr++, NULL, &rpc::CommandDownloadSlot::function, rpc::CommandMap::flag_dont_delete, parm, doc);
 
-#define ADD_COMMAND_DOWNLOAD_SLOT_PUBLIC(key, function, slot, parm, doc)    \
+#define ADD_C_DOWNLOAD_SLOT_PUBLIC(key, function, slot, parm, doc)    \
   commandDownloadSlotsItr->set_slot(slot); \
   rpc::commands.insert(key, commandDownloadSlotsItr++, NULL, &rpc::CommandDownloadSlot::function, rpc::CommandMap::flag_dont_delete | rpc::CommandMap::flag_public_xmlrpc, parm, doc);
 
-#define ADD_COMMAND_DOWNLOAD_VOID(key, slot) \
-  ADD_COMMAND_DOWNLOAD_SLOT_PUBLIC("get_d_" key, call_unknown, rpc::object_d_fn(slot), "i:", "")
+#define ADD_C_DOWNLOAD_VOID(key, slot) \
+  ADD_C_DOWNLOAD_SLOT_PUBLIC("get_d_" key, call_unknown, rpc::object_d_fn(slot), "i:", "")
 
-#define ADD_COMMAND_DOWNLOAD_V_VOID(key, slot) \
-  ADD_COMMAND_DOWNLOAD_SLOT_PUBLIC("d_" key, call_unknown, rpc::object_d_fn(slot), "i:", "")
+#define ADD_C_DOWNLOAD_V_VOID(key, slot) \
+  ADD_C_DOWNLOAD_SLOT_PUBLIC("d_" key, call_unknown, rpc::object_d_fn(slot), "i:", "")
 
-#define ADD_COMMAND_DOWNLOAD_LIST(key, slot) \
-  ADD_COMMAND_DOWNLOAD_SLOT_PUBLIC(key, call_list, slot, "i:", "")
+#define ADD_C_DOWNLOAD_F_VOID(key, slot) \
+  ADD_C_DOWNLOAD_SLOT_PUBLIC("d_" key, call_unknown, rpc::object_void_d_fn(slot), "i:", "")
 
-#define ADD_COMMAND_DOWNLOAD_VARIABLE_VALUE(key, firstKey, secondKey) \
-  ADD_COMMAND_DOWNLOAD_SLOT_PUBLIC("get_d_" key, call_unknown, rpc::get_variable_d_fn(firstKey, secondKey), "i:", ""); \
-  ADD_COMMAND_DOWNLOAD_SLOT("set_d_" key, call_value,   rpc::set_variable_d_fn(firstKey, secondKey), "i:i", "");
+#define ADD_C_DOWNLOAD_LIST(key, slot) \
+  ADD_C_DOWNLOAD_SLOT_PUBLIC(key, call_list, slot, "i:", "")
 
-#define ADD_COMMAND_DOWNLOAD_VARIABLE_STRING(key, firstKey, secondKey) \
-  ADD_COMMAND_DOWNLOAD_SLOT_PUBLIC("get_d_" key, call_unknown, rpc::get_variable_d_fn(firstKey, secondKey), "i:", ""); \
-  ADD_COMMAND_DOWNLOAD_SLOT("set_d_" key, call_string,  rpc::set_variable_d_fn(firstKey, secondKey), "i:s", "");
+#define ADD_C_DOWNLOAD_VARIABLE_VALUE(key, firstKey, secondKey) \
+  ADD_C_DOWNLOAD_SLOT_PUBLIC("get_d_" key, call_unknown, rpc::get_variable_d_fn(firstKey, secondKey), "i:", ""); \
+  ADD_C_DOWNLOAD_SLOT("set_d_" key, call_value,   rpc::set_variable_d_fn(firstKey, secondKey), "i:i", "");
 
-#define ADD_COMMAND_DOWNLOAD_VALUE_BI(key, set, get) \
-  ADD_COMMAND_DOWNLOAD_SLOT_PUBLIC("set_d_" key, call_value, rpc::object_value_d_fn(set), "i:i", "") \
-  ADD_COMMAND_DOWNLOAD_SLOT_PUBLIC("get_d_" key, call_unknown, rpc::object_void_d_fn(get), "i:", "")
+#define ADD_C_DOWNLOAD_VARIABLE_STRING(key, firstKey, secondKey) \
+  ADD_C_DOWNLOAD_SLOT_PUBLIC("get_d_" key, call_unknown, rpc::get_variable_d_fn(firstKey, secondKey), "i:", ""); \
+  ADD_C_DOWNLOAD_SLOT("set_d_" key, call_string,  rpc::set_variable_d_fn(firstKey, secondKey), "i:s", "");
 
-#define ADD_COMMAND_DOWNLOAD_VALUE_MEM_BI(key, target, set, get) \
-  ADD_COMMAND_DOWNLOAD_VALUE_BI(key, rak::on2(std::mem_fun(target), std::mem_fun(set)), rak::on(std::mem_fun(target), std::mem_fun(get)));
+#define ADD_C_DOWNLOAD_VALUE_BI(key, set, get) \
+  ADD_C_DOWNLOAD_SLOT_PUBLIC("set_d_" key, call_value, rpc::object_value_d_fn(set), "i:i", "") \
+  ADD_C_DOWNLOAD_SLOT_PUBLIC("get_d_" key, call_unknown, rpc::object_void_d_fn(get), "i:", "")
 
-#define ADD_COMMAND_DOWNLOAD_VALUE_MEM_UNI(key, target, get) \
-  ADD_COMMAND_DOWNLOAD_SLOT_PUBLIC("get_d_" key, call_unknown, rpc::object_void_d_fn(rak::on(rak::on(std::mem_fun(&core::Download::download), std::mem_fun(target)), std::mem_fun(get))), "i:", "");
+#define ADD_C_DOWNLOAD_VALUE_MEM_BI(key, target, set, get) \
+  ADD_C_DOWNLOAD_VALUE_BI(key, rak::on2(std::mem_fun(target), std::mem_fun(set)), rak::on(std::mem_fun(target), std::mem_fun(get)));
 
-#define ADD_COMMAND_DOWNLOAD_STRING_UNI(key, get) \
-  ADD_COMMAND_DOWNLOAD_SLOT_PUBLIC("get_d_" key, call_unknown, rpc::object_void_d_fn(get), "s:", "")
+#define ADD_C_DOWNLOAD_VALUE_MEM_UNI(key, target, get) \
+  ADD_C_DOWNLOAD_SLOT_PUBLIC("get_d_" key, call_unknown, rpc::object_void_d_fn(rak::on(rak::on(std::mem_fun(&core::Download::download), std::mem_fun(target)), std::mem_fun(get))), "i:", "");
 
-#define ADD_COMMAND_DOWNLOAD_STRING_BI(key, set, get) \
-  ADD_COMMAND_DOWNLOAD_SLOT_PUBLIC("set_d_" key, call_string, rpc::object_string_d_fn(set), "i:s", "") \
-  ADD_COMMAND_DOWNLOAD_SLOT_PUBLIC("get_d_" key, call_unknown, rpc::object_void_d_fn(get), "s:", "")
+#define ADD_C_DOWNLOAD_STRING_UNI(key, get) \
+  ADD_C_DOWNLOAD_SLOT_PUBLIC("get_d_" key, call_unknown, rpc::object_void_d_fn(get), "s:", "")
+
+#define ADD_C_DOWNLOAD_STRING_BI(key, set, get) \
+  ADD_C_DOWNLOAD_SLOT_PUBLIC("set_d_" key, call_string, rpc::object_string_d_fn(set), "i:s", "") \
+  ADD_C_DOWNLOAD_SLOT_PUBLIC("get_d_" key, call_unknown, rpc::object_void_d_fn(get), "s:", "")
 
 void
 add_copy_to_download(const char* src, const char* dest) {
@@ -282,58 +285,65 @@ add_copy_to_download(const char* src, const char* dest) {
 
 void
 initialize_command_download() {
-  ADD_COMMAND_DOWNLOAD_VOID("base_path", &retrieve_d_base_path);
-  ADD_COMMAND_DOWNLOAD_VOID("base_filename", &retrieve_d_base_filename);
+  ADD_C_DOWNLOAD_VOID("base_path", &retrieve_d_base_path);
+  ADD_C_DOWNLOAD_VOID("base_filename", &retrieve_d_base_filename);
 
-  ADD_COMMAND_DOWNLOAD_LIST("create_link",   rak::ptr_fn(&apply_d_create_link));
-  ADD_COMMAND_DOWNLOAD_LIST("delete_link",   rak::ptr_fn(&apply_d_delete_link));
-  ADD_COMMAND_DOWNLOAD_V_VOID("delete_tied", &apply_d_delete_tied);
+  ADD_C_DOWNLOAD_LIST("create_link",   rak::ptr_fn(&apply_d_create_link));
+  ADD_C_DOWNLOAD_LIST("delete_link",   rak::ptr_fn(&apply_d_delete_link));
+  ADD_C_DOWNLOAD_V_VOID("delete_tied", &apply_d_delete_tied);
+
+  ADD_C_DOWNLOAD_F_VOID("start",      rak::make_mem_fun(control->core()->download_list(), &core::DownloadList::start_normal));
+  ADD_C_DOWNLOAD_F_VOID("stop",       rak::make_mem_fun(control->core()->download_list(), &core::DownloadList::stop_normal));
+  ADD_C_DOWNLOAD_F_VOID("open",       rak::make_mem_fun(control->core()->download_list(), &core::DownloadList::open_throw));
+  ADD_C_DOWNLOAD_F_VOID("close",      rak::make_mem_fun(control->core()->download_list(), &core::DownloadList::close_throw));
+  ADD_C_DOWNLOAD_F_VOID("erase",      rak::make_mem_fun(control->core()->download_list(), &core::DownloadList::erase_ptr));
+  ADD_C_DOWNLOAD_F_VOID("check_hash", rak::make_mem_fun(control->core()->download_list(), &core::DownloadList::check_hash));
 
   // 0 - stopped
   // 1 - started
-  ADD_COMMAND_DOWNLOAD_VARIABLE_VALUE("state", "rtorrent", "state");
-  ADD_COMMAND_DOWNLOAD_VARIABLE_VALUE("complete", "rtorrent", "complete");
+  ADD_C_DOWNLOAD_VARIABLE_VALUE("state", "rtorrent", "state");
+  ADD_C_DOWNLOAD_VARIABLE_VALUE("complete", "rtorrent", "complete");
 
   // 0 - Not hashing
   // 1 - Normal hashing
   // 2 - Download finished, hashing
-  ADD_COMMAND_DOWNLOAD_VARIABLE_VALUE("hashing", "rtorrent", "hashing");
-  ADD_COMMAND_DOWNLOAD_VARIABLE_STRING("tied_to_file", "rtorrent", "tied_to_file");
+  ADD_C_DOWNLOAD_VARIABLE_VALUE("hashing", "rtorrent", "hashing");
+  ADD_C_DOWNLOAD_VARIABLE_STRING("tied_to_file", "rtorrent", "tied_to_file");
 
   // The "state_changed" variable is required to be a valid unix time
   // value, it indicates the last time the torrent changed its state,
   // resume/pause.
-  ADD_COMMAND_DOWNLOAD_VARIABLE_VALUE("state_changed", "rtorrent", "state_changed");
-  ADD_COMMAND_DOWNLOAD_VARIABLE_VALUE("ignore_commands", "rtorrent", "ignore_commands");
+  ADD_C_DOWNLOAD_VARIABLE_VALUE("state_changed", "rtorrent", "state_changed");
+  ADD_C_DOWNLOAD_VARIABLE_VALUE("ignore_commands", "rtorrent", "ignore_commands");
 
-  ADD_COMMAND_DOWNLOAD_STRING_BI("connection_current", std::ptr_fun(&apply_d_connection_type), std::ptr_fun(&retrieve_d_connection_type));
+  ADD_C_DOWNLOAD_STRING_BI("connection_current", std::ptr_fun(&apply_d_connection_type), std::ptr_fun(&retrieve_d_connection_type));
 
   add_copy_to_download("get_connection_leech", "get_d_connection_leech");
   add_copy_to_download("set_connection_leech", "set_d_connection_leech");
   add_copy_to_download("get_connection_seed", "get_d_connection_seed");
   add_copy_to_download("set_connection_seed", "set_d_connection_seed");
 
-  ADD_COMMAND_DOWNLOAD_VALUE_MEM_BI("max_file_size", &core::Download::file_list, &torrent::FileList::set_max_file_size, &torrent::FileList::max_file_size);
+  ADD_C_DOWNLOAD_VALUE_MEM_BI("max_file_size", &core::Download::file_list, &torrent::FileList::set_max_file_size, &torrent::FileList::max_file_size);
 
-  ADD_COMMAND_DOWNLOAD_VALUE_MEM_BI("min_peers",     &core::Download::download, &torrent::Download::set_peers_min, &torrent::Download::peers_min);
-  ADD_COMMAND_DOWNLOAD_VALUE_MEM_BI("max_peers",     &core::Download::download, &torrent::Download::set_peers_max, &torrent::Download::peers_max);
-  ADD_COMMAND_DOWNLOAD_VALUE_MEM_BI("max_uploads",   &core::Download::download, &torrent::Download::set_uploads_max, &torrent::Download::uploads_max);
+  ADD_C_DOWNLOAD_VALUE_MEM_BI("min_peers",     &core::Download::download, &torrent::Download::set_peers_min, &torrent::Download::peers_min);
+  ADD_C_DOWNLOAD_VALUE_MEM_BI("max_peers",     &core::Download::download, &torrent::Download::set_peers_max, &torrent::Download::peers_max);
+  ADD_C_DOWNLOAD_VALUE_MEM_BI("max_uploads",   &core::Download::download, &torrent::Download::set_uploads_max, &torrent::Download::uploads_max);
 
-  ADD_COMMAND_DOWNLOAD_VALUE_MEM_UNI("up_rate",    &torrent::Download::mutable_up_rate, &torrent::Rate::rate);
-  ADD_COMMAND_DOWNLOAD_VALUE_MEM_UNI("up_total",   &torrent::Download::mutable_up_rate, &torrent::Rate::total);
-  ADD_COMMAND_DOWNLOAD_VALUE_MEM_UNI("down_rate",  &torrent::Download::mutable_down_rate, &torrent::Rate::rate);
-  ADD_COMMAND_DOWNLOAD_VALUE_MEM_UNI("down_total", &torrent::Download::mutable_down_rate, &torrent::Rate::total);
-  ADD_COMMAND_DOWNLOAD_VALUE_MEM_UNI("skip_rate",  &torrent::Download::mutable_skip_rate, &torrent::Rate::rate);
-  ADD_COMMAND_DOWNLOAD_VALUE_MEM_UNI("skip_total", &torrent::Download::mutable_skip_rate, &torrent::Rate::total);
+  ADD_C_DOWNLOAD_VALUE_MEM_UNI("up_rate",    &torrent::Download::mutable_up_rate, &torrent::Rate::rate);
+  ADD_C_DOWNLOAD_VALUE_MEM_UNI("up_total",   &torrent::Download::mutable_up_rate, &torrent::Rate::total);
+  ADD_C_DOWNLOAD_VALUE_MEM_UNI("down_rate",  &torrent::Download::mutable_down_rate, &torrent::Rate::rate);
+  ADD_C_DOWNLOAD_VALUE_MEM_UNI("down_total", &torrent::Download::mutable_down_rate, &torrent::Rate::total);
+  ADD_C_DOWNLOAD_VALUE_MEM_UNI("skip_rate",  &torrent::Download::mutable_skip_rate, &torrent::Rate::rate);
+  ADD_C_DOWNLOAD_VALUE_MEM_UNI("skip_total", &torrent::Download::mutable_skip_rate, &torrent::Rate::total);
 
   //   rpc::commands.insert("split_file_size",    new rpc::VariableValueSlot(rak::mem_fn(file_list(), &torrent::FileList::split_file_size),
   //                                                                         rak::mem_fn(file_list(), &torrent::FileList::set_split_file_size)));
   //   rpc::commands.insert("split_suffix",       new rpc::VariableStringSlot(rak::mem_fn(file_list(), &torrent::FileList::split_suffix),
   //                                                                          rak::mem_fn(file_list(), &torrent::FileList::set_split_suffix)));
 
-  ADD_COMMAND_DOWNLOAD_VALUE_MEM_BI("tracker_numwant", &core::Download::tracker_list, &torrent::TrackerList::set_numwant, &torrent::TrackerList::numwant);
+  ADD_C_DOWNLOAD_VALUE_MEM_BI("tracker_numwant", &core::Download::tracker_list, &torrent::TrackerList::set_numwant, &torrent::TrackerList::numwant);
 
-  ADD_COMMAND_DOWNLOAD_STRING_BI("directory",     std::mem_fun(&core::Download::set_root_directory), rak::on(std::mem_fun(&core::Download::file_list), std::mem_fun(&torrent::FileList::root_dir)));
-  ADD_COMMAND_DOWNLOAD_VALUE_BI("priority",       std::mem_fun(&core::Download::set_priority), std::mem_fun(&core::Download::priority));
-  ADD_COMMAND_DOWNLOAD_STRING_UNI("priority_str", std::ptr_fun(&retrieve_d_priority_str));
+  ADD_C_DOWNLOAD_STRING_BI("directory",     std::mem_fun(&core::Download::set_root_directory), rak::on(std::mem_fun(&core::Download::file_list), std::mem_fun(&torrent::FileList::root_dir)));
+  ADD_C_DOWNLOAD_VALUE_BI("priority",       std::mem_fun(&core::Download::set_priority), std::mem_fun(&core::Download::priority));
+  ADD_C_DOWNLOAD_STRING_UNI("priority_str", std::ptr_fun(&retrieve_d_priority_str));
 }

@@ -97,6 +97,27 @@ apply_view_sort(const torrent::Object& rawArgs) {
   return torrent::Object();
 }
 
+torrent::Object
+apply_print(const torrent::Object& rawArgs) {
+  std::string output;
+
+  for (torrent::Object::list_type::const_iterator itr = rawArgs.as_list().begin(), last = rawArgs.as_list().end(); itr != last; itr++) {
+    switch (itr->type()) {
+    case torrent::Object::TYPE_STRING:
+      output += itr->as_string();
+      break;
+
+    case torrent::Object::TYPE_VALUE:
+    default:
+      output += "<unknown>";
+    }
+  }
+
+  control->core()->push_log(output);
+
+  return torrent::Object();
+}
+
 void
 initialize_command_ui() {
   ADD_VARIABLE_STRING("key_layout", "qwerty");
@@ -112,5 +133,5 @@ initialize_command_ui() {
 
 //   ADD_COMMAND_LIST("view_sort_current", rak::bind_ptr_fn(&apply_view_filter, &core::ViewManager::set_sort_current));
 
-  ADD_COMMAND_STRING("print",           rpc::object_string_fn(rak::make_mem_fun(control->core(), &core::Manager::push_log)));
+  ADD_COMMAND_LIST("print",             rak::ptr_fn(&apply_print));
 }

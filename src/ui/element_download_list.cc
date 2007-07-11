@@ -155,7 +155,7 @@ ElementDownloadList::receive_stop_download() {
   if (rpc::call_command_d_value("get_d_state", *m_view->focus()) == 1)
     control->core()->download_list()->stop_normal(*m_view->focus());
   else
-    control->core()->download_list()->erase(*m_view->focus());
+    control->core()->download_list()->erase_ptr(*m_view->focus());
 
   m_view->set_last_changed();
 }

@@ -80,6 +80,8 @@ parse_command_single(const char* first) {
   parse_command_single(first, first + std::strlen(first));
 }
 
+// Set 'download' to NULL to call the generic functions, thus reusing
+// the code below for both cases.
 torrent::Object
 parse_command_d_single(core::Download* download, const char* first, const char* last) {
   first = std::find_if(first, last, std::not1(command_map_is_space()));
@@ -97,8 +99,10 @@ parse_command_d_single(core::Download* download, const char* first, const char* 
   torrent::Object args;
   parse_whole_list(first + 1, last, &args);
 
+  // Replace any strings starting with '$' with the result of the
+  // following command.
   if (args.is_list()) {
-    for (torrent::Object::list_type::iterator itr = args.as_list().begin(), last = args.as_list().begin(); itr != last; itr++) {
+    for (torrent::Object::list_type::iterator itr = args.as_list().begin(), last = args.as_list().end(); itr != last; itr++) {
       if (!itr->is_string())
         continue;
 

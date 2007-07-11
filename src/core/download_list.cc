@@ -164,7 +164,7 @@ DownloadList::insert(Download* download) {
 }
 
 void
-DownloadList::erase(Download* download) {
+DownloadList::erase_ptr(Download* download) {
   erase(std::find(begin(), end(), download));
 }
 

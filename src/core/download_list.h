@@ -86,7 +86,7 @@ public:
 
   iterator            insert(Download* d);
 
-  void                erase(Download* d);
+  void                erase_ptr(Download* d);
   iterator            erase(iterator itr);
 
   //void                save(Download* d);
