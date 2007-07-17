@@ -80,7 +80,7 @@ Control::Control() :
 
   m_taskShutdown.set_slot(rak::mem_fn(this, &Control::handle_shutdown));
 
-  m_commandScheduler->set_slot_error_message(rak::mem_fn(m_core, &core::Manager::push_log));
+  m_commandScheduler->set_slot_error_message(rak::mem_fn(m_core, &core::Manager::push_log_std));
 }
 
 Control::~Control() {

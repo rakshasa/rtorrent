@@ -14,6 +14,8 @@ libsub_rpc_a_SOURCES = \
 	command_slot.h \
 	command_variable.cc \
 	command_variable.h \
+	exec_file.cc \
+	exec_file.h \
 	parse.cc \
 	parse.h \
 	parse_commands.cc \

@@ -50,44 +50,41 @@ namespace rpc {
 
 CommandMap commands;
 XmlRpc     xmlrpc;
+ExecFile   execFile;
 
 struct command_map_is_space : std::unary_function<char, bool> {
   bool operator () (char c) const {
-    return std::isspace(c);
+    return c == ' ' || c == '\t';
   }
 };
 
 struct command_map_is_newline : std::unary_function<char, bool> {
   bool operator () (char c) const {
-    return c == '\n' || c == '\0';
+    return c == '\n' || c == '\0' || c == ';';
   }
 };
 
-// Use a static length buffer for dest.
-const char*
-parse_command_name(const char* first, const char* last, std::string* dest) {
-  if (first == last || !std::isalpha(*first))
-    throw torrent::input_error("Invalid start of name.");
+// Only escape eol on odd number of escape characters. We know that
+// there can't be any characters in between, so this should work for
+// all cases.
+int
+parse_count_escaped(const char* first, const char* last) {
+  int escaped = 0;
 
-  for ( ; first != last && (std::isalnum(*first) || *first == '_'); ++first)
-    dest->push_back(*first);
+  while (last != first && *--last == '\\')
+    escaped++;
 
-  return first;
-}
-
-void
-parse_command_single(const char* first) {
-  parse_command_single(first, first + std::strlen(first));
+  return escaped;
 }
 
 // Set 'download' to NULL to call the generic functions, thus reusing
 // the code below for both cases.
-torrent::Object
-parse_command_d_single(core::Download* download, const char* first, const char* last) {
+std::pair<torrent::Object, const char*>
+parse_command(core::Download* download, const char* first, const char* last) {
   first = std::find_if(first, last, std::not1(command_map_is_space()));
 
   if (first == last || *first == '#')
-    return torrent::Object();
+    return std::make_pair(torrent::Object(), first);
   
   std::string key;
   first = parse_command_name(first, last, &key);
@@ -97,7 +94,19 @@ parse_command_d_single(core::Download* download, const char* first, const char* 
     throw torrent::input_error("Could not find '='.");
 
   torrent::Object args;
-  parse_whole_list(first + 1, last, &args);
+  first = parse_whole_list(first + 1, last, &args);
+
+  // Find the last character that is part of this command, skipping
+  // the whitespace at the end. This ensures us that the caller
+  // doesn't need to do this nor check for junk at the end.
+  first = std::find_if(first, last, std::not1(command_map_is_space()));
+  
+  if (first != last) {
+    if (*first != '\n' && *first != ';' && *first != '\0')
+      throw torrent::input_error("Junk at end of input.");
+
+    first++;
+  }
 
   // Replace any strings starting with '$' with the result of the
   // following command.
@@ -118,30 +127,28 @@ parse_command_d_single(core::Download* download, const char* first, const char* 
     args = parse_command_d_single(download, str.c_str() + 1, str.c_str() + str.size());
   }
 
-  return commands.call_command_d(key.c_str(), download, args);
+  return std::make_pair(commands.call_command_d(key.c_str(), download, args), first);
 }
 
 void
-parse_command_multiple(const char* first) {
-  try {
-    while (first != '\0') {
-      const char* last = first;
+parse_command_single(const char* first) {
+  parse_command(NULL, first, first + std::strlen(first));
+}
 
-      while (*last != '\n' && *last != '\0') last++;
+void
+parse_command_multiple(core::Download* download, const char* first, const char* last) {
+  while (first != last) {
+    // Should we check the return value? Probably not necessary as
+    // parse_args throws on unquoted multi-word input.
+    std::pair<torrent::Object, const char*> result = parse_command(download, first, last);
 
-      // Should we check the return value? Probably not necessary as
-      // parse_args throws on unquoted multi-word input.
-      parse_command_single(first, last);
-
-      if (*last == '\0')
-        return;
-
-      first = last + 1;
-    }
-
-  } catch (torrent::input_error& e) {
-    throw torrent::input_error(std::string("Error parsing multi-line option: ") + e.what());
+    first = result.second;
   }
+}
+
+void
+parse_command_d_multiple(core::Download* download, const char* first) {
+  parse_command_multiple(download, first, first + std::strlen(first));
 }
 
 bool
@@ -151,24 +158,54 @@ parse_command_file(const std::string& path) {
   if (!file.is_open())
     return false;
 
-  int lineNumber = 0;
-  char buffer[2048];
+  unsigned int lineNumber = 0;
+  char buffer[4096];
 
   try {
+    unsigned int getCount = 0;
 
-    while (file.getline(buffer, 2048).good()) {
+    while (file.getline(buffer + getCount, 4096 - getCount).good()) {
+      if (file.gcount() == 0)
+        throw torrent::internal_error("parse_command_file(...) file.gcount() == 0.");
+
+      int escaped = parse_count_escaped(buffer + getCount, buffer + getCount + file.gcount() - 1);
+
       lineNumber++;
+      getCount += file.gcount() - 1;
+
+      if (getCount == 4096 - 1)
+        throw torrent::input_error("Exceeded max line lenght.");
+      
+      if (escaped & 0x1) {
+        // Remove the escape characters and continue reading.
+        getCount -= escaped;
+        continue;
+      }
+
       // Would be nice to make this zero-copy.
-      parse_command_single(buffer, buffer + std::strlen(buffer));
+      parse_command(NULL, buffer, buffer + getCount);
+      getCount = 0;
     }
 
   } catch (torrent::input_error& e) {
-    snprintf(buffer, 2048, "Error in option file: %s:%i: %s", path.c_str(), lineNumber, e.what());
+    snprintf(buffer, 2048, "Error in option file: %s:%u: %s", path.c_str(), lineNumber, e.what());
 
     throw torrent::input_error(buffer);
   }
 
   return true;
+}
+
+// Use a static length buffer for dest.
+const char*
+parse_command_name(const char* first, const char* last, std::string* dest) {
+  if (first == last || !std::isalpha(*first))
+    throw torrent::input_error("Invalid start of name.");
+
+  for ( ; first != last && (std::isalnum(*first) || *first == '_'); ++first)
+    dest->push_back(*first);
+
+  return first;
 }
 
 }

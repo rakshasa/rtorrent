@@ -351,6 +351,21 @@ private:
   Arg1    m_arg1;
 };
 
+template <typename Result, typename Arg1, typename Arg2, typename Arg3>
+class ptr_fn2_b1_t : public function_base2<Result, Arg2, Arg3> {
+public:
+  typedef Result (*Func)(Arg1, Arg2, Arg3);
+
+  ptr_fn2_b1_t(Func func, const Arg1 arg1) : m_func(func), m_arg1(arg1) {}
+  virtual ~ptr_fn2_b1_t() {}
+  
+  virtual Result operator () (Arg2 arg2, Arg3 arg3) { return m_func(m_arg1, arg2, arg3); }
+
+private:
+  Func    m_func;
+  Arg1    m_arg1;
+};
+
 template <typename Ftor>
 class ftor_fn1_t : public function_base1<typename Ftor::result_type, typename Ftor::argument_type> {
 public:
@@ -517,6 +532,12 @@ template <typename Arg1, typename Arg2, typename Result>
 inline function_base1<Result, Arg2>*
 bind_ptr_fn(Result (*func)(Arg1, Arg2), const Arg1 arg1) {
   return new ptr_fn1_b1_t<Result, Arg1, Arg2>(func, arg1);
+}
+
+template <typename Arg1, typename Arg2, typename Arg3, typename Result>
+inline function_base2<Result, Arg2, Arg3>*
+bind_ptr_fn(Result (*func)(Arg1, Arg2, Arg3), const Arg1 arg1) {
+  return new ptr_fn2_b1_t<Result, Arg1, Arg2, Arg3>(func, arg1);
 }
 
 template <typename Ftor>

@@ -64,23 +64,23 @@ retrieve_d_base_path(core::Download* download) {
 
 std::string
 retrieve_d_base_filename(core::Download* download) {
-  std::string base;
+  const std::string* base;
 
   if (download->file_list()->is_multi_file())
-    base = download->file_list()->root_dir();
+    base = &download->file_list()->root_dir();
   else
-    base = download->file_list()->at(0)->frozen_path();
+    base = &download->file_list()->at(0)->frozen_path();
 
-  std::string::size_type split = base.rfind('/');
+  std::string::size_type split = base->rfind('/');
 
   if (split == std::string::npos)
-    return base;
+    return *base;
   else
-    return base.substr(split + 1);
+    return base->substr(split + 1);
 }
 
 torrent::Object
-apply_d_create_link(core::Download* download, const torrent::Object& rawArgs) {
+apply_d_change_link(int changeType, core::Download* download, const torrent::Object& rawArgs) {
   const torrent::Object::list_type& args = rawArgs.as_list();
 
   if (args.size() != 3)
@@ -119,56 +119,28 @@ apply_d_create_link(core::Download* download, const torrent::Object& rawArgs) {
     throw torrent::input_error("Unknown type argument.");
   }
 
-  if (symlink(target.c_str(), link.c_str()) == -1)
-//     control->core()->push_log("create_link failed: " + std::string(rak::error_number::current().c_str()));
-//     control->core()->push_log("create_link failed: " + std::string(rak::error_number::current().c_str()) + " to " + target);
-    ; // Disabled.
+  switch (changeType) {
+  case 0:
+    if (symlink(target.c_str(), link.c_str()) == -1)
+      //     control->core()->push_log("create_link failed: " + std::string(rak::error_number::current().c_str()));
+      //     control->core()->push_log("create_link failed: " + std::string(rak::error_number::current().c_str()) + " to " + target);
+      ; // Disabled.
+    break;
 
-  return torrent::Object();
-}
+  case 1:
+  {
+    rak::file_stat fileStat;
+    rak::error_number::clear_global();
 
-torrent::Object
-apply_d_delete_link(core::Download* download, const torrent::Object& rawArgs) {
-  const torrent::Object::list_type& args = rawArgs.as_list();
+    if (!fileStat.update_link(link) || !fileStat.is_link() ||
+        unlink(link.c_str()) == -1)
+      ; //     control->core()->push_log("delete_link failed: " + std::string(rak::error_number::current().c_str()));
 
-  if (args.size() != 3)
-    throw torrent::input_error("Wrong argument count.");
-
-  torrent::Object::list_type::const_iterator itr = args.begin();
-
-  const std::string& type    = (itr++)->as_string();
-  const std::string& prefix  = (itr++)->as_string();
-  const std::string& postfix = (itr++)->as_string();
-  
-  if (type.empty())
-    throw torrent::input_error("Invalid arguments.");
-
-  std::string link;
-
-  if (type == "base_path") {
-    link = rak::path_expand(prefix + rpc::call_command_d_string("get_d_base_path", download) + postfix);
-
-  } else if (type == "base_filename") {
-    link = rak::path_expand(prefix + rpc::call_command_d_string("get_d_base_filename", download) + postfix);
-
-  } else if (type == "tied") {
-    link = rak::path_expand(rpc::call_command_d_string("get_d_tied_to_file", download));
-
-    if (link.empty())
-      return torrent::Object();
-
-    link = rak::path_expand(prefix + link + postfix);
-
-  } else {
-    throw torrent::input_error("Unknown type argument.");
+    break;
   }
-
-  rak::file_stat fileStat;
-  rak::error_number::clear_global();
-
-  if (!fileStat.update_link(link) || !fileStat.is_link() ||
-      unlink(link.c_str()) == -1)
-    ; //     control->core()->push_log("delete_link failed: " + std::string(rak::error_number::current().c_str()));
+  default:
+    break;
+  }
 
   return torrent::Object();
 }
@@ -181,7 +153,7 @@ apply_d_delete_tied(core::Download* download) {
     return;
 
   if (::unlink(rak::path_expand(tie).c_str()) == -1)
-    control->core()->push_log("Could not unlink tied file: " + std::string(rak::error_number::current().c_str()));
+    control->core()->push_log_std("Could not unlink tied file: " + std::string(rak::error_number::current().c_str()));
 
   rpc::call_command_d("set_d_tied_to_file", download, std::string());
 }
@@ -295,8 +267,8 @@ initialize_command_download() {
   ADD_CD_VOID("base_path", &retrieve_d_base_path);
   ADD_CD_VOID("base_filename", &retrieve_d_base_filename);
 
-  ADD_CD_LIST("create_link",   rak::ptr_fn(&apply_d_create_link));
-  ADD_CD_LIST("delete_link",   rak::ptr_fn(&apply_d_delete_link));
+  ADD_CD_LIST("create_link",   rak::bind_ptr_fn(&apply_d_change_link, 0));
+  ADD_CD_LIST("delete_link",   rak::bind_ptr_fn(&apply_d_change_link, 1));
   ADD_CD_V_VOID("delete_tied", &apply_d_delete_tied);
 
   ADD_CD_F_VOID("start",      rak::make_mem_fun(control->core()->download_list(), &core::DownloadList::start_normal));
@@ -315,6 +287,12 @@ initialize_command_download() {
   // 1 - started
   ADD_CD_VARIABLE_VALUE("state", "rtorrent", "state");
   ADD_CD_VARIABLE_VALUE("complete", "rtorrent", "complete");
+
+  // 0 off
+  // 1 scheduled, being controlled by a download scheduler. Includes a priority.
+  // 3 forced off
+  // 2 forced on
+  ADD_CD_VARIABLE_VALUE("mode", "rtorrent", "mode");
 
   // 0 - Not hashing
   // 1 - Normal hashing

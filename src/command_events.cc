@@ -73,7 +73,7 @@ apply_on_state_change(core::DownloadList::slot_map* slotMap, const torrent::Obje
   if (args.back().as_string().empty())
     slotMap->erase(key);
   else
-    (*slotMap)[key] = sigc::bind(sigc::ptr_fun(&rpc::parse_command_d_single_std), rpc::convert_list_to_command(++args.begin(), args.end()));
+    (*slotMap)[key] = sigc::bind(sigc::ptr_fun(&rpc::parse_command_d_multiple_std), rpc::convert_list_to_command(++args.begin(), args.end()));
 
   return torrent::Object();
 }
@@ -203,15 +203,18 @@ void apply_load_start(const std::string& arg)         { control->core()->try_cre
 void apply_load_start_verbose(const std::string& arg) { control->core()->try_create_download_expand(arg, true, true, true); }
 
 void apply_import(const std::string& path)     { if (!rpc::parse_command_file(path)) throw torrent::input_error("Could not open option file: " + path); }
-void apply_try_import(const std::string& path) { if (!rpc::parse_command_file(path)) control->core()->push_log("Could not read resource file: " + path); }
+void apply_try_import(const std::string& path) { if (!rpc::parse_command_file(path)) control->core()->push_log_std("Could not read resource file: " + path); }
 
 void
 apply_close_low_diskspace(int64_t arg) {
-  core::Manager::DListItr itr = control->core()->download_list()->begin();
+  core::DownloadList* downloadList = control->core()->download_list();
 
-  while ((itr = std::find_if(itr, control->core()->download_list()->end(), std::mem_fun(&core::Download::is_downloading))) != control->core()->download_list()->end()) {
+  core::Manager::DListItr itr = downloadList->begin();
+
+  while ((itr = std::find_if(itr, downloadList->end(), std::mem_fun(&core::Download::is_downloading)))
+         != downloadList->end()) {
     if ((*itr)->file_list()->free_diskspace() < (uint64_t)arg) {
-      control->core()->download_list()->close(*itr);
+      downloadList->close(*itr);
 
       (*itr)->set_hash_failed(true);
       (*itr)->set_message(std::string("Low diskspace."));
@@ -223,7 +226,7 @@ apply_close_low_diskspace(int64_t arg) {
 
 torrent::Object
 apply_download_list(const torrent::Object& rawArgs) {
-  const torrent::Object::list_type& args = rawArgs.as_list();
+  const torrent::Object::list_type&          args    = rawArgs.as_list();
   torrent::Object::list_type::const_iterator argsItr = args.begin();
 
   core::ViewManager* viewManager = control->view_manager();

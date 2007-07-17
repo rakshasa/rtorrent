@@ -81,4 +81,6 @@ initialize_command_local() {
 
   ADD_COMMAND_VALUE_TRI_OCT("umask",           rak::make_mem_fun(control, &Control::set_umask), rak::make_mem_fun(control, &Control::umask));
   ADD_COMMAND_STRING_TRI("working_directory",  rak::make_mem_fun(control, &Control::set_working_directory), rak::make_mem_fun(control, &Control::working_directory));
+
+  ADD_COMMAND_LIST("execute", rak::mem_fn(&rpc::execFile, &rpc::ExecFile::execute_object));
 }

@@ -45,7 +45,7 @@ namespace rpc {
 
 const char*
 parse_skip_wspace(const char* first, const char* last) {
-  while (first != last && std::isspace(*first))
+  while (first != last && parse_is_space(*first))
     first++;
 
   return first;
@@ -53,8 +53,7 @@ parse_skip_wspace(const char* first, const char* last) {
 
 const char*
 parse_skip_wspace(const char* first) {
-  // Assume isspace('\0') == false.
-  while (std::isspace(*first))
+  while (parse_is_space(*first))
     first++;
 
   return first;
@@ -190,7 +189,7 @@ parse_list(const char* first, const char* last, torrent::Object* dest) {
   return first;
 }
 
-void
+const char*
 parse_whole_list(const char* first, const char* last, torrent::Object* dest) {
   std::string str;
 
@@ -208,8 +207,7 @@ parse_whole_list(const char* first, const char* last, torrent::Object* dest) {
     *dest = str;
   }
 
-  if (first != last)
-    throw torrent::input_error("Junk at end of input.");
+  return first;
 }
 
 std::string

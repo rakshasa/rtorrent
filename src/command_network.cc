@@ -82,7 +82,7 @@ apply_encryption(const torrent::Object& rawArgs) {
     else if (opt == "prefer_plaintext")
       options_mask |= torrent::ConnectionManager::encryption_prefer_plaintext;
     else
-      throw torrent::input_error("Invalid encryption option '" + opt + "'.");
+      throw torrent::input_error("Invalid encryption option.");
   }
 
   torrent::connection_manager()->set_encryption_options(options_mask);
@@ -99,19 +99,14 @@ apply_tos(const torrent::Object& rawArg) {
 
   if (arg == "default")
     value = torrent::ConnectionManager::iptos_default;
-
   else if (arg == "lowdelay")
     value = torrent::ConnectionManager::iptos_lowdelay;
-
   else if (arg == "throughput")
     value = torrent::ConnectionManager::iptos_throughput;
-
   else if (arg == "reliability")
     value = torrent::ConnectionManager::iptos_reliability;
-
   else if (arg == "mincost")
     value = torrent::ConnectionManager::iptos_mincost;
-
   else if (!rpc::parse_whole_value_nothrow(arg.c_str(), &value, 16, 1))
     throw torrent::input_error("Invalid TOS identifier.");
 
@@ -127,7 +122,6 @@ void apply_encoding_list(const std::string& arg) { torrent::encoding_list()->pus
 void
 apply_enable_trackers(int64_t arg) {
   for (core::Manager::DListItr itr = control->core()->download_list()->begin(), last = control->core()->download_list()->end(); itr != last; ++itr) {
-
     torrent::TrackerList tl = (*itr)->download()->tracker_list();
 
     for (int i = 0, last = tl.size(); i < last; ++i)

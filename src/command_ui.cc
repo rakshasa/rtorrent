@@ -99,22 +99,27 @@ apply_view_sort(const torrent::Object& rawArgs) {
 
 torrent::Object
 apply_print(const torrent::Object& rawArgs) {
-  std::string output;
+  char buffer[1024];
+  char* current = buffer;
 
   for (torrent::Object::list_type::const_iterator itr = rawArgs.as_list().begin(), last = rawArgs.as_list().end(); itr != last; itr++) {
     switch (itr->type()) {
     case torrent::Object::TYPE_STRING:
-      output += itr->as_string();
-      break;
+    {
+      int len = std::min<int>(itr->as_string().size(), buffer + 1024 - current);
 
+      std::memcpy(current, itr->as_string().c_str(), len);
+      current += len;
+      break;
+    }
     case torrent::Object::TYPE_VALUE:
     default:
-      output += "<unknown>";
+      current += snprintf(buffer, buffer + 1024 - current, "%lli", itr->as_value());
+      break;
     }
   }
 
-  control->core()->push_log(output);
-
+  control->core()->push_log(buffer);
   return torrent::Object();
 }
 

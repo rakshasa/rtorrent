@@ -49,9 +49,10 @@ namespace rpc {
 // parse_whole_* functions allow for whitespaces and throw an
 // exception if there is any garbage at the end of the input.
 
-inline bool parse_is_quote(const char c) { return c == '"'; }
-inline bool parse_is_escape(const char c) { return c == '\\'; }
+inline bool parse_is_quote(const char c)     { return c == '"'; }
+inline bool parse_is_escape(const char c)    { return c == '\\'; }
 inline bool parse_is_seperator(const char c) { return c == ','; }
+inline bool parse_is_space(const char c)     { return c == ' ' || c == '\t'; }
 
 const char* parse_skip_wspace(const char* first);
 const char* parse_skip_wspace(const char* first, const char* last);
@@ -66,7 +67,7 @@ void        parse_whole_value(const char* src, int64_t* value, int base = 0, int
 bool        parse_whole_value_nothrow(const char* src, int64_t* value, int base = 0, int unit = 1);
 
 const char* parse_list(const char* first, const char* last, torrent::Object* dest);
-void        parse_whole_list(const char* first, const char* last, torrent::Object* dest);
+const char* parse_whole_list(const char* first, const char* last, torrent::Object* dest);
 
 std::string convert_list_to_string(const torrent::Object& src);
 std::string convert_list_to_string(torrent::Object::list_type::const_iterator first, torrent::Object::list_type::const_iterator last);

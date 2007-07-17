@@ -40,6 +40,7 @@
 #include <string>
 
 #include "command_map.h"
+#include "exec_file.h"
 #include "xmlrpc.h"
 
 namespace core {
@@ -51,16 +52,24 @@ namespace rpc {
 // Move to another file?
 extern CommandMap commands;
 extern XmlRpc     xmlrpc;
+extern ExecFile   execFile;
 
-const char* parse_command_name(const char* first, const char* last, std::string* dest);
+// The generic parse command function, used by the rest. At some point
+// the 'download' parameter should be replaced by a more generic one.
+std::pair<torrent::Object, const char*> parse_command(core::Download* download, const char* first, const char* last);
 
-void        parse_command_single(const char* first);
+void                   parse_command_single(const char* first);
+inline torrent::Object parse_command_single(const char* first, const char* last)                             { return parse_command(NULL, first, last).first; }
+inline torrent::Object parse_command_d_single(core::Download* download, const char* first, const char* last) { return parse_command(download, first, last).first; }
 
-torrent::Object        parse_command_d_single(core::Download* download, const char* first, const char* last);
-inline torrent::Object parse_command_single(const char* first, const char* last) { return parse_command_d_single(NULL, first, last); }
+void                   parse_command_multiple(core::Download* download, const char* first, const char* last);
 
-void        parse_command_multiple(const char* first);
-bool        parse_command_file(const std::string& path);
+void                   parse_command_d_multiple(core::Download* download, const char* first);
+inline void            parse_command_d_multiple_std(core::Download* download, const std::string& cmd) { parse_command_d_multiple(download, cmd.c_str()); }
+inline void            parse_command_multiple(const char* first)                                      { parse_command_d_multiple(NULL, first); }
+
+bool                   parse_command_file(const std::string& path);
+const char*            parse_command_name(const char* first, const char* last, std::string* dest);
 
 inline void
 parse_command_single_std(const std::string& cmd) {
