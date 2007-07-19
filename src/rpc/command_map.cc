@@ -60,15 +60,30 @@ CommandMap::~CommandMap() {
       delete itr->second.m_variable;
 }
 
-void
-CommandMap::insert(key_type key, Command* variable, generic_slot genericSlot, download_slot downloadSlot, int flags,
-                    const char* parm, const char* doc) {
+CommandMap::iterator
+CommandMap::insert(key_type key, Command* variable, int flags, const char* parm, const char* doc) {
   iterator itr = base_type::find(key);
 
   if (itr != base_type::end())
     throw torrent::internal_error("CommandMap::insert(...) tried to insert an already existing key.");
 
-  base_type::insert(itr, value_type(key, command_map_data_type(variable, genericSlot, downloadSlot, flags, parm, doc)));
+  return base_type::insert(itr, value_type(key, command_map_data_type(variable, flags, parm, doc)));
+}
+
+void
+CommandMap::insert(key_type key, Command* variable, generic_slot genericSlot, download_slot downloadSlot, int flags,
+                    const char* parm, const char* doc) {
+  iterator itr = insert(key, variable, flags, parm, doc);
+
+  itr->second.m_genericSlot  = genericSlot;
+  itr->second.m_downloadSlot = downloadSlot;
+}
+
+void
+CommandMap::insert_file(key_type key, Command* variable, file_slot fileSlot, int flags, const char* parm, const char* doc) {
+  iterator itr = insert(key, variable, flags, parm, doc);
+
+  itr->second.m_fileSlot = fileSlot;
 }
 
 void
@@ -78,9 +93,17 @@ CommandMap::insert(key_type key, const command_map_data_type src) {
   if (itr != base_type::end())
     throw torrent::internal_error("CommandMap::insert(...) tried to insert an already existing key.");
 
-  base_type::insert(itr, value_type(key, command_map_data_type(src.m_variable, src.m_genericSlot, src.m_downloadSlot,
-                                                                src.m_flags | flag_dont_delete, src.m_parm, src.m_doc)));
+  itr = base_type::insert(itr, value_type(key, command_map_data_type(src.m_variable, src.m_flags | flag_dont_delete, src.m_parm, src.m_doc)));
+
+  itr->second.m_genericSlot  = src.m_genericSlot;
+  itr->second.m_downloadSlot = src.m_downloadSlot;
+  itr->second.m_fileSlot     = src.m_fileSlot;
 }
+
+// These should really be handled by a single function. An type enum
+// passed with the object would work, and the switch would probably be
+// optimized away as the type difference is not reflected in the
+// member function pointer call.
 
 const CommandMap::mapped_type
 CommandMap::call_command(key_type key, const mapped_type& arg) {
@@ -110,6 +133,23 @@ CommandMap::call_command_d(key_type key, core::Download* download, const mapped_
   }
 
   return itr->second.m_downloadSlot(itr->second.m_variable, download, arg);
+}
+
+const CommandMap::mapped_type
+CommandMap::call_command_f(key_type key, torrent::File* file, const mapped_type& arg) {
+  const_iterator itr = base_type::find(key);
+
+  if (itr == base_type::end())
+    throw torrent::input_error("Command \"" + std::string(key) + "\" does not exist.");
+
+  if (itr->second.m_fileSlot == NULL || file == NULL) {
+    if (itr->second.m_genericSlot == NULL)
+      throw torrent::input_error("Command does not have a generic slot.");
+
+    return itr->second.m_genericSlot(itr->second.m_variable, arg);
+  }
+
+  return itr->second.m_fileSlot(itr->second.m_variable, file, arg);
 }
 
 }

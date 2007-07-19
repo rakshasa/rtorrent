@@ -135,10 +135,21 @@ apply_enable_trackers(int64_t arg) {
   }    
 }
 
+torrent::File*
+xmlrpc_find_file(core::Download* download, uint32_t index) {
+  torrent::FileList* fileList = download->download()->file_list();
+
+  if (index >= fileList->size_files())
+    return NULL;
+
+  return (*fileList)[index];
+}
+
 void
 initialize_xmlrpc() {
   rpc::xmlrpc.initialize();
   rpc::xmlrpc.set_slot_find_download(rak::mem_fn(control->core()->download_list(), &core::DownloadList::find_hex_ptr));
+  rpc::xmlrpc.set_slot_find_file(rak::ptr_fn(&xmlrpc_find_file));
 
   unsigned int count = 0;
 
@@ -147,9 +158,11 @@ initialize_xmlrpc() {
       continue;
 
     if (itr->second.m_genericSlot != NULL)
-      rpc::xmlrpc.insert_command(itr->first, itr->second.m_parm, itr->second.m_doc, false);
+      rpc::xmlrpc.insert_command(itr->first, itr->second.m_parm, itr->second.m_doc, rpc::XmlRpc::call_generic);
     else if (itr->second.m_downloadSlot != NULL)
-      rpc::xmlrpc.insert_command(itr->first, itr->second.m_parm, itr->second.m_doc, true);
+      rpc::xmlrpc.insert_command(itr->first, itr->second.m_parm, itr->second.m_doc, rpc::XmlRpc::call_download);
+    else if (itr->second.m_fileSlot != NULL)
+      rpc::xmlrpc.insert_command(itr->first, itr->second.m_parm, itr->second.m_doc, rpc::XmlRpc::call_file);
     else
       throw torrent::internal_error("XMLRPC: Bad entry.");
 

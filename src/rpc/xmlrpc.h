@@ -44,6 +44,7 @@ namespace core {
 }
 
 namespace torrent {
+  class File;
   class Object;
 }
 
@@ -51,12 +52,17 @@ namespace rpc {
 
 class XmlRpc {
 public:
-  typedef rak::function1<core::Download*, const char*> slot_find_download;
-  typedef rak::function2<bool, const char*, uint32_t>  slot_write;
+  typedef rak::function1<core::Download*, const char*>              slot_find_download;
+  typedef rak::function2<torrent::File*, core::Download*, uint32_t> slot_find_file;
+  typedef rak::function2<bool, const char*, uint32_t>               slot_write;
 
   static const int dialect_generic = 0;
   static const int dialect_i8      = 1;
   static const int dialect_apache  = 2;
+
+  static const int call_generic    = 0;
+  static const int call_download   = 1;
+  static const int call_file       = 2;
 
   XmlRpc() : m_env(NULL), m_registry(NULL), m_dialect(dialect_i8) {}
 
@@ -67,13 +73,16 @@ public:
 
   bool                process(const char* inBuffer, uint32_t length, slot_write slotWrite);
 
-  void                insert_command(const char* name, const char* parm, const char* doc, bool onDownload);
+  void                insert_command(const char* name, const char* parm, const char* doc, int call);
 
   int                 dialect() { return m_dialect; }
   void                set_dialect(int dialect);
 
   slot_find_download& get_slot_find_download()                                    { return m_slotFindDownload; }
   void                set_slot_find_download(slot_find_download::base_type* slot) { m_slotFindDownload.set(slot); }
+
+  slot_find_file&     get_slot_find_file()                                        { return m_slotFindFile; }
+  void                set_slot_find_file(slot_find_file::base_type* slot)         { m_slotFindFile.set(slot); }
 
 private:
   void*               m_env;
@@ -82,6 +91,7 @@ private:
   int                 m_dialect;
 
   slot_find_download  m_slotFindDownload;
+  slot_find_file      m_slotFindFile;
 };
 
 }

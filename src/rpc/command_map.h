@@ -46,6 +46,10 @@ namespace core {
   class Download;
 }
 
+namespace torrent {
+  class File;
+}
+
 namespace rpc {
 
 class Command;
@@ -60,14 +64,19 @@ struct command_map_data_type {
   // will register a member function pointer to be used instead.
   typedef const torrent::Object (*generic_slot)(Command*, const torrent::Object&);
   typedef const torrent::Object (*download_slot)(Command*, core::Download*, const torrent::Object&);
+  typedef const torrent::Object (*file_slot)(Command*, torrent::File*, const torrent::Object&);
 
-  command_map_data_type(Command* variable, generic_slot genericSlot, download_slot downloadSlot, int flags,
-                         const char* parm, const char* doc) :
-    m_variable(variable), m_genericSlot(genericSlot), m_downloadSlot(downloadSlot), m_flags(flags), m_parm(parm), m_doc(doc) {}
+  command_map_data_type(Command* variable, int flags, const char* parm, const char* doc) :
+    m_variable(variable), m_genericSlot(NULL), m_downloadSlot(NULL), m_fileSlot(NULL),
+    m_flags(flags), m_parm(parm), m_doc(doc) {}
 
   Command*      m_variable;
+
+  // Should make this into a union and pass a type id when calling
+  // commands, making it all use the same generic interface.
   generic_slot  m_genericSlot;
   download_slot m_downloadSlot;
+  file_slot     m_fileSlot;
 
   int           m_flags;
 
@@ -81,6 +90,7 @@ public:
 
   typedef command_map_data_type::generic_slot  generic_slot;
   typedef command_map_data_type::download_slot download_slot;
+  typedef command_map_data_type::file_slot     file_slot;
 
   typedef torrent::Object         mapped_type;
   typedef mapped_type::value_type mapped_value_type;
@@ -102,27 +112,18 @@ public:
   bool                has(const char* key) const        { return base_type::find(key) != base_type::end(); }
   bool                has(const std::string& key) const { return has(key.c_str()); }
 
+  iterator            insert(key_type key, Command* variable, int flags, const char* parm, const char* doc);
+
   void                insert(key_type key, Command* variable, generic_slot genericSlot, download_slot downloadSlot, int flags,
                              const char* parm, const char* doc);
+
+  void                insert_file(key_type key, Command* variable, file_slot fileSlot, int flags, const char* parm, const char* doc);
 
   void                insert(key_type key, const command_map_data_type src);
 
   const mapped_type   call_command(key_type key, const mapped_type& arg);
-//   const mapped_type   call_command_void(key_type key)   { return call_command(key, torrent::Object()); }
-//   const std::string   call_command_string(key_type key) { return call_command(key, torrent::Object()).as_string(); }
-//   mapped_value_type   call_command_value(key_type key)  { return call_command(key, torrent::Object()).as_value(); }
-
-//   void                call_command_set_string(key_type key, const std::string& arg)               { call_command(key, mapped_type(arg)); }
-//   void                call_command_set_std_string(const std::string& key, const std::string& arg) { call_command(key.c_str(), mapped_type(arg)); }
-
   const mapped_type   call_command_d(key_type key, core::Download* download, const mapped_type& arg);
-//   const mapped_type   call_command_d_void(key_type key, core::Download* download)   { return call_command_d(key, download, torrent::Object()); }
-//   const std::string   call_command_d_string(key_type key, core::Download* download) { return call_command_d(key, download, torrent::Object()).as_string(); }
-//   mapped_value_type   call_command_d_value(key_type key, core::Download* download)  { return call_command_d(key, download, torrent::Object()).as_value(); }
-
-//   void                call_command_d_set_value(key_type key, core::Download* download, mapped_value_type arg)                 { call_command_d(key, download, mapped_type(arg)); }
-//   void                call_command_d_set_string(key_type key, core::Download* download, const std::string& arg)               { call_command_d(key, download, mapped_type(arg)); }
-//   void                call_command_d_set_std_string(const std::string& key, core::Download* download, const std::string& arg) { call_command_d(key.c_str(), download, mapped_type(arg)); }
+  const mapped_type   call_command_f(key_type key, torrent::File* file, const mapped_type& arg);
 
 private:
   CommandMap(const CommandMap&);

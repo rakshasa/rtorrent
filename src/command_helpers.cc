@@ -41,6 +41,7 @@
 #include "rpc/command_slot.h"
 #include "rpc/command_variable.h"
 #include "rpc/command_download_slot.h"
+#include "rpc/command_file_slot.h"
 
 #include "globals.h"
 #include "control.h"
@@ -52,9 +53,12 @@ rpc::CommandVariable      commandVariables[COMMAND_VARIABLES_SIZE];
 rpc::CommandVariable*     commandVariablesItr = commandVariables;
 rpc::CommandDownloadSlot  commandDownloadSlots[COMMAND_DOWNLOAD_SLOTS_SIZE];
 rpc::CommandDownloadSlot* commandDownloadSlotsItr = commandDownloadSlots;
+rpc::CommandFileSlot      commandFileSlots[COMMAND_FILE_SLOTS_SIZE];
+rpc::CommandFileSlot*     commandFileSlotsItr = commandFileSlots;
 
 void initialize_command_download();
 void initialize_command_events();
+void initialize_command_file();
 void initialize_command_local();
 void initialize_command_network();
 void initialize_command_ui();
@@ -66,13 +70,18 @@ initialize_commands() {
   initialize_command_local();
   initialize_command_ui();
   initialize_command_download();
+  initialize_command_file();
 
 #ifdef ADDING_COMMANDS 
   if (commandSlotsItr > commandSlots + COMMAND_SLOTS_SIZE ||
-      commandVariablesItr > commandVariables + COMMAND_VARIABLES_SIZE)
+      commandVariablesItr > commandVariables + COMMAND_VARIABLES_SIZE ||
+      commandDownloadSlotsItr > commandDownloadSlots + COMMAND_DOWNLOAD_SLOTS_SIZE ||
+      commandFileSlotsItr > commandFileSlots + COMMAND_FILE_SLOTS_SIZE)
 #else
   if (commandSlotsItr != commandSlots + COMMAND_SLOTS_SIZE ||
-      commandVariablesItr != commandVariables + COMMAND_VARIABLES_SIZE)
+      commandVariablesItr != commandVariables + COMMAND_VARIABLES_SIZE ||
+      commandDownloadSlotsItr != commandDownloadSlots + COMMAND_DOWNLOAD_SLOTS_SIZE ||
+      commandFileSlotsItr != commandFileSlots + COMMAND_FILE_SLOTS_SIZE)
 #endif
     throw torrent::internal_error("initialize_commands() static command array size mismatch.");
 }

@@ -4,6 +4,8 @@ libsub_rpc_a_SOURCES = \
 	command.h \
 	command_download_slot.cc \
 	command_download_slot.h \
+	command_file_slot.cc \
+	command_file_slot.h \
 	command_map.cc \
 	command_map.h \
 	command_scheduler.cc \

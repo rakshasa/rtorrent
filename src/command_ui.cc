@@ -114,7 +114,7 @@ apply_print(const torrent::Object& rawArgs) {
     }
     case torrent::Object::TYPE_VALUE:
     default:
-      current += snprintf(buffer, buffer + 1024 - current, "%lli", itr->as_value());
+      current += snprintf(current, buffer + 1024 - current, "%lli", itr->as_value());
       break;
     }
   }

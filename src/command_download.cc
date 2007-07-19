@@ -278,9 +278,9 @@ initialize_command_download() {
   ADD_CD_F_VOID("erase",      rak::make_mem_fun(control->core()->download_list(), &core::DownloadList::erase_ptr));
   ADD_CD_F_VOID("check_hash", rak::make_mem_fun(control->core()->download_list(), &core::DownloadList::check_hash));
 
-  ADD_CD_VALUE_UNI("is_open",   rak::on(std::mem_fun(&core::Download::download), std::mem_fun(&torrent::Download::is_open)));
-  ADD_CD_VALUE_UNI("is_active", rak::on(std::mem_fun(&core::Download::download), std::mem_fun(&torrent::Download::is_active)));
-  ADD_CD_VALUE_UNI("is_hash_checked", rak::on(std::mem_fun(&core::Download::download), std::mem_fun(&torrent::Download::is_hash_checked)));
+  ADD_CD_VALUE_UNI("is_open",          rak::on(std::mem_fun(&core::Download::download), std::mem_fun(&torrent::Download::is_open)));
+  ADD_CD_VALUE_UNI("is_active",        rak::on(std::mem_fun(&core::Download::download), std::mem_fun(&torrent::Download::is_active)));
+  ADD_CD_VALUE_UNI("is_hash_checked",  rak::on(std::mem_fun(&core::Download::download), std::mem_fun(&torrent::Download::is_hash_checked)));
   ADD_CD_VALUE_UNI("is_hash_checking", rak::on(std::mem_fun(&core::Download::download), std::mem_fun(&torrent::Download::is_hash_checking)));
 
   // 0 - stopped
