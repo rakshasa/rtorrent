@@ -318,7 +318,7 @@ object_to_xmlrpc(xmlrpc_env* env, const torrent::Object& object) {
   case torrent::Object::TYPE_VALUE:
 
 #ifdef XMLRPC_HAVE_I8
-    if (xmlrpc::dialect() != XmlRpc::dialect_generic)
+    if (xmlrpc.dialect() != XmlRpc::dialect_generic)
       return xmlrpc_i8_new(env, object.as_value());
 #else
     return xmlrpc_int_new(env, object.as_value());
