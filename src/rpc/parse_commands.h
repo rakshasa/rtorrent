@@ -65,7 +65,7 @@ inline torrent::Object parse_command_d_single(core::Download* download, const ch
 void                   parse_command_multiple(core::Download* download, const char* first, const char* last);
 
 void                   parse_command_d_multiple(core::Download* download, const char* first);
-inline void            parse_command_d_multiple_std(core::Download* download, const std::string& cmd) { parse_command_d_multiple(download, cmd.c_str()); }
+inline void            parse_command_d_multiple_std(core::Download* download, const std::string& cmd) { parse_command_multiple(download, cmd.c_str(), cmd.c_str() + cmd.size()); }
 inline void            parse_command_multiple(const char* first)                                      { parse_command_d_multiple(NULL, first); }
 
 bool                   parse_command_file(const std::string& path);

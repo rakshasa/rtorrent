@@ -197,10 +197,24 @@ apply_schedule(const torrent::Object& rawArgs) {
   return torrent::Object();
 }
 
-void apply_load(const std::string& arg)               { control->core()->try_create_download_expand(arg, false, false, true); }
-void apply_load_verbose(const std::string& arg)       { control->core()->try_create_download_expand(arg, false, true, true); }
-void apply_load_start(const std::string& arg)         { control->core()->try_create_download_expand(arg, true, false, true); }
-void apply_load_start_verbose(const std::string& arg) { control->core()->try_create_download_expand(arg, true, true, true); }
+torrent::Object
+apply_load(int flags, const torrent::Object& rawArgs) {
+  const torrent::Object::list_type&          args    = rawArgs.as_list();
+  torrent::Object::list_type::const_iterator argsItr = args.begin();
+
+  if (argsItr == args.end())
+    throw torrent::input_error("Too few arguments.");
+
+  const std::string& filename = argsItr->as_string();
+  core::Manager::command_list_type commands;
+
+  while (++argsItr != args.end())
+    commands.push_back(argsItr->as_string());
+
+  control->core()->try_create_download_expand(filename, flags, commands);
+
+  return torrent::Object();
+}
 
 void apply_import(const std::string& path)     { if (!rpc::parse_command_file(path)) throw torrent::input_error("Could not open option file: " + path); }
 void apply_try_import(const std::string& path) { if (!rpc::parse_command_file(path)) control->core()->push_log_std("Could not read resource file: " + path); }
@@ -317,10 +331,10 @@ initialize_command_events() {
   ADD_COMMAND_STRING_UN("import",             std::ptr_fun(&apply_import));
   ADD_COMMAND_STRING_UN("try_import",         std::ptr_fun(&apply_try_import));
 
-  ADD_COMMAND_STRING_UN("load",               std::ptr_fun(&apply_load));
-  ADD_COMMAND_STRING_UN("load_verbose",       std::ptr_fun(&apply_load_verbose));
-  ADD_COMMAND_STRING_UN("load_start",         std::ptr_fun(&apply_load_start));
-  ADD_COMMAND_STRING_UN("load_start_verbose", std::ptr_fun(&apply_load_start_verbose));
+  ADD_COMMAND_LIST("load",                    rak::bind_ptr_fn(&apply_load, core::Manager::create_quiet | core::Manager::create_tied));
+  ADD_COMMAND_LIST("load_verbose",            rak::bind_ptr_fn(&apply_load, core::Manager::create_tied));
+  ADD_COMMAND_LIST("load_start",              rak::bind_ptr_fn(&apply_load, core::Manager::create_quiet | core::Manager::create_tied | core::Manager::create_start));
+  ADD_COMMAND_LIST("load_start_verbose",      rak::bind_ptr_fn(&apply_load, core::Manager::create_tied | core::Manager::create_start));
 
   ADD_COMMAND_VALUE_UN("close_low_diskspace", std::ptr_fun(&apply_close_low_diskspace));
 

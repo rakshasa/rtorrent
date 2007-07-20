@@ -278,9 +278,10 @@ DownloadList::receive_exit_input(Input type) {
 
     case INPUT_LOAD_DEFAULT:
     case INPUT_LOAD_MODIFIED:
-      if (!input->str().empty())
-        control->core()->try_create_download_expand(input->str(), type == INPUT_LOAD_DEFAULT);
+      if (input->str().empty())
+        break;
 
+      control->core()->try_create_download_expand(input->str(), type == INPUT_LOAD_DEFAULT ? core::Manager::create_start : 0);
       break;
 
     case INPUT_CHANGE_DIRECTORY:

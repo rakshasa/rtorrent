@@ -55,6 +55,7 @@ class Manager;
 class DownloadFactory {
 public:
   typedef sigc::slot<void> Slot;
+  typedef std::vector<std::string> command_list_type;
 
   // Do not destroy this object while it is in a HttpQueue.
   DownloadFactory(const std::string& uri, Manager* m);
@@ -66,6 +67,7 @@ public:
   void                load();
   void                commit();
 
+  command_list_type&         commands()     { return m_commands; }
   torrent::Object::map_type& variables()    { return m_variables; }
 
   bool                get_session() const   { return m_session; }
@@ -99,6 +101,7 @@ private:
   bool                m_start;
   bool                m_printLog;
 
+  command_list_type         m_commands;
   torrent::Object::map_type m_variables;
 
   Slot                m_slotFinished;

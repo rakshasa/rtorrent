@@ -230,6 +230,8 @@ DownloadFactory::receive_success() {
     return;
   }
 
+  std::for_each(m_commands.begin(), m_commands.end(), rak::bind1st(std::ptr_fun(&rpc::parse_command_d_multiple_std), download));
+
   // When a download scheduler is implemented, this is handled by the
   // above insertion into download list.
   if (m_session) {

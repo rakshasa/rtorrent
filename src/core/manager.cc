@@ -395,14 +395,15 @@ Manager::receive_http_failed(std::string msg) {
 }
 
 void
-Manager::try_create_download(const std::string& uri, bool start, bool printLog, bool tied) {
+Manager::try_create_download(const std::string& uri, int flags, const command_list_type& commands) {
   // Adding download.
   DownloadFactory* f = new DownloadFactory(uri, this);
 
-  f->variables()["tied_to_file"] = (int64_t)tied;
+  f->variables()["tied_to_file"] = (int64_t)(bool)(flags & create_tied);
+  f->commands().insert(f->commands().end(), commands.begin(), commands.end());
 
-  f->set_start(start);
-  f->set_print_log(printLog);
+  f->set_start(flags & create_start);
+  f->set_print_log(!(flags & create_quiet));
   f->slot_finished(sigc::bind(sigc::ptr_fun(&rak::call_delete_func<core::DownloadFactory>), f));
   f->load();
   f->commit();
@@ -463,13 +464,13 @@ manager_equal_tied(const std::string& path, Download* download) {
 }
 
 void
-Manager::try_create_download_expand(const std::string& uri, bool start, bool printLog, bool tied) {
+Manager::try_create_download_expand(const std::string& uri, int flags, command_list_type commands) {
   std::vector<std::string> paths;
   paths.reserve(256);
 
   path_expand(&paths, uri);
 
-  if (tied)
+  if (flags & create_tied)
     for (std::vector<std::string>::iterator itr = paths.begin(); itr != paths.end(); )
       if (std::find_if(m_downloadList->begin(), m_downloadList->end(), rak::bind1st(std::ptr_fun(&manager_equal_tied), *itr))
           != m_downloadList->end())
@@ -479,10 +480,10 @@ Manager::try_create_download_expand(const std::string& uri, bool start, bool pri
 
   if (!paths.empty())
     for (std::vector<std::string>::iterator itr = paths.begin(); itr != paths.end(); ++itr)
-      try_create_download(*itr, start, printLog, tied);
+      try_create_download(*itr, flags, commands);
 
   else
-    try_create_download(uri, start, printLog, tied);
+    try_create_download(uri, flags, commands);
 }
 
 // DownloadList's hashing related functions don't actually start the
