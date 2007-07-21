@@ -93,9 +93,9 @@ add_variable(const char* getKey, const char* setKey, const char* defaultSetKey,
   rpc::CommandVariable* variable = commandVariablesItr++;
   variable->set_variable(defaultObject);
 
-  rpc::commands.insert(getKey, variable, getSlot, NULL, rpc::CommandMap::flag_dont_delete | rpc::CommandMap::flag_public_xmlrpc, "i:", "");
-  rpc::commands.insert(setKey, variable, setSlot, NULL, rpc::CommandMap::flag_dont_delete | rpc::CommandMap::flag_public_xmlrpc, "i:", "");
+  rpc::commands.insert_generic(getKey, variable, getSlot, rpc::CommandMap::flag_dont_delete | rpc::CommandMap::flag_public_xmlrpc, "i:", "");
+  rpc::commands.insert_generic(setKey, variable, setSlot, rpc::CommandMap::flag_dont_delete | rpc::CommandMap::flag_public_xmlrpc, "i:", "");
 
   if (defaultSetKey)
-    rpc::commands.insert(defaultSetKey, variable, setSlot, NULL, rpc::CommandMap::flag_dont_delete, "i:", "");
+    rpc::commands.insert_generic(defaultSetKey, variable, setSlot, rpc::CommandMap::flag_dont_delete, "i:", "");
 }

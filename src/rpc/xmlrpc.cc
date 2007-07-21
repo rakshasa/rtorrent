@@ -502,10 +502,10 @@ XmlRpc::set_dialect(int dialect) {
 void XmlRpc::initialize() { throw torrent::resource_error("XMLRPC not supported."); }
 void XmlRpc::cleanup() {}
 
-void XmlRpc::insert_command(const char* name, const char* parm, const char* doc, bool onDownload) {}
+void XmlRpc::insert_command(__UNUSED const char* name, __UNUSED const char* parm, __UNUSED const char* doc, __UNUSED int call) {}
 void XmlRpc::set_dialect(__UNUSED int dialect) {}
 
-bool XmlRpc::process(const char* inBuffer, uint32_t length, slot_write slotWrite) { return false; }
+bool XmlRpc::process(__UNUSED const char* inBuffer, __UNUSED uint32_t length, __UNUSED slot_write slotWrite) { return false; }
 
 #endif
 

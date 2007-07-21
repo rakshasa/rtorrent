@@ -71,19 +71,27 @@ CommandMap::insert(key_type key, Command* variable, int flags, const char* parm,
 }
 
 void
-CommandMap::insert(key_type key, Command* variable, generic_slot genericSlot, download_slot downloadSlot, int flags,
-                    const char* parm, const char* doc) {
+CommandMap::insert_generic(key_type key, Command* variable, generic_slot targetSlot, int flags, const char* parm, const char* doc) {
   iterator itr = insert(key, variable, flags, parm, doc);
 
-  itr->second.m_genericSlot  = genericSlot;
-  itr->second.m_downloadSlot = downloadSlot;
+  itr->second.m_target      = target_generic;
+  itr->second.m_genericSlot = targetSlot;
 }
 
 void
-CommandMap::insert_file(key_type key, Command* variable, file_slot fileSlot, int flags, const char* parm, const char* doc) {
+CommandMap::insert_download(key_type key, Command* variable, download_slot targetSlot, int flags, const char* parm, const char* doc) {
   iterator itr = insert(key, variable, flags, parm, doc);
 
-  itr->second.m_fileSlot = fileSlot;
+  itr->second.m_target       = target_download;
+  itr->second.m_downloadSlot = targetSlot;
+}
+
+void
+CommandMap::insert_file(key_type key, Command* variable, file_slot targetSlot, int flags, const char* parm, const char* doc) {
+  iterator itr = insert(key, variable, flags, parm, doc);
+
+  itr->second.m_target   = target_file;
+  itr->second.m_fileSlot = targetSlot;
 }
 
 void
@@ -95,61 +103,33 @@ CommandMap::insert(key_type key, const command_map_data_type src) {
 
   itr = base_type::insert(itr, value_type(key, command_map_data_type(src.m_variable, src.m_flags | flag_dont_delete, src.m_parm, src.m_doc)));
 
-  itr->second.m_genericSlot  = src.m_genericSlot;
-  itr->second.m_downloadSlot = src.m_downloadSlot;
-  itr->second.m_fileSlot     = src.m_fileSlot;
-}
+  itr->second.m_target       = src.m_target;
 
-// These should really be handled by a single function. An type enum
-// passed with the object would work, and the switch would probably be
-// optimized away as the type difference is not reflected in the
-// member function pointer call.
-
-const CommandMap::mapped_type
-CommandMap::call_command(key_type key, const mapped_type& arg) {
-  const_iterator itr = base_type::find(key);
-
-  if (itr == base_type::end())
-    throw torrent::input_error("Command \"" + std::string(key) + "\" does not exist.");
-
-  if (itr->second.m_genericSlot == NULL)
-    throw torrent::input_error("Command does not have a generic slot.");
-
-  return itr->second.m_genericSlot(itr->second.m_variable, arg);
-}
-
-const CommandMap::mapped_type
-CommandMap::call_command_d(key_type key, core::Download* download, const mapped_type& arg) {
-  const_iterator itr = base_type::find(key);
-
-  if (itr == base_type::end())
-    throw torrent::input_error("Command \"" + std::string(key) + "\" does not exist.");
-
-  if (itr->second.m_downloadSlot == NULL || download == NULL) {
-    if (itr->second.m_genericSlot == NULL)
-      throw torrent::input_error("Command does not have a generic slot.");
-
-    return itr->second.m_genericSlot(itr->second.m_variable, arg);
+  switch (itr->second.m_target) {
+  case target_generic:  itr->second.m_genericSlot  = src.m_genericSlot; break;
+  case target_download: itr->second.m_downloadSlot = src.m_downloadSlot; break;
+  case target_file:     itr->second.m_fileSlot     = src.m_fileSlot; break;
+  default: throw torrent::internal_error("CommandMap::insert(...) Invalid target.");
   }
-
-  return itr->second.m_downloadSlot(itr->second.m_variable, download, arg);
 }
 
 const CommandMap::mapped_type
-CommandMap::call_command_f(key_type key, torrent::File* file, const mapped_type& arg) {
+CommandMap::call_command(key_type key, const mapped_type& arg, target_type target) {
   const_iterator itr = base_type::find(key);
 
   if (itr == base_type::end())
     throw torrent::input_error("Command \"" + std::string(key) + "\" does not exist.");
 
-  if (itr->second.m_fileSlot == NULL || file == NULL) {
-    if (itr->second.m_genericSlot == NULL)
-      throw torrent::input_error("Command does not have a generic slot.");
+  if ((itr->second.m_target != target.first && itr->second.m_target != target_generic) ||
+      (itr->second.m_target != target_generic && target.second == NULL))
+    throw torrent::input_error("Command type mis-match.");
 
-    return itr->second.m_genericSlot(itr->second.m_variable, arg);
+  switch (itr->second.m_target) {
+  case target_generic:  return itr->second.m_genericSlot(itr->second.m_variable, arg);
+  case target_download: return itr->second.m_downloadSlot(itr->second.m_variable, (core::Download*)target.second, arg);
+  case target_file:     return itr->second.m_fileSlot(itr->second.m_variable, (torrent::File*)target.second, arg);
+  default: throw torrent::internal_error("CommandMap::call_command(...) Invalid target.");
   }
-
-  return itr->second.m_fileSlot(itr->second.m_variable, file, arg);
 }
 
 }

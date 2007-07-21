@@ -67,18 +67,18 @@ struct command_map_data_type {
   typedef const torrent::Object (*file_slot)(Command*, torrent::File*, const torrent::Object&);
 
   command_map_data_type(Command* variable, int flags, const char* parm, const char* doc) :
-    m_variable(variable), m_genericSlot(NULL), m_downloadSlot(NULL), m_fileSlot(NULL),
-    m_flags(flags), m_parm(parm), m_doc(doc) {}
+    m_variable(variable), m_flags(flags), m_parm(parm), m_doc(doc) {}
 
   Command*      m_variable;
 
-  // Should make this into a union and pass a type id when calling
-  // commands, making it all use the same generic interface.
-  generic_slot  m_genericSlot;
-  download_slot m_downloadSlot;
-  file_slot     m_fileSlot;
+  union {
+    generic_slot  m_genericSlot;
+    download_slot m_downloadSlot;
+    file_slot     m_fileSlot;
+  };
 
   int           m_flags;
+  int           m_target;
 
   const char*   m_parm;
   const char*   m_doc;
@@ -103,6 +103,12 @@ public:
   using base_type::end;
   using base_type::find;
 
+  typedef std::pair<int, void*> target_type;
+
+  static const int target_generic  = 0;
+  static const int target_download = 1;
+  static const int target_file     = 2;
+
   static const int flag_dont_delete   = 0x1;
   static const int flag_public_xmlrpc = 0x2;
 
@@ -114,16 +120,15 @@ public:
 
   iterator            insert(key_type key, Command* variable, int flags, const char* parm, const char* doc);
 
-  void                insert(key_type key, Command* variable, generic_slot genericSlot, download_slot downloadSlot, int flags,
-                             const char* parm, const char* doc);
-
-  void                insert_file(key_type key, Command* variable, file_slot fileSlot, int flags, const char* parm, const char* doc);
+  void                insert_generic(key_type key, Command* variable, generic_slot targetSlot, int flags, const char* parm, const char* doc);
+  void                insert_download(key_type key, Command* variable, download_slot targetSlot, int flags, const char* parm, const char* doc);
+  void                insert_file(key_type key, Command* variable, file_slot targetSlot, int flags, const char* parm, const char* doc);
 
   void                insert(key_type key, const command_map_data_type src);
 
-  const mapped_type   call_command(key_type key, const mapped_type& arg);
-  const mapped_type   call_command_d(key_type key, core::Download* download, const mapped_type& arg);
-  const mapped_type   call_command_f(key_type key, torrent::File* file, const mapped_type& arg);
+  const mapped_type   call_command(key_type key, const mapped_type& arg, target_type target = target_type((int)target_generic, NULL));
+  const mapped_type   call_command_d(key_type key, core::Download* download, const mapped_type& arg) { return call_command(key, arg, target_type((int)target_download, download)); }
+  const mapped_type   call_command_f(key_type key, torrent::File* file, const mapped_type& arg)      { return call_command(key, arg, target_type((int)target_file, file)); }
 
 private:
   CommandMap(const CommandMap&);

@@ -53,6 +53,13 @@
 #include "control.h"
 #include "command_helpers.h"
 
+void
+apply_f_set_priority(torrent::File* file, uint32_t value) {
+  if (value > torrent::PRIORITY_HIGH)
+    throw torrent::input_error("Invalid value.");
+
+  file->set_priority((torrent::priority_t)value);
+}
 
 #define ADD_CF_SLOT(key, function, slot, parm, doc)    \
   commandFileSlotsItr->set_slot(slot); \
@@ -91,11 +98,11 @@
 #define ADD_CF_VALUE_UNI(key, get) \
   ADD_CF_SLOT_PUBLIC("get_f_" key, call_unknown, rpc::object_void_f_fn(get), "i:", "")
 
-/*
 #define ADD_CF_VALUE_BI(key, set, get) \
   ADD_CF_SLOT_PUBLIC("set_f_" key, call_value, rpc::object_value_f_fn(set), "i:i", "") \
   ADD_CF_SLOT_PUBLIC("get_f_" key, call_unknown, rpc::object_void_f_fn(get), "i:", "")
 
+/*
 #define ADD_CF_VALUE_MEM_BI(key, target, set, get) \
   ADD_CF_VALUE_BI(key, rak::on2(std::mem_fun(target), std::mem_fun(set)), rak::on(std::mem_fun(target), std::mem_fun(get)));
 
@@ -122,8 +129,7 @@ initialize_command_file() {
   ADD_CF_VALUE_UNI("range_first", std::mem_fun(&torrent::File::range_first));
   ADD_CF_VALUE_UNI("range_second", std::mem_fun(&torrent::File::range_second));
 
-  // Priority needs to be protected...
-  ADD_CF_VALUE_UNI("priority", std::mem_fun(&torrent::File::priority));
+  ADD_CF_VALUE_BI("priority", std::ptr_fun(&apply_f_set_priority), std::mem_fun(&torrent::File::priority));
 
   ADD_CF_STRING_UNI("frozen_path", std::mem_fun(&torrent::File::frozen_path));
   ADD_CF_VALUE_UNI("match_depth_prev", std::mem_fun(&torrent::File::match_depth_prev));

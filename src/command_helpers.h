@@ -82,17 +82,17 @@ add_variable("get_" key, "set_" key, key, &rpc::CommandVariable::get_string, &rp
 
 #define ADD_COMMAND_SLOT(key, function, slot, parm, doc)    \
   commandSlotsItr->set_slot(slot); \
-  rpc::commands.insert(key, commandSlotsItr++, &rpc::CommandSlot::function, NULL, rpc::CommandMap::flag_dont_delete | rpc::CommandMap::flag_public_xmlrpc, parm, doc);
+  rpc::commands.insert_generic(key, commandSlotsItr++, &rpc::CommandSlot::function, rpc::CommandMap::flag_dont_delete | rpc::CommandMap::flag_public_xmlrpc, parm, doc);
 
 #define ADD_COMMAND_SLOT_PRIVATE(key, function, slot) \
   commandSlotsItr->set_slot(slot); \
-  rpc::commands.insert(key, commandSlotsItr++, &rpc::CommandSlot::function, NULL, rpc::CommandMap::flag_dont_delete, NULL, NULL);
+  rpc::commands.insert_generic(key, commandSlotsItr++, &rpc::CommandSlot::function, rpc::CommandMap::flag_dont_delete, NULL, NULL);
 
 #define ADD_COMMAND_COPY(key, function, parm, doc) \
-  rpc::commands.insert(key, (commandSlotsItr - 1), &rpc::CommandSlot::function, NULL, rpc::CommandMap::flag_dont_delete | rpc::CommandMap::flag_public_xmlrpc, parm, doc);
+  rpc::commands.insert_generic(key, (commandSlotsItr - 1), &rpc::CommandSlot::function, rpc::CommandMap::flag_dont_delete | rpc::CommandMap::flag_public_xmlrpc, parm, doc);
 
 #define ADD_COMMAND_COPY_PRIVATE(key, function) \
-  rpc::commands.insert(key, (commandSlotsItr - 1), &rpc::CommandSlot::function, NULL, rpc::CommandMap::flag_dont_delete, NULL, NULL);
+  rpc::commands.insert_generic(key, (commandSlotsItr - 1), &rpc::CommandSlot::function, rpc::CommandMap::flag_dont_delete, NULL, NULL);
 
 #define ADD_COMMAND_VALUE_TRI(key, set, get) \
   ADD_COMMAND_SLOT_PRIVATE(key, call_value, rpc::object_value_fn(set))      \
