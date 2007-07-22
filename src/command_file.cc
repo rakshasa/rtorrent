@@ -61,6 +61,36 @@ apply_f_set_priority(torrent::File* file, uint32_t value) {
   file->set_priority((torrent::priority_t)value);
 }
 
+torrent::Object
+apply_f_path(torrent::File* file) {
+  if (file->path()->empty())
+    return std::string();
+
+  torrent::Object resultRaw(*file->path()->begin());
+  torrent::Object::string_type& result = resultRaw.as_string();
+
+  for (torrent::Path::const_iterator itr = ++file->path()->begin(), last = file->path()->end(); itr != last; itr++)
+    result += '/' + *itr;
+
+  return resultRaw;
+}
+
+torrent::Object
+apply_f_path_components(torrent::File* file) {
+  torrent::Object resultRaw(torrent::Object::TYPE_LIST);
+  torrent::Object::list_type& result = resultRaw.as_list();
+
+  for (torrent::Path::const_iterator itr = file->path()->begin(), last = file->path()->end(); itr != last; itr++)
+    result.push_back(*itr);
+
+  return resultRaw;
+}
+
+torrent::Object
+apply_f_path_depth(torrent::File* file) {
+  return (int64_t)file->path()->size();
+}
+
 #define ADD_CF_SLOT(key, function, slot, parm, doc)    \
   commandFileSlotsItr->set_slot(slot); \
   rpc::commands.insert_file(key, commandFileSlotsItr++, &rpc::CommandFileSlot::function, rpc::CommandMap::flag_dont_delete, parm, doc);
@@ -69,10 +99,10 @@ apply_f_set_priority(torrent::File* file, uint32_t value) {
   commandFileSlotsItr->set_slot(slot); \
   rpc::commands.insert_file(key, commandFileSlotsItr++, &rpc::CommandFileSlot::function, rpc::CommandMap::flag_dont_delete | rpc::CommandMap::flag_public_xmlrpc, parm, doc);
 
-/*
 #define ADD_CF_VOID(key, slot) \
   ADD_CF_SLOT_PUBLIC("get_f_" key, call_unknown, rpc::object_f_fn(slot), "i:", "")
 
+/*
 #define ADD_CF_V_VOID(key, slot) \
   ADD_CF_SLOT_PUBLIC("d_" key, call_unknown, rpc::object_f_fn(slot), "i:", "")
 
@@ -118,22 +148,27 @@ apply_f_set_priority(torrent::File* file, uint32_t value) {
 
 void
 initialize_command_file() {
-  ADD_CF_VALUE_UNI("is_created", std::mem_fun(&torrent::File::is_created));
-  ADD_CF_VALUE_UNI("is_open", std::mem_fun(&torrent::File::is_open));
+  ADD_CF_VALUE_UNI("is_created",       std::mem_fun(&torrent::File::is_created));
+  ADD_CF_VALUE_UNI("is_open",          std::mem_fun(&torrent::File::is_open));
 
-  ADD_CF_VALUE_UNI("size_bytes", std::mem_fun(&torrent::File::size_bytes));
-  ADD_CF_VALUE_UNI("size_chunks", std::mem_fun(&torrent::File::size_chunks));
+  ADD_CF_VALUE_UNI("size_bytes",       std::mem_fun(&torrent::File::size_bytes));
+  ADD_CF_VALUE_UNI("size_chunks",      std::mem_fun(&torrent::File::size_chunks));
   ADD_CF_VALUE_UNI("completed_chunks", std::mem_fun(&torrent::File::completed_chunks));
 
   ADD_CF_VALUE_UNI("offset",           std::mem_fun(&torrent::File::offset));
-  ADD_CF_VALUE_UNI("range_first", std::mem_fun(&torrent::File::range_first));
-  ADD_CF_VALUE_UNI("range_second", std::mem_fun(&torrent::File::range_second));
+  ADD_CF_VALUE_UNI("range_first",      std::mem_fun(&torrent::File::range_first));
+  ADD_CF_VALUE_UNI("range_second",     std::mem_fun(&torrent::File::range_second));
 
-  ADD_CF_VALUE_BI("priority", std::ptr_fun(&apply_f_set_priority), std::mem_fun(&torrent::File::priority));
+  ADD_CF_VALUE_BI("priority",          std::ptr_fun(&apply_f_set_priority), std::mem_fun(&torrent::File::priority));
 
-  ADD_CF_STRING_UNI("frozen_path", std::mem_fun(&torrent::File::frozen_path));
+  ADD_CF_STRING_UNI("path",            std::ptr_fun(&apply_f_path));
+  ADD_CF_STRING_UNI("path_components", std::ptr_fun(&apply_f_path_components));
+//   ADD_CF_STRING_UNI("path_depth",      rak::on(std::const_mem_fun_t<const torrent::Path*, torrent::File>(&torrent::File::path), std::mem_fun(&torrent::Path::size)));
+  ADD_CF_STRING_UNI("path_depth",      std::ptr_fun(&apply_f_path_depth));
+  ADD_CF_STRING_UNI("frozen_path",     std::mem_fun(&torrent::File::frozen_path));
+
   ADD_CF_VALUE_UNI("match_depth_prev", std::mem_fun(&torrent::File::match_depth_prev));
   ADD_CF_VALUE_UNI("match_depth_next", std::mem_fun(&torrent::File::match_depth_next));
 
-  ADD_CF_VALUE_UNI("last_touched", std::mem_fun(&torrent::File::last_touched));
+  ADD_CF_VALUE_UNI("last_touched",     std::mem_fun(&torrent::File::last_touched));
 }

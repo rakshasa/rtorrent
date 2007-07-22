@@ -157,14 +157,12 @@ initialize_xmlrpc() {
     if (!(itr->second.m_flags & rpc::CommandMap::flag_public_xmlrpc))
       continue;
 
-    if (itr->second.m_genericSlot != NULL)
-      rpc::xmlrpc.insert_command(itr->first, itr->second.m_parm, itr->second.m_doc, rpc::XmlRpc::call_generic);
-    else if (itr->second.m_downloadSlot != NULL)
-      rpc::xmlrpc.insert_command(itr->first, itr->second.m_parm, itr->second.m_doc, rpc::XmlRpc::call_download);
-    else if (itr->second.m_fileSlot != NULL)
-      rpc::xmlrpc.insert_command(itr->first, itr->second.m_parm, itr->second.m_doc, rpc::XmlRpc::call_file);
-    else
-      throw torrent::internal_error("XMLRPC: Bad entry.");
+    switch (itr->second.m_target) {
+    case rpc::CommandMap::target_generic:  rpc::xmlrpc.insert_command(itr->first, itr->second.m_parm, itr->second.m_doc, rpc::XmlRpc::call_generic); break;
+    case rpc::CommandMap::target_download: rpc::xmlrpc.insert_command(itr->first, itr->second.m_parm, itr->second.m_doc, rpc::XmlRpc::call_download); break;
+    case rpc::CommandMap::target_file:     rpc::xmlrpc.insert_command(itr->first, itr->second.m_parm, itr->second.m_doc, rpc::XmlRpc::call_file); break;
+    default: throw torrent::internal_error("XMLRPC: Bad entry.");
+    }
 
     count++;
   }
