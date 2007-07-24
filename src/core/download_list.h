@@ -43,6 +43,10 @@
 #include <string>
 #include <sigc++/slot.h>
 
+namespace torrent {
+  class HashString;
+}
+
 namespace core {
 
 class Download;
@@ -77,6 +81,8 @@ public:
   void                clear();
 
   void                session_save();
+
+  iterator            find(const torrent::HashString& hash);
 
   iterator            find_hex(const char* hash);
   Download*           find_hex_ptr(const char* hash);

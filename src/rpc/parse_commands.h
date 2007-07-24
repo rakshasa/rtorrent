@@ -81,6 +81,11 @@ parse_command_d_single_std(core::Download* download, const std::string& cmd) {
   parse_command_d_single(download, cmd.c_str(), cmd.c_str() + cmd.size());
 }
 
+inline void
+parse_command_multiple_std(const std::string& cmd) {
+  parse_command_multiple(NULL, cmd.c_str(), cmd.c_str() + cmd.size());
+}
+
 inline torrent::Object call_command(const char* key, const torrent::Object& obj) { return commands.call_command(key, obj); }
 inline torrent::Object call_command_void(const char* key)   { return commands.call_command(key, torrent::Object()); }
 inline std::string     call_command_string(const char* key) { return commands.call_command(key, torrent::Object()).as_string(); }

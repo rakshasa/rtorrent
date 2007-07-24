@@ -108,7 +108,7 @@ apply_print(const torrent::Object& rawArgs) {
     {
       int len = std::min<int>(itr->as_string().size(), buffer + 1024 - current);
 
-      std::memcpy(current, itr->as_string().c_str(), len);
+      std::memcpy(current, itr->as_string().c_str(), len + 1);
       current += len;
       break;
     }

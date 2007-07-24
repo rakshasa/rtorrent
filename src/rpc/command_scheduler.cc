@@ -97,7 +97,7 @@ CommandScheduler::call_item(value_type item) {
   // removed.
 
   try {
-    rpc::parse_command_single_std(item->command());
+    rpc::parse_command_multiple_std(item->command());
 
   } catch (torrent::input_error& e) {
     if (m_slotErrorMessage.is_valid())

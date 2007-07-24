@@ -269,7 +269,10 @@ main(int argc, char** argv) {
 
   } catch (std::exception& e) {
     display::Canvas::cleanup();
-    delete control;
+
+    // Safe to delete here? Seem to cause problems if cleanup hasn't
+    // been called.
+    //delete control;
 
     std::cout << "rtorrent: " << e.what() << std::endl;
     return -1;

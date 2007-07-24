@@ -264,8 +264,9 @@ add_copy_to_download(const char* src, const char* dest) {
 
 void
 initialize_command_download() {
-  ADD_CD_VOID("base_path", &retrieve_d_base_path);
+  ADD_CD_VOID("base_path",     &retrieve_d_base_path);
   ADD_CD_VOID("base_filename", &retrieve_d_base_filename);
+  ADD_CD_STRING_UNI("name",    rak::on(std::mem_fun(&core::Download::download), std::mem_fun(&torrent::Download::name)));
 
   ADD_CD_LIST("create_link",   rak::bind_ptr_fn(&apply_d_change_link, 0));
   ADD_CD_LIST("delete_link",   rak::bind_ptr_fn(&apply_d_change_link, 1));
