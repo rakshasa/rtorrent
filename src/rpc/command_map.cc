@@ -36,12 +36,6 @@
 
 #include "config.h"
 
-#include <algorithm>
-#include <cstdio>
-#include <cctype>
-#include <fstream>
-#include <rak/functional.h>
-#include <rak/path.h>
 #include <torrent/exceptions.h>
 #include <torrent/object.h>
 
@@ -49,10 +43,6 @@
 #include "command_map.h"
 
 namespace rpc {
-
-struct command_map_get_ptr : std::unary_function<CommandMap::value_type&, Command*> {
-  Command* operator () (CommandMap::value_type& value) { return value.second.m_variable; }
-};
 
 CommandMap::~CommandMap() {
   for (iterator itr = base_type::begin(), last = base_type::end(); itr != last; itr++)
@@ -95,6 +85,14 @@ CommandMap::insert_file(key_type key, Command* variable, file_slot targetSlot, i
 }
 
 void
+CommandMap::insert_tracker(key_type key, Command* variable, tracker_slot targetSlot, int flags, const char* parm, const char* doc) {
+  iterator itr = insert(key, variable, flags, parm, doc);
+
+  itr->second.m_target      = target_tracker;
+  itr->second.m_trackerSlot = targetSlot;
+}
+
+void
 CommandMap::insert(key_type key, const command_map_data_type src) {
   iterator itr = base_type::find(key);
 
@@ -109,6 +107,7 @@ CommandMap::insert(key_type key, const command_map_data_type src) {
   case target_generic:  itr->second.m_genericSlot  = src.m_genericSlot; break;
   case target_download: itr->second.m_downloadSlot = src.m_downloadSlot; break;
   case target_file:     itr->second.m_fileSlot     = src.m_fileSlot; break;
+  case target_tracker:  itr->second.m_trackerSlot  = src.m_trackerSlot; break;
   default: throw torrent::internal_error("CommandMap::insert(...) Invalid target.");
   }
 }
@@ -128,6 +127,7 @@ CommandMap::call_command(key_type key, const mapped_type& arg, target_type targe
   case target_generic:  return itr->second.m_genericSlot(itr->second.m_variable, arg);
   case target_download: return itr->second.m_downloadSlot(itr->second.m_variable, (core::Download*)target.second, arg);
   case target_file:     return itr->second.m_fileSlot(itr->second.m_variable, (torrent::File*)target.second, arg);
+  case target_tracker:  return itr->second.m_trackerSlot(itr->second.m_variable, (torrent::Tracker*)target.second, arg);
   default: throw torrent::internal_error("CommandMap::call_command(...) Invalid target.");
   }
 }

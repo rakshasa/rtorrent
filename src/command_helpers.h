@@ -44,6 +44,7 @@ namespace rpc {
   class CommandVariable;
   class CommandDownloadSlot;
   class CommandFileSlot;
+  class CommandTrackerSlot;
 }
 
 // By using a static array we avoid allocating the variables on the
@@ -51,7 +52,8 @@ namespace rpc {
 #define COMMAND_SLOTS_SIZE          100
 #define COMMAND_VARIABLES_SIZE      100
 #define COMMAND_DOWNLOAD_SLOTS_SIZE 100
-#define COMMAND_FILE_SLOTS_SIZE     25
+#define COMMAND_FILE_SLOTS_SIZE     20
+#define COMMAND_TRACKER_SLOTS_SIZE  15
 
 #define ADDING_COMMANDS
 
@@ -63,6 +65,8 @@ extern rpc::CommandDownloadSlot  commandDownloadSlots[COMMAND_DOWNLOAD_SLOTS_SIZ
 extern rpc::CommandDownloadSlot* commandDownloadSlotsItr;
 extern rpc::CommandFileSlot      commandFileSlots[COMMAND_FILE_SLOTS_SIZE];
 extern rpc::CommandFileSlot*     commandFileSlotsItr;
+extern rpc::CommandTrackerSlot   commandTrackerSlots[COMMAND_TRACKER_SLOTS_SIZE];
+extern rpc::CommandTrackerSlot*  commandTrackerSlotsItr;
 
 void initialize_commands();
 
@@ -131,5 +135,8 @@ add_variable("get_" key, "set_" key, key, &rpc::CommandVariable::get_string, &rp
 
 #define ADD_COMMAND_LIST(key, slot) \
   ADD_COMMAND_SLOT(key, call_list, slot, "i:", "")
+
+#define ADD_COMMAND_NONE_L(key, slot) \
+  ADD_COMMAND_SLOT(key, call_unknown, slot, "A:", "")
 
 #endif

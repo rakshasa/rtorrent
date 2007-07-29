@@ -168,6 +168,7 @@ main(int argc, char** argv) {
     rpc::parse_command_multiple(
        // Currently not doing any sorting on main.
        "view_add = main\n"
+       "view_add = default\n"
 
        "view_add = name\n"
        "view_sort_new = name,name\n"

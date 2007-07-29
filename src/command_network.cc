@@ -137,12 +137,23 @@ apply_enable_trackers(int64_t arg) {
 
 torrent::File*
 xmlrpc_find_file(core::Download* download, uint32_t index) {
-  torrent::FileList* fileList = download->download()->file_list();
-
-  if (index >= fileList->size_files())
+  if (index >= download->file_list()->size_files())
     return NULL;
 
-  return (*fileList)[index];
+  return (*download->file_list())[index];
+}
+
+// Ergh... time to update the Tracker API to allow proper ptrs.
+torrent::Tracker*
+xmlrpc_find_tracker(core::Download* download, uint32_t index) {
+  if (index >= download->tracker_list()->size())
+    return NULL;
+
+  // HACK ALERT!!!!
+  static torrent::Tracker hack;
+  hack = download->tracker_list()->get(index);
+
+  return &hack;
 }
 
 void
@@ -150,6 +161,7 @@ initialize_xmlrpc() {
   rpc::xmlrpc.initialize();
   rpc::xmlrpc.set_slot_find_download(rak::mem_fn(control->core()->download_list(), &core::DownloadList::find_hex_ptr));
   rpc::xmlrpc.set_slot_find_file(rak::ptr_fn(&xmlrpc_find_file));
+  rpc::xmlrpc.set_slot_find_tracker(rak::ptr_fn(&xmlrpc_find_tracker));
 
   unsigned int count = 0;
 
@@ -161,6 +173,7 @@ initialize_xmlrpc() {
     case rpc::CommandMap::target_generic:  rpc::xmlrpc.insert_command(itr->first, itr->second.m_parm, itr->second.m_doc, rpc::XmlRpc::call_generic); break;
     case rpc::CommandMap::target_download: rpc::xmlrpc.insert_command(itr->first, itr->second.m_parm, itr->second.m_doc, rpc::XmlRpc::call_download); break;
     case rpc::CommandMap::target_file:     rpc::xmlrpc.insert_command(itr->first, itr->second.m_parm, itr->second.m_doc, rpc::XmlRpc::call_file); break;
+    case rpc::CommandMap::target_tracker:  rpc::xmlrpc.insert_command(itr->first, itr->second.m_parm, itr->second.m_doc, rpc::XmlRpc::call_tracker); break;
     default: throw torrent::internal_error("XMLRPC: Bad entry.");
     }
 
@@ -252,7 +265,6 @@ apply_xmlrpc_dialect(const std::string& arg) {
 
 void
 initialize_command_network() {
-//   core::DownloadList* downloadList = control->core()->download_list();
   torrent::ConnectionManager* cm = torrent::connection_manager();
   core::CurlStack* httpStack = control->core()->get_poll_manager()->get_http_stack();
 

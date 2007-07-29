@@ -36,15 +36,11 @@
 
 #include "config.h"
 
-//#include <functional>
-//#include <rak/file_stat.h>
 #include <rak/error_number.h>
 #include <rak/path.h>
-//#include <torrent/rate.h>
 #include <torrent/data/file.h>
 #include <torrent/data/file_list.h>
 
-//#include "core/download.h"
 #include "core/manager.h"
 #include "rpc/command_slot.h"
 #include "rpc/command_file_slot.h"
@@ -102,29 +98,6 @@ apply_f_path_depth(torrent::File* file) {
 #define ADD_CF_VOID(key, slot) \
   ADD_CF_SLOT_PUBLIC("get_f_" key, call_unknown, rpc::object_f_fn(slot), "i:", "")
 
-/*
-#define ADD_CF_V_VOID(key, slot) \
-  ADD_CF_SLOT_PUBLIC("d_" key, call_unknown, rpc::object_f_fn(slot), "i:", "")
-
-#define ADD_CF_F_VOID(key, slot) \
-  ADD_CF_SLOT_PUBLIC("d_" key, call_unknown, rpc::object_void_f_fn(slot), "i:", "")
-
-#define ADD_CF_LIST(key, slot) \
-  ADD_CF_SLOT_PUBLIC(key, call_list, slot, "i:", "")
-
-#define ADD_CF_VARIABLE_VALUE(key, firstKey, secondKey) \
-  ADD_CF_SLOT_PUBLIC("get_f_" key, call_unknown, rpc::get_variable_f_fn(firstKey, secondKey), "i:", ""); \
-  ADD_CF_SLOT("set_f_" key, call_value,   rpc::set_variable_f_fn(firstKey, secondKey), "i:i", "");
-
-#define ADD_CF_VARIABLE_VALUE_PUBLIC(key, firstKey, secondKey) \
-  ADD_CF_SLOT_PUBLIC("get_f_" key, call_unknown, rpc::get_variable_f_fn(firstKey, secondKey), "i:", ""); \
-  ADD_CF_SLOT_PUBLIC("set_f_" key, call_value,   rpc::set_variable_f_fn(firstKey, secondKey), "i:i", "");
-
-#define ADD_CF_VARIABLE_STRING(key, firstKey, secondKey) \
-  ADD_CF_SLOT_PUBLIC("get_f_" key, call_unknown, rpc::get_variable_f_fn(firstKey, secondKey), "i:", ""); \
-  ADD_CF_SLOT("set_f_" key, call_string,  rpc::set_variable_f_fn(firstKey, secondKey), "i:s", "");
-
-*/
 #define ADD_CF_VALUE_UNI(key, get) \
   ADD_CF_SLOT_PUBLIC("get_f_" key, call_unknown, rpc::object_void_f_fn(get), "i:", "")
 
@@ -132,19 +105,8 @@ apply_f_path_depth(torrent::File* file) {
   ADD_CF_SLOT_PUBLIC("set_f_" key, call_value, rpc::object_value_f_fn(set), "i:i", "") \
   ADD_CF_SLOT_PUBLIC("get_f_" key, call_unknown, rpc::object_void_f_fn(get), "i:", "")
 
-/*
-#define ADD_CF_VALUE_MEM_BI(key, target, set, get) \
-  ADD_CF_VALUE_BI(key, rak::on2(std::mem_fun(target), std::mem_fun(set)), rak::on(std::mem_fun(target), std::mem_fun(get)));
-
-*/
 #define ADD_CF_STRING_UNI(key, get) \
   ADD_CF_SLOT_PUBLIC("get_f_" key, call_unknown, rpc::object_void_f_fn(get), "s:", "")
-
-/*
-#define ADD_CF_STRING_BI(key, set, get) \
-  ADD_CF_SLOT_PUBLIC("set_f_" key, call_string, rpc::object_string_f_fn(set), "i:s", "") \
-  ADD_CF_SLOT_PUBLIC("get_f_" key, call_unknown, rpc::object_void_f_fn(get), "s:", "")
-*/
 
 void
 initialize_command_file() {
@@ -163,7 +125,6 @@ initialize_command_file() {
 
   ADD_CF_STRING_UNI("path",            std::ptr_fun(&apply_f_path));
   ADD_CF_STRING_UNI("path_components", std::ptr_fun(&apply_f_path_components));
-//   ADD_CF_STRING_UNI("path_depth",      rak::on(std::const_mem_fun_t<const torrent::Path*, torrent::File>(&torrent::File::path), std::mem_fun(&torrent::Path::size)));
   ADD_CF_STRING_UNI("path_depth",      std::ptr_fun(&apply_f_path_depth));
   ADD_CF_STRING_UNI("frozen_path",     std::mem_fun(&torrent::File::frozen_path));
 

@@ -98,6 +98,17 @@ apply_view_sort(const torrent::Object& rawArgs) {
 }
 
 torrent::Object
+apply_view_list(const torrent::Object&) {
+  torrent::Object rawResult(torrent::Object::TYPE_LIST);
+  torrent::Object::list_type& result = rawResult.as_list();
+
+  for (core::ViewManager::const_iterator itr = control->view_manager()->begin(), last = control->view_manager()->end(); itr != last; itr++)
+    result.push_back((*itr)->name());
+
+  return rawResult;
+}
+
+torrent::Object
 apply_print(const torrent::Object& rawArgs) {
   char buffer[1024];
   char* current = buffer;
@@ -128,6 +139,7 @@ initialize_command_ui() {
   ADD_VARIABLE_STRING("key_layout", "qwerty");
 
   ADD_COMMAND_STRING("view_add",        rpc::object_string_fn(rak::make_mem_fun(control->view_manager(), &core::ViewManager::insert_throw)));
+  ADD_COMMAND_NONE_L("view_list",       rak::ptr_fn(&apply_view_list));
 
   ADD_COMMAND_LIST("view_filter",       rak::bind_ptr_fn(&apply_view_filter, &core::ViewManager::set_filter));
   ADD_COMMAND_LIST("view_filter_on",    rak::bind_ptr_fn(&apply_view_filter, &core::ViewManager::set_filter_on));

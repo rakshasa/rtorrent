@@ -249,7 +249,7 @@ apply_download_list(const torrent::Object& rawArgs) {
   if (argsItr != args.end() && !argsItr->as_string().empty())
     viewItr = viewManager->find((argsItr++)->as_string());
   else
-    viewItr = viewManager->find("main");
+    viewItr = viewManager->find("default");
 
   if (viewItr == viewManager->end())
     throw torrent::input_error("Could not find view.");
@@ -339,5 +339,5 @@ initialize_command_events() {
   ADD_COMMAND_VALUE_UN("close_low_diskspace", std::ptr_fun(&apply_close_low_diskspace));
 
   ADD_COMMAND_LIST("download_list",           rak::ptr_fn(&apply_download_list));
-  ADD_COMMAND_LIST("call_download",           rak::ptr_fn(&apply_call_download));
+//   ADD_COMMAND_LIST("call_download",           rak::ptr_fn(&apply_call_download));
 }

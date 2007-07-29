@@ -24,6 +24,7 @@ rtorrent_SOURCES = \
 	command_helpers.h \
 	command_local.cc \
 	command_network.cc \
+	command_tracker.cc \
 	command_ui.cc \
 	control.cc \
 	control.h \

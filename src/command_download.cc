@@ -200,6 +200,14 @@ retrieve_d_priority_str(core::Download* download) {
   }
 }
 
+torrent::Object
+apply_d_ratio(core::Download* download) {
+  int64_t bytesDone = download->download()->bytes_done();
+  int64_t upTotal   = download->download()->up_rate()->total();
+
+  return bytesDone > 0 ? (1000 * upTotal) / bytesDone : 0;
+}
+
 #define ADD_CD_SLOT(key, function, slot, parm, doc)    \
   commandDownloadSlotsItr->set_slot(slot); \
   rpc::commands.insert_download(key, commandDownloadSlotsItr++, &rpc::CommandDownloadSlot::function, rpc::CommandMap::flag_dont_delete, parm, doc);
@@ -340,6 +348,7 @@ initialize_command_download() {
   ADD_CD_VALUE_MEM_UNI("skip_total",   &torrent::Download::mutable_skip_rate, &torrent::Rate::total);
 
   ADD_CD_VALUE_UNI("bytes_done",       rak::on(std::mem_fun(&core::Download::download), std::mem_fun(&torrent::Download::bytes_done)));
+  ADD_CD_VALUE_UNI("ratio",            std::ptr_fun(&apply_d_ratio));
   ADD_CD_VALUE_UNI("chunks_hashed",    rak::on(std::mem_fun(&core::Download::download), std::mem_fun(&torrent::Download::chunks_hashed)));
   ADD_CD_VALUE_UNI("free_diskspace",   rak::on(std::mem_fun(&core::Download::file_list), std::mem_fun(&torrent::FileList::free_diskspace)));
 
@@ -354,6 +363,8 @@ initialize_command_download() {
   ADD_CD_VALUE_UNI("chunk_size",       rak::on(std::mem_fun(&core::Download::file_list), std::mem_fun(&torrent::FileList::chunk_size)));
 
   ADD_CD_VALUE_MEM_BI("tracker_numwant", &core::Download::tracker_list, &torrent::TrackerList::set_numwant, &torrent::TrackerList::numwant);
+  ADD_CD_VALUE_UNI("tracker_focus",      rak::on(std::mem_fun(&core::Download::tracker_list), std::mem_fun(&torrent::TrackerList::focus)));
+  ADD_CD_VALUE_UNI("tracker_size",       rak::on(std::mem_fun(&core::Download::tracker_list), std::mem_fun(&torrent::TrackerList::size)));
 
   ADD_CD_STRING_BI("directory",        std::mem_fun(&core::Download::set_root_directory), rak::on(std::mem_fun(&core::Download::file_list), std::mem_fun(&torrent::FileList::root_dir)));
   ADD_CD_VALUE_BI("priority",          std::mem_fun(&core::Download::set_priority), std::mem_fun(&core::Download::priority));

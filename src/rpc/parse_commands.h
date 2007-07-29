@@ -105,7 +105,8 @@ inline void            call_command_d_set_value(const char* key, core::Download*
 inline void            call_command_d_set_string(const char* key, core::Download* download, const std::string& arg)            { commands.call_command_d(key, download, torrent::Object(arg)); }
 inline void            call_command_d_set_std_string(const std::string& key, core::Download* download, const std::string& arg) { commands.call_command_d(key.c_str(), download, torrent::Object(arg)); }
 
-inline torrent::Object call_command_f(const char* key, torrent::File* file, const torrent::Object& obj) { return commands.call_command_f(key, file, obj); }
+inline torrent::Object call_command_f(const char* key, torrent::File* file, const torrent::Object& obj)       { return commands.call_command_f(key, file, obj); }
+inline torrent::Object call_command_t(const char* key, torrent::Tracker* tracker, const torrent::Object& obj) { return commands.call_command_t(key, tracker, obj); }
 
 inline torrent::Object
 call_command_d_range(const char* key, core::Download* download, torrent::Object::list_type::const_iterator first, torrent::Object::list_type::const_iterator last) {
