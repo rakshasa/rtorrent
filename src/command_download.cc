@@ -37,6 +37,7 @@
 #include "config.h"
 
 #include <functional>
+#include <unistd.h>
 #include <rak/file_stat.h>
 #include <rak/error_number.h>
 #include <rak/path.h>
