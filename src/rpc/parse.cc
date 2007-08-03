@@ -79,9 +79,8 @@ parse_string(const char* first, const char* last, std::string* dest) {
         return first;
     }
         
-    if (parse_is_escape(*first))
-      if (++first == last)
-        throw torrent::input_error("Escape character at end of input.");
+    if (parse_is_escape(*first) && ++first == last)
+      throw torrent::input_error("Escape character at end of input.");
 
     dest->push_back(*first);
     first++;

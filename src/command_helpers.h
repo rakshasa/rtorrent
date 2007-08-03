@@ -84,6 +84,9 @@ add_variable("get_" key, "set_" key, key, &rpc::CommandVariable::get_value, &rpc
 #define ADD_VARIABLE_STRING(key, defaultValue) \
 add_variable("get_" key, "set_" key, key, &rpc::CommandVariable::get_string, &rpc::CommandVariable::set_string, std::string(defaultValue));
 
+#define ADD_VARIABLE_C_STRING(key, defaultValue) \
+add_variable("get_" key, NULL, NULL, &rpc::CommandVariable::get_string, NULL, std::string(defaultValue));
+
 #define ADD_COMMAND_SLOT(key, function, slot, parm, doc)    \
   commandSlotsItr->set_slot(slot); \
   rpc::commands.insert_generic(key, commandSlotsItr++, &rpc::CommandSlot::function, rpc::CommandMap::flag_dont_delete | rpc::CommandMap::flag_public_xmlrpc, parm, doc);

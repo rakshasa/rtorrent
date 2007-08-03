@@ -39,7 +39,6 @@
 #include <functional>
 #include <torrent/torrent.h>
 #include <torrent/chunk_manager.h>
-//#include <torrent/connection_manager.h>
 
 #include "core/download_list.h"
 #include "core/download_store.h"
@@ -56,10 +55,12 @@ typedef torrent::ChunkManager CM_t;
 
 void
 initialize_command_local() {
-//   core::DownloadList* downloadList = control->core()->download_list();
   torrent::ChunkManager* chunkManager = torrent::chunk_manager();
   core::DownloadList*    dList = control->core()->download_list();
   core::DownloadStore*   dStore = control->core()->download_store();
+
+  ADD_VARIABLE_C_STRING("client_version", PACKAGE_VERSION);
+  ADD_VARIABLE_C_STRING("library_version", torrent::version());
 
   ADD_VARIABLE_VALUE("max_file_size", -1);
   ADD_VARIABLE_VALUE("split_file_size", -1);

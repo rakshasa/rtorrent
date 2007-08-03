@@ -64,10 +64,7 @@ Root::Root() :
   m_windowTitle(NULL),
   m_windowHttpQueue(NULL),
   m_windowInput(NULL),
-  m_windowStatusbar(NULL),
-
-  m_maxUploadsGlobal(0),
-  m_maxDownloadsGlobal(0) {
+  m_windowStatusbar(NULL) {
 }
 
 void
@@ -187,10 +184,11 @@ Root::set_down_throttle(unsigned int throttle) {
 
   torrent::set_down_throttle(throttle * 1024);
 
-  int64_t div = rpc::call_command_value("get_max_downloads_div");
+  unsigned int div    = std::max<int>(rpc::call_command_value("get_max_downloads_div"), 0);
+  unsigned int global = std::max<int>(rpc::call_command_value("get_max_downloads_global"), 0);
 
-  if (throttle == 0 || div <= 0) {
-    torrent::set_max_download_unchoked(m_maxDownloadsGlobal);
+  if (throttle == 0 || div == 0) {
+    torrent::set_max_download_unchoked(global);
     return;
   }
 
@@ -203,8 +201,8 @@ Root::set_down_throttle(unsigned int throttle) {
   else
     maxUnchoked = 10 + throttle / 5;
 
-  if (m_maxDownloadsGlobal != 0)
-    torrent::set_max_download_unchoked(std::min(maxUnchoked, m_maxDownloadsGlobal));
+  if (global != 0)
+    torrent::set_max_download_unchoked(std::min(maxUnchoked, global));
   else
     torrent::set_max_download_unchoked(maxUnchoked);
 }
@@ -216,10 +214,11 @@ Root::set_up_throttle(unsigned int throttle) {
 
   torrent::set_up_throttle(throttle * 1024);
 
-  int64_t div = rpc::call_command_value("get_max_uploads_div");
+  unsigned int div    = std::max<int>(rpc::call_command_value("get_max_uploads_div"), 0);
+  unsigned int global = std::max<int>(rpc::call_command_value("get_max_uploads_global"), 0);
 
-  if (throttle == 0 || div <= 0) {
-    torrent::set_max_unchoked(m_maxUploadsGlobal);
+  if (throttle == 0 || div == 0) {
+    torrent::set_max_unchoked(global);
     return;
   }
 
@@ -232,8 +231,8 @@ Root::set_up_throttle(unsigned int throttle) {
   else
     maxUnchoked = 10 + throttle / 5;
 
-  if (m_maxUploadsGlobal != 0)
-    torrent::set_max_unchoked(std::min(maxUnchoked, m_maxUploadsGlobal));
+  if (global != 0)
+    torrent::set_max_unchoked(std::min(maxUnchoked, global));
   else
     torrent::set_max_unchoked(maxUnchoked);
 }
@@ -246,26 +245,6 @@ Root::adjust_down_throttle(int throttle) {
 void
 Root::adjust_up_throttle(int throttle) {
   set_up_throttle(std::max<int>(torrent::up_throttle() / 1024 + throttle, 0));
-}
-
-void
-Root::set_max_uploads_global(int64_t slots) {
-  if (slots < 0)
-    throw torrent::input_error("Out of range.");
-
-  m_maxUploadsGlobal = slots;
-
-  set_up_throttle(torrent::up_throttle() / 1024);
-}
-
-void
-Root::set_max_downloads_global(int64_t slots) {
-  if (slots < 0)
-    throw torrent::input_error("Out of range.");
-
-  m_maxDownloadsGlobal = slots;
-
-  set_down_throttle(torrent::down_throttle() / 1024);
 }
 
 void

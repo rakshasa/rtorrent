@@ -84,12 +84,6 @@ public:
   void                adjust_down_throttle(int throttle);
   void                adjust_up_throttle(int throttle);
 
-  unsigned int        max_uploads_global()                    { return m_maxUploadsGlobal; }
-  void                set_max_uploads_global(int64_t slots);
-
-  unsigned int        max_downloads_global()                  { return m_maxDownloadsGlobal; }
-  void                set_max_downloads_global(int64_t slots);
-
   void                enable_input(const std::string& title, input::TextInput* input);
   void                disable_input();
 
@@ -107,9 +101,6 @@ private:
   WStatusbar*         m_windowStatusbar;
 
   input::Bindings     m_bindings;
-
-  unsigned int        m_maxUploadsGlobal;
-  unsigned int        m_maxDownloadsGlobal;
 };
 
 }
