@@ -220,6 +220,7 @@ main(int argc, char** argv) {
 
        //"schedule = scheduler,10,10,download_scheduler=\n"
        "schedule = session_save,1800,1800,session_save=\n"
+       "schedule = low_diskspace,5,60,close_low_diskspace=500M\n"
 
        // Changing these will bork the (non-existant) scheduler.
        "view_add = scheduler\n"

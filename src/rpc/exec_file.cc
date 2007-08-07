@@ -37,6 +37,7 @@
 #include "config.h"
 
 #include <unistd.h>
+#include <rak/path.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 
@@ -73,12 +74,12 @@ ExecFile::execute(const char* file, char* const* argv) {
 }
 
 torrent::Object
-ExecFile::execute_object(const torrent::Object& rawArgs) {
-  char*  argsBuffer[128];
+ExecFile::execute_object(const torrent::Object& rawArgs, int flags) {
+  char*  argsBuffer[max_args];
   char** argsCurrent = argsBuffer;
 
-  // Size of strings are less than 24.
-  char   valueBuffer[3072];
+  // Size of value strings are less than 24.
+  char   valueBuffer[buffer_size];
   char*  valueCurrent = valueBuffer;
 
   const torrent::Object::list_type& args = rawArgs.as_list();
@@ -87,18 +88,27 @@ ExecFile::execute_object(const torrent::Object& rawArgs) {
     throw torrent::input_error("Too few arguments.");
 
   for (torrent::Object::list_type::const_iterator itr = args.begin(), last = args.end(); itr != last; itr++, argsCurrent++) {
-    if (argsCurrent == argsBuffer + 128 - 1)
+    if (argsCurrent == argsBuffer + max_args - 1)
       throw torrent::input_error("Too many arguments.");
 
     switch (itr->type()) {
     case torrent::Object::TYPE_STRING:
-      *argsCurrent = const_cast<char*>(itr->as_string().c_str());
-      break;
+    {
+      const std::string& str = itr->as_string();
 
+      if ((flags & flag_expand_tilde) && *str.c_str() == '~') {
+        *argsCurrent = valueCurrent;
+        valueCurrent = rak::path_expand(str.c_str(), valueCurrent, valueBuffer + buffer_size) + 1;
+      } else {
+        *argsCurrent = const_cast<char*>(str.c_str());
+      }
+
+      break;
+    }
     case torrent::Object::TYPE_VALUE:
       *argsCurrent = valueCurrent;
 
-      valueCurrent += std::max(snprintf(valueCurrent, valueBuffer + 3072 - valueCurrent, "%lli", itr->as_value()), 0);
+      valueCurrent += snprintf(valueCurrent, valueBuffer + buffer_size - valueCurrent, "%lli", itr->as_value()) + 1;
       break;
 
     default:
@@ -108,12 +118,14 @@ ExecFile::execute_object(const torrent::Object& rawArgs) {
 
   *argsCurrent = NULL;
 
+  // Check if we overflowed the valueBuffer.
+
   int status = execute(argsBuffer[0], argsBuffer);
 
-  if (status != 0)
-    throw torrent::input_error("ExecFile::execute_object(...) status != 0.");
+  if ((flags & flag_throw) && status != 0)
+    throw torrent::input_error("Bad return code.");
 
-  return torrent::Object();
+  return torrent::Object((int64_t)status);
 }
 
 }

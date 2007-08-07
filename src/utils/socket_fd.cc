@@ -94,7 +94,7 @@ SocketFd::set_dont_route(bool state) {
 // SocketFd::set_bind_to_device(const char* device) {
 //   check_valid();
 //   struct ifreq ifr;
-//   strncpy(ifr.ifr_name, device, IFNAMSIZ);
+//   strlcpy(ifr.ifr_name, device, IFNAMSIZ);
 
 //   return setsockopt(m_fd, SOL_SOCKET, SO_BINDTODEVICE, &ifr, sizeof(ifr)) == 0;
 // }

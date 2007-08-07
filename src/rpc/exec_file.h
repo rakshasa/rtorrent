@@ -43,10 +43,15 @@ namespace rpc {
 
 class ExecFile {
 public:
-  
+  static const unsigned int max_args    = 128;
+  static const unsigned int buffer_size = 4096;
+    
+  static const int flag_throw        = 0x1;
+  static const int flag_expand_tilde = 0x2;
+
   int                 execute(const char* file, char* const* argv);
 
-  torrent::Object     execute_object(const torrent::Object& rawArgs);
+  torrent::Object     execute_object(const torrent::Object& rawArgs, int flags);
   
 private:
 

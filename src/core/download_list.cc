@@ -73,7 +73,11 @@ struct download_list_call {
   download_list_call(Download* d) : m_download(d) {}
 
   void operator () (const DownloadList::slot_map::value_type& s) {
-    s.second(m_download);
+    try {
+      s.second(m_download);
+    } catch (torrent::input_error& e) {
+      control->core()->push_log((std::string("Download event action failed: ") + e.what()).c_str());
+    }
   }
 
   Download* m_download;
@@ -561,6 +565,9 @@ DownloadList::confirm_finished(Download* download) {
   // up/downloaded baseline.
   download->download()->tracker_list().send_completed();
 
+  // Close before calling on_finished to ensure the user can do stuff
+  // like change move the downloaded files and change the directory.
+  close_throw(download);
   std::for_each(slot_map_finished().begin(), slot_map_finished().end(), download_list_call(download));
 
   if (!download->is_active() && rpc::call_command_d_value("get_d_state", download) == 1)

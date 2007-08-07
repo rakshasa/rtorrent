@@ -59,7 +59,7 @@ initialize_command_local() {
   core::DownloadList*    dList = control->core()->download_list();
   core::DownloadStore*   dStore = control->core()->download_store();
 
-  ADD_VARIABLE_C_STRING("client_version", PACKAGE_VERSION);
+  ADD_VARIABLE_C_STRING("client_version",  PACKAGE_VERSION);
   ADD_VARIABLE_C_STRING("library_version", torrent::version());
 
   ADD_VARIABLE_VALUE("max_file_size", -1);
@@ -83,5 +83,5 @@ initialize_command_local() {
   ADD_COMMAND_VALUE_TRI_OCT("umask",           rak::make_mem_fun(control, &Control::set_umask), rak::make_mem_fun(control, &Control::umask));
   ADD_COMMAND_STRING_TRI("working_directory",  rak::make_mem_fun(control, &Control::set_working_directory), rak::make_mem_fun(control, &Control::working_directory));
 
-  ADD_COMMAND_LIST("execute", rak::mem_fn(&rpc::execFile, &rpc::ExecFile::execute_object));
+  ADD_COMMAND_LIST("execute", rak::bind2_mem_fn(&rpc::execFile, &rpc::ExecFile::execute_object, rpc::ExecFile::flag_throw | rpc::ExecFile::flag_expand_tilde));
 }

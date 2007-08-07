@@ -58,6 +58,21 @@ path_expand(const std::string& path) {
   return home + path.substr(1);
 }
 
+inline char*
+path_expand(const char* src, char* first, char* last) {
+  if (*src == '~') {
+    char* home = std::getenv("HOME");
+
+    if (home == NULL)
+      return first;
+
+    first += strlcpy(first, home, std::distance(first, last));
+    src++;
+  }
+
+  return first + strlcpy(first, src, std::distance(first, last));
+}
+
 }
 
 #endif
