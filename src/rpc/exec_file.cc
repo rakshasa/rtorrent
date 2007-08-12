@@ -36,25 +36,52 @@
 
 #include "config.h"
 
+#include <string>
 #include <unistd.h>
 #include <rak/path.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 
 #include "exec_file.h"
+#include "parse.h"
 
 namespace rpc {
 
+// Close m_logFd.
+
 int
 ExecFile::execute(const char* file, char* const* argv) {
+  // Write the execued command and its parameters to the log fd.
+  if (m_logFd != -1) {
+    for (char* const* itr = argv; *itr != NULL; itr++) {
+      if (itr == argv)
+        write(m_logFd, "\n---\n", sizeof("\n---\n"));
+      else
+        write(m_logFd, " ", 1);
+
+      write(m_logFd, *itr, std::strlen(*itr));
+    }
+
+    write(m_logFd, "\n---\n", sizeof("\n---\n"));
+  }
+
   pid_t childPid = fork();
 
   if (childPid == -1)
     throw torrent::input_error("ExecFile::execute(...) Fork failed.");
 
   if (childPid == 0) {
+    ::close(0);
+    ::close(1);
+    ::close(2);
+
+    if (m_logFd != -1) {
+      dup2(m_logFd, 1);
+      dup2(m_logFd, 2);
+    }
+
     // Close all fd's.
-    for (int i = 0, last = sysconf(_SC_OPEN_MAX); i != last; i++)
+    for (int i = 3, last = sysconf(_SC_OPEN_MAX); i != last; i++)
       ::close(i);
 
     int result = execvp(file, argv);
@@ -68,6 +95,12 @@ ExecFile::execute(const char* file, char* const* argv) {
       throw torrent::internal_error("ExecFile::execute(...) waitpid failed.");
 
     // Check return value?
+    if (m_logFd) {
+      if (status == 0)
+        write(m_logFd, "\n--- Success ---\n", sizeof("\n--- Success ---\n"));
+      else
+        write(m_logFd, "\n--- Error ---\n", sizeof("\n--- Error ---\n"));
+    }
 
     return status;
   }
@@ -91,34 +124,19 @@ ExecFile::execute_object(const torrent::Object& rawArgs, int flags) {
     if (argsCurrent == argsBuffer + max_args - 1)
       throw torrent::input_error("Too many arguments.");
 
-    switch (itr->type()) {
-    case torrent::Object::TYPE_STRING:
-    {
-      const std::string& str = itr->as_string();
+    if (itr->is_string() && (!(flags & flag_expand_tilde) || *itr->as_string().c_str() != '~')) {
+      *argsCurrent = const_cast<char*>(itr->as_string().c_str());
 
-      if ((flags & flag_expand_tilde) && *str.c_str() == '~') {
-        *argsCurrent = valueCurrent;
-        valueCurrent = rak::path_expand(str.c_str(), valueCurrent, valueBuffer + buffer_size) + 1;
-      } else {
-        *argsCurrent = const_cast<char*>(str.c_str());
-      }
-
-      break;
-    }
-    case torrent::Object::TYPE_VALUE:
+    } else {
       *argsCurrent = valueCurrent;
+      valueCurrent = print_object(valueCurrent, valueBuffer + buffer_size, &*itr, flags) + 1;
 
-      valueCurrent += snprintf(valueCurrent, valueBuffer + buffer_size - valueCurrent, "%lli", itr->as_value()) + 1;
-      break;
-
-    default:
-      throw torrent::input_error("Invalid type.");
-    }
+      if (valueCurrent >= valueBuffer + buffer_size)
+        throw torrent::input_error("Overflowed execute arg buffer.");
+    }      
   }
 
   *argsCurrent = NULL;
-
-  // Check if we overflowed the valueBuffer.
 
   int status = execute(argsBuffer[0], argsBuffer);
 

@@ -37,6 +37,7 @@
 #include "config.h"
 
 #include <locale>
+#include <rak/path.h>
 #include <torrent/exceptions.h>
 
 #include "parse.h"
@@ -60,7 +61,7 @@ parse_skip_wspace(const char* first) {
 }
 
 const char*
-parse_string(const char* first, const char* last, std::string* dest) {
+parse_string(const char* first, const char* last, std::string* dest, bool (*delim)(const char)) {
   if (first == last)
     return first;
 
@@ -75,7 +76,7 @@ parse_string(const char* first, const char* last, std::string* dest) {
         return ++first;
 
     } else {
-      if (parse_is_seperator(*first) || std::isspace(*first))
+      if (delim(*first))
         return first;
     }
         
@@ -165,19 +166,39 @@ parse_value_nothrow(const char* src, int64_t* value, int base, int unit) {
   return last;
 }
 
+// Somewhat ugly...
 const char*
-parse_list(const char* first, const char* last, torrent::Object* dest) {
+parse_object(const char* first, const char* last, torrent::Object* dest, bool (*delim)(const char)) {
+  if (*first == '{') {
+    *dest = torrent::Object(torrent::Object::TYPE_LIST);
+    first = parse_list(first + 1, last, dest, &parse_is_delim_list);
+    first = parse_skip_wspace(first, last);
+    
+    if (first == last || *first != '}')
+      throw torrent::input_error("Could not find closing '}'.");
+
+    return ++first;
+
+  } else {
+    *dest = std::string();
+
+    return parse_string(first, last, &dest->as_string(), delim);
+  }
+}
+
+const char*
+parse_list(const char* first, const char* last, torrent::Object* dest, bool (*delim)(const char)) {
   if (!dest->is_list())
     throw torrent::internal_error("parse_list(...) !dest->is_list().");
 
   while (true) {
-    std::string str;
+    torrent::Object tmp;
 
     first = parse_skip_wspace(first, last);
-    first = parse_string(first, last, &str);
+    first = parse_object(first, last, &tmp, delim);
     first = parse_skip_wspace(first, last);
 
-    dest->as_list().push_back(str);
+    dest->as_list().push_back(tmp);
     
     if (first == last || !parse_is_seperator(*first))
       break;
@@ -190,20 +211,16 @@ parse_list(const char* first, const char* last, torrent::Object* dest) {
 
 const char*
 parse_whole_list(const char* first, const char* last, torrent::Object* dest) {
-  std::string str;
-
   first = parse_skip_wspace(first, last);
-  first = parse_string(first, last, &str);
+  first = parse_object(first, last, dest);
   first = parse_skip_wspace(first, last);
 
   if (first != last && parse_is_seperator(*first)) {
-    *dest = torrent::Object(torrent::Object::TYPE_LIST);
+    torrent::Object tmp = torrent::Object(torrent::Object::TYPE_LIST);
+    tmp.swap(*dest);
 
-    dest->as_list().push_back(str);
+    dest->as_list().push_back(tmp);
     first = parse_list(++first, last, dest);
-
-  } else {
-    *dest = str;
   }
 
   return first;
@@ -330,6 +347,46 @@ convert_to_value_nothrow(const torrent::Object& src, int64_t* value, int base, i
   }
   
   return true;
+}
+
+char*
+print_object(char* first, char* last, const torrent::Object* src, int flags) {
+  switch (src->type()) {
+  case torrent::Object::TYPE_STRING:
+  {
+    const std::string& str = src->as_string();
+
+    if ((flags & print_expand_tilde) && *str.c_str() == '~') {
+      return rak::path_expand(str.c_str(), first, last);
+
+    } else {
+      if (first == last)
+        return first;
+
+      size_t n = std::min<size_t>(str.size(), std::distance(first, last) - 1);
+
+      std::memcpy(first, str.c_str(), n);
+      *(first += n) = '\0';
+
+      return first;
+    }
+  }
+  case torrent::Object::TYPE_VALUE:
+    return std::max(first + snprintf(first, std::distance(first, last), "%lli", src->as_value()), last);
+
+  case torrent::Object::TYPE_LIST:
+    for (torrent::Object::list_type::const_iterator itr = src->as_list().begin(), itrEnd = src->as_list().end(); itr != itrEnd; itr++) {
+      first = print_object(first, last, &*itr, flags);
+
+      // Don't expand tilde after the first element in the list.
+      flags &= ~print_expand_tilde;
+    }
+
+    return first;
+
+  default:
+    throw torrent::input_error("Invalid type.");
+  }
 }
 
 }

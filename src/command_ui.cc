@@ -111,24 +111,7 @@ apply_view_list(const torrent::Object&) {
 torrent::Object
 apply_print(const torrent::Object& rawArgs) {
   char buffer[1024];
-  char* current = buffer;
-
-  for (torrent::Object::list_type::const_iterator itr = rawArgs.as_list().begin(), last = rawArgs.as_list().end(); itr != last; itr++) {
-    switch (itr->type()) {
-    case torrent::Object::TYPE_STRING:
-    {
-      int len = std::min<int>(itr->as_string().size(), buffer + 1024 - current);
-
-      std::memcpy(current, itr->as_string().c_str(), len + 1);
-      current += len;
-      break;
-    }
-    case torrent::Object::TYPE_VALUE:
-    default:
-      current += snprintf(current, buffer + 1024 - current, "%lli", itr->as_value());
-      break;
-    }
-  }
+  rpc::print_object(buffer, buffer + 1024, &rawArgs, 0);
 
   control->core()->push_log(buffer);
   return torrent::Object();

@@ -58,6 +58,31 @@ path_expand(const std::string& path) {
   return home + path.substr(1);
 }
 
+// Don't inline this...
+//
+// Same strlcpy as found in *bsd.
+inline size_t
+strlcpy(char *dest, const char *src, size_t size) {
+  size_t n = size;
+  const char* first = src;
+
+  if (n != 0) {
+    while (--n != 0)
+      if ((*dest++ = *src++) == '\0')
+        break;
+  }
+
+  if (n == 0) {
+    if (size != 0)
+      *dest = '\0';
+    
+    while (*src++)
+      ;
+  }
+
+  return src - first - 1;
+}
+
 inline char*
 path_expand(const char* src, char* first, char* last) {
   if (*src == '~') {
@@ -67,10 +92,14 @@ path_expand(const char* src, char* first, char* last) {
       return first;
 
     first += strlcpy(first, home, std::distance(first, last));
+
+    if (first > last)
+      return last;
+
     src++;
   }
 
-  return first + strlcpy(first, src, std::distance(first, last));
+  return std::min(first + strlcpy(first, src, std::distance(first, last)), last);
 }
 
 }

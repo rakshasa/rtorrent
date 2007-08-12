@@ -54,10 +54,13 @@ inline bool parse_is_escape(const char c)    { return c == '\\'; }
 inline bool parse_is_seperator(const char c) { return c == ','; }
 inline bool parse_is_space(const char c)     { return c == ' ' || c == '\t'; }
 
+inline bool parse_is_delim_default(const char c) { return parse_is_seperator(c) || std::isspace(c); }
+inline bool parse_is_delim_list(const char c)    { return parse_is_seperator(c) || c == '}' || std::isspace(c); }
+
 const char* parse_skip_wspace(const char* first);
 const char* parse_skip_wspace(const char* first, const char* last);
 
-const char* parse_string(const char* first, const char* last, std::string* dest);
+const char* parse_string(const char* first, const char* last, std::string* dest, bool (*delim)(const char) = &parse_is_delim_default);
 void        parse_whole_string(const char* first, const char* last, std::string* dest);
 
 const char* parse_value(const char* src, int64_t* value, int base = 0, int unit = 1);
@@ -66,7 +69,8 @@ const char* parse_value_nothrow(const char* src, int64_t* value, int base = 0, i
 void        parse_whole_value(const char* src, int64_t* value, int base = 0, int unit = 1);
 bool        parse_whole_value_nothrow(const char* src, int64_t* value, int base = 0, int unit = 1);
 
-const char* parse_list(const char* first, const char* last, torrent::Object* dest);
+const char* parse_object(const char* first, const char* last, torrent::Object* dest, bool (*delim)(const char) = &parse_is_delim_default);
+const char* parse_list(const char* first, const char* last, torrent::Object* dest, bool (*delim)(const char) = &parse_is_delim_default);
 const char* parse_whole_list(const char* first, const char* last, torrent::Object* dest);
 
 std::string convert_list_to_string(const torrent::Object& src);
@@ -83,6 +87,10 @@ convert_to_single_argument(const torrent::Object& args) {
   else
     return args;
 }
+
+static const int print_expand_tilde = 0x1;
+
+char*       print_object(char* first, char* last, const torrent::Object* src, int flags);
 
 }
 
