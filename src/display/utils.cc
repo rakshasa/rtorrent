@@ -160,12 +160,12 @@ print_download_info(char* first, char* last, core::Download* d) {
   }
 
   first = print_buffer(first, last, " [%c%c R: %4.2f",
-                       rpc::call_command_d_string("get_d_tied_to_file", d).empty() ? ' ' : 'T',
-                       rpc::call_command_d_value("get_d_ignore_commands", d) == 0 ? ' ' : 'I',
-                       (double)rpc::call_command_d_value("get_d_ratio", d) / 1000.0);
+                       rpc::call_command_d_string("d.get_tied_to_file", d).empty() ? ' ' : 'T',
+                       rpc::call_command_d_value("d.get_ignore_commands", d) == 0 ? ' ' : 'I',
+                       (double)rpc::call_command_d_value("d.get_ratio", d) / 1000.0);
 
   if (d->priority() != 2)
-    first = print_buffer(first, last, " %s]", rpc::call_command_d_string("get_d_priority_str", d).c_str());
+    first = print_buffer(first, last, " %s]", rpc::call_command_d_string("d.get_priority_str", d).c_str());
   else
     first = print_buffer(first, last, "]");
 
@@ -179,7 +179,7 @@ char*
 print_download_status(char* first, char* last, core::Download* d) {
   if (d->is_active())
     ;
-  else if (rpc::call_command_d_value("get_d_hashing", d) != 0)
+  else if (rpc::call_command_d_value("d.get_hashing", d) != 0)
     first = print_buffer(first, last, "Hashing: ");
   else if (!d->is_active())
     first = print_buffer(first, last, "Inactive: ");

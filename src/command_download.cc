@@ -100,21 +100,21 @@ apply_d_change_link(int changeType, core::Download* download, const torrent::Obj
   std::string link;
 
   if (type == "base_path") {
-    target = rpc::call_command_d_string("get_d_base_path", download);
-    link = rak::path_expand(prefix + rpc::call_command_d_string("get_d_base_path", download) + postfix);
+    target = rpc::call_command_d_string("d.get_base_path", download);
+    link = rak::path_expand(prefix + rpc::call_command_d_string("d.get_base_path", download) + postfix);
 
   } else if (type == "base_filename") {
-    target = rpc::call_command_d_string("get_d_base_path", download);
-    link = rak::path_expand(prefix + rpc::call_command_d_string("get_d_base_filename", download) + postfix);
+    target = rpc::call_command_d_string("d.get_base_path", download);
+    link = rak::path_expand(prefix + rpc::call_command_d_string("d.get_base_filename", download) + postfix);
 
   } else if (type == "tied") {
-    link = rak::path_expand(rpc::call_command_d_string("get_d_tied_to_file", download));
+    link = rak::path_expand(rpc::call_command_d_string("d.get_tied_to_file", download));
 
     if (link.empty())
       return torrent::Object();
 
     link = rak::path_expand(prefix + link + postfix);
-    target = rpc::call_command_d_string("get_d_base_path", download);
+    target = rpc::call_command_d_string("d.get_base_path", download);
 
   } else {
     throw torrent::input_error("Unknown type argument.");
@@ -148,7 +148,7 @@ apply_d_change_link(int changeType, core::Download* download, const torrent::Obj
 
 void
 apply_d_delete_tied(core::Download* download) {
-  const std::string& tie = rpc::call_command_d_string("get_d_tied_to_file", download);
+  const std::string& tie = rpc::call_command_d_string("d.get_tied_to_file", download);
 
   if (tie.empty())
     return;
@@ -156,7 +156,7 @@ apply_d_delete_tied(core::Download* download) {
   if (::unlink(rak::path_expand(tie).c_str()) == -1)
     control->core()->push_log_std("Could not unlink tied file: " + std::string(rak::error_number::current().c_str()));
 
-  rpc::call_command_d("set_d_tied_to_file", download, std::string());
+  rpc::call_command_d("d.set_tied_to_file", download, std::string());
 }
 
 void
@@ -221,48 +221,48 @@ apply_d_ratio(core::Download* download) {
   rpc::commands.insert_download(key, commandDownloadSlotsItr++, &rpc::CommandDownloadSlot::function, rpc::CommandMap::flag_dont_delete | rpc::CommandMap::flag_public_xmlrpc, parm, doc);
 
 #define ADD_CD_VOID(key, slot) \
-  ADD_CD_SLOT_PUBLIC("get_d_" key, call_unknown, rpc::object_d_fn(slot), "i:", "")
+  ADD_CD_SLOT_PUBLIC("d.get_" key, call_unknown, rpc::object_d_fn(slot), "i:", "")
 
 #define ADD_CD_V_VOID(key, slot) \
-  ADD_CD_SLOT_PUBLIC("d_" key, call_unknown, rpc::object_d_fn(slot), "i:", "")
+  ADD_CD_SLOT_PUBLIC("d." key, call_unknown, rpc::object_d_fn(slot), "i:", "")
 
 #define ADD_CD_F_VOID(key, slot) \
-  ADD_CD_SLOT_PUBLIC("d_" key, call_unknown, rpc::object_void_d_fn(slot), "i:", "")
+  ADD_CD_SLOT_PUBLIC("d." key, call_unknown, rpc::object_void_d_fn(slot), "i:", "")
 
 #define ADD_CD_LIST(key, slot) \
   ADD_CD_SLOT_PUBLIC(key, call_list, slot, "i:", "")
 
 #define ADD_CD_VARIABLE_VALUE(key, firstKey, secondKey) \
-  ADD_CD_SLOT_PUBLIC("get_d_" key, call_unknown, rpc::get_variable_d_fn(firstKey, secondKey), "i:", ""); \
-  ADD_CD_SLOT("set_d_" key, call_value,   rpc::set_variable_d_fn(firstKey, secondKey), "i:i", "");
+  ADD_CD_SLOT_PUBLIC("d.get_" key, call_unknown, rpc::get_variable_d_fn(firstKey, secondKey), "i:", ""); \
+  ADD_CD_SLOT("d.set_" key, call_value,   rpc::set_variable_d_fn(firstKey, secondKey), "i:i", "");
 
 #define ADD_CD_VARIABLE_VALUE_PUBLIC(key, firstKey, secondKey) \
-  ADD_CD_SLOT_PUBLIC("get_d_" key, call_unknown, rpc::get_variable_d_fn(firstKey, secondKey), "i:", ""); \
-  ADD_CD_SLOT_PUBLIC("set_d_" key, call_value,   rpc::set_variable_d_fn(firstKey, secondKey), "i:i", "");
+  ADD_CD_SLOT_PUBLIC("d.get_" key, call_unknown, rpc::get_variable_d_fn(firstKey, secondKey), "i:", ""); \
+  ADD_CD_SLOT_PUBLIC("d.set_" key, call_value,   rpc::set_variable_d_fn(firstKey, secondKey), "i:i", "");
 
 #define ADD_CD_VARIABLE_STRING(key, firstKey, secondKey) \
-  ADD_CD_SLOT_PUBLIC("get_d_" key, call_unknown, rpc::get_variable_d_fn(firstKey, secondKey), "i:", ""); \
-  ADD_CD_SLOT("set_d_" key, call_string,  rpc::set_variable_d_fn(firstKey, secondKey), "i:s", "");
+  ADD_CD_SLOT_PUBLIC("d.get_" key, call_unknown, rpc::get_variable_d_fn(firstKey, secondKey), "i:", ""); \
+  ADD_CD_SLOT("d.set_" key, call_string,  rpc::set_variable_d_fn(firstKey, secondKey), "i:s", "");
 
 #define ADD_CD_VALUE_UNI(key, get) \
-  ADD_CD_SLOT_PUBLIC("get_d_" key, call_unknown, rpc::object_void_d_fn(get), "i:", "")
+  ADD_CD_SLOT_PUBLIC("d.get_" key, call_unknown, rpc::object_void_d_fn(get), "i:", "")
 
 #define ADD_CD_VALUE_BI(key, set, get) \
-  ADD_CD_SLOT_PUBLIC("set_d_" key, call_value, rpc::object_value_d_fn(set), "i:i", "") \
-  ADD_CD_SLOT_PUBLIC("get_d_" key, call_unknown, rpc::object_void_d_fn(get), "i:", "")
+  ADD_CD_SLOT_PUBLIC("d.set_" key, call_value, rpc::object_value_d_fn(set), "i:i", "") \
+  ADD_CD_SLOT_PUBLIC("d.get_" key, call_unknown, rpc::object_void_d_fn(get), "i:", "")
 
 #define ADD_CD_VALUE_MEM_BI(key, target, set, get) \
   ADD_CD_VALUE_BI(key, rak::on2(std::mem_fun(target), std::mem_fun(set)), rak::on(std::mem_fun(target), std::mem_fun(get)));
 
 #define ADD_CD_VALUE_MEM_UNI(key, target, get) \
-  ADD_CD_SLOT_PUBLIC("get_d_" key, call_unknown, rpc::object_void_d_fn(rak::on(rak::on(std::mem_fun(&core::Download::download), std::mem_fun(target)), std::mem_fun(get))), "i:", "");
+  ADD_CD_SLOT_PUBLIC("d.get_" key, call_unknown, rpc::object_void_d_fn(rak::on(rak::on(std::mem_fun(&core::Download::download), std::mem_fun(target)), std::mem_fun(get))), "i:", "");
 
 #define ADD_CD_STRING_UNI(key, get) \
-  ADD_CD_SLOT_PUBLIC("get_d_" key, call_unknown, rpc::object_void_d_fn(get), "s:", "")
+  ADD_CD_SLOT_PUBLIC("d.get_" key, call_unknown, rpc::object_void_d_fn(get), "s:", "")
 
 #define ADD_CD_STRING_BI(key, set, get) \
-  ADD_CD_SLOT_PUBLIC("set_d_" key, call_string, rpc::object_string_d_fn(set), "i:s", "") \
-  ADD_CD_SLOT_PUBLIC("get_d_" key, call_unknown, rpc::object_void_d_fn(get), "s:", "")
+  ADD_CD_SLOT_PUBLIC("d.set_" key, call_string, rpc::object_string_d_fn(set), "i:s", "") \
+  ADD_CD_SLOT_PUBLIC("d.get_" key, call_unknown, rpc::object_void_d_fn(get), "s:", "")
 
 void
 add_copy_to_download(const char* src, const char* dest) {
@@ -324,10 +324,10 @@ initialize_command_download() {
 
   ADD_CD_STRING_BI("connection_current", std::ptr_fun(&apply_d_connection_type), std::ptr_fun(&retrieve_d_connection_type));
 
-  add_copy_to_download("get_connection_leech", "get_d_connection_leech");
-  add_copy_to_download("set_connection_leech", "set_d_connection_leech");
-  add_copy_to_download("get_connection_seed", "get_d_connection_seed");
-  add_copy_to_download("set_connection_seed", "set_d_connection_seed");
+  add_copy_to_download("get_connection_leech", "d.get_connection_leech");
+  add_copy_to_download("set_connection_leech", "d.set_connection_leech");
+  add_copy_to_download("get_connection_seed", "d.get_connection_seed");
+  add_copy_to_download("set_connection_seed", "d.set_connection_seed");
 
   ADD_CD_VALUE_MEM_BI("max_file_size", &core::Download::file_list, &torrent::FileList::set_max_file_size, &torrent::FileList::max_file_size);
 

@@ -173,27 +173,27 @@ DownloadFactory::receive_success() {
   initialize_rtorrent(download, rtorrent);
 
   // Move to 'rtorrent'.
-  rpc::call_command_d("set_d_connection_leech", download, m_variables["connection_leech"]);
-  rpc::call_command_d("set_d_connection_seed", download,  m_variables["connection_seed"]);
+  rpc::call_command_d("d.set_connection_leech", download, m_variables["connection_leech"]);
+  rpc::call_command_d("d.set_connection_seed", download,  m_variables["connection_seed"]);
 
-  rpc::call_command_d("set_d_max_uploads", download,      rpc::call_command_void("get_max_uploads"));
-  rpc::call_command_d("set_d_min_peers", download,        rpc::call_command_void("get_min_peers"));
-  rpc::call_command_d("set_d_max_peers", download,        rpc::call_command_void("get_max_peers"));
-  rpc::call_command_d("set_d_tracker_numwant", download,  rpc::call_command_void("get_tracker_numwant"));
+  rpc::call_command_d("d.set_max_uploads", download,      rpc::call_command_void("get_max_uploads"));
+  rpc::call_command_d("d.set_min_peers", download,        rpc::call_command_void("get_min_peers"));
+  rpc::call_command_d("d.set_max_peers", download,        rpc::call_command_void("get_max_peers"));
+  rpc::call_command_d("d.set_tracker_numwant", download,  rpc::call_command_void("get_tracker_numwant"));
 
-  if (rpc::call_command_d_value("get_d_complete", download) != 0) {
+  if (rpc::call_command_d_value("d.get_complete", download) != 0) {
     if (rpc::call_command_value("get_min_peers_seed") >= 0)
-      rpc::call_command_d("set_d_min_peers", download, rpc::call_command_void("get_min_peers_seed"));
+      rpc::call_command_d("d.set_min_peers", download, rpc::call_command_void("get_min_peers_seed"));
 
     if (rpc::call_command_value("get_max_peers_seed") >= 0)
-      rpc::call_command_d("set_d_max_peers", download, rpc::call_command_void("get_max_peers_seed"));
+      rpc::call_command_d("d.set_max_peers", download, rpc::call_command_void("get_max_peers_seed"));
   }
 
   if (!rpc::call_command_value("get_use_udp_trackers"))
     download->enable_udp_trackers(false);
 
   if (rpc::call_command_value("get_max_file_size") > 0)
-    rpc::call_command_d("set_d_max_file_size", download, rpc::call_command_void("get_max_file_size"));
+    rpc::call_command_d("d.set_max_file_size", download, rpc::call_command_void("get_max_file_size"));
 
   // Check first if we already have these values set in the session
   // torrent, so that it is safe to change the values.
@@ -205,12 +205,12 @@ DownloadFactory::receive_success() {
                             rpc::call_command_string("split_suffix"));
 
   if (!rtorrent->has_key_string("directory"))
-    rpc::call_command_d("set_d_directory", download, m_variables["directory"]);
+    rpc::call_command_d("d.set_directory", download, m_variables["directory"]);
   else
-    rpc::call_command_d("set_d_directory", download, rtorrent->get_key("directory"));
+    rpc::call_command_d("d.set_directory", download, rtorrent->get_key("directory"));
 
   if (!m_session && m_variables["tied_to_file"].as_value())
-    rpc::call_command_d("set_d_tied_to_file", download, m_uri);
+    rpc::call_command_d("d.set_tied_to_file", download, m_uri);
 
   torrent::Object& resumeObject = root->has_key_map("libtorrent_resume")
     ? root->get_key("libtorrent_resume")
@@ -262,8 +262,8 @@ DownloadFactory::receive_success() {
   if (m_session) {
     // This torrent was queued for hashing or hashing when the session
     // file was saved. Or it was in a started state.
-    if (rpc::call_command_d_value("get_d_hashing", download) != Download::variable_hashing_stopped ||
-        rpc::call_command_d_value("get_d_state", download) != 0)
+    if (rpc::call_command_d_value("d.get_hashing", download) != Download::variable_hashing_stopped ||
+        rpc::call_command_d_value("d.get_state", download) != 0)
       m_manager->download_list()->resume(download);
 
   } else {
@@ -312,9 +312,9 @@ DownloadFactory::initialize_rtorrent(Download* download, torrent::Object* rtorre
     rtorrent->insert_key("tied_to_file", std::string());
 
   if (rtorrent->has_key_value("priority"))
-    rpc::call_command_d("set_d_priority", download, rtorrent->get_key_value("priority") % 4);
+    rpc::call_command_d("d.set_priority", download, rtorrent->get_key_value("priority") % 4);
   else
-    rpc::call_command_d("set_d_priority", download, (int64_t)2);
+    rpc::call_command_d("d.set_priority", download, (int64_t)2);
 
   if (rtorrent->has_key_value("key")) {
     download->tracker_list()->set_key(rtorrent->get_key_value("key"));

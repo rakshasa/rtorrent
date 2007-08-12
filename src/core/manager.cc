@@ -230,7 +230,7 @@ Manager::initialize_second() {
   m_downloadList->slot_map_insert()["1_connect_storage_log"]  = sigc::bind(sigc::ptr_fun(&connect_signal_storage_log), sigc::mem_fun(m_logComplete, &Log::push_front));
   m_downloadList->slot_map_insert()["1_connect_tracker_dump"] = sigc::bind(sigc::ptr_fun(&connect_signal_tracker_dump), sigc::ptr_fun(&receive_tracker_dump));
 
-  m_downloadList->slot_map_erase()["9_delete_tied"] = sigc::bind<0>(&rpc::call_command_d_v_void, "d_delete_tied");
+  m_downloadList->slot_map_erase()["9_delete_tied"] = sigc::bind<0>(&rpc::call_command_d_v_void, "d.delete_tied");
 
   torrent::connection_manager()->set_signal_handshake_log(sigc::mem_fun(this, &Manager::handshake_log));
 }
@@ -460,7 +460,7 @@ path_expand(std::vector<std::string>* paths, const std::string& pattern) {
 
 bool
 manager_equal_tied(const std::string& path, Download* download) {
-  return path == rpc::call_command_d_string("get_d_tied_to_file", download);
+  return path == rpc::call_command_d_string("d.get_tied_to_file", download);
 }
 
 void
@@ -504,7 +504,7 @@ Manager::receive_hashing_changed() {
       continue;
 
     bool tryQuick =
-      rpc::call_command_d_value("get_d_hashing", *itr) == Download::variable_hashing_initial &&
+      rpc::call_command_d_value("d.get_hashing", *itr) == Download::variable_hashing_initial &&
       (*itr)->download()->file_list()->bitfield()->empty();
 
     if (!tryQuick && foundHashing)
@@ -527,7 +527,7 @@ Manager::receive_hashing_changed() {
         (*itr)->download()->hash_stop();
 
         if (foundHashing) {
-          rpc::call_command_d_set_value("set_d_hashing", *itr, Download::variable_hashing_rehash);
+          rpc::call_command_d_set_value("d.set_hashing", *itr, Download::variable_hashing_rehash);
           continue;
         }
       }
@@ -538,7 +538,7 @@ Manager::receive_hashing_changed() {
     } catch (torrent::local_error& e) {
       if (tryQuick) {
         // Make sure we don't repeat the quick hashing.
-        rpc::call_command_d_set_value("set_d_hashing", *itr, Download::variable_hashing_rehash);
+        rpc::call_command_d_set_value("d.set_hashing", *itr, Download::variable_hashing_rehash);
 
       } else {
         (*itr)->set_hash_failed(true);

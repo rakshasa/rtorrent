@@ -105,7 +105,7 @@ apply_stop_on_ratio(const torrent::Object& rawArgs) {
     if ((totalUpload >= minUpload && totalUpload * 100 >= totalDone * minRatio) ||
         (maxRatio > 0 && totalUpload * 100 > totalDone * maxRatio)) {
       downloadList->stop_try(*itr);
-      rpc::call_command_d("set_d_ignore_commands", *itr, (int64_t)1);
+      rpc::call_command_d("d.set_ignore_commands", *itr, (int64_t)1);
     }
 
     ++itr;
@@ -117,11 +117,11 @@ apply_stop_on_ratio(const torrent::Object& rawArgs) {
 torrent::Object
 apply_start_tied() {
   for (core::DownloadList::iterator itr = control->core()->download_list()->begin(); itr != control->core()->download_list()->end(); ++itr) {
-    if (rpc::call_command_d_value("get_d_state", *itr) == 1)
+    if (rpc::call_command_d_value("d.get_state", *itr) == 1)
       continue;
 
     rak::file_stat fs;
-    const std::string& tiedToFile = rpc::call_command_d_string("get_d_tied_to_file", *itr);
+    const std::string& tiedToFile = rpc::call_command_d_string("d.get_tied_to_file", *itr);
 
     if (!tiedToFile.empty() && fs.update(rak::path_expand(tiedToFile)))
       control->core()->download_list()->start_try(*itr);
@@ -133,11 +133,11 @@ apply_start_tied() {
 torrent::Object
 apply_stop_untied() {
   for (core::DownloadList::iterator itr = control->core()->download_list()->begin(); itr != control->core()->download_list()->end(); ++itr) {
-    if (rpc::call_command_d_value("get_d_state", *itr) == 0)
+    if (rpc::call_command_d_value("d.get_state", *itr) == 0)
       continue;
 
     rak::file_stat fs;
-    const std::string& tiedToFile = rpc::call_command_d_string("get_d_tied_to_file", *itr);
+    const std::string& tiedToFile = rpc::call_command_d_string("d.get_tied_to_file", *itr);
 
     if (!tiedToFile.empty() && !fs.update(rak::path_expand(tiedToFile)))
       control->core()->download_list()->stop_try(*itr);
@@ -150,7 +150,7 @@ torrent::Object
 apply_close_untied() {
   for (core::DownloadList::iterator itr = control->core()->download_list()->begin(); itr != control->core()->download_list()->end(); ++itr) {
     rak::file_stat fs;
-    const std::string& tiedToFile = rpc::call_command_d_string("get_d_tied_to_file", *itr);
+    const std::string& tiedToFile = rpc::call_command_d_string("d.get_tied_to_file", *itr);
 
     if (!tiedToFile.empty() && !fs.update(rak::path_expand(tiedToFile)) && control->core()->download_list()->stop_try(*itr))
       control->core()->download_list()->close(*itr);
@@ -163,11 +163,11 @@ torrent::Object
 apply_remove_untied() {
   for (core::DownloadList::iterator itr = control->core()->download_list()->begin(); itr != control->core()->download_list()->end(); ) {
     rak::file_stat fs;
-    const std::string& tiedToFile = rpc::call_command_d_string("get_d_tied_to_file", *itr);
+    const std::string& tiedToFile = rpc::call_command_d_string("d.get_tied_to_file", *itr);
 
     if (!tiedToFile.empty() && !fs.update(rak::path_expand(tiedToFile))) {
       // Need to clear tied_to_file so it doesn't try to delete it.
-      rpc::call_command_d("set_d_tied_to_file", *itr, std::string());
+      rpc::call_command_d("d.set_tied_to_file", *itr, std::string());
 
       itr = control->core()->download_list()->erase(itr);
 

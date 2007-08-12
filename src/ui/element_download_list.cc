@@ -152,7 +152,7 @@ ElementDownloadList::receive_stop_download() {
   if (m_view->focus() == m_view->end_visible())
     return;
 
-  if (rpc::call_command_d_value("get_d_state", *m_view->focus()) == 1)
+  if (rpc::call_command_d_value("d.get_state", *m_view->focus()) == 1)
     control->core()->download_list()->stop_normal(*m_view->focus());
   else
     control->core()->download_list()->erase_ptr(*m_view->focus());
@@ -167,7 +167,7 @@ ElementDownloadList::receive_close_download() {
 
   core::Download* download = *m_view->focus();
 
-  rpc::call_command_d("set_d_ignore_commands", download, (int64_t)1);
+  rpc::call_command_d("d.set_ignore_commands", download, (int64_t)1);
 
   control->core()->download_list()->stop_normal(download);
   control->core()->download_list()->close(download);
@@ -206,11 +206,11 @@ ElementDownloadList::receive_ignore_ratio() {
   if (m_view->focus() == m_view->end_visible())
     return;
 
-  if (rpc::call_command_d_value("get_d_ignore_commands", *m_view->focus()) != 0) {
-    rpc::call_command_d_set_value("set_d_ignore_commands", *m_view->focus(), (int64_t)0);
+  if (rpc::call_command_d_value("d.get_ignore_commands", *m_view->focus()) != 0) {
+    rpc::call_command_d_set_value("d.set_ignore_commands", *m_view->focus(), (int64_t)0);
     control->core()->push_log("Torrent set to heed commands.");
   } else {
-    rpc::call_command_d_set_value("set_d_ignore_commands", *m_view->focus(), (int64_t)1);
+    rpc::call_command_d_set_value("d.set_ignore_commands", *m_view->focus(), (int64_t)1);
     control->core()->push_log("Torrent set to ignore commands.");
   }
 }
@@ -220,10 +220,10 @@ ElementDownloadList::receive_clear_tied() {
   if (m_view->focus() == m_view->end_visible())
     return;
 
-  const std::string& tiedFile = rpc::call_command_d_string("get_d_tied_to_file", *m_view->focus());
+  const std::string& tiedFile = rpc::call_command_d_string("d.get_tied_to_file", *m_view->focus());
 
   if (!tiedFile.empty()) {
-    rpc::call_command_d_void("d_delete_tied", *m_view->focus());
+    rpc::call_command_d_void("d.delete_tied", *m_view->focus());
 
     control->core()->push_log("Cleared tied to file association for the selected download.");
   }
