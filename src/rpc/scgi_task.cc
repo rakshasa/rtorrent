@@ -58,10 +58,11 @@ namespace rpc {
 
 void
 SCgiTask::open(SCgi* parent, int fd) {
-  m_parent = parent;
+  m_parent   = parent;
   m_fileDesc = fd;
-  m_buffer = new char[(m_bufferSize = 2048)];
+  m_buffer   = new char[(m_bufferSize = default_buffer_size) + 1];
   m_position = m_buffer;
+  m_body     = NULL;
 
   control->poll()->open(this);
   control->poll()->insert_read(this);
@@ -94,7 +95,7 @@ SCgiTask::close() {
 
 void
 SCgiTask::event_read() {
-  int bytes = ::recv(m_fileDesc, m_position, m_bufferSize - 1 - (m_position - m_buffer), 0);
+  int bytes = ::recv(m_fileDesc, m_position, m_bufferSize - (m_position - m_buffer), 0);
 
   if (bytes == -1) {
     if (!rak::error_number::current().is_blocked_momentary())
@@ -103,45 +104,68 @@ SCgiTask::event_read() {
     return;
   }
 
+  // The buffer has space to nul-terminate to ease the parsing below.
   m_position += bytes;
   *m_position = '\0';
 
-  // Don't bother caching the parsed values, as we're likely to
-  // receive all the data we need the first time.
-  char* current;
-  char* contentPos;
+  if (m_body == NULL) {
+    // Don't bother caching the parsed values, as we're likely to
+    // receive all the data we need the first time.
+    char* current;
 
-  int headerSize = strtol(m_buffer, &current, 0);
-  int contentSize;
+    int contentSize;
+    int headerSize = strtol(m_buffer, &current, 0);
 
-  if (current == m_buffer || current == m_position)
-    // Need to validate the header size.
-    return;
+    if (current == m_buffer || current == m_position)
+      return;
 
-  if (*current != ':' || headerSize < 17)
-    goto event_read_failed;
+    if (*current != ':' || headerSize < 17 || headerSize > max_header_size)
+      goto event_read_failed;
 
-  if (std::distance(++current, m_position) < headerSize + 1)
-    return;
+    if (std::distance(++current, m_position) < headerSize + 1)
+      return;
 
-  if (std::memcmp(current, "CONTENT_LENGTH", 15) != 0)
-    goto event_read_failed;
+    if (std::memcmp(current, "CONTENT_LENGTH", 15) != 0)
+      goto event_read_failed;
 
-  contentSize = strtol(current + 15, &contentPos, 0);
+    char* contentPos;
+    contentSize = strtol(current + 15, &contentPos, 0);
 
-  if (*contentPos != '\0' || contentSize <= 0)
-    goto event_read_failed;
+    if (*contentPos != '\0' || contentSize <= 0 || contentSize > max_content_size)
+      goto event_read_failed;
 
-  // Start of the data.
-  current += headerSize + 1;
+    m_body = current + headerSize + 1;
+    headerSize = std::distance(m_buffer, m_body);
 
-  if (std::distance(current, m_position) < contentSize)
+    if ((unsigned int)(contentSize + headerSize) < m_bufferSize) {
+      m_bufferSize = contentSize + headerSize;
+
+    } else if ((unsigned int)(contentSize + headerSize) <= default_buffer_size) {
+      m_bufferSize = contentSize;
+
+      std::memmove(m_buffer, m_body, std::distance(m_body, m_position));
+      m_position = m_buffer + std::distance(m_body, m_position);
+      m_body = m_buffer;
+
+    } else {
+      char* tmp = new char[(m_bufferSize = contentSize)];
+      std::memcpy(tmp, m_body, std::distance(m_body, m_position));
+      delete [] m_buffer;
+
+      m_position = tmp + std::distance(m_body, m_position);
+      m_buffer = tmp;
+      m_body = tmp;
+    }
+  }
+
+  if ((unsigned int)std::distance(m_buffer, m_position) != m_bufferSize)
     return;
 
   control->poll()->remove_read(this);
   control->poll()->insert_write(this);
 
-  if (!m_parent->receive_call(this, current, contentSize))
+  // Close if the call failed, else stay open to write back data.
+  if (!m_parent->receive_call(this, m_body, m_bufferSize - std::distance(m_buffer, m_body)))
     close();
 
   return;
@@ -175,7 +199,8 @@ SCgiTask::event_error() {
 
 bool
 SCgiTask::receive_write(const char* buffer, uint32_t length) {
-  if (length + 256 > m_bufferSize) {
+  // Need to cast due to a bug in MacOSX gcc-4.0.1.
+  if (length + 256 > std::max(m_bufferSize, (unsigned int)default_buffer_size)) {
     delete [] m_buffer;
     m_buffer = new char[length + 256];
   }
@@ -187,7 +212,6 @@ SCgiTask::receive_write(const char* buffer, uint32_t length) {
   m_bufferSize = length + headerSize;
   
   std::memcpy(m_buffer + headerSize, buffer, length);
-
   event_write();
 
   return true;

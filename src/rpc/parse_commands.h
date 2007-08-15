@@ -110,6 +110,7 @@ inline torrent::Object call_command_t(const char* key, torrent::Tracker* tracker
 
 inline torrent::Object
 call_command_d_range(const char* key, core::Download* download, torrent::Object::list_type::const_iterator first, torrent::Object::list_type::const_iterator last) {
+  // Change to using range ctor.
   torrent::Object rawArgs(torrent::Object::TYPE_LIST);
   torrent::Object::list_type& args = rawArgs.as_list();
   

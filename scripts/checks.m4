@@ -349,7 +349,7 @@ AC_DEFUN([TORRENT_WITH_XMLRPC_C], [
     else
       if eval xmlrpc-c-config --version 2>/dev/null >/dev/null; then
         CXXFLAGS="$CXXFLAGS `xmlrpc-c-config --cflags server-util`"
-        LIBS="$LIBS -lxmlrpc_server `xmlrpc-c-config --libs server-util`"
+        LIBS="$LIBS `xmlrpc-c-config server-util --libs`"
 
         AC_TRY_LINK(
         [ #include <xmlrpc-c/server.h>
