@@ -63,7 +63,7 @@ public:
   bool                is_valid() const             { return m_errno != 0; }
 
   int                 value() const                { return m_errno; }
-  const char*         c_str() const                { return strerror(m_errno); }
+  const char*         c_str() const                { return std::strerror(m_errno); }
 
   bool                is_blocked_momentary() const { return m_errno == e_again || m_errno == e_intr; }
   bool                is_blocked_prolonged() const { return m_errno == e_deadlk; }

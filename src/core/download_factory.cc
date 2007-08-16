@@ -104,7 +104,9 @@ DownloadFactory::receive_load() {
   if (m_stream)
     throw torrent::internal_error("DownloadFactory::load() called on an object with m_stream != NULL");
 
-  if (std::strncmp(m_uri.c_str(), "http://", 7) == 0) {
+  if (std::strncmp(m_uri.c_str(), "http://", 7) == 0 ||
+      std::strncmp(m_uri.c_str(), "https://", 8) == 0 ||
+      std::strncmp(m_uri.c_str(), "ftp://", 6) == 0) {
     // Http handling here.
     m_stream = new std::stringstream;
     HttpQueue::iterator itr = m_manager->http_queue()->insert(m_uri, m_stream);

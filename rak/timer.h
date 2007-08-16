@@ -55,7 +55,12 @@ class timer {
 
   timer               round_seconds() const              { return (m_time / 1000000) * 1000000; }
 
-  timeval             tval() const                       { return (timeval) { m_time / 1000000, m_time % 1000000}; }
+  timeval             tval() const {
+    timeval val;
+    val.tv_sec  = m_time / 1000000;
+    val.tv_usec = m_time % 1000000;
+    return val;
+  }
 
   static timer        current();
   static timer        from_seconds(uint32_t seconds)      { return rak::timer((uint64_t)seconds * 1000000); }

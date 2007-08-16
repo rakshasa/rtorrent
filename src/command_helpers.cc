@@ -42,6 +42,7 @@
 #include "rpc/command_variable.h"
 #include "rpc/command_download_slot.h"
 #include "rpc/command_file_slot.h"
+#include "rpc/command_peer_slot.h"
 #include "rpc/command_tracker_slot.h"
 
 #include "globals.h"
@@ -56,12 +57,15 @@ rpc::CommandDownloadSlot  commandDownloadSlots[COMMAND_DOWNLOAD_SLOTS_SIZE];
 rpc::CommandDownloadSlot* commandDownloadSlotsItr = commandDownloadSlots;
 rpc::CommandFileSlot      commandFileSlots[COMMAND_FILE_SLOTS_SIZE];
 rpc::CommandFileSlot*     commandFileSlotsItr = commandFileSlots;
+rpc::CommandPeerSlot      commandPeerSlots[COMMAND_PEER_SLOTS_SIZE];
+rpc::CommandPeerSlot*     commandPeerSlotsItr = commandPeerSlots;
 rpc::CommandTrackerSlot   commandTrackerSlots[COMMAND_TRACKER_SLOTS_SIZE];
 rpc::CommandTrackerSlot*  commandTrackerSlotsItr = commandTrackerSlots;
 
 void initialize_command_download();
 void initialize_command_events();
 void initialize_command_file();
+void initialize_command_peer();
 void initialize_command_local();
 void initialize_command_network();
 void initialize_command_tracker();
@@ -75,6 +79,7 @@ initialize_commands() {
   initialize_command_ui();
   initialize_command_download();
   initialize_command_file();
+  initialize_command_peer();
   initialize_command_tracker();
 
 #ifdef ADDING_COMMANDS 
@@ -82,12 +87,14 @@ initialize_commands() {
       commandVariablesItr > commandVariables + COMMAND_VARIABLES_SIZE ||
       commandDownloadSlotsItr > commandDownloadSlots + COMMAND_DOWNLOAD_SLOTS_SIZE ||
       commandFileSlotsItr > commandFileSlots + COMMAND_FILE_SLOTS_SIZE ||
+      commandPeerSlotsItr > commandPeerSlots + COMMAND_PEER_SLOTS_SIZE ||
       commandTrackerSlotsItr > commandTrackerSlots + COMMAND_TRACKER_SLOTS_SIZE)
 #else
   if (commandSlotsItr != commandSlots + COMMAND_SLOTS_SIZE ||
       commandVariablesItr != commandVariables + COMMAND_VARIABLES_SIZE ||
       commandDownloadSlotsItr != commandDownloadSlots + COMMAND_DOWNLOAD_SLOTS_SIZE ||
       commandFileSlotsItr != commandFileSlots + COMMAND_FILE_SLOTS_SIZE ||
+      commandPeerSlotsItr != commandPeerSlots + COMMAND_PEER_SLOTS_SIZE ||
       commandTrackerSlotsItr != commandTrackerSlots + COMMAND_TRACKER_SLOTS_SIZE)
 #endif
     throw torrent::internal_error("initialize_commands() static command array size mismatch.");
