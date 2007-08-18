@@ -40,7 +40,6 @@
 #include <rak/functional_fun.h>
 #include <sigc++/bind.h>
 
-// #include "core/download_list.h"
 #include "core/manager.h"
 #include "core/view_manager.h"
 #include "rpc/command_slot.h"

@@ -270,6 +270,7 @@ initialize_command_network() {
 
   ADD_VARIABLE_BOOL("use_udp_trackers", true);
 
+  // Isn't port_open used?
   ADD_VARIABLE_BOOL("port_open", true);
   ADD_VARIABLE_BOOL("port_random", true);
   ADD_VARIABLE_STRING("port_range", "6881-6999");

@@ -41,6 +41,7 @@
 #include <rak/file_stat.h>
 #include <rak/error_number.h>
 #include <rak/path.h>
+#include <rak/string_manip.h>
 #include <torrent/rate.h>
 #include <torrent/data/file.h>
 #include <torrent/data/file_list.h>
@@ -202,7 +203,7 @@ retrieve_d_priority_str(core::Download* download) {
 }
 
 torrent::Object
-apply_d_ratio(core::Download* download) {
+retrieve_d_ratio(core::Download* download) {
   if (download->is_hash_checking())
     return int64_t();
 
@@ -210,6 +211,13 @@ apply_d_ratio(core::Download* download) {
   int64_t upTotal   = download->download()->up_rate()->total();
 
   return bytesDone > 0 ? (1000 * upTotal) / bytesDone : 0;
+}
+
+torrent::Object
+retrieve_d_hash(core::Download* download) {
+  const torrent::HashString* hashString = &download->download()->info_hash();
+
+  return torrent::Object(rak::transform_hex(hashString->begin(), hashString->end()));
 }
 
 #define ADD_CD_SLOT(key, function, slot, parm, doc)    \
@@ -276,6 +284,7 @@ add_copy_to_download(const char* src, const char* dest) {
 
 void
 initialize_command_download() {
+  ADD_CD_VOID("hash",          &retrieve_d_hash);
   ADD_CD_VOID("base_path",     &retrieve_d_base_path);
   ADD_CD_VOID("base_filename", &retrieve_d_base_filename);
   ADD_CD_STRING_UNI("name",    rak::on(std::mem_fun(&core::Download::download), std::mem_fun(&torrent::Download::name)));
@@ -313,6 +322,7 @@ initialize_command_download() {
   // 0 - Not hashing
   // 1 - Normal hashing
   // 2 - Download finished, hashing
+  // 3 - Rehashing
   ADD_CD_VARIABLE_VALUE("hashing", "rtorrent", "hashing");
   ADD_CD_VARIABLE_STRING("tied_to_file", "rtorrent", "tied_to_file");
 
@@ -352,7 +362,7 @@ initialize_command_download() {
   ADD_CD_VALUE_MEM_UNI("skip_total",   &torrent::Download::mutable_skip_rate, &torrent::Rate::total);
 
   ADD_CD_VALUE_UNI("bytes_done",       rak::on(std::mem_fun(&core::Download::download), std::mem_fun(&torrent::Download::bytes_done)));
-  ADD_CD_VALUE_UNI("ratio",            std::ptr_fun(&apply_d_ratio));
+  ADD_CD_VALUE_UNI("ratio",            std::ptr_fun(&retrieve_d_ratio));
   ADD_CD_VALUE_UNI("chunks_hashed",    rak::on(std::mem_fun(&core::Download::download), std::mem_fun(&torrent::Download::chunks_hashed)));
   ADD_CD_VALUE_UNI("free_diskspace",   rak::on(std::mem_fun(&core::Download::file_list), std::mem_fun(&torrent::FileList::free_diskspace)));
 

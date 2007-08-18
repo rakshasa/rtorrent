@@ -38,6 +38,7 @@
 
 #include <fcntl.h>
 #include <functional>
+#include <unistd.h>
 #include <rak/path.h>
 #include <torrent/torrent.h>
 #include <torrent/chunk_manager.h>
@@ -78,6 +79,19 @@ apply_execute_log(const torrent::Object& rawArgs) {
   return torrent::Object();
 }
 
+torrent::Object
+apply_get_hostname() {
+  char buffer[1024];
+
+  if (gethostname(buffer, 1023) == -1)
+    throw torrent::input_error("Unable to read hostname.");
+
+//   if (shorten)
+//     *std::find(buffer, buffer + 1023, '.') = '\0';
+
+  return std::string(buffer);
+}
+
 void
 initialize_command_local() {
   torrent::ChunkManager* chunkManager = torrent::chunk_manager();
@@ -86,6 +100,8 @@ initialize_command_local() {
 
   ADD_VARIABLE_C_STRING("client_version",  PACKAGE_VERSION);
   ADD_VARIABLE_C_STRING("library_version", torrent::version());
+
+  ADD_COMMAND_VOID("get_hostname",         rak::ptr_fun(&apply_get_hostname));
 
   ADD_VARIABLE_VALUE("max_file_size", -1);
   ADD_VARIABLE_VALUE("split_file_size", -1);
