@@ -38,6 +38,7 @@
 #define RTORRENT_RPC_PARSE_COMMANDS_H
 
 #include <string>
+#include <cstring>
 
 #include "command_map.h"
 #include "exec_file.h"
@@ -54,36 +55,43 @@ extern CommandMap commands;
 extern XmlRpc     xmlrpc;
 extern ExecFile   execFile;
 
+inline CommandMap::target_type make_target()                         { return CommandMap::target_type((int)CommandMap::target_generic, NULL); }
+inline CommandMap::target_type make_target(core::Download* target)   { return CommandMap::target_type((int)CommandMap::target_download, target); }
+inline CommandMap::target_type make_target(torrent::File* target)    { return CommandMap::target_type((int)CommandMap::target_file, target); }
+inline CommandMap::target_type make_target(torrent::Peer* target)    { return CommandMap::target_type((int)CommandMap::target_peer, target); }
+inline CommandMap::target_type make_target(torrent::Tracker* target) { return CommandMap::target_type((int)CommandMap::target_tracker, target); }
+
+typedef std::pair<torrent::Object, const char*> parse_command_type;
+
 // The generic parse command function, used by the rest. At some point
 // the 'download' parameter should be replaced by a more generic one.
-std::pair<torrent::Object, const char*> parse_command(core::Download* download, const char* first, const char* last);
+parse_command_type     parse_command(CommandMap::target_type target, const char* first, const char* last);
+void                   parse_command_multiple(CommandMap::target_type target, const char* first, const char* last);
 
-void                   parse_command_single(const char* first);
-inline torrent::Object parse_command_single(const char* first, const char* last)                             { return parse_command(NULL, first, last).first; }
-inline torrent::Object parse_command_d_single(core::Download* download, const char* first, const char* last) { return parse_command(download, first, last).first; }
-
-void                   parse_command_multiple(core::Download* download, const char* first, const char* last);
-
-void                   parse_command_d_multiple(core::Download* download, const char* first);
-inline void            parse_command_d_multiple_std(core::Download* download, const std::string& cmd) { parse_command_multiple(download, cmd.c_str(), cmd.c_str() + cmd.size()); }
-inline void            parse_command_multiple(const char* first)                                      { parse_command_d_multiple(NULL, first); }
+inline void            parse_command_single(CommandMap::target_type target, const char* first)   { parse_command(target, first, first + std::strlen(first)); }
+inline void            parse_command_multiple(CommandMap::target_type target, const char* first) { parse_command_multiple(target, first, first + std::strlen(first)); }
 
 bool                   parse_command_file(const std::string& path);
 const char*            parse_command_name(const char* first, const char* last, std::string* dest);
 
 inline void
 parse_command_single_std(const std::string& cmd) {
-  parse_command_single(cmd.c_str(), cmd.c_str() + cmd.size());
+  parse_command(make_target(), cmd.c_str(), cmd.c_str() + cmd.size());
 }
 
 inline void
 parse_command_d_single_std(core::Download* download, const std::string& cmd) {
-  parse_command_d_single(download, cmd.c_str(), cmd.c_str() + cmd.size());
+  parse_command(make_target(download), cmd.c_str(), cmd.c_str() + cmd.size());
 }
 
 inline void
 parse_command_multiple_std(const std::string& cmd) {
-  parse_command_multiple(NULL, cmd.c_str(), cmd.c_str() + cmd.size());
+  parse_command_multiple(make_target(), cmd.c_str(), cmd.c_str() + cmd.size());
+}
+
+inline void
+parse_command_d_multiple_std(core::Download* download, const std::string& cmd) {
+  parse_command_multiple(make_target(download), cmd.c_str(), cmd.c_str() + cmd.size());
 }
 
 inline torrent::Object call_command(const char* key, const torrent::Object& obj) { return commands.call_command(key, obj); }

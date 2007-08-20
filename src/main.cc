@@ -165,7 +165,7 @@ main(int argc, char** argv) {
     // torrent::ConnectionManager* are valid etc.
     initialize_commands();
 
-    rpc::parse_command_multiple(
+    rpc::parse_command_multiple(rpc::make_target(),
 //       "set_name = $cat={$get_hostname=,:,$get_pid=}\n"
        "set_name = \"$cat=$get_hostname=,:,$get_pid=\"\n"
 
@@ -236,7 +236,7 @@ main(int argc, char** argv) {
     if (OptionParser::has_flag('n', argc, argv))
       control->core()->push_log("Ignoring ~/.rtorrent.rc.");
     else
-      rpc::parse_command_single("try_import = ~/.rtorrent.rc");
+      rpc::parse_command_single(rpc::make_target(), "try_import = ~/.rtorrent.rc");
 
     int firstArg = parse_options(control, argc, argv);
 

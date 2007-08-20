@@ -138,7 +138,7 @@ public:
 
   void                insert(key_type key, const command_map_data_type src);
 
-  const mapped_type   call_command(key_type key, const mapped_type& arg, target_type target = target_type((int)target_generic, NULL));
+  const mapped_type   call_command  (key_type key, const mapped_type& arg, target_type target = target_type((int)target_generic, NULL));
   const mapped_type   call_command_d(key_type key, core::Download* download, const mapped_type& arg)  { return call_command(key, arg, target_type((int)target_download, download)); }
   const mapped_type   call_command_f(key_type key, torrent::File* file, const mapped_type& arg)       { return call_command(key, arg, target_type((int)target_file, file)); }
   const mapped_type   call_command_p(key_type key, torrent::Peer* peer, const mapped_type& arg)       { return call_command(key, arg, target_type((int)target_peer, peer)); }

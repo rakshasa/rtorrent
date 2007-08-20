@@ -43,6 +43,7 @@
 #include <rak/path.h>
 #include <rak/string_manip.h>
 #include <torrent/rate.h>
+#include <torrent/tracker.h>
 #include <torrent/data/file.h>
 #include <torrent/data/file_list.h>
 
@@ -220,6 +221,62 @@ retrieve_d_hash(core::Download* download) {
   return torrent::Object(rak::transform_hex(hashString->begin(), hashString->end()));
 }
 
+torrent::Object
+f_multicall(core::Download* download, const torrent::Object& rawArgs) {
+  const torrent::Object::list_type& args = rawArgs.as_list();
+
+  if (args.empty())
+    throw torrent::input_error("Too few arguments.");
+
+  // We ignore the first arg for now, but it will be used for
+  // selecting what files to include.
+
+  // Add some pre-parsing of the commands, so we don't spend time
+  // parsing and searching command map for every single call.
+  torrent::Object             resultRaw(torrent::Object::TYPE_LIST);
+  torrent::Object::list_type& result = resultRaw.as_list();
+
+  for (torrent::FileList::const_iterator itr = download->file_list()->begin(), last = download->file_list()->end(); itr != last; itr++) {
+    torrent::Object::list_type& row = result.insert(result.end(), torrent::Object(torrent::Object::TYPE_LIST))->as_list();
+
+    for (torrent::Object::list_type::const_iterator cItr = ++args.begin(), cLast = args.end(); cItr != args.end(); cItr++) {
+      const std::string& cmd = cItr->as_string();
+      row.push_back(rpc::parse_command(rpc::make_target(*itr), cmd.c_str(), cmd.c_str() + cmd.size()).first);
+    }
+  }
+
+  return resultRaw;
+}
+
+torrent::Object
+t_multicall(core::Download* download, const torrent::Object& rawArgs) {
+  const torrent::Object::list_type& args = rawArgs.as_list();
+
+  if (args.empty())
+    throw torrent::input_error("Too few arguments.");
+
+  // We ignore the first arg for now, but it will be used for
+  // selecting what files to include.
+
+  // Add some pre-parsing of the commands, so we don't spend time
+  // parsing and searching command map for every single call.
+  torrent::Object             resultRaw(torrent::Object::TYPE_LIST);
+  torrent::Object::list_type& result = resultRaw.as_list();
+
+  for (int itr = 0, last = download->tracker_list()->size(); itr != last; itr++) {
+    torrent::Object::list_type& row = result.insert(result.end(), torrent::Object(torrent::Object::TYPE_LIST))->as_list();
+
+    for (torrent::Object::list_type::const_iterator cItr = ++args.begin(), cLast = args.end(); cItr != args.end(); cItr++) {
+      const std::string& cmd = cItr->as_string();
+      torrent::Tracker t = download->tracker_list()->get(itr);
+
+      row.push_back(rpc::parse_command(rpc::make_target(&t), cmd.c_str(), cmd.c_str() + cmd.size()).first);
+    }
+  }
+
+  return resultRaw;
+}
+
 #define ADD_CD_SLOT(key, function, slot, parm, doc)    \
   commandDownloadSlotsItr->set_slot(slot); \
   rpc::commands.insert_download(key, commandDownloadSlotsItr++, &rpc::CommandDownloadSlot::function, rpc::CommandMap::flag_dont_delete, parm, doc);
@@ -383,4 +440,7 @@ initialize_command_download() {
   ADD_CD_STRING_BI("directory",        std::mem_fun(&core::Download::set_root_directory), rak::on(std::mem_fun(&core::Download::file_list), std::mem_fun(&torrent::FileList::root_dir)));
   ADD_CD_VALUE_BI("priority",          std::mem_fun(&core::Download::set_priority), std::mem_fun(&core::Download::priority));
   ADD_CD_STRING_UNI("priority_str",    std::ptr_fun(&retrieve_d_priority_str));
+
+  ADD_CD_SLOT_PUBLIC("f.multicall",    call_list, rak::ptr_fn(&f_multicall), "i:", "")
+  ADD_CD_SLOT_PUBLIC("t.multicall",    call_list, rak::ptr_fn(&t_multicall), "i:", "")
 }

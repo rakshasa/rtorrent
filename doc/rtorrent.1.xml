@@ -438,9 +438,8 @@ Set the default download directory. Defaults to "./".
         <listitem><para>
 Session management will be enabled and the torrent files for all open
 downloads will be stored in this directory. Only one instance of
-rtorrent should be used with each session directory, though at the
-moment no locking is done. An empty string will disable the session
-directory.
+rtorrent can be used per session directory. An empty string will
+disable the session directory.
         </para></listitem>
       </varlistentry>
 

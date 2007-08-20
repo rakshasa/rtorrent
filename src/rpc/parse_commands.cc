@@ -82,22 +82,22 @@ parse_count_escaped(const char* first, const char* last) {
 //
 // Find a better name.
 void
-parse_command_execute(core::Download* download, torrent::Object* object) {
+parse_command_execute(CommandMap::target_type target, torrent::Object* object) {
   if (object->is_list()) {
     for (torrent::Object::list_type::iterator itr = object->as_list().begin(), last = object->as_list().end(); itr != last; itr++)
-      parse_command_execute(download, &*itr);
+      parse_command_execute(target, &*itr);
 
   } else if (*object->as_string().c_str() == '$') {
     const std::string& str = object->as_string();
 
-    *object = parse_command_d_single(download, str.c_str() + 1, str.c_str() + str.size());
+    *object = parse_command(target, str.c_str() + 1, str.c_str() + str.size()).first;
   }
 }
 
 // Set 'download' to NULL to call the generic functions, thus reusing
 // the code below for both cases.
-std::pair<torrent::Object, const char*>
-parse_command(core::Download* download, const char* first, const char* last) {
+parse_command_type
+parse_command(CommandMap::target_type target, const char* first, const char* last) {
   first = std::find_if(first, last, std::not1(command_map_is_space()));
 
   if (first == last || *first == '#')
@@ -127,30 +127,20 @@ parse_command(core::Download* download, const char* first, const char* last) {
 
   // Replace any strings starting with '$' with the result of the
   // following command.
-  parse_command_execute(download, &args);
+  parse_command_execute(target, &args);
 
-  return std::make_pair(commands.call_command_d(key.c_str(), download, args), first);
+  return std::make_pair(commands.call_command(key.c_str(), args, target), first);
 }
 
 void
-parse_command_single(const char* first) {
-  parse_command(NULL, first, first + std::strlen(first));
-}
-
-void
-parse_command_multiple(core::Download* download, const char* first, const char* last) {
+parse_command_multiple(CommandMap::target_type target, const char* first, const char* last) {
   while (first != last) {
     // Should we check the return value? Probably not necessary as
     // parse_args throws on unquoted multi-word input.
-    std::pair<torrent::Object, const char*> result = parse_command(download, first, last);
+    parse_command_type result = parse_command(target, first, last);
 
     first = result.second;
   }
-}
-
-void
-parse_command_d_multiple(core::Download* download, const char* first) {
-  parse_command_multiple(download, first, first + std::strlen(first));
 }
 
 bool
@@ -185,7 +175,7 @@ parse_command_file(const std::string& path) {
       }
 
       // Would be nice to make this zero-copy.
-      parse_command(NULL, buffer, buffer + getCount);
+      parse_command(make_target(), buffer, buffer + getCount);
       getCount = 0;
     }
 

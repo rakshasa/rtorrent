@@ -275,7 +275,7 @@ xmlrpc_to_object_target(xmlrpc_env* env, xmlrpc_value* value, int callType, void
 
     torrent::Object result;
 
-    if (current + 1 > last) {
+    if (current + 1 < last) {
       result = torrent::Object(torrent::Object::TYPE_LIST);
       torrent::Object::list_type& listRef = result.as_list();
 

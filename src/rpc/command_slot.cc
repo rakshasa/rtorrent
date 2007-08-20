@@ -59,6 +59,7 @@ CommandSlot::call_list(Command* rawCommand, const torrent::Object& rawArgs) {
 
   case torrent::Object::TYPE_VALUE:
   case torrent::Object::TYPE_STRING:
+  case torrent::Object::TYPE_NONE:
   {
     torrent::Object tmpList(torrent::Object::TYPE_LIST);
     tmpList.as_list().push_back(rawArgs);

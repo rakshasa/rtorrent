@@ -268,7 +268,7 @@ apply_download_list(const torrent::Object& rawArgs) {
 }
 
 torrent::Object
-apply_call_download(const torrent::Object& rawArgs) {
+d_multicall(const torrent::Object& rawArgs) {
   const torrent::Object::list_type&          args = rawArgs.as_list();
 
   if (args.empty())
@@ -306,7 +306,7 @@ apply_call_download(const torrent::Object& rawArgs) {
 
     for (torrent::Object::list_type::const_iterator cItr = ++args.begin(), cLast = args.end(); cItr != args.end(); cItr++) {
       const std::string& cmd = cItr->as_string();
-      row.push_back(rpc::parse_command_d_single(*vItr, cmd.c_str(), cmd.c_str() + cmd.size()));
+      row.push_back(rpc::parse_command(rpc::make_target(*vItr), cmd.c_str(), cmd.c_str() + cmd.size()).first);
     }
   }
 
@@ -354,5 +354,6 @@ initialize_command_events() {
   ADD_COMMAND_VALUE_UN("close_low_diskspace", std::ptr_fun(&apply_close_low_diskspace));
 
   ADD_COMMAND_LIST("download_list",           rak::ptr_fn(&apply_download_list));
-  ADD_COMMAND_LIST("call_download",           rak::ptr_fn(&apply_call_download));
+  ADD_COMMAND_LIST("d.multicall",             rak::ptr_fn(&d_multicall));
+  ADD_COMMAND_COPY("call_download",           call_list, "i:", "");
 }
