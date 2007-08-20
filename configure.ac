@@ -1,4 +1,4 @@
-AC_INIT(rtorrent, 0.7.7, jaris@ifi.uio.no)
+AC_INIT(rtorrent, 0.7.8, jaris@ifi.uio.no)
 
 AM_INIT_AUTOMAKE
 AM_CONFIG_HEADER(config.h)
