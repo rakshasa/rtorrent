@@ -91,6 +91,7 @@ convert_to_single_argument(const torrent::Object& args) {
 static const int print_expand_tilde = 0x1;
 
 char*       print_object(char* first, char* last, const torrent::Object* src, int flags);
+void        print_object_std(std::string* dest, const torrent::Object* src, int flags);
 
 }
 

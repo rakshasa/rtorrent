@@ -40,6 +40,7 @@
 #include <functional>
 #include <unistd.h>
 #include <rak/path.h>
+#include <sys/types.h>
 #include <torrent/torrent.h>
 #include <torrent/chunk_manager.h>
 
@@ -102,6 +103,9 @@ initialize_command_local() {
   ADD_VARIABLE_C_STRING("library_version", torrent::version());
 
   ADD_COMMAND_VOID("get_hostname",         rak::ptr_fun(&apply_get_hostname));
+  ADD_COMMAND_VOID("get_pid",              rak::ptr_fun(&getpid));
+
+  ADD_VARIABLE_STRING("name",              "");
 
   ADD_VARIABLE_VALUE("max_file_size", -1);
   ADD_VARIABLE_VALUE("split_file_size", -1);

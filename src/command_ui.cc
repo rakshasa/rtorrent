@@ -116,6 +116,14 @@ apply_print(const torrent::Object& rawArgs) {
   return torrent::Object();
 }
 
+torrent::Object
+apply_cat(const torrent::Object& rawArgs) {
+  std::string result;
+
+  rpc::print_object_std(&result, &rawArgs, 0);
+  return result;
+}
+
 void
 initialize_command_ui() {
   ADD_VARIABLE_STRING("key_layout", "qwerty");
@@ -133,4 +141,5 @@ initialize_command_ui() {
 //   ADD_COMMAND_LIST("view_sort_current", rak::bind_ptr_fn(&apply_view_filter, &core::ViewManager::set_sort_current));
 
   ADD_COMMAND_LIST("print",             rak::ptr_fn(&apply_print));
+  ADD_COMMAND_LIST("cat",               rak::ptr_fn(&apply_cat));
 }

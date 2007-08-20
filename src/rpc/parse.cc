@@ -389,4 +389,41 @@ print_object(char* first, char* last, const torrent::Object* src, int flags) {
   }
 }
 
+void
+print_object_std(std::string* dest, const torrent::Object* src, int flags) {
+  switch (src->type()) {
+  case torrent::Object::TYPE_STRING:
+  {
+    const std::string& str = src->as_string();
+
+    if ((flags & print_expand_tilde) && *str.c_str() == '~')
+      *dest += rak::path_expand(str);
+    else
+      *dest += str;
+
+    return;
+  }
+  case torrent::Object::TYPE_VALUE:
+  {
+    char buffer[64];
+    snprintf(buffer, 64, "%lli", src->as_value());
+
+    *dest += buffer;
+    return;
+  }
+  case torrent::Object::TYPE_LIST:
+    for (torrent::Object::list_type::const_iterator itr = src->as_list().begin(), itrEnd = src->as_list().end(); itr != itrEnd; itr++) {
+      print_object_std(dest, &*itr, flags);
+
+      // Don't expand tilde after the first element in the list.
+      flags &= ~print_expand_tilde;
+    }
+
+    return;
+
+  default:
+    throw torrent::input_error("Invalid type.");
+  }
+}
+
 }
