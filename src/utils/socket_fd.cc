@@ -130,17 +130,17 @@ SocketFd::get_error() const {
 
 bool
 SocketFd::open_stream() {
-  return (m_fd = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP)) != -1;
+  return (m_fd = socket(rak::socket_address::pf_inet, SOCK_STREAM, IPPROTO_TCP)) != -1;
 }
 
 bool
 SocketFd::open_datagram() {
-  return (m_fd = socket(PF_INET, SOCK_DGRAM, 0)) != -1;
+  return (m_fd = socket(rak::socket_address::pf_inet, SOCK_DGRAM, 0)) != -1;
 }
 
 bool
 SocketFd::open_local() {
-  return (m_fd = socket(PF_LOCAL, SOCK_STREAM, 0)) != -1;
+  return (m_fd = socket(rak::socket_address::pf_local, SOCK_STREAM, 0)) != -1;
 }
 
 void

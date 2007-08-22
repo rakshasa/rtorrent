@@ -294,8 +294,11 @@ t_multicall(core::Download* download, const torrent::Object& rawArgs) {
 #define ADD_CD_F_VOID(key, slot) \
   ADD_CD_SLOT_PUBLIC("d." key, call_unknown, rpc::object_void_d_fn(slot), "i:", "")
 
-#define ADD_CD_LIST(key, slot) \
+#define ADD_CD_LIST_OBSOLETE(key, slot) \
   ADD_CD_SLOT_PUBLIC(key, call_list, slot, "i:", "")
+
+#define ADD_CD_LIST(key, slot) \
+  ADD_CD_SLOT_PUBLIC("d." key, call_list, slot, "i:", "")
 
 #define ADD_CD_VARIABLE_VALUE(key, firstKey, secondKey) \
   ADD_CD_SLOT_PUBLIC("d.get_" key, call_unknown, rpc::get_variable_d_fn(firstKey, secondKey), "i:", ""); \
@@ -346,6 +349,9 @@ initialize_command_download() {
   ADD_CD_VOID("base_filename", &retrieve_d_base_filename);
   ADD_CD_STRING_UNI("name",    rak::on(std::mem_fun(&core::Download::download), std::mem_fun(&torrent::Download::name)));
 
+  ADD_CD_LIST_OBSOLETE("create_link",   rak::bind_ptr_fn(&apply_d_change_link, 0));
+  ADD_CD_LIST_OBSOLETE("delete_link",   rak::bind_ptr_fn(&apply_d_change_link, 1));
+
   ADD_CD_LIST("create_link",   rak::bind_ptr_fn(&apply_d_change_link, 0));
   ADD_CD_LIST("delete_link",   rak::bind_ptr_fn(&apply_d_change_link, 1));
   ADD_CD_V_VOID("delete_tied", &apply_d_delete_tied);
@@ -390,6 +396,10 @@ initialize_command_download() {
   ADD_CD_VARIABLE_VALUE_PUBLIC("ignore_commands", "rtorrent", "ignore_commands");
 
   ADD_CD_STRING_BI("connection_current", std::ptr_fun(&apply_d_connection_type), std::ptr_fun(&retrieve_d_connection_type));
+
+  // This command really needs to be improved, so we have proper
+  // logging support.
+  ADD_CD_STRING_BI("message",            std::mem_fun(&core::Download::set_message), std::mem_fun(&core::Download::message));
 
   add_copy_to_download("get_connection_leech", "d.get_connection_leech");
   add_copy_to_download("set_connection_leech", "d.set_connection_leech");
