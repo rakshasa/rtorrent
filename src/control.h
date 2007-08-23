@@ -105,9 +105,6 @@ public:
   uint64_t            tick() const                  { return m_tick; }
   void                inc_tick()                    { m_tick++; }
 
-  mode_t              umask() const                 { return m_umask; }
-  void                set_umask(mode_t m);
-
   const std::string&  working_directory() const     { return m_workingDirectory; }
   void                set_working_directory(const std::string& dir);
 

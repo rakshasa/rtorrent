@@ -174,6 +174,12 @@ DownloadFactory::receive_success() {
 
   initialize_rtorrent(download, rtorrent);
 
+  if (!rtorrent->has_key_string("custom1")) rtorrent->insert_key("custom1", std::string());
+  if (!rtorrent->has_key_string("custom2")) rtorrent->insert_key("custom2", std::string());
+  if (!rtorrent->has_key_string("custom3")) rtorrent->insert_key("custom3", std::string());
+  if (!rtorrent->has_key_string("custom4")) rtorrent->insert_key("custom4", std::string());
+  if (!rtorrent->has_key_string("custom5")) rtorrent->insert_key("custom5", std::string());
+
   // Move to 'rtorrent'.
   rpc::call_command_d("d.set_connection_leech", download, m_variables["connection_leech"]);
   rpc::call_command_d("d.set_connection_seed", download,  m_variables["connection_seed"]);

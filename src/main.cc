@@ -166,8 +166,8 @@ main(int argc, char** argv) {
     initialize_commands();
 
     rpc::parse_command_multiple(rpc::make_target(),
-//       "set_name = $cat={$get_hostname=,:,$get_pid=}\n"
-       "set_name = \"$cat=$get_hostname=,:,$get_pid=\"\n"
+//       "set_name = $cat={$system.hostname=,:,$system.pid=}\n"
+       "set_name = \"$cat=$system.hostname=,:,$system.pid=\"\n"
 
        // Currently not doing any sorting on main.
        "view_add = main\n"

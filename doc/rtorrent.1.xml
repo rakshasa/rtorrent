@@ -981,7 +981,7 @@ by the program.
       </varlistentry>
 
       <varlistentry>
-        <term>working_directory = <replaceable>directory</replaceable></term>
+        <term>cwd = <replaceable>directory</replaceable></term>
         <listitem><para>
 
 Changes the working directory of the process using

@@ -88,8 +88,8 @@ add_variable("get_" key, "set_" key, key, &rpc::CommandVariable::get_value, &rpc
 #define ADD_VARIABLE_STRING(key, defaultValue) \
 add_variable("get_" key, "set_" key, key, &rpc::CommandVariable::get_string, &rpc::CommandVariable::set_string, std::string(defaultValue));
 
-#define ADD_VARIABLE_C_STRING(key, defaultValue) \
-add_variable("get_" key, NULL, NULL, &rpc::CommandVariable::get_string, NULL, std::string(defaultValue));
+#define ADD_C_STRING(key, defaultValue) \
+add_variable(key, NULL, NULL, &rpc::CommandVariable::get_string, NULL, std::string(defaultValue));
 
 #define ADD_COMMAND_SLOT(key, function, slot, parm, doc)    \
   commandSlotsItr->set_slot(slot); \
@@ -115,15 +115,22 @@ add_variable("get_" key, NULL, NULL, &rpc::CommandVariable::get_string, NULL, st
   ADD_COMMAND_COPY("set_" key,  call_value, "i:i", "")                      \
   ADD_COMMAND_SLOT("get_" key,  call_unknown, rpc::object_void_fn(get), "i:", "")
 
-#define ADD_COMMAND_VALUE_TRI_OCT(key, set, get) \
+#define ADD_COMMAND_VALUE_SET_OCT(prefix, key, set)                 \
   ADD_COMMAND_SLOT_PRIVATE(key, call_value_oct, rpc::object_value_fn(set)) \
-  ADD_COMMAND_COPY("set_" key,  call_value, "i:i", "")                      \
-  ADD_COMMAND_SLOT("get_" key,  call_unknown, rpc::object_void_fn(get), "i:", "")
+  ADD_COMMAND_COPY(prefix "set_" key,  call_value, "i:i", "")
 
-#define ADD_COMMAND_STRING_TRI(key, set, get) \
+#define ADD_COMMAND_VALUE_TRI_OCT(prefix, key, set, get)                 \
+  ADD_COMMAND_SLOT_PRIVATE(key, call_value_oct, rpc::object_value_fn(set)) \
+  ADD_COMMAND_COPY(prefix "set_" key,  call_value, "i:i", "")                      \
+  ADD_COMMAND_SLOT(prefix "get_" key,  call_unknown, rpc::object_void_fn(get), "i:", "")
+
+#define ADD_COMMAND_STRING_PREFIX(prefix, key, set, get) \
   ADD_COMMAND_SLOT_PRIVATE(key, call_string, rpc::object_string_fn(set))      \
-  ADD_COMMAND_COPY("set_" key,  call_string, "i:s", "") \
-  ADD_COMMAND_SLOT("get_" key,  call_unknown, rpc::object_void_fn(get), "s:", "")
+  ADD_COMMAND_COPY(prefix "set_" key,  call_string, "i:s", "") \
+  ADD_COMMAND_SLOT(prefix "get_" key,  call_unknown, rpc::object_void_fn(get), "s:", "")
+
+#define ADD_COMMAND_STRING_TRI(key, set, get)                    \
+  ADD_COMMAND_STRING_PREFIX("", key, set, get)
 
 #define ADD_COMMAND_VOID(key, slot) \
   ADD_COMMAND_SLOT(key, call_unknown, rpc::object_void_fn(slot), "i:", "")

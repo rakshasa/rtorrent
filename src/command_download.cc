@@ -312,6 +312,10 @@ t_multicall(core::Download* download, const torrent::Object& rawArgs) {
   ADD_CD_SLOT_PUBLIC("d.get_" key, call_unknown, rpc::get_variable_d_fn(firstKey, secondKey), "i:", ""); \
   ADD_CD_SLOT("d.set_" key, call_string,  rpc::set_variable_d_fn(firstKey, secondKey), "i:s", "");
 
+#define ADD_CD_VARIABLE_STRING_PUBLIC(key, firstKey, secondKey) \
+  ADD_CD_SLOT_PUBLIC("d.get_" key, call_unknown, rpc::get_variable_d_fn(firstKey, secondKey), "i:", ""); \
+  ADD_CD_SLOT_PUBLIC("d.set_" key, call_string,  rpc::set_variable_d_fn(firstKey, secondKey), "i:s", "");
+
 #define ADD_CD_VALUE_UNI(key, get) \
   ADD_CD_SLOT_PUBLIC("d.get_" key, call_unknown, rpc::object_void_d_fn(get), "i:", "")
 
@@ -370,6 +374,12 @@ initialize_command_download() {
   ADD_CD_VALUE_UNI("is_hash_checked",  rak::on(std::mem_fun(&core::Download::download), std::mem_fun(&torrent::Download::is_hash_checked)));
   ADD_CD_VALUE_UNI("is_hash_checking", rak::on(std::mem_fun(&core::Download::download), std::mem_fun(&torrent::Download::is_hash_checking)));
   ADD_CD_VALUE_UNI("is_multi_file",    rak::on(std::mem_fun(&core::Download::file_list), std::mem_fun(&torrent::FileList::is_multi_file)));
+
+  ADD_CD_VARIABLE_STRING_PUBLIC("custom1", "rtorrent", "custom1");
+  ADD_CD_VARIABLE_STRING_PUBLIC("custom2", "rtorrent", "custom2");
+  ADD_CD_VARIABLE_STRING_PUBLIC("custom3", "rtorrent", "custom3");
+  ADD_CD_VARIABLE_STRING_PUBLIC("custom4", "rtorrent", "custom4");
+  ADD_CD_VARIABLE_STRING_PUBLIC("custom5", "rtorrent", "custom5");
 
   // 0 - stopped
   // 1 - started

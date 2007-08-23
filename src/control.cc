@@ -159,16 +159,3 @@ torrent::Poll*
 Control::poll() {
   return m_core->get_poll_manager()->get_torrent_poll();
 }
-
-void
-Control::set_umask(mode_t m) {
-  ::umask(m);
-
-  m_umask = m;
-}
-
-void
-Control::set_working_directory(const std::string& dir) {
-  if (::chdir(dir.c_str()) != 0)
-    throw torrent::input_error("Could not change working directory.");
-}

@@ -74,7 +74,7 @@ public:
   static const int         pf_local  = PF_LOCAL;
 #else
   static const sa_family_t af_local  = AF_UNIX;
-  static const itn         pf_local  = PF_UNIX;
+  static const int         pf_local  = PF_UNIX;
 #endif
 
   bool                is_valid() const;

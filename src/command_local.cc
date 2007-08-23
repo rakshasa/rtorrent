@@ -41,6 +41,7 @@
 #include <unistd.h>
 #include <rak/path.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <torrent/torrent.h>
 #include <torrent/chunk_manager.h>
 
@@ -81,7 +82,7 @@ apply_execute_log(const torrent::Object& rawArgs) {
 }
 
 torrent::Object
-apply_get_hostname() {
+system_hostname() {
   char buffer[1024];
 
   if (gethostname(buffer, 1023) == -1)
@@ -93,19 +94,43 @@ apply_get_hostname() {
   return std::string(buffer);
 }
 
+torrent::Object
+system_get_cwd() {
+  char* buffer = getcwd(NULL, 0);
+
+  if (buffer == NULL)
+    throw torrent::input_error("Unable to read cwd.");
+
+  torrent::Object result = torrent::Object(std::string(buffer));
+  free(buffer);
+
+  return result;
+}
+
+torrent::Object
+system_set_cwd(const torrent::Object& rawArgs) {
+  if (::chdir(rawArgs.as_string().c_str()) != 0)
+    throw torrent::input_error("Could not change current working directory.");
+
+  return torrent::Object();
+}
+
 void
 initialize_command_local() {
   torrent::ChunkManager* chunkManager = torrent::chunk_manager();
   core::DownloadList*    dList = control->core()->download_list();
   core::DownloadStore*   dStore = control->core()->download_store();
 
-  ADD_VARIABLE_C_STRING("client_version",  PACKAGE_VERSION);
-  ADD_VARIABLE_C_STRING("library_version", torrent::version());
+  ADD_C_STRING("system.client_version",          PACKAGE_VERSION);
+  ADD_C_STRING("system.library_version",         torrent::version());
 
-  ADD_COMMAND_VOID("get_hostname",         rak::ptr_fun(&apply_get_hostname));
-  ADD_COMMAND_VOID("get_pid",              rak::ptr_fun(&getpid));
+  ADD_COMMAND_VOID("system.hostname",            rak::ptr_fun(&system_hostname));
+  ADD_COMMAND_VOID("system.pid",                 rak::ptr_fun(&getpid));
 
-  ADD_VARIABLE_STRING("name",              "");
+  ADD_COMMAND_VALUE_SET_OCT("system.", "umask",  std::ptr_fun(&umask));
+  ADD_COMMAND_STRING_PREFIX("system.", "cwd",    std::ptr_fun(system_set_cwd), rak::ptr_fun(&system_get_cwd));
+
+  ADD_VARIABLE_STRING("name",            "");
 
   ADD_VARIABLE_VALUE("max_file_size", -1);
   ADD_VARIABLE_VALUE("split_file_size", -1);
@@ -124,9 +149,6 @@ initialize_command_local() {
 
   ADD_COMMAND_STRING_TRI("session",            rak::make_mem_fun(dStore, &core::DownloadStore::set_path), rak::make_mem_fun(dStore, &core::DownloadStore::path));
   ADD_COMMAND_VOID("session_save",             rak::make_mem_fun(dList, &core::DownloadList::session_save));
-
-  ADD_COMMAND_VALUE_TRI_OCT("umask",           rak::make_mem_fun(control, &Control::set_umask), rak::make_mem_fun(control, &Control::umask));
-  ADD_COMMAND_STRING_TRI("working_directory",  rak::make_mem_fun(control, &Control::set_working_directory), rak::make_mem_fun(control, &Control::working_directory));
 
   ADD_COMMAND_LIST("execute",             rak::bind2_mem_fn(&rpc::execFile, &rpc::ExecFile::execute_object, rpc::ExecFile::flag_throw | rpc::ExecFile::flag_expand_tilde));
   ADD_COMMAND_LIST("execute_nothrow",     rak::bind2_mem_fn(&rpc::execFile, &rpc::ExecFile::execute_object, rpc::ExecFile::flag_expand_tilde));
