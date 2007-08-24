@@ -58,13 +58,14 @@ public:
   typedef std::vector<std::string> command_list_type;
 
   // Do not destroy this object while it is in a HttpQueue.
-  DownloadFactory(const std::string& uri, Manager* m);
+  DownloadFactory(Manager* m);
   ~DownloadFactory();
 
   // Calling of receive_load() is delayed so you can change whatever
   // you want without fear of the slots being triggered as you call
   // load() or commit().
-  void                load();
+  void                load(const std::string& uri);
+  void                load_raw_data(const std::string& input);
   void                commit();
 
   command_list_type&         commands()     { return m_commands; }

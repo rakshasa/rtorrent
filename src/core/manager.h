@@ -99,9 +99,10 @@ public:
 
   void                handshake_log(const sockaddr* sa, int msg, int err, const torrent::HashString* hash);
 
-  static const int create_start = 0x1;
-  static const int create_tied  = 0x2;
-  static const int create_quiet = 0x4;
+  static const int create_start    = 0x1;
+  static const int create_tied     = 0x2;
+  static const int create_quiet    = 0x4;
+  static const int create_raw_data = 0x8;
 
   typedef std::vector<std::string> command_list_type;
 

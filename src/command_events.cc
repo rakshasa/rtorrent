@@ -349,7 +349,10 @@ initialize_command_events() {
   ADD_COMMAND_LIST("load",                    rak::bind_ptr_fn(&apply_load, core::Manager::create_quiet | core::Manager::create_tied));
   ADD_COMMAND_LIST("load_verbose",            rak::bind_ptr_fn(&apply_load, core::Manager::create_tied));
   ADD_COMMAND_LIST("load_start",              rak::bind_ptr_fn(&apply_load, core::Manager::create_quiet | core::Manager::create_tied | core::Manager::create_start));
-  ADD_COMMAND_LIST("load_start_verbose",      rak::bind_ptr_fn(&apply_load, core::Manager::create_tied | core::Manager::create_start));
+  ADD_COMMAND_LIST("load_start_verbose",      rak::bind_ptr_fn(&apply_load, core::Manager::create_tied  | core::Manager::create_start));
+  ADD_COMMAND_LIST("load_raw",                rak::bind_ptr_fn(&apply_load, core::Manager::create_quiet | core::Manager::create_raw_data));
+  ADD_COMMAND_LIST("load_raw_verbose",        rak::bind_ptr_fn(&apply_load, core::Manager::create_raw_data));
+  ADD_COMMAND_LIST("load_raw_start",          rak::bind_ptr_fn(&apply_load, core::Manager::create_quiet | core::Manager::create_start | core::Manager::create_raw_data));
 
   ADD_COMMAND_VALUE_UN("close_low_diskspace", std::ptr_fun(&apply_close_low_diskspace));
 

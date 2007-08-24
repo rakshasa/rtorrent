@@ -87,7 +87,23 @@ xmlrpc_to_object(xmlrpc_env* env, xmlrpc_value* value) {
     return result;
   }
 
-    //     case XMLRPC_TYPE_BASE64:
+  case XMLRPC_TYPE_BASE64:
+  {
+    size_t      valueSize;
+    const char* valueString;
+
+    xmlrpc_read_base64(env, value, &valueSize, (const unsigned char**)&valueString);
+
+    if (env->fault_occurred)
+      return torrent::Object();
+
+    torrent::Object result = torrent::Object(std::string(valueString, valueSize));
+
+    // Urgh, seriously?
+    ::free((void*)valueString);
+    return result;
+  }
+
   case XMLRPC_TYPE_ARRAY:
   {
     torrent::Object result(torrent::Object::TYPE_LIST);

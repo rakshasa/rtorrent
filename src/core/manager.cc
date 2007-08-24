@@ -397,7 +397,7 @@ Manager::receive_http_failed(std::string msg) {
 void
 Manager::try_create_download(const std::string& uri, int flags, const command_list_type& commands) {
   // Adding download.
-  DownloadFactory* f = new DownloadFactory(uri, this);
+  DownloadFactory* f = new DownloadFactory(this);
 
   f->variables()["tied_to_file"] = (int64_t)(bool)(flags & create_tied);
   f->commands().insert(f->commands().end(), commands.begin(), commands.end());
@@ -405,7 +405,12 @@ Manager::try_create_download(const std::string& uri, int flags, const command_li
   f->set_start(flags & create_start);
   f->set_print_log(!(flags & create_quiet));
   f->slot_finished(sigc::bind(sigc::ptr_fun(&rak::call_delete_func<core::DownloadFactory>), f));
-  f->load();
+
+  if (flags & create_raw_data)
+    f->load_raw_data(uri);
+  else
+    f->load(uri);
+
   f->commit();
 }
 
@@ -465,6 +470,11 @@ manager_equal_tied(const std::string& path, Download* download) {
 
 void
 Manager::try_create_download_expand(const std::string& uri, int flags, command_list_type commands) {
+  if (flags & create_raw_data) {
+    try_create_download(uri, flags, commands);
+    return;
+  }
+
   std::vector<std::string> paths;
   paths.reserve(256);
 

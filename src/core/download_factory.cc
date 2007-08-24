@@ -61,13 +61,12 @@
 
 namespace core {
 
-DownloadFactory::DownloadFactory(const std::string& uri, Manager* m) :
+DownloadFactory::DownloadFactory(Manager* m) :
   m_manager(m),
   m_stream(NULL),
   m_commited(false),
   m_loaded(false),
 
-  m_uri(uri),
   m_session(false),
   m_start(false),
   m_printLog(true) {
@@ -90,8 +89,19 @@ DownloadFactory::~DownloadFactory() {
 }
 
 void
-DownloadFactory::load() {
+DownloadFactory::load(const std::string& uri) {
+  m_uri = uri;
   priority_queue_insert(&taskScheduler, &m_taskLoad, cachedTime);
+}
+
+// This function must be called before DownloadFactory::commit().
+void
+DownloadFactory::load_raw_data(const std::string& input) {
+  if (m_stream)
+    throw torrent::internal_error("DownloadFactory::load*() called on an object with m_stream != NULL");
+
+  m_stream = new std::stringstream(input);
+  m_loaded = true;
 }
 
 void
@@ -102,7 +112,7 @@ DownloadFactory::commit() {
 void
 DownloadFactory::receive_load() {
   if (m_stream)
-    throw torrent::internal_error("DownloadFactory::load() called on an object with m_stream != NULL");
+    throw torrent::internal_error("DownloadFactory::load*() called on an object with m_stream != NULL");
 
   if (std::strncmp(m_uri.c_str(), "http://", 7) == 0 ||
       std::strncmp(m_uri.c_str(), "https://", 8) == 0 ||
