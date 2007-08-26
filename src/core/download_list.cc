@@ -329,13 +329,18 @@ DownloadList::stop_try(Download* download) {
 }
 
 void
-DownloadList::resume(Download* download) {
+DownloadList::resume(Download* download, int flags) {
   check_contains(download);
 
   try {
 
     if (download->download()->is_active())
       return;
+
+    // We need to make sure the flags aren't reset if someone decideds
+    // to call resume() while it is hashing, etc.
+    if (download->resume_flags() == ~uint32_t())
+      download->set_resume_flags(flags);
 
     // Manual or end-of-download rehashing clears the resume data so
     // we can just start the hashing again without clearing it again.
@@ -375,7 +380,9 @@ DownloadList::resume(Download* download) {
     // Update the priority to ensure it has the correct
     // seeding/unfinished modifiers.
     download->set_priority(download->priority());
-    download->download()->start();
+    download->download()->start2(download->resume_flags());
+
+    download->set_resume_flags(~uint32_t());
 
     std::for_each(slot_map_start().begin(), slot_map_start().end(), download_list_call(download));
 
@@ -385,10 +392,12 @@ DownloadList::resume(Download* download) {
 }
 
 void
-DownloadList::pause(Download* download) {
+DownloadList::pause(Download* download, int flags) {
   check_contains(download);
 
   try {
+
+    download->set_resume_flags(~uint32_t());
 
     // Always clear hashing on pause. When a hashing request is added,
     // it should have cleared the hash resume data.
@@ -402,7 +411,7 @@ DownloadList::pause(Download* download) {
     if (!download->download()->is_active())
       return;
 
-    download->download()->stop();
+    download->download()->stop2(flags);
     torrent::resume_save_progress(*download->download(), download->download()->bencode()->get_key("libtorrent_resume"));
     
     std::for_each(slot_map_stop().begin(), slot_map_stop().end(), download_list_call(download));
@@ -510,7 +519,15 @@ DownloadList::hash_queue(Download* download, int type) {
   if (rpc::call_command_d_value("d.get_hashing", download) != Download::variable_hashing_stopped)
     throw torrent::internal_error("DownloadList::hash_queue(...) hashing already queued.");
 
-  close_throw(download);
+//   close_throw(download);
+  // HACK
+  if (download->is_open()) {
+    pause(download, torrent::Download::stop_skip_tracker);
+    download->download()->close();
+    std::for_each(slot_map_hash_removed().begin(), slot_map_hash_removed().end(), download_list_call(download));
+    std::for_each(slot_map_close().begin(), slot_map_close().end(), download_list_call(download));
+  }
+
   torrent::resume_clear_progress(*download->download(), download->download()->bencode()->get_key("libtorrent_resume"));
 
   download->set_hash_failed(false);
@@ -567,11 +584,23 @@ DownloadList::confirm_finished(Download* download) {
 
   // Close before calling on_finished to ensure the user can do stuff
   // like change move the downloaded files and change the directory.
-  close_throw(download);
+//   close_throw(download);
+  // HACK:
+  if (download->is_open()) {
+    pause(download, torrent::Download::stop_skip_tracker);
+    download->download()->close();
+    std::for_each(slot_map_hash_removed().begin(), slot_map_hash_removed().end(), download_list_call(download));
+    std::for_each(slot_map_close().begin(), slot_map_close().end(), download_list_call(download));
+  }
+  // END
+
   std::for_each(slot_map_finished().begin(), slot_map_finished().end(), download_list_call(download));
 
+  if (download->resume_flags() != ~uint32_t())
+    throw torrent::internal_error("DownloadList::confirm_finished(...) download->resume_flags() != ~uint32_t().");
+
   if (!download->is_active() && rpc::call_command_d_value("d.get_state", download) == 1)
-    resume(download);
+    resume(download, torrent::Download::start_skip_tracker | torrent::Download::start_keep_baseline);
 }
 
 }

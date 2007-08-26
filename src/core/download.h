@@ -100,6 +100,9 @@ public:
   uint32_t            priority();
   void                set_priority(uint32_t p);
 
+  uint32_t            resume_flags()                           { return m_resumeFlags; }
+  void                set_resume_flags(uint32_t flags)         { m_resumeFlags = flags; }
+
   void                set_root_directory(const std::string& path);
 
   bool                operator == (const std::string& str) const;
@@ -123,6 +126,8 @@ private:
 
   std::string         m_message;
   uint32_t            m_chunksFailed;
+
+  uint32_t            m_resumeFlags;
 
   sigc::connection    m_connTrackerSucceded;
   sigc::connection    m_connTrackerFailed;

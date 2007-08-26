@@ -110,8 +110,10 @@ public:
   void                stop_normal(Download* d);
   bool                stop_try(Download* d);
 
-  void                resume(Download* d);
-  void                pause(Download* d);
+  void                resume(Download* d, int flags = 0);
+  void                pause(Download* d, int flags = 0);
+
+  void                pause_default(Download* d) { pause(d); }
 
   void                check_hash(Download* d);
 
