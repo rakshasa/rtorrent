@@ -465,7 +465,7 @@ path_expand(std::vector<std::string>* paths, const std::string& pattern) {
 
 bool
 manager_equal_tied(const std::string& path, Download* download) {
-  return path == rpc::call_command_d_string("d.get_tied_to_file", download);
+  return path == rpc::call_command_string("d.get_tied_to_file", rpc::make_target(download));
 }
 
 void
@@ -514,7 +514,7 @@ Manager::receive_hashing_changed() {
       continue;
 
     bool tryQuick =
-      rpc::call_command_d_value("d.get_hashing", *itr) == Download::variable_hashing_initial &&
+      rpc::call_command_value("d.get_hashing", rpc::make_target(*itr)) == Download::variable_hashing_initial &&
       (*itr)->download()->file_list()->bitfield()->empty();
 
     if (!tryQuick && foundHashing)
@@ -537,7 +537,7 @@ Manager::receive_hashing_changed() {
         (*itr)->download()->hash_stop();
 
         if (foundHashing) {
-          rpc::call_command_d_set_value("d.set_hashing", *itr, Download::variable_hashing_rehash);
+          rpc::call_command_set_value("d.set_hashing", Download::variable_hashing_rehash, rpc::make_target(*itr));
           continue;
         }
       }
@@ -548,7 +548,7 @@ Manager::receive_hashing_changed() {
     } catch (torrent::local_error& e) {
       if (tryQuick) {
         // Make sure we don't repeat the quick hashing.
-        rpc::call_command_d_set_value("d.set_hashing", *itr, Download::variable_hashing_rehash);
+        rpc::call_command_set_value("d.set_hashing", Download::variable_hashing_rehash, rpc::make_target(*itr));
 
       } else {
         (*itr)->set_hash_failed(true);

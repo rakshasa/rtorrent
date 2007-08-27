@@ -73,8 +73,8 @@ public:
 
   virtual bool operator () (Download* d1, Download* d2) const {
     return
-      rpc::call_command_d_string(m_name, d1) == m_value &&
-      rpc::call_command_d_string(m_name, d2) != m_value;
+      rpc::call_command_string(m_name, rpc::make_target(d1)) == m_value &&
+      rpc::call_command_string(m_name, rpc::make_target(d2)) != m_value;
   }
 
 private:
@@ -88,9 +88,9 @@ public:
 
   virtual bool operator () (Download* d1, Download* d2) const {
     if (m_reverse)
-      return rpc::call_command_d_value(m_name, d2) < rpc::call_command_d_value(m_name, d1);
+      return rpc::call_command_value(m_name, rpc::make_target(d2)) < rpc::call_command_value(m_name, rpc::make_target(d1));
     else
-      return rpc::call_command_d_value(m_name, d1) < rpc::call_command_d_value(m_name, d2);
+      return rpc::call_command_value(m_name, rpc::make_target(d1)) < rpc::call_command_value(m_name, rpc::make_target(d2));
   }
 
 private:
@@ -117,7 +117,7 @@ public:
     m_name(name), m_value(v), m_inverse(inverse) {}
 
   virtual bool operator () (Download* d1) const {
-    return (rpc::call_command_d_value(m_name, d1) == m_value) != m_inverse;
+    return (rpc::call_command_value(m_name, rpc::make_target(d1)) == m_value) != m_inverse;
   }
 
 private:

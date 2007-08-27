@@ -97,8 +97,8 @@ void
 SCgiTask::event_read() {
   int bytes = ::recv(m_fileDesc, m_position, m_bufferSize - (m_position - m_buffer), 0);
 
-  if (bytes == -1) {
-    if (!rak::error_number::current().is_blocked_momentary())
+  if (bytes <= 0) {
+    if (bytes == 0 || !rak::error_number::current().is_blocked_momentary())
       close();
 
     return;
@@ -116,10 +116,12 @@ SCgiTask::event_read() {
     int contentSize;
     int headerSize = strtol(m_buffer, &current, 0);
 
-    if (current == m_buffer || current == m_position)
+    if (current == m_position)
       return;
 
-    if (*current != ':' || headerSize < 17 || headerSize > max_header_size)
+    // If the request doesn't start with an integer or if it didn't
+    // end in ':', then close the connection.
+    if (current == m_buffer || *current != ':' || headerSize < 17 || headerSize > max_header_size)
       goto event_read_failed;
 
     if (std::distance(++current, m_position) < headerSize + 1)
@@ -171,7 +173,8 @@ SCgiTask::event_read() {
   return;
 
  event_read_failed:
-  throw torrent::internal_error("SCgiTask::event_read() fault not handled.");
+//   throw torrent::internal_error("SCgiTask::event_read() fault not handled.");
+  close();
 }
 
 void

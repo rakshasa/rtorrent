@@ -92,9 +92,13 @@ te_string(Return (torrent::FileList::*fptr)() const, int flags = TextElementStri
   return text_element_string_slot(rak::on(std::mem_fun(&core::Download::file_list), std::mem_fun(fptr)), flags, attributes);
 }
 
+// TMP HACK
+inline std::string  te_call_command_d_string(const char* key, core::Download* download) { return rpc::commands.call_command(key, torrent::Object(), rpc::make_target(download)).as_string(); }
+inline int64_t      te_call_command_d_value(const char* key, core::Download* download) { return rpc::commands.call_command(key, torrent::Object(), rpc::make_target(download)).as_value(); }
+
 inline TextElementStringBase*
 te_variable_string(const char* variable, int flags = TextElementStringBase::flag_normal, int attributes = Attributes::a_invalid) {
-  return text_element_string_slot(rak::bind1st(std::ptr_fun(&rpc::call_command_d_string), variable), flags, attributes);
+  return text_element_string_slot(rak::bind1st(std::ptr_fun(&te_call_command_d_string), variable), flags, attributes);
 }
 
 // Value stuff:
@@ -119,7 +123,7 @@ te_value(Return (torrent::File::*fptr)() const, int flags = TextElementValueBase
 
 inline TextElementValueBase*
 te_variable_value(const char* variable, int flags = TextElementValueBase::flag_normal, int attributes = Attributes::a_invalid) {
-  return text_element_value_slot(rak::bind1st(std::ptr_fun(&rpc::call_command_d_value), variable), flags, attributes);
+  return text_element_value_slot(rak::bind1st(std::ptr_fun(&te_call_command_d_value), variable), flags, attributes);
 }
 
 template <typename Return>

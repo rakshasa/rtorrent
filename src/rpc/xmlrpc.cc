@@ -373,64 +373,22 @@ object_to_xmlrpc(xmlrpc_env* env, const torrent::Object& object) {
 
 xmlrpc_value*
 xmlrpc_call_command(xmlrpc_env* env, xmlrpc_value* args, void* voidServerInfo) {
-  torrent::Object object = xmlrpc_to_object(env, args);
+  CommandMap::const_iterator itr = commands.find((const char*)voidServerInfo);
 
-  if (env->fault_occurred)
-    return NULL;
-
-  try {
-    return object_to_xmlrpc(env, rpc::call_command((const char*)voidServerInfo, object));
-
-  } catch (torrent::local_error& e) {
-    xmlrpc_env_set_fault(env, XMLRPC_PARSE_ERROR, e.what());
+  if (itr == commands.end()) {
+    xmlrpc_env_set_fault(env, XMLRPC_PARSE_ERROR, ("Command \"" + std::string((const char*)voidServerInfo) + "\" does not exist.").c_str());
     return NULL;
   }
-}
 
-xmlrpc_value*
-xmlrpc_call_command_d(xmlrpc_env* env, xmlrpc_value* args, void* voidServerInfo) {
-  core::Download* download = NULL;
-  torrent::Object object = xmlrpc_to_object_target(env, args, XmlRpc::call_download, (void**)&download);
+  int   type = itr->second.target();
+  void* target = NULL;
+  torrent::Object object = (type == 0) ? xmlrpc_to_object(env, args) : xmlrpc_to_object_target(env, args, type, &target);
 
   if (env->fault_occurred)
     return NULL;
 
   try {
-    return object_to_xmlrpc(env, rpc::call_command_d((const char*)voidServerInfo, download, object));
-
-  } catch (torrent::local_error& e) {
-    xmlrpc_env_set_fault(env, XMLRPC_PARSE_ERROR, e.what());
-    return NULL;
-  }
-}
-
-xmlrpc_value*
-xmlrpc_call_command_f(xmlrpc_env* env, xmlrpc_value* args, void* voidServerInfo) {
-  torrent::File*  file = NULL;
-  torrent::Object object = xmlrpc_to_object_target(env, args, XmlRpc::call_file, (void**)&file);
-
-  if (env->fault_occurred)
-    return NULL;
-
-  try {
-    return object_to_xmlrpc(env, rpc::commands.call_command_f((const char*)voidServerInfo, file, object));
-
-  } catch (torrent::local_error& e) {
-    xmlrpc_env_set_fault(env, XMLRPC_PARSE_ERROR, e.what());
-    return NULL;
-  }
-}
-
-xmlrpc_value*
-xmlrpc_call_command_t(xmlrpc_env* env, xmlrpc_value* args, void* voidServerInfo) {
-  torrent::Tracker* tracker = NULL;
-  torrent::Object   object = xmlrpc_to_object_target(env, args, XmlRpc::call_tracker, (void**)&tracker);
-
-  if (env->fault_occurred)
-    return NULL;
-
-  try {
-    return object_to_xmlrpc(env, rpc::commands.call_command_t((const char*)voidServerInfo, tracker, object));
+    return object_to_xmlrpc(env, rpc::commands.call_command(itr, object, rpc::make_target(type, target)));
 
   } catch (torrent::local_error& e) {
     xmlrpc_env_set_fault(env, XMLRPC_PARSE_ERROR, e.what());
@@ -476,21 +434,12 @@ XmlRpc::process(const char* inBuffer, uint32_t length, slot_write slotWrite) {
 }
 
 void
-XmlRpc::insert_command(const char* name, const char* parm, const char* doc, int call) {
+XmlRpc::insert_command(const char* name, const char* parm, const char* doc) {
   xmlrpc_env localEnv;
   xmlrpc_env_init(&localEnv);
 
-  xmlrpc_value* (*callSlot)(xmlrpc_env*, xmlrpc_value*, void*);
-
-  switch (call) {
-  case call_download: callSlot = &xmlrpc_call_command_d; break;
-  case call_file:     callSlot = &xmlrpc_call_command_f; break;
-  case call_tracker:  callSlot = &xmlrpc_call_command_t; break;
-  default:            callSlot = &xmlrpc_call_command; break;
-  }
-
   xmlrpc_registry_add_method_w_doc(&localEnv, (xmlrpc_registry*)m_registry, NULL, name,
-                                   callSlot, const_cast<char*>(name), parm, doc);
+                                   &xmlrpc_call_command, const_cast<char*>(name), parm, doc);
 
   if (localEnv.fault_occurred)
     throw torrent::internal_error("Fault occured while inserting xmlrpc call.");
@@ -539,7 +488,7 @@ XmlRpc::set_dialect(int dialect) {
 void XmlRpc::initialize() { throw torrent::resource_error("XMLRPC not supported."); }
 void XmlRpc::cleanup() {}
 
-void XmlRpc::insert_command(__UNUSED const char* name, __UNUSED const char* parm, __UNUSED const char* doc, __UNUSED int call) {}
+void XmlRpc::insert_command(__UNUSED const char* name, __UNUSED const char* parm, __UNUSED const char* doc) {}
 void XmlRpc::set_dialect(__UNUSED int dialect) {}
 
 bool XmlRpc::process(__UNUSED const char* inBuffer, __UNUSED uint32_t length, __UNUSED slot_write slotWrite) { return false; }

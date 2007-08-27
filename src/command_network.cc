@@ -165,19 +165,11 @@ initialize_xmlrpc() {
 
   unsigned int count = 0;
 
-  for (rpc::CommandMap::const_iterator itr = rpc::commands.begin(), last = rpc::commands.end(); itr != last; itr++) {
+  for (rpc::CommandMap::const_iterator itr = rpc::commands.begin(), last = rpc::commands.end(); itr != last; itr++, count++) {
     if (!(itr->second.m_flags & rpc::CommandMap::flag_public_xmlrpc))
       continue;
 
-    switch (itr->second.m_target) {
-    case rpc::CommandMap::target_generic:  rpc::xmlrpc.insert_command(itr->first, itr->second.m_parm, itr->second.m_doc, rpc::XmlRpc::call_generic); break;
-    case rpc::CommandMap::target_download: rpc::xmlrpc.insert_command(itr->first, itr->second.m_parm, itr->second.m_doc, rpc::XmlRpc::call_download); break;
-    case rpc::CommandMap::target_file:     rpc::xmlrpc.insert_command(itr->first, itr->second.m_parm, itr->second.m_doc, rpc::XmlRpc::call_file); break;
-    case rpc::CommandMap::target_tracker:  rpc::xmlrpc.insert_command(itr->first, itr->second.m_parm, itr->second.m_doc, rpc::XmlRpc::call_tracker); break;
-    default: throw torrent::internal_error("XMLRPC: Bad entry.");
-    }
-
-    count++;
+    rpc::xmlrpc.insert_command(itr->first, itr->second.m_parm, itr->second.m_doc);
   }
 
   char buffer[128];

@@ -62,6 +62,7 @@ public:
   static const int dialect_i8      = 1;
   static const int dialect_apache  = 2;
 
+  // These need to match CommandMap type values.
   static const int call_generic    = 0;
   static const int call_download   = 1;
   static const int call_file       = 2;
@@ -76,7 +77,7 @@ public:
 
   bool                process(const char* inBuffer, uint32_t length, slot_write slotWrite);
 
-  void                insert_command(const char* name, const char* parm, const char* doc, int call);
+  void                insert_command(const char* name, const char* parm, const char* doc);
 
   int                 dialect() { return m_dialect; }
   void                set_dialect(int dialect);
