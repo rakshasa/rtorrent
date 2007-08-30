@@ -162,6 +162,7 @@ Download::create_info() {
   element->push_back("");
   element->push_column("Chunks:",           te_variable_value("d.get_completed_chunks"), " / ", te_variable_value("d.get_size_chunks"), " * ", te_variable_value("d.get_chunk_size"));
   element->push_column("Priority:",         te_variable_value("d.get_priority"));
+  element->push_column("Peer exchange:",    display::text_element_branch(std::mem_fun(&torrent::Download::pex_enabled), te_string("enabled"), te_string("disabled")));
 
   element->push_column("State changed:",    te_variable_value("d.get_state_changed", value_base::flag_timer | value_base::flag_elapsed));
 

@@ -484,6 +484,13 @@ between plaintext transmission and RC4 encryption, otherwise RC4 will be used).
       </varlistentry>
 
       <varlistentry>
+        <term>peer_exchange = <replaceable>yes | no</replaceable></term>
+        <listitem><para>
+Enable/disable peer exchange for torrents that aren't marked private. Disabled by default.
+        </para></listitem>
+      </varlistentry>
+
+      <varlistentry>
         <term>schedule = <replaceable>id</replaceable>,<replaceable>start</replaceable>,<replaceable>interval</replaceable>,<replaceable>command</replaceable></term>
         <listitem><para>
 Call <emphasis>command</emphasis> every <emphasis>interval</emphasis>

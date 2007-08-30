@@ -447,6 +447,9 @@ initialize_command_download() {
   ADD_CD_VALUE_UNI("peers_complete",      rak::on(std::mem_fun(&core::Download::download), std::mem_fun(&torrent::Download::peers_complete)));
   ADD_CD_VALUE_UNI("peers_accounted",     rak::on(std::mem_fun(&core::Download::download), std::mem_fun(&torrent::Download::peers_accounted)));
 
+  ADD_CD_VALUE_MEM_BI("peer_exchange", &core::Download::download, &torrent::Download::set_pex_enabled, &torrent::Download::pex_enabled);
+  ADD_CD_VALUE_UNI("private",          rak::on(std::mem_fun(&core::Download::download), std::mem_fun(&torrent::Download::is_private)));
+
   ADD_CD_VALUE_MEM_UNI("up_rate",      &torrent::Download::mutable_up_rate, &torrent::Rate::rate);
   ADD_CD_VALUE_MEM_UNI("up_total",     &torrent::Download::mutable_up_rate, &torrent::Rate::total);
   ADD_CD_VALUE_MEM_UNI("down_rate",    &torrent::Download::mutable_down_rate, &torrent::Rate::rate);

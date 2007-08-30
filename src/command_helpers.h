@@ -53,7 +53,7 @@ namespace rpc {
 // heap. This should reduce memory use and improve cache locality.
 #define COMMAND_SLOTS_SIZE          150
 #define COMMAND_VARIABLES_SIZE      100
-#define COMMAND_DOWNLOAD_SLOTS_SIZE 100
+#define COMMAND_DOWNLOAD_SLOTS_SIZE 150
 #define COMMAND_FILE_SLOTS_SIZE     20
 #define COMMAND_FILE_ITR_SLOTS_SIZE 10
 #define COMMAND_PEER_SLOTS_SIZE     20

@@ -230,6 +230,8 @@ DownloadFactory::receive_success() {
   if (!m_session && m_variables["tied_to_file"].as_value())
     rpc::call_command("d.set_tied_to_file", m_uri, rpc::make_target(download));
 
+  rpc::call_command("d.set_peer_exchange", rpc::call_command_value("get_peer_exchange"), rpc::make_target(download));
+
   torrent::Object& resumeObject = root->has_key_map("libtorrent_resume")
     ? root->get_key("libtorrent_resume")
     : root->insert_key("libtorrent_resume", torrent::Object(torrent::Object::TYPE_MAP));

@@ -74,6 +74,10 @@
 #
 # encryption = allow_incoming,enable_retry,prefer_plaintext
 
+# Enable peer exchange (for torrents not marked private)
+#
+# peer_exchange = yes
+
 #
 # Do not modify the following parameters unless you know what you're doing.
 #
