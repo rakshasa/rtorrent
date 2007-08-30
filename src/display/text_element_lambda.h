@@ -50,11 +50,11 @@ public:
     m_slot(slot), m_branch1(branch1), m_branch2(branch2) {}
   ~TextElementBranchVoid() { delete m_branch1; delete m_branch2; }
 
-  virtual char* print(char* first, char* last, Canvas::attributes_list* attributes, void* object) {
+  virtual char* print(char* first, char* last, Canvas::attributes_list* attributes, rpc::target_type target) {
     if (m_slot())
-      return m_branch1 != NULL ? m_branch1->print(first, last, attributes, object) : first;
+      return m_branch1 != NULL ? m_branch1->print(first, last, attributes, target) : first;
     else
-      return m_branch2 != NULL ? m_branch2->print(first, last, attributes, object) : first;
+      return m_branch2 != NULL ? m_branch2->print(first, last, attributes, target) : first;
   }
 
   virtual extent_type max_length() {
@@ -79,14 +79,14 @@ public:
     m_slot(slot), m_branch1(branch1), m_branch2(branch2) {}
   ~TextElementBranch() { delete m_branch1; delete m_branch2; }
 
-  virtual char* print(char* first, char* last, Canvas::attributes_list* attributes, void* object) {
-    if (object == NULL)
+  virtual char* print(char* first, char* last, Canvas::attributes_list* attributes, rpc::target_type target) {
+    if (target.second == NULL)
       return first;
 
-    if (m_slot(reinterpret_cast<arg1_type>(object)))
-      return m_branch1 != NULL ? m_branch1->print(first, last, attributes, object) : first;
+    if (m_slot(reinterpret_cast<arg1_type>(target.second)))
+      return m_branch1 != NULL ? m_branch1->print(first, last, attributes, target) : first;
     else
-      return m_branch2 != NULL ? m_branch2->print(first, last, attributes, object) : first;
+      return m_branch2 != NULL ? m_branch2->print(first, last, attributes, target) : first;
   }
 
   virtual extent_type max_length() {
@@ -111,16 +111,16 @@ public:
     m_slot1(slot1), m_slot2(slot2), m_branch1(branch1), m_branch2(branch2), m_branch3(branch3) {}
   ~TextElementBranch3() { delete m_branch1; delete m_branch2; delete m_branch3; }
 
-  virtual char* print(char* first, char* last, Canvas::attributes_list* attributes, void* object) {
-    if (object == NULL)
+  virtual char* print(char* first, char* last, Canvas::attributes_list* attributes, rpc::target_type target) {
+    if (target.second == NULL)
       return first;
 
-    if (m_slot1(reinterpret_cast<arg1_type>(object)))
-      return m_branch1 != NULL ? m_branch1->print(first, last, attributes, object) : first;
-    else if (m_slot2(reinterpret_cast<arg1_type>(object)))
-      return m_branch2 != NULL ? m_branch2->print(first, last, attributes, object) : first;
+    if (m_slot1(reinterpret_cast<arg1_type>(target.second)))
+      return m_branch1 != NULL ? m_branch1->print(first, last, attributes, target) : first;
+    else if (m_slot2(reinterpret_cast<arg1_type>(target.second)))
+      return m_branch2 != NULL ? m_branch2->print(first, last, attributes, target) : first;
     else
-      return m_branch3 != NULL ? m_branch3->print(first, last, attributes, object) : first;
+      return m_branch3 != NULL ? m_branch3->print(first, last, attributes, target) : first;
   }
 
   virtual extent_type max_length() {

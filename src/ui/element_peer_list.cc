@@ -101,7 +101,7 @@ inline ElementText*
 ElementPeerList::create_info() {
   using namespace display::helpers;
 
-  ElementText* element = new ElementText(NULL);
+  ElementText* element = new ElementText(rpc::make_target());
 
   element->set_column(1);
   element->set_interval(1);
@@ -263,7 +263,7 @@ ElementPeerList::receive_snub_peer() {
 void
 ElementPeerList::update_itr() {
   m_windowList->mark_dirty();
-  m_elementInfo->set_object(m_listItr != m_list.end() ? &*m_listItr : NULL);
+  m_elementInfo->set_target(m_listItr != m_list.end() ? rpc::make_target(&*m_listItr) : rpc::make_target());
 }
 
 }

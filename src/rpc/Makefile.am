@@ -6,6 +6,8 @@ libsub_rpc_a_SOURCES = \
 	command_download_slot.h \
 	command_file_slot.cc \
 	command_file_slot.h \
+	command_file_itr_slot.cc \
+	command_file_itr_slot.h \
 	command_peer_slot.cc \
 	command_peer_slot.h \
 	command_tracker_slot.cc \

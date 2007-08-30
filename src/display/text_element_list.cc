@@ -51,7 +51,7 @@ TextElementList::clear() {
 }
 
 char*
-TextElementList::print(char* first, char* last, Canvas::attributes_list* attributes, void* object) {
+TextElementList::print(char* first, char* last, Canvas::attributes_list* attributes, rpc::target_type target) {
   int column = m_columnWidth != NULL ? m_column : 0;
 
   // Call print for each element even if first == last so that any
@@ -63,7 +63,7 @@ TextElementList::print(char* first, char* last, Canvas::attributes_list* attribu
       if (columnEnd < first || columnEnd > last)
         throw torrent::internal_error("TextElementList::print(...) columnEnd < first || columnEnd > last.");
 
-      first = (*itr)->print(first, columnEnd, attributes, object);
+      first = (*itr)->print(first, columnEnd, attributes, target);
 
       if (first > columnEnd)
         throw torrent::internal_error("TextElementList::print(...) first > columnEnd.");
@@ -72,7 +72,7 @@ TextElementList::print(char* first, char* last, Canvas::attributes_list* attribu
       first = columnEnd;
 
     } else {
-      first = (*itr)->print(first, last, attributes, object);
+      first = (*itr)->print(first, last, attributes, target);
     }
 
   return first;

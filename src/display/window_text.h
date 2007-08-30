@@ -62,13 +62,13 @@ public:
   using base_type::rbegin;
   using base_type::rend;
 
-  WindowText(void* object = NULL, extent_type margin = 0);
+  WindowText(rpc::target_type target = rpc::make_target(), extent_type margin = 0);
   ~WindowText() { clear(); }
 
   void                clear();
 
-  void*               object() const           { return m_object; }
-  void                set_object(void* object) { m_object = object; }
+  rpc::target_type    target() const                      { return m_target; }
+  void                set_target(rpc::target_type target) { m_target = target; }
 
   uint32_t            interval() const         { return m_interval; }
   void                set_interval(uint32_t i) { m_interval = i; }
@@ -78,7 +78,7 @@ public:
   virtual void        redraw();
 
 private:
-  void*               m_object;
+  rpc::target_type    m_target;
 
   extent_type         m_margin;
   uint32_t            m_interval;

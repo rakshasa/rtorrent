@@ -48,8 +48,8 @@
 
 namespace ui {
 
-ElementText::ElementText(void *object) :
-  m_window(new WindowText(object)),
+ElementText::ElementText(rpc::target_type target) :
+  m_window(new WindowText(target)),
   m_column(0),
   m_columnWidth(0) {
 

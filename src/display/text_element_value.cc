@@ -59,11 +59,11 @@ TextElement::push_attribute(Canvas::attributes_list* attributes, Attributes valu
 }
 
 char*
-TextElementValueBase::print(char* first, char* last, Canvas::attributes_list* attributes, void* object) {
+TextElementValueBase::print(char* first, char* last, Canvas::attributes_list* attributes, rpc::target_type target) {
   Attributes baseAttribute = attributes->back();
   push_attribute(attributes, Attributes(first, m_attributes, Attributes::color_invalid));
 
-  int64_t val = value(object);
+  int64_t val = value(target.second);
 
   // Transform the value if needed.
   if (m_flags & flag_elapsed)

@@ -44,6 +44,7 @@ namespace rpc {
   class CommandVariable;
   class CommandDownloadSlot;
   class CommandFileSlot;
+  class CommandFileItrSlot;
   class CommandPeerSlot;
   class CommandTrackerSlot;
 }
@@ -54,6 +55,7 @@ namespace rpc {
 #define COMMAND_VARIABLES_SIZE      100
 #define COMMAND_DOWNLOAD_SLOTS_SIZE 100
 #define COMMAND_FILE_SLOTS_SIZE     20
+#define COMMAND_FILE_ITR_SLOTS_SIZE 10
 #define COMMAND_PEER_SLOTS_SIZE     20
 #define COMMAND_TRACKER_SLOTS_SIZE  15
 
@@ -67,6 +69,8 @@ extern rpc::CommandDownloadSlot  commandDownloadSlots[COMMAND_DOWNLOAD_SLOTS_SIZ
 extern rpc::CommandDownloadSlot* commandDownloadSlotsItr;
 extern rpc::CommandFileSlot      commandFileSlots[COMMAND_FILE_SLOTS_SIZE];
 extern rpc::CommandFileSlot*     commandFileSlotsItr;
+extern rpc::CommandFileItrSlot   commandFileItrSlots[COMMAND_FILE_ITR_SLOTS_SIZE];
+extern rpc::CommandFileItrSlot*  commandFileItrSlotsItr;
 extern rpc::CommandPeerSlot      commandPeerSlots[COMMAND_PEER_SLOTS_SIZE];
 extern rpc::CommandPeerSlot*     commandPeerSlotsItr;
 extern rpc::CommandTrackerSlot   commandTrackerSlots[COMMAND_TRACKER_SLOTS_SIZE];

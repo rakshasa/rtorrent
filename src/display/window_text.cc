@@ -45,9 +45,9 @@
 
 namespace display {
 
-WindowText::WindowText(void* object, extent_type margin) :
+WindowText::WindowText(rpc::target_type target, extent_type margin) :
   Window(new Canvas, 0, 0, 0, extent_static, extent_static),
-  m_object(object),
+  m_target(target),
   m_margin(margin),
   m_interval(0) {
 }
@@ -95,7 +95,7 @@ WindowText::redraw() {
     Canvas::attributes_list attributes;
     attributes.push_back(Attributes(buffer, Attributes::a_normal, Attributes::color_default));
 
-    char* last = (*itr)->print(buffer, buffer + m_canvas->width(), &attributes, m_object);
+    char* last = (*itr)->print(buffer, buffer + m_canvas->width(), &attributes, m_target);
 
     m_canvas->print_attributes(0, position, buffer, last, &attributes);
   }

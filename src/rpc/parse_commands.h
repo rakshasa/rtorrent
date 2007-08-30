@@ -50,19 +50,10 @@ namespace core {
 
 namespace rpc {
 
-typedef CommandMap::target_type target_type;
-
 // Move to another file?
 extern CommandMap commands;
 extern XmlRpc     xmlrpc;
 extern ExecFile   execFile;
-
-inline target_type make_target()                         { return target_type((int)CommandMap::target_generic, NULL); }
-inline target_type make_target(core::Download* target)   { return target_type((int)CommandMap::target_download, target); }
-inline target_type make_target(torrent::File* target)    { return target_type((int)CommandMap::target_file, target); }
-inline target_type make_target(torrent::Peer* target)    { return target_type((int)CommandMap::target_peer, target); }
-inline target_type make_target(torrent::Tracker* target) { return target_type((int)CommandMap::target_tracker, target); }
-inline target_type make_target(int type, void* target)   { return target_type(type, target); }
 
 typedef std::pair<torrent::Object, const char*> parse_command_type;
 

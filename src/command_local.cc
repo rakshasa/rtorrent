@@ -136,14 +136,19 @@ initialize_command_local() {
   ADD_VARIABLE_VALUE("split_file_size", -1);
   ADD_VARIABLE_STRING("split_suffix", ".part");
 
+  ADD_COMMAND_VOID("get_memory_usage",           rak::make_mem_fun(chunkManager, &CM_t::memory_usage));
   ADD_COMMAND_VALUE_TRI("max_memory_usage",      rak::make_mem_fun(chunkManager, &CM_t::set_max_memory_usage), rak::make_mem_fun(chunkManager, &CM_t::max_memory_usage));
   ADD_COMMAND_VALUE_TRI("safe_sync",             rak::make_mem_fun(chunkManager, &CM_t::set_safe_sync), rak::make_mem_fun(chunkManager, &CM_t::safe_sync));
+  ADD_COMMAND_VOID("get_safe_free_diskspace",    rak::make_mem_fun(chunkManager, &CM_t::safe_free_diskspace));
   ADD_COMMAND_VALUE_TRI("timeout_sync",          rak::make_mem_fun(chunkManager, &CM_t::set_timeout_sync), rak::make_mem_fun(chunkManager, &CM_t::timeout_sync));
   ADD_COMMAND_VALUE_TRI("timeout_safe_sync",     rak::make_mem_fun(chunkManager, &CM_t::set_timeout_safe_sync), rak::make_mem_fun(chunkManager, &CM_t::timeout_safe_sync));
 
   ADD_COMMAND_VALUE_TRI("preload_type",          rak::make_mem_fun(chunkManager, &CM_t::set_preload_type), rak::make_mem_fun(chunkManager, &CM_t::preload_type));
   ADD_COMMAND_VALUE_TRI("preload_min_size",      rak::make_mem_fun(chunkManager, &CM_t::set_preload_min_size), rak::make_mem_fun(chunkManager, &CM_t::preload_min_size));
   ADD_COMMAND_VALUE_TRI_KB("preload_required_rate", rak::make_mem_fun(chunkManager, &CM_t::set_preload_required_rate), rak::make_mem_fun(chunkManager, &CM_t::preload_required_rate));
+
+  ADD_COMMAND_VOID("get_stats_preloaded",        rak::make_mem_fun(chunkManager, &CM_t::stats_preloaded));
+  ADD_COMMAND_VOID("get_stats_not_preloaded",    rak::make_mem_fun(chunkManager, &CM_t::stats_not_preloaded));
 
   ADD_VARIABLE_STRING("directory", "./");
 

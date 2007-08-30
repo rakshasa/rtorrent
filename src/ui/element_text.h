@@ -60,11 +60,11 @@ public:
   typedef uint32_t                    size_type;
   typedef uint32_t                    extent_type;
 
-  ElementText(void *object);
+  ElementText(rpc::target_type target);
   ~ElementText();
 
-  void*               object() const           { return m_window->object(); }
-  void                set_object(void* object) { m_window->set_object(object); m_window->mark_dirty(); }
+  rpc::target_type    target() const                      { return m_window->target(); }
+  void                set_target(rpc::target_type target) { m_window->set_target(target); m_window->mark_dirty(); }
 
   uint32_t            interval() const         { return m_window->interval(); }
   void                set_interval(uint32_t i) { m_window->set_interval(i); m_window->mark_dirty(); }

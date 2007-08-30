@@ -93,7 +93,7 @@ inline ElementText*
 element_file_list_create_info() {
   using namespace display::helpers;
 
-  ElementText* element = new ElementText(NULL);
+  ElementText* element = new ElementText(rpc::make_target());
 
   element->set_column(1);
   element->set_interval(1);
@@ -127,7 +127,7 @@ ElementFileList::activate(display::Frame* frame, bool focus) {
 
   m_elementInfo = element_file_list_create_info();
   m_elementInfo->slot_exit(sigc::bind(sigc::mem_fun(this, &ElementFileList::activate_display), DISPLAY_LIST));
-  m_elementInfo->set_object(&m_selected);
+  m_elementInfo->set_target(rpc::make_target(&m_selected));
 
   m_frame = frame;
 

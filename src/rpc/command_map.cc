@@ -77,14 +77,6 @@ CommandMap::insert_download(key_type key, Command* variable, download_slot targe
 }
 
 void
-CommandMap::insert_file(key_type key, Command* variable, file_slot targetSlot, int flags, const char* parm, const char* doc) {
-  iterator itr = insert(key, variable, flags, parm, doc);
-
-  itr->second.m_target   = target_file;
-  itr->second.m_fileSlot = targetSlot;
-}
-
-void
 CommandMap::insert_peer(key_type key, Command* variable, peer_slot targetSlot, int flags, const char* parm, const char* doc) {
   iterator itr = insert(key, variable, flags, parm, doc);
 
@@ -98,6 +90,22 @@ CommandMap::insert_tracker(key_type key, Command* variable, tracker_slot targetS
 
   itr->second.m_target      = target_tracker;
   itr->second.m_trackerSlot = targetSlot;
+}
+
+void
+CommandMap::insert_file(key_type key, Command* variable, file_slot targetSlot, int flags, const char* parm, const char* doc) {
+  iterator itr = insert(key, variable, flags, parm, doc);
+
+  itr->second.m_target   = target_file;
+  itr->second.m_fileSlot = targetSlot;
+}
+
+void
+CommandMap::insert_file_itr(key_type key, Command* variable, file_itr_slot targetSlot, int flags, const char* parm, const char* doc) {
+  iterator itr = insert(key, variable, flags, parm, doc);
+
+  itr->second.m_target      = target_file_itr;
+  itr->second.m_fileItrSlot = targetSlot;
 }
 
 void
@@ -135,11 +143,12 @@ CommandMap::call_command(key_type key, const mapped_type& arg, target_type targe
 
   // This _should_ be optimized int just two calls.
   switch (itr->second.m_target) {
-  case target_generic:  return itr->second.m_genericSlot(itr->second.m_variable, arg);
+  case target_generic:  return itr->second.m_genericSlot (itr->second.m_variable, arg);
   case target_download: return itr->second.m_downloadSlot(itr->second.m_variable, (core::Download*)target.second, arg);
-  case target_file:     return itr->second.m_fileSlot(itr->second.m_variable, (torrent::File*)target.second, arg);
-  case target_peer:     return itr->second.m_peerSlot(itr->second.m_variable, (torrent::Peer*)target.second, arg);
-  case target_tracker:  return itr->second.m_trackerSlot(itr->second.m_variable, (torrent::Tracker*)target.second, arg);
+  case target_peer:     return itr->second.m_peerSlot    (itr->second.m_variable, (torrent::Peer*)target.second, arg);
+  case target_tracker:  return itr->second.m_trackerSlot (itr->second.m_variable, (torrent::Tracker*)target.second, arg);
+  case target_file:     return itr->second.m_fileSlot    (itr->second.m_variable, (torrent::File*)target.second, arg);
+  case target_file_itr: return itr->second.m_fileItrSlot (itr->second.m_variable, (torrent::FileListIterator*)target.second, arg);
   default: throw torrent::internal_error("CommandMap::call_command(...) Invalid target.");
   }
 }
@@ -152,11 +161,12 @@ CommandMap::call_command(const_iterator itr, const mapped_type& arg, target_type
 
   // This _should_ be optimized int just two calls.
   switch (itr->second.m_target) {
-  case target_generic:  return itr->second.m_genericSlot(itr->second.m_variable, arg);
+  case target_generic:  return itr->second.m_genericSlot (itr->second.m_variable, arg);
   case target_download: return itr->second.m_downloadSlot(itr->second.m_variable, (core::Download*)target.second, arg);
-  case target_file:     return itr->second.m_fileSlot(itr->second.m_variable, (torrent::File*)target.second, arg);
-  case target_peer:     return itr->second.m_peerSlot(itr->second.m_variable, (torrent::Peer*)target.second, arg);
-  case target_tracker:  return itr->second.m_trackerSlot(itr->second.m_variable, (torrent::Tracker*)target.second, arg);
+  case target_peer:     return itr->second.m_peerSlot    (itr->second.m_variable, (torrent::Peer*)target.second, arg);
+  case target_tracker:  return itr->second.m_trackerSlot (itr->second.m_variable, (torrent::Tracker*)target.second, arg);
+  case target_file:     return itr->second.m_fileSlot    (itr->second.m_variable, (torrent::File*)target.second, arg);
+  case target_file_itr: return itr->second.m_fileItrSlot (itr->second.m_variable, (torrent::FileListIterator*)target.second, arg);
   default: throw torrent::internal_error("CommandMap::call_command(...) Invalid target.");
   }
 }

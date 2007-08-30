@@ -65,8 +65,10 @@ public:
   // These need to match CommandMap type values.
   static const int call_generic    = 0;
   static const int call_download   = 1;
-  static const int call_file       = 2;
+  static const int call_peer       = 2;
   static const int call_tracker    = 3;
+  static const int call_file       = 4;
+  static const int call_file_itr   = 5;
 
   XmlRpc() : m_env(NULL), m_registry(NULL), m_dialect(dialect_i8) {}
 

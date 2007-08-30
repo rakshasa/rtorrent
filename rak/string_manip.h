@@ -228,6 +228,15 @@ copy_escape_html(InputIterator first1, InputIterator last1, OutputIterator first
   return first2;
 }
 
+template <typename Iterator>
+inline std::string
+copy_escape_html(Iterator first, Iterator last) {
+  std::string dest;
+  copy_escape_html(first, last, std::back_inserter(dest));
+
+  return dest;
+}
+
 template <typename Sequence>
 Sequence
 copy_escape_html(const Sequence& src) {

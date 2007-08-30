@@ -68,7 +68,7 @@ ElementMenu::unfocus_entry(size_type idx) {
 }
 
 ElementMenu::ElementMenu() :
-  m_window(new WindowText(NULL, 2)),
+  m_window(new WindowText(rpc::make_target(), 2)),
   m_entry(entry_invalid) {
 
   // Move bindings into a function that defines default bindings.

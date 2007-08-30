@@ -42,6 +42,7 @@
 #include "rpc/command_variable.h"
 #include "rpc/command_download_slot.h"
 #include "rpc/command_file_slot.h"
+#include "rpc/command_file_itr_slot.h"
 #include "rpc/command_peer_slot.h"
 #include "rpc/command_tracker_slot.h"
 
@@ -57,6 +58,8 @@ rpc::CommandDownloadSlot  commandDownloadSlots[COMMAND_DOWNLOAD_SLOTS_SIZE];
 rpc::CommandDownloadSlot* commandDownloadSlotsItr = commandDownloadSlots;
 rpc::CommandFileSlot      commandFileSlots[COMMAND_FILE_SLOTS_SIZE];
 rpc::CommandFileSlot*     commandFileSlotsItr = commandFileSlots;
+rpc::CommandFileItrSlot   commandFileItrSlots[COMMAND_FILE_ITR_SLOTS_SIZE];
+rpc::CommandFileItrSlot*  commandFileItrSlotsItr = commandFileItrSlots;
 rpc::CommandPeerSlot      commandPeerSlots[COMMAND_PEER_SLOTS_SIZE];
 rpc::CommandPeerSlot*     commandPeerSlotsItr = commandPeerSlots;
 rpc::CommandTrackerSlot   commandTrackerSlots[COMMAND_TRACKER_SLOTS_SIZE];

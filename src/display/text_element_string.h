@@ -59,10 +59,10 @@ public:
   int                 attributes() const            { return m_attributes; }
   void                set_attributes(int a)         { m_attributes = a; }
 
-  virtual char*       print(char* first, char* last, Canvas::attributes_list* attributes, void* object);
+  virtual char*       print(char* first, char* last, Canvas::attributes_list* attributes, rpc::target_type target);
 
 protected:
-  virtual char*       copy_string(char* first, char* last, void* object) = 0;
+  virtual char*       copy_string(char* first, char* last, rpc::target_type target) = 0;
 
   int                 m_flags;
   int                 m_attributes;
@@ -81,7 +81,7 @@ public:
   virtual extent_type max_length()                  { return m_string.size(); }
 
 private:
-  virtual char*       copy_string(char* first, char* last, void* object);
+  virtual char*       copy_string(char* first, char* last, rpc::target_type target);
 
   std::string         m_string;
 };
@@ -96,7 +96,7 @@ public:
   virtual extent_type max_length()                  { return m_length; }
 
 private:
-  virtual char*       copy_string(char* first, char* last, void* object);
+  virtual char*       copy_string(char* first, char* last, rpc::target_type target);
 
   extent_type         m_length;
   const char*         m_string;
@@ -116,11 +116,11 @@ public:
   virtual extent_type max_length()                  { return m_length; }
 
 private:
-  virtual char* copy_string(char* first, char* last, void* object) {
-    if (object == NULL)
+  virtual char* copy_string(char* first, char* last, rpc::target_type target) {
+    if (target.second == NULL)
       return first;
 
-    result_type result = m_slot(reinterpret_cast<arg1_type>(object));
+    result_type result = m_slot(reinterpret_cast<arg1_type>(target.second));
     extent_type length = std::min<extent_type>(result_length(&result), last - first);
 
     std::memcpy(first, result_buffer(&result), length);

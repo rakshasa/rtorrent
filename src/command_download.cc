@@ -222,6 +222,20 @@ retrieve_d_hash(core::Download* download) {
 }
 
 torrent::Object
+retrieve_d_local_id(core::Download* download) {
+  const torrent::HashString* hashString = &download->download()->local_id();
+
+  return torrent::Object(rak::transform_hex(hashString->begin(), hashString->end()));
+}
+
+torrent::Object
+retrieve_d_local_id_html(core::Download* download) {
+  const torrent::HashString* hashString = &download->download()->local_id();
+
+  return torrent::Object(rak::copy_escape_html(hashString->begin(), hashString->end()));
+}
+
+torrent::Object
 f_multicall(core::Download* download, const torrent::Object& rawArgs) {
   const torrent::Object::list_type& args = rawArgs.as_list();
 
@@ -349,6 +363,8 @@ add_copy_to_download(const char* src, const char* dest) {
 void
 initialize_command_download() {
   ADD_CD_VOID("hash",          &retrieve_d_hash);
+  ADD_CD_VOID("local_id",      &retrieve_d_local_id);
+  ADD_CD_VOID("local_id_html", &retrieve_d_local_id_html);
   ADD_CD_VOID("base_path",     &retrieve_d_base_path);
   ADD_CD_VOID("base_filename", &retrieve_d_base_filename);
   ADD_CD_STRING_UNI("name",    rak::on(std::mem_fun(&core::Download::download), std::mem_fun(&torrent::Download::name)));
@@ -438,20 +454,21 @@ initialize_command_download() {
   ADD_CD_VALUE_MEM_UNI("skip_rate",    &torrent::Download::mutable_skip_rate, &torrent::Rate::rate);
   ADD_CD_VALUE_MEM_UNI("skip_total",   &torrent::Download::mutable_skip_rate, &torrent::Rate::total);
 
-  ADD_CD_VALUE_UNI("bytes_done",       rak::on(std::mem_fun(&core::Download::download), std::mem_fun(&torrent::Download::bytes_done)));
-  ADD_CD_VALUE_UNI("ratio",            std::ptr_fun(&retrieve_d_ratio));
-  ADD_CD_VALUE_UNI("chunks_hashed",    rak::on(std::mem_fun(&core::Download::download), std::mem_fun(&torrent::Download::chunks_hashed)));
-  ADD_CD_VALUE_UNI("free_diskspace",   rak::on(std::mem_fun(&core::Download::file_list), std::mem_fun(&torrent::FileList::free_diskspace)));
+  ADD_CD_VALUE_UNI("creation_date",       rak::on(std::mem_fun(&core::Download::download), std::mem_fun(&torrent::Download::creation_date)));
+  ADD_CD_VALUE_UNI("bytes_done",          rak::on(std::mem_fun(&core::Download::download), std::mem_fun(&torrent::Download::bytes_done)));
+  ADD_CD_VALUE_UNI("ratio",               std::ptr_fun(&retrieve_d_ratio));
+  ADD_CD_VALUE_UNI("chunks_hashed",       rak::on(std::mem_fun(&core::Download::download), std::mem_fun(&torrent::Download::chunks_hashed)));
+  ADD_CD_VALUE_UNI("free_diskspace",      rak::on(std::mem_fun(&core::Download::file_list), std::mem_fun(&torrent::FileList::free_diskspace)));
 
-  ADD_CD_VALUE_UNI("size_files",       rak::on(std::mem_fun(&core::Download::file_list), std::mem_fun(&torrent::FileList::size_files)));
-  ADD_CD_VALUE_UNI("size_bytes",       rak::on(std::mem_fun(&core::Download::file_list), std::mem_fun(&torrent::FileList::size_bytes)));
-  ADD_CD_VALUE_UNI("size_chunks",      rak::on(std::mem_fun(&core::Download::file_list), std::mem_fun(&torrent::FileList::size_chunks)));
+  ADD_CD_VALUE_UNI("size_files",          rak::on(std::mem_fun(&core::Download::file_list), std::mem_fun(&torrent::FileList::size_files)));
+  ADD_CD_VALUE_UNI("size_bytes",          rak::on(std::mem_fun(&core::Download::file_list), std::mem_fun(&torrent::FileList::size_bytes)));
+  ADD_CD_VALUE_UNI("size_chunks",         rak::on(std::mem_fun(&core::Download::file_list), std::mem_fun(&torrent::FileList::size_chunks)));
 
-  ADD_CD_VALUE_UNI("completed_bytes",  rak::on(std::mem_fun(&core::Download::file_list), std::mem_fun(&torrent::FileList::completed_bytes)));
-  ADD_CD_VALUE_UNI("completed_chunks", rak::on(std::mem_fun(&core::Download::file_list), std::mem_fun(&torrent::FileList::completed_chunks)));
-  ADD_CD_VALUE_UNI("left_bytes",       rak::on(std::mem_fun(&core::Download::file_list), std::mem_fun(&torrent::FileList::left_bytes)));
+  ADD_CD_VALUE_UNI("completed_bytes",     rak::on(std::mem_fun(&core::Download::file_list), std::mem_fun(&torrent::FileList::completed_bytes)));
+  ADD_CD_VALUE_UNI("completed_chunks",    rak::on(std::mem_fun(&core::Download::file_list), std::mem_fun(&torrent::FileList::completed_chunks)));
+  ADD_CD_VALUE_UNI("left_bytes",          rak::on(std::mem_fun(&core::Download::file_list), std::mem_fun(&torrent::FileList::left_bytes)));
 
-  ADD_CD_VALUE_UNI("chunk_size",       rak::on(std::mem_fun(&core::Download::file_list), std::mem_fun(&torrent::FileList::chunk_size)));
+  ADD_CD_VALUE_UNI("chunk_size",          rak::on(std::mem_fun(&core::Download::file_list), std::mem_fun(&torrent::FileList::chunk_size)));
 
   ADD_CD_VALUE_MEM_BI("tracker_numwant", &core::Download::tracker_list, &torrent::TrackerList::set_numwant, &torrent::TrackerList::numwant);
   ADD_CD_VALUE_UNI("tracker_focus",      rak::on(std::mem_fun(&core::Download::tracker_list), std::mem_fun(&torrent::TrackerList::focus)));
