@@ -82,10 +82,16 @@ parse_count_escaped(const char* first, const char* last) {
 //
 // Find a better name.
 void
-parse_command_execute(CommandMap::target_type target, torrent::Object* object) {
+parse_command_execute(target_type target, torrent::Object* object) {
   if (object->is_list()) {
-    for (torrent::Object::list_type::iterator itr = object->as_list().begin(), last = object->as_list().end(); itr != last; itr++)
+    // For now, until we can flag the lists we want executed and those
+    // we can't, disable recursion completely.
+    for (torrent::Object::list_type::iterator itr = object->as_list().begin(), last = object->as_list().end(); itr != last; itr++) {
+      if (itr->is_list())
+        continue;
+
       parse_command_execute(target, &*itr);
+    }
 
   } else if (*object->as_string().c_str() == '$') {
     const std::string& str = object->as_string();
@@ -97,7 +103,7 @@ parse_command_execute(CommandMap::target_type target, torrent::Object* object) {
 // Set 'download' to NULL to call the generic functions, thus reusing
 // the code below for both cases.
 parse_command_type
-parse_command(CommandMap::target_type target, const char* first, const char* last) {
+parse_command(target_type target, const char* first, const char* last) {
   first = std::find_if(first, last, std::not1(command_map_is_space()));
 
   if (first == last || *first == '#')
@@ -133,7 +139,7 @@ parse_command(CommandMap::target_type target, const char* first, const char* las
 }
 
 void
-parse_command_multiple(CommandMap::target_type target, const char* first, const char* last) {
+parse_command_multiple(target_type target, const char* first, const char* last) {
   while (first != last) {
     // Should we check the return value? Probably not necessary as
     // parse_args throws on unquoted multi-word input.

@@ -42,6 +42,8 @@
 #include <cstring>
 #include <torrent/object.h>
 
+#include "command.h"
+
 namespace core {
   class Download;
 }
@@ -55,8 +57,6 @@ namespace torrent {
 
 namespace rpc {
 
-class Command;
-
 struct command_map_comp : public std::binary_function<const char*, const char*, bool> {
   bool operator () (const char* arg1, const char* arg2) const { return std::strcmp(arg1, arg2) < 0; }
 };
@@ -65,7 +65,10 @@ struct command_map_data_type {
   // Some commands will need to share data, like get/set a variable. So
   // instead of using a single virtual member function, each command
   // will register a member function pointer to be used instead.
+  //
+  // The any_slot should perhaps replace generic_slot?
   typedef const torrent::Object (*generic_slot)  (Command*, const torrent::Object&);
+  typedef const torrent::Object (*any_slot)      (Command*, target_type, const torrent::Object&);
   typedef const torrent::Object (*download_slot) (Command*, core::Download*, const torrent::Object&);
   typedef const torrent::Object (*file_slot)     (Command*, torrent::File*, const torrent::Object&);
   typedef const torrent::Object (*file_itr_slot) (Command*, torrent::FileListIterator*, const torrent::Object&);
@@ -81,6 +84,7 @@ struct command_map_data_type {
 
   union {
     generic_slot  m_genericSlot;
+    any_slot      m_anySlot;
     download_slot m_downloadSlot;
     file_slot     m_fileSlot;
     file_itr_slot m_fileItrSlot;
@@ -100,6 +104,7 @@ public:
   typedef std::map<const char*, command_map_data_type, command_map_comp> base_type;
 
   typedef command_map_data_type::generic_slot  generic_slot;
+  typedef command_map_data_type::any_slot      any_slot;
   typedef command_map_data_type::download_slot download_slot;
   typedef command_map_data_type::file_slot     file_slot;
   typedef command_map_data_type::file_itr_slot file_itr_slot;
@@ -118,14 +123,13 @@ public:
   using base_type::end;
   using base_type::find;
 
-  typedef std::pair<int, void*> target_type;
-
   static const int target_generic  = 0;
-  static const int target_download = 1;
-  static const int target_peer     = 2;
-  static const int target_tracker  = 3;
-  static const int target_file     = 4;
-  static const int target_file_itr = 5;
+  static const int target_any      = 1;
+  static const int target_download = 2;
+  static const int target_peer     = 3;
+  static const int target_tracker  = 4;
+  static const int target_file     = 5;
+  static const int target_file_itr = 6;
 
   static const int flag_dont_delete   = 0x1;
   static const int flag_public_xmlrpc = 0x2;
@@ -139,6 +143,7 @@ public:
   iterator            insert(key_type key, Command* variable, int flags, const char* parm, const char* doc);
 
   void                insert_generic (key_type key, Command* variable, generic_slot targetSlot,  int flags, const char* parm, const char* doc);
+  void                insert_any     (key_type key, Command* variable, any_slot     targetSlot,  int flags, const char* parm, const char* doc);
   void                insert_download(key_type key, Command* variable, download_slot targetSlot, int flags, const char* parm, const char* doc);
   void                insert_peer    (key_type key, Command* variable, peer_slot targetSlot,     int flags, const char* parm, const char* doc);
   void                insert_tracker (key_type key, Command* variable, tracker_slot targetSlot,  int flags, const char* parm, const char* doc);
@@ -159,10 +164,6 @@ private:
   CommandMap(const CommandMap&);
   void operator = (const CommandMap&);
 };
-
-// Since it gets used so many places we might as well put it in the
-// rpc namespace.
-typedef CommandMap::target_type target_type;
 
 inline target_type make_target()                                  { return target_type((int)CommandMap::target_generic, NULL); }
 inline target_type make_target(core::Download* target)            { return target_type((int)CommandMap::target_download, target); }

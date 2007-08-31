@@ -124,6 +124,24 @@ apply_cat(const torrent::Object& rawArgs) {
   return result;
 }
 
+// torrent::Object
+// apply_if(const torrent::Object& rawArgs) {
+//   const torrent::Object::list_type& args = rawArgs.as_list();
+
+//   torrent::Object::list_type::const_iterator itr = args.begin();
+
+//   while (itr != args.end()) {
+//     if (itr->is_string() && *itr->as_string().c_str() == '$') {
+
+//       torrent::Object tmp = rpc::parse_command(
+
+//     } else {
+//     }
+//   }
+
+//   return torrent::Object();
+// }
+
 void
 initialize_command_ui() {
   ADD_VARIABLE_STRING("key_layout", "qwerty");

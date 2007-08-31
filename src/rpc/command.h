@@ -41,6 +41,10 @@
 
 namespace rpc {
 
+// Since it gets used so many places we might as well put it in the
+// rpc namespace.
+typedef std::pair<int, void*> target_type;
+
 class Command {
 public:
   typedef torrent::Object::value_type  value_type;

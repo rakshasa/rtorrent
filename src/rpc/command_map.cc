@@ -60,12 +60,21 @@ CommandMap::insert(key_type key, Command* variable, int flags, const char* parm,
   return base_type::insert(itr, value_type(key, command_map_data_type(variable, flags, parm, doc)));
 }
 
+// The functions below should be reduced to just one.
 void
 CommandMap::insert_generic(key_type key, Command* variable, generic_slot targetSlot, int flags, const char* parm, const char* doc) {
   iterator itr = insert(key, variable, flags, parm, doc);
 
   itr->second.m_target      = target_generic;
   itr->second.m_genericSlot = targetSlot;
+}
+
+void
+CommandMap::insert_any(key_type key, Command* variable, any_slot targetSlot, int flags, const char* parm, const char* doc) {
+  iterator itr = insert(key, variable, flags, parm, doc);
+
+  itr->second.m_target      = target_any;
+  itr->second.m_anySlot = targetSlot;
 }
 
 void
@@ -122,6 +131,7 @@ CommandMap::insert(key_type key, const command_map_data_type src) {
   // This _should_ be optimized int just one assignment.
   switch (itr->second.m_target) {
   case target_generic:  itr->second.m_genericSlot  = src.m_genericSlot; break;
+  case target_any:      itr->second.m_anySlot      = src.m_anySlot; break;
   case target_download: itr->second.m_downloadSlot = src.m_downloadSlot; break;
   case target_file:     itr->second.m_fileSlot     = src.m_fileSlot; break;
   case target_peer:     itr->second.m_peerSlot     = src.m_peerSlot; break;
@@ -144,6 +154,7 @@ CommandMap::call_command(key_type key, const mapped_type& arg, target_type targe
   // This _should_ be optimized int just two calls.
   switch (itr->second.m_target) {
   case target_generic:  return itr->second.m_genericSlot (itr->second.m_variable, arg);
+  case target_any:      return itr->second.m_anySlot     (itr->second.m_variable, target, arg);
   case target_download: return itr->second.m_downloadSlot(itr->second.m_variable, (core::Download*)target.second, arg);
   case target_peer:     return itr->second.m_peerSlot    (itr->second.m_variable, (torrent::Peer*)target.second, arg);
   case target_tracker:  return itr->second.m_trackerSlot (itr->second.m_variable, (torrent::Tracker*)target.second, arg);
@@ -162,6 +173,7 @@ CommandMap::call_command(const_iterator itr, const mapped_type& arg, target_type
   // This _should_ be optimized int just two calls.
   switch (itr->second.m_target) {
   case target_generic:  return itr->second.m_genericSlot (itr->second.m_variable, arg);
+  case target_any:      return itr->second.m_anySlot     (itr->second.m_variable, target, arg);
   case target_download: return itr->second.m_downloadSlot(itr->second.m_variable, (core::Download*)target.second, arg);
   case target_peer:     return itr->second.m_peerSlot    (itr->second.m_variable, (torrent::Peer*)target.second, arg);
   case target_tracker:  return itr->second.m_trackerSlot (itr->second.m_variable, (torrent::Tracker*)target.second, arg);
