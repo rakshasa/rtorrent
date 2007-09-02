@@ -89,4 +89,33 @@ TextElementCString::copy_string(char* first, char* last, rpc::target_type target
   return first + length;
 }
 
+// char*
+// TextElementCommand::print(char* first, char* last, Canvas::attributes_list* attributes, rpc::target_type target) {
+//   Attributes baseAttribute = attributes->back();
+//   push_attribute(attributes, Attributes(first, m_attributes, Attributes::color_invalid));
+
+//   if (first == last)
+//     return first;
+
+//   if (m_flags & flag_escape_hex) {
+//     char buffer[last - first];
+//     char* bufferLast = copy_string(buffer, buffer + (last - first), target);
+
+//     first = rak::transform_hex(buffer, bufferLast, first, last);
+
+//   } else if (m_flags & flag_escape_html) {
+//     char buffer[last - first];
+//     char* bufferLast = copy_string(buffer, buffer + (last - first), target);
+
+//     first = rak::copy_escape_html(buffer, bufferLast, first, last);
+
+//   } else {
+//     first = copy_string(first, last, target);
+//   }  
+
+//   push_attribute(attributes, Attributes(first, baseAttribute));
+
+//   return first;
+// }
+
 }

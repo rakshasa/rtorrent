@@ -49,9 +49,7 @@
 
 #include "core/download.h"
 #include "core/manager.h"
-#include "rpc/command_slot.h"
 #include "rpc/command_variable.h"
-#include "rpc/command_download_slot.h"
 
 #include "globals.h"
 #include "control.h"
@@ -293,20 +291,20 @@ t_multicall(core::Download* download, const torrent::Object& rawArgs) {
 
 #define ADD_CD_SLOT(key, function, slot, parm, doc)    \
   commandDownloadSlotsItr->set_slot(slot); \
-  rpc::commands.insert_download(key, commandDownloadSlotsItr++, &rpc::CommandDownloadSlot::function, rpc::CommandMap::flag_dont_delete, parm, doc);
+  rpc::commands.insert_download(key, commandDownloadSlotsItr++, &rpc::CommandSlot<core::Download*>::function, rpc::CommandMap::flag_dont_delete, parm, doc);
 
 #define ADD_CD_SLOT_PUBLIC(key, function, slot, parm, doc)    \
   commandDownloadSlotsItr->set_slot(slot); \
-  rpc::commands.insert_download(key, commandDownloadSlotsItr++, &rpc::CommandDownloadSlot::function, rpc::CommandMap::flag_dont_delete | rpc::CommandMap::flag_public_xmlrpc, parm, doc);
+  rpc::commands.insert_download(key, commandDownloadSlotsItr++, &rpc::CommandSlot<core::Download*>::function, rpc::CommandMap::flag_dont_delete | rpc::CommandMap::flag_public_xmlrpc, parm, doc);
 
 #define ADD_CD_VOID(key, slot) \
-  ADD_CD_SLOT_PUBLIC("d.get_" key, call_unknown, rpc::object_d_fn(slot), "i:", "")
+  ADD_CD_SLOT_PUBLIC("d.get_" key, call_unknown, rpc::object_fn(slot), "i:", "")
 
 #define ADD_CD_V_VOID(key, slot) \
-  ADD_CD_SLOT_PUBLIC("d." key, call_unknown, rpc::object_d_fn(slot), "i:", "")
+  ADD_CD_SLOT_PUBLIC("d." key, call_unknown, rpc::object_fn(slot), "i:", "")
 
 #define ADD_CD_F_VOID(key, slot) \
-  ADD_CD_SLOT_PUBLIC("d." key, call_unknown, rpc::object_void_d_fn(slot), "i:", "")
+  ADD_CD_SLOT_PUBLIC("d." key, call_unknown, rpc::object_void_fn<core::Download*>(slot), "i:", "")
 
 #define ADD_CD_LIST_OBSOLETE(key, slot) \
   ADD_CD_SLOT_PUBLIC(key, call_list, slot, "i:", "")
@@ -331,24 +329,24 @@ t_multicall(core::Download* download, const torrent::Object& rawArgs) {
   ADD_CD_SLOT_PUBLIC("d.set_" key, call_string,  rpc::set_variable_d_fn(firstKey, secondKey), "i:s", "");
 
 #define ADD_CD_VALUE_UNI(key, get) \
-  ADD_CD_SLOT_PUBLIC("d.get_" key, call_unknown, rpc::object_void_d_fn(get), "i:", "")
+  ADD_CD_SLOT_PUBLIC("d.get_" key, call_unknown, rpc::object_void_fn<core::Download*>(get), "i:", "")
 
 #define ADD_CD_VALUE_BI(key, set, get) \
-  ADD_CD_SLOT_PUBLIC("d.set_" key, call_value, rpc::object_value_d_fn(set), "i:i", "") \
-  ADD_CD_SLOT_PUBLIC("d.get_" key, call_unknown, rpc::object_void_d_fn(get), "i:", "")
+  ADD_CD_SLOT_PUBLIC("d.set_" key, call_value, rpc::object_value_fn<core::Download*>(set), "i:i", "") \
+  ADD_CD_SLOT_PUBLIC("d.get_" key, call_unknown, rpc::object_void_fn<core::Download*>(get), "i:", "")
 
 #define ADD_CD_VALUE_MEM_BI(key, target, set, get) \
   ADD_CD_VALUE_BI(key, rak::on2(std::mem_fun(target), std::mem_fun(set)), rak::on(std::mem_fun(target), std::mem_fun(get)));
 
 #define ADD_CD_VALUE_MEM_UNI(key, target, get) \
-  ADD_CD_SLOT_PUBLIC("d.get_" key, call_unknown, rpc::object_void_d_fn(rak::on(rak::on(std::mem_fun(&core::Download::download), std::mem_fun(target)), std::mem_fun(get))), "i:", "");
+  ADD_CD_SLOT_PUBLIC("d.get_" key, call_unknown, rpc::object_void_fn<core::Download*>(rak::on(rak::on(std::mem_fun(&core::Download::download), std::mem_fun(target)), std::mem_fun(get))), "i:", "");
 
 #define ADD_CD_STRING_UNI(key, get) \
-  ADD_CD_SLOT_PUBLIC("d.get_" key, call_unknown, rpc::object_void_d_fn(get), "s:", "")
+  ADD_CD_SLOT_PUBLIC("d.get_" key, call_unknown, rpc::object_void_fn<core::Download*>(get), "s:", "")
 
 #define ADD_CD_STRING_BI(key, set, get) \
-  ADD_CD_SLOT_PUBLIC("d.set_" key, call_string, rpc::object_string_d_fn(set), "i:s", "") \
-  ADD_CD_SLOT_PUBLIC("d.get_" key, call_unknown, rpc::object_void_d_fn(get), "s:", "")
+  ADD_CD_SLOT_PUBLIC("d.set_" key, call_string,  rpc::object_string_fn<core::Download*>(set), "i:s", "") \
+  ADD_CD_SLOT_PUBLIC("d.get_" key, call_unknown, rpc::object_void_fn<core::Download*>(get), "s:", "")
 
 void
 add_copy_to_download(const char* src, const char* dest) {

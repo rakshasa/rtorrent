@@ -37,16 +37,11 @@
 #ifndef RTORRENT_UTILS_COMMAND_HELPERS_H
 #define RTORRENT_UTILS_COMMAND_HELPERS_H
 
+#include "rpc/command_slot.h"
 #include "rpc/parse_commands.h"
 
 namespace rpc {
-  class CommandSlot;
   class CommandVariable;
-  class CommandDownloadSlot;
-  class CommandFileSlot;
-  class CommandFileItrSlot;
-  class CommandPeerSlot;
-  class CommandTrackerSlot;
 }
 
 // By using a static array we avoid allocating the variables on the
@@ -58,23 +53,26 @@ namespace rpc {
 #define COMMAND_FILE_ITR_SLOTS_SIZE 10
 #define COMMAND_PEER_SLOTS_SIZE     20
 #define COMMAND_TRACKER_SLOTS_SIZE  15
+#define COMMAND_ANY_SLOTS_SIZE      20
 
 #define ADDING_COMMANDS
 
-extern rpc::CommandSlot          commandSlots[COMMAND_SLOTS_SIZE];
-extern rpc::CommandSlot*         commandSlotsItr;
+extern rpc::CommandSlot<void>    commandSlots[COMMAND_SLOTS_SIZE];
+extern rpc::CommandSlot<void>*   commandSlotsItr;
 extern rpc::CommandVariable      commandVariables[COMMAND_VARIABLES_SIZE];
 extern rpc::CommandVariable*     commandVariablesItr;
-extern rpc::CommandDownloadSlot  commandDownloadSlots[COMMAND_DOWNLOAD_SLOTS_SIZE];
-extern rpc::CommandDownloadSlot* commandDownloadSlotsItr;
-extern rpc::CommandFileSlot      commandFileSlots[COMMAND_FILE_SLOTS_SIZE];
-extern rpc::CommandFileSlot*     commandFileSlotsItr;
-extern rpc::CommandFileItrSlot   commandFileItrSlots[COMMAND_FILE_ITR_SLOTS_SIZE];
-extern rpc::CommandFileItrSlot*  commandFileItrSlotsItr;
-extern rpc::CommandPeerSlot      commandPeerSlots[COMMAND_PEER_SLOTS_SIZE];
-extern rpc::CommandPeerSlot*     commandPeerSlotsItr;
-extern rpc::CommandTrackerSlot   commandTrackerSlots[COMMAND_TRACKER_SLOTS_SIZE];
-extern rpc::CommandTrackerSlot*  commandTrackerSlotsItr;
+extern rpc::CommandSlot<core::Download*>             commandDownloadSlots[COMMAND_DOWNLOAD_SLOTS_SIZE];
+extern rpc::CommandSlot<core::Download*>*            commandDownloadSlotsItr;
+extern rpc::CommandSlot<torrent::File*>              commandFileSlots[COMMAND_FILE_SLOTS_SIZE];
+extern rpc::CommandSlot<torrent::File*>*             commandFileSlotsItr;
+extern rpc::CommandSlot<torrent::FileListIterator*>  commandFileItrSlots[COMMAND_FILE_ITR_SLOTS_SIZE];
+extern rpc::CommandSlot<torrent::FileListIterator*>* commandFileItrSlotsItr;
+extern rpc::CommandSlot<torrent::Peer*>              commandPeerSlots[COMMAND_PEER_SLOTS_SIZE];
+extern rpc::CommandSlot<torrent::Peer*>*             commandPeerSlotsItr;
+extern rpc::CommandSlot<torrent::Tracker*>           commandTrackerSlots[COMMAND_TRACKER_SLOTS_SIZE];
+extern rpc::CommandSlot<torrent::Tracker*>*          commandTrackerSlotsItr;
+extern rpc::CommandSlot<rpc::target_type>            commandAnySlots[COMMAND_ANY_SLOTS_SIZE];
+extern rpc::CommandSlot<rpc::target_type>*           commandAnySlotsItr;
 
 void initialize_commands();
 
@@ -97,17 +95,21 @@ add_variable(key, NULL, NULL, &rpc::CommandVariable::get_string, NULL, std::stri
 
 #define ADD_COMMAND_SLOT(key, function, slot, parm, doc)    \
   commandSlotsItr->set_slot(slot); \
-  rpc::commands.insert_generic(key, commandSlotsItr++, &rpc::CommandSlot::function, rpc::CommandMap::flag_dont_delete | rpc::CommandMap::flag_public_xmlrpc, parm, doc);
+  rpc::commands.insert_generic(key, commandSlotsItr++, &rpc::CommandSlot<void>::function, rpc::CommandMap::flag_dont_delete | rpc::CommandMap::flag_public_xmlrpc, parm, doc);
+
+#define ADD_ANY_SLOT(key, function, slot, parm, doc)    \
+  commandAnySlotsItr->set_slot(slot); \
+  rpc::commands.insert_any(key, commandAnySlotsItr++, &rpc::CommandSlot<rpc::target_type>::function, rpc::CommandMap::flag_dont_delete | rpc::CommandMap::flag_public_xmlrpc, parm, doc);
 
 #define ADD_COMMAND_SLOT_PRIVATE(key, function, slot) \
   commandSlotsItr->set_slot(slot); \
-  rpc::commands.insert_generic(key, commandSlotsItr++, &rpc::CommandSlot::function, rpc::CommandMap::flag_dont_delete, NULL, NULL);
+  rpc::commands.insert_generic(key, commandSlotsItr++, &rpc::CommandSlot<void>::function, rpc::CommandMap::flag_dont_delete, NULL, NULL);
 
 #define ADD_COMMAND_COPY(key, function, parm, doc) \
-  rpc::commands.insert_generic(key, (commandSlotsItr - 1), &rpc::CommandSlot::function, rpc::CommandMap::flag_dont_delete | rpc::CommandMap::flag_public_xmlrpc, parm, doc);
+  rpc::commands.insert_generic(key, (commandSlotsItr - 1), &rpc::CommandSlot<void>::function, rpc::CommandMap::flag_dont_delete | rpc::CommandMap::flag_public_xmlrpc, parm, doc);
 
 #define ADD_COMMAND_COPY_PRIVATE(key, function) \
-  rpc::commands.insert_generic(key, (commandSlotsItr - 1), &rpc::CommandSlot::function, rpc::CommandMap::flag_dont_delete, NULL, NULL);
+  rpc::commands.insert_generic(key, (commandSlotsItr - 1), &rpc::CommandSlot<void>::function, rpc::CommandMap::flag_dont_delete, NULL, NULL);
 
 #define ADD_COMMAND_VALUE_TRI(key, set, get) \
   ADD_COMMAND_SLOT_PRIVATE(key, call_value, rpc::object_value_fn(set))      \
@@ -153,6 +155,12 @@ add_variable(key, NULL, NULL, &rpc::CommandVariable::get_string, NULL, std::stri
 
 #define ADD_COMMAND_LIST(key, slot) \
   ADD_COMMAND_SLOT(key, call_list, slot, "i:", "")
+
+#define ADD_COMMAND_NONE(key, slot) \
+  ADD_COMMAND_SLOT(key, call_unknown, slot, "i:", "")
+
+#define ADD_ANY_NONE(key, slot) \
+  ADD_ANY_SLOT(key, call_unknown, slot, "i:", "")
 
 #define ADD_COMMAND_NONE_L(key, slot) \
   ADD_COMMAND_SLOT(key, call_unknown, slot, "A:", "")

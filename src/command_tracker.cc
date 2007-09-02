@@ -40,8 +40,6 @@
 #include <torrent/tracker.h>
 
 #include "core/manager.h"
-#include "rpc/command_slot.h"
-#include "rpc/command_tracker_slot.h"
 
 #include "globals.h"
 #include "control.h"
@@ -57,24 +55,24 @@ apply_t_set_enabled(torrent::Tracker* tracker, int64_t state) {
 
 #define ADD_CT_SLOT(key, function, slot, parm, doc)    \
   commandTrackerSlotsItr->set_slot(slot); \
-  rpc::commands.insert_tracker(key, commandTrackerSlotsItr++, &rpc::CommandTrackerSlot::function, rpc::CommandMap::flag_dont_delete, parm, doc);
+  rpc::commands.insert_tracker(key, commandTrackerSlotsItr++, &rpc::CommandSlot<torrent::Tracker*>::function, rpc::CommandMap::flag_dont_delete, parm, doc);
 
 #define ADD_CT_SLOT_PUBLIC(key, function, slot, parm, doc)    \
   commandTrackerSlotsItr->set_slot(slot); \
-  rpc::commands.insert_tracker(key, commandTrackerSlotsItr++, &rpc::CommandTrackerSlot::function, rpc::CommandMap::flag_dont_delete | rpc::CommandMap::flag_public_xmlrpc, parm, doc);
+  rpc::commands.insert_tracker(key, commandTrackerSlotsItr++, &rpc::CommandSlot<torrent::Tracker*>::function, rpc::CommandMap::flag_dont_delete | rpc::CommandMap::flag_public_xmlrpc, parm, doc);
 
 #define ADD_CT_VOID(key, slot) \
-  ADD_CT_SLOT_PUBLIC("t.get_" key, call_unknown, rpc::object_t_fn(slot), "i:", "")
+  ADD_CT_SLOT_PUBLIC("t.get_" key, call_unknown, rpc::object_fn(slot), "i:", "")
 
 #define ADD_CT_VALUE_UNI(key, get) \
-  ADD_CT_SLOT_PUBLIC("t.get_" key, call_unknown, rpc::object_void_t_fn(get), "i:", "")
+  ADD_CT_SLOT_PUBLIC("t.get_" key, call_unknown, rpc::object_void_fn<torrent::Tracker*>(get), "i:", "")
 
 #define ADD_CT_VALUE_BI(key, set, get) \
-  ADD_CT_SLOT_PUBLIC("t.set_" key, call_value, rpc::object_value_t_fn(set), "i:i", "") \
-  ADD_CT_SLOT_PUBLIC("t.get_" key, call_unknown, rpc::object_void_t_fn(get), "i:", "")
+  ADD_CT_SLOT_PUBLIC("t.set_" key, call_value, rpc::object_value_fn<torrent::Tracker*>(set), "i:i", "") \
+  ADD_CT_SLOT_PUBLIC("t.get_" key, call_unknown, rpc::object_void_fn<torrent::Tracker*>(get), "i:", "")
 
 #define ADD_CT_STRING_UNI(key, get) \
-  ADD_CT_SLOT_PUBLIC("t.get_" key, call_unknown, rpc::object_void_t_fn(get), "s:", "")
+  ADD_CT_SLOT_PUBLIC("t.get_" key, call_unknown, rpc::object_void_fn<torrent::Tracker*>(get), "s:", "")
 
 void
 initialize_command_tracker() {

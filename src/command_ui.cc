@@ -108,7 +108,7 @@ apply_view_list(const torrent::Object&) {
 }
 
 torrent::Object
-apply_print(const torrent::Object& rawArgs) {
+apply_print(rpc::target_type target, const torrent::Object& rawArgs) {
   char buffer[1024];
   rpc::print_object(buffer, buffer + 1024, &rawArgs, 0);
 
@@ -117,30 +117,65 @@ apply_print(const torrent::Object& rawArgs) {
 }
 
 torrent::Object
-apply_cat(const torrent::Object& rawArgs) {
+apply_cat(rpc::target_type target, const torrent::Object& rawArgs) {
   std::string result;
 
   rpc::print_object_std(&result, &rawArgs, 0);
   return result;
 }
 
-// torrent::Object
-// apply_if(const torrent::Object& rawArgs) {
-//   const torrent::Object::list_type& args = rawArgs.as_list();
+// A series of if/else statements. Every even arguments are
+// conditionals and odd arguments are branches to be executed, except
+// the last one which is always a branch.
+//
+// if (cond1) { branch1 }
+// <cond1>,<branch1>
+//
+// if (cond1) { branch1 } else if (cond2) { branch2 } else { branch3 }
+// <cond1>,<branch1>,<cond2>,<branch2>,<branch3>
+torrent::Object
+apply_if(rpc::target_type target, const torrent::Object& rawArgs) {
+  const torrent::Object::list_type& args = rawArgs.as_list();
+  torrent::Object::list_type::const_iterator itr = args.begin();
 
-//   torrent::Object::list_type::const_iterator itr = args.begin();
+  while (itr != args.end() && itr != --args.end()) {
+    torrent::Object tmp;
+    const torrent::Object* conditional;
 
-//   while (itr != args.end()) {
-//     if (itr->is_string() && *itr->as_string().c_str() == '$') {
+    if (itr->is_string() && *itr->as_string().c_str() == '$')
+      conditional = &(tmp = rpc::parse_command(target, itr->as_string().c_str() + 1, itr->as_string().c_str() + itr->as_string().size()).first);
+    else
+      conditional = &*itr;
 
-//       torrent::Object tmp = rpc::parse_command(
+    bool result;
 
-//     } else {
-//     }
-//   }
+    switch (conditional->type()) {
+    case torrent::Object::TYPE_STRING:
+      result = !conditional->as_string().empty();
+      break;
+    case torrent::Object::TYPE_VALUE:
+      result = conditional->as_value();
+      break;
+    default:
+      throw torrent::input_error("Type not supported by 'if'.");
+    };
 
-//   return torrent::Object();
-// }
+    itr++;
+
+    if (result)
+      break;
+
+    itr++;
+  }
+
+  if (itr == args.end())
+    return torrent::Object();
+
+  if (itr->is_string() && *itr->as_string().c_str() == '$')
+    return rpc::parse_command(target, itr->as_string().c_str() + 1, itr->as_string().c_str() + itr->as_string().size()).first;
+  else
+    return *itr;
+}
 
 void
 initialize_command_ui() {
@@ -158,6 +193,7 @@ initialize_command_ui() {
 
 //   ADD_COMMAND_LIST("view_sort_current", rak::bind_ptr_fn(&apply_view_filter, &core::ViewManager::set_sort_current));
 
-  ADD_COMMAND_LIST("print",             rak::ptr_fn(&apply_print));
-  ADD_COMMAND_LIST("cat",               rak::ptr_fn(&apply_cat));
+  ADD_ANY_NONE("print",             rak::ptr_fn(&apply_print));
+  ADD_ANY_NONE("cat",               rak::ptr_fn(&apply_cat));
+  ADD_ANY_NONE("if",                rak::ptr_fn(&apply_if));
 }

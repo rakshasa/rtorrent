@@ -42,8 +42,6 @@
 #include <torrent/data/file_list.h>
 
 #include "core/manager.h"
-#include "rpc/command_slot.h"
-#include "rpc/command_file_slot.h"
 
 #include "globals.h"
 #include "control.h"
@@ -89,24 +87,24 @@ apply_f_path_depth(torrent::File* file) {
 
 #define ADD_CF_SLOT(key, function, slot, parm, doc)    \
   commandFileSlotsItr->set_slot(slot); \
-  rpc::commands.insert_file(key, commandFileSlotsItr++, &rpc::CommandFileSlot::function, rpc::CommandMap::flag_dont_delete, parm, doc);
+  rpc::commands.insert_file(key, commandFileSlotsItr++, &rpc::CommandSlot<torrent::File*>::function, rpc::CommandMap::flag_dont_delete, parm, doc);
 
 #define ADD_CF_SLOT_PUBLIC(key, function, slot, parm, doc)    \
   commandFileSlotsItr->set_slot(slot); \
-  rpc::commands.insert_file(key, commandFileSlotsItr++, &rpc::CommandFileSlot::function, rpc::CommandMap::flag_dont_delete | rpc::CommandMap::flag_public_xmlrpc, parm, doc);
+  rpc::commands.insert_file(key, commandFileSlotsItr++, &rpc::CommandSlot<torrent::File*>::function, rpc::CommandMap::flag_dont_delete | rpc::CommandMap::flag_public_xmlrpc, parm, doc);
 
 #define ADD_CF_VOID(key, slot) \
-  ADD_CF_SLOT_PUBLIC("f.get_" key, call_unknown, rpc::object_f_fn(slot), "i:", "")
+  ADD_CF_SLOT_PUBLIC("f.get_" key, call_unknown, rpc::object_fn(slot), "i:", "")
 
 #define ADD_CF_VALUE_UNI(key, get) \
-  ADD_CF_SLOT_PUBLIC("f.get_" key, call_unknown, rpc::object_void_f_fn(get), "i:", "")
+  ADD_CF_SLOT_PUBLIC("f.get_" key, call_unknown, rpc::object_void_fn<torrent::File*>(get), "i:", "")
 
 #define ADD_CF_VALUE_BI(key, set, get) \
-  ADD_CF_SLOT_PUBLIC("f.set_" key, call_value, rpc::object_value_f_fn(set), "i:i", "") \
-  ADD_CF_SLOT_PUBLIC("f.get_" key, call_unknown, rpc::object_void_f_fn(get), "i:", "")
+  ADD_CF_SLOT_PUBLIC("f.set_" key, call_value,   rpc::object_value_fn<torrent::File*>(set), "i:i", "") \
+  ADD_CF_SLOT_PUBLIC("f.get_" key, call_unknown, rpc::object_void_fn<torrent::File*>(get), "i:", "")
 
 #define ADD_CF_STRING_UNI(key, get) \
-  ADD_CF_SLOT_PUBLIC("f.get_" key, call_unknown, rpc::object_void_f_fn(get), "s:", "")
+  ADD_CF_SLOT_PUBLIC("f.get_" key, call_unknown, rpc::object_void_fn<torrent::File*>(get), "s:", "")
 
 void
 initialize_command_file() {

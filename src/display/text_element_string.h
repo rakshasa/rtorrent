@@ -155,6 +155,37 @@ text_element_string_slot(const slot_type& slot,
   return new TextElementStringSlot<slot_type>(slot, flags, attributes, length);
 }
 
+//
+// New TE's for calling commands directly. Move to a better place.
+//
+
+class TextElementCommand : public TextElement {
+public:
+  static const int flag_normal      = 0;
+  static const int flag_escape_hex  = (1 << 0);
+  static const int flag_escape_html = (1 << 1);
+
+  static const int flag_fixed_width = (1 << 8);
+
+  TextElementCommand(const char* command) : m_command(command) {}
+
+  int                 flags() const                 { return m_flags; }
+  void                set_flags(int flags)          { m_flags = flags; }
+
+  int                 attributes() const            { return m_attributes; }
+  void                set_attributes(int a)         { m_attributes = a; }
+
+  virtual char*       print(char* first, char* last, Canvas::attributes_list* attributes, rpc::target_type target);
+
+protected:
+  int                 m_flags;
+  int                 m_attributes;
+
+  const char*         m_command;
+};
+
+
+
 }
 
 #endif

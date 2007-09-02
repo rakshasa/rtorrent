@@ -147,8 +147,8 @@ CommandMap::call_command(key_type key, const mapped_type& arg, target_type targe
   if (itr == base_type::end())
     throw torrent::input_error("Command \"" + std::string(key) + "\" does not exist.");
 
-  if ((itr->second.m_target != target.first && itr->second.m_target != target_generic) ||
-      (itr->second.m_target != target_generic && target.second == NULL))
+  if ((itr->second.m_target != target.first && itr->second.m_target > target_any) ||
+      (target.second == NULL && itr->second.m_target != target_generic && !(itr->second.m_target == target_any && target.first == target_generic)))
     throw torrent::input_error("Command type mis-match.");
 
   // This _should_ be optimized int just two calls.
@@ -166,8 +166,8 @@ CommandMap::call_command(key_type key, const mapped_type& arg, target_type targe
 
 const CommandMap::mapped_type
 CommandMap::call_command(const_iterator itr, const mapped_type& arg, target_type target) {
-  if ((itr->second.m_target != target.first && itr->second.m_target != target_generic) ||
-      (itr->second.m_target != target_generic && target.second == NULL))
+  if ((itr->second.m_target != target.first && itr->second.m_target > target_any) ||
+      (target.second == NULL && itr->second.m_target != target_generic && !(itr->second.m_target == target_any && target.first == target_generic)))
     throw torrent::input_error("Command type mis-match.");
 
   // This _should_ be optimized int just two calls.

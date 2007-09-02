@@ -36,21 +36,51 @@
 
 #include "config.h"
 
+#include "core/download.h"
 #include "parse.h"
 
 #include "command_slot.h"
 
 namespace rpc {
 
+template <typename Target> const torrent::Object
+CommandSlot<Target>::call_unknown(Command* rawCommand, Target target, const torrent::Object& rawArgs) {
+  CommandSlot* command = static_cast<CommandSlot*>(rawCommand);
+
+  return command->m_slot(target, rawArgs);
+}
+
 const torrent::Object
-CommandSlot::call_unknown(Command* rawCommand, const torrent::Object& rawArgs) {
+CommandSlot<void>::call_unknown(Command* rawCommand, const torrent::Object& rawArgs) {
   CommandSlot* command = static_cast<CommandSlot*>(rawCommand);
 
   return command->m_slot(rawArgs);
 }
 
+template <typename Target> const torrent::Object
+CommandSlot<Target>::call_list(Command* rawCommand, Target target, const torrent::Object& rawArgs) {
+  CommandSlot* command = static_cast<CommandSlot*>(rawCommand);
+
+  switch (rawArgs.type()) {
+  case torrent::Object::TYPE_LIST:
+    return command->m_slot(target, rawArgs);
+
+  case torrent::Object::TYPE_VALUE:
+  case torrent::Object::TYPE_STRING:
+  case torrent::Object::TYPE_NONE:
+  {
+    torrent::Object tmpList(torrent::Object::TYPE_LIST);
+    tmpList.as_list().push_back(rawArgs);
+
+    return command->m_slot(target, tmpList);
+  }
+  default:
+    throw torrent::input_error("Not a list.");
+  }
+}
+
 const torrent::Object
-CommandSlot::call_list(Command* rawCommand, const torrent::Object& rawArgs) {
+CommandSlot<void>::call_list(Command* rawCommand, const torrent::Object& rawArgs) {
   CommandSlot* command = static_cast<CommandSlot*>(rawCommand);
 
   switch (rawArgs.type()) {
@@ -71,8 +101,33 @@ CommandSlot::call_list(Command* rawCommand, const torrent::Object& rawArgs) {
   }
 }
 
+template <typename Target> const torrent::Object
+CommandSlot<Target>::call_value_base(Command* rawCommand, Target target, const torrent::Object& rawArgs, int base, int unit) {
+  CommandSlot* command = static_cast<CommandSlot*>(rawCommand);
+
+  const torrent::Object& arg = convert_to_single_argument(rawArgs);
+
+  switch (arg.type()) {
+  case torrent::Object::TYPE_VALUE:
+    // Should shift this one too, so it gives the right unit.
+    return command->m_slot(target, arg);
+
+  case torrent::Object::TYPE_STRING:
+  {
+    torrent::Object argValue(torrent::Object::TYPE_VALUE);
+
+    if (!parse_whole_value_nothrow(arg.as_string().c_str(), &argValue.as_value(), base, unit))
+      throw torrent::input_error("Not a value.");
+
+    return command->m_slot(target, argValue);
+  }
+  default:
+    throw torrent::input_error("Not a value.");
+  }
+}
+
 const torrent::Object
-CommandSlot::call_value_base(Command* rawCommand, const torrent::Object& rawArgs, int base, int unit) {
+CommandSlot<void>::call_value_base(Command* rawCommand, const torrent::Object& rawArgs, int base, int unit) {
   CommandSlot* command = static_cast<CommandSlot*>(rawCommand);
 
   const torrent::Object& arg = convert_to_single_argument(rawArgs);
@@ -96,8 +151,27 @@ CommandSlot::call_value_base(Command* rawCommand, const torrent::Object& rawArgs
   }
 }
 
+template <typename Target> const torrent::Object
+CommandSlot<Target>::call_string(Command* rawCommand, Target target, const torrent::Object& rawArgs) {
+  CommandSlot* command = static_cast<CommandSlot*>(rawCommand);
+
+  const torrent::Object& arg = convert_to_single_argument(rawArgs);
+
+  switch (arg.type()) {
+//   case torrent::Object::TYPE_VALUE:
+//     break;
+
+  case torrent::Object::TYPE_STRING:
+    return command->m_slot(target, arg);
+    break;
+
+  default:
+    throw torrent::input_error("Not a string.");
+  }
+}
+
 const torrent::Object
-CommandSlot::call_string(Command* rawCommand, const torrent::Object& rawArgs) {
+CommandSlot<void>::call_string(Command* rawCommand, const torrent::Object& rawArgs) {
   CommandSlot* command = static_cast<CommandSlot*>(rawCommand);
 
   const torrent::Object& arg = convert_to_single_argument(rawArgs);
@@ -114,5 +188,32 @@ CommandSlot::call_string(Command* rawCommand, const torrent::Object& rawArgs) {
     throw torrent::input_error("Not a string.");
   }
 }
+
+torrent::Object
+set_variable_d_fn_t::operator () (core::Download* download, const torrent::Object& arg1) {
+  if (m_firstKey == NULL)
+    download->bencode()->get_key(m_secondKey) = arg1;
+  else
+    download->bencode()->get_key(m_firstKey).get_key(m_secondKey) = arg1;
+
+  return torrent::Object();
+}
+
+torrent::Object
+get_variable_d_fn_t::operator () (core::Download* download, const torrent::Object& arg1) {
+  if (m_firstKey == NULL)
+    return download->bencode()->get_key(m_secondKey);
+  else
+    return download->bencode()->get_key(m_firstKey).get_key(m_secondKey);
+}
+
+// Initialize the necessary template classes.
+template class CommandSlot<void>;
+template class CommandSlot<target_type>;
+template class CommandSlot<core::Download*>;
+template class CommandSlot<torrent::File*>;
+template class CommandSlot<torrent::FileListIterator*>;
+template class CommandSlot<torrent::Peer*>;
+template class CommandSlot<torrent::Tracker*>;
 
 }

@@ -41,8 +41,6 @@
 #include <torrent/peer/peer.h>
 
 #include "core/manager.h"
-#include "rpc/command_slot.h"
-#include "rpc/command_peer_slot.h"
 
 #include "globals.h"
 #include "control.h"
@@ -88,24 +86,24 @@
 
 #define ADD_CP_SLOT(key, function, slot, parm, doc)    \
   commandPeerSlotsItr->set_slot(slot); \
-  rpc::commands.insert_peer(key, commandPeerSlotsItr++, &rpc::CommandPeerSlot::function, rpc::CommandMap::flag_dont_delete, parm, doc);
+  rpc::commands.insert_peer(key, commandPeerSlotsItr++, &rpc::CommandSlot<torrent::Peer*>::function, rpc::CommandMap::flag_dont_delete, parm, doc);
 
 #define ADD_CP_SLOT_PUBLIC(key, function, slot, parm, doc)    \
   commandPeerSlotsItr->set_slot(slot); \
-  rpc::commands.insert_peer(key, commandPeerSlotsItr++, &rpc::CommandPeerSlot::function, rpc::CommandMap::flag_dont_delete | rpc::CommandMap::flag_public_xmlrpc, parm, doc);
+  rpc::commands.insert_peer(key, commandPeerSlotsItr++, &rpc::CommandSlot<torrent::Peer*>::function, rpc::CommandMap::flag_dont_delete | rpc::CommandMap::flag_public_xmlrpc, parm, doc);
 
 #define ADD_CP_VOID(key, slot) \
-  ADD_CP_SLOT_PUBLIC("p.get_" key, call_unknown, rpc::object_f_fn(slot), "i:", "")
+  ADD_CP_SLOT_PUBLIC("p.get_" key, call_unknown, rpc::object_fn(slot), "i:", "")
 
 #define ADD_CP_VALUE_UNI(key, get) \
-  ADD_CP_SLOT_PUBLIC("p.get_" key, call_unknown, rpc::object_void_f_fn(get), "i:", "")
+  ADD_CP_SLOT_PUBLIC("p.get_" key, call_unknown, rpc::object_void_fn<torrent::Peer*>(get), "i:", "")
 
 #define ADD_CP_VALUE_BI(key, set, get) \
-  ADD_CP_SLOT_PUBLIC("p.set_" key, call_value, rpc::object_value_f_fn(set), "i:i", "") \
-  ADD_CP_SLOT_PUBLIC("p.get_" key, call_unknown, rpc::object_void_f_fn(get), "i:", "")
+  ADD_CP_SLOT_PUBLIC("p.set_" key, call_value, rpc::object_value_fn<torrent::Peer*>(set), "i:i", "") \
+  ADD_CP_SLOT_PUBLIC("p.get_" key, call_unknown, rpc::object_void_fn<torrent::Peer*>(get), "i:", "")
 
 #define ADD_CP_STRING_UNI(key, get) \
-  ADD_CP_SLOT_PUBLIC("p.get_" key, call_unknown, rpc::object_void_f_fn(get), "s:", "")
+  ADD_CP_SLOT_PUBLIC("p.get_" key, call_unknown, rpc::object_void_fn<torrent::Peer*>(get), "s:", "")
 
 void
 initialize_command_peer() {
