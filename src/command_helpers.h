@@ -144,6 +144,9 @@ add_variable(key, NULL, NULL, &rpc::CommandVariable::get_string, NULL, std::stri
 #define ADD_COMMAND_VALUE(key, slot) \
   ADD_COMMAND_SLOT(key, call_value, slot, "i:i", "")
 
+#define ADD_ANY_VALUE(key, slot) \
+  ADD_ANY_SLOT(key, call_value, slot, "i:i", "")
+
 #define ADD_COMMAND_VALUE_UN(key, slot) \
   ADD_COMMAND_SLOT(key, call_value, rpc::object_value_fn(slot), "i:i", "")
 

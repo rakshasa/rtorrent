@@ -147,42 +147,40 @@ Download::create_info() {
 
   // Get these bindings with some kind of string map.
 
-  element->push_column("Name:",             te_variable_string("d.get_name"));
-  element->push_column("Local id:",         te_variable_string("d.get_local_id_html"));
-  element->push_column("Info hash:",        te_variable_string("d.get_hash"));
-  element->push_column("Created:",          te_variable_value("d.get_creation_date", value_base::flag_date), " ", te_variable_value("d.get_creation_date", value_base::flag_time));
+  element->push_column("Name:",             te_command("d.get_name="));
+  element->push_column("Local id:",         te_command("d.get_local_id_html="));
+  element->push_column("Info hash:",        te_command("d.get_hash="));
+  element->push_column("Created:",          te_command("cat=$to_date=$d.get_creation_date=,\" \",$to_time=$d.get_creation_date="));
 
   element->push_back("");
-  element->push_column("Directory:",        te_variable_string("d.get_base_path"));
-  element->push_column("Tied to file:",     te_variable_string("d.get_tied_to_file"));
-  element->push_column("File stats:",
-                       te_branch(&core::Download::c_file_list, &torrent::FileList::is_multi_file, te_string("multi"), te_string("single")),
-                       " ", te_variable_value("d.get_size_files"), " files");
+  element->push_column("Directory:",        te_command("d.get_base_path="));
+  element->push_column("Tied to file:",     te_command("d.get_tied_to_file="));
+  element->push_column("File stats:",       te_command("cat=$if=$d.is_multi_file=\\,multi\\,single,\" \",$d.get_size_files=,\" files\""));
 
   element->push_back("");
-  element->push_column("Chunks:",           te_variable_value("d.get_completed_chunks"), " / ", te_variable_value("d.get_size_chunks"), " * ", te_variable_value("d.get_chunk_size"));
-  element->push_column("Priority:",         te_variable_value("d.get_priority"));
-  element->push_column("Peer exchange:",    display::text_element_branch(std::mem_fun(&torrent::Download::pex_enabled), te_string("enabled"), te_string("disabled")));
+  element->push_column("Chunks:",           te_command("cat=$d.get_completed_chunks=,\" / \",$d.get_size_chunks=,\" * \",$d.get_chunk_size="));
+  element->push_column("Priority:",         te_command("d.get_priority="));
+  element->push_column("Peer exchange:",    te_command("if=$d.get_peer_exchange=,enabled,disabled"));
 
-  element->push_column("State changed:",    te_variable_value("d.get_state_changed", value_base::flag_timer | value_base::flag_elapsed));
-
-  element->push_back("");
-  element->push_column("Memory usage:",     te_variable_value("get_memory_usage", value_base::flag_mb), " MB");
-  element->push_column("Max memory usage:", te_variable_value("get_max_memory_usage", value_base::flag_mb), " MB");
-  element->push_column("Free diskspace:",   te_variable_value("d.get_free_diskspace", value_base::flag_mb), " MB");
-  element->push_column("Safe diskspace:",   te_variable_value("get_safe_free_diskspace", value_base::flag_mb), " MB");
+  element->push_column("State changed:",    te_command("to_elapsed_time=$d.get_state_changed="));
 
   element->push_back("");
-  element->push_column("Connection type:",  te_variable_string("d.get_connection_current"));
-  element->push_column("Safe sync:",        te_branch(&torrent::ChunkManager::safe_sync, torrent::chunk_manager(), te_string("yes"), te_string("no")));
-  element->push_column("Send buffer:",      te_variable_value("get_send_buffer_size", value_base::flag_kb), " KB");
-  element->push_column("Receive buffer:",   te_variable_value("get_receive_buffer_size", value_base::flag_kb), " KB");
+  element->push_column("Memory usage:",     te_command("cat=$to_mb=$get_memory_usage=,\" MB\""));
+  element->push_column("Max memory usage:", te_command("cat=$to_mb=$get_max_memory_usage=,\" MB\""));
+  element->push_column("Free diskspace:",   te_command("cat=$to_mb=$d.get_free_diskspace=,\" MB\""));
+  element->push_column("Safe diskspace:",   te_command("cat=$to_mb=$get_safe_free_diskspace=,\" MB\""));
 
   element->push_back("");
-  element->push_column("Upload:",           te_variable_value("d.get_up_rate", value_base::flag_kb), " KB / ", te_variable_value("d.get_up_total", value_base::flag_xb));
-  element->push_column("Download:",         te_variable_value("d.get_down_rate", value_base::flag_kb), " KB / ", te_variable_value("d.get_down_total", value_base::flag_xb));
-  element->push_column("Skipped:",          te_variable_value("d.get_skip_rate", value_base::flag_kb), " KB / ", te_variable_value("d.get_skip_total", value_base::flag_xb));
-  element->push_column("Preload:",          te_variable_value("get_preload_type"), " / ", te_variable_value("get_stats_preloaded"), " / ", te_variable_value("get_stats_not_preloaded"));
+  element->push_column("Connection type:",  te_command("d.get_connection_current="));
+  element->push_column("Safe sync:",        te_command("if=$get_safe_sync=,yes,no"));
+  element->push_column("Send buffer:",      te_command("cat=$to_mb=$get_send_buffer_size=,\" KB\""));
+  element->push_column("Receive buffer:",   te_command("cat=$to_mb=$get_receive_buffer_size=,\" KB\""));
+
+  element->push_back("");
+  element->push_column("Upload:",           te_command("cat=$to_kb=$d.get_up_rate=,\" KB / \",$to_xb=$d.get_up_total="));
+  element->push_column("Download:",         te_command("cat=$to_kb=$d.get_down_rate=,\" KB / \",$to_xb=$d.get_down_total="));
+  element->push_column("Skipped:",          te_command("cat=$to_kb=$d.get_skip_rate=,\" KB / \",$to_xb=$d.get_skip_total="));
+  element->push_column("Preload:",          te_command("cat=$get_preload_type=,\" / \",$get_stats_preloaded=,\" / \",$get_stats_not_preloaded="));
 
   element->set_column_width(element->column_width() + 1);
 

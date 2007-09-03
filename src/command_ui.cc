@@ -124,6 +124,77 @@ apply_cat(rpc::target_type target, const torrent::Object& rawArgs) {
   return result;
 }
 
+torrent::Object
+apply_to_date(const torrent::Object& rawArgs) {
+  time_t t = (uint64_t)rawArgs.as_value();
+  std::tm *u = std::gmtime(&t);
+  
+  if (u == NULL)
+    return torrent::Object();
+
+  char buffer[11];
+  snprintf(buffer, 11, "%02u/%02u/%04u", u->tm_mday, (u->tm_mon + 1), (1900 + u->tm_year));
+  
+  return std::string(buffer);
+}
+
+torrent::Object
+apply_to_time(const torrent::Object& rawArgs) {
+  time_t t = (uint64_t)rawArgs.as_value();
+  std::tm *u = std::gmtime(&t);
+  
+  if (u == NULL)
+    return torrent::Object();
+
+  char buffer[9];
+  snprintf(buffer, 9, "%2d:%02d:%02d", u->tm_hour, u->tm_min, u->tm_sec);
+
+  return std::string(buffer);
+}
+
+torrent::Object
+apply_to_elapsed_time(const torrent::Object& rawArgs) {
+  uint64_t arg = cachedTime.seconds() - rawArgs.as_value();
+
+  char buffer[48];
+  snprintf(buffer, 48, "%2d:%02d:%02d", (int)(arg / 3600), (int)((arg / 60) % 60), (int)(arg % 60));
+
+  return std::string(buffer);
+}
+
+torrent::Object
+apply_to_kb(const torrent::Object& rawArgs) {
+  char buffer[32];
+  snprintf(buffer, 32, "%5.1f", (double)rawArgs.as_value() / (1 << 10));
+
+  return std::string(buffer);
+}
+
+torrent::Object
+apply_to_mb(const torrent::Object& rawArgs) {
+  char buffer[32];
+  snprintf(buffer, 32, "%8.1f", (double)rawArgs.as_value() / (1 << 20));
+
+  return std::string(buffer);
+}
+
+torrent::Object
+apply_to_xb(const torrent::Object& rawArgs) {
+  char buffer[48];
+  int64_t arg = rawArgs.as_value();  
+
+  if (arg < (int64_t(1000) << 10))
+    snprintf(buffer, 48, "%5.1f KB", (double)arg / (int64_t(1) << 10));
+  else if (arg < (int64_t(1000) << 20))
+    snprintf(buffer, 48, "%5.1f MB", (double)arg / (int64_t(1) << 20));
+  else if (arg < (int64_t(1000) << 30))
+    snprintf(buffer, 48, "%5.1f GB", (double)arg / (int64_t(1) << 30));
+  else
+    snprintf(buffer, 48, "%5.1f TB", (double)arg / (int64_t(1) << 40));
+
+  return std::string(buffer);
+}
+
 // A series of if/else statements. Every even arguments are
 // conditionals and odd arguments are branches to be executed, except
 // the last one which is always a branch.
@@ -196,4 +267,11 @@ initialize_command_ui() {
   ADD_ANY_NONE("print",             rak::ptr_fn(&apply_print));
   ADD_ANY_NONE("cat",               rak::ptr_fn(&apply_cat));
   ADD_ANY_NONE("if",                rak::ptr_fn(&apply_if));
+
+  ADD_COMMAND_VALUE("to_date",          rak::ptr_fn(&apply_to_date));
+  ADD_COMMAND_VALUE("to_time",          rak::ptr_fn(&apply_to_time));
+  ADD_COMMAND_VALUE("to_elapsed_time",  rak::ptr_fn(&apply_to_elapsed_time));
+  ADD_COMMAND_VALUE("to_kb",            rak::ptr_fn(&apply_to_kb));
+  ADD_COMMAND_VALUE("to_mb",            rak::ptr_fn(&apply_to_mb));
+  ADD_COMMAND_VALUE("to_xb",            rak::ptr_fn(&apply_to_xb));
 }

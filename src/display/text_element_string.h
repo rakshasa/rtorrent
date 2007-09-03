@@ -167,7 +167,12 @@ public:
 
   static const int flag_fixed_width = (1 << 8);
 
-  TextElementCommand(const char* command) : m_command(command) {}
+  TextElementCommand(const char* command, int flags, int attributes, extent_type length) :
+    m_flags(flags),
+    m_attributes(attributes),
+    m_length(length),
+    m_command(command),
+    m_commandEnd(command + std::strlen(command)) {}
 
   int                 flags() const                 { return m_flags; }
   void                set_flags(int flags)          { m_flags = flags; }
@@ -177,14 +182,16 @@ public:
 
   virtual char*       print(char* first, char* last, Canvas::attributes_list* attributes, rpc::target_type target);
 
+  virtual extent_type max_length()                  { return m_length; }
+
 protected:
   int                 m_flags;
   int                 m_attributes;
+  extent_type         m_length;
 
   const char*         m_command;
+  const char*         m_commandEnd;
 };
-
-
 
 }
 

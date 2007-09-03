@@ -52,6 +52,15 @@
 
 namespace display { namespace helpers {
 
+// All we're ever going to need:
+
+inline TextElementCommand*
+te_command(const char* command, int flags = TextElementCommand::flag_normal, int attributes = Attributes::a_invalid) {
+  return new TextElementCommand(command, flags, attributes, TextElementCommand::extent_full);
+}
+
+// End All we're ever going to need.
+
 typedef TextElementStringBase string_base;
 typedef TextElementValueBase  value_base;
 

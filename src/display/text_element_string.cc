@@ -38,6 +38,7 @@
 
 #include <rak/string_manip.h>
 
+#include "rpc/parse_commands.h"
 #include "text_element_string.h"
 
 namespace display {
@@ -89,33 +90,47 @@ TextElementCString::copy_string(char* first, char* last, rpc::target_type target
   return first + length;
 }
 
-// char*
-// TextElementCommand::print(char* first, char* last, Canvas::attributes_list* attributes, rpc::target_type target) {
-//   Attributes baseAttribute = attributes->back();
-//   push_attribute(attributes, Attributes(first, m_attributes, Attributes::color_invalid));
+char*
+TextElementCommand::print(char* first, char* last, Canvas::attributes_list* attributes, rpc::target_type target) {
+  Attributes baseAttribute = attributes->back();
+  push_attribute(attributes, Attributes(first, m_attributes, Attributes::color_invalid));
 
-//   if (first == last)
-//     return first;
+  torrent::Object result = rpc::parse_command(target, m_command, m_commandEnd).first;
 
-//   if (m_flags & flag_escape_hex) {
-//     char buffer[last - first];
-//     char* bufferLast = copy_string(buffer, buffer + (last - first), target);
+  if (first == last)
+    return first;
 
-//     first = rak::transform_hex(buffer, bufferLast, first, last);
+  switch (result.type()) {
+  case torrent::Object::TYPE_STRING:
+  {
+    const std::string& str = result.as_string();
 
-//   } else if (m_flags & flag_escape_html) {
-//     char buffer[last - first];
-//     char* bufferLast = copy_string(buffer, buffer + (last - first), target);
+    if (m_flags & flag_escape_hex) {
+      first = rak::transform_hex(str.c_str(), str.c_str() + str.size(), first, last);
 
-//     first = rak::copy_escape_html(buffer, bufferLast, first, last);
+    } else if (m_flags & flag_escape_html) {
+      first = rak::copy_escape_html(str.c_str(), str.c_str() + str.size(), first, last);
 
-//   } else {
-//     first = copy_string(first, last, target);
-//   }  
+    } else {
+      size_t length = std::min<size_t>(str.size(), std::distance(first, last));
 
-//   push_attribute(attributes, Attributes(first, baseAttribute));
+      std::memcpy(first, str.c_str(), length);
+      first += std::min<size_t>(str.size(), length);
+    }  
 
-//   return first;
-// }
+    break;
+  }
+  case torrent::Object::TYPE_VALUE:
+  { 
+    first += std::max(snprintf(first, last - first + 1, "%lld", result.as_value()), 0);
+    break;
+  }
+  default:
+    return first;
+  }
+
+  push_attribute(attributes, Attributes(first, baseAttribute));
+  return first;
+}
 
 }
