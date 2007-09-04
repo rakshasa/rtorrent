@@ -204,11 +204,15 @@ apply_scgi(const std::string& arg, int type) {
         sa.sa_inet()->clear();
         saPtr = &sa;
 
+        control->core()->push_log("The SCGI socket has not been bound to any address and likely poses a security risk.");
+
       } else if (std::sscanf(arg.c_str(), "%1023[^:]:%i%c", address, &port, &dummy) == 2) {
         if ((err = rak::address_info::get_address_info(address, PF_INET, SOCK_STREAM, &ai)) != 0)
           throw torrent::input_error("Could not bind address: " + std::string(rak::address_info::strerror(err)) + ".");
 
         saPtr = ai->address();
+
+        control->core()->push_log("The SCGI socket is bound to a specific network device yet may still pose a security risk, consider using 'scgi_local'.");
 
       } else {
         throw torrent::input_error("Could not parse address.");

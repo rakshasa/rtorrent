@@ -391,6 +391,7 @@ initialize_command_download() {
   ADD_CD_VALUE("is_hash_checked",  rak::on(std::mem_fun(&core::Download::download), std::mem_fun(&torrent::Download::is_hash_checked)));
   ADD_CD_VALUE("is_hash_checking", rak::on(std::mem_fun(&core::Download::download), std::mem_fun(&torrent::Download::is_hash_checking)));
   ADD_CD_VALUE("is_multi_file",    rak::on(std::mem_fun(&core::Download::file_list), std::mem_fun(&torrent::FileList::is_multi_file)));
+  ADD_CD_VALUE("is_private",       rak::on(std::mem_fun(&core::Download::download), std::mem_fun(&torrent::Download::is_private)));
 
   ADD_CD_VARIABLE_STRING_PUBLIC("custom1", "rtorrent", "custom1");
   ADD_CD_VARIABLE_STRING_PUBLIC("custom2", "rtorrent", "custom2");
@@ -449,7 +450,6 @@ initialize_command_download() {
   ADD_CD_VALUE_UNI("peers_accounted",     rak::on(std::mem_fun(&core::Download::download), std::mem_fun(&torrent::Download::peers_accounted)));
 
   ADD_CD_VALUE_MEM_BI("peer_exchange", &core::Download::download, &torrent::Download::set_pex_enabled, &torrent::Download::is_pex_enabled);
-  ADD_CD_VALUE_UNI("private",          rak::on(std::mem_fun(&core::Download::download), std::mem_fun(&torrent::Download::is_private)));
 
   ADD_CD_VALUE_MEM_UNI("up_rate",      &torrent::Download::mutable_up_rate, &torrent::Rate::rate);
   ADD_CD_VALUE_MEM_UNI("up_total",     &torrent::Download::mutable_up_rate, &torrent::Rate::total);

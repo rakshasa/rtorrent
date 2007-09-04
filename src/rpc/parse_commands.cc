@@ -162,17 +162,25 @@ parse_command_file(const std::string& path) {
   try {
     unsigned int getCount = 0;
 
-    while (file.getline(buffer + getCount, 4096 - getCount).good()) {
+    while (file.good()
+           && !file.getline(buffer + getCount, 4096 - getCount).fail()) {
+      
       if (file.gcount() == 0)
         throw torrent::internal_error("parse_command_file(...) file.gcount() == 0.");
-
-      int escaped = parse_count_escaped(buffer + getCount, buffer + getCount + file.gcount() - 1);
+      int lineLength = file.gcount() - 1;
+      // In case we are at the end of the file and the last character is
+      // not a line feed, we'll just increase the read character count so 
+      // that the last would also be included in option line.
+      if (file.eof() && file.get() != '\n')
+        lineLength++;
+      
+      int escaped = parse_count_escaped(buffer + getCount, buffer + getCount + lineLength);
 
       lineNumber++;
-      getCount += file.gcount() - 1;
+      getCount += lineLength;
 
       if (getCount == 4096 - 1)
-        throw torrent::input_error("Exceeded max line lenght.");
+        throw torrent::input_error("Exceeded max line length.");
       
       if (escaped & 0x1) {
         // Remove the escape characters and continue reading.

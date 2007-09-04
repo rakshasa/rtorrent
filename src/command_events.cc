@@ -124,7 +124,7 @@ apply_start_tied() {
     const std::string& tiedToFile = rpc::call_command_string("d.get_tied_to_file", rpc::make_target(*itr));
 
     if (!tiedToFile.empty() && fs.update(rak::path_expand(tiedToFile)))
-      control->core()->download_list()->start_normal(*itr);
+      control->core()->download_list()->start_try(*itr);
   }
 
   return torrent::Object();
@@ -140,7 +140,7 @@ apply_stop_untied() {
     const std::string& tiedToFile = rpc::call_command_string("d.get_tied_to_file", rpc::make_target(*itr));
 
     if (!tiedToFile.empty() && !fs.update(rak::path_expand(tiedToFile)))
-      control->core()->download_list()->stop_normal(*itr);
+      control->core()->download_list()->stop_try(*itr);
   }
 
   return torrent::Object();
@@ -152,7 +152,7 @@ apply_close_untied() {
     rak::file_stat fs;
     const std::string& tiedToFile = rpc::call_command_string("d.get_tied_to_file", rpc::make_target(*itr));
 
-    if (!tiedToFile.empty() && !fs.update(rak::path_expand(tiedToFile)))
+    if (rpc::call_command_value("d.get_ignore_commands", rpc::make_target(*itr)) == 0 && !tiedToFile.empty() && !fs.update(rak::path_expand(tiedToFile)))
       control->core()->download_list()->close(*itr);
   }
 
