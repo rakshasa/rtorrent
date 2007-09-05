@@ -52,6 +52,7 @@
 
 #include "control.h"
 #include "download.h"
+#include "manager.h"
 
 namespace core {
 
@@ -157,6 +158,8 @@ Download::receive_chunk_failed(__UNUSED uint32_t idx) {
 void
 Download::set_root_directory(const std::string& path) {
   torrent::FileList* fileList = m_download.file_list();
+
+  control->core()->download_list()->close_directly(this);
 
   if (path.empty()) {
     fileList->set_root_dir("./" + (fileList->is_multi_file() ? m_download.name() : std::string()));

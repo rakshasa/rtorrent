@@ -235,6 +235,17 @@ DownloadList::close(Download* download) {
 }
 
 void
+DownloadList::close_directly(Download* download) {
+  if (download->download()->is_active()) {
+    download->download()->stop2(torrent::Download::stop_skip_tracker);
+    torrent::resume_save_progress(*download->download(), download->download()->bencode()->get_key("libtorrent_resume"));
+  }
+
+  if (download->download()->is_open())
+    download->download()->close();
+}
+
+void
 DownloadList::close_quick(Download* download) {
   close(download);
   
@@ -581,18 +592,6 @@ DownloadList::confirm_finished(Download* download) {
   // Send the completed request before resuming so we don't reset the
   // up/downloaded baseline.
   download->download()->tracker_list().send_completed();
-
-  // Close before calling on_finished to ensure the user can do stuff
-  // like change move the downloaded files and change the directory.
-//   close_throw(download);
-  // HACK:
-  if (download->is_open()) {
-    pause(download, torrent::Download::stop_skip_tracker);
-    download->download()->close();
-    std::for_each(slot_map_hash_removed().begin(), slot_map_hash_removed().end(), download_list_call(download));
-    std::for_each(slot_map_close().begin(), slot_map_close().end(), download_list_call(download));
-  }
-  // END
 
   std::for_each(slot_map_finished().begin(), slot_map_finished().end(), download_list_call(download));
 

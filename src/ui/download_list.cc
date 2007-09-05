@@ -292,6 +292,9 @@ DownloadList::receive_exit_input(Input type) {
       if (current_view()->focus() == current_view()->end_visible())
         throw torrent::input_error("No download in focus to change root directory.");
 
+      if ((*current_view()->focus())->is_open())
+        throw torrent::input_error("Cannot change root directory on an open download.");
+
       rpc::call_command("d.set_directory", rak::trim(input->str()), rpc::make_target(*current_view()->focus()));
       control->core()->push_log_std("New root directory \"" + rpc::call_command_string("d.get_directory", rpc::make_target(*current_view()->focus())) + "\" for torrent.");
       break;
