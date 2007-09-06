@@ -259,6 +259,11 @@ object_fn(Return (*func)(Target)) { return new object_void_fn_t<Target, Return (
 template <typename Return> object_void_fn_t<void, Return (*)(), Return>*
 object_fn(Return (*func)()) { return new object_void_fn_t<void, Return (*)(), Return>(func); }
 
+template <typename Target, typename Return> object_void_fn_t<Target, Return (*)(Target), Return>*
+object_void_fn(Return (*func)(Target)) { return new object_void_fn_t<Target, Return (*)(Target), Return>(func); }
+template <typename Return> object_void_fn_t<void, Return (*)(), Return>*
+object_void_fn(Return (*func)()) { return new object_void_fn_t<void, Return (*)(), Return>(func); }
+
 template <typename Func>                  object_void_fn_t<void, Func>*      object_void_fn(Func func)    { return new object_void_fn_t<void, Func>(func); }
 template <typename Target, typename Func> object_void_fn_t<Target, Func>*    object_void_fn(Func func)    { return new object_void_fn_t<Target, Func>(func); }
 template <typename Func>                  object_value_fn_t<void, Func>*     object_value_fn(Func func)   { return new object_value_fn_t<void, Func>(func); }

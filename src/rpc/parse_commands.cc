@@ -149,6 +149,11 @@ parse_command_multiple(target_type target, const char* first, const char* last) 
   }
 }
 
+parse_command_type
+parse_command_object(target_type target, const torrent::Object& object) {
+  return parse_command(target, object.as_string().c_str(), object.as_string().c_str() + object.as_string().size());
+}
+
 bool
 parse_command_file(const std::string& path) {
   std::fstream file(rak::path_expand(path).c_str(), std::ios::in);

@@ -101,6 +101,7 @@ public:
   void                open_throw(Download* d);
 
   void                close(Download* d);
+  bool                close_try(Download* d);
   void                close_directly(Download* d);
   void                close_quick(Download* d);
   void                close_throw(Download* d);

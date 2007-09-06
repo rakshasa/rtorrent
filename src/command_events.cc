@@ -79,7 +79,7 @@ apply_on_state_change(core::DownloadList::slot_map* slotMap, const torrent::Obje
 }
 
 torrent::Object
-apply_stop_on_ratio(const torrent::Object& rawArgs) {
+apply_on_ratio(int action, const torrent::Object& rawArgs) {
   const torrent::Object::list_type& args = rawArgs.as_list();
 
   if (args.empty())
@@ -95,20 +95,32 @@ apply_stop_on_ratio(const torrent::Object& rawArgs) {
   int64_t maxRatio  = argItr != args.end() ? rpc::convert_to_value(*argItr++) : 0;
 
   core::DownloadList* downloadList = control->core()->download_list();
-  core::Manager::DListItr itr = downloadList->begin();
 
-  while ((itr = std::find_if(itr, downloadList->end(), std::mem_fun(&core::Download::is_seeding)))
-         != downloadList->end()) {
+  for  (core::Manager::DListItr itr = downloadList->begin();
+        (itr = std::find_if(itr, downloadList->end(), std::mem_fun(&core::Download::is_seeding))) != downloadList->end();
+        itr++) {
     int64_t totalDone   = (*itr)->download()->bytes_done();
     int64_t totalUpload = (*itr)->download()->up_rate()->total();
 
-    if ((totalUpload >= minUpload && totalUpload * 100 >= totalDone * minRatio) ||
-        (maxRatio > 0 && totalUpload * 100 > totalDone * maxRatio)) {
-      downloadList->stop_try(*itr);
-      rpc::call_command("d.set_ignore_commands", (int64_t)1, rpc::make_target(*itr));
+    if (!(totalUpload >= minUpload && totalUpload * 100 >= totalDone * minRatio) &&
+        !(maxRatio > 0 && totalUpload * 100 > totalDone * maxRatio))
+      continue;
+
+    bool success;
+
+    switch (action) {
+    case core::DownloadList::SLOTS_CLOSE: success = downloadList->close_try(*itr); break;
+    case core::DownloadList::SLOTS_STOP:  success = downloadList->stop_try(*itr); break;
+    default: success = false; break;
     }
 
-    ++itr;
+    if (!success)
+      continue;
+
+    rpc::call_command("d.set_ignore_commands", (int64_t)1, rpc::make_target(*itr));
+
+    while (argItr != args.end())
+      rpc::parse_command_object(rpc::make_target(*itr), *(argItr++));
   }
 
   return torrent::Object();
@@ -322,23 +334,24 @@ initialize_command_events() {
   ADD_VARIABLE_BOOL("session_lock", true);
   ADD_VARIABLE_BOOL("session_on_completion", true);
 
-  ADD_COMMAND_SLOT_PRIVATE("on_insert",       call_list, rak::bind_ptr_fn(&apply_on_state_change, &downloadList->slot_map_insert()));
-  ADD_COMMAND_SLOT_PRIVATE("on_erase",        call_list, rak::bind_ptr_fn(&apply_on_state_change, &downloadList->slot_map_erase()));
-  ADD_COMMAND_SLOT_PRIVATE("on_open",         call_list, rak::bind_ptr_fn(&apply_on_state_change, &downloadList->slot_map_open()));
-  ADD_COMMAND_SLOT_PRIVATE("on_close",        call_list, rak::bind_ptr_fn(&apply_on_state_change, &downloadList->slot_map_close()));
-  ADD_COMMAND_SLOT_PRIVATE("on_start",        call_list, rak::bind_ptr_fn(&apply_on_state_change, &downloadList->slot_map_start()));
-  ADD_COMMAND_SLOT_PRIVATE("on_stop",         call_list, rak::bind_ptr_fn(&apply_on_state_change, &downloadList->slot_map_stop()));
-  ADD_COMMAND_SLOT_PRIVATE("on_hash_queued",  call_list, rak::bind_ptr_fn(&apply_on_state_change, &downloadList->slot_map_hash_queued()));
-  ADD_COMMAND_SLOT_PRIVATE("on_hash_removed", call_list, rak::bind_ptr_fn(&apply_on_state_change, &downloadList->slot_map_hash_removed()));
-  ADD_COMMAND_SLOT_PRIVATE("on_hash_done",    call_list, rak::bind_ptr_fn(&apply_on_state_change, &downloadList->slot_map_hash_done()));
-  ADD_COMMAND_SLOT_PRIVATE("on_finished",     call_list, rak::bind_ptr_fn(&apply_on_state_change, &downloadList->slot_map_finished()));
+  ADD_COMMAND_LIST("on_insert",       rak::bind_ptr_fn(&apply_on_state_change, &downloadList->slot_map_insert()));
+  ADD_COMMAND_LIST("on_erase",        rak::bind_ptr_fn(&apply_on_state_change, &downloadList->slot_map_erase()));
+  ADD_COMMAND_LIST("on_open",         rak::bind_ptr_fn(&apply_on_state_change, &downloadList->slot_map_open()));
+  ADD_COMMAND_LIST("on_close",        rak::bind_ptr_fn(&apply_on_state_change, &downloadList->slot_map_close()));
+  ADD_COMMAND_LIST("on_start",        rak::bind_ptr_fn(&apply_on_state_change, &downloadList->slot_map_start()));
+  ADD_COMMAND_LIST("on_stop",         rak::bind_ptr_fn(&apply_on_state_change, &downloadList->slot_map_stop()));
+  ADD_COMMAND_LIST("on_hash_queued",  rak::bind_ptr_fn(&apply_on_state_change, &downloadList->slot_map_hash_queued()));
+  ADD_COMMAND_LIST("on_hash_removed", rak::bind_ptr_fn(&apply_on_state_change, &downloadList->slot_map_hash_removed()));
+  ADD_COMMAND_LIST("on_hash_done",    rak::bind_ptr_fn(&apply_on_state_change, &downloadList->slot_map_hash_done()));
+  ADD_COMMAND_LIST("on_finished",     rak::bind_ptr_fn(&apply_on_state_change, &downloadList->slot_map_finished()));
 
-  ADD_COMMAND_SLOT_PRIVATE("stop_on_ratio",   call_list, rak::ptr_fn(&apply_stop_on_ratio));
+  ADD_COMMAND_LIST("stop_on_ratio",   rak::bind_ptr_fn(&apply_on_ratio, (int)core::DownloadList::SLOTS_STOP));
+  ADD_COMMAND_LIST("close_on_ratio",  rak::bind_ptr_fn(&apply_on_ratio, (int)core::DownloadList::SLOTS_CLOSE));
 
-  ADD_COMMAND_SLOT_PRIVATE("start_tied",      call_string, rpc::object_fn(&apply_start_tied));
-  ADD_COMMAND_SLOT_PRIVATE("stop_untied",     call_string, rpc::object_fn(&apply_stop_untied));
-  ADD_COMMAND_SLOT_PRIVATE("close_untied",    call_string, rpc::object_fn(&apply_close_untied));
-  ADD_COMMAND_SLOT_PRIVATE("remove_untied",   call_string, rpc::object_fn(&apply_remove_untied));
+  ADD_COMMAND_VOID("start_tied",      &apply_start_tied);
+  ADD_COMMAND_VOID("stop_untied",     &apply_stop_untied);
+  ADD_COMMAND_VOID("close_untied",    &apply_close_untied);
+  ADD_COMMAND_VOID("remove_untied",   &apply_remove_untied);
 
   ADD_COMMAND_LIST("schedule",                rak::ptr_fn(&apply_schedule));
   ADD_COMMAND_STRING_UN("schedule_remove",    rak::make_mem_fun(control->command_scheduler(), &rpc::CommandScheduler::erase_str));

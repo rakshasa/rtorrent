@@ -234,6 +234,22 @@ DownloadList::close(Download* download) {
   }
 }
 
+bool
+DownloadList::close_try(Download* download) {
+  try {
+    if (rpc::call_command_value("d.get_ignore_commands", rpc::make_target(download)) != 0)
+      return false;
+
+    rpc::call_command("d.set_state", (int64_t)0, rpc::make_target(download));
+    close_throw(download);
+    return true;
+
+  } catch (torrent::local_error& e) {
+    control->core()->push_log(e.what());
+    return false;
+  }
+}
+
 void
 DownloadList::close_directly(Download* download) {
   if (download->download()->is_active()) {
