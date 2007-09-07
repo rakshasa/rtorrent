@@ -119,8 +119,8 @@ apply_on_ratio(int action, const torrent::Object& rawArgs) {
 
     rpc::call_command("d.set_ignore_commands", (int64_t)1, rpc::make_target(*itr));
 
-    while (argItr != args.end())
-      rpc::parse_command_object(rpc::make_target(*itr), *(argItr++));
+    for (torrent::Object::list_type::const_iterator itr2 = argItr; itr2 != args.end(); itr2++)
+      rpc::parse_command_object(rpc::make_target(*itr), *itr2);
   }
 
   return torrent::Object();

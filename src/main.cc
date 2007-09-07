@@ -214,6 +214,13 @@ main(int argc, char** argv) {
        "view_sort_new = seeding,state_changed\n"
        "view_sort_current = seeding,state_changed_reverse\n"
 
+       // Changing these will bork the (non-existant) scheduler.
+       "view_add = scheduler\n"
+       "view_sort_new = scheduler,state_changed\n" // add started?
+       "view_sort_current = scheduler,state_changed\n"
+
+       //    "schedule = scheduler,10,10,download_scheduler=\n"
+
        "schedule = view_main,10,10,\"view_sort=main,20\"\n"
        "schedule = view_name,10,10,\"view_sort=name,20\"\n"
        //     "schedule = view_started,10,10,view_sort=started,5\n"
@@ -221,16 +228,10 @@ main(int argc, char** argv) {
        //     "schedule = view_complete,10,10,view_sort=complete,5\n"
        //     "schedule = view_incomplete,10,10,view_sort=incomplete,5\n"
 
-       //"schedule = scheduler,10,10,download_scheduler=\n"
        "schedule = session_save,1800,1800,session_save=\n"
        "schedule = low_diskspace,5,60,close_low_diskspace=500M\n"
 
-       // Changing these will bork the (non-existant) scheduler.
-       "view_add = scheduler\n"
-       "view_sort_new = scheduler,state_changed\n" // add started?
-       "view_sort_current = scheduler,state_changed\n"
-
-       //    "schedule = scheduler,10,10,download_scheduler=\n"
+       "encryption=allow_incoming,prefer_plaintext,enable_retry\n"
     );
 
     if (OptionParser::has_flag('n', argc, argv))
