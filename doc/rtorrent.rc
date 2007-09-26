@@ -37,7 +37,7 @@
 # when also reaching total upload in bytes, or when
 # reaching final upload ratio in percent.
 # example: stop at ratio 2.0 with at least 200 MB uploaded, or else ratio 20.0
-#schedule = ratio,60,60,stop_on_ratio=200,200M,2000
+#schedule = ratio,60,60,"stop_on_ratio=200,200M,2000"
 
 # The ip address reported to the tracker.
 #ip = 127.0.0.1
