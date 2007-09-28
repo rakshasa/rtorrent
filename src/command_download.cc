@@ -467,6 +467,8 @@ initialize_command_download() {
   ADD_CD_VALUE_UNI("size_files",          rak::on(std::mem_fun(&core::Download::file_list), std::mem_fun(&torrent::FileList::size_files)));
   ADD_CD_VALUE_UNI("size_bytes",          rak::on(std::mem_fun(&core::Download::file_list), std::mem_fun(&torrent::FileList::size_bytes)));
   ADD_CD_VALUE_UNI("size_chunks",         rak::on(std::mem_fun(&core::Download::file_list), std::mem_fun(&torrent::FileList::size_chunks)));
+  ADD_CD_VALUE_UNI("size_pex",            rak::on(std::mem_fun(&core::Download::download), std::mem_fun(&torrent::Download::size_pex)));
+  ADD_CD_VALUE_UNI("max_size_pex",        rak::on(std::mem_fun(&core::Download::download), std::mem_fun(&torrent::Download::max_size_pex)));
 
   ADD_CD_VALUE_UNI("completed_bytes",     rak::on(std::mem_fun(&core::Download::file_list), std::mem_fun(&torrent::FileList::completed_bytes)));
   ADD_CD_VALUE_UNI("completed_chunks",    rak::on(std::mem_fun(&core::Download::file_list), std::mem_fun(&torrent::FileList::completed_chunks)));
