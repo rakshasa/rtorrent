@@ -160,7 +160,10 @@ Download::create_info() {
   element->push_back("");
   element->push_column("Chunks:",           te_command("cat=$d.get_completed_chunks=,\" / \",$d.get_size_chunks=,\" * \",$d.get_chunk_size="));
   element->push_column("Priority:",         te_command("d.get_priority="));
-  element->push_column("Peer exchange:",    te_command("cat=$if=$d.get_peer_exchange=\\,enabled\\,disabled,\\ (,$d.get_size_pex=,/,$d.get_max_size_pex=,)"));
+//   element->push_column("Peer exchange:",    te_command("cat=$if=$d.get_peer_exchange=\\,enabled\\,disabled,\\ (,$d.get_size_pex=,/,$d.get_max_size_pex=,)"));
+  element->push_column("Peer exchange:",    te_command("cat=$if=$d.get_peer_exchange=\\,enabled\\,disabled,\\ ,"
+                                                       "$if=$d.is_pex_active=\\,active\\,inactive,"
+                                                       "\\ (,$d.get_size_pex=,/,$d.get_max_size_pex=,)"));
 
   element->push_column("State changed:",    te_command("to_elapsed_time=$d.get_state_changed="));
 

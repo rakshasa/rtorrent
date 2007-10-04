@@ -392,6 +392,7 @@ initialize_command_download() {
   ADD_CD_VALUE("is_hash_checking", rak::on(std::mem_fun(&core::Download::download), std::mem_fun(&torrent::Download::is_hash_checking)));
   ADD_CD_VALUE("is_multi_file",    rak::on(std::mem_fun(&core::Download::file_list), std::mem_fun(&torrent::FileList::is_multi_file)));
   ADD_CD_VALUE("is_private",       rak::on(std::mem_fun(&core::Download::download), std::mem_fun(&torrent::Download::is_private)));
+  ADD_CD_VALUE("is_pex_active",    rak::on(std::mem_fun(&core::Download::download), std::mem_fun(&torrent::Download::is_pex_active)));
 
   ADD_CD_VARIABLE_STRING_PUBLIC("custom1", "rtorrent", "custom1");
   ADD_CD_VARIABLE_STRING_PUBLIC("custom2", "rtorrent", "custom2");
