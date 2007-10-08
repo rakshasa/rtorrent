@@ -535,7 +535,8 @@ have been deleted. Clear the association with the 'U' key.
         <listitem><para>
 Close any active torrents on filesystems with less than
 <emphasis>space</emphasis> diskspace left. Use with
-the <emphasis>schedule</emphasis> option.
+the <emphasis>schedule</emphasis> option. A default scheduled event
+with id <emphasis>low_diskspace</emphasis> is set to 500Mb.
         </para></listitem>
       </varlistentry>
 

@@ -95,18 +95,3 @@
 # before forcing. Overworked systems might need lower values to get a
 # decent hash checking rate.
 #hash_max_tries = 10
-
-# Max number of files to keep open simultaniously.
-#max_open_files = 128
-
-# Number of sockets to simultaneously keep open.
-#max_open_sockets = <no default>
-
-
-# Example of scheduling commands: Switch between two ip's every 5
-# seconds.
-#schedule = "ip_tick1,5,10,ip=torretta"
-#schedule = "ip_tick2,10,10,ip=lampedusa"
-
-# Remove a scheduled event.
-#schedule_remove = "ip_tick1"
