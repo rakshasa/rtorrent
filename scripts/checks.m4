@@ -215,9 +215,11 @@ AC_DEFUN([TORRENT_CHECK_STATFS], [
       AC_DEFINE(FS_STAT_COUNT_TYPE, [long], Type of block count member in stat struct)
       AC_DEFINE(FS_STAT_BLOCK_SIZE, [(m_stat.f_bsize)], Determine the block size)
       AC_MSG_RESULT(ok)
+      have_stat_vfs=yes
     ],
     [
       AC_MSG_RESULT(no)
+      have_stat_vfs=no
     ])
 ])
 
