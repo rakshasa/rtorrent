@@ -142,7 +142,7 @@ AC_DEFUN([TORRENT_MINCORE_SIGNEDNESS], [
           AC_MSG_RESULT(signed)
         ],
         [
-          AC_MSG_ERROR([failed, do *not* attempt to use --disable-mincore unless you are running Win32.])
+          AC_MSG_ERROR([failed, do *not* attempt fix this with --disable-mincore unless you are running Win32.])
       ])
   ])
 
@@ -183,7 +183,7 @@ AC_DEFUN([TORRENT_CHECK_MADVISE], [
 AC_DEFUN([TORRENT_CHECK_EXECINFO], [
   AC_MSG_CHECKING(for execinfo.h)
 
-  AC_COMPILE_IFELSE(
+  AC_RUN_IFELSE(
     [[#include <execinfo.h>
       int main() { backtrace((void**)0, 0); backtrace_symbols((char**)0, 0); return 0;}
     ]],
