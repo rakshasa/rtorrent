@@ -46,8 +46,8 @@
 #include <rak/regex.h>
 #include <rak/path.h>
 #include <rak/string_manip.h>
-#include <sigc++/bind.h>
-#include <sigc++/hide.h>
+#include <sigc++/adaptors/bind.h>
+#include <sigc++/adaptors/hide.h>
 #include <torrent/object.h>
 #include <torrent/connection_manager.h>
 #include <torrent/error.h>

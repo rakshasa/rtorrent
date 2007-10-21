@@ -38,7 +38,7 @@
 
 #include <rak/functional.h>
 #include <rak/functional_fun.h>
-#include <sigc++/bind.h>
+#include <sigc++/adaptors/bind.h>
 
 #include "core/manager.h"
 #include "core/view_manager.h"

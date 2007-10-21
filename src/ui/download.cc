@@ -36,7 +36,7 @@
 
 #include "config.h"
 
-#include <sigc++/bind.h>
+#include <sigc++/adaptors/bind.h>
 #include <rak/functional.h>
 #include <rak/string_manip.h>
 #include <torrent/exceptions.h>

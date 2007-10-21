@@ -39,7 +39,7 @@
 #include <algorithm>
 #include <functional>
 #include <rak/functional.h>
-#include <sigc++/bind.h>
+#include <sigc++/adaptors/bind.h>
 #include <torrent/download.h>
 #include <torrent/exceptions.h>
 

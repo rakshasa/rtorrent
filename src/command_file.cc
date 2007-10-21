@@ -40,6 +40,7 @@
 #include <rak/path.h>
 #include <torrent/data/file.h>
 #include <torrent/data/file_list.h>
+#include <torrent/data/file_list_iterator.h>
 
 #include "core/manager.h"
 
@@ -85,6 +86,17 @@ apply_f_path_depth(torrent::File* file) {
   return (int64_t)file->path()->size();
 }
 
+torrent::Object
+apply_fi_filename_last(torrent::FileListIterator* itr) {
+  if (itr->file()->path()->empty())
+    return "EMPTY";
+
+  if (itr->depth() >= itr->file()->path()->size())
+    return "ERROR";
+
+  return itr->file()->path()->at(itr->depth());
+}
+
 #define ADD_CF_SLOT(key, function, slot, parm, doc)    \
   commandFileSlotsItr->set_slot(slot); \
   rpc::commands.insert_file(key, commandFileSlotsItr++, &rpc::CommandSlot<torrent::File*>::function, rpc::CommandMap::flag_dont_delete, parm, doc);
@@ -105,6 +117,16 @@ apply_f_path_depth(torrent::File* file) {
 
 #define ADD_CF_STRING_UNI(key, get) \
   ADD_CF_SLOT_PUBLIC("f.get_" key, call_unknown, rpc::object_void_fn<torrent::File*>(get), "s:", "")
+
+#define ADD_CFI_SLOT_PUBLIC(key, function, slot, parm, doc)    \
+  commandFileItrSlotsItr->set_slot(slot); \
+  rpc::commands.insert_file_itr(key, commandFileItrSlotsItr++, &rpc::CommandSlot<torrent::FileListIterator*>::function, rpc::CommandMap::flag_dont_delete | rpc::CommandMap::flag_public_xmlrpc, parm, doc);
+
+#define ADD_CFI_VOID(key, slot) \
+  ADD_CFI_SLOT_PUBLIC("fi.get_" key, call_unknown, rpc::object_fn(slot), "i:", "")
+
+#define ADD_CFI_VALUE(key, get) \
+  ADD_CFI_SLOT_PUBLIC("fi." key, call_unknown, rpc::object_void_fn<torrent::FileListIterator*>(get), "i:", "")
 
 void
 initialize_command_file() {
@@ -130,4 +152,8 @@ initialize_command_file() {
   ADD_CF_VALUE_UNI("match_depth_next", std::mem_fun(&torrent::File::match_depth_next));
 
   ADD_CF_VALUE_UNI("last_touched",     std::mem_fun(&torrent::File::last_touched));
+
+  ADD_CFI_VOID("filename_last",        &apply_fi_filename_last);
+
+  ADD_CFI_VALUE("is_file",             std::mem_fun(&torrent::FileListIterator::is_file));
 }

@@ -38,8 +38,8 @@
 
 #include <rak/functional.h>
 #include <rak/string_manip.h>
-#include <sigc++/bind.h>
-#include <sigc++/hide.h>
+#include <sigc++/adaptors/bind.h>
+#include <sigc++/adaptors/hide.h>
 #include <torrent/exceptions.h>
 #include <torrent/torrent.h>
 

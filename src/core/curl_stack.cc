@@ -38,7 +38,7 @@
 
 #include <algorithm>
 #include <curl/multi.h>
-#include <sigc++/bind.h>
+#include <sigc++/adaptors/bind.h>
 #include <torrent/exceptions.h>
 
 #include "rak/functional.h"

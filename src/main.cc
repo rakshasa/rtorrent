@@ -39,7 +39,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <string>
-#include <sigc++/bind.h>
+#include <sigc++/adaptors/bind.h>
 #include <torrent/http.h>
 #include <torrent/torrent.h>
 #include <torrent/exceptions.h>

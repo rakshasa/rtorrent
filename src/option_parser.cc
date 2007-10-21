@@ -43,8 +43,8 @@
 #include <getopt.h>
 #include <stdexcept>
 #include <unistd.h>
-#include <sigc++/bind.h>
-#include <sigc++/hide.h>
+#include <sigc++/adaptors/bind.h>
+#include <sigc++/adaptors/hide.h>
 
 #include "option_parser.h"
 

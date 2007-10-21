@@ -38,7 +38,7 @@
 
 #include <stdexcept>
 #include <string.h>
-#include <sigc++/bind.h>
+#include <sigc++/adaptors/bind.h>
 #include <torrent/torrent.h>
 
 #include "core/manager.h"

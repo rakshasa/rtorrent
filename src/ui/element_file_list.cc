@@ -36,7 +36,7 @@
 
 #include "config.h"
 
-#include <sigc++/bind.h>
+#include <sigc++/adaptors/bind.h>
 #include <rak/algorithm.h>
 #include <torrent/exceptions.h>
 #include <torrent/data/file.h>
@@ -78,17 +78,6 @@ ElementFileList::ElementFileList(core::Download* d) :
   m_bindings[KEY_UP]   = m_bindings['P' - '@'] = sigc::mem_fun(*this, &ElementFileList::receive_prev);
 }
 
-const char*
-element_file_list_filename(const torrent::FileListIterator* itr) {
-  if ((**itr)->path()->empty())
-    return "EMPTY";
-
-  if (itr->depth() >= (**itr)->path()->size())
-    return "ERROR";
-
-  return (**itr)->path()->at(itr->depth()).c_str();
-}
-
 inline ElementText*
 element_file_list_create_info() {
   using namespace display::helpers;
@@ -101,12 +90,13 @@ element_file_list_create_info() {
   element->push_back("File info:");
   element->push_back("");
   
-  element->push_column("Filename:", te_string(&element_file_list_filename));
+  element->push_column("Filename:", te_command("fi.get_filename_last="));
   element->push_back("");
   
-  element->push_column("Size:",   te_branch(&torrent::FileListIterator::is_file, te_value(&torrent::File::size_bytes, value_base::flag_xb), te_string("---")));
-  element->push_column("Chunks:", te_value(&torrent::File::completed_chunks), " / ", te_value(&torrent::File::size_chunks));
-  element->push_column("Range:",  te_value(&torrent::File::range_first), " - ", te_value(&torrent::File::range_second));
+  element->push_column("Size:",   te_command("if=$fi.is_file=,$to_xb=$f.get_size_bytes=,---"));
+
+  element->push_column("Chunks:", te_command("cat=$f.get_completed_chunks=,\" / \",$f.get_size_chunks="));
+  element->push_column("Range:",  te_command("cat=$f.get_range_first=,\" - \",$f.get_range_second="));
 
   element->set_column_width(element->column_width() + 1);
 

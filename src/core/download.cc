@@ -36,8 +36,8 @@
 
 #include "config.h"
 
-#include <sigc++/bind.h>
-#include <sigc++/hide.h>
+#include <sigc++/adaptors/bind.h>
+#include <sigc++/adaptors/hide.h>
 #include <sigc++/signal.h>
 #include <rak/path.h>
 #include <rak/functional.h>
