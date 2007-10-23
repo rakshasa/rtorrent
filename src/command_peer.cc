@@ -38,51 +38,61 @@
 
 #include <rak/error_number.h>
 #include <rak/path.h>
+#include <rak/socket_address.h>
+#include <rak/string_manip.h>
+#include <torrent/bitfield.h>
+#include <torrent/rate.h>
 #include <torrent/peer/peer.h>
+#include <torrent/peer/peer_info.h>
 
 #include "core/manager.h"
+#include "display/utils.h"
 
 #include "globals.h"
 #include "control.h"
 #include "command_helpers.h"
 
-// void
-// apply_f_set_priority(torrent::File* file, uint32_t value) {
-//   if (value > torrent::PRIORITY_HIGH)
-//     throw torrent::input_error("Invalid value.");
+torrent::Object
+retrieve_p_id(torrent::Peer* peer) {
+  const torrent::HashString* hashString = &peer->id();
 
-//   file->set_priority((torrent::priority_t)value);
-// }
+  return rak::transform_hex(hashString->begin(), hashString->end());
+}
 
-// torrent::Object
-// apply_f_path(torrent::File* file) {
-//   if (file->path()->empty())
-//     return std::string();
+torrent::Object
+retrieve_p_id_html(torrent::Peer* peer) {
+  const torrent::HashString* hashString = &peer->id();
 
-//   torrent::Object resultRaw(*file->path()->begin());
-//   torrent::Object::string_type& result = resultRaw.as_string();
+  return rak::copy_escape_html(hashString->begin(), hashString->end());
+}
 
-//   for (torrent::Path::const_iterator itr = ++file->path()->begin(), last = file->path()->end(); itr != last; itr++)
-//     result += '/' + *itr;
+torrent::Object
+retrieve_p_address(torrent::Peer* peer) {
+  return rak::socket_address::cast_from(peer->info()->socket_address())->address_str();
+}
 
-//   return resultRaw;
-// }
+torrent::Object
+retrieve_p_port(torrent::Peer* peer) {
+  return rak::socket_address::cast_from(peer->info()->socket_address())->port();
+}
 
-// torrent::Object
-// apply_f_path_components(torrent::File* file) {
-//   torrent::Object resultRaw(torrent::Object::TYPE_LIST);
-//   torrent::Object::list_type& result = resultRaw.as_list();
+torrent::Object
+retrieve_p_client_version(torrent::Peer* peer) {
+  char buf[128];
+  display::print_client_version(buf, buf + 128, peer->info()->client_info());
 
-//   for (torrent::Path::const_iterator itr = file->path()->begin(), last = file->path()->end(); itr != last; itr++)
-//     result.push_back(*itr);
+  return std::string(buf);
+}
 
-//   return resultRaw;
-// }
+torrent::Object
+retrieve_p_options_str(torrent::Peer* peer) {
+  return rak::transform_hex(peer->info()->options(), peer->info()->options() + 8);
+}
 
-// torrent::Object
-// apply_f_path_depth(torrent::File* file) {
-//   return (int64_t)file->path()->size();
-// }
+torrent::Object
+retrieve_p_completed_percent(torrent::Peer* peer) {
+  return (100 * peer->bitfield()->size_set()) / peer->bitfield()->size_bits();
+}
 
 #define ADD_CP_SLOT(key, function, slot, parm, doc)    \
   commandPeerSlotsItr->set_slot(slot); \
@@ -95,6 +105,9 @@
 #define ADD_CP_VOID(key, slot) \
   ADD_CP_SLOT_PUBLIC("p.get_" key, call_unknown, rpc::object_fn(slot), "i:", "")
 
+#define ADD_CP_VALUE(key, get) \
+  ADD_CP_SLOT_PUBLIC("p." key, call_unknown, rpc::object_void_fn<torrent::Peer*>(get), "i:", "")
+
 #define ADD_CP_VALUE_UNI(key, get) \
   ADD_CP_SLOT_PUBLIC("p.get_" key, call_unknown, rpc::object_void_fn<torrent::Peer*>(get), "i:", "")
 
@@ -102,31 +115,34 @@
   ADD_CP_SLOT_PUBLIC("p.set_" key, call_value, rpc::object_value_fn<torrent::Peer*>(set), "i:i", "") \
   ADD_CP_SLOT_PUBLIC("p.get_" key, call_unknown, rpc::object_void_fn<torrent::Peer*>(get), "i:", "")
 
+#define ADD_CP_VALUE_MEM_UNI(key, target, get) \
+  ADD_CP_SLOT_PUBLIC("p.get_" key, call_unknown, rpc::object_void_fn<torrent::Peer*>(rak::on(std::mem_fun(target), std::mem_fun(get))), "i:", "");
+
 #define ADD_CP_STRING_UNI(key, get) \
   ADD_CP_SLOT_PUBLIC("p.get_" key, call_unknown, rpc::object_void_fn<torrent::Peer*>(get), "s:", "")
 
 void
 initialize_command_peer() {
-//   ADD_CP_VALUE_UNI("is_created",       std::mem_fun(&torrent::Peer::is_created));
-//   ADD_CP_VALUE_UNI("is_open",          std::mem_fun(&torrent::Peer::is_open));
+  ADD_CP_STRING_UNI("id",                 std::ptr_fun(&retrieve_p_id));
+  ADD_CP_STRING_UNI("id_html",            std::ptr_fun(&retrieve_p_id_html));
+  ADD_CP_STRING_UNI("client_version",     std::ptr_fun(&retrieve_p_client_version));
 
-//   ADD_CP_VALUE_UNI("size_bytes",       std::mem_fun(&torrent::Peer::size_bytes));
-//   ADD_CP_VALUE_UNI("size_chunks",      std::mem_fun(&torrent::Peer::size_chunks));
-//   ADD_CP_VALUE_UNI("completed_chunks", std::mem_fun(&torrent::Peer::completed_chunks));
+  ADD_CP_STRING_UNI("options_str",        std::ptr_fun(&retrieve_p_options_str));
 
-//   ADD_CP_VALUE_UNI("offset",           std::mem_fun(&torrent::Peer::offset));
-//   ADD_CP_VALUE_UNI("range_first",      std::mem_fun(&torrent::Peer::range_first));
-//   ADD_CP_VALUE_UNI("range_second",     std::mem_fun(&torrent::Peer::range_second));
+  ADD_CP_VALUE("is_encrypted",            std::mem_fun(&torrent::Peer::is_encrypted));
+  ADD_CP_VALUE("is_incoming",             std::mem_fun(&torrent::Peer::is_incoming));
+  ADD_CP_VALUE("is_obfuscated",           std::mem_fun(&torrent::Peer::is_obfuscated));
+  ADD_CP_VALUE("is_snubbed",              std::mem_fun(&torrent::Peer::is_snubbed));
 
-//   ADD_CP_VALUE_BI("priority",          std::ptr_fun(&apply_f_set_priority), std::mem_fun(&torrent::Peer::priority));
+  ADD_CP_STRING_UNI("address",            std::ptr_fun(&retrieve_p_address));
+  ADD_CP_VALUE_UNI("port",                std::ptr_fun(&retrieve_p_port));
 
-//   ADD_CP_STRING_UNI("path",            std::ptr_fun(&apply_f_path));
-//   ADD_CP_STRING_UNI("path_components", std::ptr_fun(&apply_f_path_components));
-//   ADD_CP_STRING_UNI("path_depth",      std::ptr_fun(&apply_f_path_depth));
-//   ADD_CP_STRING_UNI("frozen_path",     std::mem_fun(&torrent::Peer::frozen_path));
+  ADD_CP_VALUE_UNI("completed_percent",   std::ptr_fun(&retrieve_p_completed_percent));
 
-//   ADD_CP_VALUE_UNI("match_depth_prev", std::mem_fun(&torrent::Peer::match_depth_prev));
-//   ADD_CP_VALUE_UNI("match_depth_next", std::mem_fun(&torrent::Peer::match_depth_next));
-
-//   ADD_CP_VALUE_UNI("last_touched",     std::mem_fun(&torrent::Peer::last_touched));
+  ADD_CP_VALUE_MEM_UNI("up_rate",         &torrent::Peer::up_rate, &torrent::Rate::rate);
+  ADD_CP_VALUE_MEM_UNI("up_total",        &torrent::Peer::up_rate, &torrent::Rate::total);
+  ADD_CP_VALUE_MEM_UNI("down_rate",       &torrent::Peer::down_rate, &torrent::Rate::rate);
+  ADD_CP_VALUE_MEM_UNI("down_total",      &torrent::Peer::down_rate, &torrent::Rate::total);
+  ADD_CP_VALUE_MEM_UNI("peer_rate",       &torrent::Peer::peer_rate, &torrent::Rate::rate);
+  ADD_CP_VALUE_MEM_UNI("peer_total",      &torrent::Peer::peer_rate, &torrent::Rate::total);
 }

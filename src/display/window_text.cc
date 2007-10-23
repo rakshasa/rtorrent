@@ -48,6 +48,7 @@ namespace display {
 WindowText::WindowText(rpc::target_type target, extent_type margin) :
   Window(new Canvas, 0, 0, 0, extent_static, extent_static),
   m_target(target),
+  m_errorHandler(NULL),
   m_margin(margin),
   m_interval(0) {
 }
@@ -56,6 +57,9 @@ void
 WindowText::clear() {
   std::for_each(begin(), end(), rak::call_delete<TextElement>());
   base_type::clear();
+
+  delete m_errorHandler;
+  m_errorHandler = NULL;
 }
 
 void
@@ -85,6 +89,21 @@ WindowText::redraw() {
   m_canvas->erase();
 
   unsigned int position = 0;
+
+  if (m_canvas->height() == 0)
+    return;
+
+  if (m_errorHandler != NULL && m_target.second == NULL) {
+    char buffer[m_canvas->width() + 1];
+
+    Canvas::attributes_list attributes;
+    attributes.push_back(Attributes(buffer, Attributes::a_normal, Attributes::color_default));
+
+    char* last = m_errorHandler->print(buffer, buffer + m_canvas->width(), &attributes, m_target);
+
+    m_canvas->print_attributes(0, position, buffer, last, &attributes);
+    return;
+  }
 
   for (iterator itr = begin(); itr != end() && position < m_canvas->height(); ++itr, ++position) {
     if (*itr == NULL)
