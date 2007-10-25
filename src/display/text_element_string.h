@@ -193,6 +193,15 @@ protected:
   const char*         m_commandEnd;
 };
 
+namespace helpers {
+
+inline TextElementCommand*
+te_command(const char* command, int flags = TextElementCommand::flag_normal, int attributes = Attributes::a_invalid) {
+  return new TextElementCommand(command, flags, attributes, TextElementCommand::extent_full);
+}
+
+}
+
 }
 
 #endif

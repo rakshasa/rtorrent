@@ -11,8 +11,6 @@ libsub_display_a_SOURCES = \
 	utils.cc \
 	utils.h \
 	text_element.h \
-	text_element_helpers.h \
-	text_element_lambda.h \
 	text_element_list.cc \
 	text_element_list.h \
 	text_element_string.cc \

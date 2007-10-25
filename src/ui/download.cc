@@ -51,8 +51,7 @@
 #include "display/window_title.h"
 #include "display/window_download_statusbar.h"
 
-#include "display/text_element_lambda.h"
-#include "display/text_element_helpers.h"
+#include "display/text_element_string.h"
 
 #include "control.h"
 #include "download.h"

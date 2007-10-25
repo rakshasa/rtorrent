@@ -236,6 +236,7 @@ void
 apply_close_low_diskspace(int64_t arg) {
   core::DownloadList* downloadList = control->core()->download_list();
 
+  bool closed = false;
   core::Manager::DListItr itr = downloadList->begin();
 
   while ((itr = std::find_if(itr, downloadList->end(), std::mem_fun(&core::Download::is_downloading)))
@@ -245,10 +246,15 @@ apply_close_low_diskspace(int64_t arg) {
 
       (*itr)->set_hash_failed(true);
       (*itr)->set_message(std::string("Low diskspace."));
+
+      closed = true;
     }
 
     ++itr;
   }
+
+  if (closed)
+    control->core()->push_log("Closed torrents due to low diskspace.");    
 }
 
 torrent::Object

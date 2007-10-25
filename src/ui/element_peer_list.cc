@@ -44,8 +44,7 @@
 
 #include "display/frame.h"
 #include "display/manager.h"
-#include "display/text_element_helpers.h"
-#include "display/text_element_lambda.h"
+#include "display/text_element_string.h"
 #include "display/utils.h"
 #include "display/window_peer_list.h"
 #include "input/manager.h"
