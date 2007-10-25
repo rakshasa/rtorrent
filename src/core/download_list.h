@@ -41,7 +41,7 @@
 #include <list>
 #include <map>
 #include <string>
-#include <sigc++/slot.h>
+#include <sigc++/functors/slot.h>
 
 namespace torrent {
   class HashString;

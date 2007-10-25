@@ -37,7 +37,7 @@
 #ifndef RTORRENT_UI_DOWNLOAD_LIST_H
 #define RTORRENT_UI_DOWNLOAD_LIST_H
 
-#include <sigc++/slot.h>
+#include <sigc++/functors/slot.h>
 
 #include "display/manager.h"
 

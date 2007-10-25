@@ -39,7 +39,7 @@
 
 #include <map>
 #include <ncurses.h>
-#include <sigc++/slot.h>
+#include <sigc++/functors/slot.h>
 
 namespace input {
 

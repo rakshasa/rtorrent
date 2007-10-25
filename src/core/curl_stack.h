@@ -39,7 +39,7 @@
 
 #include <deque>
 #include <string>
-#include <sigc++/slot.h>
+#include <sigc++/functors/slot.h>
 
 namespace core {
 

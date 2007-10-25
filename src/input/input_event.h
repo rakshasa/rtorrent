@@ -37,7 +37,7 @@
 #ifndef RTORRENT_INPUT_INPUT_EVENT_H
 #define RTORRENT_INPUT_INPUT_EVENT_H
 
-#include <sigc++/slot.h>
+#include <sigc++/functors/slot.h>
 #include <torrent/event.h>
 #include <torrent/poll.h>
 

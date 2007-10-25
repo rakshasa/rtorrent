@@ -42,7 +42,7 @@
 #define RTORRENT_CORE_DOWNLOAD_FACTORY_H
 
 #include <iosfwd>
-#include <sigc++/slot.h>
+#include <sigc++/functors/slot.h>
 #include <rak/priority_queue_default.h>
 #include <torrent/object.h>
 

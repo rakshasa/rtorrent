@@ -37,7 +37,7 @@
 #ifndef RTORRENT_UI_ELEMENT_MENU_H
 #define RTORRENT_UI_ELEMENT_MENU_H
 
-#include <sigc++/slot.h>
+#include <sigc++/functors/slot.h>
 
 #include "core/download.h"
 

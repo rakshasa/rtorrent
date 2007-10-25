@@ -39,7 +39,7 @@
 
 #include <map>
 #include <string>
-#include <sigc++/slot.h>
+#include <sigc++/functors/slot.h>
 
 // Throws std::runtime_error upon receiving bad input.
 

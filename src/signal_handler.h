@@ -38,7 +38,7 @@
 #define RTORRENT_SIGNAL_HANDLER_H
 
 #include <sys/signal.h>
-#include <sigc++/slot.h>
+#include <sigc++/functors/slot.h>
 
 class SignalHandler {
 public:
