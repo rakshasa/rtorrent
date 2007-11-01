@@ -64,7 +64,7 @@ apply_encryption(const torrent::Object& rawArgs) {
 
   uint32_t options_mask = torrent::ConnectionManager::encryption_none;
 
-  for (torrent::Object::list_type::const_iterator itr = args.begin(), last = args.end(); itr != last; itr++) {
+  for (torrent::Object::list_const_iterator itr = args.begin(), last = args.end(); itr != last; itr++) {
     const std::string& opt = itr->as_string();
 
     if (opt == "none")

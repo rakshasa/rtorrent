@@ -235,8 +235,8 @@ convert_list_to_string(const torrent::Object& src) {
 }
 
 std::string
-convert_list_to_string(torrent::Object::list_type::const_iterator first,
-                       torrent::Object::list_type::const_iterator last) {
+convert_list_to_string(torrent::Object::list_const_iterator first,
+                       torrent::Object::list_const_iterator last) {
   std::string dest;
 
   while (first != last) {
@@ -270,8 +270,8 @@ convert_list_to_string(torrent::Object::list_type::const_iterator first,
 }
 
 std::string
-convert_list_to_command(torrent::Object::list_type::const_iterator first,
-                        torrent::Object::list_type::const_iterator last) {
+convert_list_to_command(torrent::Object::list_const_iterator first,
+                        torrent::Object::list_const_iterator last) {
   if (first == last)
     throw torrent::input_error("Too few arguments.");
 
@@ -375,7 +375,7 @@ print_object(char* first, char* last, const torrent::Object* src, int flags) {
     return std::max(first + snprintf(first, std::distance(first, last), "%lli", src->as_value()), last);
 
   case torrent::Object::TYPE_LIST:
-    for (torrent::Object::list_type::const_iterator itr = src->as_list().begin(), itrEnd = src->as_list().end(); itr != itrEnd; itr++) {
+    for (torrent::Object::list_const_iterator itr = src->as_list().begin(), itrEnd = src->as_list().end(); itr != itrEnd; itr++) {
       first = print_object(first, last, &*itr, flags);
 
       // Don't expand tilde after the first element in the list.
@@ -412,7 +412,7 @@ print_object_std(std::string* dest, const torrent::Object* src, int flags) {
     return;
   }
   case torrent::Object::TYPE_LIST:
-    for (torrent::Object::list_type::const_iterator itr = src->as_list().begin(), itrEnd = src->as_list().end(); itr != itrEnd; itr++) {
+    for (torrent::Object::list_const_iterator itr = src->as_list().begin(), itrEnd = src->as_list().end(); itr != itrEnd; itr++) {
       print_object_std(dest, &*itr, flags);
 
       // Don't expand tilde after the first element in the list.

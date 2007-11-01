@@ -86,7 +86,7 @@ parse_command_execute(target_type target, torrent::Object* object) {
   if (object->is_list()) {
     // For now, until we can flag the lists we want executed and those
     // we can't, disable recursion completely.
-    for (torrent::Object::list_type::iterator itr = object->as_list().begin(), last = object->as_list().end(); itr != last; itr++) {
+    for (torrent::Object::list_iterator itr = object->as_list().begin(), last = object->as_list().end(); itr != last; itr++) {
       if (itr->is_list())
         continue;
 

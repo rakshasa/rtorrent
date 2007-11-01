@@ -177,10 +177,7 @@ DownloadFactory::receive_success() {
     root->erase_key("libtorrent");
   }
 
-  if (!root->has_key_map("rtorrent"))
-    root->insert_key("rtorrent", torrent::Object(torrent::Object::TYPE_MAP));
-    
-  torrent::Object* rtorrent = &root->get_key("rtorrent");
+  torrent::Object* rtorrent = &root->insert_preserve_map("rtorrent").first->second;
 
   initialize_rtorrent(download, rtorrent);
 
@@ -232,10 +229,7 @@ DownloadFactory::receive_success() {
 
   rpc::call_command("d.set_peer_exchange", rpc::call_command_value("get_peer_exchange"), rpc::make_target(download));
 
-  torrent::Object& resumeObject = root->has_key_map("libtorrent_resume")
-    ? root->get_key("libtorrent_resume")
-    : root->insert_key("libtorrent_resume", torrent::Object(torrent::Object::TYPE_MAP));
-
+  torrent::Object& resumeObject = root->insert_preserve_map("libtorrent_resume").first->second;
   torrent::resume_load_addresses(*download->download(), resumeObject);
   torrent::resume_load_file_priorities(*download->download(), resumeObject);
   torrent::resume_load_tracker_settings(*download->download(), resumeObject);
@@ -322,14 +316,9 @@ DownloadFactory::initialize_rtorrent(Download* download, torrent::Object* rtorre
     rtorrent->insert_key("state_changed", cachedTime.seconds());
   }
 
-  if (!rtorrent->has_key_value("complete"))
-    rtorrent->insert_key("complete", (int64_t)0);
-
-  if (!rtorrent->has_key_value("hashing"))
-    rtorrent->insert_key("hashing", (int64_t)Download::variable_hashing_stopped);
-
-  if (!rtorrent->has_key_string("tied_to_file"))
-    rtorrent->insert_key("tied_to_file", std::string());
+  rtorrent->insert_preserve_value("complete", 0);
+  rtorrent->insert_preserve_value("hashing", Download::variable_hashing_stopped);
+  rtorrent->insert_preserve_cstr("tied_to_file", "");
 
   if (rtorrent->has_key_value("priority"))
     rpc::call_command("d.set_priority", rtorrent->get_key_value("priority") % 4, rpc::make_target(download));
@@ -351,8 +340,7 @@ DownloadFactory::initialize_rtorrent(Download* download, torrent::Object* rtorre
     download->download()->set_chunks_done(std::min<uint32_t>(rtorrent->get_key_value("chunks_done"),
                                                              download->download()->file_list()->size_chunks()));
 
-  if (!rtorrent->has_key_value("ignore_commands"))
-    rtorrent->insert_key("ignore_commands", (int64_t)0);
+  rtorrent->insert_preserve_value("ignore_commands", 0);
 }
 
 }

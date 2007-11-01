@@ -350,7 +350,7 @@ object_to_xmlrpc(xmlrpc_env* env, const torrent::Object& object) {
   {
     xmlrpc_value* result = xmlrpc_array_new(env);
     
-    for (torrent::Object::list_type::const_iterator itr = object.as_list().begin(), last = object.as_list().end(); itr != last; itr++)
+    for (torrent::Object::list_const_iterator itr = object.as_list().begin(), last = object.as_list().end(); itr != last; itr++)
       xmlrpc_array_append_item(env, result, object_to_xmlrpc(env, *itr));
 
     return result;
@@ -360,7 +360,7 @@ object_to_xmlrpc(xmlrpc_env* env, const torrent::Object& object) {
   {
     xmlrpc_value* result = xmlrpc_struct_new(env);
     
-    for (torrent::Object::map_type::const_iterator itr = object.as_map().begin(), last = object.as_map().end(); itr != last; itr++)
+    for (torrent::Object::map_const_iterator itr = object.as_map().begin(), last = object.as_map().end(); itr != last; itr++)
       xmlrpc_struct_set_value(env, result, itr->first.c_str(), object_to_xmlrpc(env, itr->second));
 
     return result;

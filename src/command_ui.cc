@@ -66,7 +66,7 @@ apply_view_filter(view_filter_slot viewFilterSlot, const torrent::Object& rawArg
 
   core::ViewManager::filter_args filterArgs;
 
-  for (torrent::Object::list_type::const_iterator itr = ++args.begin(), last = args.end(); itr != last; itr++)
+  for (torrent::Object::list_const_iterator itr = ++args.begin(), last = args.end(); itr != last; itr++)
     filterArgs.push_back(itr->as_string());
 
   (control->view_manager()->*viewFilterSlot)(name, filterArgs);
@@ -207,7 +207,7 @@ apply_to_xb(const torrent::Object& rawArgs) {
 torrent::Object
 apply_if(rpc::target_type target, const torrent::Object& rawArgs) {
   const torrent::Object::list_type& args = rawArgs.as_list();
-  torrent::Object::list_type::const_iterator itr = args.begin();
+  torrent::Object::list_const_iterator itr = args.begin();
 
   while (itr != args.end() && itr != --args.end()) {
     torrent::Object tmp;

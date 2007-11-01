@@ -74,8 +74,8 @@ const char* parse_list(const char* first, const char* last, torrent::Object* des
 const char* parse_whole_list(const char* first, const char* last, torrent::Object* dest);
 
 std::string convert_list_to_string(const torrent::Object& src);
-std::string convert_list_to_string(torrent::Object::list_type::const_iterator first, torrent::Object::list_type::const_iterator last);
-std::string convert_list_to_command(torrent::Object::list_type::const_iterator first, torrent::Object::list_type::const_iterator last);
+std::string convert_list_to_string(torrent::Object::list_const_iterator first, torrent::Object::list_const_iterator last);
+std::string convert_list_to_command(torrent::Object::list_const_iterator first, torrent::Object::list_const_iterator last);
 
 int64_t     convert_to_value(const torrent::Object& src, int base = 0, int unit = 1);
 bool        convert_to_value_nothrow(const torrent::Object& src, int64_t* value, int base = 0, int unit = 1);

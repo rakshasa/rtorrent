@@ -120,7 +120,7 @@ ExecFile::execute_object(const torrent::Object& rawArgs, int flags) {
   if (args.empty())
     throw torrent::input_error("Too few arguments.");
 
-  for (torrent::Object::list_type::const_iterator itr = args.begin(), last = args.end(); itr != last; itr++, argsCurrent++) {
+  for (torrent::Object::list_const_iterator itr = args.begin(), last = args.end(); itr != last; itr++, argsCurrent++) {
     if (argsCurrent == argsBuffer + max_args - 1)
       throw torrent::input_error("Too many arguments.");
 

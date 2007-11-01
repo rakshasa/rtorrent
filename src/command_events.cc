@@ -85,7 +85,7 @@ apply_on_ratio(int action, const torrent::Object& rawArgs) {
   if (args.empty())
     throw torrent::input_error("Too few arguments.");
 
-  torrent::Object::list_type::const_iterator argItr = args.begin();
+  torrent::Object::list_const_iterator argItr = args.begin();
 
   // first argument:  minimum ratio to reach
   // second argument: minimum upload amount to reach [optional]
@@ -119,7 +119,7 @@ apply_on_ratio(int action, const torrent::Object& rawArgs) {
 
     rpc::call_command("d.set_ignore_commands", (int64_t)1, rpc::make_target(*itr));
 
-    for (torrent::Object::list_type::const_iterator itr2 = argItr; itr2 != args.end(); itr2++)
+    for (torrent::Object::list_const_iterator itr2 = argItr; itr2 != args.end(); itr2++)
       rpc::parse_command_object(rpc::make_target(*itr), *itr2);
   }
 
@@ -198,7 +198,7 @@ apply_schedule(const torrent::Object& rawArgs) {
   if (args.size() != 4)
     throw torrent::input_error("Wrong number of arguments.");
 
-  torrent::Object::list_type::const_iterator itr = args.begin();
+  torrent::Object::list_const_iterator itr = args.begin();
 
   const std::string& arg1 = (itr++)->as_string();
   const std::string& arg2 = (itr++)->as_string();
@@ -213,7 +213,7 @@ apply_schedule(const torrent::Object& rawArgs) {
 torrent::Object
 apply_load(int flags, const torrent::Object& rawArgs) {
   const torrent::Object::list_type&          args    = rawArgs.as_list();
-  torrent::Object::list_type::const_iterator argsItr = args.begin();
+  torrent::Object::list_const_iterator argsItr = args.begin();
 
   if (argsItr == args.end())
     throw torrent::input_error("Too few arguments.");
@@ -260,7 +260,7 @@ apply_close_low_diskspace(int64_t arg) {
 torrent::Object
 apply_download_list(const torrent::Object& rawArgs) {
   const torrent::Object::list_type&          args    = rawArgs.as_list();
-  torrent::Object::list_type::const_iterator argsItr = args.begin();
+  torrent::Object::list_const_iterator argsItr = args.begin();
 
   core::ViewManager* viewManager = control->view_manager();
   core::ViewManager::iterator viewItr;
@@ -322,7 +322,7 @@ d_multicall(const torrent::Object& rawArgs) {
   for (core::View::const_iterator vItr = (*viewItr)->begin_visible(), vLast = (*viewItr)->end_visible(); vItr != vLast; vItr++) {
     torrent::Object::list_type& row = result.insert(result.end(), torrent::Object(torrent::Object::TYPE_LIST))->as_list();
 
-    for (torrent::Object::list_type::const_iterator cItr = ++args.begin(), cLast = args.end(); cItr != args.end(); cItr++) {
+    for (torrent::Object::list_const_iterator cItr = ++args.begin(), cLast = args.end(); cItr != args.end(); cItr++) {
       const std::string& cmd = cItr->as_string();
       row.push_back(rpc::parse_command(rpc::make_target(*vItr), cmd.c_str(), cmd.c_str() + cmd.size()).first);
     }
