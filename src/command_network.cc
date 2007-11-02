@@ -126,9 +126,9 @@ apply_enable_trackers(int64_t arg) {
 
     for (int i = 0, last = tl.size(); i < last; ++i)
       if (arg)
-        tl.get(i).enable();
+        tl.get(i)->enable();
       else
-        tl.get(i).disable();
+        tl.get(i)->disable();
 
     if (arg && !rpc::call_command_value("get_use_udp_trackers"))
       (*itr)->enable_udp_trackers(false);
@@ -149,11 +149,7 @@ xmlrpc_find_tracker(core::Download* download, uint32_t index) {
   if (index >= download->tracker_list()->size())
     return NULL;
 
-  // HACK ALERT!!!!
-  static torrent::Tracker hack;
-  hack = download->tracker_list()->get(index);
-
-  return &hack;
+  return download->tracker_list()->get(index);
 }
 
 void

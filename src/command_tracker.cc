@@ -85,10 +85,10 @@ void
 initialize_command_tracker() {
   ADD_CT_STRING_UNI("url",             std::mem_fun(&torrent::Tracker::url));
   ADD_CT_VOID_UNI("group",             std::mem_fun(&torrent::Tracker::group));
-  ADD_CT_VOID_UNI("type",              std::mem_fun(&torrent::Tracker::tracker_type));
+  ADD_CT_VOID_UNI("type",              std::mem_fun(&torrent::Tracker::type));
   ADD_CT_STRING_UNI("id",              std::mem_fun(&torrent::Tracker::tracker_id));
 
-  ADD_CT_VOID("is_open",               std::mem_fun(&torrent::Tracker::is_open));
+  ADD_CT_VOID("is_open",               std::mem_fun(&torrent::Tracker::is_busy));
   ADD_CT_BOOL("enabled",               std::ptr_fun(&apply_t_set_enabled), std::mem_fun(&torrent::Tracker::is_enabled));
   
   ADD_CT_VOID_UNI("normal_interval",   std::mem_fun(&torrent::Tracker::normal_interval));

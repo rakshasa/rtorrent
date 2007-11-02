@@ -192,7 +192,7 @@ print_download_status(char* first, char* last, core::Download* d) {
     torrent::TrackerList* tl = d->tracker_list();
 
     first = print_buffer(first, last, "Tracker[%i:%i]: Connecting to %s",
-                         tl->get(tl->focus()).group(), tl->focus(), tl->get(tl->focus()).url().c_str());
+                         tl->get(tl->focus())->group(), tl->focus(), tl->get(tl->focus())->url().c_str());
 
   } else if (!d->message().empty()) {
     first = print_buffer(first, last, "%s", d->message().c_str());

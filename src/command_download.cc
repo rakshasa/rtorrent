@@ -280,9 +280,9 @@ t_multicall(core::Download* download, const torrent::Object& rawArgs) {
 
     for (torrent::Object::list_const_iterator cItr = ++args.begin(), cLast = args.end(); cItr != args.end(); cItr++) {
       const std::string& cmd = cItr->as_string();
-      torrent::Tracker t = download->tracker_list()->get(itr);
+      torrent::Tracker* t = download->tracker_list()->get(itr);
 
-      row.push_back(rpc::parse_command(rpc::make_target(&t), cmd.c_str(), cmd.c_str() + cmd.size()).first);
+      row.push_back(rpc::parse_command(rpc::make_target(t), cmd.c_str(), cmd.c_str() + cmd.size()).first);
     }
   }
 
