@@ -269,7 +269,7 @@ DownloadList::close_quick(Download* download) {
   // handled by some parameter to the close function, or some other
   // way of giving the client more control of when STOPPED requests
   // are sent.
-  download->download()->tracker_list().manual_cancel();
+  download->download()->tracker_list()->manual_cancel();
 }
 
 void
@@ -607,7 +607,7 @@ DownloadList::confirm_finished(Download* download) {
 
   // Send the completed request before resuming so we don't reset the
   // up/downloaded baseline.
-  download->download()->tracker_list().send_completed();
+  download->download()->tracker_list()->send_completed();
 
   std::for_each(slot_map_finished().begin(), slot_map_finished().end(), download_list_call(download));
 

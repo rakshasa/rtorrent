@@ -188,11 +188,11 @@ print_download_status(char* first, char* last, core::Download* d) {
     first = print_buffer(first, last, "Checking hash [%2i%%]",
                          (d->download()->chunks_hashed() * 100) / d->download()->file_list()->size_chunks());
 
-  } else if (d->tracker_list()->is_busy() && d->tracker_list()->focus() < d->tracker_list()->size()) {
+  } else if (d->tracker_list()->has_active() && d->tracker_list()->focus() < d->tracker_list()->end()) {
     torrent::TrackerList* tl = d->tracker_list();
 
     first = print_buffer(first, last, "Tracker[%i:%i]: Connecting to %s",
-                         tl->get(tl->focus())->group(), tl->focus(), tl->get(tl->focus())->url().c_str());
+                         (*tl->focus())->group(), tl->focus_index(), (*tl->focus())->url().c_str());
 
   } else if (!d->message().empty()) {
     first = print_buffer(first, last, "%s", d->message().c_str());

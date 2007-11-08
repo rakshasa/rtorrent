@@ -122,13 +122,8 @@ void apply_encoding_list(const std::string& arg) { torrent::encoding_list()->pus
 void
 apply_enable_trackers(int64_t arg) {
   for (core::Manager::DListItr itr = control->core()->download_list()->begin(), last = control->core()->download_list()->end(); itr != last; ++itr) {
-    torrent::TrackerList tl = (*itr)->download()->tracker_list();
-
-    for (int i = 0, last = tl.size(); i < last; ++i)
-      if (arg)
-        tl.get(i)->enable();
-      else
-        tl.get(i)->disable();
+    std::for_each((*itr)->tracker_list()->begin(), (*itr)->tracker_list()->end(),
+                  arg ? std::mem_fun(&torrent::Tracker::enable) : std::mem_fun(&torrent::Tracker::disable));
 
     if (arg && !rpc::call_command_value("get_use_udp_trackers"))
       (*itr)->enable_udp_trackers(false);
@@ -149,7 +144,7 @@ xmlrpc_find_tracker(core::Download* download, uint32_t index) {
   if (index >= download->tracker_list()->size())
     return NULL;
 
-  return download->tracker_list()->get(index);
+  return download->tracker_list()->at(index);
 }
 
 void

@@ -75,7 +75,7 @@ WindowTrackerList::redraw() {
   Range range = rak::advance_bidirectional<unsigned int>(0, *m_focus, tl->size(), (m_canvas->height() + 1) / 2);
 
   while (range.first != range.second) {
-    torrent::Tracker* tracker = tl->get(range.first);
+    torrent::Tracker* tracker = tl->at(range.first);
 
 //     m_canvas->print(0, pos, "[%c] [S/L %5i/%5i] %s",
 //                     tracker->is_enabled() ? (tracker->is_open() ? '*' : ' ') : '-',
@@ -90,7 +90,7 @@ WindowTrackerList::redraw() {
 
     m_canvas->print(4, pos++, "Id: %s Focus: %s Enabled: %s Open: %s S/L: %u/%u",
                     rak::copy_escape_html(tracker->tracker_id()).c_str(),
-                    range.first == tl->focus() ? "yes" : " no",
+                    range.first == tl->focus_index() ? "yes" : " no",
                     tracker->is_enabled() ? "yes" : " no",
                     tracker->is_busy() ? "yes" : " no",
                     tracker->scrape_complete(),

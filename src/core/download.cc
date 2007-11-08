@@ -58,8 +58,6 @@ namespace core {
 
 Download::Download(download_type d) :
   m_download(d),
-  m_trackerList(d.tracker_list()),
-
   m_hashFailed(false),
 
   m_chunksFailed(0),
@@ -85,14 +83,12 @@ Download::~Download() {
 
 void
 Download::enable_udp_trackers(bool state) {
-  torrent::TrackerList tl = m_download.tracker_list();
-
-  for (int i = 0, last = tl.size(); i < last; ++i)
-    if (tl.get(i)->type() == torrent::Tracker::TRACKER_UDP)
+  for (torrent::TrackerList::iterator itr = m_download.tracker_list()->begin(), last = m_download.tracker_list()->end(); itr != last; ++itr)
+    if ((*itr)->type() == torrent::Tracker::TRACKER_UDP)
       if (state)
-        tl.get(i)->enable();
+        (*itr)->enable();
       else
-        tl.get(i)->disable();
+        (*itr)->disable();
 }
 
 uint32_t

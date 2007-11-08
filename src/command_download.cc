@@ -280,7 +280,7 @@ t_multicall(core::Download* download, const torrent::Object& rawArgs) {
 
     for (torrent::Object::list_const_iterator cItr = ++args.begin(), cLast = args.end(); cItr != args.end(); cItr++) {
       const std::string& cmd = cItr->as_string();
-      torrent::Tracker* t = download->tracker_list()->get(itr);
+      torrent::Tracker* t = download->tracker_list()->at(itr);
 
       row.push_back(rpc::parse_command(rpc::make_target(t), cmd.c_str(), cmd.c_str() + cmd.size()).first);
     }
@@ -477,14 +477,14 @@ initialize_command_download() {
 
   ADD_CD_VALUE_UNI("chunk_size",          rak::on(std::mem_fun(&core::Download::file_list), std::mem_fun(&torrent::FileList::chunk_size)));
 
-  ADD_CD_VALUE_MEM_BI("tracker_numwant", &core::Download::tracker_list, &torrent::TrackerList::set_numwant, &torrent::TrackerList::numwant);
-  ADD_CD_VALUE_UNI("tracker_focus",      rak::on(std::mem_fun(&core::Download::tracker_list), std::mem_fun(&torrent::TrackerList::focus)));
-  ADD_CD_VALUE_UNI("tracker_size",       rak::on(std::mem_fun(&core::Download::tracker_list), std::mem_fun(&torrent::TrackerList::size)));
+  ADD_CD_VALUE_MEM_BI("tracker_numwant",  &core::Download::tracker_list, &torrent::TrackerList::set_numwant, &torrent::TrackerList::numwant);
+  ADD_CD_VALUE_UNI("tracker_focus",       rak::on(std::mem_fun(&core::Download::tracker_list), std::mem_fun(&torrent::TrackerList::focus_index)));
+  ADD_CD_VALUE_UNI("tracker_size",        std::mem_fun(&core::Download::tracker_list_size));
 
-  ADD_CD_STRING_BI("directory",        std::mem_fun(&core::Download::set_root_directory), rak::on(std::mem_fun(&core::Download::file_list), std::mem_fun(&torrent::FileList::root_dir)));
-  ADD_CD_VALUE_BI("priority",          std::mem_fun(&core::Download::set_priority), std::mem_fun(&core::Download::priority));
-  ADD_CD_STRING_UNI("priority_str",    std::ptr_fun(&retrieve_d_priority_str));
+  ADD_CD_STRING_BI("directory",           std::mem_fun(&core::Download::set_root_directory), rak::on(std::mem_fun(&core::Download::file_list), std::mem_fun(&torrent::FileList::root_dir)));
+  ADD_CD_VALUE_BI("priority",             std::mem_fun(&core::Download::set_priority), std::mem_fun(&core::Download::priority));
+  ADD_CD_STRING_UNI("priority_str",       std::ptr_fun(&retrieve_d_priority_str));
 
-  ADD_CD_SLOT_PUBLIC("f.multicall",    call_list, rak::ptr_fn(&f_multicall), "i:", "")
-  ADD_CD_SLOT_PUBLIC("t.multicall",    call_list, rak::ptr_fn(&t_multicall), "i:", "")
+  ADD_CD_SLOT_PUBLIC("f.multicall",       call_list, rak::ptr_fn(&f_multicall), "i:", "")
+  ADD_CD_SLOT_PUBLIC("t.multicall",       call_list, rak::ptr_fn(&t_multicall), "i:", "")
 }
