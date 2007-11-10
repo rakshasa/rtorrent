@@ -264,9 +264,9 @@ initialize_command_ui() {
 
 //   ADD_COMMAND_LIST("view_sort_current", rak::bind_ptr_fn(&apply_view_filter, &core::ViewManager::set_sort_current));
 
-  ADD_ANY_NONE("print",             rak::ptr_fn(&apply_print));
-  ADD_ANY_NONE("cat",               rak::ptr_fn(&apply_cat));
-  ADD_ANY_NONE("if",                rak::ptr_fn(&apply_if));
+  ADD_ANY_NONE("print",                 rak::ptr_fn(&apply_print));
+  ADD_ANY_NONE("cat",                   rak::ptr_fn(&apply_cat));
+  ADD_ANY_NONE("if",                    rak::ptr_fn(&apply_if));
 
   ADD_COMMAND_VALUE("to_date",          rak::ptr_fn(&apply_to_date));
   ADD_COMMAND_VALUE("to_time",          rak::ptr_fn(&apply_to_time));

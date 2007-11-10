@@ -74,7 +74,7 @@ void
 CommandMap::insert_any(key_type key, Command* variable, any_slot targetSlot, int flags, const char* parm, const char* doc) {
   iterator itr = insert(key, variable, flags, parm, doc);
 
-  itr->second.m_target      = target_any;
+  itr->second.m_target  = target_any;
   itr->second.m_anySlot = targetSlot;
 }
 
@@ -149,10 +149,14 @@ CommandMap::call_command(key_type key, const mapped_type& arg, target_type targe
   if (itr == base_type::end())
     throw torrent::input_error("Command \"" + std::string(key) + "\" does not exist.");
 
-  if (target.second == NULL &&
-      itr->second.m_target != target_generic &&
-      !(itr->second.m_target == target_any && target.first == target_generic))
-    throw torrent::input_error("Command type mis-match.");
+  if (target.first != target_generic && target.second == NULL) {
+    // We received a target that is NULL, so throw an exception unless
+    // we can convert it to a void target.
+    if (itr->second.m_target > target_any)
+      throw torrent::input_error("Command type mis-match.");
+
+    target.first = target_generic;
+  }
 
   if (itr->second.m_target != target.first && itr->second.m_target > target_any) {
     // Mismatch between the target and command type. If it is not
@@ -178,8 +182,16 @@ CommandMap::call_command(key_type key, const mapped_type& arg, target_type targe
 
 const CommandMap::mapped_type
 CommandMap::call_command(const_iterator itr, const mapped_type& arg, target_type target) {
-  if ((itr->second.m_target != target.first && itr->second.m_target > target_any) ||
-      (target.second == NULL && itr->second.m_target != target_generic && !(itr->second.m_target == target_any && target.first == target_generic)))
+  if (target.first != target_generic && target.second == NULL) {
+    // We received a target that is NULL, so throw an exception unless
+    // we can convert it to a void target.
+    if (itr->second.m_target > target_any)
+      throw torrent::input_error("Command type mis-match.");
+
+    target.first = target_generic;
+  }
+
+  if (itr->second.m_target != target.first && itr->second.m_target > target_any)
     throw torrent::input_error("Command type mis-match.");
 
   // This _should_ be optimized int just two calls.

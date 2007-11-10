@@ -315,7 +315,7 @@ initialize_command_network() {
   ADD_COMMAND_VALUE_UN("enable_trackers",       std::ptr_fun(&apply_enable_trackers));
   ADD_COMMAND_STRING_UN("encoding_list",        std::ptr_fun(&apply_encoding_list));
 
-  ADD_VARIABLE_BOOL("peer_exchange", false);
+  ADD_VARIABLE_BOOL("peer_exchange", true);
 
   // Not really network stuff:
   ADD_VARIABLE_BOOL("handshake_log", false);

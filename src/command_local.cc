@@ -130,7 +130,7 @@ initialize_command_local() {
   ADD_COMMAND_VALUE_SET_OCT("system.", "umask",  std::ptr_fun(&umask));
   ADD_COMMAND_STRING_PREFIX("system.", "cwd",    std::ptr_fun(system_set_cwd), rak::ptr_fun(&system_get_cwd));
 
-  ADD_VARIABLE_STRING("name",            "");
+  ADD_VARIABLE_STRING("name", "");
 
   ADD_VARIABLE_VALUE("max_file_size", -1);
   ADD_VARIABLE_VALUE("split_file_size", -1);

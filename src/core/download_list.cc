@@ -253,7 +253,7 @@ DownloadList::close_try(Download* download) {
 void
 DownloadList::close_directly(Download* download) {
   if (download->download()->is_active()) {
-    download->download()->stop2(torrent::Download::stop_skip_tracker);
+    download->download()->stop(torrent::Download::stop_skip_tracker);
     torrent::resume_save_progress(*download->download(), download->download()->bencode()->get_key("libtorrent_resume"));
   }
 
@@ -407,7 +407,7 @@ DownloadList::resume(Download* download, int flags) {
     // Update the priority to ensure it has the correct
     // seeding/unfinished modifiers.
     download->set_priority(download->priority());
-    download->download()->start2(download->resume_flags());
+    download->download()->start(download->resume_flags());
 
     download->set_resume_flags(~uint32_t());
 
@@ -438,7 +438,7 @@ DownloadList::pause(Download* download, int flags) {
     if (!download->download()->is_active())
       return;
 
-    download->download()->stop2(flags);
+    download->download()->stop(flags);
     torrent::resume_save_progress(*download->download(), download->download()->bencode()->get_key("libtorrent_resume"));
     
     std::for_each(slot_map_stop().begin(), slot_map_stop().end(), download_list_call(download));
