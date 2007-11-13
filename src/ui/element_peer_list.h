@@ -47,7 +47,7 @@ class ElementText;
 
 class ElementPeerList : public ElementBase {
 public:
-  typedef std::list<torrent::Peer> PList;
+  typedef std::list<torrent::Peer*> PList;
 
   typedef enum {
     DISPLAY_LIST,
@@ -71,8 +71,8 @@ private:
 
   void                receive_disconnect_peer();
 
-  void                receive_peer_connected(torrent::Peer p);
-  void                receive_peer_disconnected(torrent::Peer p);
+  void                receive_peer_connected(torrent::Peer* p);
+  void                receive_peer_disconnected(torrent::Peer* p);
 
   void                receive_snub_peer();
 

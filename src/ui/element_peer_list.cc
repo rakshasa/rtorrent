@@ -213,12 +213,12 @@ ElementPeerList::receive_disconnect_peer() {
 }
 
 void
-ElementPeerList::receive_peer_connected(torrent::Peer p) {
+ElementPeerList::receive_peer_connected(torrent::Peer* p) {
   m_list.push_back(p);
 }
 
 void
-ElementPeerList::receive_peer_disconnected(torrent::Peer p) {
+ElementPeerList::receive_peer_disconnected(torrent::Peer* p) {
   PList::iterator itr = std::find(m_list.begin(), m_list.end(), p);
 
   if (itr == m_list.end())
@@ -237,7 +237,7 @@ ElementPeerList::receive_snub_peer() {
   if (m_listItr == m_list.end())
     return;
 
-  m_listItr->set_snubbed(!m_listItr->is_snubbed());
+  (*m_listItr)->set_snubbed(!(*m_listItr)->is_snubbed());
 
   update_itr();
 }
@@ -245,7 +245,7 @@ ElementPeerList::receive_snub_peer() {
 void
 ElementPeerList::update_itr() {
   m_windowList->mark_dirty();
-  m_elementInfo->set_target(m_listItr != m_list.end() ? rpc::make_target(&*m_listItr) : rpc::make_target());
+  m_elementInfo->set_target(m_listItr != m_list.end() ? rpc::make_target(*m_listItr) : rpc::make_target());
 }
 
 }

@@ -50,14 +50,14 @@ namespace display {
 
 class WindowPeerList : public Window {
 public:
-  typedef std::list<torrent::Peer> PList;
+  typedef std::list<torrent::Peer*> PList;
 
   WindowPeerList(core::Download* d, PList* l, PList::iterator* f);
 
   virtual void     redraw();
 
 private:
-  int              done_percentage(torrent::Peer& p);
+  int              done_percentage(torrent::Peer* p);
 
   core::Download*  m_download;
 
