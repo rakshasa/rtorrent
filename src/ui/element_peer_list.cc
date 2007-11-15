@@ -40,6 +40,7 @@
 #include <torrent/exceptions.h>
 #include <torrent/rate.h>
 #include <torrent/hash_string.h>
+#include <torrent/peer/connection_list.h>
 #include <torrent/peer/peer_info.h>
 
 #include "display/frame.h"
@@ -61,10 +62,11 @@ ElementPeerList::ElementPeerList(core::Download* d) :
 
   m_listItr = m_list.end();
 
-  m_download->download()->peer_list(m_list);
+  std::for_each(m_download->download()->connection_list()->begin(), m_download->download()->connection_list()->end(),
+                rak::bind1st(std::mem_fun<void,PList,PList::const_reference>(&PList::push_back), &m_list));
 
-  m_connPeerConnected    = m_download->download()->signal_peer_connected(sigc::mem_fun(*this, &ElementPeerList::receive_peer_connected));
-  m_connPeerDisconnected = m_download->download()->signal_peer_disconnected(sigc::mem_fun(*this, &ElementPeerList::receive_peer_disconnected));
+  m_connPeerConnected    = m_download->download()->connection_list()->signal_connected().connect(sigc::mem_fun(*this, &ElementPeerList::receive_peer_connected));
+  m_connPeerDisconnected = m_download->download()->connection_list()->signal_disconnected().connect(sigc::mem_fun(*this, &ElementPeerList::receive_peer_disconnected));
 
   m_windowList  = new display::WindowPeerList(m_download, &m_list, &m_listItr);
   m_elementInfo = create_info();

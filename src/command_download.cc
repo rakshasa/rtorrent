@@ -46,6 +46,7 @@
 #include <torrent/tracker.h>
 #include <torrent/data/file.h>
 #include <torrent/data/file_list.h>
+#include <torrent/peer/connection_list.h>
 
 #include "core/download.h"
 #include "core/manager.h"
@@ -438,12 +439,10 @@ initialize_command_download() {
   ADD_CD_VALUE_MEM_BI("max_file_size", &core::Download::file_list, &torrent::FileList::set_max_file_size, &torrent::FileList::max_file_size);
 
   // Deprecated.
-  ADD_CD_VALUE_MEM_BI("min_peers",     &core::Download::download, &torrent::Download::set_peers_min, &torrent::Download::peers_min);
-  ADD_CD_VALUE_MEM_BI("max_peers",     &core::Download::download, &torrent::Download::set_peers_max, &torrent::Download::peers_max);
   ADD_CD_VALUE_MEM_BI("max_uploads",   &core::Download::download, &torrent::Download::set_uploads_max, &torrent::Download::uploads_max);
 
-  ADD_CD_VALUE_MEM_BI("peers_min",        &core::Download::download, &torrent::Download::set_peers_min, &torrent::Download::peers_min);
-  ADD_CD_VALUE_MEM_BI("peers_max",        &core::Download::download, &torrent::Download::set_peers_max, &torrent::Download::peers_max);
+  ADD_CD_VALUE_MEM_BI("peers_min",        &core::Download::connection_list, &torrent::ConnectionList::set_min_size, &torrent::ConnectionList::min_size);
+  ADD_CD_VALUE_MEM_BI("peers_max",        &core::Download::connection_list, &torrent::ConnectionList::set_max_size, &torrent::ConnectionList::max_size);
   ADD_CD_VALUE_MEM_BI("uploads_max",      &core::Download::download, &torrent::Download::set_uploads_max, &torrent::Download::uploads_max);
   ADD_CD_VALUE_UNI("peers_connected",     rak::on(std::mem_fun(&core::Download::download), std::mem_fun(&torrent::Download::peers_connected)));
   ADD_CD_VALUE_UNI("peers_not_connected", rak::on(std::mem_fun(&core::Download::download), std::mem_fun(&torrent::Download::peers_not_connected)));

@@ -45,6 +45,7 @@
 #include <torrent/torrent.h>
 #include <torrent/tracker_list.h>
 #include <torrent/data/file_list.h>
+#include <torrent/peer/connection_list.h>
 
 #include "core/download.h"
 #include "input/manager.h"
@@ -293,14 +294,14 @@ void
 Download::receive_min_peers(int t) {
   m_windowDownloadStatus->mark_dirty();
 
-  m_download->download()->set_peers_min(std::max(m_download->download()->peers_min() + t, (uint32_t)5));
+  m_download->download()->connection_list()->set_min_size(std::max(m_download->download()->connection_list()->min_size() + t, (uint32_t)5));
 }
 
 void
 Download::receive_max_peers(int t) {
   m_windowDownloadStatus->mark_dirty();
 
-  m_download->download()->set_peers_max(std::max(m_download->download()->peers_max() + t, (uint32_t)5));
+  m_download->download()->connection_list()->set_max_size(std::max(m_download->download()->connection_list()->max_size() + t, (uint32_t)5));
 }
 
 void
