@@ -191,17 +191,17 @@ DownloadFactory::receive_success() {
   rpc::call_command("d.set_connection_leech", m_variables["connection_leech"], rpc::make_target(download));
   rpc::call_command("d.set_connection_seed",  m_variables["connection_seed"], rpc::make_target(download));
 
-  rpc::call_command("d.set_max_uploads",      rpc::call_command_void("get_max_uploads"), rpc::make_target(download));
-  rpc::call_command("d.set_min_peers",        rpc::call_command_void("get_min_peers"), rpc::make_target(download));
-  rpc::call_command("d.set_max_peers",        rpc::call_command_void("get_max_peers"), rpc::make_target(download));
+  rpc::call_command("d.set_uploads_max",      rpc::call_command_void("get_max_uploads"), rpc::make_target(download));
+  rpc::call_command("d.set_peers_min",        rpc::call_command_void("get_min_peers"), rpc::make_target(download));
+  rpc::call_command("d.set_peers_max",        rpc::call_command_void("get_max_peers"), rpc::make_target(download));
   rpc::call_command("d.set_tracker_numwant",  rpc::call_command_void("get_tracker_numwant"), rpc::make_target(download));
 
   if (rpc::call_command_value("d.get_complete", rpc::make_target(download)) != 0) {
     if (rpc::call_command_value("get_min_peers_seed") >= 0)
-      rpc::call_command("d.set_min_peers", rpc::call_command_void("get_min_peers_seed"), rpc::make_target(download));
+      rpc::call_command("d.set_peers_min", rpc::call_command_void("get_min_peers_seed"), rpc::make_target(download));
 
     if (rpc::call_command_value("get_max_peers_seed") >= 0)
-      rpc::call_command("d.set_max_peers", rpc::call_command_void("get_max_peers_seed"), rpc::make_target(download));
+      rpc::call_command("d.set_peers_max", rpc::call_command_void("get_max_peers_seed"), rpc::make_target(download));
   }
 
   if (!rpc::call_command_value("get_use_udp_trackers"))
