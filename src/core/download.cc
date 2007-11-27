@@ -110,6 +110,11 @@ Download::set_priority(uint32_t p) {
   bencode()->get_key("rtorrent").insert_key("priority", (int64_t)p);
 }
 
+uint32_t
+Download::connection_list_size() const {
+  return m_download.connection_list()->size();
+}
+
 void
 Download::receive_tracker_msg(std::string msg) {
   if (msg.empty())

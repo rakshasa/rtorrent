@@ -47,6 +47,7 @@
 #include <torrent/data/file.h>
 #include <torrent/data/file_list.h>
 #include <torrent/peer/connection_list.h>
+#include <torrent/peer/peer_list.h>
 
 #include "core/download.h"
 #include "core/manager.h"
@@ -290,6 +291,34 @@ t_multicall(core::Download* download, const torrent::Object& rawArgs) {
   return resultRaw;
 }
 
+torrent::Object
+p_multicall(core::Download* download, const torrent::Object& rawArgs) {
+  const torrent::Object::list_type& args = rawArgs.as_list();
+
+  if (args.empty())
+    throw torrent::input_error("Too few arguments.");
+
+  // We ignore the first arg for now, but it will be used for
+  // selecting what files to include.
+
+  // Add some pre-parsing of the commands, so we don't spend time
+  // parsing and searching command map for every single call.
+  torrent::Object             resultRaw(torrent::Object::TYPE_LIST);
+  torrent::Object::list_type& result = resultRaw.as_list();
+
+  for (torrent::ConnectionList::const_iterator itr = download->connection_list()->begin(), last = download->connection_list()->end(); itr != last; itr++) {
+    torrent::Object::list_type& row = result.insert(result.end(), torrent::Object(torrent::Object::TYPE_LIST))->as_list();
+
+    for (torrent::Object::list_const_iterator cItr = ++args.begin(), cLast = args.end(); cItr != args.end(); cItr++) {
+      const std::string& cmd = cItr->as_string();
+
+      row.push_back(rpc::parse_command(rpc::make_target(*itr), cmd.c_str(), cmd.c_str() + cmd.size()).first);
+    }
+  }
+
+  return resultRaw;
+}
+
 #define ADD_CD_SLOT(key, function, slot, parm, doc)    \
   commandDownloadSlotsItr->set_slot(slot); \
   rpc::commands.insert_download(key, commandDownloadSlotsItr++, &rpc::CommandSlot<core::Download*>::function, rpc::CommandMap::flag_dont_delete, parm, doc);
@@ -441,8 +470,8 @@ initialize_command_download() {
   ADD_CD_VALUE_MEM_BI("peers_min",        &core::Download::connection_list, &torrent::ConnectionList::set_min_size, &torrent::ConnectionList::min_size);
   ADD_CD_VALUE_MEM_BI("peers_max",        &core::Download::connection_list, &torrent::ConnectionList::set_max_size, &torrent::ConnectionList::max_size);
   ADD_CD_VALUE_MEM_BI("uploads_max",      &core::Download::download, &torrent::Download::set_uploads_max, &torrent::Download::uploads_max);
-  ADD_CD_VALUE_UNI("peers_connected",     rak::on(std::mem_fun(&core::Download::download), std::mem_fun(&torrent::Download::peers_connected)));
-  ADD_CD_VALUE_UNI("peers_not_connected", rak::on(std::mem_fun(&core::Download::download), std::mem_fun(&torrent::Download::peers_not_connected)));
+  ADD_CD_VALUE_UNI("peers_connected",     std::mem_fun(&core::Download::connection_list_size));
+  ADD_CD_VALUE_UNI("peers_not_connected", rak::on(std::mem_fun(&core::Download::c_peer_list), std::mem_fun(&torrent::PeerList::available_list_size)));
   ADD_CD_VALUE_UNI("peers_complete",      rak::on(std::mem_fun(&core::Download::download), std::mem_fun(&torrent::Download::peers_complete)));
   ADD_CD_VALUE_UNI("peers_accounted",     rak::on(std::mem_fun(&core::Download::download), std::mem_fun(&torrent::Download::peers_accounted)));
 
@@ -482,5 +511,6 @@ initialize_command_download() {
   ADD_CD_STRING_UNI("priority_str",       std::ptr_fun(&retrieve_d_priority_str));
 
   ADD_CD_SLOT_PUBLIC("f.multicall",       call_list, rak::ptr_fn(&f_multicall), "i:", "")
+  ADD_CD_SLOT_PUBLIC("p.multicall",       call_list, rak::ptr_fn(&p_multicall), "i:", "")
   ADD_CD_SLOT_PUBLIC("t.multicall",       call_list, rak::ptr_fn(&t_multicall), "i:", "")
 }

@@ -38,6 +38,8 @@
 
 #include <torrent/rate.h>
 #include <torrent/tracker_list.h>
+#include <torrent/peer/connection_list.h>
+#include <torrent/peer/peer_list.h>
 
 #include "canvas.h"
 #include "globals.h"
@@ -67,10 +69,10 @@ WindowDownloadStatusbar::redraw() {
   m_canvas->print(0, 0, "%s", buffer);
 
   position = buffer + std::max(snprintf(buffer, last - buffer, "Peers: %i(%i) Min/Max: %i/%i Uploads: %i U/I/C/A: %i/%i/%i/%i Failed: %i",
-                                        (int)m_download->download()->peers_connected(),
-                                        (int)m_download->download()->peers_not_connected(),
-                                        (int)m_download->download()->peers_min(),
-                                        (int)m_download->download()->peers_max(),
+                                        (int)m_download->download()->connection_list()->size(),
+                                        (int)m_download->download()->peer_list()->available_list_size(),
+                                        (int)m_download->download()->connection_list()->min_size(),
+                                        (int)m_download->download()->connection_list()->max_size(),
                                         (int)m_download->download()->uploads_max(),
                                         (int)m_download->download()->peers_currently_unchoked(),
                                         (int)m_download->download()->peers_currently_interested(),
