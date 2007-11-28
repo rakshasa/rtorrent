@@ -74,6 +74,17 @@
 #
 # encryption = allow_incoming,enable_retry,prefer_plaintext
 
+# Enable DHT support for trackerless torrents or when all trackers are down.
+# May be set to "disable" (completely disable DHT), "off" (do not start DHT),
+# "auto" (start and stop DHT as needed), or "on" (start DHT immediately).
+# The default is "off". For DHT to work, a session directory must be defined.
+# 
+# dht = auto
+
+# UDP port to use for DHT. 
+# 
+# dht_port = 6881
+
 # Enable peer exchange (for torrents not marked private)
 #
 # peer_exchange = yes

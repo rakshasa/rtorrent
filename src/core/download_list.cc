@@ -55,6 +55,7 @@
 #include "globals.h"
 #include "manager.h"
 
+#include "dht_manager.h"
 #include "download.h"
 #include "download_list.h"
 #include "download_store.h"
@@ -94,6 +95,8 @@ DownloadList::clear() {
 void
 DownloadList::session_save() {
   std::for_each(begin(), end(), std::bind1st(std::mem_fun(&DownloadStore::save), control->core()->download_store()));
+
+  control->dht_manager()->save_dht_cache();
 }
 
 DownloadList::iterator
@@ -403,6 +406,10 @@ DownloadList::resume(Download* download, int flags) {
       // updating mtime.
       torrent::resume_save_progress(*download->download(), download->download()->bencode()->get_key("libtorrent_resume"), true);
     }
+
+    // If the DHT server is set to auto, start it now.
+    if (!download->download()->is_private())
+      control->dht_manager()->auto_start();
 
     // Update the priority to ensure it has the correct
     // seeding/unfinished modifiers.

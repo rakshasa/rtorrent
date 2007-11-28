@@ -41,10 +41,12 @@
 #include <rak/file_stat.h>
 #include <rak/path.h>
 #include <torrent/connection_manager.h>
+#include <torrent/dht_manager.h>
 #include <torrent/tracker.h>
 #include <torrent/tracker_list.h>
 #include <torrent/torrent.h>
 
+#include "core/dht_manager.h"
 #include "core/download.h"
 #include "core/manager.h"
 #include "rpc/scgi.h"
@@ -118,6 +120,41 @@ apply_tos(const torrent::Object& rawArg) {
 void apply_hash_read_ahead(int arg)              { torrent::set_hash_read_ahead(arg << 20); }
 void apply_hash_interval(int arg)                { torrent::set_hash_interval(arg * 1000); }
 void apply_encoding_list(const std::string& arg) { torrent::encoding_list()->push_back(arg); }
+
+struct call_add_node_t {
+  call_add_node_t(int port) : m_port(port) { }
+
+  void operator() (const sockaddr* sa, int err) {
+    if (sa == NULL)
+      control->core()->push_log("Could not resolve host.");
+    else
+      torrent::dht_manager()->add_node(sa, m_port);
+  }
+
+  int m_port;
+};
+
+void
+apply_dht_add_node(const std::string& arg) {
+  if (!torrent::dht_manager()->is_valid())
+    throw torrent::input_error("DHT not enabled.");
+
+  int port, ret;
+  char dummy;
+  char host[1024];
+
+  ret = std::sscanf(arg.c_str(), "%1023[^:]:%i%c", host, &port, &dummy);
+
+  if (ret == 1)
+    port = 6881;
+  else if (ret != 2)
+    throw torrent::input_error("Could not parse host.");
+
+  if (port < 1 || port > 65535)
+    throw torrent::input_error("Invalid port number.");
+
+  torrent::connection_manager()->resolver()(host, (int)rak::socket_address::pf_inet, SOCK_DGRAM, call_add_node_t(port));
+}
 
 void
 apply_enable_trackers(int64_t arg) {
@@ -314,6 +351,11 @@ initialize_command_network() {
 
   ADD_COMMAND_VALUE_UN("enable_trackers",       std::ptr_fun(&apply_enable_trackers));
   ADD_COMMAND_STRING_UN("encoding_list",        std::ptr_fun(&apply_encoding_list));
+
+  ADD_VARIABLE_VALUE("dht_port", 6881);
+  ADD_COMMAND_STRING_UN("dht",                  rak::make_mem_fun(control->dht_manager(), &core::DhtManager::set_start));
+  ADD_COMMAND_STRING_UN("dht_add_node",         std::ptr_fun(&apply_dht_add_node));
+  ADD_COMMAND_VOID("dht_statistics",            rak::make_mem_fun(control->dht_manager(), &core::DhtManager::dht_statistics));
 
   ADD_VARIABLE_BOOL("peer_exchange", true);
 

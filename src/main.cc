@@ -49,6 +49,7 @@
 #include <execinfo.h>
 #endif
 
+#include "core/dht_manager.h"
 #include "core/download.h"
 #include "core/download_factory.h"
 #include "core/download_store.h"
@@ -245,6 +246,7 @@ main(int argc, char** argv) {
 
     // Load session torrents and perform scheduled tasks to ensure
     // session torrents are loaded before arg torrents.
+    control->dht_manager()->load_dht_cache();
     load_session_torrents(control);
     rak::priority_queue_perform(&taskScheduler, cachedTime);
 

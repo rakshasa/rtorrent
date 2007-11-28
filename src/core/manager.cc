@@ -242,6 +242,9 @@ Manager::cleanup() {
 
   m_downloadList->clear();
 
+  // When we implement asynchronous DNS lookups, we need to cancel them
+  // here before the torrent::* objects are deleted.
+
   torrent::cleanup();
   CurlStack::global_cleanup();
 

@@ -1,4 +1,5 @@
-<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.1//EN">
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.1//EN"
+  "http://oasis-open.org/docbook/xml/4.1/docbookx.dtd">
 
 <refentry id="rtorrent">
 
@@ -703,6 +704,38 @@ peers we want. A negative value disables this feature.
         <listitem><para>
 Use UDP trackers. Disable if you are behind a firewall, etc, that does
 not allow connections to UDP trackers.
+        </para></listitem>
+      </varlistentry>
+
+       <varlistentry>
+        <term>dht = <replaceable>disabled|off|auto|on</replaceable></term>
+        <listitem><para>
+Support for querying the distributed hash table (DHT) to find peers for trackerless
+torrents or when all trackers are down. Set to <emphasis>disable</emphasis> to completely
+disable DHT, <emphasis>off</emphasis> (default) to enable DHT but to not start the
+DHT server, <emphasis>auto</emphasis> to automatically start and stop the DHT server
+as needed or <emphasis>on</emphasis> for permanently keeping the DHT server running.
+When set to automatic, the DHT server will start up when the first non-private torrent
+is started, and will stop 15-30 minutes after the last non-private torrent is
+stopped (or when rTorrent quits). For DHT to work, a session directory must be set (for
+saving the DHT cache).
+        </para></listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>dht_port = <replaceable>number</replaceable></term>
+        <listitem><para>
+Set the UDP listen port for DHT. Defaults to 6881.
+        </para></listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>dht_add_node = <replaceable>host[:port]</replaceable></term>
+        <listitem><para>
+Not intended for use in the configuration file but as one-time option in the
+client or on the command line to bootstrap an empty DHT node table. Contacts 
+the given node and attempts to bootstrap from it if it replies.
+The port is optional, with port 6881 being used by default.
         </para></listitem>
       </varlistentry>
 
