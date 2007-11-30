@@ -97,10 +97,11 @@ apply_on_ratio(int action, const torrent::Object& rawArgs) {
   core::DownloadList* downloadList = control->core()->download_list();
 
   for  (core::Manager::DListItr itr = downloadList->begin();
-        (itr = std::find_if(itr, downloadList->end(), std::mem_fun(&core::Download::is_seeding))) != downloadList->end();
-        itr++) {
-    int64_t totalDone   = (*itr)->download()->bytes_done();
-    int64_t totalUpload = (*itr)->download()->up_rate()->total();
+        (itr = std::find_if(itr, downloadList->end(), std::mem_fun(&core::Download::is_seeding))) != downloadList->end(); ) {
+    core::Download* current = *itr++;
+
+    int64_t totalDone   = current->download()->bytes_done();
+    int64_t totalUpload = current->download()->up_rate()->total();
 
     if (!(totalUpload >= minUpload && totalUpload * 100 >= totalDone * minRatio) &&
         !(maxRatio > 0 && totalUpload * 100 > totalDone * maxRatio))
@@ -109,18 +110,18 @@ apply_on_ratio(int action, const torrent::Object& rawArgs) {
     bool success;
 
     switch (action) {
-    case core::DownloadList::SLOTS_CLOSE: success = downloadList->close_try(*itr); break;
-    case core::DownloadList::SLOTS_STOP:  success = downloadList->stop_try(*itr); break;
+    case core::DownloadList::SLOTS_CLOSE: success = downloadList->close_try(current); break;
+    case core::DownloadList::SLOTS_STOP:  success = downloadList->stop_try(current); break;
     default: success = false; break;
     }
 
     if (!success)
       continue;
 
-    rpc::call_command("d.set_ignore_commands", (int64_t)1, rpc::make_target(*itr));
+    rpc::call_command("d.set_ignore_commands", (int64_t)1, rpc::make_target(current));
 
     for (torrent::Object::list_const_iterator itr2 = argItr; itr2 != args.end(); itr2++)
-      rpc::parse_command_object(rpc::make_target(*itr), *itr2);
+      rpc::parse_command_object(rpc::make_target(current), *itr2);
   }
 
   return torrent::Object();

@@ -54,6 +54,8 @@ class Download;
 // Container for all downloads. Add slots to the slot maps to cause
 // some action to be taken when the torrent changes states. Don't
 // change the states from outside of core.
+//
+// Fix apply_on_ratio if the base_type is changed.
 
 class DownloadList : private std::list<Download*> {
 public:
