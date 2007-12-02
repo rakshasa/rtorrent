@@ -221,7 +221,8 @@ DownloadList::open_throw(Download* download) {
   if (download->download()->is_open())
     return;
   
-  download->download()->open();
+//   download->download()->open(torrent::Download::open_no_create);
+  download->download()->open(0);
 
   std::for_each(slot_map_open().begin(), slot_map_open().end(), download_list_call(download));
 }
