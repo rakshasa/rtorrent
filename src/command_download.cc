@@ -452,6 +452,7 @@ initialize_command_download() {
   // value, it indicates the last time the torrent changed its state,
   // resume/pause.
   ADD_CD_VARIABLE_VALUE("state_changed",          "rtorrent", "state_changed");
+  ADD_CD_VARIABLE_VALUE("state_counter",          "rtorrent", "state_counter");
   ADD_CD_VARIABLE_VALUE_PUBLIC("ignore_commands", "rtorrent", "ignore_commands");
 
   ADD_CD_STRING_BI("connection_current", std::ptr_fun(&apply_d_connection_type), std::ptr_fun(&retrieve_d_connection_type));

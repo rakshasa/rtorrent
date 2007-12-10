@@ -310,10 +310,13 @@ DownloadFactory::initialize_rtorrent(Download* download, torrent::Object* rtorre
   if (!rtorrent->has_key_value("state") || rtorrent->get_key_value("state") > 1) {
     rtorrent->insert_key("state", (int64_t)m_start);
     rtorrent->insert_key("state_changed", cachedTime.seconds());
+    rtorrent->insert_key("state_counter", int64_t());
 
   } else if (!rtorrent->has_key_value("state_changed") ||
-             rtorrent->get_key_value("state_changed") > cachedTime.seconds() || rtorrent->get_key_value("state_changed") == 0) {
+             rtorrent->get_key_value("state_changed") > cachedTime.seconds() || rtorrent->get_key_value("state_changed") == 0 ||
+             !rtorrent->has_key_value("state_counter") || (uint64_t)rtorrent->get_key_value("state_counter") > (1 << 20)) {
     rtorrent->insert_key("state_changed", cachedTime.seconds());
+    rtorrent->insert_key("state_counter", int64_t());
   }
 
   rtorrent->insert_preserve_value("complete", 0);

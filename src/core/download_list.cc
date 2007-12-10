@@ -221,8 +221,7 @@ DownloadList::open_throw(Download* download) {
   if (download->download()->is_open())
     return;
   
-//   download->download()->open(torrent::Download::open_no_create);
-  download->download()->open(0);
+  download->download()->open(download->resume_flags());
 
   std::for_each(slot_map_open().begin(), slot_map_open().end(), download_list_call(download));
 }
@@ -395,6 +394,7 @@ DownloadList::resume(Download* download, int flags) {
     // open_throw(download);
 
     rpc::call_command("d.set_state_changed", cachedTime.seconds(), rpc::make_target(download));
+    rpc::call_command("d.set_state_counter", rpc::call_command_value("d.get_state_counter", rpc::make_target(download)) + 1, rpc::make_target(download));
 
     if (download->is_done()) {
       rpc::call_command("d.set_connection_current", rpc::call_command_void("d.get_connection_seed", rpc::make_target(download)), rpc::make_target(download));
@@ -452,6 +452,7 @@ DownloadList::pause(Download* download, int flags) {
     std::for_each(slot_map_stop().begin(), slot_map_stop().end(), download_list_call(download));
 
     rpc::call_command("d.set_state_changed", cachedTime.seconds(), rpc::make_target(download));
+    rpc::call_command("d.set_state_counter", rpc::call_command_value("d.get_state_counter", rpc::make_target(download)), rpc::make_target(download));
 
     // Save the state after all the slots, etc have been called so we
     // include the modifications they may make.
@@ -522,7 +523,7 @@ DownloadList::hash_done(Download* download) {
     torrent::resume_save_progress(*download->download(), download->download()->bencode()->get_key("libtorrent_resume"));
 
     if (rpc::call_command_value("d.get_state", rpc::make_target(download)) == 1)
-      resume(download);
+      resume(download, download->resume_flags());
 
     break;
 
@@ -623,7 +624,7 @@ DownloadList::confirm_finished(Download* download) {
     throw torrent::internal_error("DownloadList::confirm_finished(...) download->resume_flags() != ~uint32_t().");
 
   if (!download->is_active() && rpc::call_command_value("d.get_state", rpc::make_target(download)) == 1)
-    resume(download, torrent::Download::start_skip_tracker | torrent::Download::start_keep_baseline);
+    resume(download, torrent::Download::start_no_create | torrent::Download::start_skip_tracker | torrent::Download::start_keep_baseline);
 }
 
 }
