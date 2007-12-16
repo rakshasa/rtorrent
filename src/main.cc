@@ -272,15 +272,10 @@ main(int argc, char** argv) {
     }
 
     control->core()->download_list()->session_save();
-
     control->cleanup();
 
   } catch (std::exception& e) {
-    display::Canvas::cleanup();
-
-    // Safe to delete here? Seem to cause problems if cleanup hasn't
-    // been called.
-    //delete control;
+    control->cleanup_exception();
 
     std::cout << "rtorrent: " << e.what() << std::endl;
     return -1;

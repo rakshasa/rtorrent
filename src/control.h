@@ -81,6 +81,7 @@ public:
 
   void                initialize();
   void                cleanup();
+  void                cleanup_exception();
 
   void                handle_shutdown();
 
