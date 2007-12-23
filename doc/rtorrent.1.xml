@@ -1012,7 +1012,7 @@ Adjust the send and receive buffer size for socket.
       </varlistentry>
 
       <varlistentry>
-        <term>umask = <replaceable>0644</replaceable></term>
+        <term>umask = <replaceable>0022</replaceable></term>
         <listitem><para>
 
 Set the umask for this process, which is applied to all files created

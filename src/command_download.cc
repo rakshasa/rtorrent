@@ -175,6 +175,16 @@ apply_d_connection_type(core::Download* download, const std::string& name) {
   download->download()->set_connection_type(connType);
 }
 
+void
+apply_d_directory(core::Download* download, const std::string& name) {
+  if (!download->file_list()->is_multi_file())
+    download->set_root_directory(name);
+  else if (name.empty() || *name.rbegin() == '/')
+    download->set_root_directory(name + download->download()->name());
+  else
+    download->set_root_directory(name + "/" + download->download()->name());
+}
+
 const char*
 retrieve_d_connection_type(core::Download* download) {
   switch (download->download()->connection_type()) {
@@ -507,7 +517,9 @@ initialize_command_download() {
   ADD_CD_VALUE_UNI("tracker_focus",       rak::on(std::mem_fun(&core::Download::tracker_list), std::mem_fun(&torrent::TrackerList::focus_index)));
   ADD_CD_VALUE_UNI("tracker_size",        std::mem_fun(&core::Download::tracker_list_size));
 
-  ADD_CD_STRING_BI("directory",           std::mem_fun(&core::Download::set_root_directory), rak::on(std::mem_fun(&core::Download::file_list), std::mem_fun(&torrent::FileList::root_dir)));
+  ADD_CD_STRING_BI("directory",           std::ptr_fun(&apply_d_directory), rak::on(std::mem_fun(&core::Download::file_list), std::mem_fun(&torrent::FileList::root_dir)));
+  ADD_CD_STRING_BI("directory_base",      std::mem_fun(&core::Download::set_root_directory), rak::on(std::mem_fun(&core::Download::file_list), std::mem_fun(&torrent::FileList::root_dir)));
+
   ADD_CD_VALUE_BI("priority",             std::mem_fun(&core::Download::set_priority), std::mem_fun(&core::Download::priority));
   ADD_CD_STRING_UNI("priority_str",       std::ptr_fun(&retrieve_d_priority_str));
 
