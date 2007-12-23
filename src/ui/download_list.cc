@@ -255,7 +255,7 @@ DownloadList::receive_view_input(Input type) {
   input->signal_show_next().connect(sigc::mem_fun(*esl, &ElementStringList::next_screen));
 
   input->signal_show_range().connect(sigc::hide(sigc::hide(sigc::bind(sigc::mem_fun(*this, &DownloadList::activate_display), DISPLAY_STRING_LIST))));
-  input->signal_show_range().connect(sigc::mem_fun(*esl, &ElementStringList::set_range<utils::Directory::iterator>));
+  input->signal_show_range().connect(sigc::mem_fun(*esl, &ElementStringList::set_range_dirent<utils::Directory::iterator>));
 
   input->bindings()['\n']      = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_exit_input), type);
   input->bindings()[KEY_ENTER] = sigc::bind(sigc::mem_fun(*this, &DownloadList::receive_exit_input), type);

@@ -56,6 +56,7 @@
 #include <torrent/tracker_list.h>
 
 #include "rpc/parse_commands.h"
+#include "utils/directory.h"
 
 #include "globals.h"
 #include "curl_get.h"
@@ -417,6 +418,11 @@ Manager::try_create_download(const std::string& uri, int flags, const command_li
   f->commit();
 }
 
+utils::Directory
+path_expand_transform(std::string path, const utils::directory_entry& entry) {
+  return path + entry.d_name;
+}
+
 // Move this somewhere better.
 void
 path_expand(std::vector<std::string>* paths, const std::string& pattern) {
@@ -454,9 +460,9 @@ path_expand(std::vector<std::string>* paths, const std::string& pattern) {
       // Only include filenames starting with '.' if the pattern
       // starts with the same.
       itr->update(r.pattern()[0] != '.');
-      itr->erase(std::remove_if(itr->begin(), itr->end(), std::not1(r)), itr->end());
+      itr->erase(std::remove_if(itr->begin(), itr->end(), rak::on(rak::mem_ref(&utils::directory_entry::d_name), std::not1(r))), itr->end());
 
-      std::transform(itr->begin(), itr->end(), std::back_inserter(nextCache), std::bind1st(std::plus<std::string>(), itr->get_path() + "/"));
+      std::transform(itr->begin(), itr->end(), std::back_inserter(nextCache), rak::bind1st(std::ptr_fun(&path_expand_transform), itr->get_path() + "/"));
     }
 
     currentCache.clear();

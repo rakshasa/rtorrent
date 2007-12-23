@@ -38,28 +38,38 @@
 #define RTORRENT_UTILS_DIRECTORY_H
 
 #include <string>
-#include <list>
+#include <vector>
 
 namespace utils {
 
-class Directory : private std::list<std::string> {
+struct directory_entry {
+  // The name and types should match POSIX.
+  uint32_t            d_fileno;
+  uint16_t            d_reclen;
+  uint8_t             d_type;
+
+  std::string         d_name;
+};
+
+class Directory : private std::vector<directory_entry> {
 public:
-  typedef std::list<std::string> Base;
+  typedef std::vector<directory_entry> base_type;
 
-  using Base::iterator;
-  using Base::const_iterator;
-  using Base::reverse_iterator;
-  using Base::const_reverse_iterator;
+  using base_type::iterator;
+  using base_type::const_iterator;
+  using base_type::reverse_iterator;
+  using base_type::const_reverse_iterator;
+  using base_type::value_type;
 
-  using Base::begin;
-  using Base::end;
-  using Base::rbegin;
-  using Base::rend;
+  using base_type::begin;
+  using base_type::end;
+  using base_type::rbegin;
+  using base_type::rend;
 
-  using Base::empty;
-  using Base::size;
+  using base_type::empty;
+  using base_type::size;
 
-  using Base::erase;
+  using base_type::erase;
 
   Directory() {}
   Directory(const std::string& path) : m_path(path) {}
@@ -68,14 +78,25 @@ public:
 
   bool                update(bool hideDot = true);
 
+  // Ergh...
   const std::string&  get_path() { return m_path; }
+  void                set_path(const std::string& path) { m_path = path; }
 
   // Make a list with full path names.
-  Base                make_list();
+  //
+  // Fix the uses of this, real bad stuff.
+  std::vector<std::string> make_list();
 
 private:
   std::string         m_path;
 };
+
+inline bool operator == (const directory_entry& left, const directory_entry& right) { return left.d_name == right.d_name; }
+inline bool operator != (const directory_entry& left, const directory_entry& right) { return left.d_name != right.d_name; }
+inline bool operator <  (const directory_entry& left, const directory_entry& right) { return left.d_name <  right.d_name; }
+inline bool operator >  (const directory_entry& left, const directory_entry& right) { return left.d_name >  right.d_name; }
+inline bool operator <= (const directory_entry& left, const directory_entry& right) { return left.d_name <= right.d_name; }
+inline bool operator >= (const directory_entry& left, const directory_entry& right) { return left.d_name >= right.d_name; }
 
 }
 

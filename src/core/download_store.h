@@ -39,8 +39,11 @@
 
 #include <string>
 
-#include "utils/directory.h"
 #include "utils/lockfile.h"
+
+namespace utils {
+  class Directory;
+}
 
 namespace core {
 
@@ -63,8 +66,9 @@ public:
   // Currently shows all entries in the correct format.
   utils::Directory    get_formated_entries();
 
+  static bool         is_correct_format(const std::string& f);
+
 private:
-  static bool         is_correct_format(std::string f);
   std::string         create_filename(Download* d);
 
   std::string         m_path;

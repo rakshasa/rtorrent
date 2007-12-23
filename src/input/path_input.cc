@@ -38,8 +38,11 @@
 
 #include <functional>
 #include <rak/algorithm.h>
-#include <rak/file_stat.h>
+#include <rak/functional.h>
 #include <rak/path.h>
+
+#include <sys/types.h>
+#include <sys/dir.h>
 
 #include "path_input.h"
 
@@ -68,19 +71,10 @@ PathInput::pressed(int key) {
 }
 
 struct _transform_filename {
-  _transform_filename(const std::string& base) : m_base(base) {}
-
-  void operator () (std::string& filename) {
-    rak::file_stat fs;
-
-    if (!fs.update(rak::path_expand(m_base + filename)))
-      return;
-
-    else if (fs.is_directory())
-      filename += '/';
+  void operator () (utils::directory_entry& entry) {
+    if (entry.d_type == DT_DIR)
+      entry.d_name += '/';
   }
-
-  const std::string& m_base;
 };
 
 void
@@ -95,14 +89,14 @@ PathInput::receive_do_complete() {
     return;
   }
 
-  std::for_each(dir.begin(), dir.end(), _transform_filename(str().substr(0, dirEnd)));
+  std::for_each(dir.begin(), dir.end(), _transform_filename());
 
   Range r = find_incomplete(dir, str().substr(dirEnd, get_pos()));
 
   if (r.first == r.second)
     return; // Show some nice colors here.
 
-  std::string base = rak::make_base(r.first, r.second);
+  std::string base = rak::make_base<std::string>(r.first, r.second, rak::const_mem_ref(&utils::directory_entry::d_name));
 
   // Clear the path after the cursor to make this code cleaner. It's
   // not really nessesary to add the complexity just because someone
@@ -133,12 +127,22 @@ PathInput::find_last_delim() {
     return r + 1;
 }
 
+inline bool
+find_complete_compare(const utils::directory_entry& complete, const std::string& base) {
+  return complete.d_name.compare(0, base.size(), base);
+}
+
+inline bool
+find_complete_not_compare(const utils::directory_entry& complete, const std::string& base) {
+  return !complete.d_name.compare(0, base.size(), base);
+}
+
 PathInput::Range
 PathInput::find_incomplete(utils::Directory& d, const std::string& f) {
   Range r;
 
-  r.first  = std::find_if(d.begin(), d.end(), std::bind2nd(rak::compare_base<std::string>(), f));
-  r.second = std::find_if(r.first, d.end(), std::not1(std::bind2nd(rak::compare_base<std::string>(), f)));
+  r.first  = std::find_if(d.begin(), d.end(), rak::bind2nd(std::ptr_fun(&find_complete_not_compare), f));
+  r.second = std::find_if(r.first,   d.end(), rak::bind2nd(std::ptr_fun(&find_complete_compare), f));
 
   return r;
 }

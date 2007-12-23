@@ -73,6 +73,18 @@ public:
     m_window->mark_dirty();
   }
 
+  // A hack, clean this up.
+  template <typename InputIter>
+  void                set_range_dirent(InputIter first, InputIter last) {
+    m_list.clear();
+
+    while (first != last)
+      m_list.push_back((first++)->d_name);
+
+    m_window->set_range(m_list.begin(), m_list.end());
+    m_window->mark_dirty();
+  }
+
   void                next_screen();
 
 private:

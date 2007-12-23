@@ -51,6 +51,8 @@
 #include <torrent/resume.h>
 #include <torrent/object_stream.h>
 
+#include "utils/directory.h"
+
 #include "download.h"
 #include "download_store.h"
 
@@ -144,23 +146,30 @@ DownloadStore::remove(Download* d) {
   ::unlink(create_filename(d).c_str());
 }
 
+// This also needs to check that it isn't a directory.
+bool
+not_correct_format(const utils::directory_entry& entry) {
+  return !DownloadStore::is_correct_format(entry.d_name);
+}
+
 utils::Directory
 DownloadStore::get_formated_entries() {
   if (!is_enabled())
     return utils::Directory();
 
-  utils::Directory d(m_path);
+  utils::Directory d;
+  d.set_path(m_path);
 
   if (!d.update())
     throw torrent::storage_error("core::DownloadStore::update() could not open directory \"" + m_path + "\"");
 
-  d.erase(std::remove_if(d.begin(), d.end(), std::not1(std::ptr_fun(&DownloadStore::is_correct_format))), d.end());
+  d.erase(std::remove_if(d.begin(), d.end(), std::ptr_fun(&not_correct_format)), d.end());
 
   return d;
 }
 
 bool
-DownloadStore::is_correct_format(std::string f) {
+DownloadStore::is_correct_format(const std::string& f) {
   if (f.size() != 48 || f.substr(40) != ".torrent")
     return false;
 

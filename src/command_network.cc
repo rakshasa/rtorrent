@@ -38,7 +38,6 @@
 
 #include <functional>
 #include <rak/address_info.h>
-#include <rak/file_stat.h>
 #include <rak/path.h>
 #include <torrent/connection_manager.h>
 #include <torrent/dht_manager.h>

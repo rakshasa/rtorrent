@@ -46,6 +46,7 @@
 
 namespace utils {
 
+// Keep this?
 bool
 Directory::is_valid() const {
   if (m_path.empty())
@@ -57,6 +58,7 @@ Directory::is_valid() const {
   return d;
 }
 
+// Update should take various flags and sort functors.
 bool
 Directory::update(bool hideDot) {
   if (m_path.empty())
@@ -69,25 +71,34 @@ Directory::update(bool hideDot) {
 
   struct dirent* ent;
 
+  // Err... let us use getdirentries here instead.
   while ((ent = readdir(d)) != NULL) {
+    // Don't construct it here, check the const char.
     std::string de(ent->d_name);
 
-    if (!de.empty() && (!hideDot || de[0] != '.'))
-      Base::push_back(ent->d_name);
+    if (!de.empty() && (!hideDot || de[0] != '.')) {
+      iterator itr = base_type::insert(end(), value_type());
+
+      itr->d_fileno = ent->d_fileno;
+      itr->d_reclen = ent->d_reclen;
+      itr->d_type   = ent->d_type;
+      itr->d_name   = de;
+    }
   }
 
   closedir(d);
-  Base::sort(std::less<std::string>());
+  std::sort(begin(), end());
 
   return true;
 }
 
-Directory::Base
+std::vector<std::string>
 Directory::make_list() {
-  Base l;
+  std::vector<std::string> l;
+  l.reserve(size());
 
-  for (Base::iterator itr = begin(); itr != end(); ++itr)
-    l.push_back(m_path + *itr);
+  for (iterator itr = begin(); itr != end(); ++itr)
+    l.push_back(m_path + itr->d_name);
 
   return l;
 }

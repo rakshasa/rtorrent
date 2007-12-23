@@ -122,12 +122,12 @@ struct compare_base : public std::binary_function<_Value, _Value, bool> {
 
 // Count the number of elements from the start of the containers to
 // the first inequal element.
-template <typename _InputIter>
-typename std::iterator_traits<_InputIter>::difference_type
-count_base(_InputIter __first1, _InputIter __last1,
-	   _InputIter __first2, _InputIter __last2) {
+template <typename _InputIter1, typename _InputIter2>
+typename std::iterator_traits<_InputIter1>::difference_type
+count_base(_InputIter1 __first1, _InputIter1 __last1,
+	   _InputIter2 __first2, _InputIter2 __last2) {
 
-  typename std::iterator_traits<_InputIter>::difference_type __n = 0;
+  typename std::iterator_traits<_InputIter1>::difference_type __n = 0;
 
   for ( ;__first1 != __last1 && __first2 != __last2; ++__first1, ++__first2, ++__n)
     if (*__first1 != *__first2)
@@ -136,17 +136,17 @@ count_base(_InputIter __first1, _InputIter __last1,
   return __n;
 }
 
-template <typename _InputIter>
-typename std::iterator_traits<_InputIter>::value_type
-make_base(_InputIter __first, _InputIter __last) {
+template <typename _Return, typename _InputIter, typename _Ftor>
+_Return
+make_base(_InputIter __first, _InputIter __last, _Ftor __ftor) {
   if (__first == __last)
     return "";
 
-  typename std::iterator_traits<_InputIter>::value_type __base = *__first++;
+  _Return __base = __ftor(*__first++);
 
   for ( ;__first != __last; ++__first) {
     typename std::iterator_traits<_InputIter>::difference_type __pos = count_base(__base.begin(), __base.end(),
-										  __first->begin(), __first->end());
+										  __ftor(*__first).begin(), __ftor(*__first).end());
 
     if (__pos < (typename std::iterator_traits<_InputIter>::difference_type)__base.size())
       __base.resize(__pos);
@@ -154,8 +154,6 @@ make_base(_InputIter __first, _InputIter __last) {
 
   return __base;
 }
-
-
 
 }
 
