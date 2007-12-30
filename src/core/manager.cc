@@ -459,17 +459,17 @@ path_expand(std::vector<std::string>* paths, const std::string& pattern) {
     for (std::vector<utils::Directory>::iterator itr = currentCache.begin(); itr != currentCache.end(); ++itr) {
       // Only include filenames starting with '.' if the pattern
       // starts with the same.
-      itr->update(r.pattern()[0] != '.');
+      itr->update((r.pattern()[0] != '.') ? utils::Directory::update_hide_dot : 0);
       itr->erase(std::remove_if(itr->begin(), itr->end(), rak::on(rak::mem_ref(&utils::directory_entry::d_name), std::not1(r))), itr->end());
 
-      std::transform(itr->begin(), itr->end(), std::back_inserter(nextCache), rak::bind1st(std::ptr_fun(&path_expand_transform), itr->get_path() + "/"));
+      std::transform(itr->begin(), itr->end(), std::back_inserter(nextCache), rak::bind1st(std::ptr_fun(&path_expand_transform), itr->path() + "/"));
     }
 
     currentCache.clear();
     currentCache.swap(nextCache);
   }
 
-  std::transform(currentCache.begin(), currentCache.end(), std::back_inserter(*paths), std::mem_fun_ref(&utils::Directory::get_path));
+  std::transform(currentCache.begin(), currentCache.end(), std::back_inserter(*paths), std::mem_fun_ref(&utils::Directory::path));
 }
 
 bool

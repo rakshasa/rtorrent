@@ -43,6 +43,9 @@
 namespace utils {
 
 struct directory_entry {
+  // Fix.
+  bool is_file() const { return true; }
+
   // The name and types should match POSIX.
   uint32_t            d_fileno;
   uint16_t            d_reclen;
@@ -71,21 +74,20 @@ public:
 
   using base_type::erase;
 
+  static const uint32_t buffer_size = 64 * 1024;
+
+  static const int update_sort     = 0x1;
+  static const int update_hide_dot = 0x2;
+
   Directory() {}
   Directory(const std::string& path) : m_path(path) {}
 
   bool                is_valid() const;
 
-  bool                update(bool hideDot = true);
-
-  // Ergh...
-  const std::string&  get_path() { return m_path; }
+  const std::string&  path()                            { return m_path; }
   void                set_path(const std::string& path) { m_path = path; }
 
-  // Make a list with full path names.
-  //
-  // Fix the uses of this, real bad stuff.
-  std::vector<std::string> make_list();
+  bool                update(int flags);
 
 private:
   std::string         m_path;

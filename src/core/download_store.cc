@@ -157,10 +157,9 @@ DownloadStore::get_formated_entries() {
   if (!is_enabled())
     return utils::Directory();
 
-  utils::Directory d;
-  d.set_path(m_path);
+  utils::Directory d(m_path);
 
-  if (!d.update())
+  if (!d.update(utils::Directory::update_hide_dot))
     throw torrent::storage_error("core::DownloadStore::update() could not open directory \"" + m_path + "\"");
 
   d.erase(std::remove_if(d.begin(), d.end(), std::ptr_fun(&not_correct_format)), d.end());

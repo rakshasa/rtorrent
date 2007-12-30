@@ -38,9 +38,9 @@
 
 #include <algorithm>
 #include <functional>
-#include <stdexcept>
 #include <dirent.h>
 #include <rak/path.h>
+#include <torrent/exceptions.h>
 
 #include "directory.h"
 
@@ -60,47 +60,35 @@ Directory::is_valid() const {
 
 // Update should take various flags and sort functors.
 bool
-Directory::update(bool hideDot) {
+Directory::update(int flags) {
   if (m_path.empty())
-    throw std::logic_error("Directory::update() tried to open an empty path");
+    throw torrent::input_error("Directory::update() tried to open an empty path.");
 
   DIR* d = opendir(rak::path_expand(m_path).c_str());
 
   if (d == NULL)
     return false;
 
-  struct dirent* ent;
+  struct dirent* entry;
 
-  // Err... let us use getdirentries here instead.
-  while ((ent = readdir(d)) != NULL) {
-    // Don't construct it here, check the const char.
-    std::string de(ent->d_name);
+  while ((entry = readdir(d)) != NULL) {
+    if ((flags & update_hide_dot) && entry->d_name[0] == '.')
+      continue;
 
-    if (!de.empty() && (!hideDot || de[0] != '.')) {
-      iterator itr = base_type::insert(end(), value_type());
+    iterator itr = base_type::insert(end(), value_type());
 
-      itr->d_fileno = ent->d_fileno;
-      itr->d_reclen = ent->d_reclen;
-      itr->d_type   = ent->d_type;
-      itr->d_name   = de;
-    }
+    itr->d_fileno = entry->d_fileno;
+    itr->d_reclen = entry->d_reclen;
+    itr->d_type   = entry->d_type;
+    itr->d_name   = std::string(entry->d_name, entry->d_name + entry->d_namlen);
   }
 
   closedir(d);
-  std::sort(begin(), end());
+
+  if (flags & update_sort)
+    std::sort(begin(), end());
 
   return true;
-}
-
-std::vector<std::string>
-Directory::make_list() {
-  std::vector<std::string> l;
-  l.reserve(size());
-
-  for (iterator itr = begin(); itr != end(); ++itr)
-    l.push_back(m_path + itr->d_name);
-
-  return l;
 }
 
 }

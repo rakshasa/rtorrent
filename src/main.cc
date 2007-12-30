@@ -100,16 +100,21 @@ parse_options(Control* c, int argc, char** argv) {
 
 void
 load_session_torrents(Control* c) {
-  // Load session torrents.
-  std::vector<std::string> l = c->core()->download_store()->get_formated_entries().make_list();
+  utils::Directory entries = c->core()->download_store()->get_formated_entries();
 
-  for (std::vector<std::string>::iterator first = l.begin(), last = l.end(); first != last; ++first) {
+  for (utils::Directory::const_iterator first = entries.begin(), last = entries.end(); first != last; ++first) {
+    // We don't really support session torrents that are links. These
+    // would be overwritten anyway on exit, and thus not really be
+    // useful.
+    if (!first->is_file())
+      continue;
+
     core::DownloadFactory* f = new core::DownloadFactory(c->core());
 
     // Replace with session torrent flag.
     f->set_session(true);
     f->slot_finished(sigc::bind(sigc::ptr_fun(&rak::call_delete_func<core::DownloadFactory>), f));
-    f->load(*first);
+    f->load(entries.path() + first->d_name);
     f->commit();
   }
 }

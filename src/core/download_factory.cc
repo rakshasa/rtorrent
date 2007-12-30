@@ -222,7 +222,7 @@ DownloadFactory::receive_success() {
   if (!rtorrent->has_key_string("directory"))
     rpc::call_command("d.set_directory", m_variables["directory"], rpc::make_target(download));
   else
-    rpc::call_command("d.set_directory", rtorrent->get_key("directory"), rpc::make_target(download));
+    rpc::call_command("d.set_directory_base", rtorrent->get_key("directory"), rpc::make_target(download));
 
   if (!m_session && m_variables["tied_to_file"].as_value())
     rpc::call_command("d.set_tied_to_file", m_uri, rpc::make_target(download));

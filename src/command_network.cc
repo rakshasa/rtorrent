@@ -44,6 +44,7 @@
 #include <torrent/tracker.h>
 #include <torrent/tracker_list.h>
 #include <torrent/torrent.h>
+#include <torrent/rate.h>
 
 #include "core/dht_manager.h"
 #include "core/download.h"
@@ -318,6 +319,11 @@ initialize_command_network() {
 
   ADD_COMMAND_VALUE_TRI_KB("download_rate",     rak::make_mem_fun(control->ui(), &ui::Root::set_down_throttle_i64), rak::ptr_fun(&torrent::down_throttle));
   ADD_COMMAND_VALUE_TRI_KB("upload_rate",       rak::make_mem_fun(control->ui(), &ui::Root::set_up_throttle_i64), rak::ptr_fun(&torrent::up_throttle));
+
+  ADD_COMMAND_VOID("get_up_rate",               rak::make_mem_fun(torrent::up_rate(), &torrent::Rate::rate));
+  ADD_COMMAND_VOID("get_up_total",              rak::make_mem_fun(torrent::up_rate(), &torrent::Rate::total));
+  ADD_COMMAND_VOID("get_down_rate",             rak::make_mem_fun(torrent::down_rate(), &torrent::Rate::rate));
+  ADD_COMMAND_VOID("get_down_total",            rak::make_mem_fun(torrent::down_rate(), &torrent::Rate::total));
 
   ADD_VARIABLE_VALUE("tracker_numwant", -1);
 

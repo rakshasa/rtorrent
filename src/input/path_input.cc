@@ -83,7 +83,7 @@ PathInput::receive_do_complete() {
 
   utils::Directory dir(dirEnd != 0 ? str().substr(0, dirEnd) : "./");
   
-  if (!dir.update() || dir.empty()) {
+  if (!dir.update(utils::Directory::update_sort | utils::Directory::update_hide_dot) || dir.empty()) {
     mark_dirty();
 
     return;
