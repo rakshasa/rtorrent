@@ -34,65 +34,51 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#include "config.h"
+#ifndef RTORRENT_UTILS_FILE_STATUS_CACHE_H
+#define RTORRENT_UTILS_FILE_STATUS_CACHE_H
 
-#include <algorithm>
-#include <functional>
-#include <dirent.h>
-#include <rak/path.h>
-#include <torrent/exceptions.h>
-
-#include "directory.h"
+#include <map>
+#include <string>
 
 namespace utils {
 
-// Keep this?
-bool
-Directory::is_valid() const {
-  if (m_path.empty())
-    return false;
+struct file_status {
+  int      m_flags;
+  uint32_t m_mtime;
+};
 
-  DIR* d = opendir(rak::path_expand(m_path).c_str());
-  closedir(d);
+class FileStatusCache : public std::map<std::string, file_status> {
+public:
+  typedef std::map<std::string, file_status> base_type;
 
-  return d;
+  using base_type::iterator;
+  using base_type::const_iterator;
+  using base_type::reverse_iterator;
+  using base_type::const_reverse_iterator;
+  using base_type::value_type;
+
+  using base_type::begin;
+  using base_type::end;
+  using base_type::rbegin;
+  using base_type::rend;
+
+  using base_type::empty;
+  using base_type::size;
+
+  using base_type::erase;
+
+  // Insert and return true if the entry does not exist or the new
+  // file's mtime is more recent.
+  bool                insert(const std::string& path, int flags);
+
+  // Add a function for pruning a sorted list of paths.
+
+  // Function for removing entries in a container that shouldn't be
+  // there based on some parameters.
+
+  // Function for pruning entries with different mtime or not existing.
+};
+
 }
 
-bool
-Directory::update(int flags) {
-  if (m_path.empty())
-    throw torrent::input_error("Directory::update() tried to open an empty path.");
-
-  DIR* d = opendir(rak::path_expand(m_path).c_str());
-
-  if (d == NULL)
-    return false;
-
-  struct dirent* entry;
-
-  while ((entry = readdir(d)) != NULL) {
-    if ((flags & update_hide_dot) && entry->d_name[0] == '.')
-      continue;
-
-    iterator itr = base_type::insert(end(), value_type());
-
-    itr->d_fileno = entry->d_fileno;
-    itr->d_reclen = entry->d_reclen;
-    itr->d_type   = entry->d_type;
-
-#ifdef DIRENT_NAMLEN_EXISTS_FOOBAR
-    itr->d_name   = std::string(entry->d_name, entry->d_name + entry->d_namlen);
-#else
-    itr->d_name   = std::string(entry->d_name);
 #endif
-  }
-
-  closedir(d);
-
-  if (flags & update_sort)
-    std::sort(begin(), end());
-
-  return true;
-}
-
-}

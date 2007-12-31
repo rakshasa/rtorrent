@@ -48,7 +48,7 @@ struct directory_entry {
 
   // The name and types should match POSIX.
   uint32_t            d_fileno;
-  uint16_t            d_reclen;
+  uint32_t            d_reclen;
   uint8_t             d_type;
 
   std::string         d_name;

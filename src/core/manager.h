@@ -48,6 +48,10 @@ namespace torrent {
   class Bencode;
 }
 
+namespace utils {
+class FileStatusCache;
+}
+
 namespace core {
 
 class DownloadStore;
@@ -58,6 +62,8 @@ class View;
 class Manager {
 public:
   typedef DownloadList::iterator                    DListItr;
+  typedef utils::FileStatusCache                    FileStatusCache;
+
   typedef sigc::slot1<void, DownloadList::iterator> SlotReady;
   typedef sigc::slot0<void>                         SlotFailed;
 
@@ -66,6 +72,7 @@ public:
 
   DownloadList*       download_list()                     { return m_downloadList; }
   DownloadStore*      download_store()                    { return m_downloadStore; }
+  FileStatusCache*    file_status_cache()                 { return m_fileStatusCache; }
 
   HttpQueue*          http_queue()                        { return m_httpQueue; }
 
@@ -122,6 +129,7 @@ private:
 
   DownloadList*       m_downloadList;
   DownloadStore*      m_downloadStore;
+  FileStatusCache*    m_fileStatusCache;
   HttpQueue*          m_httpQueue;
 
   View*               m_hashingView;

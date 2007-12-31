@@ -36,61 +36,34 @@
 
 #include "config.h"
 
-#include <algorithm>
-#include <functional>
-#include <dirent.h>
+#include <rak/file_stat.h>
 #include <rak/path.h>
 #include <torrent/exceptions.h>
 
-#include "directory.h"
+#include "file_status_cache.h"
 
 namespace utils {
 
-// Keep this?
 bool
-Directory::is_valid() const {
-  if (m_path.empty())
+FileStatusCache::insert(const std::string& path, int flags) {
+  rak::file_stat fs;
+
+  // Should we expand somewhere else? Problem is it adds a lot of junk
+  // to the start of the paths added to the cache, causing more work
+  // during search, etc.
+  if (!fs.update(rak::path_expand(path)))
     return false;
 
-  DIR* d = opendir(rak::path_expand(m_path).c_str());
-  closedir(d);
+  std::pair<iterator, bool> result = base_type::insert(value_type(path, file_status()));
 
-  return d;
-}
-
-bool
-Directory::update(int flags) {
-  if (m_path.empty())
-    throw torrent::input_error("Directory::update() tried to open an empty path.");
-
-  DIR* d = opendir(rak::path_expand(m_path).c_str());
-
-  if (d == NULL)
+  // Return false if the file hasn't been modified since last time. We
+  // use 'equal to' instead of 'greater than' since the file might
+  // have been replaced by another file, and thus should be re-tried.
+  if (!result.second && result.first->second.m_mtime == (uint32_t)fs.modified_time())
     return false;
 
-  struct dirent* entry;
-
-  while ((entry = readdir(d)) != NULL) {
-    if ((flags & update_hide_dot) && entry->d_name[0] == '.')
-      continue;
-
-    iterator itr = base_type::insert(end(), value_type());
-
-    itr->d_fileno = entry->d_fileno;
-    itr->d_reclen = entry->d_reclen;
-    itr->d_type   = entry->d_type;
-
-#ifdef DIRENT_NAMLEN_EXISTS_FOOBAR
-    itr->d_name   = std::string(entry->d_name, entry->d_name + entry->d_namlen);
-#else
-    itr->d_name   = std::string(entry->d_name);
-#endif
-  }
-
-  closedir(d);
-
-  if (flags & update_sort)
-    std::sort(begin(), end());
+  result.first->second.m_flags = 0;
+  result.first->second.m_mtime = fs.modified_time();
 
   return true;
 }

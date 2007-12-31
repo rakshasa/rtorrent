@@ -354,7 +354,7 @@ p_multicall(core::Download* download, const torrent::Object& rawArgs) {
 
 #define ADD_CD_VARIABLE_VALUE(key, firstKey, secondKey) \
   ADD_CD_SLOT_PUBLIC("d.get_" key, call_unknown, rpc::get_variable_d_fn(firstKey, secondKey), "i:", ""); \
-  ADD_CD_SLOT("d.set_" key, call_value,   rpc::set_variable_d_fn(firstKey, secondKey), "i:i", "");
+  ADD_CD_SLOT       ("d.set_" key, call_value,   rpc::set_variable_d_fn(firstKey, secondKey), "i:i", "");
 
 #define ADD_CD_VARIABLE_VALUE_PUBLIC(key, firstKey, secondKey) \
   ADD_CD_SLOT_PUBLIC("d.get_" key, call_unknown, rpc::get_variable_d_fn(firstKey, secondKey), "i:", ""); \
@@ -362,7 +362,7 @@ p_multicall(core::Download* download, const torrent::Object& rawArgs) {
 
 #define ADD_CD_VARIABLE_STRING(key, firstKey, secondKey) \
   ADD_CD_SLOT_PUBLIC("d.get_" key, call_unknown, rpc::get_variable_d_fn(firstKey, secondKey), "i:", ""); \
-  ADD_CD_SLOT("d.set_" key, call_string,  rpc::set_variable_d_fn(firstKey, secondKey), "i:s", "");
+  ADD_CD_SLOT       ("d.set_" key, call_string,  rpc::set_variable_d_fn(firstKey, secondKey), "i:s", "");
 
 #define ADD_CD_VARIABLE_STRING_PUBLIC(key, firstKey, secondKey) \
   ADD_CD_SLOT_PUBLIC("d.get_" key, call_unknown, rpc::get_variable_d_fn(firstKey, secondKey), "i:", ""); \
@@ -456,7 +456,14 @@ initialize_command_download() {
   // 2 - Download finished, hashing
   // 3 - Rehashing
   ADD_CD_VARIABLE_VALUE("hashing",       "rtorrent", "hashing");
+
+  // 'tied_to_file' is the file the download is associated with, and
+  // can be changed by the user.
+  //
+  // 'loaded_file' is the file this instance of the torrent was loaded
+  // from, and should not be changed.
   ADD_CD_VARIABLE_STRING("tied_to_file", "rtorrent", "tied_to_file");
+  ADD_CD_VARIABLE_STRING("loaded_file",  "rtorrent", "loaded_file");
 
   // The "state_changed" variable is required to be a valid unix time
   // value, it indicates the last time the torrent changed its state,
