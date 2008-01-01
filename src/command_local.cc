@@ -51,6 +51,7 @@
 #include "rpc/command_slot.h"
 #include "rpc/command_variable.h"
 #include "rpc/parse_commands.h"
+#include "utils/file_status_cache.h"
 
 #include "globals.h"
 #include "control.h"
@@ -126,6 +127,9 @@ initialize_command_local() {
 
   ADD_COMMAND_VOID("system.hostname",            rak::ptr_fun(&system_hostname));
   ADD_COMMAND_VOID("system.pid",                 rak::ptr_fun(&getpid));
+
+  ADD_COMMAND_VOID("system.file_status_cache.size",  rak::make_mem_fun((utils::FileStatusCache::base_type*)control->core()->file_status_cache(), &utils::FileStatusCache::size));
+  ADD_COMMAND_VOID("system.file_status_cache.prune", rak::make_mem_fun(control->core()->file_status_cache(), &utils::FileStatusCache::prune));
 
   ADD_COMMAND_VALUE_SET_OCT("system.", "umask",  std::ptr_fun(&umask));
   ADD_COMMAND_STRING_PREFIX("system.", "cwd",    std::ptr_fun(system_set_cwd), rak::ptr_fun(&system_get_cwd));

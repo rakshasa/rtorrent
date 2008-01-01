@@ -68,4 +68,17 @@ FileStatusCache::insert(const std::string& path, int flags) {
   return true;
 }
 
+void
+FileStatusCache::prune() {
+  iterator itr = begin();
+
+  while (itr != end()) {
+    rak::file_stat fs;
+    iterator tmp = itr++;
+
+    if (!fs.update(rak::path_expand(tmp->first)) || tmp->second.m_mtime != (uint32_t)fs.modified_time())
+      base_type::erase(tmp);
+  }
+}
+
 }

@@ -73,10 +73,9 @@ public:
 
   // Add a function for pruning a sorted list of paths.
 
-  // Function for removing entries in a container that shouldn't be
-  // there based on some parameters.
-
-  // Function for pruning entries with different mtime or not existing.
+  // Function for pruning entries that no longer points to a file, or
+  // has a different mtime.
+  void                prune();
 };
 
 }
