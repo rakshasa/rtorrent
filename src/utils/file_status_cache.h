@@ -67,6 +67,8 @@ public:
 
   using base_type::erase;
 
+  //  static int flag_
+
   // Insert and return true if the entry does not exist or the new
   // file's mtime is more recent.
   bool                insert(const std::string& path, int flags);

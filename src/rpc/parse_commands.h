@@ -109,7 +109,7 @@ inline void            call_command_d_set_std_string(const std::string& key, cor
 inline torrent::Object
 call_command_d_range(const char* key, core::Download* download, torrent::Object::list_const_iterator first, torrent::Object::list_const_iterator last) {
   // Change to using range ctor.
-  torrent::Object rawArgs(torrent::Object::TYPE_LIST);
+  torrent::Object rawArgs = torrent::Object::create_list();
   torrent::Object::list_type& args = rawArgs.as_list();
   
   while (first != last)

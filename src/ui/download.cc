@@ -175,8 +175,8 @@ Download::create_info() {
   element->push_back("");
   element->push_column("Connection type:",  te_command("d.get_connection_current="));
   element->push_column("Safe sync:",        te_command("if=$get_safe_sync=,yes,no"));
-  element->push_column("Send buffer:",      te_command("cat=$to_mb=$get_send_buffer_size=,\" KB\""));
-  element->push_column("Receive buffer:",   te_command("cat=$to_mb=$get_receive_buffer_size=,\" KB\""));
+  element->push_column("Send buffer:",      te_command("cat=$to_kb=$get_send_buffer_size=,\" KB\""));
+  element->push_column("Receive buffer:",   te_command("cat=$to_kb=$get_receive_buffer_size=,\" KB\""));
 
   element->push_back("");
   element->push_column("Upload:",           te_command("cat=$to_kb=$d.get_up_rate=,\" KB / \",$to_xb=$d.get_up_total="));

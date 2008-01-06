@@ -257,11 +257,11 @@ f_multicall(core::Download* download, const torrent::Object& rawArgs) {
 
   // Add some pre-parsing of the commands, so we don't spend time
   // parsing and searching command map for every single call.
-  torrent::Object             resultRaw(torrent::Object::TYPE_LIST);
+  torrent::Object             resultRaw = torrent::Object::create_list();
   torrent::Object::list_type& result = resultRaw.as_list();
 
   for (torrent::FileList::const_iterator itr = download->file_list()->begin(), last = download->file_list()->end(); itr != last; itr++) {
-    torrent::Object::list_type& row = result.insert(result.end(), torrent::Object(torrent::Object::TYPE_LIST))->as_list();
+    torrent::Object::list_type& row = result.insert(result.end(), torrent::Object::create_list())->as_list();
 
     for (torrent::Object::list_const_iterator cItr = ++args.begin(), cLast = args.end(); cItr != args.end(); cItr++) {
       const std::string& cmd = cItr->as_string();
@@ -284,11 +284,11 @@ t_multicall(core::Download* download, const torrent::Object& rawArgs) {
 
   // Add some pre-parsing of the commands, so we don't spend time
   // parsing and searching command map for every single call.
-  torrent::Object             resultRaw(torrent::Object::TYPE_LIST);
+  torrent::Object             resultRaw = torrent::Object::create_list();
   torrent::Object::list_type& result = resultRaw.as_list();
 
   for (int itr = 0, last = download->tracker_list()->size(); itr != last; itr++) {
-    torrent::Object::list_type& row = result.insert(result.end(), torrent::Object(torrent::Object::TYPE_LIST))->as_list();
+    torrent::Object::list_type& row = result.insert(result.end(), torrent::Object::create_list())->as_list();
 
     for (torrent::Object::list_const_iterator cItr = ++args.begin(), cLast = args.end(); cItr != args.end(); cItr++) {
       const std::string& cmd = cItr->as_string();
@@ -313,11 +313,11 @@ p_multicall(core::Download* download, const torrent::Object& rawArgs) {
 
   // Add some pre-parsing of the commands, so we don't spend time
   // parsing and searching command map for every single call.
-  torrent::Object             resultRaw(torrent::Object::TYPE_LIST);
+  torrent::Object             resultRaw = torrent::Object::create_list();
   torrent::Object::list_type& result = resultRaw.as_list();
 
   for (torrent::ConnectionList::const_iterator itr = download->connection_list()->begin(), last = download->connection_list()->end(); itr != last; itr++) {
-    torrent::Object::list_type& row = result.insert(result.end(), torrent::Object(torrent::Object::TYPE_LIST))->as_list();
+    torrent::Object::list_type& row = result.insert(result.end(), torrent::Object::create_list())->as_list();
 
     for (torrent::Object::list_const_iterator cItr = ++args.begin(), cLast = args.end(); cItr != args.end(); cItr++) {
       const std::string& cmd = cItr->as_string();
@@ -462,8 +462,8 @@ initialize_command_download() {
   //
   // 'loaded_file' is the file this instance of the torrent was loaded
   // from, and should not be changed.
-  ADD_CD_VARIABLE_STRING("tied_to_file", "rtorrent", "tied_to_file");
-  ADD_CD_VARIABLE_STRING("loaded_file",  "rtorrent", "loaded_file");
+  ADD_CD_VARIABLE_STRING_PUBLIC("tied_to_file", "rtorrent", "tied_to_file");
+  ADD_CD_VARIABLE_STRING       ("loaded_file",  "rtorrent", "loaded_file");
 
   // The "state_changed" variable is required to be a valid unix time
   // value, it indicates the last time the torrent changed its state,

@@ -170,7 +170,7 @@ parse_value_nothrow(const char* src, int64_t* value, int base, int unit) {
 const char*
 parse_object(const char* first, const char* last, torrent::Object* dest, bool (*delim)(const char)) {
   if (*first == '{') {
-    *dest = torrent::Object(torrent::Object::TYPE_LIST);
+    *dest = torrent::Object::create_list();
     first = parse_list(first + 1, last, dest, &parse_is_delim_list);
     first = parse_skip_wspace(first, last);
     
@@ -216,7 +216,7 @@ parse_whole_list(const char* first, const char* last, torrent::Object* dest) {
   first = parse_skip_wspace(first, last);
 
   if (first != last && parse_is_seperator(*first)) {
-    torrent::Object tmp = torrent::Object(torrent::Object::TYPE_LIST);
+    torrent::Object tmp = torrent::Object::create_list();
     tmp.swap(*dest);
 
     dest->as_list().push_back(tmp);

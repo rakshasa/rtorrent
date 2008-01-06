@@ -98,7 +98,7 @@ apply_view_sort(const torrent::Object& rawArgs) {
 
 torrent::Object
 apply_view_list(const torrent::Object&) {
-  torrent::Object rawResult(torrent::Object::TYPE_LIST);
+  torrent::Object rawResult = torrent::Object::create_list();
   torrent::Object::list_type& result = rawResult.as_list();
 
   for (core::ViewManager::const_iterator itr = control->view_manager()->begin(), last = control->view_manager()->end(); itr != last; itr++)
@@ -226,6 +226,9 @@ apply_if(rpc::target_type target, const torrent::Object& rawArgs) {
       break;
     case torrent::Object::TYPE_VALUE:
       result = conditional->as_value();
+      break;
+    case torrent::Object::TYPE_NONE:
+      result = false;
       break;
     default:
       throw torrent::input_error("Type not supported by 'if'.");

@@ -274,7 +274,7 @@ apply_download_list(const torrent::Object& rawArgs) {
   if (viewItr == viewManager->end())
     throw torrent::input_error("Could not find view.");
 
-  torrent::Object result(torrent::Object::TYPE_LIST);
+  torrent::Object result = torrent::Object::create_list();
   torrent::Object::list_type& resultList = result.as_list();
 
   for (core::View::const_iterator itr = (*viewItr)->begin_visible(), last = (*viewItr)->end_visible(); itr != last; itr++) {
@@ -317,11 +317,11 @@ d_multicall(const torrent::Object& rawArgs) {
 
   // Add some pre-parsing of the commands, so we don't spend time
   // parsing and searching command map for every single call.
-  torrent::Object             resultRaw(torrent::Object::TYPE_LIST);
+  torrent::Object             resultRaw = torrent::Object::create_list();
   torrent::Object::list_type& result = resultRaw.as_list();
 
   for (core::View::const_iterator vItr = (*viewItr)->begin_visible(), vLast = (*viewItr)->end_visible(); vItr != vLast; vItr++) {
-    torrent::Object::list_type& row = result.insert(result.end(), torrent::Object(torrent::Object::TYPE_LIST))->as_list();
+    torrent::Object::list_type& row = result.insert(result.end(), torrent::Object::create_list())->as_list();
 
     for (torrent::Object::list_const_iterator cItr = ++args.begin(), cLast = args.end(); cItr != args.end(); cItr++) {
       const std::string& cmd = cItr->as_string();

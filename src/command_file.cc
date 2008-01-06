@@ -72,7 +72,7 @@ apply_f_path(torrent::File* file) {
 
 torrent::Object
 apply_f_path_components(torrent::File* file) {
-  torrent::Object resultRaw(torrent::Object::TYPE_LIST);
+  torrent::Object resultRaw = torrent::Object::create_list();
   torrent::Object::list_type& result = resultRaw.as_list();
 
   for (torrent::Path::const_iterator itr = file->path()->begin(), last = file->path()->end(); itr != last; itr++)

@@ -67,7 +67,7 @@ DhtManager::load_dht_cache() {
   if (m_start == dht_disable || !control->core()->download_store()->is_enabled())
     return;
 
-  torrent::Object cache(torrent::Object::TYPE_MAP);
+  torrent::Object cache = torrent::Object::create_map();
   std::fstream cache_file((control->core()->download_store()->path() + "rtorrent.dht_cache").c_str(), std::ios::in | std::ios::binary);
 
   if (cache_file.is_open()) {
@@ -147,7 +147,7 @@ DhtManager::save_dht_cache() {
   if (!cache_file.is_open())
     return;
 
-  torrent::Object cache(torrent::Object::TYPE_MAP);
+  torrent::Object cache = torrent::Object::create_map();
   cache_file << *torrent::dht_manager()->store_cache(&cache);
 
   if (!cache_file.good())
@@ -279,7 +279,7 @@ DhtManager::log_statistics(bool force) {
 
 torrent::Object
 DhtManager::dht_statistics() {
-  torrent::Object dhtStats(torrent::Object::TYPE_MAP);
+  torrent::Object dhtStats = torrent::Object::create_map();
 
   dhtStats.insert_key("dht",              dht_settings[m_start]);
   dhtStats.insert_key("active",           torrent::dht_manager()->is_active());

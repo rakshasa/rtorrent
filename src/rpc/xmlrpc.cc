@@ -106,7 +106,7 @@ xmlrpc_to_object(xmlrpc_env* env, xmlrpc_value* value) {
 
   case XMLRPC_TYPE_ARRAY:
   {
-    torrent::Object result(torrent::Object::TYPE_LIST);
+    torrent::Object result = torrent::Object::create_list();
     torrent::Object::list_type& listRef = result.as_list();
 
     unsigned int last = xmlrpc_array_size(env, value);
@@ -292,7 +292,7 @@ xmlrpc_to_object_target(xmlrpc_env* env, xmlrpc_value* value, int callType, void
     torrent::Object result;
 
     if (current + 1 < last) {
-      result = torrent::Object(torrent::Object::TYPE_LIST);
+      result = torrent::Object::create_list();
       torrent::Object::list_type& listRef = result.as_list();
 
       // Move this into a helper function?

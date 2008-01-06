@@ -405,7 +405,7 @@ Manager::try_create_download(const std::string& uri, int flags, const command_li
   // If the path was attempted loaded before, skip it.
   if (!(flags & create_raw_data) &&
       !is_network_uri(uri) &&
-      !m_fileStatusCache->insert(uri, 0))
+      !file_status_cache()->insert(uri, 0))
     return;
 
   // Adding download.

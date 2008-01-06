@@ -136,9 +136,6 @@ DownloadFactory::receive_load() {
   } else {
     std::fstream* stream = new std::fstream(rak::path_expand(m_uri).c_str(), std::ios::in | std::ios::binary);
     m_stream = stream;
-
-    // Since FileStatusCache checks file stats, it will automatically
-    // cull away invalid paths.
     m_isFile = true;
 
     if (!stream->is_open())
@@ -332,7 +329,9 @@ DownloadFactory::initialize_rtorrent(Download* download, torrent::Object* rtorre
 
   rtorrent->insert_preserve_value("complete", 0);
   rtorrent->insert_preserve_value("hashing", Download::variable_hashing_stopped);
+
   rtorrent->insert_preserve_cstr("tied_to_file", "");
+  rtorrent->insert_key("loaded_file", m_isFile ? m_uri : std::string());
 
   if (rtorrent->has_key_value("priority"))
     rpc::call_command("d.set_priority", rtorrent->get_key_value("priority") % 4, rpc::make_target(download));

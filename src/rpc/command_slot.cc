@@ -69,7 +69,7 @@ CommandSlot<Target>::call_list(Command* rawCommand, Target target, const torrent
   case torrent::Object::TYPE_STRING:
   case torrent::Object::TYPE_NONE:
   {
-    torrent::Object tmpList(torrent::Object::TYPE_LIST);
+    torrent::Object tmpList = torrent::Object::create_list();
     tmpList.as_list().push_back(rawArgs);
 
     return command->m_slot(target, tmpList);
@@ -91,7 +91,7 @@ CommandSlot<void>::call_list(Command* rawCommand, const torrent::Object& rawArgs
   case torrent::Object::TYPE_STRING:
   case torrent::Object::TYPE_NONE:
   {
-    torrent::Object tmpList(torrent::Object::TYPE_LIST);
+    torrent::Object tmpList = torrent::Object::create_list();
     tmpList.as_list().push_back(rawArgs);
 
     return command->m_slot(tmpList);
@@ -114,7 +114,7 @@ CommandSlot<Target>::call_value_base(Command* rawCommand, Target target, const t
 
   case torrent::Object::TYPE_STRING:
   {
-    torrent::Object argValue(torrent::Object::TYPE_VALUE);
+    torrent::Object argValue = torrent::Object::create_value();
 
     if (!parse_whole_value_nothrow(arg.as_string().c_str(), &argValue.as_value(), base, unit))
       throw torrent::input_error("Not a value.");
@@ -139,7 +139,7 @@ CommandSlot<void>::call_value_base(Command* rawCommand, const torrent::Object& r
 
   case torrent::Object::TYPE_STRING:
   {
-    torrent::Object argValue(torrent::Object::TYPE_VALUE);
+    torrent::Object argValue = torrent::Object::create_value();
 
     if (!parse_whole_value_nothrow(arg.as_string().c_str(), &argValue.as_value(), base, unit))
       throw torrent::input_error("Not a value.");
