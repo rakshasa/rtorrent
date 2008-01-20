@@ -192,7 +192,7 @@ Root::set_down_throttle(unsigned int throttle) {
     return;
   }
 
-  throttle /= rpc::call_command_value("get_max_downloads_div");
+  throttle /= div;
 
   unsigned int maxUnchoked;
 
@@ -222,7 +222,7 @@ Root::set_up_throttle(unsigned int throttle) {
     return;
   }
 
-  throttle /= rpc::call_command_value("get_max_uploads_div");
+  throttle /= div;
 
   unsigned int maxUnchoked;
 

@@ -185,7 +185,7 @@ DownloadFactory::receive_success() {
     root->erase_key("libtorrent");
   }
 
-  torrent::Object* rtorrent = &root->insert_preserve_map("rtorrent").first->second;
+  torrent::Object* rtorrent = &root->insert_preserve_copy("rtorrent", torrent::Object::create_map()).first->second;
 
   initialize_rtorrent(download, rtorrent);
 
@@ -237,7 +237,7 @@ DownloadFactory::receive_success() {
 
   rpc::call_command("d.set_peer_exchange", rpc::call_command_value("get_peer_exchange"), rpc::make_target(download));
 
-  torrent::Object& resumeObject = root->insert_preserve_map("libtorrent_resume").first->second;
+  torrent::Object& resumeObject = root->insert_preserve_copy("libtorrent_resume", torrent::Object::create_map()).first->second;
   torrent::resume_load_addresses(*download->download(), resumeObject);
   torrent::resume_load_file_priorities(*download->download(), resumeObject);
   torrent::resume_load_tracker_settings(*download->download(), resumeObject);
@@ -327,10 +327,10 @@ DownloadFactory::initialize_rtorrent(Download* download, torrent::Object* rtorre
     rtorrent->insert_key("state_counter", int64_t());
   }
 
-  rtorrent->insert_preserve_value("complete", 0);
-  rtorrent->insert_preserve_value("hashing", Download::variable_hashing_stopped);
+  rtorrent->insert_preserve_copy("complete", (int64_t)0);
+  rtorrent->insert_preserve_copy("hashing",  (int64_t)Download::variable_hashing_stopped);
 
-  rtorrent->insert_preserve_cstr("tied_to_file", "");
+  rtorrent->insert_preserve_copy("tied_to_file", "");
   rtorrent->insert_key("loaded_file", m_isFile ? m_uri : std::string());
 
   if (rtorrent->has_key_value("priority"))
@@ -353,7 +353,7 @@ DownloadFactory::initialize_rtorrent(Download* download, torrent::Object* rtorre
     download->download()->set_chunks_done(std::min<uint32_t>(rtorrent->get_key_value("chunks_done"),
                                                              download->download()->file_list()->size_chunks()));
 
-  rtorrent->insert_preserve_value("ignore_commands", 0);
+  rtorrent->insert_preserve_copy("ignore_commands", (int64_t)0);
 }
 
 }
