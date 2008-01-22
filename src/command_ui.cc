@@ -205,7 +205,7 @@ apply_to_xb(const torrent::Object& rawArgs) {
 // if (cond1) { branch1 } else if (cond2) { branch2 } else { branch3 }
 // <cond1>,<branch1>,<cond2>,<branch2>,<branch3>
 torrent::Object
-apply_if(rpc::target_type target, const torrent::Object& rawArgs) {
+apply_if(int flags, rpc::target_type target, const torrent::Object& rawArgs) {
   const torrent::Object::list_type& args = rawArgs.as_list();
   torrent::Object::list_const_iterator itr = args.begin();
 
@@ -213,8 +213,8 @@ apply_if(rpc::target_type target, const torrent::Object& rawArgs) {
     torrent::Object tmp;
     const torrent::Object* conditional;
 
-    if (itr->is_string() && *itr->as_string().c_str() == '$')
-      conditional = &(tmp = rpc::parse_command(target, itr->as_string().c_str() + 1, itr->as_string().c_str() + itr->as_string().size()).first);
+    if (flags & 0x1 && itr->is_string())
+      conditional = &(tmp = rpc::parse_command(target, itr->as_string().c_str(), itr->as_string().c_str() + itr->as_string().size()).first);
     else
       conditional = &*itr;
 
@@ -245,8 +245,8 @@ apply_if(rpc::target_type target, const torrent::Object& rawArgs) {
   if (itr == args.end())
     return torrent::Object();
 
-  if (itr->is_string() && *itr->as_string().c_str() == '$')
-    return rpc::parse_command(target, itr->as_string().c_str() + 1, itr->as_string().c_str() + itr->as_string().size()).first;
+  if (flags & 0x1 && itr->is_string())
+    return rpc::parse_command(target, itr->as_string().c_str(), itr->as_string().c_str() + itr->as_string().size()).first;
   else
     return *itr;
 }
@@ -267,9 +267,15 @@ initialize_command_ui() {
 
 //   ADD_COMMAND_LIST("view_sort_current", rak::bind_ptr_fn(&apply_view_filter, &core::ViewManager::set_sort_current));
 
+  // Move.
+
   ADD_ANY_NONE("print",                 rak::ptr_fn(&apply_print));
   ADD_ANY_NONE("cat",                   rak::ptr_fn(&apply_cat));
-  ADD_ANY_NONE("if",                    rak::ptr_fn(&apply_if));
+  ADD_ANY_NONE("if",                    rak::bind_ptr_fn(&apply_if, 0));
+
+  // A temporary command for handling stuff until we get proper
+  // support for seperation of commands and literals.
+  ADD_ANY_NONE("branch",                rak::bind_ptr_fn(&apply_if, 1));
 
   ADD_COMMAND_VALUE("to_date",          rak::ptr_fn(&apply_to_date));
   ADD_COMMAND_VALUE("to_time",          rak::ptr_fn(&apply_to_time));

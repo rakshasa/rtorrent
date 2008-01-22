@@ -62,17 +62,16 @@ public:
   core::View*         view() { return m_view; }
   void                set_view(core::View* l);
 
+  void                receive_command(const char* cmd);
+
   void                receive_next();
   void                receive_prev();
 
-  void                receive_start_download();
   void                receive_stop_download();
   void                receive_close_download();
 
   void                receive_next_priority();
   void                receive_prev_priority();
-
-  void                receive_check_hash();
 
   void                receive_ignore_ratio();
   void                receive_clear_tied();

@@ -63,15 +63,22 @@ ElementDownloadList::ElementDownloadList() :
   if (m_view == NULL)
     throw torrent::internal_error("View \"main\" must be present to initialize the main display.");
 
-  m_bindings['\x13']        = sigc::mem_fun(*this, &ElementDownloadList::receive_start_download);
+  m_bindings['\x13']        = sigc::bind(sigc::mem_fun(*this, &ElementDownloadList::receive_command), "d.start=");
   m_bindings['\x04']        = sigc::mem_fun(*this, &ElementDownloadList::receive_stop_download);
   m_bindings['\x0B']        = sigc::mem_fun(*this, &ElementDownloadList::receive_close_download);
-  m_bindings['\x12']        = sigc::mem_fun(*this, &ElementDownloadList::receive_check_hash);
+//   m_bindings['\x04']        = sigc::bind(sigc::mem_fun(*this, &ElementDownloadList::receive_command), "d.stop=");
+//   m_bindings['\x0B']        = sigc::bind(sigc::mem_fun(*this, &ElementDownloadList::receive_command), "d.close=");
+  m_bindings['\x12']        = sigc::bind(sigc::mem_fun(*this, &ElementDownloadList::receive_command), "d.check_hash=");
+
+  m_bindings['\x05']        = sigc::bind(sigc::mem_fun(*this, &ElementDownloadList::receive_command),
+                                         "f.multicall=,f.set_create_queued=,f.set_resize_queued= ; print=\"Queued create/resize of files in torrent.\"");
+
   m_bindings['+']           = sigc::mem_fun(*this, &ElementDownloadList::receive_next_priority);
   m_bindings['-']           = sigc::mem_fun(*this, &ElementDownloadList::receive_prev_priority);
   m_bindings['I']           = sigc::mem_fun(*this, &ElementDownloadList::receive_ignore_ratio);
   m_bindings['U']           = sigc::mem_fun(*this, &ElementDownloadList::receive_clear_tied);
 
+  // These should also be commands.
   m_bindings['1']           = sigc::bind(sigc::mem_fun(*this, &ElementDownloadList::receive_change_view), "main");
   m_bindings['2']           = sigc::bind(sigc::mem_fun(*this, &ElementDownloadList::receive_change_view), "name");
   m_bindings['3']           = sigc::bind(sigc::mem_fun(*this, &ElementDownloadList::receive_change_view), "started");
@@ -127,6 +134,21 @@ ElementDownloadList::set_view(core::View* l) {
 }
 
 void
+ElementDownloadList::receive_command(const char* cmd) {
+  try {
+    if (m_view->focus() == m_view->end_visible())
+      rpc::parse_command_multiple(rpc::make_target(), cmd, cmd + strlen(cmd));
+    else
+      rpc::parse_command_multiple(rpc::make_target(*m_view->focus()), cmd, cmd + strlen(cmd));
+
+    m_view->set_last_changed();
+
+  } catch (torrent::input_error& e) {
+    control->core()->push_log(e.what());
+  }
+}
+
+void
 ElementDownloadList::receive_next() {
   m_view->next_focus();
   m_view->set_last_changed();
@@ -135,15 +157,6 @@ ElementDownloadList::receive_next() {
 void
 ElementDownloadList::receive_prev() {
   m_view->prev_focus();
-  m_view->set_last_changed();
-}
-
-void
-ElementDownloadList::receive_start_download() {
-  if (m_view->focus() == m_view->end_visible())
-    return;
-
-  control->core()->download_list()->start_normal(*m_view->focus());
   m_view->set_last_changed();
 }
 
@@ -190,15 +203,6 @@ ElementDownloadList::receive_prev_priority() {
 
   (*m_view->focus())->set_priority(((*m_view->focus())->priority() - 1) % 4);
   m_window->mark_dirty();
-}
-
-void
-ElementDownloadList::receive_check_hash() {
-  if (m_view->focus() == m_view->end_visible())
-    return;
-
-  // Catch here?
-  control->core()->download_list()->check_hash(*m_view->focus());
 }
 
 void

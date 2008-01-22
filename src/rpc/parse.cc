@@ -371,6 +371,7 @@ print_object(char* first, char* last, const torrent::Object* src, int flags) {
       return first;
     }
   }
+
   case torrent::Object::TYPE_VALUE:
     return std::max(first + snprintf(first, std::distance(first, last), "%lli", src->as_value()), last);
 
@@ -384,6 +385,8 @@ print_object(char* first, char* last, const torrent::Object* src, int flags) {
 
     return first;
 
+  case torrent::Object::TYPE_NONE:
+    return first;
   default:
     throw torrent::input_error("Invalid type.");
   }
@@ -421,6 +424,8 @@ print_object_std(std::string* dest, const torrent::Object* src, int flags) {
 
     return;
 
+  case torrent::Object::TYPE_NONE:
+    return;
   default:
     throw torrent::input_error("Invalid type.");
   }
