@@ -110,20 +110,20 @@ WindowPeerList::redraw() {
 
     char remoteChoked;
 
-    if (!p->is_remote_choked_limited())
+    if (!p->is_down_choked_limited())
       remoteChoked = 'U';
-    else if (p->is_remote_queued())
+    else if (p->is_down_queued())
       remoteChoked = 'Q';
     else
       remoteChoked = 'C';
 
     m_canvas->print(x, y, "%c/%c%c/%c%c",
                     p->is_encrypted() ? (p->is_incoming() ? 'R' : 'L') : (p->is_incoming() ? 'r' : 'l'),
-                    p->is_remote_choked() ? std::tolower(remoteChoked) : remoteChoked,
+                    p->is_down_choked() ? std::tolower(remoteChoked) : remoteChoked,
 
-                    p->is_remote_interested() ? 'i' : 'n',
-                    p->is_local_choked() ? 'c' : 'u',
-                    p->is_local_interested() ? 'i' : 'n');
+                    p->is_down_interested() ? 'i' : 'n',
+                    p->is_up_choked() ? 'c' : 'u',
+                    p->is_up_interested() ? 'i' : 'n');
     x += 9;
 
     m_canvas->print(x, y, "%i/%i", p->outgoing_queue_size(), p->incoming_queue_size());
@@ -150,7 +150,7 @@ WindowPeerList::redraw() {
     x += 7;
 
     char buf[128];
-    print_client_version(buf, buf + 128, p->info()->client_info());
+    print_client_version(buf, buf + 128, p->peer_info()->client_info());
 
     m_canvas->print(x, y, "%s", buf);
 

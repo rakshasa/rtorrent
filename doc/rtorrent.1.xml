@@ -151,6 +151,15 @@ Close a torrent and its files.
 	</varlistentry>
 
 	<varlistentry>
+	  <term>^E</term>
+	  <listitem><para>
+Set the 'create/resize queued' flags on all files in a torrent. This
+is necessary if the underlying files in a torrent have been deleted or
+truncates, and thus rtorrent much recreate them.
+          </para></listitem>
+	</varlistentry>
+
+	<varlistentry>
 	  <term>^R</term>
 	  <listitem><para>
 Initiate hash check of torrent.
