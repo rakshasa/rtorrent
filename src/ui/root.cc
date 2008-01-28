@@ -39,6 +39,7 @@
 #include <stdexcept>
 #include <string.h>
 #include <sigc++/adaptors/bind.h>
+#include <torrent/throttle.h>
 #include <torrent/torrent.h>
 
 #include "core/manager.h"
@@ -182,7 +183,7 @@ Root::set_down_throttle(unsigned int throttle) {
   if (m_windowStatusbar != NULL)
     m_windowStatusbar->mark_dirty();
 
-  torrent::set_down_throttle(throttle * 1024);
+  torrent::down_throttle_global()->set_max_rate(throttle * 1024);
 
   unsigned int div    = std::max<int>(rpc::call_command_value("get_max_downloads_div"), 0);
   unsigned int global = std::max<int>(rpc::call_command_value("get_max_downloads_global"), 0);
@@ -212,7 +213,7 @@ Root::set_up_throttle(unsigned int throttle) {
   if (m_windowStatusbar != NULL)
     m_windowStatusbar->mark_dirty();
 
-  torrent::set_up_throttle(throttle * 1024);
+  torrent::up_throttle_global()->set_max_rate(throttle * 1024);
 
   unsigned int div    = std::max<int>(rpc::call_command_value("get_max_uploads_div"), 0);
   unsigned int global = std::max<int>(rpc::call_command_value("get_max_uploads_global"), 0);
@@ -239,12 +240,12 @@ Root::set_up_throttle(unsigned int throttle) {
 
 void
 Root::adjust_down_throttle(int throttle) {
-  set_down_throttle(std::max<int>(torrent::down_throttle() / 1024 + throttle, 0));
+  set_down_throttle(std::max<int>(torrent::down_throttle_global()->max_rate() / 1024 + throttle, 0));
 }
 
 void
 Root::adjust_up_throttle(int throttle) {
-  set_up_throttle(std::max<int>(torrent::up_throttle() / 1024 + throttle, 0));
+  set_up_throttle(std::max<int>(torrent::up_throttle_global()->max_rate() / 1024 + throttle, 0));
 }
 
 void

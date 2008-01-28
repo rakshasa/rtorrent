@@ -41,6 +41,7 @@
 #include <rak/path.h>
 #include <torrent/connection_manager.h>
 #include <torrent/dht_manager.h>
+#include <torrent/throttle.h>
 #include <torrent/tracker.h>
 #include <torrent/tracker_list.h>
 #include <torrent/torrent.h>
@@ -317,8 +318,8 @@ initialize_command_network() {
 //   ADD_COMMAND_VALUE_TRI("max_uploads_global",   rak::make_mem_fun(control->ui(), &ui::Root::set_max_uploads_global), rak::make_mem_fun(control->ui(), &ui::Root::max_uploads_global));
 //   ADD_COMMAND_VALUE_TRI("max_downloads_global", rak::make_mem_fun(control->ui(), &ui::Root::set_max_downloads_global), rak::make_mem_fun(control->ui(), &ui::Root::max_downloads_global));
 
-  ADD_COMMAND_VALUE_TRI_KB("download_rate",     rak::make_mem_fun(control->ui(), &ui::Root::set_down_throttle_i64), rak::ptr_fun(&torrent::down_throttle));
-  ADD_COMMAND_VALUE_TRI_KB("upload_rate",       rak::make_mem_fun(control->ui(), &ui::Root::set_up_throttle_i64), rak::ptr_fun(&torrent::up_throttle));
+  ADD_COMMAND_VALUE_TRI_KB("download_rate",     rak::make_mem_fun(control->ui(), &ui::Root::set_down_throttle_i64), rak::make_mem_fun(torrent::down_throttle_global(), &torrent::Throttle::max_rate));
+  ADD_COMMAND_VALUE_TRI_KB("upload_rate",       rak::make_mem_fun(control->ui(), &ui::Root::set_up_throttle_i64), rak::make_mem_fun(torrent::up_throttle_global(), &torrent::Throttle::max_rate));
 
   ADD_COMMAND_VOID("get_up_rate",               rak::make_mem_fun(torrent::up_rate(), &torrent::Rate::rate));
   ADD_COMMAND_VOID("get_up_total",              rak::make_mem_fun(torrent::up_rate(), &torrent::Rate::total));

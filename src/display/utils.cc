@@ -44,6 +44,7 @@
 #include <torrent/exceptions.h>
 #include <torrent/connection_manager.h>
 #include <torrent/rate.h>
+#include <torrent/throttle.h>
 #include <torrent/torrent.h>
 #include <torrent/tracker.h>
 #include <torrent/tracker_list.h>
@@ -250,15 +251,15 @@ print_client_version(char* first, char* last, const torrent::ClientInfo& clientI
 
 char*
 print_status_info(char* first, char* last) {
-  if (torrent::up_throttle() == 0)
+  if (torrent::up_throttle_global()->max_rate() == 0)
     first = print_buffer(first, last, "[Throttle off");
   else
-    first = print_buffer(first, last, "[Throttle %3i", torrent::up_throttle() / 1024);
+    first = print_buffer(first, last, "[Throttle %3i", torrent::up_throttle_global()->max_rate() / 1024);
 
-  if (torrent::down_throttle() == 0)
+  if (torrent::down_throttle_global()->max_rate() == 0)
     first = print_buffer(first, last, "/off KB]");
   else
-    first = print_buffer(first, last, "/%3i KB]", torrent::down_throttle() / 1024);
+    first = print_buffer(first, last, "/%3i KB]", torrent::down_throttle_global()->max_rate() / 1024);
   
   first = print_buffer(first, last, " [Rate %5.1f/%5.1f KB]",
                        (double)torrent::up_rate()->rate() / 1024.0,
