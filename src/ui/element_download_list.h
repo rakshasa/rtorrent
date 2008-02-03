@@ -73,9 +73,6 @@ public:
   void                receive_next_priority();
   void                receive_prev_priority();
 
-  void                receive_ignore_ratio();
-  void                receive_clear_tied();
-
   void                receive_change_view(const std::string& name);
 
 private:

@@ -171,7 +171,7 @@ const char*
 parse_object(const char* first, const char* last, torrent::Object* dest, bool (*delim)(const char)) {
   if (*first == '{') {
     *dest = torrent::Object::create_list();
-    first = parse_list(first + 1, last, dest, &parse_is_delim_list);
+    first = parse_list(first + 1, last, dest, &parse_is_delim_block);
     first = parse_skip_wspace(first, last);
     
     if (first == last || *first != '}')
@@ -210,9 +210,9 @@ parse_list(const char* first, const char* last, torrent::Object* dest, bool (*de
 }
 
 const char*
-parse_whole_list(const char* first, const char* last, torrent::Object* dest) {
+parse_whole_list(const char* first, const char* last, torrent::Object* dest, bool (*delim)(const char)) {
   first = parse_skip_wspace(first, last);
-  first = parse_object(first, last, dest);
+  first = parse_object(first, last, dest, delim);
   first = parse_skip_wspace(first, last);
 
   if (first != last && parse_is_seperator(*first)) {
@@ -220,7 +220,7 @@ parse_whole_list(const char* first, const char* last, torrent::Object* dest) {
     tmp.swap(*dest);
 
     dest->as_list().push_back(tmp);
-    first = parse_list(++first, last, dest);
+    first = parse_list(++first, last, dest, delim);
   }
 
   return first;

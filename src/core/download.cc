@@ -98,8 +98,7 @@ Download::priority() {
 
 void
 Download::set_priority(uint32_t p) {
-  if (p >= 4)
-    throw torrent::input_error("Priority out of range.");
+  p %= 4;
 
   // Seeding torrents get half the priority of unfinished torrents.
   if (!is_done())

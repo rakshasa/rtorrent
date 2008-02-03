@@ -117,7 +117,7 @@ parse_command(target_type target, const char* first, const char* last) {
     throw torrent::input_error("Could not find '='.");
 
   torrent::Object args;
-  first = parse_whole_list(first + 1, last, &args);
+  first = parse_whole_list(first + 1, last, &args, &parse_is_delim_command);
 
   // Find the last character that is part of this command, skipping
   // the whitespace at the end. This ensures us that the caller

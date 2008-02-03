@@ -42,6 +42,8 @@
 
 #include "core/manager.h"
 #include "core/view_manager.h"
+#include "ui/root.h"
+#include "ui/download_list.h"
 #include "rpc/command_slot.h"
 #include "rpc/command_variable.h"
 #include "rpc/parse.h"
@@ -105,6 +107,24 @@ apply_view_list(const torrent::Object&) {
     result.push_back((*itr)->name());
 
   return rawResult;
+}
+
+torrent::Object
+apply_view_set(const torrent::Object& rawArgs) {
+  const torrent::Object::list_type& args = rawArgs.as_list();
+
+  if (args.size() != 2)
+    throw torrent::input_error("Wrong argument count.");
+
+  core::ViewManager::iterator itr = control->view_manager()->find(args.back().as_string());
+
+  if (itr == control->view_manager()->end())
+    throw torrent::input_error("Could not find view \"" + args.back().as_string() + "\".");
+
+//   if (args.front().as_string() == "main")
+//     control->ui()->download_list()->set_view(*itr);
+//   else
+    throw torrent::input_error("No such target.");
 }
 
 torrent::Object
@@ -245,10 +265,23 @@ apply_if(int flags, rpc::target_type target, const torrent::Object& rawArgs) {
   if (itr == args.end())
     return torrent::Object();
 
-  if (flags & 0x1 && itr->is_string())
+  if (flags & 0x1 && itr->is_string()) {
     return rpc::parse_command(target, itr->as_string().c_str(), itr->as_string().c_str() + itr->as_string().size()).first;
-  else
+
+  } else if (flags & 0x1 && itr->is_list()) {
+    // Move this into a special function or something. Also, might be
+    // nice to have a parse_command function that takes list
+    // iterator...
+
+    for (torrent::Object::list_type::const_iterator cmdItr = itr->as_list().begin(), last = itr->as_list().end(); cmdItr != last; cmdItr++)
+      if (cmdItr->is_string())
+        rpc::parse_command(target, cmdItr->as_string().c_str(), cmdItr->as_string().c_str() + cmdItr->as_string().size());
+
+    return torrent::Object();
+
+  } else {
     return *itr;
+  }
 }
 
 void
@@ -257,6 +290,7 @@ initialize_command_ui() {
 
   ADD_COMMAND_STRING("view_add",        rpc::object_string_fn(rak::make_mem_fun(control->view_manager(), &core::ViewManager::insert_throw)));
   ADD_COMMAND_NONE_L("view_list",       rak::ptr_fn(&apply_view_list));
+  ADD_COMMAND_NONE_L("view_set",        rak::ptr_fn(&apply_view_set));
 
   ADD_COMMAND_LIST("view_filter",       rak::bind_ptr_fn(&apply_view_filter, &core::ViewManager::set_filter));
   ADD_COMMAND_LIST("view_filter_on",    rak::bind_ptr_fn(&apply_view_filter, &core::ViewManager::set_filter_on));

@@ -63,20 +63,21 @@ ElementDownloadList::ElementDownloadList() :
   if (m_view == NULL)
     throw torrent::internal_error("View \"main\" must be present to initialize the main display.");
 
-  m_bindings['\x13']        = sigc::bind(sigc::mem_fun(*this, &ElementDownloadList::receive_command), "d.start=");
-  m_bindings['\x04']        = sigc::mem_fun(*this, &ElementDownloadList::receive_stop_download);
-  m_bindings['\x0B']        = sigc::mem_fun(*this, &ElementDownloadList::receive_close_download);
-//   m_bindings['\x04']        = sigc::bind(sigc::mem_fun(*this, &ElementDownloadList::receive_command), "d.stop=");
-//   m_bindings['\x0B']        = sigc::bind(sigc::mem_fun(*this, &ElementDownloadList::receive_command), "d.close=");
-  m_bindings['\x12']        = sigc::bind(sigc::mem_fun(*this, &ElementDownloadList::receive_command), "d.check_hash=");
+  m_bindings['\x13'] = sigc::bind(sigc::mem_fun(*this, &ElementDownloadList::receive_command), "d.start=");
+  m_bindings['\x04'] = sigc::bind(sigc::mem_fun(*this, &ElementDownloadList::receive_command), "branch=d.get_state=,d.stop=,d.erase=");
+  m_bindings['\x0B'] = sigc::bind(sigc::mem_fun(*this, &ElementDownloadList::receive_command), "d.set_ignore_commands=1; d.stop=; d.close=");
+  m_bindings['\x12'] = sigc::bind(sigc::mem_fun(*this, &ElementDownloadList::receive_command), "d.check_hash=");
+  m_bindings['\x05'] = sigc::bind(sigc::mem_fun(*this, &ElementDownloadList::receive_command),
+                                         "f.multicall=,f.set_create_queued=,f.set_resize_queued=; print=\"Queued create/resize of files in torrent.\"");
 
-  m_bindings['\x05']        = sigc::bind(sigc::mem_fun(*this, &ElementDownloadList::receive_command),
-                                         "f.multicall=,f.set_create_queued=,f.set_resize_queued= ; print=\"Queued create/resize of files in torrent.\"");
+  m_bindings['+']    = sigc::mem_fun(*this, &ElementDownloadList::receive_next_priority);
+  m_bindings['-']    = sigc::mem_fun(*this, &ElementDownloadList::receive_prev_priority);
+  m_bindings['I']    = sigc::bind(sigc::mem_fun(*this, &ElementDownloadList::receive_command),
+                                  "branch=d.get_ignore_commands=,"
+                                  "{d.set_ignore_commands=0, print=\"Torrent set to heed commands.\"},"
+                                  "{d.set_ignore_commands=1, print=\"Torrent set to ignore commands.\"}");
 
-  m_bindings['+']           = sigc::mem_fun(*this, &ElementDownloadList::receive_next_priority);
-  m_bindings['-']           = sigc::mem_fun(*this, &ElementDownloadList::receive_prev_priority);
-  m_bindings['I']           = sigc::mem_fun(*this, &ElementDownloadList::receive_ignore_ratio);
-  m_bindings['U']           = sigc::mem_fun(*this, &ElementDownloadList::receive_clear_tied);
+  m_bindings['U']    = sigc::bind(sigc::mem_fun(*this, &ElementDownloadList::receive_command), "d.delete_tied=; print=\"Cleared tied to file association for the selected download.\"");
 
   // These should also be commands.
   m_bindings['1']           = sigc::bind(sigc::mem_fun(*this, &ElementDownloadList::receive_change_view), "main");
@@ -87,6 +88,7 @@ ElementDownloadList::ElementDownloadList() :
   m_bindings['6']           = sigc::bind(sigc::mem_fun(*this, &ElementDownloadList::receive_change_view), "incomplete");
   m_bindings['7']           = sigc::bind(sigc::mem_fun(*this, &ElementDownloadList::receive_change_view), "hashing");
   m_bindings['8']           = sigc::bind(sigc::mem_fun(*this, &ElementDownloadList::receive_change_view), "seeding");
+//  m_bindings['8']           = sigc::bind(sigc::mem_fun(*this, &ElementDownloadList::receive_command), "view_set=main,seeding", (const char*)NULL);
 
   m_bindings[KEY_UP]   = m_bindings['P' - '@'] = sigc::mem_fun(*this, &ElementDownloadList::receive_prev);
   m_bindings[KEY_DOWN] = m_bindings['N' - '@'] = sigc::mem_fun(*this, &ElementDownloadList::receive_next);
@@ -145,6 +147,7 @@ ElementDownloadList::receive_command(const char* cmd) {
 
   } catch (torrent::input_error& e) {
     control->core()->push_log(e.what());
+    return;
   }
 }
 
@@ -161,38 +164,11 @@ ElementDownloadList::receive_prev() {
 }
 
 void
-ElementDownloadList::receive_stop_download() {
-  if (m_view->focus() == m_view->end_visible())
-    return;
-
-  if (rpc::call_command_value("d.get_state", rpc::make_target(*m_view->focus())) == 1)
-    control->core()->download_list()->stop_normal(*m_view->focus());
-  else
-    control->core()->download_list()->erase_ptr(*m_view->focus());
-
-  m_view->set_last_changed();
-}
-
-void
-ElementDownloadList::receive_close_download() {
-  if (m_view->focus() == m_view->end_visible())
-    return;
-
-  core::Download* download = *m_view->focus();
-
-  rpc::call_command("d.set_ignore_commands", (int64_t)1, rpc::make_target(download));
-
-  control->core()->download_list()->stop_normal(download);
-  control->core()->download_list()->close(download);
-  m_view->set_last_changed();
-}
-
-void
 ElementDownloadList::receive_next_priority() {
   if (m_view->focus() == m_view->end_visible())
     return;
 
-  (*m_view->focus())->set_priority(((*m_view->focus())->priority() + 1) % 4);
+  (*m_view->focus())->set_priority((*m_view->focus())->priority() + 1);
   m_window->mark_dirty();
 }
 
@@ -201,36 +177,8 @@ ElementDownloadList::receive_prev_priority() {
   if (m_view->focus() == m_view->end_visible())
     return;
 
-  (*m_view->focus())->set_priority(((*m_view->focus())->priority() - 1) % 4);
+  (*m_view->focus())->set_priority((*m_view->focus())->priority() - 1);
   m_window->mark_dirty();
-}
-
-void
-ElementDownloadList::receive_ignore_ratio() {
-  if (m_view->focus() == m_view->end_visible())
-    return;
-
-  if (rpc::call_command_value("d.get_ignore_commands", rpc::make_target(*m_view->focus())) != 0) {
-    rpc::call_command_set_value("d.set_ignore_commands", (int64_t)0, rpc::make_target(*m_view->focus()));
-    control->core()->push_log("Torrent set to heed commands.");
-  } else {
-    rpc::call_command_set_value("d.set_ignore_commands", (int64_t)1, rpc::make_target(*m_view->focus()));
-    control->core()->push_log("Torrent set to ignore commands.");
-  }
-}
-
-void
-ElementDownloadList::receive_clear_tied() {
-  if (m_view->focus() == m_view->end_visible())
-    return;
-
-  const std::string& tiedFile = rpc::call_command_string("d.get_tied_to_file", rpc::make_target(*m_view->focus()));
-
-  if (!tiedFile.empty()) {
-    rpc::call_command_void("d.delete_tied", rpc::make_target(*m_view->focus()));
-
-    control->core()->push_log("Cleared tied to file association for the selected download.");
-  }
 }
 
 void
