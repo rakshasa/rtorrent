@@ -213,7 +213,7 @@ apply_schedule(const torrent::Object& rawArgs) {
 
 torrent::Object
 apply_load(int flags, const torrent::Object& rawArgs) {
-  const torrent::Object::list_type&          args    = rawArgs.as_list();
+  const torrent::Object::list_type&    args    = rawArgs.as_list();
   torrent::Object::list_const_iterator argsItr = args.begin();
 
   if (argsItr == args.end())

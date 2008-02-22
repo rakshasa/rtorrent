@@ -131,8 +131,12 @@ initialize_command_local() {
   ADD_COMMAND_VOID("system.file_status_cache.size",  rak::make_mem_fun((utils::FileStatusCache::base_type*)control->core()->file_status_cache(), &utils::FileStatusCache::size));
   ADD_COMMAND_VOID("system.file_status_cache.prune", rak::make_mem_fun(control->core()->file_status_cache(), &utils::FileStatusCache::prune));
 
-  ADD_COMMAND_VALUE_SET_OCT("system.", "umask",  std::ptr_fun(&umask));
-  ADD_COMMAND_STRING_PREFIX("system.", "cwd",    std::ptr_fun(system_set_cwd), rak::ptr_fun(&system_get_cwd));
+  ADD_COMMAND_VOID("system.time",                    rak::make_mem_fun(&cachedTime, &rak::timer::seconds));
+  ADD_COMMAND_VOID("system.time_seconds",            rak::ptr_fun(&rak::timer::current_seconds));
+  ADD_COMMAND_VOID("system.time_usec",               rak::ptr_fun(&rak::timer::current_usec));
+
+  ADD_COMMAND_VALUE_SET_OCT("system.", "umask",      std::ptr_fun(&umask));
+  ADD_COMMAND_STRING_PREFIX("system.", "cwd",        std::ptr_fun(system_set_cwd), rak::ptr_fun(&system_get_cwd));
 
   ADD_VARIABLE_STRING("name", "");
 
@@ -140,19 +144,19 @@ initialize_command_local() {
   ADD_VARIABLE_VALUE("split_file_size", -1);
   ADD_VARIABLE_STRING("split_suffix", ".part");
 
-  ADD_COMMAND_VOID("get_memory_usage",           rak::make_mem_fun(chunkManager, &CM_t::memory_usage));
-  ADD_COMMAND_VALUE_TRI("max_memory_usage",      rak::make_mem_fun(chunkManager, &CM_t::set_max_memory_usage), rak::make_mem_fun(chunkManager, &CM_t::max_memory_usage));
-  ADD_COMMAND_VALUE_TRI("safe_sync",             rak::make_mem_fun(chunkManager, &CM_t::set_safe_sync), rak::make_mem_fun(chunkManager, &CM_t::safe_sync));
-  ADD_COMMAND_VOID("get_safe_free_diskspace",    rak::make_mem_fun(chunkManager, &CM_t::safe_free_diskspace));
-  ADD_COMMAND_VALUE_TRI("timeout_sync",          rak::make_mem_fun(chunkManager, &CM_t::set_timeout_sync), rak::make_mem_fun(chunkManager, &CM_t::timeout_sync));
-  ADD_COMMAND_VALUE_TRI("timeout_safe_sync",     rak::make_mem_fun(chunkManager, &CM_t::set_timeout_safe_sync), rak::make_mem_fun(chunkManager, &CM_t::timeout_safe_sync));
+  ADD_COMMAND_VOID("get_memory_usage",               rak::make_mem_fun(chunkManager, &CM_t::memory_usage));
+  ADD_COMMAND_VALUE_TRI("max_memory_usage",          rak::make_mem_fun(chunkManager, &CM_t::set_max_memory_usage), rak::make_mem_fun(chunkManager, &CM_t::max_memory_usage));
+  ADD_COMMAND_VALUE_TRI("safe_sync",                 rak::make_mem_fun(chunkManager, &CM_t::set_safe_sync), rak::make_mem_fun(chunkManager, &CM_t::safe_sync));
+  ADD_COMMAND_VOID("get_safe_free_diskspace",        rak::make_mem_fun(chunkManager, &CM_t::safe_free_diskspace));
+  ADD_COMMAND_VALUE_TRI("timeout_sync",              rak::make_mem_fun(chunkManager, &CM_t::set_timeout_sync), rak::make_mem_fun(chunkManager, &CM_t::timeout_sync));
+  ADD_COMMAND_VALUE_TRI("timeout_safe_sync",         rak::make_mem_fun(chunkManager, &CM_t::set_timeout_safe_sync), rak::make_mem_fun(chunkManager, &CM_t::timeout_safe_sync));
 
-  ADD_COMMAND_VALUE_TRI("preload_type",          rak::make_mem_fun(chunkManager, &CM_t::set_preload_type), rak::make_mem_fun(chunkManager, &CM_t::preload_type));
-  ADD_COMMAND_VALUE_TRI("preload_min_size",      rak::make_mem_fun(chunkManager, &CM_t::set_preload_min_size), rak::make_mem_fun(chunkManager, &CM_t::preload_min_size));
-  ADD_COMMAND_VALUE_TRI_KB("preload_required_rate", rak::make_mem_fun(chunkManager, &CM_t::set_preload_required_rate), rak::make_mem_fun(chunkManager, &CM_t::preload_required_rate));
+  ADD_COMMAND_VALUE_TRI("preload_type",              rak::make_mem_fun(chunkManager, &CM_t::set_preload_type), rak::make_mem_fun(chunkManager, &CM_t::preload_type));
+  ADD_COMMAND_VALUE_TRI("preload_min_size",          rak::make_mem_fun(chunkManager, &CM_t::set_preload_min_size), rak::make_mem_fun(chunkManager, &CM_t::preload_min_size));
+  ADD_COMMAND_VALUE_TRI_KB("preload_required_rate",  rak::make_mem_fun(chunkManager, &CM_t::set_preload_required_rate), rak::make_mem_fun(chunkManager, &CM_t::preload_required_rate));
 
-  ADD_COMMAND_VOID("get_stats_preloaded",        rak::make_mem_fun(chunkManager, &CM_t::stats_preloaded));
-  ADD_COMMAND_VOID("get_stats_not_preloaded",    rak::make_mem_fun(chunkManager, &CM_t::stats_not_preloaded));
+  ADD_COMMAND_VOID("get_stats_preloaded",            rak::make_mem_fun(chunkManager, &CM_t::stats_preloaded));
+  ADD_COMMAND_VOID("get_stats_not_preloaded",        rak::make_mem_fun(chunkManager, &CM_t::stats_not_preloaded));
 
   ADD_VARIABLE_STRING("directory", "./");
 

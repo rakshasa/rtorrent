@@ -145,29 +145,24 @@ apply_cat(rpc::target_type target, const torrent::Object& rawArgs) {
 }
 
 torrent::Object
-apply_to_date(const torrent::Object& rawArgs) {
+apply_to_time(int flags, const torrent::Object& rawArgs) {
+  std::tm *u;
   time_t t = (uint64_t)rawArgs.as_value();
-  std::tm *u = std::gmtime(&t);
+
+  if (flags & 0x1)
+    u = std::localtime(&t);
+  else
+    u = std::gmtime(&t);
   
   if (u == NULL)
     return torrent::Object();
 
   char buffer[11];
-  snprintf(buffer, 11, "%02u/%02u/%04u", u->tm_mday, (u->tm_mon + 1), (1900 + u->tm_year));
-  
-  return std::string(buffer);
-}
 
-torrent::Object
-apply_to_time(const torrent::Object& rawArgs) {
-  time_t t = (uint64_t)rawArgs.as_value();
-  std::tm *u = std::gmtime(&t);
-  
-  if (u == NULL)
-    return torrent::Object();
-
-  char buffer[9];
-  snprintf(buffer, 9, "%2d:%02d:%02d", u->tm_hour, u->tm_min, u->tm_sec);
+  if (flags & 0x2)
+    snprintf(buffer, 11, "%02u/%02u/%04u", u->tm_mday, (u->tm_mon + 1), (1900 + u->tm_year));
+  else
+    snprintf(buffer, 9, "%2d:%02d:%02d", u->tm_hour, u->tm_min, u->tm_sec);
 
   return std::string(buffer);
 }
@@ -311,8 +306,10 @@ initialize_command_ui() {
   // support for seperation of commands and literals.
   ADD_ANY_NONE("branch",                rak::bind_ptr_fn(&apply_if, 1));
 
-  ADD_COMMAND_VALUE("to_date",          rak::ptr_fn(&apply_to_date));
-  ADD_COMMAND_VALUE("to_time",          rak::ptr_fn(&apply_to_time));
+  ADD_COMMAND_VALUE("to_gm_time",       rak::bind_ptr_fn(&apply_to_time, 0));
+  ADD_COMMAND_VALUE("to_gm_date",       rak::bind_ptr_fn(&apply_to_time, 0x2));
+  ADD_COMMAND_VALUE("to_time",          rak::bind_ptr_fn(&apply_to_time, 0x1));
+  ADD_COMMAND_VALUE("to_date",          rak::bind_ptr_fn(&apply_to_time, 0x1 | 0x2));
   ADD_COMMAND_VALUE("to_elapsed_time",  rak::ptr_fn(&apply_to_elapsed_time));
   ADD_COMMAND_VALUE("to_kb",            rak::ptr_fn(&apply_to_kb));
   ADD_COMMAND_VALUE("to_mb",            rak::ptr_fn(&apply_to_mb));

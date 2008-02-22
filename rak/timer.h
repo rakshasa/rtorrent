@@ -63,6 +63,8 @@ class timer {
   }
 
   static timer        current();
+  static int64_t      current_seconds()                   { return current().seconds(); }
+  static int64_t      current_usec()                      { return current().usec(); }
   static timer        from_seconds(uint32_t seconds)      { return rak::timer((uint64_t)seconds * 1000000); }
   static timer        from_milliseconds(uint32_t seconds) { return rak::timer((uint64_t)seconds * 1000); }
 
