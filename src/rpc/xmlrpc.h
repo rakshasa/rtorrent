@@ -94,6 +94,9 @@ public:
   slot_find_tracker&  get_slot_find_tracker()                                     { return m_slotFindTracker; }
   void                set_slot_find_tracker(slot_find_tracker::base_type* slot)   { m_slotFindTracker.set(slot); }
 
+  static int64_t      size_limit();
+  static void         set_size_limit(uint64_t size);
+
 private:
   void*               m_env;
   void*               m_registry;

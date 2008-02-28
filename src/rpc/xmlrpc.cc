@@ -133,6 +133,8 @@ xmlrpc_list_entry_to_value(xmlrpc_env* env, xmlrpc_value* src, int index) {
 // torrent::Object, then we can just use xmlrpc_to_object.
 rpc::target_type
 xmlrpc_to_target(xmlrpc_env* env, xmlrpc_value* value) {
+  rpc::target_type target;
+
   switch (xmlrpc_value_type(value)) {
   case XMLRPC_TYPE_STRING:
     const char* str;
@@ -141,22 +143,72 @@ xmlrpc_to_target(xmlrpc_env* env, xmlrpc_value* value) {
     if (env->fault_occurred)
       throw xmlrpc_error(env);
 
-    if (std::strlen(str) == 40) {
-      core::Download* download = xmlrpc.get_slot_find_download()(str);
-      ::free((void*)str);
-
-      if (download == NULL)
-        throw xmlrpc_error(XMLRPC_TYPE_ERROR, "Could not find info-hash.");
-
-      return rpc::make_target(download);
-
-    } else if (std::strlen(str) == 0) {
+    if (std::strlen(str) == 0) {
+      // When specifying void, we require a zero-length string.
       ::free((void*)str);
       return rpc::make_target();
+
+    } else if (std::strlen(str) < 40) {
+      ::free((void*)str);
+      throw xmlrpc_error(XMLRPC_TYPE_ERROR, "Unsupported target type found.");
+    }
+
+    core::Download* download = xmlrpc.get_slot_find_download()(str);
+
+    if (download == NULL) {
+      ::free((void*)str);
+      throw xmlrpc_error(XMLRPC_TYPE_ERROR, "Could not find info-hash.");
+    }
+
+    if (std::strlen(str) == 40) {
+      ::free((void*)str);
+      return rpc::make_target(download);
+    }
+
+    if (std::strlen(str) < 42 || str[40] != ':') {
+      ::free((void*)str);
+      throw xmlrpc_error(XMLRPC_TYPE_ERROR, "Unsupported target type found.");
+    }
+
+    // Files:    "<hash>:f<index>"
+    // Trackers: "<hash>:t<index>"
+
+    int index;
+    const char* end;
+
+    switch (str[41]) {
+    case 'f':
+      end = str + 42;
+      index = ::strtol(str + 42, (char**)&end, 0);
+
+      if (*str == '\0' || *end != '\0')
+        throw xmlrpc_error(XMLRPC_TYPE_ERROR, "Invalid index.");
+
+      target = rpc::make_target(XmlRpc::call_file, xmlrpc.get_slot_find_file()(download, index));
+      break;
+
+    case 't':
+      end = str + 42;
+      index = ::strtol(str + 42, (char**)&end, 0);
+
+      if (*str == '\0' || *end != '\0')
+        throw xmlrpc_error(XMLRPC_TYPE_ERROR, "Invalid index.");
+
+      target = rpc::make_target(XmlRpc::call_file, xmlrpc.get_slot_find_tracker()(download, index));
+      break;
+
+    default:
+      ::free((void*)str);
+      throw xmlrpc_error(XMLRPC_TYPE_ERROR, "Unsupported target type found.");
     }
 
     ::free((void*)str);
-    throw xmlrpc_error(XMLRPC_TYPE_ERROR, "Unsupported target type found.");
+
+    // Check if the target pointer is NULL.
+    if (target.second == NULL)
+      throw xmlrpc_error(XMLRPC_TYPE_ERROR, "Invalid index.");
+
+    return target;
 
   default:
     return rpc::make_target();
@@ -461,6 +513,19 @@ XmlRpc::set_dialect(int dialect) {
   m_dialect = dialect;
 }
 
+int64_t
+XmlRpc::size_limit() {
+  return xmlrpc_limit_get(XMLRPC_XML_SIZE_LIMIT_ID);
+}
+
+void
+XmlRpc::set_size_limit(uint64_t size) {
+  if (size >= (64 << 20))
+    throw torrent::input_error("Invalid XMLRPC limit size.");
+
+  xmlrpc_limit_set(XMLRPC_XML_SIZE_LIMIT_ID, size);
+}
+
 #else
 
 void XmlRpc::initialize() { throw torrent::resource_error("XMLRPC not supported."); }
@@ -470,6 +535,9 @@ void XmlRpc::insert_command(__UNUSED const char* name, __UNUSED const char* parm
 void XmlRpc::set_dialect(__UNUSED int dialect) {}
 
 bool XmlRpc::process(__UNUSED const char* inBuffer, __UNUSED uint32_t length, __UNUSED slot_write slotWrite) { return false; }
+
+int64_t XmlRpc::size_limit() { return 0; }
+void    XmlRpc::set_size_limit(int64_t size) {}
 
 #endif
 

@@ -349,8 +349,9 @@ initialize_command_network() {
 
   ADD_COMMAND_STRING_UN("scgi_port",            rak::bind2nd(std::ptr_fun(&apply_scgi), 1));
   ADD_COMMAND_STRING_UN("scgi_local",           rak::bind2nd(std::ptr_fun(&apply_scgi), 2));
-  ADD_VARIABLE_BOOL("scgi_dont_route", false);
+  ADD_VARIABLE_BOOL    ("scgi_dont_route", false);
   ADD_COMMAND_STRING_UN("xmlrpc_dialect",       std::ptr_fun(&apply_xmlrpc_dialect));
+  ADD_COMMAND_VALUE_TRI("xmlrpc_size_limit",    std::ptr_fun(&rpc::XmlRpc::set_size_limit), rak::ptr_fun(&rpc::XmlRpc::size_limit));
 
   ADD_COMMAND_VALUE_TRI("hash_read_ahead",      std::ptr_fun(&apply_hash_read_ahead), rak::ptr_fun(torrent::hash_read_ahead));
   ADD_COMMAND_VALUE_TRI("hash_interval",        std::ptr_fun(&apply_hash_interval), rak::ptr_fun(torrent::hash_interval));
