@@ -96,11 +96,11 @@ retrieve_p_completed_percent(torrent::Peer* peer) {
 
 #define ADD_CP_SLOT(key, function, slot, parm, doc)    \
   commandPeerSlotsItr->set_slot(slot); \
-  rpc::commands.insert_peer(key, commandPeerSlotsItr++, &rpc::CommandSlot<torrent::Peer*>::function, rpc::CommandMap::flag_dont_delete, parm, doc);
+  rpc::commands.insert_type(key, commandPeerSlotsItr++, &rpc::CommandSlot<torrent::Peer*>::function, rpc::CommandMap::flag_dont_delete, parm, doc);
 
 #define ADD_CP_SLOT_PUBLIC(key, function, slot, parm, doc)    \
   commandPeerSlotsItr->set_slot(slot); \
-  rpc::commands.insert_peer(key, commandPeerSlotsItr++, &rpc::CommandSlot<torrent::Peer*>::function, rpc::CommandMap::flag_dont_delete | rpc::CommandMap::flag_public_xmlrpc, parm, doc);
+  rpc::commands.insert_type(key, commandPeerSlotsItr++, &rpc::CommandSlot<torrent::Peer*>::function, rpc::CommandMap::flag_dont_delete | rpc::CommandMap::flag_public_xmlrpc, parm, doc);
 
 #define ADD_CP_VOID(key, slot) \
   ADD_CP_SLOT_PUBLIC("p.get_" key, call_unknown, rpc::object_fn(slot), "i:", "")

@@ -44,17 +44,6 @@
 
 #include "command.h"
 
-namespace core {
-  class Download;
-}
-
-namespace torrent {
-  class File;
-  class FileListIterator;
-  class Peer;
-  class Tracker;
-}
-
 namespace rpc {
 
 struct command_map_comp : public std::binary_function<const char*, const char*, bool> {
@@ -67,13 +56,6 @@ struct command_map_data_type {
   // will register a member function pointer to be used instead.
   //
   // The any_slot should perhaps replace generic_slot?
-  typedef const torrent::Object (*generic_slot)  (Command*, const torrent::Object&);
-  typedef const torrent::Object (*any_slot)      (Command*, target_type, const torrent::Object&);
-  typedef const torrent::Object (*download_slot) (Command*, core::Download*, const torrent::Object&);
-  typedef const torrent::Object (*file_slot)     (Command*, torrent::File*, const torrent::Object&);
-  typedef const torrent::Object (*file_itr_slot) (Command*, torrent::FileListIterator*, const torrent::Object&);
-  typedef const torrent::Object (*peer_slot)     (Command*, torrent::Peer*, const torrent::Object&);
-  typedef const torrent::Object (*tracker_slot)  (Command*, torrent::Tracker*, const torrent::Object&);
 
   command_map_data_type(Command* variable, int flags, const char* parm, const char* doc) :
     m_variable(variable), m_flags(flags), m_parm(parm), m_doc(doc) {}
@@ -83,13 +65,13 @@ struct command_map_data_type {
   Command*      m_variable;
 
   union {
-    generic_slot  m_genericSlot;
-    any_slot      m_anySlot;
-    download_slot m_downloadSlot;
-    file_slot     m_fileSlot;
-    file_itr_slot m_fileItrSlot;
-    peer_slot     m_peerSlot;
-    tracker_slot  m_trackerSlot;
+    Command::generic_slot  m_genericSlot;
+    Command::any_slot      m_anySlot;
+    Command::download_slot m_downloadSlot;
+    Command::file_slot     m_fileSlot;
+    Command::file_itr_slot m_fileItrSlot;
+    Command::peer_slot     m_peerSlot;
+    Command::tracker_slot  m_trackerSlot;
   };
 
   int           m_flags;
@@ -103,14 +85,6 @@ class CommandMap : public std::map<const char*, command_map_data_type, command_m
 public:
   typedef std::map<const char*, command_map_data_type, command_map_comp> base_type;
 
-  typedef command_map_data_type::generic_slot  generic_slot;
-  typedef command_map_data_type::any_slot      any_slot;
-  typedef command_map_data_type::download_slot download_slot;
-  typedef command_map_data_type::file_slot     file_slot;
-  typedef command_map_data_type::file_itr_slot file_itr_slot;
-  typedef command_map_data_type::peer_slot     peer_slot;
-  typedef command_map_data_type::tracker_slot  tracker_slot;
-
   typedef torrent::Object         mapped_type;
   typedef mapped_type::value_type mapped_value_type;
 
@@ -123,14 +97,6 @@ public:
   using base_type::end;
   using base_type::find;
 
-  static const int target_generic  = 0;
-  static const int target_any      = 1;
-  static const int target_download = 2;
-  static const int target_peer     = 3;
-  static const int target_tracker  = 4;
-  static const int target_file     = 5;
-  static const int target_file_itr = 6;
-
   static const int flag_dont_delete   = 0x1;
   static const int flag_public_xmlrpc = 0x2;
 
@@ -142,35 +108,35 @@ public:
 
   iterator            insert(key_type key, Command* variable, int flags, const char* parm, const char* doc);
 
-  void                insert_generic (key_type key, Command* variable, generic_slot targetSlot,  int flags, const char* parm, const char* doc);
-  void                insert_any     (key_type key, Command* variable, any_slot     targetSlot,  int flags, const char* parm, const char* doc);
-  void                insert_download(key_type key, Command* variable, download_slot targetSlot, int flags, const char* parm, const char* doc);
-  void                insert_peer    (key_type key, Command* variable, peer_slot targetSlot,     int flags, const char* parm, const char* doc);
-  void                insert_tracker (key_type key, Command* variable, tracker_slot targetSlot,  int flags, const char* parm, const char* doc);
-  void                insert_file    (key_type key, Command* variable, file_slot targetSlot,     int flags, const char* parm, const char* doc);
-  void                insert_file_itr(key_type key, Command* variable, file_itr_slot targetSlot, int flags, const char* parm, const char* doc);
+  template <typename T>
+  void                insert_type(key_type key, Command* variable, T targetSlot, int flags, const char* parm, const char* doc) {
+    iterator itr = insert(key, variable, flags, parm, doc);
+
+    itr->second.m_target      = target_type_id<T>::value; 
+    itr->second.m_genericSlot = (Command::generic_slot)targetSlot;
+  }
 
   void                insert(key_type key, const command_map_data_type src);
 
-  const mapped_type   call_command  (key_type key,       const mapped_type& arg, target_type target = target_type((int)target_generic, NULL));
-  const mapped_type   call_command  (const_iterator itr, const mapped_type& arg, target_type target = target_type((int)target_generic, NULL));
+  const mapped_type   call_command  (key_type key,       const mapped_type& arg, target_type target = target_type((int)Command::target_generic, NULL));
+  const mapped_type   call_command  (const_iterator itr, const mapped_type& arg, target_type target = target_type((int)Command::target_generic, NULL));
 
-  const mapped_type   call_command_d(key_type key, core::Download* download, const mapped_type& arg)  { return call_command(key, arg, target_type((int)target_download, download)); }
-  const mapped_type   call_command_p(key_type key, torrent::Peer* peer, const mapped_type& arg)       { return call_command(key, arg, target_type((int)target_peer, peer)); }
-  const mapped_type   call_command_t(key_type key, torrent::Tracker* tracker, const mapped_type& arg) { return call_command(key, arg, target_type((int)target_tracker, tracker)); }
-  const mapped_type   call_command_f(key_type key, torrent::File* file, const mapped_type& arg)       { return call_command(key, arg, target_type((int)target_file, file)); }
+  const mapped_type   call_command_d(key_type key, core::Download* download, const mapped_type& arg)  { return call_command(key, arg, target_type((int)Command::target_download, download)); }
+  const mapped_type   call_command_p(key_type key, torrent::Peer* peer, const mapped_type& arg)       { return call_command(key, arg, target_type((int)Command::target_peer, peer)); }
+  const mapped_type   call_command_t(key_type key, torrent::Tracker* tracker, const mapped_type& arg) { return call_command(key, arg, target_type((int)Command::target_tracker, tracker)); }
+  const mapped_type   call_command_f(key_type key, torrent::File* file, const mapped_type& arg)       { return call_command(key, arg, target_type((int)Command::target_file, file)); }
 
 private:
   CommandMap(const CommandMap&);
   void operator = (const CommandMap&);
 };
 
-inline target_type make_target()                                  { return target_type((int)CommandMap::target_generic, NULL); }
-inline target_type make_target(core::Download* target)            { return target_type((int)CommandMap::target_download, target); }
-inline target_type make_target(torrent::Peer* target)             { return target_type((int)CommandMap::target_peer, target); }
-inline target_type make_target(torrent::Tracker* target)          { return target_type((int)CommandMap::target_tracker, target); }
-inline target_type make_target(torrent::File* target)             { return target_type((int)CommandMap::target_file, target); }
-inline target_type make_target(torrent::FileListIterator* target) { return target_type((int)CommandMap::target_file_itr, target); }
+inline target_type make_target()                                  { return target_type((int)Command::target_generic, NULL); }
+inline target_type make_target(core::Download* target)            { return target_type((int)Command::target_download, target); }
+inline target_type make_target(torrent::Peer* target)             { return target_type((int)Command::target_peer, target); }
+inline target_type make_target(torrent::Tracker* target)          { return target_type((int)Command::target_tracker, target); }
+inline target_type make_target(torrent::File* target)             { return target_type((int)Command::target_file, target); }
+inline target_type make_target(torrent::FileListIterator* target) { return target_type((int)Command::target_file_itr, target); }
 inline target_type make_target(int type, void* target)            { return target_type(type, target); }
 
 }

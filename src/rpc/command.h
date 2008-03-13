@@ -39,11 +39,52 @@
 
 #include <torrent/object.h>
 
+namespace core {
+  class Download;
+}
+
+namespace torrent {
+  class File;
+  class FileListIterator;
+  class Peer;
+  class Tracker;
+}
+
 namespace rpc {
+
+// Since c++0x isn't out yet...
+template <typename T1, typename T2, typename T3>
+struct rt_triple : private std::pair<T1, T2> {
+  typedef std::pair<T1, T2> base_type;
+  typedef T3                third_type;
+
+  using base_type::first;
+  using base_type::second;
+  using base_type::first_type;
+  using base_type::second_type;
+
+  T3 third;
+
+  rt_triple() : base_type(), third() {}
+
+  rt_triple(const T1& a, const T2& b) :
+    base_type(a, b), third() {}
+
+  rt_triple(const T1& a, const T2& b, const T3& c) :
+    base_type(a, b), third(c) {}
+
+  template <typename U1, typename U2>
+  rt_triple(const std::pair<U1, U2>& b) : base_type(b), third() {}
+
+  template <typename U1, typename U2, typename U3>
+  rt_triple(const rt_triple& src) :
+    base_type(src.first, src.second), third(src.third) {}
+};
 
 // Since it gets used so many places we might as well put it in the
 // rpc namespace.
-typedef std::pair<int, void*> target_type;
+//typedef std::pair<int, void*> target_type;
+typedef rt_triple<int, void*, void*> target_type;
 
 class Command {
 public:
@@ -53,6 +94,22 @@ public:
   typedef torrent::Object::map_type    map_type;
   typedef torrent::Object::key_type    key_type;
 
+  typedef const torrent::Object (*generic_slot)  (Command*, const torrent::Object&);
+  typedef const torrent::Object (*any_slot)      (Command*, target_type, const torrent::Object&);
+  typedef const torrent::Object (*download_slot) (Command*, core::Download*, const torrent::Object&);
+  typedef const torrent::Object (*file_slot)     (Command*, torrent::File*, const torrent::Object&);
+  typedef const torrent::Object (*file_itr_slot) (Command*, torrent::FileListIterator*, const torrent::Object&);
+  typedef const torrent::Object (*peer_slot)     (Command*, torrent::Peer*, const torrent::Object&);
+  typedef const torrent::Object (*tracker_slot)  (Command*, torrent::Tracker*, const torrent::Object&);
+
+  static const int target_generic  = 0;
+  static const int target_any      = 1;
+  static const int target_download = 2;
+  static const int target_peer     = 3;
+  static const int target_tracker  = 4;
+  static const int target_file     = 5;
+  static const int target_file_itr = 6;
+
   Command() {}
   virtual ~Command() {}
 
@@ -60,6 +117,19 @@ protected:
   Command(const Command&);
   void operator = (const Command&);
 };
+
+template <typename T>
+struct target_type_id {
+  // Nothing here, so we cause an error.
+};
+
+template <> struct target_type_id<Command::generic_slot>  { static const int value = Command::target_generic; };
+template <> struct target_type_id<Command::any_slot>      { static const int value = Command::target_any; };
+template <> struct target_type_id<Command::download_slot> { static const int value = Command::target_download; };
+template <> struct target_type_id<Command::peer_slot>     { static const int value = Command::target_peer; };
+template <> struct target_type_id<Command::tracker_slot>  { static const int value = Command::target_tracker; };
+template <> struct target_type_id<Command::file_slot>     { static const int value = Command::target_file; };
+template <> struct target_type_id<Command::file_itr_slot> { static const int value = Command::target_file_itr; };
 
 }
 

@@ -61,63 +61,6 @@ CommandMap::insert(key_type key, Command* variable, int flags, const char* parm,
   return base_type::insert(itr, value_type(key, command_map_data_type(variable, flags, parm, doc)));
 }
 
-// The functions below should be reduced to just one.
-void
-CommandMap::insert_generic(key_type key, Command* variable, generic_slot targetSlot, int flags, const char* parm, const char* doc) {
-  iterator itr = insert(key, variable, flags, parm, doc);
-
-  itr->second.m_target      = target_generic;
-  itr->second.m_genericSlot = targetSlot;
-}
-
-void
-CommandMap::insert_any(key_type key, Command* variable, any_slot targetSlot, int flags, const char* parm, const char* doc) {
-  iterator itr = insert(key, variable, flags, parm, doc);
-
-  itr->second.m_target  = target_any;
-  itr->second.m_anySlot = targetSlot;
-}
-
-void
-CommandMap::insert_download(key_type key, Command* variable, download_slot targetSlot, int flags, const char* parm, const char* doc) {
-  iterator itr = insert(key, variable, flags, parm, doc);
-
-  itr->second.m_target       = target_download;
-  itr->second.m_downloadSlot = targetSlot;
-}
-
-void
-CommandMap::insert_peer(key_type key, Command* variable, peer_slot targetSlot, int flags, const char* parm, const char* doc) {
-  iterator itr = insert(key, variable, flags, parm, doc);
-
-  itr->second.m_target   = target_peer;
-  itr->second.m_peerSlot = targetSlot;
-}
-
-void
-CommandMap::insert_tracker(key_type key, Command* variable, tracker_slot targetSlot, int flags, const char* parm, const char* doc) {
-  iterator itr = insert(key, variable, flags, parm, doc);
-
-  itr->second.m_target      = target_tracker;
-  itr->second.m_trackerSlot = targetSlot;
-}
-
-void
-CommandMap::insert_file(key_type key, Command* variable, file_slot targetSlot, int flags, const char* parm, const char* doc) {
-  iterator itr = insert(key, variable, flags, parm, doc);
-
-  itr->second.m_target   = target_file;
-  itr->second.m_fileSlot = targetSlot;
-}
-
-void
-CommandMap::insert_file_itr(key_type key, Command* variable, file_itr_slot targetSlot, int flags, const char* parm, const char* doc) {
-  iterator itr = insert(key, variable, flags, parm, doc);
-
-  itr->second.m_target      = target_file_itr;
-  itr->second.m_fileItrSlot = targetSlot;
-}
-
 void
 CommandMap::insert(key_type key, const command_map_data_type src) {
   iterator itr = base_type::find(key);
@@ -131,13 +74,13 @@ CommandMap::insert(key_type key, const command_map_data_type src) {
 
   // This _should_ be optimized int just one assignment.
   switch (itr->second.m_target) {
-  case target_generic:  itr->second.m_genericSlot  = src.m_genericSlot; break;
-  case target_any:      itr->second.m_anySlot      = src.m_anySlot; break;
-  case target_download: itr->second.m_downloadSlot = src.m_downloadSlot; break;
-  case target_file:     itr->second.m_fileSlot     = src.m_fileSlot; break;
-  case target_file_itr: itr->second.m_fileItrSlot  = src.m_fileItrSlot; break;
-  case target_peer:     itr->second.m_peerSlot     = src.m_peerSlot; break;
-  case target_tracker:  itr->second.m_trackerSlot  = src.m_trackerSlot; break;
+  case Command::target_generic:  itr->second.m_genericSlot  = src.m_genericSlot; break;
+  case Command::target_any:      itr->second.m_anySlot      = src.m_anySlot; break;
+  case Command::target_download: itr->second.m_downloadSlot = src.m_downloadSlot; break;
+  case Command::target_file:     itr->second.m_fileSlot     = src.m_fileSlot; break;
+  case Command::target_file_itr: itr->second.m_fileItrSlot  = src.m_fileItrSlot; break;
+  case Command::target_peer:     itr->second.m_peerSlot     = src.m_peerSlot; break;
+  case Command::target_tracker:  itr->second.m_trackerSlot  = src.m_trackerSlot; break;
   default: throw torrent::internal_error("CommandMap::insert(...) Invalid target.");
   }
 }
@@ -149,60 +92,60 @@ CommandMap::call_command(key_type key, const mapped_type& arg, target_type targe
   if (itr == base_type::end())
     throw torrent::input_error("Command \"" + std::string(key) + "\" does not exist.");
 
-  if (target.first != target_generic && target.second == NULL) {
+  if (target.first != Command::target_generic && target.second == NULL) {
     // We received a target that is NULL, so throw an exception unless
     // we can convert it to a void target.
-    if (itr->second.m_target > target_any)
+    if (itr->second.m_target > Command::target_any)
       throw torrent::input_error("Command type mis-match.");
 
-    target.first = target_generic;
+    target.first = Command::target_generic;
   }
 
-  if (itr->second.m_target != target.first && itr->second.m_target > target_any) {
+  if (itr->second.m_target != target.first && itr->second.m_target > Command::target_any) {
     // Mismatch between the target and command type. If it is not
     // possible to convert, then throw an input error.
-    if (target.first == target_file_itr && itr->second.m_target == target_file)
-      target = target_type((int)target_file, static_cast<torrent::FileListIterator*>(target.second)->file());
+    if (target.first == Command::target_file_itr && itr->second.m_target == Command::target_file)
+      target = target_type((int)Command::target_file, static_cast<torrent::FileListIterator*>(target.second)->file());
     else
       throw torrent::input_error("Command type mis-match.");
   }
 
   // This _should_ be optimized int just two calls.
   switch (itr->second.m_target) {
-  case target_generic:  return itr->second.m_genericSlot (itr->second.m_variable, arg);
-  case target_any:      return itr->second.m_anySlot     (itr->second.m_variable, target, arg);
-  case target_download: return itr->second.m_downloadSlot(itr->second.m_variable, (core::Download*)target.second, arg);
-  case target_peer:     return itr->second.m_peerSlot    (itr->second.m_variable, (torrent::Peer*)target.second, arg);
-  case target_tracker:  return itr->second.m_trackerSlot (itr->second.m_variable, (torrent::Tracker*)target.second, arg);
-  case target_file:     return itr->second.m_fileSlot    (itr->second.m_variable, (torrent::File*)target.second, arg);
-  case target_file_itr: return itr->second.m_fileItrSlot (itr->second.m_variable, (torrent::FileListIterator*)target.second, arg);
+  case Command::target_generic:  return itr->second.m_genericSlot (itr->second.m_variable, arg);
+  case Command::target_any:      return itr->second.m_anySlot     (itr->second.m_variable, target, arg);
+  case Command::target_download: return itr->second.m_downloadSlot(itr->second.m_variable, (core::Download*)target.second, arg);
+  case Command::target_peer:     return itr->second.m_peerSlot    (itr->second.m_variable, (torrent::Peer*)target.second, arg);
+  case Command::target_tracker:  return itr->second.m_trackerSlot (itr->second.m_variable, (torrent::Tracker*)target.second, arg);
+  case Command::target_file:     return itr->second.m_fileSlot    (itr->second.m_variable, (torrent::File*)target.second, arg);
+  case Command::target_file_itr: return itr->second.m_fileItrSlot (itr->second.m_variable, (torrent::FileListIterator*)target.second, arg);
   default: throw torrent::internal_error("CommandMap::call_command(...) Invalid target.");
   }
 }
 
 const CommandMap::mapped_type
 CommandMap::call_command(const_iterator itr, const mapped_type& arg, target_type target) {
-  if (target.first != target_generic && target.second == NULL) {
+  if (target.first != Command::target_generic && target.second == NULL) {
     // We received a target that is NULL, so throw an exception unless
     // we can convert it to a void target.
-    if (itr->second.m_target > target_any)
+    if (itr->second.m_target > Command::target_any)
       throw torrent::input_error("Command type mis-match.");
 
-    target.first = target_generic;
+    target.first = Command::target_generic;
   }
 
-  if (itr->second.m_target != target.first && itr->second.m_target > target_any)
+  if (itr->second.m_target != target.first && itr->second.m_target > Command::target_any)
     throw torrent::input_error("Command type mis-match.");
 
   // This _should_ be optimized int just two calls.
   switch (itr->second.m_target) {
-  case target_generic:  return itr->second.m_genericSlot (itr->second.m_variable, arg);
-  case target_any:      return itr->second.m_anySlot     (itr->second.m_variable, target, arg);
-  case target_download: return itr->second.m_downloadSlot(itr->second.m_variable, (core::Download*)target.second, arg);
-  case target_peer:     return itr->second.m_peerSlot    (itr->second.m_variable, (torrent::Peer*)target.second, arg);
-  case target_tracker:  return itr->second.m_trackerSlot (itr->second.m_variable, (torrent::Tracker*)target.second, arg);
-  case target_file:     return itr->second.m_fileSlot    (itr->second.m_variable, (torrent::File*)target.second, arg);
-  case target_file_itr: return itr->second.m_fileItrSlot (itr->second.m_variable, (torrent::FileListIterator*)target.second, arg);
+  case Command::target_generic:  return itr->second.m_genericSlot (itr->second.m_variable, arg);
+  case Command::target_any:      return itr->second.m_anySlot     (itr->second.m_variable, target, arg);
+  case Command::target_download: return itr->second.m_downloadSlot(itr->second.m_variable, (core::Download*)target.second, arg);
+  case Command::target_peer:     return itr->second.m_peerSlot    (itr->second.m_variable, (torrent::Peer*)target.second, arg);
+  case Command::target_tracker:  return itr->second.m_trackerSlot (itr->second.m_variable, (torrent::Tracker*)target.second, arg);
+  case Command::target_file:     return itr->second.m_fileSlot    (itr->second.m_variable, (torrent::File*)target.second, arg);
+  case Command::target_file_itr: return itr->second.m_fileItrSlot (itr->second.m_variable, (torrent::FileListIterator*)target.second, arg);
   default: throw torrent::internal_error("CommandMap::call_command(...) Invalid target.");
   }
 }

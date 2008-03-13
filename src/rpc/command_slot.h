@@ -80,7 +80,7 @@ public:
   static const torrent::Object call_value_oct(Command* rawCommand, Target target, const torrent::Object& args) { return call_value_base(rawCommand, target, args, 8, 1); }
 
   template <int base, int unit>
-  static const torrent::Object call_value(Command* rawCommand, Target target, const torrent::Object& args)     { return call_value_base(rawCommand, target, args, base, unit); }
+  static const torrent::Object call_value_tmpl(Command* rawCommand, Target target, const torrent::Object& args)     { return call_value_base(rawCommand, target, args, base, unit); }
 
 //   static const torrent::Object& get_list(Command* rawCommand, const torrent::Object& args);
 
@@ -110,7 +110,7 @@ public:
   static const torrent::Object call_value_oct(Command* rawCommand, const torrent::Object& args) { return call_value_base(rawCommand, args, 8, 1); }
 
   template <int base, int unit>
-  static const torrent::Object call_value(Command* rawCommand, const torrent::Object& args)     { return call_value_base(rawCommand, args, base, unit); }
+  static const torrent::Object call_value_tmpl(Command* rawCommand, const torrent::Object& args)     { return call_value_base(rawCommand, args, base, unit); }
 
 //   static const torrent::Object& get_list(Command* rawCommand, const torrent::Object& args);
 

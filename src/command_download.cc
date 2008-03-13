@@ -331,11 +331,11 @@ p_multicall(core::Download* download, const torrent::Object& rawArgs) {
 
 #define ADD_CD_SLOT(key, function, slot, parm, doc)    \
   commandDownloadSlotsItr->set_slot(slot); \
-  rpc::commands.insert_download(key, commandDownloadSlotsItr++, &rpc::CommandSlot<core::Download*>::function, rpc::CommandMap::flag_dont_delete, parm, doc);
+  rpc::commands.insert_type(key, commandDownloadSlotsItr++, &rpc::CommandSlot<core::Download*>::function, rpc::CommandMap::flag_dont_delete, parm, doc);
 
 #define ADD_CD_SLOT_PUBLIC(key, function, slot, parm, doc)    \
   commandDownloadSlotsItr->set_slot(slot); \
-  rpc::commands.insert_download(key, commandDownloadSlotsItr++, &rpc::CommandSlot<core::Download*>::function, rpc::CommandMap::flag_dont_delete | rpc::CommandMap::flag_public_xmlrpc, parm, doc);
+  rpc::commands.insert_type(key, commandDownloadSlotsItr++, &rpc::CommandSlot<core::Download*>::function, rpc::CommandMap::flag_dont_delete | rpc::CommandMap::flag_public_xmlrpc, parm, doc);
 
 #define ADD_CD_VOID(key, slot) \
   ADD_CD_SLOT_PUBLIC("d.get_" key, call_unknown, rpc::object_fn(slot), "i:", "")

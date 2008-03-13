@@ -60,7 +60,7 @@ WindowTrackerList::redraw() {
   m_slotSchedule(this, (cachedTime + rak::timer::from_seconds(10)).round_seconds());
   m_canvas->erase();
 
-  int pos = 0;
+  unsigned int pos = 0;
   torrent::TrackerList* tl = m_download->tracker_list();
 
   m_canvas->print(2, pos, "Trackers: [Key: %08x]", tl->key());
@@ -71,8 +71,8 @@ WindowTrackerList::redraw() {
 
   typedef std::pair<unsigned int, unsigned int> Range;
 
-  unsigned int group = 0;
-  Range range = rak::advance_bidirectional<unsigned int>(0, *m_focus, tl->size(), (m_canvas->height() + 1) / 2);
+  Range range = rak::advance_bidirectional<unsigned int>(0, *m_focus, tl->size(), (m_canvas->height() - 1) / 2);
+  unsigned int group = tl->at(range.first)->group();
 
   while (range.first != range.second) {
     torrent::Tracker* tracker = tl->at(range.first);
@@ -88,13 +88,14 @@ WindowTrackerList::redraw() {
     m_canvas->print(4, pos++, "%s",
                     tracker->url().c_str());
 
-    m_canvas->print(4, pos++, "Id: %s Focus: %s Enabled: %s Open: %s S/L: %u/%u",
-                    rak::copy_escape_html(tracker->tracker_id()).c_str(),
-                    range.first == tl->focus_index() ? "yes" : " no",
-                    tracker->is_usable() ? "yes" : tracker->is_enabled() ? "off" : " no",
-                    tracker->is_busy() ? "yes" : " no",
-                    tracker->scrape_complete(),
-                    tracker->scrape_incomplete());
+    if (pos < m_canvas->height())
+      m_canvas->print(4, pos++, "Id: %s Focus: %s Enabled: %s Open: %s S/L: %u/%u",
+                      rak::copy_escape_html(tracker->tracker_id()).c_str(),
+                      range.first == tl->focus_index() ? "yes" : " no",
+                      tracker->is_usable() ? "yes" : tracker->is_enabled() ? "off" : " no",
+                      tracker->is_busy() ? "yes" : " no",
+                      tracker->scrape_complete(),
+                      tracker->scrape_incomplete());
 
 //     m_canvas->print(4, pos++, "Id: %s Focus: %s Enabled: %s Open: %s Timer: %u/%u",
 //                     rak::copy_escape_html(tracker->tracker_id()).c_str(),
@@ -110,6 +111,11 @@ WindowTrackerList::redraw() {
     }
 
     range.first++;
+
+    // If we're at the end of the range, check if we can
+    // show one more line for the following tracker.
+    if (range.first == range.second && pos < m_canvas->height() && range.first < tl->size())
+      range.second++;
   }
 }
 

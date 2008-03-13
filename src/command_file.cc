@@ -99,11 +99,11 @@ apply_fi_filename_last(torrent::FileListIterator* itr) {
 
 #define ADD_CF_SLOT(key, function, slot, parm, doc)    \
   commandFileSlotsItr->set_slot(slot); \
-  rpc::commands.insert_file(key, commandFileSlotsItr++, &rpc::CommandSlot<torrent::File*>::function, rpc::CommandMap::flag_dont_delete, parm, doc);
+  rpc::commands.insert_type(key, commandFileSlotsItr++, &rpc::CommandSlot<torrent::File*>::function, rpc::CommandMap::flag_dont_delete, parm, doc);
 
 #define ADD_CF_SLOT_PUBLIC(key, function, slot, parm, doc)    \
   commandFileSlotsItr->set_slot(slot); \
-  rpc::commands.insert_file(key, commandFileSlotsItr++, &rpc::CommandSlot<torrent::File*>::function, rpc::CommandMap::flag_dont_delete | rpc::CommandMap::flag_public_xmlrpc, parm, doc);
+  rpc::commands.insert_type(key, commandFileSlotsItr++, &rpc::CommandSlot<torrent::File*>::function, rpc::CommandMap::flag_dont_delete | rpc::CommandMap::flag_public_xmlrpc, parm, doc);
 
 #define ADD_CF_VOID(key, slot) \
   ADD_CF_SLOT_PUBLIC("f." key, call_unknown, rpc::object_fn(slot), "i:", "")
@@ -123,7 +123,7 @@ apply_fi_filename_last(torrent::FileListIterator* itr) {
 
 #define ADD_CFI_SLOT_PUBLIC(key, function, slot, parm, doc)    \
   commandFileItrSlotsItr->set_slot(slot); \
-  rpc::commands.insert_file_itr(key, commandFileItrSlotsItr++, &rpc::CommandSlot<torrent::FileListIterator*>::function, rpc::CommandMap::flag_dont_delete | rpc::CommandMap::flag_public_xmlrpc, parm, doc);
+  rpc::commands.insert_type(key, commandFileItrSlotsItr++, &rpc::CommandSlot<torrent::FileListIterator*>::function, rpc::CommandMap::flag_dont_delete | rpc::CommandMap::flag_public_xmlrpc, parm, doc);
 
 #define ADD_CFI_VOID(key, slot) \
   ADD_CFI_SLOT_PUBLIC("fi." key, call_unknown, rpc::object_fn(slot), "i:", "")

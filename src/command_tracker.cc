@@ -55,11 +55,11 @@ apply_t_set_enabled(torrent::Tracker* tracker, int64_t state) {
 
 #define ADD_CT_SLOT(key, function, slot, parm, doc)    \
   commandTrackerSlotsItr->set_slot(slot); \
-  rpc::commands.insert_tracker(key, commandTrackerSlotsItr++, &rpc::CommandSlot<torrent::Tracker*>::function, rpc::CommandMap::flag_dont_delete, parm, doc);
+  rpc::commands.insert_type(key, commandTrackerSlotsItr++, &rpc::CommandSlot<torrent::Tracker*>::function, rpc::CommandMap::flag_dont_delete, parm, doc);
 
 #define ADD_CT_SLOT_PUBLIC(key, function, slot, parm, doc)    \
   commandTrackerSlotsItr->set_slot(slot); \
-  rpc::commands.insert_tracker(key, commandTrackerSlotsItr++, &rpc::CommandSlot<torrent::Tracker*>::function, rpc::CommandMap::flag_dont_delete | rpc::CommandMap::flag_public_xmlrpc, parm, doc);
+  rpc::commands.insert_type(key, commandTrackerSlotsItr++, &rpc::CommandSlot<torrent::Tracker*>::function, rpc::CommandMap::flag_dont_delete | rpc::CommandMap::flag_public_xmlrpc, parm, doc);
 
 #define ADD_CT_VOID(key, slot) \
   ADD_CT_SLOT_PUBLIC("t." key, call_unknown,     rpc::object_void_fn<torrent::Tracker*>(slot), "i:", "")
