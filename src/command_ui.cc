@@ -175,7 +175,7 @@ as_boolean(const torrent::Object& rawArgs) {
 
 torrent::Object
 apply_not(rpc::target_type target, const torrent::Object& rawArgs) {
-  return (int64_t)as_boolean(rawArgs);
+  return (int64_t)!as_boolean(rawArgs);
 }
 
 torrent::Object

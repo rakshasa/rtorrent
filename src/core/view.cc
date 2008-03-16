@@ -132,6 +132,9 @@ struct view_downloads_filter : std::unary_function<Download*, bool> {
   view_downloads_filter(const std::string& cmd) : m_command(cmd) {}
 
   bool operator () (Download* d1) const {
+    if (m_command.empty())
+      return true;
+
     try {
       torrent::Object result = rpc::parse_command_single(rpc::make_target(d1), m_command);
 
