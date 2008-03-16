@@ -111,21 +111,6 @@ private:
   ViewSort* m_sort;
 };
 
-class ViewFilterVariableValue : public ViewFilter {
-public:
-  ViewFilterVariableValue(const char* name, torrent::Object::value_type v, bool inverse = false) :
-    m_name(name), m_value(v), m_inverse(inverse) {}
-
-  virtual bool operator () (Download* d1) const {
-    return (rpc::call_command_value(m_name, rpc::make_target(d1)) == m_value) != m_inverse;
-  }
-
-private:
-  const char*                 m_name;
-  torrent::Object::value_type m_value;
-  bool                        m_inverse;
-};
-
 // Really need to implement a factory and allow options in the sort
 // statements.
 ViewManager::ViewManager(DownloadList* dl) :
@@ -143,19 +128,12 @@ ViewManager::ViewManager(DownloadList* dl) :
 
   m_sort["state_changed"]         = new ViewSortVariableValue("d.get_state_changed");
   m_sort["state_changed_reverse"] = new ViewSortVariableValue("d.get_state_changed", true);
-
-  m_filter["started"]     = new ViewFilterVariableValue("d.get_state", 1);
-  m_filter["stopped"]     = new ViewFilterVariableValue("d.get_state", 0);
-  m_filter["complete"]    = new ViewFilterVariableValue("d.get_complete", 0, true);
-  m_filter["incomplete"]  = new ViewFilterVariableValue("d.get_complete", 0);
-  m_filter["hashing"]     = new ViewFilterVariableValue("d.get_hashing", 0, true);
 }
 
 void
 ViewManager::clear() {
   std::for_each(begin(), end(), rak::call_delete<View>());
   std::for_each(m_sort.begin(), m_sort.end(), rak::on(rak::mem_ref(&sort_map::value_type::second), rak::call_delete<ViewSort>()));
-  std::for_each(m_filter.begin(), m_filter.end(), rak::on(rak::mem_ref(&filter_map::value_type::second), rak::call_delete<ViewFilter>()));
 
   base_type::clear();
 }
@@ -230,28 +208,11 @@ ViewManager::set_sort_current(const std::string& name, const sort_args& sort) {
   (*viewItr)->set_sort_current(build_sort_list(sort));
 }
 
-inline ViewManager::filter_list
-ViewManager::build_filter_list(const filter_args& args) {
-  View::filter_list filterList;
-  filterList.reserve(args.size());
-
-  for (filter_args::const_iterator itr = args.begin(), last = args.end(); itr != last; ++itr) {
-    filter_map::const_iterator filterItr = m_filter.find(itr->c_str());
-
-    if (filterItr == m_filter.end())
-      throw torrent::input_error("Invalid filtering identifier.");
-
-    filterList.push_back(filterItr->second);
-  }
-
-  return filterList;
-}
-
 void
-ViewManager::set_filter(const std::string& name, const filter_args& args) {
+ViewManager::set_filter(const std::string& name, const std::string& cmd) {
   iterator viewItr = find_throw(name);
 
-  (*viewItr)->set_filter(build_filter_list(args));
+  (*viewItr)->set_filter(cmd);
   (*viewItr)->filter();
 }
 

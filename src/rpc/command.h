@@ -102,6 +102,8 @@ public:
   typedef const torrent::Object (*peer_slot)     (Command*, torrent::Peer*, const torrent::Object&);
   typedef const torrent::Object (*tracker_slot)  (Command*, torrent::Tracker*, const torrent::Object&);
 
+  typedef const torrent::Object (*download_pair_slot) (Command*, core::Download*, core::Download*, const torrent::Object&);
+
   static const int target_generic  = 0;
   static const int target_any      = 1;
   static const int target_download = 2;
@@ -109,6 +111,8 @@ public:
   static const int target_tracker  = 4;
   static const int target_file     = 5;
   static const int target_file_itr = 6;
+
+  static const int target_download_pair = 7;
 
   Command() {}
   virtual ~Command() {}
@@ -118,18 +122,30 @@ protected:
   void operator = (const Command&);
 };
 
-template <typename T>
+template <typename T1 = void, typename T2 = void>
 struct target_type_id {
   // Nothing here, so we cause an error.
 };
 
-template <> struct target_type_id<Command::generic_slot>  { static const int value = Command::target_generic; };
-template <> struct target_type_id<Command::any_slot>      { static const int value = Command::target_any; };
-template <> struct target_type_id<Command::download_slot> { static const int value = Command::target_download; };
-template <> struct target_type_id<Command::peer_slot>     { static const int value = Command::target_peer; };
-template <> struct target_type_id<Command::tracker_slot>  { static const int value = Command::target_tracker; };
-template <> struct target_type_id<Command::file_slot>     { static const int value = Command::target_file; };
-template <> struct target_type_id<Command::file_itr_slot> { static const int value = Command::target_file_itr; };
+template <> struct target_type_id<Command::generic_slot>       { static const int value = Command::target_generic; };
+template <> struct target_type_id<Command::any_slot>           { static const int value = Command::target_any; };
+template <> struct target_type_id<Command::download_slot>      { static const int value = Command::target_download; };
+template <> struct target_type_id<Command::peer_slot>          { static const int value = Command::target_peer; };
+template <> struct target_type_id<Command::tracker_slot>       { static const int value = Command::target_tracker; };
+template <> struct target_type_id<Command::file_slot>          { static const int value = Command::target_file; };
+template <> struct target_type_id<Command::file_itr_slot>      { static const int value = Command::target_file_itr; };
+
+template <> struct target_type_id<Command::download_pair_slot> { static const int value = Command::target_download_pair; };
+
+template <> struct target_type_id<>                            { static const int value = Command::target_generic; };
+template <> struct target_type_id<target_type>                 { static const int value = Command::target_any; };
+template <> struct target_type_id<core::Download*>             { static const int value = Command::target_download; };
+template <> struct target_type_id<torrent::Peer*>              { static const int value = Command::target_peer; };
+template <> struct target_type_id<torrent::Tracker*>           { static const int value = Command::target_tracker; };
+template <> struct target_type_id<torrent::File*>              { static const int value = Command::target_file; };
+template <> struct target_type_id<torrent::FileListIterator*>  { static const int value = Command::target_file_itr; };
+
+template <> struct target_type_id<core::Download*, core::Download*> { static const int value = Command::target_download_pair; };
 
 }
 

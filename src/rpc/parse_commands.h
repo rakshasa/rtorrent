@@ -71,6 +71,11 @@ inline void            parse_command_multiple(target_type target, const char* fi
 bool                   parse_command_file(const std::string& path);
 const char*            parse_command_name(const char* first, const char* last, std::string* dest);
 
+inline torrent::Object
+parse_command_single(target_type target, const std::string& cmd) {
+  return parse_command(target, cmd.c_str(), cmd.c_str() + cmd.size()).first;
+}
+
 inline void
 parse_command_single_std(const std::string& cmd) {
   parse_command(make_target(), cmd.c_str(), cmd.c_str() + cmd.size());

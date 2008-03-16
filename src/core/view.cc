@@ -39,6 +39,7 @@
 #include <algorithm>
 #include <functional>
 #include <rak/functional.h>
+#include <rpc/parse_commands.h>
 #include <sigc++/adaptors/bind.h>
 #include <torrent/download.h>
 #include <torrent/exceptions.h>
@@ -128,19 +129,30 @@ struct view_downloads_compare : std::binary_function<Download*, Download*, bool>
 };
 
 struct view_downloads_filter : std::unary_function<Download*, bool> {
-  view_downloads_filter(const View::filter_list& s) : m_filter(s) {}
+  view_downloads_filter(const std::string& cmd) : m_command(cmd) {}
 
   bool operator () (Download* d1) const {
-    for (View::filter_list::const_iterator itr = m_filter.begin(), last = m_filter.end(); itr != last; ++itr)
-      if (!(**itr)(d1))
-        return false;
+    try {
+      torrent::Object result = rpc::parse_command_single(rpc::make_target(d1), m_command);
 
-    // The default filter action is to return true, to not filter the
-    // download out.
-    return true;
+      switch (result.type()) {
+      case torrent::Object::TYPE_NONE:   return false;
+      case torrent::Object::TYPE_VALUE:  return result.as_value();
+      case torrent::Object::TYPE_STRING: return !result.as_string().empty();
+      case torrent::Object::TYPE_LIST:   return !result.as_list().empty();
+      case torrent::Object::TYPE_MAP:    return !result.as_map().empty();
+      }
+
+      // The default filter action is to return true, to not filter
+      // the download out.
+      return true;
+
+    } catch (torrent::input_error& e) {
+      return false;
+    }
   }
 
-  const View::filter_list& m_filter;
+  const std::string&       m_command;
 };
 
 void
@@ -232,6 +244,8 @@ View::received(core::Download* download, int event) {
       
       // Erase even if it is in visible so that the download is
       // re-sorted.
+      //
+      // Do we really want to do this?
       erase(itr);
       insert_visible(download);
 

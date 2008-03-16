@@ -60,8 +60,6 @@ public:
   typedef View::sort_list                       sort_list;
   typedef std::list<std::string>                sort_args;
   
-  typedef std::map<const char*, ViewFilter*, view_manager_comp> filter_map;
-  typedef View::filter_list                     filter_list;
   typedef std::list<std::string>                filter_args;
   
   using base_type::iterator;
@@ -105,17 +103,15 @@ public:
   void                set_sort_new(const std::string& name, const sort_args& sort);
   void                set_sort_current(const std::string& name, const sort_args& sort);
 
-  void                set_filter(const std::string& name, const filter_args& args);
+  void                set_filter(const std::string& name, const std::string& cmd);
   void                set_filter_on(const std::string& name, const filter_args& args);
 
 private:
   inline sort_list    build_sort_list(const sort_args& args);
-  inline filter_list  build_filter_list(const sort_args& args);
 
   DownloadList*       m_list;
 
   sort_map            m_sort;
-  filter_map          m_filter;
 };
 
 }

@@ -53,6 +53,7 @@
 #include "command_helpers.h"
 
 typedef void (core::ViewManager::*view_filter_slot)(const std::string&, const core::ViewManager::sort_args&);
+typedef void (core::ViewManager::*view_cfilter_slot)(const std::string&, const std::string&);
 
 torrent::Object
 apply_view_filter(view_filter_slot viewFilterSlot, const torrent::Object& rawArgs) {
@@ -72,6 +73,23 @@ apply_view_filter(view_filter_slot viewFilterSlot, const torrent::Object& rawArg
     filterArgs.push_back(itr->as_string());
 
   (control->view_manager()->*viewFilterSlot)(name, filterArgs);
+
+  return torrent::Object();
+}
+
+torrent::Object
+apply_view_cfilter(view_cfilter_slot viewFilterSlot, const torrent::Object& rawArgs) {
+  const torrent::Object::list_type& args = rawArgs.as_list();
+
+  if (args.size() != 2)
+    throw torrent::input_error("Too few arguments.");
+
+  const std::string& name = args.front().as_string();
+  
+  if (name.empty())
+    throw torrent::input_error("First argument must be a string.");
+
+  (control->view_manager()->*viewFilterSlot)(name, args.back().as_string());
 
   return torrent::Object();
 }
@@ -142,6 +160,46 @@ apply_cat(rpc::target_type target, const torrent::Object& rawArgs) {
 
   rpc::print_object_std(&result, &rawArgs, 0);
   return result;
+}
+
+bool
+as_boolean(const torrent::Object& rawArgs) {
+  switch (rawArgs.type()) {
+  case torrent::Object::TYPE_VALUE:  return rawArgs.as_value();
+  case torrent::Object::TYPE_STRING: return !rawArgs.as_string().empty();
+  case torrent::Object::TYPE_LIST:   return !rawArgs.as_list().empty();
+  case torrent::Object::TYPE_MAP:    return !rawArgs.as_map().empty();
+  default: return false;
+  }
+}
+
+torrent::Object
+apply_not(rpc::target_type target, const torrent::Object& rawArgs) {
+  return (int64_t)as_boolean(rawArgs);
+}
+
+torrent::Object
+apply_and(rpc::target_type target, const torrent::Object& rawArgs) {
+  if (rawArgs.type() != torrent::Object::TYPE_LIST)
+    return as_boolean(rawArgs);
+
+  for (torrent::Object::list_const_iterator itr = rawArgs.as_list().begin(), last = rawArgs.as_list().end(); itr != last; itr++)
+    if (!as_boolean(rpc::parse_command_single(target, itr->as_string())))
+      return (int64_t)false;
+
+  return (int64_t)true;
+}
+
+torrent::Object
+apply_or(rpc::target_type target, const torrent::Object& rawArgs) {
+  if (rawArgs.type() != torrent::Object::TYPE_LIST)
+    return as_boolean(rawArgs);
+
+  for (torrent::Object::list_const_iterator itr = rawArgs.as_list().begin(), last = rawArgs.as_list().end(); itr != last; itr++)
+    if (as_boolean(rpc::parse_command_single(target, itr->as_string())))
+      return (int64_t)true;
+
+  return (int64_t)false;
 }
 
 torrent::Object
@@ -287,7 +345,7 @@ initialize_command_ui() {
   ADD_COMMAND_NONE_L("view_list",       rak::ptr_fn(&apply_view_list));
   ADD_COMMAND_NONE_L("view_set",        rak::ptr_fn(&apply_view_set));
 
-  ADD_COMMAND_LIST("view_filter",       rak::bind_ptr_fn(&apply_view_filter, &core::ViewManager::set_filter));
+  ADD_COMMAND_LIST("view_filter",       rak::bind_ptr_fn(&apply_view_cfilter, &core::ViewManager::set_filter));
   ADD_COMMAND_LIST("view_filter_on",    rak::bind_ptr_fn(&apply_view_filter, &core::ViewManager::set_filter_on));
 
   ADD_COMMAND_LIST("view_sort",         rak::ptr_fn(&apply_view_sort));
@@ -301,6 +359,9 @@ initialize_command_ui() {
   ADD_ANY_NONE("print",                 rak::ptr_fn(&apply_print));
   ADD_ANY_NONE("cat",                   rak::ptr_fn(&apply_cat));
   ADD_ANY_NONE("if",                    rak::bind_ptr_fn(&apply_if, 0));
+  ADD_ANY_NONE("not",                   rak::ptr_fn(&apply_not));
+  ADD_ANY_NONE("and",                   rak::ptr_fn(&apply_and));
+  ADD_ANY_NONE("or",                    rak::ptr_fn(&apply_or));
 
   // A temporary command for handling stuff until we get proper
   // support for seperation of commands and literals.

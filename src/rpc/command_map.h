@@ -72,6 +72,8 @@ struct command_map_data_type {
     Command::file_itr_slot m_fileItrSlot;
     Command::peer_slot     m_peerSlot;
     Command::tracker_slot  m_trackerSlot;
+
+    Command::download_slot m_downloadPairSlot;
   };
 
   int           m_flags;
@@ -108,6 +110,7 @@ public:
 
   iterator            insert(key_type key, Command* variable, int flags, const char* parm, const char* doc);
 
+  // Make this a wrapper call to insert without extra fluff.
   template <typename T>
   void                insert_type(key_type key, Command* variable, T targetSlot, int flags, const char* parm, const char* doc) {
     iterator itr = insert(key, variable, flags, parm, doc);
@@ -132,12 +135,13 @@ private:
 };
 
 inline target_type make_target()                                  { return target_type((int)Command::target_generic, NULL); }
-inline target_type make_target(core::Download* target)            { return target_type((int)Command::target_download, target); }
-inline target_type make_target(torrent::Peer* target)             { return target_type((int)Command::target_peer, target); }
-inline target_type make_target(torrent::Tracker* target)          { return target_type((int)Command::target_tracker, target); }
-inline target_type make_target(torrent::File* target)             { return target_type((int)Command::target_file, target); }
-inline target_type make_target(torrent::FileListIterator* target) { return target_type((int)Command::target_file_itr, target); }
 inline target_type make_target(int type, void* target)            { return target_type(type, target); }
+inline target_type make_target(int type, void* target1, void* target2) { return target_type(type, target1, target2); }
+
+template <typename T>
+inline target_type make_target(T target) {
+  return target_type((int)target_type_id<T>::value, target);
+}
 
 }
 
