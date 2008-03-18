@@ -73,7 +73,7 @@ struct command_map_data_type {
     Command::peer_slot     m_peerSlot;
     Command::tracker_slot  m_trackerSlot;
 
-    Command::download_slot m_downloadPairSlot;
+    Command::download_pair_slot m_downloadPairSlot;
   };
 
   int           m_flags;
@@ -141,6 +141,11 @@ inline target_type make_target(int type, void* target1, void* target2) { return 
 template <typename T>
 inline target_type make_target(T target) {
   return target_type((int)target_type_id<T>::value, target);
+}
+
+template <typename T>
+inline target_type make_target_pair(T target1, T target2) {
+  return target_type((int)target_type_id<T, T>::value, target1, target2);
 }
 
 }

@@ -52,11 +52,10 @@
 #include "control.h"
 #include "command_helpers.h"
 
-typedef void (core::ViewManager::*view_filter_slot)(const std::string&, const core::ViewManager::sort_args&);
 typedef void (core::ViewManager::*view_cfilter_slot)(const std::string&, const std::string&);
 
 torrent::Object
-apply_view_filter(view_filter_slot viewFilterSlot, const torrent::Object& rawArgs) {
+apply_view_filter_on(const torrent::Object& rawArgs) {
   const torrent::Object::list_type& args = rawArgs.as_list();
 
   if (args.size() < 1)
@@ -72,7 +71,7 @@ apply_view_filter(view_filter_slot viewFilterSlot, const torrent::Object& rawArg
   for (torrent::Object::list_const_iterator itr = ++args.begin(), last = args.end(); itr != last; itr++)
     filterArgs.push_back(itr->as_string());
 
-  (control->view_manager()->*viewFilterSlot)(name, filterArgs);
+  control->view_manager()->set_filter_on(name, filterArgs);
 
   return torrent::Object();
 }
@@ -162,6 +161,8 @@ apply_cat(rpc::target_type target, const torrent::Object& rawArgs) {
   return result;
 }
 
+// Move these boolean operators to a new file.
+
 bool
 as_boolean(const torrent::Object& rawArgs) {
   switch (rawArgs.type()) {
@@ -200,6 +201,46 @@ apply_or(rpc::target_type target, const torrent::Object& rawArgs) {
       return (int64_t)true;
 
   return (int64_t)false;
+}
+
+torrent::Object
+apply_less(rpc::target_type target, const torrent::Object& rawArgs) {
+  const torrent::Object::list_type& args = rawArgs.as_list();
+  
+  // We only need to check if empty() since if size() == 1 it calls
+  // the same command for both, or if size() == 2 then each side of
+  // the comparison has different commands.
+  if (args.empty())
+    throw torrent::input_error("Wrong argument count.");
+
+  // This really should be converted to using args flagged as
+  // commands, so that we can compare commands and statics values.
+
+  torrent::Object result1;
+  torrent::Object result2;
+
+  if (rpc::is_target_pair(target)) {
+    result1 = rpc::parse_command_single(rpc::get_target_left(target), args.front().as_string());
+    result2 = rpc::parse_command_single(rpc::get_target_right(target), args.back().as_string());
+  } else {
+    result1 = rpc::parse_command_single(target, args.front().as_string());
+    result2 = rpc::parse_command_single(target, args.back().as_string());
+  }    
+
+  if (result1.type() != result2.type())
+    throw torrent::input_error("Type mismatch.");
+    
+  switch (result1.type()) {
+  case torrent::Object::TYPE_VALUE:  return result1.as_value() < result2.as_value();
+  case torrent::Object::TYPE_STRING: return result1.as_string() < result2.as_string();
+  default: return (int64_t)false;
+  }
+}
+
+// Fixme.
+torrent::Object
+apply_greater(rpc::target_type target, const torrent::Object& rawArgs) {
+  return (int64_t)!apply_less(target, rawArgs).as_value();
 }
 
 torrent::Object
@@ -346,13 +387,11 @@ initialize_command_ui() {
   ADD_COMMAND_NONE_L("view_set",        rak::ptr_fn(&apply_view_set));
 
   ADD_COMMAND_LIST("view_filter",       rak::bind_ptr_fn(&apply_view_cfilter, &core::ViewManager::set_filter));
-  ADD_COMMAND_LIST("view_filter_on",    rak::bind_ptr_fn(&apply_view_filter, &core::ViewManager::set_filter_on));
+  ADD_COMMAND_LIST("view_filter_on",    rak::ptr_fn(&apply_view_filter_on));
 
   ADD_COMMAND_LIST("view_sort",         rak::ptr_fn(&apply_view_sort));
-  ADD_COMMAND_LIST("view_sort_new",     rak::bind_ptr_fn(&apply_view_filter, &core::ViewManager::set_sort_new));
-  ADD_COMMAND_LIST("view_sort_current", rak::bind_ptr_fn(&apply_view_filter, &core::ViewManager::set_sort_current));
-
-//   ADD_COMMAND_LIST("view_sort_current", rak::bind_ptr_fn(&apply_view_filter, &core::ViewManager::set_sort_current));
+  ADD_COMMAND_LIST("view_sort_new",     rak::bind_ptr_fn(&apply_view_cfilter, &core::ViewManager::set_sort_new));
+  ADD_COMMAND_LIST("view_sort_current", rak::bind_ptr_fn(&apply_view_cfilter, &core::ViewManager::set_sort_current));
 
   // Move.
 
@@ -362,6 +401,9 @@ initialize_command_ui() {
   ADD_ANY_NONE("not",                   rak::ptr_fn(&apply_not));
   ADD_ANY_NONE("and",                   rak::ptr_fn(&apply_and));
   ADD_ANY_NONE("or",                    rak::ptr_fn(&apply_or));
+
+  ADD_ANY_LIST("less",                  rak::ptr_fn(&apply_less));
+  ADD_ANY_LIST("greater",               rak::ptr_fn(&apply_greater));
 
   // A temporary command for handling stuff until we get proper
   // support for seperation of commands and literals.

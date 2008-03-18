@@ -147,6 +147,12 @@ template <> struct target_type_id<torrent::FileListIterator*>  { static const in
 
 template <> struct target_type_id<core::Download*, core::Download*> { static const int value = Command::target_download_pair; };
 
+// Splitting pairs into separate targets.
+inline bool is_target_pair(const target_type& target) { return target.first >= Command::target_download_pair; }
+
+inline target_type get_target_left(const target_type& target)  { return target_type(target.first - 5, target.second); }
+inline target_type get_target_right(const target_type& target) { return target_type(target.first - 5, target.third); }
+
 }
 
 #endif

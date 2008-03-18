@@ -37,8 +37,6 @@
 #ifndef RTORRENT_CORE_VIEW_MANAGER_H
 #define RTORRENT_CORE_VIEW_MANAGER_H
 
-#include <map>
-#include <cstring>
 #include <string>
 #include <rak/unordered_vector.h>
 
@@ -46,21 +44,10 @@
 
 namespace core {
 
-struct view_manager_comp : public std::binary_function<const char*, const char*, bool> {
-  bool operator () (const char* arg1, const char* arg2) const { return std::strcmp(arg1, arg2) < 0; }
-};
-
-class ViewSort;
-
 class ViewManager : public rak::unordered_vector<View*> {
 public:
   typedef rak::unordered_vector<View*> base_type;
-
-  typedef std::map<const char*, ViewSort*, view_manager_comp> sort_map;
-  typedef View::sort_list                       sort_list;
-  typedef std::list<std::string>                sort_args;
-  
-  typedef std::list<std::string>                filter_args;
+  typedef std::list<std::string>       filter_args;
   
   using base_type::iterator;
   using base_type::const_iterator;
@@ -100,18 +87,14 @@ public:
   // Find a better name for 'timeout'.
   void                sort(const std::string& name, uint32_t timeout = 0);
 
-  void                set_sort_new(const std::string& name, const sort_args& sort);
-  void                set_sort_current(const std::string& name, const sort_args& sort);
+  void                set_sort_new(const std::string& name, const std::string& cmd);
+  void                set_sort_current(const std::string& name, const std::string& cmd);
 
   void                set_filter(const std::string& name, const std::string& cmd);
   void                set_filter_on(const std::string& name, const filter_args& args);
 
 private:
-  inline sort_list    build_sort_list(const sort_args& args);
-
   DownloadList*       m_list;
-
-  sort_map            m_sort;
 };
 
 }

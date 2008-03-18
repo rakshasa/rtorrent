@@ -92,7 +92,6 @@ View::next_focus() {
     return;
 
   m_focus = (m_focus + 1) % (size() + 1);
-
   m_signalChanged.emit();
 }
 
@@ -102,7 +101,6 @@ View::prev_focus() {
     return;
 
   m_focus = (m_focus - 1 + size() + 1) % (size() + 1);
-
   m_signalChanged.emit();
 }
 
@@ -111,21 +109,23 @@ View::prev_focus() {
 
 // Also add focus thingie here?
 struct view_downloads_compare : std::binary_function<Download*, Download*, bool> {
-  view_downloads_compare(const View::sort_list& s) : m_sort(s) {}
+  view_downloads_compare(const std::string& cmd) : m_command(cmd) {}
 
   bool operator () (Download* d1, Download* d2) const {
-    for (View::sort_list::const_iterator itr = m_sort.begin(), last = m_sort.end(); itr != last; ++itr)
-      if ((**itr)(d1, d2))
-        return true;
-      else if ((**itr)(d2, d1))
+    try {
+      if (m_command.empty())
         return false;
 
-    // Since we're testing equivalence, return false if we're
-    // equal. This is a requirement for the stl sorting algorithms.
-    return false;
+      return rpc::parse_command_single(rpc::make_target_pair(d1, d2), m_command).as_value();
+
+    } catch (torrent::input_error& e) {
+//       control->core()->push_log(e.what());
+
+      return false;
+    }
   }
 
-  const View::sort_list& m_sort;
+  const std::string& m_command;
 };
 
 struct view_downloads_filter : std::unary_function<Download*, bool> {

@@ -61,13 +61,11 @@ namespace core {
 
 class Download;
 class DownloadList;
-class ViewSort;
 
 class View : private std::vector<Download*> {
 public:
   typedef std::vector<Download*>         base_type;
   typedef sigc::signal0<void>            signal_type;
-  typedef std::vector<const ViewSort*>   sort_list;
 
   using base_type::iterator;
   using base_type::const_iterator;
@@ -109,15 +107,14 @@ public:
 
   void                sort();
 
-  void                set_sort_new(const sort_list& s)        { m_sortNew = s; }
-  void                set_sort_current(const sort_list& s)    { m_sortCurrent = s; }
+  void                set_sort_new(const std::string& s)      { m_sortNew = s; }
+  void                set_sort_current(const std::string& s)  { m_sortCurrent = s; }
 
   // Need to explicity trigger filtering.
   void                filter();
 
   void                set_filter(const std::string& s)        { m_filter = s; }
   void                set_filter_on(int event);
-
 
   void                clear_filter_on();
 
@@ -156,21 +153,14 @@ private:
   size_type           m_size;
   size_type           m_focus;
 
-  sort_list           m_sortNew;
-  sort_list           m_sortCurrent;
+  // These should be replaced by a faster non-string command type.
+  std::string         m_sortNew;
+  std::string         m_sortCurrent;
 
-  // This should be replaced by a faster non-string command type.
   std::string         m_filter;
 
   rak::timer          m_lastChanged;
   signal_type         m_signalChanged;
-};
-
-class ViewSort {
-public:
-  virtual ~ViewSort() {}
-
-  virtual bool operator () (Download* d1, Download* d2) const = 0;
 };
 
 }
