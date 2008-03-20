@@ -137,6 +137,7 @@ xmlrpc_to_target(xmlrpc_env* env, xmlrpc_value* value) {
 
   switch (xmlrpc_value_type(value)) {
   case XMLRPC_TYPE_STRING:
+  {
     const char* str;
     xmlrpc_read_string(env, value, &str);
 
@@ -209,6 +210,7 @@ xmlrpc_to_target(xmlrpc_env* env, xmlrpc_value* value) {
       throw xmlrpc_error(XMLRPC_TYPE_ERROR, "Invalid index.");
 
     return target;
+  }
 
   default:
     return rpc::make_target();
@@ -537,7 +539,7 @@ void XmlRpc::set_dialect(__UNUSED int dialect) {}
 bool XmlRpc::process(__UNUSED const char* inBuffer, __UNUSED uint32_t length, __UNUSED slot_write slotWrite) { return false; }
 
 int64_t XmlRpc::size_limit() { return 0; }
-void    XmlRpc::set_size_limit(int64_t size) {}
+void    XmlRpc::set_size_limit(uint64_t size) {}
 
 #endif
 

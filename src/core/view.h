@@ -118,6 +118,9 @@ public:
 
   void                clear_filter_on();
 
+  void                set_event_added(const std::string& cmd)   { m_eventAdded = cmd; }
+  void                set_event_removed(const std::string& cmd) { m_eventRemoved = cmd; }
+
   // The time of the last change to the view, semantics of this is
   // user-dependent. Used by f.ex. ViewManager to decide if it should
   // sort and/or filter a view.
@@ -158,6 +161,9 @@ private:
   std::string         m_sortCurrent;
 
   std::string         m_filter;
+
+  std::string         m_eventAdded;
+  std::string         m_eventRemoved;
 
   rak::timer          m_lastChanged;
   signal_type         m_signalChanged;

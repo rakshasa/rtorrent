@@ -171,12 +171,34 @@ View::sort() {
 
 void
 View::filter() {
-  iterator split = std::stable_partition(base_type::begin(), base_type::end(), view_downloads_filter(m_filter));
+  // Parition the list in two steps so we know which elements changed.
+  iterator splitVisible  = std::stable_partition(begin_visible(),  end_visible(),  view_downloads_filter(m_filter));
+  iterator splitFiltered = std::stable_partition(begin_filtered(), end_filtered(), view_downloads_filter(m_filter));
 
-  m_size = position(split);
+  base_type changed(splitVisible, splitFiltered);
+  iterator splitChanged = changed.begin() + std::distance(splitVisible, end_visible());
+  
+  m_size = std::distance(begin(), std::copy(splitChanged, changed.end(), splitVisible));
+  std::copy(changed.begin(), splitChanged, begin_filtered());
 
-  // Fix focus
+  // Fix this...
   m_focus = std::min(m_focus, m_size);
+
+  // The commands are allowed to remove itself from or change View
+  // sorting since the commands are being called on the 'changed'
+  // vector. But this will cause undefined behavior if elements are
+  // removed.
+  //
+  // Consider if View should lock itself (and throw) if erase events
+  // are triggered on a Download in the 'changed' list. This can be
+  // done by using a base_type* member variable, and making sure we
+  // set the elements to NULL as we trigger commands on them. Or
+  // perhaps always clear them, thus not throwing anything.
+  if (!m_eventRemoved.empty())
+    std::for_each(changed.begin(), splitChanged, rak::bind2nd(std::ptr_fun(&rpc::parse_command_multiple_d_nothrow), m_eventRemoved));
+
+  if (!m_eventAdded.empty())
+    std::for_each(splitChanged, changed.end(),   rak::bind2nd(std::ptr_fun(&rpc::parse_command_multiple_d_nothrow), m_eventAdded));
 }
 
 void
@@ -225,10 +247,13 @@ View::received(core::Download* download, int event) {
     if (itr != base_type::end())
       throw torrent::internal_error("View::received(..., SLOTS_INSERT) already inserted.");
 
-    if (view_downloads_filter(m_filter)(download))
+    if (view_downloads_filter(m_filter)(download)) {
       insert_visible(download);
-    else
+      rpc::parse_command_multiple_d_nothrow(download, m_eventAdded);
+
+    } else {
       base_type::insert(end_filtered(), download);
+    }
 
     if (m_focus > m_size)
       throw torrent::internal_error("View::received(...) m_focus > m_size.");
@@ -237,6 +262,8 @@ View::received(core::Download* download, int event) {
 
   case DownloadList::SLOTS_ERASE:
     erase(itr);
+    rpc::parse_command_multiple_d_nothrow(download, m_eventRemoved);
+
     break;
 
   default:
@@ -245,20 +272,30 @@ View::received(core::Download* download, int event) {
 
     if (view_downloads_filter(m_filter)(download)) {
       
-      // Erase even if it is in visible so that the download is
-      // re-sorted.
-      //
-      // Do we really want to do this?
-      erase(itr);
-      insert_visible(download);
+      if (itr >= end_visible()) {
+        // Erase even if it is in visible so that the download is
+        // re-sorted.
+        //
+        // This isn't the best solution...
+        erase(itr);
+        insert_visible(download);
+
+        rpc::parse_command_multiple_d_nothrow(download, m_eventAdded);
+
+      } else {
+        // Should we really sort it here, or just return?
+        erase(itr);
+        insert_visible(download);
+      }
 
     } else {
-
-      if (itr >= begin_filtered())
+      if (itr >= end_visible())
         return;
 
       erase(itr);
       base_type::push_back(download);
+
+      rpc::parse_command_multiple_d_nothrow(download, m_eventRemoved);
     }
 
     break;

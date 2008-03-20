@@ -82,6 +82,15 @@ parse_command_single_std(const std::string& cmd) {
 }
 
 inline void
+parse_command_multiple_d_nothrow(core::Download* download, const std::string& cmd) {
+  try {
+    parse_command_multiple(make_target(download), cmd.c_str(), cmd.c_str() + cmd.size());
+  } catch (torrent::input_error& e) {
+    // Log?
+  }
+}
+
+inline void
 parse_command_d_single_std(core::Download* download, const std::string& cmd) {
   parse_command(make_target(download), cmd.c_str(), cmd.c_str() + cmd.size());
 }

@@ -393,6 +393,9 @@ initialize_command_ui() {
   ADD_COMMAND_LIST("view_sort_new",     rak::bind_ptr_fn(&apply_view_cfilter, &core::ViewManager::set_sort_new));
   ADD_COMMAND_LIST("view_sort_current", rak::bind_ptr_fn(&apply_view_cfilter, &core::ViewManager::set_sort_current));
 
+  ADD_COMMAND_LIST("view_event_added",   rak::bind_ptr_fn(&apply_view_cfilter, &core::ViewManager::set_event_added));
+  ADD_COMMAND_LIST("view_event_removed", rak::bind_ptr_fn(&apply_view_cfilter, &core::ViewManager::set_event_removed));
+
   // Move.
 
   ADD_ANY_NONE("print",                 rak::ptr_fn(&apply_print));

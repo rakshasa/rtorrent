@@ -105,20 +105,6 @@ ViewManager::sort(const std::string& name, uint32_t timeout) {
 }
 
 void
-ViewManager::set_sort_new(const std::string& name, const std::string& cmd) {
-  iterator viewItr = find_throw(name);
-
-  (*viewItr)->set_sort_new(cmd);
-}
-
-void
-ViewManager::set_sort_current(const std::string& name, const std::string& cmd) {
-  iterator viewItr = find_throw(name);
-
-  (*viewItr)->set_sort_current(cmd);
-}
-
-void
 ViewManager::set_filter(const std::string& name, const std::string& cmd) {
   iterator viewItr = find_throw(name);
 
