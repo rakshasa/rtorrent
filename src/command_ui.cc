@@ -378,6 +378,13 @@ apply_if(int flags, rpc::target_type target, const torrent::Object& rawArgs) {
   }
 }
 
+torrent::Object
+cmd_ui_unfocus_download(core::Download* download, const torrent::Object& rawArgs) {
+  control->ui()->download_list()->unfocus_download(download);
+
+  return torrent::Object();
+}
+
 void
 initialize_command_ui() {
   ADD_VARIABLE_STRING("key_layout", "qwerty");
@@ -395,6 +402,11 @@ initialize_command_ui() {
 
   ADD_COMMAND_LIST("view_event_added",   rak::bind_ptr_fn(&apply_view_cfilter, &core::ViewManager::set_event_added));
   ADD_COMMAND_LIST("view_event_removed", rak::bind_ptr_fn(&apply_view_cfilter, &core::ViewManager::set_event_removed));
+
+  // Commands that affect the default rtorrent UI.
+
+//   ADD_ANY_NONE("ui.focus",              rak::ptr_fn(&cmd_ui_focus));
+  CMD_D_ANY_NONE("ui.unfocus_download",    rak::ptr_fn(&cmd_ui_unfocus_download));
 
   // Move.
 

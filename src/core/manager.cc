@@ -74,24 +74,7 @@
 
 namespace core {
 
-static void
-connect_signal_network_log(Download* d, torrent::Download::slot_string_type s) {
-  d->download()->signal_network_log(s);
-}
-
-static void
-connect_signal_storage_log(Download* d, torrent::Download::slot_string_type s) {
-  d->download()->signal_storage_error(s);
-}
-
-// Need a proper logging class for this.
-static void
-connect_signal_tracker_dump(Download* d, torrent::Download::slot_dump_type s) {
-  if (!rpc::call_command_string("get_tracker_dump").empty())
-    d->download()->signal_tracker_dump(s);
-}
-
-static void
+void
 receive_tracker_dump(const std::string& url, const char* data, size_t size) {
   const std::string& filename = rpc::call_command_string("get_tracker_dump");
 
@@ -229,11 +212,8 @@ Manager::initialize_second() {
 
   // Register slots to be called when a download is inserted/erased,
   // opened or closed.
-  m_downloadList->slot_map_insert()["1_connect_network_log"]  = sigc::bind(sigc::ptr_fun(&connect_signal_network_log), sigc::mem_fun(m_logComplete, &Log::push_front));
-  m_downloadList->slot_map_insert()["1_connect_storage_log"]  = sigc::bind(sigc::ptr_fun(&connect_signal_storage_log), sigc::mem_fun(m_logComplete, &Log::push_front));
-  m_downloadList->slot_map_insert()["1_connect_tracker_dump"] = sigc::bind(sigc::ptr_fun(&connect_signal_tracker_dump), sigc::ptr_fun(&receive_tracker_dump));
-
-  m_downloadList->slot_map_erase()["9_delete_tied"] = sigc::bind<0>(&rpc::call_command_d_v_void, "d.delete_tied");
+  m_downloadList->slot_map_insert()["1_connect_logs"] = sigc::bind(&rpc::parse_command_d_single_std, "d.initialize_logs=");
+  m_downloadList->slot_map_erase()["9_delete_tied"]   = sigc::bind(&rpc::parse_command_d_single_std, "d.delete_tied=");
 
   torrent::connection_manager()->set_signal_handshake_log(sigc::mem_fun(this, &Manager::handshake_log));
 }

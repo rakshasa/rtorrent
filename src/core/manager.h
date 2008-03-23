@@ -103,6 +103,7 @@ public:
 
   void                push_log(const char* msg);
   void                push_log_std(const std::string& msg) { m_logImportant.push_front(msg); m_logComplete.push_front(msg); }
+  void                push_log_complete(const std::string& msg) { m_logComplete.push_front(msg); }
 
   void                handshake_log(const sockaddr* sa, int msg, int err, const torrent::HashString* hash);
 
@@ -138,6 +139,9 @@ private:
   Log                 m_logImportant;
   Log                 m_logComplete;
 };
+
+// Meh, cleanup.
+extern void receive_tracker_dump(const std::string& url, const char* data, size_t size);
 
 }
 

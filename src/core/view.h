@@ -102,6 +102,9 @@ public:
   const_iterator      focus() const                           { return begin() + m_focus; }
   void                set_focus(iterator itr)                 { m_focus = position(itr); m_signalChanged.emit(); }
 
+  void                set_visible(Download* download);
+  void                set_not_visible(Download* download);
+
   void                next_focus();
   void                prev_focus();
 

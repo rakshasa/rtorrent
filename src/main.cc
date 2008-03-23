@@ -185,15 +185,15 @@ main(int argc, char** argv) {
 
        "view_add = started\n"
        "view_filter = started,d.get_state=\n"
-       "view_filter_on = started,start,stop\n"
-       "view_sort_new     = started,less=d.get_name=\n"
-       "view_sort_current = started,less=d.get_name=\n"
+//        "view_filter_on = started,start,stop\n"
+//        "view_sort_new     = started,less=d.get_name=\n"
+//        "view_sort_current = started,less=d.get_name=\n"
 
        "view_add = stopped\n"
        "view_filter = stopped,not=$d.get_state=\n"
-       "view_filter_on = stopped,start,stop\n"
-       "view_sort_new     = stopped,less=d.get_name=\n"
-       "view_sort_current = stopped,less=d.get_name=\n"
+//        "view_filter_on = stopped,start,stop\n"
+//        "view_sort_new     = stopped,less=d.get_name=\n"
+//        "view_sort_current = stopped,less=d.get_name=\n"
 
        "view_add = complete\n"
        "view_filter = complete,d.get_complete=\n"

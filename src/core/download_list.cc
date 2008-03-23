@@ -54,6 +54,8 @@
 #include "control.h"
 #include "globals.h"
 #include "manager.h"
+#include "view.h"
+#include "view_manager.h"
 
 #include "dht_manager.h"
 #include "download.h"
@@ -315,6 +317,9 @@ DownloadList::start_normal(Download* download) {
   download->set_hash_failed(false);
   rpc::call_command("d.set_state", (int64_t)1, rpc::make_target(download));
 
+  (*control->view_manager()->find_throw("stopped"))->set_not_visible(download);
+  (*control->view_manager()->find_throw("started"))->set_visible(download);
+
   resume(download);
 }
 
@@ -332,6 +337,9 @@ DownloadList::start_try(Download* download) {
   // etc.
   rpc::call_command("d.set_state", (int64_t)1, rpc::make_target(download));
 
+  (*control->view_manager()->find_throw("stopped"))->set_not_visible(download);
+  (*control->view_manager()->find_throw("started"))->set_visible(download);
+
   resume(download);
   return true;
 }
@@ -341,6 +349,9 @@ DownloadList::stop_normal(Download* download) {
   check_contains(download);
 
   rpc::call_command("d.set_state", (int64_t)0, rpc::make_target(download));
+
+  (*control->view_manager()->find_throw("started"))->set_not_visible(download);
+  (*control->view_manager()->find_throw("stopped"))->set_visible(download);
 
   pause(download);
 }
@@ -353,6 +364,9 @@ DownloadList::stop_try(Download* download) {
     return false;
 
   rpc::call_command("d.set_state", (int64_t)0, rpc::make_target(download));
+
+  (*control->view_manager()->find_throw("started"))->set_not_visible(download);
+  (*control->view_manager()->find_throw("stopped"))->set_visible(download);
 
   pause(download);
   return true;

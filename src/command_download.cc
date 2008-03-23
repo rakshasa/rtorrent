@@ -245,6 +245,18 @@ retrieve_d_local_id_html(core::Download* download) {
   return torrent::Object(rak::copy_escape_html(hashString->begin(), hashString->end()));
 }
 
+// Just a helper function atm.
+torrent::Object
+cmd_d_initialize_logs(core::Download* download) {
+  download->download()->signal_network_log(sigc::mem_fun(control->core(), &core::Manager::push_log_complete));
+  download->download()->signal_storage_error(sigc::mem_fun(control->core(), &core::Manager::push_log_complete));
+
+  if (!rpc::call_command_string("get_tracker_dump").empty())
+    download->download()->signal_tracker_dump(sigc::ptr_fun(&core::receive_tracker_dump));
+
+  return torrent::Object();
+}
+
 torrent::Object
 f_multicall(core::Download* download, const torrent::Object& rawArgs) {
   const torrent::Object::list_type& args = rawArgs.as_list();
@@ -530,7 +542,10 @@ initialize_command_download() {
   ADD_CD_VALUE_BI("priority",             std::mem_fun(&core::Download::set_priority), std::mem_fun(&core::Download::priority));
   ADD_CD_STRING_UNI("priority_str",       std::ptr_fun(&retrieve_d_priority_str));
 
-  ADD_CD_SLOT_PUBLIC("f.multicall",       call_list, rak::ptr_fn(&f_multicall), "i:", "")
-  ADD_CD_SLOT_PUBLIC("p.multicall",       call_list, rak::ptr_fn(&p_multicall), "i:", "")
-  ADD_CD_SLOT_PUBLIC("t.multicall",       call_list, rak::ptr_fn(&t_multicall), "i:", "")
+  ADD_CD_SLOT_PUBLIC("f.multicall",       call_list, rak::ptr_fn(&f_multicall), "i:", "");
+  ADD_CD_SLOT_PUBLIC("p.multicall",       call_list, rak::ptr_fn(&p_multicall), "i:", "");
+  ADD_CD_SLOT_PUBLIC("t.multicall",       call_list, rak::ptr_fn(&t_multicall), "i:", "");
+
+  // NEWISH:
+  CMD_D_VOID("d.initialize_logs",         &cmd_d_initialize_logs);
 }

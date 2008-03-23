@@ -87,6 +87,36 @@ View::initialize(const std::string& name, core::DownloadList* dlist) {
 }
 
 void
+View::set_visible(Download* download) {
+  iterator itr = std::find(begin_filtered(), end_filtered(), download);
+
+  if (itr == end_filtered())
+    return;
+
+  // Don't optimize erase since we want to keep the order of the
+  // non-visible elements.
+  base_type::erase(itr);
+  insert_visible(download);
+
+  rpc::parse_command_multiple_d_nothrow(download, m_eventAdded);
+}
+
+void
+View::set_not_visible(Download* download) {
+  iterator itr = std::find(begin_visible(), end_visible(), download);
+
+  if (itr == end_visible())
+    return;
+
+  // Don't optimize erase since we want to keep the order of the
+  // non-visible elements.
+  base_type::erase(itr);
+  base_type::push_back(download);
+
+  rpc::parse_command_multiple_d_nothrow(download, m_eventRemoved);
+}
+
+void
 View::next_focus() {
   if (empty())
     return;
@@ -253,6 +283,7 @@ View::received(core::Download* download, int event) {
 
     } else {
       base_type::insert(end_filtered(), download);
+      return;
     }
 
     if (m_focus > m_size)
@@ -261,6 +292,11 @@ View::received(core::Download* download, int event) {
     break;
 
   case DownloadList::SLOTS_ERASE:
+    if (itr >= end_visible()) {
+      erase(itr);
+      return;
+    }
+
     erase(itr);
     rpc::parse_command_multiple_d_nothrow(download, m_eventRemoved);
 
@@ -273,17 +309,14 @@ View::received(core::Download* download, int event) {
     if (view_downloads_filter(m_filter)(download)) {
       
       if (itr >= end_visible()) {
-        // Erase even if it is in visible so that the download is
-        // re-sorted.
-        //
-        // This isn't the best solution...
         erase(itr);
         insert_visible(download);
 
         rpc::parse_command_multiple_d_nothrow(download, m_eventAdded);
 
       } else {
-        // Should we really sort it here, or just return?
+        // This makes sure the download is sorted even if it is
+        // already visible.
         erase(itr);
         insert_visible(download);
       }
