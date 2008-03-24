@@ -212,8 +212,8 @@ Manager::initialize_second() {
 
   // Register slots to be called when a download is inserted/erased,
   // opened or closed.
-  m_downloadList->slot_map_insert()["1_connect_logs"] = sigc::bind(&rpc::parse_command_d_single_std, "d.initialize_logs=");
-  m_downloadList->slot_map_erase()["9_delete_tied"]   = sigc::bind(&rpc::parse_command_d_single_std, "d.delete_tied=");
+  m_downloadList->slot_map_insert()["1_connect_logs"] = "d.initialize_logs=";
+  m_downloadList->slot_map_erase()["9_delete_tied"]   = "d.delete_tied=";
 
   torrent::connection_manager()->set_signal_handshake_log(sigc::mem_fun(this, &Manager::handshake_log));
 }

@@ -179,8 +179,11 @@ add_variable(key, NULL, NULL, &rpc::CommandVariable::get_string, NULL, std::stri
   commandDownloadSlotsItr->set_slot(slot); \
   rpc::commands.insert_type(key, commandDownloadSlotsItr++, &rpc::CommandSlot<core::Download*>::function, rpc::CommandMap::flag_dont_delete | rpc::CommandMap::flag_public_xmlrpc, parm, doc);
 
-#define CMD_D_ANY_NONE(key, slot) \
+#define CMD_D_ANY(key, slot) \
   CMD_D_SLOT(key, call_unknown, slot, "i:", "")
+
+#define CMD_D_STRING(key, slot) \
+  CMD_D_SLOT(key, call_string, slot, "i:", "")
 
 #define CMD_D_VOID(key, slot) \
   CMD_D_SLOT(key, call_unknown, rpc::object_fn(slot), "i:", "")

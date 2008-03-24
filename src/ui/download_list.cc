@@ -98,7 +98,7 @@ DownloadList::activate(display::Frame* frame, bool focus) {
   m_frame = frame;
 
   control->input()->push_back(&m_bindings);
-  control->core()->download_list()->slot_map_erase()["0_download_list"] = sigc::bind(&rpc::parse_command_d_single_std, "ui.unfocus_download=");
+  control->core()->download_list()->slot_map_erase()["0_download_list"] = "ui.unfocus_download=";
 
   activate_display(DISPLAY_DOWNLOAD_LIST);
 }

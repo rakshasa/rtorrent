@@ -73,7 +73,7 @@ apply_on_state_change(core::DownloadList::slot_map* slotMap, const torrent::Obje
   if (args.size() == 1)
     slotMap->erase(key);
   else
-    (*slotMap)[key] = sigc::bind(sigc::ptr_fun(&rpc::parse_command_d_multiple_std), args.back().as_string());
+    (*slotMap)[key] = args.back().as_string();
 
   return torrent::Object();
 }

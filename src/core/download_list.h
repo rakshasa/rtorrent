@@ -59,9 +59,8 @@ class Download;
 
 class DownloadList : private std::list<Download*> {
 public:
-  typedef std::list<Download*>             base_type;
-  typedef sigc::slot1<void, Download*>     slot_type;
-  typedef std::map<std::string, slot_type> slot_map;
+  typedef std::list<Download*>               base_type;
+  typedef std::map<std::string, std::string> slot_map;
 
   using base_type::iterator;
   using base_type::const_iterator;
@@ -117,6 +116,7 @@ public:
   void                resume(Download* d, int flags = 0);
   void                pause(Download* d, int flags = 0);
 
+  void                resume_default(Download* d) { resume(d); }
   void                pause_default(Download* d) { pause(d); }
 
   void                check_hash(Download* d);

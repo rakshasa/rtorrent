@@ -431,6 +431,8 @@ initialize_command_download() {
 
   ADD_CD_F_VOID("start",      rak::make_mem_fun(control->core()->download_list(), &core::DownloadList::start_normal));
   ADD_CD_F_VOID("stop",       rak::make_mem_fun(control->core()->download_list(), &core::DownloadList::stop_normal));
+  ADD_CD_F_VOID("resume",     rak::make_mem_fun(control->core()->download_list(), &core::DownloadList::resume_default));
+  ADD_CD_F_VOID("pause",      rak::make_mem_fun(control->core()->download_list(), &core::DownloadList::pause_default));
   ADD_CD_F_VOID("open",       rak::make_mem_fun(control->core()->download_list(), &core::DownloadList::open_throw));
   ADD_CD_F_VOID("close",      rak::make_mem_fun(control->core()->download_list(), &core::DownloadList::close_throw));
   ADD_CD_F_VOID("erase",      rak::make_mem_fun(control->core()->download_list(), &core::DownloadList::erase_ptr));

@@ -51,92 +51,6 @@
 
 namespace core {
 
-View::~View() {
-  if (m_name.empty())
-    return;
-
-  std::for_each(m_list->slot_map_begin(), m_list->slot_map_end(), rak::bind2nd(std::ptr_fun(&DownloadList::erase_key), "0_view_" + m_name));
-}
-
-void
-View::initialize(const std::string& name, core::DownloadList* dlist) {
-  if (!m_name.empty())
-    throw torrent::internal_error("View::initialize(...) called on an already initialized view.");
-
-  if (name.empty())
-    throw torrent::internal_error("View::initialize(...) called with an empty name.");
-
-  std::string key = "0_view_" + name;
-
-  if (dlist->has_slot_insert(key) || dlist->has_slot_erase(key))
-    throw torrent::internal_error("View::initialize(...) duplicate key name found in DownloadList.");
-
-  m_name = name;
-  m_list = dlist;
-
-  // Urgh, wrong. No filtering being done.
-  std::for_each(m_list->begin(), m_list->end(), rak::bind1st(std::mem_fun(&View::push_back), this));
-
-  m_size = base_type::size();
-  m_focus = 0;
-
-  m_list->slot_map_insert()[key] = sigc::bind(sigc::mem_fun(this, &View::received), (int)DownloadList::SLOTS_INSERT);
-  m_list->slot_map_erase()[key]  = sigc::bind(sigc::mem_fun(this, &View::received), (int)DownloadList::SLOTS_ERASE);
-
-  set_last_changed(rak::timer());
-}
-
-void
-View::set_visible(Download* download) {
-  iterator itr = std::find(begin_filtered(), end_filtered(), download);
-
-  if (itr == end_filtered())
-    return;
-
-  // Don't optimize erase since we want to keep the order of the
-  // non-visible elements.
-  base_type::erase(itr);
-  insert_visible(download);
-
-  rpc::parse_command_multiple_d_nothrow(download, m_eventAdded);
-}
-
-void
-View::set_not_visible(Download* download) {
-  iterator itr = std::find(begin_visible(), end_visible(), download);
-
-  if (itr == end_visible())
-    return;
-
-  // Don't optimize erase since we want to keep the order of the
-  // non-visible elements.
-  base_type::erase(itr);
-  base_type::push_back(download);
-
-  rpc::parse_command_multiple_d_nothrow(download, m_eventRemoved);
-}
-
-void
-View::next_focus() {
-  if (empty())
-    return;
-
-  m_focus = (m_focus + 1) % (size() + 1);
-  m_signalChanged.emit();
-}
-
-void
-View::prev_focus() {
-  if (empty())
-    return;
-
-  m_focus = (m_focus - 1 + size() + 1) % (size() + 1);
-  m_signalChanged.emit();
-}
-
-// Need to use wrapper-functors so it will properly call the virtual
-// functions.
-
 // Also add focus thingie here?
 struct view_downloads_compare : std::binary_function<Download*, Download*, bool> {
   view_downloads_compare(const std::string& cmd) : m_command(cmd) {}
@@ -188,6 +102,117 @@ struct view_downloads_filter : std::unary_function<Download*, bool> {
   const std::string&       m_command;
 };
 
+View::~View() {
+  if (m_name.empty())
+    return;
+
+  std::for_each(m_list->slot_map_begin(), m_list->slot_map_end(), rak::bind2nd(std::ptr_fun(&DownloadList::erase_key), "0_view_" + m_name));
+}
+
+void
+View::initialize(const std::string& name, core::DownloadList* dlist) {
+  if (!m_name.empty())
+    throw torrent::internal_error("View::initialize(...) called on an already initialized view.");
+
+  if (name.empty())
+    throw torrent::internal_error("View::initialize(...) called with an empty name.");
+
+  std::string key = "0_view_" + name;
+
+  if (dlist->has_slot_insert(key) || dlist->has_slot_erase(key))
+    throw torrent::internal_error("View::initialize(...) duplicate key name found in DownloadList.");
+
+  m_name = name;
+  m_list = dlist;
+
+  // Urgh, wrong. No filtering being done.
+  std::for_each(m_list->begin(), m_list->end(), rak::bind1st(std::mem_fun(&View::push_back), this));
+
+  m_size = base_type::size();
+  m_focus = 0;
+
+  set_last_changed(rak::timer());
+}
+
+void
+View::insert(Download* download) {
+//   if (view_downloads_filter(m_filter)(download)) {
+//     insert_visible(download);
+//     rpc::parse_command_multiple_d_nothrow(download, m_eventAdded);
+
+//   } else {
+//     base_type::insert(end_filtered(), download);
+//   }
+
+  // We can't make the download visible until after it has been added
+  // to every single View, as it might trigger a command too early.
+  base_type::insert(base_type::end(), download);
+}
+
+void
+View::erase(Download* download) {
+  iterator itr = std::find(base_type::begin(), base_type::end(), download);
+
+  if (itr >= end_visible()) {
+    erase_internal(itr);
+
+  } else {
+    erase_internal(itr);
+    rpc::parse_command_multiple_d_nothrow(download, m_eventRemoved);
+  }
+}
+
+void
+View::set_visible(Download* download) {
+  iterator itr = std::find(begin_filtered(), end_filtered(), download);
+
+  if (itr == end_filtered())
+    return;
+
+  // Don't optimize erase since we want to keep the order of the
+  // non-visible elements.
+  base_type::erase(itr);
+  insert_visible(download);
+
+  rpc::parse_command_multiple_d_nothrow(download, m_eventAdded);
+}
+
+void
+View::set_not_visible(Download* download) {
+  iterator itr = std::find(begin_visible(), end_visible(), download);
+
+  if (itr == end_visible())
+    return;
+
+  m_size--;
+  m_focus -= (m_focus > position(itr));
+
+  // Don't optimize erase since we want to keep the order of the
+  // non-visible elements.
+  base_type::erase(itr);
+  base_type::push_back(download);
+
+  rpc::parse_command_multiple_d_nothrow(download, m_eventRemoved);
+}
+
+void
+View::next_focus() {
+  if (empty())
+    return;
+
+  m_focus = (m_focus + 1) % (size() + 1);
+  m_signalChanged.emit();
+}
+
+void
+View::prev_focus() {
+  if (empty())
+    return;
+
+  m_focus = (m_focus - 1 + size() + 1) % (size() + 1);
+  m_signalChanged.emit();
+}
+
 void
 View::sort() {
   Download* curFocus = focus() != end_visible() ? *focus() : NULL;
@@ -232,11 +257,48 @@ View::filter() {
 }
 
 void
+View::filter_download(core::Download* download) {
+  iterator itr = std::find(base_type::begin(), base_type::end(), download);
+
+  if (itr == base_type::end())
+    throw torrent::internal_error("View::filter_download(...) could not find download.");
+
+  if (view_downloads_filter(m_filter)(download)) {
+      
+    if (itr >= end_visible()) {
+      erase_internal(itr);
+      insert_visible(download);
+
+      rpc::parse_command_multiple_d_nothrow(download, m_eventAdded);
+
+    } else {
+      // This makes sure the download is sorted even if it is
+      // already visible.
+      //
+      // Consider removing this.
+      erase_internal(itr);
+      insert_visible(download);
+    }
+
+  } else {
+    if (itr >= end_visible())
+      return;
+
+    erase_internal(itr);
+    base_type::push_back(download);
+
+    rpc::parse_command_multiple_d_nothrow(download, m_eventRemoved);
+  }
+
+  m_signalChanged.emit();
+}
+
+void
 View::set_filter_on(int event) {
   if (event == DownloadList::SLOTS_INSERT || event == DownloadList::SLOTS_ERASE || event >= DownloadList::SLOTS_MAX_SIZE)
     throw torrent::internal_error("View::filter_on(...) invalid event.");
 
-  m_list->slots(event)["0_view_" + m_name]  = sigc::bind(sigc::mem_fun(this, &View::received), event);
+  m_list->slots(event)["0_view_" + m_name] = "view.filter_download=" + m_name;
 }
 
 void
@@ -257,7 +319,7 @@ View::insert_visible(Download* d) {
 }
 
 inline void
-View::erase(iterator itr) {
+View::erase_internal(iterator itr) {
   if (itr == end_filtered())
     throw torrent::internal_error("View::erase_visible(...) iterator out of range.");
 
@@ -265,76 +327,6 @@ View::erase(iterator itr) {
   m_focus -= (m_focus > position(itr));
 
   base_type::erase(itr);
-}
-
-void
-View::received(core::Download* download, int event) {
-  iterator itr = std::find(base_type::begin(), base_type::end(), download);
-
-  switch (event) {
-  case DownloadList::SLOTS_INSERT:
-  
-    if (itr != base_type::end())
-      throw torrent::internal_error("View::received(..., SLOTS_INSERT) already inserted.");
-
-    if (view_downloads_filter(m_filter)(download)) {
-      insert_visible(download);
-      rpc::parse_command_multiple_d_nothrow(download, m_eventAdded);
-
-    } else {
-      base_type::insert(end_filtered(), download);
-      return;
-    }
-
-    if (m_focus > m_size)
-      throw torrent::internal_error("View::received(...) m_focus > m_size.");
-
-    break;
-
-  case DownloadList::SLOTS_ERASE:
-    if (itr >= end_visible()) {
-      erase(itr);
-      return;
-    }
-
-    erase(itr);
-    rpc::parse_command_multiple_d_nothrow(download, m_eventRemoved);
-
-    break;
-
-  default:
-    if (itr == end_filtered())
-      throw torrent::internal_error("View::received(..., SLOTS_*) could not find download.");
-
-    if (view_downloads_filter(m_filter)(download)) {
-      
-      if (itr >= end_visible()) {
-        erase(itr);
-        insert_visible(download);
-
-        rpc::parse_command_multiple_d_nothrow(download, m_eventAdded);
-
-      } else {
-        // This makes sure the download is sorted even if it is
-        // already visible.
-        erase(itr);
-        insert_visible(download);
-      }
-
-    } else {
-      if (itr >= end_visible())
-        return;
-
-      erase(itr);
-      base_type::push_back(download);
-
-      rpc::parse_command_multiple_d_nothrow(download, m_eventRemoved);
-    }
-
-    break;
-  }
-
-  m_signalChanged.emit();
 }
 
 }

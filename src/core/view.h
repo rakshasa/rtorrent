@@ -102,6 +102,9 @@ public:
   const_iterator      focus() const                           { return begin() + m_focus; }
   void                set_focus(iterator itr)                 { m_focus = position(itr); m_signalChanged.emit(); }
 
+  void                insert(Download* download);
+  void                erase(Download* download);
+
   void                set_visible(Download* download);
   void                set_not_visible(Download* download);
 
@@ -115,6 +118,7 @@ public:
 
   // Need to explicity trigger filtering.
   void                filter();
+  void                filter_download(core::Download* download);
 
   void                set_filter(const std::string& s)        { m_filter = s; }
   void                set_filter_on(int event);
@@ -144,9 +148,7 @@ private:
   void                push_back(Download* d)                  { base_type::push_back(d); }
 
   inline void         insert_visible(Download* d);
-  inline void         erase(iterator itr);
-
-  void                received(Download* d, int event);
+  inline void         erase_internal(iterator itr);
 
   size_type           position(const_iterator itr) const      { return itr - begin(); }
 

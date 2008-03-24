@@ -77,7 +77,7 @@ struct download_list_call {
 
   void operator () (const DownloadList::slot_map::value_type& s) {
     try {
-      s.second(m_download);
+      rpc::parse_command_d_multiple_std(m_download, s.second);
     } catch (torrent::input_error& e) {
       control->core()->push_log((std::string("Download event action failed: ") + e.what()).c_str());
     }
@@ -166,6 +166,11 @@ DownloadList::insert(Download* download) {
     (*itr)->download()->signal_download_done(sigc::bind(sigc::mem_fun(*this, &DownloadList::received_finished), download));
     (*itr)->download()->signal_hash_done(sigc::bind(sigc::mem_fun(*this, &DownloadList::hash_done), download));
 
+    // This needs to be separated into two different calls to ensure
+    // the download remains in the view.
+    std::for_each(control->view_manager()->begin(), control->view_manager()->end(), std::bind2nd(std::mem_fun(&View::insert), download));
+    std::for_each(control->view_manager()->begin(), control->view_manager()->end(), std::bind2nd(std::mem_fun(&View::filter_download), download));
+
     std::for_each(slot_map_insert().begin(), slot_map_insert().end(), download_list_call(*itr));
 
   } catch (torrent::local_error& e) {
@@ -195,6 +200,7 @@ DownloadList::erase(iterator itr) {
   control->core()->download_store()->remove(*itr);
 
   std::for_each(slot_map_erase().begin(), slot_map_erase().end(), download_list_call(*itr));
+  std::for_each(control->view_manager()->begin(), control->view_manager()->end(), std::bind2nd(std::mem_fun(&View::erase), *itr));
 
   torrent::download_remove(*(*itr)->download());
   delete *itr;
@@ -246,6 +252,10 @@ DownloadList::close_try(Download* download) {
       return false;
 
     rpc::call_command("d.set_state", (int64_t)0, rpc::make_target(download));
+
+    (*control->view_manager()->find_throw("started"))->set_not_visible(download);
+    (*control->view_manager()->find_throw("stopped"))->set_visible(download);
+
     close_throw(download);
     return true;
 
@@ -319,8 +329,6 @@ DownloadList::start_normal(Download* download) {
 
   (*control->view_manager()->find_throw("stopped"))->set_not_visible(download);
   (*control->view_manager()->find_throw("started"))->set_visible(download);
-
-  resume(download);
 }
 
 bool
@@ -340,7 +348,6 @@ DownloadList::start_try(Download* download) {
   (*control->view_manager()->find_throw("stopped"))->set_not_visible(download);
   (*control->view_manager()->find_throw("started"))->set_visible(download);
 
-  resume(download);
   return true;
 }
 
@@ -352,8 +359,6 @@ DownloadList::stop_normal(Download* download) {
 
   (*control->view_manager()->find_throw("started"))->set_not_visible(download);
   (*control->view_manager()->find_throw("stopped"))->set_visible(download);
-
-  pause(download);
 }
 
 bool
@@ -368,7 +373,6 @@ DownloadList::stop_try(Download* download) {
   (*control->view_manager()->find_throw("started"))->set_not_visible(download);
   (*control->view_manager()->find_throw("stopped"))->set_visible(download);
 
-  pause(download);
   return true;
 }
 
