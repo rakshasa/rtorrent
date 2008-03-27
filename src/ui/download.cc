@@ -153,7 +153,8 @@ Download::create_info() {
   element->push_column("Created:",          te_command("cat=$to_date=$d.get_creation_date=,\" \",$to_time=$d.get_creation_date="));
 
   element->push_back("");
-  element->push_column("Directory:",        te_command("d.get_base_path="));
+  element->push_column("Directory:",        te_command("d.get_directory="));
+  element->push_column("Base Path:",        te_command("d.get_base_path="));
   element->push_column("Tied to file:",     te_command("d.get_tied_to_file="));
   element->push_column("File stats:",       te_command("cat=$if=$d.is_multi_file=\\,multi\\,single,\" \",$d.get_size_files=,\" files\""));
 

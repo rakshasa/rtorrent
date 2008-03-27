@@ -46,14 +46,14 @@ namespace rpc {
 
 // By using a static array we avoid allocating the variables on the
 // heap. This should reduce memory use and improve cache locality.
-#define COMMAND_SLOTS_SIZE          150
+#define COMMAND_SLOTS_SIZE          200
 #define COMMAND_VARIABLES_SIZE      100
 #define COMMAND_DOWNLOAD_SLOTS_SIZE 150
 #define COMMAND_FILE_SLOTS_SIZE     30
 #define COMMAND_FILE_ITR_SLOTS_SIZE 10
 #define COMMAND_PEER_SLOTS_SIZE     20
 #define COMMAND_TRACKER_SLOTS_SIZE  15
-#define COMMAND_ANY_SLOTS_SIZE      20
+#define COMMAND_ANY_SLOTS_SIZE      50
 
 #define ADDING_COMMANDS
 

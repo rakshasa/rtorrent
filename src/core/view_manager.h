@@ -64,7 +64,7 @@ public:
   using base_type::empty;
   using base_type::size;
 
-  ViewManager(DownloadList* dl);
+  ViewManager() {}
   ~ViewManager() { clear(); }
 
   // Ffff... Just throwing together an interface, need to think some

@@ -392,6 +392,20 @@ cmd_view_filter_download(core::Download* download, const torrent::Object& rawArg
   return torrent::Object();
 }
 
+torrent::Object
+cmd_view_set_visible(core::Download* download, const torrent::Object& rawArgs) {
+  (*control->view_manager()->find_throw(rawArgs.as_string()))->set_visible(download);
+
+  return torrent::Object();
+}
+
+torrent::Object
+cmd_view_set_not_visible(core::Download* download, const torrent::Object& rawArgs) {
+  (*control->view_manager()->find_throw(rawArgs.as_string()))->set_not_visible(download);
+
+  return torrent::Object();
+}
+
 void
 initialize_command_ui() {
   ADD_VARIABLE_STRING("key_layout", "qwerty");
@@ -412,7 +426,9 @@ initialize_command_ui() {
 
   // Cleanup and add . to view.
 
-  CMD_D_STRING("view.filter_download",  rak::ptr_fn(&cmd_view_filter_download));
+  CMD_D_STRING("view.filter_download",   rak::ptr_fn(&cmd_view_filter_download));
+  CMD_D_STRING("view.set_visible",       rak::ptr_fn(&cmd_view_set_visible));
+  CMD_D_STRING("view.set_not_visible",   rak::ptr_fn(&cmd_view_set_not_visible));
 
   // Commands that affect the default rtorrent UI.
 

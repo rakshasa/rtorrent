@@ -60,7 +60,6 @@
 namespace core {
 
 class Download;
-class DownloadList;
 
 class View : private std::vector<Download*> {
 public:
@@ -77,7 +76,7 @@ public:
   View() {}
   ~View();
 
-  void                initialize(const std::string& name, DownloadList* dlist);
+  void                initialize(const std::string& name);
 
   const std::string&  name() const                            { return m_name; }
 
@@ -102,7 +101,7 @@ public:
   const_iterator      focus() const                           { return begin() + m_focus; }
   void                set_focus(iterator itr)                 { m_focus = position(itr); m_signalChanged.emit(); }
 
-  void                insert(Download* download);
+  void                insert(Download* download)              { base_type::push_back(download); }
   void                erase(Download* download);
 
   void                set_visible(Download* download);
@@ -150,13 +149,13 @@ private:
   inline void         insert_visible(Download* d);
   inline void         erase_internal(iterator itr);
 
+  inline void         emit_changed();
+
   size_type           position(const_iterator itr) const      { return itr - begin(); }
 
   // An received thing for changed status so we can sort and filter.
 
   std::string         m_name;
-
-  DownloadList*       m_list;
 
   size_type           m_size;
   size_type           m_focus;
@@ -171,7 +170,9 @@ private:
   std::string         m_eventRemoved;
 
   rak::timer          m_lastChanged;
+
   signal_type         m_signalChanged;
+  rak::priority_item  m_delayChanged;
 };
 
 }

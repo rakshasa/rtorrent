@@ -156,6 +156,8 @@ Download::receive_chunk_failed(__UNUSED uint32_t idx) {
 
 void
 Download::set_root_directory(const std::string& path) {
+  control->core()->push_log_std("Pushed " + path);
+
   torrent::FileList* fileList = m_download.file_list();
 
   control->core()->download_list()->close_directly(this);

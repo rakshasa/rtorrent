@@ -53,12 +53,6 @@
 
 namespace core {
 
-// Really need to implement a factory and allow options in the sort
-// statements.
-ViewManager::ViewManager(DownloadList* dl) :
-  m_list(dl) {
-}
-
 void
 ViewManager::clear() {
   std::for_each(begin(), end(), rak::call_delete<View>());
@@ -72,7 +66,7 @@ ViewManager::insert(const std::string& name) {
     throw torrent::internal_error("ViewManager::insert(...) name already inserted.");
 
   View* view = new View();
-  view->initialize(name, m_list);
+  view->initialize(name);
 
   return base_type::insert(end(), view);
 }

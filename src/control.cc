@@ -74,7 +74,7 @@ Control::Control() :
   m_tick(0) {
 
   m_core        = new core::Manager();
-  m_viewManager = new core::ViewManager(m_core->download_list());
+  m_viewManager = new core::ViewManager();
   m_scheduler   = new core::Scheduler(m_core->download_list());
   m_dhtManager  = new core::DhtManager();
 

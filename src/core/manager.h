@@ -125,7 +125,6 @@ private:
   void                initialize_bencode(Download* d);
 
   void                receive_http_failed(std::string msg);
-
   void                receive_hashing_changed();
 
   DownloadList*       m_downloadList;

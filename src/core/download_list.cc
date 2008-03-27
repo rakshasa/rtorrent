@@ -329,6 +329,12 @@ DownloadList::start_normal(Download* download) {
 
   (*control->view_manager()->find_throw("stopped"))->set_not_visible(download);
   (*control->view_manager()->find_throw("started"))->set_visible(download);
+
+//   try {
+//     rpc::parse_command_multiple(rpc::make_target(download), "d.set_state=1 ;view.set_not_visible=stopped ;view.set_visible=started");
+//   } catch (torrent::local_error& e) {
+//     control->core()->push_log(e.what());
+//   }
 }
 
 bool
@@ -347,6 +353,8 @@ DownloadList::start_try(Download* download) {
 
   (*control->view_manager()->find_throw("stopped"))->set_not_visible(download);
   (*control->view_manager()->find_throw("started"))->set_visible(download);
+
+//   rpc::parse_command_multiple(rpc::make_target(download), "d.set_state=1 ;view.set_not_visible=stopped ;view.set_visible=started");
 
   return true;
 }

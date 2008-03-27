@@ -87,6 +87,7 @@ initialize_commands() {
       commandVariablesItr > commandVariables + COMMAND_VARIABLES_SIZE ||
       commandDownloadSlotsItr > commandDownloadSlots + COMMAND_DOWNLOAD_SLOTS_SIZE ||
       commandFileSlotsItr > commandFileSlots + COMMAND_FILE_SLOTS_SIZE ||
+      commandFileItrSlotsItr > commandFileItrSlots + COMMAND_FILE_ITR_SLOTS_SIZE ||
       commandPeerSlotsItr > commandPeerSlots + COMMAND_PEER_SLOTS_SIZE ||
       commandTrackerSlotsItr > commandTrackerSlots + COMMAND_TRACKER_SLOTS_SIZE ||
       commandAnySlotsItr > commandAnySlots + COMMAND_ANY_SLOTS_SIZE)
@@ -95,6 +96,7 @@ initialize_commands() {
       commandVariablesItr != commandVariables + COMMAND_VARIABLES_SIZE ||
       commandDownloadSlotsItr != commandDownloadSlots + COMMAND_DOWNLOAD_SLOTS_SIZE ||
       commandFileSlotsItr != commandFileSlots + COMMAND_FILE_SLOTS_SIZE ||
+      commandFileItrSlotsItr != commandFileItrSlots + COMMAND_FILE_ITR_SLOTS_SIZE ||
       commandPeerSlotsItr != commandPeerSlots + COMMAND_PEER_SLOTS_SIZE ||
       commandTrackerSlotsItr != commandTrackerSlots + COMMAND_TRACKER_SLOTS_SIZE ||
       commandAnySlotsItr != commandAnySlots + COMMAND_ANY_SLOTS_SIZE)
