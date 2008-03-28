@@ -102,16 +102,9 @@ public:
   void                open_throw(Download* d);
 
   void                close(Download* d);
-  bool                close_try(Download* d);
   void                close_directly(Download* d);
   void                close_quick(Download* d);
   void                close_throw(Download* d);
-
-  void                start_normal(Download* d);
-  bool                start_try(Download* d);
-
-  void                stop_normal(Download* d);
-  bool                stop_try(Download* d);
 
   void                resume(Download* d, int flags = 0);
   void                pause(Download* d, int flags = 0);

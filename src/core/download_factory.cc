@@ -273,7 +273,7 @@ DownloadFactory::receive_success() {
     } else {
       // Use the state thingie here, move below.
       if (m_start)
-        m_manager->download_list()->start_normal(download);
+        rpc::parse_command_single(rpc::make_target(download), "d.start=");
 
       m_manager->download_store()->save(download);
     }

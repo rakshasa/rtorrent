@@ -107,11 +107,13 @@ apply_on_ratio(int action, const torrent::Object& rawArgs) {
         !(maxRatio > 0 && totalUpload * 100 > totalDone * maxRatio))
       continue;
 
-    bool success;
+    bool success = true;
 
     switch (action) {
-    case core::DownloadList::SLOTS_CLOSE: success = downloadList->close_try(current); break;
-    case core::DownloadList::SLOTS_STOP:  success = downloadList->stop_try(current); break;
+//     case core::DownloadList::SLOTS_CLOSE: success = downloadList->close_try(current); break;
+//     case core::DownloadList::SLOTS_STOP:  success = downloadList->stop_try(current); break;
+    case core::DownloadList::SLOTS_CLOSE: rpc::parse_command_single(rpc::make_target(current), "d.try_close="); break;
+    case core::DownloadList::SLOTS_STOP:  rpc::parse_command_single(rpc::make_target(current), "d.try_stop="); break;
     default: success = false; break;
     }
 
@@ -137,7 +139,7 @@ apply_start_tied() {
     const std::string& tiedToFile = rpc::call_command_string("d.get_tied_to_file", rpc::make_target(*itr));
 
     if (!tiedToFile.empty() && fs.update(rak::path_expand(tiedToFile)))
-      control->core()->download_list()->start_try(*itr);
+      rpc::parse_command_single(rpc::make_target(*itr), "d.try_start=");
   }
 
   return torrent::Object();
@@ -153,7 +155,7 @@ apply_stop_untied() {
     const std::string& tiedToFile = rpc::call_command_string("d.get_tied_to_file", rpc::make_target(*itr));
 
     if (!tiedToFile.empty() && !fs.update(rak::path_expand(tiedToFile)))
-      control->core()->download_list()->stop_try(*itr);
+      rpc::parse_command_single(rpc::make_target(*itr), "d.try_stop=");
   }
 
   return torrent::Object();
@@ -166,7 +168,7 @@ apply_close_untied() {
     const std::string& tiedToFile = rpc::call_command_string("d.get_tied_to_file", rpc::make_target(*itr));
 
     if (rpc::call_command_value("d.get_ignore_commands", rpc::make_target(*itr)) == 0 && !tiedToFile.empty() && !fs.update(rak::path_expand(tiedToFile)))
-      control->core()->download_list()->close(*itr);
+      rpc::parse_command_single(rpc::make_target(*itr), "d.try_close=");
   }
 
   return torrent::Object();
@@ -331,6 +333,14 @@ d_multicall(const torrent::Object& rawArgs) {
 
   return resultRaw;
 }
+
+torrent::Object
+cmd_call(const char* cmd, rpc::target_type target, const torrent::Object& rawArgs) {
+  rpc::parse_command_multiple(target, cmd);
+
+  return torrent::Object();
+}
+
 
 void
 initialize_command_events() {

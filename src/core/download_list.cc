@@ -245,26 +245,6 @@ DownloadList::close(Download* download) {
   }
 }
 
-bool
-DownloadList::close_try(Download* download) {
-  try {
-    if (rpc::call_command_value("d.get_ignore_commands", rpc::make_target(download)) != 0)
-      return false;
-
-    rpc::call_command("d.set_state", (int64_t)0, rpc::make_target(download));
-
-    (*control->view_manager()->find_throw("started"))->set_not_visible(download);
-    (*control->view_manager()->find_throw("stopped"))->set_visible(download);
-
-    close_throw(download);
-    return true;
-
-  } catch (torrent::local_error& e) {
-    control->core()->push_log(e.what());
-    return false;
-  }
-}
-
 void
 DownloadList::close_directly(Download* download) {
   if (download->download()->is_active()) {
@@ -316,72 +296,6 @@ DownloadList::close_throw(Download* download) {
 
   std::for_each(slot_map_hash_removed().begin(), slot_map_hash_removed().end(), download_list_call(download));
   std::for_each(slot_map_close().begin(), slot_map_close().end(), download_list_call(download));
-}
-
-void
-DownloadList::start_normal(Download* download) {
-  check_contains(download);
-
-  // Clear hash failed as we're doing a manual start and want to try
-  // hashing again.
-  download->set_hash_failed(false);
-  rpc::call_command("d.set_state", (int64_t)1, rpc::make_target(download));
-
-  (*control->view_manager()->find_throw("stopped"))->set_not_visible(download);
-  (*control->view_manager()->find_throw("started"))->set_visible(download);
-
-//   try {
-//     rpc::parse_command_multiple(rpc::make_target(download), "d.set_state=1 ;view.set_not_visible=stopped ;view.set_visible=started");
-//   } catch (torrent::local_error& e) {
-//     control->core()->push_log(e.what());
-//   }
-}
-
-bool
-DownloadList::start_try(Download* download) {
-  check_contains(download);
-
-  // Also don't start if the state is one of those that indicate we
-  // were manually stopped?
-
-  if (download->is_hash_failed() || rpc::call_command_value("d.get_ignore_commands", rpc::make_target(download)) != 0)
-    return false;
-
-  // Don't clear the hash failed as this function is used by scripts,
-  // etc.
-  rpc::call_command("d.set_state", (int64_t)1, rpc::make_target(download));
-
-  (*control->view_manager()->find_throw("stopped"))->set_not_visible(download);
-  (*control->view_manager()->find_throw("started"))->set_visible(download);
-
-//   rpc::parse_command_multiple(rpc::make_target(download), "d.set_state=1 ;view.set_not_visible=stopped ;view.set_visible=started");
-
-  return true;
-}
-
-void
-DownloadList::stop_normal(Download* download) {
-  check_contains(download);
-
-  rpc::call_command("d.set_state", (int64_t)0, rpc::make_target(download));
-
-  (*control->view_manager()->find_throw("started"))->set_not_visible(download);
-  (*control->view_manager()->find_throw("stopped"))->set_visible(download);
-}
-
-bool
-DownloadList::stop_try(Download* download) {
-  check_contains(download);
-
-  if (rpc::call_command_value("d.get_ignore_commands", rpc::make_target(download)) != 0)
-    return false;
-
-  rpc::call_command("d.set_state", (int64_t)0, rpc::make_target(download));
-
-  (*control->view_manager()->find_throw("started"))->set_not_visible(download);
-  (*control->view_manager()->find_throw("stopped"))->set_visible(download);
-
-  return true;
 }
 
 void

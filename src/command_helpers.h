@@ -81,6 +81,8 @@ add_variable(const char* getKey, const char* setKey, const char* defaultSetKey,
              rpc::Command::generic_slot getSlot, rpc::Command::generic_slot setSlot,
              const torrent::Object& defaultObject);
 
+extern torrent::Object cmd_call(const char* cmd, rpc::target_type target, const torrent::Object& rawArgs);
+
 #define ADD_VARIABLE_BOOL(key, defaultValue) \
 add_variable("get_" key, "set_" key, key, &rpc::CommandVariable::get_bool, &rpc::CommandVariable::set_bool, (int64_t)defaultValue);
 
@@ -170,6 +172,10 @@ add_variable(key, NULL, NULL, &rpc::CommandVariable::get_string, NULL, std::stri
 
 #define ADD_COMMAND_NONE_L(key, slot) \
   ADD_COMMAND_SLOT(key, call_unknown, slot, "A:", "")
+
+//
+// NEW COMMAND MACROS
+//
 
 //
 // DOWNLOAD RELATED COMMANDS

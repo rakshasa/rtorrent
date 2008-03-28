@@ -422,6 +422,7 @@ initialize_command_download() {
   ADD_CD_VOID("base_filename", &retrieve_d_base_filename);
   ADD_CD_STRING_UNI("name",    rak::on(std::mem_fun(&core::Download::download), std::mem_fun(&torrent::Download::name)));
 
+  // ?????
   ADD_CD_LIST_OBSOLETE("create_link",   rak::bind_ptr_fn(&apply_d_change_link, 0));
   ADD_CD_LIST_OBSOLETE("delete_link",   rak::bind_ptr_fn(&apply_d_change_link, 1));
 
@@ -429,8 +430,12 @@ initialize_command_download() {
   ADD_CD_LIST("delete_link",   rak::bind_ptr_fn(&apply_d_change_link, 1));
   ADD_CD_V_VOID("delete_tied", &apply_d_delete_tied);
 
-  ADD_CD_F_VOID("start",      rak::make_mem_fun(control->core()->download_list(), &core::DownloadList::start_normal));
-  ADD_CD_F_VOID("stop",       rak::make_mem_fun(control->core()->download_list(), &core::DownloadList::stop_normal));
+  ADD_ANY_NONE("d.start",     rak::bind_ptr_fn(&cmd_call, "d.set_hashing_failed=0 ;d.set_state=1 ;view.set_not_visible=stopped ;view.set_visible=started"));
+  ADD_ANY_NONE("d.stop",      rak::bind_ptr_fn(&cmd_call, "d.set_state=0 ;view.set_visible=stopped ;view.set_not_visible=started"));
+  ADD_ANY_NONE("d.try_start", rak::bind_ptr_fn(&cmd_call, "branch=\"or={d.get_hashing_failed=,d.get_ignore_commands=}\",{},{d.set_state=1,view.set_not_visible=stopped,view.set_visible=started}"));
+  ADD_ANY_NONE("d.try_stop",  rak::bind_ptr_fn(&cmd_call, "branch=d.get_ignore_commands=, {}, {d.set_state=0, view.set_visible=stopped, view.set_not_visible=started}"));
+  ADD_ANY_NONE("d.try_close", rak::bind_ptr_fn(&cmd_call, "branch=d.get_ignore_commands=, {}, {d.set_state=0, view.set_visible=stopped, view.set_not_visible=started, d.close=}"));
+
   ADD_CD_F_VOID("resume",     rak::make_mem_fun(control->core()->download_list(), &core::DownloadList::resume_default));
   ADD_CD_F_VOID("pause",      rak::make_mem_fun(control->core()->download_list(), &core::DownloadList::pause_default));
   ADD_CD_F_VOID("open",       rak::make_mem_fun(control->core()->download_list(), &core::DownloadList::open_throw));
@@ -487,6 +492,8 @@ initialize_command_download() {
   ADD_CD_VARIABLE_VALUE_PUBLIC("ignore_commands", "rtorrent", "ignore_commands");
 
   ADD_CD_STRING_BI("connection_current", std::ptr_fun(&apply_d_connection_type), std::ptr_fun(&retrieve_d_connection_type));
+
+  ADD_CD_VALUE_BI("hashing_failed",      std::mem_fun(&core::Download::set_hash_failed), std::mem_fun(&core::Download::is_hash_failed));
 
   // This command really needs to be improved, so we have proper
   // logging support.
