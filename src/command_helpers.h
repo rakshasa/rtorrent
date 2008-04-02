@@ -181,6 +181,19 @@ add_variable(key, NULL, NULL, &rpc::CommandVariable::get_string, NULL, std::stri
 // DOWNLOAD RELATED COMMANDS
 //
 
+#define CMD_V(prefix, postfix, type, defaultValue)                       \
+  add_variable(prefix "" postfix, prefix "set_" postfix, NULL, &rpc::CommandVariable::get_##type, &rpc::CommandVariable::set_##type, defaultValue);
+
+#define CMD_G_SLOT(key, function, slot, parm, doc)    \
+  commandAnySlotsItr->set_slot(slot); \
+  rpc::commands.insert_type(key, commandAnySlotsItr++, &rpc::CommandSlot<rpc::target_type>::function, rpc::CommandMap::flag_dont_delete | rpc::CommandMap::flag_public_xmlrpc, parm, doc);
+
+#define CMD_G(key, slot) \
+  CMD_G_SLOT(key, call_unknown, slot, "i:", "")
+
+#define CMD_G_STRING(key, slot) \
+  CMD_G_SLOT(key, call_string, slot, "i:", "")
+
 #define CMD_D_SLOT(key, function, slot, parm, doc)    \
   commandDownloadSlotsItr->set_slot(slot); \
   rpc::commands.insert_type(key, commandDownloadSlotsItr++, &rpc::CommandSlot<core::Download*>::function, rpc::CommandMap::flag_dont_delete | rpc::CommandMap::flag_public_xmlrpc, parm, doc);

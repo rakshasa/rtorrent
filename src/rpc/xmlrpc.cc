@@ -195,7 +195,7 @@ xmlrpc_to_target(xmlrpc_env* env, xmlrpc_value* value) {
       if (*str == '\0' || *end != '\0')
         throw xmlrpc_error(XMLRPC_TYPE_ERROR, "Invalid index.");
 
-      target = rpc::make_target(XmlRpc::call_file, xmlrpc.get_slot_find_tracker()(download, index));
+      target = rpc::make_target(XmlRpc::call_tracker, xmlrpc.get_slot_find_tracker()(download, index));
       break;
 
     default:

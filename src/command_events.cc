@@ -65,10 +65,15 @@ apply_on_state_change(core::DownloadList::slot_map* slotMap, const torrent::Obje
   if (args.size() == 0 || args.size() > 2)
     throw torrent::input_error("Wrong number of arguments.");
 
-  if (args.front().as_string().empty())
+  const std::string& rawKey = args.front().as_string();
+
+  if (rawKey.empty())
     throw torrent::input_error("Empty key.");
 
-  std::string key = "1_state_" + args.front().as_string();
+  // If the key starts with '_' then it's supposed to be literal, with
+  // the initial '_' removed. This allows us to get proper ordering
+  // for internal rtorrent tasks.
+  std::string key = rawKey[0] != '_' ? ("1_state_" + rawKey) : rawKey.substr(1);
 
   if (args.size() == 1)
     slotMap->erase(key);

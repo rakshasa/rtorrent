@@ -88,7 +88,7 @@ ElementDownloadList::ElementDownloadList() :
   m_bindings['6']           = sigc::bind(sigc::mem_fun(*this, &ElementDownloadList::receive_change_view), "incomplete");
   m_bindings['7']           = sigc::bind(sigc::mem_fun(*this, &ElementDownloadList::receive_change_view), "hashing");
   m_bindings['8']           = sigc::bind(sigc::mem_fun(*this, &ElementDownloadList::receive_change_view), "seeding");
-//  m_bindings['8']           = sigc::bind(sigc::mem_fun(*this, &ElementDownloadList::receive_command), "view_set=main,seeding", (const char*)NULL);
+  m_bindings['9']           = sigc::bind(sigc::mem_fun(*this, &ElementDownloadList::receive_change_view), "active");
 
   m_bindings[KEY_UP]   = m_bindings['P' - '@'] = sigc::mem_fun(*this, &ElementDownloadList::receive_prev);
   m_bindings[KEY_DOWN] = m_bindings['N' - '@'] = sigc::mem_fun(*this, &ElementDownloadList::receive_next);

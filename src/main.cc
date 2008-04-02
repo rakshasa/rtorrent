@@ -183,13 +183,16 @@ main(int argc, char** argv) {
        "view_sort_new     = name,less=d.get_name=\n"
        "view_sort_current = name,less=d.get_name=\n"
 
+       "view_add = active\n"
+       "view_filter = active,false=\n"
+
        "view_add = started\n"
-       "view_filter = started,d.get_state=\n"
+       "view_filter = started,false=\n"
        "view_event_added = started,d.resume=\n"
        "view_event_removed = started,d.pause=\n"
 
        "view_add = stopped\n"
-       "view_filter = stopped,not=$d.get_state=\n"
+       "view_filter = stopped,false=\n"
 
        "view_add = complete\n"
        "view_filter = complete,d.get_complete=\n"

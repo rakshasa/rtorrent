@@ -180,6 +180,11 @@ apply_not(rpc::target_type target, const torrent::Object& rawArgs) {
 }
 
 torrent::Object
+apply_false(rpc::target_type target, const torrent::Object& rawArgs) {
+  return (int64_t)0;
+}
+
+torrent::Object
 apply_and(rpc::target_type target, const torrent::Object& rawArgs) {
   if (rawArgs.type() != torrent::Object::TYPE_LIST)
     return as_boolean(rawArgs);
@@ -379,6 +384,16 @@ apply_if(int flags, rpc::target_type target, const torrent::Object& rawArgs) {
 }
 
 torrent::Object
+cmd_view_size(__UNUSED rpc::target_type target, const torrent::Object& rawArgs) {
+  return (*control->view_manager()->find_throw(rawArgs.as_string()))->size_visible();
+}
+
+torrent::Object
+cmd_view_size_not_visible(__UNUSED rpc::target_type target, const torrent::Object& rawArgs) {
+  return (*control->view_manager()->find_throw(rawArgs.as_string()))->size_not_visible();
+}
+
+torrent::Object
 cmd_ui_unfocus_download(core::Download* download, const torrent::Object& rawArgs) {
   control->ui()->download_list()->unfocus_download(download);
 
@@ -426,6 +441,8 @@ initialize_command_ui() {
 
   // Cleanup and add . to view.
 
+  CMD_G_STRING("view.size",              rak::ptr_fn(&cmd_view_size));
+  CMD_G_STRING("view.size_not_visible",  rak::ptr_fn(&cmd_view_size_not_visible));
   CMD_D_STRING("view.filter_download",   rak::ptr_fn(&cmd_view_filter_download));
   CMD_D_STRING("view.set_visible",       rak::ptr_fn(&cmd_view_set_visible));
   CMD_D_STRING("view.set_not_visible",   rak::ptr_fn(&cmd_view_set_not_visible));
@@ -441,6 +458,7 @@ initialize_command_ui() {
   ADD_ANY_NONE("cat",                   rak::ptr_fn(&apply_cat));
   ADD_ANY_NONE("if",                    rak::bind_ptr_fn(&apply_if, 0));
   ADD_ANY_NONE("not",                   rak::ptr_fn(&apply_not));
+  ADD_ANY_NONE("false",                 rak::ptr_fn(&apply_false));
   ADD_ANY_NONE("and",                   rak::ptr_fn(&apply_and));
   ADD_ANY_NONE("or",                    rak::ptr_fn(&apply_or));
 

@@ -69,6 +69,7 @@ void initialize_command_peer();
 void initialize_command_local();
 void initialize_command_network();
 void initialize_command_tracker();
+void initialize_command_scheduler();
 void initialize_command_ui();
 
 void
@@ -81,6 +82,7 @@ initialize_commands() {
   initialize_command_file();
   initialize_command_peer();
   initialize_command_tracker();
+  initialize_command_scheduler();
 
 #ifdef ADDING_COMMANDS 
   if (commandSlotsItr > commandSlots + COMMAND_SLOTS_SIZE ||

@@ -83,6 +83,8 @@ public:
   bool                empty_visible() const                   { return m_size == 0; }
 
   size_type           size() const                            { return m_size; }
+  size_type           size_visible() const                    { return m_size; }
+  size_type           size_not_visible() const                { return base_type::size() - m_size; }
 
   // Perhaps this should be renamed?
   iterator            begin_visible()                         { return begin(); }
