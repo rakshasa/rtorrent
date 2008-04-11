@@ -36,11 +36,27 @@
 
 #include "config.h"
 
+#include "core/manager.h"
+#include "core/download_list.h"
 #include "rpc/command_variable.h"
 
 #include "globals.h"
 #include "control.h"
 #include "command_helpers.h"
+
+torrent::Object
+cmd_scheduler_simple_added(core::Download* download, const torrent::Object& rawArgs) {
+  control->core()->download_list()->resume(download);
+
+  return torrent::Object();
+}
+
+torrent::Object
+cmd_scheduler_simple_removed(core::Download* download, const torrent::Object& rawArgs) {
+  control->core()->download_list()->pause(download);
+
+  return torrent::Object();
+}
 
 void
 initialize_command_scheduler() {
@@ -50,4 +66,6 @@ initialize_command_scheduler() {
 
   CMD_V("scheduler.", "max_active", value, (int64_t)-1);
 
+  CMD_D_ANY("scheduler.simple.added",   rak::ptr_fn(&cmd_scheduler_simple_added));
+  CMD_D_ANY("scheduler.simple.removed", rak::ptr_fn(&cmd_scheduler_simple_removed));
 }

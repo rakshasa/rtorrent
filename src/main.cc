@@ -188,8 +188,8 @@ main(int argc, char** argv) {
 
        "view_add = started\n"
        "view_filter = started,false=\n"
-       "view_event_added = started,d.resume=\n"
-       "view_event_removed = started,d.pause=\n"
+       "view.event_added = started,scheduler.simple.added=\n"
+       "view.event_removed = started,scheduler.simple.removed=\n"
 
        "view_add = stopped\n"
        "view_filter = stopped,false=\n"

@@ -307,6 +307,8 @@ DownloadList::resume(Download* download, int flags) {
     if (download->download()->is_active())
       return;
 
+    rpc::parse_command_single(rpc::make_target(download), "view.set_visible=active");
+
     // We need to make sure the flags aren't reset if someone decideds
     // to call resume() while it is hashing, etc.
     if (download->resume_flags() == ~uint32_t())
@@ -373,6 +375,8 @@ DownloadList::pause(Download* download, int flags) {
   try {
 
     download->set_resume_flags(~uint32_t());
+
+    rpc::parse_command_single(rpc::make_target(download), "view.set_not_visible=active");
 
     // Always clear hashing on pause. When a hashing request is added,
     // it should have cleared the hash resume data.
