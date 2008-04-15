@@ -36,7 +36,7 @@
 
 #include "config.h"
 
-#include <cstdio>
+#include <stdio.h>
 #include <torrent/path.h>
 #include <torrent/data/file.h>
 #include <torrent/data/file_list.h>
@@ -164,8 +164,8 @@ WindowFileList::redraw() {
       int first = 16 + std::min<unsigned int>(itr.depth(), 8);
       int last = std::max<unsigned int>(m_canvas->width() + 1, 16 + 12);
 
-      std::snprintf(buffer + first, last - first, "| %s",
-                    itr.depth() < (*itr)->path()->size() ? (*itr)->path()->at(itr.depth()).c_str() : "UNKNOWN");
+      snprintf(buffer + first, last - first, "| %s",
+               itr.depth() < (*itr)->path()->size() ? (*itr)->path()->at(itr.depth()).c_str() : "UNKNOWN");
 
       m_canvas->print_attributes(0, pos, buffer, buffer + std::strlen(buffer), &attributes);
 

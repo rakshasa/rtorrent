@@ -70,6 +70,8 @@ public:
   utils::SocketFd&    get_fd()            { return *reinterpret_cast<utils::SocketFd*>(&m_fileDesc); }
 
 private:
+  inline void         realloc_buffer(uint32_t size, const char* buffer, uint32_t bufferSize);
+
   SCgi*               m_parent;
 
   char*               m_buffer;

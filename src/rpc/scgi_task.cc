@@ -56,6 +56,16 @@
 
 namespace rpc {
 
+// If bufferSize is zero then memcpy won't do anything.
+inline void
+SCgiTask::realloc_buffer(uint32_t size, const char* buffer, uint32_t bufferSize) {
+  char* tmp = new char[size];
+
+  std::memcpy(tmp, buffer, bufferSize);
+  delete [] m_buffer;
+  m_buffer = tmp;
+}
+
 void
 SCgiTask::open(SCgi* parent, int fd) {
   m_parent   = parent;
@@ -150,13 +160,10 @@ SCgiTask::event_read() {
       m_body = m_buffer;
 
     } else {
-      char* tmp = new char[(m_bufferSize = contentSize)];
-      std::memcpy(tmp, m_body, std::distance(m_body, m_position));
-      delete [] m_buffer;
+      realloc_buffer((m_bufferSize = contentSize) + 1, m_body, std::distance(m_body, m_position));
 
-      m_position = tmp + std::distance(m_body, m_position);
-      m_buffer = tmp;
-      m_body = tmp;
+      m_position = m_buffer + std::distance(m_body, m_position);
+      m_body = m_buffer;
     }
   }
 
@@ -203,10 +210,8 @@ SCgiTask::event_error() {
 bool
 SCgiTask::receive_write(const char* buffer, uint32_t length) {
   // Need to cast due to a bug in MacOSX gcc-4.0.1.
-  if (length + 256 > std::max(m_bufferSize, (unsigned int)default_buffer_size)) {
-    delete [] m_buffer;
-    m_buffer = new char[length + 256];
-  }
+  if (length + 256 > std::max(m_bufferSize, (unsigned int)default_buffer_size))
+    realloc_buffer(length + 256, NULL, 0);
 
   // Who ever bothers to check the return value?
   int headerSize = sprintf(m_buffer, "Status: 200 OK\r\nContent-Type: text/xml\r\nContent-Length: %i\r\n\r\n", length);
