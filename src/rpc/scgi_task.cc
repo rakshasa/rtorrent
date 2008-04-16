@@ -152,7 +152,7 @@ SCgiTask::event_read() {
     if ((unsigned int)(contentSize + headerSize) < m_bufferSize) {
       m_bufferSize = contentSize + headerSize;
 
-    } else if ((unsigned int)(contentSize + headerSize) <= default_buffer_size) {
+    } else if ((unsigned int)contentSize <= default_buffer_size) {
       m_bufferSize = contentSize;
 
       std::memmove(m_buffer, m_body, std::distance(m_body, m_position));
