@@ -373,7 +373,7 @@ print_object(char* first, char* last, const torrent::Object* src, int flags) {
   }
 
   case torrent::Object::TYPE_VALUE:
-    return std::max(first + snprintf(first, std::distance(first, last), "%lli", src->as_value()), last);
+    return std::min(first + snprintf(first, std::distance(first, last), "%lli", src->as_value()), last);
 
   case torrent::Object::TYPE_LIST:
     for (torrent::Object::list_const_iterator itr = src->as_list().begin(), itrEnd = src->as_list().end(); itr != itrEnd; itr++) {
