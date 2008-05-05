@@ -195,10 +195,6 @@ DownloadFactory::receive_success() {
   if (!rtorrent->has_key_string("custom4")) rtorrent->insert_key("custom4", std::string());
   if (!rtorrent->has_key_string("custom5")) rtorrent->insert_key("custom5", std::string());
 
-  // Move to 'rtorrent'.
-  rpc::call_command("d.set_connection_leech", m_variables["connection_leech"], rpc::make_target(download));
-  rpc::call_command("d.set_connection_seed",  m_variables["connection_seed"], rpc::make_target(download));
-
   rpc::call_command("d.set_uploads_max",      rpc::call_command_void("get_max_uploads"), rpc::make_target(download));
   rpc::call_command("d.set_peers_min",        rpc::call_command_void("get_min_peers"), rpc::make_target(download));
   rpc::call_command("d.set_peers_max",        rpc::call_command_void("get_max_peers"), rpc::make_target(download));
@@ -352,6 +348,9 @@ DownloadFactory::initialize_rtorrent(Download* download, torrent::Object* rtorre
                                                              download->download()->file_list()->size_chunks()));
 
   rtorrent->insert_preserve_copy("ignore_commands", (int64_t)0);
+
+  rtorrent->insert_preserve_type("connection_leech", m_variables["connection_leech"]);
+  rtorrent->insert_preserve_type("connection_seed", m_variables["connection_seed"]);
 }
 
 }

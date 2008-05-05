@@ -154,7 +154,7 @@ Close a torrent and its files.
 	  <listitem><para>
 Set the 'create/resize queued' flags on all files in a torrent. This
 is necessary if the underlying files in a torrent have been deleted or
-truncates, and thus rtorrent much recreate them.
+truncated, and thus rtorrent must recreate them.
           </para></listitem>
 	</varlistentry>
 
@@ -177,6 +177,14 @@ closed.
 	  <term>^X</term>
 	  <listitem><para>
 Call commands or change settings.
+          </para></listitem>
+	</varlistentry>
+
+	<varlistentry>
+	  <term>^B</term>
+	  <listitem><para>
+Set download to perform initial seeding. Only use when
+you are the first and only seeder so far for the download.
           </para></listitem>
 	</varlistentry>
 

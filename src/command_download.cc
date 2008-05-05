@@ -169,6 +169,8 @@ apply_d_connection_type(core::Download* download, const std::string& name) {
     connType = torrent::Download::CONNECTION_LEECH;
   else if (name == "seed")
     connType = torrent::Download::CONNECTION_SEED;
+  else if (name == "initial_seed")
+    connType = torrent::Download::CONNECTION_INITIAL_SEED;
   else
     throw torrent::input_error("Unknown peer connection type selected.");
 
@@ -192,6 +194,8 @@ retrieve_d_connection_type(core::Download* download) {
     return "leech";
   case torrent::Download::CONNECTION_SEED:
     return "seed";
+  case torrent::Download::CONNECTION_INITIAL_SEED:
+    return "initial_seed";
   default:
     return "unknown";
   }
@@ -492,17 +496,14 @@ initialize_command_download() {
   ADD_CD_VARIABLE_VALUE_PUBLIC("ignore_commands", "rtorrent", "ignore_commands");
 
   ADD_CD_STRING_BI("connection_current", std::ptr_fun(&apply_d_connection_type), std::ptr_fun(&retrieve_d_connection_type));
+  ADD_CD_VARIABLE_STRING("connection_leech",      "rtorrent", "connection_leech");
+  ADD_CD_VARIABLE_STRING("connection_seed",       "rtorrent", "connection_seed");
 
   ADD_CD_VALUE_BI("hashing_failed",      std::mem_fun(&core::Download::set_hash_failed), std::mem_fun(&core::Download::is_hash_failed));
 
   // This command really needs to be improved, so we have proper
   // logging support.
   ADD_CD_STRING_BI("message",            std::mem_fun(&core::Download::set_message), std::mem_fun(&core::Download::message));
-
-  add_copy_to_download("get_connection_leech", "d.get_connection_leech");
-  add_copy_to_download("set_connection_leech", "d.set_connection_leech");
-  add_copy_to_download("get_connection_seed", "d.get_connection_seed");
-  add_copy_to_download("set_connection_seed", "d.set_connection_seed");
 
   ADD_CD_VALUE_MEM_BI("max_file_size", &core::Download::file_list, &torrent::FileList::set_max_file_size, &torrent::FileList::max_file_size);
 

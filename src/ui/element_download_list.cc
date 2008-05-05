@@ -76,6 +76,10 @@ ElementDownloadList::ElementDownloadList() :
                                   "branch=d.get_ignore_commands=,"
                                   "{d.set_ignore_commands=0, print=\"Torrent set to heed commands.\"},"
                                   "{d.set_ignore_commands=1, print=\"Torrent set to ignore commands.\"}");
+  m_bindings['B'-'@']= sigc::bind(sigc::mem_fun(*this, &ElementDownloadList::receive_command),
+                                  "branch=d.is_active=,"
+                                  "{print=\"Cannot enable initial seeding on an active download.\"},"
+                                  "{d.set_connection_seed=initial_seed, print=\"Enabled initial seeding for the selected download.\"}");
 
   m_bindings['U']    = sigc::bind(sigc::mem_fun(*this, &ElementDownloadList::receive_command), "d.delete_tied=; print=\"Cleared tied to file association for the selected download.\"");
 
