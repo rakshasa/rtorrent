@@ -3,7 +3,7 @@
 .\" <http://shell.ipoline.com/~elmert/comp/docbook2X/> 
 .\" Please send any bug reports, improvements, comments, patches, 
 .\" etc. to Steve Cheng <steve@ggi-project.org>.
-.TH "RTORRENT" "1" "27 January 2008" "BitTorrent client for ncurses" ""
+.TH "RTORRENT" "1" "07 May 2008" "BitTorrent client for ncurses" ""
 
 .SH NAME
 rtorrent \- a BitTorrent client for ncurses
@@ -67,7 +67,7 @@ Close a torrent and its files.
 \fB^E\fR
 Set the 'create/resize queued' flags on all files in a torrent. This
 is necessary if the underlying files in a torrent have been deleted or
-truncates, and thus rtorrent much recreate them.
+truncated, and thus rtorrent must recreate them.
 .TP
 \fB^R\fR
 Initiate hash check of torrent.
@@ -78,6 +78,10 @@ closed.
 .TP
 \fB^X\fR
 Call commands or change settings.
+.TP
+\fB^B\fR
+Set download to perform initial seeding. Only use when
+you are the first and only seeder so far for the download.
 .TP
 \fB+ | -\fR
 Change the priority of the download.
@@ -420,14 +424,6 @@ number of criteria, including zero, from the following:
 \fBcomplete\fR, \fBincomplete\fR,
 \fBstate_changed\fR,
 \fBstate_changed_reverse\fR
-.TP
-\fBview_filter = \fIname\fB,\fI\&...\fB\fR
-Set a list of filter to apply when new new downloads are added and
-when \fBview_sort\fR is called. All filters must
-match for the download to be included.
-
-\fBstopped\fR, \fBstarted\fR,
-\fBcomplete\fR, \fBincomplete\fR,
 .TP
 \fBkey_layout = \fIqwerty|azerty|qwertz|dvorak\fB\fR
 Change the key-bindings.
