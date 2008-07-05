@@ -399,7 +399,8 @@ DownloadList::pause(Download* download, int flags) {
     rpc::call_command("d.set_state_counter", rpc::call_command_value("d.get_state_counter", rpc::make_target(download)), rpc::make_target(download));
 
     // If initial seeding is complete, don't try it again when restarting.
-    if (download->is_done())
+    if (download->is_done() &&
+        rpc::call_command_void("d.get_connection_current", rpc::make_target(download)).as_string() == "initial_seed")
       rpc::call_command("d.set_connection_seed", rpc::call_command_void("d.get_connection_current", rpc::make_target(download)), rpc::make_target(download));
 
     // Save the state after all the slots, etc have been called so we
