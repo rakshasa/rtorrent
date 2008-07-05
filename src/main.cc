@@ -187,12 +187,12 @@ main(int argc, char** argv) {
        "view_filter = active,false=\n"
 
        "view_add = started\n"
-       "view_filter = started,false=\n"
+       "view_filter = started,d.get_state=\n"
        "view.event_added = started,scheduler.simple.added=\n"
        "view.event_removed = started,scheduler.simple.removed=\n"
 
        "view_add = stopped\n"
-       "view_filter = stopped,false=\n"
+       "view_filter = stopped,not=$d.get_state=\n"
 
        "view_add = complete\n"
        "view_filter = complete,d.get_complete=\n"
