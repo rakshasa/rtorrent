@@ -86,6 +86,7 @@ public:
   // since the string shall always be a C string choosen at
   // compiletime. Might cause extra copying of the string?
 
+  void                print(const char* str, ...);
   void                print(unsigned int x, unsigned int y, const char* str, ...);
 
   void                print_attributes(unsigned int x, unsigned int y, const char* first, const char* last, const attributes_list* attributes);
@@ -94,6 +95,8 @@ public:
   void                print_char(unsigned int x, unsigned int y, const chtype ch) { mvwaddch(m_window, y, x, ch); }
 
   void                set_attr(unsigned int x, unsigned int y, unsigned int n, int attr, int color) { mvwchgat(m_window, y, x, n, attr, color, NULL); }
+
+  void                set_default_attributes(int attr)                            { wattrset(m_window, attr); }
 
   // Initialize stdscr.
   static void         initialize();
@@ -114,6 +117,15 @@ private:
 
   WINDOW*             m_window;
 };
+
+inline void
+Canvas::print(const char* str, ...) {
+  va_list arglist;
+
+  va_start(arglist, str);
+  vw_printw(m_window, const_cast<char*>(str), arglist);
+  va_end(arglist);
+}
 
 inline void
 Canvas::print(unsigned int x, unsigned int y, const char* str, ...) {

@@ -383,7 +383,8 @@ Manager::receive_http_failed(std::string msg) {
 void
 Manager::try_create_download(const std::string& uri, int flags, const command_list_type& commands) {
   // If the path was attempted loaded before, skip it.
-  if (!(flags & create_raw_data) &&
+  if ((flags & create_tied) &&
+      !(flags & create_raw_data) &&
       !is_network_uri(uri) &&
       !file_status_cache()->insert(uri, 0))
     return;

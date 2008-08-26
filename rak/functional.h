@@ -37,6 +37,7 @@
 #ifndef RAK_FUNCTIONAL_H
 #define RAK_FUNCTIONAL_H
 
+#include <cstddef>
 #include <functional>
 
 namespace rak {

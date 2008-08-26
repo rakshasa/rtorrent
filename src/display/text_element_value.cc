@@ -36,6 +36,8 @@
 
 #include "config.h"
 
+#include <ctime>
+
 #include "globals.h"
 #include "text_element_value.h"
 

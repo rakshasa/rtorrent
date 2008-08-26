@@ -84,11 +84,12 @@ Download::~Download() {
 void
 Download::enable_udp_trackers(bool state) {
   for (torrent::TrackerList::iterator itr = m_download.tracker_list()->begin(), last = m_download.tracker_list()->end(); itr != last; ++itr)
-    if ((*itr)->type() == torrent::Tracker::TRACKER_UDP)
+    if ((*itr)->type() == torrent::Tracker::TRACKER_UDP) {
       if (state)
         (*itr)->enable();
       else
         (*itr)->disable();
+    }
 }
 
 uint32_t

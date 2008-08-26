@@ -261,10 +261,10 @@ apply_scgi(const std::string& arg, int type) {
       break;
     }
 
-    rak::address_info::free_address_info(ai);
+    if (ai != NULL) rak::address_info::free_address_info(ai);
 
   } catch (torrent::local_error& e) {
-    rak::address_info::free_address_info(ai);
+    if (ai != NULL) rak::address_info::free_address_info(ai);
 
     throw torrent::input_error(e.what());
   }

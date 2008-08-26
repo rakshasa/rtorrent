@@ -183,7 +183,7 @@ AC_DEFUN([TORRENT_CHECK_MADVISE], [
 AC_DEFUN([TORRENT_CHECK_EXECINFO], [
   AC_MSG_CHECKING(for execinfo.h)
 
-  AC_RUN_IFELSE(
+  AC_LINK_IFELSE(
     [[#include <execinfo.h>
       int main() { backtrace((void**)0, 0); backtrace_symbols((char**)0, 0); return 0;}
     ]],
