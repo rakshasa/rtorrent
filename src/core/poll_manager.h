@@ -37,7 +37,6 @@
 #ifndef RTORRENT_CORE_POLL_MANAGER_H
 #define RTORRENT_CORE_POLL_MANAGER_H
 
-#include <sys/select.h>
 #include <rak/timer.h>
 #include <sigc++/signal.h>
 #include <torrent/poll.h>
@@ -58,7 +57,6 @@ public:
 
   unsigned int        get_open_max() const         { return m_poll->open_max(); }
 
-  CurlStack*          get_http_stack()             { return &m_httpStack; }
   torrent::Poll*      get_torrent_poll()           { return m_poll; }
 
   virtual void        poll(rak::timer timeout) = 0;
@@ -70,12 +68,6 @@ protected:
   void                check_error();
 
   torrent::Poll*      m_poll;
-  CurlStack           m_httpStack;
-
-  unsigned int        m_setSize;
-  fd_set*             m_readSet;
-  fd_set*             m_writeSet;
-  fd_set*             m_errorSet;
 };
 
 }

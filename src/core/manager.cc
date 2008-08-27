@@ -165,6 +165,7 @@ Manager::Manager() :
   m_downloadList    = new DownloadList();
   m_fileStatusCache = new FileStatusCache();
   m_httpQueue       = new HttpQueue();
+  m_httpStack       = new CurlStack();
 }
 
 Manager::~Manager() {
@@ -205,8 +206,8 @@ Manager::initialize_first() {
 // Most of this should be possible to move out.
 void
 Manager::initialize_second() {
-  torrent::Http::set_factory(sigc::mem_fun(m_pollManager->get_http_stack(), &CurlStack::new_object));
-  m_httpQueue->slot_factory(sigc::mem_fun(m_pollManager->get_http_stack(), &CurlStack::new_object));
+  torrent::Http::set_factory(sigc::mem_fun(m_httpStack, &CurlStack::new_object));
+  m_httpQueue->slot_factory(sigc::mem_fun(m_httpStack, &CurlStack::new_object));
 
   CurlStack::global_init();
 
@@ -229,6 +230,8 @@ Manager::cleanup() {
   // here before the torrent::* objects are deleted.
 
   torrent::cleanup();
+
+  delete m_httpStack;
   CurlStack::global_cleanup();
 
   delete m_pollManager;
@@ -304,7 +307,7 @@ Manager::set_bind_address(const std::string& addr) {
       torrent::connection_manager()->set_bind_address(ai->address()->c_sockaddr());
     }
 
-    m_pollManager->get_http_stack()->set_bind_address(!ai->address()->is_address_any() ? ai->address()->address_str() : std::string());
+    m_httpStack->set_bind_address(!ai->address()->is_address_any() ? ai->address()->address_str() : std::string());
 
     rak::address_info::free_address_info(ai);
 

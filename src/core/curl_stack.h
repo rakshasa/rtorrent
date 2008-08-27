@@ -41,9 +41,12 @@
 #include <string>
 #include <sigc++/functors/slot.h>
 
+#include "rak/priority_queue_default.h"
+
 namespace core {
 
 class CurlGet;
+class CurlSocket;
 
 // By using a deque instead of vector we allow for cheaper removal of
 // the oldest elements, those that will be first in the in the
@@ -80,11 +83,7 @@ class CurlStack : std::deque<CurlGet*> {
   ~CurlStack();
 
   CurlGet*            new_object();
-
-  void                perform();
-
-  // TODO: Set fd_set's only once?
-  unsigned int        fdset(fd_set* readfds, fd_set* writefds, fd_set* exceptfds);
+  CurlSocket*         new_socket(int fd);
 
   unsigned int        active() const                         { return m_active; }
   unsigned int        max_active() const                     { return m_maxActive; }
@@ -108,6 +107,10 @@ class CurlStack : std::deque<CurlGet*> {
   static void         global_init();
   static void         global_cleanup();
 
+  void                receive_action(CurlSocket* socket, int type);
+
+  static int          set_timeout(void* handle, long timeout_ms, void* userp);
+
  protected:
   void                add_get(CurlGet* get);
   void                remove_get(CurlGet* get);
@@ -116,10 +119,14 @@ class CurlStack : std::deque<CurlGet*> {
   CurlStack(const CurlStack&);
   void operator = (const CurlStack&);
 
+  void                receive_timeout();
+
   void*               m_handle;
 
   unsigned int        m_active;
   unsigned int        m_maxActive;
+
+  rak::priority_item  m_taskTimeout;
 
   std::string         m_userAgent;
   std::string         m_httpProxy;

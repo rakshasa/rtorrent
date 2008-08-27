@@ -75,6 +75,7 @@ public:
   FileStatusCache*    file_status_cache()                 { return m_fileStatusCache; }
 
   HttpQueue*          http_queue()                        { return m_httpQueue; }
+  CurlStack*          http_stack()                        { return m_httpStack; }
 
   View*               hashing_view()                      { return m_hashingView; }
   void                set_hashing_view(View* v);
@@ -131,6 +132,7 @@ private:
   DownloadStore*      m_downloadStore;
   FileStatusCache*    m_fileStatusCache;
   HttpQueue*          m_httpQueue;
+  CurlStack*          m_httpStack;
 
   View*               m_hashingView;
 

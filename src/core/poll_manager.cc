@@ -48,47 +48,10 @@ PollManager::PollManager(torrent::Poll* poll) :
 
   if (m_poll == NULL)
     throw std::logic_error("PollManager::PollManager(...) received poll == NULL");
-
-#if defined USE_VARIABLE_FDSET
-  m_setSize = m_poll->open_max() / 8;
-  m_readSet = (fd_set*)new char[m_setSize];
-  m_writeSet = (fd_set*)new char[m_setSize];
-  m_errorSet = (fd_set*)new char[m_setSize];
-
-  std::memset(m_readSet, 0, m_setSize);
-  std::memset(m_writeSet, 0, m_setSize);
-  std::memset(m_errorSet, 0, m_setSize);
-#else
-  if (m_poll->open_max() > FD_SETSIZE)
-    throw std::logic_error("PollManager::PollManager(...) received a max open sockets >= FD_SETSIZE, but USE_VARIABLE_FDSET was not defined");
-
-  m_setSize = FD_SETSIZE / 8;
-  m_readSet = new fd_set;
-  m_writeSet = new fd_set;
-  m_errorSet = new fd_set;
-
-  FD_ZERO(m_readSet);
-  FD_ZERO(m_writeSet);
-  FD_ZERO(m_errorSet);
-#endif
-
-  // Call this so curl has valid fd_set pointers if curl_multi_perform
-  // is called before it gets set when polling.
-  m_httpStack.fdset(m_readSet, m_writeSet, m_errorSet);
 }
 
 PollManager::~PollManager() {
   delete m_poll;
-
-#if defined USE_VARIABLE_FDSET
-  delete [] m_readSet;
-  delete [] m_writeSet;
-  delete [] m_errorSet;
-#else
-  delete m_readSet;
-  delete m_writeSet;
-  delete m_errorSet;
-#endif
 }
 
 void

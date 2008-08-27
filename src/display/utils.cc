@@ -296,8 +296,8 @@ print_status_extra(char* first, char* last) {
                        torrent::max_download_unchoked());
 
   first = print_buffer(first, last, " [H %u/%u]",
-                       control->core()->get_poll_manager()->get_http_stack()->active(),
-                       control->core()->get_poll_manager()->get_http_stack()->max_active());                       
+                       control->core()->http_stack()->active(),
+                       control->core()->http_stack()->max_active());                       
 
   first = print_buffer(first, last, " [S %i/%i/%i]",
                        torrent::total_handshakes(),

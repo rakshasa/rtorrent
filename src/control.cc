@@ -107,7 +107,7 @@ Control::initialize() {
   display::Window::slot_unschedule(rak::make_mem_fun(m_display, &display::Manager::unschedule));
   display::Window::slot_adjust(rak::make_mem_fun(m_display, &display::Manager::adjust_layout));
 
-  m_core->get_poll_manager()->get_http_stack()->set_user_agent(USER_AGENT);
+  m_core->http_stack()->set_user_agent(USER_AGENT);
 
   m_core->initialize_second();
   m_core->listen_open();

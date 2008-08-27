@@ -53,7 +53,12 @@ public:
   void                poll(rak::timer timeout);
 
 private:
-  PollManagerSelect(torrent::Poll* p) : PollManager(p) {}
+  PollManagerSelect(torrent::Poll* p);
+
+  unsigned int        m_setSize;
+  fd_set*             m_readSet;
+  fd_set*             m_writeSet;
+  fd_set*             m_errorSet;
 };
 
 }

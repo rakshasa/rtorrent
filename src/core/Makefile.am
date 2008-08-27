@@ -3,6 +3,8 @@ noinst_LIBRARIES = libsub_core.a
 libsub_core_a_SOURCES = \
 	curl_get.cc \
 	curl_get.h \
+	curl_socket.cc \
+	curl_socket.h \
 	curl_stack.cc \
 	curl_stack.h \
 	dht_manager.cc \

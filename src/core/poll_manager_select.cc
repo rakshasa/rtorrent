@@ -47,6 +47,31 @@
 
 namespace core {
 
+PollManagerSelect::PollManagerSelect(torrent::Poll* p) : PollManager(p) {
+#if defined USE_VARIABLE_FDSET
+  m_setSize = m_poll->open_max() / 8;
+  m_readSet = (fd_set*)new char[m_setSize];
+  m_writeSet = (fd_set*)new char[m_setSize];
+  m_errorSet = (fd_set*)new char[m_setSize];
+
+  std::memset(m_readSet, 0, m_setSize);
+  std::memset(m_writeSet, 0, m_setSize);
+  std::memset(m_errorSet, 0, m_setSize);
+#else
+  if (m_poll->open_max() > FD_SETSIZE)
+    throw std::logic_error("PollManagerSelect::create(...) received a max open sockets >= FD_SETSIZE, but USE_VARIABLE_FDSET was not defined");
+
+  m_setSize = FD_SETSIZE / 8;
+  m_readSet = new fd_set;
+  m_writeSet = new fd_set;
+  m_errorSet = new fd_set;
+
+  FD_ZERO(m_readSet);
+  FD_ZERO(m_writeSet);
+  FD_ZERO(m_errorSet);
+#endif
+}
+
 PollManagerSelect*
 PollManagerSelect::create(int maxOpenSockets) {
   torrent::PollSelect* p = torrent::PollSelect::create(maxOpenSockets);
@@ -58,6 +83,15 @@ PollManagerSelect::create(int maxOpenSockets) {
 }
 
 PollManagerSelect::~PollManagerSelect() {
+#if defined USE_VARIABLE_FDSET
+  delete [] m_readSet;
+  delete [] m_writeSet;
+  delete [] m_errorSet;
+#else
+  delete m_readSet;
+  delete m_writeSet;
+  delete m_errorSet;
+#endif
 }
 
 void
@@ -77,16 +111,10 @@ PollManagerSelect::poll(rak::timer timeout) {
 
   unsigned int maxFd = static_cast<torrent::PollSelect*>(m_poll)->fdset(m_readSet, m_writeSet, m_errorSet);
 
-  if (!m_httpStack.empty())
-    maxFd = std::max(maxFd, m_httpStack.fdset(m_readSet, m_writeSet, m_errorSet));
-
   timeval t = timeout.tval();
 
   if (select(maxFd + 1, m_readSet, m_writeSet, m_errorSet, &t) == -1)
     return check_error();
-
-  if (!m_httpStack.empty())
-    m_httpStack.perform();
 
   torrent::perform();
   static_cast<torrent::PollSelect*>(m_poll)->perform(m_readSet, m_writeSet, m_errorSet);
