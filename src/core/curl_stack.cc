@@ -203,6 +203,8 @@ CurlStack::global_cleanup() {
   curl_global_cleanup();
 }
 
+// TODO: Is this function supposed to set a per-handle timeout, or is
+// it the shortest timeout amongst all handles?
 int
 CurlStack::set_timeout(void* handle, long timeout_ms, void* userp) {
   CurlStack* stack = (CurlStack*)userp;
