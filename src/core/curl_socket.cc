@@ -99,29 +99,35 @@ CurlSocket::close() {
   if (m_fileDesc == -1)
     throw torrent::internal_error("CurlSocket::close() m_fileDesc == -1.");
 
-  // Extra cleanup to avoid leaving dangling polling events in case
-  // libcurl decides to leave the fd open for reuse.
-  control->poll()->remove_read(this);
-  control->poll()->remove_write(this);
-  control->poll()->remove_error(this);
-
   control->poll()->closed(this);
   m_fileDesc = -1;
 }
 
 void
 CurlSocket::event_read() {
+#if (LIBCURL_VERSION_NUM >= 0x071003)
   return m_stack->receive_action(this, CURL_CSELECT_IN);
+#else
+  return m_stack->receive_action(this, 0);
+#endif
 }
 
 void
 CurlSocket::event_write() {
+#if (LIBCURL_VERSION_NUM >= 0x071003)
   return m_stack->receive_action(this, CURL_CSELECT_OUT);
+#else
+  return m_stack->receive_action(this, 0);
+#endif
 }
 
 void
 CurlSocket::event_error() {
+#if (LIBCURL_VERSION_NUM >= 0x071003)
   return m_stack->receive_action(this, CURL_CSELECT_ERR);
+#else
+  return m_stack->receive_action(this, 0);
+#endif
 }
 
 }

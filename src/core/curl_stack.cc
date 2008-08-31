@@ -132,6 +132,14 @@ CurlStack::receive_action(CurlSocket* socket, int events) {
 void
 CurlStack::receive_timeout() {
   receive_action(NULL, 0);
+
+  // Sometimes libcurl forgets to reset the timeout. Try to poll the value in that case, or use 10 seconds.
+  if (!empty() && !m_taskTimeout.is_queued()) {
+    long timeout;
+    curl_multi_timeout((CURLM*)m_handle, &timeout);
+    priority_queue_insert(&taskScheduler, &m_taskTimeout, 
+                          cachedTime + rak::timer::from_milliseconds(std::max<unsigned long>(timeout, 10000)));
+  }
 }
 
 void
@@ -161,6 +169,10 @@ CurlStack::add_get(CurlGet* get) {
   
   if (curl_multi_add_handle((CURLM*)m_handle, get->handle()) > 0)
     throw torrent::internal_error("Error calling curl_multi_add_handle.");
+
+#if (LIBCURL_VERSION_NUM < 0x071000)
+  receive_timeout();
+#endif
 }
 
 void
