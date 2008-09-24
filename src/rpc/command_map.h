@@ -65,7 +65,7 @@ struct command_map_data_type {
   Command*      m_variable;
 
   union {
-    Command::generic_slot  m_genericSlot;
+    Command::cleaned_slot  m_genericSlot;
     Command::any_slot      m_anySlot;
     Command::download_slot m_downloadSlot;
     Command::file_slot     m_fileSlot;
@@ -100,7 +100,9 @@ public:
   using base_type::find;
 
   static const int flag_dont_delete   = 0x1;
-  static const int flag_public_xmlrpc = 0x2;
+  static const int flag_delete_key    = 0x2;
+  static const int flag_public_xmlrpc = 0x4;
+  static const int flag_modifiable    = 0x8;
 
   CommandMap() {}
   ~CommandMap();
@@ -116,7 +118,7 @@ public:
     iterator itr = insert(key, variable, flags, parm, doc);
 
     itr->second.m_target      = target_type_id<T>::value; 
-    itr->second.m_genericSlot = (Command::generic_slot)targetSlot;
+    itr->second.m_genericSlot = (Command::cleaned_slot)targetSlot;
   }
 
   void                insert(key_type key, const command_map_data_type src);

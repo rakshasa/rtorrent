@@ -34,40 +34,21 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef RTORRENT_RPC_COMMAND_VARIABLES_H
-#define RTORRENT_RPC_COMMAND_VARIABLES_H
+#include "config.h"
 
-#include <string>
-#include <limits>
-#include <inttypes.h>
-#include <torrent/object.h>
-
-#include "command.h"
+#include "parse.h"
+#include "parse_commands.h"
+#include "command_function.h"
 
 namespace rpc {
 
-class CommandVariable : public Command {
-public:
-  typedef target_wrapper<void>::cleaned_type cleaned_type;
+const torrent::Object
+CommandFunction::call(Command* rawCommand, target_type target, const torrent::Object& args) {
+  CommandFunction* command = reinterpret_cast<CommandFunction*>(rawCommand);
 
-  CommandVariable(const torrent::Object& v = torrent::Object()) : m_variable(v) {}
-  
-  const torrent::Object variable() const                         { return m_variable; }
-  void                  set_variable(const torrent::Object& var) { m_variable = var; }
+  parse_command_multiple(target, command->m_command.c_str(), command->m_command.c_str() + command->m_command.size());
 
-  static const torrent::Object set_bool(Command* rawCommand, cleaned_type target, const torrent::Object& args);
-  static const torrent::Object get_bool(Command* rawCommand, cleaned_type target, const torrent::Object& args);
-
-  static const torrent::Object set_value(Command* rawCommand, cleaned_type target, const torrent::Object& args);
-  static const torrent::Object get_value(Command* rawCommand, cleaned_type target, const torrent::Object& args);
-
-  static const torrent::Object set_string(Command* rawCommand, cleaned_type target, const torrent::Object& args);
-  static const torrent::Object get_string(Command* rawCommand, cleaned_type target, const torrent::Object& args);
-
-private:
-  torrent::Object    m_variable;
-};
-
+  return torrent::Object();
 }
 
-#endif
+}

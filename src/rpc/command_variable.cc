@@ -42,7 +42,7 @@
 namespace rpc {
 
 const torrent::Object
-CommandVariable::set_bool(Command* rawCommand, const torrent::Object& rawArgs) {
+CommandVariable::set_bool(Command* rawCommand, cleaned_type target, const torrent::Object& rawArgs) {
   CommandVariable* variable = static_cast<CommandVariable*>(rawCommand);
 
   const torrent::Object& arg = convert_to_single_argument(rawArgs);
@@ -73,14 +73,14 @@ CommandVariable::set_bool(Command* rawCommand, const torrent::Object& rawArgs) {
 }
 
 const torrent::Object
-CommandVariable::get_bool(Command* rawCommand, const torrent::Object& args) {
+CommandVariable::get_bool(Command* rawCommand, cleaned_type target, const torrent::Object& args) {
   CommandVariable* variable = static_cast<CommandVariable*>(rawCommand);
 
   return variable->m_variable;
 }
 
 const torrent::Object
-CommandVariable::set_value(Command* rawCommand, const torrent::Object& rawArgs) {
+CommandVariable::set_value(Command* rawCommand, cleaned_type target, const torrent::Object& rawArgs) {
   CommandVariable* variable = static_cast<CommandVariable*>(rawCommand);
 
   const torrent::Object& arg = convert_to_single_argument(rawArgs);
@@ -109,14 +109,14 @@ CommandVariable::set_value(Command* rawCommand, const torrent::Object& rawArgs) 
 }
 
 const torrent::Object
-CommandVariable::get_value(Command* rawCommand, const torrent::Object& args) {
+CommandVariable::get_value(Command* rawCommand, cleaned_type target, const torrent::Object& args) {
   CommandVariable* variable = static_cast<CommandVariable*>(rawCommand);
 
   return variable->m_variable;
 }
 
 const torrent::Object
-CommandVariable::set_string(Command* rawCommand, const torrent::Object& rawArgs) {
+CommandVariable::set_string(Command* rawCommand, cleaned_type target, const torrent::Object& rawArgs) {
   CommandVariable* variable = static_cast<CommandVariable*>(rawCommand);
 
   const torrent::Object& arg = convert_to_single_argument(rawArgs);
@@ -142,7 +142,7 @@ CommandVariable::set_string(Command* rawCommand, const torrent::Object& rawArgs)
 }
 
 const torrent::Object
-CommandVariable::get_string(Command* rawCommand, const torrent::Object& args) {
+CommandVariable::get_string(Command* rawCommand, cleaned_type target, const torrent::Object& args) {
   CommandVariable* variable = static_cast<CommandVariable*>(rawCommand);
 
   return variable->m_variable;

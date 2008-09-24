@@ -34,8 +34,8 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef RTORRENT_RPC_COMMAND_VARIABLES_H
-#define RTORRENT_RPC_COMMAND_VARIABLES_H
+#ifndef RTORRENT_RPC_COMMAND_FUNCTION_H
+#define RTORRENT_RPC_COMMAND_FUNCTION_H
 
 #include <string>
 #include <limits>
@@ -46,26 +46,18 @@
 
 namespace rpc {
 
-class CommandVariable : public Command {
+class CommandFunction : public Command {
 public:
-  typedef target_wrapper<void>::cleaned_type cleaned_type;
-
-  CommandVariable(const torrent::Object& v = torrent::Object()) : m_variable(v) {}
+  CommandFunction(const std::string& cmd = std::string()) : m_command(cmd) {}
   
-  const torrent::Object variable() const                         { return m_variable; }
-  void                  set_variable(const torrent::Object& var) { m_variable = var; }
+  const std::string&    command() const                         { return m_command; }
+  void                  set_command(const std::string& cmd) { m_command = cmd; }
 
-  static const torrent::Object set_bool(Command* rawCommand, cleaned_type target, const torrent::Object& args);
-  static const torrent::Object get_bool(Command* rawCommand, cleaned_type target, const torrent::Object& args);
-
-  static const torrent::Object set_value(Command* rawCommand, cleaned_type target, const torrent::Object& args);
-  static const torrent::Object get_value(Command* rawCommand, cleaned_type target, const torrent::Object& args);
-
-  static const torrent::Object set_string(Command* rawCommand, cleaned_type target, const torrent::Object& args);
-  static const torrent::Object get_string(Command* rawCommand, cleaned_type target, const torrent::Object& args);
+  static const torrent::Object call(Command* rawCommand, target_type target, const torrent::Object& args);
 
 private:
-  torrent::Object    m_variable;
+  // TODO: Replace with a delete-me flag and const char*.
+  std::string           m_command;
 };
 
 }

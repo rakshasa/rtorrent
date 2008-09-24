@@ -339,14 +339,6 @@ d_multicall(const torrent::Object& rawArgs) {
   return resultRaw;
 }
 
-torrent::Object
-cmd_call(const char* cmd, rpc::target_type target, const torrent::Object& rawArgs) {
-  rpc::parse_command_multiple(target, cmd);
-
-  return torrent::Object();
-}
-
-
 void
 initialize_command_events() {
   core::DownloadList* downloadList = control->core()->download_list();

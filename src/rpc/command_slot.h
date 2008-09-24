@@ -61,56 +61,29 @@ namespace rpc {
 template <typename Target>
 class CommandSlot : public Command {
 public:
-  typedef rak::function2<torrent::Object, Target, const torrent::Object&> slot_type;
+  typedef typename target_wrapper<Target>::target_type  target_type;
+  typedef typename target_wrapper<Target>::cleaned_type cleaned_type;
+
+  typedef rak::function2<torrent::Object, target_type, const torrent::Object&> slot_type;
 
   CommandSlot() {}
   CommandSlot(typename slot_type::base_type* s) { m_slot.set(s); }
 
   void                         set_slot(typename slot_type::base_type* s) { m_slot.set(s); }
 
-  static const torrent::Object call_unknown(Command* rawCommand, Target target, const torrent::Object& args);
+  static const torrent::Object call_unknown(Command* rawCommand, cleaned_type target, const torrent::Object& args);
 
-  static const torrent::Object call_list(Command* rawCommand, Target target, const torrent::Object& args);
-  static const torrent::Object call_string(Command* rawCommand, Target target, const torrent::Object& args);
+  static const torrent::Object call_list(Command* rawCommand, cleaned_type target, const torrent::Object& args);
+  static const torrent::Object call_string(Command* rawCommand, cleaned_type target, const torrent::Object& args);
 
-  static const torrent::Object call_value_base(Command* rawCommand, Target target, const torrent::Object& args, int base, int unit);
+  static const torrent::Object call_value_base(Command* rawCommand, cleaned_type target, const torrent::Object& args, int base, int unit);
 
-  static const torrent::Object call_value(Command* rawCommand, Target target, const torrent::Object& args)     { return call_value_base(rawCommand, target, args, 0, 1); }
-  static const torrent::Object call_value_kb(Command* rawCommand, Target target, const torrent::Object& args)  { return call_value_base(rawCommand, target, args, 0, 1 << 10); }
-  static const torrent::Object call_value_oct(Command* rawCommand, Target target, const torrent::Object& args) { return call_value_base(rawCommand, target, args, 8, 1); }
-
-  template <int base, int unit>
-  static const torrent::Object call_value_tmpl(Command* rawCommand, Target target, const torrent::Object& args)     { return call_value_base(rawCommand, target, args, base, unit); }
-
-//   static const torrent::Object& get_list(Command* rawCommand, const torrent::Object& args);
-
-private:
-  slot_type           m_slot;
-};
-
-template <>
-class CommandSlot<void> : public Command {
-public:
-  typedef rak::function1<torrent::Object, const torrent::Object&> slot_type;
-
-  CommandSlot() {}
-  CommandSlot(slot_type::base_type* s) { m_slot.set(s); }
-
-  void                         set_slot(slot_type::base_type* s) { m_slot.set(s); }
-
-  static const torrent::Object call_unknown(Command* rawCommand, const torrent::Object& args);
-
-  static const torrent::Object call_list(Command* rawCommand, const torrent::Object& args);
-  static const torrent::Object call_string(Command* rawCommand, const torrent::Object& args);
-
-  static const torrent::Object call_value_base(Command* rawCommand, const torrent::Object& args, int base, int unit);
-
-  static const torrent::Object call_value(Command* rawCommand, const torrent::Object& args)     { return call_value_base(rawCommand, args, 0, 1); }
-  static const torrent::Object call_value_kb(Command* rawCommand, const torrent::Object& args)  { return call_value_base(rawCommand, args, 0, 1 << 10); }
-  static const torrent::Object call_value_oct(Command* rawCommand, const torrent::Object& args) { return call_value_base(rawCommand, args, 8, 1); }
+  static const torrent::Object call_value(Command* rawCommand, cleaned_type target, const torrent::Object& args)     { return call_value_base(rawCommand, target, args, 0, 1); }
+  static const torrent::Object call_value_kb(Command* rawCommand, cleaned_type target, const torrent::Object& args)  { return call_value_base(rawCommand, target, args, 0, 1 << 10); }
+  static const torrent::Object call_value_oct(Command* rawCommand, cleaned_type target, const torrent::Object& args) { return call_value_base(rawCommand, target, args, 8, 1); }
 
   template <int base, int unit>
-  static const torrent::Object call_value_tmpl(Command* rawCommand, const torrent::Object& args)     { return call_value_base(rawCommand, args, base, unit); }
+  static const torrent::Object call_value_tmpl(Command* rawCommand, cleaned_type target, const torrent::Object& args)     { return call_value_base(rawCommand, target, args, base, unit); }
 
 //   static const torrent::Object& get_list(Command* rawCommand, const torrent::Object& args);
 

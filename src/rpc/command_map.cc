@@ -46,9 +46,13 @@
 namespace rpc {
 
 CommandMap::~CommandMap() {
-  for (iterator itr = base_type::begin(), last = base_type::end(); itr != last; itr++)
+  for (iterator itr = base_type::begin(), last = base_type::end(); itr != last; itr++) {
     if (!(itr->second.m_flags & flag_dont_delete))
       delete itr->second.m_variable;
+
+    if (itr->second.m_flags & flag_delete_key)
+      ; // Remove from map and then delte the key.
+  }
 }
 
 CommandMap::iterator
@@ -102,14 +106,17 @@ CommandMap::call_command(key_type key, const mapped_type& arg, target_type targe
 
   // This _should_ be optimized int just two calls.
   switch (itr->second.m_target) {
-  case Command::target_generic:  return itr->second.m_genericSlot (itr->second.m_variable, arg);
-  case Command::target_any:      return itr->second.m_anySlot     (itr->second.m_variable, target, arg);
-  case Command::target_download: return itr->second.m_downloadSlot(itr->second.m_variable, (core::Download*)target.second, arg);
-  case Command::target_peer:     return itr->second.m_peerSlot    (itr->second.m_variable, (torrent::Peer*)target.second, arg);
-  case Command::target_tracker:  return itr->second.m_trackerSlot (itr->second.m_variable, (torrent::Tracker*)target.second, arg);
-  case Command::target_file:     return itr->second.m_fileSlot    (itr->second.m_variable, (torrent::File*)target.second, arg);
-  case Command::target_file_itr: return itr->second.m_fileItrSlot (itr->second.m_variable, (torrent::FileListIterator*)target.second, arg);
+  case Command::target_any:      return itr->second.m_anySlot(itr->second.m_variable, target, arg);
 
+  case Command::target_generic:
+  case Command::target_download:
+  case Command::target_peer:
+  case Command::target_tracker:
+  case Command::target_file:
+  case Command::target_file_itr: return itr->second.m_genericSlot(itr->second.m_variable, (target_wrapper<void>::cleaned_type)target.second, arg);
+
+  // This should only allow target_type to be passed or something, in
+  // order to optimize this away.
   case Command::target_download_pair: return itr->second.m_downloadPairSlot(itr->second.m_variable, (core::Download*)target.second, (core::Download*)target.third, arg);
 
   default: throw torrent::internal_error("CommandMap::call_command(...) Invalid target.");
@@ -132,13 +139,14 @@ CommandMap::call_command(const_iterator itr, const mapped_type& arg, target_type
 
   // This _should_ be optimized int just two calls.
   switch (itr->second.m_target) {
-  case Command::target_generic:  return itr->second.m_genericSlot (itr->second.m_variable, arg);
-  case Command::target_any:      return itr->second.m_anySlot     (itr->second.m_variable, target, arg);
-  case Command::target_download: return itr->second.m_downloadSlot(itr->second.m_variable, (core::Download*)target.second, arg);
-  case Command::target_peer:     return itr->second.m_peerSlot    (itr->second.m_variable, (torrent::Peer*)target.second, arg);
-  case Command::target_tracker:  return itr->second.m_trackerSlot (itr->second.m_variable, (torrent::Tracker*)target.second, arg);
-  case Command::target_file:     return itr->second.m_fileSlot    (itr->second.m_variable, (torrent::File*)target.second, arg);
-  case Command::target_file_itr: return itr->second.m_fileItrSlot (itr->second.m_variable, (torrent::FileListIterator*)target.second, arg);
+  case Command::target_any:      return itr->second.m_anySlot(itr->second.m_variable, target, arg);
+
+  case Command::target_generic:
+  case Command::target_download:
+  case Command::target_peer:
+  case Command::target_tracker:
+  case Command::target_file:
+  case Command::target_file_itr: return itr->second.m_genericSlot(itr->second.m_variable, (target_wrapper<void>::cleaned_type)target.second, arg);
 
   case Command::target_download_pair: return itr->second.m_downloadPairSlot(itr->second.m_variable, (core::Download*)target.second, (core::Download*)target.third, arg);
 

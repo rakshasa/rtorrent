@@ -434,11 +434,11 @@ initialize_command_download() {
   ADD_CD_LIST("delete_link",   rak::bind_ptr_fn(&apply_d_change_link, 1));
   ADD_CD_V_VOID("delete_tied", &apply_d_delete_tied);
 
-  ADD_ANY_NONE("d.start",     rak::bind_ptr_fn(&cmd_call, "d.set_hashing_failed=0 ;d.set_state=1 ;view.set_not_visible=stopped ;view.set_visible=started"));
-  ADD_ANY_NONE("d.stop",      rak::bind_ptr_fn(&cmd_call, "d.set_state=0 ;view.set_visible=stopped ;view.set_not_visible=started"));
-  ADD_ANY_NONE("d.try_start", rak::bind_ptr_fn(&cmd_call, "branch=\"or={d.get_hashing_failed=,d.get_ignore_commands=}\",{},{d.set_state=1,view.set_not_visible=stopped,view.set_visible=started}"));
-  ADD_ANY_NONE("d.try_stop",  rak::bind_ptr_fn(&cmd_call, "branch=d.get_ignore_commands=, {}, {d.set_state=0, view.set_visible=stopped, view.set_not_visible=started}"));
-  ADD_ANY_NONE("d.try_close", rak::bind_ptr_fn(&cmd_call, "branch=d.get_ignore_commands=, {}, {d.set_state=0, view.set_visible=stopped, view.set_not_visible=started, d.close=}"));
+  CMD_FUNC_SINGLE("d.start",     "d.set_hashing_failed=0 ;d.set_state=1 ;view.set_not_visible=stopped ;view.set_visible=started");
+  CMD_FUNC_SINGLE("d.stop",      "d.set_state=0 ;view.set_visible=stopped ;view.set_not_visible=started");
+  CMD_FUNC_SINGLE("d.try_start", "branch=\"or={d.get_hashing_failed=,d.get_ignore_commands=}\",{},{d.set_state=1,view.set_not_visible=stopped,view.set_visible=started}");
+  CMD_FUNC_SINGLE("d.try_stop",  "branch=d.get_ignore_commands=, {}, {d.set_state=0, view.set_visible=stopped, view.set_not_visible=started}");
+  CMD_FUNC_SINGLE("d.try_close", "branch=d.get_ignore_commands=, {}, {d.set_state=0, view.set_visible=stopped, view.set_not_visible=started, d.close=}");
 
   ADD_CD_F_VOID("resume",     rak::make_mem_fun(control->core()->download_list(), &core::DownloadList::resume_default));
   ADD_CD_F_VOID("pause",      rak::make_mem_fun(control->core()->download_list(), &core::DownloadList::pause_default));

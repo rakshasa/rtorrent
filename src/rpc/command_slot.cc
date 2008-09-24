@@ -44,21 +44,14 @@
 namespace rpc {
 
 template <typename Target> const torrent::Object
-CommandSlot<Target>::call_unknown(Command* rawCommand, Target target, const torrent::Object& rawArgs) {
+CommandSlot<Target>::call_unknown(Command* rawCommand, cleaned_type target, const torrent::Object& rawArgs) {
   CommandSlot* command = static_cast<CommandSlot*>(rawCommand);
 
   return command->m_slot(target, rawArgs);
 }
 
-const torrent::Object
-CommandSlot<void>::call_unknown(Command* rawCommand, const torrent::Object& rawArgs) {
-  CommandSlot* command = static_cast<CommandSlot*>(rawCommand);
-
-  return command->m_slot(rawArgs);
-}
-
 template <typename Target> const torrent::Object
-CommandSlot<Target>::call_list(Command* rawCommand, Target target, const torrent::Object& rawArgs) {
+CommandSlot<Target>::call_list(Command* rawCommand, cleaned_type target, const torrent::Object& rawArgs) {
   CommandSlot* command = static_cast<CommandSlot*>(rawCommand);
 
   switch (rawArgs.type()) {
@@ -79,30 +72,8 @@ CommandSlot<Target>::call_list(Command* rawCommand, Target target, const torrent
   }
 }
 
-const torrent::Object
-CommandSlot<void>::call_list(Command* rawCommand, const torrent::Object& rawArgs) {
-  CommandSlot* command = static_cast<CommandSlot*>(rawCommand);
-
-  switch (rawArgs.type()) {
-  case torrent::Object::TYPE_LIST:
-    return command->m_slot(rawArgs);
-
-  case torrent::Object::TYPE_VALUE:
-  case torrent::Object::TYPE_STRING:
-  case torrent::Object::TYPE_NONE:
-  {
-    torrent::Object tmpList = torrent::Object::create_list();
-    tmpList.as_list().push_back(rawArgs);
-
-    return command->m_slot(tmpList);
-  }
-  default:
-    throw torrent::input_error("Not a list.");
-  }
-}
-
 template <typename Target> const torrent::Object
-CommandSlot<Target>::call_value_base(Command* rawCommand, Target target, const torrent::Object& rawArgs, int base, int unit) {
+CommandSlot<Target>::call_value_base(Command* rawCommand, cleaned_type target, const torrent::Object& rawArgs, int base, int unit) {
   CommandSlot* command = static_cast<CommandSlot*>(rawCommand);
 
   const torrent::Object& arg = convert_to_single_argument(rawArgs);
@@ -126,33 +97,8 @@ CommandSlot<Target>::call_value_base(Command* rawCommand, Target target, const t
   }
 }
 
-const torrent::Object
-CommandSlot<void>::call_value_base(Command* rawCommand, const torrent::Object& rawArgs, int base, int unit) {
-  CommandSlot* command = static_cast<CommandSlot*>(rawCommand);
-
-  const torrent::Object& arg = convert_to_single_argument(rawArgs);
-
-  switch (arg.type()) {
-  case torrent::Object::TYPE_VALUE:
-    // Should shift this one too, so it gives the right unit.
-    return command->m_slot(arg);
-
-  case torrent::Object::TYPE_STRING:
-  {
-    torrent::Object argValue = torrent::Object::create_value();
-
-    if (!parse_whole_value_nothrow(arg.as_string().c_str(), &argValue.as_value(), base, unit))
-      throw torrent::input_error("Not a value.");
-
-    return command->m_slot(argValue);
-  }
-  default:
-    throw torrent::input_error("Not a value.");
-  }
-}
-
 template <typename Target> const torrent::Object
-CommandSlot<Target>::call_string(Command* rawCommand, Target target, const torrent::Object& rawArgs) {
+CommandSlot<Target>::call_string(Command* rawCommand, cleaned_type target, const torrent::Object& rawArgs) {
   CommandSlot* command = static_cast<CommandSlot*>(rawCommand);
 
   const torrent::Object& arg = convert_to_single_argument(rawArgs);
@@ -163,25 +109,6 @@ CommandSlot<Target>::call_string(Command* rawCommand, Target target, const torre
 
   case torrent::Object::TYPE_STRING:
     return command->m_slot(target, arg);
-    break;
-
-  default:
-    throw torrent::input_error("Not a string.");
-  }
-}
-
-const torrent::Object
-CommandSlot<void>::call_string(Command* rawCommand, const torrent::Object& rawArgs) {
-  CommandSlot* command = static_cast<CommandSlot*>(rawCommand);
-
-  const torrent::Object& arg = convert_to_single_argument(rawArgs);
-
-  switch (arg.type()) {
-//   case torrent::Object::TYPE_VALUE:
-//     break;
-
-  case torrent::Object::TYPE_STRING:
-    return command->m_slot(arg);
     break;
 
   default:

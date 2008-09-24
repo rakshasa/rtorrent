@@ -393,6 +393,9 @@ DownloadList::pause(Download* download, int flags) {
     download->download()->stop(flags);
     torrent::resume_save_progress(*download->download(), download->download()->bencode()->get_key("libtorrent_resume"));
     
+    // TODO: This is actually for pause, not stop... And doesn't get
+    // called when the download isn't active, but was in the 'started'
+    // view.
     std::for_each(slot_map_stop().begin(), slot_map_stop().end(), download_list_call(download));
 
     rpc::call_command("d.set_state_changed", cachedTime.seconds(), rpc::make_target(download));

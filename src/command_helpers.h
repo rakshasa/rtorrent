@@ -38,6 +38,7 @@
 #define RTORRENT_UTILS_COMMAND_HELPERS_H
 
 #include "rpc/command_slot.h"
+#include "rpc/command_function.h"
 #include "rpc/parse_commands.h"
 
 namespace rpc {
@@ -78,10 +79,8 @@ void initialize_commands();
 
 void
 add_variable(const char* getKey, const char* setKey, const char* defaultSetKey,
-             rpc::Command::generic_slot getSlot, rpc::Command::generic_slot setSlot,
+             rpc::Command::cleaned_slot getSlot, rpc::Command::cleaned_slot setSlot,
              const torrent::Object& defaultObject);
-
-extern torrent::Object cmd_call(const char* cmd, rpc::target_type target, const torrent::Object& rawArgs);
 
 #define ADD_VARIABLE_BOOL(key, defaultValue) \
 add_variable("get_" key, "set_" key, key, &rpc::CommandVariable::get_bool, &rpc::CommandVariable::set_bool, (int64_t)defaultValue);
@@ -206,5 +205,8 @@ add_variable(key, NULL, NULL, &rpc::CommandVariable::get_string, NULL, std::stri
 
 #define CMD_D_VOID(key, slot) \
   CMD_D_SLOT(key, call_unknown, rpc::object_fn(slot), "i:", "")
+
+#define CMD_FUNC_SINGLE(key, command) \
+  rpc::commands.insert_type(key, new rpc::CommandFunction(command), &rpc::CommandFunction::call, rpc::CommandMap::flag_public_xmlrpc, NULL, NULL);
 
 #endif

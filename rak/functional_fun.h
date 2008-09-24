@@ -139,6 +139,26 @@ private:
   std::auto_ptr<base_type> m_base;
 };
 
+template <typename Result, typename Arg2>
+class function2<Result, void, Arg2> {
+public:
+  typedef Result                             result_type;
+  typedef function_base1<Result, Arg2>       base_type;
+
+  bool                is_valid() const     { return m_base.get() != NULL; }
+
+  void                set(base_type* base) { m_base = std::auto_ptr<base_type>(base); }
+  base_type*          release()            { return m_base.release(); }
+
+  Result operator () (Arg2 arg2)           { return (*m_base)(arg2); }
+
+  template <typename Discard>
+  Result operator () (Discard discard, Arg2 arg2) { return (*m_base)(arg2); }
+
+private:
+  std::auto_ptr<base_type> m_base;
+};
+
 template <typename Result, typename Arg1, typename Arg2, typename Arg3>
 class function3 {
 public:

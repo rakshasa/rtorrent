@@ -108,7 +108,7 @@ initialize_commands() {
 
 void
 add_variable(const char* getKey, const char* setKey, const char* defaultSetKey,
-             rpc::Command::generic_slot getSlot, rpc::Command::generic_slot setSlot,
+             rpc::Command::cleaned_slot getSlot, rpc::Command::cleaned_slot setSlot,
              const torrent::Object& defaultObject) {
   rpc::CommandVariable* variable = commandVariablesItr++;
   variable->set_variable(defaultObject);
