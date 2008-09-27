@@ -50,7 +50,7 @@ class CommandFunction : public Command {
 public:
   CommandFunction(const std::string& cmd = std::string()) : m_command(cmd) {}
   
-  const std::string&    command() const                         { return m_command; }
+  const std::string&    command() const                     { return m_command; }
   void                  set_command(const std::string& cmd) { m_command = cmd; }
 
   static const torrent::Object call(Command* rawCommand, target_type target, const torrent::Object& args);

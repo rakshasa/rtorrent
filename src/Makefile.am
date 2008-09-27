@@ -18,6 +18,7 @@ rtorrent_LDADD = \
 
 rtorrent_SOURCES = \
 	command_download.cc \
+	command_dynamic.cc \
 	command_events.cc \
 	command_file.cc \
 	command_helpers.cc \

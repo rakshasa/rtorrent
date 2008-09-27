@@ -122,6 +122,7 @@ public:
   }
 
   void                insert(key_type key, const command_map_data_type src);
+  void                erase(iterator itr);
 
   const mapped_type   call_command  (key_type key,       const mapped_type& arg, target_type target = target_type((int)Command::target_generic, NULL));
   const mapped_type   call_command  (const_iterator itr, const mapped_type& arg, target_type target = target_type((int)Command::target_generic, NULL));

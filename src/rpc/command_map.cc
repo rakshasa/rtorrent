@@ -36,6 +36,7 @@
 
 #include "config.h"
 
+#include <vector>
 #include <torrent/exceptions.h>
 #include <torrent/object.h>
 #include <torrent/data/file_list_iterator.h>
@@ -46,13 +47,18 @@
 namespace rpc {
 
 CommandMap::~CommandMap() {
+  std::vector<const char*> keys;
+
   for (iterator itr = base_type::begin(), last = base_type::end(); itr != last; itr++) {
     if (!(itr->second.m_flags & flag_dont_delete))
       delete itr->second.m_variable;
 
     if (itr->second.m_flags & flag_delete_key)
-      ; // Remove from map and then delte the key.
+      keys.push_back(itr->first);
   }
+
+  for (std::vector<const char*>::iterator itr = keys.begin(), last = keys.end(); itr != last; itr++)
+    delete [] *itr;
 }
 
 CommandMap::iterator
@@ -77,6 +83,20 @@ CommandMap::insert(key_type key, const command_map_data_type src) {
   // We can assume all the slots are the same size.
   itr->second.m_target      = src.m_target;
   itr->second.m_genericSlot = src.m_genericSlot;
+}
+
+void
+CommandMap::erase(iterator itr) {
+  if (itr == end())
+    return;
+
+  if (!(itr->second.m_flags & flag_dont_delete))
+    delete itr->second.m_variable;
+
+  const char* key = itr->second.m_flags & flag_delete_key ? itr->first : NULL;
+
+  base_type::erase(itr);
+  delete [] key;
 }
 
 const CommandMap::mapped_type
