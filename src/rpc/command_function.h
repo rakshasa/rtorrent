@@ -38,6 +38,7 @@
 #define RTORRENT_RPC_COMMAND_FUNCTION_H
 
 #include <string>
+#include <vector>
 #include <limits>
 #include <inttypes.h>
 #include <torrent/object.h>
@@ -50,14 +51,35 @@ class CommandFunction : public Command {
 public:
   CommandFunction(const std::string& cmd = std::string()) : m_command(cmd) {}
   
-  const std::string&    command() const                     { return m_command; }
-  void                  set_command(const std::string& cmd) { m_command = cmd; }
+  const std::string&  command() const                     { return m_command; }
+  void                set_command(const std::string& cmd) { m_command = cmd; }
 
   static const torrent::Object call(Command* rawCommand, target_type target, const torrent::Object& args);
 
 private:
   // TODO: Replace with a delete-me flag and const char*.
-  std::string           m_command;
+  std::string         m_command;
+};
+
+class CommandFunctionList : public Command,
+                            private std::vector<std::pair<std::string, std::string> > {
+public:
+  typedef std::vector<std::pair<std::string, std::string> > base_type;
+
+  using Command::value_type;
+  using base_type::iterator;
+  using base_type::const_iterator;
+  using base_type::begin;
+  using base_type::end;
+
+  CommandFunctionList() {}
+  
+  const_iterator      find(const char* key);
+
+  void                insert(const std::string& key, const std::string& cmd);
+  void                erase(const std::string& key);
+
+  static const torrent::Object call(Command* rawCommand, target_type target, const torrent::Object& args);
 };
 
 }

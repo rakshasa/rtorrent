@@ -60,7 +60,6 @@ class Download;
 class DownloadList : private std::list<Download*> {
 public:
   typedef std::list<Download*>               base_type;
-  typedef std::map<std::string, std::string> slot_map;
 
   using base_type::iterator;
   using base_type::const_iterator;
@@ -115,40 +114,35 @@ public:
   void                check_hash(Download* d);
 
   enum {
-    SLOTS_INSERT,
-    SLOTS_ERASE,
-    SLOTS_OPEN,
-    SLOTS_CLOSE,
-    SLOTS_START,
-    SLOTS_STOP,
-    SLOTS_HASH_QUEUED,
-    SLOTS_HASH_REMOVED,
-    SLOTS_HASH_DONE,
-    SLOTS_FINISHED,
+    D_SLOTS_INSERT,
+    D_SLOTS_ERASE,
+    D_SLOTS_OPEN,
+    D_SLOTS_CLOSE,
+    D_SLOTS_START,
+    D_SLOTS_STOP,
+    D_SLOTS_HASH_QUEUED,
+    D_SLOTS_HASH_REMOVED,
+    D_SLOTS_HASH_DONE,
+    D_SLOTS_FINISHED,
 
     SLOTS_MAX_SIZE
   };
 
-  slot_map&           slots(int m)                                      { return m_slotMaps[m]; }
-  const slot_map&     slots(int m) const                                { return m_slotMaps[m]; }
-
-  slot_map*           slot_map_begin()                                  { return m_slotMaps; }
-  const slot_map*     slot_map_begin() const                            { return m_slotMaps; }
-  slot_map*           slot_map_end()                                    { return m_slotMaps + SLOTS_MAX_SIZE; }
-  const slot_map*     slot_map_end() const                              { return m_slotMaps + SLOTS_MAX_SIZE; }
-
-  slot_map&           slot_map_insert()                                 { return m_slotMaps[SLOTS_INSERT]; }
-  const slot_map&     slot_map_insert() const                           { return m_slotMaps[SLOTS_INSERT]; }
-  slot_map&           slot_map_erase()                                  { return m_slotMaps[SLOTS_ERASE]; }
-  const slot_map&     slot_map_erase() const                            { return m_slotMaps[SLOTS_ERASE]; }
-  slot_map&           slot_map_open()                                   { return m_slotMaps[SLOTS_OPEN]; }
-  const slot_map&     slot_map_open() const                             { return m_slotMaps[SLOTS_OPEN]; }
-  slot_map&           slot_map_close()                                  { return m_slotMaps[SLOTS_CLOSE]; }
-  const slot_map&     slot_map_close() const                            { return m_slotMaps[SLOTS_CLOSE]; }
-  slot_map&           slot_map_start()                                  { return m_slotMaps[SLOTS_START]; }
-  const slot_map&     slot_map_start() const                            { return m_slotMaps[SLOTS_START]; }
-  slot_map&           slot_map_stop()                                   { return m_slotMaps[SLOTS_STOP]; }
-  const slot_map&     slot_map_stop() const                             { return m_slotMaps[SLOTS_STOP]; }
+  static const char* slot_name(int m) {
+    switch(m) {
+    case D_SLOTS_INSERT: return "event.download.inserted";
+    case D_SLOTS_ERASE: return "event.download.erased";
+    case D_SLOTS_OPEN: return "event.download.opened";
+    case D_SLOTS_CLOSE: return "event.download.closed";
+    case D_SLOTS_START: return "event.download.resumed";
+    case D_SLOTS_STOP: return "event.download.paused";
+    case D_SLOTS_HASH_QUEUED: return "event.download.hash_queued";
+    case D_SLOTS_HASH_REMOVED: return "event.download.hash_removed";
+    case D_SLOTS_HASH_DONE: return "event.download.hash_done";
+    case D_SLOTS_FINISHED: return "event.download.finished";
+    default: return "BORK";
+    }
+  }
 
   // The finished slots will be called when an active download with
   // "finished" == 0 performs a hash check which returns a done
@@ -157,28 +151,6 @@ public:
   // But how to avoid sending 'completed' messages to the tracker?
   // Also we need to handle cases when a hashing torrent starts up
   // after a shutdown.
-
-  slot_map&           slot_map_hash_queued()                            { return m_slotMaps[SLOTS_HASH_QUEUED]; }
-  const slot_map&     slot_map_hash_queued() const                      { return m_slotMaps[SLOTS_HASH_QUEUED]; }
-  slot_map&           slot_map_hash_removed()                           { return m_slotMaps[SLOTS_HASH_REMOVED]; }
-  const slot_map&     slot_map_hash_removed() const                     { return m_slotMaps[SLOTS_HASH_REMOVED]; }
-  slot_map&           slot_map_hash_done()                              { return m_slotMaps[SLOTS_HASH_DONE]; }
-  const slot_map&     slot_map_hash_done() const                        { return m_slotMaps[SLOTS_HASH_DONE]; }
-  slot_map&           slot_map_finished()                               { return m_slotMaps[SLOTS_FINISHED]; }
-  const slot_map&     slot_map_finished() const                         { return m_slotMaps[SLOTS_FINISHED]; }
-
-  bool                has_slot_insert(const std::string& key) const     { return slot_map_insert().find(key) != slot_map_insert().end(); }
-  bool                has_slot_erase(const std::string& key) const      { return slot_map_erase().find(key) != slot_map_erase().end(); }
-  bool                has_slot_open(const std::string& key) const       { return slot_map_open().find(key) != slot_map_open().end(); }
-  bool                has_slot_close(const std::string& key) const      { return slot_map_close().find(key) != slot_map_close().end(); }
-  bool                has_slot_start(const std::string& key) const      { return slot_map_start().find(key) != slot_map_start().end(); }
-  bool                has_slot_stop(const std::string& key) const       { return slot_map_stop().find(key) != slot_map_stop().end(); }
-
-  bool                has_slot_hash_queued(const std::string& key) const{ return slot_map_hash_queued().find(key) != slot_map_hash_queued().end(); }
-  bool                has_slot_hash_done(const std::string& key) const  { return slot_map_hash_done().find(key) != slot_map_hash_done().end(); }
-  bool                has_slot_finished(const std::string& key) const   { return slot_map_finished().find(key) != slot_map_finished().end(); }
-
-  static void         erase_key(slot_map& sm, const std::string& key)   { sm.erase(key); }
 
 private:
   DownloadList(const DownloadList&);
@@ -191,8 +163,6 @@ private:
 
   void                received_finished(Download* d);
   void                confirm_finished(Download* d);
-
-  slot_map            m_slotMaps[SLOTS_MAX_SIZE];
 };
 
 }

@@ -59,7 +59,7 @@
 #include "command_helpers.h"
 
 torrent::Object
-apply_on_state_change(core::DownloadList::slot_map* slotMap, const torrent::Object& rawArgs) {
+apply_on_state_change(const char* name, const torrent::Object& rawArgs) {
   const torrent::Object::list_type& args = rawArgs.as_list();
 
   if (args.size() == 0 || args.size() > 2)
@@ -76,9 +76,18 @@ apply_on_state_change(core::DownloadList::slot_map* slotMap, const torrent::Obje
   std::string key = rawKey[0] != '_' ? ("1_state_" + rawKey) : rawKey.substr(1);
 
   if (args.size() == 1)
-    slotMap->erase(key);
+    rpc::commands.call("system.method.set_key", rpc::make_target(), rpc::create_object_list(name, key));
   else
-    (*slotMap)[key] = args.back().as_string();
+    rpc::commands.call("system.method.set_key", rpc::make_target(), rpc::create_object_list(name, key, args.back()));
+
+  // Deprecated notice, remove this function in the next minor
+  // version.
+  static bool notify = true;
+
+  if (notify) {
+    control->core()->push_log("Deprecated on_* commands, use 'system.method.set_key = event.download.{inserted, erased, ...}, <key>, <command>' instead.");
+    notify = false;
+  }
 
   return torrent::Object();
 }
@@ -117,8 +126,8 @@ apply_on_ratio(int action, const torrent::Object& rawArgs) {
     switch (action) {
 //     case core::DownloadList::SLOTS_CLOSE: success = downloadList->close_try(current); break;
 //     case core::DownloadList::SLOTS_STOP:  success = downloadList->stop_try(current); break;
-    case core::DownloadList::SLOTS_CLOSE: rpc::parse_command_single(rpc::make_target(current), "d.try_close="); break;
-    case core::DownloadList::SLOTS_STOP:  rpc::parse_command_single(rpc::make_target(current), "d.try_stop="); break;
+    case core::DownloadList::D_SLOTS_CLOSE: rpc::parse_command_single(rpc::make_target(current), "d.try_close="); break;
+    case core::DownloadList::D_SLOTS_STOP:  rpc::parse_command_single(rpc::make_target(current), "d.try_stop="); break;
     default: success = false; break;
     }
 
@@ -341,26 +350,24 @@ d_multicall(const torrent::Object& rawArgs) {
 
 void
 initialize_command_events() {
-  core::DownloadList* downloadList = control->core()->download_list();
-
   ADD_VARIABLE_BOOL("check_hash", true);
 
   ADD_VARIABLE_BOOL("session_lock", true);
   ADD_VARIABLE_BOOL("session_on_completion", true);
 
-  ADD_COMMAND_LIST("on_insert",       rak::bind_ptr_fn(&apply_on_state_change, &downloadList->slot_map_insert()));
-  ADD_COMMAND_LIST("on_erase",        rak::bind_ptr_fn(&apply_on_state_change, &downloadList->slot_map_erase()));
-  ADD_COMMAND_LIST("on_open",         rak::bind_ptr_fn(&apply_on_state_change, &downloadList->slot_map_open()));
-  ADD_COMMAND_LIST("on_close",        rak::bind_ptr_fn(&apply_on_state_change, &downloadList->slot_map_close()));
-  ADD_COMMAND_LIST("on_start",        rak::bind_ptr_fn(&apply_on_state_change, &downloadList->slot_map_start()));
-  ADD_COMMAND_LIST("on_stop",         rak::bind_ptr_fn(&apply_on_state_change, &downloadList->slot_map_stop()));
-  ADD_COMMAND_LIST("on_hash_queued",  rak::bind_ptr_fn(&apply_on_state_change, &downloadList->slot_map_hash_queued()));
-  ADD_COMMAND_LIST("on_hash_removed", rak::bind_ptr_fn(&apply_on_state_change, &downloadList->slot_map_hash_removed()));
-  ADD_COMMAND_LIST("on_hash_done",    rak::bind_ptr_fn(&apply_on_state_change, &downloadList->slot_map_hash_done()));
-  ADD_COMMAND_LIST("on_finished",     rak::bind_ptr_fn(&apply_on_state_change, &downloadList->slot_map_finished()));
+  // Deprecated.
+  ADD_COMMAND_LIST("on_insert",       rak::bind_ptr_fn(&apply_on_state_change, "event.download.inserted"));
+  ADD_COMMAND_LIST("on_erase" ,       rak::bind_ptr_fn(&apply_on_state_change, "event.download.erased"));
+  ADD_COMMAND_LIST("on_open",         rak::bind_ptr_fn(&apply_on_state_change, "event.download.opened"));
+  ADD_COMMAND_LIST("on_close",        rak::bind_ptr_fn(&apply_on_state_change, "event.download.closed"));
+  ADD_COMMAND_LIST("on_start",        rak::bind_ptr_fn(&apply_on_state_change, "event.download.resumed"));
+  ADD_COMMAND_LIST("on_stop",         rak::bind_ptr_fn(&apply_on_state_change, "event.download.paused"));
+  ADD_COMMAND_LIST("on_hash_queued",  rak::bind_ptr_fn(&apply_on_state_change, "event.download.hash_queued"));
+  ADD_COMMAND_LIST("on_hash_removed", rak::bind_ptr_fn(&apply_on_state_change, "event.download.hash_removed"));
+  ADD_COMMAND_LIST("on_finished",     rak::bind_ptr_fn(&apply_on_state_change, "event.download.finished"));
 
-  ADD_COMMAND_LIST("stop_on_ratio",   rak::bind_ptr_fn(&apply_on_ratio, (int)core::DownloadList::SLOTS_STOP));
-  ADD_COMMAND_LIST("close_on_ratio",  rak::bind_ptr_fn(&apply_on_ratio, (int)core::DownloadList::SLOTS_CLOSE));
+  ADD_COMMAND_LIST("stop_on_ratio",   rak::bind_ptr_fn(&apply_on_ratio, (int)core::DownloadList::D_SLOTS_STOP));
+  ADD_COMMAND_LIST("close_on_ratio",  rak::bind_ptr_fn(&apply_on_ratio, (int)core::DownloadList::D_SLOTS_CLOSE));
 
   ADD_COMMAND_VOID("start_tied",      &apply_start_tied);
   ADD_COMMAND_VOID("stop_untied",     &apply_stop_untied);

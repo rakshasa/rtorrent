@@ -72,19 +72,19 @@ DownloadList::check_contains(Download* d) {
 #endif
 }
 
-struct download_list_call {
-  download_list_call(Download* d) : m_download(d) {}
+// struct download_list_call {
+//   download_list_call(Download* d) : m_download(d) {}
 
-  void operator () (const DownloadList::slot_map::value_type& s) {
-    try {
-      rpc::parse_command_d_multiple_std(m_download, s.second);
-    } catch (torrent::input_error& e) {
-      control->core()->push_log((std::string("Download event action failed: ") + e.what()).c_str());
-    }
-  }
+//   void operator () (const DownloadList::slot_map::value_type& s) {
+//     try {
+//       rpc::parse_command_d_multiple_std(m_download, s.second);
+//     } catch (torrent::input_error& e) {
+//       control->core()->push_log((std::string("Download event action failed: ") + e.what()).c_str());
+//     }
+//   }
 
-  Download* m_download;
-};    
+//   Download* m_download;
+// };    
 
 void
 DownloadList::clear() {
@@ -171,7 +171,7 @@ DownloadList::insert(Download* download) {
     std::for_each(control->view_manager()->begin(), control->view_manager()->end(), std::bind2nd(std::mem_fun(&View::insert), download));
     std::for_each(control->view_manager()->begin(), control->view_manager()->end(), std::bind2nd(std::mem_fun(&View::filter_download), download));
 
-    std::for_each(slot_map_insert().begin(), slot_map_insert().end(), download_list_call(*itr));
+    rpc::commands.call_catch("event.download.inserted", rpc::make_target(*itr), torrent::Object(), "Download event action failed: ");
 
   } catch (torrent::local_error& e) {
     // Should perhaps relax this, just print an error and remove the
@@ -199,7 +199,7 @@ DownloadList::erase(iterator itr) {
 
   control->core()->download_store()->remove(*itr);
 
-  std::for_each(slot_map_erase().begin(), slot_map_erase().end(), download_list_call(*itr));
+  rpc::commands.call_catch("event.download.erased", rpc::make_target(*itr), torrent::Object(), "Download event action failed: ");
   std::for_each(control->view_manager()->begin(), control->view_manager()->end(), std::bind2nd(std::mem_fun(&View::erase), *itr));
 
   torrent::download_remove(*(*itr)->download());
@@ -230,8 +230,7 @@ DownloadList::open_throw(Download* download) {
     return;
   
   download->download()->open(download->resume_flags());
-
-  std::for_each(slot_map_open().begin(), slot_map_open().end(), download_list_call(download));
+  rpc::commands.call_catch("event.download.opened", rpc::make_target(download), torrent::Object(), "Download event action failed: ");
 }
 
 void
@@ -294,8 +293,8 @@ DownloadList::close_throw(Download* download) {
   if (!download->is_hash_failed() && rpc::call_command_value("d.get_hashing", rpc::make_target(download)) != Download::variable_hashing_stopped)
     throw torrent::internal_error("DownloadList::close_throw(...) called but we're going into a hashing loop.");
 
-  std::for_each(slot_map_hash_removed().begin(), slot_map_hash_removed().end(), download_list_call(download));
-  std::for_each(slot_map_close().begin(), slot_map_close().end(), download_list_call(download));
+  rpc::commands.call_catch("event.download.hash_removed", rpc::make_target(download), torrent::Object(), "Download event action failed: ");
+  rpc::commands.call_catch("event.download.closed", rpc::make_target(download), torrent::Object(), "Download event action failed: ");
 }
 
 void
@@ -328,7 +327,7 @@ DownloadList::resume(Download* download, int flags) {
       if (rpc::call_command_value("d.get_hashing", rpc::make_target(download)) == Download::variable_hashing_stopped)
         rpc::call_command("d.set_hashing", Download::variable_hashing_initial, rpc::make_target(download));
 
-      std::for_each(slot_map_hash_queued().begin(), slot_map_hash_queued().end(), download_list_call(download));
+      rpc::commands.call_catch("event.download.hash_queued", rpc::make_target(download), torrent::Object(), "Download event action failed: ");
       return;
     }
 
@@ -361,7 +360,7 @@ DownloadList::resume(Download* download, int flags) {
 
     download->set_resume_flags(~uint32_t());
 
-    std::for_each(slot_map_start().begin(), slot_map_start().end(), download_list_call(download));
+    rpc::commands.call_catch("event.download.resumed", rpc::make_target(download), torrent::Object(), "Download event action failed: ");
 
   } catch (torrent::local_error& e) {
     control->core()->push_log(e.what());
@@ -384,7 +383,7 @@ DownloadList::pause(Download* download, int flags) {
       download->download()->hash_stop();
       rpc::call_command_set_value("d.set_hashing", Download::variable_hashing_stopped, rpc::make_target(download));
 
-      std::for_each(slot_map_hash_removed().begin(), slot_map_hash_removed().end(), download_list_call(download));
+      rpc::commands.call_catch("event.download.hash_removed", rpc::make_target(download), torrent::Object(), "Download event action failed: ");
     }
 
     if (!download->download()->is_active())
@@ -396,7 +395,7 @@ DownloadList::pause(Download* download, int flags) {
     // TODO: This is actually for pause, not stop... And doesn't get
     // called when the download isn't active, but was in the 'started'
     // view.
-    std::for_each(slot_map_stop().begin(), slot_map_stop().end(), download_list_call(download));
+    rpc::commands.call_catch("event.download.paused", rpc::make_target(download), torrent::Object(), "Download event action failed: ");
 
     rpc::call_command("d.set_state_changed", cachedTime.seconds(), rpc::make_target(download));
     rpc::call_command("d.set_state_counter", rpc::call_command_value("d.get_state_counter", rpc::make_target(download)), rpc::make_target(download));
@@ -441,7 +440,7 @@ DownloadList::hash_done(Download* download) {
   if (!download->is_hash_checked()) {
     download->set_hash_failed(true);
     
-    std::for_each(slot_map_hash_done().begin(), slot_map_hash_done().end(), download_list_call(download));
+    rpc::commands.call_catch("event.download.hash_done", rpc::make_target(download), torrent::Object(), "Download event action failed: ");
     return;
   }
 
@@ -497,7 +496,7 @@ DownloadList::hash_done(Download* download) {
     return;
   }
 
-  std::for_each(slot_map_hash_done().begin(), slot_map_hash_done().end(), download_list_call(download));
+  rpc::commands.call_catch("event.download.hash_done", rpc::make_target(download), torrent::Object(), "Download event action failed: ");
 }
 
 void
@@ -512,8 +511,9 @@ DownloadList::hash_queue(Download* download, int type) {
   if (download->is_open()) {
     pause(download, torrent::Download::stop_skip_tracker);
     download->download()->close();
-    std::for_each(slot_map_hash_removed().begin(), slot_map_hash_removed().end(), download_list_call(download));
-    std::for_each(slot_map_close().begin(), slot_map_close().end(), download_list_call(download));
+
+    rpc::commands.call_catch("event.download.hash_removed", rpc::make_target(download), torrent::Object(), "Download event action failed: ");
+    rpc::commands.call_catch("event.download.closed", rpc::make_target(download), torrent::Object(), "Download event action failed: ");
   }
 
   torrent::resume_clear_progress(*download->download(), download->download()->bencode()->get_key("libtorrent_resume"));
@@ -526,7 +526,7 @@ DownloadList::hash_queue(Download* download, int type) {
 
   // If any more stuff is added here, make sure resume etc are still
   // correct.
-  std::for_each(slot_map_hash_queued().begin(), slot_map_hash_queued().end(), download_list_call(download));
+  rpc::commands.call_catch("event.download.hash_queued", rpc::make_target(download), torrent::Object(), "Download event action failed: ");
 }
 
 void
@@ -570,7 +570,7 @@ DownloadList::confirm_finished(Download* download) {
   // up/downloaded baseline.
   download->download()->tracker_list()->send_completed();
 
-  std::for_each(slot_map_finished().begin(), slot_map_finished().end(), download_list_call(download));
+  rpc::commands.call_catch("event.download.finished", rpc::make_target(download), torrent::Object(), "Download event action failed: ");
 
   if (download->resume_flags() != ~uint32_t())
     throw torrent::internal_error("DownloadList::confirm_finished(...) download->resume_flags() != ~uint32_t().");

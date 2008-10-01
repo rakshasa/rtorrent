@@ -98,7 +98,7 @@ DownloadList::activate(display::Frame* frame, bool focus) {
   m_frame = frame;
 
   control->input()->push_back(&m_bindings);
-  control->core()->download_list()->slot_map_erase()["0_download_list"] = "ui.unfocus_download=";
+  rpc::commands.call("system.method.set_key", rpc::make_target(), rpc::create_object_list("event.download.erased", "0_download_list", "ui.unfocus_download="));
 
   activate_display(DISPLAY_DOWNLOAD_LIST);
 }

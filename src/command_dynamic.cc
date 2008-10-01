@@ -42,39 +42,74 @@
 #include "control.h"
 #include "command_helpers.h"
 
+std::string
+system_method_generate_command(torrent::Object::list_const_iterator first, torrent::Object::list_const_iterator last) {
+  std::string command;
+
+  while (first != last) {
+    if (!command.empty())
+      command += " ;";
+
+    command += (first++)->as_string();
+  }
+
+  return command;
+}
+
+// system.method.insert <generic> {name, "simple|private|const", ...}
+// system.method.insert <generic> {name, "list|private|const"}
+//
+// Add a new user-defined method called 'name' and any number of
+// lines.
 torrent::Object
 system_method_insert(__UNUSED rpc::target_type target, const torrent::Object& rawArgs) {
   const torrent::Object::list_type& args = rawArgs.as_list();
 
-  // Allow arbritary number of args, just use what ever necessary in
-  // order to create a function blob out of them.
+  if (args.empty() || ++args.begin() == args.end())
+    throw torrent::input_error("Invalid argument count.");
 
-  if (args.empty())
-    return torrent::Object();
-
-  const std::string& rawKey = args.front().as_string();
+  torrent::Object::list_const_iterator itrArgs = args.begin();
+  const std::string& rawKey = (itrArgs++)->as_string();
 
   if (rawKey.empty() || rpc::commands.has(rawKey))
     throw torrent::input_error("Invalid key.");
 
-  std::string command;
+  rpc::Command* command = NULL;
+  rpc::Command::any_slot slot = NULL;
+  int flags = rpc::CommandMap::flag_delete_key | rpc::CommandMap::flag_modifiable | rpc::CommandMap::flag_public_xmlrpc;
 
-  for (torrent::Object::list_const_iterator itr = ++args.begin(), last = args.end(); itr != last; itr++) {
-    if (!command.empty())
-      command += " ;";
+  const std::string& options = itrArgs->as_string();
 
-    command += itr->as_string();
+  // Use a | separated list of options here, for non-modifable,
+  // non-public methods, etc.
+  if (options.find("list") != std::string::npos) {
+    // Later, make it possible to add functions here.
+    slot = &rpc::CommandFunctionList::call;
+    command = new rpc::CommandFunctionList();
+
+  } else if (options.find("simple") != std::string::npos) {
+    slot = &rpc::CommandFunction::call;
+    command = new rpc::CommandFunction(system_method_generate_command(++itrArgs, args.end()));
   }
+
+  if (options.find("private") != std::string::npos)
+    flags &= ~rpc::CommandMap::flag_public_xmlrpc;
+
+  if (options.find("const") != std::string::npos)
+    flags &= ~rpc::CommandMap::flag_modifiable;
 
   char* key = new char[rawKey.size() + 1];
   std::memcpy(key, rawKey.c_str(), rawKey.size() + 1);
 
-  rpc::commands.insert_type(key, new rpc::CommandFunction(command), &rpc::CommandFunction::call,
-                            rpc::CommandMap::flag_delete_key | rpc::CommandMap::flag_modifiable | rpc::CommandMap::flag_public_xmlrpc, NULL, NULL);
-
+  rpc::commands.insert_type(key, command, slot, flags, NULL, NULL);
   return torrent::Object();
 }
 
+// system.method.erase <> {name}
+//
+// Erase a modifiable method called 'name. Trying to remove methods
+// that aren't modifiable, e.g. defined by rtorrent or set to
+// read-only by the user, will result in an error.
 torrent::Object
 system_method_erase(__UNUSED rpc::target_type target, const torrent::Object& rawArgs) {
   rpc::CommandMap::iterator itr = rpc::commands.find(rawArgs.as_string().c_str());
@@ -90,8 +125,71 @@ system_method_erase(__UNUSED rpc::target_type target, const torrent::Object& raw
   return torrent::Object();
 }
 
+torrent::Object
+system_method_set(__UNUSED rpc::target_type target, const torrent::Object& rawArgs) {
+  const torrent::Object::list_type& args = rawArgs.as_list();
+
+  if (args.empty())
+    throw torrent::input_error("Invalid argument count.");
+
+  rpc::CommandFunction* function;
+  rpc::CommandMap::iterator itr = rpc::commands.find(args.front().as_string().c_str());
+
+  if (itr == rpc::commands.end() || !(itr->second.m_flags & rpc::CommandMap::flag_modifiable) ||
+      (function = dynamic_cast<rpc::CommandFunction*>(itr->second.m_variable)) == NULL)
+    throw torrent::input_error("Command not modifiable or wrong type.");
+
+  function->set_command(system_method_generate_command(++args.begin(), args.end()));
+  return torrent::Object();
+}
+
+torrent::Object
+system_method_set_key(__UNUSED rpc::target_type target, const torrent::Object& rawArgs) {
+  const torrent::Object::list_type& args = rawArgs.as_list();
+
+  if (args.empty() || ++args.begin() == args.end())
+    throw torrent::input_error("Invalid argument count.");
+
+  rpc::CommandFunctionList* function;
+  rpc::CommandMap::iterator itr = rpc::commands.find(args.front().as_string().c_str());
+
+  if (itr == rpc::commands.end() || !(itr->second.m_flags & rpc::CommandMap::flag_modifiable) ||
+      (function = dynamic_cast<rpc::CommandFunctionList*>(itr->second.m_variable)) == NULL)
+    throw torrent::input_error("Command not modifiable or wrong type.");
+
+  torrent::Object::list_const_iterator itrArgs = ++args.begin();
+  const std::string& key = (itrArgs++)->as_string();
+  
+  if (itrArgs != args.end())
+    function->insert(key, system_method_generate_command(itrArgs, args.end()));
+  else
+    function->erase(key);
+
+  return torrent::Object();
+}
+
+torrent::Object
+system_method_has_key(__UNUSED rpc::target_type target, const torrent::Object& rawArgs) {
+  const torrent::Object::list_type& args = rawArgs.as_list();
+
+  if (args.size() != 2)
+    throw torrent::input_error("Invalid argument count.");
+
+  rpc::CommandFunctionList* function;
+  rpc::CommandMap::iterator itr = rpc::commands.find(args.front().as_string().c_str());
+
+  if (itr == rpc::commands.end() ||
+      (function = dynamic_cast<rpc::CommandFunctionList*>(itr->second.m_variable)) == NULL)
+    throw torrent::input_error("Command is the wrong type.");
+
+  return torrent::Object((int64_t)(function->find(args.back().as_string().c_str()) != function->end()));
+}
+
 void
 initialize_command_dynamic() {
-  CMD_G("system.method.insert", rak::ptr_fn(&system_method_insert));
+  CMD_G("system.method.insert",       rak::ptr_fn(&system_method_insert));
   CMD_G_STRING("system.method.erase", rak::ptr_fn(&system_method_erase));
+  CMD_G("system.method.set",          rak::ptr_fn(&system_method_set));
+  CMD_G("system.method.set_key",      rak::ptr_fn(&system_method_set_key));
+  CMD_G("system.method.has_key",      rak::ptr_fn(&system_method_has_key));
 }

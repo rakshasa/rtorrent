@@ -171,8 +171,20 @@ main(int argc, char** argv) {
     // torrent::ConnectionManager* are valid etc.
     initialize_commands();
 
-    rpc::parse_command_multiple(rpc::make_target(),
-//       "set_name = $cat={$system.hostname=,:,$system.pid=}\n"
+    rpc::parse_command_multiple
+      (rpc::make_target(),
+       "system.method.insert = event.download.inserted,list\n"
+       "system.method.insert = event.download.erased,list\n"
+       "system.method.insert = event.download.opened,list\n"
+       "system.method.insert = event.download.closed,list\n"
+       "system.method.insert = event.download.resumed,list\n"
+       "system.method.insert = event.download.paused,list\n"
+
+       "system.method.insert = event.download.finished,list\n"
+       "system.method.insert = event.download.hash_done,list\n"
+       "system.method.insert = event.download.hash_removed,list\n"
+       "system.method.insert = event.download.hash_queued,list\n"
+
        "set_name = \"$cat=$system.hostname=,:,$system.pid=\"\n"
 
        // Currently not doing any sorting on main.

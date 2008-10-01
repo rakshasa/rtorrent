@@ -36,6 +36,10 @@
 
 #include "config.h"
 
+#include <algorithm>
+#include <functional>
+#include <rak/functional.h>
+
 #include "parse.h"
 #include "parse_commands.h"
 #include "command_function.h"
@@ -49,6 +53,44 @@ CommandFunction::call(Command* rawCommand, target_type target, const torrent::Ob
   parse_command_multiple(target, command->m_command.c_str(), command->m_command.c_str() + command->m_command.size());
 
   return torrent::Object();
+}
+
+const torrent::Object
+CommandFunctionList::call(Command* rawCommand, target_type target, const torrent::Object& args) {
+  CommandFunctionList* command = reinterpret_cast<CommandFunctionList*>(rawCommand);
+
+  for (base_type::const_iterator itr = command->begin(), last = command->end(); itr != last; itr++)
+    parse_command_multiple(target, itr->second.c_str(), itr->second.c_str() + itr->second.size());
+
+  return torrent::Object();
+}
+
+CommandFunctionList::const_iterator
+CommandFunctionList::find(const char* key) {
+  base_type::iterator itr = std::find_if(begin(), end(), rak::greater_equal(key, rak::mem_ref(&base_type::value_type::first)));
+
+  if (itr == end() || itr->first != key)
+    return end();
+  else
+    return itr;
+}
+
+void
+CommandFunctionList::insert(const std::string& key, const std::string& cmd) {
+  base_type::iterator itr = std::find_if(begin(), end(), rak::greater_equal(key, rak::mem_ref(&base_type::value_type::first)));
+
+  if (itr != end() && itr->first == key)
+    itr->second = cmd;
+  else
+    base_type::insert(itr, base_type::value_type(key, cmd));
+}
+
+void
+CommandFunctionList::erase(const std::string& key) {
+  base_type::iterator itr = std::find_if(begin(), end(), rak::greater_equal(key, rak::mem_ref(&base_type::value_type::first)));
+
+  if (itr != end() && itr->first == key)
+    base_type::erase(itr);
 }
 
 }

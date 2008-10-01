@@ -116,9 +116,10 @@ View::~View() {
   if (m_name.empty())
     return;
 
-  std::for_each(control->core()->download_list()->slot_map_begin(), control->core()->download_list()->slot_map_end(),
-                rak::bind2nd(std::ptr_fun(&DownloadList::erase_key), "0_view_" + m_name));
-
+  for (int i = 0; i < DownloadList::SLOTS_MAX_SIZE; i++)
+    rpc::commands.call("system.method.set_key", rpc::make_target(),
+                       rpc::create_object_list(control->core()->download_list()->slot_name(i), "0_view_" + m_name));
+    
   priority_queue_erase(&taskScheduler, &m_delayChanged);
 }
 
@@ -133,7 +134,8 @@ View::initialize(const std::string& name) {
   std::string key = "0_view_" + name;
   core::DownloadList* dlist = control->core()->download_list();
 
-  if (dlist->has_slot_insert(key) || dlist->has_slot_erase(key))
+  if (rpc::commands.call("system.method.has_key", rpc::make_target(), rpc::create_object_list("event.download.inserted", key)).as_value() ||
+      rpc::commands.call("system.method.has_key", rpc::make_target(), rpc::create_object_list("event.download.erased", key)).as_value())
     throw torrent::internal_error("View::initialize(...) duplicate key name found in DownloadList.");
 
   m_name = name;
@@ -296,18 +298,20 @@ View::filter_download(core::Download* download) {
 
 void
 View::set_filter_on(int event) {
-  if (event == DownloadList::SLOTS_INSERT || event == DownloadList::SLOTS_ERASE || event >= DownloadList::SLOTS_MAX_SIZE)
+  if (event == DownloadList::D_SLOTS_INSERT || event == DownloadList::D_SLOTS_ERASE || event >= DownloadList::SLOTS_MAX_SIZE)
     throw torrent::internal_error("View::filter_on(...) invalid event.");
 
-  control->core()->download_list()->slots(event)["0_view_" + m_name] = "view.filter_download=" + m_name;
+  rpc::commands.call("system.method.set_key", rpc::make_target(),
+                     rpc::create_object_list(control->core()->download_list()->slot_name(event), "0_view_" + m_name, "view.filter_download=" + m_name));
 }
 
 void
 View::clear_filter_on() {
   // Don't clear insert and erase as these are required to keep the
   // View up-to-date with the available downloads.
-  std::for_each(control->core()->download_list()->slot_map_begin() + DownloadList::SLOTS_OPEN, control->core()->download_list()->slot_map_end(),
-                rak::bind2nd(std::ptr_fun(&DownloadList::erase_key), "0_view_" + m_name));
+  for (int i = DownloadList::D_SLOTS_OPEN; i < DownloadList::SLOTS_MAX_SIZE; i++)
+    rpc::commands.call("system.method.set_key", rpc::make_target(),
+                       rpc::create_object_list(control->core()->download_list()->slot_name(i), "0_view_" + m_name));
 }
 
 inline void

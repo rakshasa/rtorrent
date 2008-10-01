@@ -41,6 +41,11 @@
 #include <torrent/object.h>
 #include <torrent/data/file_list_iterator.h>
 
+// Get better logging...
+#include "globals.h"
+#include "control.h"
+#include "core/manager.h"
+
 #include "command.h"
 #include "command_map.h"
 
@@ -97,6 +102,16 @@ CommandMap::erase(iterator itr) {
 
   base_type::erase(itr);
   delete [] key;
+}
+
+const CommandMap::mapped_type
+CommandMap::call_catch(key_type key, target_type target, const mapped_type& args, const char* err) {
+  try {
+    return call_command(key, args, target);
+  } catch (torrent::input_error& e) {
+    control->core()->push_log((err + std::string(e.what())).c_str());
+    return torrent::Object();
+  }
 }
 
 const CommandMap::mapped_type
