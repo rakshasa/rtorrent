@@ -262,14 +262,19 @@ DownloadFactory::receive_success() {
     if (m_session) {
       // This torrent was queued for hashing or hashing when the
       // session file was saved. Or it was in a started state.
-      if (rpc::call_command_value("d.get_hashing", rpc::make_target(download)) != Download::variable_hashing_stopped ||
+      if (//rpc::call_command_value("d.get_hashing", rpc::make_target(download)) != Download::variable_hashing_stopped ||
           rpc::call_command_value("d.get_state", rpc::make_target(download)) != 0)
-        m_manager->download_list()->resume(download);
+//         m_manager->download_list()->resume(download);
+        rpc::parse_command_single(rpc::make_target(download), "view.set_visible=started");
+      else
+        rpc::parse_command_single(rpc::make_target(download), "view.set_visible=stopped");
 
     } else {
       // Use the state thingie here, move below.
       if (m_start)
         rpc::parse_command_single(rpc::make_target(download), "d.start=");
+      else
+        rpc::parse_command_single(rpc::make_target(download), "view.set_visible=stopped");
 
       m_manager->download_store()->save(download);
     }

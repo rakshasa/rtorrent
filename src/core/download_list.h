@@ -39,9 +39,7 @@
 
 #include <iosfwd>
 #include <list>
-#include <map>
 #include <string>
-#include <sigc++/functors/slot.h>
 
 namespace torrent {
   class HashString;

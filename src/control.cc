@@ -43,7 +43,6 @@
 #include "core/manager.h"
 #include "core/download_store.h"
 #include "core/view_manager.h"
-#include "core/scheduler.h"
 #include "core/dht_manager.h"
 
 #include "display/canvas.h"
@@ -75,7 +74,6 @@ Control::Control() :
 
   m_core        = new core::Manager();
   m_viewManager = new core::ViewManager();
-  m_scheduler   = new core::Scheduler(m_core->download_list());
   m_dhtManager  = new core::DhtManager();
 
   m_inputStdin->slot_pressed(sigc::mem_fun(m_input, &input::Manager::pressed));
@@ -96,7 +94,6 @@ Control::~Control() {
   delete m_ui;
   delete m_display;
   delete m_core;
-  delete m_scheduler;
   delete m_dhtManager;
 }
 
@@ -114,7 +111,6 @@ Control::initialize() {
   m_core->download_store()->enable(rpc::call_command_value("get_session_lock"));
 
   m_core->set_hashing_view(*m_viewManager->find_throw("hashing"));
-  m_scheduler->set_view(*m_viewManager->find_throw("scheduler"));
 
   m_ui->init(this);
 

@@ -72,20 +72,6 @@ DownloadList::check_contains(Download* d) {
 #endif
 }
 
-// struct download_list_call {
-//   download_list_call(Download* d) : m_download(d) {}
-
-//   void operator () (const DownloadList::slot_map::value_type& s) {
-//     try {
-//       rpc::parse_command_d_multiple_std(m_download, s.second);
-//     } catch (torrent::input_error& e) {
-//       control->core()->push_log((std::string("Download event action failed: ") + e.what()).c_str());
-//     }
-//   }
-
-//   Download* m_download;
-// };    
-
 void
 DownloadList::clear() {
   std::for_each(begin(), end(), std::bind1st(std::mem_fun(&DownloadList::close), this));

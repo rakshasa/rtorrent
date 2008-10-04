@@ -112,30 +112,8 @@ ViewManager::set_filter_on(const std::string& name, const filter_args& args) {
 
   (*viewItr)->clear_filter_on();
 
-  for (filter_args::const_iterator itr = args.begin(); itr != args.end(); ++itr) {
-
-    if (*itr == "start")
-      (*viewItr)->set_filter_on(DownloadList::D_SLOTS_START);
-
-    else if (*itr == "stop")
-      (*viewItr)->set_filter_on(DownloadList::D_SLOTS_STOP);
-
-    else if (*itr == "hash_queued")
-      (*viewItr)->set_filter_on(DownloadList::D_SLOTS_HASH_QUEUED);
-
-    else if (*itr == "hash_removed")
-      (*viewItr)->set_filter_on(DownloadList::D_SLOTS_HASH_REMOVED);
-
-    else if (*itr == "hash_done")
-      (*viewItr)->set_filter_on(DownloadList::D_SLOTS_HASH_DONE);
-
-    else if (*itr == "finished")
-      (*viewItr)->set_filter_on(DownloadList::D_SLOTS_FINISHED);
-
-    else
-      throw torrent::input_error("Invalid filter on identifier.");
-
-  }
+  for (filter_args::const_iterator itr = args.begin(); itr != args.end(); ++itr)
+    (*viewItr)->set_filter_on_event(*itr);
 }
 
 }

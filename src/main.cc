@@ -199,51 +199,43 @@ main(int argc, char** argv) {
        "view_filter = active,false=\n"
 
        "view_add = started\n"
-       "view_filter = started,d.get_state=\n"
-       "view.event_added = started,scheduler.simple.added=\n"
-       "view.event_removed = started,scheduler.simple.removed=\n"
+       "view_filter = started,false=\n"
+       "view.event_added   = started,\"view.set_not_visible=stopped ;d.set_state=1 ;scheduler.simple.added=\"\n"
+       "view.event_removed = started,\"view.set_visible=stopped ;scheduler.simple.removed=\"\n"
 
        "view_add = stopped\n"
-       "view_filter = stopped,not=$d.get_state=\n"
+       "view_filter = stopped,false=\n"
+       "view.event_added   = stopped,\"view.set_not_visible=started ;d.set_state=0\"\n"
+       "view.event_removed = stopped,view.set_visible=started\n"
 
        "view_add = complete\n"
        "view_filter = complete,d.get_complete=\n"
-       "view_filter_on = complete,hash_done,finished\n"
+       "view_filter_on    = complete,event.download.hash_done,event.download.finished\n"
        "view_sort_new     = complete,less=d.get_state_changed=\n"
        "view_sort_current = complete,less=d.get_state_changed=\n"
 
        "view_add = incomplete\n"
        "view_filter = incomplete,not=$d.get_complete=\n"
-       "view_filter_on = incomplete,hash_done,finished\n"
+       "view_filter_on    = incomplete,event.download.hash_done,event.download.finished\n"
        "view_sort_new     = incomplete,less=d.get_state_changed=\n"
        "view_sort_current = incomplete,less=d.get_state_changed=\n"
 
        // The hashing view does not include stopped torrents.
        "view_add = hashing\n"
        "view_filter = hashing,d.get_hashing=\n"
-       "view_filter_on = hashing,hash_queued,hash_removed,hash_done\n"
+       "view_filter_on = hashing,event.download.hash_queued,event.download.hash_removed,event.download.hash_done\n"
 //        "view_sort_new     = hashing,less=d.get_state_changed=\n"
 //        "view_sort_current = hashing,less=d.get_state_changed=\n"
 
        "view_add = seeding\n"
        "view_filter = seeding,\"and=d.get_state=,d.get_complete=\"\n"
-       "view_filter_on = seeding,start,stop\n"
+       "view_filter_on    = seeding,event.download.resumed,event.download.paused\n"
        "view_sort_new     = seeding,less=d.get_state_changed=\n"
        "view_sort_current = seeding,less=d.get_state_changed=\n"
 
        // Changing these will bork the (non-existant) scheduler.
-       "view_add = scheduler\n"
-//        "view_sort_new     = scheduler,less=d.get_state_changed=\n"
-//        "view_sort_current = scheduler,less=d.get_state_changed=\n"
-
-       //    "schedule = scheduler,10,10,download_scheduler=\n"
-
        "schedule = view_main,10,10,\"view_sort=main,20\"\n"
        "schedule = view_name,10,10,\"view_sort=name,20\"\n"
-       //     "schedule = view_started,10,10,view_sort=started,5\n"
-       //     "schedule = view_stopped,10,10,view_sort=stopped,5\n"
-       //     "schedule = view_complete,10,10,view_sort=complete,5\n"
-       //     "schedule = view_incomplete,10,10,view_sort=incomplete,5\n"
 
        "schedule = session_save,1800,1800,session_save=\n"
        "schedule = low_diskspace,5,60,close_low_diskspace=500M\n"

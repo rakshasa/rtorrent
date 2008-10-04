@@ -32,8 +32,6 @@ libsub_core_a_SOURCES = \
 	poll_manager_kqueue.h \
 	poll_manager_select.cc \
 	poll_manager_select.h \
-	scheduler.cc \
-	scheduler.h \
 	view.cc \
 	view.h \
 	view_manager.cc \
