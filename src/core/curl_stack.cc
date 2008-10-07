@@ -55,11 +55,11 @@ CurlStack::CurlStack() :
 
   m_taskTimeout.set_slot(rak::mem_fn(this, &CurlStack::receive_timeout));
 
-  curl_multi_setopt((CURLM*)m_handle, CURLMOPT_TIMERDATA, this);
-  curl_multi_setopt((CURLM*)m_handle, CURLMOPT_SOCKETDATA, this);
 #if (LIBCURL_VERSION_NUM >= 0x071000)
+  curl_multi_setopt((CURLM*)m_handle, CURLMOPT_TIMERDATA, this);
   curl_multi_setopt((CURLM*)m_handle, CURLMOPT_TIMERFUNCTION, &CurlStack::set_timeout);
 #endif
+  curl_multi_setopt((CURLM*)m_handle, CURLMOPT_SOCKETDATA, this);
   curl_multi_setopt((CURLM*)m_handle, CURLMOPT_SOCKETFUNCTION, &CurlSocket::receive_socket);
 }
 

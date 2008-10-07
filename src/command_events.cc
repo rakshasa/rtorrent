@@ -114,6 +114,9 @@ apply_on_ratio(int action, const torrent::Object& rawArgs) {
         (itr = std::find_if(itr, downloadList->end(), std::mem_fun(&core::Download::is_seeding))) != downloadList->end(); ) {
     core::Download* current = *itr++;
 
+    if (rpc::call_command_value("d.get_ignore_commands", rpc::make_target(current)) != 0)
+      continue;
+
     int64_t totalDone   = current->download()->bytes_done();
     int64_t totalUpload = current->download()->up_rate()->total();
 
