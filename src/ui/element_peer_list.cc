@@ -75,6 +75,7 @@ ElementPeerList::ElementPeerList(core::Download* d) :
 
   m_bindings['k']       = sigc::mem_fun(this, &ElementPeerList::receive_disconnect_peer);
   m_bindings['*']       = sigc::mem_fun(this, &ElementPeerList::receive_snub_peer);
+  m_bindings['B']       = sigc::mem_fun(this, &ElementPeerList::receive_ban_peer);
   m_bindings[KEY_LEFT] = m_bindings['B' - '@']  = sigc::mem_fun(&m_slotExit, &slot_type::operator());  
   m_bindings[KEY_RIGHT] = m_bindings['F' - '@'] = sigc::bind(sigc::mem_fun(this, &ElementPeerList::activate_display), DISPLAY_INFO);
 
@@ -240,6 +241,17 @@ ElementPeerList::receive_snub_peer() {
     return;
 
   (*m_listItr)->set_snubbed(!(*m_listItr)->is_snubbed());
+
+  update_itr();
+}
+
+void
+ElementPeerList::receive_ban_peer() {
+  if (m_listItr == m_list.end())
+    return;
+
+  (*m_listItr)->set_banned();
+  m_download->download()->connection_list()->erase(*m_listItr, torrent::ConnectionList::disconnect_quick);
 
   update_itr();
 }

@@ -41,9 +41,11 @@
 #include <rak/file_stat.h>
 #include <rak/error_number.h>
 #include <rak/path.h>
+#include <rak/socket_address.h>
 #include <rak/string_manip.h>
 #include <torrent/rate.h>
 #include <torrent/tracker.h>
+#include <torrent/connection_manager.h>
 #include <torrent/data/file.h>
 #include <torrent/data/file_list.h>
 #include <torrent/peer/connection_list.h>
@@ -261,6 +263,42 @@ cmd_d_initialize_logs(core::Download* download) {
   return torrent::Object();
 }
 
+struct call_add_d_peer_t {
+  call_add_d_peer_t(core::Download* d, int port) : m_download(d), m_port(port) { }
+
+  void operator() (const sockaddr* sa, int err) {
+    if (sa == NULL)
+      control->core()->push_log("Could not resolve host.");
+    else
+      m_download->download()->add_peer(sa, m_port);
+  }
+
+  core::Download* m_download;
+  int m_port;
+};
+
+void
+apply_d_add_peer(core::Download* download, const std::string& arg) {
+  int port, ret;
+  char dummy;
+  char host[1024];
+
+  if (download->download()->is_private())
+    throw torrent::input_error("Download is private.");
+
+  ret = std::sscanf(arg.c_str(), "%1023[^:]:%i%c", host, &port, &dummy);
+
+  if (ret == 1)
+    port = 6881;
+  else if (ret != 2)
+    throw torrent::input_error("Could not parse host.");
+
+  if (port < 1 || port > 65535)
+    throw torrent::input_error("Invalid port number.");
+
+  torrent::connection_manager()->resolver()(host, (int)rak::socket_address::pf_inet, SOCK_STREAM, call_add_d_peer_t(download, port));
+}
+
 torrent::Object
 f_multicall(core::Download* download, const torrent::Object& rawArgs) {
   const torrent::Object::list_type& args = rawArgs.as_list();
@@ -368,6 +406,9 @@ p_multicall(core::Download* download, const torrent::Object& rawArgs) {
 #define ADD_CD_LIST(key, slot) \
   ADD_CD_SLOT_PUBLIC("d." key, call_list, slot, "i:", "")
 
+#define ADD_CD_STRING(key, slot) \
+  ADD_CD_SLOT_PUBLIC("d." key, call_string, rpc::object_string_fn<core::Download*>(slot), "i:s", "")
+
 #define ADD_CD_VARIABLE_VALUE(key, firstKey, secondKey) \
   ADD_CD_SLOT_PUBLIC("d.get_" key, call_unknown, rpc::get_variable_d_fn(firstKey, secondKey), "i:", ""); \
   ADD_CD_SLOT       ("d.set_" key, call_value,   rpc::set_variable_d_fn(firstKey, secondKey), "i:i", "");
@@ -448,6 +489,8 @@ initialize_command_download() {
   ADD_CD_F_VOID("check_hash", rak::make_mem_fun(control->core()->download_list(), &core::DownloadList::check_hash));
 
   ADD_CD_F_VOID("update_priorities", rak::on(std::mem_fun(&core::Download::download), std::mem_fun(&torrent::Download::update_priorities)));
+
+  ADD_CD_STRING("add_peer",        std::ptr_fun(&apply_d_add_peer));
 
   ADD_CD_VALUE("is_open",          rak::on(std::mem_fun(&core::Download::download), std::mem_fun(&torrent::Download::is_open)));
   ADD_CD_VALUE("is_active",        rak::on(std::mem_fun(&core::Download::download), std::mem_fun(&torrent::Download::is_active)));

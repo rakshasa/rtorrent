@@ -75,6 +75,7 @@ private:
   void                receive_peer_disconnected(torrent::Peer* p);
 
   void                receive_snub_peer();
+  void                receive_ban_peer();
 
   void                update_itr();
 

@@ -54,6 +54,7 @@ HttpQueue::insert(const std::string& url, std::iostream* s) {
   
   h->set_url(url);
   h->set_stream(s);
+  h->set_timeout(5 * 60);
 
   iterator itr = Base::insert(end(), h.get());
 

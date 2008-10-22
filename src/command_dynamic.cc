@@ -185,11 +185,30 @@ system_method_has_key(__UNUSED rpc::target_type target, const torrent::Object& r
   return torrent::Object((int64_t)(function->find(args.back().as_string().c_str()) != function->end()));
 }
 
+torrent::Object
+system_method_list_keys(__UNUSED rpc::target_type target, const torrent::Object& rawArgs) {
+  rpc::CommandFunctionList* function;
+  rpc::CommandMap::iterator itr = rpc::commands.find(rawArgs.as_string().c_str());
+
+  if (itr == rpc::commands.end() ||
+      (function = dynamic_cast<rpc::CommandFunctionList*>(itr->second.m_variable)) == NULL)
+    throw torrent::input_error("Command is the wrong type.");
+
+  torrent::Object rawResult = torrent::Object::create_list();
+  torrent::Object::list_type& result = rawResult.as_list();
+
+  for (rpc::CommandFunctionList::const_iterator itr = function->begin(), last = function->end(); itr != last; itr++)
+    result.push_back(itr->first);
+
+  return rawResult;
+}
+
 void
 initialize_command_dynamic() {
-  CMD_G("system.method.insert",       rak::ptr_fn(&system_method_insert));
-  CMD_G_STRING("system.method.erase", rak::ptr_fn(&system_method_erase));
-  CMD_G("system.method.set",          rak::ptr_fn(&system_method_set));
-  CMD_G("system.method.set_key",      rak::ptr_fn(&system_method_set_key));
-  CMD_G("system.method.has_key",      rak::ptr_fn(&system_method_has_key));
+  CMD_N       ("system.method.insert",    rak::ptr_fn(&system_method_insert));
+  CMD_N_STRING("system.method.erase",     rak::ptr_fn(&system_method_erase));
+  CMD_N       ("system.method.set",       rak::ptr_fn(&system_method_set));
+  CMD_N       ("system.method.set_key",   rak::ptr_fn(&system_method_set_key));
+  CMD_N       ("system.method.has_key",   rak::ptr_fn(&system_method_has_key));
+  CMD_N_STRING("system.method.list_keys", rak::ptr_fn(&system_method_list_keys));
 }

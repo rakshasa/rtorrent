@@ -77,7 +77,7 @@ CommandFunctionList::find(const char* key) {
 
 void
 CommandFunctionList::insert(const std::string& key, const std::string& cmd) {
-  base_type::iterator itr = std::find_if(begin(), end(), rak::greater_equal(key, rak::mem_ref(&base_type::value_type::first)));
+  base_type::iterator itr = std::find_if(begin(), end(), rak::less_equal(key, rak::mem_ref(&base_type::value_type::first)));
 
   if (itr != end() && itr->first == key)
     itr->second = cmd;

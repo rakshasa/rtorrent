@@ -111,15 +111,7 @@ CurlStack::receive_action(CurlSocket* socket, int events) {
         if (msg->msg != CURLMSG_DONE)
           throw torrent::internal_error("CurlStack::receive_action() msg->msg != CURLMSG_DONE.");
 
-        iterator itr = std::find_if(begin(), end(), rak::equal(msg->easy_handle, std::mem_fun(&CurlGet::handle)));
-
-        if (itr == end())
-          throw torrent::internal_error("Could not find CurlGet with the right easy_handle.");
-
-        if (msg->data.result == CURLE_OK)
-          (*itr)->signal_done().emit();
-        else
-          (*itr)->signal_failed().emit(curl_easy_strerror(msg->data.result));
+	transfer_done(msg->easy_handle, msg->data.result == CURLE_OK ? NULL : curl_easy_strerror(msg->data.result));
       }
 
       if (empty())
@@ -127,6 +119,19 @@ CurlStack::receive_action(CurlSocket* socket, int events) {
     }
 
   } while (code == CURLM_CALL_MULTI_PERFORM);
+}
+
+void
+CurlStack::transfer_done(void* handle, const char* msg) {
+  iterator itr = std::find_if(begin(), end(), rak::equal(handle, std::mem_fun(&CurlGet::handle)));
+
+  if (itr == end())
+    throw torrent::internal_error("Could not find CurlGet with the right easy_handle.");
+
+  if (msg == NULL)
+    (*itr)->signal_done().emit();
+  else
+    (*itr)->signal_failed().emit(msg);
 }
 
 void

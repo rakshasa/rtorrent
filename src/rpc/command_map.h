@@ -102,7 +102,8 @@ public:
   static const int flag_dont_delete   = 0x1;
   static const int flag_delete_key    = 0x2;
   static const int flag_public_xmlrpc = 0x4;
-  static const int flag_modifiable    = 0x8;
+  static const int flag_no_target     = 0x8;
+  static const int flag_modifiable    = 0x10;
 
   CommandMap() {}
   ~CommandMap();

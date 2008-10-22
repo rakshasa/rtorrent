@@ -111,6 +111,8 @@ class CurlStack : std::deque<CurlGet*> {
 
   static int          set_timeout(void* handle, long timeout_ms, void* userp);
 
+  void                transfer_done(void* handle, const char* msg);
+
  protected:
   void                add_get(CurlGet* get);
   void                remove_get(CurlGet* get);

@@ -43,6 +43,8 @@
 #include <sigc++/signal.h>
 #include <torrent/http.h>
 
+#include "rak/priority_queue_default.h"
+
 namespace core {
 
 class CurlStack;
@@ -69,8 +71,12 @@ private:
   CurlGet(const CurlGet&);
   void operator = (const CurlGet&);
 
+  void               receive_timeout();
+
   bool               m_active;
 
+  rak::priority_item m_taskTimeout;
+  
   CURL*              m_handle;
   CurlStack*         m_stack;
 };

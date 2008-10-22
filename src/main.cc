@@ -233,7 +233,6 @@ main(int argc, char** argv) {
        "view_sort_new     = seeding,less=d.get_state_changed=\n"
        "view_sort_current = seeding,less=d.get_state_changed=\n"
 
-       // Changing these will bork the (non-existant) scheduler.
        "schedule = view_main,10,10,\"view_sort=main,20\"\n"
        "schedule = view_name,10,10,\"view_sort=name,20\"\n"
 

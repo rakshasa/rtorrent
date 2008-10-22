@@ -41,6 +41,7 @@
 #include <curl/easy.h>
 #include <torrent/exceptions.h>
 
+#include "globals.h"
 #include "curl_get.h"
 #include "curl_stack.h"
 
@@ -73,14 +74,20 @@ CurlGet::start() {
   curl_easy_setopt(m_handle, CURLOPT_WRITEDATA,      this);
 
   if (m_timeout != 0) {
-    curl_easy_setopt(m_handle, CURLOPT_CONNECTTIMEOUT, 60);
-    curl_easy_setopt(m_handle, CURLOPT_TIMEOUT,        m_timeout);
+    curl_easy_setopt(m_handle, CURLOPT_CONNECTTIMEOUT, (long)60);
+    curl_easy_setopt(m_handle, CURLOPT_TIMEOUT,        (long)m_timeout);
+
+    // Normally libcurl should handle the timeout. But sometimes that doesn't
+    // work right so we do a fallback timeout that just aborts the transfer.
+    m_taskTimeout.set_slot(rak::mem_fn(this, &CurlGet::receive_timeout));
+    priority_queue_erase(&taskScheduler, &m_taskTimeout);
+    priority_queue_insert(&taskScheduler, &m_taskTimeout, cachedTime + rak::timer::from_seconds(m_timeout + 5));
   }
 
-  curl_easy_setopt(m_handle, CURLOPT_FORBID_REUSE,   1);
-  curl_easy_setopt(m_handle, CURLOPT_NOSIGNAL,       1);
-  curl_easy_setopt(m_handle, CURLOPT_FOLLOWLOCATION, 1);
-  curl_easy_setopt(m_handle, CURLOPT_MAXREDIRS,      5);
+  curl_easy_setopt(m_handle, CURLOPT_FORBID_REUSE,   (long)1);
+  curl_easy_setopt(m_handle, CURLOPT_NOSIGNAL,       (long)1);
+  curl_easy_setopt(m_handle, CURLOPT_FOLLOWLOCATION, (long)1);
+  curl_easy_setopt(m_handle, CURLOPT_MAXREDIRS,      (long)5);
   curl_easy_setopt(m_handle, CURLOPT_IPRESOLVE,      CURL_IPRESOLVE_V4);
   curl_easy_setopt(m_handle, CURLOPT_ENCODING,       "");
 
@@ -89,6 +96,7 @@ CurlGet::start() {
 
 void
 CurlGet::close() {
+  priority_queue_erase(&taskScheduler, &m_taskTimeout);
   if (!is_busy())
     return;
 
@@ -99,6 +107,10 @@ CurlGet::close() {
   m_handle = NULL;
 }
 
+void
+CurlGet::receive_timeout() {
+  return m_stack->transfer_done(m_handle, "Timed out");
+}
 
 double
 CurlGet::size_done() {
