@@ -52,6 +52,7 @@
 #include <torrent/peer/peer_list.h>
 
 #include "core/download.h"
+#include "core/download_store.h"
 #include "core/manager.h"
 #include "rpc/command_variable.h"
 
@@ -487,6 +488,8 @@ initialize_command_download() {
   ADD_CD_F_VOID("close",      rak::make_mem_fun(control->core()->download_list(), &core::DownloadList::close_throw));
   ADD_CD_F_VOID("erase",      rak::make_mem_fun(control->core()->download_list(), &core::DownloadList::erase_ptr));
   ADD_CD_F_VOID("check_hash", rak::make_mem_fun(control->core()->download_list(), &core::DownloadList::check_hash));
+
+  ADD_CD_F_VOID("save_session",     rak::make_mem_fun(control->core()->download_store(), &core::DownloadStore::save));
 
   ADD_CD_F_VOID("update_priorities", rak::on(std::mem_fun(&core::Download::download), std::mem_fun(&torrent::Download::update_priorities)));
 

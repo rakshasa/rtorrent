@@ -211,11 +211,6 @@ Manager::initialize_second() {
 
   CurlStack::global_init();
 
-  // Register slots to be called when a download is inserted/erased,
-  // opened or closed.
-  rpc::parse_command_single(rpc::make_target(), "system.method.set_key = event.download.inserted, 1_connect_logs, d.initialize_logs=");
-  rpc::parse_command_single(rpc::make_target(), "system.method.set_key = event.download.erased, 9_delete_tied, d.delete_tied=");
-
   torrent::connection_manager()->set_signal_handshake_log(sigc::mem_fun(this, &Manager::handshake_log));
 }
 

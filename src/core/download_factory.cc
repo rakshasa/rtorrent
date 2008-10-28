@@ -257,27 +257,11 @@ DownloadFactory::receive_success() {
     if (m_manager->download_list()->find(infohash) == m_manager->download_list()->end())
       throw torrent::input_error("The newly created download was removed.");
 
-    // When a download scheduler is implemented, this is handled by
-    // the above insertion into download list.
-    if (m_session) {
-      // This torrent was queued for hashing or hashing when the
-      // session file was saved. Or it was in a started state.
-      if (//rpc::call_command_value("d.get_hashing", rpc::make_target(download)) != Download::variable_hashing_stopped ||
-          rpc::call_command_value("d.get_state", rpc::make_target(download)) != 0)
-//         m_manager->download_list()->resume(download);
-        rpc::parse_command_single(rpc::make_target(download), "view.set_visible=started");
-      else
-        rpc::parse_command_single(rpc::make_target(download), "view.set_visible=stopped");
+    if (!m_session)
+       rpc::call_command("d.set_state", (int64_t)m_start, rpc::make_target(download));
 
-    } else {
-      // Use the state thingie here, move below.
-      if (m_start)
-        rpc::parse_command_single(rpc::make_target(download), "d.start=");
-      else
-        rpc::parse_command_single(rpc::make_target(download), "view.set_visible=stopped");
-
-      m_manager->download_store()->save(download);
-    }
+    rpc::commands.call_catch(m_session ? "event.download.inserted_session" : "event.download.inserted_new",
+                             rpc::make_target(download), torrent::Object(), "Download event action failed: ");
 
   } catch (torrent::input_error& e) {
     std::string msg = "Command on torrent creation failed: " + std::string(e.what());
