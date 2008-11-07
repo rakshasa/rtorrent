@@ -173,6 +173,12 @@ main(int argc, char** argv) {
 
     rpc::parse_command_multiple
       (rpc::make_target(),
+//        "system.method.insert = test.value,value\n"
+//        "system.method.insert = test.value2,value,6\n"
+
+//        "system.method.insert = test.string,string,6\n"
+//        "system.method.insert = test.bool,bool,true\n"
+
        "system.method.insert = event.download.inserted,list\n"
        "system.method.insert = event.download.inserted_new,list\n"
        "system.method.insert = event.download.inserted_session,list\n"

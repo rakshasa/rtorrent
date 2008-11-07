@@ -123,7 +123,7 @@ CommandVariable::set_string(Command* rawCommand, cleaned_type target, const torr
 
   switch (arg.type()) {
   case torrent::Object::TYPE_NONE:
-    variable->m_variable = std::string("");
+    variable->m_variable = std::string();
     break;
 
 //   case torrent::Object::TYPE_VALUE:

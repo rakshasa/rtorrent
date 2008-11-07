@@ -41,6 +41,7 @@
 #include "globals.h"
 #include "control.h"
 #include "command_helpers.h"
+#include "rpc/command_variable.h"
 
 std::string
 system_method_generate_command(torrent::Object::list_const_iterator first, torrent::Object::list_const_iterator last) {
@@ -56,8 +57,23 @@ system_method_generate_command(torrent::Object::list_const_iterator first, torre
   return command;
 }
 
+template <int postfix_size>
+inline const char*
+create_new_key(const std::string& key, const char postfix[postfix_size]) {
+  char *buffer = new char[key.size() + postfix_size];
+  std::memcpy(buffer, key.c_str(), key.size() + 1);
+  std::memcpy(buffer + key.size(), postfix, postfix_size);
+  return buffer;
+}
+
 // system.method.insert <generic> {name, "simple|private|const", ...}
 // system.method.insert <generic> {name, "list|private|const"}
+// system.method.insert <generic> {name, "value|private|const"}
+// system.method.insert <generic> {name, "value|private|const", value}
+// system.method.insert <generic> {name, "bool|private|const"}
+// system.method.insert <generic> {name, "bool|private|const", bool}
+// system.method.insert <generic> {name, "string|private|const"}
+// system.method.insert <generic> {name, "string|private|const", string}
 //
 // Add a new user-defined method called 'name' and any number of
 // lines.
@@ -74,23 +90,9 @@ system_method_insert(__UNUSED rpc::target_type target, const torrent::Object& ra
   if (rawKey.empty() || rpc::commands.has(rawKey))
     throw torrent::input_error("Invalid key.");
 
-  rpc::Command* command = NULL;
-  rpc::Command::any_slot slot = NULL;
   int flags = rpc::CommandMap::flag_delete_key | rpc::CommandMap::flag_modifiable | rpc::CommandMap::flag_public_xmlrpc;
 
   const std::string& options = itrArgs->as_string();
-
-  // Use a | separated list of options here, for non-modifable,
-  // non-public methods, etc.
-  if (options.find("list") != std::string::npos) {
-    // Later, make it possible to add functions here.
-    slot = &rpc::CommandFunctionList::call;
-    command = new rpc::CommandFunctionList();
-
-  } else if (options.find("simple") != std::string::npos) {
-    slot = &rpc::CommandFunction::call;
-    command = new rpc::CommandFunction(system_method_generate_command(++itrArgs, args.end()));
-  }
 
   if (options.find("private") != std::string::npos)
     flags &= ~rpc::CommandMap::flag_public_xmlrpc;
@@ -98,10 +100,55 @@ system_method_insert(__UNUSED rpc::target_type target, const torrent::Object& ra
   if (options.find("const") != std::string::npos)
     flags &= ~rpc::CommandMap::flag_modifiable;
 
-  char* key = new char[rawKey.size() + 1];
-  std::memcpy(key, rawKey.c_str(), rawKey.size() + 1);
+  if (options.find("list") != std::string::npos) {
+    // Later, make it possible to add functions here.
+    rpc::Command* command = new rpc::CommandFunctionList();
+    rpc::Command::any_slot slot = &rpc::CommandFunctionList::call;
 
-  rpc::commands.insert_type(key, command, slot, flags, NULL, NULL);
+    rpc::commands.insert_type(create_new_key<0>(rawKey, ""), command, slot, flags, NULL, NULL);
+
+  } else if (options.find("simple") != std::string::npos) {
+    rpc::Command::any_slot slot = &rpc::CommandFunction::call;
+    rpc::Command* command = new rpc::CommandFunction(system_method_generate_command(++itrArgs, args.end()));
+
+    rpc::commands.insert_type(create_new_key<0>(rawKey, ""), command, slot, flags, NULL, NULL);
+
+  } else if (options.find("value") != std::string::npos ||
+             options.find("bool") != std::string::npos ||
+             options.find("string") != std::string::npos) {
+    rpc::CommandVariable *command;
+    rpc::Command::cleaned_slot getSlot;
+    rpc::Command::cleaned_slot setSlot;
+
+    if (options.find("value") != std::string::npos) {
+      command = new rpc::CommandVariable(int64_t());
+      getSlot = &rpc::CommandVariable::get_value;
+      setSlot = &rpc::CommandVariable::set_value;
+    } else if (options.find("bool") != std::string::npos) {
+      command = new rpc::CommandVariable(int64_t());
+      getSlot = &rpc::CommandVariable::get_bool;
+      setSlot = &rpc::CommandVariable::set_bool;
+    } else {
+      command = new rpc::CommandVariable(std::string());
+      getSlot = &rpc::CommandVariable::get_string;
+      setSlot = &rpc::CommandVariable::set_string;
+    }
+
+    // Only allow deletion after adding a flag that ensures we search
+    // the command map for duplicates of 'command', and delete them
+    // all at the same time.
+    flags &= ~rpc::CommandMap::flag_modifiable;
+
+    rpc::commands.insert_type(create_new_key<0>(rawKey, ""), command, getSlot, flags, NULL, NULL);
+    rpc::commands.insert_type(create_new_key<5>(rawKey, ".set"), command, setSlot, flags | rpc::CommandMap::flag_dont_delete, NULL, NULL);
+
+    if (++itrArgs != args.end())
+      (*setSlot)(command, NULL, *itrArgs);
+
+  } else {
+    // THROW.
+  }
+
   return torrent::Object();
 }
 
@@ -117,7 +164,7 @@ system_method_erase(__UNUSED rpc::target_type target, const torrent::Object& raw
   if (itr == rpc::commands.end())
     return torrent::Object();
 
-  if (!(itr->second.m_flags & rpc::CommandMap::flag_modifiable))
+  if (!rpc::commands.is_modifiable(itr))
     throw torrent::input_error("Command not modifiable.");
 
   rpc::commands.erase(itr);
@@ -135,7 +182,7 @@ system_method_set(__UNUSED rpc::target_type target, const torrent::Object& rawAr
   rpc::CommandFunction* function;
   rpc::CommandMap::iterator itr = rpc::commands.find(args.front().as_string().c_str());
 
-  if (itr == rpc::commands.end() || !(itr->second.m_flags & rpc::CommandMap::flag_modifiable) ||
+  if (!rpc::commands.is_modifiable(itr) ||
       (function = dynamic_cast<rpc::CommandFunction*>(itr->second.m_variable)) == NULL)
     throw torrent::input_error("Command not modifiable or wrong type.");
 
@@ -153,7 +200,7 @@ system_method_set_key(__UNUSED rpc::target_type target, const torrent::Object& r
   rpc::CommandFunctionList* function;
   rpc::CommandMap::iterator itr = rpc::commands.find(args.front().as_string().c_str());
 
-  if (itr == rpc::commands.end() || !(itr->second.m_flags & rpc::CommandMap::flag_modifiable) ||
+  if (!rpc::commands.is_modifiable(itr) ||
       (function = dynamic_cast<rpc::CommandFunctionList*>(itr->second.m_variable)) == NULL)
     throw torrent::input_error("Command not modifiable or wrong type.");
 

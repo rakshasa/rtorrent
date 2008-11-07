@@ -111,6 +111,8 @@ public:
   bool                has(const char* key) const        { return base_type::find(key) != base_type::end(); }
   bool                has(const std::string& key) const { return has(key.c_str()); }
 
+  bool                is_modifiable(const_iterator itr) { return itr != end() && (itr->second.m_flags & flag_modifiable); }
+
   iterator            insert(key_type key, Command* variable, int flags, const char* parm, const char* doc);
 
   // Make this a wrapper call to insert without extra fluff.

@@ -49,6 +49,10 @@
 #include "command.h"
 #include "command_map.h"
 
+// For XMLRPC stuff, clean up.
+#include "xmlrpc.h"
+#include "parse_commands.h"
+
 namespace rpc {
 
 CommandMap::~CommandMap() {
@@ -72,6 +76,9 @@ CommandMap::insert(key_type key, Command* variable, int flags, const char* parm,
 
   if (itr != base_type::end())
     throw torrent::internal_error("CommandMap::insert(...) tried to insert an already existing key.");
+
+  if (rpc::xmlrpc.is_valid())
+    rpc::xmlrpc.insert_command(key, parm, doc);
 
   return base_type::insert(itr, value_type(key, command_map_data_type(variable, flags, parm, doc)));
 }
