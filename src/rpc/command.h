@@ -132,9 +132,18 @@ public:
   Command() {}
   virtual ~Command() {}
 
+  static torrent::Object* argument(unsigned int index) { return m_arguments + index; }
+
 protected:
   Command(const Command&);
   void operator = (const Command&);
+
+  // For use by functions that need to use placeholders to arguments
+  // within commands. E.d. callable command strings where one of the
+  // arguments within the command needs to be supplied by the caller.
+  static const unsigned int max_arguments = 10;
+
+  static torrent::Object m_arguments[max_arguments];
 };
 
 template <typename T1 = void, typename T2 = void>

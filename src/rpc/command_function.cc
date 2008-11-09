@@ -48,19 +48,65 @@ namespace rpc {
 
 const torrent::Object
 CommandFunction::call(Command* rawCommand, target_type target, const torrent::Object& args) {
+  char* buffer[sizeof(torrent::Object) * Command::max_arguments];
+  torrent::Object* stack = (torrent::Object*)buffer;
+  torrent::Object* first = (torrent::Object*)buffer;
+
+  if (args.is_list()) {
+    // Do nothing for now.
+    for (torrent::Object::list_const_iterator itr = args.as_list().begin(), last = args.as_list().end();
+         itr != last && first != stack + Command::max_arguments;
+         itr++, first++) {
+      new (first) torrent::Object(*itr);
+      first->swap(*argument(std::distance(stack, first)));
+    }
+
+  } else if (args.type() != torrent::Object::TYPE_NONE) {
+    new (first) torrent::Object(args);
+    (first++)->swap(*argument(0));
+  }
+
   CommandFunction* command = reinterpret_cast<CommandFunction*>(rawCommand);
 
   parse_command_multiple(target, command->m_command.c_str(), command->m_command.c_str() + command->m_command.size());
+
+  while (first-- != stack) {
+    first->swap(*argument(std::distance(stack, first)));
+    first->~Object();
+  }
 
   return torrent::Object();
 }
 
 const torrent::Object
 CommandFunctionList::call(Command* rawCommand, target_type target, const torrent::Object& args) {
+  char* buffer[sizeof(torrent::Object) * Command::max_arguments];
+  torrent::Object* stack = (torrent::Object*)buffer;
+  torrent::Object* first = (torrent::Object*)buffer;
+
+  if (args.is_list()) {
+    // Do nothing for now.
+    for (torrent::Object::list_const_iterator itr = args.as_list().begin(), last = args.as_list().end();
+         itr != last && first != stack + Command::max_arguments;
+         itr++, first++) {
+      new (first) torrent::Object(*itr);
+      first->swap(*argument(std::distance(stack, first)));
+    }
+
+  } else if (args.type() != torrent::Object::TYPE_NONE) {
+    new (first) torrent::Object(args);
+    (first++)->swap(*argument(0));
+  }
+
   CommandFunctionList* command = reinterpret_cast<CommandFunctionList*>(rawCommand);
 
   for (base_type::const_iterator itr = command->begin(), last = command->end(); itr != last; itr++)
     parse_command_multiple(target, itr->second.c_str(), itr->second.c_str() + itr->second.size());
+
+  while (first-- != stack) {
+    first->swap(*argument(std::distance(stack, first)));
+    first->~Object();
+  }
 
   return torrent::Object();
 }

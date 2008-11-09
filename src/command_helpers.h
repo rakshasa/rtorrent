@@ -43,12 +43,14 @@
 
 namespace rpc {
   class CommandVariable;
+  class CommandObjectPtr;
 }
 
 // By using a static array we avoid allocating the variables on the
 // heap. This should reduce memory use and improve cache locality.
 #define COMMAND_SLOTS_SIZE          200
 #define COMMAND_VARIABLES_SIZE      100
+#define COMMAND_OBJECT_PTR_SIZE     20
 #define COMMAND_DOWNLOAD_SLOTS_SIZE 150
 #define COMMAND_FILE_SLOTS_SIZE     30
 #define COMMAND_FILE_ITR_SLOTS_SIZE 10
@@ -62,6 +64,8 @@ extern rpc::CommandSlot<void>    commandSlots[COMMAND_SLOTS_SIZE];
 extern rpc::CommandSlot<void>*   commandSlotsItr;
 extern rpc::CommandVariable      commandVariables[COMMAND_VARIABLES_SIZE];
 extern rpc::CommandVariable*     commandVariablesItr;
+extern rpc::CommandObjectPtr     commandObjectPtrs[COMMAND_OBJECT_PTR_SIZE];
+extern rpc::CommandObjectPtr*    commandObjectPtrsItr;
 extern rpc::CommandSlot<core::Download*>             commandDownloadSlots[COMMAND_DOWNLOAD_SLOTS_SIZE];
 extern rpc::CommandSlot<core::Download*>*            commandDownloadSlotsItr;
 extern rpc::CommandSlot<torrent::File*>              commandFileSlots[COMMAND_FILE_SLOTS_SIZE];
@@ -219,5 +223,9 @@ add_variable(key, NULL, NULL, &rpc::CommandVariable::get_string, NULL, std::stri
 
 #define CMD_FUNC_SINGLE(key, command) \
   rpc::commands.insert_type(key, new rpc::CommandFunction(command), &rpc::CommandFunction::call, rpc::CommandMap::flag_public_xmlrpc, NULL, NULL);
+
+#define CMD_OBJ_P(key, function, target) \
+  commandObjectPtrsItr->set_object(target); \
+  rpc::commands.insert_type(key, commandObjectPtrsItr++, &rpc::CommandObjectPtr::function, rpc::CommandMap::flag_dont_delete | rpc::CommandMap::flag_public_xmlrpc, NULL, NULL);
 
 #endif

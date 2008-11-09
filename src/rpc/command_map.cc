@@ -55,6 +55,8 @@
 
 namespace rpc {
 
+torrent::Object Command::m_arguments[Command::max_arguments];
+
 CommandMap::~CommandMap() {
   std::vector<const char*> keys;
 

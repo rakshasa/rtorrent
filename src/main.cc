@@ -179,6 +179,8 @@ main(int argc, char** argv) {
 //        "system.method.insert = test.string,string,6\n"
 //        "system.method.insert = test.bool,bool,true\n"
 
+       "system.method.insert = test.method.simple,simple,\"print=simple_test_,$argument.0=\"\n"
+
        "system.method.insert = event.download.inserted,list\n"
        "system.method.insert = event.download.inserted_new,list\n"
        "system.method.insert = event.download.inserted_session,list\n"

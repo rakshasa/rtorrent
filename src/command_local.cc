@@ -169,4 +169,13 @@ initialize_command_local() {
   ADD_COMMAND_LIST("execute_raw_nothrow", rak::bind2_mem_fn(&rpc::execFile, &rpc::ExecFile::execute_object, 0));
 
   ADD_COMMAND_STRING_UN("execute_log",    std::ptr_fun(&apply_execute_log));
+
+  *rpc::Command::argument(0) = "placeholder.0";
+  *rpc::Command::argument(1) = "placeholder.1";
+  *rpc::Command::argument(2) = "placeholder.2";
+  *rpc::Command::argument(3) = "placeholder.3";
+  CMD_OBJ_P("argument.0", get_generic, rpc::Command::argument(0));
+  CMD_OBJ_P("argument.1", get_generic, rpc::Command::argument(1));
+  CMD_OBJ_P("argument.2", get_generic, rpc::Command::argument(2));
+  CMD_OBJ_P("argument.3", get_generic, rpc::Command::argument(3));
 }

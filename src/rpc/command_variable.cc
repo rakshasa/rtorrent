@@ -148,4 +148,22 @@ CommandVariable::get_string(Command* rawCommand, cleaned_type target, const torr
   return variable->m_variable;
 }
 
+//
+// ObjectPtr
+//
+
+const torrent::Object
+CommandObjectPtr::set_generic(Command* rawCommand, cleaned_type target, const torrent::Object& rawArgs) {
+  CommandObjectPtr* command = static_cast<CommandObjectPtr*>(rawCommand);
+
+  return (*command->m_object = rawArgs);
+}
+
+const torrent::Object
+CommandObjectPtr::get_generic(Command* rawCommand, cleaned_type target, const torrent::Object& args) {
+  CommandObjectPtr* command = static_cast<CommandObjectPtr*>(rawCommand);
+
+  return *command->m_object;
+}
+
 }

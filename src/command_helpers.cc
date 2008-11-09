@@ -49,6 +49,8 @@ rpc::CommandSlot<void>    commandSlots[COMMAND_SLOTS_SIZE];
 rpc::CommandSlot<void>*   commandSlotsItr = commandSlots;
 rpc::CommandVariable      commandVariables[COMMAND_VARIABLES_SIZE];
 rpc::CommandVariable*     commandVariablesItr = commandVariables;
+rpc::CommandObjectPtr     commandObjectPtrs[COMMAND_OBJECT_PTR_SIZE];
+rpc::CommandObjectPtr*    commandObjectPtrsItr = commandObjectPtrs;
 rpc::CommandSlot<core::Download*>             commandDownloadSlots[COMMAND_DOWNLOAD_SLOTS_SIZE];
 rpc::CommandSlot<core::Download*>*            commandDownloadSlotsItr = commandDownloadSlots;
 rpc::CommandSlot<torrent::File*>              commandFileSlots[COMMAND_FILE_SLOTS_SIZE];
@@ -89,6 +91,7 @@ initialize_commands() {
 #ifdef ADDING_COMMANDS 
   if (commandSlotsItr > commandSlots + COMMAND_SLOTS_SIZE ||
       commandVariablesItr > commandVariables + COMMAND_VARIABLES_SIZE ||
+      commandObjectPtrsItr > commandObjectPtrs + COMMAND_OBJECT_PTR_SIZE ||
       commandDownloadSlotsItr > commandDownloadSlots + COMMAND_DOWNLOAD_SLOTS_SIZE ||
       commandFileSlotsItr > commandFileSlots + COMMAND_FILE_SLOTS_SIZE ||
       commandFileItrSlotsItr > commandFileItrSlots + COMMAND_FILE_ITR_SLOTS_SIZE ||
@@ -98,6 +101,7 @@ initialize_commands() {
 #else
   if (commandSlotsItr != commandSlots + COMMAND_SLOTS_SIZE ||
       commandVariablesItr != commandVariables + COMMAND_VARIABLES_SIZE ||
+      commandObjectPtrsItr != commandObjectPtrs + COMMAND_OBJECT_PTR_SIZE ||
       commandDownloadSlotsItr != commandDownloadSlots + COMMAND_DOWNLOAD_SLOTS_SIZE ||
       commandFileSlotsItr != commandFileSlots + COMMAND_FILE_SLOTS_SIZE ||
       commandFileItrSlotsItr != commandFileItrSlots + COMMAND_FILE_ITR_SLOTS_SIZE ||
