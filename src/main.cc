@@ -181,19 +181,19 @@ main(int argc, char** argv) {
 
        "system.method.insert = test.method.simple,simple,\"print=simple_test_,$argument.0=\"\n"
 
-       "system.method.insert = event.download.inserted,list\n"
-       "system.method.insert = event.download.inserted_new,list\n"
-       "system.method.insert = event.download.inserted_session,list\n"
-       "system.method.insert = event.download.erased,list\n"
-       "system.method.insert = event.download.opened,list\n"
-       "system.method.insert = event.download.closed,list\n"
-       "system.method.insert = event.download.resumed,list\n"
-       "system.method.insert = event.download.paused,list\n"
+       "system.method.insert = event.download.inserted,multi\n"
+       "system.method.insert = event.download.inserted_new,multi\n"
+       "system.method.insert = event.download.inserted_session,multi\n"
+       "system.method.insert = event.download.erased,multi\n"
+       "system.method.insert = event.download.opened,multi\n"
+       "system.method.insert = event.download.closed,multi\n"
+       "system.method.insert = event.download.resumed,multi\n"
+       "system.method.insert = event.download.paused,multi\n"
        
-       "system.method.insert = event.download.finished,list\n"
-       "system.method.insert = event.download.hash_done,list\n"
-       "system.method.insert = event.download.hash_removed,list\n"
-       "system.method.insert = event.download.hash_queued,list\n"
+       "system.method.insert = event.download.finished,multi\n"
+       "system.method.insert = event.download.hash_done,multi\n"
+       "system.method.insert = event.download.hash_removed,multi\n"
+       "system.method.insert = event.download.hash_queued,multi\n"
 
        "system.method.set_key = event.download.inserted,         1_connect_logs, d.initialize_logs=\n"
        "system.method.set_key = event.download.inserted_new,     1_prepare, \"branch=d.get_state=,view.set_visible=started,view.set_visible=stopped ;d.save_session=\"\n"
@@ -201,6 +201,23 @@ main(int argc, char** argv) {
 
        "system.method.set_key = event.download.erased, 0_download_list, ui.unfocus_download=\n"
        "system.method.set_key = event.download.erased, 9_delete_tied, d.delete_tied=\n"
+
+       // Allow setting 'group.view' as constant, so that we can't
+       // modify the value. And look into the possibility of making
+       // 'const' use non-heap memory, as we know they can't be
+       // erased.
+
+       // TODO: Remember to ensure it doesn't get restarted by watch
+       // dir, etc. Set ignore commands, or something.
+
+       "system.method.insert = group.seeding.view,string|static|const,seeding\n"
+
+       "system.method.insert = group.seeding.ratio.enable ,simple,\"schedule=group.seeding.ratio,5,60,on_ratio=seeding\"\n"
+       "system.method.insert = group.seeding.ratio.disable,simple,\"schedule_remove=group.seeding.ratio\"\n"
+       "system.method.insert = group.seeding.ratio.command,simple|static,\"d.try_close= ;d.set_ignore_commands=1\"\n"
+       "system.method.insert = group.seeding.ratio.min,value,200\n"
+       "system.method.insert = group.seeding.ratio.max,value,300\n"
+       "system.method.insert = group.seeding.ratio.upload,value,20M\n"
 
        "set_name = \"$cat=$system.hostname=,:,$system.pid=\"\n"
 
