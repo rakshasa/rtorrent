@@ -120,6 +120,11 @@ DownloadList::current_view() {
   return dynamic_cast<ElementDownloadList*>(m_uiArray[DISPLAY_DOWNLOAD_LIST])->view();
 }
 
+void
+DownloadList::set_current_view(const std::string& name) {
+  return dynamic_cast<ElementDownloadList*>(m_uiArray[DISPLAY_DOWNLOAD_LIST])->receive_change_view(name);
+}
+
 // This should also do focus_next() or something.
 void
 DownloadList::unfocus_download(core::Download* d) {

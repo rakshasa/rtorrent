@@ -127,6 +127,7 @@ public:
   void                insert(key_type key, const command_map_data_type src);
   void                erase(iterator itr);
 
+  const mapped_type   call(key_type key, const mapped_type& args = mapped_type());
   const mapped_type   call(key_type key, target_type target, const mapped_type& args = mapped_type()) { return call_command(key, args, target); }
   const mapped_type   call_catch(key_type key, target_type target, const mapped_type& args = mapped_type(), const char* err = "Command failed: ");
 
@@ -175,6 +176,11 @@ create_object_list(const torrent::Object& o1, const torrent::Object& o2, const t
   tmp.as_list().push_back(o2);
   tmp.as_list().push_back(o3);
   return tmp;
+}
+
+inline const CommandMap::mapped_type
+CommandMap::call(key_type key, const mapped_type& args) {
+  return call_command(key, args, make_target());
 }
 
 }

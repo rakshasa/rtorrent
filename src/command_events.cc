@@ -119,7 +119,7 @@ apply_on_ratio(const torrent::Object& rawArgs) {
   std::vector<core::Download*> downloads;
 
   for  (core::View::iterator itr = (*viewItr)->begin_visible(), last = (*viewItr)->end_visible(); itr != last; itr++) {
-    if (rpc::call_command_value("d.get_ignore_commands", rpc::make_target(*itr)) != 0)
+    if (!(*itr)->is_seeding() || rpc::call_command_value("d.get_ignore_commands", rpc::make_target(*itr)) != 0)
       continue;
 
     rpc::parse_command_single(rpc::make_target(*itr), "print={Checked ratio of download.}");

@@ -208,6 +208,9 @@ add_variable(key, NULL, NULL, &rpc::CommandVariable::get_string, NULL, std::stri
 #define CMD_N_STRING(key, slot) \
   CMD_N_SLOT(key, call_string, slot, "i:", "")
 
+#define CMD_N_LIST(key, slot) \
+  CMD_N_SLOT(key, call_list, slot, "i:", "")
+
 #define CMD_D_SLOT(key, function, slot, parm, doc)    \
   commandDownloadSlotsItr->set_slot(slot); \
   rpc::commands.insert_type(key, commandDownloadSlotsItr++, &rpc::CommandSlot<core::Download*>::function, rpc::CommandMap::flag_dont_delete | rpc::CommandMap::flag_public_xmlrpc, parm, doc);

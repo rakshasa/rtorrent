@@ -302,6 +302,57 @@ generate_random(size_t length) {
   return s;
 }
 
+template <typename Iterator>
+inline bool
+is_all_alpha(Iterator first, Iterator last) {
+  while (first != last)
+    if (!std::isalpha(*first++, std::locale::classic()))
+      return false;
+
+  return true;
+}
+
+template <typename Sequence>
+inline bool
+is_all_alpha(const Sequence& src) {
+  return is_all_alpha(src.begin(), src.end());
+}
+
+template <typename Iterator>
+inline bool
+is_all_alnum(Iterator first, Iterator last) {
+  while (first != last)
+    if (!std::isalnum(*first++, std::locale::classic()))
+      return false;
+
+  return true;
+}
+
+template <typename Sequence>
+inline bool
+is_all_alnum(const Sequence& src) {
+  return is_all_alnum(src.begin(), src.end());
+}
+
+template <typename Iterator>
+inline bool
+is_all_name(Iterator first, Iterator last) {
+  while (first != last) {
+    if (!std::isalnum(*first, std::locale::classic()) && *first != '_')
+      return false;
+
+    first++;
+  }
+
+  return true;
+}
+
+template <typename Sequence>
+inline bool
+is_all_name(const Sequence& src) {
+  return is_all_name(src.begin(), src.end());
+}
+
 }
 
 #endif

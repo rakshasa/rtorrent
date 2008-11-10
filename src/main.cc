@@ -210,14 +210,16 @@ main(int argc, char** argv) {
        // TODO: Remember to ensure it doesn't get restarted by watch
        // dir, etc. Set ignore commands, or something.
 
-       "system.method.insert = group.seeding.view,string|static|const,seeding\n"
+       "group.insert = seeding,seeding\n"
 
-       "system.method.insert = group.seeding.ratio.enable ,simple,\"schedule=group.seeding.ratio,5,60,on_ratio=seeding\"\n"
-       "system.method.insert = group.seeding.ratio.disable,simple,\"schedule_remove=group.seeding.ratio\"\n"
-       "system.method.insert = group.seeding.ratio.command,simple|static,\"d.try_close= ;d.set_ignore_commands=1\"\n"
-       "system.method.insert = group.seeding.ratio.min,value,200\n"
-       "system.method.insert = group.seeding.ratio.max,value,300\n"
-       "system.method.insert = group.seeding.ratio.upload,value,20M\n"
+//        "system.method.insert = group.seeding.view,string|static|const,seeding\n"
+
+//        "system.method.insert = group.seeding.ratio.enable ,simple,\"schedule=group.seeding.ratio,5,60,on_ratio=seeding\"\n"
+//        "system.method.insert = group.seeding.ratio.disable,simple,\"schedule_remove=group.seeding.ratio\"\n"
+//        "system.method.insert = group.seeding.ratio.command,simple|static,\"d.try_close= ;d.set_ignore_commands=1\"\n"
+//        "system.method.insert = group.seeding.ratio.min,value,200\n"
+//        "system.method.insert = group.seeding.ratio.max,value,300\n"
+//        "system.method.insert = group.seeding.ratio.upload,value,20M\n"
 
        "set_name = \"$cat=$system.hostname=,:,$system.pid=\"\n"
 

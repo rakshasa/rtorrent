@@ -181,6 +181,18 @@ system_method_erase(__UNUSED rpc::target_type target, const torrent::Object& raw
 }
 
 torrent::Object
+system_method_get(__UNUSED rpc::target_type target, const torrent::Object& rawArgs) {
+  rpc::CommandFunction* function;
+  rpc::CommandMap::iterator itr = rpc::commands.find(rawArgs.as_string().c_str());
+
+  if (itr == rpc::commands.end() ||
+      (function = dynamic_cast<rpc::CommandFunction*>(itr->second.m_variable)) == NULL)
+    throw torrent::input_error("Command not modifiable or wrong type.");
+
+  return torrent::Object(function->command());
+}
+
+torrent::Object
 system_method_set(__UNUSED rpc::target_type target, const torrent::Object& rawArgs) {
   const torrent::Object::list_type& args = rawArgs.as_list();
 
@@ -190,7 +202,7 @@ system_method_set(__UNUSED rpc::target_type target, const torrent::Object& rawAr
   rpc::CommandFunction* function;
   rpc::CommandMap::iterator itr = rpc::commands.find(args.front().as_string().c_str());
 
-  if (!rpc::commands.is_modifiable(itr) ||
+  if (itr == rpc::commands.end() || !rpc::commands.is_modifiable(itr) ||
       (function = dynamic_cast<rpc::CommandFunction*>(itr->second.m_variable)) == NULL)
     throw torrent::input_error("Command not modifiable or wrong type.");
 
@@ -262,6 +274,7 @@ void
 initialize_command_dynamic() {
   CMD_N       ("system.method.insert",    rak::ptr_fn(&system_method_insert));
   CMD_N_STRING("system.method.erase",     rak::ptr_fn(&system_method_erase));
+  CMD_N_STRING("system.method.get",       rak::ptr_fn(&system_method_get));
   CMD_N       ("system.method.set",       rak::ptr_fn(&system_method_set));
   CMD_N       ("system.method.set_key",   rak::ptr_fn(&system_method_set_key));
   CMD_N       ("system.method.has_key",   rak::ptr_fn(&system_method_has_key));

@@ -395,6 +395,13 @@ cmd_view_size_not_visible(__UNUSED rpc::target_type target, const torrent::Objec
 }
 
 torrent::Object
+cmd_ui_set_view(__UNUSED rpc::target_type target, const torrent::Object& rawArgs) {
+  control->ui()->download_list()->set_current_view(rawArgs.as_string());
+
+  return torrent::Object();
+}
+
+torrent::Object
 cmd_ui_unfocus_download(core::Download* download, const torrent::Object& rawArgs) {
   control->ui()->download_list()->unfocus_download(download);
 
@@ -451,7 +458,8 @@ initialize_command_ui() {
   // Commands that affect the default rtorrent UI.
 
 //   ADD_ANY_NONE("ui.focus",              rak::ptr_fn(&cmd_ui_focus));
-  CMD_D_ANY("ui.unfocus_download",     rak::ptr_fn(&cmd_ui_unfocus_download));
+  CMD_D_ANY("ui.unfocus_download",      rak::ptr_fn(&cmd_ui_unfocus_download));
+  CMD_N_STRING("ui.current_view.set",   rak::ptr_fn(&cmd_ui_set_view));
 
   // Move.
 
