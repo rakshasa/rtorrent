@@ -202,6 +202,18 @@ main(int argc, char** argv) {
        "system.method.set_key = event.download.erased, 0_download_list, ui.unfocus_download=\n"
        "system.method.set_key = event.download.erased, 9_delete_tied, d.delete_tied=\n"
 
+       "system.method.insert = ratio.enable, simple|static|const,group.seeding.ratio.enable=\n"
+       "system.method.insert = ratio.disable,simple|static|const,group.seeding.ratio.disable=\n"
+       "system.method.insert = ratio.min,    simple|static|const,group.seeding.ratio.min=\n"
+       "system.method.insert = ratio.max,    simple|static|const,group.seeding.ratio.max=\n"
+       "system.method.insert = ratio.upload, simple|static|const,group.seeding.ratio.upload=\n"
+       "system.method.insert = ratio.min.set,   simple|static|const,group.seeding.ratio.min.set=$argument.0=\n"
+       "system.method.insert = ratio.max.set,   simple|static|const,group.seeding.ratio.max.set=$argument.0=\n"
+       "system.method.insert = ratio.upload.set,simple|static|const,group.seeding.ratio.upload.set=$argument.0=\n"
+
+       "system.method.insert = group.insert_persistent_view,simple|static|const,"
+       "view_add=$argument.0=,view.persistent=$argument.0=,\"group.insert=$argument.0=,$argument.0=\"\n"
+
        // Allow setting 'group.view' as constant, so that we can't
        // modify the value. And look into the possibility of making
        // 'const' use non-heap memory, as we know they can't be
@@ -211,16 +223,6 @@ main(int argc, char** argv) {
        // dir, etc. Set ignore commands, or something.
 
        "group.insert = seeding,seeding\n"
-
-       "system.method.insert = ratio.enable, simple|static|const,group.seeding.ratio.enable=\n"
-       "system.method.insert = ratio.disable,simple|static|const,group.seeding.ratio.disable=\n"
-       "system.method.insert = ratio.command,simple|static|const,group.seeding.ratio.command=\n"
-       "system.method.insert = ratio.min,    simple|static|const,group.seeding.ratio.min=\n"
-       "system.method.insert = ratio.max,    simple|static|const,group.seeding.ratio.max=\n"
-       "system.method.insert = ratio.upload, simple|static|const,group.seeding.ratio.upload=\n"
-       "system.method.insert = ratio.min.set,   simple|static|const,group.seeding.ratio.min.set=$argument.0=\n"
-       "system.method.insert = ratio.max.set,   simple|static|const,group.seeding.ratio.max.set=$argument.0=\n"
-       "system.method.insert = ratio.upload.set,simple|static|const,group.seeding.ratio.upload.set=$argument.0=\n"
 
        "set_name = \"$cat=$system.hostname=,:,$system.pid=\"\n"
 
