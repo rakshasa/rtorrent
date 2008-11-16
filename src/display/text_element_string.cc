@@ -122,7 +122,7 @@ TextElementCommand::print(char* first, char* last, Canvas::attributes_list* attr
   }
   case torrent::Object::TYPE_VALUE:
   { 
-    first += std::max(snprintf(first, last - first + 1, "%lld", result.as_value()), 0);
+    first += std::min(std::max(snprintf(first, last - first + 1, "%lld", result.as_value()), 0), last - first + 1);
     break;
   }
   default:

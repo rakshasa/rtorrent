@@ -122,11 +122,14 @@ public:
   void                filter();
   void                filter_download(core::Download* download);
 
+  const std::string&  get_filter() const { return m_filter; }
   void                set_filter(const std::string& s)        { m_filter = s; }
   void                set_filter_on_event(const std::string& event);
 
   void                clear_filter_on();
 
+  const std::string&  get_event_added() const { return m_eventAdded; }
+  const std::string&  get_event_removed() const { return m_eventRemoved; }
   void                set_event_added(const std::string& cmd)   { m_eventAdded = cmd; }
   void                set_event_removed(const std::string& cmd) { m_eventRemoved = cmd; }
 

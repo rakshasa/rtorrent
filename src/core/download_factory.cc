@@ -337,6 +337,7 @@ DownloadFactory::initialize_rtorrent(Download* download, torrent::Object* rtorre
                                                              download->download()->file_list()->size_chunks()));
 
   rtorrent->insert_preserve_copy("ignore_commands", (int64_t)0);
+  rtorrent->insert_preserve_copy("views", torrent::Object::create_list());
 
   rtorrent->insert_preserve_type("connection_leech", m_variables["connection_leech"]);
   rtorrent->insert_preserve_type("connection_seed", m_variables["connection_seed"]);

@@ -122,7 +122,7 @@ apply_on_ratio(const torrent::Object& rawArgs) {
     if (!(*itr)->is_seeding() || rpc::call_command_value("d.get_ignore_commands", rpc::make_target(*itr)) != 0)
       continue;
 
-    rpc::parse_command_single(rpc::make_target(*itr), "print={Checked ratio of download.}");
+    //    rpc::parse_command_single(rpc::make_target(*itr), "print={Checked ratio of download.}");
 
     int64_t totalDone   = (*itr)->download()->bytes_done();
     int64_t totalUpload = (*itr)->download()->up_rate()->total();
@@ -137,7 +137,7 @@ apply_on_ratio(const torrent::Object& rawArgs) {
   std::strcpy(bufferStart, "command");
 
   for (std::vector<core::Download*>::iterator itr = downloads.begin(), last = downloads.end(); itr != last; itr++) {
-    rpc::commands.call("print", rpc::make_target(*itr), "Calling ratio command.");
+    //    rpc::commands.call("print", rpc::make_target(*itr), "Calling ratio command.");
     rpc::commands.call_catch(buffer, rpc::make_target(*itr), torrent::Object(), "Ratio reached, but command failed: ");
   }
 

@@ -384,6 +384,57 @@ p_multicall(core::Download* download, const torrent::Object& rawArgs) {
   return resultRaw;
 }
 
+inline torrent::Object&
+d_object_wrapper(const std::pair<const char*, const char*> keyPair, core::Download* download) {
+  if (keyPair.first == NULL)
+    return download->bencode()->get_key(keyPair.second);
+  else
+    return download->bencode()->get_key(keyPair.first).get_key(keyPair.second);
+}
+
+torrent::Object
+d_object_get(const std::pair<const char*, const char*> keyPair, core::Download* download, __UNUSED const torrent::Object& rawArgs) {
+  return d_object_wrapper(keyPair, download);
+}
+
+torrent::Object
+d_list_push_back(const std::pair<const char*, const char*> keyPair, core::Download* download, const torrent::Object& rawArgs) {
+  d_object_wrapper(keyPair, download).as_list().push_back(rawArgs);
+
+  return torrent::Object();
+}
+
+torrent::Object
+d_list_push_back_unique(const std::pair<const char*, const char*> keyPair, core::Download* download, const torrent::Object& rawArgs) {
+  const torrent::Object& args = (rawArgs.is_list() && !rawArgs.as_list().empty()) ? rawArgs.as_list().front() : rawArgs;
+  torrent::Object::list_type& list = d_object_wrapper(keyPair, download).as_list();
+
+  if (std::find_if(list.begin(), list.end(),
+                   rak::bind1st(std::ptr_fun(&torrent::object_equal), args)) == list.end())
+    list.push_back(rawArgs);
+
+  return torrent::Object();
+}
+
+torrent::Object
+d_list_has(const std::pair<const char*, const char*> keyPair, core::Download* download, const torrent::Object& rawArgs) {
+  const torrent::Object& args = (rawArgs.is_list() && !rawArgs.as_list().empty()) ? rawArgs.as_list().front() : rawArgs;
+  torrent::Object::list_type& list = d_object_wrapper(keyPair, download).as_list();
+
+  return (int64_t)(std::find_if(list.begin(), list.end(),
+                                rak::bind1st(std::ptr_fun(&torrent::object_equal), args)) != list.end());
+}
+
+torrent::Object
+d_list_remove(const std::pair<const char*, const char*> keyPair, core::Download* download, const torrent::Object& rawArgs) {
+  const torrent::Object& args = (rawArgs.is_list() && !rawArgs.as_list().empty()) ? rawArgs.as_list().front() : rawArgs;
+  torrent::Object::list_type& list = d_object_wrapper(keyPair, download).as_list();
+
+  list.erase(std::remove_if(list.begin(), list.end(), rak::bind1st(std::ptr_fun(&torrent::object_equal), args)), list.end());
+
+  return torrent::Object();
+}
+
 #define ADD_CD_SLOT(key, function, slot, parm, doc)    \
   commandDownloadSlotsItr->set_slot(slot); \
   rpc::commands.insert_type(key, commandDownloadSlotsItr++, &rpc::CommandSlot<core::Download*>::function, rpc::CommandMap::flag_dont_delete, parm, doc);
@@ -546,6 +597,12 @@ initialize_command_download() {
   ADD_CD_VARIABLE_STRING("connection_seed",       "rtorrent", "connection_seed");
 
   ADD_CD_VALUE_BI("hashing_failed",      std::mem_fun(&core::Download::set_hash_failed), std::mem_fun(&core::Download::is_hash_failed));
+
+  CMD_D("d.views",                  rak::bind_ptr_fn(&d_object_get, std::make_pair("rtorrent", "views")));
+  CMD_D("d.views.has",              rak::bind_ptr_fn(&d_list_has, std::make_pair("rtorrent", "views")));
+  CMD_D("d.views.remove",           rak::bind_ptr_fn(&d_list_remove, std::make_pair("rtorrent", "views")));
+  CMD_D("d.views.push_back",        rak::bind_ptr_fn(&d_list_push_back, std::make_pair("rtorrent", "views")));
+  CMD_D("d.views.push_back_unique", rak::bind_ptr_fn(&d_list_push_back_unique, std::make_pair("rtorrent", "views")));
 
   // This command really needs to be improved, so we have proper
   // logging support.

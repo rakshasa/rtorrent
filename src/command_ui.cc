@@ -395,6 +395,21 @@ cmd_view_size_not_visible(__UNUSED rpc::target_type target, const torrent::Objec
 }
 
 torrent::Object
+cmd_view_persistent(__UNUSED rpc::target_type target, const torrent::Object& rawArgs) {
+  const std::string& args = rawArgs.as_string();
+  core::View* view = *control->view_manager()->find_throw(args);
+  
+  if (!view->get_filter().empty() || !view->get_event_added().empty() || !view->get_event_removed().empty())
+    throw torrent::input_error("Cannot set modified views as persitent.");
+
+  view->set_filter("d.views.has=" + args);
+  view->set_event_added("d.views.push_back_unique=" + args);
+  view->set_event_removed("d.views.remove=" + args);
+
+  return torrent::Object();
+}
+
+torrent::Object
 cmd_ui_set_view(__UNUSED rpc::target_type target, const torrent::Object& rawArgs) {
   control->ui()->download_list()->set_current_view(rawArgs.as_string());
 
@@ -451,6 +466,8 @@ initialize_command_ui() {
 
   CMD_G_STRING("view.size",              rak::ptr_fn(&cmd_view_size));
   CMD_G_STRING("view.size_not_visible",  rak::ptr_fn(&cmd_view_size_not_visible));
+  CMD_G_STRING("view.persistent",        rak::ptr_fn(&cmd_view_persistent));
+
   CMD_D_STRING("view.filter_download",   rak::ptr_fn(&cmd_view_filter_download));
   CMD_D_STRING("view.set_visible",       rak::ptr_fn(&cmd_view_set_visible));
   CMD_D_STRING("view.set_not_visible",   rak::ptr_fn(&cmd_view_set_not_visible));

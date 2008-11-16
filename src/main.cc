@@ -212,14 +212,15 @@ main(int argc, char** argv) {
 
        "group.insert = seeding,seeding\n"
 
-//        "system.method.insert = group.seeding.view,string|static|const,seeding\n"
-
-//        "system.method.insert = group.seeding.ratio.enable ,simple,\"schedule=group.seeding.ratio,5,60,on_ratio=seeding\"\n"
-//        "system.method.insert = group.seeding.ratio.disable,simple,\"schedule_remove=group.seeding.ratio\"\n"
-//        "system.method.insert = group.seeding.ratio.command,simple|static,\"d.try_close= ;d.set_ignore_commands=1\"\n"
-//        "system.method.insert = group.seeding.ratio.min,value,200\n"
-//        "system.method.insert = group.seeding.ratio.max,value,300\n"
-//        "system.method.insert = group.seeding.ratio.upload,value,20M\n"
+       "system.method.insert = ratio.enable, simple|static|const,group.seeding.ratio.enable=\n"
+       "system.method.insert = ratio.disable,simple|static|const,group.seeding.ratio.disable=\n"
+       "system.method.insert = ratio.command,simple|static|const,group.seeding.ratio.command=\n"
+       "system.method.insert = ratio.min,    simple|static|const,group.seeding.ratio.min=\n"
+       "system.method.insert = ratio.max,    simple|static|const,group.seeding.ratio.max=\n"
+       "system.method.insert = ratio.upload, simple|static|const,group.seeding.ratio.upload=\n"
+       "system.method.insert = ratio.min.set,   simple|static|const,group.seeding.ratio.min.set=$argument.0=\n"
+       "system.method.insert = ratio.max.set,   simple|static|const,group.seeding.ratio.max.set=$argument.0=\n"
+       "system.method.insert = ratio.upload.set,simple|static|const,group.seeding.ratio.upload.set=$argument.0=\n"
 
        "set_name = \"$cat=$system.hostname=,:,$system.pid=\"\n"
 
