@@ -60,7 +60,7 @@ system_method_generate_command(torrent::Object::list_const_iterator first, torre
 template <int postfix_size>
 inline const char*
 create_new_key(const std::string& key, const char postfix[postfix_size]) {
-  char *buffer = new char[key.size() + postfix_size];
+  char *buffer = new char[key.size() + std::max(postfix_size, 1)];
   std::memcpy(buffer, key.c_str(), key.size() + 1);
   std::memcpy(buffer + key.size(), postfix, postfix_size);
   return buffer;
