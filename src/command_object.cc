@@ -43,6 +43,10 @@
 #include "command_helpers.h"
 #include "rpc/command_variable.h"
 
+// torrent::Object
+// list_push_back(__UNUSED rpc::target_type target, const torrent::Object& rawArgs) {
+
+
 void
 initialize_command_object() {
 //   CMD_N       ("system.method.insert",    rak::ptr_fn(&system_method_insert));
