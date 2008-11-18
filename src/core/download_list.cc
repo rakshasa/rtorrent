@@ -234,7 +234,9 @@ void
 DownloadList::close_directly(Download* download) {
   if (download->download()->is_active()) {
     download->download()->stop(torrent::Download::stop_skip_tracker);
-    torrent::resume_save_progress(*download->download(), download->download()->bencode()->get_key("libtorrent_resume"));
+
+    if (torrent::resume_check_target_files(*download->download(), download->download()->bencode()->get_key("libtorrent_resume")))
+      torrent::resume_save_progress(*download->download(), download->download()->bencode()->get_key("libtorrent_resume"));
   }
 
   if (download->download()->is_open())
@@ -519,14 +521,12 @@ void
 DownloadList::received_finished(Download* download) {
   check_contains(download);
 
-  if (rpc::call_command_value("get_check_hash")) {
+  if (rpc::call_command_value("get_check_hash"))
     // Set some 'checking_finished_thingie' variable to make hash_done
     // trigger correctly, also so it can bork on missing data.
     hash_queue(download, Download::variable_hashing_last);
-
-  } else {
+  else
     confirm_finished(download);
-  }
 }
 
 // The download must be open when we call this function.
@@ -547,6 +547,8 @@ DownloadList::confirm_finished(Download* download) {
 
   // Do this before the slots are called in case one of them closes
   // the download.
+  //
+  // Obsolete.
   if (!download->is_active() && rpc::call_command_value("get_session_on_completion") != 0) {
     torrent::resume_save_progress(*download->download(), download->download()->bencode()->get_key("libtorrent_resume"));
     control->core()->download_store()->save(download);

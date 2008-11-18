@@ -268,7 +268,7 @@ main(int argc, char** argv) {
 
        "view_add = seeding\n"
        "view_filter = seeding,\"and=d.get_state=,d.get_complete=\"\n"
-       "view_filter_on    = seeding,event.download.resumed,event.download.paused\n"
+       "view_filter_on    = seeding,event.download.resumed,event.download.paused,event.download.finished\n"
        "view_sort_new     = seeding,less=d.get_state_changed=\n"
        "view_sort_current = seeding,less=d.get_state_changed=\n"
 

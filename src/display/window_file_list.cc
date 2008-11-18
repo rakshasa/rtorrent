@@ -68,7 +68,7 @@ wstring_width(const std::string& i_str, int width) {
   if (length == (size_t)-1) {
     wchar_t* out = result;
 
-    for (std::string::const_iterator itr = i_str.begin(); itr != i_str.end(); ++itr)
+    for (std::string::const_iterator itr = i_str.begin(); out != result + width && itr != i_str.end(); ++itr)
       if (!std::isprint(*itr, std::locale::classic()))
         *out++ = '?';
       else
