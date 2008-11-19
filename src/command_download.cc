@@ -63,9 +63,9 @@
 std::string
 retrieve_d_base_path(core::Download* download) {
   if (download->file_list()->is_multi_file())
-    return download->file_list()->root_dir();
+    return download->file_list()->frozen_root_dir();
   else
-    return download->file_list()->at(0)->frozen_path();
+    return download->file_list()->empty() ? std::string() : download->file_list()->at(0)->frozen_path();
 }
 
 std::string
@@ -73,7 +73,7 @@ retrieve_d_base_filename(core::Download* download) {
   const std::string* base;
 
   if (download->file_list()->is_multi_file())
-    base = &download->file_list()->root_dir();
+    base = &download->file_list()->frozen_root_dir();
   else
     base = &download->file_list()->at(0)->frozen_path();
 
