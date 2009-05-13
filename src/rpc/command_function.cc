@@ -68,14 +68,14 @@ CommandFunction::call(Command* rawCommand, target_type target, const torrent::Ob
 
   CommandFunction* command = reinterpret_cast<CommandFunction*>(rawCommand);
 
-  parse_command_multiple(target, command->m_command.c_str(), command->m_command.c_str() + command->m_command.size());
+  torrent::Object result = parse_command_multiple(target, command->m_command.c_str(), command->m_command.c_str() + command->m_command.size());
 
   while (first-- != stack) {
     first->swap(*argument(std::distance(stack, first)));
     first->~Object();
   }
 
-  return torrent::Object();
+  return result;
 }
 
 const torrent::Object

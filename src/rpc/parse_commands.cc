@@ -138,15 +138,19 @@ parse_command(target_type target, const char* first, const char* last) {
   return std::make_pair(commands.call_command(key.c_str(), args, target), first);
 }
 
-void
+torrent::Object
 parse_command_multiple(target_type target, const char* first, const char* last) {
+  parse_command_type result;
+
   while (first != last) {
     // Should we check the return value? Probably not necessary as
     // parse_args throws on unquoted multi-word input.
-    parse_command_type result = parse_command(target, first, last);
+    result = parse_command(target, first, last);
 
     first = result.second;
   }
+
+  return result.first;
 }
 
 parse_command_type
