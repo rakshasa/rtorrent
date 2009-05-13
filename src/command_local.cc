@@ -165,6 +165,8 @@ initialize_command_local() {
   ADD_COMMAND_VOID("system.hostname",            rak::ptr_fun(&system_hostname));
   ADD_COMMAND_VOID("system.pid",                 rak::ptr_fun(&getpid));
 
+  rpc::commands.call("system.method.insert", rpc::create_object_list("system.file_allocate", "value", (int64_t)0));
+
   ADD_COMMAND_VOID("system.file_status_cache.size",  rak::make_mem_fun((utils::FileStatusCache::base_type*)control->core()->file_status_cache(), &utils::FileStatusCache::size));
   ADD_COMMAND_VOID("system.file_status_cache.prune", rak::make_mem_fun(control->core()->file_status_cache(), &utils::FileStatusCache::prune));
 

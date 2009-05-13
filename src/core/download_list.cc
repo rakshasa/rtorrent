@@ -215,7 +215,12 @@ DownloadList::open_throw(Download* download) {
   if (download->download()->is_open())
     return;
   
-  download->download()->open(download->resume_flags());
+  int openFlags = download->resume_flags();
+
+  if (rpc::call_command_value("system.file_allocate"))
+    openFlags |= torrent::Download::open_enable_fallocate;
+
+  download->download()->open(openFlags);
   rpc::commands.call_catch("event.download.opened", rpc::make_target(download), torrent::Object(), "Download event action failed: ");
 }
 
