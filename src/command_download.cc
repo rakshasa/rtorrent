@@ -252,6 +252,42 @@ retrieve_d_local_id_html(core::Download* download) {
   return torrent::Object(rak::copy_escape_html(hashString->begin(), hashString->end()));
 }
 
+torrent::Object
+apply_d_custom(core::Download* download, const torrent::Object& rawArgs) {
+  torrent::Object::list_const_iterator itr = rawArgs.as_list().begin();
+  if (itr == rawArgs.as_list().end())
+    throw torrent::bencode_error("Missing key argument.");
+
+  const std::string& key = itr->as_string();
+  if (++itr == rawArgs.as_list().end())
+    throw torrent::bencode_error("Missing value argument.");
+
+  download->bencode()->get_key("rtorrent").
+                       insert_preserve_copy("custom", torrent::Object::create_map()).first->second.
+                       insert_key(key, itr->as_string());
+  return torrent::Object();
+}
+
+torrent::Object
+retrieve_d_custom(core::Download* download, const std::string& key) {
+  try {
+    return download->bencode()->get_key("rtorrent").get_key("custom").get_key_string(key);
+
+  } catch (torrent::bencode_error& e) {
+    return std::string();
+  }
+}
+
+torrent::Object
+retrieve_d_custom_throw(core::Download* download, const std::string& key) {
+  try {
+    return download->bencode()->get_key("rtorrent").get_key("custom").get_key_string(key);
+
+  } catch (torrent::bencode_error& e) {
+    throw torrent::input_error("No such custom value.");
+  }
+}
+
 // Just a helper function atm.
 torrent::Object
 cmd_d_initialize_logs(core::Download* download) {
@@ -559,6 +595,10 @@ initialize_command_download() {
   ADD_CD_VARIABLE_STRING_PUBLIC("custom3", "rtorrent", "custom3");
   ADD_CD_VARIABLE_STRING_PUBLIC("custom4", "rtorrent", "custom4");
   ADD_CD_VARIABLE_STRING_PUBLIC("custom5", "rtorrent", "custom5");
+
+  ADD_CD_SLOT_PUBLIC("d.set_custom",       call_list,   rak::ptr_fn(&apply_d_custom), "i:", "");
+  ADD_CD_SLOT_PUBLIC("d.get_custom",       call_string, rpc::object_string_fn<core::Download*>(std::ptr_fun(&retrieve_d_custom)), "s:s", "");
+  ADD_CD_SLOT_PUBLIC("d.get_custom_throw", call_string, rpc::object_string_fn<core::Download*>(std::ptr_fun(&retrieve_d_custom_throw)), "s:s", "");
 
   // 0 - stopped
   // 1 - started

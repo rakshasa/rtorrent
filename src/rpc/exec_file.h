@@ -48,18 +48,20 @@ public:
     
   static const int flag_expand_tilde = 0x1;
   static const int flag_throw        = 0x2;
+  static const int flag_capture      = 0x4;
 
   ExecFile() : m_logFd(-1) {}
 
   int                 log_fd() const     { return m_logFd; }
   void                set_log_fd(int fd) { m_logFd = fd; }
 
-  int                 execute(const char* file, char* const* argv);
+  int                 execute(const char* file, char* const* argv, int flags);
 
   torrent::Object     execute_object(const torrent::Object& rawArgs, int flags);
   
 private:
   int                 m_logFd;
+  std::string         m_capture;
 };
 
 }

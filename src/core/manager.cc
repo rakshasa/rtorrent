@@ -187,7 +187,23 @@ Manager::set_hashing_view(View* v) {
 
 void
 Manager::initialize_first() {
-  if ((m_pollManager = PollManagerEPoll::create(sysconf(_SC_OPEN_MAX))) != NULL)
+  const char* poll = getenv("RTORRENT_POLL");
+  if (poll != NULL) {
+    if (!strcmp(poll, "epoll"))
+      m_pollManager = PollManagerEPoll::create(sysconf(_SC_OPEN_MAX));
+    else if (!strcmp(poll, "kqueue"))
+      m_pollManager = PollManagerKQueue::create(sysconf(_SC_OPEN_MAX));
+    else if (!strcmp(poll, "select"))
+      m_pollManager = PollManagerSelect::create(sysconf(_SC_OPEN_MAX));
+
+    if (m_pollManager == NULL)
+      m_logImportant.push_front(std::string("Cannot enable '") + poll + "' based polling.");
+  }
+
+  if (m_pollManager != NULL)
+      m_logImportant.push_front(std::string("Using '") + poll + "' based polling.");
+
+  else if ((m_pollManager = PollManagerEPoll::create(sysconf(_SC_OPEN_MAX))) != NULL)
     m_logImportant.push_front("Using 'epoll' based polling.");
 
   else if ((m_pollManager = PollManagerKQueue::create(sysconf(_SC_OPEN_MAX))) != NULL)

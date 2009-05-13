@@ -199,8 +199,8 @@ main(int argc, char** argv) {
        "system.method.set_key = event.download.inserted_new,     1_prepare, \"branch=d.get_state=,view.set_visible=started,view.set_visible=stopped ;d.save_session=\"\n"
        "system.method.set_key = event.download.inserted_session, 1_prepare, \"branch=d.get_state=,view.set_visible=started,view.set_visible=stopped\"\n"
 
-       "system.method.set_key = event.download.erased, 0_download_list, ui.unfocus_download=\n"
-       "system.method.set_key = event.download.erased, 9_delete_tied, d.delete_tied=\n"
+       "system.method.set_key = event.download.erased, !_download_list, ui.unfocus_download=\n"
+       "system.method.set_key = event.download.erased, ~_delete_tied, d.delete_tied=\n"
 
        "system.method.insert = ratio.enable, simple|static|const,group.seeding.ratio.enable=\n"
        "system.method.insert = ratio.disable,simple|static|const,group.seeding.ratio.disable=\n"
