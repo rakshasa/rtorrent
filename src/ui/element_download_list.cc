@@ -72,6 +72,7 @@ ElementDownloadList::ElementDownloadList() :
 
   m_bindings['+']    = sigc::mem_fun(*this, &ElementDownloadList::receive_next_priority);
   m_bindings['-']    = sigc::mem_fun(*this, &ElementDownloadList::receive_prev_priority);
+  m_bindings['T'-'@']= sigc::mem_fun(*this, &ElementDownloadList::receive_cycle_throttle);
   m_bindings['I']    = sigc::bind(sigc::mem_fun(*this, &ElementDownloadList::receive_command),
                                   "branch=d.get_ignore_commands=,"
                                   "{d.set_ignore_commands=0, print=\"Torrent set to heed commands.\"},"
@@ -182,6 +183,27 @@ ElementDownloadList::receive_prev_priority() {
     return;
 
   (*m_view->focus())->set_priority((*m_view->focus())->priority() - 1);
+  m_window->mark_dirty();
+}
+
+void
+ElementDownloadList::receive_cycle_throttle() {
+  if (m_view->focus() == m_view->end_visible())
+    return;
+
+  core::Download* download = *m_view->focus();
+  if (download->is_active()) {
+    control->core()->push_log("Cannot change throttle on active download.");
+    return;
+  }
+
+  core::ThrottleMap::const_iterator itr = control->core()->throttles().find(download->bencode()->get_key("rtorrent").get_key_string("throttle_name"));
+  if (itr == control->core()->throttles().end())
+    itr = control->core()->throttles().begin();
+  else
+    ++itr;
+
+  download->set_throttle_name(itr == control->core()->throttles().end() ? std::string() : itr->first);
   m_window->mark_dirty();
 }
 

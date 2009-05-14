@@ -166,9 +166,12 @@ print_download_info(char* first, char* last, core::Download* d) {
                        (double)rpc::call_command_value("d.get_ratio", rpc::make_target(d)) / 1000.0);
 
   if (d->priority() != 2)
-    first = print_buffer(first, last, " %s]", rpc::call_command_string("d.get_priority_str", rpc::make_target(d)).c_str());
-  else
-    first = print_buffer(first, last, "]");
+    first = print_buffer(first, last, " %s", rpc::call_command_string("d.get_priority_str", rpc::make_target(d)).c_str());
+
+  if (!d->bencode()->get_key("rtorrent").get_key_string("throttle_name").empty())
+    first = print_buffer(first, last , " %s", rpc::call_command_string("d.get_throttle_name", rpc::make_target(d)).c_str());
+
+  first = print_buffer(first, last , "]");
 
   if (first > last)
     throw torrent::internal_error("print_download_info(...) wrote past end of the buffer.");
@@ -251,12 +254,12 @@ print_client_version(char* first, char* last, const torrent::ClientInfo& clientI
 
 char*
 print_status_info(char* first, char* last) {
-  if (torrent::up_throttle_global()->max_rate() == 0)
+  if (!torrent::up_throttle_global()->is_throttled())
     first = print_buffer(first, last, "[Throttle off");
   else
     first = print_buffer(first, last, "[Throttle %3i", torrent::up_throttle_global()->max_rate() / 1024);
 
-  if (torrent::down_throttle_global()->max_rate() == 0)
+  if (!torrent::down_throttle_global()->is_throttled())
     first = print_buffer(first, last, "/off KB]");
   else
     first = print_buffer(first, last, "/%3i KB]", torrent::down_throttle_global()->max_rate() / 1024);

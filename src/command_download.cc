@@ -44,6 +44,7 @@
 #include <rak/socket_address.h>
 #include <rak/string_manip.h>
 #include <torrent/rate.h>
+#include <torrent/throttle.h>
 #include <torrent/tracker.h>
 #include <torrent/connection_manager.h>
 #include <torrent/data/file.h>
@@ -666,6 +667,9 @@ initialize_command_download() {
   ADD_CD_VALUE_MEM_UNI("down_total",   &torrent::Download::mutable_down_rate, &torrent::Rate::total);
   ADD_CD_VALUE_MEM_UNI("skip_rate",    &torrent::Download::mutable_skip_rate, &torrent::Rate::rate);
   ADD_CD_VALUE_MEM_UNI("skip_total",   &torrent::Download::mutable_skip_rate, &torrent::Rate::total);
+
+  ADD_CD_STRING("set_throttle_name",      std::mem_fun(&core::Download::set_throttle_name));
+  ADD_CD_SLOT_PUBLIC("d.get_throttle_name", call_unknown, rpc::get_variable_d_fn("rtorrent", "throttle_name"), "i:", "");
 
   ADD_CD_VALUE_UNI("creation_date",       rak::on(std::mem_fun(&core::Download::download), std::mem_fun(&torrent::Download::creation_date)));
   ADD_CD_VALUE_UNI("bytes_done",          rak::on(std::mem_fun(&core::Download::download), std::mem_fun(&torrent::Download::bytes_done)));

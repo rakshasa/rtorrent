@@ -95,6 +95,10 @@ DhtManager::start_dht() {
   if (!torrent::dht_manager()->is_valid() || torrent::dht_manager()->is_active())
     return;
 
+  torrent::ThrottlePair throttles = control->core()->get_throttle(m_throttleName);
+  torrent::dht_manager()->set_upload_throttle(throttles.first);
+  torrent::dht_manager()->set_download_throttle(throttles.second);
+
   int port = rpc::call_command_value("get_dht_port");
   if (port <= 0)
     return;
@@ -283,6 +287,7 @@ DhtManager::dht_statistics() {
 
   dhtStats.insert_key("dht",              dht_settings[m_start]);
   dhtStats.insert_key("active",           torrent::dht_manager()->is_active());
+  dhtStats.insert_key("throttle",         m_throttleName);
 
   if (torrent::dht_manager()->is_active()) {
     torrent::DhtManager::statistics_type stats = torrent::dht_manager()->get_statistics();
@@ -301,6 +306,14 @@ DhtManager::dht_statistics() {
   }
 
   return dhtStats;
+}
+
+void
+DhtManager::set_throttle_name(const std::string& throttleName) {
+  if (torrent::dht_manager()->is_active())
+    throw torrent::input_error("Cannot set DHT throttle while active.");
+
+  m_throttleName = throttleName;
 }
 
 }

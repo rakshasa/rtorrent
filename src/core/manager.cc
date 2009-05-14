@@ -54,6 +54,7 @@
 #include <torrent/exceptions.h>
 #include <torrent/resume.h>
 #include <torrent/tracker_list.h>
+#include <torrent/throttle.h>
 
 #include "rpc/parse_commands.h"
 #include "utils/directory.h"
@@ -166,9 +167,14 @@ Manager::Manager() :
   m_fileStatusCache = new FileStatusCache();
   m_httpQueue       = new HttpQueue();
   m_httpStack       = new CurlStack();
+
+  torrent::Throttle* unthrottled = torrent::Throttle::create_throttle();
+  unthrottled->set_max_rate(0);
+  m_throttles["NULL"] = std::make_pair(unthrottled, unthrottled);
 }
 
 Manager::~Manager() {
+  torrent::Throttle::destroy_throttle(m_throttles["NULL"].first);
   delete m_downloadList;
 
   delete m_downloadStore;
@@ -183,6 +189,31 @@ Manager::set_hashing_view(View* v) {
 
   m_hashingView = v;
   v->signal_changed().connect(sigc::mem_fun(this, &Manager::receive_hashing_changed));
+}
+
+torrent::ThrottlePair
+Manager::get_throttle(const std::string& name) {
+  ThrottleMap::const_iterator itr = m_throttles.find(name);
+  torrent::ThrottlePair throttles = (itr == m_throttles.end() ? torrent::ThrottlePair(NULL, NULL) : itr->second);
+
+  if (throttles.first == NULL)
+    throttles.first = torrent::up_throttle_global();
+
+  if (throttles.second == NULL)
+    throttles.second = torrent::down_throttle_global();
+
+  return throttles;
+}
+
+void
+Manager::set_address_throttle(uint32_t begin, uint32_t end, torrent::ThrottlePair throttles) {
+  m_addressThrottles.set_merge(begin, end, throttles);
+  torrent::connection_manager()->set_address_throttle(sigc::mem_fun(control->core(), &core::Manager::get_address_throttle));
+}
+
+torrent::ThrottlePair
+Manager::get_address_throttle(const sockaddr* addr) {
+  return m_addressThrottles.get(rak::socket_address::cast_from(addr)->sa_inet()->address_h(), torrent::ThrottlePair(NULL, NULL));
 }
 
 void

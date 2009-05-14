@@ -315,6 +315,19 @@ apply_to_xb(const torrent::Object& rawArgs) {
   return std::string(buffer);
 }
 
+torrent::Object
+apply_to_throttle(const torrent::Object& rawArgs) {
+  int64_t arg = rawArgs.as_value();  
+  if (arg < 0)
+    return "---";
+  else if (arg == 0)
+    return "off";
+
+  char buffer[32];
+  snprintf(buffer, 32, "%3d", (int)(arg / (1 << 10)));
+  return std::string(buffer);
+}
+
 // A series of if/else statements. Every even arguments are
 // conditionals and odd arguments are branches to be executed, except
 // the last one which is always a branch.
@@ -503,4 +516,5 @@ initialize_command_ui() {
   ADD_COMMAND_VALUE("to_kb",            rak::ptr_fn(&apply_to_kb));
   ADD_COMMAND_VALUE("to_mb",            rak::ptr_fn(&apply_to_mb));
   ADD_COMMAND_VALUE("to_xb",            rak::ptr_fn(&apply_to_xb));
+  ADD_COMMAND_VALUE("to_throttle",      rak::ptr_fn(&apply_to_throttle));
 }

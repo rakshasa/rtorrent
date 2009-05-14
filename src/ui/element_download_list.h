@@ -73,6 +73,8 @@ public:
   void                receive_next_priority();
   void                receive_prev_priority();
 
+  void                receive_cycle_throttle();
+
   void                receive_change_view(const std::string& name);
 
 private:

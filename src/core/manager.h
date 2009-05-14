@@ -40,8 +40,11 @@
 #include <iosfwd>
 #include <vector>
 
+#include <torrent/connection_manager.h>
+
 #include "download_list.h"
 #include "poll_manager.h"
+#include "range_map.h"
 #include "log.h"
 
 namespace torrent {
@@ -56,6 +59,8 @@ namespace core {
 
 class DownloadStore;
 class HttpQueue;
+
+typedef std::map<std::string, torrent::ThrottlePair> ThrottleMap;
 
 class View;
 
@@ -83,6 +88,13 @@ public:
   PollManager*        get_poll_manager()                  { return m_pollManager; }
   Log&                get_log_important()                 { return m_logImportant; }
   Log&                get_log_complete()                  { return m_logComplete; }
+
+  ThrottleMap&          throttles()                       { return m_throttles; }
+  torrent::ThrottlePair get_throttle(const std::string& name);
+
+  // Use custom throttle for the given range of IP addresses.
+  void                  set_address_throttle(uint32_t begin, uint32_t end, torrent::ThrottlePair throttles);
+  torrent::ThrottlePair get_address_throttle(const sockaddr* addr);
 
   // Really should find a more descriptive name.
   void                initialize_first();
@@ -120,6 +132,8 @@ public:
   void                try_create_download_expand(const std::string& uri, int flags, command_list_type commands = command_list_type());
 
 private:
+  typedef RangeMap<uint32_t, torrent::ThrottlePair> AddressThrottleMap;
+
   void                create_http(const std::string& uri);
   void                create_final(std::istream* s);
 
@@ -135,6 +149,9 @@ private:
   CurlStack*          m_httpStack;
 
   View*               m_hashingView;
+
+  ThrottleMap         m_throttles;
+  AddressThrottleMap  m_addressThrottles;
 
   PollManager*        m_pollManager;
   Log                 m_logImportant;

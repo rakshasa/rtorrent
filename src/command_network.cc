@@ -62,6 +62,120 @@
 #include "command_helpers.h"
 
 torrent::Object
+apply_throttle(bool up, const torrent::Object& rawArgs) {
+  const torrent::Object::list_type& args = rawArgs.as_list();
+  torrent::Object::list_const_iterator argItr = args.begin();
+
+  const std::string& name = argItr->as_string();
+  if (name.empty() || name == "NULL")
+    throw torrent::input_error("Invalid throttle name.");
+
+  if ((++argItr)->as_string().empty())
+    return torrent::Object();
+
+  int64_t rate;
+  rpc::parse_whole_value_nothrow(argItr->as_string().c_str(), &rate);
+
+  if (rate < 0)
+    throw torrent::input_error("Throttle rate must be non-negative.");
+
+  core::ThrottleMap::iterator itr = control->core()->throttles().find(name);
+  if (itr == control->core()->throttles().end())
+    itr = control->core()->throttles().insert(std::make_pair(name, torrent::ThrottlePair(NULL, NULL))).first;
+
+  torrent::Throttle*& throttle = up ? itr->second.first : itr->second.second;
+  if (rate != 0 && throttle == NULL)
+    throttle = (up ? torrent::up_throttle_global() : torrent::down_throttle_global())->create_slave();
+
+  if (throttle != NULL)
+    throttle->set_max_rate(rate * 1024);
+
+  return torrent::Object();
+}
+
+static const int throttle_info_up   = (1 << 0);
+static const int throttle_info_down = (1 << 1);
+static const int throttle_info_max  = (1 << 2);
+static const int throttle_info_rate = (1 << 3);
+
+torrent::Object
+retrieve_throttle_info(int flags, const torrent::Object& rawArgs) {
+  const std::string& name = rawArgs.as_string();
+  core::ThrottleMap::iterator itr = control->core()->throttles().find(name);
+  torrent::ThrottlePair throttles = itr == control->core()->throttles().end() ? torrent::ThrottlePair(NULL, NULL) : itr->second;
+  torrent::Throttle* throttle = flags & throttle_info_down ? throttles.second : throttles.first;
+  torrent::Throttle* global = flags & throttle_info_down ? torrent::down_throttle_global() : torrent::up_throttle_global();
+
+  if (throttle == NULL && name.empty())
+    throttle = global;
+
+  if (throttle == NULL)
+    return flags & throttle_info_rate ? (int64_t)0 : (int64_t)-1;
+  else if (!throttle->is_throttled() || !global->is_throttled())
+    return (int64_t)0;
+  else if (flags & throttle_info_rate)
+    return (int64_t)throttle->rate()->rate();
+  else
+    return (int64_t)throttle->max_rate();
+}
+
+std::pair<uint32_t, uint32_t>
+parse_address_range(const torrent::Object::list_type& args, torrent::Object::list_type::const_iterator itr) {
+  unsigned int prefixWidth, ret;
+  char dummy;
+  char host[1024];
+  rak::address_info* ai;
+
+  ret = std::sscanf(itr->as_string().c_str(), "%1023[^/]/%d%c", host, &prefixWidth, &dummy);
+  if (ret < 1 || rak::address_info::get_address_info(host, PF_INET, SOCK_STREAM, &ai) != 0)
+    throw torrent::input_error("Could not resolve host.");
+
+  uint32_t begin, end;
+  rak::socket_address sa;
+  sa.copy(*ai->address(), ai->length());
+  begin = end = sa.sa_inet()->address_h();
+  rak::address_info::free_address_info(ai);
+
+  if (ret == 2) {
+    if (++itr != args.end())
+      throw torrent::input_error("Cannot specify both network and range end.");
+
+    uint32_t netmask = std::numeric_limits<uint32_t>::max() << (32 - prefixWidth);
+    if (prefixWidth >= 32 || sa.sa_inet()->address_h() & ~netmask)
+      throw torrent::input_error("Invalid address/prefix.");
+
+    end = sa.sa_inet()->address_h() | ~netmask;
+
+  } else if (++itr != args.end()) {
+    if (rak::address_info::get_address_info(itr->as_string().c_str(), PF_INET, SOCK_STREAM, &ai) != 0)
+      throw torrent::input_error("Could not resolve host.");
+
+    sa.copy(*ai->address(), ai->length());
+    rak::address_info::free_address_info(ai);
+    end = sa.sa_inet()->address_h();
+  }
+
+  // convert to [begin, end) making sure the end doesn't overflow
+  // (this precludes 255.255.255.255 from ever matching, but that's not a real IP anyway)
+  return std::make_pair<uint32_t, uint32_t>(begin, std::max(end, end + 1));
+}
+
+torrent::Object
+apply_address_throttle(const torrent::Object& rawArgs) {
+  const torrent::Object::list_type& args = rawArgs.as_list();
+  if (args.size() < 2 || args.size() > 3)
+    throw torrent::input_error("Incorrect number of arguments.");
+
+  std::pair<uint32_t, uint32_t> range = parse_address_range(args, ++args.begin());
+  core::ThrottleMap::iterator throttleItr = control->core()->throttles().find(args.begin()->as_string().c_str());
+  if (throttleItr == control->core()->throttles().end())
+    throw torrent::input_error("Throttle not found.");
+
+  control->core()->set_address_throttle(range.first, range.second, throttleItr->second);
+  return torrent::Object();
+}
+
+torrent::Object
 apply_encryption(const torrent::Object& rawArgs) {
   const torrent::Object::list_type& args = rawArgs.as_list();
 
@@ -328,6 +442,15 @@ initialize_command_network() {
 
   ADD_VARIABLE_VALUE("tracker_numwant", -1);
 
+  ADD_COMMAND_LIST("throttle_up",         rak::bind_ptr_fn(&apply_throttle, true));
+  ADD_COMMAND_LIST("throttle_down",       rak::bind_ptr_fn(&apply_throttle, false));
+  ADD_COMMAND_LIST("throttle_ip",         rak::ptr_fn(&apply_address_throttle));
+
+  ADD_COMMAND_STRING("get_throttle_up_max",    rak::bind_ptr_fn(&retrieve_throttle_info, throttle_info_up | throttle_info_max));
+  ADD_COMMAND_STRING("get_throttle_up_rate",   rak::bind_ptr_fn(&retrieve_throttle_info, throttle_info_up | throttle_info_rate));
+  ADD_COMMAND_STRING("get_throttle_down_max",  rak::bind_ptr_fn(&retrieve_throttle_info, throttle_info_down | throttle_info_max));
+  ADD_COMMAND_STRING("get_throttle_down_rate", rak::bind_ptr_fn(&retrieve_throttle_info, throttle_info_down | throttle_info_rate));
+
   ADD_COMMAND_LIST("encryption",          rak::ptr_fn(&apply_encryption));
 
   ADD_COMMAND_STRING("tos",               rak::ptr_fn(&apply_tos));
@@ -363,6 +486,7 @@ initialize_command_network() {
   ADD_COMMAND_STRING_UN("dht",                  rak::make_mem_fun(control->dht_manager(), &core::DhtManager::set_start));
   ADD_COMMAND_STRING_UN("dht_add_node",         std::ptr_fun(&apply_dht_add_node));
   ADD_COMMAND_VOID("dht_statistics",            rak::make_mem_fun(control->dht_manager(), &core::DhtManager::dht_statistics));
+  ADD_COMMAND_STRING_TRI("dht_throttle",        rak::make_mem_fun(control->dht_manager(), &core::DhtManager::set_throttle_name), rak::make_mem_fun(control->dht_manager(), &core::DhtManager::throttle_name));
 
   ADD_VARIABLE_BOOL("peer_exchange", true);
 

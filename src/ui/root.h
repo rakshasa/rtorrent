@@ -86,6 +86,8 @@ public:
   void                adjust_down_throttle(int throttle);
   void                adjust_up_throttle(int throttle);
 
+  const char*         get_throttle_keys();
+
   void                enable_input(const std::string& title, input::TextInput* input);
   void                disable_input();
 

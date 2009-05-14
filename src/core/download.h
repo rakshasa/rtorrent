@@ -117,6 +117,8 @@ public:
 
   void                set_root_directory(const std::string& path);
 
+  void                set_throttle_name(const std::string& throttleName);
+
   bool                operator == (const std::string& str) const;
 
   float               distributed_copies() const;

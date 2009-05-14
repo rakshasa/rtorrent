@@ -677,6 +677,29 @@ setting <emphasis>0</emphasis>.
         </para></listitem>
       </varlistentry>
 
+      <varlistentry>
+        <term>throttle_up = <replaceable>name</replaceable>, <replaceable>upload_rate</replaceable></term>
+        <term>throttle_down = <replaceable>name</replaceable>, <replaceable>download_rate</replaceable></term>
+        <listitem><para>
+Define secondary throttle and/or set the given upload or download rate. Attach to a download with the d.set_throttle_name=name command
+or switch throttles with Ctrl-T. Download must be stopped when changing throttles. Note that secondary throttles only work if the
+global upload/download is throttled. Setting a download to use the <emphasis>NULL</emphasis> throttle makes the download unthrottled
+even when there is a global throttle. Note that this special case bypasses the global throttle entirely, and as such its rate and
+transfer amounts are not included in the global statistics.
+        </para></listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>throttle_ip = <replaceable>name</replaceable>, <replaceable>host</replaceable></term>
+        <term>throttle_ip = <replaceable>name</replaceable>, <replaceable>network/prefix</replaceable></term>
+        <term>throttle_ip = <replaceable>name</replaceable>, <replaceable>start</replaceable>, <replaceable>end</replaceable></term>
+        <listitem><para>
+Use the given secondary throttle for a host, CIDR network or IP range. All peers with a matching IP will use this throttle instead
+of the global throttle or a custom download throttle. The name may be <emphasis>NULL</emphasis> to make these peers unthrottled, with
+the same caveats as explained above.
+        </para></listitem>
+      </varlistentry>
+
     </variablelist>
 
   </refsect1>

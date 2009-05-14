@@ -62,6 +62,8 @@ public:
 
   void                slot_exit(const slot_type& s) { m_slotExit = s; }
 
+  void                mark_dirty();
+
 protected:
   display::Frame*     m_frame;
   bool                m_focus;

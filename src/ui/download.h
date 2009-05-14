@@ -87,6 +87,9 @@ public:
   void                receive_next_priority();
   void                receive_prev_priority();
 
+  void                adjust_up_throttle(int throttle);
+  void                adjust_down_throttle(int throttle);
+
   display::Window*    window() { return NULL; }
 
 private:

@@ -336,6 +336,10 @@ DownloadFactory::initialize_rtorrent(Download* download, torrent::Object* rtorre
     download->download()->set_chunks_done(std::min<uint32_t>(rtorrent->get_key_value("chunks_done"),
                                                              download->download()->file_list()->size_chunks()));
 
+  download->set_throttle_name(rtorrent->has_key_string("throttle_name")
+                              ? rtorrent->get_key_string("throttle_name")
+                              : std::string());
+
   rtorrent->insert_preserve_copy("ignore_commands", (int64_t)0);
   rtorrent->insert_preserve_copy("views", torrent::Object::create_list());
 

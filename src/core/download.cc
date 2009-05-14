@@ -156,6 +156,18 @@ Download::receive_chunk_failed(__UNUSED uint32_t idx) {
 }
 
 void
+Download::set_throttle_name(const std::string& throttleName) {
+  if (m_download.is_active())
+    throw torrent::input_error("Cannot set throttle on active download.");
+
+  torrent::ThrottlePair throttles = control->core()->get_throttle(throttleName);
+  m_download.set_upload_throttle(throttles.first);
+  m_download.set_download_throttle(throttles.second);
+
+  m_download.bencode()->get_key("rtorrent").insert_key("throttle_name", throttleName);
+}
+
+void
 Download::set_root_directory(const std::string& path) {
   torrent::FileList* fileList = m_download.file_list();
 

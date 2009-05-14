@@ -42,12 +42,14 @@
 #include <torrent/exceptions.h>
 #include <torrent/chunk_manager.h>
 #include <torrent/connection_manager.h>
+#include <torrent/throttle.h>
 #include <torrent/torrent.h>
 #include <torrent/tracker_list.h>
 #include <torrent/data/file_list.h>
 #include <torrent/peer/connection_list.h>
 
 #include "core/download.h"
+#include "core/manager.h"
 #include "input/manager.h"
 #include "display/window_title.h"
 #include "display/window_download_statusbar.h"
@@ -178,6 +180,15 @@ Download::create_info() {
   element->push_column("Safe sync:",        te_command("if=$get_safe_sync=,yes,no"));
   element->push_column("Send buffer:",      te_command("cat=$to_kb=$get_send_buffer_size=,\" KB\""));
   element->push_column("Receive buffer:",   te_command("cat=$to_kb=$get_receive_buffer_size=,\" KB\""));
+
+  // TODO: Define a custom command for this and use $argument.0 instead of looking up the name multiple times?
+  element->push_column("Throttle:",         te_command("branch=d.get_throttle_name=,\""
+                                                              "cat=$d.get_throttle_name=,\\\"  [Max \\\","
+                                                                  "$to_throttle=$get_throttle_up_max=$d.get_throttle_name=,\\\"/\\\","
+                                                                  "$to_throttle=$get_throttle_down_max=$d.get_throttle_name=,\\\" KB]  [Rate \\\","
+                                                                  "$to_kb=$get_throttle_up_rate=$d.get_throttle_name=,\\\"/\\\","
+                                                                  "$to_kb=$get_throttle_down_rate=$d.get_throttle_name=,\\\" KB]\\\"\","
+                                                              "cat=\"global\""));
 
   element->push_back("");
   element->push_column("Upload:",           te_command("cat=$to_kb=$d.get_up_rate=,\" KB / \",$to_xb=$d.get_up_total="));
@@ -316,6 +327,32 @@ Download::receive_prev_priority() {
 }
 
 void
+Download::adjust_down_throttle(int throttle) {
+  core::ThrottleMap::iterator itr = control->core()->throttles().find(m_download->bencode()->get_key("rtorrent").get_key_string("throttle_name"));
+
+  if (itr == control->core()->throttles().end() || itr->second.second == NULL || itr->first == "NULL")
+    control->ui()->adjust_down_throttle(throttle);
+  else
+    itr->second.second->set_max_rate(std::max<int>((itr->second.second->is_throttled() ? itr->second.second->max_rate() : 0) + throttle * 1024, 0));
+
+  if (m_uiArray[DISPLAY_INFO]->is_active())
+    m_uiArray[DISPLAY_INFO]->mark_dirty();
+}
+
+void
+Download::adjust_up_throttle(int throttle) {
+  core::ThrottleMap::iterator itr = control->core()->throttles().find(m_download->bencode()->get_key("rtorrent").get_key_string("throttle_name"));
+
+  if (itr == control->core()->throttles().end() || itr->second.first == NULL || itr->first == "NULL")
+    control->ui()->adjust_up_throttle(throttle);
+  else
+    itr->second.first->set_max_rate(std::max<int>((itr->second.first->is_throttled() ? itr->second.first->max_rate() : 0) + throttle * 1024, 0));
+
+  if (m_uiArray[DISPLAY_INFO]->is_active())
+    m_uiArray[DISPLAY_INFO]->mark_dirty();
+}
+
+void
 Download::bind_keys() {
   m_bindings['1'] = sigc::bind(sigc::mem_fun(this, &Download::receive_max_uploads), -1);
   m_bindings['2'] = sigc::bind(sigc::mem_fun(this, &Download::receive_max_uploads), 1);
@@ -328,6 +365,23 @@ Download::bind_keys() {
 
   m_bindings['t'] = sigc::bind(sigc::mem_fun(m_download->tracker_list(), &torrent::TrackerList::manual_request), false);
   m_bindings['T'] = sigc::bind(sigc::mem_fun(m_download->tracker_list(), &torrent::TrackerList::manual_request), true);
+
+  const char* keys = control->ui()->get_throttle_keys();
+
+  m_bindings[keys[ 0]]      = sigc::bind(sigc::mem_fun(this, &Download::adjust_up_throttle), 1);
+  m_bindings[keys[ 1]]      = sigc::bind(sigc::mem_fun(this, &Download::adjust_up_throttle), -1);
+  m_bindings[keys[ 2]]      = sigc::bind(sigc::mem_fun(this, &Download::adjust_down_throttle), 1);
+  m_bindings[keys[ 3]]      = sigc::bind(sigc::mem_fun(this, &Download::adjust_down_throttle), -1);
+
+  m_bindings[keys[ 4]]      = sigc::bind(sigc::mem_fun(this, &Download::adjust_up_throttle), 5);
+  m_bindings[keys[ 5]]      = sigc::bind(sigc::mem_fun(this, &Download::adjust_up_throttle), -5);
+  m_bindings[keys[ 6]]      = sigc::bind(sigc::mem_fun(this, &Download::adjust_down_throttle), 5);
+  m_bindings[keys[ 7]]      = sigc::bind(sigc::mem_fun(this, &Download::adjust_down_throttle), -5);
+
+  m_bindings[keys[ 8]]      = sigc::bind(sigc::mem_fun(this, &Download::adjust_up_throttle), 50);
+  m_bindings[keys[ 9]]      = sigc::bind(sigc::mem_fun(this, &Download::adjust_up_throttle), -50);
+  m_bindings[keys[10]]      = sigc::bind(sigc::mem_fun(this, &Download::adjust_down_throttle), 50);
+  m_bindings[keys[11]]      = sigc::bind(sigc::mem_fun(this, &Download::adjust_down_throttle), -50);
 }
 
 }
