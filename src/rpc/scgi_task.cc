@@ -37,6 +37,7 @@
 #include "config.h"
 
 #include <rak/error_number.h>
+#include <cstdio>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <torrent/exceptions.h>

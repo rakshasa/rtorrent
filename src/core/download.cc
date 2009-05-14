@@ -131,7 +131,7 @@ Download::receive_storage_error(std::string msg) {
 float
 Download::distributed_copies() const {
   const uint8_t* avail = m_download.chunks_seen();
-  const uint8_t* end = avail + m_download.file_list()->size_chunks();
+  const torrent::Bitfield* bitfield = m_download.file_list()->bitfield();
 
   if (avail == NULL)
     return 0;
@@ -139,15 +139,17 @@ Download::distributed_copies() const {
   int minAvail = std::numeric_limits<uint8_t>::max();
   int num = 0;
 
-  for (; avail < end; ++avail)
-    if (*avail == minAvail) {
+  for (uint32_t i = m_download.file_list()->size_chunks(); i-- > 0; ) {
+    int totAvail = (int)avail[i] + bitfield->get(i);
+    if (totAvail == minAvail) {
       num++;
-    } else if (*avail < minAvail) {
-      minAvail = *avail;
+    } else if (totAvail < minAvail) {
+      minAvail = totAvail;
       num = 1;
     }
+  }
 
-  return minAvail + 1 - (float)num / m_download.file_list()->size_chunks();
+  return minAvail + 1 - bitfield->is_all_set() - (float)num / m_download.file_list()->size_chunks();
 }
 
 void

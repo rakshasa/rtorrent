@@ -37,6 +37,7 @@
 #include "config.h"
 
 #include <functional>
+#include <cstdio>
 #include <rak/file_stat.h>
 #include <rak/path.h>
 #include <rak/string_manip.h>

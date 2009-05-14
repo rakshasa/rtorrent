@@ -38,6 +38,7 @@
 #define RTORRENT_DISPLAY_UTILS_H
 
 #include <ctime>
+#include <cstdio>
 #include <string>
 
 namespace core {

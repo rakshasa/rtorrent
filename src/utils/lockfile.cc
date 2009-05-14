@@ -40,6 +40,7 @@
 #include <cctype>
 #include <cerrno>
 #include <cstring>
+#include <cstdio>
 #include <sstream>
 #include <fcntl.h>
 #include <signal.h>

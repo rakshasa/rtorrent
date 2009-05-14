@@ -37,6 +37,7 @@
 #include "config.h"
 
 #include <cstring>
+#include <cstdio>
 #include <locale>
 #include <rak/path.h>
 #include <torrent/exceptions.h>

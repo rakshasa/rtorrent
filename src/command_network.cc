@@ -37,6 +37,7 @@
 #include "config.h"
 
 #include <functional>
+#include <cstdio>
 #include <rak/address_info.h>
 #include <rak/path.h>
 #include <torrent/connection_manager.h>

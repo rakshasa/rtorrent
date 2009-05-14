@@ -37,6 +37,7 @@
 #include "config.h"
 
 #include <cstring>
+#include <cstdio>
 #include <sstream>
 #include <iomanip>
 #include <rak/socket_address.h>

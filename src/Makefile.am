@@ -9,12 +9,12 @@ SUBDIRS = \
 bin_PROGRAMS = rtorrent
 
 rtorrent_LDADD = \
-	$(top_srcdir)/src/ui/libsub_ui.a \
-	$(top_srcdir)/src/core/libsub_core.a \
-	$(top_srcdir)/src/display/libsub_display.a \
-	$(top_srcdir)/src/input/libsub_input.a \
-	$(top_srcdir)/src/rpc/libsub_rpc.a \
-	$(top_srcdir)/src/utils/libsub_utils.a
+	ui/libsub_ui.a \
+	core/libsub_core.a \
+	display/libsub_display.a \
+	input/libsub_input.a \
+	rpc/libsub_rpc.a \
+	utils/libsub_utils.a
 
 rtorrent_SOURCES = \
 	command_download.cc \
@@ -39,3 +39,5 @@ rtorrent_SOURCES = \
 	option_parser.h \
 	signal_handler.cc \
 	signal_handler.h
+
+INCLUDES = -I$(srcdir) -I$(top_srcdir)

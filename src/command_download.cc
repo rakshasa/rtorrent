@@ -38,6 +38,7 @@
 
 #include <functional>
 #include <unistd.h>
+#include <cstdio>
 #include <rak/file_stat.h>
 #include <rak/error_number.h>
 #include <rak/path.h>
@@ -287,6 +288,13 @@ retrieve_d_custom_throw(core::Download* download, const std::string& key) {
   } catch (torrent::bencode_error& e) {
     throw torrent::input_error("No such custom value.");
   }
+}
+
+torrent::Object
+retrieve_d_bitfield(core::Download* download) {
+  const torrent::Bitfield* bitField = download->download()->file_list()->bitfield();
+
+  return torrent::Object(rak::transform_hex(bitField->begin(), bitField->end()));
 }
 
 // Just a helper function atm.
@@ -552,6 +560,7 @@ initialize_command_download() {
   ADD_CD_VOID("hash",          &retrieve_d_hash);
   ADD_CD_VOID("local_id",      &retrieve_d_local_id);
   ADD_CD_VOID("local_id_html", &retrieve_d_local_id_html);
+  ADD_CD_VOID("bitfield",      &retrieve_d_bitfield);
   ADD_CD_VOID("base_path",     &retrieve_d_base_path);
   ADD_CD_VOID("base_filename", &retrieve_d_base_filename);
   ADD_CD_STRING_UNI("name",    rak::on(std::mem_fun(&core::Download::download), std::mem_fun(&torrent::Download::name)));

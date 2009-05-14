@@ -3,7 +3,7 @@
 .\" <http://shell.ipoline.com/~elmert/comp/docbook2X/> 
 .\" Please send any bug reports, improvements, comments, patches, 
 .\" etc. to Steve Cheng <steve@ggi-project.org>.
-.TH "RTORRENT" "1" "07 May 2008" "BitTorrent client for ncurses" ""
+.TH "RTORRENT" "1" "14 May 2009" "BitTorrent client for ncurses" ""
 
 .SH NAME
 rtorrent \- a BitTorrent client for ncurses
@@ -349,6 +349,24 @@ setting \fB0\fR\&.
 \fBmax_downloads_global = \fIvalue\fB\fR
 Max upload and download slots allowed. Disable by
 setting \fB0\fR\&.
+.TP
+\fBthrottle_up = \fIname\fB, \fIupload_rate\fB\fR
+.TP
+\fBthrottle_down = \fIname\fB, \fIdownload_rate\fB\fR
+Define secondary throttle and/or set the given upload or download rate. Attach to a download with the d.set_throttle_name=name command
+or switch throttles with Ctrl-T. Download must be stopped when changing throttles. Note that secondary throttles only work if the
+global upload/download is throttled. Setting a download to use the \fBNULL\fR throttle makes the download unthrottled
+even when there is a global throttle. Note that this special case bypasses the global throttle entirely, and as such its rate and
+transfer amounts are not included in the global statistics.
+.TP
+\fBthrottle_ip = \fIname\fB, \fIhost\fB\fR
+.TP
+\fBthrottle_ip = \fIname\fB, \fInetwork/prefix\fB\fR
+.TP
+\fBthrottle_ip = \fIname\fB, \fIstart\fB, \fIend\fB\fR
+Use the given secondary throttle for a host, CIDR network or IP range. All peers with a matching IP will use this throttle instead
+of the global throttle or a custom download throttle. The name may be \fBNULL\fR to make these peers unthrottled, with
+the same caveats as explained above.
 .SH "TRACKER RELATED SETTINGS"
 .PP
 Tracker related settings.
