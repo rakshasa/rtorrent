@@ -371,7 +371,33 @@ object_to_xmlrpc(xmlrpc_env* env, const torrent::Object& object) {
 #endif
 
   case torrent::Object::TYPE_STRING:
-    return xmlrpc_string_new(env, object.as_string().c_str());
+  {
+#ifdef XMLRPC_HAVE_I8
+    // The versions that support I8 do implicit utf-8 validation.
+    xmlrpc_value* result = xmlrpc_string_new(env, object.as_string().c_str());
+#else
+    // In older versions, xmlrpc-c doesn't validate the utf-8 encoding itself.
+    xmlrpc_validate_utf8(env, object.as_string().c_str(), object.as_string().length());
+
+    xmlrpc_value* result = env->fault_occurred ? NULL : xmlrpc_string_new(env, object.as_string().c_str());
+#endif
+
+    if (env->fault_occurred) {
+      xmlrpc_env_clean(env);
+      xmlrpc_env_init(env);
+
+      const std::string& str = object.as_string();
+      char buffer[str.size() + 1];
+      char* dst = buffer;
+      for (std::string::const_iterator itr = str.begin(); itr != str.end(); ++itr)
+        *dst++ = ((*itr < 0x20 && *itr != '\r' && *itr != '\n' && *itr != '\t') || (*itr & 0x80)) ? '?' : *itr;
+      *dst = 0;
+
+      result = xmlrpc_string_new(env, buffer);
+    }
+
+    return result;
+  }
 
   case torrent::Object::TYPE_LIST:
   {
