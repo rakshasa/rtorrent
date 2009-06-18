@@ -54,7 +54,7 @@ namespace rpc {
 class xmlrpc_error : public torrent::base_error {
 public:
   xmlrpc_error(xmlrpc_env* env) : m_type(env->fault_code), m_msg(env->fault_string) {}
-  xmlrpc_error(int type, char* msg) : m_type(type), m_msg(msg) {}
+  xmlrpc_error(int type, const char* msg) : m_type(type), m_msg(msg) {}
   virtual ~xmlrpc_error() throw() {}
 
   virtual int         type() const throw() { return m_type; }
@@ -62,7 +62,7 @@ public:
 
 private:
   int                 m_type;
-  char*               m_msg;
+  const char*         m_msg;
 };
 
 torrent::Object xmlrpc_to_object(xmlrpc_env* env, xmlrpc_value* value, int callType = 0, rpc::target_type* target = NULL);
@@ -98,7 +98,7 @@ xmlrpc_list_entry_to_value(xmlrpc_env* env, xmlrpc_value* src, int index) {
 
 #ifdef XMLRPC_HAVE_I8
   case XMLRPC_TYPE_I8:
-    int64_t v2;
+    xmlrpc_int64 v2;
     xmlrpc_read_i8(env, tmp, &v2);
     xmlrpc_DECREF(tmp);
     return v2;
@@ -244,7 +244,7 @@ xmlrpc_to_object(xmlrpc_env* env, xmlrpc_value* value, int callType, rpc::target
 
 #ifdef XMLRPC_HAVE_I8
   case XMLRPC_TYPE_I8:
-    int64_t v2;
+    xmlrpc_int64 v2;
     xmlrpc_read_i8(env, value, &v2);
       
     return torrent::Object((int64_t)v2);
