@@ -468,6 +468,7 @@ DownloadList::hash_done(Download* download) {
 
     if (rpc::call_command_value("d.get_state", rpc::make_target(download)) == 1)
       resume(download, download->resume_flags());
+    //rpc::commands.call_catch("scheduler.simple.resume", rpc::make_target(download), torrent::Object(), "Download event action failed: ");
 
     break;
 

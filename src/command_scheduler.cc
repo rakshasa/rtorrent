@@ -37,7 +37,10 @@
 #include "config.h"
 
 #include "core/manager.h"
+#include "core/download.h"
 #include "core/download_list.h"
+#include "core/view.h"
+#include "core/view_manager.h"
 #include "rpc/command_variable.h"
 
 #include "globals.h"
@@ -46,7 +49,11 @@
 
 torrent::Object
 cmd_scheduler_simple_added(core::Download* download, const torrent::Object& rawArgs) {
-  control->core()->download_list()->resume(download);
+  unsigned int numActive = (*control->view_manager()->find("active"))->size_visible();
+  int64_t maxActive = rpc::call_command("scheduler.max_active", torrent::Object()).as_value();
+  
+  if (numActive < (uint64_t)maxActive)
+    control->core()->download_list()->resume(download);
 
   return torrent::Object();
 }
@@ -54,6 +61,51 @@ cmd_scheduler_simple_added(core::Download* download, const torrent::Object& rawA
 torrent::Object
 cmd_scheduler_simple_removed(core::Download* download, const torrent::Object& rawArgs) {
   control->core()->download_list()->pause(download);
+
+  core::View* viewActive = *control->view_manager()->find("active");
+  int64_t maxActive = rpc::call_command("scheduler.max_active", torrent::Object()).as_value();
+
+  if (viewActive->size_visible() >= maxActive)
+    return torrent::Object();
+
+  // The 'started' view contains all the views we may choose amongst.
+  core::View* viewStarted = *control->view_manager()->find("started");
+
+  for (core::View::iterator itr = viewStarted->begin_visible(), last = viewStarted->end_visible(); itr != last; itr++) {
+    if ((*itr)->is_active())
+      continue;
+
+    control->core()->download_list()->resume(*itr);
+  }
+
+  return torrent::Object();
+}
+
+torrent::Object
+cmd_scheduler_simple_update(core::Download* download, const torrent::Object& rawArgs) {
+  core::View* viewActive = *control->view_manager()->find("active");
+  core::View* viewStarted = *control->view_manager()->find("started");
+
+  unsigned int numActive = viewActive->size_visible();
+  uint64_t maxActive = rpc::call_command("scheduler.max_active", torrent::Object()).as_value();
+
+  if (viewActive->size_visible() < maxActive) {
+
+    for (core::View::iterator itr = viewStarted->begin_visible(), last = viewStarted->end_visible(); itr != last; itr++) {
+      if ((*itr)->is_active())
+        continue;
+
+      control->core()->download_list()->resume(*itr);
+
+      if (++numActive >= maxActive)
+        break;
+    }
+
+  } else if (viewActive->size_visible() > maxActive) {
+    
+    while (viewActive->size_visible() > maxActive)
+      control->core()->download_list()->pause(*viewActive->begin_visible());
+  }
 
   return torrent::Object();
 }
@@ -64,8 +116,9 @@ initialize_command_scheduler() {
 
 //   CMD_G("scheduler.active", rak::bind_ptr_fn(&cmd_call, "view.size=active"));
 
-  CMD_V("scheduler.", "max_active", value, (int64_t)-1);
+  rpc::commands.call("system.method.insert", rpc::create_object_list("scheduler.max_active", "value", (int64_t)-1));
 
   CMD_D_ANY("scheduler.simple.added",   rak::ptr_fn(&cmd_scheduler_simple_added));
   CMD_D_ANY("scheduler.simple.removed", rak::ptr_fn(&cmd_scheduler_simple_removed));
+  CMD_D_ANY("scheduler.simple.update",  rak::ptr_fn(&cmd_scheduler_simple_update));
 }
