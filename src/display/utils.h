@@ -84,7 +84,8 @@ print_buffer(char* first, char* last, const char* format) {
   if (first >= last)
     return first;
 
-  int s = snprintf(first, last - first, format);
+  // Adding 'i' format to suppress a GCC warning.
+  int s = snprintf(first, last - first, format, 0);
 
   if (s < 0)
     return first;

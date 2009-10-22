@@ -114,6 +114,10 @@ apply_d_change_link(int changeType, core::Download* download, const torrent::Obj
     target = rpc::call_command_string("d.get_base_path", rpc::make_target(download));
     link = rak::path_expand(prefix + rpc::call_command_string("d.get_base_filename", rpc::make_target(download)) + postfix);
 
+//   } else if (type == "directory_path") {
+//     target = rpc::call_command_string("d.get_directory", rpc::make_target(download));
+//     link = rak::path_expand(prefix + rpc::call_command_string("d.get_base_path", rpc::make_target(download)) + postfix);
+
   } else if (type == "tied") {
     link = rak::path_expand(rpc::call_command_string("d.get_tied_to_file", rpc::make_target(download)));
 
