@@ -82,7 +82,10 @@ DownloadList::clear() {
 
 void
 DownloadList::session_save() {
-  std::for_each(begin(), end(), std::bind1st(std::mem_fun(&DownloadStore::save), control->core()->download_store()));
+  unsigned int c = std::count_if(begin(), end(), std::bind1st(std::mem_fun(&DownloadStore::save), control->core()->download_store()));
+
+  if (c != size())
+    control->core()->push_log("Failed to save session torrents.");
 
   control->dht_manager()->save_dht_cache();
 }

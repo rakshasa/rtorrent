@@ -98,20 +98,21 @@ DownloadStore::set_path(const std::string& path) {
     m_path = rak::path_expand(path);
 }
 
-void
+bool
 DownloadStore::save(Download* d) {
   if (!is_enabled())
-    return;
+    return true;
 
   std::fstream f((create_filename(d) + ".new").c_str(), std::ios::out | std::ios::trunc);
 
   if (!f.is_open())
-    return;
+    return false;
 
   // Move this somewhere else?
   d->bencode()->get_key("rtorrent").insert_key("total_uploaded", d->download()->up_rate()->total());
   d->bencode()->get_key("rtorrent").insert_key("chunks_done", d->download()->file_list()->completed_chunks());
 
+  torrent::Object tmp;
   torrent::Object& resumeObject = d->download()->bencode()->get_key("libtorrent_resume");
 
   torrent::resume_save_addresses(*d->download(), resumeObject);
@@ -121,22 +122,26 @@ DownloadStore::save(Download* d) {
   f << *d->bencode();
 
   if (!f.good())
-    return;
+    goto download_store_save_error;
 
   f.close();
 
   // Test the new file, to ensure it is a valid bencode string.
   f.open((create_filename(d) + ".new").c_str(), std::ios::in);
 
-  torrent::Object tmp;
   f >> tmp;
 
   if (!f.good())
-    return;
+    goto download_store_save_error;
 
   f.close();
 
   ::rename((create_filename(d) + ".new").c_str(), create_filename(d).c_str());
+  return true;
+
+download_store_save_error:
+  f.close();
+  return false;
 }
 
 void

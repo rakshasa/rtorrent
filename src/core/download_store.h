@@ -60,7 +60,7 @@ public:
   const std::string&  path() const                            { return m_path; }
   void                set_path(const std::string& path);
 
-  void                save(Download* d);
+  bool                save(Download* d);
   void                remove(Download* d);
 
   // Currently shows all entries in the correct format.
