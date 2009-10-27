@@ -56,7 +56,7 @@ public:
 
   static const int max_tasks = 10;
 
-  SCgi() {}
+  SCgi() : m_logFd(-1) {}
   virtual ~SCgi();
 
   void                open_port(void* sa, unsigned int length, bool dontRoute);
@@ -65,6 +65,9 @@ public:
   const std::string   path() const { return m_path; }
 
   void                set_slot_process(slot_process::base_type* s) { m_slotProcess.set(s); }
+
+  int                 log_fd() const     { return m_logFd; }
+  void                set_log_fd(int fd) { m_logFd = fd; }
 
   virtual void        event_read();
   virtual void        event_write();
@@ -78,6 +81,7 @@ private:
   void                open(void* sa, unsigned int length);
 
   std::string         m_path;
+  int                 m_logFd;
   slot_process        m_slotProcess;
   SCgiTask            m_task[max_tasks];
 };

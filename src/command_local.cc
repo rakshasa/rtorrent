@@ -52,6 +52,7 @@
 #include "rpc/command_slot.h"
 #include "rpc/command_variable.h"
 #include "rpc/parse_commands.h"
+#include "rpc/scgi.h"
 #include "utils/file_status_cache.h"
 
 #include "globals.h"
@@ -61,10 +62,18 @@
 typedef torrent::ChunkManager CM_t;
 
 torrent::Object
-apply_execute_log(const torrent::Object& rawArgs) {
+apply_log(int logType, const torrent::Object& rawArgs) {
   if (rpc::execFile.log_fd() != -1) {
-    ::close(rpc::execFile.log_fd());
-    rpc::execFile.set_log_fd(-1);
+    switch (logType) {
+    case 0: ::close(rpc::execFile.log_fd()); rpc::execFile.set_log_fd(-1); break;
+    case 1:
+      if (control->scgi()) {
+        ::close(control->scgi()->log_fd());
+        control->scgi()->set_log_fd(-1);
+      }
+      break;
+    default: break;
+    }
   }
 
   if (rawArgs.is_string() && !rawArgs.as_string().empty()) {
@@ -73,11 +82,16 @@ apply_execute_log(const torrent::Object& rawArgs) {
     if (logFd < 0)
       throw torrent::input_error("Could not open execute log file.");
 
-    rpc::execFile.set_log_fd(logFd);
-    control->core()->push_log("Opened execute log file.");
+    switch (logType) {
+    case 0: rpc::execFile.set_log_fd(logFd); break;
+    case 1: if (control->scgi()) control->scgi()->set_log_fd(logFd); break;
+    default: break;
+    }
+
+    control->core()->push_log("Opened log file.");
 
   } else {
-    control->core()->push_log("Closed execute log file.");
+    control->core()->push_log("Closed log file.");
   }
 
   return torrent::Object();
@@ -209,7 +223,8 @@ initialize_command_local() {
   ADD_COMMAND_LIST("execute_capture",     rak::bind2_mem_fn(&rpc::execFile, &rpc::ExecFile::execute_object, rpc::ExecFile::flag_throw | rpc::ExecFile::flag_expand_tilde | rpc::ExecFile::flag_capture));
   ADD_COMMAND_LIST("execute_capture_nothrow", rak::bind2_mem_fn(&rpc::execFile, &rpc::ExecFile::execute_object, rpc::ExecFile::flag_expand_tilde | rpc::ExecFile::flag_capture));
 
-  ADD_COMMAND_STRING_UN("execute_log",    std::ptr_fun(&apply_execute_log));
+  ADD_COMMAND_STRING("log.execute", rak::bind_ptr_fn(&apply_log, 0));
+  ADD_COMMAND_STRING("log.xmlrpc",  rak::bind_ptr_fn(&apply_log, 1));
 
   *rpc::Command::argument(0) = "placeholder.0";
   *rpc::Command::argument(1) = "placeholder.1";

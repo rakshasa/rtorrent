@@ -492,6 +492,6 @@ initialize_command_network() {
   ADD_VARIABLE_BOOL("peer_exchange", true);
 
   // Not really network stuff:
-  ADD_VARIABLE_BOOL("handshake_log", false);
-  ADD_VARIABLE_STRING("tracker_dump", "");
+  ADD_VARIABLE_BOOL  ("log.handshake", false);
+  ADD_VARIABLE_STRING("log.tracker", "");
 }
