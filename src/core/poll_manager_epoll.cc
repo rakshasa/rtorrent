@@ -74,4 +74,16 @@ PollManagerEPoll::poll(rak::timer timeout) {
   static_cast<torrent::PollEPoll*>(m_poll)->perform();
 }
 
+void
+PollManagerEPoll::poll_simple(rak::timer timeout) {
+  // Add 1ms to ensure we don't idle loop due to the lack of
+  // resolution.
+  timeout = timeout + 1000;
+
+  if (static_cast<torrent::PollEPoll*>(m_poll)->poll((timeout.usec() + 999) / 1000) == -1)
+    return check_error();
+
+  static_cast<torrent::PollEPoll*>(m_poll)->perform();
+}
+
 }

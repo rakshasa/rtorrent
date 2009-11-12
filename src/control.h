@@ -91,7 +91,6 @@ public:
   core::ViewManager*  view_manager()                { return m_viewManager; }
   core::DhtManager*   dht_manager()                 { return m_dhtManager; }
 
-  torrent::Poll*      poll();
 
   ui::Root*           ui()                          { return m_ui; }
   display::Manager*   display()                     { return m_display; }

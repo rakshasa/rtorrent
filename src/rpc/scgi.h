@@ -62,7 +62,10 @@ public:
   void                open_port(void* sa, unsigned int length, bool dontRoute);
   void                open_named(const std::string& filename);
 
-  const std::string   path() const { return m_path; }
+  void                activate();
+  void                deactivate();
+
+  const std::string&  path() const { return m_path; }
 
   void                set_slot_process(slot_process::base_type* s) { m_slotProcess.set(s); }
 

@@ -9,6 +9,8 @@ libsub_utils_a_SOURCES = \
 	lockfile.cc \
 	lockfile.h \
 	socket_fd.cc \
-	socket_fd.h
+	socket_fd.h \
+	thread_base.cc \
+	thread_base.h
 
 INCLUDES = -I$(srcdir) -I$(srcdir)/.. -I$(top_srcdir)

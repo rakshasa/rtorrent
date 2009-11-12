@@ -69,22 +69,22 @@ CurlSocket::receive_socket(void* easy_handle, curl_socket_t fd, int what, void* 
 
   if (socket == NULL) {
     socket = stack->new_socket(fd);
-    control->poll()->open(socket);
+    this_thread->poll()->open(socket);
 
     // No interface for libcurl to signal when it's interested in error events.
     // Assume that hence it must always be interested in them.
-    control->poll()->insert_error(socket);
+    this_thread->poll()->insert_error(socket);
   } 
 
   if (what == CURL_POLL_NONE || what == CURL_POLL_OUT)
-    control->poll()->remove_read(socket);
+    this_thread->poll()->remove_read(socket);
   else
-    control->poll()->insert_read(socket);
+    this_thread->poll()->insert_read(socket);
 
   if (what == CURL_POLL_NONE || what == CURL_POLL_IN)
-    control->poll()->remove_write(socket);
+    this_thread->poll()->remove_write(socket);
   else
-    control->poll()->insert_write(socket);
+    this_thread->poll()->insert_write(socket);
 
   return 0;
 }
@@ -99,7 +99,7 @@ CurlSocket::close() {
   if (m_fileDesc == -1)
     throw torrent::internal_error("CurlSocket::close() m_fileDesc == -1.");
 
-  control->poll()->closed(this);
+  this_thread->poll()->closed(this);
   m_fileDesc = -1;
 }
 

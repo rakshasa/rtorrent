@@ -114,7 +114,7 @@ Control::initialize() {
 
   m_ui->init(this);
 
-  m_inputStdin->insert(m_core->get_poll_manager()->get_torrent_poll());
+  m_inputStdin->insert(this_thread->poll());
 }
 
 void
@@ -124,7 +124,7 @@ Control::cleanup() {
 
   priority_queue_erase(&taskScheduler, &m_taskShutdown);
 
-  m_inputStdin->remove(m_core->get_poll_manager()->get_torrent_poll());
+  m_inputStdin->remove(this_thread->poll());
 
   m_core->download_store()->disable();
 
@@ -161,7 +161,3 @@ Control::handle_shutdown() {
   m_shutdownReceived = false;
 }
 
-torrent::Poll*
-Control::poll() {
-  return m_core->get_poll_manager()->get_torrent_poll();
-}

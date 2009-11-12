@@ -86,8 +86,9 @@ AC_DEFUN([TORRENT_ENABLE_ARCH], [
         AC_MSG_RESULT($enableval)
 
         for i in `IFS=,; echo $enableval`; do
-          CXXFLAGS="$CXXFLAGS -arch $i"
-          LDFLAGS="$LDFLAGS -arch $i"
+          CFLAGS="$CFLAGS -march=$i"
+          CXXFLAGS="$CXXFLAGS -march=$i"
+          LDFLAGS="$LDFLAGS -march=$i"
         done
       fi
     ])
@@ -183,7 +184,7 @@ AC_DEFUN([TORRENT_CHECK_MADVISE], [
 AC_DEFUN([TORRENT_CHECK_EXECINFO], [
   AC_MSG_CHECKING(for execinfo.h)
 
-  AC_LINK_IFELSE(
+  AC_RUN_IFELSE(
     [[#include <execinfo.h>
       int main() { backtrace((void**)0, 0); backtrace_symbols((char**)0, 0); return 0;}
     ]],
@@ -237,5 +238,20 @@ AC_DEFUN([TORRENT_DISABLE_IPV6], [
         if test "$enableval" = "yes"; then
             AC_DEFINE(RAK_USE_INET6, 1, enable ipv6 stuff)
         fi
+    ])
+])
+
+AC_DEFUN([TORRENT_ENABLE_TR1], [
+  AC_ARG_ENABLE(std_tr1,
+    [  --disable-std_tr1       disable check for support for TR1 [[default=enable]]],
+    [
+      if test "$enableval" = "yes"; then
+        TORRENT_CHECK_TR1()
+      else
+        AC_MSG_CHECKING(for TR1 support)
+        AC_MSG_RESULT(disabled)
+      fi
+    ],[
+        TORRENT_CHECK_TR1()
     ])
 ])

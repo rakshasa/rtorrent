@@ -60,6 +60,9 @@ public:
   torrent::Poll*      get_torrent_poll()           { return m_poll; }
 
   virtual void        poll(rak::timer timeout) = 0;
+  virtual void        poll_simple(rak::timer timeout) = 0;
+
+  static PollManager* create_poll_manager();
 
 protected:
   PollManager(const PollManager&);

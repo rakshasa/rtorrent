@@ -60,9 +60,8 @@ SCgi::~SCgi() {
     if (itr->is_open())
       itr->close();
 
-  control->poll()->remove_read(this);
-  control->poll()->remove_error(this);
-  control->poll()->close(this);
+  deactivate();
+  torrent::connection_manager()->dec_socket_count();
 
   get_fd().close();
   get_fd().clear();
@@ -109,16 +108,26 @@ SCgi::open(void* sa, unsigned int length) {
 
     torrent::connection_manager()->inc_socket_count();
 
-    control->poll()->open(this);
-    control->poll()->insert_read(this);
-    control->poll()->insert_error(this);
-
   } catch (torrent::resource_error& e) {
     get_fd().close();
     get_fd().clear();
 
     throw e;
   }
+}
+
+void
+SCgi::activate() {
+  this_thread->poll()->open(this);
+  this_thread->poll()->insert_read(this);
+  this_thread->poll()->insert_error(this);
+}
+
+void
+SCgi::deactivate() {
+  this_thread->poll()->remove_read(this);
+  this_thread->poll()->remove_error(this);
+  this_thread->poll()->close(this);
 }
 
 void

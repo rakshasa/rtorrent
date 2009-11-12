@@ -85,7 +85,6 @@ public:
   View*               hashing_view()                      { return m_hashingView; }
   void                set_hashing_view(View* v);
 
-  PollManager*        get_poll_manager()                  { return m_pollManager; }
   Log&                get_log_important()                 { return m_logImportant; }
   Log&                get_log_complete()                  { return m_logComplete; }
 
@@ -97,7 +96,6 @@ public:
   torrent::ThrottlePair get_address_throttle(const sockaddr* addr);
 
   // Really should find a more descriptive name.
-  void                initialize_first();
   void                initialize_second();
   void                cleanup();
 
@@ -153,7 +151,6 @@ private:
   ThrottleMap         m_throttles;
   AddressThrottleMap  m_addressThrottles;
 
-  PollManager*        m_pollManager;
   Log                 m_logImportant;
   Log                 m_logComplete;
 };

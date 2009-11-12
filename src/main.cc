@@ -154,6 +154,9 @@ main(int argc, char** argv) {
 
     control = new Control;
     
+    this_thread = new utils::ThreadBase();
+    this_thread->init_thread();
+
     srandom(cachedTime.usec());
     srand48(cachedTime.usec());
 
@@ -165,7 +168,7 @@ main(int argc, char** argv) {
     SignalHandler::set_handler(SIGBUS,   sigc::bind(sigc::ptr_fun(&do_panic), SIGBUS));
     SignalHandler::set_handler(SIGFPE,   sigc::bind(sigc::ptr_fun(&do_panic), SIGFPE));
 
-    control->core()->initialize_first();
+    torrent::initialize(this_thread->poll());
 
     // Initialize option handlers after libtorrent to ensure
     // torrent::ConnectionManager* are valid etc.
@@ -315,7 +318,7 @@ main(int argc, char** argv) {
       rak::priority_queue_perform(&taskScheduler, cachedTime);
 
       // Do shutdown check before poll, not after.
-      control->core()->get_poll_manager()->poll(client_next_timeout(control));
+      this_thread->poll_manager()->poll(client_next_timeout(control));
     }
 
     control->core()->download_list()->session_save();
@@ -329,6 +332,7 @@ main(int argc, char** argv) {
   }
 
   delete control;
+  delete this_thread;
 
   return 0;
 }

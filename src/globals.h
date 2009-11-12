@@ -40,11 +40,20 @@
 #include <rak/timer.h>
 #include <rak/priority_queue_default.h>
 
+#include "utils/thread_base.h"
+
 class Control;
+
+// The cachedTime timer should only be updated by the main thread to
+// avoid potential problems in timing calculations. Code really should
+// be reviewed and fixed in order to avoid any potential problems, and
+// then made updates properly sync'ed with memory barriers.
 
 extern rak::priority_queue_default taskScheduler;
 extern rak::timer                  cachedTime;
 
 extern Control*                    control;
+// extern __thread utils::ThreadBase* this_thread; // Only use for worker threads for now.
+extern utils::ThreadBase* this_thread; // Only use for main threads for now.
 
 #endif

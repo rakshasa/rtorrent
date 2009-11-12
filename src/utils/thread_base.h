@@ -1,4 +1,4 @@
-// rTorrent - BitTorrent client
+// libTorrent - BitTorrent library
 // Copyright (C) 2005-2007, Jari Sundell
 //
 // This program is free software; you can redistribute it and/or modify
@@ -34,29 +34,52 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef RTORRENT_CORE_POLL_MANAGER_KQUEUE_H
-#define RTORRENT_CORE_POLL_MANAGER_KQUEUE_H
+#ifndef RTORRENT_UTILS_THREAD_BASE_H
+#define RTORRENT_UTILS_THREAD_BASE_H
 
-#include "poll_manager.h"
+#include <sys/types.h>
+#include "rak/priority_queue_default.h"
+#include "core/poll_manager.h"
 
-namespace torrent {
-  class PollKQueue;
-}
+namespace utils {
 
-namespace core {
+struct thread_queue_hack;
 
-class PollManagerKQueue : public PollManager {
+// Move this class to libtorrent.
+
+// class __cacheline_aligned ThreadBase {
+class ThreadBase {
 public:
-  static PollManagerKQueue* create(int maxOpenSockets);
-  ~PollManagerKQueue();
+  typedef rak::priority_queue_default priority_queue;
+  typedef void (*thread_base_func)(ThreadBase*);
 
-  torrent::Poll*      get_torrent_poll();
+  ThreadBase();
+  ~ThreadBase();
 
-  void                poll(rak::timer timeout);
-  void                poll_simple(rak::timer timeout);
+  torrent::Poll*      poll() { return m_pollManager->get_torrent_poll(); }
+  core::PollManager*  poll_manager() { return m_pollManager; }
+  priority_queue&     task_scheduler() { return m_taskScheduler; }
+
+  virtual void        init_thread();
+
+  // ATM, only interaction with a thread's allowed by other threads is
+  // through the queue_item call.
+
+//   void                queue_item(thread_base_func newFunc);
+
+//   void*               event_loop();
 
 private:
-  PollManagerKQueue(torrent::Poll* p) : PollManager(p) {}
+//   void                call_queued_items();
+
+  // The timer needs to be sync'ed when updated...
+
+  core::PollManager*          m_pollManager;
+  rak::priority_queue_default m_taskScheduler;
+
+  // Temporary hack to pass messages to a thread. This really needs to
+  // be cleaned up and/or integrated into the priority queue itself.
+//   thread_queue_hack*  m_threadQueue;
 };
 
 }
