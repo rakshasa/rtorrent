@@ -42,5 +42,5 @@ rak::priority_queue_default taskScheduler;
 rak::timer                  cachedTime;
 
 Control*                    control = NULL;
-//__thread utils::ThreadBase* this_thread = NULL;
-utils::ThreadBase* this_thread = NULL;
+//__thread ThreadBase* this_thread = NULL;
+ThreadBase* this_thread = NULL;

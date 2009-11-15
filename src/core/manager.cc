@@ -77,7 +77,7 @@ namespace core {
 
 void
 receive_tracker_dump(const std::string& url, const char* data, size_t size) {
-  const std::string& filename = rpc::call_command_string("get_tracker_dump");
+  const std::string& filename = rpc::call_command_string("get_log.tracker");
 
   if (filename.empty())
     return;

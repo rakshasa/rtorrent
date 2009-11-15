@@ -40,7 +40,7 @@
 #include <rak/timer.h>
 #include <rak/priority_queue_default.h>
 
-#include "utils/thread_base.h"
+#include "thread_base.h"
 
 class Control;
 
@@ -53,7 +53,7 @@ extern rak::priority_queue_default taskScheduler;
 extern rak::timer                  cachedTime;
 
 extern Control*                    control;
-// extern __thread utils::ThreadBase* this_thread; // Only use for worker threads for now.
-extern utils::ThreadBase* this_thread; // Only use for main threads for now.
+// extern __thread ThreadBase* this_thread; // Only use for worker threads for now.
+extern ThreadBase* this_thread; // Only use for main threads for now.
 
 #endif

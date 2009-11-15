@@ -154,7 +154,7 @@ main(int argc, char** argv) {
 
     control = new Control;
     
-    this_thread = new utils::ThreadBase();
+    this_thread = new ThreadBase();
     this_thread->init_thread();
 
     srandom(cachedTime.usec());

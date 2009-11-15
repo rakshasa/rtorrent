@@ -43,8 +43,6 @@
 
 #include "globals.h"
 
-namespace utils {
-
 // Temporarly injected into config.h.
 /* temp hack */
 //#define __cacheline_aligned __attribute__((__aligned__(128)))
@@ -155,5 +153,3 @@ ThreadBase::init_thread() {
 // ThreadBase::queue_item(thread_base_func newFunc) {
 //   m_threadQueue->push_back(newFunc);
 // }
-
-}

@@ -41,8 +41,6 @@
 #include "rak/priority_queue_default.h"
 #include "core/poll_manager.h"
 
-namespace utils {
-
 struct thread_queue_hack;
 
 // Move this class to libtorrent.
@@ -81,7 +79,5 @@ private:
   // be cleaned up and/or integrated into the priority queue itself.
 //   thread_queue_hack*  m_threadQueue;
 };
-
-}
 
 #endif
