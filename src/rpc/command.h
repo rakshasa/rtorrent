@@ -87,10 +87,8 @@ struct rt_triple : private std::pair<T1, T2> {
   rt_triple(const T1& a, const T2& b, const T3& c) :
     base_type(a, b), third(c) {}
 
-  template <typename U1, typename U2>
-  rt_triple(const std::pair<U1, U2>& b) : base_type(b), third() {}
+  rt_triple(const base_type& b) : base_type(b), third() {}
 
-  template <typename U1, typename U2, typename U3>
   rt_triple(const rt_triple& src) :
     base_type(src.first, src.second), third(src.third) {}
 };
