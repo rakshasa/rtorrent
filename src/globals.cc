@@ -44,3 +44,4 @@ rak::timer                  cachedTime;
 Control*                    control = NULL;
 //__thread ThreadBase* this_thread = NULL;
 ThreadBase* this_thread = NULL;
+ThreadBase* worker_thread = NULL;

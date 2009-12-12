@@ -46,10 +46,10 @@
 
 namespace rak {
 
-template <typename Value, typename Compare, typename Equal>
-class priority_queue : public std::vector<Value> {
+template <typename Value, typename Compare, typename Equal, typename Alloc = std::allocator<Value> >
+class priority_queue : public std::vector<Value, Alloc> {
 public:
-  typedef std::vector<Value>                  base_type;
+  typedef std::vector<Value, Alloc>           base_type;
   typedef typename base_type::reference       reference;
   typedef typename base_type::const_reference const_reference;
   typedef typename base_type::iterator        iterator;

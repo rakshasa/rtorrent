@@ -54,6 +54,7 @@ extern rak::timer                  cachedTime;
 
 extern Control*                    control;
 // extern __thread ThreadBase* this_thread; // Only use for worker threads for now.
-extern ThreadBase* this_thread; // Only use for main threads for now.
+extern ThreadBase* this_thread;
+extern ThreadBase* worker_thread;
 
 #endif

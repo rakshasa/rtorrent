@@ -40,6 +40,8 @@ rtorrent_SOURCES = \
 	signal_handler.cc \
 	signal_handler.h \
 	thread_base.cc \
-	thread_base.h
+	thread_base.h \
+	thread_worker.cc \
+	thread_worker.h
 
 INCLUDES = -I$(srcdir) -I$(top_srcdir)

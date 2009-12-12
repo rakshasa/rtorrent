@@ -45,7 +45,7 @@ namespace torrent {
 
 namespace core {
 
-class PollManagerSelect : public PollManager {
+class __cacheline_aligned PollManagerSelect : public PollManager {
 public:
   static PollManagerSelect* create(int maxOpenSockets);
   ~PollManagerSelect();

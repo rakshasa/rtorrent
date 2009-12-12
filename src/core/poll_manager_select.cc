@@ -40,6 +40,7 @@
 #include <stdexcept>
 #include <unistd.h>
 #include <sys/time.h>
+#include <torrent/exceptions.h>
 #include <torrent/poll_select.h>
 #include <torrent/torrent.h>
 
@@ -49,26 +50,18 @@ namespace core {
 
 PollManagerSelect::PollManagerSelect(torrent::Poll* p) : PollManager(p) {
 #if defined USE_VARIABLE_FDSET
-  m_setSize = m_poll->open_max() / 8;
-  m_readSet = (fd_set*)new char[m_setSize];
-  m_writeSet = (fd_set*)new char[m_setSize];
-  m_errorSet = (fd_set*)new char[m_setSize];
+  m_setSize = (m_poll->open_max() + 7) / 8;
 
-  std::memset(m_readSet, 0, m_setSize);
-  std::memset(m_writeSet, 0, m_setSize);
-  std::memset(m_errorSet, 0, m_setSize);
+  char* buffer;
+  posix_memalign((void**)&buffer, L1_CACHE_BYTES, 3 * m_setSize);
+
+  std::memset(buffer, 0, 3 * m_setSize);
+
+  m_readSet = (fd_set*)buffer;
+  m_writeSet = (fd_set*)(buffer += m_setSize);
+  m_errorSet = (fd_set*)(buffer += m_setSize);
 #else
-  if (m_poll->open_max() > FD_SETSIZE)
-    throw std::logic_error("PollManagerSelect::create(...) received a max open sockets >= FD_SETSIZE, but USE_VARIABLE_FDSET was not defined");
-
-  m_setSize = FD_SETSIZE / 8;
-  m_readSet = new fd_set;
-  m_writeSet = new fd_set;
-  m_errorSet = new fd_set;
-
-  FD_ZERO(m_readSet);
-  FD_ZERO(m_writeSet);
-  FD_ZERO(m_errorSet);
+#error Only variable fdset supported atm.
 #endif
 }
 
@@ -78,20 +71,12 @@ PollManagerSelect::create(int maxOpenSockets) {
 
   if (p == NULL)
     return NULL;
-  else
-    return new PollManagerSelect(p);
+
+  return new PollManagerSelect(p);
 }
 
 PollManagerSelect::~PollManagerSelect() {
-#if defined USE_VARIABLE_FDSET
-  delete [] m_readSet;
-  delete [] m_writeSet;
-  delete [] m_errorSet;
-#else
-  delete m_readSet;
-  delete m_writeSet;
-  delete m_errorSet;
-#endif
+  free(m_readSet);
 }
 
 void
@@ -99,15 +84,9 @@ PollManagerSelect::poll(rak::timer timeout) {
   torrent::perform();
   timeout = std::min(timeout, rak::timer(torrent::next_timeout())) + 1000;
 
-#if defined USE_VARIABLE_FDSET
   std::memset(m_readSet, 0, m_setSize);
   std::memset(m_writeSet, 0, m_setSize);
   std::memset(m_errorSet, 0, m_setSize);
-#else
-  FD_ZERO(m_readSet);
-  FD_ZERO(m_writeSet);
-  FD_ZERO(m_errorSet);
-#endif    
 
   unsigned int maxFd = static_cast<torrent::PollSelect*>(m_poll)->fdset(m_readSet, m_writeSet, m_errorSet);
 
@@ -122,26 +101,23 @@ PollManagerSelect::poll(rak::timer timeout) {
 
 void
 PollManagerSelect::poll_simple(rak::timer timeout) {
+  torrent::PollSelect* currentPoll = static_cast<torrent::PollSelect*>(m_poll);
+
   timeout = timeout + 1000;
+  std::memset(m_readSet, 0, 3 * m_setSize);
 
-#if defined USE_VARIABLE_FDSET
-  std::memset(m_readSet, 0, m_setSize);
-  std::memset(m_writeSet, 0, m_setSize);
-  std::memset(m_errorSet, 0, m_setSize);
-#else
-  FD_ZERO(m_readSet);
-  FD_ZERO(m_writeSet);
-  FD_ZERO(m_errorSet);
-#endif    
+  unsigned int maxFd = currentPoll->fdset(m_readSet, m_writeSet, m_errorSet);
+  //  unsigned int maxFd = 0;
 
-  unsigned int maxFd = static_cast<torrent::PollSelect*>(m_poll)->fdset(m_readSet, m_writeSet, m_errorSet);
+  if ((unsigned int)std::count((char*)m_readSet, (char*)m_readSet + 3 * m_setSize, 0) != 3 * m_setSize)
+    throw torrent::internal_error("Got stray bits set.");
 
   timeval t = timeout.tval();
 
   if (select(maxFd + 1, m_readSet, m_writeSet, m_errorSet, &t) == -1)
     return check_error();
 
-  static_cast<torrent::PollSelect*>(m_poll)->perform(m_readSet, m_writeSet, m_errorSet);
+  currentPoll->perform(m_readSet, m_writeSet, m_errorSet);
 }
 
 }

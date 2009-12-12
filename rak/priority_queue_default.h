@@ -38,6 +38,7 @@
 #define RAK_PRIORITY_QUEUE_DEFAULT_H
 
 #include <stdexcept>
+#include <rak/allocators.h>
 #include <rak/functional.h>
 #include <rak/functional_fun.h>
 #include <rak/priority_queue.h>
@@ -83,7 +84,8 @@ struct priority_compare {
 };
 
 typedef std::equal_to<priority_item*> priority_equal;
-typedef priority_queue<priority_item*, priority_compare, priority_equal> priority_queue_default;
+typedef priority_queue<priority_item*, priority_compare, priority_equal,
+                       cacheline_allocator<priority_item*> > priority_queue_default;
 
 inline void
 priority_queue_perform(priority_queue_default* queue, timer t) {

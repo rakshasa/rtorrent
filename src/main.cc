@@ -69,6 +69,8 @@
 #include "signal_handler.h"
 #include "option_parser.h"
 
+#include "thread_worker.h"
+
 void do_panic(int signum);
 void print_help();
 void initialize_commands();
@@ -156,6 +158,9 @@ main(int argc, char** argv) {
     
     this_thread = new ThreadBase();
     this_thread->init_thread();
+
+    worker_thread = new ThreadWorker();
+    worker_thread->init_thread();
 
     srandom(cachedTime.usec());
     srand48(cachedTime.usec());
@@ -307,6 +312,8 @@ main(int argc, char** argv) {
     // startup.
     control->display()->adjust_layout();
     control->display()->receive_update();
+
+    worker_thread->start_thread();
 
     while (!control->is_shutdown_completed()) {
       if (control->is_shutdown_received())

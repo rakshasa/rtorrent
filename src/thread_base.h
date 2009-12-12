@@ -37,7 +37,9 @@
 #ifndef RTORRENT_UTILS_THREAD_BASE_H
 #define RTORRENT_UTILS_THREAD_BASE_H
 
+#include <pthread.h>
 #include <sys/types.h>
+
 #include "rak/priority_queue_default.h"
 #include "core/poll_manager.h"
 
@@ -45,11 +47,19 @@ struct thread_queue_hack;
 
 // Move this class to libtorrent.
 
-// class __cacheline_aligned ThreadBase {
-class ThreadBase {
+struct thread_queue_hack;
+
+class __cacheline_aligned ThreadBase {
 public:
   typedef rak::priority_queue_default priority_queue;
   typedef void (*thread_base_func)(ThreadBase*);
+  typedef void* (*pthread_func)(void*);
+
+  enum state_type {
+    STATE_UNKNOWN,
+    STATE_INITIALIZED,
+    STATE_ACTIVE
+  };
 
   ThreadBase();
   ~ThreadBase();
@@ -60,15 +70,21 @@ public:
 
   virtual void        init_thread();
 
+  void                start_thread();
+  void                stop_thread();
+
   // ATM, only interaction with a thread's allowed by other threads is
   // through the queue_item call.
 
-//   void                queue_item(thread_base_func newFunc);
+  void                queue_item(thread_base_func newFunc);
 
-//   void*               event_loop();
+  static void*        event_loop(ThreadBase* threadBase);
 
-private:
-//   void                call_queued_items();
+protected:
+  void                call_queued_items();
+
+  pthread_t           m_thread;
+  state_type          m_state;
 
   // The timer needs to be sync'ed when updated...
 
@@ -77,7 +93,7 @@ private:
 
   // Temporary hack to pass messages to a thread. This really needs to
   // be cleaned up and/or integrated into the priority queue itself.
-//   thread_queue_hack*  m_threadQueue;
+  thread_queue_hack*  m_threadQueue;
 };
 
 #endif
