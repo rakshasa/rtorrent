@@ -1,4 +1,4 @@
-// libTorrent - BitTorrent library
+// rTorrent - BitTorrent library
 // Copyright (C) 2005-2007, Jari Sundell
 //
 // This program is free software; you can redistribute it and/or modify
@@ -34,66 +34,22 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef RTORRENT_UTILS_THREAD_BASE_H
-#define RTORRENT_UTILS_THREAD_BASE_H
+#ifndef RTORRENT_THREAD_MAIN_H
+#define RTORRENT_THREAD_MAIN_H
 
-#include <pthread.h>
-#include <sys/types.h>
+#include "thread_base.h"
 
-#include "rak/priority_queue_default.h"
-#include "core/poll_manager.h"
+// Check if cacheline aligned with inheritance ends up taking two
+// cachelines.
 
-struct thread_queue_hack;
-
-// Move this class to libtorrent.
-
-struct thread_queue_hack;
-
-class ThreadBase {
+class __cacheline_aligned ThreadMain : public ThreadBase {
 public:
-  typedef rak::priority_queue_default priority_queue;
-  typedef void (*thread_base_func)(ThreadBase*);
-  typedef void* (*pthread_func)(void*);
+  ThreadMain() {}
+  ~ThreadMain();
 
-  enum state_type {
-    STATE_UNKNOWN,
-    STATE_INITIALIZED,
-    STATE_ACTIVE
-  };
+  virtual void        init_thread();
 
-  ThreadBase();
-  virtual ~ThreadBase();
-
-  torrent::Poll*      poll() { return m_pollManager->get_torrent_poll(); }
-  core::PollManager*  poll_manager() { return m_pollManager; }
-  priority_queue&     task_scheduler() { return m_taskScheduler; }
-
-  virtual void        init_thread() = 0;
-
-  void                start_thread();
-  void                stop_thread();
-
-  // ATM, only interaction with a thread's allowed by other threads is
-  // through the queue_item call.
-
-  void                queue_item(thread_base_func newFunc);
-
-  static void*        event_loop(ThreadBase* threadBase);
-
-protected:
-  void                call_queued_items();
-
-  pthread_t           m_thread;
-  state_type          m_state;
-
-  // The timer needs to be sync'ed when updated...
-
-  core::PollManager*          m_pollManager;
-  rak::priority_queue_default m_taskScheduler;
-
-  // Temporary hack to pass messages to a thread. This really needs to
-  // be cleaned up and/or integrated into the priority queue itself.
-  thread_queue_hack*  m_threadQueue;
+private:
 };
 
 #endif

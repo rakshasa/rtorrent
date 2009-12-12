@@ -53,8 +53,8 @@ extern rak::priority_queue_default taskScheduler;
 extern rak::timer                  cachedTime;
 
 extern Control*                    control;
-// extern __thread ThreadBase* this_thread; // Only use for worker threads for now.
-extern ThreadBase* this_thread;
+// extern __thread ThreadBase* main_thread; // Only use for worker threads for now.
+extern ThreadBase* main_thread;
 extern ThreadBase* worker_thread;
 
 #endif

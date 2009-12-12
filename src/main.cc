@@ -69,6 +69,7 @@
 #include "signal_handler.h"
 #include "option_parser.h"
 
+#include "thread_main.h"
 #include "thread_worker.h"
 
 void do_panic(int signum);
@@ -156,8 +157,8 @@ main(int argc, char** argv) {
 
     control = new Control;
     
-    this_thread = new ThreadBase();
-    this_thread->init_thread();
+    main_thread = new ThreadMain();
+    main_thread->init_thread();
 
     worker_thread = new ThreadWorker();
     worker_thread->init_thread();
@@ -173,7 +174,7 @@ main(int argc, char** argv) {
     SignalHandler::set_handler(SIGBUS,   sigc::bind(sigc::ptr_fun(&do_panic), SIGBUS));
     SignalHandler::set_handler(SIGFPE,   sigc::bind(sigc::ptr_fun(&do_panic), SIGFPE));
 
-    torrent::initialize(this_thread->poll());
+    torrent::initialize(main_thread->poll());
 
     // Initialize option handlers after libtorrent to ensure
     // torrent::ConnectionManager* are valid etc.
@@ -325,7 +326,7 @@ main(int argc, char** argv) {
       rak::priority_queue_perform(&taskScheduler, cachedTime);
 
       // Do shutdown check before poll, not after.
-      this_thread->poll_manager()->poll(client_next_timeout(control));
+      main_thread->poll_manager()->poll(client_next_timeout(control));
     }
 
     control->core()->download_list()->session_save();
@@ -339,7 +340,7 @@ main(int argc, char** argv) {
   }
 
   delete control;
-  delete this_thread;
+  delete main_thread;
 
   return 0;
 }

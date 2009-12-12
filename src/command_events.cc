@@ -59,6 +59,8 @@
 #include "control.h"
 #include "command_helpers.h"
 
+#include "thread_worker.h"
+
 torrent::Object
 apply_on_state_change(const char* name, const torrent::Object& rawArgs) {
   const torrent::Object::list_type& args = rawArgs.as_list();
@@ -350,8 +352,17 @@ d_multicall(const torrent::Object& rawArgs) {
   return resultRaw;
 }
 
+torrent::Object
+test_thread_locking(const torrent::Object& rawArgs) {
+  worker_thread->queue_item(&ThreadWorker::start_log_counter);
+
+  return torrent::Object();
+}
+
 void
 initialize_command_events() {
+  ADD_COMMAND_NONE("test.thread_locking", rak::ptr_fn(&test_thread_locking));
+
   ADD_VARIABLE_BOOL("check_hash", true);
 
   ADD_VARIABLE_BOOL("session_lock", true);

@@ -80,7 +80,7 @@ public:
     iterator itr = begin();
     lock();
 
-    while (*itr != NULL) *++dest = *++itr;
+    while (*itr != NULL) *dest++ = *itr++;
 
     clear_and_unlock();
     return dest;
@@ -111,14 +111,6 @@ ThreadBase::~ThreadBase() {
   // Cleanup...
 }
 
-// Main thread init... Always replace this.
-void
-ThreadBase::init_thread() {
-  this_thread = this;
-
-  m_pollManager = core::PollManager::create_poll_manager();
-}
-
 void
 ThreadBase::start_thread() {
   if (m_state != STATE_INITIALIZED ||
@@ -144,7 +136,7 @@ ThreadBase::event_loop(ThreadBase* threadBase) {
 
 //     // Remember to add global lock thing to the main poll loop ++.
 
-//    rak::priority_queue_perform(&threadBase->m_taskScheduler, cachedTime);
+    rak::priority_queue_perform(&threadBase->m_taskScheduler, cachedTime);
 
     threadBase->m_pollManager->poll_simple(rak::timer::from_seconds(10));
   }
@@ -158,8 +150,8 @@ ThreadBase::call_queued_items() {
   thread_base_func* first = result;
   thread_base_func* last = m_threadQueue->copy_and_clear((thread_base_func*)result);
 
-  while (first != last)
-    (*first)(this);
+  while (first != last && *first)
+    (*first++)(this);
 }
 
 void

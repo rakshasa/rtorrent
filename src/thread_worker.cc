@@ -1,4 +1,4 @@
-// libTorrent - BitTorrent library
+// rTorrent - BitTorrent library
 // Copyright (C) 2005-2007, Jari Sundell
 //
 // This program is free software; you can redistribute it and/or modify
@@ -34,66 +34,27 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef RTORRENT_UTILS_THREAD_BASE_H
-#define RTORRENT_UTILS_THREAD_BASE_H
+#include "config.h"
 
-#include <pthread.h>
-#include <sys/types.h>
+#include "thread_worker.h"
+#include "globals.h"
 
-#include "rak/priority_queue_default.h"
-#include "core/poll_manager.h"
+#include <cassert>
+#include <torrent/exceptions.h>
 
-struct thread_queue_hack;
+ThreadWorker::~ThreadWorker() {
+}
 
-// Move this class to libtorrent.
+void
+ThreadWorker::init_thread() {
+  m_pollManager = core::PollManager::create_poll_manager();
 
-struct thread_queue_hack;
+  m_state = STATE_INITIALIZED;
+}
 
-class ThreadBase {
-public:
-  typedef rak::priority_queue_default priority_queue;
-  typedef void (*thread_base_func)(ThreadBase*);
-  typedef void* (*pthread_func)(void*);
+void
+ThreadWorker::start_log_counter(ThreadBase* thread) {
+  assert(false);
 
-  enum state_type {
-    STATE_UNKNOWN,
-    STATE_INITIALIZED,
-    STATE_ACTIVE
-  };
-
-  ThreadBase();
-  virtual ~ThreadBase();
-
-  torrent::Poll*      poll() { return m_pollManager->get_torrent_poll(); }
-  core::PollManager*  poll_manager() { return m_pollManager; }
-  priority_queue&     task_scheduler() { return m_taskScheduler; }
-
-  virtual void        init_thread() = 0;
-
-  void                start_thread();
-  void                stop_thread();
-
-  // ATM, only interaction with a thread's allowed by other threads is
-  // through the queue_item call.
-
-  void                queue_item(thread_base_func newFunc);
-
-  static void*        event_loop(ThreadBase* threadBase);
-
-protected:
-  void                call_queued_items();
-
-  pthread_t           m_thread;
-  state_type          m_state;
-
-  // The timer needs to be sync'ed when updated...
-
-  core::PollManager*          m_pollManager;
-  rak::priority_queue_default m_taskScheduler;
-
-  // Temporary hack to pass messages to a thread. This really needs to
-  // be cleaned up and/or integrated into the priority queue itself.
-  thread_queue_hack*  m_threadQueue;
-};
-
-#endif
+  throw torrent::internal_error("PRRREREREFFFERERE");
+}

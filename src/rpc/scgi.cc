@@ -118,16 +118,16 @@ SCgi::open(void* sa, unsigned int length) {
 
 void
 SCgi::activate() {
-  this_thread->poll()->open(this);
-  this_thread->poll()->insert_read(this);
-  this_thread->poll()->insert_error(this);
+  main_thread->poll()->open(this);
+  main_thread->poll()->insert_read(this);
+  main_thread->poll()->insert_error(this);
 }
 
 void
 SCgi::deactivate() {
-  this_thread->poll()->remove_read(this);
-  this_thread->poll()->remove_error(this);
-  this_thread->poll()->close(this);
+  main_thread->poll()->remove_read(this);
+  main_thread->poll()->remove_error(this);
+  main_thread->poll()->close(this);
 }
 
 void

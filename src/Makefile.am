@@ -41,6 +41,8 @@ rtorrent_SOURCES = \
 	signal_handler.h \
 	thread_base.cc \
 	thread_base.h \
+	thread_main.cc \
+	thread_main.h \
 	thread_worker.cc \
 	thread_worker.h
 

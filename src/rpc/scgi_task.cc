@@ -75,9 +75,9 @@ SCgiTask::open(SCgi* parent, int fd) {
   m_position = m_buffer;
   m_body     = NULL;
 
-  this_thread->poll()->open(this);
-  this_thread->poll()->insert_read(this);
-  this_thread->poll()->insert_error(this);
+  main_thread->poll()->open(this);
+  main_thread->poll()->insert_read(this);
+  main_thread->poll()->insert_error(this);
 
 //   scgiTimer = rak::timer::current();
 }
@@ -87,10 +87,10 @@ SCgiTask::close() {
   if (!get_fd().is_valid())
     return;
 
-  this_thread->poll()->remove_read(this);
-  this_thread->poll()->remove_write(this);
-  this_thread->poll()->remove_error(this);
-  this_thread->poll()->close(this);
+  main_thread->poll()->remove_read(this);
+  main_thread->poll()->remove_write(this);
+  main_thread->poll()->remove_error(this);
+  main_thread->poll()->close(this);
 
   get_fd().close();
   get_fd().clear();
@@ -171,8 +171,8 @@ SCgiTask::event_read() {
   if ((unsigned int)std::distance(m_buffer, m_position) != m_bufferSize)
     return;
 
-  this_thread->poll()->remove_read(this);
-  this_thread->poll()->insert_write(this);
+  main_thread->poll()->remove_read(this);
+  main_thread->poll()->insert_write(this);
 
   if (m_parent->log_fd() >= 0) {
     // Clean up logging, this is just plain ugly...
