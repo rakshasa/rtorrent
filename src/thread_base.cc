@@ -38,10 +38,17 @@
 
 #include "thread_base.h"
 
+#include <cassert>
 #include <cstdlib>
+#include <iostream>
 #include <torrent/exceptions.h>
 
 #include "globals.h"
+
+// A preliminary implementation of a global lock, to be moved
+// somewhere more appropriate when it's put to use.
+
+ThreadBase::global_lock_type ThreadBase::m_global = { 0, PTHREAD_MUTEX_INITIALIZER };
 
 // Temporarly injected into config.h.
 /* temp hack */
@@ -108,7 +115,7 @@ ThreadBase::ThreadBase() :
 }
 
 ThreadBase::~ThreadBase() {
-  // Cleanup...
+  pthread_mutex_destroy(&ThreadBase::m_global.lock);
 }
 
 void
@@ -120,6 +127,16 @@ ThreadBase::start_thread() {
 
 void
 ThreadBase::stop_thread() {
+}
+
+inline rak::timer
+ThreadBase::client_next_timeout() {
+  if (m_taskScheduler.empty())
+    return rak::timer::from_seconds(10);
+  else if (m_taskScheduler.top()->time() <= cachedTime)
+    return 0;
+  else
+    return m_taskScheduler.top()->time() - cachedTime;
 }
 
 void*
@@ -134,11 +151,11 @@ ThreadBase::event_loop(ThreadBase* threadBase) {
     if (!threadBase->m_threadQueue->empty())
       threadBase->call_queued_items();
 
-//     // Remember to add global lock thing to the main poll loop ++.
+    //     // Remember to add global lock thing to the main poll loop ++.
 
     rak::priority_queue_perform(&threadBase->m_taskScheduler, cachedTime);
 
-    threadBase->m_pollManager->poll_simple(rak::timer::from_seconds(10));
+    threadBase->m_pollManager->poll_simple(threadBase->client_next_timeout());
   }
 
   return NULL;

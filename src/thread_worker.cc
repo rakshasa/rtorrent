@@ -38,9 +38,16 @@
 
 #include "thread_worker.h"
 #include "globals.h"
+#include "control.h"
 
 #include <cassert>
 #include <torrent/exceptions.h>
+
+#include "core/manager.h"
+
+ThreadWorker::ThreadWorker() {
+  m_taskTouchLog.set_slot(rak::mem_fn(this, &ThreadWorker::task_touch_log));
+}
 
 ThreadWorker::~ThreadWorker() {
 }
@@ -53,8 +60,22 @@ ThreadWorker::init_thread() {
 }
 
 void
-ThreadWorker::start_log_counter(ThreadBase* thread) {
-  assert(false);
+ThreadWorker::start_log_counter(ThreadBase* baseThread) {
+  ThreadWorker* thread = (ThreadWorker*)baseThread;
 
-  throw torrent::internal_error("PRRREREREFFFERERE");
+  if (!thread->m_taskTouchLog.is_queued())
+    priority_queue_insert(&thread->m_taskScheduler, &thread->m_taskTouchLog, cachedTime);
+}
+
+void
+ThreadWorker::task_touch_log() {
+  priority_queue_insert(&m_taskScheduler, &m_taskTouchLog, cachedTime + rak::timer::from_seconds(1));
+
+  acquire_global_lock();
+  __sync_synchronize();
+
+  control->core()->push_log("Tick Tock.");
+
+  __sync_synchronize();
+  release_global_lock();
 }

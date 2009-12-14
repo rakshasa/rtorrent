@@ -39,12 +39,14 @@
 
 #include "thread_base.h"
 
+#include <rak/priority_queue_default.h>
+
 // Check if cacheline aligned with inheritance ends up taking two
 // cachelines.
 
 class __cacheline_aligned ThreadWorker : public ThreadBase {
 public:
-  ThreadWorker() {}
+  ThreadWorker();
   ~ThreadWorker();
 
   virtual void        init_thread();
@@ -52,6 +54,9 @@ public:
   static void start_log_counter(ThreadBase* thread);
 
 private:
+  void                task_touch_log();
+
+  rak::priority_item  m_taskTouchLog;
 };
 
 #endif

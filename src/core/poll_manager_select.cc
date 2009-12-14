@@ -45,6 +45,7 @@
 #include <torrent/torrent.h>
 
 #include "poll_manager_select.h"
+#include "thread_base.h"
 
 namespace core {
 
@@ -92,7 +93,11 @@ PollManagerSelect::poll(rak::timer timeout) {
 
   timeval t = timeout.tval();
 
-  if (select(maxFd + 1, m_readSet, m_writeSet, m_errorSet, &t) == -1)
+  ThreadBase::release_global_lock();
+  int status = select(maxFd + 1, m_readSet, m_writeSet, m_errorSet, &t);
+  ThreadBase::release_global_lock();
+
+  if (status == -1)
     return check_error();
 
   torrent::perform();

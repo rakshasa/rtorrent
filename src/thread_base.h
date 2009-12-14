@@ -80,7 +80,15 @@ public:
 
   static void*        event_loop(ThreadBase* threadBase);
 
+  static inline int   global_queue_size() { return m_global.waiting; }
+
+  static inline void  acquire_global_lock();
+  static inline void  release_global_lock();
+  static inline void  waive_global_lock();
+
 protected:
+  inline rak::timer   client_next_timeout();
+
   void                call_queued_items();
 
   pthread_t           m_thread;
@@ -94,6 +102,39 @@ protected:
   // Temporary hack to pass messages to a thread. This really needs to
   // be cleaned up and/or integrated into the priority queue itself.
   thread_queue_hack*  m_threadQueue;
+
+  struct __cacheline_aligned global_lock_type {
+    int             waiting;
+    pthread_mutex_t lock;
+  };
+
+  static global_lock_type m_global;
 };
+
+inline void
+ThreadBase::acquire_global_lock() {
+  __sync_add_and_fetch(&ThreadBase::m_global.waiting, 1);
+
+  pthread_mutex_lock(&ThreadBase::m_global.lock);
+
+//   if (pthread_mutex_lock(&ThreadBase::m_global.lock))
+//     throw internal_error("Mutex failed.");
+  
+  __sync_fetch_and_sub(&ThreadBase::m_global.waiting, 1);
+}
+
+inline void
+ThreadBase::release_global_lock() {
+  pthread_mutex_unlock(&ThreadBase::m_global.lock);
+}
+
+inline void
+ThreadBase::waive_global_lock() {
+  __sync_synchronize();
+  pthread_mutex_unlock(&ThreadBase::m_global.lock);
+
+  // Do we need to sleep here? Make a CppUnit test for this.
+  acquire_global_lock();
+}
 
 #endif

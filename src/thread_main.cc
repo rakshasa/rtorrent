@@ -46,6 +46,9 @@ ThreadMain::~ThreadMain() {
 
 void
 ThreadMain::init_thread() {
+  // The main thread always holds the lock while running.
+  acquire_global_lock();
+
   m_pollManager = core::PollManager::create_poll_manager();
 
   m_state = STATE_INITIALIZED;

@@ -37,6 +37,7 @@
 #include "config.h"
 
 #include <stdexcept>
+#include <unistd.h>
 #include <rak/error_number.h>
 
 #include "globals.h"
