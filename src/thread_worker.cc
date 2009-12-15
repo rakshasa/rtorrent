@@ -72,10 +72,6 @@ ThreadWorker::task_touch_log() {
   priority_queue_insert(&m_taskScheduler, &m_taskTouchLog, cachedTime + rak::timer::from_seconds(1));
 
   acquire_global_lock();
-  __sync_synchronize();
-
   control->core()->push_log("Tick Tock.");
-
-  __sync_synchronize();
   release_global_lock();
 }

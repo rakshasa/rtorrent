@@ -95,7 +95,7 @@ PollManagerSelect::poll(rak::timer timeout) {
 
   ThreadBase::release_global_lock();
   int status = select(maxFd + 1, m_readSet, m_writeSet, m_errorSet, &t);
-  ThreadBase::release_global_lock();
+  ThreadBase::acquire_global_lock();
 
   if (status == -1)
     return check_error();

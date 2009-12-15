@@ -45,11 +45,6 @@
 
 #include "globals.h"
 
-// A preliminary implementation of a global lock, to be moved
-// somewhere more appropriate when it's put to use.
-
-ThreadBase::global_lock_type ThreadBase::m_global = { 0, PTHREAD_MUTEX_INITIALIZER };
-
 // Temporarly injected into config.h.
 /* temp hack */
 //#define __cacheline_aligned __attribute__((__aligned__(128)))
@@ -115,7 +110,6 @@ ThreadBase::ThreadBase() :
 }
 
 ThreadBase::~ThreadBase() {
-  pthread_mutex_destroy(&ThreadBase::m_global.lock);
 }
 
 void

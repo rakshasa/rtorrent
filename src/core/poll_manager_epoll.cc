@@ -44,6 +44,7 @@
 #include <torrent/torrent.h>
 
 #include "poll_manager_epoll.h"
+#include "thread_base.h"
 
 namespace core {
 
@@ -67,7 +68,11 @@ PollManagerEPoll::poll(rak::timer timeout) {
   torrent::perform();
   timeout = std::min(timeout, rak::timer(torrent::next_timeout())) + 1000;
 
-  if (static_cast<torrent::PollEPoll*>(m_poll)->poll((timeout.usec() + 999) / 1000) == -1)
+  ThreadBase::release_global_lock();
+  int status = static_cast<torrent::PollEPoll*>(m_poll)->poll((timeout.usec() + 999) / 1000);
+  ThreadBase::acquire_global_lock();
+
+  if (status == -1)
     return check_error();
 
   torrent::perform();
