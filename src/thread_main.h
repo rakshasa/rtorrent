@@ -42,7 +42,7 @@
 // Check if cacheline aligned with inheritance ends up taking two
 // cachelines.
 
-class __cacheline_aligned ThreadMain : public ThreadBase {
+class lt_cacheline_aligned ThreadMain : public ThreadBase {
 public:
   ThreadMain() {}
   ~ThreadMain();

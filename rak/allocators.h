@@ -39,20 +39,21 @@
 #ifndef RAK_ALLOCATORS_H
 #define RAK_ALLOCATORS_H
 
+#include <cstddef>
 #include <limits>
 #include <stdlib.h>
+#include <sys/types.h>
 
 namespace rak {
 
 template <class T = void*>
 class cacheline_allocator {
 public:
-  typedef std::allocator<T> base_type;
-
   typedef size_t size_type;
   typedef ptrdiff_t difference_type;
   typedef T* pointer;
   typedef const T* const_pointer;
+  typedef const void* const_void_pointer;
   typedef T& reference;
   typedef const T& const_reference;
   typedef T value_type;
@@ -72,10 +73,11 @@ public:
 
   size_type max_size () const throw() { return std::numeric_limits<size_t>::max() / sizeof(T); }
 
-  pointer allocate(size_type num, std::allocator<void>::const_pointer hint = 0) {
+  pointer allocate(size_type num, const_void_pointer hint = 0) { return alloc_size(num*sizeof(T)); }
+
+  static pointer alloc_size(size_type size) {
     pointer ptr = NULL;
-    posix_memalign((void**)&ptr, L1_CACHE_BYTES, num*sizeof(T));
-  
+    posix_memalign((void**)&ptr, LT_SMP_CACHE_BYTES, size);
     return ptr;
   }
 
@@ -102,11 +104,6 @@ bool operator!= (const cacheline_allocator<T1>&, const cacheline_allocator<T2>&)
 //
 
 template <typename T>
-void* operator new(size_t s, rak::cacheline_allocator<T> a) {
-  typename rak::cacheline_allocator<T>::pointer ptr = NULL;
-  posix_memalign((void**)&ptr, L1_CACHE_BYTES, s);
-  
-  return ptr;
-}
+void* operator new(size_t s, rak::cacheline_allocator<T> a) { return a.alloc_size(s); }
 
 #endif // namespace rak

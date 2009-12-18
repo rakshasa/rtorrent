@@ -47,9 +47,9 @@
 
 // Temporarly injected into config.h.
 /* temp hack */
-//#define __cacheline_aligned __attribute__((__aligned__(128)))
+//#define lt_cacheline_aligned __attribute__((__aligned__(128)))
 
-class __cacheline_aligned thread_queue_hack {
+class lt_cacheline_aligned thread_queue_hack {
 public:
   typedef ThreadBase::thread_base_func value_type;
   typedef ThreadBase::thread_base_func* iterator;

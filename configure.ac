@@ -45,6 +45,9 @@ AC_LANG_POP(C++)
 AC_DEFINE(HAVE_CONFIG_H, 1, true if config.h was included)
 AC_DEFINE(USER_AGENT, [std::string(PACKAGE "/" VERSION "/") + torrent::version()], Http user agent)
 
+AC_CHECK_FUNC(posix_memalign)
+TORRENT_CHECK_CACHELINE()
+
 CC_ATTRIBUTE_UNUSED(
 	AC_DEFINE([__UNUSED], [__attribute__((unused))], [Wrapper around unused attribute]),
 	AC_DEFINE([__UNUSED], [], [Null-wrapper if unused attribute is unsupported])

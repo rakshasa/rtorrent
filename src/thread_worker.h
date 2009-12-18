@@ -44,7 +44,7 @@
 // Check if cacheline aligned with inheritance ends up taking two
 // cachelines.
 
-class __cacheline_aligned ThreadWorker : public ThreadBase {
+class lt_cacheline_aligned ThreadWorker : public ThreadBase {
 public:
   ThreadWorker();
   ~ThreadWorker();

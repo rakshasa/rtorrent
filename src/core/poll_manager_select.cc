@@ -40,6 +40,7 @@
 #include <stdexcept>
 #include <unistd.h>
 #include <sys/time.h>
+#include <rak/allocators.h>
 #include <torrent/exceptions.h>
 #include <torrent/poll_select.h>
 #include <torrent/torrent.h>
@@ -53,9 +54,7 @@ PollManagerSelect::PollManagerSelect(torrent::Poll* p) : PollManager(p) {
 #if defined USE_VARIABLE_FDSET
   m_setSize = (m_poll->open_max() + 7) / 8;
 
-  char* buffer;
-  posix_memalign((void**)&buffer, L1_CACHE_BYTES, 3 * m_setSize);
-
+  char* buffer = rak::cacheline_allocator<char>::alloc_size(3 * m_setSize);
   std::memset(buffer, 0, 3 * m_setSize);
 
   m_readSet = (fd_set*)buffer;
