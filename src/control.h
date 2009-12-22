@@ -74,7 +74,7 @@ public:
   Control();
   ~Control();
   
-  bool                is_shutdown_completed()       { return m_shutdownQuick && torrent::is_inactive(); }
+  bool                is_shutdown_completed();
   bool                is_shutdown_received()        { return m_shutdownReceived; }
   bool                is_shutdown_started()         { return m_shutdownQuick; }
 

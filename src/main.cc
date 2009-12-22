@@ -340,6 +340,7 @@ main(int argc, char** argv) {
   }
 
   delete control;
+  delete worker_thread;
   delete main_thread;
 
   return 0;

@@ -44,6 +44,8 @@
 #include <torrent/exceptions.h>
 
 #include "globals.h"
+#include "control.h"
+#include "core/manager.h"
 
 // Temporarly injected into config.h.
 /* temp hack */
@@ -99,12 +101,16 @@ public:
   value_type m_queue[max_size + 1];
 };
 
+void throw_shutdown_exception() { throw torrent::shutdown_exception(); }
+
 ThreadBase::ThreadBase() :
   m_state(STATE_UNKNOWN),
   m_pollManager(NULL) {
   // Init the poll manager in a special init function called by the
   // thread itself. Need to be careful with what external stuff
   // create_poll_manager calls in that case.
+
+  m_taskShutdown.set_slot(rak::ptr_fn(&throw_shutdown_exception));
 
   m_threadQueue = new thread_queue_hack;
 }
@@ -120,13 +126,15 @@ ThreadBase::start_thread() {
 }
 
 void
-ThreadBase::stop_thread() {
+ThreadBase::stop_thread(ThreadBase* thread) {
+  if (!thread->m_taskShutdown.is_queued())
+    priority_queue_insert(&thread->m_taskScheduler, &thread->m_taskShutdown, cachedTime);
 }
 
 inline rak::timer
 ThreadBase::client_next_timeout() {
   if (m_taskScheduler.empty())
-    return rak::timer::from_seconds(10);
+    return rak::timer::from_seconds(2);
   else if (m_taskScheduler.top()->time() <= cachedTime)
     return 0;
   else
@@ -140,17 +148,29 @@ ThreadBase::event_loop(ThreadBase* threadBase) {
 
   // Set local poll and priority queue.
   
-  while (true) {
-    // Check for new queued items set by other threads.
-    if (!threadBase->m_threadQueue->empty())
-      threadBase->call_queued_items();
+  try {
 
-    //     // Remember to add global lock thing to the main poll loop ++.
+    while (true) {
+      // Check for new queued items set by other threads.
+      if (!threadBase->m_threadQueue->empty())
+        threadBase->call_queued_items();
 
-    rak::priority_queue_perform(&threadBase->m_taskScheduler, cachedTime);
+      //     // Remember to add global lock thing to the main poll loop ++.
 
-    threadBase->m_pollManager->poll_simple(threadBase->client_next_timeout());
+      rak::priority_queue_perform(&threadBase->m_taskScheduler, cachedTime);
+
+      threadBase->m_pollManager->poll_simple(threadBase->client_next_timeout());
+    }
+
+  } catch (torrent::shutdown_exception& e) {
+    acquire_global_lock();
+    control->core()->push_log("Shutting down thread.");
+    release_global_lock();
+    //    sleep(20);
   }
+
+  threadBase->m_state = STATE_INACTIVE;
+  __sync_synchronize();
 
   return NULL;
 }
@@ -168,4 +188,7 @@ ThreadBase::call_queued_items() {
 void
 ThreadBase::queue_item(thread_base_func newFunc) {
   m_threadQueue->push_back(newFunc);
+
+  // TODO: Need to send a signal that interrupts polling so as to
+  // ensure we react immediately.
 }

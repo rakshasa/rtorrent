@@ -59,11 +59,14 @@ public:
   enum state_type {
     STATE_UNKNOWN,
     STATE_INITIALIZED,
-    STATE_ACTIVE
+    STATE_ACTIVE,
+    STATE_INACTIVE
   };
 
   ThreadBase();
   virtual ~ThreadBase();
+
+  bool                is_active() const { return m_state == STATE_ACTIVE; }
 
   torrent::Poll*      poll() { return m_pollManager->get_torrent_poll(); }
   core::PollManager*  poll_manager() { return m_pollManager; }
@@ -72,7 +75,7 @@ public:
   virtual void        init_thread() = 0;
 
   void                start_thread();
-  void                stop_thread();
+  static void         stop_thread(ThreadBase* thread);
 
   // ATM, only interaction with a thread's allowed by other threads is
   // through the queue_item call.
@@ -93,6 +96,8 @@ protected:
 
   core::PollManager*          m_pollManager;
   rak::priority_queue_default m_taskScheduler;
+
+  rak::priority_item  m_taskShutdown;
 
   // Temporary hack to pass messages to a thread. This really needs to
   // be cleaned up and/or integrated into the priority queue itself.
