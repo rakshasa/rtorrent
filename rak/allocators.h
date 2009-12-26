@@ -77,7 +77,8 @@ public:
 
   static pointer alloc_size(size_type size) {
     pointer ptr = NULL;
-    posix_memalign((void**)&ptr, LT_SMP_CACHE_BYTES, size);
+    int __UNUSED result = posix_memalign((void**)&ptr, LT_SMP_CACHE_BYTES, size);
+
     return ptr;
   }
 
