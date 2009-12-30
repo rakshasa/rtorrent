@@ -73,8 +73,12 @@ DhtManager::load_dht_cache() {
   if (cache_file.is_open()) {
     cache_file >> cache;
 
-    if (cache_file.fail())
-      throw torrent::input_error("Invalid DHT cache.");
+    // If the cache file is corrupted we will just discard it with an
+    // error message.
+    if (cache_file.fail()) {
+      control->core()->push_log("DHT warning: Cache file corrupted, discarding.");
+      cache = torrent::Object::create_map();
+    }
   }
 
   try {
