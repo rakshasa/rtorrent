@@ -42,6 +42,8 @@
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
+#include <signal.h>
+#include <rak/error_number.h>
 #include <torrent/exceptions.h>
 
 #include "globals.h"
@@ -135,7 +137,7 @@ ThreadBase::stop_thread(ThreadBase* thread) {
 inline rak::timer
 ThreadBase::client_next_timeout() {
   if (m_taskScheduler.empty())
-    return rak::timer::from_seconds(2);
+    return rak::timer::from_seconds(600);
   else if (m_taskScheduler.top()->time() <= cachedTime)
     return 0;
   else
@@ -189,7 +191,5 @@ ThreadBase::call_queued_items() {
 void
 ThreadBase::queue_item(thread_base_func newFunc) {
   m_threadQueue->push_back(newFunc);
-
-  // TODO: Need to send a signal that interrupts polling so as to
-  // ensure we react immediately.
+  pthread_kill(m_thread, SIGUSR1);
 }

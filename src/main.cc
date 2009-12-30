@@ -76,6 +76,8 @@ void do_panic(int signum);
 void print_help();
 void initialize_commands();
 
+void do_nothing() {}
+
 int
 parse_options(Control* c, int argc, char** argv) {
   try {
@@ -173,6 +175,10 @@ main(int argc, char** argv) {
     SignalHandler::set_handler(SIGSEGV,  sigc::bind(sigc::ptr_fun(&do_panic), SIGSEGV));
     SignalHandler::set_handler(SIGBUS,   sigc::bind(sigc::ptr_fun(&do_panic), SIGBUS));
     SignalHandler::set_handler(SIGFPE,   sigc::bind(sigc::ptr_fun(&do_panic), SIGFPE));
+
+    // SIGUSR1 is used for interrupting polling, forcing that thread
+    // to process new non-socket events.
+    SignalHandler::set_handler(SIGUSR1,  sigc::ptr_fun(&do_nothing));
 
     torrent::initialize(main_thread->poll());
 
