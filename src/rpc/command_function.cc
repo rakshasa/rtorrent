@@ -113,7 +113,7 @@ CommandFunctionList::call(Command* rawCommand, target_type target, const torrent
 
 CommandFunctionList::const_iterator
 CommandFunctionList::find(const char* key) {
-  base_type::iterator itr = std::find_if(begin(), end(), rak::greater_equal(key, rak::mem_ref(&base_type::value_type::first)));
+  base_type::iterator itr = std::find_if(begin(), end(), rak::less_equal(key, rak::mem_ref(&base_type::value_type::first)));
 
   if (itr == end() || itr->first != key)
     return end();
@@ -133,7 +133,7 @@ CommandFunctionList::insert(const std::string& key, const std::string& cmd) {
 
 void
 CommandFunctionList::erase(const std::string& key) {
-  base_type::iterator itr = std::find_if(begin(), end(), rak::greater_equal(key, rak::mem_ref(&base_type::value_type::first)));
+  base_type::iterator itr = std::find_if(begin(), end(), rak::less_equal(key, rak::mem_ref(&base_type::value_type::first)));
 
   if (itr != end() && itr->first == key)
     base_type::erase(itr);
