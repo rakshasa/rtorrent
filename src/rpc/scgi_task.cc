@@ -36,6 +36,7 @@
 
 #include "config.h"
 
+#include <rak/allocators.h>
 #include <rak/error_number.h>
 #include <cstdio>
 #include <sys/types.h>
@@ -60,7 +61,7 @@ namespace rpc {
 // If bufferSize is zero then memcpy won't do anything.
 inline void
 SCgiTask::realloc_buffer(uint32_t size, const char* buffer, uint32_t bufferSize) {
-  char* tmp = new char[size];
+  char* tmp = rak::cacheline_allocator<char>::alloc_size(size);
 
   std::memcpy(tmp, buffer, bufferSize);
   delete [] m_buffer;
@@ -71,13 +72,13 @@ void
 SCgiTask::open(SCgi* parent, int fd) {
   m_parent   = parent;
   m_fileDesc = fd;
-  m_buffer   = new char[(m_bufferSize = default_buffer_size) + 1];
+  m_buffer   = rak::cacheline_allocator<char>::alloc_size((m_bufferSize = default_buffer_size) + 1);
   m_position = m_buffer;
   m_body     = NULL;
 
-  main_thread->poll()->open(this);
-  main_thread->poll()->insert_read(this);
-  main_thread->poll()->insert_error(this);
+  worker_thread->poll()->open(this);
+  worker_thread->poll()->insert_read(this);
+  worker_thread->poll()->insert_error(this);
 
 //   scgiTimer = rak::timer::current();
 }
@@ -87,10 +88,10 @@ SCgiTask::close() {
   if (!get_fd().is_valid())
     return;
 
-  main_thread->poll()->remove_read(this);
-  main_thread->poll()->remove_write(this);
-  main_thread->poll()->remove_error(this);
-  main_thread->poll()->close(this);
+  worker_thread->poll()->remove_read(this);
+  worker_thread->poll()->remove_write(this);
+  worker_thread->poll()->remove_error(this);
+  worker_thread->poll()->close(this);
 
   get_fd().close();
   get_fd().clear();
@@ -171,8 +172,8 @@ SCgiTask::event_read() {
   if ((unsigned int)std::distance(m_buffer, m_position) != m_bufferSize)
     return;
 
-  main_thread->poll()->remove_read(this);
-  main_thread->poll()->insert_write(this);
+  worker_thread->poll()->remove_read(this);
+  worker_thread->poll()->insert_write(this);
 
   if (m_parent->log_fd() >= 0) {
     // Clean up logging, this is just plain ugly...

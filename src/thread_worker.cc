@@ -44,6 +44,9 @@
 #include <torrent/exceptions.h>
 
 #include "core/manager.h"
+#include "rpc/scgi.h"
+#include "rpc/xmlrpc.h"
+#include "rpc/parse_commands.h"
 
 ThreadWorker::ThreadWorker() {
   m_taskTouchLog.set_slot(rak::mem_fn(this, &ThreadWorker::task_touch_log));
@@ -57,6 +60,31 @@ ThreadWorker::init_thread() {
   m_pollManager = core::PollManager::create_poll_manager();
 
   m_state = STATE_INITIALIZED;
+}
+
+bool
+ThreadWorker::set_scgi(rpc::SCgi* scgi) {
+  if (!__sync_bool_compare_and_swap(&m_safe.scgi, NULL, scgi))
+    return false;
+
+  // The xmlrpc process call requires a global lock.
+//   m_safe.scgi->set_slot_process(rak::mem_fn(&rpc::xmlrpc, &rpc::XmlRpc::process));
+
+  // Synchronize in order to ensure the worker thread sees the updated
+  // SCgi object.
+  __sync_synchronize();
+  queue_item((thread_base_func)&start_scgi);
+  return true;
+}
+
+void
+ThreadWorker::start_scgi(ThreadBase* baseThread) {
+  ThreadWorker* thread = (ThreadWorker*)baseThread;
+
+  if (thread->m_safe.scgi == NULL)
+    throw torrent::internal_error("Tried to start SCGI but object was not present.");
+
+  thread->m_safe.scgi->activate();
 }
 
 void

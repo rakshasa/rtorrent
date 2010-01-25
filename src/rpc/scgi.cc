@@ -49,6 +49,7 @@
 #include "control.h"
 #include "globals.h"
 #include "scgi.h"
+#include "parse_commands.h"
 
 namespace rpc {
 
@@ -118,16 +119,16 @@ SCgi::open(void* sa, unsigned int length) {
 
 void
 SCgi::activate() {
-  main_thread->poll()->open(this);
-  main_thread->poll()->insert_read(this);
-  main_thread->poll()->insert_error(this);
+  worker_thread->poll()->open(this);
+  worker_thread->poll()->insert_read(this);
+  worker_thread->poll()->insert_error(this);
 }
 
 void
 SCgi::deactivate() {
-  main_thread->poll()->remove_read(this);
-  main_thread->poll()->remove_error(this);
-  main_thread->poll()->close(this);
+  worker_thread->poll()->remove_read(this);
+  worker_thread->poll()->remove_error(this);
+  worker_thread->poll()->close(this);
 }
 
 void
@@ -163,7 +164,12 @@ SCgi::receive_call(SCgiTask* task, const char* buffer, uint32_t length) {
   slot_write slotWrite;
   slotWrite.set(rak::mem_fn(task, &SCgiTask::receive_write));
 
-  return m_slotProcess(buffer, length, slotWrite);
+  ThreadBase::acquire_global_lock();
+  //  bool result = m_slotProcess(buffer, length, slotWrite);
+  bool result = xmlrpc.process(buffer, length, slotWrite);
+  ThreadBase::release_global_lock();
+
+  return result;
 }
 
 }

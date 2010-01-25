@@ -49,13 +49,14 @@ namespace utils {
 
 namespace rpc {
 
-class SCgi : public torrent::Event {
+class lt_cacheline_aligned SCgi : public torrent::Event {
 public:
   typedef rak::function2<bool, const char*, uint32_t>             slot_write;
-  typedef rak::function3<bool, const char*, uint32_t, slot_write> slot_process;
+//   typedef rak::function3<bool, const char*, uint32_t, slot_write> slot_process;
 
   static const int max_tasks = 10;
 
+  // Global lock:
   SCgi() : m_logFd(-1) {}
   virtual ~SCgi();
 
@@ -67,11 +68,12 @@ public:
 
   const std::string&  path() const { return m_path; }
 
-  void                set_slot_process(slot_process::base_type* s) { m_slotProcess.set(s); }
+//   void                set_slot_process(slot_process::base_type* s) { m_slotProcess.set(s); }
 
   int                 log_fd() const     { return m_logFd; }
   void                set_log_fd(int fd) { m_logFd = fd; }
 
+  // Thread local:
   virtual void        event_read();
   virtual void        event_write();
   virtual void        event_error();
@@ -85,7 +87,7 @@ private:
 
   std::string         m_path;
   int                 m_logFd;
-  slot_process        m_slotProcess;
+//   slot_process        m_slotProcess;
   SCgiTask            m_task[max_tasks];
 };
 

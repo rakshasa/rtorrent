@@ -111,10 +111,6 @@ PollManagerSelect::poll_simple(rak::timer timeout) {
   std::memset(m_readSet, 0, 3 * m_setSize);
 
   unsigned int maxFd = currentPoll->fdset(m_readSet, m_writeSet, m_errorSet);
-  //  unsigned int maxFd = 0;
-
-  if ((unsigned int)std::count((char*)m_readSet, (char*)m_readSet + 3 * m_setSize, 0) != 3 * m_setSize)
-    throw torrent::internal_error("Got stray bits set.");
 
   timeval t = timeout.tval();
 

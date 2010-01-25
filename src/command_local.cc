@@ -67,10 +67,10 @@ apply_log(int logType, const torrent::Object& rawArgs) {
     switch (logType) {
     case 0: ::close(rpc::execFile.log_fd()); rpc::execFile.set_log_fd(-1); break;
     case 1:
-      if (control->scgi()) {
-        ::close(control->scgi()->log_fd());
-        control->scgi()->set_log_fd(-1);
-      }
+//       if (control->scgi()) {
+//         ::close(control->scgi()->log_fd());
+//         control->scgi()->set_log_fd(-1);
+//       }
       break;
     default: break;
     }
@@ -84,7 +84,7 @@ apply_log(int logType, const torrent::Object& rawArgs) {
 
     switch (logType) {
     case 0: rpc::execFile.set_log_fd(logFd); break;
-    case 1: if (control->scgi()) control->scgi()->set_log_fd(logFd); break;
+//     case 1: if (control->scgi()) control->scgi()->set_log_fd(logFd); break;
     default: break;
     }
 

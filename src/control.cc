@@ -58,9 +58,6 @@
 #include "control.h"
 
 Control::Control() :
-  m_shutdownReceived(false),
-  m_shutdownQuick(false),
-
   m_ui(new ui::Root()),
   m_display(new display::Manager()),
   m_input(new input::Manager()),
@@ -68,9 +65,9 @@ Control::Control() :
 
   m_commandScheduler(new rpc::CommandScheduler()),
 
-  m_scgi(NULL),
-
-  m_tick(0) {
+  m_tick(0),
+  m_shutdownReceived(false),
+  m_shutdownQuick(false) {
 
   m_core        = new core::Manager();
   m_viewManager = new core::ViewManager();
@@ -119,7 +116,7 @@ Control::initialize() {
 
 void
 Control::cleanup() {
-  delete m_scgi; m_scgi = NULL;
+  //  delete m_scgi; m_scgi = NULL;
   rpc::xmlrpc.cleanup();
 
   priority_queue_erase(&taskScheduler, &m_taskShutdown);
@@ -139,7 +136,7 @@ Control::cleanup() {
 
 void
 Control::cleanup_exception() {
-  delete m_scgi; m_scgi = NULL;
+  //  delete m_scgi; m_scgi = NULL;
 
   display::Canvas::cleanup();
 }

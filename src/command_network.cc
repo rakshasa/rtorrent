@@ -324,14 +324,13 @@ initialize_xmlrpc() {
 
 void
 apply_scgi(const std::string& arg, int type) {
-  if (control->scgi() != NULL)
+  if (worker_thread->scgi() != NULL)
     throw torrent::input_error("SCGI already enabled.");
 
   if (!rpc::xmlrpc.is_valid())
     initialize_xmlrpc();
 
-  // Fix this...
-  control->set_scgi(new rpc::SCgi);
+  rpc::SCgi* scgi = new rpc::SCgi;
 
   rak::address_info* ai = NULL;
   rak::socket_address sa;
@@ -366,13 +365,13 @@ apply_scgi(const std::string& arg, int type) {
         throw torrent::input_error("Invalid port number.");
 
       saPtr->set_port(port);
-      control->scgi()->open_port(saPtr, saPtr->length(), rpc::call_command_value("get_scgi_dont_route"));
+      scgi->open_port(saPtr, saPtr->length(), rpc::call_command_value("get_scgi_dont_route"));
 
       break;
 
     case 2:
     default:
-      control->scgi()->open_named(rak::path_expand(arg));
+      scgi->open_named(rak::path_expand(arg));
       break;
     }
 
@@ -381,11 +380,11 @@ apply_scgi(const std::string& arg, int type) {
   } catch (torrent::local_error& e) {
     if (ai != NULL) rak::address_info::free_address_info(ai);
 
+    delete scgi;
     throw torrent::input_error(e.what());
   }
 
-  control->scgi()->set_slot_process(rak::mem_fn(&rpc::xmlrpc, &rpc::XmlRpc::process));
-  control->scgi()->activate();
+  worker_thread->set_scgi(scgi);
 }
 
 void

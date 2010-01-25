@@ -64,8 +64,6 @@ namespace input {
 
 namespace rpc {
   class CommandScheduler;
-  class FastCgi;
-  class SCgi;
   class XmlRpc;
 }
 
@@ -84,8 +82,8 @@ public:
 
   void                handle_shutdown();
 
-  void                receive_normal_shutdown()     { m_shutdownReceived = true; }
-  void                receive_quick_shutdown()      { m_shutdownReceived = true; m_shutdownQuick = true; }
+  void                receive_normal_shutdown()     { m_shutdownReceived = true; __sync_synchronize(); }
+  void                receive_quick_shutdown()      { m_shutdownReceived = true; m_shutdownQuick = true; __sync_synchronize(); }
 
   core::Manager*      core()                        { return m_core; }
   core::ViewManager*  view_manager()                { return m_viewManager; }
@@ -99,9 +97,6 @@ public:
 
   rpc::CommandScheduler* command_scheduler()        { return m_commandScheduler; }
 
-  rpc::SCgi*          scgi()                        { return m_scgi; }
-  void                set_scgi(rpc::SCgi* f)        { m_scgi = f; }
-
   uint64_t            tick() const                  { return m_tick; }
   void                inc_tick()                    { m_tick++; }
 
@@ -111,9 +106,6 @@ public:
 private:
   Control(const Control&);
   void operator = (const Control&);
-
-  bool                m_shutdownReceived;
-  bool                m_shutdownQuick;
 
   core::Manager*      m_core;
   core::ViewManager*  m_viewManager;
@@ -126,14 +118,15 @@ private:
 
   rpc::CommandScheduler* m_commandScheduler;
 
-  rpc::SCgi*          m_scgi;
-
   uint64_t            m_tick;
 
   mode_t              m_umask;
   std::string         m_workingDirectory;
 
   rak::priority_item  m_taskShutdown;
+
+  bool                m_shutdownReceived lt_cacheline_aligned;
+  bool                m_shutdownQuick lt_cacheline_aligned;
 };
 
 #endif

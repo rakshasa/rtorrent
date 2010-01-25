@@ -41,6 +41,10 @@
 
 #include <rak/priority_queue_default.h>
 
+namespace rpc {
+class SCgi;
+}
+
 // Check if cacheline aligned with inheritance ends up taking two
 // cachelines.
 
@@ -51,12 +55,24 @@ public:
 
   virtual void        init_thread();
 
-  static void start_log_counter(ThreadBase* thread);
+  rpc::SCgi*          scgi() { return m_safe.scgi; }
+  bool                set_scgi(rpc::SCgi* scgi);
+  
+  static void         start_scgi(ThreadBase* thread);
+  static void         start_log_counter(ThreadBase* thread);
 
 private:
   void                task_touch_log();
 
   rak::priority_item  m_taskTouchLog;
+
+  struct lt_cacheline_aligned safe_type {
+    safe_type() : scgi(NULL) {}
+
+    rpc::SCgi* scgi;
+  };
+
+  safe_type m_safe;
 };
 
 #endif
