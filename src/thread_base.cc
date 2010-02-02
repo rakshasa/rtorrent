@@ -191,5 +191,8 @@ ThreadBase::call_queued_items() {
 void
 ThreadBase::queue_item(thread_base_func newFunc) {
   m_threadQueue->push_back(newFunc);
-  pthread_kill(m_thread, SIGUSR1);
+
+  // Make it also restart inactive threads?
+  if (m_state == STATE_ACTIVE)
+    pthread_kill(m_thread, SIGUSR1);
 }
