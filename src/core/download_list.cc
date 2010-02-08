@@ -82,7 +82,7 @@ DownloadList::clear() {
 
 void
 DownloadList::session_save() {
-  unsigned int c = std::count_if(begin(), end(), std::bind1st(std::mem_fun(&DownloadStore::save), control->core()->download_store()));
+  unsigned int c = std::count_if(begin(), end(), std::bind1st(std::mem_fun(&DownloadStore::save_resume), control->core()->download_store()));
 
   if (c != size())
     control->core()->push_log("Failed to save session torrents.");
@@ -342,7 +342,9 @@ DownloadList::resume(Download* download, int flags) {
       // on non-complete downloads after a crash. This shouldn't be
       // needed, but for some reason linux 2.6 is very lazy about
       // updating mtime.
-      torrent::resume_save_progress(*download->download(), download->download()->bencode()->get_key("libtorrent_resume"), true);
+      //
+      // Disabling this due to the new resume code.
+      //      torrent::resume_save_progress(*download->download(), download->download()->bencode()->get_key("libtorrent_resume"), true);
     }
 
     // If the DHT server is set to auto, start it now.
@@ -559,8 +561,8 @@ DownloadList::confirm_finished(Download* download) {
   //
   // Obsolete.
   if (!download->is_active() && rpc::call_command_value("get_session_on_completion") != 0) {
-    torrent::resume_save_progress(*download->download(), download->download()->bencode()->get_key("libtorrent_resume"));
-    control->core()->download_store()->save(download);
+    //    torrent::resume_save_progress(*download->download(), download->download()->bencode()->get_key("libtorrent_resume"));
+    control->core()->download_store()->save_resume(download);
   }
 
   // Send the completed request before resuming so we don't reset the

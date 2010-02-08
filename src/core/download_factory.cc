@@ -42,6 +42,7 @@
 #include <stdexcept>
 #include <rak/path.h>
 #include <torrent/object.h>
+#include <torrent/object_stream.h>
 #include <torrent/exceptions.h>
 #include <torrent/rate.h>
 #include <torrent/resume.h>
@@ -161,6 +162,23 @@ DownloadFactory::receive_commit() {
     receive_success();
 }
 
+static bool
+download_factory_add_stream(torrent::Object* root, const char* key, const char* filename) {
+  std::fstream stream(filename, std::ios::in | std::ios::binary);
+    
+  if (!stream.is_open())
+    return false;
+
+  torrent::Object obj;
+  stream >> obj;
+
+  if (!stream.good())
+    return false;
+
+  root->insert_key_swap(key, obj);
+  return true;
+}
+
 void
 DownloadFactory::receive_success() {
   if (m_stream == NULL)
@@ -177,15 +195,19 @@ DownloadFactory::receive_success() {
 
   torrent::Object* root = download->bencode();
 
-  if (!m_session) {
+  if (m_session) {
+    download_factory_add_stream(root, "rtorrent", (rak::path_expand(m_uri) + ".rtorrent").c_str());
+    download_factory_add_stream(root, "libtorrent_resume", (rak::path_expand(m_uri) + ".libtorrent_resume").c_str());
+    
+  } else {
     // We only allow session torrents to keep their
     // 'rtorrent/libtorrent' sections. The "fast_resume" section
     // should be safe to keep.
     root->erase_key("rtorrent");
-    root->erase_key("libtorrent");
   }
 
   torrent::Object* rtorrent = &root->insert_preserve_copy("rtorrent", torrent::Object::create_map()).first->second;
+  torrent::Object& resumeObject = root->insert_preserve_copy("libtorrent_resume", torrent::Object::create_map()).first->second;
 
   initialize_rtorrent(download, rtorrent);
 
@@ -233,7 +255,6 @@ DownloadFactory::receive_success() {
 
   rpc::call_command("d.set_peer_exchange", rpc::call_command_value("get_peer_exchange"), rpc::make_target(download));
 
-  torrent::Object& resumeObject = root->insert_preserve_copy("libtorrent_resume", torrent::Object::create_map()).first->second;
   torrent::resume_load_addresses(*download->download(), resumeObject);
   torrent::resume_load_file_priorities(*download->download(), resumeObject);
   torrent::resume_load_tracker_settings(*download->download(), resumeObject);

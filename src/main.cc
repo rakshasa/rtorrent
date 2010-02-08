@@ -211,7 +211,7 @@ main(int argc, char** argv) {
        "system.method.insert = event.download.hash_queued,multi\n"
 
        "system.method.set_key = event.download.inserted,         1_connect_logs, d.initialize_logs=\n"
-       "system.method.set_key = event.download.inserted_new,     1_prepare, \"branch=d.get_state=,view.set_visible=started,view.set_visible=stopped ;d.save_session=\"\n"
+       "system.method.set_key = event.download.inserted_new,     1_prepare, \"branch=d.get_state=,view.set_visible=started,view.set_visible=stopped ;d.save_full_session=\"\n"
        "system.method.set_key = event.download.inserted_session, 1_prepare, \"branch=d.get_state=,view.set_visible=started,view.set_visible=stopped\"\n"
 
        "system.method.set_key = event.download.erased, !_download_list, ui.unfocus_download=\n"
@@ -290,7 +290,7 @@ main(int argc, char** argv) {
        "schedule = view_main,10,10,\"view_sort=main,20\"\n"
        "schedule = view_name,10,10,\"view_sort=name,20\"\n"
 
-       "schedule = session_save,1800,1800,session_save=\n"
+       "schedule = session_save,1200,1200,session_save=\n"
        "schedule = low_diskspace,5,60,close_low_diskspace=500M\n"
        "schedule = prune_file_status,3600,86400,system.file_status_cache.prune=\n"
 

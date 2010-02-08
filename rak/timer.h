@@ -64,8 +64,9 @@ class timer {
   static timer        current();
   static int64_t      current_seconds()                   { return current().seconds(); }
   static int64_t      current_usec()                      { return current().usec(); }
+  static timer        from_minutes(uint32_t minutes)      { return rak::timer((uint64_t)minutes * 60 * 1000000); }
   static timer        from_seconds(uint32_t seconds)      { return rak::timer((uint64_t)seconds * 1000000); }
-  static timer        from_milliseconds(uint32_t seconds) { return rak::timer((uint64_t)seconds * 1000); }
+  static timer        from_milliseconds(uint32_t msec)    { return rak::timer((uint64_t)msec * 1000); }
 
   static timer        max()                              { return std::numeric_limits<int64_t>::max(); }
 

@@ -593,7 +593,8 @@ initialize_command_download() {
   ADD_CD_F_VOID("erase",      rak::make_mem_fun(control->core()->download_list(), &core::DownloadList::erase_ptr));
   ADD_CD_F_VOID("check_hash", rak::make_mem_fun(control->core()->download_list(), &core::DownloadList::check_hash));
 
-  ADD_CD_F_VOID("save_session",     rak::make_mem_fun(control->core()->download_store(), &core::DownloadStore::save));
+  ADD_CD_F_VOID("save_resume",       rak::make_mem_fun(control->core()->download_store(), &core::DownloadStore::save_resume));
+  ADD_CD_F_VOID("save_full_session", rak::make_mem_fun(control->core()->download_store(), &core::DownloadStore::save_full));
 
   ADD_CD_F_VOID("update_priorities", rak::on(std::mem_fun(&core::Download::download), std::mem_fun(&torrent::Download::update_priorities)));
 
