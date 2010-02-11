@@ -175,7 +175,7 @@ download_factory_add_stream(torrent::Object* root, const char* key, const char* 
   if (!stream.good())
     return false;
 
-  root->insert_key_swap(key, obj);
+  root->insert_key_move(key, obj);
   return true;
 }
 

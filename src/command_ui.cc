@@ -36,6 +36,8 @@
 
 #include "config.h"
 
+#include <sys/types.h>
+
 #include <ctime>
 #include <rak/functional.h>
 #include <rak/functional_fun.h>

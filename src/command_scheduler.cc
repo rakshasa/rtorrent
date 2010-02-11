@@ -36,6 +36,8 @@
 
 #include "config.h"
 
+#include <sys/types.h>
+
 #include "core/manager.h"
 #include "core/download.h"
 #include "core/download_list.h"
