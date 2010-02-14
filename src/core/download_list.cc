@@ -438,7 +438,7 @@ DownloadList::hash_done(Download* download) {
   if (!download->is_hash_checked()) {
     download->set_hash_failed(true);
     
-    rpc::commands.call_catch("event.download.hash_done", rpc::make_target(download), torrent::Object(), "Download event action failed: ");
+    rpc::commands.call_catch("event.download.hash_failed", rpc::make_target(download), torrent::Object(), "Download event action failed: ");
     return;
   }
 
@@ -484,6 +484,7 @@ DownloadList::hash_done(Download* download) {
     } else {
       download->set_message("Hash check on download completion found bad chunks, consider using \"safe_sync\".");
       control->core()->push_log("Hash check on download completion found bad chunks, consider using \"safe_sync\".");
+      rpc::commands.call_catch("event.download.hash_final_failed", rpc::make_target(download), torrent::Object(), "Download event action failed: ");
     }
     
     break;
@@ -505,7 +506,6 @@ DownloadList::hash_queue(Download* download, int type) {
   if (rpc::call_command_value("d.get_hashing", rpc::make_target(download)) != Download::variable_hashing_stopped)
     throw torrent::internal_error("DownloadList::hash_queue(...) hashing already queued.");
 
-//   close_throw(download);
   // HACK
   if (download->is_open()) {
     pause(download, torrent::Download::stop_skip_tracker);

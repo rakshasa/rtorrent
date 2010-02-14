@@ -207,6 +207,8 @@ main(int argc, char** argv) {
        
        "system.method.insert = event.download.finished,multi\n"
        "system.method.insert = event.download.hash_done,multi\n"
+       "system.method.insert = event.download.hash_failed,multi\n"
+       "system.method.insert = event.download.hash_final_failed,multi\n"
        "system.method.insert = event.download.hash_removed,multi\n"
        "system.method.insert = event.download.hash_queued,multi\n"
 
@@ -264,20 +266,22 @@ main(int argc, char** argv) {
 
        "view_add = complete\n"
        "view_filter = complete,d.get_complete=\n"
-       "view_filter_on    = complete,event.download.hash_done,event.download.finished\n"
+       "view_filter_on    = complete,event.download.hash_done,event.download.hash_failed,event.download.hash_final_failed,event.download.finished\n"
        "view_sort_new     = complete,less=d.get_state_changed=\n"
        "view_sort_current = complete,less=d.get_state_changed=\n"
 
        "view_add = incomplete\n"
        "view_filter = incomplete,not=$d.get_complete=\n"
-       "view_filter_on    = incomplete,event.download.hash_done,event.download.finished\n"
+       "view_filter_on    = incomplete,event.download.hash_done,event.download.hash_failed,"
+       "event.download.hash_final_failed,event.download.finished\n"
        "view_sort_new     = incomplete,less=d.get_state_changed=\n"
        "view_sort_current = incomplete,less=d.get_state_changed=\n"
 
        // The hashing view does not include stopped torrents.
        "view_add = hashing\n"
        "view_filter = hashing,d.get_hashing=\n"
-       "view_filter_on = hashing,event.download.hash_queued,event.download.hash_removed,event.download.hash_done\n"
+       "view_filter_on = hashing,event.download.hash_queued,event.download.hash_removed,"
+       "event.download.hash_done,event.download.hash_failed,event.download.hash_final_failed\n"
 //        "view_sort_new     = hashing,less=d.get_state_changed=\n"
 //        "view_sort_current = hashing,less=d.get_state_changed=\n"
 

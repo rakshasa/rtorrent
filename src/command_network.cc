@@ -493,5 +493,5 @@ initialize_command_network() {
 
   // Not really network stuff:
   ADD_VARIABLE_BOOL  ("handshake_log", false);
-  ADD_VARIABLE_STRING("log.tracker", "");
+  rpc::commands.call("system.method.insert", rpc::create_object_list("log.tracker", "string|const", ""));
 }
