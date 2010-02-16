@@ -105,7 +105,7 @@ Control::initialize() {
 
   m_core->initialize_second();
   m_core->listen_open();
-  m_core->download_store()->enable(rpc::call_command_value("get_session_lock"));
+  m_core->download_store()->enable(rpc::call_command_value("system.session.use_lock"));
 
   m_core->set_hashing_view(*m_viewManager->find_throw("hashing"));
 

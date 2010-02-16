@@ -55,6 +55,7 @@ public:
   void                set_command(const std::string& cmd) { m_command = cmd; }
 
   static const torrent::Object call(Command* rawCommand, target_type target, const torrent::Object& args);
+  static const torrent::Object call_redirect(Command* rawCommand, target_type target, const torrent::Object& args);
 
 private:
   // TODO: Replace with a delete-me flag and const char*.

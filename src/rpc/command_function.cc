@@ -79,6 +79,13 @@ CommandFunction::call(Command* rawCommand, target_type target, const torrent::Ob
 }
 
 const torrent::Object
+CommandFunction::call_redirect(Command* rawCommand, target_type target, const torrent::Object& args) {
+  CommandFunction* command = reinterpret_cast<CommandFunction*>(rawCommand);
+  
+  return commands.call_command(command->m_command.c_str(), args, target);
+}
+
+const torrent::Object
 CommandFunctionList::call(Command* rawCommand, target_type target, const torrent::Object& args) {
   char* buffer[sizeof(torrent::Object) * Command::max_arguments];
   torrent::Object* stack = (torrent::Object*)buffer;

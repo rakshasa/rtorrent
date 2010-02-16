@@ -170,14 +170,14 @@ Download::create_info() {
   element->push_column("State changed:",    te_command("to_elapsed_time=$d.get_state_changed="));
 
   element->push_back("");
-  element->push_column("Memory usage:",     te_command("cat=$to_mb=$get_memory_usage=,\" MB\""));
-  element->push_column("Max memory usage:", te_command("cat=$to_mb=$get_max_memory_usage=,\" MB\""));
+  element->push_column("Memory usage:",     te_command("cat=$to_mb=$pieces.memory.current=,\" MB\""));
+  element->push_column("Max memory usage:", te_command("cat=$to_mb=$pieces.memory.max=,\" MB\""));
   element->push_column("Free diskspace:",   te_command("cat=$to_mb=$d.get_free_diskspace=,\" MB\""));
-  element->push_column("Safe diskspace:",   te_command("cat=$to_mb=$get_safe_free_diskspace=,\" MB\""));
+  element->push_column("Safe diskspace:",   te_command("cat=$to_mb=$pieces.sync.safe_free_diskspace=,\" MB\""));
 
   element->push_back("");
   element->push_column("Connection type:",  te_command("d.get_connection_current="));
-  element->push_column("Safe sync:",        te_command("if=$get_safe_sync=,yes,no"));
+  element->push_column("Safe sync:",        te_command("if=$pieces.sync.always_safe=,yes,no"));
   element->push_column("Send buffer:",      te_command("cat=$to_kb=$get_send_buffer_size=,\" KB\""));
   element->push_column("Receive buffer:",   te_command("cat=$to_kb=$get_receive_buffer_size=,\" KB\""));
 
@@ -194,7 +194,7 @@ Download::create_info() {
   element->push_column("Upload:",           te_command("cat=$to_kb=$d.get_up_rate=,\" KB / \",$to_xb=$d.get_up_total="));
   element->push_column("Download:",         te_command("cat=$to_kb=$d.get_down_rate=,\" KB / \",$to_xb=$d.get_down_total="));
   element->push_column("Skipped:",          te_command("cat=$to_kb=$d.get_skip_rate=,\" KB / \",$to_xb=$d.get_skip_total="));
-  element->push_column("Preload:",          te_command("cat=$get_preload_type=,\" / \",$get_stats_preloaded=,\" / \",$get_stats_not_preloaded="));
+  element->push_column("Preload:",          te_command("cat=$pieces.preload.type=,\" / \",$pieces.stats_preloaded=,\" / \",$pieces.stats_preloaded="));
 
   element->set_column_width(element->column_width() + 1);
 

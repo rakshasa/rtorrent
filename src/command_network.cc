@@ -491,7 +491,6 @@ initialize_command_network() {
 
   ADD_VARIABLE_BOOL("peer_exchange", true);
 
-  // Not really network stuff:
-  ADD_VARIABLE_BOOL  ("handshake_log", false);
+  rpc::commands.call("system.method.insert", rpc::create_object_list("log.handshake", "bool|const", int64_t()));
   rpc::commands.call("system.method.insert", rpc::create_object_list("log.tracker", "string|const", ""));
 }

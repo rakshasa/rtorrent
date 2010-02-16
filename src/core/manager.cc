@@ -77,7 +77,7 @@ namespace core {
 
 void
 receive_tracker_dump(const std::string& url, const char* data, size_t size) {
-  const std::string& filename = rpc::call_command_string("get_log.tracker");
+  const std::string& filename = rpc::call_command_string("log.tracker");
 
   if (filename.empty())
     return;
@@ -94,7 +94,7 @@ receive_tracker_dump(const std::string& url, const char* data, size_t size) {
 
 void
 Manager::handshake_log(const sockaddr* sa, int msg, int err, const torrent::HashString* hash) {
-  if (!rpc::call_command_value("get_handshake_log"))
+  if (!rpc::call_command_value("log.handshake"))
     return;
   
   std::string peer;

@@ -62,40 +62,6 @@
 #include "thread_worker.h"
 
 torrent::Object
-apply_on_state_change(const char* name, const torrent::Object& rawArgs) {
-  const torrent::Object::list_type& args = rawArgs.as_list();
-
-  if (args.size() == 0 || args.size() > 2)
-    throw torrent::input_error("Wrong number of arguments.");
-
-  const std::string& rawKey = args.front().as_string();
-
-  if (rawKey.empty())
-    throw torrent::input_error("Empty key.");
-
-  // If the key starts with '_' then it's supposed to be literal, with
-  // the initial '_' removed. This allows us to get proper ordering
-  // for internal rtorrent tasks.
-  std::string key = rawKey[0] != '_' ? ("1_state_" + rawKey) : rawKey.substr(1);
-
-  if (args.size() == 1)
-    rpc::commands.call("system.method.set_key", rpc::make_target(), rpc::create_object_list(name, key));
-  else
-    rpc::commands.call("system.method.set_key", rpc::make_target(), rpc::create_object_list(name, key, args.back()));
-
-  // Deprecated notice, remove this function in the next minor
-  // version.
-  static bool notify = true;
-
-  if (notify) {
-    control->core()->push_log("Deprecated on_* commands, use 'system.method.set_key = event.download.{inserted, erased, ...}, <key>, <command>' instead.");
-    notify = false;
-  }
-
-  return torrent::Object();
-}
-
-torrent::Object
 apply_on_ratio(const torrent::Object& rawArgs) {
   const std::string& groupName = rawArgs.as_string();
 
@@ -363,21 +329,10 @@ void
 initialize_command_events() {
   ADD_COMMAND_NONE("test.thread_locking", rak::ptr_fn(&test_thread_locking));
 
-  ADD_VARIABLE_BOOL("check_hash", true);
+  ADD_VARIABLE_BOOL("check_hash", true); // Rename
 
-  ADD_VARIABLE_BOOL("session_lock", true);
-  ADD_VARIABLE_BOOL("session_on_completion", true);
-
-  // Deprecated.
-  ADD_COMMAND_LIST("on_insert",       rak::bind_ptr_fn(&apply_on_state_change, "event.download.inserted"));
-  ADD_COMMAND_LIST("on_erase" ,       rak::bind_ptr_fn(&apply_on_state_change, "event.download.erased"));
-  ADD_COMMAND_LIST("on_open",         rak::bind_ptr_fn(&apply_on_state_change, "event.download.opened"));
-  ADD_COMMAND_LIST("on_close",        rak::bind_ptr_fn(&apply_on_state_change, "event.download.closed"));
-  ADD_COMMAND_LIST("on_start",        rak::bind_ptr_fn(&apply_on_state_change, "event.download.resumed"));
-  ADD_COMMAND_LIST("on_stop",         rak::bind_ptr_fn(&apply_on_state_change, "event.download.paused"));
-  ADD_COMMAND_LIST("on_hash_queued",  rak::bind_ptr_fn(&apply_on_state_change, "event.download.hash_queued"));
-  ADD_COMMAND_LIST("on_hash_removed", rak::bind_ptr_fn(&apply_on_state_change, "event.download.hash_removed"));
-  ADD_COMMAND_LIST("on_finished",     rak::bind_ptr_fn(&apply_on_state_change, "event.download.finished"));
+  rpc::commands.call("system.method.insert", rpc::create_object_list("system.session.use_lock", "bool|const", true));
+  rpc::commands.call("system.method.insert", rpc::create_object_list("system.session.on_completion", "bool|const", true));
 
   ADD_COMMAND_STRING("on_ratio",      rak::ptr_fn(&apply_on_ratio));
 

@@ -233,17 +233,17 @@ DownloadFactory::receive_success() {
   if (!rpc::call_command_value("get_use_udp_trackers"))
     download->enable_udp_trackers(false);
 
-  if (rpc::call_command_value("get_max_file_size") > 0)
-    rpc::call_command("d.set_max_file_size", rpc::call_command_void("get_max_file_size"), rpc::make_target(download));
+  if (rpc::call_command_value("system.file.max_size") > 0)
+    rpc::call_command("d.set_max_file_size", rpc::call_command_void("system.file.max_size"), rpc::make_target(download));
 
   // Check first if we already have these values set in the session
   // torrent, so that it is safe to change the values.
   //
   // Need to also catch the exceptions.
-  if (rpc::call_command_value("get_split_file_size") >= 0)
+  if (rpc::call_command_value("system.file.split_size") >= 0)
     torrent::file_split_all(download->download()->file_list(),
-                            rpc::call_command_value("get_split_file_size"),
-                            rpc::call_command_string("split_suffix"));
+                            rpc::call_command_value("system.file.split_size"),
+                            rpc::call_command_string("system.file.split_suffix"));
 
   if (!rtorrent->has_key_string("directory"))
     rpc::call_command("d.set_directory", m_variables["directory"], rpc::make_target(download));

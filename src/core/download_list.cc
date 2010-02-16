@@ -220,7 +220,7 @@ DownloadList::open_throw(Download* download) {
   
   int openFlags = download->resume_flags();
 
-  if (rpc::call_command_value("system.file_allocate"))
+  if (rpc::call_command_value("system.file.allocate"))
     openFlags |= torrent::Download::open_enable_fallocate;
 
   download->download()->open(openFlags);
@@ -560,7 +560,7 @@ DownloadList::confirm_finished(Download* download) {
   // the download.
   //
   // Obsolete.
-  if (!download->is_active() && rpc::call_command_value("get_session_on_completion") != 0) {
+  if (!download->is_active() && rpc::call_command_value("system.session.on_completion") != 0) {
     //    torrent::resume_save_progress(*download->download(), download->download()->bencode()->get_key("libtorrent_resume"));
     control->core()->download_store()->save_resume(download);
   }

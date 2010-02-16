@@ -77,6 +77,10 @@ create_new_key(const std::string& key, const char postfix[postfix_size]) {
 //
 // Add a new user-defined method called 'name' and any number of
 // lines.
+//
+// TODO: Make a static version of this that doesn't need to be called
+// as a command, and which takes advantage of static const char
+// strings, etc.
 torrent::Object
 system_method_insert(__UNUSED rpc::target_type target, const torrent::Object& rawArgs) {
   const torrent::Object::list_type& args = rawArgs.as_list();
@@ -96,7 +100,6 @@ system_method_insert(__UNUSED rpc::target_type target, const torrent::Object& ra
 
   if (options.find("private") != std::string::npos)
     flags &= ~rpc::CommandMap::flag_public_xmlrpc;
-
   if (options.find("const") != std::string::npos)
     flags &= ~rpc::CommandMap::flag_modifiable;
 
@@ -110,6 +113,15 @@ system_method_insert(__UNUSED rpc::target_type target, const torrent::Object& ra
   } else if (options.find("simple") != std::string::npos) {
     rpc::Command::any_slot slot = &rpc::CommandFunction::call;
     rpc::Command* command = new rpc::CommandFunction(system_method_generate_command(++itrArgs, args.end()));
+
+    rpc::commands.insert_type(create_new_key<0>(rawKey, ""), command, slot, flags, NULL, NULL);
+
+  } else if (options.find("redirect") != std::string::npos) {
+    if (++itrArgs == args.end())
+      throw torrent::input_error("Invalid argument count.");
+
+    rpc::Command::any_slot slot = &rpc::CommandFunction::call_redirect;
+    rpc::Command* command = new rpc::CommandFunction(itrArgs->as_string());
 
     rpc::commands.insert_type(create_new_key<0>(rawKey, ""), command, slot, flags, NULL, NULL);
 

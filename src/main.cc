@@ -219,16 +219,16 @@ main(int argc, char** argv) {
        "system.method.set_key = event.download.erased, !_download_list, ui.unfocus_download=\n"
        "system.method.set_key = event.download.erased, ~_delete_tied, d.delete_tied=\n"
 
-       "system.method.insert = ratio.enable, simple|static|const,group.seeding.ratio.enable=\n"
-       "system.method.insert = ratio.disable,simple|static|const,group.seeding.ratio.disable=\n"
-       "system.method.insert = ratio.min,    simple|static|const,group.seeding.ratio.min=\n"
-       "system.method.insert = ratio.max,    simple|static|const,group.seeding.ratio.max=\n"
-       "system.method.insert = ratio.upload, simple|static|const,group.seeding.ratio.upload=\n"
-       "system.method.insert = ratio.min.set,   simple|static|const,group.seeding.ratio.min.set=$argument.0=\n"
-       "system.method.insert = ratio.max.set,   simple|static|const,group.seeding.ratio.max.set=$argument.0=\n"
-       "system.method.insert = ratio.upload.set,simple|static|const,group.seeding.ratio.upload.set=$argument.0=\n"
+       "system.method.insert = ratio.enable, simple|const,group.seeding.ratio.enable=\n"
+       "system.method.insert = ratio.disable,simple|const,group.seeding.ratio.disable=\n"
+       "system.method.insert = ratio.min,    simple|const,group.seeding.ratio.min=\n"
+       "system.method.insert = ratio.max,    simple|const,group.seeding.ratio.max=\n"
+       "system.method.insert = ratio.upload, simple|const,group.seeding.ratio.upload=\n"
+       "system.method.insert = ratio.min.set,   simple|const,group.seeding.ratio.min.set=$argument.0=\n"
+       "system.method.insert = ratio.max.set,   simple|const,group.seeding.ratio.max.set=$argument.0=\n"
+       "system.method.insert = ratio.upload.set,simple|const,group.seeding.ratio.upload.set=$argument.0=\n"
 
-       "system.method.insert = group.insert_persistent_view,simple|static|const,"
+       "system.method.insert = group.insert_persistent_view,simple|const,"
        "view_add=$argument.0=,view.persistent=$argument.0=,\"group.insert=$argument.0=,$argument.0=\"\n"
 
        // Allow setting 'group.view' as constant, so that we can't
@@ -241,7 +241,7 @@ main(int argc, char** argv) {
 
        "group.insert = seeding,seeding\n"
 
-       "set_name = \"$cat=$system.hostname=,:,$system.pid=\"\n"
+       "system.session_name = \"$cat=$system.hostname=,:,$system.pid=\"\n"
 
        // Currently not doing any sorting on main.
        "view_add = main\n"
@@ -299,6 +299,50 @@ main(int argc, char** argv) {
        "schedule = prune_file_status,3600,86400,system.file_status_cache.prune=\n"
 
        "encryption=allow_incoming,prefer_plaintext,enable_retry\n"
+    );
+
+    // Deprecated commands. Don't use these anymore.
+
+    rpc::parse_command_multiple
+      (rpc::make_target(),
+       // Deprecated in 0.7.0:
+       // 
+       // List of cleaned up files:
+       // - command_download.cc
+       // * command_dynamic.cc
+       // / command_events.cc
+       // - command_file.cc
+       // - command_helpers.cc
+       // * command_local.cc
+       // - command_network.cc
+       // - command_object.cc
+       // - command_peer.cc
+       // - command_scheduler.cc
+       // - command_tracker.cc
+       // - command_ui.cc
+
+       "system.method.insert = get_handshake_log,redirect|const,log.handshake\n"
+       "system.method.insert = set_handshake_log,redirect|const,log.handshake.set\n"
+       "system.method.insert = get_log.tracker,redirect|const,log.tracker\n"
+       "system.method.insert = set_log.tracker,redirect|const,log.tracker.set\n"
+
+       "system.method.insert = get_name,redirect|const,system.session_name\n"
+       "system.method.insert = set_name,redirect|const,system.session_name.set\n"
+       "system.method.insert = system.file_allocate,redirect|const,system.file.allocate\n"
+       "system.method.insert = system.file_allocate.set,redirect|const,system.file.allocate.set\n"
+
+       "system.method.insert = get_preload_type,redirect|const,pieces.preload.type\n"
+       "system.method.insert = get_preload_min_size,redirect|const,pieces.preload.min_size\n"
+       "system.method.insert = get_preload_required_rate,redirect|const,pieces.preload.min_rate\n"
+       "system.method.insert = set_preload_type,redirect|const,pieces.preload.type.set\n"
+       "system.method.insert = set_preload_min_size,redirect|const,pieces.preload.min_size.set\n"
+       "system.method.insert = set_preload_required_rate,redirect|const,pieces.preload.min_rate.set\n"
+       "system.method.insert = get_stats_preloaded,redirect|const,pieces.stats_preloaded\n"
+       "system.method.insert = get_stats_not_preloaded,redirect|const,pieces.stats_not_preloaded\n"
+
+       "system.method.insert = get_memory_usage,redirect|const,pieces.memory.current\n"
+       "system.method.insert = get_max_memory_usage,redirect|const,pieces.memory.max\n"
+       "system.method.insert = set_max_memory_usage,redirect|const,pieces.memory.max.set\n"
     );
 
     if (OptionParser::has_flag('n', argc, argv))
