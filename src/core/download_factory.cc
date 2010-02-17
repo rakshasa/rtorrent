@@ -135,12 +135,15 @@ DownloadFactory::receive_load() {
     m_variables["tied_to_file"] = (int64_t)false;
 
   } else {
-    std::fstream* stream = new std::fstream(rak::path_expand(m_uri).c_str(), std::ios::in | std::ios::binary);
-    m_stream = stream;
+    std::fstream stream(rak::path_expand(m_uri).c_str(), std::ios::in | std::ios::binary);
+
+    if (!stream.is_open())
+      return receive_failed("Could not open file");
+
+    m_stream = new std::stringstream;
     m_isFile = true;
 
-    if (!stream->is_open())
-      return receive_failed("Could not open file");
+    *m_stream << stream.rdbuf();
 
     receive_loaded();
   }
