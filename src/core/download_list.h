@@ -87,6 +87,7 @@ public:
 
   // Might move this to DownloadFactory.
   Download*           create(std::istream* str, bool printLog);
+  Download*           create(torrent::Object* obj, bool printLog);
 
   iterator            insert(Download* d);
 

@@ -70,9 +70,27 @@ is_network_uri(const std::string& uri) {
     std::strncmp(uri.c_str(), "ftp://", 6) == 0;
 }
 
+static bool
+download_factory_add_stream(torrent::Object* root, const char* key, const char* filename) {
+  std::fstream stream(filename, std::ios::in | std::ios::binary);
+    
+  if (!stream.is_open())
+    return false;
+
+  torrent::Object obj;
+  stream >> obj;
+
+  if (!stream.good())
+    return false;
+
+  root->insert_key_move(key, obj);
+  return true;
+}
+
 DownloadFactory::DownloadFactory(Manager* m) :
   m_manager(m),
   m_stream(NULL),
+  m_object(NULL),
   m_commited(false),
   m_loaded(false),
 
@@ -95,6 +113,7 @@ DownloadFactory::~DownloadFactory() {
   priority_queue_erase(&taskScheduler, &m_taskCommit);
 
   delete m_stream;
+  delete m_object;
   m_stream = NULL;
 }
 
@@ -140,10 +159,13 @@ DownloadFactory::receive_load() {
     if (!stream.is_open())
       return receive_failed("Could not open file");
 
-    m_stream = new std::stringstream;
-    m_isFile = true;
+    m_object = new torrent::Object;
+    stream >> *m_object;
 
-    *m_stream << stream.rdbuf();
+    if (!stream.good())
+      return receive_failed("Reading torrent file failed");
+
+    m_isFile = true;
 
     receive_loaded();
   }
@@ -165,29 +187,16 @@ DownloadFactory::receive_commit() {
     receive_success();
 }
 
-static bool
-download_factory_add_stream(torrent::Object* root, const char* key, const char* filename) {
-  std::fstream stream(filename, std::ios::in | std::ios::binary);
-    
-  if (!stream.is_open())
-    return false;
-
-  torrent::Object obj;
-  stream >> obj;
-
-  if (!stream.good())
-    return false;
-
-  root->insert_key_move(key, obj);
-  return true;
-}
-
 void
 DownloadFactory::receive_success() {
   if (m_stream == NULL)
     throw torrent::internal_error("DownloadFactory::receive_success() called on an object with m_stream == NULL.");
 
-  Download* download = m_manager->download_list()->create(m_stream, m_printLog);
+  Download* download = m_stream != NULL ?
+    m_manager->download_list()->create(m_stream, m_printLog) :
+    m_manager->download_list()->create(m_object, m_printLog);
+
+  m_object = NULL;
 
   if (download == NULL) {
     // core::Manager should already have added the error message to

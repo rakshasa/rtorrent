@@ -93,6 +93,7 @@ private:
 
   Manager*            m_manager;
   std::iostream*      m_stream;
+  torrent::Object*    m_object;
 
   bool                m_commited;
   bool                m_loaded;

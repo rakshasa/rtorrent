@@ -113,6 +113,27 @@ DownloadList::find_hex_ptr(const char* hash) {
 }
 
 Download*
+DownloadList::create(torrent::Object* obj, bool printLog) {
+  torrent::Download download;
+
+  try {
+    download = torrent::download_add(obj);
+
+  } catch (torrent::local_error& e) {
+    delete obj;
+
+    if (printLog)
+      control->core()->push_log(e.what());
+
+    return NULL;
+  }
+
+  // There's no non-critical exceptions that should be throwable by
+  // the ctor, so don't catch.
+  return new Download(download);
+}
+
+Download*
 DownloadList::create(std::istream* str, bool printLog) {
   torrent::Object* object = new torrent::Object;
   torrent::Download download;
