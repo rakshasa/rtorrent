@@ -189,9 +189,6 @@ DownloadFactory::receive_commit() {
 
 void
 DownloadFactory::receive_success() {
-  if (m_stream == NULL)
-    throw torrent::internal_error("DownloadFactory::receive_success() called on an object with m_stream == NULL.");
-
   Download* download = m_stream != NULL ?
     m_manager->download_list()->create(m_stream, m_printLog) :
     m_manager->download_list()->create(m_object, m_printLog);
