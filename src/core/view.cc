@@ -85,11 +85,12 @@ struct view_downloads_filter : std::unary_function<Download*, bool> {
       torrent::Object result = rpc::parse_command_single(rpc::make_target(d1), m_command);
 
       switch (result.type()) {
-      case torrent::Object::TYPE_NONE:   return false;
-      case torrent::Object::TYPE_VALUE:  return result.as_value();
-      case torrent::Object::TYPE_STRING: return !result.as_string().empty();
-      case torrent::Object::TYPE_LIST:   return !result.as_list().empty();
-      case torrent::Object::TYPE_MAP:    return !result.as_map().empty();
+        //      case torrent::Object::TYPE_RAW_BENCODE: return !result.as_raw_bencode().empty();
+      case torrent::Object::TYPE_VALUE:       return result.as_value();
+      case torrent::Object::TYPE_STRING:      return !result.as_string().empty();
+      case torrent::Object::TYPE_LIST:        return !result.as_list().empty();
+      case torrent::Object::TYPE_MAP:         return !result.as_map().empty();
+      default: return false;
       }
 
       // The default filter action is to return true, to not filter
