@@ -300,6 +300,8 @@ DhtManager::dht_statistics() {
     dhtStats.insert_key("queries_received", stats.queries_received);
     dhtStats.insert_key("queries_sent",     stats.queries_sent);
     dhtStats.insert_key("replies_received", stats.replies_received);
+    dhtStats.insert_key("errors_received",  stats.errors_received);
+    dhtStats.insert_key("errors_caught",    stats.errors_caught);
     dhtStats.insert_key("bytes_read",       stats.down_rate.total());
     dhtStats.insert_key("bytes_written",    stats.up_rate.total());
     dhtStats.insert_key("nodes",            stats.num_nodes);
