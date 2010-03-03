@@ -49,6 +49,6 @@
 
 void
 initialize_command_object() {
-//   CMD_N       ("system.method.insert",    rak::ptr_fn(&system_method_insert));
-//   CMD_N_STRING("system.method.erase",     rak::ptr_fn(&system_method_erase));
+//   CMD_N       ("method.insert",    rak::ptr_fn(&system_method_insert));
+//   CMD_N_STRING("method.erase",     rak::ptr_fn(&system_method_erase));
 }

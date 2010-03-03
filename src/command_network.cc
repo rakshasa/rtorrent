@@ -491,6 +491,6 @@ initialize_command_network() {
 
   ADD_VARIABLE_BOOL("peer_exchange", true);
 
-  rpc::commands.call("system.method.insert", rpc::create_object_list("log.handshake", "bool|const", int64_t()));
-  rpc::commands.call("system.method.insert", rpc::create_object_list("log.tracker", "string|const", ""));
+  rpc::commands.call("method.insert", rpc::create_object_list("log.handshake", "bool|const", int64_t()));
+  rpc::commands.call("method.insert", rpc::create_object_list("log.tracker", "string|const", ""));
 }

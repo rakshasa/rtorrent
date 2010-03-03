@@ -66,14 +66,14 @@ create_new_key(const std::string& key, const char postfix[postfix_size]) {
   return buffer;
 }
 
-// system.method.insert <generic> {name, "simple|private|const", ...}
-// system.method.insert <generic> {name, "multi|private|const"}
-// system.method.insert <generic> {name, "value|private|const"}
-// system.method.insert <generic> {name, "value|private|const", value}
-// system.method.insert <generic> {name, "bool|private|const"}
-// system.method.insert <generic> {name, "bool|private|const", bool}
-// system.method.insert <generic> {name, "string|private|const"}
-// system.method.insert <generic> {name, "string|private|const", string}
+// method.insert <generic> {name, "simple|private|const", ...}
+// method.insert <generic> {name, "multi|private|const"}
+// method.insert <generic> {name, "value|private|const"}
+// method.insert <generic> {name, "value|private|const", value}
+// method.insert <generic> {name, "bool|private|const"}
+// method.insert <generic> {name, "bool|private|const", bool}
+// method.insert <generic> {name, "string|private|const"}
+// method.insert <generic> {name, "string|private|const", string}
 //
 // Add a new user-defined method called 'name' and any number of
 // lines.
@@ -172,7 +172,7 @@ system_method_insert(__UNUSED rpc::target_type target, const torrent::Object& ra
   return torrent::Object();
 }
 
-// system.method.erase <> {name}
+// method.erase <> {name}
 //
 // Erase a modifiable method called 'name. Trying to remove methods
 // that aren't modifiable, e.g. defined by rtorrent or set to
@@ -284,11 +284,11 @@ system_method_list_keys(__UNUSED rpc::target_type target, const torrent::Object&
 
 void
 initialize_command_dynamic() {
-  CMD_N       ("system.method.insert",    rak::ptr_fn(&system_method_insert));
-  CMD_N_STRING("system.method.erase",     rak::ptr_fn(&system_method_erase));
-  CMD_N_STRING("system.method.get",       rak::ptr_fn(&system_method_get));
-  CMD_N       ("system.method.set",       rak::ptr_fn(&system_method_set));
-  CMD_N       ("system.method.set_key",   rak::ptr_fn(&system_method_set_key));
-  CMD_N       ("system.method.has_key",   rak::ptr_fn(&system_method_has_key));
-  CMD_N_STRING("system.method.list_keys", rak::ptr_fn(&system_method_list_keys));
+  CMD_N       ("method.insert",    rak::ptr_fn(&system_method_insert));
+  CMD_N_STRING("method.erase",     rak::ptr_fn(&system_method_erase));
+  CMD_N_STRING("method.get",       rak::ptr_fn(&system_method_get));
+  CMD_N       ("method.set",       rak::ptr_fn(&system_method_set));
+  CMD_N       ("method.set_key",   rak::ptr_fn(&system_method_set_key));
+  CMD_N       ("method.has_key",   rak::ptr_fn(&system_method_has_key));
+  CMD_N_STRING("method.list_keys", rak::ptr_fn(&system_method_list_keys));
 }

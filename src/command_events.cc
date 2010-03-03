@@ -331,8 +331,8 @@ initialize_command_events() {
 
   ADD_VARIABLE_BOOL("check_hash", true); // Rename
 
-  rpc::commands.call("system.method.insert", rpc::create_object_list("system.session.use_lock", "bool|const", true));
-  rpc::commands.call("system.method.insert", rpc::create_object_list("system.session.on_completion", "bool|const", true));
+  rpc::commands.call("method.insert", rpc::create_object_list("system.session.use_lock", "bool|const", true));
+  rpc::commands.call("method.insert", rpc::create_object_list("system.session.on_completion", "bool|const", true));
 
   ADD_COMMAND_STRING("on_ratio",      rak::ptr_fn(&apply_on_ratio));
 

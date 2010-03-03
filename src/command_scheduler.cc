@@ -118,7 +118,7 @@ initialize_command_scheduler() {
 
 //   CMD_G("scheduler.active", rak::bind_ptr_fn(&cmd_call, "view.size=active"));
 
-  rpc::commands.call("system.method.insert", rpc::create_object_list("scheduler.max_active", "value", (int64_t)-1));
+  rpc::commands.call("method.insert", rpc::create_object_list("scheduler.max_active", "value", (int64_t)-1));
 
   CMD_D_ANY("scheduler.simple.added",   rak::ptr_fn(&cmd_scheduler_simple_added));
   CMD_D_ANY("scheduler.simple.removed", rak::ptr_fn(&cmd_scheduler_simple_removed));

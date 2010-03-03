@@ -155,14 +155,14 @@ group_insert(__UNUSED rpc::target_type target, const torrent::Object& rawArgs) {
   const std::string& name = check_name(post_increment(itr, last)->as_string());
   const std::string& view = check_name(post_increment(itr, last)->as_string());
 
-  rpc::commands.call("system.method.insert", rpc::create_object_list("group." + name + ".view", "string", view));
+  rpc::commands.call("method.insert", rpc::create_object_list("group." + name + ".view", "string", view));
 
-  rpc::commands.call("system.method.insert", rpc::create_object_list("group." + name + ".ratio.enable", "simple", "schedule=group." + name + ".ratio,5,60,on_ratio=" + name));
-  rpc::commands.call("system.method.insert", rpc::create_object_list("group." + name + ".ratio.disable", "simple", "schedule_remove=group." + name + ".ratio"));
-  rpc::commands.call("system.method.insert", rpc::create_object_list("group." + name + ".ratio.command", "simple", "d.try_close= ;d.set_ignore_commands=1"));
-  rpc::commands.call("system.method.insert", rpc::create_object_list("group." + name + ".ratio.min", "value", (int64_t)200));
-  rpc::commands.call("system.method.insert", rpc::create_object_list("group." + name + ".ratio.max", "value", (int64_t)300));
-  rpc::commands.call("system.method.insert", rpc::create_object_list("group." + name + ".ratio.upload", "value", (int64_t)20 << 20));
+  rpc::commands.call("method.insert", rpc::create_object_list("group." + name + ".ratio.enable", "simple", "schedule=group." + name + ".ratio,5,60,on_ratio=" + name));
+  rpc::commands.call("method.insert", rpc::create_object_list("group." + name + ".ratio.disable", "simple", "schedule_remove=group." + name + ".ratio"));
+  rpc::commands.call("method.insert", rpc::create_object_list("group." + name + ".ratio.command", "simple", "d.try_close= ;d.set_ignore_commands=1"));
+  rpc::commands.call("method.insert", rpc::create_object_list("group." + name + ".ratio.min", "value", (int64_t)200));
+  rpc::commands.call("method.insert", rpc::create_object_list("group." + name + ".ratio.max", "value", (int64_t)300));
+  rpc::commands.call("method.insert", rpc::create_object_list("group." + name + ".ratio.upload", "value", (int64_t)20 << 20));
 
   return name;
 }
@@ -176,13 +176,13 @@ initialize_command_local() {
   ADD_COMMAND_VOID("system.hostname",            rak::ptr_fun(&system_hostname));
   ADD_COMMAND_VOID("system.pid",                 rak::ptr_fun(&getpid));
 
-  rpc::commands.call("system.method.insert", rpc::create_object_list("system.client_version", "string|static|const", PACKAGE_VERSION));
-  rpc::commands.call("system.method.insert", rpc::create_object_list("system.library_version", "string|static|const", torrent::version()));
-  rpc::commands.call("system.method.insert", rpc::create_object_list("system.file.allocate", "value|const", (int64_t)0));
-  rpc::commands.call("system.method.insert", rpc::create_object_list("system.file.max_size", "value|const", -1));
-  rpc::commands.call("system.method.insert", rpc::create_object_list("system.file.split_size", "value|const", -1));
-  rpc::commands.call("system.method.insert", rpc::create_object_list("system.file.split_suffix", "string|const", ".part"));
-  rpc::commands.call("system.method.insert", rpc::create_object_list("system.session_name", "string|const", ""));
+  rpc::commands.call("method.insert", rpc::create_object_list("system.client_version", "string|static|const", PACKAGE_VERSION));
+  rpc::commands.call("method.insert", rpc::create_object_list("system.library_version", "string|static|const", torrent::version()));
+  rpc::commands.call("method.insert", rpc::create_object_list("system.file.allocate", "value|const", (int64_t)0));
+  rpc::commands.call("method.insert", rpc::create_object_list("system.file.max_size", "value|const", -1));
+  rpc::commands.call("method.insert", rpc::create_object_list("system.file.split_size", "value|const", -1));
+  rpc::commands.call("method.insert", rpc::create_object_list("system.file.split_suffix", "string|const", ".part"));
+  rpc::commands.call("method.insert", rpc::create_object_list("system.session_name", "string|const", ""));
 
   ADD_COMMAND_VOID("system.file_status_cache.size",  rak::make_mem_fun((utils::FileStatusCache::base_type*)control->core()->file_status_cache(),
                                                                        &utils::FileStatusCache::size));
