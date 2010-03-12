@@ -162,8 +162,9 @@ AC_DEFUN([TORRENT_CHECK_FALLOCATE], [
 
   AC_COMPILE_IFELSE(
     [[#include <fcntl.h>
+      #include <linux/falloc.h>
       int main() {
-	fallocate(0, FALLOC_FL_KEEP_SIZE, 0, 0);
+      fallocate(0, FALLOC_FL_KEEP_SIZE, 0, 0);
         return 0;
       }
     ]],
