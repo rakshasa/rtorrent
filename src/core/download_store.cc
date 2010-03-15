@@ -138,7 +138,7 @@ DownloadStore::save(Download* d, int flags) {
 
   // Move this somewhere else?
   rtorrent_base->insert_key("chunks_done", d->download()->file_list()->completed_chunks());
-  rtorrent_base->insert_key("total_uploaded", d->download()->up_rate()->total());
+  rtorrent_base->insert_key("total_uploaded", d->info()->up_rate()->total());
 
   // Don't save for completed torrents when we've cleared the uncertain_pieces.
   torrent::resume_save_progress(*d->download(), *resume_base);
@@ -214,7 +214,7 @@ DownloadStore::is_correct_format(const std::string& f) {
 
 std::string
 DownloadStore::create_filename(Download* d) {
-  return m_path + rak::transform_hex(d->download()->info_hash().begin(), d->download()->info_hash().end()) + ".torrent";
+  return m_path + rak::transform_hex(d->info()->hash().begin(), d->info()->hash().end()) + ".torrent";
 }
 
 }

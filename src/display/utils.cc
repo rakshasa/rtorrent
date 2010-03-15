@@ -127,7 +127,7 @@ print_address(char* first, char* last, const sockaddr* sa) {
 
 char*
 print_download_title(char* first, char* last, core::Download* d) {
-  return print_buffer(first, last, " %s", d->download()->name().c_str());
+  return print_buffer(first, last, " %s", d->info()->name().c_str());
 }
 
 char*
@@ -147,9 +147,9 @@ print_download_info(char* first, char* last, core::Download* d) {
                          (double)d->download()->file_list()->size_bytes() / (double)(1 << 20));
   
   first = print_buffer(first, last, " Rate: %5.1f / %5.1f KB Uploaded: %7.1f MB",
-                       (double)d->download()->up_rate()->rate() / (1 << 10),
-                       (double)d->download()->down_rate()->rate() / (1 << 10),
-                       (double)d->download()->up_rate()->total() / (1 << 20));
+                       (double)d->info()->up_rate()->rate() / (1 << 10),
+                       (double)d->info()->down_rate()->rate() / (1 << 10),
+                       (double)d->info()->up_rate()->total() / (1 << 20));
 
   if (d->download()->info()->is_active() && !d->is_done()) {
     first = print_buffer(first, last, " ");
@@ -216,7 +216,7 @@ print_download_status(char* first, char* last, core::Download* d) {
 
 char*
 print_download_time_left(char* first, char* last, core::Download* d) {
-  uint32_t rate = d->download()->down_rate()->rate();
+  uint32_t rate = d->info()->down_rate()->rate();
 
   if (rate < 512)
     return print_buffer(first, last, "--d --:--");

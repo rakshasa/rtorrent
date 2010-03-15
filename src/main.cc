@@ -249,8 +249,8 @@ main(int argc, char** argv) {
        "view_add = default\n"
 
        "view_add = name\n"
-       "view_sort_new     = name,less=d.get_name=\n"
-       "view_sort_current = name,less=d.get_name=\n"
+       "view_sort_new     = name,less=d.name=\n"
+       "view_sort_current = name,less=d.name=\n"
 
        "view_add = active\n"
        "view_filter = active,false=\n"
@@ -351,7 +351,23 @@ main(int argc, char** argv) {
        "method.insert = get_max_memory_usage,redirect|const,pieces.memory.max\n"
        "method.insert = set_max_memory_usage,redirect|const,pieces.memory.max.set\n"
 
+       "method.insert = d.get_hash,redirect|const,d.hash\n"
+       "method.insert = d.get_local_id,redirect|const,d.local_id\n"
+       "method.insert = d.get_local_id_html,redirect|const,d.local_id_html\n"
+       "method.insert = d.get_bitfield,redirect|const,d.bitfield\n"
+       "method.insert = d.get_base_path,redirect|const,d.base_path\n"
+
+       "method.insert = d.get_name,redirect|const,d.name\n"
+       "method.insert = d.get_creation_date,redirect|const,d.creation_date\n"
+
        "method.insert = d.get_peer_exchange,redirect|const,d.peer_exchange\n"
+
+       "method.insert = d.get_up_rate,redirect|const,d.up.rate\n"
+       "method.insert = d.get_up_total,redirect|const,d.up.total\n"
+       "method.insert = d.get_down_rate,redirect|const,d.down.rate\n"
+       "method.insert = d.get_down_total,redirect|const,d.down.total\n"
+       "method.insert = d.get_skip_rate,redirect|const,d.skip.rate\n"
+       "method.insert = d.get_skip_total,redirect|const,d.skip.total\n"
     );
 
     }

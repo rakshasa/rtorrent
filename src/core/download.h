@@ -152,7 +152,7 @@ private:
 
 inline bool
 Download::operator == (const std::string& str) const {
-  return str.size() == torrent::HashString::size_data && *torrent::HashString::cast_from(str) == m_download.info_hash();
+  return str.size() == torrent::HashString::size_data && *torrent::HashString::cast_from(str) == m_download.info()->hash();
 }
 
 }

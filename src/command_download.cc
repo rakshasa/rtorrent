@@ -107,16 +107,16 @@ apply_d_change_link(int changeType, core::Download* download, const torrent::Obj
   std::string link;
 
   if (type == "base_path") {
-    target = rpc::call_command_string("d.get_base_path", rpc::make_target(download));
-    link = rak::path_expand(prefix + rpc::call_command_string("d.get_base_path", rpc::make_target(download)) + postfix);
+    target = rpc::call_command_string("d.base_path", rpc::make_target(download));
+    link = rak::path_expand(prefix + rpc::call_command_string("d.base_path", rpc::make_target(download)) + postfix);
 
   } else if (type == "base_filename") {
-    target = rpc::call_command_string("d.get_base_path", rpc::make_target(download));
+    target = rpc::call_command_string("d.base_path", rpc::make_target(download));
     link = rak::path_expand(prefix + rpc::call_command_string("d.get_base_filename", rpc::make_target(download)) + postfix);
 
 //   } else if (type == "directory_path") {
 //     target = rpc::call_command_string("d.get_directory", rpc::make_target(download));
-//     link = rak::path_expand(prefix + rpc::call_command_string("d.get_base_path", rpc::make_target(download)) + postfix);
+//     link = rak::path_expand(prefix + rpc::call_command_string("d.base_path", rpc::make_target(download)) + postfix);
 
   } else if (type == "tied") {
     link = rak::path_expand(rpc::call_command_string("d.get_tied_to_file", rpc::make_target(download)));
@@ -125,7 +125,7 @@ apply_d_change_link(int changeType, core::Download* download, const torrent::Obj
       return torrent::Object();
 
     link = rak::path_expand(prefix + link + postfix);
-    target = rpc::call_command_string("d.get_base_path", rpc::make_target(download));
+    target = rpc::call_command_string("d.base_path", rpc::make_target(download));
 
   } else {
     throw torrent::input_error("Unknown type argument.");
@@ -191,9 +191,9 @@ apply_d_directory(core::Download* download, const std::string& name) {
   if (!download->file_list()->is_multi_file())
     download->set_root_directory(name);
   else if (name.empty() || *name.rbegin() == '/')
-    download->set_root_directory(name + download->download()->name());
+    download->set_root_directory(name + download->info()->name());
   else
-    download->set_root_directory(name + "/" + download->download()->name());
+    download->set_root_directory(name + "/" + download->info()->name());
 }
 
 const char*
@@ -232,28 +232,28 @@ retrieve_d_ratio(core::Download* download) {
     return int64_t();
 
   int64_t bytesDone = download->download()->bytes_done();
-  int64_t upTotal   = download->download()->up_rate()->total();
+  int64_t upTotal   = download->info()->up_rate()->total();
 
   return bytesDone > 0 ? (1000 * upTotal) / bytesDone : 0;
 }
 
 torrent::Object
 retrieve_d_hash(core::Download* download) {
-  const torrent::HashString* hashString = &download->download()->info_hash();
+  const torrent::HashString* hashString = &download->info()->hash();
 
   return torrent::Object(rak::transform_hex(hashString->begin(), hashString->end()));
 }
 
 torrent::Object
 retrieve_d_local_id(core::Download* download) {
-  const torrent::HashString* hashString = &download->download()->local_id();
+  const torrent::HashString* hashString = &download->info()->local_id();
 
   return torrent::Object(rak::transform_hex(hashString->begin(), hashString->end()));
 }
 
 torrent::Object
 retrieve_d_local_id_html(core::Download* download) {
-  const torrent::HashString* hashString = &download->download()->local_id();
+  const torrent::HashString* hashString = &download->info()->local_id();
 
   return torrent::Object(rak::copy_escape_html(hashString->begin(), hashString->end()));
 }
@@ -562,15 +562,22 @@ add_copy_to_download(const char* src, const char* dest) {
   rpc::commands.insert(dest, itr->second);
 }
 
+#define CMD_ON_INFO(func) \
+  rak::on(std::mem_fun(&core::Download::info), std::mem_fun(&torrent::DownloadInfo::func))
+
 void
 initialize_command_download() {
-  ADD_CD_VOID("hash",          &retrieve_d_hash);
-  ADD_CD_VOID("local_id",      &retrieve_d_local_id);
-  ADD_CD_VOID("local_id_html", &retrieve_d_local_id_html);
-  ADD_CD_VOID("bitfield",      &retrieve_d_bitfield);
-  ADD_CD_VOID("base_path",     &retrieve_d_base_path);
-  ADD_CD_VOID("base_filename", &retrieve_d_base_filename);
-  ADD_CD_STRING_UNI("name",    rak::on(std::mem_fun(&core::Download::download), std::mem_fun(&torrent::Download::name)));
+  CMD_D_VOID("d.hash",          &retrieve_d_hash);
+  CMD_D_VOID("d.local_id",      &retrieve_d_local_id);
+  CMD_D_VOID("d.local_id_html", &retrieve_d_local_id_html);
+  CMD_D_VOID("d.bitfield",      &retrieve_d_bitfield);
+  CMD_D_VOID("d.base_path",     &retrieve_d_base_path);
+  CMD_D_VOID("d.base_filename", &retrieve_d_base_filename);
+
+  CMD_D_VOID_SLOT("d.name",          CMD_ON_INFO(name));
+
+  CMD_D_VOID_SLOT("d.creation_date", CMD_ON_INFO(creation_date));
+  CMD_D_VOID_SLOT("d.load_date",     CMD_ON_INFO(load_date));
 
   // ?????
   ADD_CD_LIST_OBSOLETE("create_link",   rak::bind_ptr_fn(&apply_d_change_link, 0));
@@ -676,17 +683,18 @@ initialize_command_download() {
   ADD_CD_VALUE_UNI("peers_complete",      rak::on(std::mem_fun(&core::Download::download), std::mem_fun(&torrent::Download::peers_complete)));
   ADD_CD_VALUE_UNI("peers_accounted",     rak::on(std::mem_fun(&core::Download::download), std::mem_fun(&torrent::Download::peers_accounted)));
 
-  ADD_CD_VALUE_MEM_UNI("up_rate",      &torrent::Download::mutable_up_rate, &torrent::Rate::rate);
-  ADD_CD_VALUE_MEM_UNI("up_total",     &torrent::Download::mutable_up_rate, &torrent::Rate::total);
-  ADD_CD_VALUE_MEM_UNI("down_rate",    &torrent::Download::mutable_down_rate, &torrent::Rate::rate);
-  ADD_CD_VALUE_MEM_UNI("down_total",   &torrent::Download::mutable_down_rate, &torrent::Rate::total);
-  ADD_CD_VALUE_MEM_UNI("skip_rate",    &torrent::Download::mutable_skip_rate, &torrent::Rate::rate);
-  ADD_CD_VALUE_MEM_UNI("skip_total",   &torrent::Download::mutable_skip_rate, &torrent::Rate::total);
+  //
+  CMD_D_VOID_SLOT("d.up.rate",    rak::on(CMD_ON_INFO(up_rate), std::mem_fun(&torrent::Rate::rate)));
+  CMD_D_VOID_SLOT("d.up.total",   rak::on(CMD_ON_INFO(up_rate), std::mem_fun(&torrent::Rate::total)));
+  CMD_D_VOID_SLOT("d.down.rate",  rak::on(CMD_ON_INFO(down_rate), std::mem_fun(&torrent::Rate::rate)));
+  CMD_D_VOID_SLOT("d.down.total", rak::on(CMD_ON_INFO(down_rate), std::mem_fun(&torrent::Rate::total)));
+  CMD_D_VOID_SLOT("d.skip.rate",  rak::on(CMD_ON_INFO(skip_rate), std::mem_fun(&torrent::Rate::rate)));
+  CMD_D_VOID_SLOT("d.skip.total", rak::on(CMD_ON_INFO(skip_rate), std::mem_fun(&torrent::Rate::total)));
+  //
 
   ADD_CD_STRING("set_throttle_name",      std::mem_fun(&core::Download::set_throttle_name));
   ADD_CD_SLOT_PUBLIC("d.get_throttle_name", call_unknown, rpc::get_variable_d_fn("rtorrent", "throttle_name"), "i:", "");
 
-  ADD_CD_VALUE_UNI("creation_date",       rak::on(std::mem_fun(&core::Download::download), std::mem_fun(&torrent::Download::creation_date)));
   ADD_CD_VALUE_UNI("bytes_done",          rak::on(std::mem_fun(&core::Download::download), std::mem_fun(&torrent::Download::bytes_done)));
   ADD_CD_VALUE_UNI("ratio",               std::ptr_fun(&retrieve_d_ratio));
   ADD_CD_VALUE_UNI("chunks_hashed",       rak::on(std::mem_fun(&core::Download::download), std::mem_fun(&torrent::Download::chunks_hashed)));

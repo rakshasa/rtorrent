@@ -149,14 +149,14 @@ Download::create_info() {
 
   // Get these bindings with some kind of string map.
 
-  element->push_column("Name:",             te_command("d.get_name="));
-  element->push_column("Local id:",         te_command("d.get_local_id_html="));
-  element->push_column("Info hash:",        te_command("d.get_hash="));
-  element->push_column("Created:",          te_command("cat=$to_date=$d.get_creation_date=,\" \",$to_time=$d.get_creation_date="));
+  element->push_column("Name:",             te_command("d.name="));
+  element->push_column("Local id:",         te_command("d.local_id_html="));
+  element->push_column("Info hash:",        te_command("d.hash="));
+  element->push_column("Created:",          te_command("cat=$to_date=$d.creation_date=,\" \",$to_time=$d.creation_date="));
 
   element->push_back("");
   element->push_column("Directory:",        te_command("d.get_directory="));
-  element->push_column("Base Path:",        te_command("d.get_base_path="));
+  element->push_column("Base Path:",        te_command("d.base_path="));
   element->push_column("Tied to file:",     te_command("d.get_tied_to_file="));
   element->push_column("File stats:",       te_command("cat=$if=$d.is_multi_file=\\,multi\\,single,\" \",$d.get_size_files=,\" files\""));
 
@@ -191,9 +191,9 @@ Download::create_info() {
                                                               "cat=\"global\""));
 
   element->push_back("");
-  element->push_column("Upload:",           te_command("cat=$to_kb=$d.get_up_rate=,\" KB / \",$to_xb=$d.get_up_total="));
-  element->push_column("Download:",         te_command("cat=$to_kb=$d.get_down_rate=,\" KB / \",$to_xb=$d.get_down_total="));
-  element->push_column("Skipped:",          te_command("cat=$to_kb=$d.get_skip_rate=,\" KB / \",$to_xb=$d.get_skip_total="));
+  element->push_column("Upload:",           te_command("cat=$to_kb=$d.up.rate=,\" KB / \",$to_xb=$d.up.total="));
+  element->push_column("Download:",         te_command("cat=$to_kb=$d.down.rate=,\" KB / \",$to_xb=$d.down.total="));
+  element->push_column("Skipped:",          te_command("cat=$to_kb=$d.skip.rate=,\" KB / \",$to_xb=$d.skip.total="));
   element->push_column("Preload:",          te_command("cat=$pieces.preload.type=,\" / \",$pieces.stats_preloaded=,\" / \",$pieces.stats_preloaded="));
 
   element->set_column_width(element->column_width() + 1);
@@ -289,7 +289,7 @@ Download::activate_display(Display displayType, bool focusDisplay) {
   // Set title.
   switch (displayType) {
   case DISPLAY_MAX_SIZE: break;
-  default: control->ui()->window_title()->set_title(m_download->download()->name()); break;
+  default: control->ui()->window_title()->set_title(m_download->info()->name()); break;
   }
 
   control->display()->adjust_layout();

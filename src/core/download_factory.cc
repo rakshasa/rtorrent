@@ -304,7 +304,7 @@ DownloadFactory::receive_success() {
   }
 
   // Save the info-hash just in case the commands decide to delete it.
-  torrent::HashString infohash = download->download()->info_hash();
+  torrent::HashString infohash = download->info()->hash();
 
   try {
     std::for_each(m_commands.begin(), m_commands.end(), rak::bind1st(std::ptr_fun(&rpc::parse_command_d_multiple_std), download));
@@ -382,7 +382,7 @@ DownloadFactory::initialize_rtorrent(Download* download, torrent::Object* rtorre
   }
 
   if (rtorrent->has_key_value("total_uploaded"))
-    download->download()->up_rate()->set_total(rtorrent->get_key_value("total_uploaded"));
+    download->info()->mutable_up_rate()->set_total(rtorrent->get_key_value("total_uploaded"));
 
   if (rtorrent->has_key_value("chunks_done"))
     download->download()->set_chunks_done(std::min<uint32_t>(rtorrent->get_key_value("chunks_done"),

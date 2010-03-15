@@ -94,7 +94,7 @@ apply_on_ratio(const torrent::Object& rawArgs) {
     //    rpc::parse_command_single(rpc::make_target(*itr), "print={Checked ratio of download.}");
 
     int64_t totalDone   = (*itr)->download()->bytes_done();
-    int64_t totalUpload = (*itr)->download()->up_rate()->total();
+    int64_t totalUpload = (*itr)->info()->up_rate()->total();
 
     if (!(totalUpload >= minUpload && totalUpload * 100 >= totalDone * minRatio) &&
         !(maxRatio > 0 && totalUpload * 100 > totalDone * maxRatio))
@@ -264,7 +264,7 @@ apply_download_list(const torrent::Object& rawArgs) {
   torrent::Object::list_type& resultList = result.as_list();
 
   for (core::View::const_iterator itr = (*viewItr)->begin_visible(), last = (*viewItr)->end_visible(); itr != last; itr++) {
-    const torrent::HashString* hashString = &(*itr)->download()->info_hash();
+    const torrent::HashString* hashString = &(*itr)->info()->hash();
 
     resultList.push_back(rak::transform_hex(hashString->begin(), hashString->end()));
   }
