@@ -39,6 +39,7 @@
 
 #include <sigc++/connection.h>
 #include <torrent/download.h>
+#include <torrent/download_info.h>
 #include <torrent/hash_string.h>
 #include <torrent/tracker_list.h>
 #include <torrent/data/file_list.h>
@@ -70,8 +71,10 @@ public:
   Download(download_type d);
   ~Download();
 
-  bool                is_open() const                          { return m_download.is_open(); }
-  bool                is_active() const                        { return m_download.is_active(); }
+  const torrent::DownloadInfo* info() const                             { return m_download.info(); }
+
+  bool                is_open() const                          { return m_download.info()->is_open(); }
+  bool                is_active() const                        { return m_download.info()->is_active(); }
   bool                is_done() const                          { return m_download.file_list()->is_done(); }
   bool                is_downloading() const                   { return is_active() && !is_done(); }
   bool                is_seeding() const                       { return is_active() && is_done(); }
@@ -79,7 +82,7 @@ public:
   // FIXME: Fixed a bug in libtorrent that caused is_hash_checked to
   // return true when the torrent is closed. Remove this redundant
   // test in the next milestone.
-  bool                is_hash_checked() const                  { return m_download.is_open() && m_download.is_hash_checked(); }
+  bool                is_hash_checked() const                  { return is_open() && m_download.is_hash_checked(); }
   bool                is_hash_checking() const                 { return m_download.is_hash_checking(); }
 
   bool                is_hash_failed() const                   { return m_hashFailed; }

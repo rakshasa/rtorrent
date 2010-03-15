@@ -128,6 +128,7 @@ public:
   // Temporary, find a better place for this.
   void                try_create_download(const std::string& uri, int flags, const command_list_type& commands);
   void                try_create_download_expand(const std::string& uri, int flags, command_list_type commands = command_list_type());
+  void                try_create_download_from_meta_download(torrent::Object* bencode, const std::string& metafile);
 
 private:
   typedef RangeMap<uint32_t, torrent::ThrottlePair> AddressThrottleMap;

@@ -132,9 +132,9 @@ print_download_title(char* first, char* last, core::Download* d) {
 
 char*
 print_download_info(char* first, char* last, core::Download* d) {
-  if (!d->download()->is_open())
+  if (!d->download()->info()->is_open())
     first = print_buffer(first, last, "[CLOSED]  ");
-  else if (!d->download()->is_active())
+  else if (!d->download()->info()->is_active())
     first = print_buffer(first, last, "[OPEN]    ");
   else
     first = print_buffer(first, last, "          ");
@@ -151,7 +151,7 @@ print_download_info(char* first, char* last, core::Download* d) {
                        (double)d->download()->down_rate()->rate() / (1 << 10),
                        (double)d->download()->up_rate()->total() / (1 << 20));
 
-  if (d->download()->is_active() && !d->is_done()) {
+  if (d->download()->info()->is_active() && !d->is_done()) {
     first = print_buffer(first, last, " ");
     first = print_download_percentage_done(first, last, d);
 

@@ -162,6 +162,8 @@ private:
 
   void                received_finished(Download* d);
   void                confirm_finished(Download* d);
+
+  void                process_meta_download(Download* d);
 };
 
 }

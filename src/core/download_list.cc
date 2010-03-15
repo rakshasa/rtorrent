@@ -37,10 +37,12 @@
 #include "config.h"
 
 #include <algorithm>
+#include <fstream>
 #include <iostream>
 #include <sigc++/adaptors/bind.h>
 #include <rak/functional.h>
 #include <rak/string_manip.h>
+#include <torrent/data/file.h>
 #include <torrent/exceptions.h>
 #include <torrent/download.h>
 #include <torrent/hash_string.h>
@@ -236,7 +238,7 @@ void
 DownloadList::open_throw(Download* download) {
   check_contains(download);
 
-  if (download->download()->is_open())
+  if (download->download()->info()->is_open())
     return;
   
   int openFlags = download->resume_flags();
@@ -261,14 +263,14 @@ DownloadList::close(Download* download) {
 
 void
 DownloadList::close_directly(Download* download) {
-  if (download->download()->is_active()) {
+  if (download->download()->info()->is_active()) {
     download->download()->stop(torrent::Download::stop_skip_tracker);
 
     if (torrent::resume_check_target_files(*download->download(), download->download()->bencode()->get_key("libtorrent_resume")))
       torrent::resume_save_progress(*download->download(), download->download()->bencode()->get_key("libtorrent_resume"));
   }
 
-  if (download->download()->is_open())
+  if (download->download()->info()->is_open())
     download->download()->close();
 }
 
@@ -320,7 +322,7 @@ DownloadList::resume(Download* download, int flags) {
 
   try {
 
-    if (download->download()->is_active())
+    if (download->download()->info()->is_active())
       return;
 
     rpc::parse_command_single(rpc::make_target(download), "view.set_visible=active");
@@ -369,7 +371,7 @@ DownloadList::resume(Download* download, int flags) {
     }
 
     // If the DHT server is set to auto, start it now.
-    if (!download->download()->is_private())
+    if (!download->download()->info()->is_private())
       control->dht_manager()->auto_start();
 
     // Update the priority to ensure it has the correct
@@ -405,7 +407,7 @@ DownloadList::pause(Download* download, int flags) {
       rpc::commands.call_catch("event.download.hash_removed", rpc::make_target(download), torrent::Object(), "Download event action failed: ");
     }
 
-    if (!download->download()->is_active())
+    if (!download->download()->info()->is_active())
       return;
 
     download->download()->stop(flags);
@@ -474,6 +476,9 @@ DownloadList::hash_done(Download* download) {
 
   int64_t hashing = rpc::call_command_value("d.get_hashing", rpc::make_target(download));
   rpc::call_command_set_value("d.set_hashing", Download::variable_hashing_stopped, rpc::make_target(download));
+
+  if (download->is_done() && download->download()->info()->is_meta_download())
+    return process_meta_download(download);
 
   switch (hashing) {
   case Download::variable_hashing_initial:
@@ -566,6 +571,9 @@ void
 DownloadList::confirm_finished(Download* download) {
   check_contains(download);
 
+  if (download->download()->info()->is_meta_download())
+    return process_meta_download(download);
+
   rpc::call_command("d.set_complete", (int64_t)1, rpc::make_target(download));
 
   rpc::call_command("d.set_connection_current", rpc::call_command_void("d.get_connection_seed", rpc::make_target(download)), rpc::make_target(download));
@@ -597,6 +605,38 @@ DownloadList::confirm_finished(Download* download) {
 
   if (!download->is_active() && rpc::call_command_value("d.get_state", rpc::make_target(download)) == 1)
     resume(download, torrent::Download::start_no_create | torrent::Download::start_skip_tracker | torrent::Download::start_keep_baseline);
+}
+
+void
+DownloadList::process_meta_download(Download* download) {
+  rpc::call_command("d.stop", torrent::Object(), rpc::make_target(download));
+  rpc::call_command("d.close", torrent::Object(), rpc::make_target(download));
+
+  std::string metafile = (*download->file_list()->begin())->frozen_path();
+  std::fstream file(metafile.c_str(), std::ios::in | std::ios::binary);
+  if (!file.is_open()) {
+    control->core()->push_log("Could not read download metadata.");
+    return;
+  }
+
+  torrent::Object* bencode = new torrent::Object(torrent::Object::create_map());
+  file >> bencode->insert_key("info", torrent::Object());
+  if (file.fail()) {
+    delete bencode;
+    control->core()->push_log("Could not create download, the input is not a valid torrent.");
+    return;
+  }
+  file.close();
+
+  // Steal the keys we still need. The old download has no use for them.
+  bencode->insert_key("rtorrent_meta_download", torrent::Object()).swap(download->bencode()->get_key("rtorrent_meta_download"));
+  if (download->bencode()->has_key("announce"))
+    bencode->insert_key("announce", torrent::Object()).swap(download->bencode()->get_key("announce"));
+  if (download->bencode()->has_key("announce-list"))
+    bencode->insert_key("announce-list", torrent::Object()).swap(download->bencode()->get_key("announce-list"));
+
+  erase_ptr(download);
+  control->core()->try_create_download_from_meta_download(bencode, metafile);
 }
 
 }

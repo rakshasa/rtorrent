@@ -159,7 +159,7 @@ Download::receive_chunk_failed(__UNUSED uint32_t idx) {
 
 void
 Download::set_throttle_name(const std::string& throttleName) {
-  if (m_download.is_active())
+  if (m_download.info()->is_active())
     throw torrent::input_error("Cannot set throttle on active download.");
 
   torrent::ThrottlePair throttles = control->core()->get_throttle(throttleName);

@@ -86,6 +86,7 @@ parse_options(Control* c, int argc, char** argv) {
     // Converted.
     optionParser.insert_flag('h', sigc::ptr_fun(&print_help));
     optionParser.insert_flag('n', OptionParser::Slot());
+    optionParser.insert_flag('D', OptionParser::Slot());
 
     optionParser.insert_option('b', sigc::bind<0>(sigc::ptr_fun(&rpc::call_command_set_string), "bind"));
     optionParser.insert_option('d', sigc::bind<0>(sigc::ptr_fun(&rpc::call_command_set_string), "directory"));
@@ -303,6 +304,8 @@ main(int argc, char** argv) {
 
     // Deprecated commands. Don't use these anymore.
 
+    if (!OptionParser::has_flag('D', argc, argv)) {
+
     rpc::parse_command_multiple
       (rpc::make_target(),
        // Deprecated in 0.7.0:
@@ -347,7 +350,11 @@ main(int argc, char** argv) {
        "method.insert = get_memory_usage,redirect|const,pieces.memory.current\n"
        "method.insert = get_max_memory_usage,redirect|const,pieces.memory.max\n"
        "method.insert = set_max_memory_usage,redirect|const,pieces.memory.max.set\n"
+
+       "method.insert = d.get_peer_exchange,redirect|const,d.peer_exchange\n"
     );
+
+    }
 
     if (OptionParser::has_flag('n', argc, argv))
       control->core()->push_log("Ignoring ~/.rtorrent.rc.");

@@ -225,6 +225,12 @@ add_variable(key, NULL, NULL, &rpc::CommandVariable::get_string, NULL, std::stri
 #define CMD_D_VOID(key, slot) \
   CMD_D_SLOT(key, call_unknown, rpc::object_fn(slot), "i:", "")
 
+#define CMD_D_VOID_SLOT(key, slot) \
+  CMD_D_SLOT(key, call_unknown, rpc::object_void_fn<core::Download*>(slot), "i:", "")
+
+#define CMD_D_VALUE_SLOT(key, slot) \
+  CMD_D_SLOT(key, call_value, rpc::object_value_fn<core::Download*>(slot), "i:i", "")
+
 #define CMD_FUNC_SINGLE(key, command) \
   rpc::commands.insert_type(key, new rpc::CommandFunction(command), &rpc::CommandFunction::call, rpc::CommandMap::flag_public_xmlrpc, NULL, NULL);
 

@@ -39,6 +39,7 @@
 #include <cstdio>
 #include <cstring>
 #include <fstream>
+#include <sstream>
 #include <unistd.h>
 #include <sys/select.h>
 #include <rak/address_info.h>
@@ -52,6 +53,7 @@
 #include <torrent/connection_manager.h>
 #include <torrent/error.h>
 #include <torrent/exceptions.h>
+#include <torrent/object_stream.h>
 #include <torrent/resume.h>
 #include <torrent/tracker_list.h>
 #include <torrent/throttle.h>
@@ -395,6 +397,7 @@ Manager::try_create_download(const std::string& uri, int flags, const command_li
   if ((flags & create_tied) &&
       !(flags & create_raw_data) &&
       !is_network_uri(uri) &&
+      !is_magnet_uri(uri) &&
       !file_status_cache()->insert(uri, 0))
     return;
 
@@ -413,6 +416,31 @@ Manager::try_create_download(const std::string& uri, int flags, const command_li
   else
     f->load(uri);
 
+  f->commit();
+}
+
+void
+Manager::try_create_download_from_meta_download(torrent::Object* bencode, const std::string& metafile) {
+  DownloadFactory* f = new DownloadFactory(this);
+
+  f->variables()["tied_to_file"] = (int64_t)true;
+  f->variables()["tied_file"] = metafile;
+
+  torrent::Object& meta = bencode->get_key("rtorrent_meta_download");
+  torrent::Object::list_type& commands = meta.get_key_list("commands");
+  for (torrent::Object::list_type::const_iterator itr = commands.begin(); itr != commands.end(); ++itr)
+    f->commands().insert(f->commands().end(), itr->as_string());
+
+  f->set_start(meta.get_key_value("start"));
+  f->set_print_log(meta.get_key_value("print_log"));
+  f->slot_finished(sigc::bind(sigc::ptr_fun(&rak::call_delete_func<core::DownloadFactory>), f));
+
+  // Bit of a waste to create the bencode repesentation here
+  // only to have the DownloadFactory decode it.
+  std::stringstream s;
+  s.imbue(std::locale::classic());
+  s << *bencode;
+  f->load_raw_data(s.str());
   f->commit();
 }
 

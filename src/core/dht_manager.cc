@@ -194,7 +194,7 @@ DhtManager::update() {
     DownloadList::const_iterator itr, end;
 
     for (itr = control->core()->download_list()->begin(), end = control->core()->download_list()->end(); itr != end; ++itr)
-      if ((*itr)->is_active() && !(*itr)->download()->is_private())
+      if ((*itr)->download()->info()->is_active() && !(*itr)->download()->info()->is_private())
         break;
       
     if (itr == end) {

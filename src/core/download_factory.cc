@@ -87,6 +87,12 @@ download_factory_add_stream(torrent::Object* root, const char* key, const char* 
   return true;
 }
 
+bool
+is_magnet_uri(const std::string& uri) {
+  return
+    std::strncmp(uri.c_str(), "magnet:?", 8) == 0;
+}
+
 DownloadFactory::DownloadFactory(Manager* m) :
   m_manager(m),
   m_stream(NULL),
@@ -153,6 +159,14 @@ DownloadFactory::receive_load() {
 
     m_variables["tied_to_file"] = (int64_t)false;
 
+  } else if (is_magnet_uri(m_uri)) {
+    // DEBUG: Use m_object.
+    m_stream = new std::stringstream();
+    *m_stream << "d10:magnet-uri" << m_uri.length() << ":" << m_uri << "e";
+
+    m_variables["tied_to_file"] = (int64_t)false;
+    receive_loaded();
+
   } else {
     std::fstream stream(rak::path_expand(m_uri).c_str(), std::ios::in | std::ios::binary);
 
@@ -203,6 +217,17 @@ DownloadFactory::receive_success() {
   }
 
   torrent::Object* root = download->bencode();
+
+  if (download->download()->info()->is_meta_download()) {
+    torrent::Object& meta = root->insert_key("rtorrent_meta_download", torrent::Object::create_map());
+    meta.insert_key("start", m_start);
+    meta.insert_key("print_log", m_printLog);
+ 
+    torrent::Object::list_type& commands = meta.insert_key("commands", torrent::Object::create_list()).as_list();
+
+    for (command_list_type::iterator itr = m_commands.begin(); itr != m_commands.end(); ++itr)
+      commands.push_back(*itr);
+  }
 
   if (m_session) {
     download_factory_add_stream(root, "rtorrent", (rak::path_expand(m_uri) + ".rtorrent").c_str());
@@ -260,9 +285,9 @@ DownloadFactory::receive_success() {
     rpc::call_command("d.set_directory_base", rtorrent->get_key("directory"), rpc::make_target(download));
 
   if (!m_session && m_variables["tied_to_file"].as_value())
-    rpc::call_command("d.set_tied_to_file", m_uri, rpc::make_target(download));
+    rpc::call_command("d.set_tied_to_file", m_uri.empty() ? m_variables["tied_file"] : m_uri, rpc::make_target(download));
 
-  rpc::call_command("d.set_peer_exchange", rpc::call_command_value("get_peer_exchange"), rpc::make_target(download));
+  rpc::call_command("d.peer_exchange.set", rpc::call_command_value("get_peer_exchange"), rpc::make_target(download));
 
   torrent::resume_load_addresses(*download->download(), resumeObject);
   torrent::resume_load_file_priorities(*download->download(), resumeObject);

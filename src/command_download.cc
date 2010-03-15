@@ -336,7 +336,7 @@ apply_d_add_peer(core::Download* download, const std::string& arg) {
   char dummy;
   char host[1024];
 
-  if (download->download()->is_private())
+  if (download->download()->info()->is_private())
     throw torrent::input_error("Download is private.");
 
   ret = std::sscanf(arg.c_str(), "%1023[^:]:%i%c", host, &port, &dummy);
@@ -600,13 +600,13 @@ initialize_command_download() {
 
   ADD_CD_STRING("add_peer",        std::ptr_fun(&apply_d_add_peer));
 
-  ADD_CD_VALUE("is_open",          rak::on(std::mem_fun(&core::Download::download), std::mem_fun(&torrent::Download::is_open)));
-  ADD_CD_VALUE("is_active",        rak::on(std::mem_fun(&core::Download::download), std::mem_fun(&torrent::Download::is_active)));
+  ADD_CD_VALUE("is_open",          rak::on(std::mem_fun(&core::Download::info), std::mem_fun(&torrent::DownloadInfo::is_open)));
+  ADD_CD_VALUE("is_active",        rak::on(std::mem_fun(&core::Download::info), std::mem_fun(&torrent::DownloadInfo::is_active)));
   ADD_CD_VALUE("is_hash_checked",  rak::on(std::mem_fun(&core::Download::download), std::mem_fun(&torrent::Download::is_hash_checked)));
   ADD_CD_VALUE("is_hash_checking", rak::on(std::mem_fun(&core::Download::download), std::mem_fun(&torrent::Download::is_hash_checking)));
   ADD_CD_VALUE("is_multi_file",    rak::on(std::mem_fun(&core::Download::file_list), std::mem_fun(&torrent::FileList::is_multi_file)));
-  ADD_CD_VALUE("is_private",       rak::on(std::mem_fun(&core::Download::download), std::mem_fun(&torrent::Download::is_private)));
-  ADD_CD_VALUE("is_pex_active",    rak::on(std::mem_fun(&core::Download::download), std::mem_fun(&torrent::Download::is_pex_active)));
+  ADD_CD_VALUE("is_private",       rak::on(std::mem_fun(&core::Download::info), std::mem_fun(&torrent::DownloadInfo::is_private)));
+  ADD_CD_VALUE("is_pex_active",    rak::on(std::mem_fun(&core::Download::info), std::mem_fun(&torrent::DownloadInfo::is_pex_active)));
 
   ADD_CD_VARIABLE_STRING_PUBLIC("custom1", "rtorrent", "custom1");
   ADD_CD_VARIABLE_STRING_PUBLIC("custom2", "rtorrent", "custom2");
@@ -676,8 +676,6 @@ initialize_command_download() {
   ADD_CD_VALUE_UNI("peers_complete",      rak::on(std::mem_fun(&core::Download::download), std::mem_fun(&torrent::Download::peers_complete)));
   ADD_CD_VALUE_UNI("peers_accounted",     rak::on(std::mem_fun(&core::Download::download), std::mem_fun(&torrent::Download::peers_accounted)));
 
-  ADD_CD_VALUE_MEM_BI("peer_exchange", &core::Download::download, &torrent::Download::set_pex_enabled, &torrent::Download::is_pex_enabled);
-
   ADD_CD_VALUE_MEM_UNI("up_rate",      &torrent::Download::mutable_up_rate, &torrent::Rate::rate);
   ADD_CD_VALUE_MEM_UNI("up_total",     &torrent::Download::mutable_up_rate, &torrent::Rate::total);
   ADD_CD_VALUE_MEM_UNI("down_rate",    &torrent::Download::mutable_down_rate, &torrent::Rate::rate);
@@ -722,4 +720,7 @@ initialize_command_download() {
 
   // NEWISH:
   CMD_D_VOID("d.initialize_logs",         &cmd_d_initialize_logs);
+
+  CMD_D_VOID_SLOT("d.peer_exchange",      rak::on(std::mem_fun(&core::Download::info), std::mem_fun(&torrent::DownloadInfo::is_pex_enabled)));
+  CMD_D_VALUE_SLOT("d.peer_exchange.set", rak::on2(std::mem_fun(&core::Download::download), std::mem_fun(&torrent::Download::set_pex_enabled)));
 }
