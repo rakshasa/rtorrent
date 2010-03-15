@@ -212,7 +212,7 @@ apply_or(rpc::target_type target, const torrent::Object& rawArgs) {
 }
 
 torrent::Object
-apply_less(rpc::target_type target, const torrent::Object& rawArgs) {
+apply_cmp(rpc::target_type target, const torrent::Object& rawArgs) {
   const torrent::Object::list_type& args = rawArgs.as_list();
   
   // We only need to check if empty() since if size() == 1 it calls
@@ -239,16 +239,25 @@ apply_less(rpc::target_type target, const torrent::Object& rawArgs) {
     throw torrent::input_error("Type mismatch.");
     
   switch (result1.type()) {
-  case torrent::Object::TYPE_VALUE:  return result1.as_value() < result2.as_value();
-  case torrent::Object::TYPE_STRING: return result1.as_string() < result2.as_string();
-  default: return (int64_t)false;
+  case torrent::Object::TYPE_VALUE:  return result1.as_value() - result2.as_value();
+  case torrent::Object::TYPE_STRING: return result1.as_string().compare(result2.as_string());
+  default: return torrent::Object();
   }
 }
 
-// Fixme.
-torrent::Object
-apply_greater(rpc::target_type target, const torrent::Object& rawArgs) {
-  return (int64_t)!apply_less(target, rawArgs).as_value();
+torrent::Object apply_less(rpc::target_type target, const torrent::Object& rawArgs) {
+  torrent::Object result = apply_cmp(target, rawArgs);
+  return result.is_value() ? result.as_value() <  0 : (int64_t)false;
+}
+
+torrent::Object apply_greater(rpc::target_type target, const torrent::Object& rawArgs) {
+  torrent::Object result = apply_cmp(target, rawArgs);
+  return result.is_value() ? result.as_value() >  0 : (int64_t)false;
+}
+
+torrent::Object apply_equal(rpc::target_type target, const torrent::Object& rawArgs) {
+  torrent::Object result = apply_cmp(target, rawArgs);
+  return result.is_value() ? result.as_value() == 0 : (int64_t)false;
 }
 
 torrent::Object
@@ -505,6 +514,7 @@ initialize_command_ui() {
 
   ADD_ANY_LIST("less",                  rak::ptr_fn(&apply_less));
   ADD_ANY_LIST("greater",               rak::ptr_fn(&apply_greater));
+  ADD_ANY_LIST("equal",                 rak::ptr_fn(&apply_equal));
 
   // A temporary command for handling stuff until we get proper
   // support for seperation of commands and literals.

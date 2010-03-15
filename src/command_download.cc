@@ -307,11 +307,11 @@ retrieve_d_bitfield(core::Download* download) {
 // Just a helper function atm.
 torrent::Object
 cmd_d_initialize_logs(core::Download* download) {
-  download->download()->signal_network_log(sigc::mem_fun(control->core(), &core::Manager::push_log_complete));
-  download->download()->signal_storage_error(sigc::mem_fun(control->core(), &core::Manager::push_log_complete));
+  download->info()->signal_network_log().connect(sigc::mem_fun(control->core(), &core::Manager::push_log_complete));
+  download->info()->signal_storage_error().connect(sigc::mem_fun(control->core(), &core::Manager::push_log_complete));
 
   if (!rpc::call_command_string("log.tracker").empty())
-    download->download()->signal_tracker_dump(sigc::ptr_fun(&core::receive_tracker_dump));
+    download->info()->signal_tracker_dump().connect(sigc::ptr_fun(&core::receive_tracker_dump));
 
   return torrent::Object();
 }

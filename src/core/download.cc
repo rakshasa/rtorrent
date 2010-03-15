@@ -63,11 +63,11 @@ Download::Download(download_type d) :
   m_chunksFailed(0),
   m_resumeFlags(~uint32_t()) {
 
-  m_connTrackerSucceeded = m_download.signal_tracker_succeeded(sigc::bind(sigc::mem_fun(*this, &Download::receive_tracker_msg), ""));
-  m_connTrackerFailed   = m_download.signal_tracker_failed(sigc::mem_fun(*this, &Download::receive_tracker_msg));
-  m_connStorageError    = m_download.signal_storage_error(sigc::mem_fun(*this, &Download::receive_storage_error));
+  m_connTrackerSucceeded = m_download.info()->signal_tracker_success().connect(sigc::bind(sigc::mem_fun(*this, &Download::receive_tracker_msg), ""));
+  m_connTrackerFailed   = m_download.info()->signal_tracker_failed().connect(sigc::mem_fun(*this, &Download::receive_tracker_msg));
+  m_connStorageError    = m_download.info()->signal_storage_error().connect(sigc::mem_fun(*this, &Download::receive_storage_error));
 
-  m_download.signal_chunk_failed(sigc::mem_fun(*this, &Download::receive_chunk_failed));
+  m_download.info()->signal_chunk_failed().connect(sigc::mem_fun(*this, &Download::receive_chunk_failed));
 }
 
 Download::~Download() {

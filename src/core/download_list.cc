@@ -175,8 +175,8 @@ DownloadList::insert(Download* download) {
   iterator itr = base_type::insert(end(), download);
 
   try {
-    (*itr)->download()->signal_download_done(sigc::bind(sigc::mem_fun(*this, &DownloadList::received_finished), download));
-    (*itr)->download()->signal_hash_done(sigc::bind(sigc::mem_fun(*this, &DownloadList::hash_done), download));
+    (*itr)->info()->signal_download_done().connect(sigc::bind(sigc::mem_fun(*this, &DownloadList::received_finished), download));
+    (*itr)->info()->signal_initial_hash().connect(sigc::bind(sigc::mem_fun(*this, &DownloadList::hash_done), download));
 
     // This needs to be separated into two different calls to ensure
     // the download remains in the view.
