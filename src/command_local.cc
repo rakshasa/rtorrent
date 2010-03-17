@@ -44,6 +44,7 @@
 #include <sys/stat.h>
 #include <torrent/torrent.h>
 #include <torrent/chunk_manager.h>
+#include <torrent/data/file_manager.h>
 
 #include "core/download_list.h"
 #include "core/download_store.h"
@@ -60,6 +61,7 @@
 #include "command_helpers.h"
 
 typedef torrent::ChunkManager CM_t;
+typedef torrent::FileManager  FM_t;
 
 torrent::Object
 apply_log(int logType, const torrent::Object& rawArgs) {
@@ -170,6 +172,7 @@ group_insert(__UNUSED rpc::target_type target, const torrent::Object& rawArgs) {
 void
 initialize_command_local() {
   torrent::ChunkManager* chunkManager = torrent::chunk_manager();
+  torrent::FileManager*  fileManager = torrent::file_manager();
   core::DownloadList*    dList = control->core()->download_list();
   core::DownloadStore*   dStore = control->core()->download_store();
 
@@ -187,6 +190,11 @@ initialize_command_local() {
   ADD_COMMAND_VOID("system.file_status_cache.size",  rak::make_mem_fun((utils::FileStatusCache::base_type*)control->core()->file_status_cache(),
                                                                        &utils::FileStatusCache::size));
   ADD_COMMAND_VOID("system.file_status_cache.prune", rak::make_mem_fun(control->core()->file_status_cache(), &utils::FileStatusCache::prune));
+
+  ADD_COMMAND_VOID("system.files.opened_counter",    rak::make_mem_fun(fileManager, &FM_t::files_opened_counter));
+  ADD_COMMAND_VOID("system.files.closed_counter",    rak::make_mem_fun(fileManager, &FM_t::files_closed_counter));
+  ADD_COMMAND_VOID("system.files.failed_counter",    rak::make_mem_fun(fileManager, &FM_t::files_failed_counter));
+
   ADD_COMMAND_VOID("system.time",                    rak::make_mem_fun(&cachedTime, &rak::timer::seconds));
   ADD_COMMAND_VOID("system.time_seconds",            rak::ptr_fun(&rak::timer::current_seconds));
   ADD_COMMAND_VOID("system.time_usec",               rak::ptr_fun(&rak::timer::current_usec));
