@@ -38,6 +38,7 @@
 #define RTORRENT_UTILS_COMMAND_HELPERS_H
 
 #include "rpc/command_slot.h"
+#include "rpc/command_new_slot.h"
 #include "rpc/command_function.h"
 #include "rpc/parse_commands.h"
 
@@ -57,6 +58,8 @@ namespace rpc {
 #define COMMAND_PEER_SLOTS_SIZE     20
 #define COMMAND_TRACKER_SLOTS_SIZE  15
 #define COMMAND_ANY_SLOTS_SIZE      50
+
+#define COMMAND_NEW_SLOTS_SIZE      100
 
 #define ADDING_COMMANDS
 
@@ -78,6 +81,9 @@ extern rpc::CommandSlot<torrent::Tracker*>           commandTrackerSlots[COMMAND
 extern rpc::CommandSlot<torrent::Tracker*>*          commandTrackerSlotsItr;
 extern rpc::CommandSlot<rpc::target_type>            commandAnySlots[COMMAND_ANY_SLOTS_SIZE];
 extern rpc::CommandSlot<rpc::target_type>*           commandAnySlotsItr;
+
+extern rpc::command_base commandNewSlots[COMMAND_NEW_SLOTS_SIZE];
+extern rpc::command_base* commandNewSlotItr;
 
 void initialize_commands();
 
@@ -237,5 +243,21 @@ add_variable(key, NULL, NULL, &rpc::CommandVariable::get_string, NULL, std::stri
 #define CMD_OBJ_P(key, function, target) \
   commandObjectPtrsItr->set_object(target); \
   rpc::commands.insert_type(key, commandObjectPtrsItr++, &rpc::CommandObjectPtr::function, rpc::CommandMap::flag_dont_delete | rpc::CommandMap::flag_public_xmlrpc, NULL, NULL);
+
+//
+// New std::function based command_base helper functions:
+//
+
+#define CMD2_A_FUNCTION(key, function, func_type, slot, parm, doc)      \
+  commandNewSlotItr->set_function<rpc::func_type>(slot);                \
+  m_map.insert_type(key, commandNewSlotItr++, &rpc::function,           \
+                    rpc::CommandMap::flag_dont_delete | rpc::CommandMap::flag_public_xmlrpc, NULL, NULL);
+
+#define CMD2_A(key, slot) \
+  CMD2_A_FUNCTION(key, command_base_call_any, any_function, slot, "i:", "")
+
+#define CMD2_A_STRING(key, slot) \
+  CMD2_A_FUNCTION(key, command_base_call_any_string, any_string_function, slot, "i:s", "")
+
 
 #endif

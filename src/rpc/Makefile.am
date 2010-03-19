@@ -12,8 +12,12 @@ libsub_rpc_a_SOURCES = \
 	command_scheduler_item.h \
 	command_slot.cc \
 	command_slot.h \
+	command_new_slot.cc \
+	command_new_slot.h \
 	command_variable.cc \
 	command_variable.h \
+	command_new_slot.cc \
+	command_new_slot.h \
 	exec_file.cc \
 	exec_file.h \
 	parse.cc \

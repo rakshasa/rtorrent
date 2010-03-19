@@ -64,6 +64,9 @@ rpc::CommandSlot<torrent::Tracker*>*          commandTrackerSlotsItr = commandTr
 rpc::CommandSlot<rpc::target_type>            commandAnySlots[COMMAND_ANY_SLOTS_SIZE];
 rpc::CommandSlot<rpc::target_type>*           commandAnySlotsItr = commandAnySlots;
 
+rpc::command_base commandNewSlots[COMMAND_NEW_SLOTS_SIZE];
+rpc::command_base* commandNewSlotItr = commandNewSlots;
+
 void initialize_command_object();
 void initialize_command_dynamic();
 void initialize_command_download();
@@ -99,7 +102,8 @@ initialize_commands() {
       commandFileItrSlotsItr > commandFileItrSlots + COMMAND_FILE_ITR_SLOTS_SIZE ||
       commandPeerSlotsItr > commandPeerSlots + COMMAND_PEER_SLOTS_SIZE ||
       commandTrackerSlotsItr > commandTrackerSlots + COMMAND_TRACKER_SLOTS_SIZE ||
-      commandAnySlotsItr > commandAnySlots + COMMAND_ANY_SLOTS_SIZE)
+      commandAnySlotsItr > commandAnySlots + COMMAND_ANY_SLOTS_SIZE ||
+      commandNewSlotItr > commandNewSlots + COMMAND_NEW_SLOTS_SIZE)
 #else
   if (commandSlotsItr != commandSlots + COMMAND_SLOTS_SIZE ||
       commandVariablesItr != commandVariables + COMMAND_VARIABLES_SIZE ||
@@ -109,7 +113,8 @@ initialize_commands() {
       commandFileItrSlotsItr != commandFileItrSlots + COMMAND_FILE_ITR_SLOTS_SIZE ||
       commandPeerSlotsItr != commandPeerSlots + COMMAND_PEER_SLOTS_SIZE ||
       commandTrackerSlotsItr != commandTrackerSlots + COMMAND_TRACKER_SLOTS_SIZE ||
-      commandAnySlotsItr != commandAnySlots + COMMAND_ANY_SLOTS_SIZE)
+      commandAnySlotsItr != commandAnySlots + COMMAND_ANY_SLOTS_SIZE ||
+      commandNewSlotItr != commandNewSlots + COMMAND_NEW_SLOTS_SIZE)
 #endif
     throw torrent::internal_error("initialize_commands() static command array size mismatch.");
 }

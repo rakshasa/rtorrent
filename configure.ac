@@ -2,6 +2,7 @@ AC_INIT(rtorrent, 0.8.6, jaris@ifi.uio.no)
 
 AM_INIT_AUTOMAKE
 AM_CONFIG_HEADER(config.h)
+AM_PATH_CPPUNIT(1.9.6)
 
 AC_PROG_CXX
 AC_PROG_LIBTOOL
@@ -63,4 +64,5 @@ AC_OUTPUT([
 	src/rpc/Makefile
 	src/ui/Makefile
 	src/utils/Makefile
+        test/Makefile
 ])

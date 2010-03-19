@@ -157,6 +157,11 @@ apply_d_change_link(int changeType, core::Download* download, const torrent::Obj
   return torrent::Object();
 }
 
+template <int type> torrent::Object
+cmd_d_change_link(core::Download* download, const torrent::Object& rawArgs) {
+  return apply_d_change_link(type, download, rawArgs);
+}
+
 void
 apply_d_delete_tied(core::Download* download) {
   const std::string& tie = rpc::call_command_string("d.get_tied_to_file", rpc::make_target(download));

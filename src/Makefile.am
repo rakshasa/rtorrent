@@ -6,17 +6,9 @@ SUBDIRS = \
 	ui \
 	utils
 
-bin_PROGRAMS = rtorrent
+noinst_LIBRARIES = libsub_root.a
 
-rtorrent_LDADD = \
-	ui/libsub_ui.a \
-	core/libsub_core.a \
-	display/libsub_display.a \
-	input/libsub_input.a \
-	rpc/libsub_rpc.a \
-	utils/libsub_utils.a
-
-rtorrent_SOURCES = \
+libsub_root_a_SOURCES = \
 	command_download.cc \
 	command_dynamic.cc \
 	command_events.cc \
@@ -34,7 +26,6 @@ rtorrent_SOURCES = \
 	control.h \
 	globals.cc \
 	globals.h \
-	main.cc \
 	option_parser.cc \
 	option_parser.h \
 	signal_handler.cc \
@@ -45,5 +36,19 @@ rtorrent_SOURCES = \
 	thread_main.h \
 	thread_worker.cc \
 	thread_worker.h
+
+bin_PROGRAMS = rtorrent
+
+rtorrent_LDADD = \
+	ui/libsub_ui.a \
+	core/libsub_core.a \
+	display/libsub_display.a \
+	input/libsub_input.a \
+	rpc/libsub_rpc.a \
+	utils/libsub_utils.a \
+	libsub_root.a
+
+rtorrent_SOURCES = \
+	main.cc
 
 INCLUDES = -I$(srcdir) -I$(top_srcdir)
