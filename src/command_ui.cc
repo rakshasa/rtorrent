@@ -58,9 +58,7 @@
 typedef void (core::ViewManager::*view_cfilter_slot)(const std::string&, const std::string&);
 
 torrent::Object
-apply_view_filter_on(const torrent::Object& rawArgs) {
-  const torrent::Object::list_type& args = rawArgs.as_list();
-
+apply_view_filter_on(const torrent::Object::list_type& args) {
   if (args.size() < 1)
     throw torrent::input_error("Too few arguments.");
 
@@ -80,9 +78,7 @@ apply_view_filter_on(const torrent::Object& rawArgs) {
 }
 
 torrent::Object
-apply_view_cfilter(view_cfilter_slot viewFilterSlot, const torrent::Object& rawArgs) {
-  const torrent::Object::list_type& args = rawArgs.as_list();
-
+apply_view_cfilter(view_cfilter_slot viewFilterSlot, const torrent::Object::list_type& args) {
   if (args.size() != 2)
     throw torrent::input_error("Too few arguments.");
 
@@ -97,9 +93,7 @@ apply_view_cfilter(view_cfilter_slot viewFilterSlot, const torrent::Object& rawA
 }
 
 torrent::Object
-apply_view_sort(const torrent::Object& rawArgs) {
-  const torrent::Object::list_type& args = rawArgs.as_list();
-
+apply_view_sort(const torrent::Object::list_type& args) {
   if (args.size() <= 0 || args.size() > 2)
     throw torrent::input_error("Wrong argument count.");
 
@@ -119,7 +113,7 @@ apply_view_sort(const torrent::Object& rawArgs) {
 }
 
 torrent::Object
-apply_view_list(const torrent::Object&) {
+apply_view_list() {
   torrent::Object rawResult = torrent::Object::create_list();
   torrent::Object::list_type& result = rawResult.as_list();
 
@@ -130,9 +124,7 @@ apply_view_list(const torrent::Object&) {
 }
 
 torrent::Object
-apply_view_set(const torrent::Object& rawArgs) {
-  const torrent::Object::list_type& args = rawArgs.as_list();
-
+apply_view_set(const torrent::Object::list_type& args) {
   if (args.size() != 2)
     throw torrent::input_error("Wrong argument count.");
 
@@ -212,9 +204,7 @@ apply_or(rpc::target_type target, const torrent::Object& rawArgs) {
 }
 
 torrent::Object
-apply_cmp(rpc::target_type target, const torrent::Object& rawArgs) {
-  const torrent::Object::list_type& args = rawArgs.as_list();
-  
+apply_cmp(rpc::target_type target, const torrent::Object::list_type& args) {
   // We only need to check if empty() since if size() == 1 it calls
   // the same command for both, or if size() == 2 then each side of
   // the comparison has different commands.
@@ -245,23 +235,23 @@ apply_cmp(rpc::target_type target, const torrent::Object& rawArgs) {
   }
 }
 
-torrent::Object apply_less(rpc::target_type target, const torrent::Object& rawArgs) {
-  torrent::Object result = apply_cmp(target, rawArgs);
+torrent::Object apply_less(rpc::target_type target, const torrent::Object::list_type& args) {
+  torrent::Object result = apply_cmp(target, args);
   return result.is_value() ? result.as_value() <  0 : (int64_t)false;
 }
 
-torrent::Object apply_greater(rpc::target_type target, const torrent::Object& rawArgs) {
-  torrent::Object result = apply_cmp(target, rawArgs);
+torrent::Object apply_greater(rpc::target_type target, const torrent::Object::list_type& args) {
+  torrent::Object result = apply_cmp(target, args);
   return result.is_value() ? result.as_value() >  0 : (int64_t)false;
 }
 
-torrent::Object apply_equal(rpc::target_type target, const torrent::Object& rawArgs) {
-  torrent::Object result = apply_cmp(target, rawArgs);
+torrent::Object apply_equal(rpc::target_type target, const torrent::Object::list_type& args) {
+  torrent::Object result = apply_cmp(target, args);
   return result.is_value() ? result.as_value() == 0 : (int64_t)false;
 }
 
 torrent::Object
-apply_to_time(int flags, const torrent::Object& rawArgs) {
+apply_to_time(const torrent::Object& rawArgs, int flags) {
   std::tm *u;
   time_t t = (uint64_t)rawArgs.as_value();
 
@@ -349,7 +339,7 @@ apply_to_throttle(const torrent::Object& rawArgs) {
 // if (cond1) { branch1 } else if (cond2) { branch2 } else { branch3 }
 // <cond1>,<branch1>,<cond2>,<branch2>,<branch3>
 torrent::Object
-apply_if(int flags, rpc::target_type target, const torrent::Object& rawArgs) {
+apply_if(rpc::target_type target, const torrent::Object& rawArgs, int flags) {
   const torrent::Object::list_type& args = rawArgs.as_list();
   torrent::Object::list_const_iterator itr = args.begin();
 
@@ -472,19 +462,20 @@ void
 initialize_command_ui() {
   ADD_VARIABLE_STRING("key_layout", "qwerty");
 
-  ADD_COMMAND_STRING("view_add",        rpc::object_string_fn(rak::make_mem_fun(control->view_manager(), &core::ViewManager::insert_throw)));
-  ADD_COMMAND_NONE_L("view_list",       rak::ptr_fn(&apply_view_list));
-  ADD_COMMAND_NONE_L("view_set",        rak::ptr_fn(&apply_view_set));
+  CMD2_ANY_STRING("view_add", object_convert_void(std::tr1::bind(&core::ViewManager::insert_throw, control->view_manager(), std::tr1::placeholders::_2)));
 
-  ADD_COMMAND_LIST("view_filter",       rak::bind_ptr_fn(&apply_view_cfilter, &core::ViewManager::set_filter));
-  ADD_COMMAND_LIST("view_filter_on",    rak::ptr_fn(&apply_view_filter_on));
+  CMD2_ANY_L("view_list",   std::tr1::bind(&apply_view_list));
+  CMD2_ANY_LIST("view_set", std::tr1::bind(&apply_view_set, std::tr1::placeholders::_2));
 
-  ADD_COMMAND_LIST("view_sort",         rak::ptr_fn(&apply_view_sort));
-  ADD_COMMAND_LIST("view_sort_new",     rak::bind_ptr_fn(&apply_view_cfilter, &core::ViewManager::set_sort_new));
-  ADD_COMMAND_LIST("view_sort_current", rak::bind_ptr_fn(&apply_view_cfilter, &core::ViewManager::set_sort_current));
+  CMD2_ANY_LIST("view_filter",       std::tr1::bind(&apply_view_cfilter, &core::ViewManager::set_filter, std::tr1::placeholders::_2));
+  CMD2_ANY_LIST("view_filter_on",    std::tr1::bind(&apply_view_filter_on, std::tr1::placeholders::_2));
 
-  ADD_COMMAND_LIST("view.event_added",   rak::bind_ptr_fn(&apply_view_cfilter, &core::ViewManager::set_event_added));
-  ADD_COMMAND_LIST("view.event_removed", rak::bind_ptr_fn(&apply_view_cfilter, &core::ViewManager::set_event_removed));
+  CMD2_ANY_LIST("view_sort",         std::tr1::bind(&apply_view_sort, std::tr1::placeholders::_2));
+  CMD2_ANY_LIST("view_sort_new",     std::tr1::bind(&apply_view_cfilter, &core::ViewManager::set_sort_new, std::tr1::placeholders::_2));
+  CMD2_ANY_LIST("view_sort_current", std::tr1::bind(&apply_view_cfilter, &core::ViewManager::set_sort_current, std::tr1::placeholders::_2));
+
+  CMD2_ANY_LIST("view.event_added",   std::tr1::bind(&apply_view_cfilter, &core::ViewManager::set_event_added, std::tr1::placeholders::_2));
+  CMD2_ANY_LIST("view.event_removed", std::tr1::bind(&apply_view_cfilter, &core::ViewManager::set_event_removed, std::tr1::placeholders::_2));
 
   // Cleanup and add . to view.
 
@@ -503,30 +494,29 @@ initialize_command_ui() {
   CMD_N_STRING("ui.current_view.set",   rak::ptr_fn(&cmd_ui_set_view));
 
   // Move.
-
-  ADD_ANY_NONE("print",                 rak::ptr_fn(&apply_print));
-  ADD_ANY_NONE("cat",                   rak::ptr_fn(&apply_cat));
-  ADD_ANY_NONE("if",                    rak::bind_ptr_fn(&apply_if, 0));
-  ADD_ANY_NONE("not",                   rak::ptr_fn(&apply_not));
-  ADD_ANY_NONE("false",                 rak::ptr_fn(&apply_false));
-  ADD_ANY_NONE("and",                   rak::ptr_fn(&apply_and));
-  ADD_ANY_NONE("or",                    rak::ptr_fn(&apply_or));
-
-  ADD_ANY_LIST("less",                  rak::ptr_fn(&apply_less));
-  ADD_ANY_LIST("greater",               rak::ptr_fn(&apply_greater));
-  ADD_ANY_LIST("equal",                 rak::ptr_fn(&apply_equal));
+  CMD2_ANY("print", &apply_print);
+  CMD2_ANY("cat",   &apply_cat);
+  CMD2_ANY("if",    std::tr1::bind(&apply_if, std::tr1::placeholders::_1, std::tr1::placeholders::_2, 0));
+  CMD2_ANY("not",   &apply_not);
+  CMD2_ANY("false", &apply_false);
+  CMD2_ANY("and",   &apply_and);
+  CMD2_ANY("or",    &apply_or);
 
   // A temporary command for handling stuff until we get proper
   // support for seperation of commands and literals.
-  ADD_ANY_NONE("branch",                rak::bind_ptr_fn(&apply_if, 1));
+  CMD2_ANY("branch", std::tr1::bind(&apply_if, std::tr1::placeholders::_1, std::tr1::placeholders::_2, 1));
 
-  ADD_COMMAND_VALUE("to_gm_time",       rak::bind_ptr_fn(&apply_to_time, 0));
-  ADD_COMMAND_VALUE("to_gm_date",       rak::bind_ptr_fn(&apply_to_time, 0x2));
-  ADD_COMMAND_VALUE("to_time",          rak::bind_ptr_fn(&apply_to_time, 0x1));
-  ADD_COMMAND_VALUE("to_date",          rak::bind_ptr_fn(&apply_to_time, 0x1 | 0x2));
-  ADD_COMMAND_VALUE("to_elapsed_time",  rak::ptr_fn(&apply_to_elapsed_time));
-  ADD_COMMAND_VALUE("to_kb",            rak::ptr_fn(&apply_to_kb));
-  ADD_COMMAND_VALUE("to_mb",            rak::ptr_fn(&apply_to_mb));
-  ADD_COMMAND_VALUE("to_xb",            rak::ptr_fn(&apply_to_xb));
-  ADD_COMMAND_VALUE("to_throttle",      rak::ptr_fn(&apply_to_throttle));
+  CMD2_ANY_LIST("less",    &apply_less);
+  CMD2_ANY_LIST("greater", &apply_greater);
+  CMD2_ANY_LIST("equal",   &apply_equal);
+
+  CMD2_ANY_VALUE("to_gm_time",      std::tr1::bind(&apply_to_time, std::tr1::placeholders::_2, 0));
+  CMD2_ANY_VALUE("to_gm_date",      std::tr1::bind(&apply_to_time, std::tr1::placeholders::_2, 0x2));
+  CMD2_ANY_VALUE("to_time",         std::tr1::bind(&apply_to_time, std::tr1::placeholders::_2, 0x1));
+  CMD2_ANY_VALUE("to_date",         std::tr1::bind(&apply_to_time, std::tr1::placeholders::_2, 0x1 | 0x2));
+  CMD2_ANY_VALUE("to_elapsed_time", std::tr1::bind(&apply_to_elapsed_time, std::tr1::placeholders::_2));
+  CMD2_ANY_VALUE("to_kb",           std::tr1::bind(&apply_to_kb, std::tr1::placeholders::_2));
+  CMD2_ANY_VALUE("to_mb",           std::tr1::bind(&apply_to_mb, std::tr1::placeholders::_2));
+  CMD2_ANY_VALUE("to_xb",           std::tr1::bind(&apply_to_xb, std::tr1::placeholders::_2));
+  CMD2_ANY_VALUE("to_throttle",     std::tr1::bind(&apply_to_throttle, std::tr1::placeholders::_2));
 }

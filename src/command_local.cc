@@ -64,7 +64,7 @@ typedef torrent::ChunkManager CM_t;
 typedef torrent::FileManager  FM_t;
 
 torrent::Object
-apply_log(int logType, const torrent::Object& rawArgs) {
+apply_log(const torrent::Object::string_type& arg, int logType) {
   if (rpc::execFile.log_fd() != -1) {
     switch (logType) {
     case 0: ::close(rpc::execFile.log_fd()); rpc::execFile.set_log_fd(-1); break;
@@ -78,8 +78,8 @@ apply_log(int logType, const torrent::Object& rawArgs) {
     }
   }
 
-  if (rawArgs.is_string() && !rawArgs.as_string().empty()) {
-    int logFd = open(rak::path_expand(rawArgs.as_string()).c_str(), O_WRONLY | O_APPEND | O_CREAT, 0644);
+  if (arg.empty()) {
+    int logFd = open(rak::path_expand(arg).c_str(), O_WRONLY | O_APPEND | O_CREAT, 0644);
 
     if (logFd < 0)
       throw torrent::input_error("Could not open execute log file.");
@@ -229,15 +229,15 @@ initialize_command_local() {
   ADD_COMMAND_STRING_TRI("session",            rak::make_mem_fun(dStore, &core::DownloadStore::set_path), rak::make_mem_fun(dStore, &core::DownloadStore::path));
   ADD_COMMAND_VOID("session_save",             rak::make_mem_fun(dList, &core::DownloadList::session_save));
 
-  ADD_COMMAND_LIST("execute",             rak::bind2_mem_fn(&rpc::execFile, &rpc::ExecFile::execute_object, rpc::ExecFile::flag_throw | rpc::ExecFile::flag_expand_tilde));
-  ADD_COMMAND_LIST("execute_nothrow",     rak::bind2_mem_fn(&rpc::execFile, &rpc::ExecFile::execute_object, rpc::ExecFile::flag_expand_tilde));
-  ADD_COMMAND_LIST("execute_raw",         rak::bind2_mem_fn(&rpc::execFile, &rpc::ExecFile::execute_object, rpc::ExecFile::flag_throw));
-  ADD_COMMAND_LIST("execute_raw_nothrow", rak::bind2_mem_fn(&rpc::execFile, &rpc::ExecFile::execute_object, 0));
-  ADD_COMMAND_LIST("execute_capture",     rak::bind2_mem_fn(&rpc::execFile, &rpc::ExecFile::execute_object, rpc::ExecFile::flag_throw | rpc::ExecFile::flag_expand_tilde | rpc::ExecFile::flag_capture));
-  ADD_COMMAND_LIST("execute_capture_nothrow", rak::bind2_mem_fn(&rpc::execFile, &rpc::ExecFile::execute_object, rpc::ExecFile::flag_expand_tilde | rpc::ExecFile::flag_capture));
+  CMD2_ANY("execute",             std::tr1::bind(&rpc::ExecFile::execute_object, &rpc::execFile, std::tr1::placeholders::_2, rpc::ExecFile::flag_throw | rpc::ExecFile::flag_expand_tilde));
+  CMD2_ANY("execute_nothrow",     std::tr1::bind(&rpc::ExecFile::execute_object, &rpc::execFile, std::tr1::placeholders::_2, rpc::ExecFile::flag_expand_tilde));
+  CMD2_ANY("execute_raw",         std::tr1::bind(&rpc::ExecFile::execute_object, &rpc::execFile, std::tr1::placeholders::_2, rpc::ExecFile::flag_throw));
+  CMD2_ANY("execute_raw_nothrow", std::tr1::bind(&rpc::ExecFile::execute_object, &rpc::execFile, std::tr1::placeholders::_2, 0));
+  CMD2_ANY("execute_capture",     std::tr1::bind(&rpc::ExecFile::execute_object, &rpc::execFile, std::tr1::placeholders::_2, rpc::ExecFile::flag_throw | rpc::ExecFile::flag_expand_tilde | rpc::ExecFile::flag_capture));
+  CMD2_ANY("execute_capture_nothrow", std::tr1::bind(&rpc::ExecFile::execute_object, &rpc::execFile, std::tr1::placeholders::_2, rpc::ExecFile::flag_expand_tilde | rpc::ExecFile::flag_capture));
 
-  ADD_COMMAND_STRING("log.execute", rak::bind_ptr_fn(&apply_log, 0));
-  ADD_COMMAND_STRING("log.xmlrpc",  rak::bind_ptr_fn(&apply_log, 1));
+  CMD2_ANY_STRING("log.execute", std::tr1::bind(&apply_log, std::tr1::placeholders::_2, 0));
+  CMD2_ANY_STRING("log.xmlrpc",  std::tr1::bind(&apply_log, std::tr1::placeholders::_2, 1));
 
   *rpc::Command::argument(0) = "placeholder.0";
   *rpc::Command::argument(1) = "placeholder.1";

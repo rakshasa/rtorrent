@@ -179,9 +179,7 @@ apply_remove_untied() {
 }
 
 torrent::Object
-apply_schedule(const torrent::Object& rawArgs) {
-  const torrent::Object::list_type& args = rawArgs.as_list();
-
+apply_schedule(const torrent::Object::list_type& args) {
   if (args.size() != 4)
     throw torrent::input_error("Wrong number of arguments.");
 
@@ -198,8 +196,7 @@ apply_schedule(const torrent::Object& rawArgs) {
 }
 
 torrent::Object
-apply_load(int flags, const torrent::Object& rawArgs) {
-  const torrent::Object::list_type&    args    = rawArgs.as_list();
+apply_load(const torrent::Object::list_type& args, int flags) {
   torrent::Object::list_const_iterator argsItr = args.begin();
 
   if (argsItr == args.end())
@@ -245,8 +242,7 @@ apply_close_low_diskspace(int64_t arg) {
 }
 
 torrent::Object
-apply_download_list(const torrent::Object& rawArgs) {
-  const torrent::Object::list_type&          args    = rawArgs.as_list();
+apply_download_list(const torrent::Object::list_type& args) {
   torrent::Object::list_const_iterator argsItr = args.begin();
 
   core::ViewManager* viewManager = control->view_manager();
@@ -273,22 +269,9 @@ apply_download_list(const torrent::Object& rawArgs) {
 }
 
 torrent::Object
-d_multicall(const torrent::Object& rawArgs) {
-  const torrent::Object::list_type&          args = rawArgs.as_list();
-
+d_multicall(const torrent::Object::list_type& args) {
   if (args.empty())
     throw torrent::input_error("Too few arguments.");
-
-//   const torrent::Object::string_type& infoHash = args.begin()->as_string();
-
-//   core::DownloadList*          dList = control->core()->download_list();
-//   core::DownloadList::iterator dItr  = dList->end();
-
-//   if (infoHash.size() == 40)
-//     dItr = dList->find_hex(infoHash.c_str());
-
-//   if (dItr == dList->end())
-//     throw torrent::input_error("Not a valid info-hash.");
 
   core::ViewManager* viewManager = control->view_manager();
   core::ViewManager::iterator viewItr;
@@ -334,30 +317,29 @@ initialize_command_events() {
   rpc::commands.call("method.insert", rpc::create_object_list("system.session.use_lock", "bool|const", true));
   rpc::commands.call("method.insert", rpc::create_object_list("system.session.on_completion", "bool|const", true));
 
-  ADD_COMMAND_STRING("on_ratio",      rak::ptr_fn(&apply_on_ratio));
+  CMD2_ANY_STRING("on_ratio", std::tr1::bind(&apply_on_ratio, std::tr1::placeholders::_2));
 
   ADD_COMMAND_VOID("start_tied",      &apply_start_tied);
   ADD_COMMAND_VOID("stop_untied",     &apply_stop_untied);
   ADD_COMMAND_VOID("close_untied",    &apply_close_untied);
   ADD_COMMAND_VOID("remove_untied",   &apply_remove_untied);
 
-  ADD_COMMAND_LIST("schedule",                rak::ptr_fn(&apply_schedule));
+  CMD2_ANY_LIST("schedule", std::tr1::bind(&apply_schedule, std::tr1::placeholders::_2));
   ADD_COMMAND_STRING_UN("schedule_remove",    rak::make_mem_fun(control->command_scheduler(), &rpc::CommandScheduler::erase_str));
 
   ADD_COMMAND_STRING_UN("import",             std::ptr_fun(&apply_import));
   ADD_COMMAND_STRING_UN("try_import",         std::ptr_fun(&apply_try_import));
 
-  ADD_COMMAND_LIST("load",                    rak::bind_ptr_fn(&apply_load, core::Manager::create_quiet | core::Manager::create_tied));
-  ADD_COMMAND_LIST("load_verbose",            rak::bind_ptr_fn(&apply_load, core::Manager::create_tied));
-  ADD_COMMAND_LIST("load_start",              rak::bind_ptr_fn(&apply_load, core::Manager::create_quiet | core::Manager::create_tied | core::Manager::create_start));
-  ADD_COMMAND_LIST("load_start_verbose",      rak::bind_ptr_fn(&apply_load, core::Manager::create_tied  | core::Manager::create_start));
-  ADD_COMMAND_LIST("load_raw",                rak::bind_ptr_fn(&apply_load, core::Manager::create_quiet | core::Manager::create_raw_data));
-  ADD_COMMAND_LIST("load_raw_verbose",        rak::bind_ptr_fn(&apply_load, core::Manager::create_raw_data));
-  ADD_COMMAND_LIST("load_raw_start",          rak::bind_ptr_fn(&apply_load, core::Manager::create_quiet | core::Manager::create_start | core::Manager::create_raw_data));
+  CMD2_ANY_LIST("load",               std::tr1::bind(&apply_load, std::tr1::placeholders::_2, core::Manager::create_quiet | core::Manager::create_tied));
+  CMD2_ANY_LIST("load_verbose",       std::tr1::bind(&apply_load, std::tr1::placeholders::_2, core::Manager::create_tied));
+  CMD2_ANY_LIST("load_start",         std::tr1::bind(&apply_load, std::tr1::placeholders::_2, core::Manager::create_quiet | core::Manager::create_tied | core::Manager::create_start));
+  CMD2_ANY_LIST("load_start_verbose", std::tr1::bind(&apply_load, std::tr1::placeholders::_2, core::Manager::create_tied  | core::Manager::create_start));
+  CMD2_ANY_LIST("load_raw",           std::tr1::bind(&apply_load, std::tr1::placeholders::_2, core::Manager::create_quiet | core::Manager::create_raw_data));
+  CMD2_ANY_LIST("load_raw_verbose",   std::tr1::bind(&apply_load, std::tr1::placeholders::_2, core::Manager::create_raw_data));
+  CMD2_ANY_LIST("load_raw_start",     std::tr1::bind(&apply_load, std::tr1::placeholders::_2, core::Manager::create_quiet | core::Manager::create_start | core::Manager::create_raw_data));
 
   ADD_COMMAND_VALUE_UN("close_low_diskspace", std::ptr_fun(&apply_close_low_diskspace));
 
-  ADD_COMMAND_LIST("download_list",           rak::ptr_fn(&apply_download_list));
-  ADD_COMMAND_LIST("d.multicall",             rak::ptr_fn(&d_multicall));
-  ADD_COMMAND_COPY("call_download",           call_list, "i:", "");
+  CMD2_ANY_LIST("download_list", std::tr1::bind(&apply_download_list, std::tr1::placeholders::_2));
+  CMD2_ANY_LIST("d.multicall",   std::tr1::bind(&d_multicall, std::tr1::placeholders::_2));
 }

@@ -63,8 +63,7 @@
 #include "command_helpers.h"
 
 torrent::Object
-apply_throttle(bool up, const torrent::Object& rawArgs) {
-  const torrent::Object::list_type& args = rawArgs.as_list();
+apply_throttle(const torrent::Object::list_type& args, bool up) {
   torrent::Object::list_const_iterator argItr = args.begin();
 
   const std::string& name = argItr->as_string();
@@ -100,8 +99,7 @@ static const int throttle_info_max  = (1 << 2);
 static const int throttle_info_rate = (1 << 3);
 
 torrent::Object
-retrieve_throttle_info(int flags, const torrent::Object& rawArgs) {
-  const std::string& name = rawArgs.as_string();
+retrieve_throttle_info(const torrent::Object::string_type& name, int flags) {
   core::ThrottleMap::iterator itr = control->core()->throttles().find(name);
   torrent::ThrottlePair throttles = itr == control->core()->throttles().end() ? torrent::ThrottlePair(NULL, NULL) : itr->second;
   torrent::Throttle* throttle = flags & throttle_info_down ? throttles.second : throttles.first;
@@ -162,8 +160,7 @@ parse_address_range(const torrent::Object::list_type& args, torrent::Object::lis
 }
 
 torrent::Object
-apply_address_throttle(const torrent::Object& rawArgs) {
-  const torrent::Object::list_type& args = rawArgs.as_list();
+apply_address_throttle(const torrent::Object::list_type& args) {
   if (args.size() < 2 || args.size() > 3)
     throw torrent::input_error("Incorrect number of arguments.");
 
@@ -177,9 +174,7 @@ apply_address_throttle(const torrent::Object& rawArgs) {
 }
 
 torrent::Object
-apply_encryption(const torrent::Object& rawArgs) {
-  const torrent::Object::list_type& args = rawArgs.as_list();
-
+apply_encryption(const torrent::Object::list_type& args) {
   uint32_t options_mask = torrent::ConnectionManager::encryption_none;
 
   for (torrent::Object::list_const_iterator itr = args.begin(), last = args.end(); itr != last; itr++) {
@@ -209,11 +204,9 @@ apply_encryption(const torrent::Object& rawArgs) {
 }
 
 torrent::Object
-apply_tos(const torrent::Object& rawArg) {
+apply_tos(const torrent::Object::string_type& arg) {
   rpc::Command::value_type value;
   torrent::ConnectionManager* cm = torrent::connection_manager();
-
-  const std::string& arg = rawArg.as_string();
 
   if (arg == "default")
     value = torrent::ConnectionManager::iptos_default;
@@ -443,18 +436,18 @@ initialize_command_network() {
 
   ADD_VARIABLE_VALUE("tracker_numwant", -1);
 
-  ADD_COMMAND_LIST("throttle_up",         rak::bind_ptr_fn(&apply_throttle, true));
-  ADD_COMMAND_LIST("throttle_down",       rak::bind_ptr_fn(&apply_throttle, false));
-  ADD_COMMAND_LIST("throttle_ip",         rak::ptr_fn(&apply_address_throttle));
+  CMD2_ANY_LIST("throttle_up",         std::tr1::bind(&apply_throttle, std::tr1::placeholders::_2, true));
+  CMD2_ANY_LIST("throttle_down",       std::tr1::bind(&apply_throttle, std::tr1::placeholders::_2, false));
+  CMD2_ANY_LIST("throttle_ip",         std::tr1::bind(&apply_address_throttle, std::tr1::placeholders::_2));
 
-  ADD_COMMAND_STRING("get_throttle_up_max",    rak::bind_ptr_fn(&retrieve_throttle_info, throttle_info_up | throttle_info_max));
-  ADD_COMMAND_STRING("get_throttle_up_rate",   rak::bind_ptr_fn(&retrieve_throttle_info, throttle_info_up | throttle_info_rate));
-  ADD_COMMAND_STRING("get_throttle_down_max",  rak::bind_ptr_fn(&retrieve_throttle_info, throttle_info_down | throttle_info_max));
-  ADD_COMMAND_STRING("get_throttle_down_rate", rak::bind_ptr_fn(&retrieve_throttle_info, throttle_info_down | throttle_info_rate));
+  CMD2_ANY_STRING("get_throttle_up_max",    std::tr1::bind(&retrieve_throttle_info, std::tr1::placeholders::_2, throttle_info_up | throttle_info_max));
+  CMD2_ANY_STRING("get_throttle_up_rate",   std::tr1::bind(&retrieve_throttle_info, std::tr1::placeholders::_2, throttle_info_up | throttle_info_rate));
+  CMD2_ANY_STRING("get_throttle_down_max",  std::tr1::bind(&retrieve_throttle_info, std::tr1::placeholders::_2, throttle_info_down | throttle_info_max));
+  CMD2_ANY_STRING("get_throttle_down_rate", std::tr1::bind(&retrieve_throttle_info, std::tr1::placeholders::_2, throttle_info_down | throttle_info_rate));
 
-  ADD_COMMAND_LIST("encryption",          rak::ptr_fn(&apply_encryption));
+  CMD2_ANY_STRING("tos",                  std::tr1::bind(&apply_tos, std::tr1::placeholders::_2));
 
-  ADD_COMMAND_STRING("tos",               rak::ptr_fn(&apply_tos));
+  CMD2_ANY_LIST("encryption",          std::tr1::bind(&apply_encryption, std::tr1::placeholders::_2));
 
   ADD_COMMAND_STRING_TRI("bind",          rak::make_mem_fun(control->core(), &core::Manager::set_bind_address), rak::make_mem_fun(control->core(), &core::Manager::bind_address));
   ADD_COMMAND_STRING_TRI("ip",            rak::make_mem_fun(control->core(), &core::Manager::set_local_address), rak::make_mem_fun(control->core(), &core::Manager::local_address));

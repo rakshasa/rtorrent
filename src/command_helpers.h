@@ -152,9 +152,6 @@ add_variable(key, NULL, NULL, &rpc::CommandVariable::get_string, NULL, std::stri
 #define ADD_COMMAND_VOID(key, slot) \
   ADD_COMMAND_SLOT(key, call_unknown, rpc::object_void_fn(slot), "i:", "")
 
-#define ADD_COMMAND_VALUE(key, slot) \
-  ADD_COMMAND_SLOT(key, call_value, slot, "i:i", "")
-
 #define ADD_COMMAND_VALUE_UN(key, slot) \
   ADD_COMMAND_SLOT(key, call_value, rpc::object_value_fn(slot), "i:i", "")
 
@@ -164,20 +161,8 @@ add_variable(key, NULL, NULL, &rpc::CommandVariable::get_string, NULL, std::stri
 #define ADD_COMMAND_STRING_UN(key, slot) \
   ADD_COMMAND_SLOT(key, call_string, rpc::object_string_fn(slot), "i:s", "")
 
-#define ADD_COMMAND_LIST(key, slot) \
-  ADD_COMMAND_SLOT(key, call_list, slot, "i:", "")
-
 #define ADD_COMMAND_NONE(key, slot) \
   ADD_COMMAND_SLOT(key, call_unknown, slot, "i:", "")
-
-#define ADD_ANY_NONE(key, slot) \
-  ADD_ANY_SLOT(key, call_unknown, slot, "i:", "")
-
-#define ADD_ANY_VALUE(key, slot) \
-  ADD_ANY_SLOT(key, call_value, slot, "i:i", "")
-
-#define ADD_ANY_LIST(key, slot) \
-  ADD_ANY_SLOT(key, call_list, slot, "i:i", "")
 
 #define ADD_COMMAND_NONE_L(key, slot) \
   ADD_COMMAND_SLOT(key, call_unknown, slot, "A:", "")
@@ -250,14 +235,51 @@ add_variable(key, NULL, NULL, &rpc::CommandVariable::get_string, NULL, std::stri
 
 #define CMD2_A_FUNCTION(key, function, func_type, slot, parm, doc)      \
   commandNewSlotItr->set_function<rpc::func_type>(slot);                \
-  m_map.insert_type(key, commandNewSlotItr++, &rpc::function,           \
+  rpc::commands.insert_type(key, commandNewSlotItr++, &rpc::function,   \
                     rpc::CommandMap::flag_dont_delete | rpc::CommandMap::flag_public_xmlrpc, NULL, NULL);
 
-#define CMD2_A(key, slot) \
+#define CMD2_ANY(key, slot) \
   CMD2_A_FUNCTION(key, command_base_call_any, any_function, slot, "i:", "")
 
-#define CMD2_A_STRING(key, slot) \
+#define CMD2_ANY_L(key, slot) \
+  CMD2_A_FUNCTION(key, command_base_call_any_list, any_list_function, slot, "A:", "")
+
+#define CMD2_ANY_VALUE(key, slot) \
+  CMD2_A_FUNCTION(key, command_base_call_any_value, any_value_function, slot, "i:i", "")
+
+#define CMD2_ANY_STRING(key, slot) \
   CMD2_A_FUNCTION(key, command_base_call_any_string, any_string_function, slot, "i:s", "")
 
+#define CMD2_ANY_LIST(key, slot) \
+  CMD2_A_FUNCTION(key, command_base_call_any_list, any_list_function, slot, "i:", "")
+
+//
+// Conversion of return types:
+//
+
+template <typename Functor, typename Result>
+struct object_convert_type;
+
+template <typename Functor>
+struct object_convert_type<Functor, void> {
+
+  template <typename Signature> struct result {
+    typedef torrent::Object type;
+  };
+
+  object_convert_type(Functor s) : m_slot(s) {}
+
+  torrent::Object operator () () { m_slot(); return torrent::Object(); }
+  template <typename Arg1>
+  torrent::Object operator () (Arg1& arg1) { m_slot(arg1); return torrent::Object(); }
+  template <typename Arg1, typename Arg2>
+  torrent::Object operator () (Arg1& arg1, Arg2& arg2) { m_slot(arg1, arg2); return torrent::Object(); }
+
+  Functor m_slot;
+};
+
+template <typename T>
+object_convert_type<T, void>
+object_convert_void(T f) { return f; }
 
 #endif
