@@ -59,7 +59,7 @@ namespace rpc {
 #define COMMAND_TRACKER_SLOTS_SIZE  15
 #define COMMAND_ANY_SLOTS_SIZE      50
 
-#define COMMAND_NEW_SLOTS_SIZE      100
+#define COMMAND_NEW_SLOTS_SIZE      200
 
 #define ADDING_COMMANDS
 
@@ -238,26 +238,24 @@ add_variable(key, NULL, NULL, &rpc::CommandVariable::get_string, NULL, std::stri
   rpc::commands.insert_type(key, commandNewSlotItr++, &rpc::function,   \
                     rpc::CommandMap::flag_dont_delete | rpc::CommandMap::flag_public_xmlrpc, NULL, NULL);
 
-#define CMD2_ANY(key, slot) \
-  CMD2_A_FUNCTION(key, command_base_call_any, any_function, slot, "i:", "")
+#define CMD2_ANY(key, slot)   CMD2_A_FUNCTION(key, command_base_call_any, any_function, slot, "i:", "")
+#define CMD2_ANY_V(key, slot) CMD2_A_FUNCTION(key, command_base_call_any_list, any_list_function, object_convert_void(slot), "i:", "")
+#define CMD2_ANY_L(key, slot) CMD2_A_FUNCTION(key, command_base_call_any_list, any_list_function, slot, "A:", "")
 
-#define CMD2_ANY_L(key, slot) \
-  CMD2_A_FUNCTION(key, command_base_call_any_list, any_list_function, slot, "A:", "")
+#define CMD2_ANY_VALUE(key, slot)   CMD2_A_FUNCTION(key, command_base_call_any_value, any_value_function, slot, "i:i", "")
+#define CMD2_ANY_VALUE_V(key, slot) CMD2_A_FUNCTION(key, command_base_call_any_value, any_value_function, object_convert_void(slot), "i:i", "")
 
-#define CMD2_ANY_VALUE(key, slot) \
-  CMD2_A_FUNCTION(key, command_base_call_any_value, any_value_function, slot, "i:i", "")
+#define CMD2_ANY_STRING(key, slot)   CMD2_A_FUNCTION(key, command_base_call_any_string, any_string_function, slot, "i:s", "")
+#define CMD2_ANY_STRING_V(key, slot) CMD2_A_FUNCTION(key, command_base_call_any_string, any_string_function, object_convert_void(slot), "i:s", "")
 
-#define CMD2_ANY_VALUE_V(key, slot) \
-  CMD2_A_FUNCTION(key, command_base_call_any_value, any_value_function, object_convert_void(slot), "i:i", "")
+#define CMD2_ANY_LIST(key, slot) CMD2_A_FUNCTION(key, command_base_call_any_list, any_list_function, slot, "i:", "")
 
-#define CMD2_ANY_STRING(key, slot) \
-  CMD2_A_FUNCTION(key, command_base_call_any_string, any_string_function, slot, "i:s", "")
-
-#define CMD2_ANY_STRING_V(key, slot) \
-  CMD2_A_FUNCTION(key, command_base_call_any_string, any_string_function, object_convert_void(slot), "i:s", "")
-
-#define CMD2_ANY_LIST(key, slot) \
-  CMD2_A_FUNCTION(key, command_base_call_any_list, any_list_function, slot, "i:", "")
+#define CMD2_VAR_BOOL(key, value) \
+  rpc::commands.call("method.insert", rpc::create_object_list(key, "bool|const", int64_t(value)));
+#define CMD2_VAR_VALUE(key, value) \
+  rpc::commands.call("method.insert", rpc::create_object_list(key, "value|const", int64_t(value)));
+#define CMD2_VAR_STRING(key, value) \
+  rpc::commands.call("method.insert", rpc::create_object_list(key, "string|const", std::string(value)));
 
 //
 // Conversion of return types:

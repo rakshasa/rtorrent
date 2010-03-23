@@ -91,7 +91,7 @@ parse_options(Control* c, int argc, char** argv) {
     optionParser.insert_option('b', sigc::bind<0>(sigc::ptr_fun(&rpc::call_command_set_string), "network.bind_address.set"));
     optionParser.insert_option('d', sigc::bind<0>(sigc::ptr_fun(&rpc::call_command_set_string), "directory"));
     optionParser.insert_option('i', sigc::bind<0>(sigc::ptr_fun(&rpc::call_command_set_string), "ip"));
-    optionParser.insert_option('p', sigc::bind<0>(sigc::ptr_fun(&rpc::call_command_set_string), "port_range"));
+    optionParser.insert_option('p', sigc::bind<0>(sigc::ptr_fun(&rpc::call_command_set_string), "port_range.set"));
     optionParser.insert_option('s', sigc::bind<0>(sigc::ptr_fun(&rpc::call_command_set_string), "session"));
 
     optionParser.insert_option('O', sigc::ptr_fun(&rpc::parse_command_single_std));
@@ -312,12 +312,12 @@ main(int argc, char** argv) {
        // 
        // List of cleaned up files:
        // - command_download.cc
-       // * command_dynamic.cc
-       // / command_events.cc
+       // - command_dynamic.cc
+       // - command_events.cc
        // - command_file.cc
        // - command_helpers.cc
-       // * command_local.cc
-       // - command_network.cc
+       // - command_local.cc
+       // * command_network.cc
        // - command_object.cc
        // - command_peer.cc
        // - command_scheduler.cc
@@ -356,6 +356,15 @@ main(int argc, char** argv) {
        "method.insert = get_receive_buffer_size,redirect|const,network.receive_buffer.size\n"
        "method.insert = set_receive_buffer_size,redirect|const,network.receive_buffer.size.set\n"
 
+       "method.insert = get_up_rate,redirect|const,throttle.global_up.rate\n"
+       "method.insert = get_up_total,redirect|const,throttle.global_up.total\n"
+       "method.insert = get_upload_rate,redirect|const,throttle.global_up.max_rate\n"
+       "method.insert = set_upload_rate,redirect|const,throttle.global_up.max_rate.set\n"
+       "method.insert = get_down_rate,redirect|const,throttle.global_down.rate\n"
+       "method.insert = get_down_total,redirect|const,throttle.global_down.total\n"
+       "method.insert = get_download_rate,redirect|const,throttle.global_down.max_rate\n"
+       "method.insert = set_download_rate,redirect|const,throttle.global_down.max_rate.set\n"
+
        "method.insert = bind,    redirect|const,network.bind_address.set\n"
        "method.insert = set_bind,redirect|const,network.bind_address.set\n"
        "method.insert = get_bind,redirect|const,network.bind_address\n"
@@ -375,6 +384,21 @@ main(int argc, char** argv) {
        "method.insert = set_scgi_dont_route,redirect|const,network.scgi.dont_route.set\n"
        "method.insert = get_scgi_dont_route,redirect|const,network.scgi.dont_route\n"
 
+       "method.insert = xmlrpc_dialect,     redirect|const,network.xmlrpc.size_limit.set\n"
+
+       "method.insert = get_connection_leech,redirect|const,connection_leech\n"
+       "method.insert = set_connection_leech,redirect|const,connection_leech.set\n"
+       "method.insert = get_connection_seed,redirect|const,connection_seed\n"
+       "method.insert = set_connection_seed,redirect|const,connection_seed.set\n"
+
+       "method.insert = dht,redirect|const,dht.mode\n"
+       "method.insert = dht_add_node, redirect|const,dht.add_node\n"
+       "method.insert = dht_statistics, redirect|const,dht.statistics\n"
+       "method.insert = get_dht_port, redirect|const,dht.port\n"
+       "method.insert = set_dht_port, redirect|const,dht.port\n"
+       "method.insert = get_dht_throttle,redirect|const,dht.throttle\n"
+       "method.insert = set_dht_throttle,redirect|const,dht.throttle.set\n"
+
        "method.insert = d.get_hash,redirect|const,d.hash\n"
        "method.insert = d.get_local_id,redirect|const,d.local_id\n"
        "method.insert = d.get_local_id_html,redirect|const,d.local_id_html\n"
@@ -392,6 +416,12 @@ main(int argc, char** argv) {
        "method.insert = d.get_down_total,redirect|const,d.down.total\n"
        "method.insert = d.get_skip_rate,redirect|const,d.skip.rate\n"
        "method.insert = d.get_skip_total,redirect|const,d.skip.total\n"
+
+       // Functions that might not get depracted as they are nice for
+       // configuration files, and thus might do with just some
+       // cleanup.
+       "method.insert = upload_rate,redirect|const,throttle.global_up.max_rate.set\n"
+       "method.insert = download_rate,redirect|const,throttle.global_down.max_rate.set\n"
     );
 
     }

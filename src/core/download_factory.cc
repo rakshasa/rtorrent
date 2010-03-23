@@ -108,8 +108,8 @@ DownloadFactory::DownloadFactory(Manager* m) :
   m_taskLoad.set_slot(rak::mem_fn(this, &DownloadFactory::receive_load));
   m_taskCommit.set_slot(rak::mem_fn(this, &DownloadFactory::receive_commit));
 
-  m_variables["connection_leech"] = rpc::call_command_void("get_connection_leech");
-  m_variables["connection_seed"]  = rpc::call_command_void("get_connection_seed");
+  m_variables["connection_leech"] = rpc::call_command_void("connection_leech");
+  m_variables["connection_seed"]  = rpc::call_command_void("connection_seed");
   m_variables["directory"]        = rpc::call_command_void("get_directory");
   m_variables["tied_to_file"]     = torrent::Object((int64_t)false);
 }
@@ -251,20 +251,20 @@ DownloadFactory::receive_success() {
   if (!rtorrent->has_key_string("custom4")) rtorrent->insert_key("custom4", std::string());
   if (!rtorrent->has_key_string("custom5")) rtorrent->insert_key("custom5", std::string());
 
-  rpc::call_command("d.set_uploads_max",      rpc::call_command_void("get_max_uploads"), rpc::make_target(download));
-  rpc::call_command("d.set_peers_min",        rpc::call_command_void("get_min_peers"), rpc::make_target(download));
-  rpc::call_command("d.set_peers_max",        rpc::call_command_void("get_max_peers"), rpc::make_target(download));
-  rpc::call_command("d.set_tracker_numwant",  rpc::call_command_void("get_tracker_numwant"), rpc::make_target(download));
+  rpc::call_command("d.set_uploads_max",      rpc::call_command_void("max_uploads"), rpc::make_target(download));
+  rpc::call_command("d.set_peers_min",        rpc::call_command_void("min_peers"), rpc::make_target(download));
+  rpc::call_command("d.set_peers_max",        rpc::call_command_void("max_peers"), rpc::make_target(download));
+  rpc::call_command("d.set_tracker_numwant",  rpc::call_command_void("trackers.numwant"), rpc::make_target(download));
 
   if (rpc::call_command_value("d.get_complete", rpc::make_target(download)) != 0) {
-    if (rpc::call_command_value("get_min_peers_seed") >= 0)
-      rpc::call_command("d.set_peers_min", rpc::call_command_void("get_min_peers_seed"), rpc::make_target(download));
+    if (rpc::call_command_value("min_peers_seed") >= 0)
+      rpc::call_command("d.set_peers_min", rpc::call_command_void("min_peers_seed"), rpc::make_target(download));
 
-    if (rpc::call_command_value("get_max_peers_seed") >= 0)
-      rpc::call_command("d.set_peers_max", rpc::call_command_void("get_max_peers_seed"), rpc::make_target(download));
+    if (rpc::call_command_value("max_peers_seed") >= 0)
+      rpc::call_command("d.set_peers_max", rpc::call_command_void("max_peers_seed"), rpc::make_target(download));
   }
 
-  if (!rpc::call_command_value("get_use_udp_trackers"))
+  if (!rpc::call_command_value("trackers.use_udp"))
     download->enable_udp_trackers(false);
 
   if (rpc::call_command_value("system.file.max_size") > 0)
@@ -287,7 +287,7 @@ DownloadFactory::receive_success() {
   if (!m_session && m_variables["tied_to_file"].as_value())
     rpc::call_command("d.set_tied_to_file", m_uri.empty() ? m_variables["tied_file"] : m_uri, rpc::make_target(download));
 
-  rpc::call_command("d.peer_exchange.set", rpc::call_command_value("get_peer_exchange"), rpc::make_target(download));
+  rpc::call_command("d.peer_exchange.set", rpc::call_command_value("protocol.pex"), rpc::make_target(download));
 
   torrent::resume_load_addresses(*download->download(), resumeObject);
   torrent::resume_load_file_priorities(*download->download(), resumeObject);
