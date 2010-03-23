@@ -50,6 +50,7 @@
 #include <torrent/tracker.h>
 #include <torrent/tracker_list.h>
 #include <torrent/data/file_list.h>
+#include <torrent/data/file_manager.h>
 #include <torrent/peer/client_info.h>
 
 #include "core/download.h"
@@ -309,8 +310,8 @@ print_status_extra(char* first, char* last) {
                        torrent::connection_manager()->max_size());
                        
   first = print_buffer(first, last, " [F %i/%i]",
-                       torrent::open_files(),
-                       torrent::max_open_files());
+                       torrent::file_manager()->open_files(),
+                       torrent::file_manager()->max_open_files());
 
   return first;
 }

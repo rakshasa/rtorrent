@@ -178,8 +178,8 @@ Download::create_info() {
   element->push_back("");
   element->push_column("Connection type:",  te_command("d.get_connection_current="));
   element->push_column("Safe sync:",        te_command("if=$pieces.sync.always_safe=,yes,no"));
-  element->push_column("Send buffer:",      te_command("cat=$to_kb=$get_send_buffer_size=,\" KB\""));
-  element->push_column("Receive buffer:",   te_command("cat=$to_kb=$get_receive_buffer_size=,\" KB\""));
+  element->push_column("Send buffer:",      te_command("cat=$to_kb=$network.send_buffer.size=,\" KB\""));
+  element->push_column("Receive buffer:",   te_command("cat=$to_kb=$network.receive_buffer.size=,\" KB\""));
 
   // TODO: Define a custom command for this and use $argument.0 instead of looking up the name multiple times?
   element->push_column("Throttle:",         te_command("branch=d.get_throttle_name=,\""

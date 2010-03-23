@@ -399,18 +399,17 @@ apply_if(rpc::target_type target, const torrent::Object& rawArgs, int flags) {
 }
 
 torrent::Object
-cmd_view_size(__UNUSED rpc::target_type target, const torrent::Object& rawArgs) {
-  return (*control->view_manager()->find_throw(rawArgs.as_string()))->size_visible();
+cmd_view_size(const torrent::Object::string_type& args) {
+  return (*control->view_manager()->find_throw(args))->size_visible();
 }
 
 torrent::Object
-cmd_view_size_not_visible(__UNUSED rpc::target_type target, const torrent::Object& rawArgs) {
-  return (*control->view_manager()->find_throw(rawArgs.as_string()))->size_not_visible();
+cmd_view_size_not_visible(const torrent::Object::string_type& args) {
+  return (*control->view_manager()->find_throw(args))->size_not_visible();
 }
 
 torrent::Object
-cmd_view_persistent(__UNUSED rpc::target_type target, const torrent::Object& rawArgs) {
-  const std::string& args = rawArgs.as_string();
+cmd_view_persistent(const torrent::Object::string_type& args) {
   core::View* view = *control->view_manager()->find_throw(args);
   
   if (!view->get_filter().empty() || !view->get_event_added().empty() || !view->get_event_removed().empty())
@@ -424,9 +423,8 @@ cmd_view_persistent(__UNUSED rpc::target_type target, const torrent::Object& raw
 }
 
 torrent::Object
-cmd_ui_set_view(__UNUSED rpc::target_type target, const torrent::Object& rawArgs) {
-  control->ui()->download_list()->set_current_view(rawArgs.as_string());
-
+cmd_ui_set_view(const torrent::Object::string_type& args) {
+  control->ui()->download_list()->set_current_view(args);
   return torrent::Object();
 }
 
@@ -479,19 +477,17 @@ initialize_command_ui() {
 
   // Cleanup and add . to view.
 
-  CMD_G_STRING("view.size",              rak::ptr_fn(&cmd_view_size));
-  CMD_G_STRING("view.size_not_visible",  rak::ptr_fn(&cmd_view_size_not_visible));
-  CMD_G_STRING("view.persistent",        rak::ptr_fn(&cmd_view_persistent));
+  CMD2_ANY_STRING("view.size",              std::tr1::bind(&cmd_view_size, std::tr1::placeholders::_2));
+  CMD2_ANY_STRING("view.size_not_visible",  std::tr1::bind(&cmd_view_size_not_visible, std::tr1::placeholders::_2));
+  CMD2_ANY_STRING("view.persistent",        std::tr1::bind(&cmd_view_persistent, std::tr1::placeholders::_2));
 
   CMD_D_STRING("view.filter_download",   rak::ptr_fn(&cmd_view_filter_download));
   CMD_D_STRING("view.set_visible",       rak::ptr_fn(&cmd_view_set_visible));
   CMD_D_STRING("view.set_not_visible",   rak::ptr_fn(&cmd_view_set_not_visible));
 
   // Commands that affect the default rtorrent UI.
-
-//   ADD_ANY_NONE("ui.focus",              rak::ptr_fn(&cmd_ui_focus));
   CMD_D_ANY("ui.unfocus_download",      rak::ptr_fn(&cmd_ui_unfocus_download));
-  CMD_N_STRING("ui.current_view.set",   rak::ptr_fn(&cmd_ui_set_view));
+  CMD2_ANY_STRING("ui.current_view.set",   std::tr1::bind(&cmd_ui_set_view, std::tr1::placeholders::_2));
 
   // Move.
   CMD2_ANY("print", &apply_print);

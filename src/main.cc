@@ -88,7 +88,7 @@ parse_options(Control* c, int argc, char** argv) {
     optionParser.insert_flag('n', OptionParser::Slot());
     optionParser.insert_flag('D', OptionParser::Slot());
 
-    optionParser.insert_option('b', sigc::bind<0>(sigc::ptr_fun(&rpc::call_command_set_string), "bind"));
+    optionParser.insert_option('b', sigc::bind<0>(sigc::ptr_fun(&rpc::call_command_set_string), "network.bind_address.set"));
     optionParser.insert_option('d', sigc::bind<0>(sigc::ptr_fun(&rpc::call_command_set_string), "directory"));
     optionParser.insert_option('i', sigc::bind<0>(sigc::ptr_fun(&rpc::call_command_set_string), "ip"));
     optionParser.insert_option('p', sigc::bind<0>(sigc::ptr_fun(&rpc::call_command_set_string), "port_range"));
@@ -350,6 +350,30 @@ main(int argc, char** argv) {
        "method.insert = get_memory_usage,redirect|const,pieces.memory.current\n"
        "method.insert = get_max_memory_usage,redirect|const,pieces.memory.max\n"
        "method.insert = set_max_memory_usage,redirect|const,pieces.memory.max.set\n"
+
+       "method.insert = get_send_buffer_size,redirect|const,network.send_buffer.size\n"
+       "method.insert = set_send_buffer_size,redirect|const,network.send_buffer.size.set\n"
+       "method.insert = get_receive_buffer_size,redirect|const,network.receive_buffer.size\n"
+       "method.insert = set_receive_buffer_size,redirect|const,network.receive_buffer.size.set\n"
+
+       "method.insert = bind,    redirect|const,network.bind_address.set\n"
+       "method.insert = set_bind,redirect|const,network.bind_address.set\n"
+       "method.insert = get_bind,redirect|const,network.bind_address\n"
+
+       "method.insert = ip,    redirect|const,network.local_address.set\n"
+       "method.insert = set_ip,redirect|const,network.local_address.set\n"
+       "method.insert = get_ip,redirect|const,network.local_address\n"
+
+       "method.insert = proxy_address,    redirect|const,network.proxy_address.set\n"
+       "method.insert = set_proxy_address,redirect|const,network.proxy_address.set\n"
+       "method.insert = get_proxy_address,redirect|const,network.proxy_address\n"
+
+       "method.insert = scgi_port, redirect|const,network.scgi.open_port\n"
+       "method.insert = scgi_local,redirect|const,network.scgi.open_local\n"
+
+       "method.insert = scgi_dont_route,    redirect|const,network.scgi.dont_route.set\n"
+       "method.insert = set_scgi_dont_route,redirect|const,network.scgi.dont_route.set\n"
+       "method.insert = get_scgi_dont_route,redirect|const,network.scgi.dont_route\n"
 
        "method.insert = d.get_hash,redirect|const,d.hash\n"
        "method.insert = d.get_local_id,redirect|const,d.local_id\n"

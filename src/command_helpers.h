@@ -247,8 +247,14 @@ add_variable(key, NULL, NULL, &rpc::CommandVariable::get_string, NULL, std::stri
 #define CMD2_ANY_VALUE(key, slot) \
   CMD2_A_FUNCTION(key, command_base_call_any_value, any_value_function, slot, "i:i", "")
 
+#define CMD2_ANY_VALUE_V(key, slot) \
+  CMD2_A_FUNCTION(key, command_base_call_any_value, any_value_function, object_convert_void(slot), "i:i", "")
+
 #define CMD2_ANY_STRING(key, slot) \
   CMD2_A_FUNCTION(key, command_base_call_any_string, any_string_function, slot, "i:s", "")
+
+#define CMD2_ANY_STRING_V(key, slot) \
+  CMD2_A_FUNCTION(key, command_base_call_any_string, any_string_function, object_convert_void(slot), "i:s", "")
 
 #define CMD2_ANY_LIST(key, slot) \
   CMD2_A_FUNCTION(key, command_base_call_any_list, any_list_function, slot, "i:", "")

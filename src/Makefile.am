@@ -40,13 +40,13 @@ libsub_root_a_SOURCES = \
 bin_PROGRAMS = rtorrent
 
 rtorrent_LDADD = \
+	libsub_root.a \
 	ui/libsub_ui.a \
 	core/libsub_core.a \
 	display/libsub_display.a \
 	input/libsub_input.a \
 	rpc/libsub_rpc.a \
-	utils/libsub_utils.a \
-	libsub_root.a
+	utils/libsub_utils.a
 
 rtorrent_SOURCES = \
 	main.cc
