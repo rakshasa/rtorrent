@@ -89,7 +89,7 @@ parse_options(Control* c, int argc, char** argv) {
     optionParser.insert_flag('D', OptionParser::Slot());
 
     optionParser.insert_option('b', sigc::bind<0>(sigc::ptr_fun(&rpc::call_command_set_string), "network.bind_address.set"));
-    optionParser.insert_option('d', sigc::bind<0>(sigc::ptr_fun(&rpc::call_command_set_string), "directory"));
+    optionParser.insert_option('d', sigc::bind<0>(sigc::ptr_fun(&rpc::call_command_set_string), "directory.default.set"));
     optionParser.insert_option('i', sigc::bind<0>(sigc::ptr_fun(&rpc::call_command_set_string), "ip"));
     optionParser.insert_option('p', sigc::bind<0>(sigc::ptr_fun(&rpc::call_command_set_string), "port_range.set"));
     optionParser.insert_option('s', sigc::bind<0>(sigc::ptr_fun(&rpc::call_command_set_string), "session"));
@@ -312,16 +312,16 @@ main(int argc, char** argv) {
        // 
        // List of cleaned up files:
        // - command_download.cc
-       // - command_dynamic.cc
-       // - command_events.cc
-       // - command_file.cc
+       // * command_dynamic.cc
+       // * command_events.cc
+       // * command_file.cc
        // - command_helpers.cc
-       // - command_local.cc
+       // + command_local.cc
        // * command_network.cc
-       // - command_object.cc
+       // * command_object.cc
        // - command_peer.cc
-       // - command_scheduler.cc
-       // - command_tracker.cc
+       // * command_scheduler.cc
+       // * command_tracker.cc
        // - command_ui.cc
 
        "method.insert = system.method.insert,redirect|const,method.insert\n"
@@ -399,6 +399,14 @@ main(int argc, char** argv) {
        "method.insert = get_dht_throttle,redirect|const,dht.throttle\n"
        "method.insert = set_dht_throttle,redirect|const,dht.throttle.set\n"
 
+       "method.insert = directory,redirect|const,directory.default.set\n"
+       "method.insert = get_directory,redirect|const,directory.default\n"
+       "method.insert = set_directory,redirect|const,directory.default.set\n"
+
+       //
+       // Download:
+       //
+
        "method.insert = d.get_hash,redirect|const,d.hash\n"
        "method.insert = d.get_local_id,redirect|const,d.local_id\n"
        "method.insert = d.get_local_id_html,redirect|const,d.local_id_html\n"
@@ -416,6 +424,42 @@ main(int argc, char** argv) {
        "method.insert = d.get_down_total,redirect|const,d.down.total\n"
        "method.insert = d.get_skip_rate,redirect|const,d.skip.rate\n"
        "method.insert = d.get_skip_total,redirect|const,d.skip.total\n"
+
+       //
+       // Tracker:
+       //
+
+       "method.insert = t.get_group,redirect|const,t.get_group\n"
+       "method.insert = t.get_id,redirect|const,t.get_id\n"
+       "method.insert = t.get_min_interval,redirect|const,t.get_min_interval\n"
+       "method.insert = t.get_normal_interval,redirect|const,t.get_normal_interval\n"
+       "method.insert = t.get_scrape_complete,redirect|const,t.get_scrape_complete\n"
+       "method.insert = t.get_scrape_downloaded,redirect|const,t.get_scrape_downloaded\n"
+       "method.insert = t.get_scrape_incomplete,redirect|const,t.get_scrape_incomplete\n"
+       "method.insert = t.get_scrape_time_last,redirect|const,t.get_scrape_time_last\n"
+       "method.insert = t.get_type,redirect|const,t.get_type\n"
+       "method.insert = t.get_url,redirect|const,t.get_url\n"
+
+       //
+       // Tracker:
+       //
+
+       "method.insert = f.get_completed_chunks,redirect|const,f.completed_chunks\n"
+       "method.insert = f.get_frozen_path,redirect|const,f.frozen_path\n"
+       "method.insert = f.get_last_touched,redirect|const,f.last_touched\n"
+       "method.insert = f.get_match_depth_next,redirect|const,f.match_depth_next\n"
+       "method.insert = f.get_match_depth_prev,redirect|const,f.match_depth_prev\n"
+       "method.insert = f.get_offset,redirect|const,f.offset\n"
+       "method.insert = f.get_path,redirect|const,f.path\n"
+       "method.insert = f.get_path_components,redirect|const,f.path_components\n"
+       "method.insert = f.get_path_depth,redirect|const,f.path_depth\n"
+       "method.insert = f.get_priority,redirect|const,f.priority\n"
+       "method.insert = f.get_range_first,redirect|const,f.range_first\n"
+       "method.insert = f.get_range_second,redirect|const,f.range_second\n"
+       "method.insert = f.get_size_bytes,redirect|const,f.size_bytes\n"
+       "method.insert = f.get_size_chunks,redirect|const,f.size_chunks\n"
+       "method.insert = f.set_priority,redirect|const,f.priority.set\n"
+       "method.insert = fi.get_filename_last,redirect|const,fi.filename_last\n"
 
        // Functions that might not get depracted as they are nice for
        // configuration files, and thus might do with just some

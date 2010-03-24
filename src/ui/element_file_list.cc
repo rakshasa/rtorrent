@@ -92,9 +92,9 @@ element_file_list_create_info() {
   element->push_column("Filename:", te_command("fi.get_filename_last="));
   element->push_back("");
   
-  element->push_column("Size:",   te_command("if=$fi.is_file=,$to_xb=$f.get_size_bytes=,---"));
-  element->push_column("Chunks:", te_command("cat=$f.get_completed_chunks=,\" / \",$f.get_size_chunks="));
-  element->push_column("Range:",  te_command("cat=$f.get_range_first=,\" - \",$f.get_range_second="));
+  element->push_column("Size:",   te_command("if=$fi.is_file=,$to_xb=$f.size_bytes=,---"));
+  element->push_column("Chunks:", te_command("cat=$f.completed_chunks=,\" / \",$f.size_chunks="));
+  element->push_column("Range:",  te_command("cat=$f.range_first=,\" - \",$f.range_second="));
   element->push_back("");
 
   element->push_column("Queued:", te_command("cat=\"$if=$f.is_create_queued=,create\",\" \",\"$if=$f.is_resize_queued=,resize\""));

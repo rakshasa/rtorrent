@@ -67,7 +67,6 @@ rpc::CommandSlot<rpc::target_type>*           commandAnySlotsItr = commandAnySlo
 rpc::command_base commandNewSlots[COMMAND_NEW_SLOTS_SIZE];
 rpc::command_base* commandNewSlotItr = commandNewSlots;
 
-void initialize_command_object();
 void initialize_command_dynamic();
 void initialize_command_download();
 void initialize_command_events();
@@ -81,7 +80,6 @@ void initialize_command_ui();
 
 void
 initialize_commands() {
-  initialize_command_object();
   initialize_command_dynamic();
   initialize_command_events();
   initialize_command_network();

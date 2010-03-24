@@ -254,7 +254,7 @@ DownloadList::receive_view_input(Input type) {
   case INPUT_CHANGE_DIRECTORY:
     title = "change_directory";
 
-    input->str() = rpc::call_command_string("get_directory");
+    input->str() = rpc::call_command_string("directory.default");
     input->set_pos(input->str().length());
 
     break;

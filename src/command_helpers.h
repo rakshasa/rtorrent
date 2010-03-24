@@ -233,22 +233,36 @@ add_variable(key, NULL, NULL, &rpc::CommandVariable::get_string, NULL, std::stri
 // New std::function based command_base helper functions:
 //
 
-#define CMD2_A_FUNCTION(key, function, func_type, slot, parm, doc)      \
-  commandNewSlotItr->set_function<rpc::func_type>(slot);                \
+#define CMD2_A_FUNCTION(key, function, slot, parm, doc)      \
+  commandNewSlotItr->set_function<rpc::command_base_is_type<rpc::function>::type>(slot); \
   rpc::commands.insert_type(key, commandNewSlotItr++, &rpc::function,   \
                     rpc::CommandMap::flag_dont_delete | rpc::CommandMap::flag_public_xmlrpc, NULL, NULL);
 
-#define CMD2_ANY(key, slot)   CMD2_A_FUNCTION(key, command_base_call_any, any_function, slot, "i:", "")
-#define CMD2_ANY_V(key, slot) CMD2_A_FUNCTION(key, command_base_call_any_list, any_list_function, object_convert_void(slot), "i:", "")
-#define CMD2_ANY_L(key, slot) CMD2_A_FUNCTION(key, command_base_call_any_list, any_list_function, slot, "A:", "")
+// #define CMD2_ANY(key, slot)   CMD2_A_FUNCTION(key, command_base_call_any,      slot, "i:", "")
+#define CMD2_ANY(key, slot)   CMD2_A_FUNCTION(key, command_base_call<rpc::target_type>, slot, "i:", "")
 
-#define CMD2_ANY_VALUE(key, slot)   CMD2_A_FUNCTION(key, command_base_call_any_value, any_value_function, slot, "i:i", "")
-#define CMD2_ANY_VALUE_V(key, slot) CMD2_A_FUNCTION(key, command_base_call_any_value, any_value_function, object_convert_void(slot), "i:i", "")
+#define CMD2_ANY_V(key, slot) CMD2_A_FUNCTION(key, command_base_call_list<rpc::target_type>, object_convert_void(slot), "i:", "")
+#define CMD2_ANY_L(key, slot) CMD2_A_FUNCTION(key, command_base_call_list<rpc::target_type>, slot, "A:", "")
 
-#define CMD2_ANY_STRING(key, slot)   CMD2_A_FUNCTION(key, command_base_call_any_string, any_string_function, slot, "i:s", "")
-#define CMD2_ANY_STRING_V(key, slot) CMD2_A_FUNCTION(key, command_base_call_any_string, any_string_function, object_convert_void(slot), "i:s", "")
+#define CMD2_ANY_VALUE(key, slot)   CMD2_A_FUNCTION(key, command_base_call_value<rpc::target_type>, slot, "i:i", "")
+#define CMD2_ANY_VALUE_V(key, slot) CMD2_A_FUNCTION(key, command_base_call_value<rpc::target_type>, object_convert_void(slot), "i:i", "")
 
-#define CMD2_ANY_LIST(key, slot) CMD2_A_FUNCTION(key, command_base_call_any_list, any_list_function, slot, "i:", "")
+#define CMD2_ANY_STRING(key, slot)   CMD2_A_FUNCTION(key, command_base_call_string<rpc::target_type>, slot, "i:s", "")
+#define CMD2_ANY_STRING_V(key, slot) CMD2_A_FUNCTION(key, command_base_call_string<rpc::target_type>, object_convert_void(slot), "i:s", "")
+
+#define CMD2_ANY_LIST(key, slot) CMD2_A_FUNCTION(key, command_base_call_list<rpc::target_type>, slot, "i:", "")
+
+#define CMD2_DOWNLOAD(key, slot) CMD2_A_FUNCTION(key, command_base_call<core::Download*>, slot, "i:", "")
+
+#define CMD2_FILE(key, slot)         CMD2_A_FUNCTION(key, command_base_call<torrent::File*>, slot, "i:", "")
+#define CMD2_FILE_V(key, slot)       CMD2_A_FUNCTION(key, command_base_call<torrent::File*>, object_convert_void(slot), "i:", "")
+#define CMD2_FILE_VALUE_V(key, slot) CMD2_A_FUNCTION(key, command_base_call_value<torrent::File*>, object_convert_void(slot), "i:i", "")
+
+#define CMD2_FILEITR(key, slot)         CMD2_A_FUNCTION(key, command_base_call<torrent::FileListIterator*>, slot, "i:", "")
+
+#define CMD2_TRACKER(key, slot)         CMD2_A_FUNCTION(key, command_base_call<torrent::Tracker*>, slot, "i:", "")
+#define CMD2_TRACKER_V(key, slot)       CMD2_A_FUNCTION(key, command_base_call<torrent::Tracker*>, object_convert_void(slot), "i:", "")
+#define CMD2_TRACKER_VALUE_V(key, slot) CMD2_A_FUNCTION(key, command_base_call_value<torrent::Tracker*>, object_convert_void(slot), "i:i", "")
 
 #define CMD2_VAR_BOOL(key, value) \
   rpc::commands.call("method.insert", rpc::create_object_list(key, "bool|const", int64_t(value)));

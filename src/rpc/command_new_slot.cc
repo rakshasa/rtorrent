@@ -41,15 +41,31 @@
 
 #include "command_new_slot.h"
 
+#define COMMAND_BASE_TEMPLATE_DEFINE(func_name) \
+template const torrent::Object func_name<target_type>(Command* rawCommand, target_type target, const torrent::Object& args); \
+template const torrent::Object func_name<core::Download*>(Command* rawCommand, target_type target, const torrent::Object& args); \
+template const torrent::Object func_name<torrent::Peer*>(Command* rawCommand, target_type target, const torrent::Object& args); \
+template const torrent::Object func_name<torrent::Tracker*>(Command* rawCommand, target_type target, const torrent::Object& args); \
+template const torrent::Object func_name<torrent::File*>(Command* rawCommand, target_type target, const torrent::Object& args); \
+template const torrent::Object func_name<torrent::FileListIterator*>(Command* rawCommand, target_type target, const torrent::Object& args);
+
 namespace rpc {
 
-const torrent::Object
-command_base_call_any(Command* rawCommand, target_type target, const torrent::Object& args) {
-  return static_cast<command_base*>(rawCommand)->_pod<any_function>()(target, args);
+template <typename T> const torrent::Object
+command_base_call(Command* rawCommand, target_type target, const torrent::Object& args) {
+  if (!is_target_compatible<T>(target))
+    throw torrent::input_error("Target of wrong type.");
+
+  return command_base::_call<typename command_function<T>::type, T>(rawCommand, target, args);
 }
 
-const torrent::Object
-command_base_call_any_value_base(Command* rawCommand, target_type target, const torrent::Object& rawArgs, int base, int unit) {
+COMMAND_BASE_TEMPLATE_DEFINE(command_base_call);
+
+template <typename T> const torrent::Object
+command_base_call_value_base(Command* rawCommand, target_type target, const torrent::Object& rawArgs, int base, int unit) {
+  if (!is_target_compatible<T>(target))
+    throw torrent::input_error("Target of wrong type.");
+
   const torrent::Object& arg = convert_to_single_argument(rawArgs);
 
   if (arg.type() == torrent::Object::TYPE_STRING) {
@@ -58,40 +74,51 @@ command_base_call_any_value_base(Command* rawCommand, target_type target, const 
     if (!parse_whole_value_nothrow(arg.as_string().c_str(), &val, base, unit))
       throw torrent::input_error("Not a value.");
 
-    return static_cast<command_base*>(rawCommand)->_pod<any_value_function>()(target, val);
+    return command_base::_call<typename command_value_function<T>::type, T>(rawCommand, target, val);
   }
 
-  return static_cast<command_base*>(rawCommand)->_pod<any_value_function>()(target, arg.as_value());
+  return command_base::_call<typename command_value_function<T>::type, T>(rawCommand, target, arg.as_value());
 }
 
-const torrent::Object
-command_base_call_any_value(Command* rawCommand, target_type target, const torrent::Object& rawArgs) {
-  return command_base_call_any_value_base(rawCommand, target, rawArgs, 0, 1);
+template <typename T> const torrent::Object
+command_base_call_value(Command* rawCommand, target_type target, const torrent::Object& rawArgs) {
+  return command_base_call_value_base<T>(rawCommand, target, rawArgs, 0, 1);
 }
 
+COMMAND_BASE_TEMPLATE_DEFINE(command_base_call_value);
 
-const torrent::Object
-command_base_call_any_string(Command* rawCommand, target_type target, const torrent::Object& rawArgs) {
+template <typename T> const torrent::Object
+command_base_call_string(Command* rawCommand, target_type target, const torrent::Object& rawArgs) {
+  if (!is_target_compatible<T>(target))
+    throw torrent::input_error("Target of wrong type.");
+
   const torrent::Object& arg = convert_to_single_argument(rawArgs);
 
   if (arg.type() == torrent::Object::TYPE_RAW_STRING)
-    return static_cast<command_base*>(rawCommand)->_pod<any_string_function>()(target, arg.as_raw_string().as_string());
+    return command_base::_call<typename command_string_function<T>::type, T>(rawCommand, target, arg.as_raw_string().as_string());
 
-  return static_cast<command_base*>(rawCommand)->_pod<any_string_function>()(target, arg.as_string());
+  return command_base::_call<typename command_string_function<T>::type, T>(rawCommand, target, arg.as_string());
 }
 
-const torrent::Object
-command_base_call_any_list(Command* rawCommand, target_type target, const torrent::Object& rawArgs) {
+COMMAND_BASE_TEMPLATE_DEFINE(command_base_call_string);
+
+template <typename T> const torrent::Object
+command_base_call_list(Command* rawCommand, target_type target, const torrent::Object& rawArgs) {
+  if (!is_target_compatible<T>(target))
+    throw torrent::input_error("Target of wrong type.");
+
   if (rawArgs.type() != torrent::Object::TYPE_LIST) {
     torrent::Object::list_type arg;
     
     if (!rawArgs.is_empty())
       arg.push_back(rawArgs);
 
-    return static_cast<command_base*>(rawCommand)->_pod<any_list_function>()(target, arg);
+    return command_base::_call<typename command_list_function<T>::type, T>(rawCommand, target, arg);
   }
 
-  return static_cast<command_base*>(rawCommand)->_pod<any_list_function>()(target, rawArgs.as_list());
+  return command_base::_call<typename command_list_function<T>::type, T>(rawCommand, target, rawArgs.as_list());
 }
+
+COMMAND_BASE_TEMPLATE_DEFINE(command_base_call_list);
 
 }

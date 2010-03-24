@@ -46,56 +46,22 @@
 #include "command_helpers.h"
 
 void
-apply_t_set_enabled(torrent::Tracker* tracker, int64_t state) {
-  if (state)
-    tracker->enable();
-  else
-    tracker->disable();
-}
-
-#define ADD_CT_SLOT(key, function, slot, parm, doc)    \
-  commandTrackerSlotsItr->set_slot(slot); \
-  rpc::commands.insert_type(key, commandTrackerSlotsItr++, &rpc::CommandSlot<torrent::Tracker*>::function, rpc::CommandMap::flag_dont_delete, parm, doc);
-
-#define ADD_CT_SLOT_PUBLIC(key, function, slot, parm, doc)    \
-  commandTrackerSlotsItr->set_slot(slot); \
-  rpc::commands.insert_type(key, commandTrackerSlotsItr++, &rpc::CommandSlot<torrent::Tracker*>::function, rpc::CommandMap::flag_dont_delete | rpc::CommandMap::flag_public_xmlrpc, parm, doc);
-
-#define ADD_CT_VOID(key, slot) \
-  ADD_CT_SLOT_PUBLIC("t." key, call_unknown,     rpc::object_void_fn<torrent::Tracker*>(slot), "i:", "")
-
-#define ADD_CT_VOID_UNI(key, get) \
-  ADD_CT_SLOT_PUBLIC("t.get_" key, call_unknown, rpc::object_void_fn<torrent::Tracker*>(get), "i:", "")
-
-#define ADD_CT_VALUE_UNI(key, get) \
-  ADD_CT_SLOT_PUBLIC("t.get_" key, call_unknown, rpc::object_void_fn<torrent::Tracker*>(get), "i:", "")
-
-#define ADD_CT_VALUE_BI(key, set, get) \
-  ADD_CT_SLOT_PUBLIC("t.set_" key, call_value,   rpc::object_value_fn<torrent::Tracker*>(set), "i:i", "") \
-  ADD_CT_SLOT_PUBLIC("t.get_" key, call_unknown, rpc::object_void_fn<torrent::Tracker*>(get), "i:", "")
-
-#define ADD_CT_BOOL(key, set, get) \
-  ADD_CT_SLOT_PUBLIC("t.set_" key, call_value,   rpc::object_value_fn<torrent::Tracker*>(set), "i:i", "") \
-  ADD_CT_SLOT_PUBLIC("t.is_" key, call_unknown,  rpc::object_void_fn<torrent::Tracker*>(get), "i:", "")
-
-#define ADD_CT_STRING_UNI(key, get) \
-  ADD_CT_SLOT_PUBLIC("t.get_" key, call_unknown, rpc::object_void_fn<torrent::Tracker*>(get), "s:", "")
-
-void
 initialize_command_tracker() {
-  ADD_CT_STRING_UNI("url",             std::mem_fun(&torrent::Tracker::url));
-  ADD_CT_VOID_UNI("group",             std::mem_fun(&torrent::Tracker::group));
-  ADD_CT_VOID_UNI("type",              std::mem_fun(&torrent::Tracker::type));
-  ADD_CT_STRING_UNI("id",              std::mem_fun(&torrent::Tracker::tracker_id));
+  CMD2_TRACKER        ("t.is_open",           std::tr1::bind(&torrent::Tracker::is_busy, std::tr1::placeholders::_1));
+  CMD2_TRACKER        ("t.is_enabled",        std::tr1::bind(&torrent::Tracker::is_enabled, std::tr1::placeholders::_1));
+  CMD2_TRACKER_VALUE_V("t.is_enabled.set",    std::tr1::bind(&torrent::Tracker::set_enabled, std::tr1::placeholders::_1, std::tr1::placeholders::_2));
+  CMD2_TRACKER_V      ("t.enable",            std::tr1::bind(&torrent::Tracker::enable, std::tr1::placeholders::_1));
+  CMD2_TRACKER_V      ("t.disable",           std::tr1::bind(&torrent::Tracker::disable, std::tr1::placeholders::_1));
 
-  ADD_CT_VOID("is_open",               std::mem_fun(&torrent::Tracker::is_busy));
-  ADD_CT_BOOL("enabled",               std::ptr_fun(&apply_t_set_enabled), std::mem_fun(&torrent::Tracker::is_enabled));
-  
-  ADD_CT_VOID_UNI("normal_interval",   std::mem_fun(&torrent::Tracker::normal_interval));
-  ADD_CT_VOID_UNI("min_interval",      std::mem_fun(&torrent::Tracker::min_interval));
+  CMD2_TRACKER        ("t.url",               std::tr1::bind(&torrent::Tracker::url, std::tr1::placeholders::_1));
+  CMD2_TRACKER        ("t.group",             std::tr1::bind(&torrent::Tracker::group, std::tr1::placeholders::_1));
+  CMD2_TRACKER        ("t.type",              std::tr1::bind(&torrent::Tracker::type, std::tr1::placeholders::_1));
+  CMD2_TRACKER        ("t.id",                std::tr1::bind(&torrent::Tracker::tracker_id, std::tr1::placeholders::_1));
 
-  ADD_CT_VOID_UNI("scrape_time_last",  std::mem_fun(&torrent::Tracker::scrape_time_last));
-  ADD_CT_VOID_UNI("scrape_complete",   std::mem_fun(&torrent::Tracker::scrape_complete));
-  ADD_CT_VOID_UNI("scrape_incomplete", std::mem_fun(&torrent::Tracker::scrape_incomplete));
-  ADD_CT_VOID_UNI("scrape_downloaded", std::mem_fun(&torrent::Tracker::scrape_downloaded));
+  CMD2_TRACKER        ("t.normal_interval",   std::tr1::bind(&torrent::Tracker::normal_interval, std::tr1::placeholders::_1));
+  CMD2_TRACKER        ("t.min_interval",      std::tr1::bind(&torrent::Tracker::min_interval, std::tr1::placeholders::_1));
+  CMD2_TRACKER        ("t.scrape_time_last",  std::tr1::bind(&torrent::Tracker::scrape_time_last, std::tr1::placeholders::_1));
+  CMD2_TRACKER        ("t.scrape_complete",   std::tr1::bind(&torrent::Tracker::scrape_complete, std::tr1::placeholders::_1));
+  CMD2_TRACKER        ("t.scrape_incomplete", std::tr1::bind(&torrent::Tracker::scrape_incomplete, std::tr1::placeholders::_1));
+  CMD2_TRACKER        ("t.scrape_downloaded", std::tr1::bind(&torrent::Tracker::scrape_downloaded, std::tr1::placeholders::_1));
 }

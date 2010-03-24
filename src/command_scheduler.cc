@@ -50,7 +50,7 @@
 #include "command_helpers.h"
 
 torrent::Object
-cmd_scheduler_simple_added(core::Download* download, const torrent::Object& rawArgs) {
+cmd_scheduler_simple_added(core::Download* download) {
   unsigned int numActive = (*control->view_manager()->find("active"))->size_visible();
   int64_t maxActive = rpc::call_command("scheduler.max_active", torrent::Object()).as_value();
   
@@ -61,7 +61,7 @@ cmd_scheduler_simple_added(core::Download* download, const torrent::Object& rawA
 }
 
 torrent::Object
-cmd_scheduler_simple_removed(core::Download* download, const torrent::Object& rawArgs) {
+cmd_scheduler_simple_removed(core::Download* download) {
   control->core()->download_list()->pause(download);
 
   core::View* viewActive = *control->view_manager()->find("active");
@@ -84,7 +84,7 @@ cmd_scheduler_simple_removed(core::Download* download, const torrent::Object& ra
 }
 
 torrent::Object
-cmd_scheduler_simple_update(core::Download* download, const torrent::Object& rawArgs) {
+cmd_scheduler_simple_update(core::Download* download) {
   core::View* viewActive = *control->view_manager()->find("active");
   core::View* viewStarted = *control->view_manager()->find("started");
 
@@ -114,13 +114,9 @@ cmd_scheduler_simple_update(core::Download* download, const torrent::Object& raw
 
 void
 initialize_command_scheduler() {
-//   core::DownloadList* dList = control->core()->download_list();
+  CMD2_VAR_VALUE("scheduler.max_active", int64_t(-1));
 
-//   CMD_G("scheduler.active", rak::bind_ptr_fn(&cmd_call, "view.size=active"));
-
-  rpc::commands.call("method.insert", rpc::create_object_list("scheduler.max_active", "value", (int64_t)-1));
-
-  CMD_D_ANY("scheduler.simple.added",   rak::ptr_fn(&cmd_scheduler_simple_added));
-  CMD_D_ANY("scheduler.simple.removed", rak::ptr_fn(&cmd_scheduler_simple_removed));
-  CMD_D_ANY("scheduler.simple.update",  rak::ptr_fn(&cmd_scheduler_simple_update));
+  CMD2_DOWNLOAD("scheduler.simple.added",   std::tr1::bind(&cmd_scheduler_simple_added, std::tr1::placeholders::_1));
+  CMD2_DOWNLOAD("scheduler.simple.removed", std::tr1::bind(&cmd_scheduler_simple_removed, std::tr1::placeholders::_1));
+  CMD2_DOWNLOAD("scheduler.simple.update",  std::tr1::bind(&cmd_scheduler_simple_update, std::tr1::placeholders::_1));
 }

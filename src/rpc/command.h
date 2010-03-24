@@ -161,17 +161,29 @@ template <> struct target_type_id<Command::file_itr_slot>      { static const in
 template <> struct target_type_id<Command::download_pair_slot> { static const int value = Command::target_download_pair; };
 
 template <> struct target_type_id<>                            { static const int value = Command::target_generic; };
-template <> struct target_type_id<target_type>                 { static const int value = Command::target_any; };
-template <> struct target_type_id<core::Download*>             { static const int value = Command::target_download; };
-template <> struct target_type_id<torrent::Peer*>              { static const int value = Command::target_peer; };
-template <> struct target_type_id<torrent::Tracker*>           { static const int value = Command::target_tracker; };
-template <> struct target_type_id<torrent::File*>              { static const int value = Command::target_file; };
-template <> struct target_type_id<torrent::FileListIterator*>  { static const int value = Command::target_file_itr; };
+template <> struct target_type_id<target_type>                 { static const int value = Command::target_any;      static const int proper_type = 1; };
+template <> struct target_type_id<core::Download*>             { static const int value = Command::target_download; static const int proper_type = 1; };
+template <> struct target_type_id<torrent::Peer*>              { static const int value = Command::target_peer;     static const int proper_type = 1; };
+template <> struct target_type_id<torrent::Tracker*>           { static const int value = Command::target_tracker;  static const int proper_type = 1; };
+template <> struct target_type_id<torrent::File*>              { static const int value = Command::target_file;     static const int proper_type = 1; };
+template <> struct target_type_id<torrent::FileListIterator*>  { static const int value = Command::target_file_itr; static const int proper_type = 1; };
 
 template <> struct target_type_id<core::Download*, core::Download*> { static const int value = Command::target_download_pair; };
 
+template <typename T> inline bool
+is_target_compatible(const target_type& target) { return target.first == target_type_id<T>::value; }
+
+template <> inline bool
+is_target_compatible<target_type>(const target_type& target) { return true; }
+
 // Splitting pairs into separate targets.
 inline bool is_target_pair(const target_type& target) { return target.first >= Command::target_download_pair; }
+
+template <typename T> inline T
+get_target_cast(target_type target, int type = target_type_id<T>::value) { return (T)target.second; }
+template <> inline target_type
+get_target_cast<target_type>(target_type target, int type) { return target; }
+
 
 inline target_type get_target_left(const target_type& target)  { return target_type(target.first - 5, target.second); }
 inline target_type get_target_right(const target_type& target) { return target_type(target.first - 5, target.third); }

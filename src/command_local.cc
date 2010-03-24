@@ -150,9 +150,9 @@ check_name(const std::string& str) {
 }  
 
 torrent::Object
-group_insert(__UNUSED rpc::target_type target, const torrent::Object& rawArgs) {
-  torrent::Object::list_const_iterator itr = rawArgs.as_list().begin();
-  torrent::Object::list_const_iterator last = rawArgs.as_list().end();
+group_insert(const torrent::Object::list_type& args) {
+  torrent::Object::list_const_iterator itr = args.begin();
+  torrent::Object::list_const_iterator last = args.end();
 
   const std::string& name = check_name(post_increment(itr, last)->as_string());
   const std::string& view = check_name(post_increment(itr, last)->as_string());
@@ -176,8 +176,8 @@ initialize_command_local() {
   core::DownloadList*    dList = control->core()->download_list();
   core::DownloadStore*   dStore = control->core()->download_store();
 
-  ADD_COMMAND_VOID("system.hostname",            rak::ptr_fun(&system_hostname));
-  ADD_COMMAND_VOID("system.pid",                 rak::ptr_fun(&getpid));
+  CMD2_ANY         ("system.hostname", std::tr1::bind(&system_hostname));
+  CMD2_ANY         ("system.pid",      std::tr1::bind(&getpid));
 
   rpc::commands.call("method.insert", rpc::create_object_list("system.client_version", "string|static|const", PACKAGE_VERSION));
   rpc::commands.call("method.insert", rpc::create_object_list("system.library_version", "string|static|const", torrent::version()));
@@ -187,47 +187,50 @@ initialize_command_local() {
   rpc::commands.call("method.insert", rpc::create_object_list("system.file.split_suffix", "string|const", ".part"));
   rpc::commands.call("method.insert", rpc::create_object_list("system.session_name", "string|const", ""));
 
-  ADD_COMMAND_VOID("system.file_status_cache.size",  rak::make_mem_fun((utils::FileStatusCache::base_type*)control->core()->file_status_cache(),
-                                                                       &utils::FileStatusCache::size));
-  ADD_COMMAND_VOID("system.file_status_cache.prune", rak::make_mem_fun(control->core()->file_status_cache(), &utils::FileStatusCache::prune));
+  CMD2_ANY         ("system.file_status_cache.size",   std::tr1::bind(&utils::FileStatusCache::size,
+                                                                      (utils::FileStatusCache::base_type*)control->core()->file_status_cache()));
+  CMD2_ANY_V       ("system.file_status_cache.prune",  std::tr1::bind(&utils::FileStatusCache::prune, control->core()->file_status_cache()));
 
-  ADD_COMMAND_VOID("system.files.opened_counter",    rak::make_mem_fun(fileManager, &FM_t::files_opened_counter));
-  ADD_COMMAND_VOID("system.files.closed_counter",    rak::make_mem_fun(fileManager, &FM_t::files_closed_counter));
-  ADD_COMMAND_VOID("system.files.failed_counter",    rak::make_mem_fun(fileManager, &FM_t::files_failed_counter));
+  CMD2_ANY         ("system.files.opened_counter",     std::tr1::bind(&FM_t::files_opened_counter, fileManager));
+  CMD2_ANY         ("system.files.closed_counter",     std::tr1::bind(&FM_t::files_closed_counter, fileManager));
+  CMD2_ANY         ("system.files.failed_counter",     std::tr1::bind(&FM_t::files_failed_counter, fileManager));
 
-  ADD_COMMAND_VOID("system.time",                    rak::make_mem_fun(&cachedTime, &rak::timer::seconds));
-  ADD_COMMAND_VOID("system.time_seconds",            rak::ptr_fun(&rak::timer::current_seconds));
-  ADD_COMMAND_VOID("system.time_usec",               rak::ptr_fun(&rak::timer::current_usec));
+  CMD2_ANY         ("system.time",                     std::tr1::bind(&rak::timer::seconds, &cachedTime));
+  CMD2_ANY         ("system.time_seconds",             std::tr1::bind(&rak::timer::current_seconds));
+  CMD2_ANY         ("system.time_usec",                std::tr1::bind(&rak::timer::current_usec));
 
-  ADD_COMMAND_VALUE_SET_OCT("system.", "umask",      std::ptr_fun(&umask));
-  ADD_COMMAND_STRING_PREFIX("system.", "cwd",        std::ptr_fun(system_set_cwd), rak::ptr_fun(&system_get_cwd));
+//   ADD_COMMAND_VALUE_SET_OCT("system.", "umask",      std::ptr_fun(&umask));
+//   ADD_COMMAND_STRING_PREFIX("system.", "cwd",        std::ptr_fun(system_set_cwd), rak::ptr_fun(&system_get_cwd));
 
-  ADD_COMMAND_VOID("pieces.sync.always_safe",          rak::make_mem_fun(chunkManager, &CM_t::safe_sync));
-  ADD_COMMAND_VALUE_UN("pieces.sync.always_safe.set",  rak::make_mem_fun(chunkManager, &CM_t::set_safe_sync));
-  ADD_COMMAND_VOID("pieces.sync.safe_free_diskspace",  rak::make_mem_fun(chunkManager, &CM_t::safe_free_diskspace));
-  ADD_COMMAND_VOID("pieces.sync.timeout",              rak::make_mem_fun(chunkManager, &CM_t::timeout_sync));
-  ADD_COMMAND_VALUE_UN("pieces.sync.timeout.set",      rak::make_mem_fun(chunkManager, &CM_t::set_timeout_sync));
-  ADD_COMMAND_VOID("pieces.sync.timeout_safe",         rak::make_mem_fun(chunkManager, &CM_t::timeout_safe_sync));
-  ADD_COMMAND_VALUE_UN("pieces.sync.timeout_safe.set", rak::make_mem_fun(chunkManager, &CM_t::set_timeout_safe_sync));
+  CMD2_ANY         ("pieces.sync.always_safe",         std::tr1::bind(&CM_t::safe_sync, chunkManager));
+  CMD2_ANY_VALUE_V ("pieces.sync.always_safe.set",     std::tr1::bind(&CM_t::set_safe_sync, chunkManager, std::tr1::placeholders::_2));
+  CMD2_ANY         ("pieces.sync.safe_free_diskspace", std::tr1::bind(&CM_t::safe_free_diskspace, chunkManager));
+  CMD2_ANY         ("pieces.sync.timeout",             std::tr1::bind(&CM_t::timeout_sync, chunkManager));
+  CMD2_ANY_VALUE_V ("pieces.sync.timeout.set",         std::tr1::bind(&CM_t::set_timeout_sync, chunkManager, std::tr1::placeholders::_2));
+  CMD2_ANY         ("pieces.sync.timeout_safe",        std::tr1::bind(&CM_t::timeout_safe_sync, chunkManager));
+  CMD2_ANY_VALUE_V ("pieces.sync.timeout_safe.set",    std::tr1::bind(&CM_t::set_timeout_safe_sync, chunkManager, std::tr1::placeholders::_2));
 
-  ADD_COMMAND_VOID("pieces.preload.type",              rak::make_mem_fun(chunkManager, &CM_t::preload_type));
-  ADD_COMMAND_VALUE_UN("pieces.preload.type.set",      rak::make_mem_fun(chunkManager, &CM_t::set_preload_type));
-  ADD_COMMAND_VOID("pieces.preload.min_size",          rak::make_mem_fun(chunkManager, &CM_t::preload_min_size));
-  ADD_COMMAND_VALUE_UN("pieces.preload.min_size.set",  rak::make_mem_fun(chunkManager, &CM_t::set_preload_min_size));
-  ADD_COMMAND_VOID("pieces.preload.min_rate",          rak::make_mem_fun(chunkManager, &CM_t::preload_required_rate));
-  ADD_COMMAND_VALUE_UN("pieces.preload.min_rate.set",  rak::make_mem_fun(chunkManager, &CM_t::set_preload_required_rate));
+  CMD2_ANY         ("pieces.preload.type",             std::tr1::bind(&CM_t::preload_type, chunkManager));
+  CMD2_ANY_VALUE_V ("pieces.preload.type.set",         std::tr1::bind(&CM_t::set_preload_type, chunkManager, std::tr1::placeholders::_2));
+  CMD2_ANY         ("pieces.preload.min_size",         std::tr1::bind(&CM_t::preload_min_size, chunkManager));
+  CMD2_ANY_VALUE_V ("pieces.preload.min_size.set",     std::tr1::bind(&CM_t::set_preload_min_size, chunkManager, std::tr1::placeholders::_2));
+  CMD2_ANY         ("pieces.preload.min_rate",         std::tr1::bind(&CM_t::preload_required_rate, chunkManager));
+  CMD2_ANY_VALUE_V ("pieces.preload.min_rate.set",     std::tr1::bind(&CM_t::set_preload_required_rate, chunkManager, std::tr1::placeholders::_2));
 
-  ADD_COMMAND_VOID("pieces.memory.current",      rak::make_mem_fun(chunkManager, &CM_t::memory_usage));
-  ADD_COMMAND_VOID("pieces.memory.max",          rak::make_mem_fun(chunkManager, &CM_t::max_memory_usage));
-  ADD_COMMAND_VALUE_UN("pieces.memory.max.set",  rak::make_mem_fun(chunkManager, &CM_t::set_max_memory_usage));
-  ADD_COMMAND_VOID("pieces.stats_preloaded",     rak::make_mem_fun(chunkManager, &CM_t::stats_preloaded));
-  ADD_COMMAND_VOID("pieces.stats_not_preloaded", rak::make_mem_fun(chunkManager, &CM_t::stats_not_preloaded));
+  CMD2_ANY         ("pieces.memory.current",           std::tr1::bind(&CM_t::memory_usage, chunkManager));
+  CMD2_ANY         ("pieces.memory.max",               std::tr1::bind(&CM_t::max_memory_usage, chunkManager));
+  CMD2_ANY_VALUE_V ("pieces.memory.max.set",           std::tr1::bind(&CM_t::set_max_memory_usage, chunkManager, std::tr1::placeholders::_2));
+  CMD2_ANY         ("pieces.stats_preloaded",          std::tr1::bind(&CM_t::stats_preloaded, chunkManager));
+  CMD2_ANY         ("pieces.stats_not_preloaded",      std::tr1::bind(&CM_t::stats_not_preloaded, chunkManager));
 
+  CMD2_VAR_STRING  ("directory.default", "./");
 
-  ADD_VARIABLE_STRING("directory", "./");
+  // TODO: Clean up.
+  CMD2_ANY         ("get_session", std::tr1::bind(&core::DownloadStore::path, dStore));
+  CMD2_ANY_STRING_V("set_session", std::tr1::bind(&core::DownloadStore::set_path, dStore, std::tr1::placeholders::_2));
+  CMD2_ANY_STRING_V("session",     std::tr1::bind(&core::DownloadStore::set_path, dStore, std::tr1::placeholders::_2));
 
-  ADD_COMMAND_STRING_TRI("session",            rak::make_mem_fun(dStore, &core::DownloadStore::set_path), rak::make_mem_fun(dStore, &core::DownloadStore::path));
-  ADD_COMMAND_VOID("session_save",             rak::make_mem_fun(dList, &core::DownloadList::session_save));
+  CMD2_ANY_V       ("session_save", std::tr1::bind(&core::DownloadList::session_save, dList));
 
   CMD2_ANY("execute",             std::tr1::bind(&rpc::ExecFile::execute_object, &rpc::execFile, std::tr1::placeholders::_2, rpc::ExecFile::flag_throw | rpc::ExecFile::flag_expand_tilde));
   CMD2_ANY("execute_nothrow",     std::tr1::bind(&rpc::ExecFile::execute_object, &rpc::execFile, std::tr1::placeholders::_2, rpc::ExecFile::flag_expand_tilde));
@@ -239,6 +242,7 @@ initialize_command_local() {
   CMD2_ANY_STRING("log.execute", std::tr1::bind(&apply_log, std::tr1::placeholders::_2, 0));
   CMD2_ANY_STRING("log.xmlrpc",  std::tr1::bind(&apply_log, std::tr1::placeholders::_2, 1));
 
+  // TODO: Convert to new command types:
   *rpc::Command::argument(0) = "placeholder.0";
   *rpc::Command::argument(1) = "placeholder.1";
   *rpc::Command::argument(2) = "placeholder.2";
@@ -248,5 +252,5 @@ initialize_command_local() {
   CMD_OBJ_P("argument.2", get_generic, rpc::Command::argument(2));
   CMD_OBJ_P("argument.3", get_generic, rpc::Command::argument(3));
 
-  CMD_N_LIST("group.insert", rak::ptr_fn(&group_insert));
+  CMD2_ANY_LIST  ("group.insert", std::tr1::bind(&group_insert, std::tr1::placeholders::_2));
 }

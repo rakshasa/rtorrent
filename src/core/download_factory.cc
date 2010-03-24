@@ -110,7 +110,7 @@ DownloadFactory::DownloadFactory(Manager* m) :
 
   m_variables["connection_leech"] = rpc::call_command_void("connection_leech");
   m_variables["connection_seed"]  = rpc::call_command_void("connection_seed");
-  m_variables["directory"]        = rpc::call_command_void("get_directory");
+  m_variables["directory"]        = rpc::call_command_void("directory.default");
   m_variables["tied_to_file"]     = torrent::Object((int64_t)false);
 }
 

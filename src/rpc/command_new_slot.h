@@ -59,7 +59,7 @@ typedef const torrent::Object (*command_base_call_type)(Command*, target_type, c
 typedef std::tr1::function<torrent::Object (target_type, const torrent::Object&)> base_function;
 
 template <typename tmpl> struct command_base_is_valid {};
-template <typename tmpl_type, command_base_call_type tmpl_func> struct command_base_is_type {};
+template <command_base_call_type tmpl_func> struct command_base_is_type {};
 
 class command_base : public Command {
 public:
@@ -76,6 +76,11 @@ public:
   // have no idea atm.
   template <typename tmpl> tmpl& _pod() { return reinterpret_cast<tmpl&>(t_pod); }
 
+  template <typename Func, typename T, typename Args>
+  static const torrent::Object _call(Command* cmd, target_type target, Args args) {
+    return static_cast<command_base*>(cmd)->_pod<Func>()(get_target_cast<T>(target), args);
+  }
+
 protected:
 
   union {
@@ -83,35 +88,37 @@ protected:
   };
 };
 
-#define COMMAND_BASE_TYPE(func_type, func_parm)                     \
-  typedef std::tr1::function<func_parm> func_type;                      \
-  template <> struct command_base_is_valid<func_type> { static const int value = 1; };
+#define COMMAND_BASE_TEMPLATE_TYPE(func_type, func_parm)                \
+  template <typename T, int proper = target_type_id<T>::proper_type> struct func_type { typedef std::tr1::function<func_parm> type; }; \
+                                                                        \
+  template <> struct command_base_is_valid<func_type<target_type>::type>                { static const int value = 1; }; \
+  template <> struct command_base_is_valid<func_type<core::Download*>::type>            { static const int value = 1; }; \
+  template <> struct command_base_is_valid<func_type<torrent::Peer*>::type>             { static const int value = 1; }; \
+  template <> struct command_base_is_valid<func_type<torrent::Tracker*>::type>          { static const int value = 1; }; \
+  template <> struct command_base_is_valid<func_type<torrent::File*>::type>             { static const int value = 1; }; \
+  template <> struct command_base_is_valid<func_type<torrent::FileListIterator*>::type> { static const int value = 1; };
 
-#define COMMAND_BASE_CALL(func_name, func_type) \
-  const torrent::Object func_name(Command* rawCommand, target_type target, const torrent::Object& args); \
-  template <> struct command_base_is_type<func_type, func_name> { static const int value = 1; };
+//  template <typename Q> struct command_base_is_valid<typename func_type<Q>::type > { static const int value = 1; };
 
-// template <> struct command_base_is_valid<base_function> { static const int value = 1; };
+COMMAND_BASE_TEMPLATE_TYPE(command_function,        torrent::Object (T, const torrent::Object&));
+COMMAND_BASE_TEMPLATE_TYPE(command_value_function,  torrent::Object (T, const torrent::Object::value_type&));
+COMMAND_BASE_TEMPLATE_TYPE(command_string_function, torrent::Object (T, const std::string&));
+COMMAND_BASE_TEMPLATE_TYPE(command_list_function,   torrent::Object (T, const torrent::Object::list_type&));
 
-// const torrent::Object command_base_call_any(Command* rawCommand, target_type target, const torrent::Object& args);
-// template <> struct command_base_is_type<any_function, command_base_call_any> { static const int value = 1; };
+#define COMMAND_BASE_TEMPLATE_CALL(func_name, func_type)                \
+  template <typename T> const torrent::Object func_name(Command* rawCommand, target_type target, const torrent::Object& args); \
+                                                                        \
+  template <> struct command_base_is_type<func_name<target_type> >       { static const int value = 1; typedef func_type<target_type>::type type; }; \
+  template <> struct command_base_is_type<func_name<core::Download*> >   { static const int value = 1; typedef func_type<core::Download*>::type type; }; \
+  template <> struct command_base_is_type<func_name<torrent::Peer*> >    { static const int value = 1; typedef func_type<torrent::Peer*>::type type; }; \
+  template <> struct command_base_is_type<func_name<torrent::Tracker*> > { static const int value = 1; typedef func_type<torrent::Tracker*>::type type; }; \
+  template <> struct command_base_is_type<func_name<torrent::File*> >    { static const int value = 1; typedef func_type<torrent::File*>::type type; }; \
+  template <> struct command_base_is_type<func_name<torrent::FileListIterator*> > { static const int value = 1; typedef func_type<torrent::FileListIterator*>::type type; };
 
-//
-// Declare valid parameters and functions:
-//
-
-// typedef std::tr1::function<torrent::Object (target_type, const torrent::Object&)> any_function;
-// typedef std::tr1::function<torrent::Object (target_type, const std::string&)> any_string_function;
-
-COMMAND_BASE_TYPE(any_function, torrent::Object (target_type, const torrent::Object&));
-COMMAND_BASE_TYPE(any_value_function, torrent::Object (target_type, const torrent::Object::value_type&));
-COMMAND_BASE_TYPE(any_string_function, torrent::Object (target_type, const std::string&));
-COMMAND_BASE_TYPE(any_list_function, torrent::Object (target_type, const torrent::Object::list_type&));
-
-COMMAND_BASE_CALL(command_base_call_any, any_function);
-COMMAND_BASE_CALL(command_base_call_any_value, any_value_function);
-COMMAND_BASE_CALL(command_base_call_any_string, any_string_function);
-COMMAND_BASE_CALL(command_base_call_any_list, any_list_function);
+COMMAND_BASE_TEMPLATE_CALL(command_base_call, command_function);
+COMMAND_BASE_TEMPLATE_CALL(command_base_call_value, command_value_function);
+COMMAND_BASE_TEMPLATE_CALL(command_base_call_string, command_string_function);
+COMMAND_BASE_TEMPLATE_CALL(command_base_call_list, command_list_function);
 
 }
 

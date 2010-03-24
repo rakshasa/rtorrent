@@ -17,7 +17,6 @@ libsub_root_a_SOURCES = \
 	command_helpers.h \
 	command_local.cc \
 	command_network.cc \
-	command_object.cc \
 	command_peer.cc \
 	command_tracker.cc \
 	command_scheduler.cc \

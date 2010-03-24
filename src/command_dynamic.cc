@@ -82,9 +82,7 @@ create_new_key(const std::string& key, const char postfix[postfix_size]) {
 // as a command, and which takes advantage of static const char
 // strings, etc.
 torrent::Object
-system_method_insert(__UNUSED rpc::target_type target, const torrent::Object& rawArgs) {
-  const torrent::Object::list_type& args = rawArgs.as_list();
-
+system_method_insert(const torrent::Object::list_type& args) {
   if (args.empty() || ++args.begin() == args.end())
     throw torrent::input_error("Invalid argument count.");
 
@@ -178,8 +176,8 @@ system_method_insert(__UNUSED rpc::target_type target, const torrent::Object& ra
 // that aren't modifiable, e.g. defined by rtorrent or set to
 // read-only by the user, will result in an error.
 torrent::Object
-system_method_erase(__UNUSED rpc::target_type target, const torrent::Object& rawArgs) {
-  rpc::CommandMap::iterator itr = rpc::commands.find(rawArgs.as_string().c_str());
+system_method_erase(const torrent::Object::string_type& args) {
+  rpc::CommandMap::iterator itr = rpc::commands.find(args.c_str());
 
   if (itr == rpc::commands.end())
     return torrent::Object();
@@ -193,9 +191,9 @@ system_method_erase(__UNUSED rpc::target_type target, const torrent::Object& raw
 }
 
 torrent::Object
-system_method_get(__UNUSED rpc::target_type target, const torrent::Object& rawArgs) {
+system_method_get(const torrent::Object::string_type& args) {
   rpc::CommandFunction* function;
-  rpc::CommandMap::iterator itr = rpc::commands.find(rawArgs.as_string().c_str());
+  rpc::CommandMap::iterator itr = rpc::commands.find(args.c_str());
 
   if (itr == rpc::commands.end() ||
       (function = dynamic_cast<rpc::CommandFunction*>(itr->second.m_variable)) == NULL)
@@ -205,9 +203,7 @@ system_method_get(__UNUSED rpc::target_type target, const torrent::Object& rawAr
 }
 
 torrent::Object
-system_method_set(__UNUSED rpc::target_type target, const torrent::Object& rawArgs) {
-  const torrent::Object::list_type& args = rawArgs.as_list();
-
+system_method_set(const torrent::Object::list_type& args) {
   if (args.empty())
     throw torrent::input_error("Invalid argument count.");
 
@@ -223,9 +219,7 @@ system_method_set(__UNUSED rpc::target_type target, const torrent::Object& rawAr
 }
 
 torrent::Object
-system_method_set_key(__UNUSED rpc::target_type target, const torrent::Object& rawArgs) {
-  const torrent::Object::list_type& args = rawArgs.as_list();
-
+system_method_set_key(const torrent::Object::list_type& args) {
   if (args.empty() || ++args.begin() == args.end())
     throw torrent::input_error("Invalid argument count.");
 
@@ -248,9 +242,7 @@ system_method_set_key(__UNUSED rpc::target_type target, const torrent::Object& r
 }
 
 torrent::Object
-system_method_has_key(__UNUSED rpc::target_type target, const torrent::Object& rawArgs) {
-  const torrent::Object::list_type& args = rawArgs.as_list();
-
+system_method_has_key(const torrent::Object::list_type& args) {
   if (args.size() != 2)
     throw torrent::input_error("Invalid argument count.");
 
@@ -265,9 +257,9 @@ system_method_has_key(__UNUSED rpc::target_type target, const torrent::Object& r
 }
 
 torrent::Object
-system_method_list_keys(__UNUSED rpc::target_type target, const torrent::Object& rawArgs) {
+system_method_list_keys(const torrent::Object::string_type& args) {
   rpc::CommandFunctionList* function;
-  rpc::CommandMap::iterator itr = rpc::commands.find(rawArgs.as_string().c_str());
+  rpc::CommandMap::iterator itr = rpc::commands.find(args.c_str());
 
   if (itr == rpc::commands.end() ||
       (function = dynamic_cast<rpc::CommandFunctionList*>(itr->second.m_variable)) == NULL)
@@ -284,11 +276,11 @@ system_method_list_keys(__UNUSED rpc::target_type target, const torrent::Object&
 
 void
 initialize_command_dynamic() {
-  CMD_N       ("method.insert",    rak::ptr_fn(&system_method_insert));
-  CMD_N_STRING("method.erase",     rak::ptr_fn(&system_method_erase));
-  CMD_N_STRING("method.get",       rak::ptr_fn(&system_method_get));
-  CMD_N       ("method.set",       rak::ptr_fn(&system_method_set));
-  CMD_N       ("method.set_key",   rak::ptr_fn(&system_method_set_key));
-  CMD_N       ("method.has_key",   rak::ptr_fn(&system_method_has_key));
-  CMD_N_STRING("method.list_keys", rak::ptr_fn(&system_method_list_keys));
+  CMD2_ANY_LIST    ("method.insert",    std::tr1::bind(&system_method_insert, std::tr1::placeholders::_2));
+  CMD2_ANY_STRING  ("method.erase",     std::tr1::bind(&system_method_erase, std::tr1::placeholders::_2));
+  CMD2_ANY_STRING  ("method.get",       std::tr1::bind(&system_method_get, std::tr1::placeholders::_2));
+  CMD2_ANY_LIST    ("method.set",       std::tr1::bind(&system_method_set, std::tr1::placeholders::_2));
+  CMD2_ANY_LIST    ("method.set_key",   std::tr1::bind(&system_method_set_key, std::tr1::placeholders::_2));
+  CMD2_ANY_LIST    ("method.has_key",   std::tr1::bind(&system_method_has_key, std::tr1::placeholders::_2));
+  CMD2_ANY_STRING  ("method.list_keys", std::tr1::bind(&system_method_list_keys, std::tr1::placeholders::_2));
 }
