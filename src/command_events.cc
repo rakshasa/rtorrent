@@ -88,7 +88,7 @@ apply_on_ratio(const torrent::Object& rawArgs) {
   std::vector<core::Download*> downloads;
 
   for  (core::View::iterator itr = (*viewItr)->begin_visible(), last = (*viewItr)->end_visible(); itr != last; itr++) {
-    if (!(*itr)->is_seeding() || rpc::call_command_value("d.get_ignore_commands", rpc::make_target(*itr)) != 0)
+    if (!(*itr)->is_seeding() || rpc::call_command_value("d.ignore_commands", rpc::make_target(*itr)) != 0)
       continue;
 
     //    rpc::parse_command_single(rpc::make_target(*itr), "print={Checked ratio of download.}");
@@ -116,11 +116,11 @@ apply_on_ratio(const torrent::Object& rawArgs) {
 torrent::Object
 apply_start_tied() {
   for (core::DownloadList::iterator itr = control->core()->download_list()->begin(); itr != control->core()->download_list()->end(); ++itr) {
-    if (rpc::call_command_value("d.get_state", rpc::make_target(*itr)) == 1)
+    if (rpc::call_command_value("d.state", rpc::make_target(*itr)) == 1)
       continue;
 
     rak::file_stat fs;
-    const std::string& tiedToFile = rpc::call_command_string("d.get_tied_to_file", rpc::make_target(*itr));
+    const std::string& tiedToFile = rpc::call_command_string("d.tied_to_file", rpc::make_target(*itr));
 
     if (!tiedToFile.empty() && fs.update(rak::path_expand(tiedToFile)))
       rpc::parse_command_single(rpc::make_target(*itr), "d.try_start=");
@@ -132,11 +132,11 @@ apply_start_tied() {
 torrent::Object
 apply_stop_untied() {
   for (core::DownloadList::iterator itr = control->core()->download_list()->begin(); itr != control->core()->download_list()->end(); ++itr) {
-    if (rpc::call_command_value("d.get_state", rpc::make_target(*itr)) == 0)
+    if (rpc::call_command_value("d.state", rpc::make_target(*itr)) == 0)
       continue;
 
     rak::file_stat fs;
-    const std::string& tiedToFile = rpc::call_command_string("d.get_tied_to_file", rpc::make_target(*itr));
+    const std::string& tiedToFile = rpc::call_command_string("d.tied_to_file", rpc::make_target(*itr));
 
     if (!tiedToFile.empty() && !fs.update(rak::path_expand(tiedToFile)))
       rpc::parse_command_single(rpc::make_target(*itr), "d.try_stop=");
@@ -149,9 +149,9 @@ torrent::Object
 apply_close_untied() {
   for (core::DownloadList::iterator itr = control->core()->download_list()->begin(); itr != control->core()->download_list()->end(); ++itr) {
     rak::file_stat fs;
-    const std::string& tiedToFile = rpc::call_command_string("d.get_tied_to_file", rpc::make_target(*itr));
+    const std::string& tiedToFile = rpc::call_command_string("d.tied_to_file", rpc::make_target(*itr));
 
-    if (rpc::call_command_value("d.get_ignore_commands", rpc::make_target(*itr)) == 0 && !tiedToFile.empty() && !fs.update(rak::path_expand(tiedToFile)))
+    if (rpc::call_command_value("d.ignore_commands", rpc::make_target(*itr)) == 0 && !tiedToFile.empty() && !fs.update(rak::path_expand(tiedToFile)))
       rpc::parse_command_single(rpc::make_target(*itr), "d.try_close=");
   }
 
@@ -162,11 +162,11 @@ torrent::Object
 apply_remove_untied() {
   for (core::DownloadList::iterator itr = control->core()->download_list()->begin(); itr != control->core()->download_list()->end(); ) {
     rak::file_stat fs;
-    const std::string& tiedToFile = rpc::call_command_string("d.get_tied_to_file", rpc::make_target(*itr));
+    const std::string& tiedToFile = rpc::call_command_string("d.tied_to_file", rpc::make_target(*itr));
 
     if (!tiedToFile.empty() && !fs.update(rak::path_expand(tiedToFile))) {
       // Need to clear tied_to_file so it doesn't try to delete it.
-      rpc::call_command("d.set_tied_to_file", std::string(), rpc::make_target(*itr));
+      rpc::call_command("d.tied_to_file.set", std::string(), rpc::make_target(*itr));
 
       itr = control->core()->download_list()->erase(itr);
 

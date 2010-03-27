@@ -251,24 +251,24 @@ DownloadFactory::receive_success() {
   if (!rtorrent->has_key_string("custom4")) rtorrent->insert_key("custom4", std::string());
   if (!rtorrent->has_key_string("custom5")) rtorrent->insert_key("custom5", std::string());
 
-  rpc::call_command("d.set_uploads_max",      rpc::call_command_void("max_uploads"), rpc::make_target(download));
-  rpc::call_command("d.set_peers_min",        rpc::call_command_void("min_peers"), rpc::make_target(download));
-  rpc::call_command("d.set_peers_max",        rpc::call_command_void("max_peers"), rpc::make_target(download));
-  rpc::call_command("d.set_tracker_numwant",  rpc::call_command_void("trackers.numwant"), rpc::make_target(download));
+  rpc::call_command("d.uploads_max.set",      rpc::call_command_void("max_uploads"), rpc::make_target(download));
+  rpc::call_command("d.peers_min.set",        rpc::call_command_void("min_peers"), rpc::make_target(download));
+  rpc::call_command("d.peers_max.set",        rpc::call_command_void("max_peers"), rpc::make_target(download));
+  rpc::call_command("d.tracker_numwant.set",  rpc::call_command_void("trackers.numwant"), rpc::make_target(download));
 
-  if (rpc::call_command_value("d.get_complete", rpc::make_target(download)) != 0) {
+  if (rpc::call_command_value("d.complete", rpc::make_target(download)) != 0) {
     if (rpc::call_command_value("min_peers_seed") >= 0)
-      rpc::call_command("d.set_peers_min", rpc::call_command_void("min_peers_seed"), rpc::make_target(download));
+      rpc::call_command("d.peers_min.set", rpc::call_command_void("min_peers_seed"), rpc::make_target(download));
 
     if (rpc::call_command_value("max_peers_seed") >= 0)
-      rpc::call_command("d.set_peers_max", rpc::call_command_void("max_peers_seed"), rpc::make_target(download));
+      rpc::call_command("d.peers_max.set", rpc::call_command_void("max_peers_seed"), rpc::make_target(download));
   }
 
   if (!rpc::call_command_value("trackers.use_udp"))
     download->enable_udp_trackers(false);
 
   if (rpc::call_command_value("system.file.max_size") > 0)
-    rpc::call_command("d.set_max_file_size", rpc::call_command_void("system.file.max_size"), rpc::make_target(download));
+    rpc::call_command("d.max_file_size.set", rpc::call_command_void("system.file.max_size"), rpc::make_target(download));
 
   // Check first if we already have these values set in the session
   // torrent, so that it is safe to change the values.
@@ -280,12 +280,12 @@ DownloadFactory::receive_success() {
                             rpc::call_command_string("system.file.split_suffix"));
 
   if (!rtorrent->has_key_string("directory"))
-    rpc::call_command("d.set_directory", m_variables["directory"], rpc::make_target(download));
+    rpc::call_command("d.directory.set", m_variables["directory"], rpc::make_target(download));
   else
-    rpc::call_command("d.set_directory_base", rtorrent->get_key("directory"), rpc::make_target(download));
+    rpc::call_command("d.directory_base.set", rtorrent->get_key("directory"), rpc::make_target(download));
 
   if (!m_session && m_variables["tied_to_file"].as_value())
-    rpc::call_command("d.set_tied_to_file", m_uri.empty() ? m_variables["tied_file"] : m_uri, rpc::make_target(download));
+    rpc::call_command("d.tied_to_file.set", m_uri.empty() ? m_variables["tied_file"] : m_uri, rpc::make_target(download));
 
   rpc::call_command("d.peer_exchange.set", rpc::call_command_value("protocol.pex"), rpc::make_target(download));
 
@@ -313,7 +313,7 @@ DownloadFactory::receive_success() {
       throw torrent::input_error("The newly created download was removed.");
 
     if (!m_session)
-       rpc::call_command("d.set_state", (int64_t)m_start, rpc::make_target(download));
+       rpc::call_command("d.state.set", (int64_t)m_start, rpc::make_target(download));
 
     rpc::commands.call_catch(m_session ? "event.download.inserted_session" : "event.download.inserted_new",
                              rpc::make_target(download), torrent::Object(), "Download event action failed: ");
@@ -369,9 +369,9 @@ DownloadFactory::initialize_rtorrent(Download* download, torrent::Object* rtorre
   rtorrent->insert_key("loaded_file", m_isFile ? m_uri : std::string());
 
   if (rtorrent->has_key_value("priority"))
-    rpc::call_command("d.set_priority", rtorrent->get_key_value("priority") % 4, rpc::make_target(download));
+    rpc::call_command("d.priority.set", rtorrent->get_key_value("priority") % 4, rpc::make_target(download));
   else
-    rpc::call_command("d.set_priority", (int64_t)2, rpc::make_target(download));
+    rpc::call_command("d.priority.set", (int64_t)2, rpc::make_target(download));
 
   if (rtorrent->has_key_value("key")) {
     download->tracker_list()->set_key(rtorrent->get_key_value("key"));

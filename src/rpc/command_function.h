@@ -83,6 +83,10 @@ public:
   static const torrent::Object call(Command* rawCommand, target_type target, const torrent::Object& args);
 };
 
+// Temp until it can be moved somewhere better...
+const torrent::Object
+command_function_call(const torrent::raw_string& cmd, target_type target, const torrent::Object& args);
+
 }
 
 #endif

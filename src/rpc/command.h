@@ -38,6 +38,7 @@
 #define RTORRENT_RPC_VARIABLE_H
 
 #include <torrent/object.h>
+#include <torrent/data/file_list_iterator.h>
 
 namespace core {
   class Download;
@@ -132,6 +133,9 @@ public:
 
   static torrent::Object* argument(unsigned int index) { return m_arguments + index; }
 
+  static const unsigned int max_arguments = 10;
+  static torrent::Object m_arguments[max_arguments];
+
 protected:
   Command(const Command&);
   void operator = (const Command&);
@@ -139,9 +143,6 @@ protected:
   // For use by functions that need to use placeholders to arguments
   // within commands. E.d. callable command strings where one of the
   // arguments within the command needs to be supplied by the caller.
-  static const unsigned int max_arguments = 10;
-
-  static torrent::Object m_arguments[max_arguments];
 };
 
 template <typename T1 = void, typename T2 = void>
@@ -175,6 +176,8 @@ is_target_compatible(const target_type& target) { return target.first == target_
 
 template <> inline bool
 is_target_compatible<target_type>(const target_type& target) { return true; }
+template <> inline bool
+is_target_compatible<torrent::File*>(const target_type& target) { return target.first == Command::target_file || Command::target_file_itr; }
 
 // Splitting pairs into separate targets.
 inline bool is_target_pair(const target_type& target) { return target.first >= Command::target_download_pair; }
@@ -184,6 +187,13 @@ get_target_cast(target_type target, int type = target_type_id<T>::value) { retur
 template <> inline target_type
 get_target_cast<target_type>(target_type target, int type) { return target; }
 
+template <> inline torrent::File*
+get_target_cast<torrent::File*>(target_type target, int type) {
+  if (target.first == Command::target_file_itr)
+    return static_cast<torrent::FileListIterator*>(target.second)->file();
+  else
+    return static_cast<torrent::File*>(target.second);
+}
 
 inline target_type get_target_left(const target_type& target)  { return target_type(target.first - 5, target.second); }
 inline target_type get_target_right(const target_type& target) { return target_type(target.first - 5, target.third); }

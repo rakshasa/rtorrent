@@ -103,7 +103,7 @@ DhtManager::start_dht() {
   torrent::dht_manager()->set_upload_throttle(throttles.first);
   torrent::dht_manager()->set_download_throttle(throttles.second);
 
-  int port = rpc::call_command_value("get_dht_port");
+  int port = rpc::call_command_value("dht.port");
   if (port <= 0)
     return;
 
@@ -167,7 +167,7 @@ DhtManager::save_dht_cache() {
 }
 
 void
-DhtManager::set_start(const std::string& arg) {
+DhtManager::set_mode(const std::string& arg) {
   int i;
   for (i = 0; i < dht_settings_num; i++) {
     if (arg == dht_settings[i]) {

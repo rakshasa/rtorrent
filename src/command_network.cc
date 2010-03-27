@@ -501,7 +501,7 @@ initialize_command_network() {
 
 //   CMD2_ANY_V       ("dht.enable",     std::tr1::bind(&core::DhtManager::set_start, control->dht_manager()));
 //   CMD2_ANY_V       ("dht.disable",    std::tr1::bind(&core::DhtManager::set_stop, control->dht_manager()));
-  CMD2_ANY_STRING_V("dht.mode",              std::tr1::bind(&core::DhtManager::set_start, control->dht_manager(), std::tr1::placeholders::_2));
+  CMD2_ANY_STRING_V("dht.mode.set",          std::tr1::bind(&core::DhtManager::set_mode, control->dht_manager(), std::tr1::placeholders::_2));
   CMD2_VAR_VALUE   ("dht.port",              int64_t(6881));
   CMD2_ANY_STRING  ("dht.add_node",          std::tr1::bind(&apply_dht_add_node, std::tr1::placeholders::_2));
   CMD2_ANY         ("dht.statistics",        std::tr1::bind(&core::DhtManager::dht_statistics, control->dht_manager()));

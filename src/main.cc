@@ -214,8 +214,8 @@ main(int argc, char** argv) {
        "method.insert = event.download.hash_queued,multi\n"
 
        "method.set_key = event.download.inserted,         1_connect_logs, d.initialize_logs=\n"
-       "method.set_key = event.download.inserted_new,     1_prepare, \"branch=d.get_state=,view.set_visible=started,view.set_visible=stopped ;d.save_full_session=\"\n"
-       "method.set_key = event.download.inserted_session, 1_prepare, \"branch=d.get_state=,view.set_visible=started,view.set_visible=stopped\"\n"
+       "method.set_key = event.download.inserted_new,     1_prepare, \"branch=d.state=,view.set_visible=started,view.set_visible=stopped ;d.save_full_session=\"\n"
+       "method.set_key = event.download.inserted_session, 1_prepare, \"branch=d.state=,view.set_visible=started,view.set_visible=stopped\"\n"
 
        "method.set_key = event.download.erased, !_download_list, ui.unfocus_download=\n"
        "method.set_key = event.download.erased, ~_delete_tied, d.delete_tied=\n"
@@ -230,7 +230,7 @@ main(int argc, char** argv) {
        "method.insert = ratio.upload.set,simple|const,group.seeding.ratio.upload.set=$argument.0=\n"
 
        "method.insert = group.insert_persistent_view,simple|const,"
-       "view_add=$argument.0=,view.persistent=$argument.0=,\"group.insert=$argument.0=,$argument.0=\"\n"
+       "view.add=$argument.0=,view.persistent=$argument.0=,\"group.insert=$argument.0=,$argument.0=\"\n"
 
        // Allow setting 'group.view' as constant, so that we can't
        // modify the value. And look into the possibility of making
@@ -245,55 +245,55 @@ main(int argc, char** argv) {
        "system.session_name = \"$cat=$system.hostname=,:,$system.pid=\"\n"
 
        // Currently not doing any sorting on main.
-       "view_add = main\n"
-       "view_add = default\n"
+       "view.add = main\n"
+       "view.add = default\n"
 
-       "view_add = name\n"
-       "view_sort_new     = name,less=d.name=\n"
-       "view_sort_current = name,less=d.name=\n"
+       "view.add = name\n"
+       "view.sort_new     = name,less=d.name=\n"
+       "view.sort_current = name,less=d.name=\n"
 
-       "view_add = active\n"
-       "view_filter = active,false=\n"
+       "view.add = active\n"
+       "view.filter = active,false=\n"
 
-       "view_add = started\n"
-       "view_filter = started,false=\n"
-       "view.event_added   = started,\"view.set_not_visible=stopped ;d.set_state=1 ;scheduler.simple.added=\"\n"
+       "view.add = started\n"
+       "view.filter = started,false=\n"
+       "view.event_added   = started,\"view.set_not_visible=stopped ;d.state.set=1 ;scheduler.simple.added=\"\n"
        "view.event_removed = started,\"view.set_visible=stopped ;scheduler.simple.removed=\"\n"
 
-       "view_add = stopped\n"
-       "view_filter = stopped,false=\n"
-       "view.event_added   = stopped,\"view.set_not_visible=started ;d.set_state=0\"\n"
+       "view.add = stopped\n"
+       "view.filter = stopped,false=\n"
+       "view.event_added   = stopped,\"view.set_not_visible=started ;d.state.set=0\"\n"
        "view.event_removed = stopped,view.set_visible=started\n"
 
-       "view_add = complete\n"
-       "view_filter = complete,d.get_complete=\n"
-       "view_filter_on    = complete,event.download.hash_done,event.download.hash_failed,event.download.hash_final_failed,event.download.finished\n"
-       "view_sort_new     = complete,less=d.get_state_changed=\n"
-       "view_sort_current = complete,less=d.get_state_changed=\n"
+       "view.add = complete\n"
+       "view.filter = complete,d.complete=\n"
+       "view.filter_on    = complete,event.download.hash_done,event.download.hash_failed,event.download.hash_final_failed,event.download.finished\n"
+       "view.sort_new     = complete,less=d.state_changed=\n"
+       "view.sort_current = complete,less=d.state_changed=\n"
 
-       "view_add = incomplete\n"
-       "view_filter = incomplete,not=$d.get_complete=\n"
-       "view_filter_on    = incomplete,event.download.hash_done,event.download.hash_failed,"
+       "view.add = incomplete\n"
+       "view.filter = incomplete,not=$d.complete=\n"
+       "view.filter_on    = incomplete,event.download.hash_done,event.download.hash_failed,"
        "event.download.hash_final_failed,event.download.finished\n"
-       "view_sort_new     = incomplete,less=d.get_state_changed=\n"
-       "view_sort_current = incomplete,less=d.get_state_changed=\n"
+       "view.sort_new     = incomplete,less=d.state_changed=\n"
+       "view.sort_current = incomplete,less=d.state_changed=\n"
 
        // The hashing view does not include stopped torrents.
-       "view_add = hashing\n"
-       "view_filter = hashing,d.get_hashing=\n"
-       "view_filter_on = hashing,event.download.hash_queued,event.download.hash_removed,"
+       "view.add = hashing\n"
+       "view.filter = hashing,d.hashing=\n"
+       "view.filter_on = hashing,event.download.hash_queued,event.download.hash_removed,"
        "event.download.hash_done,event.download.hash_failed,event.download.hash_final_failed\n"
-//        "view_sort_new     = hashing,less=d.get_state_changed=\n"
-//        "view_sort_current = hashing,less=d.get_state_changed=\n"
+//        "view.sort_new     = hashing,less=d.state_changed=\n"
+//        "view.sort_current = hashing,less=d.state_changed=\n"
 
-       "view_add = seeding\n"
-       "view_filter = seeding,\"and=d.get_state=,d.get_complete=\"\n"
-       "view_filter_on    = seeding,event.download.resumed,event.download.paused,event.download.finished\n"
-       "view_sort_new     = seeding,less=d.get_state_changed=\n"
-       "view_sort_current = seeding,less=d.get_state_changed=\n"
+       "view.add = seeding\n"
+       "view.filter = seeding,\"and=d.state=,d.complete=\"\n"
+       "view.filter_on    = seeding,event.download.resumed,event.download.paused,event.download.finished\n"
+       "view.sort_new     = seeding,less=d.state_changed=\n"
+       "view.sort_current = seeding,less=d.state_changed=\n"
 
-       "schedule = view_main,10,10,\"view_sort=main,20\"\n"
-       "schedule = view_name,10,10,\"view_sort=name,20\"\n"
+       "schedule = view.main,10,10,\"view.sort=main,20\"\n"
+       "schedule = view.name,10,10,\"view.sort=name,20\"\n"
 
        "schedule = session_save,1200,1200,session_save=\n"
        "schedule = low_diskspace,5,60,close_low_diskspace=500M\n"
@@ -319,14 +319,17 @@ main(int argc, char** argv) {
        // + command_local.cc
        // * command_network.cc
        // * command_object.cc
-       // - command_peer.cc
+       // * command_peer.cc
        // * command_scheduler.cc
        // * command_tracker.cc
-       // - command_ui.cc
+       // * command_ui.cc
 
        "method.insert = system.method.insert,redirect|const,method.insert\n"
        "method.insert = system.method.set,redirect|const,method.set\n"
        "method.insert = system.method.set_key,redirect|const,method.set_key\n"
+
+       "method.insert = get_key_layout,redirect|const,key_layout\n"
+       "method.insert = set_key_layout,redirect|const,key_layout.set\n"
 
        "method.insert = get_handshake_log,redirect|const,log.handshake\n"
        "method.insert = set_handshake_log,redirect|const,log.handshake.set\n"
@@ -391,7 +394,7 @@ main(int argc, char** argv) {
        "method.insert = get_connection_seed,redirect|const,connection_seed\n"
        "method.insert = set_connection_seed,redirect|const,connection_seed.set\n"
 
-       "method.insert = dht,redirect|const,dht.mode\n"
+       "method.insert = dht,redirect|const,dht.mode.set\n"
        "method.insert = dht_add_node, redirect|const,dht.add_node\n"
        "method.insert = dht_statistics, redirect|const,dht.statistics\n"
        "method.insert = get_dht_port, redirect|const,dht.port\n"
@@ -424,6 +427,79 @@ main(int argc, char** argv) {
        "method.insert = d.get_down_total,redirect|const,d.down.total\n"
        "method.insert = d.get_skip_rate,redirect|const,d.skip.rate\n"
        "method.insert = d.get_skip_total,redirect|const,d.skip.total\n"
+
+       //
+       "method.insert = d.get_bytes_done,redirect|const,d.bytes_done\n"
+       "method.insert = d.get_chunk_size,redirect|const,d.chunk_size\n"
+       "method.insert = d.get_chunks_hashed,redirect|const,d.chunks_hashed\n"
+       "method.insert = d.get_complete,redirect|const,d.complete\n"
+       "method.insert = d.get_completed_bytes,redirect|const,d.completed_bytes\n"
+       "method.insert = d.get_completed_chunks,redirect|const,d.completed_chunks\n"
+       "method.insert = d.get_connection_current,redirect|const,d.connection_current\n"
+       "method.insert = d.get_connection_leech,redirect|const,d.connection_leech\n"
+       "method.insert = d.get_connection_seed,redirect|const,d.connection_seed\n"
+       "method.insert = d.get_custom,redirect|const,d.custom\n"
+       "method.insert = d.get_custom1,redirect|const,d.custom1\n"
+       "method.insert = d.get_custom2,redirect|const,d.custom2\n"
+       "method.insert = d.get_custom3,redirect|const,d.custom3\n"
+       "method.insert = d.get_custom4,redirect|const,d.custom4\n"
+       "method.insert = d.get_custom5,redirect|const,d.custom5\n"
+       "method.insert = d.get_custom_throw,redirect|const,d.custom_throw\n"
+       "method.insert = d.get_directory,redirect|const,d.directory\n"
+       "method.insert = d.get_directory_base,redirect|const,d.directory_base\n"
+       "method.insert = d.get_free_diskspace,redirect|const,d.free_diskspace\n"
+       "method.insert = d.get_hashing,redirect|const,d.hashing\n"
+       "method.insert = d.get_hashing_failed,redirect|const,d.hashing_failed\n"
+       "method.insert = d.get_ignore_commands,redirect|const,d.ignore_commands\n"
+       "method.insert = d.get_left_bytes,redirect|const,d.left_bytes\n"
+       "method.insert = d.get_loaded_file,redirect|const,d.loaded_file\n"
+       "method.insert = d.get_max_file_size,redirect|const,d.max_file_size\n"
+       "method.insert = d.get_max_size_pex,redirect|const,d.max_size_pex\n"
+       "method.insert = d.get_message,redirect|const,d.message\n"
+       "method.insert = d.get_mode,redirect|const,d.mode\n"
+       "method.insert = d.get_peers_accounted,redirect|const,d.peers_accounted\n"
+       "method.insert = d.get_peers_complete,redirect|const,d.peers_complete\n"
+       "method.insert = d.get_peers_connected,redirect|const,d.peers_connected\n"
+       "method.insert = d.get_peers_max,redirect|const,d.peers_max\n"
+       "method.insert = d.get_peers_min,redirect|const,d.peers_min\n"
+       "method.insert = d.get_peers_not_connected,redirect|const,d.peers_not_connected\n"
+       "method.insert = d.get_priority,redirect|const,d.priority\n"
+       "method.insert = d.get_priority_str,redirect|const,d.priority_str\n"
+       "method.insert = d.get_ratio,redirect|const,d.ratio\n"
+       "method.insert = d.get_size_bytes,redirect|const,d.size_bytes\n"
+       "method.insert = d.get_size_chunks,redirect|const,d.size_chunks\n"
+       "method.insert = d.get_size_files,redirect|const,d.size_files\n"
+       "method.insert = d.get_size_pex,redirect|const,d.size_pex\n"
+       "method.insert = d.get_state,redirect|const,d.state\n"
+       "method.insert = d.get_state_changed,redirect|const,d.state_changed\n"
+       "method.insert = d.get_state_counter,redirect|const,d.state_counter\n"
+       "method.insert = d.get_throttle_name,redirect|const,d.throttle_name\n"
+       "method.insert = d.get_tied_to_file,redirect|const,d.tied_to_file\n"
+       "method.insert = d.get_tracker_focus,redirect|const,d.tracker_focus\n"
+       "method.insert = d.get_tracker_numwant,redirect|const,d.tracker_numwant\n"
+       "method.insert = d.get_tracker_size,redirect|const,d.tracker_size\n"
+       "method.insert = d.get_uploads_max,redirect|const,d.uploads_max\n"
+
+       "method.insert = d.get_connection_current,redirect|const,d.connection_current.set\n"
+       "method.insert = d.get_custom,redirect|const,d.custom.set\n"
+       "method.insert = d.get_custom1,redirect|const,d.custom1.set\n"
+       "method.insert = d.get_custom2,redirect|const,d.custom2.set\n"
+       "method.insert = d.get_custom3,redirect|const,d.custom3.set\n"
+       "method.insert = d.get_custom4,redirect|const,d.custom4.set\n"
+       "method.insert = d.get_custom5,redirect|const,d.custom5.set\n"
+       "method.insert = d.get_directory,redirect|const,d.directory.set\n"
+       "method.insert = d.get_directory_base,redirect|const,d.directory_base.set\n"
+       "method.insert = d.get_hashing_failed,redirect|const,d.hashing_failed.set\n"
+       "method.insert = d.get_ignore_commands,redirect|const,d.ignore_commands.set\n"
+       "method.insert = d.get_max_file_size,redirect|const,d.max_file_size.set\n"
+       "method.insert = d.get_message,redirect|const,d.message.set\n"
+       "method.insert = d.get_peers_max,redirect|const,d.peers_max.set\n"
+       "method.insert = d.get_peers_min,redirect|const,d.peers_min.set\n"
+       "method.insert = d.get_priority,redirect|const,d.priority.set\n"
+       "method.insert = d.get_throttle_name,redirect|const,d.throttle_name.set\n"
+       "method.insert = d.get_tied_to_file,redirect|const,d.tied_to_file.set\n"
+       "method.insert = d.get_tracker_numwant,redirect|const,d.tracker_numwant.set\n"
+       "method.insert = d.get_uploads_max,redirect|const,d.uploads_max.set\n"
 
        //
        // Tracker:
@@ -460,6 +536,37 @@ main(int argc, char** argv) {
        "method.insert = f.get_size_chunks,redirect|const,f.size_chunks\n"
        "method.insert = f.set_priority,redirect|const,f.priority.set\n"
        "method.insert = fi.get_filename_last,redirect|const,fi.filename_last\n"
+
+       //
+       // Peer:
+       //
+
+       "method.insert = p.get_address,redirect|const,p.address\n"
+       "method.insert = p.get_client_version,redirect|const,p.client_version\n"
+       "method.insert = p.get_completed_percent,redirect|const,p.completed_percent\n"
+       "method.insert = p.get_down_rate,redirect|const,p.down_rate\n"
+       "method.insert = p.get_down_total,redirect|const,p.down_total\n"
+       "method.insert = p.get_id,redirect|const,p.id\n"
+       "method.insert = p.get_id_html,redirect|const,p.id_html\n"
+       "method.insert = p.get_options_str,redirect|const,p.options_str\n"
+       "method.insert = p.get_peer_rate,redirect|const,p.peer_rate\n"
+       "method.insert = p.get_peer_total,redirect|const,p.peer_total\n"
+       "method.insert = p.get_port,redirect|const,p.port\n"
+       "method.insert = p.get_up_rate,redirect|const,p.up_rate\n"
+       "method.insert = p.get_up_total,redirect|const,p.up_total\n"
+
+       //
+       // View:
+       //
+
+       "method.insert = view_add,redirect|const,view.add\n"
+       "method.insert = view_filter,redirect|const,view.filter\n"
+       "method.insert = view_filter_on,redirect|const,view.filter_on\n"
+       "method.insert = view_list,redirect|const,view.list\n"
+       "method.insert = view_set,redirect|const,view.set\n"
+       "method.insert = view_sort,redirect|const,view.sort\n"
+       "method.insert = view_sort_current,redirect|const,view.sort_current\n"
+       "method.insert = view_sort_new,redirect|const,view.sort_new\n"
 
        // Functions that might not get depracted as they are nice for
        // configuration files, and thus might do with just some

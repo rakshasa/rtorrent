@@ -155,39 +155,39 @@ Download::create_info() {
   element->push_column("Created:",          te_command("cat=$to_date=$d.creation_date=,\" \",$to_time=$d.creation_date="));
 
   element->push_back("");
-  element->push_column("Directory:",        te_command("d.get_directory="));
+  element->push_column("Directory:",        te_command("d.directory="));
   element->push_column("Base Path:",        te_command("d.base_path="));
-  element->push_column("Tied to file:",     te_command("d.get_tied_to_file="));
-  element->push_column("File stats:",       te_command("cat=$if=$d.is_multi_file=\\,multi\\,single,\" \",$d.get_size_files=,\" files\""));
+  element->push_column("Tied to file:",     te_command("d.tied_to_file="));
+  element->push_column("File stats:",       te_command("cat=$if=$d.is_multi_file=\\,multi\\,single,\" \",$d.size_files=,\" files\""));
 
   element->push_back("");
-  element->push_column("Chunks:",           te_command("cat=$d.get_completed_chunks=,\" / \",$d.get_size_chunks=,\" * \",$d.get_chunk_size="));
-  element->push_column("Priority:",         te_command("d.get_priority="));
+  element->push_column("Chunks:",           te_command("cat=$d.completed_chunks=,\" / \",$d.size_chunks=,\" * \",$d.chunk_size="));
+  element->push_column("Priority:",         te_command("d.priority="));
   element->push_column("Peer exchange:",    te_command("cat=$if=$d.peer_exchange=\\,enabled\\,disabled,\\ ,"
                                                        "$if=$d.is_pex_active=\\,active\\,$d.is_private=\\,private\\,inactive,"
-                                                       "\\ (,$d.get_size_pex=,/,$d.get_max_size_pex=,)"));
+                                                       "\\ (,$d.size_pex=,/,$d.max_size_pex=,)"));
 
-  element->push_column("State changed:",    te_command("to_elapsed_time=$d.get_state_changed="));
+  element->push_column("State changed:",    te_command("to_elapsed_time=$d.state_changed="));
 
   element->push_back("");
   element->push_column("Memory usage:",     te_command("cat=$to_mb=$pieces.memory.current=,\" MB\""));
   element->push_column("Max memory usage:", te_command("cat=$to_mb=$pieces.memory.max=,\" MB\""));
-  element->push_column("Free diskspace:",   te_command("cat=$to_mb=$d.get_free_diskspace=,\" MB\""));
+  element->push_column("Free diskspace:",   te_command("cat=$to_mb=$d.free_diskspace=,\" MB\""));
   element->push_column("Safe diskspace:",   te_command("cat=$to_mb=$pieces.sync.safe_free_diskspace=,\" MB\""));
 
   element->push_back("");
-  element->push_column("Connection type:",  te_command("d.get_connection_current="));
+  element->push_column("Connection type:",  te_command("d.connection_current="));
   element->push_column("Safe sync:",        te_command("if=$pieces.sync.always_safe=,yes,no"));
   element->push_column("Send buffer:",      te_command("cat=$to_kb=$network.send_buffer.size=,\" KB\""));
   element->push_column("Receive buffer:",   te_command("cat=$to_kb=$network.receive_buffer.size=,\" KB\""));
 
   // TODO: Define a custom command for this and use $argument.0 instead of looking up the name multiple times?
-  element->push_column("Throttle:",         te_command("branch=d.get_throttle_name=,\""
-                                                              "cat=$d.get_throttle_name=,\\\"  [Max \\\","
-                                                                  "$to_throttle=$get_throttle_up_max=$d.get_throttle_name=,\\\"/\\\","
-                                                                  "$to_throttle=$get_throttle_down_max=$d.get_throttle_name=,\\\" KB]  [Rate \\\","
-                                                                  "$to_kb=$get_throttle_up_rate=$d.get_throttle_name=,\\\"/\\\","
-                                                                  "$to_kb=$get_throttle_down_rate=$d.get_throttle_name=,\\\" KB]\\\"\","
+  element->push_column("Throttle:",         te_command("branch=d.throttle_name=,\""
+                                                              "cat=$d.throttle_name=,\\\"  [Max \\\","
+                                                                  "$to_throttle=$get_throttle_up_max=$d.throttle_name=,\\\"/\\\","
+                                                                  "$to_throttle=$get_throttle_down_max=$d.throttle_name=,\\\" KB]  [Rate \\\","
+                                                                  "$to_kb=$get_throttle_up_rate=$d.throttle_name=,\\\"/\\\","
+                                                                  "$to_kb=$get_throttle_down_rate=$d.throttle_name=,\\\" KB]\\\"\","
                                                               "cat=\"global\""));
 
   element->push_back("");

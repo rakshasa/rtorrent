@@ -64,8 +64,8 @@ ElementDownloadList::ElementDownloadList() :
     throw torrent::internal_error("View \"main\" must be present to initialize the main display.");
 
   m_bindings['\x13'] = sigc::bind(sigc::mem_fun(*this, &ElementDownloadList::receive_command), "d.start=");
-  m_bindings['\x04'] = sigc::bind(sigc::mem_fun(*this, &ElementDownloadList::receive_command), "branch=d.get_state=,d.stop=,d.erase=");
-  m_bindings['\x0B'] = sigc::bind(sigc::mem_fun(*this, &ElementDownloadList::receive_command), "d.set_ignore_commands=1; d.stop=; d.close=");
+  m_bindings['\x04'] = sigc::bind(sigc::mem_fun(*this, &ElementDownloadList::receive_command), "branch=d.state=,d.stop=,d.erase=");
+  m_bindings['\x0B'] = sigc::bind(sigc::mem_fun(*this, &ElementDownloadList::receive_command), "d.ignore_commands.set=1; d.stop=; d.close=");
   m_bindings['\x12'] = sigc::bind(sigc::mem_fun(*this, &ElementDownloadList::receive_command), "d.check_hash=");
   m_bindings['\x05'] = sigc::bind(sigc::mem_fun(*this, &ElementDownloadList::receive_command),
                                          "f.multicall=,f.set_create_queued=,f.set_resize_queued=; print=\"Queued create/resize of files in torrent.\"");
@@ -74,13 +74,13 @@ ElementDownloadList::ElementDownloadList() :
   m_bindings['-']    = sigc::mem_fun(*this, &ElementDownloadList::receive_prev_priority);
   m_bindings['T'-'@']= sigc::mem_fun(*this, &ElementDownloadList::receive_cycle_throttle);
   m_bindings['I']    = sigc::bind(sigc::mem_fun(*this, &ElementDownloadList::receive_command),
-                                  "branch=d.get_ignore_commands=,"
-                                  "{d.set_ignore_commands=0, print=\"Torrent set to heed commands.\"},"
-                                  "{d.set_ignore_commands=1, print=\"Torrent set to ignore commands.\"}");
+                                  "branch=d.ignore_commands=,"
+                                  "{d.ignore_commands.set=0, print=\"Torrent set to heed commands.\"},"
+                                  "{d.ignore_commands.set=1, print=\"Torrent set to ignore commands.\"}");
   m_bindings['B'-'@']= sigc::bind(sigc::mem_fun(*this, &ElementDownloadList::receive_command),
                                   "branch=d.is_active=,"
                                   "{print=\"Cannot enable initial seeding on an active download.\"},"
-                                  "{d.set_connection_seed=initial_seed, print=\"Enabled initial seeding for the selected download.\"}");
+                                  "{d.connection_seed.set=initial_seed, print=\"Enabled initial seeding for the selected download.\"}");
 
   m_bindings['U']    = sigc::bind(sigc::mem_fun(*this, &ElementDownloadList::receive_command), "d.delete_tied=; print=\"Cleared tied to file association for the selected download.\"");
 

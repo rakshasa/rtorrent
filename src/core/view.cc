@@ -294,7 +294,7 @@ View::set_filter_on_event(const std::string& event) {
   if (std::find(m_events.begin(), m_events.end(), event) != m_events.end())
     return;
 
-  rpc::commands.call_catch("method.set_key", rpc::make_target(), rpc::create_object_list(event, "!view_" + m_name, "view.filter_download=" + m_name));
+  rpc::commands.call_catch("method.set_key", rpc::make_target(), rpc::create_object_list(event, "!view." + m_name, "view.filter_download=" + m_name));
   m_events.push_back(event);
 }
 
@@ -303,7 +303,7 @@ View::clear_filter_on() {
   // Don't clear insert and erase as these are required to keep the
   // View up-to-date with the available downloads.
   for (event_list_type::const_iterator itr = m_events.begin(); itr != m_events.end(); itr++)
-    rpc::commands.call_catch("method.set_key", rpc::make_target(), rpc::create_object_list(*itr, "!view_" + m_name));
+    rpc::commands.call_catch("method.set_key", rpc::make_target(), rpc::create_object_list(*itr, "!view." + m_name));
 }
 
 inline void

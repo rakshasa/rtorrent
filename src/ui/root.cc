@@ -122,7 +122,7 @@ Root::cleanup() {
 
 const char*
 Root::get_throttle_keys() {
-  const std::string& keyLayout = rpc::call_command_string("get_key_layout");
+  const std::string& keyLayout = rpc::call_command_string("key_layout");
 
   if (strcasecmp(keyLayout.c_str(), "azerty") == 0)
     return "qwQWsxSXdcDC";

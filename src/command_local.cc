@@ -161,7 +161,7 @@ group_insert(const torrent::Object::list_type& args) {
 
   rpc::commands.call("method.insert", rpc::create_object_list("group." + name + ".ratio.enable", "simple", "schedule=group." + name + ".ratio,5,60,on_ratio=" + name));
   rpc::commands.call("method.insert", rpc::create_object_list("group." + name + ".ratio.disable", "simple", "schedule_remove=group." + name + ".ratio"));
-  rpc::commands.call("method.insert", rpc::create_object_list("group." + name + ".ratio.command", "simple", "d.try_close= ;d.set_ignore_commands=1"));
+  rpc::commands.call("method.insert", rpc::create_object_list("group." + name + ".ratio.command", "simple", "d.try_close= ;d.ignore_commands.set=1"));
   rpc::commands.call("method.insert", rpc::create_object_list("group." + name + ".ratio.min", "value", (int64_t)200));
   rpc::commands.call("method.insert", rpc::create_object_list("group." + name + ".ratio.max", "value", (int64_t)300));
   rpc::commands.call("method.insert", rpc::create_object_list("group." + name + ".ratio.upload", "value", (int64_t)20 << 20));
@@ -179,13 +179,13 @@ initialize_command_local() {
   CMD2_ANY         ("system.hostname", std::tr1::bind(&system_hostname));
   CMD2_ANY         ("system.pid",      std::tr1::bind(&getpid));
 
-  rpc::commands.call("method.insert", rpc::create_object_list("system.client_version", "string|static|const", PACKAGE_VERSION));
-  rpc::commands.call("method.insert", rpc::create_object_list("system.library_version", "string|static|const", torrent::version()));
-  rpc::commands.call("method.insert", rpc::create_object_list("system.file.allocate", "value|const", (int64_t)0));
-  rpc::commands.call("method.insert", rpc::create_object_list("system.file.max_size", "value|const", -1));
-  rpc::commands.call("method.insert", rpc::create_object_list("system.file.split_size", "value|const", -1));
-  rpc::commands.call("method.insert", rpc::create_object_list("system.file.split_suffix", "string|const", ".part"));
-  rpc::commands.call("method.insert", rpc::create_object_list("system.session_name", "string|const", ""));
+  CMD2_VAR_C_STRING("system.client_version",    PACKAGE_VERSION);
+  CMD2_VAR_C_STRING("system.library_version",   torrent::version());
+  CMD2_VAR_VALUE   ("system.file.allocate",     (int64_t)0);
+  CMD2_VAR_VALUE   ("system.file.max_size",     -1);
+  CMD2_VAR_VALUE   ("system.file.split_size",   -1);
+  CMD2_VAR_STRING  ("system.file.split_suffix", ".part");
+  CMD2_VAR_STRING  ("system.session_name",      "");
 
   CMD2_ANY         ("system.file_status_cache.size",   std::tr1::bind(&utils::FileStatusCache::size,
                                                                       (utils::FileStatusCache::base_type*)control->core()->file_status_cache()));

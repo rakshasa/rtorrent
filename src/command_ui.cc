@@ -422,6 +422,7 @@ cmd_view_persistent(const torrent::Object::string_type& args) {
   return torrent::Object();
 }
 
+// TODO: These don't need wrapper functions anymore...
 torrent::Object
 cmd_ui_set_view(const torrent::Object::string_type& args) {
   control->ui()->download_list()->set_current_view(args);
@@ -429,48 +430,48 @@ cmd_ui_set_view(const torrent::Object::string_type& args) {
 }
 
 torrent::Object
-cmd_ui_unfocus_download(core::Download* download, const torrent::Object& rawArgs) {
+cmd_ui_unfocus_download(core::Download* download) {
   control->ui()->download_list()->unfocus_download(download);
 
   return torrent::Object();
 }
 
 torrent::Object
-cmd_view_filter_download(core::Download* download, const torrent::Object& rawArgs) {
-  (*control->view_manager()->find_throw(rawArgs.as_string()))->filter_download(download);
+cmd_view_filter_download(core::Download* download, const torrent::Object::string_type& args) {
+  (*control->view_manager()->find_throw(args))->filter_download(download);
 
   return torrent::Object();
 }
 
 torrent::Object
-cmd_view_set_visible(core::Download* download, const torrent::Object& rawArgs) {
-  (*control->view_manager()->find_throw(rawArgs.as_string()))->set_visible(download);
+cmd_view_set_visible(core::Download* download, const torrent::Object::string_type& args) {
+  (*control->view_manager()->find_throw(args))->set_visible(download);
 
   return torrent::Object();
 }
 
 torrent::Object
-cmd_view_set_not_visible(core::Download* download, const torrent::Object& rawArgs) {
-  (*control->view_manager()->find_throw(rawArgs.as_string()))->set_not_visible(download);
+cmd_view_set_not_visible(core::Download* download, const torrent::Object::string_type& args) {
+  (*control->view_manager()->find_throw(args))->set_not_visible(download);
 
   return torrent::Object();
 }
 
 void
 initialize_command_ui() {
-  ADD_VARIABLE_STRING("key_layout", "qwerty");
+  CMD2_VAR_STRING("key_layout", "qwerty");
 
-  CMD2_ANY_STRING("view_add", object_convert_void(std::tr1::bind(&core::ViewManager::insert_throw, control->view_manager(), std::tr1::placeholders::_2)));
+  CMD2_ANY_STRING("view.add", object_convert_void(std::tr1::bind(&core::ViewManager::insert_throw, control->view_manager(), std::tr1::placeholders::_2)));
 
-  CMD2_ANY_L("view_list",   std::tr1::bind(&apply_view_list));
-  CMD2_ANY_LIST("view_set", std::tr1::bind(&apply_view_set, std::tr1::placeholders::_2));
+  CMD2_ANY_L   ("view.list",          std::tr1::bind(&apply_view_list));
+  CMD2_ANY_LIST("view.set",           std::tr1::bind(&apply_view_set, std::tr1::placeholders::_2));
 
-  CMD2_ANY_LIST("view_filter",       std::tr1::bind(&apply_view_cfilter, &core::ViewManager::set_filter, std::tr1::placeholders::_2));
-  CMD2_ANY_LIST("view_filter_on",    std::tr1::bind(&apply_view_filter_on, std::tr1::placeholders::_2));
+  CMD2_ANY_LIST("view.filter",        std::tr1::bind(&apply_view_cfilter, &core::ViewManager::set_filter, std::tr1::placeholders::_2));
+  CMD2_ANY_LIST("view.filter_on",     std::tr1::bind(&apply_view_filter_on, std::tr1::placeholders::_2));
 
-  CMD2_ANY_LIST("view_sort",         std::tr1::bind(&apply_view_sort, std::tr1::placeholders::_2));
-  CMD2_ANY_LIST("view_sort_new",     std::tr1::bind(&apply_view_cfilter, &core::ViewManager::set_sort_new, std::tr1::placeholders::_2));
-  CMD2_ANY_LIST("view_sort_current", std::tr1::bind(&apply_view_cfilter, &core::ViewManager::set_sort_current, std::tr1::placeholders::_2));
+  CMD2_ANY_LIST("view.sort",          std::tr1::bind(&apply_view_sort, std::tr1::placeholders::_2));
+  CMD2_ANY_LIST("view.sort_new",      std::tr1::bind(&apply_view_cfilter, &core::ViewManager::set_sort_new, std::tr1::placeholders::_2));
+  CMD2_ANY_LIST("view.sort_current",  std::tr1::bind(&apply_view_cfilter, &core::ViewManager::set_sort_current, std::tr1::placeholders::_2));
 
   CMD2_ANY_LIST("view.event_added",   std::tr1::bind(&apply_view_cfilter, &core::ViewManager::set_event_added, std::tr1::placeholders::_2));
   CMD2_ANY_LIST("view.event_removed", std::tr1::bind(&apply_view_cfilter, &core::ViewManager::set_event_removed, std::tr1::placeholders::_2));
@@ -481,12 +482,12 @@ initialize_command_ui() {
   CMD2_ANY_STRING("view.size_not_visible",  std::tr1::bind(&cmd_view_size_not_visible, std::tr1::placeholders::_2));
   CMD2_ANY_STRING("view.persistent",        std::tr1::bind(&cmd_view_persistent, std::tr1::placeholders::_2));
 
-  CMD_D_STRING("view.filter_download",   rak::ptr_fn(&cmd_view_filter_download));
-  CMD_D_STRING("view.set_visible",       rak::ptr_fn(&cmd_view_set_visible));
-  CMD_D_STRING("view.set_not_visible",   rak::ptr_fn(&cmd_view_set_not_visible));
+  CMD2_DL_STRING ("view.filter_download", std::tr1::bind(&cmd_view_filter_download, std::tr1::placeholders::_1, std::tr1::placeholders::_2));
+  CMD2_DL_STRING ("view.set_visible",     std::tr1::bind(&cmd_view_set_visible,     std::tr1::placeholders::_1, std::tr1::placeholders::_2));
+  CMD2_DL_STRING ("view.set_not_visible", std::tr1::bind(&cmd_view_set_not_visible, std::tr1::placeholders::_1, std::tr1::placeholders::_2));
 
   // Commands that affect the default rtorrent UI.
-  CMD_D_ANY("ui.unfocus_download",      rak::ptr_fn(&cmd_ui_unfocus_download));
+  CMD2_DL        ("ui.unfocus_download",   std::tr1::bind(&cmd_ui_unfocus_download, std::tr1::placeholders::_1));
   CMD2_ANY_STRING("ui.current_view.set",   std::tr1::bind(&cmd_ui_set_view, std::tr1::placeholders::_2));
 
   // Move.

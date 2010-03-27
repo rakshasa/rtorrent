@@ -59,7 +59,7 @@ namespace rpc {
 #define COMMAND_TRACKER_SLOTS_SIZE  15
 #define COMMAND_ANY_SLOTS_SIZE      50
 
-#define COMMAND_NEW_SLOTS_SIZE      200
+#define COMMAND_NEW_SLOTS_SIZE      500
 
 #define ADDING_COMMANDS
 
@@ -238,6 +238,11 @@ add_variable(key, NULL, NULL, &rpc::CommandVariable::get_string, NULL, std::stri
   rpc::commands.insert_type(key, commandNewSlotItr++, &rpc::function,   \
                     rpc::CommandMap::flag_dont_delete | rpc::CommandMap::flag_public_xmlrpc, NULL, NULL);
 
+#define CMD2_A_FUNCTION_PRIVATE(key, function, slot, parm, doc)      \
+  commandNewSlotItr->set_function<rpc::command_base_is_type<rpc::function>::type>(slot); \
+  rpc::commands.insert_type(key, commandNewSlotItr++, &rpc::function,   \
+                    rpc::CommandMap::flag_dont_delete, NULL, NULL);
+
 // #define CMD2_ANY(key, slot)   CMD2_A_FUNCTION(key, command_base_call_any,      slot, "i:", "")
 #define CMD2_ANY(key, slot)   CMD2_A_FUNCTION(key, command_base_call<rpc::target_type>, slot, "i:", "")
 
@@ -252,7 +257,16 @@ add_variable(key, NULL, NULL, &rpc::CommandVariable::get_string, NULL, std::stri
 
 #define CMD2_ANY_LIST(key, slot) CMD2_A_FUNCTION(key, command_base_call_list<rpc::target_type>, slot, "i:", "")
 
-#define CMD2_DOWNLOAD(key, slot) CMD2_A_FUNCTION(key, command_base_call<core::Download*>, slot, "i:", "")
+#define CMD2_DL(key, slot)          CMD2_A_FUNCTION(key, command_base_call<core::Download*>, slot, "i:", "")
+#define CMD2_DL_V(key, slot)        CMD2_A_FUNCTION(key, command_base_call<core::Download*>, object_convert_void(slot), "i:", "")
+#define CMD2_DL_VALUE(key, slot)    CMD2_A_FUNCTION(key, command_base_call_value<core::Download*>, slot, "i:", "")
+#define CMD2_DL_VALUE_V(key, slot)  CMD2_A_FUNCTION(key, command_base_call_value<core::Download*>, object_convert_void(slot), "i:", "")
+#define CMD2_DL_STRING(key, slot)   CMD2_A_FUNCTION(key, command_base_call_string<core::Download*>, slot, "i:", "")
+#define CMD2_DL_STRING_V(key, slot) CMD2_A_FUNCTION(key, command_base_call_string<core::Download*>, object_convert_void(slot), "i:", "")
+#define CMD2_DL_LIST(key, slot)     CMD2_A_FUNCTION(key, command_base_call_list<core::Download*>, slot, "i:", "")
+
+#define CMD2_DL_VALUE_P(key, slot)  CMD2_A_FUNCTION_PRIVATE(key, command_base_call_value<core::Download*>, slot, "i:", "")
+#define CMD2_DL_STRING_P(key, slot) CMD2_A_FUNCTION_PRIVATE(key, command_base_call_string<core::Download*>, slot, "i:", "")
 
 #define CMD2_FILE(key, slot)         CMD2_A_FUNCTION(key, command_base_call<torrent::File*>, slot, "i:", "")
 #define CMD2_FILE_V(key, slot)       CMD2_A_FUNCTION(key, command_base_call<torrent::File*>, object_convert_void(slot), "i:", "")
@@ -260,16 +274,26 @@ add_variable(key, NULL, NULL, &rpc::CommandVariable::get_string, NULL, std::stri
 
 #define CMD2_FILEITR(key, slot)         CMD2_A_FUNCTION(key, command_base_call<torrent::FileListIterator*>, slot, "i:", "")
 
+#define CMD2_PEER(key, slot)         CMD2_A_FUNCTION(key, command_base_call<torrent::Peer*>, slot, "i:", "")
+#define CMD2_PEER_V(key, slot)       CMD2_A_FUNCTION(key, command_base_call<torrent::Peer*>, object_convert_void(slot), "i:", "")
+#define CMD2_PEER_VALUE_V(key, slot) CMD2_A_FUNCTION(key, command_base_call_value<torrent::Peer*>, object_convert_void(slot), "i:i", "")
+
 #define CMD2_TRACKER(key, slot)         CMD2_A_FUNCTION(key, command_base_call<torrent::Tracker*>, slot, "i:", "")
 #define CMD2_TRACKER_V(key, slot)       CMD2_A_FUNCTION(key, command_base_call<torrent::Tracker*>, object_convert_void(slot), "i:", "")
 #define CMD2_TRACKER_VALUE_V(key, slot) CMD2_A_FUNCTION(key, command_base_call_value<torrent::Tracker*>, object_convert_void(slot), "i:i", "")
 
-#define CMD2_VAR_BOOL(key, value) \
+#define CMD2_VAR_BOOL(key, value)                                       \
   rpc::commands.call("method.insert", rpc::create_object_list(key, "bool|const", int64_t(value)));
-#define CMD2_VAR_VALUE(key, value) \
+#define CMD2_VAR_VALUE(key, value)                                      \
   rpc::commands.call("method.insert", rpc::create_object_list(key, "value|const", int64_t(value)));
-#define CMD2_VAR_STRING(key, value) \
+#define CMD2_VAR_STRING(key, value)                                     \
   rpc::commands.call("method.insert", rpc::create_object_list(key, "string|const", std::string(value)));
+#define CMD2_VAR_C_STRING(key, value)                                   \
+  rpc::commands.call("method.insert", rpc::create_object_list(key, "string|static|const", std::string(value)));
+
+#define CMD2_FUNC_SINGLE(key, cmds)                                  \
+  CMD2_ANY(key, std::tr1::bind(&rpc::command_function_call, torrent::raw_string::from_c_str(cmds), \
+                               std::tr1::placeholders::_1, std::tr1::placeholders::_2));
 
 //
 // Conversion of return types:

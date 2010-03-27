@@ -56,7 +56,7 @@ public:
   void                stop_dht();
   void                auto_start()                 { if (m_start == dht_auto) start_dht(); }
 
-  void                set_start(const std::string& arg);
+  void                set_mode(const std::string& arg);
 
   void                set_throttle_name(const std::string& throttleName);
   const std::string&  throttle_name() const        { return m_throttleName; }
