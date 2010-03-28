@@ -698,7 +698,7 @@ initialize_command_download() {
   CMD2_DL         ("d.uploads_max",          std::tr1::bind(&torrent::ConnectionList::max_size, CMD2_BIND_CL));
   CMD2_DL_VALUE_V ("d.uploads_max.set",      std::tr1::bind(&torrent::ConnectionList::set_max_size, CMD2_BIND_CL, std::tr1::placeholders::_2));
   CMD2_DL         ("d.peers_connected",      std::tr1::bind(&torrent::ConnectionList::size, CMD2_BIND_CL));
-  CMD2_DL         ("d.peers_note_connected", std::tr1::bind(&torrent::PeerList::available_list_size, CMD2_BIND_PL));
+  CMD2_DL         ("d.peers_not_connected",  std::tr1::bind(&torrent::PeerList::available_list_size, CMD2_BIND_PL));
 
   CMD2_DL         ("d.peers_complete", CMD2_ON_DL(peers_complete));
   CMD2_DL         ("d.peers_accounted", CMD2_ON_DL(peers_accounted));

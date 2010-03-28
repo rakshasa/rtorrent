@@ -104,6 +104,8 @@ public:
   static const int flag_public_xmlrpc = 0x4;
   static const int flag_no_target     = 0x8;
   static const int flag_modifiable    = 0x10;
+  static const int flag_is_redirect   = 0x20;
+  static const int flag_has_redirects = 0x40;
 
   CommandMap() {}
   ~CommandMap();
@@ -126,6 +128,8 @@ public:
 
   void                insert(key_type key, const command_map_data_type src);
   void                erase(iterator itr);
+
+  void                create_redirect(key_type key_new, key_type key_dest, int flags);
 
   const mapped_type   call(key_type key, const mapped_type& args = mapped_type());
   const mapped_type   call(key_type key, target_type target, const mapped_type& args = mapped_type()) { return call_command(key, args, target); }

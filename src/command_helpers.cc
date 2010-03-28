@@ -38,31 +38,11 @@
 
 #include <torrent/exceptions.h>
 
-#include "rpc/command_slot.h"
 #include "rpc/command_variable.h"
 
 #include "globals.h"
 #include "control.h"
 #include "command_helpers.h"
-
-rpc::CommandSlot<void>    commandSlots[COMMAND_SLOTS_SIZE];
-rpc::CommandSlot<void>*   commandSlotsItr = commandSlots;
-rpc::CommandVariable      commandVariables[COMMAND_VARIABLES_SIZE];
-rpc::CommandVariable*     commandVariablesItr = commandVariables;
-rpc::CommandObjectPtr     commandObjectPtrs[COMMAND_OBJECT_PTR_SIZE];
-rpc::CommandObjectPtr*    commandObjectPtrsItr = commandObjectPtrs;
-rpc::CommandSlot<core::Download*>             commandDownloadSlots[COMMAND_DOWNLOAD_SLOTS_SIZE];
-rpc::CommandSlot<core::Download*>*            commandDownloadSlotsItr = commandDownloadSlots;
-rpc::CommandSlot<torrent::File*>              commandFileSlots[COMMAND_FILE_SLOTS_SIZE];
-rpc::CommandSlot<torrent::File*>*             commandFileSlotsItr = commandFileSlots;
-rpc::CommandSlot<torrent::FileListIterator*>  commandFileItrSlots[COMMAND_FILE_ITR_SLOTS_SIZE];
-rpc::CommandSlot<torrent::FileListIterator*>* commandFileItrSlotsItr = commandFileItrSlots;
-rpc::CommandSlot<torrent::Peer*>              commandPeerSlots[COMMAND_PEER_SLOTS_SIZE];
-rpc::CommandSlot<torrent::Peer*>*             commandPeerSlotsItr = commandPeerSlots;
-rpc::CommandSlot<torrent::Tracker*>           commandTrackerSlots[COMMAND_TRACKER_SLOTS_SIZE];
-rpc::CommandSlot<torrent::Tracker*>*          commandTrackerSlotsItr = commandTrackerSlots;
-rpc::CommandSlot<rpc::target_type>            commandAnySlots[COMMAND_ANY_SLOTS_SIZE];
-rpc::CommandSlot<rpc::target_type>*           commandAnySlotsItr = commandAnySlots;
 
 rpc::command_base commandNewSlots[COMMAND_NEW_SLOTS_SIZE];
 rpc::command_base* commandNewSlotItr = commandNewSlots;
@@ -92,43 +72,9 @@ initialize_commands() {
   initialize_command_scheduler();
 
 #ifdef ADDING_COMMANDS 
-  if (commandSlotsItr > commandSlots + COMMAND_SLOTS_SIZE ||
-      commandVariablesItr > commandVariables + COMMAND_VARIABLES_SIZE ||
-      commandObjectPtrsItr > commandObjectPtrs + COMMAND_OBJECT_PTR_SIZE ||
-      commandDownloadSlotsItr > commandDownloadSlots + COMMAND_DOWNLOAD_SLOTS_SIZE ||
-      commandFileSlotsItr > commandFileSlots + COMMAND_FILE_SLOTS_SIZE ||
-      commandFileItrSlotsItr > commandFileItrSlots + COMMAND_FILE_ITR_SLOTS_SIZE ||
-      commandPeerSlotsItr > commandPeerSlots + COMMAND_PEER_SLOTS_SIZE ||
-      commandTrackerSlotsItr > commandTrackerSlots + COMMAND_TRACKER_SLOTS_SIZE ||
-      commandAnySlotsItr > commandAnySlots + COMMAND_ANY_SLOTS_SIZE ||
-      commandNewSlotItr > commandNewSlots + COMMAND_NEW_SLOTS_SIZE)
+  if (commandNewSlotItr > commandNewSlots + COMMAND_NEW_SLOTS_SIZE)
 #else
-  if (commandSlotsItr != commandSlots + COMMAND_SLOTS_SIZE ||
-      commandVariablesItr != commandVariables + COMMAND_VARIABLES_SIZE ||
-      commandObjectPtrsItr != commandObjectPtrs + COMMAND_OBJECT_PTR_SIZE ||
-      commandDownloadSlotsItr != commandDownloadSlots + COMMAND_DOWNLOAD_SLOTS_SIZE ||
-      commandFileSlotsItr != commandFileSlots + COMMAND_FILE_SLOTS_SIZE ||
-      commandFileItrSlotsItr != commandFileItrSlots + COMMAND_FILE_ITR_SLOTS_SIZE ||
-      commandPeerSlotsItr != commandPeerSlots + COMMAND_PEER_SLOTS_SIZE ||
-      commandTrackerSlotsItr != commandTrackerSlots + COMMAND_TRACKER_SLOTS_SIZE ||
-      commandAnySlotsItr != commandAnySlots + COMMAND_ANY_SLOTS_SIZE ||
-      commandNewSlotItr != commandNewSlots + COMMAND_NEW_SLOTS_SIZE)
+  if (commandNewSlotItr != commandNewSlots + COMMAND_NEW_SLOTS_SIZE)
 #endif
     throw torrent::internal_error("initialize_commands() static command array size mismatch.");
-}
-
-void
-add_variable(const char* getKey, const char* setKey, const char* defaultSetKey,
-             rpc::Command::cleaned_slot getSlot, rpc::Command::cleaned_slot setSlot,
-             const torrent::Object& defaultObject) {
-  rpc::CommandVariable* variable = commandVariablesItr++;
-  variable->set_variable(defaultObject);
-
-  rpc::commands.insert_type(getKey, variable, getSlot, rpc::CommandMap::flag_dont_delete | rpc::CommandMap::flag_public_xmlrpc, "i:", "");
-
-  if (setKey)
-    rpc::commands.insert_type(setKey, variable, setSlot, rpc::CommandMap::flag_dont_delete | rpc::CommandMap::flag_public_xmlrpc, "i:", "");
-
-  if (defaultSetKey)
-    rpc::commands.insert_type(defaultSetKey, variable, setSlot, rpc::CommandMap::flag_dont_delete, "i:", "");
 }

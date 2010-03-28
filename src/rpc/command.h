@@ -132,6 +132,7 @@ public:
   virtual ~Command() {}
 
   static torrent::Object* argument(unsigned int index) { return m_arguments + index; }
+  static torrent::Object& argument_ref(unsigned int index) { return *(m_arguments + index); }
 
   static const unsigned int max_arguments = 10;
   static torrent::Object m_arguments[max_arguments];

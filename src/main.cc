@@ -305,276 +305,268 @@ main(int argc, char** argv) {
     // Deprecated commands. Don't use these anymore.
 
     if (!OptionParser::has_flag('D', argc, argv)) {
+      // Deprecated in 0.7.0:
+      // 
+      // List of cleaned up files:
+      // * command_download.cc
+      // * command_dynamic.cc
+      // * command_events.cc
+      // * command_file.cc
+      // * command_helpers.cc
+      // + command_local.cc
+      // * command_network.cc
+      // * command_object.cc
+      // * command_peer.cc
+      // * command_scheduler.cc
+      // * command_tracker.cc
+      // * command_ui.cc
 
-    rpc::parse_command_multiple
-      (rpc::make_target(),
-       // Deprecated in 0.7.0:
-       // 
-       // List of cleaned up files:
-       // - command_download.cc
-       // * command_dynamic.cc
-       // * command_events.cc
-       // * command_file.cc
-       // - command_helpers.cc
-       // + command_local.cc
-       // * command_network.cc
-       // * command_object.cc
-       // * command_peer.cc
-       // * command_scheduler.cc
-       // * command_tracker.cc
-       // * command_ui.cc
+      rpc::commands.create_redirect("system.method.insert", "method.insert", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("system.method.set", "method.set", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("system.method.set_key", "method.set_key", rpc::CommandMap::flag_public_xmlrpc);
 
-       "method.insert = system.method.insert,redirect|const,method.insert\n"
-       "method.insert = system.method.set,redirect|const,method.set\n"
-       "method.insert = system.method.set_key,redirect|const,method.set_key\n"
+      rpc::commands.create_redirect("get_handshake_log", "log.handshake", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("set_handshake_log", "log.handshake.set", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("get_log.tracker", "log.tracker", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("set_log.tracker", "log.tracker.set", rpc::CommandMap::flag_public_xmlrpc);
 
-       "method.insert = get_key_layout,redirect|const,key_layout\n"
-       "method.insert = set_key_layout,redirect|const,key_layout.set\n"
+      rpc::commands.create_redirect("get_name", "system.session_name", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("set_name", "system.session_name.set", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("system.file_allocate", "system.file.allocate", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("system.file_allocate.set", "system.file.allocate.set", rpc::CommandMap::flag_public_xmlrpc);
 
-       "method.insert = get_handshake_log,redirect|const,log.handshake\n"
-       "method.insert = set_handshake_log,redirect|const,log.handshake.set\n"
-       "method.insert = get_log.tracker,redirect|const,log.tracker\n"
-       "method.insert = set_log.tracker,redirect|const,log.tracker.set\n"
+      rpc::commands.create_redirect("get_preload_type", "pieces.preload.type", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("get_preload_min_size", "pieces.preload.min_size", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("get_preload_required_rate", "pieces.preload.min_rate", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("set_preload_type", "pieces.preload.type.set", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("set_preload_min_size", "pieces.preload.min_size.set", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("set_preload_required_rate", "pieces.preload.min_rate.set", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("get_stats_preloaded", "pieces.stats_preloaded", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("get_stats_not_preloaded", "pieces.stats_not_preloaded", rpc::CommandMap::flag_public_xmlrpc);
 
-       "method.insert = get_name,redirect|const,system.session_name\n"
-       "method.insert = set_name,redirect|const,system.session_name.set\n"
-       "method.insert = system.file_allocate,redirect|const,system.file.allocate\n"
-       "method.insert = system.file_allocate.set,redirect|const,system.file.allocate.set\n"
+      rpc::commands.create_redirect("get_memory_usage", "pieces.memory.current", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("get_max_memory_usage", "pieces.memory.max", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("set_max_memory_usage", "pieces.memory.max.set", rpc::CommandMap::flag_public_xmlrpc);
 
-       "method.insert = get_preload_type,redirect|const,pieces.preload.type\n"
-       "method.insert = get_preload_min_size,redirect|const,pieces.preload.min_size\n"
-       "method.insert = get_preload_required_rate,redirect|const,pieces.preload.min_rate\n"
-       "method.insert = set_preload_type,redirect|const,pieces.preload.type.set\n"
-       "method.insert = set_preload_min_size,redirect|const,pieces.preload.min_size.set\n"
-       "method.insert = set_preload_required_rate,redirect|const,pieces.preload.min_rate.set\n"
-       "method.insert = get_stats_preloaded,redirect|const,pieces.stats_preloaded\n"
-       "method.insert = get_stats_not_preloaded,redirect|const,pieces.stats_not_preloaded\n"
+      rpc::commands.create_redirect("get_send_buffer_size", "network.send_buffer.size", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("set_send_buffer_size", "network.send_buffer.size.set", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("get_receive_buffer_size", "network.receive_buffer.size", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("set_receive_buffer_size", "network.receive_buffer.size.set", rpc::CommandMap::flag_public_xmlrpc);
 
-       "method.insert = get_memory_usage,redirect|const,pieces.memory.current\n"
-       "method.insert = get_max_memory_usage,redirect|const,pieces.memory.max\n"
-       "method.insert = set_max_memory_usage,redirect|const,pieces.memory.max.set\n"
+      rpc::commands.create_redirect("get_up_rate", "throttle.global_up.rate", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("get_up_total", "throttle.global_up.total", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("get_upload_rate", "throttle.global_up.max_rate", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("set_upload_rate", "throttle.global_up.max_rate.set", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("get_down_rate", "throttle.global_down.rate", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("get_down_total", "throttle.global_down.total", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("get_download_rate", "throttle.global_down.max_rate", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("set_download_rate", "throttle.global_down.max_rate.set", rpc::CommandMap::flag_public_xmlrpc);
 
-       "method.insert = get_send_buffer_size,redirect|const,network.send_buffer.size\n"
-       "method.insert = set_send_buffer_size,redirect|const,network.send_buffer.size.set\n"
-       "method.insert = get_receive_buffer_size,redirect|const,network.receive_buffer.size\n"
-       "method.insert = set_receive_buffer_size,redirect|const,network.receive_buffer.size.set\n"
+      rpc::commands.create_redirect("bind", "network.bind_address.set", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("set_bind", "network.bind_address.set", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("get_bind", "network.bind_address", rpc::CommandMap::flag_public_xmlrpc);
 
-       "method.insert = get_up_rate,redirect|const,throttle.global_up.rate\n"
-       "method.insert = get_up_total,redirect|const,throttle.global_up.total\n"
-       "method.insert = get_upload_rate,redirect|const,throttle.global_up.max_rate\n"
-       "method.insert = set_upload_rate,redirect|const,throttle.global_up.max_rate.set\n"
-       "method.insert = get_down_rate,redirect|const,throttle.global_down.rate\n"
-       "method.insert = get_down_total,redirect|const,throttle.global_down.total\n"
-       "method.insert = get_download_rate,redirect|const,throttle.global_down.max_rate\n"
-       "method.insert = set_download_rate,redirect|const,throttle.global_down.max_rate.set\n"
+      rpc::commands.create_redirect("ip", "network.local_address.set", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("set_ip", "network.local_address.set", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("get_ip", "network.local_address", rpc::CommandMap::flag_public_xmlrpc);
 
-       "method.insert = bind,    redirect|const,network.bind_address.set\n"
-       "method.insert = set_bind,redirect|const,network.bind_address.set\n"
-       "method.insert = get_bind,redirect|const,network.bind_address\n"
+      rpc::commands.create_redirect("proxy_address", "network.proxy_address.set", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("set_proxy_address", "network.proxy_address.set", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("get_proxy_address", "network.proxy_address", rpc::CommandMap::flag_public_xmlrpc);
 
-       "method.insert = ip,    redirect|const,network.local_address.set\n"
-       "method.insert = set_ip,redirect|const,network.local_address.set\n"
-       "method.insert = get_ip,redirect|const,network.local_address\n"
+      rpc::commands.create_redirect("scgi_port", "network.scgi.open_port", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("scgi_local", "network.scgi.open_local", rpc::CommandMap::flag_public_xmlrpc);
 
-       "method.insert = proxy_address,    redirect|const,network.proxy_address.set\n"
-       "method.insert = set_proxy_address,redirect|const,network.proxy_address.set\n"
-       "method.insert = get_proxy_address,redirect|const,network.proxy_address\n"
+      rpc::commands.create_redirect("scgi_dont_route", "network.scgi.dont_route.set", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("set_scgi_dont_route", "network.scgi.dont_route.set", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("get_scgi_dont_route", "network.scgi.dont_route", rpc::CommandMap::flag_public_xmlrpc);
 
-       "method.insert = scgi_port, redirect|const,network.scgi.open_port\n"
-       "method.insert = scgi_local,redirect|const,network.scgi.open_local\n"
+      rpc::commands.create_redirect("xmlrpc_dialect", "network.xmlrpc.size_limit.set", rpc::CommandMap::flag_public_xmlrpc);
 
-       "method.insert = scgi_dont_route,    redirect|const,network.scgi.dont_route.set\n"
-       "method.insert = set_scgi_dont_route,redirect|const,network.scgi.dont_route.set\n"
-       "method.insert = get_scgi_dont_route,redirect|const,network.scgi.dont_route\n"
+      rpc::commands.create_redirect("get_connection_leech", "connection_leech", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("set_connection_leech", "connection_leech.set", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("get_connection_seed", "connection_seed", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("set_connection_seed", "connection_seed.set", rpc::CommandMap::flag_public_xmlrpc);
 
-       "method.insert = xmlrpc_dialect,     redirect|const,network.xmlrpc.size_limit.set\n"
+      rpc::commands.create_redirect("dht", "dht.mode.set", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("dht_add_node", "dht.add_node", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("dht_statistics", "dht.statistics", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("get_dht_port", "dht.port", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("set_dht_port", "dht.port", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("get_dht_throttle", "dht.throttle.name", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("set_dht_throttle", "dht.throttle.name.set", rpc::CommandMap::flag_public_xmlrpc);
 
-       "method.insert = get_connection_leech,redirect|const,connection_leech\n"
-       "method.insert = set_connection_leech,redirect|const,connection_leech.set\n"
-       "method.insert = get_connection_seed,redirect|const,connection_seed\n"
-       "method.insert = set_connection_seed,redirect|const,connection_seed.set\n"
+      rpc::commands.create_redirect("directory", "directory.default.set", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("get_directory", "directory.default", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("set_directory", "directory.default.set", rpc::CommandMap::flag_public_xmlrpc);
 
-       "method.insert = dht,redirect|const,dht.mode.set\n"
-       "method.insert = dht_add_node, redirect|const,dht.add_node\n"
-       "method.insert = dht_statistics, redirect|const,dht.statistics\n"
-       "method.insert = get_dht_port, redirect|const,dht.port\n"
-       "method.insert = set_dht_port, redirect|const,dht.port\n"
-       "method.insert = get_dht_throttle,redirect|const,dht.throttle\n"
-       "method.insert = set_dht_throttle,redirect|const,dht.throttle.set\n"
+      //
+      // Download:
+      //
 
-       "method.insert = directory,redirect|const,directory.default.set\n"
-       "method.insert = get_directory,redirect|const,directory.default\n"
-       "method.insert = set_directory,redirect|const,directory.default.set\n"
+      rpc::commands.create_redirect("d.get_hash", "d.hash", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.get_local_id", "d.local_id", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.get_local_id_html", "d.local_id_html", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.get_bitfield", "d.bitfield", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.get_base_path", "d.base_path", rpc::CommandMap::flag_public_xmlrpc);
 
-       //
-       // Download:
-       //
+      rpc::commands.create_redirect("d.get_name", "d.name", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.get_creation_date", "d.creation_date", rpc::CommandMap::flag_public_xmlrpc);
 
-       "method.insert = d.get_hash,redirect|const,d.hash\n"
-       "method.insert = d.get_local_id,redirect|const,d.local_id\n"
-       "method.insert = d.get_local_id_html,redirect|const,d.local_id_html\n"
-       "method.insert = d.get_bitfield,redirect|const,d.bitfield\n"
-       "method.insert = d.get_base_path,redirect|const,d.base_path\n"
+      rpc::commands.create_redirect("d.get_peer_exchange", "d.peer_exchange", rpc::CommandMap::flag_public_xmlrpc);
 
-       "method.insert = d.get_name,redirect|const,d.name\n"
-       "method.insert = d.get_creation_date,redirect|const,d.creation_date\n"
+      rpc::commands.create_redirect("d.get_up_rate", "d.up.rate", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.get_up_total", "d.up.total", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.get_down_rate", "d.down.rate", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.get_down_total", "d.down.total", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.get_skip_rate", "d.skip.rate", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.get_skip_total", "d.skip.total", rpc::CommandMap::flag_public_xmlrpc);
 
-       "method.insert = d.get_peer_exchange,redirect|const,d.peer_exchange\n"
+      //
+      rpc::commands.create_redirect("d.get_bytes_done", "d.bytes_done", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.get_chunk_size", "d.chunk_size", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.get_chunks_hashed", "d.chunks_hashed", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.get_complete", "d.complete", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.get_completed_bytes", "d.completed_bytes", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.get_completed_chunks", "d.completed_chunks", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.get_connection_current", "d.connection_current", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.get_connection_leech", "d.connection_leech", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.get_connection_seed", "d.connection_seed", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.get_custom", "d.custom", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.get_custom1", "d.custom1", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.get_custom2", "d.custom2", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.get_custom3", "d.custom3", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.get_custom4", "d.custom4", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.get_custom5", "d.custom5", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.get_custom_throw", "d.custom_throw", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.get_directory", "d.directory", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.get_directory_base", "d.directory_base", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.get_free_diskspace", "d.free_diskspace", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.get_hashing", "d.hashing", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.get_hashing_failed", "d.hashing_failed", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.get_ignore_commands", "d.ignore_commands", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.get_left_bytes", "d.left_bytes", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.get_loaded_file", "d.loaded_file", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.get_max_file_size", "d.max_file_size", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.get_max_size_pex", "d.max_size_pex", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.get_message", "d.message", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.get_mode", "d.mode", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.get_peers_accounted", "d.peers_accounted", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.get_peers_complete", "d.peers_complete", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.get_peers_connected", "d.peers_connected", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.get_peers_max", "d.peers_max", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.get_peers_min", "d.peers_min", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.get_peers_not_connected", "d.peers_not_connected", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.get_priority", "d.priority", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.get_priority_str", "d.priority_str", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.get_ratio", "d.ratio", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.get_size_bytes", "d.size_bytes", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.get_size_chunks", "d.size_chunks", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.get_size_files", "d.size_files", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.get_size_pex", "d.size_pex", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.get_state", "d.state", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.get_state_changed", "d.state_changed", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.get_state_counter", "d.state_counter", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.get_throttle_name", "d.throttle_name", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.get_tied_to_file", "d.tied_to_file", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.get_tracker_focus", "d.tracker_focus", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.get_tracker_numwant", "d.tracker_numwant", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.get_tracker_size", "d.tracker_size", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.get_uploads_max", "d.uploads_max", rpc::CommandMap::flag_public_xmlrpc);
 
-       "method.insert = d.get_up_rate,redirect|const,d.up.rate\n"
-       "method.insert = d.get_up_total,redirect|const,d.up.total\n"
-       "method.insert = d.get_down_rate,redirect|const,d.down.rate\n"
-       "method.insert = d.get_down_total,redirect|const,d.down.total\n"
-       "method.insert = d.get_skip_rate,redirect|const,d.skip.rate\n"
-       "method.insert = d.get_skip_total,redirect|const,d.skip.total\n"
+      rpc::commands.create_redirect("d.set_connection_current", "d.connection_current.set", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.set_custom", "d.custom.set", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.set_custom1", "d.custom1.set", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.set_custom2", "d.custom2.set", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.set_custom3", "d.custom3.set", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.set_custom4", "d.custom4.set", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.set_custom5", "d.custom5.set", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.set_directory", "d.directory.set", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.set_directory_base", "d.directory_base.set", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.set_hashing_failed", "d.hashing_failed.set", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.set_ignore_commands", "d.ignore_commands.set", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.set_max_file_size", "d.max_file_size.set", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.set_message", "d.message.set", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.set_peers_max", "d.peers_max.set", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.set_peers_min", "d.peers_min.set", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.set_priority", "d.priority.set", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.set_throttle_name", "d.throttle_name.set", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.set_tied_to_file", "d.tied_to_file.set", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.set_tracker_numwant", "d.tracker_numwant.set", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("d.set_uploads_max", "d.uploads_max.set", rpc::CommandMap::flag_public_xmlrpc);
 
-       //
-       "method.insert = d.get_bytes_done,redirect|const,d.bytes_done\n"
-       "method.insert = d.get_chunk_size,redirect|const,d.chunk_size\n"
-       "method.insert = d.get_chunks_hashed,redirect|const,d.chunks_hashed\n"
-       "method.insert = d.get_complete,redirect|const,d.complete\n"
-       "method.insert = d.get_completed_bytes,redirect|const,d.completed_bytes\n"
-       "method.insert = d.get_completed_chunks,redirect|const,d.completed_chunks\n"
-       "method.insert = d.get_connection_current,redirect|const,d.connection_current\n"
-       "method.insert = d.get_connection_leech,redirect|const,d.connection_leech\n"
-       "method.insert = d.get_connection_seed,redirect|const,d.connection_seed\n"
-       "method.insert = d.get_custom,redirect|const,d.custom\n"
-       "method.insert = d.get_custom1,redirect|const,d.custom1\n"
-       "method.insert = d.get_custom2,redirect|const,d.custom2\n"
-       "method.insert = d.get_custom3,redirect|const,d.custom3\n"
-       "method.insert = d.get_custom4,redirect|const,d.custom4\n"
-       "method.insert = d.get_custom5,redirect|const,d.custom5\n"
-       "method.insert = d.get_custom_throw,redirect|const,d.custom_throw\n"
-       "method.insert = d.get_directory,redirect|const,d.directory\n"
-       "method.insert = d.get_directory_base,redirect|const,d.directory_base\n"
-       "method.insert = d.get_free_diskspace,redirect|const,d.free_diskspace\n"
-       "method.insert = d.get_hashing,redirect|const,d.hashing\n"
-       "method.insert = d.get_hashing_failed,redirect|const,d.hashing_failed\n"
-       "method.insert = d.get_ignore_commands,redirect|const,d.ignore_commands\n"
-       "method.insert = d.get_left_bytes,redirect|const,d.left_bytes\n"
-       "method.insert = d.get_loaded_file,redirect|const,d.loaded_file\n"
-       "method.insert = d.get_max_file_size,redirect|const,d.max_file_size\n"
-       "method.insert = d.get_max_size_pex,redirect|const,d.max_size_pex\n"
-       "method.insert = d.get_message,redirect|const,d.message\n"
-       "method.insert = d.get_mode,redirect|const,d.mode\n"
-       "method.insert = d.get_peers_accounted,redirect|const,d.peers_accounted\n"
-       "method.insert = d.get_peers_complete,redirect|const,d.peers_complete\n"
-       "method.insert = d.get_peers_connected,redirect|const,d.peers_connected\n"
-       "method.insert = d.get_peers_max,redirect|const,d.peers_max\n"
-       "method.insert = d.get_peers_min,redirect|const,d.peers_min\n"
-       "method.insert = d.get_peers_not_connected,redirect|const,d.peers_not_connected\n"
-       "method.insert = d.get_priority,redirect|const,d.priority\n"
-       "method.insert = d.get_priority_str,redirect|const,d.priority_str\n"
-       "method.insert = d.get_ratio,redirect|const,d.ratio\n"
-       "method.insert = d.get_size_bytes,redirect|const,d.size_bytes\n"
-       "method.insert = d.get_size_chunks,redirect|const,d.size_chunks\n"
-       "method.insert = d.get_size_files,redirect|const,d.size_files\n"
-       "method.insert = d.get_size_pex,redirect|const,d.size_pex\n"
-       "method.insert = d.get_state,redirect|const,d.state\n"
-       "method.insert = d.get_state_changed,redirect|const,d.state_changed\n"
-       "method.insert = d.get_state_counter,redirect|const,d.state_counter\n"
-       "method.insert = d.get_throttle_name,redirect|const,d.throttle_name\n"
-       "method.insert = d.get_tied_to_file,redirect|const,d.tied_to_file\n"
-       "method.insert = d.get_tracker_focus,redirect|const,d.tracker_focus\n"
-       "method.insert = d.get_tracker_numwant,redirect|const,d.tracker_numwant\n"
-       "method.insert = d.get_tracker_size,redirect|const,d.tracker_size\n"
-       "method.insert = d.get_uploads_max,redirect|const,d.uploads_max\n"
+      //
+      // Tracker:
+      //
 
-       "method.insert = d.get_connection_current,redirect|const,d.connection_current.set\n"
-       "method.insert = d.get_custom,redirect|const,d.custom.set\n"
-       "method.insert = d.get_custom1,redirect|const,d.custom1.set\n"
-       "method.insert = d.get_custom2,redirect|const,d.custom2.set\n"
-       "method.insert = d.get_custom3,redirect|const,d.custom3.set\n"
-       "method.insert = d.get_custom4,redirect|const,d.custom4.set\n"
-       "method.insert = d.get_custom5,redirect|const,d.custom5.set\n"
-       "method.insert = d.get_directory,redirect|const,d.directory.set\n"
-       "method.insert = d.get_directory_base,redirect|const,d.directory_base.set\n"
-       "method.insert = d.get_hashing_failed,redirect|const,d.hashing_failed.set\n"
-       "method.insert = d.get_ignore_commands,redirect|const,d.ignore_commands.set\n"
-       "method.insert = d.get_max_file_size,redirect|const,d.max_file_size.set\n"
-       "method.insert = d.get_message,redirect|const,d.message.set\n"
-       "method.insert = d.get_peers_max,redirect|const,d.peers_max.set\n"
-       "method.insert = d.get_peers_min,redirect|const,d.peers_min.set\n"
-       "method.insert = d.get_priority,redirect|const,d.priority.set\n"
-       "method.insert = d.get_throttle_name,redirect|const,d.throttle_name.set\n"
-       "method.insert = d.get_tied_to_file,redirect|const,d.tied_to_file.set\n"
-       "method.insert = d.get_tracker_numwant,redirect|const,d.tracker_numwant.set\n"
-       "method.insert = d.get_uploads_max,redirect|const,d.uploads_max.set\n"
+      rpc::commands.create_redirect("t.get_group", "t.group", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("t.get_id", "t.id", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("t.get_min_interval", "t.min_interval", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("t.get_normal_interval", "t.normal_interval", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("t.get_scrape_complete", "t.scrape_complete", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("t.get_scrape_downloaded", "t.scrape_downloaded", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("t.get_scrape_incomplete", "t.scrape_incomplete", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("t.get_scrape_time_last", "t.scrape_time_last", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("t.get_type", "t.type", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("t.get_url", "t.url", rpc::CommandMap::flag_public_xmlrpc);
 
-       //
-       // Tracker:
-       //
+      //
+      // Tracker:
+      //
 
-       "method.insert = t.get_group,redirect|const,t.get_group\n"
-       "method.insert = t.get_id,redirect|const,t.get_id\n"
-       "method.insert = t.get_min_interval,redirect|const,t.get_min_interval\n"
-       "method.insert = t.get_normal_interval,redirect|const,t.get_normal_interval\n"
-       "method.insert = t.get_scrape_complete,redirect|const,t.get_scrape_complete\n"
-       "method.insert = t.get_scrape_downloaded,redirect|const,t.get_scrape_downloaded\n"
-       "method.insert = t.get_scrape_incomplete,redirect|const,t.get_scrape_incomplete\n"
-       "method.insert = t.get_scrape_time_last,redirect|const,t.get_scrape_time_last\n"
-       "method.insert = t.get_type,redirect|const,t.get_type\n"
-       "method.insert = t.get_url,redirect|const,t.get_url\n"
+      rpc::commands.create_redirect("f.get_completed_chunks", "f.completed_chunks", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("f.get_frozen_path", "f.frozen_path", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("f.get_last_touched", "f.last_touched", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("f.get_match_depth_next", "f.match_depth_next", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("f.get_match_depth_prev", "f.match_depth_prev", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("f.get_offset", "f.offset", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("f.get_path", "f.path", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("f.get_path_components", "f.path_components", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("f.get_path_depth", "f.path_depth", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("f.get_priority", "f.priority", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("f.get_range_first", "f.range_first", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("f.get_range_second", "f.range_second", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("f.get_size_bytes", "f.size_bytes", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("f.get_size_chunks", "f.size_chunks", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("f.set_priority", "f.priority.set", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("fi.get_filename_last", "fi.filename_last", rpc::CommandMap::flag_public_xmlrpc);
 
-       //
-       // Tracker:
-       //
+      //
+      // Peer:
+      //
 
-       "method.insert = f.get_completed_chunks,redirect|const,f.completed_chunks\n"
-       "method.insert = f.get_frozen_path,redirect|const,f.frozen_path\n"
-       "method.insert = f.get_last_touched,redirect|const,f.last_touched\n"
-       "method.insert = f.get_match_depth_next,redirect|const,f.match_depth_next\n"
-       "method.insert = f.get_match_depth_prev,redirect|const,f.match_depth_prev\n"
-       "method.insert = f.get_offset,redirect|const,f.offset\n"
-       "method.insert = f.get_path,redirect|const,f.path\n"
-       "method.insert = f.get_path_components,redirect|const,f.path_components\n"
-       "method.insert = f.get_path_depth,redirect|const,f.path_depth\n"
-       "method.insert = f.get_priority,redirect|const,f.priority\n"
-       "method.insert = f.get_range_first,redirect|const,f.range_first\n"
-       "method.insert = f.get_range_second,redirect|const,f.range_second\n"
-       "method.insert = f.get_size_bytes,redirect|const,f.size_bytes\n"
-       "method.insert = f.get_size_chunks,redirect|const,f.size_chunks\n"
-       "method.insert = f.set_priority,redirect|const,f.priority.set\n"
-       "method.insert = fi.get_filename_last,redirect|const,fi.filename_last\n"
+      rpc::commands.create_redirect("p.get_address", "p.address", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("p.get_client_version", "p.client_version", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("p.get_completed_percent", "p.completed_percent", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("p.get_down_rate", "p.down_rate", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("p.get_down_total", "p.down_total", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("p.get_id", "p.id", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("p.get_id_html", "p.id_html", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("p.get_options_str", "p.options_str", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("p.get_peer_rate", "p.peer_rate", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("p.get_peer_total", "p.peer_total", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("p.get_port", "p.port", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("p.get_up_rate", "p.up_rate", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("p.get_up_total", "p.up_total", rpc::CommandMap::flag_public_xmlrpc);
 
-       //
-       // Peer:
-       //
+      //
+      // View:
+      //
 
-       "method.insert = p.get_address,redirect|const,p.address\n"
-       "method.insert = p.get_client_version,redirect|const,p.client_version\n"
-       "method.insert = p.get_completed_percent,redirect|const,p.completed_percent\n"
-       "method.insert = p.get_down_rate,redirect|const,p.down_rate\n"
-       "method.insert = p.get_down_total,redirect|const,p.down_total\n"
-       "method.insert = p.get_id,redirect|const,p.id\n"
-       "method.insert = p.get_id_html,redirect|const,p.id_html\n"
-       "method.insert = p.get_options_str,redirect|const,p.options_str\n"
-       "method.insert = p.get_peer_rate,redirect|const,p.peer_rate\n"
-       "method.insert = p.get_peer_total,redirect|const,p.peer_total\n"
-       "method.insert = p.get_port,redirect|const,p.port\n"
-       "method.insert = p.get_up_rate,redirect|const,p.up_rate\n"
-       "method.insert = p.get_up_total,redirect|const,p.up_total\n"
+      rpc::commands.create_redirect("view_add", "view.add", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("view_filter", "view.filter", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("view_filter_on", "view.filter_on", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("view_list", "view.list", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("view_set", "view.set", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("view_sort", "view.sort", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("view_sort_current", "view.sort_current", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("view_sort_new", "view.sort_new", rpc::CommandMap::flag_public_xmlrpc);
 
-       //
-       // View:
-       //
-
-       "method.insert = view_add,redirect|const,view.add\n"
-       "method.insert = view_filter,redirect|const,view.filter\n"
-       "method.insert = view_filter_on,redirect|const,view.filter_on\n"
-       "method.insert = view_list,redirect|const,view.list\n"
-       "method.insert = view_set,redirect|const,view.set\n"
-       "method.insert = view_sort,redirect|const,view.sort\n"
-       "method.insert = view_sort_current,redirect|const,view.sort_current\n"
-       "method.insert = view_sort_new,redirect|const,view.sort_new\n"
-
-       // Functions that might not get depracted as they are nice for
-       // configuration files, and thus might do with just some
-       // cleanup.
-       "method.insert = upload_rate,redirect|const,throttle.global_up.max_rate.set\n"
-       "method.insert = download_rate,redirect|const,throttle.global_down.max_rate.set\n"
-    );
-
+      // Functions that might not get depracted as they are nice for
+      // configuration files, and thus might do with just some
+      // cleanup.
+      rpc::commands.create_redirect("upload_rate", "throttle.global_up.max_rate.set", rpc::CommandMap::flag_public_xmlrpc);
+      rpc::commands.create_redirect("download_rate", "throttle.global_down.max_rate.set", rpc::CommandMap::flag_public_xmlrpc);
     }
 
     if (OptionParser::has_flag('n', argc, argv))

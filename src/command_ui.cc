@@ -47,7 +47,6 @@
 #include "core/view_manager.h"
 #include "ui/root.h"
 #include "ui/download_list.h"
-#include "rpc/command_slot.h"
 #include "rpc/command_variable.h"
 #include "rpc/parse.h"
 

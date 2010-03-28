@@ -104,6 +104,10 @@ CommandMap::erase(iterator itr) {
   if (itr == end())
     return;
 
+  // TODO: Remove the redirects instead...
+  if (itr->second.m_flags & flag_has_redirects)
+    throw torrent::input_error("Can't erase a command that has redirects.");
+
   if (!(itr->second.m_flags & flag_dont_delete))
     delete itr->second.m_variable;
 
@@ -111,6 +115,37 @@ CommandMap::erase(iterator itr) {
 
   base_type::erase(itr);
   delete [] key;
+}
+
+void
+CommandMap::create_redirect(key_type key_new, key_type key_dest, int flags) {
+  iterator new_itr  = base_type::find(key_new);
+  iterator dest_itr = base_type::find(key_dest);
+
+  if (dest_itr == base_type::end())
+    throw torrent::input_error("Tried to redirect to a key that doesn't exist: '" + std::string(key_dest) + "'.");
+  
+  if (new_itr != base_type::end())
+    throw torrent::input_error("Tried to create a redirect key that already exists: '" + std::string(key_new) + "'.");
+  
+  if (dest_itr->second.m_flags & flag_is_redirect)
+    throw torrent::input_error("Tried to redirect to a key that is not marked 'flag_is_redirect': '" +
+                               std::string(key_dest) + "'.");
+
+  dest_itr->second.m_flags |= flag_has_redirects;
+
+  flags |= flag_dont_delete;
+  flags |= dest_itr->second.m_flags & ~(flag_delete_key | flag_has_redirects);
+
+  iterator itr = base_type::insert(base_type::end(),
+                                   value_type(key_new, command_map_data_type(dest_itr->second.m_variable,
+                                                                             flags,
+                                                                             dest_itr->second.m_parm,
+                                                                             dest_itr->second.m_doc)));
+
+  // We can assume all the slots are the same size.
+  itr->second.m_target      = dest_itr->second.m_target;
+  itr->second.m_genericSlot = dest_itr->second.m_genericSlot;
 }
 
 const CommandMap::mapped_type

@@ -114,15 +114,6 @@ system_method_insert(const torrent::Object::list_type& args) {
 
     rpc::commands.insert_type(create_new_key<0>(rawKey, ""), command, slot, flags, NULL, NULL);
 
-  } else if (options.find("redirect") != std::string::npos) {
-    if (++itrArgs == args.end())
-      throw torrent::input_error("Invalid argument count.");
-
-    rpc::Command::any_slot slot = &rpc::CommandFunction::call_redirect;
-    rpc::Command* command = new rpc::CommandFunction(itrArgs->as_string());
-
-    rpc::commands.insert_type(create_new_key<0>(rawKey, ""), command, slot, flags, NULL, NULL);
-
   } else if (options.find("value") != std::string::npos ||
              options.find("bool") != std::string::npos ||
              options.find("string") != std::string::npos ||
@@ -186,6 +177,20 @@ system_method_erase(const torrent::Object::string_type& args) {
     throw torrent::input_error("Command not modifiable.");
 
   rpc::commands.erase(itr);
+
+  return torrent::Object();
+}
+
+torrent::Object
+system_method_redirect(const torrent::Object::list_type& args) {
+  if (args.size() != 2)
+    throw torrent::input_error("Invalid argument count.");
+
+  std::string new_key  = torrent::object_create_string(args.front());
+  std::string dest_key = torrent::object_create_string(args.back());
+
+  rpc::commands.create_redirect(new_key.c_str(), dest_key.c_str(),
+                                rpc::CommandMap::flag_public_xmlrpc | rpc::CommandMap::flag_delete_key);
 
   return torrent::Object();
 }
@@ -278,6 +283,7 @@ void
 initialize_command_dynamic() {
   CMD2_ANY_LIST    ("method.insert",    std::tr1::bind(&system_method_insert, std::tr1::placeholders::_2));
   CMD2_ANY_STRING  ("method.erase",     std::tr1::bind(&system_method_erase, std::tr1::placeholders::_2));
+  CMD2_ANY_LIST    ("method.redirect",  std::tr1::bind(&system_method_redirect, std::tr1::placeholders::_2));
   CMD2_ANY_STRING  ("method.get",       std::tr1::bind(&system_method_get, std::tr1::placeholders::_2));
   CMD2_ANY_LIST    ("method.set",       std::tr1::bind(&system_method_set, std::tr1::placeholders::_2));
   CMD2_ANY_LIST    ("method.set_key",   std::tr1::bind(&system_method_set_key, std::tr1::placeholders::_2));
