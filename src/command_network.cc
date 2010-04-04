@@ -414,9 +414,9 @@ initialize_command_network() {
   CMD2_ANY_STRING  ("encoding_list",    std::tr1::bind(&apply_encoding_list, std::tr1::placeholders::_2));
 
   // Isn't port_open used?
-  CMD2_VAR_BOOL("port_open", true);
-  CMD2_VAR_BOOL("port_random", true);
-  CMD2_VAR_STRING("port_range", "6881-6999");
+  CMD2_VAR_BOOL  ("network.port_open", true);
+  CMD2_VAR_BOOL  ("network.port_random", true);
+  CMD2_VAR_STRING("network.port_range", "6881-6999");
 
   CMD2_VAR_STRING("connection_leech", "leech");
   CMD2_VAR_STRING("connection_seed", "seed");

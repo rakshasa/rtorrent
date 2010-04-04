@@ -257,11 +257,11 @@ void
 Manager::listen_open() {
   // This stuff really should be moved outside of manager, make it
   // part of the init script.
-  if (!rpc::call_command_value("port_open"))
+  if (!rpc::call_command_value("network.port_open"))
     return;
 
   int portFirst, portLast;
-  torrent::Object portRange = rpc::call_command_void("port_range");
+  torrent::Object portRange = rpc::call_command_void("network.port_range");
 
   if (portRange.is_string()) {
     if (std::sscanf(portRange.as_string().c_str(), "%i-%i", &portFirst, &portLast) != 2)
@@ -276,7 +276,7 @@ Manager::listen_open() {
   if (portFirst > portLast || portLast >= (1 << 16))
     throw torrent::input_error("Invalid port range.");
 
-  if (rpc::call_command_value("port_random")) {
+  if (rpc::call_command_value("network.port_random")) {
     int boundary = portFirst + random() % (portLast - portFirst + 1);
 
     if (torrent::connection_manager()->listen_open(boundary, portLast) ||

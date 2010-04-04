@@ -315,9 +315,6 @@ initialize_command_events() {
 
   CMD2_VAR_BOOL    ("check_hash", true); // Rename
 
-  CMD2_VAR_BOOL    ("system.session.use_lock", true);
-  CMD2_VAR_BOOL    ("system.session.on_completion", true);
-
   CMD2_ANY_STRING  ("on_ratio",        std::tr1::bind(&apply_on_ratio, std::tr1::placeholders::_2));
 
   CMD2_ANY         ("start_tied",      std::tr1::bind(&apply_start_tied));

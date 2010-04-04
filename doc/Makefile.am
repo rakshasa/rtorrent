@@ -1,4 +1,4 @@
-man_MANS = rtorrent.1
+#man_MANS = rtorrent.1
 
 EXTRA_DIST= \
 	faq.xml \

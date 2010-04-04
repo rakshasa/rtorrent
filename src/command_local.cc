@@ -178,13 +178,15 @@ initialize_command_local() {
   CMD2_ANY         ("system.hostname", std::tr1::bind(&system_hostname));
   CMD2_ANY         ("system.pid",      std::tr1::bind(&getpid));
 
-  CMD2_VAR_C_STRING("system.client_version",    PACKAGE_VERSION);
-  CMD2_VAR_C_STRING("system.library_version",   torrent::version());
-  CMD2_VAR_VALUE   ("system.file.allocate",     (int64_t)0);
-  CMD2_VAR_VALUE   ("system.file.max_size",     -1);
-  CMD2_VAR_VALUE   ("system.file.split_size",   -1);
-  CMD2_VAR_STRING  ("system.file.split_suffix", ".part");
-  CMD2_VAR_STRING  ("system.session_name",      "");
+  CMD2_VAR_C_STRING("system.client_version",        PACKAGE_VERSION);
+  CMD2_VAR_C_STRING("system.library_version",       torrent::version());
+  CMD2_VAR_VALUE   ("system.file.allocate",         (int64_t)0);
+  CMD2_VAR_VALUE   ("system.file.max_size",         -1);
+  CMD2_VAR_VALUE   ("system.file.split_size",       -1);
+  CMD2_VAR_STRING  ("system.file.split_suffix",     ".part");
+  CMD2_VAR_STRING  ("system.session_name",          "");
+  CMD2_VAR_BOOL    ("system.session.use_lock",      true);
+  CMD2_VAR_BOOL    ("system.session.on_completion", true);
 
   CMD2_ANY         ("system.file_status_cache.size",   std::tr1::bind(&utils::FileStatusCache::size,
                                                                       (utils::FileStatusCache::base_type*)control->core()->file_status_cache()));
