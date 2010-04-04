@@ -327,9 +327,9 @@ main(int argc, char** argv) {
 #define CMD2_REDIRECT_GENERIC(from_key, to_key) \
   rpc::commands.create_redirect(from_key, to_key, rpc::CommandMap::flag_public_xmlrpc | rpc::CommandMap::flag_no_target);
 
-      CMD2_REDIRECT        ("system.method.insert", "method.insert");
-      CMD2_REDIRECT        ("system.method.set", "method.set");
-      CMD2_REDIRECT        ("system.method.set_key", "method.set_key");
+      CMD2_REDIRECT_GENERIC("system.method.insert", "method.insert");
+      CMD2_REDIRECT_GENERIC("system.method.set", "method.set");
+      CMD2_REDIRECT_GENERIC("system.method.set_key", "method.set_key");
 
       CMD2_REDIRECT        ("get_handshake_log", "log.handshake");
       CMD2_REDIRECT        ("set_handshake_log", "log.handshake.set");

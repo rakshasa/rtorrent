@@ -303,7 +303,7 @@ xmlrpc_to_object(xmlrpc_env* env, xmlrpc_value* value, int callType, rpc::target
     if (env->fault_occurred)
       throw xmlrpc_error(env);
 
-    if (callType != XmlRpc::call_generic) {
+    if (callType != XmlRpc::call_generic && last != 0) {
       if (last < 1)
         throw xmlrpc_error(XMLRPC_TYPE_ERROR, "Too few arguments.");
 
@@ -326,7 +326,7 @@ xmlrpc_to_object(xmlrpc_env* env, xmlrpc_value* value, int callType, rpc::target
         // parameter as the index to support old-style calls.
 
         if (current == last)
-          throw xmlrpc_error(XMLRPC_TYPE_ERROR, "Too few arguments.");
+          throw xmlrpc_error(XMLRPC_TYPE_ERROR, "Too few arguments, missing index.");
 
         *target = xmlrpc_to_index_type(xmlrpc_list_entry_to_value(env, value, current++), callType, (core::Download*)target->second);
       }
