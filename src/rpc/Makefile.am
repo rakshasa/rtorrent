@@ -2,6 +2,7 @@ noinst_LIBRARIES = libsub_rpc.a
 
 libsub_rpc_a_SOURCES = \
 	command.h \
+	command_impl.h \
 	command_function.cc \
 	command_function.h \
 	command_map.cc \

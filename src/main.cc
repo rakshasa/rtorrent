@@ -321,252 +321,258 @@ main(int argc, char** argv) {
       // * command_tracker.cc
       // * command_ui.cc
 
-      rpc::commands.create_redirect("system.method.insert", "method.insert", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("system.method.set", "method.set", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("system.method.set_key", "method.set_key", rpc::CommandMap::flag_public_xmlrpc);
+#define CMD2_REDIRECT(from_key, to_key) \
+  rpc::commands.create_redirect(from_key, to_key, rpc::CommandMap::flag_public_xmlrpc);
 
-      rpc::commands.create_redirect("get_handshake_log", "log.handshake", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("set_handshake_log", "log.handshake.set", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("get_log.tracker", "log.tracker", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("set_log.tracker", "log.tracker.set", rpc::CommandMap::flag_public_xmlrpc);
+#define CMD2_REDIRECT_GENERIC(from_key, to_key) \
+  rpc::commands.create_redirect(from_key, to_key, rpc::CommandMap::flag_public_xmlrpc | rpc::CommandMap::flag_no_target);
 
-      rpc::commands.create_redirect("get_name", "system.session_name", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("set_name", "system.session_name.set", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("system.file_allocate", "system.file.allocate", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("system.file_allocate.set", "system.file.allocate.set", rpc::CommandMap::flag_public_xmlrpc);
+      CMD2_REDIRECT        ("system.method.insert", "method.insert");
+      CMD2_REDIRECT        ("system.method.set", "method.set");
+      CMD2_REDIRECT        ("system.method.set_key", "method.set_key");
 
-      rpc::commands.create_redirect("get_preload_type", "pieces.preload.type", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("get_preload_min_size", "pieces.preload.min_size", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("get_preload_required_rate", "pieces.preload.min_rate", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("set_preload_type", "pieces.preload.type.set", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("set_preload_min_size", "pieces.preload.min_size.set", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("set_preload_required_rate", "pieces.preload.min_rate.set", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("get_stats_preloaded", "pieces.stats_preloaded", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("get_stats_not_preloaded", "pieces.stats_not_preloaded", rpc::CommandMap::flag_public_xmlrpc);
+      CMD2_REDIRECT        ("get_handshake_log", "log.handshake");
+      CMD2_REDIRECT        ("set_handshake_log", "log.handshake.set");
+      CMD2_REDIRECT        ("get_log.tracker", "log.tracker");
+      CMD2_REDIRECT        ("set_log.tracker", "log.tracker.set");
 
-      rpc::commands.create_redirect("get_memory_usage", "pieces.memory.current", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("get_max_memory_usage", "pieces.memory.max", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("set_max_memory_usage", "pieces.memory.max.set", rpc::CommandMap::flag_public_xmlrpc);
+      CMD2_REDIRECT        ("get_name", "system.session_name");
+      CMD2_REDIRECT        ("set_name", "system.session_name.set");
+      CMD2_REDIRECT        ("system.file_allocate", "system.file.allocate");
+      CMD2_REDIRECT        ("system.file_allocate.set", "system.file.allocate.set");
 
-      rpc::commands.create_redirect("get_send_buffer_size", "network.send_buffer.size", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("set_send_buffer_size", "network.send_buffer.size.set", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("get_receive_buffer_size", "network.receive_buffer.size", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("set_receive_buffer_size", "network.receive_buffer.size.set", rpc::CommandMap::flag_public_xmlrpc);
+      CMD2_REDIRECT        ("get_preload_type", "pieces.preload.type");
+      CMD2_REDIRECT        ("get_preload_min_size", "pieces.preload.min_size");
+      CMD2_REDIRECT        ("get_preload_required_rate", "pieces.preload.min_rate");
+      CMD2_REDIRECT        ("set_preload_type", "pieces.preload.type.set");
+      CMD2_REDIRECT        ("set_preload_min_size", "pieces.preload.min_size.set");
+      CMD2_REDIRECT        ("set_preload_required_rate", "pieces.preload.min_rate.set");
+      CMD2_REDIRECT        ("get_stats_preloaded", "pieces.stats_preloaded");
+      CMD2_REDIRECT        ("get_stats_not_preloaded", "pieces.stats_not_preloaded");
 
-      rpc::commands.create_redirect("get_up_rate", "throttle.global_up.rate", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("get_up_total", "throttle.global_up.total", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("get_upload_rate", "throttle.global_up.max_rate", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("set_upload_rate", "throttle.global_up.max_rate.set", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("get_down_rate", "throttle.global_down.rate", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("get_down_total", "throttle.global_down.total", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("get_download_rate", "throttle.global_down.max_rate", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("set_download_rate", "throttle.global_down.max_rate.set", rpc::CommandMap::flag_public_xmlrpc);
+      CMD2_REDIRECT        ("get_memory_usage", "pieces.memory.current");
+      CMD2_REDIRECT        ("get_max_memory_usage", "pieces.memory.max");
+      CMD2_REDIRECT        ("set_max_memory_usage", "pieces.memory.max.set");
 
-      rpc::commands.create_redirect("bind", "network.bind_address.set", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("set_bind", "network.bind_address.set", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("get_bind", "network.bind_address", rpc::CommandMap::flag_public_xmlrpc);
+      CMD2_REDIRECT        ("get_send_buffer_size", "network.send_buffer.size");
+      CMD2_REDIRECT        ("set_send_buffer_size", "network.send_buffer.size.set");
+      CMD2_REDIRECT        ("get_receive_buffer_size", "network.receive_buffer.size");
+      CMD2_REDIRECT        ("set_receive_buffer_size", "network.receive_buffer.size.set");
 
-      rpc::commands.create_redirect("ip", "network.local_address.set", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("set_ip", "network.local_address.set", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("get_ip", "network.local_address", rpc::CommandMap::flag_public_xmlrpc);
+      CMD2_REDIRECT        ("get_up_rate", "throttle.global_up.rate");
+      CMD2_REDIRECT        ("get_up_total", "throttle.global_up.total");
+      CMD2_REDIRECT        ("get_upload_rate", "throttle.global_up.max_rate");
+      CMD2_REDIRECT        ("set_upload_rate", "throttle.global_up.max_rate.set");
+      CMD2_REDIRECT        ("get_down_rate", "throttle.global_down.rate");
+      CMD2_REDIRECT        ("get_down_total", "throttle.global_down.total");
+      CMD2_REDIRECT        ("get_download_rate", "throttle.global_down.max_rate");
+      CMD2_REDIRECT        ("set_download_rate", "throttle.global_down.max_rate.set");
 
-      rpc::commands.create_redirect("proxy_address", "network.proxy_address.set", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("set_proxy_address", "network.proxy_address.set", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("get_proxy_address", "network.proxy_address", rpc::CommandMap::flag_public_xmlrpc);
+      CMD2_REDIRECT        ("bind", "network.bind_address.set");
+      CMD2_REDIRECT        ("set_bind", "network.bind_address.set");
+      CMD2_REDIRECT        ("get_bind", "network.bind_address");
 
-      rpc::commands.create_redirect("scgi_port", "network.scgi.open_port", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("scgi_local", "network.scgi.open_local", rpc::CommandMap::flag_public_xmlrpc);
+      CMD2_REDIRECT        ("ip", "network.local_address.set");
+      CMD2_REDIRECT        ("set_ip", "network.local_address.set");
+      CMD2_REDIRECT        ("get_ip", "network.local_address");
 
-      rpc::commands.create_redirect("scgi_dont_route", "network.scgi.dont_route.set", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("set_scgi_dont_route", "network.scgi.dont_route.set", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("get_scgi_dont_route", "network.scgi.dont_route", rpc::CommandMap::flag_public_xmlrpc);
+      CMD2_REDIRECT        ("proxy_address", "network.proxy_address.set");
+      CMD2_REDIRECT        ("set_proxy_address", "network.proxy_address.set");
+      CMD2_REDIRECT        ("get_proxy_address", "network.proxy_address");
 
-      rpc::commands.create_redirect("xmlrpc_dialect", "network.xmlrpc.size_limit.set", rpc::CommandMap::flag_public_xmlrpc);
+      CMD2_REDIRECT        ("scgi_port", "network.scgi.open_port");
+      CMD2_REDIRECT        ("scgi_local", "network.scgi.open_local");
 
-      rpc::commands.create_redirect("get_connection_leech", "connection_leech", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("set_connection_leech", "connection_leech.set", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("get_connection_seed", "connection_seed", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("set_connection_seed", "connection_seed.set", rpc::CommandMap::flag_public_xmlrpc);
+      CMD2_REDIRECT        ("scgi_dont_route", "network.scgi.dont_route.set");
+      CMD2_REDIRECT        ("set_scgi_dont_route", "network.scgi.dont_route.set");
+      CMD2_REDIRECT        ("get_scgi_dont_route", "network.scgi.dont_route");
 
-      rpc::commands.create_redirect("dht", "dht.mode.set", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("dht_add_node", "dht.add_node", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("dht_statistics", "dht.statistics", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("get_dht_port", "dht.port", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("set_dht_port", "dht.port", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("get_dht_throttle", "dht.throttle.name", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("set_dht_throttle", "dht.throttle.name.set", rpc::CommandMap::flag_public_xmlrpc);
+      CMD2_REDIRECT        ("xmlrpc_dialect", "network.xmlrpc.size_limit.set");
 
-      rpc::commands.create_redirect("directory", "directory.default.set", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("get_directory", "directory.default", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("set_directory", "directory.default.set", rpc::CommandMap::flag_public_xmlrpc);
+      CMD2_REDIRECT        ("get_connection_leech", "connection_leech");
+      CMD2_REDIRECT        ("set_connection_leech", "connection_leech.set");
+      CMD2_REDIRECT        ("get_connection_seed", "connection_seed");
+      CMD2_REDIRECT        ("set_connection_seed", "connection_seed.set");
+
+      CMD2_REDIRECT        ("dht", "dht.mode.set");
+      CMD2_REDIRECT        ("dht_add_node", "dht.add_node");
+      CMD2_REDIRECT        ("dht_statistics", "dht.statistics");
+      CMD2_REDIRECT        ("get_dht_port", "dht.port");
+      CMD2_REDIRECT        ("set_dht_port", "dht.port");
+      CMD2_REDIRECT        ("get_dht_throttle", "dht.throttle.name");
+      CMD2_REDIRECT        ("set_dht_throttle", "dht.throttle.name.set");
+
+      CMD2_REDIRECT        ("directory", "directory.default.set");
+      CMD2_REDIRECT        ("get_directory", "directory.default");
+      CMD2_REDIRECT        ("set_directory", "directory.default.set");
 
       //
       // Download:
       //
 
-      rpc::commands.create_redirect("d.get_hash", "d.hash", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.get_local_id", "d.local_id", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.get_local_id_html", "d.local_id_html", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.get_bitfield", "d.bitfield", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.get_base_path", "d.base_path", rpc::CommandMap::flag_public_xmlrpc);
+      CMD2_REDIRECT        ("d.get_hash", "d.hash");
+      CMD2_REDIRECT        ("d.get_local_id", "d.local_id");
+      CMD2_REDIRECT        ("d.get_local_id_html", "d.local_id_html");
+      CMD2_REDIRECT        ("d.get_bitfield", "d.bitfield");
+      CMD2_REDIRECT        ("d.get_base_path", "d.base_path");
 
-      rpc::commands.create_redirect("d.get_name", "d.name", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.get_creation_date", "d.creation_date", rpc::CommandMap::flag_public_xmlrpc);
+      CMD2_REDIRECT        ("d.get_name", "d.name");
+      CMD2_REDIRECT        ("d.get_creation_date", "d.creation_date");
 
-      rpc::commands.create_redirect("d.get_peer_exchange", "d.peer_exchange", rpc::CommandMap::flag_public_xmlrpc);
+      CMD2_REDIRECT        ("d.get_peer_exchange", "d.peer_exchange");
 
-      rpc::commands.create_redirect("d.get_up_rate", "d.up.rate", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.get_up_total", "d.up.total", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.get_down_rate", "d.down.rate", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.get_down_total", "d.down.total", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.get_skip_rate", "d.skip.rate", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.get_skip_total", "d.skip.total", rpc::CommandMap::flag_public_xmlrpc);
-
-      //
-      rpc::commands.create_redirect("d.get_bytes_done", "d.bytes_done", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.get_chunk_size", "d.chunk_size", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.get_chunks_hashed", "d.chunks_hashed", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.get_complete", "d.complete", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.get_completed_bytes", "d.completed_bytes", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.get_completed_chunks", "d.completed_chunks", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.get_connection_current", "d.connection_current", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.get_connection_leech", "d.connection_leech", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.get_connection_seed", "d.connection_seed", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.get_custom", "d.custom", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.get_custom1", "d.custom1", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.get_custom2", "d.custom2", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.get_custom3", "d.custom3", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.get_custom4", "d.custom4", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.get_custom5", "d.custom5", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.get_custom_throw", "d.custom_throw", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.get_directory", "d.directory", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.get_directory_base", "d.directory_base", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.get_free_diskspace", "d.free_diskspace", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.get_hashing", "d.hashing", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.get_hashing_failed", "d.hashing_failed", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.get_ignore_commands", "d.ignore_commands", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.get_left_bytes", "d.left_bytes", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.get_loaded_file", "d.loaded_file", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.get_max_file_size", "d.max_file_size", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.get_max_size_pex", "d.max_size_pex", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.get_message", "d.message", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.get_mode", "d.mode", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.get_peers_accounted", "d.peers_accounted", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.get_peers_complete", "d.peers_complete", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.get_peers_connected", "d.peers_connected", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.get_peers_max", "d.peers_max", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.get_peers_min", "d.peers_min", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.get_peers_not_connected", "d.peers_not_connected", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.get_priority", "d.priority", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.get_priority_str", "d.priority_str", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.get_ratio", "d.ratio", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.get_size_bytes", "d.size_bytes", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.get_size_chunks", "d.size_chunks", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.get_size_files", "d.size_files", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.get_size_pex", "d.size_pex", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.get_state", "d.state", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.get_state_changed", "d.state_changed", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.get_state_counter", "d.state_counter", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.get_throttle_name", "d.throttle_name", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.get_tied_to_file", "d.tied_to_file", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.get_tracker_focus", "d.tracker_focus", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.get_tracker_numwant", "d.tracker_numwant", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.get_tracker_size", "d.tracker_size", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.get_uploads_max", "d.uploads_max", rpc::CommandMap::flag_public_xmlrpc);
-
-      rpc::commands.create_redirect("d.set_connection_current", "d.connection_current.set", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.set_custom", "d.custom.set", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.set_custom1", "d.custom1.set", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.set_custom2", "d.custom2.set", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.set_custom3", "d.custom3.set", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.set_custom4", "d.custom4.set", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.set_custom5", "d.custom5.set", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.set_directory", "d.directory.set", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.set_directory_base", "d.directory_base.set", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.set_hashing_failed", "d.hashing_failed.set", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.set_ignore_commands", "d.ignore_commands.set", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.set_max_file_size", "d.max_file_size.set", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.set_message", "d.message.set", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.set_peers_max", "d.peers_max.set", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.set_peers_min", "d.peers_min.set", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.set_priority", "d.priority.set", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.set_throttle_name", "d.throttle_name.set", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.set_tied_to_file", "d.tied_to_file.set", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.set_tracker_numwant", "d.tracker_numwant.set", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("d.set_uploads_max", "d.uploads_max.set", rpc::CommandMap::flag_public_xmlrpc);
+      CMD2_REDIRECT        ("d.get_up_rate", "d.up.rate");
+      CMD2_REDIRECT        ("d.get_up_total", "d.up.total");
+      CMD2_REDIRECT        ("d.get_down_rate", "d.down.rate");
+      CMD2_REDIRECT        ("d.get_down_total", "d.down.total");
+      CMD2_REDIRECT        ("d.get_skip_rate", "d.skip.rate");
+      CMD2_REDIRECT        ("d.get_skip_total", "d.skip.total");
 
       //
-      // Tracker:
-      //
+      CMD2_REDIRECT        ("d.get_bytes_done", "d.bytes_done");
+      CMD2_REDIRECT        ("d.get_chunk_size", "d.chunk_size");
+      CMD2_REDIRECT        ("d.get_chunks_hashed", "d.chunks_hashed");
+      CMD2_REDIRECT        ("d.get_complete", "d.complete");
+      CMD2_REDIRECT        ("d.get_completed_bytes", "d.completed_bytes");
+      CMD2_REDIRECT        ("d.get_completed_chunks", "d.completed_chunks");
+      CMD2_REDIRECT        ("d.get_connection_current", "d.connection_current");
+      CMD2_REDIRECT        ("d.get_connection_leech", "d.connection_leech");
+      CMD2_REDIRECT        ("d.get_connection_seed", "d.connection_seed");
+      CMD2_REDIRECT        ("d.get_custom", "d.custom");
+      CMD2_REDIRECT        ("d.get_custom1", "d.custom1");
+      CMD2_REDIRECT        ("d.get_custom2", "d.custom2");
+      CMD2_REDIRECT        ("d.get_custom3", "d.custom3");
+      CMD2_REDIRECT        ("d.get_custom4", "d.custom4");
+      CMD2_REDIRECT        ("d.get_custom5", "d.custom5");
+      CMD2_REDIRECT        ("d.get_custom_throw", "d.custom_throw");
+      CMD2_REDIRECT        ("d.get_directory", "d.directory");
+      CMD2_REDIRECT        ("d.get_directory_base", "d.directory_base");
+      CMD2_REDIRECT        ("d.get_free_diskspace", "d.free_diskspace");
+      CMD2_REDIRECT        ("d.get_hashing", "d.hashing");
+      CMD2_REDIRECT        ("d.get_hashing_failed", "d.hashing_failed");
+      CMD2_REDIRECT        ("d.get_ignore_commands", "d.ignore_commands");
+      CMD2_REDIRECT        ("d.get_left_bytes", "d.left_bytes");
+      CMD2_REDIRECT        ("d.get_loaded_file", "d.loaded_file");
+      CMD2_REDIRECT        ("d.get_max_file_size", "d.max_file_size");
+      CMD2_REDIRECT        ("d.get_max_size_pex", "d.max_size_pex");
+      CMD2_REDIRECT        ("d.get_message", "d.message");
+      CMD2_REDIRECT        ("d.get_mode", "d.mode");
+      CMD2_REDIRECT        ("d.get_peers_accounted", "d.peers_accounted");
+      CMD2_REDIRECT        ("d.get_peers_complete", "d.peers_complete");
+      CMD2_REDIRECT        ("d.get_peers_connected", "d.peers_connected");
+      CMD2_REDIRECT        ("d.get_peers_max", "d.peers_max");
+      CMD2_REDIRECT        ("d.get_peers_min", "d.peers_min");
+      CMD2_REDIRECT        ("d.get_peers_not_connected", "d.peers_not_connected");
+      CMD2_REDIRECT        ("d.get_priority", "d.priority");
+      CMD2_REDIRECT        ("d.get_priority_str", "d.priority_str");
+      CMD2_REDIRECT        ("d.get_ratio", "d.ratio");
+      CMD2_REDIRECT        ("d.get_size_bytes", "d.size_bytes");
+      CMD2_REDIRECT        ("d.get_size_chunks", "d.size_chunks");
+      CMD2_REDIRECT        ("d.get_size_files", "d.size_files");
+      CMD2_REDIRECT        ("d.get_size_pex", "d.size_pex");
+      CMD2_REDIRECT        ("d.get_state", "d.state");
+      CMD2_REDIRECT        ("d.get_state_changed", "d.state_changed");
+      CMD2_REDIRECT        ("d.get_state_counter", "d.state_counter");
+      CMD2_REDIRECT        ("d.get_throttle_name", "d.throttle_name");
+      CMD2_REDIRECT        ("d.get_tied_to_file", "d.tied_to_file");
+      CMD2_REDIRECT        ("d.get_tracker_focus", "d.tracker_focus");
+      CMD2_REDIRECT        ("d.get_tracker_numwant", "d.tracker_numwant");
+      CMD2_REDIRECT        ("d.get_tracker_size", "d.tracker_size");
+      CMD2_REDIRECT        ("d.get_uploads_max", "d.uploads_max");
 
-      rpc::commands.create_redirect("t.get_group", "t.group", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("t.get_id", "t.id", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("t.get_min_interval", "t.min_interval", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("t.get_normal_interval", "t.normal_interval", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("t.get_scrape_complete", "t.scrape_complete", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("t.get_scrape_downloaded", "t.scrape_downloaded", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("t.get_scrape_incomplete", "t.scrape_incomplete", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("t.get_scrape_time_last", "t.scrape_time_last", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("t.get_type", "t.type", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("t.get_url", "t.url", rpc::CommandMap::flag_public_xmlrpc);
+      CMD2_REDIRECT        ("d.set_connection_current", "d.connection_current.set");
+      CMD2_REDIRECT        ("d.set_custom", "d.custom.set");
+      CMD2_REDIRECT        ("d.set_custom1", "d.custom1.set");
+      CMD2_REDIRECT        ("d.set_custom2", "d.custom2.set");
+      CMD2_REDIRECT        ("d.set_custom3", "d.custom3.set");
+      CMD2_REDIRECT        ("d.set_custom4", "d.custom4.set");
+      CMD2_REDIRECT        ("d.set_custom5", "d.custom5.set");
+      CMD2_REDIRECT        ("d.set_directory", "d.directory.set");
+      CMD2_REDIRECT        ("d.set_directory_base", "d.directory_base.set");
+      CMD2_REDIRECT        ("d.set_hashing_failed", "d.hashing_failed.set");
+      CMD2_REDIRECT        ("d.set_ignore_commands", "d.ignore_commands.set");
+      CMD2_REDIRECT        ("d.set_max_file_size", "d.max_file_size.set");
+      CMD2_REDIRECT        ("d.set_message", "d.message.set");
+      CMD2_REDIRECT        ("d.set_peers_max", "d.peers_max.set");
+      CMD2_REDIRECT        ("d.set_peers_min", "d.peers_min.set");
+      CMD2_REDIRECT        ("d.set_priority", "d.priority.set");
+      CMD2_REDIRECT        ("d.set_throttle_name", "d.throttle_name.set");
+      CMD2_REDIRECT        ("d.set_tied_to_file", "d.tied_to_file.set");
+      CMD2_REDIRECT        ("d.set_tracker_numwant", "d.tracker_numwant.set");
+      CMD2_REDIRECT        ("d.set_uploads_max", "d.uploads_max.set");
 
       //
       // Tracker:
       //
 
-      rpc::commands.create_redirect("f.get_completed_chunks", "f.completed_chunks", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("f.get_frozen_path", "f.frozen_path", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("f.get_last_touched", "f.last_touched", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("f.get_match_depth_next", "f.match_depth_next", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("f.get_match_depth_prev", "f.match_depth_prev", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("f.get_offset", "f.offset", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("f.get_path", "f.path", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("f.get_path_components", "f.path_components", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("f.get_path_depth", "f.path_depth", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("f.get_priority", "f.priority", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("f.get_range_first", "f.range_first", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("f.get_range_second", "f.range_second", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("f.get_size_bytes", "f.size_bytes", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("f.get_size_chunks", "f.size_chunks", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("f.set_priority", "f.priority.set", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("fi.get_filename_last", "fi.filename_last", rpc::CommandMap::flag_public_xmlrpc);
+      CMD2_REDIRECT        ("t.get_group", "t.group");
+      CMD2_REDIRECT        ("t.get_id", "t.id");
+      CMD2_REDIRECT        ("t.get_min_interval", "t.min_interval");
+      CMD2_REDIRECT        ("t.get_normal_interval", "t.normal_interval");
+      CMD2_REDIRECT        ("t.get_scrape_complete", "t.scrape_complete");
+      CMD2_REDIRECT        ("t.get_scrape_downloaded", "t.scrape_downloaded");
+      CMD2_REDIRECT        ("t.get_scrape_incomplete", "t.scrape_incomplete");
+      CMD2_REDIRECT        ("t.get_scrape_time_last", "t.scrape_time_last");
+      CMD2_REDIRECT        ("t.get_type", "t.type");
+      CMD2_REDIRECT        ("t.get_url", "t.url");
+
+      //
+      // Tracker:
+      //
+
+      CMD2_REDIRECT        ("f.get_completed_chunks", "f.completed_chunks");
+      CMD2_REDIRECT        ("f.get_frozen_path", "f.frozen_path");
+      CMD2_REDIRECT        ("f.get_last_touched", "f.last_touched");
+      CMD2_REDIRECT        ("f.get_match_depth_next", "f.match_depth_next");
+      CMD2_REDIRECT        ("f.get_match_depth_prev", "f.match_depth_prev");
+      CMD2_REDIRECT        ("f.get_offset", "f.offset");
+      CMD2_REDIRECT        ("f.get_path", "f.path");
+      CMD2_REDIRECT        ("f.get_path_components", "f.path_components");
+      CMD2_REDIRECT        ("f.get_path_depth", "f.path_depth");
+      CMD2_REDIRECT        ("f.get_priority", "f.priority");
+      CMD2_REDIRECT        ("f.get_range_first", "f.range_first");
+      CMD2_REDIRECT        ("f.get_range_second", "f.range_second");
+      CMD2_REDIRECT        ("f.get_size_bytes", "f.size_bytes");
+      CMD2_REDIRECT        ("f.get_size_chunks", "f.size_chunks");
+      CMD2_REDIRECT        ("f.set_priority", "f.priority.set");
+      CMD2_REDIRECT        ("fi.get_filename_last", "fi.filename_last");
 
       //
       // Peer:
       //
 
-      rpc::commands.create_redirect("p.get_address", "p.address", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("p.get_client_version", "p.client_version", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("p.get_completed_percent", "p.completed_percent", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("p.get_down_rate", "p.down_rate", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("p.get_down_total", "p.down_total", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("p.get_id", "p.id", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("p.get_id_html", "p.id_html", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("p.get_options_str", "p.options_str", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("p.get_peer_rate", "p.peer_rate", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("p.get_peer_total", "p.peer_total", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("p.get_port", "p.port", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("p.get_up_rate", "p.up_rate", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("p.get_up_total", "p.up_total", rpc::CommandMap::flag_public_xmlrpc);
+      CMD2_REDIRECT        ("p.get_address", "p.address");
+      CMD2_REDIRECT        ("p.get_client_version", "p.client_version");
+      CMD2_REDIRECT        ("p.get_completed_percent", "p.completed_percent");
+      CMD2_REDIRECT        ("p.get_down_rate", "p.down_rate");
+      CMD2_REDIRECT        ("p.get_down_total", "p.down_total");
+      CMD2_REDIRECT        ("p.get_id", "p.id");
+      CMD2_REDIRECT        ("p.get_id_html", "p.id_html");
+      CMD2_REDIRECT        ("p.get_options_str", "p.options_str");
+      CMD2_REDIRECT        ("p.get_peer_rate", "p.peer_rate");
+      CMD2_REDIRECT        ("p.get_peer_total", "p.peer_total");
+      CMD2_REDIRECT        ("p.get_port", "p.port");
+      CMD2_REDIRECT        ("p.get_up_rate", "p.up_rate");
+      CMD2_REDIRECT        ("p.get_up_total", "p.up_total");
 
       //
       // View:
       //
 
-      rpc::commands.create_redirect("view_add", "view.add", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("view_filter", "view.filter", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("view_filter_on", "view.filter_on", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("view_list", "view.list", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("view_set", "view.set", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("view_sort", "view.sort", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("view_sort_current", "view.sort_current", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("view_sort_new", "view.sort_new", rpc::CommandMap::flag_public_xmlrpc);
+      CMD2_REDIRECT        ("view_add", "view.add");
+      CMD2_REDIRECT        ("view_filter", "view.filter");
+      CMD2_REDIRECT        ("view_filter_on", "view.filter_on");
+      CMD2_REDIRECT        ("view_list", "view.list");
+      CMD2_REDIRECT        ("view_set", "view.set");
+      CMD2_REDIRECT        ("view_sort", "view.sort");
+      CMD2_REDIRECT        ("view_sort_current", "view.sort_current");
+      CMD2_REDIRECT        ("view_sort_new", "view.sort_new");
 
       // Functions that might not get depracted as they are nice for
       // configuration files, and thus might do with just some
       // cleanup.
-      rpc::commands.create_redirect("upload_rate", "throttle.global_up.max_rate.set", rpc::CommandMap::flag_public_xmlrpc);
-      rpc::commands.create_redirect("download_rate", "throttle.global_down.max_rate.set", rpc::CommandMap::flag_public_xmlrpc);
+      CMD2_REDIRECT        ("upload_rate", "throttle.global_up.max_rate.set");
+      CMD2_REDIRECT        ("download_rate", "throttle.global_down.max_rate.set");
     }
 
     if (OptionParser::has_flag('n', argc, argv))

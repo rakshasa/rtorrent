@@ -9,9 +9,9 @@ CPPUNIT_TEST_SUITE_REGISTRATION(CommandMapTest);
 
 #undef CMD2_A_FUNCTION
 
-#define CMD2_A_FUNCTION(key, function, func_type, slot, parm, doc)      \
-  commandNewSlotItr->set_function<rpc::func_type>(slot);                \
-  m_map.insert_type(key, commandNewSlotItr++, &rpc::function,   \
+#define CMD2_A_FUNCTION(key, function, slot, parm, doc)      \
+  m_commandItr->set_function<rpc::command_base_is_type<rpc::function>::type>(slot); \
+  m_map.insert_type(key, m_commandItr++, &rpc::function,   \
                     rpc::CommandMap::flag_dont_delete | rpc::CommandMap::flag_public_xmlrpc, NULL, NULL);
 
 torrent::Object cmd_test_map_a(rpc::target_type t, const torrent::Object& obj) { return obj; }

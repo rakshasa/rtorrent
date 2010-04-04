@@ -78,24 +78,24 @@ void initialize_commands();
 #define CMD2_ANY_V(key, slot) CMD2_A_FUNCTION(key, command_base_call_list<rpc::target_type>, object_convert_void(slot), "i:", "")
 #define CMD2_ANY_L(key, slot) CMD2_A_FUNCTION(key, command_base_call_list<rpc::target_type>, slot, "A:", "")
 
-#define CMD2_ANY_VALUE(key, slot)   CMD2_A_FUNCTION(key, command_base_call_value<rpc::target_type>, slot, "i:i", "")
-#define CMD2_ANY_VALUE_V(key, slot) CMD2_A_FUNCTION(key, command_base_call_value<rpc::target_type>, object_convert_void(slot), "i:i", "")
+#define CMD2_ANY_VALUE(key, slot)    CMD2_A_FUNCTION(key, command_base_call_value<rpc::target_type>, slot, "i:i", "")
+#define CMD2_ANY_VALUE_V(key, slot)  CMD2_A_FUNCTION(key, command_base_call_value<rpc::target_type>, object_convert_void(slot), "i:i", "")
 
 #define CMD2_ANY_STRING(key, slot)   CMD2_A_FUNCTION(key, command_base_call_string<rpc::target_type>, slot, "i:s", "")
 #define CMD2_ANY_STRING_V(key, slot) CMD2_A_FUNCTION(key, command_base_call_string<rpc::target_type>, object_convert_void(slot), "i:s", "")
 
-#define CMD2_ANY_LIST(key, slot) CMD2_A_FUNCTION(key, command_base_call_list<rpc::target_type>, slot, "i:", "")
+#define CMD2_ANY_LIST(key, slot)     CMD2_A_FUNCTION(key, command_base_call_list<rpc::target_type>, slot, "i:", "")
 
-#define CMD2_DL(key, slot)          CMD2_A_FUNCTION(key, command_base_call<core::Download*>, slot, "i:", "")
-#define CMD2_DL_V(key, slot)        CMD2_A_FUNCTION(key, command_base_call<core::Download*>, object_convert_void(slot), "i:", "")
-#define CMD2_DL_VALUE(key, slot)    CMD2_A_FUNCTION(key, command_base_call_value<core::Download*>, slot, "i:", "")
-#define CMD2_DL_VALUE_V(key, slot)  CMD2_A_FUNCTION(key, command_base_call_value<core::Download*>, object_convert_void(slot), "i:", "")
-#define CMD2_DL_STRING(key, slot)   CMD2_A_FUNCTION(key, command_base_call_string<core::Download*>, slot, "i:", "")
-#define CMD2_DL_STRING_V(key, slot) CMD2_A_FUNCTION(key, command_base_call_string<core::Download*>, object_convert_void(slot), "i:", "")
-#define CMD2_DL_LIST(key, slot)     CMD2_A_FUNCTION(key, command_base_call_list<core::Download*>, slot, "i:", "")
+#define CMD2_DL(key, slot)           CMD2_A_FUNCTION(key, command_base_call<core::Download*>, slot, "i:", "")
+#define CMD2_DL_V(key, slot)         CMD2_A_FUNCTION(key, command_base_call<core::Download*>, object_convert_void(slot), "i:", "")
+#define CMD2_DL_VALUE(key, slot)     CMD2_A_FUNCTION(key, command_base_call_value<core::Download*>, slot, "i:", "")
+#define CMD2_DL_VALUE_V(key, slot)   CMD2_A_FUNCTION(key, command_base_call_value<core::Download*>, object_convert_void(slot), "i:", "")
+#define CMD2_DL_STRING(key, slot)    CMD2_A_FUNCTION(key, command_base_call_string<core::Download*>, slot, "i:", "")
+#define CMD2_DL_STRING_V(key, slot)  CMD2_A_FUNCTION(key, command_base_call_string<core::Download*>, object_convert_void(slot), "i:", "")
+#define CMD2_DL_LIST(key, slot)      CMD2_A_FUNCTION(key, command_base_call_list<core::Download*>, slot, "i:", "")
 
-#define CMD2_DL_VALUE_P(key, slot)  CMD2_A_FUNCTION_PRIVATE(key, command_base_call_value<core::Download*>, slot, "i:", "")
-#define CMD2_DL_STRING_P(key, slot) CMD2_A_FUNCTION_PRIVATE(key, command_base_call_string<core::Download*>, slot, "i:", "")
+#define CMD2_DL_VALUE_P(key, slot)   CMD2_A_FUNCTION_PRIVATE(key, command_base_call_value<core::Download*>, slot, "i:", "")
+#define CMD2_DL_STRING_P(key, slot)  CMD2_A_FUNCTION_PRIVATE(key, command_base_call_string<core::Download*>, slot, "i:", "")
 
 #define CMD2_FILE(key, slot)         CMD2_A_FUNCTION(key, command_base_call<torrent::File*>, slot, "i:", "")
 #define CMD2_FILE_V(key, slot)       CMD2_A_FUNCTION(key, command_base_call<torrent::File*>, object_convert_void(slot), "i:", "")
@@ -103,9 +103,9 @@ void initialize_commands();
 
 #define CMD2_FILEITR(key, slot)         CMD2_A_FUNCTION(key, command_base_call<torrent::FileListIterator*>, slot, "i:", "")
 
-#define CMD2_PEER(key, slot)         CMD2_A_FUNCTION(key, command_base_call<torrent::Peer*>, slot, "i:", "")
-#define CMD2_PEER_V(key, slot)       CMD2_A_FUNCTION(key, command_base_call<torrent::Peer*>, object_convert_void(slot), "i:", "")
-#define CMD2_PEER_VALUE_V(key, slot) CMD2_A_FUNCTION(key, command_base_call_value<torrent::Peer*>, object_convert_void(slot), "i:i", "")
+#define CMD2_PEER(key, slot)            CMD2_A_FUNCTION(key, command_base_call<torrent::Peer*>, slot, "i:", "")
+#define CMD2_PEER_V(key, slot)          CMD2_A_FUNCTION(key, command_base_call<torrent::Peer*>, object_convert_void(slot), "i:", "")
+#define CMD2_PEER_VALUE_V(key, slot)    CMD2_A_FUNCTION(key, command_base_call_value<torrent::Peer*>, object_convert_void(slot), "i:i", "")
 
 #define CMD2_TRACKER(key, slot)         CMD2_A_FUNCTION(key, command_base_call<torrent::Tracker*>, slot, "i:", "")
 #define CMD2_TRACKER_V(key, slot)       CMD2_A_FUNCTION(key, command_base_call<torrent::Tracker*>, object_convert_void(slot), "i:", "")
@@ -123,6 +123,12 @@ void initialize_commands();
 #define CMD2_FUNC_SINGLE(key, cmds)                                  \
   CMD2_ANY(key, std::tr1::bind(&rpc::command_function_call, torrent::raw_string::from_c_str(cmds), \
                                std::tr1::placeholders::_1, std::tr1::placeholders::_2));
+
+#define CMD2_REDIRECT(from_key, to_key) \
+  rpc::commands.create_redirect(from_key, to_key, rpc::CommandMap::flag_public_xmlrpc);
+
+#define CMD2_REDIRECT_GENERIC(from_key, to_key) \
+  rpc::commands.create_redirect(from_key, to_key, rpc::CommandMap::flag_public_xmlrpc | rpc::CommandMap::flag_no_target);
 
 //
 // Conversion of return types:

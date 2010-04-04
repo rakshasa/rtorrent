@@ -60,24 +60,10 @@ struct command_map_data_type {
   command_map_data_type(Command* variable, int flags, const char* parm, const char* doc) :
     m_variable(variable), m_flags(flags), m_parm(parm), m_doc(doc) {}
 
-  int                 target() const { return m_target; }
-
   Command*            m_variable;
-
-  union {
-    Command::cleaned_slot  m_genericSlot;
-    Command::any_slot      m_anySlot;
-    Command::download_slot m_downloadSlot;
-    Command::file_slot     m_fileSlot;
-    Command::file_itr_slot m_fileItrSlot;
-    Command::peer_slot     m_peerSlot;
-    Command::tracker_slot  m_trackerSlot;
-
-    Command::download_pair_slot m_downloadPairSlot;
-  };
+  Command::any_slot   m_anySlot;
 
   int           m_flags;
-  int           m_target;
 
   const char*   m_parm;
   const char*   m_doc;
@@ -118,12 +104,9 @@ public:
   iterator            insert(key_type key, Command* variable, int flags, const char* parm, const char* doc);
 
   // Make this a wrapper call to insert without extra fluff.
-  template <typename T>
-  void                insert_type(key_type key, Command* variable, T targetSlot, int flags, const char* parm, const char* doc) {
+  void                insert_type(key_type key, Command* variable, Command::any_slot targetSlot, int flags, const char* parm, const char* doc) {
     iterator itr = insert(key, variable, flags, parm, doc);
-
-    itr->second.m_target      = target_type_id<T>::value; 
-    itr->second.m_genericSlot = (Command::cleaned_slot)targetSlot;
+    itr->second.m_anySlot = targetSlot;
   }
 
   void                insert(key_type key, const command_map_data_type src);

@@ -119,8 +119,8 @@ system_method_insert(const torrent::Object::list_type& args) {
              options.find("string") != std::string::npos ||
              options.find("list") != std::string::npos) {
     rpc::CommandVariable *command;
-    rpc::Command::cleaned_slot getSlot;
-    rpc::Command::cleaned_slot setSlot;
+    rpc::Command::any_slot getSlot;
+    rpc::Command::any_slot setSlot;
 
     if (options.find("value") != std::string::npos) {
       command = new rpc::CommandVariable(int64_t());
@@ -152,7 +152,7 @@ system_method_insert(const torrent::Object::list_type& args) {
       rpc::commands.insert_type(create_new_key<5>(rawKey, ".set"), command, setSlot, flags | rpc::CommandMap::flag_dont_delete, NULL, NULL);
 
     if (++itrArgs != args.end())
-      (*setSlot)(command, NULL, *itrArgs);
+      (*setSlot)(command, rpc::make_target(), *itrArgs);
 
   } else {
     // THROW.

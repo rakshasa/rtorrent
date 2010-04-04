@@ -446,7 +446,7 @@ xmlrpc_call_command(xmlrpc_env* env, xmlrpc_value* args, void* voidServerInfo) {
     if (itr->second.m_flags & CommandMap::flag_no_target)
       xmlrpc_to_object(env, args, XmlRpc::call_generic, &target).swap(object);
     else
-      xmlrpc_to_object(env, args, itr->second.target(), &target).swap(object);
+      xmlrpc_to_object(env, args, XmlRpc::call_any, &target).swap(object);
 
     if (env->fault_occurred)
       return NULL;

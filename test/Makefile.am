@@ -10,6 +10,8 @@ rtorrentTest_LDADD = \
 	../src/libsub_root.a
 
 rtorrentTest_SOURCES = \
+	rpc/command_test.cc \
+	rpc/command_test.h \
 	rpc/command_map_test.cc \
 	rpc/command_map_test.h \
 	rpc/command_slot_test.cc \

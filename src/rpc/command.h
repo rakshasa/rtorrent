@@ -34,8 +34,8 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef RTORRENT_RPC_VARIABLE_H
-#define RTORRENT_RPC_VARIABLE_H
+#ifndef RTORRENT_RPC_COMMAND_H
+#define RTORRENT_RPC_COMMAND_H
 
 #include <torrent/object.h>
 #include <torrent/data/file_list_iterator.h>
@@ -128,14 +128,30 @@ public:
 
   static const int target_download_pair = 7;
 
+  static const unsigned int max_arguments = 10;
+
+  struct stack_type {
+    torrent::Object* begin() { return reinterpret_cast<torrent::Object*>(buffer); }
+    torrent::Object* end()   { return reinterpret_cast<torrent::Object*>(buffer) + max_arguments; }
+    
+    static stack_type* from_data(char* data) { return reinterpret_cast<stack_type*>(data); }
+
+    char buffer[sizeof(torrent::Object) * max_arguments];
+  };
+
   Command() {}
   virtual ~Command() {}
 
-  static torrent::Object* argument(unsigned int index) { return m_arguments + index; }
-  static torrent::Object& argument_ref(unsigned int index) { return *(m_arguments + index); }
+  static torrent::Object* argument(unsigned int index) { return m_arguments.begin() + index; }
+  static torrent::Object& argument_ref(unsigned int index) { return *(m_arguments.begin() + index); }
 
-  static const unsigned int max_arguments = 10;
-  static torrent::Object m_arguments[max_arguments];
+  static stack_type m_arguments;
+
+  static torrent::Object* stack_begin() { return m_arguments.begin(); }
+  static torrent::Object* stack_end()   { return m_arguments.end(); }
+
+  static torrent::Object* push_stack(const torrent::Object::list_type& args, torrent::Object* tmp_stack);
+  static void             pop_stack(torrent::Object* first_stack, torrent::Object* last_stack);
 
 protected:
   Command(const Command&);
@@ -151,54 +167,20 @@ struct target_type_id {
   // Nothing here, so we cause an error.
 };
 
-//template <> struct target_type_id<Command::generic_slot>       { static const int value = Command::target_generic; };
-template <> struct target_type_id<Command::cleaned_slot>       { static const int value = Command::target_generic; };
-template <> struct target_type_id<Command::any_slot>           { static const int value = Command::target_any; };
-template <> struct target_type_id<Command::download_slot>      { static const int value = Command::target_download; };
-template <> struct target_type_id<Command::peer_slot>          { static const int value = Command::target_peer; };
-template <> struct target_type_id<Command::tracker_slot>       { static const int value = Command::target_tracker; };
-template <> struct target_type_id<Command::file_slot>          { static const int value = Command::target_file; };
-template <> struct target_type_id<Command::file_itr_slot>      { static const int value = Command::target_file_itr; };
-
-template <> struct target_type_id<Command::download_pair_slot> { static const int value = Command::target_download_pair; };
-
-template <> struct target_type_id<>                            { static const int value = Command::target_generic; };
-template <> struct target_type_id<target_type>                 { static const int value = Command::target_any;      static const int proper_type = 1; };
-template <> struct target_type_id<core::Download*>             { static const int value = Command::target_download; static const int proper_type = 1; };
-template <> struct target_type_id<torrent::Peer*>              { static const int value = Command::target_peer;     static const int proper_type = 1; };
-template <> struct target_type_id<torrent::Tracker*>           { static const int value = Command::target_tracker;  static const int proper_type = 1; };
-template <> struct target_type_id<torrent::File*>              { static const int value = Command::target_file;     static const int proper_type = 1; };
-template <> struct target_type_id<torrent::FileListIterator*>  { static const int value = Command::target_file_itr; static const int proper_type = 1; };
-
-template <> struct target_type_id<core::Download*, core::Download*> { static const int value = Command::target_download_pair; };
-
 template <typename T> inline bool
 is_target_compatible(const target_type& target) { return target.first == target_type_id<T>::value; }
-
-template <> inline bool
-is_target_compatible<target_type>(const target_type& target) { return true; }
-template <> inline bool
-is_target_compatible<torrent::File*>(const target_type& target) { return target.first == Command::target_file || Command::target_file_itr; }
 
 // Splitting pairs into separate targets.
 inline bool is_target_pair(const target_type& target) { return target.first >= Command::target_download_pair; }
 
 template <typename T> inline T
 get_target_cast(target_type target, int type = target_type_id<T>::value) { return (T)target.second; }
-template <> inline target_type
-get_target_cast<target_type>(target_type target, int type) { return target; }
-
-template <> inline torrent::File*
-get_target_cast<torrent::File*>(target_type target, int type) {
-  if (target.first == Command::target_file_itr)
-    return static_cast<torrent::FileListIterator*>(target.second)->file();
-  else
-    return static_cast<torrent::File*>(target.second);
-}
 
 inline target_type get_target_left(const target_type& target)  { return target_type(target.first - 5, target.second); }
 inline target_type get_target_right(const target_type& target) { return target_type(target.first - 5, target.third); }
 
 }
+
+#include "command_impl.h"
 
 #endif

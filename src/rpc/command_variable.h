@@ -48,21 +48,19 @@ namespace rpc {
 
 class CommandVariable : public Command {
 public:
-  typedef target_wrapper<void>::cleaned_type cleaned_type;
-
   CommandVariable(const torrent::Object& v = torrent::Object()) : m_variable(v) {}
   
   const torrent::Object variable() const                         { return m_variable; }
   void                  set_variable(const torrent::Object& var) { m_variable = var; }
 
-  static const torrent::Object set_bool(Command* rawCommand, cleaned_type target, const torrent::Object& args);
-  static const torrent::Object get_bool(Command* rawCommand, cleaned_type target, const torrent::Object& args);
+  static const torrent::Object set_bool(Command* rawCommand, target_type target, const torrent::Object& args);
+  static const torrent::Object get_bool(Command* rawCommand, target_type target, const torrent::Object& args);
 
-  static const torrent::Object set_value(Command* rawCommand, cleaned_type target, const torrent::Object& args);
-  static const torrent::Object get_value(Command* rawCommand, cleaned_type target, const torrent::Object& args);
+  static const torrent::Object set_value(Command* rawCommand, target_type target, const torrent::Object& args);
+  static const torrent::Object get_value(Command* rawCommand, target_type target, const torrent::Object& args);
 
-  static const torrent::Object set_string(Command* rawCommand, cleaned_type target, const torrent::Object& args);
-  static const torrent::Object get_string(Command* rawCommand, cleaned_type target, const torrent::Object& args);
+  static const torrent::Object set_string(Command* rawCommand, target_type target, const torrent::Object& args);
+  static const torrent::Object get_string(Command* rawCommand, target_type target, const torrent::Object& args);
 
 private:
   torrent::Object    m_variable;
@@ -70,24 +68,22 @@ private:
 
 class CommandObjectPtr : public Command {
 public:
-  typedef target_wrapper<void>::cleaned_type cleaned_type;
-
   CommandObjectPtr(torrent::Object* obj = NULL) : m_object(obj) {}
   
   const torrent::Object* object() const                   { return m_object; }
   void                   set_object(torrent::Object* obj) { m_object = obj; }
 
-  static const torrent::Object set_generic(Command* rawCommand, cleaned_type target, const torrent::Object& args);
-  static const torrent::Object get_generic(Command* rawCommand, cleaned_type target, const torrent::Object& args);
+  static const torrent::Object set_generic(Command* rawCommand, target_type target, const torrent::Object& args);
+  static const torrent::Object get_generic(Command* rawCommand, target_type target, const torrent::Object& args);
 
-//   static const torrent::Object set_bool(Command* rawCommand, cleaned_type target, const torrent::Object& args);
-//   static const torrent::Object get_bool(Command* rawCommand, cleaned_type target, const torrent::Object& args);
+//   static const torrent::Object set_bool(Command* rawCommand, target_type target, const torrent::Object& args);
+//   static const torrent::Object get_bool(Command* rawCommand, target_type target, const torrent::Object& args);
 
-//   static const torrent::Object set_value(Command* rawCommand, cleaned_type target, const torrent::Object& args);
-//   static const torrent::Object get_value(Command* rawCommand, cleaned_type target, const torrent::Object& args);
+//   static const torrent::Object set_value(Command* rawCommand, target_type target, const torrent::Object& args);
+//   static const torrent::Object get_value(Command* rawCommand, target_type target, const torrent::Object& args);
 
-//   static const torrent::Object set_string(Command* rawCommand, cleaned_type target, const torrent::Object& args);
-//   static const torrent::Object get_string(Command* rawCommand, cleaned_type target, const torrent::Object& args);
+//   static const torrent::Object set_string(Command* rawCommand, target_type target, const torrent::Object& args);
+//   static const torrent::Object get_string(Command* rawCommand, target_type target, const torrent::Object& args);
 
 private:
   torrent::Object*    m_object;
