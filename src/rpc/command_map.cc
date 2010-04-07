@@ -55,7 +55,7 @@
 
 namespace rpc {
 
-Command::stack_type Command::m_arguments;
+Command::stack_type Command::current_stack;
 
 CommandMap::~CommandMap() {
   std::vector<const char*> keys;

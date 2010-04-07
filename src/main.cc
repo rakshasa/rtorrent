@@ -446,6 +446,8 @@ main(int argc, char** argv) {
       CMD2_REDIRECT        ("get_session_on_completion", "system.session.on_completion");
       CMD2_REDIRECT        ("set_session_on_completion", "system.session.on_completion.set");
 
+      CMD2_REDIRECT        ("check_hash", "pieces.hash.on_completion.set");
+
       //
       // Download:
       //

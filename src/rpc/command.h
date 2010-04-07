@@ -131,9 +131,15 @@ public:
   static const unsigned int max_arguments = 10;
 
   struct stack_type {
-    torrent::Object* begin() { return reinterpret_cast<torrent::Object*>(buffer); }
-    torrent::Object* end()   { return reinterpret_cast<torrent::Object*>(buffer) + max_arguments; }
+    torrent::Object*       begin() { return reinterpret_cast<torrent::Object*>(buffer); }
+    torrent::Object*       end()   { return reinterpret_cast<torrent::Object*>(buffer) + max_arguments; }
     
+    const torrent::Object* begin() const { return reinterpret_cast<const torrent::Object*>(buffer); }
+    const torrent::Object* end()   const { return reinterpret_cast<const torrent::Object*>(buffer) + max_arguments; }
+    
+    torrent::Object&       operator [] (unsigned int idx)       { return *(begin() + idx); }
+    const torrent::Object& operator [] (unsigned int idx) const { return *(begin() + idx); }
+
     static stack_type* from_data(char* data) { return reinterpret_cast<stack_type*>(data); }
 
     char buffer[sizeof(torrent::Object) * max_arguments];
@@ -142,16 +148,16 @@ public:
   Command() {}
   virtual ~Command() {}
 
-  static torrent::Object* argument(unsigned int index) { return m_arguments.begin() + index; }
-  static torrent::Object& argument_ref(unsigned int index) { return *(m_arguments.begin() + index); }
+  static torrent::Object* argument(unsigned int index) { return current_stack.begin() + index; }
+  static torrent::Object& argument_ref(unsigned int index) { return *(current_stack.begin() + index); }
 
-  static stack_type m_arguments;
+  static stack_type current_stack;
 
-  static torrent::Object* stack_begin() { return m_arguments.begin(); }
-  static torrent::Object* stack_end()   { return m_arguments.end(); }
+  static torrent::Object* stack_begin() { return current_stack.begin(); }
+  static torrent::Object* stack_end()   { return current_stack.end(); }
 
-  static torrent::Object* push_stack(const torrent::Object::list_type& args, torrent::Object* tmp_stack);
-  static void             pop_stack(torrent::Object* first_stack, torrent::Object* last_stack);
+  static torrent::Object* push_stack(const torrent::Object::list_type& args, stack_type* stack);
+  static void             pop_stack(stack_type* stack, torrent::Object* last_stack);
 
 protected:
   Command(const Command&);

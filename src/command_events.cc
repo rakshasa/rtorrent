@@ -313,7 +313,7 @@ void
 initialize_command_events() {
   CMD2_ANY("test.thread_locking", std::tr1::bind(&test_thread_locking));
 
-  CMD2_VAR_BOOL    ("check_hash", true); // Rename
+  CMD2_VAR_BOOL    ("pieces.hash.on_completion", true);
 
   CMD2_ANY_STRING  ("on_ratio",        std::tr1::bind(&apply_on_ratio, std::tr1::placeholders::_2));
 

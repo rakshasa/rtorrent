@@ -77,23 +77,26 @@ get_target_cast<torrent::File*>(target_type target, int type) {
 }
 
 inline torrent::Object*
-Command::push_stack(const torrent::Object::list_type& args, torrent::Object* tmp_stack) {
+Command::push_stack(const torrent::Object::list_type& args, stack_type* stack) {
   unsigned int idx = 0;
 
   for (torrent::Object::list_const_iterator itr = args.begin(), last = args.end();
        itr != last && idx < Command::max_arguments; itr++, idx++) {
-    new (tmp_stack + idx) torrent::Object(*itr);
-    tmp_stack[idx].swap(*Command::argument(idx));
+    new (&(*stack)[idx]) torrent::Object(*itr);
+    (*stack)[idx].swap(*Command::argument(idx));
   }
 
-  return tmp_stack + idx;
+  return stack->begin() + idx;
 }
 
 inline void
-Command::pop_stack(torrent::Object* first_stack, torrent::Object* last_stack) {
-  while (last_stack-- != first_stack) {
-    last_stack->swap(*Command::argument(std::distance(first_stack, last_stack)));
+Command::pop_stack(stack_type* stack, torrent::Object* last_stack) {
+  while (last_stack-- != stack->begin()) {
+    last_stack->swap(*Command::argument(std::distance(stack->begin(), last_stack)));
     last_stack->~Object();
+
+    // To ensure we catch errors:
+    std::memset(last_stack, 0xAA, sizeof(torrent::Object));
   }
 }
 
