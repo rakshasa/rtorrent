@@ -600,8 +600,18 @@ DownloadList::confirm_finished(Download* download) {
 
   rpc::commands.call_catch("event.download.finished", rpc::make_target(download), torrent::Object(), "Download event action failed: ");
 
-  if (download->resume_flags() != ~uint32_t())
-    throw torrent::internal_error("DownloadList::confirm_finished(...) download->resume_flags() != ~uint32_t().");
+//   if (download->resume_flags() != ~uint32_t())
+//     throw torrent::internal_error("DownloadList::confirm_finished(...) download->resume_flags() != ~uint32_t().");
+
+  // See #1292.
+  //
+  // Just reset the value for the moment. If a torrent finishes while
+  // others are hashing, or some other situtation that causes resume
+  // flag to change could cause the state to be invalid.
+  //
+  // TODO: Add a check when setting the flags to see if the torrent is
+  // being hashed.
+  download->set_resume_flags(~uint32_t());
 
   if (!download->is_active() && rpc::call_command_value("d.state", rpc::make_target(download)) == 1)
     resume(download, torrent::Download::start_no_create | torrent::Download::start_skip_tracker | torrent::Download::start_keep_baseline);
