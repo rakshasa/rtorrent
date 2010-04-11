@@ -109,10 +109,22 @@ system_method_insert(const torrent::Object::list_type& args) {
     rpc::commands.insert_type(create_new_key<0>(rawKey, ""), command, slot, flags, NULL, NULL);
 
   } else if (options.find("simple") != std::string::npos) {
-    rpc::Command::any_slot slot = &rpc::CommandFunction::call;
-    rpc::Command* command = new rpc::CommandFunction(system_method_generate_command(++itrArgs, args.end()));
+    rpc::command_base* command = new rpc::command_base();
 
-    rpc::commands.insert_type(create_new_key<0>(rawKey, ""), command, slot, flags, NULL, NULL);
+    command->set_function<rpc::command_base_is_type
+      <rpc::command_base_call
+      <rpc::target_type> >::type>(std::tr1::bind(&rpc::command_function_call_str,
+                                                 system_method_generate_command(++itrArgs, args.end()),
+                                                 std::tr1::placeholders::_1,
+                                                 std::tr1::placeholders::_2));
+
+    rpc::commands.insert_type(create_new_key<0>(rawKey, ""), command, &rpc::command_base_call<rpc::target_type>,
+                              flags, NULL, NULL);
+
+//     rpc::Command::any_slot slot = &rpc::CommandFunction::call;
+//     rpc::Command* command = new rpc::CommandFunction(system_method_generate_command(++itrArgs, args.end()));
+
+//     rpc::commands.insert_type(create_new_key<0>(rawKey, ""), command, slot, flags, NULL, NULL);
 
   } else if (options.find("value") != std::string::npos ||
              options.find("bool") != std::string::npos ||
@@ -197,29 +209,30 @@ system_method_redirect(const torrent::Object::list_type& args) {
 
 torrent::Object
 system_method_get(const torrent::Object::string_type& args) {
-  rpc::CommandFunction* function;
-  rpc::CommandMap::iterator itr = rpc::commands.find(args.c_str());
+//   rpc::CommandFunction* function;
+//   rpc::CommandMap::iterator itr = rpc::commands.find(args.c_str());
 
-  if (itr == rpc::commands.end() ||
-      (function = dynamic_cast<rpc::CommandFunction*>(itr->second.m_variable)) == NULL)
-    throw torrent::input_error("Command not modifiable or wrong type.");
+//   if (itr == rpc::commands.end() ||
+//       (function = dynamic_cast<rpc::CommandFunction*>(itr->second.m_variable)) == NULL)
+//     throw torrent::input_error("Command not modifiable or wrong type.");
 
-  return torrent::Object(function->command());
+//   return torrent::Object(function->command());
+  return torrent::Object();
 }
 
 torrent::Object
 system_method_set(const torrent::Object::list_type& args) {
-  if (args.empty())
-    throw torrent::input_error("Invalid argument count.");
+//   if (args.empty())
+//     throw torrent::input_error("Invalid argument count.");
 
-  rpc::CommandFunction* function;
-  rpc::CommandMap::iterator itr = rpc::commands.find(args.front().as_string().c_str());
+//   rpc::CommandFunction* function;
+//   rpc::CommandMap::iterator itr = rpc::commands.find(args.front().as_string().c_str());
 
-  if (itr == rpc::commands.end() || !rpc::commands.is_modifiable(itr) ||
-      (function = dynamic_cast<rpc::CommandFunction*>(itr->second.m_variable)) == NULL)
-    throw torrent::input_error("Command not modifiable or wrong type.");
+//   if (itr == rpc::commands.end() || !rpc::commands.is_modifiable(itr) ||
+//       (function = dynamic_cast<rpc::CommandFunction*>(itr->second.m_variable)) == NULL)
+//     throw torrent::input_error("Command not modifiable or wrong type.");
 
-  function->set_command(system_method_generate_command(++args.begin(), args.end()));
+//   function->set_command(system_method_generate_command(++args.begin(), args.end()));
   return torrent::Object();
 }
 

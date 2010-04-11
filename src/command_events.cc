@@ -341,5 +341,5 @@ initialize_command_events() {
   CMD2_ANY_VALUE   ("close_low_diskspace", std::tr1::bind(&apply_close_low_diskspace, std::tr1::placeholders::_2));
 
   CMD2_ANY_LIST    ("download_list",       std::tr1::bind(&apply_download_list, std::tr1::placeholders::_2));
-  CMD2_ANY_LIST    ("d.multicall",         std::tr1::bind(&d_multicall, std::tr1::placeholders::_2));
+  CMD2_ANY_LIST    ("d.multicall2",         std::tr1::bind(&d_multicall, std::tr1::placeholders::_2));
 }

@@ -77,16 +77,22 @@ get_target_cast<torrent::File*>(target_type target, int type) {
 }
 
 inline torrent::Object*
-Command::push_stack(const torrent::Object::list_type& args, stack_type* stack) {
+Command::push_stack(const torrent::Object* first_arg, const torrent::Object* last_arg, stack_type* stack) {
   unsigned int idx = 0;
 
-  for (torrent::Object::list_const_iterator itr = args.begin(), last = args.end();
-       itr != last && idx < Command::max_arguments; itr++, idx++) {
-    new (&(*stack)[idx]) torrent::Object(*itr);
+  while (first_arg != last_arg && idx < Command::max_arguments) {
+    new (&(*stack)[idx]) torrent::Object(*first_arg++);
     (*stack)[idx].swap(*Command::argument(idx));
+
+    idx++;
   }
 
   return stack->begin() + idx;
+}
+
+inline torrent::Object*
+Command::push_stack(const torrent::Object::list_type& args, stack_type* stack) {
+  return push_stack(args.data(), args.data() + args.size(), stack);
 }
 
 inline void

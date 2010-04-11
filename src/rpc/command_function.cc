@@ -49,105 +49,39 @@ namespace rpc {
 // Temp until it can be moved somewhere better...
 const torrent::Object
 command_function_call(const torrent::raw_string& cmd, target_type target, const torrent::Object& args) {
-  char* buffer[sizeof(torrent::Object) * Command::max_arguments];
-  torrent::Object* stack = (torrent::Object*)buffer;
-  torrent::Object* first = (torrent::Object*)buffer;
+  rpc::Command::stack_type stack;
+  torrent::Object* last_stack;
 
-  if (args.is_list()) {
-    // Do nothing for now.
-    for (torrent::Object::list_const_iterator itr = args.as_list().begin(), last = args.as_list().end();
-         itr != last && first != stack + Command::max_arguments;
-         itr++, first++) {
-      new (first) torrent::Object(*itr);
-      first->swap(*Command::argument(std::distance(stack, first)));
-    }
-
-  } else if (args.type() != torrent::Object::TYPE_NONE) {
-    new (first) torrent::Object(args);
-    (first++)->swap(*Command::argument(0));
-  }
+  if (args.is_list())
+    last_stack = rpc::Command::push_stack(args.as_list(), &stack);
+  else if (args.type() != torrent::Object::TYPE_NONE)
+    last_stack = rpc::Command::push_stack(&args, &args + 1, &stack);
+  else
+    last_stack = rpc::Command::push_stack(NULL, NULL, &stack);
 
   try {
     torrent::Object result = parse_command_multiple(target, cmd.begin(), cmd.end());
 
-    while (first-- != stack) {
-      first->swap(*Command::argument(std::distance(stack, first)));
-      first->~Object();
-    }
-
+    rpc::Command::pop_stack(&stack, last_stack);
     return result;
 
   } catch (torrent::bencode_error& e) {
-    while (first-- != stack) {
-      first->swap(*Command::argument(std::distance(stack, first)));
-      first->~Object();
-    }
-
-    throw e;
-  }
-}
-
-const torrent::Object
-CommandFunction::call(Command* rawCommand, target_type target, const torrent::Object& args) {
-  char* buffer[sizeof(torrent::Object) * Command::max_arguments];
-  torrent::Object* stack = (torrent::Object*)buffer;
-  torrent::Object* first = (torrent::Object*)buffer;
-
-  if (args.is_list()) {
-    // Do nothing for now.
-    for (torrent::Object::list_const_iterator itr = args.as_list().begin(), last = args.as_list().end();
-         itr != last && first != stack + Command::max_arguments;
-         itr++, first++) {
-      new (first) torrent::Object(*itr);
-      first->swap(*argument(std::distance(stack, first)));
-    }
-
-  } else if (args.type() != torrent::Object::TYPE_NONE) {
-    new (first) torrent::Object(args);
-    (first++)->swap(*argument(0));
-  }
-
-  CommandFunction* command = reinterpret_cast<CommandFunction*>(rawCommand);
-
-  try {
-    torrent::Object result = parse_command_multiple(target, command->m_command.c_str(), command->m_command.c_str() + command->m_command.size());
-
-    while (first-- != stack) {
-      first->swap(*argument(std::distance(stack, first)));
-      first->~Object();
-    }
-
-    return result;
-
-  } catch (torrent::bencode_error& e) {
-    while (first-- != stack) {
-      first->swap(*Command::argument(std::distance(stack, first)));
-      first->~Object();
-    }
-
+    rpc::Command::pop_stack(&stack, last_stack);
     throw e;
   }
 }
 
 const torrent::Object
 CommandFunctionList::call(Command* rawCommand, target_type target, const torrent::Object& args) {
-  char* buffer[sizeof(torrent::Object) * Command::max_arguments];
-  torrent::Object* stack = (torrent::Object*)buffer;
-  torrent::Object* first = (torrent::Object*)buffer;
+  rpc::Command::stack_type stack;
+  torrent::Object* last_stack;
 
-  if (args.is_list()) {
-    // Do nothing for now.
-    for (torrent::Object::list_const_iterator itr = args.as_list().begin(), last = args.as_list().end();
-         itr != last && first != stack + Command::max_arguments;
-         itr++, first++) {
-      new (first) torrent::Object(*itr);
-      first->swap(*argument(std::distance(stack, first)));
-    }
-
-  } else if (args.type() != torrent::Object::TYPE_NONE) {
-    new (first) torrent::Object(args);
-    (first++)->swap(*argument(0));
-  }
+  if (args.is_list())
+    last_stack = rpc::Command::push_stack(args.as_list(), &stack);
+  else if (args.type() != torrent::Object::TYPE_NONE)
+    last_stack = rpc::Command::push_stack(&args, &args + 1, &stack);
+  else
+    last_stack = rpc::Command::push_stack(NULL, NULL, &stack);
 
   CommandFunctionList* command = reinterpret_cast<CommandFunctionList*>(rawCommand);
 
@@ -156,19 +90,11 @@ CommandFunctionList::call(Command* rawCommand, target_type target, const torrent
       parse_command_multiple(target, itr->second.c_str(), itr->second.c_str() + itr->second.size());
 
   } catch (torrent::bencode_error& e) {
-    while (first-- != stack) {
-      first->swap(*Command::argument(std::distance(stack, first)));
-      first->~Object();
-    }
-
+    rpc::Command::pop_stack(&stack, last_stack);
     throw e;
   }
 
-  while (first-- != stack) {
-    first->swap(*argument(std::distance(stack, first)));
-    first->~Object();
-  }
-
+  rpc::Command::pop_stack(&stack, last_stack);
   return torrent::Object();
 }
 

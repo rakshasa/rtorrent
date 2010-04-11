@@ -71,12 +71,11 @@ void initialize_commands();
   rpc::commands.insert_type(key, commandNewSlotItr++, &rpc::function,   \
                     rpc::CommandMap::flag_dont_delete, NULL, NULL);
 
-// #define CMD2_ANY(key, slot)   CMD2_A_FUNCTION(key, command_base_call_any,      slot, "i:", "")
-#define CMD2_ANY(key, slot)   CMD2_A_FUNCTION(key, command_base_call<rpc::target_type>, slot, "i:", "")
+#define CMD2_ANY(key, slot)          CMD2_A_FUNCTION(key, command_base_call<rpc::target_type>, slot, "i:", "")
 
-#define CMD2_ANY_P(key, slot) CMD2_A_FUNCTION_PRIVATE(key, command_base_call<rpc::target_type>, slot, "i:", "")
-#define CMD2_ANY_V(key, slot) CMD2_A_FUNCTION(key, command_base_call_list<rpc::target_type>, object_convert_void(slot), "i:", "")
-#define CMD2_ANY_L(key, slot) CMD2_A_FUNCTION(key, command_base_call_list<rpc::target_type>, slot, "A:", "")
+#define CMD2_ANY_P(key, slot)        CMD2_A_FUNCTION_PRIVATE(key, command_base_call<rpc::target_type>, slot, "i:", "")
+#define CMD2_ANY_V(key, slot)        CMD2_A_FUNCTION(key, command_base_call_list<rpc::target_type>, object_convert_void(slot), "i:", "")
+#define CMD2_ANY_L(key, slot)        CMD2_A_FUNCTION(key, command_base_call_list<rpc::target_type>, slot, "A:", "")
 
 #define CMD2_ANY_VALUE(key, slot)    CMD2_A_FUNCTION(key, command_base_call_value<rpc::target_type>, slot, "i:i", "")
 #define CMD2_ANY_VALUE_V(key, slot)  CMD2_A_FUNCTION(key, command_base_call_value<rpc::target_type>, object_convert_void(slot), "i:i", "")

@@ -611,6 +611,9 @@ main(int argc, char** argv) {
       CMD2_REDIRECT        ("view_sort_current", "view.sort_current");
       CMD2_REDIRECT        ("view_sort_new", "view.sort_new");
 
+      // Rename these to avoid conflicts with old style.
+      CMD2_REDIRECT_GENERIC("d.multicall", "d.multicall2");
+
       // Functions that might not get depracted as they are nice for
       // configuration files, and thus might do with just some
       // cleanup.

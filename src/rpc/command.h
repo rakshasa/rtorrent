@@ -157,6 +157,7 @@ public:
   static torrent::Object* stack_end()   { return current_stack.end(); }
 
   static torrent::Object* push_stack(const torrent::Object::list_type& args, stack_type* stack);
+  static torrent::Object* push_stack(const torrent::Object* first_arg, const torrent::Object* last_arg, stack_type* stack);
   static void             pop_stack(stack_type* stack, torrent::Object* last_stack);
 
 protected:

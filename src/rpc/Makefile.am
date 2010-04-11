@@ -19,6 +19,8 @@ libsub_rpc_a_SOURCES = \
 	command_new_slot.h \
 	exec_file.cc \
 	exec_file.h \
+	object_storage.cc \
+	object_storage.h \
 	parse.cc \
 	parse.h \
 	parse_commands.cc \

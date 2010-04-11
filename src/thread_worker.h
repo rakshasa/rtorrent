@@ -58,13 +58,16 @@ public:
   rpc::SCgi*          scgi() { return m_safe.scgi; }
   bool                set_scgi(rpc::SCgi* scgi);
   
+  void                set_xmlrpc_log(const std::string& filename);
+
   static void         start_scgi(ThreadBase* thread);
   static void         start_log_counter(ThreadBase* thread);
+  static void         msg_change_xmlrpc_log(ThreadBase* thread);
 
 private:
   void                task_touch_log();
 
-  rak::priority_item  m_taskTouchLog;
+  void                change_xmlrpc_log();
 
   struct lt_cacheline_aligned safe_type {
     safe_type() : scgi(NULL) {}
@@ -72,7 +75,12 @@ private:
     rpc::SCgi* scgi;
   };
 
-  safe_type m_safe;
+  rak::priority_item  m_taskTouchLog;
+  safe_type           m_safe;
+
+  // The following types shall only be modified while holding the
+  // global lock.
+  std::string         m_xmlrpcLog;
 };
 
 #endif

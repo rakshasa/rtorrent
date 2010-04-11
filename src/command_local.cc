@@ -240,8 +240,8 @@ initialize_command_local() {
   CMD2_ANY("execute_capture",     std::tr1::bind(&rpc::ExecFile::execute_object, &rpc::execFile, std::tr1::placeholders::_2, rpc::ExecFile::flag_throw | rpc::ExecFile::flag_expand_tilde | rpc::ExecFile::flag_capture));
   CMD2_ANY("execute_capture_nothrow", std::tr1::bind(&rpc::ExecFile::execute_object, &rpc::execFile, std::tr1::placeholders::_2, rpc::ExecFile::flag_expand_tilde | rpc::ExecFile::flag_capture));
 
-  CMD2_ANY_STRING("log.execute", std::tr1::bind(&apply_log, std::tr1::placeholders::_2, 0));
-  CMD2_ANY_STRING("log.xmlrpc",  std::tr1::bind(&apply_log, std::tr1::placeholders::_2, 1));
+  CMD2_ANY_STRING  ("log.execute", std::tr1::bind(&apply_log, std::tr1::placeholders::_2, 0));
+  CMD2_ANY_STRING_V("log.xmlrpc",  std::tr1::bind(&ThreadWorker::set_xmlrpc_log, worker_thread, std::tr1::placeholders::_2));
 
   // TODO: Convert to new command types:
   *rpc::Command::argument(0) = "placeholder.0";

@@ -34,49 +34,10 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef RTORRENT_RPC_COMMAND_FUNCTION_H
-#define RTORRENT_RPC_COMMAND_FUNCTION_H
+#include "config.h"
 
-#include <string>
-#include <vector>
-#include <limits>
-#include <inttypes.h>
-#include <torrent/object.h>
-
-#include "command.h"
+#include "object_storage.h"
 
 namespace rpc {
 
-class CommandFunctionList : public Command,
-                            private std::vector<std::pair<std::string, std::string> > {
-public:
-  typedef std::vector<std::pair<std::string, std::string> > base_type;
-
-  using Command::value_type;
-  using base_type::iterator;
-  using base_type::const_iterator;
-  using base_type::begin;
-  using base_type::end;
-
-  CommandFunctionList() {}
-  
-  const_iterator      find(const char* key);
-
-  void                insert(const std::string& key, const std::string& cmd);
-  void                erase(const std::string& key);
-
-  static const torrent::Object call(Command* rawCommand, target_type target, const torrent::Object& args);
-};
-
-// Temp until it can be moved somewhere better...
-const torrent::Object
-command_function_call(const torrent::raw_string& cmd, target_type target, const torrent::Object& args);
-
-inline const torrent::Object
-command_function_call_str(const std::string& cmd, target_type target, const torrent::Object& args) {
-  return command_function_call(torrent::raw_string::from_string(cmd), target, args);
 }
-
-}
-
-#endif
