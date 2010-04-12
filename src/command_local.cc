@@ -233,12 +233,16 @@ initialize_command_local() {
 
   CMD2_ANY_V       ("session_save", std::tr1::bind(&core::DownloadList::session_save, dList));
 
-  CMD2_ANY("execute",             std::tr1::bind(&rpc::ExecFile::execute_object, &rpc::execFile, std::tr1::placeholders::_2, rpc::ExecFile::flag_throw | rpc::ExecFile::flag_expand_tilde));
-  CMD2_ANY("execute_nothrow",     std::tr1::bind(&rpc::ExecFile::execute_object, &rpc::execFile, std::tr1::placeholders::_2, rpc::ExecFile::flag_expand_tilde));
-  CMD2_ANY("execute_raw",         std::tr1::bind(&rpc::ExecFile::execute_object, &rpc::execFile, std::tr1::placeholders::_2, rpc::ExecFile::flag_throw));
-  CMD2_ANY("execute_raw_nothrow", std::tr1::bind(&rpc::ExecFile::execute_object, &rpc::execFile, std::tr1::placeholders::_2, 0));
-  CMD2_ANY("execute_capture",     std::tr1::bind(&rpc::ExecFile::execute_object, &rpc::execFile, std::tr1::placeholders::_2, rpc::ExecFile::flag_throw | rpc::ExecFile::flag_expand_tilde | rpc::ExecFile::flag_capture));
-  CMD2_ANY("execute_capture_nothrow", std::tr1::bind(&rpc::ExecFile::execute_object, &rpc::execFile, std::tr1::placeholders::_2, rpc::ExecFile::flag_expand_tilde | rpc::ExecFile::flag_capture));
+#define CMD2_EXECUTE(key, flags)                                         \
+  CMD2_ANY(key, std::tr1::bind(&rpc::ExecFile::execute_object, &rpc::execFile, std::tr1::placeholders::_2, flags));
+
+  CMD2_EXECUTE     ("execute2",                rpc::ExecFile::flag_expand_tilde | rpc::ExecFile::flag_throw);
+  CMD2_EXECUTE     ("execute_throw",           rpc::ExecFile::flag_expand_tilde | rpc::ExecFile::flag_throw);
+  CMD2_EXECUTE     ("execute_nothrow",         rpc::ExecFile::flag_expand_tilde);
+  CMD2_EXECUTE     ("execute_raw",             rpc::ExecFile::flag_throw);
+  CMD2_EXECUTE     ("execute_raw_nothrow",     0);
+  CMD2_EXECUTE     ("execute_capture",         rpc::ExecFile::flag_throw | rpc::ExecFile::flag_expand_tilde | rpc::ExecFile::flag_capture);
+  CMD2_EXECUTE     ("execute_capture_nothrow", rpc::ExecFile::flag_expand_tilde | rpc::ExecFile::flag_capture);
 
   CMD2_ANY_STRING  ("log.execute", std::tr1::bind(&apply_log, std::tr1::placeholders::_2, 0));
   CMD2_ANY_STRING_V("log.xmlrpc",  std::tr1::bind(&ThreadWorker::set_xmlrpc_log, worker_thread, std::tr1::placeholders::_2));

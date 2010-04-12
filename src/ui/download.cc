@@ -152,7 +152,7 @@ Download::create_info() {
   element->push_column("Name:",             te_command("d.name="));
   element->push_column("Local id:",         te_command("d.local_id_html="));
   element->push_column("Info hash:",        te_command("d.hash="));
-  element->push_column("Created:",          te_command("cat=$to_date=$d.creation_date=,\" \",$to_time=$d.creation_date="));
+  element->push_column("Created:",          te_command("cat=$convert.date=$d.creation_date=,\" \",$convert.time=$d.creation_date="));
 
   element->push_back("");
   element->push_column("Directory:",        te_command("d.directory="));
@@ -167,33 +167,33 @@ Download::create_info() {
                                                        "$if=$d.is_pex_active=\\,active\\,$d.is_private=\\,private\\,inactive,"
                                                        "\\ (,$d.size_pex=,/,$d.max_size_pex=,)"));
 
-  element->push_column("State changed:",    te_command("to_elapsed_time=$d.state_changed="));
+  element->push_column("State changed:",    te_command("convert.elapsed_time=$d.state_changed="));
 
   element->push_back("");
-  element->push_column("Memory usage:",     te_command("cat=$to_mb=$pieces.memory.current=,\" MB\""));
-  element->push_column("Max memory usage:", te_command("cat=$to_mb=$pieces.memory.max=,\" MB\""));
-  element->push_column("Free diskspace:",   te_command("cat=$to_mb=$d.free_diskspace=,\" MB\""));
-  element->push_column("Safe diskspace:",   te_command("cat=$to_mb=$pieces.sync.safe_free_diskspace=,\" MB\""));
+  element->push_column("Memory usage:",     te_command("cat=$convert.mb=$pieces.memory.current=,\" MB\""));
+  element->push_column("Max memory usage:", te_command("cat=$convert.mb=$pieces.memory.max=,\" MB\""));
+  element->push_column("Free diskspace:",   te_command("cat=$convert.mb=$d.free_diskspace=,\" MB\""));
+  element->push_column("Safe diskspace:",   te_command("cat=$convert.mb=$pieces.sync.safe_free_diskspace=,\" MB\""));
 
   element->push_back("");
   element->push_column("Connection type:",  te_command("d.connection_current="));
   element->push_column("Safe sync:",        te_command("if=$pieces.sync.always_safe=,yes,no"));
-  element->push_column("Send buffer:",      te_command("cat=$to_kb=$network.send_buffer.size=,\" KB\""));
-  element->push_column("Receive buffer:",   te_command("cat=$to_kb=$network.receive_buffer.size=,\" KB\""));
+  element->push_column("Send buffer:",      te_command("cat=$convert.kb=$network.send_buffer.size=,\" KB\""));
+  element->push_column("Receive buffer:",   te_command("cat=$convert.kb=$network.receive_buffer.size=,\" KB\""));
 
   // TODO: Define a custom command for this and use $argument.0 instead of looking up the name multiple times?
   element->push_column("Throttle:",         te_command("branch=d.throttle_name=,\""
                                                               "cat=$d.throttle_name=,\\\"  [Max \\\","
-                                                                  "$to_throttle=$get_throttle_up_max=$d.throttle_name=,\\\"/\\\","
-                                                                  "$to_throttle=$get_throttle_down_max=$d.throttle_name=,\\\" KB]  [Rate \\\","
-                                                                  "$to_kb=$get_throttle_up_rate=$d.throttle_name=,\\\"/\\\","
-                                                                  "$to_kb=$get_throttle_down_rate=$d.throttle_name=,\\\" KB]\\\"\","
+                                                                  "$convert.throttle=$get_throttle_up_max=$d.throttle_name=,\\\"/\\\","
+                                                                  "$convert.throttle=$get_throttle_down_max=$d.throttle_name=,\\\" KB]  [Rate \\\","
+                                                                  "$convert.kb=$get_throttle_up_rate=$d.throttle_name=,\\\"/\\\","
+                                                                  "$convert.kb=$get_throttle_down_rate=$d.throttle_name=,\\\" KB]\\\"\","
                                                               "cat=\"global\""));
 
   element->push_back("");
-  element->push_column("Upload:",           te_command("cat=$to_kb=$d.up.rate=,\" KB / \",$to_xb=$d.up.total="));
-  element->push_column("Download:",         te_command("cat=$to_kb=$d.down.rate=,\" KB / \",$to_xb=$d.down.total="));
-  element->push_column("Skipped:",          te_command("cat=$to_kb=$d.skip.rate=,\" KB / \",$to_xb=$d.skip.total="));
+  element->push_column("Upload:",           te_command("cat=$convert.kb=$d.up.rate=,\" KB / \",$convert.xb=$d.up.total="));
+  element->push_column("Download:",         te_command("cat=$convert.kb=$d.down.rate=,\" KB / \",$convert.xb=$d.down.total="));
+  element->push_column("Skipped:",          te_command("cat=$convert.kb=$d.skip.rate=,\" KB / \",$convert.xb=$d.skip.total="));
   element->push_column("Preload:",          te_command("cat=$pieces.preload.type=,\" / \",$pieces.stats_preloaded=,\" / \",$pieces.stats_preloaded="));
 
   element->set_column_width(element->column_width() + 1);

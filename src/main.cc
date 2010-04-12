@@ -326,6 +326,10 @@ main(int argc, char** argv) {
 
 #define CMD2_REDIRECT_GENERIC(from_key, to_key) \
   rpc::commands.create_redirect(from_key, to_key, rpc::CommandMap::flag_public_xmlrpc | rpc::CommandMap::flag_no_target);
+#define CMD2_REDIRECT_FILE(from_key, to_key) \
+  rpc::commands.create_redirect(from_key, to_key, rpc::CommandMap::flag_public_xmlrpc | rpc::CommandMap::flag_file_target);
+#define CMD2_REDIRECT_TRACKER(from_key, to_key) \
+  rpc::commands.create_redirect(from_key, to_key, rpc::CommandMap::flag_public_xmlrpc | rpc::CommandMap::flag_tracker_target);
 
       CMD2_REDIRECT_GENERIC("system.method.insert", "method.insert");
       CMD2_REDIRECT_GENERIC("system.method.erase", "method.erase");
@@ -548,37 +552,38 @@ main(int argc, char** argv) {
       // Tracker:
       //
 
-      CMD2_REDIRECT        ("t.get_group", "t.group");
-      CMD2_REDIRECT        ("t.get_id", "t.id");
-      CMD2_REDIRECT        ("t.get_min_interval", "t.min_interval");
-      CMD2_REDIRECT        ("t.get_normal_interval", "t.normal_interval");
-      CMD2_REDIRECT        ("t.get_scrape_complete", "t.scrape_complete");
-      CMD2_REDIRECT        ("t.get_scrape_downloaded", "t.scrape_downloaded");
-      CMD2_REDIRECT        ("t.get_scrape_incomplete", "t.scrape_incomplete");
-      CMD2_REDIRECT        ("t.get_scrape_time_last", "t.scrape_time_last");
-      CMD2_REDIRECT        ("t.get_type", "t.type");
-      CMD2_REDIRECT        ("t.get_url", "t.url");
+      CMD2_REDIRECT_TRACKER("t.get_group", "t.group");
+      CMD2_REDIRECT_TRACKER("t.get_id", "t.id");
+      CMD2_REDIRECT_TRACKER("t.get_min_interval", "t.min_interval");
+      CMD2_REDIRECT_TRACKER("t.get_normal_interval", "t.normal_interval");
+      CMD2_REDIRECT_TRACKER("t.get_scrape_complete", "t.scrape_complete");
+      CMD2_REDIRECT_TRACKER("t.get_scrape_downloaded", "t.scrape_downloaded");
+      CMD2_REDIRECT_TRACKER("t.get_scrape_incomplete", "t.scrape_incomplete");
+      CMD2_REDIRECT_TRACKER("t.get_scrape_time_last", "t.scrape_time_last");
+      CMD2_REDIRECT_TRACKER("t.get_type", "t.type");
+      CMD2_REDIRECT_TRACKER("t.get_url", "t.url");
+      CMD2_REDIRECT_TRACKER("t.set_enabled", "t.is_enabled.set");
 
       //
       // File:
       //
 
-      CMD2_REDIRECT        ("f.get_completed_chunks", "f.completed_chunks");
-      CMD2_REDIRECT        ("f.get_frozen_path", "f.frozen_path");
-      CMD2_REDIRECT        ("f.get_last_touched", "f.last_touched");
-      CMD2_REDIRECT        ("f.get_match_depth_next", "f.match_depth_next");
-      CMD2_REDIRECT        ("f.get_match_depth_prev", "f.match_depth_prev");
-      CMD2_REDIRECT        ("f.get_offset", "f.offset");
-      CMD2_REDIRECT        ("f.get_path", "f.path");
-      CMD2_REDIRECT        ("f.get_path_components", "f.path_components");
-      CMD2_REDIRECT        ("f.get_path_depth", "f.path_depth");
-      CMD2_REDIRECT        ("f.get_priority", "f.priority");
-      CMD2_REDIRECT        ("f.get_range_first", "f.range_first");
-      CMD2_REDIRECT        ("f.get_range_second", "f.range_second");
-      CMD2_REDIRECT        ("f.get_size_bytes", "f.size_bytes");
-      CMD2_REDIRECT        ("f.get_size_chunks", "f.size_chunks");
-      CMD2_REDIRECT        ("f.set_priority", "f.priority.set");
-      CMD2_REDIRECT        ("fi.get_filename_last", "fi.filename_last");
+      CMD2_REDIRECT_FILE   ("f.get_completed_chunks", "f.completed_chunks");
+      CMD2_REDIRECT_FILE   ("f.get_frozen_path", "f.frozen_path");
+      CMD2_REDIRECT_FILE   ("f.get_last_touched", "f.last_touched");
+      CMD2_REDIRECT_FILE   ("f.get_match_depth_next", "f.match_depth_next");
+      CMD2_REDIRECT_FILE   ("f.get_match_depth_prev", "f.match_depth_prev");
+      CMD2_REDIRECT_FILE   ("f.get_offset", "f.offset");
+      CMD2_REDIRECT_FILE   ("f.get_path", "f.path");
+      CMD2_REDIRECT_FILE   ("f.get_path_components", "f.path_components");
+      CMD2_REDIRECT_FILE   ("f.get_path_depth", "f.path_depth");
+      CMD2_REDIRECT_FILE   ("f.get_priority", "f.priority");
+      CMD2_REDIRECT_FILE   ("f.get_range_first", "f.range_first");
+      CMD2_REDIRECT_FILE   ("f.get_range_second", "f.range_second");
+      CMD2_REDIRECT_FILE   ("f.get_size_bytes", "f.size_bytes");
+      CMD2_REDIRECT_FILE   ("f.get_size_chunks", "f.size_chunks");
+      CMD2_REDIRECT_FILE   ("f.set_priority", "f.priority.set");
+      CMD2_REDIRECT_FILE   ("fi.get_filename_last", "fi.filename_last");
 
       //
       // Peer:
@@ -613,6 +618,24 @@ main(int argc, char** argv) {
 
       // Rename these to avoid conflicts with old style.
       CMD2_REDIRECT_GENERIC("d.multicall", "d.multicall2");
+
+      CMD2_REDIRECT_GENERIC("to_gm_time", "convert.gm_time");
+      CMD2_REDIRECT_GENERIC("to_gm_date", "convert.gm_date");
+      CMD2_REDIRECT_GENERIC("to_time", "convert.time");
+      CMD2_REDIRECT_GENERIC("to_date", "convert.date");
+      CMD2_REDIRECT_GENERIC("to_elapsed_time", "convert.elapsed_time");
+      CMD2_REDIRECT_GENERIC("to_kb", "convert.kb");
+      CMD2_REDIRECT_GENERIC("to_mb", "convert.mb");
+      CMD2_REDIRECT_GENERIC("to_xb", "convert.xb");
+      CMD2_REDIRECT_GENERIC("to_throttle", "convert.throttle");
+
+      CMD2_REDIRECT_GENERIC("execute", "execute2");
+//       CMD2_REDIRECT_GENERIC("execute_throw", "execute.throw");
+//       CMD2_REDIRECT_GENERIC("execute_nothrow", "execute.nothrow");
+//       CMD2_REDIRECT_GENERIC("execute_raw", "execute.raw");
+//       CMD2_REDIRECT_GENERIC("execute_raw_nothrow", "execute.raw_nothrow");
+//       CMD2_REDIRECT_GENERIC("execute_capture", "execute.capture");
+//       CMD2_REDIRECT_GENERIC("execute_capture_nothrow", "execute.capture_nothrow");
 
       // Functions that might not get depracted as they are nice for
       // configuration files, and thus might do with just some

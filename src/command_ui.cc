@@ -506,13 +506,13 @@ initialize_command_ui() {
   CMD2_ANY_LIST("greater", &apply_greater);
   CMD2_ANY_LIST("equal",   &apply_equal);
 
-  CMD2_ANY_VALUE("to_gm_time",      std::tr1::bind(&apply_to_time, std::tr1::placeholders::_2, 0));
-  CMD2_ANY_VALUE("to_gm_date",      std::tr1::bind(&apply_to_time, std::tr1::placeholders::_2, 0x2));
-  CMD2_ANY_VALUE("to_time",         std::tr1::bind(&apply_to_time, std::tr1::placeholders::_2, 0x1));
-  CMD2_ANY_VALUE("to_date",         std::tr1::bind(&apply_to_time, std::tr1::placeholders::_2, 0x1 | 0x2));
-  CMD2_ANY_VALUE("to_elapsed_time", std::tr1::bind(&apply_to_elapsed_time, std::tr1::placeholders::_2));
-  CMD2_ANY_VALUE("to_kb",           std::tr1::bind(&apply_to_kb, std::tr1::placeholders::_2));
-  CMD2_ANY_VALUE("to_mb",           std::tr1::bind(&apply_to_mb, std::tr1::placeholders::_2));
-  CMD2_ANY_VALUE("to_xb",           std::tr1::bind(&apply_to_xb, std::tr1::placeholders::_2));
-  CMD2_ANY_VALUE("to_throttle",     std::tr1::bind(&apply_to_throttle, std::tr1::placeholders::_2));
+  CMD2_ANY_VALUE("convert.gm_time",      std::tr1::bind(&apply_to_time, std::tr1::placeholders::_2, 0));
+  CMD2_ANY_VALUE("convert.gm_date",      std::tr1::bind(&apply_to_time, std::tr1::placeholders::_2, 0x2));
+  CMD2_ANY_VALUE("convert.time",         std::tr1::bind(&apply_to_time, std::tr1::placeholders::_2, 0x1));
+  CMD2_ANY_VALUE("convert.date",         std::tr1::bind(&apply_to_time, std::tr1::placeholders::_2, 0x1 | 0x2));
+  CMD2_ANY_VALUE("convert.elapsed_time", std::tr1::bind(&apply_to_elapsed_time, std::tr1::placeholders::_2));
+  CMD2_ANY_VALUE("convert.kb",           std::tr1::bind(&apply_to_kb, std::tr1::placeholders::_2));
+  CMD2_ANY_VALUE("convert.mb",           std::tr1::bind(&apply_to_mb, std::tr1::placeholders::_2));
+  CMD2_ANY_VALUE("convert.xb",           std::tr1::bind(&apply_to_xb, std::tr1::placeholders::_2));
+  CMD2_ANY_VALUE("convert.throttle",     std::tr1::bind(&apply_to_throttle, std::tr1::placeholders::_2));
 }

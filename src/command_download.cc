@@ -738,7 +738,7 @@ initialize_command_download() {
 
   CMD2_DL         ("d.initialize_logs", std::tr1::bind(&cmd_d_initialize_logs, std::tr1::placeholders::_1));
 
-  CMD2_DL_LIST("f.multicall", std::tr1::bind(&f_multicall, std::tr1::placeholders::_1, std::tr1::placeholders::_2));
-  CMD2_DL_LIST("p.multicall", std::tr1::bind(&p_multicall, std::tr1::placeholders::_1, std::tr1::placeholders::_2));
-  CMD2_DL_LIST("t.multicall", std::tr1::bind(&t_multicall, std::tr1::placeholders::_1, std::tr1::placeholders::_2));
+  CMD2_DL_LIST    ("f.multicall", std::tr1::bind(&f_multicall, std::tr1::placeholders::_1, std::tr1::placeholders::_2));
+  CMD2_DL_LIST    ("p.multicall", std::tr1::bind(&p_multicall, std::tr1::placeholders::_1, std::tr1::placeholders::_2));
+  CMD2_DL_LIST    ("t.multicall", std::tr1::bind(&t_multicall, std::tr1::placeholders::_1, std::tr1::placeholders::_2));
 }

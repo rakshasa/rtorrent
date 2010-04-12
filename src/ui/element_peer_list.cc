@@ -113,8 +113,8 @@ ElementPeerList::create_info() {
   element->push_back("");
   element->push_column("Snubbed:",   te_command("if=$p.is_snubbed=,yes,no"));
   element->push_column("Done:",      te_command("p.completed_percent="));
-  element->push_column("Rate:",      te_command("cat=$to_kb=$p.up_rate=,\\ KB\\ ,$to_kb=$p.down_rate=,\\ KB"));
-  element->push_column("Total:",     te_command("cat=$to_kb=$p.up_total=,\\ KB\\ ,$to_kb=$p.down_total=,\\ KB"));
+  element->push_column("Rate:",      te_command("cat=$convert.kb=$p.up_rate=,\\ KB\\ ,$convert.kb=$p.down_rate=,\\ KB"));
+  element->push_column("Total:",     te_command("cat=$convert.kb=$p.up_total=,\\ KB\\ ,$convert.kb=$p.down_total=,\\ KB"));
 
   element->set_column_width(element->column_width() + 1);
   element->set_error_handler(new display::TextElementCString("No peer selected."));
