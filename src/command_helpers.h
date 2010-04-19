@@ -79,6 +79,7 @@ void initialize_commands();
 
 #define CMD2_ANY_VALUE(key, slot)    CMD2_A_FUNCTION(key, command_base_call_value<rpc::target_type>, slot, "i:i", "")
 #define CMD2_ANY_VALUE_V(key, slot)  CMD2_A_FUNCTION(key, command_base_call_value<rpc::target_type>, object_convert_void(slot), "i:i", "")
+#define CMD2_ANY_VALUE_KB(key, slot) CMD2_A_FUNCTION(key, command_base_call_value_kb<rpc::target_type>, object_convert_void(slot), "i:i", "")
 
 #define CMD2_ANY_STRING(key, slot)   CMD2_A_FUNCTION(key, command_base_call_string<rpc::target_type>, slot, "i:s", "")
 #define CMD2_ANY_STRING_V(key, slot) CMD2_A_FUNCTION(key, command_base_call_string<rpc::target_type>, object_convert_void(slot), "i:s", "")
@@ -125,9 +126,13 @@ void initialize_commands();
 
 #define CMD2_REDIRECT(from_key, to_key) \
   rpc::commands.create_redirect(from_key, to_key, rpc::CommandMap::flag_public_xmlrpc);
-
 #define CMD2_REDIRECT_GENERIC(from_key, to_key) \
   rpc::commands.create_redirect(from_key, to_key, rpc::CommandMap::flag_public_xmlrpc | rpc::CommandMap::flag_no_target);
+#define CMD2_REDIRECT_FILE(from_key, to_key) \
+  rpc::commands.create_redirect(from_key, to_key, rpc::CommandMap::flag_public_xmlrpc | rpc::CommandMap::flag_file_target);
+#define CMD2_REDIRECT_TRACKER(from_key, to_key) \
+  rpc::commands.create_redirect(from_key, to_key, rpc::CommandMap::flag_public_xmlrpc | rpc::CommandMap::flag_tracker_target);
+
 
 //
 // Conversion of return types:

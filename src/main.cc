@@ -65,6 +65,7 @@
 #include "utils/directory.h"
 
 #include "control.h"
+#include "command_helpers.h"
 #include "globals.h"
 #include "signal_handler.h"
 #include "option_parser.h"
@@ -321,16 +322,6 @@ main(int argc, char** argv) {
       // * command_tracker.cc
       // * command_ui.cc
 
-#define CMD2_REDIRECT(from_key, to_key) \
-  rpc::commands.create_redirect(from_key, to_key, rpc::CommandMap::flag_public_xmlrpc);
-
-#define CMD2_REDIRECT_GENERIC(from_key, to_key) \
-  rpc::commands.create_redirect(from_key, to_key, rpc::CommandMap::flag_public_xmlrpc | rpc::CommandMap::flag_no_target);
-#define CMD2_REDIRECT_FILE(from_key, to_key) \
-  rpc::commands.create_redirect(from_key, to_key, rpc::CommandMap::flag_public_xmlrpc | rpc::CommandMap::flag_file_target);
-#define CMD2_REDIRECT_TRACKER(from_key, to_key) \
-  rpc::commands.create_redirect(from_key, to_key, rpc::CommandMap::flag_public_xmlrpc | rpc::CommandMap::flag_tracker_target);
-
       CMD2_REDIRECT_GENERIC("system.method.insert", "method.insert");
       CMD2_REDIRECT_GENERIC("system.method.erase", "method.erase");
       CMD2_REDIRECT_GENERIC("system.method.get", "method.get");
@@ -340,26 +331,26 @@ main(int argc, char** argv) {
       CMD2_REDIRECT_GENERIC("system.method.set_key", "method.set_key");
 
       CMD2_REDIRECT        ("get_handshake_log", "log.handshake");
-      CMD2_REDIRECT        ("set_handshake_log", "log.handshake.set");
+      CMD2_REDIRECT_GENERIC("set_handshake_log", "log.handshake.set");
       CMD2_REDIRECT        ("get_log.tracker", "log.tracker");
-      CMD2_REDIRECT        ("set_log.tracker", "log.tracker.set");
+      CMD2_REDIRECT_GENERIC("set_log.tracker", "log.tracker.set");
 
       CMD2_REDIRECT        ("get_name", "system.session_name");
-      CMD2_REDIRECT        ("set_name", "system.session_name.set");
+      CMD2_REDIRECT_GENERIC("set_name", "system.session_name.set");
 
       CMD2_REDIRECT        ("system.file_allocate", "system.file.allocate");
       CMD2_REDIRECT        ("system.file_allocate.set", "system.file.allocate.set");
       CMD2_REDIRECT        ("get_max_file_size", "system.file.max_size");
-      CMD2_REDIRECT        ("set_max_file_size", "system.file.max_size.set");
+      CMD2_REDIRECT_GENERIC("set_max_file_size", "system.file.max_size.set");
       CMD2_REDIRECT        ("get_split_file_size", "system.file.split_size");
-      CMD2_REDIRECT        ("set_split_file_size", "system.file.split_size.set");
+      CMD2_REDIRECT_GENERIC("set_split_file_size", "system.file.split_size.set");
       CMD2_REDIRECT        ("get_split_suffix", "system.file.split_suffix");
-      CMD2_REDIRECT        ("set_split_suffix", "system.file.split_suffix.set");
+      CMD2_REDIRECT_GENERIC("set_split_suffix", "system.file.split_suffix.set");
 
       CMD2_REDIRECT        ("get_timeout_sync", "pieces.sync.timeout");
-      CMD2_REDIRECT        ("set_timeout_sync", "pieces.sync.timeout.set");
+      CMD2_REDIRECT_GENERIC("set_timeout_sync", "pieces.sync.timeout.set");
       CMD2_REDIRECT        ("get_timeout_safe_sync", "pieces.sync.timeout_safe");
-      CMD2_REDIRECT        ("set_timeout_safe_sync", "pieces.sync.timeout_safe.set");
+      CMD2_REDIRECT_GENERIC("set_timeout_safe_sync", "pieces.sync.timeout_safe.set");
 
       CMD2_REDIRECT_GENERIC("get_preload_type", "pieces.preload.type");
       CMD2_REDIRECT_GENERIC("get_preload_min_size", "pieces.preload.min_size");
@@ -378,77 +369,77 @@ main(int argc, char** argv) {
       CMD2_REDIRECT_GENERIC("set_max_memory_usage", "pieces.memory.max.set");
 
       CMD2_REDIRECT        ("get_send_buffer_size", "network.send_buffer.size");
-      CMD2_REDIRECT        ("set_send_buffer_size", "network.send_buffer.size.set");
+      CMD2_REDIRECT_GENERIC("set_send_buffer_size", "network.send_buffer.size.set");
       CMD2_REDIRECT        ("get_receive_buffer_size", "network.receive_buffer.size");
-      CMD2_REDIRECT        ("set_receive_buffer_size", "network.receive_buffer.size.set");
+      CMD2_REDIRECT_GENERIC("set_receive_buffer_size", "network.receive_buffer.size.set");
 
       CMD2_REDIRECT        ("get_up_rate", "throttle.global_up.rate");
       CMD2_REDIRECT        ("get_up_total", "throttle.global_up.total");
       CMD2_REDIRECT        ("get_upload_rate", "throttle.global_up.max_rate");
-      CMD2_REDIRECT        ("set_upload_rate", "throttle.global_up.max_rate.set");
+      CMD2_REDIRECT_GENERIC("set_upload_rate", "throttle.global_up.max_rate.set");
       CMD2_REDIRECT        ("get_down_rate", "throttle.global_down.rate");
       CMD2_REDIRECT        ("get_down_total", "throttle.global_down.total");
       CMD2_REDIRECT        ("get_download_rate", "throttle.global_down.max_rate");
-      CMD2_REDIRECT        ("set_download_rate", "throttle.global_down.max_rate.set");
+      CMD2_REDIRECT_GENERIC("set_download_rate", "throttle.global_down.max_rate.set");
 
       CMD2_REDIRECT        ("bind", "network.bind_address.set");
-      CMD2_REDIRECT        ("set_bind", "network.bind_address.set");
+      CMD2_REDIRECT_GENERIC("set_bind", "network.bind_address.set");
       CMD2_REDIRECT        ("get_bind", "network.bind_address");
 
       CMD2_REDIRECT        ("ip", "network.local_address.set");
-      CMD2_REDIRECT        ("set_ip", "network.local_address.set");
+      CMD2_REDIRECT_GENERIC("set_ip", "network.local_address.set");
       CMD2_REDIRECT        ("get_ip", "network.local_address");
 
       CMD2_REDIRECT        ("port_range", "network.port_range.set");
       CMD2_REDIRECT        ("get_port_range", "network.port_range");
-      CMD2_REDIRECT        ("set_port_range", "network.port_range.set");
+      CMD2_REDIRECT_GENERIC("set_port_range", "network.port_range.set");
 
       CMD2_REDIRECT        ("port_random", "network.port_random.set");
       CMD2_REDIRECT        ("get_port_random", "network.port_random");
-      CMD2_REDIRECT        ("set_port_random", "network.port_random.set");
+      CMD2_REDIRECT_GENERIC("set_port_random", "network.port_random.set");
 
       CMD2_REDIRECT        ("port_open", "network.port_open.set");
       CMD2_REDIRECT        ("get_port_open", "network.port_open");
-      CMD2_REDIRECT        ("set_port_open", "network.port_open.set");
+      CMD2_REDIRECT_GENERIC("set_port_open", "network.port_open.set");
 
       CMD2_REDIRECT        ("proxy_address", "network.proxy_address.set");
-      CMD2_REDIRECT        ("set_proxy_address", "network.proxy_address.set");
+      CMD2_REDIRECT_GENERIC("set_proxy_address", "network.proxy_address.set");
       CMD2_REDIRECT        ("get_proxy_address", "network.proxy_address");
 
       CMD2_REDIRECT        ("scgi_port", "network.scgi.open_port");
       CMD2_REDIRECT        ("scgi_local", "network.scgi.open_local");
 
       CMD2_REDIRECT        ("scgi_dont_route", "network.scgi.dont_route.set");
-      CMD2_REDIRECT        ("set_scgi_dont_route", "network.scgi.dont_route.set");
+      CMD2_REDIRECT_GENERIC("set_scgi_dont_route", "network.scgi.dont_route.set");
       CMD2_REDIRECT        ("get_scgi_dont_route", "network.scgi.dont_route");
 
       CMD2_REDIRECT        ("xmlrpc_dialect", "network.xmlrpc.size_limit.set");
 
       CMD2_REDIRECT        ("get_connection_leech", "connection_leech");
-      CMD2_REDIRECT        ("set_connection_leech", "connection_leech.set");
+      CMD2_REDIRECT_GENERIC("set_connection_leech", "connection_leech.set");
       CMD2_REDIRECT        ("get_connection_seed", "connection_seed");
-      CMD2_REDIRECT        ("set_connection_seed", "connection_seed.set");
+      CMD2_REDIRECT_GENERIC("set_connection_seed", "connection_seed.set");
 
       CMD2_REDIRECT        ("peer_exchange", "protocol.pex.set");
       CMD2_REDIRECT        ("get_peer_exchange", "protocol.pex");
-      CMD2_REDIRECT        ("set_peer_exchange", "protocol.pex.set");
+      CMD2_REDIRECT_GENERIC("set_peer_exchange", "protocol.pex.set");
 
       CMD2_REDIRECT        ("dht", "dht.mode.set");
       CMD2_REDIRECT        ("dht_add_node", "dht.add_node");
       CMD2_REDIRECT        ("dht_statistics", "dht.statistics");
       CMD2_REDIRECT        ("get_dht_port", "dht.port");
-      CMD2_REDIRECT        ("set_dht_port", "dht.port");
+      CMD2_REDIRECT_GENERIC("set_dht_port", "dht.port");
       CMD2_REDIRECT        ("get_dht_throttle", "dht.throttle.name");
-      CMD2_REDIRECT        ("set_dht_throttle", "dht.throttle.name.set");
+      CMD2_REDIRECT_GENERIC("set_dht_throttle", "dht.throttle.name.set");
 
       CMD2_REDIRECT        ("directory", "directory.default.set");
       CMD2_REDIRECT        ("get_directory", "directory.default");
-      CMD2_REDIRECT        ("set_directory", "directory.default.set");
+      CMD2_REDIRECT_GENERIC("set_directory", "directory.default.set");
 
       CMD2_REDIRECT        ("get_session_lock", "system.session.use_lock");
-      CMD2_REDIRECT        ("set_session_lock", "system.session.use_lock.set");
+      CMD2_REDIRECT_GENERIC("set_session_lock", "system.session.use_lock.set");
       CMD2_REDIRECT        ("get_session_on_completion", "system.session.on_completion");
-      CMD2_REDIRECT        ("set_session_on_completion", "system.session.on_completion.set");
+      CMD2_REDIRECT_GENERIC("set_session_on_completion", "system.session.on_completion.set");
 
       CMD2_REDIRECT        ("check_hash", "pieces.hash.on_completion.set");
 
@@ -640,8 +631,8 @@ main(int argc, char** argv) {
       // Functions that might not get depracted as they are nice for
       // configuration files, and thus might do with just some
       // cleanup.
-      CMD2_REDIRECT        ("upload_rate", "throttle.global_up.max_rate.set");
-      CMD2_REDIRECT        ("download_rate", "throttle.global_down.max_rate.set");
+      CMD2_REDIRECT_GENERIC("upload_rate", "throttle.global_up.max_rate.set_kb");
+      CMD2_REDIRECT_GENERIC("download_rate", "throttle.global_down.max_rate.set_kb");
     }
 
     if (OptionParser::has_flag('n', argc, argv))

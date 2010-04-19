@@ -85,7 +85,13 @@ command_base_call_value(Command* rawCommand, target_type target, const torrent::
   return command_base_call_value_base<T>(rawCommand, target, rawArgs, 0, 1);
 }
 
+template <typename T> const torrent::Object
+command_base_call_value_kb(Command* rawCommand, target_type target, const torrent::Object& rawArgs) {
+  return command_base_call_value_base<T>(rawCommand, target, rawArgs, 0, 1024);
+}
+
 COMMAND_BASE_TEMPLATE_DEFINE(command_base_call_value);
+COMMAND_BASE_TEMPLATE_DEFINE(command_base_call_value_kb);
 
 template <typename T> const torrent::Object
 command_base_call_string(Command* rawCommand, target_type target, const torrent::Object& rawArgs) {

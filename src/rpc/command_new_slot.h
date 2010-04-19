@@ -117,6 +117,7 @@ COMMAND_BASE_TEMPLATE_TYPE(command_list_function,   torrent::Object (T, const to
 
 COMMAND_BASE_TEMPLATE_CALL(command_base_call, command_function);
 COMMAND_BASE_TEMPLATE_CALL(command_base_call_value, command_value_function);
+COMMAND_BASE_TEMPLATE_CALL(command_base_call_value_kb, command_value_function);
 COMMAND_BASE_TEMPLATE_CALL(command_base_call_string, command_string_function);
 COMMAND_BASE_TEMPLATE_CALL(command_base_call_list, command_list_function);
 

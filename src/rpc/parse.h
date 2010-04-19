@@ -73,6 +73,7 @@ void        parse_whole_string(const char* first, const char* last, std::string*
 
 const char* parse_value(const char* src, int64_t* value, int base = 0, int unit = 1);
 const char* parse_value_nothrow(const char* src, int64_t* value, int base = 0, int unit = 1);
+const char* parse_value_nothrow(const char* first, const char* last, int64_t* value, int base = 0, int unit = 0);
 
 void        parse_whole_value(const char* src, int64_t* value, int base = 0, int unit = 1);
 bool        parse_whole_value_nothrow(const char* src, int64_t* value, int base = 0, int unit = 1);
@@ -80,6 +81,8 @@ bool        parse_whole_value_nothrow(const char* src, int64_t* value, int base 
 const char* parse_object    (const char* first, const char* last, torrent::Object* dest, bool (*delim)(const char) = &parse_is_delim_default);
 const char* parse_list      (const char* first, const char* last, torrent::Object* dest, bool (*delim)(const char) = &parse_is_delim_default);
 const char* parse_whole_list(const char* first, const char* last, torrent::Object* dest, bool (*delim)(const char) = &parse_is_delim_default);
+
+std::string convert_to_string(const torrent::Object& src);
 
 std::string convert_list_to_string(const torrent::Object& src);
 std::string convert_list_to_string(torrent::Object::list_const_iterator first, torrent::Object::list_const_iterator last);

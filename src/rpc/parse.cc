@@ -229,6 +229,33 @@ parse_whole_list(const char* first, const char* last, torrent::Object* dest, boo
 }
 
 std::string
+convert_to_string(const torrent::Object& rawSrc) {
+  const torrent::Object& src = convert_to_single_argument(rawSrc);
+
+  switch (src.type()) {
+  case torrent::Object::TYPE_VALUE: {
+    char buffer[64];
+    snprintf(buffer, 64, "%lli", src.as_value());
+    return std::string(buffer);
+  }
+  case torrent::Object::TYPE_STRING: return src.as_string();
+  case torrent::Object::TYPE_NONE:   return std::string();
+
+  case torrent::Object::TYPE_RAW_BENCODE:
+    if (src.as_raw_bencode().is_empty())
+      return std::string();
+
+    if (src.as_raw_bencode().is_raw_string())
+      return src.as_raw_bencode().as_raw_string().as_string();
+    
+    if (src.as_raw_bencode().is_value())
+      return src.as_raw_bencode().as_value_string();
+
+  default: throw torrent::input_error("Not a string.");
+  }  
+}
+
+std::string
 convert_list_to_string(const torrent::Object& src) {
   if (!src.is_list())
     throw torrent::internal_error("convert_list_to_string(...) !src->is_list().");
@@ -334,12 +361,20 @@ convert_to_value_nothrow(const torrent::Object& src, int64_t* value, int base, i
     break;
 
   case torrent::Object::TYPE_STRING:
-    if (parse_skip_wspace(parse_value(unpacked.as_string().c_str(), value, base, unit),
-                          unpacked.as_string().c_str() + unpacked.as_string().size()) != unpacked.as_string().c_str() + unpacked.as_string().size())
-      return false;
+    return parse_skip_wspace(parse_value(unpacked.as_string().c_str(), value, base, unit),
+                             unpacked.as_string().c_str() + unpacked.as_string().size())
+      == unpacked.as_string().c_str() + unpacked.as_string().size();
 
-    break;
+  case torrent::Object::TYPE_RAW_STRING: {
+    const torrent::raw_string& str = src.as_raw_string();
 
+    char buffer[str.size() + 1];
+    std::memcpy(buffer, str.data(), str.size());
+    buffer[str.size()] = '\0';
+
+    return parse_skip_wspace(parse_value(buffer, value, base, unit), buffer + str.size())
+      == buffer + str.size();
+  }
   case torrent::Object::TYPE_NONE:
     *value = 0;
     break;

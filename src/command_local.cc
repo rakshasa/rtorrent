@@ -224,6 +224,8 @@ initialize_command_local() {
   CMD2_ANY         ("pieces.stats_preloaded",          std::tr1::bind(&CM_t::stats_preloaded, chunkManager));
   CMD2_ANY         ("pieces.stats_not_preloaded",      std::tr1::bind(&CM_t::stats_not_preloaded, chunkManager));
 
+  CMD2_VAR_BOOL    ("pieces.hash.on_completion",       true);
+
   CMD2_VAR_STRING  ("directory.default", "./");
 
   // TODO: Clean up.

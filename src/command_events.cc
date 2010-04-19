@@ -313,8 +313,6 @@ void
 initialize_command_events() {
   CMD2_ANY("test.thread_locking", std::tr1::bind(&test_thread_locking));
 
-  CMD2_VAR_BOOL    ("pieces.hash.on_completion", true);
-
   CMD2_ANY_STRING  ("on_ratio",        std::tr1::bind(&apply_on_ratio, std::tr1::placeholders::_2));
 
   CMD2_ANY         ("start_tied",      std::tr1::bind(&apply_start_tied));
@@ -322,8 +320,11 @@ initialize_command_events() {
   CMD2_ANY         ("close_untied",    std::tr1::bind(&apply_close_untied));
   CMD2_ANY         ("remove_untied",   std::tr1::bind(&apply_remove_untied));
 
-  CMD2_ANY_LIST    ("schedule",        std::tr1::bind(&apply_schedule, std::tr1::placeholders::_2));
-  CMD2_ANY_STRING_V("schedule_remove", std::tr1::bind(&rpc::CommandScheduler::erase_str, control->command_scheduler(), std::tr1::placeholders::_2));
+  CMD2_ANY_LIST    ("schedule2",        std::tr1::bind(&apply_schedule, std::tr1::placeholders::_2));
+  CMD2_ANY_STRING_V("schedule_remove2", std::tr1::bind(&rpc::CommandScheduler::erase_str, control->command_scheduler(), std::tr1::placeholders::_2));
+
+  CMD2_REDIRECT_GENERIC("schedule", "schedule2");
+  CMD2_REDIRECT_GENERIC("schedule_remove", "schedule_remove2");
 
   CMD2_ANY_STRING_V("import",          std::tr1::bind(&apply_import, std::tr1::placeholders::_2));
   CMD2_ANY_STRING_V("try_import",      std::tr1::bind(&apply_try_import, std::tr1::placeholders::_2));
