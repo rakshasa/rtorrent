@@ -53,6 +53,7 @@
 #include "rpc/command_scheduler.h"
 #include "rpc/parse_commands.h"
 #include "rpc/scgi.h"
+#include "rpc/object_storage.h"
 #include "ui/root.h"
 
 #include "control.h"
@@ -64,6 +65,7 @@ Control::Control() :
   m_inputStdin(new input::InputEvent(STDIN_FILENO)),
 
   m_commandScheduler(new rpc::CommandScheduler()),
+  m_objectStorage(new rpc::object_storage()),
 
   m_tick(0),
   m_shutdownReceived(false),
@@ -85,6 +87,7 @@ Control::~Control() {
   delete m_input;
 
   delete m_commandScheduler;
+  delete m_objectStorage;
 
   delete m_viewManager;
 

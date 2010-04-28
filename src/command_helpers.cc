@@ -38,8 +38,6 @@
 
 #include <torrent/exceptions.h>
 
-#include "rpc/command_variable.h"
-
 #include "globals.h"
 #include "control.h"
 #include "command_helpers.h"

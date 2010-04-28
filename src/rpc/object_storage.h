@@ -45,6 +45,8 @@
 #include <tr1/unordered_map>
 #include <torrent/object.h>
 
+#include "command.h"
+
 namespace rpc {
 
 // The key size should be such that the value type size which includes
@@ -150,31 +152,55 @@ public:
   using base_type::find;
   using base_type::erase;
   
-  static const unsigned int flag_generic_type = 0x1;
-  static const unsigned int flag_value_type   = 0x2;
-  static const unsigned int flag_string_type  = 0x4;
-  static const unsigned int flag_last_type    = 0x8;
+  static const unsigned int flag_generic_type  = 0x1;
+  static const unsigned int flag_bool_type     = 0x2;
+  static const unsigned int flag_value_type    = 0x3;
+  static const unsigned int flag_string_type   = 0x4;
+  static const unsigned int flag_function_type = 0x5;
 
-  static const unsigned int mask_type         = flag_last_type - 1;
+  static const unsigned int mask_type          = 0xf;
+
+  static const unsigned int flag_constant = 0x10;
+  static const unsigned int flag_static   = 0x20;
+  static const unsigned int flag_private  = 0x40;
 
   static const size_t key_size = key_type::max_size;
 
   local_iterator find_local(const torrent::raw_string& key);
 
   iterator insert(const char* key_data, uint32_t key_size, const torrent::Object& object, unsigned int flags);
+  iterator insert_c_str(const char* key, const torrent::Object& object, unsigned int flags) { return insert(key, std::strlen(key), object, flags); }
 
   iterator insert(const char* key, const torrent::Object& object, unsigned int flags);
   iterator insert(const torrent::raw_string& key, const torrent::Object& object, unsigned int flags);
-  iterator insert_string(const std::string& key, const torrent::Object& object, unsigned int flags);
+  iterator insert_str(const std::string& key, const torrent::Object& object, unsigned int flags);
 
   // Access functions that throw on error.
 
   const torrent::Object& get(const torrent::raw_string& key);
-  const torrent::Object& get_c_str(const char* str) { return get(torrent::raw_string(str, std::strlen(str))); }
+  const torrent::Object& get_c_str(const char* str)  { return get(torrent::raw_string(str, std::strlen(str))); }
+  const torrent::Object& get_str(const std::string& str) { return get(torrent::raw_string(str.data(), str.size())); }
 
-  const torrent::Object& set(const torrent::raw_string& key, const torrent::Object& object);
+//   const torrent::Object& set(const torrent::raw_string& key, const torrent::Object& object);
+//   const torrent::Object& set_c_str(const char* str, const torrent::Object& object) { return set(torrent::raw_string(str, std::strlen(str)), object); }
 
-  const torrent::Object& set_c_str(const char* str, const torrent::Object& object) { return set(torrent::raw_string(str, std::strlen(str)), object); }
+  const torrent::Object& set_bool(const torrent::raw_string& key, int64_t object);
+  const torrent::Object& set_c_str_bool(const char* str, int64_t object) { return set_bool(torrent::raw_string::from_c_str(str), object); }
+  const torrent::Object& set_str_bool(const std::string& str, int64_t object) { return set_bool(torrent::raw_string::from_string(str), object); }
+
+  const torrent::Object& set_value(const torrent::raw_string& key, int64_t object);
+  const torrent::Object& set_c_str_value(const char* str, int64_t object) { return set_value(torrent::raw_string::from_string(str), object); }
+  const torrent::Object& set_str_value(const std::string& str, int64_t object) { return set_value(torrent::raw_string::from_string(str), object); }
+
+  const torrent::Object& set_string(const torrent::raw_string& key, const std::string& object);
+  const torrent::Object& set_c_str_string(const char* str, const std::string& object) { return set_string(torrent::raw_string::from_c_str(str), object); }
+  const torrent::Object& set_str_string(const std::string& str, const std::string& object) { return set_string(torrent::raw_string::from_string(str), object); }
+  
+  torrent::Object call_function(const torrent::raw_string& key, target_type target, const torrent::Object& object);
+  torrent::Object call_function_str(const std::string& key, target_type target, const torrent::Object& object);
+
+  const torrent::Object& set_function(const torrent::raw_string& key, const std::string& object);
+  const torrent::Object& set_str_function(const std::string& str, const std::string& object) { return set_function(torrent::raw_string::from_string(str), object); }
 };
 
 //
@@ -227,8 +253,13 @@ object_storage::insert(const torrent::raw_string& key, const torrent::Object& ob
 }
 
 inline object_storage::iterator
-object_storage::insert_string(const std::string& key, const torrent::Object& object, unsigned int flags) {
+object_storage::insert_str(const std::string& key, const torrent::Object& object, unsigned int flags) {
   return insert(key.data(), key.size(), object, flags);
+}
+
+inline torrent::Object
+object_storage::call_function_str(const std::string& key, target_type target, const torrent::Object& object) {
+  return call_function(torrent::raw_string::from_string(key), target, object);
 }
 
 }

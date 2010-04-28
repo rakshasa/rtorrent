@@ -221,15 +221,6 @@ main(int argc, char** argv) {
        "method.set_key = event.download.erased, !_download_list, ui.unfocus_download=\n"
        "method.set_key = event.download.erased, ~_delete_tied, d.delete_tied=\n"
 
-       "method.insert = ratio.enable, simple|const,group.seeding.ratio.enable=\n"
-       "method.insert = ratio.disable,simple|const,group.seeding.ratio.disable=\n"
-       "method.insert = ratio.min,    simple|const,group.seeding.ratio.min=\n"
-       "method.insert = ratio.max,    simple|const,group.seeding.ratio.max=\n"
-       "method.insert = ratio.upload, simple|const,group.seeding.ratio.upload=\n"
-       "method.insert = ratio.min.set,   simple|const,group.seeding.ratio.min.set=$argument.0=\n"
-       "method.insert = ratio.max.set,   simple|const,group.seeding.ratio.max.set=$argument.0=\n"
-       "method.insert = ratio.upload.set,simple|const,group.seeding.ratio.upload.set=$argument.0=\n"
-
        "method.insert = group.insert_persistent_view,simple|const,"
        "view.add=$argument.0=,view.persistent=$argument.0=,\"group.insert=$argument.0=,$argument.0=\"\n"
 
@@ -303,24 +294,19 @@ main(int argc, char** argv) {
        "encryption=allow_incoming,prefer_plaintext,enable_retry\n"
     );
 
+    CMD2_REDIRECT        ("ratio.enable", "group.seeding.ratio.enable");
+    CMD2_REDIRECT        ("ratio.disable", "group.seeding.ratio.disable");
+    CMD2_REDIRECT        ("ratio.min", "group.seeding.ratio.min");
+    CMD2_REDIRECT        ("ratio.max", "group.seeding.ratio.max");
+    CMD2_REDIRECT        ("ratio.upload", "group.seeding.ratio.upload");
+    CMD2_REDIRECT        ("ratio.min.set", "group.seeding.ratio.min.set");
+    CMD2_REDIRECT        ("ratio.max.set", "group.seeding.ratio.max.set");
+    CMD2_REDIRECT        ("ratio.upload.set", "group.seeding.ratio.upload.set");
+
     // Deprecated commands. Don't use these anymore.
 
     if (!OptionParser::has_flag('D', argc, argv)) {
       // Deprecated in 0.7.0:
-      // 
-      // List of cleaned up files:
-      // * command_download.cc
-      // * command_dynamic.cc
-      // * command_events.cc
-      // * command_file.cc
-      // * command_helpers.cc
-      // + command_local.cc
-      // * command_network.cc
-      // * command_object.cc
-      // * command_peer.cc
-      // * command_scheduler.cc
-      // * command_tracker.cc
-      // * command_ui.cc
 
       CMD2_REDIRECT_GENERIC("system.method.insert", "method.insert");
       CMD2_REDIRECT_GENERIC("system.method.erase", "method.erase");
@@ -413,7 +399,33 @@ main(int argc, char** argv) {
       CMD2_REDIRECT_GENERIC("set_scgi_dont_route", "network.scgi.dont_route.set");
       CMD2_REDIRECT        ("get_scgi_dont_route", "network.scgi.dont_route");
 
-      CMD2_REDIRECT        ("xmlrpc_dialect", "network.xmlrpc.size_limit.set");
+      //
+      // XMLRPC stuff:
+      //
+
+      CMD2_REDIRECT_GENERIC("xmlrpc_dialect", "network.xmlrpc.dialect.set");
+      CMD2_REDIRECT_GENERIC("set_xmlrpc_dialect", "network.xmlrpc.dialect.set");
+
+      CMD2_REDIRECT_GENERIC("xmlrpc_size_limit", "network.xmlrpc.size_limit.set");
+      CMD2_REDIRECT        ("get_xmlrpc_size_limit", "network.xmlrpc.size_limit");
+      CMD2_REDIRECT_GENERIC("set_xmlrpc_size_limit", "network.xmlrpc.size_limit.set");
+
+      //
+      // HTTP stuff:
+      //
+
+      CMD2_REDIRECT_GENERIC("http_capath", "network.http.capath.set");
+      CMD2_REDIRECT        ("get_http_capath", "network.http.capath");
+      CMD2_REDIRECT_GENERIC("set_http_capath", "network.http.capath.set");
+
+      CMD2_REDIRECT_GENERIC("http_cacert", "network.http.cacert.set");
+      CMD2_REDIRECT        ("get_http_cacert", "network.http.cacert");
+      CMD2_REDIRECT_GENERIC("set_http_cacert", "network.http.cacert.set");
+
+      CMD2_REDIRECT_GENERIC("http_proxy_address", "network.http.proxy_address.set");
+      CMD2_REDIRECT        ("get_http_proxy_address", "network.http.proxy_address");
+      CMD2_REDIRECT_GENERIC("set_http_proxy_address", "network.http.proxy_address.set");
+
 
       CMD2_REDIRECT        ("get_connection_leech", "connection_leech");
       CMD2_REDIRECT_GENERIC("set_connection_leech", "connection_leech.set");
@@ -423,6 +435,10 @@ main(int argc, char** argv) {
       CMD2_REDIRECT        ("peer_exchange", "protocol.pex.set");
       CMD2_REDIRECT        ("get_peer_exchange", "protocol.pex");
       CMD2_REDIRECT_GENERIC("set_peer_exchange", "protocol.pex.set");
+
+      //
+      // DHT stuff
+      //
 
       CMD2_REDIRECT        ("dht", "dht.mode.set");
       CMD2_REDIRECT        ("dht_add_node", "dht.add_node");
@@ -442,6 +458,10 @@ main(int argc, char** argv) {
       CMD2_REDIRECT_GENERIC("set_session_on_completion", "system.session.on_completion.set");
 
       CMD2_REDIRECT        ("check_hash", "pieces.hash.on_completion.set");
+      CMD2_REDIRECT        ("get_check_hash", "pieces.hash.on_completion");
+      CMD2_REDIRECT_GENERIC("set_check_hash", "pieces.hash.on_completion.set");
+
+      //      CMD2_REDIRECT        ("get_hash_interval", "pieces.hash.interval");
 
       //
       // Download:

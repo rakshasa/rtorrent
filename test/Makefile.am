@@ -18,6 +18,8 @@ rtorrentTest_SOURCES = \
 	rpc/command_slot_test.h \
 	rpc/object_storage_test.cc \
 	rpc/object_storage_test.h \
+	src/command_dynamic_test.cc \
+	src/command_dynamic_test.h \
 	main.cc
 
 rtorrentTest_CXXFLAGS = $(CPPUNIT_CFLAGS)

@@ -65,6 +65,7 @@ namespace input {
 namespace rpc {
   class CommandScheduler;
   class XmlRpc;
+  class object_storage;
 }
 
 class Control {
@@ -96,6 +97,7 @@ public:
   input::InputEvent*  input_stdin()                 { return m_inputStdin; }
 
   rpc::CommandScheduler* command_scheduler()        { return m_commandScheduler; }
+  rpc::object_storage*   object_storage()           { return m_objectStorage; }
 
   uint64_t            tick() const                  { return m_tick; }
   void                inc_tick()                    { m_tick++; }
@@ -117,6 +119,7 @@ private:
   input::InputEvent*  m_inputStdin;
 
   rpc::CommandScheduler* m_commandScheduler;
+  rpc::object_storage*   m_objectStorage;
 
   uint64_t            m_tick;
 

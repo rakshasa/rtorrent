@@ -43,7 +43,6 @@
 #include "core/download_list.h"
 #include "core/view.h"
 #include "core/view_manager.h"
-#include "rpc/command_variable.h"
 
 #include "globals.h"
 #include "control.h"

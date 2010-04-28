@@ -39,6 +39,7 @@
 #include "object_storage.h"
 
 #include "parse.h"
+#include "command_function.h"
 
 namespace rpc {
 
@@ -54,14 +55,21 @@ object_storage::find_local(const torrent::raw_string& key) {
 }
 
 object_storage::iterator
-object_storage::insert(const char* key_data, uint32_t key_size, const torrent::Object& object, unsigned int flags) {
+object_storage::insert(const char* key_data, uint32_t key_size, const torrent::Object& rawObject, unsigned int flags) {
   if (std::find(key_data, key_data + key_size, '\0') != key_data + key_size)
     throw torrent::input_error("Found nul-char in string.");
 
   // Check for size > key_size.
   // Check for empty string.
 
-  // Ensure the object type is correct.
+  torrent::Object object;
+
+  switch (flags & mask_type) {
+  case flag_bool_type:     object = !!convert_to_value(rawObject); break;
+  case flag_value_type:    object = convert_to_value(rawObject); break;
+  case flag_string_type:   object = convert_to_string(rawObject); break;
+  case flag_function_type: object = convert_to_string(rawObject); break;
+  }
 
   if (!(flags & mask_type))
     throw torrent::input_error("No type flags set when calling object_storage::insert.");
@@ -71,8 +79,8 @@ object_storage::insert(const char* key_data, uint32_t key_size, const torrent::O
   if (!result.second)
     throw torrent::input_error("Key already exists in object_storage.");
 
-  result.first->second.object = object;
   result.first->second.flags = flags;
+  result.first->second.object = object;
 
   return result.first;
 }
@@ -87,23 +95,67 @@ object_storage::get(const torrent::raw_string& key) {
   return itr->second.object;
 }
 
+// const torrent::Object&
+// object_storage::set(const torrent::raw_string& key, const torrent::Object& object) {
+//   local_iterator itr = find_local(key);
+
+//   if (itr == end(bucket_count()) || (itr->second.flags & mask_type) != flag_generic_type)
+//     throw torrent::input_error("Key not found or wrong type.");
+
+//   return itr->second.object = object;
+// }
+
+
 const torrent::Object&
-object_storage::set(const torrent::raw_string& key, const torrent::Object& object) {
+object_storage::set_bool(const torrent::raw_string& key, int64_t object) {
   local_iterator itr = find_local(key);
 
-  if (itr == end(bucket_count()))
-    throw torrent::input_error("Key not found.");
+  if (itr == end(bucket_count()) || (itr->second.flags & mask_type) != flag_bool_type)
+    throw torrent::input_error("Key not found or wrong type.");
 
-  // Redo this...
+  return itr->second.object = !!object;
+}
 
-  switch (itr->second.flags & mask_type) {
-  case flag_generic_type: itr->second.object = object; break;
-  case flag_value_type:  itr->second.object = convert_to_value(object); break;
-  case flag_string_type: itr->second.object = convert_to_string(object); break;
-  default: throw torrent::internal_error("object_storage::set: Type not set.");
-  }
 
-  return itr->second.object;
+const torrent::Object&
+object_storage::set_value(const torrent::raw_string& key, int64_t object) {
+  local_iterator itr = find_local(key);
+
+  if (itr == end(bucket_count()) || (itr->second.flags & mask_type) != flag_value_type)
+    throw torrent::input_error("Key not found or wrong type.");
+
+  return itr->second.object = object;
+}
+
+
+const torrent::Object&
+object_storage::set_string(const torrent::raw_string& key, const std::string& object) {
+  local_iterator itr = find_local(key);
+
+  if (itr == end(bucket_count()) || (itr->second.flags & mask_type) != flag_string_type)
+    throw torrent::input_error("Key not found or wrong type.");
+
+  return itr->second.object = object;
+}
+
+const torrent::Object&
+object_storage::set_function(const torrent::raw_string& key, const std::string& object) {
+  local_iterator itr = find_local(key);
+
+  if (itr == end(bucket_count()) || (itr->second.flags & mask_type) != flag_function_type)
+    throw torrent::input_error("Key not found or wrong type.");
+
+  return itr->second.object = object;
+}
+
+torrent::Object
+object_storage::call_function(const torrent::raw_string& key, target_type target, const torrent::Object& object) {
+  local_iterator itr = find_local(key);
+
+  if (itr == end(bucket_count()) || !itr->second.object.is_string())
+    throw torrent::input_error("Key not found or wrong type.");
+
+  return command_function_call_str(itr->second.object.as_string(), target, object);
 }
 
 }

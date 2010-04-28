@@ -54,7 +54,6 @@
 #include "core/manager.h"
 #include "rpc/scgi.h"
 #include "ui/root.h"
-#include "rpc/command_variable.h"
 #include "rpc/parse.h"
 #include "rpc/parse_commands.h"
 

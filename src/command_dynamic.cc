@@ -41,7 +41,7 @@
 #include "globals.h"
 #include "control.h"
 #include "command_helpers.h"
-#include "rpc/command_variable.h"
+#include "rpc/parse.h"
 
 std::string
 system_method_generate_command(torrent::Object::list_const_iterator first, torrent::Object::list_const_iterator last) {
@@ -64,6 +64,106 @@ create_new_key(const std::string& key, const char postfix[postfix_size]) {
   std::memcpy(buffer, key.c_str(), key.size() + 1);
   std::memcpy(buffer + key.size(), postfix, postfix_size);
   return buffer;
+}
+
+// torrent::Object
+// system_method_insert_function(const torrent::Object::list_type& args, int flags) {
+  
+// }
+
+torrent::Object
+system_method_insert_object(const torrent::Object::list_type& args, int flags) {
+  if (args.empty())
+    throw torrent::input_error("Invalid argument count.");
+
+  torrent::Object::list_const_iterator itrArgs = args.begin();
+  const std::string& rawKey = (itrArgs++)->as_string();
+
+  if (rawKey.empty() ||
+      control->object_storage()->find_local(torrent::raw_string::from_string(rawKey)) != control->object_storage()->end(0) ||
+      rpc::commands.has(rawKey) || rpc::commands.has(rawKey + ".set"))
+    throw torrent::input_error("Invalid key.");
+
+  torrent::Object value;
+
+  switch (flags & rpc::object_storage::mask_type) {
+  case rpc::object_storage::flag_bool_type:
+  case rpc::object_storage::flag_value_type:
+    value = itrArgs != args.end() ? rpc::convert_to_value(*itrArgs) : int64_t();
+    break;
+  case rpc::object_storage::flag_string_type:
+    value = itrArgs != args.end() ? rpc::convert_to_string(*itrArgs) : "";
+    break;
+  case rpc::object_storage::flag_function_type:
+    value = itrArgs != args.end() ? system_method_generate_command(itrArgs, args.end()) : "";
+    break;
+  default:
+    throw torrent::input_error("Invalid type.");
+  }
+
+  int cmd_flags = 0;
+
+  if (!(flags & rpc::object_storage::flag_static))
+    cmd_flags |= rpc::CommandMap::flag_modifiable;
+  if (!(flags & rpc::object_storage::flag_private))
+    cmd_flags |= rpc::CommandMap::flag_public_xmlrpc;
+
+  rpc::object_storage::iterator obj_itr =  control->object_storage()->insert_str(rawKey, value, flags);
+
+  // Add commands:
+  rpc::command_base* command_get = new rpc::command_base();
+
+  if ((flags & rpc::object_storage::mask_type) == rpc::object_storage::flag_function_type)
+    command_get->set_function_2<rpc::command_base_call<rpc::target_type> >
+      (std::tr1::bind(&rpc::object_storage::call_function_str, control->object_storage(),
+                      rawKey, std::tr1::placeholders::_1, std::tr1::placeholders::_2));
+  else
+    command_get->set_function_2<rpc::command_base_call<rpc::target_type> >
+      (std::tr1::bind(&rpc::object_storage::get_str, control->object_storage(), rawKey));
+
+  rpc::commands.insert_type(create_new_key<0>(rawKey, ""),
+                            command_get,
+                            &rpc::command_base_call<rpc::target_type>,
+                            cmd_flags, NULL, NULL);
+
+  // TODO: Next... Make test class for this.
+
+//   // Ehm... no proper handling if these throw.
+
+  if (!(flags & rpc::object_storage::flag_constant)) {
+    rpc::command_base* command_set = new rpc::command_base();
+    rpc::command_base_call_type command_call = NULL;
+
+    switch (flags & rpc::object_storage::mask_type) {
+    case rpc::object_storage::flag_bool_type:
+      command_set->set_function_2<rpc::command_base_call_value<rpc::target_type> >
+        (std::tr1::bind(&rpc::object_storage::set_str_bool, control->object_storage(), rawKey, std::tr1::placeholders::_2));
+
+      command_call = &rpc::command_base_call_value<rpc::target_type>;
+      break;
+    case rpc::object_storage::flag_value_type:
+      command_set->set_function_2<rpc::command_base_call_value<rpc::target_type> >
+        (std::tr1::bind(&rpc::object_storage::set_str_value, control->object_storage(), rawKey, std::tr1::placeholders::_2));
+
+      command_call = &rpc::command_base_call_value<rpc::target_type>;
+      break;
+    case rpc::object_storage::flag_string_type:
+      command_set->set_function_2<rpc::command_base_call_string<rpc::target_type> >
+        (std::tr1::bind(&rpc::object_storage::set_str_string, control->object_storage(), rawKey, std::tr1::placeholders::_2));
+
+      command_call = &rpc::command_base_call_string<rpc::target_type>;
+      break;
+    case rpc::object_storage::flag_function_type:
+    default:
+      delete command_set;
+      return torrent::Object();
+    }
+
+    rpc::commands.insert_type(create_new_key<5>(rawKey, ".set"),
+                              command_set, command_call, cmd_flags, NULL, NULL);
+  }
+
+  return torrent::Object();
 }
 
 // method.insert <generic> {name, "simple|private|const", ...}
@@ -109,62 +209,53 @@ system_method_insert(const torrent::Object::list_type& args) {
     rpc::commands.insert_type(create_new_key<0>(rawKey, ""), command, slot, flags, NULL, NULL);
 
   } else if (options.find("simple") != std::string::npos) {
-    rpc::command_base* command = new rpc::command_base();
+    torrent::Object::list_type new_args;
+    new_args.push_back(rawKey);
+    new_args.push_back(system_method_generate_command(++itrArgs, args.end()));
 
-    command->set_function<rpc::command_base_is_type
-      <rpc::command_base_call
-      <rpc::target_type> >::type>(std::tr1::bind(&rpc::command_function_call_str,
-                                                 system_method_generate_command(++itrArgs, args.end()),
-                                                 std::tr1::placeholders::_1,
-                                                 std::tr1::placeholders::_2));
+    int new_flags = rpc::object_storage::flag_function_type;
 
-    rpc::commands.insert_type(create_new_key<0>(rawKey, ""), command, &rpc::command_base_call<rpc::target_type>,
-                              flags, NULL, NULL);
+    if (options.find("static") != std::string::npos)
+      new_flags |= rpc::object_storage::flag_static;
+    if (options.find("private") != std::string::npos)
+      new_flags |= rpc::object_storage::flag_private;
+    if (options.find("const") != std::string::npos)
+      new_flags |= rpc::object_storage::flag_constant;
 
-//     rpc::Command::any_slot slot = &rpc::CommandFunction::call;
-//     rpc::Command* command = new rpc::CommandFunction(system_method_generate_command(++itrArgs, args.end()));
-
-//     rpc::commands.insert_type(create_new_key<0>(rawKey, ""), command, slot, flags, NULL, NULL);
+    return system_method_insert_object(new_args, new_flags);
 
   } else if (options.find("value") != std::string::npos ||
              options.find("bool") != std::string::npos ||
              options.find("string") != std::string::npos ||
-             options.find("list") != std::string::npos) {
-    rpc::CommandVariable *command;
-    rpc::Command::any_slot getSlot;
-    rpc::Command::any_slot setSlot;
-
-    if (options.find("value") != std::string::npos) {
-      command = new rpc::CommandVariable(int64_t());
-      getSlot = &rpc::CommandVariable::get_value;
-      setSlot = &rpc::CommandVariable::set_value;
-    } else if (options.find("bool") != std::string::npos) {
-      command = new rpc::CommandVariable(int64_t());
-      getSlot = &rpc::CommandVariable::get_bool;
-      setSlot = &rpc::CommandVariable::set_bool;
-    } else if (options.find("string") != std::string::npos) {
-      command = new rpc::CommandVariable(std::string());
-      getSlot = &rpc::CommandVariable::get_string;
-      setSlot = &rpc::CommandVariable::set_string;
-    } else {
-//       command = new rpc::CommandVariable(torrent::Object::create_list());
-//       getSlot = &rpc::CommandVariable::get_string;
-//       setSlot = &rpc::CommandVariable::set_string;
-      throw torrent::input_error("No support for 'list' variable type.");
-    }
-
-    // Only allow deletion after adding a flag that ensures we search
-    // the command map for duplicates of 'command', and delete them
-    // all at the same time.
-    flags &= ~rpc::CommandMap::flag_modifiable;
-
-    rpc::commands.insert_type(create_new_key<0>(rawKey, ""), command, getSlot, flags, NULL, NULL);
-
-    if (options.find("static") == std::string::npos)
-      rpc::commands.insert_type(create_new_key<5>(rawKey, ".set"), command, setSlot, flags | rpc::CommandMap::flag_dont_delete, NULL, NULL);
+             options.find("list") != std::string::npos ||
+             options.find("simple") != std::string::npos) {
+    torrent::Object::list_type new_args;
+    new_args.push_back(rawKey);
 
     if (++itrArgs != args.end())
-      (*setSlot)(command, rpc::make_target(), *itrArgs);
+      new_args.insert(new_args.end(), itrArgs, args.end());
+
+    int new_flags;
+
+    if (options.find("value") != std::string::npos)
+      new_flags = rpc::object_storage::flag_value_type;
+    else if (options.find("bool") != std::string::npos)
+      new_flags = rpc::object_storage::flag_bool_type;
+    else if (options.find("string") != std::string::npos)
+      new_flags = rpc::object_storage::flag_string_type;
+    else if (options.find("simple") != std::string::npos)
+      new_flags = rpc::object_storage::flag_function_type;
+    else 
+      throw torrent::input_error("No support for 'list' variable type.");
+
+    if (options.find("static") != std::string::npos)
+      new_flags |= rpc::object_storage::flag_static;
+    if (options.find("private") != std::string::npos)
+      new_flags |= rpc::object_storage::flag_private;
+    if (options.find("const") != std::string::npos)
+      new_flags |= rpc::object_storage::flag_constant;
+
+    return system_method_insert_object(new_args, new_flags);
 
   } else {
     // THROW.
@@ -208,32 +299,18 @@ system_method_redirect(const torrent::Object::list_type& args) {
 }
 
 torrent::Object
-system_method_get(const torrent::Object::string_type& args) {
-//   rpc::CommandFunction* function;
-//   rpc::CommandMap::iterator itr = rpc::commands.find(args.c_str());
+system_method_set_function(const torrent::Object::list_type& args) {
+  if (args.empty())
+    throw torrent::input_error("Invalid argument count.");
 
-//   if (itr == rpc::commands.end() ||
-//       (function = dynamic_cast<rpc::CommandFunction*>(itr->second.m_variable)) == NULL)
-//     throw torrent::input_error("Command not modifiable or wrong type.");
+  rpc::object_storage::local_iterator itr =
+    control->object_storage()->find_local(torrent::raw_string::from_string(args.front().as_string()));
 
-//   return torrent::Object(function->command());
-  return torrent::Object();
-}
+  if (itr == control->object_storage()->end(0) || itr->second.flags & rpc::object_storage::flag_constant)
+    throw torrent::input_error("Command is not modifiable.");    
 
-torrent::Object
-system_method_set(const torrent::Object::list_type& args) {
-//   if (args.empty())
-//     throw torrent::input_error("Invalid argument count.");
-
-//   rpc::CommandFunction* function;
-//   rpc::CommandMap::iterator itr = rpc::commands.find(args.front().as_string().c_str());
-
-//   if (itr == rpc::commands.end() || !rpc::commands.is_modifiable(itr) ||
-//       (function = dynamic_cast<rpc::CommandFunction*>(itr->second.m_variable)) == NULL)
-//     throw torrent::input_error("Command not modifiable or wrong type.");
-
-//   function->set_command(system_method_generate_command(++args.begin(), args.end()));
-  return torrent::Object();
+  return control->object_storage()->set_str_function(args.front().as_string(),
+                                                     system_method_generate_command(++args.begin(), args.end()));
 }
 
 torrent::Object
@@ -292,13 +369,26 @@ system_method_list_keys(const torrent::Object::string_type& args) {
   return rawResult;
 }
 
+#define CMD2_METHOD_INSERT(key, flags) \
+  CMD2_ANY_LIST(key, std::tr1::bind(&system_method_insert_object, std::tr1::placeholders::_2, flags));
+
 void
 initialize_command_dynamic() {
   CMD2_ANY_LIST    ("method.insert",    std::tr1::bind(&system_method_insert, std::tr1::placeholders::_2));
+
+  CMD2_ANY_LIST    ("method.insert.value", std::tr1::bind(&system_method_insert_object, std::tr1::placeholders::_2,
+                                                          rpc::object_storage::flag_value_type));
+
+  CMD2_METHOD_INSERT("method.insert.simple",     rpc::object_storage::flag_function_type);
+  CMD2_METHOD_INSERT("method.insert.c_simple",   rpc::object_storage::flag_constant | rpc::object_storage::flag_function_type);
+  CMD2_METHOD_INSERT("method.insert.s_c_simple", rpc::object_storage::flag_static |
+                     rpc::object_storage::flag_constant |rpc::object_storage::flag_function_type);
+
   CMD2_ANY_STRING  ("method.erase",     std::tr1::bind(&system_method_erase, std::tr1::placeholders::_2));
   CMD2_ANY_LIST    ("method.redirect",  std::tr1::bind(&system_method_redirect, std::tr1::placeholders::_2));
-  CMD2_ANY_STRING  ("method.get",       std::tr1::bind(&system_method_get, std::tr1::placeholders::_2));
-  CMD2_ANY_LIST    ("method.set",       std::tr1::bind(&system_method_set, std::tr1::placeholders::_2));
+  CMD2_ANY_STRING  ("method.get",       std::tr1::bind(&rpc::object_storage::get_str, control->object_storage(),
+                                                       std::tr1::placeholders::_2));
+  CMD2_ANY_LIST    ("method.set",       std::tr1::bind(&system_method_set_function, std::tr1::placeholders::_2));
   CMD2_ANY_LIST    ("method.set_key",   std::tr1::bind(&system_method_set_key, std::tr1::placeholders::_2));
   CMD2_ANY_LIST    ("method.has_key",   std::tr1::bind(&system_method_has_key, std::tr1::placeholders::_2));
   CMD2_ANY_STRING  ("method.list_keys", std::tr1::bind(&system_method_list_keys, std::tr1::placeholders::_2));

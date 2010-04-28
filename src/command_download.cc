@@ -56,7 +56,6 @@
 #include "core/download.h"
 #include "core/download_store.h"
 #include "core/manager.h"
-#include "rpc/command_variable.h"
 
 #include "globals.h"
 #include "control.h"

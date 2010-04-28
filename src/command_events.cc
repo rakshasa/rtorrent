@@ -50,7 +50,6 @@
 #include "core/manager.h"
 #include "core/view_manager.h"
 #include "rpc/command_scheduler.h"
-#include "rpc/command_variable.h"
 #include "rpc/parse.h"
 #include "rpc/parse_commands.h"
 

@@ -40,9 +40,9 @@
 #include "rpc/command_new_slot.h"
 #include "rpc/command_function.h"
 #include "rpc/parse_commands.h"
+#include "rpc/object_storage.h"
 
 namespace rpc {
-  class CommandVariable;
   class CommandObjectPtr;
 }
 
@@ -61,15 +61,15 @@ void initialize_commands();
 // New std::function based command_base helper functions:
 //
 
-#define CMD2_A_FUNCTION(key, function, slot, parm, doc)      \
+#define CMD2_A_FUNCTION(key, function, slot, parm, doc)                 \
   commandNewSlotItr->set_function<rpc::command_base_is_type<rpc::function>::type>(slot); \
   rpc::commands.insert_type(key, commandNewSlotItr++, &rpc::function,   \
-                    rpc::CommandMap::flag_dont_delete | rpc::CommandMap::flag_public_xmlrpc, NULL, NULL);
+                            rpc::CommandMap::flag_dont_delete | rpc::CommandMap::flag_public_xmlrpc, NULL, NULL);
 
-#define CMD2_A_FUNCTION_PRIVATE(key, function, slot, parm, doc)      \
+#define CMD2_A_FUNCTION_PRIVATE(key, function, slot, parm, doc)         \
   commandNewSlotItr->set_function<rpc::command_base_is_type<rpc::function>::type>(slot); \
   rpc::commands.insert_type(key, commandNewSlotItr++, &rpc::function,   \
-                    rpc::CommandMap::flag_dont_delete, NULL, NULL);
+                            rpc::CommandMap::flag_dont_delete, NULL, NULL);
 
 #define CMD2_ANY(key, slot)          CMD2_A_FUNCTION(key, command_base_call<rpc::target_type>, slot, "i:", "")
 
@@ -112,13 +112,31 @@ void initialize_commands();
 #define CMD2_TRACKER_VALUE_V(key, slot) CMD2_A_FUNCTION(key, command_base_call_value<torrent::Tracker*>, object_convert_void(slot), "i:i", "")
 
 #define CMD2_VAR_BOOL(key, value)                                       \
-  rpc::commands.call("method.insert", rpc::create_object_list(key, "bool|const", int64_t(value)));
+  control->object_storage()->insert_c_str(key, int64_t(value), rpc::object_storage::flag_bool_type); \
+  CMD2_ANY(key, std::tr1::bind(&rpc::object_storage::get, control->object_storage(),   \
+                               torrent::raw_string::from_c_str(key)));  \
+  CMD2_ANY_VALUE(key ".set", std::tr1::bind(&rpc::object_storage::set_bool, control->object_storage(), \
+                                            torrent::raw_string::from_c_str(key), std::tr1::placeholders::_2));
+
 #define CMD2_VAR_VALUE(key, value)                                      \
-  rpc::commands.call("method.insert", rpc::create_object_list(key, "value|const", int64_t(value)));
+  control->object_storage()->insert_c_str(key, int64_t(value), rpc::object_storage::flag_value_type); \
+  CMD2_ANY(key, std::tr1::bind(&rpc::object_storage::get, control->object_storage(),   \
+                               torrent::raw_string::from_c_str(key)));  \
+  CMD2_ANY_VALUE(key ".set", std::tr1::bind(&rpc::object_storage::set_value, control->object_storage(), \
+                                            torrent::raw_string::from_c_str(key), std::tr1::placeholders::_2));
+
 #define CMD2_VAR_STRING(key, value)                                     \
-  rpc::commands.call("method.insert", rpc::create_object_list(key, "string|const", std::string(value)));
+  control->object_storage()->insert_c_str(key, value, rpc::object_storage::flag_string_type); \
+  CMD2_ANY(key, std::tr1::bind(&rpc::object_storage::get, control->object_storage(),   \
+                               torrent::raw_string::from_c_str(key)));  \
+  CMD2_ANY_STRING(key ".set", std::tr1::bind(&rpc::object_storage::set_string, control->object_storage(), \
+                                            torrent::raw_string::from_c_str(key), std::tr1::placeholders::_2));
+
+
 #define CMD2_VAR_C_STRING(key, value)                                   \
-  rpc::commands.call("method.insert", rpc::create_object_list(key, "string|static|const", std::string(value)));
+  control->object_storage()->insert_c_str(key, value, rpc::object_storage::flag_string_type); \
+  CMD2_ANY(key, std::tr1::bind(&rpc::object_storage::get, control->object_storage(),   \
+                               torrent::raw_string::from_c_str(key)));
 
 #define CMD2_FUNC_SINGLE(key, cmds)                                  \
   CMD2_ANY(key, std::tr1::bind(&rpc::command_function_call, torrent::raw_string::from_c_str(cmds), \

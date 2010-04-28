@@ -69,6 +69,11 @@ public:
   template <typename T>
   void set_function(T s, int value = command_base_is_valid<T>::value) { _pod<T>() = s; }
 
+  template <command_base_call_type T>
+  void set_function_2(typename command_base_is_type<T>::type s, int value = command_base_is_valid<typename command_base_is_type<T>::type>::value) {
+    _pod<typename command_base_is_type<T>::type>() = s;
+  }
+
   // The std::function object in GCC is castable between types with a
   // pointer to a struct of ctor/dtor/calls for non-POD slots. As such
   // it should be safe to cast between different std::function
