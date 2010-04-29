@@ -133,6 +133,21 @@ call_command_d_range(const char* key, core::Download* download, torrent::Object:
   return commands.call_command_d(key, download, rawArgs);
 }
 
+//
+//
+//
+
+// Temp until it can be moved somewhere better...
+const torrent::Object
+command_function_call(const torrent::raw_string& cmd, target_type target, const torrent::Object& args);
+const torrent::Object
+command_function_multi_call(const torrent::Object::map_type& cmd, target_type target, const torrent::Object& args);
+
+inline const torrent::Object
+command_function_call_str(const std::string& cmd, target_type target, const torrent::Object& args) {
+  return command_function_call(torrent::raw_string::from_string(cmd), target, args);
+}
+
 }
 
 #endif

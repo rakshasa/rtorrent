@@ -3,8 +3,6 @@ noinst_LIBRARIES = libsub_rpc.a
 libsub_rpc_a_SOURCES = \
 	command.h \
 	command_impl.h \
-	command_function.cc \
-	command_function.h \
 	command_map.cc \
 	command_map.h \
 	command_scheduler.cc \
@@ -15,6 +13,7 @@ libsub_rpc_a_SOURCES = \
 	command_new_slot.h \
 	exec_file.cc \
 	exec_file.h \
+	fixed_key.h \
 	object_storage.cc \
 	object_storage.h \
 	parse.cc \

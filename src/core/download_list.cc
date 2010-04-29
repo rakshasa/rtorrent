@@ -579,11 +579,11 @@ DownloadList::confirm_finished(Download* download) {
   rpc::call_command("d.connection_current.set", rpc::call_command_void("d.connection_seed", rpc::make_target(download)), rpc::make_target(download));
   download->set_priority(download->priority());
 
-  if (rpc::call_command_value("d.peers_min", rpc::make_target(download)) == rpc::call_command_value("min_peers") && rpc::call_command_value("min_peers_seed") >= 0)
-    rpc::call_command("d.peers_min.set", rpc::call_command_void("min_peers_seed"), rpc::make_target(download));
+  if (rpc::call_command_value("d.peers_min", rpc::make_target(download)) == rpc::call_command_value("throttle.min_peers.normal") && rpc::call_command_value("throttle.min_peers.seed") >= 0)
+    rpc::call_command("d.peers_min.set", rpc::call_command_void("throttle.min_peers.seed"), rpc::make_target(download));
 
-  if (rpc::call_command_value("d.peers_max", rpc::make_target(download)) == rpc::call_command_value("max_peers") && rpc::call_command_value("max_peers_seed") >= 0)
-    rpc::call_command("d.peers_max.set", rpc::call_command_void("max_peers_seed"), rpc::make_target(download));
+  if (rpc::call_command_value("d.peers_max", rpc::make_target(download)) == rpc::call_command_value("throttle.max_peers.normal") && rpc::call_command_value("throttle.max_peers.seed") >= 0)
+    rpc::call_command("d.peers_max.set", rpc::call_command_void("throttle.max_peers.seed"), rpc::make_target(download));
 
   // Do this before the slots are called in case one of them closes
   // the download.

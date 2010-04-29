@@ -166,8 +166,8 @@ Root::set_down_throttle(unsigned int throttle) {
 
   torrent::down_throttle_global()->set_max_rate(throttle * 1024);
 
-  unsigned int div    = std::max<int>(rpc::call_command_value("max_downloads_div"), 0);
-  unsigned int global = std::max<int>(rpc::call_command_value("max_downloads_global"), 0);
+  unsigned int div    = std::max<int>(rpc::call_command_value("throttle.max_downloads.div"), 0);
+  unsigned int global = std::max<int>(rpc::call_command_value("throttle.max_downloads.global"), 0);
 
   if (throttle == 0 || div == 0) {
     torrent::set_max_download_unchoked(global);
@@ -196,8 +196,8 @@ Root::set_up_throttle(unsigned int throttle) {
 
   torrent::up_throttle_global()->set_max_rate(throttle * 1024);
 
-  unsigned int div    = std::max<int>(rpc::call_command_value("max_uploads_div"), 0);
-  unsigned int global = std::max<int>(rpc::call_command_value("max_uploads_global"), 0);
+  unsigned int div    = std::max<int>(rpc::call_command_value("throttle.max_uploads.div"), 0);
+  unsigned int global = std::max<int>(rpc::call_command_value("throttle.max_uploads.global"), 0);
 
   if (throttle == 0 || div == 0) {
     torrent::set_max_unchoked(global);

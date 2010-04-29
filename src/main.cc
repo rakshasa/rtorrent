@@ -303,6 +303,18 @@ main(int argc, char** argv) {
     CMD2_REDIRECT        ("ratio.max.set", "group.seeding.ratio.max.set");
     CMD2_REDIRECT        ("ratio.upload.set", "group.seeding.ratio.upload.set");
 
+    CMD2_REDIRECT        ("min_peers", "throttle.min_peers.normal.set");
+    CMD2_REDIRECT        ("max_peers", "throttle.max_peers.normal.set");
+    CMD2_REDIRECT        ("min_peers_seed", "throttle.min_peers.seed.set");
+    CMD2_REDIRECT        ("max_peers_seed", "throttle.max_peers.seed.set");
+
+    CMD2_REDIRECT        ("max_uploads", "throttle.max_uploads.set");
+
+    CMD2_REDIRECT        ("max_uploads_div", "throttle.max_uploads.div.set");
+    CMD2_REDIRECT        ("max_uploads_global", "throttle.max_uploads.global.set");
+    CMD2_REDIRECT        ("max_downloads_div", "throttle.max_downloads.div.set");
+    CMD2_REDIRECT        ("max_downloads_global", "throttle.max_downloads.global.set");
+
     // Deprecated commands. Don't use these anymore.
 
     if (!OptionParser::has_flag('D', argc, argv)) {
@@ -354,10 +366,33 @@ main(int argc, char** argv) {
       CMD2_REDIRECT_GENERIC("get_max_memory_usage", "pieces.memory.max");
       CMD2_REDIRECT_GENERIC("set_max_memory_usage", "pieces.memory.max.set");
 
-      CMD2_REDIRECT        ("get_send_buffer_size", "network.send_buffer.size");
-      CMD2_REDIRECT_GENERIC("set_send_buffer_size", "network.send_buffer.size.set");
-      CMD2_REDIRECT        ("get_receive_buffer_size", "network.receive_buffer.size");
-      CMD2_REDIRECT_GENERIC("set_receive_buffer_size", "network.receive_buffer.size.set");
+      //
+      // Throttle:
+      //
+
+      CMD2_REDIRECT_GENERIC("set_min_peers", "throttle.min_peers.normal.set");
+      CMD2_REDIRECT_GENERIC("set_max_peers", "throttle.max_peers.normal.set");
+      CMD2_REDIRECT_GENERIC("set_min_peers_seed", "throttle.min_peers.seed.set");
+      CMD2_REDIRECT_GENERIC("set_max_peers_seed", "throttle.max_peers.seed.set");
+
+      CMD2_REDIRECT_GENERIC("set_max_uploads", "throttle.max_uploads.set");
+
+      CMD2_REDIRECT_GENERIC("set_max_uploads_div", "throttle.max_uploads.div.set");
+      CMD2_REDIRECT_GENERIC("set_max_uploads_global", "throttle.max_uploads.global.set");
+      CMD2_REDIRECT_GENERIC("set_max_downloads_div", "throttle.max_downloads.div.set");
+      CMD2_REDIRECT_GENERIC("set_max_downloads_global", "throttle.max_downloads.global.set");
+
+      CMD2_REDIRECT        ("get_min_peers", "throttle.min_peers.normal");
+      CMD2_REDIRECT        ("get_max_peers", "throttle.max_peers.normal");
+      CMD2_REDIRECT        ("get_min_peers_seed", "throttle.min_peers.seed");
+      CMD2_REDIRECT        ("get_max_peers_seed", "throttle.max_peers.seed");
+
+      CMD2_REDIRECT        ("get_max_uploads", "throttle.max_uploads");
+
+      CMD2_REDIRECT        ("get_max_uploads_div", "throttle.max_uploads.div");
+      CMD2_REDIRECT        ("get_max_uploads_global", "throttle.max_uploads.global");
+      CMD2_REDIRECT        ("get_max_downloads_div", "throttle.max_downloads.div");
+      CMD2_REDIRECT        ("get_max_downloads_global", "throttle.max_downloads.global");
 
       CMD2_REDIRECT        ("get_up_rate", "throttle.global_up.rate");
       CMD2_REDIRECT        ("get_up_total", "throttle.global_up.total");
@@ -367,6 +402,15 @@ main(int argc, char** argv) {
       CMD2_REDIRECT        ("get_down_total", "throttle.global_down.total");
       CMD2_REDIRECT        ("get_download_rate", "throttle.global_down.max_rate");
       CMD2_REDIRECT_GENERIC("set_download_rate", "throttle.global_down.max_rate.set");
+
+      //
+      // Network:
+      //
+
+      CMD2_REDIRECT        ("get_send_buffer_size", "network.send_buffer.size");
+      CMD2_REDIRECT_GENERIC("set_send_buffer_size", "network.send_buffer.size.set");
+      CMD2_REDIRECT        ("get_receive_buffer_size", "network.receive_buffer.size");
+      CMD2_REDIRECT_GENERIC("set_receive_buffer_size", "network.receive_buffer.size.set");
 
       CMD2_REDIRECT        ("bind", "network.bind_address.set");
       CMD2_REDIRECT_GENERIC("set_bind", "network.bind_address.set");
@@ -399,6 +443,9 @@ main(int argc, char** argv) {
       CMD2_REDIRECT_GENERIC("set_scgi_dont_route", "network.scgi.dont_route.set");
       CMD2_REDIRECT        ("get_scgi_dont_route", "network.scgi.dont_route");
 
+      CMD2_REDIRECT        ("get_max_open_files", "network.max_open_files");
+      CMD2_REDIRECT_GENERIC("set_max_open_files", "network.max_open_files.set");
+
       //
       // XMLRPC stuff:
       //
@@ -422,10 +469,12 @@ main(int argc, char** argv) {
       CMD2_REDIRECT        ("get_http_cacert", "network.http.cacert");
       CMD2_REDIRECT_GENERIC("set_http_cacert", "network.http.cacert.set");
 
+      CMD2_REDIRECT        ("get_http_max_open", "network.http.max_open");
+      CMD2_REDIRECT_GENERIC("set_http_max_open", "network.http.max_open.set");
+
       CMD2_REDIRECT_GENERIC("http_proxy_address", "network.http.proxy_address.set");
       CMD2_REDIRECT        ("get_http_proxy_address", "network.http.proxy_address");
       CMD2_REDIRECT_GENERIC("set_http_proxy_address", "network.http.proxy_address.set");
-
 
       CMD2_REDIRECT        ("get_connection_leech", "connection_leech");
       CMD2_REDIRECT_GENERIC("set_connection_leech", "connection_leech.set");
@@ -435,6 +484,18 @@ main(int argc, char** argv) {
       CMD2_REDIRECT        ("peer_exchange", "protocol.pex.set");
       CMD2_REDIRECT        ("get_peer_exchange", "protocol.pex");
       CMD2_REDIRECT_GENERIC("set_peer_exchange", "protocol.pex.set");
+
+      //
+      // Trackers:
+      //
+
+      CMD2_REDIRECT        ("tracker_numwant", "trackers.numwant.set");
+      CMD2_REDIRECT        ("get_tracker_numwant", "trackers.numwant");
+      CMD2_REDIRECT_GENERIC("set_tracker_numwant", "trackers.numwant.set");
+      
+      CMD2_REDIRECT        ("use_udp_trackers", "trackers.use_udp.set");
+      CMD2_REDIRECT        ("get_use_udp_trackers", "trackers.use_udp");
+      CMD2_REDIRECT_GENERIC("set_use_udp_trackers", "trackers.use_udp.set");
 
       //
       // DHT stuff
@@ -452,16 +513,30 @@ main(int argc, char** argv) {
       CMD2_REDIRECT        ("get_directory", "directory.default");
       CMD2_REDIRECT_GENERIC("set_directory", "directory.default.set");
 
+      //
+      // Various system stuff:
+      //
+
       CMD2_REDIRECT        ("get_session_lock", "system.session.use_lock");
       CMD2_REDIRECT_GENERIC("set_session_lock", "system.session.use_lock.set");
       CMD2_REDIRECT        ("get_session_on_completion", "system.session.on_completion");
       CMD2_REDIRECT_GENERIC("set_session_on_completion", "system.session.on_completion.set");
 
+      CMD2_REDIRECT        ("hash_read_ahead", "system.hash.read_ahead.set");
+      CMD2_REDIRECT        ("get_hash_read_ahead", "system.hash.read_ahead");
+      CMD2_REDIRECT_GENERIC("set_hash_read_ahead", "system.hash.read_ahead.set");
+
+      CMD2_REDIRECT        ("hash_interval", "system.hash.interval.set");
+      CMD2_REDIRECT        ("get_hash_interval", "system.hash.interval");
+      CMD2_REDIRECT_GENERIC("set_hash_interval", "system.hash.interval.set");
+
+      CMD2_REDIRECT        ("hash_max_tries", "system.hash.max_tries.set");
+      CMD2_REDIRECT        ("get_hash_max_tries", "system.hash.max_tries");
+      CMD2_REDIRECT_GENERIC("set_hash_max_tries", "system.hash.max_tries.set");
+
       CMD2_REDIRECT        ("check_hash", "pieces.hash.on_completion.set");
       CMD2_REDIRECT        ("get_check_hash", "pieces.hash.on_completion");
       CMD2_REDIRECT_GENERIC("set_check_hash", "pieces.hash.on_completion.set");
-
-      //      CMD2_REDIRECT        ("get_hash_interval", "pieces.hash.interval");
 
       //
       // Download:

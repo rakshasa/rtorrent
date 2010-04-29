@@ -39,7 +39,7 @@
 #include "object_storage.h"
 
 #include "parse.h"
-#include "command_function.h"
+#include "parse_commands.h"
 
 namespace rpc {
 
@@ -69,6 +69,7 @@ object_storage::insert(const char* key_data, uint32_t key_size, const torrent::O
   case flag_value_type:    object = convert_to_value(rawObject); break;
   case flag_string_type:   object = convert_to_string(rawObject); break;
   case flag_function_type: object = convert_to_string(rawObject); break;
+  case flag_multi_type:    object = torrent::Object::create_map(); break;
   }
 
   if (!(flags & mask_type))
@@ -94,17 +95,6 @@ object_storage::get(const torrent::raw_string& key) {
 
   return itr->second.object;
 }
-
-// const torrent::Object&
-// object_storage::set(const torrent::raw_string& key, const torrent::Object& object) {
-//   local_iterator itr = find_local(key);
-
-//   if (itr == end(bucket_count()) || (itr->second.flags & mask_type) != flag_generic_type)
-//     throw torrent::input_error("Key not found or wrong type.");
-
-//   return itr->second.object = object;
-// }
-
 
 const torrent::Object&
 object_storage::set_bool(const torrent::raw_string& key, int64_t object) {
@@ -152,10 +142,45 @@ torrent::Object
 object_storage::call_function(const torrent::raw_string& key, target_type target, const torrent::Object& object) {
   local_iterator itr = find_local(key);
 
-  if (itr == end(bucket_count()) || !itr->second.object.is_string())
+  if (itr == end(bucket_count()))
     throw torrent::input_error("Key not found or wrong type.");
 
-  return command_function_call_str(itr->second.object.as_string(), target, object);
+  switch (itr->second.flags & mask_type) {
+  case flag_function_type:
+    return command_function_call_str(itr->second.object.as_string(), target, object);
+  case flag_multi_type:
+    return command_function_multi_call(itr->second.object.as_map(), target, object);
+  default:
+    throw torrent::input_error("Key not found or wrong type.");
+  }
+}
+
+bool
+object_storage::has_multi_key(const torrent::raw_string& key, const std::string& cmd_key) {
+  local_iterator itr = find_local(key);
+
+  return itr != end(0) && (itr->second.flags & mask_type) == flag_multi_type &&
+    itr->second.object.has_key(cmd_key);
+}
+
+void
+object_storage::erase_multi_key(const torrent::raw_string& key, const std::string& cmd_key) {
+  local_iterator itr = find_local(key);
+
+  if (itr != end(0) && (itr->second.flags & mask_type) == flag_multi_type)
+    return;
+
+  itr->second.object.erase_key(cmd_key);
+}
+
+void
+object_storage::set_multi_key(const torrent::raw_string& key, const std::string& cmd_key, const std::string& object) {
+  local_iterator itr = find_local(key);
+
+  if (itr == end(0) || (itr->second.flags & mask_type) != flag_multi_type)
+    throw torrent::input_error("Key not found or wrong type.");
+
+  itr->second.object.insert_key(cmd_key, object);
 }
 
 }

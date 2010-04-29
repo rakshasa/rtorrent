@@ -97,6 +97,8 @@ system_method_insert_object(const torrent::Object::list_type& args, int flags) {
   case rpc::object_storage::flag_function_type:
     value = itrArgs != args.end() ? system_method_generate_command(itrArgs, args.end()) : "";
     break;
+  case rpc::object_storage::flag_multi_type:
+    break;
   default:
     throw torrent::input_error("Invalid type.");
   }
@@ -113,7 +115,8 @@ system_method_insert_object(const torrent::Object::list_type& args, int flags) {
   // Add commands:
   rpc::command_base* command_get = new rpc::command_base();
 
-  if ((flags & rpc::object_storage::mask_type) == rpc::object_storage::flag_function_type)
+  if ((flags & rpc::object_storage::mask_type) == rpc::object_storage::flag_function_type ||
+      (flags & rpc::object_storage::mask_type) == rpc::object_storage::flag_multi_type)
     command_get->set_function_2<rpc::command_base_call<rpc::target_type> >
       (std::tr1::bind(&rpc::object_storage::call_function_str, control->object_storage(),
                       rawKey, std::tr1::placeholders::_1, std::tr1::placeholders::_2));
@@ -154,6 +157,7 @@ system_method_insert_object(const torrent::Object::list_type& args, int flags) {
       command_call = &rpc::command_base_call_string<rpc::target_type>;
       break;
     case rpc::object_storage::flag_function_type:
+    case rpc::object_storage::flag_multi_type:
     default:
       delete command_set;
       return torrent::Object();
@@ -202,11 +206,20 @@ system_method_insert(const torrent::Object::list_type& args) {
     flags &= ~rpc::CommandMap::flag_modifiable;
 
   if (options.find("multi") != std::string::npos) {
-    // Later, make it possible to add functions here.
-    rpc::Command* command = new rpc::CommandFunctionList();
-    rpc::Command::any_slot slot = &rpc::CommandFunctionList::call;
+    torrent::Object::list_type new_args;
+    new_args.push_back(rawKey);
+    new_args.push_back(system_method_generate_command(++itrArgs, args.end()));
 
-    rpc::commands.insert_type(create_new_key<0>(rawKey, ""), command, slot, flags, NULL, NULL);
+    int new_flags = rpc::object_storage::flag_multi_type;
+
+    if (options.find("static") != std::string::npos)
+      new_flags |= rpc::object_storage::flag_static;
+    if (options.find("private") != std::string::npos)
+      new_flags |= rpc::object_storage::flag_private;
+    if (options.find("const") != std::string::npos)
+      new_flags |= rpc::object_storage::flag_constant;
+
+    return system_method_insert_object(new_args, new_flags);
 
   } else if (options.find("simple") != std::string::npos) {
     torrent::Object::list_type new_args;
@@ -314,56 +327,42 @@ system_method_set_function(const torrent::Object::list_type& args) {
 }
 
 torrent::Object
+system_method_has_key(const torrent::Object::list_type& args) {
+  if (args.empty() || ++args.begin() == args.end())
+    throw torrent::input_error("Invalid argument count.");
+
+  torrent::Object::list_const_iterator itrArgs = args.begin();
+  const std::string& key = (itrArgs++)->as_string();
+  const std::string& cmd_key = (itrArgs++)->as_string();
+  
+  return control->object_storage()->has_str_multi_key(key, cmd_key);
+}
+
+torrent::Object
 system_method_set_key(const torrent::Object::list_type& args) {
   if (args.empty() || ++args.begin() == args.end())
     throw torrent::input_error("Invalid argument count.");
 
-  rpc::CommandFunctionList* function;
-  rpc::CommandMap::iterator itr = rpc::commands.find(args.front().as_string().c_str());
-
-  if (!rpc::commands.is_modifiable(itr) ||
-      (function = dynamic_cast<rpc::CommandFunctionList*>(itr->second.m_variable)) == NULL)
-    throw torrent::input_error("Command not modifiable or wrong type.");
-
-  torrent::Object::list_const_iterator itrArgs = ++args.begin();
+  torrent::Object::list_const_iterator itrArgs = args.begin();
   const std::string& key = (itrArgs++)->as_string();
+  const std::string& cmd_key = (itrArgs++)->as_string();
   
   if (itrArgs != args.end())
-    function->insert(key, system_method_generate_command(itrArgs, args.end()));
+    control->object_storage()->set_str_multi_key(key, cmd_key, system_method_generate_command(itrArgs, args.end()));
   else
-    function->erase(key);
+    control->object_storage()->erase_str_multi_key(key, cmd_key);
 
   return torrent::Object();
 }
 
 torrent::Object
-system_method_has_key(const torrent::Object::list_type& args) {
-  if (args.size() != 2)
-    throw torrent::input_error("Invalid argument count.");
-
-  rpc::CommandFunctionList* function;
-  rpc::CommandMap::iterator itr = rpc::commands.find(args.front().as_string().c_str());
-
-  if (itr == rpc::commands.end() ||
-      (function = dynamic_cast<rpc::CommandFunctionList*>(itr->second.m_variable)) == NULL)
-    throw torrent::input_error("Command is the wrong type.");
-
-  return torrent::Object((int64_t)(function->find(args.back().as_string().c_str()) != function->end()));
-}
-
-torrent::Object
 system_method_list_keys(const torrent::Object::string_type& args) {
-  rpc::CommandFunctionList* function;
-  rpc::CommandMap::iterator itr = rpc::commands.find(args.c_str());
-
-  if (itr == rpc::commands.end() ||
-      (function = dynamic_cast<rpc::CommandFunctionList*>(itr->second.m_variable)) == NULL)
-    throw torrent::input_error("Command is the wrong type.");
-
+  const torrent::Object::map_type& multi_cmd = control->object_storage()->get_str(args).as_map();
+  
   torrent::Object rawResult = torrent::Object::create_list();
   torrent::Object::list_type& result = rawResult.as_list();
 
-  for (rpc::CommandFunctionList::const_iterator itr = function->begin(), last = function->end(); itr != last; itr++)
+  for (torrent::Object::map_const_iterator itr = multi_cmd.begin(), last = multi_cmd.end(); itr != last; itr++)
     result.push_back(itr->first);
 
   return rawResult;
@@ -389,7 +388,8 @@ initialize_command_dynamic() {
   CMD2_ANY_STRING  ("method.get",       std::tr1::bind(&rpc::object_storage::get_str, control->object_storage(),
                                                        std::tr1::placeholders::_2));
   CMD2_ANY_LIST    ("method.set",       std::tr1::bind(&system_method_set_function, std::tr1::placeholders::_2));
-  CMD2_ANY_LIST    ("method.set_key",   std::tr1::bind(&system_method_set_key, std::tr1::placeholders::_2));
+
   CMD2_ANY_LIST    ("method.has_key",   std::tr1::bind(&system_method_has_key, std::tr1::placeholders::_2));
+  CMD2_ANY_LIST    ("method.set_key",   std::tr1::bind(&system_method_set_key, std::tr1::placeholders::_2));
   CMD2_ANY_STRING  ("method.list_keys", std::tr1::bind(&system_method_list_keys, std::tr1::placeholders::_2));
 }

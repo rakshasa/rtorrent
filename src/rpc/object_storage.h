@@ -46,81 +46,9 @@
 #include <torrent/object.h>
 
 #include "command.h"
+#include "fixed_key.h"
 
 namespace rpc {
-
-// The key size should be such that the value type size which includes
-// the next-pointer.
-
-template <size_t MaxSize>
-class fixed_key_type {
-public:
-  typedef char        value_type;
-  typedef const char* iterator;
-  typedef const char* const_iterator;
-  typedef uint32_t    size_type;
-
-  static const size_type max_size = MaxSize - 1;
-
-  fixed_key_type() : m_size(0) { m_data[0] = '\0'; }
-  fixed_key_type(const fixed_key_type& k) : m_size(k.m_size) { std::memcpy(m_data, k.m_data, k.m_size + 1); }
-
-  fixed_key_type(const value_type* src_data, size_type src_size) { set_data(src_data, src_size); }
-
-  static fixed_key_type from_c_str(const char* str)                     { fixed_key_type k; k.set_c_str(str); return k; }
-  static fixed_key_type from_string(const std::string& str)             { fixed_key_type k; k.set_c_str(str.c_str(), str.size()); return k; }
-  static fixed_key_type from_raw_string(const torrent::raw_string& str) { fixed_key_type k; k.set_data(str.data(), str.size()); return k; }
-
-  bool              empty() const { return m_size == 0;; }
-  size_type         size() const  { return m_size; }
-
-  iterator          begin() const { return m_data; }
-  iterator          end() const   { return m_data + m_size; }
-
-  value_type*       data()        { return m_data; }
-  const value_type* data() const  { return m_data; }
-  const char*       c_str() const { return m_data; }
-
-  void              set_data(const value_type* src_data, size_type src_size);
-  void              set_c_str(const value_type* src_data);
-  void              set_c_str(const value_type* src_data, size_type src_size);
-
-  bool operator == (const fixed_key_type& rhs) const { return m_size == rhs.m_size && std::memcmp(m_data, rhs.m_data, m_size) == 0; }
-  bool operator != (const fixed_key_type& rhs) const { return m_size != rhs.m_size || std::memcmp(m_data, rhs.m_data, m_size) != 0; }
-
-  bool operator == (const std::string& rhs) const { return m_size == rhs.size() && std::memcmp(m_data, rhs.data(), m_size) == 0; }
-
-private:
-  size_type   m_size;
-  char        m_data[max_size];
-};
-
-struct hash_fixed_key_type {
-  template <size_t MaxSize>
-  inline std::size_t operator () (const fixed_key_type<MaxSize>& p) const { return hash(p.data()); }
-  
-  static inline std::size_t hash(const char* data) {
-    std::size_t result = 0;
-
-    while (*data != '\0')
-      result = (result * 131) + *data++;
-
-    return result;
-  }
-
-  static inline std::size_t hash(const char* data, uint32_t size) {
-    std::size_t result = 0;
-
-    while (size--)
-      result = (result * 131) + *data++;
-
-    return result;
-  }
-};
-
-//
-//
-//
 
 struct object_storage_node {
   torrent::Object object;
@@ -157,6 +85,7 @@ public:
   static const unsigned int flag_value_type    = 0x3;
   static const unsigned int flag_string_type   = 0x4;
   static const unsigned int flag_function_type = 0x5;
+  static const unsigned int flag_multi_type    = 0x6;
 
   static const unsigned int mask_type          = 0xf;
 
@@ -181,9 +110,6 @@ public:
   const torrent::Object& get_c_str(const char* str)  { return get(torrent::raw_string(str, std::strlen(str))); }
   const torrent::Object& get_str(const std::string& str) { return get(torrent::raw_string(str.data(), str.size())); }
 
-//   const torrent::Object& set(const torrent::raw_string& key, const torrent::Object& object);
-//   const torrent::Object& set_c_str(const char* str, const torrent::Object& object) { return set(torrent::raw_string(str, std::strlen(str)), object); }
-
   const torrent::Object& set_bool(const torrent::raw_string& key, int64_t object);
   const torrent::Object& set_c_str_bool(const char* str, int64_t object) { return set_bool(torrent::raw_string::from_c_str(str), object); }
   const torrent::Object& set_str_bool(const std::string& str, int64_t object) { return set_bool(torrent::raw_string::from_string(str), object); }
@@ -196,11 +122,23 @@ public:
   const torrent::Object& set_c_str_string(const char* str, const std::string& object) { return set_string(torrent::raw_string::from_c_str(str), object); }
   const torrent::Object& set_str_string(const std::string& str, const std::string& object) { return set_string(torrent::raw_string::from_string(str), object); }
   
+  // Functions callers:
   torrent::Object call_function(const torrent::raw_string& key, target_type target, const torrent::Object& object);
   torrent::Object call_function_str(const std::string& key, target_type target, const torrent::Object& object);
 
+  // Single-command function:
+
   const torrent::Object& set_function(const torrent::raw_string& key, const std::string& object);
-  const torrent::Object& set_str_function(const std::string& str, const std::string& object) { return set_function(torrent::raw_string::from_string(str), object); }
+  const torrent::Object& set_str_function(const std::string& key, const std::string& object);
+
+  // Multi-command function:
+  bool                   has_multi_key(const torrent::raw_string& key, const std::string& cmd_key);
+  void                   erase_multi_key(const torrent::raw_string& key, const std::string& cmd_key);
+  void                   set_multi_key(const torrent::raw_string& key, const std::string& cmd_key, const std::string& object);
+
+  bool                   has_str_multi_key(const std::string& key, const std::string& cmd_key);
+  void                   erase_str_multi_key(const std::string& key, const std::string& cmd_key);
+  void                   set_str_multi_key(const std::string& key, const std::string& cmd_key, const std::string& object);
 };
 
 //
@@ -260,6 +198,26 @@ object_storage::insert_str(const std::string& key, const torrent::Object& object
 inline torrent::Object
 object_storage::call_function_str(const std::string& key, target_type target, const torrent::Object& object) {
   return call_function(torrent::raw_string::from_string(key), target, object);
+}
+
+inline const torrent::Object&
+object_storage::set_str_function(const std::string& key, const std::string& object) {
+  return set_function(torrent::raw_string::from_string(key), object);
+}
+
+inline bool
+object_storage::has_str_multi_key(const std::string& key, const std::string& cmd_key) {
+  return has_multi_key(torrent::raw_string::from_string(key), cmd_key);
+}
+
+inline void
+object_storage::erase_str_multi_key(const std::string& key, const std::string& cmd_key) {
+  erase_multi_key(torrent::raw_string::from_string(key), cmd_key);
+}
+
+inline void
+object_storage::set_str_multi_key(const std::string& key, const std::string& cmd_key, const std::string& object) {
+  return set_multi_key(torrent::raw_string::from_string(key), cmd_key, object);
 }
 
 }

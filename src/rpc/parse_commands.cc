@@ -223,4 +223,61 @@ parse_command_name(const char* first, const char* last, std::string* dest) {
   return first;
 }
 
+//
+//
+//
+
+// Temp until it can be moved somewhere better...
+const torrent::Object
+command_function_call(const torrent::raw_string& cmd, target_type target, const torrent::Object& args) {
+  rpc::Command::stack_type stack;
+  torrent::Object* last_stack;
+
+  if (args.is_list())
+    last_stack = rpc::Command::push_stack(args.as_list(), &stack);
+  else if (args.type() != torrent::Object::TYPE_NONE)
+    last_stack = rpc::Command::push_stack(&args, &args + 1, &stack);
+  else
+    last_stack = rpc::Command::push_stack(NULL, NULL, &stack);
+
+  try {
+    torrent::Object result = parse_command_multiple(target, cmd.begin(), cmd.end());
+
+    rpc::Command::pop_stack(&stack, last_stack);
+    return result;
+
+  } catch (torrent::bencode_error& e) {
+    rpc::Command::pop_stack(&stack, last_stack);
+    throw e;
+  }
+}
+
+const torrent::Object
+command_function_multi_call(const torrent::Object::map_type& cmd, target_type target, const torrent::Object& args) {
+  rpc::Command::stack_type stack;
+  torrent::Object* last_stack;
+
+  if (args.is_list())
+    last_stack = rpc::Command::push_stack(args.as_list(), &stack);
+  else if (args.type() != torrent::Object::TYPE_NONE)
+    last_stack = rpc::Command::push_stack(&args, &args + 1, &stack);
+  else
+    last_stack = rpc::Command::push_stack(NULL, NULL, &stack);
+
+  try {
+    for (torrent::Object::map_const_iterator itr = cmd.begin(), last = cmd.end(); itr != last; itr++) {
+      const std::string& cmd_str = itr->second.as_string();
+      parse_command_multiple(target, cmd_str.c_str(), cmd_str.c_str() + cmd_str.size());
+    }
+
+  } catch (torrent::bencode_error& e) {
+    rpc::Command::pop_stack(&stack, last_stack);
+    throw e;
+  }
+
+  rpc::Command::pop_stack(&stack, last_stack);
+  return torrent::Object();
+}
+
+
 }

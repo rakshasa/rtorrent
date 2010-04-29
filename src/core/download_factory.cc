@@ -251,17 +251,17 @@ DownloadFactory::receive_success() {
   if (!rtorrent->has_key_string("custom4")) rtorrent->insert_key("custom4", std::string());
   if (!rtorrent->has_key_string("custom5")) rtorrent->insert_key("custom5", std::string());
 
-  rpc::call_command("d.uploads_max.set",      rpc::call_command_void("max_uploads"), rpc::make_target(download));
-  rpc::call_command("d.peers_min.set",        rpc::call_command_void("min_peers"), rpc::make_target(download));
-  rpc::call_command("d.peers_max.set",        rpc::call_command_void("max_peers"), rpc::make_target(download));
+  rpc::call_command("d.uploads_max.set",      rpc::call_command_void("throttle.max_uploads"), rpc::make_target(download));
+  rpc::call_command("d.peers_min.set",        rpc::call_command_void("throttle.min_peers.normal"), rpc::make_target(download));
+  rpc::call_command("d.peers_max.set",        rpc::call_command_void("throttle.max_peers.normal"), rpc::make_target(download));
   rpc::call_command("d.tracker_numwant.set",  rpc::call_command_void("trackers.numwant"), rpc::make_target(download));
 
   if (rpc::call_command_value("d.complete", rpc::make_target(download)) != 0) {
-    if (rpc::call_command_value("min_peers_seed") >= 0)
-      rpc::call_command("d.peers_min.set", rpc::call_command_void("min_peers_seed"), rpc::make_target(download));
+    if (rpc::call_command_value("throttle.min_peers.seed") >= 0)
+      rpc::call_command("d.peers_min.set", rpc::call_command_void("throttle.min_peers.seed"), rpc::make_target(download));
 
-    if (rpc::call_command_value("max_peers_seed") >= 0)
-      rpc::call_command("d.peers_max.set", rpc::call_command_void("max_peers_seed"), rpc::make_target(download));
+    if (rpc::call_command_value("throttle.max_peers.seed") >= 0)
+      rpc::call_command("d.peers_max.set", rpc::call_command_void("throttle.max_peers.seed"), rpc::make_target(download));
   }
 
   if (!rpc::call_command_value("trackers.use_udp"))

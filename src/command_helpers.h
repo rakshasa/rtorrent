@@ -38,7 +38,6 @@
 #define RTORRENT_UTILS_COMMAND_HELPERS_H
 
 #include "rpc/command_new_slot.h"
-#include "rpc/command_function.h"
 #include "rpc/parse_commands.h"
 #include "rpc/object_storage.h"
 

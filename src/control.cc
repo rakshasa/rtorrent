@@ -86,15 +86,15 @@ Control::~Control() {
   delete m_inputStdin;
   delete m_input;
 
-  delete m_commandScheduler;
-  delete m_objectStorage;
-
   delete m_viewManager;
 
   delete m_ui;
   delete m_display;
   delete m_core;
   delete m_dhtManager;
+
+  delete m_commandScheduler;
+  delete m_objectStorage;
 }
 
 void

@@ -420,17 +420,17 @@ initialize_command_network() {
   CMD2_VAR_STRING("connection_leech", "leech");
   CMD2_VAR_STRING("connection_seed", "seed");
 
-  CMD2_VAR_VALUE("min_peers", 40);
-  CMD2_VAR_VALUE("max_peers", 100);
-  CMD2_VAR_VALUE("min_peers_seed", -1);
-  CMD2_VAR_VALUE("max_peers_seed", -1);
+  CMD2_VAR_VALUE   ("throttle.min_peers.normal", 40);
+  CMD2_VAR_VALUE   ("throttle.max_peers.normal", 100);
+  CMD2_VAR_VALUE   ("throttle.min_peers.seed",   -1);
+  CMD2_VAR_VALUE   ("throttle.max_peers.seed",   -1);
 
-  CMD2_VAR_VALUE("max_uploads", 15);
+  CMD2_VAR_VALUE   ("throttle.max_uploads", 15);
 
-  CMD2_VAR_VALUE("max_uploads_div",      1);
-  CMD2_VAR_VALUE("max_uploads_global",   0);
-  CMD2_VAR_VALUE("max_downloads_div",    1);
-  CMD2_VAR_VALUE("max_downloads_global", 0);
+  CMD2_VAR_VALUE   ("throttle.max_uploads.div",      1);
+  CMD2_VAR_VALUE   ("throttle.max_uploads.global",   0);
+  CMD2_VAR_VALUE   ("throttle.max_downloads.div",    1);
+  CMD2_VAR_VALUE   ("throttle.max_downloads.global", 0);
 
   // TODO: Move the logic into some libtorrent function.
   CMD2_ANY         ("throttle.global_up.rate",              std::tr1::bind(&torrent::Rate::rate, torrent::up_rate()));
@@ -490,9 +490,12 @@ initialize_command_network() {
   CMD2_ANY         ("network.xmlrpc.size_limit",     std::tr1::bind(&rpc::XmlRpc::size_limit));
   CMD2_ANY_VALUE_V ("network.xmlrpc.size_limit.set", std::tr1::bind(&rpc::XmlRpc::set_size_limit, std::tr1::placeholders::_2));
 
-//   ADD_COMMAND_VALUE_TRI("hash_read_ahead",      std::ptr_fun(&apply_hash_read_ahead), rak::ptr_fun(torrent::hash_read_ahead));
-//   ADD_COMMAND_VALUE_TRI("hash_interval",        std::ptr_fun(&apply_hash_interval), rak::ptr_fun(torrent::hash_interval));
-//   ADD_COMMAND_VALUE_TRI("hash_max_tries",       std::ptr_fun(&torrent::set_hash_max_tries), rak::ptr_fun(&torrent::hash_max_tries));
+  CMD2_ANY         ("system.hash.read_ahead",        std::tr1::bind(&torrent::hash_read_ahead));
+  CMD2_ANY_VALUE_V ("system.hash.read_ahead.set",    std::tr1::bind(&apply_hash_read_ahead, std::tr1::placeholders::_2));
+  CMD2_ANY         ("system.hash.interval",          std::tr1::bind(&torrent::hash_interval));
+  CMD2_ANY_VALUE_V ("system.hash.interval.set",      std::tr1::bind(&apply_hash_interval, std::tr1::placeholders::_2));
+  CMD2_ANY         ("system.hash.max_tries",         std::tr1::bind(&torrent::hash_max_tries));
+  CMD2_ANY_VALUE_V ("system.hash.max_tries.set",     std::tr1::bind(&torrent::set_hash_max_tries, std::tr1::placeholders::_2));
 
   CMD2_ANY_VALUE   ("trackers.enable",  std::tr1::bind(&apply_enable_trackers, int64_t(1)));
   CMD2_ANY_VALUE   ("trackers.disable", std::tr1::bind(&apply_enable_trackers, int64_t(0)));
