@@ -598,6 +598,9 @@ DownloadList::confirm_finished(Download* download) {
   // up/downloaded baseline.
   download->download()->tracker_list()->send_completed();
 
+  // Save the hash in case the finished event erases it.
+  torrent::HashString infohash = download->info()->hash();
+
   rpc::commands.call_catch("event.download.finished", rpc::make_target(download), torrent::Object(), "Download event action failed: ");
 
 //   if (download->resume_flags() != ~uint32_t())
@@ -613,8 +616,12 @@ DownloadList::confirm_finished(Download* download) {
   // being hashed.
   download->set_resume_flags(~uint32_t());
 
-  if (!download->is_active() && rpc::call_command_value("d.state", rpc::make_target(download)) == 1)
-    resume(download, torrent::Download::start_no_create | torrent::Download::start_skip_tracker | torrent::Download::start_keep_baseline);
+  if (find(infohash) != end() &&
+      !download->is_active() && rpc::call_command_value("d.get_state", rpc::make_target(download)) == 1)
+    resume(download,
+           torrent::Download::start_no_create |
+           torrent::Download::start_skip_tracker |
+           torrent::Download::start_keep_baseline);
 }
 
 void
