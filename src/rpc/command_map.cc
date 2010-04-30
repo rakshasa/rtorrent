@@ -55,7 +55,7 @@
 
 namespace rpc {
 
-Command::stack_type Command::current_stack;
+command_base::stack_type command_base::current_stack;
 
 CommandMap::~CommandMap() {
   std::vector<const char*> keys;
@@ -73,7 +73,7 @@ CommandMap::~CommandMap() {
 }
 
 CommandMap::iterator
-CommandMap::insert(key_type key, Command* variable, int flags, const char* parm, const char* doc) {
+CommandMap::insert(key_type key, command_base* variable, int flags, const char* parm, const char* doc) {
   iterator itr = base_type::find(key);
 
   if (itr != base_type::end())

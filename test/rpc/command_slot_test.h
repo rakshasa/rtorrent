@@ -1,6 +1,6 @@
 #include <cppunit/extensions/HelperMacros.h>
 
-#include "rpc/command_new_slot.h"
+#include "rpc/command.h"
 
 class CommandSlotTest : public CppUnit::TestFixture {
   CPPUNIT_TEST_SUITE(CommandSlotTest);

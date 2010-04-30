@@ -249,14 +249,14 @@ initialize_command_local() {
   CMD2_ANY_STRING_V("log.xmlrpc",  std::tr1::bind(&ThreadWorker::set_xmlrpc_log, worker_thread, std::tr1::placeholders::_2));
 
   // TODO: Convert to new command types:
-  *rpc::Command::argument(0) = "placeholder.0";
-  *rpc::Command::argument(1) = "placeholder.1";
-  *rpc::Command::argument(2) = "placeholder.2";
-  *rpc::Command::argument(3) = "placeholder.3";
-  CMD2_ANY_P("argument.0", std::tr1::bind(&rpc::Command::argument_ref, 0));
-  CMD2_ANY_P("argument.1", std::tr1::bind(&rpc::Command::argument_ref, 1));
-  CMD2_ANY_P("argument.2", std::tr1::bind(&rpc::Command::argument_ref, 2));
-  CMD2_ANY_P("argument.3", std::tr1::bind(&rpc::Command::argument_ref, 3));
+  *rpc::command_base::argument(0) = "placeholder.0";
+  *rpc::command_base::argument(1) = "placeholder.1";
+  *rpc::command_base::argument(2) = "placeholder.2";
+  *rpc::command_base::argument(3) = "placeholder.3";
+  CMD2_ANY_P("argument.0", std::tr1::bind(&rpc::command_base::argument_ref, 0));
+  CMD2_ANY_P("argument.1", std::tr1::bind(&rpc::command_base::argument_ref, 1));
+  CMD2_ANY_P("argument.2", std::tr1::bind(&rpc::command_base::argument_ref, 2));
+  CMD2_ANY_P("argument.3", std::tr1::bind(&rpc::command_base::argument_ref, 3));
 
   CMD2_ANY_LIST  ("group.insert", std::tr1::bind(&group_insert, std::tr1::placeholders::_2));
 }

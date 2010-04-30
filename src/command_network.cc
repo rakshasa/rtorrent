@@ -204,7 +204,7 @@ apply_encryption(const torrent::Object::list_type& args) {
 
 torrent::Object
 apply_tos(const torrent::Object::string_type& arg) {
-  rpc::Command::value_type value;
+  rpc::command_base::value_type value;
   torrent::ConnectionManager* cm = torrent::connection_manager();
 
   if (arg == "default")

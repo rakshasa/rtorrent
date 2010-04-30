@@ -39,20 +39,20 @@
 #include "core/download.h"
 #include "parse.h"
 
-#include "command_new_slot.h"
+#include "command.h"
 
 #define COMMAND_BASE_TEMPLATE_DEFINE(func_name) \
-template const torrent::Object func_name<target_type>(Command* rawCommand, target_type target, const torrent::Object& args); \
-template const torrent::Object func_name<core::Download*>(Command* rawCommand, target_type target, const torrent::Object& args); \
-template const torrent::Object func_name<torrent::Peer*>(Command* rawCommand, target_type target, const torrent::Object& args); \
-template const torrent::Object func_name<torrent::Tracker*>(Command* rawCommand, target_type target, const torrent::Object& args); \
-template const torrent::Object func_name<torrent::File*>(Command* rawCommand, target_type target, const torrent::Object& args); \
-template const torrent::Object func_name<torrent::FileListIterator*>(Command* rawCommand, target_type target, const torrent::Object& args);
+template const torrent::Object func_name<target_type>(command_base* rawCommand, target_type target, const torrent::Object& args); \
+template const torrent::Object func_name<core::Download*>(command_base* rawCommand, target_type target, const torrent::Object& args); \
+template const torrent::Object func_name<torrent::Peer*>(command_base* rawCommand, target_type target, const torrent::Object& args); \
+template const torrent::Object func_name<torrent::Tracker*>(command_base* rawCommand, target_type target, const torrent::Object& args); \
+template const torrent::Object func_name<torrent::File*>(command_base* rawCommand, target_type target, const torrent::Object& args); \
+template const torrent::Object func_name<torrent::FileListIterator*>(command_base* rawCommand, target_type target, const torrent::Object& args);
 
 namespace rpc {
 
 template <typename T> const torrent::Object
-command_base_call(Command* rawCommand, target_type target, const torrent::Object& args) {
+command_base_call(command_base* rawCommand, target_type target, const torrent::Object& args) {
   if (!is_target_compatible<T>(target))
     throw torrent::input_error("Target of wrong type.");
 
@@ -62,7 +62,7 @@ command_base_call(Command* rawCommand, target_type target, const torrent::Object
 COMMAND_BASE_TEMPLATE_DEFINE(command_base_call);
 
 template <typename T> const torrent::Object
-command_base_call_value_base(Command* rawCommand, target_type target, const torrent::Object& rawArgs, int base, int unit) {
+command_base_call_value_base(command_base* rawCommand, target_type target, const torrent::Object& rawArgs, int base, int unit) {
   if (!is_target_compatible<T>(target))
     throw torrent::input_error("Target of wrong type.");
 
@@ -81,12 +81,12 @@ command_base_call_value_base(Command* rawCommand, target_type target, const torr
 }
 
 template <typename T> const torrent::Object
-command_base_call_value(Command* rawCommand, target_type target, const torrent::Object& rawArgs) {
+command_base_call_value(command_base* rawCommand, target_type target, const torrent::Object& rawArgs) {
   return command_base_call_value_base<T>(rawCommand, target, rawArgs, 0, 1);
 }
 
 template <typename T> const torrent::Object
-command_base_call_value_kb(Command* rawCommand, target_type target, const torrent::Object& rawArgs) {
+command_base_call_value_kb(command_base* rawCommand, target_type target, const torrent::Object& rawArgs) {
   return command_base_call_value_base<T>(rawCommand, target, rawArgs, 0, 1024);
 }
 
@@ -94,7 +94,7 @@ COMMAND_BASE_TEMPLATE_DEFINE(command_base_call_value);
 COMMAND_BASE_TEMPLATE_DEFINE(command_base_call_value_kb);
 
 template <typename T> const torrent::Object
-command_base_call_string(Command* rawCommand, target_type target, const torrent::Object& rawArgs) {
+command_base_call_string(command_base* rawCommand, target_type target, const torrent::Object& rawArgs) {
   if (!is_target_compatible<T>(target))
     throw torrent::input_error("Target of wrong type.");
 
@@ -109,7 +109,7 @@ command_base_call_string(Command* rawCommand, target_type target, const torrent:
 COMMAND_BASE_TEMPLATE_DEFINE(command_base_call_string);
 
 template <typename T> const torrent::Object
-command_base_call_list(Command* rawCommand, target_type target, const torrent::Object& rawArgs) {
+command_base_call_list(command_base* rawCommand, target_type target, const torrent::Object& rawArgs) {
   if (!is_target_compatible<T>(target))
     throw torrent::input_error("Target of wrong type.");
 

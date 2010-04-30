@@ -1,7 +1,6 @@
 #include <cppunit/extensions/HelperMacros.h>
 
 #include "rpc/command_map.h"
-#include "rpc/command_new_slot.h"
 
 class CommandMapTest : public CppUnit::TestFixture {
   CPPUNIT_TEST_SUITE(CommandMapTest);

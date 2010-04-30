@@ -57,11 +57,11 @@ struct command_map_data_type {
   //
   // The any_slot should perhaps replace generic_slot?
 
-  command_map_data_type(Command* variable, int flags, const char* parm, const char* doc) :
+  command_map_data_type(command_base* variable, int flags, const char* parm, const char* doc) :
     m_variable(variable), m_flags(flags), m_parm(parm), m_doc(doc) {}
 
-  Command*            m_variable;
-  Command::any_slot   m_anySlot;
+  command_base*            m_variable;
+  command_base::any_slot   m_anySlot;
 
   int           m_flags;
 
@@ -104,10 +104,10 @@ public:
 
   bool                is_modifiable(const_iterator itr) { return itr != end() && (itr->second.m_flags & flag_modifiable); }
 
-  iterator            insert(key_type key, Command* variable, int flags, const char* parm, const char* doc);
+  iterator            insert(key_type key, command_base* variable, int flags, const char* parm, const char* doc);
 
   // Make this a wrapper call to insert without extra fluff.
-  void                insert_type(key_type key, Command* variable, Command::any_slot targetSlot, int flags, const char* parm, const char* doc) {
+  void                insert_type(key_type key, command_base* variable, command_base::any_slot targetSlot, int flags, const char* parm, const char* doc) {
     iterator itr = insert(key, variable, flags, parm, doc);
     itr->second.m_anySlot = targetSlot;
   }
@@ -121,20 +121,20 @@ public:
   const mapped_type   call(key_type key, target_type target, const mapped_type& args = mapped_type()) { return call_command(key, args, target); }
   const mapped_type   call_catch(key_type key, target_type target, const mapped_type& args = mapped_type(), const char* err = "Command failed: ");
 
-  const mapped_type   call_command  (key_type key,       const mapped_type& arg, target_type target = target_type((int)Command::target_generic, NULL));
-  const mapped_type   call_command  (const_iterator itr, const mapped_type& arg, target_type target = target_type((int)Command::target_generic, NULL));
+  const mapped_type   call_command  (key_type key,       const mapped_type& arg, target_type target = target_type((int)command_base::target_generic, NULL));
+  const mapped_type   call_command  (const_iterator itr, const mapped_type& arg, target_type target = target_type((int)command_base::target_generic, NULL));
 
-  const mapped_type   call_command_d(key_type key, core::Download* download, const mapped_type& arg)  { return call_command(key, arg, target_type((int)Command::target_download, download)); }
-  const mapped_type   call_command_p(key_type key, torrent::Peer* peer, const mapped_type& arg)       { return call_command(key, arg, target_type((int)Command::target_peer, peer)); }
-  const mapped_type   call_command_t(key_type key, torrent::Tracker* tracker, const mapped_type& arg) { return call_command(key, arg, target_type((int)Command::target_tracker, tracker)); }
-  const mapped_type   call_command_f(key_type key, torrent::File* file, const mapped_type& arg)       { return call_command(key, arg, target_type((int)Command::target_file, file)); }
+  const mapped_type   call_command_d(key_type key, core::Download* download, const mapped_type& arg)  { return call_command(key, arg, target_type((int)command_base::target_download, download)); }
+  const mapped_type   call_command_p(key_type key, torrent::Peer* peer, const mapped_type& arg)       { return call_command(key, arg, target_type((int)command_base::target_peer, peer)); }
+  const mapped_type   call_command_t(key_type key, torrent::Tracker* tracker, const mapped_type& arg) { return call_command(key, arg, target_type((int)command_base::target_tracker, tracker)); }
+  const mapped_type   call_command_f(key_type key, torrent::File* file, const mapped_type& arg)       { return call_command(key, arg, target_type((int)command_base::target_file, file)); }
 
 private:
   CommandMap(const CommandMap&);
   void operator = (const CommandMap&);
 };
 
-inline target_type make_target()                                  { return target_type((int)Command::target_generic, NULL); }
+inline target_type make_target()                                  { return target_type((int)command_base::target_generic, NULL); }
 inline target_type make_target(int type, void* target)            { return target_type(type, target); }
 inline target_type make_target(int type, void* target1, void* target2) { return target_type(type, target1, target2); }
 
