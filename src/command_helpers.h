@@ -41,19 +41,6 @@
 #include "rpc/parse_commands.h"
 #include "rpc/object_storage.h"
 
-namespace rpc {
-  class CommandObjectPtr;
-}
-
-// By using a static array we avoid allocating the variables on the
-// heap. This should reduce memory use and improve cache locality.
-#define COMMAND_NEW_SLOTS_SIZE      500
-
-#define ADDING_COMMANDS
-
-extern rpc::command_base commandNewSlots[COMMAND_NEW_SLOTS_SIZE];
-extern rpc::command_base* commandNewSlotItr;
-
 void initialize_commands();
 
 //
@@ -61,13 +48,11 @@ void initialize_commands();
 //
 
 #define CMD2_A_FUNCTION(key, function, slot, parm, doc)                 \
-  commandNewSlotItr->set_function<rpc::command_base_is_type<rpc::function>::type>(slot); \
-  rpc::commands.insert_type(key, commandNewSlotItr++, &rpc::function,   \
+  rpc::commands.insert_slot<rpc::command_base_is_type<rpc::function>::type>(key, slot, &rpc::function, \
                             rpc::CommandMap::flag_dont_delete | rpc::CommandMap::flag_public_xmlrpc, NULL, NULL);
 
 #define CMD2_A_FUNCTION_PRIVATE(key, function, slot, parm, doc)         \
-  commandNewSlotItr->set_function<rpc::command_base_is_type<rpc::function>::type>(slot); \
-  rpc::commands.insert_type(key, commandNewSlotItr++, &rpc::function,   \
+  rpc::commands.insert_slot<rpc::command_base_is_type<rpc::function>::type>(key, slot, &rpc::function,   \
                             rpc::CommandMap::flag_dont_delete, NULL, NULL);
 
 #define CMD2_ANY(key, slot)          CMD2_A_FUNCTION(key, command_base_call<rpc::target_type>, slot, "i:", "")

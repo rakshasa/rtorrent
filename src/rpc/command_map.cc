@@ -61,8 +61,8 @@ CommandMap::~CommandMap() {
   std::vector<const char*> keys;
 
   for (iterator itr = base_type::begin(), last = base_type::end(); itr != last; itr++) {
-    if (!(itr->second.m_flags & flag_dont_delete))
-      delete itr->second.m_variable;
+//     if (!(itr->second.m_flags & flag_dont_delete))
+//       delete itr->second.m_variable;
 
     if (itr->second.m_flags & flag_delete_key)
       keys.push_back(itr->first);
@@ -73,7 +73,7 @@ CommandMap::~CommandMap() {
 }
 
 CommandMap::iterator
-CommandMap::insert(key_type key, command_base* variable, int flags, const char* parm, const char* doc) {
+CommandMap::insert(key_type key, int flags, const char* parm, const char* doc) {
   iterator itr = base_type::find(key);
 
   if (itr != base_type::end())
@@ -82,21 +82,21 @@ CommandMap::insert(key_type key, command_base* variable, int flags, const char* 
   if (rpc::xmlrpc.is_valid())
     rpc::xmlrpc.insert_command(key, parm, doc);
 
-  return base_type::insert(itr, value_type(key, command_map_data_type(variable, flags, parm, doc)));
+  return base_type::insert(itr, value_type(key, command_map_data_type(flags, parm, doc)));
 }
 
-void
-CommandMap::insert(key_type key, const command_map_data_type src) {
-  iterator itr = base_type::find(key);
+// void
+// CommandMap::insert(key_type key, const command_map_data_type src) {
+//   iterator itr = base_type::find(key);
 
-  if (itr != base_type::end())
-    throw torrent::internal_error("CommandMap::insert(...) tried to insert an already existing key.");
+//   if (itr != base_type::end())
+//     throw torrent::internal_error("CommandMap::insert(...) tried to insert an already existing key.");
 
-  itr = base_type::insert(itr, value_type(key, command_map_data_type(src.m_variable, src.m_flags | flag_dont_delete, src.m_parm, src.m_doc)));
+//   itr = base_type::insert(itr, value_type(key, command_map_data_type(src.m_variable, src.m_flags | flag_dont_delete, src.m_parm, src.m_doc)));
 
-  // We can assume all the slots are the same size.
-  itr->second.m_anySlot = src.m_anySlot;
-}
+//   // We can assume all the slots are the same size.
+//   itr->second.m_anySlot = src.m_anySlot;
+// }
 
 void
 CommandMap::erase(iterator itr) {
@@ -107,8 +107,8 @@ CommandMap::erase(iterator itr) {
   if (itr->second.m_flags & flag_has_redirects)
     throw torrent::input_error("Can't erase a command that has redirects.");
 
-  if (!(itr->second.m_flags & flag_dont_delete))
-    delete itr->second.m_variable;
+//   if (!(itr->second.m_flags & flag_dont_delete))
+//     delete itr->second.m_variable;
 
   const char* key = itr->second.m_flags & flag_delete_key ? itr->first : NULL;
 
@@ -137,12 +137,12 @@ CommandMap::create_redirect(key_type key_new, key_type key_dest, int flags) {
   flags |= dest_itr->second.m_flags & ~(flag_delete_key | flag_has_redirects);
 
   iterator itr = base_type::insert(base_type::end(),
-                                   value_type(key_new, command_map_data_type(dest_itr->second.m_variable,
-                                                                             flags,
+                                   value_type(key_new, command_map_data_type(flags,
                                                                              dest_itr->second.m_parm,
                                                                              dest_itr->second.m_doc)));
 
   // We can assume all the slots are the same size.
+  itr->second.m_variable = dest_itr->second.m_variable;
   itr->second.m_anySlot = dest_itr->second.m_anySlot;
 }
 
@@ -158,59 +158,17 @@ CommandMap::call_catch(key_type key, target_type target, const mapped_type& args
 
 const CommandMap::mapped_type
 CommandMap::call_command(key_type key, const mapped_type& arg, target_type target) {
-  const_iterator itr = base_type::find(key);
+  iterator itr = base_type::find(key);
 
   if (itr == base_type::end())
     throw torrent::input_error("Command \"" + std::string(key) + "\" does not exist.");
 
-//   if (target.first != Command::target_generic && target.second == NULL) {
-//     // We received a target that is NULL, so throw an exception unless
-//     // we can convert it to a void target.
-//     if (itr->second.m_target > Command::target_any)
-//       throw torrent::input_error("Command type mis-match.");
-
-//     target.first = Command::target_generic;
-//   }
-
-//   if (itr->second.m_target != target.first && itr->second.m_target > Command::target_any) {
-//     // Mismatch between the target and command type. If it is not
-//     // possible to convert, then throw an input error.
-//     if (target.first == Command::target_file_itr && itr->second.m_target == Command::target_file)
-//       target = target_type((int)Command::target_file, static_cast<torrent::FileListIterator*>(target.second)->file());
-//     else
-//       throw torrent::input_error("Command type mis-match.");
-//   }
-
-  // This _should_ be optimized int just two calls.
-//   switch (itr->second.m_target) {
-//   case Command::target_any:      return itr->second.m_anySlot(itr->second.m_variable, target, arg);
-//   default: throw torrent::internal_error("CommandMap::call_command(...) Invalid target.");
-//   }
-
-  return itr->second.m_anySlot(itr->second.m_variable, target, arg);
+  return itr->second.m_anySlot(&itr->second.m_variable, target, arg);
 }
 
 const CommandMap::mapped_type
-CommandMap::call_command(const_iterator itr, const mapped_type& arg, target_type target) {
-//   if (target.first != Command::target_generic && target.second == NULL) {
-//     // We received a target that is NULL, so throw an exception unless
-//     // we can convert it to a void target.
-//     if (itr->second.m_target > Command::target_any)
-//       throw torrent::input_error("Command type mis-match.");
-
-//     target.first = Command::target_generic;
-//   }
-
-//   if (itr->second.m_target != target.first && itr->second.m_target > Command::target_any)
-//     throw torrent::input_error("Command type mis-match.");
-
-//   // This _should_ be optimized int just two calls.
-//   switch (itr->second.m_target) {
-//   case Command::target_any:      return itr->second.m_anySlot(itr->second.m_variable, target, arg);
-//   default: throw torrent::internal_error("CommandMap::call_command(...) Invalid target.");
-//   }
-
-  return itr->second.m_anySlot(itr->second.m_variable, target, arg);
+CommandMap::call_command(iterator itr, const mapped_type& arg, target_type target) {
+  return itr->second.m_anySlot(&itr->second.m_variable, target, arg);
 }
 
 }

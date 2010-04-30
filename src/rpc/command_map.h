@@ -57,10 +57,14 @@ struct command_map_data_type {
   //
   // The any_slot should perhaps replace generic_slot?
 
-  command_map_data_type(command_base* variable, int flags, const char* parm, const char* doc) :
-    m_variable(variable), m_flags(flags), m_parm(parm), m_doc(doc) {}
+  command_map_data_type(int flags, const char* parm, const char* doc) :
+    m_flags(flags), m_parm(parm), m_doc(doc) {}
 
-  command_base*            m_variable;
+  command_map_data_type(const command_map_data_type& src) :
+    m_variable(src.m_variable), m_anySlot(src.m_anySlot),
+    m_flags(src.m_flags), m_parm(src.m_parm), m_doc(src.m_doc) {}
+  
+  command_base             m_variable;
   command_base::any_slot   m_anySlot;
 
   int           m_flags;
@@ -104,15 +108,17 @@ public:
 
   bool                is_modifiable(const_iterator itr) { return itr != end() && (itr->second.m_flags & flag_modifiable); }
 
-  iterator            insert(key_type key, command_base* variable, int flags, const char* parm, const char* doc);
+  iterator            insert(key_type key, int flags, const char* parm, const char* doc);
 
-  // Make this a wrapper call to insert without extra fluff.
-  void                insert_type(key_type key, command_base* variable, command_base::any_slot targetSlot, int flags, const char* parm, const char* doc) {
-    iterator itr = insert(key, variable, flags, parm, doc);
+  template <typename T, typename Slot>
+  void
+  insert_slot(key_type key, Slot variable, command_base::any_slot targetSlot, int flags, const char* parm, const char* doc) {
+    iterator itr = insert(key, flags, parm, doc);
+    itr->second.m_variable.set_function<T>(variable);
     itr->second.m_anySlot = targetSlot;
   }
 
-  void                insert(key_type key, const command_map_data_type src);
+  //  void                insert(key_type key, const command_map_data_type src);
   void                erase(iterator itr);
 
   void                create_redirect(key_type key_new, key_type key_dest, int flags);
@@ -122,7 +128,7 @@ public:
   const mapped_type   call_catch(key_type key, target_type target, const mapped_type& args = mapped_type(), const char* err = "Command failed: ");
 
   const mapped_type   call_command  (key_type key,       const mapped_type& arg, target_type target = target_type((int)command_base::target_generic, NULL));
-  const mapped_type   call_command  (const_iterator itr, const mapped_type& arg, target_type target = target_type((int)command_base::target_generic, NULL));
+  const mapped_type   call_command  (iterator itr, const mapped_type& arg, target_type target = target_type((int)command_base::target_generic, NULL));
 
   const mapped_type   call_command_d(key_type key, core::Download* download, const mapped_type& arg)  { return call_command(key, arg, target_type((int)command_base::target_download, download)); }
   const mapped_type   call_command_p(key_type key, torrent::Peer* peer, const mapped_type& arg)       { return call_command(key, arg, target_type((int)command_base::target_peer, peer)); }

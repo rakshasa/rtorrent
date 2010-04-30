@@ -42,9 +42,6 @@
 #include "control.h"
 #include "command_helpers.h"
 
-rpc::command_base commandNewSlots[COMMAND_NEW_SLOTS_SIZE];
-rpc::command_base* commandNewSlotItr = commandNewSlots;
-
 void initialize_command_dynamic();
 void initialize_command_download();
 void initialize_command_events();
@@ -68,11 +65,4 @@ initialize_commands() {
   initialize_command_peer();
   initialize_command_tracker();
   initialize_command_scheduler();
-
-#ifdef ADDING_COMMANDS 
-  if (commandNewSlotItr > commandNewSlots + COMMAND_NEW_SLOTS_SIZE)
-#else
-  if (commandNewSlotItr != commandNewSlots + COMMAND_NEW_SLOTS_SIZE)
-#endif
-    throw torrent::internal_error("initialize_commands() static command array size mismatch.");
 }

@@ -511,16 +511,6 @@ d_list_remove(core::Download* download, const torrent::Object& rawArgs, const ch
   return torrent::Object();
 }
 
-void
-add_copy_to_download(const char* src, const char* dest) {
-  rpc::CommandMap::iterator itr = rpc::commands.find(src);
-
-  if (itr == rpc::commands.end())
-    throw torrent::internal_error("add_copy_to_download(...) key not found.");
-
-  rpc::commands.insert(dest, itr->second);
-}
-
 #define CMD_ON_INFO(func) rak::on(std::mem_fun(&core::Download::info), std::mem_fun(&torrent::DownloadInfo::func))
 
 #define CMD2_ON_INFO(func) std::tr1::bind(&torrent::DownloadInfo::func, std::tr1::bind(&core::Download::info, std::tr1::placeholders::_1))

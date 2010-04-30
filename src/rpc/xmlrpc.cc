@@ -432,7 +432,7 @@ object_to_xmlrpc(xmlrpc_env* env, const torrent::Object& object) {
 
 xmlrpc_value*
 xmlrpc_call_command(xmlrpc_env* env, xmlrpc_value* args, void* voidServerInfo) {
-  CommandMap::const_iterator itr = commands.find((const char*)voidServerInfo);
+  CommandMap::iterator itr = commands.find((const char*)voidServerInfo);
 
   if (itr == commands.end()) {
     xmlrpc_env_set_fault(env, XMLRPC_PARSE_ERROR, ("Command \"" + std::string((const char*)voidServerInfo) + "\" does not exist.").c_str());

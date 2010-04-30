@@ -112,59 +112,55 @@ system_method_insert_object(const torrent::Object::list_type& args, int flags) {
 
   rpc::object_storage::iterator obj_itr =  control->object_storage()->insert_str(rawKey, value, flags);
 
-  // Add commands:
-  rpc::command_base* command_get = new rpc::command_base();
-
   if ((flags & rpc::object_storage::mask_type) == rpc::object_storage::flag_function_type ||
-      (flags & rpc::object_storage::mask_type) == rpc::object_storage::flag_multi_type)
-    command_get->set_function_2<rpc::command_base_call<rpc::target_type> >
-      (std::tr1::bind(&rpc::object_storage::call_function_str, control->object_storage(),
-                      rawKey, std::tr1::placeholders::_1, std::tr1::placeholders::_2));
-  else
-    command_get->set_function_2<rpc::command_base_call<rpc::target_type> >
-      (std::tr1::bind(&rpc::object_storage::get_str, control->object_storage(), rawKey));
+      (flags & rpc::object_storage::mask_type) == rpc::object_storage::flag_multi_type) {
 
-  rpc::commands.insert_type(create_new_key<0>(rawKey, ""),
-                            command_get,
-                            &rpc::command_base_call<rpc::target_type>,
-                            cmd_flags, NULL, NULL);
+    rpc::commands.insert_slot<rpc::command_base_is_type<rpc::command_base_call<rpc::target_type> >::type>
+      (create_new_key<0>(rawKey, ""),
+       std::tr1::bind(&rpc::object_storage::call_function_str, control->object_storage(),
+                      rawKey, std::tr1::placeholders::_1, std::tr1::placeholders::_2),
+       &rpc::command_base_call<rpc::target_type>,
+       cmd_flags, NULL, NULL);
+
+  } else {
+    rpc::commands.insert_slot<rpc::command_base_is_type<rpc::command_base_call<rpc::target_type> >::type>
+      (create_new_key<0>(rawKey, ""),
+       std::tr1::bind(&rpc::object_storage::get_str, control->object_storage(), rawKey),
+       &rpc::command_base_call<rpc::target_type>,
+       cmd_flags, NULL, NULL);
+  }
 
   // TODO: Next... Make test class for this.
 
 //   // Ehm... no proper handling if these throw.
 
   if (!(flags & rpc::object_storage::flag_constant)) {
-    rpc::command_base* command_set = new rpc::command_base();
-    rpc::command_base_call_type command_call = NULL;
-
     switch (flags & rpc::object_storage::mask_type) {
     case rpc::object_storage::flag_bool_type:
-      command_set->set_function_2<rpc::command_base_call_value<rpc::target_type> >
-        (std::tr1::bind(&rpc::object_storage::set_str_bool, control->object_storage(), rawKey, std::tr1::placeholders::_2));
-
-      command_call = &rpc::command_base_call_value<rpc::target_type>;
+      rpc::commands.insert_slot<rpc::command_base_is_type<rpc::command_base_call_value<rpc::target_type> >::type>
+        (create_new_key<5>(rawKey, ".set"),
+         std::tr1::bind(&rpc::object_storage::set_str_bool, control->object_storage(), rawKey, std::tr1::placeholders::_2),
+         &rpc::command_base_call_value<rpc::target_type>,
+         cmd_flags, NULL, NULL);
       break;
     case rpc::object_storage::flag_value_type:
-      command_set->set_function_2<rpc::command_base_call_value<rpc::target_type> >
-        (std::tr1::bind(&rpc::object_storage::set_str_value, control->object_storage(), rawKey, std::tr1::placeholders::_2));
-
-      command_call = &rpc::command_base_call_value<rpc::target_type>;
+      rpc::commands.insert_slot<rpc::command_base_is_type<rpc::command_base_call_value<rpc::target_type> >::type>
+        (create_new_key<5>(rawKey, ".set"),
+         std::tr1::bind(&rpc::object_storage::set_str_value, control->object_storage(), rawKey, std::tr1::placeholders::_2),
+         &rpc::command_base_call_value<rpc::target_type>,
+         cmd_flags, NULL, NULL);
       break;
     case rpc::object_storage::flag_string_type:
-      command_set->set_function_2<rpc::command_base_call_string<rpc::target_type> >
-        (std::tr1::bind(&rpc::object_storage::set_str_string, control->object_storage(), rawKey, std::tr1::placeholders::_2));
-
-      command_call = &rpc::command_base_call_string<rpc::target_type>;
+      rpc::commands.insert_slot<rpc::command_base_is_type<rpc::command_base_call_string<rpc::target_type> >::type>
+        (create_new_key<5>(rawKey, ".set"),
+         std::tr1::bind(&rpc::object_storage::set_str_string, control->object_storage(), rawKey, std::tr1::placeholders::_2),
+         &rpc::command_base_call_string<rpc::target_type>,
+         cmd_flags, NULL, NULL);
       break;
     case rpc::object_storage::flag_function_type:
     case rpc::object_storage::flag_multi_type:
-    default:
-      delete command_set;
-      return torrent::Object();
+    default: break;
     }
-
-    rpc::commands.insert_type(create_new_key<5>(rawKey, ".set"),
-                              command_set, command_call, cmd_flags, NULL, NULL);
   }
 
   return torrent::Object();

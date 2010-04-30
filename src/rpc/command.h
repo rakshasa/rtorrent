@@ -160,7 +160,9 @@ public:
   };
 
   command_base() { new (&_pod<base_function>()) base_function(); }
-  virtual ~command_base() { _pod<base_function>().~base_function(); }
+  command_base(const command_base& src) { new (&_pod<base_function>()) base_function(src._pod<base_function>()); }
+
+  ~command_base() { _pod<base_function>().~base_function(); }
 
   static torrent::Object* argument(unsigned int index) { return current_stack.begin() + index; }
   static torrent::Object& argument_ref(unsigned int index) { return *(current_stack.begin() + index); }
@@ -188,14 +190,17 @@ public:
   // template types, yet what the C++0x standard will say about this I
   // have no idea atm.
   template <typename tmpl> tmpl& _pod() { return reinterpret_cast<tmpl&>(t_pod); }
+  template <typename tmpl> const tmpl& _pod() const { return reinterpret_cast<const tmpl&>(t_pod); }
 
   template <typename Func, typename T, typename Args>
   static const torrent::Object _call(command_base* cmd, target_type target, Args args);
 
-protected:
-  command_base(const command_base&);
-  void operator = (const command_base&);
+  command_base& operator = (const command_base& src) {
+    _pod<base_function>() = src._pod<base_function>();
+    return *this;
+  }
 
+protected:
   // For use by functions that need to use placeholders to arguments
   // within commands. E.d. callable command strings where one of the
   // arguments within the command needs to be supplied by the caller.
