@@ -457,7 +457,7 @@ cmd_view_set_not_visible(core::Download* download, const torrent::Object::string
 
 void
 initialize_command_ui() {
-  CMD2_VAR_STRING("key_layout", "qwerty");
+  CMD2_VAR_STRING("keys.layout", "qwerty");
 
   CMD2_ANY_STRING("view.add", object_convert_void(std::tr1::bind(&core::ViewManager::insert_throw, control->view_manager(), std::tr1::placeholders::_2)));
 

@@ -294,14 +294,20 @@ main(int argc, char** argv) {
        "encryption=allow_incoming,prefer_plaintext,enable_retry\n"
     );
 
-    CMD2_REDIRECT        ("ratio.enable", "group.seeding.ratio.enable");
-    CMD2_REDIRECT        ("ratio.disable", "group.seeding.ratio.disable");
-    CMD2_REDIRECT        ("ratio.min", "group.seeding.ratio.min");
-    CMD2_REDIRECT        ("ratio.max", "group.seeding.ratio.max");
-    CMD2_REDIRECT        ("ratio.upload", "group.seeding.ratio.upload");
-    CMD2_REDIRECT        ("ratio.min.set", "group.seeding.ratio.min.set");
-    CMD2_REDIRECT        ("ratio.max.set", "group.seeding.ratio.max.set");
-    CMD2_REDIRECT        ("ratio.upload.set", "group.seeding.ratio.upload.set");
+    // Functions that might not get depracted as they are nice for
+    // configuration files, and thus might do with just some
+    // cleanup.
+    CMD2_REDIRECT_GENERIC("upload_rate", "throttle.global_up.max_rate.set_kb");
+    CMD2_REDIRECT_GENERIC("download_rate", "throttle.global_down.max_rate.set_kb");
+
+    CMD2_REDIRECT_GENERIC("ratio.enable", "group.seeding.ratio.enable");
+    CMD2_REDIRECT_GENERIC("ratio.disable", "group.seeding.ratio.disable");
+    CMD2_REDIRECT_GENERIC("ratio.min", "group.seeding.ratio.min");
+    CMD2_REDIRECT_GENERIC("ratio.max", "group.seeding.ratio.max");
+    CMD2_REDIRECT_GENERIC("ratio.upload", "group.seeding.ratio.upload");
+    CMD2_REDIRECT_GENERIC("ratio.min.set", "group.seeding.ratio.min.set");
+    CMD2_REDIRECT_GENERIC("ratio.max.set", "group.seeding.ratio.max.set");
+    CMD2_REDIRECT_GENERIC("ratio.upload.set", "group.seeding.ratio.upload.set");
 
     CMD2_REDIRECT        ("min_peers", "throttle.min_peers.normal.set");
     CMD2_REDIRECT        ("max_peers", "throttle.max_peers.normal.set");
@@ -314,6 +320,17 @@ main(int argc, char** argv) {
     CMD2_REDIRECT        ("max_uploads_global", "throttle.max_uploads.global.set");
     CMD2_REDIRECT        ("max_downloads_div", "throttle.max_downloads.div.set");
     CMD2_REDIRECT        ("max_downloads_global", "throttle.max_downloads.global.set");
+
+    CMD2_REDIRECT        ("bind", "network.bind_address.set");
+    CMD2_REDIRECT        ("ip", "network.local_address.set");
+    CMD2_REDIRECT        ("port_range", "network.port_range.set");
+
+    CMD2_REDIRECT        ("port_random", "network.port_random.set");
+    CMD2_REDIRECT        ("proxy_address", "network.proxy_address.set");
+
+    CMD2_REDIRECT        ("directory", "directory.default.set");
+
+    CMD2_REDIRECT_GENERIC("execute", "execute2");
 
     // Deprecated commands. Don't use these anymore.
 
@@ -366,6 +383,8 @@ main(int argc, char** argv) {
       CMD2_REDIRECT_GENERIC("get_max_memory_usage", "pieces.memory.max");
       CMD2_REDIRECT_GENERIC("set_max_memory_usage", "pieces.memory.max.set");
 
+      CMD2_REDIRECT        ("key_layout", "keys.layout.set");
+
       //
       // Throttle:
       //
@@ -412,19 +431,15 @@ main(int argc, char** argv) {
       CMD2_REDIRECT        ("get_receive_buffer_size", "network.receive_buffer.size");
       CMD2_REDIRECT_GENERIC("set_receive_buffer_size", "network.receive_buffer.size.set");
 
-      CMD2_REDIRECT        ("bind", "network.bind_address.set");
       CMD2_REDIRECT_GENERIC("set_bind", "network.bind_address.set");
       CMD2_REDIRECT        ("get_bind", "network.bind_address");
 
-      CMD2_REDIRECT        ("ip", "network.local_address.set");
       CMD2_REDIRECT_GENERIC("set_ip", "network.local_address.set");
       CMD2_REDIRECT        ("get_ip", "network.local_address");
 
-      CMD2_REDIRECT        ("port_range", "network.port_range.set");
       CMD2_REDIRECT        ("get_port_range", "network.port_range");
       CMD2_REDIRECT_GENERIC("set_port_range", "network.port_range.set");
 
-      CMD2_REDIRECT        ("port_random", "network.port_random.set");
       CMD2_REDIRECT        ("get_port_random", "network.port_random");
       CMD2_REDIRECT_GENERIC("set_port_random", "network.port_random.set");
 
@@ -432,7 +447,6 @@ main(int argc, char** argv) {
       CMD2_REDIRECT        ("get_port_open", "network.port_open");
       CMD2_REDIRECT_GENERIC("set_port_open", "network.port_open.set");
 
-      CMD2_REDIRECT        ("proxy_address", "network.proxy_address.set");
       CMD2_REDIRECT_GENERIC("set_proxy_address", "network.proxy_address.set");
       CMD2_REDIRECT        ("get_proxy_address", "network.proxy_address");
 
@@ -442,6 +456,8 @@ main(int argc, char** argv) {
       CMD2_REDIRECT        ("scgi_dont_route", "network.scgi.dont_route.set");
       CMD2_REDIRECT_GENERIC("set_scgi_dont_route", "network.scgi.dont_route.set");
       CMD2_REDIRECT        ("get_scgi_dont_route", "network.scgi.dont_route");
+
+      CMD2_REDIRECT        ("get_max_open_sockets", "network.max_open_sockets");
 
       CMD2_REDIRECT        ("get_max_open_files", "network.max_open_files");
       CMD2_REDIRECT_GENERIC("set_max_open_files", "network.max_open_files.set");
@@ -469,12 +485,12 @@ main(int argc, char** argv) {
       CMD2_REDIRECT        ("get_http_cacert", "network.http.cacert");
       CMD2_REDIRECT_GENERIC("set_http_cacert", "network.http.cacert.set");
 
-      CMD2_REDIRECT        ("get_http_max_open", "network.http.max_open");
-      CMD2_REDIRECT_GENERIC("set_http_max_open", "network.http.max_open.set");
+      CMD2_REDIRECT        ("get_max_open_http", "network.http.max_open");
+      CMD2_REDIRECT_GENERIC("set_max_open_http", "network.http.max_open.set");
 
-      CMD2_REDIRECT_GENERIC("http_proxy_address", "network.http.proxy_address.set");
-      CMD2_REDIRECT        ("get_http_proxy_address", "network.http.proxy_address");
-      CMD2_REDIRECT_GENERIC("set_http_proxy_address", "network.http.proxy_address.set");
+      CMD2_REDIRECT_GENERIC("http_proxy", "network.http.proxy_address.set");
+      CMD2_REDIRECT        ("get_http_proxy", "network.http.proxy_address");
+      CMD2_REDIRECT_GENERIC("set_http_proxy", "network.http.proxy_address.set");
 
       CMD2_REDIRECT        ("get_connection_leech", "connection_leech");
       CMD2_REDIRECT_GENERIC("set_connection_leech", "connection_leech.set");
@@ -509,7 +525,6 @@ main(int argc, char** argv) {
       CMD2_REDIRECT        ("get_dht_throttle", "dht.throttle.name");
       CMD2_REDIRECT_GENERIC("set_dht_throttle", "dht.throttle.name.set");
 
-      CMD2_REDIRECT        ("directory", "directory.default.set");
       CMD2_REDIRECT        ("get_directory", "directory.default");
       CMD2_REDIRECT_GENERIC("set_directory", "directory.default.set");
 
@@ -634,6 +649,10 @@ main(int argc, char** argv) {
       CMD2_REDIRECT        ("d.set_tracker_numwant", "d.tracker_numwant.set");
       CMD2_REDIRECT        ("d.set_uploads_max", "d.uploads_max.set");
 
+      CMD2_REDIRECT        ("create_link", "d.create_link");
+      CMD2_REDIRECT        ("delete_link", "d.delete_link");
+      CMD2_REDIRECT        ("delete_tied", "d.delete_tied");
+
       //
       // Tracker:
       //
@@ -715,19 +734,12 @@ main(int argc, char** argv) {
       CMD2_REDIRECT_GENERIC("to_xb", "convert.xb");
       CMD2_REDIRECT_GENERIC("to_throttle", "convert.throttle");
 
-      CMD2_REDIRECT_GENERIC("execute", "execute2");
 //       CMD2_REDIRECT_GENERIC("execute_throw", "execute.throw");
 //       CMD2_REDIRECT_GENERIC("execute_nothrow", "execute.nothrow");
 //       CMD2_REDIRECT_GENERIC("execute_raw", "execute.raw");
 //       CMD2_REDIRECT_GENERIC("execute_raw_nothrow", "execute.raw_nothrow");
 //       CMD2_REDIRECT_GENERIC("execute_capture", "execute.capture");
 //       CMD2_REDIRECT_GENERIC("execute_capture_nothrow", "execute.capture_nothrow");
-
-      // Functions that might not get depracted as they are nice for
-      // configuration files, and thus might do with just some
-      // cleanup.
-      CMD2_REDIRECT_GENERIC("upload_rate", "throttle.global_up.max_rate.set_kb");
-      CMD2_REDIRECT_GENERIC("download_rate", "throttle.global_down.max_rate.set_kb");
     }
 
     if (OptionParser::has_flag('n', argc, argv))
