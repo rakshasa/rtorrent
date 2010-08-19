@@ -38,6 +38,7 @@
 
 #include <fcntl.h>
 #include <functional>
+#include <stdio.h>
 #include <unistd.h>
 #include <rak/path.h>
 #include <sys/types.h>
@@ -45,7 +46,9 @@
 #include <torrent/torrent.h>
 #include <torrent/chunk_manager.h>
 #include <torrent/data/file_manager.h>
+#include <torrent/data/chunk_utils.h>
 
+#include "core/download.h"
 #include "core/download_list.h"
 #include "core/download_store.h"
 #include "core/manager.h"
@@ -167,6 +170,27 @@ group_insert(const torrent::Object::list_type& args) {
   return name;
 }
 
+torrent::Object
+log_vmmap_dump(const std::string& str) {
+  core::DownloadList* d_list = control->core()->download_list();
+  std::vector<torrent::vm_mapping> all_mappings;
+
+  for (core::DownloadList::iterator itr = d_list->begin(), last = d_list->end(); itr != last; itr++) {
+    std::vector<torrent::vm_mapping> tmp_mappings = torrent::chunk_list_mapping((*itr)->download());
+
+    all_mappings.insert(all_mappings.end(), tmp_mappings.begin(), tmp_mappings.end());    
+  }
+
+  FILE* log_file = fopen(str.c_str(), "w");
+
+  for (std::vector<torrent::vm_mapping>::iterator itr = all_mappings.begin(), last = all_mappings.end(); itr != last; itr++) {
+    fprintf(log_file, "%8p-%8p [%5llxk]\n", itr->ptr, (char*)itr->ptr + itr->length, itr->length / 1024);
+  }
+
+  fclose(log_file);
+  return torrent::Object();
+}
+
 void
 initialize_command_local() {
   torrent::ChunkManager* chunkManager = torrent::chunk_manager();
@@ -245,8 +269,9 @@ initialize_command_local() {
   CMD2_EXECUTE     ("execute_capture",         rpc::ExecFile::flag_throw | rpc::ExecFile::flag_expand_tilde | rpc::ExecFile::flag_capture);
   CMD2_EXECUTE     ("execute_capture_nothrow", rpc::ExecFile::flag_expand_tilde | rpc::ExecFile::flag_capture);
 
-  CMD2_ANY_STRING  ("log.execute", std::tr1::bind(&apply_log, std::tr1::placeholders::_2, 0));
-  CMD2_ANY_STRING_V("log.xmlrpc",  std::tr1::bind(&ThreadWorker::set_xmlrpc_log, worker_thread, std::tr1::placeholders::_2));
+  CMD2_ANY_STRING  ("log.execute",    std::tr1::bind(&apply_log, std::tr1::placeholders::_2, 0));
+  CMD2_ANY_STRING  ("log.vmmap.dump", std::tr1::bind(&log_vmmap_dump, std::tr1::placeholders::_2));
+  CMD2_ANY_STRING_V("log.xmlrpc",     std::tr1::bind(&ThreadWorker::set_xmlrpc_log, worker_thread, std::tr1::placeholders::_2));
 
   // TODO: Convert to new command types:
   *rpc::command_base::argument(0) = "placeholder.0";

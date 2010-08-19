@@ -66,7 +66,7 @@ ElementDownloadList::ElementDownloadList() :
   m_bindings['\x13'] = sigc::bind(sigc::mem_fun(*this, &ElementDownloadList::receive_command), "d.start=");
   m_bindings['\x04'] = sigc::bind(sigc::mem_fun(*this, &ElementDownloadList::receive_command), "branch=d.state=,d.stop=,d.erase=");
   m_bindings['\x0B'] = sigc::bind(sigc::mem_fun(*this, &ElementDownloadList::receive_command), "d.ignore_commands.set=1; d.stop=; d.close=");
-  m_bindings['\x12'] = sigc::bind(sigc::mem_fun(*this, &ElementDownloadList::receive_command), "d.check_hash=");
+  m_bindings['\x12'] = sigc::bind(sigc::mem_fun(*this, &ElementDownloadList::receive_command), "d.complete.set=0; d.check_hash=");
   m_bindings['\x05'] = sigc::bind(sigc::mem_fun(*this, &ElementDownloadList::receive_command),
                                          "f.multicall=,f.set_create_queued=,f.set_resize_queued=; print=\"Queued create/resize of files in torrent.\"");
 

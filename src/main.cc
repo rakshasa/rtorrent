@@ -804,6 +804,8 @@ do_panic(int signum) {
   SignalHandler::set_default(signum);
   display::Canvas::cleanup();
 
+  // Use printf here instead...
+
   std::cout << "Caught " << SignalHandler::as_string(signum) << ", dumping stack:" << std::endl;
   
 #ifdef USE_EXECINFO
@@ -820,6 +822,19 @@ do_panic(int signum) {
   std::cout << "Stack dump not enabled." << std::endl;
 #endif
   
+  // Dumping virtual memory map information to file:
+  // char dump_path[256];
+  // snprintf(dump_path, 256, "./rtorrent.map.%u", getpid());
+
+  // int dump_fd = open(dump_path, O_RDWR | O_CREAT);
+
+  // if (dump_fd == -1) {
+  //   printf("Could not create vmmap dump file '%s'.", dump_path);
+  //   goto do_panic_exit;
+  // }
+
+// do_panic_exit:
+
   if (signum == SIGBUS)
     std::cout << "A bus error probably means you ran out of diskspace." << std::endl;
 
