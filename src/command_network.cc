@@ -420,6 +420,9 @@ initialize_command_network() {
   CMD2_VAR_STRING("connection_leech", "leech");
   CMD2_VAR_STRING("connection_seed", "seed");
 
+  CMD2_ANY         ("throttle.unchoked_uploads", std::tr1::bind(&torrent::currently_unchoked));
+  CMD2_ANY         ("throttle.unchoked_downloads", std::tr1::bind(&torrent::download_unchoked));
+
   CMD2_VAR_VALUE   ("throttle.min_peers.normal", 40);
   CMD2_VAR_VALUE   ("throttle.max_peers.normal", 100);
   CMD2_VAR_VALUE   ("throttle.min_peers.seed",   -1);
