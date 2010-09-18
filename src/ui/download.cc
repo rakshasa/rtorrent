@@ -299,21 +299,21 @@ void
 Download::receive_max_uploads(int t) {
   m_windowDownloadStatus->mark_dirty();
 
-  m_download->download()->set_uploads_max(std::max(m_download->download()->uploads_max() + t, (uint32_t)2));
+  m_download->download()->set_uploads_max(std::max<int32_t>(m_download->download()->uploads_max() + t, 0));
 }
 
 void
 Download::receive_min_peers(int t) {
   m_windowDownloadStatus->mark_dirty();
 
-  m_download->download()->connection_list()->set_min_size(std::max(m_download->download()->connection_list()->min_size() + t, (uint32_t)5));
+  m_download->download()->connection_list()->set_min_size(std::max<int32_t>(m_download->download()->connection_list()->min_size() + t, (int32_t)5));
 }
 
 void
 Download::receive_max_peers(int t) {
   m_windowDownloadStatus->mark_dirty();
 
-  m_download->download()->connection_list()->set_max_size(std::max(m_download->download()->connection_list()->max_size() + t, (uint32_t)5));
+  m_download->download()->connection_list()->set_max_size(std::max<int32_t>(m_download->download()->connection_list()->max_size() + t, (int32_t)5));
 }
 
 void

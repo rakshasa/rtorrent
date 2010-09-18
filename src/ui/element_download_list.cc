@@ -68,7 +68,7 @@ ElementDownloadList::ElementDownloadList() :
   m_bindings['\x0B'] = sigc::bind(sigc::mem_fun(*this, &ElementDownloadList::receive_command), "d.ignore_commands.set=1; d.stop=; d.close=");
   m_bindings['\x12'] = sigc::bind(sigc::mem_fun(*this, &ElementDownloadList::receive_command), "d.complete.set=0; d.check_hash=");
   m_bindings['\x05'] = sigc::bind(sigc::mem_fun(*this, &ElementDownloadList::receive_command),
-                                         "f.multicall=,f.set_create_queued=,f.set_resize_queued=; print=\"Queued create/resize of files in torrent.\"");
+                                         "f.multicall=,f.set_create_queued=0,f.set_resize_queued=0; print=\"Queued create/resize of files in torrent.\"");
 
   m_bindings['+']    = sigc::mem_fun(*this, &ElementDownloadList::receive_next_priority);
   m_bindings['-']    = sigc::mem_fun(*this, &ElementDownloadList::receive_prev_priority);

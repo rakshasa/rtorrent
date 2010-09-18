@@ -617,7 +617,7 @@ DownloadList::confirm_finished(Download* download) {
   download->set_resume_flags(~uint32_t());
 
   if (find(infohash) != end() &&
-      !download->is_active() && rpc::call_command_value("d.get_state", rpc::make_target(download)) == 1)
+      !download->is_active() && rpc::call_command_value("d.state", rpc::make_target(download)) == 1)
     resume(download,
            torrent::Download::start_no_create |
            torrent::Download::start_skip_tracker |
