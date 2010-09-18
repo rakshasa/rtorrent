@@ -328,18 +328,28 @@ initialize_command_events() {
   CMD2_ANY_STRING_V("import",          std::tr1::bind(&apply_import, std::tr1::placeholders::_2));
   CMD2_ANY_STRING_V("try_import",      std::tr1::bind(&apply_try_import, std::tr1::placeholders::_2));
 
-  CMD2_ANY_LIST    ("load",            std::tr1::bind(&apply_load, std::tr1::placeholders::_2, core::Manager::create_quiet | core::Manager::create_tied));
-  CMD2_ANY_LIST    ("load_verbose",    std::tr1::bind(&apply_load, std::tr1::placeholders::_2, core::Manager::create_tied));
-  CMD2_ANY_LIST    ("load_start",      std::tr1::bind(&apply_load, std::tr1::placeholders::_2,
-                                                      core::Manager::create_quiet | core::Manager::create_tied | core::Manager::create_start));
-  CMD2_ANY_LIST    ("load_start_verbose", std::tr1::bind(&apply_load, std::tr1::placeholders::_2, core::Manager::create_tied  | core::Manager::create_start));
-  CMD2_ANY_LIST    ("load_raw",           std::tr1::bind(&apply_load, std::tr1::placeholders::_2, core::Manager::create_quiet | core::Manager::create_raw_data));
-  CMD2_ANY_LIST    ("load_raw_verbose",   std::tr1::bind(&apply_load, std::tr1::placeholders::_2, core::Manager::create_raw_data));
-  CMD2_ANY_LIST    ("load_raw_start",     std::tr1::bind(&apply_load, std::tr1::placeholders::_2,
+  // CMD2_ANY_LIST    ("load",            std::tr1::bind(&apply_load, std::tr1::placeholders::_2, core::Manager::create_quiet | core::Manager::create_tied));
+  // CMD2_ANY_LIST    ("load_verbose",    std::tr1::bind(&apply_load, std::tr1::placeholders::_2, core::Manager::create_tied));
+  // CMD2_ANY_LIST    ("load_start",      std::tr1::bind(&apply_load, std::tr1::placeholders::_2,
+  //                                                     core::Manager::create_quiet | core::Manager::create_tied | core::Manager::create_start));
+  // CMD2_ANY_LIST    ("load_start_verbose", std::tr1::bind(&apply_load, std::tr1::placeholders::_2, core::Manager::create_tied  | core::Manager::create_start));
+  // CMD2_ANY_LIST    ("load_raw",           std::tr1::bind(&apply_load, std::tr1::placeholders::_2, core::Manager::create_quiet | core::Manager::create_raw_data));
+  // CMD2_ANY_LIST    ("load_raw_verbose",   std::tr1::bind(&apply_load, std::tr1::placeholders::_2, core::Manager::create_raw_data));
+  // CMD2_ANY_LIST    ("load_raw_start",     std::tr1::bind(&apply_load, std::tr1::placeholders::_2,
+  //                                                        core::Manager::create_quiet | core::Manager::create_start | core::Manager::create_raw_data));
+
+  CMD2_ANY_LIST    ("load.normal",        std::tr1::bind(&apply_load, std::tr1::placeholders::_2, core::Manager::create_quiet | core::Manager::create_tied));
+  CMD2_ANY_LIST    ("load.verbose",       std::tr1::bind(&apply_load, std::tr1::placeholders::_2, core::Manager::create_tied));
+  CMD2_ANY_LIST    ("load.start",         std::tr1::bind(&apply_load, std::tr1::placeholders::_2,
+                                                         core::Manager::create_quiet | core::Manager::create_tied | core::Manager::create_start));
+  CMD2_ANY_LIST    ("load.start_verbose", std::tr1::bind(&apply_load, std::tr1::placeholders::_2, core::Manager::create_tied  | core::Manager::create_start));
+  CMD2_ANY_LIST    ("load.raw",           std::tr1::bind(&apply_load, std::tr1::placeholders::_2, core::Manager::create_quiet | core::Manager::create_raw_data));
+  CMD2_ANY_LIST    ("load.raw_verbose",   std::tr1::bind(&apply_load, std::tr1::placeholders::_2, core::Manager::create_raw_data));
+  CMD2_ANY_LIST    ("load.raw_start",     std::tr1::bind(&apply_load, std::tr1::placeholders::_2,
                                                          core::Manager::create_quiet | core::Manager::create_start | core::Manager::create_raw_data));
 
   CMD2_ANY_VALUE   ("close_low_diskspace", std::tr1::bind(&apply_close_low_diskspace, std::tr1::placeholders::_2));
 
   CMD2_ANY_LIST    ("download_list",       std::tr1::bind(&apply_download_list, std::tr1::placeholders::_2));
-  CMD2_ANY_LIST    ("d.multicall2",         std::tr1::bind(&d_multicall, std::tr1::placeholders::_2));
+  CMD2_ANY_LIST    ("d.multicall2",        std::tr1::bind(&d_multicall, std::tr1::placeholders::_2));
 }

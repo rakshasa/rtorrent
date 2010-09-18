@@ -385,6 +385,15 @@ main(int argc, char** argv) {
 
       CMD2_REDIRECT        ("key_layout", "keys.layout.set");
 
+      CMD2_REDIRECT_GENERIC("load", "load.normal");
+      CMD2_REDIRECT_GENERIC("load_verbose", "load.verbose");
+      CMD2_REDIRECT_GENERIC("load_start", "load.start");
+      CMD2_REDIRECT_GENERIC("load_start_verbose", "load.start_verbose");
+
+      CMD2_REDIRECT_GENERIC("load_raw", "load.raw");
+      CMD2_REDIRECT_GENERIC("load_raw_start", "load.raw_start");
+      CMD2_REDIRECT_GENERIC("load_raw_verbose", "load.raw_verbose");
+
       //
       // Throttle:
       //
