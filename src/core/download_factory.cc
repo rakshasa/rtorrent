@@ -108,8 +108,8 @@ DownloadFactory::DownloadFactory(Manager* m) :
   m_taskLoad.set_slot(rak::mem_fn(this, &DownloadFactory::receive_load));
   m_taskCommit.set_slot(rak::mem_fn(this, &DownloadFactory::receive_commit));
 
-  m_variables["connection_leech"] = rpc::call_command_void("connection_leech");
-  m_variables["connection_seed"]  = rpc::call_command_void("connection_seed");
+  m_variables["connection_leech"] = rpc::call_command_void("protocol.connection.leech");
+  m_variables["connection_seed"]  = rpc::call_command_void("protocol.connection.seed");
   m_variables["directory"]        = rpc::call_command_void("directory.default");
   m_variables["tied_to_file"]     = torrent::Object((int64_t)false);
 }

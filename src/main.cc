@@ -98,6 +98,9 @@ parse_options(Control* c, int argc, char** argv) {
     optionParser.insert_option('O', sigc::ptr_fun(&rpc::parse_command_single_std));
     optionParser.insert_option_list('o', sigc::ptr_fun(&rpc::call_command_set_std_string));
 
+    if (OptionParser::has_flag('D', argc, argv))
+      rpc::call_command_set_value("method.use_deprecated", false);
+
     return optionParser.process(argc, argv);
 
   } catch (torrent::input_error& e) {
@@ -194,7 +197,7 @@ main(int argc, char** argv) {
 //        "method.insert = test.value2,value,6\n"
 
 //        "method.insert = test.string,string,6\n"
-//        "method.insert = test.bool,bool,true\n"
+//       "method.insert = test.bool,bool,true\n"
 
        "method.insert = test.method.simple,simple,\"print=simple_test_,$argument.0=\"\n"
 
@@ -221,10 +224,10 @@ main(int argc, char** argv) {
        "method.set_key = event.download.erased, !_download_list, ui.unfocus_download=\n"
        "method.set_key = event.download.erased, ~_delete_tied, d.delete_tied=\n"
 
-       "method.insert = group.insert_persistent_view,simple|const,"
-       "view.add=$argument.0=,view.persistent=$argument.0=,\"group.insert=$argument.0=,$argument.0=\"\n"
+       "method.insert = group2.insert_persistent_view,simple|const,"
+       "view.add=$argument.0=,view.persistent=$argument.0=,\"group2.insert=$argument.0=,$argument.0=\"\n"
 
-       // Allow setting 'group.view' as constant, so that we can't
+       // Allow setting 'group2.view' as constant, so that we can't
        // modify the value. And look into the possibility of making
        // 'const' use non-heap memory, as we know they can't be
        // erased.
@@ -232,7 +235,7 @@ main(int argc, char** argv) {
        // TODO: Remember to ensure it doesn't get restarted by watch
        // dir, etc. Set ignore commands, or something.
 
-       "group.insert = seeding,seeding\n"
+       "group2.insert = seeding,seeding\n"
 
        "system.session_name = \"$cat=$system.hostname=,:,$system.pid=\"\n"
 
@@ -291,7 +294,7 @@ main(int argc, char** argv) {
        "schedule = low_diskspace,5,60,close_low_diskspace=500M\n"
        "schedule = prune_file_status,3600,86400,system.file_status_cache.prune=\n"
 
-       "encryption=allow_incoming,prefer_plaintext,enable_retry\n"
+       "protocol.encryption.set=allow_incoming,prefer_plaintext,enable_retry\n"
     );
 
     // Functions that might not get depracted as they are nice for
@@ -300,14 +303,20 @@ main(int argc, char** argv) {
     CMD2_REDIRECT_GENERIC("upload_rate", "throttle.global_up.max_rate.set_kb");
     CMD2_REDIRECT_GENERIC("download_rate", "throttle.global_down.max_rate.set_kb");
 
-    CMD2_REDIRECT_GENERIC("ratio.enable", "group.seeding.ratio.enable");
-    CMD2_REDIRECT_GENERIC("ratio.disable", "group.seeding.ratio.disable");
-    CMD2_REDIRECT_GENERIC("ratio.min", "group.seeding.ratio.min");
-    CMD2_REDIRECT_GENERIC("ratio.max", "group.seeding.ratio.max");
-    CMD2_REDIRECT_GENERIC("ratio.upload", "group.seeding.ratio.upload");
-    CMD2_REDIRECT_GENERIC("ratio.min.set", "group.seeding.ratio.min.set");
-    CMD2_REDIRECT_GENERIC("ratio.max.set", "group.seeding.ratio.max.set");
-    CMD2_REDIRECT_GENERIC("ratio.upload.set", "group.seeding.ratio.upload.set");
+    CMD2_REDIRECT_GENERIC("ratio.enable", "group2.seeding.ratio.enable");
+    CMD2_REDIRECT_GENERIC("ratio.disable", "group2.seeding.ratio.disable");
+    CMD2_REDIRECT_GENERIC("ratio.min", "group2.seeding.ratio.min");
+    CMD2_REDIRECT_GENERIC("ratio.max", "group2.seeding.ratio.max");
+    CMD2_REDIRECT_GENERIC("ratio.upload", "group2.seeding.ratio.upload");
+    CMD2_REDIRECT_GENERIC("ratio.min.set", "group2.seeding.ratio.min.set");
+    CMD2_REDIRECT_GENERIC("ratio.max.set", "group2.seeding.ratio.max.set");
+    CMD2_REDIRECT_GENERIC("ratio.upload.set", "group2.seeding.ratio.upload.set");
+
+    CMD2_REDIRECT_GENERIC("encryption", "protocol.encryption.set");
+    CMD2_REDIRECT_GENERIC("encoding_list", "encoding.add");
+
+    CMD2_REDIRECT_GENERIC("connection_leech", "protocol.connection.leech.set");
+    CMD2_REDIRECT_GENERIC("connection_seed", "protocol.connection.seed.set");
 
     CMD2_REDIRECT        ("min_peers", "throttle.min_peers.normal.set");
     CMD2_REDIRECT        ("max_peers", "throttle.max_peers.normal.set");
@@ -328,13 +337,13 @@ main(int argc, char** argv) {
     CMD2_REDIRECT        ("port_random", "network.port_random.set");
     CMD2_REDIRECT        ("proxy_address", "network.proxy_address.set");
 
-    CMD2_REDIRECT        ("directory", "directory.default.set");
+    CMD2_REDIRECT_GENERIC("directory", "directory.default.set");
 
     CMD2_REDIRECT_GENERIC("execute", "execute2");
 
     // Deprecated commands. Don't use these anymore.
 
-    if (!OptionParser::has_flag('D', argc, argv)) {
+    if (rpc::call_command_value("method.use_deprecated")) {
       // Deprecated in 0.7.0:
 
       CMD2_REDIRECT_GENERIC("system.method.insert", "method.insert");
@@ -344,6 +353,9 @@ main(int argc, char** argv) {
       CMD2_REDIRECT_GENERIC("system.method.list_keys", "method.list_keys");
       CMD2_REDIRECT_GENERIC("system.method.has_key", "method.has_key");
       CMD2_REDIRECT_GENERIC("system.method.set_key", "method.set_key");
+
+      CMD2_REDIRECT_GENERIC("group.insert", "group2.insert");
+      CMD2_REDIRECT_GENERIC("group.insert_persistent_view", "group2.insert_persistent_view");
 
       CMD2_REDIRECT        ("get_handshake_log", "log.handshake");
       CMD2_REDIRECT_GENERIC("set_handshake_log", "log.handshake.set");
@@ -394,9 +406,23 @@ main(int argc, char** argv) {
       CMD2_REDIRECT_GENERIC("load_raw_start", "load.raw_start");
       CMD2_REDIRECT_GENERIC("load_raw_verbose", "load.raw_verbose");
 
+      CMD2_REDIRECT_GENERIC("get_connection_leech", "protocol.connection.leech");
+      CMD2_REDIRECT_GENERIC("get_connection_seed",  "protocol.connection.seed");
+      CMD2_REDIRECT_GENERIC("set_connection_leech", "protocol.connection.leech.set");
+      CMD2_REDIRECT_GENERIC("set_connection_seed",  "protocol.connection.seed.set");
+
       //
       // Throttle:
       //
+
+      CMD2_REDIRECT_GENERIC("throttle_up", "throttle.up");
+      CMD2_REDIRECT_GENERIC("throttle_down", "throttle.down");
+      CMD2_REDIRECT_GENERIC("throttle_ip", "throttle.ip");
+
+      CMD2_REDIRECT_GENERIC("get_throttle_up_max", "throttle.up.max");
+      CMD2_REDIRECT_GENERIC("get_throttle_up_rate", "throttle.up.rate");
+      CMD2_REDIRECT_GENERIC("get_throttle_down_max", "throttle.down.max");
+      CMD2_REDIRECT_GENERIC("get_throttle_down_rate", "throttle.down.rate");
 
       CMD2_REDIRECT_GENERIC("set_min_peers", "throttle.min_peers.normal.set");
       CMD2_REDIRECT_GENERIC("set_max_peers", "throttle.max_peers.normal.set");
@@ -500,11 +526,6 @@ main(int argc, char** argv) {
       CMD2_REDIRECT_GENERIC("http_proxy", "network.http.proxy_address.set");
       CMD2_REDIRECT        ("get_http_proxy", "network.http.proxy_address");
       CMD2_REDIRECT_GENERIC("set_http_proxy", "network.http.proxy_address.set");
-
-      CMD2_REDIRECT        ("get_connection_leech", "connection_leech");
-      CMD2_REDIRECT_GENERIC("set_connection_leech", "connection_leech.set");
-      CMD2_REDIRECT        ("get_connection_seed", "connection_seed");
-      CMD2_REDIRECT_GENERIC("set_connection_seed", "connection_seed.set");
 
       CMD2_REDIRECT        ("peer_exchange", "protocol.pex.set");
       CMD2_REDIRECT        ("get_peer_exchange", "protocol.pex");

@@ -57,15 +57,6 @@ system_method_generate_command(torrent::Object::list_const_iterator first, torre
   return command;
 }
 
-template <int postfix_size>
-inline const char*
-create_new_key(const std::string& key, const char postfix[postfix_size]) {
-  char *buffer = new char[key.size() + std::max(postfix_size, 1)];
-  std::memcpy(buffer, key.c_str(), key.size() + 1);
-  std::memcpy(buffer + key.size(), postfix, postfix_size);
-  return buffer;
-}
-
 // torrent::Object
 // system_method_insert_function(const torrent::Object::list_type& args, int flags) {
   
@@ -301,8 +292,8 @@ system_method_redirect(const torrent::Object::list_type& args) {
   std::string new_key  = torrent::object_create_string(args.front());
   std::string dest_key = torrent::object_create_string(args.back());
 
-  rpc::commands.create_redirect(new_key.c_str(), dest_key.c_str(),
-                                rpc::CommandMap::flag_public_xmlrpc | rpc::CommandMap::flag_delete_key);
+  rpc::commands.create_redirect(create_new_key<0>(new_key, ""), create_new_key<0>(dest_key, ""),
+                                rpc::CommandMap::flag_public_xmlrpc | rpc::CommandMap::flag_delete_key | rpc::CommandMap::flag_modifiable);
 
   return torrent::Object();
 }
@@ -369,6 +360,8 @@ system_method_list_keys(const torrent::Object::string_type& args) {
 
 void
 initialize_command_dynamic() {
+  CMD2_VAR_BOOL    ("method.use_deprecated", true);
+
   CMD2_ANY_LIST    ("method.insert",    std::tr1::bind(&system_method_insert, std::tr1::placeholders::_2));
 
   CMD2_ANY_LIST    ("method.insert.value", std::tr1::bind(&system_method_insert_object, std::tr1::placeholders::_2,

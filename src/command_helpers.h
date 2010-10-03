@@ -127,14 +127,16 @@ void initialize_commands();
                                std::tr1::placeholders::_1, std::tr1::placeholders::_2));
 
 #define CMD2_REDIRECT(from_key, to_key) \
-  rpc::commands.create_redirect(from_key, to_key, rpc::CommandMap::flag_public_xmlrpc);
+  rpc::commands.create_redirect(from_key, to_key, rpc::CommandMap::flag_public_xmlrpc | rpc::CommandMap::flag_dont_delete);
 #define CMD2_REDIRECT_GENERIC(from_key, to_key) \
-  rpc::commands.create_redirect(from_key, to_key, rpc::CommandMap::flag_public_xmlrpc | rpc::CommandMap::flag_no_target);
+  rpc::commands.create_redirect(from_key, to_key, rpc::CommandMap::flag_public_xmlrpc | rpc::CommandMap::flag_no_target | rpc::CommandMap::flag_dont_delete);
 #define CMD2_REDIRECT_FILE(from_key, to_key) \
-  rpc::commands.create_redirect(from_key, to_key, rpc::CommandMap::flag_public_xmlrpc | rpc::CommandMap::flag_file_target);
+  rpc::commands.create_redirect(from_key, to_key, rpc::CommandMap::flag_public_xmlrpc | rpc::CommandMap::flag_file_target | rpc::CommandMap::flag_dont_delete);
 #define CMD2_REDIRECT_TRACKER(from_key, to_key) \
-  rpc::commands.create_redirect(from_key, to_key, rpc::CommandMap::flag_public_xmlrpc | rpc::CommandMap::flag_tracker_target);
+  rpc::commands.create_redirect(from_key, to_key, rpc::CommandMap::flag_public_xmlrpc | rpc::CommandMap::flag_tracker_target | rpc::CommandMap::flag_dont_delete);
 
+#define CMD2_REDIRECT_GENERIC_STR(from_key, to_key) \
+  rpc::commands.create_redirect(create_new_key<0>(from_key, ""), create_new_key<0>(to_key, ""), rpc::CommandMap::flag_public_xmlrpc | rpc::CommandMap::flag_no_target | rpc::CommandMap::flag_delete_key);
 
 //
 // Conversion of return types:
@@ -164,5 +166,18 @@ struct object_convert_type<Functor, void> {
 template <typename T>
 object_convert_type<T, void>
 object_convert_void(T f) { return f; }
+
+//
+// Key creation:
+//
+
+template <int postfix_size>
+inline const char*
+create_new_key(const std::string& key, const char postfix[postfix_size]) {
+  char *buffer = new char[key.size() + std::max(postfix_size, 1)];
+  std::memcpy(buffer, key.c_str(), key.size() + 1);
+  std::memcpy(buffer + key.size(), postfix, postfix_size);
+  return buffer;
+}
 
 #endif

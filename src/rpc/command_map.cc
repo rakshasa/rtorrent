@@ -133,7 +133,6 @@ CommandMap::create_redirect(key_type key_new, key_type key_dest, int flags) {
 
   dest_itr->second.m_flags |= flag_has_redirects;
 
-  flags |= flag_dont_delete;
   flags |= dest_itr->second.m_flags & ~(flag_delete_key | flag_has_redirects);
 
   iterator itr = base_type::insert(base_type::end(),

@@ -64,14 +64,14 @@ apply_on_ratio(const torrent::Object& rawArgs) {
   const std::string& groupName = rawArgs.as_string();
 
   char buffer[32 + groupName.size()];
-  sprintf(buffer, "group.%s.view", groupName.c_str());
+  sprintf(buffer, "group2.%s.view", groupName.c_str());
 
   core::ViewManager::iterator viewItr = control->view_manager()->find(rpc::commands.call(buffer, rpc::make_target()).as_string());
 
   if (viewItr == control->view_manager()->end())
     throw torrent::input_error("Could not find view.");
 
-  char* bufferStart = buffer + sprintf(buffer, "group.%s.ratio.", groupName.c_str());
+  char* bufferStart = buffer + sprintf(buffer, "group2.%s.ratio.", groupName.c_str());
 
   // first argument:  minimum ratio to reach
   // second argument: minimum upload amount to reach [optional]
@@ -101,7 +101,7 @@ apply_on_ratio(const torrent::Object& rawArgs) {
     downloads.push_back(*itr);
   }
 
-  std::strcpy(bufferStart, "command");
+  sprintf(buffer, "group.%s.ratio.command", groupName.c_str());
 
   for (std::vector<core::Download*>::iterator itr = downloads.begin(), last = downloads.end(); itr != last; itr++) {
     //    rpc::commands.call("print", rpc::make_target(*itr), "Calling ratio command.");
@@ -327,16 +327,6 @@ initialize_command_events() {
 
   CMD2_ANY_STRING_V("import",          std::tr1::bind(&apply_import, std::tr1::placeholders::_2));
   CMD2_ANY_STRING_V("try_import",      std::tr1::bind(&apply_try_import, std::tr1::placeholders::_2));
-
-  // CMD2_ANY_LIST    ("load",            std::tr1::bind(&apply_load, std::tr1::placeholders::_2, core::Manager::create_quiet | core::Manager::create_tied));
-  // CMD2_ANY_LIST    ("load_verbose",    std::tr1::bind(&apply_load, std::tr1::placeholders::_2, core::Manager::create_tied));
-  // CMD2_ANY_LIST    ("load_start",      std::tr1::bind(&apply_load, std::tr1::placeholders::_2,
-  //                                                     core::Manager::create_quiet | core::Manager::create_tied | core::Manager::create_start));
-  // CMD2_ANY_LIST    ("load_start_verbose", std::tr1::bind(&apply_load, std::tr1::placeholders::_2, core::Manager::create_tied  | core::Manager::create_start));
-  // CMD2_ANY_LIST    ("load_raw",           std::tr1::bind(&apply_load, std::tr1::placeholders::_2, core::Manager::create_quiet | core::Manager::create_raw_data));
-  // CMD2_ANY_LIST    ("load_raw_verbose",   std::tr1::bind(&apply_load, std::tr1::placeholders::_2, core::Manager::create_raw_data));
-  // CMD2_ANY_LIST    ("load_raw_start",     std::tr1::bind(&apply_load, std::tr1::placeholders::_2,
-  //                                                        core::Manager::create_quiet | core::Manager::create_start | core::Manager::create_raw_data));
 
   CMD2_ANY_LIST    ("load.normal",        std::tr1::bind(&apply_load, std::tr1::placeholders::_2, core::Manager::create_quiet | core::Manager::create_tied));
   CMD2_ANY_LIST    ("load.verbose",       std::tr1::bind(&apply_load, std::tr1::placeholders::_2, core::Manager::create_tied));

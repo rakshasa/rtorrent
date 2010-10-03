@@ -184,10 +184,10 @@ Download::create_info() {
   // TODO: Define a custom command for this and use $argument.0 instead of looking up the name multiple times?
   element->push_column("Throttle:",         te_command("branch=d.throttle_name=,\""
                                                               "cat=$d.throttle_name=,\\\"  [Max \\\","
-                                                                  "$convert.throttle=$get_throttle_up_max=$d.throttle_name=,\\\"/\\\","
-                                                                  "$convert.throttle=$get_throttle_down_max=$d.throttle_name=,\\\" KB]  [Rate \\\","
-                                                                  "$convert.kb=$get_throttle_up_rate=$d.throttle_name=,\\\"/\\\","
-                                                                  "$convert.kb=$get_throttle_down_rate=$d.throttle_name=,\\\" KB]\\\"\","
+                                                                  "$convert.throttle=$throttle.up.max=$d.throttle_name=,\\\"/\\\","
+                                                                  "$convert.throttle=$throttle.down.max=$d.throttle_name=,\\\" KB]  [Rate \\\","
+                                                                  "$convert.kb=$throttle.up.rate=$d.throttle_name=,\\\"/\\\","
+                                                                  "$convert.kb=$throttle.down.rate=$d.throttle_name=,\\\" KB]\\\"\","
                                                               "cat=\"global\""));
 
   element->push_back("");

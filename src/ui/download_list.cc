@@ -244,11 +244,11 @@ DownloadList::receive_view_input(Input type) {
 
   switch (type) {
   case INPUT_LOAD_DEFAULT:
-    title = "load_start";
+    title = "load.start";
     break;
 
   case INPUT_LOAD_MODIFIED:
-    title = "load";
+    title = "load.normal";
     break;
 
   case INPUT_CHANGE_DIRECTORY:

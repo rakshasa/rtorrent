@@ -406,19 +406,22 @@ initialize_command_network() {
   torrent::FileManager* fileManager = torrent::file_manager();
   core::CurlStack* httpStack = control->core()->http_stack();
 
-  CMD2_VAR_BOOL    ("protocol.pex",  true);
   CMD2_VAR_BOOL    ("log.handshake", false);
   CMD2_VAR_STRING  ("log.tracker",   "");
 
-  CMD2_ANY_STRING  ("encoding_list",    std::tr1::bind(&apply_encoding_list, std::tr1::placeholders::_2));
+  // CMD2_ANY_STRING  ("encoding_list",    std::tr1::bind(&apply_encoding_list, std::tr1::placeholders::_2));
+  CMD2_ANY_STRING  ("encoding.add", std::tr1::bind(&apply_encoding_list, std::tr1::placeholders::_2));
 
   // Isn't port_open used?
-  CMD2_VAR_BOOL  ("network.port_open", true);
-  CMD2_VAR_BOOL  ("network.port_random", true);
-  CMD2_VAR_STRING("network.port_range", "6881-6999");
+  CMD2_VAR_BOOL    ("network.port_open",   true);
+  CMD2_VAR_BOOL    ("network.port_random", true);
+  CMD2_VAR_STRING  ("network.port_range",  "6881-6999");
 
-  CMD2_VAR_STRING("connection_leech", "leech");
-  CMD2_VAR_STRING("connection_seed", "seed");
+  CMD2_VAR_BOOL    ("protocol.pex",            true);
+  CMD2_ANY_LIST    ("protocol.encryption.set", std::tr1::bind(&apply_encryption, std::tr1::placeholders::_2));
+
+  CMD2_VAR_STRING  ("protocol.connection.leech", "leech");
+  CMD2_VAR_STRING  ("protocol.connection.seed",  "seed");
 
   CMD2_ANY         ("throttle.unchoked_uploads", std::tr1::bind(&torrent::currently_unchoked));
   CMD2_ANY         ("throttle.unchoked_downloads", std::tr1::bind(&torrent::download_unchoked));
@@ -447,16 +450,16 @@ initialize_command_network() {
   CMD2_ANY_VALUE_V ("throttle.global_down.max_rate.set",    std::tr1::bind(&ui::Root::set_down_throttle_i64, control->ui(), std::tr1::placeholders::_2));
   CMD2_ANY_VALUE_KB("throttle.global_down.max_rate.set_kb", std::tr1::bind(&ui::Root::set_down_throttle_i64, control->ui(), std::tr1::placeholders::_2));
 
-  CMD2_ANY_LIST("throttle_up",         std::tr1::bind(&apply_throttle, std::tr1::placeholders::_2, true));
-  CMD2_ANY_LIST("throttle_down",       std::tr1::bind(&apply_throttle, std::tr1::placeholders::_2, false));
-  CMD2_ANY_LIST("throttle_ip",         std::tr1::bind(&apply_address_throttle, std::tr1::placeholders::_2));
+  // Temporary names, need to change this to accept real rates rather
+  // than kB.
+  CMD2_ANY_LIST    ("throttle.up",                          std::tr1::bind(&apply_throttle, std::tr1::placeholders::_2, true));
+  CMD2_ANY_LIST    ("throttle.down",                        std::tr1::bind(&apply_throttle, std::tr1::placeholders::_2, false));
+  CMD2_ANY_LIST    ("throttle.ip",                          std::tr1::bind(&apply_address_throttle, std::tr1::placeholders::_2));
 
-  CMD2_ANY_STRING("get_throttle_up_max",    std::tr1::bind(&retrieve_throttle_info, std::tr1::placeholders::_2, throttle_info_up | throttle_info_max));
-  CMD2_ANY_STRING("get_throttle_up_rate",   std::tr1::bind(&retrieve_throttle_info, std::tr1::placeholders::_2, throttle_info_up | throttle_info_rate));
-  CMD2_ANY_STRING("get_throttle_down_max",  std::tr1::bind(&retrieve_throttle_info, std::tr1::placeholders::_2, throttle_info_down | throttle_info_max));
-  CMD2_ANY_STRING("get_throttle_down_rate", std::tr1::bind(&retrieve_throttle_info, std::tr1::placeholders::_2, throttle_info_down | throttle_info_rate));
-
-  CMD2_ANY_LIST("encryption",          std::tr1::bind(&apply_encryption, std::tr1::placeholders::_2));
+  CMD2_ANY_STRING  ("throttle.up.max",    std::tr1::bind(&retrieve_throttle_info, std::tr1::placeholders::_2, throttle_info_up | throttle_info_max));
+  CMD2_ANY_STRING  ("throttle.up.rate",   std::tr1::bind(&retrieve_throttle_info, std::tr1::placeholders::_2, throttle_info_up | throttle_info_rate));
+  CMD2_ANY_STRING  ("throttle.down.max",  std::tr1::bind(&retrieve_throttle_info, std::tr1::placeholders::_2, throttle_info_down | throttle_info_max));
+  CMD2_ANY_STRING  ("throttle.down.rate", std::tr1::bind(&retrieve_throttle_info, std::tr1::placeholders::_2, throttle_info_down | throttle_info_rate));
 
   CMD2_ANY         ("network.http.capath",            std::tr1::bind(&core::CurlStack::http_capath, httpStack));
   CMD2_ANY_STRING_V("network.http.capath.set",        std::tr1::bind(&core::CurlStack::set_http_capath, httpStack, std::tr1::placeholders::_2));
