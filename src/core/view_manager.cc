@@ -62,8 +62,8 @@ ViewManager::clear() {
 
 ViewManager::iterator
 ViewManager::insert(const std::string& name) {
-  if (find(name) != end())
-    throw torrent::internal_error("ViewManager::insert(...) name already inserted.");
+  if (find(name) != end() || name.empty())
+    throw torrent::input_error("View with same name already inserted.");
 
   View* view = new View();
   view->initialize(name);

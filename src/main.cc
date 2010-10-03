@@ -742,14 +742,14 @@ main(int argc, char** argv) {
       // View:
       //
 
-      CMD2_REDIRECT        ("view_add", "view.add");
-      CMD2_REDIRECT        ("view_filter", "view.filter");
-      CMD2_REDIRECT        ("view_filter_on", "view.filter_on");
-      CMD2_REDIRECT        ("view_list", "view.list");
-      CMD2_REDIRECT        ("view_set", "view.set");
-      CMD2_REDIRECT        ("view_sort", "view.sort");
-      CMD2_REDIRECT        ("view_sort_current", "view.sort_current");
-      CMD2_REDIRECT        ("view_sort_new", "view.sort_new");
+      CMD2_REDIRECT_GENERIC("view_add", "view.add");
+      CMD2_REDIRECT_GENERIC("view_filter", "view.filter");
+      CMD2_REDIRECT_GENERIC("view_filter_on", "view.filter_on");
+      CMD2_REDIRECT_GENERIC("view_list", "view.list");
+      CMD2_REDIRECT_GENERIC("view_set", "view.set");
+      CMD2_REDIRECT_GENERIC("view_sort", "view.sort");
+      CMD2_REDIRECT_GENERIC("view_sort_current", "view.sort_current");
+      CMD2_REDIRECT_GENERIC("view_sort_new", "view.sort_new");
 
       // Rename these to avoid conflicts with old style.
       CMD2_REDIRECT_GENERIC("d.multicall", "d.multicall2");
