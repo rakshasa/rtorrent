@@ -222,7 +222,7 @@ DownloadList::activate_display(Display displayType) {
   case DISPLAY_DOWNLOAD_LIST:
     control->ui()->window_title()->set_title("rTorrent " VERSION "/" +
                                              std::string(torrent::version()) + " - " +
-                                             rpc::call_command_string("system.session_name"));
+                                             rpc::call_command_string("session.name"));
     break;
   case DISPLAY_LOG:
     control->ui()->window_title()->set_title("Log");

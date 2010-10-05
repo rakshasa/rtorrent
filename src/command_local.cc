@@ -127,8 +127,8 @@ system_get_cwd() {
 }
 
 torrent::Object
-system_set_cwd(const torrent::Object& rawArgs) {
-  if (::chdir(rawArgs.as_string().c_str()) != 0)
+system_set_cwd(const torrent::Object::string_type& rawArgs) {
+  if (::chdir(rawArgs.c_str()) != 0)
     throw torrent::input_error("Could not change current working directory.");
 
   return torrent::Object();
@@ -222,9 +222,6 @@ initialize_command_local() {
   CMD2_VAR_VALUE   ("system.file.max_size",         -1);
   CMD2_VAR_VALUE   ("system.file.split_size",       -1);
   CMD2_VAR_STRING  ("system.file.split_suffix",     ".part");
-  CMD2_VAR_STRING  ("system.session_name",          "");
-  CMD2_VAR_BOOL    ("system.session.use_lock",      true);
-  CMD2_VAR_BOOL    ("system.session.on_completion", true);
 
   CMD2_ANY         ("system.file_status_cache.size",   std::tr1::bind(&utils::FileStatusCache::size,
                                                                       (utils::FileStatusCache::base_type*)control->core()->file_status_cache()));
@@ -238,8 +235,10 @@ initialize_command_local() {
   CMD2_ANY         ("system.time_seconds",             std::tr1::bind(&rak::timer::current_seconds));
   CMD2_ANY         ("system.time_usec",                std::tr1::bind(&rak::timer::current_usec));
 
-//   ADD_COMMAND_VALUE_SET_OCT("system.", "umask",      std::ptr_fun(&umask));
-//   ADD_COMMAND_STRING_PREFIX("system.", "cwd",        std::ptr_fun(system_set_cwd), rak::ptr_fun(&system_get_cwd));
+  CMD2_ANY_VALUE_V ("system.umask.set",                std::tr1::bind(&umask, std::tr1::placeholders::_2));
+
+  CMD2_ANY         ("system.cwd",                      std::tr1::bind(&system_get_cwd));
+  CMD2_ANY_STRING  ("system.cwd.set",                  std::tr1::bind(&system_set_cwd, std::tr1::placeholders::_2));
 
   CMD2_ANY         ("pieces.sync.always_safe",         std::tr1::bind(&CM_t::safe_sync, chunkManager));
   CMD2_ANY_VALUE_V ("pieces.sync.always_safe.set",     std::tr1::bind(&CM_t::set_safe_sync, chunkManager, std::tr1::placeholders::_2));
@@ -264,25 +263,27 @@ initialize_command_local() {
 
   CMD2_VAR_BOOL    ("pieces.hash.on_completion",       true);
 
-  CMD2_VAR_STRING  ("directory.default", "./");
+  CMD2_VAR_STRING  ("directory.default",       "./");
 
-  // TODO: Clean up.
-  CMD2_ANY         ("get_session", std::tr1::bind(&core::DownloadStore::path, dStore));
-  CMD2_ANY_STRING_V("set_session", std::tr1::bind(&core::DownloadStore::set_path, dStore, std::tr1::placeholders::_2));
-  CMD2_ANY_STRING_V("session",     std::tr1::bind(&core::DownloadStore::set_path, dStore, std::tr1::placeholders::_2));
+  CMD2_VAR_STRING  ("session.name",            "");
+  CMD2_VAR_BOOL    ("session.use_lock",        true);
+  CMD2_VAR_BOOL    ("session.on_completion",   true);
 
-  CMD2_ANY_V       ("session_save", std::tr1::bind(&core::DownloadList::session_save, dList));
+  CMD2_ANY         ("session.path",            std::tr1::bind(&core::DownloadStore::path, dStore));
+  CMD2_ANY_STRING_V("session.path.set",        std::tr1::bind(&core::DownloadStore::set_path, dStore, std::tr1::placeholders::_2));
+
+  CMD2_ANY_V       ("session.save",            std::tr1::bind(&core::DownloadList::session_save, dList));
 
 #define CMD2_EXECUTE(key, flags)                                         \
   CMD2_ANY(key, std::tr1::bind(&rpc::ExecFile::execute_object, &rpc::execFile, std::tr1::placeholders::_2, flags));
 
   CMD2_EXECUTE     ("execute2",                rpc::ExecFile::flag_expand_tilde | rpc::ExecFile::flag_throw);
-  CMD2_EXECUTE     ("execute_throw",           rpc::ExecFile::flag_expand_tilde | rpc::ExecFile::flag_throw);
-  CMD2_EXECUTE     ("execute_nothrow",         rpc::ExecFile::flag_expand_tilde);
-  CMD2_EXECUTE     ("execute_raw",             rpc::ExecFile::flag_throw);
-  CMD2_EXECUTE     ("execute_raw_nothrow",     0);
-  CMD2_EXECUTE     ("execute_capture",         rpc::ExecFile::flag_throw | rpc::ExecFile::flag_expand_tilde | rpc::ExecFile::flag_capture);
-  CMD2_EXECUTE     ("execute_capture_nothrow", rpc::ExecFile::flag_expand_tilde | rpc::ExecFile::flag_capture);
+  CMD2_EXECUTE     ("execute.throw",           rpc::ExecFile::flag_expand_tilde | rpc::ExecFile::flag_throw);
+  CMD2_EXECUTE     ("execute.nothrow",         rpc::ExecFile::flag_expand_tilde);
+  CMD2_EXECUTE     ("execute.raw",             rpc::ExecFile::flag_throw);
+  CMD2_EXECUTE     ("execute.raw_nothrow",     0);
+  CMD2_EXECUTE     ("execute.capture",         rpc::ExecFile::flag_throw | rpc::ExecFile::flag_expand_tilde | rpc::ExecFile::flag_capture);
+  CMD2_EXECUTE     ("execute.capture_nothrow", rpc::ExecFile::flag_expand_tilde | rpc::ExecFile::flag_capture);
 
   CMD2_ANY_STRING  ("log.execute",    std::tr1::bind(&apply_log, std::tr1::placeholders::_2, 0));
   CMD2_ANY_STRING  ("log.vmmap.dump", std::tr1::bind(&log_vmmap_dump, std::tr1::placeholders::_2));

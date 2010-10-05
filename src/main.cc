@@ -98,9 +98,6 @@ parse_options(Control* c, int argc, char** argv) {
     optionParser.insert_option('O', sigc::ptr_fun(&rpc::parse_command_single_std));
     optionParser.insert_option_list('o', sigc::ptr_fun(&rpc::call_command_set_std_string));
 
-    if (OptionParser::has_flag('D', argc, argv))
-      rpc::call_command_set_value("method.use_deprecated", false);
-
     return optionParser.process(argc, argv);
 
   } catch (torrent::input_error& e) {
@@ -191,6 +188,14 @@ main(int argc, char** argv) {
     // torrent::ConnectionManager* are valid etc.
     initialize_commands();
 
+    if (OptionParser::has_flag('D', argc, argv))
+      rpc::call_command_set_value("method.use_deprecated.set", false);
+
+    if (rpc::call_command_value("method.use_deprecated"))
+      control->core()->push_log("Allowing deprecated commands.");
+    else
+      control->core()->push_log("Disabled deprecated commands.");
+
     rpc::parse_command_multiple
       (rpc::make_target(),
 //        "method.insert = test.value,value\n"
@@ -237,7 +242,7 @@ main(int argc, char** argv) {
 
        "group2.insert = seeding,seeding\n"
 
-       "system.session_name = \"$cat=$system.hostname=,:,$system.pid=\"\n"
+       "session.name = \"$cat=$system.hostname=,:,$system.pid=\"\n"
 
        // Currently not doing any sorting on main.
        "view.add = main\n"
@@ -290,7 +295,7 @@ main(int argc, char** argv) {
        "schedule = view.main,10,10,\"view.sort=main,20\"\n"
        "schedule = view.name,10,10,\"view.sort=name,20\"\n"
 
-       "schedule = session_save,1200,1200,session_save=\n"
+       "schedule = session_save,1200,1200,session.save=\n"
        "schedule = low_diskspace,5,60,close_low_diskspace=500M\n"
        "schedule = prune_file_status,3600,86400,system.file_status_cache.prune=\n"
 
@@ -303,13 +308,13 @@ main(int argc, char** argv) {
     CMD2_REDIRECT_GENERIC("upload_rate", "throttle.global_up.max_rate.set_kb");
     CMD2_REDIRECT_GENERIC("download_rate", "throttle.global_down.max_rate.set_kb");
 
-    CMD2_REDIRECT_GENERIC("ratio.enable", "group2.seeding.ratio.enable");
-    CMD2_REDIRECT_GENERIC("ratio.disable", "group2.seeding.ratio.disable");
-    CMD2_REDIRECT_GENERIC("ratio.min", "group2.seeding.ratio.min");
-    CMD2_REDIRECT_GENERIC("ratio.max", "group2.seeding.ratio.max");
-    CMD2_REDIRECT_GENERIC("ratio.upload", "group2.seeding.ratio.upload");
-    CMD2_REDIRECT_GENERIC("ratio.min.set", "group2.seeding.ratio.min.set");
-    CMD2_REDIRECT_GENERIC("ratio.max.set", "group2.seeding.ratio.max.set");
+    CMD2_REDIRECT_GENERIC("ratio.enable",     "group2.seeding.ratio.enable");
+    CMD2_REDIRECT_GENERIC("ratio.disable",    "group2.seeding.ratio.disable");
+    CMD2_REDIRECT_GENERIC("ratio.min",        "group2.seeding.ratio.min");
+    CMD2_REDIRECT_GENERIC("ratio.max",        "group2.seeding.ratio.max");
+    CMD2_REDIRECT_GENERIC("ratio.upload",     "group2.seeding.ratio.upload");
+    CMD2_REDIRECT_GENERIC("ratio.min.set",    "group2.seeding.ratio.min.set");
+    CMD2_REDIRECT_GENERIC("ratio.max.set",    "group2.seeding.ratio.max.set");
     CMD2_REDIRECT_GENERIC("ratio.upload.set", "group2.seeding.ratio.upload.set");
 
     CMD2_REDIRECT_GENERIC("encryption", "protocol.encryption.set");
@@ -325,19 +330,25 @@ main(int argc, char** argv) {
 
     CMD2_REDIRECT        ("max_uploads", "throttle.max_uploads.set");
 
-    CMD2_REDIRECT        ("max_uploads_div", "throttle.max_uploads.div.set");
-    CMD2_REDIRECT        ("max_uploads_global", "throttle.max_uploads.global.set");
-    CMD2_REDIRECT        ("max_downloads_div", "throttle.max_downloads.div.set");
+    CMD2_REDIRECT        ("max_uploads_div",      "throttle.max_uploads.div.set");
+    CMD2_REDIRECT        ("max_uploads_global",   "throttle.max_uploads.global.set");
+    CMD2_REDIRECT        ("max_downloads_div",    "throttle.max_downloads.div.set");
     CMD2_REDIRECT        ("max_downloads_global", "throttle.max_downloads.global.set");
 
-    CMD2_REDIRECT        ("bind", "network.bind_address.set");
-    CMD2_REDIRECT        ("ip", "network.local_address.set");
+    CMD2_REDIRECT_GENERIC("max_memory_usage", "pieces.memory.max.set");
+
+    CMD2_REDIRECT        ("bind",       "network.bind_address.set");
+    CMD2_REDIRECT        ("ip",         "network.local_address.set");
     CMD2_REDIRECT        ("port_range", "network.port_range.set");
+
+    CMD2_REDIRECT_GENERIC("dht",      "dht.mode.set");
+    CMD2_REDIRECT_GENERIC("dht_port", "dht.port.set");
 
     CMD2_REDIRECT        ("port_random", "network.port_random.set");
     CMD2_REDIRECT        ("proxy_address", "network.proxy_address.set");
 
     CMD2_REDIRECT_GENERIC("directory", "directory.default.set");
+    CMD2_REDIRECT_GENERIC("session",   "session.path.set");
 
     CMD2_REDIRECT_GENERIC("execute", "execute2");
 
@@ -354,6 +365,14 @@ main(int argc, char** argv) {
       CMD2_REDIRECT_GENERIC("system.method.has_key", "method.has_key");
       CMD2_REDIRECT_GENERIC("system.method.set_key", "method.set_key");
 
+      CMD2_REDIRECT        ("get_directory", "directory.default");
+      CMD2_REDIRECT_GENERIC("set_directory", "directory.default.set");
+
+      CMD2_REDIRECT        ("get_session", "session.path");
+      CMD2_REDIRECT_GENERIC("set_session", "session.path.set");
+
+      CMD2_REDIRECT        ("session_save", "session.save");
+
       CMD2_REDIRECT_GENERIC("group.insert", "group2.insert");
       CMD2_REDIRECT_GENERIC("group.insert_persistent_view", "group2.insert_persistent_view");
 
@@ -362,8 +381,8 @@ main(int argc, char** argv) {
       CMD2_REDIRECT        ("get_log.tracker", "log.tracker");
       CMD2_REDIRECT_GENERIC("set_log.tracker", "log.tracker.set");
 
-      CMD2_REDIRECT        ("get_name", "system.session_name");
-      CMD2_REDIRECT_GENERIC("set_name", "system.session_name.set");
+      CMD2_REDIRECT        ("get_name", "session.name");
+      CMD2_REDIRECT_GENERIC("set_name", "session.name.set");
 
       CMD2_REDIRECT        ("system.file_allocate", "system.file.allocate");
       CMD2_REDIRECT        ("system.file_allocate.set", "system.file.allocate.set");
@@ -391,7 +410,7 @@ main(int argc, char** argv) {
       CMD2_REDIRECT_GENERIC("get_safe_sync", "pieces.sync.always_safe");
       CMD2_REDIRECT_GENERIC("set_safe_sync", "pieces.sync.always_safe.set");
 
-      CMD2_REDIRECT        ("get_memory_usage", "pieces.memory.current");
+      CMD2_REDIRECT        ("get_memory_usage",     "pieces.memory.current");
       CMD2_REDIRECT_GENERIC("get_max_memory_usage", "pieces.memory.max");
       CMD2_REDIRECT_GENERIC("set_max_memory_usage", "pieces.memory.max.set");
 
@@ -547,25 +566,21 @@ main(int argc, char** argv) {
       // DHT stuff
       //
 
-      CMD2_REDIRECT        ("dht", "dht.mode.set");
       CMD2_REDIRECT        ("dht_add_node", "dht.add_node");
       CMD2_REDIRECT        ("dht_statistics", "dht.statistics");
       CMD2_REDIRECT        ("get_dht_port", "dht.port");
-      CMD2_REDIRECT_GENERIC("set_dht_port", "dht.port");
+      CMD2_REDIRECT_GENERIC("set_dht_port", "dht.port.set");
       CMD2_REDIRECT        ("get_dht_throttle", "dht.throttle.name");
       CMD2_REDIRECT_GENERIC("set_dht_throttle", "dht.throttle.name.set");
-
-      CMD2_REDIRECT        ("get_directory", "directory.default");
-      CMD2_REDIRECT_GENERIC("set_directory", "directory.default.set");
 
       //
       // Various system stuff:
       //
 
-      CMD2_REDIRECT        ("get_session_lock", "system.session.use_lock");
-      CMD2_REDIRECT_GENERIC("set_session_lock", "system.session.use_lock.set");
-      CMD2_REDIRECT        ("get_session_on_completion", "system.session.on_completion");
-      CMD2_REDIRECT_GENERIC("set_session_on_completion", "system.session.on_completion.set");
+      CMD2_REDIRECT        ("get_session_lock", "session.use_lock");
+      CMD2_REDIRECT_GENERIC("set_session_lock", "session.use_lock.set");
+      CMD2_REDIRECT        ("get_session_on_completion", "session.on_completion");
+      CMD2_REDIRECT_GENERIC("set_session_on_completion", "session.on_completion.set");
 
       CMD2_REDIRECT        ("hash_read_ahead", "system.hash.read_ahead.set");
       CMD2_REDIRECT        ("get_hash_read_ahead", "system.hash.read_ahead");
@@ -764,20 +779,20 @@ main(int argc, char** argv) {
       CMD2_REDIRECT_GENERIC("to_xb", "convert.xb");
       CMD2_REDIRECT_GENERIC("to_throttle", "convert.throttle");
 
-//       CMD2_REDIRECT_GENERIC("execute_throw", "execute.throw");
-//       CMD2_REDIRECT_GENERIC("execute_nothrow", "execute.nothrow");
-//       CMD2_REDIRECT_GENERIC("execute_raw", "execute.raw");
-//       CMD2_REDIRECT_GENERIC("execute_raw_nothrow", "execute.raw_nothrow");
-//       CMD2_REDIRECT_GENERIC("execute_capture", "execute.capture");
-//       CMD2_REDIRECT_GENERIC("execute_capture_nothrow", "execute.capture_nothrow");
+      CMD2_REDIRECT_GENERIC("execute_throw", "execute.throw");
+      CMD2_REDIRECT_GENERIC("execute_nothrow", "execute.nothrow");
+      CMD2_REDIRECT_GENERIC("execute_raw", "execute.raw");
+      CMD2_REDIRECT_GENERIC("execute_raw_nothrow", "execute.raw_nothrow");
+      CMD2_REDIRECT_GENERIC("execute_capture", "execute.capture");
+      CMD2_REDIRECT_GENERIC("execute_capture_nothrow", "execute.capture_nothrow");
     }
+
+    int firstArg = parse_options(control, argc, argv);
 
     if (OptionParser::has_flag('n', argc, argv))
       control->core()->push_log("Ignoring ~/.rtorrent.rc.");
     else
       rpc::parse_command_single(rpc::make_target(), "try_import = ~/.rtorrent.rc");
-
-    int firstArg = parse_options(control, argc, argv);
 
     control->initialize();
 

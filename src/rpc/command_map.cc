@@ -79,6 +79,7 @@ CommandMap::insert(key_type key, int flags, const char* parm, const char* doc) {
   if (itr != base_type::end())
     throw torrent::internal_error("CommandMap::insert(...) tried to insert an already existing key.");
 
+  // TODO: This is not honoring the public_xmlrpc flags!!!
   if (rpc::xmlrpc.is_valid())
     rpc::xmlrpc.insert_command(key, parm, doc);
 
@@ -134,6 +135,10 @@ CommandMap::create_redirect(key_type key_new, key_type key_dest, int flags) {
   dest_itr->second.m_flags |= flag_has_redirects;
 
   flags |= dest_itr->second.m_flags & ~(flag_delete_key | flag_has_redirects);
+
+  // TODO: This is not honoring the public_xmlrpc flags!!!
+  if (rpc::xmlrpc.is_valid())
+    rpc::xmlrpc.insert_command(key_new, dest_itr->second.m_parm, dest_itr->second.m_doc);
 
   iterator itr = base_type::insert(base_type::end(),
                                    value_type(key_new, command_map_data_type(flags,
