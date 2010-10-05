@@ -361,6 +361,7 @@ system_method_list_keys(const torrent::Object::string_type& args) {
 void
 initialize_command_dynamic() {
   CMD2_VAR_BOOL    ("method.use_deprecated", true);
+  CMD2_VAR_VALUE   ("method.use_intermediate", 1);
 
   CMD2_ANY_LIST    ("method.insert",    std::tr1::bind(&system_method_insert, std::tr1::placeholders::_2));
 

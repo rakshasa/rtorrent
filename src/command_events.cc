@@ -322,9 +322,6 @@ initialize_command_events() {
   CMD2_ANY_LIST    ("schedule2",        std::tr1::bind(&apply_schedule, std::tr1::placeholders::_2));
   CMD2_ANY_STRING_V("schedule_remove2", std::tr1::bind(&rpc::CommandScheduler::erase_str, control->command_scheduler(), std::tr1::placeholders::_2));
 
-  CMD2_REDIRECT_GENERIC("schedule", "schedule2");
-  CMD2_REDIRECT_GENERIC("schedule_remove", "schedule_remove2");
-
   CMD2_ANY_STRING_V("import",          std::tr1::bind(&apply_import, std::tr1::placeholders::_2));
   CMD2_ANY_STRING_V("try_import",      std::tr1::bind(&apply_try_import, std::tr1::placeholders::_2));
 

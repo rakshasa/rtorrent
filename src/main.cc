@@ -88,6 +88,8 @@ parse_options(Control* c, int argc, char** argv) {
     optionParser.insert_flag('h', sigc::ptr_fun(&print_help));
     optionParser.insert_flag('n', OptionParser::Slot());
     optionParser.insert_flag('D', OptionParser::Slot());
+    optionParser.insert_flag('I', OptionParser::Slot());
+    optionParser.insert_flag('K', OptionParser::Slot());
 
     optionParser.insert_option('b', sigc::bind<0>(sigc::ptr_fun(&rpc::call_command_set_string), "network.bind_address.set"));
     optionParser.insert_option('d', sigc::bind<0>(sigc::ptr_fun(&rpc::call_command_set_string), "directory.default.set"));
@@ -188,13 +190,20 @@ main(int argc, char** argv) {
     // torrent::ConnectionManager* are valid etc.
     initialize_commands();
 
-    if (OptionParser::has_flag('D', argc, argv))
+    if (OptionParser::has_flag('D', argc, argv)) {
       rpc::call_command_set_value("method.use_deprecated.set", false);
-
-    if (rpc::call_command_value("method.use_deprecated"))
-      control->core()->push_log("Allowing deprecated commands.");
-    else
       control->core()->push_log("Disabled deprecated commands.");
+    }
+
+    if (OptionParser::has_flag('I', argc, argv)) {
+      rpc::call_command_set_value("method.use_intermediate.set", 0);
+      control->core()->push_log("Disabled intermediate commands.");
+    }
+
+    if (OptionParser::has_flag('K', argc, argv)) {
+      rpc::call_command_set_value("method.use_intermediate.set", 2);
+      control->core()->push_log("Allowing intermediate commands without xmlrpc.");
+    }
 
     rpc::parse_command_multiple
       (rpc::make_target(),
@@ -292,12 +301,12 @@ main(int argc, char** argv) {
        "view.sort_new     = seeding,less=d.state_changed=\n"
        "view.sort_current = seeding,less=d.state_changed=\n"
 
-       "schedule = view.main,10,10,\"view.sort=main,20\"\n"
-       "schedule = view.name,10,10,\"view.sort=name,20\"\n"
+       "schedule2 = view.main,10,10,\"view.sort=main,20\"\n"
+       "schedule2 = view.name,10,10,\"view.sort=name,20\"\n"
 
-       "schedule = session_save,1200,1200,session.save=\n"
-       "schedule = low_diskspace,5,60,close_low_diskspace=500M\n"
-       "schedule = prune_file_status,3600,86400,system.file_status_cache.prune=\n"
+       "schedule2 = session_save,1200,1200,session.save=\n"
+       "schedule2 = low_diskspace,5,60,close_low_diskspace=500M\n"
+       "schedule2 = prune_file_status,3600,86400,system.file_status_cache.prune=\n"
 
        "protocol.encryption.set=allow_incoming,prefer_plaintext,enable_retry\n"
     );
@@ -305,7 +314,7 @@ main(int argc, char** argv) {
     // Functions that might not get depracted as they are nice for
     // configuration files, and thus might do with just some
     // cleanup.
-    CMD2_REDIRECT_GENERIC("upload_rate", "throttle.global_up.max_rate.set_kb");
+    CMD2_REDIRECT_GENERIC("upload_rate",   "throttle.global_up.max_rate.set_kb");
     CMD2_REDIRECT_GENERIC("download_rate", "throttle.global_down.max_rate.set_kb");
 
     CMD2_REDIRECT_GENERIC("ratio.enable",     "group2.seeding.ratio.enable");
@@ -350,9 +359,29 @@ main(int argc, char** argv) {
     CMD2_REDIRECT_GENERIC("directory", "directory.default.set");
     CMD2_REDIRECT_GENERIC("session",   "session.path.set");
 
-    CMD2_REDIRECT_GENERIC("execute", "execute2");
+    CMD2_REDIRECT        ("key_layout", "keys.layout.set");
 
     // Deprecated commands. Don't use these anymore.
+
+    if (rpc::call_command_value("method.use_intermediate") == 1) {
+      CMD2_REDIRECT_GENERIC("execute", "execute2");
+
+      CMD2_REDIRECT_GENERIC("group.insert", "group2.insert");
+      CMD2_REDIRECT_GENERIC("group.insert_persistent_view", "group2.insert_persistent_view");
+
+      CMD2_REDIRECT_GENERIC("schedule", "schedule2");
+      CMD2_REDIRECT_GENERIC("schedule_remove", "schedule_remove2");
+
+    } else if (rpc::call_command_value("method.use_intermediate") == 2) {
+      // Allow for use in config files, etc, just don't export it.
+      CMD2_REDIRECT_GENERIC_NO_EXPORT("execute", "execute2");
+
+      CMD2_REDIRECT_GENERIC_NO_EXPORT("group.insert", "group2.insert");
+      CMD2_REDIRECT_GENERIC_NO_EXPORT("group.insert_persistent_view", "group2.insert_persistent_view");
+
+      CMD2_REDIRECT_GENERIC_NO_EXPORT("schedule", "schedule2");
+      CMD2_REDIRECT_GENERIC_NO_EXPORT("schedule_remove", "schedule_remove2");
+    }
 
     if (rpc::call_command_value("method.use_deprecated")) {
       // Deprecated in 0.7.0:
@@ -372,9 +401,6 @@ main(int argc, char** argv) {
       CMD2_REDIRECT_GENERIC("set_session", "session.path.set");
 
       CMD2_REDIRECT        ("session_save", "session.save");
-
-      CMD2_REDIRECT_GENERIC("group.insert", "group2.insert");
-      CMD2_REDIRECT_GENERIC("group.insert_persistent_view", "group2.insert_persistent_view");
 
       CMD2_REDIRECT        ("get_handshake_log", "log.handshake");
       CMD2_REDIRECT_GENERIC("set_handshake_log", "log.handshake.set");
@@ -413,8 +439,6 @@ main(int argc, char** argv) {
       CMD2_REDIRECT        ("get_memory_usage",     "pieces.memory.current");
       CMD2_REDIRECT_GENERIC("get_max_memory_usage", "pieces.memory.max");
       CMD2_REDIRECT_GENERIC("set_max_memory_usage", "pieces.memory.max.set");
-
-      CMD2_REDIRECT        ("key_layout", "keys.layout.set");
 
       CMD2_REDIRECT_GENERIC("load", "load.normal");
       CMD2_REDIRECT_GENERIC("load_verbose", "load.verbose");

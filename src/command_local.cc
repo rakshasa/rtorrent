@@ -160,14 +160,14 @@ group_insert(const torrent::Object::list_type& args) {
 
   rpc::commands.call("method.insert", rpc::create_object_list("group2." + name + ".view", "string", view));
 
-  rpc::commands.call("method.insert", rpc::create_object_list("group2." + name + ".ratio.enable", "simple", "schedule2=group." + name + ".ratio,5,60,on_ratio=" + name));
+  rpc::commands.call("method.insert", rpc::create_object_list("group2." + name + ".ratio.enable", "simple", "schedule22=group." + name + ".ratio,5,60,on_ratio=" + name));
   rpc::commands.call("method.insert", rpc::create_object_list("group2." + name + ".ratio.disable", "simple", "schedule_remove2=group." + name + ".ratio"));
   rpc::commands.call("method.insert", rpc::create_object_list("group."  + name + ".ratio.command", "simple", "d.try_close= ;d.ignore_commands.set=1"));
   rpc::commands.call("method.insert", rpc::create_object_list("group2." + name + ".ratio.min", "value", (int64_t)200));
   rpc::commands.call("method.insert", rpc::create_object_list("group2." + name + ".ratio.max", "value", (int64_t)300));
   rpc::commands.call("method.insert", rpc::create_object_list("group2." + name + ".ratio.upload", "value", (int64_t)20 << 20));
 
-  if (rpc::call_command_value("method.use_deprecated")) {
+  if (rpc::call_command_value("method.use_intermediate") == 1) {
     // Deprecated in 0.7.0:
     
     CMD2_REDIRECT_GENERIC_STR("group." + name + ".view",          "group2." + name + ".view");
@@ -180,6 +180,20 @@ group_insert(const torrent::Object::list_type& args) {
     CMD2_REDIRECT_GENERIC_STR("group." + name + ".ratio.max.set",    "group2." + name + ".ratio.max.set");
     CMD2_REDIRECT_GENERIC_STR("group." + name + ".ratio.upload",     "group2." + name + ".ratio.upload");
     CMD2_REDIRECT_GENERIC_STR("group." + name + ".ratio.upload.set", "group2." + name + ".ratio.upload.set");
+
+  } if (rpc::call_command_value("method.use_intermediate") == 2) {
+    // Deprecated in 0.7.0:
+    
+    CMD2_REDIRECT_GENERIC_STR_NO_EXPORT("group." + name + ".view",          "group2." + name + ".view");
+    CMD2_REDIRECT_GENERIC_STR_NO_EXPORT("group." + name + ".view.set",      "group2." + name + ".view.set");
+    CMD2_REDIRECT_GENERIC_STR_NO_EXPORT("group." + name + ".ratio.enable",  "group2." + name + ".ratio.enable");
+    CMD2_REDIRECT_GENERIC_STR_NO_EXPORT("group." + name + ".ratio.disable", "group2." + name + ".ratio.disable");
+    CMD2_REDIRECT_GENERIC_STR_NO_EXPORT("group." + name + ".ratio.min",     "group2." + name + ".ratio.min");
+    CMD2_REDIRECT_GENERIC_STR_NO_EXPORT("group." + name + ".ratio.min.set",    "group2." + name + ".ratio.min.set");
+    CMD2_REDIRECT_GENERIC_STR_NO_EXPORT("group." + name + ".ratio.max",        "group2." + name + ".ratio.max");
+    CMD2_REDIRECT_GENERIC_STR_NO_EXPORT("group." + name + ".ratio.max.set",    "group2." + name + ".ratio.max.set");
+    CMD2_REDIRECT_GENERIC_STR_NO_EXPORT("group." + name + ".ratio.upload",     "group2." + name + ".ratio.upload");
+    CMD2_REDIRECT_GENERIC_STR_NO_EXPORT("group." + name + ".ratio.upload.set", "group2." + name + ".ratio.upload.set");
   }
 
   return name;
