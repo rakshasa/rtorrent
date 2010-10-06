@@ -158,11 +158,13 @@ group_insert(const torrent::Object::list_type& args) {
   const std::string& name = check_name(post_increment(itr, last)->as_string());
   const std::string& view = check_name(post_increment(itr, last)->as_string());
 
+  rpc::commands.call("method.insert", rpc::create_object_list("group." + name + ".ratio.enable", "simple",
+                                                              "schedule2=group." + name + ".ratio,5,60,on_ratio=" + name));
+  rpc::commands.call("method.insert", rpc::create_object_list("group." + name + ".ratio.disable", "simple",
+                                                              "schedule_remove2=group." + name + ".ratio"));
+  rpc::commands.call("method.insert", rpc::create_object_list("group."  + name + ".ratio.command", "simple",
+                                                              "d.try_close= ;d.ignore_commands.set=1"));
   rpc::commands.call("method.insert", rpc::create_object_list("group2." + name + ".view", "string", view));
-
-  rpc::commands.call("method.insert", rpc::create_object_list("group2." + name + ".ratio.enable", "simple", "schedule22=group." + name + ".ratio,5,60,on_ratio=" + name));
-  rpc::commands.call("method.insert", rpc::create_object_list("group2." + name + ".ratio.disable", "simple", "schedule_remove2=group." + name + ".ratio"));
-  rpc::commands.call("method.insert", rpc::create_object_list("group."  + name + ".ratio.command", "simple", "d.try_close= ;d.ignore_commands.set=1"));
   rpc::commands.call("method.insert", rpc::create_object_list("group2." + name + ".ratio.min", "value", (int64_t)200));
   rpc::commands.call("method.insert", rpc::create_object_list("group2." + name + ".ratio.max", "value", (int64_t)300));
   rpc::commands.call("method.insert", rpc::create_object_list("group2." + name + ".ratio.upload", "value", (int64_t)20 << 20));
@@ -172,8 +174,6 @@ group_insert(const torrent::Object::list_type& args) {
     
     CMD2_REDIRECT_GENERIC_STR("group." + name + ".view",          "group2." + name + ".view");
     CMD2_REDIRECT_GENERIC_STR("group." + name + ".view.set",      "group2." + name + ".view.set");
-    CMD2_REDIRECT_GENERIC_STR("group." + name + ".ratio.enable",  "group2." + name + ".ratio.enable");
-    CMD2_REDIRECT_GENERIC_STR("group." + name + ".ratio.disable", "group2." + name + ".ratio.disable");
     CMD2_REDIRECT_GENERIC_STR("group." + name + ".ratio.min",     "group2." + name + ".ratio.min");
     CMD2_REDIRECT_GENERIC_STR("group." + name + ".ratio.min.set",    "group2." + name + ".ratio.min.set");
     CMD2_REDIRECT_GENERIC_STR("group." + name + ".ratio.max",        "group2." + name + ".ratio.max");
@@ -186,8 +186,6 @@ group_insert(const torrent::Object::list_type& args) {
     
     CMD2_REDIRECT_GENERIC_STR_NO_EXPORT("group." + name + ".view",          "group2." + name + ".view");
     CMD2_REDIRECT_GENERIC_STR_NO_EXPORT("group." + name + ".view.set",      "group2." + name + ".view.set");
-    CMD2_REDIRECT_GENERIC_STR_NO_EXPORT("group." + name + ".ratio.enable",  "group2." + name + ".ratio.enable");
-    CMD2_REDIRECT_GENERIC_STR_NO_EXPORT("group." + name + ".ratio.disable", "group2." + name + ".ratio.disable");
     CMD2_REDIRECT_GENERIC_STR_NO_EXPORT("group." + name + ".ratio.min",     "group2." + name + ".ratio.min");
     CMD2_REDIRECT_GENERIC_STR_NO_EXPORT("group." + name + ".ratio.min.set",    "group2." + name + ".ratio.min.set");
     CMD2_REDIRECT_GENERIC_STR_NO_EXPORT("group." + name + ".ratio.max",        "group2." + name + ".ratio.max");
@@ -313,5 +311,5 @@ initialize_command_local() {
   CMD2_ANY_P("argument.2", std::tr1::bind(&rpc::command_base::argument_ref, 2));
   CMD2_ANY_P("argument.3", std::tr1::bind(&rpc::command_base::argument_ref, 3));
 
-  CMD2_ANY_LIST  ("group2.insert", std::tr1::bind(&group_insert, std::tr1::placeholders::_2));
+  CMD2_ANY_LIST  ("group.insert", std::tr1::bind(&group_insert, std::tr1::placeholders::_2));
 }

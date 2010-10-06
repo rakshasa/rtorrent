@@ -238,8 +238,8 @@ main(int argc, char** argv) {
        "method.set_key = event.download.erased, !_download_list, ui.unfocus_download=\n"
        "method.set_key = event.download.erased, ~_delete_tied, d.delete_tied=\n"
 
-       "method.insert = group2.insert_persistent_view,simple|const,"
-       "view.add=$argument.0=,view.persistent=$argument.0=,\"group2.insert=$argument.0=,$argument.0=\"\n"
+       "method.insert = group.insert_persistent_view,simple|const,"
+       "view.add=$argument.0=,view.persistent=$argument.0=,\"group.insert=$argument.0=,$argument.0=\"\n"
 
        // Allow setting 'group2.view' as constant, so that we can't
        // modify the value. And look into the possibility of making
@@ -249,7 +249,7 @@ main(int argc, char** argv) {
        // TODO: Remember to ensure it doesn't get restarted by watch
        // dir, etc. Set ignore commands, or something.
 
-       "group2.insert = seeding,seeding\n"
+       "group.insert = seeding,seeding\n"
 
        "session.name = \"$cat=$system.hostname=,:,$system.pid=\"\n"
 
@@ -317,8 +317,8 @@ main(int argc, char** argv) {
     CMD2_REDIRECT_GENERIC("upload_rate",   "throttle.global_up.max_rate.set_kb");
     CMD2_REDIRECT_GENERIC("download_rate", "throttle.global_down.max_rate.set_kb");
 
-    CMD2_REDIRECT_GENERIC("ratio.enable",     "group2.seeding.ratio.enable");
-    CMD2_REDIRECT_GENERIC("ratio.disable",    "group2.seeding.ratio.disable");
+    CMD2_REDIRECT_GENERIC("ratio.enable",     "group.seeding.ratio.enable");
+    CMD2_REDIRECT_GENERIC("ratio.disable",    "group.seeding.ratio.disable");
     CMD2_REDIRECT_GENERIC("ratio.min",        "group2.seeding.ratio.min");
     CMD2_REDIRECT_GENERIC("ratio.max",        "group2.seeding.ratio.max");
     CMD2_REDIRECT_GENERIC("ratio.upload",     "group2.seeding.ratio.upload");
@@ -366,18 +366,12 @@ main(int argc, char** argv) {
     if (rpc::call_command_value("method.use_intermediate") == 1) {
       CMD2_REDIRECT_GENERIC("execute", "execute2");
 
-      CMD2_REDIRECT_GENERIC("group.insert", "group2.insert");
-      CMD2_REDIRECT_GENERIC("group.insert_persistent_view", "group2.insert_persistent_view");
-
       CMD2_REDIRECT_GENERIC("schedule", "schedule2");
       CMD2_REDIRECT_GENERIC("schedule_remove", "schedule_remove2");
 
     } else if (rpc::call_command_value("method.use_intermediate") == 2) {
       // Allow for use in config files, etc, just don't export it.
       CMD2_REDIRECT_GENERIC_NO_EXPORT("execute", "execute2");
-
-      CMD2_REDIRECT_GENERIC_NO_EXPORT("group.insert", "group2.insert");
-      CMD2_REDIRECT_GENERIC_NO_EXPORT("group.insert_persistent_view", "group2.insert_persistent_view");
 
       CMD2_REDIRECT_GENERIC_NO_EXPORT("schedule", "schedule2");
       CMD2_REDIRECT_GENERIC_NO_EXPORT("schedule_remove", "schedule_remove2");
