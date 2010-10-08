@@ -127,7 +127,7 @@ public:
   const mapped_type   call(key_type key, target_type target, const mapped_type& args = mapped_type()) { return call_command(key, args, target); }
   const mapped_type   call_catch(key_type key, target_type target, const mapped_type& args = mapped_type(), const char* err = "Command failed: ");
 
-  const mapped_type   call_command  (key_type key,       const mapped_type& arg, target_type target = target_type((int)command_base::target_generic, NULL));
+  const mapped_type   call_command  (key_type key, const mapped_type& arg, target_type target = target_type((int)command_base::target_generic, NULL));
   const mapped_type   call_command  (iterator itr, const mapped_type& arg, target_type target = target_type((int)command_base::target_generic, NULL));
 
   const mapped_type   call_command_d(key_type key, core::Download* download, const mapped_type& arg)  { return call_command(key, arg, target_type((int)command_base::target_download, download)); }

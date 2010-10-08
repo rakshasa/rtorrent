@@ -295,12 +295,23 @@ xmlrpc_find_tracker(core::Download* download, uint32_t index) {
   return download->tracker_list()->at(index);
 }
 
+torrent::Peer*
+xmlrpc_find_peer(core::Download* download, const torrent::HashString& hash) {
+  torrent::ConnectionList::iterator itr = download->connection_list()->find(hash.c_str());
+
+  if (itr == download->connection_list()->end())
+    return NULL;
+
+  return *itr;
+}
+
 void
 initialize_xmlrpc() {
   rpc::xmlrpc.initialize();
   rpc::xmlrpc.set_slot_find_download(rak::mem_fn(control->core()->download_list(), &core::DownloadList::find_hex_ptr));
   rpc::xmlrpc.set_slot_find_file(rak::ptr_fn(&xmlrpc_find_file));
   rpc::xmlrpc.set_slot_find_tracker(rak::ptr_fn(&xmlrpc_find_tracker));
+  rpc::xmlrpc.set_slot_find_peer(rak::ptr_fn(&xmlrpc_find_peer));
 
   unsigned int count = 0;
 

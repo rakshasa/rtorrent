@@ -42,6 +42,7 @@
 #include <rak/string_manip.h>
 #include <torrent/bitfield.h>
 #include <torrent/rate.h>
+#include <torrent/peer/connection_list.h>
 #include <torrent/peer/peer.h>
 #include <torrent/peer/peer_info.h>
 
@@ -118,4 +119,12 @@ initialize_command_peer() {
   CMD2_PEER("p.down_total",        std::tr1::bind(&torrent::Rate::total, std::tr1::bind(&torrent::Peer::down_rate, std::tr1::placeholders::_1)));
   CMD2_PEER("p.peer_rate",         std::tr1::bind(&torrent::Rate::rate,  std::tr1::bind(&torrent::Peer::peer_rate, std::tr1::placeholders::_1)));
   CMD2_PEER("p.peer_total",        std::tr1::bind(&torrent::Rate::total, std::tr1::bind(&torrent::Peer::peer_rate, std::tr1::placeholders::_1)));
+
+  CMD2_PEER        ("p.snubbed",     std::tr1::bind(&torrent::Peer::is_snubbed,  std::tr1::placeholders::_1));
+  CMD2_PEER_VALUE_V("p.snubbed.set", std::tr1::bind(&torrent::Peer::set_snubbed, std::tr1::placeholders::_1, std::tr1::placeholders::_2));
+  CMD2_PEER        ("p.banned",      std::tr1::bind(&torrent::Peer::is_banned,   std::tr1::placeholders::_1));
+  CMD2_PEER_VALUE_V("p.banned.set",  std::tr1::bind(&torrent::Peer::set_banned,  std::tr1::placeholders::_1, std::tr1::placeholders::_2));
+
+  CMD2_PEER_V("p.disconnect",         std::tr1::bind(&torrent::Peer::disconnect, std::tr1::placeholders::_1, 0));
+  CMD2_PEER_V("p.disconnect_delayed", std::tr1::bind(&torrent::Peer::disconnect, std::tr1::placeholders::_1, torrent::ConnectionList::disconnect_delayed));
 }

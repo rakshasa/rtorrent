@@ -250,7 +250,7 @@ ElementPeerList::receive_ban_peer() {
   if (m_listItr == m_list.end())
     return;
 
-  (*m_listItr)->set_banned();
+  (*m_listItr)->set_banned(true);
   m_download->download()->connection_list()->erase(*m_listItr, torrent::ConnectionList::disconnect_quick);
 
   update_itr();

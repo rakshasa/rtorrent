@@ -418,7 +418,8 @@ p_multicall(core::Download* download, const torrent::Object::list_type& args) {
   torrent::Object             resultRaw = torrent::Object::create_list();
   torrent::Object::list_type& result = resultRaw.as_list();
 
-  for (torrent::ConnectionList::const_iterator itr = download->connection_list()->begin(), last = download->connection_list()->end(); itr != last; itr++) {
+  for (torrent::ConnectionList::const_iterator itr = download->connection_list()->begin(), last = download->connection_list()->end();
+       itr != last; itr++) {
     torrent::Object::list_type& row = result.insert(result.end(), torrent::Object::create_list())->as_list();
 
     for (torrent::Object::list_const_iterator cItr = ++args.begin(), cLast = args.end(); cItr != args.end(); cItr++) {
@@ -429,6 +430,42 @@ p_multicall(core::Download* download, const torrent::Object::list_type& args) {
   }
 
   return resultRaw;
+}
+
+torrent::Object
+p_call_target(const torrent::Object::list_type& args) {
+  if (args.empty() || args.begin() + 1 == args.end() || args.begin() + 2 == args.end())
+    throw torrent::input_error("Too few arguments.");
+
+  // We ignore the first arg for now, but it will be used for
+  // selecting what files to include.
+
+  // Add some pre-parsing of the commands, so we don't spend time
+  // parsing and searching command map for every single call.
+  torrent::Object::list_const_iterator itr = args.begin();
+
+  core::Download* download = control->core()->download_list()->find_hex_ptr(itr++->as_string().c_str());
+  const std::string& peer_id = itr++->as_string();
+  const std::string& command_key = itr++->as_string();
+
+  torrent::HashString hash;
+
+  if (peer_id.size() != 40 ||
+      torrent::hash_string_from_hex_c_str(peer_id.c_str(), hash) == peer_id.c_str())
+    throw torrent::input_error("Not a hash string.");
+
+  torrent::ConnectionList::iterator peerItr = download->connection_list()->find(hash.c_str());
+
+  if (peerItr == download->connection_list()->end())
+    throw torrent::input_error("Could not find peer.");
+
+  if (itr == args.end())
+    return rpc::commands.call(command_key.c_str());
+
+  if (itr + 1 == args.end())
+    return rpc::commands.call(command_key.c_str(), *itr);
+
+  return rpc::commands.call(command_key.c_str(), torrent::Object::create_list_range(itr, args.end()));
 }
 
 //
@@ -730,4 +767,6 @@ initialize_command_download() {
   CMD2_DL_LIST    ("f.multicall", std::tr1::bind(&f_multicall, std::tr1::placeholders::_1, std::tr1::placeholders::_2));
   CMD2_DL_LIST    ("p.multicall", std::tr1::bind(&p_multicall, std::tr1::placeholders::_1, std::tr1::placeholders::_2));
   CMD2_DL_LIST    ("t.multicall", std::tr1::bind(&t_multicall, std::tr1::placeholders::_1, std::tr1::placeholders::_2));
+
+  CMD2_ANY_LIST   ("p.call_target", std::tr1::bind(&p_call_target, std::tr1::placeholders::_2));
 }

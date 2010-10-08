@@ -38,6 +38,7 @@
 #define RTORRENT_RPC_XMLRPC_H
 
 #include <rak/functional_fun.h>
+#include <torrent/hash_string.h>
 
 namespace core {
   class Download;
@@ -56,6 +57,7 @@ public:
   typedef rak::function1<core::Download*, const char*>                 slot_find_download;
   typedef rak::function2<torrent::File*, core::Download*, uint32_t>    slot_find_file;
   typedef rak::function2<torrent::Tracker*, core::Download*, uint32_t> slot_find_tracker;
+  typedef rak::function2<torrent::Peer*, core::Download*, const torrent::HashString&> slot_find_peer;
   typedef rak::function2<bool, const char*, uint32_t>                  slot_write;
 
   static const int dialect_generic = 0;
@@ -94,6 +96,9 @@ public:
   slot_find_tracker&  get_slot_find_tracker()                                     { return m_slotFindTracker; }
   void                set_slot_find_tracker(slot_find_tracker::base_type* slot)   { m_slotFindTracker.set(slot); }
 
+  slot_find_peer&     get_slot_find_peer()                                        { return m_slotFindPeer; }
+  void                set_slot_find_peer(slot_find_peer::base_type* slot)         { m_slotFindPeer.set(slot); }
+
   static int64_t      size_limit();
   static void         set_size_limit(uint64_t size);
 
@@ -106,6 +111,7 @@ private:
   slot_find_download  m_slotFindDownload;
   slot_find_file      m_slotFindFile;
   slot_find_tracker   m_slotFindTracker;
+  slot_find_peer      m_slotFindPeer;
 };
 
 }

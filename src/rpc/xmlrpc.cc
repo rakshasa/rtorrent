@@ -41,6 +41,8 @@
 #include <xmlrpc-c/server.h>
 #endif
 
+#include <cctype>
+#include <rak/string_manip.h>
 #include <torrent/object.h>
 #include <torrent/exceptions.h>
 
@@ -175,29 +177,38 @@ xmlrpc_to_target(xmlrpc_env* env, xmlrpc_value* value) {
     // Trackers: "<hash>:t<index>"
 
     int index;
-    const char* end;
+    const char* end_ptr = str + 42;
 
     switch (str[41]) {
     case 'f':
-      end = str + 42;
-      index = ::strtol(str + 42, (char**)&end, 0);
+      index = ::strtol(str + 42, (char**)&end_ptr, 0);
 
-      if (*str == '\0' || *end != '\0')
+      if (*str == '\0' || *end_ptr != '\0')
         throw xmlrpc_error(XMLRPC_TYPE_ERROR, "Invalid index.");
 
       target = rpc::make_target(XmlRpc::call_file, xmlrpc.get_slot_find_file()(download, index));
       break;
 
     case 't':
-      end = str + 42;
-      index = ::strtol(str + 42, (char**)&end, 0);
+      index = ::strtol(str + 42, (char**)&end_ptr, 0);
 
-      if (*str == '\0' || *end != '\0')
+      if (*str == '\0' || *end_ptr != '\0')
         throw xmlrpc_error(XMLRPC_TYPE_ERROR, "Invalid index.");
 
       target = rpc::make_target(XmlRpc::call_tracker, xmlrpc.get_slot_find_tracker()(download, index));
       break;
 
+    case 'p':
+    {
+      torrent::HashString hash;
+      const char* hash_end = torrent::hash_string_from_hex_c_str(str + 42, hash);
+
+      if (hash_end == end_ptr || *hash_end != '\0')
+        throw xmlrpc_error(XMLRPC_TYPE_ERROR, "Not a hash string.");
+
+      target = rpc::make_target(XmlRpc::call_peer, xmlrpc.get_slot_find_peer()(download, hash));
+      break;
+    }
     default:
       ::free((void*)str);
       throw xmlrpc_error(XMLRPC_TYPE_ERROR, "Unsupported target type found.");
@@ -495,6 +506,9 @@ XmlRpc::process(const char* inBuffer, uint32_t length, slot_write slotWrite) {
   xmlrpc_env_init(&localEnv);
 
   xmlrpc_mem_block* memblock = xmlrpc_registry_process_call(&localEnv, (xmlrpc_registry*)m_registry, NULL, inBuffer, length);
+
+  if (localEnv.fault_occurred && localEnv.fault_code == XMLRPC_INTERNAL_ERROR)
+    throw torrent::internal_error("Internal error in XMLRPC.");
 
   bool result = slotWrite((const char*)xmlrpc_mem_block_contents(memblock),
                           xmlrpc_mem_block_size(memblock));
