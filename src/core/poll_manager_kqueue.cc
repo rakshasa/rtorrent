@@ -70,7 +70,11 @@ PollManagerKQueue::poll(rak::timer timeout) {
   timeout = std::min(timeout, rak::timer(torrent::next_timeout())) + 1000;
 
   ThreadBase::release_global_lock();
+  ThreadBase::entering_main_polling();
+
   int status = static_cast<torrent::PollKQueue*>(m_poll)->poll((timeout.usec() + 999) / 1000);
+
+  ThreadBase::leaving_main_polling();
   ThreadBase::acquire_global_lock();
 
   if (status == -1)

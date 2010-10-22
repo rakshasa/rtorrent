@@ -196,3 +196,13 @@ ThreadBase::queue_item(thread_base_func newFunc) {
   if (m_state == STATE_ACTIVE)
     pthread_kill(m_thread, SIGUSR1);
 }
+
+void
+ThreadBase::interrupt_main_polling() {
+  do {
+    if (!ThreadBase::is_main_polling())
+      return;
+    
+    pthread_kill(main_thread->m_thread, SIGUSR1);
+  } while (1);
+}

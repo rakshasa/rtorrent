@@ -55,7 +55,7 @@ public:
 private:
   static void         caught(int signum);
 
-  static Slot m_handlers[HIGHEST_SIGNAL];
+  static Slot         m_handlers[HIGHEST_SIGNAL];
 };
 
 #endif

@@ -84,6 +84,9 @@ public:
 
   static void*        event_loop(ThreadBase* threadBase);
 
+  // Move to libtorrent some day.
+  static void         interrupt_main_polling();
+
 protected:
   inline rak::timer   client_next_timeout();
 

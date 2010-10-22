@@ -54,7 +54,7 @@ class Control;
 extern rak::priority_queue_default taskScheduler;
 extern rak::timer                  cachedTime;
 
-extern Control*                    control;
+extern Control*      control;
 // extern __thread ThreadBase* main_thread; // Only use for worker threads for now.
 extern ThreadMain*   main_thread;
 extern ThreadWorker* worker_thread;
