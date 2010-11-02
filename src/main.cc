@@ -377,6 +377,7 @@ main(int argc, char** argv) {
       CMD2_REDIRECT_GENERIC_NO_EXPORT("schedule_remove", "schedule_remove2");
     }
 
+#if LT_SLIM_VERSION == 1
     if (rpc::call_command_value("method.use_deprecated")) {
       // Deprecated in 0.7.0:
 
@@ -804,6 +805,7 @@ main(int argc, char** argv) {
       CMD2_REDIRECT_GENERIC("execute_capture", "execute.capture");
       CMD2_REDIRECT_GENERIC("execute_capture_nothrow", "execute.capture_nothrow");
     }
+#endif
 
     int firstArg = parse_options(control, argc, argv);
 

@@ -307,7 +307,8 @@ DownloadFactory::receive_success() {
   torrent::HashString infohash = download->info()->hash();
 
   try {
-    std::for_each(m_commands.begin(), m_commands.end(), rak::bind1st(std::ptr_fun(&rpc::parse_command_d_multiple_std), download));
+    std::for_each(m_commands.begin(), m_commands.end(),
+                  rak::bind2nd(std::ptr_fun(&rpc::parse_command_multiple_std), rpc::make_target(download)));
 
     if (m_manager->download_list()->find(infohash) == m_manager->download_list()->end())
       throw torrent::input_error("The newly created download was removed.");
