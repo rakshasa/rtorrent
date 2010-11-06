@@ -44,8 +44,13 @@ class SignalHandler {
 public:
   typedef sigc::slot0<void> Slot;
 
-  static const unsigned int HIGHEST_SIGNAL = SIGUSR2;
-  
+#ifdef SIGRTMAX
+  static const unsigned int HIGHEST_SIGNAL = SIGRTMAX;
+#else  
+  // Let's be on the safe side.
+  static const unsigned int HIGHEST_SIGNAL = 64;
+#endif
+
   static void         set_default(unsigned int signum);
   static void         set_ignore(unsigned int signum);
   static void         set_handler(unsigned int signum, Slot slot);
