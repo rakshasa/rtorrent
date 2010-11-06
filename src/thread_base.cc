@@ -112,6 +112,7 @@ ThreadBase::ThreadBase() :
   // Init the poll manager in a special init function called by the
   // thread itself. Need to be careful with what external stuff
   // create_poll_manager calls in that case.
+  std::memset(&m_thread, 0, sizeof(pthread_t));
 
   m_taskShutdown.set_slot(rak::ptr_fn(&throw_shutdown_exception));
 

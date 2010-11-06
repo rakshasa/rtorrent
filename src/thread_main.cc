@@ -53,4 +53,5 @@ ThreadMain::init_thread() {
   m_pollManager->get_torrent_poll()->set_flags(torrent::Poll::flag_waive_global_lock);
 
   m_state = STATE_INITIALIZED;
+  m_thread = pthread_self();
 }

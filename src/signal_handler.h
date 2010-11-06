@@ -44,7 +44,7 @@ class SignalHandler {
 public:
   typedef sigc::slot0<void> Slot;
 
-  static const unsigned int HIGHEST_SIGNAL = 32;
+  static const unsigned int HIGHEST_SIGNAL = SIGUSR2;
   
   static void         set_default(unsigned int signum);
   static void         set_ignore(unsigned int signum);
