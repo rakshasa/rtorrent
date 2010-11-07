@@ -54,7 +54,7 @@ namespace rpc {
 template <typename T> const torrent::Object
 command_base_call(command_base* rawCommand, target_type target, const torrent::Object& args) {
   if (!is_target_compatible<T>(target))
-    throw torrent::input_error("Target of wrong type.");
+    throw torrent::input_error("Target of wrong type to command.");
 
   return command_base::_call<typename command_function<T>::type, T>(rawCommand, target, args);
 }
@@ -64,7 +64,7 @@ COMMAND_BASE_TEMPLATE_DEFINE(command_base_call);
 template <typename T> const torrent::Object
 command_base_call_value_base(command_base* rawCommand, target_type target, const torrent::Object& rawArgs, int base, int unit) {
   if (!is_target_compatible<T>(target))
-    throw torrent::input_error("Target of wrong type.");
+    throw torrent::input_error("Target of wrong type to command.");
 
   const torrent::Object& arg = convert_to_single_argument(rawArgs);
 
@@ -96,7 +96,7 @@ COMMAND_BASE_TEMPLATE_DEFINE(command_base_call_value_kb);
 template <typename T> const torrent::Object
 command_base_call_string(command_base* rawCommand, target_type target, const torrent::Object& rawArgs) {
   if (!is_target_compatible<T>(target))
-    throw torrent::input_error("Target of wrong type.");
+    throw torrent::input_error("Target of wrong type to command.");
 
   const torrent::Object& arg = convert_to_single_argument(rawArgs);
 
@@ -111,7 +111,7 @@ COMMAND_BASE_TEMPLATE_DEFINE(command_base_call_string);
 template <typename T> const torrent::Object
 command_base_call_list(command_base* rawCommand, target_type target, const torrent::Object& rawArgs) {
   if (!is_target_compatible<T>(target))
-    throw torrent::input_error("Target of wrong type.");
+    throw torrent::input_error("Target of wrong type to command.");
 
   if (rawArgs.type() != torrent::Object::TYPE_LIST) {
     torrent::Object::list_type arg;
