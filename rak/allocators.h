@@ -84,7 +84,7 @@ public:
 
   void construct (pointer p, const T& value) { new((void*)p)T(value); }
   void destroy (pointer p) { p->~T(); }
-  void deallocate (pointer p, size_type num) { ::operator delete((void*)p); }
+  void deallocate (pointer p, size_type num) { free((void*)p); }
 };
 
 

@@ -61,7 +61,7 @@ public:
 
   static const unsigned int max_size = 32;
 
-  thread_queue_hack() { std::memset(m_queue, 0, sizeof(thread_queue_hack)); }
+  thread_queue_hack() { std::memset(this, 0, sizeof(thread_queue_hack)); }
 
   void     lock()   { while (!__sync_bool_compare_and_swap(&m_lock, 0, 1)) usleep(0); }
   void     unlock() { __sync_bool_compare_and_swap(&m_lock, 1, 0); }
@@ -94,8 +94,7 @@ public:
   }
 
   void clear_and_unlock() {
-    std::memset(m_queue, 0, sizeof(value_type) * (max_size + 1));
-    m_lock = 0;
+    std::memset(this, 0, sizeof(thread_queue_hack));
     __sync_synchronize();
   }
 

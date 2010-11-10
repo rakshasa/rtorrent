@@ -472,7 +472,7 @@ p_call_target(const torrent::Object::list_type& args) {
 // New download commands and macros:
 //
 
-torrent::Object
+torrent::Object&
 download_get_variable(core::Download* download, const char* first_key, const char* second_key = NULL) {
   if (second_key == NULL)
     return download->bencode()->get_key(first_key);
