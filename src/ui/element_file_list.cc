@@ -89,7 +89,7 @@ element_file_list_create_info() {
   element->push_back("File info:");
   element->push_back("");
   
-  element->push_column("Filename:", te_command("fi.get_filename_last="));
+  element->push_column("Filename:", te_command("fi.filename_last="));
   element->push_back("");
   
   element->push_column("Size:",   te_command("if=$fi.is_file=,$convert.xb=$f.size_bytes=,---"));

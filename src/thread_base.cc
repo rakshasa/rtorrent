@@ -119,6 +119,8 @@ ThreadBase::ThreadBase() :
 }
 
 ThreadBase::~ThreadBase() {
+  delete m_pollManager;
+  delete m_threadQueue;
 }
 
 void
