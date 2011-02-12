@@ -39,6 +39,8 @@
 
 #include "globals.h"
 
+#include <torrent/object.h>
+
 namespace rpc {
 
 class CommandSchedulerItem {
@@ -54,9 +56,7 @@ public:
   void                disable();
 
   const std::string&  key() const                             { return m_key; }
-
-  const std::string&  command() const                         { return m_command; }
-  void                set_command(const std::string& s)       { m_command = s; }
+  torrent::Object&    command()                               { return m_command; }
 
   // 'interval()' should in the future return some more dynamic values.
   uint32_t            interval() const                        { return m_interval; }
@@ -72,7 +72,7 @@ private:
   void operator = (const CommandSchedulerItem&);
 
   std::string         m_key;
-  std::string         m_command;
+  torrent::Object     m_command;
   
   uint32_t            m_interval;
   rak::timer          m_timeScheduled;

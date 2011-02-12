@@ -212,9 +212,10 @@ main(int argc, char** argv) {
 //        "method.insert = test.value2,value,6\n"
 
 //        "method.insert = test.string,string,6\n"
-//       "method.insert = test.bool,bool,true\n"
+//        "method.insert = test.bool,bool,true\n"
 
-       "method.insert = test.method.simple,simple,\"print=simple_test_,$argument.0=\"\n"
+       // "method.insert.simple = test.method.simple,((print,simple_test_,$argument.0=))\n"
+       // "method.insert.simple = test.method.double,((print,simple_test_,$argument.0=)),\"print=simple_test_,$argument.1=\"\n"
 
        "method.insert = event.download.inserted,multi\n"
        "method.insert = event.download.inserted_new,multi\n"
@@ -239,8 +240,8 @@ main(int argc, char** argv) {
        "method.set_key = event.download.erased, !_download_list, ui.unfocus_download=\n"
        "method.set_key = event.download.erased, ~_delete_tied, d.delete_tied=\n"
 
-       "method.insert = group.insert_persistent_view,simple|const,"
-       "view.add=$argument.0=,view.persistent=$argument.0=,\"group.insert=$argument.0=,$argument.0=\"\n"
+       "method.insert.c_simple = group.insert_persistent_view,"
+       "((view.add,((argument.0)))),((view.persistent,((argument.0)))),((group.insert,((argument.0)),((argument.0))))\n"
 
        // Allow setting 'group2.view' as constant, so that we can't
        // modify the value. And look into the possibility of making
@@ -302,12 +303,12 @@ main(int argc, char** argv) {
        "view.sort_new     = seeding,less=d.state_changed=\n"
        "view.sort_current = seeding,less=d.state_changed=\n"
 
-       "schedule2 = view.main,10,10,\"view.sort=main,20\"\n"
-       "schedule2 = view.name,10,10,\"view.sort=name,20\"\n"
+       "schedule2 = view.main,10,10,((view.sort,main,20))\n"
+       "schedule2 = view.name,10,10,((view.sort,name,20))\n"
 
-       "schedule2 = session_save,1200,1200,session.save=\n"
-       "schedule2 = low_diskspace,5,60,close_low_diskspace=500M\n"
-       "schedule2 = prune_file_status,3600,86400,system.file_status_cache.prune=\n"
+       "schedule2 = session_save,1200,1200,((session.save))\n"
+       "schedule2 = low_diskspace,5,60,((close_low_diskspace,500M))\n"
+       "schedule2 = prune_file_status,3600,86400,((system.file_status_cache.prune))\n"
 
        "protocol.encryption.set=allow_incoming,prefer_plaintext,enable_retry\n"
     );

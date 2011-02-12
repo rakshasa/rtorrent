@@ -57,6 +57,55 @@ system_method_generate_command(torrent::Object::list_const_iterator first, torre
   return command;
 }
 
+void
+system_method_generate_command2(torrent::Object* object, torrent::Object::list_const_iterator first, torrent::Object::list_const_iterator last) {
+  if (first == last) {
+    // TODO: Use empty object.
+    *object = "";
+    return;
+  }
+
+  if (first->is_string()) {
+    std::string command;
+
+    while (first != last) {
+      if (!command.empty())
+        command += " ;";
+
+      command += (first++)->as_string();
+    }
+
+    *object = command;
+
+    return;
+  }
+
+  if (first + 1 == last) {
+    if (!first->is_dict_key())
+      throw torrent::input_error("New command of wrong type.");
+    
+    *object = *first;
+
+    uint32_t flags = object->flags() & torrent::Object::mask_function;
+    object->unset_flags(torrent::Object::mask_function);
+    object->set_flags((flags >> 1) & torrent::Object::mask_function);
+
+  } else {
+    *object = torrent::Object::create_list();
+
+    while (first != last) {
+      if (!first->is_dict_key())
+        throw torrent::input_error("New command of wrong type.");
+      
+      object->as_list().push_back(*first++);
+      
+      uint32_t flags = object->as_list().back().flags() & torrent::Object::mask_function;
+      object->as_list().back().unset_flags(torrent::Object::mask_function);
+      object->as_list().back().set_flags((flags >> 1) & torrent::Object::mask_function);
+    }
+  }
+}
+
 // torrent::Object
 // system_method_insert_function(const torrent::Object::list_type& args, int flags) {
   
@@ -86,7 +135,7 @@ system_method_insert_object(const torrent::Object::list_type& args, int flags) {
     value = itrArgs != args.end() ? rpc::convert_to_string(*itrArgs) : "";
     break;
   case rpc::object_storage::flag_function_type:
-    value = itrArgs != args.end() ? system_method_generate_command(itrArgs, args.end()) : "";
+    system_method_generate_command2(&value, itrArgs, args.end());
     break;
   case rpc::object_storage::flag_multi_type:
     break;

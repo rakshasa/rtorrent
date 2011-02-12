@@ -42,6 +42,10 @@
 #include <inttypes.h>
 #include <rak/functional_fun.h>
 
+namespace torrent {
+class Object;
+}
+
 namespace rpc {
 
 class CommandSchedulerItem;
@@ -71,7 +75,8 @@ public:
   void                erase(iterator itr);
   void                erase_str(const std::string& key)                { erase(find(key)); }
 
-  void                parse(const std::string& key, const std::string& bufAbsolute, const std::string& bufInterval, const std::string& command);
+  void                parse(const std::string& key, const std::string& bufAbsolute,
+                            const std::string& bufInterval, const torrent::Object& command);
 
   static uint32_t     parse_absolute(const char* str);
   static uint32_t     parse_interval(const char* str);

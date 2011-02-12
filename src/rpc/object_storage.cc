@@ -62,13 +62,14 @@ object_storage::insert(const char* key_data, uint32_t key_size, const torrent::O
   // Check for size > key_size.
   // Check for empty string.
 
+  bool use_raw = false;
   torrent::Object object;
 
   switch (flags & mask_type) {
   case flag_bool_type:     object = !!convert_to_value(rawObject); break;
   case flag_value_type:    object = convert_to_value(rawObject); break;
   case flag_string_type:   object = convert_to_string(rawObject); break;
-  case flag_function_type: object = convert_to_string(rawObject); break;
+  case flag_function_type: use_raw = true; break;
   case flag_multi_type:    object = torrent::Object::create_map(); break;
   }
 
@@ -81,7 +82,7 @@ object_storage::insert(const char* key_data, uint32_t key_size, const torrent::O
     throw torrent::input_error("Key already exists in object_storage.");
 
   result.first->second.flags = flags;
-  result.first->second.object = object;
+  result.first->second.object = use_raw ? rawObject : object;
 
   return result.first;
 }
@@ -147,7 +148,7 @@ object_storage::call_function(const torrent::raw_string& key, target_type target
 
   switch (itr->second.flags & mask_type) {
   case flag_function_type:
-    return command_function_call_str(itr->second.object.as_string(), target, object);
+    return command_function_call_object(itr->second.object, target, object);
   case flag_multi_type:
     return command_function_multi_call(itr->second.object.as_map(), target, object);
   default:

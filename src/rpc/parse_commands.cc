@@ -93,7 +93,19 @@ parse_command_execute(target_type target, torrent::Object* object) {
       parse_command_execute(target, &*itr);
     }
 
-  } else if (*object->as_string().c_str() == '$') {
+  } else if (object->is_dict_key()) {
+    parse_command_execute(target, &object->as_dict_obj());
+
+    if (object->flags() & torrent::Object::flag_function) {
+      *object = rpc::commands.call_command(object->as_dict_key().c_str(), object->as_dict_obj(), target);
+
+    } else {
+      uint32_t flags = object->flags() & torrent::Object::mask_function;
+      object->unset_flags(torrent::Object::mask_function);
+      object->set_flags((flags >> 1) & torrent::Object::mask_function);
+    }
+
+  } else if (object->is_string() && *object->as_string().c_str() == '$') {
     const std::string& str = object->as_string();
 
     *object = parse_command(target, str.c_str() + 1, str.c_str() + str.size()).first;
@@ -242,6 +254,48 @@ command_function_call(const torrent::raw_string& cmd, target_type target, const 
 
   try {
     torrent::Object result = parse_command_multiple(target, cmd.begin(), cmd.end());
+
+    rpc::command_base::pop_stack(&stack, last_stack);
+    return result;
+
+  } catch (torrent::bencode_error& e) {
+    rpc::command_base::pop_stack(&stack, last_stack);
+    throw e;
+  }
+}
+
+const torrent::Object
+command_function_call_object(const torrent::Object& cmd, target_type target, const torrent::Object& args) {
+  rpc::command_base::stack_type stack;
+  torrent::Object* last_stack;
+
+  if (args.is_list())
+    last_stack = rpc::command_base::push_stack(args.as_list(), &stack);
+  else if (args.type() != torrent::Object::TYPE_NONE)
+    last_stack = rpc::command_base::push_stack(&args, &args + 1, &stack);
+  else
+    last_stack = rpc::command_base::push_stack(NULL, NULL, &stack);
+
+  try {
+    torrent::Object result;
+
+    if (cmd.is_string()) {
+      result = parse_command_multiple(target, cmd.as_string().c_str(), cmd.as_string().c_str() + cmd.as_string().size());
+
+    } else if (cmd.is_list()){
+      for (torrent::Object::list_const_iterator first = cmd.as_list().begin(), last = cmd.as_list().end(); first != last; first++) {
+        torrent::Object tmp_cmd = *first;
+        
+        rpc::parse_command_execute(target, &tmp_cmd);
+        result = rpc::commands.call_command(tmp_cmd.as_dict_key().c_str(), tmp_cmd.as_dict_obj());
+      }
+      
+    } else {
+      torrent::Object tmp_cmd = cmd;
+      
+      rpc::parse_command_execute(target, &tmp_cmd);
+      result = rpc::commands.call_command(tmp_cmd.as_dict_key().c_str(), tmp_cmd.as_dict_obj());
+    }
 
     rpc::command_base::pop_stack(&stack, last_stack);
     return result;

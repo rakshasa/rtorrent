@@ -64,6 +64,7 @@ inline bool parse_is_delim_list(const char c)    { return parse_is_seperator(c) 
 inline bool parse_is_delim_command(const char c) { return parse_is_seperator(c) || c == ';' || std::isspace(c); }
 // inline bool parse_is_delim_block(const char c)   { return c == ';' || c == '}'; }
 inline bool parse_is_delim_block(const char c)   { return parse_is_seperator(c) || c == '}'; }
+inline bool parse_is_delim_func(const char c)    { return parse_is_seperator(c) || c == ')'; }
 
 const char* parse_skip_wspace(const char* first);
 const char* parse_skip_wspace(const char* first, const char* last);

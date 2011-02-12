@@ -181,6 +181,43 @@ parse_object(const char* first, const char* last, torrent::Object* dest, bool (*
 
     return ++first;
 
+  } else if (*first == '(') {
+    int32_t depth = 1;
+
+    while (first + 1 != last && *(first + 1) == '(') {
+      first++;
+      depth++;
+    }
+
+    if (depth > 3)
+      throw torrent::input_error("Max 3 parantheses per object allowed.");
+
+    *dest = torrent::Object::create_dict_key();
+    dest->set_flags(torrent::Object::flag_function << (depth - 1));
+
+    first = parse_string(first + 1, last, &dest->as_dict_key(), &parse_is_delim_func);
+    first = parse_skip_wspace(first, last);
+
+    if (first == last || !parse_is_delim_func(*first))
+      throw torrent::input_error("Could not find closing ')'.");
+
+    if (*first == ',') {
+      // This will always create a list even for single argument functions...
+      dest->as_dict_obj() = torrent::Object::create_list();
+      first = parse_list(first + 1, last, &dest->as_dict_obj(), &parse_is_delim_func);
+      first = parse_skip_wspace(first, last);
+    }
+
+    while (depth != 0 && first != last && *first == ')') {
+      first++;
+      depth--;
+    }
+
+    if (depth != 0)
+      throw torrent::input_error("Parantheses mismatch.");
+
+    return first;
+
   } else {
     *dest = std::string();
 

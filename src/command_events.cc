@@ -186,9 +186,8 @@ apply_schedule(const torrent::Object::list_type& args) {
   const std::string& arg1 = (itr++)->as_string();
   const std::string& arg2 = (itr++)->as_string();
   const std::string& arg3 = (itr++)->as_string();
-  const std::string& arg4 = (itr++)->as_string();
 
-  control->command_scheduler()->parse(arg1, arg2, arg3, arg4);
+  control->command_scheduler()->parse(arg1, arg2, arg3, *itr);
 
   return torrent::Object();
 }
