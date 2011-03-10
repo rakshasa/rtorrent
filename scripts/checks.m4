@@ -176,13 +176,9 @@ AC_DEFUN([TORRENT_CHECK_FALLOCATE], [
 AC_DEFUN([TORRENT_CHECK_POSIX_FALLOCATE], [
   AC_MSG_CHECKING(for posix_fallocate)
 
-  AC_COMPILE_IFELSE(
-    [[#include <fcntl.h>
-      int main() {
-	posix_fallocate(0, 0, 0);
-        return 0;
-      }
-    ]],
+  AC_TRY_LINK([#include <fcntl.h>
+              ],[ posix_fallocate(0, 0, 0);
+              ],
     [
       AC_DEFINE(USE_POSIX_FALLOCATE, 1, posix_fallocate supported.)
       AC_MSG_RESULT(yes)
