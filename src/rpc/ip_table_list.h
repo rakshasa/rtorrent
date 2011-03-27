@@ -1,4 +1,4 @@
-// rTorrent - BitTorrent library
+// rTorrent - BitTorrent client
 // Copyright (C) 2005-2007, Jari Sundell
 //
 // This program is free software; you can redistribute it and/or modify
@@ -34,31 +34,57 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef TORRENT_GLOBALS_H
-#define TORRENT_GLOBALS_H
+#ifndef RTORRENT_RPC_IP_TABLE_LISTS_H
+#define RTORRENT_RPC_IP_TABLE_LISTS_H
 
-#include <rak/timer.h>
-#include <rak/priority_queue_default.h>
+#include <algorithm>
+#include <functional>
+#include <string>
+#include <vector>
+#include <torrent/utils/extents.h>
 
-#include "thread_base.h"
-#include "thread_main.h"
-#include "thread_worker.h"
-#include "rpc/ip_table_list.h"
+namespace rpc {
 
-class Control;
+typedef torrent::extents<uint32_t, int, 32, 256, 8> ipv4_table;
 
-// The cachedTime timer should only be updated by the main thread to
-// avoid potential problems in timing calculations. Code really should
-// be reviewed and fixed in order to avoid any potential problems, and
-// then made updates properly sync'ed with memory barriers.
+struct ip_table_node {
+  std::string name;
+  ipv4_table  table;
 
-extern rak::priority_queue_default taskScheduler;
-extern rak::timer                  cachedTime;
-extern rpc::ip_table_list          ip_tables;
+  bool equal_name(const std::string& str) const { return str == name; }
+};
 
-extern Control*      control;
-// extern __thread ThreadBase* main_thread; // Only use for worker threads for now.
-extern ThreadMain*   main_thread;
-extern ThreadWorker* worker_thread;
+class ip_table_list : private std::vector<ip_table_node> {
+public:
+  typedef std::vector<ip_table_node> base_type;
+
+  using base_type::iterator;
+  using base_type::const_iterator;
+  using base_type::value_type;
+
+  using base_type::begin;
+  using base_type::end;
+  
+  iterator insert(const std::string& name);
+  iterator find(const std::string& name);
+};
+
+inline ip_table_list::iterator
+ip_table_list::insert(const std::string& name) {
+  ip_table_node tmp = { name };
+
+  return base_type::insert(end(), tmp);
+}
+
+inline ip_table_list::iterator
+ip_table_list::find(const std::string& name) {
+  for (iterator itr = begin(), last = end(); itr != last; itr++)
+    if (itr->equal_name(name))
+      return itr;
+
+  return end();
+}
+
+}
 
 #endif

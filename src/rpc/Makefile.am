@@ -13,6 +13,7 @@ libsub_rpc_a_SOURCES = \
 	exec_file.cc \
 	exec_file.h \
 	fixed_key.h \
+	ip_table_list.h \
 	object_storage.cc \
 	object_storage.h \
 	parse.cc \

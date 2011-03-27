@@ -40,6 +40,7 @@
 
 rak::priority_queue_default taskScheduler;
 rak::timer                  cachedTime;
+rpc::ip_table_list          ip_tables;
 
 Control*                    control = NULL;
 //__thread ThreadBase* main_thread = NULL;

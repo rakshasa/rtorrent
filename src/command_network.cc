@@ -411,6 +411,78 @@ apply_xmlrpc_dialect(const std::string& arg) {
   return torrent::Object();
 }
 
+torrent::Object
+apply_ip_tables_insert_table(const std::string& args) {
+  if (ip_tables.find(args) != ip_tables.end())
+    throw torrent::input_error("IP table already exists.");
+
+  ip_tables.insert(args);
+  return torrent::Object();
+}
+
+torrent::Object
+apply_ip_tables_get(const torrent::Object::list_type& args) {
+  if (args.size() != 2)
+    throw torrent::input_error("Incorrect number of arguments.");
+
+  torrent::Object::list_const_iterator args_itr = args.begin();
+
+  const std::string& name    = (args_itr++)->as_string();
+  const std::string& address = (args_itr++)->as_string();
+
+  // Move to a helper function, add support for addresses.
+  uint32_t ip_values[4];
+
+  if (sscanf(address.c_str(), "%u.%u.%u.%u",
+             ip_values + 0, ip_values + 1, ip_values + 2, ip_values + 3) != 4)
+    throw torrent::input_error("Invalid address format.");
+
+  rpc::ip_table_list::iterator table_itr = ip_tables.find(name);
+
+  if (table_itr == ip_tables.end())
+    throw torrent::input_error("Could not find ip table.");
+
+  return table_itr->table.at((ip_values[0] << 24) + (ip_values[1] << 16) + (ip_values[2] << 8) + ip_values[3]);
+}
+
+torrent::Object
+apply_ip_tables_add_address(const torrent::Object::list_type& args) {
+  if (args.size() != 3)
+    throw torrent::input_error("Incorrect number of arguments.");
+
+  torrent::Object::list_const_iterator args_itr = args.begin();
+
+  const std::string& name      = (args_itr++)->as_string();
+  const std::string& address   = (args_itr++)->as_string();
+  const std::string& value_str = (args_itr++)->as_string();
+  
+  // Move to a helper function, add support for addresses.
+  uint32_t ip_values[4];
+  unsigned int block = rpc::ipv4_table::mask_bits;
+
+  if (sscanf(address.c_str(), "%u.%u.%u.%u/%u",
+             ip_values + 0, ip_values + 1, ip_values + 2, ip_values + 3, &block) < 4 ||
+      block > rpc::ipv4_table::mask_bits)
+    throw torrent::input_error("Invalid address format.");
+
+  int value;
+
+  if (value_str == "block")
+    value = 1;
+  else
+    throw torrent::input_error("Invalid value.");
+
+  rpc::ip_table_list::iterator table_itr = ip_tables.find(name);
+
+  if (table_itr == ip_tables.end())
+    throw torrent::input_error("Could not find ip table.");
+
+  table_itr->table.insert((ip_values[0] << 24) + (ip_values[1] << 16) + (ip_values[2] << 8) + ip_values[3],
+                          rpc::ipv4_table::mask_bits - block, value);
+
+  return torrent::Object();
+}
+
 void
 initialize_command_network() {
   torrent::ConnectionManager* cm = torrent::connection_manager();
@@ -518,6 +590,10 @@ initialize_command_network() {
   CMD2_ANY_VALUE   ("trackers.disable", std::tr1::bind(&apply_enable_trackers, int64_t(0)));
   CMD2_VAR_VALUE   ("trackers.numwant", -1);
   CMD2_VAR_BOOL    ("trackers.use_udp", true);
+
+  CMD2_ANY_STRING  ("ip_tables.insert_table", std::tr1::bind(&apply_ip_tables_insert_table, std::tr1::placeholders::_2));
+  CMD2_ANY_LIST    ("ip_tables.get",          std::tr1::bind(&apply_ip_tables_get, std::tr1::placeholders::_2));
+  CMD2_ANY_LIST    ("ip_tables.add_address",  std::tr1::bind(&apply_ip_tables_add_address, std::tr1::placeholders::_2));
 
 //   CMD2_ANY_V       ("dht.enable",     std::tr1::bind(&core::DhtManager::set_start, control->dht_manager()));
 //   CMD2_ANY_V       ("dht.disable",    std::tr1::bind(&core::DhtManager::set_stop, control->dht_manager()));

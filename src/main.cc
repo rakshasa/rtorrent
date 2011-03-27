@@ -297,11 +297,17 @@ main(int argc, char** argv) {
 //        "view.sort_new     = hashing,less=d.state_changed=\n"
 //        "view.sort_current = hashing,less=d.state_changed=\n"
 
-       "view.add = seeding\n"
+       "view.add    = seeding\n"
        "view.filter = seeding,\"and=d.state=,d.complete=\"\n"
        "view.filter_on    = seeding,event.download.resumed,event.download.paused,event.download.finished\n"
        "view.sort_new     = seeding,less=d.state_changed=\n"
        "view.sort_current = seeding,less=d.state_changed=\n"
+
+       "view.add    = leeching\n"
+       "view.filter = leeching,\"and=d.state=,not=$d.complete=\"\n"
+       "view.filter_on    = leeching,event.download.resumed,event.download.paused,event.download.finished\n"
+       "view.sort_new     = leeching,less=d.state_changed=\n"
+       "view.sort_current = leeching,less=d.state_changed=\n"
 
        "schedule2 = view.main,10,10,((view.sort,main,20))\n"
        "schedule2 = view.name,10,10,((view.sort,name,20))\n"
