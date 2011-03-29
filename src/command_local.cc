@@ -45,9 +45,9 @@
 #include <sys/stat.h>
 #include <torrent/torrent.h>
 #include <torrent/chunk_manager.h>
-#include <torrent/log_files.h>
 #include <torrent/data/file_manager.h>
 #include <torrent/data/chunk_utils.h>
+#include <torrent/utils/log_files.h>
 
 #include "core/download.h"
 #include "core/download_list.h"
