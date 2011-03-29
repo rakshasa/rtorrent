@@ -41,11 +41,11 @@
 #include <sstream>
 #include <stdexcept>
 #include <rak/path.h>
+#include <torrent/utils/resume.h>
 #include <torrent/object.h>
 #include <torrent/object_stream.h>
 #include <torrent/exceptions.h>
 #include <torrent/rate.h>
-#include <torrent/resume.h>
 #include <torrent/data/file_utils.h>
 
 #include "rpc/parse_commands.h"

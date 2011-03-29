@@ -72,7 +72,7 @@ WindowPeerList::redraw() {
   m_canvas->print(x, y, "UP");      x += 7;
   m_canvas->print(x, y, "DOWN");    x += 7;
   m_canvas->print(x, y, "PEER");    x += 7;
-  m_canvas->print(x, y, "C/RE/LO"); x += 9;
+  m_canvas->print(x, y, "CT/RE/LO"); x += 10;
   m_canvas->print(x, y, "QS");      x += 6;
   m_canvas->print(x, y, "DONE");    x += 6;
   m_canvas->print(x, y, "REQ");     x += 6;
@@ -109,6 +109,7 @@ WindowPeerList::redraw() {
     m_canvas->print(x, y, "%.1f", (double)p->peer_rate()->rate() / 1024); x += 7;
 
     char remoteChoked;
+    char peerType;
 
     if (!p->is_down_choked_limited())
       remoteChoked = 'U';
@@ -117,14 +118,22 @@ WindowPeerList::redraw() {
     else
       remoteChoked = 'C';
 
-    m_canvas->print(x, y, "%c/%c%c/%c%c",
+    if (p->peer_info()->is_blocked())
+      peerType = 'u';
+    else if (p->peer_info()->is_preferred())
+      peerType = 'p';
+    else 
+      peerType = ' ';
+
+    m_canvas->print(x, y, "%c%c/%c%c/%c%c",
                     p->is_encrypted() ? (p->is_incoming() ? 'R' : 'L') : (p->is_incoming() ? 'r' : 'l'),
+                    peerType,
                     p->is_down_choked() ? std::tolower(remoteChoked) : remoteChoked,
 
                     p->is_down_interested() ? 'i' : 'n',
                     p->is_up_choked() ? 'c' : 'u',
                     p->is_up_interested() ? 'i' : 'n');
-    x += 9;
+    x += 10;
 
     m_canvas->print(x, y, "%i/%i", p->outgoing_queue_size(), p->incoming_queue_size());
     x += 6;

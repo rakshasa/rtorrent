@@ -49,12 +49,12 @@
 #include <rak/string_manip.h>
 #include <sigc++/adaptors/bind.h>
 #include <sigc++/adaptors/hide.h>
+#include <torrent/utils/resume.h>
 #include <torrent/object.h>
 #include <torrent/connection_manager.h>
 #include <torrent/error.h>
 #include <torrent/exceptions.h>
 #include <torrent/object_stream.h>
-#include <torrent/resume.h>
 #include <torrent/tracker_list.h>
 #include <torrent/throttle.h>
 

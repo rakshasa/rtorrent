@@ -48,6 +48,7 @@
 #include <torrent/torrent.h>
 #include <torrent/rate.h>
 #include <torrent/data/file_manager.h>
+#include <torrent/peer/peer_list.h>
 
 #include "core/dht_manager.h"
 #include "core/download.h"
@@ -483,6 +484,55 @@ apply_ip_tables_add_address(const torrent::Object::list_type& args) {
   return torrent::Object();
 }
 
+//
+//
+//
+
+torrent::Object
+apply_ipv4_filter_get(const std::string& args) {
+  // Move to a helper function, add support for addresses.
+  uint32_t ip_values[4];
+
+  if (sscanf(args.c_str(), "%u.%u.%u.%u",
+             ip_values + 0, ip_values + 1, ip_values + 2, ip_values + 3) != 4)
+    throw torrent::input_error("Invalid address format.");
+
+  return torrent::PeerList::ipv4_filter()->at((ip_values[0] << 24) + (ip_values[1] << 16) + (ip_values[2] << 8) + ip_values[3]);
+}
+
+torrent::Object
+apply_ipv4_filter_add_address(const torrent::Object::list_type& args) {
+  if (args.size() != 2)
+    throw torrent::input_error("Incorrect number of arguments.");
+
+  torrent::Object::list_const_iterator args_itr = args.begin();
+
+  const std::string& address   = (args_itr++)->as_string();
+  const std::string& value_str = (args_itr++)->as_string();
+  
+  // Move to a helper function, add support for addresses.
+  uint32_t ip_values[4];
+  unsigned int block = rpc::ipv4_table::mask_bits;
+
+  if (sscanf(address.c_str(), "%u.%u.%u.%u/%u",
+             ip_values + 0, ip_values + 1, ip_values + 2, ip_values + 3, &block) < 4 ||
+      block > rpc::ipv4_table::mask_bits)
+    throw torrent::input_error("Invalid address format.");
+
+  int value;
+
+  if (value_str == "unwanted")
+    value = torrent::PeerInfo::flag_unwanted;
+  else if (value_str == "preferred")
+    value = torrent::PeerInfo::flag_preferred;
+  else
+    throw torrent::input_error("Invalid value.");
+
+  torrent::PeerList::ipv4_filter()->insert((ip_values[0] << 24) + (ip_values[1] << 16) + (ip_values[2] << 8) + ip_values[3],
+                                           rpc::ipv4_table::mask_bits - block, value);
+  return torrent::Object();
+}
+
 void
 initialize_command_network() {
   torrent::ConnectionManager* cm = torrent::connection_manager();
@@ -594,6 +644,9 @@ initialize_command_network() {
   CMD2_ANY_STRING  ("ip_tables.insert_table", std::tr1::bind(&apply_ip_tables_insert_table, std::tr1::placeholders::_2));
   CMD2_ANY_LIST    ("ip_tables.get",          std::tr1::bind(&apply_ip_tables_get, std::tr1::placeholders::_2));
   CMD2_ANY_LIST    ("ip_tables.add_address",  std::tr1::bind(&apply_ip_tables_add_address, std::tr1::placeholders::_2));
+
+  CMD2_ANY_STRING  ("ipv4_filter.get",          std::tr1::bind(&apply_ipv4_filter_get, std::tr1::placeholders::_2));
+  CMD2_ANY_LIST    ("ipv4_filter.add_address",  std::tr1::bind(&apply_ipv4_filter_add_address, std::tr1::placeholders::_2));
 
 //   CMD2_ANY_V       ("dht.enable",     std::tr1::bind(&core::DhtManager::set_start, control->dht_manager()));
 //   CMD2_ANY_V       ("dht.disable",    std::tr1::bind(&core::DhtManager::set_stop, control->dht_manager()));

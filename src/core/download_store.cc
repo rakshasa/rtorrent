@@ -44,11 +44,11 @@
 #include <rak/error_number.h>
 #include <rak/path.h>
 #include <rak/string_manip.h>
+#include <torrent/utils/resume.h>
 #include <torrent/object.h>
 #include <torrent/exceptions.h>
 #include <torrent/torrent.h>
 #include <torrent/rate.h>
-#include <torrent/resume.h>
 #include <torrent/object_stream.h>
 
 #include "utils/directory.h"

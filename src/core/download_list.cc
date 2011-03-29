@@ -43,12 +43,12 @@
 #include <rak/functional.h>
 #include <rak/string_manip.h>
 #include <torrent/data/file.h>
+#include <torrent/utils/resume.h>
 #include <torrent/exceptions.h>
 #include <torrent/download.h>
 #include <torrent/hash_string.h>
 #include <torrent/object.h>
 #include <torrent/object_stream.h>
-#include <torrent/resume.h>
 #include <torrent/torrent.h>
 
 #include "rpc/parse_commands.h"
