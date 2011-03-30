@@ -168,6 +168,16 @@ apply_d_delete_tied(core::Download* download) {
   return torrent::Object();
 }
 
+void
+apply_d_directory(core::Download* download, const std::string& name) {
+  if (!download->file_list()->is_multi_file())
+    download->set_root_directory(name);
+  else if (name.empty() || *name.rbegin() == '/')
+    download->set_root_directory(name + download->info()->name());
+  else
+    download->set_root_directory(name + "/" + download->info()->name());
+}
+
 torrent::Object
 apply_d_connection_type(core::Download* download, const std::string& name) {
   torrent::Download::ConnectionType connType;
@@ -185,16 +195,6 @@ apply_d_connection_type(core::Download* download, const std::string& name) {
   return torrent::Object();
 }
 
-void
-apply_d_directory(core::Download* download, const std::string& name) {
-  if (!download->file_list()->is_multi_file())
-    download->set_root_directory(name);
-  else if (name.empty() || *name.rbegin() == '/')
-    download->set_root_directory(name + download->info()->name());
-  else
-    download->set_root_directory(name + "/" + download->info()->name());
-}
-
 const char*
 retrieve_d_connection_type(core::Download* download) {
   switch (download->download()->connection_type()) {
@@ -204,6 +204,39 @@ retrieve_d_connection_type(core::Download* download) {
     return "seed";
   case torrent::Download::CONNECTION_INITIAL_SEED:
     return "initial_seed";
+  default:
+    return "unknown";
+  }
+}
+
+torrent::Object
+apply_d_choke_heuristics(core::Download* download, const std::string& name, bool is_down) {
+  torrent::Download::HeuristicType connType;
+
+  if (name == "upload_leech")
+    connType = torrent::Download::HEURISTICS_UPLOAD_LEECH;
+  else if (name == "download_leech")
+    connType = torrent::Download::HEURISTICS_DOWNLOAD_LEECH;
+  else
+    throw torrent::input_error("Unknown peer heuristic selected.");
+
+  if (is_down)
+    download->download()->set_download_choke_heuristic(connType);
+  else
+    download->download()->set_upload_choke_heuristic(connType);
+
+  return torrent::Object();
+}
+
+const char*
+retrieve_d_choke_heuristics(core::Download* download, bool is_down) {
+  switch (is_down ?
+          download->download()->download_choke_heuristic() :
+          download->download()->upload_choke_heuristic()) {
+  case torrent::Download::HEURISTICS_UPLOAD_LEECH:
+    return "upload_leech";
+  case torrent::Download::HEURISTICS_DOWNLOAD_LEECH:
+    return "download_leech";
   default:
     return "unknown";
   }
@@ -699,6 +732,16 @@ initialize_command_download() {
 
   CMD2_DL_VAR_STRING("d.connection_leech",      "rtorrent", "connection_leech");
   CMD2_DL_VAR_STRING("d.connection_seed",       "rtorrent", "connection_seed");
+
+  CMD2_DL       ("d.up.choke_heuristics",       std::tr1::bind(&retrieve_d_choke_heuristics, std::tr1::placeholders::_1, false));
+  CMD2_DL_STRING("d.up.choke_heuristics.set",   std::tr1::bind(&apply_d_choke_heuristics, std::tr1::placeholders::_1, std::tr1::placeholders::_2, false));
+  CMD2_DL       ("d.down.choke_heuristics",     std::tr1::bind(&retrieve_d_choke_heuristics, std::tr1::placeholders::_1, true));
+  CMD2_DL_STRING("d.down.choke_heuristics.set", std::tr1::bind(&apply_d_choke_heuristics, std::tr1::placeholders::_1, std::tr1::placeholders::_2, true));
+
+  CMD2_DL_VAR_STRING("d.up.choke_heuristics.leech", "rtorrent", "choke_heuristics.up.leech");
+  CMD2_DL_VAR_STRING("d.up.choke_heuristics.seed",  "rtorrent", "choke_heuristics.up.seed");
+  CMD2_DL_VAR_STRING("d.down.choke_heuristics.leech", "rtorrent", "choke_heuristics.down.leech");
+  CMD2_DL_VAR_STRING("d.down.choke_heuristics.seed",  "rtorrent", "choke_heuristics.down.seed");
 
   CMD2_DL        ("d.hashing_failed",     std::tr1::bind(&core::Download::is_hash_failed, std::tr1::placeholders::_1));
   CMD2_DL_VALUE_V("d.hashing_failed.set", std::tr1::bind(&core::Download::set_hash_failed, std::tr1::placeholders::_1, std::tr1::placeholders::_2));

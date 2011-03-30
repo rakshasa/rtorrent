@@ -177,6 +177,7 @@ Download::create_info() {
 
   element->push_back("");
   element->push_column("Connection type:",  te_command("d.connection_current="));
+  element->push_column("Choke heuristic:",  te_command("cat=$d.up.choke_heuristics=,\", \",$d.down.choke_heuristics="));
   element->push_column("Safe sync:",        te_command("if=$pieces.sync.always_safe=,yes,no"));
   element->push_column("Send buffer:",      te_command("cat=$convert.kb=$network.send_buffer.size=,\" KB\""));
   element->push_column("Receive buffer:",   te_command("cat=$convert.kb=$network.receive_buffer.size=,\" KB\""));

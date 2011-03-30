@@ -556,6 +556,11 @@ initialize_command_network() {
   CMD2_VAR_STRING  ("protocol.connection.leech", "leech");
   CMD2_VAR_STRING  ("protocol.connection.seed",  "seed");
 
+  CMD2_VAR_STRING  ("protocol.choke_heuristics.up.leech", "upload_leech");
+  CMD2_VAR_STRING  ("protocol.choke_heuristics.up.seed",  "upload_leech");
+  CMD2_VAR_STRING  ("protocol.choke_heuristics.down.leech", "download_leech");
+  CMD2_VAR_STRING  ("protocol.choke_heuristics.down.seed",  "download_leech");
+
   CMD2_ANY         ("throttle.unchoked_uploads", std::tr1::bind(&torrent::currently_unchoked));
   CMD2_ANY         ("throttle.unchoked_downloads", std::tr1::bind(&torrent::download_unchoked));
 

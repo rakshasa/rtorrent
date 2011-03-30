@@ -397,7 +397,12 @@ DownloadFactory::initialize_rtorrent(Download* download, torrent::Object* rtorre
   rtorrent->insert_preserve_copy("views", torrent::Object::create_list());
 
   rtorrent->insert_preserve_type("connection_leech", m_variables["connection_leech"]);
-  rtorrent->insert_preserve_type("connection_seed", m_variables["connection_seed"]);
+  rtorrent->insert_preserve_type("connection_seed",  m_variables["connection_seed"]);
+
+  rtorrent->insert_preserve_copy("choke_heuristics.up.leech",   rpc::call_command_void("protocol.choke_heuristics.up.leech"));
+  rtorrent->insert_preserve_copy("choke_heuristics.up.seed",    rpc::call_command_void("protocol.choke_heuristics.up.seed"));
+  rtorrent->insert_preserve_copy("choke_heuristics.down.leech", rpc::call_command_void("protocol.choke_heuristics.down.leech"));
+  rtorrent->insert_preserve_copy("choke_heuristics.down.seed",  rpc::call_command_void("protocol.choke_heuristics.down.seed"));
 }
 
 }
