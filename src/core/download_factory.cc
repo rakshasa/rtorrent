@@ -108,8 +108,10 @@ DownloadFactory::DownloadFactory(Manager* m) :
   m_taskLoad.set_slot(rak::mem_fn(this, &DownloadFactory::receive_load));
   m_taskCommit.set_slot(rak::mem_fn(this, &DownloadFactory::receive_commit));
 
-  m_variables["connection_leech"] = rpc::call_command_void("protocol.connection.leech");
-  m_variables["connection_seed"]  = rpc::call_command_void("protocol.connection.seed");
+  // m_variables["connection_leech"] = rpc::call_command_void("protocol.connection.leech");
+  // m_variables["connection_seed"]  = rpc::call_command_void("protocol.connection.seed");
+  m_variables["connection_leech"] = std::string();
+  m_variables["connection_seed"]  = std::string();
   m_variables["directory"]        = rpc::call_command_void("directory.default");
   m_variables["tied_to_file"]     = torrent::Object((int64_t)false);
 }
@@ -399,10 +401,10 @@ DownloadFactory::initialize_rtorrent(Download* download, torrent::Object* rtorre
   rtorrent->insert_preserve_type("connection_leech", m_variables["connection_leech"]);
   rtorrent->insert_preserve_type("connection_seed",  m_variables["connection_seed"]);
 
-  rtorrent->insert_preserve_copy("choke_heuristics.up.leech",   rpc::call_command_void("protocol.choke_heuristics.up.leech"));
-  rtorrent->insert_preserve_copy("choke_heuristics.up.seed",    rpc::call_command_void("protocol.choke_heuristics.up.seed"));
-  rtorrent->insert_preserve_copy("choke_heuristics.down.leech", rpc::call_command_void("protocol.choke_heuristics.down.leech"));
-  rtorrent->insert_preserve_copy("choke_heuristics.down.seed",  rpc::call_command_void("protocol.choke_heuristics.down.seed"));
+  rtorrent->insert_preserve_copy("choke_heuristics.up.leech",   std::string());
+  rtorrent->insert_preserve_copy("choke_heuristics.up.seed",    std::string());
+  rtorrent->insert_preserve_copy("choke_heuristics.down.leech", std::string());
+  rtorrent->insert_preserve_copy("choke_heuristics.down.seed",  std::string());
 }
 
 }
