@@ -37,6 +37,7 @@
 #include "config.h"
 
 #include <functional>
+#include <fstream>
 #include <cstdio>
 #include <rak/address_info.h>
 #include <rak/path.h>
@@ -49,6 +50,7 @@
 #include <torrent/rate.h>
 #include <torrent/data/file_manager.h>
 #include <torrent/peer/peer_list.h>
+#include <torrent/utils/option_strings.h>
 
 #include "core/dht_manager.h"
 #include "core/download.h"
@@ -412,6 +414,44 @@ apply_xmlrpc_dialect(const std::string& arg) {
   return torrent::Object();
 }
 
+//
+// IP filter stuff:
+//
+
+void
+ipv4_filter_parse(const char* address, int value) {
+  uint32_t ip_values[4] = { 0, 0, 0, 0 };
+  unsigned int block = rpc::ipv4_table::mask_bits;
+
+  char ip_dot;
+  int values_read;
+
+  if ((values_read = sscanf(address, "%u%1[.]%u%1[.]%u%1[.]%u/%u",
+                            ip_values + 0, &ip_dot,
+                            ip_values + 1, &ip_dot,
+                            ip_values + 2, &ip_dot,
+                            ip_values + 3, 
+                            &block)) < 2 ||
+
+      // Make sure the dot is included.
+      (values_read < 7 && values_read % 2) ||
+
+      ip_values[0] >= 256 ||
+      ip_values[1] >= 256 ||
+      ip_values[2] >= 256 ||
+      ip_values[3] >= 256 ||
+       
+      block > rpc::ipv4_table::mask_bits)
+    throw torrent::input_error("Invalid address format.");
+
+  // E.g. '10.10.' will be '10.10.0.0/16'.
+  if (values_read < 7)
+    block = 8 * (values_read / 2);
+
+  torrent::PeerList::ipv4_filter()->insert((ip_values[0] << 24) + (ip_values[1] << 16) + (ip_values[2] << 8) + ip_values[3],
+                                           rpc::ipv4_table::mask_bits - block, value);
+}
+
 torrent::Object
 apply_ip_tables_insert_table(const std::string& args) {
   if (ip_tables.find(args) != ip_tables.end())
@@ -485,8 +525,13 @@ apply_ip_tables_add_address(const torrent::Object::list_type& args) {
 }
 
 //
+// IPv4 filter functions:
 //
-//
+
+torrent::Object
+apply_ipv4_filter_size_data() {
+  return torrent::PeerList::ipv4_filter()->sizeof_data();
+}
 
 torrent::Object
 apply_ipv4_filter_get(const std::string& args) {
@@ -505,31 +550,60 @@ apply_ipv4_filter_add_address(const torrent::Object::list_type& args) {
   if (args.size() != 2)
     throw torrent::input_error("Incorrect number of arguments.");
 
+  ipv4_filter_parse(args.front().as_string().c_str(),
+                    torrent::option_find_string(torrent::OPTION_IP_FILTER, args.back().as_string().c_str()));
+  return torrent::Object();
+}
+
+torrent::Object
+apply_ipv4_filter_load(const torrent::Object::list_type& args) {
+  if (args.size() != 2)
+    throw torrent::input_error("Incorrect number of arguments.");
+
   torrent::Object::list_const_iterator args_itr = args.begin();
 
-  const std::string& address   = (args_itr++)->as_string();
-  const std::string& value_str = (args_itr++)->as_string();
+  std::fstream file(rak::path_expand(args.front().as_string()).c_str(), std::ios::in);
   
-  // Move to a helper function, add support for addresses.
-  uint32_t ip_values[4];
-  unsigned int block = rpc::ipv4_table::mask_bits;
+  if (!file.is_open())
+    throw torrent::input_error("Could not open ip filter file: " + args.front().as_string());
 
-  if (sscanf(address.c_str(), "%u.%u.%u.%u/%u",
-             ip_values + 0, ip_values + 1, ip_values + 2, ip_values + 3, &block) < 4 ||
-      block > rpc::ipv4_table::mask_bits)
-    throw torrent::input_error("Invalid address format.");
+  int value = torrent::option_find_string(torrent::OPTION_IP_FILTER, args.back().as_string().c_str());
 
-  int value;
+  char buffer[4096];
+  unsigned int lineNumber = 0;
 
-  if (value_str == "unwanted")
-    value = torrent::PeerInfo::flag_unwanted;
-  else if (value_str == "preferred")
-    value = torrent::PeerInfo::flag_preferred;
-  else
-    throw torrent::input_error("Invalid value.");
+  try {
+    while (file.good() && !file.getline(buffer, 4096).fail()) {
+      if (file.gcount() == 0)
+        throw torrent::internal_error("parse_command_file(...) file.gcount() == 0.");
 
-  torrent::PeerList::ipv4_filter()->insert((ip_values[0] << 24) + (ip_values[1] << 16) + (ip_values[2] << 8) + ip_values[3],
-                                           rpc::ipv4_table::mask_bits - block, value);
+      int lineLength = file.gcount() - 1;
+      // In case we are at the end of the file and the last character is
+      // not a line feed, we'll just increase the read character count so 
+      // that the last would also be included in option line.
+      if (file.eof() && file.get() != '\n')
+        lineLength++;
+      
+      lineNumber++;
+
+      if (buffer[0] == '\0' || buffer[0] == '#')
+        continue;
+
+      ipv4_filter_parse(buffer, value);
+    }
+
+  } catch (torrent::input_error& e) {
+    snprintf(buffer, 2048, "Error in ip filter file: %s:%u: %s", args.front().as_string().c_str(), lineNumber, e.what());
+
+    throw torrent::input_error(buffer);
+  }
+
+  snprintf(buffer, 2048, "Loaded %u address blocks (%u kb in-memory) from '%s'.",
+           lineNumber,
+           torrent::PeerList::ipv4_filter()->sizeof_data() / 1024,
+           args.front().as_string().c_str());
+  control->core()->push_log(buffer);
+
   return torrent::Object();
 }
 
@@ -650,8 +724,10 @@ initialize_command_network() {
   CMD2_ANY_LIST    ("ip_tables.get",          std::tr1::bind(&apply_ip_tables_get, std::tr1::placeholders::_2));
   CMD2_ANY_LIST    ("ip_tables.add_address",  std::tr1::bind(&apply_ip_tables_add_address, std::tr1::placeholders::_2));
 
-  CMD2_ANY_STRING  ("ipv4_filter.get",          std::tr1::bind(&apply_ipv4_filter_get, std::tr1::placeholders::_2));
-  CMD2_ANY_LIST    ("ipv4_filter.add_address",  std::tr1::bind(&apply_ipv4_filter_add_address, std::tr1::placeholders::_2));
+  CMD2_ANY         ("ipv4_filter.size_data",   std::tr1::bind(&apply_ipv4_filter_size_data));
+  CMD2_ANY_STRING  ("ipv4_filter.get",         std::tr1::bind(&apply_ipv4_filter_get, std::tr1::placeholders::_2));
+  CMD2_ANY_LIST    ("ipv4_filter.add_address", std::tr1::bind(&apply_ipv4_filter_add_address, std::tr1::placeholders::_2));
+  CMD2_ANY_LIST    ("ipv4_filter.load",        std::tr1::bind(&apply_ipv4_filter_load, std::tr1::placeholders::_2));
 
 //   CMD2_ANY_V       ("dht.enable",     std::tr1::bind(&core::DhtManager::set_start, control->dht_manager()));
 //   CMD2_ANY_V       ("dht.disable",    std::tr1::bind(&core::DhtManager::set_stop, control->dht_manager()));
