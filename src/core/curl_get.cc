@@ -69,6 +69,9 @@ CurlGet::start() {
 
   m_handle = curl_easy_init();
 
+  if (m_handle == NULL)
+    throw torrent::internal_error("Call to curl_easy_init() failed.");
+
   curl_easy_setopt(m_handle, CURLOPT_URL,            m_url.c_str());
   curl_easy_setopt(m_handle, CURLOPT_WRITEFUNCTION,  &curl_get_receive_write);
   curl_easy_setopt(m_handle, CURLOPT_WRITEDATA,      this);
