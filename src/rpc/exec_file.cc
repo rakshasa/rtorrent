@@ -141,7 +141,7 @@ ExecFile::execute(const char* file, char* const* argv, int flags) {
       throw torrent::internal_error("ExecFile::execute(...) waitpid failed.");
 
     // Check return value?
-    if (m_logFd) {
+    if (m_logFd != -1) {
       if (status == 0)
         write(m_logFd, "\n--- Success ---\n", sizeof("\n--- Success ---\n"));
       else

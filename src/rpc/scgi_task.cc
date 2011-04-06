@@ -64,7 +64,7 @@ SCgiTask::realloc_buffer(uint32_t size, const char* buffer, uint32_t bufferSize)
   char* tmp = rak::cacheline_allocator<char>::alloc_size(size);
 
   std::memcpy(tmp, buffer, bufferSize);
-  delete [] m_buffer;
+  ::free(m_buffer);
   m_buffer = tmp;
 }
 
@@ -96,7 +96,7 @@ SCgiTask::close() {
   get_fd().close();
   get_fd().clear();
 
-  delete [] m_buffer;
+  ::free(m_buffer);
   m_buffer = NULL;
 
   // Test
