@@ -309,33 +309,33 @@ test_thread_locking() {
 
 void
 initialize_command_events() {
-  CMD2_ANY("test.thread_locking", std::tr1::bind(&test_thread_locking));
+  CMD2_ANY("test.thread_locking", std::bind(&test_thread_locking));
 
-  CMD2_ANY_STRING  ("on_ratio",        std::tr1::bind(&apply_on_ratio, std::tr1::placeholders::_2));
+  CMD2_ANY_STRING  ("on_ratio",        std::bind(&apply_on_ratio, std::placeholders::_2));
 
-  CMD2_ANY         ("start_tied",      std::tr1::bind(&apply_start_tied));
-  CMD2_ANY         ("stop_untied",     std::tr1::bind(&apply_stop_untied));
-  CMD2_ANY         ("close_untied",    std::tr1::bind(&apply_close_untied));
-  CMD2_ANY         ("remove_untied",   std::tr1::bind(&apply_remove_untied));
+  CMD2_ANY         ("start_tied",      std::bind(&apply_start_tied));
+  CMD2_ANY         ("stop_untied",     std::bind(&apply_stop_untied));
+  CMD2_ANY         ("close_untied",    std::bind(&apply_close_untied));
+  CMD2_ANY         ("remove_untied",   std::bind(&apply_remove_untied));
 
-  CMD2_ANY_LIST    ("schedule2",        std::tr1::bind(&apply_schedule, std::tr1::placeholders::_2));
-  CMD2_ANY_STRING_V("schedule_remove2", std::tr1::bind(&rpc::CommandScheduler::erase_str, control->command_scheduler(), std::tr1::placeholders::_2));
+  CMD2_ANY_LIST    ("schedule2",        std::bind(&apply_schedule, std::placeholders::_2));
+  CMD2_ANY_STRING_V("schedule_remove2", std::bind(&rpc::CommandScheduler::erase_str, control->command_scheduler(), std::placeholders::_2));
 
-  CMD2_ANY_STRING_V("import",          std::tr1::bind(&apply_import, std::tr1::placeholders::_2));
-  CMD2_ANY_STRING_V("try_import",      std::tr1::bind(&apply_try_import, std::tr1::placeholders::_2));
+  CMD2_ANY_STRING_V("import",          std::bind(&apply_import, std::placeholders::_2));
+  CMD2_ANY_STRING_V("try_import",      std::bind(&apply_try_import, std::placeholders::_2));
 
-  CMD2_ANY_LIST    ("load.normal",        std::tr1::bind(&apply_load, std::tr1::placeholders::_2, core::Manager::create_quiet | core::Manager::create_tied));
-  CMD2_ANY_LIST    ("load.verbose",       std::tr1::bind(&apply_load, std::tr1::placeholders::_2, core::Manager::create_tied));
-  CMD2_ANY_LIST    ("load.start",         std::tr1::bind(&apply_load, std::tr1::placeholders::_2,
+  CMD2_ANY_LIST    ("load.normal",        std::bind(&apply_load, std::placeholders::_2, core::Manager::create_quiet | core::Manager::create_tied));
+  CMD2_ANY_LIST    ("load.verbose",       std::bind(&apply_load, std::placeholders::_2, core::Manager::create_tied));
+  CMD2_ANY_LIST    ("load.start",         std::bind(&apply_load, std::placeholders::_2,
                                                          core::Manager::create_quiet | core::Manager::create_tied | core::Manager::create_start));
-  CMD2_ANY_LIST    ("load.start_verbose", std::tr1::bind(&apply_load, std::tr1::placeholders::_2, core::Manager::create_tied  | core::Manager::create_start));
-  CMD2_ANY_LIST    ("load.raw",           std::tr1::bind(&apply_load, std::tr1::placeholders::_2, core::Manager::create_quiet | core::Manager::create_raw_data));
-  CMD2_ANY_LIST    ("load.raw_verbose",   std::tr1::bind(&apply_load, std::tr1::placeholders::_2, core::Manager::create_raw_data));
-  CMD2_ANY_LIST    ("load.raw_start",     std::tr1::bind(&apply_load, std::tr1::placeholders::_2,
+  CMD2_ANY_LIST    ("load.start_verbose", std::bind(&apply_load, std::placeholders::_2, core::Manager::create_tied  | core::Manager::create_start));
+  CMD2_ANY_LIST    ("load.raw",           std::bind(&apply_load, std::placeholders::_2, core::Manager::create_quiet | core::Manager::create_raw_data));
+  CMD2_ANY_LIST    ("load.raw_verbose",   std::bind(&apply_load, std::placeholders::_2, core::Manager::create_raw_data));
+  CMD2_ANY_LIST    ("load.raw_start",     std::bind(&apply_load, std::placeholders::_2,
                                                          core::Manager::create_quiet | core::Manager::create_start | core::Manager::create_raw_data));
 
-  CMD2_ANY_VALUE   ("close_low_diskspace", std::tr1::bind(&apply_close_low_diskspace, std::tr1::placeholders::_2));
+  CMD2_ANY_VALUE   ("close_low_diskspace", std::bind(&apply_close_low_diskspace, std::placeholders::_2));
 
-  CMD2_ANY_LIST    ("download_list",       std::tr1::bind(&apply_download_list, std::tr1::placeholders::_2));
-  CMD2_ANY_LIST    ("d.multicall2",        std::tr1::bind(&d_multicall, std::tr1::placeholders::_2));
+  CMD2_ANY_LIST    ("download_list",       std::bind(&apply_download_list, std::placeholders::_2));
+  CMD2_ANY_LIST    ("d.multicall2",        std::bind(&d_multicall, std::placeholders::_2));
 }

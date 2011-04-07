@@ -598,8 +598,9 @@ apply_ipv4_filter_load(const torrent::Object::list_type& args) {
     throw torrent::input_error(buffer);
   }
 
-  snprintf(buffer, 2048, "Loaded %u address blocks (%u kb in-memory) from '%s'.",
+  snprintf(buffer, 2048, "Loaded %u %s address blocks (%u kb in-memory) from '%s'.",
            lineNumber,
+           args.back().as_string().c_str(),
            torrent::PeerList::ipv4_filter()->sizeof_data() / 1024,
            args.front().as_string().c_str());
   control->core()->push_log(buffer);
@@ -616,8 +617,8 @@ initialize_command_network() {
   CMD2_VAR_BOOL    ("log.handshake", false);
   CMD2_VAR_STRING  ("log.tracker",   "");
 
-  // CMD2_ANY_STRING  ("encoding_list",    std::tr1::bind(&apply_encoding_list, std::tr1::placeholders::_2));
-  CMD2_ANY_STRING  ("encoding.add", std::tr1::bind(&apply_encoding_list, std::tr1::placeholders::_2));
+  // CMD2_ANY_STRING  ("encoding_list",    std::bind(&apply_encoding_list, std::placeholders::_2));
+  CMD2_ANY_STRING  ("encoding.add", std::bind(&apply_encoding_list, std::placeholders::_2));
 
   // Isn't port_open used?
   CMD2_VAR_BOOL    ("network.port_open",   true);
@@ -625,7 +626,7 @@ initialize_command_network() {
   CMD2_VAR_STRING  ("network.port_range",  "6881-6999");
 
   CMD2_VAR_BOOL    ("protocol.pex",            true);
-  CMD2_ANY_LIST    ("protocol.encryption.set", std::tr1::bind(&apply_encryption, std::tr1::placeholders::_2));
+  CMD2_ANY_LIST    ("protocol.encryption.set", std::bind(&apply_encryption, std::placeholders::_2));
 
   CMD2_VAR_STRING  ("protocol.connection.leech", "leech");
   CMD2_VAR_STRING  ("protocol.connection.seed",  "seed");
@@ -635,8 +636,8 @@ initialize_command_network() {
   CMD2_VAR_STRING  ("protocol.choke_heuristics.down.leech", "download_leech");
   CMD2_VAR_STRING  ("protocol.choke_heuristics.down.seed",  "download_leech");
 
-  CMD2_ANY         ("throttle.unchoked_uploads", std::tr1::bind(&torrent::currently_unchoked));
-  CMD2_ANY         ("throttle.unchoked_downloads", std::tr1::bind(&torrent::download_unchoked));
+  CMD2_ANY         ("throttle.unchoked_uploads", std::bind(&torrent::currently_unchoked));
+  CMD2_ANY         ("throttle.unchoked_downloads", std::bind(&torrent::download_unchoked));
 
   CMD2_VAR_VALUE   ("throttle.min_peers.normal", 40);
   CMD2_VAR_VALUE   ("throttle.max_peers.normal", 100);
@@ -651,90 +652,90 @@ initialize_command_network() {
   CMD2_VAR_VALUE   ("throttle.max_downloads.global", 0);
 
   // TODO: Move the logic into some libtorrent function.
-  CMD2_ANY         ("throttle.global_up.rate",              std::tr1::bind(&torrent::Rate::rate, torrent::up_rate()));
-  CMD2_ANY         ("throttle.global_up.total",             std::tr1::bind(&torrent::Rate::total, torrent::up_rate()));
-  CMD2_ANY         ("throttle.global_up.max_rate",          std::tr1::bind(&torrent::Throttle::max_rate, torrent::up_throttle_global()));
-  CMD2_ANY_VALUE_V ("throttle.global_up.max_rate.set",      std::tr1::bind(&ui::Root::set_up_throttle_i64, control->ui(), std::tr1::placeholders::_2));
-  CMD2_ANY_VALUE_KB("throttle.global_up.max_rate.set_kb",   std::tr1::bind(&ui::Root::set_up_throttle_i64, control->ui(), std::tr1::placeholders::_2));
-  CMD2_ANY         ("throttle.global_down.rate",            std::tr1::bind(&torrent::Rate::rate, torrent::down_rate()));
-  CMD2_ANY         ("throttle.global_down.total",           std::tr1::bind(&torrent::Rate::total, torrent::down_rate()));
-  CMD2_ANY         ("throttle.global_down.max_rate",        std::tr1::bind(&torrent::Throttle::max_rate, torrent::down_throttle_global()));
-  CMD2_ANY_VALUE_V ("throttle.global_down.max_rate.set",    std::tr1::bind(&ui::Root::set_down_throttle_i64, control->ui(), std::tr1::placeholders::_2));
-  CMD2_ANY_VALUE_KB("throttle.global_down.max_rate.set_kb", std::tr1::bind(&ui::Root::set_down_throttle_i64, control->ui(), std::tr1::placeholders::_2));
+  CMD2_ANY         ("throttle.global_up.rate",              std::bind(&torrent::Rate::rate, torrent::up_rate()));
+  CMD2_ANY         ("throttle.global_up.total",             std::bind(&torrent::Rate::total, torrent::up_rate()));
+  CMD2_ANY         ("throttle.global_up.max_rate",          std::bind(&torrent::Throttle::max_rate, torrent::up_throttle_global()));
+  CMD2_ANY_VALUE_V ("throttle.global_up.max_rate.set",      std::bind(&ui::Root::set_up_throttle_i64, control->ui(), std::placeholders::_2));
+  CMD2_ANY_VALUE_KB("throttle.global_up.max_rate.set_kb",   std::bind(&ui::Root::set_up_throttle_i64, control->ui(), std::placeholders::_2));
+  CMD2_ANY         ("throttle.global_down.rate",            std::bind(&torrent::Rate::rate, torrent::down_rate()));
+  CMD2_ANY         ("throttle.global_down.total",           std::bind(&torrent::Rate::total, torrent::down_rate()));
+  CMD2_ANY         ("throttle.global_down.max_rate",        std::bind(&torrent::Throttle::max_rate, torrent::down_throttle_global()));
+  CMD2_ANY_VALUE_V ("throttle.global_down.max_rate.set",    std::bind(&ui::Root::set_down_throttle_i64, control->ui(), std::placeholders::_2));
+  CMD2_ANY_VALUE_KB("throttle.global_down.max_rate.set_kb", std::bind(&ui::Root::set_down_throttle_i64, control->ui(), std::placeholders::_2));
 
   // Temporary names, need to change this to accept real rates rather
   // than kB.
-  CMD2_ANY_LIST    ("throttle.up",                          std::tr1::bind(&apply_throttle, std::tr1::placeholders::_2, true));
-  CMD2_ANY_LIST    ("throttle.down",                        std::tr1::bind(&apply_throttle, std::tr1::placeholders::_2, false));
-  CMD2_ANY_LIST    ("throttle.ip",                          std::tr1::bind(&apply_address_throttle, std::tr1::placeholders::_2));
+  CMD2_ANY_LIST    ("throttle.up",                          std::bind(&apply_throttle, std::placeholders::_2, true));
+  CMD2_ANY_LIST    ("throttle.down",                        std::bind(&apply_throttle, std::placeholders::_2, false));
+  CMD2_ANY_LIST    ("throttle.ip",                          std::bind(&apply_address_throttle, std::placeholders::_2));
 
-  CMD2_ANY_STRING  ("throttle.up.max",    std::tr1::bind(&retrieve_throttle_info, std::tr1::placeholders::_2, throttle_info_up | throttle_info_max));
-  CMD2_ANY_STRING  ("throttle.up.rate",   std::tr1::bind(&retrieve_throttle_info, std::tr1::placeholders::_2, throttle_info_up | throttle_info_rate));
-  CMD2_ANY_STRING  ("throttle.down.max",  std::tr1::bind(&retrieve_throttle_info, std::tr1::placeholders::_2, throttle_info_down | throttle_info_max));
-  CMD2_ANY_STRING  ("throttle.down.rate", std::tr1::bind(&retrieve_throttle_info, std::tr1::placeholders::_2, throttle_info_down | throttle_info_rate));
+  CMD2_ANY_STRING  ("throttle.up.max",    std::bind(&retrieve_throttle_info, std::placeholders::_2, throttle_info_up | throttle_info_max));
+  CMD2_ANY_STRING  ("throttle.up.rate",   std::bind(&retrieve_throttle_info, std::placeholders::_2, throttle_info_up | throttle_info_rate));
+  CMD2_ANY_STRING  ("throttle.down.max",  std::bind(&retrieve_throttle_info, std::placeholders::_2, throttle_info_down | throttle_info_max));
+  CMD2_ANY_STRING  ("throttle.down.rate", std::bind(&retrieve_throttle_info, std::placeholders::_2, throttle_info_down | throttle_info_rate));
 
-  CMD2_ANY         ("network.http.capath",            std::tr1::bind(&core::CurlStack::http_capath, httpStack));
-  CMD2_ANY_STRING_V("network.http.capath.set",        std::tr1::bind(&core::CurlStack::set_http_capath, httpStack, std::tr1::placeholders::_2));
-  CMD2_ANY         ("network.http.cacert",            std::tr1::bind(&core::CurlStack::http_cacert, httpStack));
-  CMD2_ANY_STRING_V("network.http.cacert.set",        std::tr1::bind(&core::CurlStack::set_http_cacert, httpStack, std::tr1::placeholders::_2));
-  CMD2_ANY         ("network.http.proxy_address",     std::tr1::bind(&core::CurlStack::http_proxy, httpStack));
-  CMD2_ANY_STRING_V("network.http.proxy_address.set", std::tr1::bind(&core::CurlStack::set_http_proxy, httpStack, std::tr1::placeholders::_2));
-  CMD2_ANY         ("network.http.max_open",          std::tr1::bind(&core::CurlStack::max_active, httpStack));
-  CMD2_ANY_VALUE_V ("network.http.max_open.set",      std::tr1::bind(&core::CurlStack::set_max_active, httpStack, std::tr1::placeholders::_2));
+  CMD2_ANY         ("network.http.capath",            std::bind(&core::CurlStack::http_capath, httpStack));
+  CMD2_ANY_STRING_V("network.http.capath.set",        std::bind(&core::CurlStack::set_http_capath, httpStack, std::placeholders::_2));
+  CMD2_ANY         ("network.http.cacert",            std::bind(&core::CurlStack::http_cacert, httpStack));
+  CMD2_ANY_STRING_V("network.http.cacert.set",        std::bind(&core::CurlStack::set_http_cacert, httpStack, std::placeholders::_2));
+  CMD2_ANY         ("network.http.proxy_address",     std::bind(&core::CurlStack::http_proxy, httpStack));
+  CMD2_ANY_STRING_V("network.http.proxy_address.set", std::bind(&core::CurlStack::set_http_proxy, httpStack, std::placeholders::_2));
+  CMD2_ANY         ("network.http.max_open",          std::bind(&core::CurlStack::max_active, httpStack));
+  CMD2_ANY_VALUE_V ("network.http.max_open.set",      std::bind(&core::CurlStack::set_max_active, httpStack, std::placeholders::_2));
 
-  CMD2_ANY         ("network.send_buffer.size",        std::tr1::bind(&torrent::ConnectionManager::send_buffer_size, cm));
-  CMD2_ANY_VALUE_V ("network.send_buffer.size.set",    std::tr1::bind(&torrent::ConnectionManager::set_send_buffer_size, cm, std::tr1::placeholders::_2));
-  CMD2_ANY         ("network.receive_buffer.size",     std::tr1::bind(&torrent::ConnectionManager::receive_buffer_size, cm));
-  CMD2_ANY_VALUE_V ("network.receive_buffer.size.set", std::tr1::bind(&torrent::ConnectionManager::set_receive_buffer_size, cm, std::tr1::placeholders::_2));
-  CMD2_ANY_STRING  ("network.tos.set",                 std::tr1::bind(&apply_tos, std::tr1::placeholders::_2));
+  CMD2_ANY         ("network.send_buffer.size",        std::bind(&torrent::ConnectionManager::send_buffer_size, cm));
+  CMD2_ANY_VALUE_V ("network.send_buffer.size.set",    std::bind(&torrent::ConnectionManager::set_send_buffer_size, cm, std::placeholders::_2));
+  CMD2_ANY         ("network.receive_buffer.size",     std::bind(&torrent::ConnectionManager::receive_buffer_size, cm));
+  CMD2_ANY_VALUE_V ("network.receive_buffer.size.set", std::bind(&torrent::ConnectionManager::set_receive_buffer_size, cm, std::placeholders::_2));
+  CMD2_ANY_STRING  ("network.tos.set",                 std::bind(&apply_tos, std::placeholders::_2));
 
-  CMD2_ANY         ("network.bind_address",        std::tr1::bind(&core::Manager::bind_address, control->core()));
-  CMD2_ANY_STRING_V("network.bind_address.set",    std::tr1::bind(&core::Manager::set_bind_address, control->core(), std::tr1::placeholders::_2));
-  CMD2_ANY         ("network.local_address",       std::tr1::bind(&core::Manager::local_address, control->core()));
-  CMD2_ANY_STRING_V("network.local_address.set",   std::tr1::bind(&core::Manager::set_local_address, control->core(), std::tr1::placeholders::_2));
-  CMD2_ANY         ("network.proxy_address",       std::tr1::bind(&core::Manager::proxy_address, control->core()));
-  CMD2_ANY_STRING_V("network.proxy_address.set",   std::tr1::bind(&core::Manager::set_proxy_address, control->core(), std::tr1::placeholders::_2));
+  CMD2_ANY         ("network.bind_address",        std::bind(&core::Manager::bind_address, control->core()));
+  CMD2_ANY_STRING_V("network.bind_address.set",    std::bind(&core::Manager::set_bind_address, control->core(), std::placeholders::_2));
+  CMD2_ANY         ("network.local_address",       std::bind(&core::Manager::local_address, control->core()));
+  CMD2_ANY_STRING_V("network.local_address.set",   std::bind(&core::Manager::set_local_address, control->core(), std::placeholders::_2));
+  CMD2_ANY         ("network.proxy_address",       std::bind(&core::Manager::proxy_address, control->core()));
+  CMD2_ANY_STRING_V("network.proxy_address.set",   std::bind(&core::Manager::set_proxy_address, control->core(), std::placeholders::_2));
 
-  CMD2_ANY         ("network.max_open_files",       std::tr1::bind(&torrent::FileManager::max_open_files, fileManager));
-  CMD2_ANY_VALUE_V ("network.max_open_files.set",   std::tr1::bind(&torrent::FileManager::set_max_open_files, fileManager, std::tr1::placeholders::_2));
-  CMD2_ANY         ("network.max_open_sockets",     std::tr1::bind(&torrent::ConnectionManager::max_size, cm));
-  CMD2_ANY_VALUE_V ("network.max_open_sockets.set", std::tr1::bind(&torrent::ConnectionManager::set_max_size, cm, std::tr1::placeholders::_2));
+  CMD2_ANY         ("network.max_open_files",       std::bind(&torrent::FileManager::max_open_files, fileManager));
+  CMD2_ANY_VALUE_V ("network.max_open_files.set",   std::bind(&torrent::FileManager::set_max_open_files, fileManager, std::placeholders::_2));
+  CMD2_ANY         ("network.max_open_sockets",     std::bind(&torrent::ConnectionManager::max_size, cm));
+  CMD2_ANY_VALUE_V ("network.max_open_sockets.set", std::bind(&torrent::ConnectionManager::set_max_size, cm, std::placeholders::_2));
 
-  CMD2_ANY_STRING  ("network.scgi.open_port",   std::tr1::bind(&apply_scgi, std::tr1::placeholders::_2, 1));
-  CMD2_ANY_STRING  ("network.scgi.open_local",  std::tr1::bind(&apply_scgi, std::tr1::placeholders::_2, 2));
+  CMD2_ANY_STRING  ("network.scgi.open_port",   std::bind(&apply_scgi, std::placeholders::_2, 1));
+  CMD2_ANY_STRING  ("network.scgi.open_local",  std::bind(&apply_scgi, std::placeholders::_2, 2));
   CMD2_VAR_BOOL    ("network.scgi.dont_route",  false);
 
-  CMD2_ANY_STRING  ("network.xmlrpc.dialect.set",    std::tr1::bind(&apply_xmlrpc_dialect, std::tr1::placeholders::_2));
-  CMD2_ANY         ("network.xmlrpc.size_limit",     std::tr1::bind(&rpc::XmlRpc::size_limit));
-  CMD2_ANY_VALUE_V ("network.xmlrpc.size_limit.set", std::tr1::bind(&rpc::XmlRpc::set_size_limit, std::tr1::placeholders::_2));
+  CMD2_ANY_STRING  ("network.xmlrpc.dialect.set",    std::bind(&apply_xmlrpc_dialect, std::placeholders::_2));
+  CMD2_ANY         ("network.xmlrpc.size_limit",     std::bind(&rpc::XmlRpc::size_limit));
+  CMD2_ANY_VALUE_V ("network.xmlrpc.size_limit.set", std::bind(&rpc::XmlRpc::set_size_limit, std::placeholders::_2));
 
-  CMD2_ANY         ("system.hash.read_ahead",        std::tr1::bind(&torrent::hash_read_ahead));
-  CMD2_ANY_VALUE_V ("system.hash.read_ahead.set",    std::tr1::bind(&apply_hash_read_ahead, std::tr1::placeholders::_2));
-  CMD2_ANY         ("system.hash.interval",          std::tr1::bind(&torrent::hash_interval));
-  CMD2_ANY_VALUE_V ("system.hash.interval.set",      std::tr1::bind(&apply_hash_interval, std::tr1::placeholders::_2));
-  CMD2_ANY         ("system.hash.max_tries",         std::tr1::bind(&torrent::hash_max_tries));
-  CMD2_ANY_VALUE_V ("system.hash.max_tries.set",     std::tr1::bind(&torrent::set_hash_max_tries, std::tr1::placeholders::_2));
+  CMD2_ANY         ("system.hash.read_ahead",        std::bind(&torrent::hash_read_ahead));
+  CMD2_ANY_VALUE_V ("system.hash.read_ahead.set",    std::bind(&apply_hash_read_ahead, std::placeholders::_2));
+  CMD2_ANY         ("system.hash.interval",          std::bind(&torrent::hash_interval));
+  CMD2_ANY_VALUE_V ("system.hash.interval.set",      std::bind(&apply_hash_interval, std::placeholders::_2));
+  CMD2_ANY         ("system.hash.max_tries",         std::bind(&torrent::hash_max_tries));
+  CMD2_ANY_VALUE_V ("system.hash.max_tries.set",     std::bind(&torrent::set_hash_max_tries, std::placeholders::_2));
 
-  CMD2_ANY_VALUE   ("trackers.enable",  std::tr1::bind(&apply_enable_trackers, int64_t(1)));
-  CMD2_ANY_VALUE   ("trackers.disable", std::tr1::bind(&apply_enable_trackers, int64_t(0)));
+  CMD2_ANY_VALUE   ("trackers.enable",  std::bind(&apply_enable_trackers, int64_t(1)));
+  CMD2_ANY_VALUE   ("trackers.disable", std::bind(&apply_enable_trackers, int64_t(0)));
   CMD2_VAR_VALUE   ("trackers.numwant", -1);
   CMD2_VAR_BOOL    ("trackers.use_udp", true);
 
-  CMD2_ANY_STRING  ("ip_tables.insert_table", std::tr1::bind(&apply_ip_tables_insert_table, std::tr1::placeholders::_2));
-  CMD2_ANY_LIST    ("ip_tables.get",          std::tr1::bind(&apply_ip_tables_get, std::tr1::placeholders::_2));
-  CMD2_ANY_LIST    ("ip_tables.add_address",  std::tr1::bind(&apply_ip_tables_add_address, std::tr1::placeholders::_2));
+  CMD2_ANY_STRING  ("ip_tables.insert_table", std::bind(&apply_ip_tables_insert_table, std::placeholders::_2));
+  CMD2_ANY_LIST    ("ip_tables.get",          std::bind(&apply_ip_tables_get, std::placeholders::_2));
+  CMD2_ANY_LIST    ("ip_tables.add_address",  std::bind(&apply_ip_tables_add_address, std::placeholders::_2));
 
-  CMD2_ANY         ("ipv4_filter.size_data",   std::tr1::bind(&apply_ipv4_filter_size_data));
-  CMD2_ANY_STRING  ("ipv4_filter.get",         std::tr1::bind(&apply_ipv4_filter_get, std::tr1::placeholders::_2));
-  CMD2_ANY_LIST    ("ipv4_filter.add_address", std::tr1::bind(&apply_ipv4_filter_add_address, std::tr1::placeholders::_2));
-  CMD2_ANY_LIST    ("ipv4_filter.load",        std::tr1::bind(&apply_ipv4_filter_load, std::tr1::placeholders::_2));
+  CMD2_ANY         ("ipv4_filter.size_data",   std::bind(&apply_ipv4_filter_size_data));
+  CMD2_ANY_STRING  ("ipv4_filter.get",         std::bind(&apply_ipv4_filter_get, std::placeholders::_2));
+  CMD2_ANY_LIST    ("ipv4_filter.add_address", std::bind(&apply_ipv4_filter_add_address, std::placeholders::_2));
+  CMD2_ANY_LIST    ("ipv4_filter.load",        std::bind(&apply_ipv4_filter_load, std::placeholders::_2));
 
-//   CMD2_ANY_V       ("dht.enable",     std::tr1::bind(&core::DhtManager::set_start, control->dht_manager()));
-//   CMD2_ANY_V       ("dht.disable",    std::tr1::bind(&core::DhtManager::set_stop, control->dht_manager()));
-  CMD2_ANY_STRING_V("dht.mode.set",          std::tr1::bind(&core::DhtManager::set_mode, control->dht_manager(), std::tr1::placeholders::_2));
+//   CMD2_ANY_V       ("dht.enable",     std::bind(&core::DhtManager::set_start, control->dht_manager()));
+//   CMD2_ANY_V       ("dht.disable",    std::bind(&core::DhtManager::set_stop, control->dht_manager()));
+  CMD2_ANY_STRING_V("dht.mode.set",          std::bind(&core::DhtManager::set_mode, control->dht_manager(), std::placeholders::_2));
   CMD2_VAR_VALUE   ("dht.port",              int64_t(6881));
-  CMD2_ANY_STRING  ("dht.add_node",          std::tr1::bind(&apply_dht_add_node, std::tr1::placeholders::_2));
-  CMD2_ANY         ("dht.statistics",        std::tr1::bind(&core::DhtManager::dht_statistics, control->dht_manager()));
-  CMD2_ANY         ("dht.throttle.name",     std::tr1::bind(&core::DhtManager::throttle_name, control->dht_manager()));
-  CMD2_ANY_STRING_V("dht.throttle.name.set", std::tr1::bind(&core::DhtManager::set_throttle_name, control->dht_manager(), std::tr1::placeholders::_2));
+  CMD2_ANY_STRING  ("dht.add_node",          std::bind(&apply_dht_add_node, std::placeholders::_2));
+  CMD2_ANY         ("dht.statistics",        std::bind(&core::DhtManager::dht_statistics, control->dht_manager()));
+  CMD2_ANY         ("dht.throttle.name",     std::bind(&core::DhtManager::throttle_name, control->dht_manager()));
+  CMD2_ANY_STRING_V("dht.throttle.name.set", std::bind(&core::DhtManager::set_throttle_name, control->dht_manager(), std::placeholders::_2));
 }

@@ -47,21 +47,21 @@
 
 void
 initialize_command_tracker() {
-  CMD2_TRACKER        ("t.is_open",           std::tr1::bind(&torrent::Tracker::is_busy, std::tr1::placeholders::_1));
-  CMD2_TRACKER        ("t.is_enabled",        std::tr1::bind(&torrent::Tracker::is_enabled, std::tr1::placeholders::_1));
-  CMD2_TRACKER_VALUE_V("t.is_enabled.set",    std::tr1::bind(&torrent::Tracker::set_enabled, std::tr1::placeholders::_1, std::tr1::placeholders::_2));
-  CMD2_TRACKER_V      ("t.enable",            std::tr1::bind(&torrent::Tracker::enable, std::tr1::placeholders::_1));
-  CMD2_TRACKER_V      ("t.disable",           std::tr1::bind(&torrent::Tracker::disable, std::tr1::placeholders::_1));
+  CMD2_TRACKER        ("t.is_open",           std::bind(&torrent::Tracker::is_busy, std::placeholders::_1));
+  CMD2_TRACKER        ("t.is_enabled",        std::bind(&torrent::Tracker::is_enabled, std::placeholders::_1));
+  CMD2_TRACKER_VALUE_V("t.is_enabled.set",    std::bind(&torrent::Tracker::set_enabled, std::placeholders::_1, std::placeholders::_2));
+  CMD2_TRACKER_V      ("t.enable",            std::bind(&torrent::Tracker::enable, std::placeholders::_1));
+  CMD2_TRACKER_V      ("t.disable",           std::bind(&torrent::Tracker::disable, std::placeholders::_1));
 
-  CMD2_TRACKER        ("t.url",               std::tr1::bind(&torrent::Tracker::url, std::tr1::placeholders::_1));
-  CMD2_TRACKER        ("t.group",             std::tr1::bind(&torrent::Tracker::group, std::tr1::placeholders::_1));
-  CMD2_TRACKER        ("t.type",              std::tr1::bind(&torrent::Tracker::type, std::tr1::placeholders::_1));
-  CMD2_TRACKER        ("t.id",                std::tr1::bind(&torrent::Tracker::tracker_id, std::tr1::placeholders::_1));
+  CMD2_TRACKER        ("t.url",               std::bind(&torrent::Tracker::url, std::placeholders::_1));
+  CMD2_TRACKER        ("t.group",             std::bind(&torrent::Tracker::group, std::placeholders::_1));
+  CMD2_TRACKER        ("t.type",              std::bind(&torrent::Tracker::type, std::placeholders::_1));
+  CMD2_TRACKER        ("t.id",                std::bind(&torrent::Tracker::tracker_id, std::placeholders::_1));
 
-  CMD2_TRACKER        ("t.normal_interval",   std::tr1::bind(&torrent::Tracker::normal_interval, std::tr1::placeholders::_1));
-  CMD2_TRACKER        ("t.min_interval",      std::tr1::bind(&torrent::Tracker::min_interval, std::tr1::placeholders::_1));
-  CMD2_TRACKER        ("t.scrape_time_last",  std::tr1::bind(&torrent::Tracker::scrape_time_last, std::tr1::placeholders::_1));
-  CMD2_TRACKER        ("t.scrape_complete",   std::tr1::bind(&torrent::Tracker::scrape_complete, std::tr1::placeholders::_1));
-  CMD2_TRACKER        ("t.scrape_incomplete", std::tr1::bind(&torrent::Tracker::scrape_incomplete, std::tr1::placeholders::_1));
-  CMD2_TRACKER        ("t.scrape_downloaded", std::tr1::bind(&torrent::Tracker::scrape_downloaded, std::tr1::placeholders::_1));
+  CMD2_TRACKER        ("t.normal_interval",   std::bind(&torrent::Tracker::normal_interval, std::placeholders::_1));
+  CMD2_TRACKER        ("t.min_interval",      std::bind(&torrent::Tracker::min_interval, std::placeholders::_1));
+  CMD2_TRACKER        ("t.scrape_time_last",  std::bind(&torrent::Tracker::scrape_time_last, std::placeholders::_1));
+  CMD2_TRACKER        ("t.scrape_complete",   std::bind(&torrent::Tracker::scrape_complete, std::placeholders::_1));
+  CMD2_TRACKER        ("t.scrape_incomplete", std::bind(&torrent::Tracker::scrape_incomplete, std::placeholders::_1));
+  CMD2_TRACKER        ("t.scrape_downloaded", std::bind(&torrent::Tracker::scrape_downloaded, std::placeholders::_1));
 }

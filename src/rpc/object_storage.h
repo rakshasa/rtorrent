@@ -55,9 +55,9 @@ struct object_storage_node {
   char            flags;
 };
 
-class object_storage : private std::tr1::unordered_map<fixed_key_type<64>, object_storage_node, hash_fixed_key_type> {
+class object_storage : private std::unordered_map<fixed_key_type<64>, object_storage_node, hash_fixed_key_type> {
 public:
-  typedef std::tr1::unordered_map<fixed_key_type<64>, object_storage_node, hash_fixed_key_type> base_type;
+  typedef std::unordered_map<fixed_key_type<64>, object_storage_node, hash_fixed_key_type> base_type;
 
   using base_type::key_type;
   using base_type::value_type;

@@ -238,9 +238,18 @@ copy_escape_html(Iterator first, Iterator last) {
 }
 
 template <typename Sequence>
-Sequence
+inline Sequence
 copy_escape_html(const Sequence& src) {
   Sequence dest;
+  copy_escape_html(src.begin(), src.end(), std::back_inserter(dest));
+
+  return dest;
+}
+
+template <typename Sequence>
+inline std::string
+copy_escape_html_str(const Sequence& src) {
+  std::string dest;
   copy_escape_html(src.begin(), src.end(), std::back_inserter(dest));
 
   return dest;
@@ -287,6 +296,15 @@ inline std::string
 transform_hex(Iterator first, Iterator last) {
   std::string dest;
   transform_hex(first, last, std::back_inserter(dest));
+
+  return dest;
+}
+
+template <typename Sequence>
+inline std::string
+transform_hex_str(const Sequence& seq) {
+  std::string dest;
+  transform_hex(seq.begin(), seq.end(), std::back_inserter(dest));
 
   return dest;
 }
