@@ -11,7 +11,7 @@ gnuplot << EOF
 # $throttle.unchoked_downloads=
 # $pieces.memory.current=
 #
-# schedule = log_stats,5,10,"execute={log_rtorrent.sh,\"$cat=/foo/bar.,$system.pid=\",$system.time_seconds=,$throttle.global_up.rate=,$throttle.global_up.total=,$throttle.global_down.rate=,$throttle.global_down.total=,$throttle.unchoked_uploads=,$throttle.unchoked_downloads=,$pieces.memory.current=}"
+# schedule = log_stats,5,10,((execute,log_rtorrent.sh,((cat,/foo/bandwidth_stats.,((system.pid)))),((system.time_seconds)),((throttle.global_up.rate)),((throttle.global_up.total)),((throttle.global_down.rate)),((throttle.global_down.total)),((throttle.unchoked_uploads)),((throttle.unchoked_downloads)),((pieces.memory.current))))
 
 
 set terminal png

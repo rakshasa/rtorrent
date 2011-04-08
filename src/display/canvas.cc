@@ -47,6 +47,13 @@ namespace display {
 
 bool Canvas::m_isInitialized = false;
 
+Canvas::Canvas(int x, int y, int width, int height) :
+  m_window(newwin(height, width, y, x)) {
+
+  if (m_window == NULL)
+    throw torrent::internal_error("Could not allocate ncurses canvas.");
+}
+
 void
 Canvas::resize(int x, int y, int w, int h) {
   wresize(m_window, h, w);
