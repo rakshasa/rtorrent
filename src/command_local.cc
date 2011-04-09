@@ -66,6 +66,18 @@ typedef torrent::ChunkManager CM_t;
 typedef torrent::FileManager  FM_t;
 
 torrent::Object
+apply_pieces_stats_total_size() {
+  uint64_t size = 0;
+  core::DownloadList* d_list = control->core()->download_list();
+
+  for (core::DownloadList::iterator itr = d_list->begin(), last = d_list->end(); itr != last; itr++)
+    if ((*itr)->is_active())
+      size += (*itr)->file_list()->size_bytes();
+
+  return size;
+}
+
+torrent::Object
 apply_log(const torrent::Object::string_type& arg, int logType) {
   if (rpc::execFile.log_fd() != -1) {
     switch (logType) {
@@ -281,6 +293,7 @@ initialize_command_local() {
   CMD2_ANY_VALUE_V ("pieces.sync.timeout.set",         std::bind(&CM_t::set_timeout_sync, chunkManager, std::placeholders::_2));
   CMD2_ANY         ("pieces.sync.timeout_safe",        std::bind(&CM_t::timeout_safe_sync, chunkManager));
   CMD2_ANY_VALUE_V ("pieces.sync.timeout_safe.set",    std::bind(&CM_t::set_timeout_safe_sync, chunkManager, std::placeholders::_2));
+  CMD2_ANY         ("pieces.sync.queue_size",          std::bind(&CM_t::sync_queue_size, chunkManager));
 
   CMD2_ANY         ("pieces.preload.type",             std::bind(&CM_t::preload_type, chunkManager));
   CMD2_ANY_VALUE_V ("pieces.preload.type.set",         std::bind(&CM_t::set_preload_type, chunkManager, std::placeholders::_2));
@@ -290,10 +303,13 @@ initialize_command_local() {
   CMD2_ANY_VALUE_V ("pieces.preload.min_rate.set",     std::bind(&CM_t::set_preload_required_rate, chunkManager, std::placeholders::_2));
 
   CMD2_ANY         ("pieces.memory.current",           std::bind(&CM_t::memory_usage, chunkManager));
+  CMD2_ANY         ("pieces.memory.sync_queue",        std::bind(&CM_t::sync_queue_memory_usage, chunkManager));
   CMD2_ANY         ("pieces.memory.max",               std::bind(&CM_t::max_memory_usage, chunkManager));
   CMD2_ANY_VALUE_V ("pieces.memory.max.set",           std::bind(&CM_t::set_max_memory_usage, chunkManager, std::placeholders::_2));
   CMD2_ANY         ("pieces.stats_preloaded",          std::bind(&CM_t::stats_preloaded, chunkManager));
   CMD2_ANY         ("pieces.stats_not_preloaded",      std::bind(&CM_t::stats_not_preloaded, chunkManager));
+
+  CMD2_ANY         ("pieces.stats.total_size",         std::bind(&apply_pieces_stats_total_size));
 
   CMD2_VAR_BOOL    ("pieces.hash.on_completion",       true);
 
@@ -322,7 +338,6 @@ initialize_command_local() {
   CMD2_ANY_STRING  ("log.execute",    std::bind(&apply_log, std::placeholders::_2, 0));
   CMD2_ANY_STRING  ("log.vmmap.dump", std::bind(&log_vmmap_dump, std::placeholders::_2));
   CMD2_ANY_STRING_V("log.xmlrpc",     std::bind(&ThreadWorker::set_xmlrpc_log, worker_thread, std::placeholders::_2));
-
   CMD2_ANY_LIST    ("log.libtorrent", std::bind(&apply_log_libtorrent, std::placeholders::_2));
 
   // TODO: Convert to new command types:
