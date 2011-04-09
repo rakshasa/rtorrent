@@ -18,7 +18,7 @@ gnuplot << EOF
 # schedule = log_stats,5,10,((execute,log_rtorrent.sh,((cat,/foo/bandwidth_stats.,((system.pid)))),((system.time_seconds)),((throttle.global_up.rate)),((throttle.global_up.total)),((throttle.global_down.rate)),((throttle.global_down.total)),((throttle.unchoked_uploads)),((throttle.unchoked_downloads)),((view.size,active)),((pieces.memory.current)),((pieces.memory.sync_queue)),((pieces.stats.total_size))))
 
 
-set terminal png
+set terminal png size 1024,600
 set xdata time
 set timefmt "%s"
 set format x "%H:%M"
@@ -32,25 +32,34 @@ set autoscale x
 grab(x)=(x<min)?min=x:(x>max)?max=x:0;
 
 set output "output_$1_bandwidth.png"
-plot "bandwidth_stats.$1" using 1:2 smooth bezier with lines lw 2 title 'Upload rate',\
-     "bandwidth_stats.$1" using 1:4 smooth bezier with lines lw 2 title 'Download rate',\
-     "bandwidth_stats.$1" using 1:6 smooth bezier with lines lw 1 title 'Upload unchoked' axis x1y2,\
-     "bandwidth_stats.$1" using 1:7 smooth bezier with lines lw 1 title 'Download unchoked' axis x1y2
+plot "bandwidth_stats.$1" using 1:2 smooth bezier with lines lw 4 title 'Upload rate',\
+     "bandwidth_stats.$1" using 1:4 smooth bezier with lines lw 4 title 'Download rate',\
+     "bandwidth_stats.$1" using 1:6 smooth bezier with lines lw 2 title 'Upload unchoked' axis x1y2,\
+     "bandwidth_stats.$1" using 1:7 smooth bezier with lines lw 2 title 'Download unchoked' axis x1y2
 
 set autoscale xfix
 
 set output "output_$1_memory.png"
-plot "bandwidth_stats.$1" using 1:9 smooth bezier with lines lw 2 title 'Memory usage' axis x1y1,\
-     "bandwidth_stats.$1" using 1:6 smooth bezier with lines lw 1 title 'Upload unchoked' axis x1y2,\
-     "bandwidth_stats.$1" using 1:7 smooth bezier with lines lw 1 title 'Download unchoked' axis x1y2
+plot "bandwidth_stats.$1" using 1:9 smooth bezier with lines lw 4 title 'Memory usage' axis x1y1,\
+     "bandwidth_stats.$1" using 1:6 smooth bezier with lines lw 2 title 'Upload unchoked' axis x1y2,\
+     "bandwidth_stats.$1" using 1:7 smooth bezier with lines lw 2 title 'Download unchoked' axis x1y2
+
+set output "output_$1_pieces.png"
+plot "bandwidth_stats.$1" using 1:9  smooth bezier with lines lw 4 title 'Memory usage' axis x1y1,\
+     "bandwidth_stats.$1" using 1:10 smooth bezier with lines lw 4 title 'Sync queue Memory' axis x1y1,\
+     "mincore_stats.$1"   using 1:10 smooth bezier with lines lw 4 title 'Alloc /10s' axis x1y1,\
+     "mincore_stats.$1"   using 1:11 smooth bezier with lines lw 4 title 'Dealloc /10s' axis x1y1,\
+     "mincore_stats.$1"   using 1:7  smooth bezier with lines lw 2 title 'Sync success /10s' axis x1y2,\
+     "mincore_stats.$1"   using 1:8  smooth bezier with lines lw 2 title 'Sync failed /10s' axis x1y2,\
+     "mincore_stats.$1"   using 1:9  smooth bezier with lines lw 2 title 'Alloc failed /10s' axis x1y2
 
 set format y "%.0f"
 
 set output "output_$1_incore.png"
 plot "bandwidth_stats.$1" using 1:(0) smooth bezier with lines title '',\
-     "mincore_stats.$1" using 1:2 smooth bezier with lines lw 1 title 'Incore cont.' axis x1y1,\
-     "mincore_stats.$1" using 1:3 smooth bezier with lines lw 2 title 'Incore new' axis x1y2,\
-     "mincore_stats.$1" using 1:4 smooth bezier with lines lw 1 title 'Not incore cont.' axis x1y1,\
-     "mincore_stats.$1" using 1:5 smooth bezier with lines lw 2 title 'Not incore new' axis x1y2
+     "mincore_stats.$1" using 1:2 smooth bezier with lines lw 2 title 'Incore cont.' axis x1y1,\
+     "mincore_stats.$1" using 1:3 smooth bezier with lines lw 4 title 'Incore new' axis x1y2,\
+     "mincore_stats.$1" using 1:4 smooth bezier with lines lw 2 title 'Not incore cont.' axis x1y1,\
+     "mincore_stats.$1" using 1:5 smooth bezier with lines lw 4 title 'Not incore new' axis x1y2
 
 EOF
