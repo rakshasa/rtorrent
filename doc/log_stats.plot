@@ -25,9 +25,7 @@ set format x "%H:%M"
 set format y "%.0s %cb"
 set format y2 "%.0f"
 set y2tics
-set autoscale x
-
-#set multiplot
+set autoscale xfix
 
 grab(x)=(x<min)?min=x:(x>max)?max=x:0;
 
@@ -36,8 +34,6 @@ plot "bandwidth_stats.$1" using 1:2 smooth bezier with lines lw 4 title 'Upload 
      "bandwidth_stats.$1" using 1:4 smooth bezier with lines lw 4 title 'Download rate',\
      "bandwidth_stats.$1" using 1:6 smooth bezier with lines lw 2 title 'Upload unchoked' axis x1y2,\
      "bandwidth_stats.$1" using 1:7 smooth bezier with lines lw 2 title 'Download unchoked' axis x1y2
-
-set autoscale xfix
 
 set output "output_$1_memory.png"
 plot "bandwidth_stats.$1" using 1:9 smooth bezier with lines lw 4 title 'Memory usage' axis x1y1,\

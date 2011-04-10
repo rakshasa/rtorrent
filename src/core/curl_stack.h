@@ -104,6 +104,9 @@ class CurlStack : std::deque<CurlGet*> {
   const std::string&  http_cacert() const                    { return m_httpCaCert; }
   void                set_http_cacert(const std::string& s)  { m_httpCaCert = s; }
 
+  bool                ssl_verify_peer() const                { return m_ssl_verify_peer; }
+  void                set_ssl_verify_peer(bool s)            { m_ssl_verify_peer = s; }
+
   static void         global_init();
   static void         global_cleanup();
 
@@ -135,6 +138,7 @@ class CurlStack : std::deque<CurlGet*> {
   std::string         m_bindAddress;
   std::string         m_httpCaPath;
   std::string         m_httpCaCert;
+  bool                m_ssl_verify_peer;
 };
 
 }

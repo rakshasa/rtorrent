@@ -674,14 +674,16 @@ initialize_command_network() {
   CMD2_ANY_STRING  ("throttle.down.max",  std::bind(&retrieve_throttle_info, std::placeholders::_2, throttle_info_down | throttle_info_max));
   CMD2_ANY_STRING  ("throttle.down.rate", std::bind(&retrieve_throttle_info, std::placeholders::_2, throttle_info_down | throttle_info_rate));
 
-  CMD2_ANY         ("network.http.capath",            std::bind(&core::CurlStack::http_capath, httpStack));
-  CMD2_ANY_STRING_V("network.http.capath.set",        std::bind(&core::CurlStack::set_http_capath, httpStack, std::placeholders::_2));
-  CMD2_ANY         ("network.http.cacert",            std::bind(&core::CurlStack::http_cacert, httpStack));
-  CMD2_ANY_STRING_V("network.http.cacert.set",        std::bind(&core::CurlStack::set_http_cacert, httpStack, std::placeholders::_2));
-  CMD2_ANY         ("network.http.proxy_address",     std::bind(&core::CurlStack::http_proxy, httpStack));
-  CMD2_ANY_STRING_V("network.http.proxy_address.set", std::bind(&core::CurlStack::set_http_proxy, httpStack, std::placeholders::_2));
-  CMD2_ANY         ("network.http.max_open",          std::bind(&core::CurlStack::max_active, httpStack));
-  CMD2_ANY_VALUE_V ("network.http.max_open.set",      std::bind(&core::CurlStack::set_max_active, httpStack, std::placeholders::_2));
+  CMD2_ANY         ("network.http.capath",              std::bind(&core::CurlStack::http_capath, httpStack));
+  CMD2_ANY_STRING_V("network.http.capath.set",          std::bind(&core::CurlStack::set_http_capath, httpStack, std::placeholders::_2));
+  CMD2_ANY         ("network.http.cacert",              std::bind(&core::CurlStack::http_cacert, httpStack));
+  CMD2_ANY_STRING_V("network.http.cacert.set",          std::bind(&core::CurlStack::set_http_cacert, httpStack, std::placeholders::_2));
+  CMD2_ANY         ("network.http.proxy_address",       std::bind(&core::CurlStack::http_proxy, httpStack));
+  CMD2_ANY_STRING_V("network.http.proxy_address.set",   std::bind(&core::CurlStack::set_http_proxy, httpStack, std::placeholders::_2));
+  CMD2_ANY         ("network.http.max_open",            std::bind(&core::CurlStack::max_active, httpStack));
+  CMD2_ANY_VALUE_V ("network.http.max_open.set",        std::bind(&core::CurlStack::set_max_active, httpStack, std::placeholders::_2));
+  CMD2_ANY         ("network.http.ssl_verify_peer",     std::bind(&core::CurlStack::ssl_verify_peer, httpStack));
+  CMD2_ANY_VALUE_V ("network.http.ssl_verify_peer.set", std::bind(&core::CurlStack::set_ssl_verify_peer, httpStack, std::placeholders::_2));
 
   CMD2_ANY         ("network.send_buffer.size",        std::bind(&torrent::ConnectionManager::send_buffer_size, cm));
   CMD2_ANY_VALUE_V ("network.send_buffer.size.set",    std::bind(&torrent::ConnectionManager::set_send_buffer_size, cm, std::placeholders::_2));
