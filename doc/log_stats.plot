@@ -12,10 +12,11 @@ gnuplot << EOF
 # 8)  $view.size=active
 # 9)  $pieces.memory.current=
 # 10) $pieces.memory.sync_queue=
-# 11) $pieces.stats.total_size=
+# 11) $pieces.memory.block_count=
+# 12) $pieces.stats.total_size=
 #
 # log.libtorrent = mincore_stats,(cat,"/foo/mincore_stats.",(system.pid))
-# schedule = log_stats,5,10,((execute,log_rtorrent.sh,((cat,/foo/bandwidth_stats.,((system.pid)))),((system.time_seconds)),((throttle.global_up.rate)),((throttle.global_up.total)),((throttle.global_down.rate)),((throttle.global_down.total)),((throttle.unchoked_uploads)),((throttle.unchoked_downloads)),((view.size,active)),((pieces.memory.current)),((pieces.memory.sync_queue)),((pieces.stats.total_size))))
+# schedule = log_stats,5,10,((execute,log_rtorrent.sh,((cat,/foo/bandwidth_stats.,((system.pid)))),((system.time_seconds)),((throttle.global_up.rate)),((throttle.global_up.total)),((throttle.global_down.rate)),((throttle.global_down.total)),((throttle.unchoked_uploads)),((throttle.unchoked_downloads)),((view.size,active)),((pieces.memory.current)),((pieces.memory.sync_queue)),((pieces.memory.block_count)),((pieces.stats.total_size))))
 
 
 set terminal png size 1024,600
@@ -40,6 +41,9 @@ plot "bandwidth_stats.$1" using 1:9 smooth bezier with lines lw 4 title 'Memory 
      "bandwidth_stats.$1" using 1:6 smooth bezier with lines lw 2 title 'Upload unchoked' axis x1y2,\
      "bandwidth_stats.$1" using 1:7 smooth bezier with lines lw 2 title 'Download unchoked' axis x1y2
 
+set yrange [0:3900000000.0]
+set y2range [0:2000]
+
 set output "output_$1_pieces.png"
 plot "bandwidth_stats.$1" using 1:9  smooth bezier with lines lw 4 title 'Memory usage' axis x1y1,\
      "bandwidth_stats.$1" using 1:10 smooth bezier with lines lw 4 title 'Sync queue Memory' axis x1y1,\
@@ -48,6 +52,14 @@ plot "bandwidth_stats.$1" using 1:9  smooth bezier with lines lw 4 title 'Memory
      "mincore_stats.$1"   using 1:7  smooth bezier with lines lw 2 title 'Sync success /10s' axis x1y2,\
      "mincore_stats.$1"   using 1:8  smooth bezier with lines lw 2 title 'Sync failed /10s' axis x1y2,\
      "mincore_stats.$1"   using 1:9  smooth bezier with lines lw 2 title 'Alloc failed /10s' axis x1y2
+
+set yrange [*:*]
+set y2range [*:*]
+
+set format y2 "%.0s %cb"
+set output "output_$1_torrents.png"
+plot "bandwidth_stats.$1" using 1:9 smooth bezier with lines lw 4 title 'Memory usage' axis x1y1,\
+     "bandwidth_stats.$1" using 1:12 smooth bezier with lines lw 2 title 'Pieces total size' axis x1y2
 
 set format y "%.0f"
 
