@@ -312,6 +312,7 @@ initialize_command_local() {
 
   CMD2_ANY         ("pieces.stats.total_size",         std::bind(&apply_pieces_stats_total_size));
 
+  CMD2_ANY         ("pieces.hash.queue_size",          std::bind(&torrent::hash_queue_size));
   CMD2_VAR_BOOL    ("pieces.hash.on_completion",       true);
 
   CMD2_VAR_STRING  ("directory.default",       "./");
