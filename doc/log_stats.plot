@@ -55,7 +55,8 @@ plot "bandwidth_stats.$1" using 1:9  smooth bezier with lines lw 4 title 'Memory
      "mincore_stats.$1"   using 1:7  smooth bezier with lines lw 2 title 'Sync success /10s' axis x1y2,\
      "mincore_stats.$1"   using 1:8  smooth bezier with lines lw 2 title 'Sync failed /10s' axis x1y2,\
      "mincore_stats.$1"   using 1:11  smooth bezier with lines lw 2 title 'Alloc failed /10s' axis x1y2,\
-     "<awk '{x=\$11/10; print \$1,x}' bandwidth_stats.$1" using 1:2 smooth bezier with lines lw 2 title 'Block count /10' axis x1y2
+     "<awk '{x=\$11/10; print \$1,x}' bandwidth_stats.$1" using 1:2 smooth bezier with lines lw 2 title 'Block count /10' axis x1y2,\
+     "<awk '{x=\$13/10; print \$1,x}' bandwidth_stats.$1" using 1:2 smooth bezier with lines lw 2 title 'Hash queue count /10' axis x1y2
 
 
 #set yrange [*:*]
