@@ -41,6 +41,7 @@
 #include <sigc++/adaptors/bind.h>
 #include <torrent/throttle.h>
 #include <torrent/torrent.h>
+#include <torrent/peer/resource_manager.h>
 
 #include "core/manager.h"
 #include "display/frame.h"
@@ -170,7 +171,7 @@ Root::set_down_throttle(unsigned int throttle) {
   unsigned int global = std::max<int>(rpc::call_command_value("throttle.max_downloads.global"), 0);
 
   if (throttle == 0 || div == 0) {
-    torrent::set_max_download_unchoked(global);
+    torrent::resource_manager()->set_max_download_unchoked(global);
     return;
   }
 
@@ -184,9 +185,9 @@ Root::set_down_throttle(unsigned int throttle) {
     maxUnchoked = 10 + throttle / 5;
 
   if (global != 0)
-    torrent::set_max_download_unchoked(std::min(maxUnchoked, global));
+    torrent::resource_manager()->set_max_download_unchoked(std::min(maxUnchoked, global));
   else
-    torrent::set_max_download_unchoked(maxUnchoked);
+    torrent::resource_manager()->set_max_download_unchoked(maxUnchoked);
 }
 
 void
@@ -200,7 +201,7 @@ Root::set_up_throttle(unsigned int throttle) {
   unsigned int global = std::max<int>(rpc::call_command_value("throttle.max_uploads.global"), 0);
 
   if (throttle == 0 || div == 0) {
-    torrent::set_max_unchoked(global);
+    torrent::resource_manager()->set_max_upload_unchoked(global);
     return;
   }
 
@@ -214,9 +215,9 @@ Root::set_up_throttle(unsigned int throttle) {
     maxUnchoked = 10 + throttle / 5;
 
   if (global != 0)
-    torrent::set_max_unchoked(std::min(maxUnchoked, global));
+    torrent::resource_manager()->set_max_upload_unchoked(std::min(maxUnchoked, global));
   else
-    torrent::set_max_unchoked(maxUnchoked);
+    torrent::resource_manager()->set_max_upload_unchoked(maxUnchoked);
 }
 
 void

@@ -50,6 +50,7 @@
 #include <torrent/rate.h>
 #include <torrent/data/file_manager.h>
 #include <torrent/peer/peer_list.h>
+#include <torrent/peer/resource_manager.h>
 #include <torrent/utils/option_strings.h>
 
 #include "core/dht_manager.h"
@@ -636,8 +637,8 @@ initialize_command_network() {
   CMD2_VAR_STRING  ("protocol.choke_heuristics.down.leech", "download_leech");
   CMD2_VAR_STRING  ("protocol.choke_heuristics.down.seed",  "download_leech");
 
-  CMD2_ANY         ("throttle.unchoked_uploads", std::bind(&torrent::currently_unchoked));
-  CMD2_ANY         ("throttle.unchoked_downloads", std::bind(&torrent::download_unchoked));
+  CMD2_ANY         ("throttle.unchoked_uploads",   std::bind(&torrent::ResourceManager::currently_upload_unchoked, torrent::resource_manager()));
+  CMD2_ANY         ("throttle.unchoked_downloads", std::bind(&torrent::ResourceManager::currently_download_unchoked, torrent::resource_manager()));
 
   CMD2_VAR_VALUE   ("throttle.min_peers.normal", 40);
   CMD2_VAR_VALUE   ("throttle.max_peers.normal", 100);
@@ -700,6 +701,7 @@ initialize_command_network() {
 
   CMD2_ANY         ("network.max_open_files",       std::bind(&torrent::FileManager::max_open_files, fileManager));
   CMD2_ANY_VALUE_V ("network.max_open_files.set",   std::bind(&torrent::FileManager::set_max_open_files, fileManager, std::placeholders::_2));
+  CMD2_ANY         ("network.open_sockets",         std::bind(&torrent::ConnectionManager::size, cm));
   CMD2_ANY         ("network.max_open_sockets",     std::bind(&torrent::ConnectionManager::max_size, cm));
   CMD2_ANY_VALUE_V ("network.max_open_sockets.set", std::bind(&torrent::ConnectionManager::set_max_size, cm, std::placeholders::_2));
 

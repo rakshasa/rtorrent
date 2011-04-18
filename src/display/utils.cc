@@ -52,6 +52,7 @@
 #include <torrent/data/file_list.h>
 #include <torrent/data/file_manager.h>
 #include <torrent/peer/client_info.h>
+#include <torrent/peer/resource_manager.h>
 
 #include "core/download.h"
 #include "core/manager.h"
@@ -293,12 +294,12 @@ print_status_info(char* first, char* last) {
 char*
 print_status_extra(char* first, char* last) {
   first = print_buffer(first, last, " [U %i/%i]",
-                       torrent::currently_unchoked(),
-                       torrent::max_unchoked());
+                       torrent::resource_manager()->currently_upload_unchoked(),
+                       torrent::resource_manager()->max_upload_unchoked());
 
   first = print_buffer(first, last, " [D %i/%i]",
-                       torrent::download_unchoked(),
-                       torrent::max_download_unchoked());
+                       torrent::resource_manager()->currently_download_unchoked(),
+                       torrent::resource_manager()->max_download_unchoked());
 
   first = print_buffer(first, last, " [H %u/%u]",
                        control->core()->http_stack()->active(),
