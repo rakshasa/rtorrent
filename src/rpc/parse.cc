@@ -67,32 +67,34 @@ parse_string(const char* first, const char* last, std::string* dest, bool (*deli
   if (first == last)
     return first;
 
-  bool quoted = parse_is_quote(*first);
-
-  if (quoted)
+  if (parse_is_quote(*first)) {
     first++;
 
-  while (first != last) {
-    if (quoted) {
+    while (first != last) {
       if (parse_is_quote(*first))
         return ++first;
 
-    } else {
-      if (delim(*first))
-        return first;
-    }
-        
-    if (parse_is_escape(*first) && ++first == last)
-      throw torrent::input_error("Escape character at end of input.");
+      if (parse_is_escape(*first) && ++first == last)
+        throw torrent::input_error("Escape character at end of input.");
 
-    dest->push_back(*first);
-    first++;
-  }
-  
-  if (quoted)
+      dest->push_back(*first++);
+    }
+
     throw torrent::input_error("Missing closing quote.");
 
-  return first;
+  } else {
+    while (first != last) {
+      if (delim(*first))
+        return first;
+
+      if (parse_is_escape(*first) && ++first == last)
+        throw torrent::input_error("Escape character at end of input.");
+
+      dest->push_back(*first++);
+    }
+  
+    return first;
+  }
 }
 
 void

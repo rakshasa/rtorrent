@@ -88,10 +88,10 @@ public:
   void                sort(const std::string& name, uint32_t timeout = 0);
 
   // These could be moved to where the command is implemented.
-  void                set_sort_new(const std::string& name, const std::string& cmd)     { (*find_throw(name))->set_sort_new(cmd); }
-  void                set_sort_current(const std::string& name, const std::string& cmd) { (*find_throw(name))->set_sort_current(cmd); }
+  void                set_sort_new(const std::string& name, const torrent::Object& cmd)     { (*find_throw(name))->set_sort_new(cmd); }
+  void                set_sort_current(const std::string& name, const torrent::Object& cmd) { (*find_throw(name))->set_sort_current(cmd); }
 
-  void                set_filter(const std::string& name, const std::string& cmd);
+  void                set_filter(const std::string& name, const torrent::Object& cmd);
   void                set_filter_on(const std::string& name, const filter_args& args);
 
   void                set_event_added(const std::string& name, const std::string& cmd)   { (*find_throw(name))->set_event_added(cmd); }

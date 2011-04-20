@@ -112,6 +112,21 @@ parse_command_execute(target_type target, torrent::Object* object) {
   }
 }
 
+// Use a static length buffer for dest.
+inline const char*
+parse_command_name(const char* first, const char* last, char* dest_first, char* dest_last) {
+  if (first == last || !std::isalpha(*first))
+    throw torrent::input_error("Invalid start of command name.");
+
+  last = first + std::min(std::distance(first, last), std::distance(dest_first, dest_last) - 1);
+
+  while (first != last && (std::isalnum(*first) || *first == '_' || *first == '.'))
+    *dest_first++ = *first++;
+
+  *dest_first = '\0';
+  return first;
+}
+
 // Set 'download' to NULL to call the generic functions, thus reusing
 // the code below for both cases.
 parse_command_type
@@ -121,8 +136,9 @@ parse_command(target_type target, const char* first, const char* last) {
   if (first == last || *first == '#')
     return std::make_pair(torrent::Object(), first);
   
-  std::string key;
-  first = parse_command_name(first, last, &key);
+  char key[128];
+
+  first = parse_command_name(first, last, key, key + 128);
   first = std::find_if(first, last, std::not1(command_map_is_space()));
   
   if (first == last || *first != '=')
@@ -147,7 +163,7 @@ parse_command(target_type target, const char* first, const char* last) {
   // following command.
   parse_command_execute(target, &args);
 
-  return std::make_pair(commands.call_command(key.c_str(), args, target), first);
+  return std::make_pair(commands.call_command(key, args, target), first);
 }
 
 torrent::Object
@@ -221,18 +237,6 @@ parse_command_file(const std::string& path) {
   }
 
   return true;
-}
-
-// Use a static length buffer for dest.
-const char*
-parse_command_name(const char* first, const char* last, std::string* dest) {
-  if (first == last || !std::isalpha(*first))
-    throw torrent::input_error("Invalid start of name.");
-
-  for ( ; first != last && (std::isalnum(*first) || *first == '_' || *first == '.'); ++first)
-    dest->push_back(*first);
-
-  return first;
 }
 
 //

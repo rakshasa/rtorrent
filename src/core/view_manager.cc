@@ -102,7 +102,7 @@ ViewManager::sort(const std::string& name, uint32_t timeout) {
 }
 
 void
-ViewManager::set_filter(const std::string& name, const std::string& cmd) {
+ViewManager::set_filter(const std::string& name, const torrent::Object& cmd) {
   iterator viewItr = find_throw(name);
 
   (*viewItr)->set_filter(cmd);

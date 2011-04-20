@@ -54,6 +54,7 @@
 #include <vector>
 #include <rak/timer.h>
 #include <sigc++/signal.h>
+#include <torrent/object.h>
 
 #include "globals.h"
 
@@ -115,15 +116,15 @@ public:
 
   void                sort();
 
-  void                set_sort_new(const std::string& s)      { m_sortNew = s; }
-  void                set_sort_current(const std::string& s)  { m_sortCurrent = s; }
+  void                set_sort_new(const torrent::Object& s)      { m_sortNew = s; }
+  void                set_sort_current(const torrent::Object& s)  { m_sortCurrent = s; }
 
   // Need to explicity trigger filtering.
   void                filter();
   void                filter_download(core::Download* download);
 
-  const std::string&  get_filter() const { return m_filter; }
-  void                set_filter(const std::string& s)        { m_filter = s; }
+  const torrent::Object& get_filter() const { return m_filter; }
+  void                set_filter(const torrent::Object& s)        { m_filter = s; }
   void                set_filter_on_event(const std::string& event);
 
   void                clear_filter_on();
@@ -167,10 +168,10 @@ private:
   size_type           m_focus;
 
   // These should be replaced by a faster non-string command type.
-  std::string         m_sortNew;
-  std::string         m_sortCurrent;
+  torrent::Object     m_sortNew;
+  torrent::Object     m_sortCurrent;
 
-  std::string         m_filter;
+  torrent::Object     m_filter;
   event_list_type     m_events;
 
   std::string         m_eventAdded;

@@ -106,6 +106,8 @@ CommandScheduler::call_item(value_type item) {
 
       // Unquote the root function object so 'parse_command_execute'
       // doesn't end up calling it.
+      //
+      // TODO: Only call this if mask_function is set?
       uint32_t flags = tmp_command.flags() & torrent::Object::mask_function;
       tmp_command.unset_flags(torrent::Object::mask_function);
       tmp_command.set_flags((flags >> 1) & torrent::Object::mask_function);

@@ -53,7 +53,8 @@
 #include "control.h"
 #include "command_helpers.h"
 
-typedef void (core::ViewManager::*view_cfilter_slot)(const std::string&, const std::string&);
+typedef void (core::ViewManager::*view_cfilter_slot)(const std::string&, const torrent::Object&);
+typedef void (core::ViewManager::*view_event_slot)(const std::string&, const std::string&);
 
 torrent::Object
 apply_view_filter_on(const torrent::Object::list_type& args) {
@@ -77,6 +78,21 @@ apply_view_filter_on(const torrent::Object::list_type& args) {
 
 torrent::Object
 apply_view_cfilter(view_cfilter_slot viewFilterSlot, const torrent::Object::list_type& args) {
+  if (args.size() != 2)
+    throw torrent::input_error("Too few arguments.");
+
+  const std::string& name = args.front().as_string();
+  
+  if (name.empty())
+    throw torrent::input_error("First argument must be a string.");
+
+  (control->view_manager()->*viewFilterSlot)(name, args.back());
+
+  return torrent::Object();
+}
+
+torrent::Object
+apply_view_event(view_event_slot viewFilterSlot, const torrent::Object::list_type& args) {
   if (args.size() != 2)
     throw torrent::input_error("Too few arguments.");
 
@@ -156,7 +172,7 @@ apply_cat(rpc::target_type target, const torrent::Object& rawArgs) {
 
 // Move these boolean operators to a new file.
 
-bool
+inline bool
 as_boolean(const torrent::Object& rawArgs) {
   switch (rawArgs.type()) {
   case torrent::Object::TYPE_VALUE:  return rawArgs.as_value();
@@ -169,6 +185,11 @@ as_boolean(const torrent::Object& rawArgs) {
 
 torrent::Object
 apply_not(rpc::target_type target, const torrent::Object& rawArgs) {
+  if (rawArgs.is_dict_key())
+    return (int64_t)!as_boolean(rpc::commands.call_command(rawArgs.as_dict_key().c_str(),
+                                                           rawArgs.as_dict_obj(),
+                                                           target));
+
   return (int64_t)!as_boolean(rawArgs);
 }
 
@@ -183,8 +204,14 @@ apply_and(rpc::target_type target, const torrent::Object& rawArgs) {
     return as_boolean(rawArgs);
 
   for (torrent::Object::list_const_iterator itr = rawArgs.as_list().begin(), last = rawArgs.as_list().end(); itr != last; itr++)
-    if (!as_boolean(rpc::parse_command_single(target, itr->as_string())))
-      return (int64_t)false;
+    if (itr->is_dict_key()) {
+      if (!as_boolean(rpc::commands.call_command(itr->as_dict_key().c_str(), itr->as_dict_obj(), target)))
+        return (int64_t)false;
+
+    } else {        
+      if (!as_boolean(rpc::parse_command_single(target, itr->as_string())))
+        return (int64_t)false;
+    }
 
   return (int64_t)true;
 }
@@ -195,8 +222,14 @@ apply_or(rpc::target_type target, const torrent::Object& rawArgs) {
     return as_boolean(rawArgs);
 
   for (torrent::Object::list_const_iterator itr = rawArgs.as_list().begin(), last = rawArgs.as_list().end(); itr != last; itr++)
-    if (as_boolean(rpc::parse_command_single(target, itr->as_string())))
-      return (int64_t)true;
+    if (itr->is_dict_key()) {
+      if (as_boolean(rpc::commands.call_command(itr->as_dict_key().c_str(), itr->as_dict_obj(), target)))
+        return (int64_t)true;
+
+    } else {        
+      if (as_boolean(rpc::parse_command_single(target, itr->as_string())))
+        return (int64_t)true;
+    }
 
   return (int64_t)false;
 }
@@ -215,13 +248,18 @@ apply_cmp(rpc::target_type target, const torrent::Object::list_type& args) {
   torrent::Object result1;
   torrent::Object result2;
 
-  if (rpc::is_target_pair(target)) {
-    result1 = rpc::parse_command_single(rpc::get_target_left(target), args.front().as_string());
-    result2 = rpc::parse_command_single(rpc::get_target_right(target), args.back().as_string());
-  } else {
-    result1 = rpc::parse_command_single(target, args.front().as_string());
-    result2 = rpc::parse_command_single(target, args.back().as_string());
-  }    
+  rpc::target_type target1 = rpc::is_target_pair(target) ? rpc::get_target_left(target) : target;
+  rpc::target_type target2 = rpc::is_target_pair(target) ? rpc::get_target_right(target) : target;
+
+  if (args.front().is_dict_key())
+    result1 = rpc::commands.call_command(args.front().as_dict_key().c_str(), args.front().as_dict_obj(), target1);
+  else
+    result1 = rpc::parse_command_single(target1, args.front().as_string());
+
+  if (args.back().is_dict_key())
+    result2 = rpc::commands.call_command(args.back().as_dict_key().c_str(), args.back().as_dict_obj(), target2);
+  else
+    result2 = rpc::parse_command_single(target2, args.back().as_string());
 
   if (result1.type() != result2.type())
     throw torrent::input_error("Type mismatch.");
@@ -410,7 +448,7 @@ torrent::Object
 cmd_view_persistent(const torrent::Object::string_type& args) {
   core::View* view = *control->view_manager()->find_throw(args);
   
-  if (!view->get_filter().empty() || !view->get_event_added().empty() || !view->get_event_removed().empty())
+  if (!view->get_filter().is_empty() || !view->get_event_added().empty() || !view->get_event_removed().empty())
     throw torrent::input_error("Cannot set modified views as persitent.");
 
   view->set_filter("d.views.has=" + args);
@@ -471,8 +509,8 @@ initialize_command_ui() {
   CMD2_ANY_LIST("view.sort_new",      std::bind(&apply_view_cfilter, &core::ViewManager::set_sort_new, std::placeholders::_2));
   CMD2_ANY_LIST("view.sort_current",  std::bind(&apply_view_cfilter, &core::ViewManager::set_sort_current, std::placeholders::_2));
 
-  CMD2_ANY_LIST("view.event_added",   std::bind(&apply_view_cfilter, &core::ViewManager::set_event_added, std::placeholders::_2));
-  CMD2_ANY_LIST("view.event_removed", std::bind(&apply_view_cfilter, &core::ViewManager::set_event_removed, std::placeholders::_2));
+  CMD2_ANY_LIST("view.event_added",   std::bind(&apply_view_event, &core::ViewManager::set_event_added, std::placeholders::_2));
+  CMD2_ANY_LIST("view.event_removed", std::bind(&apply_view_event, &core::ViewManager::set_event_removed, std::placeholders::_2));
 
   // Cleanup and add . to view.
 
