@@ -41,6 +41,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <rak/path.h>
+#include <rak/error_number.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <torrent/torrent.h>
@@ -252,6 +253,50 @@ log_vmmap_dump(const std::string& str) {
   return torrent::Object();
 }
 
+static const int file_print_use_space = 0x1;
+static const int file_print_delim_space = 0x2;
+
+void
+file_print_list(torrent::Object::list_const_iterator first, torrent::Object::list_const_iterator last, FILE* output, int flags) {
+  while (first != last) {
+    switch (first->type()) {
+    case torrent::Object::TYPE_STRING:
+      fprintf(output, " %s" + !(flags & file_print_use_space), first->as_string().c_str());
+      break;
+    case torrent::Object::TYPE_VALUE:
+      fprintf(output, " %lli" + !(flags & file_print_use_space), first->as_value());
+      break;
+    case torrent::Object::TYPE_LIST:
+      file_print_list(first->as_list().begin(), first->as_list().end(), output, 0);
+      break;
+    case torrent::Object::TYPE_NONE:
+      break;
+    default:
+      throw torrent::input_error("Invalid type.");
+    }
+
+    flags |= (flags & file_print_delim_space) >> 1;
+    first++;
+  }
+}
+
+torrent::Object
+cmd_file_append(const torrent::Object::list_type& args) {
+  if (args.empty())
+    throw torrent::input_error("Invalid number of arguments.");
+  
+  FILE* output = fopen(args.front().as_string().c_str(), "a");
+  
+  if (output == NULL)
+    throw torrent::input_error("Could not append to file '" + args.front().as_string() + "': " + rak::error_number::current().c_str());
+
+  file_print_list(++args.begin(), args.end(), output, file_print_delim_space);
+
+  fprintf(output, "\n");
+  fclose(output);
+  return torrent::Object();
+}
+
 void
 initialize_command_local() {
   torrent::ChunkManager* chunkManager = torrent::chunk_manager();
@@ -341,6 +386,8 @@ initialize_command_local() {
   CMD2_ANY_STRING  ("log.vmmap.dump", std::bind(&log_vmmap_dump, std::placeholders::_2));
   CMD2_ANY_STRING_V("log.xmlrpc",     std::bind(&ThreadWorker::set_xmlrpc_log, worker_thread, std::placeholders::_2));
   CMD2_ANY_LIST    ("log.libtorrent", std::bind(&apply_log_libtorrent, std::placeholders::_2));
+
+  CMD2_ANY_LIST    ("file.append",    std::bind(&cmd_file_append, std::placeholders::_2));
 
   // TODO: Convert to new command types:
   *rpc::command_base::argument(0) = "placeholder.0";

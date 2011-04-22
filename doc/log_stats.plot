@@ -1,25 +1,5 @@
 #/bin/bash
 gnuplot << EOF
-# 1)  $system.time_seconds=
-#
-# 2)  $throttle.global_up.rate=
-# 3)  $throttle.global_up.total=
-# 4)  $throttle.global_down.rate=
-# 5)  $throttle.global_down.total=
-#
-# 6)  $throttle.unchoked_uploads=
-# 7)  $throttle.unchoked_downloads=
-# 8)  $view.size=active
-# 9)  $pieces.memory.current=
-# 10) $pieces.memory.sync_queue=
-# 11) $pieces.memory.block_count=
-# 12) $pieces.stats.total_size=
-# 13) $pieces.hash.queue_size=
-#
-# log.libtorrent = mincore_stats,(cat,"/foo/mincore_stats.",(system.pid))
-#
-# schedule = log_bandwidth_stats,5,10,((execute,log_rtorrent.sh,((cat,/foo/bandwidth_stats.,((system.pid)))),((system.time_seconds)),((throttle.global_up.rate)),((throttle.global_up.total)),((throttle.global_down.rate)),((throttle.global_down.total)),((throttle.unchoked_uploads)),((throttle.unchoked_downloads)),((view.size,active)),((pieces.memory.current)),((pieces.memory.sync_queue)),((pieces.memory.block_count)),((pieces.stats.total_size)),((pieces.hash.queue_size))))
-#
 # 1)  system.time_seconds=
 #
 # 2)  throttle.global_up.rate
@@ -33,7 +13,7 @@ gnuplot << EOF
 # 9)  pieces.stats.total_size
 # 10) pieces.hash.queue_size
 #
-# schedule = log_bandwidth_stats,5,10,((execute,log_rtorrent.sh,((cat,/foo/bandwidth_stats.,((system.pid)))),((system.time_seconds)),((throttle.global_up.rate)),((throttle.global_up.total)),((throttle.global_down.rate)),((throttle.global_down.total)),((pieces.memory.current)),((pieces.memory.sync_queue)),((pieces.memory.block_count)),((pieces.stats.total_size)),((pieces.hash.queue_size))))
+# schedule = log_bandwidth_stats,5,10,((file.append,((cat,/foo/bandwidth_stats.,((system.pid)))),((system.time_seconds)),((throttle.global_up.rate)),((throttle.global_up.total)),((throttle.global_down.rate)),((throttle.global_down.total)),((pieces.memory.current)),((pieces.memory.sync_queue)),((pieces.memory.block_count)),((pieces.stats.total_size)),((pieces.hash.queue_size))))
 #
 # 1) system.time_seconds
 #
@@ -45,7 +25,7 @@ gnuplot << EOF
 # 6) view.size,seeding
 # 7) view.size,active
 #
-# schedule = log_peer_stats,5,10,((execute,log_rtorrent.sh,((cat,/foo/peer_stats.,((system.pid)))),((system.time_seconds)),((throttle.unchoked_uploads)),((throttle.unchoked_downloads)),((network.open_sockets)),((view.size,leeching)),((view.size,seeding)),((view.size,active))))
+# schedule = log_peer_stats,5,10,((file.append,((cat,/foo/peer_stats.,((system.pid)))),((system.time_seconds)),((throttle.unchoked_uploads)),((throttle.unchoked_downloads)),((network.open_sockets)),((view.size,leeching)),((view.size,seeding)),((view.size,active))))
 
 
 set terminal png size 1024,600
