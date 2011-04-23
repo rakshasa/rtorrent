@@ -41,7 +41,7 @@
 #include <sigc++/adaptors/bind.h>
 #include <torrent/throttle.h>
 #include <torrent/torrent.h>
-#include <torrent/peer/resource_manager.h>
+#include <torrent/download/resource_manager.h>
 
 #include "core/manager.h"
 #include "display/frame.h"

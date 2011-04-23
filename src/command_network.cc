@@ -49,8 +49,8 @@
 #include <torrent/torrent.h>
 #include <torrent/rate.h>
 #include <torrent/data/file_manager.h>
+#include <torrent/download/resource_manager.h>
 #include <torrent/peer/peer_list.h>
-#include <torrent/peer/resource_manager.h>
 #include <torrent/utils/option_strings.h>
 
 #include "core/dht_manager.h"

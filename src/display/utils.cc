@@ -51,8 +51,8 @@
 #include <torrent/tracker_list.h>
 #include <torrent/data/file_list.h>
 #include <torrent/data/file_manager.h>
+#include <torrent/download/resource_manager.h>
 #include <torrent/peer/client_info.h>
-#include <torrent/peer/resource_manager.h>
 
 #include "core/download.h"
 #include "core/manager.h"
