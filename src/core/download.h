@@ -71,7 +71,9 @@ public:
   Download(download_type d);
   ~Download();
 
-  const torrent::DownloadInfo* info() const                             { return m_download.info(); }
+  const torrent::DownloadInfo* info() const                    { return m_download.info(); }
+
+  torrent::DownloadMain* main()                                { return m_download.main(); }
 
   bool                is_open() const                          { return m_download.info()->is_open(); }
   bool                is_active() const                        { return m_download.info()->is_active(); }

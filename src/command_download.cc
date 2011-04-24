@@ -50,6 +50,7 @@
 #include <torrent/connection_manager.h>
 #include <torrent/data/file.h>
 #include <torrent/data/file_list.h>
+#include <torrent/download/resource_manager.h>
 #include <torrent/peer/connection_list.h>
 #include <torrent/peer/peer_list.h>
 #include <torrent/utils/option_strings.h>
@@ -741,6 +742,15 @@ initialize_command_download() {
   CMD2_DL         ("d.priority",     std::bind(&core::Download::priority, std::placeholders::_1));
   CMD2_DL         ("d.priority_str", std::bind(&retrieve_d_priority_str, std::placeholders::_1));
   CMD2_DL_VALUE_V ("d.priority.set", std::bind(&core::Download::set_priority, std::placeholders::_1, std::placeholders::_2));
+
+  CMD2_DL         ("d.group",     std::bind(&torrent::resource_manager_entry::group,
+                                            std::bind(&torrent::ResourceManager::entry_at, torrent::resource_manager(),
+                                                      std::bind(&core::Download::main, std::placeholders::_1))));
+  CMD2_DL_VALUE_V ("d.group.set", std::bind(&torrent::ResourceManager::set_group,
+                                            torrent::resource_manager(),
+                                            std::bind(&torrent::ResourceManager::find_throw, torrent::resource_manager(),
+                                                      std::bind(&core::Download::main, std::placeholders::_1)),
+                                            std::placeholders::_2));
 
   CMD2_DL         ("d.initialize_logs", std::bind(&cmd_d_initialize_logs, std::placeholders::_1));
 
