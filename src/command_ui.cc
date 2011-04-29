@@ -177,20 +177,26 @@ as_boolean(const torrent::Object& rawArgs) {
   switch (rawArgs.type()) {
   case torrent::Object::TYPE_VALUE:  return rawArgs.as_value();
   case torrent::Object::TYPE_STRING: return !rawArgs.as_string().empty();
-  case torrent::Object::TYPE_LIST:   return !rawArgs.as_list().empty();
-  case torrent::Object::TYPE_MAP:    return !rawArgs.as_map().empty();
+
+  // We need to properly handle argument lists that are single-object
+  // at a higher level.
+  case torrent::Object::TYPE_LIST:   return !rawArgs.as_list().empty() && as_boolean(rawArgs.as_list().front());
+  // case torrent::Object::TYPE_MAP:    return !rawArgs.as_map().empty();
   default: return false;
   }
 }
 
 torrent::Object
 apply_not(rpc::target_type target, const torrent::Object& rawArgs) {
-  if (rawArgs.is_dict_key())
-    return (int64_t)!as_boolean(rpc::commands.call_command(rawArgs.as_dict_key().c_str(),
-                                                           rawArgs.as_dict_obj(),
-                                                           target));
+  bool result;
 
-  return (int64_t)!as_boolean(rawArgs);
+  if (rawArgs.is_dict_key())
+    result = as_boolean(rpc::commands.call_command(rawArgs.as_dict_key().c_str(), rawArgs.as_dict_obj(),
+                                                   target));
+  else
+    result = as_boolean(rawArgs);
+
+  return (int64_t)!result;
 }
 
 torrent::Object
