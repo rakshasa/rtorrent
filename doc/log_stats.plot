@@ -26,7 +26,10 @@ gnuplot << EOF
 # 7) view.size,active
 #
 # schedule = log_peer_stats,5,10,((file.append,((cat,/foo/peer_stats.,((system.pid)))),((system.time_seconds)),((throttle.unchoked_uploads)),((throttle.unchoked_downloads)),((network.open_sockets)),((view.size,leeching)),((view.size,seeding)),((view.size,active))))
-
+#
+#
+# file.append = (cat,/foo/choke_group_stats.,(system.pid)),"\"timestamp\"","\"leech unchoked\"","\"leech queued\"","\"seed unchoked\"","\"seed queued\""
+# schedule = log_choke_group_stats,5,10,((file.append,((cat,/foo/choke_group_stats.,((system.pid)))),((system.time_seconds)),((choke_group.up.unchoked,0)),((choke_group.up.queued,0)),((choke_group.up.total,0)),((choke_group.up.unchoked,1)),((choke_group.up.queued,1)),((choke_group.up.total,1))))
 
 set terminal png size 1024,600
 set xdata time
@@ -84,6 +87,7 @@ plot "bandwidth_stats.$1" using 1:6 smooth bezier with lines lw 4 title 'Memory 
      "bandwidth_stats.$1" using 1:9 smooth bezier with lines lw 2 title 'Pieces total size' axis x1y2
 
 set format y "%.0f"
+set format y2 "%.0f"
 
 set output "output_$1_incore.png"
 plot "bandwidth_stats.$1" using 1:(0) smooth bezier with lines title '',\
@@ -91,5 +95,14 @@ plot "bandwidth_stats.$1" using 1:(0) smooth bezier with lines title '',\
      "mincore_stats.$1" using 1:3 smooth bezier with lines lw 4 title 'Incore new /10s' axis x1y2,\
      "mincore_stats.$1" using 1:4 smooth bezier with lines lw 2 title 'Not incore cont. /10s' axis x1y1,\
      "mincore_stats.$1" using 1:5 smooth bezier with lines lw 4 title 'Not incore new /10s' axis x1y2
+
+set output "output_$1_choke.png"
+set style histogram columnstacked
+set key autotitle columnhead
+
+plot "choke_group_stats.$1" using 1:2 smooth bezier with lines lw 2,\
+     "" using 1:4 smooth bezier with lines lw 2,\
+     "" using 1:3 smooth bezier with lines lw 2,\
+     "" using 1:5 smooth bezier with lines lw 2
 
 EOF
