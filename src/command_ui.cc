@@ -193,6 +193,10 @@ apply_not(rpc::target_type target, const torrent::Object& rawArgs) {
   if (rawArgs.is_dict_key())
     result = as_boolean(rpc::commands.call_command(rawArgs.as_dict_key().c_str(), rawArgs.as_dict_obj(),
                                                    target));
+  // TODO: Thus we should clean this up...
+  else if (rawArgs.is_list() && !rawArgs.as_list().empty())
+    return apply_not(target, rawArgs.as_list().front());
+
   else
     result = as_boolean(rawArgs);
 
@@ -532,6 +536,8 @@ initialize_command_ui() {
   CMD2_ANY_STRING("view.size",              std::bind(&cmd_view_size, std::placeholders::_2));
   CMD2_ANY_STRING("view.size_not_visible",  std::bind(&cmd_view_size_not_visible, std::placeholders::_2));
   CMD2_ANY_STRING("view.persistent",        std::bind(&cmd_view_persistent, std::placeholders::_2));
+
+  CMD2_ANY_STRING_V("view.filter_all",      std::bind(&core::View::filter, std::bind(&core::ViewManager::find_ptr_throw, control->view_manager(), std::placeholders::_2)));
 
   CMD2_DL_STRING ("view.filter_download", std::bind(&cmd_view_filter_download, std::placeholders::_1, std::placeholders::_2));
   CMD2_DL_STRING ("view.set_visible",     std::bind(&cmd_view_set_visible,     std::placeholders::_1, std::placeholders::_2));

@@ -80,6 +80,7 @@ public:
 
   iterator            find(const std::string& name);
   iterator            find_throw(const std::string& name);
+  View*               find_ptr_throw(const std::string& name) { return *find_throw(name); }
 
   // If View::last_changed() is less than 'timeout' seconds ago, don't
   // sort.
