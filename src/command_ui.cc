@@ -214,7 +214,12 @@ apply_and(rpc::target_type target, const torrent::Object& rawArgs) {
       if (!as_boolean(rpc::commands.call_command(itr->as_dict_key().c_str(), itr->as_dict_obj(), target)))
         return (int64_t)false;
 
+    } else if (itr->is_value()) {
+      if (!itr->as_value())      
+        return (int64_t)false;
+
     } else {        
+      // TODO: Switch to new versions that only accept the new command syntax.
       if (!as_boolean(rpc::parse_command_single(target, itr->as_string())))
         return (int64_t)false;
     }
@@ -230,6 +235,10 @@ apply_or(rpc::target_type target, const torrent::Object& rawArgs) {
   for (torrent::Object::list_const_iterator itr = rawArgs.as_list().begin(), last = rawArgs.as_list().end(); itr != last; itr++)
     if (itr->is_dict_key()) {
       if (as_boolean(rpc::commands.call_command(itr->as_dict_key().c_str(), itr->as_dict_obj(), target)))
+        return (int64_t)true;
+
+    } else if (itr->is_value()) {
+      if (itr->as_value())      
         return (int64_t)true;
 
     } else {        
