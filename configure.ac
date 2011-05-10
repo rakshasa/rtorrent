@@ -1,4 +1,4 @@
-AC_INIT(rtorrent, 0.8.7, jaris@ifi.uio.no)
+AC_INIT(rtorrent, 0.8.8, jaris@ifi.uio.no)
 
 AM_INIT_AUTOMAKE
 AM_CONFIG_HEADER(config.h)
@@ -35,7 +35,7 @@ PKG_CHECK_MODULES(libcurl, libcurl >= 7.15.4,
 	          CXXFLAGS="$CXXFLAGS $libcurl_CFLAGS";
 		  LIBS="$LIBS $libcurl_LIBS")
 
-PKG_CHECK_MODULES(libtorrent, libtorrent >= 0.12.7,
+PKG_CHECK_MODULES(libtorrent, libtorrent >= 0.12.8,
 	          CXXFLAGS="$CXXFLAGS $libtorrent_CFLAGS";
 		  LIBS="$LIBS $libtorrent_LIBS")
 

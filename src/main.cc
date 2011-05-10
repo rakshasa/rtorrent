@@ -273,7 +273,7 @@ main(int argc, char** argv) {
 
        "view.add = stopped\n"
        "view.filter = stopped,((false))\n"
-       "view.event_added   = stopped,\"view.set_not_visible=started ;d.state.set=0\"\n"
+       "view.event_added   = stopped,\"d.state.set=0 ;view.set_not_visible=started\"\n"
        "view.event_removed = stopped,view.set_visible=started\n"
 
        "view.add = complete\n"

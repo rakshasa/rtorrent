@@ -119,13 +119,13 @@ set output "output_$1_choke.png"
 set style histogram columnstacked
 
 plot "choke_group_stats.$1" \
-        using 1:2 smooth bezier with lines lw 2,\
-     "" using 1:3 smooth bezier with lines lw 2,\
-     "" using 1:5 smooth bezier with lines lw 2,\
-     "" using 1:6 smooth bezier with lines lw 2,\
-     "" using 1:9 smooth bezier with lines lw 2,\
-     "" using 1:10 smooth bezier with lines lw 2,\
-     "" using 1:8  smooth bezier with lines lw 4 axis x1y2,\
-     "" using 1:15 smooth bezier with lines lw 4 axis x1y2
+     "" using 1:8  smooth bezier with lines lw 3,\
+     "" using 1:15 smooth bezier with lines lw 3,\
+        using 1:2 smooth bezier with lines lw 2 axis x1y2,\
+     "" using 1:3 smooth bezier with lines lw 2 axis x1y2,\
+     "" using 1:5 smooth bezier with lines lw 2 axis x1y2,\
+     "" using 1:6 smooth bezier with lines lw 2 axis x1y2,\
+     "" using 1:9 smooth bezier with lines lw 2 axis x1y2,\
+     "" using 1:10 smooth bezier with lines lw 2 axis x1y2
 
 EOF
