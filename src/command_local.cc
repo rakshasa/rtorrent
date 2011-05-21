@@ -318,6 +318,10 @@ initialize_command_local() {
                                                                       (utils::FileStatusCache::base_type*)control->core()->file_status_cache()));
   CMD2_ANY_V       ("system.file_status_cache.prune",  std::bind(&utils::FileStatusCache::prune, control->core()->file_status_cache()));
 
+  CMD2_VAR_BOOL    ("file.prioritize_toc",          0);
+  CMD2_VAR_LIST    ("file.prioritize_toc.first");
+  CMD2_VAR_LIST    ("file.prioritize_toc.last");
+
   CMD2_ANY         ("system.files.opened_counter",     std::bind(&FM_t::files_opened_counter, fileManager));
   CMD2_ANY         ("system.files.closed_counter",     std::bind(&FM_t::files_closed_counter, fileManager));
   CMD2_ANY         ("system.files.failed_counter",     std::bind(&FM_t::files_failed_counter, fileManager));
@@ -376,9 +380,13 @@ initialize_command_local() {
 
   CMD2_EXECUTE     ("execute2",                rpc::ExecFile::flag_expand_tilde | rpc::ExecFile::flag_throw);
   CMD2_EXECUTE     ("execute.throw",           rpc::ExecFile::flag_expand_tilde | rpc::ExecFile::flag_throw);
+  CMD2_EXECUTE     ("execute.throw.bg",        rpc::ExecFile::flag_expand_tilde | rpc::ExecFile::flag_throw | rpc::ExecFile::flag_background);
   CMD2_EXECUTE     ("execute.nothrow",         rpc::ExecFile::flag_expand_tilde);
+  CMD2_EXECUTE     ("execute.nothrow.bg",      rpc::ExecFile::flag_expand_tilde | rpc::ExecFile::flag_background);
   CMD2_EXECUTE     ("execute.raw",             rpc::ExecFile::flag_throw);
+  CMD2_EXECUTE     ("execute.raw.bg",          rpc::ExecFile::flag_throw | rpc::ExecFile::flag_background);
   CMD2_EXECUTE     ("execute.raw_nothrow",     0);
+  CMD2_EXECUTE     ("execute.raw_nothrow.bg",  rpc::ExecFile::flag_background);
   CMD2_EXECUTE     ("execute.capture",         rpc::ExecFile::flag_throw | rpc::ExecFile::flag_expand_tilde | rpc::ExecFile::flag_capture);
   CMD2_EXECUTE     ("execute.capture_nothrow", rpc::ExecFile::flag_expand_tilde | rpc::ExecFile::flag_capture);
 

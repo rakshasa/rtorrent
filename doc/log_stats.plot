@@ -46,6 +46,7 @@ gnuplot << EOF
 
 
 set terminal png size 1024,768 enhanced
+#set terminal png size 2*1024,768 enhanced
 set xdata time
 set timefmt "%s"
 set format x "%H:%M"
@@ -55,61 +56,61 @@ set autoscale xfix
 set key autotitle columnhead
 
 set output "output_$1_sockets.png"
-plot "peer_stats.$1" using 1:7 smooth bezier with lines lw 4,\
-     "peer_stats.$1" using 1:5 smooth bezier with lines lw 4,\
-     "peer_stats.$1" using 1:6 smooth bezier with lines lw 4,\
-     "<awk '{x=1000; if (\$4 < 1000) x=\$4; print \$1,x}' peer_stats.$1" using 1:2 smooth bezier with lines title "open sockets" lw 2 axis x1y2,\
-     "peer_stats.$1" using 1:2 smooth bezier with lines lw 2 axis x1y2,\
-     "peer_stats.$1" using 1:3 smooth bezier with lines lw 2 axis x1y2
+plot "peer_stats.$1" using 1:7 smooth sbezier with lines lw 4,\
+     "peer_stats.$1" using 1:5 smooth sbezier with lines lw 4,\
+     "peer_stats.$1" using 1:6 smooth sbezier with lines lw 4,\
+     "<awk '{x=1000; if (\$4 < 1000) x=\$4; print \$1,x}' peer_stats.$1" using 1:2 smooth sbezier with lines title "open sockets" lw 2 axis x1y2,\
+     "peer_stats.$1" using 1:2 smooth sbezier with lines lw 2 axis x1y2,\
+     "peer_stats.$1" using 1:3 smooth sbezier with lines lw 2 axis x1y2
 
 set format y "%.0s %cb"
 
 set output "output_$1_bandwidth.png"
-plot "bandwidth_stats.$1" using 1:2 smooth bezier with lines lw 4,\
-     "bandwidth_stats.$1" using 1:4 smooth bezier with lines lw 4,\
-     "choke_group_stats.$1" using 1:4 smooth bezier with lines lw 3,\
-     "choke_group_stats.$1" using 1:7 smooth bezier with lines lw 3,\
-     "choke_group_stats.$1" using 1:11 smooth bezier with lines lw 3,\
-     "peer_stats.$1" using 1:2 smooth bezier with lines lw 2 axis x1y2,\
-     "peer_stats.$1" using 1:3 smooth bezier with lines lw 2 axis x1y2
+plot "bandwidth_stats.$1" using 1:2 smooth sbezier with lines lw 4,\
+     "bandwidth_stats.$1" using 1:4 smooth sbezier with lines lw 4,\
+     "choke_group_stats.$1" using 1:4 smooth sbezier with lines lw 3,\
+     "choke_group_stats.$1" using 1:7 smooth sbezier with lines lw 3,\
+     "choke_group_stats.$1" using 1:11 smooth sbezier with lines lw 3,\
+     "peer_stats.$1" using 1:2 smooth sbezier with lines lw 2 axis x1y2,\
+     "peer_stats.$1" using 1:3 smooth sbezier with lines lw 2 axis x1y2
 
 set output "output_$1_memory.png"
-plot "bandwidth_stats.$1" using 1:6 smooth bezier with lines lw 4 axis x1y1,\
-     "peer_stats.$1" using 1:2 smooth bezier with lines lw 2 axis x1y2,\
-     "peer_stats.$1" using 1:3 smooth bezier with lines lw 2 axis x1y2
+plot "bandwidth_stats.$1" using 1:6 smooth sbezier with lines lw 4 axis x1y1,\
+     "peer_stats.$1" using 1:2 smooth sbezier with lines lw 2 axis x1y2,\
+     "peer_stats.$1" using 1:3 smooth sbezier with lines lw 2 axis x1y2
 
 #set yrange [0:3900000000.0]
 #set y2range [0:2000]
 
 set output "output_$1_pieces.png"
-plot "bandwidth_stats.$1" using 1:6   smooth bezier with lines lw 4 axis x1y1,\
-     "bandwidth_stats.$1" using 1:7   smooth bezier with lines lw 4 axis x1y1,\
-     "<awk '{x=\$12*10; print \$1,x}' mincore_stats.$1" using 1:2 smooth bezier with lines lw 4 title 'alloc /100s' axis x1y1,\
-     "<awk '{x=\$13*10; print \$1,x}' mincore_stats.$1" using 1:2 smooth bezier with lines lw 4 title 'dealloc /100s' axis x1y1,\
-     "mincore_stats.$1"   using 1:7   smooth bezier with lines lw 2 axis x1y2,\
-     "mincore_stats.$1"   using 1:8   smooth bezier with lines lw 2 axis x1y2,\
-     "mincore_stats.$1"   using 1:11  smooth bezier with lines lw 2 axis x1y2,\
-     "<awk '{x=\$8/10; print \$1,x}'  bandwidth_stats.$1" using 1:2 smooth bezier with lines lw 2 title 'block count /10' axis x1y2,\
-     "bandwidth_stats.$1" using 1:10  smooth bezier with lines lw 2 axis x1y2
+plot "bandwidth_stats.$1" using 1:6   smooth sbezier with lines lw 4 axis x1y1,\
+     "bandwidth_stats.$1" using 1:7   smooth sbezier with lines lw 4 axis x1y1,\
+     "<awk '{x=\$12*10; print \$1,x}' mincore_stats.$1" using 1:2 smooth sbezier with lines lw 4 title 'alloc /100s' axis x1y1,\
+     "<awk '{x=\$13*10; print \$1,x}' mincore_stats.$1" using 1:2 smooth sbezier with lines lw 4 title 'dealloc /100s' axis x1y1,\
+     "mincore_stats.$1"   using 1:7   smooth sbezier with lines lw 2 axis x1y2,\
+     "mincore_stats.$1"   using 1:8   smooth sbezier with lines lw 2 axis x1y2,\
+     "mincore_stats.$1"   using 1:11  smooth sbezier with lines lw 2 axis x1y2,\
+     "<awk '{x=\$8/10; print \$1,x}'  bandwidth_stats.$1" using 1:2 smooth sbezier with lines lw 2 title 'block count /10' axis x1y2,\
+     "bandwidth_stats.$1" using 1:10  smooth sbezier with lines lw 2 axis x1y2
 
 #set yrange [*:*]
 #set y2range [*:*]
 
 set format y2 "%.0s %cb"
 set output "output_$1_torrents.png"
-plot "bandwidth_stats.$1" using 1:6 smooth bezier with lines lw 4 axis x1y1,\
-     "bandwidth_stats.$1" using 1:9 smooth bezier with lines lw 2 axis x1y2
+plot "bandwidth_stats.$1" using 1:6 smooth sbezier with lines lw 4 axis x1y1,\
+     "bandwidth_stats.$1" using 1:9 smooth sbezier with lines lw 2 axis x1y2
 
 set format y "%.0f"
 set format y2 "%.0f"
 
 set output "output_$1_incore.png"
-#plot "bandwidth_stats.$1" using 1:(0) smooth bezier with lines,
+#plot "bandwidth_stats.$1" using 1:(0) smooth sbezier with lines,
 plot \
-     "mincore_stats.$1" using 1:2 smooth bezier with lines lw 2 axis x1y1,\
-     "mincore_stats.$1" using 1:3 smooth bezier with lines lw 4 axis x1y2,\
-     "mincore_stats.$1" using 1:4 smooth bezier with lines lw 2 axis x1y1,\
-     "mincore_stats.$1" using 1:5 smooth bezier with lines lw 4 axis x1y2
+     "mincore_stats.$1" using 1:2 smooth sbezier with lines lw 2 axis x1y1,\
+     "mincore_stats.$1" using 1:3 smooth sbezier with lines lw 4 axis x1y2,\
+     "mincore_stats.$1" using 1:4 smooth sbezier with lines lw 2 axis x1y1,\
+     "mincore_stats.$1" using 1:5 smooth sbezier with lines lw 4 axis x1y2
 
 #
 # Updated:
@@ -119,13 +120,13 @@ set output "output_$1_choke.png"
 set style histogram columnstacked
 
 plot "choke_group_stats.$1" \
-     "" using 1:8  smooth bezier with lines lw 3,\
-     "" using 1:15 smooth bezier with lines lw 3,\
-        using 1:2 smooth bezier with lines lw 2 axis x1y2,\
-     "" using 1:3 smooth bezier with lines lw 2 axis x1y2,\
-     "" using 1:5 smooth bezier with lines lw 2 axis x1y2,\
-     "" using 1:6 smooth bezier with lines lw 2 axis x1y2,\
-     "" using 1:9 smooth bezier with lines lw 2 axis x1y2,\
-     "" using 1:10 smooth bezier with lines lw 2 axis x1y2
+        using 1:8  smooth sbezier with lines lw 3,\
+     "" using 1:15 smooth sbezier with lines lw 3,\
+     "" using 1:2 smooth sbezier with lines lw 2 axis x1y2,\
+     "" using 1:3 smooth sbezier with lines lw 2 axis x1y2,\
+     "" using 1:5 smooth sbezier with lines lw 2 axis x1y2,\
+     "" using 1:6 smooth sbezier with lines lw 2 axis x1y2,\
+     "" using 1:9 smooth sbezier with lines lw 2 axis x1y2,\
+     "" using 1:10 smooth sbezier with lines lw 2 axis x1y2
 
 EOF

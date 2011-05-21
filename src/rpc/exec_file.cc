@@ -131,11 +131,19 @@ ExecFile::execute(const char* file, char* const* argv, int flags) {
       }
     }
 
-    int status;
-    int wpid = waitpid(childPid, &status, 0);
+    if (flags & flag_background) {
+      if (m_logFd != -1)
+        write(m_logFd, "\n--- Background task ---\n", sizeof("\n--- Background task ---\n"));
+        
+      return 0;
+    }
 
-    while (wpid == -1 && rak::error_number::current().value() == rak::error_number::e_intr)
+    int status;
+    int wpid;
+
+    do {
       wpid = waitpid(childPid, &status, 0);
+    } while (wpid == -1 && rak::error_number::current().value() == rak::error_number::e_intr);
 
     if (wpid != childPid)
       throw torrent::internal_error("ExecFile::execute(...) waitpid failed.");

@@ -97,7 +97,8 @@ element_file_list_create_info() {
   element->push_column("Range:",  te_command("cat=$f.range_first=,\" - \",$f.range_second="));
   element->push_back("");
 
-  element->push_column("Queued:", te_command("cat=\"$if=$f.is_create_queued=,create\",\" \",\"$if=$f.is_resize_queued=,resize\""));
+  element->push_column("Queued:",     te_command("cat=\"$if=$f.is_create_queued=,create\",\" \",\"$if=$f.is_resize_queued=,resize\""));
+  element->push_column("Prioritize:", te_command("cat=\"$if=$f.prioritize_first=,first\",\" \",\"$if=$f.prioritize_last=,last\""));
 
   element->set_column_width(element->column_width() + 1);
 

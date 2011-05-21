@@ -64,7 +64,7 @@ private:
 };
 
 // This isn't optimized, or very clean. A simple hack that should work.
-bool
+inline bool
 regex::operator () (const std::string& text) const {
   if (m_pattern.empty() ||
       text.empty() ||

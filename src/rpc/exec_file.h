@@ -49,6 +49,7 @@ public:
   static const int flag_expand_tilde = 0x1;
   static const int flag_throw        = 0x2;
   static const int flag_capture      = 0x4;
+  static const int flag_background   = 0x8;
 
   ExecFile() : m_logFd(-1) {}
 

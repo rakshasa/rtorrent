@@ -69,6 +69,7 @@ object_storage::insert(const char* key_data, uint32_t key_size, const torrent::O
   case flag_bool_type:     object = !!convert_to_value(rawObject); break;
   case flag_value_type:    object = convert_to_value(rawObject); break;
   case flag_string_type:   object = convert_to_string(rawObject); break;
+  case flag_list_type:     use_raw = true; break;
   case flag_function_type: use_raw = true; break;
   case flag_multi_type:    object = torrent::Object::create_map(); break;
   }
@@ -127,6 +128,16 @@ object_storage::set_string(const torrent::raw_string& key, const std::string& ob
     throw torrent::input_error("Key not found or wrong type.");
 
   return itr->second.object = object;
+}
+
+const torrent::Object&
+object_storage::set_list(const torrent::raw_string& key, const torrent::Object::list_type& object) {
+  local_iterator itr = find_local(key);
+
+  if (itr == end(bucket_count()) || (itr->second.flags & mask_type) != flag_list_type)
+    throw torrent::input_error("Key not found or wrong type.");
+
+  return itr->second.object = torrent::Object::create_list_range(object.begin(), object.end());
 }
 
 const torrent::Object&

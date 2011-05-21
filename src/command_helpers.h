@@ -122,6 +122,13 @@ void initialize_commands();
   CMD2_ANY(key, std::bind(&rpc::object_storage::get, control->object_storage(),   \
                                torrent::raw_string::from_c_str(key)));
 
+#define CMD2_VAR_LIST(key)                                              \
+  control->object_storage()->insert_c_str(key, torrent::Object::create_list(), rpc::object_storage::flag_list_type); \
+  CMD2_ANY(key, std::bind(&rpc::object_storage::get, control->object_storage(),   \
+                               torrent::raw_string::from_c_str(key)));  \
+  CMD2_ANY_LIST(key ".set", std::bind(&rpc::object_storage::set_list, control->object_storage(), \
+                                      torrent::raw_string::from_c_str(key), std::placeholders::_2));
+
 #define CMD2_FUNC_SINGLE(key, cmds)                                  \
   CMD2_ANY(key, std::bind(&rpc::command_function_call, torrent::raw_string::from_c_str(cmds), \
                                std::placeholders::_1, std::placeholders::_2));

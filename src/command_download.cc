@@ -44,6 +44,7 @@
 #include <rak/path.h>
 #include <rak/socket_address.h>
 #include <rak/string_manip.h>
+#include <rak/regex.h>
 #include <torrent/rate.h>
 #include <torrent/throttle.h>
 #include <torrent/tracker.h>
@@ -337,8 +338,25 @@ f_multicall(core::Download* download, const torrent::Object::list_type& args) {
   // parsing and searching command map for every single call.
   torrent::Object             resultRaw = torrent::Object::create_list();
   torrent::Object::list_type& result = resultRaw.as_list();
+  std::vector<rak::regex>     regex_list;
+
+  bool use_regex = true;
+
+  if (args.front().is_list())
+    std::transform(args.front().as_list().begin(), args.front().as_list().end(),
+                   std::back_inserter(regex_list),
+                   std::bind(&torrent::Object::as_string_c, std::placeholders::_1));
+  else if (args.front().is_string() && !args.front().as_string().empty())
+    regex_list.push_back(args.front().as_string());
+  else
+    use_regex = false;
 
   for (torrent::FileList::const_iterator itr = download->file_list()->begin(), last = download->file_list()->end(); itr != last; itr++) {
+    if (use_regex &&
+        std::find_if(regex_list.begin(), regex_list.end(),
+                     std::bind(&rak::regex::operator(), std::placeholders::_1, (*itr)->path()->as_string())) == regex_list.end())
+      continue;
+
     torrent::Object::list_type& row = result.insert(result.end(), torrent::Object::create_list())->as_list();
 
     for (torrent::Object::list_const_iterator cItr = ++args.begin(), cLast = args.end(); cItr != args.end(); cItr++) {

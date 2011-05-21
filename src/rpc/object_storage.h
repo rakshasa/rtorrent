@@ -84,8 +84,9 @@ public:
   static const unsigned int flag_bool_type     = 0x2;
   static const unsigned int flag_value_type    = 0x3;
   static const unsigned int flag_string_type   = 0x4;
-  static const unsigned int flag_function_type = 0x5;
-  static const unsigned int flag_multi_type    = 0x6;
+  static const unsigned int flag_list_type     = 0x5;
+  static const unsigned int flag_function_type = 0x6;
+  static const unsigned int flag_multi_type    = 0x7;
 
   static const unsigned int mask_type          = 0xf;
 
@@ -122,6 +123,10 @@ public:
   const torrent::Object& set_c_str_string(const char* str, const std::string& object) { return set_string(torrent::raw_string::from_c_str(str), object); }
   const torrent::Object& set_str_string(const std::string& str, const std::string& object) { return set_string(torrent::raw_string::from_string(str), object); }
   
+  const torrent::Object& set_list(const torrent::raw_string& key, const torrent::Object::list_type& object);
+  const torrent::Object& set_c_str_list(const char* str, const torrent::Object::list_type& object) { return set_list(torrent::raw_string::from_c_str(str), object); }
+  const torrent::Object& set_str_list(const std::string& str, const torrent::Object::list_type& object) { return set_list(torrent::raw_string::from_string(str), object); }
+
   // Functions callers:
   torrent::Object call_function(const torrent::raw_string& key, target_type target, const torrent::Object& object);
   torrent::Object call_function_str(const std::string& key, target_type target, const torrent::Object& object);
