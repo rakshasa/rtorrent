@@ -65,7 +65,6 @@ class Download;
 class View : private std::vector<Download*> {
 public:
   typedef std::vector<Download*>         base_type;
-  typedef std::vector<std::string>       event_list_type;
   typedef sigc::signal0<void>            signal_type;
 
   using base_type::iterator;
@@ -172,7 +171,6 @@ private:
   torrent::Object     m_sortCurrent;
 
   torrent::Object     m_filter;
-  event_list_type     m_events;
 
   std::string         m_eventAdded;
   std::string         m_eventRemoved;

@@ -40,11 +40,12 @@
 #include <functional>
 #include <rak/functional.h>
 #include <rak/functional_fun.h>
-#include <rpc/parse_commands.h>
 #include <sigc++/adaptors/bind.h>
 #include <torrent/download.h>
 #include <torrent/exceptions.h>
 
+#include "rpc/parse_commands.h"
+#include "rpc/object_storage.h"
 #include "control.h"
 #include "download.h"
 #include "download_list.h"
@@ -322,19 +323,12 @@ View::filter_download(core::Download* download) {
 
 void
 View::set_filter_on_event(const std::string& event) {
-  if (std::find(m_events.begin(), m_events.end(), event) != m_events.end())
-    return;
-
-  rpc::commands.call_catch("method.set_key", rpc::make_target(), rpc::create_object_list(event, "!view." + m_name, "view.filter_download=" + m_name));
-  m_events.push_back(event);
+  control->object_storage()->set_str_multi_key(event, "!view." + m_name, "view.filter_download=" + m_name);
 }
 
 void
 View::clear_filter_on() {
-  // Don't clear insert and erase as these are required to keep the
-  // View up-to-date with the available downloads.
-  for (event_list_type::const_iterator itr = m_events.begin(); itr != m_events.end(); itr++)
-    rpc::commands.call_catch("method.set_key", rpc::make_target(), rpc::create_object_list(*itr, "!view." + m_name));
+  control->object_storage()->rlookup_clear("!view." + m_name);
 }
 
 inline void
