@@ -170,6 +170,15 @@ system_method_insert_object(const torrent::Object::list_type& args, int flags) {
        cmd_flags, NULL, NULL);
   }
 
+  // Not the right argument.
+  // if (flags & rpc::object_storage::flag_rlookup) {
+  //   rpc::commands.insert_slot<rpc::command_base_is_type<rpc::command_base_call_string<rpc::target_type> >::type>
+  //     (create_new_key<9>(rawKey, ".rlookup"),
+  //      std::bind(&rpc::object_storage::rlookup_obj_list, control->object_storage(), rawKey),
+  //      &rpc::command_base_call_string<rpc::target_type>,
+  //      cmd_flags, NULL, NULL);
+  // }
+
   // TODO: Next... Make test class for this.
 
 //   // Ehm... no proper handling if these throw.
@@ -254,6 +263,8 @@ system_method_insert(const torrent::Object::list_type& args) {
       new_flags |= rpc::object_storage::flag_private;
     if (options.find("const") != std::string::npos)
       new_flags |= rpc::object_storage::flag_constant;
+    if (options.find("rlookup") != std::string::npos)
+      new_flags |= rpc::object_storage::flag_rlookup;
 
     return system_method_insert_object(new_args, new_flags);
 
@@ -431,4 +442,7 @@ initialize_command_dynamic() {
   CMD2_ANY_LIST    ("method.has_key",   std::bind(&system_method_has_key, std::placeholders::_2));
   CMD2_ANY_LIST    ("method.set_key",   std::bind(&system_method_set_key, std::placeholders::_2));
   CMD2_ANY_STRING  ("method.list_keys", std::bind(&system_method_list_keys, std::placeholders::_2));
+
+  CMD2_ANY_STRING  ("method.rlookup",       std::bind(&rpc::object_storage::rlookup_obj_list, control->object_storage(), std::placeholders::_2));
+  CMD2_ANY_STRING_V("method.rlookup.clear", std::bind(&rpc::object_storage::rlookup_clear, control->object_storage(), std::placeholders::_2));
 }

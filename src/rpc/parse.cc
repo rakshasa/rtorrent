@@ -452,6 +452,9 @@ print_object(char* first, char* last, const torrent::Object* src, int flags) {
     return std::min(first + snprintf(first, std::distance(first, last), "%lli", src->as_value()), last);
 
   case torrent::Object::TYPE_LIST:
+    if (first != last)
+      *first = '\0';
+
     for (torrent::Object::list_const_iterator itr = src->as_list().begin(), itrEnd = src->as_list().end(); itr != itrEnd; itr++) {
       first = print_object(first, last, &*itr, flags);
 
@@ -462,6 +465,9 @@ print_object(char* first, char* last, const torrent::Object* src, int flags) {
     return first;
 
   case torrent::Object::TYPE_NONE:
+    if (first != last)
+      *first = '\0';
+
     return first;
   default:
     throw torrent::input_error("Invalid type.");
