@@ -394,10 +394,15 @@ system_method_set_key(const torrent::Object::list_type& args) {
   const std::string& key = (itrArgs++)->as_string();
   const std::string& cmd_key = (itrArgs++)->as_string();
   
-  if (itrArgs != args.end())
-    control->object_storage()->set_str_multi_key(key, cmd_key, system_method_generate_command(itrArgs, args.end()));
-  else
+  if (itrArgs == args.end()) {
     control->object_storage()->erase_str_multi_key(key, cmd_key);
+    return torrent::Object();
+  }
+
+  if (itrArgs->is_dict_key())
+    control->object_storage()->set_str_multi_key_obj(key.c_str(), cmd_key, *itrArgs);
+  else
+    control->object_storage()->set_str_multi_key(key, cmd_key, system_method_generate_command(itrArgs, args.end()));
 
   return torrent::Object();
 }

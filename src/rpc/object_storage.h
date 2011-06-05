@@ -150,11 +150,14 @@ public:
   // Multi-command function:
   bool                   has_multi_key(const torrent::raw_string& key, const std::string& cmd_key);
   void                   erase_multi_key(const torrent::raw_string& key, const std::string& cmd_key);
-  void                   set_multi_key(const torrent::raw_string& key, const std::string& cmd_key, const std::string& object);
+  void                   set_multi_key_obj(const torrent::raw_string& key, const std::string& cmd_key, const torrent::Object& object);
+
+  void                   set_multi_key(const torrent::raw_string& key, const std::string& cmd_key, const std::string& object) { set_multi_key_obj(key, cmd_key, object); }
 
   bool                   has_str_multi_key(const std::string& key, const std::string& cmd_key);
   void                   erase_str_multi_key(const std::string& key, const std::string& cmd_key);
   void                   set_str_multi_key(const std::string& key, const std::string& cmd_key, const std::string& object);
+  void                   set_str_multi_key_obj(const std::string& key, const std::string& cmd_key, const torrent::Object& object);
 
   torrent::Object::list_type rlookup_list(const std::string& cmd_key);
   torrent::Object            rlookup_obj_list(const std::string& cmd_key) { return torrent::Object::from_list(rlookup_list(cmd_key)); }
@@ -241,7 +244,12 @@ object_storage::erase_str_multi_key(const std::string& key, const std::string& c
 
 inline void
 object_storage::set_str_multi_key(const std::string& key, const std::string& cmd_key, const std::string& object) {
-  return set_multi_key(torrent::raw_string::from_string(key), cmd_key, object);
+  return set_multi_key_obj(torrent::raw_string::from_string(key), cmd_key, object);
+}
+
+inline void
+object_storage::set_str_multi_key_obj(const std::string& key, const std::string& cmd_key, const torrent::Object& object) {
+  return set_multi_key_obj(torrent::raw_string::from_string(key), cmd_key, object);
 }
 
 }

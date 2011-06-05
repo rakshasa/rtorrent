@@ -368,6 +368,8 @@ DownloadFactory::initialize_rtorrent(Download* download, torrent::Object* rtorre
   rtorrent->insert_preserve_copy("complete", (int64_t)0);
   rtorrent->insert_preserve_copy("hashing",  (int64_t)Download::variable_hashing_stopped);
 
+  rtorrent->insert_preserve_copy("timestamp.finished", (int64_t)0);
+
   rtorrent->insert_preserve_copy("tied_to_file", "");
   rtorrent->insert_key("loaded_file", m_isFile ? m_uri : std::string());
 

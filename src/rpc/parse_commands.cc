@@ -295,10 +295,18 @@ command_function_call_object(const torrent::Object& cmd, target_type target, con
       }
       
     } else {
-      torrent::Object tmp_cmd = cmd;
-      
-      rpc::parse_command_execute(target, &tmp_cmd);
-      result = rpc::commands.call_command(tmp_cmd.as_dict_key().c_str(), tmp_cmd.as_dict_obj());
+      torrent::Object tmp_command = cmd;
+
+      // Unquote the root function object so 'parse_command_execute'
+      // doesn't end up calling it.
+      //
+      // TODO: Only call this if mask_function is set?
+      uint32_t flags = tmp_command.flags() & torrent::Object::mask_function;
+      tmp_command.unset_flags(torrent::Object::mask_function);
+      tmp_command.set_flags((flags >> 1) & torrent::Object::mask_function);
+
+      rpc::parse_command_execute(target, &tmp_command);
+      rpc::commands.call_command(tmp_command.as_dict_key().c_str(), tmp_command.as_dict_obj(), target);
     }
 
     rpc::command_base::pop_stack(&stack, last_stack);
@@ -324,6 +332,23 @@ command_function_multi_call(const torrent::Object::map_type& cmd, target_type ta
 
   try {
     for (torrent::Object::map_const_iterator itr = cmd.begin(), last = cmd.end(); itr != last; itr++) {
+      if (itr->second.is_dict_key()) {
+        // This can/should be optimized...
+        torrent::Object tmp_command = itr->second;
+
+        // Unquote the root function object so 'parse_command_execute'
+        // doesn't end up calling it.
+        //
+        // TODO: Only call this if mask_function is set?
+        uint32_t flags = tmp_command.flags() & torrent::Object::mask_function;
+        tmp_command.unset_flags(torrent::Object::mask_function);
+        tmp_command.set_flags((flags >> 1) & torrent::Object::mask_function);
+
+        rpc::parse_command_execute(target, &tmp_command);
+        rpc::commands.call_command(tmp_command.as_dict_key().c_str(), tmp_command.as_dict_obj(), target);
+        continue;
+      }
+
       const std::string& cmd_str = itr->second.as_string();
       parse_command_multiple(target, cmd_str.c_str(), cmd_str.c_str() + cmd_str.size());
     }

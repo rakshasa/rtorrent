@@ -242,6 +242,8 @@ main(int argc, char** argv) {
        "method.set_key = event.download.erased, !_download_list, ui.unfocus_download=\n"
        "method.set_key = event.download.erased, ~_delete_tied, d.delete_tied=\n"
 
+       "method.set_key = event.download.finished,  !_timestamp, ((d.timestamp.finished.set, ((system.time)) ))\n"
+
        "method.insert.c_simple = group.insert_persistent_view,"
        "((view.add,((argument.0)))),((view.persistent,((argument.0)))),((group.insert,((argument.0)),((argument.0))))\n"
 
@@ -298,7 +300,7 @@ main(int argc, char** argv) {
        "view.add = hashing\n"
        "view.filter = hashing,((d.hashing))\n"
        "view.filter_on = hashing,event.download.hash_queued,event.download.hash_removed,"
-                                "event.download.hash_done,event.download.hash_failed,event.download.hash_final_failed\n"
+                                "event.download.hash_done,event.download.hash_failed,event.download.hash_final_failed,event.download.finished\n"
 //        "view.sort_new     = hashing,less=d.state_changed=\n"
 //        "view.sort_current = hashing,less=d.state_changed=\n"
 

@@ -31,13 +31,21 @@ gnuplot << EOF
 #
 # Choke groups:
 #
-# file.append = (cat,/foo/choke_group_stats.,(system.pid)),"timestamp",
-# "\"leech up unchoked\"","\"leech up queued\"","\"leech up rate\"","\"leech down unchoked\"","\"leech down queued\"","\"leech down rate\"","\"leech torrents\"",
-# "\"seed up unchoked\"","\"seed up queued\"","\"seed up rate\"","\"seed down unchoked\"","\"seed down queued\"","\"seed down rate\"","\"seed torrents\""
+# file.append = (cat,/foo/choke_group_stats.,(system.pid)),"timestamp",\
+# "\"default up unchoked\"","\"default up queued\"","\"default up rate\"",\
+# "\"default down unchoked\"","\"default down queued\"","\"default down rate\"","\"default torrents\"",\
+# "\"leech up unchoked\"","\"leech up queued\"","\"leech up rate\"",\
+# "\"leech down unchoked\"","\"leech down queued\"","\"leech down rate\"","\"leech torrents\"",\
+# "\"seed boost up unchoked\"","\"seed boost up queued\"","\"seed boost up rate\"",\
+# "\"seed boost down unchoked\"","\"seed boost down queued\"","\"seed boost down rate\"","\"seed boost torrents\"",\
+# "\"seed up unchoked\"","\"seed up queued\"","\"seed up rate\"",\
+# "\"seed down unchoked\"","\"seed down queued\"","\"seed down rate\"","\"seed torrents\""
 #
-# schedule = log_choke_group_stats,5,10,((file.append,((cat,/foo/choke_group_stats.,((system.pid)))),((system.time_seconds)),
-# ((choke_group.up.unchoked,0)),((choke_group.up.queued,0)),((choke_group.up.rate,0)),((choke_group.down.unchoked,0)),((choke_group.down.queued,0)),((choke_group.down.rate,0)),((choke_group.size,0)),
-# ((choke_group.up.unchoked,1)),((choke_group.up.queued,1)),((choke_group.up.rate,1)),((choke_group.down.unchoked,1)),((choke_group.down.queued,1)),((choke_group.down.rate,1)),((choke_group.size,1))))
+# schedule = log_choke_group_stats,5,10,((file.append,((cat,/foo/choke_group_stats.,((system.pid)))),((system.time_seconds)),\
+# ((choke_group.up.unchoked,0)),((choke_group.up.queued,0)),((choke_group.up.rate,0)),((choke_group.down.unchoked,0)),((choke_group.down.queued,0)),((choke_group.down.rate,0)),((choke_group.size,0)),\
+# ((choke_group.up.unchoked,1)),((choke_group.up.queued,1)),((choke_group.up.rate,1)),((choke_group.down.unchoked,1)),((choke_group.down.queued,1)),((choke_group.down.rate,1)),((choke_group.size,1)),\
+# ((choke_group.up.unchoked,2)),((choke_group.up.queued,2)),((choke_group.up.rate,2)),((choke_group.down.unchoked,2)),((choke_group.down.queued,2)),((choke_group.down.rate,2)),((choke_group.size,2)),\
+# ((choke_group.up.unchoked,3)),((choke_group.up.queued,3)),((choke_group.up.rate,3)),((choke_group.down.unchoked,3)),((choke_group.down.queued,3)),((choke_group.down.rate,3)),((choke_group.size,3)) ))
 #
 # Mincore stats:
 #

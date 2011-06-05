@@ -654,8 +654,10 @@ initialize_command_download() {
 
   // 0 - stopped
   // 1 - started
-  CMD2_DL_VAR_VALUE("d.state", "rtorrent", "state");
-  CMD2_DL_VAR_VALUE("d.complete", "rtorrent", "complete");
+  CMD2_DL_VAR_VALUE("d.state",      "rtorrent", "state");
+  CMD2_DL_VAR_VALUE("d.complete",   "rtorrent", "complete");
+
+  CMD2_FUNC_SINGLE ("d.incomplete", "not=(d.complete)");
 
   // 0 off
   // 1 scheduled, being controlled by a download scheduler. Includes a priority.
@@ -683,6 +685,8 @@ initialize_command_download() {
   CMD2_DL_VAR_VALUE("d.state_changed",          "rtorrent", "state_changed");
   CMD2_DL_VAR_VALUE("d.state_counter",          "rtorrent", "state_counter");
   CMD2_DL_VAR_VALUE_PUBLIC("d.ignore_commands", "rtorrent", "ignore_commands");
+
+  CMD2_DL_VAR_VALUE("d.timestamp.finished",     "rtorrent", "timestamp.finished");
 
   CMD2_DL       ("d.connection_current",     std::bind(&torrent::option_as_string, torrent::OPTION_CONNECTION_TYPE, CMD2_ON_DL(connection_type)));
   CMD2_DL_STRING("d.connection_current.set", std::bind(&apply_d_connection_type, std::placeholders::_1, std::placeholders::_2));
@@ -748,6 +752,7 @@ initialize_command_download() {
   CMD2_DL         ("d.completed_chunks", CMD2_ON_FL(completed_chunks));
   CMD2_DL         ("d.left_bytes",       CMD2_ON_FL(left_bytes));
 
+  CMD2_DL_V       ("d.tracker_announce",     std::bind(&torrent::TrackerList::manual_request, CMD2_BIND_TL, false)); 
   CMD2_DL         ("d.tracker_numwant",      std::bind(&torrent::TrackerList::numwant, CMD2_BIND_TL));
   CMD2_DL_VALUE_V ("d.tracker_numwant.set",  std::bind(&torrent::TrackerList::set_numwant, CMD2_BIND_TL, std::placeholders::_2));
   CMD2_DL         ("d.tracker_focus",        std::bind(&torrent::TrackerList::focus_index, CMD2_BIND_TL));

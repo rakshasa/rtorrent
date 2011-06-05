@@ -533,8 +533,9 @@ DownloadList::hash_done(Download* download) {
       control->core()->push_log("Hash check on download completion found bad chunks, consider using \"safe_sync\".");
       rpc::commands.call_catch("event.download.hash_final_failed", rpc::make_target(download), torrent::Object(), "Download event action failed: ");
     }
-    
-    break;
+
+    // TODO: Should we skip the 'hash_done' event here?
+    return;
 
   case Download::variable_hashing_stopped:
   default:

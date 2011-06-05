@@ -404,6 +404,8 @@ apply_if(rpc::target_type target, const torrent::Object& rawArgs, int flags) {
 
     if (flags & 0x1 && itr->is_string())
       conditional = &(tmp = rpc::parse_command(target, itr->as_string().c_str(), itr->as_string().c_str() + itr->as_string().size()).first);
+    else if (flags & 0x1 && itr->is_dict_key())
+      conditional = &(tmp = rpc::commands.call_command(itr->as_dict_key().c_str(), itr->as_dict_obj(), target));
     else
       conditional = &*itr;
 
@@ -436,6 +438,9 @@ apply_if(rpc::target_type target, const torrent::Object& rawArgs, int flags) {
 
   if (flags & 0x1 && itr->is_string()) {
     return rpc::parse_command(target, itr->as_string().c_str(), itr->as_string().c_str() + itr->as_string().size()).first;
+
+  } else if (flags & 0x1 && itr->is_dict_key()) {
+    return rpc::commands.call_command(itr->as_dict_key().c_str(), itr->as_dict_obj(), target);
 
   } else if (flags & 0x1 && itr->is_list()) {
     // Move this into a special function or something. Also, might be
@@ -512,6 +517,26 @@ cmd_view_set_not_visible(core::Download* download, const torrent::Object::string
   return torrent::Object();
 }
 
+torrent::Object
+apply_elapsed_less(const torrent::Object::list_type& args) {
+  if (args.size() != 2)
+    throw torrent::input_error("Wrong argument count.");
+
+  int64_t start_time = rpc::convert_to_value(args.front());
+
+  return (int64_t)(start_time != 0 && rak::timer::current_seconds() - start_time < rpc::convert_to_value(args.back()));
+}
+
+torrent::Object
+apply_elapsed_greater(const torrent::Object::list_type& args) {
+  if (args.size() != 2)
+    throw torrent::input_error("Wrong argument count.");
+
+  int64_t start_time = rpc::convert_to_value(args.front());
+
+  return (int64_t)(start_time != 0 && rak::timer::current_seconds() - start_time > rpc::convert_to_value(args.back()));
+}
+
 void
 initialize_command_ui() {
   CMD2_VAR_STRING("keys.layout", "qwerty");
@@ -573,4 +598,7 @@ initialize_command_ui() {
   CMD2_ANY_VALUE("convert.mb",           std::bind(&apply_to_mb, std::placeholders::_2));
   CMD2_ANY_VALUE("convert.xb",           std::bind(&apply_to_xb, std::placeholders::_2));
   CMD2_ANY_VALUE("convert.throttle",     std::bind(&apply_to_throttle, std::placeholders::_2));
+
+  CMD2_ANY_LIST ("elapsed.less",         std::bind(&apply_elapsed_less, std::placeholders::_2));
+  CMD2_ANY_LIST ("elapsed.greater",      std::bind(&apply_elapsed_greater, std::placeholders::_2));
 }
