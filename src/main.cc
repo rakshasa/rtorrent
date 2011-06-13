@@ -260,7 +260,7 @@ main(int argc, char** argv) {
 
        "group.insert = seeding,seeding\n"
 
-       "session.name = \"$cat=$system.hostname=,:,$system.pid=\"\n"
+       "session.name.set = \"$cat=$system.hostname=,:,$system.pid=\"\n"
 
        // Currently not doing any sorting on main.
        "view.add = main\n"
