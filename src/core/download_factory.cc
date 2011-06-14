@@ -257,6 +257,7 @@ DownloadFactory::receive_success() {
   rpc::call_command("d.peers_min.set",        rpc::call_command_void("throttle.min_peers.normal"), rpc::make_target(download));
   rpc::call_command("d.peers_max.set",        rpc::call_command_void("throttle.max_peers.normal"), rpc::make_target(download));
   rpc::call_command("d.tracker_numwant.set",  rpc::call_command_void("trackers.numwant"), rpc::make_target(download));
+  rpc::call_command("d.max_file_size.set",    rpc::call_command_void("system.file.max_size"), rpc::make_target(download));
 
   if (rpc::call_command_value("d.complete", rpc::make_target(download)) != 0) {
     if (rpc::call_command_value("throttle.min_peers.seed") >= 0)
@@ -268,9 +269,6 @@ DownloadFactory::receive_success() {
 
   if (!rpc::call_command_value("trackers.use_udp"))
     download->enable_udp_trackers(false);
-
-  if (rpc::call_command_value("system.file.max_size") > 0)
-    rpc::call_command("d.max_file_size.set", rpc::call_command_void("system.file.max_size"), rpc::make_target(download));
 
   // Check first if we already have these values set in the session
   // torrent, so that it is safe to change the values.
