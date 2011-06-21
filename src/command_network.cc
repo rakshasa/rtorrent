@@ -640,12 +640,12 @@ initialize_command_network() {
   CMD2_ANY         ("throttle.unchoked_uploads",   std::bind(&torrent::ResourceManager::currently_upload_unchoked, torrent::resource_manager()));
   CMD2_ANY         ("throttle.unchoked_downloads", std::bind(&torrent::ResourceManager::currently_download_unchoked, torrent::resource_manager()));
 
-  CMD2_VAR_VALUE   ("throttle.min_peers.normal", 40);
-  CMD2_VAR_VALUE   ("throttle.max_peers.normal", 100);
+  CMD2_VAR_VALUE   ("throttle.min_peers.normal", 100);
+  CMD2_VAR_VALUE   ("throttle.max_peers.normal", 200);
   CMD2_VAR_VALUE   ("throttle.min_peers.seed",   -1);
   CMD2_VAR_VALUE   ("throttle.max_peers.seed",   -1);
 
-  CMD2_VAR_VALUE   ("throttle.max_uploads", 15);
+  CMD2_VAR_VALUE   ("throttle.max_uploads",      50);
 
   CMD2_VAR_VALUE   ("throttle.max_uploads.div",      1);
   CMD2_VAR_VALUE   ("throttle.max_uploads.global",   0);

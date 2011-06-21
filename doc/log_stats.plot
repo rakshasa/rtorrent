@@ -71,14 +71,23 @@ plot "peer_stats.$1" using 1:7 smooth sbezier with lines lw 4,\
      "peer_stats.$1" using 1:2 smooth sbezier with lines lw 2 axis x1y2,\
      "peer_stats.$1" using 1:3 smooth sbezier with lines lw 2 axis x1y2
 
+set output "output_$1_groups.png"
+plot "choke_group_stats.$1" \
+        using 1:8     smooth sbezier with lines lw 4,\
+     "" using 1:8+7*1 smooth sbezier with lines lw 4,\
+     "" using 1:8+7*2 smooth sbezier with lines lw 4,\
+     "" using 1:8+7*3 smooth sbezier with lines lw 4\
+
+
 set format y "%.0s %cb"
 
 set output "output_$1_bandwidth.png"
 plot "bandwidth_stats.$1" using 1:2 smooth sbezier with lines lw 4,\
      "bandwidth_stats.$1" using 1:4 smooth sbezier with lines lw 4,\
-     "choke_group_stats.$1" using 1:4 smooth sbezier with lines lw 3,\
-     "choke_group_stats.$1" using 1:7 smooth sbezier with lines lw 3,\
-     "choke_group_stats.$1" using 1:11 smooth sbezier with lines lw 3,\
+     "choke_group_stats.$1" using 1:4+7*1 smooth sbezier with lines lw 3,\
+     "choke_group_stats.$1" using 1:7+7*1 smooth sbezier with lines lw 3,\
+     "choke_group_stats.$1" using 1:4+7*2 smooth sbezier with lines lw 3,\
+     "choke_group_stats.$1" using 1:4+7*3 smooth sbezier with lines lw 3,\
      "peer_stats.$1" using 1:2 smooth sbezier with lines lw 2 axis x1y2,\
      "peer_stats.$1" using 1:3 smooth sbezier with lines lw 2 axis x1y2
 
@@ -128,13 +137,13 @@ set output "output_$1_choke.png"
 set style histogram columnstacked
 
 plot "choke_group_stats.$1" \
-        using 1:8  smooth sbezier with lines lw 3,\
-     "" using 1:15 smooth sbezier with lines lw 3,\
-     "" using 1:2 smooth sbezier with lines lw 2 axis x1y2,\
-     "" using 1:3 smooth sbezier with lines lw 2 axis x1y2,\
-     "" using 1:5 smooth sbezier with lines lw 2 axis x1y2,\
-     "" using 1:6 smooth sbezier with lines lw 2 axis x1y2,\
-     "" using 1:9 smooth sbezier with lines lw 2 axis x1y2,\
-     "" using 1:10 smooth sbezier with lines lw 2 axis x1y2
+        using 1:2+7*1 smooth sbezier with lines lw 2 axis x1y2,\
+     "" using 1:3+7*1 smooth sbezier with lines lw 2 axis x1y2,\
+     "" using 1:5+7*1 smooth sbezier with lines lw 2 axis x1y2,\
+     "" using 1:6+7*1 smooth sbezier with lines lw 2 axis x1y2,\
+     "" using 1:2+7*2 smooth sbezier with lines lw 2 axis x1y2,\
+     "" using 1:3+7*2 smooth sbezier with lines lw 2 axis x1y2,\
+     "" using 1:2+7*3 smooth sbezier with lines lw 2 axis x1y2,\
+     "" using 1:3+7*3 smooth sbezier with lines lw 2 axis x1y2
 
 EOF
