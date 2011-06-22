@@ -303,6 +303,8 @@ system_method_insert(const torrent::Object::list_type& args) {
       new_flags = rpc::object_storage::flag_bool_type;
     else if (options.find("string") != std::string::npos)
       new_flags = rpc::object_storage::flag_string_type;
+    else if (options.find("list") != std::string::npos)
+      new_flags = rpc::object_storage::flag_list_type;
     else if (options.find("simple") != std::string::npos)
       new_flags = rpc::object_storage::flag_function_type;
     else 
@@ -428,10 +430,8 @@ initialize_command_dynamic() {
   CMD2_VAR_BOOL    ("method.use_deprecated", true);
   CMD2_VAR_VALUE   ("method.use_intermediate", 1);
 
-  CMD2_ANY_LIST    ("method.insert",    std::bind(&system_method_insert, std::placeholders::_2));
-
-  CMD2_ANY_LIST    ("method.insert.value", std::bind(&system_method_insert_object, std::placeholders::_2,
-                                                          rpc::object_storage::flag_value_type));
+  CMD2_ANY_LIST    ("method.insert",             std::bind(&system_method_insert, std::placeholders::_2));
+  CMD2_ANY_LIST    ("method.insert.value",       std::bind(&system_method_insert_object, std::placeholders::_2, rpc::object_storage::flag_value_type));
 
   CMD2_METHOD_INSERT("method.insert.simple",     rpc::object_storage::flag_function_type);
   CMD2_METHOD_INSERT("method.insert.c_simple",   rpc::object_storage::flag_constant | rpc::object_storage::flag_function_type);
@@ -443,6 +443,11 @@ initialize_command_dynamic() {
   CMD2_ANY_STRING  ("method.get",       std::bind(&rpc::object_storage::get_str, control->object_storage(),
                                                        std::placeholders::_2));
   CMD2_ANY_LIST    ("method.set",       std::bind(&system_method_set_function, std::placeholders::_2));
+
+  CMD2_ANY_STRING  ("method.const",        std::bind(&rpc::object_storage::has_flag_str, control->object_storage(),
+                                                      std::placeholders::_2, rpc::object_storage::flag_constant));
+  CMD2_ANY_STRING_V("method.const.enable", std::bind(&rpc::object_storage::enable_flag_str, control->object_storage(),
+                                                     std::placeholders::_2, rpc::object_storage::flag_constant));
 
   CMD2_ANY_LIST    ("method.has_key",   std::bind(&system_method_has_key, std::placeholders::_2));
   CMD2_ANY_LIST    ("method.set_key",   std::bind(&system_method_set_key, std::placeholders::_2));

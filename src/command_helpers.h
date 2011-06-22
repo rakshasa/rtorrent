@@ -58,6 +58,7 @@ void initialize_commands();
 #define CMD2_ANY(key, slot)          CMD2_A_FUNCTION(key, command_base_call<rpc::target_type>, slot, "i:", "")
 
 #define CMD2_ANY_P(key, slot)        CMD2_A_FUNCTION_PRIVATE(key, command_base_call<rpc::target_type>, slot, "i:", "")
+#define CMD2_ANY_VOID(key, slot)     CMD2_A_FUNCTION(key, command_base_call<rpc::target_type>, object_convert_void(slot), "i:", "")
 #define CMD2_ANY_V(key, slot)        CMD2_A_FUNCTION(key, command_base_call_list<rpc::target_type>, object_convert_void(slot), "i:", "")
 #define CMD2_ANY_L(key, slot)        CMD2_A_FUNCTION(key, command_base_call_list<rpc::target_type>, slot, "A:", "")
 
@@ -127,7 +128,9 @@ void initialize_commands();
   CMD2_ANY(key, std::bind(&rpc::object_storage::get, control->object_storage(),   \
                                torrent::raw_string::from_c_str(key)));  \
   CMD2_ANY_LIST(key ".set", std::bind(&rpc::object_storage::set_list, control->object_storage(), \
-                                      torrent::raw_string::from_c_str(key), std::placeholders::_2));
+                                      torrent::raw_string::from_c_str(key), std::placeholders::_2)); \
+  CMD2_ANY_VOID(key ".push_back", std::bind(&rpc::object_storage::list_push_back, control->object_storage(), \
+                                            torrent::raw_string::from_c_str(key), std::placeholders::_2));
 
 #define CMD2_FUNC_SINGLE(key, cmds)                                  \
   CMD2_ANY(key, std::bind(&rpc::command_function_call, torrent::raw_string::from_c_str(cmds), \
