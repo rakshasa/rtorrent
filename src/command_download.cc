@@ -488,6 +488,19 @@ download_set_variable_value(core::Download* download, const torrent::Object::val
 }
 
 torrent::Object
+download_set_variable_value_ifz(core::Download* download, const torrent::Object::value_type& args,
+                                const char* first_key, const char* second_key = NULL) {
+  torrent::Object& object = second_key == NULL ?
+    download->bencode()->get_key(first_key) :
+    download->bencode()->get_key(first_key).get_key(second_key);
+
+  if (object.as_value() == 0)
+    object = args;
+
+  return object;
+}
+
+torrent::Object
 download_set_variable_string(core::Download* download, const torrent::Object::string_type& args,
                              const char* first_key, const char* second_key = NULL) {
   if (second_key == NULL)
@@ -562,6 +575,15 @@ d_list_remove(core::Download* download, const torrent::Object& rawArgs, const ch
                                            std::placeholders::_1, std::placeholders::_2, \
                                            first_key, second_key));
 
+#define CMD2_DL_TIMESTAMP(key, first_key, second_key)                   \
+  CMD2_DL(key, std::bind(&download_get_variable, std::placeholders::_1, first_key, second_key)); \
+  CMD2_DL_VALUE_P(key ".set", std::bind(&download_set_variable_value, \
+                                             std::placeholders::_1, std::placeholders::_2, \
+                                             first_key, second_key)); \
+  CMD2_DL_VALUE_P(key ".set_if_z", std::bind(&download_set_variable_value_ifz, \
+                                             std::placeholders::_1, std::placeholders::_2, \
+                                             first_key, second_key));   \
+
 #define CMD2_DL_VAR_STRING(key, first_key, second_key)                   \
   CMD2_DL(key, std::bind(&download_get_variable, std::placeholders::_1, first_key, second_key)); \
   CMD2_DL_STRING_P(key ".set", std::bind(&download_set_variable_string, \
@@ -573,6 +595,11 @@ d_list_remove(core::Download* download, const torrent::Object& rawArgs, const ch
   CMD2_DL_STRING(key ".set", std::bind(&download_set_variable_string, \
                                             std::placeholders::_1, std::placeholders::_2, \
                                             first_key, second_key));
+
+torrent::choke_group* cg_get_group(const torrent::Object& raw_args);
+int64_t cg_get_index(const torrent::Object& raw_args);
+
+#define CG_GROUP_INDEX() std::bind(&cg_get_index, std::placeholders::_2)
 
 void
 initialize_command_download() {
@@ -686,7 +713,8 @@ initialize_command_download() {
   CMD2_DL_VAR_VALUE("d.state_counter",          "rtorrent", "state_counter");
   CMD2_DL_VAR_VALUE_PUBLIC("d.ignore_commands", "rtorrent", "ignore_commands");
 
-  CMD2_DL_VAR_VALUE("d.timestamp.finished",     "rtorrent", "timestamp.finished");
+  CMD2_DL_TIMESTAMP("d.timestamp.started",      "rtorrent", "timestamp.started");
+  CMD2_DL_TIMESTAMP("d.timestamp.finished",     "rtorrent", "timestamp.finished");
 
   CMD2_DL       ("d.connection_current",     std::bind(&torrent::option_as_string, torrent::OPTION_CONNECTION_TYPE, CMD2_ON_DL(connection_type)));
   CMD2_DL_STRING("d.connection_current.set", std::bind(&apply_d_connection_type, std::placeholders::_1, std::placeholders::_2));
@@ -770,11 +798,12 @@ initialize_command_download() {
   CMD2_DL         ("d.group",     std::bind(&torrent::resource_manager_entry::group,
                                             std::bind(&torrent::ResourceManager::entry_at, torrent::resource_manager(),
                                                       std::bind(&core::Download::main, std::placeholders::_1))));
-  CMD2_DL_VALUE_V ("d.group.set", std::bind(&torrent::ResourceManager::set_group,
+
+  CMD2_DL_V       ("d.group.set", std::bind(&torrent::ResourceManager::set_group,
                                             torrent::resource_manager(),
                                             std::bind(&torrent::ResourceManager::find_throw, torrent::resource_manager(),
                                                       std::bind(&core::Download::main, std::placeholders::_1)),
-                                            std::placeholders::_2));
+                                            CG_GROUP_INDEX()));
 
   CMD2_DL         ("d.initialize_logs", std::bind(&cmd_d_initialize_logs, std::placeholders::_1));
 
