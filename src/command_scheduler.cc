@@ -66,7 +66,7 @@ cmd_scheduler_simple_removed(core::Download* download) {
   core::View* viewActive = *control->view_manager()->find("active");
   int64_t maxActive = rpc::call_command("scheduler.max_active", torrent::Object()).as_value();
 
-  if (viewActive->size_visible() >= maxActive)
+  if ((int64_t)viewActive->size_visible() >= maxActive)
     return torrent::Object();
 
   // The 'started' view contains all the views we may choose amongst.

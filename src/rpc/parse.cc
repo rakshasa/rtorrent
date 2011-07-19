@@ -274,7 +274,7 @@ convert_to_string(const torrent::Object& rawSrc) {
   switch (src.type()) {
   case torrent::Object::TYPE_VALUE: {
     char buffer[64];
-    snprintf(buffer, 64, "%lli", src.as_value());
+    snprintf(buffer, 64, "%lli", (long long int)src.as_value());
     return std::string(buffer);
   }
   case torrent::Object::TYPE_STRING: return src.as_string();
@@ -449,7 +449,7 @@ print_object(char* first, char* last, const torrent::Object* src, int flags) {
   }
 
   case torrent::Object::TYPE_VALUE:
-    return std::min(first + snprintf(first, std::distance(first, last), "%lli", src->as_value()), last);
+    return std::min(first + snprintf(first, std::distance(first, last), "%lli", (long long int)src->as_value()), last);
 
   case torrent::Object::TYPE_LIST:
     if (first != last)
@@ -491,7 +491,7 @@ print_object_std(std::string* dest, const torrent::Object* src, int flags) {
   case torrent::Object::TYPE_VALUE:
   {
     char buffer[64];
-    snprintf(buffer, 64, "%lli", src->as_value());
+    snprintf(buffer, 64, "%lli", (long long int)src->as_value());
 
     *dest += buffer;
     return;

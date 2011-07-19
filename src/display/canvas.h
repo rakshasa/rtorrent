@@ -95,7 +95,7 @@ public:
 
   void                set_attr(unsigned int x, unsigned int y, unsigned int n, int attr, int color) { mvwchgat(m_window, y, x, n, attr, color, NULL); }
 
-  void                set_default_attributes(int attr)                            { wattrset(m_window, attr); }
+  void                set_default_attributes(int attr)                            { (void)wattrset(m_window, attr); }
 
   // Initialize stdscr.
   static void         initialize();

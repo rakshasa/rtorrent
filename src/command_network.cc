@@ -241,7 +241,7 @@ int64_t
 cg_get_index(const torrent::Object& raw_args) {
   const torrent::Object& arg = (raw_args.is_list() && !raw_args.as_list().empty()) ? raw_args.as_list().front() : raw_args;
 
-  int64_t index = 0;
+  size_t index = 0;
 
   if (arg.is_string()) {
     if (!rpc::parse_whole_value_nothrow(arg.as_string().c_str(), &index))
@@ -322,7 +322,7 @@ cg_get_index(const torrent::Object& raw_args) {
   if (index < 0)
     index = (int64_t)cg_list_hack.size() + index;
 
-  if (index >= cg_list_hack.size())
+  if ((size_t)index >= cg_list_hack.size())
     throw torrent::input_error("Choke group not found.");
 
   return index;
@@ -332,7 +332,7 @@ torrent::choke_group*
 cg_get_group(const torrent::Object& raw_args) {
   int64_t index = cg_get_index(raw_args);
 
-  if (index >= cg_list_hack.size())
+  if ((size_t)index >= cg_list_hack.size())
     throw torrent::input_error("Choke group not found.");
 
   return cg_list_hack.at(index);

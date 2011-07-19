@@ -246,7 +246,7 @@ log_vmmap_dump(const std::string& str) {
   FILE* log_file = fopen(str.c_str(), "w");
 
   for (std::vector<torrent::vm_mapping>::iterator itr = all_mappings.begin(), last = all_mappings.end(); itr != last; itr++) {
-    fprintf(log_file, "%8p-%8p [%5llxk]\n", itr->ptr, (char*)itr->ptr + itr->length, itr->length / 1024);
+    fprintf(log_file, "%8p-%8p [%5llxk]\n", itr->ptr, (char*)itr->ptr + itr->length, (long long unsigned int)(itr->length / 1024));
   }
 
   fclose(log_file);

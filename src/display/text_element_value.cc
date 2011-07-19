@@ -124,7 +124,7 @@ TextElementValueBase::print(char* first, char* last, Canvas::attributes_list* at
     first += std::min<ptrdiff_t>(std::max(snprintf(first, last - first + 1, "%2d:%02d:%02d", u->tm_hour, u->tm_min, u->tm_sec), 0), last - first + 1);
 
   } else {
-    first += std::min<ptrdiff_t>(std::max(snprintf(first, last - first + 1, "%lld", val), 0), last - first + 1);
+    first += std::min<ptrdiff_t>(std::max(snprintf(first, last - first + 1, "%lld", (long long int)val), 0), last - first + 1);
   }
 
   push_attribute(attributes, Attributes(first, baseAttribute));
