@@ -75,6 +75,16 @@ DownloadList::check_contains(Download* d) {
 }
 
 void
+DownloadList::trigger_event(Download* d, const char* event_name) {
+  try {
+    rpc::commands.call(event_name, rpc::make_target(d), torrent::Object());
+
+  } catch (torrent::input_error& e) {
+    control->core()->push_log(("Event '" + std::string(event_name) + "' failed: " + std::string(e.what())).c_str());
+  }
+}
+
+void
 DownloadList::clear() {
   std::for_each(begin(), end(), std::bind1st(std::mem_fun(&DownloadList::close), this));
   std::for_each(begin(), end(), rak::call_delete<Download>());

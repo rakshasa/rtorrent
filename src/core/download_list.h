@@ -155,6 +155,8 @@ private:
   DownloadList(const DownloadList&);
   void operator = (const DownloadList&);
 
+  void                trigger_event(Download* d, const char* event_name);
+
   void                hash_done(Download* d);
   void                hash_queue(Download* d, int type);
 
