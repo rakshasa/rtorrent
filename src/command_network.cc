@@ -241,10 +241,10 @@ int64_t
 cg_get_index(const torrent::Object& raw_args) {
   const torrent::Object& arg = (raw_args.is_list() && !raw_args.as_list().empty()) ? raw_args.as_list().front() : raw_args;
 
-  size_t index = 0;
+  int64_t index = 0;
 
   if (arg.is_string()) {
-    if (!rpc::parse_whole_value_nothrow(arg.as_string().c_str(), (int64_t*)&index))
+    if (!rpc::parse_whole_value_nothrow(arg.as_string().c_str(), &index))
       return torrent::resource_manager()->group_index_of(arg.as_string());
 
   } else {
