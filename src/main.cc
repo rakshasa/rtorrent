@@ -44,6 +44,7 @@
 #include <torrent/torrent.h>
 #include <torrent/exceptions.h>
 #include <rak/functional.h>
+#include <rak/error_number.h>
 
 #ifdef USE_EXECINFO
 #include <execinfo.h>
@@ -73,6 +74,7 @@
 #include "thread_main.h"
 #include "thread_worker.h"
 
+void handle_sigbus(int signum, siginfo_t* sa, void* ptr);
 void do_panic(int signum);
 void print_help();
 void initialize_commands();
@@ -178,8 +180,9 @@ main(int argc, char** argv) {
     SignalHandler::set_handler(SIGWINCH, sigc::mem_fun(control->display(), &display::Manager::force_redraw));
     SignalHandler::set_handler(SIGSEGV,  sigc::bind(sigc::ptr_fun(&do_panic), SIGSEGV));
     SignalHandler::set_handler(SIGILL,   sigc::bind(sigc::ptr_fun(&do_panic), SIGILL));
-    SignalHandler::set_handler(SIGBUS,   sigc::bind(sigc::ptr_fun(&do_panic), SIGBUS));
     SignalHandler::set_handler(SIGFPE,   sigc::bind(sigc::ptr_fun(&do_panic), SIGFPE));
+
+    SignalHandler::set_sigaction_handler(SIGBUS, &handle_sigbus);
 
     // SIGUSR1 is used for interrupting polling, forcing that thread
     // to process new non-socket events.
@@ -875,6 +878,55 @@ main(int argc, char** argv) {
   delete main_thread;
 
   return 0;
+}
+
+void
+handle_sigbus(int signum, siginfo_t* sa, void* ptr) {
+  if (signum != SIGBUS)
+    do_panic(signum);
+
+  SignalHandler::set_default(signum);
+  display::Canvas::cleanup();
+
+  // Use printf here instead...
+
+  printf("Caught SIGBUS, dumping stack:\n");
+
+#ifdef USE_EXECINFO
+  void* stackPtrs[20];
+
+  // Print the stack and exit.
+  int stackSize = backtrace(stackPtrs, 20);
+  char** stackStrings = backtrace_symbols(stackPtrs, stackSize);
+
+  for (int i = 0; i < stackSize; ++i)
+    printf("%i %s\n", i, stackStrings[i]);
+
+#else
+  printf("Stack dump not enabled.\n");
+#endif
+  
+  printf("\nError: %s\n", rak::error_number::error_number(sa->si_errno).c_str());
+
+  const char* signal_reason;
+
+  switch (sa->si_code) {
+  case BUS_ADRALN: signal_reason = "Invalid address alignment."; break;
+  case BUS_ADRERR: signal_reason = "Non-existent physical address."; break;
+  case BUS_OBJERR: signal_reason = "Object specific hardware error."; break;
+  default:
+    if (sa->si_code <= 0)
+      signal_reason = "User-generated signal.";
+    else
+      signal_reason = "Unknown.";
+
+    break;
+  };
+
+  printf("Signal code '%i': %s\n", sa->si_code, signal_reason);
+  printf("Fault address: %p.\n", sa->si_addr);
+
+  std::abort();
 }
 
 void
