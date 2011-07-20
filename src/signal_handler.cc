@@ -80,8 +80,9 @@ SignalHandler::set_sigaction_handler(unsigned int signum, handler_slot slot) {
 
   struct sigaction sa;
   sa.sa_sigaction = slot;
-  sa.sa_mask = (sigset_t)0;
   sa.sa_flags = SA_SIGINFO;
+
+  sigemptyset(&sa.sa_mask);
 
   if (sigaction(signum, &sa, NULL) == -1)
     throw std::logic_error("Could not set sigaction: " + std::string(rak::error_number::current().c_str()));
