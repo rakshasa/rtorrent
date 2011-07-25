@@ -43,6 +43,7 @@
 #include <torrent/http.h>
 #include <torrent/torrent.h>
 #include <torrent/exceptions.h>
+#include <torrent/data/chunk_utils.h>
 #include <rak/functional.h>
 #include <rak/error_number.h>
 
@@ -924,7 +925,22 @@ handle_sigbus(int signum, siginfo_t* sa, void* ptr) {
   };
 
   printf("Signal code '%i': %s\n", sa->si_code, signal_reason);
-  printf("Fault address: %p.\n", sa->si_addr);
+  printf("Fault address: %p.\n\n", sa->si_addr);
+
+  // New code for finding the location of the SIGBUS signal, and using
+  // that to figure out how to recover.
+  torrent::chunk_info_result result = torrent::chunk_list_address_info(sa->si_addr);
+
+  if (!result.download.is_valid()) {
+    printf("The fault address is not part of any chunk.\n");
+    std::abort();
+  }
+
+  printf("Torrent name: '%s'.\n", result.download.info()->name().c_str());
+  printf("File name:    '%s'.\n", result.file_path);
+  printf("File offset:  %llu.\n", result.file_offset);
+  printf("Chunk index:  %u.\n", result.chunk_index);
+  printf("Chunk offset: %u.\n", result.chunk_offset);
 
   std::abort();
 }
