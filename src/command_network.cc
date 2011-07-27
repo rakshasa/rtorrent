@@ -43,15 +43,12 @@
 #include <rak/path.h>
 #include <torrent/connection_manager.h>
 #include <torrent/dht_manager.h>
-#include <torrent/throttle.h>
 #include <torrent/tracker.h>
 #include <torrent/tracker_list.h>
 #include <torrent/torrent.h>
 #include <torrent/rate.h>
 #include <torrent/data/file_manager.h>
 #include <torrent/download/resource_manager.h>
-#include <torrent/download/choke_group.h>
-#include <torrent/download/choke_queue.h>
 #include <torrent/peer/peer_list.h>
 #include <torrent/utils/option_strings.h>
 
@@ -68,139 +65,16 @@
 #include "command_helpers.h"
 
 torrent::Object
-apply_throttle(const torrent::Object::list_type& args, bool up) {
-  torrent::Object::list_const_iterator argItr = args.begin();
-
-  const std::string& name = argItr->as_string();
-  if (name.empty() || name == "NULL")
-    throw torrent::input_error("Invalid throttle name.");
-
-  if ((++argItr)->as_string().empty())
-    return torrent::Object();
-
-  int64_t rate;
-  rpc::parse_whole_value_nothrow(argItr->as_string().c_str(), &rate);
-
-  if (rate < 0)
-    throw torrent::input_error("Throttle rate must be non-negative.");
-
-  core::ThrottleMap::iterator itr = control->core()->throttles().find(name);
-  if (itr == control->core()->throttles().end())
-    itr = control->core()->throttles().insert(std::make_pair(name, torrent::ThrottlePair(NULL, NULL))).first;
-
-  torrent::Throttle*& throttle = up ? itr->second.first : itr->second.second;
-  if (rate != 0 && throttle == NULL)
-    throttle = (up ? torrent::up_throttle_global() : torrent::down_throttle_global())->create_slave();
-
-  if (throttle != NULL)
-    throttle->set_max_rate(rate * 1024);
-
-  return torrent::Object();
-}
-
-static const int throttle_info_up   = (1 << 0);
-static const int throttle_info_down = (1 << 1);
-static const int throttle_info_max  = (1 << 2);
-static const int throttle_info_rate = (1 << 3);
-
-torrent::Object
-retrieve_throttle_info(const torrent::Object::string_type& name, int flags) {
-  core::ThrottleMap::iterator itr = control->core()->throttles().find(name);
-  torrent::ThrottlePair throttles = itr == control->core()->throttles().end() ? torrent::ThrottlePair(NULL, NULL) : itr->second;
-  torrent::Throttle* throttle = flags & throttle_info_down ? throttles.second : throttles.first;
-  torrent::Throttle* global = flags & throttle_info_down ? torrent::down_throttle_global() : torrent::up_throttle_global();
-
-  if (throttle == NULL && name.empty())
-    throttle = global;
-
-  if (throttle == NULL)
-    return flags & throttle_info_rate ? (int64_t)0 : (int64_t)-1;
-  else if (!throttle->is_throttled() || !global->is_throttled())
-    return (int64_t)0;
-  else if (flags & throttle_info_rate)
-    return (int64_t)throttle->rate()->rate();
-  else
-    return (int64_t)throttle->max_rate();
-}
-
-std::pair<uint32_t, uint32_t>
-parse_address_range(const torrent::Object::list_type& args, torrent::Object::list_type::const_iterator itr) {
-  unsigned int prefixWidth, ret;
-  char dummy;
-  char host[1024];
-  rak::address_info* ai;
-
-  ret = std::sscanf(itr->as_string().c_str(), "%1023[^/]/%d%c", host, &prefixWidth, &dummy);
-  if (ret < 1 || rak::address_info::get_address_info(host, PF_INET, SOCK_STREAM, &ai) != 0)
-    throw torrent::input_error("Could not resolve host.");
-
-  uint32_t begin, end;
-  rak::socket_address sa;
-  sa.copy(*ai->address(), ai->length());
-  begin = end = sa.sa_inet()->address_h();
-  rak::address_info::free_address_info(ai);
-
-  if (ret == 2) {
-    if (++itr != args.end())
-      throw torrent::input_error("Cannot specify both network and range end.");
-
-    uint32_t netmask = std::numeric_limits<uint32_t>::max() << (32 - prefixWidth);
-    if (prefixWidth >= 32 || sa.sa_inet()->address_h() & ~netmask)
-      throw torrent::input_error("Invalid address/prefix.");
-
-    end = sa.sa_inet()->address_h() | ~netmask;
-
-  } else if (++itr != args.end()) {
-    if (rak::address_info::get_address_info(itr->as_string().c_str(), PF_INET, SOCK_STREAM, &ai) != 0)
-      throw torrent::input_error("Could not resolve host.");
-
-    sa.copy(*ai->address(), ai->length());
-    rak::address_info::free_address_info(ai);
-    end = sa.sa_inet()->address_h();
-  }
-
-  // convert to [begin, end) making sure the end doesn't overflow
-  // (this precludes 255.255.255.255 from ever matching, but that's not a real IP anyway)
-  return std::make_pair<uint32_t, uint32_t>(begin, std::max(end, end + 1));
-}
-
-torrent::Object
-apply_address_throttle(const torrent::Object::list_type& args) {
-  if (args.size() < 2 || args.size() > 3)
-    throw torrent::input_error("Incorrect number of arguments.");
-
-  std::pair<uint32_t, uint32_t> range = parse_address_range(args, ++args.begin());
-  core::ThrottleMap::iterator throttleItr = control->core()->throttles().find(args.begin()->as_string().c_str());
-  if (throttleItr == control->core()->throttles().end())
-    throw torrent::input_error("Throttle not found.");
-
-  control->core()->set_address_throttle(range.first, range.second, throttleItr->second);
-  return torrent::Object();
-}
-
-torrent::Object
 apply_encryption(const torrent::Object::list_type& args) {
   uint32_t options_mask = torrent::ConnectionManager::encryption_none;
 
   for (torrent::Object::list_const_iterator itr = args.begin(), last = args.end(); itr != last; itr++) {
-    const std::string& opt = itr->as_string();
+    uint32_t opt = torrent::option_find_string(torrent::OPTION_ENCRYPTION, itr->as_string().c_str());
 
-    if (opt == "none")
+    if (opt == torrent::ConnectionManager::encryption_none)
       options_mask = torrent::ConnectionManager::encryption_none;
-    else if (opt == "allow_incoming")
-      options_mask |= torrent::ConnectionManager::encryption_allow_incoming;
-    else if (opt == "try_outgoing")
-      options_mask |= torrent::ConnectionManager::encryption_try_outgoing;
-    else if (opt == "require")
-      options_mask |= torrent::ConnectionManager::encryption_require;
-    else if (opt == "require_RC4" || opt == "require_rc4")
-      options_mask |= torrent::ConnectionManager::encryption_require_RC4;
-    else if (opt == "enable_retry")
-      options_mask |= torrent::ConnectionManager::encryption_enable_retry;
-    else if (opt == "prefer_plaintext")
-      options_mask |= torrent::ConnectionManager::encryption_prefer_plaintext;
     else
-      throw torrent::input_error("Invalid encryption option.");
+      options_mask |= opt;
   }
 
   torrent::connection_manager()->set_encryption_options(options_mask);
@@ -211,217 +85,11 @@ apply_encryption(const torrent::Object::list_type& args) {
 torrent::Object
 apply_tos(const torrent::Object::string_type& arg) {
   rpc::command_base::value_type value;
-  torrent::ConnectionManager* cm = torrent::connection_manager();
 
-  if (arg == "default")
-    value = torrent::ConnectionManager::iptos_default;
-  else if (arg == "lowdelay")
-    value = torrent::ConnectionManager::iptos_lowdelay;
-  else if (arg == "throughput")
-    value = torrent::ConnectionManager::iptos_throughput;
-  else if (arg == "reliability")
-    value = torrent::ConnectionManager::iptos_reliability;
-  else if (arg == "mincost")
-    value = torrent::ConnectionManager::iptos_mincost;
-  else if (!rpc::parse_whole_value_nothrow(arg.c_str(), &value, 16, 1))
-    throw torrent::input_error("Invalid TOS identifier.");
+  if (!rpc::parse_whole_value_nothrow(arg.c_str(), &value, 16, 1))
+    value = torrent::option_find_string(torrent::OPTION_IP_TOS, arg.c_str());
 
-  cm->set_priority(value);
-
-  return torrent::Object();
-}
-
-// A hack to allow testing of the new choke_group API without the
-// working parts present.
-#define USE_CHOKE_GROUP 0
-
-#if USE_CHOKE_GROUP
-
-int64_t
-cg_get_index(const torrent::Object& raw_args) {
-  const torrent::Object& arg = (raw_args.is_list() && !raw_args.as_list().empty()) ? raw_args.as_list().front() : raw_args;
-
-  int64_t index = 0;
-
-  if (arg.is_string()) {
-    if (!rpc::parse_whole_value_nothrow(arg.as_string().c_str(), &index))
-      return torrent::resource_manager()->group_index_of(arg.as_string());
-
-  } else {
-    index = arg.as_value();
-  }
-
-  if (index < 0)
-    index = (int64_t)torrent::resource_manager()->group_size() + index;
-
-  return std::min<uint64_t>(index, torrent::resource_manager()->group_size());
-}
-
-torrent::choke_group*
-cg_get_group(const torrent::Object& raw_args) {
-  return torrent::resource_manager()->group_at(cg_get_index(raw_args));
-}
-
-torrent::Object
-apply_cg_list() {
-  torrent::Object::list_type result;
-  
-  for (torrent::ResourceManager::group_iterator
-         itr = torrent::resource_manager()->group_begin(),
-         last = torrent::resource_manager()->group_end(); itr != last; itr++)
-    result.push_back((*itr)->name());
-
-  return torrent::Object::from_list(result);
-}
-
-torrent::Object
-apply_cg_insert(const std::string& arg) {
-  int64_t dummy;
-
-  if (rpc::parse_whole_value_nothrow(arg.c_str(), &dummy))
-    throw torrent::input_error("Cannot use a value string as choke group name.");
-
-  torrent::resource_manager()->push_group(arg);
-
-  return torrent::Object();
-}
-
-//
-// The hacked version:
-//
-#else
-
-std::vector<torrent::choke_group*> cg_list_hack;
-
-int64_t
-cg_get_index(const torrent::Object& raw_args) {
-  if (cg_list_hack.empty()) {
-    cg_list_hack.push_back(new torrent::choke_group());
-    cg_list_hack.back()->set_name("default");
-  }
-
-  const torrent::Object& arg = (raw_args.is_list() && !raw_args.as_list().empty()) ? raw_args.as_list().front() : raw_args;
-
-  int64_t index = 0;
-
-  if (arg.is_string()) {
-    if (!rpc::parse_whole_value_nothrow(arg.as_string().c_str(), &index)) {
-      std::vector<torrent::choke_group*>::iterator itr = std::find_if(cg_list_hack.begin(), cg_list_hack.end(),
-                                                                      rak::equal(arg.as_string(), std::mem_fun(&torrent::choke_group::name)));
-
-      if (itr == cg_list_hack.end())
-        throw torrent::input_error("Choke group not found.");
-
-      return std::distance(cg_list_hack.begin(), itr);
-    }
-
-  } else {
-    index = arg.as_value();
-  }
-
-  if (index < 0)
-    index = (int64_t)cg_list_hack.size() + index;
-
-  if ((size_t)index >= cg_list_hack.size())
-    throw torrent::input_error("Choke group not found.");
-
-  return index;
-}
-
-torrent::choke_group*
-cg_get_group(const torrent::Object& raw_args) {
-  int64_t index = cg_get_index(raw_args);
-
-  if ((size_t)index >= cg_list_hack.size())
-    throw torrent::input_error("Choke group not found.");
-
-  return cg_list_hack.at(index);
-}
-
-torrent::Object
-apply_cg_list() {
-  torrent::Object::list_type result;
-  
-  for (std::vector<torrent::choke_group*>::iterator itr = cg_list_hack.begin(), last = cg_list_hack.end(); itr != last; itr++)
-    result.push_back((*itr)->name());
-
-  return torrent::Object::from_list(result);
-}
-
-torrent::Object
-apply_cg_insert(const std::string& arg) {
-  int64_t dummy;
-
-  if (rpc::parse_whole_value_nothrow(arg.c_str(), &dummy))
-    throw torrent::input_error("Cannot use a value string as choke group name.");
-
-  if (arg.empty() ||
-      std::find_if(cg_list_hack.begin(), cg_list_hack.end(),
-                   rak::equal(arg, std::mem_fun(&torrent::choke_group::name))) != cg_list_hack.end())
-    throw torrent::input_error("Duplicate name for choke group.");
-
-  cg_list_hack.push_back(new torrent::choke_group());
-  cg_list_hack.back()->set_name(arg);
-
-  return torrent::Object();
-}
-
-torrent::Object
-apply_cg_index_of(const std::string& arg) {
-  std::vector<torrent::choke_group*>::iterator itr =
-    std::find_if(cg_list_hack.begin(), cg_list_hack.end(), rak::equal(arg, std::mem_fun(&torrent::choke_group::name)));
-
-  if (itr == cg_list_hack.end())
-    throw torrent::input_error("Choke group not found.");
-
-  return std::distance(cg_list_hack.begin(), itr);
-}
-
-//
-// End of choke group hack.
-//
-#endif
-
-
-torrent::Object
-apply_cg_max_set(const torrent::Object::list_type& args, bool is_up) {
-  if (args.size() != 2)
-    throw torrent::input_error("Incorrect number of arguments.");
-
-  int64_t second_arg = 0;
-  rpc::parse_whole_value(args.back().as_string().c_str(), &second_arg);
-
-  if (is_up)
-    cg_get_group(args.front())->up_queue()->set_max_unchoked(second_arg);
-  else
-    cg_get_group(args.front())->down_queue()->set_max_unchoked(second_arg);
-
-  return torrent::Object();
-}
-
-torrent::Object
-apply_cg_heuristics_set(const torrent::Object::list_type& args, bool is_up) {
-  if (args.size() != 2)
-    throw torrent::input_error("Incorrect number of arguments.");
-
-  int t = torrent::option_find_string(torrent::OPTION_CHOKE_HEURISTICS, args.back().as_string().c_str());
-
-  if (is_up)
-    cg_get_group(args.front())->up_queue()->set_heuristics((torrent::choke_queue::heuristics_enum)t);
-  else
-    cg_get_group(args.front())->down_queue()->set_heuristics((torrent::choke_queue::heuristics_enum)t);
-
-  return torrent::Object();
-}
-
-torrent::Object
-apply_cg_tracker_mode_set(const torrent::Object::list_type& args) {
-  if (args.size() != 2)
-    throw torrent::input_error("Incorrect number of arguments.");
-
-  int t = torrent::option_find_string(torrent::OPTION_TRACKER_MODE, args.back().as_string().c_str());
-
-  cg_get_group(args.front())->set_tracker_mode((torrent::choke_group::tracker_mode_enum)t);
+  torrent::connection_manager()->set_priority(value);
 
   return torrent::Object();
 }
@@ -806,14 +474,16 @@ apply_ipv4_filter_load(const torrent::Object::list_type& args) {
   return torrent::Object();
 }
 
-#define CG_GROUP_AT()          std::bind(&cg_get_group, std::placeholders::_2)
-#define CHOKE_GROUP(direction) std::bind(direction, CG_GROUP_AT())
-
 void
 initialize_command_network() {
   torrent::ConnectionManager* cm = torrent::connection_manager();
   torrent::FileManager* fileManager = torrent::file_manager();
   core::CurlStack* httpStack = control->core()->http_stack();
+
+  CMD2_ANY         ("strings.connection_type", std::bind(&torrent::option_list_strings, torrent::OPTION_CONNECTION_TYPE));
+  CMD2_ANY         ("strings.encryption",      std::bind(&torrent::option_list_strings, torrent::OPTION_ENCRYPTION));
+  CMD2_ANY         ("strings.ip_filter",       std::bind(&torrent::option_list_strings, torrent::OPTION_IP_FILTER));
+  CMD2_ANY         ("strings.ip_tos",          std::bind(&torrent::option_list_strings, torrent::OPTION_IP_TOS));
 
   CMD2_VAR_BOOL    ("log.handshake", false);
   CMD2_VAR_STRING  ("log.tracker",   "");
@@ -836,83 +506,6 @@ initialize_command_network() {
   CMD2_VAR_STRING  ("protocol.choke_heuristics.up.seed",  "upload_leech");
   CMD2_VAR_STRING  ("protocol.choke_heuristics.down.leech", "download_leech");
   CMD2_VAR_STRING  ("protocol.choke_heuristics.down.seed",  "download_leech");
-
-  CMD2_ANY         ("choke_group.list",                std::bind(&apply_cg_list));
-  CMD2_ANY_STRING  ("choke_group.insert",              std::bind(&apply_cg_insert, std::placeholders::_2));
-
-#if USE_CHOKE_GROUP
-  CMD2_ANY         ("choke_group.size",                std::bind(&torrent::ResourceManager::group_size, torrent::resource_manager()));
-  CMD2_ANY_STRING  ("choke_group.index_of",            std::bind(&torrent::ResourceManager::group_index_of, torrent::resource_manager(), std::placeholders::_2));
-#else
-  CMD2_ANY         ("choke_group.size",                std::bind(&std::vector<torrent::choke_group*>::size, cg_list_hack));
-  CMD2_ANY_STRING  ("choke_group.index_of",            std::bind(&apply_cg_index_of, std::placeholders::_2));
-#endif
-
-  CMD2_ANY         ("choke_group.general.size",        std::bind(&torrent::choke_group::size, CG_GROUP_AT()));
-
-  CMD2_ANY         ("choke_group.tracker.mode",        std::bind(&torrent::option_as_string, torrent::OPTION_TRACKER_MODE,
-                                                                 std::bind(&torrent::choke_group::tracker_mode, CG_GROUP_AT())));
-  CMD2_ANY_LIST    ("choke_group.tracker.mode.set",    std::bind(&apply_cg_tracker_mode_set, std::placeholders::_2));
-
-  CMD2_ANY         ("choke_group.up.rate",             std::bind(&torrent::choke_group::up_rate, CG_GROUP_AT()));
-  CMD2_ANY         ("choke_group.down.rate",           std::bind(&torrent::choke_group::down_rate, CG_GROUP_AT()));
-
-  CMD2_ANY         ("choke_group.up.max",              std::bind(&torrent::choke_queue::max_unchoked, CHOKE_GROUP(&torrent::choke_group::up_queue)));
-  CMD2_ANY_LIST    ("choke_group.up.max.set",          std::bind(&apply_cg_max_set, std::placeholders::_2, true));
-
-  CMD2_ANY         ("choke_group.up.total",            std::bind(&torrent::choke_queue::size_total, CHOKE_GROUP(&torrent::choke_group::up_queue)));
-  CMD2_ANY         ("choke_group.up.queued",           std::bind(&torrent::choke_queue::size_queued, CHOKE_GROUP(&torrent::choke_group::up_queue)));
-  CMD2_ANY         ("choke_group.up.unchoked",         std::bind(&torrent::choke_queue::size_unchoked, CHOKE_GROUP(&torrent::choke_group::up_queue)));
-  CMD2_ANY         ("choke_group.up.heuristics",       std::bind(&torrent::option_as_string, torrent::OPTION_CHOKE_HEURISTICS,
-                                                                 std::bind(&torrent::choke_queue::heuristics, CHOKE_GROUP(&torrent::choke_group::up_queue))));
-  CMD2_ANY_LIST    ("choke_group.up.heuristics.set",   std::bind(&apply_cg_heuristics_set, std::placeholders::_2, true));
-
-  CMD2_ANY         ("choke_group.down.max",            std::bind(&torrent::choke_queue::max_unchoked, CHOKE_GROUP(&torrent::choke_group::down_queue)));
-  CMD2_ANY_LIST    ("choke_group.down.max.set",        std::bind(&apply_cg_max_set, std::placeholders::_2, false));
-  CMD2_ANY         ("choke_group.down.total",          std::bind(&torrent::choke_queue::size_total, CHOKE_GROUP(&torrent::choke_group::down_queue)));
-  CMD2_ANY         ("choke_group.down.queued",         std::bind(&torrent::choke_queue::size_queued, CHOKE_GROUP(&torrent::choke_group::down_queue)));
-  CMD2_ANY         ("choke_group.down.unchoked",       std::bind(&torrent::choke_queue::size_unchoked, CHOKE_GROUP(&torrent::choke_group::down_queue)));
-  CMD2_ANY_LIST    ("choke_group.down.heuristics.set", std::bind(&apply_cg_heuristics_set, std::placeholders::_2, false));
-  CMD2_ANY         ("choke_group.down.heuristics",     std::bind(&torrent::option_as_string, torrent::OPTION_CHOKE_HEURISTICS,
-                                                                 std::bind(&torrent::choke_queue::heuristics, CHOKE_GROUP(&torrent::choke_group::down_queue))));
-
-  CMD2_ANY         ("throttle.unchoked_uploads",   std::bind(&torrent::ResourceManager::currently_upload_unchoked, torrent::resource_manager()));
-  CMD2_ANY         ("throttle.unchoked_downloads", std::bind(&torrent::ResourceManager::currently_download_unchoked, torrent::resource_manager()));
-
-  CMD2_VAR_VALUE   ("throttle.min_peers.normal", 100);
-  CMD2_VAR_VALUE   ("throttle.max_peers.normal", 200);
-  CMD2_VAR_VALUE   ("throttle.min_peers.seed",   -1);
-  CMD2_VAR_VALUE   ("throttle.max_peers.seed",   -1);
-
-  CMD2_VAR_VALUE   ("throttle.max_uploads",      50);
-
-  CMD2_VAR_VALUE   ("throttle.max_uploads.div",      1);
-  CMD2_VAR_VALUE   ("throttle.max_uploads.global",   0);
-  CMD2_VAR_VALUE   ("throttle.max_downloads.div",    1);
-  CMD2_VAR_VALUE   ("throttle.max_downloads.global", 0);
-
-  // TODO: Move the logic into some libtorrent function.
-  CMD2_ANY         ("throttle.global_up.rate",              std::bind(&torrent::Rate::rate, torrent::up_rate()));
-  CMD2_ANY         ("throttle.global_up.total",             std::bind(&torrent::Rate::total, torrent::up_rate()));
-  CMD2_ANY         ("throttle.global_up.max_rate",          std::bind(&torrent::Throttle::max_rate, torrent::up_throttle_global()));
-  CMD2_ANY_VALUE_V ("throttle.global_up.max_rate.set",      std::bind(&ui::Root::set_up_throttle_i64, control->ui(), std::placeholders::_2));
-  CMD2_ANY_VALUE_KB("throttle.global_up.max_rate.set_kb",   std::bind(&ui::Root::set_up_throttle_i64, control->ui(), std::placeholders::_2));
-  CMD2_ANY         ("throttle.global_down.rate",            std::bind(&torrent::Rate::rate, torrent::down_rate()));
-  CMD2_ANY         ("throttle.global_down.total",           std::bind(&torrent::Rate::total, torrent::down_rate()));
-  CMD2_ANY         ("throttle.global_down.max_rate",        std::bind(&torrent::Throttle::max_rate, torrent::down_throttle_global()));
-  CMD2_ANY_VALUE_V ("throttle.global_down.max_rate.set",    std::bind(&ui::Root::set_down_throttle_i64, control->ui(), std::placeholders::_2));
-  CMD2_ANY_VALUE_KB("throttle.global_down.max_rate.set_kb", std::bind(&ui::Root::set_down_throttle_i64, control->ui(), std::placeholders::_2));
-
-  // Temporary names, need to change this to accept real rates rather
-  // than kB.
-  CMD2_ANY_LIST    ("throttle.up",                          std::bind(&apply_throttle, std::placeholders::_2, true));
-  CMD2_ANY_LIST    ("throttle.down",                        std::bind(&apply_throttle, std::placeholders::_2, false));
-  CMD2_ANY_LIST    ("throttle.ip",                          std::bind(&apply_address_throttle, std::placeholders::_2));
-
-  CMD2_ANY_STRING  ("throttle.up.max",    std::bind(&retrieve_throttle_info, std::placeholders::_2, throttle_info_up | throttle_info_max));
-  CMD2_ANY_STRING  ("throttle.up.rate",   std::bind(&retrieve_throttle_info, std::placeholders::_2, throttle_info_up | throttle_info_rate));
-  CMD2_ANY_STRING  ("throttle.down.max",  std::bind(&retrieve_throttle_info, std::placeholders::_2, throttle_info_down | throttle_info_max));
-  CMD2_ANY_STRING  ("throttle.down.rate", std::bind(&retrieve_throttle_info, std::placeholders::_2, throttle_info_down | throttle_info_rate));
 
   CMD2_ANY         ("network.http.capath",              std::bind(&core::CurlStack::http_capath, httpStack));
   CMD2_ANY_STRING_V("network.http.capath.set",          std::bind(&core::CurlStack::set_http_capath, httpStack, std::placeholders::_2));
