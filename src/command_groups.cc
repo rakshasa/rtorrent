@@ -113,11 +113,6 @@ std::vector<torrent::choke_group*> cg_list_hack;
 
 int64_t
 cg_get_index(const torrent::Object& raw_args) {
-  if (cg_list_hack.empty()) {
-    cg_list_hack.push_back(new torrent::choke_group());
-    cg_list_hack.back()->set_name("default");
-  }
-
   const torrent::Object& arg = (raw_args.is_list() && !raw_args.as_list().empty()) ? raw_args.as_list().front() : raw_args;
 
   int64_t index = 0;
@@ -247,6 +242,65 @@ apply_cg_tracker_mode_set(const torrent::Object::list_type& args) {
 #define CG_GROUP_AT()          std::bind(&cg_get_group, std::placeholders::_2)
 #define CHOKE_GROUP(direction) std::bind(direction, CG_GROUP_AT())
 
+/*
+
+<cg_index> -> '0'..'(choke_group.size)'
+           -> '-1'..'-(choke_group.size)'
+           -> '<group_name>'
+
+(choke_group.list) -> List of group names.
+(choke_group.size) -> Number of groups.
+
+(choke_group.insert,"group_name")
+
+Adds a new group with default settings, use index '-1' to accessing it
+immediately afterwards.
+
+(choke_group.index_of,"group_name") -> <group_index>
+
+Throws if the group name was not found.
+
+(choke_group.general.size,<cg_index>) -> <size>
+
+Number of torrents in this group.
+
+(choke_group.tracker.mode,<cg_index>) -> "tracker_mode"
+(choke_group.tracker.mode.set,<cg_index>,"tracker_mode")
+
+Decide on how aggressive a tracker should be, see
+'strings.tracker_mode' for list of available options
+
+(choke_group.up.rate,<cg_index>) -> <bytes/second>
+(choke_group.down.rate,<cg_index>) -> <bytes/second>
+
+Upload / download rate for the aggregate of all torrents in this
+particular group.
+
+(choke_group.up.max,<cg_index>) -> <max_upload_slots>
+(choke_group.up.max.set,<cg_index>, <max_upload_slots>)
+(choke_group.down.max,<cg_index>) -> <max_download_slots>
+(choke_group.down.max.set,<cg_index>, <max_download_slots)
+
+Number of unchoked upload / download peers regulated on a group basis.
+
+(choke_group.up.total,<cg_index>) -> <number of queued and unchoked interested peers>
+(choke_group.up.queued,<cg_index>) -> <number of queued interested peers>
+(choke_group.up.unchoked,<cg_index>) -> <number of unchoked uploads>
+(choke_group.down.total,<cg_index>) -> <number of queued and unchoked interested peers>
+(choke_group.down.queued,<cg_index>) -> <number of queued interested peers>
+(choke_group.down.unchoked,<cg_index>) -> <number of unchoked uploads>
+
+(choke_group.up.heuristics,<cg_index>) -> "heuristics"
+(choke_group.up.heuristics.set,<cg_index>,"heuristics")
+(choke_group.down.heuristics,<cg_index>) -> "heuristics"
+(choke_group.down.heuristics.set,<cg_index>,"heuristics")
+
+Heuristics used for deciding what peers to choke and unchoke, see
+'strings.choke_heuristics' for a list of available options.
+
+ */
+
+
 void
 initialize_command_groups() {
   // Move somewhere else?
@@ -260,6 +314,9 @@ initialize_command_groups() {
   CMD2_ANY         ("choke_group.size",                std::bind(&torrent::ResourceManager::group_size, torrent::resource_manager()));
   CMD2_ANY_STRING  ("choke_group.index_of",            std::bind(&torrent::ResourceManager::group_index_of, torrent::resource_manager(), std::placeholders::_2));
 #else
+  cg_list_hack.push_back(new torrent::choke_group());
+  cg_list_hack.back()->set_name("default");
+
   CMD2_ANY         ("choke_group.size",                std::bind(&std::vector<torrent::choke_group*>::size, cg_list_hack));
   CMD2_ANY_STRING  ("choke_group.index_of",            std::bind(&apply_cg_index_of, std::placeholders::_2));
 #endif

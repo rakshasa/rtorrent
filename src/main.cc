@@ -907,7 +907,7 @@ handle_sigbus(int signum, siginfo_t* sa, void* ptr) {
   printf("Stack dump not enabled.\n");
 #endif
   
-  printf("\nError: %s\n", rak::error_number::error_number(sa->si_errno).c_str());
+  printf("\nError: %s\n", rak::error_number(sa->si_errno).c_str());
 
   const char* signal_reason;
 
