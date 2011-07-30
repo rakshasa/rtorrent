@@ -71,7 +71,8 @@ public:
   Download(download_type d);
   ~Download();
 
-  const torrent::DownloadInfo* info() const                    { return m_download.info(); }
+  const torrent::DownloadInfo*  info() const                    { return m_download.info(); }
+  const torrent::download_data* data() const                    { return m_download.data(); }
 
   torrent::DownloadMain* main()                                { return m_download.main(); }
 

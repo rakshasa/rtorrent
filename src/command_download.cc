@@ -49,6 +49,7 @@
 #include <torrent/throttle.h>
 #include <torrent/tracker.h>
 #include <torrent/connection_manager.h>
+#include <torrent/data/download_data.h>
 #include <torrent/data/file.h>
 #include <torrent/data/file_list.h>
 #include <torrent/download/resource_manager.h>
@@ -551,9 +552,8 @@ d_list_remove(core::Download* download, const torrent::Object& rawArgs, const ch
   return torrent::Object();
 }
 
-#define CMD_ON_INFO(func) rak::on(std::mem_fun(&core::Download::info), std::mem_fun(&torrent::DownloadInfo::func))
-
 #define CMD2_ON_INFO(func) std::bind(&torrent::DownloadInfo::func, std::bind(&core::Download::info, std::placeholders::_1))
+#define CMD2_ON_DATA(func) std::bind(&torrent::download_data::func, std::bind(&core::Download::data, std::placeholders::_1))
 #define CMD2_ON_DL(func) std::bind(&torrent::Download::func, std::bind(&core::Download::download, std::placeholders::_1))
 #define CMD2_ON_FL(func) std::bind(&torrent::FileList::func, std::bind(&core::Download::file_list, std::placeholders::_1))
 
@@ -779,6 +779,8 @@ initialize_command_download() {
   CMD2_DL         ("d.completed_bytes",  CMD2_ON_FL(completed_bytes));
   CMD2_DL         ("d.completed_chunks", CMD2_ON_FL(completed_chunks));
   CMD2_DL         ("d.left_bytes",       CMD2_ON_FL(left_bytes));
+
+  CMD2_DL         ("d.wanted_chunks",    CMD2_ON_DATA(wanted_chunks));
 
   CMD2_DL_V       ("d.tracker_announce",     std::bind(&torrent::TrackerList::manual_request, CMD2_BIND_TL, false)); 
   CMD2_DL         ("d.tracker_numwant",      std::bind(&torrent::TrackerList::numwant, CMD2_BIND_TL));

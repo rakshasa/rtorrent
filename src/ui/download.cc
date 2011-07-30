@@ -161,7 +161,7 @@ Download::create_info() {
   element->push_column("File stats:",       te_command("cat=$if=$d.is_multi_file=\\,multi\\,single,\" \",$d.size_files=,\" files\""));
 
   element->push_back("");
-  element->push_column("Chunks:",           te_command("cat=$d.completed_chunks=,\" / \",$d.size_chunks=,\" * \",$d.chunk_size="));
+  element->push_column("Chunks:",           te_command("cat=(d.completed_chunks),\" / \",(d.size_chunks),\" * \",(d.chunk_size),\" (\",(d.wanted_chunks),\")\""));
   element->push_column("Priority:",         te_command("d.priority="));
   element->push_column("Peer exchange:",    te_command("cat=$if=$d.peer_exchange=\\,enabled\\,disabled,\\ ,"
                                                        "$if=$d.is_pex_active=\\,active\\,$d.is_private=\\,private\\,inactive,"
