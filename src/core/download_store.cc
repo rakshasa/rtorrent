@@ -137,7 +137,8 @@ DownloadStore::save(Download* d, int flags) {
   torrent::Object* rtorrent_base = &d->download()->bencode()->get_key("rtorrent");
 
   // Move this somewhere else?
-  rtorrent_base->insert_key("chunks_done", d->download()->file_list()->completed_chunks());
+  rtorrent_base->insert_key("chunks_done",    d->download()->file_list()->completed_chunks());
+  rtorrent_base->insert_key("chunks_wanted",  d->download()->data()->wanted_chunks());
   rtorrent_base->insert_key("total_uploaded", d->info()->up_rate()->total());
 
   // Don't save for completed torrents when we've cleared the uncertain_pieces.

@@ -388,9 +388,8 @@ DownloadFactory::initialize_rtorrent(Download* download, torrent::Object* rtorre
   if (rtorrent->has_key_value("total_uploaded"))
     download->info()->mutable_up_rate()->set_total(rtorrent->get_key_value("total_uploaded"));
 
-  if (rtorrent->has_key_value("chunks_done"))
-    download->download()->set_chunks_done(std::min<uint32_t>(rtorrent->get_key_value("chunks_done"),
-                                                             download->download()->file_list()->size_chunks()));
+  if (rtorrent->has_key_value("chunks_done") && rtorrent->has_key_value("chunks_wanted"))
+    download->download()->set_chunks_done(rtorrent->get_key_value("chunks_done"), rtorrent->get_key_value("chunks_wanted"));
 
   download->set_throttle_name(rtorrent->has_key_string("throttle_name")
                               ? rtorrent->get_key_string("throttle_name")

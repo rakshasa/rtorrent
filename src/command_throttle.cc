@@ -36,6 +36,7 @@
 
 #include "config.h"
 
+#include <cstdio>
 #include <rak/address_info.h>
 #include <torrent/throttle.h>
 #include <torrent/rate.h>
