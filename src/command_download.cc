@@ -563,6 +563,9 @@ d_list_remove(core::Download* download, const torrent::Object& rawArgs, const ch
 #define CMD2_BIND_PL std::bind(&core::Download::c_peer_list, std::placeholders::_1)
 #define CMD2_BIND_TL std::bind(&core::Download::tracker_list, std::placeholders::_1)
 
+#define CMD2_BIND_INFO std::bind(&core::Download::info, std::placeholders::_1)
+#define CMD2_BIND_DATA std::bind(&core::Download::data, std::placeholders::_1)
+
 #define CMD2_DL_VAR_VALUE(key, first_key, second_key)                   \
   CMD2_DL(key, std::bind(&download_get_variable, std::placeholders::_1, first_key, second_key)); \
   CMD2_DL_VALUE_P(key ".set", std::bind(&download_set_variable_value, \
@@ -760,6 +763,12 @@ initialize_command_download() {
 
   CMD2_DL         ("d.peers_complete",      CMD2_ON_DL(peers_complete));
   CMD2_DL         ("d.peers_accounted",     CMD2_ON_DL(peers_accounted));
+
+  CMD2_DL_V       ("d.disconnect.seeders",        std::bind(&torrent::ConnectionList::erase_seeders, CMD2_BIND_CL));
+
+  CMD2_DL         ("d.accepting_seeders",         CMD2_ON_INFO(is_accepting_seeders));
+  CMD2_DL_V       ("d.accepting_seeders.enable",  std::bind(&torrent::DownloadInfo::public_set_flags,   CMD2_BIND_INFO, torrent::DownloadInfo::flag_accepting_seeders));
+  CMD2_DL_V       ("d.accepting_seeders.disable", std::bind(&torrent::DownloadInfo::public_unset_flags, CMD2_BIND_INFO, torrent::DownloadInfo::flag_accepting_seeders));
 
   CMD2_DL         ("d.throttle_name",     std::bind(&download_get_variable, std::placeholders::_1, "rtorrent", "throttle_name"));
   CMD2_DL_STRING_V("d.throttle_name.set", std::bind(&core::Download::set_throttle_name, std::placeholders::_1, std::placeholders::_2));
