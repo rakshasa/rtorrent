@@ -52,7 +52,8 @@ CurlStack::CurlStack() :
   m_handle((void*)curl_multi_init()),
   m_active(0),
   m_maxActive(32),
-  m_ssl_verify_peer(true) {
+  m_ssl_verify_peer(true),
+  m_dns_timeout(60) {
 
   m_taskTimeout.set_slot(rak::mem_fn(this, &CurlStack::receive_timeout));
 
@@ -165,8 +166,8 @@ CurlStack::add_get(CurlGet* get) {
   if (!m_httpCaCert.empty())
     curl_easy_setopt(get->handle(), CURLOPT_CAINFO, m_httpCaCert.c_str());
 
-  if (!m_ssl_verify_peer)
-    curl_easy_setopt(get->handle(), CURLOPT_SSL_VERIFYPEER, 0); 
+  curl_easy_setopt(get->handle(), CURLOPT_SSL_VERIFYPEER, (long)m_ssl_verify_peer); 
+  curl_easy_setopt(get->handle(), CURLOPT_DNS_CACHE_TIMEOUT, m_dns_timeout);
 
   base_type::push_back(get);
 
