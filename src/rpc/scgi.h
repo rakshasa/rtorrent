@@ -52,9 +52,8 @@ namespace rpc {
 class lt_cacheline_aligned SCgi : public torrent::Event {
 public:
   typedef rak::function2<bool, const char*, uint32_t>             slot_write;
-//   typedef rak::function3<bool, const char*, uint32_t, slot_write> slot_process;
 
-  static const int max_tasks = 10;
+  static const int max_tasks = 30;
 
   // Global lock:
   SCgi() : m_logFd(-1) {}
@@ -67,8 +66,6 @@ public:
   void                deactivate();
 
   const std::string&  path() const { return m_path; }
-
-//   void                set_slot_process(slot_process::base_type* s) { m_slotProcess.set(s); }
 
   int                 log_fd() const     { return m_logFd; }
   void                set_log_fd(int fd) { m_logFd = fd; }
@@ -87,7 +84,6 @@ private:
 
   std::string         m_path;
   int                 m_logFd;
-//   slot_process        m_slotProcess;
   SCgiTask            m_task[max_tasks];
 };
 

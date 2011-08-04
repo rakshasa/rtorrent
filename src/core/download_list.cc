@@ -64,6 +64,9 @@
 #include "download_list.h"
 #include "download_store.h"
 
+#define DL_TRIGGER_EVENT(download, event_name) \
+  rpc::commands.call_catch(event_name, rpc::make_target(download), torrent::Object(), "Event '" event_name "' failed: ");
+
 namespace core {
 
 inline void
@@ -72,16 +75,6 @@ DownloadList::check_contains(Download* d) {
   if (std::find(begin(), end(), d) == end())
     throw torrent::internal_error("DownloadList::check_contains(...) failed.");
 #endif
-}
-
-void
-DownloadList::trigger_event(Download* d, const char* event_name) {
-  try {
-    rpc::commands.call(event_name, rpc::make_target(d), torrent::Object());
-
-  } catch (torrent::input_error& e) {
-    control->core()->push_log(("Event '" + std::string(event_name) + "' failed: " + std::string(e.what())).c_str());
-  }
 }
 
 void
@@ -193,7 +186,7 @@ DownloadList::insert(Download* download) {
     std::for_each(control->view_manager()->begin(), control->view_manager()->end(), std::bind2nd(std::mem_fun(&View::insert), download));
     std::for_each(control->view_manager()->begin(), control->view_manager()->end(), std::bind2nd(std::mem_fun(&View::filter_download), download));
 
-    rpc::commands.call_catch("event.download.inserted", rpc::make_target(*itr), torrent::Object(), "Download event action failed: ");
+    DL_TRIGGER_EVENT(*itr, "event.download.inserted");
 
   } catch (torrent::local_error& e) {
     // Should perhaps relax this, just print an error and remove the
@@ -221,7 +214,7 @@ DownloadList::erase(iterator itr) {
 
   control->core()->download_store()->remove(*itr);
 
-  rpc::commands.call_catch("event.download.erased", rpc::make_target(*itr), torrent::Object(), "Download event action failed: ");
+  DL_TRIGGER_EVENT(*itr, "event.download.erased");
   std::for_each(control->view_manager()->begin(), control->view_manager()->end(), std::bind2nd(std::mem_fun(&View::erase), *itr));
 
   torrent::download_remove(*(*itr)->download());
@@ -257,7 +250,7 @@ DownloadList::open_throw(Download* download) {
     openFlags |= torrent::Download::open_enable_fallocate;
 
   download->download()->open(openFlags);
-  rpc::commands.call_catch("event.download.opened", rpc::make_target(download), torrent::Object(), "Download event action failed: ");
+  DL_TRIGGER_EVENT(download, "event.download.opened");
 }
 
 void
@@ -322,8 +315,8 @@ DownloadList::close_throw(Download* download) {
   if (!download->is_hash_failed() && rpc::call_command_value("d.hashing", rpc::make_target(download)) != Download::variable_hashing_stopped)
     throw torrent::internal_error("DownloadList::close_throw(...) called but we're going into a hashing loop.");
 
-  rpc::commands.call_catch("event.download.hash_removed", rpc::make_target(download), torrent::Object(), "Download event action failed: ");
-  rpc::commands.call_catch("event.download.closed", rpc::make_target(download), torrent::Object(), "Download event action failed: ");
+  DL_TRIGGER_EVENT(download, "event.download.hash_removed");
+  DL_TRIGGER_EVENT(download, "event.download.closed");
 }
 
 void
@@ -356,7 +349,7 @@ DownloadList::resume(Download* download, int flags) {
       if (rpc::call_command_value("d.hashing", rpc::make_target(download)) == Download::variable_hashing_stopped)
         rpc::call_command("d.hashing.set", Download::variable_hashing_initial, rpc::make_target(download));
 
-      rpc::commands.call_catch("event.download.hash_queued", rpc::make_target(download), torrent::Object(), "Download event action failed: ");
+      DL_TRIGGER_EVENT(download, "event.download.hash_queued");
       return;
     }
 
@@ -412,7 +405,7 @@ DownloadList::resume(Download* download, int flags) {
 
     download->set_resume_flags(~uint32_t());
 
-    rpc::commands.call_catch("event.download.resumed", rpc::make_target(download), torrent::Object(), "Download event action failed: ");
+    DL_TRIGGER_EVENT(download, "event.download.resumed");
 
   } catch (torrent::local_error& e) {
     control->core()->push_log(e.what());
@@ -435,7 +428,7 @@ DownloadList::pause(Download* download, int flags) {
       download->download()->hash_stop();
       rpc::call_command_set_value("d.hashing.set", Download::variable_hashing_stopped, rpc::make_target(download));
 
-      rpc::commands.call_catch("event.download.hash_removed", rpc::make_target(download), torrent::Object(), "Download event action failed: ");
+      DL_TRIGGER_EVENT(download, "event.download.hash_removed");
     }
 
     if (!download->download()->info()->is_active())
@@ -447,7 +440,7 @@ DownloadList::pause(Download* download, int flags) {
     // TODO: This is actually for pause, not stop... And doesn't get
     // called when the download isn't active, but was in the 'started'
     // view.
-    rpc::commands.call_catch("event.download.paused", rpc::make_target(download), torrent::Object(), "Download event action failed: ");
+    DL_TRIGGER_EVENT(download, "event.download.paused");
 
     rpc::call_command("d.state_changed.set", cachedTime.seconds(), rpc::make_target(download));
     rpc::call_command("d.state_counter.set", rpc::call_command_value("d.state_counter", rpc::make_target(download)), rpc::make_target(download));
@@ -492,7 +485,7 @@ DownloadList::hash_done(Download* download) {
   if (!download->is_hash_checked()) {
     download->set_hash_failed(true);
     
-    rpc::commands.call_catch("event.download.hash_failed", rpc::make_target(download), torrent::Object(), "Download event action failed: ");
+    DL_TRIGGER_EVENT(download, "event.download.hash_failed");
     return;
   }
 
@@ -530,7 +523,6 @@ DownloadList::hash_done(Download* download) {
 
     if (rpc::call_command_value("d.state", rpc::make_target(download)) == 1)
       resume(download, download->resume_flags());
-    //rpc::commands.call_catch("scheduler.simple.resume", rpc::make_target(download), torrent::Object(), "Download event action failed: ");
 
     break;
 
@@ -541,7 +533,7 @@ DownloadList::hash_done(Download* download) {
     } else {
       download->set_message("Hash check on download completion found bad chunks, consider using \"safe_sync\".");
       control->core()->push_log("Hash check on download completion found bad chunks, consider using \"safe_sync\".");
-      rpc::commands.call_catch("event.download.hash_final_failed", rpc::make_target(download), torrent::Object(), "Download event action failed: ");
+      DL_TRIGGER_EVENT(download, "event.download.hash_final_failed");
     }
 
     // TODO: Should we skip the 'hash_done' event here?
@@ -554,7 +546,7 @@ DownloadList::hash_done(Download* download) {
     return;
   }
 
-  rpc::commands.call_catch("event.download.hash_done", rpc::make_target(download), torrent::Object(), "Download event action failed: ");
+  DL_TRIGGER_EVENT(download, "event.download.hash_done");
 }
 
 void
@@ -569,8 +561,8 @@ DownloadList::hash_queue(Download* download, int type) {
     pause(download, torrent::Download::stop_skip_tracker);
     download->download()->close();
 
-    rpc::commands.call_catch("event.download.hash_removed", rpc::make_target(download), torrent::Object(), "Download event action failed: ");
-    rpc::commands.call_catch("event.download.closed", rpc::make_target(download), torrent::Object(), "Download event action failed: ");
+    DL_TRIGGER_EVENT(download, "event.download.hash_removed");
+    DL_TRIGGER_EVENT(download, "event.download.closed");
   }
 
   torrent::resume_clear_progress(*download->download(), download->download()->bencode()->get_key("libtorrent_resume"));
@@ -583,7 +575,7 @@ DownloadList::hash_queue(Download* download, int type) {
 
   // If any more stuff is added here, make sure resume etc are still
   // correct.
-  rpc::commands.call_catch("event.download.hash_queued", rpc::make_target(download), torrent::Object(), "Download event action failed: ");
+  DL_TRIGGER_EVENT(download, "event.download.hash_queued");
 }
 
 void
@@ -647,7 +639,7 @@ DownloadList::confirm_finished(Download* download) {
   // Save the hash in case the finished event erases it.
   torrent::HashString infohash = download->info()->hash();
 
-  rpc::commands.call_catch("event.download.finished", rpc::make_target(download), torrent::Object(), "Download event action failed: ");
+  DL_TRIGGER_EVENT(download, "event.download.finished");
 
 //   if (download->resume_flags() != ~uint32_t())
 //     throw torrent::internal_error("DownloadList::confirm_finished(...) download->resume_flags() != ~uint32_t().");

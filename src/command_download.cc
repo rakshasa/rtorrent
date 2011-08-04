@@ -645,13 +645,15 @@ initialize_command_download() {
   // Control functinos:
   //
 
-  CMD2_DL         ("d.is_open",          CMD2_ON_INFO(is_open));
-  CMD2_DL         ("d.is_active",        CMD2_ON_INFO(is_active));
-  CMD2_DL         ("d.is_hash_checked",  std::bind(&torrent::Download::is_hash_checked, CMD2_BIND_DL));
-  CMD2_DL         ("d.is_hash_checking", std::bind(&torrent::Download::is_hash_checking, CMD2_BIND_DL));
-  CMD2_DL         ("d.is_multi_file",    std::bind(&torrent::FileList::is_multi_file, CMD2_BIND_FL));
-  CMD2_DL         ("d.is_private",       CMD2_ON_INFO(is_private));
-  CMD2_DL         ("d.is_pex_active",    CMD2_ON_INFO(is_pex_active));
+  CMD2_DL         ("d.is_open",               CMD2_ON_INFO(is_open));
+  CMD2_DL         ("d.is_active",             CMD2_ON_INFO(is_active));
+  CMD2_DL         ("d.is_hash_checked",       std::bind(&torrent::Download::is_hash_checked, CMD2_BIND_DL));
+  CMD2_DL         ("d.is_hash_checking",      std::bind(&torrent::Download::is_hash_checking, CMD2_BIND_DL));
+  CMD2_DL         ("d.is_multi_file",         std::bind(&torrent::FileList::is_multi_file, CMD2_BIND_FL));
+  CMD2_DL         ("d.is_private",            CMD2_ON_INFO(is_private));
+  CMD2_DL         ("d.is_pex_active",         CMD2_ON_INFO(is_pex_active));
+  CMD2_DL         ("d.is_partially_done",     CMD2_ON_DATA(is_partially_done));
+  CMD2_DL         ("d.is_not_partially_done", CMD2_ON_DATA(is_not_partially_done));
 
   CMD2_DL_V       ("d.resume",     std::bind(&core::DownloadList::resume_default, control->core()->download_list(), std::placeholders::_1));
   CMD2_DL_V       ("d.pause",      std::bind(&core::DownloadList::pause_default, control->core()->download_list(), std::placeholders::_1));
