@@ -84,6 +84,11 @@ public:
 
   static void*        event_loop(ThreadBase* threadBase);
 
+  // Only call this when global lock has been acquired, as it checks
+  // ThreadBase::is_main_polling() which is only guaranteed to remain
+  // 'false' if global lock keeps main thread from entering polling
+  // again.
+  //
   // Move to libtorrent some day.
   static void         interrupt_main_polling();
 

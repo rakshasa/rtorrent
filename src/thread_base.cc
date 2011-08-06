@@ -43,6 +43,7 @@
 #include <cstring>
 #include <iostream>
 #include <signal.h>
+#include <unistd.h>
 #include <rak/error_number.h>
 #include <torrent/exceptions.h>
 
@@ -201,10 +202,15 @@ ThreadBase::queue_item(thread_base_func newFunc) {
 
 void
 ThreadBase::interrupt_main_polling() {
-  do {
+  int sleep_length = 0;
+
+  while (ThreadBase::is_main_polling()) {
+    pthread_kill(main_thread->m_thread, SIGUSR1);
+
     if (!ThreadBase::is_main_polling())
       return;
-    
-    pthread_kill(main_thread->m_thread, SIGUSR1);
-  } while (1);
+
+    usleep(sleep_length);
+    sleep_length = std::min(sleep_length + 50, 1000);
+  }
 }

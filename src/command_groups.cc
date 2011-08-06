@@ -296,7 +296,8 @@ Number of unchoked upload / download peers regulated on a group basis.
 (choke_group.down.heuristics.set,<cg_index>,"heuristics")
 
 Heuristics used for deciding what peers to choke and unchoke, see
-'strings.choke_heuristics' for a list of available options.
+'strings.choke_heuristics{,_download,_upload}' for a list of available
+options.
 
  */
 
@@ -304,8 +305,10 @@ Heuristics used for deciding what peers to choke and unchoke, see
 void
 initialize_command_groups() {
   // Move somewhere else?
-  CMD2_ANY         ("strings.choke_heuristics",        std::bind(&torrent::option_list_strings, torrent::OPTION_CHOKE_HEURISTICS));
-  CMD2_ANY         ("strings.tracker_mode",            std::bind(&torrent::option_list_strings, torrent::OPTION_TRACKER_MODE));
+  CMD2_ANY         ("strings.choke_heuristics",          std::bind(&torrent::option_list_strings, torrent::OPTION_CHOKE_HEURISTICS));
+  CMD2_ANY         ("strings.choke_heuristics.uplaod",   std::bind(&torrent::option_list_strings, torrent::OPTION_CHOKE_HEURISTICS_UPLOAD));
+  CMD2_ANY         ("strings.choke_heuristics.downlaod", std::bind(&torrent::option_list_strings, torrent::OPTION_CHOKE_HEURISTICS_DOWNLOAD));
+  CMD2_ANY         ("strings.tracker_mode",              std::bind(&torrent::option_list_strings, torrent::OPTION_TRACKER_MODE));
 
   CMD2_ANY         ("choke_group.list",                std::bind(&apply_cg_list));
   CMD2_ANY_STRING  ("choke_group.insert",              std::bind(&apply_cg_insert, std::placeholders::_2));
