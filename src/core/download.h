@@ -129,6 +129,10 @@ public:
 
   float               distributed_copies() const;
 
+  // HACK: Choke group setting.
+  unsigned int        group() const { return m_group; }
+  void                set_group(unsigned int g) { m_group = g; }
+
 private:
   Download(const Download&);
   void operator () (const Download&);
@@ -151,6 +155,8 @@ private:
   sigc::connection    m_connTrackerSucceeded;
   sigc::connection    m_connTrackerFailed;
   sigc::connection    m_connStorageError;
+
+  unsigned int        m_group;
 };
 
 inline bool

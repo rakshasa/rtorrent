@@ -49,6 +49,9 @@
 #include "control.h"
 #include "command_helpers.h"
 
+// For cg_d_group.
+#include "core/download.h"
+
 // A hack to allow testing of the new choke_group API without the
 // working parts present.
 #define USE_CHOKE_GROUP 0
@@ -78,6 +81,16 @@ cg_get_index(const torrent::Object& raw_args) {
 torrent::choke_group*
 cg_get_group(const torrent::Object& raw_args) {
   return torrent::resource_manager()->group_at(cg_get_index(raw_args));
+}
+
+int64_t
+cg_d_group(core::Download* download) {
+  return torrent::resource_manager()->entry_at(download->main())->group();
+}
+
+void
+cg_d_group_set(core::Download* download, const torrent::Object& arg) {
+  torrent::resource_manager::set_group(torrent::resource_manager()->find_throw(download->main()), cg_get_index(arg));
 }
 
 torrent::Object
@@ -150,6 +163,9 @@ cg_get_group(const torrent::Object& raw_args) {
 
   return cg_list_hack.at(index);
 }
+
+int64_t cg_d_group(core::Download* download) { return download->group(); }
+void    cg_d_group_set(core::Download* download, const torrent::Object& arg) { download->set_group(cg_get_index(arg)); }
 
 torrent::Object
 apply_cg_list() {

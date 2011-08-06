@@ -599,10 +599,8 @@ d_list_remove(core::Download* download, const torrent::Object& rawArgs, const ch
                                             std::placeholders::_1, std::placeholders::_2, \
                                             first_key, second_key));
 
-torrent::choke_group* cg_get_group(const torrent::Object& raw_args);
-int64_t cg_get_index(const torrent::Object& raw_args);
-
-#define CG_GROUP_INDEX() std::bind(&cg_get_index, std::placeholders::_2)
+int64_t cg_d_group(core::Download* download);
+void    cg_d_group_set(core::Download* download, const torrent::Object& arg);
 
 void
 initialize_command_download() {
@@ -808,15 +806,18 @@ initialize_command_download() {
   CMD2_DL         ("d.priority_str", std::bind(&retrieve_d_priority_str, std::placeholders::_1));
   CMD2_DL_VALUE_V ("d.priority.set", std::bind(&core::Download::set_priority, std::placeholders::_1, std::placeholders::_2));
 
-  CMD2_DL         ("d.group",     std::bind(&torrent::resource_manager_entry::group,
-                                            std::bind(&torrent::ResourceManager::entry_at, torrent::resource_manager(),
-                                                      std::bind(&core::Download::main, std::placeholders::_1))));
+  // CMD2_DL         ("d.group",     std::bind(&torrent::resource_manager_entry::group,
+  //                                           std::bind(&torrent::ResourceManager::entry_at, torrent::resource_manager(),
+  //                                                     std::bind(&core::Download::main, std::placeholders::_1))));
 
-  CMD2_DL_V       ("d.group.set", std::bind(&torrent::ResourceManager::set_group,
-                                            torrent::resource_manager(),
-                                            std::bind(&torrent::ResourceManager::find_throw, torrent::resource_manager(),
-                                                      std::bind(&core::Download::main, std::placeholders::_1)),
-                                            CG_GROUP_INDEX()));
+  // CMD2_DL_V       ("d.group.set", std::bind(&torrent::ResourceManager::set_group,
+  //                                           torrent::resource_manager(),
+  //                                           std::bind(&torrent::ResourceManager::find_throw, torrent::resource_manager(),
+  //                                                     std::bind(&core::Download::main, std::placeholders::_1)),
+  //                                           CG_GROUP_INDEX()));
+
+  CMD2_DL         ("d.group",     std::bind(&cg_d_group, std::placeholders::_1));;
+  CMD2_DL_V       ("d.group.set", std::bind(&cg_d_group_set, std::placeholders::_1, std::placeholders::_2));
 
   CMD2_DL         ("d.initialize_logs", std::bind(&cmd_d_initialize_logs, std::placeholders::_1));
 

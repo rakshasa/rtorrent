@@ -61,7 +61,8 @@ Download::Download(download_type d) :
   m_hashFailed(false),
 
   m_chunksFailed(0),
-  m_resumeFlags(~uint32_t()) {
+  m_resumeFlags(~uint32_t()),
+  m_group(0) {
 
   m_connTrackerSucceeded = m_download.info()->signal_tracker_success().connect(sigc::bind(sigc::mem_fun(*this, &Download::receive_tracker_msg), ""));
   m_connTrackerFailed   = m_download.info()->signal_tracker_failed().connect(sigc::mem_fun(*this, &Download::receive_tracker_msg));
