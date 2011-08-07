@@ -85,12 +85,12 @@ cg_get_group(const torrent::Object& raw_args) {
 
 int64_t
 cg_d_group(core::Download* download) {
-  return torrent::resource_manager()->entry_at(download->main())->group();
+  return torrent::resource_manager()->entry_at(download->main()).group();
 }
 
 void
 cg_d_group_set(core::Download* download, const torrent::Object& arg) {
-  torrent::resource_manager::set_group(torrent::resource_manager()->find_throw(download->main()), cg_get_index(arg));
+  torrent::resource_manager()->set_group(torrent::resource_manager()->find_throw(download->main()), cg_get_index(arg));
 }
 
 torrent::Object
