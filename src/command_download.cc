@@ -599,8 +599,9 @@ d_list_remove(core::Download* download, const torrent::Object& rawArgs, const ch
                                             std::placeholders::_1, std::placeholders::_2, \
                                             first_key, second_key));
 
-int64_t cg_d_group(core::Download* download);
-void    cg_d_group_set(core::Download* download, const torrent::Object& arg);
+int64_t            cg_d_group(core::Download* download);
+const std::string& cg_d_group_name(core::Download* download);
+void               cg_d_group_set(core::Download* download, const torrent::Object& arg);
 
 void
 initialize_command_download() {
@@ -816,8 +817,9 @@ initialize_command_download() {
   //                                                     std::bind(&core::Download::main, std::placeholders::_1)),
   //                                           CG_GROUP_INDEX()));
 
-  CMD2_DL         ("d.group",     std::bind(&cg_d_group, std::placeholders::_1));;
-  CMD2_DL_V       ("d.group.set", std::bind(&cg_d_group_set, std::placeholders::_1, std::placeholders::_2));
+  CMD2_DL         ("d.group",      std::bind(&cg_d_group, std::placeholders::_1));;
+  CMD2_DL         ("d.group.name", std::bind(&cg_d_group, std::placeholders::_1));;
+  CMD2_DL_V       ("d.group.set",  std::bind(&cg_d_group_set, std::placeholders::_1, std::placeholders::_2));
 
   CMD2_DL         ("d.initialize_logs", std::bind(&cmd_d_initialize_logs, std::placeholders::_1));
 
