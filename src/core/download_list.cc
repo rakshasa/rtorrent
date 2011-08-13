@@ -178,8 +178,8 @@ DownloadList::insert(Download* download) {
   iterator itr = base_type::insert(end(), download);
 
   try {
-    (*itr)->info()->signal_download_done().connect(sigc::bind(sigc::mem_fun(*this, &DownloadList::received_finished), download));
-    (*itr)->info()->signal_initial_hash().connect(sigc::bind(sigc::mem_fun(*this, &DownloadList::hash_done), download));
+    (*itr)->data()->slot_initial_hash()        = std::bind(&DownloadList::hash_done, this, download);
+    (*itr)->data()->slot_download_done()       = std::bind(&DownloadList::received_finished, this, download);
 
     // This needs to be separated into two different calls to ensure
     // the download remains in the view.

@@ -90,7 +90,7 @@ cg_d_group(core::Download* download) {
 
 const std::string&
 cg_d_group_name(core::Download* download) {
-  return torrent::resource_manager()->group_at(torrent::resource_manager()->entry_at(download->main()).group()).name();
+  return torrent::resource_manager()->group_at(torrent::resource_manager()->entry_at(download->main()).group())->name();
 }
 
 void
