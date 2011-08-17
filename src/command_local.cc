@@ -93,7 +93,7 @@ apply_log(const torrent::Object::string_type& arg, int logType) {
     }
   }
 
-  if (arg.empty()) {
+  if (!arg.empty()) {
     int logFd = open(rak::path_expand(arg).c_str(), O_WRONLY | O_APPEND | O_CREAT, 0644);
 
     if (logFd < 0)
