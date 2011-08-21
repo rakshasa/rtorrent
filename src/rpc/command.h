@@ -86,8 +86,8 @@ struct rt_triple : private std::pair<T1, T2> {
 
   using base_type::first;
   using base_type::second;
-  using base_type::first_type;
-  using base_type::second_type;
+  using typename base_type::first_type;
+  using typename base_type::second_type;
 
   T3 third;
 

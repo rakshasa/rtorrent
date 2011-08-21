@@ -58,8 +58,13 @@ public:
   RangeMap() {}
   RangeMap(const Compare& c) : base_type(c) {}
 
-  using base_type::const_iterator;
-  using base_type::const_reverse_iterator;
+  typedef typename base_type::iterator iterator;
+  typedef typename base_type::reverse_iterator reverse_iterator;
+  typedef typename base_type::const_iterator const_iterator;
+  typedef typename base_type::const_reverse_iterator const_reverse_iterator;
+
+  // using typename base_type::const_iterator;
+  // using typename base_type::const_reverse_iterator;
 
   using base_type::clear;
   using base_type::swap;
@@ -76,22 +81,22 @@ public:
   using base_type::value_comp;
 
   // Store a value for the range [begin, end). Returns iterator for the range.
-  typename RangeMap::const_iterator   set_range(const Key& begin, const Key& end, const T& value);
+  const_iterator   set_range(const Key& begin, const Key& end, const T& value);
 
   // Same, but merge adjacent ranges having the same value. Returns iterator for the merged range.
-  typename RangeMap::const_iterator   set_merge(Key begin, const Key& end, const T& value);
+  const_iterator   set_merge(Key begin, const Key& end, const T& value);
 
   // Find range containing the given key, or end().
-  typename RangeMap::const_iterator   find(const Key& key) const;
+  const_iterator   find(const Key& key) const;
 
   // Retrieve value for key in a range, throw std::out_of_range if range does not exist.
-  const T&                            get(const Key& key) const;
+  const T&         get(const Key& key) const;
 
   // Retrieve value for key in a range, return def if range does not exist.
-  T                                   get(const Key& key, T def) const;
+  T                get(const Key& key, T def) const;
 
 private:
-  typename RangeMap::iterator         crop_overlap(const Key& begin, const Key& end);
+  iterator         crop_overlap(const Key& begin, const Key& end);
 };
 
 // Semantics of an entry:
