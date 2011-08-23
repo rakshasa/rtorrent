@@ -107,16 +107,16 @@ private:
 template<typename Key, typename T, typename C, typename A>
 inline typename RangeMap<Key,T,C,A>::iterator
 RangeMap<Key,T,C,A>::crop_overlap(const Key& _begin, const Key& _end) {
-  typename RangeMap::iterator itr = upper_bound(_begin);
+  typename RangeMap::iterator itr = base_type::upper_bound(_begin);
 
   while (itr != end() && key_comp()(itr->second.first, _end)) {
     // There's a subrange before the new begin: need new entry (new range end means new key).
     if (key_comp()(itr->second.first, _begin))
-      insert(itr, typename RangeMap::value_type(_begin, itr->second));
+      base_type::insert(itr, typename RangeMap::value_type(_begin, itr->second));
 
     // Old end is within our range: erase entry.
     if (!key_comp()(_end, itr->first)) {
-      erase(itr++);
+      base_type::erase(itr++);
 
     // Otherwise simply set the new begin of the old range.
     } else {
@@ -142,7 +142,7 @@ RangeMap<Key,T,C,A>::set_merge(Key _begin, const Key& _end, const T& value) {
     typename RangeMap::iterator prev = itr;
     if (!key_comp()((--prev)->first, _begin) && prev->second.second == value) {
       _begin = prev->second.first;
-      erase(prev);
+      base_type::erase(prev);
     }
   }
 
@@ -153,7 +153,7 @@ RangeMap<Key,T,C,A>::set_merge(Key _begin, const Key& _end, const T& value) {
   }
 
   // Otherwise, this range isn't mergeable, make new entry.
-  return insert(itr, typename RangeMap::value_type(_end, typename RangeMap::mapped_type(_begin, value)));
+  return base_type::insert(itr, typename RangeMap::value_type(_end, typename RangeMap::mapped_type(_begin, value)));
 }
 
 template<typename Key, typename T, typename C, typename A>
@@ -162,13 +162,13 @@ RangeMap<Key,T,C,A>::set_range(const Key& _begin, const Key& _end, const T& valu
   if (!key_comp()(_begin, _end))
     return end();
 
-  return insert(crop_overlap(_begin, _end), typename RangeMap::value_type(_end, typename RangeMap::mapped_type(_begin, value)));
+  return base_type::insert(crop_overlap(_begin, _end), typename RangeMap::value_type(_end, typename RangeMap::mapped_type(_begin, value)));
 }
 
 template<typename Key, typename T, typename C, typename A>
 inline typename RangeMap<Key,T,C,A>::const_iterator
 RangeMap<Key,T,C,A>::find(const Key& key) const {
-  typename RangeMap::const_iterator itr = upper_bound(key);
+  typename RangeMap::const_iterator itr = base_type::upper_bound(key);
 
   if (itr != end() && key_comp()(key, itr->second.first))
     itr = end();
