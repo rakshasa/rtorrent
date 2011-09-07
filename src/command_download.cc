@@ -782,6 +782,12 @@ initialize_command_download() {
   CMD2_DL_VALUE_V ("d.peers_max.set",       std::bind(&torrent::ConnectionList::set_max_size, CMD2_BIND_CL, std::placeholders::_2));
   CMD2_DL         ("d.uploads_max",         std::bind(&torrent::Download::uploads_max, CMD2_BIND_DL));
   CMD2_DL_VALUE_V ("d.uploads_max.set",     std::bind(&torrent::Download::set_uploads_max, CMD2_BIND_DL, std::placeholders::_2));
+  CMD2_DL         ("d.uploads_min",         std::bind(&torrent::Download::uploads_min, CMD2_BIND_DL));
+  CMD2_DL_VALUE_V ("d.uploads_min.set",     std::bind(&torrent::Download::set_uploads_min, CMD2_BIND_DL, std::placeholders::_2));
+  CMD2_DL         ("d.downloads_max",         std::bind(&torrent::Download::downloads_max, CMD2_BIND_DL));
+  CMD2_DL_VALUE_V ("d.downloads_max.set",     std::bind(&torrent::Download::set_downloads_max, CMD2_BIND_DL, std::placeholders::_2));
+  CMD2_DL         ("d.downloads_min",         std::bind(&torrent::Download::downloads_min, CMD2_BIND_DL));
+  CMD2_DL_VALUE_V ("d.downloads_min.set",     std::bind(&torrent::Download::set_downloads_min, CMD2_BIND_DL, std::placeholders::_2));
   CMD2_DL         ("d.peers_connected",     std::bind(&torrent::ConnectionList::size, CMD2_BIND_CL));
   CMD2_DL         ("d.peers_not_connected", std::bind(&torrent::PeerList::available_list_size, CMD2_BIND_PL));
 

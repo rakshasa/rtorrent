@@ -99,7 +99,10 @@ private:
   inline ElementBase* create_menu();
   inline ElementBase* create_info();
 
+  void                receive_min_uploads(int t);
   void                receive_max_uploads(int t);
+  void                receive_min_downloads(int t);
+  void                receive_max_downloads(int t);
   void                receive_min_peers(int t);
   void                receive_max_peers(int t);
 

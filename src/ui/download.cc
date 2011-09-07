@@ -304,6 +304,27 @@ Download::receive_max_uploads(int t) {
 }
 
 void
+Download::receive_min_uploads(int t) {
+  m_windowDownloadStatus->mark_dirty();
+
+  m_download->download()->set_uploads_min(std::max<int32_t>(m_download->download()->uploads_min() + t, 0));
+}
+
+void
+Download::receive_max_downloads(int t) {
+  m_windowDownloadStatus->mark_dirty();
+
+  m_download->download()->set_downloads_max(std::max<int32_t>(m_download->download()->downloads_max() + t, 0));
+}
+
+void
+Download::receive_min_downloads(int t) {
+  m_windowDownloadStatus->mark_dirty();
+
+  m_download->download()->set_downloads_min(std::max<int32_t>(m_download->download()->downloads_min() + t, 0));
+}
+
+void
 Download::receive_min_peers(int t) {
   m_windowDownloadStatus->mark_dirty();
 
@@ -355,12 +376,18 @@ Download::adjust_up_throttle(int throttle) {
 
 void
 Download::bind_keys() {
-  m_bindings['1'] = sigc::bind(sigc::mem_fun(this, &Download::receive_max_uploads), -1);
-  m_bindings['2'] = sigc::bind(sigc::mem_fun(this, &Download::receive_max_uploads), 1);
-  m_bindings['3'] = sigc::bind(sigc::mem_fun(this, &Download::receive_min_peers), -5);
-  m_bindings['4'] = sigc::bind(sigc::mem_fun(this, &Download::receive_min_peers), 5);
-  m_bindings['5'] = sigc::bind(sigc::mem_fun(this, &Download::receive_max_peers), -5);
-  m_bindings['6'] = sigc::bind(sigc::mem_fun(this, &Download::receive_max_peers), 5);
+  m_bindings['1'] = sigc::bind(sigc::mem_fun(this, &Download::receive_min_uploads), -1);
+  m_bindings['2'] = sigc::bind(sigc::mem_fun(this, &Download::receive_min_uploads), 1);
+  m_bindings['3'] = sigc::bind(sigc::mem_fun(this, &Download::receive_max_uploads), -1);
+  m_bindings['4'] = sigc::bind(sigc::mem_fun(this, &Download::receive_max_uploads), 1);
+  m_bindings['!'] = sigc::bind(sigc::mem_fun(this, &Download::receive_min_downloads), -1);
+  m_bindings['@'] = sigc::bind(sigc::mem_fun(this, &Download::receive_min_downloads), 1);
+  m_bindings['#'] = sigc::bind(sigc::mem_fun(this, &Download::receive_max_downloads), -1);
+  m_bindings['$'] = sigc::bind(sigc::mem_fun(this, &Download::receive_max_downloads), 1);
+  m_bindings['5'] = sigc::bind(sigc::mem_fun(this, &Download::receive_min_peers), -5);
+  m_bindings['6'] = sigc::bind(sigc::mem_fun(this, &Download::receive_min_peers), 5);
+  m_bindings['7'] = sigc::bind(sigc::mem_fun(this, &Download::receive_max_peers), -5);
+  m_bindings['8'] = sigc::bind(sigc::mem_fun(this, &Download::receive_max_peers), 5);
   m_bindings['+'] = sigc::mem_fun(this, &Download::receive_next_priority);
   m_bindings['-'] = sigc::mem_fun(this, &Download::receive_prev_priority);
 
