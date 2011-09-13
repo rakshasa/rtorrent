@@ -253,7 +253,10 @@ DownloadFactory::receive_success() {
   if (!rtorrent->has_key_string("custom4")) rtorrent->insert_key("custom4", std::string());
   if (!rtorrent->has_key_string("custom5")) rtorrent->insert_key("custom5", std::string());
 
+  rpc::call_command("d.uploads_min.set",      rpc::call_command_void("throttle.min_uploads"), rpc::make_target(download));
   rpc::call_command("d.uploads_max.set",      rpc::call_command_void("throttle.max_uploads"), rpc::make_target(download));
+  rpc::call_command("d.downloads_min.set",    rpc::call_command_void("throttle.min_downloads"), rpc::make_target(download));
+  rpc::call_command("d.downloads_max.set",    rpc::call_command_void("throttle.max_downloads"), rpc::make_target(download));
   rpc::call_command("d.peers_min.set",        rpc::call_command_void("throttle.min_peers.normal"), rpc::make_target(download));
   rpc::call_command("d.peers_max.set",        rpc::call_command_void("throttle.max_peers.normal"), rpc::make_target(download));
   rpc::call_command("d.tracker_numwant.set",  rpc::call_command_void("trackers.numwant"), rpc::make_target(download));

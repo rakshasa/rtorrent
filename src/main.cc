@@ -357,7 +357,10 @@ main(int argc, char** argv) {
     CMD2_REDIRECT        ("min_peers_seed", "throttle.min_peers.seed.set");
     CMD2_REDIRECT        ("max_peers_seed", "throttle.max_peers.seed.set");
 
-    CMD2_REDIRECT        ("max_uploads", "throttle.max_uploads.set");
+    CMD2_REDIRECT        ("min_uploads",   "throttle.min_uploads.set");
+    CMD2_REDIRECT        ("max_uploads",   "throttle.max_uploads.set");
+    CMD2_REDIRECT        ("min_downloads", "throttle.min_downloads.set");
+    CMD2_REDIRECT        ("max_downloads", "throttle.max_downloads.set");
 
     CMD2_REDIRECT        ("max_uploads_div",      "throttle.max_uploads.div.set");
     CMD2_REDIRECT        ("max_uploads_global",   "throttle.max_uploads.global.set");

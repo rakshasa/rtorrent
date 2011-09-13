@@ -172,7 +172,10 @@ initialize_command_throttle() {
   CMD2_VAR_VALUE   ("throttle.min_peers.seed",   -1);
   CMD2_VAR_VALUE   ("throttle.max_peers.seed",   -1);
 
+  CMD2_VAR_VALUE   ("throttle.min_uploads",      0);
   CMD2_VAR_VALUE   ("throttle.max_uploads",      50);
+  CMD2_VAR_VALUE   ("throttle.min_downloads",    0);
+  CMD2_VAR_VALUE   ("throttle.max_downloads",    50);
 
   CMD2_VAR_VALUE   ("throttle.max_uploads.div",      1);
   CMD2_VAR_VALUE   ("throttle.max_uploads.global",   0);
