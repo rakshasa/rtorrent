@@ -44,6 +44,7 @@
 #include <sigc++/adaptors/bind.h>
 #include <torrent/rate.h>
 #include <torrent/hash_string.h>
+#include <torrent/utils/log.h>
 
 #include "core/download.h"
 #include "core/download_list.h"
@@ -235,7 +236,7 @@ apply_close_low_diskspace(int64_t arg) {
   }
 
   if (closed)
-    control->core()->push_log("Closed torrents due to low diskspace.");    
+    lt_log_print(torrent::LOG_TORRENT_ERROR, "Closed torrents due to low diskspace.");    
 
   return torrent::Object();
 }

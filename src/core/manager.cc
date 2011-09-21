@@ -57,6 +57,7 @@
 #include <torrent/object_stream.h>
 #include <torrent/tracker_list.h>
 #include <torrent/throttle.h>
+#include <torrent/utils/log.h>
 
 #include "rpc/parse_commands.h"
 #include "utils/directory.h"
@@ -579,7 +580,7 @@ Manager::receive_hashing_changed() {
 
       } else {
         (*itr)->set_hash_failed(true);
-        push_log(e.what());
+        lt_log_print(torrent::LOG_TORRENT_ERROR, "Hashing failed: %s", e.what());
       }
     }
   }

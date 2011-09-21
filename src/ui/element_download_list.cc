@@ -39,6 +39,7 @@
 #include <sigc++/adaptors/bind.h>
 #include <torrent/exceptions.h>
 #include <torrent/object.h>
+#include <torrent/utils/log.h>
 
 #include "core/download.h"
 #include "core/manager.h"
@@ -152,7 +153,7 @@ ElementDownloadList::receive_command(const char* cmd) {
     m_view->set_last_changed();
 
   } catch (torrent::input_error& e) {
-    control->core()->push_log(e.what());
+    lt_log_print(torrent::LOG_WARN, "Command failed: %s", e.what());
     return;
   }
 }
@@ -194,7 +195,7 @@ ElementDownloadList::receive_cycle_throttle() {
 
   core::Download* download = *m_view->focus();
   if (download->is_active()) {
-    control->core()->push_log("Cannot change throttle on active download.");
+    lt_log_print(torrent::LOG_TORRENT_WARN, "Cannot change throttle on active download.");
     return;
   }
 

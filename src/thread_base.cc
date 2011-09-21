@@ -46,6 +46,7 @@
 #include <unistd.h>
 #include <rak/error_number.h>
 #include <torrent/exceptions.h>
+#include <torrent/utils/log.h>
 
 #include "globals.h"
 #include "control.h"
@@ -170,9 +171,8 @@ ThreadBase::event_loop(ThreadBase* threadBase) {
 
   } catch (torrent::shutdown_exception& e) {
     acquire_global_lock();
-    control->core()->push_log("Shutting down thread.");
+    lt_log_print(torrent::LOG_THREAD_NOTICE, "Shutting down thread.");
     release_global_lock();
-    //    sleep(20);
   }
 
   threadBase->m_state = STATE_INACTIVE;

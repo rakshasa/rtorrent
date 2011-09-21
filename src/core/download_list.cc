@@ -50,6 +50,7 @@
 #include <torrent/object.h>
 #include <torrent/object_stream.h>
 #include <torrent/torrent.h>
+#include <torrent/utils/log.h>
 
 #include "rpc/parse_commands.h"
 
@@ -90,7 +91,7 @@ DownloadList::session_save() {
   unsigned int c = std::count_if(begin(), end(), std::bind1st(std::mem_fun(&DownloadStore::save_resume), control->core()->download_store()));
 
   if (c != size())
-    control->core()->push_log("Failed to save session torrents.");
+    lt_log_print(torrent::LOG_ERROR, "Failed to save session torrents.");
 
   control->dht_manager()->save_dht_cache();
 }
@@ -128,7 +129,7 @@ DownloadList::create(torrent::Object* obj, bool printLog) {
     delete obj;
 
     if (printLog)
-      control->core()->push_log(e.what());
+      lt_log_print(torrent::LOG_TORRENT_ERROR, "Could not create download: %s", e.what());
 
     return NULL;
   }
@@ -152,7 +153,7 @@ DownloadList::create(std::istream* str, bool printLog) {
       delete object;
 
       if (printLog)
-        control->core()->push_log("Could not create download, the input is not a valid torrent.");
+        lt_log_print(torrent::LOG_TORRENT_ERROR, "Could not create download, the input is not a valid torrent.");
 
       return NULL;
     }
@@ -163,7 +164,7 @@ DownloadList::create(std::istream* str, bool printLog) {
     delete object;
 
     if (printLog)
-      control->core()->push_log(e.what());
+      lt_log_print(torrent::LOG_TORRENT_ERROR, "Could not create download: %s", e.what());
 
     return NULL;
   }
@@ -232,7 +233,7 @@ DownloadList::open(Download* download) {
     return true;
 
   } catch (torrent::local_error& e) {
-    control->core()->push_log(e.what());
+    lt_log_print(torrent::LOG_TORRENT_ERROR, "Could not open download: %s", e.what());
     return false;
   }
 }
@@ -260,7 +261,7 @@ DownloadList::close(Download* download) {
     close_throw(download);
 
   } catch (torrent::local_error& e) {
-    control->core()->push_log(e.what());
+    lt_log_print(torrent::LOG_TORRENT_ERROR, "Could not close download: %s", e.what());
   }
 }
 
@@ -408,7 +409,7 @@ DownloadList::resume(Download* download, int flags) {
     DL_TRIGGER_EVENT(download, "event.download.resumed");
 
   } catch (torrent::local_error& e) {
-    control->core()->push_log(e.what());
+    lt_log_print(torrent::LOG_TORRENT_ERROR, "Could not resume download: %s", e.what());
   }
 }
 
@@ -455,7 +456,7 @@ DownloadList::pause(Download* download, int flags) {
     //control->core()->download_store()->save(download);
 
   } catch (torrent::local_error& e) {
-    control->core()->push_log(e.what());
+    lt_log_print(torrent::LOG_TORRENT_ERROR, "Could not pause download: %s", e.what());
   }
 }
 
@@ -471,7 +472,7 @@ DownloadList::check_hash(Download* download) {
     hash_queue(download, Download::variable_hashing_rehash);
 
   } catch (torrent::local_error& e) {
-    control->core()->push_log(e.what());
+    lt_log_print(torrent::LOG_TORRENT_ERROR, "Could not check hash: %s", e.what());
   }
 }
 
@@ -532,7 +533,7 @@ DownloadList::hash_done(Download* download) {
       confirm_finished(download);
     } else {
       download->set_message("Hash check on download completion found bad chunks, consider using \"safe_sync\".");
-      control->core()->push_log("Hash check on download completion found bad chunks, consider using \"safe_sync\".");
+      lt_log_print(torrent::LOG_TORRENT_ERROR, "Hash check on download completion found bad chunks, consider using \"safe_sync\".");
       DL_TRIGGER_EVENT(download, "event.download.hash_final_failed");
     }
 
@@ -670,7 +671,7 @@ DownloadList::process_meta_download(Download* download) {
   std::string metafile = (*download->file_list()->begin())->frozen_path();
   std::fstream file(metafile.c_str(), std::ios::in | std::ios::binary);
   if (!file.is_open()) {
-    control->core()->push_log("Could not read download metadata.");
+    lt_log_print(torrent::LOG_TORRENT_ERROR, "Could not read download metadata.");
     return;
   }
 
@@ -678,7 +679,7 @@ DownloadList::process_meta_download(Download* download) {
   file >> bencode->insert_key("info", torrent::Object());
   if (file.fail()) {
     delete bencode;
-    control->core()->push_log("Could not create download, the input is not a valid torrent.");
+    lt_log_print(torrent::LOG_TORRENT_ERROR, "Could not create download, the input is not a valid torrent.");
     return;
   }
   file.close();

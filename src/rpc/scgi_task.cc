@@ -43,6 +43,7 @@
 #include <sys/socket.h>
 #include <torrent/exceptions.h>
 #include <torrent/poll.h>
+#include <torrent/utils/log.h>
 
 #include "utils/socket_fd.h"
 
@@ -182,6 +183,8 @@ SCgiTask::event_read() {
     write(m_parent->log_fd(), "\n---\n", sizeof("\n---\n"));
   }
 
+  lt_log_print(torrent::LOG_RPC_DEBUG, "---\n%*s\n---", m_bufferSize - std::distance(m_buffer, m_body), m_body);
+
   // Close if the call failed, else stay open to write back data.
   if (!m_parent->receive_call(this, m_body, m_bufferSize - std::distance(m_buffer, m_body)))
     close();
@@ -239,6 +242,8 @@ SCgiTask::receive_write(const char* buffer, uint32_t length) {
     write(m_parent->log_fd(), m_buffer, m_bufferSize);
     write(m_parent->log_fd(), "\n---\n", sizeof("\n---\n"));
   }
+
+  lt_log_print(torrent::LOG_RPC_DEBUG, "---\n%*s\n---", m_bufferSize, m_buffer);
 
   event_write();
   return true;

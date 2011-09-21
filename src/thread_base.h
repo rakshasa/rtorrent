@@ -97,6 +97,8 @@ protected:
 
   void                call_queued_items();
 
+  // TODO: Add thread name.
+
   pthread_t           m_thread;
   state_type          m_state;
 

@@ -55,6 +55,7 @@
 #include <torrent/download/resource_manager.h>
 #include <torrent/peer/connection_list.h>
 #include <torrent/peer/peer_list.h>
+#include <torrent/utils/log.h>
 #include <torrent/utils/option_strings.h>
 
 #include "core/download.h"
@@ -318,10 +319,11 @@ struct call_add_d_peer_t {
   call_add_d_peer_t(core::Download* d, int port) : m_download(d), m_port(port) { }
 
   void operator() (const sockaddr* sa, int err) {
-    if (sa == NULL)
-      control->core()->push_log("Could not resolve host.");
-    else
+    if (sa == NULL) {
+      lt_log_print(torrent::LOG_CONNECTION_WARN, "Could not resolve hostname for added peer.");
+    } else {
       m_download->download()->add_peer(sa, m_port);
+    }
   }
 
   core::Download* m_download;
