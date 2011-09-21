@@ -44,6 +44,7 @@
 #include <torrent/torrent.h>
 #include <torrent/exceptions.h>
 #include <torrent/data/chunk_utils.h>
+#include <torrent/utils/log.h>
 #include <rak/functional.h>
 #include <rak/error_number.h>
 
@@ -74,6 +75,8 @@
 
 #include "thread_main.h"
 #include "thread_worker.h"
+
+namespace std { using namespace tr1; }
 
 void handle_sigbus(int signum, siginfo_t* sa, void* ptr);
 void do_panic(int signum);
@@ -195,19 +198,26 @@ main(int argc, char** argv) {
     // torrent::ConnectionManager* are valid etc.
     initialize_commands();
 
+    // Initialize logging:
+    torrent::log_initialize();
+    torrent::log_open_output("console", std::bind(&core::Manager::push_log, control->core(), std::placeholders::_1));
+    torrent::log_add_group_output(torrent::LOG_INFO, "console");
+
+    lt_log_print(torrent::LOG_INFO, "Started logging to 'console'.");
+
     if (OptionParser::has_flag('D', argc, argv)) {
       rpc::call_command_set_value("method.use_deprecated.set", false);
-      control->core()->push_log("Disabled deprecated commands.");
+      lt_log_print(torrent::LOG_WARN, "Disabled deprecated commands.");
     }
 
     if (OptionParser::has_flag('I', argc, argv)) {
       rpc::call_command_set_value("method.use_intermediate.set", 0);
-      control->core()->push_log("Disabled intermediate commands.");
+      lt_log_print(torrent::LOG_WARN, "Disabled intermediate commands.");
     }
 
     if (OptionParser::has_flag('K', argc, argv)) {
       rpc::call_command_set_value("method.use_intermediate.set", 2);
-      control->core()->push_log("Allowing intermediate commands without xmlrpc.");
+      lt_log_print(torrent::LOG_WARN, "Allowing intermediate commands without xmlrpc.");
     }
 
     rpc::parse_command_multiple
@@ -832,10 +842,11 @@ main(int argc, char** argv) {
 
     int firstArg = parse_options(control, argc, argv);
 
-    if (OptionParser::has_flag('n', argc, argv))
-      control->core()->push_log("Ignoring ~/.rtorrent.rc.");
-    else
+    if (OptionParser::has_flag('n', argc, argv)) {
+      lt_log_print(torrent::LOG_WARN, "Ignoring ~/.rtorrent.rc.");
+    } else {
       rpc::parse_command_single(rpc::make_target(), "try_import = ~/.rtorrent.rc");
+    }
 
     control->initialize();
 
@@ -877,6 +888,8 @@ main(int argc, char** argv) {
     std::cout << "rtorrent: " << e.what() << std::endl;
     return -1;
   }
+
+  torrent::log_cleanup();
 
   delete control;
   delete worker_thread;
@@ -946,6 +959,7 @@ handle_sigbus(int signum, siginfo_t* sa, void* ptr) {
   printf("Chunk index:  %u.\n", result.chunk_index);
   printf("Chunk offset: %u.\n", result.chunk_offset);
 
+  torrent::log_cleanup();
   std::abort();
 }
 
@@ -990,6 +1004,7 @@ do_panic(int signum) {
   if (signum == SIGBUS)
     std::cout << "A bus error probably means you ran out of diskspace." << std::endl;
 
+  torrent::log_cleanup();
   std::abort();
 }
 

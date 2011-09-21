@@ -50,6 +50,7 @@
 #include <torrent/data/file_manager.h>
 #include <torrent/download/resource_manager.h>
 #include <torrent/peer/peer_list.h>
+#include <torrent/utils/log.h>
 #include <torrent/utils/option_strings.h>
 
 #include "core/dht_manager.h"
@@ -102,10 +103,11 @@ struct call_add_node_t {
   call_add_node_t(int port) : m_port(port) { }
 
   void operator() (const sockaddr* sa, int err) {
-    if (sa == NULL)
-      control->core()->push_log("Could not resolve host.");
-    else
+    if (sa == NULL) {
+      lt_log_print(torrent::LOG_DHT_WARN, "Could not resolve host.");
+    } else {
       torrent::dht_manager()->add_node(sa, m_port);
+    }
   }
 
   int m_port;
@@ -191,10 +193,7 @@ initialize_xmlrpc() {
     rpc::xmlrpc.insert_command(itr->first, itr->second.m_parm, itr->second.m_doc);
   }
 
-  char buffer[128];
-  sprintf(buffer, "XMLRPC initialized with %u functions.", count);
-
-  control->core()->push_log(buffer);
+  lt_log_print(torrent::LOG_RPC_INFO, "XMLRPC initialized with %u functions.", count);
 }
 
 torrent::Object
@@ -222,7 +221,7 @@ apply_scgi(const std::string& arg, int type) {
         sa.sa_inet()->clear();
         saPtr = &sa;
 
-        control->core()->push_log("The SCGI socket has not been bound to any address and likely poses a security risk.");
+        lt_log_print(torrent::LOG_RPC_WARN, "The SCGI socket has not been bound to any address and likely poses a security risk.");
 
       } else if (std::sscanf(arg.c_str(), "%1023[^:]:%i%c", address, &port, &dummy) == 2) {
         if ((err = rak::address_info::get_address_info(address, PF_INET, SOCK_STREAM, &ai)) != 0)
@@ -230,7 +229,7 @@ apply_scgi(const std::string& arg, int type) {
 
         saPtr = ai->address();
 
-        control->core()->push_log("The SCGI socket is bound to a specific network device yet may still pose a security risk, consider using 'scgi_local'.");
+        lt_log_print(torrent::LOG_RPC_WARN, "The SCGI socket is bound to a specific network device yet may still pose a security risk, consider using 'scgi_local'.");
 
       } else {
         throw torrent::input_error("Could not parse address.");
@@ -464,12 +463,11 @@ apply_ipv4_filter_load(const torrent::Object::list_type& args) {
     throw torrent::input_error(buffer);
   }
 
-  snprintf(buffer, 2048, "Loaded %u %s address blocks (%u kb in-memory) from '%s'.",
-           lineNumber,
-           args.back().as_string().c_str(),
-           torrent::PeerList::ipv4_filter()->sizeof_data() / 1024,
-           args.front().as_string().c_str());
-  control->core()->push_log(buffer);
+  lt_log_print(torrent::LOG_CONNECTION_INFO, "Loaded %u %s address blocks (%u kb in-memory) from '%s'.",
+               lineNumber,
+               args.back().as_string().c_str(),
+               torrent::PeerList::ipv4_filter()->sizeof_data() / 1024,
+               args.front().as_string().c_str());
 
   return torrent::Object();
 }

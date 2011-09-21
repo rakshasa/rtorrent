@@ -48,7 +48,9 @@
 #include <torrent/chunk_manager.h>
 #include <torrent/data/file_manager.h>
 #include <torrent/data/chunk_utils.h>
+#include <torrent/utils/log.h>
 #include <torrent/utils/log_files.h>
+#include <torrent/utils/option_strings.h>
 
 #include "core/download.h"
 #include "core/download_list.h"
@@ -297,6 +299,25 @@ cmd_file_append(const torrent::Object::list_type& args) {
   return torrent::Object();
 }
 
+torrent::Object
+apply_log_open_file(const torrent::Object::list_type& args) {
+  if (args.size() != 2)
+    throw torrent::input_error("Invalid number of arguments.");
+  
+  torrent::log_open_file_output(args.front().as_string().c_str(), args.back().as_string().c_str());
+  return torrent::Object();
+}
+
+torrent::Object
+apply_log_add_output(const torrent::Object::list_type& args) {
+  if (args.size() != 2)
+    throw torrent::input_error("Invalid number of arguments.");
+  
+  torrent::log_add_group_output(torrent::option_find_string(torrent::OPTION_LOG_GROUP, args.front().as_string().c_str()),
+                                args.back().as_string().c_str());
+  return torrent::Object();
+}
+
 void
 initialize_command_local() {
   torrent::ChunkManager* chunkManager = torrent::chunk_manager();
@@ -389,6 +410,9 @@ initialize_command_local() {
   CMD2_EXECUTE     ("execute.raw_nothrow.bg",  rpc::ExecFile::flag_background);
   CMD2_EXECUTE     ("execute.capture",         rpc::ExecFile::flag_throw | rpc::ExecFile::flag_expand_tilde | rpc::ExecFile::flag_capture);
   CMD2_EXECUTE     ("execute.capture_nothrow", rpc::ExecFile::flag_expand_tilde | rpc::ExecFile::flag_capture);
+
+  CMD2_ANY_LIST    ("log.open_file",  std::bind(&apply_log_open_file, std::placeholders::_2));
+  CMD2_ANY_LIST    ("log.add_output", std::bind(&apply_log_add_output, std::placeholders::_2));
 
   CMD2_ANY_STRING  ("log.execute",    std::bind(&apply_log, std::placeholders::_2, 0));
   CMD2_ANY_STRING  ("log.vmmap.dump", std::bind(&log_vmmap_dump, std::placeholders::_2));
