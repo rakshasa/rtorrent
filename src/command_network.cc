@@ -484,7 +484,6 @@ initialize_command_network() {
   CMD2_ANY         ("strings.ip_tos",          std::bind(&torrent::option_list_strings, torrent::OPTION_IP_TOS));
 
   CMD2_VAR_BOOL    ("log.handshake", false);
-  CMD2_VAR_STRING  ("log.tracker",   "");
 
   // CMD2_ANY_STRING  ("encoding_list",    std::bind(&apply_encoding_list, std::placeholders::_2));
   CMD2_ANY_STRING  ("encoding.add", std::bind(&apply_encoding_list, std::placeholders::_2));
