@@ -181,6 +181,21 @@ AC_DEFUN([TORRENT_CHECK_MADVISE], [
   ])
 ])
 
+AC_DEFUN([TORRENT_CHECK_POPCOUNT], [
+  AC_MSG_CHECKING(for __builtin_popcount)
+
+  AC_COMPILE_IFELSE(
+    [[
+      void f() { __builtin_popcount(0); }
+    ]],
+    [
+      AC_MSG_RESULT(yes)
+      AC_DEFINE(USE_BUILTIN_POPCOUNT, 1, Use __builtin_popcount.)
+    ], [
+      AC_MSG_RESULT(no)
+  ])
+])
+
 AC_DEFUN([TORRENT_CHECK_CACHELINE], [
   AC_MSG_CHECKING(for cacheline)
 
