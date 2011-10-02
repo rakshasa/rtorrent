@@ -39,6 +39,7 @@
 #include <functional>
 #include <fstream>
 #include <cstdio>
+#include <unistd.h>
 #include <rak/address_info.h>
 #include <rak/path.h>
 #include <torrent/connection_manager.h>
@@ -214,6 +215,7 @@ apply_scgi(const std::string& arg, int type) {
     int port, err;
     char dummy;
     char address[1024];
+    std::string path;
 
     switch (type) {
     case 1:
@@ -245,7 +247,10 @@ apply_scgi(const std::string& arg, int type) {
 
     case 2:
     default:
-      scgi->open_named(rak::path_expand(arg));
+      path = rak::path_expand(arg);
+
+      unlink(path.c_str());
+      scgi->open_named(path);
       break;
     }
 
