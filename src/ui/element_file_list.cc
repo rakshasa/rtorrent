@@ -251,7 +251,10 @@ ElementFileList::receive_select() {
     return;
 
   if (is_collapsed() && !m_selected.is_file()) {
+    torrent::FileList* fl = m_download->download()->file_list();
     m_selected++;
+    if (m_selected == iterator(fl->end()))
+      m_selected = iterator(fl->begin());
     m_window->mark_dirty();
   } else {
     activate_display(DISPLAY_INFO);
