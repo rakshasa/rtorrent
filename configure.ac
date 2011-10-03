@@ -48,6 +48,7 @@ AC_DEFINE(USER_AGENT, [std::string(PACKAGE "/" VERSION "/") + torrent::version()
 
 AC_CHECK_FUNCS(posix_memalign)
 TORRENT_CHECK_CACHELINE()
+TORRENT_CHECK_POPCOUNT()
 
 CC_ATTRIBUTE_UNUSED(
 	AC_DEFINE([__UNUSED], [__attribute__((unused))], [Wrapper around unused attribute]),
