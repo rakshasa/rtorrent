@@ -175,29 +175,6 @@ apply_d_delete_tied(core::Download* download) {
 
 void
 apply_d_directory(core::Download* download, const std::string& name) {
-  // If the download is open, hashed and has completed chunks make
-  // sure to verify that the download files are still present.
-  // 
-  // This should ensure that no one tries to set the destination
-  // directory 'after' moving files. In cases where the user wants to
-  // override this behavior the download must first be closed or
-  // 'd.directory_base.set' may be used.
-  rak::file_stat file_stat;
-  torrent::FileList* file_list = download->file_list();
-
-  if (download->is_hash_checked() && file_list->completed_chunks() != 0 &&
-
-      (file_list->is_multi_file() ?
-       !file_list->is_root_dir_created() :
-       !file_stat.update(file_list->front()->frozen_path()))) {
-
-    download->set_message("Cannot change the directory of an open download after the files have been moved.");
-    rpc::call_command("d.state.set", (int64_t)0, rpc::make_target(download));
-    control->core()->download_list()->close_directly(download);
-
-    throw torrent::input_error("Cannot change the directory of an open download atter the files have been moved.");
-  }
-
   if (!download->file_list()->is_multi_file())
     download->set_root_directory(name);
   else if (name.empty() || *name.rbegin() == '/')
