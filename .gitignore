@@ -1,0 +1,7 @@
+aclocal.m4
+src/rtorrent
+scripts/libtool.m4
+scripts/ltoptions.m4
+scripts/ltsugar.m4
+scripts/ltversion.m4
+scripts/lt~obsolete.m4
