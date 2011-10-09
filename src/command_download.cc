@@ -1,5 +1,5 @@
 // rTorrent - BitTorrent client
-// Copyright (C) 2005-2007, Jari Sundell
+// Copyright (C) 2005-2011, Jari Sundell
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -797,7 +797,7 @@ initialize_command_download() {
 
   CMD2_DL         ("d.wanted_chunks",    CMD2_ON_DATA(wanted_chunks));
 
-  CMD2_DL_V       ("d.tracker_announce",     std::bind(&torrent::TrackerList::manual_request, CMD2_BIND_TL, false)); 
+  CMD2_DL_V       ("d.tracker_announce",     std::bind(&torrent::Download::manual_request, CMD2_BIND_DL, false)); 
   CMD2_DL         ("d.tracker_numwant",      std::bind(&torrent::TrackerList::numwant, CMD2_BIND_TL));
   CMD2_DL_VALUE_V ("d.tracker_numwant.set",  std::bind(&torrent::TrackerList::set_numwant, CMD2_BIND_TL, std::placeholders::_2));
   CMD2_DL         ("d.tracker_focus",        std::bind(&torrent::TrackerList::focus_index, CMD2_BIND_TL));

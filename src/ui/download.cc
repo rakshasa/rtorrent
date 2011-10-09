@@ -1,5 +1,5 @@
 // rTorrent - BitTorrent client
-// Copyright (C) 2005-2007, Jari Sundell
+// Copyright (C) 2005-2011, Jari Sundell
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -391,8 +391,8 @@ Download::bind_keys() {
   m_bindings['+'] = sigc::mem_fun(this, &Download::receive_next_priority);
   m_bindings['-'] = sigc::mem_fun(this, &Download::receive_prev_priority);
 
-  m_bindings['t'] = sigc::bind(sigc::mem_fun(m_download->tracker_list(), &torrent::TrackerList::manual_request), false);
-  m_bindings['T'] = sigc::bind(sigc::mem_fun(m_download->tracker_list(), &torrent::TrackerList::manual_request), true);
+  m_bindings['t'] = sigc::bind(sigc::mem_fun(m_download->download(), &torrent::Download::manual_request), false);
+  m_bindings['T'] = sigc::bind(sigc::mem_fun(m_download->download(), &torrent::Download::manual_request), true);
 
   const char* keys = control->ui()->get_throttle_keys();
 

@@ -1,5 +1,5 @@
 // rTorrent - BitTorrent client
-// Copyright (C) 2005-2007, Jari Sundell
+// Copyright (C) 2005-2011, Jari Sundell
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -286,7 +286,7 @@ DownloadList::close_quick(Download* download) {
   // handled by some parameter to the close function, or some other
   // way of giving the client more control of when STOPPED requests
   // are sent.
-  download->download()->tracker_list()->manual_cancel();
+  download->download()->manual_cancel();
 }
 
 void
@@ -635,7 +635,7 @@ DownloadList::confirm_finished(Download* download) {
 
   // Send the completed request before resuming so we don't reset the
   // up/downloaded baseline.
-  download->download()->tracker_list()->send_completed();
+  download->download()->send_completed();
 
   // Save the hash in case the finished event erases it.
   torrent::HashString infohash = download->info()->hash();
