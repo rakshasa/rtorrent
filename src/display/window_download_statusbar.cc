@@ -1,5 +1,5 @@
 // rTorrent - BitTorrent client
-// Copyright (C) 2005-2007, Jari Sundell
+// Copyright (C) 2005-2011, Jari Sundell
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -91,7 +91,7 @@ WindowDownloadStatusbar::redraw() {
   position = print_download_status(buffer, last, m_download);
   m_canvas->print(0, 2, "[%c:%i] %s",
                   m_download->tracker_list()->has_active() ? 'C' : ' ',
-                  (int)(m_download->download()->tracker_list()->time_next_connection()),
+                  (int)(m_download->download()->time_next_connection()),
                   buffer);
 }
 
