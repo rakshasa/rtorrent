@@ -66,6 +66,9 @@ initialize_command_tracker() {
   CMD2_TRACKER        ("t.success_time_last", std::bind(&torrent::Tracker::success_time_last, std::placeholders::_1));
   CMD2_TRACKER        ("t.failed_time_last",  std::bind(&torrent::Tracker::failed_time_last, std::placeholders::_1));
 
+  CMD2_TRACKER        ("t.success_counter",   std::bind(&torrent::Tracker::success_counter, std::placeholders::_1));
+  CMD2_TRACKER        ("t.failed_counter",    std::bind(&torrent::Tracker::failed_counter, std::placeholders::_1));
+
   CMD2_TRACKER        ("t.scrape_time_last",  std::bind(&torrent::Tracker::scrape_time_last, std::placeholders::_1));
   CMD2_TRACKER        ("t.scrape_complete",   std::bind(&torrent::Tracker::scrape_complete, std::placeholders::_1));
   CMD2_TRACKER        ("t.scrape_incomplete", std::bind(&torrent::Tracker::scrape_incomplete, std::placeholders::_1));
