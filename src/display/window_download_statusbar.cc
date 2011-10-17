@@ -37,6 +37,7 @@
 #include "config.h"
 
 #include <torrent/rate.h>
+#include <torrent/tracker_controller.h>
 #include <torrent/tracker_list.h>
 #include <torrent/peer/connection_list.h>
 #include <torrent/peer/peer_list.h>
@@ -91,7 +92,7 @@ WindowDownloadStatusbar::redraw() {
   position = print_download_status(buffer, last, m_download);
   m_canvas->print(0, 2, "[%c:%i] %s",
                   m_download->tracker_list()->has_active() ? 'C' : ' ',
-                  (int)(m_download->download()->time_next_connection()),
+                  (int)(m_download->download()->tracker_controller()->seconds_to_next_timeout()),
                   buffer);
 }
 
