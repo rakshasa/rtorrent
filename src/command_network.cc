@@ -498,6 +498,8 @@ initialize_command_network() {
   CMD2_VAR_BOOL    ("network.port_random", true);
   CMD2_VAR_STRING  ("network.port_range",  "6881-6999");
 
+  CMD2_ANY         ("network.listen.port",    std::bind(&torrent::ConnectionManager::listen_port, cm));
+
   CMD2_VAR_BOOL    ("protocol.pex",            true);
   CMD2_ANY_LIST    ("protocol.encryption.set", std::bind(&apply_encryption, std::placeholders::_2));
 
