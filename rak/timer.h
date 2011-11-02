@@ -54,6 +54,7 @@ class timer {
   int64_t             usec() const                       { return m_time; }
 
   timer               round_seconds() const              { return (m_time / 1000000) * 1000000; }
+  timer               round_seconds_ceiling() const      { return ((m_time + 1000000 - 1) / 1000000) * 1000000; }
 
   timeval             tval() const {
     timeval val;
