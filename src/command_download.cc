@@ -800,7 +800,8 @@ initialize_command_download() {
   CMD2_DL_V       ("d.tracker_announce",     std::bind(&torrent::Download::manual_request, CMD2_BIND_DL, false)); 
   CMD2_DL         ("d.tracker_numwant",      std::bind(&torrent::TrackerList::numwant, CMD2_BIND_TL));
   CMD2_DL_VALUE_V ("d.tracker_numwant.set",  std::bind(&torrent::TrackerList::set_numwant, CMD2_BIND_TL, std::placeholders::_2));
-  CMD2_DL         ("d.tracker_focus",        std::bind(&torrent::TrackerList::focus_index, CMD2_BIND_TL));
+  // TODO: Deprecate 'd.tracker_focus'.
+  CMD2_DL         ("d.tracker_focus",        std::bind(&core::Download::tracker_list_size, std::placeholders::_1));
   CMD2_DL         ("d.tracker_size",         std::bind(&core::Download::tracker_list_size, std::placeholders::_1));
 
   CMD2_DL         ("d.directory",          CMD2_ON_FL(root_dir));
