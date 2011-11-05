@@ -48,6 +48,7 @@
 #include <torrent/rate.h>
 #include <torrent/throttle.h>
 #include <torrent/tracker.h>
+#include <torrent/tracker_controller.h>
 #include <torrent/connection_manager.h>
 #include <torrent/data/download_data.h>
 #include <torrent/data/file.h>
@@ -61,6 +62,7 @@
 #include "core/download.h"
 #include "core/download_store.h"
 #include "core/manager.h"
+#include "rpc/parse.h"
 
 #include "globals.h"
 #include "control.h"
@@ -458,6 +460,25 @@ p_call_target(const torrent::Object::list_type& args) {
   return rpc::commands.call(command_key.c_str(), torrent::Object::create_list_range(itr, args.end()));
 }
 
+torrent::Object
+download_tracker_insert(core::Download* download, const torrent::Object::list_type& args) {
+  if (args.size() != 2)
+    throw torrent::input_error("Wrong argument count.");
+
+  int64_t group;
+
+  if (args.front().is_string())
+    rpc::parse_whole_value_nothrow(args.front().as_string().c_str(), &group);
+  else
+    group = args.front().as_value();
+
+  if (group < 0 || group > 32)
+    throw torrent::input_error("Tracker group number invalid.");
+
+  download->download()->tracker_controller()->insert(group, args.back().as_string(), true);
+  return torrent::Object();
+}
+
 //
 // New download commands and macros:
 //
@@ -800,8 +821,10 @@ initialize_command_download() {
   CMD2_DL_V       ("d.tracker_announce",     std::bind(&torrent::Download::manual_request, CMD2_BIND_DL, false)); 
   CMD2_DL         ("d.tracker_numwant",      std::bind(&torrent::TrackerList::numwant, CMD2_BIND_TL));
   CMD2_DL_VALUE_V ("d.tracker_numwant.set",  std::bind(&torrent::TrackerList::set_numwant, CMD2_BIND_TL, std::placeholders::_2));
-  CMD2_DL         ("d.tracker_focus",        std::bind(&torrent::TrackerList::focus_index, CMD2_BIND_TL));
+  // TODO: Deprecate 'd.tracker_focus'.
+  CMD2_DL         ("d.tracker_focus",        std::bind(&core::Download::tracker_list_size, std::placeholders::_1));
   CMD2_DL         ("d.tracker_size",         std::bind(&core::Download::tracker_list_size, std::placeholders::_1));
+  CMD2_DL_LIST    ("d.tracker.insert",       std::bind(&download_tracker_insert, std::placeholders::_1, std::placeholders::_2));
 
   CMD2_DL         ("d.directory",          CMD2_ON_FL(root_dir));
   CMD2_DL_STRING_V("d.directory.set",      std::bind(&apply_d_directory, std::placeholders::_1, std::placeholders::_2));
