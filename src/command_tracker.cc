@@ -46,10 +46,18 @@
 #include "command_helpers.h"
 
 void
+tracker_set_enabled(torrent::Tracker* tracker, bool state) {
+  if (state)
+    tracker->enable();
+  else
+    tracker->disable();
+}
+
+void
 initialize_command_tracker() {
   CMD2_TRACKER        ("t.is_open",           std::bind(&torrent::Tracker::is_busy, std::placeholders::_1));
   CMD2_TRACKER        ("t.is_enabled",        std::bind(&torrent::Tracker::is_enabled, std::placeholders::_1));
-  CMD2_TRACKER_VALUE_V("t.is_enabled.set",    std::bind(&torrent::Tracker::set_enabled, std::placeholders::_1, std::placeholders::_2));
+  CMD2_TRACKER_VALUE_V("t.is_enabled.set",    std::bind(&tracker_set_enabled, std::placeholders::_1, std::placeholders::_2));
   CMD2_TRACKER_V      ("t.enable",            std::bind(&torrent::Tracker::enable, std::placeholders::_1));
   CMD2_TRACKER_V      ("t.disable",           std::bind(&torrent::Tracker::disable, std::placeholders::_1));
 
