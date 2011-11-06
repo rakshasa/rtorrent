@@ -48,7 +48,7 @@
 #include <torrent/rate.h>
 #include <torrent/throttle.h>
 #include <torrent/tracker.h>
-#include <torrent/tracker_controller.h>
+#include <torrent/tracker_list.h>
 #include <torrent/connection_manager.h>
 #include <torrent/data/download_data.h>
 #include <torrent/data/file.h>
@@ -475,7 +475,7 @@ download_tracker_insert(core::Download* download, const torrent::Object::list_ty
   if (group < 0 || group > 32)
     throw torrent::input_error("Tracker group number invalid.");
 
-  download->download()->tracker_controller()->insert(group, args.back().as_string(), true);
+  download->download()->tracker_list()->insert_url(group, args.back().as_string(), true);
   return torrent::Object();
 }
 
