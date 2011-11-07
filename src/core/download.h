@@ -60,6 +60,7 @@ public:
   typedef torrent::FileList             file_list_type;
   typedef torrent::PeerList             peer_list_type;
   typedef torrent::TrackerList          tracker_list_type;
+  typedef torrent::TrackerController    tracker_controller_type;
   typedef torrent::ConnectionList       connection_list_type;
   typedef download_type::ConnectionType connection_type;
 
@@ -104,6 +105,8 @@ public:
 
   tracker_list_type*  tracker_list()                           { return m_download.tracker_list(); }
   uint32_t            tracker_list_size() const                { return m_download.tracker_list()->size(); }
+
+  tracker_controller_type* tracker_controller()                { return m_download.tracker_controller(); }
 
   connection_list_type* connection_list()                      { return m_download.connection_list(); }
   uint32_t              connection_list_size() const;
