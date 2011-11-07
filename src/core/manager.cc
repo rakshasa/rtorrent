@@ -76,6 +76,8 @@
 #include "poll_manager_select.h"
 #include "view.h"
 
+namespace std { using namespace tr1; }
+
 namespace core {
 
 void
@@ -204,7 +206,7 @@ Manager::get_address_throttle(const sockaddr* addr) {
 // Most of this should be possible to move out.
 void
 Manager::initialize_second() {
-  torrent::Http::set_factory(sigc::mem_fun(m_httpStack, &CurlStack::new_object));
+  torrent::Http::set_factory(std::bind(&CurlStack::new_object, m_httpStack));
   m_httpQueue->slot_factory(sigc::mem_fun(m_httpStack, &CurlStack::new_object));
 
   CurlStack::global_init();
