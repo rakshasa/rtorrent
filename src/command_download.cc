@@ -48,6 +48,7 @@
 #include <torrent/rate.h>
 #include <torrent/throttle.h>
 #include <torrent/tracker.h>
+#include <torrent/tracker_controller.h>
 #include <torrent/tracker_list.h>
 #include <torrent/connection_manager.h>
 #include <torrent/data/download_data.h>
@@ -582,6 +583,7 @@ d_list_remove(core::Download* download, const torrent::Object& rawArgs, const ch
 #define CMD2_BIND_FL std::bind(&core::Download::file_list, std::placeholders::_1)
 #define CMD2_BIND_PL std::bind(&core::Download::c_peer_list, std::placeholders::_1)
 #define CMD2_BIND_TL std::bind(&core::Download::tracker_list, std::placeholders::_1)
+#define CMD2_BIND_TC std::bind(&core::Download::tracker_controller, std::placeholders::_1)
 
 #define CMD2_BIND_INFO std::bind(&core::Download::info, std::placeholders::_1)
 #define CMD2_BIND_DATA std::bind(&core::Download::data, std::placeholders::_1)
@@ -824,7 +826,9 @@ initialize_command_download() {
   // TODO: Deprecate 'd.tracker_focus'.
   CMD2_DL         ("d.tracker_focus",        std::bind(&core::Download::tracker_list_size, std::placeholders::_1));
   CMD2_DL         ("d.tracker_size",         std::bind(&core::Download::tracker_list_size, std::placeholders::_1));
+
   CMD2_DL_LIST    ("d.tracker.insert",       std::bind(&download_tracker_insert, std::placeholders::_1, std::placeholders::_2));
+  CMD2_DL_VALUE_V ("d.tracker.send_scrape",  std::bind(&torrent::TrackerController::scrape_request, CMD2_BIND_TC, std::placeholders::_2));
 
   CMD2_DL         ("d.directory",          CMD2_ON_FL(root_dir));
   CMD2_DL_STRING_V("d.directory.set",      std::bind(&apply_d_directory, std::placeholders::_1, std::placeholders::_2));
