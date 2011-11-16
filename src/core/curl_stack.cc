@@ -46,6 +46,8 @@
 #include "curl_socket.h"
 #include "curl_stack.h"
 
+namespace std { using namespace tr1; }
+
 namespace core {
 
 CurlStack::CurlStack() :
@@ -131,9 +133,11 @@ CurlStack::transfer_done(void* handle, const char* msg) {
     throw torrent::internal_error("Could not find CurlGet with the right easy_handle.");
 
   if (msg == NULL)
-    (*itr)->signal_done().emit();
+    std::for_each((*itr)->signal_done().begin(), (*itr)->signal_done().end(),
+                  std::bind(&torrent::Http::slot_void::operator(), std::placeholders::_1));
   else
-    (*itr)->signal_failed().emit(msg);
+    std::for_each((*itr)->signal_failed().begin(), (*itr)->signal_failed().end(),
+                  std::bind(&torrent::Http::slot_string::operator(), std::placeholders::_1, msg));
 }
 
 void
