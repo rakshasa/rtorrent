@@ -133,11 +133,9 @@ CurlStack::transfer_done(void* handle, const char* msg) {
     throw torrent::internal_error("Could not find CurlGet with the right easy_handle.");
 
   if (msg == NULL)
-    std::for_each((*itr)->signal_done().begin(), (*itr)->signal_done().end(),
-                  std::bind(&torrent::Http::slot_void::operator(), std::placeholders::_1));
+    torrent::slot_list_call((*itr)->signal_done());
   else
-    std::for_each((*itr)->signal_failed().begin(), (*itr)->signal_failed().end(),
-                  std::bind(&torrent::Http::slot_string::operator(), std::placeholders::_1, msg));
+    torrent::slot_list_call((*itr)->signal_failed(), msg);
 }
 
 void
