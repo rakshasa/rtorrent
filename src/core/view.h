@@ -49,7 +49,6 @@
 #ifndef RTORRENT_CORE_VIEW_DOWNLOADS_H
 #define RTORRENT_CORE_VIEW_DOWNLOADS_H
 
-#include <memory>
 #include <string>
 #include <vector>
 #include <rak/timer.h>

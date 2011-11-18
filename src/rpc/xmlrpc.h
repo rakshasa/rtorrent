@@ -37,7 +37,7 @@
 #ifndef RTORRENT_RPC_XMLRPC_H
 #define RTORRENT_RPC_XMLRPC_H
 
-#include <rak/functional_fun.h>
+#include <tr1/functional>
 #include <torrent/hash_string.h>
 
 namespace core {
@@ -54,11 +54,11 @@ namespace rpc {
 
 class XmlRpc {
 public:
-  typedef rak::function1<core::Download*, const char*>                 slot_find_download;
-  typedef rak::function2<torrent::File*, core::Download*, uint32_t>    slot_find_file;
-  typedef rak::function2<torrent::Tracker*, core::Download*, uint32_t> slot_find_tracker;
-  typedef rak::function2<torrent::Peer*, core::Download*, const torrent::HashString&> slot_find_peer;
-  typedef rak::function2<bool, const char*, uint32_t>                  slot_write;
+  typedef std::tr1::function<core::Download* (const char*)>                 slot_download;
+  typedef std::tr1::function<torrent::File* (core::Download*, uint32_t)>    slot_file;
+  typedef std::tr1::function<torrent::Tracker* (core::Download*, uint32_t)> slot_tracker;
+  typedef std::tr1::function<torrent::Peer* (core::Download*, const torrent::HashString&)> slot_peer;
+  typedef std::tr1::function<bool (const char*, uint32_t)>                  slot_write;
 
   static const int dialect_generic = 0;
   static const int dialect_i8      = 1;
@@ -87,17 +87,10 @@ public:
   int                 dialect() { return m_dialect; }
   void                set_dialect(int dialect);
 
-  slot_find_download& get_slot_find_download()                                    { return m_slotFindDownload; }
-  void                set_slot_find_download(slot_find_download::base_type* slot) { m_slotFindDownload.set(slot); }
-
-  slot_find_file&     get_slot_find_file()                                        { return m_slotFindFile; }
-  void                set_slot_find_file(slot_find_file::base_type* slot)         { m_slotFindFile.set(slot); }
-
-  slot_find_tracker&  get_slot_find_tracker()                                     { return m_slotFindTracker; }
-  void                set_slot_find_tracker(slot_find_tracker::base_type* slot)   { m_slotFindTracker.set(slot); }
-
-  slot_find_peer&     get_slot_find_peer()                                        { return m_slotFindPeer; }
-  void                set_slot_find_peer(slot_find_peer::base_type* slot)         { m_slotFindPeer.set(slot); }
+  slot_download&      slot_find_download() { return m_slotFindDownload; }
+  slot_file&          slot_find_file()     { return m_slotFindFile; }
+  slot_tracker&       slot_find_tracker()  { return m_slotFindTracker; }
+  slot_peer&          slot_find_peer()     { return m_slotFindPeer; }
 
   static int64_t      size_limit();
   static void         set_size_limit(uint64_t size);
@@ -108,10 +101,10 @@ private:
 
   int                 m_dialect;
 
-  slot_find_download  m_slotFindDownload;
-  slot_find_file      m_slotFindFile;
-  slot_find_tracker   m_slotFindTracker;
-  slot_find_peer      m_slotFindPeer;
+  slot_download       m_slotFindDownload;
+  slot_file           m_slotFindFile;
+  slot_tracker        m_slotFindTracker;
+  slot_peer           m_slotFindPeer;
 };
 
 }

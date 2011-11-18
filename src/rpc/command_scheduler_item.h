@@ -39,13 +39,14 @@
 
 #include "globals.h"
 
+#include <tr1/functional>
 #include <torrent/object.h>
 
 namespace rpc {
 
 class CommandSchedulerItem {
 public:
-  typedef rak::function0<void> Slot;
+  typedef std::tr1::function<void ()> slot_void;
 
   CommandSchedulerItem(const std::string& key) : m_key(key), m_interval(0) {}
   ~CommandSchedulerItem();
@@ -65,7 +66,7 @@ public:
   rak::timer          time_scheduled() const                  { return m_timeScheduled; }
   rak::timer          next_time_scheduled() const;
 
-  void                set_slot(Slot::base_type* s)            { m_task.set_slot(s); }
+  void                set_slot(const slot_void& s)            { m_task.set_slot(s); }
 
 private:
   CommandSchedulerItem(const CommandSchedulerItem&);

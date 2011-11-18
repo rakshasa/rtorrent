@@ -98,41 +98,41 @@ void initialize_commands();
 
 #define CMD2_VAR_BOOL(key, value)                                       \
   control->object_storage()->insert_c_str(key, int64_t(value), rpc::object_storage::flag_bool_type); \
-  CMD2_ANY(key, std::bind(&rpc::object_storage::get, control->object_storage(),   \
+  CMD2_ANY(key, std::bind(&rpc::object_storage::get, control->object_storage(), \
                                torrent::raw_string::from_c_str(key)));  \
   CMD2_ANY_VALUE(key ".set", std::bind(&rpc::object_storage::set_bool, control->object_storage(), \
                                             torrent::raw_string::from_c_str(key), std::placeholders::_2));
 
 #define CMD2_VAR_VALUE(key, value)                                      \
   control->object_storage()->insert_c_str(key, int64_t(value), rpc::object_storage::flag_value_type); \
-  CMD2_ANY(key, std::bind(&rpc::object_storage::get, control->object_storage(),   \
+  CMD2_ANY(key, std::bind(&rpc::object_storage::get, control->object_storage(), \
                                torrent::raw_string::from_c_str(key)));  \
   CMD2_ANY_VALUE(key ".set", std::bind(&rpc::object_storage::set_value, control->object_storage(), \
                                             torrent::raw_string::from_c_str(key), std::placeholders::_2));
 
 #define CMD2_VAR_STRING(key, value)                                     \
   control->object_storage()->insert_c_str(key, value, rpc::object_storage::flag_string_type); \
-  CMD2_ANY(key, std::bind(&rpc::object_storage::get, control->object_storage(),   \
+  CMD2_ANY(key, std::bind(&rpc::object_storage::get, control->object_storage(), \
                                torrent::raw_string::from_c_str(key)));  \
   CMD2_ANY_STRING(key ".set", std::bind(&rpc::object_storage::set_string, control->object_storage(), \
-                                            torrent::raw_string::from_c_str(key), std::placeholders::_2));
+                                             torrent::raw_string::from_c_str(key), std::placeholders::_2));
 
 
 #define CMD2_VAR_C_STRING(key, value)                                   \
   control->object_storage()->insert_c_str(key, value, rpc::object_storage::flag_string_type); \
-  CMD2_ANY(key, std::bind(&rpc::object_storage::get, control->object_storage(),   \
+  CMD2_ANY(key, std::bind(&rpc::object_storage::get, control->object_storage(), \
                                torrent::raw_string::from_c_str(key)));
 
 #define CMD2_VAR_LIST(key)                                              \
   control->object_storage()->insert_c_str(key, torrent::Object::create_list(), rpc::object_storage::flag_list_type); \
-  CMD2_ANY(key, std::bind(&rpc::object_storage::get, control->object_storage(),   \
+  CMD2_ANY(key, std::bind(&rpc::object_storage::get, control->object_storage(), \
                                torrent::raw_string::from_c_str(key)));  \
   CMD2_ANY_LIST(key ".set", std::bind(&rpc::object_storage::set_list, control->object_storage(), \
-                                      torrent::raw_string::from_c_str(key), std::placeholders::_2)); \
+                                           torrent::raw_string::from_c_str(key), std::placeholders::_2)); \
   CMD2_ANY_VOID(key ".push_back", std::bind(&rpc::object_storage::list_push_back, control->object_storage(), \
-                                            torrent::raw_string::from_c_str(key), std::placeholders::_2));
+                                                 torrent::raw_string::from_c_str(key), std::placeholders::_2));
 
-#define CMD2_FUNC_SINGLE(key, cmds)                                  \
+#define CMD2_FUNC_SINGLE(key, cmds)                                     \
   CMD2_ANY(key, std::bind(&rpc::command_function_call, torrent::raw_string::from_c_str(cmds), \
                                std::placeholders::_1, std::placeholders::_2));
 
@@ -175,7 +175,11 @@ struct object_convert_type<Functor, void> {
   template <typename Arg1>
   torrent::Object operator () (Arg1& arg1) { m_slot(arg1); return torrent::Object(); }
   template <typename Arg1, typename Arg2>
+  torrent::Object operator () (const Arg1& arg1) { m_slot(arg1); return torrent::Object(); }
+  template <typename Arg1, typename Arg2>
   torrent::Object operator () (Arg1& arg1, Arg2& arg2) { m_slot(arg1, arg2); return torrent::Object(); }
+  template <typename Arg1, typename Arg2>
+  torrent::Object operator () (const Arg1& arg1, const Arg2& arg2) { m_slot(arg1, arg2); return torrent::Object(); }
 
   Functor m_slot;
 };

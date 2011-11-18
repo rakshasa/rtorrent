@@ -48,7 +48,7 @@ WindowLog::WindowLog(core::Log* l) :
   Window(new Canvas, 0, 0, 0, extent_full, extent_static),
   m_log(l) {
 
-  m_taskUpdate.set_slot(rak::mem_fn(this, &WindowLog::receive_update)),
+  m_taskUpdate.set_slot(std::tr1::bind(&WindowLog::receive_update, this)),
 
   // We're trying out scheduled tasks instead.
   m_connUpdate = l->signal_update().connect(sigc::mem_fun(*this, &WindowLog::receive_update));

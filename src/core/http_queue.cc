@@ -46,8 +46,6 @@
 #include "http_queue.h"
 #include "curl_get.h"
 
-namespace std { using namespace tr1; }
-
 namespace core {
 
 HttpQueue::iterator
@@ -60,8 +58,8 @@ HttpQueue::insert(const std::string& url, std::iostream* s) {
 
   iterator itr = Base::insert(end(), h.get());
 
-  h->signal_done().push_back(std::bind(&HttpQueue::erase, this, itr));
-  h->signal_failed().push_back(std::bind(&HttpQueue::erase, this, itr));
+  h->signal_done().push_back(std::tr1::bind(&HttpQueue::erase, this, itr));
+  h->signal_failed().push_back(std::tr1::bind(&HttpQueue::erase, this, itr));
 
   (*itr)->start();
 

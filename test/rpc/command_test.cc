@@ -1,6 +1,6 @@
 #include "config.h"
 
-#import "command_test.h"
+#include "command_test.h"
 
 CPPUNIT_TEST_SUITE_REGISTRATION(CommandTest);
 

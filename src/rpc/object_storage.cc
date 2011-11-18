@@ -246,7 +246,7 @@ object_storage::rlookup_list(const std::string& cmd_key) {
   
   if (r_itr != m_rlookup.end())
     std::transform(r_itr->second.begin(), r_itr->second.end(), std::back_inserter(result),
-                   std::bind(&key_type::c_str, std::bind(rak::mem_ptr(&value_type::first), std::placeholders::_1)));
+                   std::tr1::bind(&key_type::c_str, std::tr1::bind(rak::mem_ptr(&value_type::first), std::tr1::placeholders::_1)));
 
   return result;
 }

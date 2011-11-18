@@ -115,7 +115,7 @@ ThreadBase::ThreadBase() :
   // create_poll_manager calls in that case.
   std::memset(&m_thread, 0, sizeof(pthread_t));
 
-  m_taskShutdown.set_slot(rak::ptr_fn(&throw_shutdown_exception));
+  m_taskShutdown.set_slot(std::tr1::bind(&throw_shutdown_exception));
 
   m_threadQueue = new thread_queue_hack;
 }

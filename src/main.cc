@@ -76,8 +76,6 @@
 #include "thread_main.h"
 #include "thread_worker.h"
 
-namespace std { using namespace tr1; }
-
 void handle_sigbus(int signum, siginfo_t* sa, void* ptr);
 void do_panic(int signum);
 void print_help();

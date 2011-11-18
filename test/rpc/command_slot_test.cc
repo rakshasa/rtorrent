@@ -4,7 +4,7 @@
 #include <torrent/object.h>
 #include "rpc/command_map.h"
 
-#import "command_slot_test.h"
+#include "command_slot_test.h"
 
 CPPUNIT_TEST_SUITE_REGISTRATION(CommandSlotTest);
 
@@ -25,7 +25,7 @@ CommandSlotTest::test_basics() {
 //   test_any.set_function<rpc::any_function>(&cmd_test_a);
 //   CPPUNIT_ASSERT(rpc::command_base_call_any(&test_any, rpc::make_target(), (int64_t)1).as_value() == 1);
 
-//   test_any.set_function<rpc::any_function>(std::bind(&cmd_test_b, std::placeholders::_1, std::placeholders::_2, (uint64_t)2));
+//   test_any.set_function<rpc::any_function>(tr1::bind(&cmd_test_b, tr1::placeholders::_1, tr1::placeholders::_2, (uint64_t)2));
 //   CPPUNIT_ASSERT(rpc::command_base_call_any(&test_any, rpc::make_target(), (int64_t)1).as_value() == 2);
 
 //   test_any.set_function<rpc::any_list_function>(&cmd_test_list);

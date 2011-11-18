@@ -47,9 +47,7 @@
 #include <torrent/data/file_list_iterator.h>
 
 // Move into config.h or something.
-namespace std {
-  using namespace tr1;
-}
+namespace tr1 { using namespace std::tr1; }
 
 namespace core {
   class Download;
@@ -210,9 +208,16 @@ protected:
   // within commands. E.d. callable command strings where one of the
   // arguments within the command needs to be supplied by the caller.
 
+#ifdef HAVE_CXX11
+  union {
+    base_function t_pod;
+    // char t_pod[sizeof(base_function)];
+  };
+#else
   union {
     char t_pod[sizeof(base_function)];
   };
+#endif
 };
 
 template <typename T1 = void, typename T2 = void>

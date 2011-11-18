@@ -180,10 +180,10 @@ xmlrpc_find_peer(core::Download* download, const torrent::HashString& hash) {
 void
 initialize_xmlrpc() {
   rpc::xmlrpc.initialize();
-  rpc::xmlrpc.set_slot_find_download(rak::mem_fn(control->core()->download_list(), &core::DownloadList::find_hex_ptr));
-  rpc::xmlrpc.set_slot_find_file(rak::ptr_fn(&xmlrpc_find_file));
-  rpc::xmlrpc.set_slot_find_tracker(rak::ptr_fn(&xmlrpc_find_tracker));
-  rpc::xmlrpc.set_slot_find_peer(rak::ptr_fn(&xmlrpc_find_peer));
+  rpc::xmlrpc.slot_find_download() = std::tr1::bind(&core::DownloadList::find_hex_ptr, control->core()->download_list(), std::tr1::placeholders::_1);
+  rpc::xmlrpc.slot_find_file() = std::tr1::bind(&xmlrpc_find_file, std::tr1::placeholders::_1, std::tr1::placeholders::_2);
+  rpc::xmlrpc.slot_find_tracker() = std::tr1::bind(&xmlrpc_find_tracker, std::tr1::placeholders::_1, std::tr1::placeholders::_2);
+  rpc::xmlrpc.slot_find_peer() = std::tr1::bind(&xmlrpc_find_peer, std::tr1::placeholders::_1, std::tr1::placeholders::_2);
 
   unsigned int count = 0;
 
@@ -429,8 +429,6 @@ torrent::Object
 apply_ipv4_filter_load(const torrent::Object::list_type& args) {
   if (args.size() != 2)
     throw torrent::input_error("Incorrect number of arguments.");
-
-  torrent::Object::list_const_iterator args_itr = args.begin();
 
   std::fstream file(rak::path_expand(args.front().as_string()).c_str(), std::ios::in);
   

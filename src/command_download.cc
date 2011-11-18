@@ -362,7 +362,7 @@ f_multicall(core::Download* download, const torrent::Object::list_type& args) {
 
     torrent::Object::list_type& row = result.insert(result.end(), torrent::Object::create_list())->as_list();
 
-    for (torrent::Object::list_const_iterator cItr = ++args.begin(), cLast = args.end(); cItr != args.end(); cItr++) {
+    for (torrent::Object::list_const_iterator cItr = ++args.begin(); cItr != args.end(); cItr++) {
       const std::string& cmd = cItr->as_string();
       row.push_back(rpc::parse_command(rpc::make_target(*itr), cmd.c_str(), cmd.c_str() + cmd.size()).first);
     }
@@ -387,7 +387,7 @@ t_multicall(core::Download* download, const torrent::Object::list_type& args) {
   for (int itr = 0, last = download->tracker_list()->size(); itr != last; itr++) {
     torrent::Object::list_type& row = result.insert(result.end(), torrent::Object::create_list())->as_list();
 
-    for (torrent::Object::list_const_iterator cItr = ++args.begin(), cLast = args.end(); cItr != args.end(); cItr++) {
+    for (torrent::Object::list_const_iterator cItr = ++args.begin(); cItr != args.end(); cItr++) {
       const std::string& cmd = cItr->as_string();
       torrent::Tracker* t = download->tracker_list()->at(itr);
 
@@ -415,7 +415,7 @@ p_multicall(core::Download* download, const torrent::Object::list_type& args) {
        itr != last; itr++) {
     torrent::Object::list_type& row = result.insert(result.end(), torrent::Object::create_list())->as_list();
 
-    for (torrent::Object::list_const_iterator cItr = ++args.begin(), cLast = args.end(); cItr != args.end(); cItr++) {
+    for (torrent::Object::list_const_iterator cItr = ++args.begin(); cItr != args.end(); cItr++) {
       const std::string& cmd = cItr->as_string();
 
       row.push_back(rpc::parse_command(rpc::make_target(*itr), cmd.c_str(), cmd.c_str() + cmd.size()).first);

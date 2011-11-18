@@ -52,7 +52,7 @@
 #include "rpc/parse_commands.h"
 
 ThreadWorker::ThreadWorker() {
-  m_taskTouchLog.set_slot(rak::mem_fn(this, &ThreadWorker::task_touch_log));
+  m_taskTouchLog.set_slot(std::tr1::bind(&ThreadWorker::task_touch_log, this));
 }
 
 ThreadWorker::~ThreadWorker() {
