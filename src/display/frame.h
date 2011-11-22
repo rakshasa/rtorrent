@@ -60,6 +60,9 @@ public:
     bounds_type(extent_type minW, extent_type minH, extent_type maxW, extent_type maxH) :
       minWidth(minW), minHeight(minH), maxWidth(maxW), maxHeight(maxH) {}
 
+    extent_type min_width() const  { return minWidth; }
+    extent_type min_height() const { return minHeight; }
+
     extent_type minWidth;
     extent_type minHeight;
 

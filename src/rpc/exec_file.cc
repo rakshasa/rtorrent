@@ -55,17 +55,19 @@ namespace rpc {
 int
 ExecFile::execute(const char* file, char* const* argv, int flags) {
   // Write the execued command and its parameters to the log fd.
+  int __UNUSED result;
+
   if (m_logFd != -1) {
     for (char* const* itr = argv; *itr != NULL; itr++) {
       if (itr == argv)
-        write(m_logFd, "\n---\n", sizeof("\n---\n"));
+        result = write(m_logFd, "\n---\n", sizeof("\n---\n"));
       else
-        write(m_logFd, " ", 1);
+        result = write(m_logFd, " ", 1);
 
-      write(m_logFd, *itr, std::strlen(*itr));
+      result = write(m_logFd, *itr, std::strlen(*itr));
     }
 
-    write(m_logFd, "\n---\n", sizeof("\n---\n"));
+    result = write(m_logFd, "\n---\n", sizeof("\n---\n"));
   }
 
   int pipeFd[2];
@@ -87,7 +89,7 @@ ExecFile::execute(const char* file, char* const* argv, int flags) {
 
       if (detached_pid != 0) {
         if (m_logFd != -1)
-          write(m_logFd, "\n--- Background task ---\n", sizeof("\n--- Background task ---\n"));
+          result = write(m_logFd, "\n--- Background task ---\n", sizeof("\n--- Background task ---\n"));
         
         _exit(0);
       }
@@ -148,8 +150,8 @@ ExecFile::execute(const char* file, char* const* argv, int flags) {
     ::close(pipeFd[0]);
 
     if (m_logFd != -1) {
-      write(m_logFd, "Captured output:\n", sizeof("Captured output:\n"));
-      write(m_logFd, m_capture.data(), m_capture.length());
+      result = write(m_logFd, "Captured output:\n", sizeof("Captured output:\n"));
+      result = write(m_logFd, m_capture.data(), m_capture.length());
     }
   }
 
@@ -168,9 +170,9 @@ ExecFile::execute(const char* file, char* const* argv, int flags) {
   // Check return value?
   if (m_logFd != -1) {
     if (status == 0)
-      write(m_logFd, "\n--- Success ---\n", sizeof("\n--- Success ---\n"));
+      result = write(m_logFd, "\n--- Success ---\n", sizeof("\n--- Success ---\n"));
     else
-      write(m_logFd, "\n--- Error ---\n", sizeof("\n--- Error ---\n"));
+      result = write(m_logFd, "\n--- Error ---\n", sizeof("\n--- Error ---\n"));
   }
 
   return status;
