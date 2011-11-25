@@ -177,10 +177,12 @@ SCgiTask::event_read() {
   worker_thread->poll()->insert_write(this);
 
   if (m_parent->log_fd() >= 0) {
+    int __UNUSED result;
+
     // Clean up logging, this is just plain ugly...
     //    write(m_logFd, "\n---\n", sizeof("\n---\n"));
-    write(m_parent->log_fd(), m_buffer, m_bufferSize);
-    write(m_parent->log_fd(), "\n---\n", sizeof("\n---\n"));
+    result = write(m_parent->log_fd(), m_buffer, m_bufferSize);
+    result = write(m_parent->log_fd(), "\n---\n", sizeof("\n---\n"));
   }
 
   lt_log_print(torrent::LOG_RPC_DEBUG, "---\n%*s\n---", m_bufferSize - std::distance(m_buffer, m_body), m_body);
@@ -237,10 +239,11 @@ SCgiTask::receive_write(const char* buffer, uint32_t length) {
   std::memcpy(m_buffer + headerSize, buffer, length);
 
   if (m_parent->log_fd() >= 0) {
+    int __UNUSED result;
     // Clean up logging, this is just plain ugly...
     //    write(m_logFd, "\n---\n", sizeof("\n---\n"));
-    write(m_parent->log_fd(), m_buffer, m_bufferSize);
-    write(m_parent->log_fd(), "\n---\n", sizeof("\n---\n"));
+    result = write(m_parent->log_fd(), m_buffer, m_bufferSize);
+    result = write(m_parent->log_fd(), "\n---\n", sizeof("\n---\n"));
   }
 
   lt_log_print(torrent::LOG_RPC_DEBUG, "---\n%*s\n---", m_bufferSize, m_buffer);

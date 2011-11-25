@@ -51,6 +51,8 @@ class CurlStack;
 
 class CurlGet : public torrent::Http {
 public:
+  friend class CurlStack;
+
   CurlGet(CurlStack* s) : m_active(false), m_handle(NULL), m_stack(s) {}
   virtual ~CurlGet();
 

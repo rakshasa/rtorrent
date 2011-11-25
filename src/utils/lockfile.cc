@@ -99,7 +99,7 @@ Lockfile::try_lock() {
 
   if (pos == 0) {
     ::snprintf(buf + std::strlen(buf), 255, ":+%i\n", ::getpid());
-    ::write(fd, buf, std::strlen(buf));
+    int __UNUSED result = ::write(fd, buf, std::strlen(buf));
   }
 
   ::close(fd);
