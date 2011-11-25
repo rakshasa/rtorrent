@@ -133,9 +133,9 @@ CurlStack::transfer_done(void* handle, const char* msg) {
     throw torrent::internal_error("Could not find CurlGet with the right easy_handle.");
 
   if (msg == NULL)
-    torrent::slot_list_call((*itr)->signal_done());
+    (*itr)->trigger_done();
   else
-    torrent::slot_list_call((*itr)->signal_failed(), msg);
+    (*itr)->trigger_failed(msg);
 }
 
 void
