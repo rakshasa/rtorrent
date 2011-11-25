@@ -36,9 +36,12 @@
 
 #include "config.h"
 
+#define __STDC_FORMAT_MACROS
+
 #include <cstdlib>
 #include <iostream>
 #include <string>
+#include <inttypes.h>
 #include <sigc++/adaptors/bind.h>
 #include <torrent/http.h>
 #include <torrent/torrent.h>
@@ -954,7 +957,7 @@ handle_sigbus(int signum, siginfo_t* sa, void* ptr) {
 
   printf("Torrent name: '%s'.\n", result.download.info()->name().c_str());
   printf("File name:    '%s'.\n", result.file_path);
-  printf("File offset:  %llu.\n", result.file_offset);
+  printf("File offset:  %" PRIu64 ".\n", result.file_offset);
   printf("Chunk index:  %u.\n", result.chunk_index);
   printf("Chunk offset: %u.\n", result.chunk_offset);
 
