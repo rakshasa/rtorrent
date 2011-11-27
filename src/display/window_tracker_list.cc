@@ -89,7 +89,7 @@ WindowTrackerList::redraw() {
                     tracker->url().c_str());
 
     if (pos < m_canvas->height())
-      m_canvas->print(4, pos++, "Id: %s Counters: %uf / %us (%u) Enabled: %s Open: %s S/L/D: %u/%u/%u",
+      m_canvas->print(4, pos++, "Id: %s Counters: %uf / %us (%u) Enabled: %s Open: %s S/L/D: %u/%u/%u (%u)",
                       rak::copy_escape_html(tracker->tracker_id()).c_str(),
                       tracker->failed_counter(),
                       tracker->success_counter(),
@@ -98,7 +98,8 @@ WindowTrackerList::redraw() {
                       tracker->is_busy() ? "yes" : " no",
                       tracker->scrape_complete(),
                       tracker->scrape_incomplete(),
-                      tracker->scrape_downloaded());
+                      tracker->scrape_downloaded(),
+                      tracker->latest_new_peers());
 
 //     m_canvas->print(4, pos++, "Id: %s Focus: %s Enabled: %s Open: %s Timer: %u/%u",
 //                     rak::copy_escape_html(tracker->tracker_id()).c_str(),

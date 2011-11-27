@@ -66,6 +66,9 @@ initialize_command_tracker() {
   CMD2_TRACKER        ("t.type",              std::bind(&torrent::Tracker::type, std::placeholders::_1));
   CMD2_TRACKER        ("t.id",                std::bind(&torrent::Tracker::tracker_id, std::placeholders::_1));
 
+  CMD2_TRACKER        ("t.latest_event",      std::bind(&torrent::Tracker::latest_event, std::placeholders::_1));
+  CMD2_TRACKER        ("t.latest_new_peers",  std::bind(&torrent::Tracker::latest_new_peers, std::placeholders::_1));
+
   // Time since last connection, connection attempt.
 
   CMD2_TRACKER        ("t.normal_interval",   std::bind(&torrent::Tracker::normal_interval, std::placeholders::_1));
