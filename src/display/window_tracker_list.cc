@@ -41,6 +41,7 @@
 #include <torrent/exceptions.h>
 #include <torrent/tracker.h>
 #include <torrent/tracker_list.h>
+#include <torrent/tracker_controller.h>
 
 #include "core/download.h"
 
@@ -62,8 +63,9 @@ WindowTrackerList::redraw() {
 
   unsigned int pos = 0;
   torrent::TrackerList* tl = m_download->tracker_list();
+  torrent::TrackerController* tc = m_download->tracker_controller();
 
-  m_canvas->print(2, pos, "Trackers: [Key: %08x]", tl->key());
+  m_canvas->print(2, pos, "Trackers: [Key: %08x] [Requesting: %s]", tl->key(), tc->is_requesting() ? "yes" : "no");
   ++pos;
 
   if (tl->size() == 0 || *m_focus >= tl->size())
