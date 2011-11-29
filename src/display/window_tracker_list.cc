@@ -91,13 +91,13 @@ WindowTrackerList::redraw() {
                     tracker->url().c_str());
 
     if (pos < m_canvas->height())
-      m_canvas->print(4, pos++, "Id: %s Counters: %uf / %us (%u) Enabled: %s Open: %s S/L/D: %u/%u/%u (%u/%u)",
+      m_canvas->print(4, pos++, "Id: %s Counters: %uf / %us (%u) %s %s S/L/D: %u/%u/%u (%u/%u)",
                       rak::copy_escape_html(tracker->tracker_id()).c_str(),
                       tracker->failed_counter(),
                       tracker->success_counter(),
                       tracker->scrape_counter(),
-                      tracker->is_usable() ? "yes" : tracker->is_enabled() ? "off" : " no",
-                      tracker->is_busy() ? "yes" : " no",
+                      tracker->is_usable() ? " on" : tracker->is_enabled() ? "err" : "off",
+                      tracker->is_busy() ? "req" : "   ",
                       tracker->scrape_complete(),
                       tracker->scrape_incomplete(),
                       tracker->scrape_downloaded(),
