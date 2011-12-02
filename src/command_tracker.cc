@@ -36,14 +36,19 @@
 
 #include "config.h"
 
+#include <rak/address_info.h>
 #include <rak/error_number.h>
+#include <torrent/dht_manager.h>
 #include <torrent/tracker.h>
+#include <torrent/utils/log.h>
 
+#include "core/download.h"
 #include "core/manager.h"
 
 #include "globals.h"
 #include "control.h"
 #include "command_helpers.h"
+#include "core/dht_manager.h"
 
 void
 tracker_set_enabled(torrent::Tracker* tracker, bool state) {
@@ -51,6 +56,56 @@ tracker_set_enabled(torrent::Tracker* tracker, bool state) {
     tracker->enable();
   else
     tracker->disable();
+}
+
+struct call_add_node_t {
+  call_add_node_t(int port) : m_port(port) { }
+
+  void operator() (const sockaddr* sa, int err) {
+    if (sa == NULL) {
+      lt_log_print(torrent::LOG_DHT_WARN, "Could not resolve host.");
+    } else {
+      torrent::dht_manager()->add_node(sa, m_port);
+    }
+  }
+
+  int m_port;
+};
+
+torrent::Object
+apply_dht_add_node(const std::string& arg) {
+  if (!torrent::dht_manager()->is_valid())
+    throw torrent::input_error("DHT not enabled.");
+
+  int port, ret;
+  char dummy;
+  char host[1024];
+
+  ret = std::sscanf(arg.c_str(), "%1023[^:]:%i%c", host, &port, &dummy);
+
+  if (ret == 1)
+    port = 6881;
+  else if (ret != 2)
+    throw torrent::input_error("Could not parse host.");
+
+  if (port < 1 || port > 65535)
+    throw torrent::input_error("Invalid port number.");
+
+  torrent::connection_manager()->resolver()(host, (int)rak::socket_address::pf_inet, SOCK_DGRAM, call_add_node_t(port));
+  return torrent::Object();
+}
+
+torrent::Object
+apply_enable_trackers(int64_t arg) {
+  for (core::Manager::DListItr itr = control->core()->download_list()->begin(), last = control->core()->download_list()->end(); itr != last; ++itr) {
+    std::for_each((*itr)->tracker_list()->begin(), (*itr)->tracker_list()->end(),
+                  arg ? std::mem_fun(&torrent::Tracker::enable) : std::mem_fun(&torrent::Tracker::disable));
+
+    if (arg && !rpc::call_command_value("trackers.use_udp"))
+      (*itr)->enable_udp_trackers(false);
+  }    
+
+  return torrent::Object();
 }
 
 void
@@ -87,4 +142,16 @@ initialize_command_tracker() {
   CMD2_TRACKER        ("t.scrape_complete",   std::bind(&torrent::Tracker::scrape_complete, std::placeholders::_1));
   CMD2_TRACKER        ("t.scrape_incomplete", std::bind(&torrent::Tracker::scrape_incomplete, std::placeholders::_1));
   CMD2_TRACKER        ("t.scrape_downloaded", std::bind(&torrent::Tracker::scrape_downloaded, std::placeholders::_1));
+
+  CMD2_ANY_VALUE      ("trackers.enable",     std::bind(&apply_enable_trackers, int64_t(1)));
+  CMD2_ANY_VALUE      ("trackers.disable",    std::bind(&apply_enable_trackers, int64_t(0)));
+  CMD2_VAR_VALUE      ("trackers.numwant",    -1);
+  CMD2_VAR_BOOL       ("trackers.use_udp",    true);
+
+  CMD2_ANY_STRING_V   ("dht.mode.set",          std::bind(&core::DhtManager::set_mode, control->dht_manager(), std::placeholders::_2));
+  CMD2_VAR_VALUE      ("dht.port",              int64_t(6881));
+  CMD2_ANY_STRING     ("dht.add_node",          std::bind(&apply_dht_add_node, std::placeholders::_2));
+  CMD2_ANY            ("dht.statistics",        std::bind(&core::DhtManager::dht_statistics, control->dht_manager()));
+  CMD2_ANY            ("dht.throttle.name",     std::bind(&core::DhtManager::throttle_name, control->dht_manager()));
+  CMD2_ANY_STRING_V   ("dht.throttle.name.set", std::bind(&core::DhtManager::set_throttle_name, control->dht_manager(), std::placeholders::_2));
 }
