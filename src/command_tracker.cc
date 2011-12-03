@@ -36,6 +36,7 @@
 
 #include "config.h"
 
+#include <cstdio>
 #include <rak/address_info.h>
 #include <rak/error_number.h>
 #include <torrent/dht_manager.h>
