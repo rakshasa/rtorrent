@@ -41,6 +41,7 @@
 #include <torrent/exceptions.h>
 #include <torrent/tracker.h>
 #include <torrent/tracker_list.h>
+#include <torrent/tracker_controller.h>
 
 #include "core/download.h"
 
@@ -62,8 +63,13 @@ WindowTrackerList::redraw() {
 
   unsigned int pos = 0;
   torrent::TrackerList* tl = m_download->tracker_list();
+  torrent::TrackerController* tc = m_download->tracker_controller();
 
-  m_canvas->print(2, pos, "Trackers: [Key: %08x]", tl->key());
+  m_canvas->print(2, pos, "Trackers: [Key: %08x] [%s %s %s]",
+                  tl->key(),
+                  tc->is_requesting() ? "req" : "   ",
+                  tc->is_promiscuous_mode() ? "prom" : "    ",
+                  tc->is_failure_mode() ? "fail" : "    ");
   ++pos;
 
   if (tl->size() == 0 || *m_focus >= tl->size())
@@ -89,16 +95,18 @@ WindowTrackerList::redraw() {
                     tracker->url().c_str());
 
     if (pos < m_canvas->height())
-      m_canvas->print(4, pos++, "Id: %s Counters: %uf / %us (%u) Enabled: %s Open: %s S/L/D: %u/%u/%u",
+      m_canvas->print(4, pos++, "Id: %s Counters: %uf / %us (%u) %s %s S/L/D: %u/%u/%u (%u/%u)",
                       rak::copy_escape_html(tracker->tracker_id()).c_str(),
                       tracker->failed_counter(),
                       tracker->success_counter(),
                       tracker->scrape_counter(),
-                      tracker->is_usable() ? "yes" : tracker->is_enabled() ? "off" : " no",
-                      tracker->is_busy() ? "yes" : " no",
+                      tracker->is_usable() ? " on" : tracker->is_enabled() ? "err" : "off",
+                      tracker->is_busy() ? "req" : "   ",
                       tracker->scrape_complete(),
                       tracker->scrape_incomplete(),
-                      tracker->scrape_downloaded());
+                      tracker->scrape_downloaded(),
+                      tracker->latest_new_peers(),
+                      tracker->latest_sum_peers());
 
 //     m_canvas->print(4, pos++, "Id: %s Focus: %s Enabled: %s Open: %s Timer: %u/%u",
 //                     rak::copy_escape_html(tracker->tracker_id()).c_str(),
