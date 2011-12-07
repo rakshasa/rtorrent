@@ -13,6 +13,7 @@ libsub_root_a_SOURCES = \
 	command_dynamic.cc \
 	command_events.cc \
 	command_file.cc \
+	command_ip.cc \
 	command_helpers.cc \
 	command_helpers.h \
 	command_groups.cc \
