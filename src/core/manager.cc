@@ -71,9 +71,7 @@
 #include "download_store.h"
 #include "http_queue.h"
 #include "manager.h"
-#include "poll_manager_epoll.h"
-#include "poll_manager_kqueue.h"
-#include "poll_manager_select.h"
+#include "poll_manager.h"
 #include "view.h"
 
 namespace std { using namespace tr1; }

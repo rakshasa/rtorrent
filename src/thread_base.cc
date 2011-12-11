@@ -107,15 +107,13 @@ public:
 
 void throw_shutdown_exception() { throw torrent::shutdown_exception(); }
 
-ThreadBase::ThreadBase() :
-  m_pollManager(NULL) {
+ThreadBase::ThreadBase() {
   m_taskShutdown.set_slot(rak::ptr_fn(&throw_shutdown_exception));
 
   m_threadQueue = new thread_queue_hack;
 }
 
 ThreadBase::~ThreadBase() {
-  delete m_pollManager;
   delete m_threadQueue;
 }
 
@@ -155,7 +153,7 @@ ThreadBase::event_loop(ThreadBase* thread) {
 
       rak::priority_queue_perform(&thread->m_taskScheduler, cachedTime);
 
-      thread->m_pollManager->poll_simple(thread->client_next_timeout());
+      thread->m_poll->do_poll(thread->client_next_timeout().usec(), torrent::Poll::poll_worker_thread);
     }
 
   } catch (torrent::shutdown_exception& e) {

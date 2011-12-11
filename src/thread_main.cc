@@ -49,9 +49,8 @@ ThreadMain::init_thread() {
   // The main thread always holds the lock while running.
   acquire_global_lock();
 
-  m_pollManager = core::PollManager::create_poll_manager();
-  m_pollManager->get_torrent_poll()->set_flags(torrent::Poll::flag_waive_global_lock);
-  m_poll = m_pollManager->get_torrent_poll();
+  m_poll = core::create_poll();
+  m_poll->set_flags(torrent::Poll::flag_waive_global_lock);
 
   m_state = STATE_INITIALIZED;
   m_thread = pthread_self();

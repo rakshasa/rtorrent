@@ -90,7 +90,6 @@ protected:
 
   // The timer needs to be sync'ed when updated...
 
-  core::PollManager*          m_pollManager;
   rak::priority_queue_default m_taskScheduler;
 
   rak::priority_item  m_taskShutdown;
