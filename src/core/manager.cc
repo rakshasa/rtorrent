@@ -206,7 +206,7 @@ Manager::get_address_throttle(const sockaddr* addr) {
 // Most of this should be possible to move out.
 void
 Manager::initialize_second() {
-  torrent::Http::set_factory(std::bind(&CurlStack::new_object, m_httpStack));
+  torrent::Http::slot_factory() = std::bind(&CurlStack::new_object, m_httpStack);
   m_httpQueue->slot_factory(sigc::mem_fun(m_httpStack, &CurlStack::new_object));
 
   CurlStack::global_init();
