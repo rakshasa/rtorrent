@@ -59,7 +59,6 @@ public:
   ThreadBase();
   virtual ~ThreadBase();
 
-  core::PollManager*  poll_manager() { return m_pollManager; }
   priority_queue&     task_scheduler() { return m_taskScheduler; }
 
   virtual void        init_thread() = 0;

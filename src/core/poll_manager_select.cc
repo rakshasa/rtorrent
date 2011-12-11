@@ -73,12 +73,14 @@ PollManagerSelect::~PollManagerSelect() {
 
 void
 PollManagerSelect::poll(rak::timer timeout) {
-  static_cast<torrent::PollSelect*>(m_poll)->do_poll();
+  //  timeout = std::min(timeout, rak::timer(torrent::next_timeout())) + 1000;
+
+  static_cast<torrent::PollSelect*>(m_poll)->do_poll(timeout.usec());
 }
 
 void
 PollManagerSelect::poll_simple(rak::timer timeout) {
-  static_cast<torrent::PollSelect*>(m_poll)->do_poll(torrent::PollSelect::poll_worker_thread);
+  static_cast<torrent::PollSelect*>(m_poll)->do_poll(timeout.usec(), torrent::PollSelect::poll_worker_thread);
 }
 
 }

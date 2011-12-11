@@ -63,12 +63,12 @@ PollManagerEPoll::~PollManagerEPoll() {
 
 void
 PollManagerEPoll::poll(rak::timer timeout) {
-  static_cast<torrent::PollEPoll*>(m_poll)->do_poll();
+  static_cast<torrent::PollEPoll*>(m_poll)->do_poll(timeout.usec());
 }
 
 void
 PollManagerEPoll::poll_simple(rak::timer timeout) {
-  static_cast<torrent::PollEPoll*>(m_poll)->do_poll(torrent::Poll::poll_worker_thread);
+  static_cast<torrent::PollEPoll*>(m_poll)->do_poll(timeout.usec(), torrent::Poll::poll_worker_thread);
 }
 
 }
