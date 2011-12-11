@@ -108,13 +108,7 @@ public:
 void throw_shutdown_exception() { throw torrent::shutdown_exception(); }
 
 ThreadBase::ThreadBase() :
-  m_state(STATE_UNKNOWN),
   m_pollManager(NULL) {
-  // Init the poll manager in a special init function called by the
-  // thread itself. Need to be careful with what external stuff
-  // create_poll_manager calls in that case.
-  std::memset(&m_thread, 0, sizeof(pthread_t));
-
   m_taskShutdown.set_slot(rak::ptr_fn(&throw_shutdown_exception));
 
   m_threadQueue = new thread_queue_hack;
@@ -149,24 +143,19 @@ ThreadBase::client_next_timeout() {
 }
 
 void*
-ThreadBase::event_loop(ThreadBase* threadBase) {
-  // Setup stuff...
-  threadBase->m_state = STATE_ACTIVE;
-
-  // Set local poll and priority queue.
+ThreadBase::event_loop(ThreadBase* thread) {
+  thread->m_state = STATE_ACTIVE;
   
   try {
 
     while (true) {
       // Check for new queued items set by other threads.
-      if (!threadBase->m_threadQueue->empty())
-        threadBase->call_queued_items();
+      if (!thread->m_threadQueue->empty())
+        thread->call_queued_items();
 
-      //     // Remember to add global lock thing to the main poll loop ++.
+      rak::priority_queue_perform(&thread->m_taskScheduler, cachedTime);
 
-      rak::priority_queue_perform(&threadBase->m_taskScheduler, cachedTime);
-
-      threadBase->m_pollManager->poll_simple(threadBase->client_next_timeout());
+      thread->m_pollManager->poll_simple(thread->client_next_timeout());
     }
 
   } catch (torrent::shutdown_exception& e) {
@@ -175,7 +164,7 @@ ThreadBase::event_loop(ThreadBase* threadBase) {
     release_global_lock();
   }
 
-  threadBase->m_state = STATE_INACTIVE;
+  thread->m_state = STATE_INACTIVE;
   __sync_synchronize();
 
   return NULL;
