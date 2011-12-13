@@ -62,8 +62,7 @@ ThreadWorker::~ThreadWorker() {
 
 void
 ThreadWorker::init_thread() {
-  m_pollManager = core::PollManager::create_poll_manager();
-
+  m_poll = core::create_poll();
   m_state = STATE_INITIALIZED;
 }
 

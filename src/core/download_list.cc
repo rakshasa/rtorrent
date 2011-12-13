@@ -642,6 +642,9 @@ DownloadList::confirm_finished(Download* download) {
 
   DL_TRIGGER_EVENT(download, "event.download.finished");
 
+  if (find(infohash) != end())
+    return;
+      
 //   if (download->resume_flags() != ~uint32_t())
 //     throw torrent::internal_error("DownloadList::confirm_finished(...) download->resume_flags() != ~uint32_t().");
 
@@ -655,8 +658,7 @@ DownloadList::confirm_finished(Download* download) {
   // being hashed.
   download->set_resume_flags(~uint32_t());
 
-  if (find(infohash) != end() &&
-      !download->is_active() && rpc::call_command_value("d.state", rpc::make_target(download)) == 1)
+  if (!download->is_active() && rpc::call_command_value("d.state", rpc::make_target(download)) == 1)
     resume(download,
            torrent::Download::start_no_create |
            torrent::Download::start_skip_tracker |

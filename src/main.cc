@@ -876,7 +876,7 @@ main(int argc, char** argv) {
       rak::priority_queue_perform(&taskScheduler, cachedTime);
 
       // Do shutdown check before poll, not after.
-      main_thread->poll_manager()->poll(client_next_timeout(control));
+      main_thread->poll()->do_poll(client_next_timeout(control).usec());
     }
 
     control->core()->download_list()->session_save();
