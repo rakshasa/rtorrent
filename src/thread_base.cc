@@ -82,7 +82,7 @@ public:
       throw torrent::internal_error("Overflowed thread_queue.");
 
     __sync_bool_compare_and_swap(itr, NULL, v);
-    __sync_bool_compare_and_swap(&m_lock, 1, 0);
+    unlock();
   }
 
   value_type* copy_and_clear(value_type* dest) {
