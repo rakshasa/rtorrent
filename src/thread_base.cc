@@ -117,55 +117,21 @@ ThreadBase::~ThreadBase() {
   delete m_threadQueue;
 }
 
-void
-ThreadBase::start_thread() {
-  if (m_state != STATE_INITIALIZED ||
-      pthread_create(&m_thread, NULL, (pthread_func)&ThreadBase::event_loop, this))
-    throw torrent::internal_error("Failed to create thread.");
-}
-
+// Move to libtorrent...
 void
 ThreadBase::stop_thread(ThreadBase* thread) {
   if (!thread->m_taskShutdown.is_queued())
     priority_queue_insert(&thread->m_taskScheduler, &thread->m_taskShutdown, cachedTime);
 }
 
-inline rak::timer
-ThreadBase::client_next_timeout() {
+int64_t
+ThreadBase::next_timeout_usec() {
   if (m_taskScheduler.empty())
-    return rak::timer::from_seconds(600);
+    return rak::timer::from_seconds(600).usec();
   else if (m_taskScheduler.top()->time() <= cachedTime)
     return 0;
   else
-    return m_taskScheduler.top()->time() - cachedTime;
-}
-
-void*
-ThreadBase::event_loop(ThreadBase* thread) {
-  thread->m_state = STATE_ACTIVE;
-  
-  try {
-
-    while (true) {
-      // Check for new queued items set by other threads.
-      if (!thread->m_threadQueue->empty())
-        thread->call_queued_items();
-
-      rak::priority_queue_perform(&thread->m_taskScheduler, cachedTime);
-
-      thread->m_poll->do_poll(thread->client_next_timeout().usec(), torrent::Poll::poll_worker_thread);
-    }
-
-  } catch (torrent::shutdown_exception& e) {
-    acquire_global_lock();
-    lt_log_print(torrent::LOG_THREAD_NOTICE, "Shutting down thread.");
-    release_global_lock();
-  }
-
-  thread->m_state = STATE_INACTIVE;
-  __sync_synchronize();
-
-  return NULL;
+    return (m_taskScheduler.top()->time() - cachedTime).usec();
 }
 
 void
@@ -176,6 +142,15 @@ ThreadBase::call_queued_items() {
 
   while (first != last && *first)
     (*first++)(this);
+}
+
+void
+ThreadBase::call_events() {
+  // Check for new queued items set by other threads.
+  if (!m_threadQueue->empty())
+    call_queued_items();
+
+  rak::priority_queue_perform(&m_taskScheduler, cachedTime);
 }
 
 void
