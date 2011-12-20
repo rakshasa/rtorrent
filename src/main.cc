@@ -46,6 +46,7 @@
 #include <torrent/http.h>
 #include <torrent/torrent.h>
 #include <torrent/exceptions.h>
+#include <torrent/poll.h>
 #include <torrent/data/chunk_utils.h>
 #include <torrent/utils/log.h>
 #include <rak/functional.h>
@@ -195,6 +196,7 @@ main(int argc, char** argv) {
     // to process new non-socket events.
     SignalHandler::set_handler(SIGUSR1,  sigc::ptr_fun(&do_nothing));
 
+    torrent::Poll::slot_create_poll() = std::tr1::bind(&core::create_poll);
     torrent::initialize(main_thread->poll());
 
     // Initialize option handlers after libtorrent to ensure
