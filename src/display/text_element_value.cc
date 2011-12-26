@@ -112,7 +112,7 @@ TextElementValueBase::print(char* first, char* last, Canvas::attributes_list* at
     if (u == NULL)
       return first;
 
-    first += std::min<ptrdiff_t>(std::max(snprintf(first, last - first + 1, "%02u/%02u/%04u", u->tm_mday, (u->tm_mon + 1), (1900 + u->tm_year)), 0), last - first + 1);;
+    first += std::min<ptrdiff_t>(std::max(snprintf(first, last - first + 1, "%02u/%02u/%04u", u->tm_mday, (u->tm_mon + 1), (1900 + u->tm_year)), 0), last - first + 1);
 
   } else if (m_flags & flag_time) {
     time_t t = val;

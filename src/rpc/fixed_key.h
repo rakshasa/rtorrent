@@ -63,7 +63,7 @@ public:
   static fixed_key_type from_string(const std::string& str)             { fixed_key_type k; k.set_c_str(str.c_str(), str.size()); return k; }
   static fixed_key_type from_raw_string(const torrent::raw_string& str) { fixed_key_type k; k.set_data(str.data(), str.size()); return k; }
 
-  bool              empty() const { return m_size == 0;; }
+  bool              empty() const { return m_size == 0; }
   size_type         size() const  { return m_size; }
 
   iterator          begin() const { return m_data; }
