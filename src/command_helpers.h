@@ -41,6 +41,10 @@
 #include "rpc/parse_commands.h"
 #include "rpc/object_storage.h"
 
+#ifndef HAVE_CXX11
+namespace std { using namespace tr1; }
+#endif
+
 void initialize_commands();
 
 //
