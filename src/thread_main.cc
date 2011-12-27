@@ -40,6 +40,7 @@
 #include "globals.h"
 
 #include <torrent/exceptions.h>
+#include <torrent/poll.h>
 
 ThreadMain::~ThreadMain() {
 }

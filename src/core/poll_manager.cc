@@ -38,7 +38,7 @@
 
 #include <stdexcept>
 #include <unistd.h>
-#include <rak/error_number.h>
+#include <torrent/exceptions.h>
 #include <torrent/poll_epoll.h>
 #include <torrent/poll_kqueue.h>
 #include <torrent/poll_select.h>
@@ -85,7 +85,7 @@ create_poll() {
     log->push_front("Using 'select' based polling.");
 
   else
-    throw std::runtime_error("Could not create any Poll object.");
+    throw torrent::internal_error("Could not create any Poll object.");
 
   return poll;
 }

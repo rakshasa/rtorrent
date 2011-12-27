@@ -37,11 +37,11 @@
 #ifndef RTORRENT_CORE_POLL_MANAGER_H
 #define RTORRENT_CORE_POLL_MANAGER_H
 
-#include <rak/timer.h>
-#include <sigc++/signal.h>
-#include <torrent/poll.h>
-
 #include "curl_stack.h"
+
+namespace torrent {
+class Poll;
+}
 
 namespace core {
 

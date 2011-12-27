@@ -54,24 +54,19 @@ class ThreadBase : public torrent::thread_base {
 public:
   typedef rak::priority_queue_default priority_queue;
   typedef void (*thread_base_func)(ThreadBase*);
-  typedef void* (*pthread_func)(void*);
 
   ThreadBase();
   virtual ~ThreadBase();
 
   priority_queue&     task_scheduler() { return m_taskScheduler; }
 
-  virtual void        init_thread() = 0;
-
-  void                start_thread();
+  // Throw torrent::shutdown_exception to stop the thread.
   static void         stop_thread(ThreadBase* thread);
 
   // ATM, only interaction with a thread's allowed by other threads is
   // through the queue_item call.
 
   void                queue_item(thread_base_func newFunc);
-
-  static void*        event_loop(ThreadBase* thread);
 
   // Only call this when global lock has been acquired, as it checks
   // ThreadBase::is_main_polling() which is only guaranteed to remain
@@ -82,9 +77,10 @@ public:
   static void         interrupt_main_polling();
 
 protected:
-  inline rak::timer   client_next_timeout();
+  int64_t             next_timeout_usec();
 
   void                call_queued_items();
+  virtual void        call_events();
 
   // TODO: Add thread name.
 
