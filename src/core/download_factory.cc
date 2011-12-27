@@ -106,8 +106,8 @@ DownloadFactory::DownloadFactory(Manager* m) :
   m_printLog(true),
   m_isFile(false) {
 
-  m_taskLoad.set_slot(std::tr1::bind(&DownloadFactory::receive_load, this));
-  m_taskCommit.set_slot(std::tr1::bind(&DownloadFactory::receive_commit, this));
+  m_taskLoad.slot() = std::tr1::bind(&DownloadFactory::receive_load, this);
+  m_taskCommit.slot() = std::tr1::bind(&DownloadFactory::receive_commit, this);
 
   // m_variables["connection_leech"] = rpc::call_command_void("protocol.connection.leech");
   // m_variables["connection_seed"]  = rpc::call_command_void("protocol.connection.seed");

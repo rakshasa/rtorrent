@@ -172,7 +172,7 @@ View::initialize(const std::string& name) {
   m_focus = 0;
 
   set_last_changed(rak::timer());
-  m_delayChanged.set_slot(std::tr1::bind(&signal_type::operator(), &m_signalChanged));
+  m_delayChanged.slot() = std::tr1::bind(&signal_type::operator(), &m_signalChanged);
 }
 
 void

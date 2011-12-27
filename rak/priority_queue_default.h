@@ -47,7 +47,7 @@ namespace rak {
 
 class priority_item {
 public:
-  typedef std::tr1::function<void ()> slot_void;
+  typedef std::tr1::function<void (void)> slot_void;
 
   priority_item() {}
   ~priority_item() {
@@ -55,19 +55,19 @@ public:
       throw std::logic_error("priority_item::~priority_item() called on a queued item.");
 
     m_time = timer();
+    m_slot = slot_void();
   }
 
-  bool                is_valid() const               { return !!m_slot; }
-  bool                is_queued() const              { return m_time != timer(); }
+  bool                is_valid() const              { return (bool)m_slot; }
+  bool                is_queued() const             { return m_time != timer(); }
 
-  void                call()                         { m_slot(); }
-  void                set_slot(const slot_void& s)   { m_slot = s; }
-  
-  const timer&        time() const                   { return m_time; }
-  void                clear_time()                   { m_time = timer(); }
-  void                set_time(const timer& t)       { m_time = t; }
+  slot_void&          slot()                        { return m_slot; }
 
-  bool                compare(const timer& t) const  { return m_time > t; }
+  const timer&        time() const                  { return m_time; }
+  void                clear_time()                  { m_time = timer(); }
+  void                set_time(const timer& t)      { m_time = t; }
+
+  bool                compare(const timer& t) const { return m_time > t; }
 
 private:
   priority_item(const priority_item&);
@@ -94,7 +94,7 @@ priority_queue_perform(priority_queue_default* queue, timer t) {
     queue->pop();
 
     v->clear_time();
-    v->call();
+    v->slot()();
   }
 }
 
