@@ -44,11 +44,9 @@
 #include "rak/priority_queue_default.h"
 #include "core/poll_manager.h"
 
-struct thread_queue_hack;
-
 // Move this class to libtorrent.
 
-struct thread_queue_hack;
+class thread_queue_hack;
 
 class ThreadBase : public torrent::thread_base {
 public:

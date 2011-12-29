@@ -123,7 +123,7 @@ WindowFileList::redraw() {
   if (fl->size_files() == 0 || m_canvas->height() < 2)
     return;
 
-  iterator entries[m_canvas->height() - 1];
+  std::vector<iterator> entries(m_canvas->height() - 1);
 
   unsigned int last = 0;
 
