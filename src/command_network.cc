@@ -94,8 +94,6 @@ apply_tos(const torrent::Object::string_type& arg) {
   return torrent::Object();
 }
 
-torrent::Object apply_hash_read_ahead(int arg)              { torrent::set_hash_read_ahead(arg << 20); return torrent::Object(); }
-torrent::Object apply_hash_interval(int arg)                { torrent::set_hash_interval(arg * 1000); return torrent::Object(); }
 torrent::Object apply_encoding_list(const std::string& arg) { torrent::encoding_list()->push_back(arg); return torrent::Object(); }
 
 torrent::File*
@@ -305,11 +303,4 @@ initialize_command_network() {
   CMD2_ANY_STRING  ("network.xmlrpc.dialect.set",    std::bind(&apply_xmlrpc_dialect, std::placeholders::_2));
   CMD2_ANY         ("network.xmlrpc.size_limit",     std::bind(&rpc::XmlRpc::size_limit));
   CMD2_ANY_VALUE_V ("network.xmlrpc.size_limit.set", std::bind(&rpc::XmlRpc::set_size_limit, std::placeholders::_2));
-
-  CMD2_ANY         ("system.hash.read_ahead",        std::bind(&torrent::hash_read_ahead));
-  CMD2_ANY_VALUE_V ("system.hash.read_ahead.set",    std::bind(&apply_hash_read_ahead, std::placeholders::_2));
-  CMD2_ANY         ("system.hash.interval",          std::bind(&torrent::hash_interval));
-  CMD2_ANY_VALUE_V ("system.hash.interval.set",      std::bind(&apply_hash_interval, std::placeholders::_2));
-  CMD2_ANY         ("system.hash.max_tries",         std::bind(&torrent::hash_max_tries));
-  CMD2_ANY_VALUE_V ("system.hash.max_tries.set",     std::bind(&torrent::set_hash_max_tries, std::placeholders::_2));
 }
