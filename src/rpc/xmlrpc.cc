@@ -156,7 +156,7 @@ xmlrpc_to_target(xmlrpc_env* env, xmlrpc_value* value) {
       throw xmlrpc_error(XMLRPC_TYPE_ERROR, "Unsupported target type found.");
     }
 
-    core::Download* download = xmlrpc.get_slot_find_download()(str);
+    core::Download* download = xmlrpc.slot_find_download()(str);
 
     if (download == NULL) {
       ::free((void*)str);
@@ -186,7 +186,7 @@ xmlrpc_to_target(xmlrpc_env* env, xmlrpc_value* value) {
       if (*str == '\0' || *end_ptr != '\0')
         throw xmlrpc_error(XMLRPC_TYPE_ERROR, "Invalid index.");
 
-      target = rpc::make_target(XmlRpc::call_file, xmlrpc.get_slot_find_file()(download, index));
+      target = rpc::make_target(XmlRpc::call_file, xmlrpc.slot_find_file()(download, index));
       break;
 
     case 't':
@@ -195,7 +195,7 @@ xmlrpc_to_target(xmlrpc_env* env, xmlrpc_value* value) {
       if (*str == '\0' || *end_ptr != '\0')
         throw xmlrpc_error(XMLRPC_TYPE_ERROR, "Invalid index.");
 
-      target = rpc::make_target(XmlRpc::call_tracker, xmlrpc.get_slot_find_tracker()(download, index));
+      target = rpc::make_target(XmlRpc::call_tracker, xmlrpc.slot_find_tracker()(download, index));
       break;
 
     case 'p':
@@ -206,7 +206,7 @@ xmlrpc_to_target(xmlrpc_env* env, xmlrpc_value* value) {
       if (hash_end == end_ptr || *hash_end != '\0')
         throw xmlrpc_error(XMLRPC_TYPE_ERROR, "Not a hash string.");
 
-      target = rpc::make_target(XmlRpc::call_peer, xmlrpc.get_slot_find_peer()(download, hash));
+      target = rpc::make_target(XmlRpc::call_peer, xmlrpc.slot_find_peer()(download, hash));
       break;
     }
     default:
@@ -233,8 +233,8 @@ xmlrpc_to_index_type(int index, int callType, core::Download* download) {
   void* result;
 
   switch (callType) {
-  case XmlRpc::call_file:    result = xmlrpc.get_slot_find_file()(download, index); break;
-  case XmlRpc::call_tracker: result = xmlrpc.get_slot_find_tracker()(download, index); break;
+  case XmlRpc::call_file:    result = xmlrpc.slot_find_file()(download, index); break;
+  case XmlRpc::call_tracker: result = xmlrpc.slot_find_tracker()(download, index); break;
   default: result = NULL; break;
   }
 

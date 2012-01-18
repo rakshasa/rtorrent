@@ -62,10 +62,10 @@ public:
   static void         resize_term(int x, int y)                               { resizeterm(y, x); }
   static void         resize_term(std::pair<int, int> dim)                    { resizeterm(dim.second, dim.first); }
 
-  unsigned int        get_x()                                                 { int x, y; getyx(m_window, y, x); return x; }
+  unsigned int        get_x()                                                 { int x, __UNUSED y; getyx(m_window, y, x); return x; }
   unsigned int        get_y()                                                 { int x, y; getyx(m_window, y, x); return y; }
 
-  unsigned int        width()                                                 { int x, y; getmaxyx(m_window, y, x); return x; }
+  unsigned int        width()                                                 { int x, __UNUSED y; getmaxyx(m_window, y, x); return x; }
   unsigned int        height()                                                { int x, y; getmaxyx(m_window, y, x); return y; }
 
   void                move(unsigned int x, unsigned int y)                    { wmove(m_window, y, x); }
@@ -101,7 +101,7 @@ public:
   static void         initialize();
   static void         cleanup();
 
-  static int          get_screen_width()                                      { int x, y; getmaxyx(stdscr, y, x); return x; }
+  static int          get_screen_width()                                      { int x, __UNUSED y; getmaxyx(stdscr, y, x); return x; }
   static int          get_screen_height()                                     { int x, y; getmaxyx(stdscr, y, x); return y; }
 
   static std::pair<int, int> term_size();

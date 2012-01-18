@@ -77,7 +77,7 @@ Control::Control() :
 
   m_inputStdin->slot_pressed(sigc::mem_fun(m_input, &input::Manager::pressed));
 
-  m_taskShutdown.set_slot(rak::mem_fn(this, &Control::handle_shutdown));
+  m_taskShutdown.slot() = std::tr1::bind(&Control::handle_shutdown, this);
 
   m_commandScheduler->set_slot_error_message(rak::mem_fn(m_core, &core::Manager::push_log_std));
 }

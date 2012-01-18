@@ -187,8 +187,6 @@ apply_ipv4_filter_load(const torrent::Object::list_type& args) {
   if (args.size() != 2)
     throw torrent::input_error("Incorrect number of arguments.");
 
-  torrent::Object::list_const_iterator args_itr = args.begin();
-
   std::fstream file(rak::path_expand(args.front().as_string()).c_str(), std::ios::in);
   
   if (!file.is_open())

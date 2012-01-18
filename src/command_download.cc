@@ -138,10 +138,9 @@ apply_d_change_link(core::Download* download, const torrent::Object::list_type& 
 
   switch (changeType) {
   case 0:
-    if (symlink(target.c_str(), link.c_str()) == -1)
+    // if (symlink(target.c_str(), link.c_str()) == -1)
       //     control->core()->push_log("create_link failed: " + std::string(rak::error_number::current().c_str()));
       //     control->core()->push_log("create_link failed: " + std::string(rak::error_number::current().c_str()) + " to " + target);
-      ; // Disabled.
     break;
 
   case 1:
@@ -150,9 +149,9 @@ apply_d_change_link(core::Download* download, const torrent::Object::list_type& 
     rak::error_number::clear_global();
 
     if (!fileStat.update_link(link) || !fileStat.is_link() ||
-        unlink(link.c_str()) == -1)
-      ; //     control->core()->push_log("delete_link failed: " + std::string(rak::error_number::current().c_str()));
-
+        unlink(link.c_str()) == -1) {
+      //     control->core()->push_log("delete_link failed: " + std::string(rak::error_number::current().c_str()));
+    }
     break;
   }
   default:
@@ -362,7 +361,7 @@ f_multicall(core::Download* download, const torrent::Object::list_type& args) {
 
     torrent::Object::list_type& row = result.insert(result.end(), torrent::Object::create_list())->as_list();
 
-    for (torrent::Object::list_const_iterator cItr = ++args.begin(), cLast = args.end(); cItr != args.end(); cItr++) {
+    for (torrent::Object::list_const_iterator cItr = ++args.begin(); cItr != args.end(); cItr++) {
       const std::string& cmd = cItr->as_string();
       row.push_back(rpc::parse_command(rpc::make_target(*itr), cmd.c_str(), cmd.c_str() + cmd.size()).first);
     }
@@ -387,7 +386,7 @@ t_multicall(core::Download* download, const torrent::Object::list_type& args) {
   for (int itr = 0, last = download->tracker_list()->size(); itr != last; itr++) {
     torrent::Object::list_type& row = result.insert(result.end(), torrent::Object::create_list())->as_list();
 
-    for (torrent::Object::list_const_iterator cItr = ++args.begin(), cLast = args.end(); cItr != args.end(); cItr++) {
+    for (torrent::Object::list_const_iterator cItr = ++args.begin(); cItr != args.end(); cItr++) {
       const std::string& cmd = cItr->as_string();
       torrent::Tracker* t = download->tracker_list()->at(itr);
 
@@ -415,7 +414,7 @@ p_multicall(core::Download* download, const torrent::Object::list_type& args) {
        itr != last; itr++) {
     torrent::Object::list_type& row = result.insert(result.end(), torrent::Object::create_list())->as_list();
 
-    for (torrent::Object::list_const_iterator cItr = ++args.begin(), cLast = args.end(); cItr != args.end(); cItr++) {
+    for (torrent::Object::list_const_iterator cItr = ++args.begin(); cItr != args.end(); cItr++) {
       const std::string& cmd = cItr->as_string();
 
       row.push_back(rpc::parse_command(rpc::make_target(*itr), cmd.c_str(), cmd.c_str() + cmd.size()).first);
@@ -849,8 +848,8 @@ initialize_command_download() {
   //                                                     std::bind(&core::Download::main, std::placeholders::_1)),
   //                                           CG_GROUP_INDEX()));
 
-  CMD2_DL         ("d.group",      std::bind(&cg_d_group, std::placeholders::_1));;
-  CMD2_DL         ("d.group.name", std::bind(&cg_d_group, std::placeholders::_1));;
+  CMD2_DL         ("d.group",      std::bind(&cg_d_group, std::placeholders::_1));
+  CMD2_DL         ("d.group.name", std::bind(&cg_d_group, std::placeholders::_1));
   CMD2_DL_V       ("d.group.set",  std::bind(&cg_d_group_set, std::placeholders::_1, std::placeholders::_2));
 
   CMD2_DL         ("d.initialize_logs", std::bind(&cmd_d_initialize_logs, std::placeholders::_1));

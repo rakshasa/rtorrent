@@ -150,21 +150,21 @@ system_method_insert_object(const torrent::Object::list_type& args, int flags) {
   if (!(flags & rpc::object_storage::flag_private))
     cmd_flags |= rpc::CommandMap::flag_public_xmlrpc;
 
-  rpc::object_storage::iterator obj_itr =  control->object_storage()->insert_str(rawKey, value, flags);
+  control->object_storage()->insert_str(rawKey, value, flags);
 
   if ((flags & rpc::object_storage::mask_type) == rpc::object_storage::flag_function_type ||
       (flags & rpc::object_storage::mask_type) == rpc::object_storage::flag_multi_type) {
 
     rpc::commands.insert_slot<rpc::command_base_is_type<rpc::command_base_call<rpc::target_type> >::type>
-      (create_new_key<0>(rawKey, ""),
+      (create_new_key(rawKey),
        std::bind(&rpc::object_storage::call_function_str, control->object_storage(),
-                      rawKey, std::placeholders::_1, std::placeholders::_2),
+                 rawKey, std::placeholders::_1, std::placeholders::_2),
        &rpc::command_base_call<rpc::target_type>,
        cmd_flags, NULL, NULL);
 
   } else {
     rpc::commands.insert_slot<rpc::command_base_is_type<rpc::command_base_call<rpc::target_type> >::type>
-      (create_new_key<0>(rawKey, ""),
+      (create_new_key(rawKey),
        std::bind(&rpc::object_storage::get_str, control->object_storage(), rawKey),
        &rpc::command_base_call<rpc::target_type>,
        cmd_flags, NULL, NULL);
@@ -354,7 +354,7 @@ system_method_redirect(const torrent::Object::list_type& args) {
   std::string new_key  = torrent::object_create_string(args.front());
   std::string dest_key = torrent::object_create_string(args.back());
 
-  rpc::commands.create_redirect(create_new_key<0>(new_key, ""), create_new_key<0>(dest_key, ""),
+  rpc::commands.create_redirect(create_new_key(new_key), create_new_key(dest_key),
                                 rpc::CommandMap::flag_public_xmlrpc | rpc::CommandMap::flag_delete_key | rpc::CommandMap::flag_modifiable);
 
   return torrent::Object();

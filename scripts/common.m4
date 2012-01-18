@@ -295,3 +295,18 @@ AC_DEFUN([TORRENT_ENABLE_TR1], [
         TORRENT_CHECK_TR1()
     ])
 ])
+
+AC_DEFUN([TORRENT_ENABLE_CXX11], [
+  AC_ARG_ENABLE(std_c++11,
+    [  --disable-std_c++11     disable check for support for C++11 [[default=enable]]],
+    [
+      if test "$enableval" = "yes"; then
+        TORRENT_CHECK_CXX11()
+      else
+        AC_MSG_CHECKING(for C++11 support)
+        AC_MSG_RESULT(disabled)
+      fi
+    ],[
+        TORRENT_CHECK_CXX11()
+    ])
+])

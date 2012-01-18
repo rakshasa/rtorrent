@@ -381,6 +381,30 @@ AC_DEFUN([TORRENT_CHECK_TR1], [
   AC_LANG_POP(C++)
 ])
 
+AC_DEFUN([TORRENT_CHECK_CXX11], [
+  AC_LANG_PUSH(C++)
+  AC_MSG_CHECKING(for C++11 support)
+
+  AC_COMPILE_IFELSE(
+    [[#include <functional>
+      #include <unordered_map>
+      class Foo;
+      typedef std::unordered_map<Foo*, int> Bar;
+
+      union test { Bar b1; };
+    ]],
+    [
+      AC_MSG_RESULT(yes)
+      AC_DEFINE(HAVE_CXX11, 1, Define to 1 if your C++ compiler has support for C++11.)
+    ],
+    [
+      AC_MSG_RESULT(no)
+    ]
+  )
+
+  AC_LANG_POP(C++)
+])
+
 AC_DEFUN([TORRENT_WITH_FASTCGI], [
   AC_ARG_WITH(fastcgi,
     [  --with-fastcgi=PATH      Enable FastCGI RPC support. (DO NOT USE)],

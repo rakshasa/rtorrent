@@ -89,7 +89,7 @@ parse_address_range(const torrent::Object::list_type& args, torrent::Object::lis
 
   // convert to [begin, end) making sure the end doesn't overflow
   // (this precludes 255.255.255.255 from ever matching, but that's not a real IP anyway)
-  return std::make_pair<uint32_t, uint32_t>(begin, std::max(end, end + 1));
+  return std::make_pair((uint32_t)begin, (uint32_t)std::max(end, end + 1));
 }
 
 torrent::Object

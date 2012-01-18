@@ -1,6 +1,6 @@
 #include "config.h"
 
-#import "object_storage_test.h"
+#include "object_storage_test.h"
 
 CPPUNIT_TEST_SUITE_REGISTRATION(ObjectStorageTest);
 

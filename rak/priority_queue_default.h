@@ -38,9 +38,8 @@
 #define RAK_PRIORITY_QUEUE_DEFAULT_H
 
 #include <stdexcept>
+#include <tr1/functional>
 #include <rak/allocators.h>
-#include <rak/functional.h>
-#include <rak/functional_fun.h>
 #include <rak/priority_queue.h>
 #include <rak/timer.h>
 
@@ -48,33 +47,34 @@ namespace rak {
 
 class priority_item {
 public:
+  typedef std::tr1::function<void (void)> slot_void;
+
   priority_item() {}
   ~priority_item() {
     if (is_queued())
       throw std::logic_error("priority_item::~priority_item() called on a queued item.");
 
     m_time = timer();
-    m_slot.set(NULL);
+    m_slot = slot_void();
   }
 
-  bool                is_valid() const                        { return m_slot.is_valid(); }
-  bool                is_queued() const                       { return m_time != timer(); }
+  bool                is_valid() const              { return (bool)m_slot; }
+  bool                is_queued() const             { return m_time != timer(); }
 
-  void                call()                                  { m_slot(); }
-  void                set_slot(function0<void>::base_type* s) { m_slot.set(s); }
-  
-  const timer&        time() const                           { return m_time; }
-  void                clear_time()                           { m_time = timer(); }
-  void                set_time(const timer& t)               { m_time = t; }
+  slot_void&          slot()                        { return m_slot; }
 
-  bool                compare(const timer& t) const          { return m_time > t; }
+  const timer&        time() const                  { return m_time; }
+  void                clear_time()                  { m_time = timer(); }
+  void                set_time(const timer& t)      { m_time = t; }
+
+  bool                compare(const timer& t) const { return m_time > t; }
 
 private:
   priority_item(const priority_item&);
   void operator = (const priority_item&);
 
   timer               m_time;
-  function0<void>     m_slot;
+  slot_void           m_slot;
 };
 
 struct priority_compare {
@@ -94,7 +94,7 @@ priority_queue_perform(priority_queue_default* queue, timer t) {
     queue->pop();
 
     v->clear_time();
-    v->call();
+    v->slot()();
   }
 }
 

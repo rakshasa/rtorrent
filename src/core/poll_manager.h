@@ -37,41 +37,15 @@
 #ifndef RTORRENT_CORE_POLL_MANAGER_H
 #define RTORRENT_CORE_POLL_MANAGER_H
 
-#include <rak/timer.h>
-#include <sigc++/signal.h>
-#include <torrent/poll.h>
-
 #include "curl_stack.h"
+
+namespace torrent {
+class Poll;
+}
 
 namespace core {
 
-// CurlStack really should be somewhere else, but that won't happen
-// until they add an epoll friendly API.
-
-class PollManager {
-public:
-  typedef sigc::signal0<void> Signal;
-
-  PollManager(torrent::Poll* poll);
-  virtual ~PollManager();
-
-  unsigned int        get_open_max() const         { return m_poll->open_max(); }
-
-  torrent::Poll*      get_torrent_poll()           { return m_poll; }
-
-  virtual void        poll(rak::timer timeout) = 0;
-  virtual void        poll_simple(rak::timer timeout) = 0;
-
-  static PollManager* create_poll_manager();
-
-protected:
-  PollManager(const PollManager&);
-  void operator = (const PollManager&);
-
-  void                check_error();
-
-  torrent::Poll*      m_poll;
-};
+torrent::Poll* create_poll();
 
 }
 

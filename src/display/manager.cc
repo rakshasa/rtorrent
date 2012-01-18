@@ -50,7 +50,7 @@ namespace display {
 Manager::Manager() :
   m_forceRedraw(false) {
 
-  m_taskUpdate.set_slot(rak::mem_fn(this, &Manager::receive_update));
+  m_taskUpdate.slot() = std::tr1::bind(&Manager::receive_update, this);
 }
 
 Manager::~Manager() {

@@ -52,7 +52,7 @@
 #include "rpc/parse_commands.h"
 
 ThreadWorker::ThreadWorker() {
-  m_taskTouchLog.set_slot(rak::mem_fn(this, &ThreadWorker::task_touch_log));
+  m_taskTouchLog.slot() = std::tr1::bind(&ThreadWorker::task_touch_log, this);
 }
 
 ThreadWorker::~ThreadWorker() {
@@ -62,8 +62,7 @@ ThreadWorker::~ThreadWorker() {
 
 void
 ThreadWorker::init_thread() {
-  m_pollManager = core::PollManager::create_poll_manager();
-
+  m_poll = core::create_poll();
   m_state = STATE_INITIALIZED;
 }
 

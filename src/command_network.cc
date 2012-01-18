@@ -62,6 +62,8 @@
 #include "control.h"
 #include "command_helpers.h"
 
+namespace tr1 { using namespace std::tr1; }
+
 torrent::Object
 apply_encryption(const torrent::Object::list_type& args) {
   uint32_t options_mask = torrent::ConnectionManager::encryption_none;
@@ -92,8 +94,6 @@ apply_tos(const torrent::Object::string_type& arg) {
   return torrent::Object();
 }
 
-torrent::Object apply_hash_read_ahead(int arg)              { torrent::set_hash_read_ahead(arg << 20); return torrent::Object(); }
-torrent::Object apply_hash_interval(int arg)                { torrent::set_hash_interval(arg * 1000); return torrent::Object(); }
 torrent::Object apply_encoding_list(const std::string& arg) { torrent::encoding_list()->push_back(arg); return torrent::Object(); }
 
 torrent::File*
@@ -126,10 +126,10 @@ xmlrpc_find_peer(core::Download* download, const torrent::HashString& hash) {
 void
 initialize_xmlrpc() {
   rpc::xmlrpc.initialize();
-  rpc::xmlrpc.set_slot_find_download(rak::mem_fn(control->core()->download_list(), &core::DownloadList::find_hex_ptr));
-  rpc::xmlrpc.set_slot_find_file(rak::ptr_fn(&xmlrpc_find_file));
-  rpc::xmlrpc.set_slot_find_tracker(rak::ptr_fn(&xmlrpc_find_tracker));
-  rpc::xmlrpc.set_slot_find_peer(rak::ptr_fn(&xmlrpc_find_peer));
+  rpc::xmlrpc.slot_find_download() = tr1::bind(&core::DownloadList::find_hex_ptr, control->core()->download_list(), tr1::placeholders::_1);
+  rpc::xmlrpc.slot_find_file() = tr1::bind(&xmlrpc_find_file, tr1::placeholders::_1, tr1::placeholders::_2);
+  rpc::xmlrpc.slot_find_tracker() = tr1::bind(&xmlrpc_find_tracker, tr1::placeholders::_1, tr1::placeholders::_2);
+  rpc::xmlrpc.slot_find_peer() = tr1::bind(&xmlrpc_find_peer, tr1::placeholders::_1, tr1::placeholders::_2);
 
   unsigned int count = 0;
 
@@ -303,11 +303,4 @@ initialize_command_network() {
   CMD2_ANY_STRING  ("network.xmlrpc.dialect.set",    std::bind(&apply_xmlrpc_dialect, std::placeholders::_2));
   CMD2_ANY         ("network.xmlrpc.size_limit",     std::bind(&rpc::XmlRpc::size_limit));
   CMD2_ANY_VALUE_V ("network.xmlrpc.size_limit.set", std::bind(&rpc::XmlRpc::set_size_limit, std::placeholders::_2));
-
-  CMD2_ANY         ("system.hash.read_ahead",        std::bind(&torrent::hash_read_ahead));
-  CMD2_ANY_VALUE_V ("system.hash.read_ahead.set",    std::bind(&apply_hash_read_ahead, std::placeholders::_2));
-  CMD2_ANY         ("system.hash.interval",          std::bind(&torrent::hash_interval));
-  CMD2_ANY_VALUE_V ("system.hash.interval.set",      std::bind(&apply_hash_interval, std::placeholders::_2));
-  CMD2_ANY         ("system.hash.max_tries",         std::bind(&torrent::hash_max_tries));
-  CMD2_ANY_VALUE_V ("system.hash.max_tries.set",     std::bind(&torrent::set_hash_max_tries, std::placeholders::_2));
 }

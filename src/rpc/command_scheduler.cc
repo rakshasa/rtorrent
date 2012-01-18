@@ -71,7 +71,7 @@ CommandScheduler::insert(const std::string& key) {
     delete *itr;
 
   *itr = new CommandSchedulerItem(key);
-  (*itr)->set_slot(rak::bind_mem_fn(this, &CommandScheduler::call_item, *itr));
+  (*itr)->slot() = std::tr1::bind(&CommandScheduler::call_item, this, *itr);
 
   return itr;
 }

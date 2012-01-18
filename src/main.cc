@@ -46,6 +46,7 @@
 #include <torrent/http.h>
 #include <torrent/torrent.h>
 #include <torrent/exceptions.h>
+#include <torrent/poll.h>
 #include <torrent/data/chunk_utils.h>
 #include <torrent/utils/log.h>
 #include <rak/functional.h>
@@ -78,8 +79,6 @@
 
 #include "thread_main.h"
 #include "thread_worker.h"
-
-namespace std { using namespace tr1; }
 
 void handle_sigbus(int signum, siginfo_t* sa, void* ptr);
 void do_panic(int signum);
@@ -195,6 +194,7 @@ main(int argc, char** argv) {
     // to process new non-socket events.
     SignalHandler::set_handler(SIGUSR1,  sigc::ptr_fun(&do_nothing));
 
+    torrent::Poll::slot_create_poll() = std::tr1::bind(&core::create_poll);
     torrent::initialize(main_thread->poll());
 
     // Initialize option handlers after libtorrent to ensure
@@ -636,18 +636,6 @@ main(int argc, char** argv) {
       CMD2_REDIRECT        ("get_session_on_completion", "session.on_completion");
       CMD2_REDIRECT_GENERIC("set_session_on_completion", "session.on_completion.set");
 
-      CMD2_REDIRECT        ("hash_read_ahead", "system.hash.read_ahead.set");
-      CMD2_REDIRECT        ("get_hash_read_ahead", "system.hash.read_ahead");
-      CMD2_REDIRECT_GENERIC("set_hash_read_ahead", "system.hash.read_ahead.set");
-
-      CMD2_REDIRECT        ("hash_interval", "system.hash.interval.set");
-      CMD2_REDIRECT        ("get_hash_interval", "system.hash.interval");
-      CMD2_REDIRECT_GENERIC("set_hash_interval", "system.hash.interval.set");
-
-      CMD2_REDIRECT        ("hash_max_tries", "system.hash.max_tries.set");
-      CMD2_REDIRECT        ("get_hash_max_tries", "system.hash.max_tries");
-      CMD2_REDIRECT_GENERIC("set_hash_max_tries", "system.hash.max_tries.set");
-
       CMD2_REDIRECT        ("check_hash", "pieces.hash.on_completion.set");
       CMD2_REDIRECT        ("get_check_hash", "pieces.hash.on_completion");
       CMD2_REDIRECT_GENERIC("set_check_hash", "pieces.hash.on_completion.set");
@@ -878,7 +866,7 @@ main(int argc, char** argv) {
       rak::priority_queue_perform(&taskScheduler, cachedTime);
 
       // Do shutdown check before poll, not after.
-      main_thread->poll_manager()->poll(client_next_timeout(control));
+      main_thread->poll()->do_poll(client_next_timeout(control).usec());
     }
 
     control->core()->download_list()->session_save();

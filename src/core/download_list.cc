@@ -179,8 +179,8 @@ DownloadList::insert(Download* download) {
   iterator itr = base_type::insert(end(), download);
 
   try {
-    (*itr)->data()->slot_initial_hash()        = std::bind(&DownloadList::hash_done, this, download);
-    (*itr)->data()->slot_download_done()       = std::bind(&DownloadList::received_finished, this, download);
+    (*itr)->data()->slot_initial_hash()        = tr1::bind(&DownloadList::hash_done, this, download);
+    (*itr)->data()->slot_download_done()       = tr1::bind(&DownloadList::received_finished, this, download);
 
     // This needs to be separated into two different calls to ensure
     // the download remains in the view.
@@ -642,6 +642,9 @@ DownloadList::confirm_finished(Download* download) {
 
   DL_TRIGGER_EVENT(download, "event.download.finished");
 
+  if (find(infohash) != end())
+    return;
+      
 //   if (download->resume_flags() != ~uint32_t())
 //     throw torrent::internal_error("DownloadList::confirm_finished(...) download->resume_flags() != ~uint32_t().");
 
@@ -655,8 +658,7 @@ DownloadList::confirm_finished(Download* download) {
   // being hashed.
   download->set_resume_flags(~uint32_t());
 
-  if (find(infohash) != end() &&
-      !download->is_active() && rpc::call_command_value("d.state", rpc::make_target(download)) == 1)
+  if (!download->is_active() && rpc::call_command_value("d.state", rpc::make_target(download)) == 1)
     resume(download,
            torrent::Download::start_no_create |
            torrent::Download::start_skip_tracker |
