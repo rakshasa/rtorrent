@@ -1,9 +1,66 @@
-aclocal.m4
-src/rtorrent
-scripts/libtool.m4
-scripts/ltoptions.m4
-scripts/ltsugar.m4
-scripts/ltversion.m4
-scripts/lt~obsolete.m4
+# Compiled source #
+###################
+*.o
+*.lo
+*.a
+*.la
+*.so
+*.in
+*.sub
+*.pc
+*.orig
+*.rej
 
+# Autoconf files #
+##################
+
+.deps
+.libs
+Makefile
+aclocal.m4
+autom4te.cache
+config.h
+config.guess
+config.status
+confdefs.h
+conftest.dir
+configure
+depcomp
+install-sh
+libtool
+ltmain.sh
+missing
+stamp-h1
+scripts/libtool.m4
+scripts/lt*.m4
+
+# Editor poo #
+##############
+.#*
+\#*#
+*~
+
+# Packages #
+############
+# it's better to unpack these files and commit the raw source
+# git has its own built in compression methods
+*.gz
+*.tar
+*.zip
+
+# Logs and databases #
+######################
+*.log
+
+# OS generated files #
+######################
+.DS_Store?
+ehthumbs.db
+Icon?
+Thumbs.db
+TAGS
+
+# rTorrent specific files
+###########################
+src/rtorrent
 test/rtorrentTest
