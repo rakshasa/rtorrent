@@ -178,6 +178,8 @@ DownloadList::iterator
 DownloadList::insert(Download* download) {
   iterator itr = base_type::insert(end(), download);
 
+  lt_log_print_info(torrent::LOG_TORRENT_INFO, download->info(), "->download_list: Inserting download.");
+
   try {
     (*itr)->data()->slot_initial_hash()        = tr1::bind(&DownloadList::hash_done, this, download);
     (*itr)->data()->slot_download_done()       = tr1::bind(&DownloadList::received_finished, this, download);
@@ -207,6 +209,8 @@ DownloadList::iterator
 DownloadList::erase(iterator itr) {
   if (itr == end())
     throw torrent::internal_error("DownloadList::erase(...) could not find download.");
+
+  lt_log_print_info(torrent::LOG_TORRENT_INFO, (*itr)->info(), "->download_list: Erasing download.");
 
   // Makes sure close doesn't restart hashing of this download.
   (*itr)->set_hash_failed(true);
@@ -242,6 +246,8 @@ void
 DownloadList::open_throw(Download* download) {
   check_contains(download);
 
+  lt_log_print_info(torrent::LOG_TORRENT_INFO, download->info(), "->download_list: Opening download.");
+
   if (download->download()->info()->is_open())
     return;
   
@@ -257,7 +263,6 @@ DownloadList::open_throw(Download* download) {
 void
 DownloadList::close(Download* download) {
   try {
-
     close_throw(download);
 
   } catch (torrent::local_error& e) {
@@ -267,6 +272,8 @@ DownloadList::close(Download* download) {
 
 void
 DownloadList::close_directly(Download* download) {
+  lt_log_print_info(torrent::LOG_TORRENT_INFO, download->info(), "->download_list: Closing download directly.");
+
   if (download->download()->info()->is_active()) {
     download->download()->stop(torrent::Download::stop_skip_tracker);
 
@@ -280,6 +287,7 @@ DownloadList::close_directly(Download* download) {
 
 void
 DownloadList::close_quick(Download* download) {
+  lt_log_print_info(torrent::LOG_TORRENT_INFO, download->info(), "->download_list: Closing download quickly.");
   close(download);
   
   // Make sure we cancel any tracker requests. This should rather be
@@ -292,6 +300,8 @@ DownloadList::close_quick(Download* download) {
 void
 DownloadList::close_throw(Download* download) {
   check_contains(download);
+
+  lt_log_print_info(torrent::LOG_TORRENT_INFO, download->info(), "->download_list: Closing download with throw.");
 
   // When pause gets called it will clear the initial hash check state
   // and set hash failed. This should ensure hashing doesn't restart
@@ -323,6 +333,8 @@ DownloadList::close_throw(Download* download) {
 void
 DownloadList::resume(Download* download, int flags) {
   check_contains(download);
+
+  lt_log_print_info(torrent::LOG_TORRENT_INFO, download->info(), "->download_list: Resuming download: flags%0x.", flags);
 
   try {
 
@@ -417,6 +429,8 @@ void
 DownloadList::pause(Download* download, int flags) {
   check_contains(download);
 
+  lt_log_print_info(torrent::LOG_TORRENT_INFO, download->info(), "->download_list: Pausing download: flags%0x.", flags);
+
   try {
 
     download->set_resume_flags(~uint32_t());
@@ -464,8 +478,9 @@ void
 DownloadList::check_hash(Download* download) {
   check_contains(download);
 
-  try {
+  lt_log_print_info(torrent::LOG_TORRENT_INFO, download->info(), "->download_list: Checking hash.");
 
+  try {
     if (rpc::call_command_value("d.hashing", rpc::make_target(download)) != Download::variable_hashing_stopped)
       return;
 
@@ -479,6 +494,8 @@ DownloadList::check_hash(Download* download) {
 void
 DownloadList::hash_done(Download* download) {
   check_contains(download);
+
+  lt_log_print_info(torrent::LOG_TORRENT_INFO, download->info(), "->download_list: Hash done.");
 
   if (download->is_hash_checking() || download->is_active())
     throw torrent::internal_error("DownloadList::hash_done(...) download in invalid state.");
@@ -554,6 +571,8 @@ void
 DownloadList::hash_queue(Download* download, int type) {
   check_contains(download);
 
+  lt_log_print_info(torrent::LOG_TORRENT_INFO, download->info(), "->download_list: Hash queue.");
+
   if (rpc::call_command_value("d.hashing", rpc::make_target(download)) != Download::variable_hashing_stopped)
     throw torrent::internal_error("DownloadList::hash_queue(...) hashing already queued.");
 
@@ -583,6 +602,8 @@ void
 DownloadList::received_finished(Download* download) {
   check_contains(download);
 
+  lt_log_print_info(torrent::LOG_TORRENT_INFO, download->info(), "->download_list: Received finished.");
+
   if (rpc::call_command_value("pieces.hash.on_completion"))
     // Set some 'checking_finished_thingie' variable to make hash_done
     // trigger correctly, also so it can bork on missing data.
@@ -595,6 +616,8 @@ DownloadList::received_finished(Download* download) {
 void
 DownloadList::confirm_finished(Download* download) {
   check_contains(download);
+
+  lt_log_print_info(torrent::LOG_TORRENT_INFO, download->info(), "->download_list: Confirming finished.");
 
   if (download->download()->info()->is_meta_download())
     return process_meta_download(download);
@@ -642,7 +665,7 @@ DownloadList::confirm_finished(Download* download) {
 
   DL_TRIGGER_EVENT(download, "event.download.finished");
 
-  if (find(infohash) != end())
+  if (find(infohash) == end())
     return;
       
 //   if (download->resume_flags() != ~uint32_t())
@@ -667,6 +690,8 @@ DownloadList::confirm_finished(Download* download) {
 
 void
 DownloadList::process_meta_download(Download* download) {
+  lt_log_print_info(torrent::LOG_TORRENT_INFO, download->info(), "->download_list: Processing meta download.");
+
   rpc::call_command("d.stop", torrent::Object(), rpc::make_target(download));
   rpc::call_command("d.close", torrent::Object(), rpc::make_target(download));
 
