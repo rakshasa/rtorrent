@@ -1,3 +1,19 @@
+# Compiled source #
+###################
+*.o
+*.lo
+*.a
+*.la
+*.so
+*.in
+*.sub
+*.pc
+*.orig
+*.rej
+
+# Autoconf files #
+##################
+
 .deps
 .libs
 Makefile
@@ -18,9 +34,35 @@ stamp-h1
 
 src/rtorrent
 scripts/libtool.m4
-scripts/ltoptions.m4
-scripts/ltsugar.m4
-scripts/ltversion.m4
-scripts/lt~obsolete.m4
+scripts/lt*.m4
 
+# Editor poo #
+##############
+.#*
+\#*#
+*~
+
+# Packages #
+############
+# it's better to unpack these files and commit the raw source
+# git has its own built in compression methods
+*.gz
+*.tar
+*.zip
+
+# Logs and databases #
+######################
+*.log
+
+# OS generated files #
+######################
+.DS_Store?
+ehthumbs.db
+Icon?
+Thumbs.db
+TAGS
+
+# rTorrent specific files
+###########################
+src/rtorrent
 test/rtorrentTest
