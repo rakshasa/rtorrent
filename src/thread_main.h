@@ -47,6 +47,8 @@ public:
   ThreadMain() {}
   ~ThreadMain();
 
+  const char*         name() const { return "main_rtorrent"; }
+
   virtual void        init_thread();
 
 private:
