@@ -234,9 +234,12 @@ apply_ipv4_filter_load(const torrent::Object::list_type& args) {
 
 void
 initialize_command_ip() {
-  CMD2_ANY_STRING  ("ip_tables.insert_table", std::bind(&apply_ip_tables_insert_table, std::placeholders::_2));
-  CMD2_ANY_LIST    ("ip_tables.get",          std::bind(&apply_ip_tables_get, std::placeholders::_2));
-  CMD2_ANY_LIST    ("ip_tables.add_address",  std::bind(&apply_ip_tables_add_address, std::placeholders::_2));
+  CMD2_ANY         ("strings.ip_filter",       std::bind(&torrent::option_list_strings, torrent::OPTION_IP_FILTER));
+  CMD2_ANY         ("strings.ip_tos",          std::bind(&torrent::option_list_strings, torrent::OPTION_IP_TOS));
+
+  CMD2_ANY_STRING  ("ip_tables.insert_table",  std::bind(&apply_ip_tables_insert_table, std::placeholders::_2));
+  CMD2_ANY_LIST    ("ip_tables.get",           std::bind(&apply_ip_tables_get, std::placeholders::_2));
+  CMD2_ANY_LIST    ("ip_tables.add_address",   std::bind(&apply_ip_tables_add_address, std::placeholders::_2));
 
   CMD2_ANY         ("ipv4_filter.size_data",   std::bind(&apply_ipv4_filter_size_data));
   CMD2_ANY_STRING  ("ipv4_filter.get",         std::bind(&apply_ipv4_filter_get, std::placeholders::_2));
