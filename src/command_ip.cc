@@ -89,6 +89,16 @@ apply_ip_tables_insert_table(const std::string& args) {
 }
 
 torrent::Object
+apply_ip_tables_size_data(const std::string& args) {
+  rpc::ip_table_list::const_iterator itr = ip_tables.find(args);
+
+  if (itr != ip_tables.end())
+    throw torrent::input_error("IP table does not exist.");
+
+  return itr->table.sizeof_data();
+}
+
+torrent::Object
 apply_ip_tables_get(const torrent::Object::list_type& args) {
   if (args.size() != 2)
     throw torrent::input_error("Incorrect number of arguments.");
@@ -238,6 +248,7 @@ initialize_command_ip() {
   CMD2_ANY         ("strings.ip_tos",          std::bind(&torrent::option_list_strings, torrent::OPTION_IP_TOS));
 
   CMD2_ANY_STRING  ("ip_tables.insert_table",  std::bind(&apply_ip_tables_insert_table, std::placeholders::_2));
+  CMD2_ANY_STRING  ("ip_tables.size_data",     std::bind(&apply_ip_tables_size_data, std::placeholders::_2));
   CMD2_ANY_LIST    ("ip_tables.get",           std::bind(&apply_ip_tables_get, std::placeholders::_2));
   CMD2_ANY_LIST    ("ip_tables.add_address",   std::bind(&apply_ip_tables_add_address, std::placeholders::_2));
 
