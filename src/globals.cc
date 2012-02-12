@@ -43,6 +43,4 @@ rak::timer                  cachedTime;
 rpc::ip_table_list          ip_tables;
 
 Control*                    control = NULL;
-//__thread ThreadBase* main_thread = NULL;
-ThreadMain* main_thread = NULL;
 ThreadWorker* worker_thread = NULL;

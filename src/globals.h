@@ -41,7 +41,6 @@
 #include <rak/priority_queue_default.h>
 
 #include "thread_base.h"
-#include "thread_main.h"
 #include "thread_worker.h"
 #include "rpc/ip_table_list.h"
 
@@ -57,8 +56,6 @@ extern rak::timer                  cachedTime;
 extern rpc::ip_table_list          ip_tables;
 
 extern Control*      control;
-// extern __thread ThreadBase* main_thread; // Only use for worker threads for now.
-extern ThreadMain*   main_thread;
 extern ThreadWorker* worker_thread;
 
 #endif

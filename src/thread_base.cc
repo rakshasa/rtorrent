@@ -46,6 +46,7 @@
 #include <unistd.h>
 #include <rak/error_number.h>
 #include <torrent/exceptions.h>
+#include <torrent/torrent.h>
 #include <torrent/utils/log.h>
 
 #include "globals.h"
@@ -167,7 +168,7 @@ ThreadBase::interrupt_main_polling() {
   int sleep_length = 0;
 
   while (ThreadBase::is_main_polling()) {
-    pthread_kill(main_thread->m_thread, SIGUSR1);
+    pthread_kill(torrent::main_thread()->pthread(), SIGUSR1);
 
     if (!ThreadBase::is_main_polling())
       return;

@@ -114,7 +114,7 @@ Control::initialize() {
 
   m_ui->init(this);
 
-  m_inputStdin->insert(main_thread->poll());
+  m_inputStdin->insert(torrent::main_thread()->poll());
 }
 
 void
@@ -124,7 +124,7 @@ Control::cleanup() {
 
   priority_queue_erase(&taskScheduler, &m_taskShutdown);
 
-  m_inputStdin->remove(main_thread->poll());
+  m_inputStdin->remove(torrent::main_thread()->poll());
 
   m_core->download_store()->disable();
 
