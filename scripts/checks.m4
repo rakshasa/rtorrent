@@ -1,15 +1,15 @@
 AC_DEFUN([TORRENT_CHECK_XFS], [
   AC_MSG_CHECKING(for XFS support)
 
-  AC_COMPILE_IFELSE(
-    [[#include <xfs/libxfs.h>
+  AC_COMPILE_IFELSE([AC_LANG_SOURCE([
+      #include <xfs/libxfs.h>
       #include <sys/ioctl.h>
       int main() {
         struct xfs_flock64 l;
         ioctl(0, XFS_IOC_RESVSP64, &l);
         return 0;
       }
-    ]],
+      ])],
     [
       AC_DEFINE(USE_XFS, 1, Use XFS filesystem stuff.)
       AC_MSG_RESULT(yes)
@@ -46,13 +46,13 @@ AC_DEFUN([TORRENT_WITH_XFS], [
 AC_DEFUN([TORRENT_CHECK_EPOLL], [
   AC_MSG_CHECKING(for epoll support)
 
-  AC_COMPILE_IFELSE(
-    [[#include <sys/epoll.h>
+  AC_COMPILE_IFELSE([AC_LANG_SOURCE([
+      #include <sys/epoll.h>
       int main() {
         int fd = epoll_create(100);
         return 0;
       }
-    ]],
+      ])],
     [
       AC_DEFINE(USE_EPOLL, 1, Use epoll.)
       AC_MSG_RESULT(yes)
@@ -77,14 +77,14 @@ AC_DEFUN([TORRENT_WITHOUT_EPOLL], [
 AC_DEFUN([TORRENT_CHECK_KQUEUE], [
   AC_MSG_CHECKING(for kqueue support)
 
-  AC_LINK_IFELSE(
-    [[#include <sys/time.h>  /* Because OpenBSD's sys/event.h fails to compile otherwise. Yeah... */
+  AC_LINK_IFELSE([AC_LANG_SOURCE([
+      #include <sys/time.h>  /* Because OpenBSD's sys/event.h fails to compile otherwise. Yeah... */
       #include <sys/event.h>
       int main() {
         int fd = kqueue();
         return 0;
       }
-    ]],
+      ])],
     [
       AC_DEFINE(USE_KQUEUE, 1, Use kqueue.)
       AC_MSG_RESULT(yes)
@@ -96,8 +96,8 @@ AC_DEFUN([TORRENT_CHECK_KQUEUE], [
 AC_DEFUN([TORRENT_CHECK_KQUEUE_SOCKET_ONLY], [
   AC_MSG_CHECKING(whether kqueue supports pipes and ptys)
 
-  AC_RUN_IFELSE(
-    [[#include <fcntl.h>
+  AC_RUN_IFELSE([AC_LANG_SOURCE([
+      #include <fcntl.h>
       #include <stdlib.h>
       #include <unistd.h>
       #include <sys/event.h>
@@ -122,7 +122,7 @@ AC_DEFUN([TORRENT_CHECK_KQUEUE_SOCKET_ONLY], [
         if ((n = kevent(kfd, NULL, 0, ev_out, 2, &ts)) < 1) return 9;
         return 0;
       }
-    ]],
+      ])],
     [
       AC_MSG_RESULT(yes)
     ], [
@@ -364,11 +364,11 @@ AC_DEFUN([TORRENT_CHECK_TR1], [
   AC_LANG_PUSH(C++)
   AC_MSG_CHECKING(for TR1 support)
 
-  AC_COMPILE_IFELSE(
-    [[#include <tr1/unordered_map>
+  AC_COMPILE_IFELSE([AC_LANG_SOURCE([
+      #include <tr1/unordered_map>
       class Foo;
       typedef std::tr1::unordered_map<Foo*, int> Bar;
-    ]],
+      ])],
     [
       AC_MSG_RESULT(yes)
       AC_DEFINE(HAVE_TR1, 1, Define to 1 if your C++ library supports the extensions from Technical Report 1)
@@ -385,14 +385,14 @@ AC_DEFUN([TORRENT_CHECK_CXX11], [
   AC_LANG_PUSH(C++)
   AC_MSG_CHECKING(for C++11 support)
 
-  AC_COMPILE_IFELSE(
-    [[#include <functional>
+  AC_COMPILE_IFELSE([AC_LANG_SOURCE([
+      #include <functional>
       #include <unordered_map>
       class Foo;
       typedef std::unordered_map<Foo*, int> Bar;
 
       union test { Bar b1; };
-    ]],
+      ])],
     [
       AC_MSG_RESULT(yes)
       AC_DEFINE(HAVE_CXX11, 1, Define to 1 if your C++ compiler has support for C++11.)
