@@ -75,6 +75,10 @@ ipv4_filter_parse(const char* address, int value) {
   if (values_read < 7)
     block = 8 * (values_read / 2);
 
+  lt_log_print(torrent::LOG_CONNECTION_DEBUG, "Adding ip filter for %u.%u.%u.%u/%u.",
+               ip_values[0], ip_values[1], ip_values[2], ip_values[3], block);
+
+
   torrent::PeerList::ipv4_filter()->insert((ip_values[0] << 24) + (ip_values[1] << 16) + (ip_values[2] << 8) + ip_values[3],
                                            rpc::ipv4_table::mask_bits - block, value);
 }
@@ -214,13 +218,6 @@ apply_ipv4_filter_load(const torrent::Object::list_type& args) {
       if (file.gcount() == 0)
         throw torrent::internal_error("parse_command_file(...) file.gcount() == 0.");
 
-      int lineLength = file.gcount() - 1;
-      // In case we are at the end of the file and the last character is
-      // not a line feed, we'll just increase the read character count so 
-      // that the last would also be included in option line.
-      if (file.eof() && file.get() != '\n')
-        lineLength++;
-      
       lineNumber++;
 
       if (buffer[0] == '\0' || buffer[0] == '#')
