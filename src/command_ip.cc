@@ -197,12 +197,14 @@ apply_ipv4_filter_load(const torrent::Object::list_type& args) {
   if (args.size() != 2)
     throw torrent::input_error("Incorrect number of arguments.");
 
-  std::fstream file(rak::path_expand(args.front().as_string()).c_str(), std::ios::in);
+  std::string filename = args.front().as_string();
+  std::string value_name = args.back().as_string();
+  int value = torrent::option_find_string(torrent::OPTION_IP_FILTER, value_name.c_str());
+
+  std::fstream file(rak::path_expand(filename).c_str(), std::ios::in);
   
   if (!file.is_open())
-    throw torrent::input_error("Could not open ip filter file: " + args.front().as_string());
-
-  int value = torrent::option_find_string(torrent::OPTION_IP_FILTER, args.back().as_string().c_str());
+    throw torrent::input_error("Could not open ip filter file: " + filename);
 
   char buffer[4096];
   unsigned int lineNumber = 0;
@@ -228,16 +230,16 @@ apply_ipv4_filter_load(const torrent::Object::list_type& args) {
     }
 
   } catch (torrent::input_error& e) {
-    snprintf(buffer, 2048, "Error in ip filter file: %s:%u: %s", args.front().as_string().c_str(), lineNumber, e.what());
+    snprintf(buffer, 2048, "Error in ip filter file: %s:%u: %s", filename.c_str(), lineNumber, e.what());
 
     throw torrent::input_error(buffer);
   }
 
   lt_log_print(torrent::LOG_CONNECTION_INFO, "Loaded %u %s address blocks (%u kb in-memory) from '%s'.",
                lineNumber,
-               args.back().as_string().c_str(),
+               value_name.c_str(),
                torrent::PeerList::ipv4_filter()->sizeof_data() / 1024,
-               args.front().as_string().c_str());
+               filename.c_str());
 
   return torrent::Object();
 }
