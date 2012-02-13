@@ -3,10 +3,10 @@
 AC_DEFUN([CC_ATTRIBUTE_CONSTRUCTOR], [
 	AC_CACHE_CHECK([if compiler supports __attribute__((constructor))],
 		[cc_cv_attribute_constructor],
-		[AC_COMPILE_IFELSE([
+		[AC_COMPILE_IFELSE([AC_LANG_SOURCE([
 			void ctor() __attribute__((constructor));
 			void ctor() { };
-			],
+			])],
 			[cc_cv_attribute_constructor=yes],
 			[cc_cv_attribute_constructor=no])
 		])
@@ -23,9 +23,9 @@ AC_DEFUN([CC_ATTRIBUTE_CONSTRUCTOR], [
 AC_DEFUN([CC_ATTRIBUTE_FORMAT], [
 	AC_CACHE_CHECK([if compiler supports __attribute__((format(printf, n, n)))],
 		[cc_cv_attribute_format],
-		[AC_COMPILE_IFELSE([
+		[AC_COMPILE_IFELSE([AC_LANG_SOURCE([
 			void __attribute__((format(printf, 1, 2))) printflike(const char *fmt, ...) { }
-			],
+			])],
 			[cc_cv_attribute_format=yes],
 			[cc_cv_attribute_format=no])
 		])
@@ -42,9 +42,9 @@ AC_DEFUN([CC_ATTRIBUTE_FORMAT], [
 AC_DEFUN([CC_ATTRIBUTE_INTERNAL], [
 	AC_CACHE_CHECK([if compiler supports __attribute__((visibility("internal")))],
 		[cc_cv_attribute_internal],
-		[AC_COMPILE_IFELSE([
+		[AC_COMPILE_IFELSE([AC_LANG_SOURCE([
 			void __attribute__((visibility("internal"))) internal_function() { }
-			],
+			])],
 			[cc_cv_attribute_internal=yes],
 			[cc_cv_attribute_internal=no])
 		])
@@ -66,9 +66,9 @@ AC_DEFUN([CC_ATTRIBUTE_VISIBILITY], [
 
 	AC_CACHE_CHECK([if compiler supports __attribute__((visibility("default")))],
 		[cc_cv_attribute_visibility],
-		[AC_COMPILE_IFELSE([
+		[AC_COMPILE_IFELSE([AC_LANG_SOURCE([
 			void __attribute__((visibility("default"))) visibility_function() { }
-			],
+			])],
 			[cc_cv_attribute_visibility=yes],
 			[cc_cv_attribute_visibility=no])
 		])
@@ -90,10 +90,10 @@ AC_DEFUN([CC_ATTRIBUTE_VISIBILITY], [
 AC_DEFUN([CC_ATTRIBUTE_NONNULL], [
 	AC_CACHE_CHECK([if compiler supports __attribute__((nonnull()))],
 		[cc_cv_attribute_nonnull],
-		[AC_COMPILE_IFELSE([
+		[AC_COMPILE_IFELSE([AC_LANG_SOURCE([
 			void some_function(void *foo, void *bar) __attribute__((nonnull()));
 			void some_function(void *foo, void *bar) { }
-			],
+			])],
 			[cc_cv_attribute_nonnull=yes],
 			[cc_cv_attribute_nonnull=no])
 		])
@@ -110,9 +110,9 @@ AC_DEFUN([CC_ATTRIBUTE_NONNULL], [
 AC_DEFUN([CC_ATTRIBUTE_UNUSED], [
 	AC_CACHE_CHECK([if compiler supports __attribute__((unused))],
 		[cc_cv_attribute_unused],
-		[AC_COMPILE_IFELSE([
+		[AC_COMPILE_IFELSE([AC_LANG_SOURCE([
 			void some_function(void *foo, __attribute__((unused)) void *bar);
-			],
+			])],
 			[cc_cv_attribute_unused=yes],
 			[cc_cv_attribute_unused=no])
 		])
@@ -129,13 +129,13 @@ AC_DEFUN([CC_ATTRIBUTE_UNUSED], [
 AC_DEFUN([CC_FUNC_EXPECT], [
 	AC_CACHE_CHECK([if compiler has __builtin_expect function],
 		[cc_cv_func_expect],
-		[AC_COMPILE_IFELSE([
+		[AC_COMPILE_IFELSE([AC_LANG_SOURCE([
 			int some_function()
 			{
 				int a = 3;
 				return (int)__builtin_expect(a, 3);
 			}
-			],
+			])],
 			[cc_cv_func_expect=yes],
 			[cc_cv_func_expect=no])
 		])
