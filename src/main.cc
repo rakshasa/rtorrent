@@ -77,7 +77,6 @@
 #include "signal_handler.h"
 #include "option_parser.h"
 
-#include "thread_main.h"
 #include "thread_worker.h"
 
 void handle_sigbus(int signum, siginfo_t* sa, void* ptr);
@@ -150,14 +149,29 @@ load_arg_torrents(Control* c, char** first, char** last) {
   }
 }
 
-static inline rak::timer
+static uint64_t
 client_next_timeout(Control* c) {
   if (taskScheduler.empty())
-    return c->is_shutdown_started() ? rak::timer::from_milliseconds(100) : rak::timer::from_seconds(60);
+    return (c->is_shutdown_started() ? rak::timer::from_milliseconds(100) : rak::timer::from_seconds(60)).usec();
   else if (taskScheduler.top()->time() <= cachedTime)
     return 0;
   else
-    return taskScheduler.top()->time() - cachedTime;
+    return (taskScheduler.top()->time() - cachedTime).usec();
+}
+
+static void
+client_perform() {
+  // Use throw exclusively.
+  if (control->is_shutdown_completed())
+    throw torrent::shutdown_exception();
+
+  if (control->is_shutdown_received())
+    control->handle_shutdown();
+
+  control->inc_tick();
+
+  cachedTime = rak::timer::current();
+  rak::priority_queue_perform(&taskScheduler, cachedTime);
 }
 
 int
@@ -171,9 +185,6 @@ main(int argc, char** argv) {
 
     control = new Control;
     
-    main_thread = new ThreadMain();
-    main_thread->init_thread();
-
     worker_thread = new ThreadWorker();
     worker_thread->init_thread();
 
@@ -195,7 +206,11 @@ main(int argc, char** argv) {
     SignalHandler::set_handler(SIGUSR1,  sigc::ptr_fun(&do_nothing));
 
     torrent::Poll::slot_create_poll() = std::tr1::bind(&core::create_poll);
-    torrent::initialize(main_thread->poll());
+    torrent::initialize();
+
+    torrent::main_thread()->init_thread();
+    torrent::main_thread()->slot_do_work() = tr1::bind(&client_perform);
+    torrent::main_thread()->slot_next_timeout() = tr1::bind(&client_next_timeout, control);
 
     // Initialize option handlers after libtorrent to ensure
     // torrent::ConnectionManager* are valid etc.
@@ -856,18 +871,7 @@ main(int argc, char** argv) {
 
     worker_thread->start_thread();
 
-    while (!control->is_shutdown_completed()) {
-      if (control->is_shutdown_received())
-        control->handle_shutdown();
-
-      control->inc_tick();
-
-      cachedTime = rak::timer::current();
-      rak::priority_queue_perform(&taskScheduler, cachedTime);
-
-      // Do shutdown check before poll, not after.
-      main_thread->poll()->do_poll(client_next_timeout(control).usec());
-    }
+    torrent::thread_base::event_loop(torrent::main_thread());
 
     control->core()->download_list()->session_save();
     control->cleanup();
@@ -883,7 +887,6 @@ main(int argc, char** argv) {
 
   delete control;
   delete worker_thread;
-  delete main_thread;
 
   return 0;
 }

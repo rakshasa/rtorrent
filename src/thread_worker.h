@@ -53,6 +53,8 @@ public:
   ThreadWorker();
   ~ThreadWorker();
 
+  const char*         name() const { return "worker_rtorrent"; }
+
   virtual void        init_thread();
 
   rpc::SCgi*          scgi() { return m_safe.scgi; }
