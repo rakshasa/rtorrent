@@ -206,9 +206,8 @@ main(int argc, char** argv) {
     SignalHandler::set_handler(SIGUSR1,  sigc::ptr_fun(&do_nothing));
 
     torrent::Poll::slot_create_poll() = std::tr1::bind(&core::create_poll);
-    torrent::initialize();
 
-    torrent::main_thread()->init_thread();
+    torrent::initialize();
     torrent::main_thread()->slot_do_work() = tr1::bind(&client_perform);
     torrent::main_thread()->slot_next_timeout() = tr1::bind(&client_next_timeout, control);
 
