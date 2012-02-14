@@ -59,6 +59,8 @@ public:
   SCgi() : m_logFd(-1) {}
   virtual ~SCgi();
 
+  const char*         type_name() const { return "scgi"; }
+
   void                open_port(void* sa, unsigned int length, bool dontRoute);
   void                open_named(const std::string& filename);
 
