@@ -334,7 +334,7 @@ void
 DownloadList::resume(Download* download, int flags) {
   check_contains(download);
 
-  lt_log_print_info(torrent::LOG_TORRENT_INFO, download->info(), "->download_list: Resuming download: flags%0x.", flags);
+  lt_log_print_info(torrent::LOG_TORRENT_INFO, download->info(), "->download_list: Resuming download: flags:%0x.", flags);
 
   try {
 

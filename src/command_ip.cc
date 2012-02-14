@@ -78,7 +78,6 @@ ipv4_filter_parse(const char* address, int value) {
   lt_log_print(torrent::LOG_CONNECTION_DEBUG, "Adding ip filter for %u.%u.%u.%u/%u.",
                ip_values[0], ip_values[1], ip_values[2], ip_values[3], block);
 
-
   torrent::PeerList::ipv4_filter()->insert((ip_values[0] << 24) + (ip_values[1] << 16) + (ip_values[2] << 8) + ip_values[3],
                                            rpc::ipv4_table::mask_bits - block, value);
 }
