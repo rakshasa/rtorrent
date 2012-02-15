@@ -209,8 +209,8 @@ apply_ipv4_filter_load(const torrent::Object::list_type& args) {
   if (!file.is_open())
     throw torrent::input_error("Could not open ip filter file: " + filename);
 
-  char buffer[4096];
   unsigned int lineNumber = 0;
+  char buffer[4096];
 
   try {
     while (file.good() && !file.getline(buffer, 4096).fail()) {
@@ -240,6 +240,51 @@ apply_ipv4_filter_load(const torrent::Object::list_type& args) {
   return torrent::Object();
 }
 
+static void
+append_table(torrent::ipv4_table::base_type* extent, torrent::Object::list_type& result) {
+  torrent::ipv4_table::table_type::iterator first = extent->table.begin();
+  torrent::ipv4_table::table_type::iterator last  = extent->table.end();
+
+  int current_value = 0;
+  uint32_t range_first = 0;
+
+  while (first != last) {
+    if (first->first != NULL) {
+      // Do something more here?...
+      append_table(first->first, result);
+
+    } else if (first->second != 0) {
+      uint32_t position = extent->partition_pos(first);
+
+      char buffer[256];
+      snprintf(buffer, 256, "%u.%u.%u.%u/%u %s",
+               (position >> 24) & 0xff,
+               (position >> 16) & 0xff,
+               (position >> 8) & 0xff,
+               (position >> 0) & 0xff,
+               extent->mask_bits,
+               torrent::option_as_string(torrent::OPTION_IP_FILTER, first->second));
+
+      result.push_back((std::string)buffer);
+
+      range_first = position;
+      current_value = first->second;
+    }
+
+    first++;
+  }
+}
+
+torrent::Object
+apply_ipv4_filter_dump() {
+  torrent::Object raw_result = torrent::Object::create_list();
+  torrent::Object::list_type& result = raw_result.as_list();
+
+  append_table(torrent::PeerList::ipv4_filter()->data(), result);
+
+  return raw_result;
+}
+
 void
 initialize_command_ip() {
   CMD2_ANY         ("strings.ip_filter",       std::bind(&torrent::option_list_strings, torrent::OPTION_IP_FILTER));
@@ -254,4 +299,5 @@ initialize_command_ip() {
   CMD2_ANY_STRING  ("ipv4_filter.get",         std::bind(&apply_ipv4_filter_get, std::placeholders::_2));
   CMD2_ANY_LIST    ("ipv4_filter.add_address", std::bind(&apply_ipv4_filter_add_address, std::placeholders::_2));
   CMD2_ANY_LIST    ("ipv4_filter.load",        std::bind(&apply_ipv4_filter_load, std::placeholders::_2));
+  CMD2_ANY_LIST    ("ipv4_filter.dump",        std::bind(&apply_ipv4_filter_dump));
 }
