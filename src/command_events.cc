@@ -306,17 +306,8 @@ d_multicall(const torrent::Object::list_type& args) {
   return resultRaw;
 }
 
-torrent::Object
-test_thread_locking() {
-  worker_thread->queue_item(&ThreadWorker::start_log_counter);
-
-  return torrent::Object();
-}
-
 void
 initialize_command_events() {
-  CMD2_ANY("test.thread_locking", std::bind(&test_thread_locking));
-
   CMD2_ANY_STRING  ("on_ratio",        std::bind(&apply_on_ratio, std::placeholders::_2));
 
   CMD2_ANY         ("start_tied",      std::bind(&apply_start_tied));
