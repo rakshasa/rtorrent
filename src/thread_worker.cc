@@ -52,7 +52,6 @@
 #include "rpc/parse_commands.h"
 
 ThreadWorker::ThreadWorker() {
-  m_taskTouchLog.slot() = std::tr1::bind(&ThreadWorker::task_touch_log, this);
 }
 
 ThreadWorker::~ThreadWorker() {
@@ -101,14 +100,6 @@ ThreadWorker::start_scgi(ThreadBase* baseThread) {
 }
 
 void
-ThreadWorker::start_log_counter(ThreadBase* baseThread) {
-  ThreadWorker* thread = (ThreadWorker*)baseThread;
-
-  if (!thread->m_taskTouchLog.is_queued())
-    priority_queue_insert(&thread->m_taskScheduler, &thread->m_taskTouchLog, cachedTime);
-}
-
-void
 ThreadWorker::msg_change_xmlrpc_log(ThreadBase* baseThread) {
   ThreadWorker* thread = (ThreadWorker*)baseThread;
 
@@ -138,13 +129,4 @@ ThreadWorker::change_xmlrpc_log() {
   }
 
   control->core()->push_log_std("Logging XMLRPC events to '" + m_xmlrpcLog + "'.");
-}
-
-void
-ThreadWorker::task_touch_log() {
-  priority_queue_insert(&m_taskScheduler, &m_taskTouchLog, cachedTime + rak::timer::from_seconds(1));
-
-  acquire_global_lock();
-  control->core()->push_log("Tick Tock.");
-  release_global_lock();
 }

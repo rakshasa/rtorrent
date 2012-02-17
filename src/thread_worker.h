@@ -63,7 +63,6 @@ public:
   void                set_xmlrpc_log(const std::string& filename);
 
   static void         start_scgi(ThreadBase* thread);
-  static void         start_log_counter(ThreadBase* thread);
   static void         msg_change_xmlrpc_log(ThreadBase* thread);
 
 private:
@@ -77,7 +76,6 @@ private:
     rpc::SCgi* scgi;
   };
 
-  rak::priority_item  m_taskTouchLog;
   safe_type           m_safe;
 
   // The following types shall only be modified while holding the
