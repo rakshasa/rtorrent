@@ -36,7 +36,7 @@
 
 #include "config.h"
 
-#include <ncurses.h>
+#include "display/attributes.h"
 
 #include "text_input.h"
 

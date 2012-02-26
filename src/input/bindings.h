@@ -38,8 +38,9 @@
 #define RTORRENT_INPUT_BINDINGS_H
 
 #include <map>
-#include <ncurses.h>
 #include <sigc++/functors/slot.h>
+
+#include "display/attributes.h"
 
 namespace input {
 
