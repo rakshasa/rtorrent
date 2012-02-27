@@ -318,27 +318,31 @@ AC_DEFUN([AX_WITH_CURSES], [
             ])
             
             dnl Test if we need to explicitly link against -ltinfow.
-            AC_CACHE_CHECK([if NcursesW wide-character info library is linked properly], [ax_cv_ncurses_compiled], [
+            AC_CACHE_CHECK([if curses tinfo library is linked properly], [ax_cv_ncurses_compiled], [
                 LIBS="$ax_saved_LIBS $CURSES_LIB"
+                AC_LINK_IFELSE([AC_LANG_CALL([], [keypad])], [ax_cv_ncurses_compiled=yes], [ax_cv_ncurses_compiled=no])
 
-                AC_LINK_IFELSE([AC_LANG_CALL([], [keypad])],
-                    [ax_cv_ncurses_compiled=yes], [ax_cv_ncurses_compiled=no])
+                LIBS="$ax_saved_LIBS $CURSES_LIB -ltinfo"
+                AC_LINK_IFELSE([AC_LANG_CALL([], [keypad])], [ax_cv_tinfo_compiled=yes], [ax_cv_tinfo_compiled=no])
 
-                LIBS="$LIBS -ltinfow"
-
-                 AC_LINK_IFELSE([AC_LANG_CALL([], [keypad])],
-                    [ax_cv_info_compiled=yes], [ax_cv_info_compiled=no])
+                LIBS="$ax_saved_LIBS $CURSES_LIB -ltinfow"
+                AC_LINK_IFELSE([AC_LANG_CALL([], [keypad])], [ax_cv_tinfow_compiled=yes], [ax_cv_tinfow_compiled=no])
 
                 LIBS=$ax_saved_LIBS
             ])
 
-            AS_IF([test "x$ax_cv_ncurses_compiled" = xno && test "x$ax_cv_info_compiled" = xno], [
-                AC_MSG_ERROR([could not link ncursesw with/without tinfow])
-            ])
-
-            AS_IF([test "x$ax_cv_ncurses_compiled" = xno && test "x$ax_cv_info_compiled" = xyes], [
-                AC_MSG_RESULT([adding libtinfow])
-                CURSES_LIB="$CURSES_LIB -ltinfow"
+            AS_IF([test "x$ax_cv_ncurses_compiled" = xno], [
+                AS_IF(
+                    [test "x$ax_cv_tinfo_compiled" = xyes], [
+                        AC_MSG_RESULT([adding libtinfo])
+                        CURSES_LIB="$CURSES_LIB -ltinfo"
+                    ],
+                    [test "x$ax_cv_tinfow_compiled" = xyes], [
+                        AC_MSG_RESULT([adding libtinfow])
+                        CURSES_LIB="$CURSES_LIB -ltinfow"
+                    ], [
+                    AC_MSG_ERROR([no])
+                ])
             ])
         ])
     ])
