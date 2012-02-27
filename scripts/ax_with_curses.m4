@@ -317,14 +317,14 @@ AC_DEFUN([AX_WITH_CURSES], [
                 AC_MSG_WARN([could not find a working ncursesw/curses.h, ncursesw.h or ncurses.h])
             ])
             
-            dnl Test if we need to explicitly link against -linfow.
+            dnl Test if we need to explicitly link against -ltinfow.
             AC_CACHE_CHECK([if NcursesW wide-character info library is linked properly], [ax_cv_ncurses_compiled], [
                 LIBS="$ax_saved_LIBS $CURSES_LIB"
 
                 AC_LINK_IFELSE([AC_LANG_CALL([], [keypad])],
                     [ax_cv_ncurses_compiled=yes], [ax_cv_ncurses_compiled=no])
 
-                LIBS="$LIBS -linfow"
+                LIBS="$LIBS -ltinfow"
 
                  AC_LINK_IFELSE([AC_LANG_CALL([], [keypad])],
                     [ax_cv_info_compiled=yes], [ax_cv_info_compiled=no])
@@ -333,12 +333,12 @@ AC_DEFUN([AX_WITH_CURSES], [
             ])
 
             AS_IF([test "x$ax_cv_ncurses_compiled" = xno && test "x$ax_cv_info_compiled" = xno], [
-                AC_MSG_ERROR([could not link ncursesw with/without infow])
+                AC_MSG_ERROR([could not link ncursesw with/without tinfow])
             ])
 
             AS_IF([test "x$ax_cv_ncurses_compiled" = xno && test "x$ax_cv_info_compiled" = xyes], [
-                AC_MSG_RESULT([adding libinfow])
-                CURSES_LIB="$CURSES_LIB -linfow"
+                AC_MSG_RESULT([adding libtinfow])
+                CURSES_LIB="$CURSES_LIB -ltinfow"
             ])
         ])
     ])

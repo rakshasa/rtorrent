@@ -185,7 +185,7 @@ AC_DEFUN([TORRENT_CHECK_POPCOUNT], [
   AC_MSG_CHECKING(for __builtin_popcount)
 
   AC_COMPILE_IFELSE([AC_LANG_SOURCE([
-      void f() { __builtin_popcount(0); }
+      int f() { return __builtin_popcount(0); }
     ])],
     [
       AC_MSG_RESULT(yes)
