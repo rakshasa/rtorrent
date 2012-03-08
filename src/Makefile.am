@@ -46,7 +46,8 @@ rtorrent_LDADD = \
 	display/libsub_display.a \
 	input/libsub_input.a \
 	rpc/libsub_rpc.a \
-	utils/libsub_utils.a
+	utils/libsub_utils.a \
+	@PTHREAD_LIBS@
 
 rtorrent_SOURCES = \
 	main.cc
