@@ -77,7 +77,7 @@ DownloadList::DownloadList() :
   m_uiArray[DISPLAY_LOG]           = new ElementLogComplete(&control->core()->get_log_complete());
   m_uiArray[DISPLAY_STRING_LIST]   = new ElementStringList();
 
-  m_windowLog                      = new WLog(&control->core()->get_log_important());
+  m_windowLog                      = new WLog(control->core()->log_important());
 
   setup_keys();
 }

@@ -183,6 +183,9 @@ main(int argc, char** argv) {
 
     cachedTime = rak::timer::current();
 
+    // Initialize logging:
+    torrent::log_initialize();
+
     control = new Control;
     
     worker_thread = new ThreadWorker();
@@ -205,6 +208,8 @@ main(int argc, char** argv) {
     // to process new non-socket events.
     SignalHandler::set_handler(SIGUSR1,  sigc::ptr_fun(&do_nothing));
 
+    torrent::log_add_group_output(torrent::LOG_INFO, "important");
+
     torrent::Poll::slot_create_poll() = std::tr1::bind(&core::create_poll);
 
     torrent::initialize();
@@ -214,13 +219,6 @@ main(int argc, char** argv) {
     // Initialize option handlers after libtorrent to ensure
     // torrent::ConnectionManager* are valid etc.
     initialize_commands();
-
-    // Initialize logging:
-    torrent::log_initialize();
-    torrent::log_open_output("console", std::bind(&core::Manager::push_log, control->core(), std::placeholders::_1));
-    torrent::log_add_group_output(torrent::LOG_INFO, "console");
-
-    lt_log_print(torrent::LOG_INFO, "Started logging to 'console'.");
 
     if (OptionParser::has_flag('D', argc, argv)) {
       rpc::call_command_set_value("method.use_deprecated.set", false);

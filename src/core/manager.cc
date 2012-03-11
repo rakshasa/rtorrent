@@ -137,13 +137,18 @@ Manager::handshake_log(const sockaddr* sa, int msg, int err, const torrent::Hash
 
 void
 Manager::push_log(const char* msg) {
+  if (!pthread_equal(pthread_self(), torrent::main_thread()->pthread()))
+    throw torrent::internal_error("Manager::push_log(...): Cannot call this function from other threads than 'main'.");
+
   m_logImportant.push_front(msg);
   m_logComplete.push_front(msg);
+
+  m_log_important->lock_and_push_log(msg, strlen(msg), 0);
 }
 
 Manager::Manager() :
-  m_hashingView(NULL)
-//   m_pollManager(NULL) {
+  m_hashingView(NULL),
+  m_log_important(torrent::log_open_log_buffer("important"))
 {
   m_downloadStore   = new DownloadStore();
   m_downloadList    = new DownloadList();

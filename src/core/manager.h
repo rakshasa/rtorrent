@@ -40,6 +40,7 @@
 #include <iosfwd>
 #include <vector>
 
+#include <torrent/utils/log_buffer.h>
 #include <torrent/connection_manager.h>
 
 #include "download_list.h"
@@ -87,6 +88,9 @@ public:
 
   Log&                get_log_important()                 { return m_logImportant; }
   Log&                get_log_complete()                  { return m_logComplete; }
+
+  torrent::log_buffer* log_important()                    { return m_log_important; }
+  // torrent::log_buffer* log_complete()                     { return m_log_complete; }
 
   ThrottleMap&          throttles()                       { return m_throttles; }
   torrent::ThrottlePair get_throttle(const std::string& name);
@@ -154,6 +158,9 @@ private:
 
   Log                 m_logImportant;
   Log                 m_logComplete;
+
+  torrent::log_buffer* m_log_important;
+  // torrent::log_buffer* m_log_complete;
 };
 
 // Meh, cleanup.
