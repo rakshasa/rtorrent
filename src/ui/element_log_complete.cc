@@ -37,6 +37,8 @@
 #include "config.h"
 
 #include <torrent/exceptions.h>
+#include <torrent/torrent.h>
+#include <torrent/utils/thread_base.h>
 
 #include "display/frame.h"
 #include "display/manager.h"
@@ -48,9 +50,13 @@
 
 namespace ui {
 
-ElementLogComplete::ElementLogComplete(core::Log* l) :
+ElementLogComplete::ElementLogComplete(torrent::log_buffer* l) :
   m_window(NULL),
   m_log(l) {
+
+  unsigned int signal_index = torrent::main_thread()->signal_bitfield()->add_signal(std::tr1::bind(&ElementLogComplete::received_update, this));
+
+  m_log->lock_and_set_update_slot(std::tr1::bind(&torrent::thread_base::send_event_signal, torrent::main_thread(), signal_index, false));
 }
 
 void
@@ -84,6 +90,12 @@ ElementLogComplete::disable() {
 display::Window*
 ElementLogComplete::window() {
   return m_window;
+}
+
+void
+ElementLogComplete::received_update() {
+  if (m_window != NULL)
+    m_window->mark_dirty();
 }
 
 }

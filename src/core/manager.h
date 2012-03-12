@@ -90,7 +90,7 @@ public:
   Log&                get_log_complete()                  { return m_logComplete; }
 
   torrent::log_buffer* log_important()                    { return m_log_important; }
-  // torrent::log_buffer* log_complete()                     { return m_log_complete; }
+  torrent::log_buffer* log_complete()                     { return m_log_complete; }
 
   ThrottleMap&          throttles()                       { return m_throttles; }
   torrent::ThrottlePair get_throttle(const std::string& name);
@@ -160,7 +160,7 @@ private:
   Log                 m_logComplete;
 
   torrent::log_buffer* m_log_important;
-  // torrent::log_buffer* m_log_complete;
+  torrent::log_buffer* m_log_complete;
 };
 
 // Meh, cleanup.

@@ -37,7 +37,7 @@
 #ifndef RTORRENT_UI_ELEMENT_LOG_COMPLETE_H
 #define RTORRENT_UI_ELEMENT_LOG_COMPLETE_H
 
-#include "core/log.h"
+#include <torrent/utils/log_buffer.h>
 
 #include "element_base.h"
 
@@ -53,7 +53,7 @@ class ElementLogComplete : public ElementBase {
 public:
   typedef display::WindowLogComplete    WLogComplete;
 
-  ElementLogComplete(core::Log* l);
+  ElementLogComplete(torrent::log_buffer* l);
 
   void                activate(display::Frame* frame, bool focus = true);
   void                disable();
@@ -61,9 +61,11 @@ public:
   display::Window*    window();
 
 private:
+  void                received_update();
+
   WLogComplete*       m_window;
   
-  core::Log*          m_log;
+  torrent::log_buffer* m_log;
 };
 
 }

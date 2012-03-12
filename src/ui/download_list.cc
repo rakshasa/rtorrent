@@ -74,7 +74,7 @@ DownloadList::DownloadList() :
 
   m_uiArray[DISPLAY_DOWNLOAD]      = NULL;
   m_uiArray[DISPLAY_DOWNLOAD_LIST] = new ElementDownloadList();
-  m_uiArray[DISPLAY_LOG]           = new ElementLogComplete(&control->core()->get_log_complete());
+  m_uiArray[DISPLAY_LOG]           = new ElementLogComplete(control->core()->log_complete());
   m_uiArray[DISPLAY_STRING_LIST]   = new ElementStringList();
 
   m_windowLog                      = new WLog(control->core()->log_important());

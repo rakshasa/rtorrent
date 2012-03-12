@@ -71,13 +71,15 @@ void
 WindowLog::redraw() {
   m_canvas->erase();
 
-  int pos = 0;
+  int pos = m_canvas->height();
 
-  for (iterator itr = find_older(), last = m_log->end(); itr != last && pos < m_canvas->height(); ++itr, ++pos) {
+  for (iterator itr = m_log->end(), last = find_older(); itr != last && pos > 0; --pos) {
+    itr--;
+
     char buffer[16];
     print_hhmmss_local(buffer, buffer + 16, static_cast<time_t>(itr->timestamp));
 
-    m_canvas->print(0, pos, "(%s) %s", buffer, itr->message.c_str());
+    m_canvas->print(0, pos - 1, "(%s) %s", buffer, itr->message.c_str());
   }
 }
 
