@@ -326,10 +326,8 @@ DownloadFactory::receive_success() {
   } catch (torrent::input_error& e) {
     std::string msg = "Command on torrent creation failed: " + std::string(e.what());
 
-    if (m_printLog) {
-      m_manager->get_log_important().push_front(msg);
-      m_manager->get_log_complete().push_front(msg);
-    }
+    if (m_printLog)
+      m_manager->push_log_std(msg);
     
     if (m_manager->download_list()->find(infohash) != m_manager->download_list()->end()) {
       // Should stop it, mark it bad. Perhaps even delete it?
@@ -345,10 +343,8 @@ DownloadFactory::receive_success() {
 void
 DownloadFactory::receive_failed(const std::string& msg) {
   // Add message to log.
-  if (m_printLog) {
-    m_manager->get_log_important().push_front(msg + ": \"" + m_uri + "\"");
-    m_manager->get_log_complete().push_front(msg + ": \"" + m_uri + "\"");
-  }
+  if (m_printLog)
+    m_manager->push_log_std(msg + ": \"" + m_uri + "\"");
 
   m_slotFinished();
 }

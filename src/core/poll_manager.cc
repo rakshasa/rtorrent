@@ -52,8 +52,6 @@ namespace core {
 
 torrent::Poll*
 create_poll() {
-  Log* log = &control->core()->get_log_important();
-
   const char* poll_name = getenv("RTORRENT_POLL");
 
   int maxOpen = sysconf(_SC_OPEN_MAX);
@@ -69,20 +67,20 @@ create_poll() {
       poll = torrent::PollSelect::create(maxOpen);
 
     if (poll == NULL)
-      log->push_front(std::string("Cannot enable '") + poll_name + "' based polling.");
+      control->core()->push_log_std(std::string("Cannot enable '") + poll_name + "' based polling.");
   }
 
   if (poll != NULL)
-    log->push_front(std::string("Using '") + poll_name + "' based polling.");
+    control->core()->push_log_std(std::string("Using '") + poll_name + "' based polling.");
 
   else if ((poll = torrent::PollEPoll::create(maxOpen)) != NULL)
-    log->push_front("Using 'epoll' based polling.");
+    control->core()->push_log_std("Using 'epoll' based polling.");
 
   else if ((poll = torrent::PollKQueue::create(maxOpen)) != NULL)
-    log->push_front("Using 'kqueue' based polling.");
+    control->core()->push_log_std("Using 'kqueue' based polling.");
 
   else if ((poll = torrent::PollSelect::create(maxOpen)) != NULL)
-    log->push_front("Using 'select' based polling.");
+    control->core()->push_log_std("Using 'select' based polling.");
 
   else
     throw torrent::internal_error("Could not create any Poll object.");

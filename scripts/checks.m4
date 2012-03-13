@@ -143,6 +143,21 @@ AC_DEFUN([TORRENT_WITH_KQUEUE], [
 ])
 
 
+AC_DEFUN([TORRENT_WITHOUT_KQUEUE], [
+  AC_ARG_WITH(kqueue,
+    [  --without-kqueue         Do not check for kqueue support.],
+    [
+      if test "$withval" = "yes"; then
+        TORRENT_CHECK_KQUEUE
+        TORRENT_CHECK_KQUEUE_SOCKET_ONLY
+      fi
+    ], [
+        TORRENT_CHECK_KQUEUE
+        TORRENT_CHECK_KQUEUE_SOCKET_ONLY
+    ])
+])
+
+
 AC_DEFUN([TORRENT_WITHOUT_VARIABLE_FDSET], [
   AC_ARG_WITH(variable-fdset,
 
@@ -195,26 +210,6 @@ AC_DEFUN([TORRENT_WITH_POSIX_FALLOCATE], [
       if test "$withval" = "yes"; then
         TORRENT_CHECK_POSIX_FALLOCATE
       fi
-    ])
-])
-
-AC_DEFUN([TORRENT_WITHOUT_NCURSESW], [
-  AC_ARG_WITH(ncursesw,
-    [  --without-ncursesw      Don't try to use wide char ncurses.],
-    [
-      if test "$withval" = "no"; then
-	AC_SEARCH_LIBS(add_wch, ncursesw,
-	  AC_DEFINE(HAVE_NCURSESW, 1, defined if ncurses wide character support is available),
-	  AC_SEARCH_LIBS(wbkgdset, ncurses curses,,echo "*** The ncurses library is required!";exit 1)
-        )
-      else
-	AC_SEARCH_LIBS(wbkgdset, ncurses curses,,echo "*** The ncurses library is required!";exit 1)
-      fi
-    ],[
-      AC_SEARCH_LIBS(add_wch, ncursesw,
-	AC_DEFINE(HAVE_NCURSESW, 1, defined if ncurses wide character support is available),
-	AC_SEARCH_LIBS(wbkgdset, ncurses curses,,echo "*** The ncurses library is required!";exit 1)
-      )
     ])
 ])
 

@@ -248,7 +248,7 @@ DhtManager::log_statistics(bool force) {
   if (m_dhtPrevCycle == 1) {
     char buffer[128];
     snprintf(buffer, sizeof(buffer), "DHT bootstrap complete, have %d nodes in %d buckets.", stats.num_nodes, stats.num_buckets);
-    control->core()->get_log_complete().push_front(buffer);
+    control->core()->push_log_complete(buffer);
     m_dhtPrevCycle = stats.cycle;
     return false;
   };
@@ -271,7 +271,7 @@ DhtManager::log_statistics(bool force) {
              stats.max_peers,
              stats.num_trackers);
 
-    control->core()->get_log_complete().push_front(buffer);
+    control->core()->push_log_complete(buffer);
 
     m_dhtPrevCycle = stats.cycle;
     m_dhtPrevQueriesSent = stats.queries_sent;

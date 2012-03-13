@@ -37,9 +37,7 @@
 #ifndef RTORRENT_DISPLAY_WINDOW_LOG_H
 #define RTORRENT_DISPLAY_WINDOW_LOG_H
 
-#include <sigc++/connection.h>
-
-#include "core/log.h"
+#include <torrent/utils/log_buffer.h>
 
 #include "window.h"
 
@@ -47,9 +45,9 @@ namespace display {
 
 class WindowLog : public Window {
 public:
-  typedef core::Log::iterator iterator;
+  typedef torrent::log_buffer::const_iterator iterator;
 
-  WindowLog(core::Log* l);
+  WindowLog(torrent::log_buffer* l);
   ~WindowLog();
 
   virtual void        redraw();
@@ -59,10 +57,8 @@ public:
 private:
   inline iterator     find_older();
 
-  core::Log*          m_log;
-  sigc::connection    m_connUpdate;
-
-  rak::priority_item  m_taskUpdate;
+  torrent::log_buffer* m_log;
+  rak::priority_item   m_taskUpdate;
 };
 
 }

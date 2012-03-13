@@ -103,47 +103,51 @@ Manager::handshake_log(const sockaddr* sa, int msg, int err, const torrent::Hash
 
   switch (msg) {
   case torrent::ConnectionManager::handshake_incoming:
-    m_logComplete.push_front("Incoming connection from " + peer + download);
+    push_log_complete("Incoming connection from " + peer + download);
     break;
   case torrent::ConnectionManager::handshake_outgoing:
-    m_logComplete.push_front("Outgoing connection to " + peer + download);
+    push_log_complete("Outgoing connection to " + peer + download);
     break;
   case torrent::ConnectionManager::handshake_outgoing_encrypted:
-    m_logComplete.push_front("Outgoing encrypted connection to " + peer + download);
+    push_log_complete("Outgoing encrypted connection to " + peer + download);
     break;
   case torrent::ConnectionManager::handshake_outgoing_proxy:
-    m_logComplete.push_front("Outgoing proxy connection to " + peer + download);
+    push_log_complete("Outgoing proxy connection to " + peer + download);
     break;
   case torrent::ConnectionManager::handshake_success:
-    m_logComplete.push_front("Successful handshake: " + peer + download);
+    push_log_complete("Successful handshake: " + peer + download);
     break;
   case torrent::ConnectionManager::handshake_dropped:
-    m_logComplete.push_front("Dropped handshake: " + peer + " - " + torrent::strerror(err) + download);
+    push_log_complete("Dropped handshake: " + peer + " - " + torrent::strerror(err) + download);
     break;
   case torrent::ConnectionManager::handshake_failed:
-    m_logComplete.push_front("Handshake failed: " + peer + " - " + torrent::strerror(err) + download);
+    push_log_complete("Handshake failed: " + peer + " - " + torrent::strerror(err) + download);
     break;
   case torrent::ConnectionManager::handshake_retry_plaintext:
-    m_logComplete.push_front("Trying again without encryption: " + peer + download);
+    push_log_complete("Trying again without encryption: " + peer + download);
     break;
   case torrent::ConnectionManager::handshake_retry_encrypted:
-    m_logComplete.push_front("Trying again encrypted: " + peer + download);
+    push_log_complete("Trying again encrypted: " + peer + download);
     break;
   default:
-    m_logComplete.push_front("Unknown handshake message for " + peer + download);
+    push_log_complete("Unknown handshake message for " + peer + download);
     break;
   }
 }
 
 void
 Manager::push_log(const char* msg) {
-  m_logImportant.push_front(msg);
-  m_logComplete.push_front(msg);
+  if (!pthread_equal(pthread_self(), torrent::main_thread()->pthread()))
+    throw torrent::internal_error("Manager::push_log(...): Cannot call this function from other threads than 'main'.");
+
+  m_log_important->lock_and_push_log(msg, strlen(msg), 0);
+  m_log_complete->lock_and_push_log(msg, strlen(msg), 0);
 }
 
 Manager::Manager() :
-  m_hashingView(NULL)
-//   m_pollManager(NULL) {
+  m_hashingView(NULL),
+  m_log_important(torrent::log_open_log_buffer("important")),
+  m_log_complete(torrent::log_open_log_buffer("complete"))
 {
   m_downloadStore   = new DownloadStore();
   m_downloadList    = new DownloadList();
@@ -159,6 +163,8 @@ Manager::Manager() :
 Manager::~Manager() {
   torrent::Throttle::destroy_throttle(m_throttles["NULL"].first);
   delete m_downloadList;
+
+  // TODO: Clean up logs objects.
 
   delete m_downloadStore;
   delete m_httpQueue;
@@ -369,8 +375,7 @@ Manager::set_proxy_address(const std::string& addr) {
 
 void
 Manager::receive_http_failed(std::string msg) {
-  m_logImportant.push_front("Http download error: \"" + msg + "\"");
-  m_logComplete.push_front("Http download error: \"" + msg + "\"");
+  push_log_std("Http download error: \"" + msg + "\"");
 }
 
 void
