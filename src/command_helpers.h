@@ -41,10 +41,6 @@
 #include "rpc/parse_commands.h"
 #include "rpc/object_storage.h"
 
-#ifndef HAVE_CXX11
-namespace std { using namespace tr1; }
-#endif
-
 namespace tr1 { using namespace std::tr1; }
 
 void initialize_commands();
@@ -107,21 +103,21 @@ void initialize_commands();
   CMD2_ANY(key, tr1::bind(&rpc::object_storage::get, control->object_storage(), \
                                torrent::raw_string::from_c_str(key)));  \
   CMD2_ANY_VALUE(key ".set", tr1::bind(&rpc::object_storage::set_bool, control->object_storage(), \
-                                            torrent::raw_string::from_c_str(key), std::placeholders::_2));
+                                            torrent::raw_string::from_c_str(key), tr1::placeholders::_2));
 
 #define CMD2_VAR_VALUE(key, value)                                      \
   control->object_storage()->insert_c_str(key, int64_t(value), rpc::object_storage::flag_value_type); \
   CMD2_ANY(key, tr1::bind(&rpc::object_storage::get, control->object_storage(), \
                                torrent::raw_string::from_c_str(key)));  \
   CMD2_ANY_VALUE(key ".set", tr1::bind(&rpc::object_storage::set_value, control->object_storage(), \
-                                            torrent::raw_string::from_c_str(key), std::placeholders::_2));
+                                            torrent::raw_string::from_c_str(key), tr1::placeholders::_2));
 
 #define CMD2_VAR_STRING(key, value)                                     \
   control->object_storage()->insert_c_str(key, value, rpc::object_storage::flag_string_type); \
   CMD2_ANY(key, tr1::bind(&rpc::object_storage::get, control->object_storage(), \
                                torrent::raw_string::from_c_str(key)));  \
   CMD2_ANY_STRING(key ".set", tr1::bind(&rpc::object_storage::set_string, control->object_storage(), \
-                                             torrent::raw_string::from_c_str(key), std::placeholders::_2));
+                                             torrent::raw_string::from_c_str(key), tr1::placeholders::_2));
 
 
 #define CMD2_VAR_C_STRING(key, value)                                   \
@@ -134,13 +130,13 @@ void initialize_commands();
   CMD2_ANY(key, tr1::bind(&rpc::object_storage::get, control->object_storage(), \
                                torrent::raw_string::from_c_str(key)));  \
   CMD2_ANY_LIST(key ".set", tr1::bind(&rpc::object_storage::set_list, control->object_storage(), \
-                                           torrent::raw_string::from_c_str(key), std::placeholders::_2)); \
+                                           torrent::raw_string::from_c_str(key), tr1::placeholders::_2)); \
   CMD2_ANY_VOID(key ".push_back", tr1::bind(&rpc::object_storage::list_push_back, control->object_storage(), \
-                                                 torrent::raw_string::from_c_str(key), std::placeholders::_2));
+                                                 torrent::raw_string::from_c_str(key), tr1::placeholders::_2));
 
 #define CMD2_FUNC_SINGLE(key, cmds)                                     \
   CMD2_ANY(key, tr1::bind(&rpc::command_function_call, torrent::raw_string::from_c_str(cmds), \
-                               std::placeholders::_1, std::placeholders::_2));
+                               tr1::placeholders::_1, tr1::placeholders::_2));
 
 #define CMD2_REDIRECT(from_key, to_key) \
   rpc::commands.create_redirect(from_key, to_key, rpc::CommandMap::flag_public_xmlrpc | rpc::CommandMap::flag_dont_delete);

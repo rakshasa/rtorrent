@@ -352,32 +352,32 @@ initialize_command_local() {
   CMD2_ANY         ("system.time_seconds",             tr1::bind(&rak::timer::current_seconds));
   CMD2_ANY         ("system.time_usec",                tr1::bind(&rak::timer::current_usec));
 
-  CMD2_ANY_VALUE_V ("system.umask.set",                tr1::bind(&umask, std::placeholders::_2));
+  CMD2_ANY_VALUE_V ("system.umask.set",                tr1::bind(&umask, tr1::placeholders::_2));
 
   CMD2_ANY         ("system.cwd",                      tr1::bind(&system_get_cwd));
-  CMD2_ANY_STRING  ("system.cwd.set",                  tr1::bind(&system_set_cwd, std::placeholders::_2));
+  CMD2_ANY_STRING  ("system.cwd.set",                  tr1::bind(&system_set_cwd, tr1::placeholders::_2));
 
   CMD2_ANY         ("pieces.sync.always_safe",         tr1::bind(&CM_t::safe_sync, chunkManager));
-  CMD2_ANY_VALUE_V ("pieces.sync.always_safe.set",     tr1::bind(&CM_t::set_safe_sync, chunkManager, std::placeholders::_2));
+  CMD2_ANY_VALUE_V ("pieces.sync.always_safe.set",     tr1::bind(&CM_t::set_safe_sync, chunkManager, tr1::placeholders::_2));
   CMD2_ANY         ("pieces.sync.safe_free_diskspace", tr1::bind(&CM_t::safe_free_diskspace, chunkManager));
   CMD2_ANY         ("pieces.sync.timeout",             tr1::bind(&CM_t::timeout_sync, chunkManager));
-  CMD2_ANY_VALUE_V ("pieces.sync.timeout.set",         tr1::bind(&CM_t::set_timeout_sync, chunkManager, std::placeholders::_2));
+  CMD2_ANY_VALUE_V ("pieces.sync.timeout.set",         tr1::bind(&CM_t::set_timeout_sync, chunkManager, tr1::placeholders::_2));
   CMD2_ANY         ("pieces.sync.timeout_safe",        tr1::bind(&CM_t::timeout_safe_sync, chunkManager));
-  CMD2_ANY_VALUE_V ("pieces.sync.timeout_safe.set",    tr1::bind(&CM_t::set_timeout_safe_sync, chunkManager, std::placeholders::_2));
+  CMD2_ANY_VALUE_V ("pieces.sync.timeout_safe.set",    tr1::bind(&CM_t::set_timeout_safe_sync, chunkManager, tr1::placeholders::_2));
   CMD2_ANY         ("pieces.sync.queue_size",          tr1::bind(&CM_t::sync_queue_size, chunkManager));
 
   CMD2_ANY         ("pieces.preload.type",             tr1::bind(&CM_t::preload_type, chunkManager));
-  CMD2_ANY_VALUE_V ("pieces.preload.type.set",         tr1::bind(&CM_t::set_preload_type, chunkManager, std::placeholders::_2));
+  CMD2_ANY_VALUE_V ("pieces.preload.type.set",         tr1::bind(&CM_t::set_preload_type, chunkManager, tr1::placeholders::_2));
   CMD2_ANY         ("pieces.preload.min_size",         tr1::bind(&CM_t::preload_min_size, chunkManager));
-  CMD2_ANY_VALUE_V ("pieces.preload.min_size.set",     tr1::bind(&CM_t::set_preload_min_size, chunkManager, std::placeholders::_2));
+  CMD2_ANY_VALUE_V ("pieces.preload.min_size.set",     tr1::bind(&CM_t::set_preload_min_size, chunkManager, tr1::placeholders::_2));
   CMD2_ANY         ("pieces.preload.min_rate",         tr1::bind(&CM_t::preload_required_rate, chunkManager));
-  CMD2_ANY_VALUE_V ("pieces.preload.min_rate.set",     tr1::bind(&CM_t::set_preload_required_rate, chunkManager, std::placeholders::_2));
+  CMD2_ANY_VALUE_V ("pieces.preload.min_rate.set",     tr1::bind(&CM_t::set_preload_required_rate, chunkManager, tr1::placeholders::_2));
 
   CMD2_ANY         ("pieces.memory.current",           tr1::bind(&CM_t::memory_usage, chunkManager));
   CMD2_ANY         ("pieces.memory.sync_queue",        tr1::bind(&CM_t::sync_queue_memory_usage, chunkManager));
   CMD2_ANY         ("pieces.memory.block_count",       tr1::bind(&CM_t::memory_block_count, chunkManager));
   CMD2_ANY         ("pieces.memory.max",               tr1::bind(&CM_t::max_memory_usage, chunkManager));
-  CMD2_ANY_VALUE_V ("pieces.memory.max.set",           tr1::bind(&CM_t::set_max_memory_usage, chunkManager, std::placeholders::_2));
+  CMD2_ANY_VALUE_V ("pieces.memory.max.set",           tr1::bind(&CM_t::set_max_memory_usage, chunkManager, tr1::placeholders::_2));
   CMD2_ANY         ("pieces.stats_preloaded",          tr1::bind(&CM_t::stats_preloaded, chunkManager));
   CMD2_ANY         ("pieces.stats_not_preloaded",      tr1::bind(&CM_t::stats_not_preloaded, chunkManager));
 
@@ -393,12 +393,12 @@ initialize_command_local() {
   CMD2_VAR_BOOL    ("session.on_completion",   true);
 
   CMD2_ANY         ("session.path",            tr1::bind(&core::DownloadStore::path, dStore));
-  CMD2_ANY_STRING_V("session.path.set",        tr1::bind(&core::DownloadStore::set_path, dStore, std::placeholders::_2));
+  CMD2_ANY_STRING_V("session.path.set",        tr1::bind(&core::DownloadStore::set_path, dStore, tr1::placeholders::_2));
 
   CMD2_ANY_V       ("session.save",            tr1::bind(&core::DownloadList::session_save, dList));
 
 #define CMD2_EXECUTE(key, flags)                                         \
-  CMD2_ANY(key, tr1::bind(&rpc::ExecFile::execute_object, &rpc::execFile, std::placeholders::_2, flags));
+  CMD2_ANY(key, tr1::bind(&rpc::ExecFile::execute_object, &rpc::execFile, tr1::placeholders::_2, flags));
 
   CMD2_EXECUTE     ("execute2",                rpc::ExecFile::flag_expand_tilde | rpc::ExecFile::flag_throw);
   CMD2_EXECUTE     ("execute.throw",           rpc::ExecFile::flag_expand_tilde | rpc::ExecFile::flag_throw);
@@ -412,15 +412,15 @@ initialize_command_local() {
   CMD2_EXECUTE     ("execute.capture",         rpc::ExecFile::flag_throw | rpc::ExecFile::flag_expand_tilde | rpc::ExecFile::flag_capture);
   CMD2_EXECUTE     ("execute.capture_nothrow", rpc::ExecFile::flag_expand_tilde | rpc::ExecFile::flag_capture);
 
-  CMD2_ANY_LIST    ("log.open_file",  tr1::bind(&apply_log_open_file, std::placeholders::_2));
-  CMD2_ANY_LIST    ("log.add_output", tr1::bind(&apply_log_add_output, std::placeholders::_2));
+  CMD2_ANY_LIST    ("log.open_file",  tr1::bind(&apply_log_open_file, tr1::placeholders::_2));
+  CMD2_ANY_LIST    ("log.add_output", tr1::bind(&apply_log_add_output, tr1::placeholders::_2));
 
-  CMD2_ANY_STRING  ("log.execute",    tr1::bind(&apply_log, std::placeholders::_2, 0));
-  CMD2_ANY_STRING  ("log.vmmap.dump", tr1::bind(&log_vmmap_dump, std::placeholders::_2));
-  CMD2_ANY_STRING_V("log.xmlrpc",     tr1::bind(&ThreadWorker::set_xmlrpc_log, worker_thread, std::placeholders::_2));
-  CMD2_ANY_LIST    ("log.libtorrent", tr1::bind(&apply_log_libtorrent, std::placeholders::_2));
+  CMD2_ANY_STRING  ("log.execute",    tr1::bind(&apply_log, tr1::placeholders::_2, 0));
+  CMD2_ANY_STRING  ("log.vmmap.dump", tr1::bind(&log_vmmap_dump, tr1::placeholders::_2));
+  CMD2_ANY_STRING_V("log.xmlrpc",     tr1::bind(&ThreadWorker::set_xmlrpc_log, worker_thread, tr1::placeholders::_2));
+  CMD2_ANY_LIST    ("log.libtorrent", tr1::bind(&apply_log_libtorrent, tr1::placeholders::_2));
 
-  CMD2_ANY_LIST    ("file.append",    tr1::bind(&cmd_file_append, std::placeholders::_2));
+  CMD2_ANY_LIST    ("file.append",    tr1::bind(&cmd_file_append, tr1::placeholders::_2));
 
   // TODO: Convert to new command types:
   *rpc::command_base::argument(0) = "placeholder.0";
@@ -432,5 +432,5 @@ initialize_command_local() {
   CMD2_ANY_P("argument.2", tr1::bind(&rpc::command_base::argument_ref, 2));
   CMD2_ANY_P("argument.3", tr1::bind(&rpc::command_base::argument_ref, 3));
 
-  CMD2_ANY_LIST  ("group.insert", tr1::bind(&group_insert, std::placeholders::_2));
+  CMD2_ANY_LIST  ("group.insert", tr1::bind(&group_insert, tr1::placeholders::_2));
 }
