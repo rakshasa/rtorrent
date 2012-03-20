@@ -328,6 +328,7 @@ initialize_command_local() {
   CMD2_ANY         ("system.hostname", std::bind(&system_hostname));
   CMD2_ANY         ("system.pid",      std::bind(&getpid));
 
+  CMD2_VAR_C_STRING("system.api_version",           (int64_t)API_VERSION);
   CMD2_VAR_C_STRING("system.client_version",        PACKAGE_VERSION);
   CMD2_VAR_C_STRING("system.library_version",       torrent::version());
   CMD2_VAR_VALUE   ("system.file.allocate",         0);

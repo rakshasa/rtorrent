@@ -188,9 +188,6 @@ main(int argc, char** argv) {
 
     control = new Control;
     
-    worker_thread = new ThreadWorker();
-    worker_thread->init_thread();
-
     srandom(cachedTime.usec());
     srand48(cachedTime.usec());
 
@@ -216,6 +213,9 @@ main(int argc, char** argv) {
     torrent::initialize();
     torrent::main_thread()->slot_do_work() = tr1::bind(&client_perform);
     torrent::main_thread()->slot_next_timeout() = tr1::bind(&client_next_timeout, control);
+
+    worker_thread = new ThreadWorker();
+    worker_thread->init_thread();
 
     // Initialize option handlers after libtorrent to ensure
     // torrent::ConnectionManager* are valid etc.
