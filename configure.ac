@@ -1,5 +1,7 @@
 AC_INIT(rtorrent, 0.9.1, jaris@ifi.uio.no)
 
+AC_DEFINE(API_VERSION, 1, api version)
+
 AM_INIT_AUTOMAKE
 AM_CONFIG_HEADER(config.h)
 AM_PATH_CPPUNIT(1.9.6)
