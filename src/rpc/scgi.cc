@@ -88,7 +88,12 @@ SCgi::open_named(const std::string& filename) {
   char buffer[sizeof(sockaddr_un) + filename.size()];
   sockaddr_un* sa = reinterpret_cast<sockaddr_un*>(buffer);
 
+#ifdef __sun__
+  sa->sun_family = AF_UNIX;
+#else
   sa->sun_family = AF_LOCAL;
+#endif
+
   std::memcpy(sa->sun_path, filename.c_str(), filename.size() + 1);
 
   if (!get_fd().open_local())

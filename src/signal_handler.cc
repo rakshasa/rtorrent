@@ -41,6 +41,11 @@
 #include "rak/error_number.h"
 #include "signal_handler.h"
 
+#ifdef __sun__
+#include <iso/signal_iso.h>
+//extern "C" void (*signal (int sig, void (*disp)(int)))(int);
+#endif
+
 SignalHandler::Slot SignalHandler::m_handlers[HIGHEST_SIGNAL];
 
 void
