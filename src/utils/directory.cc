@@ -42,6 +42,10 @@
 #include <rak/path.h>
 #include <torrent/exceptions.h>
 
+#ifdef __sun__
+#include <sys/stat.h>
+#endif
+
 #include "directory.h"
 
 namespace utils {
@@ -69,6 +73,9 @@ Directory::update(int flags) {
     return false;
 
   struct dirent* entry;
+#ifdef __sun__
+  struct stat s;
+#endif
 
   while ((entry = readdir(d)) != NULL) {
     if ((flags & update_hide_dot) && entry->d_name[0] == '.')
@@ -76,9 +83,16 @@ Directory::update(int flags) {
 
     iterator itr = base_type::insert(end(), value_type());
 
+#ifdef __sun__
+    stat(entry->d_name, &s);
+    itr->d_fileno = entry->d_ino;
+    itr->d_reclen = 0;
+    itr->d_type = s.st_mode;
+#else
     itr->d_fileno = entry->d_fileno;
     itr->d_reclen = entry->d_reclen;
     itr->d_type   = entry->d_type;
+#endif
 
 #ifdef DIRENT_NAMLEN_EXISTS_FOOBAR
     itr->d_name   = std::string(entry->d_name, entry->d_name + entry->d_namlen);

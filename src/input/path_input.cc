@@ -42,7 +42,13 @@
 #include <rak/path.h>
 
 #include <sys/types.h>
-#include <sys/dir.h>
+
+#ifdef __sun__
+  #include <dirent.h>
+  #include <sys/stat.h>
+#else
+  #include <sys/dir.h>
+#endif
 
 #include "path_input.h"
 
@@ -72,7 +78,11 @@ PathInput::pressed(int key) {
 
 struct _transform_filename {
   void operator () (utils::directory_entry& entry) {
+#ifdef __sun__
+    if (entry.d_type & S_IFDIR)
+#else
     if (entry.d_type == DT_DIR)
+#endif
       entry.d_name += '/';
   }
 };
