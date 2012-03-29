@@ -489,3 +489,22 @@ AC_DEFUN([TORRENT_WITH_XMLRPC_C], [
     AC_MSG_RESULT(ignored)
   ])
 ])
+
+
+AC_DEFUN([TORRENT_WITH_INOTIFY], [
+  AC_LANG_PUSH(C++)
+
+  AC_CHECK_HEADERS([sys/inotify.h mcheck.h])
+  AC_MSG_CHECKING([whether sys/inotify.h actually works])
+
+  AC_COMPILE_IFELSE([AC_LANG_SOURCE([
+      #include <sys/inotify.h>
+      int main(int,const char*) { return (-1 == inotify_init()); }])
+    ],[
+     AC_DEFINE(HAVE_INOTIFY, 1, [sys/inotify.h exists and works correctly])
+     AC_MSG_RESULT(yes)],
+    [AC_MSG_RESULT(failed)]
+  )
+
+  AC_LANG_POP(C++)
+])
