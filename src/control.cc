@@ -39,6 +39,7 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <torrent/connection_manager.h>
+#include <torrent/utils/directory_events.h>
 
 #include "core/manager.h"
 #include "core/download_store.h"
@@ -66,6 +67,7 @@ Control::Control() :
 
   m_commandScheduler(new rpc::CommandScheduler()),
   m_objectStorage(new rpc::object_storage()),
+  m_directory_events(new torrent::directory_events()),
 
   m_tick(0),
   m_shutdownReceived(false),
@@ -93,6 +95,7 @@ Control::~Control() {
   delete m_core;
   delete m_dhtManager;
 
+  delete m_directory_events;
   delete m_commandScheduler;
   delete m_objectStorage;
 }
@@ -157,6 +160,7 @@ Control::handle_shutdown() {
       worker_thread->queue_item(&ThreadBase::stop_thread);
 
     torrent::connection_manager()->listen_close();
+    m_directory_events->close();
     m_core->shutdown(false);
 
     if (!m_taskShutdown.is_queued())

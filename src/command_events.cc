@@ -38,6 +38,7 @@
 
 #include <functional>
 #include <cstdio>
+#include <rak/error_number.h>
 #include <rak/file_stat.h>
 #include <rak/path.h>
 #include <rak/string_manip.h>
@@ -45,6 +46,7 @@
 #include <torrent/rate.h>
 #include <torrent/hash_string.h>
 #include <torrent/utils/log.h>
+#include <torrent/utils/directory_events.h>
 
 #include "core/download.h"
 #include "core/download_list.h"
@@ -306,6 +308,27 @@ d_multicall(const torrent::Object::list_type& args) {
   return resultRaw;
 }
 
+static void
+call_watch_command(const std::string& command, const std::string& path) {
+  rpc::commands.call_catch(command.c_str(), rpc::make_target(), path);
+}
+
+torrent::Object
+directory_watch_added(const torrent::Object::list_type& args) {
+  if (args.size() != 2)
+    throw torrent::input_error("Too few arguments.");
+
+  const std::string& path = args.front().as_string();
+  const std::string& command = args.back().as_string();
+
+  if (!control->directory_events()->open())
+    throw torrent::input_error("Could not open inotify:" + std::string(rak::error_number::current().c_str()));
+
+  control->directory_events()->notify_on(path.c_str(),
+                                         torrent::directory_events::flag_on_added | torrent::directory_events::flag_on_updated,
+                                         tr1::bind(&call_watch_command, command, tr1::placeholders::_1));
+}
+
 void
 initialize_command_events() {
   CMD2_ANY_STRING  ("on_ratio",        tr1::bind(&apply_on_ratio, tr1::placeholders::_2));
@@ -335,4 +358,6 @@ initialize_command_events() {
 
   CMD2_ANY_LIST    ("download_list",       tr1::bind(&apply_download_list, tr1::placeholders::_2));
   CMD2_ANY_LIST    ("d.multicall2",        tr1::bind(&d_multicall, tr1::placeholders::_2));
+
+  CMD2_ANY_LIST    ("directory.watch.added", tr1::bind(&directory_watch_added, tr1::placeholders::_2));
 }
