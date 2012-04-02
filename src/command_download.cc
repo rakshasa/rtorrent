@@ -329,6 +329,16 @@ apply_d_add_peer(core::Download* download, const std::string& arg) {
 }
 
 torrent::Object
+d_chunks_seen(core::Download* download) {
+  const uint8_t* seen = download->download()->chunks_seen();
+
+  if (seen == NULL)
+    return std::string();
+  else
+    return std::string((const char*)seen, download->download()->file_list()->size_chunks());
+}
+
+torrent::Object
 f_multicall(core::Download* download, const torrent::Object::list_type& args) {
   if (args.empty())
     throw torrent::input_error("Too few arguments.");
@@ -812,6 +822,8 @@ initialize_command_download() {
   CMD2_DL         ("d.chunk_size",     CMD2_ON_FL(chunk_size));
   CMD2_DL         ("d.size_pex",       CMD2_ON_DL(size_pex));
   CMD2_DL         ("d.max_size_pex",   CMD2_ON_DL(max_size_pex));
+
+  CMD2_DL         ("d.chunks_seen",      tr1::bind(&d_chunks_seen, tr1::placeholders::_1));
 
   CMD2_DL         ("d.completed_bytes",  CMD2_ON_FL(completed_bytes));
   CMD2_DL         ("d.completed_chunks", CMD2_ON_FL(completed_chunks));
