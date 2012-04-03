@@ -334,8 +334,14 @@ d_chunks_seen(core::Download* download) {
 
   if (seen == NULL)
     return std::string();
-  else
-    return std::string((const char*)seen, download->download()->file_list()->size_chunks());
+
+  uint32_t size = download->download()->file_list()->size_chunks();
+
+  std::string result;
+  result.resize(size * 2);
+
+  rak::transform_hex((const char*)seen, (const char*)seen + size, result.begin());
+  return result;
 }
 
 torrent::Object
