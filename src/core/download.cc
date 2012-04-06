@@ -65,20 +65,15 @@ Download::Download(download_type d) :
   m_resumeFlags(~uint32_t()),
   m_group(0) {
 
-  m_connTrackerSucceeded = m_download.info()->signal_tracker_success().connect(sigc::bind(sigc::mem_fun(*this, &Download::receive_tracker_msg), ""));
-  m_connTrackerFailed   = m_download.info()->signal_tracker_failed().connect(sigc::mem_fun(*this, &Download::receive_tracker_msg));
-  m_connStorageError    = m_download.info()->signal_storage_error().connect(sigc::mem_fun(*this, &Download::receive_storage_error));
-
-  m_download.info()->signal_chunk_failed().connect(sigc::mem_fun(*this, &Download::receive_chunk_failed));
+  m_download.info()->signal_tracker_success().push_back(tr1::bind(&Download::receive_tracker_msg, this, ""));
+  m_download.info()->signal_tracker_failed().push_back(tr1::bind(&Download::receive_tracker_msg, this, tr1::placeholders::_1));
+  m_download.info()->signal_storage_error().push_back(tr1::bind(&Download::receive_storage_error, this, tr1::placeholders::_1));
+  m_download.info()->signal_chunk_failed().push_back(tr1::bind(&Download::receive_chunk_failed, this, tr1::placeholders::_1));
 }
 
 Download::~Download() {
   if (!m_download.is_valid())
     return;
-
-  m_connTrackerSucceeded.disconnect();
-  m_connTrackerFailed.disconnect();
-  m_connStorageError.disconnect();
 
   m_download = download_type();
 }
