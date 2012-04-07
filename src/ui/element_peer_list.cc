@@ -65,8 +65,12 @@ ElementPeerList::ElementPeerList(core::Download* d) :
   std::for_each(m_download->download()->connection_list()->begin(), m_download->download()->connection_list()->end(),
                 rak::bind1st(std::mem_fun<void,PList,PList::const_reference>(&PList::push_back), &m_list));
 
-  m_connPeerConnected    = m_download->download()->connection_list()->signal_connected().connect(sigc::mem_fun(*this, &ElementPeerList::receive_peer_connected));
-  m_connPeerDisconnected = m_download->download()->connection_list()->signal_disconnected().connect(sigc::mem_fun(*this, &ElementPeerList::receive_peer_disconnected));
+  torrent::ConnectionList* connection_list = m_download->download()->connection_list();
+
+  m_peer_connected = connection_list->signal_connected().insert(connection_list->signal_connected().end(),
+                                                                tr1::bind(&ElementPeerList::receive_peer_connected, this, tr1::placeholders::_1));
+  m_peer_disconnected = connection_list->signal_disconnected().insert(connection_list->signal_disconnected().end(),
+                                                                      tr1::bind(&ElementPeerList::receive_peer_disconnected, this, tr1::placeholders::_1));
 
   m_windowList  = new display::WindowPeerList(m_download, &m_list, &m_listItr);
   m_elementInfo = create_info();
@@ -84,8 +88,10 @@ ElementPeerList::ElementPeerList(core::Download* d) :
 }
 
 ElementPeerList::~ElementPeerList() {
-  m_connPeerConnected.disconnect();
-  m_connPeerDisconnected.disconnect();
+  torrent::ConnectionList* connection_list = m_download->download()->connection_list();
+
+  connection_list->signal_connected().erase(m_peer_connected);
+  connection_list->signal_disconnected().erase(m_peer_disconnected);
 
   delete m_windowList;
   delete m_elementInfo;
