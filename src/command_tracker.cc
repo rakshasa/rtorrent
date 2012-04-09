@@ -113,9 +113,15 @@ void
 initialize_command_tracker() {
   CMD2_TRACKER        ("t.is_open",           tr1::bind(&torrent::Tracker::is_busy, tr1::placeholders::_1));
   CMD2_TRACKER        ("t.is_enabled",        tr1::bind(&torrent::Tracker::is_enabled, tr1::placeholders::_1));
-  CMD2_TRACKER_VALUE_V("t.is_enabled.set",    tr1::bind(&tracker_set_enabled, tr1::placeholders::_1, tr1::placeholders::_2));
+  CMD2_TRACKER        ("t.is_usable",         tr1::bind(&torrent::Tracker::is_usable, tr1::placeholders::_1));
+  CMD2_TRACKER        ("t.is_busy",           tr1::bind(&torrent::Tracker::is_busy, tr1::placeholders::_1));
+  CMD2_TRACKER        ("t.is_extra_tracker",  tr1::bind(&torrent::Tracker::is_extra_tracker, tr1::placeholders::_1));
+  CMD2_TRACKER        ("t.can_scrape",        tr1::bind(&torrent::Tracker::can_scrape, tr1::placeholders::_1));
+
   CMD2_TRACKER_V      ("t.enable",            tr1::bind(&torrent::Tracker::enable, tr1::placeholders::_1));
   CMD2_TRACKER_V      ("t.disable",           tr1::bind(&torrent::Tracker::disable, tr1::placeholders::_1));
+
+  CMD2_TRACKER_VALUE_V("t.is_enabled.set",    tr1::bind(&tracker_set_enabled, tr1::placeholders::_1, tr1::placeholders::_2));
 
   CMD2_TRACKER        ("t.url",               tr1::bind(&torrent::Tracker::url, tr1::placeholders::_1));
   CMD2_TRACKER        ("t.group",             tr1::bind(&torrent::Tracker::group, tr1::placeholders::_1));
@@ -131,9 +137,14 @@ initialize_command_tracker() {
   CMD2_TRACKER        ("t.normal_interval",   tr1::bind(&torrent::Tracker::normal_interval, tr1::placeholders::_1));
   CMD2_TRACKER        ("t.min_interval",      tr1::bind(&torrent::Tracker::min_interval, tr1::placeholders::_1));
 
+  CMD2_TRACKER        ("t.activity_time_next", tr1::bind(&torrent::Tracker::activity_time_next, tr1::placeholders::_1));
+  CMD2_TRACKER        ("t.activity_time_last", tr1::bind(&torrent::Tracker::activity_time_last, tr1::placeholders::_1));
+
+  CMD2_TRACKER        ("t.success_time_next", tr1::bind(&torrent::Tracker::success_time_next, tr1::placeholders::_1));
   CMD2_TRACKER        ("t.success_time_last", tr1::bind(&torrent::Tracker::success_time_last, tr1::placeholders::_1));
   CMD2_TRACKER        ("t.success_counter",   tr1::bind(&torrent::Tracker::success_counter, tr1::placeholders::_1));
 
+  CMD2_TRACKER        ("t.failed_time_next",  tr1::bind(&torrent::Tracker::failed_time_next, tr1::placeholders::_1));
   CMD2_TRACKER        ("t.failed_time_last",  tr1::bind(&torrent::Tracker::failed_time_last, tr1::placeholders::_1));
   CMD2_TRACKER        ("t.failed_counter",    tr1::bind(&torrent::Tracker::failed_counter, tr1::placeholders::_1));
 

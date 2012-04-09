@@ -285,8 +285,8 @@ retrieve_d_bitfield(core::Download* download) {
 // Just a helper function atm.
 torrent::Object
 cmd_d_initialize_logs(core::Download* download) {
-  download->info()->signal_network_log().connect(sigc::mem_fun(control->core(), &core::Manager::push_log_complete));
-  download->info()->signal_storage_error().connect(sigc::mem_fun(control->core(), &core::Manager::push_log_complete));
+  download->info()->signal_network_log().push_back(tr1::bind(&core::Manager::push_log_complete, control->core(), tr1::placeholders::_1));
+  download->info()->signal_storage_error().push_back(tr1::bind(&core::Manager::push_log_complete, control->core(), tr1::placeholders::_1));
 
   return torrent::Object();
 }
@@ -334,8 +334,14 @@ d_chunks_seen(core::Download* download) {
 
   if (seen == NULL)
     return std::string();
-  else
-    return std::string((const char*)seen, download->download()->file_list()->size_chunks());
+
+  uint32_t size = download->download()->file_list()->size_chunks();
+
+  std::string result;
+  result.resize(size * 2);
+
+  rak::transform_hex((const char*)seen, (const char*)seen + size, result.begin());
+  return result;
 }
 
 torrent::Object

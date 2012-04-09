@@ -155,10 +155,6 @@ private:
 
   uint32_t            m_resumeFlags;
 
-  sigc::connection    m_connTrackerSucceeded;
-  sigc::connection    m_connTrackerFailed;
-  sigc::connection    m_connStorageError;
-
   unsigned int        m_group;
 };
 
