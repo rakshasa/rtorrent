@@ -327,6 +327,7 @@ directory_watch_added(const torrent::Object::list_type& args) {
   control->directory_events()->notify_on(path.c_str(),
                                          torrent::directory_events::flag_on_added | torrent::directory_events::flag_on_updated,
                                          tr1::bind(&call_watch_command, command, tr1::placeholders::_1));
+  return torrent::Object();
 }
 
 void
