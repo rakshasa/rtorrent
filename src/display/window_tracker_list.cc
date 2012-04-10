@@ -89,9 +89,18 @@ WindowTrackerList::redraw() {
     m_canvas->print(4, pos++, "%s",
                     tracker->url().c_str());
 
-    if (pos < m_canvas->height())
+    if (pos < m_canvas->height()) {
+      const char* state;
+
+      if (tracker->is_busy_not_scrape())
+        state = "req ";
+      else if (tracker->is_busy())
+        state = "scr ";
+      else
+        state = "    ";
+
       m_canvas->print(0, pos++, "%s Id: %s Counters: %uf / %us (%u) %s S/L/D: %u/%u/%u (%u/%u)",
-                      tracker->is_busy() ? "req " : "    ",
+                      state,
                       rak::copy_escape_html(tracker->tracker_id()).c_str(),
                       tracker->failed_counter(),
                       tracker->success_counter(),
@@ -102,6 +111,7 @@ WindowTrackerList::redraw() {
                       tracker->scrape_downloaded(),
                       tracker->latest_new_peers(),
                       tracker->latest_sum_peers());
+    }
 
     if (range.first == *m_focus) {
       m_canvas->set_attr(4, pos - 2, m_canvas->width(), is_focused() ? A_REVERSE : A_BOLD, COLOR_PAIR(0));
