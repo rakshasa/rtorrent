@@ -36,9 +36,7 @@
 
 #include "config.h"
 
-#include <sigc++/adaptors/bind.h>
-#include <sigc++/adaptors/hide.h>
-#include <sigc++/signal.h>
+#include <list>
 #include <rak/file_stat.h>
 #include <rak/functional.h>
 #include <rak/path.h>
