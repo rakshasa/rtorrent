@@ -37,7 +37,6 @@
 #ifndef RTORRENT_CORE_DOWNLOAD_H
 #define RTORRENT_CORE_DOWNLOAD_H
 
-#include <sigc++/connection.h>
 #include <torrent/download.h>
 #include <torrent/download_info.h>
 #include <torrent/hash_string.h>
