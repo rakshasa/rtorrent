@@ -162,6 +162,13 @@ apply_address_throttle(const torrent::Object::list_type& args) {
   return torrent::Object();
 }
 
+torrent::Object
+throttle_update() {
+  control->ui()->adjust_up_throttle(0);
+  control->ui()->adjust_down_throttle(0);
+  return torrent::Object();
+}
+
 void
 initialize_command_throttle() {
   CMD2_ANY         ("throttle.unchoked_uploads",   tr1::bind(&torrent::ResourceManager::currently_upload_unchoked, torrent::resource_manager()));
@@ -181,6 +188,8 @@ initialize_command_throttle() {
   CMD2_VAR_VALUE   ("throttle.max_uploads.global",   0);
   CMD2_VAR_VALUE   ("throttle.max_downloads.div",    1);
   CMD2_VAR_VALUE   ("throttle.max_downloads.global", 0);
+
+  CMD2_ANY         ("throttle.update",                      tr1::bind(&throttle_update));
 
   // TODO: Move the logic into some libtorrent function.
   CMD2_ANY         ("throttle.global_up.rate",              tr1::bind(&torrent::Rate::rate, torrent::up_rate()));
