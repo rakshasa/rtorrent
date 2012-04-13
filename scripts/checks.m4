@@ -499,7 +499,7 @@ AC_DEFUN([TORRENT_WITH_INOTIFY], [
 
   AC_COMPILE_IFELSE([AC_LANG_SOURCE([
       #include <sys/inotify.h>
-      int main(int,const char*) { return (-1 == inotify_init()); }])
+      int main(int,const char**) { return (-1 == inotify_init()); }])
     ],[
      AC_DEFINE(HAVE_INOTIFY, 1, [sys/inotify.h exists and works correctly])
      AC_MSG_RESULT(yes)],
