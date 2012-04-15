@@ -163,7 +163,9 @@ apply_address_throttle(const torrent::Object::list_type& args) {
 }
 
 torrent::Object
-throttle_update() {
+throttle_update(const char* variable, int64_t value) {
+  rpc::commands.call_command(variable, value);
+
   control->ui()->adjust_up_throttle(0);
   control->ui()->adjust_down_throttle(0);
   return torrent::Object();
@@ -184,12 +186,20 @@ initialize_command_throttle() {
   CMD2_VAR_VALUE   ("throttle.min_downloads",    0);
   CMD2_VAR_VALUE   ("throttle.max_downloads",    50);
 
-  CMD2_VAR_VALUE   ("throttle.max_uploads.div",      1);
-  CMD2_VAR_VALUE   ("throttle.max_uploads.global",   0);
-  CMD2_VAR_VALUE   ("throttle.max_downloads.div",    1);
-  CMD2_VAR_VALUE   ("throttle.max_downloads.global", 0);
+  CMD2_VAR_VALUE   ("throttle.max_uploads.div._val",      1);
+  CMD2_VAR_VALUE   ("throttle.max_uploads.global._val",   0);
+  CMD2_VAR_VALUE   ("throttle.max_downloads.div._val",    1);
+  CMD2_VAR_VALUE   ("throttle.max_downloads.global._val", 0);
 
-  CMD2_ANY         ("throttle.update",                      tr1::bind(&throttle_update));
+  CMD2_REDIRECT_GENERIC("throttle.max_uploads.div",      "throttle.max_uploads.div._val");
+  CMD2_REDIRECT_GENERIC("throttle.max_uploads.global",   "throttle.max_uploads.global._val");
+  CMD2_REDIRECT_GENERIC("throttle.max_downloads.div",    "throttle.max_downloads.div._val");
+  CMD2_REDIRECT_GENERIC("throttle.max_downloads.global", "throttle.max_downloads.global._val");
+
+  CMD2_ANY_VALUE   ("throttle.max_uploads.div.set",      tr1::bind(&throttle_update, "throttle.max_uploads.div._val.set", tr1::placeholders::_2));
+  CMD2_ANY_VALUE   ("throttle.max_uploads.global.set",   tr1::bind(&throttle_update, "throttle.max_uploads.global._val.set", tr1::placeholders::_2));
+  CMD2_ANY_VALUE   ("throttle.max_downloads.div.set",    tr1::bind(&throttle_update, "throttle.max_downloads.div._val.set", tr1::placeholders::_2));
+  CMD2_ANY_VALUE   ("throttle.max_downloads.global.set", tr1::bind(&throttle_update, "throttle.max_downloads.global._val.set", tr1::placeholders::_2));
 
   // TODO: Move the logic into some libtorrent function.
   CMD2_ANY         ("throttle.global_up.rate",              tr1::bind(&torrent::Rate::rate, torrent::up_rate()));
