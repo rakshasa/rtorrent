@@ -135,7 +135,7 @@ Manager::get_throttle(const std::string& name) {
 void
 Manager::set_address_throttle(uint32_t begin, uint32_t end, torrent::ThrottlePair throttles) {
   m_addressThrottles.set_merge(begin, end, throttles);
-  torrent::connection_manager()->set_address_throttle(sigc::mem_fun(control->core(), &core::Manager::get_address_throttle));
+  torrent::connection_manager()->address_throttle() = tr1::bind(&core::Manager::get_address_throttle, control->core(), tr1::placeholders::_1);
 }
 
 torrent::ThrottlePair
@@ -150,6 +150,13 @@ Manager::initialize_second() {
   m_httpQueue->slot_factory(sigc::mem_fun(m_httpStack, &CurlStack::new_object));
 
   CurlStack::global_init();
+
+  torrent::connection_manager()->signal_handshake_log().push_back(tr1::bind(&Manager::handshake_log,
+                                                                            this,
+                                                                            tr1::placeholders::_1,
+                                                                            tr1::placeholders::_2,
+                                                                            tr1::placeholders::_3,
+                                                                            tr1::placeholders::_4));
 }
 
 void
