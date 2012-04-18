@@ -8,6 +8,9 @@ Create a new group named "leech_fast", accessible by the string or
 index / reverse index according to order of insertion. E.g. '-1'
 refers to the last inserted choke group, while 0 refers to the first.
 
+All commands that applies to a group requires the first argument to be
+the index, reverse index or the group name.
+
     choke_group.tracker.mode.set = -1,"aggressive"
 
 Set the tracker mode for torrents in this group.
