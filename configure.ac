@@ -1,4 +1,4 @@
-AC_INIT(rtorrent, 0.8.9, jaris@ifi.uio.no)
+AC_INIT(rtorrent, 0.9.2, jaris@ifi.uio.no)
 
 AC_DEFINE(API_VERSION, 6, api version)
 
@@ -49,7 +49,7 @@ PKG_CHECK_MODULES(libcurl, libcurl >= 7.15.4,
 	          CXXFLAGS="$CXXFLAGS $libcurl_CFLAGS";
 		  LIBS="$LIBS $libcurl_LIBS")
 
-PKG_CHECK_MODULES(libtorrent, libtorrent >= 0.12.9,
+PKG_CHECK_MODULES(libtorrent, libtorrent >= 0.13.2,
 	          CXXFLAGS="$CXXFLAGS $libtorrent_CFLAGS";
 		  LIBS="$LIBS $libtorrent_LIBS")
 
