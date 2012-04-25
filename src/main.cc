@@ -875,10 +875,20 @@ main(int argc, char** argv) {
     control->core()->download_list()->session_save();
     control->cleanup();
 
+  } catch (torrent::internal_error& e) {
+    control->cleanup_exception();
+
+    std::cout << "Caught internal_error: " << e.what() << std::endl
+              << e.backtrace();
+    lt_log_print_dump(torrent::LOG_CRITICAL, e.backtrace().c_str(), e.backtrace().size(),
+                      "Caught internal_error: '%s'.", e.what());
+    return -1;
+
   } catch (std::exception& e) {
     control->cleanup_exception();
 
     std::cout << "rtorrent: " << e.what() << std::endl;
+    lt_log_print(torrent::LOG_CRITICAL, "Caught exception: '%s'.", e.what());
     return -1;
   }
 
