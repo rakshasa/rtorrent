@@ -40,6 +40,7 @@
 
 #include <cstdlib>
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <inttypes.h>
 #include <sigc++/adaptors/bind.h>
@@ -899,7 +900,8 @@ handle_sigbus(int signum, siginfo_t* sa, void* ptr) {
 
   // Use printf here instead...
 
-  printf("Caught SIGBUS, dumping stack:\n");
+  std::stringstream output;
+  output << "Caught SIGBUS, dumping stack:" << std::endl;
 
 #ifdef USE_EXECINFO
   void* stackPtrs[20];
@@ -909,13 +911,13 @@ handle_sigbus(int signum, siginfo_t* sa, void* ptr) {
   char** stackStrings = backtrace_symbols(stackPtrs, stackSize);
 
   for (int i = 0; i < stackSize; ++i)
-    printf("%i %s\n", i, stackStrings[i]);
+    output << stackStrings[i] << std::endl;
 
 #else
-  printf("Stack dump not enabled.\n");
+  output << "Stack dump not enabled." << std::endl;
 #endif
   
-  printf("\nError: %s\n", rak::error_number(sa->si_errno).c_str());
+  output << std::endl << "Error: " << rak::error_number(sa->si_errno).c_str() << std::endl;
 
   const char* signal_reason;
 
@@ -932,23 +934,31 @@ handle_sigbus(int signum, siginfo_t* sa, void* ptr) {
     break;
   };
 
-  printf("Signal code '%i': %s\n", sa->si_code, signal_reason);
-  printf("Fault address: %p.\n\n", sa->si_addr);
+  output << "Signal code '" << sa->si_code << "': " << signal_reason << std::endl;
+  output << "Fault address: " << sa->si_addr << std::endl;
 
   // New code for finding the location of the SIGBUS signal, and using
   // that to figure out how to recover.
   torrent::chunk_info_result result = torrent::chunk_list_address_info(sa->si_addr);
 
   if (!result.download.is_valid()) {
-    printf("The fault address is not part of any chunk.\n");
-    std::abort();
+    output << "The fault address is not part of any chunk." << std::endl;
+    goto handle_sigbus_exit;
   }
 
-  printf("Torrent name: '%s'.\n", result.download.info()->name().c_str());
-  printf("File name:    '%s'.\n", result.file_path);
-  printf("File offset:  %" PRIu64 ".\n", result.file_offset);
-  printf("Chunk index:  %u.\n", result.chunk_index);
-  printf("Chunk offset: %u.\n", result.chunk_offset);
+  output << "Torrent name: " << result.download.info()->name().c_str() << std::endl;
+  output << "File name:    " << result.file_path << std::endl;
+  output << "File offset:  " << result.file_offset << std::endl;
+  output << "Chunk index:  " << result.chunk_index << std::endl;
+  output << "Chunk offset: " << result.chunk_offset << std::endl;
+
+handle_sigbus_exit:
+  std::cout << output.rdbuf();
+
+  if (lt_log_is_valid(torrent::LOG_CRITICAL)) {
+    std::string dump = output.str();
+    lt_log_print_dump(torrent::LOG_CRITICAL, dump.c_str(), dump.size(), "Caught signal: '%s'.", signal_reason);
+  }
 
   torrent::log_cleanup();
   std::abort();
@@ -961,9 +971,9 @@ do_panic(int signum) {
   SignalHandler::set_default(signum);
   display::Canvas::cleanup();
 
-  // Use printf here instead...
+  std::stringstream output;
 
-  std::cout << "Caught " << SignalHandler::as_string(signum) << ", dumping stack:" << std::endl;
+  output << "Caught " << SignalHandler::as_string(signum) << ", dumping stack:" << std::endl;
   
 #ifdef USE_EXECINFO
   void* stackPtrs[20];
@@ -973,27 +983,21 @@ do_panic(int signum) {
   char** stackStrings = backtrace_symbols(stackPtrs, stackSize);
 
   for (int i = 0; i < stackSize; ++i)
-    std::cout << i << ' ' << stackStrings[i] << std::endl;
+    output << stackStrings[i] << std::endl;
 
 #else
-  std::cout << "Stack dump not enabled." << std::endl;
+  output << "Stack dump not enabled." << std::endl;
 #endif
   
-  // Dumping virtual memory map information to file:
-  // char dump_path[256];
-  // snprintf(dump_path, 256, "./rtorrent.map.%u", getpid());
-
-  // int dump_fd = open(dump_path, O_RDWR | O_CREAT);
-
-  // if (dump_fd == -1) {
-  //   printf("Could not create vmmap dump file '%s'.", dump_path);
-  //   goto do_panic_exit;
-  // }
-
-// do_panic_exit:
-
   if (signum == SIGBUS)
-    std::cout << "A bus error probably means you ran out of diskspace." << std::endl;
+    output << "A bus error probably means you ran out of diskspace." << std::endl;
+
+  std::cout << output.rdbuf();
+
+  if (lt_log_is_valid(torrent::LOG_CRITICAL)) {
+    std::string dump = output.str();
+    lt_log_print_dump(torrent::LOG_CRITICAL, dump.c_str(), dump.size(), "Caught signal: '%s.", strsignal(signum));
+  }
 
   torrent::log_cleanup();
   std::abort();

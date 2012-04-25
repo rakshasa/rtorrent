@@ -304,7 +304,8 @@ apply_log_open_file(const torrent::Object::list_type& args) {
   if (args.size() != 2)
     throw torrent::input_error("Invalid number of arguments.");
   
-  torrent::log_open_file_output(args.front().as_string().c_str(), args.back().as_string().c_str());
+  torrent::log_open_file_output(args.front().as_string().c_str(),
+                                rak::path_expand(args.back().as_string()).c_str());
   return torrent::Object();
 }
 
