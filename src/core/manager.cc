@@ -77,65 +77,6 @@
 namespace core {
 
 void
-Manager::handshake_log(const sockaddr* sa, int msg, int err, const torrent::HashString* hash) {
-  if (!rpc::call_command_value("log.handshake"))
-    return;
-  
-  std::string peer;
-  std::string download;
-
-  const rak::socket_address* socketAddress = rak::socket_address::cast_from(sa);
-
-  if (socketAddress->is_valid()) {
-    char port[6];
-    snprintf(port, sizeof(port), "%d", socketAddress->port());
-    peer = socketAddress->address_str() + ":" + port;
-  } else {
-    peer = "(unknown)";
-  }
-
-//   torrent::Download d = torrent::download_find(hash);
-
-//   if (d.is_valid())
-//     download = ": " + d.name();
-//   else
-    download = "";
-
-  switch (msg) {
-  case torrent::ConnectionManager::handshake_incoming:
-    push_log_complete("Incoming connection from " + peer + download);
-    break;
-  case torrent::ConnectionManager::handshake_outgoing:
-    push_log_complete("Outgoing connection to " + peer + download);
-    break;
-  case torrent::ConnectionManager::handshake_outgoing_encrypted:
-    push_log_complete("Outgoing encrypted connection to " + peer + download);
-    break;
-  case torrent::ConnectionManager::handshake_outgoing_proxy:
-    push_log_complete("Outgoing proxy connection to " + peer + download);
-    break;
-  case torrent::ConnectionManager::handshake_success:
-    push_log_complete("Successful handshake: " + peer + download);
-    break;
-  case torrent::ConnectionManager::handshake_dropped:
-    push_log_complete("Dropped handshake: " + peer + " - " + torrent::strerror(err) + download);
-    break;
-  case torrent::ConnectionManager::handshake_failed:
-    push_log_complete("Handshake failed: " + peer + " - " + torrent::strerror(err) + download);
-    break;
-  case torrent::ConnectionManager::handshake_retry_plaintext:
-    push_log_complete("Trying again without encryption: " + peer + download);
-    break;
-  case torrent::ConnectionManager::handshake_retry_encrypted:
-    push_log_complete("Trying again encrypted: " + peer + download);
-    break;
-  default:
-    push_log_complete("Unknown handshake message for " + peer + download);
-    break;
-  }
-}
-
-void
 Manager::push_log(const char* msg) {
   m_log_important->lock_and_push_log(msg, strlen(msg), 0);
   m_log_complete->lock_and_push_log(msg, strlen(msg), 0);
@@ -209,8 +150,6 @@ Manager::initialize_second() {
   m_httpQueue->slot_factory(sigc::mem_fun(m_httpStack, &CurlStack::new_object));
 
   CurlStack::global_init();
-
-  torrent::connection_manager()->set_signal_handshake_log(sigc::mem_fun(this, &Manager::handshake_log));
 }
 
 void

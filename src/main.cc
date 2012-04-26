@@ -448,9 +448,6 @@ main(int argc, char** argv) {
 
       CMD2_REDIRECT        ("session_save", "session.save");
 
-      CMD2_REDIRECT        ("get_handshake_log", "log.handshake");
-      CMD2_REDIRECT_GENERIC("set_handshake_log", "log.handshake.set");
-
       CMD2_REDIRECT        ("get_name", "session.name");
       CMD2_REDIRECT_GENERIC("set_name", "session.name.set");
 
