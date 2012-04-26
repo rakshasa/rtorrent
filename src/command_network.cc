@@ -239,8 +239,6 @@ initialize_command_network() {
   CMD2_ANY         ("strings.connection_type", tr1::bind(&torrent::option_list_strings, torrent::OPTION_CONNECTION_TYPE));
   CMD2_ANY         ("strings.encryption",      tr1::bind(&torrent::option_list_strings, torrent::OPTION_ENCRYPTION));
 
-  CMD2_VAR_BOOL    ("log.handshake", false);
-
   // CMD2_ANY_STRING  ("encoding_list",    tr1::bind(&apply_encoding_list, tr1::placeholders::_2));
   CMD2_ANY_STRING  ("encoding.add", tr1::bind(&apply_encoding_list, tr1::placeholders::_2));
 
