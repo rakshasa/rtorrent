@@ -90,7 +90,6 @@ public:
   core::ViewManager*  view_manager()                { return m_viewManager; }
   core::DhtManager*   dht_manager()                 { return m_dhtManager; }
 
-
   ui::Root*           ui()                          { return m_ui; }
   display::Manager*   display()                     { return m_display; }
   input::Manager*     input()                       { return m_input; }
