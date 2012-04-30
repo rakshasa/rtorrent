@@ -45,6 +45,7 @@
 #include "core/download_store.h"
 #include "core/view_manager.h"
 #include "core/dht_manager.h"
+#include "core/http_queue.h"
 
 #include "display/canvas.h"
 #include "display/window.h"
@@ -149,7 +150,16 @@ Control::cleanup_exception() {
 
 bool
 Control::is_shutdown_completed() {
-  return m_shutdownQuick && !worker_thread->is_active() && torrent::is_inactive();
+  if (!m_shutdownQuick || worker_thread->is_active())
+    return false;
+
+  // Tracker requests can be disowned, so wait for these to
+  // finish. The edge case of torrent http downloads may delay
+  // shutdown.
+  if (!core()->http_stack()->empty() || !core()->http_queue()->empty())
+    return false;
+
+  return torrent::is_inactive();
 }
 
 void
