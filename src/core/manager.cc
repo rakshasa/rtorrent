@@ -150,13 +150,6 @@ Manager::initialize_second() {
   m_httpQueue->slot_factory(sigc::mem_fun(m_httpStack, &CurlStack::new_object));
 
   CurlStack::global_init();
-
-  torrent::connection_manager()->signal_handshake_log().push_back(tr1::bind(&Manager::handshake_log,
-                                                                            this,
-                                                                            tr1::placeholders::_1,
-                                                                            tr1::placeholders::_2,
-                                                                            tr1::placeholders::_3,
-                                                                            tr1::placeholders::_4));
 }
 
 void
