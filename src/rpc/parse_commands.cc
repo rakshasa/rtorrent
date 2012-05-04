@@ -239,6 +239,39 @@ parse_command_file(const std::string& path) {
   return true;
 }
 
+void
+call_object(const torrent::Object& command, target_type target) {
+  switch (command.type()) {
+  case torrent::Object::TYPE_STRING:
+    parse_command_multiple(target, command.as_string().c_str(), command.as_string().c_str() + command.as_string().size());
+    break;
+
+  case torrent::Object::TYPE_LIST:
+    for (torrent::Object::list_const_iterator itr = command.as_list().begin(), last = command.as_list().end(); itr != last; itr++)
+      call_object(*itr, target);
+    break;
+
+  case torrent::Object::TYPE_DICT_KEY:
+    {
+    // This can/should be optimized...
+    torrent::Object tmp_command = command;
+
+    // Unquote the root function object so 'parse_command_execute'
+    // doesn't end up calling it.
+    //
+    // TODO: Only call this if mask_function is set?
+    uint32_t flags = tmp_command.flags() & torrent::Object::mask_function;
+    tmp_command.unset_flags(torrent::Object::mask_function);
+    tmp_command.set_flags((flags >> 1) & torrent::Object::mask_function);
+
+    parse_command_execute(make_target(), &tmp_command);
+    commands.call_command(tmp_command.as_dict_key().c_str(), tmp_command.as_dict_obj(), target);
+    }
+  default:
+    break;
+  }
+}
+
 //
 //
 //

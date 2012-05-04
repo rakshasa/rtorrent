@@ -293,7 +293,7 @@ main(int argc, char** argv) {
 
        "group.insert = seeding,seeding\n"
 
-       "session.name.set = \"$cat=$system.hostname=,:,$system.pid=\"\n"
+       "session.name.set = (cat,(system.hostname),:,(system.pid))\n"
 
        // Currently not doing any sorting on main.
        "view.add = main\n"
@@ -308,13 +308,13 @@ main(int argc, char** argv) {
 
        "view.add = started\n"
        "view.filter = started,((false))\n"
-       "view.event_added   = started,\"view.set_not_visible=stopped ;d.state.set=1 ;scheduler.simple.added=\"\n"
-       "view.event_removed = started,\"view.set_visible=stopped ;scheduler.simple.removed=\"\n"
+       "view.event_added   = started,{(view.set_not_visible,stopped),(d.state.set,1),(scheduler.simple.added)}\n"
+       "view.event_removed = started,{(view.set_visible,stopped),(scheduler.simple.removed)}\n"
 
        "view.add = stopped\n"
        "view.filter = stopped,((false))\n"
-       "view.event_added   = stopped,\"d.state.set=0 ;view.set_not_visible=started\"\n"
-       "view.event_removed = stopped,view.set_visible=started\n"
+       "view.event_added   = stopped,{(d.state.set,0),(view.set_not_visible,started)}\n"
+       "view.event_removed = stopped,((view.set_visible,started))\n"
 
        "view.add = complete\n"
        "view.filter = complete,((d.complete))\n"

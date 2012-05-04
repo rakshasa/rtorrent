@@ -124,6 +124,18 @@ call_command_d_range(const char* key, core::Download* download, torrent::Object:
   return commands.call_command_d(key, download, rawArgs);
 }
 
+void call_object(const torrent::Object& command, target_type target = make_target());
+
+inline void
+call_object_nothrow(const torrent::Object& command, target_type target = make_target()) {
+  try { call_object(command, target); } catch (torrent::input_error& e) {}
+}
+
+inline void
+call_object_d_nothrow(const torrent::Object& command, core::Download* download) {
+  try { call_object(command, make_target(download)); } catch (torrent::input_error& e) {}
+}
+
 //
 //
 //
