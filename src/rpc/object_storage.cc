@@ -218,7 +218,7 @@ object_storage::erase_multi_key(const torrent::raw_string& key, const std::strin
 
 void
 object_storage::set_multi_key_obj(const torrent::raw_string& key, const std::string& cmd_key, const torrent::Object& object) {
-  if (!object.is_string() && !object.is_dict_key())
+  if (!object.is_string() && !object.is_dict_key() && !object.is_list())
     throw torrent::input_error("Object is wrong type.");
 
   local_iterator itr = find_local_mutable(key, flag_multi_type);
