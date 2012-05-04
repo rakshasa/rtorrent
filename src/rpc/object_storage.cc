@@ -181,9 +181,8 @@ object_storage::call_function(const torrent::raw_string& key, target_type target
 
   switch (itr->second.flags & mask_type) {
   case flag_function_type:
-    return command_function_call_object(itr->second.object, target, object);
   case flag_multi_type:
-    return command_function_multi_call(itr->second.object.as_map(), target, object);
+    return command_function_call_object(itr->second.object, target, object);
   default:
     throw torrent::input_error("Key not found or wrong type.");
   }

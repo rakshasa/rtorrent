@@ -135,7 +135,7 @@ void initialize_commands();
                                                  torrent::raw_string::from_c_str(key), tr1::placeholders::_2));
 
 #define CMD2_FUNC_SINGLE(key, cmds)                                     \
-  CMD2_ANY(key, tr1::bind(&rpc::command_function_call, torrent::raw_string::from_c_str(cmds), \
+  CMD2_ANY(key, tr1::bind(&rpc::command_function_call_object, torrent::Object(torrent::raw_string::from_c_str(cmds)), \
                                tr1::placeholders::_1, tr1::placeholders::_2));
 
 #define CMD2_REDIRECT(from_key, to_key) \

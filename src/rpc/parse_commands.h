@@ -124,33 +124,28 @@ call_command_d_range(const char* key, core::Download* download, torrent::Object:
   return commands.call_command_d(key, download, rawArgs);
 }
 
-void call_object(const torrent::Object& command, target_type target = make_target());
+torrent::Object call_object(const torrent::Object& command, target_type target = make_target());
 
-inline void
+inline torrent::Object
 call_object_nothrow(const torrent::Object& command, target_type target = make_target()) {
-  try { call_object(command, target); } catch (torrent::input_error& e) {}
+  try { return call_object(command, target); } catch (torrent::input_error& e) { return torrent::Object(); }
 }
 
-inline void
+inline torrent::Object
 call_object_d_nothrow(const torrent::Object& command, core::Download* download) {
-  try { call_object(command, make_target(download)); } catch (torrent::input_error& e) {}
+  try { return call_object(command, make_target(download)); } catch (torrent::input_error& e) { return torrent::Object(); }
 }
 
 //
 //
 //
 
-// Temp until it can be moved somewhere better...
-const torrent::Object
-command_function_call(const torrent::raw_string& cmd, target_type target, const torrent::Object& args);
 const torrent::Object
 command_function_call_object(const torrent::Object& cmd, target_type target, const torrent::Object& args);
-const torrent::Object
-command_function_multi_call(const torrent::Object::map_type& cmd, target_type target, const torrent::Object& args);
 
 inline const torrent::Object
 command_function_call_str(const std::string& cmd, target_type target, const torrent::Object& args) {
-  return command_function_call(torrent::raw_string::from_string(cmd), target, args);
+  return command_function_call_object(torrent::Object(cmd), target, args);
 }
 
 }
