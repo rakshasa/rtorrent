@@ -64,9 +64,6 @@ torrent::Object        parse_command_multiple(target_type target, const char* fi
 
 void                   parse_command_execute(target_type target, torrent::Object* object);
 
-// Make this take care of lists too.
-parse_command_type     parse_command_object(target_type target, const torrent::Object& object);
-
 inline torrent::Object parse_command_single(target_type target, const char* first)   { return parse_command(target, first, first + std::strlen(first)).first; }
 inline torrent::Object parse_command_multiple(target_type target, const char* first) { return parse_command_multiple(target, first, first + std::strlen(first)); }
 
