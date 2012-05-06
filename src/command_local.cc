@@ -263,10 +263,10 @@ file_print_list(torrent::Object::list_const_iterator first, torrent::Object::lis
   while (first != last) {
     switch (first->type()) {
     case torrent::Object::TYPE_STRING:
-      fprintf(output, " %s" + !(flags & file_print_use_space), first->as_string().c_str());
+      fprintf(output, (const char*)" %s" + !(flags & file_print_use_space), first->as_string().c_str());
       break;
     case torrent::Object::TYPE_VALUE:
-      fprintf(output, " %lli" + !(flags & file_print_use_space), first->as_value());
+      fprintf(output, (const char*)" %lli" + !(flags & file_print_use_space), first->as_value());
       break;
     case torrent::Object::TYPE_LIST:
       file_print_list(first->as_list().begin(), first->as_list().end(), output, 0);
