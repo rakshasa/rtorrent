@@ -127,10 +127,10 @@ public:
 
   void                clear_filter_on();
 
-  const std::string&  get_event_added() const { return m_eventAdded; }
-  const std::string&  get_event_removed() const { return m_eventRemoved; }
-  void                set_event_added(const std::string& cmd)   { m_eventAdded = cmd; }
-  void                set_event_removed(const std::string& cmd) { m_eventRemoved = cmd; }
+  const torrent::Object& event_added() const                           { return m_event_added; }
+  const torrent::Object& event_removed() const                         { return m_event_removed; }
+  void                   set_event_added(const torrent::Object& cmd)   { m_event_added = cmd; }
+  void                   set_event_removed(const torrent::Object& cmd) { m_event_removed = cmd; }
 
   // The time of the last change to the view, semantics of this is
   // user-dependent. Used by f.ex. ViewManager to decide if it should
@@ -171,8 +171,8 @@ private:
 
   torrent::Object     m_filter;
 
-  std::string         m_eventAdded;
-  std::string         m_eventRemoved;
+  torrent::Object     m_event_added;
+  torrent::Object     m_event_removed;
 
   rak::timer          m_lastChanged;
 

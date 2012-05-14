@@ -401,7 +401,7 @@ system_method_set_key(const torrent::Object::list_type& args) {
     return torrent::Object();
   }
 
-  if (itrArgs->is_dict_key())
+  if (itrArgs->is_dict_key() || itrArgs->is_list())
     control->object_storage()->set_str_multi_key_obj(key.c_str(), cmd_key, *itrArgs);
   else
     control->object_storage()->set_str_multi_key(key, cmd_key, system_method_generate_command(itrArgs, args.end()));

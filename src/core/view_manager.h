@@ -95,8 +95,8 @@ public:
   void                set_filter(const std::string& name, const torrent::Object& cmd);
   void                set_filter_on(const std::string& name, const filter_args& args);
 
-  void                set_event_added(const std::string& name, const std::string& cmd)   { (*find_throw(name))->set_event_added(cmd); }
-  void                set_event_removed(const std::string& name, const std::string& cmd) { (*find_throw(name))->set_event_removed(cmd); }
+  void                set_event_added(const std::string& name, const torrent::Object& cmd)   { (*find_throw(name))->set_event_added(cmd); }
+  void                set_event_removed(const std::string& name, const torrent::Object& cmd) { (*find_throw(name))->set_event_removed(cmd); }
 
 private:
   DownloadList*       m_list;

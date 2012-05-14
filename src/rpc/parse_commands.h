@@ -64,9 +64,6 @@ torrent::Object        parse_command_multiple(target_type target, const char* fi
 
 void                   parse_command_execute(target_type target, torrent::Object* object);
 
-// Make this take care of lists too.
-parse_command_type     parse_command_object(target_type target, const torrent::Object& object);
-
 inline torrent::Object parse_command_single(target_type target, const char* first)   { return parse_command(target, first, first + std::strlen(first)).first; }
 inline torrent::Object parse_command_multiple(target_type target, const char* first) { return parse_command_multiple(target, first, first + std::strlen(first)); }
 
@@ -124,21 +121,28 @@ call_command_d_range(const char* key, core::Download* download, torrent::Object:
   return commands.call_command_d(key, download, rawArgs);
 }
 
+torrent::Object call_object(const torrent::Object& command, target_type target = make_target());
+
+inline torrent::Object
+call_object_nothrow(const torrent::Object& command, target_type target = make_target()) {
+  try { return call_object(command, target); } catch (torrent::input_error& e) { return torrent::Object(); }
+}
+
+inline torrent::Object
+call_object_d_nothrow(const torrent::Object& command, core::Download* download) {
+  try { return call_object(command, make_target(download)); } catch (torrent::input_error& e) { return torrent::Object(); }
+}
+
 //
 //
 //
 
-// Temp until it can be moved somewhere better...
-const torrent::Object
-command_function_call(const torrent::raw_string& cmd, target_type target, const torrent::Object& args);
 const torrent::Object
 command_function_call_object(const torrent::Object& cmd, target_type target, const torrent::Object& args);
-const torrent::Object
-command_function_multi_call(const torrent::Object::map_type& cmd, target_type target, const torrent::Object& args);
 
 inline const torrent::Object
 command_function_call_str(const std::string& cmd, target_type target, const torrent::Object& args) {
-  return command_function_call(torrent::raw_string::from_string(cmd), target, args);
+  return command_function_call_object(torrent::Object(cmd), target, args);
 }
 
 }

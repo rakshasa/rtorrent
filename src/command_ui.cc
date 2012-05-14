@@ -53,8 +53,7 @@
 #include "control.h"
 #include "command_helpers.h"
 
-typedef void (core::ViewManager::*view_cfilter_slot)(const std::string&, const torrent::Object&);
-typedef void (core::ViewManager::*view_event_slot)(const std::string&, const std::string&);
+typedef void (core::ViewManager::*view_event_slot)(const std::string&, const torrent::Object&);
 
 torrent::Object
 apply_view_filter_on(const torrent::Object::list_type& args) {
@@ -77,32 +76,11 @@ apply_view_filter_on(const torrent::Object::list_type& args) {
 }
 
 torrent::Object
-apply_view_cfilter(view_cfilter_slot viewFilterSlot, const torrent::Object::list_type& args) {
-  if (args.size() != 2)
-    throw torrent::input_error("Too few arguments.");
-
-  const std::string& name = args.front().as_string();
-  
-  if (name.empty())
-    throw torrent::input_error("First argument must be a string.");
-
-  (control->view_manager()->*viewFilterSlot)(name, args.back());
-
-  return torrent::Object();
-}
-
-torrent::Object
 apply_view_event(view_event_slot viewFilterSlot, const torrent::Object::list_type& args) {
   if (args.size() != 2)
-    throw torrent::input_error("Too few arguments.");
+    throw torrent::input_error("Wrong argument count.");
 
-  const std::string& name = args.front().as_string();
-  
-  if (name.empty())
-    throw torrent::input_error("First argument must be a string.");
-
-  (control->view_manager()->*viewFilterSlot)(name, args.back().as_string());
-
+  (control->view_manager()->*viewFilterSlot)(args.front().as_string(), args.back());
   return torrent::Object();
 }
 
@@ -472,7 +450,7 @@ torrent::Object
 cmd_view_persistent(const torrent::Object::string_type& args) {
   core::View* view = *control->view_manager()->find_throw(args);
   
-  if (!view->get_filter().is_empty() || !view->get_event_added().empty() || !view->get_event_removed().empty())
+  if (!view->get_filter().is_empty() || !view->event_added().is_empty() || !view->event_removed().is_empty())
     throw torrent::input_error("Cannot set modified views as persitent.");
 
   view->set_filter("d.views.has=" + args);
@@ -546,12 +524,12 @@ initialize_command_ui() {
   CMD2_ANY_L   ("view.list",          tr1::bind(&apply_view_list));
   CMD2_ANY_LIST("view.set",           tr1::bind(&apply_view_set, tr1::placeholders::_2));
 
-  CMD2_ANY_LIST("view.filter",        tr1::bind(&apply_view_cfilter, &core::ViewManager::set_filter, tr1::placeholders::_2));
+  CMD2_ANY_LIST("view.filter",        tr1::bind(&apply_view_event, &core::ViewManager::set_filter, tr1::placeholders::_2));
   CMD2_ANY_LIST("view.filter_on",     tr1::bind(&apply_view_filter_on, tr1::placeholders::_2));
 
   CMD2_ANY_LIST("view.sort",          tr1::bind(&apply_view_sort, tr1::placeholders::_2));
-  CMD2_ANY_LIST("view.sort_new",      tr1::bind(&apply_view_cfilter, &core::ViewManager::set_sort_new, tr1::placeholders::_2));
-  CMD2_ANY_LIST("view.sort_current",  tr1::bind(&apply_view_cfilter, &core::ViewManager::set_sort_current, tr1::placeholders::_2));
+  CMD2_ANY_LIST("view.sort_new",      tr1::bind(&apply_view_event, &core::ViewManager::set_sort_new, tr1::placeholders::_2));
+  CMD2_ANY_LIST("view.sort_current",  tr1::bind(&apply_view_event, &core::ViewManager::set_sort_current, tr1::placeholders::_2));
 
   CMD2_ANY_LIST("view.event_added",   tr1::bind(&apply_view_event, &core::ViewManager::set_event_added, tr1::placeholders::_2));
   CMD2_ANY_LIST("view.event_removed", tr1::bind(&apply_view_event, &core::ViewManager::set_event_removed, tr1::placeholders::_2));

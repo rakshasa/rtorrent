@@ -97,24 +97,7 @@ CommandScheduler::call_item(value_type item) {
   // removed.
 
   try {
-    if (item->command().is_string()) {
-      rpc::parse_command_multiple_std(item->command().as_string());
-
-    } else if (item->command().is_dict_key()) {
-      // This can/should be optimized...
-      torrent::Object tmp_command = item->command();
-
-      // Unquote the root function object so 'parse_command_execute'
-      // doesn't end up calling it.
-      //
-      // TODO: Only call this if mask_function is set?
-      uint32_t flags = tmp_command.flags() & torrent::Object::mask_function;
-      tmp_command.unset_flags(torrent::Object::mask_function);
-      tmp_command.set_flags((flags >> 1) & torrent::Object::mask_function);
-
-      rpc::parse_command_execute(rpc::make_target(), &tmp_command);
-      rpc::commands.call_command(tmp_command.as_dict_key().c_str(), tmp_command.as_dict_obj());
-    }
+    rpc::call_object(item->command());
 
   } catch (torrent::input_error& e) {
     if (m_slotErrorMessage.is_valid())

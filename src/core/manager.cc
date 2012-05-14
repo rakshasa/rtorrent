@@ -135,7 +135,7 @@ Manager::get_throttle(const std::string& name) {
 void
 Manager::set_address_throttle(uint32_t begin, uint32_t end, torrent::ThrottlePair throttles) {
   m_addressThrottles.set_merge(begin, end, throttles);
-  torrent::connection_manager()->set_address_throttle(sigc::mem_fun(control->core(), &core::Manager::get_address_throttle));
+  torrent::connection_manager()->address_throttle() = tr1::bind(&core::Manager::get_address_throttle, control->core(), tr1::placeholders::_1);
 }
 
 torrent::ThrottlePair

@@ -266,8 +266,8 @@ main(int argc, char** argv) {
 
        "method.set_key = event.download.inserted,         1_connect_logs, ((d.initialize_logs))\n"
        "method.set_key = event.download.inserted,         1_send_scrape, ((d.tracker.send_scrape,30))\n"
-       "method.set_key = event.download.inserted_new,     1_prepare, \"branch=d.state=,view.set_visible=started,view.set_visible=stopped ;d.save_full_session=\"\n"
-       "method.set_key = event.download.inserted_session, 1_prepare, \"branch=d.state=,view.set_visible=started,view.set_visible=stopped\"\n"
+       "method.set_key = event.download.inserted_new,     1_prepare, {(branch,((d.state)),((view.set_visible,started)),((view.set_visible,stopped)) ),(d.save_full_session)}\n"
+       "method.set_key = event.download.inserted_session, 1_prepare, {(branch,((d.state)),((view.set_visible,started)),((view.set_visible,stopped)) )}\n"
 
        "method.set_key = event.download.inserted, 1_prioritize_toc, \"branch=file.prioritize_toc=,{\\\"f.multicall=(file.prioritize_toc.first),f.prioritize_first.enable=\\\",\\\"f.multicall=(file.prioritize_toc.last),f.prioritize_last.enable=\\\",d.update_priorities=}\"\n"
 
@@ -293,7 +293,7 @@ main(int argc, char** argv) {
 
        "group.insert = seeding,seeding\n"
 
-       "session.name.set = \"$cat=$system.hostname=,:,$system.pid=\"\n"
+       "session.name.set = (cat,(system.hostname),:,(system.pid))\n"
 
        // Currently not doing any sorting on main.
        "view.add = main\n"
@@ -308,46 +308,36 @@ main(int argc, char** argv) {
 
        "view.add = started\n"
        "view.filter = started,((false))\n"
-       "view.event_added   = started,\"view.set_not_visible=stopped ;d.state.set=1 ;scheduler.simple.added=\"\n"
-       "view.event_removed = started,\"view.set_visible=stopped ;scheduler.simple.removed=\"\n"
+       "view.event_added   = started,{(view.set_not_visible,stopped),(d.state.set,1),(scheduler.simple.added)}\n"
+       "view.event_removed = started,{(view.set_visible,stopped),(scheduler.simple.removed)}\n"
 
        "view.add = stopped\n"
        "view.filter = stopped,((false))\n"
-       "view.event_added   = stopped,\"d.state.set=0 ;view.set_not_visible=started\"\n"
-       "view.event_removed = stopped,view.set_visible=started\n"
+       "view.event_added   = stopped,{(d.state.set,0),(view.set_not_visible,started)}\n"
+       "view.event_removed = stopped,((view.set_visible,started))\n"
 
        "view.add = complete\n"
        "view.filter = complete,((d.complete))\n"
        "view.filter_on    = complete,event.download.hash_done,event.download.hash_failed,event.download.hash_final_failed,event.download.finished\n"
-       // "view.sort_new     = complete,((less,((d.state_changed))))\n"
-       // "view.sort_current = complete,((less,((d.state_changed))))\n"
 
        "view.add = incomplete\n"
        "view.filter = incomplete,((not,((d.complete))))\n"
        "view.filter_on    = incomplete,event.download.hash_done,event.download.hash_failed,"
                                       "event.download.hash_final_failed,event.download.finished\n"
-       // "view.sort_new     = incomplete,((less,((d.state_changed))))\n"
-       // "view.sort_current = incomplete,((less,((d.state_changed))))\n"
 
        // The hashing view does not include stopped torrents.
        "view.add = hashing\n"
        "view.filter = hashing,((d.hashing))\n"
        "view.filter_on = hashing,event.download.hash_queued,event.download.hash_removed,"
                                 "event.download.hash_done,event.download.hash_failed,event.download.hash_final_failed,event.download.finished\n"
-//        "view.sort_new     = hashing,less=d.state_changed=\n"
-//        "view.sort_current = hashing,less=d.state_changed=\n"
 
        "view.add    = seeding\n"
        "view.filter = seeding,((and,((d.state)),((d.complete))))\n"
-       "view.filter_on    = seeding,event.download.resumed,event.download.paused,event.download.finished\n"
-       // "view.sort_new     = seeding,((less,((d.state_changed))))\n"
-       // "view.sort_current = seeding,((less,((d.state_changed))))\n"
+       "view.filter_on = seeding,event.download.resumed,event.download.paused,event.download.finished\n"
 
        "view.add    = leeching\n"
        "view.filter = leeching,((and,((d.state)),((not,((d.complete))))))\n"
-       "view.filter_on    = leeching,event.download.resumed,event.download.paused,event.download.finished\n"
-       // "view.sort_new     = leeching,((less,((d.state_changed))))\n"
-       // "view.sort_current = leeching,((less,((d.state_changed))))\n"
+       "view.filter_on = leeching,event.download.resumed,event.download.paused,event.download.finished\n"
 
        "schedule2 = view.main,10,10,((view.sort,main,20))\n"
        "schedule2 = view.name,10,10,((view.sort,name,20))\n"

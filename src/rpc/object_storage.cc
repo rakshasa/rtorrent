@@ -181,9 +181,8 @@ object_storage::call_function(const torrent::raw_string& key, target_type target
 
   switch (itr->second.flags & mask_type) {
   case flag_function_type:
-    return command_function_call_object(itr->second.object, target, object);
   case flag_multi_type:
-    return command_function_multi_call(itr->second.object.as_map(), target, object);
+    return command_function_call_object(itr->second.object, target, object);
   default:
     throw torrent::input_error("Key not found or wrong type.");
   }
@@ -219,7 +218,7 @@ object_storage::erase_multi_key(const torrent::raw_string& key, const std::strin
 
 void
 object_storage::set_multi_key_obj(const torrent::raw_string& key, const std::string& cmd_key, const torrent::Object& object) {
-  if (!object.is_string() && !object.is_dict_key())
+  if (!object.is_string() && !object.is_dict_key() && !object.is_list())
     throw torrent::input_error("Object is wrong type.");
 
   local_iterator itr = find_local_mutable(key, flag_multi_type);
