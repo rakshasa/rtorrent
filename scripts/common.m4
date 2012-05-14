@@ -170,8 +170,8 @@ AC_DEFUN([TORRENT_CHECK_MADVISE], [
 
   AC_COMPILE_IFELSE([AC_LANG_SOURCE([
       #include <sys/types.h>
-          #include <sys/mman.h>
-          void f() { static char test[1024]; madvise((void *)test, sizeof(test), MADV_NORMAL); }
+      #include <sys/mman.h>
+        void f() { static char test@<:@1024@:>@; madvise((void *)test, sizeof(test), MADV_NORMAL); }
       ])],
     [
       AC_MSG_RESULT(yes)
@@ -241,7 +241,7 @@ AC_DEFUN([TORRENT_CHECK_ALIGNED], [
   AC_RUN_IFELSE([AC_LANG_SOURCE([
       #include <inttypes.h>
       int main() {
-        char buf[8] = { 0, 0, 0, 0, 1, 0, 0, 0 };
+        char buf@<:@8@:>@ = { 0, 0, 0, 0, 1, 0, 0, 0 };
 	int i;
         for (i = 1; i < 4; ++i)
 	  if (*(uint32_t*)(buf + i) == 0) return -1;
@@ -307,5 +307,6 @@ AC_DEFUN([TORRENT_ENABLE_CXX11], [
       fi
     ],[
         TORRENT_CHECK_CXX11()
-    ])
+    ]
+  )
 ])
