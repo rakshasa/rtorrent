@@ -37,6 +37,7 @@
 #include "config.h"
 
 #include <algorithm>
+#include <torrent/utils/log.h>
 
 #include "globals.h"
 #include "control.h"
@@ -422,6 +423,16 @@ system_method_list_keys(const torrent::Object::string_type& args) {
   return rawResult;
 }
 
+torrent::Object
+cmd_catch(rpc::target_type target, const torrent::Object& args) {
+  try {
+    return rpc::call_object(args, target);
+  } catch (torrent::input_error& e) {
+    lt_log_print(torrent::LOG_WARN, "Caught exception: '%s'.", e.what());
+    return torrent::Object();
+  }
+}
+
 #define CMD2_METHOD_INSERT(key, flags) \
   CMD2_ANY_LIST(key, tr1::bind(&system_method_insert_object, tr1::placeholders::_2, flags));
 
@@ -455,4 +466,6 @@ initialize_command_dynamic() {
 
   CMD2_ANY_STRING  ("method.rlookup",       tr1::bind(&rpc::object_storage::rlookup_obj_list, control->object_storage(), tr1::placeholders::_2));
   CMD2_ANY_STRING_V("method.rlookup.clear", tr1::bind(&rpc::object_storage::rlookup_clear, control->object_storage(), tr1::placeholders::_2));
+
+  CMD2_ANY         ("catch", tr1::bind(&cmd_catch, tr1::placeholders::_1, tr1::placeholders::_2));
 }

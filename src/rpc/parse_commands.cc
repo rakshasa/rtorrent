@@ -271,7 +271,7 @@ call_object(const torrent::Object& command, target_type target) {
     tmp_command.unset_flags(torrent::Object::mask_function);
     tmp_command.set_flags((flags >> 1) & torrent::Object::mask_function);
 
-    parse_command_execute(make_target(), &tmp_command);
+    parse_command_execute(target, &tmp_command);
     return commands.call_command(tmp_command.as_dict_key().c_str(), tmp_command.as_dict_obj(), target);
   }
   default:
