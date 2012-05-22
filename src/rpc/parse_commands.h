@@ -95,19 +95,13 @@ parse_command_multiple_d_nothrow(core::Download* download, const std::string& cm
   }
 }
 
-inline torrent::Object call_command       (const char* key, const torrent::Object& obj, target_type target = make_target()) { return commands.call_command(key, obj, target); }
-inline torrent::Object call_command_void  (const char* key, target_type target = make_target()) { return commands.call_command(key, torrent::Object(), target); }
+inline torrent::Object call_command       (const char* key, const torrent::Object& obj = torrent::Object(), target_type target = make_target()) { return commands.call_command(key, obj, target); }
 inline std::string     call_command_string(const char* key, target_type target = make_target()) { return commands.call_command(key, torrent::Object(), target).as_string(); }
 inline int64_t         call_command_value (const char* key, target_type target = make_target()) { return commands.call_command(key, torrent::Object(), target).as_value(); }
 
 inline void            call_command_set_string(const char* key, const std::string& arg)            { commands.call_command(key, torrent::Object(arg)); }
 inline void            call_command_set_std_string(const std::string& key, const std::string& arg) { commands.call_command(key.c_str(), torrent::Object(arg)); }
-
-inline void            call_command_d_v_void(const char* key, core::Download* download) { commands.call_command_d(key, download, torrent::Object()); }
-
-inline void            call_command_set_value(const char* key, int64_t arg, target_type target = make_target())                { commands.call_command(key, torrent::Object(arg), target); }
-inline void            call_command_d_set_string(const char* key, core::Download* download, const std::string& arg)            { commands.call_command_d(key, download, torrent::Object(arg)); }
-inline void            call_command_d_set_std_string(const std::string& key, core::Download* download, const std::string& arg) { commands.call_command_d(key.c_str(), download, torrent::Object(arg)); }
+inline void            call_command_set_value(const char* key, int64_t arg, target_type target = make_target()) { commands.call_command(key, torrent::Object(arg), target); }
 
 inline torrent::Object
 call_command_d_range(const char* key, core::Download* download, torrent::Object::list_const_iterator first, torrent::Object::list_const_iterator last) {

@@ -185,7 +185,7 @@ Manager::listen_open() {
     return;
 
   int portFirst, portLast;
-  torrent::Object portRange = rpc::call_command_void("network.port_range");
+  torrent::Object portRange = rpc::call_command("network.port_range");
 
   if (portRange.is_string()) {
     if (std::sscanf(portRange.as_string().c_str(), "%i-%i", &portFirst, &portLast) != 2)
