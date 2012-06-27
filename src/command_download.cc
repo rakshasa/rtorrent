@@ -139,8 +139,8 @@ apply_d_change_link(core::Download* download, const torrent::Object::list_type& 
   switch (changeType) {
   case 0:
     if (symlink(target.c_str(), link.c_str()) == -1){
-      control->core()->push_log_std("create_link failed: "
-          + std::string(rak::error_number::current().c_str()));
+      lt_log_print(torrent::LOG_TORRENT_WARN, "create_link failed: %s",
+          rak::error_number::current().c_str());
     }
     break;
 
@@ -151,8 +151,8 @@ apply_d_change_link(core::Download* download, const torrent::Object::list_type& 
 
     if (!fileStat.update_link(link) || !fileStat.is_link() ||
         unlink(link.c_str()) == -1){
-      control->core()->push_log_std("delete_link failed: " 
-          + std::string(rak::error_number::current().c_str()));
+      lt_log_print(torrent::LOG_TORRENT_WARN, "delete_link failed: %s",
+          rak::error_number::current().c_str());
     }
     break;
   }
