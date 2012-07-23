@@ -245,9 +245,6 @@ append_table(torrent::ipv4_table::base_type* extent, torrent::Object::list_type&
   torrent::ipv4_table::table_type::iterator first = extent->table.begin();
   torrent::ipv4_table::table_type::iterator last  = extent->table.end();
 
-  int current_value = 0;
-  uint32_t range_first = 0;
-
   while (first != last) {
     if (first->first != NULL) {
       // Do something more here?...
@@ -266,9 +263,6 @@ append_table(torrent::ipv4_table::base_type* extent, torrent::Object::list_type&
                torrent::option_as_string(torrent::OPTION_IP_FILTER, first->second));
 
       result.push_back((std::string)buffer);
-
-      range_first = position;
-      current_value = first->second;
     }
 
     first++;
