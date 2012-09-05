@@ -52,7 +52,7 @@
 # fixed that causes lack of diskspace not to be properly reported.
 #check_hash = no
 
-# Set whetever the client should try to connect to UDP trackers.
+# Set whether the client should try to connect to UDP trackers.
 #use_udp_trackers = yes
 
 # Alternative calls to bind and ip that should handle dynamic ip's.
