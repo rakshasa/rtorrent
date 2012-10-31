@@ -52,7 +52,7 @@
 # fixed that causes lack of diskspace not to be properly reported.
 #check_hash = no
 
-# Set whetever the client should try to connect to UDP trackers.
+# Set whether the client should try to connect to UDP trackers.
 #use_udp_trackers = yes
 
 # Alternative calls to bind and ip that should handle dynamic ip's.
@@ -82,21 +82,3 @@
 # Enable peer exchange (for torrents not marked private)
 #
 # peer_exchange = yes
-
-#
-# Do not modify the following parameters unless you know what you're doing.
-#
-
-# Hash read-ahead controls how many MB to request the kernel to read
-# ahead. If the value is too low the disk may not be fully utilized,
-# while if too high the kernel might not be able to keep the read
-# pages in memory thus end up trashing.
-#hash_read_ahead = 10
-
-# Interval between attempts to check the hash, in milliseconds.
-#hash_interval = 100
-
-# Number of attempts to check the hash while using the mincore status,
-# before forcing. Overworked systems might need lower values to get a
-# decent hash checking rate.
-#hash_max_tries = 10

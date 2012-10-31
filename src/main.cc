@@ -239,15 +239,6 @@ main(int argc, char** argv) {
 
     rpc::parse_command_multiple
       (rpc::make_target(),
-//        "method.insert = test.value,value\n"
-//        "method.insert = test.value2,value,6\n"
-
-//        "method.insert = test.string,string,6\n"
-//        "method.insert = test.bool,bool,true\n"
-
-       // "method.insert.simple = test.method.simple,((print,simple_test_,$argument.0=))\n"
-       // "method.insert.simple = test.method.double,((print,simple_test_,$argument.0=)),\"print=simple_test_,$argument.1=\"\n"
-
        "method.insert = event.download.inserted,multi|rlookup|static\n"
        "method.insert = event.download.inserted_new,multi|rlookup|static\n"
        "method.insert = event.download.inserted_session,multi|rlookup|static\n"
@@ -895,8 +886,6 @@ handle_sigbus(int signum, siginfo_t* sa, void* ptr) {
   SignalHandler::set_default(signum);
   display::Canvas::cleanup();
 
-  // Use printf here instead...
-
   std::stringstream output;
   output << "Caught SIGBUS, dumping stack:" << std::endl;
 
@@ -913,7 +902,6 @@ handle_sigbus(int signum, siginfo_t* sa, void* ptr) {
 #else
   output << "Stack dump not enabled." << std::endl;
 #endif
-  
   output << std::endl << "Error: " << rak::error_number(sa->si_errno).c_str() << std::endl;
 
   const char* signal_reason;
@@ -1039,7 +1027,7 @@ print_help() {
   std::cout << "  o                 View trackers" << std::endl;
   std::cout << std::endl;
 
-  std::cout << "Report bugs to <jaris@ifi.uio.no>." << std::endl;
+  std::cout << "Report bugs to <sundell.software@gmail.com>." << std::endl;
 
   exit(0);
 }

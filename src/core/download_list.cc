@@ -373,26 +373,26 @@ DownloadList::resume(Download* download, int flags) {
     rpc::call_command("d.state_counter.set", rpc::call_command_value("d.state_counter", rpc::make_target(download)) + 1, rpc::make_target(download));
 
     if (download->is_done()) {
-      torrent::Object conn_current = rpc::call_command_void("d.connection_seed", rpc::make_target(download));
-      torrent::Object choke_up     = rpc::call_command_void("d.up.choke_heuristics.seed", rpc::make_target(download));
-      torrent::Object choke_down   = rpc::call_command_void("d.down.choke_heuristics.seed", rpc::make_target(download));
+      torrent::Object conn_current = rpc::call_command("d.connection_seed", torrent::Object(), rpc::make_target(download));
+      torrent::Object choke_up     = rpc::call_command("d.up.choke_heuristics.seed", torrent::Object(), rpc::make_target(download));
+      torrent::Object choke_down   = rpc::call_command("d.down.choke_heuristics.seed", torrent::Object(), rpc::make_target(download));
 
-      if (conn_current.is_string_empty()) conn_current = rpc::call_command_void("protocol.connection.seed", rpc::make_target(download));
-      if (choke_up.is_string_empty())     choke_up     = rpc::call_command_void("protocol.choke_heuristics.up.seed", rpc::make_target(download));
-      if (choke_down.is_string_empty())   choke_down   = rpc::call_command_void("protocol.choke_heuristics.down.seed", rpc::make_target(download));
+      if (conn_current.is_string_empty()) conn_current = rpc::call_command("protocol.connection.seed", torrent::Object(), rpc::make_target(download));
+      if (choke_up.is_string_empty())     choke_up     = rpc::call_command("protocol.choke_heuristics.up.seed", torrent::Object(), rpc::make_target(download));
+      if (choke_down.is_string_empty())   choke_down   = rpc::call_command("protocol.choke_heuristics.down.seed", torrent::Object(), rpc::make_target(download));
 
       rpc::call_command("d.connection_current.set",    conn_current, rpc::make_target(download));
       rpc::call_command("d.up.choke_heuristics.set",   choke_up, rpc::make_target(download));
       rpc::call_command("d.down.choke_heuristics.set", choke_down, rpc::make_target(download));
 
     } else {
-      torrent::Object conn_current = rpc::call_command_void("d.connection_leech", rpc::make_target(download));
-      torrent::Object choke_up     = rpc::call_command_void("d.up.choke_heuristics.leech", rpc::make_target(download));
-      torrent::Object choke_down   = rpc::call_command_void("d.down.choke_heuristics.leech", rpc::make_target(download));
+      torrent::Object conn_current = rpc::call_command("d.connection_leech", torrent::Object(), rpc::make_target(download));
+      torrent::Object choke_up     = rpc::call_command("d.up.choke_heuristics.leech", torrent::Object(), rpc::make_target(download));
+      torrent::Object choke_down   = rpc::call_command("d.down.choke_heuristics.leech", torrent::Object(), rpc::make_target(download));
 
-      if (conn_current.is_string_empty()) conn_current = rpc::call_command_void("protocol.connection.leech", rpc::make_target(download));
-      if (choke_up.is_string_empty())     choke_up     = rpc::call_command_void("protocol.choke_heuristics.up.leech", rpc::make_target(download));
-      if (choke_down.is_string_empty())   choke_down   = rpc::call_command_void("protocol.choke_heuristics.down.leech", rpc::make_target(download));
+      if (conn_current.is_string_empty()) conn_current = rpc::call_command("protocol.connection.leech", torrent::Object(), rpc::make_target(download));
+      if (choke_up.is_string_empty())     choke_up     = rpc::call_command("protocol.choke_heuristics.up.leech", torrent::Object(), rpc::make_target(download));
+      if (choke_down.is_string_empty())   choke_down   = rpc::call_command("protocol.choke_heuristics.down.leech", torrent::Object(), rpc::make_target(download));
 
       rpc::call_command("d.connection_current.set",    conn_current, rpc::make_target(download));
       rpc::call_command("d.up.choke_heuristics.set",   choke_up, rpc::make_target(download));
@@ -462,8 +462,8 @@ DownloadList::pause(Download* download, int flags) {
 
     // If initial seeding is complete, don't try it again when restarting.
     if (download->is_done() &&
-        rpc::call_command_void("d.connection_current", rpc::make_target(download)).as_string() == "initial_seed")
-      rpc::call_command("d.connection_seed.set", rpc::call_command_void("d.connection_current", rpc::make_target(download)), rpc::make_target(download));
+        rpc::call_command("d.connection_current", torrent::Object(), rpc::make_target(download)).as_string() == "initial_seed")
+      rpc::call_command("d.connection_seed.set", rpc::call_command("d.connection_current", torrent::Object(), rpc::make_target(download)), rpc::make_target(download));
 
     // Save the state after all the slots, etc have been called so we
     // include the modifications they may make.
@@ -625,13 +625,13 @@ DownloadList::confirm_finished(Download* download) {
   rpc::call_command("d.complete.set", (int64_t)1, rpc::make_target(download));
 
   // Clean up these settings:
-  torrent::Object conn_current = rpc::call_command_void("d.connection_seed", rpc::make_target(download));
-  torrent::Object choke_up     = rpc::call_command_void("d.up.choke_heuristics.seed", rpc::make_target(download));
-  torrent::Object choke_down   = rpc::call_command_void("d.down.choke_heuristics.seed", rpc::make_target(download));
+  torrent::Object conn_current = rpc::call_command("d.connection_seed", torrent::Object(), rpc::make_target(download));
+  torrent::Object choke_up     = rpc::call_command("d.up.choke_heuristics.seed", torrent::Object(), rpc::make_target(download));
+  torrent::Object choke_down   = rpc::call_command("d.down.choke_heuristics.seed", torrent::Object(), rpc::make_target(download));
 
-  if (conn_current.is_string_empty()) conn_current = rpc::call_command_void("protocol.connection.seed", rpc::make_target(download));
-  if (choke_up.is_string_empty())     choke_up     = rpc::call_command_void("protocol.choke_heuristics.up.seed", rpc::make_target(download));
-  if (choke_down.is_string_empty())   choke_down   = rpc::call_command_void("protocol.choke_heuristics.down.seed", rpc::make_target(download));
+  if (conn_current.is_string_empty()) conn_current = rpc::call_command("protocol.connection.seed", torrent::Object(), rpc::make_target(download));
+  if (choke_up.is_string_empty())     choke_up     = rpc::call_command("protocol.choke_heuristics.up.seed", torrent::Object(), rpc::make_target(download));
+  if (choke_down.is_string_empty())   choke_down   = rpc::call_command("protocol.choke_heuristics.down.seed", torrent::Object(), rpc::make_target(download));
 
   rpc::call_command("d.connection_current.set",    conn_current, rpc::make_target(download));
   rpc::call_command("d.up.choke_heuristics.set",   choke_up, rpc::make_target(download));
@@ -641,11 +641,11 @@ DownloadList::confirm_finished(Download* download) {
 
   if (rpc::call_command_value("d.peers_min", rpc::make_target(download)) == rpc::call_command_value("throttle.min_peers.normal") &&
       rpc::call_command_value("throttle.min_peers.seed") >= 0)
-    rpc::call_command("d.peers_min.set", rpc::call_command_void("throttle.min_peers.seed"), rpc::make_target(download));
+    rpc::call_command("d.peers_min.set", rpc::call_command("throttle.min_peers.seed"), rpc::make_target(download));
 
   if (rpc::call_command_value("d.peers_max", rpc::make_target(download)) == rpc::call_command_value("throttle.max_peers.normal") &&
       rpc::call_command_value("throttle.max_peers.seed") >= 0)
-    rpc::call_command("d.peers_max.set", rpc::call_command_void("throttle.max_peers.seed"), rpc::make_target(download));
+    rpc::call_command("d.peers_max.set", rpc::call_command("throttle.max_peers.seed"), rpc::make_target(download));
 
   // Do this before the slots are called in case one of them closes
   // the download.

@@ -1,6 +1,6 @@
-AC_INIT(rtorrent, 0.9.2, jaris@ifi.uio.no)
+AC_INIT(rtorrent, 0.9.3, jaris@ifi.uio.no)
 
-AC_DEFINE(API_VERSION, 6, api version)
+AC_DEFINE(API_VERSION, 8, api version)
 
 AM_INIT_AUTOMAKE
 AM_CONFIG_HEADER(config.h)
@@ -49,7 +49,7 @@ PKG_CHECK_MODULES(libcurl, libcurl >= 7.15.4,
 	          CXXFLAGS="$CXXFLAGS $libcurl_CFLAGS";
 		  LIBS="$LIBS $libcurl_LIBS")
 
-PKG_CHECK_MODULES(libtorrent, libtorrent >= 0.13.2,
+PKG_CHECK_MODULES(libtorrent, libtorrent >= 0.13.3,
 	          CXXFLAGS="$CXXFLAGS $libtorrent_CFLAGS";
 		  LIBS="$LIBS $libtorrent_LIBS")
 
