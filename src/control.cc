@@ -115,7 +115,9 @@ Control::initialize() {
 
   m_ui->init(this);
 
-  m_inputStdin->insert(torrent::main_thread()->poll());
+  if(display::Canvas::have_term()) {
+    m_inputStdin->insert(torrent::main_thread()->poll());
+  }
 }
 
 void
@@ -124,9 +126,11 @@ Control::cleanup() {
   rpc::xmlrpc.cleanup();
 
   priority_queue_erase(&taskScheduler, &m_taskShutdown);
-
-  m_inputStdin->remove(torrent::main_thread()->poll());
-
+  
+  if(display::Canvas::have_term()) {
+    m_inputStdin->remove(torrent::main_thread()->poll());
+  }
+  
   m_core->download_store()->disable();
 
   m_ui->cleanup();

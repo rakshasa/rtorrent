@@ -49,37 +49,37 @@ public:
   typedef std::vector<Attributes> attributes_list;
 
   Canvas(int x = 0, int y = 0, int width = 0, int height = 0);
-  ~Canvas() { delwin(m_window); }
+  ~Canvas() { if(m_haveTerm){ delwin(m_window); } }
 
-  void                refresh()                                               { wnoutrefresh(m_window); }
-  static void         refresh_std()                                           { wnoutrefresh(stdscr); }
-  void                redraw()                                                { redrawwin(m_window); }
-  static void         redraw_std()                                            { redrawwin(stdscr); }
+  void                refresh()                                               { if(m_haveTerm){  wnoutrefresh(m_window); } }
+  static void         refresh_std()                                           { if(m_haveTerm){ wnoutrefresh(stdscr); } }
+  void                redraw()                                                { if(m_haveTerm){ redrawwin(m_window); } }
+  static void         redraw_std()                                            { if(m_haveTerm){ redrawwin(stdscr); } }
 
-  void                resize(int w, int h)                                    { wresize(m_window, h, w); }
+  void                resize(int w, int h)                                    { if(m_haveTerm){ wresize(m_window, h, w); } }
   void                resize(int x, int y, int w, int h);
 
-  static void         resize_term(int x, int y)                               { resizeterm(y, x); }
-  static void         resize_term(std::pair<int, int> dim)                    { resizeterm(dim.second, dim.first); }
+  static void         resize_term(int x, int y)                               { if(m_haveTerm){ resizeterm(y, x); } }
+  static void         resize_term(std::pair<int, int> dim)                    { if(m_haveTerm){ resizeterm(dim.second, dim.first); } }
 
-  unsigned int        get_x()                                                 { int x, __UNUSED y; getyx(m_window, y, x); return x; }
-  unsigned int        get_y()                                                 { int x, y; getyx(m_window, y, x); return y; }
+  unsigned int        get_x()                                                 { int x, __UNUSED y; if(m_haveTerm){ getyx(m_window, y, x); } else { y=1; } return x; } 
+  unsigned int        get_y()                                                 { int x, y; if(m_haveTerm){ getyx(m_window, y, x); } else { y=1; } return y; }
 
-  unsigned int        width()                                                 { int x, __UNUSED y; getmaxyx(m_window, y, x); return x; }
-  unsigned int        height()                                                { int x, y; getmaxyx(m_window, y, x); return y; }
+  unsigned int        width()                                                 { int x, __UNUSED y; if(m_haveTerm){ getmaxyx(m_window, y, x); } else { x=80; } return x; }
+  unsigned int        height()                                                { int x, y; if(m_haveTerm){ getmaxyx(m_window, y, x); } else { y=24; } return y; }
 
-  void                move(unsigned int x, unsigned int y)                    { wmove(m_window, y, x); }
+  void                move(unsigned int x, unsigned int y)                    { if(m_haveTerm){ wmove(m_window, y, x); } }
 
-  chtype              get_background()                                        { return getbkgd(m_window); }
-  void                set_background(chtype c)                                { return wbkgdset(m_window, c); }
+  chtype              get_background()                                        { chtype bg=0; if(m_haveTerm){ bg=getbkgd(m_window); } return bg; }
+  void                set_background(chtype c)                                { if(m_haveTerm){ wbkgdset(m_window, c); } }
 
-  void                erase()                                                 { werase(m_window); }
-  static void         erase_std()                                             { werase(stdscr); }
+  void                erase()                                                 { if(m_haveTerm){ werase(m_window); } }
+  static void         erase_std()                                             { if(m_haveTerm){ werase(stdscr); } }
 
   void                print_border(chtype ls, chtype rs,
                                    chtype ts, chtype bs,
                                    chtype tl, chtype tr,
-                                   chtype bl, chtype br)                      { wborder(m_window, ls, rs, ts, bs, tl, tr, bl, br); }
+                                   chtype bl, chtype br)                      { if(m_haveTerm){ wborder(m_window, ls, rs, ts, bs, tl, tr, bl, br); } }
 
   // The format string is non-const, but that will not be a problem
   // since the string shall always be a C string choosen at
@@ -90,50 +90,61 @@ public:
 
   void                print_attributes(unsigned int x, unsigned int y, const char* first, const char* last, const attributes_list* attributes);
 
-  void                print_char(const chtype ch)                                 { waddch(m_window, ch); }
-  void                print_char(unsigned int x, unsigned int y, const chtype ch) { mvwaddch(m_window, y, x, ch); }
+  void                print_char(const chtype ch)                                 { if(m_haveTerm){ waddch(m_window, ch); } }
+  void                print_char(unsigned int x, unsigned int y, const chtype ch) { if(m_haveTerm){ mvwaddch(m_window, y, x, ch); } }
 
-  void                set_attr(unsigned int x, unsigned int y, unsigned int n, int attr, int color) { mvwchgat(m_window, y, x, n, attr, color, NULL); }
+  void                set_attr(unsigned int x, unsigned int y, unsigned int n, int attr, int color) { if(m_haveTerm){ mvwchgat(m_window, y, x, n, attr, color, NULL); } }
 
-  void                set_default_attributes(int attr)                            { (void)wattrset(m_window, attr); }
+  void                set_default_attributes(int attr)                            { if(m_haveTerm){ (void)wattrset(m_window, attr); } }
 
   // Initialize stdscr.
   static void         initialize();
   static void         cleanup();
 
-  static int          get_screen_width()                                      { int x, __UNUSED y; getmaxyx(stdscr, y, x); return x; }
-  static int          get_screen_height()                                     { int x, y; getmaxyx(stdscr, y, x); return y; }
+  static int          get_screen_width()                                      { int x, __UNUSED y; if(m_haveTerm){  getmaxyx(stdscr, y, x); } else { x=80; } return x; }
+  static int          get_screen_height()                                     { int x, y; if(m_haveTerm){ getmaxyx(stdscr, y, x); } else { y=24;} return y; }
 
   static std::pair<int, int> term_size();
 
-  static void         do_update()                                             { doupdate(); }
+  static void         do_update()                                             { if(m_haveTerm){ doupdate(); } }
+
+  static bool         have_term()                                             { return m_haveTerm; }
 
 private:
   Canvas(const Canvas&);
   void operator = (const Canvas&);
 
   static bool         m_isInitialized;
-
+  
+  static bool         m_haveTerm;
+  
   WINDOW*             m_window;
+
+	
+
 };
 
 inline void
 Canvas::print(const char* str, ...) {
   va_list arglist;
-
-  va_start(arglist, str);
-  vw_printw(m_window, const_cast<char*>(str), arglist);
-  va_end(arglist);
+  
+  if(m_haveTerm) {
+    va_start(arglist, str);
+    vw_printw(m_window, const_cast<char*>(str), arglist);
+    va_end(arglist);
+  }
 }
 
 inline void
 Canvas::print(unsigned int x, unsigned int y, const char* str, ...) {
   va_list arglist;
 
-  va_start(arglist, str);
-  wmove(m_window, y, x);
-  vw_printw(m_window, const_cast<char*>(str), arglist);
-  va_end(arglist);
+  if(m_haveTerm) {
+    va_start(arglist, str);
+    wmove(m_window, y, x);
+    vw_printw(m_window, const_cast<char*>(str), arglist);
+    va_end(arglist);
+  }
 }
 
 }

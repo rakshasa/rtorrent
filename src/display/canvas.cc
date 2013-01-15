@@ -46,49 +46,55 @@
 namespace display {
 
 bool Canvas::m_isInitialized = false;
+bool Canvas::m_haveTerm = false;
 
-Canvas::Canvas(int x, int y, int width, int height) :
-  m_window(newwin(height, width, y, x)) {
-
-  if (m_window == NULL)
-    throw torrent::internal_error("Could not allocate ncurses canvas.");
+Canvas::Canvas(int x, int y, int width, int height) {
+  if(m_haveTerm) {
+    m_window = newwin(height, width, y, x);
+    if (m_window == NULL)
+      throw torrent::internal_error("Could not allocate ncurses canvas.");
+  }
 }
 
 void
 Canvas::resize(int x, int y, int w, int h) {
-  wresize(m_window, h, w);
-  mvwin(m_window, y, x);
+  if(m_haveTerm) {
+    wresize(m_window, h, w);
+    mvwin(m_window, y, x);
+  }
 }
 
 void
 Canvas::print_attributes(unsigned int x, unsigned int y, const char* first, const char* last, const attributes_list* attributes) {
-  move(x, y);
+  if(m_haveTerm) {
+    move(x, y);
+  
+    attr_t org_attr;
+    short org_pair;
+    wattr_get(m_window, &org_attr, &org_pair, NULL);
+  
+    attributes_list::const_iterator attrItr = attributes->begin();
+    wattr_set(m_window, Attributes::a_normal, Attributes::color_default, NULL);
 
-  attr_t org_attr;
-  short org_pair;
-  wattr_get(m_window, &org_attr, &org_pair, NULL);
+    while (first != last) {
+      const char* next = last;
 
-  attributes_list::const_iterator attrItr = attributes->begin();
-  wattr_set(m_window, Attributes::a_normal, Attributes::color_default, NULL);
+      if (attrItr != attributes->end()) {
+        next = attrItr->position();
 
-  while (first != last) {
-    const char* next = last;
-
-    if (attrItr != attributes->end()) {
-      next = attrItr->position();
-
-      if (first >= next) {
-        wattr_set(m_window, attrItr->attributes(), attrItr->colors(), NULL);
-        ++attrItr;
+        if (first >= next) {
+          wattr_set(m_window, attrItr->attributes(), attrItr->colors(), NULL);
+          ++attrItr;
+        }
       }
+
+      print("%.*s", next - first, first);
+      first = next;
     }
 
-    print("%.*s", next - first, first);
-    first = next;
+    // Reset the color.
+    wattr_set(m_window, org_attr, org_pair, NULL);
   }
-
-  // Reset the color.
-  wattr_set(m_window, org_attr, org_pair, NULL);
 }
 
 void
@@ -96,35 +102,41 @@ Canvas::initialize() {
   if (m_isInitialized)
     return;
   
+  struct termios termios_info_str;
+  m_haveTerm = tcgetattr(STDIN_FILENO, &termios_info_str) == 0;
+
   m_isInitialized = true;
 
-  initscr();
-  raw();
-  noecho();
-  nodelay(stdscr, TRUE);
-  keypad(stdscr, TRUE);
-  curs_set(0);
+  if(m_haveTerm) {
+    initscr();
+    raw();
+    noecho();
+    nodelay(stdscr, TRUE);
+    keypad(stdscr, TRUE);
+    curs_set(0);
+  }
 }
 
 void
 Canvas::cleanup() {
   if (!m_isInitialized)
     return;
-  
-  m_isInitialized = false;
+  if(m_haveTerm) {
+    m_isInitialized = false;
 
-  noraw();
-  endwin();
+    noraw();
+    endwin();
+  }
 }
 
 std::pair<int, int>
 Canvas::term_size() {
   struct winsize ws;
-
-  if (ioctl(STDIN_FILENO, TIOCGWINSZ, &ws) == 0)
-    return std::pair<int, int>(ws.ws_col, ws.ws_row);
-  else
-    return std::pair<int, int>(80, 24);
+  if(m_haveTerm) {
+    if (ioctl(STDIN_FILENO, TIOCGWINSZ, &ws) == 0)
+      return std::pair<int, int>(ws.ws_col, ws.ws_row);
+  }
+  return std::pair<int, int>(80, 24);
 }
 
 }
