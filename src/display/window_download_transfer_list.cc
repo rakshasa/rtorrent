@@ -50,8 +50,7 @@ namespace display {
 
 WindowDownloadTransferList::WindowDownloadTransferList(core::Download* d, unsigned int *focus) :
   Window(new Canvas, 0, 0, 0, extent_full, extent_full),
-  m_download(d),
-  m_focus(focus) {
+  m_download(d) {
 }
 
 void
