@@ -160,7 +160,7 @@ ThreadBase::queue_item(thread_base_func newFunc) {
 
   // Make it also restart inactive threads?
   if (m_state == STATE_ACTIVE)
-    pthread_kill(m_thread, SIGUSR1);
+    interrupt();
 }
 
 void
@@ -168,7 +168,7 @@ ThreadBase::interrupt_main_polling() {
   int sleep_length = 0;
 
   while (ThreadBase::is_main_polling()) {
-    pthread_kill(torrent::main_thread()->pthread(), SIGUSR1);
+    torrent::main_thread()->interrupt();
 
     if (!ThreadBase::is_main_polling())
       return;
