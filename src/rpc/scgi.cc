@@ -169,12 +169,12 @@ SCgi::receive_call(SCgiTask* task, const char* buffer, uint32_t length) {
   slot_write slotWrite;
   slotWrite.set(rak::mem_fn(task, &SCgiTask::receive_write));
 
-  ThreadBase::acquire_global_lock();
-  ThreadBase::interrupt_main_polling();
+  torrent::thread_base::acquire_global_lock();
+  torrent::main_thread()->interrupt();
 
   bool result = xmlrpc.process(buffer, length, slotWrite);
 
-  ThreadBase::release_global_lock();
+  torrent::thread_base::release_global_lock();
 
   return result;
 }

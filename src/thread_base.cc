@@ -162,18 +162,3 @@ ThreadBase::queue_item(thread_base_func newFunc) {
   if (m_state == STATE_ACTIVE)
     interrupt();
 }
-
-void
-ThreadBase::interrupt_main_polling() {
-  int sleep_length = 0;
-
-  while (ThreadBase::is_main_polling()) {
-    torrent::main_thread()->interrupt();
-
-    if (!ThreadBase::is_main_polling())
-      return;
-
-    usleep(sleep_length);
-    sleep_length = std::min(sleep_length + 50, 1000);
-  }
-}

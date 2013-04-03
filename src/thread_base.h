@@ -66,14 +66,6 @@ public:
 
   void                queue_item(thread_base_func newFunc);
 
-  // Only call this when global lock has been acquired, as it checks
-  // ThreadBase::is_main_polling() which is only guaranteed to remain
-  // 'false' if global lock keeps main thread from entering polling
-  // again.
-  //
-  // Move to libtorrent some day.
-  static void         interrupt_main_polling();
-
 protected:
   int64_t             next_timeout_usec();
 
