@@ -37,7 +37,7 @@
 #ifndef RTORRENT_SIGNAL_HANDLER_H
 #define RTORRENT_SIGNAL_HANDLER_H
 
-#include <sys/signal.h>
+#include <signal.h>
 #include <sigc++/functors/slot.h>
 
 class SignalHandler {
