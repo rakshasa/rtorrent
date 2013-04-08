@@ -76,12 +76,13 @@ SignalHandler::set_handler(unsigned int signum, Slot slot) {
 
   struct sigaction sa;
   sigemptyset(&sa.sa_mask);
-  sa.sa_flags = 0;
+  sa.sa_flags = SA_RESTART;
   sa.sa_handler = &SignalHandler::caught;
 
-  sigaction(signum, &sa, NULL);
-
-  m_handlers[signum] = slot;
+  if (sigaction(signum, &sa, NULL) == -1)
+    throw std::logic_error("Could not set sigaction: " + std::string(rak::error_number::current().c_str()));
+  else
+    m_handlers[signum] = slot;
 }
 
 void
