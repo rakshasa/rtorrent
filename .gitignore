@@ -66,3 +66,4 @@ TAGS
 ###########################
 src/rtorrent
 test/rtorrentTest
+test-driver
