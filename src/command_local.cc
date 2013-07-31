@@ -49,7 +49,6 @@
 #include <torrent/data/file_manager.h>
 #include <torrent/data/chunk_utils.h>
 #include <torrent/utils/log.h>
-#include <torrent/utils/log_files.h>
 #include <torrent/utils/option_strings.h>
 
 #include "core/download.h"
@@ -112,27 +111,6 @@ apply_log(const torrent::Object::string_type& arg, int logType) {
   } else {
     control->core()->push_log("Closed log file.");
   }
-
-  return torrent::Object();
-}
-
-torrent::Object
-apply_log_libtorrent(const torrent::Object::list_type& args) {
-  if (args.empty() || args.size() > 2)
-    throw torrent::input_error("Invalid argument count.");
-  
-  torrent::log_file* log_file = torrent::find_log_file(args.front().as_string().c_str());
-
-  if (log_file == NULL)
-    throw torrent::input_error("Invalid log name.");
-
-  if (args.size() == 1) {
-    log_file->close();
-    return torrent::Object();
-  }
-  
-  if (!log_file->open_file(args.back().as_string().c_str()))
-    throw torrent::input_error("Could not open log file.");
 
   return torrent::Object();
 }
@@ -419,7 +397,6 @@ initialize_command_local() {
   CMD2_ANY_STRING  ("log.execute",    tr1::bind(&apply_log, tr1::placeholders::_2, 0));
   CMD2_ANY_STRING  ("log.vmmap.dump", tr1::bind(&log_vmmap_dump, tr1::placeholders::_2));
   CMD2_ANY_STRING_V("log.xmlrpc",     tr1::bind(&ThreadWorker::set_xmlrpc_log, worker_thread, tr1::placeholders::_2));
-  CMD2_ANY_LIST    ("log.libtorrent", tr1::bind(&apply_log_libtorrent, tr1::placeholders::_2));
 
   CMD2_ANY_LIST    ("file.append",    tr1::bind(&cmd_file_append, tr1::placeholders::_2));
 
