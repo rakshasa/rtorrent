@@ -65,3 +65,4 @@ TAGS
 src/rtorrent
 test/rtorrentTest
 test-driver
+test/rtorrentTest.trs
