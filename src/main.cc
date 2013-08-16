@@ -189,8 +189,8 @@ main(int argc, char** argv) {
 
     control = new Control;
     
-    srandom(cachedTime.usec());
-    srand48(cachedTime.usec());
+    srandom(cachedTime.usec() ^ (getpid() << 16) ^ getppid());
+    srand48(cachedTime.usec() ^ (getpid() << 16) ^ getppid());
 
     SignalHandler::set_ignore(SIGPIPE);
     SignalHandler::set_handler(SIGINT,   sigc::mem_fun(control, &Control::receive_normal_shutdown));
