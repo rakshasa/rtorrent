@@ -262,7 +262,6 @@ main(int argc, char** argv) {
        "method.insert = event.download.hash_removed,multi|rlookup|static\n"
        "method.insert = event.download.hash_queued,multi|rlookup|static\n"
 
-       "method.set_key = event.download.inserted,         1_connect_logs, ((d.initialize_logs))\n"
        "method.set_key = event.download.inserted,         1_send_scrape, ((d.tracker.send_scrape,30))\n"
        "method.set_key = event.download.inserted_new,     1_prepare, {(branch,((d.state)),((view.set_visible,started)),((view.set_visible,stopped)) ),(d.save_full_session)}\n"
        "method.set_key = event.download.inserted_session, 1_prepare, {(branch,((d.state)),((view.set_visible,started)),((view.set_visible,stopped)) )}\n"

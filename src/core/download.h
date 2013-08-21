@@ -140,7 +140,6 @@ private:
   void operator () (const Download&);
 
   void                receive_tracker_msg(std::string msg);
-  void                receive_storage_error(std::string msg);
 
   void                receive_chunk_failed(uint32_t idx);
 

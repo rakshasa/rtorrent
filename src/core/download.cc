@@ -65,7 +65,6 @@ Download::Download(download_type d) :
 
   m_download.info()->signal_tracker_success().push_back(tr1::bind(&Download::receive_tracker_msg, this, ""));
   m_download.info()->signal_tracker_failed().push_back(tr1::bind(&Download::receive_tracker_msg, this, tr1::placeholders::_1));
-  m_download.info()->signal_storage_error().push_back(tr1::bind(&Download::receive_storage_error, this, tr1::placeholders::_1));
   m_download.info()->signal_chunk_failed().push_back(tr1::bind(&Download::receive_chunk_failed, this, tr1::placeholders::_1));
 }
 
@@ -116,11 +115,6 @@ Download::receive_tracker_msg(std::string msg) {
     m_message = "";
   else
     m_message = "Tracker: [" + msg + "]";
-}
-
-void
-Download::receive_storage_error(std::string msg) {
-  m_message = "Storage error: [" + msg + "]";
 }
 
 float
