@@ -43,6 +43,7 @@
 #include <sstream>
 #include <string>
 #include <inttypes.h>
+#include <unistd.h>
 #include <sigc++/adaptors/bind.h>
 #include <torrent/http.h>
 #include <torrent/torrent.h>
