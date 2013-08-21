@@ -30,4 +30,4 @@ libsub_ui_a_SOURCES = \
 	root.cc \
 	root.h
 
-INCLUDES = -I$(srcdir) -I$(srcdir)/.. -I$(top_srcdir)
+AM_CPPFLAGS = -I$(srcdir) -I$(srcdir)/.. -I$(top_srcdir)
