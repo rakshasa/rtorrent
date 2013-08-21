@@ -37,6 +37,7 @@
 #include "config.h"
 
 #include <torrent/rate.h>
+#include <torrent/data/transfer_list.h>
 #include <torrent/tracker_controller.h>
 #include <torrent/tracker_list.h>
 #include <torrent/peer/connection_list.h>
@@ -83,7 +84,7 @@ WindowDownloadStatusbar::redraw() {
            (int)m_download->download()->peers_accounted(),
            (int)m_download->info()->upload_unchoked(),
            (int)m_download->info()->download_unchoked(),
-           (int)m_download->chunks_failed());
+           (int)m_download->download()->transfer_list()->failed_count());
 
   m_canvas->print(0, 1, "%s", buffer);
 
