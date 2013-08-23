@@ -36,7 +36,6 @@
 
 #include "config.h"
 
-#include <sigc++/adaptors/bind.h>
 #include <rak/algorithm.h>
 #include <torrent/exceptions.h>
 #include <torrent/data/file.h>
@@ -64,17 +63,17 @@ ElementFileList::ElementFileList(core::Download* d) :
   m_selected(iterator(d->download()->file_list()->begin())),
   m_collapsed(false) {
 
-  m_bindings[KEY_LEFT] = m_bindings['B' - '@']  = sigc::mem_fun(&m_slotExit, &slot_type::operator());
-  m_bindings[KEY_RIGHT] = m_bindings['F' - '@'] = sigc::mem_fun(*this, &ElementFileList::receive_select);
+  m_bindings[KEY_LEFT]  = m_bindings['B' - '@'] = std::tr1::bind(&slot_type::operator(), &m_slot_exit);
+  m_bindings[KEY_RIGHT] = m_bindings['F' - '@'] = std::tr1::bind(&ElementFileList::receive_select, this);
 
-  m_bindings[' '] = sigc::mem_fun(*this, &ElementFileList::receive_priority);
-  m_bindings['*'] = sigc::mem_fun(*this, &ElementFileList::receive_change_all);
-  m_bindings['/'] = sigc::mem_fun(*this, &ElementFileList::receive_collapse);
-  m_bindings[KEY_NPAGE] = sigc::mem_fun(*this, &ElementFileList::receive_pagenext);
-  m_bindings[KEY_PPAGE] = sigc::mem_fun(*this, &ElementFileList::receive_pageprev);
+  m_bindings[' '] = std::tr1::bind(&ElementFileList::receive_priority, this);
+  m_bindings['*'] = std::tr1::bind(&ElementFileList::receive_change_all, this);
+  m_bindings['/'] = std::tr1::bind(&ElementFileList::receive_collapse, this);
+  m_bindings[KEY_NPAGE] = std::tr1::bind(&ElementFileList::receive_pagenext, this);
+  m_bindings[KEY_PPAGE] = std::tr1::bind(&ElementFileList::receive_pageprev, this);
 
-  m_bindings[KEY_DOWN] = m_bindings['N' - '@'] = sigc::mem_fun(*this, &ElementFileList::receive_next);
-  m_bindings[KEY_UP]   = m_bindings['P' - '@'] = sigc::mem_fun(*this, &ElementFileList::receive_prev);
+  m_bindings[KEY_DOWN] = m_bindings['N' - '@'] = std::tr1::bind(&ElementFileList::receive_next, this);
+  m_bindings[KEY_UP]   = m_bindings['P' - '@'] = std::tr1::bind(&ElementFileList::receive_prev, this);
 }
 
 inline ElementText*
@@ -118,7 +117,7 @@ ElementFileList::activate(display::Frame* frame, bool focus) {
   m_window->set_focused(focus);
 
   m_elementInfo = element_file_list_create_info();
-  m_elementInfo->slot_exit(sigc::bind(sigc::mem_fun(this, &ElementFileList::activate_display), DISPLAY_LIST));
+  m_elementInfo->slot_exit(std::tr1::bind(&ElementFileList::activate_display, this, DISPLAY_LIST));
   m_elementInfo->set_target(rpc::make_target(&m_selected));
 
   m_frame = frame;

@@ -216,7 +216,7 @@ DownloadFactory::receive_success() {
   if (download == NULL) {
     // core::Manager should already have added the error message to
     // the log.
-    m_slotFinished();
+    m_slot_finished();
     return;
   }
 
@@ -304,7 +304,7 @@ DownloadFactory::receive_success() {
     // ATM doesn't really ever get here.
     delete download;
 
-    m_slotFinished();
+    m_slot_finished();
     return;
   }
 
@@ -341,7 +341,7 @@ DownloadFactory::receive_success() {
     }
   }
 
-  m_slotFinished();
+  m_slot_finished();
 }
 
 void
@@ -376,7 +376,7 @@ DownloadFactory::receive_failed(const std::string& msg) {
   if (m_printLog)
     m_manager->push_log_std(msg + ": \"" + m_uri + "\"");
 
-  m_slotFinished();
+  m_slot_finished();
 }
 
 void

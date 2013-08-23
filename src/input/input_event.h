@@ -37,15 +37,15 @@
 #ifndef RTORRENT_INPUT_INPUT_EVENT_H
 #define RTORRENT_INPUT_INPUT_EVENT_H
 
-#include <sigc++/functors/slot.h>
 #include <torrent/event.h>
 #include <torrent/poll.h>
+#include <tr1/functional>
 
 namespace input {
 
 class InputEvent : public torrent::Event {
 public:
-  typedef sigc::slot<void, int> SlotInt;
+  typedef std::tr1::function<void (int)> slot_int;
 
   InputEvent(int fd) { m_fileDesc = fd; }
 
@@ -56,10 +56,10 @@ public:
   void                event_write();
   void                event_error();
 
-  void                slot_pressed(SlotInt s) { m_slotPressed = s; }
+  void                slot_pressed(slot_int s) { m_slotPressed = s; }
 
 private:
-  SlotInt             m_slotPressed;
+  slot_int            m_slotPressed;
 };
 
 }

@@ -43,32 +43,30 @@
 #include <getopt.h>
 #include <stdexcept>
 #include <unistd.h>
-#include <sigc++/adaptors/bind.h>
-#include <sigc++/adaptors/hide.h>
 
 #include "option_parser.h"
 
 void
-OptionParser::insert_flag(char c, Slot s) {
-  m_container[c].m_slot = sigc::hide(s);
+OptionParser::insert_flag(char c, slot_string s) {
+  m_container[c].m_slot = s;
   m_container[c].m_useOption = false;
 }
 
 void
-OptionParser::insert_option(char c, SlotString s) {
+OptionParser::insert_option(char c, slot_string s) {
   m_container[c].m_slot = s;
   m_container[c].m_useOption = true;
 }
 
 void
-OptionParser::insert_option_list(char c, SlotStringPair s) {
-  m_container[c].m_slot = sigc::bind<0>(sigc::ptr_fun(&OptionParser::call_option_list), s);
+OptionParser::insert_option_list(char c, slot_string_pair s) {
+  m_container[c].m_slot = std::tr1::bind(&OptionParser::call_option_list, s, std::tr1::placeholders::_1);
   m_container[c].m_useOption = true;
 }
 
 void
-OptionParser::insert_int_pair(char c, SlotIntPair s) {
-  m_container[c].m_slot = sigc::bind<0>(sigc::ptr_fun(&OptionParser::call_int_pair), s);
+OptionParser::insert_int_pair(char c, slot_int_pair s) {
+  m_container[c].m_slot = std::tr1::bind(&OptionParser::call_int_pair, s, std::tr1::placeholders::_1);
   m_container[c].m_useOption = true;
 }
 
@@ -118,7 +116,7 @@ OptionParser::call(char c, const std::string& arg) {
 }
 
 void
-OptionParser::call_option_list(SlotStringPair slot, const std::string& arg) {
+OptionParser::call_option_list(slot_string_pair slot, const std::string& arg) {
   std::string::const_iterator itr = arg.begin();
 
   while (itr != arg.end()) {
@@ -138,7 +136,7 @@ OptionParser::call_option_list(SlotStringPair slot, const std::string& arg) {
 }
 
 void
-OptionParser::call_int_pair(SlotIntPair slot, const std::string& arg) {
+OptionParser::call_int_pair(slot_int_pair slot, const std::string& arg) {
   int a, b;
 
   if (std::sscanf(arg.c_str(), "%u-%u", &a, &b) != 2)

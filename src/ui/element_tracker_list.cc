@@ -54,13 +54,13 @@ ElementTrackerList::ElementTrackerList(core::Download* d) :
   m_window(NULL),
   m_focus(0) {
 
-  m_bindings[KEY_LEFT] = m_bindings['B' - '@'] = sigc::mem_fun(&m_slotExit, &slot_type::operator());
+  m_bindings[KEY_LEFT] = m_bindings['B' - '@'] = std::tr1::bind(&slot_type::operator(), &m_slot_exit);
 
-  m_bindings[' ']      = sigc::mem_fun(*this, &ElementTrackerList::receive_cycle_group);
-  m_bindings['*']      = sigc::mem_fun(*this, &ElementTrackerList::receive_disable);
+  m_bindings[' ']      = std::tr1::bind(&ElementTrackerList::receive_cycle_group, this);
+  m_bindings['*']      = std::tr1::bind(&ElementTrackerList::receive_disable, this);
 
-  m_bindings[KEY_DOWN] = m_bindings['N' - '@'] = sigc::mem_fun(*this, &ElementTrackerList::receive_next);
-  m_bindings[KEY_UP]   = m_bindings['P' - '@'] = sigc::mem_fun(*this, &ElementTrackerList::receive_prev);
+  m_bindings[KEY_DOWN] = m_bindings['N' - '@'] = std::tr1::bind(&ElementTrackerList::receive_next, this);
+  m_bindings[KEY_UP]   = m_bindings['P' - '@'] = std::tr1::bind(&ElementTrackerList::receive_prev, this);
 }
 
 void

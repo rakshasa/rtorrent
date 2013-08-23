@@ -76,7 +76,7 @@ Control::Control() :
   m_viewManager = new core::ViewManager();
   m_dhtManager  = new core::DhtManager();
 
-  m_inputStdin->slot_pressed(sigc::mem_fun(m_input, &input::Manager::pressed));
+  m_inputStdin->slot_pressed(std::tr1::bind(&input::Manager::pressed, m_input, std::tr1::placeholders::_1));
 
   m_taskShutdown.slot() = std::tr1::bind(&Control::handle_shutdown, this);
 

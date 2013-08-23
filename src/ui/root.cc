@@ -38,7 +38,6 @@
 
 #include <stdexcept>
 #include <string.h>
-#include <sigc++/adaptors/bind.h>
 #include <torrent/throttle.h>
 #include <torrent/torrent.h>
 #include <torrent/download/resource_manager.h>
@@ -141,23 +140,23 @@ Root::setup_keys() {
 
   const char* keys = get_throttle_keys();
 
-  m_bindings[keys[ 0]]      = sigc::bind(sigc::mem_fun(*this, &Root::adjust_up_throttle), 1);
-  m_bindings[keys[ 1]]      = sigc::bind(sigc::mem_fun(*this, &Root::adjust_up_throttle), -1);
-  m_bindings[keys[ 2]]      = sigc::bind(sigc::mem_fun(*this, &Root::adjust_down_throttle), 1);
-  m_bindings[keys[ 3]]      = sigc::bind(sigc::mem_fun(*this, &Root::adjust_down_throttle), -1);
+  m_bindings[keys[ 0]]      = std::tr1::bind(&Root::adjust_up_throttle, this, 1);
+  m_bindings[keys[ 1]]      = std::tr1::bind(&Root::adjust_up_throttle, this, -1);
+  m_bindings[keys[ 2]]      = std::tr1::bind(&Root::adjust_down_throttle, this, 1);
+  m_bindings[keys[ 3]]      = std::tr1::bind(&Root::adjust_down_throttle, this, -1);
 
-  m_bindings[keys[ 4]]      = sigc::bind(sigc::mem_fun(*this, &Root::adjust_up_throttle), 5);
-  m_bindings[keys[ 5]]      = sigc::bind(sigc::mem_fun(*this, &Root::adjust_up_throttle), -5);
-  m_bindings[keys[ 6]]      = sigc::bind(sigc::mem_fun(*this, &Root::adjust_down_throttle), 5);
-  m_bindings[keys[ 7]]      = sigc::bind(sigc::mem_fun(*this, &Root::adjust_down_throttle), -5);
+  m_bindings[keys[ 4]]      = std::tr1::bind(&Root::adjust_up_throttle, this, 5);
+  m_bindings[keys[ 5]]      = std::tr1::bind(&Root::adjust_up_throttle, this, -5);
+  m_bindings[keys[ 6]]      = std::tr1::bind(&Root::adjust_down_throttle, this, 5);
+  m_bindings[keys[ 7]]      = std::tr1::bind(&Root::adjust_down_throttle, this, -5);
 
-  m_bindings[keys[ 8]]      = sigc::bind(sigc::mem_fun(*this, &Root::adjust_up_throttle), 50);
-  m_bindings[keys[ 9]]      = sigc::bind(sigc::mem_fun(*this, &Root::adjust_up_throttle), -50);
-  m_bindings[keys[10]]      = sigc::bind(sigc::mem_fun(*this, &Root::adjust_down_throttle), 50);
-  m_bindings[keys[11]]      = sigc::bind(sigc::mem_fun(*this, &Root::adjust_down_throttle), -50);
+  m_bindings[keys[ 8]]      = std::tr1::bind(&Root::adjust_up_throttle, this, 50);
+  m_bindings[keys[ 9]]      = std::tr1::bind(&Root::adjust_up_throttle, this, -50);
+  m_bindings[keys[10]]      = std::tr1::bind(&Root::adjust_down_throttle, this, 50);
+  m_bindings[keys[11]]      = std::tr1::bind(&Root::adjust_down_throttle, this, -50);
 
-  m_bindings['\x0C']        = sigc::mem_fun(m_control->display(), &display::Manager::force_redraw); // ^L
-  m_bindings['\x11']        = sigc::mem_fun(m_control, &Control::receive_normal_shutdown); // ^Q
+  m_bindings['\x0C']        = std::tr1::bind(&display::Manager::force_redraw, m_control->display()); // ^L
+  m_bindings['\x11']        = std::tr1::bind(&Control::receive_normal_shutdown, m_control); // ^Q
 }
 
 void
@@ -235,7 +234,7 @@ Root::enable_input(const std::string& title, input::TextInput* input) {
   if (m_windowInput->input() != NULL)
     throw torrent::internal_error("Root::enable_input(...) m_windowInput->input() != NULL.");
 
-  input->slot_dirty(sigc::mem_fun(m_windowInput, &WInput::mark_dirty));
+  input->slot_dirty(std::tr1::bind(&WInput::mark_dirty, m_windowInput));
 
   m_windowStatusbar->set_active(false);
 
@@ -244,8 +243,8 @@ Root::enable_input(const std::string& title, input::TextInput* input) {
   m_windowInput->set_title(title);
   m_windowInput->set_focus(true);
 
-  input->bindings()['\x0C'] = sigc::mem_fun(m_control->display(), &display::Manager::force_redraw); // ^L
-  input->bindings()['\x11'] = sigc::mem_fun(m_control, &Control::receive_normal_shutdown); // ^Q
+  input->bindings()['\x0C'] = std::tr1::bind(&display::Manager::force_redraw, m_control->display()); // ^L
+  input->bindings()['\x11'] = std::tr1::bind(&Control::receive_normal_shutdown, m_control); // ^Q
 
   control->input()->set_text_input(input);
   control->display()->adjust_layout();
@@ -256,7 +255,7 @@ Root::disable_input() {
   if (m_windowInput->input() == NULL)
     throw torrent::internal_error("Root::disable_input() m_windowInput->input() == NULL.");
 
-  m_windowInput->input()->slot_dirty(sigc::slot0<void>());
+  m_windowInput->input()->slot_dirty(ElementBase::slot_type());
 
   m_windowStatusbar->set_active(true);
 

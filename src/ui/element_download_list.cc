@@ -36,7 +36,6 @@
 
 #include "config.h"
 
-#include <sigc++/adaptors/bind.h>
 #include <torrent/exceptions.h>
 #include <torrent/object.h>
 #include <torrent/utils/log.h>
@@ -64,41 +63,42 @@ ElementDownloadList::ElementDownloadList() :
   if (m_view == NULL)
     throw torrent::internal_error("View \"main\" must be present to initialize the main display.");
 
-  m_bindings['\x13'] = sigc::bind(sigc::mem_fun(*this, &ElementDownloadList::receive_command), "d.start=");
-  m_bindings['\x04'] = sigc::bind(sigc::mem_fun(*this, &ElementDownloadList::receive_command), "branch=d.state=,d.stop=,d.erase=");
-  m_bindings['\x0B'] = sigc::bind(sigc::mem_fun(*this, &ElementDownloadList::receive_command), "d.ignore_commands.set=1; d.stop=; d.close=");
-  m_bindings['\x12'] = sigc::bind(sigc::mem_fun(*this, &ElementDownloadList::receive_command), "d.complete.set=0; d.check_hash=");
-  m_bindings['\x05'] = sigc::bind(sigc::mem_fun(*this, &ElementDownloadList::receive_command),
-                                         "f.multicall=,f.set_create_queued=0,f.set_resize_queued=0; print=\"Queued create/resize of files in torrent.\"");
+  m_bindings['\x13'] = std::tr1::bind(&ElementDownloadList::receive_command, this, "d.start=");
+  m_bindings['\x04'] = std::tr1::bind(&ElementDownloadList::receive_command, this, "branch=d.state=,d.stop=,d.erase=");
+  m_bindings['\x0B'] = std::tr1::bind(&ElementDownloadList::receive_command, this, "d.ignore_commands.set=1; d.stop=; d.close=");
+  m_bindings['\x12'] = std::tr1::bind(&ElementDownloadList::receive_command, this, "d.complete.set=0; d.check_hash=");
+  m_bindings['\x05'] = std::tr1::bind(&ElementDownloadList::receive_command, this,
+                                      "f.multicall=,f.set_create_queued=0,f.set_resize_queued=0; print=\"Queued create/resize of files in torrent.\"");
 
-  m_bindings['+']    = sigc::mem_fun(*this, &ElementDownloadList::receive_next_priority);
-  m_bindings['-']    = sigc::mem_fun(*this, &ElementDownloadList::receive_prev_priority);
-  m_bindings['T'-'@']= sigc::mem_fun(*this, &ElementDownloadList::receive_cycle_throttle);
-  m_bindings['I']    = sigc::bind(sigc::mem_fun(*this, &ElementDownloadList::receive_command),
+  m_bindings['+']    = std::tr1::bind(&ElementDownloadList::receive_next_priority, this);
+  m_bindings['-']    = std::tr1::bind(&ElementDownloadList::receive_prev_priority, this);
+  m_bindings['T'-'@']= std::tr1::bind(&ElementDownloadList::receive_cycle_throttle, this);
+  m_bindings['I']    = std::tr1::bind(&ElementDownloadList::receive_command, this,
                                   "branch=d.ignore_commands=,"
                                   "{d.ignore_commands.set=0, print=\"Torrent set to heed commands.\"},"
                                   "{d.ignore_commands.set=1, print=\"Torrent set to ignore commands.\"}");
-  m_bindings['B'-'@']= sigc::bind(sigc::mem_fun(*this, &ElementDownloadList::receive_command),
+  m_bindings['B'-'@']= std::tr1::bind(&ElementDownloadList::receive_command, this,
                                   "branch=d.is_active=,"
                                   "{print=\"Cannot enable initial seeding on an active download.\"},"
                                   "{d.connection_seed.set=initial_seed, print=\"Enabled initial seeding for the selected download.\"}");
 
-  m_bindings['U']    = sigc::bind(sigc::mem_fun(*this, &ElementDownloadList::receive_command), "d.delete_tied=; print=\"Cleared tied to file association for the selected download.\"");
+  m_bindings['U']    = std::tr1::bind(&ElementDownloadList::receive_command, this,
+                                      "d.delete_tied=; print=\"Cleared tied to file association for the selected download.\"");
 
   // These should also be commands.
-  m_bindings['1']           = sigc::bind(sigc::mem_fun(*this, &ElementDownloadList::receive_change_view), "main");
-  m_bindings['2']           = sigc::bind(sigc::mem_fun(*this, &ElementDownloadList::receive_change_view), "name");
-  m_bindings['3']           = sigc::bind(sigc::mem_fun(*this, &ElementDownloadList::receive_change_view), "started");
-  m_bindings['4']           = sigc::bind(sigc::mem_fun(*this, &ElementDownloadList::receive_change_view), "stopped");
-  m_bindings['5']           = sigc::bind(sigc::mem_fun(*this, &ElementDownloadList::receive_change_view), "complete");
-  m_bindings['6']           = sigc::bind(sigc::mem_fun(*this, &ElementDownloadList::receive_change_view), "incomplete");
-  m_bindings['7']           = sigc::bind(sigc::mem_fun(*this, &ElementDownloadList::receive_change_view), "hashing");
-  m_bindings['8']           = sigc::bind(sigc::mem_fun(*this, &ElementDownloadList::receive_change_view), "seeding");
-  m_bindings['9']           = sigc::bind(sigc::mem_fun(*this, &ElementDownloadList::receive_change_view), "leeching");
-  m_bindings['0']           = sigc::bind(sigc::mem_fun(*this, &ElementDownloadList::receive_change_view), "active");
+  m_bindings['1']           = std::tr1::bind(&ElementDownloadList::receive_change_view, this, "main");
+  m_bindings['2']           = std::tr1::bind(&ElementDownloadList::receive_change_view, this, "name");
+  m_bindings['3']           = std::tr1::bind(&ElementDownloadList::receive_change_view, this, "started");
+  m_bindings['4']           = std::tr1::bind(&ElementDownloadList::receive_change_view, this, "stopped");
+  m_bindings['5']           = std::tr1::bind(&ElementDownloadList::receive_change_view, this, "complete");
+  m_bindings['6']           = std::tr1::bind(&ElementDownloadList::receive_change_view, this, "incomplete");
+  m_bindings['7']           = std::tr1::bind(&ElementDownloadList::receive_change_view, this, "hashing");
+  m_bindings['8']           = std::tr1::bind(&ElementDownloadList::receive_change_view, this, "seeding");
+  m_bindings['9']           = std::tr1::bind(&ElementDownloadList::receive_change_view, this, "leeching");
+  m_bindings['0']           = std::tr1::bind(&ElementDownloadList::receive_change_view, this, "active");
 
-  m_bindings[KEY_UP]   = m_bindings['P' - '@'] = sigc::mem_fun(*this, &ElementDownloadList::receive_prev);
-  m_bindings[KEY_DOWN] = m_bindings['N' - '@'] = sigc::mem_fun(*this, &ElementDownloadList::receive_next);
+  m_bindings[KEY_UP]   = m_bindings['P' - '@'] = std::tr1::bind(&ElementDownloadList::receive_prev, this);
+  m_bindings[KEY_DOWN] = m_bindings['N' - '@'] = std::tr1::bind(&ElementDownloadList::receive_next, this);
 }
 
 void

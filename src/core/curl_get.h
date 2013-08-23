@@ -40,7 +40,6 @@
 #include <iosfwd>
 #include <string>
 #include <curl/curl.h>
-#include <sigc++/signal.h>
 #include <torrent/http.h>
 
 #include "rak/priority_queue_default.h"

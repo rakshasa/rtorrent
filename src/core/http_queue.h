@@ -40,6 +40,7 @@
 #include <list>
 #include <iosfwd>
 #include <sigc++/signal.h>
+#include <tr1/functional>
 
 namespace core {
 
@@ -47,9 +48,9 @@ class CurlGet;
 
 class HttpQueue : private std::list<CurlGet*> {
 public:
-  typedef std::list<CurlGet*>           Base;
-  typedef sigc::signal1<void, CurlGet*> SignalHttp;
-  typedef sigc::slot0<CurlGet*>         SlotFactory;
+  typedef std::list<CurlGet*>             Base;
+  typedef sigc::signal1<void, CurlGet*>   SignalHttp;
+  typedef std::tr1::function<CurlGet* ()> slot_factory;
 
   using Base::iterator;
   using Base::const_iterator;
@@ -77,13 +78,13 @@ public:
 
   void        clear();
 
-  void        slot_factory(SlotFactory s) { m_slotFactory = s; }
+  void        set_slot_factory(slot_factory s) { m_slot_factory = s; }
 
-  SignalHttp& signal_insert()             { return m_signalInsert; }
-  SignalHttp& signal_erase()              { return m_signalErase; }
+  SignalHttp& signal_insert() { return m_signalInsert; }
+  SignalHttp& signal_erase()  { return m_signalErase; }
 
 private:
-  SlotFactory m_slotFactory;
+  slot_factory m_slot_factory;
   SignalHttp  m_signalInsert;
   SignalHttp  m_signalErase;
 };

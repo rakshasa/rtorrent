@@ -38,8 +38,6 @@
 
 #include <memory>
 #include <sstream>
-#include <sigc++/adaptors/bind.h>
-#include <sigc++/adaptors/hide.h>
 #include <torrent/http.h>
 
 #include "rak/functional.h"
@@ -50,7 +48,7 @@ namespace core {
 
 HttpQueue::iterator
 HttpQueue::insert(const std::string& url, std::iostream* s) {
-  std::auto_ptr<CurlGet> h(m_slotFactory());
+  std::auto_ptr<CurlGet> h(m_slot_factory());
   
   h->set_url(url);
   h->set_stream(s);

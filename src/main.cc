@@ -44,7 +44,6 @@
 #include <string>
 #include <inttypes.h>
 #include <unistd.h>
-#include <sigc++/adaptors/bind.h>
 #include <torrent/http.h>
 #include <torrent/torrent.h>
 #include <torrent/exceptions.h>
@@ -87,6 +86,7 @@ void print_help();
 void initialize_commands();
 
 void do_nothing() {}
+void do_nothing_str(const std::string&) {}
 
 int
 parse_options(Control* c, int argc, char** argv) {
@@ -94,20 +94,20 @@ parse_options(Control* c, int argc, char** argv) {
     OptionParser optionParser;
 
     // Converted.
-    optionParser.insert_flag('h', sigc::ptr_fun(&print_help));
-    optionParser.insert_flag('n', OptionParser::Slot());
-    optionParser.insert_flag('D', OptionParser::Slot());
-    optionParser.insert_flag('I', OptionParser::Slot());
-    optionParser.insert_flag('K', OptionParser::Slot());
+    optionParser.insert_flag('h', std::tr1::bind(&print_help));
+    optionParser.insert_flag('n', std::tr1::bind(&do_nothing_str, std::tr1::placeholders::_1));
+    optionParser.insert_flag('D', std::tr1::bind(&do_nothing_str, std::tr1::placeholders::_1));
+    optionParser.insert_flag('I', std::tr1::bind(&do_nothing_str, std::tr1::placeholders::_1));
+    optionParser.insert_flag('K', std::tr1::bind(&do_nothing_str, std::tr1::placeholders::_1));
 
-    optionParser.insert_option('b', sigc::bind<0>(sigc::ptr_fun(&rpc::call_command_set_string), "network.bind_address.set"));
-    optionParser.insert_option('d', sigc::bind<0>(sigc::ptr_fun(&rpc::call_command_set_string), "directory.default.set"));
-    optionParser.insert_option('i', sigc::bind<0>(sigc::ptr_fun(&rpc::call_command_set_string), "ip"));
-    optionParser.insert_option('p', sigc::bind<0>(sigc::ptr_fun(&rpc::call_command_set_string), "network.port_range.set"));
-    optionParser.insert_option('s', sigc::bind<0>(sigc::ptr_fun(&rpc::call_command_set_string), "session"));
+    optionParser.insert_option('b', std::tr1::bind(&rpc::call_command_set_string, "network.bind_address.set", std::tr1::placeholders::_1));
+    optionParser.insert_option('d', std::tr1::bind(&rpc::call_command_set_string, "directory.default.set", std::tr1::placeholders::_1));
+    optionParser.insert_option('i', std::tr1::bind(&rpc::call_command_set_string, "ip", std::tr1::placeholders::_1));
+    optionParser.insert_option('p', std::tr1::bind(&rpc::call_command_set_string, "network.port_range.set", std::tr1::placeholders::_1));
+    optionParser.insert_option('s', std::tr1::bind(&rpc::call_command_set_string, "session", std::tr1::placeholders::_1));
 
-    optionParser.insert_option('O', sigc::ptr_fun(&rpc::parse_command_single_std));
-    optionParser.insert_option_list('o', sigc::ptr_fun(&rpc::call_command_set_std_string));
+    optionParser.insert_option('O',      std::tr1::bind(&rpc::parse_command_single_std, std::tr1::placeholders::_1));
+    optionParser.insert_option_list('o', std::tr1::bind(&rpc::call_command_set_std_string, std::tr1::placeholders::_1, std::tr1::placeholders::_2));
 
     return optionParser.process(argc, argv);
 
@@ -131,7 +131,7 @@ load_session_torrents(Control* c) {
 
     // Replace with session torrent flag.
     f->set_session(true);
-    f->slot_finished(sigc::bind(sigc::ptr_fun(&rak::call_delete_func<core::DownloadFactory>), f));
+    f->slot_finished(std::tr1::bind(&rak::call_delete_func<core::DownloadFactory>, f));
     f->load(entries.path() + first->d_name);
     f->commit();
   }
@@ -145,7 +145,7 @@ load_arg_torrents(Control* c, char** first, char** last) {
 
     // Replace with session torrent flag.
     f->set_start(true);
-    f->slot_finished(sigc::bind(sigc::ptr_fun(&rak::call_delete_func<core::DownloadFactory>), f));
+    f->slot_finished(std::tr1::bind(&rak::call_delete_func<core::DownloadFactory>, f));
     f->load(*first);
     f->commit();
   }
@@ -194,12 +194,12 @@ main(int argc, char** argv) {
     srand48(cachedTime.usec() ^ (getpid() << 16) ^ getppid());
 
     SignalHandler::set_ignore(SIGPIPE);
-    SignalHandler::set_handler(SIGINT,   sigc::mem_fun(control, &Control::receive_normal_shutdown));
-    SignalHandler::set_handler(SIGTERM,  sigc::mem_fun(control, &Control::receive_quick_shutdown));
-    SignalHandler::set_handler(SIGWINCH, sigc::mem_fun(control->display(), &display::Manager::force_redraw));
-    SignalHandler::set_handler(SIGSEGV,  sigc::bind(sigc::ptr_fun(&do_panic), SIGSEGV));
-    SignalHandler::set_handler(SIGILL,   sigc::bind(sigc::ptr_fun(&do_panic), SIGILL));
-    SignalHandler::set_handler(SIGFPE,   sigc::bind(sigc::ptr_fun(&do_panic), SIGFPE));
+    SignalHandler::set_handler(SIGINT,   std::tr1::bind(&Control::receive_normal_shutdown, control));
+    SignalHandler::set_handler(SIGTERM,  std::tr1::bind(&Control::receive_quick_shutdown, control));
+    SignalHandler::set_handler(SIGWINCH, std::tr1::bind(&display::Manager::force_redraw, control->display()));
+    SignalHandler::set_handler(SIGSEGV,  std::tr1::bind(&do_panic, SIGSEGV));
+    SignalHandler::set_handler(SIGILL,   std::tr1::bind(&do_panic, SIGILL));
+    SignalHandler::set_handler(SIGFPE,   std::tr1::bind(&do_panic, SIGFPE));
 
     SignalHandler::set_sigaction_handler(SIGBUS, &handle_sigbus);
 
@@ -211,7 +211,7 @@ main(int argc, char** argv) {
     // threads. Use '--enable-interrupt-socket' when configuring
     // LibTorrent to enable this workaround.
     if (torrent::thread_base::should_handle_sigusr1())
-      SignalHandler::set_handler(SIGUSR1, sigc::ptr_fun(&do_nothing));
+      SignalHandler::set_handler(SIGUSR1, std::tr1::bind(&do_nothing));
 
     torrent::log_add_group_output(torrent::LOG_NOTICE, "important");
     torrent::log_add_group_output(torrent::LOG_INFO, "complete");

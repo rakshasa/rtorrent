@@ -41,7 +41,6 @@
 #include <rak/file_stat.h>
 #include <rak/path.h>
 #include <rak/string_manip.h>
-#include <sigc++/adaptors/bind.h>
 #include <torrent/rate.h>
 #include <torrent/hash_string.h>
 #include <torrent/utils/log.h>

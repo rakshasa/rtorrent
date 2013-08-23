@@ -39,7 +39,6 @@
 #include <algorithm>
 #include <fstream>
 #include <iostream>
-#include <sigc++/adaptors/bind.h>
 #include <rak/functional.h>
 #include <rak/string_manip.h>
 #include <torrent/data/file.h>

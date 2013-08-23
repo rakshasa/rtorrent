@@ -39,7 +39,6 @@
 
 #include <deque>
 #include <string>
-#include <sigc++/functors/slot.h>
 
 #include "rak/priority_queue_default.h"
 
