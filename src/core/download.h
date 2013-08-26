@@ -113,8 +113,6 @@ public:
   const std::string&  message() const                          { return m_message; }
   void                set_message(const std::string& msg)      { m_message = msg; }
 
-  uint32_t            chunks_failed() const                    { return m_chunksFailed; }
-
   void                enable_udp_trackers(bool state);
 
   uint32_t            priority();
@@ -140,20 +138,14 @@ private:
   void operator () (const Download&);
 
   void                receive_tracker_msg(std::string msg);
-  void                receive_storage_error(std::string msg);
 
   void                receive_chunk_failed(uint32_t idx);
 
   // Store the FileList instance so we can use slots etc on it.
   download_type       m_download;
-
   bool                m_hashFailed;
-
   std::string         m_message;
-  uint32_t            m_chunksFailed;
-
   uint32_t            m_resumeFlags;
-
   unsigned int        m_group;
 };
 

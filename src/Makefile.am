@@ -52,4 +52,4 @@ rtorrent_LDADD = \
 rtorrent_SOURCES = \
 	main.cc
 
-INCLUDES = -I$(srcdir) -I$(top_srcdir)
+AM_CPPFLAGS = -I$(srcdir) -I$(top_srcdir)

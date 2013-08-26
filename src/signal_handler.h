@@ -38,11 +38,11 @@
 #define RTORRENT_SIGNAL_HANDLER_H
 
 #include <sys/signal.h>
-#include <sigc++/functors/slot.h>
+#include <tr1/functional>
 
 class SignalHandler {
 public:
-  typedef sigc::slot0<void> Slot;
+  typedef std::tr1::function<void ()> slot_void;
 
   // typedef void (*handler_slot)(int, siginfo_t *info, ucontext_t *uap);
   typedef void (*handler_slot)(int, siginfo_t*, void*);
@@ -56,7 +56,7 @@ public:
 
   static void         set_default(unsigned int signum);
   static void         set_ignore(unsigned int signum);
-  static void         set_handler(unsigned int signum, Slot slot);
+  static void         set_handler(unsigned int signum, slot_void slot);
 
   static void         set_sigaction_handler(unsigned int signum, handler_slot slot);
 
@@ -65,7 +65,7 @@ public:
 private:
   static void         caught(int signum);
 
-  static Slot         m_handlers[HIGHEST_SIGNAL];
+  static slot_void    m_handlers[HIGHEST_SIGNAL];
 };
 
 #endif

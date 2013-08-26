@@ -52,8 +52,14 @@ WindowHttpQueue::WindowHttpQueue(core::HttpQueue* q) :
   m_queue(q) {
   
   set_active(false);
-  m_connInsert = m_queue->signal_insert().connect(sigc::mem_fun(*this, &WindowHttpQueue::receive_insert));
-  m_connErase  = m_queue->signal_erase().connect(sigc::mem_fun(*this, &WindowHttpQueue::receive_erase));
+  m_connInsert = m_queue->signal_insert().insert(m_queue->signal_insert().end(),
+                                                 std::tr1::bind(&WindowHttpQueue::receive_insert,
+                                                                this,
+                                                                std::tr1::placeholders::_1));
+  m_connErase  = m_queue->signal_erase().insert(m_queue->signal_insert().end(),
+                                                std::tr1::bind(&WindowHttpQueue::receive_erase,
+                                                               this,
+                                                               std::tr1::placeholders::_1));
 }
 
 void

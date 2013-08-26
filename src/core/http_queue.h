@@ -39,7 +39,7 @@
 
 #include <list>
 #include <iosfwd>
-#include <sigc++/signal.h>
+#include <tr1/functional>
 
 namespace core {
 
@@ -47,22 +47,23 @@ class CurlGet;
 
 class HttpQueue : private std::list<CurlGet*> {
 public:
-  typedef std::list<CurlGet*>           Base;
-  typedef sigc::signal1<void, CurlGet*> SignalHttp;
-  typedef sigc::slot0<CurlGet*>         SlotFactory;
+  typedef std::list<CurlGet*>                 base_type;
+  typedef std::tr1::function<CurlGet* ()>     slot_factory;
+  typedef std::tr1::function<void (CurlGet*)> slot_curl_get;
+  typedef std::list<slot_curl_get>            signal_curl_get;
 
-  using Base::iterator;
-  using Base::const_iterator;
-  using Base::reverse_iterator;
-  using Base::const_reverse_iterator;
+  using base_type::iterator;
+  using base_type::const_iterator;
+  using base_type::reverse_iterator;
+  using base_type::const_reverse_iterator;
 
-  using Base::begin;
-  using Base::end;
-  using Base::rbegin;
-  using Base::rend;
+  using base_type::begin;
+  using base_type::end;
+  using base_type::rbegin;
+  using base_type::rend;
 
-  using Base::empty;
-  using Base::size;
+  using base_type::empty;
+  using base_type::size;
 
   HttpQueue() {}
   ~HttpQueue() { clear(); }
@@ -77,15 +78,15 @@ public:
 
   void        clear();
 
-  void        slot_factory(SlotFactory s) { m_slotFactory = s; }
+  void             set_slot_factory(slot_factory s) { m_slot_factory = s; }
 
-  SignalHttp& signal_insert()             { return m_signalInsert; }
-  SignalHttp& signal_erase()              { return m_signalErase; }
+  signal_curl_get& signal_insert() { return m_signal_insert; }
+  signal_curl_get& signal_erase()  { return m_signal_erase; }
 
 private:
-  SlotFactory m_slotFactory;
-  SignalHttp  m_signalInsert;
-  SignalHttp  m_signalErase;
+  slot_factory    m_slot_factory;
+  signal_curl_get m_signal_insert;
+  signal_curl_get m_signal_erase;
 };
 
 }

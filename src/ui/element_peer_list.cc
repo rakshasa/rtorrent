@@ -36,7 +36,6 @@
 
 #include "config.h"
 
-#include <sigc++/adaptors/bind.h>
 #include <torrent/exceptions.h>
 #include <torrent/rate.h>
 #include <torrent/hash_string.h>
@@ -75,16 +74,16 @@ ElementPeerList::ElementPeerList(core::Download* d) :
   m_windowList  = new display::WindowPeerList(m_download, &m_list, &m_listItr);
   m_elementInfo = create_info();
 
-  m_elementInfo->slot_exit(sigc::bind(sigc::mem_fun(this, &ElementPeerList::activate_display), DISPLAY_LIST));
+  m_elementInfo->slot_exit(std::tr1::bind(&ElementPeerList::activate_display, this, DISPLAY_LIST));
 
-  m_bindings['k']       = sigc::mem_fun(this, &ElementPeerList::receive_disconnect_peer);
-  m_bindings['*']       = sigc::mem_fun(this, &ElementPeerList::receive_snub_peer);
-  m_bindings['B']       = sigc::mem_fun(this, &ElementPeerList::receive_ban_peer);
-  m_bindings[KEY_LEFT] = m_bindings['B' - '@']  = sigc::mem_fun(&m_slotExit, &slot_type::operator());  
-  m_bindings[KEY_RIGHT] = m_bindings['F' - '@'] = sigc::bind(sigc::mem_fun(this, &ElementPeerList::activate_display), DISPLAY_INFO);
+  m_bindings['k']       = std::tr1::bind(&ElementPeerList::receive_disconnect_peer, this);
+  m_bindings['*']       = std::tr1::bind(&ElementPeerList::receive_snub_peer, this);
+  m_bindings['B']       = std::tr1::bind(&ElementPeerList::receive_ban_peer, this);
+  m_bindings[KEY_LEFT]  = m_bindings['B' - '@'] = std::tr1::bind(&slot_type::operator(), &m_slot_exit);
+  m_bindings[KEY_RIGHT] = m_bindings['F' - '@'] = std::tr1::bind(&ElementPeerList::activate_display, this, DISPLAY_INFO);
 
-  m_bindings[KEY_UP]   = m_bindings['P' - '@'] = sigc::mem_fun(this, &ElementPeerList::receive_prev);
-  m_bindings[KEY_DOWN] = m_bindings['N' - '@'] = sigc::mem_fun(this, &ElementPeerList::receive_next);
+  m_bindings[KEY_UP]   = m_bindings['P' - '@'] = std::tr1::bind(&ElementPeerList::receive_prev, this);
+  m_bindings[KEY_DOWN] = m_bindings['N' - '@'] = std::tr1::bind(&ElementPeerList::receive_next, this);
 }
 
 ElementPeerList::~ElementPeerList() {

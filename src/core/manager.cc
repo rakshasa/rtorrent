@@ -147,7 +147,7 @@ Manager::get_address_throttle(const sockaddr* addr) {
 void
 Manager::initialize_second() {
   torrent::Http::slot_factory() = std::tr1::bind(&CurlStack::new_object, m_httpStack);
-  m_httpQueue->slot_factory(sigc::mem_fun(m_httpStack, &CurlStack::new_object));
+  m_httpQueue->set_slot_factory(std::tr1::bind(&CurlStack::new_object, m_httpStack));
 
   CurlStack::global_init();
 }
@@ -332,7 +332,7 @@ Manager::try_create_download(const std::string& uri, int flags, const command_li
 
   f->set_start(flags & create_start);
   f->set_print_log(!(flags & create_quiet));
-  f->slot_finished(sigc::bind(sigc::ptr_fun(&rak::call_delete_func<core::DownloadFactory>), f));
+  f->slot_finished(std::tr1::bind(&rak::call_delete_func<core::DownloadFactory>, f));
 
   if (flags & create_raw_data)
     f->load_raw_data(uri);
@@ -356,7 +356,7 @@ Manager::try_create_download_from_meta_download(torrent::Object* bencode, const 
 
   f->set_start(meta.get_key_value("start"));
   f->set_print_log(meta.get_key_value("print_log"));
-  f->slot_finished(sigc::bind(sigc::ptr_fun(&rak::call_delete_func<core::DownloadFactory>), f));
+  f->slot_finished(std::tr1::bind(&rak::call_delete_func<core::DownloadFactory>, f));
 
   // Bit of a waste to create the bencode repesentation here
   // only to have the DownloadFactory decode it.

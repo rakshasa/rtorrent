@@ -39,21 +39,20 @@
 
 #include <map>
 #include <string>
-#include <sigc++/functors/slot.h>
+#include <tr1/functional>
 
 // Throws std::runtime_error upon receiving bad input.
 
 class OptionParser {
 public:
-  typedef sigc::slot0<void>                                         Slot;
-  typedef sigc::slot1<void, const std::string&>                     SlotString;
-  typedef sigc::slot2<void, const std::string&, const std::string&> SlotStringPair;
-  typedef sigc::slot2<void, int, int>                               SlotIntPair;
+  typedef std::tr1::function<void (const std::string&)>                     slot_string;
+  typedef std::tr1::function<void (const std::string&, const std::string&)> slot_string_pair;
+  typedef std::tr1::function<void (int, int)>                               slot_int_pair;
 
-  void                insert_flag(char c, Slot s);
-  void                insert_option(char c, SlotString s);
-  void                insert_option_list(char c, SlotStringPair s);
-  void                insert_int_pair(char c, SlotIntPair s);
+  void                insert_flag(char c, slot_string s);
+  void                insert_option(char c, slot_string s);
+  void                insert_option_list(char c, slot_string_pair s);
+  void                insert_int_pair(char c, slot_int_pair s);
 
   // Returns the index of the first non-option argument.
   int                 process(int argc, char** argv);
@@ -64,12 +63,12 @@ private:
   std::string         create_optstring();
 
   void                call(char c, const std::string& arg);
-  static void         call_option_list(SlotStringPair slot, const std::string& arg);
-  static void         call_int_pair(SlotIntPair slot, const std::string& arg);
+  static void         call_option_list(slot_string_pair slot, const std::string& arg);
+  static void         call_int_pair(slot_int_pair slot, const std::string& arg);
 
   // Use pair instead?
   struct Node {
-    SlotString          m_slot;
+    slot_string         m_slot;
     bool                m_useOption;
   };
 

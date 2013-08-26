@@ -52,12 +52,12 @@ ElementChunksSeen::ElementChunksSeen(core::Download* d) :
   m_window(NULL),
   m_focus(0) {
 
-  m_bindings[KEY_LEFT] = m_bindings['B' - '@'] = sigc::mem_fun(&m_slotExit, &slot_type::operator());
+  m_bindings[KEY_LEFT] = m_bindings['B' - '@'] = std::tr1::bind(&slot_type::operator(), &m_slot_exit);
 
-  m_bindings[KEY_DOWN]  = m_bindings['N' - '@'] = sigc::mem_fun(*this, &ElementChunksSeen::receive_next);
-  m_bindings[KEY_UP]    = m_bindings['P' - '@'] = sigc::mem_fun(*this, &ElementChunksSeen::receive_prev);
-  m_bindings[KEY_NPAGE] = sigc::mem_fun(*this, &ElementChunksSeen::receive_pagenext);
-  m_bindings[KEY_PPAGE] = sigc::mem_fun(*this, &ElementChunksSeen::receive_pageprev);
+  m_bindings[KEY_DOWN]  = m_bindings['N' - '@'] = std::tr1::bind(&ElementChunksSeen::receive_next, this);
+  m_bindings[KEY_UP]    = m_bindings['P' - '@'] = std::tr1::bind(&ElementChunksSeen::receive_prev, this);
+  m_bindings[KEY_NPAGE] = std::tr1::bind(&ElementChunksSeen::receive_pagenext, this);
+  m_bindings[KEY_PPAGE] = std::tr1::bind(&ElementChunksSeen::receive_pageprev, this);
 }
 
 void

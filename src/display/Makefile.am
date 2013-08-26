@@ -50,4 +50,4 @@ libsub_display_a_SOURCES = \
 	window_tracker_list.cc \
 	window_tracker_list.h
 
-INCLUDES = -I$(srcdir) -I$(srcdir)/.. -I$(top_srcdir)
+AM_CPPFLAGS = -I$(srcdir) -I$(srcdir)/.. -I$(top_srcdir)

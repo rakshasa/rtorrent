@@ -37,12 +37,9 @@
 #ifndef RTORRENT_UI_DOWNLOAD_LIST_H
 #define RTORRENT_UI_DOWNLOAD_LIST_H
 
-#include <sigc++/functors/slot.h>
-
-#include "display/manager.h"
-
 #include "element_base.h"
 #include "globals.h"
+#include "display/manager.h"
 
 class Control;
 
@@ -74,7 +71,7 @@ public:
   typedef display::WindowLog                       WLog;
   typedef display::WindowLogComplete               WLogComplete;
 
-  typedef sigc::slot1<void, const std::string&>    SlotOpenUri;
+  typedef std::tr1::function<void (const std::string&)> slot_string;
 
   typedef enum {
     DISPLAY_DOWNLOAD,
@@ -103,7 +100,7 @@ public:
   core::View*         current_view();
   void                set_current_view(const std::string& name);
 
-  void                slot_open_uri(SlotOpenUri s) { m_slotOpenUri = s; }
+  void                slot_open_uri(slot_string s) { m_slot_open_uri = s; }
 
   void                unfocus_download(core::Download* d);
 
@@ -122,7 +119,7 @@ private:
   ElementBase*        m_uiArray[DISPLAY_MAX_SIZE];
   WLog*               m_windowLog;
 
-  SlotOpenUri         m_slotOpenUri;
+  slot_string         m_slot_open_uri;
 };
 
 }
