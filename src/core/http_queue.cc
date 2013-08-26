@@ -54,25 +54,28 @@ HttpQueue::insert(const std::string& url, std::iostream* s) {
   h->set_stream(s);
   h->set_timeout(5 * 60);
 
-  iterator itr = Base::insert(end(), h.get());
+  iterator signal_itr = base_type::insert(end(), h.get());
 
-  h->signal_done().push_back(std::tr1::bind(&HttpQueue::erase, this, itr));
-  h->signal_failed().push_back(std::tr1::bind(&HttpQueue::erase, this, itr));
+  h->signal_done().push_back(std::tr1::bind(&HttpQueue::erase, this, signal_itr));
+  h->signal_failed().push_back(std::tr1::bind(&HttpQueue::erase, this, signal_itr));
 
-  (*itr)->start();
+  (*signal_itr)->start();
 
   h.release();
-  m_signalInsert.emit(*itr);
 
-  return itr;
+  for (signal_curl_get::iterator itr = m_signal_insert.begin(), last = m_signal_insert.end(); itr != last; itr++)
+    (*itr)(*signal_itr);
+
+  return signal_itr;
 }
 
 void
-HttpQueue::erase(iterator itr) {
-  m_signalErase.emit(*itr);
+HttpQueue::erase(iterator signal_itr) {
+  for (signal_curl_get::iterator itr = m_signal_erase.begin(), last = m_signal_erase.end(); itr != last; itr++)
+    (*itr)(*signal_itr);
 
-  delete *itr;
-  Base::erase(itr);
+  delete *signal_itr;
+  base_type::erase(signal_itr);
 }
 
 void
@@ -80,7 +83,7 @@ HttpQueue::clear() {
   while (!empty())
     erase(begin());
 
-  Base::clear();
+  base_type::clear();
 }
 
 }
