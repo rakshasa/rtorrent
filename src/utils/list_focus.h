@@ -37,7 +37,7 @@
 #ifndef RTORRENT_UTILS_LIST_FOCUS_H
 #define RTORRENT_UTILS_LIST_FOCUS_H
 
-#include <sigc++/signal.h>
+#include <tr1/functional>
 
 namespace utils {
 
@@ -46,15 +46,18 @@ namespace utils {
 template <typename Base>
 class ListFocus {
 public:
-  typedef typename Base::iterator                   iterator;
-  typedef typename Base::const_iterator             const_iterator;
-  typedef typename Base::reverse_iterator           reverse_iterator;
-  typedef typename Base::const_reverse_iterator     const_reverse_iterator;
+  typedef Base                        base_type;
+  typedef std::tr1::function<void ()> slot_void;
+  typedef std::list<slot_void>        signal_void;
 
-  typedef typename Base::value_type                 value_type;
-  typedef sigc::signal0<void>                       Signal;
+  typedef typename base_type::iterator               iterator;
+  typedef typename base_type::const_iterator         const_iterator;
+  typedef typename base_type::reverse_iterator       reverse_iterator;
+  typedef typename base_type::const_reverse_iterator const_reverse_iterator;
 
-  ListFocus(Base* b = NULL) : m_base(b) { if (b) m_focus = b->end(); }
+  typedef typename base_type::value_type             value_type;
+
+  ListFocus(base_type* b = NULL) : m_base(b) { if (b) m_focus = b->end(); }
 
   // Convinience functions, would have added more through using, but
   // can't.
@@ -64,10 +67,10 @@ public:
   reverse_iterator    rend()                        { return m_base->rend(); }
 
   // Don't do erase on this object without making sure focus is right.
-  Base&               base()                        { return *m_base; }
+  base_type&          base()                        { return *m_base; }
 
   iterator            get_focus()                   { return m_focus; }
-  void                set_focus(iterator itr)       { m_focus = itr; m_signalChanged.emit(); }
+  void                set_focus(iterator itr);
 
   // These are looping increment/decrements.
   iterator            inc_focus();
@@ -77,14 +80,23 @@ public:
   void                remove(const value_type& v);
 
   // Be careful with copying signals.
-  Signal&             signal_changed()              { return m_signalChanged; }
+  signal_void&        signal_changed()              { return m_signal_changed; }
 
 private:
-  Base*               m_base;
+  void                emit_changed();
+
+  base_type*          m_base;
   iterator            m_focus;
 
-  Signal              m_signalChanged;
+  signal_void         m_signal_changed;
 };
+
+template <typename Base>
+void
+ListFocus<Base>::set_focus(iterator itr) {
+  m_focus = itr;
+  emit_changed();
+}
 
 template <typename Base>
 typename ListFocus<Base>::iterator
@@ -94,8 +106,7 @@ ListFocus<Base>::inc_focus() {
   else
     m_focus = begin();
 
-  m_signalChanged.emit();
-
+  emit_changed();
   return m_focus;
 }
 
@@ -107,8 +118,7 @@ ListFocus<Base>::dec_focus() {
   else
     m_focus = end();
 
-  m_signalChanged.emit();
-
+  emit_changed();
   return m_focus;
 }
 
@@ -120,7 +130,7 @@ ListFocus<Base>::erase(iterator itr) {
   else
     return m_base->erase(itr);  
 
-  m_signalChanged.emit();
+  emit_changed();
 }
 
 template <typename Base>
@@ -134,6 +144,13 @@ ListFocus<Base>::remove(const value_type& v) {
       first = erase(first);
     else
       ++first;
+}
+
+template <typename Base>
+void
+ListFocus<Base>::emit_changed() {
+  for (signal_void::iterator itr = m_signal_changed.begin(), last = m_signal_changed.end(); itr != last; itr++)
+    (*itr)();
 }
 
 }

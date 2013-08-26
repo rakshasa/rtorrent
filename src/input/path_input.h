@@ -37,7 +37,8 @@
 #ifndef RTORRENT_INPUT_PATH_INPUT_H
 #define RTORRENT_INPUT_PATH_INPUT_H
 
-#include <sigc++/signal.h>
+#include <list>
+#include <tr1/functional>
 
 #include "utils/directory.h"
 #include "text_input.h"
@@ -46,15 +47,19 @@ namespace input {
 
 class PathInput : public TextInput {
 public:
-  typedef std::pair<utils::Directory::iterator, utils::Directory::iterator>           Range;
-  typedef sigc::signal0<void>                                                         Signal;
-  typedef sigc::signal2<void, utils::Directory::iterator, utils::Directory::iterator> SignalShowRange;
+  typedef utils::Directory::iterator              directory_itr;
+  typedef std::pair<directory_itr, directory_itr> range_type;
+
+  typedef std::tr1::function<void ()>                             slot_void;
+  typedef std::tr1::function<void (directory_itr, directory_itr)> slot_itr_itr;
+  typedef std::list<slot_void>                                    signal_void;
+  typedef std::list<slot_itr_itr>                                 signal_itr_itr;
 
   PathInput();
   virtual ~PathInput() {}
 
-  Signal&             signal_show_next()          { return m_signalShowNext; }
-  SignalShowRange&    signal_show_range()         { return m_signalShowRange; }
+  signal_void&        signal_show_next()  { return m_signal_show_next; }
+  signal_itr_itr&     signal_show_range() { return m_signal_show_range; }
 
   virtual bool        pressed(int key);
 
@@ -62,12 +67,12 @@ private:
   void                receive_do_complete();
 
   size_type           find_last_delim();
-  Range               find_incomplete(utils::Directory& d, const std::string& f);
+  range_type          find_incomplete(utils::Directory& d, const std::string& f);
 
   bool                m_showNext;
 
-  Signal              m_signalShowNext;
-  SignalShowRange     m_signalShowRange;
+  signal_void         m_signal_show_next;
+  signal_itr_itr      m_signal_show_range;
 };
 
 }

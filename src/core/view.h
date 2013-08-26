@@ -52,8 +52,8 @@
 #include <string>
 #include <vector>
 #include <rak/timer.h>
-#include <sigc++/signal.h>
 #include <torrent/object.h>
+#include <tr1/functional>
 
 #include "globals.h"
 
@@ -63,8 +63,9 @@ class Download;
 
 class View : private std::vector<Download*> {
 public:
-  typedef std::vector<Download*>         base_type;
-  typedef sigc::signal0<void>            signal_type;
+  typedef std::vector<Download*>      base_type;
+  typedef std::tr1::function<void ()> slot_void;
+  typedef std::list<slot_void>        signal_void;
 
   using base_type::iterator;
   using base_type::const_iterator;
@@ -101,7 +102,7 @@ public:
 
   iterator            focus()                                 { return begin() + m_focus; }
   const_iterator      focus() const                           { return begin() + m_focus; }
-  void                set_focus(iterator itr)                 { m_focus = position(itr); m_signalChanged.emit(); }
+  void                set_focus(iterator itr)                 { m_focus = position(itr); emit_changed(); }
 
   void                insert(Download* download)              { base_type::push_back(download); }
   void                erase(Download* download);
@@ -143,7 +144,7 @@ public:
 
   // Don't connect any slots until after initialize else it get's
   // triggered when adding the Download's in DownloadList.
-  signal_type&        signal_changed()                        { return m_signalChanged; }
+  signal_void&        signal_changed()                        { return m_signal_changed; }
 
 private:
   View(const View&);
@@ -154,7 +155,8 @@ private:
   inline void         insert_visible(Download* d);
   inline void         erase_internal(iterator itr);
 
-  inline void         emit_changed();
+  void                emit_changed();
+  void                emit_changed_now();
 
   size_type           position(const_iterator itr) const      { return itr - begin(); }
 
@@ -176,7 +178,7 @@ private:
 
   rak::timer          m_lastChanged;
 
-  signal_type         m_signalChanged;
+  signal_void         m_signal_changed;
   rak::priority_item  m_delayChanged;
 };
 
