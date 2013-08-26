@@ -1,4 +1,6 @@
 TESTS = rtorrentTest
+AUTOMAKE_OPTIONS = subdir-objects
+
 check_PROGRAMS = $(TESTS)
 rtorrentTest_LDADD = \
 	../src/libsub_root.a \
