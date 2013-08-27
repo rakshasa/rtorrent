@@ -627,6 +627,57 @@ make_mem_fun(Object* o, Ret (Object::*f)(Arg1, Arg2, Arg3)) {
  return mem_fun3<Object, Ret, Arg1, Arg2, Arg3>(o, f);
 }
 
+template <typename Container>
+inline void
+slot_list_call(const Container& slot_list) {
+  if (slot_list.empty())
+    return;
+
+  typename Container::const_iterator first = slot_list.begin();
+  typename Container::const_iterator next = slot_list.begin();
+
+  while (++next != slot_list.end()) {
+    (*first)();
+    first = next;
+  }
+
+  (*first)();
+}
+
+template <typename Container, typename Arg1>
+inline void
+slot_list_call(const Container& slot_list, Arg1 arg1) {
+  if (slot_list.empty())
+    return;
+
+  typename Container::const_iterator first = slot_list.begin();
+  typename Container::const_iterator next = slot_list.begin();
+
+  while (++next != slot_list.end()) {
+    (*first)(arg1);
+    first = next;
+  }
+
+  (*first)(arg1);
+}
+
+template <typename Container, typename Arg1, typename Arg2, typename Arg3, typename Arg4>
+inline void
+slot_list_call(const Container& slot_list, Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4) {
+  if (slot_list.empty())
+    return;
+
+  typename Container::const_iterator first = slot_list.begin();
+  typename Container::const_iterator next = slot_list.begin();
+
+  while (++next != slot_list.end()) {
+    (*first)(arg1, arg2, arg3, arg4);
+    first = next;
+  }
+
+  (*first)(arg1, arg2, arg3, arg4);
+}
+
 }
 
 #endif
