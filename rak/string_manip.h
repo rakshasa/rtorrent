@@ -190,9 +190,10 @@ template <typename InputIterator, typename OutputIterator>
 OutputIterator
 copy_escape_html(InputIterator first, InputIterator last, OutputIterator dest) {
   while (first != last) {
-    if (std::isalpha(*first, std::locale::classic()) ||
-        std::isdigit(*first, std::locale::classic()) ||
-        *first == '-') {
+    if (isascii(*first)&&
+         (std::isalpha(*first, std::locale::classic()) ||
+          std::isdigit(*first, std::locale::classic()) ||
+          *first == '-')) {
       *(dest++) = *first;
 
     } else {
@@ -211,9 +212,10 @@ template <typename InputIterator, typename OutputIterator>
 OutputIterator
 copy_escape_html(InputIterator first1, InputIterator last1, OutputIterator first2, OutputIterator last2) {
   while (first1 != last1) {
-    if (std::isalpha(*first1, std::locale::classic()) ||
-        std::isdigit(*first1, std::locale::classic()) ||
-        *first1 == '-') {
+    if (isascii(*first1)&&
+          (std::isalpha(*first1, std::locale::classic()) ||
+          std::isdigit(*first1, std::locale::classic()) ||
+          *first1 == '-')) {
       if (first2 == last2) break; else *(first2++) = *first1;
 
     } else {
