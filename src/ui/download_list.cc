@@ -269,11 +269,11 @@ DownloadList::receive_view_input(Input type) {
   ElementStringList* esl = dynamic_cast<ElementStringList*>(m_uiArray[DISPLAY_STRING_LIST]);
 
   input->signal_show_next().push_back(std::tr1::bind(&DownloadList::activate_display, this, DISPLAY_STRING_LIST));
-  input->signal_show_next().push_back(std::tr1::bind(&ElementStringList::next_screen, *esl));
+  input->signal_show_next().push_back(std::tr1::bind(&ElementStringList::next_screen, esl));
 
   input->signal_show_range().push_back(std::tr1::bind(&DownloadList::activate_display, this, DISPLAY_STRING_LIST));
   input->signal_show_range().push_back(std::tr1::bind(&ElementStringList::set_range_dirent<utils::Directory::iterator>,
-                                                      *esl,
+                                                      esl,
                                                       std::tr1::placeholders::_1,
                                                       std::tr1::placeholders::_2));
 
