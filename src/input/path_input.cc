@@ -42,6 +42,7 @@
 #include <rak/path.h>
 
 #include <sys/types.h>
+#include <torrent/utils/log.h>
 
 #ifdef __sun__
   #include <dirent.h>
@@ -90,6 +91,8 @@ struct _transform_filename {
 
 void
 PathInput::receive_do_complete() {
+  lt_log_print(torrent::LOG_UI_EVENTS, "path_input: received completion");
+
   size_type dirEnd = find_last_delim();
 
   utils::Directory dir(dirEnd != 0 ? str().substr(0, dirEnd) : "./");
@@ -123,6 +126,8 @@ PathInput::receive_do_complete() {
   m_showNext = ++utils::Directory::iterator(r.first) != r.second;
 
   if (m_showNext) {
+    lt_log_print(torrent::LOG_UI_EVENTS, "path_input: show next page");
+
     for (signal_itr_itr::iterator itr = m_signal_show_range.begin(), last = m_signal_show_range.end(); itr != last; itr++)
       (*itr)(r.first, r.second);
   }
