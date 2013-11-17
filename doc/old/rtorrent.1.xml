@@ -632,8 +632,11 @@ Set the minimum nad maximum number of peers to allow while seeding, or
 
       <varlistentry>
         <term>max_uploads = <replaceable>value</replaceable></term>
+        <term>max_downloads = <replaceable>value</replaceable></term>
+        <term>min_uploads = <replaceable>value</replaceable></term>
+        <term>min_downloads = <replaceable>value</replaceable></term>
         <listitem><para>
-Set the maximum number of simultaneous uploads per download.
+Set the maximum/minimum number of simultaneous uploads/downloads per download/upload.
         </para></listitem>
       </varlistentry>
 
