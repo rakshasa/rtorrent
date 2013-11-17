@@ -776,6 +776,27 @@ The port is optional, with port 6881 being used by default.
         </para></listitem>
       </varlistentry>
 
+      <varlistentry>
+        <term>dht_statistics = <replaceable>TODO</replaceable></term>
+        <listitem><para>
+TODO
+        </para></listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>set_dht_port = <replaceable>TODO</replaceable></term>
+        <listitem><para>
+TODO
+        </para></listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>set_dht_throttle = <replaceable>TODO</replaceable></term>
+        <listitem><para>
+TODO
+        </para></listitem>
+      </varlistentry>
+
     </variablelist>
 
   </refsect1>
