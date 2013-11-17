@@ -606,6 +606,8 @@ commands are available.
       <varlistentry>
         <term>upload_rate = <replaceable>KB</replaceable></term>
         <term>download_rate = <replaceable>KB</replaceable></term>
+        <term>set_upload_rate = <replaceable>TODO</replaceable></term>
+        <term>set_download_rate = <replaceable>TODO</replaceable></term>
         <listitem><para>
 Set the maximum global uploand and download rates.
         </para></listitem>
@@ -638,6 +640,8 @@ Set the maximum number of simultaneous uploads per download.
       <varlistentry>
         <term>max_uploads_div = <replaceable>value</replaceable></term>
         <term>max_downloads_div = <replaceable>value</replaceable></term>
+        <term>set_max_uploads_div = <replaceable>value</replaceable></term>
+        <term>set_max_downloads_div = <replaceable>value</replaceable></term>
         <listitem><para>
 Change the divider used to calculate the max upload and download slots
 to use when the throttle is changed. Disable by
@@ -648,6 +652,8 @@ setting <emphasis>0</emphasis>.
       <varlistentry>
         <term>max_uploads_global = <replaceable>value</replaceable></term>
         <term>max_downloads_global = <replaceable>value</replaceable></term>
+        <term>set_max_uploads_global = <replaceable>value</replaceable></term>
+        <term>set_max_downloads_global = <replaceable>value</replaceable></term>
         <listitem><para>
 Max upload and download slots allowed. Disable by
 setting <emphasis>0</emphasis>.
