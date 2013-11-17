@@ -723,6 +723,27 @@ not allow connections to UDP trackers.
         </para></listitem>
       </varlistentry>
 
+      <varlistentry>
+        <term>http_capath = <replaceable>path</replaceable></term>
+        <term>http_cacert = <replaceable>filename</replaceable></term>
+        <listitem><para>
+Set the certificates to use in http requests. See Curl's
+CURLOPT_CAPATH and CURLOPT_CAINFO options for further information.
+        </para></listitem>
+      </varlistentry>
+
+    </variablelist>
+
+  </refsect1>
+
+  <refsect1>
+    <title>DHT-RELATED SETTINGS</title>
+    <para>
+      Settings related to DHT
+    </para>
+
+    <variablelist>
+
        <varlistentry>
         <term>dht = <replaceable>disabled|off|auto|on</replaceable></term>
         <listitem><para>
@@ -755,19 +776,9 @@ The port is optional, with port 6881 being used by default.
         </para></listitem>
       </varlistentry>
 
-      <varlistentry>
-        <term>http_capath = <replaceable>path</replaceable></term>
-        <term>http_cacert = <replaceable>filename</replaceable></term>
-        <listitem><para>
-Set the certificates to use in http requests. See Curl's
-CURLOPT_CAPATH and CURLOPT_CAINFO options for further information.
-        </para></listitem>
-      </varlistentry>
-
     </variablelist>
 
   </refsect1>
-
 
   <refsect1>
     <title>USER-INTERFACE SETTINGS</title>
