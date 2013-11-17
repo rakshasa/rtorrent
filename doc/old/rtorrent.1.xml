@@ -574,23 +574,6 @@ Use with the <emphasis>schedule</emphasis> option.
         </para></listitem>
       </varlistentry>
 
-      <varlistentry>
-        <term>on_insert = <replaceable>id</replaceable>,<replaceable>command</replaceable></term>
-        <term>on_erase = <replaceable>id</replaceable>,<replaceable>command</replaceable></term>
-        <term>on_open = <replaceable>id</replaceable>,<replaceable>command</replaceable></term>
-        <term>on_close = <replaceable>id</replaceable>,<replaceable>command</replaceable></term>
-        <term>on_start = <replaceable>id</replaceable>,<replaceable>command</replaceable></term>
-        <term>on_stop = <replaceable>id</replaceable>,<replaceable>command</replaceable></term>
-        <term>on_hash_queued = <replaceable>id</replaceable>,<replaceable>command</replaceable></term>
-        <term>on_hash_removed = <replaceable>id</replaceable>,<replaceable>command</replaceable></term>
-        <term>on_hash_done = <replaceable>id</replaceable>,<replaceable>command</replaceable></term>
-        <term>on_finished = <replaceable>id</replaceable>,<replaceable>command</replaceable></term>
-        <listitem><para>
-Call a command on a download when its state changes. Only a subset of
-commands are available.
-        </para></listitem>
-      </varlistentry>
-
     </variablelist>
 
   </refsect1>
