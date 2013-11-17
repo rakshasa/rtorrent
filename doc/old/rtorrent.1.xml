@@ -557,23 +557,6 @@ torrent::input_error exception on bad input.
         </para></listitem>
       </varlistentry>
 
-      <varlistentry>
-        <term>stop_on_ratio = <replaceable>min_ratio</replaceable></term>
-        <term>stop_on_ratio = <replaceable>min_ratio</replaceable>,<replaceable>min_upload</replaceable></term>
-        <term>stop_on_ratio = <replaceable>min_ratio</replaceable>,<replaceable>min_upload</replaceable>,<replaceable>max_ratio</replaceable></term>
-        <listitem><para>
-Stop torrents when they reach the given upload ratio
-<emphasis>min_ratio</emphasis> in percent. If the optional
-<emphasis>min_upload</emphasis> is given, require a total
-upload amount of this many bytes as well. If the optional
-<emphasis>max_ratio</emphasis> is given, stop the torrent
-when reaching this ratio regardless of the total upload
-amount. Exclude certain torrent by pressing 
-<emphasis>Shift+I</emphasis> in the downlist list.
-Use with the <emphasis>schedule</emphasis> option.
-        </para></listitem>
-      </varlistentry>
-
     </variablelist>
 
   </refsect1>
