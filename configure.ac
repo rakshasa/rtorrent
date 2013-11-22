@@ -41,11 +41,11 @@ CFLAGS="$CFLAGS $PTHREAD_CFLAGS $CURSES_CFLAGS"
 CXXFLAGS="$CXXFLAGS $PTHREAD_CFLAGS $CURSES_CFLAGS"
 LIBS="$PTHREAD_LIBS $CURSES_LIB $LIBS"
 
-PKG_CHECK_MODULES(libcurl, libcurl >= 7.15.4,
+PKG_CHECK_MODULES([libcurl], libcurl >= 7.15.4,
 	          CXXFLAGS="$CXXFLAGS $libcurl_CFLAGS";
 		  LIBS="$LIBS $libcurl_LIBS")
 
-PKG_CHECK_MODULES(libtorrent, libtorrent >= 0.13.3,
+PKG_CHECK_MODULES([libtorrent], libtorrent >= 0.13.3,
 	          CXXFLAGS="$CXXFLAGS $libtorrent_CFLAGS";
 		  LIBS="$LIBS $libtorrent_LIBS")
 
