@@ -508,29 +508,6 @@ Enable/disable peer exchange for torrents that aren't marked private. Disabled b
       </varlistentry>
 
       <varlistentry>
-        <term>schedule = <replaceable>id</replaceable>,<replaceable>start</replaceable>,<replaceable>interval</replaceable>,<replaceable>command</replaceable></term>
-        <listitem><para>
-Call <emphasis>command</emphasis> every <emphasis>interval</emphasis>
-seconds, starting from <emphasis>start</emphasis>. An
-<emphasis>interval</emphasis> of zero calls the task once, while a
-<emphasis>start</emphasis> of zero calls it immediately. Currently
-<emphasis>command</emphasis> is forwarded to the option handler.
-
-<emphasis>start</emphasis> and <emphasis>interval</emphasis> may
-optionally use a time format, <emphasis>dd:hh:mm:ss</emphasis>. F.ex to
-start a task every day at <emphasis>18:00</emphasis>, use
-<emphasis>18:00:00,24:00:00</emphasis>.
-        </para></listitem>
-      </varlistentry>
-
-      <varlistentry>
-        <term>schedule_remove = <replaceable>id</replaceable></term>
-        <listitem><para>
-Delete <emphasis>id</emphasis> from the scheduler.
-        </para></listitem>
-      </varlistentry>
-
-      <varlistentry>
         <term>start_tied =</term>
         <listitem><para>
 Start torrents that are tied to filenames that have been re-added.
@@ -580,40 +557,6 @@ torrent::input_error exception on bad input.
         </para></listitem>
       </varlistentry>
 
-      <varlistentry>
-        <term>stop_on_ratio = <replaceable>min_ratio</replaceable></term>
-        <term>stop_on_ratio = <replaceable>min_ratio</replaceable>,<replaceable>min_upload</replaceable></term>
-        <term>stop_on_ratio = <replaceable>min_ratio</replaceable>,<replaceable>min_upload</replaceable>,<replaceable>max_ratio</replaceable></term>
-        <listitem><para>
-Stop torrents when they reach the given upload ratio
-<emphasis>min_ratio</emphasis> in percent. If the optional
-<emphasis>min_upload</emphasis> is given, require a total
-upload amount of this many bytes as well. If the optional
-<emphasis>max_ratio</emphasis> is given, stop the torrent
-when reaching this ratio regardless of the total upload
-amount. Exclude certain torrent by pressing 
-<emphasis>Shift+I</emphasis> in the downlist list.
-Use with the <emphasis>schedule</emphasis> option.
-        </para></listitem>
-      </varlistentry>
-
-      <varlistentry>
-        <term>on_insert = <replaceable>id</replaceable>,<replaceable>command</replaceable></term>
-        <term>on_erase = <replaceable>id</replaceable>,<replaceable>command</replaceable></term>
-        <term>on_open = <replaceable>id</replaceable>,<replaceable>command</replaceable></term>
-        <term>on_close = <replaceable>id</replaceable>,<replaceable>command</replaceable></term>
-        <term>on_start = <replaceable>id</replaceable>,<replaceable>command</replaceable></term>
-        <term>on_stop = <replaceable>id</replaceable>,<replaceable>command</replaceable></term>
-        <term>on_hash_queued = <replaceable>id</replaceable>,<replaceable>command</replaceable></term>
-        <term>on_hash_removed = <replaceable>id</replaceable>,<replaceable>command</replaceable></term>
-        <term>on_hash_done = <replaceable>id</replaceable>,<replaceable>command</replaceable></term>
-        <term>on_finished = <replaceable>id</replaceable>,<replaceable>command</replaceable></term>
-        <listitem><para>
-Call a command on a download when its state changes. Only a subset of
-commands are available.
-        </para></listitem>
-      </varlistentry>
-
     </variablelist>
 
   </refsect1>
@@ -629,6 +572,8 @@ commands are available.
       <varlistentry>
         <term>upload_rate = <replaceable>KB</replaceable></term>
         <term>download_rate = <replaceable>KB</replaceable></term>
+        <term>set_upload_rate = <replaceable>TODO</replaceable></term>
+        <term>set_download_rate = <replaceable>TODO</replaceable></term>
         <listitem><para>
 Set the maximum global uploand and download rates.
         </para></listitem>
@@ -653,14 +598,19 @@ Set the minimum nad maximum number of peers to allow while seeding, or
 
       <varlistentry>
         <term>max_uploads = <replaceable>value</replaceable></term>
+        <term>max_downloads = <replaceable>value</replaceable></term>
+        <term>min_uploads = <replaceable>value</replaceable></term>
+        <term>min_downloads = <replaceable>value</replaceable></term>
         <listitem><para>
-Set the maximum number of simultaneous uploads per download.
+Set the maximum/minimum number of simultaneous uploads/downloads per download/upload.
         </para></listitem>
       </varlistentry>
 
       <varlistentry>
         <term>max_uploads_div = <replaceable>value</replaceable></term>
         <term>max_downloads_div = <replaceable>value</replaceable></term>
+        <term>set_max_uploads_div = <replaceable>value</replaceable></term>
+        <term>set_max_downloads_div = <replaceable>value</replaceable></term>
         <listitem><para>
 Change the divider used to calculate the max upload and download slots
 to use when the throttle is changed. Disable by
@@ -671,6 +621,8 @@ setting <emphasis>0</emphasis>.
       <varlistentry>
         <term>max_uploads_global = <replaceable>value</replaceable></term>
         <term>max_downloads_global = <replaceable>value</replaceable></term>
+        <term>set_max_uploads_global = <replaceable>value</replaceable></term>
+        <term>set_max_downloads_global = <replaceable>value</replaceable></term>
         <listitem><para>
 Max upload and download slots allowed. Disable by
 setting <emphasis>0</emphasis>.
@@ -746,6 +698,27 @@ not allow connections to UDP trackers.
         </para></listitem>
       </varlistentry>
 
+      <varlistentry>
+        <term>http_capath = <replaceable>path</replaceable></term>
+        <term>http_cacert = <replaceable>filename</replaceable></term>
+        <listitem><para>
+Set the certificates to use in http requests. See Curl's
+CURLOPT_CAPATH and CURLOPT_CAINFO options for further information.
+        </para></listitem>
+      </varlistentry>
+
+    </variablelist>
+
+  </refsect1>
+
+  <refsect1>
+    <title>DHT-RELATED SETTINGS</title>
+    <para>
+      Settings related to DHT
+    </para>
+
+    <variablelist>
+
        <varlistentry>
         <term>dht = <replaceable>disabled|off|auto|on</replaceable></term>
         <listitem><para>
@@ -779,18 +752,29 @@ The port is optional, with port 6881 being used by default.
       </varlistentry>
 
       <varlistentry>
-        <term>http_capath = <replaceable>path</replaceable></term>
-        <term>http_cacert = <replaceable>filename</replaceable></term>
+        <term>dht_statistics = <replaceable>TODO</replaceable></term>
         <listitem><para>
-Set the certificates to use in http requests. See Curl's
-CURLOPT_CAPATH and CURLOPT_CAINFO options for further information.
+TODO
+        </para></listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>set_dht_port = <replaceable>TODO</replaceable></term>
+        <listitem><para>
+TODO
+        </para></listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>set_dht_throttle = <replaceable>TODO</replaceable></term>
+        <listitem><para>
+TODO
         </para></listitem>
       </varlistentry>
 
     </variablelist>
 
   </refsect1>
-
 
   <refsect1>
     <title>USER-INTERFACE SETTINGS</title>
