@@ -1,4 +1,4 @@
-AC_INIT(rtorrent, 0.9.3, jaris@ifi.uio.no)
+AC_INIT(rtorrent, 0.9.3, sundell.software@gmail.com)
 
 AC_DEFINE(API_VERSION, 8, api version)
 

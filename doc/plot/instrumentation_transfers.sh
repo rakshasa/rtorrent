@@ -9,6 +9,8 @@ set y2tics
 set autoscale xfix
 set key autotitle columnhead
 
+set datafile missing '0'
+
 set format y "%.0f"
 set format y2 "%.0f"
 
