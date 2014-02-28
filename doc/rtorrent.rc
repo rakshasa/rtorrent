@@ -45,6 +45,9 @@
 # Port range to use for listening.
 #port_range = 6890-6999
 
+# Backlog for listening
+#listen_backlog = 511
+
 # Start opening ports at a random position within the port range.
 #port_random = no
 
