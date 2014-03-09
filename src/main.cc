@@ -387,7 +387,6 @@ main(int argc, char** argv) {
     CMD2_REDIRECT        ("bind",       "network.bind_address.set");
     CMD2_REDIRECT        ("ip",         "network.local_address.set");
     CMD2_REDIRECT        ("port_range", "network.port_range.set");
-    CMD2_REDIRECT        ("listen_backlog", "network.listen_backlog.set");
 
     CMD2_REDIRECT_GENERIC("dht",      "dht.mode.set");
     CMD2_REDIRECT_GENERIC("dht_port", "dht.port.set");
@@ -546,9 +545,6 @@ main(int argc, char** argv) {
 
       CMD2_REDIRECT        ("get_port_range", "network.port_range");
       CMD2_REDIRECT_GENERIC("set_port_range", "network.port_range.set");
-
-      CMD2_REDIRECT        ("get_listen_backlog", "network.listen_backlog");
-      CMD2_REDIRECT_GENERIC("set_listen_backlog", "network.listen_backlog.set");
 
       CMD2_REDIRECT        ("get_port_random", "network.port_random");
       CMD2_REDIRECT_GENERIC("set_port_random", "network.port_random.set");
