@@ -106,6 +106,9 @@ class CurlStack : std::deque<CurlGet*> {
   long                dns_timeout() const                    { return m_dns_timeout; }
   void                set_dns_timeout(long timeout)          { m_dns_timeout = timeout; }
 
+  long                ssl_verify_host() const                { return m_ssl_verify_host; }
+  void                set_ssl_verify_host(long s)            { m_ssl_verify_host = s; }
+
   static void         global_init();
   static void         global_cleanup();
 
@@ -140,6 +143,7 @@ class CurlStack : std::deque<CurlGet*> {
 
   bool                m_ssl_verify_peer;
   long                m_dns_timeout;
+  long                m_ssl_verify_host;
 };
 
 }

@@ -274,6 +274,8 @@ initialize_command_network() {
   CMD2_ANY_VALUE_V ("network.http.ssl_verify_peer.set",   tr1::bind(&core::CurlStack::set_ssl_verify_peer, httpStack, tr1::placeholders::_2));
   CMD2_ANY         ("network.http.dns_cache_timeout",     tr1::bind(&core::CurlStack::dns_timeout, httpStack));
   CMD2_ANY_VALUE_V ("network.http.dns_cache_timeout.set", tr1::bind(&core::CurlStack::set_dns_timeout, httpStack, tr1::placeholders::_2));
+  CMD2_ANY         ("network.http.ssl_verify_host",       tr1::bind(&core::CurlStack::ssl_verify_host, httpStack));
+  CMD2_ANY_VALUE_V ("network.http.ssl_verify_host.set",   tr1::bind(&core::CurlStack::set_ssl_verify_host, httpStack, tr1::placeholders::_2));
 
   CMD2_ANY         ("network.send_buffer.size",        tr1::bind(&torrent::ConnectionManager::send_buffer_size, cm));
   CMD2_ANY_VALUE_V ("network.send_buffer.size.set",    tr1::bind(&torrent::ConnectionManager::set_send_buffer_size, cm, tr1::placeholders::_2));

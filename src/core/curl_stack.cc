@@ -52,7 +52,8 @@ CurlStack::CurlStack() :
   m_active(0),
   m_maxActive(32),
   m_ssl_verify_peer(true),
-  m_dns_timeout(60) {
+  m_dns_timeout(60),
+  m_ssl_verify_host(2) {
 
   m_taskTimeout.slot() = std::tr1::bind(&CurlStack::receive_timeout, this);
 
@@ -167,6 +168,7 @@ CurlStack::add_get(CurlGet* get) {
 
   curl_easy_setopt(get->handle(), CURLOPT_SSL_VERIFYPEER, (long)m_ssl_verify_peer); 
   curl_easy_setopt(get->handle(), CURLOPT_DNS_CACHE_TIMEOUT, m_dns_timeout);
+  curl_easy_setopt(get->handle(), CURLOPT_SSL_VERIFYHOST, m_ssl_verify_host);
 
   base_type::push_back(get);
 
