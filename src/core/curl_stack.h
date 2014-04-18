@@ -125,6 +125,8 @@ class CurlStack : std::deque<CurlGet*> {
 
   void                receive_timeout();
 
+  bool                process_done_handle();
+
   void*               m_handle;
 
   unsigned int        m_active;
