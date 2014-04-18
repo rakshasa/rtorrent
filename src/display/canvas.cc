@@ -38,7 +38,7 @@
 
 #include <unistd.h>
 #include <sys/ioctl.h>
-#include <sys/termios.h>
+#include <termios.h>
 #include <torrent/exceptions.h>
 
 #include "canvas.h"
