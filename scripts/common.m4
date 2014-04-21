@@ -13,7 +13,7 @@ AC_DEFUN([TORRENT_CHECK_CXXFLAGS], [
 
 AC_DEFUN([TORRENT_ENABLE_DEBUG], [
   AC_ARG_ENABLE(debug,
-    [  --enable-debug          enable debug information [[default=yes]]],
+    AC_HELP_STRING([--enable-debug], [enable debug information [[default=yes]]]),
     [
         if test "$enableval" = "yes"; then
             CXXFLAGS="$CXXFLAGS -g -DDEBUG"
@@ -28,7 +28,7 @@ AC_DEFUN([TORRENT_ENABLE_DEBUG], [
 
 AC_DEFUN([TORRENT_ENABLE_WERROR], [
   AC_ARG_ENABLE(werror,
-    [  --enable-werror         enable the -Werror and -Wall flag [[default=no]]],
+    AC_HELP_STRING([--enable-werror], [enable the -Werror and -Wall flag [[default=no]]]),
     [
         if test "$enableval" = "yes"; then
             CXXFLAGS="$CXXFLAGS -Werror -Wall"
@@ -39,7 +39,7 @@ AC_DEFUN([TORRENT_ENABLE_WERROR], [
 
 AC_DEFUN([TORRENT_ENABLE_EXTRA_DEBUG], [
   AC_ARG_ENABLE(extra-debug,
-    [  --enable-extra-debug    enable extra debugging checks. [[default=no]]],
+    AC_HELP_STRING([--enable-extra-debug], [enable extra debugging checks [[default=no]]]),
     [
         if test "$enableval" = "yes"; then
             AC_DEFINE(USE_EXTRA_DEBUG, 1, Enable extra debugging checks.)
@@ -50,7 +50,7 @@ AC_DEFUN([TORRENT_ENABLE_EXTRA_DEBUG], [
 
 AC_DEFUN([TORRENT_WITH_SYSROOT], [
   AC_ARG_WITH(sysroot,
-    [  --with-sysroot=PATH     compile and link with a specific sysroot.],
+    AC_HELP_STRING([--with-sysroot=PATH], [compile and link with a specific sysroot]),
     [
       AC_MSG_CHECKING(for sysroot)
 
@@ -72,7 +72,7 @@ AC_DEFUN([TORRENT_WITH_SYSROOT], [
 
 AC_DEFUN([TORRENT_ENABLE_ARCH], [
   AC_ARG_ENABLE(arch,
-    [  --enable-arch=ARCH        comma seprated list of architectures to compile for.],
+    AC_HELP_STRING([--enable-arch=ARCH], [comma seprated list of architectures to compile for]),
     [
       AC_MSG_CHECKING(for target architectures)
 
@@ -152,7 +152,7 @@ AC_DEFUN([TORRENT_MINCORE_SIGNEDNESS], [
 
 AC_DEFUN([TORRENT_MINCORE], [
   AC_ARG_ENABLE(mincore,
-    [  --disable-mincore       disable mincore check [[default=enable]]],
+    AC_HELP_STRING([--disable-mincore], [disable mincore check [[default=enable]]]),
     [
       if test "$enableval" = "yes"; then
         TORRENT_MINCORE_SIGNEDNESS()
@@ -259,7 +259,7 @@ AC_DEFUN([TORRENT_CHECK_ALIGNED], [
 
 AC_DEFUN([TORRENT_ENABLE_ALIGNED], [
   AC_ARG_ENABLE(aligned,
-    [  --enable-aligned        enable alignment safe code [[default=check]]],
+    AC_HELP_STRING([--enable-aligned], [enable alignment safe code [[default=check]]]),
     [
         if test "$enableval" = "yes"; then
           AC_DEFINE(USE_ALIGNED, 1, Require byte alignment)
@@ -270,9 +270,40 @@ AC_DEFUN([TORRENT_ENABLE_ALIGNED], [
 ])
 
 
+AC_DEFUN([TORRENT_DISABLE_INSTRUMENTATION], [
+  AC_MSG_CHECKING([if instrumentation should be included])
+
+  AC_ARG_ENABLE(instrumentation,
+    AC_HELP_STRING([--disable-instrumentation], [disable instrumentation [[default=enabled]]]),
+    [
+      if test "$enableval" = "yes"; then
+        AC_DEFINE(LT_INSTRUMENTATION, 1, enable instrumentation)
+	AC_MSG_RESULT(yes)
+      else
+	AC_MSG_RESULT(no)
+      fi
+    ],[
+      AC_DEFINE(LT_INSTRUMENTATION, 1, enable instrumentation)
+      AC_MSG_RESULT(yes)
+    ])
+])
+
+
+AC_DEFUN([TORRENT_ENABLE_INTERRUPT_SOCKET], [
+  AC_ARG_ENABLE(interrupt-socket,
+    AC_HELP_STRING([--enable-interrupt-socket], [enable interrupt socket [[default=no]]]),
+    [
+      if test "$enableval" = "yes"; then
+        AC_DEFINE(USE_INTERRUPT_SOCKET, 1, Use interrupt socket instead of pthread_kill)
+      fi
+    ]
+  )
+])
+
+
 AC_DEFUN([TORRENT_DISABLE_IPV6], [
   AC_ARG_ENABLE(ipv6,
-    [  --enable-ipv6           disable ipv6 [[default=no]]],
+    AC_HELP_STRING([--enable-ipv6], [enable ipv6 [[default=no]]]),
     [
         if test "$enableval" = "yes"; then
             AC_DEFINE(RAK_USE_INET6, 1, enable ipv6 stuff)
@@ -282,7 +313,7 @@ AC_DEFUN([TORRENT_DISABLE_IPV6], [
 
 AC_DEFUN([TORRENT_ENABLE_TR1], [
   AC_ARG_ENABLE(std_tr1,
-    [  --disable-std_tr1       disable check for support for TR1 [[default=enable]]],
+    AC_HELP_STRING([--disable-std_tr1], [disable check for support for TR1 [[default=enable]]]),
     [
       if test "$enableval" = "yes"; then
         TORRENT_CHECK_TR1()
@@ -297,7 +328,7 @@ AC_DEFUN([TORRENT_ENABLE_TR1], [
 
 AC_DEFUN([TORRENT_ENABLE_CXX11], [
   AC_ARG_ENABLE(std_c++11,
-    [  --disable-std_c++11     disable check for support for C++11 [[default=enable]]],
+    AC_HELP_STRING([--disable-std_c++11], [disable check for support for C++11 [[default=enable]]]),
     [
       if test "$enableval" = "yes"; then
         TORRENT_CHECK_CXX11()

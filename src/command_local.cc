@@ -288,6 +288,16 @@ apply_log_open_file(const torrent::Object::list_type& args) {
 }
 
 torrent::Object
+apply_log_open_gz_file(const torrent::Object::list_type& args) {
+  if (args.size() != 2)
+    throw torrent::input_error("Invalid number of arguments.");
+  
+  torrent::log_open_gz_file_output(args.front().as_string().c_str(),
+                                   rak::path_expand(args.back().as_string()).c_str());
+  return torrent::Object();
+}
+
+torrent::Object
 apply_log_add_output(const torrent::Object::list_type& args) {
   if (args.size() != 2)
     throw torrent::input_error("Invalid number of arguments.");
@@ -391,8 +401,9 @@ initialize_command_local() {
   CMD2_EXECUTE     ("execute.capture",         rpc::ExecFile::flag_throw | rpc::ExecFile::flag_expand_tilde | rpc::ExecFile::flag_capture);
   CMD2_EXECUTE     ("execute.capture_nothrow", rpc::ExecFile::flag_expand_tilde | rpc::ExecFile::flag_capture);
 
-  CMD2_ANY_LIST    ("log.open_file",  tr1::bind(&apply_log_open_file, tr1::placeholders::_2));
-  CMD2_ANY_LIST    ("log.add_output", tr1::bind(&apply_log_add_output, tr1::placeholders::_2));
+  CMD2_ANY_LIST    ("log.open_file",    tr1::bind(&apply_log_open_file, tr1::placeholders::_2));
+  CMD2_ANY_LIST    ("log.open_gz_file", tr1::bind(&apply_log_open_gz_file, tr1::placeholders::_2));
+  CMD2_ANY_LIST    ("log.add_output",   tr1::bind(&apply_log_add_output, tr1::placeholders::_2));
 
   CMD2_ANY_STRING  ("log.execute",    tr1::bind(&apply_log, tr1::placeholders::_2, 0));
   CMD2_ANY_STRING  ("log.vmmap.dump", tr1::bind(&log_vmmap_dump, tr1::placeholders::_2));

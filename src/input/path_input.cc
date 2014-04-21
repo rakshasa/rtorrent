@@ -41,14 +41,10 @@
 #include <rak/functional.h>
 #include <rak/path.h>
 
+#include <dirent.h>
+#include <sys/stat.h>
 #include <sys/types.h>
-
-#ifdef __sun__
-  #include <dirent.h>
-  #include <sys/stat.h>
-#else
-  #include <sys/dir.h>
-#endif
+#include <torrent/utils/log.h>
 
 #include "path_input.h"
 
@@ -67,7 +63,8 @@ PathInput::pressed(int key) {
     return TextInput::pressed(key);
 
   } else if (m_showNext) {
-    m_signalShowNext.emit();
+    for (signal_void::iterator itr = m_signal_show_next.begin(), last = m_signal_show_next.end(); itr != last; itr++)
+      (*itr)();
 
   } else {
     receive_do_complete();
@@ -78,17 +75,15 @@ PathInput::pressed(int key) {
 
 struct _transform_filename {
   void operator () (utils::directory_entry& entry) {
-#ifdef __sun__
-    if (entry.d_type & S_IFDIR)
-#else
     if (entry.d_type == DT_DIR)
-#endif
       entry.d_name += '/';
   }
 };
 
 void
 PathInput::receive_do_complete() {
+  lt_log_print(torrent::LOG_UI_EVENTS, "path_input: received completion");
+
   size_type dirEnd = find_last_delim();
 
   utils::Directory dir(dirEnd != 0 ? str().substr(0, dirEnd) : "./");
@@ -101,7 +96,7 @@ PathInput::receive_do_complete() {
 
   std::for_each(dir.begin(), dir.end(), _transform_filename());
 
-  Range r = find_incomplete(dir, str().substr(dirEnd, get_pos()));
+  range_type r = find_incomplete(dir, str().substr(dirEnd, get_pos()));
 
   if (r.first == r.second)
     return; // Show some nice colors here.
@@ -121,8 +116,12 @@ PathInput::receive_do_complete() {
   // Only emit if there are more than one option.
   m_showNext = ++utils::Directory::iterator(r.first) != r.second;
 
-  if (m_showNext)
-    m_signalShowRange.emit(r.first, r.second);
+  if (m_showNext) {
+    lt_log_print(torrent::LOG_UI_EVENTS, "path_input: show next page");
+
+    for (signal_itr_itr::iterator itr = m_signal_show_range.begin(), last = m_signal_show_range.end(); itr != last; itr++)
+      (*itr)(r.first, r.second);
+  }
 }
 
 PathInput::size_type
@@ -147,9 +146,9 @@ find_complete_not_compare(const utils::directory_entry& complete, const std::str
   return !complete.d_name.compare(0, base.size(), base);
 }
 
-PathInput::Range
+PathInput::range_type
 PathInput::find_incomplete(utils::Directory& d, const std::string& f) {
-  Range r;
+  range_type r;
 
   r.first  = std::find_if(d.begin(), d.end(), rak::bind2nd(std::ptr_fun(&find_complete_not_compare), f));
   r.second = std::find_if(r.first,   d.end(), rak::bind2nd(std::ptr_fun(&find_complete_compare), f));

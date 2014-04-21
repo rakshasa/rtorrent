@@ -247,7 +247,9 @@ initialize_command_network() {
   CMD2_VAR_BOOL    ("network.port_random", true);
   CMD2_VAR_STRING  ("network.port_range",  "6881-6999");
 
-  CMD2_ANY         ("network.listen.port",    tr1::bind(&torrent::ConnectionManager::listen_port, cm));
+  CMD2_ANY         ("network.listen.port",        tr1::bind(&torrent::ConnectionManager::listen_port, cm));
+  CMD2_ANY         ("network.listen.backlog",     tr1::bind(&torrent::ConnectionManager::listen_backlog, cm));
+  CMD2_ANY_VALUE_V ("network.listen.backlog.set", tr1::bind(&torrent::ConnectionManager::set_listen_backlog, cm, tr1::placeholders::_2));
 
   CMD2_VAR_BOOL    ("protocol.pex",            true);
   CMD2_ANY_LIST    ("protocol.encryption.set", tr1::bind(&apply_encryption, tr1::placeholders::_2));

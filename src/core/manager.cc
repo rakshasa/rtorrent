@@ -47,8 +47,6 @@
 #include <rak/regex.h>
 #include <rak/path.h>
 #include <rak/string_manip.h>
-#include <sigc++/adaptors/bind.h>
-#include <sigc++/adaptors/hide.h>
 #include <torrent/utils/resume.h>
 #include <torrent/object.h>
 #include <torrent/connection_manager.h>
@@ -115,7 +113,7 @@ Manager::set_hashing_view(View* v) {
     throw torrent::internal_error("Manager::set_hashing_view(...) received NULL or is already set.");
 
   m_hashingView = v;
-  v->signal_changed().connect(sigc::mem_fun(this, &Manager::receive_hashing_changed));
+  m_hashingView->signal_changed().push_back(std::tr1::bind(&Manager::receive_hashing_changed, this));
 }
 
 torrent::ThrottlePair

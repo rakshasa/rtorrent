@@ -37,23 +37,18 @@
 #ifndef RTORRENT_DISPLAY_WINDOW_DOWNLOAD_LIST_H
 #define RTORRENT_DISPLAY_WINDOW_DOWNLOAD_LIST_H
 
-#include <sigc++/connection.h>
-
 #include "window.h"
 
 #include "core/download_list.h"
-
-namespace core {
-  class View;
-}
+#include "core/view.h"
 
 namespace display {
 
 class WindowDownloadList : public Window {
 public:
-  WindowDownloadList() :
-    Window(new Canvas, 0, 120, 1, extent_full, extent_full),
-    m_view(NULL) {}
+  typedef core::View::signal_void::iterator signal_void_itr;
+
+  WindowDownloadList();
   ~WindowDownloadList();
 
   virtual void        redraw();
@@ -63,7 +58,7 @@ public:
 private:
   core::View*         m_view;
 
-  sigc::connection    m_connChanged;
+  signal_void_itr     m_changed_itr;
 };
 
 }

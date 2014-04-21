@@ -38,8 +38,6 @@
 
 #include <rak/functional.h>
 #include <rak/string_manip.h>
-#include <sigc++/adaptors/bind.h>
-#include <sigc++/adaptors/hide.h>
 #include <torrent/exceptions.h>
 #include <torrent/torrent.h>
 #include <torrent/utils/log.h>
@@ -270,11 +268,14 @@ DownloadList::receive_view_input(Input type) {
 
   ElementStringList* esl = dynamic_cast<ElementStringList*>(m_uiArray[DISPLAY_STRING_LIST]);
 
-  input->signal_show_next().connect(std::tr1::bind(&DownloadList::activate_display, this, DISPLAY_STRING_LIST));
-  input->signal_show_next().connect(std::tr1::bind(&ElementStringList::next_screen, *esl));
+  input->signal_show_next().push_back(std::tr1::bind(&DownloadList::activate_display, this, DISPLAY_STRING_LIST));
+  input->signal_show_next().push_back(std::tr1::bind(&ElementStringList::next_screen, esl));
 
-  input->signal_show_range().connect(sigc::hide(sigc::hide(std::tr1::bind(&DownloadList::activate_display, this, DISPLAY_STRING_LIST))));
-  input->signal_show_range().connect(sigc::mem_fun(*esl, &ElementStringList::set_range_dirent<utils::Directory::iterator>));
+  input->signal_show_range().push_back(std::tr1::bind(&DownloadList::activate_display, this, DISPLAY_STRING_LIST));
+  input->signal_show_range().push_back(std::tr1::bind(&ElementStringList::set_range_dirent<utils::Directory::iterator>,
+                                                      esl,
+                                                      std::tr1::placeholders::_1,
+                                                      std::tr1::placeholders::_2));
 
   input->bindings()['\n']      = std::tr1::bind(&DownloadList::receive_exit_input, this, type);
   input->bindings()[KEY_ENTER] = std::tr1::bind(&DownloadList::receive_exit_input, this, type);
