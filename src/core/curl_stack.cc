@@ -86,18 +86,6 @@ CurlStack::new_socket(int fd) {
 
 void
 CurlStack::receive_action(CurlSocket* socket, int events) {
-  if (this <= (CurlStack*)0x100)
-    throw torrent::internal_error("CurlStack::receive_action(...) called with shit == NULL");
-
-  if (this >= (CurlStack*)0x00007fff00000000)
-    throw torrent::internal_error("CurlStack::receive_action(...) called with this == 0x00007fff00000002");
-
-  if (socket != NULL && socket <= (CurlSocket*)0x100)
-    throw torrent::internal_error("CurlStack::receive_action(...) called with socket == NULL");
-
-  if (socket >= (CurlSocket*)0x00007fff00000000)
-    throw torrent::internal_error("CurlStack::receive_action(...) called with socket == 0x00007fff00000002");
-
   CURLMcode code;
 
   do {
