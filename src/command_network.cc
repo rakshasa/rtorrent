@@ -140,7 +140,7 @@ initialize_xmlrpc() {
     rpc::xmlrpc.insert_command(itr->first, itr->second.m_parm, itr->second.m_doc);
   }
 
-  lt_log_print(torrent::LOG_RPC_INFO, "XMLRPC initialized with %u functions.", count);
+  lt_log_print(torrent::LOG_RPC_EVENTS, "XMLRPC initialized with %u functions.", count);
 }
 
 torrent::Object
@@ -169,7 +169,8 @@ apply_scgi(const std::string& arg, int type) {
         sa.sa_inet()->clear();
         saPtr = &sa;
 
-        lt_log_print(torrent::LOG_RPC_WARN, "The SCGI socket has not been bound to any address and likely poses a security risk.");
+        lt_log_print(torrent::LOG_RPC_EVENTS,
+                     "The SCGI socket has not been bound to any address and likely poses a security risk.");
 
       } else if (std::sscanf(arg.c_str(), "%1023[^:]:%i%c", address, &port, &dummy) == 2) {
         if ((err = rak::address_info::get_address_info(address, PF_INET, SOCK_STREAM, &ai)) != 0)
@@ -177,7 +178,8 @@ apply_scgi(const std::string& arg, int type) {
 
         saPtr = ai->address();
 
-        lt_log_print(torrent::LOG_RPC_WARN, "The SCGI socket is bound to a specific network device yet may still pose a security risk, consider using 'scgi_local'.");
+        lt_log_print(torrent::LOG_RPC_EVENTS,
+                     "The SCGI socket is bound to a specific network device yet may still pose a security risk, consider using 'scgi_local'.");
 
       } else {
         throw torrent::input_error("Could not parse address.");
