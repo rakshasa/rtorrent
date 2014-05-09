@@ -53,7 +53,7 @@ class lt_cacheline_aligned SCgi : public torrent::Event {
 public:
   typedef rak::function2<bool, const char*, uint32_t>             slot_write;
 
-  static const int max_tasks = 30;
+  static const int max_tasks = 100;
 
   // Global lock:
   SCgi() : m_logFd(-1) {}
