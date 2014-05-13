@@ -60,6 +60,7 @@ public:
   using base_type::end;
   using base_type::size;
   using base_type::empty;
+  using base_type::clear;
 
   priority_queue(Compare l = Compare(), Equal e = Equal())
     : m_compare(l), m_equal(e) {}

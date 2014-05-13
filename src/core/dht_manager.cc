@@ -114,7 +114,7 @@ DhtManager::start_dht() {
     torrent::dht_manager()->start(port);
     torrent::dht_manager()->reset_statistics();
 
-    m_updateTimeout.slot() = std::tr1::bind(&DhtManager::update, this);
+    m_updateTimeout.slot() = std::bind(&DhtManager::update, this);
     priority_queue_insert(&taskScheduler, &m_updateTimeout, (cachedTime + rak::timer::from_seconds(60)).round_seconds());
 
     m_dhtPrevCycle = 0;
@@ -197,7 +197,7 @@ DhtManager::update() {
         break;
       
     if (itr == end) {
-      m_stopTimeout.slot() = std::tr1::bind(&DhtManager::stop_dht, this);
+      m_stopTimeout.slot() = std::bind(&DhtManager::stop_dht, this);
       priority_queue_insert(&taskScheduler, &m_stopTimeout, (cachedTime + rak::timer::from_seconds(15 * 60)).round_seconds());
     }
   }

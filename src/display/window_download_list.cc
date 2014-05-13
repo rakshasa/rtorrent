@@ -68,7 +68,7 @@ WindowDownloadList::set_view(core::View* l) {
   m_view = l;
 
   if (m_view != NULL)
-    m_changed_itr = m_view->signal_changed().insert(m_view->signal_changed().begin(), std::tr1::bind(&Window::mark_dirty, this));
+    m_changed_itr = m_view->signal_changed().insert(m_view->signal_changed().begin(), std::bind(&Window::mark_dirty, this));
 }
 
 void

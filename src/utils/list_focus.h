@@ -37,7 +37,7 @@
 #ifndef RTORRENT_UTILS_LIST_FOCUS_H
 #define RTORRENT_UTILS_LIST_FOCUS_H
 
-#include <tr1/functional>
+#include lt_tr1_functional
 
 namespace utils {
 
@@ -47,7 +47,7 @@ template <typename Base>
 class ListFocus {
 public:
   typedef Base                        base_type;
-  typedef std::tr1::function<void ()> slot_void;
+  typedef std::function<void ()> slot_void;
   typedef std::list<slot_void>        signal_void;
 
   typedef typename base_type::iterator               iterator;

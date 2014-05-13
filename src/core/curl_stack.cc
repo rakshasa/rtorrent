@@ -54,7 +54,7 @@ CurlStack::CurlStack() :
   m_ssl_verify_peer(true),
   m_dns_timeout(60) {
 
-  m_taskTimeout.slot() = std::tr1::bind(&CurlStack::receive_timeout, this);
+  m_taskTimeout.slot() = std::bind(&CurlStack::receive_timeout, this);
 
 #if (LIBCURL_VERSION_NUM >= 0x071000)
   curl_multi_setopt((CURLM*)m_handle, CURLMOPT_TIMERDATA, this);

@@ -44,6 +44,23 @@
 
 namespace rpc {
 
+const unsigned int object_storage::flag_generic_type;
+const unsigned int object_storage::flag_bool_type;
+const unsigned int object_storage::flag_value_type;
+const unsigned int object_storage::flag_string_type;
+const unsigned int object_storage::flag_list_type;
+const unsigned int object_storage::flag_function_type;
+const unsigned int object_storage::flag_multi_type;
+
+const unsigned int object_storage::mask_type;
+
+const unsigned int object_storage::flag_constant;
+const unsigned int object_storage::flag_static;
+const unsigned int object_storage::flag_private;
+const unsigned int object_storage::flag_rlookup;
+
+const size_t object_storage::key_size;
+
 object_storage::local_iterator
 object_storage::find_local(const torrent::raw_string& key) {
   std::size_t n = hash_fixed_key_type::hash(key.data(), key.size()) % bucket_count();
@@ -245,7 +262,7 @@ object_storage::rlookup_list(const std::string& cmd_key) {
   
   if (r_itr != m_rlookup.end())
     std::transform(r_itr->second.begin(), r_itr->second.end(), std::back_inserter(result),
-                   std::tr1::bind(&key_type::c_str, std::tr1::bind(rak::mem_ptr(&value_type::first), std::tr1::placeholders::_1)));
+                   std::bind(&key_type::c_str, std::bind(rak::mem_ptr(&value_type::first), std::placeholders::_1)));
 
   return result;
 }

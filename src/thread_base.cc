@@ -109,7 +109,7 @@ public:
 void throw_shutdown_exception() { throw torrent::shutdown_exception(); }
 
 ThreadBase::ThreadBase() {
-  m_taskShutdown.slot() = std::tr1::bind(&throw_shutdown_exception);
+  m_taskShutdown.slot() = std::bind(&throw_shutdown_exception);
 
   m_threadQueue = new thread_queue_hack;
 }

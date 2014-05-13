@@ -38,15 +38,15 @@
 #define RTORRENT_INPUT_BINDINGS_H
 
 #include <map>
-#include <tr1/functional>
+#include lt_tr1_functional
 
 #include "display/attributes.h"
 
 namespace input {
 
-class Bindings : private std::map<int, std::tr1::function<void ()> > {
+class Bindings : private std::map<int, std::function<void ()> > {
 public:
-  typedef std::tr1::function<void ()> slot_void;
+  typedef std::function<void ()> slot_void;
   typedef std::map<int, slot_void>    base_type;
 
   using base_type::iterator;

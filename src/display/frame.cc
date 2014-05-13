@@ -38,7 +38,7 @@
 
 #include <algorithm>
 #include <functional>
-#include <tr1/functional>
+#include lt_tr1_functional
 #include <rak/algorithm.h>
 #include <torrent/exceptions.h>
 
@@ -367,9 +367,9 @@ Frame::balance_row(uint32_t x, uint32_t y, uint32_t width, uint32_t height) {
   //
   // Else if we're short, only give each what they require.
   std::stable_sort(dynamicFrames, dynamicFrames + dynamicSize,
-                   std::tr1::bind(std::greater<extent_type>(),
-                                  std::tr1::bind(&dynamic_min_height, std::tr1::placeholders::_1),
-                                  std::tr1::bind(&dynamic_min_height, std::tr1::placeholders::_2)));
+                   std::bind(std::greater<extent_type>(),
+                                  std::bind(&dynamic_min_height, std::placeholders::_1),
+                                  std::bind(&dynamic_min_height, std::placeholders::_2)));
 
   bool retry;
 
@@ -442,9 +442,9 @@ Frame::balance_column(uint32_t x, uint32_t y, uint32_t width, uint32_t height) {
   //
   // Else if we're short, only give each what they require.
   std::stable_sort(dynamicFrames, dynamicFrames + dynamicSize,
-                   std::tr1::bind(std::greater<extent_type>(),
-                                  std::tr1::bind(&dynamic_min_width, std::tr1::placeholders::_1),
-                                  std::tr1::bind(&dynamic_min_width, std::tr1::placeholders::_2)));
+                   std::bind(std::greater<extent_type>(),
+                                  std::bind(&dynamic_min_width, std::placeholders::_1),
+                                  std::bind(&dynamic_min_width, std::placeholders::_2)));
 
   bool retry;
 
