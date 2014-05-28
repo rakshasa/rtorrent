@@ -394,6 +394,9 @@ main(int argc, char** argv) {
     CMD2_REDIRECT        ("port_random", "network.port_random.set");
     CMD2_REDIRECT        ("proxy_address", "network.proxy_address.set");
 
+    CMD2_REDIRECT        ("scgi_port", "network.scgi.open_port");
+    CMD2_REDIRECT        ("scgi_local", "network.scgi.open_local");
+
     CMD2_REDIRECT_GENERIC("directory", "directory.default.set");
     CMD2_REDIRECT_GENERIC("session",   "session.path.set");
 
@@ -568,10 +571,6 @@ main(int argc, char** argv) {
       CMD2_REDIRECT_GENERIC("set_proxy_address", "network.proxy_address.set");
       CMD2_REDIRECT        ("get_proxy_address", "network.proxy_address");
 
-      CMD2_REDIRECT        ("scgi_port", "network.scgi.open_port");
-      CMD2_REDIRECT        ("scgi_local", "network.scgi.open_local");
-
-      CMD2_REDIRECT        ("scgi_dont_route", "network.scgi.dont_route.set");
       CMD2_REDIRECT_GENERIC("set_scgi_dont_route", "network.scgi.dont_route.set");
       CMD2_REDIRECT        ("get_scgi_dont_route", "network.scgi.dont_route");
 
