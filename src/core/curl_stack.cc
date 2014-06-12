@@ -181,9 +181,9 @@ CurlStack::add_get(CurlGet* get) {
   if (!m_httpCaCert.empty())
     curl_easy_setopt(get->handle(), CURLOPT_CAINFO, m_httpCaCert.c_str());
 
-  curl_easy_setopt(get->handle(), CURLOPT_SSL_VERIFYPEER, (long)m_ssl_verify_peer); 
+  curl_easy_setopt(get->handle(), CURLOPT_SSL_VERIFYHOST, (long)(m_ssl_verify_host ? 2 : 0));
+  curl_easy_setopt(get->handle(), CURLOPT_SSL_VERIFYPEER, (long)(m_ssl_verify_peer ? 1 : 0));
   curl_easy_setopt(get->handle(), CURLOPT_DNS_CACHE_TIMEOUT, m_dns_timeout);
-  curl_easy_setopt(get->handle(), CURLOPT_SSL_VERIFYHOST, m_ssl_verify_host);
 
   base_type::push_back(get);
 
