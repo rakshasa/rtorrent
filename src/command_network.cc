@@ -264,18 +264,20 @@ initialize_command_network() {
   CMD2_VAR_STRING  ("protocol.choke_heuristics.down.leech", "download_leech");
   CMD2_VAR_STRING  ("protocol.choke_heuristics.down.seed",  "download_leech");
 
-  CMD2_ANY         ("network.http.capath",                tr1::bind(&core::CurlStack::http_capath, httpStack));
-  CMD2_ANY_STRING_V("network.http.capath.set",            tr1::bind(&core::CurlStack::set_http_capath, httpStack, tr1::placeholders::_2));
   CMD2_ANY         ("network.http.cacert",                tr1::bind(&core::CurlStack::http_cacert, httpStack));
   CMD2_ANY_STRING_V("network.http.cacert.set",            tr1::bind(&core::CurlStack::set_http_cacert, httpStack, tr1::placeholders::_2));
-  CMD2_ANY         ("network.http.proxy_address",         tr1::bind(&core::CurlStack::http_proxy, httpStack));
-  CMD2_ANY_STRING_V("network.http.proxy_address.set",     tr1::bind(&core::CurlStack::set_http_proxy, httpStack, tr1::placeholders::_2));
-  CMD2_ANY         ("network.http.max_open",              tr1::bind(&core::CurlStack::max_active, httpStack));
-  CMD2_ANY_VALUE_V ("network.http.max_open.set",          tr1::bind(&core::CurlStack::set_max_active, httpStack, tr1::placeholders::_2));
-  CMD2_ANY         ("network.http.ssl_verify_peer",       tr1::bind(&core::CurlStack::ssl_verify_peer, httpStack));
-  CMD2_ANY_VALUE_V ("network.http.ssl_verify_peer.set",   tr1::bind(&core::CurlStack::set_ssl_verify_peer, httpStack, tr1::placeholders::_2));
+  CMD2_ANY         ("network.http.capath",                tr1::bind(&core::CurlStack::http_capath, httpStack));
+  CMD2_ANY_STRING_V("network.http.capath.set",            tr1::bind(&core::CurlStack::set_http_capath, httpStack, tr1::placeholders::_2));
   CMD2_ANY         ("network.http.dns_cache_timeout",     tr1::bind(&core::CurlStack::dns_timeout, httpStack));
   CMD2_ANY_VALUE_V ("network.http.dns_cache_timeout.set", tr1::bind(&core::CurlStack::set_dns_timeout, httpStack, tr1::placeholders::_2));
+  CMD2_ANY         ("network.http.max_open",              tr1::bind(&core::CurlStack::max_active, httpStack));
+  CMD2_ANY_VALUE_V ("network.http.max_open.set",          tr1::bind(&core::CurlStack::set_max_active, httpStack, tr1::placeholders::_2));
+  CMD2_ANY         ("network.http.proxy_address",         tr1::bind(&core::CurlStack::http_proxy, httpStack));
+  CMD2_ANY_STRING_V("network.http.proxy_address.set",     tr1::bind(&core::CurlStack::set_http_proxy, httpStack, tr1::placeholders::_2));
+  CMD2_ANY         ("network.http.ssl_verify_host",       tr1::bind(&core::CurlStack::ssl_verify_host, httpStack));
+  CMD2_ANY_VALUE_V ("network.http.ssl_verify_host.set",   tr1::bind(&core::CurlStack::set_ssl_verify_host, httpStack, tr1::placeholders::_2));
+  CMD2_ANY         ("network.http.ssl_verify_peer",       tr1::bind(&core::CurlStack::ssl_verify_peer, httpStack));
+  CMD2_ANY_VALUE_V ("network.http.ssl_verify_peer.set",   tr1::bind(&core::CurlStack::set_ssl_verify_peer, httpStack, tr1::placeholders::_2));
 
   CMD2_ANY         ("network.send_buffer.size",        tr1::bind(&torrent::ConnectionManager::send_buffer_size, cm));
   CMD2_ANY_VALUE_V ("network.send_buffer.size.set",    tr1::bind(&torrent::ConnectionManager::set_send_buffer_size, cm, tr1::placeholders::_2));

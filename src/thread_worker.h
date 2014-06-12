@@ -53,7 +53,7 @@ public:
   ThreadWorker();
   ~ThreadWorker();
 
-  const char*         name() const { return "worker_rtorrent"; }
+  const char*         name() const { return "rtorrent scgi"; }
 
   virtual void        init_thread();
 
