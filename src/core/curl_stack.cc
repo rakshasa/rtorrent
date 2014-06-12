@@ -51,9 +51,9 @@ CurlStack::CurlStack() :
   m_handle((void*)curl_multi_init()),
   m_active(0),
   m_maxActive(32),
+  m_ssl_verify_host(true),
   m_ssl_verify_peer(true),
-  m_dns_timeout(60),
-  m_ssl_verify_host(2) {
+  m_dns_timeout(60) {
 
   m_taskTimeout.slot() = std::tr1::bind(&CurlStack::receive_timeout, this);
 
