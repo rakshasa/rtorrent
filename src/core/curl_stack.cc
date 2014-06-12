@@ -92,35 +92,50 @@ CurlStack::receive_action(CurlSocket* socket, int events) {
   do {
     int count;
 #if (LIBCURL_VERSION_NUM >= 0x071003)
-    code = curl_multi_socket_action((CURLM*)m_handle, socket != NULL ? socket->file_descriptor() : CURL_SOCKET_TIMEOUT, events, &count);
+    code = curl_multi_socket_action((CURLM*)m_handle,
+                                    socket != NULL ? socket->file_descriptor() : CURL_SOCKET_TIMEOUT,
+                                    events,
+                                    &count);
 #else
-    code = curl_multi_socket((CURLM*)m_handle, socket != NULL ? socket->file_descriptor() : CURL_SOCKET_TIMEOUT, &count);
+    code = curl_multi_socket((CURLM*)m_handle,
+                             socket != NULL ? socket->file_descriptor() : CURL_SOCKET_TIMEOUT,
+                             &count);
 #endif
 
     if (code > 0)
       throw torrent::internal_error("Error calling curl_multi_socket_action.");
 
-    // Socket might be removed when cleaning handles below, future calls should not use it.
+    // Socket might be removed when cleaning handles below, future
+    // calls should not use it.
     socket = NULL;
     events = 0;
 
     if ((unsigned int)count != size()) {
-      // Done with some handles.
-      int t;
-      CURLMsg* msg;
-
-      while ((msg = curl_multi_info_read((CURLM*)m_handle, &t)) != NULL) {
-        if (msg->msg != CURLMSG_DONE)
-          throw torrent::internal_error("CurlStack::receive_action() msg->msg != CURLMSG_DONE.");
-
-	transfer_done(msg->easy_handle, msg->data.result == CURLE_OK ? NULL : curl_easy_strerror(msg->data.result));
-      }
+      while (process_done_handle())
+        ; // Do nothing.
 
       if (empty())
         priority_queue_erase(&taskScheduler, &m_taskTimeout);
     }
 
   } while (code == CURLM_CALL_MULTI_PERFORM);
+}
+
+bool
+CurlStack::process_done_handle() {
+  int remaining_msgs = 0;
+  CURLMsg* msg = curl_multi_info_read((CURLM*)m_handle, &remaining_msgs);
+
+  if (msg == NULL)
+    return false;
+
+  if (msg->msg != CURLMSG_DONE)
+    throw torrent::internal_error("CurlStack::receive_action() msg->msg != CURLMSG_DONE.");
+
+  transfer_done(msg->easy_handle,
+                msg->data.result == CURLE_OK ? NULL : curl_easy_strerror(msg->data.result));
+
+  return remaining_msgs != 0;
 }
 
 void

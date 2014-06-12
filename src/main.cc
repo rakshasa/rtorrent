@@ -230,7 +230,7 @@ main(int argc, char** argv) {
     initialize_commands();
 
     if (OptionParser::has_flag('D', argc, argv)) {
-      rpc::call_command_set_value("method.use_deprecated.set", false);
+      rpc::call_command_set_value("method.use_deprecated.set", true);
       lt_log_print(torrent::LOG_WARN, "Disabled deprecated commands.");
     }
 
@@ -394,10 +394,25 @@ main(int argc, char** argv) {
     CMD2_REDIRECT        ("port_random", "network.port_random.set");
     CMD2_REDIRECT        ("proxy_address", "network.proxy_address.set");
 
+    CMD2_REDIRECT        ("scgi_port", "network.scgi.open_port");
+    CMD2_REDIRECT        ("scgi_local", "network.scgi.open_local");
+
     CMD2_REDIRECT_GENERIC("directory", "directory.default.set");
     CMD2_REDIRECT_GENERIC("session",   "session.path.set");
 
+    CMD2_REDIRECT        ("check_hash", "pieces.hash.on_completion.set");
+
     CMD2_REDIRECT        ("key_layout", "keys.layout.set");
+
+    CMD2_REDIRECT_GENERIC("to_gm_time", "convert.gm_time");
+    CMD2_REDIRECT_GENERIC("to_gm_date", "convert.gm_date");
+    CMD2_REDIRECT_GENERIC("to_time", "convert.time");
+    CMD2_REDIRECT_GENERIC("to_date", "convert.date");
+    CMD2_REDIRECT_GENERIC("to_elapsed_time", "convert.elapsed_time");
+    CMD2_REDIRECT_GENERIC("to_kb", "convert.kb");
+    CMD2_REDIRECT_GENERIC("to_mb", "convert.mb");
+    CMD2_REDIRECT_GENERIC("to_xb", "convert.xb");
+    CMD2_REDIRECT_GENERIC("to_throttle", "convert.throttle");
 
     // Deprecated commands. Don't use these anymore.
 
@@ -556,10 +571,6 @@ main(int argc, char** argv) {
       CMD2_REDIRECT_GENERIC("set_proxy_address", "network.proxy_address.set");
       CMD2_REDIRECT        ("get_proxy_address", "network.proxy_address");
 
-      CMD2_REDIRECT        ("scgi_port", "network.scgi.open_port");
-      CMD2_REDIRECT        ("scgi_local", "network.scgi.open_local");
-
-      CMD2_REDIRECT        ("scgi_dont_route", "network.scgi.dont_route.set");
       CMD2_REDIRECT_GENERIC("set_scgi_dont_route", "network.scgi.dont_route.set");
       CMD2_REDIRECT        ("get_scgi_dont_route", "network.scgi.dont_route");
 
@@ -634,7 +645,6 @@ main(int argc, char** argv) {
       CMD2_REDIRECT        ("get_session_on_completion", "session.on_completion");
       CMD2_REDIRECT_GENERIC("set_session_on_completion", "session.on_completion.set");
 
-      CMD2_REDIRECT        ("check_hash", "pieces.hash.on_completion.set");
       CMD2_REDIRECT        ("get_check_hash", "pieces.hash.on_completion");
       CMD2_REDIRECT_GENERIC("set_check_hash", "pieces.hash.on_completion.set");
 
@@ -808,16 +818,6 @@ main(int argc, char** argv) {
 
       // Rename these to avoid conflicts with old style.
       CMD2_REDIRECT_GENERIC("d.multicall", "d.multicall2");
-
-      CMD2_REDIRECT_GENERIC("to_gm_time", "convert.gm_time");
-      CMD2_REDIRECT_GENERIC("to_gm_date", "convert.gm_date");
-      CMD2_REDIRECT_GENERIC("to_time", "convert.time");
-      CMD2_REDIRECT_GENERIC("to_date", "convert.date");
-      CMD2_REDIRECT_GENERIC("to_elapsed_time", "convert.elapsed_time");
-      CMD2_REDIRECT_GENERIC("to_kb", "convert.kb");
-      CMD2_REDIRECT_GENERIC("to_mb", "convert.mb");
-      CMD2_REDIRECT_GENERIC("to_xb", "convert.xb");
-      CMD2_REDIRECT_GENERIC("to_throttle", "convert.throttle");
 
       CMD2_REDIRECT_GENERIC("execute_throw", "execute.throw");
       CMD2_REDIRECT_GENERIC("execute_nothrow", "execute.nothrow");
@@ -1002,6 +1002,7 @@ print_help() {
   std::cout << "order. Use the up/down/left/right arrow keys to move between screens." << std::endl;
   std::cout << std::endl;
   std::cout << "Usage: rtorrent [OPTIONS]... [FILE]... [URL]..." << std::endl;
+  std::cout << "  -D                Enable deprecated commands" << std::endl;
   std::cout << "  -h                Display this very helpful text" << std::endl;
   std::cout << "  -n                Don't try to load ~/.rtorrent.rc on startup" << std::endl;
   std::cout << "  -b <a.b.c.d>      Bind the listening socket to this IP" << std::endl;
