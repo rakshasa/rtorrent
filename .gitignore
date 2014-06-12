@@ -58,6 +58,7 @@ scripts/lt*.m4
 # OS generated files #
 ######################
 .DS_Store?
+.gitignore
 ehthumbs.db
 Icon?
 Thumbs.db
