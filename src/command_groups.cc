@@ -335,12 +335,6 @@ options.
 
 void
 initialize_command_groups() {
-  // Move somewhere else?
-  CMD2_ANY         ("strings.choke_heuristics",          tr1::bind(&torrent::option_list_strings, torrent::OPTION_CHOKE_HEURISTICS));
-  CMD2_ANY         ("strings.choke_heuristics.upload",   tr1::bind(&torrent::option_list_strings, torrent::OPTION_CHOKE_HEURISTICS_UPLOAD));
-  CMD2_ANY         ("strings.choke_heuristics.download", tr1::bind(&torrent::option_list_strings, torrent::OPTION_CHOKE_HEURISTICS_DOWNLOAD));
-  CMD2_ANY         ("strings.tracker_mode",              tr1::bind(&torrent::option_list_strings, torrent::OPTION_TRACKER_MODE));
-
   CMD2_ANY         ("choke_group.list",                tr1::bind(&apply_cg_list));
   CMD2_ANY_STRING  ("choke_group.insert",              tr1::bind(&apply_cg_insert, tr1::placeholders::_2));
 

@@ -281,9 +281,6 @@ apply_ipv4_filter_dump() {
 
 void
 initialize_command_ip() {
-  CMD2_ANY         ("strings.ip_filter",       tr1::bind(&torrent::option_list_strings, torrent::OPTION_IP_FILTER));
-  CMD2_ANY         ("strings.ip_tos",          tr1::bind(&torrent::option_list_strings, torrent::OPTION_IP_TOS));
-
   CMD2_ANY_STRING  ("ip_tables.insert_table",  tr1::bind(&apply_ip_tables_insert_table, tr1::placeholders::_2));
   CMD2_ANY_STRING  ("ip_tables.size_data",     tr1::bind(&apply_ip_tables_size_data, tr1::placeholders::_2));
   CMD2_ANY_LIST    ("ip_tables.get",           tr1::bind(&apply_ip_tables_get, tr1::placeholders::_2));

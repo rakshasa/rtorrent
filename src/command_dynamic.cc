@@ -38,6 +38,7 @@
 
 #include <algorithm>
 #include <torrent/utils/log.h>
+#include <torrent/utils/option_strings.h>
 
 #include "globals.h"
 #include "control.h"
@@ -468,4 +469,15 @@ initialize_command_dynamic() {
   CMD2_ANY_STRING_V("method.rlookup.clear", tr1::bind(&rpc::object_storage::rlookup_clear, control->object_storage(), tr1::placeholders::_2));
 
   CMD2_ANY         ("catch", tr1::bind(&cmd_catch, tr1::placeholders::_1, tr1::placeholders::_2));
+
+  CMD2_ANY         ("strings.choke_heuristics",          tr1::bind(&torrent::option_list_strings, torrent::OPTION_CHOKE_HEURISTICS));
+  CMD2_ANY         ("strings.choke_heuristics.upload",   tr1::bind(&torrent::option_list_strings, torrent::OPTION_CHOKE_HEURISTICS_UPLOAD));
+  CMD2_ANY         ("strings.choke_heuristics.download", tr1::bind(&torrent::option_list_strings, torrent::OPTION_CHOKE_HEURISTICS_DOWNLOAD));
+  CMD2_ANY         ("strings.connection_type",           tr1::bind(&torrent::option_list_strings, torrent::OPTION_CONNECTION_TYPE));
+  CMD2_ANY         ("strings.encryption",                tr1::bind(&torrent::option_list_strings, torrent::OPTION_ENCRYPTION));
+  CMD2_ANY         ("strings.ip_filter",                 tr1::bind(&torrent::option_list_strings, torrent::OPTION_IP_FILTER));
+  CMD2_ANY         ("strings.ip_tos",                    tr1::bind(&torrent::option_list_strings, torrent::OPTION_IP_TOS));
+  CMD2_ANY         ("strings.log_group",                 tr1::bind(&torrent::option_list_strings, torrent::OPTION_LOG_GROUP));
+  CMD2_ANY         ("strings.tracker_event",             tr1::bind(&torrent::option_list_strings, torrent::OPTION_TRACKER_EVENT));
+  CMD2_ANY         ("strings.tracker_mode",              tr1::bind(&torrent::option_list_strings, torrent::OPTION_TRACKER_MODE));
 }
