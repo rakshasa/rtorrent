@@ -50,6 +50,14 @@
 
 namespace rpc {
 
+const unsigned int ExecFile::max_args;
+const unsigned int ExecFile::buffer_size;
+    
+const int ExecFile::flag_expand_tilde;
+const int ExecFile::flag_throw;
+const int ExecFile::flag_capture;
+const int ExecFile::flag_background;
+
 // Close m_logFd.
 
 int

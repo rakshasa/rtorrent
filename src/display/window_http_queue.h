@@ -37,7 +37,7 @@
 #ifndef RTORRENT_DISPLAY_WINDOW_HTTP_QUEUE_H
 #define RTORRENT_DISPLAY_WINDOW_HTTP_QUEUE_H
 
-#include <tr1/functional>
+#include lt_tr1_functional
 
 #include "window.h"
 
@@ -50,7 +50,7 @@ namespace display {
 
 class WindowHttpQueue : public Window {
 public:
-  typedef std::tr1::function<void (core::CurlGet*)> slot_curl_get;
+  typedef std::function<void (core::CurlGet*)> slot_curl_get;
   typedef std::list<slot_curl_get>                  signal_curl_get;
 
   WindowHttpQueue(core::HttpQueue* q);

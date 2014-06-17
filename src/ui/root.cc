@@ -140,23 +140,23 @@ Root::setup_keys() {
 
   const char* keys = get_throttle_keys();
 
-  m_bindings[keys[ 0]]      = std::tr1::bind(&Root::adjust_up_throttle, this, 1);
-  m_bindings[keys[ 1]]      = std::tr1::bind(&Root::adjust_up_throttle, this, -1);
-  m_bindings[keys[ 2]]      = std::tr1::bind(&Root::adjust_down_throttle, this, 1);
-  m_bindings[keys[ 3]]      = std::tr1::bind(&Root::adjust_down_throttle, this, -1);
+  m_bindings[keys[ 0]]      = std::bind(&Root::adjust_up_throttle, this, 1);
+  m_bindings[keys[ 1]]      = std::bind(&Root::adjust_up_throttle, this, -1);
+  m_bindings[keys[ 2]]      = std::bind(&Root::adjust_down_throttle, this, 1);
+  m_bindings[keys[ 3]]      = std::bind(&Root::adjust_down_throttle, this, -1);
 
-  m_bindings[keys[ 4]]      = std::tr1::bind(&Root::adjust_up_throttle, this, 5);
-  m_bindings[keys[ 5]]      = std::tr1::bind(&Root::adjust_up_throttle, this, -5);
-  m_bindings[keys[ 6]]      = std::tr1::bind(&Root::adjust_down_throttle, this, 5);
-  m_bindings[keys[ 7]]      = std::tr1::bind(&Root::adjust_down_throttle, this, -5);
+  m_bindings[keys[ 4]]      = std::bind(&Root::adjust_up_throttle, this, 5);
+  m_bindings[keys[ 5]]      = std::bind(&Root::adjust_up_throttle, this, -5);
+  m_bindings[keys[ 6]]      = std::bind(&Root::adjust_down_throttle, this, 5);
+  m_bindings[keys[ 7]]      = std::bind(&Root::adjust_down_throttle, this, -5);
 
-  m_bindings[keys[ 8]]      = std::tr1::bind(&Root::adjust_up_throttle, this, 50);
-  m_bindings[keys[ 9]]      = std::tr1::bind(&Root::adjust_up_throttle, this, -50);
-  m_bindings[keys[10]]      = std::tr1::bind(&Root::adjust_down_throttle, this, 50);
-  m_bindings[keys[11]]      = std::tr1::bind(&Root::adjust_down_throttle, this, -50);
+  m_bindings[keys[ 8]]      = std::bind(&Root::adjust_up_throttle, this, 50);
+  m_bindings[keys[ 9]]      = std::bind(&Root::adjust_up_throttle, this, -50);
+  m_bindings[keys[10]]      = std::bind(&Root::adjust_down_throttle, this, 50);
+  m_bindings[keys[11]]      = std::bind(&Root::adjust_down_throttle, this, -50);
 
-  m_bindings['\x0C']        = std::tr1::bind(&display::Manager::force_redraw, m_control->display()); // ^L
-  m_bindings['\x11']        = std::tr1::bind(&Control::receive_normal_shutdown, m_control); // ^Q
+  m_bindings['\x0C']        = std::bind(&display::Manager::force_redraw, m_control->display()); // ^L
+  m_bindings['\x11']        = std::bind(&Control::receive_normal_shutdown, m_control); // ^Q
 }
 
 void
@@ -234,7 +234,7 @@ Root::enable_input(const std::string& title, input::TextInput* input) {
   if (m_windowInput->input() != NULL)
     throw torrent::internal_error("Root::enable_input(...) m_windowInput->input() != NULL.");
 
-  input->slot_dirty(std::tr1::bind(&WInput::mark_dirty, m_windowInput));
+  input->slot_dirty(std::bind(&WInput::mark_dirty, m_windowInput));
 
   m_windowStatusbar->set_active(false);
 
@@ -243,8 +243,8 @@ Root::enable_input(const std::string& title, input::TextInput* input) {
   m_windowInput->set_title(title);
   m_windowInput->set_focus(true);
 
-  input->bindings()['\x0C'] = std::tr1::bind(&display::Manager::force_redraw, m_control->display()); // ^L
-  input->bindings()['\x11'] = std::tr1::bind(&Control::receive_normal_shutdown, m_control); // ^Q
+  input->bindings()['\x0C'] = std::bind(&display::Manager::force_redraw, m_control->display()); // ^L
+  input->bindings()['\x11'] = std::bind(&Control::receive_normal_shutdown, m_control); // ^Q
 
   control->input()->set_text_input(input);
   control->display()->adjust_layout();

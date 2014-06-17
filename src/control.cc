@@ -78,9 +78,9 @@ Control::Control() :
   m_viewManager = new core::ViewManager();
   m_dhtManager  = new core::DhtManager();
 
-  m_inputStdin->slot_pressed(std::tr1::bind(&input::Manager::pressed, m_input, std::tr1::placeholders::_1));
+  m_inputStdin->slot_pressed(std::bind(&input::Manager::pressed, m_input, std::placeholders::_1));
 
-  m_taskShutdown.slot() = std::tr1::bind(&Control::handle_shutdown, this);
+  m_taskShutdown.slot() = std::bind(&Control::handle_shutdown, this);
 
   m_commandScheduler->set_slot_error_message(rak::mem_fn(m_core, &core::Manager::push_log_std));
 }

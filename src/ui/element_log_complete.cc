@@ -54,9 +54,9 @@ ElementLogComplete::ElementLogComplete(torrent::log_buffer* l) :
   m_window(NULL),
   m_log(l) {
 
-  unsigned int signal_index = torrent::main_thread()->signal_bitfield()->add_signal(std::tr1::bind(&ElementLogComplete::received_update, this));
+  unsigned int signal_index = torrent::main_thread()->signal_bitfield()->add_signal(std::bind(&ElementLogComplete::received_update, this));
 
-  m_log->lock_and_set_update_slot(std::tr1::bind(&torrent::thread_base::send_event_signal, torrent::main_thread(), signal_index, false));
+  m_log->lock_and_set_update_slot(std::bind(&torrent::thread_base::send_event_signal, torrent::main_thread(), signal_index, false));
 }
 
 void

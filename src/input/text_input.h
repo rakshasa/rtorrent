@@ -46,7 +46,7 @@ namespace input {
 class TextInput : private std::string {
 public:
   typedef std::string                 Base;
-  typedef std::tr1::function<void ()> slot_void;
+  typedef std::function<void ()> slot_void;
 
   using Base::c_str;
   using Base::empty;

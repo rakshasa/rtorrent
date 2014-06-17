@@ -59,7 +59,7 @@ Window::Window(Canvas* canvas, int flags, extent_type minWidth, extent_type minH
   m_maxWidth(maxWidth),
   m_maxHeight(maxHeight) {
 
-  m_taskUpdate.slot() = std::tr1::bind(&Window::redraw, this);
+  m_taskUpdate.slot() = std::bind(&Window::redraw, this);
 }
 
 Window::~Window() {

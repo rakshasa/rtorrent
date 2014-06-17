@@ -54,11 +54,11 @@ ElementText::ElementText(rpc::target_type target) :
   m_columnWidth(0) {
 
   // Move bindings into a function that defines default bindings.
-  m_bindings[KEY_LEFT] = m_bindings['B' - '@'] = std::tr1::bind(&slot_type::operator(), &m_slot_exit);
+  m_bindings[KEY_LEFT] = m_bindings['B' - '@'] = std::bind(&slot_type::operator(), &m_slot_exit);
 
-//   m_bindings[KEY_UP]    = std::tr1::bind(this, &ElementText::entry_prev);
-//   m_bindings[KEY_DOWN]  = std::tr1::bind(this, &ElementText::entry_next);
-//   m_bindings[KEY_RIGHT] = m_bindings['F' - '@'] = std::tr1::bind(this, &ElementText::entry_select);
+//   m_bindings[KEY_UP]    = std::bind(this, &ElementText::entry_prev);
+//   m_bindings[KEY_DOWN]  = std::bind(this, &ElementText::entry_next);
+//   m_bindings[KEY_RIGHT] = m_bindings['F' - '@'] = std::bind(this, &ElementText::entry_select);
 }
 
 ElementText::~ElementText() {

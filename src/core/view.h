@@ -53,7 +53,7 @@
 #include <vector>
 #include <rak/timer.h>
 #include <torrent/object.h>
-#include <tr1/functional>
+#include lt_tr1_functional
 
 #include "globals.h"
 
@@ -64,7 +64,7 @@ class Download;
 class View : private std::vector<Download*> {
 public:
   typedef std::vector<Download*>      base_type;
-  typedef std::tr1::function<void ()> slot_void;
+  typedef std::function<void ()> slot_void;
   typedef std::list<slot_void>        signal_void;
 
   using base_type::iterator;
