@@ -111,59 +111,59 @@ apply_enable_trackers(int64_t arg) {
 
 void
 initialize_command_tracker() {
-  CMD2_TRACKER        ("t.is_open",           tr1::bind(&torrent::Tracker::is_busy, tr1::placeholders::_1));
-  CMD2_TRACKER        ("t.is_enabled",        tr1::bind(&torrent::Tracker::is_enabled, tr1::placeholders::_1));
-  CMD2_TRACKER        ("t.is_usable",         tr1::bind(&torrent::Tracker::is_usable, tr1::placeholders::_1));
-  CMD2_TRACKER        ("t.is_busy",           tr1::bind(&torrent::Tracker::is_busy, tr1::placeholders::_1));
-  CMD2_TRACKER        ("t.is_extra_tracker",  tr1::bind(&torrent::Tracker::is_extra_tracker, tr1::placeholders::_1));
-  CMD2_TRACKER        ("t.can_scrape",        tr1::bind(&torrent::Tracker::can_scrape, tr1::placeholders::_1));
+  CMD2_TRACKER        ("t.is_open",           std::bind(&torrent::Tracker::is_busy, std::placeholders::_1));
+  CMD2_TRACKER        ("t.is_enabled",        std::bind(&torrent::Tracker::is_enabled, std::placeholders::_1));
+  CMD2_TRACKER        ("t.is_usable",         std::bind(&torrent::Tracker::is_usable, std::placeholders::_1));
+  CMD2_TRACKER        ("t.is_busy",           std::bind(&torrent::Tracker::is_busy, std::placeholders::_1));
+  CMD2_TRACKER        ("t.is_extra_tracker",  std::bind(&torrent::Tracker::is_extra_tracker, std::placeholders::_1));
+  CMD2_TRACKER        ("t.can_scrape",        std::bind(&torrent::Tracker::can_scrape, std::placeholders::_1));
 
-  CMD2_TRACKER_V      ("t.enable",            tr1::bind(&torrent::Tracker::enable, tr1::placeholders::_1));
-  CMD2_TRACKER_V      ("t.disable",           tr1::bind(&torrent::Tracker::disable, tr1::placeholders::_1));
+  CMD2_TRACKER_V      ("t.enable",            std::bind(&torrent::Tracker::enable, std::placeholders::_1));
+  CMD2_TRACKER_V      ("t.disable",           std::bind(&torrent::Tracker::disable, std::placeholders::_1));
 
-  CMD2_TRACKER_VALUE_V("t.is_enabled.set",    tr1::bind(&tracker_set_enabled, tr1::placeholders::_1, tr1::placeholders::_2));
+  CMD2_TRACKER_VALUE_V("t.is_enabled.set",    std::bind(&tracker_set_enabled, std::placeholders::_1, std::placeholders::_2));
 
-  CMD2_TRACKER        ("t.url",               tr1::bind(&torrent::Tracker::url, tr1::placeholders::_1));
-  CMD2_TRACKER        ("t.group",             tr1::bind(&torrent::Tracker::group, tr1::placeholders::_1));
-  CMD2_TRACKER        ("t.type",              tr1::bind(&torrent::Tracker::type, tr1::placeholders::_1));
-  CMD2_TRACKER        ("t.id",                tr1::bind(&torrent::Tracker::tracker_id, tr1::placeholders::_1));
+  CMD2_TRACKER        ("t.url",               std::bind(&torrent::Tracker::url, std::placeholders::_1));
+  CMD2_TRACKER        ("t.group",             std::bind(&torrent::Tracker::group, std::placeholders::_1));
+  CMD2_TRACKER        ("t.type",              std::bind(&torrent::Tracker::type, std::placeholders::_1));
+  CMD2_TRACKER        ("t.id",                std::bind(&torrent::Tracker::tracker_id, std::placeholders::_1));
 
-  CMD2_TRACKER        ("t.latest_event",      tr1::bind(&torrent::Tracker::latest_event, tr1::placeholders::_1));
-  CMD2_TRACKER        ("t.latest_new_peers",  tr1::bind(&torrent::Tracker::latest_new_peers, tr1::placeholders::_1));
-  CMD2_TRACKER        ("t.latest_sum_peers",  tr1::bind(&torrent::Tracker::latest_sum_peers, tr1::placeholders::_1));
+  CMD2_TRACKER        ("t.latest_event",      std::bind(&torrent::Tracker::latest_event, std::placeholders::_1));
+  CMD2_TRACKER        ("t.latest_new_peers",  std::bind(&torrent::Tracker::latest_new_peers, std::placeholders::_1));
+  CMD2_TRACKER        ("t.latest_sum_peers",  std::bind(&torrent::Tracker::latest_sum_peers, std::placeholders::_1));
 
   // Time since last connection, connection attempt.
 
-  CMD2_TRACKER        ("t.normal_interval",   tr1::bind(&torrent::Tracker::normal_interval, tr1::placeholders::_1));
-  CMD2_TRACKER        ("t.min_interval",      tr1::bind(&torrent::Tracker::min_interval, tr1::placeholders::_1));
+  CMD2_TRACKER        ("t.normal_interval",   std::bind(&torrent::Tracker::normal_interval, std::placeholders::_1));
+  CMD2_TRACKER        ("t.min_interval",      std::bind(&torrent::Tracker::min_interval, std::placeholders::_1));
 
-  CMD2_TRACKER        ("t.activity_time_next", tr1::bind(&torrent::Tracker::activity_time_next, tr1::placeholders::_1));
-  CMD2_TRACKER        ("t.activity_time_last", tr1::bind(&torrent::Tracker::activity_time_last, tr1::placeholders::_1));
+  CMD2_TRACKER        ("t.activity_time_next", std::bind(&torrent::Tracker::activity_time_next, std::placeholders::_1));
+  CMD2_TRACKER        ("t.activity_time_last", std::bind(&torrent::Tracker::activity_time_last, std::placeholders::_1));
 
-  CMD2_TRACKER        ("t.success_time_next", tr1::bind(&torrent::Tracker::success_time_next, tr1::placeholders::_1));
-  CMD2_TRACKER        ("t.success_time_last", tr1::bind(&torrent::Tracker::success_time_last, tr1::placeholders::_1));
-  CMD2_TRACKER        ("t.success_counter",   tr1::bind(&torrent::Tracker::success_counter, tr1::placeholders::_1));
+  CMD2_TRACKER        ("t.success_time_next", std::bind(&torrent::Tracker::success_time_next, std::placeholders::_1));
+  CMD2_TRACKER        ("t.success_time_last", std::bind(&torrent::Tracker::success_time_last, std::placeholders::_1));
+  CMD2_TRACKER        ("t.success_counter",   std::bind(&torrent::Tracker::success_counter, std::placeholders::_1));
 
-  CMD2_TRACKER        ("t.failed_time_next",  tr1::bind(&torrent::Tracker::failed_time_next, tr1::placeholders::_1));
-  CMD2_TRACKER        ("t.failed_time_last",  tr1::bind(&torrent::Tracker::failed_time_last, tr1::placeholders::_1));
-  CMD2_TRACKER        ("t.failed_counter",    tr1::bind(&torrent::Tracker::failed_counter, tr1::placeholders::_1));
+  CMD2_TRACKER        ("t.failed_time_next",  std::bind(&torrent::Tracker::failed_time_next, std::placeholders::_1));
+  CMD2_TRACKER        ("t.failed_time_last",  std::bind(&torrent::Tracker::failed_time_last, std::placeholders::_1));
+  CMD2_TRACKER        ("t.failed_counter",    std::bind(&torrent::Tracker::failed_counter, std::placeholders::_1));
 
-  CMD2_TRACKER        ("t.scrape_time_last",  tr1::bind(&torrent::Tracker::scrape_time_last, tr1::placeholders::_1));
-  CMD2_TRACKER        ("t.scrape_counter",    tr1::bind(&torrent::Tracker::scrape_counter, tr1::placeholders::_1));
+  CMD2_TRACKER        ("t.scrape_time_last",  std::bind(&torrent::Tracker::scrape_time_last, std::placeholders::_1));
+  CMD2_TRACKER        ("t.scrape_counter",    std::bind(&torrent::Tracker::scrape_counter, std::placeholders::_1));
 
-  CMD2_TRACKER        ("t.scrape_complete",   tr1::bind(&torrent::Tracker::scrape_complete, tr1::placeholders::_1));
-  CMD2_TRACKER        ("t.scrape_incomplete", tr1::bind(&torrent::Tracker::scrape_incomplete, tr1::placeholders::_1));
-  CMD2_TRACKER        ("t.scrape_downloaded", tr1::bind(&torrent::Tracker::scrape_downloaded, tr1::placeholders::_1));
+  CMD2_TRACKER        ("t.scrape_complete",   std::bind(&torrent::Tracker::scrape_complete, std::placeholders::_1));
+  CMD2_TRACKER        ("t.scrape_incomplete", std::bind(&torrent::Tracker::scrape_incomplete, std::placeholders::_1));
+  CMD2_TRACKER        ("t.scrape_downloaded", std::bind(&torrent::Tracker::scrape_downloaded, std::placeholders::_1));
 
-  CMD2_ANY_VALUE      ("trackers.enable",     tr1::bind(&apply_enable_trackers, int64_t(1)));
-  CMD2_ANY_VALUE      ("trackers.disable",    tr1::bind(&apply_enable_trackers, int64_t(0)));
+  CMD2_ANY_VALUE      ("trackers.enable",     std::bind(&apply_enable_trackers, int64_t(1)));
+  CMD2_ANY_VALUE      ("trackers.disable",    std::bind(&apply_enable_trackers, int64_t(0)));
   CMD2_VAR_VALUE      ("trackers.numwant",    -1);
   CMD2_VAR_BOOL       ("trackers.use_udp",    true);
 
-  CMD2_ANY_STRING_V   ("dht.mode.set",          tr1::bind(&core::DhtManager::set_mode, control->dht_manager(), tr1::placeholders::_2));
+  CMD2_ANY_STRING_V   ("dht.mode.set",          std::bind(&core::DhtManager::set_mode, control->dht_manager(), std::placeholders::_2));
   CMD2_VAR_VALUE      ("dht.port",              int64_t(6881));
-  CMD2_ANY_STRING     ("dht.add_node",          tr1::bind(&apply_dht_add_node, tr1::placeholders::_2));
-  CMD2_ANY            ("dht.statistics",        tr1::bind(&core::DhtManager::dht_statistics, control->dht_manager()));
-  CMD2_ANY            ("dht.throttle.name",     tr1::bind(&core::DhtManager::throttle_name, control->dht_manager()));
-  CMD2_ANY_STRING_V   ("dht.throttle.name.set", tr1::bind(&core::DhtManager::set_throttle_name, control->dht_manager(), tr1::placeholders::_2));
+  CMD2_ANY_STRING     ("dht.add_node",          std::bind(&apply_dht_add_node, std::placeholders::_2));
+  CMD2_ANY            ("dht.statistics",        std::bind(&core::DhtManager::dht_statistics, control->dht_manager()));
+  CMD2_ANY            ("dht.throttle.name",     std::bind(&core::DhtManager::throttle_name, control->dht_manager()));
+  CMD2_ANY_STRING_V   ("dht.throttle.name.set", std::bind(&core::DhtManager::set_throttle_name, control->dht_manager(), std::placeholders::_2));
 }

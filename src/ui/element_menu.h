@@ -51,8 +51,8 @@ namespace ui {
 struct ElementMenuEntry {
   display::TextElementStringBase* m_element;
 
-  std::tr1::function<void ()>     m_slotFocus;
-  std::tr1::function<void ()>     m_slotSelect;
+  std::function<void ()>     m_slotFocus;
+  std::function<void ()>     m_slotSelect;
 };
 
 class ElementMenu : public ElementBase, public std::vector<ElementMenuEntry> {

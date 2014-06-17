@@ -60,13 +60,13 @@ OptionParser::insert_option(char c, slot_string s) {
 
 void
 OptionParser::insert_option_list(char c, slot_string_pair s) {
-  m_container[c].m_slot = std::tr1::bind(&OptionParser::call_option_list, s, std::tr1::placeholders::_1);
+  m_container[c].m_slot = std::bind(&OptionParser::call_option_list, s, std::placeholders::_1);
   m_container[c].m_useOption = true;
 }
 
 void
 OptionParser::insert_int_pair(char c, slot_int_pair s) {
-  m_container[c].m_slot = std::tr1::bind(&OptionParser::call_int_pair, s, std::tr1::placeholders::_1);
+  m_container[c].m_slot = std::bind(&OptionParser::call_int_pair, s, std::placeholders::_1);
   m_container[c].m_useOption = true;
 }
 

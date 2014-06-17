@@ -97,37 +97,37 @@ retrieve_p_completed_percent(torrent::Peer* peer) {
 
 void
 initialize_command_peer() {
-  CMD2_PEER("p.id",                tr1::bind(&retrieve_p_id, tr1::placeholders::_1));
-  CMD2_PEER("p.id_html",           tr1::bind(&retrieve_p_id_html, tr1::placeholders::_1));
-  CMD2_PEER("p.client_version",    tr1::bind(&retrieve_p_client_version, tr1::placeholders::_1));
+  CMD2_PEER("p.id",                std::bind(&retrieve_p_id, std::placeholders::_1));
+  CMD2_PEER("p.id_html",           std::bind(&retrieve_p_id_html, std::placeholders::_1));
+  CMD2_PEER("p.client_version",    std::bind(&retrieve_p_client_version, std::placeholders::_1));
 
-  CMD2_PEER("p.options_str",       tr1::bind(&retrieve_p_options_str, tr1::placeholders::_1));
+  CMD2_PEER("p.options_str",       std::bind(&retrieve_p_options_str, std::placeholders::_1));
 
-  CMD2_PEER("p.is_encrypted",      tr1::bind(&torrent::Peer::is_encrypted, tr1::placeholders::_1));
-  CMD2_PEER("p.is_incoming",       tr1::bind(&torrent::Peer::is_incoming, tr1::placeholders::_1));
-  CMD2_PEER("p.is_obfuscated",     tr1::bind(&torrent::Peer::is_obfuscated, tr1::placeholders::_1));
-  CMD2_PEER("p.is_snubbed",        tr1::bind(&torrent::Peer::is_snubbed, tr1::placeholders::_1));
+  CMD2_PEER("p.is_encrypted",      std::bind(&torrent::Peer::is_encrypted, std::placeholders::_1));
+  CMD2_PEER("p.is_incoming",       std::bind(&torrent::Peer::is_incoming, std::placeholders::_1));
+  CMD2_PEER("p.is_obfuscated",     std::bind(&torrent::Peer::is_obfuscated, std::placeholders::_1));
+  CMD2_PEER("p.is_snubbed",        std::bind(&torrent::Peer::is_snubbed, std::placeholders::_1));
 
-  CMD2_PEER("p.is_unwanted",       tr1::bind(&torrent::PeerInfo::is_unwanted,  tr1::bind(&torrent::Peer::peer_info, tr1::placeholders::_1)));
-  CMD2_PEER("p.is_preferred",      tr1::bind(&torrent::PeerInfo::is_preferred, tr1::bind(&torrent::Peer::peer_info, tr1::placeholders::_1)));
+  CMD2_PEER("p.is_unwanted",       std::bind(&torrent::PeerInfo::is_unwanted,  std::bind(&torrent::Peer::peer_info, std::placeholders::_1)));
+  CMD2_PEER("p.is_preferred",      std::bind(&torrent::PeerInfo::is_preferred, std::bind(&torrent::Peer::peer_info, std::placeholders::_1)));
 
-  CMD2_PEER("p.address",           tr1::bind(&retrieve_p_address, tr1::placeholders::_1));
-  CMD2_PEER("p.port",              tr1::bind(&retrieve_p_port, tr1::placeholders::_1));
+  CMD2_PEER("p.address",           std::bind(&retrieve_p_address, std::placeholders::_1));
+  CMD2_PEER("p.port",              std::bind(&retrieve_p_port, std::placeholders::_1));
 
-  CMD2_PEER("p.completed_percent", tr1::bind(&retrieve_p_completed_percent, tr1::placeholders::_1));
+  CMD2_PEER("p.completed_percent", std::bind(&retrieve_p_completed_percent, std::placeholders::_1));
 
-  CMD2_PEER("p.up_rate",           tr1::bind(&torrent::Rate::rate,  tr1::bind(&torrent::Peer::up_rate, tr1::placeholders::_1)));
-  CMD2_PEER("p.up_total",          tr1::bind(&torrent::Rate::total, tr1::bind(&torrent::Peer::up_rate, tr1::placeholders::_1)));
-  CMD2_PEER("p.down_rate",         tr1::bind(&torrent::Rate::rate,  tr1::bind(&torrent::Peer::down_rate, tr1::placeholders::_1)));
-  CMD2_PEER("p.down_total",        tr1::bind(&torrent::Rate::total, tr1::bind(&torrent::Peer::down_rate, tr1::placeholders::_1)));
-  CMD2_PEER("p.peer_rate",         tr1::bind(&torrent::Rate::rate,  tr1::bind(&torrent::Peer::peer_rate, tr1::placeholders::_1)));
-  CMD2_PEER("p.peer_total",        tr1::bind(&torrent::Rate::total, tr1::bind(&torrent::Peer::peer_rate, tr1::placeholders::_1)));
+  CMD2_PEER("p.up_rate",           std::bind(&torrent::Rate::rate,  std::bind(&torrent::Peer::up_rate, std::placeholders::_1)));
+  CMD2_PEER("p.up_total",          std::bind(&torrent::Rate::total, std::bind(&torrent::Peer::up_rate, std::placeholders::_1)));
+  CMD2_PEER("p.down_rate",         std::bind(&torrent::Rate::rate,  std::bind(&torrent::Peer::down_rate, std::placeholders::_1)));
+  CMD2_PEER("p.down_total",        std::bind(&torrent::Rate::total, std::bind(&torrent::Peer::down_rate, std::placeholders::_1)));
+  CMD2_PEER("p.peer_rate",         std::bind(&torrent::Rate::rate,  std::bind(&torrent::Peer::peer_rate, std::placeholders::_1)));
+  CMD2_PEER("p.peer_total",        std::bind(&torrent::Rate::total, std::bind(&torrent::Peer::peer_rate, std::placeholders::_1)));
 
-  CMD2_PEER        ("p.snubbed",     tr1::bind(&torrent::Peer::is_snubbed,  tr1::placeholders::_1));
-  CMD2_PEER_VALUE_V("p.snubbed.set", tr1::bind(&torrent::Peer::set_snubbed, tr1::placeholders::_1, tr1::placeholders::_2));
-  CMD2_PEER        ("p.banned",      tr1::bind(&torrent::Peer::is_banned,   tr1::placeholders::_1));
-  CMD2_PEER_VALUE_V("p.banned.set",  tr1::bind(&torrent::Peer::set_banned,  tr1::placeholders::_1, tr1::placeholders::_2));
+  CMD2_PEER        ("p.snubbed",     std::bind(&torrent::Peer::is_snubbed,  std::placeholders::_1));
+  CMD2_PEER_VALUE_V("p.snubbed.set", std::bind(&torrent::Peer::set_snubbed, std::placeholders::_1, std::placeholders::_2));
+  CMD2_PEER        ("p.banned",      std::bind(&torrent::Peer::is_banned,   std::placeholders::_1));
+  CMD2_PEER_VALUE_V("p.banned.set",  std::bind(&torrent::Peer::set_banned,  std::placeholders::_1, std::placeholders::_2));
 
-  CMD2_PEER_V("p.disconnect",         tr1::bind(&torrent::Peer::disconnect, tr1::placeholders::_1, 0));
-  CMD2_PEER_V("p.disconnect_delayed", tr1::bind(&torrent::Peer::disconnect, tr1::placeholders::_1, torrent::ConnectionList::disconnect_delayed));
+  CMD2_PEER_V("p.disconnect",         std::bind(&torrent::Peer::disconnect, std::placeholders::_1, 0));
+  CMD2_PEER_V("p.disconnect_delayed", std::bind(&torrent::Peer::disconnect, std::placeholders::_1, torrent::ConnectionList::disconnect_delayed));
 }

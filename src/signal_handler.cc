@@ -38,6 +38,8 @@
 
 #include <signal.h>
 #include <stdexcept>
+#include <string>
+
 #include "rak/error_number.h"
 #include "signal_handler.h"
 

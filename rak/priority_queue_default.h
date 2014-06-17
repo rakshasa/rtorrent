@@ -37,7 +37,7 @@
 #ifndef RAK_PRIORITY_QUEUE_DEFAULT_H
 #define RAK_PRIORITY_QUEUE_DEFAULT_H
 
-#include <tr1/functional>
+#include lt_tr1_functional
 #include <rak/allocators.h>
 #include <rak/priority_queue.h>
 #include <rak/timer.h>
@@ -48,7 +48,7 @@ namespace rak {
 
 class priority_item {
 public:
-  typedef std::tr1::function<void (void)> slot_void;
+  typedef std::function<void (void)> slot_void;
 
   priority_item() {}
   ~priority_item() {

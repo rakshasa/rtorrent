@@ -38,11 +38,11 @@
 #define RTORRENT_SIGNAL_HANDLER_H
 
 #include <signal.h>
-#include <tr1/functional>
+#include lt_tr1_functional
 
 class SignalHandler {
 public:
-  typedef std::tr1::function<void ()> slot_void;
+  typedef std::function<void ()> slot_void;
 
   // typedef void (*handler_slot)(int, siginfo_t *info, ucontext_t *uap);
   typedef void (*handler_slot)(int, siginfo_t*, void*);

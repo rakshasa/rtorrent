@@ -180,8 +180,8 @@ DownloadList::insert(Download* download) {
   lt_log_print_info(torrent::LOG_TORRENT_INFO, download->info(), "download_list", "Inserting download.");
 
   try {
-    (*itr)->data()->slot_initial_hash()        = tr1::bind(&DownloadList::hash_done, this, download);
-    (*itr)->data()->slot_download_done()       = tr1::bind(&DownloadList::received_finished, this, download);
+    (*itr)->data()->slot_initial_hash()        = std::bind(&DownloadList::hash_done, this, download);
+    (*itr)->data()->slot_download_done()       = std::bind(&DownloadList::received_finished, this, download);
 
     // This needs to be separated into two different calls to ensure
     // the download remains in the view.

@@ -325,39 +325,39 @@ directory_watch_added(const torrent::Object::list_type& args) {
 
   control->directory_events()->notify_on(path.c_str(),
                                          torrent::directory_events::flag_on_added | torrent::directory_events::flag_on_updated,
-                                         tr1::bind(&call_watch_command, command, tr1::placeholders::_1));
+                                         std::bind(&call_watch_command, command, std::placeholders::_1));
   return torrent::Object();
 }
 
 void
 initialize_command_events() {
-  CMD2_ANY_STRING  ("on_ratio",        tr1::bind(&apply_on_ratio, tr1::placeholders::_2));
+  CMD2_ANY_STRING  ("on_ratio",        std::bind(&apply_on_ratio, std::placeholders::_2));
 
-  CMD2_ANY         ("start_tied",      tr1::bind(&apply_start_tied));
-  CMD2_ANY         ("stop_untied",     tr1::bind(&apply_stop_untied));
-  CMD2_ANY         ("close_untied",    tr1::bind(&apply_close_untied));
-  CMD2_ANY         ("remove_untied",   tr1::bind(&apply_remove_untied));
+  CMD2_ANY         ("start_tied",      std::bind(&apply_start_tied));
+  CMD2_ANY         ("stop_untied",     std::bind(&apply_stop_untied));
+  CMD2_ANY         ("close_untied",    std::bind(&apply_close_untied));
+  CMD2_ANY         ("remove_untied",   std::bind(&apply_remove_untied));
 
-  CMD2_ANY_LIST    ("schedule2",        tr1::bind(&apply_schedule, tr1::placeholders::_2));
-  CMD2_ANY_STRING_V("schedule_remove2", tr1::bind(&rpc::CommandScheduler::erase_str, control->command_scheduler(), tr1::placeholders::_2));
+  CMD2_ANY_LIST    ("schedule2",        std::bind(&apply_schedule, std::placeholders::_2));
+  CMD2_ANY_STRING_V("schedule_remove2", std::bind(&rpc::CommandScheduler::erase_str, control->command_scheduler(), std::placeholders::_2));
 
-  CMD2_ANY_STRING_V("import",          tr1::bind(&apply_import, tr1::placeholders::_2));
-  CMD2_ANY_STRING_V("try_import",      tr1::bind(&apply_try_import, tr1::placeholders::_2));
+  CMD2_ANY_STRING_V("import",          std::bind(&apply_import, std::placeholders::_2));
+  CMD2_ANY_STRING_V("try_import",      std::bind(&apply_try_import, std::placeholders::_2));
 
-  CMD2_ANY_LIST    ("load.normal",        tr1::bind(&apply_load, tr1::placeholders::_2, core::Manager::create_quiet | core::Manager::create_tied));
-  CMD2_ANY_LIST    ("load.verbose",       tr1::bind(&apply_load, tr1::placeholders::_2, core::Manager::create_tied));
-  CMD2_ANY_LIST    ("load.start",         tr1::bind(&apply_load, tr1::placeholders::_2,
+  CMD2_ANY_LIST    ("load.normal",        std::bind(&apply_load, std::placeholders::_2, core::Manager::create_quiet | core::Manager::create_tied));
+  CMD2_ANY_LIST    ("load.verbose",       std::bind(&apply_load, std::placeholders::_2, core::Manager::create_tied));
+  CMD2_ANY_LIST    ("load.start",         std::bind(&apply_load, std::placeholders::_2,
                                                          core::Manager::create_quiet | core::Manager::create_tied | core::Manager::create_start));
-  CMD2_ANY_LIST    ("load.start_verbose", tr1::bind(&apply_load, tr1::placeholders::_2, core::Manager::create_tied  | core::Manager::create_start));
-  CMD2_ANY_LIST    ("load.raw",           tr1::bind(&apply_load, tr1::placeholders::_2, core::Manager::create_quiet | core::Manager::create_raw_data));
-  CMD2_ANY_LIST    ("load.raw_verbose",   tr1::bind(&apply_load, tr1::placeholders::_2, core::Manager::create_raw_data));
-  CMD2_ANY_LIST    ("load.raw_start",     tr1::bind(&apply_load, tr1::placeholders::_2,
+  CMD2_ANY_LIST    ("load.start_verbose", std::bind(&apply_load, std::placeholders::_2, core::Manager::create_tied  | core::Manager::create_start));
+  CMD2_ANY_LIST    ("load.raw",           std::bind(&apply_load, std::placeholders::_2, core::Manager::create_quiet | core::Manager::create_raw_data));
+  CMD2_ANY_LIST    ("load.raw_verbose",   std::bind(&apply_load, std::placeholders::_2, core::Manager::create_raw_data));
+  CMD2_ANY_LIST    ("load.raw_start",     std::bind(&apply_load, std::placeholders::_2,
                                                          core::Manager::create_quiet | core::Manager::create_start | core::Manager::create_raw_data));
 
-  CMD2_ANY_VALUE   ("close_low_diskspace", tr1::bind(&apply_close_low_diskspace, tr1::placeholders::_2));
+  CMD2_ANY_VALUE   ("close_low_diskspace", std::bind(&apply_close_low_diskspace, std::placeholders::_2));
 
-  CMD2_ANY_LIST    ("download_list",       tr1::bind(&apply_download_list, tr1::placeholders::_2));
-  CMD2_ANY_LIST    ("d.multicall2",        tr1::bind(&d_multicall, tr1::placeholders::_2));
+  CMD2_ANY_LIST    ("download_list",       std::bind(&apply_download_list, std::placeholders::_2));
+  CMD2_ANY_LIST    ("d.multicall2",        std::bind(&d_multicall, std::placeholders::_2));
 
-  CMD2_ANY_LIST    ("directory.watch.added", tr1::bind(&directory_watch_added, tr1::placeholders::_2));
+  CMD2_ANY_LIST    ("directory.watch.added", std::bind(&directory_watch_added, std::placeholders::_2));
 }

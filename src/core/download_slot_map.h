@@ -39,15 +39,15 @@
 
 #include <map>
 #include <string>
-#include <tr1/functional>
+#include lt_tr1_functional
 
 #include "download.h"
 
 namespace core {
 
-class DownloadSlotMap : public std::map<std::string, std::tr1::function<void (Download*)> > {
+class DownloadSlotMap : public std::map<std::string, std::function<void (Download*)> > {
 public:
-  typedef std::tr1::function<void (Download*)> slot_download;
+  typedef std::function<void (Download*)> slot_download;
   typedef std::map<std::string, slot_download> Base;
   
   void                insert(const std::string& key, slot_download s) { Base::operator[](key) = s; }

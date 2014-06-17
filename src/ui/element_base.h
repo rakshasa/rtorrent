@@ -48,7 +48,7 @@ namespace ui {
 
 class ElementBase {
 public:
-  typedef std::tr1::function<void ()> slot_type;
+  typedef std::function<void ()> slot_type;
 
   ElementBase() : m_frame(NULL), m_focus(false) {}
   virtual ~ElementBase() {}

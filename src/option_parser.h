@@ -39,15 +39,15 @@
 
 #include <map>
 #include <string>
-#include <tr1/functional>
+#include lt_tr1_functional
 
 // Throws std::runtime_error upon receiving bad input.
 
 class OptionParser {
 public:
-  typedef std::tr1::function<void (const std::string&)>                     slot_string;
-  typedef std::tr1::function<void (const std::string&, const std::string&)> slot_string_pair;
-  typedef std::tr1::function<void (int, int)>                               slot_int_pair;
+  typedef std::function<void (const std::string&)>                     slot_string;
+  typedef std::function<void (const std::string&, const std::string&)> slot_string_pair;
+  typedef std::function<void (int, int)>                               slot_int_pair;
 
   void                insert_flag(char c, slot_string s);
   void                insert_option(char c, slot_string s);

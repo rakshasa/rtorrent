@@ -71,7 +71,7 @@ public:
   typedef display::WindowLog                       WLog;
   typedef display::WindowLogComplete               WLogComplete;
 
-  typedef std::tr1::function<void (const std::string&)> slot_string;
+  typedef std::function<void (const std::string&)> slot_string;
 
   typedef enum {
     DISPLAY_DOWNLOAD,

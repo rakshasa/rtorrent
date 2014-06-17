@@ -115,7 +115,7 @@ void
 initialize_command_scheduler() {
   CMD2_VAR_VALUE("scheduler.max_active", int64_t(-1));
 
-  CMD2_DL("scheduler.simple.added",   tr1::bind(&cmd_scheduler_simple_added, tr1::placeholders::_1));
-  CMD2_DL("scheduler.simple.removed", tr1::bind(&cmd_scheduler_simple_removed, tr1::placeholders::_1));
-  CMD2_DL("scheduler.simple.update",  tr1::bind(&cmd_scheduler_simple_update, tr1::placeholders::_1));
+  CMD2_DL("scheduler.simple.added",   std::bind(&cmd_scheduler_simple_added, std::placeholders::_1));
+  CMD2_DL("scheduler.simple.removed", std::bind(&cmd_scheduler_simple_removed, std::placeholders::_1));
+  CMD2_DL("scheduler.simple.update",  std::bind(&cmd_scheduler_simple_update, std::placeholders::_1));
 }
