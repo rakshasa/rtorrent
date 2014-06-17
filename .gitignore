@@ -32,6 +32,8 @@ libtool
 ltmain.sh
 missing
 stamp-h1
+
+src/rtorrent
 scripts/libtool.m4
 scripts/lt*.m4
 
