@@ -142,7 +142,7 @@ parse_command(target_type target, const char* first, const char* last) {
   first = std::find_if(first, last, std::not1(command_map_is_space()));
   
   if (first == last || *first != '=')
-    throw torrent::input_error("Could not find '='.");
+    throw torrent::input_error("Could not find '=' in command '" + std::string(key) + "'.");
 
   torrent::Object args;
   first = parse_whole_list(first + 1, last, &args, &parse_is_delim_command);
