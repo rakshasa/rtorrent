@@ -1,53 +1,3 @@
-AC_DEFUN([TORRENT_CHECK_CXXFLAGS], [
-
-  AC_MSG_CHECKING([for user-defined CXXFLAGS])
-
-  if test -n "$CXXFLAGS"; then
-    AC_MSG_RESULT([user-defined "$CXXFLAGS"])
-  else
-    CXXFLAGS="-O2 -Wall"
-    AC_MSG_RESULT([default "$CXXFLAGS"])
-  fi
-])
-
-
-AC_DEFUN([TORRENT_ENABLE_DEBUG], [
-  AC_ARG_ENABLE(debug,
-    AC_HELP_STRING([--enable-debug], [enable debug information [[default=yes]]]),
-    [
-        if test "$enableval" = "yes"; then
-            CXXFLAGS="$CXXFLAGS -g -DDEBUG"
-        else
-            CXXFLAGS="$CXXFLAGS -DNDEBUG"
-        fi
-    ],[
-        CXXFLAGS="$CXXFLAGS -g -DDEBUG"
-  ])
-])
-
-
-AC_DEFUN([TORRENT_ENABLE_WERROR], [
-  AC_ARG_ENABLE(werror,
-    AC_HELP_STRING([--enable-werror], [enable the -Werror and -Wall flag [[default=no]]]),
-    [
-        if test "$enableval" = "yes"; then
-            CXXFLAGS="$CXXFLAGS -Werror -Wall"
-        fi
-  ])
-])
-
-
-AC_DEFUN([TORRENT_ENABLE_EXTRA_DEBUG], [
-  AC_ARG_ENABLE(extra-debug,
-    AC_HELP_STRING([--enable-extra-debug], [enable extra debugging checks [[default=no]]]),
-    [
-        if test "$enableval" = "yes"; then
-            AC_DEFINE(USE_EXTRA_DEBUG, 1, Enable extra debugging checks.)
-        fi
-    ])
-])
-
-
 AC_DEFUN([TORRENT_WITH_SYSROOT], [
   AC_ARG_WITH(sysroot,
     AC_HELP_STRING([--with-sysroot=PATH], [compile and link with a specific sysroot]),
@@ -92,26 +42,6 @@ AC_DEFUN([TORRENT_ENABLE_ARCH], [
         done
       fi
     ])
-])
-
-
-AC_DEFUN([TORRENT_OTFD], [
-  AC_LANG_PUSH(C++)
-  AC_MSG_CHECKING(for proper overloaded template function disambiguation)
-
-  AC_COMPILE_IFELSE([AC_LANG_SOURCE([
-      template <typename T> void f(T&) {}
-      template <typename T> void f(T*) {}
-      int main() { int *i = 0; f(*i); f(i); }
-      ])],
-    [
-      AC_MSG_RESULT(yes)
-    ], [
-      AC_MSG_RESULT(no)
-      AC_MSG_ERROR([your compiler does not properly handle overloaded template function disambiguation])
-  ])
-
-  AC_LANG_POP(C++)
 ])
 
 
@@ -309,35 +239,4 @@ AC_DEFUN([TORRENT_DISABLE_IPV6], [
             AC_DEFINE(RAK_USE_INET6, 1, enable ipv6 stuff)
         fi
     ])
-])
-
-AC_DEFUN([TORRENT_ENABLE_TR1], [
-  AC_ARG_ENABLE(std_tr1,
-    AC_HELP_STRING([--disable-std_tr1], [disable check for support for TR1 [[default=enable]]]),
-    [
-      if test "$enableval" = "yes"; then
-        TORRENT_CHECK_TR1()
-      else
-        AC_MSG_CHECKING(for TR1 support)
-        AC_MSG_RESULT(disabled)
-      fi
-    ],[
-        TORRENT_CHECK_TR1()
-    ])
-])
-
-AC_DEFUN([TORRENT_ENABLE_CXX11], [
-  AC_ARG_ENABLE(std_c++11,
-    AC_HELP_STRING([--disable-std_c++11], [disable check for support for C++11 [[default=enable]]]),
-    [
-      if test "$enableval" = "yes"; then
-        TORRENT_CHECK_CXX11()
-      else
-        AC_MSG_CHECKING(for C++11 support)
-        AC_MSG_RESULT(disabled)
-      fi
-    ],[
-        TORRENT_CHECK_CXX11()
-    ]
-  )
 ])
