@@ -71,6 +71,11 @@ SocketFd::set_priority(priority_type p) {
   check_valid();
   int opt = p;
 
+#ifdef RAK_USE_INET6
+  if (m_ipv6_socket)
+    return setsockopt(m_fd, IPPROTO_IPV6, IPV6_TCLASS, &opt, sizeof(opt)) == 0;
+  else
+#endif
   return setsockopt(m_fd, IPPROTO_IP, IP_TOS, &opt, sizeof(opt)) == 0;
 }
 
@@ -130,12 +135,36 @@ SocketFd::get_error() const {
 
 bool
 SocketFd::open_stream() {
+#ifdef RAK_USE_INET6
+  m_fd = socket(rak::socket_address::pf_inet6, SOCK_STREAM, IPPROTO_TCP);
+  if (m_fd == -1) {
+    m_ipv6_socket = false;
+    return (m_fd = socket(rak::socket_address::pf_inet, SOCK_STREAM, IPPROTO_TCP)) != -1;
+  }
+  m_ipv6_socket = true;
+
+  int zero = 0;
+  return setsockopt(m_fd, IPPROTO_IPV6, IPV6_V6ONLY, &zero, sizeof(zero)) != -1;
+#else
   return (m_fd = socket(rak::socket_address::pf_inet, SOCK_STREAM, IPPROTO_TCP)) != -1;
+#endif
 }
 
 bool
 SocketFd::open_datagram() {
+#ifdef RAK_USE_INET6
+  m_fd = socket(rak::socket_address::pf_inet6, SOCK_DGRAM, 0);
+  if (m_fd == -1) {
+    m_ipv6_socket = false;
+    return (m_fd = socket(rak::socket_address::pf_inet, SOCK_DGRAM, 0)) != -1;
+  }
+  m_ipv6_socket = true;
+
+  int zero = 0;
+  return setsockopt(m_fd, IPPROTO_IPV6, IPV6_V6ONLY, &zero, sizeof(zero)) != -1;
+#else
   return (m_fd = socket(rak::socket_address::pf_inet, SOCK_DGRAM, 0)) != -1;
+#endif
 }
 
 bool
@@ -153,6 +182,12 @@ bool
 SocketFd::bind(const rak::socket_address& sa) {
   check_valid();
 
+#ifdef RAK_USE_INET6
+  if (m_ipv6_socket && sa.family() == rak::socket_address::pf_inet) {
+    rak::socket_address_inet6 sa_mapped = sa.sa_inet()->to_mapped_address();
+    return !::bind(m_fd, sa_mapped.c_sockaddr(), sizeof(sa_mapped));
+  }
+#endif
   return !::bind(m_fd, sa.c_sockaddr(), sa.length());
 }
 
@@ -160,6 +195,12 @@ bool
 SocketFd::bind(const rak::socket_address& sa, unsigned int length) {
   check_valid();
 
+#ifdef RAK_USE_INET6
+  if (m_ipv6_socket && sa.family() == rak::socket_address::pf_inet) {
+    rak::socket_address_inet6 sa_mapped = sa.sa_inet()->to_mapped_address();
+    return !::bind(m_fd, sa_mapped.c_sockaddr(), sizeof(sa_mapped));
+  }
+#endif
   return !::bind(m_fd, sa.c_sockaddr(), length);
 }
 
@@ -167,7 +208,31 @@ bool
 SocketFd::connect(const rak::socket_address& sa) {
   check_valid();
 
+#ifdef RAK_USE_INET6
+  if (m_ipv6_socket && sa.family() == rak::socket_address::pf_inet) {
+    rak::socket_address_inet6 sa_mapped = sa.sa_inet()->to_mapped_address();
+    return !::connect(m_fd, sa_mapped.c_sockaddr(), sizeof(sa_mapped)) || errno == EINPROGRESS;
+  }
+#endif
   return !::connect(m_fd, sa.c_sockaddr(), sa.length()) || errno == EINPROGRESS;
+}
+
+bool
+SocketFd::getsockname(rak::socket_address *sa) {
+  check_valid();
+
+  socklen_t len = sizeof(rak::socket_address);
+  if (::getsockname(m_fd, sa->c_sockaddr(), &len)) {
+    return false;
+  }
+
+#ifdef RAK_USE_INET6
+  if (m_ipv6_socket && sa->family() == rak::socket_address::af_inet6) {
+    *sa = sa->sa_inet6()->normalize_address();
+  }
+#endif
+
+  return true;
 }
 
 bool
@@ -182,7 +247,18 @@ SocketFd::accept(rak::socket_address* sa) {
   check_valid();
   socklen_t len = sizeof(rak::socket_address);
 
+#ifdef RAK_USE_INET6
+  if (sa == NULL) {
+    return SocketFd(::accept(m_fd, NULL, &len));
+  }
+  int fd = ::accept(m_fd, sa->c_sockaddr(), &len);
+  if (fd != -1 && m_ipv6_socket && sa->family() == rak::socket_address::af_inet6) {
+    *sa = sa->sa_inet6()->normalize_address();
+  }
+  return SocketFd(fd);
+#else
   return SocketFd(::accept(m_fd, sa != NULL ? sa->c_sockaddr() : NULL, &len));
+#endif
 }
 
 // unsigned int

@@ -145,7 +145,7 @@ private:
   };
 };
 
-// Remeber to set the AF_INET.
+// Remember to set the AF_INET.
 
 class socket_address_inet {
 public:
@@ -184,6 +184,10 @@ public:
 
   const sockaddr*     c_sockaddr() const                      { return reinterpret_cast<const sockaddr*>(&m_sockaddr); }
   const sockaddr_in*  c_sockaddr_inet() const                 { return &m_sockaddr; }
+  
+#ifdef RAK_USE_INET6
+  socket_address_inet6 to_mapped_address() const;
+#endif
 
   bool                operator == (const socket_address_inet& rhs) const;
   bool                operator < (const socket_address_inet& rhs) const;
@@ -191,6 +195,52 @@ public:
 private:
   struct sockaddr_in  m_sockaddr;
 };
+
+#ifdef RAK_USE_INET6
+// Remember to set the AF_INET6.
+
+class socket_address_inet6 {
+public:
+  bool                is_any() const                          { return is_port_any() && is_address_any(); }
+  bool                is_valid() const                        { return !is_port_any() && !is_address_any(); }
+  bool                is_port_any() const                     { return port() == 0; }
+  bool                is_address_any() const                  { return std::memcmp(&m_sockaddr.sin6_addr, &in6addr_any, sizeof(in6_addr)) == 0; }
+
+  void                clear()                                 { std::memset(this, 0, sizeof(socket_address_inet6)); set_family(); }
+
+  uint16_t            port() const                            { return ntohs(m_sockaddr.sin6_port); }
+  uint16_t            port_n() const                          { return m_sockaddr.sin6_port; }
+  void                set_port(uint16_t p)                    { m_sockaddr.sin6_port = htons(p); }
+  void                set_port_n(uint16_t p)                  { m_sockaddr.sin6_port = p; }
+
+  in6_addr            address() const                         { return m_sockaddr.sin6_addr; }
+  std::string         address_str() const;
+  bool                address_c_str(char* buf, socklen_t size) const;
+
+  void                set_address(in6_addr a)                 { m_sockaddr.sin6_addr = a; }
+  bool                set_address_str(const std::string& a)   { return set_address_c_str(a.c_str()); }
+  bool                set_address_c_str(const char* a);
+
+  void                set_address_any()                       { set_port(0); set_address(in6addr_any); }
+
+  sa_family_t         family() const                          { return m_sockaddr.sin6_family; }
+  void                set_family()                            { m_sockaddr.sin6_family = AF_INET6; }
+
+  sockaddr*           c_sockaddr()                            { return reinterpret_cast<sockaddr*>(&m_sockaddr); }
+  sockaddr_in6*       c_sockaddr_inet6()                      { return &m_sockaddr; }
+
+  const sockaddr*     c_sockaddr() const                      { return reinterpret_cast<const sockaddr*>(&m_sockaddr); }
+  const sockaddr_in6* c_sockaddr_inet6() const                { return &m_sockaddr; }
+
+  socket_address      normalize_address() const;
+
+  bool                operator == (const socket_address_inet6& rhs) const;
+  bool                operator < (const socket_address_inet6& rhs) const;
+
+private:
+  struct sockaddr_in6 m_sockaddr;
+};
+#endif
 
 // Unique key for the address, excluding port numbers etc.
 class socket_address_key {
@@ -241,8 +291,10 @@ socket_address::is_valid() const {
   switch (family()) {
   case af_inet:
     return sa_inet()->is_valid();
-//   case af_inet6:
-//     return sa_inet6().is_valid();
+#ifdef RAK_USE_INET6
+  case af_inet6:
+    return sa_inet6()->is_valid();
+#endif
   default:
     return false;
   }
@@ -253,6 +305,10 @@ socket_address::is_bindable() const {
   switch (family()) {
   case af_inet:
     return !sa_inet()->is_address_any();
+#ifdef RAK_USE_INET6
+  case af_inet6:
+    return !sa_inet6()->is_address_any();
+#endif
   default:
     return false;
   }
@@ -263,6 +319,10 @@ socket_address::is_address_any() const {
   switch (family()) {
   case af_inet:
     return sa_inet()->is_address_any();
+#ifdef RAK_USE_INET6
+  case af_inet6:
+    return sa_inet6()->is_address_any();
+#endif
   default:
     return true;
   }
@@ -273,6 +333,10 @@ socket_address::port() const {
   switch (family()) {
   case af_inet:
     return sa_inet()->port();
+#ifdef RAK_USE_INET6
+  case af_inet6:
+    return sa_inet6()->port();
+#endif
   default:
     return 0;
   }
@@ -283,6 +347,10 @@ socket_address::set_port(uint16_t p) {
   switch (family()) {
   case af_inet:
     return sa_inet()->set_port(p);
+#ifdef RAK_USE_INET6
+  case af_inet6:
+    return sa_inet6()->set_port(p);
+#endif
   default:
     break;
   }
@@ -293,6 +361,10 @@ socket_address::address_str() const {
   switch (family()) {
   case af_inet:
     return sa_inet()->address_str();
+#ifdef RAK_USE_INET6
+  case af_inet6:
+    return sa_inet6()->address_str();
+#endif
   default:
     return std::string();
   }
@@ -303,6 +375,10 @@ socket_address::address_c_str(char* buf, socklen_t size) const {
   switch (family()) {
   case af_inet:
     return sa_inet()->address_c_str(buf, size);
+#ifdef RAK_USE_INET6
+  case af_inet6:
+    return sa_inet6()->address_c_str(buf, size);
+#endif
   default:
     return false;
   }
@@ -313,6 +389,12 @@ socket_address::set_address_c_str(const char* a) {
   if (sa_inet()->set_address_c_str(a)) {
     sa_inet()->set_family();
     return true;
+
+#ifdef RAK_USE_INET6
+  } else if (sa_inet6()->set_address_c_str(a)) {
+    sa_inet6()->set_family();
+    return true;
+#endif
 
   } else {
     return false;
@@ -325,6 +407,10 @@ socket_address::length() const {
   switch(family()) {
   case af_inet:
     return sizeof(sockaddr_in);
+#ifdef RAK_USE_INET6
+  case af_inet6:
+    return sizeof(sockaddr_in6);
+#endif
   default:
     return 0;
   }      
@@ -349,8 +435,10 @@ socket_address::operator == (const socket_address& rhs) const {
   switch (family()) {
   case af_inet:
     return *sa_inet() == *rhs.sa_inet();
-//   case af_inet6:
-//     return *sa_inet6() == *rhs.sa_inet6();
+#ifdef RAK_USE_INET6
+  case af_inet6:
+    return *sa_inet6() == *rhs.sa_inet6();
+#endif
   default:
     throw std::logic_error("socket_address::operator == (rhs) invalid type comparison.");
   }
@@ -364,8 +452,10 @@ socket_address::operator < (const socket_address& rhs) const {
   switch (family()) {
   case af_inet:
     return *sa_inet() < *rhs.sa_inet();
-//   case af_inet6:
-//     return *sa_inet6() < *rhs.sa_inet6();
+#ifdef RAK_USE_INET6
+  case af_inet6:
+    return *sa_inet6() < *rhs.sa_inet6();
+#endif
   default:
     throw std::logic_error("socket_address::operator < (rhs) invalid type comparison.");
   }
@@ -391,6 +481,23 @@ socket_address_inet::set_address_c_str(const char* a) {
   return inet_pton(AF_INET, a, &m_sockaddr.sin_addr);
 }
 
+#ifdef RAK_USE_INET6
+inline socket_address_inet6
+socket_address_inet::to_mapped_address() const {
+  uint32_t addr32[4];
+  addr32[0] = 0;
+  addr32[1] = 0;
+  addr32[2] = htonl(0xffff);
+  addr32[3] = m_sockaddr.sin_addr.s_addr;
+  
+  socket_address_inet6 sa;
+  sa.clear();
+  sa.set_address(*reinterpret_cast<in6_addr *>(addr32));
+  sa.set_port_n(m_sockaddr.sin_port);
+  return sa;
+}
+#endif
+
 inline bool
 socket_address_inet::operator == (const socket_address_inet& rhs) const {
   return
@@ -405,6 +512,59 @@ socket_address_inet::operator < (const socket_address_inet& rhs) const {
     (m_sockaddr.sin_addr.s_addr == rhs.m_sockaddr.sin_addr.s_addr &&
      m_sockaddr.sin_port < rhs.m_sockaddr.sin_port);
 }
+
+#ifdef RAK_USE_INET6
+
+inline std::string
+socket_address_inet6::address_str() const {
+  char buf[INET6_ADDRSTRLEN];
+
+  if (!address_c_str(buf, INET6_ADDRSTRLEN))
+    return std::string();
+
+  return std::string(buf);
+}
+
+inline bool
+socket_address_inet6::address_c_str(char* buf, socklen_t size) const {
+  return inet_ntop(family(), &m_sockaddr.sin6_addr, buf, size);
+}
+
+inline bool
+socket_address_inet6::set_address_c_str(const char* a) {
+  return inet_pton(AF_INET6, a, &m_sockaddr.sin6_addr);
+}
+
+inline socket_address
+socket_address_inet6::normalize_address() const {
+  const uint32_t *addr32 = reinterpret_cast<const uint32_t *>(m_sockaddr.sin6_addr.s6_addr);
+  if (addr32[0] == 0 && addr32[1] == 0 && addr32[2] == htonl(0xffff)) {
+    socket_address addr4;
+    addr4.sa_inet()->set_family();
+    addr4.sa_inet()->set_address_n(addr32[3]);
+    addr4.sa_inet()->set_port_n(m_sockaddr.sin6_port);
+    return addr4;
+  }
+  return *reinterpret_cast<const socket_address*>(this);
+}
+
+inline bool
+socket_address_inet6::operator == (const socket_address_inet6& rhs) const {
+  return
+    memcmp(&m_sockaddr.sin6_addr, &rhs.m_sockaddr.sin6_addr, sizeof(in6_addr)) == 0 &&
+    m_sockaddr.sin6_port == rhs.m_sockaddr.sin6_port;
+}
+
+inline bool
+socket_address_inet6::operator < (const socket_address_inet6& rhs) const {
+  int addr_comp = memcmp(&m_sockaddr.sin6_addr, &rhs.m_sockaddr.sin6_addr, sizeof(in6_addr));
+  return
+    addr_comp < 0 ||
+    (addr_comp == 0 ||
+     m_sockaddr.sin6_port < rhs.m_sockaddr.sin6_port);
+}
+
+#endif
 
 }
 

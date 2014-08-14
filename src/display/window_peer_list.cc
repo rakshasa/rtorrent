@@ -68,7 +68,11 @@ WindowPeerList::redraw() {
   int x = 2;
   int y = 0;
 
-  m_canvas->print(x, y, "IP");     x += 16;
+#ifdef RAK_USE_INET6
+  m_canvas->print(x, y, "IP");      x += 25;
+#else
+  m_canvas->print(x, y, "IP");      x += 16;
+#endif
   m_canvas->print(x, y, "UP");      x += 7;
   m_canvas->print(x, y, "DOWN");    x += 7;
   m_canvas->print(x, y, "PEER");    x += 7;
@@ -99,10 +103,21 @@ WindowPeerList::redraw() {
 
     x = 0;
 
+    std::string ip_address = rak::socket_address::cast_from(p->address())->address_str();
+#ifdef RAK_USE_INET6
+    if (ip_address.size() >= 24) {
+      ip_address.replace(ip_address.begin() + 21, ip_address.end(), "...");
+    }
+#endif
+
     m_canvas->print(x, y, "%c %s",
                     range.first == *m_focus ? '*' : ' ',
-                    rak::socket_address::cast_from(p->address())->address_str().c_str());
+                    ip_address.c_str());
+#ifdef RAK_USE_INET6
+    x += 27;
+#else
     x += 18;
+#endif
 
     m_canvas->print(x, y, "%.1f", (double)p->up_rate()->rate() / 1024); x += 7;
     m_canvas->print(x, y, "%.1f", (double)p->down_rate()->rate() / 1024); x += 7;

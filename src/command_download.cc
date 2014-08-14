@@ -308,7 +308,13 @@ apply_d_add_peer(core::Download* download, const std::string& arg) {
   if (download->download()->info()->is_private())
     throw torrent::input_error("Download is private.");
 
+#ifdef RAK_USE_INET6
+  ret = std::sscanf(arg.c_str(), "[%64[^]]]:%i%c", host, &port, &dummy);
+  if (ret < 1)
+    ret = std::sscanf(arg.c_str(), "%1023[^:]:%i%c", host, &port, &dummy);
+#else
   ret = std::sscanf(arg.c_str(), "%1023[^:]:%i%c", host, &port, &dummy);
+#endif
 
   if (ret == 1)
     port = 6881;
@@ -318,7 +324,11 @@ apply_d_add_peer(core::Download* download, const std::string& arg) {
   if (port < 1 || port > 65535)
     throw torrent::input_error("Invalid port number.");
 
+#ifdef RAK_USE_INET6
+  torrent::connection_manager()->resolver()(host, (int)rak::socket_address::pf_unspec, SOCK_STREAM, call_add_d_peer_t(download, port));
+#else
   torrent::connection_manager()->resolver()(host, (int)rak::socket_address::pf_inet, SOCK_STREAM, call_add_d_peer_t(download, port));
+#endif
 }
 
 torrent::Object
