@@ -1017,6 +1017,7 @@ print_help() {
   std::cout << "  ^s                Start torrent" << std::endl;
   std::cout << "  ^d                Stop torrent or delete a stopped torrent" << std::endl;
   std::cout << "  ^r                Manually initiate hash checking" << std::endl;
+	std::cout << "  ^o                Change the destination directory of the download. The torrent must be closed." << std::endl;
   std::cout << "  ^q                Initiate shutdown or skip shutdown process" << std::endl;
   std::cout << "  a,s,d,z,x,c       Adjust upload throttle" << std::endl;
   std::cout << "  A,S,D,Z,X,C       Adjust download throttle" << std::endl;
