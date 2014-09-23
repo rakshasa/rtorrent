@@ -170,12 +170,8 @@ apply_scgi(const std::string& arg, int type) {
         lt_log_print(torrent::LOG_RPC_EVENTS,
                      "The SCGI socket has not been bound to any address and likely poses a security risk.");
 
-#ifdef RAK_USE_INET6
       } else if (std::sscanf(arg.c_str(), "%1023[^:]:%i%c", address, &port, &dummy) == 2 ||
                  std::sscanf(arg.c_str(), "[%64[^]]]:%i%c", address, &port, &dummy) == 2) { // [xx::xx]:port format
-#else
-      } else if (std::sscanf(arg.c_str(), "%1023[^:]:%i%c", address, &port, &dummy) == 2) {
-#endif
         if ((err = rak::address_info::get_address_info(address,PF_UNSPEC, SOCK_STREAM, &ai)) != 0)
           throw torrent::input_error("Could not bind address: " + std::string(rak::address_info::strerror(err)) + ".");
 

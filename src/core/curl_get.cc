@@ -95,9 +95,8 @@ CurlGet::start() {
   curl_easy_setopt(m_handle, CURLOPT_IPRESOLVE,      CURL_IPRESOLVE_WHATEVER);
 
   curl_easy_setopt(m_handle, CURLOPT_ENCODING,       "");
-#ifdef RAK_USE_INET6
+
   m_ipv6 = false;
-#endif
 
   m_stack->add_get(this);
 }
@@ -115,16 +114,16 @@ CurlGet::close() {
   m_handle = NULL;
 }
 
-#ifdef RAK_USE_INET6
 void
 CurlGet::retry_ipv6() {
   CURL* nhandle = curl_easy_duphandle(m_handle);
+
   curl_easy_setopt(nhandle, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V6);
   curl_easy_cleanup(m_handle);
+
   m_handle = nhandle;
   m_ipv6 = true;
 }
-#endif
 
 void
 CurlGet::receive_timeout() {
