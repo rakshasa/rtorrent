@@ -162,14 +162,14 @@ log_vmmap_dump(const std::string& str) {
 
 void
 initialize_command_logging() {
-  CMD2_ANY_LIST    ("log.open_file",        std::bind(&apply_log_open, 0, std::placeholders::_2));
-  CMD2_ANY_LIST    ("log.open_gz_file",     std::bind(&apply_log_open, log_flag_use_gz, std::placeholders::_2));
-  CMD2_ANY_LIST    ("log.open_file_pid",    std::bind(&apply_log_open, log_flag_append_pid, std::placeholders::_2));
-  CMD2_ANY_LIST    ("log.open_gz_file_pid", std::bind(&apply_log_open, log_flag_append_pid | log_flag_use_gz, std::placeholders::_2));
+  CMD2_ANY_LIST    ("log.open_file",        tr1::bind(&apply_log_open, 0, tr1::placeholders::_2));
+  CMD2_ANY_LIST    ("log.open_gz_file",     tr1::bind(&apply_log_open, log_flag_use_gz, tr1::placeholders::_2));
+  CMD2_ANY_LIST    ("log.open_file_pid",    tr1::bind(&apply_log_open, log_flag_append_pid, tr1::placeholders::_2));
+  CMD2_ANY_LIST    ("log.open_gz_file_pid", tr1::bind(&apply_log_open, log_flag_append_pid | log_flag_use_gz, tr1::placeholders::_2));
 
-  CMD2_ANY_LIST    ("log.add_output",   std::bind(&apply_log_add_output, std::placeholders::_2));
+  CMD2_ANY_LIST    ("log.add_output",   tr1::bind(&apply_log_add_output, tr1::placeholders::_2));
 
-  CMD2_ANY_STRING  ("log.execute",    std::bind(&apply_log, std::placeholders::_2, 0));
-  CMD2_ANY_STRING  ("log.vmmap.dump", std::bind(&log_vmmap_dump, std::placeholders::_2));
-  CMD2_ANY_STRING_V("log.xmlrpc",     std::bind(&ThreadWorker::set_xmlrpc_log, worker_thread, std::placeholders::_2));
+  CMD2_ANY_STRING  ("log.execute",    tr1::bind(&apply_log, tr1::placeholders::_2, 0));
+  CMD2_ANY_STRING  ("log.vmmap.dump", tr1::bind(&log_vmmap_dump, tr1::placeholders::_2));
+  CMD2_ANY_STRING_V("log.xmlrpc",     tr1::bind(&ThreadWorker::set_xmlrpc_log, worker_thread, tr1::placeholders::_2));
 }
