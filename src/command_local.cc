@@ -48,7 +48,6 @@
 #include <torrent/chunk_manager.h>
 #include <torrent/data/file_manager.h>
 #include <torrent/data/chunk_utils.h>
-#include <torrent/utils/log.h>
 #include <torrent/utils/option_strings.h>
 
 #include "core/download.h"
@@ -77,42 +76,6 @@ apply_pieces_stats_total_size() {
       size += (*itr)->file_list()->size_bytes();
 
   return size;
-}
-
-torrent::Object
-apply_log(const torrent::Object::string_type& arg, int logType) {
-  if (rpc::execFile.log_fd() != -1) {
-    switch (logType) {
-    case 0: ::close(rpc::execFile.log_fd()); rpc::execFile.set_log_fd(-1); break;
-    case 1:
-//       if (control->scgi()) {
-//         ::close(control->scgi()->log_fd());
-//         control->scgi()->set_log_fd(-1);
-//       }
-      break;
-    default: break;
-    }
-  }
-
-  if (!arg.empty()) {
-    int logFd = open(rak::path_expand(arg).c_str(), O_WRONLY | O_APPEND | O_CREAT, 0644);
-
-    if (logFd < 0)
-      throw torrent::input_error("Could not open execute log file.");
-
-    switch (logType) {
-    case 0: rpc::execFile.set_log_fd(logFd); break;
-//     case 1: if (control->scgi()) control->scgi()->set_log_fd(logFd); break;
-    default: break;
-    }
-
-    control->core()->push_log("Opened log file.");
-
-  } else {
-    control->core()->push_log("Closed log file.");
-  }
-
-  return torrent::Object();
 }
 
 torrent::Object
@@ -212,27 +175,6 @@ group_insert(const torrent::Object::list_type& args) {
   return name;
 }
 
-torrent::Object
-log_vmmap_dump(const std::string& str) {
-  core::DownloadList* d_list = control->core()->download_list();
-  std::vector<torrent::vm_mapping> all_mappings;
-
-  for (core::DownloadList::iterator itr = d_list->begin(), last = d_list->end(); itr != last; itr++) {
-    std::vector<torrent::vm_mapping> tmp_mappings = torrent::chunk_list_mapping((*itr)->download());
-
-    all_mappings.insert(all_mappings.end(), tmp_mappings.begin(), tmp_mappings.end());    
-  }
-
-  FILE* log_file = fopen(str.c_str(), "w");
-
-  for (std::vector<torrent::vm_mapping>::iterator itr = all_mappings.begin(), last = all_mappings.end(); itr != last; itr++) {
-    fprintf(log_file, "%8p-%8p [%5llxk]\n", itr->ptr, (char*)itr->ptr + itr->length, (long long unsigned int)(itr->length / 1024));
-  }
-
-  fclose(log_file);
-  return torrent::Object();
-}
-
 static const int file_print_use_space = 0x1;
 static const int file_print_delim_space = 0x2;
 
@@ -274,36 +216,6 @@ cmd_file_append(const torrent::Object::list_type& args) {
 
   fprintf(output, "\n");
   fclose(output);
-  return torrent::Object();
-}
-
-torrent::Object
-apply_log_open_file(const torrent::Object::list_type& args) {
-  if (args.size() != 2)
-    throw torrent::input_error("Invalid number of arguments.");
-  
-  torrent::log_open_file_output(args.front().as_string().c_str(),
-                                rak::path_expand(args.back().as_string()).c_str());
-  return torrent::Object();
-}
-
-torrent::Object
-apply_log_open_gz_file(const torrent::Object::list_type& args) {
-  if (args.size() != 2)
-    throw torrent::input_error("Invalid number of arguments.");
-  
-  torrent::log_open_gz_file_output(args.front().as_string().c_str(),
-                                   rak::path_expand(args.back().as_string()).c_str());
-  return torrent::Object();
-}
-
-torrent::Object
-apply_log_add_output(const torrent::Object::list_type& args) {
-  if (args.size() != 2)
-    throw torrent::input_error("Invalid number of arguments.");
-  
-  torrent::log_add_group_output(torrent::option_find_string(torrent::OPTION_LOG_GROUP, args.front().as_string().c_str()),
-                                args.back().as_string().c_str());
   return torrent::Object();
 }
 
@@ -400,14 +312,6 @@ initialize_command_local() {
   CMD2_EXECUTE     ("execute.raw_nothrow.bg",  rpc::ExecFile::flag_background);
   CMD2_EXECUTE     ("execute.capture",         rpc::ExecFile::flag_throw | rpc::ExecFile::flag_expand_tilde | rpc::ExecFile::flag_capture);
   CMD2_EXECUTE     ("execute.capture_nothrow", rpc::ExecFile::flag_expand_tilde | rpc::ExecFile::flag_capture);
-
-  CMD2_ANY_LIST    ("log.open_file",    std::bind(&apply_log_open_file, std::placeholders::_2));
-  CMD2_ANY_LIST    ("log.open_gz_file", std::bind(&apply_log_open_gz_file, std::placeholders::_2));
-  CMD2_ANY_LIST    ("log.add_output",   std::bind(&apply_log_add_output, std::placeholders::_2));
-
-  CMD2_ANY_STRING  ("log.execute",    std::bind(&apply_log, std::placeholders::_2, 0));
-  CMD2_ANY_STRING  ("log.vmmap.dump", std::bind(&log_vmmap_dump, std::placeholders::_2));
-  CMD2_ANY_STRING_V("log.xmlrpc",     std::bind(&ThreadWorker::set_xmlrpc_log, worker_thread, std::placeholders::_2));
 
   CMD2_ANY_LIST    ("file.append",    std::bind(&cmd_file_append, std::placeholders::_2));
 
