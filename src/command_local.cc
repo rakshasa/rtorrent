@@ -238,7 +238,7 @@ initialize_command_local() {
   CMD2_VAR_STRING  ("system.file.split_suffix",     ".part");
 
   CMD2_ANY         ("system.file_status_cache.size",   std::bind(&utils::FileStatusCache::size,
-                                                                      (utils::FileStatusCache::base_type*)control->core()->file_status_cache()));
+                                                                 (utils::FileStatusCache::base_type*)control->core()->file_status_cache()));
   CMD2_ANY_V       ("system.file_status_cache.prune",  std::bind(&utils::FileStatusCache::prune, control->core()->file_status_cache()));
 
   CMD2_VAR_BOOL    ("file.prioritize_toc",          0);
