@@ -75,7 +75,11 @@ PathInput::pressed(int key) {
 
 struct _transform_filename {
   void operator () (utils::directory_entry& entry) {
+#ifdef __sun__
+    if (entry.d_type & S_IFDIR)
+#else
     if (entry.d_type == DT_DIR)
+#endif
       entry.d_name += '/';
   }
 };
