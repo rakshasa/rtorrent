@@ -1,6 +1,6 @@
-AC_INIT(rtorrent, 0.9.4, sundell.software@gmail.com)
+AC_INIT(rtorrent, 0.9.6, sundell.software@gmail.com)
 
-AC_DEFINE(API_VERSION, 8, api version)
+AC_DEFINE(API_VERSION, 9, api version)
 
 AM_INIT_AUTOMAKE
 AC_CONFIG_HEADERS(config.h)
@@ -44,7 +44,7 @@ PKG_CHECK_MODULES([libcurl], libcurl >= 7.15.4,
 	          CXXFLAGS="$CXXFLAGS $libcurl_CFLAGS";
 		  LIBS="$LIBS $libcurl_LIBS")
 
-PKG_CHECK_MODULES([libtorrent], libtorrent >= 0.13.4,
+PKG_CHECK_MODULES([libtorrent], libtorrent >= 0.13.6,
 	          CXXFLAGS="$CXXFLAGS $libtorrent_CFLAGS";
 		  LIBS="$LIBS $libtorrent_LIBS")
 
