@@ -467,6 +467,11 @@ cmd_ui_set_view(const torrent::Object::string_type& args) {
 }
 
 torrent::Object
+cmd_ui_current_view() {
+  return control->ui()->download_list()->current_view()->name();
+}
+
+torrent::Object
 cmd_ui_unfocus_download(core::Download* download) {
   control->ui()->download_list()->unfocus_download(download);
 
@@ -547,6 +552,7 @@ initialize_command_ui() {
 
   // Commands that affect the default rtorrent UI.
   CMD2_DL        ("ui.unfocus_download",   std::bind(&cmd_ui_unfocus_download, std::placeholders::_1));
+  CMD2_ANY       ("ui.current_view",       std::bind(&cmd_ui_current_view));
   CMD2_ANY_STRING("ui.current_view.set",   std::bind(&cmd_ui_set_view, std::placeholders::_2));
 
   // Move.
