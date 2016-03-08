@@ -79,6 +79,15 @@ apply_pieces_stats_total_size() {
 }
 
 torrent::Object
+system_env(const torrent::Object::string_type& arg) {
+  if (arg.empty())
+    throw torrent::input_error("system.env: Missing variable name.");
+
+  char* val = getenv(arg.c_str());
+  return std::string(val ? val : "");
+}
+
+torrent::Object
 system_hostname() {
   char buffer[1024];
 
@@ -248,6 +257,8 @@ initialize_command_local() {
   CMD2_ANY         ("system.files.opened_counter",     std::bind(&FM_t::files_opened_counter, fileManager));
   CMD2_ANY         ("system.files.closed_counter",     std::bind(&FM_t::files_closed_counter, fileManager));
   CMD2_ANY         ("system.files.failed_counter",     std::bind(&FM_t::files_failed_counter, fileManager));
+
+  CMD2_ANY_STRING  ("system.env",                      std::bind(&system_env, std::placeholders::_2));
 
   CMD2_ANY         ("system.time",                     std::bind(&rak::timer::seconds, &cachedTime));
   CMD2_ANY         ("system.time_seconds",             std::bind(&rak::timer::current_seconds));
