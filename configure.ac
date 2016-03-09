@@ -46,7 +46,8 @@ PKG_CHECK_MODULES([libcurl], libcurl >= 7.15.4,
 
 PKG_CHECK_MODULES([libtorrent], libtorrent >= 0.13.6,
 	          CXXFLAGS="$CXXFLAGS $libtorrent_CFLAGS";
-		  LIBS="$LIBS $libtorrent_LIBS")
+		  LIBS="$LIBS $libtorrent_LIBS",
+		  [AC_MSG_ERROR([libtorrent >= 0.13.6 not found. Install from https://github.com/rakshasa/libtorrent.git])])
 
 AC_LANG_PUSH(C++)
 TORRENT_WITH_XMLRPC_C
