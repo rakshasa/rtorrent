@@ -831,9 +831,25 @@ main(int argc, char** argv) {
     int firstArg = parse_options(control, argc, argv);
 
     if (OptionParser::has_flag('n', argc, argv)) {
-      lt_log_print(torrent::LOG_WARN, "Ignoring ~/.rtorrent.rc.");
+      lt_log_print(torrent::LOG_WARN, "Ignoring rtorrent.rc.");
     } else {
-      rpc::parse_command_single(rpc::make_target(), "try_import = ~/.rtorrent.rc");
+      char* config_dir = std::getenv("XDG_CONFIG_HOME");
+      char* home_dir = std::getenv("HOME");
+      bool absolute_path = false;
+
+      if(config_dir && config_dir[0] == '/') {
+        absolute_path = true;
+      }
+
+      if(access((std::string(config_dir) + "/rtorrent/rtorrent.rc").c_str(), F_OK ) != -1 && absolute_path) {
+        rpc::parse_command_single(rpc::make_target(), "try_import = " + std::string(config_dir) + "/rtorrent/rtorrent.rc");
+      }
+      else if(access((std::string(home_dir) +"/.config/rtorrent/rtorrent.rc").c_str(), F_OK ) != -1) {
+        rpc::parse_command_single(rpc::make_target(), "try_import = ~/.config/rtorrent/rtorrent.rc");
+      }
+      else {
+        rpc::parse_command_single(rpc::make_target(), "try_import = ~/.rtorrent.rc");
+      }
     }
 
     control->initialize();
@@ -1004,7 +1020,7 @@ print_help() {
   std::cout << "Usage: rtorrent [OPTIONS]... [FILE]... [URL]..." << std::endl;
   std::cout << "  -D                Enable deprecated commands" << std::endl;
   std::cout << "  -h                Display this very helpful text" << std::endl;
-  std::cout << "  -n                Don't try to load ~/.rtorrent.rc on startup" << std::endl;
+  std::cout << "  -n                Don't try to load rtorrent.rc on startup" << std::endl;
   std::cout << "  -b <a.b.c.d>      Bind the listening socket to this IP" << std::endl;
   std::cout << "  -i <a.b.c.d>      Change the IP that is sent to the tracker" << std::endl;
   std::cout << "  -p <int>-<int>    Set port range for incoming connections" << std::endl;
