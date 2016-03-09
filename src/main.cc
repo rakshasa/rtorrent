@@ -835,19 +835,13 @@ main(int argc, char** argv) {
     } else {
       char* config_dir = std::getenv("XDG_CONFIG_HOME");
       char* home_dir = std::getenv("HOME");
-      bool absolute_path = false;
 
-      if(config_dir && config_dir[0] == '/') {
-        absolute_path = true;
-      }
-
-      if(access((std::string(config_dir) + "/rtorrent/rtorrent.rc").c_str(), F_OK ) != -1 && absolute_path) {
+      if (config_dir != NULL && config_dir[0] == '/' &&
+          access((std::string(config_dir) + "/rtorrent/rtorrent.rc").c_str(), F_OK) != -1) {
         rpc::parse_command_single(rpc::make_target(), "try_import = " + std::string(config_dir) + "/rtorrent/rtorrent.rc");
-      }
-      else if(access((std::string(home_dir) +"/.config/rtorrent/rtorrent.rc").c_str(), F_OK ) != -1) {
+      } else if (home_dir != NULL && access((std::string(home_dir) + "/.config/rtorrent/rtorrent.rc").c_str(), F_OK) != -1) {
         rpc::parse_command_single(rpc::make_target(), "try_import = ~/.config/rtorrent/rtorrent.rc");
-      }
-      else {
+      } else {
         rpc::parse_command_single(rpc::make_target(), "try_import = ~/.rtorrent.rc");
       }
     }
