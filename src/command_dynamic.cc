@@ -247,6 +247,10 @@ system_method_insert(const torrent::Object::list_type& args) {
 
   const std::string& options = itrArgs->as_string();
 
+  // TODO: Replace find with a method that does '|' separated search
+  // for all valid options, and then cross-checks that unmixable ones
+  // aren't in there. Use a bitfield.
+
   if (options.find("private") != std::string::npos)
     flags &= ~rpc::CommandMap::flag_public_xmlrpc;
   if (options.find("const") != std::string::npos)
@@ -289,8 +293,7 @@ system_method_insert(const torrent::Object::list_type& args) {
   } else if (options.find("value") != std::string::npos ||
              options.find("bool") != std::string::npos ||
              options.find("string") != std::string::npos ||
-             options.find("list") != std::string::npos ||
-             options.find("simple") != std::string::npos) {
+             options.find("list") != std::string::npos) {
     torrent::Object::list_type new_args;
     new_args.push_back(rawKey);
 
