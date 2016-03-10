@@ -14,4 +14,4 @@ before_install:
  - git clone https://github.com/rakshasa/libtorrent.git && cd libtorrent && ./autogen.sh && configure && make -j24 && sudo make install && cd ..
 
 # Figure out how to fix the issue running 'make check'.
-script: ./autogen.sh && ./configure && make -j24 && make -j24 && sudo make install
+script: ./autogen.sh && ./configure && make -j12 && sudo make install
