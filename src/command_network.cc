@@ -237,6 +237,25 @@ initialize_command_network() {
   core::CurlStack* httpStack = control->core()->http_stack();
 
   CMD2_ANY_STRING  ("encoding.add", std::bind(&apply_encoding_list, std::placeholders::_2));
+  CMD2_ANY         ("colors.color_inactive_fg",       std::bind(&ui::Root::get_color_inactive_fg,   control->ui()));
+  CMD2_ANY_VALUE_V ("colors.color_inactive_fg.set",   std::bind(&ui::Root::set_color_inactive_fg,   control->ui(), std::placeholders::_2));
+  CMD2_ANY         ("colors.color_inactive_bg",       std::bind(&ui::Root::get_color_inactive_bg,   control->ui()));
+  CMD2_ANY_VALUE_V ("colors.color_inactive_bg.set",   std::bind(&ui::Root::set_color_inactive_bg,   control->ui(), std::placeholders::_2));
+
+  CMD2_ANY         ("colors.color_dead_fg",       std::bind(&ui::Root::get_color_dead_fg,   control->ui()));
+  CMD2_ANY_VALUE_V ("colors.color_dead_fg.set",   std::bind(&ui::Root::set_color_dead_fg,   control->ui(), std::placeholders::_2));
+  CMD2_ANY         ("colors.color_dead_bg",       std::bind(&ui::Root::get_color_dead_bg,   control->ui()));
+  CMD2_ANY_VALUE_V ("colors.color_dead_bg.set",   std::bind(&ui::Root::set_color_dead_bg,   control->ui(), std::placeholders::_2));
+
+  CMD2_ANY         ("colors.color_active_fg",       std::bind(&ui::Root::get_color_active_fg,   control->ui()));
+  CMD2_ANY_VALUE_V ("colors.color_active_fg.set",   std::bind(&ui::Root::set_color_active_fg,   control->ui(), std::placeholders::_2));
+  CMD2_ANY         ("colors.color_active_bg",       std::bind(&ui::Root::get_color_active_bg,   control->ui()));
+  CMD2_ANY_VALUE_V ("colors.color_active_bg.set",   std::bind(&ui::Root::set_color_active_bg,   control->ui(), std::placeholders::_2));
+
+  CMD2_ANY         ("colors.color_finished_fg",       std::bind(&ui::Root::get_color_finished_fg,   control->ui()));
+  CMD2_ANY_VALUE_V ("colors.color_finished_fg.set",   std::bind(&ui::Root::set_color_finished_fg,   control->ui(), std::placeholders::_2));
+  CMD2_ANY         ("colors.color_finished_bg",       std::bind(&ui::Root::get_color_finished_bg,   control->ui()));
+  CMD2_ANY_VALUE_V ("colors.color_finished_bg.set",   std::bind(&ui::Root::set_color_finished_bg,   control->ui(), std::placeholders::_2));
 
   // Isn't port_open used?
   CMD2_VAR_BOOL    ("network.port_open",   true);

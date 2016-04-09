@@ -60,6 +60,7 @@ public:
   void                disable();
 
   core::View*         view() { return m_view; }
+  WDownloadList*      window() { return m_window; }
   void                set_view(core::View* l);
 
   void                receive_command(const char* cmd);
