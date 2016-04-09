@@ -98,6 +98,7 @@ public:
   void                activate_display(Display d);
 
   core::View*         current_view();
+  display::WindowDownloadList* current_window_list();
   void                set_current_view(const std::string& name);
 
   void                slot_open_uri(slot_string s) { m_slot_open_uri = s; }

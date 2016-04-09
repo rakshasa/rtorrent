@@ -44,6 +44,7 @@
 
 #include "core/manager.h"
 #include "display/frame.h"
+#include "display/window_download_list.h"
 #include "display/window_http_queue.h"
 #include "display/window_title.h"
 #include "display/window_input.h"
@@ -65,7 +66,15 @@ Root::Root() :
   m_windowTitle(NULL),
   m_windowHttpQueue(NULL),
   m_windowInput(NULL),
-  m_windowStatusbar(NULL) {
+  m_windowStatusbar(NULL),
+  color_inactive_fg(-1),
+  color_inactive_bg(-1),
+  color_dead_fg(-1),
+  color_dead_bg(-1),
+  color_active_fg(-1),
+  color_active_bg(-1),
+  color_finished_fg(-1),
+  color_finished_bg(-1) {
 }
 
 void
@@ -97,6 +106,14 @@ Root::init(Control* c) {
   setup_keys();
 
   m_downloadList->activate(rootFrame->frame(1));
+  m_downloadList->current_window_list()->set_color_inactive_fg(color_inactive_fg);
+  m_downloadList->current_window_list()->set_color_inactive_bg(color_inactive_bg);
+  m_downloadList->current_window_list()->set_color_dead_fg(color_dead_fg);
+  m_downloadList->current_window_list()->set_color_dead_bg(color_dead_bg);
+  m_downloadList->current_window_list()->set_color_active_fg(color_active_fg);
+  m_downloadList->current_window_list()->set_color_active_bg(color_active_bg);
+  m_downloadList->current_window_list()->set_color_finished_fg(color_finished_fg);
+  m_downloadList->current_window_list()->set_color_finished_bg(color_finished_bg);
 }
 
 void
@@ -272,4 +289,87 @@ Root::current_input() {
   return m_windowInput->input();
 }
 
+// Inactive
+int
+Root::get_color_inactive_fg() {
+  return color_inactive_fg;
+}
+
+void
+Root::set_color_inactive_fg(int64_t color) {
+  color_inactive_fg = color;
+}
+
+int
+Root::get_color_inactive_bg() {
+  return color_inactive_bg;
+}
+
+void
+Root::set_color_inactive_bg(int64_t color) {
+  color_inactive_bg = color;
+}
+
+// Dead
+int
+Root::get_color_dead_fg() {
+  return color_dead_fg;
+}
+
+void
+Root::set_color_dead_fg(int64_t color) {
+  color_dead_fg = color;
+}
+
+int
+Root::get_color_dead_bg() {
+  return color_dead_bg;
+}
+
+void
+Root::set_color_dead_bg(int64_t color) {
+  color_dead_bg = color;
+}
+
+// Active
+int
+Root::get_color_active_fg() {
+  return color_active_fg;
+}
+
+void
+Root::set_color_active_fg(int64_t color) {
+  color_active_fg = color;
+}
+
+int
+Root::get_color_active_bg() {
+  return color_active_bg;
+}
+
+void
+Root::set_color_active_bg(int64_t color) {
+  color_active_bg = color;
+}
+
+// Finished
+int
+Root::get_color_finished_fg() {
+  return color_finished_fg;
+}
+
+void
+Root::set_color_finished_fg(int64_t color) {
+  color_finished_fg = color;
+}
+
+int
+Root::get_color_finished_bg() {
+  return color_finished_bg;
+}
+
+void
+Root::set_color_finished_bg(int64_t color) {
+  color_finished_bg = color;
+}
 }

@@ -136,6 +136,11 @@ DownloadList::unfocus_download(core::Download* d) {
   current_view()->next_focus();
 }
 
+display::WindowDownloadList*
+DownloadList::current_window_list() {
+  return dynamic_cast<ElementDownloadList*>(m_uiArray[DISPLAY_DOWNLOAD_LIST])->window();
+}
+
 void
 DownloadList::activate_display(Display displayType) {
   if (!is_active())
