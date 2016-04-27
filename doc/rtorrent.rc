@@ -82,3 +82,6 @@
 # Enable peer exchange (for torrents not marked private)
 #
 # peer_exchange = yes
+
+# Set Downlad List layout (default - 0, compact - 1)
+#download_list_layout = 1

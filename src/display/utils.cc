@@ -183,6 +183,110 @@ print_download_info(char* first, char* last, core::Download* d) {
 }
 
 char*
+print_download_info2(char* first, char* last, core::Download* d) {
+  //Name
+  std::string name = "Name";
+  if(d) name = d->info()->name();
+  name.resize(64,' ');
+  first = print_buffer(first, last, " %s", name.c_str());
+
+  //Status
+  first = print_buffer(first, last, "|");
+  if (!d)
+    first = print_buffer(first, last, " Status ");
+  else if (!d->download()->info()->is_open())
+    first = print_buffer(first, last, " CLOSED ");
+  else if (!d->download()->info()->is_active())
+    first = print_buffer(first, last, " OPEN   ");
+  else
+    first = print_buffer(first, last, "        ");
+
+  //Downloaded
+  first = print_buffer(first, last, "|");
+  if (!d)
+    first = print_buffer(first, last, " Downloaded ");
+  else
+    first = print_buffer(first, last, " %7.1f MB ", (double)d->download()->bytes_done() / (double)(1 << 20));
+
+  //Size
+  first = print_buffer(first, last, "|");
+  if (!d)
+    first = print_buffer(first, last, " Size       ");
+  else
+    first = print_buffer(first, last, " %7.1f MB ", (double)d->download()->file_list()->size_bytes() / (double)(1 << 20));
+
+  //Done
+  first = print_buffer(first, last, "|");
+  if (!d)
+    first = print_buffer(first, last, " Done ");
+  else if (d->is_done())
+    first = print_buffer(first, last, " 100%% ");
+  else if (d->is_open())
+    first = print_buffer(first, last, "  %2u%% ",(d->download()->file_list()->completed_chunks() * 100) / d->download()->file_list()->size_chunks());
+  else
+    first = print_buffer(first, last, "      ");
+
+  //Rate Up
+  first = print_buffer(first, last, "|");
+  if (!d)
+    first = print_buffer(first, last, " Up Rate   ");
+  else
+    first = print_buffer(first, last, " %6.1f KB ", (double)d->info()->up_rate()->rate() / (1 << 10));
+
+  //Rate Down
+  first = print_buffer(first, last, "|");
+  if (!d)
+    first = print_buffer(first, last, " Down Rate ");
+  else
+    first = print_buffer(first, last, " %6.1f KB ", (double)d->info()->down_rate()->rate() / (1 << 10));
+
+  //Uploaded
+  first = print_buffer(first, last, "|");
+  if (!d)
+    first = print_buffer(first, last, " Uploaded   ");
+  else
+    first = print_buffer(first, last, " %7.1f MB ", (double)d->info()->up_rate()->total() / (1 << 20));
+
+  //ETA
+  first = print_buffer(first, last, "| ");
+  if (!d)
+    first = print_buffer(first, last, " ETA     ");
+  else if (d->download()->info()->is_active() && !d->is_done())
+    first = print_download_time_left(first, last, d);
+  else
+    first = print_buffer(first, last, "         ");
+
+  //Ratio
+  first = print_buffer(first, last, " |");
+  if (!d)
+    first = print_buffer(first, last, " Ratio");
+  else
+    first = print_buffer(first, last, " %4.2f ", (double)rpc::call_command_value("d.ratio", rpc::make_target(d)) / 1000.0);
+
+  //Misc
+  first = print_buffer(first, last, "|");
+  if (!d) {
+    first = print_buffer(first, last, " Misc ");
+  } else {
+    first = print_buffer(first, last, " %c%c",
+                         rpc::call_command_string("d.tied_to_file", rpc::make_target(d)).empty() ? ' ' : 'T',
+                         rpc::call_command_value("d.ignore_commands", rpc::make_target(d)) == 0 ? ' ' : 'I',
+                         (double)rpc::call_command_value("d.ratio", rpc::make_target(d)) / 1000.0);
+
+    if (d->priority() != 2)
+      first = print_buffer(first, last, " %s", rpc::call_command_string("d.priority_str", rpc::make_target(d)).c_str());
+
+    if (!d->bencode()->get_key("rtorrent").get_key_string("throttle_name").empty())
+      first = print_buffer(first, last , " %s", rpc::call_command_string("d.throttle_name", rpc::make_target(d)).c_str());
+  }
+
+  if (first > last)
+    throw torrent::internal_error("print_download_info(...) wrote past end of the buffer.");
+
+  return first;
+}
+
+char*
 print_download_status(char* first, char* last, core::Download* d) {
   if (d->is_active())
     ;
