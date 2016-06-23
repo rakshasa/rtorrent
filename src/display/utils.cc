@@ -257,21 +257,62 @@ print_client_version(char* first, char* last, const torrent::ClientInfo& clientI
   }
 }
 
+int64_t
+retrieve_throttle_up_value(const torrent::Object::string_type& name, bool rate) {
+  core::ThrottleMap::iterator itr = control->core()->throttles().find(name);
+
+  if (itr == control->core()->throttles().end()) {
+    return (int64_t)-1;
+  } else {
+    torrent::Throttle* throttle = itr->second.first;
+    int64_t throttle_max = (int64_t)throttle->max_rate();
+    if (rate) {
+      if (throttle_max > 0)
+	return (int64_t)throttle->rate()->rate();
+      else
+	return (int64_t)-1;
+    } else {
+      return throttle_max;
+    }
+  }
+}
+
 char*
 print_status_info(char* first, char* last) {
-  if (!torrent::up_throttle_global()->is_throttled())
+  std::string throttle_up_name = rpc::call_command_string("ui.status.throttle_up_name").c_str();
+
+  if (!torrent::up_throttle_global()->is_throttled()) {
     first = print_buffer(first, last, "[Throttle off");
-  else
+  } else {
     first = print_buffer(first, last, "[Throttle %3i", torrent::up_throttle_global()->max_rate() / 1024);
+    if (!throttle_up_name.empty() && throttle_up_name != "NULL") {
+      int64_t throttle_up_max = retrieve_throttle_up_value(throttle_up_name, false);
+      if (throttle_up_max > 0)
+        first = print_buffer(first, last, " (%1.0f)", (double)throttle_up_max / 1024.0);
+    }
+  }
 
   if (!torrent::down_throttle_global()->is_throttled())
     first = print_buffer(first, last, "/off KB]");
   else
     first = print_buffer(first, last, "/%3i KB]", torrent::down_throttle_global()->max_rate() / 1024);
-  
-  first = print_buffer(first, last, " [Rate %5.1f/%5.1f KB]",
-                       (double)torrent::up_rate()->rate() / 1024.0,
-                       (double)torrent::down_rate()->rate() / 1024.0);
+
+  double global_uprate = (double)torrent::up_rate()->rate() / 1024.0;
+  first = print_buffer(first, last, " [Rate %5.1f", global_uprate);
+
+  if (!throttle_up_name.empty() && throttle_up_name != "NULL" && torrent::up_throttle_global()->is_throttled()) {
+    int64_t throttle_uprate_b = retrieve_throttle_up_value(throttle_up_name, true);
+    if (throttle_uprate_b > -1) {
+      double throttle_uprate = (double)throttle_uprate_b / 1024.0;
+      double main_uprate = global_uprate - throttle_uprate;
+
+      first = print_buffer(first, last, " (%3.1f|%3.1f)",
+                       main_uprate < 0.0 ? 0.0 : main_uprate,
+                       throttle_uprate);
+    }
+  }
+
+  first = print_buffer(first, last, "/%5.1f KB]", (double)torrent::down_rate()->rate() / 1024.0);
 
   first = print_buffer(first, last, " [Port: %i]", (unsigned int)torrent::connection_manager()->listen_port());
 
