@@ -5,12 +5,12 @@
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation; either version 2 of the License, or
 // (at your option) any later version.
-// 
+//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
@@ -135,7 +135,7 @@ check_name(const std::string& str) {
     throw torrent::input_error("Non-alphanumeric characters found.");
 
   return str;
-}  
+}
 
 torrent::Object
 group_insert(const torrent::Object::list_type& args) {
@@ -158,7 +158,7 @@ group_insert(const torrent::Object::list_type& args) {
 
   if (rpc::call_command_value("method.use_intermediate") == 1) {
     // Deprecated in 0.7.0:
-    
+
     CMD2_REDIRECT_GENERIC_STR("group." + name + ".view",          "group2." + name + ".view");
     CMD2_REDIRECT_GENERIC_STR("group." + name + ".view.set",      "group2." + name + ".view.set");
     CMD2_REDIRECT_GENERIC_STR("group." + name + ".ratio.min",     "group2." + name + ".ratio.min");
@@ -170,7 +170,7 @@ group_insert(const torrent::Object::list_type& args) {
 
   } if (rpc::call_command_value("method.use_intermediate") == 2) {
     // Deprecated in 0.7.0:
-    
+
     CMD2_REDIRECT_GENERIC_STR_NO_EXPORT("group." + name + ".view",          "group2." + name + ".view");
     CMD2_REDIRECT_GENERIC_STR_NO_EXPORT("group." + name + ".view.set",      "group2." + name + ".view.set");
     CMD2_REDIRECT_GENERIC_STR_NO_EXPORT("group." + name + ".ratio.min",     "group2." + name + ".ratio.min");
@@ -215,9 +215,9 @@ torrent::Object
 cmd_file_append(const torrent::Object::list_type& args) {
   if (args.empty())
     throw torrent::input_error("Invalid number of arguments.");
-  
+
   FILE* output = fopen(args.front().as_string().c_str(), "a");
-  
+
   if (output == NULL)
     throw torrent::input_error("Could not append to file '" + args.front().as_string() + "': " + rak::error_number::current().c_str());
 
@@ -265,6 +265,8 @@ initialize_command_local() {
   CMD2_ANY         ("system.time_usec",                std::bind(&rak::timer::current_usec));
 
   CMD2_ANY_VALUE_V ("system.umask.set",                std::bind(&umask, std::placeholders::_2));
+
+  CMD2_VAR_BOOL    ("system.use_daemon",               false);
 
   CMD2_ANY         ("system.cwd",                      std::bind(&system_get_cwd));
   CMD2_ANY_STRING  ("system.cwd.set",                  std::bind(&system_set_cwd, std::placeholders::_2));
