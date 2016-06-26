@@ -105,7 +105,7 @@ Canvas::initialize() {
   if (m_isInitialized)
     return;
 
-  m_isDaemon = rpc::call_command_value("system.use_daemon");
+  m_isDaemon = rpc::call_command_value("system.daemon");
 
   m_isInitialized = true;
 

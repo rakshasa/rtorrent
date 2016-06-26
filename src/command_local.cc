@@ -266,7 +266,7 @@ initialize_command_local() {
 
   CMD2_ANY_VALUE_V ("system.umask.set",                std::bind(&umask, std::placeholders::_2));
 
-  CMD2_VAR_BOOL    ("system.use_daemon",               false);
+  CMD2_VAR_BOOL    ("system.daemon",                   false);
 
   CMD2_ANY         ("system.cwd",                      std::bind(&system_get_cwd));
   CMD2_ANY_STRING  ("system.cwd.set",                  std::bind(&system_set_cwd, std::placeholders::_2));

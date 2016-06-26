@@ -190,8 +190,10 @@ main(int argc, char** argv) {
 
     control = new Control;
     
-    srandom(cachedTime.usec() ^ (getpid() << 16) ^ getppid());
-    srand48(cachedTime.usec() ^ (getpid() << 16) ^ getppid());
+    unsigned int random_seed = cachedTime.seconds() ^ cachedTime.usec() ^ (getpid() << 16) ^ getppid();
+
+    srandom(random_seed);
+    srand48(random_seed);
 
     SignalHandler::set_ignore(SIGPIPE);
     SignalHandler::set_handler(SIGINT,   std::bind(&Control::receive_normal_shutdown, control));
