@@ -194,7 +194,7 @@ Download::create_info() {
   element->push_column("Upload:",           te_command("cat=$convert.kb=$d.up.rate=,\" KB / \",$convert.xb=$d.up.total="));
   element->push_column("Download:",         te_command("cat=$convert.kb=$d.down.rate=,\" KB / \",$convert.xb=$d.down.total="));
   element->push_column("Skipped:",          te_command("cat=$convert.kb=$d.skip.rate=,\" KB / \",$convert.xb=$d.skip.total="));
-  element->push_column("Preload:",          te_command("cat=$pieces.preload.type=,\" / \",$pieces.stats_preloaded=,\" / \",$pieces.stats_preloaded="));
+  element->push_column("Preload:",          te_command("cat=$pieces.preload.type=,\" / \",$pieces.stats_preloaded=,\" / \",$pieces.stats_not_preloaded="));
 
   element->set_column_width(element->column_width() + 1);
 
