@@ -606,8 +606,8 @@ DownloadList::received_finished(Download* download) {
   if (rpc::call_command_value("pieces.hash.on_completion"))
     // Set some 'checking_finished_thingie' variable to make hash_done
     // trigger correctly, also so it can bork on missing data.
-    hash_queue(download, Download::variable_hashing_last);
-    confirm_finished(download);
+    if (hash_queue(download, Download::variable_hashing_last))
+      confirm_finished(download);
   else
     confirm_finished(download);
 }
