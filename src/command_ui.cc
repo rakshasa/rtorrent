@@ -523,6 +523,8 @@ void
 initialize_command_ui() {
   CMD2_VAR_STRING("keys.layout", "qwerty");
 
+  CMD2_VAR_VALUE("download.list.layout", 0);
+
   CMD2_ANY_STRING("view.add", object_convert_void(std::bind(&core::ViewManager::insert_throw, control->view_manager(), std::placeholders::_2)));
 
   CMD2_ANY_L   ("view.list",          std::bind(&apply_view_list));
