@@ -233,7 +233,7 @@ main(int argc, char** argv) {
 
     if (OptionParser::has_flag('D', argc, argv)) {
       rpc::call_command_set_value("method.use_deprecated.set", true);
-      lt_log_print(torrent::LOG_WARN, "Disabled deprecated commands.");
+      lt_log_print(torrent::LOG_WARN, "Enabled deprecated commands.");
     }
 
     if (OptionParser::has_flag('I', argc, argv)) {
