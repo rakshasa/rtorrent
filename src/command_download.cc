@@ -683,6 +683,7 @@ initialize_command_download() {
   CMD2_DL         ("d.is_pex_active",         CMD2_ON_INFO(is_pex_active));
   CMD2_DL         ("d.is_partially_done",     CMD2_ON_DATA(is_partially_done));
   CMD2_DL         ("d.is_not_partially_done", CMD2_ON_DATA(is_not_partially_done));
+  CMD2_DL         ("d.is_meta",               CMD2_ON_INFO(is_meta_download));
 
   CMD2_DL_V       ("d.resume",     std::bind(&core::DownloadList::resume_default, control->core()->download_list(), std::placeholders::_1));
   CMD2_DL_V       ("d.pause",      std::bind(&core::DownloadList::pause_default, control->core()->download_list(), std::placeholders::_1));
