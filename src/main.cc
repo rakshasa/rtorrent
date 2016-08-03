@@ -416,6 +416,8 @@ main(int argc, char** argv) {
     CMD2_REDIRECT_GENERIC("to_xb", "convert.xb");
     CMD2_REDIRECT_GENERIC("to_throttle", "convert.throttle");
 
+    CMD2_REDIRECT        ("torrent_list_layout", "ui.torrent_list.layout.set");
+
     // Deprecated commands. Don't use these anymore.
 
     if (rpc::call_command_value("method.use_intermediate") == 1) {

@@ -133,7 +133,7 @@ print_download_title(char* first, char* last, core::Download* d) {
 }
 
 char*
-print_download_info(char* first, char* last, core::Download* d) {
+print_download_info_full(char* first, char* last, core::Download* d) {
   if (!d->download()->info()->is_open())
     first = print_buffer(first, last, "[CLOSED]  ");
   else if (!d->download()->info()->is_active())
@@ -177,7 +177,7 @@ print_download_info(char* first, char* last, core::Download* d) {
   first = print_buffer(first, last , "]");
 
   if (first > last)
-    throw torrent::internal_error("print_download_info(...) wrote past end of the buffer.");
+    throw torrent::internal_error("print_download_info_full(...) wrote past end of the buffer.");
 
   return first;
 }
@@ -214,6 +214,68 @@ print_download_status(char* first, char* last, core::Download* d) {
 
   if (first > last)
     throw torrent::internal_error("print_download_status(...) wrote past end of the buffer.");
+
+  return first;
+}
+
+char*
+print_download_column_compact(char* first, char* last) {
+  first = print_buffer(first, last, " %-64.64s", "Name");
+  first = print_buffer(first, last, "| Status | Downloaded | Size       | Done | Up Rate   | Down Rate | Uploaded   |  ETA      | Ratio| Misc ");
+
+  if (first > last)
+    throw torrent::internal_error("print_download_column_compact(...) wrote past end of the buffer.");
+
+  return first;
+}
+
+char*
+print_download_info_compact(char* first, char* last, core::Download* d) {
+  first = print_buffer(first, last, " %-64.64s", d->info()->name().c_str());
+  first = print_buffer(first, last, "|");
+
+  if (!d->download()->info()->is_open())
+    first = print_buffer(first, last, " CLOSED ");
+  else if (!d->download()->info()->is_active())
+    first = print_buffer(first, last, " OPEN   ");
+  else
+    first = print_buffer(first, last, "        ");
+
+  first = print_buffer(first, last, "| %7.1f MB ", (double)d->download()->bytes_done() / (double)(1 << 20));
+  first = print_buffer(first, last, "| %7.1f MB ", (double)d->download()->file_list()->size_bytes() / (double)(1 << 20));
+  first = print_buffer(first, last, "|");
+
+  if (d->is_done())
+    first = print_buffer(first, last, " 100%% ");
+  else if (d->is_open())
+    first = print_buffer(first, last, "  %2u%% ",(d->download()->file_list()->completed_chunks() * 100) / d->download()->file_list()->size_chunks());
+  else
+    first = print_buffer(first, last, "      ");
+
+  first = print_buffer(first, last, "| %6.1f KB ", (double)d->info()->up_rate()->rate() / (1 << 10));
+  first = print_buffer(first, last, "| %6.1f KB ", (double)d->info()->down_rate()->rate() / (1 << 10));
+  first = print_buffer(first, last, "| %7.1f MB ", (double)d->info()->up_rate()->total() / (1 << 20));
+  first = print_buffer(first, last, "| ");
+
+  if (d->download()->info()->is_active() && !d->is_done())
+    first = print_download_time_left(first, last, d);
+  else
+    first = print_buffer(first, last, "         ");
+
+  first = print_buffer(first, last, "| %4.2f ", (double)rpc::call_command_value("d.ratio", rpc::make_target(d)) / 1000.0);
+  first = print_buffer(first, last, "| %c%c",
+                       rpc::call_command_string("d.tied_to_file", rpc::make_target(d)).empty() ? ' ' : 'T',
+                       rpc::call_command_value("d.ignore_commands", rpc::make_target(d)) == 0 ? ' ' : 'I',
+                       (double)rpc::call_command_value("d.ratio", rpc::make_target(d)) / 1000.0);
+
+  if (d->priority() != 2)
+    first = print_buffer(first, last, " %s", rpc::call_command_string("d.priority_str", rpc::make_target(d)).c_str());
+
+  if (!d->bencode()->get_key("rtorrent").get_key_string("throttle_name").empty())
+    first = print_buffer(first, last , " %s", rpc::call_command_string("d.throttle_name", rpc::make_target(d)).c_str());
+
+  if (first > last)
+    throw torrent::internal_error("print_download_info_compact(...) wrote past end of the buffer.");
 
   return first;
 }
