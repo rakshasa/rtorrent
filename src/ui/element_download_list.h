@@ -77,6 +77,8 @@ public:
 
   void                receive_change_view(const std::string& name);
 
+  void                toggle_layout();
+
 private:
   WDownloadList*      m_window;
   core::View*         m_view;
