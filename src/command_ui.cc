@@ -523,8 +523,6 @@ void
 initialize_command_ui() {
   CMD2_VAR_STRING("keys.layout", "qwerty");
 
-  CMD2_VAR_VALUE("download.list.layout", 0);
-
   CMD2_ANY_STRING("view.add", object_convert_void(std::bind(&core::ViewManager::insert_throw, control->view_manager(), std::placeholders::_2)));
 
   CMD2_ANY_L   ("view.list",          std::bind(&apply_view_list));
@@ -556,6 +554,9 @@ initialize_command_ui() {
   CMD2_DL        ("ui.unfocus_download",   std::bind(&cmd_ui_unfocus_download, std::placeholders::_1));
   CMD2_ANY       ("ui.current_view",       std::bind(&cmd_ui_current_view));
   CMD2_ANY_STRING("ui.current_view.set",   std::bind(&cmd_ui_set_view, std::placeholders::_2));
+
+  // TODO: Add 'option_string' for rtorrent-specific options.
+  CMD2_VAR_STRING("ui.torrent_list.layout", "full");
 
   // Move.
   CMD2_ANY("print", &apply_print);

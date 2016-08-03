@@ -74,8 +74,6 @@ WindowDownloadList::set_view(core::View* l) {
 
 void
 WindowDownloadList::redraw() {
-  const int layout = rpc::call_command_value("download.list.layout");
-
   m_slotSchedule(this, (cachedTime + rak::timer::from_seconds(1)).round_seconds());
 
   m_canvas->erase();
@@ -88,12 +86,24 @@ WindowDownloadList::redraw() {
   if (m_view->empty_visible() || m_canvas->width() < 5 || m_canvas->height() < 2)
     return;
 
+  int layout_height;
+  const std::string layout_name = rpc::call_command_string("ui.torrent_list.layout");
+
+  if (layout_name == "full") {
+    layout_height = 3;
+  } else if (layout_name == "compact") {
+    layout_height = 1;
+  } else {
+    m_canvas->print(0, 0, "INVALID ui.torrent_list.layout '%s'", layout_name.c_str());
+    return;
+  }
+
   typedef std::pair<core::View::iterator, core::View::iterator> Range;
 
   Range range = rak::advance_bidirectional(m_view->begin_visible(),
                                            m_view->focus() != m_view->end_visible() ? m_view->focus() : m_view->begin_visible(),
                                            m_view->end_visible(),
-                                           m_canvas->height()/(layout ? 1 : 3));
+                                           m_canvas->height() / layout_height);
 
   // Make sure we properly fill out the last lines so it looks like
   // there are more torrents, yet don't hide it if we got the last one
@@ -105,29 +115,35 @@ WindowDownloadList::redraw() {
   char buffer[m_canvas->width() + 1];
   char* last = buffer + m_canvas->width() - 2 + 1;
 
-  if(layout) {
-    print_download_info2(buffer, last, NULL);
+  // Add a proper 'column info' method.
+  if (layout_name == "compact") {
+    print_download_column_compact(buffer, last);
+
     m_canvas->set_default_attributes(A_BOLD);
     m_canvas->print(0, pos++, "  %s", buffer);
   }
 
-  while (range.first != range.second) {
-    if(layout) {
-      print_download_info2(buffer, last, *range.first);
-      m_canvas->set_default_attributes(range.first == m_view->focus() ? A_REVERSE : A_NORMAL);
-      m_canvas->print(0, pos++, "%c %s", range.first == m_view->focus() ? '*' : ' ', buffer);
-    } else {
+  if (layout_name == "full") {
+    while (range.first != range.second) {
       print_download_title(buffer, last, *range.first);
       m_canvas->print(0, pos++, "%c %s", range.first == m_view->focus() ? '*' : ' ', buffer);
-
-      print_download_info(buffer, last, *range.first);
+      print_download_info_full(buffer, last, *range.first);
       m_canvas->print(0, pos++, "%c %s", range.first == m_view->focus() ? '*' : ' ', buffer);
-
       print_download_status(buffer, last, *range.first);
       m_canvas->print(0, pos++, "%c %s", range.first == m_view->focus() ? '*' : ' ', buffer);
+
+      range.first++;
     }
-    ++range.first;
-  }    
+
+  } else {
+    while (range.first != range.second) {
+      print_download_info_compact(buffer, last, *range.first);
+      m_canvas->set_default_attributes(range.first == m_view->focus() ? A_REVERSE : A_NORMAL);
+      m_canvas->print(0, pos++, "%c %s", range.first == m_view->focus() ? '*' : ' ', buffer);
+
+      range.first++;
+    }
+  }
 }
 
 }

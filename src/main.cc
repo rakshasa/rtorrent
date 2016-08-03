@@ -416,10 +416,7 @@ main(int argc, char** argv) {
     CMD2_REDIRECT_GENERIC("to_xb", "convert.xb");
     CMD2_REDIRECT_GENERIC("to_throttle", "convert.throttle");
 
-    // TODO: Rename to something with 'ui.fooobar.....' and put
-    // together with the other ui options. In fact, add redirect for
-    // that other new ui option.
-    CMD2_REDIRECT        ("download_list_layout", "download.list.layout.set");
+    CMD2_REDIRECT        ("torrent_list_layout", "ui.torrent_list.layout.set");
 
     // Deprecated commands. Don't use these anymore.
 

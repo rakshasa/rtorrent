@@ -98,6 +98,6 @@
 #
 #protocol.pex.set = yes
 
-# Set downlad list layout style (default - 0, compact - 1)
+# Set downlad list layout style. ("full", "compact")
 #
-#download_list_layout = 1
+#torrent_list_layout = "full"
