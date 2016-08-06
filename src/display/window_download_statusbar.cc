@@ -66,7 +66,7 @@ WindowDownloadStatusbar::redraw() {
   char buffer[m_canvas->width()];
   char* last = buffer + m_canvas->width() - 2;
 
-  print_download_info(buffer, last, m_download);
+  print_download_info_full(buffer, last, m_download);
   m_canvas->print(0, 0, "%s", buffer);
 
   snprintf(buffer, last - buffer, "Peers: %i(%i) Min/Max: %i/%i Slots: U:%i/%i D:%i/%i U/I/C/A: %i/%i/%i/%i Unchoked: %u/%u Failed: %i",

@@ -555,6 +555,9 @@ initialize_command_ui() {
   CMD2_ANY       ("ui.current_view",       std::bind(&cmd_ui_current_view));
   CMD2_ANY_STRING("ui.current_view.set",   std::bind(&cmd_ui_set_view, std::placeholders::_2));
 
+  // TODO: Add 'option_string' for rtorrent-specific options.
+  CMD2_VAR_STRING("ui.torrent_list.layout", "full");
+
   // Move.
   CMD2_ANY("print", &apply_print);
   CMD2_ANY("cat",   &apply_cat);
