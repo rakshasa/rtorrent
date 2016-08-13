@@ -77,7 +77,7 @@ command_base_call_value_base(command_base* rawCommand, target_type target, const
     return command_base::_call<typename command_value_function<T>::type, T>(rawCommand, target, val);
   }
 
-  return command_base::_call<typename command_value_function<T>::type, T>(rawCommand, target, arg.as_value());
+  return command_base::_call<typename command_value_function<T>::type, T>(rawCommand, target, unit * arg.as_value());
 }
 
 template <typename T> const torrent::Object
