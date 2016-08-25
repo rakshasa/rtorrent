@@ -1,0 +1,24 @@
+Initial seeding is useful only when you are the very first and only seed so far on a torrent, and helps it get seeded faster by uploading each chunk only once. See http://bittorrent.org/beps/bep_0016.html[BEP 0016] for technical details. It is less useful if your upload bandwidth is much higher than the average peer's upload however.
+
+== Requirement
+Initial seeding (also known as "super-seeding") requires rtorrent/libtorrent 0.8.2/0.12.2 (resp. SVN revision 1059) or higher.
+
+== How
+To enable it on a download, first make sure the download is complete and that it is stopped, then press Ctrl-B or send it the command `d.set_connection_seed=initial_seed`. You should see the message `Enabled initial seeding for the selected download.`, if you do not see this message then initial seeding was not enabled. It will probably not show the proper connection type in the download info until you actually start it afterwards. If it shows a connection type of `leech` or `seed` even after you start it, it is *NOT* initial seeding. This may be because it found other seeds in the swarm or all chunks are already sufficiently distributed.
+
+In addition to the algorithm described in http://bittorrent.org/beps/bep_0016.html[BEP 0016], rtorrent's initial seeding includes a fast-startup mode to allow full upload bandwidth even when there are very few peers. Normally initial seeding waits for chunks to appear elsewhere in the swarm before allowing a peer to download more. But when the total number of interested peers is less than 90% of the max uploads for the download, the peer may download more right away since we don't have any better use for the upload bandwidth of the download.
+
+This means that to tune initial seeding, it is recommended to set the following:
+
+* Set the download's max uploads to about your global upload slot limit.
+* Set the download's max peers to about 50%-100% higher.
+
+For example, if you have 20 global slots, set the download's max uploads to 20 as well, and the max peers to 30-40. This assumes the download is the only active download. Adjust accordingly if there are others. The reason is that with too few peers not enough will be interested (and they may not be able to make full use of the upload bandwidth), and with too many it takes each peer longer to complete a chunk.
+
+Initial seeding completes when the swarm shows two distributed or complete copies. At that point all connections are closed, and the non-seeders are re-connected with a normal seeding connection. (This forced disconnection is another reason why initial seeding should not be enabled unless you really are the very first and only seed.) The connection type in the download info will also change to "seed" so you may know that initial seeding is complete.
+
+To disable initial seeding prematurely (before the swarm shows two distributed or complete copies), close the torrent (Ctrl-K), and set the connection type back to normal seeding with the command "d.set_connection_seed=seed". Then restart the torrent.
+
+== Tips & Tricks
+
+== Troubleshooting
