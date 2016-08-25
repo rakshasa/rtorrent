@@ -85,7 +85,7 @@ foreach my $f (0..$#files) {
    my $mtime = (stat "$d$files[$f]")[9];
    
    # Compute number of chunks per file
-   my $fsize   = $t->{info}{files}[$f]{length};
+   my $fsize   = (exists $t->{info}{files}) ? $t->{info}{files}[$f]{length} : 1;
    my $fchunks = ($pmod ? 1 : 0);
    if ($pmod >= $fsize) { ($fsize, $pmod ) = (0, $pmod-$fsize); }
    else                 { ($pmod,  $fsize) = (0, $fsize-$pmod); }
@@ -101,7 +101,10 @@ foreach my $f (0..$#files) {
 $t->{libtorrent_resume}{'uncertain_pieces.timestamp'} = time;
 
 # Some extra information to re-enforce the fact that this is a finished torrent
-$d .= $t->{info}{name};
+if (exists $t->{info}{files}) {
+   $d .=  $t->{info}{name};
+}
+
 $t->{rtorrent} = {
    state          => 1,  # started
    state_changed  => time,
