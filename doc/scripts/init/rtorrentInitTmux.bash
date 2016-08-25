@@ -65,13 +65,12 @@ options=""
 tmuxname="rtorrent"
 
 # name of window in tmux session
-DESC="rT"
+tmuxwindowname="rT"
 #######################
 ###END CONFIGURATION###
 #######################
 PATH=/usr/bin:/usr/local/bin:/usr/local/sbin:/sbin:/bin:/usr/sbin
 NAME=rtorrent
-DDIR="/opt/rtorrent/bin"
 DAEMON=$NAME
 SCRIPTNAME=/etc/init.d/$NAME
 RTXMLRPCBIN="$base/bin/rtxmlrpc"
@@ -118,7 +117,7 @@ d_start() {
     fi
     # start rtorrent always in the 3rd tmux window (2) if it's not running and leave shell behind to be able to see reason of a crash
     if [ "$(status)" == "" ]; then
-	su -c "tmux -2u list-panes -t ${tmuxname}:2 &>/dev/null && tmux -2u respawn-pane -t ${tmuxname}:2 -k \"${DDIR}/${DAEMON} ${options}; bash\" || tmux -2u new-window -t ${tmuxname}:2 -n ${DESC} \"${DDIR}/${DAEMON} ${options}; bash\"" $user
+	su -c "tmux -2u list-panes -t ${tmuxname}:2 &>/dev/null && tmux -2u respawn-pane -t ${tmuxname}:2 -k \"${DAEMON} ${options}; bash\" || tmux -2u new-window -t ${tmuxname}:2 -n ${tmuxwindowname} \"${DAEMON} ${options}; bash\"" $user
     fi
 }
 
@@ -139,17 +138,17 @@ checkcnfg
 
 case "$1" in
     start)
-        echo -n "Starting $DESC: $NAME"
+        echo -n "Starting $tmuxwindowname: $NAME"
         d_start
         echo "."
         ;;
     stop)
-        echo -n "Stopping $DESC: $NAME"
+        echo -n "Stopping $tmuxwindowname: $NAME"
         d_stop
         echo "."
         ;;
     restart|force-reload)
-        echo -n "Restarting $DESC: $NAME"
+        echo -n "Restarting $tmuxwindowname: $NAME"
         d_stop
         sleep 1
         d_start
