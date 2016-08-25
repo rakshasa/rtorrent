@@ -1,0 +1,283 @@
+Common Tasks in rTorrent for Dummies
+=========================
+
+This page is for showing examples on how to use the many options in rTorrent. Only real examples you can apply immediately, no theory at all.
+
+(Source: old trac `RTorrentCommonTasks <http://web.archive.org/web/20140213003955/http://libtorrent.rakshasa.no/wiki/RTorrentCommonTasks>`_ WIKI page.)
+
+.. contents:: **Contents**
+
+
+Getting the full path of data of a torrent
+------------
+
+From 0.9.2, ``d.base_path`` attribute can be empty sometimes (e.g. when a download is stopped). The following method always returns the full path of data of a download.
+
+.. code-block::
+
+   # gets the full path of data of a torrent (it's a workaround for the possibly empty 'd.base_path' attribute)
+   method.insert = d.get_data_full_path, simple, "branch=((d.is_multi_file)),((cat,(d.directory))),((cat,(d.directory),/,(d.name)))"
+
+
+Saving torrent state and resume data between sessions
+------------
+
+.. code-block::
+
+   # Point to a directory where rTorrent will save the torrent files. You
+   # may also use relative paths if you want different session
+   # directories depending on where you execute rtorrent.
+   session.path.set = ~/Download/session
+
+
+Watch a directory for torrents
+------------
+
+See `Watch directories <https://github.com/rakshasa/rtorrent/wiki/TORRENT-Watch-directories>`_ WIKI page for more information.
+
+
+Create symbolic links to indicate the download state
+------------
+
+.. code-block::
+
+   # Create symlinks in the watch directory with a suffix indicating the download state.
+   method.set_key = event.download.resumed,link1,"d.create_link=tied,,.started"
+   method.set_key = event.download.paused,link1,"d.delete_link=tied,,.started"
+   method.set_key = event.download.finished,"d.create_link=tied,,.finished"
+   method.set_key = event.download.erased,"d.delete_link=tied,,.finished"
+   
+   # Create symlinks in the same directory as the download.
+   method.set_key = event.download.resumed,link2,"d.create_link=base_path,,.started"
+   method.set_key = event.download.paused,link2,"d.delete_link=base_path,,.started"
+   method.set_key = event.download.finished,link2,"d.create_link=base_path,,.finished"
+   method.set_key = event.download.erased,link2,"d.delete_link=base_path,,.finished"
+
+   # Create a symlink in another directory without a suffix.
+   # You need to quote the command in this case.
+   method.set_key = event.download.finished,link3,"d.create_link=base_filename,/files,"
+
+
+Move completed torrents
+------------
+
+When the torrent finishes, it executes ``mv <base_path> ~/Download/`` and then sets the destination directory to ``~/Download/`` (using the above defined ``d.get_data_full_path`` method). 
+
+.. code-block::
+
+   method.set_key = event.download.finished,move_complete,"execute=mv,-u,$d.get_data_full_path=,~/Download/; d.directory.set=~/Download/"
+
+
+Move completed torrents to different directory depending on watch directory
+------------
+
+Each watch directory adds torrents with the final destination stored in the ``custom1`` string of the download. You can check this string with ``^x`` then ``print=$d.custom1=`` in the client (using the above defined ``d.get_data_full_path`` method).
+
+.. code-block::
+
+   schedule2 = watch_directory_1,10,10,"load.start=~/Download/watch_stuff1/*.torrent,d.custom1.set=~/Download/stuff1/"
+   schedule2 = watch_directory_2,10,10,"load.start=~/Download/watch_stuff2/*.torrent,d.custom1.set=~/Download/stuff2/"
+   
+   # On completion, move the torrent to the directory from custom1.
+   method.set_key =event.download.finished,move_complete,"d.directory.set=$d.custom1= ;execute=mv,-u,$d.get_data_full_path=,$d.custom1="
+
+
+Move .torrent file after loading it manually
+------------
+
+Do **NOT** use this if in combination with a watch folder! (At least in this way.)
+
+When loading a torrent manually (i.e. ``load.start``), moves the original `XXX.torrent` file to a directory (for example you may want to move the file to the trash bin, since rtorrent made a copy of it in the session directory). 
+
+.. code-block::
+
+   method.set_key = event.download.inserted_new,move_tor,"execute=mv,-u,$d.loaded_file=,/path/to/trash_bin"
+
+
+Send email for completed downloads
+------------
+
+Assuming you have a working mail system and this 'rtorrent_mail.sh' script is executable.
+
+.. code-block::
+
+   #!/bin/sh
+   echo "$(date) : $1 - Download completed." | mail -s "[rtorrent] - Download completed : $1" alerts@example.com
+
+.. code-block::
+
+   # First and only argument to 'rtorrent_mail.sh' is completed file's name ('d.name')
+   method.set_key = event.download.finished,notify_me,"execute=~/rtorrent_mail.sh,$d.name="
+
+
+Stop torrents after reaching a specified upload ratio
+------------
+
+See `Ratio Handling <https://github.com/rakshasa/rtorrent/wiki/RTorrentRatioHandling>`_ WIKI page for more information.
+
+
+Delete data files when removing incomplete downloads
+------------
+
+If you often add older torrents and find that they never complete due to lack of seeds, these commands will automatically delete the data files when removing an incomplete download (either manually or with remove_untied by removing the tied file) (using the above defined ``d.get_data_full_path`` method). Note that all files will be removed on incomplete or partially complete downloads, even those files from it which are in fact completely downloaded.
+
+**WARNING:** Do **NOT** use this setup if you ever change a download's base_path to something like /home/bob/ or similar, or you could lose a lot of files!
+
+.. code-block::
+
+   # Enable removal for all downloads added from this watch directory.
+   schedule2 = watch_directory,10,10,"load.start=~/Download/watch_stuff/*.torrent,d.custom2.set=1"
+   
+   # Clear 'custom2' when download completes.
+   method.set_key = event.download.finished,set_done_var,d.custom2.set=
+   
+   # Erase data files when a download is removed that still has 'custom2' set.
+   method.set_key = event.download.erased,rm_files,"branch=d.custom2=,\"execute={rm,-rf,--,$d.get_data_full_path=}\""
+
+To make an incomplete download exempt from the automated deletion on removal, select the download then press Ctrl-X and enter ``d.custom2.set=``.
+
+
+Scheduling download rate
+------------
+
+Every day "throttle_1" gets triggered at 01:00 and sets the download rate to unlimited, while "throttle_2" sets it to 2500kb at 05:00. Using this the client may be made to perform a somewhat crude form of bandwidth scheduling. 
+
+.. code-block::
+
+   schedule2 = throttle_1,01:00:00,24:00:00,throttle.global_down.max_rate.set_kb=0
+   schedule2 = throttle_2,05:00:00,24:00:00,throttle.global_down.max_rate.set_kb=2500
+
+
+Using custom throttles
+------------
+
+You can define different throttle rates for (groups of) downloads or IP ranges. These throttles borrow bandwidth from the global throttle and thus are limited by it too.
+
+.. code-block::
+
+   throttle.up=slowupload,100
+   throttle.down=slowdownload,5000
+   throttle.up=sloweverything,100
+   throttle.down=sloweverything,5000
+   throttle.ip=NULL,192.168.0.0/16
+
+The "slowupload" throttle limits the upload to 100 kb/s. The "slowdownload" throttle limits download to 5000 kb/s. The "sloweverything" throttle limits both.
+
+You can assign throttles to a stopped download with ``^T``. The NULL throttle is a special unlimited throttle that bypasses the global throttle. 
+
+
+Using a different configuration file
+------------
+
+.. code-block::
+
+   $ rtorrent -n -o import=~/foo.rc
+
+The ``-n`` switch tells rtorrent not to load the default resource file, while the import option loads ``~/foo.rc``.
+
+
+Using custom views
+------------
+
+Show downloads currently uploading or downloading in active view. Update every 30 seconds.
+
+.. code-block::
+
+   schedule2 = filter_active,30,30,"view.filter = active,\"or={d.up_rate=,d.down_rate=}\""
+
+Show downloads currently downloading in active view. Update every 30 seconds.
+
+.. code-block::
+
+   schedule2 = filter_active,30,30,"view.filter = active,d.down_rate="
+
+Show downloads currently uploading in active view. Update every 30 seconds.
+
+.. code-block::
+
+   schedule2 = filter_active,30,30,"view.filter = active,d.up_rate="
+
+Switch to a custom view with
+
+.. code-block::
+
+   ui.current_view.set = viewname
+
+
+Start or stop all torrents
+------------
+
+On the "main" view ``^x`` + ``d.multicall2=main,d.start=``.
+
+Replace ``d.start=`` with ``d.stop=`` to stop all torrents .
+
+
+Stop downloading of a torrent but still uploading it
+------------
+
+Set the priority of all the files of a torrent to off, either manually or by running these commands in rtorrent with ``^x`` after selecting a torrent:
+
+.. code-block::
+
+   f.multicall=*,f.priority.set=0
+   d.update_priorities=
+
+
+Favoring one group of torrents over the rest of them
+------------
+
+See `Favoring group of torrents <https://github.com/rakshasa/rtorrent/wiki/Favoring-group-of-torrents>`_ WIKI page for more information.
+
+
+Auto-Scraping
+------------
+
+See `Auto-Scraping <https://github.com/rakshasa/rtorrent/wiki/Auto-Scraping>`_ WIKI page for more information.
+
+
+Adding fast resume data to torrent files
+------------
+
+When you are the first seeder for a torrent or you already have the data from somewhere else, rTorrent will normally have to hash-check all files even if you just created the torrent file from them and thus know that they are correct. To eliminate this step, the following Perl script by Josef Drexler can add rTorrent's fast resume data to the torrent file: `rtorrent_fast_resume.pl <https://github.com/rakshasa/rtorrent/blob/master/doc/rtorrent_fast_resume.pl>`_.
+
+Usage:
+
+.. code-block::
+
+   $ rtorrent_fast_resume.pl [base-directory] plain.torrent [with_fast_resume.torrent]
+
+Then you can distribute the original torrent file and load the modified file into rTorrent and start seeding without needing a hash check. The base directory specifies where the files in the torrent are located, equivalent to the "directory" option in ``rtorrent.rc``. If not specified, the files are assumed to be in the current directory.
+
+Note that this script requires the ``Convert::Bencode_XS`` module from CPAN, if this module is not available on your system you will need to install it first:
+
+.. code-block::
+
+   $ perl -MCPAN -e 'install Convert::Bencode_XS'
+
+If you're having trouble installing it on newer perl versions then take a look at the first comment of `this issue <https://github.com/rakshasa/rtorrent/issues/489>`_.
+
+
+Starting rTorrent on System Startup
+------------
+
+Debian
+^^^^^^
+
+Assuming a Debian-based distribution, create ``/etc/init.d/rtorrent`` with one of the rtorrentInit files (`rtorrentInit.sh <http://web.archive.org/web/20140219194435/http://libtorrent.rakshasa.no/raw-attachment/wiki/RTorrentCommonTasks/rtorrentInit.sh>`_ , `rtorrentInit.bash <http://web.archive.org/web/20140220151435/http://libtorrent.rakshasa.no/raw-attachment/wiki/RTorrentCommonTasks/rtorrentInit.bash>`_), editing the Configuration to suit your needs. 
+
+Make sure it has appropriate permissions and update your init system (as sudo/su/root):
+
+.. code-block::
+
+   # chown root:root /etc/init.d/rtorrent
+   # chmod 755 /etc/init.d/rtorrent
+   # update-rc.d rtorrent defaults
+
+Gentoo
+^^^^^^
+
+Assuming a Gentoo distribution, and having the **daemon** USE flag enabled ; select the user you want rtorrent to be runned as modifying ``/etc/conf.d/rtorrentd``, and update your init system (as sudo/su/root):
+
+.. code-block::
+
+   # rc-update add rtorrentd default
