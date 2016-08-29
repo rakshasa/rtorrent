@@ -99,6 +99,8 @@ ElementDownloadList::ElementDownloadList() :
 
   m_bindings[KEY_UP]   = m_bindings['P' - '@'] = std::bind(&ElementDownloadList::receive_prev, this);
   m_bindings[KEY_DOWN] = m_bindings['N' - '@'] = std::bind(&ElementDownloadList::receive_next, this);
+
+  m_bindings['L']           = std::bind(&ElementDownloadList::toggle_layout, this);
 }
 
 void
@@ -221,4 +223,14 @@ ElementDownloadList::receive_change_view(const std::string& name) {
   set_view(*itr);
 }
 
+void
+ElementDownloadList::toggle_layout() {
+  const std::string layout_name = rpc::call_command_string("ui.torrent_list.layout");
+
+  if (layout_name == "full") {
+    rpc::call_command("ui.torrent_list.layout.set", "compact");
+  } else if (layout_name == "compact") {
+    rpc::call_command("ui.torrent_list.layout.set", "full");
+  }
+}
 }

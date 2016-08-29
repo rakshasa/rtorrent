@@ -265,6 +265,7 @@ initialize_command_network() {
   CMD2_ANY_STRING_V("network.http.capath.set",            std::bind(&core::CurlStack::set_http_capath, httpStack, std::placeholders::_2));
   CMD2_ANY         ("network.http.dns_cache_timeout",     std::bind(&core::CurlStack::dns_timeout, httpStack));
   CMD2_ANY_VALUE_V ("network.http.dns_cache_timeout.set", std::bind(&core::CurlStack::set_dns_timeout, httpStack, std::placeholders::_2));
+  CMD2_ANY         ("network.http.current_open",                  std::bind(&core::CurlStack::active, httpStack));
   CMD2_ANY         ("network.http.max_open",              std::bind(&core::CurlStack::max_active, httpStack));
   CMD2_ANY_VALUE_V ("network.http.max_open.set",          std::bind(&core::CurlStack::set_max_active, httpStack, std::placeholders::_2));
   CMD2_ANY         ("network.http.proxy_address",         std::bind(&core::CurlStack::http_proxy, httpStack));
