@@ -225,6 +225,12 @@ ElementDownloadList::receive_change_view(const std::string& name) {
 
 void
 ElementDownloadList::toggle_layout() {
-  rpc::call_command("download.list.layout.set", (rpc::call_command_value("download.list.layout") + 1)%2);
+  const std::string layout_name = rpc::call_command_string("ui.torrent_list.layout");
+
+  if (layout_name == "full") {
+    rpc::call_command("ui.torrent_list.layout.set", "compact");
+  } else if (layout_name == "compact") {
+    rpc::call_command("ui.torrent_list.layout.set", "full");
+  }
 }
 }
