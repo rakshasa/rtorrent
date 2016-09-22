@@ -230,10 +230,10 @@ cmd_file_append(const torrent::Object::list_type& args) {
 
 void
 initialize_command_local() {
-  torrent::ChunkManager* chunkManager = torrent::chunk_manager();
-  torrent::FileManager*  fileManager = torrent::file_manager();
   core::DownloadList*    dList = control->core()->download_list();
   core::DownloadStore*   dStore = control->core()->download_store();
+  torrent::ChunkManager* chunkManager = torrent::chunk_manager();
+  torrent::FileManager*  fileManager = torrent::file_manager();
 
   CMD2_ANY         ("system.hostname", std::bind(&system_hostname));
   CMD2_ANY         ("system.pid",      std::bind(&getpid));
@@ -267,6 +267,10 @@ initialize_command_local() {
   CMD2_ANY_VALUE_V ("system.umask.set",                std::bind(&umask, std::placeholders::_2));
 
   CMD2_VAR_BOOL    ("system.daemon",                   false);
+
+  CMD2_ANY_V       ("system.shutdown.normal",          std::bind(&Control::receive_normal_shutdown, control));
+  CMD2_ANY_V       ("system.shutdown.quick",           std::bind(&Control::receive_quick_shutdown, control));
+  CMD2_REDIRECT_GENERIC_NO_EXPORT("system.shutdown", "system.shutdown.normal");
 
   CMD2_ANY         ("system.cwd",                      std::bind(&system_get_cwd));
   CMD2_ANY_STRING  ("system.cwd.set",                  std::bind(&system_set_cwd, std::placeholders::_2));
