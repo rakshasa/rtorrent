@@ -80,6 +80,7 @@ public:
   bool                bind(const rak::socket_address& sa);
   bool                bind(const rak::socket_address& sa, unsigned int length);
   bool                connect(const rak::socket_address& sa);
+  bool                getsockname(rak::socket_address* sa);
 
   bool                listen(int size);
   SocketFd            accept(rak::socket_address* sa);
@@ -91,6 +92,7 @@ private:
   inline void         check_valid() const;
 
   int                 m_fd;
+  bool                m_ipv6_socket;
 };
 
 }

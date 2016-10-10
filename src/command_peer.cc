@@ -69,7 +69,12 @@ retrieve_p_id_html(torrent::Peer* peer) {
 
 torrent::Object
 retrieve_p_address(torrent::Peer* peer) {
-  return rak::socket_address::cast_from(peer->peer_info()->socket_address())->address_str();
+  const rak::socket_address *addr = rak::socket_address::cast_from(peer->peer_info()->socket_address());
+
+  if (addr->family() == rak::socket_address::af_inet6)
+    return "[" + addr->address_str() + "]";
+  else
+    return addr->address_str();
 }
 
 torrent::Object

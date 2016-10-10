@@ -228,7 +228,8 @@ Manager::set_bind_address(const std::string& addr) {
   int err;
   rak::address_info* ai;
 
-  if ((err = rak::address_info::get_address_info(addr.c_str(), PF_INET, SOCK_STREAM, &ai)) != 0)
+  if ((err = rak::address_info::get_address_info(addr.c_str(), PF_INET, SOCK_STREAM, &ai)) != 0 &&
+      (err = rak::address_info::get_address_info(addr.c_str(), PF_INET6, SOCK_STREAM, &ai)) != 0)
     throw torrent::input_error("Could not set bind address: " + std::string(rak::address_info::strerror(err)) + ".");
   
   try {
@@ -262,7 +263,8 @@ Manager::set_local_address(const std::string& addr) {
   int err;
   rak::address_info* ai;
 
-  if ((err = rak::address_info::get_address_info(addr.c_str(), PF_INET, SOCK_STREAM, &ai)) != 0)
+  if ((err = rak::address_info::get_address_info(addr.c_str(), PF_INET, SOCK_STREAM, &ai)) != 0 &&
+      (err = rak::address_info::get_address_info(addr.c_str(), PF_INET6, SOCK_STREAM, &ai)) != 0)
     throw torrent::input_error("Could not set local address: " + std::string(rak::address_info::strerror(err)) + ".");
   
   try {
