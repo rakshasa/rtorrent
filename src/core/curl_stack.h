@@ -142,7 +142,7 @@ class CurlStack : std::deque<CurlGet*> {
   std::string         m_httpCaPath;
   std::string         m_httpCaCert;
 
-  long                m_ssl_verify_host;
+  bool                m_ssl_verify_host;
   bool                m_ssl_verify_peer;
   long                m_dns_timeout;
 };

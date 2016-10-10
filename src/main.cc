@@ -89,7 +89,7 @@ void do_nothing() {}
 void do_nothing_str(const std::string&) {}
 
 int
-parse_options(Control* c, int argc, char** argv) {
+parse_options(int argc, char** argv) {
   try {
     OptionParser optionParser;
 
@@ -117,8 +117,8 @@ parse_options(Control* c, int argc, char** argv) {
 }
 
 void
-load_session_torrents(Control* c) {
-  utils::Directory entries = c->core()->download_store()->get_formated_entries();
+load_session_torrents() {
+  utils::Directory entries = control->core()->download_store()->get_formated_entries();
 
   for (utils::Directory::const_iterator first = entries.begin(), last = entries.end(); first != last; ++first) {
     // We don't really support session torrents that are links. These
@@ -127,7 +127,7 @@ load_session_torrents(Control* c) {
     if (!first->is_file())
       continue;
 
-    core::DownloadFactory* f = new core::DownloadFactory(c->core());
+    core::DownloadFactory* f = new core::DownloadFactory(control->core());
 
     // Replace with session torrent flag.
     f->set_session(true);
@@ -138,10 +138,10 @@ load_session_torrents(Control* c) {
 }
 
 void
-load_arg_torrents(Control* c, char** first, char** last) {
-  //std::for_each(begin, end, std::bind1st(std::mem_fun(&core::Manager::insert), &c->get_core()));
+load_arg_torrents(char** first, char** last) {
+  //std::for_each(begin, end, std::bind1st(std::mem_fun(&core::Manager::insert), &control->get_core()));
   for (; first != last; ++first) {
-    core::DownloadFactory* f = new core::DownloadFactory(c->core());
+    core::DownloadFactory* f = new core::DownloadFactory(control->core());
 
     // Replace with session torrent flag.
     f->set_start(true);
@@ -152,9 +152,9 @@ load_arg_torrents(Control* c, char** first, char** last) {
 }
 
 static uint64_t
-client_next_timeout(Control* c) {
+client_next_timeout() {
   if (taskScheduler.empty())
-    return (c->is_shutdown_started() ? rak::timer::from_milliseconds(100) : rak::timer::from_seconds(60)).usec();
+    return (control->is_shutdown_started() ? rak::timer::from_milliseconds(100) : rak::timer::from_seconds(60)).usec();
   else if (taskScheduler.top()->time() <= cachedTime)
     return 0;
   else
@@ -222,7 +222,7 @@ main(int argc, char** argv) {
 
     torrent::initialize();
     torrent::main_thread()->slot_do_work() = std::bind(&client_perform);
-    torrent::main_thread()->slot_next_timeout() = std::bind(&client_next_timeout, control);
+    torrent::main_thread()->slot_next_timeout() = std::bind(&client_next_timeout);
 
     worker_thread = new ThreadWorker();
     worker_thread->init_thread();
@@ -440,7 +440,7 @@ main(int argc, char** argv) {
     }
 #endif
 
-    int firstArg = parse_options(control, argc, argv);
+    int firstArg = parse_options(argc, argv);
 
     if (OptionParser::has_flag('n', argc, argv)) {
       lt_log_print(torrent::LOG_WARN, "Ignoring rtorrent.rc.");
@@ -463,10 +463,10 @@ main(int argc, char** argv) {
     // Load session torrents and perform scheduled tasks to ensure
     // session torrents are loaded before arg torrents.
     control->dht_manager()->load_dht_cache();
-    load_session_torrents(control);
+    load_session_torrents();
     rak::priority_queue_perform(&taskScheduler, cachedTime);
 
-    load_arg_torrents(control, argv + firstArg, argv + argc);
+    load_arg_torrents(argv + firstArg, argv + argc);
 
     // Make sure we update the display before any scheduled tasks can
     // run, so that loading of torrents doesn't look like it hangs on

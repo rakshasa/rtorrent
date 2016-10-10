@@ -100,4 +100,4 @@
 
 # Set downlad list layout style. ("full", "compact")
 #
-#torrent_list_layout = "full"
+#ui.torrent_list.layout.set = "full"
