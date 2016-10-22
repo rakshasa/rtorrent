@@ -123,26 +123,22 @@ DhtManager::start_dht() {
   if (port <= 0)
     return;
 
-  LT_LOG_THIS("starting server (port:%d)", port);
-
-  try {
-    torrent::dht_manager()->start(port);
-    torrent::dht_manager()->reset_statistics();
-
-    m_updateTimeout.slot() = std::bind(&DhtManager::update, this);
-    priority_queue_insert(&taskScheduler, &m_updateTimeout, (cachedTime + rak::timer::from_seconds(60)).round_seconds());
-
-    m_dhtPrevCycle = 0;
-    m_dhtPrevQueriesSent = 0;
-    m_dhtPrevRepliesReceived = 0;
-    m_dhtPrevQueriesReceived = 0;
-    m_dhtPrevBytesUp = 0;
-    m_dhtPrevBytesDown = 0;
-
-  } catch (torrent::local_error& e) {
-    LT_LOG_THIS("server start failed (error:%s)", e.what());
+  if (!torrent::dht_manager()->start(port)) {
     m_start = dht_off;
+    return;
   }
+
+  torrent::dht_manager()->reset_statistics();
+
+  m_updateTimeout.slot() = std::bind(&DhtManager::update, this);
+  priority_queue_insert(&taskScheduler, &m_updateTimeout, (cachedTime + rak::timer::from_seconds(60)).round_seconds());
+
+  m_dhtPrevCycle = 0;
+  m_dhtPrevQueriesSent = 0;
+  m_dhtPrevRepliesReceived = 0;
+  m_dhtPrevQueriesReceived = 0;
+  m_dhtPrevBytesUp = 0;
+  m_dhtPrevBytesDown = 0;
 }
 
 void
