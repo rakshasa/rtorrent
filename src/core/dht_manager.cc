@@ -87,22 +87,17 @@ DhtManager::load_dht_cache() {
       LT_LOG_THIS("cache file corrupted, discarding (path:%s)", cache_filename.c_str());
       cache = torrent::Object::create_map();
     } else {
-      LT_LOG_THIS("cache file loaded (path:%s)", cache_filename.c_str());
+      LT_LOG_THIS("cache file read (path:%s)", cache_filename.c_str());
     }
 
   } else {
     LT_LOG_THIS("could not open cache file (path:%s)", cache_filename.c_str());
   }
 
-  try {
-    torrent::dht_manager()->initialize(cache);
+  torrent::dht_manager()->initialize(cache);
 
-    if (m_start == dht_on)
-      start_dht();
-
-  } catch (torrent::local_error& e) {
-    LT_LOG_THIS("initialization failed (error:%s)", e.what());
-  }
+  if (m_start == dht_on)
+    start_dht();
 }
 
 void
@@ -110,7 +105,7 @@ DhtManager::start_dht() {
   priority_queue_erase(&taskScheduler, &m_stopTimeout);
 
   if (!torrent::dht_manager()->is_valid()) {
-    LT_LOG_THIS("server start skipped, manager is invalid", 0);
+    LT_LOG_THIS("server start skipped, manager is uninitialized", 0);
     return;
   }
 
