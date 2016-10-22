@@ -54,6 +54,9 @@
 #include "download_store.h"
 #include "manager.h"
 
+#define LT_LOG_THIS(log_fmt, ...)                                       \
+  lt_log_print_subsystem(torrent::LOG_DHT_ALL, "dht_manager", log_fmt, __VA_ARGS__);
+
 namespace core {
 
 const char* DhtManager::dht_settings[dht_settings_num] = { "disable", "off", "auto", "on" };
@@ -65,8 +68,10 @@ DhtManager::~DhtManager() {
 
 void
 DhtManager::load_dht_cache() {
-  if (m_start == dht_disable || !control->core()->download_store()->is_enabled())
+  if (m_start == dht_disable || !control->core()->download_store()->is_enabled()) {
+    LT_LOG_THIS("ignoring cache file", 0);
     return;
+  }
 
   torrent::Object cache = torrent::Object::create_map();
   std::fstream cache_file((control->core()->download_store()->path() + "rtorrent.dht_cache").c_str(), std::ios::in | std::ios::binary);
@@ -77,8 +82,10 @@ DhtManager::load_dht_cache() {
     // If the cache file is corrupted we will just discard it with an
     // error message.
     if (cache_file.fail()) {
-      lt_log_print(torrent::LOG_DHT_WARN, "DHT cache file corrupted, discarding.");
+      LT_LOG_THIS("cache file corrupted, discarding", 0);
       cache = torrent::Object::create_map();
+    } else {
+      LT_LOG_THIS("cache file loaded", 0);
     }
   }
 
@@ -89,7 +96,7 @@ DhtManager::load_dht_cache() {
       start_dht();
 
   } catch (torrent::local_error& e) {
-    lt_log_print(torrent::LOG_DHT_WARN, "DHT failed: %s", e.what());
+    LT_LOG_THIS("initialization failed (error:%s)", e.what());
   }
 }
 
@@ -97,18 +104,21 @@ void
 DhtManager::start_dht() {
   priority_queue_erase(&taskScheduler, &m_stopTimeout);
 
-  if (!torrent::dht_manager()->is_valid() || torrent::dht_manager()->is_active())
+  if (!torrent::dht_manager()->is_valid() || torrent::dht_manager()->is_active()) {
+    LT_LOG_THIS("server start skipped", 0);
     return;
+  }
 
   torrent::ThrottlePair throttles = control->core()->get_throttle(m_throttleName);
   torrent::dht_manager()->set_upload_throttle(throttles.first);
   torrent::dht_manager()->set_download_throttle(throttles.second);
 
   int port = rpc::call_command_value("dht.port");
+
   if (port <= 0)
     return;
 
-  lt_log_print(torrent::LOG_DHT_INFO, "Starting DHT server on port %d.", port);
+  LT_LOG_THIS("starting server (port:%d)", port);
 
   try {
     torrent::dht_manager()->start(port);
@@ -125,7 +135,7 @@ DhtManager::start_dht() {
     m_dhtPrevBytesDown = 0;
 
   } catch (torrent::local_error& e) {
-    lt_log_print(torrent::LOG_DHT_ERROR, "DHT start failed: %s", e.what());
+    LT_LOG_THIS("server start failed (error:%s)", e.what());
     m_start = dht_off;
   }
 }
@@ -136,8 +146,9 @@ DhtManager::stop_dht() {
   priority_queue_erase(&taskScheduler, &m_stopTimeout);
 
   if (torrent::dht_manager()->is_active()) {
+    LT_LOG_THIS("stopping server", 0);
+
     log_statistics(true);
-    lt_log_print(torrent::LOG_DHT_INFO, "Stopping DHT server.");
     torrent::dht_manager()->stop();
   }
 }
@@ -219,7 +230,7 @@ DhtManager::log_statistics(bool force) {
     // We should have had clients ping us at least but have received
     // nothing, that means the UDP port is probably unreachable.
     if (torrent::dht_manager()->can_receive_queries())
-      lt_log_print(torrent::LOG_DHT_WARN, "DHT port appears to be unreachable, no queries received.");
+      LT_LOG_THIS("listening port appears to be unreachable, no queries received", 0);
 
     torrent::dht_manager()->set_can_receive(false);
   }
@@ -227,7 +238,7 @@ DhtManager::log_statistics(bool force) {
   if (stats.queries_sent - m_dhtPrevQueriesSent > stats.num_nodes * 2 + 20 && stats.replies_received == m_dhtPrevRepliesReceived) {
     // No replies to over 20 queries plus two per node we have. Probably firewalled.
     if (!m_warned)
-      lt_log_print(torrent::LOG_DHT_WARN, "DHT port appears to be firewalled, no replies received.");
+      LT_LOG_THIS("listening port appears to be firewalled, no replies received", 0);
 
     m_warned = true;
     return false;
