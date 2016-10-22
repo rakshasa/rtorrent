@@ -55,7 +55,7 @@
 #include "manager.h"
 
 #define LT_LOG_THIS(log_fmt, ...)                                       \
-  lt_log_print_subsystem(torrent::LOG_DHT_ALL, "dht_manager", log_fmt, __VA_ARGS__);
+  lt_log_print_subsystem(torrent::LOG_DHT_MANAGER, "dht_manager", log_fmt, __VA_ARGS__);
 
 namespace core {
 
@@ -73,20 +73,25 @@ DhtManager::load_dht_cache() {
     return;
   }
 
-  torrent::Object cache = torrent::Object::create_map();
-  std::fstream cache_file((control->core()->download_store()->path() + "rtorrent.dht_cache").c_str(), std::ios::in | std::ios::binary);
+  std::string cache_filename = control->core()->download_store()->path() + "rtorrent.dht_cache";
+  std::fstream cache_stream(cache_filename.c_str(), std::ios::in | std::ios::binary);
 
-  if (cache_file.is_open()) {
-    cache_file >> cache;
+  torrent::Object cache = torrent::Object::create_map();
+
+  if (cache_stream.is_open()) {
+    cache_stream >> cache;
 
     // If the cache file is corrupted we will just discard it with an
     // error message.
-    if (cache_file.fail()) {
-      LT_LOG_THIS("cache file corrupted, discarding", 0);
+    if (cache_stream.fail()) {
+      LT_LOG_THIS("cache file corrupted, discarding (path:%s)", cache_filename.c_str());
       cache = torrent::Object::create_map();
     } else {
-      LT_LOG_THIS("cache file loaded", 0);
+      LT_LOG_THIS("cache file loaded (path:%s)", cache_filename.c_str());
     }
+
+  } else {
+    LT_LOG_THIS("could not open cache file (path:%s)", cache_filename.c_str());
   }
 
   try {
@@ -104,8 +109,13 @@ void
 DhtManager::start_dht() {
   priority_queue_erase(&taskScheduler, &m_stopTimeout);
 
-  if (!torrent::dht_manager()->is_valid() || torrent::dht_manager()->is_active()) {
-    LT_LOG_THIS("server start skipped", 0);
+  if (!torrent::dht_manager()->is_valid()) {
+    LT_LOG_THIS("server start skipped, manager is invalid", 0);
+    return;
+  }
+
+  if (torrent::dht_manager()->is_active()) {
+    LT_LOG_THIS("server start skipped, already active", 0);
     return;
   }
 
