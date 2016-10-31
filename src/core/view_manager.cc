@@ -110,6 +110,14 @@ ViewManager::set_filter(const std::string& name, const torrent::Object& cmd) {
 }
 
 void
+ViewManager::set_temp_filter(const std::string& name, const torrent::Object& cmd) {
+  iterator viewItr = find_throw(name);
+
+  (*viewItr)->set_temp_filter(cmd);
+  (*viewItr)->filter();
+}
+
+void
 ViewManager::set_filter_on(const std::string& name, const filter_args& args) {
   iterator viewItr = find_throw(name);
 

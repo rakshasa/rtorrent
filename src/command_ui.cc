@@ -39,6 +39,8 @@
 #include <sys/types.h>
 
 #include <ctime>
+#include <regex>
+
 #include <rak/functional.h>
 #include <rak/functional_fun.h>
 
@@ -280,6 +282,53 @@ torrent::Object apply_greater(rpc::target_type target, const torrent::Object::li
 torrent::Object apply_equal(rpc::target_type target, const torrent::Object::list_type& args) {
   torrent::Object result = apply_cmp(target, args);
   return result.is_value() ? result.as_value() == 0 : (int64_t)false;
+}
+
+// Regexp based 'match' function.
+// arg1: the text to match.
+// arg2: the regexp pattern.
+// eg: match{d.name=,.*linux.*iso}
+torrent::Object apply_match(rpc::target_type target, const torrent::Object::list_type& args) {
+  if (args.size() != 2)
+    throw torrent::input_error("Wrong argument count for 'match': 2 arguments needed.");
+
+  // This really should be converted to using args flagged as
+  // commands, so that we can compare commands and statics values.
+
+  torrent::Object result1;
+  torrent::Object result2;
+
+  rpc::target_type target1 = rpc::is_target_pair(target) ? rpc::get_target_left(target) : target;
+  rpc::target_type target2 = rpc::is_target_pair(target) ? rpc::get_target_right(target) : target;
+
+  if (args.front().is_dict_key())
+    result1 = rpc::commands.call_command(args.front().as_dict_key().c_str(), args.front().as_dict_obj(), target1);
+  else
+    result1 = rpc::parse_command_single(target1, args.front().as_string());
+
+  if (args.back().is_dict_key())
+    result2 = rpc::commands.call_command(args.back().as_dict_key().c_str(), args.back().as_dict_obj(), target2);
+  else
+    result2 = args.back().as_string();
+
+  if (result1.type() != result2.type())
+    throw torrent::input_error("Type mismatch for 'match' arguments.");
+
+  std::string text = result1.as_string();
+  std::string pattern = result2.as_string();
+
+  std::transform(text.begin(), text.end(), text.begin(), ::tolower);
+  std::transform(pattern.begin(), pattern.end(), pattern.begin(), ::tolower);
+
+  bool match = false;
+  try {
+    std::regex re(pattern);
+    match = std::regex_match(text, re);
+  } catch (const std::regex_error& exc) {
+    control->core()->push_log_std("regex_error: " + std::string(exc.what()));
+  }
+
+  return match ? (int64_t)true : (int64_t)false;
 }
 
 torrent::Object
@@ -529,6 +578,7 @@ initialize_command_ui() {
   CMD2_ANY_LIST("view.set",           std::bind(&apply_view_set, std::placeholders::_2));
 
   CMD2_ANY_LIST("view.filter",        std::bind(&apply_view_event, &core::ViewManager::set_filter, std::placeholders::_2));
+  CMD2_ANY_LIST("view.temp_filter",   std::bind(&apply_view_event, &core::ViewManager::set_temp_filter, std::placeholders::_2));
   CMD2_ANY_LIST("view.filter_on",     std::bind(&apply_view_filter_on, std::placeholders::_2));
 
   CMD2_ANY_LIST("view.sort",          std::bind(&apply_view_sort, std::placeholders::_2));
@@ -574,6 +624,7 @@ initialize_command_ui() {
   CMD2_ANY_LIST("less",    &apply_less);
   CMD2_ANY_LIST("greater", &apply_greater);
   CMD2_ANY_LIST("equal",   &apply_equal);
+  CMD2_ANY_LIST("match",   &apply_match);
 
   CMD2_ANY_VALUE("convert.gm_time",      std::bind(&apply_to_time, std::placeholders::_2, 0));
   CMD2_ANY_VALUE("convert.gm_date",      std::bind(&apply_to_time, std::placeholders::_2, 0x2));

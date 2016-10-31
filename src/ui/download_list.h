@@ -86,7 +86,8 @@ public:
     INPUT_LOAD_DEFAULT,
     INPUT_LOAD_MODIFIED,
     INPUT_CHANGE_DIRECTORY,
-    INPUT_COMMAND
+    INPUT_COMMAND,
+    INPUT_FILTER
   } Input;
 
   DownloadList();

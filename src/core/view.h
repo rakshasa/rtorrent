@@ -124,6 +124,8 @@ public:
 
   const torrent::Object& get_filter() const { return m_filter; }
   void                set_filter(const torrent::Object& s)        { m_filter = s; }
+  const torrent::Object& get_temp_filter() const { return m_tempFilter; }
+  void                set_temp_filter(const torrent::Object& s)        { m_tempFilter = s; }
   void                set_filter_on_event(const std::string& event);
 
   void                clear_filter_on();
@@ -172,6 +174,7 @@ private:
   torrent::Object     m_sortCurrent;
 
   torrent::Object     m_filter;
+  torrent::Object     m_tempFilter; // Temporary view filter (eg: name based filter)
 
   torrent::Object     m_event_added;
   torrent::Object     m_event_removed;
