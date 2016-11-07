@@ -75,7 +75,7 @@ ipv4_filter_parse(const char* address, int value) {
   if (values_read < 7)
     block = 8 * (values_read / 2);
 
-  lt_log_print(torrent::LOG_CONNECTION_DEBUG, "Adding ip filter for %u.%u.%u.%u/%u.",
+  lt_log_print(torrent::LOG_CONNECTION_FILTER, "adding ip filter (%u.%u.%u.%u/%u)",
                ip_values[0], ip_values[1], ip_values[2], ip_values[3], block);
 
   torrent::PeerList::ipv4_filter()->insert((ip_values[0] << 24) + (ip_values[1] << 16) + (ip_values[2] << 8) + ip_values[3],
@@ -231,7 +231,7 @@ apply_ipv4_filter_load(const torrent::Object::list_type& args) {
     throw torrent::input_error(buffer);
   }
 
-  lt_log_print(torrent::LOG_CONNECTION_INFO, "Loaded %u %s address blocks (%u kb in-memory) from '%s'.",
+  lt_log_print(torrent::LOG_CONNECTION_FILTER, "loaded %u %s address blocks (%u kb in-memory) from '%s'",
                lineNumber,
                value_name.c_str(),
                torrent::PeerList::ipv4_filter()->sizeof_data() / 1024,
