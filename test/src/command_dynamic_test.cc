@@ -4,14 +4,13 @@
 
 #include "command_dynamic_test.h"
 
+#include "helpers/assert.h"
+
 #include "rpc/parse_commands.h"
 #include "control.h"
 #include "globals.h"
 
 CPPUNIT_TEST_SUITE_REGISTRATION(CommandDynamicTest);
-
-#define ASSERT_CATCH_INPUT_ERROR(some_code)                             \
- try { some_code; CPPUNIT_ASSERT("torrent::input_error not caught" && false); } catch (torrent::input_error& e) { }
 
 void initialize_command_dynamic();
 void initialize_command_ui();

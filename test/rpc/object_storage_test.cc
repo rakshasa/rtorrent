@@ -1,11 +1,9 @@
 #include "config.h"
 
 #include "object_storage_test.h"
+#include "helpers/assert.h"
 
 CPPUNIT_TEST_SUITE_REGISTRATION(ObjectStorageTest);
-
-#define ASSERT_CATCH_INPUT_ERROR(some_code)                             \
- try { some_code; CPPUNIT_ASSERT("torrent::input_error not caught" && false); } catch (torrent::input_error& e) { }
 
 void
 ObjectStorageTest::test_basics() {
