@@ -43,6 +43,27 @@
 namespace rpc {
 
 int
+parse_option_flag(const std::string& option, std::function<int (const std::string&)> ftor) {
+  auto first = option.begin();
+  auto last = option.end();
+
+  first = std::find_if(first, last, [](char c) { return !std::isspace(c, std::locale::classic()); });
+
+  if (first == last)
+    throw torrent::input_error(option);
+  
+  auto next = std::find_if(first, last, [](char c) { return !std::isalnum(c, std::locale::classic()) && c != '_'; });
+
+  if (first == next)
+    throw torrent::input_error(option);
+
+  if (std::find_if(next, last, [](char c) { return !std::isspace(c, std::locale::classic()); }) != last)
+    throw torrent::input_error(option);
+
+  return ftor(std::string(first, next));
+}
+
+int
 parse_option_flags(const std::string& option, std::function<int (const std::string&)> ftor) {
   int flags = int();
 
@@ -72,6 +93,34 @@ parse_option_flags(const std::string& option, std::function<int (const std::stri
   }
 
   return flags;
+}
+
+int
+parse_option_for_each(const std::string& option, std::function<int (const std::string&)> ftor) {
+  auto first = option.begin();
+  auto last = option.end();
+
+  while (first != last) {
+    first = std::find_if(first, last, [](char c) { return !std::isspace(c, std::locale::classic()); });
+
+    if (first == last)
+      break;
+
+    auto next = std::find_if(first, last, [](char c) { return !std::isalnum(c, std::locale::classic()) && c != '_'; });
+
+    if (first == next)
+      throw torrent::input_error(option);
+
+    ftor(std::string(first, next));
+
+    first = std::find_if(next, last, [](char c) { return !std::isspace(c, std::locale::classic()); });
+
+    if (first == last)
+      break;
+
+    if (*first++ != '|' || first == last)
+      throw torrent::input_error(option);
+  }
 }
 
 }

@@ -6,24 +6,26 @@
 
 #include <array>
 #include <torrent/exceptions.h>
+#include <torrent/utils/log.h>
+#include <torrent/utils/option_strings.h>
 
 #include "rpc/parse_options.h"
 
 CPPUNIT_TEST_SUITE_REGISTRATION(TestParseOptions);
 
-static const int flag_foo = 1 << 0;
-static const int flag_bar = 1 << 1;
-static const int flag_baz = 1 << 2;
-static const int flag_a12 = 1 << 3;
-static const int flag_45b = 1 << 4;
-static const int flag_6   = 1 << 5;
+static const int flag_1 = 1 << 0;
+static const int flag_2 = 1 << 1;
+static const int flag_3 = 1 << 2;
+static const int flag_4 = 1 << 3;
+static const int flag_5 = 1 << 4;
+static const int flag_6 = 1 << 5;
 
 static std::vector<std::pair<const char*, int>> flag_list = {
-  { "foo", flag_foo },
-  { "bar", flag_bar },
-  { "baz", flag_baz },
-  { "a12", flag_a12 },
-  { "45b", flag_45b },
+  { "foo", flag_1 },
+  { "bar", flag_2 },
+  { "baz", flag_3 },
+  { "a12", flag_4 },
+  { "45b", flag_5 },
   { "a_b_c__e_3_g", flag_6 },
 };
 
@@ -36,31 +38,59 @@ flag_to_int(const std::string& flag) {
   throw torrent::input_error("unknown flag");
 }
 
+#define FLAG_ASSERT(flags, result)                                      \
+  CPPUNIT_ASSERT(rpc::parse_option_flag(flags, std::bind(&flag_to_int, std::placeholders::_1)) == (result))
+
 #define FLAGS_ASSERT(flags, result)                                     \
   CPPUNIT_ASSERT(rpc::parse_option_flags(flags, std::bind(&flag_to_int, std::placeholders::_1)) == (result))
+
+#define FLAG_ASSERT_ERROR(flags)                                        \
+  ASSERT_CATCH_INPUT_ERROR( { rpc::parse_option_flag(flags, std::bind(&flag_to_int, std::placeholders::_1)); } )
 
 #define FLAGS_ASSERT_ERROR(flags)                                       \
   ASSERT_CATCH_INPUT_ERROR( { rpc::parse_option_flags(flags, std::bind(&flag_to_int, std::placeholders::_1)); } )
 
 void
-TestParseOptions::test_basic() {
+TestParseOptions::test_flag_basic() {
+  FLAG_ASSERT("foo", flag_1);
+
+  FLAG_ASSERT(" foo ", flag_1);
+  FLAG_ASSERT("    foo     ", flag_1);
+
+  FLAG_ASSERT("a12", flag_4);
+  FLAG_ASSERT("45b", flag_5);
+  FLAG_ASSERT("a_b_c__e_3_g", flag_6);
+}
+
+void
+TestParseOptions::test_flag_error() {
+  FLAG_ASSERT_ERROR("");
+  FLAG_ASSERT_ERROR("foo|bar");
+  FLAG_ASSERT_ERROR("foo|bar|baz");
+ 
+  FLAG_ASSERT_ERROR("foo |bar");
+  FLAG_ASSERT_ERROR("foo | bar| baz");
+}
+
+void
+TestParseOptions::test_flags_basic() {
   FLAGS_ASSERT("", 0);
-  FLAGS_ASSERT("foo", flag_foo);
-  FLAGS_ASSERT("foo|bar", flag_foo | flag_bar);
-  FLAGS_ASSERT("foo|bar|baz", flag_foo | flag_bar | flag_baz);
+  FLAGS_ASSERT("foo", flag_1);
+  FLAGS_ASSERT("foo|bar", flag_1 | flag_2);
+  FLAGS_ASSERT("foo|bar|baz", flag_1 | flag_2 | flag_3);
 
-  FLAGS_ASSERT(" foo ", flag_foo);
-  FLAGS_ASSERT("    foo     ", flag_foo);
-  FLAGS_ASSERT("foo |bar", flag_foo | flag_bar);
-  FLAGS_ASSERT("foo | bar| baz", flag_foo | flag_bar | flag_baz);
+  FLAGS_ASSERT(" foo ", flag_1);
+  FLAGS_ASSERT("    foo     ", flag_1);
+  FLAGS_ASSERT("foo |bar", flag_1 | flag_2);
+  FLAGS_ASSERT("foo | bar| baz", flag_1 | flag_2 | flag_3);
 
-  FLAGS_ASSERT("a12", flag_a12);
-  FLAGS_ASSERT("45b", flag_45b);
+  FLAGS_ASSERT("a12", flag_4);
+  FLAGS_ASSERT("45b", flag_5);
   FLAGS_ASSERT("a_b_c__e_3_g", flag_6);
 }
 
 void
-TestParseOptions::test_errors() {
+TestParseOptions::test_flags_error() {
   FLAGS_ASSERT_ERROR("fooa");
   FLAGS_ASSERT_ERROR("afoo");
 
@@ -68,4 +98,14 @@ TestParseOptions::test_errors() {
   FLAGS_ASSERT_ERROR("foo|");
   FLAGS_ASSERT_ERROR("|foo");
   FLAGS_ASSERT_ERROR(",foo");
+}
+
+// #define FLAGS_LT_LOG_ASSERT(flags, result)                              \
+//   CPPUNIT_ASSERT(rpc::parse_option_flags(flags, std::bind(&torrent::option_find_string_str, torrent::OPTION_LOG_GROUP, std::placeholders::_1)) == (result))
+
+void
+TestParseOptions::test_flags_libtorrent() {
+  // TODO: Should be this.
+
+  //LT_LOG_ASSERT("resume_data", torrent::LOG_RESUME_DATA);
 }
