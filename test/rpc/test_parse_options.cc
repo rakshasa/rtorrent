@@ -5,6 +5,7 @@
 #include "helpers/assert.h"
 
 #include <array>
+#include <torrent/connection_manager.h>
 #include <torrent/exceptions.h>
 #include <torrent/utils/log.h>
 #include <torrent/utils/option_strings.h>
@@ -100,12 +101,32 @@ TestParseOptions::test_flags_error() {
   FLAGS_ASSERT_ERROR(",foo");
 }
 
-// #define FLAGS_LT_LOG_ASSERT(flags, result)                              \
-//   CPPUNIT_ASSERT(rpc::parse_option_flags(flags, std::bind(&torrent::option_find_string_str, torrent::OPTION_LOG_GROUP, std::placeholders::_1)) == (result))
+#define FLAG_LT_LOG_ASSERT(flags, result)                               \
+  CPPUNIT_ASSERT(rpc::parse_option_flag(flags, std::bind(&torrent::option_find_string_str, torrent::OPTION_LOG_GROUP, std::placeholders::_1)) == (result))
+
+#define FLAG_LT_LOG_ASSERT_ERROR(flags)                                 \
+  ASSERT_CATCH_INPUT_ERROR(rpc::parse_option_flag(flags, std::bind(&torrent::option_find_string_str, torrent::OPTION_LOG_GROUP, std::placeholders::_1)))
+
+void
+TestParseOptions::test_flag_libtorrent() {
+  FLAG_LT_LOG_ASSERT("resume_data", torrent::LOG_RESUME_DATA);
+
+  FLAG_LT_LOG_ASSERT_ERROR("resume_data|rpc_dump");
+}
+
+#define FLAGS_LT_ENCRYPTION_ASSERT(flags, result)                       \
+  CPPUNIT_ASSERT(rpc::parse_option_flags(flags, std::bind(&torrent::option_find_string_str, torrent::OPTION_ENCRYPTION, std::placeholders::_1)) == (result))
+
+#define FLAGS_LT_ENCRYPTION_ASSERT_ERROR(flags)                         \
+  ASSERT_CATCH_INPUT_ERROR(rpc::parse_option_flags(flags, std::bind(&torrent::option_find_string_str, torrent::OPTION_ENCRYPTION, std::placeholders::_1)))
 
 void
 TestParseOptions::test_flags_libtorrent() {
-  // TODO: Should be this.
+  FLAGS_LT_ENCRYPTION_ASSERT("", torrent::ConnectionManager::encryption_none);
+  FLAGS_LT_ENCRYPTION_ASSERT("none", torrent::ConnectionManager::encryption_none);
+  FLAGS_LT_ENCRYPTION_ASSERT("require_rc4", torrent::ConnectionManager::encryption_require_RC4);
+  FLAGS_LT_ENCRYPTION_ASSERT("require_RC4", torrent::ConnectionManager::encryption_require_RC4);
+  FLAGS_LT_ENCRYPTION_ASSERT("require_RC4 | enable_retry", torrent::ConnectionManager::encryption_require_RC4 | torrent::ConnectionManager::encryption_enable_retry);
 
-  //LT_LOG_ASSERT("resume_data", torrent::LOG_RESUME_DATA);
+  FLAGS_LT_ENCRYPTION_ASSERT_ERROR("require_");
 }
