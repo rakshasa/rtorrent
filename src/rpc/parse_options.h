@@ -44,7 +44,7 @@
 namespace rpc {
 
 int parse_option_flag(const std::string& option, std::function<int (const std::string&)> ftor);
-int parse_option_flags(const std::string& option, std::function<int (const std::string&)> ftor);
+int parse_option_flags(const std::string& option, std::function<int (const std::string&)> ftor, int flags = int());
 
 void parse_option_for_each(const std::string& option, std::function<void (const std::string&)> ftor);
 

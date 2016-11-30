@@ -64,9 +64,7 @@ parse_option_flag(const std::string& option, std::function<int (const std::strin
 }
 
 int
-parse_option_flags(const std::string& option, std::function<int (const std::string&)> ftor) {
-  int flags = int();
-
+parse_option_flags(const std::string& option, std::function<int (const std::string&)> ftor, int flags) {
   auto first = option.begin();
   auto last = option.end();
 
@@ -95,7 +93,7 @@ parse_option_flags(const std::string& option, std::function<int (const std::stri
   return flags;
 }
 
-int
+void
 parse_option_for_each(const std::string& option, std::function<int (const std::string&)> ftor) {
   auto first = option.begin();
   auto last = option.end();
