@@ -43,6 +43,9 @@
 
 namespace rpc {
 
+// If a flag returned by the functor is negative it is treated as a
+// negation of the flag.
+
 int parse_option_flag(const std::string& option, std::function<int (const std::string&)> ftor);
 int parse_option_flags(const std::string& option, std::function<int (const std::string&)> ftor, int flags = int());
 
