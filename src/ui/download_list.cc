@@ -127,11 +127,11 @@ DownloadList::set_current_view(const std::string& name) {
 // This should also do focus_next() or something.
 void
 DownloadList::unfocus_download(core::Download* d) {
-  if (current_view()->focus() >= current_view()->end_visible() || *current_view()->focus() != d)
-    return;
-
   if (m_state == DISPLAY_DOWNLOAD)
     activate_display(DISPLAY_DOWNLOAD_LIST);
+
+  if (current_view()->focus() >= current_view()->end_visible() || *current_view()->focus() != d)
+    return;
 
   current_view()->next_focus();
 }
