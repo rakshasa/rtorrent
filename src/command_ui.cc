@@ -320,15 +320,15 @@ torrent::Object apply_match(rpc::target_type target, const torrent::Object::list
   std::transform(text.begin(), text.end(), text.begin(), ::tolower);
   std::transform(pattern.begin(), pattern.end(), pattern.begin(), ::tolower);
 
-  bool match = false;
+  bool isAMatch = false;
   try {
     std::regex re(pattern);
-    match = std::regex_match(text, re);
+    isAMatch = std::regex_match(text, re);
   } catch (const std::regex_error& exc) {
     control->core()->push_log_std("regex_error: " + std::string(exc.what()));
   }
 
-  return match ? (int64_t)true : (int64_t)false;
+  return isAMatch ? (int64_t)true : (int64_t)false;
 }
 
 torrent::Object

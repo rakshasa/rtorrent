@@ -263,6 +263,11 @@ DownloadList::receive_view_input(Input type) {
     break;
 
   case INPUT_FILTER:
+    // STARTED and STOPPED views are not allowed to being filtered: they are special
+    if (current_view()->name() == "started" || current_view()->name() == "stopped") {
+      control->core()->push_log_std("View '" + current_view()->name() + "' can't be filtered.");
+      return;
+    }
     title = "filter";
     break;
 
@@ -331,9 +336,10 @@ DownloadList::receive_exit_input(Input type) {
 
     case INPUT_FILTER:
       if (input->str().empty()) {
-        control->core()->push_log_std("Clear temporary filter.");
+        control->core()->push_log_std("Clear temporary filter on '" + current_view()->name() + "' view.");
         current_view()->set_temp_filter(torrent::Object());
         current_view()->filter();
+        current_view()->sort();
       } else {
         std::string pattern = input->str();
         if (pattern.back() != '$')
@@ -342,7 +348,7 @@ DownloadList::receive_exit_input(Input type) {
           pattern = ".*" + pattern;
         std::transform(pattern.begin(), pattern.end(), pattern.begin(), ::tolower);
         std::string tempFilter = "match={d.name=," + pattern + "}";
-        control->core()->push_log_std("Temporary filter: " + pattern);
+        control->core()->push_log_std("Temporary filter on '" + current_view()->name() + "' view: " + pattern);
         current_view()->set_temp_filter(tempFilter);
         current_view()->filter();
       }
