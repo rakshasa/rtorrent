@@ -1,0 +1,94 @@
+The http://www.bittorrent.org/beps/bep_0005.html[distributed hash table] (DHT) is a feature that acts as backup tracker when all other trackers are down or can't deliver enough peers, as well as enabling trackerless torrents.
+
+== Requirement
+Requires libTorrent/rTorrent version 0.12.0/0.8.0 or higher (or SVN revision 1013).
+
+== Usage
+You must have set a session directory to use DHT:
+
+....
+## Enable DHT support for trackerless torrents or when all trackers are down.
+## May be set to `disable` (completely disable DHT), `off` (do not start DHT), `auto` (start and stop DHT as needed), or `on` (start DHT immediately).
+## The default is `off`. For DHT to work, a session directory must be defined.
+dht = auto
+
+## Default session directory. Make sure you don't run multiple instance of rtorrent using the same session directory.
+session = ~/.rtorrent.session
+
+## UDP port to use for DHT.
+dht_port = 6881
+....
+
+If `dht` is not set to `disable`, torrents that aren't private automatically get a DHT backup tracker added to the tracker list. This pseudo-tracker is used whenever all regular trackers are down, disabled, or don't deliver enough peers, to find additional peers from the distributed hash table and to allow other peers to find us.
+
+When starting a torrent with a DHT tracker (or when starting rtorrent if `dht` is `on`), you will see the log message `Starting DHT server on port ###`. If an error occurs while starting the DHT server (e.g. the UDP port is already in use or invalid), `dht` is set to `off`. If you afterwards set a different UDP port, you must also set `dht` to `auto` or `on` again to activate DHT.
+
+DHT trackers can be enabled and disabled per torrent just like regular trackers. If the DHT tracker shows `Enabled: off` that means it is enabled but the DHT server is not running.
+
+== Bootstrapping
+The first time using DHT, the routing table needs to be bootstrapped. For this rtorrent needs to find one usable DHT node. There are several ways this can happen, so it should generally start working automatically:
+
+1. Adding torrents which have a list of DHT nodes in the .torrent file. +
+These nodes are automatically added to the initial contact list for bootstrapping.
+2. Downloading a torrent with peers who advertise that they support DHT. +
+At the moment, of the popular clients this is only supported by the official Bittorrent client version 5 or higher and the latest uTorrent versions (1.7.4+). When you connect to such a client via a normal tracker, rtorrent will automatically attempt to contact its DHT node and bootstrap from it. While other clients may also support DHT, they do not advertise this in the BT handshake and thus cannot be contacted in this way.
+3. Manually entering a host name and port number of a DHT node. +
+If you know host name/IP and port of a DHT node, you can enter it manually with the command `dht_add_node=host:port`. This command only adds the node to the routing table if there is space for it.
+
+After finding the first responsive DHT node, rtorrent will bootstrap its DHT routing table from it. When this is complete, you will see the log message `DHT bootstrap complete, have ## nodes in ## buckets.` From this point on DHT is usable for announces. The DHT routing table is cached in the session directory so the bootstrap process only needs to happen the first time you use DHT.
+
+Once DHT has entered regular operation, you will after 15 minutes and then every 2 hours see a log message showing DHT statistics, to verify that DHT is working correctly.
+
+== Common Error Messages
+No DHT nodes available for peer search. ::
+The DHT tracker tried to announce to the DHT network, but there are no known DHT nodes yet. This means the DHT routing table needs to be bootstrapped, see above.
+DHT search unsuccessful. ::
+This means the DHT tracker contacted several nodes, but received no replies. It may either be a network or firewall problem that prevents replies from getting through, or simply that all the nodes contacted went offline. The latter should fix itself after a short while (15-30 minutes). If the message keeps appearing for an hour or two and you have ruled out a network problem, you may have to stop rtorrent, delete the DHT cache (rtorrent.dht_cache in the session directory) and bootstrap the DHT routing table again. 
+Announce failed. ::
+The DHT tracker was able to contact DHT nodes, but when it tried announcing to them, it received no reply. This is usually a temporary problem that resolves itself much like `DHT search unsuccessful` above.
+Warning: DHT port appears to be unreachable, no queries received. ::
+This means that rtorrent was able to contact other nodes and receive replies from them via UDP, but it has not itself received any queries from other nodes. Proper operation of the DHT network requires that a node reponds to queries from other nodes to maintain the distributed hash table. +
+This message may have two possible causes:
+
+1. The DHT port you set in the configuration is firewalled (closed to incoming packets that aren't replies), or you are behind a router and have not forwarded that port to the computer running rtorrent. +
+2. Your router mangles the source port of outgoing UDP packets, so that other nodes do not know the real port to contact you at. If possible, disable port mangling in the router settings. The source port of forwarded packets should be equal to the port the router receives the packet from.
+
+Warning: DHT port appears to be firewalled, no replies received. ::
+You get this message if rtorrent has received neither queries nor replies to queries it sent to other nodes. This means DHT is unusable, and the cause is most likely that the UDP port is firewalled at your computer or your router so that replies and queries are blocked, or the network is down.
+
+== Other notes
+Being an active node (i.e. able to receive and reply to queries from other nodes) generally makes DHT work better because the routing table will hold fresher nodes. However a very stable node will see more and more bandwidth used by DHT the longer it stays active. Continuous uptime of a week will lead to an upload bandwidth of about 10 KB/s as more and more nodes add you to their routing table. This is why the DHT server is usually set to turn off when the last torrent using it is stopped (`dht=auto`).
+
+The DHT server upload obeys the upload throttle however, and while torrents are active will not use more bandwidth than an average peer. So if you can spare the bandwidth it is a good idea to keep the DHT server running, it makes the DHT network as a whole more reliable.
+
+After stopping the DHT server or rtorrent itself for a day or more, quite a few of the nodes in its routing table will have gone offline. This means relatively poor performance of DHT announces for a while when starting it the next time. However unless every single node has gone offline (which is very unlikely), this will fix itself automatically after 15-30 minutes when rtorrent can figure out which nodes have become unresponsive and replaces them with newer nodes it finds. There is generally no need for manual intervention unless the DHT statistics show drastically reduced node counts that do not improve in the course of an hour or two. If it doesn't recover, stop rtorrent and delete `rtorrent.dht_cache` in the session directory to clear the DHT cache, then repeat the bootstrap process.
+
+The number of buckets can be used to estimate the number of active nodes in the entire distributed hash table. Each bucket holds up to 8 nodes, and each additional bucket means the DHT size is doubled, assuming nodes are distributed uniformly in the DHT hash space. So n buckets means there are approximately 4 * 2^n^ nodes participating in the DHT network.
+
+You can retrieve the DHT statistics via XMLRPC with the `dht_statistics` command. You can manually start and stop the DHT server with `dht=on` or `dht=off`, provided DHT wasn't disabled completely when starting rtorrent.
+
+== DHT and IP connection tracking
+For systems using IP connection tracking (this includes many routers as well as most operating systems, including Linux), a long-running and hence high-volume DHT server can produce an unnecessary strain because each incoming query creates a new connection, even though typically no other packets will follow after the first one.
+
+When used in addition to firewall rules which drop invalid packets, this may cause genuine non-DHT connections to be dropped as well if the kernel runs out of memory for tracking connections.
+
+There are several strategies to mitigate this:
+
+1.  Turn off the DHT server when it is not needed (default). This quickly causes incoming queries to stop when there is no response.
+2.  Reduce the DHT query volume. Since one cannot directly control incoming queries, this can be done by throttling the outgoing DHT bandwidth to discourage too many incoming queries.
+3.  Turn off connection tracking for DHT packets.
+
+To turn off DHT connection tracking on Linux, use the CT target's --notrack option in the "raw" netfilter table. For instance, when using UDP port 6881 for DHT, execute these iptables commands:
+
+....
+iptables -t raw -I PREROUTING -p udp --dport 6881 -j CT --notrack
+iptables -t raw -I OUTPUT -p udp --sport 6881 -j CT --notrack
+....
+
+Note that this causes all DHT packets to have a state of `UNTRACKED`, keep that in mind if you have any state-based rules in the regular netfilter tables. Similarly, ICMP packets received in reply to untracked outgoing DHT packets (for instance `Host Unreachable` or `Time Exceeded`) will have a state of `INVALID` because they do not belong to any known connection.
+
+== Tips & Tricks
+
+== Troubleshooting
+=== UFW/iptables blocking innocent packets when DHT enabled
+See http://www.linuxquestions.org/questions/linux-networking-3/why-is-ufw-iptables-blocking-packets-it-shouldn%27t-be-4175500239/
