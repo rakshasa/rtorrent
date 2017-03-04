@@ -243,6 +243,7 @@ initialize_command_network() {
   CMD2_VAR_BOOL    ("network.port_open",   true);
   CMD2_VAR_BOOL    ("network.port_random", true);
   CMD2_VAR_STRING  ("network.port_range",  "6881-6999");
+  CMD2_VAR_VALUE   ("network.listen.backlog", SOMAXCONN);
 
   CMD2_ANY         ("network.listen.port",        std::bind(&torrent::ConnectionManager::listen_port, cm));
   CMD2_ANY         ("network.listen.backlog",     std::bind(&torrent::ConnectionManager::listen_backlog, cm));

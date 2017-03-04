@@ -203,15 +203,17 @@ Manager::listen_open() {
   if (portFirst > portLast || portLast >= (1 << 16))
     throw torrent::input_error("Invalid port range.");
 
+  uint32_t backlog = rpc::call_command_value("network.listen.backlog");
+
   if (rpc::call_command_value("network.port_random")) {
     int boundary = portFirst + random() % (portLast - portFirst + 1);
 
-    if (torrent::connection_manager()->listen_open(boundary, portLast) ||
-        torrent::connection_manager()->listen_open(portFirst, boundary))
+    if (torrent::connection_manager()->listen_open(boundary, portLast, backlog) ||
+        torrent::connection_manager()->listen_open(portFirst, boundary, backlog))
       return;
 
   } else {
-    if (torrent::connection_manager()->listen_open(portFirst, portLast))
+    if (torrent::connection_manager()->listen_open(portFirst, portLast, backlog))
       return;
   }
 

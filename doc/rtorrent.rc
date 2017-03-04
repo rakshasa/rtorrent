@@ -56,6 +56,9 @@
 #
 #network.port_range.set = 6890-6999
 
+# Backlog for listening
+#listen.backlog = 128
+
 # Start opening ports at a random position within the port range.
 #
 #network.port_random.set = no
