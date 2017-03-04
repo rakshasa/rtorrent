@@ -587,4 +587,6 @@ initialize_command_ui() {
 
   CMD2_ANY_LIST ("elapsed.less",         std::bind(&apply_elapsed_less, std::placeholders::_2));
   CMD2_ANY_LIST ("elapsed.greater",      std::bind(&apply_elapsed_greater, std::placeholders::_2));
+
+  CMD2_VAR_STRING("ui.status.throttle_up_name", "");
 }
