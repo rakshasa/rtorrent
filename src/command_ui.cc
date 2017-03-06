@@ -519,6 +519,56 @@ apply_elapsed_greater(const torrent::Object::list_type& args) {
   return (int64_t)(start_time != 0 && rak::timer::current_seconds() - start_time > rpc::convert_to_value(args.back()));
 }
 
+int64_t
+apply_math_basic(const std::function<int64_t(int64_t,int64_t)> op, const torrent::Object::list_type& args) {
+  if (args.size() == 0)
+    throw torrent::input_error("Wrong argument count.");
+
+  int64_t val = 0;
+
+  for (torrent::Object::list_const_iterator itr = args.begin(), last = args.end(); itr != last; itr++) {
+
+    if (itr->is_value()) {
+      val = itr == args.begin() ? itr->as_value() : op(val, itr->as_value());
+    } else if (itr->is_string()) {
+      val = itr == args.begin() ? rpc::convert_to_value(itr->as_string()) : op(val, rpc::convert_to_value(itr->as_string()));
+    } else if (itr->is_list()) {
+      val = itr == args.begin() ? apply_math_basic(op, itr->as_list()) : op(val, apply_math_basic(op, itr->as_list()));
+    } else {
+      throw torrent::input_error("Wrong type supplied to apply_math_basic.");
+    }
+
+  }
+
+  return val;
+}
+
+int64_t
+apply_arith_basic(const std::function<int64_t(int64_t,int64_t)> op, const torrent::Object::list_type& args) {
+  if (args.size() == 0)
+    throw torrent::input_error("Wrong argument count.");
+
+  int64_t val = 0;
+
+  for (torrent::Object::list_const_iterator itr = args.begin(), last = args.end(); itr != last; itr++) {
+
+    if (itr->is_value()) {
+      val = itr == args.begin() ? itr->as_value() : (op(val, itr->as_value()) ? val : itr->as_value());
+    } else if (itr->is_string()) {
+      int64_t cval = rpc::convert_to_value(itr->as_string());
+      val = itr == args.begin() ? cval : (op(val, cval) ? val : cval);
+    } else if (itr->is_list()) {
+      int64_t fval = apply_arith_basic(op, itr->as_list());
+      val = itr == args.begin() ? fval : (op(val, fval) ? val : fval);
+    } else {
+      throw torrent::input_error("Wrong type supplied to apply_arith_basic.");
+    }
+
+  }
+
+  return val;
+}
+
 void
 initialize_command_ui() {
   CMD2_VAR_STRING("keys.layout", "qwerty");
@@ -584,6 +634,15 @@ initialize_command_ui() {
   CMD2_ANY_VALUE("convert.mb",           std::bind(&apply_to_mb, std::placeholders::_2));
   CMD2_ANY_VALUE("convert.xb",           std::bind(&apply_to_xb, std::placeholders::_2));
   CMD2_ANY_VALUE("convert.throttle",     std::bind(&apply_to_throttle, std::placeholders::_2));
+
+  CMD2_ANY_LIST("math.add",              std::bind(&apply_math_basic, std::plus<int64_t>(), std::placeholders::_2));
+  CMD2_ANY_LIST("math.subtract",         std::bind(&apply_math_basic, std::minus<int64_t>(), std::placeholders::_2));
+  CMD2_ANY_LIST("math.multiply",         std::bind(&apply_math_basic, std::multiplies<int64_t>(), std::placeholders::_2));
+  CMD2_ANY_LIST("math.divide",           std::bind(&apply_math_basic, std::divides<int64_t>(), std::placeholders::_2));
+  CMD2_ANY_LIST("math.modulo",           std::bind(&apply_math_basic, std::modulus<int64_t>(), std::placeholders::_2));
+
+  CMD2_ANY_LIST("math.min",              std::bind(&apply_arith_basic, std::less<int64_t>(), std::placeholders::_2));
+  CMD2_ANY_LIST("math.max",              std::bind(&apply_arith_basic, std::greater<int64_t>(), std::placeholders::_2));
 
   CMD2_ANY_LIST ("elapsed.less",         std::bind(&apply_elapsed_less, std::placeholders::_2));
   CMD2_ANY_LIST ("elapsed.greater",      std::bind(&apply_elapsed_greater, std::placeholders::_2));
