@@ -636,10 +636,10 @@ initialize_command_ui() {
   CMD2_ANY_VALUE("convert.throttle",     std::bind(&apply_to_throttle, std::placeholders::_2));
 
   CMD2_ANY_LIST("math.add",              std::bind(&apply_math_basic, std::plus<int64_t>(), std::placeholders::_2));
-  CMD2_ANY_LIST("math.subtract",         std::bind(&apply_math_basic, std::minus<int64_t>(), std::placeholders::_2));
-  CMD2_ANY_LIST("math.multiply",         std::bind(&apply_math_basic, std::multiplies<int64_t>(), std::placeholders::_2));
-  CMD2_ANY_LIST("math.divide",           std::bind(&apply_math_basic, std::divides<int64_t>(), std::placeholders::_2));
-  CMD2_ANY_LIST("math.modulo",           std::bind(&apply_math_basic, std::modulus<int64_t>(), std::placeholders::_2));
+  CMD2_ANY_LIST("math.sub",              std::bind(&apply_math_basic, std::minus<int64_t>(), std::placeholders::_2));
+  CMD2_ANY_LIST("math.mul",              std::bind(&apply_math_basic, std::multiplies<int64_t>(), std::placeholders::_2));
+  CMD2_ANY_LIST("math.div",              std::bind(&apply_math_basic, std::divides<int64_t>(), std::placeholders::_2));
+  CMD2_ANY_LIST("math.mod",              std::bind(&apply_math_basic, std::modulus<int64_t>(), std::placeholders::_2));
 
   CMD2_ANY_LIST("math.min",              std::bind(&apply_arith_basic, std::less<int64_t>(), std::placeholders::_2));
   CMD2_ANY_LIST("math.max",              std::bind(&apply_arith_basic, std::greater<int64_t>(), std::placeholders::_2));
