@@ -67,7 +67,7 @@ WindowDownloadChunksSeen::redraw() {
     return;
 
   m_canvas->print(2, 0, "Chunks seen: [C/A/D %i/%i/%.2f]",
-                  (int)m_download->download()->peers_complete() + m_download->download()->file_list()->is_done(),
+                  (int)m_download->download()->peers_complete() + m_download->is_partially_done(),
                   (int)m_download->download()->peers_accounted(),
                   std::floor(m_download->distributed_copies() * 100.0f) / 100.0f);
 
@@ -78,7 +78,7 @@ WindowDownloadChunksSeen::redraw() {
     return;
   }
 
-  if (!m_download->is_done()) { 
+  if (!m_download->is_partially_done()) {
     m_canvas->print(36, 0, "X downloaded    missing    queued    downloading");
     m_canvas->print_char(50, 0, 'X' | A_BOLD);
     m_canvas->print_char(61, 0, 'X' | A_BOLD | A_UNDERLINE);

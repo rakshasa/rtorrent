@@ -52,12 +52,6 @@
 // For cg_d_group.
 #include "core/download.h"
 
-// A hack to allow testing of the new choke_group API without the
-// working parts present.
-#define USE_CHOKE_GROUP 0
-
-#if USE_CHOKE_GROUP
-
 int64_t
 cg_get_index(const torrent::Object& raw_args) {
   const torrent::Object& arg = (raw_args.is_list() && !raw_args.as_list().empty()) ? raw_args.as_list().front() : raw_args;
@@ -121,104 +115,6 @@ apply_cg_insert(const std::string& arg) {
 
   return torrent::Object();
 }
-
-//
-// The hacked version:
-//
-#else
-
-std::vector<torrent::choke_group*> cg_list_hack;
-
-int64_t
-cg_get_index(const torrent::Object& raw_args) {
-  const torrent::Object& arg = (raw_args.is_list() && !raw_args.as_list().empty()) ? raw_args.as_list().front() : raw_args;
-
-  int64_t index = 0;
-
-  if (arg.is_string()) {
-    if (!rpc::parse_whole_value_nothrow(arg.as_string().c_str(), &index)) {
-      std::vector<torrent::choke_group*>::iterator itr = std::find_if(cg_list_hack.begin(), cg_list_hack.end(),
-                                                                      rak::equal(arg.as_string(), std::mem_fun(&torrent::choke_group::name)));
-
-      if (itr == cg_list_hack.end())
-        throw torrent::input_error("Choke group not found.");
-
-      return std::distance(cg_list_hack.begin(), itr);
-    }
-
-  } else {
-    index = arg.as_value();
-  }
-
-  if (index < 0)
-    index = (int64_t)cg_list_hack.size() + index;
-
-  if ((size_t)index >= cg_list_hack.size())
-    throw torrent::input_error("Choke group not found.");
-
-  return index;
-}
-
-torrent::choke_group*
-cg_get_group(const torrent::Object& raw_args) {
-  int64_t index = cg_get_index(raw_args);
-
-  if ((size_t)index >= cg_list_hack.size())
-    throw torrent::input_error("Choke group not found.");
-
-  return cg_list_hack.at(index);
-}
-
-int64_t cg_d_group(core::Download* download) { return download->group(); }
-void    cg_d_group_set(core::Download* download, const torrent::Object& arg) { download->set_group(cg_get_index(arg)); }
-
-torrent::Object
-apply_cg_list() {
-  torrent::Object::list_type result;
-  
-  for (std::vector<torrent::choke_group*>::iterator itr = cg_list_hack.begin(), last = cg_list_hack.end(); itr != last; itr++)
-    result.push_back((*itr)->name());
-
-  return torrent::Object::from_list(result);
-}
-
-torrent::Object
-apply_cg_insert(const std::string& arg) {
-  int64_t dummy;
-
-  if (rpc::parse_whole_value_nothrow(arg.c_str(), &dummy))
-    throw torrent::input_error("Cannot use a value string as choke group name.");
-
-  if (arg.empty() ||
-      std::find_if(cg_list_hack.begin(), cg_list_hack.end(),
-                   rak::equal(arg, std::mem_fun(&torrent::choke_group::name))) != cg_list_hack.end())
-    throw torrent::input_error("Duplicate name for choke group.");
-
-  cg_list_hack.push_back(new torrent::choke_group());
-  cg_list_hack.back()->set_name(arg);
-
-  cg_list_hack.back()->up_queue()->set_heuristics(torrent::choke_queue::HEURISTICS_UPLOAD_LEECH);
-  cg_list_hack.back()->down_queue()->set_heuristics(torrent::choke_queue::HEURISTICS_DOWNLOAD_LEECH);
-
-  return torrent::Object();
-}
-
-torrent::Object
-apply_cg_index_of(const std::string& arg) {
-  std::vector<torrent::choke_group*>::iterator itr =
-    std::find_if(cg_list_hack.begin(), cg_list_hack.end(), rak::equal(arg, std::mem_fun(&torrent::choke_group::name)));
-
-  if (itr == cg_list_hack.end())
-    throw torrent::input_error("Choke group not found.");
-
-  return std::distance(cg_list_hack.begin(), itr);
-}
-
-//
-// End of choke group hack.
-//
-#endif
-
 
 torrent::Object
 apply_cg_max_set(const torrent::Object::list_type& args, bool is_up) {
@@ -338,15 +234,8 @@ initialize_command_groups() {
   CMD2_ANY         ("choke_group.list",                std::bind(&apply_cg_list));
   CMD2_ANY_STRING  ("choke_group.insert",              std::bind(&apply_cg_insert, std::placeholders::_2));
 		
-#if USE_CHOKE_GROUP
   CMD2_ANY         ("choke_group.size",                std::bind(&torrent::ResourceManager::group_size, torrent::resource_manager()));
   CMD2_ANY_STRING  ("choke_group.index_of",            std::bind(&torrent::ResourceManager::group_index_of, torrent::resource_manager(), std::placeholders::_2));
-#else
-  apply_cg_insert("default");
-
-  CMD2_ANY         ("choke_group.size",                std::bind(&std::vector<torrent::choke_group*>::size, cg_list_hack));
-  CMD2_ANY_STRING  ("choke_group.index_of",            std::bind(&apply_cg_index_of, std::placeholders::_2));
-#endif
 
   // Commands specific for a group. Supports as the first argument the
   // name, the index or a negative index.

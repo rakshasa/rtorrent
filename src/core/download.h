@@ -79,8 +79,9 @@ public:
   bool                is_open() const                          { return m_download.info()->is_open(); }
   bool                is_active() const                        { return m_download.info()->is_active(); }
   bool                is_done() const                          { return m_download.file_list()->is_done(); }
-  bool                is_downloading() const                   { return is_active() && !is_done(); }
-  bool                is_seeding() const                       { return is_active() && is_done(); }
+  bool                is_partially_done() const                { return m_download.data()->is_partially_done(); }
+  bool                is_downloading() const                   { return is_active() && !is_partially_done(); }
+  bool                is_seeding() const                       { return is_active() && is_partially_done(); }
 
   // FIXME: Fixed a bug in libtorrent that caused is_hash_checked to
   // return true when the torrent is closed. Remove this redundant
@@ -129,7 +130,6 @@ public:
 
   float               distributed_copies() const;
 
-  // HACK: Choke group setting.
   unsigned int        group() const { return m_group; }
   void                set_group(unsigned int g) { m_group = g; }
 
