@@ -569,6 +569,44 @@ apply_arith_basic(const std::function<int64_t(int64_t,int64_t)> op, const torren
   return val;
 }
 
+int64_t
+apply_arith_count(const torrent::Object::list_type& args) {
+  if (args.size() == 0)
+    throw torrent::input_error("Wrong argument count in apply_arith_count.");
+
+  int64_t val = 0;
+
+  for (torrent::Object::list_const_iterator itr = args.begin(), last = args.end(); itr != last; itr++) {
+
+    switch (itr->type()) {
+    case torrent::Object::TYPE_VALUE:
+    case torrent::Object::TYPE_STRING:
+      val++;
+      break;
+    case torrent::Object::TYPE_LIST:
+      val += apply_arith_count(itr->as_list());
+      break;
+    default:
+      throw torrent::input_error("Wrong type supplied to apply_arith_count.");
+    }
+
+  }
+
+  return val;
+}
+
+int64_t
+apply_arith_other(const char* op, const torrent::Object::list_type& args) {
+  if (args.size() == 0)
+    throw torrent::input_error("Wrong argument count in apply_arith_other.");
+
+  if (op == "average")
+    return (int64_t)(apply_math_basic(std::plus<int64_t>(), args) / apply_arith_count(args));
+  else
+    throw torrent::input_error("Wrong operation supplied to apply_arith_other.");
+
+}
+
 void
 initialize_command_ui() {
   CMD2_VAR_STRING("keys.layout", "qwerty");
@@ -640,9 +678,10 @@ initialize_command_ui() {
   CMD2_ANY_LIST("math.mul",              std::bind(&apply_math_basic, std::multiplies<int64_t>(), std::placeholders::_2));
   CMD2_ANY_LIST("math.div",              std::bind(&apply_math_basic, std::divides<int64_t>(), std::placeholders::_2));
   CMD2_ANY_LIST("math.mod",              std::bind(&apply_math_basic, std::modulus<int64_t>(), std::placeholders::_2));
-
   CMD2_ANY_LIST("math.min",              std::bind(&apply_arith_basic, std::less<int64_t>(), std::placeholders::_2));
   CMD2_ANY_LIST("math.max",              std::bind(&apply_arith_basic, std::greater<int64_t>(), std::placeholders::_2));
+  CMD2_ANY_LIST("math.cnt",              std::bind(&apply_arith_count, std::placeholders::_2));
+  CMD2_ANY_LIST("math.avg",              std::bind(&apply_arith_other, "average", std::placeholders::_2));
 
   CMD2_ANY_LIST ("elapsed.less",         std::bind(&apply_elapsed_less, std::placeholders::_2));
   CMD2_ANY_LIST ("elapsed.greater",      std::bind(&apply_elapsed_greater, std::placeholders::_2));
