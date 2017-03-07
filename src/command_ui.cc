@@ -522,7 +522,7 @@ apply_elapsed_greater(const torrent::Object::list_type& args) {
 int64_t
 apply_math_basic(const std::function<int64_t(int64_t,int64_t)> op, const torrent::Object::list_type& args) {
   if (args.size() == 0)
-    throw torrent::input_error("Wrong argument count.");
+    throw torrent::input_error("Wrong argument count in apply_math_basic.");
 
   int64_t val = 0;
 
@@ -546,7 +546,7 @@ apply_math_basic(const std::function<int64_t(int64_t,int64_t)> op, const torrent
 int64_t
 apply_arith_basic(const std::function<int64_t(int64_t,int64_t)> op, const torrent::Object::list_type& args) {
   if (args.size() == 0)
-    throw torrent::input_error("Wrong argument count.");
+    throw torrent::input_error("Wrong argument count in apply_arith_basic.");
 
   int64_t val = 0;
 
