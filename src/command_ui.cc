@@ -39,6 +39,7 @@
 #include <sys/types.h>
 
 #include <ctime>
+#include <rak/algorithm.h>
 #include <rak/functional.h>
 #include <rak/functional_fun.h>
 
@@ -519,6 +520,31 @@ apply_elapsed_greater(const torrent::Object::list_type& args) {
   return (int64_t)(start_time != 0 && rak::timer::current_seconds() - start_time > rpc::convert_to_value(args.back()));
 }
 
+inline std::vector<int64_t>
+as_vector(const torrent::Object::list_type& args) {
+  if (args.size() == 0)
+    throw torrent::input_error("Wrong argument count in as_list.");
+
+  std::vector<int64_t> result;
+
+  for (torrent::Object::list_const_iterator itr = args.begin(), last = args.end(); itr != last; itr++) {
+
+    if (itr->is_value()) {
+      result.push_back(itr->as_value());
+    } else if (itr->is_string()) {
+      result.push_back(rpc::convert_to_value(itr->as_string()));
+    } else if (itr->is_list()) {
+      std::vector<int64_t> subResult = as_vector(itr->as_list());
+      result.insert(result.end(), subResult.begin(), subResult.end());
+    } else {
+      throw torrent::input_error("Wrong type supplied to as_list.");
+    }
+
+  }
+
+  return result;
+}
+
 int64_t
 apply_math_basic(const std::function<int64_t(int64_t,int64_t)> op, const torrent::Object::list_type& args) {
   if (args.size() == 0)
@@ -600,11 +626,14 @@ apply_arith_other(const char* op, const torrent::Object::list_type& args) {
   if (args.size() == 0)
     throw torrent::input_error("Wrong argument count in apply_arith_other.");
 
-  if (op == "average")
+  if (op == "average") {
     return (int64_t)(apply_math_basic(std::plus<int64_t>(), args) / apply_arith_count(args));
-  else
+  } else if (op == "median") {
+    std::vector<int64_t> result = as_vector(args);
+    return (int64_t)rak::median(result.begin(), result.end());
+  } else {
     throw torrent::input_error("Wrong operation supplied to apply_arith_other.");
-
+  }
 }
 
 void
@@ -682,6 +711,7 @@ initialize_command_ui() {
   CMD2_ANY_LIST("math.max",              std::bind(&apply_arith_basic, std::greater<int64_t>(), std::placeholders::_2));
   CMD2_ANY_LIST("math.cnt",              std::bind(&apply_arith_count, std::placeholders::_2));
   CMD2_ANY_LIST("math.avg",              std::bind(&apply_arith_other, "average", std::placeholders::_2));
+  CMD2_ANY_LIST("math.med",              std::bind(&apply_arith_other, "median", std::placeholders::_2));
 
   CMD2_ANY_LIST ("elapsed.less",         std::bind(&apply_elapsed_less, std::placeholders::_2));
   CMD2_ANY_LIST ("elapsed.greater",      std::bind(&apply_elapsed_greater, std::placeholders::_2));
