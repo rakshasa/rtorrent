@@ -71,7 +71,7 @@ Directory::update(int flags) {
     return false;
 
   struct dirent* entry;
-#ifdef __sun__
+#if defined(__sun__) || defined(__CYGWIN__)
   struct stat s;
 #endif
 
@@ -81,7 +81,7 @@ Directory::update(int flags) {
 
     iterator itr = base_type::insert(end(), value_type());
 
-#ifdef __sun__
+#if defined(__sun__) || defined(__CYGWIN__)
     stat(entry->d_name, &s);
     itr->d_fileno = entry->d_ino;
     itr->d_reclen = 0;
