@@ -605,6 +605,9 @@ initialize_command_ui() {
   CMD2_ANY       ("ui.current_view",       std::bind(&cmd_ui_current_view));
   CMD2_ANY_STRING("ui.current_view.set",   std::bind(&cmd_ui_set_view, std::placeholders::_2));
 
+  CMD2_VAR_STRING("view.temp_filter.excluded", "default,started,stopped");
+  CMD2_VAR_BOOL  ("ui.console.log.tempfilter", 0);
+
   // TODO: Add 'option_string' for rtorrent-specific options.
   CMD2_VAR_STRING("ui.torrent_list.layout", "full");
 

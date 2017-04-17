@@ -36,6 +36,8 @@
 
 #include "config.h"
 
+#include <sstream>
+
 #include <rak/functional.h>
 #include <rak/string_manip.h>
 #include <torrent/exceptions.h>
@@ -263,12 +265,22 @@ DownloadList::receive_view_input(Input type) {
     break;
 
   case INPUT_FILTER:
-    // STARTED and STOPPED views are not allowed to being filtered: they are special
-    if (current_view()->name() == "started" || current_view()->name() == "stopped") {
-      control->core()->push_log_std("View '" + current_view()->name() + "' can't be filtered.");
-      return;
+    {
+      // Do not allow to subfilter the defined excluded views
+      const std::string excluded_views = rpc::call_command_string("view.temp_filter.excluded");
+      std::stringstream ss(excluded_views);
+      std::string view_name_var;
+
+      while(ss.good()) {
+          std::getline(ss, view_name_var, ',');
+          if (current_view()->name() == rak::trim(view_name_var)) {
+              control->core()->push_log_std("View '" + current_view()->name() + "' can't be filtered.");
+              return;
+          }
+      }
+
+      title = "filter";
     }
-    title = "filter";
     break;
 
   default:
@@ -336,7 +348,8 @@ DownloadList::receive_exit_input(Input type) {
 
     case INPUT_FILTER:
       if (input->str().empty()) {
-        control->core()->push_log_std("Clear temporary filter on '" + current_view()->name() + "' view.");
+        if (rpc::call_command_value("ui.console.log.tempfilter"))
+          control->core()->push_log_std("Clear temporary filter on '" + current_view()->name() + "' view.");
         current_view()->set_temp_filter(torrent::Object());
         current_view()->filter();
         current_view()->sort();
@@ -348,7 +361,8 @@ DownloadList::receive_exit_input(Input type) {
           pattern = ".*" + pattern;
         std::transform(pattern.begin(), pattern.end(), pattern.begin(), ::tolower);
         std::string tempFilter = "match={d.name=," + pattern + "}";
-        control->core()->push_log_std("Temporary filter on '" + current_view()->name() + "' view: " + pattern);
+        if (rpc::call_command_value("ui.console.log.tempfilter"))
+          control->core()->push_log_std("Temporary filter on '" + current_view()->name() + "' view: " + pattern);
         current_view()->set_temp_filter(tempFilter);
         current_view()->filter();
       }
