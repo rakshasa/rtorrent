@@ -348,7 +348,7 @@ DownloadList::receive_exit_input(Input type) {
 
     case INPUT_FILTER:
       if (input->str().empty()) {
-        if (rpc::call_command_value("ui.console.log.tempfilter"))
+        if (rpc::call_command_value("view.temp_filter.log"))
           control->core()->push_log_std("Clear temporary filter on '" + current_view()->name() + "' view.");
         current_view()->set_temp_filter(torrent::Object());
         current_view()->filter();
@@ -361,7 +361,7 @@ DownloadList::receive_exit_input(Input type) {
           pattern = ".*" + pattern;
         std::transform(pattern.begin(), pattern.end(), pattern.begin(), ::tolower);
         std::string tempFilter = "match={d.name=," + pattern + "}";
-        if (rpc::call_command_value("ui.console.log.tempfilter"))
+        if (rpc::call_command_value("view.temp_filter.log"))
           control->core()->push_log_std("Temporary filter on '" + current_view()->name() + "' view: " + pattern);
         current_view()->set_temp_filter(tempFilter);
         current_view()->filter();
