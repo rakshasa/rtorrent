@@ -64,6 +64,7 @@
 #include "core/download_store.h"
 #include "core/manager.h"
 #include "rpc/parse.h"
+#include "rpc/parse_commands.h"
 
 #include "globals.h"
 #include "control.h"
@@ -584,6 +585,13 @@ d_list_remove(core::Download* download, const torrent::Object& rawArgs, const ch
   return torrent::Object();
 }
 
+torrent::Object
+apply_d_update_priorities(core::Download* download) {
+  int fallocate = rpc::call_command_value("system.file.allocate") ? torrent::Download::open_enable_fallocate : 0;
+
+  download->update_priorities(fallocate);
+}
+
 #define CMD2_ON_INFO(func) std::bind(&torrent::DownloadInfo::func, std::bind(&core::Download::info, std::placeholders::_1))
 #define CMD2_ON_DATA(func) std::bind(&torrent::download_data::func, std::bind(&core::Download::data, std::placeholders::_1))
 #define CMD2_ON_DL(func) std::bind(&torrent::Download::func, std::bind(&core::Download::download, std::placeholders::_1))
@@ -699,7 +707,7 @@ initialize_command_download() {
   CMD2_DL         ("d.save_resume",       std::bind(&core::DownloadStore::save_resume, control->core()->download_store(), std::placeholders::_1));
   CMD2_DL         ("d.save_full_session", std::bind(&core::DownloadStore::save_full, control->core()->download_store(), std::placeholders::_1));
 
-  CMD2_DL_V       ("d.update_priorities", CMD2_ON_DL(update_priorities));
+  CMD2_DL_V       ("d.update_priorities", std::bind(&apply_d_update_priorities, std::placeholders::_1));
 
   CMD2_DL_STRING_V("add_peer",   std::bind(&apply_d_add_peer, std::placeholders::_1, std::placeholders::_2));
 
@@ -818,9 +826,11 @@ initialize_command_download() {
   CMD2_DL         ("d.ratio",          std::bind(&retrieve_d_ratio, std::placeholders::_1));
   CMD2_DL         ("d.chunks_hashed",  CMD2_ON_DL(chunks_hashed));
   CMD2_DL         ("d.free_diskspace", CMD2_ON_FL(free_diskspace));
+  CMD2_DL         ("d.is_enough_diskspace", CMD2_ON_FL(is_enough_diskspace));
 
   CMD2_DL         ("d.size_files",     CMD2_ON_FL(size_files));
   CMD2_DL         ("d.size_bytes",     CMD2_ON_FL(size_bytes));
+  CMD2_DL         ("d.allocatable_size_bytes", CMD2_ON_FL(allocatable_size_bytes));
   CMD2_DL         ("d.size_chunks",    CMD2_ON_FL(size_chunks));
   CMD2_DL         ("d.chunk_size",     CMD2_ON_FL(chunk_size));
   CMD2_DL         ("d.size_pex",       CMD2_ON_DL(size_pex));
