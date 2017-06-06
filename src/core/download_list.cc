@@ -63,6 +63,7 @@
 #include "download.h"
 #include "download_list.h"
 #include "download_store.h"
+#include "ui/root.h"
 
 #define DL_TRIGGER_EVENT(download, event_name) \
   rpc::commands.call_catch(event_name, rpc::make_target(download), torrent::Object(), "Event '" event_name "' failed: ");
@@ -93,6 +94,7 @@ DownloadList::session_save() {
     lt_log_print(torrent::LOG_ERROR, "Failed to save session torrents.");
 
   control->dht_manager()->save_dht_cache();
+  control->ui()->save_input_history();
 }
 
 DownloadList::iterator
