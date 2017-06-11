@@ -317,10 +317,11 @@ call_watch_command_added(const core::Manager::command_list_type& args, const std
 
   std::string command = *argsItr;
 
-  rpc_command_str = command + (*command.rbegin() != '=' ? "=" : "") + path;
+  // Include path in quotes, it can have spaces.
+  rpc_command_str = command + (*command.rbegin() != '=' ? "=" : "") + "\"" + path + "\"";
 
   while (++argsItr != args.end())
-    rpc_command_str += ", \"" + *argsItr + "\"";
+    rpc_command_str += ",\"" + *argsItr + "\"";
 
   rpc::parse_command_single_std(rpc_command_str);
 }
