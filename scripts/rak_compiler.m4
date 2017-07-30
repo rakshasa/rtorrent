@@ -1,3 +1,16 @@
+AC_DEFUN([RAK_CHECK_CXXFLAGS], [
+
+  AC_MSG_CHECKING([for user-defined CXXFLAGS])
+
+  if test -n "$CXXFLAGS"; then
+    AC_MSG_RESULT([user-defined "$CXXFLAGS"])
+  else
+    CXXFLAGS="-O2"
+    AC_MSG_RESULT([default "$CXXFLAGS"])
+  fi
+])
+
+
 AC_DEFUN([RAK_ENABLE_DEBUG], [
   AC_ARG_ENABLE(debug,
     AC_HELP_STRING([--enable-debug], [enable debug information [[default=yes]]]),
