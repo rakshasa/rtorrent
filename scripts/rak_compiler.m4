@@ -1,12 +1,25 @@
+AC_DEFUN([RAK_CHECK_CFLAGS], [
+
+  AC_MSG_CHECKING([for user-defined CFLAGS])
+
+  if test "$CFLAGS" = ""; then
+    unset CFLAGS
+    AC_MSG_RESULT([undefined])
+  else
+    AC_MSG_RESULT([user-defined "$CFLAGS"])
+  fi
+])
+
+
 AC_DEFUN([RAK_CHECK_CXXFLAGS], [
 
   AC_MSG_CHECKING([for user-defined CXXFLAGS])
 
-  if test -n "$CXXFLAGS"; then
-    AC_MSG_RESULT([user-defined "$CXXFLAGS"])
+  if test "$CXXFLAGS" = ""; then
+    unset CXXFLAGS
+    AC_MSG_RESULT([undefined])
   else
-    CXXFLAGS="-O2"
-    AC_MSG_RESULT([default "$CXXFLAGS"])
+    AC_MSG_RESULT([user-defined "$CXXFLAGS"])
   fi
 ])
 
