@@ -45,42 +45,14 @@
 #include "globals.h"
 #include "command_helpers.h"
 
-void
-ipv4_filter_parse(const char* address, int value) {
-  uint32_t ip_values[4] = { 0, 0, 0, 0 };
-  unsigned int block = rpc::ipv4_table::mask_bits;
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <arpa/inet.h>
+#include <netinet/in.h>
 
-  char ip_dot;
-  int values_read;
-
-  if ((values_read = sscanf(address, "%u%1[.]%u%1[.]%u%1[.]%u/%u",
-                            ip_values + 0, &ip_dot,
-                            ip_values + 1, &ip_dot,
-                            ip_values + 2, &ip_dot,
-                            ip_values + 3, 
-                            &block)) < 2 ||
-
-      // Make sure the dot is included.
-      (values_read < 7 && values_read % 2) ||
-
-      ip_values[0] >= 256 ||
-      ip_values[1] >= 256 ||
-      ip_values[2] >= 256 ||
-      ip_values[3] >= 256 ||
-       
-      block > rpc::ipv4_table::mask_bits)
-    throw torrent::input_error("Invalid address format.");
-
-  // E.g. '10.10.' will be '10.10.0.0/16'.
-  if (values_read < 7)
-    block = 8 * (values_read / 2);
-
-  lt_log_print(torrent::LOG_CONNECTION_DEBUG, "Adding ip filter for %u.%u.%u.%u/%u.",
-               ip_values[0], ip_values[1], ip_values[2], ip_values[3], block);
-
-  torrent::PeerList::ipv4_filter()->insert((ip_values[0] << 24) + (ip_values[1] << 16) + (ip_values[2] << 8) + ip_values[3],
-                                           rpc::ipv4_table::mask_bits - block, value);
-}
+bool ipv4_range_parse(const char* address, uint32_t* address_start, uint32_t* address_end);
 
 torrent::Object
 apply_ip_tables_insert_table(const std::string& args) {
@@ -98,7 +70,8 @@ apply_ip_tables_size_data(const std::string& args) {
   if (itr != ip_tables.end())
     throw torrent::input_error("IP table does not exist.");
 
-  return itr->table.sizeof_data();
+  uint32_t size = itr->table.sizeof_data();
+  return size;
 }
 
 torrent::Object
@@ -110,20 +83,21 @@ apply_ip_tables_get(const torrent::Object::list_type& args) {
 
   const std::string& name    = (args_itr++)->as_string();
   const std::string& address = (args_itr++)->as_string();
-
-  // Move to a helper function, add support for addresses.
-  uint32_t ip_values[4];
-
-  if (sscanf(address.c_str(), "%u.%u.%u.%u",
-             ip_values + 0, ip_values + 1, ip_values + 2, ip_values + 3) != 4)
-    throw torrent::input_error("Invalid address format.");
+  uint32_t address_start;
+  uint32_t address_end;
 
   rpc::ip_table_list::iterator table_itr = ip_tables.find(name);
 
   if (table_itr == ip_tables.end())
     throw torrent::input_error("Could not find ip table.");
 
-  return table_itr->table.at((ip_values[0] << 24) + (ip_values[1] << 16) + (ip_values[2] << 8) + ip_values[3]);
+  if (!ipv4_range_parse(address.c_str(), &address_start, &address_end)) 
+    throw torrent::input_error("Invalid address format.");
+
+  if(!table_itr->table.defined(address_start, address_end))
+    throw torrent::input_error("No value defined for specified IP(s).");
+
+  return table_itr->table.at(address_start, address_end);
 }
 
 torrent::Object
@@ -136,15 +110,6 @@ apply_ip_tables_add_address(const torrent::Object::list_type& args) {
   const std::string& name      = (args_itr++)->as_string();
   const std::string& address   = (args_itr++)->as_string();
   const std::string& value_str = (args_itr++)->as_string();
-  
-  // Move to a helper function, add support for addresses.
-  uint32_t ip_values[4];
-  unsigned int block = rpc::ipv4_table::mask_bits;
-
-  if (sscanf(address.c_str(), "%u.%u.%u.%u/%u",
-             ip_values + 0, ip_values + 1, ip_values + 2, ip_values + 3, &block) < 4 ||
-      block > rpc::ipv4_table::mask_bits)
-    throw torrent::input_error("Invalid address format.");
 
   int value;
 
@@ -158,8 +123,13 @@ apply_ip_tables_add_address(const torrent::Object::list_type& args) {
   if (table_itr == ip_tables.end())
     throw torrent::input_error("Could not find ip table.");
 
-  table_itr->table.insert((ip_values[0] << 24) + (ip_values[1] << 16) + (ip_values[2] << 8) + ip_values[3],
-                          rpc::ipv4_table::mask_bits - block, value);
+  uint32_t address_start;
+  uint32_t address_end;
+
+  if (ipv4_range_parse(address.c_str(), &address_start, &address_end))
+    table_itr->table.insert(address_start, address_end, value);
+  else
+    throw torrent::input_error("Invalid address format.");
 
   return torrent::Object();
 }
@@ -168,6 +138,158 @@ apply_ip_tables_add_address(const torrent::Object::list_type& args) {
 // IPv4 filter functions:
 //
 
+///////////////////////////////////////////////////////////
+// IPV4_RANGE_PARSE parses string into an ip range
+//
+// should be compatible with lines in p2p files
+// everything in address before colon is ignored
+//
+// ip range can be single ip in which case start=end
+// ip range can be cidr notation a.b.c.d/e
+// ip range can be explicit range like in p2p line a.b.c.d-w.x.y.z 
+//
+// returns false if line does not contain valid ip or ip range
+// address_start and address_end will contain start and end ip
+//
+// addresses parsed are returned in host byte order
+// to get network byte order call htonl(address)
+///////////////////////////////////////////////////////////
+bool
+ipv4_range_parse(const char* address, uint32_t* address_start, uint32_t* address_end) {
+  // same length as buffer used to do reads so no worries about overflow
+  char address_copy[4096];
+  bool valid = false;
+  char address_start_str[20];
+  int  address_start_index=0;
+  struct sockaddr_in sa_start;
+  *address_start=0;
+  *address_end=0;
+
+  // get rid of everything after '#' comments
+  // copy everything up to '#'  to address_copy and work from there
+  while(address[address_start_index] != '#' && address[address_start_index] != '\r' &&
+        address[address_start_index] != '\n' && address[address_start_index] != '\0' &&
+        address_start_index < 4096 ) {
+
+    address_copy[address_start_index] = address[address_start_index];
+    address_start_index++;
+  }
+
+  address_copy[address_start_index] = '\0';
+  address_start_index=0;
+
+  // skip everything up to and including last ':' character and whitespace
+  const char* addr = strrchr(address_copy, ':');
+
+  addr = (addr == NULL) ? address_copy : addr + 1;
+
+  while(addr[0] == ' ' || addr[0] == '\t')
+    addr++;
+
+  while(((addr[0] >= '0' && addr[0] <= '9') || addr[0] == '.') && address_start_index < 19) {
+    address_start_str[address_start_index] = addr[0];
+    address_start_index++;
+    addr++;
+  }
+
+  address_start_str[address_start_index] = '\0';
+
+  if(strchr(addr, '-') != NULL) {
+    // explicit range
+    char address_end_str[20];
+    int address_end_index=0;
+    struct sockaddr_in sa_end;
+
+    while(addr[0] == '-' || addr[0] == ' ' || addr[0] == '\t')
+      addr++;
+
+    while(((addr[0] >= '0' && addr[0] <= '9') || addr[0] == '.') && address_end_index < 19) {
+      address_end_str[address_end_index] = addr[0];
+      address_end_index++;
+      addr++;
+    }
+
+    address_end_str[address_end_index] = '\0';
+
+    if(inet_pton(AF_INET, address_start_str, &(sa_start.sin_addr)) != 0 && inet_pton(AF_INET, address_end_str, &(sa_end.sin_addr)) != 0) {
+      *address_start = ntohl(sa_start.sin_addr.s_addr);
+      *address_end = ntohl(sa_end.sin_addr.s_addr);
+
+      if(*address_start <= *address_end)
+        valid=true;
+    }
+  } else if(strchr(addr, '/') != NULL) {
+    // cidr range
+    char mask_bits_str[20];
+    int mask_bits_index=0;
+    uint32_t mask_bits;
+
+    while(addr[0] == '/' || addr[0] == ' ' || addr[0] == '\t')
+      addr++;
+
+    while( (addr[0] >= '0' && addr[0] <= '9') && mask_bits_index < 19) {
+      mask_bits_str[mask_bits_index] = addr[0];
+      mask_bits_index++;
+      addr++;
+    }
+
+    mask_bits_str[mask_bits_index] = '\0';
+
+    if(inet_pton(AF_INET, address_start_str, &(sa_start.sin_addr)) != 0 && sscanf(mask_bits_str, "%u", &mask_bits) != 0) {
+      if(mask_bits <=32) {
+        uint32_t ip=ntohl(sa_start.sin_addr.s_addr);
+        uint32_t mask=0;
+        uint32_t end_mask=0;
+
+        mask = (~mask) << (32-mask_bits);
+        *address_start = ip & mask;
+        end_mask = (~end_mask) >> mask_bits;
+        *address_end = (ip & mask) | end_mask;
+
+        valid=true;
+      }
+    }
+  } else {
+    // single ip
+    if(inet_pton(AF_INET, address_start_str, &(sa_start.sin_addr)) != 0) {
+      *address_start = ntohl(sa_start.sin_addr.s_addr);
+      *address_end = *address_start;
+
+      valid=true;
+    }
+  }
+
+  return valid;
+}
+
+///////////////////////////////////////////////////////////
+// IPV4_FILTER_PARSE
+//
+// should now be compatible with lines in p2p files
+//
+// addresses in table MUST be in host byte order
+// ntohl is called after parsing ip address(es)
+///////////////////////////////////////////////////////////
+void
+ipv4_filter_parse(const char* address, int value) {
+  uint32_t address_start;
+  uint32_t address_end;
+
+  if (ipv4_range_parse(address, &address_start, &address_end) ) {
+    torrent::PeerList::ipv4_filter()->insert(address_start, address_end, value);
+
+    char start_str[INET_ADDRSTRLEN];
+    char end_str[INET_ADDRSTRLEN];
+    uint32_t net_start = htonl(address_start);
+    uint32_t net_end = htonl(address_end);
+
+    inet_ntop(AF_INET, &net_start, start_str, INET_ADDRSTRLEN);
+    inet_ntop(AF_INET, &net_end, end_str, INET_ADDRSTRLEN);
+
+    lt_log_print(torrent::LOG_CONNECTION_DEBUG, "Adding ip filter for %s-%s.", start_str, end_str);
+  }
+}
+
 torrent::Object
 apply_ipv4_filter_size_data() {
   return torrent::PeerList::ipv4_filter()->sizeof_data();
@@ -175,14 +297,16 @@ apply_ipv4_filter_size_data() {
 
 torrent::Object
 apply_ipv4_filter_get(const std::string& args) {
-  // Move to a helper function, add support for addresses.
-  uint32_t ip_values[4];
+  uint32_t address_start;
+  uint32_t address_end;
 
-  if (sscanf(args.c_str(), "%u.%u.%u.%u",
-             ip_values + 0, ip_values + 1, ip_values + 2, ip_values + 3) != 4)
+  if (!ipv4_range_parse(args.c_str(), &address_start, &address_end)) 
     throw torrent::input_error("Invalid address format.");
 
-  return torrent::PeerList::ipv4_filter()->at((ip_values[0] << 24) + (ip_values[1] << 16) + (ip_values[2] << 8) + ip_values[3]);
+  if(!torrent::PeerList::ipv4_filter()->defined(address_start, address_end))
+    throw torrent::input_error("No value defined for specified IP(s).");
+
+  return torrent::PeerList::ipv4_filter()->at(address_start, address_end);
 }
 
 torrent::Object
@@ -240,41 +364,34 @@ apply_ipv4_filter_load(const torrent::Object::list_type& args) {
   return torrent::Object();
 }
 
-static void
-append_table(torrent::ipv4_table::base_type* extent, torrent::Object::list_type& result) {
-  torrent::ipv4_table::table_type::iterator first = extent->table.begin();
-  torrent::ipv4_table::table_type::iterator last  = extent->table.end();
-
-  while (first != last) {
-    if (first->first != NULL) {
-      // Do something more here?...
-      append_table(first->first, result);
-
-    } else if (first->second != 0) {
-      uint32_t position = extent->partition_pos(first);
-
-      char buffer[256];
-      snprintf(buffer, 256, "%u.%u.%u.%u/%u %s",
-               (position >> 24) & 0xff,
-               (position >> 16) & 0xff,
-               (position >> 8) & 0xff,
-               (position >> 0) & 0xff,
-               extent->mask_bits,
-               torrent::option_as_string(torrent::OPTION_IP_FILTER, first->second));
-
-      result.push_back((std::string)buffer);
-    }
-
-    first++;
-  }
-}
-
 torrent::Object
 apply_ipv4_filter_dump() {
   torrent::Object raw_result = torrent::Object::create_list();
   torrent::Object::list_type& result = raw_result.as_list();
 
-  append_table(torrent::PeerList::ipv4_filter()->data(), result);
+  torrent::ipv4_table::range_map_type range_map = torrent::PeerList::ipv4_filter()->range_map;
+  torrent::ipv4_table::range_map_type::iterator iter = range_map.begin();
+
+  while(iter != range_map.end()) {
+    char buffer[64];
+    uint32_t address_start = iter->first;
+    uint32_t address_end = (iter->second).first;
+    int value = (iter->second).second;
+
+    char start_str[INET_ADDRSTRLEN];
+    char end_str[INET_ADDRSTRLEN];
+    uint32_t net_start = htonl(address_start);
+    uint32_t net_end = htonl(address_end);
+
+    inet_ntop(AF_INET, &net_start, start_str, INET_ADDRSTRLEN);
+    inet_ntop(AF_INET, &net_end, end_str, INET_ADDRSTRLEN);
+
+    snprintf(buffer, 64, "%s-%s %s", start_str, end_str, torrent::option_as_string(torrent::OPTION_IP_FILTER, value));
+
+    result.push_back((std::string)buffer);
+
+    iter++;
+  }
 
   return raw_result;
 }
