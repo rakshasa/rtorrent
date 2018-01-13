@@ -101,3 +101,12 @@
 # Set downlad list layout style. ("full", "compact")
 #
 #ui.torrent_list.layout.set = "full"
+
+# SCGI Connectivity (for alternative rtorrent interfaces, XMLRPC)
+#
+# Use a IP socket with scgi_port, or a Unix socket with scgi_local.
+# schedule can be used to set permissions on the unix socket.
+#
+#scgi_port = 127.0.0.1:5000
+#scgi_local = /home/user/rtorrent/rpc.socket
+#schedule = scgi_permission,0,0,"execute.nothrow=chmod,\"g+w,o=\",/home/user/rtorrent/rpc.socket"
