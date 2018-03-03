@@ -98,6 +98,7 @@ public:
 
   input::TextInput*   current_input();
 
+  int                 get_input_history_size()                { return m_input_history_length; }
   void                set_input_history_size(int size);
   void                add_to_input_history(ui::DownloadList::Input type, std::string item);
 

@@ -70,7 +70,7 @@ Root::Root() :
   m_windowHttpQueue(NULL),
   m_windowInput(NULL),
   m_windowStatusbar(NULL),
-  m_input_history_length(30),
+  m_input_history_length(99),
   m_input_history_pointer_get(0),
   m_input_history_last_input("") {
 
