@@ -523,7 +523,7 @@ apply_elapsed_greater(const torrent::Object::list_type& args) {
 inline std::vector<int64_t>
 as_vector(const torrent::Object::list_type& args) {
   if (args.size() == 0)
-    throw torrent::input_error("Wrong argument count in as_list.");
+    throw torrent::input_error("Wrong argument count in as_vector.");
 
   std::vector<int64_t> result;
 
@@ -537,7 +537,7 @@ as_vector(const torrent::Object::list_type& args) {
       std::vector<int64_t> subResult = as_vector(itr->as_list());
       result.insert(result.end(), subResult.begin(), subResult.end());
     } else {
-      throw torrent::input_error("Wrong type supplied to as_list.");
+      throw torrent::input_error("Wrong type supplied to as_vector.");
     }
 
   }
