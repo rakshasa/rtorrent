@@ -799,7 +799,6 @@ initialize_command_download() {
 
   CMD2_DL         ("d.size_files",              CMD2_ON_FL(size_files));
   CMD2_DL         ("d.selected_size_bytes",     CMD2_ON_FL(selected_size_bytes));
-  CMD2_DL_V       ("d.set_selected_size_bytes", CMD2_ON_FL(set_selected_size_bytes));
   CMD2_DL         ("d.size_bytes",              CMD2_ON_FL(size_bytes));
   CMD2_DL         ("d.size_chunks",             CMD2_ON_FL(size_chunks));
   CMD2_DL         ("d.chunk_size",              CMD2_ON_FL(chunk_size));
