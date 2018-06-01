@@ -546,23 +546,29 @@ as_vector(const torrent::Object::list_type& args) {
 }
 
 int64_t
-apply_math_basic(const std::function<int64_t(int64_t,int64_t)> op, const torrent::Object::list_type& args) {
-  if (args.size() == 0)
-    throw torrent::input_error("Wrong argument count in apply_math_basic.");
+apply_math_basic(const char* name, const std::function<int64_t(int64_t,int64_t)> op, const torrent::Object::list_type& args) {
+  int64_t val = 0, rhs = 0;
+  bool divides = !strcmp(name, "math.div") || !strcmp(name, "math.mod");
 
-  int64_t val = 0;
+  if (args.size() == 0)
+    throw torrent::input_error(std::string(name) + ": No arguments provided!");
 
   for (torrent::Object::list_const_iterator itr = args.begin(), last = args.end(); itr != last; itr++) {
 
     if (itr->is_value()) {
-      val = itr == args.begin() ? itr->as_value() : op(val, itr->as_value());
+      rhs = itr->as_value();
     } else if (itr->is_string()) {
-      val = itr == args.begin() ? rpc::convert_to_value(itr->as_string()) : op(val, rpc::convert_to_value(itr->as_string()));
+      rhs = rpc::convert_to_value(itr->as_string());
     } else if (itr->is_list()) {
-      val = itr == args.begin() ? apply_math_basic(op, itr->as_list()) : op(val, apply_math_basic(op, itr->as_list()));
+      rhs = apply_math_basic(name, op, itr->as_list());
     } else {
-      throw torrent::input_error("Wrong type supplied to apply_math_basic.");
+      throw torrent::input_error(std::string(name) + ": Wrong argument type");
     }
+
+    if (divides && !rhs && itr != args.begin())
+      throw torrent::input_error(std::string(name) + ": Division by zero!");
+
+    val = itr == args.begin() ? rhs : op(val, rhs);
 
   }
 
@@ -626,9 +632,9 @@ apply_arith_other(const char* op, const torrent::Object::list_type& args) {
   if (args.size() == 0)
     throw torrent::input_error("Wrong argument count in apply_arith_other.");
 
-  if (op == "average") {
-    return (int64_t)(apply_math_basic(std::plus<int64_t>(), args) / apply_arith_count(args));
-  } else if (op == "median") {
+  if (strcmp(op, "average") == 0) {
+    return (int64_t)(apply_math_basic(op, std::plus<int64_t>(), args) / apply_arith_count(args));
+  } else if (strcmp(op, "median") == 0) {
     std::vector<int64_t> result = as_vector(args);
     return (int64_t)rak::median(result.begin(), result.end());
   } else {
@@ -702,11 +708,11 @@ initialize_command_ui() {
   CMD2_ANY_VALUE("convert.xb",           std::bind(&apply_to_xb, std::placeholders::_2));
   CMD2_ANY_VALUE("convert.throttle",     std::bind(&apply_to_throttle, std::placeholders::_2));
 
-  CMD2_ANY_LIST("math.add",              std::bind(&apply_math_basic, std::plus<int64_t>(), std::placeholders::_2));
-  CMD2_ANY_LIST("math.sub",              std::bind(&apply_math_basic, std::minus<int64_t>(), std::placeholders::_2));
-  CMD2_ANY_LIST("math.mul",              std::bind(&apply_math_basic, std::multiplies<int64_t>(), std::placeholders::_2));
-  CMD2_ANY_LIST("math.div",              std::bind(&apply_math_basic, std::divides<int64_t>(), std::placeholders::_2));
-  CMD2_ANY_LIST("math.mod",              std::bind(&apply_math_basic, std::modulus<int64_t>(), std::placeholders::_2));
+  CMD2_ANY_LIST("math.add",              std::bind(&apply_math_basic, "math.add", std::plus<int64_t>(), std::placeholders::_2));
+  CMD2_ANY_LIST("math.sub",              std::bind(&apply_math_basic, "math.sub", std::minus<int64_t>(), std::placeholders::_2));
+  CMD2_ANY_LIST("math.mul",              std::bind(&apply_math_basic, "math.mul", std::multiplies<int64_t>(), std::placeholders::_2));
+  CMD2_ANY_LIST("math.div",              std::bind(&apply_math_basic, "math.div", std::divides<int64_t>(), std::placeholders::_2));
+  CMD2_ANY_LIST("math.mod",              std::bind(&apply_math_basic, "math.mod", std::modulus<int64_t>(), std::placeholders::_2));
   CMD2_ANY_LIST("math.min",              std::bind(&apply_arith_basic, std::less<int64_t>(), std::placeholders::_2));
   CMD2_ANY_LIST("math.max",              std::bind(&apply_arith_basic, std::greater<int64_t>(), std::placeholders::_2));
   CMD2_ANY_LIST("math.cnt",              std::bind(&apply_arith_count, std::placeholders::_2));
