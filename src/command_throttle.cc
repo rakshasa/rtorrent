@@ -96,12 +96,15 @@ torrent::Object
 apply_throttle(const torrent::Object::list_type& args, bool up) {
   torrent::Object::list_const_iterator argItr = args.begin();
 
+  if (argItr == args.end())
+    throw torrent::input_error("Missing throttle name.");
+
   const std::string& name = argItr->as_string();
   if (name.empty() || name == "NULL")
-    throw torrent::input_error("Invalid throttle name.");
+    throw torrent::input_error("Invalid throttle name '" + name + "'.");
 
-  if ((++argItr)->as_string().empty())
-    return torrent::Object();
+  if (++argItr == args.end() || argItr->as_string().empty())
+    throw torrent::input_error("Missing throttle rate for '" + name + "'.");
 
   int64_t rate;
   rpc::parse_whole_value_nothrow(argItr->as_string().c_str(), &rate);
