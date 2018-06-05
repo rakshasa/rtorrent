@@ -126,15 +126,11 @@ DownloadList::set_current_view(const std::string& name) {
 
 void
 DownloadList::unfocus_download(core::Download* d) {
-  if (m_state == DISPLAY_DOWNLOAD) {
-    if (d == static_cast<Download*>(m_uiArray[DISPLAY_DOWNLOAD])->download()) {
-      activate_display(DISPLAY_DOWNLOAD_LIST);
-    }
-  }
+  if (m_state == DISPLAY_DOWNLOAD && d == static_cast<Download*>(m_uiArray[DISPLAY_DOWNLOAD])->download())
+    activate_display(DISPLAY_DOWNLOAD_LIST);
 
-  if (*current_view()->focus() == d && current_view()->focus() < current_view()->end_visible()) {
+  if (*current_view()->focus() == d && current_view()->focus() < current_view()->end_visible())
       current_view()->next_focus();
-  }
 }
 
 void
