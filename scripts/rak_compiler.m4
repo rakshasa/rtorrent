@@ -1,3 +1,29 @@
+AC_DEFUN([RAK_CHECK_CFLAGS], [
+
+  AC_MSG_CHECKING([for user-defined CFLAGS])
+
+  if test "$CFLAGS" = ""; then
+    unset CFLAGS
+    AC_MSG_RESULT([undefined])
+  else
+    AC_MSG_RESULT([user-defined "$CFLAGS"])
+  fi
+])
+
+
+AC_DEFUN([RAK_CHECK_CXXFLAGS], [
+
+  AC_MSG_CHECKING([for user-defined CXXFLAGS])
+
+  if test "$CXXFLAGS" = ""; then
+    unset CXXFLAGS
+    AC_MSG_RESULT([undefined])
+  else
+    AC_MSG_RESULT([user-defined "$CXXFLAGS"])
+  fi
+])
+
+
 AC_DEFUN([RAK_ENABLE_DEBUG], [
   AC_ARG_ENABLE(debug,
     AC_HELP_STRING([--enable-debug], [enable debug information [[default=yes]]]),
