@@ -45,7 +45,7 @@
 
 namespace rpc {
 
-typedef torrent::extents<uint32_t, int, 32, 256, 8> ipv4_table;
+typedef torrent::extents<uint32_t, int> ipv4_table;
 
 struct ip_table_node {
   std::string name;
