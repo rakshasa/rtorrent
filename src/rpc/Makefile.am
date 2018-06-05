@@ -20,6 +20,8 @@ libsub_rpc_a_SOURCES = \
 	parse.h \
 	parse_commands.cc \
 	parse_commands.h \
+	parse_options.cc \
+	parse_options.h \
 	scgi.cc \
 	scgi.h \
 	scgi_task.cc \

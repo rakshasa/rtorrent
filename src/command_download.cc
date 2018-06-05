@@ -140,7 +140,7 @@ apply_d_change_link(core::Download* download, const torrent::Object::list_type& 
   case 0:
     if (symlink(target.c_str(), link.c_str()) == -1){
       lt_log_print(torrent::LOG_TORRENT_WARN, "create_link failed: %s",
-          rak::error_number::current().c_str());
+                   rak::error_number::current().c_str());
     }
     break;
 
@@ -289,7 +289,7 @@ struct call_add_d_peer_t {
 
   void operator() (const sockaddr* sa, int err) {
     if (sa == NULL) {
-      lt_log_print(torrent::LOG_CONNECTION_WARN, "Could not resolve hostname for added peer.");
+      lt_log_print(torrent::LOG_TORRENT_WARN, "could not resolve hostname for added peer");
     } else {
       m_download->download()->add_peer(sa, m_port);
     }

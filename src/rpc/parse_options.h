@@ -34,53 +34,23 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#include "config.h"
+#ifndef RTORRENT_RPC_PARSE_OPTIONS_H
+#define RTORRENT_RPC_PARSE_OPTIONS_H
 
-#include "input_event.h"
+#include <cstring>
+#include <functional>
+#include <string>
 
-//ncurses.h must be included last since sys/mman.h on Solaris munges ERR.
-#if defined(HAVE_NCURSESW_CURSES_H)
-#include <ncursesw/curses.h>
-#elif defined(HAVE_NCURSESW_H)
-#include <ncursesw.h>
-#elif defined(HAVE_NCURSES_CURSES_H)
-#include <ncurses/curses.h>
-#elif defined(HAVE_NCURSES_H)
-#include <ncurses.h>
-#elif defined(HAVE_CURSES_H)
-#include <curses.h>
-#else
-#error "SysV or X/Open-compatible Curses header file required"
+namespace rpc {
+
+// If a flag returned by the functor is negative it is treated as a
+// negation of the flag.
+
+int parse_option_flag(const std::string& option, std::function<int (const std::string&)> ftor);
+int parse_option_flags(const std::string& option, std::function<int (const std::string&)> ftor, int flags = int());
+
+void parse_option_for_each(const std::string& option, std::function<void (const std::string&)> ftor);
+
+}
+
 #endif
-
-namespace input {
-
-void
-InputEvent::insert(torrent::Poll* p) {
-  p->open(this);
-  p->insert_read(this);
-}
-
-void
-InputEvent::remove(torrent::Poll* p) {
-  p->remove_read(this);
-  p->close(this);
-}
-
-void
-InputEvent::event_read() {
-  int c;
-
-  while ((c = getch()) != ERR)
-    m_slotPressed(c);
-}
-
-void
-InputEvent::event_write() {
-}
-
-void
-InputEvent::event_error() {
-}
-
-}
