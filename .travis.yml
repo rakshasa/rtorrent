@@ -1,74 +1,209 @@
 language: cpp
 
+env:
+  global:
+    - MAKEFLAGS="-j 4"
+
 matrix:
+
+# Clang
   include:
-  - compiler: clang
-    env: COMPILER=clang++ SKIP_CHECK=true
-  - compiler: clang
-    env: COMPILER=clang++
+  - os: linux
     addons:
       apt:
         packages:
+        - clang
+    env:
+      - MATRIX_EVAL="CC=clang && CXX=clang++ SKIP_CHECK=true"
+
+  - os: linux
+    addons:
+      apt:
+        packages:
+        - clang
         - libcppunit-dev
-  - compiler: clang
-    env: COMPILER=clang++-3.6
+    env:
+      - MATRIX_EVAL="CC=clang && CXX=clang++"
+
+  - os: linux
     addons:
       apt:
         sources:
-        - ubuntu-toolchain-r-test
-        - llvm-toolchain-precise-3.6
+          - ubuntu-toolchain-r-test
+          - llvm-toolchain-precise-3.6
         packages:
-        - clang-3.6
-        - libcppunit-dev
-  - compiler: clang
-    env: COMPILER=clang++-3.7
+          - clang-3.6
+          - libcppunit-dev
+    env:
+      - MATRIX_EVAL="CC=clang-3.6 && CXX=clang++-3.6"
+
+  - os: linux
     addons:
       apt:
         sources:
-        - ubuntu-toolchain-r-test
-        - llvm-toolchain-precise-3.7
+          - ubuntu-toolchain-r-test
+          - llvm-toolchain-precise-3.7
         packages:
-        - clang-3.7
-        - libcppunit-dev
-  - compiler: clang
-    env: COMPILER=clang++-3.8
+          - clang-3.7
+          - libcppunit-dev
+    env:
+      - MATRIX_EVAL="CC=clang-3.7 && CXX=clang++-3.7"
+
+  - os: linux
     addons:
       apt:
         sources:
-        - ubuntu-toolchain-r-test
-        - llvm-toolchain-precise-3.8
+          - ubuntu-toolchain-r-test
+          - llvm-toolchain-precise-3.8
         packages:
-        - clang-3.8
-        - libcppunit-dev
-  - compiler: gcc
-    env: COMPILER=g++-4.7 SKIP_CHECK=true
+          - clang-3.8
+          - libcppunit-dev
+    env:
+      - MATRIX_EVAL="CC=clang-3.8 && CXX=clang++-3.8"
+
+  - os: linux
     addons:
       apt:
-        sources: ubuntu-toolchain-r-test
+        sources:
+          - llvm-toolchain-trusty-3.9
         packages:
-        - g++-4.7
-  - compiler: gcc
-    env: COMPILER=g++-4.7
+          - clang-3.9
+          - libcppunit-dev
+    env:
+      - MATRIX_EVAL="CC=clang-3.9 && CXX=clang++-3.9"
+
+  - os: linux
     addons:
       apt:
-        sources: ubuntu-toolchain-r-test
+        sources:
+          - llvm-toolchain-trusty-4.0
         packages:
-        - g++-4.7
-        - libcppunit-dev
-  - compiler: gcc
-    env: COMPILER=g++-4.8
+          - clang-4.0
+          - libcppunit-dev
+    env:
+      - MATRIX_EVAL="CC=clang-4.0 && CXX=clang++-4.0"
+
+  - os: linux
     addons:
       apt:
-        sources: ubuntu-toolchain-r-test
+        sources:
+          - llvm-toolchain-trusty-5.0
         packages:
-        - g++-4.8
-        - libcppunit-dev
+          - clang-5.0
+          - libcppunit-dev
+    env:
+      - MATRIX_EVAL="CC=clang-5.0 && CXX=clang++-5.0"
+
+
+# GCC
+
+  - os: linux
+    addons:
+      apt:
+        sources:
+          - ubuntu-toolchain-r-test
+        packages:
+          - gcc
+    env:
+       - MATRIX_EVAL="CC=gcc && CXX=g++ && SKIP_CHECK=true"
+
+  - os: linux
+    addons:
+      apt:
+        sources:
+          - ubuntu-toolchain-r-test
+        packages:
+          - gcc
+          - libcppunit-dev
+    env:
+       - MATRIX_EVAL="CC=gcc && CXX=g++"
+
+  - os: linux
+    addons:
+      apt:
+        sources:
+          - ubuntu-toolchain-r-test
+        packages:
+          - g++-4.7
+          - libcppunit-dev
+    env:
+       - MATRIX_EVAL="CC=gcc-4.7 && CXX=g++-4.7"
+
+  - os: linux
+    addons:
+      apt:
+        sources:
+          - ubuntu-toolchain-r-test
+        packages:
+          - g++-4.8
+          - libcppunit-dev
+    env:
+       - MATRIX_EVAL="CC=gcc-4.8 && CXX=g++-4.8"
+
+  - os: linux
+    addons:
+      apt:
+        sources:
+          - ubuntu-toolchain-r-test
+        packages:
+          - g++-4.9
+          - libcppunit-dev
+    env:
+       - MATRIX_EVAL="CC=gcc-4.9 && CXX=g++-4.9"
+
+  - os: linux
+    addons:
+      apt:
+        sources:
+          - ubuntu-toolchain-r-test
+        packages:
+          - g++-5
+          - libcppunit-dev
+    env:
+       - MATRIX_EVAL="CC=gcc-5 && CXX=g++-5"
+
+  - os: linux
+    addons:
+      apt:
+        sources:
+          - ubuntu-toolchain-r-test
+        packages:
+          - g++-6
+          - libcppunit-dev
+    env:
+      - MATRIX_EVAL="CC=gcc-6 && CXX=g++-6"
+
+  - os: linux
+    addons:
+      apt:
+        sources:
+          - ubuntu-toolchain-r-test
+        packages:
+          - g++-7
+          - libcppunit-dev
+    env:
+      - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
+
+  - os: linux
+    addons:
+      apt:
+        sources:
+          - ubuntu-toolchain-r-test
+        packages:
+          - g++-8
+          - libcppunit-dev
+    env:
+      - MATRIX_EVAL="CC=gcc-8 && CXX=g++-8"
+
 
 # TODO: Use the same branch name if libtorrent has it.
 before_install:
- - git clone https://github.com/rakshasa/libtorrent.git
- - cd libtorrent && ./autogen.sh && CXX="$COMPILER" ./configure && make -j12 && sudo make install
+  - eval "${MATRIX_EVAL}"
+
+install:
+  - git clone https://github.com/rakshasa/libtorrent.git
+  - pushd libtorrent && ./autogen.sh && CXX="$CXX" ./configure && make && sudo make install && popd
 
 script:
-- ./autogen.sh && CXX="$COMPILER" ./configure && make -j12
-- if [ ! $SKIP_CHECK ]; then make -j12 check; fi
+  - ./autogen.sh && CXX="$CXX" ./configure && make
+  - if [ ! $SKIP_CHECK ]; then make check; fi
