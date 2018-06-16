@@ -113,13 +113,14 @@ ThreadWorker::change_xmlrpc_log() {
   if (scgi() == NULL)
     return;
 
-  if (scgi()->log_fd() != -1)
+  if (scgi()->log_fd() != -1) {
     ::close(scgi()->log_fd());
-
-  if (m_xmlrpcLog.empty()) {
+    scgi()->set_log_fd(-1);
     control->core()->push_log("Closed XMLRPC log.");
-    return;
   }
+
+  if (m_xmlrpcLog.empty())
+    return;
 
   scgi()->set_log_fd(open(rak::path_expand(m_xmlrpcLog).c_str(), O_WRONLY | O_APPEND | O_CREAT, 0644));
 
