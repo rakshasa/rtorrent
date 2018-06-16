@@ -249,6 +249,9 @@ main(int argc, char** argv) {
 
     rpc::parse_command_multiple
       (rpc::make_target(),
+       "method.insert = event.view.hide,multi|rlookup|static\n"
+       "method.insert = event.view.show,multi|rlookup|static\n"
+
        "method.insert = event.download.inserted,multi|rlookup|static\n"
        "method.insert = event.download.inserted_new,multi|rlookup|static\n"
        "method.insert = event.download.inserted_session,multi|rlookup|static\n"
