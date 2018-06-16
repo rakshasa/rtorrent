@@ -148,6 +148,30 @@ apply_cat(rpc::target_type target, const torrent::Object& rawArgs) {
   return result;
 }
 
+torrent::Object
+apply_value(rpc::target_type target, const torrent::Object::list_type& args) {
+  if (args.size() < 1)
+    throw torrent::input_error("'value' takes at least a number argument!");
+  if (args.size() > 2)
+    throw torrent::input_error("'value' takes at most two arguments!");
+
+  torrent::Object::value_type val = 0;
+  if (args.front().is_value()) {
+    val = args.front().as_value();
+  } else {
+    int base = args.size() > 1 ? args.back().is_value() ?
+               args.back().as_value() : strtol(args.back().as_string().c_str(), NULL, 10) : 10;
+    char* endptr = 0;
+
+    val = strtoll(args.front().as_string().c_str(), &endptr, base);
+    while (*endptr == ' ' || *endptr == '\n') ++endptr;
+    if (*endptr)
+      throw torrent::input_error("Junk at end of number: " + args.front().as_string());
+  }
+
+  return val;
+}
+
 // Move these boolean operators to a new file.
 
 inline bool
@@ -684,6 +708,7 @@ initialize_command_ui() {
   // Move.
   CMD2_ANY("print", &apply_print);
   CMD2_ANY("cat",   &apply_cat);
+  CMD2_ANY_LIST("value", &apply_value);
   CMD2_ANY("if",    std::bind(&apply_if, std::placeholders::_1, std::placeholders::_2, 0));
   CMD2_ANY("not",   &apply_not);
   CMD2_ANY("false", &apply_false);
