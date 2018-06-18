@@ -702,6 +702,10 @@ initialize_command_ui() {
   CMD2_ANY       ("ui.current_view",       std::bind(&cmd_ui_current_view));
   CMD2_ANY_STRING("ui.current_view.set",   std::bind(&cmd_ui_set_view, std::placeholders::_2));
 
+  CMD2_VAR_VALUE ("ui.throttle.global.step.small",  5);
+  CMD2_VAR_VALUE ("ui.throttle.global.step.medium", 50);
+  CMD2_VAR_VALUE ("ui.throttle.global.step.large",  500);
+
   // TODO: Add 'option_string' for rtorrent-specific options.
   CMD2_VAR_STRING("ui.torrent_list.layout", "full");
 

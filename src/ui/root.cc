@@ -140,20 +140,20 @@ Root::setup_keys() {
 
   const char* keys = get_throttle_keys();
 
-  m_bindings[keys[ 0]]      = std::bind(&Root::adjust_up_throttle, this, 1);
-  m_bindings[keys[ 1]]      = std::bind(&Root::adjust_up_throttle, this, -1);
-  m_bindings[keys[ 2]]      = std::bind(&Root::adjust_down_throttle, this, 1);
-  m_bindings[keys[ 3]]      = std::bind(&Root::adjust_down_throttle, this, -1);
+  m_bindings[keys[ 0]]      = std::bind(&Root::adjust_up_throttle, this, (int) rpc::call_command_value("ui.throttle.global.step.small"));
+  m_bindings[keys[ 1]]      = std::bind(&Root::adjust_up_throttle, this, (int) -rpc::call_command_value("ui.throttle.global.step.small"));
+  m_bindings[keys[ 2]]      = std::bind(&Root::adjust_down_throttle, this, (int) rpc::call_command_value("ui.throttle.global.step.small"));
+  m_bindings[keys[ 3]]      = std::bind(&Root::adjust_down_throttle, this, (int) -rpc::call_command_value("ui.throttle.global.step.small"));
 
-  m_bindings[keys[ 4]]      = std::bind(&Root::adjust_up_throttle, this, 5);
-  m_bindings[keys[ 5]]      = std::bind(&Root::adjust_up_throttle, this, -5);
-  m_bindings[keys[ 6]]      = std::bind(&Root::adjust_down_throttle, this, 5);
-  m_bindings[keys[ 7]]      = std::bind(&Root::adjust_down_throttle, this, -5);
+  m_bindings[keys[ 4]]      = std::bind(&Root::adjust_up_throttle, this, (int) rpc::call_command_value("ui.throttle.global.step.medium"));
+  m_bindings[keys[ 5]]      = std::bind(&Root::adjust_up_throttle, this, (int) -rpc::call_command_value("ui.throttle.global.step.medium"));
+  m_bindings[keys[ 6]]      = std::bind(&Root::adjust_down_throttle, this, (int) rpc::call_command_value("ui.throttle.global.step.medium"));
+  m_bindings[keys[ 7]]      = std::bind(&Root::adjust_down_throttle, this, (int) -rpc::call_command_value("ui.throttle.global.step.medium"));
 
-  m_bindings[keys[ 8]]      = std::bind(&Root::adjust_up_throttle, this, 50);
-  m_bindings[keys[ 9]]      = std::bind(&Root::adjust_up_throttle, this, -50);
-  m_bindings[keys[10]]      = std::bind(&Root::adjust_down_throttle, this, 50);
-  m_bindings[keys[11]]      = std::bind(&Root::adjust_down_throttle, this, -50);
+  m_bindings[keys[ 8]]      = std::bind(&Root::adjust_up_throttle, this, (int) rpc::call_command_value("ui.throttle.global.step.large"));
+  m_bindings[keys[ 9]]      = std::bind(&Root::adjust_up_throttle, this, (int) -rpc::call_command_value("ui.throttle.global.step.large"));
+  m_bindings[keys[10]]      = std::bind(&Root::adjust_down_throttle, this, (int) rpc::call_command_value("ui.throttle.global.step.large"));
+  m_bindings[keys[11]]      = std::bind(&Root::adjust_down_throttle, this, (int) -rpc::call_command_value("ui.throttle.global.step.large"));
 
   m_bindings['\x0C']        = std::bind(&display::Manager::force_redraw, m_control->display()); // ^L
   m_bindings['\x11']        = std::bind(&Control::receive_normal_shutdown, m_control); // ^Q
