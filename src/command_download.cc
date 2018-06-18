@@ -286,7 +286,8 @@ retrieve_d_custom_if_z(core::Download* download, const torrent::Object::list_typ
     throw torrent::bencode_error("d.custom.if_z: Missing default argument.");
 
   try {
-    return download->bencode()->get_key("rtorrent").get_key("custom").get_key_string(key);
+    const std::string& val = download->bencode()->get_key("rtorrent").get_key("custom").get_key_string(key);
+    return val.empty() ? itr->as_string() : val;
   } catch (torrent::bencode_error& e) {
     return itr->as_string();
   }
