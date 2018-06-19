@@ -49,7 +49,6 @@
 # deleted.
 #
 #schedule2 = watch_directory,5,5,load.start=./watch/*.torrent
-#schedule2 = untied_directory,5,5,stop_untied=
 
 # Close torrents when disk-space is low.
 #
