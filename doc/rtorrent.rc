@@ -1,9 +1,17 @@
 #############################################################################
-# This is an example resource file for rTorrent.
+# This is an (old) example resource file for rTorrent.
 # Copy to ~/.rtorrent.rc and enable/modify the options as needed.
 # Remember to uncomment the options you wish to enable.
 #
-# File: https://github.com/rakshasa/rtorrent/blob/master/doc/rtorrent.rc
+# See 'rtorrent.rc-example' for a newer, basic configuration.
+#
+#   Sample: https://github.com/rakshasa/rtorrent/wiki/CONFIG-Template
+# Complete: https://rtorrent-docs.readthedocs.io/en/latest/cmd-ref.html
+#   Useful: https://rtorrent-docs.readthedocs.io/en/latest/use-cases.html
+#   Manual: https://rtorrent-docs.readthedocs.io/en/latest/
+#  Convert: https://github.com/rakshasa/rtorrent/wiki/rTorrent-0.9-Comprehensive-Command-list-(WIP)
+# Handbook: https://media.readthedocs.org/pdf/rtorrent-docs/latest/rtorrent-docs.pdf
+#     File: https://github.com/rakshasa/rtorrent/blob/master/doc/rtorrent.rc
 #############################################################################
 
 # Maximum and minimum number of peers to connect to per torrent.
@@ -108,10 +116,14 @@
 #
 #ui.torrent_list.layout.set = "full"
 
-# SCGI Connectivity (for alternative rtorrent interfaces, XMLRPC)
+# Run rTorrent as a daemon, controlled via XMLRPC.
 #
+#system.daemon.set = false
+
+# SCGI Connectivity (for alternative rtorrent interfaces, XMLRPC)
 # Use a IP socket with scgi_port, or a Unix socket with scgi_local.
 # schedule can be used to set permissions on the unix socket.
-#scgi_port = 127.0.0.1:5000
-#scgi_local = /home/user/rtorrent/rpc.socket
-#schedule = scgi_permission,0,0,"execute.nothrow=chmod,\"g+w,o=\",/home/user/rtorrent/rpc.socket"
+#
+#network.scgi.open_port = "127.0.0.1:5000"
+#network.scgi.open_local = (cat,(session.path),/rpc.sock)
+#schedule2 = socket_chmod, 0, 0, "execute.nothrow=chmod,770,(cat,(session.path),/rpc.sock)"
