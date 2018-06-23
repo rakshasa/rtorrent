@@ -42,6 +42,7 @@
 #include <rak/algorithm.h>
 #include <rak/functional.h>
 #include <rak/functional_fun.h>
+#include <torrent/utils/log.h>
 
 #include "core/manager.h"
 #include "core/view_manager.h"
@@ -170,6 +171,17 @@ apply_value(rpc::target_type target, const torrent::Object::list_type& args) {
   }
 
   return val;
+}
+
+torrent::Object
+apply_try(rpc::target_type target, const torrent::Object& args) {
+  try {
+    return rpc::call_object(args, target);
+  } catch (torrent::input_error& e) {
+    lt_log_print(torrent::LOG_RPC_EVENTS, "try command caught input_error: %s", e.what());
+  }
+
+  return torrent::Object();
 }
 
 // Move these boolean operators to a new file.
@@ -713,6 +725,7 @@ initialize_command_ui() {
   CMD2_ANY("print", &apply_print);
   CMD2_ANY("cat",   &apply_cat);
   CMD2_ANY_LIST("value", &apply_value);
+  CMD2_ANY("try",   &apply_try);
   CMD2_ANY("if",    std::bind(&apply_if, std::placeholders::_1, std::placeholders::_2, 0));
   CMD2_ANY("not",   &apply_not);
   CMD2_ANY("false", &apply_false);

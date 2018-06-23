@@ -167,8 +167,7 @@ apply_scgi(const std::string& arg, int type) {
         sa.sa_inet()->clear();
         saPtr = &sa;
 
-        lt_log_print(torrent::LOG_RPC_EVENTS,
-                     "The SCGI socket has not been bound to any address and likely poses a security risk.");
+        lt_log_print(torrent::LOG_RPC_EVENTS, "SCGI socket is open to any address and is a security risk");
 
       } else if (std::sscanf(arg.c_str(), "%1023[^:]:%i%c", address, &port, &dummy) == 2 ||
                  std::sscanf(arg.c_str(), "[%64[^]]]:%i%c", address, &port, &dummy) == 2) { // [xx::xx]:port format
@@ -177,8 +176,7 @@ apply_scgi(const std::string& arg, int type) {
 
         saPtr = ai->address();
 
-        lt_log_print(torrent::LOG_RPC_EVENTS,
-                     "The SCGI socket is bound to a specific network device yet may still pose a security risk, consider using 'scgi_local'.");
+        lt_log_print(torrent::LOG_RPC_EVENTS, "SCGI socket is bound to an address and might be a security risk");
 
       } else {
         throw torrent::input_error("Could not parse address.");
