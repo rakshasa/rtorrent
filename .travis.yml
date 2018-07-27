@@ -1,5 +1,9 @@
 language: cpp
 
+env:
+  global:
+    - MAKEFLAGS="-j 12"
+
 matrix:
   include:
   - compiler: clang
@@ -67,8 +71,14 @@ matrix:
 # TODO: Use the same branch name if libtorrent has it.
 before_install:
  - git clone https://github.com/rakshasa/libtorrent.git
- - cd libtorrent && ./autogen.sh && CXX="$COMPILER" ./configure && make -j12 && sudo make install
+ - |
+   pushd libtorrent \
+   && ./autogen.sh \
+   && CXX="$COMPILER" ./configure --prefix=/usr \
+   && make \
+   && sudo make install \
+   && popd
 
 script:
-- ./autogen.sh && CXX="$COMPILER" ./configure && make -j12
-- if [ ! $SKIP_CHECK ]; then make -j12 check; fi
+- ./autogen.sh && CXX="$COMPILER" ./configure && make
+- if [ ! $SKIP_CHECK ]; then make check; fi
