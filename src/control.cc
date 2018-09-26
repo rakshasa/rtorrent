@@ -168,6 +168,8 @@ Control::is_shutdown_completed() {
 
 void
 Control::handle_shutdown() {
+  rpc::commands.call_catch("event.system.shutdown", rpc::make_target(), "shutdown", "System shutdown event action failed: ");
+
   if (!m_shutdownQuick) {
     // Temporary hack:
     if (worker_thread->is_active())
