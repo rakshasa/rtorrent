@@ -220,7 +220,14 @@ ElementDownloadList::receive_change_view(const std::string& name) {
     return;
   }
 
+  std::string old_name = view() ? view()->name() : "";
+  if (!old_name.empty())
+    rpc::commands.call_catch("event.view.hide", rpc::make_target(), name,
+                             "View hide event action failed: ");
   set_view(*itr);
+  if (!old_name.empty())
+    rpc::commands.call_catch("event.view.show", rpc::make_target(), old_name,
+                             "View show event action failed: ");
 }
 
 void

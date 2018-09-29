@@ -38,8 +38,7 @@
 
 #include "input_event.h"
 
-//ncurses.h must be included last since sys/mman.h on Solaris munges ERR.
-#include <ncurses.h>
+#include "display/attributes.h"
 
 namespace input {
 

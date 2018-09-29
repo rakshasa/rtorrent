@@ -86,6 +86,15 @@ WindowDownloadList::redraw() {
   if (m_view->empty_visible() || m_canvas->width() < 5 || m_canvas->height() < 2)
     return;
 
+  // show "X of Y"
+  if (m_canvas->width() > 16 + 8 + m_view->name().length()) {
+    int item_idx = m_view->focus() - m_view->begin_visible();
+    if (item_idx == int(m_view->size()))
+      m_canvas->print(m_canvas->width() - 16, 0, "[ none of %-5d]", m_view->size());
+    else
+      m_canvas->print(m_canvas->width() - 16, 0, "[%5d of %-5d]", item_idx + 1, m_view->size());
+  }
+
   int layout_height;
   const std::string layout_name = rpc::call_command_string("ui.torrent_list.layout");
 

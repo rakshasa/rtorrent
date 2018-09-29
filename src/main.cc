@@ -197,6 +197,7 @@ main(int argc, char** argv) {
 
     SignalHandler::set_ignore(SIGPIPE);
     SignalHandler::set_handler(SIGINT,   std::bind(&Control::receive_normal_shutdown, control));
+    SignalHandler::set_handler(SIGHUP,   std::bind(&Control::receive_normal_shutdown, control));
     SignalHandler::set_handler(SIGTERM,  std::bind(&Control::receive_quick_shutdown, control));
     SignalHandler::set_handler(SIGWINCH, std::bind(&display::Manager::force_redraw, control->display()));
     SignalHandler::set_handler(SIGSEGV,  std::bind(&do_panic, SIGSEGV));
@@ -248,6 +249,9 @@ main(int argc, char** argv) {
 
     rpc::parse_command_multiple
       (rpc::make_target(),
+       "method.insert = event.view.hide,multi|rlookup|static\n"
+       "method.insert = event.view.show,multi|rlookup|static\n"
+
        "method.insert = event.download.inserted,multi|rlookup|static\n"
        "method.insert = event.download.inserted_new,multi|rlookup|static\n"
        "method.insert = event.download.inserted_session,multi|rlookup|static\n"

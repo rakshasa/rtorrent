@@ -126,16 +126,13 @@ DownloadList::set_current_view(const std::string& name) {
   return dynamic_cast<ElementDownloadList*>(m_uiArray[DISPLAY_DOWNLOAD_LIST])->receive_change_view(name);
 }
 
-// This should also do focus_next() or something.
 void
 DownloadList::unfocus_download(core::Download* d) {
-  if (current_view()->focus() >= current_view()->end_visible() || *current_view()->focus() != d)
-    return;
-
-  if (m_state == DISPLAY_DOWNLOAD)
+  if (m_state == DISPLAY_DOWNLOAD && d == static_cast<Download*>(m_uiArray[DISPLAY_DOWNLOAD])->download())
     activate_display(DISPLAY_DOWNLOAD_LIST);
 
-  current_view()->next_focus();
+  if (*current_view()->focus() == d && current_view()->focus() < current_view()->end_visible())
+      current_view()->next_focus();
 }
 
 void

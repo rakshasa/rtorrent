@@ -416,7 +416,7 @@ path_expand(std::vector<std::string>* paths, const std::string& pattern) {
       itr->update((r.pattern()[0] != '.') ? utils::Directory::update_hide_dot : 0);
       itr->erase(std::remove_if(itr->begin(), itr->end(), rak::on(rak::mem_ref(&utils::directory_entry::d_name), std::not1(r))), itr->end());
 
-      std::transform(itr->begin(), itr->end(), std::back_inserter(nextCache), rak::bind1st(std::ptr_fun(&path_expand_transform), itr->path() + "/"));
+      std::transform(itr->begin(), itr->end(), std::back_inserter(nextCache), rak::bind1st(std::ptr_fun(&path_expand_transform), itr->path() + (itr->path() == "/" ? "" : "/")));
     }
 
     currentCache.clear();

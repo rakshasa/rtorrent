@@ -275,6 +275,41 @@ retrieve_d_custom_throw(core::Download* download, const std::string& key) {
 }
 
 torrent::Object
+retrieve_d_custom_if_z(core::Download* download, const torrent::Object::list_type& args) {
+  torrent::Object::list_const_iterator itr = args.begin();
+  if (itr == args.end())
+    throw torrent::bencode_error("d.custom.if_z: Missing key argument.");
+  const std::string& key = (itr++)->as_string();
+  if (key.empty())
+    throw torrent::bencode_error("d.custom.if_z: Empty key argument.");
+  if (itr == args.end())
+    throw torrent::bencode_error("d.custom.if_z: Missing default argument.");
+
+  try {
+    const std::string& val = download->bencode()->get_key("rtorrent").get_key("custom").get_key_string(key);
+    return val.empty() ? itr->as_string() : val;
+  } catch (torrent::bencode_error& e) {
+    return itr->as_string();
+  }
+}
+
+torrent::Object
+retrieve_d_custom_map(core::Download* download, bool keys_only, const torrent::Object::list_type& args) {
+  if (args.begin() != args.end())
+    throw torrent::bencode_error("d.custom.keys/items takes no arguments.");
+
+  torrent::Object result = keys_only ? torrent::Object::create_list() : torrent::Object::create_map();
+  torrent::Object::map_type& entries = download->bencode()->get_key("rtorrent").get_key("custom").as_map();
+
+  for (torrent::Object::map_type::const_iterator itr = entries.begin(), last = entries.end(); itr != last; itr++) {
+    if (keys_only) result.as_list().push_back(itr->first);
+    else           result.as_map()[itr->first] = itr->second;
+  }
+
+  return result;
+}
+
+torrent::Object
 retrieve_d_bitfield(core::Download* download) {
   const torrent::Bitfield* bitField = download->download()->file_list()->bitfield();
 
@@ -710,6 +745,9 @@ initialize_command_download() {
   CMD2_DL_STRING("d.custom",       std::bind(&retrieve_d_custom, std::placeholders::_1, std::placeholders::_2));
   CMD2_DL_STRING("d.custom_throw", std::bind(&retrieve_d_custom_throw, std::placeholders::_1, std::placeholders::_2));
   CMD2_DL_LIST  ("d.custom.set",   std::bind(&apply_d_custom, std::placeholders::_1, std::placeholders::_2));
+  CMD2_DL_LIST  ("d.custom.if_z",  std::bind(&retrieve_d_custom_if_z, std::placeholders::_1, std::placeholders::_2));
+  CMD2_DL_LIST  ("d.custom.keys",  std::bind(&retrieve_d_custom_map, std::placeholders::_1, true, std::placeholders::_2));
+  CMD2_DL_LIST  ("d.custom.items", std::bind(&retrieve_d_custom_map, std::placeholders::_1, false, std::placeholders::_2));
 
   CMD2_DL_VAR_STRING_PUBLIC("d.custom1", "rtorrent", "custom1");
   CMD2_DL_VAR_STRING_PUBLIC("d.custom2", "rtorrent", "custom2");
