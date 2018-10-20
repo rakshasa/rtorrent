@@ -320,6 +320,56 @@ torrent::Object apply_equal(rpc::target_type target, const torrent::Object::list
 }
 
 torrent::Object
+apply_compare(rpc::target_type target, const torrent::Object::list_type& args) {
+  if (!rpc::is_target_pair(target))
+    throw torrent::input_error("Can only compare a target pair.");
+
+  if (args.size() < 2)
+    throw torrent::input_error("Need at least order and one field.");
+
+  torrent::Object::list_const_iterator itr = args.begin();
+  std::string order = (itr++)->as_string();
+  const char* current = order.c_str();
+
+  torrent::Object result1;
+  torrent::Object result2;
+
+  for (torrent::Object::list_const_iterator last = args.end(); itr != last; itr++) {
+    std::string field = itr->as_string();
+    result1 = rpc::parse_command_single(rpc::get_target_left(target), field);
+    result2 = rpc::parse_command_single(rpc::get_target_right(target), field);
+
+    if (result1.type() != result2.type())
+      throw torrent::input_error(std::string("Type mismatch in compare of ") + field);
+
+    bool descending = *current == 'd' || *current == 'D' || *current == '-';
+    if (*current) {
+      if (!descending && !(*current == 'a' || *current == 'A' || *current == '+'))
+        throw torrent::input_error(std::string("Bad order '") + *current + "' in " + order);
+      ++current;
+    }
+
+    switch (result1.type()) {
+      case torrent::Object::TYPE_VALUE:
+        if (result1.as_value() != result2.as_value())
+          return (int64_t) (descending ^ (result1.as_value() < result2.as_value()));
+        break;
+
+      case torrent::Object::TYPE_STRING:
+        if (result1.as_string() != result2.as_string())
+          return (int64_t) (descending ^ (result1.as_string() < result2.as_string()));
+        break;
+
+      default:
+        break; // treat unknown types as equal
+    }
+  }
+
+  // if all else is equal, ensure stable sort order based on memory location
+  return (int64_t) (target.second < target.third);
+}
+
+torrent::Object
 apply_to_time(const torrent::Object& rawArgs, int flags) {
   std::tm *u;
   time_t t = (uint64_t)rawArgs.as_value();
@@ -739,6 +789,7 @@ initialize_command_ui() {
   CMD2_ANY_LIST("less",    &apply_less);
   CMD2_ANY_LIST("greater", &apply_greater);
   CMD2_ANY_LIST("equal",   &apply_equal);
+  CMD2_ANY_LIST("compare", &apply_compare);
 
   CMD2_ANY_VALUE("convert.gm_time",      std::bind(&apply_to_time, std::placeholders::_2, 0));
   CMD2_ANY_VALUE("convert.gm_date",      std::bind(&apply_to_time, std::placeholders::_2, 0x2));
