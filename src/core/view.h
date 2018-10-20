@@ -120,6 +120,7 @@ public:
 
   // Need to explicity trigger filtering.
   void                filter();
+  void                filter_by(const torrent::Object& condition, base_type& result);
   void                filter_download(core::Download* download);
 
   const torrent::Object& get_filter() const { return m_filter; }

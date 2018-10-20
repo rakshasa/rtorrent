@@ -296,6 +296,16 @@ View::filter() {
 }
 
 void
+View::filter_by(const torrent::Object& condition, View::base_type& result)
+{
+  // std::copy_if(begin_visible(), end_visible(), result.begin(), view_downloads_filter(condition));
+  view_downloads_filter matches = view_downloads_filter(condition);
+  for (iterator itr = begin_visible(); itr != end_visible(); ++itr)
+    if (matches(*itr))
+      result.push_back(*itr);
+}
+
+void
 View::filter_download(core::Download* download) {
   iterator itr = std::find(base_type::begin(), base_type::end(), download);
 
