@@ -307,6 +307,42 @@ d_multicall(const torrent::Object::list_type& args) {
   return resultRaw;
 }
 
+torrent::Object
+d_multicall_filtered(const torrent::Object::list_type& args) {
+  if (args.size() < 2)
+    throw torrent::input_error("d.multicall.filtered requires at least 2 arguments.");
+  torrent::Object::list_const_iterator arg = args.begin();
+
+  // Find the given view
+  core::ViewManager* viewManager = control->view_manager();
+  core::ViewManager::iterator viewItr = viewManager->find(arg->as_string().empty() ? "default" : arg->as_string());
+
+  if (viewItr == viewManager->end())
+    throw torrent::input_error("Could not find view '" + arg->as_string() + "'.");
+
+  // Make a filtered copy of the current item list
+  core::View::base_type dlist;
+  (*viewItr)->filter_by(*++arg, dlist);
+
+  // Generate result by iterating over all items
+  torrent::Object             resultRaw = torrent::Object::create_list();
+  torrent::Object::list_type& result = resultRaw.as_list();
+  ++arg;  // skip to first command
+
+  for (core::View::iterator item = dlist.begin(); item != dlist.end(); ++item) {
+    // Add empty row to result
+    torrent::Object::list_type& row = result.insert(result.end(), torrent::Object::create_list())->as_list();
+
+    // Call the provided commands and assemble their results
+    for (torrent::Object::list_const_iterator command = arg; command != args.end(); command++) {
+      const std::string& cmdstr = command->as_string();
+      row.push_back(rpc::parse_command(rpc::make_target(*item), cmdstr.c_str(), cmdstr.c_str() + cmdstr.size()).first);
+    }
+  }
+
+  return resultRaw;
+}
+
 static void
 call_watch_command(const std::string& command, const std::string& path) {
   rpc::commands.call_catch(command.c_str(), rpc::make_target(), path);
@@ -359,6 +395,7 @@ initialize_command_events() {
 
   CMD2_ANY_LIST    ("download_list",       std::bind(&apply_download_list, std::placeholders::_2));
   CMD2_ANY_LIST    ("d.multicall2",        std::bind(&d_multicall, std::placeholders::_2));
+  CMD2_ANY_LIST    ("d.multicall.filtered", std::bind(&d_multicall_filtered, std::placeholders::_2));
 
   CMD2_ANY_LIST    ("directory.watch.added", std::bind(&directory_watch_added, std::placeholders::_2));
 }
