@@ -252,6 +252,9 @@ main(int argc, char** argv) {
        "method.insert = event.view.hide,multi|rlookup|static\n"
        "method.insert = event.view.show,multi|rlookup|static\n"
 
+       "method.insert = event.system.startup_done,multi|rlookup|static\n"
+       "method.insert = event.system.shutdown,multi|rlookup|static\n"
+
        "method.insert = event.download.inserted,multi|rlookup|static\n"
        "method.insert = event.download.inserted_new,multi|rlookup|static\n"
        "method.insert = event.download.inserted_session,multi|rlookup|static\n"
@@ -479,6 +482,8 @@ main(int argc, char** argv) {
     control->display()->receive_update();
 
     worker_thread->start_thread();
+
+    rpc::commands.call_catch("event.system.startup_done", rpc::make_target(), "startup_done", "System startup_done event action failed: ");
 
     torrent::thread_base::event_loop(torrent::main_thread());
 
