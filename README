@@ -1,7 +1,7 @@
 BUILDING
 
  Run "./autogen.sh" to generate the configure scripts if
-nessesary. The man page "doc/rtorrent.1" must be generated with
+necessary. The man page "doc/rtorrent.1" must be generated with
 "docbook2man rtorrent.1.xml" if it is missing.
 
  Note that rtorrent follows the development of libtorrent closely, and
