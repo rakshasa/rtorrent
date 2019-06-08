@@ -39,9 +39,13 @@
 
 #include <algorithm>
 #include <cctype>
+#include <climits>
 #include <cstdlib>
+#include <functional>
 #include <iterator>
 #include <locale>
+#include <random>
+
 
 namespace rak {
 
@@ -312,11 +316,13 @@ transform_hex_str(const Sequence& seq) {
 template <typename Sequence>
 Sequence
 generate_random(size_t length) {
+  std::random_device rd;
+  std::mt19937 mt(rd());
+  using bytes_randomizer = std::independent_bits_engine<std::mt19937, CHAR_BIT, uint8_t>;
+  bytes_randomizer bytes(mt);
   Sequence s;
   s.reserve(length);
-
-  std::generate_n(std::back_inserter(s), length, &::random);
-
+  std::generate_n(std::back_inserter(s), length, std::ref(bytes));
   return s;
 }
 
@@ -369,6 +375,51 @@ template <typename Sequence>
 inline bool
 is_all_name(const Sequence& src) {
   return is_all_name(src.begin(), src.end());
+}
+
+template <typename Iterator>
+std::string
+sanitize(Iterator first, Iterator last) {
+  std::string dest;
+  for (; first != last; ++first) {
+    if (std::isprint(*first) && *first != '\r' && *first != '\n' && *first != '\t')
+      dest += *first;
+    else
+      dest += " ";
+  }
+
+  return dest;
+}
+
+template <typename Sequence>
+std::string
+sanitize(const Sequence& src) {
+    return trim(sanitize(src.begin(), src.end()));
+}
+
+template <typename Iterator>
+std::string striptags(Iterator first, Iterator last) {
+  bool copychar = true;
+  std::string dest;
+
+  for (; first != last; ++first) {
+    if (std::isprint(*first) && *first == '<') {
+      copychar = false;
+    } else if (std::isprint(*first) && *first == '>') {
+      copychar = true;
+      continue;
+    }
+
+    if (copychar)
+      dest += *first;
+  }
+
+  return dest;
+}
+
+template <typename Sequence>
+std::string striptags(const Sequence& src) {
+    return striptags(src.begin(), src.end());
 }
 
 }
