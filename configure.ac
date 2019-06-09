@@ -32,17 +32,23 @@ TORRENT_WITHOUT_STATVFS
 TORRENT_WITHOUT_STATFS
 
 AX_PTHREAD([], AC_MSG_ERROR([requires pthread]))
-AX_WITH_CURSES
-
-if test "x$ax_cv_ncursesw" != xyes && test "x$ax_cv_ncurses" != xyes; then
-	AC_MSG_ERROR([requires either NcursesW or Ncurses library])
-fi
+PKG_CHECK_MODULES([CURSES],[ncursesw],[
+       AC_DEFINE(HAVE_NCURSESW_CURSES_H, 1)
+       ],
+       [PKG_CHECK_MODULES([CURSES],[ncurses],[
+               AC_DEFINE(HAVE_NCURSES_H, 1)
+               ],
+               [AX_WITH_CURSES()
+               if test "x$ax_cv_ncursesw" != xyes && test "x$ax_cv_ncurses" != xyes; then
+                       AC_MSG_ERROR([requires either NcursesW or Ncurses library])
+               fi])
+       ])
 
 PKG_CHECK_MODULES([LIBCURL], [libcurl], , [LIBCURL_CHECK_CONFIG])
 PKG_CHECK_MODULES([CPPUNIT], [cppunit],, [no_cppunit="yes"])
 PKG_CHECK_MODULES([DEPENDENCIES], [libtorrent >= 0.13.7])
 
-LIBS="$PTHREAD_LIBS $CURSES_LIB $CPPUNIT_LIBS $LIBCURL $LIBCURL_LIBS $DEPENDENCIES_LIBS $LIBS"
+LIBS="$PTHREAD_LIBS $CURSES_LIB $CURSES_LIBS $CPPUNIT_LIBS $LIBCURL $LIBCURL_LIBS $DEPENDENCIES_LIBS $LIBS"
 CFLAGS="$CFLAGS $PTHREAD_CFLAGS $CPPUNIT_CFLAGS $LIBCURL_CPPFLAGS $LIBCURL_CFLAGS $DEPENDENCIES_CFLAGS $CURSES_CFLAGS"
 CXXFLAGS="$CXXFLAGS $PTHREAD_CFLAGS $CPPUNIT_CFLAGS $LIBCURL_CPPFLAGS $LIBCURL_CFLAGS $DEPENDENCIES_CFLAGS $CURSES_CFLAGS"
 
