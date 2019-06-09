@@ -54,7 +54,7 @@ public:
   using Base::size_type;
   using Base::npos;
 
-  TextInput() : m_pos(0), m_alt(false) {}
+  TextInput() : m_pos(0) {}
   virtual ~TextInput() {}
 
   size_type           get_pos()                  { return m_pos; }
@@ -62,7 +62,7 @@ public:
 
   virtual bool        pressed(int key);
 
-  void                clear()                    { m_pos = 0; m_alt = false; Base::clear(); }
+  void                clear()                    { m_pos = 0; Base::clear(); }
 
   void                slot_dirty(slot_void s)    { m_slot_dirty = s; }
   void                mark_dirty()               { if (m_slot_dirty) m_slot_dirty(); }
@@ -74,7 +74,6 @@ public:
 private:
   size_type           m_pos;
 
-  bool                m_alt;
   slot_void           m_slot_dirty;
 
   Bindings            m_bindings;

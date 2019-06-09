@@ -39,6 +39,7 @@
 
 #include <inttypes.h>
 #include "input/bindings.h"
+#include "download_list.h"
 
 class Control;
 
@@ -65,6 +66,10 @@ public:
   typedef display::WindowInput     WInput;
   typedef display::WindowStatusbar WStatusbar;
 
+  typedef std::map<int, int> InputHistoryPointers;
+  typedef std::vector<std::string> InputHistoryCategory;
+  typedef std::map<int, InputHistoryCategory> InputHistory;
+
   Root();
 
   void                init(Control* c);
@@ -88,10 +93,18 @@ public:
 
   const char*         get_throttle_keys();
 
-  void                enable_input(const std::string& title, input::TextInput* input);
+  void                enable_input(const std::string& title, input::TextInput* input, ui::DownloadList::Input type);
   void                disable_input();
 
   input::TextInput*   current_input();
+
+  int                 get_input_history_size()                { return m_input_history_length; }
+  void                set_input_history_size(int size);
+  void                add_to_input_history(ui::DownloadList::Input type, std::string item);
+
+  void                load_input_history();
+  void                save_input_history();
+  void                clear_input_history();
 
 private:
   void                setup_keys();
@@ -105,6 +118,17 @@ private:
   WStatusbar*         m_windowStatusbar;
 
   input::Bindings     m_bindings;
+
+  int                   m_input_history_length;
+  std::string           m_input_history_last_input;
+  int                   m_input_history_pointer_get;
+  InputHistory          m_input_history;
+  InputHistoryPointers  m_input_history_pointers;
+
+  void                prev_in_input_history(ui::DownloadList::Input type);
+  void                next_in_input_history(ui::DownloadList::Input type);
+
+  void                reset_input_history_attributes(ui::DownloadList::Input type);
 };
 
 }
