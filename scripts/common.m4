@@ -168,7 +168,7 @@ AC_DEFUN([TORRENT_CHECK_EXECINFO], [
 AC_DEFUN([TORRENT_CHECK_ALIGNED], [
   AC_MSG_CHECKING(the byte alignment)
 
-  AC_RUN_IFELSE([AC_LANG_SOURCE([
+  AC_LINK_IFELSE([AC_LANG_SOURCE([
       #include <inttypes.h>
       int main() {
         char buf@<:@8@:>@ = { 0, 0, 0, 0, 1, 0, 0, 0 };
