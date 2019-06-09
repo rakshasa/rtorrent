@@ -274,20 +274,30 @@ DownloadList::receive_view_input(Input type) {
                                                       std::placeholders::_1,
                                                       std::placeholders::_2));
 
+  // reset ESC delay for input prompt
+  set_escdelay(0);
+
   input->bindings()['\n']      = std::bind(&DownloadList::receive_exit_input, this, type);
   input->bindings()[KEY_ENTER] = std::bind(&DownloadList::receive_exit_input, this, type);
-  input->bindings()['\x07']    = std::bind(&DownloadList::receive_exit_input, this, INPUT_NONE);
+  input->bindings()['\x07']    = std::bind(&DownloadList::receive_exit_input, this, INPUT_NONE); // ^G
+  input->bindings()['\x1B']    = std::bind(&DownloadList::receive_exit_input, this, INPUT_NONE); // ESC , ^[
 
-  control->ui()->enable_input(title, input);
+  control->ui()->enable_input(title, input, type);
 }
 
 void
 DownloadList::receive_exit_input(Input type) {
+  // set back ESC delay to default
+  set_escdelay(1000);
+
   input::TextInput* input = control->ui()->current_input();
   
   // We should check that this object is the one holding the input.
   if (input == NULL)
     return;
+
+  if (type != INPUT_NONE && type != INPUT_EOI)
+    control->ui()->add_to_input_history(type, input->str());
 
   control->ui()->disable_input();
 

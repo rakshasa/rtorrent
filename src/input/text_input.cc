@@ -47,22 +47,6 @@ TextInput::pressed(int key) {
   if (m_bindings.pressed(key)) {
     return true;
 
-  } else if (m_alt) {
-    m_alt = false;
-
-    switch (key) {
-//     case 'b':
-//       Base::insert(m_pos, "M^b");
-//       break;
-
-//     case 'f':
-//       Base::insert(m_pos, "M^f");
-//       break;
-
-    default:
-      return false;
-    }
-
   } else if (key >= 0x20 && key < 0x7F) {
     Base::insert(m_pos++, 1, key);
 
@@ -111,11 +95,6 @@ TextInput::pressed(int key) {
 
     case 'k' - 'a' + 1: // ^K
       Base::erase(m_pos, size()-m_pos);
-      break;
-
-    case 0x1B:
-      m_alt = true;
-
       break;
 
     default:
