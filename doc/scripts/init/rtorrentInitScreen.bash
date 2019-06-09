@@ -130,7 +130,7 @@ d_stop() {
 }
 
 getsession() { 
-    session=$(cat "$1" | grep "^[[:space:]]*session[[:space:]]*=" | sed "s/^[[:space:]]*session[[:space:]]*=[[:space:]]*//" )
+    session=$(cat "$1" | grep "^[[:space:]]*session.path.set[[:space:]]*=" | sed "s/^[[:space:]]*session.path.set[[:space:]]*=[[:space:]]*//" )
     #session=${session/#~/`getent passwd ${user}|cut -d: -f6`}
     echo $session
 }
