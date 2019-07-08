@@ -174,8 +174,8 @@ AC_DEFUN([TORRENT_WITHOUT_VARIABLE_FDSET], [
 AC_DEFUN([TORRENT_CHECK_FALLOCATE], [
   AC_MSG_CHECKING(for fallocate)
 
-  AC_TRY_LINK([#include <fcntl.h>
-               #include <linux/falloc.h>
+  AC_TRY_LINK([#define _GNU_SOURCE
+               #include <fcntl.h>
               ],[ fallocate(0, FALLOC_FL_KEEP_SIZE, 0, 0); return 0;
               ],
     [
