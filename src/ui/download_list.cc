@@ -36,6 +36,8 @@
 
 #include "config.h"
 
+#include <sstream>
+
 #include <rak/functional.h>
 #include <rak/string_manip.h>
 #include <torrent/exceptions.h>
@@ -259,6 +261,25 @@ DownloadList::receive_view_input(Input type) {
     title = "command";
     break;
 
+  case INPUT_FILTER:
+    {
+      // Do not allow to subfilter the defined excluded views
+      const std::string excluded_views = rpc::call_command_string("view.filter.temp.excluded");
+      std::stringstream ss(excluded_views);
+      std::string view_name_var;
+
+      while(ss.good()) {
+          std::getline(ss, view_name_var, ',');
+          if (current_view()->name() == rak::trim(view_name_var)) {
+              control->core()->push_log_std("View '" + current_view()->name() + "' can't be filtered.");
+              return;
+          }
+      }
+
+      title = "filter";
+    }
+    break;
+
   default:
     throw torrent::internal_error("DownloadList::receive_view_input(...) Invalid input type.");
   }
@@ -332,6 +353,28 @@ DownloadList::receive_exit_input(Input type) {
                                 input->str());
       break;
 
+    case INPUT_FILTER:
+      if (input->str().empty()) {
+        if (rpc::call_command_value("view.filter.temp.log"))
+          control->core()->push_log_std("Clear temporary filter on '" + current_view()->name() + "' view.");
+        current_view()->set_filter_temp(torrent::Object());
+        current_view()->filter();
+        current_view()->sort();
+      } else {
+        std::string pattern = input->str();
+        if (pattern.back() != '$')
+          pattern = pattern + ".*";
+        if (pattern.front() != '^')
+          pattern = ".*" + pattern;
+        std::transform(pattern.begin(), pattern.end(), pattern.begin(), ::tolower);
+        std::string temp_filter = "match={d.name=," + pattern + "}";
+        if (rpc::call_command_value("view.filter.temp.log"))
+          control->core()->push_log_std("Temporary filter on '" + current_view()->name() + "' view: " + pattern);
+        current_view()->set_filter_temp(temp_filter);
+        current_view()->filter();
+      }
+      break;
+
     default:
       throw torrent::internal_error("DownloadList::receive_exit_input(...) Invalid input type.");
     }
@@ -353,6 +396,7 @@ DownloadList::setup_keys() {
   m_bindings[KEY_ENTER]     = std::bind(&DownloadList::receive_view_input, this, INPUT_LOAD_MODIFIED);
   m_bindings['\x0F']        = std::bind(&DownloadList::receive_view_input, this, INPUT_CHANGE_DIRECTORY);
   m_bindings['X' - '@']     = std::bind(&DownloadList::receive_view_input, this, INPUT_COMMAND);
+  m_bindings['F']           = std::bind(&DownloadList::receive_view_input, this, INPUT_FILTER);
 
   m_uiArray[DISPLAY_LOG]->bindings()[KEY_LEFT] =
     m_uiArray[DISPLAY_LOG]->bindings()['B' - '@'] =

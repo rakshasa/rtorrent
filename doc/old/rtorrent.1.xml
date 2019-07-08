@@ -225,6 +225,13 @@ Toggle whether torrent ignores ratio settings.
           </para></listitem>
         </varlistentry>
 
+        <varlistentry>
+          <term>F</term>
+          <listitem><para>
+Add a temporary name based regex filter to the current view.
+          </para></listitem>
+        </varlistentry>
+
       </variablelist>
 
     </refsect2>
