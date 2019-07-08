@@ -71,8 +71,8 @@ Root::Root() :
   m_windowInput(NULL),
   m_windowStatusbar(NULL),
   m_input_history_length(99),
-  m_input_history_pointer_get(0),
-  m_input_history_last_input("") {
+  m_input_history_last_input(""),
+  m_input_history_pointer_get(0) {
 
   // Initialise prefilled m_input_history and m_input_history_pointers objects.
   for (int type = ui::DownloadList::INPUT_LOAD_DEFAULT; type != ui::DownloadList::INPUT_EOI; type++) {
