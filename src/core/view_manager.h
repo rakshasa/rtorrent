@@ -93,6 +93,7 @@ public:
   void                set_sort_current(const std::string& name, const torrent::Object& cmd) { (*find_throw(name))->set_sort_current(cmd); }
 
   void                set_filter(const std::string& name, const torrent::Object& cmd);
+  void                set_filter_temp(const std::string& name, const torrent::Object& cmd);
   void                set_filter_on(const std::string& name, const filter_args& args);
 
   void                set_event_added(const std::string& name, const torrent::Object& cmd)   { (*find_throw(name))->set_event_added(cmd); }

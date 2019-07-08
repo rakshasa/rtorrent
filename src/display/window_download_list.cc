@@ -81,7 +81,7 @@ WindowDownloadList::redraw() {
   if (m_view == NULL)
     return;
 
-  m_canvas->print(0, 0, "%s", ("[View: " + m_view->name() + "]").c_str());
+  m_canvas->print(0, 0, "%s", ("[View: " + m_view->name() + (m_view->get_filter_temp().is_empty() ? "" : " (filtered)") + "]").c_str());
 
   if (m_view->empty_visible() || m_canvas->width() < 5 || m_canvas->height() < 2)
     return;
