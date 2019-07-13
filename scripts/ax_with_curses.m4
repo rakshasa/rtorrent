@@ -12,7 +12,9 @@
 #   present, along with the associated header file.  The NcursesW
 #   (wide-character) library is searched for first, followed by Ncurses,
 #   then the system-default plain Curses.  The first library found is the
-#   one returned.
+#   one returned. Finding libraries will first be attempted by using
+#   pkg-config, and should the pkg-config files not be available, will
+#   fallback to combinations of known flags itself.
 #
 #   The following options are understood: --with-ncursesw, --with-ncurses,
 #   --without-ncursesw, --without-ncurses.  The "--with" options force the
@@ -52,23 +54,25 @@
 #
 #   (These preprocessor symbols are discussed later in this document.)
 #
-#   The following output variable is defined by this macro; it is precious
-#   and may be overridden on the ./configure command line:
+#   The following output variables are defined by this macro; they are
+#   precious and may be overridden on the ./configure command line:
 #
 #     CURSES_LIB  - library to add to xxx_LDADD
+#     CURSES_CPPFLAGS  - include paths to add to xxx_CPPFLAGS
 #
-#   The library listed in CURSES_LIB is NOT added to LIBS by default. You
-#   need to add CURSES_LIB to the appropriate xxx_LDADD line in your
-#   Makefile.am.  For example:
+#   Neither the library listed in CURSES_LIB, nor the flags in
+#   CURSES_CPPFLAGS are added to LIBS, respectively CPPFLAGS, by default.
+#   You need to add both to the appropriate xxx_LDADD/xxx_CPPFLAGS line in
+#   your Makefile.am. For example:
 #
 #     prog_LDADD = @CURSES_LIB@
+#     prog_CPPFLAGS = @CURSES_CPPFLAGS@
 #
 #   If CURSES_LIB is set on the configure command line (such as by running
 #   "./configure CURSES_LIB=-lmycurses"), then the only header searched for
-#   is <curses.h>.  The user may use the CPPFLAGS precious variable to
-#   override the standard #include search path.  If the user needs to
-#   specify an alternative path for a library (such as for a non-standard
-#   NcurseW), the user should use the LDFLAGS variable.
+#   is <curses.h>. If the user needs to specify an alternative path for a
+#   library (such as for a non-standard NcurseW), the user should use the
+#   LDFLAGS variable.
 #
 #   The following shell variables may be defined by this macro:
 #
@@ -88,7 +92,7 @@
 #
 #     AX_WITH_CURSES
 #     if test "x$ax_cv_ncursesw" != xyes && test "x$ax_cv_ncurses" != xyes; then
-#         AX_MSG_ERROR([requires either NcursesW or Ncurses library])
+#         AC_MSG_ERROR([requires either NcursesW or Ncurses library])
 #     fi
 #
 #   If any Curses library will do (but one must be present and must support
@@ -182,33 +186,85 @@
 #   modified version of the Autoconf Macro, you may extend this special
 #   exception to the GPL to apply to your modified version as well.
 
-#serial 13
+#serial 16
+
+# internal function to factorize common code that is used by both ncurses
+# and ncursesw
+AC_DEFUN([_FIND_CURSES_FLAGS], [
+    AC_MSG_CHECKING([for $1 via pkg-config])
+
+    _PKG_CONFIG([_ax_cv_$1_lib], [libs], [$1])
+    _PKG_CONFIG([_ax_cv_$1_cppflags], [cflags], [$1])
+
+    AS_IF([test "x$pkg_failed" = "xyes" || test "x$pkg_failed" = "xuntried"],[
+        AC_MSG_RESULT([no])
+        # No suitable .pc file found, have to find flags via fallback
+        AC_CACHE_CHECK([for $1 via fallback], [ax_cv_$1], [
+            AS_ECHO()
+            pkg_cv__ax_cv_$1_lib="-l$1"
+            pkg_cv__ax_cv_$1_cppflags="$CURSES_CPPFLAGS"
+            LIBS="$ax_saved_LIBS $pkg_cv__ax_cv_$1_lib"
+            CPPFLAGS="$ax_saved_CPPFLAGS $pkg_cv__ax_cv_$1_cppflags"
+
+            AC_MSG_CHECKING([for initscr() with $pkg_cv__ax_cv_$1_lib])
+            AC_LINK_IFELSE([AC_LANG_CALL([], [initscr])],
+                [
+                    AC_MSG_RESULT([yes])
+                    AC_MSG_CHECKING([for nodelay() with $pkg_cv__ax_cv_$1_lib])
+                    AC_LINK_IFELSE([AC_LANG_CALL([], [nodelay])],[
+                        ax_cv_$1=yes
+                        ],[
+                        AC_MSG_RESULT([no])
+                        m4_if(
+                            [$1],[ncursesw],[pkg_cv__ax_cv_$1_lib="$pkg_cv__ax_cv_$1_lib -ltinfow"],
+                            [$1],[ncurses],[pkg_cv__ax_cv_$1_lib="$pkg_cv__ax_cv_$1_lib -ltinfo"]
+                        )
+                        LIBS="$ax_saved_LIBS $pkg_cv__ax_cv_$1_lib"
+
+                        AC_MSG_CHECKING([for nodelay() with $pkg_cv__ax_cv_$1_lib])
+                        AC_LINK_IFELSE([AC_LANG_CALL([], [nodelay])],[
+                            ax_cv_$1=yes
+                            ],[
+                            ax_cv_$1=no
+                        ])
+                    ])
+                ],[
+                    ax_cv_$1=no
+            ])
+        ])
+        ],[
+        AC_MSG_RESULT([yes])
+        # Found .pc file, using its information
+        LIBS="$ax_saved_LIBS $pkg_cv__ax_cv_$1_lib"
+        CPPFLAGS="$ax_saved_CPPFLAGS $pkg_cv__ax_cv_$1_cppflags"
+        ax_cv_$1=yes
+    ])
+])
 
 AU_ALIAS([MP_WITH_CURSES], [AX_WITH_CURSES])
 AC_DEFUN([AX_WITH_CURSES], [
     AC_ARG_VAR([CURSES_LIB], [linker library for Curses, e.g. -lcurses])
+    AC_ARG_VAR([CURSES_CPPFLAGS], [preprocessor flags for Curses, e.g. -I/usr/include/ncursesw])
     AC_ARG_WITH([ncurses], [AS_HELP_STRING([--with-ncurses],
         [force the use of Ncurses or NcursesW])],
         [], [with_ncurses=check])
     AC_ARG_WITH([ncursesw], [AS_HELP_STRING([--without-ncursesw],
         [do not use NcursesW (wide character support)])],
         [], [with_ncursesw=check])
+    AC_REQUIRE([PKG_PROG_PKG_CONFIG])
 
     ax_saved_LIBS=$LIBS
+    ax_saved_CPPFLAGS=$CPPFLAGS
+
     AS_IF([test "x$with_ncurses" = xyes || test "x$with_ncursesw" = xyes],
         [ax_with_plaincurses=no], [ax_with_plaincurses=check])
 
     ax_cv_curses_which=no
 
     # Test for NcursesW
-
     AS_IF([test "x$CURSES_LIB" = x && test "x$with_ncursesw" != xno], [
-        LIBS="$ax_saved_LIBS -lncursesw"
+        _FIND_CURSES_FLAGS([ncursesw])
 
-        AC_CACHE_CHECK([for NcursesW wide-character library], [ax_cv_ncursesw], [
-            AC_LINK_IFELSE([AC_LANG_CALL([], [initscr])],
-                [ax_cv_ncursesw=yes], [ax_cv_ncursesw=no])
-        ])
         AS_IF([test "x$ax_cv_ncursesw" = xno && test "x$with_ncursesw" = xyes], [
             AC_MSG_ERROR([--with-ncursesw specified but could not find NcursesW library])
         ])
@@ -216,7 +272,8 @@ AC_DEFUN([AX_WITH_CURSES], [
         AS_IF([test "x$ax_cv_ncursesw" = xyes], [
             ax_cv_curses=yes
             ax_cv_curses_which=ncursesw
-            CURSES_LIB="-lncursesw"
+            CURSES_LIB="$pkg_cv__ax_cv_ncursesw_lib"
+            CURSES_CPPFLAGS="$pkg_cv__ax_cv_ncursesw_cppflags"
             AC_DEFINE([HAVE_NCURSESW], [1], [Define to 1 if the NcursesW library is present])
             AC_DEFINE([HAVE_CURSES],   [1], [Define to 1 if a SysV or X/Open compatible Curses library is present])
 
@@ -316,46 +373,15 @@ AC_DEFUN([AX_WITH_CURSES], [
             AS_IF([test "x$ax_cv_header_ncursesw_curses_h" = xno && test "x$ax_cv_header_ncursesw_h" = xno && test "x$ax_cv_header_ncurses_h_with_ncursesw" = xno], [
                 AC_MSG_WARN([could not find a working ncursesw/curses.h, ncursesw.h or ncurses.h])
             ])
-            
-            dnl Test if we need to explicitly link against -ltinfow.
-            AC_CACHE_CHECK([if curses tinfo library is linked properly], [ax_cv_ncurses_compiled], [
-                LIBS="$ax_saved_LIBS $CURSES_LIB"
-                AC_LINK_IFELSE([AC_LANG_CALL([], [keypad])], [ax_cv_ncurses_compiled=yes], [ax_cv_ncurses_compiled=no])
-
-                LIBS="$ax_saved_LIBS $CURSES_LIB -ltinfo"
-                AC_LINK_IFELSE([AC_LANG_CALL([], [keypad])], [ax_cv_tinfo_compiled=yes], [ax_cv_tinfo_compiled=no])
-
-                LIBS="$ax_saved_LIBS $CURSES_LIB -ltinfow"
-                AC_LINK_IFELSE([AC_LANG_CALL([], [keypad])], [ax_cv_tinfow_compiled=yes], [ax_cv_tinfow_compiled=no])
-
-                LIBS=$ax_saved_LIBS
-            ])
-
-            AS_IF([test "x$ax_cv_ncurses_compiled" = xno], [
-                AS_IF(
-                    [test "x$ax_cv_tinfo_compiled" = xyes], [
-                        AC_MSG_RESULT([adding libtinfo])
-                        CURSES_LIB="$CURSES_LIB -ltinfo"
-                    ],
-                    [test "x$ax_cv_tinfow_compiled" = xyes], [
-                        AC_MSG_RESULT([adding libtinfow])
-                        CURSES_LIB="$CURSES_LIB -ltinfow"
-                    ], [
-                    AC_MSG_ERROR([no])
-                ])
-            ])
         ])
     ])
+    unset pkg_cv__ax_cv_ncursesw_lib
+    unset pkg_cv__ax_cv_ncursesw_cppflags
 
     # Test for Ncurses
-
     AS_IF([test "x$CURSES_LIB" = x && test "x$with_ncurses" != xno && test "x$ax_cv_curses_which" = xno], [
-        LIBS="$ax_saved_LIBS -lncurses"
+        _FIND_CURSES_FLAGS([ncurses])
 
-        AC_CACHE_CHECK([for Ncurses library], [ax_cv_ncurses], [
-            AC_LINK_IFELSE([AC_LANG_CALL([], [initscr])],
-                [ax_cv_ncurses=yes], [ax_cv_ncurses=no])
-        ])
         AS_IF([test "x$ax_cv_ncurses" = xno && test "x$with_ncurses" = xyes], [
             AC_MSG_ERROR([--with-ncurses specified but could not find Ncurses library])
         ])
@@ -363,7 +389,8 @@ AC_DEFUN([AX_WITH_CURSES], [
         AS_IF([test "x$ax_cv_ncurses" = xyes], [
             ax_cv_curses=yes
             ax_cv_curses_which=ncurses
-            CURSES_LIB="-lncurses"
+            CURSES_LIB="$pkg_cv__ax_cv_ncurses_lib"
+            CURSES_CPPFLAGS="$pkg_cv__ax_cv_ncurses_cppflags"
             AC_DEFINE([HAVE_NCURSES], [1], [Define to 1 if the Ncurses library is present])
             AC_DEFINE([HAVE_CURSES],  [1], [Define to 1 if a SysV or X/Open compatible Curses library is present])
 
@@ -418,9 +445,10 @@ AC_DEFUN([AX_WITH_CURSES], [
             ])
         ])
     ])
+    unset pkg_cv__ax_cv_ncurses_lib
+    unset pkg_cv__ax_cv_ncurses_cppflags
 
     # Test for plain Curses (or if CURSES_LIB was set by user)
-
     AS_IF([test "x$with_plaincurses" != xno && test "x$ax_cv_curses_which" = xno], [
         AS_IF([test "x$CURSES_LIB" != x], [
             LIBS="$ax_saved_LIBS $CURSES_LIB"
@@ -543,4 +571,8 @@ AC_DEFUN([AX_WITH_CURSES], [
     AS_IF([test "x$ax_cv_curses_obsolete" != xyes], [ax_cv_curses_obsolete=no])
 
     LIBS=$ax_saved_LIBS
+    CPPFLAGS=$ax_saved_CPPFLAGS
+
+    unset ax_saved_LIBS
+    unset ax_saved_CPPFLAGS
 ])dnl

@@ -32,18 +32,11 @@ TORRENT_WITHOUT_STATVFS
 TORRENT_WITHOUT_STATFS
 
 AX_PTHREAD([], AC_MSG_ERROR([requires pthread]))
+AX_WITH_CURSES
 
-PKG_CHECK_MODULES([CURSES],[ncursesw],[
-       AC_DEFINE(HAVE_NCURSESW_CURSES_H, 1)
-       ],
-       [PKG_CHECK_MODULES([CURSES],[ncurses],[
-               AC_DEFINE(HAVE_NCURSES_H, 1)
-               ],
-               [AX_WITH_CURSES()
-               if test "x$ax_cv_ncursesw" != xyes && test "x$ax_cv_ncurses" != xyes; then
-                       AC_MSG_ERROR([requires either NcursesW or Ncurses library])
-               fi])
-       ])
+if test "x$ax_cv_ncursesw" != xyes && test "x$ax_cv_ncurses" != xyes; then
+	AC_MSG_ERROR([requires either NcursesW or Ncurses library])
+fi
 
 PKG_CHECK_MODULES([LIBCURL], [libcurl],, [LIBCURL_CHECK_CONFIG])
 PKG_CHECK_MODULES([CPPUNIT], [cppunit],, [no_cppunit="yes"])
