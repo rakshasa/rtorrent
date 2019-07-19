@@ -17,5 +17,5 @@ Stable
 Latest
 ------
 
- * [http://rtorrent.net/downloads/libtorrent-0.13.7.tar.gz](http://rtorrent.net/downloads/libtorrent-0.13.7.tar.gz)
- * [http://rtorrent.net/downloads/rtorrent-0.9.7.tar.gz](http://rtorrent.net/downloads/rtorrent-0.9.7.tar.gz)
+ * [http://rtorrent.net/downloads/libtorrent-0.13.8.tar.gz](http://rtorrent.net/downloads/libtorrent-0.13.8.tar.gz)
+ * [http://rtorrent.net/downloads/rtorrent-0.9.8.tar.gz](http://rtorrent.net/downloads/rtorrent-0.9.8.tar.gz)
