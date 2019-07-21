@@ -51,7 +51,7 @@ class WindowInput : public Window {
 public:
   WindowInput() :
     Window(new Canvas, 0, 0, 1, extent_full, 1),
-    m_input(NULL),
+    m_input(nullptr),
     m_focus(false) {}
 
   input::TextInput*   input()                            { return m_input; }

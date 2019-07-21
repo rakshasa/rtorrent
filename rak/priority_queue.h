@@ -118,7 +118,7 @@ class queue_pop_iterator
 public:
   typedef Queue container_type;
 
-  queue_pop_iterator() : m_queue(NULL) {}
+  queue_pop_iterator() : m_queue(nullptr) {}
   queue_pop_iterator(Queue* q, Compare c) : m_queue(q), m_compare(c) {}
 
   queue_pop_iterator& operator ++ ()                     { m_queue->pop(); return *this; }

@@ -116,7 +116,7 @@ Download*
 DownloadList::find_hex_ptr(const char* hash) {
   iterator itr = find_hex(hash);
 
-  return itr != end() ? *itr : NULL;
+  return itr != end() ? *itr : nullptr;
 }
 
 Download*
@@ -132,7 +132,7 @@ DownloadList::create(torrent::Object* obj, bool printLog) {
     if (printLog)
       lt_log_print(torrent::LOG_TORRENT_ERROR, "Could not create download: %s", e.what());
 
-    return NULL;
+    return nullptr;
   }
 
   // There's no non-critical exceptions that should be throwable by
@@ -156,7 +156,7 @@ DownloadList::create(std::istream* str, bool printLog) {
       if (printLog)
         lt_log_print(torrent::LOG_TORRENT_ERROR, "Could not create download, the input is not a valid torrent.");
 
-      return NULL;
+      return nullptr;
     }
 
     download = torrent::download_add(object);
@@ -167,7 +167,7 @@ DownloadList::create(std::istream* str, bool printLog) {
     if (printLog)
       lt_log_print(torrent::LOG_TORRENT_ERROR, "Could not create download: %s", e.what());
 
-    return NULL;
+    return nullptr;
   }
 
   // There's no non-critical exceptions that should be throwable by

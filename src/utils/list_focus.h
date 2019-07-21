@@ -57,7 +57,7 @@ public:
 
   typedef typename base_type::value_type             value_type;
 
-  ListFocus(base_type* b = NULL) : m_base(b) { if (b) m_focus = b->end(); }
+  ListFocus(base_type* b = nullptr) : m_base(b) { if (b) m_focus = b->end(); }
 
   // Convinience functions, would have added more through using, but
   // can't.

@@ -82,7 +82,7 @@ WindowHttpQueue::redraw() {
   Container::iterator itr = m_container.begin();
 
   while (itr != m_container.end() && pos + 20 < m_canvas->width()) {
-    if (itr->m_http == NULL)
+    if (itr->m_http == nullptr)
       m_canvas->print(pos, 0, "%s done", itr->m_name.c_str());
 
     else if (itr->m_http->size_total() == 0)
@@ -99,7 +99,7 @@ WindowHttpQueue::redraw() {
 void
 WindowHttpQueue::cleanup_list() {
   for (Container::iterator itr = m_container.begin(); itr != m_container.end();)
-    if (itr->m_http == NULL && itr->m_timer < cachedTime)
+    if (itr->m_http == nullptr && itr->m_timer < cachedTime)
       itr = m_container.erase(itr);
     else
       ++itr;
@@ -150,7 +150,7 @@ WindowHttpQueue::receive_erase(core::CurlGet* h) {
   if (itr == m_container.end())
     throw std::logic_error("WindowHttpQueue::receive_erase(...) tried to remove an object we don't have");
 
-  itr->m_http = NULL;
+  itr->m_http = nullptr;
   itr->m_timer = cachedTime + rak::timer::from_seconds(1);
 
   mark_dirty();

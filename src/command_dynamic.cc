@@ -174,14 +174,14 @@ system_method_insert_object(const torrent::Object::list_type& args, int flags) {
        std::bind(&rpc::object_storage::call_function_str, control->object_storage(),
                  rawKey, std::placeholders::_1, std::placeholders::_2),
        &rpc::command_base_call<rpc::target_type>,
-       cmd_flags, NULL, NULL);
+       cmd_flags, nullptr, nullptr);
 
   } else {
     rpc::commands.insert_slot<rpc::command_base_is_type<rpc::command_base_call<rpc::target_type> >::type>
       (create_new_key(rawKey),
        std::bind(&rpc::object_storage::get_str, control->object_storage(), rawKey),
        &rpc::command_base_call<rpc::target_type>,
-       cmd_flags, NULL, NULL);
+       cmd_flags, nullptr, nullptr);
   }
 
   // Not the right argument.
@@ -190,7 +190,7 @@ system_method_insert_object(const torrent::Object::list_type& args, int flags) {
   //     (create_new_key<9>(rawKey, ".rlookup"),
   //      std::bind(&rpc::object_storage::rlookup_obj_list, control->object_storage(), rawKey),
   //      &rpc::command_base_call_string<rpc::target_type>,
-  //      cmd_flags, NULL, NULL);
+  //      cmd_flags, nullptr, nullptr);
   // }
 
   // TODO: Next... Make test class for this.
@@ -204,28 +204,28 @@ system_method_insert_object(const torrent::Object::list_type& args, int flags) {
         (create_new_key<5>(rawKey, ".set"),
          std::bind(&rpc::object_storage::set_str_bool, control->object_storage(), rawKey, std::placeholders::_2),
          &rpc::command_base_call_value<rpc::target_type>,
-         cmd_flags, NULL, NULL);
+         cmd_flags, nullptr, nullptr);
       break;
     case rpc::object_storage::flag_value_type:
       rpc::commands.insert_slot<rpc::command_base_is_type<rpc::command_base_call_value<rpc::target_type> >::type>
         (create_new_key<5>(rawKey, ".set"),
          std::bind(&rpc::object_storage::set_str_value, control->object_storage(), rawKey, std::placeholders::_2),
          &rpc::command_base_call_value<rpc::target_type>,
-         cmd_flags, NULL, NULL);
+         cmd_flags, nullptr, nullptr);
       break;
     case rpc::object_storage::flag_string_type:
       rpc::commands.insert_slot<rpc::command_base_is_type<rpc::command_base_call_string<rpc::target_type> >::type>
         (create_new_key<5>(rawKey, ".set"),
          std::bind(&rpc::object_storage::set_str_string, control->object_storage(), rawKey, std::placeholders::_2),
          &rpc::command_base_call_string<rpc::target_type>,
-         cmd_flags, NULL, NULL);
+         cmd_flags, nullptr, nullptr);
       break;
     case rpc::object_storage::flag_list_type:
       rpc::commands.insert_slot<rpc::command_base_is_type<rpc::command_base_call_list<rpc::target_type> >::type>
         (create_new_key<5>(rawKey, ".set"),
          std::bind(&rpc::object_storage::set_str_list, control->object_storage(), rawKey, std::placeholders::_2),
          &rpc::command_base_call_list<rpc::target_type>,
-         cmd_flags, NULL, NULL);
+         cmd_flags, nullptr, nullptr);
       break;
     case rpc::object_storage::flag_function_type:
     case rpc::object_storage::flag_multi_type:

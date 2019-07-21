@@ -89,7 +89,7 @@ public:
   void                adjust_up_throttle(int throttle);
   void                adjust_down_throttle(int throttle);
 
-  display::Window*    window()   { return NULL; }
+  display::Window*    window()   { return nullptr; }
   core::Download*     download() { return m_download; };
 
 private:

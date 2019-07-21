@@ -481,7 +481,7 @@ public:
   typedef Ret result_type;
   typedef Ret (Object::*Function)();
 
-  mem_fun0() : m_object(NULL) {}
+  mem_fun0() : m_object(nullptr) {}
   mem_fun0(Object* o, Function f) : m_object(o), m_function(f) {}
 
   bool is_valid() const { return m_object; }
@@ -499,7 +499,7 @@ public:
   typedef Ret result_type;
   typedef Ret (Object::*Function)() const;
 
-  const_mem_fun0() : m_object(NULL) {}
+  const_mem_fun0() : m_object(nullptr) {}
   const_mem_fun0(const Object* o, Function f) : m_object(o), m_function(f) {}
 
   bool is_valid() const { return m_object; }
@@ -517,7 +517,7 @@ public:
   typedef Ret result_type;
   typedef Ret (Object::*Function)(Arg1);
 
-  mem_fun1() : m_object(NULL) {}
+  mem_fun1() : m_object(nullptr) {}
   mem_fun1(Object* o, Function f) : m_object(o), m_function(f) {}
 
   bool is_valid() const { return m_object; }
@@ -535,7 +535,7 @@ public:
   typedef Ret result_type;
   typedef Ret (Object::*Function)(Arg1) const;
 
-  const_mem_fun1() : m_object(NULL) {}
+  const_mem_fun1() : m_object(nullptr) {}
   const_mem_fun1(const Object* o, Function f) : m_object(o), m_function(f) {}
 
   bool is_valid() const { return m_object; }
@@ -554,7 +554,7 @@ public:
   typedef Ret (Object::*Function)(Arg1, Arg2);
   typedef Object object_type;
 
-  mem_fun2() : m_object(NULL) {}
+  mem_fun2() : m_object(nullptr) {}
   mem_fun2(Object* o, Function f) : m_object(o), m_function(f) {}
 
   bool         is_valid() const { return m_object; }
@@ -575,7 +575,7 @@ public:
   typedef Ret result_type;
   typedef Ret (Object::*Function)(Arg1, Arg2, Arg3);
 
-  mem_fun3() : m_object(NULL) {}
+  mem_fun3() : m_object(nullptr) {}
   mem_fun3(Object* o, Function f) : m_object(o), m_function(f) {}
 
   bool is_valid() const { return m_object; }

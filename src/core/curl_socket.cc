@@ -58,17 +58,17 @@ CurlSocket::receive_socket(void* easy_handle, curl_socket_t fd, int what, void* 
   if (what == CURL_POLL_REMOVE) {
     // We also probably need the special code here as we're not
     // guaranteed that the fd will be closed, afaik.
-    if (socket != NULL)
+    if (socket != nullptr)
       socket->close();
 
     // TODO: Consider the possibility that we'll need to set the
-    // fd-associated pointer curl holds to NULL.
+    // fd-associated pointer curl holds to nullptr.
 
     delete socket;
     return 0;
   }
 
-  if (socket == NULL) {
+  if (socket == nullptr) {
     socket = stack->new_socket(fd);
     torrent::main_thread()->poll()->open(socket);
 

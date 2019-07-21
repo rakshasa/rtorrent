@@ -127,7 +127,7 @@ parse_command_name(const char* first, const char* last, char* dest_first, char* 
   return first;
 }
 
-// Set 'download' to NULL to call the generic functions, thus reusing
+// Set 'download' to nullptr to call the generic functions, thus reusing
 // the code below for both cases.
 parse_command_type
 parse_command(target_type target, const char* first, const char* last) {
@@ -293,7 +293,7 @@ command_function_call_object(const torrent::Object& cmd, target_type target, con
   else if (args.type() != torrent::Object::TYPE_NONE)
     last_stack = rpc::command_base::push_stack(&args, &args + 1, &stack);
   else
-    last_stack = rpc::command_base::push_stack(NULL, NULL, &stack);
+    last_stack = rpc::command_base::push_stack(nullptr, nullptr, &stack);
 
   try {
     torrent::Object result = call_object(cmd, target);

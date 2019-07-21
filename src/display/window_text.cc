@@ -48,7 +48,7 @@ namespace display {
 WindowText::WindowText(rpc::target_type target, extent_type margin) :
   Window(new Canvas, 0, 0, 0, extent_static, extent_static),
   m_target(target),
-  m_errorHandler(NULL),
+  m_errorHandler(nullptr),
   m_margin(margin),
   m_interval(0) {
 }
@@ -59,7 +59,7 @@ WindowText::clear() {
   base_type::clear();
 
   delete m_errorHandler;
-  m_errorHandler = NULL;
+  m_errorHandler = nullptr;
 }
 
 void
@@ -69,7 +69,7 @@ WindowText::push_back(TextElement* element) {
 //   m_minHeight = size();
   m_maxHeight = size();
 
-  if (element != NULL) {
+  if (element != nullptr) {
     extent_type width = element->max_length();
 
     if (width == extent_full)
@@ -93,7 +93,7 @@ WindowText::redraw() {
   if (m_canvas->height() == 0)
     return;
 
-  if (m_errorHandler != NULL && m_target.second == NULL) {
+  if (m_errorHandler != nullptr && m_target.second == nullptr) {
     char buffer[m_canvas->width() + 1];
 
     Canvas::attributes_list attributes;
@@ -106,7 +106,7 @@ WindowText::redraw() {
   }
 
   for (iterator itr = begin(); itr != end() && position < m_canvas->height(); ++itr, ++position) {
-    if (*itr == NULL)
+    if (*itr == nullptr)
       continue;
 
     char buffer[m_canvas->width() + 1];

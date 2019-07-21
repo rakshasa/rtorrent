@@ -40,8 +40,8 @@
 #define RAK_ALLOCATORS_H
 
 #include <cstddef>
+#include <cstdlib>
 #include <limits>
-#include <stdlib.h>
 #include <sys/types.h>
 
 namespace rak {
@@ -73,10 +73,10 @@ public:
 
   size_type max_size () const throw() { return std::numeric_limits<size_t>::max() / sizeof(T); }
 
-  pointer allocate(size_type num, const_void_pointer hint = 0) { return alloc_size(num*sizeof(T)); }
+  pointer allocate(size_type num, const_void_pointer hint = nullptr) { return alloc_size(num*sizeof(T)); }
 
   static pointer alloc_size(size_type size) {
-    pointer ptr = NULL;
+    pointer ptr = nullptr;
     int __UNUSED result = posix_memalign((void**)&ptr, LT_SMP_CACHE_BYTES, size);
 
     return ptr;

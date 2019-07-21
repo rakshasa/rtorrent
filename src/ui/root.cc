@@ -64,12 +64,12 @@
 namespace ui {
 
 Root::Root() :
-  m_control(NULL),
-  m_downloadList(NULL),
-  m_windowTitle(NULL),
-  m_windowHttpQueue(NULL),
-  m_windowInput(NULL),
-  m_windowStatusbar(NULL),
+  m_control(nullptr),
+  m_downloadList(nullptr),
+  m_windowTitle(nullptr),
+  m_windowHttpQueue(nullptr),
+  m_windowInput(nullptr),
+  m_windowStatusbar(nullptr),
   m_input_history_length(99),
   m_input_history_last_input(""),
   m_input_history_pointer_get(0) {
@@ -84,7 +84,7 @@ Root::Root() :
 
 void
 Root::init(Control* c) {
-  if (m_control != NULL)
+  if (m_control != nullptr)
     throw std::logic_error("Root::init() called twice on the same object");
 
   m_control = c;
@@ -115,7 +115,7 @@ Root::init(Control* c) {
 
 void
 Root::cleanup() {
-  if (m_control == NULL)
+  if (m_control == nullptr)
     throw std::logic_error("Root::cleanup() called twice on the same object");
 
   if (m_downloadList->is_active())
@@ -131,7 +131,7 @@ Root::cleanup() {
   delete m_windowStatusbar;
 
   m_control->input()->erase(&m_bindings);
-  m_control = NULL;
+  m_control = nullptr;
 }
 
 const char*
@@ -175,7 +175,7 @@ Root::setup_keys() {
 
 void
 Root::set_down_throttle(unsigned int throttle) {
-  if (m_windowStatusbar != NULL)
+  if (m_windowStatusbar != nullptr)
     m_windowStatusbar->mark_dirty();
 
   torrent::down_throttle_global()->set_max_rate(throttle * 1024);
@@ -205,7 +205,7 @@ Root::set_down_throttle(unsigned int throttle) {
 
 void
 Root::set_up_throttle(unsigned int throttle) {
-  if (m_windowStatusbar != NULL)
+  if (m_windowStatusbar != nullptr)
     m_windowStatusbar->mark_dirty();
 
   torrent::up_throttle_global()->set_max_rate(throttle * 1024);
@@ -245,8 +245,8 @@ Root::adjust_up_throttle(int throttle) {
 
 void
 Root::enable_input(const std::string& title, input::TextInput* input, ui::DownloadList::Input type) {
-  if (m_windowInput->input() != NULL)
-    throw torrent::internal_error("Root::enable_input(...) m_windowInput->input() != NULL.");
+  if (m_windowInput->input() != nullptr)
+    throw torrent::internal_error("Root::enable_input(...) m_windowInput->input() != nullptr.");
 
   input->slot_dirty(std::bind(&WInput::mark_dirty, m_windowInput));
 
@@ -272,8 +272,8 @@ Root::enable_input(const std::string& title, input::TextInput* input, ui::Downlo
 
 void
 Root::disable_input() {
-  if (m_windowInput->input() == NULL)
-    throw torrent::internal_error("Root::disable_input() m_windowInput->input() == NULL.");
+  if (m_windowInput->input() == nullptr)
+    throw torrent::internal_error("Root::disable_input() m_windowInput->input() == nullptr.");
 
   m_windowInput->input()->slot_dirty(ElementBase::slot_type());
 
@@ -281,9 +281,9 @@ Root::disable_input() {
 
   m_windowInput->set_active(false);
   m_windowInput->set_focus(false);
-  m_windowInput->set_input(NULL);
+  m_windowInput->set_input(nullptr);
 
-  control->input()->set_text_input(NULL);
+  control->input()->set_text_input(nullptr);
   control->display()->adjust_layout();
 }
 
@@ -307,8 +307,8 @@ Root::add_to_input_history(ui::DownloadList::Input type, std::string item) {
 
 void
 Root::prev_in_input_history(ui::DownloadList::Input type) {
-  if (m_windowInput->input() == NULL)
-    throw torrent::internal_error("Root::prev_in_input_history() m_windowInput->input() == NULL.");
+  if (m_windowInput->input() == nullptr)
+    throw torrent::internal_error("Root::prev_in_input_history() m_windowInput->input() == nullptr.");
 
   InputHistory::iterator itr = m_input_history.find(type);
   InputHistoryPointers::const_iterator pitr = m_input_history_pointers.find(type);
@@ -334,8 +334,8 @@ Root::prev_in_input_history(ui::DownloadList::Input type) {
 
 void
 Root::next_in_input_history(ui::DownloadList::Input type) {
-  if (m_windowInput->input() == NULL)
-    throw torrent::internal_error("Root::next_in_input_history() m_windowInput->input() == NULL.");
+  if (m_windowInput->input() == nullptr)
+    throw torrent::internal_error("Root::next_in_input_history() m_windowInput->input() == nullptr.");
 
   InputHistory::iterator itr = m_input_history.find(type);
   InputHistoryPointers::const_iterator pitr = m_input_history_pointers.find(type);

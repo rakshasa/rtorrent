@@ -52,7 +52,7 @@ class CurlGet : public torrent::Http {
 public:
   friend class CurlStack;
 
-  CurlGet(CurlStack* s) : m_active(false), m_handle(NULL), m_stack(s) {}
+  CurlGet(CurlStack* s) : m_active(false), m_handle(nullptr), m_stack(s) {}
   virtual ~CurlGet();
 
   void               start();

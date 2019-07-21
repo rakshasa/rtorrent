@@ -234,8 +234,8 @@ SocketFd::accept(rak::socket_address* sa) {
   check_valid();
   socklen_t len = sizeof(rak::socket_address);
 
-  if (sa == NULL) {
-    return SocketFd(::accept(m_fd, NULL, &len));
+  if (sa == nullptr) {
+    return SocketFd(::accept(m_fd, nullptr, &len));
   }
   int fd = ::accept(m_fd, sa->c_sockaddr(), &len);
   if (fd != -1 && m_ipv6_socket && sa->family() == rak::socket_address::af_inet6) {

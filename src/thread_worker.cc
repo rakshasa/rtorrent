@@ -67,7 +67,7 @@ ThreadWorker::init_thread() {
 
 bool
 ThreadWorker::set_scgi(rpc::SCgi* scgi) {
-  if (!__sync_bool_compare_and_swap(&m_safe.scgi, NULL, scgi))
+  if (!__sync_bool_compare_and_swap(&m_safe.scgi, nullptr, scgi))
     return false;
 
   change_xmlrpc_log();
@@ -93,7 +93,7 @@ void
 ThreadWorker::start_scgi(ThreadBase* baseThread) {
   ThreadWorker* thread = (ThreadWorker*)baseThread;
 
-  if (thread->m_safe.scgi == NULL)
+  if (thread->m_safe.scgi == nullptr)
     throw torrent::internal_error("Tried to start SCGI but object was not present.");
 
   thread->m_safe.scgi->activate();
@@ -110,7 +110,7 @@ ThreadWorker::msg_change_xmlrpc_log(ThreadBase* baseThread) {
 
 void
 ThreadWorker::change_xmlrpc_log() {
-  if (scgi() == NULL)
+  if (scgi() == nullptr)
     return;
 
   if (scgi()->log_fd() != -1) {

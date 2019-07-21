@@ -163,8 +163,8 @@ apply_value(rpc::target_type target, const torrent::Object::list_type& args) {
     val = args.front().as_value();
   } else {
     int base = args.size() > 1 ? args.back().is_value() ?
-               args.back().as_value() : strtol(args.back().as_string().c_str(), NULL, 10) : 10;
-    char* endptr = 0;
+               args.back().as_value() : strtol(args.back().as_string().c_str(), nullptr, 10) : 10;
+    char* endptr = nullptr;
 
     val = strtoll(args.front().as_string().c_str(), &endptr, base);
     while (*endptr == ' ' || *endptr == '\n') ++endptr;
@@ -428,7 +428,7 @@ apply_to_time(const torrent::Object& rawArgs, int flags) {
   else
     u = std::gmtime(&t);
   
-  if (u == NULL)
+  if (u == nullptr)
     return torrent::Object();
 
   char buffer[11];

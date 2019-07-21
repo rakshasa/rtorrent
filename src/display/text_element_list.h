@@ -61,7 +61,7 @@ public:
 
   using base_type::push_back;
 
-  TextElementList() : m_column(0), m_columnWidth(0) {}
+  TextElementList() : m_column(0), m_columnWidth(nullptr) {}
   virtual ~TextElementList() { clear(); }
 
   void                clear();

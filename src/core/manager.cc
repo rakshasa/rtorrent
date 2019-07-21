@@ -86,7 +86,7 @@ Manager::push_log(const char* msg) {
 }
 
 Manager::Manager() :
-  m_hashingView(NULL),
+  m_hashingView(nullptr),
   m_log_important(torrent::log_open_log_buffer("important")),
   m_log_complete(torrent::log_open_log_buffer("complete"))
 {
@@ -114,8 +114,8 @@ Manager::~Manager() {
 
 void
 Manager::set_hashing_view(View* v) {
-  if (v == NULL || m_hashingView != NULL)
-    throw torrent::internal_error("Manager::set_hashing_view(...) received NULL or is already set.");
+  if (v == nullptr || m_hashingView != nullptr)
+    throw torrent::internal_error("Manager::set_hashing_view(...) received nullptr or is already set.");
 
   m_hashingView = v;
   m_hashingView->signal_changed().push_back(std::bind(&Manager::receive_hashing_changed, this));
@@ -124,12 +124,12 @@ Manager::set_hashing_view(View* v) {
 torrent::ThrottlePair
 Manager::get_throttle(const std::string& name) {
   ThrottleMap::const_iterator itr = m_throttles.find(name);
-  torrent::ThrottlePair throttles = (itr == m_throttles.end() ? torrent::ThrottlePair(NULL, NULL) : itr->second);
+  torrent::ThrottlePair throttles = (itr == m_throttles.end() ? torrent::ThrottlePair(nullptr, nullptr) : itr->second);
 
-  if (throttles.first == NULL)
+  if (throttles.first == nullptr)
     throttles.first = torrent::up_throttle_global();
 
-  if (throttles.second == NULL)
+  if (throttles.second == nullptr)
     throttles.second = torrent::down_throttle_global();
 
   return throttles;
@@ -143,7 +143,7 @@ Manager::set_address_throttle(uint32_t begin, uint32_t end, torrent::ThrottlePai
 
 torrent::ThrottlePair
 Manager::get_address_throttle(const sockaddr* addr) {
-  return m_addressThrottles.get(rak::socket_address::cast_from(addr)->sa_inet()->address_h(), torrent::ThrottlePair(NULL, NULL));
+  return m_addressThrottles.get(rak::socket_address::cast_from(addr)->sa_inet()->address_h(), torrent::ThrottlePair(nullptr, nullptr));
 }
 
 // Most of this should be possible to move out.

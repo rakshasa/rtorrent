@@ -38,7 +38,7 @@
 #define RAK_TIMER_H
 
 #include <limits>
-#include <inttypes.h>
+#include <cinttypes>
 #include <sys/time.h>
 
 namespace rak {
@@ -100,7 +100,7 @@ class timer {
 inline timer
 timer::current() {
   timeval t;
-  gettimeofday(&t, 0);
+  gettimeofday(&t, nullptr);
   
   return timer(t);
 }

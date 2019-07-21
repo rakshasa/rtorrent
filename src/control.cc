@@ -125,7 +125,7 @@ Control::initialize() {
 
 void
 Control::cleanup() {
-  //  delete m_scgi; m_scgi = NULL;
+  //  delete m_scgi; m_scgi = nullptr;
   rpc::xmlrpc.cleanup();
 
   priority_queue_erase(&taskScheduler, &m_taskShutdown);
@@ -147,7 +147,7 @@ Control::cleanup() {
 
 void
 Control::cleanup_exception() {
-  //  delete m_scgi; m_scgi = NULL;
+  //  delete m_scgi; m_scgi = nullptr;
 
   display::Canvas::cleanup();
 }

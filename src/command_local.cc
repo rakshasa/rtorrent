@@ -38,7 +38,7 @@
 
 #include <fcntl.h>
 #include <functional>
-#include <stdio.h>
+#include <cstdio>
 #include <unistd.h>
 #include <rak/path.h>
 #include <rak/error_number.h>
@@ -102,9 +102,9 @@ system_hostname() {
 
 torrent::Object
 system_get_cwd() {
-  char* buffer = getcwd(NULL, 0);
+  char* buffer = getcwd(nullptr, 0);
 
-  if (buffer == NULL)
+  if (buffer == nullptr)
     throw torrent::input_error("Unable to read cwd.");
 
   torrent::Object result = torrent::Object(std::string(buffer));
@@ -218,7 +218,7 @@ cmd_file_append(const torrent::Object::list_type& args) {
 
   FILE* output = fopen(args.front().as_string().c_str(), "a");
 
-  if (output == NULL)
+  if (output == nullptr)
     throw torrent::input_error("Could not append to file '" + args.front().as_string() + "': " + rak::error_number::current().c_str());
 
   file_print_list(++args.begin(), args.end(), output, file_print_delim_space);

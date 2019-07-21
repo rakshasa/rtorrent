@@ -89,7 +89,7 @@ ElementText::disable() {
   control->input()->erase(&m_bindings);
 
   m_frame->clear();
-  m_frame = NULL;
+  m_frame = nullptr;
 
   m_window->set_active(false);
 }

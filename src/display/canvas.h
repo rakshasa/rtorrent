@@ -93,7 +93,7 @@ public:
   void                print_char(const chtype ch)                                 { if (!m_isDaemon) { waddch(m_window, ch); } }
   void                print_char(unsigned int x, unsigned int y, const chtype ch) { if (!m_isDaemon) { mvwaddch(m_window, y, x, ch); } }
 
-  void                set_attr(unsigned int x, unsigned int y, unsigned int n, int attr, int color) { if (!m_isDaemon) { mvwchgat(m_window, y, x, n, attr, color, NULL); } }
+  void                set_attr(unsigned int x, unsigned int y, unsigned int n, int attr, int color) { if (!m_isDaemon) { mvwchgat(m_window, y, x, n, attr, color, nullptr); } }
 
   void                set_default_attributes(int attr)                            { if (!m_isDaemon) { (void)wattrset(m_window, attr); } }
 

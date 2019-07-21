@@ -108,7 +108,7 @@ ElementMenu::disable() {
   control->input()->erase(&m_bindings);
 
   m_frame->clear();
-  m_frame = NULL;
+  m_frame = nullptr;
 
   m_window->set_active(false);
 }
@@ -121,7 +121,7 @@ ElementMenu::push_back(const char* name, const slot_type& slotSelect, const slot
   entry->m_slotSelect = slotSelect;
   entry->m_slotFocus  = slotFocus;
 
-  m_window->push_back(NULL);
+  m_window->push_back(nullptr);
   m_window->push_back(entry->m_element);
 
   // For the moment, don't bother doing anything if the window is

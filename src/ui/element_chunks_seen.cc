@@ -49,7 +49,7 @@ namespace ui {
 
 ElementChunksSeen::ElementChunksSeen(core::Download* d) :
   m_download(d),
-  m_window(NULL),
+  m_window(nullptr),
   m_focus(0) {
 
   m_bindings[KEY_LEFT] = m_bindings['B' - '@'] = std::bind(&slot_type::operator(), &m_slot_exit);
@@ -83,10 +83,10 @@ ElementChunksSeen::disable() {
   control->input()->erase(&m_bindings);
 
   m_frame->clear();
-  m_frame = NULL;
+  m_frame = nullptr;
 
   delete m_window;
-  m_window = NULL;
+  m_window = nullptr;
 }
 
 display::Window*
@@ -96,7 +96,7 @@ ElementChunksSeen::window() {
 
 // void
 // ElementChunksSeen::receive_disable() {
-//   if (m_window == NULL)
+//   if (m_window == nullptr)
 //     throw std::logic_error("ui::ElementChunksSeen::receive_disable(...) called on a disabled object");
 
 //   if (m_download->download()->tracker(m_focus).is_enabled())
@@ -109,7 +109,7 @@ ElementChunksSeen::window() {
 
 void
 ElementChunksSeen::receive_next() {
-  if (m_window == NULL)
+  if (m_window == nullptr)
     throw torrent::internal_error("ui::ElementChunksSeen::receive_next(...) called on a disabled object");
 
   if (++m_focus > m_window->max_focus())
@@ -120,7 +120,7 @@ ElementChunksSeen::receive_next() {
 
 void
 ElementChunksSeen::receive_prev() {
-  if (m_window == NULL)
+  if (m_window == nullptr)
     throw torrent::internal_error("ui::ElementChunksSeen::receive_prev(...) called on a disabled object");
 
   if (m_focus > 0)
@@ -133,7 +133,7 @@ ElementChunksSeen::receive_prev() {
 
 void
 ElementChunksSeen::receive_pagenext() {
-  if (m_window == NULL)
+  if (m_window == nullptr)
     throw torrent::internal_error("ui::ElementChunksSeen::receive_pagenext(...) called on a disabled object");
 
   unsigned int visible = m_window->height() - 1;
@@ -151,7 +151,7 @@ ElementChunksSeen::receive_pagenext() {
 
 void
 ElementChunksSeen::receive_pageprev() {
-  if (m_window == NULL)
+  if (m_window == nullptr)
     throw torrent::internal_error("ui::ElementChunksSeen::receive_pageprev(...) called on a disabled object");
 
   unsigned int visible = m_window->height() - 1;

@@ -112,7 +112,7 @@ CommandMap::erase(iterator itr) {
 //   if (!(itr->second.m_flags & flag_dont_delete))
 //     delete itr->second.m_variable;
 
-  const char* key = itr->second.m_flags & flag_delete_key ? itr->first : NULL;
+  const char* key = itr->second.m_flags & flag_delete_key ? itr->first : nullptr;
 
   base_type::erase(itr);
   delete [] key;

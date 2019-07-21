@@ -57,8 +57,8 @@ ElementFileList::ElementFileList(core::Download* d) :
   m_download(d),
 
   m_state(DISPLAY_MAX_SIZE),
-  m_window(NULL),
-  m_elementInfo(NULL),
+  m_window(nullptr),
+  m_elementInfo(nullptr),
 
   m_selected(iterator(d->download()->file_list()->begin())),
   m_collapsed(false) {
@@ -106,7 +106,7 @@ element_file_list_create_info() {
 
 void
 ElementFileList::activate(display::Frame* frame, bool focus) {
-  if (m_window != NULL)
+  if (m_window != nullptr)
     throw torrent::internal_error("ui::ElementFileList::activate(...) is_active().");
 
   if (focus)
@@ -127,7 +127,7 @@ ElementFileList::activate(display::Frame* frame, bool focus) {
 
 void
 ElementFileList::disable() {
-  if (m_window == NULL)
+  if (m_window == nullptr)
     throw torrent::internal_error("ui::ElementFileList::disable(...) !is_active().");
 
   control->input()->erase(&m_bindings);
@@ -135,13 +135,13 @@ ElementFileList::disable() {
   activate_display(DISPLAY_MAX_SIZE);
 
   m_frame->clear();
-  m_frame = NULL;
+  m_frame = nullptr;
 
   delete m_window;
-  m_window = NULL;
+  m_window = nullptr;
 
   delete m_elementInfo;
-  m_elementInfo = NULL;
+  m_elementInfo = nullptr;
 }
 
 void
@@ -231,7 +231,7 @@ ElementFileList::receive_pagenext() {
 
 void
 ElementFileList::receive_pageprev() {
-  if (m_window == NULL)
+  if (m_window == nullptr)
     return;
 
   torrent::FileList* fl = m_download->download()->file_list();
@@ -246,7 +246,7 @@ ElementFileList::receive_pageprev() {
 
 void
 ElementFileList::receive_select() {
-  if (m_window == NULL || m_state != DISPLAY_LIST)
+  if (m_window == nullptr || m_state != DISPLAY_LIST)
     return;
 
   if (is_collapsed() && !m_selected.is_file()) {
@@ -262,7 +262,7 @@ ElementFileList::receive_select() {
 
 void
 ElementFileList::receive_priority() {
-  if (m_window == NULL)
+  if (m_window == nullptr)
     return;
 
   torrent::priority_t priority = torrent::priority_t((m_selected.file()->priority() + 2) % 3);
@@ -284,7 +284,7 @@ ElementFileList::receive_priority() {
 
 void
 ElementFileList::receive_change_all() {
-  if (m_window == NULL)
+  if (m_window == nullptr)
     return;
 
   torrent::FileList* fl = m_download->download()->file_list();
@@ -299,7 +299,7 @@ ElementFileList::receive_change_all() {
 
 void
 ElementFileList::receive_collapse() {
-  if (m_window == NULL)
+  if (m_window == nullptr)
     return;
 
   set_collapsed(!is_collapsed());

@@ -151,7 +151,7 @@ ElementPeerList::disable() {
   activate_display(DISPLAY_MAX_SIZE);
 
   m_frame->clear();
-  m_frame = NULL;
+  m_frame = nullptr;
 }
 
 void

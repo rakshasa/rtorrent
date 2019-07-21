@@ -51,7 +51,7 @@
 namespace ui {
 
 ElementLogComplete::ElementLogComplete(torrent::log_buffer* l) :
-  m_window(NULL),
+  m_window(nullptr),
   m_log(l) {
 
   unsigned int signal_index = torrent::main_thread()->signal_bitfield()->add_signal(std::bind(&ElementLogComplete::received_update, this));
@@ -81,10 +81,10 @@ ElementLogComplete::disable() {
   control->input()->erase(&m_bindings);
 
   m_frame->clear();
-  m_frame = NULL;
+  m_frame = nullptr;
 
   delete m_window;
-  m_window = NULL;
+  m_window = nullptr;
 }
 
 display::Window*
@@ -94,7 +94,7 @@ ElementLogComplete::window() {
 
 void
 ElementLogComplete::received_update() {
-  if (m_window != NULL)
+  if (m_window != nullptr)
     m_window->mark_dirty();
 }
 

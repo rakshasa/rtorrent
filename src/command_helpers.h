@@ -1,4 +1,4 @@
-// rTorrent - BitTorrent client
+	// rTorrent - BitTorrent client
 // Copyright (C) 2005-2011, Jari Sundell
 //
 // This program is free software; you can redistribute it and/or modify
@@ -49,11 +49,11 @@ void initialize_commands();
 
 #define CMD2_A_FUNCTION(key, function, slot, parm, doc)                 \
   rpc::commands.insert_slot<rpc::command_base_is_type<rpc::function>::type>(key, slot, &rpc::function, \
-                            rpc::CommandMap::flag_dont_delete | rpc::CommandMap::flag_public_xmlrpc, NULL, NULL);
+                            rpc::CommandMap::flag_dont_delete | rpc::CommandMap::flag_public_xmlrpc, nullptr, nullptr);
 
 #define CMD2_A_FUNCTION_PRIVATE(key, function, slot, parm, doc)         \
   rpc::commands.insert_slot<rpc::command_base_is_type<rpc::function>::type>(key, slot, &rpc::function,   \
-                            rpc::CommandMap::flag_dont_delete, NULL, NULL);
+                            rpc::CommandMap::flag_dont_delete, nullptr, nullptr);
 
 #define CMD2_ANY(key, slot)          CMD2_A_FUNCTION(key, command_base_call<rpc::target_type>, slot, "i:", "")
 

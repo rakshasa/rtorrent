@@ -120,7 +120,7 @@ Download::distributed_copies() const {
   const uint8_t* avail = m_download.chunks_seen();
   const torrent::Bitfield* bitfield = m_download.file_list()->bitfield();
 
-  if (avail == NULL)
+  if (avail == nullptr)
     return 0;
 
   int minAvail = std::numeric_limits<uint8_t>::max();

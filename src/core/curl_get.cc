@@ -64,12 +64,12 @@ CurlGet::start() {
   if (is_busy())
     throw torrent::internal_error("Tried to call CurlGet::start on a busy object.");
 
-  if (m_stream == NULL)
+  if (m_stream == nullptr)
     throw torrent::internal_error("Tried to call CurlGet::start without a valid output stream.");
 
   m_handle = curl_easy_init();
 
-  if (m_handle == NULL)
+  if (m_handle == nullptr)
     throw torrent::internal_error("Call to curl_easy_init() failed.");
 
   curl_easy_setopt(m_handle, CURLOPT_URL,            m_url.c_str());
@@ -111,7 +111,7 @@ CurlGet::close() {
 
   curl_easy_cleanup(m_handle);
 
-  m_handle = NULL;
+  m_handle = nullptr;
 }
 
 void

@@ -50,10 +50,10 @@ class ElementBase {
 public:
   typedef std::function<void ()> slot_type;
 
-  ElementBase() : m_frame(NULL), m_focus(false) {}
+  ElementBase() : m_frame(nullptr), m_focus(false) {}
   virtual ~ElementBase() {}
 
-  bool                is_active() const { return m_frame != NULL; }
+  bool                is_active() const { return m_frame != nullptr; }
 
   input::Bindings&    bindings()        { return m_bindings; }
 

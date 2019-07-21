@@ -177,7 +177,7 @@ Frame::set_container_size(size_type size) {
 
   while (m_containerSize > size) {
     delete m_container[--m_containerSize];
-    m_container[m_containerSize] = NULL;
+    m_container[m_containerSize] = nullptr;
   }
 
   while (m_containerSize < size) {
@@ -228,7 +228,7 @@ void
 Frame::clear() {
   switch (m_type) {
   case TYPE_WINDOW:
-    if (m_window != NULL)
+    if (m_window != nullptr)
       m_window->set_offscreen(true);
 
     break;

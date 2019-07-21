@@ -54,7 +54,7 @@ Canvas::Canvas(int x, int y, int width, int height) {
   if (!m_isDaemon) {
       m_window = newwin(height, width, y, x);
 
-      if (m_window == NULL)
+      if (m_window == nullptr)
         throw torrent::internal_error("Could not allocate ncurses canvas.");
   }
 }
@@ -74,10 +74,10 @@ Canvas::print_attributes(unsigned int x, unsigned int y, const char* first, cons
 
     attr_t org_attr;
     short org_pair;
-    wattr_get(m_window, &org_attr, &org_pair, NULL);
+    wattr_get(m_window, &org_attr, &org_pair, nullptr);
 
     attributes_list::const_iterator attrItr = attributes->begin();
-    wattr_set(m_window, Attributes::a_normal, Attributes::color_default, NULL);
+    wattr_set(m_window, Attributes::a_normal, Attributes::color_default, nullptr);
 
     while (first != last) {
       const char* next = last;
@@ -86,7 +86,7 @@ Canvas::print_attributes(unsigned int x, unsigned int y, const char* first, cons
         next = attrItr->position();
 
         if (first >= next) {
-          wattr_set(m_window, attrItr->attributes(), attrItr->colors(), NULL);
+          wattr_set(m_window, attrItr->attributes(), attrItr->colors(), nullptr);
           ++attrItr;
         }
       }
@@ -96,7 +96,7 @@ Canvas::print_attributes(unsigned int x, unsigned int y, const char* first, cons
     }
 
     // Reset the color.
-    wattr_set(m_window, org_attr, org_pair, NULL);
+    wattr_set(m_window, org_attr, org_pair, nullptr);
   }
 }
 

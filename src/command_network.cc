@@ -97,7 +97,7 @@ torrent::Object apply_encoding_list(const std::string& arg) { torrent::encoding_
 torrent::File*
 xmlrpc_find_file(core::Download* download, uint32_t index) {
   if (index >= download->file_list()->size_files())
-    return NULL;
+    return nullptr;
 
   return (*download->file_list())[index];
 }
@@ -106,7 +106,7 @@ xmlrpc_find_file(core::Download* download, uint32_t index) {
 torrent::Tracker*
 xmlrpc_find_tracker(core::Download* download, uint32_t index) {
   if (index >= download->tracker_list()->size())
-    return NULL;
+    return nullptr;
 
   return download->tracker_list()->at(index);
 }
@@ -116,7 +116,7 @@ xmlrpc_find_peer(core::Download* download, const torrent::HashString& hash) {
   torrent::ConnectionList::iterator itr = download->connection_list()->find(hash.c_str());
 
   if (itr == download->connection_list()->end())
-    return NULL;
+    return nullptr;
 
   return *itr;
 }
@@ -143,7 +143,7 @@ initialize_xmlrpc() {
 
 torrent::Object
 apply_scgi(const std::string& arg, int type) {
-  if (worker_thread->scgi() != NULL)
+  if (worker_thread->scgi() != nullptr)
     throw torrent::input_error("SCGI already enabled.");
 
   if (!rpc::xmlrpc.is_valid())
@@ -151,7 +151,7 @@ apply_scgi(const std::string& arg, int type) {
 
   rpc::SCgi* scgi = new rpc::SCgi;
 
-  rak::address_info* ai = NULL;
+  rak::address_info* ai = nullptr;
   rak::socket_address sa;
   rak::socket_address* saPtr;
 
@@ -199,10 +199,10 @@ apply_scgi(const std::string& arg, int type) {
       break;
     }
 
-    if (ai != NULL) rak::address_info::free_address_info(ai);
+    if (ai != nullptr) rak::address_info::free_address_info(ai);
 
   } catch (torrent::local_error& e) {
-    if (ai != NULL) rak::address_info::free_address_info(ai);
+    if (ai != nullptr) rak::address_info::free_address_info(ai);
 
     delete scgi;
     throw torrent::input_error(e.what());

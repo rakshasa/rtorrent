@@ -71,7 +71,7 @@ private:
   void                change_xmlrpc_log();
 
   struct lt_cacheline_aligned safe_type {
-    safe_type() : scgi(NULL) {}
+    safe_type() : scgi(nullptr) {}
 
     rpc::SCgi* scgi;
   };

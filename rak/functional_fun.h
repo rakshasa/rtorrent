@@ -96,7 +96,7 @@ public:
   typedef Result                 result_type;
   typedef function_base0<Result> base_type;
 
-  bool                is_valid() const     { return m_base.get() != NULL; }
+  bool                is_valid() const     { return m_base.get() != nullptr; }
 
   void                set(base_type* base) { m_base = std::shared_ptr<base_type>(base); }
   base_type*          release()            { return m_base.release(); }
@@ -113,7 +113,7 @@ public:
   typedef Result                       result_type;
   typedef function_base1<Result, Arg1> base_type;
 
-  bool                is_valid() const     { return m_base.get() != NULL; }
+  bool                is_valid() const     { return m_base.get() != nullptr; }
 
   void                set(base_type* base) { m_base = std::shared_ptr<base_type>(base); }
   base_type*          release()            { return m_base.release(); }
@@ -130,7 +130,7 @@ public:
   typedef Result                             result_type;
   typedef function_base2<Result, Arg1, Arg2> base_type;
 
-  bool                is_valid() const     { return m_base.get() != NULL; }
+  bool                is_valid() const     { return m_base.get() != nullptr; }
 
   void                set(base_type* base) { m_base = std::shared_ptr<base_type>(base); }
   base_type*          release()            { return m_base.release(); }
@@ -147,7 +147,7 @@ public:
   typedef Result                             result_type;
   typedef function_base1<Result, Arg2>       base_type;
 
-  bool                is_valid() const     { return m_base.get() != NULL; }
+  bool                is_valid() const     { return m_base.get() != nullptr; }
 
   void                set(base_type* base) { m_base = std::shared_ptr<base_type>(base); }
   base_type*          release()            { return m_base.release(); }
@@ -167,7 +167,7 @@ public:
   typedef Result                                   result_type;
   typedef function_base3<Result, Arg1, Arg2, Arg3> base_type;
 
-  bool                is_valid() const     { return m_base.get() != NULL; }
+  bool                is_valid() const     { return m_base.get() != nullptr; }
 
   void                set(base_type* base) { m_base = std::shared_ptr<base_type>(base); }
   base_type*          release()            { return m_base.release(); }

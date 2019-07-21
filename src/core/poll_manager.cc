@@ -56,9 +56,9 @@ create_poll() {
 
   int maxOpen = sysconf(_SC_OPEN_MAX);
 
-  torrent::Poll* poll = NULL;
+  torrent::Poll* poll = nullptr;
 
-  if (poll_name != NULL) {
+  if (poll_name != nullptr) {
     if (!strcmp(poll_name, "epoll"))
       poll = torrent::PollEPoll::create(maxOpen);
     else if (!strcmp(poll_name, "kqueue"))
@@ -66,20 +66,20 @@ create_poll() {
     else if (!strcmp(poll_name, "select"))
       poll = torrent::PollSelect::create(maxOpen);
 
-    if (poll == NULL)
+    if (poll == nullptr)
       control->core()->push_log_std(std::string("Cannot enable '") + poll_name + "' based polling.");
   }
 
-  if (poll != NULL)
+  if (poll != nullptr)
     control->core()->push_log_std(std::string("Using '") + poll_name + "' based polling.");
 
-  else if ((poll = torrent::PollEPoll::create(maxOpen)) != NULL)
+  else if ((poll = torrent::PollEPoll::create(maxOpen)) != nullptr)
     control->core()->push_log_std("Using 'epoll' based polling.");
 
-  else if ((poll = torrent::PollKQueue::create(maxOpen)) != NULL)
+  else if ((poll = torrent::PollKQueue::create(maxOpen)) != nullptr)
     control->core()->push_log_std("Using 'kqueue' based polling.");
 
-  else if ((poll = torrent::PollSelect::create(maxOpen)) != NULL)
+  else if ((poll = torrent::PollSelect::create(maxOpen)) != nullptr)
     control->core()->push_log_std("Using 'select' based polling.");
 
   else

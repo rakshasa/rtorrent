@@ -72,7 +72,7 @@ namespace ui {
 DownloadList::DownloadList() :
   m_state(DISPLAY_MAX_SIZE) {
 
-  m_uiArray[DISPLAY_DOWNLOAD]      = NULL;
+  m_uiArray[DISPLAY_DOWNLOAD]      = nullptr;
   m_uiArray[DISPLAY_DOWNLOAD_LIST] = new ElementDownloadList();
   m_uiArray[DISPLAY_LOG]           = new ElementLogComplete(control->core()->log_complete());
   m_uiArray[DISPLAY_STRING_LIST]   = new ElementStringList();
@@ -111,7 +111,7 @@ DownloadList::disable() {
   receive_exit_input(INPUT_NONE);
   activate_display(DISPLAY_MAX_SIZE);
 
-  m_frame = NULL;
+  m_frame = nullptr;
 
   control->input()->erase(&m_bindings);
 }
@@ -152,7 +152,7 @@ DownloadList::activate_display(Display displayType) {
     m_uiArray[m_state]->disable();
 
     delete m_uiArray[m_state];
-    m_uiArray[m_state] = NULL;
+    m_uiArray[m_state] = nullptr;
 
     break;
     
@@ -233,7 +233,7 @@ DownloadList::activate_display(Display displayType) {
 
 void
 DownloadList::receive_view_input(Input type) {
-  if (control->ui()->current_input() != NULL)
+  if (control->ui()->current_input() != nullptr)
     return;
 
   input::PathInput* input = new input::PathInput;
@@ -314,7 +314,7 @@ DownloadList::receive_exit_input(Input type) {
   input::TextInput* input = control->ui()->current_input();
   
   // We should check that this object is the one holding the input.
-  if (input == NULL)
+  if (input == nullptr)
     return;
 
   if (type != INPUT_NONE && type != INPUT_EOI)

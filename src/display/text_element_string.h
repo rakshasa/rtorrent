@@ -117,7 +117,7 @@ public:
 
 private:
   virtual char* copy_string(char* first, char* last, rpc::target_type target) {
-    if (target.second == NULL)
+    if (target.second == nullptr)
       return first;
 
     result_type result = m_slot(reinterpret_cast<arg1_type>(target.second));

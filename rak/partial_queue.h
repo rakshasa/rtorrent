@@ -39,7 +39,7 @@
 
 #include <cstring>
 #include <stdexcept>
-#include <inttypes.h>
+#include <cinttypes>
 
 namespace rak {
 
@@ -58,13 +58,13 @@ public:
 
   static const size_type num_layers = 8;
 
-  partial_queue() : m_data(NULL), m_maxLayerSize(0) {}
+  partial_queue() : m_data(nullptr), m_maxLayerSize(0) {}
   ~partial_queue() { disable(); }
 
   bool                is_full() const                         { return m_ceiling == 0; }
   bool                is_layer_full(size_type l) const        { return m_layers[l].second >= m_maxLayerSize; }
 
-  bool                is_enabled() const                      { return m_data != NULL; }
+  bool                is_enabled() const                      { return m_data != nullptr; }
 
   // Add check to see if we can add more. Also make it possible to
   // check how full we are in the lower parts so the caller knows when
@@ -124,14 +124,14 @@ partial_queue::enable(size_type ls) {
 inline void
 partial_queue::disable() {
   delete [] m_data;
-  m_data = NULL;
+  m_data = nullptr;
 
   m_maxLayerSize = 0;
 }
 
 inline void
 partial_queue::clear() {
-  if (m_data == NULL)
+  if (m_data == nullptr)
     return;
 
   m_index = 0;

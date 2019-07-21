@@ -251,7 +251,7 @@ View::prev_focus() {
 
 void
 View::sort() {
-  Download* curFocus = focus() != end_visible() ? *focus() : NULL;
+  Download* curFocus = focus() != end_visible() ? *focus() : nullptr;
 
   // Don't go randomly switching around equivalent elements.
   std::stable_sort(begin(), end_visible(), view_downloads_compare(m_sortCurrent));
@@ -287,7 +287,7 @@ View::filter() {
   // Consider if View should lock itself (and throw) if erase events
   // are triggered on a Download in the 'changed' list. This can be
   // done by using a base_type* member variable, and making sure we
-  // set the elements to NULL as we trigger commands on them. Or
+  // set the elements to nullptr as we trigger commands on them. Or
   // perhaps always clear them, thus not throwing anything.
   if (!m_event_removed.is_empty())
     std::for_each(changed.begin(), splitChanged,

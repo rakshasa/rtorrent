@@ -66,7 +66,7 @@ ExecFile::execute(const char* file, char* const* argv, int flags) {
   int __UNUSED result;
 
   if (m_logFd != -1) {
-    for (char* const* itr = argv; *itr != NULL; itr++) {
+    for (char* const* itr = argv; *itr != nullptr; itr++) {
       if (itr == argv)
         result = write(m_logFd, "\n---\n", sizeof("\n---\n"));
       else
@@ -230,7 +230,7 @@ ExecFile::execute_object(const torrent::Object& rawArgs, int flags) {
     argsCurrent++;
   }
 
-  *argsCurrent = NULL;
+  *argsCurrent = nullptr;
 
   int status = execute(argsBuffer[0], argsBuffer, flags);
 

@@ -55,12 +55,12 @@
 namespace ui {
 
 ElementDownloadList::ElementDownloadList() :
-  m_window(NULL),
-  m_view(NULL) {
+  m_window(nullptr),
+  m_view(nullptr) {
 
   receive_change_view("main");
 
-  if (m_view == NULL)
+  if (m_view == nullptr)
     throw torrent::internal_error("View \"main\" must be present to initialize the main display.");
 
   m_bindings['\x13'] = std::bind(&ElementDownloadList::receive_command, this, "d.start=");
@@ -126,10 +126,10 @@ ElementDownloadList::disable() {
   control->input()->erase(&m_bindings);
 
   m_frame->clear();
-  m_frame = NULL;
+  m_frame = nullptr;
 
   delete m_window;
-  m_window = NULL;
+  m_window = nullptr;
 }
 
 void
@@ -137,7 +137,7 @@ ElementDownloadList::set_view(core::View* l) {
   m_view = l;
   m_view->sort();
 
-  if (m_window == NULL)
+  if (m_window == nullptr)
     return;
 
   m_window->set_view(l);

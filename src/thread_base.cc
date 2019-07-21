@@ -72,9 +72,9 @@ public:
   iterator begin() { return m_queue; }
   iterator max_capacity() { return m_queue + max_size; }
 
-  iterator end_and_lock() { lock(); return std::find(begin(), max_capacity(), (value_type)NULL); }
+  iterator end_and_lock() { lock(); return std::find(begin(), max_capacity(), (value_type)nullptr); }
 
-  bool     empty() const { return m_queue[0] == NULL; }
+  bool     empty() const { return m_queue[0] == nullptr; }
 
   void push_back(value_type v) {
     iterator itr = end_and_lock();
@@ -82,7 +82,7 @@ public:
     if (itr == max_capacity())
       throw torrent::internal_error("Overflowed thread_queue.");
 
-    __sync_bool_compare_and_swap(itr, NULL, v);
+    __sync_bool_compare_and_swap(itr, nullptr, v);
     unlock();
   }
 
@@ -90,7 +90,7 @@ public:
     iterator itr = begin();
     lock();
 
-    while (*itr != NULL) *dest++ = *itr++;
+    while (*itr != nullptr) *dest++ = *itr++;
 
     clear_and_unlock();
     return dest;

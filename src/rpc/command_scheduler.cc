@@ -38,7 +38,7 @@
 
 #include <algorithm>
 #include <cstdlib>
-#include <time.h>
+#include <ctime>
 #include <rak/functional.h>
 #include <rak/string_manip.h>
 #include <torrent/exceptions.h>
@@ -66,7 +66,7 @@ CommandScheduler::insert(const std::string& key) {
   iterator itr = find(key);
 
   if (itr == end())
-    itr = base_type::insert(end(), NULL);
+    itr = base_type::insert(end(), nullptr);
   else
     delete *itr;
 
@@ -152,7 +152,7 @@ CommandScheduler::parse_absolute(const char* str) {
   case 2:
     t = cachedTime.tval().tv_sec;
 
-    if (localtime_r(&t, &local) == NULL)
+    if (localtime_r(&t, &local) == nullptr)
       throw torrent::input_error("Could not convert unix time to local time.");
 
     return (result.second + 3600 - 60 * local.tm_min - local.tm_sec) % 3600;
@@ -160,7 +160,7 @@ CommandScheduler::parse_absolute(const char* str) {
   case 3:
     t = cachedTime.tval().tv_sec;
 
-    if (localtime_r(&t, &local) == NULL)
+    if (localtime_r(&t, &local) == nullptr)
       throw torrent::input_error("Could not convert unix time to local time.");
 
     return (result.second + 24 * 3600 - 3600 * local.tm_hour - 60 * local.tm_min - local.tm_sec) % (24 * 3600);

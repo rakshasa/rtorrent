@@ -88,7 +88,7 @@ char*
 print_hhmmss_local(char* first, char* last, time_t t) {
   std::tm *u = std::localtime(&t);
   
-  if (u == NULL)
+  if (u == nullptr)
     //return "inv_time";
     throw torrent::internal_error("print_hhmmss_local(...) failed.");
 
@@ -107,7 +107,7 @@ char*
 print_ddmmyyyy(char* first, char* last, time_t t) {
   std::tm *u = std::gmtime(&t);
   
-  if (u == NULL)
+  if (u == nullptr)
     //return "inv_time";
     throw torrent::internal_error("print_ddmmyyyy(...) failed.");
 

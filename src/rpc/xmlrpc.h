@@ -73,9 +73,9 @@ public:
   static const int call_file       = 5;
   static const int call_file_itr   = 6;
 
-  XmlRpc() : m_env(NULL), m_registry(NULL), m_dialect(dialect_i8) {}
+  XmlRpc() : m_env(nullptr), m_registry(nullptr), m_dialect(dialect_i8) {}
 
-  bool                is_valid() const { return m_env != NULL; }
+  bool                is_valid() const { return m_env != nullptr; }
 
   void                initialize();
   void                cleanup();
