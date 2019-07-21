@@ -102,7 +102,7 @@ command_base::pop_stack(stack_type* stack, torrent::Object* last_stack) {
     last_stack->~Object();
 
     // To ensure we catch errors:
-    std::memset(last_stack, 0xAA, sizeof(torrent::Object));
+    std::memset(static_cast<void *>(last_stack), 0xAA, sizeof(torrent::Object));
   }
 }
 
