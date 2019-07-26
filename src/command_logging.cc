@@ -20,6 +20,7 @@
 
 static const int log_flag_use_gz = 0x1;
 static const int log_flag_append_pid = 0x2;
+static const int log_flag_append_file = 0x4;
 
 void
 log_add_group_output_str(const char* group_name, const char* output_id) {
@@ -44,10 +45,12 @@ apply_log_open(int output_flags, const torrent::Object::list_type& args) {
     file_name += buffer;
   }
 
+  bool append = (output_flags & log_flag_append_file);
+
   if ((output_flags & log_flag_use_gz))
-    torrent::log_open_gz_file_output(output_id.c_str(), file_name.c_str());
+    torrent::log_open_gz_file_output(output_id.c_str(), file_name.c_str(), append);
   else
-    torrent::log_open_file_output(output_id.c_str(), file_name.c_str());
+    torrent::log_open_file_output(output_id.c_str(), file_name.c_str(), append);
 
   while (itr != args.end())
     log_add_group_output_str((itr++)->as_string().c_str(), output_id.c_str());
@@ -130,6 +133,8 @@ initialize_command_logging() {
   CMD2_ANY_LIST    ("log.open_gz_file",     std::bind(&apply_log_open, log_flag_use_gz, std::placeholders::_2));
   CMD2_ANY_LIST    ("log.open_file_pid",    std::bind(&apply_log_open, log_flag_append_pid, std::placeholders::_2));
   CMD2_ANY_LIST    ("log.open_gz_file_pid", std::bind(&apply_log_open, log_flag_append_pid | log_flag_use_gz, std::placeholders::_2));
+  CMD2_ANY_LIST    ("log.append_file",      std::bind(&apply_log_open, log_flag_append_file, std::placeholders::_2));
+  CMD2_ANY_LIST    ("log.append_gz_file",   std::bind(&apply_log_open, log_flag_append_file, std::placeholders::_2));
 
   CMD2_ANY_STRING_V("log.close",      std::bind(&torrent::log_close_output_str, std::placeholders::_2));
 
