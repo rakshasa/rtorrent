@@ -146,6 +146,35 @@ Manager::get_address_throttle(const sockaddr* addr) {
   return m_addressThrottles.get(rak::socket_address::cast_from(addr)->sa_inet()->address_h(), torrent::ThrottlePair(NULL, NULL));
 }
 
+int64_t
+Manager::retrieve_throttle_value(const torrent::Object::string_type& name, bool rate, bool up) {
+  ThrottleMap::iterator itr = throttles().find(name);
+
+  if (itr == throttles().end()) {
+    return (int64_t)-1;
+  } else {
+    torrent::Throttle* throttle = up ? itr->second.first : itr->second.second;
+
+    // check whether the actual up/down throttle exist (one of the pair can be missing)
+    if (throttle == NULL)
+      return (int64_t)-1;
+
+    int64_t throttle_max = (int64_t)throttle->max_rate();
+
+    if (rate) {
+
+      if (throttle_max > 0)
+        return (int64_t)throttle->rate()->rate();
+      else
+        return (int64_t)-1;
+
+    } else {
+      return throttle_max;
+    }
+
+  }
+}
+
 // Most of this should be possible to move out.
 void
 Manager::initialize_second() {
