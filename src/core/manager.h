@@ -42,6 +42,7 @@
 
 #include <torrent/utils/log_buffer.h>
 #include <torrent/connection_manager.h>
+#include <torrent/object.h>
 
 #include "download_list.h"
 #include "poll_manager.h"
@@ -90,6 +91,8 @@ public:
 
   ThrottleMap&          throttles()                       { return m_throttles; }
   torrent::ThrottlePair get_throttle(const std::string& name);
+
+  int64_t             retrieve_throttle_value(const torrent::Object::string_type& name, bool rate, bool up);
 
   // Use custom throttle for the given range of IP addresses.
   void                  set_address_throttle(uint32_t begin, uint32_t end, torrent::ThrottlePair throttles);
