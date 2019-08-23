@@ -37,7 +37,7 @@
 #ifndef RTORRENT_DISPLAY_WINDOW_HTTP_QUEUE_H
 #define RTORRENT_DISPLAY_WINDOW_HTTP_QUEUE_H
 
-#include lt_tr1_functional
+#include <functional>
 
 #include "window.h"
 

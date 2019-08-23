@@ -38,7 +38,7 @@
 #define RAK_FILE_STAT_H
 
 #include <string>
-#include <inttypes.h>
+#include <cinttypes>
 #include <sys/stat.h>
 
 namespace rak {

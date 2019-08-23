@@ -37,7 +37,7 @@
 #ifndef RTORRENT_DISPLAY_FRAME_H
 #define RTORRENT_DISPLAY_FRAME_H
 
-#include <inttypes.h>
+#include <cinttypes>
 
 namespace display {
 

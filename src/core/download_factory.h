@@ -41,10 +41,11 @@
 #ifndef RTORRENT_CORE_DOWNLOAD_FACTORY_H
 #define RTORRENT_CORE_DOWNLOAD_FACTORY_H
 
+#include <functional>
 #include <iosfwd>
+
 #include <rak/priority_queue_default.h>
 #include <torrent/object.h>
-#include lt_tr1_functional
 
 #include "http_queue.h"
 

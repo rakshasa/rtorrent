@@ -39,7 +39,7 @@
 
 #include <cstring>
 #include <stdexcept>
-#include <inttypes.h>
+#include <cinttypes>
 
 namespace rak {
 

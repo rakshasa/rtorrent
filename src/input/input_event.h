@@ -37,9 +37,10 @@
 #ifndef RTORRENT_INPUT_INPUT_EVENT_H
 #define RTORRENT_INPUT_INPUT_EVENT_H
 
+#include <functional>
+
 #include <torrent/event.h>
 #include <torrent/poll.h>
-#include lt_tr1_functional
 
 namespace input {
 

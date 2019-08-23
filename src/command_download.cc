@@ -140,7 +140,7 @@ apply_d_change_link(core::Download* download, const torrent::Object::list_type& 
   case 0:
     if (symlink(target.c_str(), link.c_str()) == -1){
       lt_log_print(torrent::LOG_TORRENT_WARN, "create_link failed: %s",
-          rak::error_number::current().c_str());
+                   rak::error_number::current().c_str());
     }
     break;
 
@@ -324,7 +324,7 @@ struct call_add_d_peer_t {
 
   void operator() (const sockaddr* sa, int err) {
     if (sa == NULL) {
-      lt_log_print(torrent::LOG_CONNECTION_WARN, "Could not resolve hostname for added peer.");
+      lt_log_print(torrent::LOG_TORRENT_WARN, "could not resolve hostname for added peer");
     } else {
       m_download->download()->add_peer(sa, m_port);
     }
@@ -872,8 +872,10 @@ initialize_command_download() {
 
   CMD2_DL         ("d.wanted_chunks",    CMD2_ON_DATA(wanted_chunks));
 
-  CMD2_DL_V       ("d.tracker_announce",     std::bind(&torrent::Download::manual_request, CMD2_BIND_DL, false)); 
-  CMD2_DL_V       ("d.tracker_announce.force", std::bind(&torrent::Download::manual_request, CMD2_BIND_DL, true));
+  // Do not exposre d.tracker_announce.force to regular users.
+  CMD2_DL_V       ("d.tracker_announce",       std::bind(&torrent::Download::manual_request, CMD2_BIND_DL, false)); 
+  CMD2_DL_V       ("d.tracker_announce.force", std::bind(&torrent::Download::manual_request, CMD2_BIND_DL, true)); 
+
   CMD2_DL         ("d.tracker_numwant",      std::bind(&torrent::TrackerList::numwant, CMD2_BIND_TL));
   CMD2_DL_VALUE_V ("d.tracker_numwant.set",  std::bind(&torrent::TrackerList::set_numwant, CMD2_BIND_TL, std::placeholders::_2));
   // TODO: Deprecate 'd.tracker_focus'.

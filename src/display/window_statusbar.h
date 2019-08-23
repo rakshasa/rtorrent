@@ -37,7 +37,7 @@
 #ifndef RTORRENT_DISPLAY_WINDOW_STATUSBAR_H
 #define RTORRENT_DISPLAY_WINDOW_STATUSBAR_H
 
-#include <inttypes.h>
+#include <cstdint>
 
 #include "window.h"
 

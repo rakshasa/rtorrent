@@ -42,7 +42,7 @@
 #define RTORRENT_RPC_OBJECT_STORAGE_H
 
 #include <cstring>
-#include lt_tr1_unordered_map
+#include <unordered_map>
 #include <torrent/object.h>
 
 #include "rak/unordered_vector.h"
@@ -92,18 +92,18 @@ public:
   
   static const unsigned int flag_generic_type  = 0x1;
   static const unsigned int flag_bool_type     = 0x2;
-  static const unsigned int flag_value_type    = 0x3;
-  static const unsigned int flag_string_type   = 0x4;
-  static const unsigned int flag_list_type     = 0x5;
-  static const unsigned int flag_function_type = 0x6;
-  static const unsigned int flag_multi_type    = 0x7;
+  static const unsigned int flag_value_type    = 0x4;
+  static const unsigned int flag_string_type   = 0x8;
+  static const unsigned int flag_list_type     = 0x10;
+  static const unsigned int flag_function_type = 0x20;
+  static const unsigned int flag_multi_type    = 0x40;
 
-  static const unsigned int mask_type          = 0xf;
+  static const unsigned int mask_type          = 0xff;
 
-  static const unsigned int flag_constant      = 0x10;
-  static const unsigned int flag_static        = 0x20;
-  static const unsigned int flag_private       = 0x40;
-  static const unsigned int flag_rlookup       = 0x80;
+  static const unsigned int flag_constant      = 0x100;
+  static const unsigned int flag_static        = 0x200;
+  static const unsigned int flag_private       = 0x400;
+  static const unsigned int flag_rlookup       = 0x800;
 
   static const size_t key_size = key_type::max_size;
 

@@ -37,9 +37,9 @@
 #ifndef RTORRENT_CORE_HTTP_QUEUE_H
 #define RTORRENT_CORE_HTTP_QUEUE_H
 
-#include <list>
+#include <functional>
 #include <iosfwd>
-#include lt_tr1_functional
+#include <list>
 
 namespace core {
 

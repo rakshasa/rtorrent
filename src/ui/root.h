@@ -37,7 +37,7 @@
 #ifndef RTORRENT_UI_ROOT_H
 #define RTORRENT_UI_ROOT_H
 
-#include <inttypes.h>
+#include <cstdint>
 #include "input/bindings.h"
 #include "download_list.h"
 

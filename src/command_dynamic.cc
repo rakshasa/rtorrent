@@ -44,6 +44,30 @@
 #include "control.h"
 #include "command_helpers.h"
 #include "rpc/parse.h"
+#include "rpc/parse_options.h"
+
+static std::vector<std::pair<const char*, int>> object_storage_flags = {
+  { "multi", rpc::object_storage::flag_multi_type },
+  { "simple", rpc::object_storage::flag_function_type },
+  { "value", rpc::object_storage::flag_value_type },
+  { "bool", rpc::object_storage::flag_bool_type },
+  { "string", rpc::object_storage::flag_string_type },
+  { "list", rpc::object_storage::flag_list_type },
+
+  { "static", rpc::object_storage::flag_static },
+  { "private", rpc::object_storage::flag_private },
+  { "const", rpc::object_storage::flag_constant },
+  { "rlookup", rpc::object_storage::flag_rlookup }
+};
+
+static int
+object_storage_parse_flag(const std::string& flag) {
+  for (auto f : object_storage_flags)
+    if (f.first == flag)
+      return f.second;
+
+  throw torrent::input_error("unknown flag");
+}
 
 std::string
 system_method_generate_command(torrent::Object::list_const_iterator first, torrent::Object::list_const_iterator last) {
@@ -263,87 +287,33 @@ system_method_insert(const torrent::Object::list_type& args) {
     throw torrent::input_error("Invalid key.");
 
   int flags = rpc::CommandMap::flag_delete_key | rpc::CommandMap::flag_modifiable | rpc::CommandMap::flag_public_xmlrpc;
+  int new_flags = rpc::parse_option_flags(itrArgs->as_string(), std::bind(&object_storage_parse_flag, std::placeholders::_1));
 
-  const std::string& options = itrArgs->as_string();
-
-  // TODO: Replace find with a method that does '|' separated search
-  // for all valid options, and then cross-checks that unmixable ones
-  // aren't in there. Use a bitfield.
-
-  if (options.find("private") != std::string::npos)
+  if ((new_flags & rpc::object_storage::flag_private))
     flags &= ~rpc::CommandMap::flag_public_xmlrpc;
-  if (options.find("const") != std::string::npos)
+
+  if ((new_flags & rpc::object_storage::flag_constant))
     flags &= ~rpc::CommandMap::flag_modifiable;
 
-  if (options.find("multi") != std::string::npos) {
-    torrent::Object::list_type new_args;
-    new_args.push_back(rawKey);
+  torrent::Object::list_type new_args;
+  new_args.push_back(rawKey);
+
+  if ((new_flags & rpc::object_storage::flag_function_type) ||
+      (new_flags & rpc::object_storage::flag_multi_type)) {
     new_args.push_back(system_method_generate_command(++itrArgs, args.end()));
 
-    int new_flags = rpc::object_storage::flag_multi_type;
-
-    if (options.find("static") != std::string::npos)
-      new_flags |= rpc::object_storage::flag_static;
-    if (options.find("private") != std::string::npos)
-      new_flags |= rpc::object_storage::flag_private;
-    if (options.find("const") != std::string::npos)
-      new_flags |= rpc::object_storage::flag_constant;
-    if (options.find("rlookup") != std::string::npos)
-      new_flags |= rpc::object_storage::flag_rlookup;
-
-    return system_method_insert_object(new_args, new_flags);
-
-  } else if (options.find("simple") != std::string::npos) {
-    torrent::Object::list_type new_args;
-    new_args.push_back(rawKey);
-    new_args.push_back(system_method_generate_command(++itrArgs, args.end()));
-
-    int new_flags = rpc::object_storage::flag_function_type;
-
-    if (options.find("static") != std::string::npos)
-      new_flags |= rpc::object_storage::flag_static;
-    if (options.find("private") != std::string::npos)
-      new_flags |= rpc::object_storage::flag_private;
-    if (options.find("const") != std::string::npos)
-      new_flags |= rpc::object_storage::flag_constant;
-
-    return system_method_insert_object(new_args, new_flags);
-
-  } else if (options.find("value") != std::string::npos ||
-             options.find("bool") != std::string::npos ||
-             options.find("string") != std::string::npos ||
-             options.find("list") != std::string::npos) {
-    torrent::Object::list_type new_args;
-    new_args.push_back(rawKey);
-
+  } else if ((new_flags & rpc::object_storage::flag_value_type) ||
+             (new_flags & rpc::object_storage::flag_bool_type) ||
+             (new_flags & rpc::object_storage::flag_string_type) ||
+             (new_flags & rpc::object_storage::flag_list_type)) {
     if (++itrArgs != args.end())
       new_args.insert(new_args.end(), itrArgs, args.end());
 
-    int new_flags;
-
-    if (options.find("value") != std::string::npos)
-      new_flags = rpc::object_storage::flag_value_type;
-    else if (options.find("bool") != std::string::npos)
-      new_flags = rpc::object_storage::flag_bool_type;
-    else if (options.find("string") != std::string::npos)
-      new_flags = rpc::object_storage::flag_string_type;
-    else if (options.find("list") != std::string::npos)
-      new_flags = rpc::object_storage::flag_list_type;
-
-    if (options.find("static") != std::string::npos)
-      new_flags |= rpc::object_storage::flag_static;
-    if (options.find("private") != std::string::npos)
-      new_flags |= rpc::object_storage::flag_private;
-    if (options.find("const") != std::string::npos)
-      new_flags |= rpc::object_storage::flag_constant;
-
-    return system_method_insert_object(new_args, new_flags);
-
   } else {
-    // THROW.
+    throw torrent::input_error("No object type specified.");
   }
 
-  return torrent::Object();
+  return system_method_insert_object(new_args, new_flags);
 }
 
 // method.erase <> {name}
@@ -457,7 +427,7 @@ cmd_catch(rpc::target_type target, const torrent::Object& args) {
 
 void
 initialize_command_dynamic() {
-  CMD2_VAR_BOOL    ("method.use_deprecated", false);
+  CMD2_VAR_BOOL    ("method.use_deprecated", true);
   CMD2_VAR_VALUE   ("method.use_intermediate", 1);
 
   CMD2_ANY_LIST    ("method.insert",             std::bind(&system_method_insert, std::placeholders::_2));

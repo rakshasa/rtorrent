@@ -37,9 +37,9 @@
 #ifndef RTORRENT_OPTION_PARSER_H
 #define RTORRENT_OPTION_PARSER_H
 
+#include <functional>
 #include <map>
 #include <string>
-#include lt_tr1_functional
 
 // Throws std::runtime_error upon receiving bad input.
 

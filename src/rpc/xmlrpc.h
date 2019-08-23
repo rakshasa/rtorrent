@@ -37,7 +37,8 @@
 #ifndef RTORRENT_RPC_XMLRPC_H
 #define RTORRENT_RPC_XMLRPC_H
 
-#include lt_tr1_functional
+#include <functional>
+
 #include <torrent/hash_string.h>
 
 namespace core {

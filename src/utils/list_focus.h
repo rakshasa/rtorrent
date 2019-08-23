@@ -37,7 +37,7 @@
 #ifndef RTORRENT_UTILS_LIST_FOCUS_H
 #define RTORRENT_UTILS_LIST_FOCUS_H
 
-#include lt_tr1_functional
+#include <functional>
 
 namespace utils {
 

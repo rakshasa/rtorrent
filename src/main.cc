@@ -81,6 +81,9 @@
 
 #include "thread_worker.h"
 
+#define LT_LOG(log_fmt, ...)                                    \
+  lt_log_print(torrent::LOG_SYSTEM, "system: " log_fmt, __VA_ARGS__);
+
 void handle_sigbus(int signum, siginfo_t* sa, void* ptr);
 void do_panic(int signum);
 void print_help();
@@ -104,7 +107,7 @@ parse_options(int argc, char** argv) {
     optionParser.insert_option('b', std::bind(&rpc::call_command_set_string, "network.bind_address.set", std::placeholders::_1));
     optionParser.insert_option('d', std::bind(&rpc::call_command_set_string, "directory.default.set", std::placeholders::_1));
     optionParser.insert_option('i', std::bind(&rpc::call_command_set_string, "ip", std::placeholders::_1));
-    optionParser.insert_option('p', std::bind(&rpc::call_command_set_string, "network.port_range.set", std::placeholders::_1));
+    optionParser.insert_option('p', std::bind(&rpc::call_command_set_string, "network.port.range.set", std::placeholders::_1));
     optionParser.insert_option('s', std::bind(&rpc::call_command_set_string, "session", std::placeholders::_1));
 
     optionParser.insert_option('O',      std::bind(&rpc::parse_command_single_std, std::placeholders::_1));
@@ -397,12 +400,12 @@ main(int argc, char** argv) {
 
     CMD2_REDIRECT        ("bind",       "network.bind_address.set");
     CMD2_REDIRECT        ("ip",         "network.local_address.set");
-    CMD2_REDIRECT        ("port_range", "network.port_range.set");
+    CMD2_REDIRECT        ("port_range", "network.port.range.set");
 
     CMD2_REDIRECT_GENERIC("dht",      "dht.mode.set");
     CMD2_REDIRECT_GENERIC("dht_port", "dht.port.set");
 
-    CMD2_REDIRECT        ("port_random", "network.port_random.set");
+    CMD2_REDIRECT        ("port_random", "network.port.randomize.set");
     CMD2_REDIRECT        ("proxy_address", "network.proxy_address.set");
 
     CMD2_REDIRECT        ("scgi_port", "network.scgi.open_port");
@@ -445,6 +448,12 @@ main(int argc, char** argv) {
 
 #if LT_SLIM_VERSION != 1
     if (rpc::call_command_value("method.use_deprecated")) {
+      CMD2_REDIRECT_GENERIC("network.port_range", "network.port.range");
+      CMD2_REDIRECT_GENERIC("network.port_range.set", "network.port.range.set");
+      CMD2_REDIRECT_GENERIC("network.port_open", "network.listen.is_open");
+      CMD2_REDIRECT_GENERIC("network.port_open.set", "network.listen.open");
+      CMD2_REDIRECT_GENERIC("network.port_random", "network.port.randomize");
+      CMD2_REDIRECT_GENERIC("network.port_random.set", "network.port.randomize.set");
     }
 #endif
 
@@ -465,6 +474,8 @@ main(int argc, char** argv) {
         rpc::parse_command_single(rpc::make_target(), "try_import = ~/.rtorrent.rc");
       }
     }
+
+    LT_LOG("seeded srandom and srand48 (seed:%u)", random_seed);
 
     control->initialize();
     control->ui()->load_input_history();
@@ -668,7 +679,7 @@ print_help() {
   std::cout << "  o                 View trackers" << std::endl;
   std::cout << std::endl;
 
-  std::cout << "Report bugs to <sundell.software@gmail.com>." << std::endl;
+  std::cout << "Report bugs to <github.com/rakshasa/rtorrent>." << std::endl;
 
   exit(0);
 }

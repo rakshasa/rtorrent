@@ -38,7 +38,7 @@
 #define RAK_TIMER_H
 
 #include <limits>
-#include <inttypes.h>
+#include <cinttypes>
 #include <sys/time.h>
 
 namespace rak {

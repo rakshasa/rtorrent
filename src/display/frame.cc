@@ -38,7 +38,7 @@
 
 #include <algorithm>
 #include <functional>
-#include lt_tr1_functional
+
 #include <rak/algorithm.h>
 #include <torrent/exceptions.h>
 
