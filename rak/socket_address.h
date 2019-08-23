@@ -47,9 +47,12 @@
 #ifndef RAK_SOCKET_ADDRESS_H
 #define RAK_SOCKET_ADDRESS_H
 
+#include <cinttypes>
+#include <cstdint>
 #include <cstring>
-#include <string>
 #include <stdexcept>
+#include <string>
+
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <sys/types.h>
@@ -77,11 +80,13 @@ public:
   static const int         pf_local  = PF_UNIX;
 #endif
 
+  bool                is_any() const;
   bool                is_valid() const;
   bool                is_bindable() const;
   bool                is_address_any() const;
 
-  // Should we need to set AF_UNSPEC?
+  bool                is_valid_inet_class() const             { return family() == af_inet || family() == af_inet6; }
+
   void                clear()                                 { std::memset(this, 0, sizeof(socket_address)); set_family(); }
 
   sa_family_t         family() const                          { return m_sockaddr.sa_family; }
@@ -92,6 +97,8 @@ public:
 
   std::string         address_str() const;
   bool                address_c_str(char* buf, socklen_t size) const;
+
+  std::string         pretty_address_str() const;
 
   // Attemts to set it as an inet, then an inet6 address. It will
   // never set anything but net addresses, no local/unix.
@@ -119,6 +126,7 @@ public:
   // extranous bytes and ensure it does not go beyond the size of this
   // struct.
   void                copy(const socket_address& src, size_t length);
+  void                copy_sockaddr(const sockaddr* src);
 
   static socket_address*       cast_from(sockaddr* sa)        { return reinterpret_cast<socket_address*>(sa); }
   static const socket_address* cast_from(const sockaddr* sa)  { return reinterpret_cast<const socket_address*>(sa); }
@@ -215,6 +223,8 @@ public:
 
   void                set_address_any()                       { set_port(0); set_address(in6addr_any); }
 
+  std::string         pretty_address_str() const;
+
   sa_family_t         family() const                          { return m_sockaddr.sin6_family; }
   void                set_family()                            { m_sockaddr.sin6_family = AF_INET6; }
 
@@ -232,6 +242,18 @@ public:
 private:
   struct sockaddr_in6 m_sockaddr;
 };
+
+inline bool
+socket_address::is_any() const {
+  switch (family()) {
+  case af_inet:
+    return sa_inet()->is_any();
+  case af_inet6:
+    return sa_inet6()->is_any();
+  default:
+    return false;
+  }
+}
 
 inline bool
 socket_address::is_valid() const {
@@ -317,6 +339,21 @@ socket_address::address_c_str(char* buf, socklen_t size) const {
   }
 }
 
+inline std::string
+socket_address::pretty_address_str() const {
+  switch (family()) {
+  case af_inet:
+    return sa_inet()->address_str();
+  case af_inet6:
+    return sa_inet6()->pretty_address_str();
+  case af_unspec:
+    return std::string("unspec");
+  default:
+    return std::string("invalid");
+  }
+}
+
+
 inline bool
 socket_address::set_address_c_str(const char* a) {
   if (sa_inet()->set_address_c_str(a)) {
@@ -348,13 +385,16 @@ socket_address::length() const {
 inline void
 socket_address::copy(const socket_address& src, size_t length) {
   length = std::min(length, sizeof(socket_address));
-  
-  // Does this get properly optimized?
+
   std::memset(this, 0, sizeof(socket_address));
   std::memcpy(this, &src, length);
 }
 
-// Should we be able to compare af_unspec?
+inline void
+socket_address::copy_sockaddr(const sockaddr* src) {
+  std::memset(this, 0, sizeof(socket_address));
+  std::memcpy(this, src, socket_address::cast_from(src)->length());
+}
 
 inline bool
 socket_address::operator == (const socket_address& rhs) const {
@@ -454,6 +494,35 @@ socket_address_inet6::address_c_str(char* buf, socklen_t size) const {
 inline bool
 socket_address_inet6::set_address_c_str(const char* a) {
   return inet_pton(AF_INET6, a, &m_sockaddr.sin6_addr);
+}
+
+inline std::string
+socket_address_inet6::pretty_address_str() const {
+  char buf[INET6_ADDRSTRLEN + 2 + 6];
+
+  if (inet_ntop(family(), &m_sockaddr.sin6_addr, buf + 1, INET6_ADDRSTRLEN) == NULL)
+    return std::string();
+
+  buf[0] = '[';
+
+  char* last_char = (char*)std::memchr(buf + 1, 0, INET6_ADDRSTRLEN);
+
+  // TODO: Throw exception here.
+
+  if (last_char == NULL || last_char >= buf + 1 + INET6_ADDRSTRLEN)
+    throw std::logic_error("inet_ntop for inet6 returned bad buffer");
+
+  *(last_char++) = ']';
+
+  if (!is_port_any()) {
+    if (snprintf(last_char, 7, ":%" PRIu16, port()) == -1)
+      return std::string("error"); // TODO: Throw here.
+
+  } else {
+    *last_char = '\0';
+  }
+
+  return std::string(buf);
 }
 
 inline socket_address

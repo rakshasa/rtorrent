@@ -73,6 +73,7 @@ before_install:
  - git clone https://github.com/rakshasa/libtorrent.git
  - |
    pushd libtorrent \
+   && (git checkout ${TRAVIS_BRANCH} || true) \
    && ./autogen.sh \
    && CXX="$COMPILER" ./configure --prefix=/usr \
    && make \

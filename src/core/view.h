@@ -49,11 +49,12 @@
 #ifndef RTORRENT_CORE_VIEW_DOWNLOADS_H
 #define RTORRENT_CORE_VIEW_DOWNLOADS_H
 
+#include <functional>
 #include <string>
 #include <vector>
+
 #include <rak/timer.h>
 #include <torrent/object.h>
-#include lt_tr1_functional
 
 #include "globals.h"
 

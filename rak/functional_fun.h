@@ -53,8 +53,7 @@
 
 #include <memory>
 #include <functional>
-#include lt_tr1_functional
-#include lt_tr1_memory
+#include <memory>
 
 namespace rak {
 

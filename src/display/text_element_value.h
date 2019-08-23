@@ -38,7 +38,6 @@
 #define RTORRENT_DISPLAY_TEXT_ELEMENT_VALUE_H
 
 #include <cstring>
-#include <inttypes.h>
 
 #include "text_element.h"
 

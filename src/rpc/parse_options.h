@@ -34,38 +34,30 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef RTORRENT_SIGNAL_HANDLER_H
-#define RTORRENT_SIGNAL_HANDLER_H
+#ifndef RTORRENT_RPC_PARSE_OPTIONS_H
+#define RTORRENT_RPC_PARSE_OPTIONS_H
 
+#include <cstring>
 #include <functional>
-#include <signal.h>
+#include <string>
+#include <vector>
 
-class SignalHandler {
-public:
-  typedef std::function<void ()> slot_void;
+namespace rpc {
 
-  // typedef void (*handler_slot)(int, siginfo_t *info, ucontext_t *uap);
-  typedef void (*handler_slot)(int, siginfo_t*, void*);
+// If a flag returned by the functor is negative it is treated as a
+// negation of the flag.
 
-#ifdef NSIG
-  static const unsigned int HIGHEST_SIGNAL = NSIG;
-#else
-  // Let's be on the safe side.
-  static const unsigned int HIGHEST_SIGNAL = 32;
-#endif
+typedef std::function<int (const std::string&)>   parse_option_flag_type;
+typedef std::function<const char* (unsigned int)> parse_option_rflag_type;
 
-  static void         set_default(unsigned int signum);
-  static void         set_ignore(unsigned int signum);
-  static void         set_handler(unsigned int signum, slot_void slot);
+int parse_option_flag(const std::string& option, parse_option_flag_type ftor);
+int parse_option_flags(const std::string& option, parse_option_flag_type ftor, int flags = int());
 
-  static void         set_sigaction_handler(unsigned int signum, handler_slot slot);
+void parse_option_for_each(const std::string& option, parse_option_flag_type ftor);
 
-  static const char*  as_string(unsigned int signum);
+std::string parse_option_print_vector(int flags, const std::vector<std::pair<const char*, int>>& flag_list);
+std::string parse_option_print_flags(unsigned int flags, parse_option_rflag_type ftor);
 
-private:
-  static void         caught(int signum);
-
-  static slot_void    m_handlers[HIGHEST_SIGNAL];
-};
+}
 
 #endif

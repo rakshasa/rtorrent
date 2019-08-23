@@ -37,8 +37,8 @@
 #ifndef RTORRENT_DISPLAY_TEXT_ELEMENT_H
 #define RTORRENT_DISPLAY_TEXT_ELEMENT_H
 
+#include <cinttypes>
 #include <vector>
-#include <inttypes.h>
 
 #include "display/canvas.h"
 #include "rpc/command_map.h"

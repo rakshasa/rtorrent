@@ -286,7 +286,7 @@ ipv4_filter_parse(const char* address, int value) {
     inet_ntop(AF_INET, &net_start, start_str, INET_ADDRSTRLEN);
     inet_ntop(AF_INET, &net_end, end_str, INET_ADDRSTRLEN);
 
-    lt_log_print(torrent::LOG_CONNECTION_DEBUG, "Adding ip filter for %s-%s.", start_str, end_str);
+    lt_log_print(torrent::LOG_CONNECTION_FILTER, "Adding ip filter for %s-%s.", start_str, end_str);
   }
 }
 
@@ -355,7 +355,7 @@ apply_ipv4_filter_load(const torrent::Object::list_type& args) {
     throw torrent::input_error(buffer);
   }
 
-  lt_log_print(torrent::LOG_CONNECTION_INFO, "Loaded %u %s address blocks (%u kb in-memory) from '%s'.",
+  lt_log_print(torrent::LOG_CONNECTION_FILTER, "loaded %u %s address blocks (%u kb in-memory) from '%s'",
                lineNumber,
                value_name.c_str(),
                torrent::PeerList::ipv4_filter()->sizeof_data() / 1024,

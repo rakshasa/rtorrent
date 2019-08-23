@@ -81,6 +81,9 @@
 
 #include "thread_worker.h"
 
+#define LT_LOG(log_fmt, ...)                                    \
+  lt_log_print(torrent::LOG_SYSTEM, "system: " log_fmt, __VA_ARGS__);
+
 void handle_sigbus(int signum, siginfo_t* sa, void* ptr);
 void do_panic(int signum);
 void print_help();
@@ -466,6 +469,8 @@ main(int argc, char** argv) {
       }
     }
 
+    LT_LOG("seeded srandom and srand48 (seed:%u)", random_seed);
+
     control->initialize();
     control->ui()->load_input_history();
 
@@ -668,7 +673,7 @@ print_help() {
   std::cout << "  o                 View trackers" << std::endl;
   std::cout << std::endl;
 
-  std::cout << "Report bugs to <sundell.software@gmail.com>." << std::endl;
+  std::cout << "Report bugs to <github.com/rakshasa/rtorrent>." << std::endl;
 
   exit(0);
 }

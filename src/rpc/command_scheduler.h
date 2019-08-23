@@ -37,9 +37,9 @@
 #ifndef RTORRENT_COMMAND_SCHEDULER_H
 #define RTORRENT_COMMAND_SCHEDULER_H
 
+#include <cstdint>
 #include <vector>
 #include <string>
-#include <inttypes.h>
 #include <rak/functional_fun.h>
 
 namespace torrent {

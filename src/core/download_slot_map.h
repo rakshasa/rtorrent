@@ -37,9 +37,9 @@
 #ifndef RTORRENT_CORE_DOWNLOAD_SLOT_MAP_H
 #define RTORRENT_CORE_DOWNLOAD_SLOT_MAP_H
 
+#include <functional>
 #include <map>
 #include <string>
-#include lt_tr1_functional
 
 #include "download.h"
 

@@ -38,7 +38,7 @@
 #define RAK_FS_STAT_H
 
 #include <string>
-#include <inttypes.h>
+#include <cinttypes>
 
 #include <rak/error_number.h>
 

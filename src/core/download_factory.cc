@@ -38,10 +38,11 @@
 
 #include <cstdlib>
 #include <fstream>
+#include <functional>
 #include <sstream>
 #include <stdexcept>
+
 #include <rak/path.h>
-#include lt_tr1_functional
 #include <torrent/utils/log.h>
 #include <torrent/utils/resume.h>
 #include <torrent/object.h>

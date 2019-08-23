@@ -37,9 +37,9 @@
 #ifndef RTORRENT_UTILS_DIRECTORY_H
 #define RTORRENT_UTILS_DIRECTORY_H
 
+#include <cstdint>
 #include <string>
 #include <vector>
-#include <inttypes.h>
 
 namespace utils {
 

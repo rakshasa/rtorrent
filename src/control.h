@@ -37,7 +37,7 @@
 #ifndef RTORRENT_CONTROL_H
 #define RTORRENT_CONTROL_H
 
-#include <inttypes.h>
+#include <cinttypes>
 #include <sys/types.h>
 #include <rak/timer.h>
 #include <rak/priority_queue_default.h>
