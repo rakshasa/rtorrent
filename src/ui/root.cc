@@ -392,7 +392,7 @@ Root::set_input_history_size(int size) {
 
 void
 Root::load_input_history() {
-  if (!m_control->core()->download_store()->is_enabled()) {
+  if (m_control == NULL || !m_control->core()->download_store()->is_enabled()) {
     lt_log_print(torrent::LOG_DEBUG, "ignoring input history file");
     return;
   }
@@ -460,7 +460,7 @@ Root::load_input_history() {
 
 void
 Root::save_input_history() {
-  if (!m_control->core()->download_store()->is_enabled())
+  if (m_control == NULL || !m_control->core()->download_store()->is_enabled())
     return;
 
   std::string history_filename = m_control->core()->download_store()->path() + "rtorrent.input_history";
