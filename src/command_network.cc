@@ -286,8 +286,10 @@ initialize_command_network() {
   CMD2_ANY         ("network.proxy_address",       std::bind(&core::Manager::proxy_address, control->core()));
   CMD2_ANY_STRING_V("network.proxy_address.set",   std::bind(&core::Manager::set_proxy_address, control->core(), std::placeholders::_2));
 
+  CMD2_ANY         ("network.open_files",           std::bind(&torrent::FileManager::open_files, fileManager));
   CMD2_ANY         ("network.max_open_files",       std::bind(&torrent::FileManager::max_open_files, fileManager));
   CMD2_ANY_VALUE_V ("network.max_open_files.set",   std::bind(&torrent::FileManager::set_max_open_files, fileManager, std::placeholders::_2));
+  CMD2_ANY         ("network.total_handshakes",     std::bind(&torrent::total_handshakes));
   CMD2_ANY         ("network.open_sockets",         std::bind(&torrent::ConnectionManager::size, cm));
   CMD2_ANY         ("network.max_open_sockets",     std::bind(&torrent::ConnectionManager::max_size, cm));
   CMD2_ANY_VALUE_V ("network.max_open_sockets.set", std::bind(&torrent::ConnectionManager::set_max_size, cm, std::placeholders::_2));

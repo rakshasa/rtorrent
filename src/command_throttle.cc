@@ -176,8 +176,10 @@ throttle_update(const char* variable, int64_t value) {
 
 void
 initialize_command_throttle() {
-  CMD2_ANY         ("throttle.unchoked_uploads",   std::bind(&torrent::ResourceManager::currently_upload_unchoked, torrent::resource_manager()));
-  CMD2_ANY         ("throttle.unchoked_downloads", std::bind(&torrent::ResourceManager::currently_download_unchoked, torrent::resource_manager()));
+  CMD2_ANY         ("throttle.unchoked_uploads",       std::bind(&torrent::ResourceManager::currently_upload_unchoked, torrent::resource_manager()));
+  CMD2_ANY         ("throttle.max_unchoked_uploads",   std::bind(&torrent::ResourceManager::max_upload_unchoked, torrent::resource_manager()));
+  CMD2_ANY         ("throttle.unchoked_downloads",     std::bind(&torrent::ResourceManager::currently_download_unchoked, torrent::resource_manager()));
+  CMD2_ANY         ("throttle.max_unchoked_downloads", std::bind(&torrent::ResourceManager::max_download_unchoked, torrent::resource_manager()));
 
   CMD2_VAR_VALUE   ("throttle.min_peers.normal", 100);
   CMD2_VAR_VALUE   ("throttle.max_peers.normal", 200);
