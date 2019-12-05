@@ -1,15 +1,7 @@
 TESTS = rtorrentTest
-AUTOMAKE_OPTIONS = subdir-objects
 
 check_PROGRAMS = $(TESTS)
-rtorrentTest_LDADD = \
-	../src/libsub_root.a \
-	../src/ui/libsub_ui.a \
-	../src/core/libsub_core.a \
-	../src/display/libsub_display.a \
-	../src/input/libsub_input.a \
-	../src/rpc/libsub_rpc.a \
-	../src/utils/libsub_utils.a
+rtorrentTest_LDADD = ../src/libsub_root.a
 
 rtorrentTest_SOURCES = \
 	rpc/command_test.cc \

@@ -1,14 +1,166 @@
-SUBDIRS = \
-	core \
-	display \
-	input \
-	rpc \
-	ui \
-	utils
-
 noinst_LIBRARIES = libsub_root.a
+bin_PROGRAMS = rtorrent
+
+rtorrent_LDADD = libsub_root.a @PTHREAD_LIBS@
+rtorrent_SOURCES = main.cc
 
 libsub_root_a_SOURCES = \
+	core/curl_get.cc \
+	core/curl_get.h \
+	core/curl_socket.cc \
+	core/curl_socket.h \
+	core/curl_stack.cc \
+	core/curl_stack.h \
+	core/dht_manager.cc \
+	core/dht_manager.h \
+	core/download.cc \
+	core/download.h \
+	core/download_factory.cc \
+	core/download_factory.h \
+	core/download_list.cc \
+	core/download_list.h \
+	core/download_slot_map.h \
+	core/download_store.cc \
+	core/download_store.h \
+	core/http_queue.cc \
+	core/http_queue.h \
+	core/manager.cc \
+	core/manager.h \
+	core/poll_manager.cc \
+	core/poll_manager.h \
+	core/range_map.h \
+	core/view.cc \
+	core/view.h \
+	core/view_manager.cc \
+	core/view_manager.h \
+	\
+	display/attributes.h \
+	display/canvas.cc \
+	display/canvas.h \
+	display/frame.cc \
+	display/frame.h \
+	display/manager.cc \
+	display/manager.h \
+	display/utils.cc \
+	display/utils.h \
+	display/text_element.h \
+	display/text_element_list.cc \
+	display/text_element_list.h \
+	display/text_element_string.cc \
+	display/text_element_string.h \
+	display/text_element_value.cc \
+	display/text_element_value.h \
+	display/window.cc \
+	display/window.h \
+	display/window_download_chunks_seen.cc \
+	display/window_download_chunks_seen.h \
+	display/window_download_list.cc \
+	display/window_download_list.h \
+	display/window_download_statusbar.cc \
+	display/window_download_statusbar.h \
+	display/window_download_transfer_list.cc \
+	display/window_download_transfer_list.h \
+	display/window_file_list.cc \
+	display/window_file_list.h \
+	display/window_http_queue.cc \
+	display/window_http_queue.h \
+	display/window_input.cc \
+	display/window_input.h \
+	display/window_log.cc \
+	display/window_log.h \
+	display/window_log_complete.cc \
+	display/window_log_complete.h \
+	display/window_peer_list.cc \
+	display/window_peer_list.h \
+	display/window_statusbar.cc \
+	display/window_statusbar.h \
+	display/window_string_list.cc \
+	display/window_string_list.h \
+	display/window_text.cc \
+	display/window_text.h \
+	display/window_title.cc \
+	display/window_title.h \
+	display/window_tracker_list.cc \
+	display/window_tracker_list.h \
+	\
+	input/bindings.cc \
+	input/bindings.h \
+	input/input_event.cc \
+	input/input_event.h \
+	input/manager.cc \
+	input/manager.h \
+	input/path_input.cc \
+	input/path_input.h \
+	input/text_input.cc \
+	input/text_input.h \
+	\
+	rpc/command.h \
+	rpc/command.cc \
+	rpc/command_impl.h \
+	rpc/command_map.cc \
+	rpc/command_map.h \
+	rpc/command_scheduler.cc \
+	rpc/command_scheduler.h \
+	rpc/command_scheduler_item.cc \
+	rpc/command_scheduler_item.h \
+	rpc/exec_file.cc \
+	rpc/exec_file.h \
+	rpc/fixed_key.h \
+	rpc/ip_table_list.h \
+	rpc/object_storage.cc \
+	rpc/object_storage.h \
+	rpc/parse.cc \
+	rpc/parse.h \
+	rpc/parse_commands.cc \
+	rpc/parse_commands.h \
+	rpc/parse_options.cc \
+	rpc/parse_options.h \
+	rpc/scgi.cc \
+	rpc/scgi.h \
+	rpc/scgi_task.cc \
+	rpc/scgi_task.h \
+	rpc/xmlrpc.h \
+	rpc/xmlrpc.cc \
+	\
+	ui/download.cc \
+	ui/download.h \
+	ui/download_list.cc \
+	ui/download_list.h \
+	ui/element_base.h \
+	ui/element_base.cc \
+	ui/element_chunks_seen.cc \
+	ui/element_chunks_seen.h \
+	ui/element_download_list.cc \
+	ui/element_download_list.h \
+	ui/element_file_list.cc \
+	ui/element_file_list.h \
+	ui/element_log_complete.cc \
+	ui/element_log_complete.h \
+	ui/element_menu.cc \
+	ui/element_menu.h \
+	ui/element_peer_list.cc \
+	ui/element_peer_list.h \
+	ui/element_string_list.cc \
+	ui/element_string_list.h \
+	ui/element_text.cc \
+	ui/element_text.h \
+	ui/element_tracker_list.cc \
+	ui/element_tracker_list.h \
+	ui/element_transfer_list.cc \
+	ui/element_transfer_list.h \
+	ui/root.cc \
+	ui/root.h \
+	\
+	utils/directory.cc \
+	utils/directory.h \
+	utils/file_status_cache.cc \
+	utils/file_status_cache.h \
+	utils/list_focus.h \
+	utils/lockfile.cc \
+	utils/lockfile.h \
+	utils/socket_fd.cc \
+	utils/socket_fd.h \
+	\
 	command_download.cc \
 	command_dynamic.cc \
 	command_events.cc \
@@ -37,20 +189,5 @@ libsub_root_a_SOURCES = \
 	thread_base.h \
 	thread_worker.cc \
 	thread_worker.h
-
-bin_PROGRAMS = rtorrent
-
-rtorrent_LDADD = \
-	libsub_root.a \
-	ui/libsub_ui.a \
-	core/libsub_core.a \
-	display/libsub_display.a \
-	input/libsub_input.a \
-	rpc/libsub_rpc.a \
-	utils/libsub_utils.a \
-	@PTHREAD_LIBS@
-
-rtorrent_SOURCES = \
-	main.cc
 
 AM_CPPFLAGS = -I$(srcdir) -I$(top_srcdir)
