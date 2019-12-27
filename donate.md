@@ -9,3 +9,5 @@ Donate to rTorrent development
  * LiteCoin: LdyaVR67LBnTf6mAT4QJnjSG2Zk67qxmfQ
 
 Help keep rTorrent development going by donating to its creator.
+
+(Note the old paypal account is defunct, please use the new one when sending donations)
