@@ -1,51 +1,19 @@
-#! /bin/sh
+#!/bin/sh
+set -eu
 
-echo aclocal...
-(aclocal --version) < /dev/null > /dev/null 2>&1 || {
-    echo aclocal not found
-    exit 1
+run() {
+    printf '%s' "$1" >&2
+    if ! command -v "$1" >/dev/null 2>&1; then
+        echo ' not found in PATH' >&2
+        return 1
+    fi
+    echo '...' >&2
+    "$@"
 }
 
-aclocal -I ./scripts -I . ${ACLOCAL_FLAGS} || exit 1
-
-echo autoheader...
-(autoheader --version) < /dev/null > /dev/null 2>&1 || {
-    echo autoheader not found
-    exit 1
-}
-
-autoheader || exit 1
-
-echo -n "libtoolize... "
-if ( (glibtoolize --version) < /dev/null > /dev/null 2>&1 ); then
-    echo "using glibtoolize"
-    glibtoolize --automake --copy --force || exit 1
-
-elif ( (libtoolize --version) < /dev/null > /dev/null 2>&1 ) ; then
-    echo "using libtoolize"
-    libtoolize --automake --copy --force || exit 1
-
-else
-    echo "libtoolize nor glibtoolize not found"
-    exit 1
-fi
-
-echo automake...
-(automake --version) < /dev/null > /dev/null 2>&1 || {
-    echo automake not found
-    exit 1
-}
-
-automake --add-missing --copy --gnu || exit 1
-
-echo autoconf...
-(autoconf --version) < /dev/null > /dev/null 2>&1 || {
-    echo autoconf not found
-    exit 1
-}
-
-autoconf || exit 1
-
-echo ready to configure
-
-exit 0
+run aclocal -I ./scripts -I .
+run autoheader
+run glibtoolize --automake --copy --force || run libtoolize --automake --copy --force
+run automake --add-missing --copy --gnu
+run autoconf
+echo 'ready to configure'
