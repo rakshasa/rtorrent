@@ -2,7 +2,7 @@ AC_INIT(rtorrent, 0.9.8, sundell.software@gmail.com)
 
 AC_DEFINE(API_VERSION, 10, api version)
 
-AM_INIT_AUTOMAKE
+AM_INIT_AUTOMAKE([subdir-objects])
 AC_CONFIG_HEADERS(config.h)
 
 AC_PROG_RANLIB
@@ -66,11 +66,5 @@ AC_OUTPUT([
 	Makefile
 	doc/Makefile
 	src/Makefile
-	src/core/Makefile
-	src/display/Makefile
-	src/input/Makefile
-	src/rpc/Makefile
-	src/ui/Makefile
-	src/utils/Makefile
         test/Makefile
 ])

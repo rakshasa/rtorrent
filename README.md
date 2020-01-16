@@ -23,7 +23,7 @@ Latest
 Donate to rTorrent development
 ------------------------------
 
- * [Paypal](https://paypal.me/jarisundell)
+ * [Paypal](https://paypal.me/jarisundelljp)
  * [Patreon](https://www.patreon.com/rtorrent)
  * [SubscribeStar](https://www.subscribestar.com/rtorrent)
  * BitCoin: 1MpmXm5AHtdBoDaLZstJw8nupJJaeKu8V8
