@@ -392,7 +392,7 @@ initialize_command_events() {
   CMD2_ANY_LIST    ("load.raw_start_verbose", std::bind(&apply_load, std::placeholders::_2, core::Manager::create_start | core::Manager::create_raw_data));
 
   CMD2_ANY_VALUE   ("close_low_diskspace", std::bind(&apply_close_low_diskspace, std::placeholders::_2, 99));
-  CMD2_ANY_VALUE   ("close_low_diskspace.normal", tr1::bind(&apply_close_low_diskspace, tr1::placeholders::_2, 3));
+  CMD2_ANY_VALUE   ("close_low_diskspace.normal", std::bind(&apply_close_low_diskspace, std::placeholders::_2, 3));
 
   CMD2_ANY_LIST    ("download_list",       std::bind(&apply_download_list, std::placeholders::_2));
   CMD2_ANY_LIST    ("d.multicall2",        std::bind(&d_multicall, std::placeholders::_2));
