@@ -150,21 +150,6 @@ dnl   Need to fix this so that it uses the stuff defined by the system.
   ])
 ])
 
-AC_DEFUN([TORRENT_CHECK_EXECINFO], [
-  AC_MSG_CHECKING(for execinfo.h)
-
-  AC_COMPILE_IFELSE([AC_LANG_SOURCE([
-      #include <execinfo.h>
-      int main() { backtrace((void**)0, 0); backtrace_symbols((char**)0, 0); return 0;}
-      ])],
-    [
-      AC_MSG_RESULT(yes)
-      AC_DEFINE(USE_EXECINFO, 1, Use execinfo.h)
-    ], [
-      AC_MSG_RESULT(no)
-  ])
-])
-
 AC_DEFUN([TORRENT_CHECK_ALIGNED], [
   AC_MSG_CHECKING(the byte alignment)
 

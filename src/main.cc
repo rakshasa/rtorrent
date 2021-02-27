@@ -53,7 +53,7 @@
 #include <rak/functional.h>
 #include <rak/error_number.h>
 
-#ifdef USE_EXECINFO
+#ifdef HAVE_BACKTRACE
 #include <execinfo.h>
 #endif
 
@@ -533,7 +533,7 @@ handle_sigbus(int signum, siginfo_t* sa, void* ptr) {
   std::stringstream output;
   output << "Caught SIGBUS, dumping stack:" << std::endl;
 
-#ifdef USE_EXECINFO
+#ifdef HAVE_BACKTRACE
   void* stackPtrs[20];
 
   // Print the stack and exit.
@@ -604,7 +604,7 @@ do_panic(int signum) {
 
   output << "Caught " << SignalHandler::as_string(signum) << ", dumping stack:" << std::endl;
   
-#ifdef USE_EXECINFO
+#ifdef HAVE_BACKTRACE
   void* stackPtrs[20];
 
   // Print the stack and exit.
