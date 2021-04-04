@@ -141,6 +141,8 @@ DownloadStore::save(Download* d, int flags) {
   rtorrent_base->insert_key("chunks_wanted",  d->download()->data()->wanted_chunks());
   rtorrent_base->insert_key("total_uploaded", d->info()->up_rate()->total());
   rtorrent_base->insert_key("total_downloaded", d->info()->down_rate()->total());
+  rtorrent_base->insert_key("total_skipped",  d->info()->skip_rate()->total());
+  rtorrent_base->insert_key("size_selected",  d->download()->file_list()->selected_size_bytes());
 
   // Don't save for completed torrents when we've cleared the uncertain_pieces.
   torrent::resume_save_progress(*d->download(), *resume_base);

@@ -73,7 +73,7 @@ apply_pieces_stats_total_size() {
 
   for (core::DownloadList::iterator itr = d_list->begin(), last = d_list->end(); itr != last; itr++)
     if ((*itr)->is_active())
-      size += (*itr)->file_list()->size_bytes();
+      size += (*itr)->file_list()->selected_size_bytes();
 
   return size;
 }

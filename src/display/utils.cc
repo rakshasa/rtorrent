@@ -158,8 +158,12 @@ print_download_info_full(char* first, char* last, core::Download* d) {
     first = print_buffer(first, last, " ");
     first = print_download_percentage_done(first, last, d);
 
-    first = print_buffer(first, last, " ");
-    first = print_download_time_left(first, last, d);
+    if (!d->is_partially_done()) {
+      first = print_buffer(first, last, " ");
+      first = print_download_time_left(first, last, d);
+    } else {
+      first = print_buffer(first, last, "   done   ");
+    }
   } else {
     first = print_buffer(first, last, "                ");
   }
@@ -258,7 +262,7 @@ print_download_info_compact(char* first, char* last, core::Download* d) {
   first = print_buffer(first, last, "| %7.1f MB ", (double)d->info()->up_rate()->total() / (1 << 20));
   first = print_buffer(first, last, "| ");
 
-  if (d->download()->info()->is_active() && !d->is_done())
+  if (d->download()->info()->is_active() && !d->is_partially_done())
     first = print_download_time_left(first, last, d);
   else
     first = print_buffer(first, last, "         ");
@@ -288,7 +292,7 @@ print_download_time_left(char* first, char* last, core::Download* d) {
   if (rate < 512)
     return print_buffer(first, last, "--d --:--");
   
-  time_t remaining = (d->download()->file_list()->size_bytes() - d->download()->bytes_done()) / (rate & ~(uint32_t)(512 - 1));
+  time_t remaining = (d->download()->file_list()->selected_size_bytes() - d->download()->bytes_done()) / (rate & ~(uint32_t)(512 - 1));
 
   return print_ddhhmm(first, last, remaining);
 }

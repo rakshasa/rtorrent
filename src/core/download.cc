@@ -94,7 +94,7 @@ Download::set_priority(uint32_t p) {
   p %= 4;
 
   // Seeding torrents get half the priority of unfinished torrents.
-  if (!is_done())
+  if (!is_partially_done())
     torrent::download_set_priority(m_download, p * p * 2);
   else
     torrent::download_set_priority(m_download, p * p);

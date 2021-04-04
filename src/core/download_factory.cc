@@ -422,6 +422,12 @@ DownloadFactory::initialize_rtorrent(Download* download, torrent::Object* rtorre
   if (rtorrent->has_key_value("total_downloaded"))
     download->info()->mutable_down_rate()->set_total(rtorrent->get_key_value("total_downloaded"));
 
+  if (rtorrent->has_key_value("total_skipped"))
+    download->info()->mutable_skip_rate()->set_total(rtorrent->get_key_value("total_skipped"));
+
+  if (rtorrent->has_key_value("size_selected"))
+    download->file_list()->set_selected_size_bytes(rtorrent->get_key_value("size_selected"));
+
   if (rtorrent->has_key_value("chunks_done") && rtorrent->has_key_value("chunks_wanted"))
     download->download()->set_chunks_done(rtorrent->get_key_value("chunks_done"), rtorrent->get_key_value("chunks_wanted"));
 
@@ -434,11 +440,6 @@ DownloadFactory::initialize_rtorrent(Download* download, torrent::Object* rtorre
 
   rtorrent->insert_preserve_type("connection_leech", m_variables["connection_leech"]);
   rtorrent->insert_preserve_type("connection_seed",  m_variables["connection_seed"]);
-
-  rtorrent->insert_preserve_copy("choke_heuristics.up.leech",   std::string());
-  rtorrent->insert_preserve_copy("choke_heuristics.up.seed",    std::string());
-  rtorrent->insert_preserve_copy("choke_heuristics.down.leech", std::string());
-  rtorrent->insert_preserve_copy("choke_heuristics.down.seed",  std::string());
 }
 
 }

@@ -269,6 +269,7 @@ main(int argc, char** argv) {
        "method.insert = event.download.paused,multi|rlookup|static\n"
        
        "method.insert = event.download.finished,multi|rlookup|static\n"
+       "method.insert = event.download.partially_restarted,multi|rlookup|static\n"
        "method.insert = event.download.hash_done,multi|rlookup|static\n"
        "method.insert = event.download.hash_failed,multi|rlookup|static\n"
        "method.insert = event.download.hash_final_failed,multi|rlookup|static\n"
@@ -285,7 +286,7 @@ main(int argc, char** argv) {
        "method.set_key = event.download.erased, ~_delete_tied, d.delete_tied=\n"
 
        "method.set_key = event.download.resumed,   !_timestamp, ((d.timestamp.started.set_if_z, ((system.time)) ))\n"
-       "method.set_key = event.download.finished,  !_timestamp, ((d.timestamp.finished.set_if_z, ((system.time)) ))\n"
+       "method.set_key = event.download.finished,  !_timestamp, ((d.timestamp.finished.set, ((system.time)) ))\n"
        "method.set_key = event.download.hash_done, !_timestamp, {(branch,((d.complete)),((d.timestamp.finished.set_if_z,(system.time))))}\n"
 
        "method.insert.c_simple = group.insert_persistent_view,"
@@ -293,6 +294,9 @@ main(int argc, char** argv) {
 
        "file.prioritize_toc.first.set = {*.avi,*.mp4,*.mkv,*.gz}\n"
        "file.prioritize_toc.last.set  = {*.zip}\n"
+
+       "choke_group.insert = default_seed\n"
+       "choke_group.up.heuristics.set = default_seed,upload_seed\n"
 
        // Allow setting 'group2.view' as constant, so that we can't
        // modify the value. And look into the possibility of making
@@ -329,12 +333,13 @@ main(int argc, char** argv) {
 
        "view.add = complete\n"
        "view.filter = complete,((d.complete))\n"
-       "view.filter_on    = complete,event.download.hash_done,event.download.hash_failed,event.download.hash_final_failed,event.download.finished\n"
+       "view.filter_on    = complete,event.download.hash_done,event.download.hash_failed,event.download.hash_final_failed,"
+                                      "event.download.finished,event.download.partially_restarted\n"
 
        "view.add = incomplete\n"
        "view.filter = incomplete,((not,((d.complete))))\n"
        "view.filter_on    = incomplete,event.download.hash_done,event.download.hash_failed,"
-                                      "event.download.hash_final_failed,event.download.finished\n"
+                                      "event.download.hash_final_failed,event.download.finished,event.download.partially_restarted\n"
 
        // The hashing view does not include stopped torrents.
        "view.add = hashing\n"
@@ -344,11 +349,11 @@ main(int argc, char** argv) {
 
        "view.add    = seeding\n"
        "view.filter = seeding,((and,((d.state)),((d.complete))))\n"
-       "view.filter_on = seeding,event.download.resumed,event.download.paused,event.download.finished\n"
+       "view.filter_on = seeding,event.download.resumed,event.download.paused,event.download.finished,event.download.partially_restarted\n"
 
        "view.add    = leeching\n"
        "view.filter = leeching,((and,((d.state)),((not,((d.complete))))))\n"
-       "view.filter_on = leeching,event.download.resumed,event.download.paused,event.download.finished\n"
+       "view.filter_on = leeching,event.download.resumed,event.download.paused,event.download.finished,event.download.partially_restarted\n"
 
        "schedule2 = view.main,10,10,((view.sort,main,20))\n"
        "schedule2 = view.name,10,10,((view.sort,name,20))\n"

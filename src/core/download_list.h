@@ -123,6 +123,7 @@ public:
     D_SLOTS_HASH_REMOVED,
     D_SLOTS_HASH_DONE,
     D_SLOTS_FINISHED,
+    D_SLOTS_PARTIALLY_RESTARTED,
 
     SLOTS_MAX_SIZE
   };
@@ -139,6 +140,7 @@ public:
     case D_SLOTS_HASH_REMOVED: return "event.download.hash_removed";
     case D_SLOTS_HASH_DONE: return "event.download.hash_done";
     case D_SLOTS_FINISHED: return "event.download.finished";
+    case D_SLOTS_PARTIALLY_RESTARTED: return "event.download.partially_restarted";
     default: return "BORK";
     }
   }
@@ -162,6 +164,7 @@ private:
 
   void                received_finished(Download* d);
   void                confirm_finished(Download* d);
+  void                received_partially_restarted(Download* d);
 
   void                process_meta_download(Download* d);
 };

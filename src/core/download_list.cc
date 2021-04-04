@@ -184,6 +184,7 @@ DownloadList::insert(Download* download) {
   try {
     (*itr)->data()->slot_initial_hash()        = std::bind(&DownloadList::hash_done, this, download);
     (*itr)->data()->slot_download_done()       = std::bind(&DownloadList::received_finished, this, download);
+    (*itr)->data()->slot_partially_restarted() = std::bind(&DownloadList::received_partially_restarted, this, download);
 
     // This needs to be separated into two different calls to ensure
     // the download remains in the view.
@@ -373,31 +374,18 @@ DownloadList::resume(Download* download, int flags) {
     rpc::call_command("d.state_changed.set", cachedTime.seconds(), rpc::make_target(download));
     rpc::call_command("d.state_counter.set", rpc::call_command_value("d.state_counter", rpc::make_target(download)) + 1, rpc::make_target(download));
 
-    if (download->is_done()) {
+    if (download->is_partially_done()) {
+      rpc::call_command("d.group.set", "default_seed", rpc::make_target(download));
+
       torrent::Object conn_current = rpc::call_command("d.connection_seed", torrent::Object(), rpc::make_target(download));
-      torrent::Object choke_up     = rpc::call_command("d.up.choke_heuristics.seed", torrent::Object(), rpc::make_target(download));
-      torrent::Object choke_down   = rpc::call_command("d.down.choke_heuristics.seed", torrent::Object(), rpc::make_target(download));
-
       if (conn_current.is_string_empty()) conn_current = rpc::call_command("protocol.connection.seed", torrent::Object(), rpc::make_target(download));
-      if (choke_up.is_string_empty())     choke_up     = rpc::call_command("protocol.choke_heuristics.up.seed", torrent::Object(), rpc::make_target(download));
-      if (choke_down.is_string_empty())   choke_down   = rpc::call_command("protocol.choke_heuristics.down.seed", torrent::Object(), rpc::make_target(download));
-
-      rpc::call_command("d.connection_current.set",    conn_current, rpc::make_target(download));
-      rpc::call_command("d.up.choke_heuristics.set",   choke_up, rpc::make_target(download));
-      rpc::call_command("d.down.choke_heuristics.set", choke_down, rpc::make_target(download));
-
+      rpc::call_command("d.connection_current.set", conn_current, rpc::make_target(download));
     } else {
+      rpc::call_command("d.group.set", "default_leech", rpc::make_target(download));
+
       torrent::Object conn_current = rpc::call_command("d.connection_leech", torrent::Object(), rpc::make_target(download));
-      torrent::Object choke_up     = rpc::call_command("d.up.choke_heuristics.leech", torrent::Object(), rpc::make_target(download));
-      torrent::Object choke_down   = rpc::call_command("d.down.choke_heuristics.leech", torrent::Object(), rpc::make_target(download));
-
       if (conn_current.is_string_empty()) conn_current = rpc::call_command("protocol.connection.leech", torrent::Object(), rpc::make_target(download));
-      if (choke_up.is_string_empty())     choke_up     = rpc::call_command("protocol.choke_heuristics.up.leech", torrent::Object(), rpc::make_target(download));
-      if (choke_down.is_string_empty())   choke_down   = rpc::call_command("protocol.choke_heuristics.down.leech", torrent::Object(), rpc::make_target(download));
-
-      rpc::call_command("d.connection_current.set",    conn_current, rpc::make_target(download));
-      rpc::call_command("d.up.choke_heuristics.set",   choke_up, rpc::make_target(download));
-      rpc::call_command("d.down.choke_heuristics.set", choke_down, rpc::make_target(download));
+      rpc::call_command("d.connection_current.set", conn_current, rpc::make_target(download));
 
       // For the moment, clear the resume data so we force hash-check
       // on non-complete downloads after a crash. This shouldn't be
@@ -530,14 +518,14 @@ DownloadList::hash_done(Download* download) {
 
     // If the download was previously completed but the files were
     // f.ex deleted, then we clear the state and complete.
-    if (rpc::call_command_value("d.complete", rpc::make_target(download)) && !download->is_done()) {
+    if (rpc::call_command_value("d.complete", rpc::make_target(download)) && !download->is_partially_done()) {
       rpc::call_command("d.state.set", (int64_t)0, rpc::make_target(download));
       download->set_message("Download registered as completed, but hash check returned unfinished chunks.");
     }
 
     // Save resume data so we update time-stamps and priorities if
     // they were invalid/changed while loading/hashing.
-    rpc::call_command("d.complete.set", (int64_t)download->is_done(), rpc::make_target(download));
+    rpc::call_command("d.complete.set", (int64_t)download->is_partially_done(), rpc::make_target(download));
     torrent::resume_save_progress(*download->download(), download->download()->bencode()->get_key("libtorrent_resume"));
 
     if (rpc::call_command_value("d.state", rpc::make_target(download)) == 1)
@@ -547,7 +535,7 @@ DownloadList::hash_done(Download* download) {
 
   case Download::variable_hashing_last:
 
-    if (download->is_done()) {
+    if (download->is_partially_done()) {
       confirm_finished(download);
     } else {
       download->set_message("Hash check on download completion found bad chunks, consider using \"safe_sync\".");
@@ -625,19 +613,14 @@ DownloadList::confirm_finished(Download* download) {
 
   rpc::call_command("d.complete.set", (int64_t)1, rpc::make_target(download));
 
-  // Clean up these settings:
+  // Set seeding mode
+  rpc::call_command("d.group.set", "default_seed", rpc::make_target(download));
+
   torrent::Object conn_current = rpc::call_command("d.connection_seed", torrent::Object(), rpc::make_target(download));
-  torrent::Object choke_up     = rpc::call_command("d.up.choke_heuristics.seed", torrent::Object(), rpc::make_target(download));
-  torrent::Object choke_down   = rpc::call_command("d.down.choke_heuristics.seed", torrent::Object(), rpc::make_target(download));
-
   if (conn_current.is_string_empty()) conn_current = rpc::call_command("protocol.connection.seed", torrent::Object(), rpc::make_target(download));
-  if (choke_up.is_string_empty())     choke_up     = rpc::call_command("protocol.choke_heuristics.up.seed", torrent::Object(), rpc::make_target(download));
-  if (choke_down.is_string_empty())   choke_down   = rpc::call_command("protocol.choke_heuristics.down.seed", torrent::Object(), rpc::make_target(download));
-
   rpc::call_command("d.connection_current.set",    conn_current, rpc::make_target(download));
-  rpc::call_command("d.up.choke_heuristics.set",   choke_up, rpc::make_target(download));
-  rpc::call_command("d.down.choke_heuristics.set", choke_down, rpc::make_target(download));
 
+  // Update the priority to ensure it has the correct seeding/unfinished modifiers.
   download->set_priority(download->priority());
 
   if (rpc::call_command_value("d.peers_min", rpc::make_target(download)) == rpc::call_command_value("throttle.min_peers.normal") &&
@@ -658,8 +641,9 @@ DownloadList::confirm_finished(Download* download) {
   }
 
   // Send the completed request before resuming so we don't reset the
-  // up/downloaded baseline.
-  download->download()->send_completed();
+  // up/downloaded baseline if download is completely done.
+  if (download->is_done())
+    download->download()->send_completed();
 
   // Save the hash in case the finished event erases it.
   torrent::HashString infohash = download->info()->hash();
@@ -687,6 +671,40 @@ DownloadList::confirm_finished(Download* download) {
            torrent::Download::start_no_create |
            torrent::Download::start_skip_tracker |
            torrent::Download::start_keep_baseline);
+}
+
+void
+DownloadList::received_partially_restarted(Download* download) {
+  check_contains(download);
+
+  lt_log_print_info(torrent::LOG_TORRENT_INFO, download->info(), "download_list", "Received partially restarted.");
+
+  rpc::call_command("d.complete.set", (int64_t)0, rpc::make_target(download));
+
+  // Set leeching mode.
+  rpc::call_command("d.group.set", "default_leech", rpc::make_target(download));
+
+  torrent::Object conn_current = rpc::call_command("d.connection_leech", torrent::Object(), rpc::make_target(download));
+  if (conn_current.is_string_empty()) conn_current = rpc::call_command("protocol.connection.leech", torrent::Object(), rpc::make_target(download));
+  rpc::call_command("d.connection_current.set",    conn_current, rpc::make_target(download));
+
+  // Update the priority to ensure it has the correct seeding/unfinished modifiers.
+  download->set_priority(download->priority());
+
+  // Set these also back to the original leeching values.
+  if (rpc::call_command_value("throttle.min_peers.seed") >= 0 &&
+      rpc::call_command_value("d.peers_min", rpc::make_target(download)) == rpc::call_command_value("throttle.min_peers.seed"))
+    rpc::call_command("d.peers_min.set", rpc::call_command("throttle.min_peers.normal"), rpc::make_target(download));
+
+  if (rpc::call_command_value("throttle.max_peers.seed") >= 0 &&
+      rpc::call_command_value("d.peers_max", rpc::make_target(download)) == rpc::call_command_value("throttle.max_peers.seed"))
+    rpc::call_command("d.peers_max.set", rpc::call_command("throttle.max_peers.normal"), rpc::make_target(download));
+
+  DL_TRIGGER_EVENT(download, "event.download.partially_restarted");
+
+  if (!download->is_active() && rpc::call_command_value("session.on_completion") != 0) {
+    control->core()->download_store()->save_resume(download);
+  }
 }
 
 void

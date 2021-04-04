@@ -497,6 +497,17 @@ apply_to_throttle(const torrent::Object& rawArgs) {
   return std::string(buffer);
 }
 
+torrent::Object
+apply_to_group(const torrent::Object& rawArgs) {
+  int64_t arg = rawArgs.as_value();
+  if (arg < 0)
+    return "--";
+
+  char buffer[16];
+  snprintf(buffer, 16, "%2d", (int)(arg));
+  return std::string(buffer);
+}
+
 // A series of if/else statements. Every even arguments are
 // conditionals and odd arguments are branches to be executed, except
 // the last one which is always a branch.
@@ -880,6 +891,7 @@ initialize_command_ui() {
   CMD2_ANY_VALUE("convert.mb",           std::bind(&apply_to_mb, std::placeholders::_2));
   CMD2_ANY_VALUE("convert.xb",           std::bind(&apply_to_xb, std::placeholders::_2));
   CMD2_ANY_VALUE("convert.throttle",     std::bind(&apply_to_throttle, std::placeholders::_2));
+  CMD2_ANY_VALUE("convert.group",        std::bind(&apply_to_group, std::placeholders::_2));
 
   CMD2_ANY_LIST("math.add",              std::bind(&apply_math_basic, "math.add", std::plus<int64_t>(), std::placeholders::_2));
   CMD2_ANY_LIST("math.sub",              std::bind(&apply_math_basic, "math.sub", std::minus<int64_t>(), std::placeholders::_2));
