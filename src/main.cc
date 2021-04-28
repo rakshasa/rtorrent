@@ -107,6 +107,7 @@ parse_options(int argc, char** argv) {
     optionParser.insert_option('b', std::bind(&rpc::call_command_set_string, "network.bind_address.set", std::placeholders::_1));
     optionParser.insert_option('d', std::bind(&rpc::call_command_set_string, "directory.default.set", std::placeholders::_1));
     optionParser.insert_option('i', std::bind(&rpc::call_command_set_string, "ip", std::placeholders::_1));
+    optionParser.insert_option('m', std::bind(&rpc::call_command_set_string, "metadir.path.set", std::placeholders::_1));
     optionParser.insert_option('p', std::bind(&rpc::call_command_set_string, "network.port_range.set", std::placeholders::_1));
     optionParser.insert_option('s', std::bind(&rpc::call_command_set_string, "session", std::placeholders::_1));
 
@@ -413,6 +414,7 @@ main(int argc, char** argv) {
 
     CMD2_REDIRECT_GENERIC("directory", "directory.default.set");
     CMD2_REDIRECT_GENERIC("session",   "session.path.set");
+    CMD2_REDIRECT_GENERIC("metadir",   "metadir.path.set");
 
     CMD2_REDIRECT        ("check_hash", "pieces.hash.on_completion.set");
 
@@ -646,6 +648,7 @@ print_help() {
   std::cout << "  -b <a.b.c.d>      Bind the listening socket to this IP" << std::endl;
   std::cout << "  -i <a.b.c.d>      Change the IP that is sent to the tracker" << std::endl;
   std::cout << "  -p <int>-<int>    Set port range for incoming connections" << std::endl;
+  std::cout << "  -m <directory>    Save metadata files to this directory by default" << std::endl;
   std::cout << "  -d <directory>    Save torrents to this directory by default" << std::endl;
   std::cout << "  -s <directory>    Set the session directory" << std::endl;
   std::cout << "  -o key=opt,...    Set options, see 'rtorrent.rc' file" << std::endl;

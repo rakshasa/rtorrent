@@ -285,9 +285,15 @@ DownloadFactory::receive_success() {
                             rpc::call_command_value("system.file.split_size"),
                             rpc::call_command_string("system.file.split_suffix"));
 
-  if (!rtorrent->has_key_string("directory"))
-    rpc::call_command("d.directory.set", m_variables["directory"], rpc::make_target(download));
-  else
+  if (!rtorrent->has_key_string("directory")) {
+    if (download->download()->info()->is_meta_download()) {
+      if(!rpc::call_command("metadir.path").is_string_empty())
+        rpc::call_command("d.directory.set", rpc::call_command("metadir.path"), rpc::make_target(download));
+      else
+        rpc::call_command("d.directory.set", rpc::call_command("session.path"), rpc::make_target(download));
+    } else
+      rpc::call_command("d.directory.set", m_variables["directory"], rpc::make_target(download));
+  } else
     rpc::call_command("d.directory_base.set", rtorrent->get_key("directory"), rpc::make_target(download));
 
   if (!m_session && m_variables["tied_to_file"].as_value())

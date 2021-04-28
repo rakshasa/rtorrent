@@ -88,6 +88,14 @@ DownloadStore::disable() {
 }
 
 void
+DownloadStore::set_metadir_path(const std::string& path) {
+  if (!path.empty() && *path.rbegin() != '/')
+    m_metadir_path = rak::path_expand(path + '/');
+  else
+    m_metadir_path = rak::path_expand(path);
+}
+
+void
 DownloadStore::set_path(const std::string& path) {
   if (is_enabled())
     throw torrent::input_error("Tried to change session directory while it is enabled.");

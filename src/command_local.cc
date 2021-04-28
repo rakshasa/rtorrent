@@ -315,6 +315,9 @@ initialize_command_local() {
 
   CMD2_ANY_V       ("session.save",            std::bind(&core::DownloadList::session_save, dList));
 
+  CMD2_ANY         ("metadir.path",            std::bind(&core::DownloadStore::metadir_path, dStore));
+  CMD2_ANY_STRING_V("metadir.path.set",        std::bind(&core::DownloadStore::set_metadir_path, dStore, std::placeholders::_2));
+
 #define CMD2_EXECUTE(key, flags)                                         \
   CMD2_ANY(key, std::bind(&rpc::ExecFile::execute_object, &rpc::execFile, std::placeholders::_2, flags));
 

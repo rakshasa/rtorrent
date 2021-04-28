@@ -58,6 +58,8 @@ public:
   void                enable(bool lock);
   void                disable();
 
+  const std::string&  metadir_path() const                    { return m_metadir_path; }
+  void                set_metadir_path(const std::string& path);
   const std::string&  path() const                            { return m_path; }
   void                set_path(const std::string& path);
 
@@ -77,6 +79,7 @@ private:
   bool                write_bencode(const std::string& filename, const torrent::Object& obj, uint32_t skip_mask);
 
   std::string         m_path;
+  std::string         m_metadir_path;
   utils::Lockfile     m_lockfile;
 };
 
