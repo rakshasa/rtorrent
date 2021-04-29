@@ -88,6 +88,7 @@ AC_DEFUN([TORRENT_CHECK_KQUEUE], [
     [
       AC_DEFINE(USE_KQUEUE, 1, Use kqueue.)
       AC_MSG_RESULT(yes)
+      TORRENT_CHECK_KQUEUE_SOCKET_ONLY
     ], [
       AC_MSG_RESULT(no)
     ])
@@ -137,7 +138,6 @@ AC_DEFUN([TORRENT_WITH_KQUEUE], [
     [
         if test "$withval" = "yes"; then
           TORRENT_CHECK_KQUEUE
-          TORRENT_CHECK_KQUEUE_SOCKET_ONLY
         fi
     ])
 ])
@@ -149,11 +149,9 @@ AC_DEFUN([TORRENT_WITHOUT_KQUEUE], [
     [
       if test "$withval" = "yes"; then
         TORRENT_CHECK_KQUEUE
-        TORRENT_CHECK_KQUEUE_SOCKET_ONLY
       fi
     ], [
         TORRENT_CHECK_KQUEUE
-        TORRENT_CHECK_KQUEUE_SOCKET_ONLY
     ])
 ])
 
@@ -491,4 +489,22 @@ AC_DEFUN([TORRENT_CHECK_PTHREAD_SETNAME_NP], [
       AC_MSG_RESULT(no)
     ])
   ])
+])
+
+AC_DEFUN([TORRENT_DISABLE_PTHREAD_SETNAME_NP], [
+  AC_MSG_CHECKING([for pthread_setname_no])
+
+  AC_ARG_ENABLE(pthread-setname-np,
+    AC_HELP_STRING([--disable-pthread-setname-np], [disable pthread_setname_np]),
+    [
+      if test "$enableval" = "no"; then
+        AC_MSG_RESULT(disabled)
+      else
+        AC_MSG_RESULT(checking)
+        TORRENT_CHECK_PTHREAD_SETNAME_NP
+      fi
+    ], [
+      TORRENT_CHECK_PTHREAD_SETNAME_NP
+    ]
+  )
 ])
