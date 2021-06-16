@@ -27,7 +27,16 @@ TORRENT_WITHOUT_VARIABLE_FDSET
 TORRENT_WITHOUT_STATVFS
 TORRENT_WITHOUT_STATFS
 
-AX_EXECINFO
+AC_ARG_ENABLE(execinfo,
+  AC_HELP_STRING([--disable-execinfo], [disable libexecinfo [[default=enable]]]),
+  [
+    if test "$enableval" = "yes"; then
+      AX_EXECINFO
+    fi
+  ],[
+    AX_EXECINFO
+  ])
+
 AX_PTHREAD([], AC_MSG_ERROR([requires pthread]))
 AX_WITH_CURSES
 
