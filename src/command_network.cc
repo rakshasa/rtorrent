@@ -263,7 +263,7 @@ initialize_command_network() {
   CMD2_ANY_STRING_V("network.http.capath.set",            std::bind(&core::CurlStack::set_http_capath, httpStack, std::placeholders::_2));
   CMD2_ANY         ("network.http.dns_cache_timeout",     std::bind(&core::CurlStack::dns_timeout, httpStack));
   CMD2_ANY_VALUE_V ("network.http.dns_cache_timeout.set", std::bind(&core::CurlStack::set_dns_timeout, httpStack, std::placeholders::_2));
-  CMD2_ANY         ("network.http.current_open",                  std::bind(&core::CurlStack::active, httpStack));
+  CMD2_ANY         ("network.http.current_open",          std::bind(&core::CurlStack::active, httpStack));
   CMD2_ANY         ("network.http.max_open",              std::bind(&core::CurlStack::max_active, httpStack));
   CMD2_ANY_VALUE_V ("network.http.max_open.set",          std::bind(&core::CurlStack::set_max_active, httpStack, std::placeholders::_2));
   CMD2_ANY         ("network.http.proxy_address",         std::bind(&core::CurlStack::http_proxy, httpStack));
@@ -279,26 +279,34 @@ initialize_command_network() {
   CMD2_ANY_VALUE_V ("network.receive_buffer.size.set", std::bind(&torrent::ConnectionManager::set_receive_buffer_size, cm, std::placeholders::_2));
   CMD2_ANY_STRING  ("network.tos.set",                 std::bind(&apply_tos, std::placeholders::_2));
 
-  CMD2_ANY         ("network.bind_address",        std::bind(&core::Manager::bind_address, control->core()));
-  CMD2_ANY_STRING_V("network.bind_address.set",    std::bind(&core::Manager::set_bind_address, control->core(), std::placeholders::_2));
-  CMD2_ANY         ("network.local_address",       std::bind(&core::Manager::local_address, control->core()));
-  CMD2_ANY_STRING_V("network.local_address.set",   std::bind(&core::Manager::set_local_address, control->core(), std::placeholders::_2));
-  CMD2_ANY         ("network.proxy_address",       std::bind(&core::Manager::proxy_address, control->core()));
-  CMD2_ANY_STRING_V("network.proxy_address.set",   std::bind(&core::Manager::set_proxy_address, control->core(), std::placeholders::_2));
+  CMD2_ANY         ("network.bind_address",          std::bind(&core::Manager::bind_address, control->core()));
+  CMD2_ANY_STRING_V("network.bind_address.set",      std::bind(&core::Manager::set_bind_address, control->core(), std::placeholders::_2));
+  CMD2_ANY         ("network.local_address",         std::bind(&core::Manager::local_address, control->core()));
+  CMD2_ANY_STRING_V("network.local_address.set",     std::bind(&core::Manager::set_local_address, control->core(), std::placeholders::_2));
+  CMD2_ANY         ("network.proxy_address",         std::bind(&core::Manager::proxy_address, control->core()));
+  CMD2_ANY_STRING_V("network.proxy_address.set",     std::bind(&core::Manager::set_proxy_address, control->core(), std::placeholders::_2));
 
-  CMD2_ANY         ("network.open_files",           std::bind(&torrent::FileManager::open_files, fileManager));
-  CMD2_ANY         ("network.max_open_files",       std::bind(&torrent::FileManager::max_open_files, fileManager));
-  CMD2_ANY_VALUE_V ("network.max_open_files.set",   std::bind(&torrent::FileManager::set_max_open_files, fileManager, std::placeholders::_2));
-  CMD2_ANY         ("network.total_handshakes",     std::bind(&torrent::total_handshakes));
-  CMD2_ANY         ("network.open_sockets",         std::bind(&torrent::ConnectionManager::size, cm));
-  CMD2_ANY         ("network.max_open_sockets",     std::bind(&torrent::ConnectionManager::max_size, cm));
-  CMD2_ANY_VALUE_V ("network.max_open_sockets.set", std::bind(&torrent::ConnectionManager::set_max_size, cm, std::placeholders::_2));
+  CMD2_ANY         ("network.open_files",            std::bind(&torrent::FileManager::open_files, fileManager));
+  CMD2_ANY         ("network.max_open_files",        std::bind(&torrent::FileManager::max_open_files, fileManager));
+  CMD2_ANY_VALUE_V ("network.max_open_files.set",    std::bind(&torrent::FileManager::set_max_open_files, fileManager, std::placeholders::_2));
+  CMD2_ANY         ("network.total_handshakes",      std::bind(&torrent::total_handshakes));
+  CMD2_ANY         ("network.open_sockets",          std::bind(&torrent::ConnectionManager::size, cm));
+  CMD2_ANY         ("network.max_open_sockets",      std::bind(&torrent::ConnectionManager::max_size, cm));
+  CMD2_ANY_VALUE_V ("network.max_open_sockets.set",  std::bind(&torrent::ConnectionManager::set_max_size, cm, std::placeholders::_2));
 
-  CMD2_ANY_STRING  ("network.scgi.open_port",   std::bind(&apply_scgi, std::placeholders::_2, 1));
-  CMD2_ANY_STRING  ("network.scgi.open_local",  std::bind(&apply_scgi, std::placeholders::_2, 2));
-  CMD2_VAR_BOOL    ("network.scgi.dont_route",  false);
+  CMD2_ANY_STRING  ("network.scgi.open_port",        std::bind(&apply_scgi, std::placeholders::_2, 1));
+  CMD2_ANY_STRING  ("network.scgi.open_local",       std::bind(&apply_scgi, std::placeholders::_2, 2));
+  CMD2_VAR_BOOL    ("network.scgi.dont_route",       false);
 
   CMD2_ANY_STRING  ("network.xmlrpc.dialect.set",    std::bind(&apply_xmlrpc_dialect, std::placeholders::_2));
   CMD2_ANY         ("network.xmlrpc.size_limit",     std::bind(&rpc::XmlRpc::size_limit));
   CMD2_ANY_VALUE_V ("network.xmlrpc.size_limit.set", std::bind(&rpc::XmlRpc::set_size_limit, std::placeholders::_2));
+
+  CMD2_ANY         ("network.block.ipv4",            std::bind(&torrent::ConnectionManager::is_block_ipv4, cm));
+  CMD2_ANY_VALUE_V ("network.block.ipv4.set",        std::bind(&torrent::ConnectionManager::set_block_ipv4, cm, std::placeholders::_2));
+  CMD2_ANY         ("network.block.ipv6",            std::bind(&torrent::ConnectionManager::is_block_ipv6, cm));
+  CMD2_ANY_VALUE_V ("network.block.ipv6.set",        std::bind(&torrent::ConnectionManager::set_block_ipv6, cm, std::placeholders::_2));
+
+  CMD2_ANY         ("network.prefer.ipv6",           std::bind(&torrent::ConnectionManager::is_prefer_ipv6, cm));
+  CMD2_ANY_VALUE_V ("network.prefer.ipv6.set",       std::bind(&torrent::ConnectionManager::set_prefer_ipv6, cm, std::placeholders::_2));
 }
