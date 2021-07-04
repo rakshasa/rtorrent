@@ -100,6 +100,9 @@ SCgi::open_named(const std::string& filename) {
     throw torrent::resource_error("Could not open socket for listening.");
 
   open(sa, offsetof(struct sockaddr_un, sun_path) + filename.size() + 1);
+  
+  free(buffer);
+  
   m_path = filename;
 }
 
