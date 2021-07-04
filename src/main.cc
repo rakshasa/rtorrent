@@ -515,6 +515,8 @@ main(int argc, char** argv) {
     lt_log_print(torrent::LOG_CRITICAL, "Caught exception: '%s'.", e.what());
     return -1;
   }
+  
+  cleanup_commands();
 
   torrent::log_cleanup();
 
