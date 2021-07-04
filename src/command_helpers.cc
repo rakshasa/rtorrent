@@ -57,6 +57,12 @@ void initialize_command_tracker();
 void initialize_command_scheduler();
 void initialize_command_ui();
 
+void cleanup_command_groups();
+
+void cleanup_commands() {
+  cleanup_command_groups();
+}
+
 void
 initialize_commands() {
   initialize_command_dynamic();
