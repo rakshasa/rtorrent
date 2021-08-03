@@ -1,4 +1,4 @@
-[![Donate](https://rakshasa.github.io/rtorrent/donate_paypal_green.svg)](https://paypal.me/jarisundell)
+[![Donate](https://rakshasa.github.io/rtorrent/donate_paypal_green.svg)](https://paypal.me/jarisundelljp)
 
 RTorrent BitTorrent Client
 ========
