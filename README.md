@@ -11,14 +11,8 @@ To learn how to use rTorrent visit the [Wiki](https://github.com/rakshasa/rtorre
 Stable
 ------
 
- * [http://rtorrent.net/downloads/libtorrent-0.13.6.tar.gz](http://rtorrent.net/downloads/libtorrent-0.13.6.tar.gz)
- * [http://rtorrent.net/downloads/rtorrent-0.9.6.tar.gz](http://rtorrent.net/downloads/rtorrent-0.9.6.tar.gz)
-
-Latest
-------
-
- * [http://rtorrent.net/downloads/libtorrent-0.13.8.tar.gz](http://rtorrent.net/downloads/libtorrent-0.13.8.tar.gz)
- * [http://rtorrent.net/downloads/rtorrent-0.9.8.tar.gz](http://rtorrent.net/downloads/rtorrent-0.9.8.tar.gz)
+ * [https://github.com/rakshasa/rtorrent-archive/raw/master/libtorrent-0.13.8.tar.gz](https://github.com/rakshasa/rtorrent-archive/raw/master/libtorrent-0.13.8.tar.gz)
+ * [https://github.com/rakshasa/rtorrent-archive/raw/master/rtorrent-0.9.8.tar.gz](https://github.com/rakshasa/rtorrent-archive/raw/master/rtorrent-0.9.8.tar.gz)
 
 Donate to rTorrent development
 ------------------------------
