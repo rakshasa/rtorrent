@@ -1,6 +1,10 @@
-AC_INIT(rtorrent, 0.9.8, sundell.software@gmail.com)
+AC_INIT([rtorrent], [0.9.8], [sundell.software@gmail.com])
 
-AC_DEFINE(API_VERSION, 10, api version)
+LT_INIT([disable-static])
+
+AC_CONFIG_MACRO_DIRS([scripts])
+
+AC_DEFINE([API_VERSION], [10], [api version])
 
 AM_INIT_AUTOMAKE([subdir-objects])
 AC_CONFIG_HEADERS(config.h)
@@ -8,17 +12,17 @@ AC_CONFIG_HEADERS(config.h)
 AC_PROG_RANLIB
 AC_PROG_CXX
 AC_PROG_LIBTOOL
+AC_SYS_LARGEFILE
+
+AX_CXX_COMPILE_STDCXX([14], [noext], [mandatory])
 
 RAK_CHECK_CFLAGS
 RAK_CHECK_CXXFLAGS
 RAK_ENABLE_DEBUG
 RAK_ENABLE_EXTRA_DEBUG
 RAK_ENABLE_WERROR
-RAK_CHECK_CXX11
 
 TORRENT_DISABLE_IPV6
-
-AC_SYS_LARGEFILE
 
 TORRENT_ENABLE_ARCH
 TORRENT_WITH_SYSROOT
@@ -41,7 +45,7 @@ AX_PTHREAD([], AC_MSG_ERROR([requires pthread]))
 AX_WITH_CURSES
 
 if test "x$ax_cv_ncursesw" != xyes && test "x$ax_cv_ncurses" != xyes; then
-	AC_MSG_ERROR([requires either NcursesW or Ncurses library])
+  AC_MSG_ERROR([requires either NcursesW or Ncurses library])
 fi
 
 PKG_CHECK_MODULES([LIBCURL], [libcurl],, [LIBCURL_CHECK_CONFIG])
@@ -60,8 +64,8 @@ TORRENT_CHECK_CACHELINE()
 TORRENT_CHECK_POPCOUNT()
 
 CC_ATTRIBUTE_UNUSED(
-	AC_DEFINE([__UNUSED], [__attribute__((unused))], [Wrapper around unused attribute]),
-	AC_DEFINE([__UNUSED], [], [Null-wrapper if unused attribute is unsupported])
+  AC_DEFINE([__UNUSED], [__attribute__((unused))], [Wrapper around unused attribute]),
+  AC_DEFINE([__UNUSED], [], [Null-wrapper if unused attribute is unsupported])
 )
 
 dnl Only update global build variables immediately before generating the output,
@@ -71,8 +75,8 @@ CFLAGS="$CFLAGS $PTHREAD_CFLAGS $CPPUNIT_CFLAGS $LIBCURL_CPPFLAGS $LIBCURL_CFLAG
 CXXFLAGS="$CXXFLAGS $PTHREAD_CFLAGS $CPPUNIT_CFLAGS $LIBCURL_CPPFLAGS $LIBCURL_CFLAGS $DEPENDENCIES_CFLAGS $CURSES_CFLAGS"
 
 AC_OUTPUT([
-	Makefile
-	doc/Makefile
-	src/Makefile
-        test/Makefile
+  Makefile
+  doc/Makefile
+  src/Makefile
+  test/Makefile
 ])
