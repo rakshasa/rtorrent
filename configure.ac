@@ -1,17 +1,13 @@
 AC_INIT([rtorrent], [0.9.8], [sundell.software@gmail.com])
 
-LT_INIT([disable-static])
-
+AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIRS([scripts])
+AM_INIT_AUTOMAKE([foreign subdir-objects])
 
 AC_DEFINE([API_VERSION], [10], [api version])
 
-AM_INIT_AUTOMAKE([subdir-objects])
-AC_CONFIG_HEADERS(config.h)
-
 AC_PROG_RANLIB
 AC_PROG_CXX
-AC_PROG_LIBTOOL
 AC_SYS_LARGEFILE
 
 AX_CXX_COMPILE_STDCXX([14], [noext], [mandatory])
@@ -32,7 +28,8 @@ TORRENT_WITHOUT_STATVFS
 TORRENT_WITHOUT_STATFS
 
 AC_ARG_ENABLE(execinfo,
-  AC_HELP_STRING([--disable-execinfo], [disable libexecinfo [[default=enable]]]),
+  AS_HELP_STRING([--disable-execinfo],
+    [disable libexecinfo [[default=enable]]]),
   [
     if test "$enableval" = "yes"; then
       AX_EXECINFO
@@ -74,9 +71,10 @@ LIBS="$PTHREAD_LIBS $CURSES_LIB $CURSES_LIBS $CPPUNIT_LIBS $LIBCURL $LIBCURL_LIB
 CFLAGS="$CFLAGS $PTHREAD_CFLAGS $CPPUNIT_CFLAGS $LIBCURL_CPPFLAGS $LIBCURL_CFLAGS $DEPENDENCIES_CFLAGS $CURSES_CFLAGS"
 CXXFLAGS="$CXXFLAGS $PTHREAD_CFLAGS $CPPUNIT_CFLAGS $LIBCURL_CPPFLAGS $LIBCURL_CFLAGS $DEPENDENCIES_CFLAGS $CURSES_CFLAGS"
 
-AC_OUTPUT([
+AC_CONFIG_FILES([
   Makefile
   doc/Makefile
   src/Makefile
   test/Makefile
 ])
+AC_OUTPUT

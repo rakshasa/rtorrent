@@ -1,6 +1,7 @@
 AC_DEFUN([TORRENT_WITH_SYSROOT], [
   AC_ARG_WITH(sysroot,
-    AS_HELP_STRING([--with-sysroot=PATH],[compile and link with a specific sysroot]),
+    AS_HELP_STRING([--with-sysroot=PATH],
+      [compile and link with a specific sysroot]),
     [
       AC_MSG_CHECKING(for sysroot)
 
@@ -22,7 +23,8 @@ AC_DEFUN([TORRENT_WITH_SYSROOT], [
 
 AC_DEFUN([TORRENT_ENABLE_ARCH], [
   AC_ARG_ENABLE(arch,
-    AS_HELP_STRING([--enable-arch=ARCH],[comma seprated list of architectures to compile for]),
+    AS_HELP_STRING([--enable-arch=ARCH],
+      [comma seprated list of architectures to compile for]),
     [
       AC_MSG_CHECKING(for target architectures)
 
@@ -82,7 +84,8 @@ AC_DEFUN([TORRENT_MINCORE_SIGNEDNESS], [
 
 AC_DEFUN([TORRENT_MINCORE], [
   AC_ARG_ENABLE(mincore,
-    AS_HELP_STRING([--disable-mincore],[disable mincore check [[default=enable]]]),
+    AS_HELP_STRING([--disable-mincore],
+      [disable mincore check [[default=enable]]]),
     [
       if test "$enableval" = "yes"; then
         TORRENT_MINCORE_SIGNEDNESS()
@@ -174,7 +177,8 @@ AC_DEFUN([TORRENT_CHECK_ALIGNED], [
 
 AC_DEFUN([TORRENT_ENABLE_ALIGNED], [
   AC_ARG_ENABLE(aligned,
-    AS_HELP_STRING([--enable-aligned],[enable alignment safe code [[default=check]]]),
+    AS_HELP_STRING([--enable-aligned],
+      [enable alignment safe code [[default=check]]]),
     [
         if test "$enableval" = "yes"; then
           AC_DEFINE(USE_ALIGNED, 1, Require byte alignment)
@@ -189,7 +193,8 @@ AC_DEFUN([TORRENT_DISABLE_INSTRUMENTATION], [
   AC_MSG_CHECKING([if instrumentation should be included])
 
   AC_ARG_ENABLE(instrumentation,
-    AS_HELP_STRING([--disable-instrumentation],[disable instrumentation [[default=enabled]]]),
+    AS_HELP_STRING([--disable-instrumentation],
+      [disable instrumentation [[default=enabled]]]),
     [
       if test "$enableval" = "yes"; then
         AC_DEFINE(LT_INSTRUMENTATION, 1, enable instrumentation)
@@ -206,7 +211,8 @@ AC_DEFUN([TORRENT_DISABLE_INSTRUMENTATION], [
 
 AC_DEFUN([TORRENT_ENABLE_INTERRUPT_SOCKET], [
   AC_ARG_ENABLE(interrupt-socket,
-    AS_HELP_STRING([--enable-interrupt-socket],[enable interrupt socket [[default=no]]]),
+    AS_HELP_STRING([--enable-interrupt-socket],
+      [enable interrupt socket [[default=no]]]),
     [
       if test "$enableval" = "yes"; then
         AC_DEFINE(USE_INTERRUPT_SOCKET, 1, Use interrupt socket instead of pthread_kill)
@@ -217,7 +223,8 @@ AC_DEFUN([TORRENT_ENABLE_INTERRUPT_SOCKET], [
 
 AC_DEFUN([TORRENT_DISABLE_IPV6], [
   AC_ARG_ENABLE(ipv6,
-    AC_HELP_STRING([--enable-ipv6], [enable ipv6 [[default=no]]]),
+    AS_HELP_STRING([--enable-ipv6],
+      [enable ipv6 [[default=no]]]),
     [
         if test "$enableval" = "yes"; then
             AC_DEFINE(RAK_USE_INET6, 1, enable ipv6 stuff)
