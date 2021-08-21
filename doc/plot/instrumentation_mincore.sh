@@ -1,4 +1,4 @@
-#/bin/bash
+#!/bin/bash
 gnuplot << EOF
 
 set terminal png size 1024 * 1, 768 enhanced

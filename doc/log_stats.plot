@@ -1,4 +1,4 @@
-#/bin/bash
+#!/bin/bash
 gnuplot << EOF
 # 1)  system.time_seconds=
 #
