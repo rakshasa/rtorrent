@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 # Perl script to add rTorrent fast resume data to torrent files.
 #
