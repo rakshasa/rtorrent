@@ -108,8 +108,8 @@ PathInput::receive_do_complete() {
   std::string base = rak::make_base<std::string>(r.first, r.second, rak::const_mem_ref(&utils::directory_entry::d_name));
 
   // Clear the path after the cursor to make this code cleaner. It's
-  // not really nessesary to add the complexity just because someone
-  // might start tab-completeing in the middle of a path.
+  // not really necessary to add the complexity just because someone
+  // might start tab-completing in the middle of a path.
   str().resize(dirEnd);
   str().insert(dirEnd, base);
 

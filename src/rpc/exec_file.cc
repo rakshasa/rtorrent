@@ -62,7 +62,7 @@ const int ExecFile::flag_background;
 
 int
 ExecFile::execute(const char* file, char* const* argv, int flags) {
-  // Write the execued command and its parameters to the log fd.
+  // Write the executed command and its parameters to the log fd.
   int __UNUSED result;
 
   if (m_logFd != -1) {

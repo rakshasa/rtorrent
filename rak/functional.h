@@ -456,7 +456,7 @@ bind2nd(const Operation& op, const Type& val) {
 
 // Lightweight callback function including pointer to object. Should
 // be replaced by TR1 stuff later. Requires an object to bind, instead
-// of using a seperate functor for that.
+// of using a separate functor for that.
 
 template <typename Ret>
 class ptr_fun0 {

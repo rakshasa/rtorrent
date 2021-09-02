@@ -595,7 +595,7 @@ handle_sigbus_exit:
 
 void
 do_panic(int signum) {
-  // Use the default signal handler in the future to avoid infinit
+  // Use the default signal handler in the future to avoid infinite
   // loops.
   SignalHandler::set_default(signum);
   display::Canvas::cleanup();

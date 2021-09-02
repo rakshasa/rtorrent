@@ -82,7 +82,7 @@ public:
                                    chtype bl, chtype br)                      { if (!m_isDaemon) { wborder(m_window, ls, rs, ts, bs, tl, tr, bl, br); } }
 
   // The format string is non-const, but that will not be a problem
-  // since the string shall always be a C string choosen at
+  // since the string shall always be a C string chosen at
   // compiletime. Might cause extra copying of the string?
 
   void                print(const char* str, ...);

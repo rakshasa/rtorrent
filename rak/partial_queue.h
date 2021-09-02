@@ -70,7 +70,7 @@ public:
   // check how full we are in the lower parts so the caller knows when
   // he can stop searching.
   //
-  // Though propably not needed, as we must continue til the first
+  // Though probably not needed, as we must continue til the first
   // layer is full.
 
   size_type           max_size() const                        { return m_maxLayerSize * num_layers; }

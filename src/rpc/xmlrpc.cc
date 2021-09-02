@@ -553,7 +553,7 @@ XmlRpc::insert_command(const char* name, const char* parm, const char* doc) {
                                    &xmlrpc_call_command, const_cast<char*>(name), parm, doc);
 
   if (localEnv.fault_occurred)
-    throw torrent::internal_error("Fault occured while inserting xmlrpc call.");
+    throw torrent::internal_error("Fault occurred while inserting xmlrpc call.");
 
   xmlrpc_env_clean(&localEnv);
 }

@@ -59,7 +59,7 @@ public:
 
   ListFocus(base_type* b = NULL) : m_base(b) { if (b) m_focus = b->end(); }
 
-  // Convinience functions, would have added more through using, but
+  // Convenience functions, would have added more through using, but
   // can't.
   iterator            begin()                       { return m_base->begin(); }
   iterator            end()                         { return m_base->end(); }

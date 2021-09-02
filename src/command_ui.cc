@@ -862,7 +862,7 @@ initialize_command_ui() {
   CMD2_ANY("or",    &apply_or);
 
   // A temporary command for handling stuff until we get proper
-  // support for seperation of commands and literals.
+  // support for separation of commands and literals.
   CMD2_ANY("branch", std::bind(&apply_if, std::placeholders::_1, std::placeholders::_2, 1));
 
   CMD2_ANY_LIST("less",    &apply_less);
