@@ -80,7 +80,7 @@ SCRIPTNAME=/etc/init.d/$NAME
 RTXMLRPCBIN="$base/bin/rtxmlrpc"
 
 checkcnfg() {
-  if [ -z "$(which $DAEMON)" ] ; then
+  if ! command -v "$DAEMON" >/dev/null ; then
     echo "Cannot find $DAEMON binary in PATH: $PATH"
     exit 3
   fi
