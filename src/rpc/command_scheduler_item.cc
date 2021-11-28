@@ -53,10 +53,14 @@ CommandSchedulerItem::enable(rak::timer t) {
 
   if (is_queued())
     disable();
+    
+  // Don't schedule invalid tasks for rpc commands
+  if (!m_task.is_valid())
+    return;
 
   // If 'first' is zero then we execute the task
   // immediately. ''interval()'' will not return zero so we never end
-  // up in an infinit loop.
+  // up in an infinite loop.
   m_timeScheduled = t;
   priority_queue_insert(&taskScheduler, &m_task, t);
 }
