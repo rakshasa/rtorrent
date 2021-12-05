@@ -106,7 +106,8 @@ DownloadFactory::DownloadFactory(Manager* m) :
   m_session(false),
   m_start(false),
   m_printLog(true),
-  m_isFile(false) {
+  m_isFile(false),
+  m_initLoad(false) {
 
   m_taskLoad.slot() = std::bind(&DownloadFactory::receive_load, this);
   m_taskCommit.slot() = std::bind(&DownloadFactory::receive_commit, this);
@@ -275,9 +276,10 @@ DownloadFactory::receive_success() {
 
   if (!rpc::call_command_value("trackers.use_udp"))
     download->enable_udp_trackers(false);
-  
-  // Don't force the trackers to scrape when rTorrent first starts
-  download->set_resume_flags(torrent::Download::start_skip_tracker);
+
+  // Skip forcing trackers to scrape when rtorrent starts
+  if (m_initLoad)
+    download->set_resume_flags(torrent::Download::start_skip_tracker);
 
   // Check first if we already have these values set in the session
   // torrent, so that it is safe to change the values.
