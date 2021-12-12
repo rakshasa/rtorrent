@@ -14,6 +14,11 @@ Stable
  * [https://github.com/rakshasa/rtorrent-archive/raw/master/libtorrent-0.13.8.tar.gz](https://github.com/rakshasa/rtorrent-archive/raw/master/libtorrent-0.13.8.tar.gz)
  * [https://github.com/rakshasa/rtorrent-archive/raw/master/rtorrent-0.9.8.tar.gz](https://github.com/rakshasa/rtorrent-archive/raw/master/rtorrent-0.9.8.tar.gz)
 
+Related Projects
+----------------
+
+ * [https://github.com/rakshasa/rbedit](https://github.com/rakshasa/rbedit): A dependency-free bencode editor.
+
 Donate to rTorrent development
 ------------------------------
 
