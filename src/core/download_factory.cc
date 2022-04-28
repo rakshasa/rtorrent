@@ -278,7 +278,7 @@ DownloadFactory::receive_success() {
     download->enable_udp_trackers(false);
 
   // Skip forcing trackers to scrape when rtorrent starts
-  if (m_initLoad)
+  if (m_initLoad && rpc::call_command_value("trackers.delay_scrape"))
     download->set_resume_flags(torrent::Download::start_skip_tracker);
 
   // Check first if we already have these values set in the session
