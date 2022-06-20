@@ -98,7 +98,8 @@ Lockfile::try_lock() {
   int pos = ::gethostname(buf, 255);
 
   if (pos == 0) {
-    ::snprintf(buf + std::strlen(buf), 255, ":+%i\n", ::getpid());
+    ssize_t len = std::strlen(buf);
+    ::snprintf(buf + len, 255 - len, ":+%i\n", ::getpid());
     int __UNUSED result = ::write(fd, buf, std::strlen(buf));
   }
 
