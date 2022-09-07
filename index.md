@@ -22,7 +22,7 @@ Related Projects
 Donate to rTorrent development
 ------------------------------
 
- * [Paypal](https://paypal.me/jarisundelljp)
+ * [Paypal](https://paypal.me/jarisundellno)
  * [Patreon](https://www.patreon.com/rtorrent)
  * [SubscribeStar](https://www.subscribestar.com/rtorrent)
  * Bitcoin: 1MpmXm5AHtdBoDaLZstJw8nupJJaeKu8V8
