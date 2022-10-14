@@ -24,7 +24,7 @@ AC_DEFUN([TORRENT_WITH_SYSROOT], [
 AC_DEFUN([TORRENT_ENABLE_ARCH], [
   AC_ARG_ENABLE(arch,
     AS_HELP_STRING([--enable-arch=ARCH],
-      [comma seprated list of architectures to compile for]),
+      [comma separated list of architectures to compile for]),
     [
       AC_MSG_CHECKING(for target architectures)
 

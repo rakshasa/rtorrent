@@ -392,7 +392,7 @@ Manager::try_create_download_from_meta_download(torrent::Object* bencode, const 
   f->set_print_log(meta.get_key_value("print_log"));
   f->slot_finished(std::bind(&rak::call_delete_func<core::DownloadFactory>, f));
 
-  // Bit of a waste to create the bencode repesentation here
+  // Bit of a waste to create the bencode representation here
   // only to have the DownloadFactory decode it.
   std::stringstream s;
   s.imbue(std::locale::classic());
@@ -482,7 +482,7 @@ Manager::try_create_download_expand(const std::string& uri, int flags, command_l
 
 // DownloadList's hashing related functions don't actually start the
 // hashing, it only reacts to events. This functions checks the
-// hashing view and starts hashing if nessesary.
+// hashing view and starts hashing if necessary.
 void
 Manager::receive_hashing_changed() {
   bool foundHashing = std::find_if(m_hashingView->begin_visible(), m_hashingView->end_visible(),

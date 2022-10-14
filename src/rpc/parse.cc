@@ -192,7 +192,7 @@ parse_object(const char* first, const char* last, torrent::Object* dest, bool (*
     }
 
     if (depth > 3)
-      throw torrent::input_error("Max 3 parantheses per object allowed.");
+      throw torrent::input_error("Max 3 parentheses per object allowed.");
 
     *dest = torrent::Object::create_dict_key();
     dest->set_flags(torrent::Object::flag_function << (depth - 1));
@@ -216,7 +216,7 @@ parse_object(const char* first, const char* last, torrent::Object* dest, bool (*
     }
 
     if (depth != 0)
-      throw torrent::input_error("Parantheses mismatch.");
+      throw torrent::input_error("Parentheses mismatch.");
 
     return first;
 

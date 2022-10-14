@@ -266,7 +266,7 @@ View::filter() {
   if (m_name == "started" || m_name == "stopped")
     return;
 
-  // Parition the list in two steps so we know which elements changed.
+  // Partition the list in two steps so we know which elements changed.
   iterator splitVisible  = std::stable_partition(begin_visible(),  end_visible(),  view_downloads_filter(m_filter, m_temp_filter));
   iterator splitFiltered = std::stable_partition(begin_filtered(), end_filtered(), view_downloads_filter(m_filter, m_temp_filter));
 
