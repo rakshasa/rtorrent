@@ -157,9 +157,9 @@ initialize_command_tracker() {
 
   CMD2_ANY_VALUE      ("trackers.enable",     std::bind(&apply_enable_trackers, int64_t(1)));
   CMD2_ANY_VALUE      ("trackers.disable",    std::bind(&apply_enable_trackers, int64_t(0)));
+  CMD2_VAR_BOOL       ("trackers.delay_scrape", false);
   CMD2_VAR_VALUE      ("trackers.numwant",    -1);
   CMD2_VAR_BOOL       ("trackers.use_udp",    true);
-  CMD2_VAR_BOOL       ("trackers.delay_scrape", true);
 
   CMD2_ANY_STRING_V   ("dht.mode.set",          std::bind(&core::DhtManager::set_mode, control->dht_manager(), std::placeholders::_2));
   CMD2_VAR_VALUE      ("dht.port",              int64_t(6881));
