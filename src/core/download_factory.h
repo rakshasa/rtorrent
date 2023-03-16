@@ -77,7 +77,7 @@ public:
 
   bool                get_start() const     { return m_start; }
   void                set_start(bool v)     { m_start = v; }
-  
+
   bool                get_init_load() const { return m_initLoad; }
   void                set_init_load(bool v) { m_initLoad = v; }
 
