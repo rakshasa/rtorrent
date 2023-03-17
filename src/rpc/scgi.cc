@@ -62,7 +62,10 @@ SCgi::~SCgi() {
       itr->close();
 
   deactivate();
-  torrent::connection_manager()->dec_socket_count();
+  
+  if (torrent::is_initialized()) {
+    torrent::connection_manager()->dec_socket_count();
+  }
 
   get_fd().close();
   get_fd().clear();
@@ -100,6 +103,9 @@ SCgi::open_named(const std::string& filename) {
     throw torrent::resource_error("Could not open socket for listening.");
 
   open(sa, offsetof(struct sockaddr_un, sun_path) + filename.size() + 1);
+  
+  free(buffer);
+  
   m_path = filename;
 }
 

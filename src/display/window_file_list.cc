@@ -62,14 +62,14 @@ WindowFileList::WindowFileList(const ui::ElementFileList* element) :
 // taking into account that some characters may be occupying two screen positions.
 std::wstring
 wstring_width(const std::string& i_str, int width) {
-  wchar_t result[width + 1];
-  size_t length = std::mbstowcs(result, i_str.c_str(), width);
+  wchar_t buf[width + 1];
+  size_t length = std::mbstowcs(buf, i_str.c_str(), width);
 
   // If not valid UTF-8 encoding, at least copy the printable characters.
   if (length == (size_t)-1) {
-    wchar_t* out = result;
+    wchar_t* out = buf;
 
-    for (std::string::const_iterator itr = i_str.begin(); out != result + width && itr != i_str.end(); ++itr)
+    for (std::string::const_iterator itr = i_str.begin(); out != buf + width && itr != i_str.end(); ++itr)
       if (!std::isprint(*itr, std::locale::classic()))
         *out++ = '?';
       else
@@ -78,23 +78,23 @@ wstring_width(const std::string& i_str, int width) {
      *out = 0;
   }
 
-  int swidth = wcswidth(result, width);
+  int swidth = wcswidth(buf, width);
 
   // Limit to width if it's too wide already.
   if (swidth == -1 || swidth > width) {
     length = swidth = 0;
     
-    while (result[length]) {
-      int next = ::wcwidth(result[length]);
+    while (buf[length]) {
+      int next = ::wcwidth(buf[length]);
 
       // Unprintable character?
       if (next == -1) {
-        result[length] = '?';
+        buf[length] = '?';
         next = 1;
       }
 
       if (swidth + next > width) {
-        result[length] = 0;
+        buf[length] = 0;
         break;
       }
 
@@ -105,11 +105,15 @@ wstring_width(const std::string& i_str, int width) {
 
   // Pad with spaces to given width.
   while (swidth < width && length <= (unsigned int)width) {
-    result[length++] = ' ';
+    buf[length++] = ' ';
     swidth++;
   }
 
-  result[length] = 0;
+  buf[length] = 0;
+  
+  std::wstring result(buf);
+
+  free(buf);
 
   return result;
 }
