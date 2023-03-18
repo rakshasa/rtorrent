@@ -5,7 +5,7 @@ necessary. The man page "doc/rtorrent.1" must be generated with
 "docbook2man rtorrent.1.xml" if it is missing.
 
  Note that rtorrent follows the development of libtorrent closely, and
-thus the versions must be in sync. This should not be nessesary in the
+thus the versions must be in sync. This should not be necessary in the
 future, when the library API stabilizes.
 
 USAGE

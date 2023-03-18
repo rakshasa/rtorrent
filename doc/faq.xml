@@ -93,7 +93,7 @@
         When I try downloading a torrent the client aborts (SIGABRT), what should I do?
       </para></question>
       <answer><para>
-        Make sure you arn't using "-fomit-frame-pointer" when
+        Make sure you aren't using "-fomit-frame-pointer" when
         compiling libtorrent and rtorrent, this is known to produce
         bad code for C++ exception handling. If this doesn't help, run
         the client in gdb and use "bt -20" to get a backtrace. Send

@@ -177,7 +177,7 @@ inline int popcount_wrapper(T t) {
 }
 
 // Get the median of an unordered set of numbers of arbitrary
-// type by modifing the underlying dataset
+// type by modifying the underlying dataset
 template <typename T = double, typename _InputIter>
 T median(_InputIter __first, _InputIter __last) {
   T __med;
