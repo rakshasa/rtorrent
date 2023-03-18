@@ -586,7 +586,7 @@ cmd_view_persistent(const torrent::Object::string_type& args) {
   core::View* view = *control->view_manager()->find_throw(args);
   
   if (!view->get_filter().is_empty() || !view->event_added().is_empty() || !view->event_removed().is_empty())
-    throw torrent::input_error("Cannot set modified views as persitent.");
+    throw torrent::input_error("Cannot set modified views as persistent.");
 
   view->set_filter("d.views.has=" + args);
   view->set_event_added("d.views.push_back_unique=" + args);
@@ -862,7 +862,7 @@ initialize_command_ui() {
   CMD2_ANY("or",    &apply_or);
 
   // A temporary command for handling stuff until we get proper
-  // support for seperation of commands and literals.
+  // support for separation of commands and literals.
   CMD2_ANY("branch", std::bind(&apply_if, std::placeholders::_1, std::placeholders::_2, 1));
 
   CMD2_ANY_LIST("less",    &apply_less);

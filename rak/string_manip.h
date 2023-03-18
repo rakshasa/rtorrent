@@ -113,7 +113,7 @@ Sequence trim_classic(const Sequence& seq) {
   return trim_begin_classic(trim_end_classic(seq));
 }
 
-// Consider rewritting such that m_seq is replaced by first/last.
+// Consider rewriting such that m_seq is replaced by first/last.
 template <typename Sequence>
 class split_iterator_t {
 public:
