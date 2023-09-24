@@ -122,6 +122,9 @@ libsub_root_a_SOURCES = \
 	rpc/xmlrpc.h \
 	rpc/xmlrpc.cc \
 	\
+	rpc/lua.h \
+	rpc/lua.cc \
+	\
 	ui/download.cc \
 	ui/download.h \
 	ui/download_list.cc \
