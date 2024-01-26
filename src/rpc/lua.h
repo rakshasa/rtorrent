@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <torrent/object.h>
+#include "rpc/command.h"
 
 #ifdef HAVE_LUA
 #include "lua.h"
@@ -18,14 +19,13 @@ public:
   static const int flag_autocall_upvalue = 0x2;
   LuaEngine();
   ~LuaEngine();
-  torrent::Object execute_file(const torrent::Object& rawArgs);
 #ifdef HAVE_LUA
   lua_State* state() {return m_LuaState;}
 private:
   lua_State* m_LuaState;
 #endif
 };
-torrent::Object execute_lua(LuaEngine* engine, const torrent::Object& rawArgs, int flags);
+torrent::Object execute_lua(LuaEngine* engine, rpc::target_type target, const torrent::Object& rawArgs, int flags);
 #ifdef HAVE_LUA
 int rtorrent_call(lua_State* L);
 void init_rtorrent_module(lua_State* L);

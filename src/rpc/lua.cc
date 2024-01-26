@@ -13,7 +13,9 @@
 #include <torrent/object.h>
 #include <rak/path.h>
 #include <rak/error_number.h>
+#include <rak/string_manip.h>
 
+#include "core/download.h"
 #include "rpc/command_map.h"
 #include "rpc/command.h"
 #include "rpc/parse_commands.h"
@@ -245,7 +247,7 @@ lua_callstack_to_object(lua_State* L, int commandFlags, rpc::target_type* target
 
 
 int
-rtorrent_call(lua_State* L) {
+lua_rtorrent_call(lua_State* L) {
   auto method = lua_tostring(L, 1);
   lua_remove(L, 1);
   torrent::Object object;
@@ -269,7 +271,7 @@ init_rtorrent_module(lua_State* L) {
   lua_createtable(L, 0, 1);
   int tableIndex = lua_gettop(L);
   lua_pushliteral(L, "call");
-  lua_pushcfunction(L, rtorrent_call);
+  lua_pushcfunction(L, lua_rtorrent_call);
   lua_settable(L, tableIndex);
   // Allows use of the dot syntax for calling RPC, through metatables
   lua_pushliteral(L, "autocall");
@@ -325,10 +327,18 @@ check_lua_status(lua_State* L, int status) {
 }
 
 torrent::Object
-execute_lua(LuaEngine* engine, torrent::Object const& rawArgs, int flags) {
+execute_lua(LuaEngine* engine, rpc::target_type target, torrent::Object const& rawArgs, int flags) {
   int status = 0;
-  int lua_argc = 0;
+  int lua_argc = 1; // Target is always present, even if empty
   lua_State* L = engine->state();
+  std::string target_string = "";
+  switch (target.first) {
+  case (command_base::target_download):
+    core::Download* dl_target = (core::Download*)target.second;
+    torrent::HashString infohash = dl_target->info()->hash();
+    target_string = rak::transform_hex_str(infohash);
+    break;
+  }
   if (rawArgs.is_list()) {
     const torrent::Object::list_type& args = rawArgs.as_list();
     if (flags & LuaEngine::flag_string) {
@@ -336,10 +346,11 @@ execute_lua(LuaEngine* engine, torrent::Object const& rawArgs, int flags) {
     } else {
       check_lua_status(L, luaL_loadfile(L, args.begin()->as_string().c_str()));
     }
+    object_to_lua(L, target_string);
     for (torrent::Object::list_const_iterator itr = std::next(args.begin()), last = args.end(); itr != last; itr++) {
       object_to_lua(L, *itr);
     }
-    lua_argc = args.size()-1;
+    lua_argc += args.size()-1;
   } else {
     const torrent::Object::string_type& target = rawArgs.as_string();
     if (flags & LuaEngine::flag_string) {
@@ -347,6 +358,7 @@ execute_lua(LuaEngine* engine, torrent::Object const& rawArgs, int flags) {
     } else {
       check_lua_status(L, luaL_loadfile(L, target.c_str()));
     }
+    object_to_lua(L, target_string);
   }
   if (flags & LuaEngine::flag_autocall_upvalue) {
     lua_getglobal(L, "rtorrent");

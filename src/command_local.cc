@@ -317,9 +317,9 @@ initialize_command_local() {
 
   CMD2_ANY_V       ("session.save",            std::bind(&core::DownloadList::session_save, dList));
 
-  CMD2_ANY         ("lua.execute",            std::bind(&rpc::execute_lua, luaEngine, std::placeholders::_2, 0));
-  CMD2_ANY         ("lua.execute.str",        std::bind(&rpc::execute_lua, luaEngine, std::placeholders::_2, rpc::LuaEngine::flag_string));
-  CMD2_ANY         ("lua.import",             std::bind(&rpc::execute_lua, luaEngine, std::placeholders::_2, rpc::LuaEngine::flag_autocall_upvalue));
+  CMD2_ANY         ("lua.execute",            std::bind(&rpc::execute_lua, luaEngine, std::placeholders::_1, std::placeholders::_2, 0));
+  CMD2_ANY         ("lua.execute.str",        std::bind(&rpc::execute_lua, luaEngine, std::placeholders::_1, std::placeholders::_2, rpc::LuaEngine::flag_string));
+  CMD2_ANY         ("lua.import",             std::bind(&rpc::execute_lua, luaEngine, std::placeholders::_1, std::placeholders::_2, rpc::LuaEngine::flag_autocall_upvalue));
 
 #define CMD2_EXECUTE(key, flags)                                         \
   CMD2_ANY(key, std::bind(&rpc::ExecFile::execute_object, &rpc::execFile, std::placeholders::_2, flags));
