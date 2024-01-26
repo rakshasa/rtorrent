@@ -127,7 +127,7 @@ lua_to_object(lua_State* L, int index) {
   }
   default:
     std::string result = luaL_tolstring(L, index, NULL);
-    lua_pop(L, index+1);
+    lua_pop(L, 1);
     return torrent::Object(result);
   }
   return object;
