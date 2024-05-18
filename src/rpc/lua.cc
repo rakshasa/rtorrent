@@ -4,8 +4,8 @@
 #include <fstream>
 #include <sys/stat.h>
 
-#ifdef HAVE_LUA
 #include "lua.h"
+#ifdef HAVE_LUA
 #include <cstdint>
 #include <lua.hpp>
 #endif
