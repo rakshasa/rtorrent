@@ -1,12 +1,10 @@
 #include "config.h"
 
 #include <unistd.h>
-#include <fstream>
 #include <sys/stat.h>
 
 #include "lua.h"
 #ifdef HAVE_LUA
-#include <cstdint>
 #include <lua.hpp>
 #endif
 
@@ -214,7 +212,6 @@ string_to_target(std::string targetString,
 
 torrent::Object
 lua_callstack_to_object(lua_State* L, int commandFlags, rpc::target_type* target) {
-  int stackSize = lua_gettop(L);
   torrent::Object object;
   if (lua_gettop(L) == 0) {
     return torrent::Object();
@@ -328,7 +325,6 @@ check_lua_status(lua_State* L, int status) {
 
 torrent::Object
 execute_lua(LuaEngine* engine, rpc::target_type target, torrent::Object const& rawArgs, int flags) {
-  int status = 0;
   int lua_argc = 1; // Target is always present, even if empty
   lua_State* L = engine->state();
   std::string target_string = "";
