@@ -126,6 +126,7 @@ int LuaEngine::lua_init_module(lua_State *L) {
   }
   return 1;
 }
+
 void
 object_to_lua(lua_State* L, torrent::Object const& object) {
   // Converts an object to a single Lua stack object
@@ -353,58 +354,6 @@ lua_rtorrent_call(lua_State* L) {
   }
 }
 
-void
-init_rtorrent_module(lua_State* L) {
-  lua_createtable(L, 0, 1);
-  int tableIndex = lua_gettop(L);
-  lua_pushliteral(L, "call");
-  lua_pushcfunction(L, lua_rtorrent_call);
-  lua_settable(L, tableIndex);
-  // Allows use of the dot syntax for calling RPC, through metatables
-  lua_pushliteral(L, "autocall");
-  luaL_dostring(L, "\
-     local mt = {} \n\
-     function mt.__call (t, ...) \n\
-       return rtorrent.call(table.concat(rawget(t, \"__namestack\"),\".\"), ...) \n\
-     end \n\
-     function mt.__index (t, key) \n\
-       -- Create a new sub-table, preserving the name of the key in a stack \n\
-       ns = rawget(t, \"__namestack\") \n\
-       if ns == nil then \n\
-         ns = {} \n\
-       end \n\
-       table.insert(ns, key) \n\
-       return setmetatable({__namestack=ns}, mt) \n\
-     end \n\
-     return setmetatable({}, mt) \n\
-  ");
-  lua_settable(L, tableIndex);
-  // Variant on the above that auto-provides an empty target
-  lua_pushliteral(L, "autocall_config");
-  luaL_dostring(L, "\
-     local mt = {} \n\
-     function mt.__call (t, ...) \n\
-       return rtorrent.call(table.concat(rawget(t, \"__namestack\"), \".\"), \"\", ...) \n\
-     end \n\
-     function mt.__index (t, key) \n\
-       -- Create a new sub-table, preserving the name of the key in a stack \n\
-       ns = rawget(t, \"__namestack\") \n\
-       if ns == nil then \n\
-         -- Allow loading top-level global names \n\
-         if _G[key] ~= nil then \n\
-           return _G[key] \n\
-         end \n\
-         ns = {} \n\
-       end \n\
-       table.insert(ns, key) \n\
-       return setmetatable({__namestack=ns}, mt) \n\
-     end \n\
-     return setmetatable({}, mt) \n\
-  ");
-  lua_settable(L, tableIndex);
-  lua_setglobal(L, "rtorrent");
-}
-    
 void
 check_lua_status(lua_State* L, int status) {
   if (status != LUA_OK) {
