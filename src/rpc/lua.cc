@@ -1,5 +1,8 @@
 #include "config.h"
 
+#include <fstream>
+#include <sstream>
+#include <string>
 #include <unistd.h>
 #include <sys/stat.h>
 
@@ -23,19 +26,106 @@ namespace rpc {
 
 const int LuaEngine::flag_string;
 const int LuaEngine::flag_autocall_upvalue;
+const std::string LuaEngine::module_name = "rtorrent";
 
 #ifdef HAVE_LUA
 
 LuaEngine::LuaEngine() {
   m_LuaState = luaL_newstate();
   luaL_openlibs(m_LuaState);
-  init_rtorrent_module(m_LuaState);
+  set_package_preload();
 }
 
 LuaEngine::~LuaEngine() {
   lua_close(m_LuaState);
 }
 
+void LuaEngine::set_package_preload() {
+  auto L = m_LuaState;
+  lua_getglobal(L, "package");
+  lua_getfield(L, -1, "preload");
+  lua_pushcfunction(L, LuaEngine::lua_init_module);
+  lua_setfield(L, -2, LuaEngine::module_name.c_str());
+  lua_pop(L, 2);
+}
+
+
+// Helper func to allow RAII to do it's job
+bool is_file_exist(const std::string &path) {
+    std::ifstream infile(path);
+    return infile.good();
+}
+
+std::string LuaEngine::search_lua_path(lua_State *L) {
+  // Get package.path
+  lua_getglobal(L, "package");
+  lua_getfield(L, -1, "path");
+  std::stringstream ss(lua_tostring(L, -1));
+  lua_pop(L, 2);
+  // Tokenize path using ';' as delimiter
+  std::vector<std::string> paths;
+  std::string token;
+  while (getline(ss, token, ';')) {
+      paths.push_back(std::string(token));
+  }
+
+  // Replace '?' in each path with the module name and check if file exists
+  for (const std::string &templatePath : paths) {
+      std::string filePath = templatePath;
+      size_t pos;
+      while ((pos = filePath.find('?')) != std::string::npos) {
+          filePath.replace(pos, 1, LuaEngine::module_name);
+      }
+      if (is_file_exist(filePath)) {
+          return filePath;
+      }
+  }
+  return "";
+}
+
+int LuaEngine::lua_rtorrent_call(lua_State *L) {
+  auto method = lua_tostring(L, 1);
+  lua_remove(L, 1);
+  torrent::Object object;
+  rpc::target_type target = rpc::make_target();;
+  rpc::CommandMap::iterator itr = rpc::commands.find(std::string(method).c_str());
+  if (itr == rpc::commands.end()) {
+    throw torrent::input_error("method not found: " + std::string(method));
+  }
+  object = lua_callstack_to_object(L, itr->second.m_flags, &target);
+  try {
+    const auto& result = rpc::commands.call_command(itr, object, target);
+    object_to_lua(L, result);
+    return 1;
+  } catch (torrent::base_error& e) {
+    throw luaL_error(L, e.what());
+  }
+}
+
+
+int LuaEngine::lua_init_module(lua_State *L) {
+  lua_createtable(L, 0, 1);
+  int tableIndex = lua_gettop(L);
+  lua_pushliteral(L, "call");
+  lua_pushcfunction(L, LuaEngine::lua_rtorrent_call);
+  lua_settable(L, tableIndex);
+  auto luaFile = search_lua_path(L);
+  // Should this throw on failure?
+  if (!luaFile.empty()) {
+    // Pop table into global var for file to manipulate
+    lua_setglobal(L, "rtorrent");
+    int status = luaL_loadfile(L, luaFile.c_str());
+    if (status == LUA_OK) {
+      status = lua_pcall(L, 0, LUA_MULTRET, 0);
+    }
+    check_lua_status(L, status);
+    // Clean up global var
+    lua_pushnil(L);
+    lua_setglobal(L, "rtorrent");
+    // Leave the original table in place
+  }
+  return 1;
+}
 void
 object_to_lua(lua_State* L, torrent::Object const& object) {
   // Converts an object to a single Lua stack object
