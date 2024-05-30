@@ -105,12 +105,12 @@ int LuaEngine::lua_rtorrent_call(lua_State *L) {
 
 int LuaEngine::lua_init_module(lua_State *L) {
   lua_createtable(L, 0, 1);
-  int tableIndex = lua_gettop(L);
+  // Assign functions
   lua_pushliteral(L, "call");
   lua_pushcfunction(L, LuaEngine::lua_rtorrent_call);
-  lua_settable(L, tableIndex);
+  lua_settable(L, -3);
   auto luaFile = search_lua_path(L);
-  // Should this throw on failure?
+  // Should this throw if it fails to find the file?
   if (!luaFile.empty()) {
     // Pop table into global var for file to manipulate
     lua_setglobal(L, "rtorrent");
