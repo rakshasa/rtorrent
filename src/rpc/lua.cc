@@ -50,13 +50,8 @@ void LuaEngine::set_package_preload() {
 }
 
 
-// Helper func to allow RAII to do it's job
-bool is_file_exist(const std::string &path) {
-    std::ifstream infile(path);
-    return infile.good();
-}
-
-std::string LuaEngine::search_lua_path(lua_State *L) {
+std::string
+LuaEngine::search_lua_path(lua_State *L) {
   // Get package.path
   lua_getglobal(L, "package");
   lua_getfield(L, -1, "path");
@@ -69,6 +64,11 @@ std::string LuaEngine::search_lua_path(lua_State *L) {
       paths.push_back(std::string(token));
   }
 
+  auto fileExists = [](const std::string &path) -> bool {
+    std::ifstream file(path);
+    return file.is_open();
+  };
+
   // Replace '?' in each path with the module name and check if file exists
   for (const std::string &templatePath : paths) {
       std::string filePath = templatePath;
@@ -76,7 +76,7 @@ std::string LuaEngine::search_lua_path(lua_State *L) {
       while ((pos = filePath.find('?')) != std::string::npos) {
           filePath.replace(pos, 1, LuaEngine::module_name);
       }
-      if (is_file_exist(filePath)) {
+      if (fileExists(filePath)) {
           return filePath;
       }
   }
