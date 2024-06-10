@@ -79,9 +79,6 @@ public:
   using base_type::size;
   using base_type::empty;
   using base_type::key_eq;
-  using base_type::bucket;
-  using base_type::bucket_count;
-  using base_type::max_bucket_count;
   using base_type::load_factor;
 
   // Verify rlookup is static / const.
@@ -107,9 +104,9 @@ public:
 
   static const size_t key_size = key_type::max_size;
 
-  local_iterator find_local(const torrent::raw_string& key);
-  local_iterator find_local_const(const torrent::raw_string& key, unsigned int type = 0);
-  local_iterator find_local_mutable(const torrent::raw_string& key, unsigned int type = 0);
+  iterator find_local(const torrent::raw_string& key);
+  iterator find_local_const(const torrent::raw_string& key, unsigned int type = 0);
+  iterator find_local_mutable(const torrent::raw_string& key, unsigned int type = 0);
 
   iterator insert(const char* key_data, uint32_t key_size, const torrent::Object& object, unsigned int flags);
   iterator insert_c_str(const char* key, const torrent::Object& object, unsigned int flags) { return insert(key, std::strlen(key), object, flags); }
