@@ -1,3 +1,5 @@
+m4_pattern_allow([PKG_CHECK_EXISTS])
+
 AC_INIT([rtorrent], [0.9.8], [sundell.software@gmail.com])
 
 AC_CONFIG_HEADERS([config.h])
