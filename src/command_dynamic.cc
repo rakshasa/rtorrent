@@ -146,7 +146,7 @@ system_method_insert_object(const torrent::Object::list_type& args, int flags) {
   const std::string& rawKey = (itrArgs++)->as_string();
 
   if (rawKey.empty() ||
-      control->object_storage()->find_local(torrent::raw_string::from_string(rawKey)) != control->object_storage()->end(0) ||
+      control->object_storage()->find_raw_string(torrent::raw_string::from_string(rawKey)) != control->object_storage()->end() ||
       rpc::commands.has(rawKey) || rpc::commands.has(rawKey + ".set"))
     throw torrent::input_error("Invalid key.");
 
@@ -355,11 +355,11 @@ system_method_set_function(const torrent::Object::list_type& args) {
   if (args.empty())
     throw torrent::input_error("Invalid argument count.");
 
-  rpc::object_storage::local_iterator itr =
-    control->object_storage()->find_local(torrent::raw_string::from_string(args.front().as_string()));
+  rpc::object_storage::iterator itr =
+    control->object_storage()->find_raw_string(torrent::raw_string::from_string(args.front().as_string()));
 
-  if (itr == control->object_storage()->end(0) || itr->second.flags & rpc::object_storage::flag_constant)
-    throw torrent::input_error("Command is not modifiable.");    
+  if (itr == control->object_storage()->end() || itr->second.flags & rpc::object_storage::flag_constant)
+    throw torrent::input_error("Command is not modifiable.");
 
   return control->object_storage()->set_str_function(args.front().as_string(),
                                                      system_method_generate_command(++args.begin(), args.end()));

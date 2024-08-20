@@ -61,22 +61,19 @@ const unsigned int object_storage::flag_rlookup;
 
 const size_t object_storage::key_size;
 
-object_storage::local_iterator
-object_storage::find_local(const torrent::raw_string& key) {
-  std::size_t n = hash_fixed_key_type::hash(key.data(), key.size()) % bucket_count();
+object_storage::iterator
+object_storage::find_raw_string(const torrent::raw_string& key) {
+  fixed_key_type<64> k;
+  k.set_c_str(key.data());
 
-  for (local_iterator itr = begin(n), last = end(n); itr != last; itr++)
-    if (itr->first.size() == key.size() && std::memcmp(itr->first.data(), key.data(), key.size()) == 0)
-      return itr;
-
-  return end(bucket_count());
+  return find(k);
 }
 
-object_storage::local_iterator
-object_storage::find_local_const(const torrent::raw_string& key, unsigned int type) {
-  local_iterator itr = find_local(key);
+object_storage::iterator
+object_storage::find_raw_string_const(const torrent::raw_string& key, unsigned int type) {
+  iterator itr = find_raw_string(key);
 
-  if (itr == end(bucket_count()))
+  if (itr == end())
     throw torrent::input_error("Key not found.");
 
   if ((type != 0 && (itr->second.flags & mask_type) != type))
@@ -85,11 +82,11 @@ object_storage::find_local_const(const torrent::raw_string& key, unsigned int ty
   return itr;
 }
 
-object_storage::local_iterator
-object_storage::find_local_mutable(const torrent::raw_string& key, unsigned int type) {
-  local_iterator itr = find_local(key);
+object_storage::iterator
+object_storage::find_raw_string_mutable(const torrent::raw_string& key, unsigned int type) {
+  iterator itr = find_raw_string(key);
 
-  if (itr == end(bucket_count()))
+  if (itr == end())
     throw torrent::input_error("Key not found.");
 
   if ((type != 0 && (itr->second.flags & mask_type) != type) ||
@@ -138,63 +135,63 @@ object_storage::insert(const char* key_data, uint32_t key_size, const torrent::O
 
 bool
 object_storage::has_flag(const torrent::raw_string& key, unsigned int flag) {
-  local_iterator itr = find_local_const(key);
+  iterator itr = find_raw_string_const(key);
   return itr->second.flags & flag;
 }
 
 void
 object_storage::enable_flag(const torrent::raw_string& key, unsigned int flag) {
-  local_iterator itr = find_local_mutable(key);
+  iterator itr = find_raw_string_mutable(key);
   itr->second.flags |= (flag & (flag_constant));
 }
 
 const torrent::Object&
 object_storage::get(const torrent::raw_string& key) {
-  local_iterator itr = find_local_const(key);
+  iterator itr = find_raw_string_const(key);
   return itr->second.object;
 }
 
 const torrent::Object&
 object_storage::set_bool(const torrent::raw_string& key, int64_t object) {
-  local_iterator itr = find_local_mutable(key, flag_bool_type);
+  iterator itr = find_raw_string_mutable(key, flag_bool_type);
   return itr->second.object = !!object;
 }
 
 
 const torrent::Object&
 object_storage::set_value(const torrent::raw_string& key, int64_t object) {
-  local_iterator itr = find_local_mutable(key, flag_value_type);
+  iterator itr = find_raw_string_mutable(key, flag_value_type);
   return itr->second.object = object;
 }
 
 
 const torrent::Object&
 object_storage::set_string(const torrent::raw_string& key, const std::string& object) {
-  local_iterator itr = find_local_mutable(key, flag_string_type);
+  iterator itr = find_raw_string_mutable(key, flag_string_type);
   return itr->second.object = object;
 }
 
 const torrent::Object&
 object_storage::set_list(const torrent::raw_string& key, const torrent::Object::list_type& object) {
-  local_iterator itr = find_local_mutable(key, flag_list_type);
+  iterator itr = find_raw_string_mutable(key, flag_list_type);
   return itr->second.object = torrent::Object::create_list_range(object.begin(), object.end());
 }
 
 void
 object_storage::list_push_back(const torrent::raw_string& key, const torrent::Object& object) {
-  local_iterator itr = find_local_mutable(key, flag_list_type);
+  iterator itr = find_raw_string_mutable(key, flag_list_type);
   itr->second.object.as_list().push_back(object);
 }
 
 const torrent::Object&
 object_storage::set_function(const torrent::raw_string& key, const std::string& object) {
-  local_iterator itr = find_local_mutable(key, flag_function_type);
+  iterator itr = find_raw_string_mutable(key, flag_function_type);
   return itr->second.object = object;
 }
 
 torrent::Object
 object_storage::call_function(const torrent::raw_string& key, target_type target, const torrent::Object& object) {
-  local_iterator itr = find_local_const(key);
+  iterator itr = find_raw_string_const(key);
 
   switch (itr->second.flags & mask_type) {
   case flag_function_type:
@@ -207,13 +204,13 @@ object_storage::call_function(const torrent::raw_string& key, target_type target
 
 bool
 object_storage::has_multi_key(const torrent::raw_string& key, const std::string& cmd_key) {
-  local_iterator itr = find_local_const(key, flag_multi_type);
+  iterator itr = find_raw_string_const(key, flag_multi_type);
   return itr->second.object.has_key(cmd_key);
 }
 
 void
 object_storage::erase_multi_key(const torrent::raw_string& key, const std::string& cmd_key) {
-  local_iterator itr = find_local_mutable(key, flag_multi_type);
+  iterator itr = find_raw_string_mutable(key, flag_multi_type);
 
   itr->second.object.erase_key(cmd_key);
 
@@ -238,7 +235,7 @@ object_storage::set_multi_key_obj(const torrent::raw_string& key, const std::str
   if (!object.is_string() && !object.is_dict_key() && !object.is_list())
     throw torrent::input_error("Object is wrong type.");
 
-  local_iterator itr = find_local_mutable(key, flag_multi_type);
+  iterator itr = find_raw_string_mutable(key, flag_multi_type);
 
   if (itr->second.flags & flag_rlookup) {
     rlookup_iterator r_itr = m_rlookup.find(cmd_key);
@@ -259,7 +256,7 @@ object_storage::rlookup_list(const std::string& cmd_key) {
   torrent::Object::list_type result;
 
   rlookup_iterator r_itr = m_rlookup.find(cmd_key);
-  
+
   if (r_itr != m_rlookup.end())
     std::transform(r_itr->second.begin(), r_itr->second.end(), std::back_inserter(result),
                    std::bind(&key_type::c_str, std::bind(rak::mem_ptr(&value_type::first), std::placeholders::_1)));
@@ -270,7 +267,7 @@ object_storage::rlookup_list(const std::string& cmd_key) {
 void
 object_storage::rlookup_clear(const std::string& cmd_key) {
   rlookup_iterator r_itr = m_rlookup.find(cmd_key);
-  
+
   if (r_itr == m_rlookup.end())
     return;
 

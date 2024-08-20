@@ -79,9 +79,6 @@ public:
   using base_type::size;
   using base_type::empty;
   using base_type::key_eq;
-  using base_type::bucket;
-  using base_type::bucket_count;
-  using base_type::max_bucket_count;
   using base_type::load_factor;
 
   // Verify rlookup is static / const.
@@ -89,7 +86,7 @@ public:
   using base_type::clear;
   using base_type::find;
   using base_type::erase;
-  
+
   static const unsigned int flag_generic_type  = 0x1;
   static const unsigned int flag_bool_type     = 0x2;
   static const unsigned int flag_value_type    = 0x4;
@@ -107,9 +104,9 @@ public:
 
   static const size_t key_size = key_type::max_size;
 
-  local_iterator find_local(const torrent::raw_string& key);
-  local_iterator find_local_const(const torrent::raw_string& key, unsigned int type = 0);
-  local_iterator find_local_mutable(const torrent::raw_string& key, unsigned int type = 0);
+  iterator find_raw_string(const torrent::raw_string& key);
+  iterator find_raw_string_const(const torrent::raw_string& key, unsigned int type = 0);
+  iterator find_raw_string_mutable(const torrent::raw_string& key, unsigned int type = 0);
 
   iterator insert(const char* key_data, uint32_t key_size, const torrent::Object& object, unsigned int flags);
   iterator insert_c_str(const char* key, const torrent::Object& object, unsigned int flags) { return insert(key, std::strlen(key), object, flags); }
@@ -141,7 +138,7 @@ public:
   const torrent::Object& set_string(const torrent::raw_string& key, const std::string& object);
   const torrent::Object& set_c_str_string(const char* str, const std::string& object) { return set_string(torrent::raw_string::from_c_str(str), object); }
   const torrent::Object& set_str_string(const std::string& str, const std::string& object) { return set_string(torrent::raw_string::from_string(str), object); }
-  
+
   const torrent::Object& set_list(const torrent::raw_string& key, const torrent::Object::list_type& object);
   const torrent::Object& set_c_str_list(const char* str, const torrent::Object::list_type& object) { return set_list(torrent::raw_string::from_c_str(str), object); }
   const torrent::Object& set_str_list(const std::string& str, const torrent::Object::list_type& object) { return set_list(torrent::raw_string::from_string(str), object); }
