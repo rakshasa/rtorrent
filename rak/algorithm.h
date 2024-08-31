@@ -159,10 +159,7 @@ make_base(_InputIter __first, _InputIter __last, _Ftor __ftor) {
 template<typename T>
 inline int popcount_wrapper(T t) {
 #if USE_BUILTIN_POPCOUNT
-  if (std::numeric_limits<T>::digits <= std::numeric_limits<unsigned int>::digits)
-    return __builtin_popcount(t);
-  else
-    return __builtin_popcountll(t);
+  return __builtin_popcountll(t);
 #else
 #error __builtin_popcount not found.
   unsigned int count = 0;
