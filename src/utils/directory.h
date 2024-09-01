@@ -48,11 +48,11 @@ struct directory_entry {
   bool is_file() const { return true; }
 
   // The name and types should match POSIX.
-  uint32_t            d_fileno;
-  uint32_t            d_reclen; //Not used. Messes with Solaris.
-  uint8_t             d_type;
+  uint32_t            s_fileno;
+  uint32_t            s_reclen; //Not used. Messes with Solaris.
+  uint8_t             s_type;
 
-  std::string         d_name;
+  std::string         s_name;
 };
 
 class Directory : private std::vector<directory_entry> {
@@ -94,12 +94,12 @@ private:
   std::string         m_path;
 };
 
-inline bool operator == (const directory_entry& left, const directory_entry& right) { return left.d_name == right.d_name; }
-inline bool operator != (const directory_entry& left, const directory_entry& right) { return left.d_name != right.d_name; }
-inline bool operator <  (const directory_entry& left, const directory_entry& right) { return left.d_name <  right.d_name; }
-inline bool operator >  (const directory_entry& left, const directory_entry& right) { return left.d_name >  right.d_name; }
-inline bool operator <= (const directory_entry& left, const directory_entry& right) { return left.d_name <= right.d_name; }
-inline bool operator >= (const directory_entry& left, const directory_entry& right) { return left.d_name >= right.d_name; }
+inline bool operator == (const directory_entry& left, const directory_entry& right) { return left.s_name == right.s_name; }
+inline bool operator != (const directory_entry& left, const directory_entry& right) { return left.s_name != right.s_name; }
+inline bool operator <  (const directory_entry& left, const directory_entry& right) { return left.s_name <  right.s_name; }
+inline bool operator >  (const directory_entry& left, const directory_entry& right) { return left.s_name >  right.s_name; }
+inline bool operator <= (const directory_entry& left, const directory_entry& right) { return left.s_name <= right.s_name; }
+inline bool operator >= (const directory_entry& left, const directory_entry& right) { return left.s_name >= right.s_name; }
 
 }
 

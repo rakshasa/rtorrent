@@ -76,11 +76,11 @@ PathInput::pressed(int key) {
 struct _transform_filename {
   void operator () (utils::directory_entry& entry) {
 #ifdef __sun__
-    if (entry.d_type & S_IFDIR)
+    if (entry.s_type & S_IFDIR)
 #else
-    if (entry.d_type == DT_DIR)
+    if (entry.s_type == DT_DIR)
 #endif
-      entry.d_name += '/';
+      entry.s_name += '/';
   }
 };
 
@@ -105,7 +105,7 @@ PathInput::receive_do_complete() {
   if (r.first == r.second)
     return; // Show some nice colors here.
 
-  std::string base = rak::make_base<std::string>(r.first, r.second, rak::const_mem_ref(&utils::directory_entry::d_name));
+  std::string base = rak::make_base<std::string>(r.first, r.second, rak::const_mem_ref(&utils::directory_entry::s_name));
 
   // Clear the path after the cursor to make this code cleaner. It's
   // not really nessesary to add the complexity just because someone
@@ -142,12 +142,12 @@ PathInput::find_last_delim() {
 
 inline bool
 find_complete_compare(const utils::directory_entry& complete, const std::string& base) {
-  return complete.d_name.compare(0, base.size(), base);
+  return complete.s_name.compare(0, base.size(), base);
 }
 
 inline bool
 find_complete_not_compare(const utils::directory_entry& complete, const std::string& base) {
-  return !complete.d_name.compare(0, base.size(), base);
+  return !complete.s_name.compare(0, base.size(), base);
 }
 
 PathInput::range_type
