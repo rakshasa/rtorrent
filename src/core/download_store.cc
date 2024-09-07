@@ -101,6 +101,7 @@ DownloadStore::set_path(const std::string& path) {
 
 bool
 DownloadStore::write_bencode(const std::string& filename, const torrent::Object& obj, uint32_t skip_mask) {
+  int fd;
   torrent::Object tmp;
   std::fstream output(filename.c_str(), std::ios::out | std::ios::trunc);
 
@@ -124,7 +125,7 @@ DownloadStore::write_bencode(const std::string& filename, const torrent::Object&
   output.close();
 
   // Ensure that the new file is actually written to the disk
-  int fd = ::open(filename.c_str(), O_WRONLY);
+  fd = ::open(filename.c_str(), O_WRONLY);
   if (fd < 0)
     goto download_store_save_error;
 
