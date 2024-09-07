@@ -40,6 +40,7 @@
 
 #include <fstream>
 #include <stdio.h>
+#include <fcntl.h>
 #include <unistd.h>
 #include <rak/error_number.h>
 #include <rak/path.h>
@@ -121,6 +122,15 @@ DownloadStore::write_bencode(const std::string& filename, const torrent::Object&
     goto download_store_save_error;
 
   output.close();
+
+  // Ensure that the new file is actually written to the disk
+  int fd = ::open(filename.c_str(), O_WRONLY);
+  if (fd < 0)
+    goto download_store_save_error;
+
+  fdatasync(fd);
+  ::close(fd);
+
   return true;
 
 download_store_save_error:
