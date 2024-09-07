@@ -83,19 +83,19 @@ Directory::update(int flags) {
 
 #ifdef __sun__
     stat(entry->d_name, &s);
-    itr->d_fileno = entry->d_ino;
-    itr->d_reclen = 0;
-    itr->d_type = s.st_mode;
+    itr->s_fileno = entry->d_ino;
+    itr->s_reclen = 0;
+    itr->s_type = s.st_mode;
 #else
-    itr->d_fileno = entry->d_fileno;
-    itr->d_reclen = entry->d_reclen;
-    itr->d_type   = entry->d_type;
+    itr->s_fileno = entry->d_fileno;
+    itr->s_reclen = entry->d_reclen;
+    itr->s_type   = entry->d_type;
 #endif
 
 #ifdef DIRENT_NAMLEN_EXISTS_FOOBAR
-    itr->d_name   = std::string(entry->d_name, entry->d_name + entry->d_namlen);
+    itr->s_name   = std::string(entry->d_name, entry->d_name + entry->d_namlen);
 #else
-    itr->d_name   = std::string(entry->d_name);
+    itr->s_name   = std::string(entry->d_name);
 #endif
   }
 
