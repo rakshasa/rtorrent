@@ -171,7 +171,8 @@ system_method_insert_object(const torrent::Object::list_type& args, int flags) {
     throw torrent::input_error("Invalid type.");
   }
 
-  int cmd_flags = 0;
+  // We must initialize this varriable to prevent a critical memory leak
+  int cmd_flags = rpc::CommandMap::flag_delete_key;
 
   if (!(flags & rpc::object_storage::flag_static))
     cmd_flags |= rpc::CommandMap::flag_modifiable;
