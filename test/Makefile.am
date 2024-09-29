@@ -4,6 +4,7 @@ check_PROGRAMS = $(TESTS)
 rtorrentTest_LDADD = ../src/libsub_root.a
 
 rtorrentTest_SOURCES = \
+	helpers/assert.h \
 	rpc/command_test.cc \
 	rpc/command_test.h \
 	rpc/command_map_test.cc \

@@ -4,7 +4,6 @@ SUBDIRS = \
 	test
 
 EXTRA_DIST= \
-	autogen.sh \
 	rak/address_info.h \
 	rak/algorithm.h \
 	rak/allocators.h \

@@ -1,8 +1,8 @@
 BUILDING
 
- Run "./autogen.sh" to generate the configure scripts if
-necessary. The man page "doc/rtorrent.1" must be generated with
-"docbook2man rtorrent.1.xml" if it is missing.
+ Run "aclocal -I scripts && autoconf -i && autoheader && automake --add-missing"
+to generate the configure scripts if necessary. The man page "doc/rtorrent.1"
+must be generated with "docbook2man rtorrent.1.xml" if it is missing.
 
  Note that rtorrent follows the development of libtorrent closely, and
 thus the versions must be in sync. This should not be nessesary in the
