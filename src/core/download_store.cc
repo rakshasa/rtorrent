@@ -129,7 +129,11 @@ DownloadStore::write_bencode(const std::string& filename, const torrent::Object&
   if (fd < 0)
     goto download_store_save_error;
 
+#ifdef __APPLE__
+  fsync(fd);
+#else
   fdatasync(fd);
+#endif
   ::close(fd);
 
   return true;
