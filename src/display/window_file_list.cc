@@ -51,7 +51,7 @@
 namespace display {
 
 // Don't really like the direction of the element dependency, but
-// don't really feel like making a seperate class for containing the
+// don't really feel like making a separate class for containing the
 // necessary information.
 WindowFileList::WindowFileList(const ui::ElementFileList* element) :
   Window(new Canvas, 0, 0, 0, extent_full, extent_full),
