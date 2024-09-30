@@ -42,6 +42,8 @@
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
+#include <chrono>
+#include <thread>
 #include <signal.h>
 #include <unistd.h>
 #include <rak/error_number.h>
@@ -66,7 +68,7 @@ public:
 
   thread_queue_hack() { std::memset(this, 0, sizeof(thread_queue_hack)); }
 
-  void     lock()   { while (!__sync_bool_compare_and_swap(&m_lock, 0, 1)) usleep(0); }
+  void     lock()   { while (!__sync_bool_compare_and_swap(&m_lock, 0, 1)) std::this_thread::sleep_for(std::chrono::microseconds(0)); }
   void     unlock() { __sync_bool_compare_and_swap(&m_lock, 1, 0); }
 
   iterator begin() { return m_queue; }
