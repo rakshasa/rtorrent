@@ -55,6 +55,7 @@
 #include "rpc/command_scheduler.h"
 #include "rpc/parse_commands.h"
 #include "rpc/scgi.h"
+#include "rpc/lua.h"
 #include "rpc/object_storage.h"
 #include "ui/root.h"
 
@@ -68,6 +69,7 @@ Control::Control() :
 
   m_commandScheduler(new rpc::CommandScheduler()),
   m_objectStorage(new rpc::object_storage()),
+  m_luaEngine(new rpc::LuaEngine()),
   m_directory_events(new torrent::directory_events()),
 
   m_tick(0),
@@ -99,6 +101,7 @@ Control::~Control() {
   delete m_directory_events;
   delete m_commandScheduler;
   delete m_objectStorage;
+  delete m_luaEngine;
 }
 
 void
