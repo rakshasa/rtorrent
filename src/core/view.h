@@ -119,7 +119,7 @@ public:
   void                set_sort_new(const torrent::Object& s)      { m_sortNew = s; }
   void                set_sort_current(const torrent::Object& s)  { m_sortCurrent = s; }
 
-  // Need to explicity trigger filtering.
+  // Need to explicitly trigger filtering.
   void                filter();
   void                filter_by(const torrent::Object& condition, base_type& result);
   void                filter_download(core::Download* download);
@@ -146,7 +146,7 @@ public:
   rak::timer          last_changed() const                                 { return m_lastChanged; }
   void                set_last_changed(const rak::timer& t = ::cachedTime) { m_lastChanged = t; }
 
-  // Don't connect any slots until after initialize else it get's
+  // Don't connect any slots until after initialize else it gets
   // triggered when adding the Download's in DownloadList.
   signal_void&        signal_changed()                        { return m_signal_changed; }
 

@@ -96,7 +96,7 @@ ViewManager::sort(const std::string& name, uint32_t timeout) {
   if ((*viewItr)->last_changed() + rak::timer::from_seconds(timeout) > cachedTime)
     return;
 
-  // Should we rename sort, or add a seperate function?
+  // Should we rename sort, or add a separate function?
   (*viewItr)->filter();
   (*viewItr)->sort();
 }

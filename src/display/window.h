@@ -89,7 +89,7 @@ public:
   bool                is_width_dynamic() const             { return m_maxWidth > m_minWidth; }
   bool                is_height_dynamic() const            { return m_maxHeight > m_minHeight; }
 
-  // Do not call mark_dirty() from withing redraw() as it may cause
+  // Do not call mark_dirty() from within redraw() as it may cause
   // infinite looping in the display scheduler.
   bool                is_dirty()                           { return m_taskUpdate.is_queued(); }
   void                mark_dirty()                         { if (!is_active()) return; m_slotSchedule(this, cachedTime); }
