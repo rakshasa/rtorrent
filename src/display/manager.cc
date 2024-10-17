@@ -64,8 +64,7 @@ Manager::force_redraw() {
 
 void
 Manager::schedule(Window* w, rak::timer t) {
-  rak::priority_queue_erase(&m_scheduler, w->task_update());
-  rak::priority_queue_insert(&m_scheduler, w->task_update(), t);
+  rak::priority_queue_update(&m_scheduler, w->task_update(), t);
   schedule_update(50000);
 }
 
@@ -114,8 +113,7 @@ Manager::schedule_update(uint32_t minInterval) {
   }
 
   if (!m_taskUpdate.is_queued() || m_taskUpdate.time() > m_scheduler.top()->time()) {
-    rak::priority_queue_erase(&taskScheduler, &m_taskUpdate);
-    rak::priority_queue_insert(&taskScheduler, &m_taskUpdate, std::max(m_scheduler.top()->time(), m_timeLastUpdate + minInterval));
+    rak::priority_queue_update(&taskScheduler, &m_taskUpdate, std::max(m_scheduler.top()->time(), m_timeLastUpdate + minInterval));
   }
 }
 

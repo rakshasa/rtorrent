@@ -145,8 +145,7 @@ struct view_downloads_filter : std::unary_function<Download*, bool> {
 
 void
 View::emit_changed() {
-  priority_queue_erase(&taskScheduler, &m_delayChanged);
-  priority_queue_insert(&taskScheduler, &m_delayChanged, cachedTime);
+  priority_queue_update(&taskScheduler, &m_delayChanged, cachedTime);
 }
 
 void

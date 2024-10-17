@@ -127,14 +127,32 @@ priority_queue_erase(priority_queue_default* queue, priority_item* item) {
   if (!item->is_valid())
     throw torrent::internal_error("priority_queue_erase(...) called on an invalid item.");
 
-  // Clear time before erasing to force it to the top.
+  // Unqueue it before erasing.
   item->clear_time();
-  
+
   if (!queue->erase(item))
     throw torrent::internal_error("priority_queue_erase(...) could not find item in queue.");
+}
 
-  if (queue->find(item) != queue->end())
-    throw torrent::internal_error("priority_queue_erase(...) item still in queue.");
+inline void
+priority_queue_update(priority_queue_default* queue, priority_item* item, timer t) {
+  if (t == timer())
+    throw torrent::internal_error("priority_queue_update(...) received a bad timer.");
+
+  if (!item->is_valid())
+    throw torrent::internal_error("priority_queue_update(...) called on an invalid item.");
+
+  if (queue->find(item) == queue->end()) {
+    if (item->is_queued())
+      throw torrent::internal_error("priority_queue_update(...) cannot insert an already queued item.");
+
+    item->set_time(t);
+    queue->push(item);
+
+  } else {
+    item->set_time(t);
+    queue->update();
+  }
 }
 
 }
