@@ -76,7 +76,7 @@ public:
 
   XmlRpc() : m_env(NULL), m_registry(NULL), m_dialect(dialect_i8) {}
 
-  bool                is_valid() const { return m_env != NULL; }
+  bool                is_valid() const;
 
   void                initialize();
   void                cleanup();
@@ -93,14 +93,16 @@ public:
   slot_tracker&       slot_find_tracker()  { return m_slotFindTracker; }
   slot_peer&          slot_find_peer()     { return m_slotFindPeer; }
 
-  static int64_t      size_limit();
-  static void         set_size_limit(uint64_t size);
+  int64_t             size_limit();
+  void                set_size_limit(uint64_t size);
 
 private:
   void*               m_env;
   void*               m_registry;
 
   int                 m_dialect;
+
+  bool                m_isValid;
 
   slot_download       m_slotFindDownload;
   slot_file           m_slotFindFile;
