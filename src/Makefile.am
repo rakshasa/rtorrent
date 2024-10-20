@@ -121,6 +121,8 @@ libsub_root_a_SOURCES = \
 	rpc/scgi_task.h \
 	rpc/xmlrpc.h \
 	rpc/xmlrpc.cc \
+	rpc/xmlrpc_c.cc \
+	rpc/xmlrpc_tinyxml2.cc \
 	\
 	ui/download.cc \
 	ui/download.h \
@@ -188,6 +190,10 @@ libsub_root_a_SOURCES = \
 	thread_base.cc \
 	thread_base.h \
 	thread_worker.cc \
-	thread_worker.h
+	thread_worker.h \
+	\
+	vendor/tinyxml2/tinyxml2.h \
+	vendor/tinyxml2/tinyxml2.cpp
+
 
 AM_CPPFLAGS = -I$(srcdir) -I$(top_srcdir)
