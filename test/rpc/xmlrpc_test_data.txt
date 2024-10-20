@@ -1,0 +1,55 @@
+# Basic call
+<?xml version="1.0"?><methodCall><methodName>xmlrpc_reflect</methodName><params></params></methodCall>
+<?xml version="1.0"?><methodReponse><params><param><value><array/></value></param></params></methodReponse>
+
+# UTF-8 string
+<?xml version="1.0"?><methodCall><methodName>xmlrpc_reflect</methodName><params><param><value><string></string></value></param><param><value><string>чао</string></value></param></params></methodCall>
+<?xml version="1.0"?><methodReponse><params><param><value><array><value><string>чао</string></value></array></value></param></params></methodReponse>
+
+# emoji string
+<?xml version="1.0"?><methodCall><methodName>xmlrpc_reflect</methodName><params><param><value><string></string></value></param><param><value><string>😊</string></value></param></params></methodCall>
+<?xml version="1.0"?><methodReponse><params><param><value><array><value><string>😊</string></value></array></value></param></params></methodReponse>
+
+# base64 data (which gets returned as a string)
+<?xml version="1.0"?><methodCall><methodName>xmlrpc_reflect</methodName><params><param><value><string></string></value></param><param><value><base64>Zm9vYmFy</base64></value></param></params></methodCall>
+<?xml version="1.0"?><methodReponse><params><param><value><array><value><string>foobar</string></value></array></value></param></params></methodReponse>
+
+# i4 ints
+<?xml version="1.0"?><methodCall><methodName>xmlrpc_reflect</methodName><params><param><value><string></string></value></param><param><value><i4>41</i4></value></param></params></methodCall>
+<?xml version="1.0"?><methodReponse><params><param><value><array><value><i4>41</i4></value></array></value></param></params></methodReponse>
+
+# i8 ints
+<?xml version="1.0"?><methodCall><methodName>xmlrpc_reflect</methodName><params><param><value><string></string></value></param><param><value><i8>2247483647</i8></value></param></params></methodCall>
+<?xml version="1.0"?><methodReponse><params><param><value><array><value><i8>2247483647</i8></value></array></value></param></params></methodReponse>
+
+# negative i8 ints
+<?xml version="1.0"?><methodCall><methodName>xmlrpc_reflect</methodName><params><param><value><string></string></value></param><param><value><i8>-2347483647</i8></value></param></params></methodCall>
+<?xml version="1.0"?><methodReponse><params><param><value><array><value><i8>-2347483647</i8></value></array></value></param></params></methodReponse>
+
+# Empty array
+<?xml version="1.0"?><methodCall><methodName>xmlrpc_reflect</methodName><params><param><value><string></string></value></param><param><value><array><data><value><i8>2247483647</i8></value></data></array></value></param></params></methodCall>
+<?xml version="1.0"?><methodReponse><params><param><value><array><value><array><value><i8>2247483647</i8></value></array></value></array></value></param></params></methodReponse>
+
+# Simple array
+<?xml version="1.0"?><methodCall><methodName>xmlrpc_reflect</methodName><params><param><value><string></string></value></param><param><value><array><data></data></array></value></param></params></methodCall>
+<?xml version="1.0"?><methodReponse><params><param><value><array><value><array/></value></array></value></param></params></methodReponse>
+
+# Empty struct
+<?xml version="1.0"?><methodCall><methodName>xmlrpc_reflect</methodName><params><param><value><string></string></value></param><param><value><struct></struct></value></param></params></methodCall>
+<?xml version="1.0"?><methodReponse><params><param><value><array><value><struct/></value></array></value></param></params></methodReponse>
+
+# Simple struct
+<?xml version="1.0"?><methodCall><methodName>xmlrpc_reflect</methodName><params><param><value><string></string></value></param><param><value><struct><member><name>lowerBound</name><value><i4>18</i4></value></member><member><name>upperBound</name><value><i4>139</i4></value></member></struct></value></param></params></methodCall>
+<?xml version="1.0"?><methodReponse><params><param><value><array><value><struct><member><name>lowerBound</name><value><i4>18</i4></value></member><member><name>upperBound</name><value><i4>139</i4></value></member></struct></value></array></value></param></params></methodReponse>
+
+# Invalid - missing method
+<?xml version="1.0"?><methodCall><methodName>no_such_method</methodName><params><param><value><i4>41</i4></value></param></params></methodCall>
+<?xml version="1.0"?><methodReponse><fault><struct><member><name>faultCode</name><value><int>-506</int></value></member><member><name>faultString</name><value><string>Method 'no_such_method' not defined</string></value></member></struct></fault></methodReponse>
+
+# Invalid - i4 target
+<?xml version="1.0"?><methodCall><methodName>xmlrpc_reflect</methodName><params><param><value><i4>41</i4></value></param></params></methodCall>
+<?xml version="1.0"?><methodReponse><fault><struct><member><name>faultCode</name><value><int>-500</int></value></member><member><name>faultString</name><value><string>invalid parameters: target must be a string</string></value></member></struct></fault></methodReponse>
+
+# Invalid - broken XML
+thodCall><methodName>test_a</methodName><params><param><value><i4>41</i4></value></param></params></method
+<?xml version="1.0"?><methodReponse><fault><struct><member><name>faultCode</name><value><int>-503</int></value></member><member><name>faultString</name><value><string>Error=XML_ERROR_PARSING_ELEMENT ErrorID=6 (0x6) Line number=1: XMLElement name=method</string></value></member></struct></fault></methodReponse>

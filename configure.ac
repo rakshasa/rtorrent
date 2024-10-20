@@ -56,6 +56,8 @@ AC_LANG_PUSH(C++)
 TORRENT_WITH_XMLRPC_C
 AC_LANG_POP(C++)
 
+TORRENT_WITH_TINYXML2
+
 AC_DEFINE(HAVE_CONFIG_H, 1, true if config.h was included)
 AC_DEFINE(USER_AGENT, [std::string(PACKAGE "/" VERSION "/") + torrent::version()], Http user agent)
 
