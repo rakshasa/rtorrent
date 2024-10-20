@@ -426,6 +426,18 @@ AC_DEFUN([TORRENT_WITH_XMLRPC_C], [
   ])
 ])
 
+AC_DEFUN([TORRENT_WITH_TINYXML2], [
+  AC_MSG_CHECKING(for tinyxml2)
+
+  AC_ARG_WITH(xmlrpc-tinyxml2,
+    AS_HELP_STRING([--with-xmlrpc-tinyxml2],[enable XMLRPC support via tinyxml2]),
+  [
+    AC_MSG_RESULT(yes)
+    AC_DEFINE(HAVE_XMLRPC_TINYXML2, 1, Support for XMLRPC via tinyxml2.)
+  ],[
+    AC_MSG_RESULT(ignored)
+  ])
+])
 
 AC_DEFUN([TORRENT_WITH_INOTIFY], [
   AC_LANG_PUSH(C++)
