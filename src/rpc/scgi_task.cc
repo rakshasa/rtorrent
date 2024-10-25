@@ -200,7 +200,7 @@ SCgiTask::event_read() {
 
 void
 SCgiTask::event_write() {
-  int bytes = ::send(m_fileDesc, m_position, m_bufferSize, 0);
+  int bytes = ::send(m_fileDesc, m_position, m_bufferSize, MSG_NOSIGNAL);
 
   if (bytes == -1) {
     if (!rak::error_number::current().is_blocked_momentary())
