@@ -36,7 +36,6 @@
 
 #include "config.h"
 
-#include <vector>
 #include <torrent/exceptions.h>
 #include <torrent/object.h>
 #include <torrent/data/file_list_iterator.h>
@@ -57,23 +56,8 @@ namespace rpc {
 
 command_base::stack_type command_base::current_stack;
 
-CommandMap::~CommandMap() {
-  std::vector<const char*> keys;
-
-  for (iterator itr = base_type::begin(), last = base_type::end(); itr != last; itr++) {
-//     if (!(itr->second.m_flags & flag_dont_delete))
-//       delete itr->second.m_variable;
-
-    if (itr->second.m_flags & flag_delete_key)
-      keys.push_back(itr->first);
-  }
-
-  for (std::vector<const char*>::iterator itr = keys.begin(), last = keys.end(); itr != last; itr++)
-    delete [] *itr;
-}
-
 CommandMap::iterator
-CommandMap::insert(key_type key, int flags, const char* parm, const char* doc) {
+CommandMap::insert(const key_type& key, int flags, const char* parm, const char* doc) {
   iterator itr = base_type::find(key);
 
   if (itr != base_type::end())
@@ -81,24 +65,10 @@ CommandMap::insert(key_type key, int flags, const char* parm, const char* doc) {
 
   // TODO: This is not honoring the public_xmlrpc flags!!!
   if (rpc::xmlrpc.is_valid() && (flags & flag_public_xmlrpc))
-  // if (rpc::xmlrpc.is_valid())
-    rpc::xmlrpc.insert_command(key, parm, doc);
+    rpc::xmlrpc.insert_command(key.c_str(), parm, doc);
 
   return base_type::insert(itr, value_type(key, command_map_data_type(flags, parm, doc)));
 }
-
-// void
-// CommandMap::insert(key_type key, const command_map_data_type src) {
-//   iterator itr = base_type::find(key);
-
-//   if (itr != base_type::end())
-//     throw torrent::internal_error("CommandMap::insert(...) tried to insert an already existing key.");
-
-//   itr = base_type::insert(itr, value_type(key, command_map_data_type(src.m_variable, src.m_flags | flag_dont_delete, src.m_parm, src.m_doc)));
-
-//   // We can assume all the slots are the same size.
-//   itr->second.m_anySlot = src.m_anySlot;
-// }
 
 void
 CommandMap::erase(iterator itr) {
@@ -112,14 +82,11 @@ CommandMap::erase(iterator itr) {
 //   if (!(itr->second.m_flags & flag_dont_delete))
 //     delete itr->second.m_variable;
 
-  const char* key = itr->second.m_flags & flag_delete_key ? itr->first : NULL;
-
   base_type::erase(itr);
-  delete [] key;
 }
 
 void
-CommandMap::create_redirect(key_type key_new, key_type key_dest, int flags) {
+CommandMap::create_redirect(const key_type& key_new, const key_type& key_dest, int flags) {
   iterator new_itr  = base_type::find(key_new);
   iterator dest_itr = base_type::find(key_dest);
 
@@ -139,7 +106,7 @@ CommandMap::create_redirect(key_type key_new, key_type key_dest, int flags) {
 
   // TODO: This is not honoring the public_xmlrpc flags!!!
   if (rpc::xmlrpc.is_valid() && (flags & flag_public_xmlrpc))
-    rpc::xmlrpc.insert_command(key_new, dest_itr->second.m_parm, dest_itr->second.m_doc);
+    rpc::xmlrpc.insert_command(key_new.c_str(), dest_itr->second.m_parm, dest_itr->second.m_doc);
 
   iterator itr = base_type::insert(base_type::end(),
                                    value_type(key_new, command_map_data_type(flags,
@@ -152,7 +119,7 @@ CommandMap::create_redirect(key_type key_new, key_type key_dest, int flags) {
 }
 
 const CommandMap::mapped_type
-CommandMap::call_catch(key_type key, target_type target, const mapped_type& args, const char* err) {
+CommandMap::call_catch(const key_type& key, const target_type& target, const mapped_type& args, const char* err) {
   try {
     return call_command(key, args, target);
   } catch (torrent::input_error& e) {
@@ -162,7 +129,7 @@ CommandMap::call_catch(key_type key, target_type target, const mapped_type& args
 }
 
 const CommandMap::mapped_type
-CommandMap::call_command(key_type key, const mapped_type& arg, target_type target) {
+CommandMap::call_command(const key_type& key, const mapped_type& arg, const target_type& target) {
   iterator itr = base_type::find(key);
 
   if (itr == base_type::end())
@@ -172,7 +139,7 @@ CommandMap::call_command(key_type key, const mapped_type& arg, target_type targe
 }
 
 const CommandMap::mapped_type
-CommandMap::call_command(iterator itr, const mapped_type& arg, target_type target) {
+CommandMap::call_command(iterator itr, const mapped_type& arg, const target_type& target) {
   return itr->second.m_anySlot(&itr->second.m_variable, target, arg);
 }
 

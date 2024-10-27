@@ -135,7 +135,7 @@ initialize_xmlrpc() {
     if (!(itr->second.m_flags & rpc::CommandMap::flag_public_xmlrpc))
       continue;
 
-    rpc::xmlrpc.insert_command(itr->first, itr->second.m_parm, itr->second.m_doc);
+    rpc::xmlrpc.insert_command(itr->first.c_str(), itr->second.m_parm, itr->second.m_doc);
   }
 
   lt_log_print(torrent::LOG_RPC_EVENTS, "XMLRPC initialized with %u functions.", count);
