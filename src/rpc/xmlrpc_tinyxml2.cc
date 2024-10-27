@@ -82,24 +82,22 @@ private:
 };
 
 const tinyxml2::XMLElement*
-element_access(const tinyxml2::XMLElement* elem, std::string elemNames) {
+element_access(const tinyxml2::XMLElement* elem, std::string element_names) {
   // Helper function to check each step of a element access, in lieu of XPath
-  char token = ',';
-  std::string stack("");
+  std::string stack;
   const tinyxml2::XMLElement* result = elem;
-  size_t start = 0;
-  size_t end = 0;
+  size_t pos = 0;
   do {
-    end = elemNames.find(token, start);
-    auto item = elemNames.substr(start, end - start);
+    auto previous_pos = pos;
+    pos = element_names.find(',', pos + 1);
+    auto item = element_names.substr(pos, previous_pos - pos);
     stack.append(item);
     result = result->FirstChildElement(item.c_str());
     if (result == nullptr) {
       throw xmlrpc_error(XMLRPC_PARSE_ERROR, "could not find expected element " + stack);
     }
     stack.append("->");
-    start = end + 1;
-  } while (end != std::string::npos);
+  } while (pos != std::string::npos);
   return result;
 }
 
