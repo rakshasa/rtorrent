@@ -37,7 +37,9 @@
 #include "config.h"
 
 #ifdef HAVE_XMLRPC_TINYXML2
-#ifndef HAVE_XMLRPC_C
+#ifdef HAVE_XMLRPC_C
+#error HAVE_XMLRPC_C and HAVE_XMLRPC_TINYXML2 cannot be used together. Please choose only one
+#endif
 
 #include <cctype>
 #include <string>
@@ -449,5 +451,4 @@ bool    XmlRpc::is_valid() const { return m_isValid; }
 
 }
 
-#endif // ifndef HAVE_XMLRPC_C
-#endif // ifdef HAVE_XMLRPC_TINYXML2
+#endif
