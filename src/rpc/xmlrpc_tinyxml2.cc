@@ -109,52 +109,51 @@ xml_value_to_object(const tinyxml2::XMLNode* elem) {
   if (std::string("value") != elem->Value()) {
     throw xmlrpc_error(XMLRPC_INTERNAL_ERROR, "received non-value element to convert");
   }
-  auto valueElem = elem->FirstChild();
-  auto elemType = std::string(valueElem->Value());
-  if (elemType == "string") {
-    auto elemChild = valueElem->FirstChild();
-    if (elemChild == nullptr) {
+  auto value_element = elem->FirstChild();
+  auto value_element_type = std::string(value_element->Value());
+  if (value_element_type == "string") {
+    auto value_element_child = value_element->FirstChild();
+    if (value_element_child == nullptr) {
       return torrent::Object("");
     }
-    return torrent::Object(elemChild->ToText()->Value());
-  } else if (elemType == "i4" or elemType == "i8" or elemType == "int") {
-    auto elemValue = std::string(valueElem->FirstChild()->ToText()->Value());
-    return torrent::Object(std::stol(elemValue));
-  } else if (elemType == "boolean") {
-    auto boolText = std::string(valueElem->FirstChild()->ToText()->Value());
-    if (boolText == "1") {
+    return torrent::Object(value_element_child->ToText()->Value());
+  } else if (value_element_type == "i4" || value_element_type == "i8" || value_element_type == "int") {
+    return torrent::Object(std::stol(std::string(value_element->FirstChild()->ToText()->Value())));
+  } else if (value_element_type == "boolean") {
+    auto boolean_text = std::string(value_element->FirstChild()->ToText()->Value());
+    if (boolean_text == "1") {
       return torrent::Object((int64_t)1);
-    } else if (boolText == "0") {
+    } else if (boolean_text == "0") {
       return torrent::Object((int64_t)0);
     }
-  } else if (elemType == "array") {
+    throw xmlrpc_error(XMLRPC_INTERNAL_ERROR, "unknown boolean value: " + boolean_text);
+  } else if (value_element_type == "array") {
     auto array = torrent::Object::create_list();
-    auto dataElem = element_access(valueElem->ToElement(), "data");
-    for (auto arrayValueElem = dataElem->FirstChildElement("value"); arrayValueElem; arrayValueElem = arrayValueElem->NextSiblingElement("value")) {
-      array.as_list().push_back(xml_value_to_object(arrayValueElem));
+    auto data_element = element_access(value_element->ToElement(), "data");
+    for (auto array_value_element = data_element->FirstChildElement("value"); array_value_element; array_value_element = array_value_element->NextSiblingElement("value")) {
+      array.as_list().push_back(xml_value_to_object(array_value_element));
     }
     return array;
-  } else if (elemType == "struct") {
+  } else if (value_element_type == "struct") {
     auto map = torrent::Object::create_map();
-    for (auto memberElem = valueElem->FirstChildElement("member"); memberElem; memberElem = memberElem->NextSiblingElement("member")) {
-      auto key = memberElem->FirstChildElement("name")->GetText();
-      auto valElem = xml_value_to_object(element_access(memberElem, "value"));
-      map.as_map()[key] = valElem;
+    for (auto member_element = value_element->FirstChildElement("member"); member_element; member_element = member_element->NextSiblingElement("member")) {
+      auto key = member_element->FirstChildElement("name")->GetText();
+      map.as_map()[key] = xml_value_to_object(element_access(member_element, "value"));
     }
     return map;
-  } else if (elemType == "base64") {
-    auto elemChild = valueElem->FirstChild();
-    if (elemChild == nullptr) {
+  } else if (value_element_type == "base64") {
+    auto value_element_child = value_element->FirstChild();
+    if (value_element_child == nullptr) {
       return torrent::Object("");
     }
-    auto base64string = std::string(elemChild->ToText()->Value());
+    auto base64string = std::string(value_element_child->ToText()->Value());
     base64string.erase(std::remove_if(base64string.begin(), base64string.end(),
                                       [](char c) { return c == '\n' || c == '\r'; }),
                        base64string.end());
     return torrent::Object(utils::base64decode(base64string));
     return torrent::Object("");
   } else {
-    throw xmlrpc_error(XMLRPC_INTERNAL_ERROR, "received unsupported value type: " + elemType);
+    throw xmlrpc_error(XMLRPC_INTERNAL_ERROR, "received unsupported value type: " + value_element_type);
   }
   return torrent::Object();
 }
@@ -231,31 +230,31 @@ object_to_target(const torrent::Object& obj, int callFlags, rpc::target_type* ta
   if (!obj.is_string()) {
     throw torrent::input_error("invalid parameters: target must be a string");
   }
-  std::string targetString = obj.as_string();
+  std::string target_string = obj.as_string();
   bool requireIndex = (callFlags & (CommandMap::flag_tracker_target | CommandMap::flag_file_target));
-  if (targetString.size() == 0 && !requireIndex) {
+  if (target_string.size() == 0 && !requireIndex) {
     return;
   }
 
   // Length of SHA1 hash is 40
-  if (targetString.size() < 40) {
+  if (target_string.size() < 40) {
     throw torrent::input_error("invalid parameters: invalid target");
   }
 
   char type = 'd';
   std::string hash;
   std::string index;
-  const auto& delimPos = targetString.find_first_of(':', 40);
-  if (delimPos == targetString.npos ||
-      delimPos + 2 >= targetString.size()) {
+  const auto& delim_pos = target_string.find_first_of(':', 40);
+  if (delim_pos == target_string.npos ||
+      delim_pos + 2 >= target_string.size()) {
 	if (requireIndex) {
       throw torrent::input_error("invalid parameters: no index");
     }
-    hash = targetString;
+    hash = target_string;
   } else {
-    hash  = targetString.substr(0, delimPos);
-    type  = targetString[delimPos + 1];
-    index = targetString.substr(delimPos + 2);
+    hash  = target_string.substr(0, delim_pos);
+    type  = target_string[delim_pos + 1];
+    index = target_string.substr(delim_pos + 2);
   }
   core::Download* download = xmlrpc.slot_find_download()(hash.c_str());
 
@@ -296,30 +295,30 @@ object_to_target(const torrent::Object& obj, int callFlags, rpc::target_type* ta
   }
 }
 
-torrent::Object execute_command(std::string methodName, const tinyxml2::XMLElement* paramsElem) {
-  if (paramsElem == nullptr) {
+torrent::Object execute_command(std::string method_name, const tinyxml2::XMLElement* params_element) {
+  if (params_element == nullptr) {
     throw xmlrpc_error(XMLRPC_INTERNAL_ERROR, "invalid parameters: null");
   }
-  CommandMap::iterator cmdItr = commands.find(methodName.c_str());
-  if (cmdItr == commands.end() || !(cmdItr->second.m_flags & CommandMap::flag_public_xmlrpc)) {
-    throw xmlrpc_error(XMLRPC_NO_SUCH_METHOD_ERROR, "Method '" + std::string(methodName) + "' not defined");
+  CommandMap::iterator cmd_itr = commands.find(method_name.c_str());
+  if (cmd_itr == commands.end() || !(cmd_itr->second.m_flags & CommandMap::flag_public_xmlrpc)) {
+    throw xmlrpc_error(XMLRPC_NO_SUCH_METHOD_ERROR, "Method '" + std::string(method_name) + "' not defined");
   }
-  torrent::Object paramsRaw = torrent::Object::create_list();
-  torrent::Object::list_type& params = paramsRaw.as_list();
-  if (paramsElem != nullptr) {
-    for (auto paramElem = paramsElem->FirstChildElement("param"); paramElem; paramElem = paramElem->NextSiblingElement("param")) {
-      params.push_back(xml_value_to_object(paramElem->FirstChildElement("value")));
+  torrent::Object params_raw = torrent::Object::create_list();
+  torrent::Object::list_type& params = params_raw.as_list();
+  if (params_element != nullptr) {
+    for (auto param_element = params_element->FirstChildElement("param"); param_element; param_element = param_element->NextSiblingElement("param")) {
+      params.push_back(xml_value_to_object(param_element->FirstChildElement("value")));
     }
   }
   rpc::target_type target = rpc::make_target();
-  if (params.size() == 0 && (cmdItr->second.m_flags & (CommandMap::flag_file_target | CommandMap::flag_tracker_target))) {
+  if (params.size() == 0 && (cmd_itr->second.m_flags & (CommandMap::flag_file_target | CommandMap::flag_tracker_target))) {
     throw xmlrpc_error(XMLRPC_INTERNAL_ERROR, "invalid parameters: too few");
   }
   if (params.size() > 0) {
-    object_to_target(params.front(), cmdItr->second.m_flags, &target);
+    object_to_target(params.front(), cmd_itr->second.m_flags, &target);
     params.erase(params.begin());
   }
-  return rpc::commands.call_command(cmdItr, paramsRaw, target);
+  return rpc::commands.call_command(cmd_itr, params_raw, target);
 }
 
 void
@@ -330,36 +329,36 @@ process_document(const tinyxml2::XMLDocument* doc, tinyxml2::XMLPrinter* printer
   if (doc->FirstChildElement("methodCall") == nullptr) {
     throw xmlrpc_error(XMLRPC_PARSE_ERROR, "methodCall element not found");
   }
-  auto methodName = element_access(doc->FirstChildElement("methodCall"), "methodName")->GetText();
+  auto method_name = element_access(doc->FirstChildElement("methodCall"), "methodName")->GetText();
   torrent::Object result;
 
   // Add a shim here for system.multicall to allow better code reuse, and
   // because system.multicall is one of the few methods that doesn't take a target
-  if (methodName == std::string("system.multicall")) {
+  if (method_name == std::string("system.multicall")) {
     result = torrent::Object::create_list();
-    torrent::Object::list_type& resultList = result.as_list();
-    auto valueElems = element_access(doc->RootElement(), "params,param,value,array,data");
-    for (auto structElem = valueElems->FirstChildElement("value"); structElem; structElem = structElem->NextSiblingElement("value")) {
-      auto subMethodName = element_access(structElem, "struct,member,value,string")->GetText();
-      auto subParams = element_access(structElem, "struct,member")->NextSiblingElement("member")->FirstChildElement("value");
+    torrent::Object::list_type& result_list = result.as_list();
+    auto value_elements = element_access(doc->RootElement(), "params,param,value,array,data");
+    for (auto struct_element = value_elements->FirstChildElement("value"); struct_element; struct_element = struct_element->NextSiblingElement("value")) {
+      auto sub_method_name = element_access(struct_element, "struct,member,value,string")->GetText();
+      auto sub_params = element_access(struct_element, "struct,member")->NextSiblingElement("member")->FirstChildElement("value");
       try {
-        auto subResult = torrent::Object::create_list();
-        subResult.as_list().push_back(execute_command(subMethodName, subParams));
-        resultList.push_back(subResult);
+        auto sub_result = torrent::Object::create_list();
+        sub_result.as_list().push_back(execute_command(sub_method_name, sub_params));
+        result_list.push_back(sub_result);
       } catch (xmlrpc_error& e) {
         auto fault = torrent::Object::create_map();
         fault.as_map()["faultString"] = e.what();
         fault.as_map()["faultCode"] = e.type();
-        resultList.push_back(fault);
+        result_list.push_back(fault);
       } catch (torrent::local_error& e) {
         auto fault = torrent::Object::create_map();
         fault.as_map()["faultString"] = e.what();
         fault.as_map()["faultCode"] = XMLRPC_INTERNAL_ERROR;
-        resultList.push_back(fault);
+        result_list.push_back(fault);
       }
     }
   } else {
-    result = execute_command(methodName, doc->FirstChildElement("methodCall")->FirstChildElement("params"));
+    result = execute_command(method_name, doc->FirstChildElement("methodCall")->FirstChildElement("params"));
   }
 
   printer->PushHeader(false, true);
