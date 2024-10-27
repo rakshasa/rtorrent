@@ -309,7 +309,7 @@ torrent::Object execute_command(std::string method_name, const tinyxml2::XMLElem
   }
   rpc::target_type target = rpc::make_target();
   if (params.size() == 0 && (cmd_itr->second.m_flags & (CommandMap::flag_file_target | CommandMap::flag_tracker_target))) {
-    throw xmlrpc_error(XMLRPC_INTERNAL_ERROR, "invalid parameters: too few");
+    throw xmlrpc_error(XMLRPC_TYPE_ERROR, "invalid parameters: too few");
   }
   if (params.size() > 0) {
     object_to_target(params.front(), cmd_itr->second.m_flags, &target);
