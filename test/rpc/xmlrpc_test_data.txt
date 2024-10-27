@@ -53,3 +53,7 @@
 # Invalid - broken XML
 thodCall><methodName>test_a</methodName><params><param><value><i4>41</i4></value></param></params></method
 <?xml version="1.0"?><methodReponse><fault><struct><member><name>faultCode</name><value><int>-503</int></value></member><member><name>faultString</name><value><string>Error=XML_ERROR_PARSING_ELEMENT ErrorID=6 (0x6) Line number=1: XMLElement name=method</string></value></member></struct></fault></methodReponse>
+
+# Invalid - non-integer i4
+<?xml version="1.0"?><methodCall><methodName>xmlrpc_reflect</methodName><params><param><value><i4>string value</i4></value></param></params></methodCall>
+<?xml version="1.0"?><methodReponse><fault><struct><member><name>faultCode</name><value><int>-501</int></value></member><member><name>faultString</name><value><string>unable to parse integer value</string></value></member></struct></fault></methodReponse>
