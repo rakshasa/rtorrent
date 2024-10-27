@@ -58,6 +58,10 @@ thodCall><methodName>test_a</methodName><params><param><value><i4>41</i4></value
 <?xml version="1.0"?><methodCall><methodName>xmlrpc_reflect</methodName><params><param><value><i4>string value</i4></value></param></params></methodCall>
 <?xml version="1.0"?><methodReponse><fault><struct><member><name>faultCode</name><value><int>-501</int></value></member><member><name>faultString</name><value><string>unable to parse integer value</string></value></member></struct></fault></methodReponse>
 
+# Invalid - float i4
+<?xml version="1.0"?><methodCall><methodName>xmlrpc_reflect</methodName><params><param><value><i4>3.14</i4></value></param></params></methodCall>
+<?xml version="1.0"?><methodReponse><fault><struct><member><name>faultCode</name><value><int>-501</int></value></member><member><name>faultString</name><value><string>unable to parse integer value</string></value></member></struct></fault></methodReponse>
+
 # Invalid - non-boolean boolean
 <?xml version="1.0"?><methodCall><methodName>xmlrpc_reflect</methodName><params><param><value><boolean>string value</boolean></value></param></params></methodCall>
 <?xml version="1.0"?><methodReponse><fault><struct><member><name>faultCode</name><value><int>-501</int></value></member><member><name>faultString</name><value><string>unknown boolean value: string value</string></value></member></struct></fault></methodReponse>
