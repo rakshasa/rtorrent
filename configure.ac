@@ -58,9 +58,9 @@ AC_LANG_POP(C++)
 
 TORRENT_WITH_TINYXML2
 
-#if test ${with_xmlrpc_tinyxml2+y} && test ${with_xmlrpc_c+y}; then
-#  AC_MSG_ERROR([--with-xmlrpc-c and --with-xmlrpc-tinyxml2 cannot be used together. Please choose only one])
-#fi
+if test ${with_xmlrpc_c+y} && test ${with_xmlrpc_tinyxml2+y}; then
+  AC_MSG_ERROR([--with-xmlrpc-c and --with-xmlrpc-tinyxml2 cannot be used together. Please choose only one])
+fi
 
 AC_DEFINE(HAVE_CONFIG_H, 1, true if config.h was included)
 AC_DEFINE(USER_AGENT, [std::string(PACKAGE "/" VERSION "/") + torrent::version()], Http user agent)
