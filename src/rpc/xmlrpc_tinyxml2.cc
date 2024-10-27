@@ -130,7 +130,7 @@ xml_value_to_object(const tinyxml2::XMLNode* elem) {
     } else if (boolean_text == "0") {
       return torrent::Object((int64_t)0);
     }
-    throw xmlrpc_error(XMLRPC_INTERNAL_ERROR, "unknown boolean value: " + boolean_text);
+    throw xmlrpc_error(XMLRPC_TYPE_ERROR, "unknown boolean value: " + boolean_text);
   } else if (value_element_type == "array") {
     auto array = torrent::Object::create_list();
     auto data_element = element_access(value_element->ToElement(), "data");
