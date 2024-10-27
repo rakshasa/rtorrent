@@ -89,7 +89,7 @@ element_access(const tinyxml2::XMLElement* elem, std::string element_names) {
   do {
     auto previous_pos = pos;
     pos = element_names.find(',', pos + 1);
-    auto item = element_names.substr(pos, previous_pos - pos);
+    auto item = element_names.substr(previous_pos, pos - previous_pos);
     result = result->FirstChildElement(item.c_str());
     if (result == nullptr) {
       throw xmlrpc_error(XMLRPC_PARSE_ERROR, "could not find expected element " + item);
