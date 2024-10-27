@@ -115,7 +115,12 @@ xml_value_to_object(const tinyxml2::XMLNode* elem) {
     }
     return torrent::Object(value_element_child->ToText()->Value());
   } else if (value_element_type == "i4" || value_element_type == "i8" || value_element_type == "int") {
-    return torrent::Object(std::stol(std::string(value_element->FirstChild()->ToText()->Value())));
+    char* pos;
+    auto str = value_element->FirstChild()->ToText()->Value();
+    auto result = std::strtoll(str, &pos, 10);
+    if (pos == str || *pos != '\0')
+      throw xmlrpc_error(XMLRPC_TYPE_ERROR, "unable to parse integer value");
+    return torrent::Object(result);
   } else if (value_element_type == "boolean") {
     auto boolean_text = std::string(value_element->FirstChild()->ToText()->Value());
     if (boolean_text == "1") {
