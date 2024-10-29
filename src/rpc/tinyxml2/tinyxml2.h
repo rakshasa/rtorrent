@@ -113,9 +113,7 @@ static const int TIXML2_PATCH_VERSION = 0;
 // so there needs to be a limit in place.
 static const int TINYXML2_MAX_ELEMENT_DEPTH = 500;
 
-namespace rpc // rtorrent-specific namespace
-{
-namespace tinyxml2
+namespace rpc::tinyxml2 // rpc is a rtorrent-specific namespace
 {
 class XMLDocument;
 class XMLElement;
@@ -2378,8 +2376,7 @@ private:
 };
 
 
-} // namespace tinyxml2
-} // namespace rpc
+} // namespace rpc::tinyxml2
 
 #if defined(_MSC_VER)
 #   pragma warning(pop)
