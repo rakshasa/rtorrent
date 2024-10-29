@@ -134,15 +134,15 @@ xml_value_to_object(const tinyxml2::XMLNode* elem) {
   } else if (value_element_type == "array") {
     auto array = torrent::Object::create_list();
     auto data_element = element_access(value_element->ToElement(), "data");
-    for (auto array_value_element = data_element->FirstChildElement("value"); array_value_element; array_value_element = array_value_element->NextSiblingElement("value")) {
-      array.as_list().push_back(xml_value_to_object(array_value_element));
+    for (auto child = data_element->FirstChildElement("value"); child; child = child->NextSiblingElement("value")) {
+      array.as_list().push_back(xml_value_to_object(child));
     }
     return array;
   } else if (value_element_type == "struct") {
     auto map = torrent::Object::create_map();
-    for (auto member_element = value_element->FirstChildElement("member"); member_element; member_element = member_element->NextSiblingElement("member")) {
-      auto key = member_element->FirstChildElement("name")->GetText();
-      map.as_map()[key] = xml_value_to_object(element_access(member_element, "value"));
+    for (auto child = value_element->FirstChildElement("member"); child; child = child->NextSiblingElement("member")) {
+      auto key = child->FirstChildElement("name")->GetText();
+      map.as_map()[key] = xml_value_to_object(element_access(child, "value"));
     }
     return map;
   } else if (value_element_type == "base64") {
@@ -309,8 +309,8 @@ torrent::Object execute_command(std::string method_name, const tinyxml2::XMLElem
   torrent::Object params_raw = torrent::Object::create_list();
   torrent::Object::list_type& params = params_raw.as_list();
   if (params_element != nullptr) {
-    for (auto param_element = params_element->FirstChildElement("param"); param_element; param_element = param_element->NextSiblingElement("param")) {
-      params.push_back(xml_value_to_object(param_element->FirstChildElement("value")));
+    for (auto child = params_element->FirstChildElement("param"); child; child = child->NextSiblingElement("param")) {
+      params.push_back(xml_value_to_object(child->FirstChildElement("value")));
     }
   }
   rpc::target_type target = rpc::make_target();
@@ -341,9 +341,9 @@ process_document(const tinyxml2::XMLDocument* doc, tinyxml2::XMLPrinter* printer
     result = torrent::Object::create_list();
     torrent::Object::list_type& result_list = result.as_list();
     auto value_elements = element_access(doc->RootElement(), "params,param,value,array,data");
-    for (auto struct_element = value_elements->FirstChildElement("value"); struct_element; struct_element = struct_element->NextSiblingElement("value")) {
-      auto sub_method_name = element_access(struct_element, "struct,member,value,string")->GetText();
-      auto sub_params = element_access(struct_element, "struct,member")->NextSiblingElement("member")->FirstChildElement("value");
+    for (auto child = value_elements->FirstChildElement("value"); child; child = child->NextSiblingElement("value")) {
+      auto sub_method_name = element_access(child, "struct,member,value,string")->GetText();
+      auto sub_params = element_access(child, "struct,member")->NextSiblingElement("member")->FirstChildElement("value");
       try {
         auto sub_result = torrent::Object::create_list();
         sub_result.as_list().push_back(execute_command(sub_method_name, sub_params));
