@@ -421,7 +421,7 @@ XmlRpc::process(const char* inBuffer, uint32_t length, slot_write slotWrite) {
   doc.Parse(inBuffer, length);
   try {
     // This printer can't be reused in the 'catch' because while the
-    // buffer can be cleared, the internal stack of opened tags
+    // buffer can be cleared, the internal stack of opened elements
     // remains.
     tinyxml2::XMLPrinter printer(nullptr, true, 0);
     process_document(&doc, &printer);
