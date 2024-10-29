@@ -155,7 +155,6 @@ xml_value_to_object(const tinyxml2::XMLNode* elem) {
                                       [](char c) { return c == '\n' || c == '\r'; }),
                        base64string.end());
     return torrent::Object(utils::base64decode(base64string));
-    return torrent::Object("");
   } else {
     throw xmlrpc_error(XMLRPC_INTERNAL_ERROR, "received unsupported value type: " + value_element_type);
   }
