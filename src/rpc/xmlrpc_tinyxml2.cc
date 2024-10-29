@@ -50,7 +50,7 @@
 #include <torrent/object.h>
 #include <torrent/exceptions.h>
 
-#include "vendor/tinyxml2/tinyxml2.h"
+#include "rpc/tinyxml2/tinyxml2.h"
 #include "utils/base64.h"
 #include "xmlrpc.h"
 #include "parse_commands.h"
