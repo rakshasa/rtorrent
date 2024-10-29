@@ -234,8 +234,8 @@ object_to_target(const torrent::Object& obj, int callFlags, rpc::target_type* ta
     throw torrent::input_error("invalid parameters: target must be a string");
   }
   std::string target_string = obj.as_string();
-  bool requireIndex = (callFlags & (CommandMap::flag_tracker_target | CommandMap::flag_file_target));
-  if (target_string.size() == 0 && !requireIndex) {
+  bool require_index = (callFlags & (CommandMap::flag_tracker_target | CommandMap::flag_file_target));
+  if (target_string.size() == 0 && !require_index) {
     return;
   }
 
@@ -250,7 +250,7 @@ object_to_target(const torrent::Object& obj, int callFlags, rpc::target_type* ta
   const auto& delim_pos = target_string.find_first_of(':', 40);
   if (delim_pos == target_string.npos ||
       delim_pos + 2 >= target_string.size()) {
-	if (requireIndex) {
+	if (require_index) {
       throw torrent::input_error("invalid parameters: no index");
     }
     hash = target_string;
