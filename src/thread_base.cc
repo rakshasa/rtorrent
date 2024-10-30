@@ -53,7 +53,7 @@
 #include "control.h"
 #include "core/manager.h"
 
-// Temporarly injected into config.h.
+// Temporarily injected into config.h.
 /* temp hack */
 //#define lt_cacheline_aligned __attribute__((__aligned__(128)))
 

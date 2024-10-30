@@ -100,7 +100,7 @@ public:
 
   std::string         pretty_address_str() const;
 
-  // Attemts to set it as an inet, then an inet6 address. It will
+  // Attempts to set it as an inet, then an inet6 address. It will
   // never set anything but net addresses, no local/unix.
   bool                set_address_str(const std::string& a)   { return set_address_c_str(a.c_str()); }
   bool                set_address_c_str(const char* a);
@@ -123,7 +123,7 @@ public:
   const sockaddr_in6* c_sockaddr_inet6() const                { return &m_sockaddrInet6; }
 
   // Copy a socket address which has the length 'length. Zero out any
-  // extranous bytes and ensure it does not go beyond the size of this
+  // extraneous bytes and ensure it does not go beyond the size of this
   // struct.
   void                copy(const socket_address& src, size_t length);
   void                copy_sockaddr(const sockaddr* src);

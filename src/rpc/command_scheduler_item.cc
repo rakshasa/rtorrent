@@ -56,7 +56,7 @@ CommandSchedulerItem::enable(rak::timer t) {
 
   // If 'first' is zero then we execute the task
   // immediately. ''interval()'' will not return zero so we never end
-  // up in an infinit loop.
+  // up in an infinite loop.
   m_timeScheduled = t;
   priority_queue_insert(&taskScheduler, &m_task, t);
 }
