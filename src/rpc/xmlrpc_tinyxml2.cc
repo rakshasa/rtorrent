@@ -5,12 +5,12 @@
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation; either version 2 of the License, or
 // (at your option) any later version.
-// 
+//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
@@ -43,6 +43,7 @@
 
 #include <cctype>
 #include <string>
+#include <initializer_list>
 
 #include <stdlib.h>
 
@@ -84,19 +85,15 @@ private:
 };
 
 const tinyxml2::XMLElement*
-element_access(const tinyxml2::XMLElement* elem, std::string element_names) {
+element_access(const tinyxml2::XMLElement* elem, std::initializer_list<std::string> names) {
   // Helper function to check each step of a element access, in lieu of XPath
   const tinyxml2::XMLElement* result = elem;
-  size_t pos = 0;
-  do {
-    auto previous_pos = pos;
-    pos = element_names.find(',', pos + 1);
-    auto item = element_names.substr(previous_pos, pos - previous_pos);
-    result = result->FirstChildElement(item.c_str());
+  for (auto itr : names) {
+    result = result->FirstChildElement(itr.c_str());
     if (result == nullptr) {
-      throw xmlrpc_error(XMLRPC_PARSE_ERROR, "could not find expected element " + item);
+      throw xmlrpc_error(XMLRPC_PARSE_ERROR, "could not find expected element " + itr);
     }
-  } while (pos != std::string::npos);
+  }
   return result;
 }
 
@@ -133,7 +130,9 @@ xml_value_to_object(const tinyxml2::XMLNode* elem) {
     throw xmlrpc_error(XMLRPC_TYPE_ERROR, "unknown boolean value: " + boolean_text);
   } else if (value_element_type == "array") {
     auto array = torrent::Object::create_list();
-    auto data_element = element_access(value_element->ToElement(), "data");
+    auto data_element = value_element->ToElement()->FirstChildElement("data");
+    if (data_element == nullptr)
+      throw xmlrpc_error(XMLRPC_PARSE_ERROR, "could not find expected data element in array");
     for (auto child = data_element->FirstChildElement("value"); child; child = child->NextSiblingElement("value")) {
       array.as_list().push_back(xml_value_to_object(child));
     }
@@ -142,7 +141,7 @@ xml_value_to_object(const tinyxml2::XMLNode* elem) {
     auto map = torrent::Object::create_map();
     for (auto child = value_element->FirstChildElement("member"); child; child = child->NextSiblingElement("member")) {
       auto key = child->FirstChildElement("name")->GetText();
-      map.as_map()[key] = xml_value_to_object(element_access(child, "value"));
+      map.as_map()[key] = xml_value_to_object(child->FirstChildElement("value"));
     }
     return map;
   } else if (value_element_type == "base64") {
@@ -299,9 +298,8 @@ object_to_target(const torrent::Object& obj, int callFlags, rpc::target_type* ta
 }
 
 torrent::Object execute_command(std::string method_name, const tinyxml2::XMLElement* params_element) {
-  if (params_element == nullptr) {
+  if (params_element == nullptr)
     throw xmlrpc_error(XMLRPC_INTERNAL_ERROR, "invalid parameters: null");
-  }
   CommandMap::iterator cmd_itr = commands.find(method_name.c_str());
   if (cmd_itr == commands.end() || !(cmd_itr->second.m_flags & CommandMap::flag_public_xmlrpc)) {
     throw xmlrpc_error(XMLRPC_NO_SUCH_METHOD_ERROR, "Method '" + std::string(method_name) + "' not defined");
@@ -326,13 +324,13 @@ torrent::Object execute_command(std::string method_name, const tinyxml2::XMLElem
 
 void
 process_document(const tinyxml2::XMLDocument* doc, tinyxml2::XMLPrinter* printer) {
-  if (doc->Error()) {
+  if (doc->Error())
     throw xmlrpc_error(XMLRPC_PARSE_ERROR, doc->ErrorStr());
-  }
-  if (doc->FirstChildElement("methodCall") == nullptr) {
+  if (doc->FirstChildElement("methodCall") == nullptr)
     throw xmlrpc_error(XMLRPC_PARSE_ERROR, "methodCall element not found");
-  }
-  auto method_name = element_access(doc->FirstChildElement("methodCall"), "methodName")->GetText();
+  if (doc->FirstChildElement("methodCall")->FirstChildElement("methodName") == nullptr)
+    throw xmlrpc_error(XMLRPC_PARSE_ERROR, "methodName element not found");
+  auto method_name = doc->FirstChildElement("methodCall")->FirstChildElement("methodName")->GetText();
   torrent::Object result;
 
   // Add a shim here for system.multicall to allow better code reuse, and
@@ -340,10 +338,10 @@ process_document(const tinyxml2::XMLDocument* doc, tinyxml2::XMLPrinter* printer
   if (method_name == std::string("system.multicall")) {
     result = torrent::Object::create_list();
     torrent::Object::list_type& result_list = result.as_list();
-    auto value_elements = element_access(doc->RootElement(), "params,param,value,array,data");
+    auto value_elements = element_access(doc->RootElement(), {"params", "param", "value", "array", "data"});
     for (auto child = value_elements->FirstChildElement("value"); child; child = child->NextSiblingElement("value")) {
-      auto sub_method_name = element_access(child, "struct,member,value,string")->GetText();
-      auto sub_params = element_access(child, "struct,member")->NextSiblingElement("member")->FirstChildElement("value");
+      auto sub_method_name = element_access(child, {"struct", "member", "value", "string"})->GetText();
+      auto sub_params = element_access(child, {"struct", "member"})->NextSiblingElement("member")->FirstChildElement("value");
       try {
         auto sub_result = torrent::Object::create_list();
         sub_result.as_list().push_back(execute_command(sub_method_name, sub_params));
