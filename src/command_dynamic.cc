@@ -443,7 +443,7 @@ cmd_catch(rpc::target_type target, const torrent::Object& args) {
 void
 initialize_command_dynamic() {
   // clang-format off
-  #ifndef HAVE_XMLRPC_C
+  #ifdef HAVE_XMLRPC_TINYXML2
   CMD2_ANY         ("system.listMethods", std::bind(&system_listMethods)); // only used by tinyxml2
   #endif
 
