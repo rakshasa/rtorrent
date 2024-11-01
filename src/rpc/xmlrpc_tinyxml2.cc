@@ -102,25 +102,25 @@ xml_value_to_object(const tinyxml2::XMLNode* elem) {
   if (elem == nullptr) {
     throw xmlrpc_error(XMLRPC_INTERNAL_ERROR, "received null element to convert");
   }
-  if (std::strncmp(elem->Value(), "value", 5) != 0) {
+  if (std::strncmp(elem->Value(), "value", sizeof("value"))) {
     throw xmlrpc_error(XMLRPC_INTERNAL_ERROR, "received non-value element to convert");
   }
   auto value_element = elem->FirstChild();
-  auto value_element_type = std::string(value_element->Value());
-  if (value_element_type == "string") {
+  auto value_element_type = value_element->Value();
+  if (std::strncmp(value_element_type, "string", sizeof("string"))) {
     auto value_element_child = value_element->FirstChild();
     if (value_element_child == nullptr) {
       return torrent::Object("");
     }
     return torrent::Object(value_element_child->ToText()->Value());
-  } else if (value_element_type == "i4" || value_element_type == "i8" || value_element_type == "int") {
+  } else if (std::strncmp(value_element_type, "int", sizeof("int")) || std::strncmp(value_element_type, "i4", sizeof("i4")) || std::strncmp(value_element_type, "i8", sizeof("i8"))) {
     char* pos;
     auto str = value_element->FirstChild()->ToText()->Value();
     auto result = std::strtoll(str, &pos, 10);
     if (pos == str || *pos != '\0')
       throw xmlrpc_error(XMLRPC_TYPE_ERROR, "unable to parse integer value");
     return torrent::Object(result);
-  } else if (value_element_type == "boolean") {
+  } else if (std::strncmp(value_element_type, "boolean", sizeof("boolean"))) {
     auto boolean_text = std::string(value_element->FirstChild()->ToText()->Value());
     if (boolean_text == "1") {
       return torrent::Object((int64_t)1);
@@ -128,7 +128,7 @@ xml_value_to_object(const tinyxml2::XMLNode* elem) {
       return torrent::Object((int64_t)0);
     }
     throw xmlrpc_error(XMLRPC_TYPE_ERROR, "unknown boolean value: " + boolean_text);
-  } else if (value_element_type == "array") {
+  } else if (std::strncmp(value_element_type, "array", sizeof("array"))) {
     auto array = torrent::Object::create_list();
     auto data_element = value_element->ToElement()->FirstChildElement("data");
     if (data_element == nullptr)
@@ -137,14 +137,14 @@ xml_value_to_object(const tinyxml2::XMLNode* elem) {
       array.as_list().push_back(xml_value_to_object(child));
     }
     return array;
-  } else if (value_element_type == "struct") {
+  } else if (std::strncmp(value_element_type, "struct", sizeof("struct"))) {
     auto map = torrent::Object::create_map();
     for (auto child = value_element->FirstChildElement("member"); child; child = child->NextSiblingElement("member")) {
       auto key = child->FirstChildElement("name")->GetText();
       map.as_map()[key] = xml_value_to_object(child->FirstChildElement("value"));
     }
     return map;
-  } else if (value_element_type == "base64") {
+  } else if (std::strncmp(value_element_type, "base64", sizeof("base64"))) {
     auto value_element_child = value_element->FirstChild();
     if (value_element_child == nullptr) {
       return torrent::Object("");
@@ -155,7 +155,7 @@ xml_value_to_object(const tinyxml2::XMLNode* elem) {
                        base64string.end());
     return torrent::Object(utils::base64decode(base64string));
   } else {
-    throw xmlrpc_error(XMLRPC_INTERNAL_ERROR, "received unsupported value type: " + value_element_type);
+    throw xmlrpc_error(XMLRPC_INTERNAL_ERROR, "received unsupported value type: " + std::string(value_element_type));
   }
   return torrent::Object();
 }
@@ -337,7 +337,7 @@ process_document(const tinyxml2::XMLDocument* doc, tinyxml2::XMLPrinter* printer
   // because system.multicall is one of the few methods that doesn't take a target
   if (method_name == std::string("system.multicall")) {
     result = torrent::Object::create_list();
-    torrent::Object::list_type& result_list = result.as_list();
+    auto& result_list = result.as_list();
     auto value_elements = element_access(doc->RootElement(), {"params", "param", "value", "array", "data"});
     for (auto child = value_elements->FirstChildElement("value"); child; child = child->NextSiblingElement("value")) {
       auto sub_method_name = element_access(child, {"struct", "member", "value", "string"})->GetText();
