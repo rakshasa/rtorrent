@@ -1,6 +1,5 @@
 #include "config.h"
 #include <string>
-#include <iostream>
 
 #include "command_helpers.h"
 #include "rpc/command_map.h"
@@ -58,7 +57,6 @@ XmlrpcTest::test_basics() {
   // Sanity check the above parser
   CPPUNIT_ASSERT_MESSAGE("Could not parse test data", inputs.size() > 0 && inputs.size() == outputs.size() && inputs.size() == titles.size());
   for (int i = 0; i < inputs.size(); i++) {
-    std::cout << titles[i] << "\n";
     auto output = std::string("");
     m_xmlrpc.process(inputs[i].c_str(), inputs[i].size(), [&output](const char* c, uint32_t l){ output.append(c, l); return true;});
     CPPUNIT_ASSERT_EQUAL_MESSAGE(titles[i], std::string(outputs[i]), output);
