@@ -97,6 +97,19 @@ element_access(const tinyxml2::XMLElement* elem, std::initializer_list<std::stri
   return result;
 }
 
+uint64_t
+element_to_int(const tinyxml2::XMLNode* elem) {
+  char* pos;
+  if (elem->FirstChild() == nullptr) {
+    throw xmlrpc_error(XMLRPC_TYPE_ERROR, "unable to parse empty integer");
+  }
+  auto str = elem->FirstChild()->ToText()->Value();
+  auto result = std::strtoll(str, &pos, 10);
+  if (pos == str || *pos != '\0')
+    throw xmlrpc_error(XMLRPC_TYPE_ERROR, "unable to parse integer value");
+  return result;
+}
+
 torrent::Object
 xml_value_to_object(const tinyxml2::XMLNode* elem) {
   if (elem == nullptr) {
@@ -107,20 +120,15 @@ xml_value_to_object(const tinyxml2::XMLNode* elem) {
   }
   auto value_element = elem->FirstChild();
   auto value_element_type = value_element->Value();
-  if (std::strncmp(value_element_type, "string", sizeof("string"))) {
+  if (std::strncmp(value_element_type, "string", sizeof("string")) == 0) {
     auto value_element_child = value_element->FirstChild();
     if (value_element_child == nullptr) {
       return torrent::Object("");
     }
     return torrent::Object(value_element_child->ToText()->Value());
-  } else if (std::strncmp(value_element_type, "int", sizeof("int")) || std::strncmp(value_element_type, "i4", sizeof("i4")) || std::strncmp(value_element_type, "i8", sizeof("i8"))) {
-    char* pos;
-    auto str = value_element->FirstChild()->ToText()->Value();
-    auto result = std::strtoll(str, &pos, 10);
-    if (pos == str || *pos != '\0')
-      throw xmlrpc_error(XMLRPC_TYPE_ERROR, "unable to parse integer value");
-    return torrent::Object(result);
-  } else if (std::strncmp(value_element_type, "boolean", sizeof("boolean"))) {
+  } else if (std::strncmp(value_element_type, "int", sizeof("int")) == 0 || std::strncmp(value_element_type, "i4", sizeof("i4")) == 0|| std::strncmp(value_element_type, "i8", sizeof("i8")) == 0) {
+    return torrent::Object(element_to_int(value_element));
+  } else if (std::strncmp(value_element_type, "boolean", sizeof("boolean")) == 0) {
     auto boolean_text = std::string(value_element->FirstChild()->ToText()->Value());
     if (boolean_text == "1") {
       return torrent::Object((int64_t)1);
@@ -128,7 +136,7 @@ xml_value_to_object(const tinyxml2::XMLNode* elem) {
       return torrent::Object((int64_t)0);
     }
     throw xmlrpc_error(XMLRPC_TYPE_ERROR, "unknown boolean value: " + boolean_text);
-  } else if (std::strncmp(value_element_type, "array", sizeof("array"))) {
+  } else if (std::strncmp(value_element_type, "array", sizeof("array")) == 0) {
     auto array = torrent::Object::create_list();
     auto data_element = value_element->ToElement()->FirstChildElement("data");
     if (data_element == nullptr)
@@ -137,14 +145,14 @@ xml_value_to_object(const tinyxml2::XMLNode* elem) {
       array.as_list().push_back(xml_value_to_object(child));
     }
     return array;
-  } else if (std::strncmp(value_element_type, "struct", sizeof("struct"))) {
+  } else if (std::strncmp(value_element_type, "struct", sizeof("struct")) == 0) {
     auto map = torrent::Object::create_map();
     for (auto child = value_element->FirstChildElement("member"); child; child = child->NextSiblingElement("member")) {
       auto key = child->FirstChildElement("name")->GetText();
       map.as_map()[key] = xml_value_to_object(child->FirstChildElement("value"));
     }
     return map;
-  } else if (std::strncmp(value_element_type, "base64", sizeof("base64"))) {
+  } else if (std::strncmp(value_element_type, "base64", sizeof("base64")) == 0) {
     auto value_element_child = value_element->FirstChild();
     if (value_element_child == nullptr) {
       return torrent::Object("");
