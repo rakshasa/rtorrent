@@ -17,7 +17,7 @@ void initialize_command_ui();
 
 void
 CommandDynamicTest::setUp() {
-  if (rpc::commands.empty()) {
+  if (rpc::commands.find("method.insert") == rpc::commands.end()) {
     setlocale(LC_ALL, "");
     cachedTime = rak::timer::current();
     control = new Control;

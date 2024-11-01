@@ -9,6 +9,8 @@ rtorrentTest_SOURCES = \
 	rpc/command_test.h \
 	rpc/command_map_test.cc \
 	rpc/command_map_test.h \
+	rpc/xmlrpc_test.cc \
+	rpc/xmlrpc_test.h \
 	rpc/command_slot_test.cc \
 	rpc/command_slot_test.h \
 	rpc/object_storage_test.cc \
