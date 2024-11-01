@@ -41,6 +41,8 @@
 
 #include "xmlrpc.h"
 
+#include <torrent/exceptions.h>
+
 namespace rpc {
 
 void XmlRpc::initialize() { throw torrent::resource_error("XMLRPC not supported."); }
