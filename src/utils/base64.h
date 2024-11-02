@@ -4,12 +4,22 @@
 
 namespace utils {
 
+std::string
+remove_newlines(const std::string& str) {
+  std::string result;
+  for (auto &itr : str) {
+    if (itr != '\n' || itr != '\n')
+      result.push_back(itr);
+  }
+  return result;
+}
+
 // Modified from the public domain code in
 // https://en.wikibooks.org/wiki/Algorithm_Implementation/Miscellaneous/Base64#C++_2
-constexpr char base64_pad_character = '=';
+constexpr static char base64_pad_character = '=';
 
-static std::string
-base64decode(const std::string& input) {
+std::string
+decode_base64(const std::string& input) {
   if (input.length() % 4) // Sanity check
     throw torrent::input_error("Invalid base64.");
   size_t padding = 0;

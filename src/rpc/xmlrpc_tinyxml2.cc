@@ -159,11 +159,7 @@ xml_value_to_object(const tinyxml2::XMLNode* elem) {
     if (value_element_child == nullptr) {
       return torrent::Object("");
     }
-    auto base64string = std::string(value_element_child->ToText()->Value());
-    base64string.erase(std::remove_if(base64string.begin(), base64string.end(),
-                                      [](char c) { return c == '\n' || c == '\r'; }),
-                       base64string.end());
-    return torrent::Object(utils::base64decode(base64string));
+    return torrent::Object(utils::decode_base64(utils::remove_newlines(value_element_child->ToText()->Value())));
   } else {
     throw xmlrpc_error(XMLRPC_INTERNAL_ERROR, "received unsupported value type: " + std::string(value_element_type));
   }
