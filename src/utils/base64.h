@@ -3,22 +3,26 @@
 #include <torrent/exceptions.h>
 
 namespace utils {
-constexpr static char padCharacter = '=';
+
+// Modified from the public domain code in
+// https://en.wikibooks.org/wiki/Algorithm_Implementation/Miscellaneous/Base64#C++_2
+constexpr char base64_pad_character = '=';
+
 static std::string
 base64decode(const std::string& input) {
   if (input.length() % 4) // Sanity check
     throw torrent::input_error("Invalid base64.");
   size_t padding = 0;
   if (input.length()) {
-    if (input[input.length() - 1] == padCharacter)
+    if (input[input.length() - 1] == base64_pad_character)
       padding++;
-    if (input[input.length() - 2] == padCharacter)
+    if (input[input.length() - 2] == base64_pad_character)
       padding++;
   }
   // Setup a vector to hold the result
   std::string decodedBytes;
   decodedBytes.reserve(((input.length() / 4) * 3) - padding);
-  long                             temp   = 0; // Holds decoded quanta
+  long temp = 0; // Holds decoded quanta
   std::string::const_iterator cursor = input.begin();
   while (cursor < input.end()) {
     for (size_t quantumPosition = 0; quantumPosition < 4; quantumPosition++) {
@@ -32,8 +36,8 @@ base64decode(const std::string& input) {
       else if (*cursor == 0x2B)
         temp |= 0x3E; // change to 0x2D for URL alphabet
       else if (*cursor == 0x2F)
-        temp |= 0x3F;                   // change to 0x5F for URL alphabet
-      else if (*cursor == padCharacter) // pad
+        temp |= 0x3F; // change to 0x5F for URL alphabet
+      else if (*cursor == base64_pad_character) // pad
       {
         switch (input.end() - cursor) {
           case 1: // One pad character
