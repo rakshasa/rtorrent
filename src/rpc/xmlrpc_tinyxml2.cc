@@ -139,21 +139,23 @@ xml_value_to_object(const tinyxml2::XMLNode* elem) {
     }
     throw xmlrpc_error(XMLRPC_TYPE_ERROR, "unknown boolean value: " + boolean_text);
   } else if (std::strncmp(value_element_type, "array", sizeof("array")) == 0) {
-    auto array = torrent::Object::create_list();
+    auto array_raw = torrent::Object::create_list();
+    auto& array = array_raw.as_list();
     auto data_element = value_element->ToElement()->FirstChildElement("data");
     if (data_element == nullptr)
       throw xmlrpc_error(XMLRPC_PARSE_ERROR, "could not find expected data element in array");
     for (auto child = data_element->FirstChildElement("value"); child; child = child->NextSiblingElement("value")) {
-      array.as_list().push_back(xml_value_to_object(child));
+      array.push_back(xml_value_to_object(child));
     }
-    return array;
+    return array_raw;
   } else if (std::strncmp(value_element_type, "struct", sizeof("struct")) == 0) {
-    auto map = torrent::Object::create_map();
+    auto map_raw = torrent::Object::create_map();
+    auto& map = map_raw.as_map();
     for (auto child = value_element->FirstChildElement("member"); child; child = child->NextSiblingElement("member")) {
       auto key = child->FirstChildElement("name")->GetText();
-      map.as_map()[key] = xml_value_to_object(child->FirstChildElement("value"));
+      map[key] = std::move(xml_value_to_object(child->FirstChildElement("value")));
     }
-    return map;
+    return map_raw;
   } else if (std::strncmp(value_element_type, "base64", sizeof("base64")) == 0) {
     auto value_element_child = value_element->FirstChild();
     if (value_element_child == nullptr) {
