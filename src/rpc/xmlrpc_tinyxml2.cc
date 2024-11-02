@@ -314,18 +314,22 @@ torrent::Object execute_command(std::string method_name, const tinyxml2::XMLElem
   }
   torrent::Object params_raw = torrent::Object::create_list();
   torrent::Object::list_type& params = params_raw.as_list();
+  rpc::target_type target = rpc::make_target();
   if (params_element != nullptr) {
-    for (auto child = params_element->FirstChildElement("param"); child; child = child->NextSiblingElement("param")) {
-      params.push_back(xml_value_to_object(child->FirstChildElement("value")));
+    // Parse out the target if available
+    auto child = params_element->FirstChildElement("param");
+    if (child != nullptr) {
+      object_to_target(xml_value_to_object(child->FirstChildElement("value")), cmd_itr->second.m_flags, &target);
+      child = child->NextSiblingElement("param");
+      // Parse out any other params
+      while (child != nullptr) {
+        params.push_back(xml_value_to_object(child->FirstChildElement("value")));
+        child = child->NextSiblingElement("param");
+      }
     }
   }
-  rpc::target_type target = rpc::make_target();
   if (params.size() == 0 && (cmd_itr->second.m_flags & (CommandMap::flag_file_target | CommandMap::flag_tracker_target))) {
     throw xmlrpc_error(XMLRPC_TYPE_ERROR, "invalid parameters: too few");
-  }
-  if (params.size() > 0) {
-    object_to_target(params.front(), cmd_itr->second.m_flags, &target);
-    params.erase(params.begin());
   }
   return rpc::commands.call_command(cmd_itr, params_raw, target);
 }
