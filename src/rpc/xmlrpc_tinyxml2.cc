@@ -218,7 +218,7 @@ print_object_xml(const torrent::Object& obj, tinyxml2::XMLPrinter* printer) {
     if (obj.as_dict_obj().is_list()) {
       for (auto itr : obj.as_dict_obj().as_list()) {
         printer->OpenElement("value", true);
-        print_object_xml(obj.as_dict_key(), printer);
+        print_object_xml(itr, printer);
         printer->CloseElement(true);
       }
     } else {
