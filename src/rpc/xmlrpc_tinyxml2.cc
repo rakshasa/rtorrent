@@ -126,7 +126,9 @@ xml_value_to_object(const tinyxml2::XMLNode* elem) {
       return torrent::Object("");
     }
     return torrent::Object(value_element_child->ToText()->Value());
-  } else if (std::strncmp(value_element_type, "int", sizeof("int")) == 0 || std::strncmp(value_element_type, "i4", sizeof("i4")) == 0|| std::strncmp(value_element_type, "i8", sizeof("i8")) == 0) {
+  } else if (std::strncmp(value_element_type, "int", sizeof("int")) == 0 ||
+             std::strncmp(value_element_type, "i4", sizeof("i4")) == 0 ||
+             std::strncmp(value_element_type, "i8", sizeof("i8")) == 0) {
     return torrent::Object(element_to_int(value_element));
   } else if (std::strncmp(value_element_type, "boolean", sizeof("boolean")) == 0) {
     auto boolean_text = std::string(value_element->FirstChild()->ToText()->Value());
