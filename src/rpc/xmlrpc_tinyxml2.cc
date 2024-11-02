@@ -235,75 +235,6 @@ print_object_xml(const torrent::Object& obj, tinyxml2::XMLPrinter* printer) {
   }
 }
 
-void
-object_to_target(const torrent::Object& obj, int callFlags, rpc::target_type* target) {
-  if (!obj.is_string()) {
-    throw torrent::input_error("invalid parameters: target must be a string");
-  }
-  std::string target_string = obj.as_string();
-  bool require_index = (callFlags & (CommandMap::flag_tracker_target | CommandMap::flag_file_target));
-  if (target_string.size() == 0 && !require_index) {
-    return;
-  }
-
-  // Length of SHA1 hash is 40
-  if (target_string.size() < 40) {
-    throw torrent::input_error("invalid parameters: invalid target");
-  }
-
-  char type = 'd';
-  std::string hash;
-  std::string index;
-  const auto& delim_pos = target_string.find_first_of(':', 40);
-  if (delim_pos == target_string.npos ||
-      delim_pos + 2 >= target_string.size()) {
-	if (require_index) {
-      throw torrent::input_error("invalid parameters: no index");
-    }
-    hash = target_string;
-  } else {
-    hash  = target_string.substr(0, delim_pos);
-    type  = target_string[delim_pos + 1];
-    index = target_string.substr(delim_pos + 2);
-  }
-  core::Download* download = xmlrpc.slot_find_download()(hash.c_str());
-
-  if (download == nullptr)
-    throw torrent::input_error("invalid parameters: info-hash not found");
-
-  try {
-    switch (type) {
-      case 'd':
-        *target = rpc::make_target(download);
-        break;
-      case 'f':
-        *target = rpc::make_target(
-          command_base::target_file,
-          xmlrpc.slot_find_file()(download, std::stoi(std::string(index))));
-        break;
-      case 't':
-        *target = rpc::make_target(
-          command_base::target_tracker,
-          xmlrpc.slot_find_tracker()(download, std::stoi(std::string(index))));
-        break;
-      case 'p': {
-          if (index.size() < 40) {
-            throw xmlrpc_error(XMLRPC_TYPE_ERROR, "Not a hash string.");
-          }
-          torrent::HashString hash;
-          torrent::hash_string_from_hex_c_str(index.c_str(), hash);
-          *target = rpc::make_target(
-                                     command_base::target_peer,
-                                     xmlrpc.slot_find_peer()(download, hash));
-          break;
-      }
-      default:
-        throw torrent::input_error("invalid parameters: unexpected target type");
-    }
-  } catch (const std::logic_error&) {
-    throw torrent::input_error("invalid parameters: invalid index");
-  }
-}
 
 torrent::Object execute_command(std::string method_name, const tinyxml2::XMLElement* params_element) {
   if (params_element == nullptr)
@@ -319,7 +250,7 @@ torrent::Object execute_command(std::string method_name, const tinyxml2::XMLElem
     // Parse out the target if available
     auto child = params_element->FirstChildElement("param");
     if (child != nullptr) {
-      object_to_target(xml_value_to_object(child->FirstChildElement("value")), cmd_itr->second.m_flags, &target);
+      XmlRpc::object_to_target(xml_value_to_object(child->FirstChildElement("value")), cmd_itr->second.m_flags, &target);
       child = child->NextSiblingElement("param");
       // Parse out any other params
       while (child != nullptr) {

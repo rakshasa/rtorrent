@@ -134,101 +134,12 @@ xmlrpc_list_entry_to_value(xmlrpc_env* env, xmlrpc_value* src, int index) {
   }
 }
 
-// Consider making a helper function that creates a target_type from a
-// torrent::Object, then we can just use xmlrpc_to_object.
 rpc::target_type
-xmlrpc_to_target(xmlrpc_env* env, xmlrpc_value* value) {
+xmlrpc_to_target(xmlrpc_env* env, xmlrpc_value* value, int callType) {
   rpc::target_type target;
 
-  switch (xmlrpc_value_type(value)) {
-  case XMLRPC_TYPE_STRING:
-  {
-    const char* str;
-    xmlrpc_read_string(env, value, &str);
-
-    if (env->fault_occurred)
-      throw xmlrpc_error(env);
-
-    if (std::strlen(str) == 0) {
-      // When specifying void, we require a zero-length string.
-      ::free((void*)str);
-      return rpc::make_target();
-
-    } else if (std::strlen(str) < 40) {
-      ::free((void*)str);
-      throw xmlrpc_error(XMLRPC_TYPE_ERROR, "Unsupported target type found.");
-    }
-
-    core::Download* download = xmlrpc.slot_find_download()(str);
-
-    if (download == NULL) {
-      ::free((void*)str);
-      throw xmlrpc_error(XMLRPC_TYPE_ERROR, "Could not find info-hash.");
-    }
-
-    if (std::strlen(str) == 40) {
-      ::free((void*)str);
-      return rpc::make_target(download);
-    }
-
-    if (std::strlen(str) < 42 || str[40] != ':') {
-      ::free((void*)str);
-      throw xmlrpc_error(XMLRPC_TYPE_ERROR, "Unsupported target type found.");
-    }
-
-    // Files:    "<hash>:f<index>"
-    // Trackers: "<hash>:t<index>"
-
-    int index;
-    const char* end_ptr = str + 42;
-
-    switch (str[41]) {
-    case 'f':
-      index = ::strtol(str + 42, (char**)&end_ptr, 0);
-
-      if (*str == '\0' || *end_ptr != '\0')
-        throw xmlrpc_error(XMLRPC_TYPE_ERROR, "Invalid index.");
-
-      target = rpc::make_target(XmlRpc::call_file, xmlrpc.slot_find_file()(download, index));
-      break;
-
-    case 't':
-      index = ::strtol(str + 42, (char**)&end_ptr, 0);
-
-      if (*str == '\0' || *end_ptr != '\0')
-        throw xmlrpc_error(XMLRPC_TYPE_ERROR, "Invalid index.");
-
-      target = rpc::make_target(XmlRpc::call_tracker, xmlrpc.slot_find_tracker()(download, index));
-      break;
-
-    case 'p':
-    {
-      torrent::HashString hash;
-      const char* hash_end = torrent::hash_string_from_hex_c_str(str + 42, hash);
-
-      if (hash_end == end_ptr || *hash_end != '\0')
-        throw xmlrpc_error(XMLRPC_TYPE_ERROR, "Not a hash string.");
-
-      target = rpc::make_target(XmlRpc::call_peer, xmlrpc.slot_find_peer()(download, hash));
-      break;
-    }
-    default:
-      ::free((void*)str);
-      throw xmlrpc_error(XMLRPC_TYPE_ERROR, "Unsupported target type found.");
-    }
-
-    ::free((void*)str);
-
-    // Check if the target pointer is NULL.
-    if (target.second == NULL)
-      throw xmlrpc_error(XMLRPC_TYPE_ERROR, "Invalid index.");
-
-    return target;
-  }
-
-  default:
-    return rpc::make_target();
-  }
+  XmlRpc::object_to_target(xmlrpc_to_object(env, value, -1, nullptr), callType, &target);
+  return target;
 }
 
 rpc::target_type
@@ -270,12 +181,12 @@ xmlrpc_to_object(xmlrpc_env* env, xmlrpc_value* value, int callType, rpc::target
 
   case XMLRPC_TYPE_STRING:
 
-    if (callType != XmlRpc::call_generic) {
+    if (callType != XmlRpc::call_generic && target != nullptr) {
       // When the call type is not supposed to be void, we'll try to
       // convert it to a command target. It's not that important that
       // it is converted to the right type here, as an mismatch will
       // be caught when executing the command.
-      *target = xmlrpc_to_target(env, value);
+      *target = xmlrpc_to_target(env, value, callType);
       return torrent::Object();
 
     } else {
@@ -327,7 +238,8 @@ xmlrpc_to_object(xmlrpc_env* env, xmlrpc_value* value, int callType, rpc::target
       if (env->fault_occurred)
         throw xmlrpc_error(env);
 
-      *target = xmlrpc_to_target(env, tmp);
+      if (target != nullptr)
+        *target = xmlrpc_to_target(env, tmp, callType);
       xmlrpc_DECREF(tmp);
 
       if (env->fault_occurred)
