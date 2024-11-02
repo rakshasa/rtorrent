@@ -57,7 +57,7 @@ XmlrpcTest::test_basics() {
   // Sanity check the above parser
   CPPUNIT_ASSERT_MESSAGE("Could not parse test data", inputs.size() > 0 && inputs.size() == outputs.size() && inputs.size() == titles.size());
   for (int i = 0; i < inputs.size(); i++) {
-    auto output = std::string("");
+    std::string output;
     m_xmlrpc.process(inputs[i].c_str(), inputs[i].size(), [&output](const char* c, uint32_t l){ output.append(c, l); return true;});
     CPPUNIT_ASSERT_EQUAL_MESSAGE(titles[i], std::string(outputs[i]), output);
   }
@@ -70,12 +70,23 @@ XmlrpcTest::test_invalid_utf8() {
   // just a series of bytes so it reflects just fine.
   std::string input = "<?xml version=\"1.0\"?><methodCall><methodName>xmlrpc_reflect</methodName><params><param><value><string></string></value></param><param><value><string>\xc3\x28</string></value></param></params></methodCall>";
   std::string expected = "<?xml version=\"1.0\"?><methodReponse><params><param><value><array><value><string>\xc3\x28</string></value></array></value></param></params></methodReponse>";
-  auto output = std::string("");
+  std::string output;
+  m_xmlrpc.process(input.c_str(), input.size(), [&output](const char* c, uint32_t l){ output.append(c, l); return true;});
+  CPPUNIT_ASSERT_EQUAL(expected, output);
+}
+
+void
+XmlrpcTest::test_size_limit() {
+  std::string input = "<?xml version=\"1.0\"?><methodCall><methodName>xmlrpc_reflect</methodName><params><param><value><string></string></value></param><param><value><string>\xc3\x28</string></value></param></params></methodCall>";
+  std::string expected = "<?xml version=\"1.0\"?><methodReponse><fault><struct><member><name>faultCode</name><value><int>-509</int></value></member><member><name>faultString</name><value><string>Content size exceeds maximum XML-RPC limit</string></value></member></struct></fault></methodReponse>";
+  std::string output;
+  m_xmlrpc.set_size_limit(1);
   m_xmlrpc.process(input.c_str(), input.size(), [&output](const char* c, uint32_t l){ output.append(c, l); return true;});
   CPPUNIT_ASSERT_EQUAL(expected, output);
 }
 #else
 void XmlrpcTest::test_invalid_utf8() {}
 void XmlrpcTest::test_basics() {}
+void XmlrpcTest::test_size_limit() {}
 void XmlrpcTest::setUp() {}
 #endif

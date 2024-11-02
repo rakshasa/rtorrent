@@ -37,6 +37,8 @@
 #ifndef RTORRENT_RPC_XMLRPC_H
 #define RTORRENT_RPC_XMLRPC_H
 
+#include "scgi_task.h"
+
 #include <functional>
 
 #include <torrent/hash_string.h>
@@ -74,7 +76,7 @@ public:
   static const int call_file       = 5;
   static const int call_file_itr   = 6;
 
-  XmlRpc() : m_env(NULL), m_registry(NULL), m_dialect(dialect_i8) {}
+  XmlRpc() : m_env(NULL), m_registry(NULL), m_dialect(dialect_i8), m_sizeLimit(SCgiTask::max_content_size) {}
 
   bool                is_valid() const;
 
@@ -97,17 +99,21 @@ public:
   void                set_size_limit(uint64_t size);
 
 private:
+  slot_download       m_slotFindDownload;
+  slot_file           m_slotFindFile;
+  slot_tracker        m_slotFindTracker;
+  slot_peer           m_slotFindPeer;
+
+  // Only used by xmlrpc-c
   void*               m_env;
   void*               m_registry;
 
   int                 m_dialect;
 
+  // Only used by tinyxml2
   bool                m_isValid;
+  uint64_t            m_sizeLimit;
 
-  slot_download       m_slotFindDownload;
-  slot_file           m_slotFindFile;
-  slot_tracker        m_slotFindTracker;
-  slot_peer           m_slotFindPeer;
 };
 
 }
