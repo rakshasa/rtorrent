@@ -37,9 +37,10 @@
 #ifndef RTORRENT_RPC_XMLRPC_H
 #define RTORRENT_RPC_XMLRPC_H
 
-#include "scgi_task.h"
-
 #include <functional>
+
+#include "command.h"
+#include "scgi_task.h"
 
 #include <torrent/hash_string.h>
 
@@ -75,6 +76,8 @@ public:
   static const int call_tracker    = 4;
   static const int call_file       = 5;
   static const int call_file_itr   = 6;
+
+  static void object_to_target(const torrent::Object& obj, int callFlags, rpc::target_type* target);
 
   XmlRpc() : m_env(NULL), m_registry(NULL), m_dialect(dialect_i8), m_sizeLimit(SCgiTask::max_content_size) {}
 
