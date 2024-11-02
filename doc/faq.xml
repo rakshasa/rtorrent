@@ -32,7 +32,7 @@
         torrent file and add it manually. This usually happens when
         the torrent link uses some form of redirection that libcurl
         does not automatically redirect. If the failure still happens,
-        make sure the file is infact an uncorrupted torrent.
+        make sure the file is in fact an uncorrupted torrent.
       </para></answer>
     </qandaentry>
 
@@ -93,7 +93,7 @@
         When I try downloading a torrent the client aborts (SIGABRT), what should I do?
       </para></question>
       <answer><para>
-        Make sure you arn't using "-fomit-frame-pointer" when
+        Make sure you aren't using "-fomit-frame-pointer" when
         compiling libtorrent and rtorrent, this is known to produce
         bad code for C++ exception handling. If this doesn't help, run
         the client in gdb and use "bt -20" to get a backtrace. Send

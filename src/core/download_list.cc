@@ -315,7 +315,7 @@ DownloadList::close_throw(Download* download) {
 
   // Save the torrent on close, this covers shutdown and if a torrent
   // is manually closed which would clear the progress data. For
-  // better crash protection, save regulary in addition to this.
+  // better crash protection, save regularly in addition to this.
   //
   // Used to be in pause, but this was wrong for rehashing etc.
   //
@@ -512,7 +512,7 @@ DownloadList::hash_done(Download* download) {
   // downloaded to ensure something was transferred, thus we didn't
   // just hash an already completed torrent with lacking session data?
   //
-  // Perhaps we should use a seperate variable or state, and check
+  // Perhaps we should use a separate variable or state, and check
   // that. Thus we can bork the download if the hash check doesn't
   // confirm all the data, avoiding large BW usage on f.ex. the
   // ReiserFS bug with >4GB files.
@@ -675,7 +675,7 @@ DownloadList::confirm_finished(Download* download) {
   // See #1292.
   //
   // Just reset the value for the moment. If a torrent finishes while
-  // others are hashing, or some other situtation that causes resume
+  // others are hashing, or some other situation that causes resume
   // flag to change could cause the state to be invalid.
   //
   // TODO: Add a check when setting the flags to see if the torrent is
