@@ -423,6 +423,11 @@ print_xmlrpc_fault(int faultCode, std::string faultString, tinyxml2::XMLPrinter*
 
 bool
 XmlRpc::process(const char* inBuffer, uint32_t length, slot_write slotWrite) {
+  if (length > m_sizeLimit) {
+    tinyxml2::XMLPrinter printer(nullptr, true, 0);
+    print_xmlrpc_fault(XMLRPC_LIMIT_EXCEEDED_ERROR, "Content size exceeds maximum XML-RPC limit", &printer);
+    return slotWrite(printer.CStr(), printer.CStrSize()-1);
+  }
   tinyxml2::XMLDocument doc;
   doc.Parse(inBuffer, length);
   try {
@@ -449,8 +454,8 @@ void XmlRpc::cleanup() {}
 void XmlRpc::insert_command(const char*, const char*, const char*) {}
 void XmlRpc::set_dialect(int) {}
 
-int64_t XmlRpc::size_limit() { return std::numeric_limits<int64_t>::max(); }
-void    XmlRpc::set_size_limit(uint64_t) {}
+int64_t XmlRpc::size_limit() { return m_sizeLimit; }
+void    XmlRpc::set_size_limit(uint64_t limit) { m_sizeLimit = limit; }
 
 bool    XmlRpc::is_valid() const { return m_isValid; }
 

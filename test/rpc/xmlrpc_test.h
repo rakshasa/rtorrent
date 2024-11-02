@@ -7,6 +7,7 @@ class XmlrpcTest : public CppUnit::TestFixture {
   CPPUNIT_TEST_SUITE(XmlrpcTest);
   CPPUNIT_TEST(test_basics);
   CPPUNIT_TEST(test_invalid_utf8);
+  CPPUNIT_TEST(test_size_limit);
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -17,6 +18,7 @@ public:
 
   void test_basics();
   void test_invalid_utf8();
+  void test_size_limit();
 
 private:
   rpc::XmlRpc m_xmlrpc;
