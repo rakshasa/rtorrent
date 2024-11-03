@@ -248,7 +248,7 @@ torrent::Object execute_command(std::string method_name, const tinyxml2::XMLElem
   rpc::target_type target = rpc::make_target();
   if (params_element != nullptr) {
     // Parse out the target if available
-    auto child = params_element->FirstChildElement("param");
+    const auto* child = params_element->FirstChildElement("param");
     if (child != nullptr) {
       XmlRpc::object_to_target(xml_value_to_object(child->FirstChildElement("value")), cmd_itr->second.m_flags, &target);
       child = child->NextSiblingElement("param");
@@ -259,7 +259,7 @@ torrent::Object execute_command(std::string method_name, const tinyxml2::XMLElem
       }
     }
   }
-  if (params.size() == 0 && (cmd_itr->second.m_flags & (CommandMap::flag_file_target | CommandMap::flag_tracker_target))) {
+  if (params.empty() && (cmd_itr->second.m_flags & (CommandMap::flag_file_target | CommandMap::flag_tracker_target))) {
     throw xmlrpc_error(XMLRPC_TYPE_ERROR, "invalid parameters: too few");
   }
   return rpc::commands.call_command(cmd_itr, params_raw, target);
