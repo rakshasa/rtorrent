@@ -10,7 +10,7 @@
 
 CPPUNIT_TEST_SUITE_REGISTRATION(XmlrpcTest);
 
-torrent::Object xmlprpc_cmd_test_reflect(rpc::target_type t, const torrent::Object& obj) { return obj; }
+torrent::Object xmlrpc_cmd_test_reflect(rpc::target_type t, const torrent::Object& obj) { return obj; }
 
 void initialize_command_dynamic();
 
@@ -24,7 +24,7 @@ XmlrpcTest::setUp() {
   cachedTime = rak::timer::current();
   control = new Control;
   if (rpc::commands.find("xmlrpc_reflect") == rpc::commands.end()) {
-    CMD2_ANY("xmlrpc_reflect", &xmlprpc_cmd_test_reflect);
+    CMD2_ANY("xmlrpc_reflect", &xmlrpc_cmd_test_reflect);
   }
 }
 
