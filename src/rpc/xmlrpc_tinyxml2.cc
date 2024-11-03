@@ -317,7 +317,6 @@ process_document(const tinyxml2::XMLDocument* doc, tinyxml2::XMLPrinter* printer
 
   printer->CloseElement(true);
   printer->CloseElement(true);
-  tinyxml2::XMLDocument resultDoc;
 }
 
 
