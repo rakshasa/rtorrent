@@ -115,7 +115,7 @@ xml_value_to_object(const tinyxml2::XMLNode* elem) {
   if (elem == nullptr) {
     throw xmlrpc_error(XMLRPC_INTERNAL_ERROR, "received null element to convert");
   }
-  if (std::strncmp(elem->Value(), "value", sizeof("value"))) {
+  if (std::strncmp(elem->Value(), "value", sizeof("value")) != 0) {
     throw xmlrpc_error(XMLRPC_INTERNAL_ERROR, "received non-value element to convert");
   }
   auto root_element = elem->FirstChild();
