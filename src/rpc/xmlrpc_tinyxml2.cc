@@ -97,7 +97,7 @@ element_access(const tinyxml2::XMLElement* elem, std::initializer_list<std::stri
   return result;
 }
 
-uint64_t
+long long
 element_to_int(const tinyxml2::XMLNode* elem) {
   char* pos;
   if (elem->FirstChild() == nullptr) {
