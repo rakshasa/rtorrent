@@ -5,12 +5,12 @@
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation; either version 2 of the License, or
 // (at your option) any later version.
-// 
+//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
@@ -43,12 +43,12 @@
 #include <torrent/download.h>
 #include <torrent/exceptions.h>
 
-#include "rpc/parse_commands.h"
-#include "rpc/object_storage.h"
 #include "control.h"
 #include "download.h"
 #include "download_list.h"
 #include "manager.h"
+#include "rpc/object_storage.h"
+#include "rpc/parse_commands.h"
 #include "view.h"
 
 namespace core {
@@ -57,7 +57,7 @@ namespace core {
 struct view_downloads_compare : std::binary_function<Download*, Download*, bool> {
   view_downloads_compare(const torrent::Object& cmd) : m_command(cmd) {}
 
-  bool operator () (Download* d1, Download* d2) const {
+  bool operator()(Download* d1, Download* d2) const {
     try {
       if (m_command.is_empty())
         return false;
@@ -75,8 +75,8 @@ struct view_downloads_compare : std::binary_function<Download*, Download*, bool>
       // return rpc::commands.call_command(tmp_command.as_dict_key().c_str(), tmp_command.as_dict_obj(),
       //                                   rpc::make_target_pair(d1, d2)).as_value();
 
-      return rpc::commands.call_command(m_command.as_dict_key().c_str(), m_command.as_dict_obj(),
-                                        rpc::make_target_pair(d1, d2)).as_value();
+      return rpc::commands.call_command(m_command.as_dict_key().c_str(), m_command.as_dict_obj(), rpc::make_target_pair(d1, d2))
+        .as_value();
 
     } catch (torrent::input_error& e) {
       control->core()->push_log(e.what());
@@ -91,9 +91,7 @@ struct view_downloads_compare : std::binary_function<Download*, Download*, bool>
 struct view_downloads_filter : std::unary_function<Download*, bool> {
   view_downloads_filter(const torrent::Object& cmd, const torrent::Object& cmd2) : m_command(cmd), m_command2(cmd2) {}
 
-  bool operator () (Download* d1) const {
-    return this->evalCmd(m_command, d1) && this->evalCmd(m_command2, d1);
-  }
+  bool operator()(Download* d1) const { return this->evalCmd(m_command, d1) && this->evalCmd(m_command2, d1); }
 
   bool evalCmd(const torrent::Object& cmd, Download* d1) const {
     if (cmd.is_empty())
@@ -121,11 +119,16 @@ struct view_downloads_filter : std::unary_function<Download*, bool> {
 
       switch (result.type()) {
         //      case torrent::Object::TYPE_RAW_BENCODE: return !result.as_raw_bencode().empty();
-      case torrent::Object::TYPE_VALUE:       return result.as_value();
-      case torrent::Object::TYPE_STRING:      return !result.as_string().empty();
-      case torrent::Object::TYPE_LIST:        return !result.as_list().empty();
-      case torrent::Object::TYPE_MAP:         return !result.as_map().empty();
-      default: return false;
+      case torrent::Object::TYPE_VALUE:
+        return result.as_value();
+      case torrent::Object::TYPE_STRING:
+        return !result.as_string().empty();
+      case torrent::Object::TYPE_LIST:
+        return !result.as_list().empty();
+      case torrent::Object::TYPE_MAP:
+        return !result.as_map().empty();
+      default:
+        return false;
       }
 
       // The default filter action is to return true, to not filter
@@ -139,8 +142,8 @@ struct view_downloads_filter : std::unary_function<Download*, bool> {
     }
   }
 
-  const torrent::Object&       m_command;
-  const torrent::Object&       m_command2;
+  const torrent::Object& m_command;
+  const torrent::Object& m_command2;
 };
 
 void
@@ -177,7 +180,7 @@ View::initialize(const std::string& name) {
   // Urgh, wrong. No filtering being done.
   std::for_each(dlist->begin(), dlist->end(), rak::bind1st(std::mem_fun(&View::push_back), this));
 
-  m_size = base_type::size();
+  m_size  = base_type::size();
   m_focus = 0;
 
   set_last_changed(rak::timer());
@@ -266,12 +269,13 @@ View::filter() {
     return;
 
   // Parition the list in two steps so we know which elements changed.
-  iterator splitVisible  = std::stable_partition(begin_visible(),  end_visible(),  view_downloads_filter(m_filter, m_temp_filter));
-  iterator splitFiltered = std::stable_partition(begin_filtered(), end_filtered(), view_downloads_filter(m_filter, m_temp_filter));
+  iterator splitVisible = std::stable_partition(begin_visible(), end_visible(), view_downloads_filter(m_filter, m_temp_filter));
+  iterator splitFiltered =
+    std::stable_partition(begin_filtered(), end_filtered(), view_downloads_filter(m_filter, m_temp_filter));
 
   base_type changed(splitVisible, splitFiltered);
-  iterator splitChanged = changed.begin() + std::distance(splitVisible, end_visible());
-  
+  iterator  splitChanged = changed.begin() + std::distance(splitVisible, end_visible());
+
   m_size = std::distance(begin(), std::copy(splitChanged, changed.end(), splitVisible));
   std::copy(changed.begin(), splitChanged, begin_filtered());
 
@@ -289,12 +293,10 @@ View::filter() {
   // set the elements to NULL as we trigger commands on them. Or
   // perhaps always clear them, thus not throwing anything.
   if (!m_event_removed.is_empty())
-    std::for_each(changed.begin(), splitChanged,
-                  std::bind(&rpc::call_object_d_nothrow, m_event_removed, std::placeholders::_1));
+    std::for_each(changed.begin(), splitChanged, std::bind(&rpc::call_object_d_nothrow, m_event_removed, std::placeholders::_1));
 
   if (!m_event_added.is_empty())
-    std::for_each(changed.begin(), splitChanged,
-                  std::bind(&rpc::call_object_d_nothrow, m_event_added, std::placeholders::_1));
+    std::for_each(changed.begin(), splitChanged, std::bind(&rpc::call_object_d_nothrow, m_event_added, std::placeholders::_1));
 
   emit_changed();
 }
@@ -376,4 +378,4 @@ View::erase_internal(iterator itr) {
   base_type::erase(itr);
 }
 
-}
+} // namespace core
