@@ -1,5 +1,5 @@
 ---
-Checks: '-*,bugprone-*,readability-identifier-naming,performance-for-range-copy'
+Checks: '-*,readability-identifier-naming'
 FormatStyle: 'file'
 CheckOptions:
   - key: readability-identifier-naming.LocalVariableCase
