@@ -5,6 +5,7 @@ AC_INIT([rtorrent], [0.10.0], [sundell.software@gmail.com])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIRS([scripts])
 AM_INIT_AUTOMAKE([foreign subdir-objects])
+AM_PROG_AR
 
 AC_DEFINE([API_VERSION], [10], [api version])
 
