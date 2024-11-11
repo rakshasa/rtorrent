@@ -9,7 +9,7 @@ BinPackArguments: false
 BinPackParameters: false
 BreakConstructorInitializers: AfterColon
 BreakStringLiterals: false
-ColumnLimit: 130
+ColumnLimit: 0
 ContinuationIndentWidth: 2
 IndentCaseLabels: false
 IndentWidth: 2

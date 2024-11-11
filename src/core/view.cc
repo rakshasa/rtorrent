@@ -55,7 +55,8 @@ namespace core {
 
 // Also add focus thingie here?
 struct view_downloads_compare : std::binary_function<Download*, Download*, bool> {
-  view_downloads_compare(const torrent::Object& cmd) : m_command(cmd) {}
+  view_downloads_compare(const torrent::Object& cmd) :
+      m_command(cmd) {}
 
   bool operator()(Download* d1, Download* d2) const {
     try {
@@ -75,8 +76,7 @@ struct view_downloads_compare : std::binary_function<Download*, Download*, bool>
       // return rpc::commands.call_command(tmp_command.as_dict_key().c_str(), tmp_command.as_dict_obj(),
       //                                   rpc::make_target_pair(d1, d2)).as_value();
 
-      return rpc::commands.call_command(m_command.as_dict_key().c_str(), m_command.as_dict_obj(), rpc::make_target_pair(d1, d2))
-        .as_value();
+      return rpc::commands.call_command(m_command.as_dict_key().c_str(), m_command.as_dict_obj(), rpc::make_target_pair(d1, d2)).as_value();
 
     } catch (torrent::input_error& e) {
       control->core()->push_log(e.what());
@@ -89,9 +89,12 @@ struct view_downloads_compare : std::binary_function<Download*, Download*, bool>
 };
 
 struct view_downloads_filter : std::unary_function<Download*, bool> {
-  view_downloads_filter(const torrent::Object& cmd, const torrent::Object& cmd2) : m_command(cmd), m_command2(cmd2) {}
+  view_downloads_filter(const torrent::Object& cmd, const torrent::Object& cmd2) :
+      m_command(cmd), m_command2(cmd2) {}
 
-  bool operator()(Download* d1) const { return this->evalCmd(m_command, d1) && this->evalCmd(m_command2, d1); }
+  bool operator()(Download* d1) const {
+    return this->evalCmd(m_command, d1) && this->evalCmd(m_command2, d1);
+  }
 
   bool evalCmd(const torrent::Object& cmd, Download* d1) const {
     if (cmd.is_empty())
@@ -269,9 +272,8 @@ View::filter() {
     return;
 
   // Parition the list in two steps so we know which elements changed.
-  iterator splitVisible = std::stable_partition(begin_visible(), end_visible(), view_downloads_filter(m_filter, m_temp_filter));
-  iterator splitFiltered =
-    std::stable_partition(begin_filtered(), end_filtered(), view_downloads_filter(m_filter, m_temp_filter));
+  iterator  splitVisible  = std::stable_partition(begin_visible(), end_visible(), view_downloads_filter(m_filter, m_temp_filter));
+  iterator  splitFiltered = std::stable_partition(begin_filtered(), end_filtered(), view_downloads_filter(m_filter, m_temp_filter));
 
   base_type changed(splitVisible, splitFiltered);
   iterator  splitChanged = changed.begin() + std::distance(splitVisible, end_visible());
