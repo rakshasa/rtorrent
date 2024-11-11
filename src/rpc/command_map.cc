@@ -102,7 +102,7 @@ CommandMap::create_redirect(const key_type& key_new, const key_type& key_dest, i
 
   dest_itr->second.m_flags |= flag_has_redirects;
 
-  flags |= dest_itr->second.m_flags & ~(flag_delete_key | flag_has_redirects | flag_public_xmlrpc);
+  flags |= dest_itr->second.m_flags & ~(flag_has_redirects | flag_public_xmlrpc);
 
   // TODO: This is not honoring the public_xmlrpc flags!!!
   if (rpc::xmlrpc.is_valid() && (flags & flag_public_xmlrpc))

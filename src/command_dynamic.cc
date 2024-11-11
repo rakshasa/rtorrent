@@ -172,7 +172,7 @@ system_method_insert_object(const torrent::Object::list_type& args, int flags) {
   }
 
   // We must initialize this varriable to prevent a critical memory leak
-  int cmd_flags = rpc::CommandMap::flag_delete_key;
+  int cmd_flags = 0;
 
   if (!(flags & rpc::object_storage::flag_static))
     cmd_flags |= rpc::CommandMap::flag_modifiable;
@@ -287,7 +287,7 @@ system_method_insert(const torrent::Object::list_type& args) {
   if (rawKey.empty() || rpc::commands.has(rawKey))
     throw torrent::input_error("Invalid key.");
 
-  int flags = rpc::CommandMap::flag_delete_key | rpc::CommandMap::flag_modifiable | rpc::CommandMap::flag_public_xmlrpc;
+  int flags = rpc::CommandMap::flag_modifiable | rpc::CommandMap::flag_public_xmlrpc;
   int new_flags = rpc::parse_option_flags(itrArgs->as_string(), std::bind(&object_storage_parse_flag, std::placeholders::_1));
 
   if ((new_flags & rpc::object_storage::flag_private))
@@ -346,7 +346,7 @@ system_method_redirect(const torrent::Object::list_type& args) {
   std::string dest_key = torrent::object_create_string(args.back());
 
   rpc::commands.create_redirect(new_key, dest_key,
-                                rpc::CommandMap::flag_public_xmlrpc | rpc::CommandMap::flag_delete_key | rpc::CommandMap::flag_modifiable);
+                                rpc::CommandMap::flag_public_xmlrpc | rpc::CommandMap::flag_modifiable);
 
   return torrent::Object();
 }
