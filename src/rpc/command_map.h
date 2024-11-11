@@ -97,7 +97,6 @@ public:
   static const int flag_tracker_target = 0x400;
 
   CommandMap() {}
-  ~CommandMap() {}
 
   bool                has(const std::string& key) const { return base_type::find(key) != base_type::end(); }
 
