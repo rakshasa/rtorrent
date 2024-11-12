@@ -38,6 +38,7 @@
 #define RTORRENT_CORE_DOWNLOAD_STORE_H
 
 #include <string>
+#include <unordered_map>
 
 #include "utils/lockfile.h"
 
@@ -52,6 +53,8 @@ class Download;
 class DownloadStore {
 public:
   static const int flag_skip_static = 0x1;
+
+  using cache_type = std::unordered_map<std::string, size_t>;
 
   bool                is_enabled()                            { return m_lockfile.is_locked(); }
 
@@ -73,11 +76,13 @@ public:
 
 private:
   std::string         create_filename(Download* d);
+  std::string         create_write_cache_key(Download* d, const std::string& suffix);
 
-  bool                write_bencode(const std::string& filename, const torrent::Object& obj, uint32_t skip_mask);
+  bool                write_atomic_bencode(Download* d, const std::string& suffix, const torrent::Object& obj, uint32_t skip_mask);
 
   std::string         m_path;
   utils::Lockfile     m_lockfile;
+  cache_type          m_writeCache;
 };
 
 }

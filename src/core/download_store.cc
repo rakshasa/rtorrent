@@ -38,7 +38,9 @@
 
 #include "config.h"
 
+#include <string>
 #include <fstream>
+#include <sstream>
 #include <stdio.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -100,34 +102,51 @@ DownloadStore::set_path(const std::string& path) {
 }
 
 bool
-DownloadStore::write_bencode(const std::string& filename, const torrent::Object& obj, uint32_t skip_mask) {
-  int fd;
-  torrent::Object tmp;
-  std::fstream output(filename.c_str(), std::ios::out | std::ios::trunc);
+DownloadStore::write_atomic_bencode(Download* d, const std::string& suffix, const torrent::Object& obj, uint32_t skip_mask) {
+  std::stringstream output_string;
+  std::string       cache_key = create_write_cache_key(d, suffix);
+  std::string       filename  = create_filename(d) + suffix;
+
+  torrent::object_write_bencode(&output_string, &obj, skip_mask);
+  size_t output_hash = std::hash<std::string>{}(output_string.str());
+  auto   cache_itr   = m_writeCache.find(cache_key);
+  // If there's a cache hit but the file doesn't exist, treat as a
+  // cache miss.  Relying on this check for anything more would be a
+  // "time-of-check to time-of-use" bug, proper error handling happens
+  // below.
+  if (cache_itr != m_writeCache.end() &&
+      cache_itr->second == output_hash &&
+      ::access(filename.c_str(), F_OK) >= 0) {
+    return true;
+  }
+
+  std::string  filename_new = filename + ".new";
+  std::fstream output(filename_new.c_str(), std::ios::out | std::ios::trunc);
 
   if (!output.is_open())
-    goto download_store_save_error;
+    return false;
 
-  torrent::object_write_bencode(&output, &obj, skip_mask);
+  output << output_string.str();
 
   if (!output.good())
-    goto download_store_save_error;
+    return false;
 
   output.close();
 
   // Test the new file, to ensure it is a valid bencode string.
-  output.open(filename.c_str(), std::ios::in);
+  torrent::Object tmp;
+  output.open(filename_new.c_str(), std::ios::in);
   output >> tmp;
 
   if (!output.good())
-    goto download_store_save_error;
+    return false;
 
   output.close();
 
   // Ensure that the new file is actually written to the disk
-  fd = ::open(filename.c_str(), O_WRONLY);
+  int fd = ::open(filename_new.c_str(), O_WRONLY);
   if (fd < 0)
-    goto download_store_save_error;
+    return false;
 
 #ifdef __APPLE__
   fsync(fd);
@@ -136,10 +155,14 @@ DownloadStore::write_bencode(const std::string& filename, const torrent::Object&
 #endif
   ::close(fd);
 
-  return true;
-
-download_store_save_error:
-  output.close();
+  if (!(::rename(filename_new.c_str(), filename.c_str()))) {
+    // Update the cache only if the rename worked
+    if (cache_itr == m_writeCache.end())
+      m_writeCache.insert({cache_key, output_hash});
+    else
+      cache_itr->second = output_hash;
+    return true;
+  }
   return false;
 }
 
@@ -171,16 +194,14 @@ DownloadStore::save(Download* d, int flags) {
 
   std::string base_filename = create_filename(d);
 
-  if (!write_bencode(base_filename + ".libtorrent_resume.new", *resume_base, 0) ||
-      !write_bencode(base_filename + ".rtorrent.new", *rtorrent_base, 0))
+  if (!write_atomic_bencode(d, ".libtorrent_resume", *resume_base, 0) ||
+      !write_atomic_bencode(d, ".rtorrent", *rtorrent_base, 0))
     return false;
 
-  ::rename((base_filename + ".libtorrent_resume.new").c_str(), (base_filename + ".libtorrent_resume").c_str());
-  ::rename((base_filename + ".rtorrent.new").c_str(), (base_filename + ".rtorrent").c_str());
-  
-  if (!(flags & flag_skip_static) &&
-      write_bencode(base_filename + ".new", *d->bencode(), torrent::Object::flag_session_data))
-    ::rename((base_filename + ".new").c_str(), base_filename.c_str());
+  if (!(flags & flag_skip_static)) {
+    if (!write_atomic_bencode(d, "", *d->bencode(), torrent::Object::flag_session_data))
+      return false;
+  }
 
   return true;
 }
@@ -193,6 +214,9 @@ DownloadStore::remove(Download* d) {
   ::unlink((create_filename(d) + ".libtorrent_resume").c_str());
   ::unlink((create_filename(d) + ".rtorrent").c_str());
   ::unlink(create_filename(d).c_str());
+  m_writeCache.erase(create_write_cache_key(d, ".libtorrent_resume"));
+  m_writeCache.erase(create_write_cache_key(d, ".rtorrent"));
+  m_writeCache.erase(create_write_cache_key(d, ""));
 }
 
 // This also needs to check that it isn't a directory.
@@ -227,6 +251,11 @@ DownloadStore::is_correct_format(const std::string& f) {
       return false;
 
   return true;
+}
+
+std::string
+DownloadStore::create_write_cache_key(Download* d, const std::string& suffix) {
+  return d->info()->hash().str() + suffix;
 }
 
 std::string
