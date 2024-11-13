@@ -5,12 +5,12 @@
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation; either version 2 of the License, or
 // (at your option) any later version.
-// 
+//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
@@ -38,21 +38,21 @@
 
 #include "config.h"
 
-#include <string>
-#include <fstream>
-#include <sstream>
-#include <stdio.h>
 #include <fcntl.h>
-#include <unistd.h>
+#include <fstream>
 #include <rak/error_number.h>
 #include <rak/path.h>
 #include <rak/string_manip.h>
-#include <torrent/utils/resume.h>
-#include <torrent/object.h>
+#include <sstream>
+#include <stdio.h>
+#include <string>
 #include <torrent/exceptions.h>
-#include <torrent/torrent.h>
-#include <torrent/rate.h>
+#include <torrent/object.h>
 #include <torrent/object_stream.h>
+#include <torrent/rate.h>
+#include <torrent/torrent.h>
+#include <torrent/utils/resume.h>
+#include <unistd.h>
 
 #include "utils/directory.h"
 
@@ -104,8 +104,8 @@ DownloadStore::set_path(const std::string& path) {
 bool
 DownloadStore::write_atomic_bencode(Download* d, const std::string& suffix, const torrent::Object& obj, uint32_t skip_mask) {
   std::stringstream output_string;
-  std::string       cache_key = create_write_cache_key(d, suffix);
   std::string       filename  = create_filename(d) + suffix;
+  auto              cache_key = create_write_cache_key(d, suffix);
 
   torrent::object_write_bencode(&output_string, &obj, skip_mask);
   size_t output_hash = std::hash<std::string>{}(output_string.str());
@@ -175,8 +175,8 @@ DownloadStore::save(Download* d, int flags) {
   torrent::Object* rtorrent_base = &d->download()->bencode()->get_key("rtorrent");
 
   // Move this somewhere else?
-  rtorrent_base->insert_key("chunks_done",    d->download()->file_list()->completed_chunks());
-  rtorrent_base->insert_key("chunks_wanted",  d->download()->data()->wanted_chunks());
+  rtorrent_base->insert_key("chunks_done", d->download()->file_list()->completed_chunks());
+  rtorrent_base->insert_key("chunks_wanted", d->download()->data()->wanted_chunks());
   rtorrent_base->insert_key("total_uploaded", d->info()->up_rate()->total());
   rtorrent_base->insert_key("total_downloaded", d->info()->down_rate()->total());
 
@@ -253,7 +253,7 @@ DownloadStore::is_correct_format(const std::string& f) {
   return true;
 }
 
-std::string
+DownloadStore::cache_type::key_type
 DownloadStore::create_write_cache_key(Download* d, const std::string& suffix) {
   return d->info()->hash().str() + suffix;
 }
@@ -263,4 +263,4 @@ DownloadStore::create_filename(Download* d) {
   return m_path + rak::transform_hex(d->info()->hash().begin(), d->info()->hash().end()) + ".torrent";
 }
 
-}
+} // namespace core
