@@ -170,7 +170,6 @@ system_method_insert_object(const torrent::Object::list_type& args, int flags) {
     throw torrent::input_error("Invalid type.");
   }
 
-  // We must initialize this varriable to prevent a critical memory leak
   int cmd_flags = 0;
 
   if (!(flags & rpc::object_storage::flag_static))
@@ -195,7 +194,7 @@ system_method_insert_object(const torrent::Object::list_type& args, int flags) {
 
     rpc::commands.insert_slot<rpc::command_base_is_type<rpc::command_base_call<rpc::target_type>>::type>(
       raw_key,
-      std::bind(&rpc::object_storage::call_function_str, control->object_storage(), rawKey, std::placeholders::_1, std::placeholders::_2),
+      std::bind(&rpc::object_storage::call_function_str, control->object_storage(), raw_key, std::placeholders::_1, std::placeholders::_2),
       &rpc::command_base_call<rpc::target_type>,
       cmd_flags,
       NULL,
@@ -204,7 +203,7 @@ system_method_insert_object(const torrent::Object::list_type& args, int flags) {
   } else {
     rpc::commands.insert_slot<rpc::command_base_is_type<rpc::command_base_call<rpc::target_type>>::type>(
       raw_key,
-      std::bind(&rpc::object_storage::get_str, control->object_storage(), rawKey),
+      std::bind(&rpc::object_storage::get_str, control->object_storage(), raw_key),
       &rpc::command_base_call<rpc::target_type>,
       cmd_flags,
       NULL,
@@ -214,8 +213,8 @@ system_method_insert_object(const torrent::Object::list_type& args, int flags) {
   // Not the right argument.
   // if (flags & rpc::object_storage::flag_rlookup) {
   //   rpc::commands.insert_slot<rpc::command_base_is_type<rpc::command_base_call_string<rpc::target_type> >::type>
-  //     (create_new_key<9>(rawKey, ".rlookup"),
-  //      std::bind(&rpc::object_storage::rlookup_obj_list, control->object_storage(), rawKey),
+  //     (create_new_key<9>(raw_key, ".rlookup"),
+  //      std::bind(&rpc::object_storage::rlookup_obj_list, control->object_storage(), raw_key),
   //      &rpc::command_base_call_string<rpc::target_type>,
   //      cmd_flags, NULL, NULL);
   // }
@@ -229,7 +228,7 @@ system_method_insert_object(const torrent::Object::list_type& args, int flags) {
     case rpc::object_storage::flag_bool_type:
       rpc::commands.insert_slot<rpc::command_base_is_type<rpc::command_base_call_value<rpc::target_type>>::type>(
         raw_key + ".set",
-        std::bind(&rpc::object_storage::set_str_bool, control->object_storage(), rawKey, std::placeholders::_2),
+        std::bind(&rpc::object_storage::set_str_bool, control->object_storage(), raw_key, std::placeholders::_2),
         &rpc::command_base_call_value<rpc::target_type>,
         cmd_flags,
         NULL,
@@ -238,7 +237,7 @@ system_method_insert_object(const torrent::Object::list_type& args, int flags) {
     case rpc::object_storage::flag_value_type:
       rpc::commands.insert_slot<rpc::command_base_is_type<rpc::command_base_call_value<rpc::target_type>>::type>(
         raw_key + ".set",
-        std::bind(&rpc::object_storage::set_str_value, control->object_storage(), rawKey, std::placeholders::_2),
+        std::bind(&rpc::object_storage::set_str_value, control->object_storage(), raw_key, std::placeholders::_2),
         &rpc::command_base_call_value<rpc::target_type>,
         cmd_flags,
         NULL,
@@ -247,7 +246,7 @@ system_method_insert_object(const torrent::Object::list_type& args, int flags) {
     case rpc::object_storage::flag_string_type:
       rpc::commands.insert_slot<rpc::command_base_is_type<rpc::command_base_call_string<rpc::target_type>>::type>(
         raw_key + ".set",
-        std::bind(&rpc::object_storage::set_str_string, control->object_storage(), rawKey, std::placeholders::_2),
+        std::bind(&rpc::object_storage::set_str_string, control->object_storage(), raw_key, std::placeholders::_2),
         &rpc::command_base_call_string<rpc::target_type>,
         cmd_flags,
         NULL,
@@ -256,7 +255,7 @@ system_method_insert_object(const torrent::Object::list_type& args, int flags) {
     case rpc::object_storage::flag_list_type:
       rpc::commands.insert_slot<rpc::command_base_is_type<rpc::command_base_call_list<rpc::target_type>>::type>(
         raw_key + ".set",
-        std::bind(&rpc::object_storage::set_str_list, control->object_storage(), rawKey, std::placeholders::_2),
+        std::bind(&rpc::object_storage::set_str_list, control->object_storage(), raw_key, std::placeholders::_2),
         &rpc::command_base_call_list<rpc::target_type>,
         cmd_flags,
         NULL,
@@ -293,22 +292,15 @@ system_method_insert(const torrent::Object::list_type& args) {
     throw torrent::input_error("Invalid argument count.");
 
   torrent::Object::list_const_iterator itrArgs = args.begin();
-  const std::string&                   rawKey  = (itrArgs++)->as_string();
+  const std::string&                   raw_key  = (itrArgs++)->as_string();
 
-  if (rawKey.empty() || rpc::commands.has(rawKey))
+  if (raw_key.empty() || rpc::commands.has(raw_key))
     throw torrent::input_error("Invalid key.");
 
-  int flags     = rpc::CommandMap::flag_modifiable | rpc::CommandMap::flag_public_xmlrpc;
   int new_flags = rpc::parse_option_flags(itrArgs->as_string(), std::bind(&object_storage_parse_flag, std::placeholders::_1));
 
-  if ((new_flags & rpc::object_storage::flag_private))
-    flags &= ~rpc::CommandMap::flag_public_xmlrpc;
-
-  if ((new_flags & rpc::object_storage::flag_constant))
-    flags &= ~rpc::CommandMap::flag_modifiable;
-
   torrent::Object::list_type new_args;
-  new_args.push_back(rawKey);
+  new_args.push_back(raw_key);
 
   if ((new_flags & rpc::object_storage::flag_function_type) ||
       (new_flags & rpc::object_storage::flag_multi_type)) {
