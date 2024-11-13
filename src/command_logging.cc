@@ -32,7 +32,7 @@ torrent::Object
 apply_log_open(int output_flags, const torrent::Object::list_type& args) {
   if (args.size() < 2)
     throw torrent::input_error("Invalid number of arguments.");
-  
+
   torrent::Object::list_const_iterator itr = args.begin();
 
   std::string output_id = (itr++)->as_string();
