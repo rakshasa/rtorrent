@@ -1,0 +1,16 @@
+---
+Checks: '-*,readability-identifier-naming'
+FormatStyle: 'file'
+CheckOptions:
+  - key: readability-identifier-naming.LocalVariableCase
+    value: lower_case
+  - key: readability-identifier-naming.ParameterCase
+    value: lower_case
+  - key: readability-identifier-naming.FunctionCase
+    value: lower_case
+  - key: readability-identifier-naming.PrivateMemberPrefix
+    value: m_
+  - key: readability-identifier-naming.PrivateMemberCase
+    value: camelBack
+  - key: readability-identifier-naming.ClassConstantCase
+    value: lower_case
