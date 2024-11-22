@@ -60,6 +60,7 @@
 #include "utils/file_status_cache.h"
 
 #include "globals.h"
+#include "rpc/lua.h"
 #include "control.h"
 #include "command_helpers.h"
 
@@ -232,6 +233,7 @@ void
 initialize_command_local() {
   core::DownloadList*    dList = control->core()->download_list();
   core::DownloadStore*   dStore = control->core()->download_store();
+  rpc::LuaEngine*        luaEngine = control->lua_engine();
   torrent::ChunkManager* chunkManager = torrent::chunk_manager();
   torrent::FileManager*  fileManager = torrent::file_manager();
 
@@ -314,6 +316,11 @@ initialize_command_local() {
   CMD2_ANY_STRING_V("session.path.set",        std::bind(&core::DownloadStore::set_path, dStore, std::placeholders::_2));
 
   CMD2_ANY_V       ("session.save",            std::bind(&core::DownloadList::session_save, dList));
+
+#ifdef HAVE_LUA
+  CMD2_ANY         ("lua.execute",            std::bind(&rpc::execute_lua, luaEngine, std::placeholders::_1, std::placeholders::_2, 0));
+  CMD2_ANY         ("lua.execute.str",        std::bind(&rpc::execute_lua, luaEngine, std::placeholders::_1, std::placeholders::_2, rpc::LuaEngine::flag_string));
+#endif
 
 #define CMD2_EXECUTE(key, flags)                                         \
   CMD2_ANY(key, std::bind(&rpc::ExecFile::execute_object, &rpc::execFile, std::placeholders::_2, flags));
