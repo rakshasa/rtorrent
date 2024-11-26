@@ -63,15 +63,18 @@ CommandScheduler::insert(const std::string& key) {
   if (key.empty())
     throw torrent::input_error("Scheduler received an empty key.");
 
+  CommandSchedulerItem* current = new CommandSchedulerItem(key);
+  current->slot() = std::bind(&CommandScheduler::call_item, this, current);
+
   iterator itr = find(key);
-
-  if (itr == end())
-    itr = base_type::insert(end(), NULL);
-  else
-    delete *itr;
-
-  *itr = new CommandSchedulerItem(key);
-  (*itr)->slot() = std::bind(&CommandScheduler::call_item, this, *itr);
+  if (itr == end()) {
+    itr = base_type::insert(end(), current);
+  } else {
+    // swap in fully initialized command, and THEN delete the replaced one
+    CommandSchedulerItem* old = *itr;
+    *itr = current;
+    delete old;
+  }
 
   return itr;
 }
