@@ -55,8 +55,8 @@ ThreadWorker::ThreadWorker() {
 }
 
 ThreadWorker::~ThreadWorker() {
-  if (m_safe.scgi)
-    m_safe.scgi->deactivate();
+  if (m_scgi)
+    m_scgi.load()->deactivate();
 }
 
 void
@@ -67,17 +67,13 @@ ThreadWorker::init_thread() {
 
 bool
 ThreadWorker::set_scgi(rpc::SCgi* scgi) {
-  if (!__sync_bool_compare_and_swap(&m_safe.scgi, NULL, scgi))
+  if (m_scgi != nullptr)
     return false;
+
+  m_scgi = scgi;
 
   change_xmlrpc_log();
 
-  // The xmlrpc process call requires a global lock.
-//   m_safe.scgi->set_slot_process(rak::mem_fn(&rpc::xmlrpc, &rpc::XmlRpc::process));
-
-  // Synchronize in order to ensure the worker thread sees the updated
-  // SCgi object.
-  __sync_synchronize();
   queue_item((thread_base_func)&start_scgi);
   return true;
 }
@@ -93,10 +89,10 @@ void
 ThreadWorker::start_scgi(ThreadBase* baseThread) {
   ThreadWorker* thread = (ThreadWorker*)baseThread;
 
-  if (thread->m_safe.scgi == NULL)
+  if (thread->scgi() == NULL)
     throw torrent::internal_error("Tried to start SCGI but object was not present.");
 
-  thread->m_safe.scgi->activate();
+  thread->scgi()->activate();
 }
 
 void

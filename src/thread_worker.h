@@ -57,7 +57,7 @@ public:
 
   virtual void        init_thread();
 
-  rpc::SCgi*          scgi() { return m_safe.scgi; }
+  rpc::SCgi*          scgi() { return m_scgi; }
   bool                set_scgi(rpc::SCgi* scgi);
   
   void                set_xmlrpc_log(const std::string& filename);
@@ -70,13 +70,7 @@ private:
 
   void                change_xmlrpc_log();
 
-  struct lt_cacheline_aligned safe_type {
-    safe_type() : scgi(NULL) {}
-
-    rpc::SCgi* scgi;
-  };
-
-  safe_type           m_safe;
+  std::atomic<rpc::SCgi*> lt_cacheline_aligned m_scgi{ nullptr };
 
   // The following types shall only be modified while holding the
   // global lock.
