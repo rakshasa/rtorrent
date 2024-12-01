@@ -37,6 +37,7 @@
 #ifndef RTORRENT_CONTROL_H
 #define RTORRENT_CONTROL_H
 
+#include <atomic>
 #include <cinttypes>
 #include <sys/types.h>
 #include <rak/timer.h>
@@ -87,8 +88,8 @@ public:
 
   void                handle_shutdown();
 
-  void                receive_normal_shutdown()     { m_shutdownReceived = true; __sync_synchronize(); }
-  void                receive_quick_shutdown()      { m_shutdownReceived = true; m_shutdownQuick = true; __sync_synchronize(); }
+  void                receive_normal_shutdown()     { m_shutdownReceived = true; }
+  void                receive_quick_shutdown()      { m_shutdownReceived = true; m_shutdownQuick = true; }
 
   core::Manager*      core()                        { return m_core; }
   core::ViewManager*  view_manager()                { return m_viewManager; }
@@ -134,8 +135,8 @@ private:
 
   rak::priority_item  m_taskShutdown;
 
-  bool                m_shutdownReceived lt_cacheline_aligned;
-  bool                m_shutdownQuick lt_cacheline_aligned;
+  std::atomic<bool>   m_shutdownReceived lt_cacheline_aligned;
+  std::atomic<bool>   m_shutdownQuick lt_cacheline_aligned;
 };
 
 #endif
