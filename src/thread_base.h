@@ -37,6 +37,7 @@
 #ifndef RTORRENT_UTILS_THREAD_BASE_H
 #define RTORRENT_UTILS_THREAD_BASE_H
 
+#include <memory>
 #include <pthread.h>
 #include <sys/types.h>
 #include <torrent/utils/thread_base.h>
@@ -82,7 +83,7 @@ protected:
 
   // Temporary hack to pass messages to a thread. This really needs to
   // be cleaned up and/or integrated into the priority queue itself.
-  thread_queue_hack*  m_threadQueue;
+  std::unique_ptr<thread_queue_hack>  m_threadQueue;
 };
 
 #endif
