@@ -20,9 +20,12 @@ public:
   using value_type = ThreadBase::thread_base_func;
   using base_type  = std::vector<value_type>;
 
-  using base_type::empty;
-
   thread_queue_hack() { reserve(max_size); };
+
+  bool empty() {
+    std::lock_guard<std::mutex> lguard(m_lock);
+    return base_type::empty();
+  }
 
   void push_back(value_type v) {
     if (size() >= max_size)
