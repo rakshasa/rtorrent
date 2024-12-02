@@ -70,7 +70,7 @@ private:
 
   void                change_xmlrpc_log();
 
-  std::atomic<rpc::SCgi*> lt_cacheline_aligned m_scgi{ nullptr };
+  std::atomic<rpc::SCgi*> m_scgi{ nullptr };
 
   // The following types shall only be modified while holding the
   // global lock.
