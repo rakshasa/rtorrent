@@ -135,8 +135,8 @@ private:
 
   rak::priority_item  m_taskShutdown;
 
-  std::atomic<bool>   m_shutdownReceived lt_cacheline_aligned;
-  std::atomic<bool>   m_shutdownQuick lt_cacheline_aligned;
+  std::atomic<bool>   m_shutdownReceived;
+  std::atomic<bool>   m_shutdownQuick;
 };
 
 #endif
