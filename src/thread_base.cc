@@ -13,7 +13,7 @@
 
 #include "globals.h"
 
-class lt_cacheline_aligned thread_queue_hack : private std::vector<ThreadBase::thread_base_func> {
+class thread_queue_hack : private std::vector<ThreadBase::thread_base_func> {
 public:
   static constexpr unsigned int max_size = 32;
 
@@ -28,16 +28,16 @@ public:
   }
 
   void push_back(value_type v) {
-    if (size() >= max_size)
-      throw torrent::internal_error("Overflowed thread_queue max size of " + std::to_string(max_size) + ".");
     const std::lock_guard<std::mutex> lguard(m_lock);
+    if (base_type::size() >= max_size)
+      throw torrent::internal_error("Overflowed thread_queue max size of " + std::to_string(max_size) + ".");
     base_type::push_back(v);
   }
 
   void copy_and_clear(base_type& target) {
     std::lock_guard<std::mutex> lguard(m_lock);
     target.assign(begin(), end());
-    clear();
+    base_type::clear();
   }
 
 private:
