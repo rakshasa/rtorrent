@@ -67,10 +67,9 @@ ThreadWorker::init_thread() {
 
 bool
 ThreadWorker::set_scgi(rpc::SCgi* scgi) {
-  if (m_scgi != nullptr)
+  rpc::SCgi* expected = nullptr;
+  if (!m_scgi.compare_exchange_strong(expected, scgi))
     return false;
-
-  m_scgi = scgi;
 
   change_xmlrpc_log();
 
