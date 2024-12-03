@@ -5,6 +5,7 @@
 #include <cassert>
 #include <cstdlib>
 #include <cstring>
+#include <mutex>
 #include <rak/error_number.h>
 #include <torrent/exceptions.h>
 #include <torrent/torrent.h>
