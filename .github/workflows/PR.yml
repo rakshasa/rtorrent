@@ -11,7 +11,7 @@ jobs:
     - name: Install clang-tidy
       run: |
         sudo apt-get update
-        sudo apt-get install -y clang-tidy bear
+        sudo apt-get install -y bear clang-tidy libcurl-dev
     - name: Fetch libtorrent
       run: |
         git clone https://github.com/rakshasa/libtorrent
