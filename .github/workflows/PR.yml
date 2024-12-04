@@ -1,0 +1,78 @@
+name: Static analysis
+
+on: pull_request
+
+jobs:
+
+  clang-tidy:
+    runs-on: ubuntu-22.04
+
+    steps:
+    - name: Install clang-tidy
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y bear clang-tidy libcurl4-openssl-dev
+    - name: Fetch libtorrent
+      run: |
+        git clone https://github.com/rakshasa/libtorrent
+    - name: Build libtorrent
+      run: |
+        cd libtorrent
+        libtoolize
+        aclocal -I scripts
+        autoconf -i
+        autoheader
+        automake --add-missing
+        ./configure
+        make
+        sudo make install
+        cd ..
+        rm -rf libtorrent
+    - uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event.pull_request.head.sha }}
+        fetch-depth: 0
+    - name: Fetch base branch
+      run: |
+        git remote add upstream "https://github.com/${{ github.event.pull_request.base.repo.full_name }}"
+        git fetch --no-tags --no-recurse-submodules upstream "${{ github.event.pull_request.base.ref }}"
+    - name: Configure Project
+      run: |
+        libtoolize
+        aclocal -I scripts
+        autoconf -i
+        autoheader
+        automake --add-missing
+        ./configure
+    - name: Prepare compile_commands.json
+      run: |
+        bear -- make
+    - name: Create results directory
+      run: |
+        mkdir clang-tidy-result
+    - name: Analyze
+      run: |
+        git diff -U0 "$(git merge-base HEAD "upstream/${{ github.event.pull_request.base.ref }}")" | clang-tidy-diff -p1 -path build -export-fixes clang-tidy-result/fixes.yml
+    - name: Save PR metadata
+      run: |
+        echo "${{ github.event.number }}" > clang-tidy-result/pr-id.txt
+        echo "${{ github.event.pull_request.head.repo.full_name }}" > clang-tidy-result/pr-head-repo.txt
+        echo "${{ github.event.pull_request.head.sha }}" > clang-tidy-result/pr-head-sha.txt
+    - uses: actions/upload-artifact@v4
+      with:
+        name: clang-tidy-result
+        path: clang-tidy-result/
+    - name: Run clang-tidy-pr-comments action
+      uses: platisd/clang-tidy-pr-comments@v1
+      with:
+        # The GitHub token (or a personal access token)
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        # The path to the clang-tidy fixes generated previously
+        clang_tidy_fixes: clang-tidy-result/fixes.yml
+        # Optionally set to true if you want the Action to request
+        # changes in case warnings are found
+        request_changes: true
+        # Optionally set the number of comments per review
+        # to avoid GitHub API timeouts for heavily loaded
+        # pull requests
+        suggestions_per_comment: 10
