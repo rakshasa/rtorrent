@@ -905,7 +905,7 @@ initialize_command_download() {
   //                                           CG_GROUP_INDEX()));
 
   CMD2_DL         ("d.group",      std::bind(&cg_d_group, std::placeholders::_1));
-  CMD2_DL         ("d.group.name", std::bind(&cg_d_group, std::placeholders::_1));
+  CMD2_DL         ("d.group.name", std::bind(&cg_d_group_name, std::placeholders::_1));
   CMD2_DL_V       ("d.group.set",  std::bind(&cg_d_group_set, std::placeholders::_1, std::placeholders::_2));
 
   CMD2_DL_LIST    ("f.multicall", std::bind(&f_multicall, std::placeholders::_1, std::placeholders::_2));
