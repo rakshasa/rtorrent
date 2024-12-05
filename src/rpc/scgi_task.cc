@@ -200,7 +200,13 @@ SCgiTask::event_read() {
 
 void
 SCgiTask::event_write() {
+// Apple and Solaris do not support MSG_NOSIGNAL, 
+// so disable this fix until we find a better solution
+#if defined(__APPLE__) || defined(__sun__)
+  int bytes = ::send(m_fileDesc, m_position, m_bufferSize, 0);
+#else
   int bytes = ::send(m_fileDesc, m_position, m_bufferSize, MSG_NOSIGNAL);
+#endif
 
   if (bytes == -1) {
     if (!rak::error_number::current().is_blocked_momentary())
