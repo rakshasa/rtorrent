@@ -69,7 +69,7 @@ cg_d_group_set(core::Download* download, const torrent::Object& arg) {
 torrent::Object
 apply_cg_list() {
   torrent::Object::list_type result;
-  
+
   for (torrent::ResourceManager::group_iterator
          itr = torrent::resource_manager()->group_begin(),
          last = torrent::resource_manager()->group_end(); itr != last; itr++)
@@ -154,12 +154,14 @@ cg_get_group(const torrent::Object& raw_args) {
 }
 
 int64_t cg_d_group(core::Download* download) { return download->group(); }
+const std::string& cg_d_group_name(core::Download* download) {
+  return cg_list_hack.at(download->group())->name();
+}
 void    cg_d_group_set(core::Download* download, const torrent::Object& arg) { download->set_group(cg_get_index(arg)); }
 
 torrent::Object
 apply_cg_list() {
   torrent::Object::list_type result;
-  
   for (std::vector<torrent::choke_group*>::iterator itr = cg_list_hack.begin(), last = cg_list_hack.end(); itr != last; itr++)
     result.push_back((*itr)->name());
 
@@ -340,7 +342,7 @@ void
 initialize_command_groups() {
   CMD2_ANY         ("choke_group.list",                std::bind(&apply_cg_list));
   CMD2_ANY_STRING  ("choke_group.insert",              std::bind(&apply_cg_insert, std::placeholders::_2));
-		
+
 #if USE_CHOKE_GROUP
   CMD2_ANY         ("choke_group.size",                std::bind(&torrent::ResourceManager::group_size, torrent::resource_manager()));
   CMD2_ANY_STRING  ("choke_group.index_of",            std::bind(&torrent::ResourceManager::group_index_of, torrent::resource_manager(), std::placeholders::_2));
