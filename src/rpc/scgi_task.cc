@@ -51,6 +51,10 @@
 #include "globals.h"
 #include "scgi.h"
 
+#ifndef MSG_NOSIGNAL
+#define MSG_NOSIGNAL 0
+#endif
+
 // Test:
 // #include "core/manager.h"
 // #include <rak/timer.h>
