@@ -78,7 +78,7 @@ XmlrpcTest::test_invalid_utf8() {
 void
 XmlrpcTest::test_size_limit() {
   std::string input = "<?xml version=\"1.0\"?><methodCall><methodName>xmlrpc_reflect</methodName><params><param><value><string></string></value></param><param><value><string>\xc3\x28</string></value></param></params></methodCall>";
-  std::string expected = "<?xml version=\"1.0\"?><methodReponse><fault><struct><member><name>faultCode</name><value><int>-509</int></value></member><member><name>faultString</name><value><string>Content size exceeds maximum XML-RPC limit</string></value></member></struct></fault></methodReponse>";
+  std::string expected = "<?xml version=\"1.0\"?><methodReponse><fault><struct><member><name>faultCode</name><value><i4>-509</i4></value></member><member><name>faultString</name><value><string>Content size exceeds maximum XML-RPC limit</string></value></member></struct></fault></methodReponse>";
   std::string output;
   m_xmlrpc.set_size_limit(1);
   m_xmlrpc.process(input.c_str(), input.size(), [&output](const char* c, uint32_t l){ output.append(c, l); return true;});
