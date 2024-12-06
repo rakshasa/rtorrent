@@ -333,7 +333,7 @@ print_xmlrpc_fault(int faultCode, std::string faultString, tinyxml2::XMLPrinter*
   printer->PushText("faultCode");
   printer->CloseElement(true);
   printer->OpenElement("value", true);
-  printer->OpenElement("int", true);
+  printer->OpenElement("i4", true);
   printer->PushText(faultCode);
   printer->CloseElement(true);
   printer->CloseElement(true);
