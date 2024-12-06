@@ -306,7 +306,7 @@ process_document(const tinyxml2::XMLDocument* doc, tinyxml2::XMLPrinter* printer
   }
 
   printer->PushHeader(false, true);
-  printer->OpenElement("methodReponse", true);
+  printer->OpenElement("methodResponse", true);
   printer->OpenElement("params", true);
 
   printer->OpenElement("param", true);
@@ -324,7 +324,7 @@ void
 print_xmlrpc_fault(int faultCode, std::string faultString, tinyxml2::XMLPrinter* printer) {
   printer->PushHeader(false, true);
 
-  printer->OpenElement("methodReponse", true);
+  printer->OpenElement("methodResponse", true);
   printer->OpenElement("fault", true);
   printer->OpenElement("struct", true);
 
