@@ -2,6 +2,10 @@
 <?xml version="1.0"?><methodCall><methodName>xmlrpc_reflect</methodName><params></params></methodCall>
 <?xml version="1.0"?><methodResponse><params><param><value><array/></value></param></params></methodResponse>
 
+# Basic call without params
+<?xml version="1.0"?><methodCall><methodName>xmlrpc_reflect</methodName></methodCall>
+<?xml version="1.0"?><methodReponse><params><param><value><array/></value></param></params></methodReponse>
+
 # UTF-8 string
 <?xml version="1.0"?><methodCall><methodName>xmlrpc_reflect</methodName><params><param><value><string></string></value></param><param><value><string>чао</string></value></param></params></methodCall>
 <?xml version="1.0"?><methodResponse><params><param><value><array><value><string>чао</string></value></array></value></param></params></methodResponse>
