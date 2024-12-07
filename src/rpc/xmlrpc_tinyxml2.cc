@@ -237,8 +237,6 @@ print_object_xml(const torrent::Object& obj, tinyxml2::XMLPrinter* printer) {
 
 
 torrent::Object execute_command(std::string method_name, const tinyxml2::XMLElement* params_element) {
-  if (params_element == nullptr)
-    throw xmlrpc_error(XMLRPC_INTERNAL_ERROR, "invalid parameters: null");
   CommandMap::iterator cmd_itr = commands.find(method_name.c_str());
   if (cmd_itr == commands.end() || !(cmd_itr->second.m_flags & CommandMap::flag_public_xmlrpc)) {
     throw xmlrpc_error(XMLRPC_NO_SUCH_METHOD_ERROR, "method '" + method_name + "' not defined");
