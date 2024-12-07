@@ -113,7 +113,9 @@ jobs:
         git fetch --no-tags --no-recurse-submodules upstream "${{ github.event.pull_request.base.ref }}"
     - name: Install Dependencies
       run: |
-        sudo apt-get install -y libcppunit-dev
+        sudo apt-get install -y \
+          libcppunit-dev \
+          libcurl4-openssl-dev
     - name: Configure Project
       run: |
         libtoolize
