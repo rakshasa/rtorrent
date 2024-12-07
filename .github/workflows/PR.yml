@@ -8,10 +8,9 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-    - name: Install clang-tidy
+    - name: Update Packages
       run: |
         sudo apt-get update
-        sudo apt-get install -y bear clang-tidy libcurl4-openssl-dev
     - name: Fetch libtorrent
       run: |
         git clone https://github.com/rakshasa/libtorrent
@@ -36,6 +35,9 @@ jobs:
       run: |
         git remote add upstream "https://github.com/${{ github.event.pull_request.base.repo.full_name }}"
         git fetch --no-tags --no-recurse-submodules upstream "${{ github.event.pull_request.base.ref }}"
+    - name: Install Dependencies
+      run: |
+        sudo apt-get install -y bear clang-tidy libcurl4-openssl-dev
     - name: Configure Project
       run: |
         libtoolize
@@ -76,3 +78,55 @@ jobs:
         # to avoid GitHub API timeouts for heavily loaded
         # pull requests
         suggestions_per_comment: 10
+
+
+  unit-tests:
+    runs-on: ubuntu-22.04
+
+    steps:
+    - name: Update Packages
+      run: |
+        sudo apt-get update
+    - name: Fetch libtorrent
+      run: |
+        git clone https://github.com/rakshasa/libtorrent
+    - name: Build libtorrent
+      run: |
+        cd libtorrent
+        libtoolize
+        aclocal -I scripts
+        autoconf -i
+        autoheader
+        automake --add-missing
+        ./configure
+        make
+        sudo make install
+        cd ..
+        rm -rf libtorrent
+    - uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event.pull_request.head.sha }}
+        fetch-depth: 0
+    - name: Fetch base branch
+      run: |
+        git remote add upstream "https://github.com/${{ github.event.pull_request.base.repo.full_name }}"
+        git fetch --no-tags --no-recurse-submodules upstream "${{ github.event.pull_request.base.ref }}"
+    - name: Install Dependencies
+      run: |
+        sudo apt-get install -y \
+          libcppunit-dev \
+          libcurl4-openssl-dev
+    - name: Configure Project
+      run: |
+        libtoolize
+        aclocal -I scripts
+        autoconf -i
+        autoheader
+        automake --add-missing
+        ./configure
+    - name: Build Project
+      run: |
+        make
+    - name: Run Unit Tests
+      run: |
+        make check
