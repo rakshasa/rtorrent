@@ -245,15 +245,28 @@ torrent::Object execute_command(std::string method_name, const tinyxml2::XMLElem
   torrent::Object::list_type& params = params_raw.as_list();
   rpc::target_type target = rpc::make_target();
   if (params_element != nullptr) {
-    // Parse out the target if available
-    const auto* child = params_element->FirstChildElement("param");
-    if (child != nullptr) {
-      XmlRpc::object_to_target(xml_value_to_object(child->FirstChildElement("value")), cmd_itr->second.m_flags, &target);
-      child = child->NextSiblingElement("param");
-      // Parse out any other params
-      while (child != nullptr) {
-        params.push_back(xml_value_to_object(child->FirstChildElement("value")));
+    if (std::strncmp(params_element->Name(), "params", sizeof("params")) == 0) {
+      // Parse out the target if available
+      const auto* child = params_element->FirstChildElement("param");
+      if (child != nullptr) {
+        XmlRpc::object_to_target(xml_value_to_object(child->FirstChildElement("value")), cmd_itr->second.m_flags, &target);
         child = child->NextSiblingElement("param");
+        // Parse out any other params
+        while (child != nullptr) {
+          params.push_back(xml_value_to_object(child->FirstChildElement("value")));
+          child = child->NextSiblingElement("param");
+        }
+      }
+    } else if (params_element->FirstChildElement("data") != nullptr) {
+      // If it's not a <params>, it's probably a <array> passed in via system.multicall
+      const auto* child = params_element->FirstChildElement("data")->FirstChildElement("value");
+      if (child != nullptr) {
+        XmlRpc::object_to_target(xml_value_to_object(child), cmd_itr->second.m_flags, &target);
+        child = child->NextSiblingElement("value");
+        while (child != nullptr) {
+          params.push_back(xml_value_to_object(child));
+          child = child->NextSiblingElement("value");
+        }
       }
     }
   }
@@ -282,7 +295,15 @@ process_document(const tinyxml2::XMLDocument* doc, tinyxml2::XMLPrinter* printer
     auto parent_elements = element_access(doc->RootElement(), {"params", "param", "value", "array", "data"});
     for (auto child = parent_elements->FirstChildElement("value"); child; child = child->NextSiblingElement("value")) {
       auto sub_method_name = element_access(child, {"struct", "member", "value", "string"})->GetText();
-      auto sub_params = element_access(child, {"struct", "member"})->NextSiblingElement("member")->FirstChildElement("value");
+      // If sub_params ends up a nullptr at the end of this if-chian,
+      // execute_command will turn it into an empty list
+      auto sub_params = element_access(child, {"struct", "member"});
+      if (sub_params != nullptr)
+        sub_params = sub_params->NextSiblingElement("member");
+      if (sub_params != nullptr)
+        sub_params = sub_params->FirstChildElement("value");
+      if (sub_params != nullptr)
+        sub_params = sub_params->FirstChildElement("array");
       try {
         auto sub_result = torrent::Object::create_list();
         sub_result.as_list().push_back(execute_command(sub_method_name, sub_params));
