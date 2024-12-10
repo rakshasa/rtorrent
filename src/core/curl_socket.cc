@@ -100,7 +100,8 @@ CurlSocket::close() {
   if (m_fileDesc == -1)
     throw torrent::internal_error("CurlSocket::close() m_fileDesc == -1.");
 
-  torrent::main_thread()->poll()->closed(this);
+  if (torrent::is_initialized())
+    torrent::main_thread()->poll()->closed(this);
   m_fileDesc = -1;
 }
 
