@@ -67,6 +67,9 @@ CurlGet::start() {
   if (m_stream == NULL)
     throw torrent::internal_error("Tried to call CurlGet::start without a valid output stream.");
 
+  if (!m_stack->is_running())
+    return;
+
   m_handle = curl_easy_init();
 
   if (m_handle == NULL)

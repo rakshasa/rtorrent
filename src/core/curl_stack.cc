@@ -1,39 +1,3 @@
-// rTorrent - BitTorrent client
-// Copyright (C) 2005-2011, Jari Sundell
-//
-// This program is free software; you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation; either version 2 of the License, or
-// (at your option) any later version.
-// 
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-// 
-// You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-//
-// In addition, as a special exception, the copyright holders give
-// permission to link the code of portions of this program with the
-// OpenSSL library under certain conditions as described in each
-// individual source file, and distribute linked combinations
-// including the two.
-//
-// You must obey the GNU General Public License in all respects for
-// all of the code used other than OpenSSL.  If you modify file(s)
-// with this exception, you may extend this exception to your version
-// of the file(s), but you are not obligated to do so.  If you do not
-// wish to do so, delete this exception statement from your version.
-// If you delete this exception statement from all source files in the
-// program, then also delete it here.
-//
-// Contact:  Jari Sundell <jaris@ifi.uio.no>
-//
-//           Skomakerveien 33
-//           3185 Skoppum, NORWAY
-
 #include "config.h"
 
 #include <algorithm>
@@ -66,6 +30,14 @@ CurlStack::CurlStack() :
 }
 
 CurlStack::~CurlStack() {
+  shutdown();
+}
+
+void
+CurlStack::shutdown() {
+  if (!m_running)
+    return;
+
   while (!empty())
     front()->close();
 
@@ -80,6 +52,9 @@ CurlStack::new_object() {
 
 CurlSocket*
 CurlStack::new_socket(int fd) {
+  if (!m_running)
+    throw torrent::internal_error("CurlStack::new_socket() called when not running.");
+
   CurlSocket* socket = new CurlSocket(fd, this);
   curl_multi_assign((CURLM*)m_handle, fd, socket);
   return socket;
@@ -133,11 +108,11 @@ CurlStack::process_done_handle() {
     throw torrent::internal_error("CurlStack::receive_action() msg->msg != CURLMSG_DONE.");
 
   if (msg->data.result == CURLE_COULDNT_RESOLVE_HOST) {
-    iterator itr = std::find_if(begin(), end(), rak::equal(msg->easy_handle, std::mem_fun(&CurlGet::handle)));
- 
+    iterator itr = std::find_if(begin(), end(), [&msg](CurlGet* get) { return get->handle() == msg->easy_handle; });
+
     if (itr == end())
       throw torrent::internal_error("Could not find CurlGet when calling CurlStack::receive_action.");
- 
+
     if (!(*itr)->is_using_ipv6()) {
       (*itr)->retry_ipv6();
 
@@ -155,7 +130,7 @@ CurlStack::process_done_handle() {
 
 void
 CurlStack::transfer_done(void* handle, const char* msg) {
-  iterator itr = std::find_if(begin(), end(), rak::equal(handle, std::mem_fun(&CurlGet::handle)));
+  iterator itr = std::find_if(begin(), end(), [&handle](CurlGet* get) { return get->handle() == handle; });
 
   if (itr == end())
     throw torrent::internal_error("Could not find CurlGet with the right easy_handle.");
@@ -174,7 +149,7 @@ CurlStack::receive_timeout() {
   if (!empty() && !m_taskTimeout.is_queued()) {
     long timeout;
     curl_multi_timeout((CURLM*)m_handle, &timeout);
-    priority_queue_insert(&taskScheduler, &m_taskTimeout, 
+    priority_queue_insert(&taskScheduler, &m_taskTimeout,
                           cachedTime + rak::timer::from_milliseconds(std::max<unsigned long>(timeout, 10000)));
   }
 }
@@ -207,7 +182,7 @@ CurlStack::add_get(CurlGet* get) {
 
   m_active++;
   get->set_active(true);
-  
+
   if (curl_multi_add_handle((CURLM*)m_handle, get->handle()) > 0)
     throw torrent::internal_error("Error calling curl_multi_add_handle.");
 
@@ -235,7 +210,7 @@ CurlStack::remove_get(CurlGet* get) {
     throw torrent::internal_error("Error calling curl_multi_remove_handle.");
 
   if (m_active == m_maxActive &&
-      (itr = std::find_if(begin(), end(), std::not1(std::mem_fun(&CurlGet::is_active)))) != end()) {
+      (itr = std::find_if(begin(), end(), [](CurlGet* get) { return !get->is_active(); })) != end()) {
     (*itr)->set_active(true);
 
     if (curl_multi_add_handle((CURLM*)m_handle, (*itr)->handle()) > 0)
