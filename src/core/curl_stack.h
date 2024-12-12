@@ -52,20 +52,20 @@ class CurlStack : std::deque<CurlGet*> {
   CurlSocket*         new_socket(int fd);
 
   unsigned int        active() const                         { return m_active; }
-  unsigned int        max_active() const                     { return m_maxActive; }
-  void                set_max_active(unsigned int a)         { m_maxActive = a; }
+  unsigned int        max_active() const                     { return m_max_active; }
+  void                set_max_active(unsigned int a)         { m_max_active = a; }
 
-  const std::string&  user_agent() const                     { return m_userAgent; }
-  const std::string&  http_proxy() const                     { return m_httpProxy; }
-  const std::string&  bind_address() const                   { return m_bindAddress; }
-  const std::string&  http_capath() const                    { return m_httpCaPath; }
-  const std::string&  http_cacert() const                    { return m_httpCaCert; }
+  const std::string&  user_agent() const                     { return m_user_agent; }
+  const std::string&  http_proxy() const                     { return m_http_proxy; }
+  const std::string&  bind_address() const                   { return m_bind_address; }
+  const std::string&  http_capath() const                    { return m_http_ca_path; }
+  const std::string&  http_cacert() const                    { return m_http_ca_cert; }
 
-  void                set_user_agent(const std::string& s)   { m_userAgent = s; }
-  void                set_http_proxy(const std::string& s)   { m_httpProxy = s; }
-  void                set_bind_address(const std::string& s) { m_bindAddress = s; }
-  void                set_http_capath(const std::string& s)  { m_httpCaPath = s; }
-  void                set_http_cacert(const std::string& s)  { m_httpCaCert = s; }
+  void                set_user_agent(const std::string& s)   { m_user_agent = s; }
+  void                set_http_proxy(const std::string& s)   { m_http_proxy = s; }
+  void                set_bind_address(const std::string& s) { m_bind_address = s; }
+  void                set_http_capath(const std::string& s)  { m_http_ca_path = s; }
+  void                set_http_cacert(const std::string& s)  { m_http_ca_cert = s; }
 
   bool                ssl_verify_host() const                { return m_ssl_verify_host; }
   bool                ssl_verify_peer() const                { return m_ssl_verify_peer; }
@@ -101,15 +101,15 @@ class CurlStack : std::deque<CurlGet*> {
   bool                m_running{true};
 
   unsigned int        m_active{0};
-  unsigned int        m_maxActive{32};
+  unsigned int        m_max_active{32};
 
-  rak::priority_item  m_taskTimeout;
+  rak::priority_item  m_task_timeout;
 
-  std::string         m_userAgent;
-  std::string         m_httpProxy;
-  std::string         m_bindAddress;
-  std::string         m_httpCaPath;
-  std::string         m_httpCaCert;
+  std::string         m_user_agent;
+  std::string         m_http_proxy;
+  std::string         m_bind_address;
+  std::string         m_http_ca_path;
+  std::string         m_http_ca_cert;
 
   bool                m_ssl_verify_host{true};
   bool                m_ssl_verify_peer{true};

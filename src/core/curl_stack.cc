@@ -13,7 +13,7 @@ namespace core {
 
 CurlStack::CurlStack() {
   m_handle = (void*)curl_multi_init();
-  m_taskTimeout.slot() = std::bind(&CurlStack::receive_timeout, this);
+  m_task_timeout.slot() = std::bind(&CurlStack::receive_timeout, this);
 
 #if (LIBCURL_VERSION_NUM >= 0x071000)
   curl_multi_setopt((CURLM*)m_handle, CURLMOPT_TIMERDATA, this);
@@ -38,7 +38,7 @@ CurlStack::shutdown() {
     front()->close();
 
   curl_multi_cleanup((CURLM*)m_handle);
-  priority_queue_erase(&taskScheduler, &m_taskTimeout);
+  priority_queue_erase(&taskScheduler, &m_task_timeout);
 }
 
 CurlGet*
@@ -86,7 +86,7 @@ CurlStack::receive_action(CurlSocket* socket, int events) {
         ; // Do nothing.
 
       if (empty())
-        priority_queue_erase(&taskScheduler, &m_taskTimeout);
+        priority_queue_erase(&taskScheduler, &m_task_timeout);
     }
 
   } while (code == CURLM_CALL_MULTI_PERFORM);
@@ -142,30 +142,30 @@ CurlStack::receive_timeout() {
   receive_action(NULL, 0);
 
   // Sometimes libcurl forgets to reset the timeout. Try to poll the value in that case, or use 10 seconds.
-  if (!empty() && !m_taskTimeout.is_queued()) {
+  if (!empty() && !m_task_timeout.is_queued()) {
     long timeout;
     curl_multi_timeout((CURLM*)m_handle, &timeout);
-    priority_queue_insert(&taskScheduler, &m_taskTimeout,
+    priority_queue_insert(&taskScheduler, &m_task_timeout,
                           cachedTime + rak::timer::from_milliseconds(std::max<unsigned long>(timeout, 10000)));
   }
 }
 
 void
 CurlStack::add_get(CurlGet* get) {
-  if (!m_userAgent.empty())
-    curl_easy_setopt(get->handle(), CURLOPT_USERAGENT, m_userAgent.c_str());
+  if (!m_user_agent.empty())
+    curl_easy_setopt(get->handle(), CURLOPT_USERAGENT, m_user_agent.c_str());
 
-  if (!m_httpProxy.empty())
-    curl_easy_setopt(get->handle(), CURLOPT_PROXY, m_httpProxy.c_str());
+  if (!m_http_proxy.empty())
+    curl_easy_setopt(get->handle(), CURLOPT_PROXY, m_http_proxy.c_str());
 
-  if (!m_bindAddress.empty())
-    curl_easy_setopt(get->handle(), CURLOPT_INTERFACE, m_bindAddress.c_str());
+  if (!m_bind_address.empty())
+    curl_easy_setopt(get->handle(), CURLOPT_INTERFACE, m_bind_address.c_str());
 
-  if (!m_httpCaPath.empty())
-    curl_easy_setopt(get->handle(), CURLOPT_CAPATH, m_httpCaPath.c_str());
+  if (!m_http_ca_path.empty())
+    curl_easy_setopt(get->handle(), CURLOPT_CAPATH, m_http_ca_path.c_str());
 
-  if (!m_httpCaCert.empty())
-    curl_easy_setopt(get->handle(), CURLOPT_CAINFO, m_httpCaCert.c_str());
+  if (!m_http_ca_cert.empty())
+    curl_easy_setopt(get->handle(), CURLOPT_CAINFO, m_http_ca_cert.c_str());
 
   curl_easy_setopt(get->handle(), CURLOPT_SSL_VERIFYHOST, (long)(m_ssl_verify_host ? 2 : 0));
   curl_easy_setopt(get->handle(), CURLOPT_SSL_VERIFYPEER, (long)(m_ssl_verify_peer ? 1 : 0));
@@ -173,7 +173,7 @@ CurlStack::add_get(CurlGet* get) {
 
   base_type::push_back(get);
 
-  if (m_active >= m_maxActive)
+  if (m_active >= m_max_active)
     return;
 
   m_active++;
@@ -205,7 +205,7 @@ CurlStack::remove_get(CurlGet* get) {
   if (curl_multi_remove_handle((CURLM*)m_handle, get->handle()) > 0)
     throw torrent::internal_error("Error calling curl_multi_remove_handle.");
 
-  if (m_active == m_maxActive &&
+  if (m_active == m_max_active &&
       (itr = std::find_if(begin(), end(), [](CurlGet* get) { return !get->is_active(); })) != end()) {
     (*itr)->set_active(true);
 
@@ -233,7 +233,7 @@ int
 CurlStack::set_timeout(void* handle, long timeout_ms, void* userp) {
   CurlStack* stack = (CurlStack*)userp;
 
-  priority_queue_update(&taskScheduler, &stack->m_taskTimeout, cachedTime + rak::timer::from_milliseconds(timeout_ms));
+  priority_queue_update(&taskScheduler, &stack->m_task_timeout, cachedTime + rak::timer::from_milliseconds(timeout_ms));
 
   return 0;
 }
