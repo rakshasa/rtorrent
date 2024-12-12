@@ -38,6 +38,8 @@ CurlStack::shutdown() {
   if (!m_running)
     return;
 
+  m_running = false;
+
   while (!empty())
     front()->close();
 
