@@ -11,6 +11,6 @@ CheckOptions:
   - key: readability-identifier-naming.PrivateMemberPrefix
     value: m_
   - key: readability-identifier-naming.PrivateMemberCase
-    value: camelBack
+    value: lower_case
   - key: readability-identifier-naming.ClassConstantCase
     value: lower_case
