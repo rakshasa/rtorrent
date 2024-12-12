@@ -1,39 +1,3 @@
-// rTorrent - BitTorrent client
-// Copyright (C) 2005-2011, Jari Sundell
-//
-// This program is free software; you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation; either version 2 of the License, or
-// (at your option) any later version.
-// 
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-// 
-// You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-//
-// In addition, as a special exception, the copyright holders give
-// permission to link the code of portions of this program with the
-// OpenSSL library under certain conditions as described in each
-// individual source file, and distribute linked combinations
-// including the two.
-//
-// You must obey the GNU General Public License in all respects for
-// all of the code used other than OpenSSL.  If you modify file(s)
-// with this exception, you may extend this exception to your version
-// of the file(s), but you are not obligated to do so.  If you do not
-// wish to do so, delete this exception statement from your version.
-// If you delete this exception statement from all source files in the
-// program, then also delete it here.
-//
-// Contact:  Jari Sundell <jaris@ifi.uio.no>
-//
-//           Skomakerveien 33
-//           3185 Skoppum, NORWAY
-
 #ifndef RTORRENT_CORE_CURL_STACK_H
 #define RTORRENT_CORE_CURL_STACK_H
 
@@ -81,24 +45,27 @@ class CurlStack : std::deque<CurlGet*> {
   CurlStack();
   ~CurlStack();
 
+  void                shutdown();
+  bool                is_running() const                     { return m_running; }
+
   CurlGet*            new_object();
   CurlSocket*         new_socket(int fd);
 
   unsigned int        active() const                         { return m_active; }
-  unsigned int        max_active() const                     { return m_maxActive; }
-  void                set_max_active(unsigned int a)         { m_maxActive = a; }
+  unsigned int        max_active() const                     { return m_max_active; }
+  void                set_max_active(unsigned int a)         { m_max_active = a; }
 
-  const std::string&  user_agent() const                     { return m_userAgent; }
-  const std::string&  http_proxy() const                     { return m_httpProxy; }
-  const std::string&  bind_address() const                   { return m_bindAddress; }
-  const std::string&  http_capath() const                    { return m_httpCaPath; }
-  const std::string&  http_cacert() const                    { return m_httpCaCert; }
+  const std::string&  user_agent() const                     { return m_user_agent; }
+  const std::string&  http_proxy() const                     { return m_http_proxy; }
+  const std::string&  bind_address() const                   { return m_bind_address; }
+  const std::string&  http_capath() const                    { return m_http_ca_path; }
+  const std::string&  http_cacert() const                    { return m_http_ca_cert; }
 
-  void                set_user_agent(const std::string& s)   { m_userAgent = s; }
-  void                set_http_proxy(const std::string& s)   { m_httpProxy = s; }
-  void                set_bind_address(const std::string& s) { m_bindAddress = s; }
-  void                set_http_capath(const std::string& s)  { m_httpCaPath = s; }
-  void                set_http_cacert(const std::string& s)  { m_httpCaCert = s; }
+  void                set_user_agent(const std::string& s)   { m_user_agent = s; }
+  void                set_http_proxy(const std::string& s)   { m_http_proxy = s; }
+  void                set_bind_address(const std::string& s) { m_bind_address = s; }
+  void                set_http_capath(const std::string& s)  { m_http_ca_path = s; }
+  void                set_http_cacert(const std::string& s)  { m_http_ca_cert = s; }
 
   bool                ssl_verify_host() const                { return m_ssl_verify_host; }
   bool                ssl_verify_peer() const                { return m_ssl_verify_peer; }
@@ -131,20 +98,22 @@ class CurlStack : std::deque<CurlGet*> {
 
   void*               m_handle;
 
-  unsigned int        m_active;
-  unsigned int        m_maxActive;
+  bool                m_running{true};
 
-  rak::priority_item  m_taskTimeout;
+  unsigned int        m_active{0};
+  unsigned int        m_max_active{32};
 
-  std::string         m_userAgent;
-  std::string         m_httpProxy;
-  std::string         m_bindAddress;
-  std::string         m_httpCaPath;
-  std::string         m_httpCaCert;
+  rak::priority_item  m_task_timeout;
 
-  bool                m_ssl_verify_host;
-  bool                m_ssl_verify_peer;
-  long                m_dns_timeout;
+  std::string         m_user_agent;
+  std::string         m_http_proxy;
+  std::string         m_bind_address;
+  std::string         m_http_ca_path;
+  std::string         m_http_ca_cert;
+
+  bool                m_ssl_verify_host{true};
+  bool                m_ssl_verify_peer{true};
+  long                m_dns_timeout{60};
 };
 
 }

@@ -24,7 +24,7 @@ AlignConsecutiveDeclarations:
 AlignConsecutiveMacros:
   Enabled: true
 AlignConsecutiveAssignments:
-  Enabled: true  
+  Enabled: true
 
 IncludeCategories:
   - Regex: "^(config|globals)\\.h"
