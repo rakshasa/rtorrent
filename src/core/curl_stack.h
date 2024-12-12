@@ -100,8 +100,8 @@ class CurlStack : std::deque<CurlGet*> {
 
   bool                m_running{true};
 
-  unsigned int        m_active;
-  unsigned int        m_maxActive;
+  unsigned int        m_active{0};
+  unsigned int        m_maxActive{32};
 
   rak::priority_item  m_taskTimeout;
 
@@ -111,9 +111,9 @@ class CurlStack : std::deque<CurlGet*> {
   std::string         m_httpCaPath;
   std::string         m_httpCaCert;
 
-  bool                m_ssl_verify_host;
-  bool                m_ssl_verify_peer;
-  long                m_dns_timeout;
+  bool                m_ssl_verify_host{true};
+  bool                m_ssl_verify_peer{true};
+  long                m_dns_timeout{60};
 };
 
 }
