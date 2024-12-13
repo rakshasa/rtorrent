@@ -1,39 +1,3 @@
-// rTorrent - BitTorrent client
-// Copyright (C) 2005-2011, Jari Sundell
-//
-// This program is free software; you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation; either version 2 of the License, or
-// (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-//
-// In addition, as a special exception, the copyright holders give
-// permission to link the code of portions of this program with the
-// OpenSSL library under certain conditions as described in each
-// individual source file, and distribute linked combinations
-// including the two.
-//
-// You must obey the GNU General Public License in all respects for
-// all of the code used other than OpenSSL.  If you modify file(s)
-// with this exception, you may extend this exception to your version
-// of the file(s), but you are not obligated to do so.  If you do not
-// wish to do so, delete this exception statement from your version.
-// If you delete this exception statement from all source files in the
-// program, then also delete it here.
-//
-// Contact:  Jari Sundell <jaris@ifi.uio.no>
-//
-//           Skomakerveien 33
-//           3185 Skoppum, NORWAY
-
 #include "config.h"
 
 #include <algorithm>
@@ -236,20 +200,45 @@ View::set_not_visible(Download* download) {
 }
 
 void
-View::next_focus() {
+View::next_focus(unsigned int i) {
   if (empty())
     return;
 
-  m_focus = (m_focus + 1) % (size() + 1);
+  // If at the boundary, roll over
+  if (m_focus == size() - 1) {
+    m_focus = size();
+    emit_changed();
+    return;
+  }
+
+  // Move forward, stop at the boundary
+  if (m_focus == size()) // Needs special handling to ensure it's not off by one
+    m_focus = i - 1;
+  else
+    m_focus += i;
+  if (m_focus > size() - 1)
+    m_focus = size() - 1;
+
   emit_changed();
 }
 
 void
-View::prev_focus() {
+View::prev_focus(unsigned int i) {
   if (empty())
     return;
 
-  m_focus = (m_focus - 1 + size() + 1) % (size() + 1);
+  // If at the boundary, roll over
+  if (m_focus == size()) {
+    m_focus = size() - 1;
+    emit_changed();
+    return;
+  }
+
+  // Move backward, stop at the boundary
+  m_focus -= i;
+  if (m_focus < 0 || m_focus > size())
+    m_focus = size();
+
   emit_changed();
 }
 

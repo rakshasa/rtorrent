@@ -20,6 +20,9 @@ public:
 
   void                set_view(core::View* l);
 
+  int                 page_size(const std::string layout_name);
+  int                 page_size();
+
 private:
   core::View*         m_view;
 

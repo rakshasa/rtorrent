@@ -15,14 +15,14 @@
 namespace display {
 
 WindowDownloadList::WindowDownloadList() :
-    Window(new Canvas, 0, 120, 1, extent_full, extent_full),
-    m_view(NULL) {
+  Window(new Canvas, 0, 120, 1, extent_full, extent_full),
+  m_view(NULL) {
 }
 
 WindowDownloadList::~WindowDownloadList() {
   if (m_view != NULL)
     m_view->signal_changed().erase(m_changed_itr);
-
+  
   m_view = NULL;
 }
 
@@ -52,6 +52,27 @@ WindowDownloadList::get_attr_color(core::View::iterator selected) {
   return std::make_pair(m_canvas->attr_map().at(title_color) | focus_attr, title_color);
 }
 
+int
+WindowDownloadList::page_size(const std::string layout_name) {
+  // Calculate the page size for torrents. This is a public method
+  // because it's also used to determine the default size for page
+  // up/down actions.
+  int layout_height;
+  if (layout_name == "full") {
+    layout_height = 3;
+  } else if (layout_name == "compact") {
+    layout_height = 1;
+  } else {
+    return 0;
+  }
+  return m_canvas->height() / layout_height;
+}
+
+int
+WindowDownloadList::page_size() {
+  return page_size(rpc::call_command_string("ui.torrent_list.layout"));
+}
+
 void
 WindowDownloadList::redraw() {
   if (m_canvas->daemon())
@@ -64,7 +85,7 @@ WindowDownloadList::redraw() {
   if (m_view == NULL)
     return;
 
-  m_canvas->print("%s", ("[View: " + m_view->name() + (m_view->get_filter_temp().is_empty() ? "" : " (filtered)") + "]").c_str());
+  m_canvas->print(0, 0, "%s", ("[View: " + m_view->name() + (m_view->get_filter_temp().is_empty() ? "" : " (filtered)") + "]").c_str());
 
   if (m_view->empty_visible() || m_canvas->width() < 5 || m_canvas->height() < 2)
     return;
@@ -83,19 +104,12 @@ WindowDownloadList::redraw() {
   int               layout_height;
   const std::string layout_name = rpc::call_command_string("ui.torrent_list.layout");
 
-  if (layout_name == "full") {
-    layout_height = 3;
-  } else if (layout_name == "compact") {
-    layout_height = 1;
-  } else {
-    m_canvas->print(0, 0, "INVALID ui.torrent_list.layout '%s'", layout_name.c_str());
-    return;
-  }
+  typedef std::pair<core::View::iterator, core::View::iterator> Range;
 
-  ViewRange range = rak::advance_bidirectional(m_view->begin_visible(),
-                                               m_view->focus() != m_view->end_visible() ? m_view->focus() : m_view->begin_visible(),
-                                               m_view->end_visible(),
-                                               m_canvas->height() / layout_height);
+  Range range = rak::advance_bidirectional(m_view->begin_visible(),
+                                           m_view->focus() != m_view->end_visible() ? m_view->focus() : m_view->begin_visible(),
+                                           m_view->end_visible(),
+                                           page_size(layout_name));
 
   // Make sure we properly fill out the last lines so it looks like
   // there are more torrents, yet don't hide it if we got the last one
