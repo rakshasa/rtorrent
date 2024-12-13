@@ -67,6 +67,12 @@ public:
   void                receive_next();
   void                receive_prev();
 
+  void                receive_next_page();
+  void                receive_prev_page();
+
+  void                receive_home();
+  void                receive_end();
+
   void                receive_stop_download();
   void                receive_close_download();
 

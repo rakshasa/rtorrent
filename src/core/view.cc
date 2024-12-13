@@ -237,20 +237,20 @@ View::set_not_visible(Download* download) {
 }
 
 void
-View::next_focus() {
+View::next_focus(int i) {
   if (empty())
     return;
 
-  m_focus = (m_focus + 1) % (size() + 1);
+  m_focus = (m_focus + i) % (size() + 1);
   emit_changed();
 }
 
 void
-View::prev_focus() {
+View::prev_focus(int i) {
   if (empty())
     return;
 
-  m_focus = (m_focus - 1 + size() + 1) % (size() + 1);
+  m_focus = (m_focus - i + size() + 1) % (size() + 1);
   emit_changed();
 }
 

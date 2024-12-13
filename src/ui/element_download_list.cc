@@ -100,6 +100,12 @@ ElementDownloadList::ElementDownloadList() :
   m_bindings[KEY_UP]   = m_bindings['P' - '@'] = std::bind(&ElementDownloadList::receive_prev, this);
   m_bindings[KEY_DOWN] = m_bindings['N' - '@'] = std::bind(&ElementDownloadList::receive_next, this);
 
+  m_bindings[KEY_PPAGE] = [this] { receive_prev_page(); };
+  m_bindings[KEY_NPAGE] = [this] { receive_next_page(); };
+
+  m_bindings[KEY_HOME] = [this] { receive_home(); };
+  m_bindings[KEY_END]  = [this] { receive_end(); };
+
   m_bindings['L']           = std::bind(&ElementDownloadList::toggle_layout, this);
 }
 
@@ -169,6 +175,30 @@ ElementDownloadList::receive_next() {
 void
 ElementDownloadList::receive_prev() {
   m_view->prev_focus();
+  m_view->set_last_changed();
+}
+
+void
+ElementDownloadList::receive_next_page() {
+  m_view->next_focus(50);
+  m_view->set_last_changed();
+}
+
+void
+ElementDownloadList::receive_prev_page() {
+  m_view->prev_focus(50);
+  m_view->set_last_changed();
+}
+
+void
+ElementDownloadList::receive_home() {
+  m_view->set_focus(m_view->begin_visible());
+  m_view->set_last_changed();
+}
+
+void
+ElementDownloadList::receive_end() {
+  m_view->set_focus(m_view->end_visible() - 1);
   m_view->set_last_changed();
 }
 
