@@ -816,6 +816,8 @@ initialize_command_ui() {
   CMD2_VAR_VALUE ("ui.throttle.global.step.medium", 50);
   CMD2_VAR_VALUE ("ui.throttle.global.step.large",  500);
 
+  CMD2_VAR_VALUE ("ui.focus.page_size", 0);
+
   CMD2_ANY_LIST  ("ui.status.throttle.up.set",   std::bind(&cmd_status_throttle_names, true, std::placeholders::_2));
   CMD2_ANY_LIST  ("ui.status.throttle.down.set", std::bind(&cmd_status_throttle_names, false, std::placeholders::_2));
 
