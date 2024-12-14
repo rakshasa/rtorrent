@@ -294,12 +294,12 @@ Manager::set_proxy_address(const std::string& addr) {
 
   if ((err = rak::address_info::get_address_info(buf, PF_INET, SOCK_STREAM, &ai)) != 0)
     throw torrent::input_error("Could not set proxy address: " + std::string(rak::address_info::strerror(err)) + ".");
-  
+
   try {
 
     ai->address()->set_port(port);
     torrent::connection_manager()->set_proxy_address(ai->address()->c_sockaddr());
-    
+
     rak::address_info::free_address_info(ai);
 
   } catch (torrent::input_error& e) {
@@ -331,7 +331,7 @@ Manager::try_create_download(const std::string& uri, int flags, const command_li
 
   f->set_start(flags & create_start);
   f->set_print_log(!(flags & create_quiet));
-  f->slot_finished(std::bind(&rak::call_delete_func<core::DownloadFactory>, f));
+  f->slot_finished([f]() { delete f; });
 
   if (flags & create_raw_data)
     f->load_raw_data(uri);
@@ -355,7 +355,7 @@ Manager::try_create_download_from_meta_download(torrent::Object* bencode, const 
 
   f->set_start(meta.get_key_value("start"));
   f->set_print_log(meta.get_key_value("print_log"));
-  f->slot_finished(std::bind(&rak::call_delete_func<core::DownloadFactory>, f));
+  f->slot_finished([f]() { delete f; });
 
   // Bit of a waste to create the bencode repesentation here
   // only to have the DownloadFactory decode it.
@@ -408,9 +408,11 @@ path_expand(std::vector<std::string>* paths, const std::string& pattern) {
       // Only include filenames starting with '.' if the pattern
       // starts with the same.
       itr->update((r.pattern()[0] != '.') ? utils::Directory::update_hide_dot : 0);
-      itr->erase(std::remove_if(itr->begin(), itr->end(), rak::on(rak::mem_ref(&utils::directory_entry::s_name), std::not1(r))), itr->end());
+      itr->erase(std::remove_if(itr->begin(), itr->end(), [r](const utils::directory_entry& entry) { return !r(entry.s_name); }), itr->end());
 
-      std::transform(itr->begin(), itr->end(), std::back_inserter(nextCache), rak::bind1st(std::ptr_fun(&path_expand_transform), itr->path() + (itr->path() == "/" ? "" : "/")));
+      std::transform(itr->begin(), itr->end(), std::back_inserter(nextCache), [itr](const utils::directory_entry& entry) {
+          return path_expand_transform(itr->path() + (itr->path() == "/" ? "" : "/"), entry);
+        });
     }
 
     currentCache.clear();
