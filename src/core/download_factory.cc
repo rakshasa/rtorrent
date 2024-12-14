@@ -1,39 +1,3 @@
-// rTorrent - BitTorrent client
-// Copyright (C) 2005-2011, Jari Sundell
-//
-// This program is free software; you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation; either version 2 of the License, or
-// (at your option) any later version.
-// 
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-// 
-// You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-//
-// In addition, as a special exception, the copyright holders give
-// permission to link the code of portions of this program with the
-// OpenSSL library under certain conditions as described in each
-// individual source file, and distribute linked combinations
-// including the two.
-//
-// You must obey the GNU General Public License in all respects for
-// all of the code used other than OpenSSL.  If you modify file(s)
-// with this exception, you may extend this exception to your version
-// of the file(s), but you are not obligated to do so.  If you do not
-// wish to do so, delete this exception statement from your version.
-// If you delete this exception statement from all source files in the
-// program, then also delete it here.
-//
-// Contact:  Jari Sundell <jaris@ifi.uio.no>
-//
-//           Skomakerveien 33
-//           3185 Skoppum, NORWAY
-
 #include "config.h"
 
 #include <cstdlib>
@@ -76,7 +40,7 @@ is_network_uri(const std::string& uri) {
 static bool
 download_factory_add_stream(torrent::Object* root, const char* key, const char* filename) {
   std::fstream stream(filename, std::ios::in | std::ios::binary);
-    
+
   if (!stream.is_open())
     return false;
 
@@ -228,7 +192,7 @@ DownloadFactory::receive_success() {
     torrent::Object& meta = root->insert_key("rtorrent_meta_download", torrent::Object::create_map());
     meta.insert_key("start", m_start);
     meta.insert_key("print_log", m_printLog);
- 
+
     torrent::Object::list_type& commands = meta.insert_key("commands", torrent::Object::create_list()).as_list();
 
     for (command_list_type::iterator itr = m_commands.begin(); itr != m_commands.end(); ++itr)
@@ -238,7 +202,7 @@ DownloadFactory::receive_success() {
   if (m_session) {
     download_factory_add_stream(root, "rtorrent", (rak::path_expand(m_uri) + ".rtorrent").c_str());
     download_factory_add_stream(root, "libtorrent_resume", (rak::path_expand(m_uri) + ".libtorrent_resume").c_str());
-    
+
   } else {
     // We only allow session torrents to keep their
     // 'rtorrent/libtorrent' sections. The "fast_resume" section
@@ -321,8 +285,9 @@ DownloadFactory::receive_success() {
     if (torrent::log_groups[torrent::LOG_TORRENT_DEBUG].valid())
       log_created(download, rtorrent);
 
-    std::for_each(m_commands.begin(), m_commands.end(),
-                  rak::bind2nd(std::ptr_fun(&rpc::parse_command_multiple_std), rpc::make_target(download)));
+    std::for_each(m_commands.begin(), m_commands.end(), [&download](const std::string& cmd) {
+        rpc::parse_command_multiple_std(cmd, rpc::make_target(download));
+      });
 
     if (m_manager->download_list()->find(infohash) == m_manager->download_list()->end())
       throw torrent::input_error("The newly created download was removed.");
@@ -338,7 +303,7 @@ DownloadFactory::receive_success() {
 
     if (m_printLog)
       m_manager->push_log_std(msg);
-    
+
     if (m_manager->download_list()->find(infohash) != m_manager->download_list()->end()) {
       // Should stop it, mark it bad. Perhaps even delete it?
       download->set_hash_failed(true);
