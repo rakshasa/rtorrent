@@ -60,11 +60,11 @@ ElementDownloadList::ElementDownloadList() :
   m_bindings[KEY_UP] = m_bindings['P' - '@'] = std::bind(&ElementDownloadList::receive_prev, this);
   m_bindings[KEY_DOWN] = m_bindings['N' - '@'] = std::bind(&ElementDownloadList::receive_next, this);
 
-  m_bindings[KEY_PPAGE] = [this] { receive_prev_page(); };
-  m_bindings[KEY_NPAGE] = [this] { receive_next_page(); };
+  m_bindings[KEY_PPAGE] = m_bindings['K' - '@'] = [this] { receive_prev_page(); };
+  m_bindings[KEY_NPAGE] = m_bindings['J' - '@'] = [this] { receive_next_page(); };
 
-  m_bindings[KEY_HOME] = [this] { receive_home(); };
-  m_bindings[KEY_END]  = [this] { receive_end(); };
+  m_bindings[KEY_HOME] = m_bindings['A' - '@'] = [this] { receive_home(); };
+  m_bindings[KEY_END] = m_bindings['E' - '@'] = [this] { receive_end(); };
 
   m_bindings['L'] = std::bind(&ElementDownloadList::toggle_layout, this);
 }
