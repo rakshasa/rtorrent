@@ -201,20 +201,41 @@ View::set_not_visible(Download* download) {
 }
 
 void
-View::next_focus(int i) {
+View::next_focus(unsigned int i) {
   if (empty())
     return;
 
-  m_focus = (m_focus + i) % (size() + 1);
+  // If at the boundary, roll over
+  if (m_focus == size() - 1) {
+    m_focus = size();
+  } else {
+    // Move forward, stop at the boundary
+    if (m_focus == size())
+      m_focus = i - 1;
+    else
+      m_focus += i;
+    if (m_focus > size() - 1)
+      m_focus = size() - 1;
+  }
+
   emit_changed();
 }
 
 void
-View::prev_focus(int i) {
+View::prev_focus(unsigned int i) {
   if (empty())
     return;
 
-  m_focus = (m_focus - i + size() + 1) % (size() + 1);
+  // If at the boundary, roll over
+  if (m_focus == size()) {
+    m_focus = size() - 1;
+  } else {
+    // Move backward, stop at the boundary
+    m_focus -= i;
+    if (m_focus < 0 || m_focus > size())
+      m_focus = size();
+  }
+
   emit_changed();
 }
 

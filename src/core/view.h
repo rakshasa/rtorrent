@@ -78,8 +78,8 @@ public:
   void set_visible(Download* download);
   void set_not_visible(Download* download);
 
-  void next_focus(int i);
-  void prev_focus(int i);
+  void next_focus(unsigned int i);
+  void prev_focus(unsigned int i);
 
   void next_focus() { next_focus(1); }
   void prev_focus() { prev_focus(1); }
