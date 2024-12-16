@@ -344,24 +344,89 @@ d_multicall_filtered(const torrent::Object::list_type& args) {
 }
 
 static void
-call_watch_command(const std::string& command, const std::string& path) {
-  rpc::commands.call_catch(command.c_str(), rpc::make_target(), path);
+call_watch_command_added(const core::Manager::command_list_type& args, const std::string& path) {
+  if (args.size() < 1)
+    throw torrent::input_error("Too few arguments.");
+
+  std::string rpc_command_str;
+  core::Manager::command_list_type::const_iterator argsItr = args.begin();
+
+  std::string command = *argsItr;
+
+  // Include path in quotes, it can have spaces.
+  rpc_command_str = command + (*command.rbegin() != '=' ? "=" : "") + "\"" + path + "\"";
+
+  while (++argsItr != args.end())
+    rpc_command_str += ",\"" + *argsItr + "\"";
+
+  rpc::parse_command_single_std(rpc_command_str);
 }
 
 torrent::Object
 directory_watch_added(const torrent::Object::list_type& args) {
-  if (args.size() != 2)
+  if (args.size() < 2)
     throw torrent::input_error("Too few arguments.");
-
-  const std::string& path = args.front().as_string();
-  const std::string& command = args.back().as_string();
 
   if (!control->directory_events()->open())
     throw torrent::input_error("Could not open inotify:" + std::string(rak::error_number::current().c_str()));
 
-  control->directory_events()->notify_on(path.c_str(),
+  core::Manager::command_list_type commands;
+  torrent::Object::list_const_iterator argsItr = args.begin();
+
+  const std::string& path = argsItr->as_string();
+
+  while (++argsItr != args.end())
+    commands.push_back(argsItr->as_string());
+
+  control->directory_events()->notify_on(path,
                                          torrent::directory_events::flag_on_added | torrent::directory_events::flag_on_updated,
-                                         std::bind(&call_watch_command, command, std::placeholders::_1));
+                                         std::bind(&call_watch_command_added, commands, std::placeholders::_1));
+  return torrent::Object();
+}
+
+static void
+call_watch_command_removed(const std::string& command, const std::string& path) {
+  if (command != "d.stop" && command != "d.close" && command != "d.erase")
+    return;
+
+  for (core::DownloadList::iterator itr = control->core()->download_list()->begin(); itr != control->core()->download_list()->end(); ++itr) {
+    const std::string& tiedToFile = rpc::call_command_string("d.tied_to_file", rpc::make_target(*itr));
+
+    if (!tiedToFile.empty() && rak::path_expand(path) == rak::path_expand(tiedToFile)) {
+
+      if (command == "d.stop" && rpc::call_command_value("d.state", rpc::make_target(*itr)) != 0) {
+        rpc::parse_command_single(rpc::make_target(*itr), "d.try_stop=");
+      } else if (command == "d.close" && rpc::call_command_value("d.ignore_commands", rpc::make_target(*itr)) == 0) {
+        rpc::parse_command_single(rpc::make_target(*itr), "d.try_close=");
+      } else if (command == "d.erase") {
+        // Need to clear tied_to_file so it doesn't try to delete it.
+        rpc::call_command("d.tied_to_file.set", std::string(), rpc::make_target(*itr));
+        control->core()->download_list()->erase(itr);
+      }
+
+      break;
+    }
+  }
+}
+
+torrent::Object
+directory_watch_removed(const torrent::Object::list_type& args) {
+  if (args.size() < 2)
+    throw torrent::input_error("Too few arguments.");
+
+  torrent::Object::list_const_iterator argsItr = args.begin();
+  std::string command = argsItr->as_string();
+
+  if (command != "d.stop" && command != "d.close" && command != "d.erase")
+    throw torrent::input_error("directory.watch.removed command only supports d.stop , d.close , d.erase commands.");
+
+  if (!control->directory_events()->open())
+    throw torrent::input_error("Could not open inotify:" + std::string(rak::error_number::current().c_str()));
+
+  while (++argsItr != args.end())
+    control->directory_events()->notify_on(argsItr->as_string(),
+                                         torrent::directory_events::flag_on_removed,
+                                         std::bind(&call_watch_command_removed, command, std::placeholders::_1));
   return torrent::Object();
 }
 
@@ -369,10 +434,10 @@ void
 initialize_command_events() {
   CMD2_ANY_STRING  ("on_ratio",        std::bind(&apply_on_ratio, std::placeholders::_2));
 
-  CMD2_ANY         ("start_tied",      std::bind(&apply_start_tied));
-  CMD2_ANY         ("stop_untied",     std::bind(&apply_stop_untied));
-  CMD2_ANY         ("close_untied",    std::bind(&apply_close_untied));
-  CMD2_ANY         ("remove_untied",   std::bind(&apply_remove_untied));
+  CMD2_ANY         ("tied.start",      std::bind(&apply_start_tied));
+  CMD2_ANY         ("untied.stop",     std::bind(&apply_stop_untied));
+  CMD2_ANY         ("untied.close",    std::bind(&apply_close_untied));
+  CMD2_ANY         ("untied.remove",   std::bind(&apply_remove_untied));
 
   CMD2_ANY_LIST    ("schedule2",        std::bind(&apply_schedule, std::placeholders::_2));
   CMD2_ANY_STRING_V("schedule_remove2", std::bind(&rpc::CommandScheduler::erase_str, control->command_scheduler(), std::placeholders::_2));
@@ -397,5 +462,6 @@ initialize_command_events() {
   CMD2_ANY_LIST    ("d.multicall2",        std::bind(&d_multicall, std::placeholders::_2));
   CMD2_ANY_LIST    ("d.multicall.filtered", std::bind(&d_multicall_filtered, std::placeholders::_2));
 
-  CMD2_ANY_LIST    ("directory.watch.added", std::bind(&directory_watch_added, std::placeholders::_2));
+  CMD2_ANY_LIST    ("directory.watch.added",   std::bind(&directory_watch_added, std::placeholders::_2));
+  CMD2_ANY_LIST    ("directory.watch.removed", std::bind(&directory_watch_removed, std::placeholders::_2));
 }
