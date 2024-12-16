@@ -208,15 +208,17 @@ View::next_focus(unsigned int i) {
   // If at the boundary, roll over
   if (m_focus == size() - 1) {
     m_focus = size();
-  } else {
-    // Move forward, stop at the boundary
-    if (m_focus == size())
-      m_focus = i - 1;
-    else
-      m_focus += i;
-    if (m_focus > size() - 1)
-      m_focus = size() - 1;
+    emit_changed();
+    return;
   }
+
+  // Move forward, stop at the boundary
+  if (m_focus == size()) // Needs special handling to ensure it's not off by one
+    m_focus = i - 1;
+  else
+    m_focus += i;
+  if (m_focus > size() - 1)
+    m_focus = size() - 1;
 
   emit_changed();
 }
@@ -229,12 +231,14 @@ View::prev_focus(unsigned int i) {
   // If at the boundary, roll over
   if (m_focus == size()) {
     m_focus = size() - 1;
-  } else {
-    // Move backward, stop at the boundary
-    m_focus -= i;
-    if (m_focus < 0 || m_focus > size())
-      m_focus = size();
+    emit_changed();
+    return;
   }
+
+  // Move backward, stop at the boundary
+  m_focus -= i;
+  if (m_focus < 0 || m_focus > size())
+    m_focus = size();
 
   emit_changed();
 }
