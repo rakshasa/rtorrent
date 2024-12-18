@@ -39,7 +39,6 @@
 #include <algorithm>
 #include <functional>
 #include <rak/functional.h>
-#include <rak/functional_fun.h>
 #include <torrent/download.h>
 #include <torrent/exceptions.h>
 

@@ -40,7 +40,6 @@
 #include <cstdint>
 #include <vector>
 #include <string>
-#include <rak/functional_fun.h>
 
 namespace torrent {
 class Object;
@@ -52,7 +51,7 @@ class CommandSchedulerItem;
 
 class CommandScheduler : public std::vector<CommandSchedulerItem*> {
 public:
-  typedef rak::function1<void, const std::string&> SlotString;
+  typedef std::function<void (const std::string&)> SlotString;
   typedef std::pair<int, int>                      Time;
   typedef std::vector<CommandSchedulerItem*>       base_type;
 
@@ -63,7 +62,7 @@ public:
   CommandScheduler() {}
   ~CommandScheduler();
 
-  void                set_slot_error_message(SlotString::base_type* s) { m_slotErrorMessage.set(s); }
+  void                set_slot_error_message(SlotString s) { m_slotErrorMessage = s; }
 
   // slot_error_message or something.
 
