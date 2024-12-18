@@ -37,8 +37,7 @@
 #ifndef RTORRENT_RPC_SCGI_H
 #define RTORRENT_RPC_SCGI_H
 
-#include <string>
-#include <rak/functional_fun.h>
+#include <functional>
 #include <torrent/event.h>
 
 #include "scgi_task.h"
@@ -51,7 +50,7 @@ namespace rpc {
 
 class lt_cacheline_aligned SCgi : public torrent::Event {
 public:
-  typedef rak::function2<bool, const char*, uint32_t>             slot_write;
+  typedef std::function<bool (const char*, uint32_t)>       slot_write;
 
   static const int max_tasks = 100;
 

@@ -100,7 +100,7 @@ CommandScheduler::call_item(value_type item) {
     rpc::call_object(item->command());
 
   } catch (torrent::input_error& e) {
-    if (m_slotErrorMessage.is_valid())
+    if (m_slotErrorMessage)
       m_slotErrorMessage("Scheduled command failed: " + item->key() + ": " + e.what());
   }
 
