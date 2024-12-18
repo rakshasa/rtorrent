@@ -43,7 +43,6 @@
 
 #include <rak/algorithm.h>
 #include <rak/functional.h>
-#include <rak/functional_fun.h>
 #include <torrent/utils/log.h>
 
 #include "core/manager.h"
