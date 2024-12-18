@@ -82,7 +82,7 @@ Control::Control() :
 
   m_taskShutdown.slot() = std::bind(&Control::handle_shutdown, this);
 
-  m_commandScheduler->set_slot_error_message(rak::mem_fn(m_core, &core::Manager::push_log_std));
+  m_commandScheduler->set_slot_error_message([this](const std::string& msg) { m_core->push_log_std(msg); });
 }
 
 Control::~Control() {
