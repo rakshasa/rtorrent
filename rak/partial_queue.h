@@ -37,6 +37,7 @@
 #ifndef RAK_PARTIAL_QUEUE_H
 #define RAK_PARTIAL_QUEUE_H
 
+#include <array>
 #include <cstring>
 #include <stdexcept>
 #include <cinttypes>
@@ -107,7 +108,7 @@ private:
   size_type           m_index;
   size_type           m_ceiling;
 
-  size_pair_type      m_layers[num_layers];
+  std::array<size_pair_type, num_layers> m_layers;
 };
 
 inline void
@@ -137,7 +138,7 @@ partial_queue::clear() {
   m_index = 0;
   m_ceiling = ceiling(num_layers - 1);
 
-  std::memset(m_layers, 0, num_layers * sizeof(size_pair_type));
+  m_layers = {};
 }
 
 inline bool
