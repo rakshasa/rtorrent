@@ -253,26 +253,26 @@ call_object(const torrent::Object& command, target_type target) {
   }
   case torrent::Object::TYPE_MAP:
   {
+    if (command.is_dict_key()) {
+      // This can/should be optimized...
+      torrent::Object tmp_command = command;
+
+      // Unquote the root function object so 'parse_command_execute'
+      // doesn't end up calling it.
+      //
+      // TODO: Only call this if mask_function is set?
+      uint32_t flags = tmp_command.flags() & torrent::Object::mask_function;
+      tmp_command.unset_flags(torrent::Object::mask_function);
+      tmp_command.set_flags((flags >> 1) & torrent::Object::mask_function);
+
+      parse_command_execute(target, &tmp_command);
+      return commands.call_command(tmp_command.as_dict_key().c_str(), tmp_command.as_dict_obj(), target);
+    }
+
     for (torrent::Object::map_const_iterator itr = command.as_map().begin(), last = command.as_map().end(); itr != last; itr++)
       call_object(itr->second, target);
 
     return torrent::Object();
-  }
-  case torrent::Object::TYPE_DICT_KEY:
-  {
-    // This can/should be optimized...
-    torrent::Object tmp_command = command;
-
-    // Unquote the root function object so 'parse_command_execute'
-    // doesn't end up calling it.
-    //
-    // TODO: Only call this if mask_function is set?
-    uint32_t flags = tmp_command.flags() & torrent::Object::mask_function;
-    tmp_command.unset_flags(torrent::Object::mask_function);
-    tmp_command.set_flags((flags >> 1) & torrent::Object::mask_function);
-
-    parse_command_execute(target, &tmp_command);
-    return commands.call_command(tmp_command.as_dict_key().c_str(), tmp_command.as_dict_obj(), target);
   }
   default:
     return torrent::Object();
