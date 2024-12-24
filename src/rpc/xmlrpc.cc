@@ -59,6 +59,9 @@ private:
 
 void
 XmlRpc::object_to_target(const torrent::Object& obj, int callFlags, rpc::target_type* target) {
+  if (callFlags & CommandMap::flag_no_target)
+    return;
+
   if (!obj.is_string()) {
     throw torrent::input_error("invalid parameters: target must be a string");
   }
