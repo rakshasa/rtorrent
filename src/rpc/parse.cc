@@ -194,10 +194,13 @@ parse_object(const char* first, const char* last, torrent::Object* dest, bool (*
     if (depth > 3)
       throw torrent::input_error("Max 3 parantheses per object allowed.");
 
-    *dest = torrent::Object::create_dict_key();
+    *dest = torrent::Object::create_map();
     dest->set_flags(torrent::Object::flag_function << (depth - 1));
 
-    first = parse_string(first + 1, last, &dest->as_dict_key(), &parse_is_delim_func);
+    std::string key;
+    torrent::Object val;
+
+    first = parse_string(first + 1, last, &key, &parse_is_delim_func);
     first = parse_skip_wspace(first, last);
 
     if (first == last || !parse_is_delim_func(*first))
@@ -205,10 +208,12 @@ parse_object(const char* first, const char* last, torrent::Object* dest, bool (*
 
     if (*first == ',') {
       // This will always create a list even for single argument functions...
-      dest->as_dict_obj() = torrent::Object::create_list();
-      first = parse_list(first + 1, last, &dest->as_dict_obj(), &parse_is_delim_func);
+      val = torrent::Object::create_list();
+      first = parse_list(first + 1, last, &val, &parse_is_delim_func);
       first = parse_skip_wspace(first, last);
     }
+
+    dest->as_map().insert({key, val});
 
     while (depth != 0 && first != last && *first == ')') {
       first++;

@@ -173,26 +173,6 @@ print_object_xml(const torrent::Object& obj, tinyxml2::XMLPrinter* printer) {
     }
     printer->CloseElement(true);
     break;
-  case torrent::Object::TYPE_DICT_KEY:
-    printer->OpenElement("array", true);
-
-    printer->OpenElement("value", true);
-    print_object_xml(obj.as_dict_key(), printer);
-    printer->CloseElement(true);
-
-    if (obj.as_dict_obj().is_list()) {
-      for (auto itr : obj.as_dict_obj().as_list()) {
-        printer->OpenElement("value", true);
-        print_object_xml(itr, printer);
-        printer->CloseElement(true);
-      }
-    } else {
-      printer->OpenElement("value", true);
-      print_object_xml(obj.as_dict_obj(), printer);
-      printer->CloseElement(true);
-    }
-    printer->CloseElement(true);
-    break;
   default:
     printer->OpenElement("i4", true);
     printer->PushText(0);
