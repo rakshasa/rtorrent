@@ -1,6 +1,6 @@
 m4_pattern_allow([PKG_CHECK_EXISTS])
 
-AC_INIT([rtorrent], [0.15.0], [sundell.software@gmail.com])
+AC_INIT([rtorrent],[0.15.0],[sundell.software@gmail.com])
 
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIRS([scripts])
@@ -12,7 +12,7 @@ AC_DEFINE([API_VERSION], [10], [api version])
 AC_PROG_RANLIB
 AC_PROG_CXX
 AC_SYS_LARGEFILE
-AC_PROG_LIBTOOL
+LT_INIT
 
 AX_CXX_COMPILE_STDCXX([14], [noext], [mandatory])
 
