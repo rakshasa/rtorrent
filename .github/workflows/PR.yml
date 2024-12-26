@@ -54,7 +54,7 @@ jobs:
         mkdir clang-tidy-result
     - name: Analyze
       run: |
-        git diff -U0 "$(git merge-base HEAD "upstream/${{ github.event.pull_request.base.ref }}")" | clang-tidy-diff -p1 -path build -export-fixes clang-tidy-result/fixes.yml
+        git diff -U0 "$(git merge-base HEAD "upstream/${{ github.event.pull_request.base.ref }}")" | clang-tidy-diff -p1 -path build -export-fixes clang-tidy-result/fixes.yml "-extra-arg=-include/${PWD}/config.h"
     - name: Save PR metadata
       run: |
         echo "${{ github.event.number }}" > clang-tidy-result/pr-id.txt
