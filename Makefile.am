@@ -22,6 +22,7 @@ EXTRA_DIST= \
 	rak/unordered_vector.h \
 	scripts/checks.m4 \
 	scripts/common.m4 \
-	scripts/attributes.m4
+	scripts/attributes.m4 \
+	utils/base64.h
 
 ACLOCAL_AMFLAGS = -I scripts
