@@ -69,7 +69,7 @@ XmlrpcTest::test_invalid_utf8() {
   // valid UTF-8, but doesn't check strings, and Object strings are
   // just a series of bytes so it reflects just fine.
   std::string input = "<?xml version=\"1.0\"?><methodCall><methodName>xmlrpc_reflect</methodName><params><param><value><string></string></value></param><param><value><string>\xc3\x28</string></value></param></params></methodCall>";
-  std::string expected = "<?xml version=\"1.0\"?><methodResponse><params><param><value><array><value><string>\xc3\x28</string></value></array></value></param></params></methodResponse>";
+  std::string expected = "<?xml version=\"1.0\"?><methodResponse><params><param><value><array><data><value><string>\xc3\x28</string></value></data></array></value></param></params></methodResponse>";
   std::string output;
   m_xmlrpc.process(input.c_str(), input.size(), [&output](const char* c, uint32_t l){ output.append(c, l); return true;});
   CPPUNIT_ASSERT_EQUAL(expected, output);
