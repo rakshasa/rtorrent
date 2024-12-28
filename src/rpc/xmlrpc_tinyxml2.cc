@@ -173,7 +173,7 @@ print_object_xml(const torrent::Object& obj, tinyxml2::XMLPrinter* printer) {
     break;
   case torrent::Object::TYPE_DICT_KEY:
     printer->OpenElement("array", true);
-
+    printer->OpenElement("data", true);
     printer->OpenElement("value", true);
     print_object_xml(obj.as_dict_key(), printer);
     printer->CloseElement(true);
@@ -189,6 +189,7 @@ print_object_xml(const torrent::Object& obj, tinyxml2::XMLPrinter* printer) {
       print_object_xml(obj.as_dict_obj(), printer);
       printer->CloseElement(true);
     }
+    printer->CloseElement(true);
     printer->CloseElement(true);
     break;
   default:
