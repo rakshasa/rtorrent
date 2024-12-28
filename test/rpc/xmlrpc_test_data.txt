@@ -1,50 +1,51 @@
 # Basic call
 <?xml version="1.0"?><methodCall><methodName>xmlrpc_reflect</methodName><params></params></methodCall>
-<?xml version="1.0"?><methodResponse><params><param><value><array/></value></param></params></methodResponse>
+<?xml version="1.0"?><methodResponse><params><param><value><array><data/></array></value></param></params></methodResponse>
 
 # Basic call without params
 <?xml version="1.0"?><methodCall><methodName>xmlrpc_reflect</methodName></methodCall>
-<?xml version="1.0"?><methodResponse><params><param><value><array/></value></param></params></methodResponse>
+<?xml version="1.0"?><methodResponse><params><param><value><array><data/></array></value></param></params></methodResponse>
 
 # UTF-8 string
 <?xml version="1.0"?><methodCall><methodName>xmlrpc_reflect</methodName><params><param><value><string></string></value></param><param><value><string>чао</string></value></param></params></methodCall>
-<?xml version="1.0"?><methodResponse><params><param><value><array><value><string>чао</string></value></array></value></param></params></methodResponse>
+<?xml version="1.0"?><methodResponse><params><param><value><array><data><value><string>чао</string></value></data></array></value></param></params></methodResponse>
 
 # emoji string
 <?xml version="1.0"?><methodCall><methodName>xmlrpc_reflect</methodName><params><param><value><string></string></value></param><param><value><string>😊</string></value></param></params></methodCall>
-<?xml version="1.0"?><methodResponse><params><param><value><array><value><string>😊</string></value></array></value></param></params></methodResponse>
+<?xml version="1.0"?><methodResponse><params><param><value><array><data><value><string>😊</string></value></data></array></value></param></params></methodResponse>
 
 # base64 data (which gets returned as a string)
 <?xml version="1.0"?><methodCall><methodName>xmlrpc_reflect</methodName><params><param><value><string></string></value></param><param><value><base64>Zm9vYmFy</base64></value></param></params></methodCall>
-<?xml version="1.0"?><methodResponse><params><param><value><array><value><string>foobar</string></value></array></value></param></params></methodResponse>
+<?xml version="1.0"?><methodResponse><params><param><value><array><data><value><string>foobar</string></value></data></array></value></param></params></methodResponse>
 
 # i8 ints
 <?xml version="1.0"?><methodCall><methodName>xmlrpc_reflect</methodName><params><param><value><string></string></value></param><param><value><i8>41</i8></value></param></params></methodCall>
-<?xml version="1.0"?><methodResponse><params><param><value><array><value><i8>41</i8></value></array></value></param></params></methodResponse>
+<?xml version="1.0"?><methodResponse><params><param><value><array><data><value><i8>41</i8></value></data></array></value></param></params></methodResponse>
 
 # i8 ints
 <?xml version="1.0"?><methodCall><methodName>xmlrpc_reflect</methodName><params><param><value><string></string></value></param><param><value><i8>2247483647</i8></value></param></params></methodCall>
-<?xml version="1.0"?><methodResponse><params><param><value><array><value><i8>2247483647</i8></value></array></value></param></params></methodResponse>
+<?xml version="1.0"?><methodResponse><params><param><value><array><data><value><i8>2247483647</i8></value></data></array></value></param></params></methodResponse>
 
 # negative i8 ints
 <?xml version="1.0"?><methodCall><methodName>xmlrpc_reflect</methodName><params><param><value><string></string></value></param><param><value><i8>-2347483647</i8></value></param></params></methodCall>
-<?xml version="1.0"?><methodResponse><params><param><value><array><value><i8>-2347483647</i8></value></array></value></param></params></methodResponse>
-
-# Empty array
-<?xml version="1.0"?><methodCall><methodName>xmlrpc_reflect</methodName><params><param><value><string></string></value></param><param><value><array><data><value><i8>2247483647</i8></value></data></array></value></param></params></methodCall>
-<?xml version="1.0"?><methodResponse><params><param><value><array><value><array><value><i8>2247483647</i8></value></array></value></array></value></param></params></methodResponse>
+<?xml version="1.0"?><methodResponse><params><param><value><array><data><value><i8>-2347483647</i8></value></data></array></value></param></params></methodResponse>
 
 # Simple array
+<?xml version="1.0"?><methodCall><methodName>xmlrpc_reflect</methodName><params><param><value><string></string></value></param><param><value><array><data><value><i8>2247483647</i8></value></data></array></value></param></params></methodCall>
+<?xml version="1.0"?><methodResponse><params><param><value><array><data><value><array><data><value><i8>2247483647</i8></value></data></array></value></data></array></value></param></params></methodResponse>
+
+# Empty array
 <?xml version="1.0"?><methodCall><methodName>xmlrpc_reflect</methodName><params><param><value><string></string></value></param><param><value><array><data></data></array></value></param></params></methodCall>
-<?xml version="1.0"?><methodResponse><params><param><value><array><value><array/></value></array></value></param></params></methodResponse>
+<?xml version="1.0"?><methodResponse><params><param><value><array><data><value><array><data/></array></value></data></array></value></param></params></methodResponse>
 
 # Empty struct
 <?xml version="1.0"?><methodCall><methodName>xmlrpc_reflect</methodName><params><param><value><string></string></value></param><param><value><struct></struct></value></param></params></methodCall>
-<?xml version="1.0"?><methodResponse><params><param><value><array><value><struct/></value></array></value></param></params></methodResponse>
+<?xml version="1.0"?><methodResponse><params><param><value><array><data><value><struct/></value></data></array></value></param></params></methodResponse>
 
 # Simple struct
+
 <?xml version="1.0"?><methodCall><methodName>xmlrpc_reflect</methodName><params><param><value><string></string></value></param><param><value><struct><member><name>lowerBound</name><value><i8>18</i8></value></member><member><name>upperBound</name><value><i8>139</i8></value></member></struct></value></param></params></methodCall>
-<?xml version="1.0"?><methodResponse><params><param><value><array><value><struct><member><name>lowerBound</name><value><i8>18</i8></value></member><member><name>upperBound</name><value><i8>139</i8></value></member></struct></value></array></value></param></params></methodResponse>
+<?xml version="1.0"?><methodResponse><params><param><value><array><data><value><struct><member><name>lowerBound</name><value><i8>18</i8></value></member><member><name>upperBound</name><value><i8>139</i8></value></member></struct></value></data></array></value></param></params></methodResponse>
 
 # Invalid - missing method
 <?xml version="1.0"?><methodCall><methodName>no_such_method</methodName><params><param><value><i8>41</i8></value></param></params></methodCall>
