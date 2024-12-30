@@ -18,9 +18,9 @@
 <?xml version="1.0"?><methodCall><methodName>xmlrpc_reflect</methodName><params><param><value><string></string></value></param><param><value><base64>Zm9vYmFy</base64></value></param></params></methodCall>
 <?xml version="1.0"?><methodResponse><params><param><value><array><value><string>foobar</string></value></array></value></param></params></methodResponse>
 
-# i4 ints
-<?xml version="1.0"?><methodCall><methodName>xmlrpc_reflect</methodName><params><param><value><string></string></value></param><param><value><i4>41</i4></value></param></params></methodCall>
-<?xml version="1.0"?><methodResponse><params><param><value><array><value><i4>41</i4></value></array></value></param></params></methodResponse>
+# i8 ints
+<?xml version="1.0"?><methodCall><methodName>xmlrpc_reflect</methodName><params><param><value><string></string></value></param><param><value><i8>41</i8></value></param></params></methodCall>
+<?xml version="1.0"?><methodResponse><params><param><value><array><value><i8>41</i8></value></array></value></param></params></methodResponse>
 
 # i8 ints
 <?xml version="1.0"?><methodCall><methodName>xmlrpc_reflect</methodName><params><param><value><string></string></value></param><param><value><i8>2247483647</i8></value></param></params></methodCall>
@@ -43,37 +43,37 @@
 <?xml version="1.0"?><methodResponse><params><param><value><array><value><struct/></value></array></value></param></params></methodResponse>
 
 # Simple struct
-<?xml version="1.0"?><methodCall><methodName>xmlrpc_reflect</methodName><params><param><value><string></string></value></param><param><value><struct><member><name>lowerBound</name><value><i4>18</i4></value></member><member><name>upperBound</name><value><i4>139</i4></value></member></struct></value></param></params></methodCall>
-<?xml version="1.0"?><methodResponse><params><param><value><array><value><struct><member><name>lowerBound</name><value><i4>18</i4></value></member><member><name>upperBound</name><value><i4>139</i4></value></member></struct></value></array></value></param></params></methodResponse>
+<?xml version="1.0"?><methodCall><methodName>xmlrpc_reflect</methodName><params><param><value><string></string></value></param><param><value><struct><member><name>lowerBound</name><value><i8>18</i8></value></member><member><name>upperBound</name><value><i8>139</i8></value></member></struct></value></param></params></methodCall>
+<?xml version="1.0"?><methodResponse><params><param><value><array><value><struct><member><name>lowerBound</name><value><i8>18</i8></value></member><member><name>upperBound</name><value><i8>139</i8></value></member></struct></value></array></value></param></params></methodResponse>
 
 # Invalid - missing method
-<?xml version="1.0"?><methodCall><methodName>no_such_method</methodName><params><param><value><i4>41</i4></value></param></params></methodCall>
-<?xml version="1.0"?><methodResponse><fault><struct><member><name>faultCode</name><value><i4>-506</i4></value></member><member><name>faultString</name><value><string>method 'no_such_method' not defined</string></value></member></struct></fault></methodResponse>
+<?xml version="1.0"?><methodCall><methodName>no_such_method</methodName><params><param><value><i8>41</i8></value></param></params></methodCall>
+<?xml version="1.0"?><methodResponse><fault><struct><member><name>faultCode</name><value><i8>-506</i8></value></member><member><name>faultString</name><value><string>method 'no_such_method' not defined</string></value></member></struct></fault></methodResponse>
 
-# Invalid - i4 target
-<?xml version="1.0"?><methodCall><methodName>xmlrpc_reflect</methodName><params><param><value><i4>41</i4></value></param></params></methodCall>
-<?xml version="1.0"?><methodResponse><fault><struct><member><name>faultCode</name><value><i4>-500</i4></value></member><member><name>faultString</name><value><string>invalid parameters: target must be a string</string></value></member></struct></fault></methodResponse>
+# Invalid - i8 target
+<?xml version="1.0"?><methodCall><methodName>xmlrpc_reflect</methodName><params><param><value><i8>41</i8></value></param></params></methodCall>
+<?xml version="1.0"?><methodResponse><fault><struct><member><name>faultCode</name><value><i8>-500</i8></value></member><member><name>faultString</name><value><string>invalid parameters: target must be a string</string></value></member></struct></fault></methodResponse>
 
 # Invalid - empty int tag
-<?xml version="1.0"?><methodCall><methodName>xmlrpc_reflect</methodName><params><param><value><string></string></value></param><param><value><i4/></value></param></params></methodCall>
-<?xml version="1.0"?><methodResponse><fault><struct><member><name>faultCode</name><value><i4>-501</i4></value></member><member><name>faultString</name><value><string>unable to parse empty integer</string></value></member></struct></fault></methodResponse>
+<?xml version="1.0"?><methodCall><methodName>xmlrpc_reflect</methodName><params><param><value><string></string></value></param><param><value><i8/></value></param></params></methodCall>
+<?xml version="1.0"?><methodResponse><fault><struct><member><name>faultCode</name><value><i8>-501</i8></value></member><member><name>faultString</name><value><string>unable to parse empty integer</string></value></member></struct></fault></methodResponse>
 
 # Invalid - empty int text
-<?xml version="1.0"?><methodCall><methodName>xmlrpc_reflect</methodName><params><param><value><string></string></value></param><param><value><i4></i4></value></param></params></methodCall>
-<?xml version="1.0"?><methodResponse><fault><struct><member><name>faultCode</name><value><i4>-501</i4></value></member><member><name>faultString</name><value><string>unable to parse empty integer</string></value></member></struct></fault></methodResponse>
+<?xml version="1.0"?><methodCall><methodName>xmlrpc_reflect</methodName><params><param><value><string></string></value></param><param><value><i8></i8></value></param></params></methodCall>
+<?xml version="1.0"?><methodResponse><fault><struct><member><name>faultCode</name><value><i8>-501</i8></value></member><member><name>faultString</name><value><string>unable to parse empty integer</string></value></member></struct></fault></methodResponse>
 
 # Invalid - broken XML
-thodCall><methodName>test_a</methodName><params><param><value><i4>41</i4></value></param></params></method
-<?xml version="1.0"?><methodResponse><fault><struct><member><name>faultCode</name><value><i4>-503</i4></value></member><member><name>faultString</name><value><string>Error=XML_ERROR_PARSING_ELEMENT ErrorID=6 (0x6) Line number=1: XMLElement name=method</string></value></member></struct></fault></methodResponse>
+thodCall><methodName>test_a</methodName><params><param><value><i8>41</i8></value></param></params></method
+<?xml version="1.0"?><methodResponse><fault><struct><member><name>faultCode</name><value><i8>-503</i8></value></member><member><name>faultString</name><value><string>Error=XML_ERROR_PARSING_ELEMENT ErrorID=6 (0x6) Line number=1: XMLElement name=method</string></value></member></struct></fault></methodResponse>
 
-# Invalid - non-integer i4
-<?xml version="1.0"?><methodCall><methodName>xmlrpc_reflect</methodName><params><param><value><i4>string value</i4></value></param></params></methodCall>
-<?xml version="1.0"?><methodResponse><fault><struct><member><name>faultCode</name><value><i4>-501</i4></value></member><member><name>faultString</name><value><string>unable to parse integer value</string></value></member></struct></fault></methodResponse>
+# Invalid - non-integer i8
+<?xml version="1.0"?><methodCall><methodName>xmlrpc_reflect</methodName><params><param><value><i8>string value</i8></value></param></params></methodCall>
+<?xml version="1.0"?><methodResponse><fault><struct><member><name>faultCode</name><value><i8>-501</i8></value></member><member><name>faultString</name><value><string>unable to parse integer value</string></value></member></struct></fault></methodResponse>
 
-# Invalid - float i4
-<?xml version="1.0"?><methodCall><methodName>xmlrpc_reflect</methodName><params><param><value><i4>3.14</i4></value></param></params></methodCall>
-<?xml version="1.0"?><methodResponse><fault><struct><member><name>faultCode</name><value><i4>-501</i4></value></member><member><name>faultString</name><value><string>unable to parse integer value</string></value></member></struct></fault></methodResponse>
+# Invalid - float i8
+<?xml version="1.0"?><methodCall><methodName>xmlrpc_reflect</methodName><params><param><value><i8>3.14</i8></value></param></params></methodCall>
+<?xml version="1.0"?><methodResponse><fault><struct><member><name>faultCode</name><value><i8>-501</i8></value></member><member><name>faultString</name><value><string>unable to parse integer value</string></value></member></struct></fault></methodResponse>
 
 # Invalid - non-boolean boolean
 <?xml version="1.0"?><methodCall><methodName>xmlrpc_reflect</methodName><params><param><value><boolean>string value</boolean></value></param></params></methodCall>
-<?xml version="1.0"?><methodResponse><fault><struct><member><name>faultCode</name><value><i4>-501</i4></value></member><member><name>faultString</name><value><string>unknown boolean value: string value</string></value></member></struct></fault></methodResponse>
+<?xml version="1.0"?><methodResponse><fault><struct><member><name>faultCode</name><value><i8>-501</i8></value></member><member><name>faultString</name><value><string>unknown boolean value: string value</string></value></member></struct></fault></methodResponse>
