@@ -155,6 +155,7 @@ libsub_root_a_SOURCES = \
 	ui/root.cc \
 	ui/root.h \
 	\
+	utils/base64.h \
 	utils/directory.cc \
 	utils/directory.h \
 	utils/file_status_cache.cc \
