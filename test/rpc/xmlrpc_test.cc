@@ -15,6 +15,89 @@ torrent::Object xmlrpc_cmd_test_reflect(rpc::target_type t, const torrent::Objec
 void initialize_command_dynamic();
 
 #if defined(HAVE_XMLRPC_TINYXML2) && !defined(HAVE_XMLRPC_C)
+
+std::vector<std::tuple<std::string, std::string, std::string>> basic_requests = {
+  std::make_tuple("Basic call",
+                  "<?xml version=\"1.0\"?><methodCall><methodName>xmlrpc_reflect</methodName><params></params></methodCall>",
+                  "<?xml version=\"1.0\"?><methodResponse><params><param><value><array><data/></array></value></param></params></methodResponse>"),
+
+  std::make_tuple("Basic call without params",
+                  "<?xml version=\"1.0\"?><methodCall><methodName>xmlrpc_reflect</methodName></methodCall>",
+                  "<?xml version=\"1.0\"?><methodResponse><params><param><value><array><data/></array></value></param></params></methodResponse>"),
+
+  std::make_tuple("UTF-8 string",
+                  "<?xml version=\"1.0\"?><methodCall><methodName>xmlrpc_reflect</methodName><params><param><value><string></string></value></param><param><value><string>чао</string></value></param></params></methodCall>",
+                  "<?xml version=\"1.0\"?><methodResponse><params><param><value><array><data><value><string>чао</string></value></data></array></value></param></params></methodResponse>"),
+
+  std::make_tuple("emoji string",
+                  "<?xml version=\"1.0\"?><methodCall><methodName>xmlrpc_reflect</methodName><params><param><value><string></string></value></param><param><value><string>😊</string></value></param></params></methodCall>",
+                  "<?xml version=\"1.0\"?><methodResponse><params><param><value><array><data><value><string>😊</string></value></data></array></value></param></params></methodResponse>"),
+
+  std::make_tuple("base64 data (which gets returned as a string)",
+                  "<?xml version=\"1.0\"?><methodCall><methodName>xmlrpc_reflect</methodName><params><param><value><string></string></value></param><param><value><base64>Zm9vYmFy</base64></value></param></params></methodCall>",
+                  "<?xml version=\"1.0\"?><methodResponse><params><param><value><array><data><value><string>foobar</string></value></data></array></value></param></params></methodResponse>"),
+
+  std::make_tuple("i8 ints",
+                  "<?xml version=\"1.0\"?><methodCall><methodName>xmlrpc_reflect</methodName><params><param><value><string></string></value></param><param><value><i8>41</i8></value></param></params></methodCall>",
+                  "<?xml version=\"1.0\"?><methodResponse><params><param><value><array><data><value><i8>41</i8></value></data></array></value></param></params></methodResponse>"),
+
+  std::make_tuple("i8 ints",
+                  "<?xml version=\"1.0\"?><methodCall><methodName>xmlrpc_reflect</methodName><params><param><value><string></string></value></param><param><value><i8>2247483647</i8></value></param></params></methodCall>",
+                  "<?xml version=\"1.0\"?><methodResponse><params><param><value><array><data><value><i8>2247483647</i8></value></data></array></value></param></params></methodResponse>"),
+
+  std::make_tuple("negative i8 ints",
+                  "<?xml version=\"1.0\"?><methodCall><methodName>xmlrpc_reflect</methodName><params><param><value><string></string></value></param><param><value><i8>-2347483647</i8></value></param></params></methodCall>",
+                  "<?xml version=\"1.0\"?><methodResponse><params><param><value><array><data><value><i8>-2347483647</i8></value></data></array></value></param></params></methodResponse>"),
+
+  std::make_tuple("Simple array",
+                  "<?xml version=\"1.0\"?><methodCall><methodName>xmlrpc_reflect</methodName><params><param><value><string></string></value></param><param><value><array><data><value><i8>2247483647</i8></value></data></array></value></param></params></methodCall>",
+                  "<?xml version=\"1.0\"?><methodResponse><params><param><value><array><data><value><array><data><value><i8>2247483647</i8></value></data></array></value></data></array></value></param></params></methodResponse>"),
+
+  std::make_tuple("Empty array",
+                  "<?xml version=\"1.0\"?><methodCall><methodName>xmlrpc_reflect</methodName><params><param><value><string></string></value></param><param><value><array><data></data></array></value></param></params></methodCall>",
+                  "<?xml version=\"1.0\"?><methodResponse><params><param><value><array><data><value><array><data/></array></value></data></array></value></param></params></methodResponse>"),
+
+  std::make_tuple("Empty struct",
+                  "<?xml version=\"1.0\"?><methodCall><methodName>xmlrpc_reflect</methodName><params><param><value><string></string></value></param><param><value><struct></struct></value></param></params></methodCall>",
+                  "<?xml version=\"1.0\"?><methodResponse><params><param><value><array><data><value><struct/></value></data></array></value></param></params></methodResponse>"),
+
+  std::make_tuple("Simple struct",
+                  "<?xml version=\"1.0\"?><methodCall><methodName>xmlrpc_reflect</methodName><params><param><value><string></string></value></param><param><value><struct><member><name>lowerBound</name><value><i8>18</i8></value></member><member><name>upperBound</name><value><i8>139</i8></value></member></struct></value></param></params></methodCall>",
+                  "<?xml version=\"1.0\"?><methodResponse><params><param><value><array><data><value><struct><member><name>lowerBound</name><value><i8>18</i8></value></member><member><name>upperBound</name><value><i8>139</i8></value></member></struct></value></data></array></value></param></params></methodResponse>"),
+
+  std::make_tuple("Invalid - missing method",
+                  "<?xml version=\"1.0\"?><methodCall><methodName>no_such_method</methodName><params><param><value><i8>41</i8></value></param></params></methodCall>",
+                  "<?xml version=\"1.0\"?><methodResponse><fault><struct><member><name>faultCode</name><value><i8>-506</i8></value></member><member><name>faultString</name><value><string>method 'no_such_method' not defined</string></value></member></struct></fault></methodResponse>"),
+
+  std::make_tuple("Invalid - i8 target",
+                  "<?xml version=\"1.0\"?><methodCall><methodName>xmlrpc_reflect</methodName><params><param><value><i8>41</i8></value></param></params></methodCall>",
+                  "<?xml version=\"1.0\"?><methodResponse><fault><struct><member><name>faultCode</name><value><i8>-500</i8></value></member><member><name>faultString</name><value><string>invalid parameters: target must be a string</string></value></member></struct></fault></methodResponse>"),
+
+  std::make_tuple("Invalid - empty int tag",
+                  "<?xml version=\"1.0\"?><methodCall><methodName>xmlrpc_reflect</methodName><params><param><value><string></string></value></param><param><value><i8/></value></param></params></methodCall>",
+                  "<?xml version=\"1.0\"?><methodResponse><fault><struct><member><name>faultCode</name><value><i8>-501</i8></value></member><member><name>faultString</name><value><string>unable to parse empty integer</string></value></member></struct></fault></methodResponse>"),
+
+  std::make_tuple("Invalid - empty int text",
+                  "<?xml version=\"1.0\"?><methodCall><methodName>xmlrpc_reflect</methodName><params><param><value><string></string></value></param><param><value><i8></i8></value></param></params></methodCall>",
+                  "<?xml version=\"1.0\"?><methodResponse><fault><struct><member><name>faultCode</name><value><i8>-501</i8></value></member><member><name>faultString</name><value><string>unable to parse empty integer</string></value></member></struct></fault></methodResponse>"),
+
+  std::make_tuple("Invalid - broken XML",
+                  "thodCall><methodName>test_a</methodName><params><param><value><i8>41</i8></value></param></params></method",
+                  "<?xml version=\"1.0\"?><methodResponse><fault><struct><member><name>faultCode</name><value><i8>-503</i8></value></member><member><name>faultString</name><value><string>Error=XML_ERROR_PARSING_ELEMENT ErrorID=6 (0x6) Line number=1: XMLElement name=method</string></value></member></struct></fault></methodResponse>"),
+
+  std::make_tuple("Invalid - non-integer i8",
+                  "<?xml version=\"1.0\"?><methodCall><methodName>xmlrpc_reflect</methodName><params><param><value><i8>string value</i8></value></param></params></methodCall>",
+                  "<?xml version=\"1.0\"?><methodResponse><fault><struct><member><name>faultCode</name><value><i8>-501</i8></value></member><member><name>faultString</name><value><string>unable to parse integer value</string></value></member></struct></fault></methodResponse>"),
+
+  std::make_tuple("Invalid - float i8",
+                  "<?xml version=\"1.0\"?><methodCall><methodName>xmlrpc_reflect</methodName><params><param><value><i8>3.14</i8></value></param></params></methodCall>",
+                  "<?xml version=\"1.0\"?><methodResponse><fault><struct><member><name>faultCode</name><value><i8>-501</i8></value></member><member><name>faultString</name><value><string>unable to parse integer value</string></value></member></struct></fault></methodResponse>"),
+
+  std::make_tuple("Invalid - non-boolean boolean",
+                  "<?xml version=\"1.0\"?><methodCall><methodName>xmlrpc_reflect</methodName><params><param><value><boolean>string value</boolean></value></param></params></methodCall>",
+                  "<?xml version=\"1.0\"?><methodResponse><fault><struct><member><name>faultCode</name><value><i8>-501</i8></value></member><member><name>faultString</name><value><string>unknown boolean value: string value</string></value></member></struct></fault></methodResponse>")
+};
+
 void
 XmlrpcTest::setUp() {
   m_commandItr = m_commands;
@@ -30,36 +113,10 @@ XmlrpcTest::setUp() {
 
 void
 XmlrpcTest::test_basics() {
-  std::ifstream file; file.open("rpc/xmlrpc_test_data.txt");
-  CPPUNIT_ASSERT(file.good());
-  std::vector<std::string> titles;
-  std::vector<std::string> inputs;
-  std::vector<std::string> outputs;
-  std::string line;
-  int index = 0;
-  // Read file into inputs/outputs
-  while (std::getline(file, line)) {
-    if (line.size() == 0) {
-      continue;
-    }
-    if (line[0] == '#') {
-      titles.push_back(line);
-      continue;
-    }
-    if (index % 2) {
-      outputs.push_back(line);
-    } else {
-      inputs.push_back(line);
-    }
-    index++;
-  }
-
-  // Sanity check the above parser
-  CPPUNIT_ASSERT_MESSAGE("Could not parse test data", inputs.size() > 0 && inputs.size() == outputs.size() && inputs.size() == titles.size());
-  for (int i = 0; i < inputs.size(); i++) {
+  for (auto& test : basic_requests) {
     std::string output;
-    m_xmlrpc.process(inputs[i].c_str(), inputs[i].size(), [&output](const char* c, uint32_t l){ output.append(c, l); return true;});
-    CPPUNIT_ASSERT_EQUAL_MESSAGE(titles[i], std::string(outputs[i]), output);
+    m_xmlrpc.process(std::get<1>(test).c_str(), std::get<1>(test).size(), [&output](const char* c, uint32_t l){ output.append(c, l); return true;});
+    CPPUNIT_ASSERT_EQUAL_MESSAGE(std::get<0>(test), std::get<2>(test), output);
   }
 }
 
