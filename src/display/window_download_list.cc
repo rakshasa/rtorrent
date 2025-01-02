@@ -72,6 +72,27 @@ WindowDownloadList::set_view(core::View* l) {
     m_changed_itr = m_view->signal_changed().insert(m_view->signal_changed().begin(), std::bind(&Window::mark_dirty, this));
 }
 
+int
+WindowDownloadList::page_size(const std::string layout_name) {
+  // Calculate the page size for torrents. This is a public method
+  // because it's also used to determine the default size for page
+  // up/down actions.
+  int layout_height;
+  if (layout_name == "full") {
+    layout_height = 3;
+  } else if (layout_name == "compact") {
+    layout_height = 1;
+  } else {
+    return 0;
+  }
+  return m_canvas->height() / layout_height;
+}
+
+int
+WindowDownloadList::page_size() {
+  return page_size(rpc::call_command_string("ui.torrent_list.layout"));
+}
+
 void
 WindowDownloadList::redraw() {
   m_slotSchedule(this, (cachedTime + rak::timer::from_seconds(1)).round_seconds());
@@ -95,24 +116,14 @@ WindowDownloadList::redraw() {
       m_canvas->print(m_canvas->width() - 16, 0, "[%5d of %-5d]", item_idx + 1, m_view->size());
   }
 
-  int layout_height;
   const std::string layout_name = rpc::call_command_string("ui.torrent_list.layout");
-
-  if (layout_name == "full") {
-    layout_height = 3;
-  } else if (layout_name == "compact") {
-    layout_height = 1;
-  } else {
-    m_canvas->print(0, 0, "INVALID ui.torrent_list.layout '%s'", layout_name.c_str());
-    return;
-  }
 
   typedef std::pair<core::View::iterator, core::View::iterator> Range;
 
   Range range = rak::advance_bidirectional(m_view->begin_visible(),
                                            m_view->focus() != m_view->end_visible() ? m_view->focus() : m_view->begin_visible(),
                                            m_view->end_visible(),
-                                           m_canvas->height() / layout_height);
+                                           page_size(layout_name));
 
   // Make sure we properly fill out the last lines so it looks like
   // there are more torrents, yet don't hide it if we got the last one
