@@ -1,39 +1,3 @@
-// rTorrent - BitTorrent client
-// Copyright (C) 2005-2011, Jari Sundell
-//
-// This program is free software; you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation; either version 2 of the License, or
-// (at your option) any later version.
-// 
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-// 
-// You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-//
-// In addition, as a special exception, the copyright holders give
-// permission to link the code of portions of this program with the
-// OpenSSL library under certain conditions as described in each
-// individual source file, and distribute linked combinations
-// including the two.
-//
-// You must obey the GNU General Public License in all respects for
-// all of the code used other than OpenSSL.  If you modify file(s)
-// with this exception, you may extend this exception to your version
-// of the file(s), but you are not obligated to do so.  If you do not
-// wish to do so, delete this exception statement from your version.
-// If you delete this exception statement from all source files in the
-// program, then also delete it here.
-//
-// Contact:  Jari Sundell <jaris@ifi.uio.no>
-//
-//           Skomakerveien 33
-//           3185 Skoppum, NORWAY
-
 #include "config.h"
 
 #include <sys/types.h>
@@ -47,8 +11,10 @@
 
 #include "core/manager.h"
 #include "core/view_manager.h"
+#include "display/canvas.h"
 #include "ui/root.h"
 #include "ui/download_list.h"
+#include "display/color_map.h"
 #include "rpc/parse.h"
 
 #include "globals.h"
@@ -796,6 +762,13 @@ cmd_status_throttle_names(bool up, const torrent::Object::list_type& args) {
   return torrent::Object();
 }
 
+torrent::Object
+apply_set_color(int color_id, const torrent::Object::string_type& color_str) {
+  control->object_storage()->set_str_string(display::color_vars[color_id], color_str);
+  display::Canvas::build_colors();
+  return torrent::Object();
+}
+
 void
 initialize_command_ui() {
   CMD2_VAR_STRING("keys.layout", "qwerty");
@@ -893,4 +866,15 @@ initialize_command_ui() {
 
   CMD2_ANY_LIST ("elapsed.less",         std::bind(&apply_elapsed_less, std::placeholders::_2));
   CMD2_ANY_LIST ("elapsed.greater",      std::bind(&apply_elapsed_greater, std::placeholders::_2));
+
+  // Build set/get methods for all color definitions
+  for (int color_id = 1; color_id < display::RCOLOR_MAX; color_id++) {
+    control->object_storage()->insert_str(display::color_vars[color_id], "", rpc::object_storage::flag_string_type);
+    CMD2_ANY_STRING(std::string(display::color_vars[color_id]) + ".set", [color_id](const auto&, const auto& arg) {
+      return apply_set_color(color_id, arg);
+    });
+    CMD2_ANY(display::color_vars[color_id], [color_id](const auto&, const auto&) {
+      return control->object_storage()->get_str(display::color_vars[color_id]);
+    });
+  }
 }

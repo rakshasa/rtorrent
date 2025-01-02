@@ -1,41 +1,6 @@
-// rTorrent - BitTorrent client
-// Copyright (C) 2005-2011, Jari Sundell
-//
-// This program is free software; you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation; either version 2 of the License, or
-// (at your option) any later version.
-// 
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-// 
-// You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-//
-// In addition, as a special exception, the copyright holders give
-// permission to link the code of portions of this program with the
-// OpenSSL library under certain conditions as described in each
-// individual source file, and distribute linked combinations
-// including the two.
-//
-// You must obey the GNU General Public License in all respects for
-// all of the code used other than OpenSSL.  If you modify file(s)
-// with this exception, you may extend this exception to your version
-// of the file(s), but you are not obligated to do so.  If you do not
-// wish to do so, delete this exception statement from your version.
-// If you delete this exception statement from all source files in the
-// program, then also delete it here.
-//
-// Contact:  Jari Sundell <jaris@ifi.uio.no>
-//
-//           Skomakerveien 33
-//           3185 Skoppum, NORWAY
-
 #include "config.h"
 
+#include "display/color_map.h"
 #include <rak/algorithm.h>
 
 #include "core/download.h"
@@ -50,14 +15,14 @@
 namespace display {
 
 WindowDownloadList::WindowDownloadList() :
-  Window(new Canvas, 0, 120, 1, extent_full, extent_full),
-  m_view(NULL) {
+    Window(new Canvas, 0, 120, 1, extent_full, extent_full),
+    m_view(NULL) {
 }
 
 WindowDownloadList::~WindowDownloadList() {
   if (m_view != NULL)
     m_view->signal_changed().erase(m_changed_itr);
-  
+
   m_view = NULL;
 }
 
@@ -72,8 +37,26 @@ WindowDownloadList::set_view(core::View* l) {
     m_changed_itr = m_view->signal_changed().insert(m_view->signal_changed().begin(), std::bind(&Window::mark_dirty, this));
 }
 
+// Return a pair of ints, representing a) the ncurses attributes and b) the ncurses color pair ID to use
+std::pair<int, int>
+WindowDownloadList::get_attr_color(core::View::iterator selected) {
+  core::Download* item       = *selected;
+  unsigned long   focus_attr = selected == m_view->focus() ? m_canvas->attr_map().at(RCOLOR_FOCUS) : 0;
+  int             offset     = (((selected - m_view->begin_visible()) & 1) + 1) * RCOLOR_MAX; // Determine the even/odd offset for the color pair
+  bool            active     = item->is_open() && item->is_active();
+  int             title_color;
+  if (item->is_done())
+    title_color = (active ? item->info()->up_rate()->rate() ? RCOLOR_SEEDING : RCOLOR_COMPLETE : RCOLOR_STOPPED) + offset;
+  else
+    title_color = (active ? item->info()->down_rate()->rate() ? RCOLOR_LEECHING : RCOLOR_INCOMPLETE : RCOLOR_QUEUED) + offset;
+  return std::make_pair(m_canvas->attr_map().at(title_color) | focus_attr, title_color);
+}
+
 void
 WindowDownloadList::redraw() {
+  if (m_canvas->daemon())
+    return;
+
   m_slotSchedule(this, (cachedTime + rak::timer::from_seconds(1)).round_seconds());
 
   m_canvas->erase();
@@ -81,7 +64,7 @@ WindowDownloadList::redraw() {
   if (m_view == NULL)
     return;
 
-  m_canvas->print(0, 0, "%s", ("[View: " + m_view->name() + (m_view->get_filter_temp().is_empty() ? "" : " (filtered)") + "]").c_str());
+  m_canvas->print("%s", ("[View: " + m_view->name() + (m_view->get_filter_temp().is_empty() ? "" : " (filtered)") + "]").c_str());
 
   if (m_view->empty_visible() || m_canvas->width() < 5 || m_canvas->height() < 2)
     return;
@@ -95,7 +78,9 @@ WindowDownloadList::redraw() {
       m_canvas->print(m_canvas->width() - 16, 0, "[%5d of %-5d]", item_idx + 1, m_view->size());
   }
 
-  int layout_height;
+  m_canvas->set_attr(0, 0, -1, RCOLOR_TITLE);
+
+  int               layout_height;
   const std::string layout_name = rpc::call_command_string("ui.torrent_list.layout");
 
   if (layout_name == "full") {
@@ -107,12 +92,10 @@ WindowDownloadList::redraw() {
     return;
   }
 
-  typedef std::pair<core::View::iterator, core::View::iterator> Range;
-
-  Range range = rak::advance_bidirectional(m_view->begin_visible(),
-                                           m_view->focus() != m_view->end_visible() ? m_view->focus() : m_view->begin_visible(),
-                                           m_view->end_visible(),
-                                           m_canvas->height() / layout_height);
+  ViewRange range = rak::advance_bidirectional(m_view->begin_visible(),
+                                               m_view->focus() != m_view->end_visible() ? m_view->focus() : m_view->begin_visible(),
+                                               m_view->end_visible(),
+                                               m_canvas->height() / layout_height);
 
   // Make sure we properly fill out the last lines so it looks like
   // there are more torrents, yet don't hide it if we got the last one
@@ -120,8 +103,8 @@ WindowDownloadList::redraw() {
   if (range.second != m_view->end_visible())
     ++range.second;
 
-  int pos = 1;
-  char buffer[m_canvas->width() + 1];
+  int   pos = 1;
+  char  buffer[m_canvas->width() + 1];
   char* last = buffer + m_canvas->width() - 2 + 1;
 
   // Add a proper 'column info' method.
@@ -134,25 +117,38 @@ WindowDownloadList::redraw() {
 
   if (layout_name == "full") {
     while (range.first != range.second) {
+      bool      is_focused  = range.first == m_view->focus();
+      char      focus_char  = is_focused ? '*' : ' ';
+      ColorKind focus_color = is_focused ? RCOLOR_FOCUS : RCOLOR_LABEL;
+      auto      attr_color  = get_attr_color(range.first);
+
       print_download_title(buffer, last, *range.first);
-      m_canvas->print(0, pos++, "%c %s", range.first == m_view->focus() ? '*' : ' ', buffer);
+      m_canvas->print(0, pos, "%c %s", focus_char, buffer);
+      m_canvas->set_attr(2, pos++, -1, attr_color.first, attr_color.second);
+
       print_download_info_full(buffer, last, *range.first);
-      m_canvas->print(0, pos++, "%c %s", range.first == m_view->focus() ? '*' : ' ', buffer);
+      m_canvas->print(0, pos, "%c %s", focus_char, buffer);
+      m_canvas->set_attr(2, pos++, -1, focus_color);
+
       print_download_status(buffer, last, *range.first);
-      m_canvas->print(0, pos++, "%c %s", range.first == m_view->focus() ? '*' : ' ', buffer);
+      m_canvas->print(0, pos, "%c %s", focus_char, buffer);
+      m_canvas->set_attr(2, pos++, -1, focus_color);
 
       range.first++;
     }
 
   } else {
     while (range.first != range.second) {
+      char focus_char = range.first == m_view->focus() ? '*' : ' ';
+      auto attr_color = get_attr_color(range.first);
+
       print_download_info_compact(buffer, last, *range.first);
-      m_canvas->set_default_attributes(range.first == m_view->focus() ? A_REVERSE : A_NORMAL);
-      m_canvas->print(0, pos++, "%c %s", range.first == m_view->focus() ? '*' : ' ', buffer);
+      m_canvas->print(0, pos, "%c %s", focus_char, buffer);
+      m_canvas->set_attr(2, pos++, -1, attr_color.first, attr_color.second);
 
       range.first++;
     }
   }
 }
 
-}
+} // namespace display
