@@ -61,21 +61,21 @@ public:
   rpc::SCgi*          scgi() { return m_scgi; }
   bool                set_scgi(rpc::SCgi* scgi);
   
-  void                set_xmlrpc_log(const std::string& filename);
+  void                set_rpc_log(const std::string& filename);
 
   static void         start_scgi(ThreadBase* thread);
-  static void         msg_change_xmlrpc_log(ThreadBase* thread);
+  static void         msg_change_rpc_log(ThreadBase* thread);
 
 private:
   void                task_touch_log();
 
-  void                change_xmlrpc_log();
+  void                change_rpc_log();
 
   std::atomic<rpc::SCgi*> m_scgi{ nullptr };
 
   // The following types shall only be modified while holding the
   // global lock.
-  std::string         m_xmlrpcLog;
+  std::string         m_rpcLog;
 };
 
 #endif
