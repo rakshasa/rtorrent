@@ -36,6 +36,7 @@
 
 #include "config.h"
 
+#include "rpc/scgi_task.h"
 #include <rak/error_number.h>
 #include <rak/socket_address.h>
 #include <sys/un.h>
@@ -166,11 +167,18 @@ SCgi::event_error() {
 
 bool
 SCgi::receive_call(SCgiTask* task, const char* buffer, uint32_t length) {
+  bool result = false;
   torrent::thread_base::acquire_global_lock();
   torrent::main_thread()->interrupt();
 
-  bool result = xmlrpc.process(buffer, length, [task](const char* b, uint32_t l) { return task->receive_write(b, l); });
-
+  switch (task->content_type()) {
+  case rpc::SCgiTask::ContentType::JSON:
+    result = rpc.process(RpcManager::RPCType::JSON, buffer, length, [task](const char* b, uint32_t l) { return task->receive_write(b, l); });
+    break;
+  case rpc::SCgiTask::ContentType::XML:
+    result = rpc.process(RpcManager::RPCType::XML, buffer, length, [task](const char* b, uint32_t l) { return task->receive_write(b, l); });
+    break;
+  }
   torrent::thread_base::release_global_lock();
 
   return result;

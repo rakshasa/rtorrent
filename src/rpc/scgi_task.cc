@@ -39,6 +39,7 @@
 #include <rak/allocators.h>
 #include <rak/error_number.h>
 #include <cstdio>
+#include <vector>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <torrent/exceptions.h>
@@ -126,44 +127,91 @@ SCgiTask::event_read() {
     // receive all the data we need the first time.
     char* current;
 
-    int contentSize;
-    int headerSize = strtol(m_buffer, &current, 0);
+    int header_size = strtol(m_buffer, &current, 0);
 
     if (current == m_position)
       return;
 
     // If the request doesn't start with an integer or if it didn't
     // end in ':', then close the connection.
-    if (current == m_buffer || *current != ':' || headerSize < 17 || headerSize > max_header_size)
+    if (current == m_buffer || *current != ':' || header_size < 17 || header_size > max_header_size)
       goto event_read_failed;
 
-    if (std::distance(++current, m_position) < headerSize + 1)
+    if (std::distance(++current, m_position) < header_size + 1)
       return;
 
+    // We'll parse this fully below, but the SCGI spec requires it to
+    // be the first header.
     if (std::memcmp(current, "CONTENT_LENGTH", 15) != 0)
       goto event_read_failed;
 
-    char* contentPos;
-    contentSize = strtol(current + 15, &contentPos, 0);
+    std::string content_type = "";
+    size_t content_length = 0;
+    const char* header_end = current + header_size;
 
-    if (*contentPos != '\0' || contentSize <= 0 || contentSize > max_content_size)
+    // Parse out the null-terminated header keys and values, with
+    // checks to ensure it doesn't scan beyond the limits of the
+    // header
+    while (current < header_end) {
+      char* key = current;
+      char* key_end = static_cast<char*>(std::memchr(current, '\0', header_end - current));
+      if (!key_end)
+        goto event_read_failed;
+
+      current = key_end+1;
+      if (current >= header_end)
+        goto event_read_failed;
+
+      char* value = current;
+      char* value_end = static_cast<char*>(std::memchr(current, '\0', header_end - current));
+      if (!value_end)
+        goto event_read_failed;
+      current = value_end+1;
+
+      if (strcmp(key, "CONTENT_LENGTH") == 0) {
+        char* content_pos;
+        content_length = strtol(value, &content_pos, 10);
+        if (*content_pos != '\0' || content_length <= 0 || content_length > max_content_size)
+          goto event_read_failed;
+      } else if (strcmp(key, "CONTENT_TYPE") == 0) {
+        content_type = value;
+      }
+    }
+
+    if (current != header_end)
       goto event_read_failed;
 
-    m_body = current + headerSize + 1;
-    headerSize = std::distance(m_buffer, m_body);
+    if (content_length <= 0)
+      goto event_read_failed;
 
-    if ((unsigned int)(contentSize + headerSize) < m_bufferSize) {
-      m_bufferSize = contentSize + headerSize;
+    m_body = current + 1;
+    header_size = std::distance(m_buffer, m_body);
 
-    } else if ((unsigned int)contentSize <= default_buffer_size) {
-      m_bufferSize = contentSize;
+    if (content_type == "") {
+      // If no CONTENT_TYPE was supplied, peek at the body to check if it's JSON
+      // { is a single request object, while [ is a batch array
+      if (*m_body == '{' || *m_body == '[')
+        m_content_type = ContentType::JSON;
+    } else if (content_type == "application/json") {
+      m_content_type = ContentType::JSON;
+    } else if (content_type == "text/xml") {
+      m_content_type = ContentType::XML;
+    } else {
+      goto event_read_failed;
+    }
+    
+    if ((unsigned int)(content_length + header_size) < m_bufferSize) {
+      m_bufferSize = content_length + header_size;
+
+    } else if ((unsigned int)content_length <= default_buffer_size) {
+      m_bufferSize = content_length;
 
       std::memmove(m_buffer, m_body, std::distance(m_body, m_position));
       m_position = m_buffer + std::distance(m_body, m_position);
       m_body = m_buffer;
 
     } else {
-      realloc_buffer((m_bufferSize = contentSize) + 1, m_body, std::distance(m_body, m_position));
+      realloc_buffer((m_bufferSize = content_length) + 1, m_body, std::distance(m_body, m_position));
 
       m_position = m_buffer + std::distance(m_body, m_position);
       m_body = m_buffer;
@@ -236,8 +284,12 @@ SCgiTask::receive_write(const char* buffer, uint32_t length) {
   if (length + 256 > std::max(m_bufferSize, (unsigned int)default_buffer_size))
     realloc_buffer(length + 256, NULL, 0);
 
+  const auto header = m_content_type == ContentType::JSON
+    ? "Status: 200 OK\r\nContent-Type: application/json\r\nContent-Length: %i\r\n\r\n"
+    : "Status: 200 OK\r\nContent-Type: text/xml\r\nContent-Length: %i\r\n\r\n";
+  
   // Who ever bothers to check the return value?
-  int headerSize = sprintf(m_buffer, "Status: 200 OK\r\nContent-Type: text/xml\r\nContent-Length: %i\r\n\r\n", length);
+  int headerSize = sprintf(m_buffer, header, length);
 
   m_position = m_buffer;
   m_bufferSize = length + headerSize;
