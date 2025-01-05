@@ -1,44 +1,9 @@
-// rTorrent - BitTorrent client
-// Copyright (C) 2005-2011, Jari Sundell
-//
-// This program is free software; you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation; either version 2 of the License, or
-// (at your option) any later version.
-// 
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-// 
-// You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-//
-// In addition, as a special exception, the copyright holders give
-// permission to link the code of portions of this program with the
-// OpenSSL library under certain conditions as described in each
-// individual source file, and distribute linked combinations
-// including the two.
-//
-// You must obey the GNU General Public License in all respects for
-// all of the code used other than OpenSSL.  If you modify file(s)
-// with this exception, you may extend this exception to your version
-// of the file(s), but you are not obligated to do so.  If you do not
-// wish to do so, delete this exception statement from your version.
-// If you delete this exception statement from all source files in the
-// program, then also delete it here.
-//
-// Contact:  Jari Sundell <jaris@ifi.uio.no>
-//
-//           Skomakerveien 33
-//           3185 Skoppum, NORWAY
-
 #include "config.h"
 
 #include <rak/allocators.h>
 #include <rak/error_number.h>
 #include <cstdio>
+#include <vector>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <torrent/exceptions.h>
@@ -126,47 +91,94 @@ SCgiTask::event_read() {
     // receive all the data we need the first time.
     char* current;
 
-    int contentSize;
-    int headerSize = strtol(m_buffer, &current, 0);
+    int   header_size = strtol(m_buffer, &current, 0);
 
     if (current == m_position)
       return;
 
     // If the request doesn't start with an integer or if it didn't
     // end in ':', then close the connection.
-    if (current == m_buffer || *current != ':' || headerSize < 17 || headerSize > max_header_size)
+    if (current == m_buffer || *current != ':' || header_size < 17 || header_size > max_header_size)
       goto event_read_failed;
 
-    if (std::distance(++current, m_position) < headerSize + 1)
+    if (std::distance(++current, m_position) < header_size + 1)
       return;
 
+    // We'll parse this fully below, but the SCGI spec requires it to
+    // be the first header.
     if (std::memcmp(current, "CONTENT_LENGTH", 15) != 0)
       goto event_read_failed;
 
-    char* contentPos;
-    contentSize = strtol(current + 15, &contentPos, 0);
+    std::string content_type   = "";
+    size_t      content_length = 0;
+    const char* header_end     = current + header_size;
 
-    if (*contentPos != '\0' || contentSize <= 0 || contentSize > max_content_size)
+    // Parse out the null-terminated header keys and values, with
+    // checks to ensure it doesn't scan beyond the limits of the
+    // header
+    while (current < header_end) {
+      char* key     = current;
+      char* key_end = static_cast<char*>(std::memchr(current, '\0', header_end - current));
+      if (!key_end)
+        goto event_read_failed;
+
+      current = key_end + 1;
+      if (current >= header_end)
+        goto event_read_failed;
+
+      char* value     = current;
+      char* value_end = static_cast<char*>(std::memchr(current, '\0', header_end - current));
+      if (!value_end)
+        goto event_read_failed;
+      current = value_end + 1;
+
+      if (strcmp(key, "CONTENT_LENGTH") == 0) {
+        char* content_pos;
+        content_length = strtol(value, &content_pos, 10);
+        if (*content_pos != '\0' || content_length <= 0 || content_length > max_content_size)
+          goto event_read_failed;
+      } else if (strcmp(key, "CONTENT_TYPE") == 0) {
+        content_type = value;
+      }
+    }
+
+    if (current != header_end)
       goto event_read_failed;
 
-    m_body = current + headerSize + 1;
-    headerSize = std::distance(m_buffer, m_body);
+    if (content_length <= 0)
+      goto event_read_failed;
 
-    if ((unsigned int)(contentSize + headerSize) < m_bufferSize) {
-      m_bufferSize = contentSize + headerSize;
+    m_body      = current + 1;
+    header_size = std::distance(m_buffer, m_body);
 
-    } else if ((unsigned int)contentSize <= default_buffer_size) {
-      m_bufferSize = contentSize;
+    if (content_type == "") {
+      // If no CONTENT_TYPE was supplied, peek at the body to check if it's JSON
+      // { is a single request object, while [ is a batch array
+      if (*m_body == '{' || *m_body == '[')
+        m_content_type = ContentType::JSON;
+    } else if (content_type == "application/json") {
+      m_content_type = ContentType::JSON;
+    } else if (content_type == "text/xml") {
+      m_content_type = ContentType::XML;
+    } else {
+      goto event_read_failed;
+    }
+
+    if ((unsigned int)(content_length + header_size) < m_bufferSize) {
+      m_bufferSize = content_length + header_size;
+
+    } else if ((unsigned int)content_length <= default_buffer_size) {
+      m_bufferSize = content_length;
 
       std::memmove(m_buffer, m_body, std::distance(m_body, m_position));
       m_position = m_buffer + std::distance(m_body, m_position);
-      m_body = m_buffer;
+      m_body     = m_buffer;
 
     } else {
-      realloc_buffer((m_bufferSize = contentSize) + 1, m_body, std::distance(m_body, m_position));
+      realloc_buffer((m_bufferSize = content_length) + 1, m_body, std::distance(m_body, m_position));
 
       m_position = m_buffer + std::distance(m_body, m_position);
-      m_body = m_buffer;
+      m_body     = m_buffer;
     }
   }
 
@@ -193,14 +205,14 @@ SCgiTask::event_read() {
 
   return;
 
- event_read_failed:
-//   throw torrent::internal_error("SCgiTask::event_read() fault not handled.");
+event_read_failed:
+  //   throw torrent::internal_error("SCgiTask::event_read() fault not handled.");
   close();
 }
 
 void
 SCgiTask::event_write() {
-// Apple and Solaris do not support MSG_NOSIGNAL, 
+// Apple and Solaris do not support MSG_NOSIGNAL,
 // so disable this fix until we find a better solution
 #if defined(__APPLE__) || defined(__sun__)
   int bytes = ::send(m_fileDesc, m_position, m_bufferSize, 0);
@@ -236,12 +248,16 @@ SCgiTask::receive_write(const char* buffer, uint32_t length) {
   if (length + 256 > std::max(m_bufferSize, (unsigned int)default_buffer_size))
     realloc_buffer(length + 256, NULL, 0);
 
-  // Who ever bothers to check the return value?
-  int headerSize = sprintf(m_buffer, "Status: 200 OK\r\nContent-Type: text/xml\r\nContent-Length: %i\r\n\r\n", length);
+  const auto header = m_content_type == ContentType::JSON
+                        ? "Status: 200 OK\r\nContent-Type: application/json\r\nContent-Length: %i\r\n\r\n"
+                        : "Status: 200 OK\r\nContent-Type: text/xml\r\nContent-Length: %i\r\n\r\n";
 
-  m_position = m_buffer;
+  // Who ever bothers to check the return value?
+  int headerSize = sprintf(m_buffer, header, length);
+
+  m_position   = m_buffer;
   m_bufferSize = length + headerSize;
-  
+
   std::memcpy(m_buffer + headerSize, buffer, length);
 
   if (m_parent->log_fd() >= 0) {
@@ -258,4 +274,4 @@ SCgiTask::receive_write(const char* buffer, uint32_t length) {
   return true;
 }
 
-}
+} // namespace rpc

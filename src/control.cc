@@ -93,7 +93,7 @@ Control::initialize() {
 void
 Control::cleanup() {
   //  delete m_scgi; m_scgi = NULL;
-  rpc::xmlrpc.cleanup();
+  rpc::rpc.cleanup();
 
   priority_queue_erase(&taskScheduler, &m_taskShutdown);
 

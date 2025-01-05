@@ -49,7 +49,7 @@ void initialize_commands();
 
 #define CMD2_A_FUNCTION(key, function, slot, parm, doc)                 \
   rpc::commands.insert_slot<rpc::command_base_is_type<rpc::function>::type>(key, slot, &rpc::function, \
-                            rpc::CommandMap::flag_dont_delete | rpc::CommandMap::flag_public_xmlrpc, NULL, NULL);
+                            rpc::CommandMap::flag_dont_delete | rpc::CommandMap::flag_public_rpc, NULL, NULL);
 
 #define CMD2_A_FUNCTION_PRIVATE(key, function, slot, parm, doc)         \
   rpc::commands.insert_slot<rpc::command_base_is_type<rpc::function>::type>(key, slot, &rpc::function,   \
@@ -137,19 +137,19 @@ void initialize_commands();
                                std::placeholders::_1, std::placeholders::_2));
 
 #define CMD2_REDIRECT(from_key, to_key) \
-  rpc::commands.create_redirect(from_key, to_key, rpc::CommandMap::flag_public_xmlrpc | rpc::CommandMap::flag_dont_delete);
+  rpc::commands.create_redirect(from_key, to_key, rpc::CommandMap::flag_public_rpc | rpc::CommandMap::flag_dont_delete);
 #define CMD2_REDIRECT_GENERIC(from_key, to_key) \
-  rpc::commands.create_redirect(from_key, to_key, rpc::CommandMap::flag_public_xmlrpc | rpc::CommandMap::flag_no_target | rpc::CommandMap::flag_dont_delete);
+  rpc::commands.create_redirect(from_key, to_key, rpc::CommandMap::flag_public_rpc | rpc::CommandMap::flag_no_target | rpc::CommandMap::flag_dont_delete);
 #define CMD2_REDIRECT_GENERIC_NO_EXPORT(from_key, to_key) \
   rpc::commands.create_redirect(from_key, to_key, rpc::CommandMap::flag_no_target | rpc::CommandMap::flag_dont_delete);
 #define CMD2_REDIRECT_FILE(from_key, to_key) \
-  rpc::commands.create_redirect(from_key, to_key, rpc::CommandMap::flag_public_xmlrpc | rpc::CommandMap::flag_file_target | rpc::CommandMap::flag_dont_delete);
+  rpc::commands.create_redirect(from_key, to_key, rpc::CommandMap::flag_public_rpc | rpc::CommandMap::flag_file_target | rpc::CommandMap::flag_dont_delete);
 #define CMD2_REDIRECT_TRACKER(from_key, to_key) \
-  rpc::commands.create_redirect(from_key, to_key, rpc::CommandMap::flag_public_xmlrpc | rpc::CommandMap::flag_tracker_target | rpc::CommandMap::flag_dont_delete);
+  rpc::commands.create_redirect(from_key, to_key, rpc::CommandMap::flag_public_rpc | rpc::CommandMap::flag_tracker_target | rpc::CommandMap::flag_dont_delete);
 
 #define CMD2_REDIRECT_GENERIC_STR(from_key, to_key)                     \
   rpc::commands.create_redirect(from_key, to_key, \
-                                rpc::CommandMap::flag_public_xmlrpc | rpc::CommandMap::flag_no_target);
+                                rpc::CommandMap::flag_public_rpc | rpc::CommandMap::flag_no_target);
 
 #define CMD2_REDIRECT_GENERIC_STR_NO_EXPORT(from_key, to_key)                     \
   rpc::commands.create_redirect(from_key, to_key, \

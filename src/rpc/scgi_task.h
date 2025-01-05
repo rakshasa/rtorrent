@@ -53,6 +53,8 @@ public:
   static const          int max_header_size     = 2000;
   static const          int max_content_size    = (2 << 23);
 
+  enum ContentType { XML, JSON };
+
   SCgiTask() { m_fileDesc = -1; }
 
   bool                is_open() const      { return m_fileDesc != -1; }
@@ -60,6 +62,8 @@ public:
 
   void                open(SCgi* parent, int fd);
   void                close();
+
+  ContentType         content_type() const { return m_content_type; }
 
   virtual void        event_read();
   virtual void        event_write();
@@ -79,6 +83,8 @@ private:
   char*               m_body;
 
   unsigned int        m_bufferSize;
+
+  ContentType         m_content_type{ XML };
 };
 
 }

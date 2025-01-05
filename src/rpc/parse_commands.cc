@@ -36,6 +36,7 @@
 
 #include "config.h"
 
+#include "rpc/rpc_manager.h"
 #include <algorithm>
 #include <fstream>
 #include <string>
@@ -49,7 +50,7 @@
 namespace rpc {
 
 CommandMap commands;
-XmlRpc     xmlrpc;
+RpcManager rpc;
 ExecFile   execFile;
 
 inline bool command_map_is_space(char c) {

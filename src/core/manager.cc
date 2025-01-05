@@ -23,6 +23,7 @@
 
 #include "rpc/parse_commands.h"
 #include "utils/directory.h"
+#include "utils/base64.h"
 #include "utils/file_status_cache.h"
 
 #include "globals.h"
@@ -313,6 +314,21 @@ Manager::receive_http_failed(std::string msg) {
   push_log_std("Http download error: \"" + msg + "\"");
 }
 
+bool
+is_data_uri(const std::string& uri) {
+  return std::strncmp(uri.c_str(), "data:", 5) == 0;
+}
+
+std::string
+decode_data_uri(const std::string& uri) {
+  const auto start = uri.find("base64,", 5) + 7;
+  if (start == std::string::npos)
+    throw torrent::input_error("Invalid data uri: not base64 encoded.");
+  if (start >= uri.size())
+    throw torrent::input_error("Empty base64.");
+  return utils::decode_base64(uri.substr(start));
+}
+
 void
 Manager::try_create_download(const std::string& uri, int flags, const command_list_type& commands) {
   // If the path was attempted loaded before, skip it.
@@ -320,6 +336,7 @@ Manager::try_create_download(const std::string& uri, int flags, const command_li
       !(flags & create_raw_data) &&
       !is_network_uri(uri) &&
       !is_magnet_uri(uri) &&
+      !is_data_uri(uri) &&
       !file_status_cache()->insert(uri, 0))
     return;
 
@@ -333,10 +350,16 @@ Manager::try_create_download(const std::string& uri, int flags, const command_li
   f->set_print_log(!(flags & create_quiet));
   f->slot_finished([f]() { delete f; });
 
-  if (flags & create_raw_data)
+  if (is_data_uri(uri)) {
+    // Allow the use of data URIs, primarily for JSON-RPC which
+    // doesn't have a defined mechanism for binary data
+    f->load_raw_data(decode_data_uri(uri));
+    f->variables()["tied_to_file"] = (int64_t)false;
+  } else if (flags & create_raw_data) {
     f->load_raw_data(uri);
-  else
+  } else {
     f->load(uri);
+  }
 
   f->commit();
 }

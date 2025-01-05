@@ -48,7 +48,6 @@
 
 #include "core/manager.h"
 #include "rpc/scgi.h"
-#include "rpc/xmlrpc.h"
 #include "rpc/parse_commands.h"
 
 ThreadWorker::ThreadWorker() {
@@ -71,17 +70,17 @@ ThreadWorker::set_scgi(rpc::SCgi* scgi) {
   if (!m_scgi.compare_exchange_strong(expected, scgi))
     return false;
 
-  change_xmlrpc_log();
+  change_rpc_log();
 
   queue_item((thread_base_func)&start_scgi);
   return true;
 }
 
 void
-ThreadWorker::set_xmlrpc_log(const std::string& filename) {
-  m_xmlrpcLog = filename;
+ThreadWorker::set_rpc_log(const std::string& filename) {
+  m_rpcLog = filename;
 
-  queue_item((thread_base_func)&msg_change_xmlrpc_log);
+  queue_item((thread_base_func)&msg_change_rpc_log);
 }
 
 void
@@ -95,34 +94,34 @@ ThreadWorker::start_scgi(ThreadBase* baseThread) {
 }
 
 void
-ThreadWorker::msg_change_xmlrpc_log(ThreadBase* baseThread) {
+ThreadWorker::msg_change_rpc_log(ThreadBase* baseThread) {
   ThreadWorker* thread = (ThreadWorker*)baseThread;
 
   acquire_global_lock();
-  thread->change_xmlrpc_log();
+  thread->change_rpc_log();
   release_global_lock();
 }
 
 void
-ThreadWorker::change_xmlrpc_log() {
+ThreadWorker::change_rpc_log() {
   if (scgi() == NULL)
     return;
 
   if (scgi()->log_fd() != -1) {
     ::close(scgi()->log_fd());
     scgi()->set_log_fd(-1);
-    control->core()->push_log("Closed XMLRPC log.");
+    control->core()->push_log("Closed RPC log.");
   }
 
-  if (m_xmlrpcLog.empty())
+  if (m_rpcLog.empty())
     return;
 
-  scgi()->set_log_fd(open(rak::path_expand(m_xmlrpcLog).c_str(), O_WRONLY | O_APPEND | O_CREAT, 0644));
+  scgi()->set_log_fd(open(rak::path_expand(m_rpcLog).c_str(), O_WRONLY | O_APPEND | O_CREAT, 0644));
 
   if (scgi()->log_fd() == -1) {
-    control->core()->push_log_std("Could not open XMLRPC log file '" + m_xmlrpcLog + "'.");
+    control->core()->push_log_std("Could not open RPC log file '" + m_rpcLog + "'.");
     return;
   }
 
-  control->core()->push_log_std("Logging XMLRPC events to '" + m_xmlrpcLog + "'.");
+  control->core()->push_log_std("Logging RPC events to '" + m_rpcLog + "'.");
 }

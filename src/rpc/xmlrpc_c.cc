@@ -51,6 +51,7 @@
 #include <torrent/object.h>
 #include <torrent/exceptions.h>
 
+#include "rpc_manager.h"
 #include "xmlrpc.h"
 #include "parse_commands.h"
 
@@ -138,7 +139,7 @@ rpc::target_type
 xmlrpc_to_target(xmlrpc_env* env, xmlrpc_value* value, int callType) {
   rpc::target_type target;
 
-  XmlRpc::object_to_target(xmlrpc_to_object(env, value, -1, nullptr), callType, &target);
+  Rpc::object_to_target(xmlrpc_to_object(env, value, -1, nullptr), callType, &target);
   return target;
 }
 
