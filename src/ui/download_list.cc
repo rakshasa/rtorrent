@@ -38,7 +38,6 @@
 
 #include <sstream>
 
-#include <rak/functional.h>
 #include <rak/string_manip.h>
 #include <torrent/exceptions.h>
 #include <torrent/torrent.h>
@@ -86,7 +85,7 @@ DownloadList::~DownloadList() {
   if (is_active())
     throw std::logic_error("ui::DownloadList::~DownloadList() called on an active object");
 
-  std::for_each(m_uiArray, m_uiArray + DISPLAY_MAX_SIZE, rak::call_delete<ElementBase>());
+  std::for_each(m_uiArray, m_uiArray + DISPLAY_MAX_SIZE, [](ElementBase* eb) { delete eb; });
 
   delete m_windowLog;
 }

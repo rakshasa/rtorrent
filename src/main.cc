@@ -50,7 +50,6 @@
 #include <torrent/poll.h>
 #include <torrent/data/chunk_utils.h>
 #include <torrent/utils/log.h>
-#include <rak/functional.h>
 #include <rak/error_number.h>
 
 #ifdef HAVE_BACKTRACE
@@ -136,7 +135,7 @@ load_session_torrents() {
     // Replace with session torrent flag.
     f->set_session(true);
     f->set_init_load(true);
-    f->slot_finished(std::bind(&rak::call_delete_func<core::DownloadFactory>, f));
+    f->slot_finished([f](){ delete f; });
     f->load(entries.path() + first->s_name);
     f->commit();
   }
@@ -151,7 +150,7 @@ load_arg_torrents(char** first, char** last) {
     // Replace with session torrent flag.
     f->set_start(true);
     f->set_init_load(true);
-    f->slot_finished(std::bind(&rak::call_delete_func<core::DownloadFactory>, f));
+    f->slot_finished([f](){ delete f; });
     f->load(*first);
     f->commit();
   }

@@ -55,7 +55,7 @@ namespace core {
 
 void
 ViewManager::clear() {
-  std::for_each(begin(), end(), rak::call_delete<View>());
+  std::for_each(begin(), end(), [](View* v) { delete v; });
 
   base_type::clear();
 }

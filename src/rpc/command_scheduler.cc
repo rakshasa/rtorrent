@@ -50,7 +50,7 @@
 namespace rpc {
 
 CommandScheduler::~CommandScheduler() {
-  std::for_each(begin(), end(), rak::call_delete<CommandSchedulerItem>());
+  std::for_each(begin(), end(), [](CommandSchedulerItem* item) { delete item; });
 }
 
 CommandScheduler::iterator

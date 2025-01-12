@@ -37,7 +37,6 @@
 #include "config.h"
 
 #include <algorithm>
-#include <rak/functional.h>
 
 #include "canvas.h"
 #include "utils.h"
@@ -55,7 +54,7 @@ WindowText::WindowText(rpc::target_type target, extent_type margin) :
 
 void
 WindowText::clear() {
-  std::for_each(begin(), end(), rak::call_delete<TextElement>());
+  std::for_each(begin(), end(), [](TextElement* text) { delete text; });
   base_type::clear();
 
   delete m_errorHandler;
