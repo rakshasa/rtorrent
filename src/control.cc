@@ -104,9 +104,9 @@ Control::~Control() {
 void
 Control::initialize() {
   display::Canvas::initialize();
-  display::Window::slot_schedule(rak::make_mem_fun(m_display, &display::Manager::schedule));
-  display::Window::slot_unschedule(rak::make_mem_fun(m_display, &display::Manager::unschedule));
-  display::Window::slot_adjust(rak::make_mem_fun(m_display, &display::Manager::adjust_layout));
+  display::Window::slot_schedule([this](display::Window* w, rak::timer t) { m_display->schedule(w, t); });
+  display::Window::slot_unschedule([this](display::Window* w) { m_display->unschedule(w); });
+  display::Window::slot_adjust([this]() { m_display->adjust_layout(); });
 
   m_core->http_stack()->set_user_agent(USER_AGENT);
 
