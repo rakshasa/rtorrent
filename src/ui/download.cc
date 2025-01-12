@@ -36,7 +36,6 @@
 
 #include "config.h"
 
-#include <rak/functional.h>
 #include <rak/string_manip.h>
 #include <torrent/exceptions.h>
 #include <torrent/chunk_manager.h>
@@ -100,7 +99,7 @@ Download::~Download() {
   if (is_active())
     throw torrent::internal_error("ui::Download::~Download() called on an active object.");
 
-  std::for_each(m_uiArray, m_uiArray + DISPLAY_MAX_SIZE, rak::call_delete<ElementBase>());
+  std::for_each(m_uiArray, m_uiArray + DISPLAY_MAX_SIZE, [](ElementBase* eb) { delete eb; });
 
   delete m_windowDownloadStatus;
 }
