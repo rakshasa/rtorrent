@@ -37,7 +37,6 @@
 #include "config.h"
 
 #include <algorithm>
-#include <rak/functional.h>
 #include <torrent/exceptions.h>
 
 #include "text_element_list.h"
@@ -46,7 +45,7 @@ namespace display {
 
 void
 TextElementList::clear() {
-  std::for_each(begin(), end(), rak::call_delete<TextElement>());
+  std::for_each(begin(), end(), [](TextElement* t) { delete t; });
   base_type::clear();
 }
 
