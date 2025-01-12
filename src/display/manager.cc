@@ -38,7 +38,6 @@
 
 #include <stdexcept>
 #include <algorithm>
-#include <rak/functional.h>
 
 #include "canvas.h"
 #include "globals.h"

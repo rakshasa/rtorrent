@@ -39,7 +39,6 @@
 #include <algorithm>
 #include <cstdlib>
 #include <time.h>
-#include <rak/functional.h>
 #include <rak/string_manip.h>
 #include <torrent/exceptions.h>
 
@@ -55,7 +54,7 @@ CommandScheduler::~CommandScheduler() {
 
 CommandScheduler::iterator
 CommandScheduler::find(const std::string& key) {
-  return std::find_if(begin(), end(), rak::equal(key, std::mem_fun(&CommandSchedulerItem::key)));
+  return std::find_if(begin(), end(), [key](CommandSchedulerItem* item) { return key == item->key(); });
 }
 
 CommandScheduler::iterator
