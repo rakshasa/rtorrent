@@ -38,7 +38,7 @@
 #define RTORRENT_WINDOW_BASE_H
 
 #include <rak/timer.h>
-#include <rak/functional.h>
+#include <functional>
 
 #include "canvas.h"
 #include "globals.h"
@@ -46,15 +46,14 @@
 namespace display {
 
 class Canvas;
-class Manager;
 
 class Window {
 public:
   typedef uint32_t extent_type;
 
-  typedef rak::mem_fun0<Manager, void>                      Slot;
-  typedef rak::mem_fun1<Manager, void, Window*>             SlotWindow;
-  typedef rak::mem_fun2<Manager, void, Window*, rak::timer> SlotTimer;
+  typedef std::function<void()>                    Slot;
+  typedef std::function<void(Window*)>             SlotWindow;
+  typedef std::function<void(Window*, rak::timer)> SlotTimer;
 
   static const int flag_active    = (1 << 0);
   static const int flag_offscreen = (1 << 1);

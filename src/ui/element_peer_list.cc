@@ -36,6 +36,8 @@
 
 #include "config.h"
 
+#include <rak/functional.h>
+
 #include <torrent/exceptions.h>
 #include <torrent/rate.h>
 #include <torrent/hash_string.h>
