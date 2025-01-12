@@ -38,7 +38,6 @@
 
 #include <list>
 #include <rak/file_stat.h>
-#include <rak/functional.h>
 #include <rak/path.h>
 #include <torrent/exceptions.h>
 #include <torrent/rate.h>

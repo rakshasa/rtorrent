@@ -2,7 +2,6 @@
 
 #include <algorithm>
 #include <functional>
-#include <rak/functional.h>
 #include <torrent/download.h>
 #include <torrent/exceptions.h>
 
@@ -144,7 +143,7 @@ View::initialize(const std::string& name) {
   m_name = name;
 
   // Urgh, wrong. No filtering being done.
-  std::for_each(dlist->begin(), dlist->end(), rak::bind1st(std::mem_fun(&View::push_back), this));
+  std::for_each(dlist->begin(), dlist->end(), [&](Download* d) { push_back(d); });
 
   m_size  = base_type::size();
   m_focus = 0;

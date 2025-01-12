@@ -4,7 +4,6 @@
 #include <curl/multi.h>
 #include <torrent/exceptions.h>
 
-#include "rak/functional.h"
 #include "curl_get.h"
 #include "curl_socket.h"
 #include "curl_stack.h"

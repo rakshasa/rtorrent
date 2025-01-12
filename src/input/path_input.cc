@@ -38,7 +38,6 @@
 
 #include <functional>
 #include <rak/algorithm.h>
-#include <rak/functional.h>
 #include <rak/path.h>
 
 #include <dirent.h>
@@ -105,7 +104,7 @@ PathInput::receive_do_complete() {
   if (r.first == r.second)
     return; // Show some nice colors here.
 
-  std::string base = rak::make_base<std::string>(r.first, r.second, rak::const_mem_ref(&utils::directory_entry::s_name));
+  std::string base = rak::make_base<std::string>(r.first, r.second, std::mem_fn(&utils::directory_entry::s_name));
 
   // Clear the path after the cursor to make this code cleaner. It's
   // not really nessesary to add the complexity just because someone
@@ -154,8 +153,12 @@ PathInput::range_type
 PathInput::find_incomplete(utils::Directory& d, const std::string& f) {
   range_type r;
 
-  r.first  = std::find_if(d.begin(), d.end(), rak::bind2nd(std::ptr_fun(&find_complete_not_compare), f));
-  r.second = std::find_if(r.first,   d.end(), rak::bind2nd(std::ptr_fun(&find_complete_compare), f));
+  r.first  = std::find_if(d.begin(), d.end(), [f](const utils::directory_entry& de) { 
+      return find_complete_not_compare(de, f); 
+  });
+  r.second = std::find_if(r.first,   d.end(), [f](const utils::directory_entry& de) { 
+      return find_complete_compare(de, f); 
+  });
 
   return r;
 }

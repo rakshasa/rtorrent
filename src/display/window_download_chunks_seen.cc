@@ -38,7 +38,6 @@
 
 #include <cmath>
 #include <stdexcept>
-#include <rak/functional.h>
 #include <rak/string_manip.h>
 #include <torrent/bitfield.h>
 #include <torrent/data/block.h>
@@ -95,7 +94,7 @@ WindowDownloadChunksSeen::redraw() {
   std::vector<torrent::BlockList*> transferChunks(transfers->size(), 0);
 
   std::copy(transfers->begin(), transfers->end(), transferChunks.begin());
-  std::sort(transferChunks.begin(), transferChunks.end(), rak::less2(std::mem_fun(&torrent::BlockList::index), std::mem_fun(&torrent::BlockList::index)));
+  std::sort(transferChunks.begin(), transferChunks.end());
 
   std::vector<torrent::BlockList*>::const_iterator itrTransfer = transferChunks.begin();
 
