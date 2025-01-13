@@ -49,7 +49,7 @@ public:
   RpcManager()  = default;
   ~RpcManager() = default;
 
-  void           initialize(slot_download fun_d, slot_file fun_f, slot_tracker fun_t, slot_peer fun_p);
+  void           initialize();
   void           cleanup();
   bool           is_initialized() const;
 

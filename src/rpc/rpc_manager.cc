@@ -108,12 +108,7 @@ RpcManager::process(RPCType type, const char* in_buffer, uint32_t length, slot_r
 }
 
 void
-RpcManager::initialize(slot_download fun_d, slot_file fun_f, slot_tracker fun_t, slot_peer fun_p) {
-  m_slot_find_download = fun_d;
-  m_slot_find_file     = fun_f;
-  m_slot_find_tracker  = fun_t;
-  m_slot_find_peer     = fun_p;
-
+RpcManager::initialize() {
   m_xmlrpc.initialize();
   m_jsonrpc.initialize();
 

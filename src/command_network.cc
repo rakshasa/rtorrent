@@ -123,11 +123,11 @@ rpc_find_peer(core::Download* download, const torrent::HashString& hash) {
 
 void
 initialize_rpc() {
-  rpc::rpc.initialize(
-                      [](const char* hash) { return control->core()->download_list()->find_hex_ptr(hash); },
-                      [](core::Download* d, uint32_t index) { return rpc_find_file(d, index); },
-                      [](core::Download* d, uint32_t index) { return rpc_find_tracker(d, index); },
-                      [](core::Download* d, const torrent::HashString& hash) { return rpc_find_peer(d, hash); });
+  rpc::rpc.initialize();
+  rpc::rpc.slot_find_download() = [](const char* hash) { return control->core()->download_list()->find_hex_ptr(hash); };
+  rpc::rpc.slot_find_file() = [](core::Download* d, uint32_t index) { return rpc_find_file(d, index); };
+  rpc::rpc.slot_find_tracker() = [](core::Download* d, uint32_t index) { return rpc_find_tracker(d, index); };
+  rpc::rpc.slot_find_peer() = [](core::Download* d, const torrent::HashString& hash) { return rpc_find_peer(d, hash); };
 
   unsigned int count = 0;
 
