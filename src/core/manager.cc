@@ -316,7 +316,17 @@ Manager::receive_http_failed(std::string msg) {
 
 bool
 is_data_uri(const std::string& uri) {
-  return std::strncmp(uri.c_str(), "data:", 5) == 0 && uri.find("base64,", 5) != std::string::npos;
+  return std::strncmp(uri.c_str(), "data:", 5) == 0;
+}
+
+std::string
+decode_data_uri(const std::string& uri) {
+  const auto start = uri.find("base64,", 5) + 7;
+  if (start == std::string::npos)
+    throw torrent::input_error("Invalid data uri: not base64 encoded.");
+  if (start >= uri.size())
+    throw torrent::input_error("Empty base64.");
+  return utils::decode_base64(uri.substr(start));
 }
 
 void
@@ -343,11 +353,7 @@ Manager::try_create_download(const std::string& uri, int flags, const command_li
   if (is_data_uri(uri)) {
     // Allow the use of data URIs, primarily for JSON-RPC which
     // doesn't have a defined mechanism for binary data
-    const unsigned long start = uri.find("base64,", 5) + 7;
-    if (start >= uri.size())
-      throw torrent::input_error("Empty base64.");
-    auto output = utils::decode_base64(uri.substr(start));
-    f->load_raw_data(utils::decode_base64(uri.substr(start)));
+    f->load_raw_data(decode_data_uri(uri));
     f->variables()["tied_to_file"] = (int64_t)false;
   } else if (flags & create_raw_data) {
     f->load_raw_data(uri);
