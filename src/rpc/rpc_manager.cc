@@ -5,7 +5,6 @@
 #include <torrent/exceptions.h>
 
 #include "parse_commands.h"
-
 #include "rpc/rpc_manager.h"
 
 namespace rpc {
