@@ -42,7 +42,6 @@
 #include "core/http_queue.h"
 
 #include "canvas.h"
-#include "rak/functional.h"
 #include "window_http_queue.h"
 
 namespace display {
@@ -145,7 +144,7 @@ WindowHttpQueue::receive_insert(core::CurlGet* h) {
 
 void
 WindowHttpQueue::receive_erase(core::CurlGet* h) {
-  Container::iterator itr = std::find_if(m_container.begin(), m_container.end(), rak::equal(h, std::mem_fun_ref(&Node::get_http)));
+  Container::iterator itr = std::find_if(m_container.begin(), m_container.end(), [h](Node n) { return h == n.get_http(); });
 
   if (itr == m_container.end())
     throw std::logic_error("WindowHttpQueue::receive_erase(...) tried to remove an object we don't have");

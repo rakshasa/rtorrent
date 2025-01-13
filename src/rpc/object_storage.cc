@@ -38,7 +38,6 @@
 
 #include "object_storage.h"
 
-#include "rak/functional.h"
 #include "parse.h"
 #include "parse_commands.h"
 
@@ -223,8 +222,7 @@ object_storage::erase_multi_key(const torrent::raw_string& key, const std::strin
   if (r_itr == m_rlookup.end())
     return;
 
-  rlookup_mapped_iterator rm_itr = std::find_if(r_itr->second.begin(), r_itr->second.end(),
-                                                rak::equal(key, rak::mem_ptr(&value_type::first)));
+  rlookup_mapped_iterator rm_itr = std::find_if(r_itr->second.begin(), r_itr->second.end(), [key](value_type* type) { return key == type->first; });
 
   if (rm_itr != r_itr->second.end())
     r_itr->second.erase(rm_itr);
@@ -243,8 +241,7 @@ object_storage::set_multi_key_obj(const torrent::raw_string& key, const std::str
     if (r_itr == m_rlookup.end())
       r_itr = m_rlookup.insert(std::make_pair(cmd_key, rlookup_type::mapped_type())).first;
 
-    if (std::find_if(r_itr->second.begin(), r_itr->second.end(),
-                     rak::equal(key, rak::mem_ptr(&value_type::first))) == r_itr->second.end())
+    if (std::find_if(r_itr->second.begin(), r_itr->second.end(), [key](value_type* type) { return key == type->first; }) == r_itr->second.end())
       r_itr->second.push_back(&*itr);
   }
 
@@ -259,7 +256,7 @@ object_storage::rlookup_list(const std::string& cmd_key) {
 
   if (r_itr != m_rlookup.end())
     std::transform(r_itr->second.begin(), r_itr->second.end(), std::back_inserter(result),
-                   std::bind(&key_type::c_str, std::bind(rak::mem_ptr(&value_type::first), std::placeholders::_1)));
+                   std::bind(&key_type::c_str, std::bind(std::mem_fn(&value_type::first), std::placeholders::_1)));
 
   return result;
 }
