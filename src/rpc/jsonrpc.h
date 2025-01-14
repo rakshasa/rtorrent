@@ -11,8 +11,6 @@ class JsonRpc {
 public:
   using slot_write = std::function<bool(const char*, uint32_t)>;
 
-  bool is_valid() const { return true; };
-
   void initialize() {};
   void cleanup() {};
 

@@ -43,8 +43,7 @@ public:
   using slot_response_callback = std::function<bool(const char*, uint32_t)>;
 
   enum RPCType { XML,
-                 JSON,
-                 RPC_TYPE_SIZE };
+                 JSON };
 
   RpcManager()  = default;
   ~RpcManager() = default;
@@ -57,6 +56,9 @@ public:
   void           set_size_limit(uint64_t size) { m_xmlrpc.set_size_limit(size); };
   int            dialect() { return m_xmlrpc.dialect(); }
   void           set_dialect(int dialect) { m_xmlrpc.set_dialect(dialect); }
+
+  bool           is_type_enabled(RPCType type) const;
+  void           set_type_enabled(RPCType type, bool enabled);
 
   bool           process(RPCType type, const char* in_buffer, uint32_t length, slot_response_callback callback);
 
@@ -72,7 +74,9 @@ private:
   XmlRpc        m_xmlrpc;
   JsonRpc       m_jsonrpc;
 
-  bool          m_initialized;
+  bool          m_initialized = false;
+  bool          m_is_jsonrpc_enabled = true;
+  bool          m_is_xmlrpc_enabled = true;
 
   slot_download m_slot_find_download;
   slot_file     m_slot_find_file;

@@ -86,7 +86,7 @@ bool
 RpcManager::process(RPCType type, const char* in_buffer, uint32_t length, slot_response_callback callback) {
   switch (type) {
   case RPCType::XML: {
-    if (m_xmlrpc.is_valid()) {
+    if (m_xmlrpc.is_valid() && rpc::call_command_value("network.rpc.xmlrpc_enabled")) {
       return m_xmlrpc.process(in_buffer, length, callback);
     } else {
       const std::string response = "<?xml version=\"1.0\"?><methodResponse><fault><struct><member><name>faultCode</name><value><i8>-501</i8></value></member><member><name>faultString</name><value><string>XML-RPC not supported</string></value></member></struct></fault></methodResponse>";
@@ -94,15 +94,13 @@ RpcManager::process(RPCType type, const char* in_buffer, uint32_t length, slot_r
     }
   }
   case RPCType::JSON: {
-    if (m_jsonrpc.is_valid()) {
+    if (rpc::call_command_value("network.rpc.jsonrpc_enabled")) {
       return m_jsonrpc.process(in_buffer, length, callback);
     } else {
       const std::string response = "{\"jsonrpc\":\"2.0\",\"error\":{\"code\":-32601,\"message\":\"JSON-RPC not supported\"},\"id\":null}";
       return callback(response.c_str(), response.size());
     }
   }
-  default:
-    throw torrent::internal_error("Invalid RPC type.");
   }
 }
 
@@ -118,6 +116,26 @@ void
 RpcManager::cleanup() {
   m_xmlrpc.cleanup();
   m_jsonrpc.cleanup();
+}
+
+bool
+RpcManager::is_type_enabled(RPCType type) const {
+  switch (type) {
+  case RPCType::XML:
+    return m_is_xmlrpc_enabled;
+  case RPCType::JSON:
+    return m_is_jsonrpc_enabled;
+  }
+}
+
+void
+RpcManager::set_type_enabled(RPCType type, bool enabled) {
+  switch (type) {
+  case RPCType::XML:
+    m_is_xmlrpc_enabled = enabled;
+  case RPCType::JSON:
+    m_is_jsonrpc_enabled = enabled;
+  }
 }
 
 bool

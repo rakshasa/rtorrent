@@ -301,6 +301,9 @@ initialize_command_network() {
   CMD2_ANY         ("network.xmlrpc.size_limit",     [](const auto&, const auto&){ return rpc::rpc.size_limit(); });
   CMD2_ANY_VALUE_V ("network.xmlrpc.size_limit.set", [](const auto&, const auto& arg){ return rpc::rpc.set_size_limit(arg); });
 
+  CMD2_VAR_BOOL    ("network.rpc.xmlrpc_enabled",    true);
+  CMD2_VAR_BOOL    ("network.rpc.jsonrpc_enabled",   true);
+
   CMD2_ANY         ("network.block.ipv4",            std::bind(&torrent::ConnectionManager::is_block_ipv4, cm));
   CMD2_ANY_VALUE_V ("network.block.ipv4.set",        std::bind(&torrent::ConnectionManager::set_block_ipv4, cm, std::placeholders::_2));
   CMD2_ANY         ("network.block.ipv6",            std::bind(&torrent::ConnectionManager::is_block_ipv6, cm));
