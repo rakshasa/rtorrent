@@ -74,9 +74,9 @@ private:
   XmlRpc        m_xmlrpc;
   JsonRpc       m_jsonrpc;
 
-  bool          m_initialized = false;
+  bool          m_initialized        = false;
   bool          m_is_jsonrpc_enabled = true;
-  bool          m_is_xmlrpc_enabled = true;
+  bool          m_is_xmlrpc_enabled  = true;
 
   slot_download m_slot_find_download;
   slot_file     m_slot_find_file;

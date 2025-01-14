@@ -1,39 +1,3 @@
-// rTorrent - BitTorrent client
-// Copyright (C) 2005-2011, Jari Sundell
-//
-// This program is free software; you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation; either version 2 of the License, or
-// (at your option) any later version.
-// 
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-// 
-// You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-//
-// In addition, as a special exception, the copyright holders give
-// permission to link the code of portions of this program with the
-// OpenSSL library under certain conditions as described in each
-// individual source file, and distribute linked combinations
-// including the two.
-//
-// You must obey the GNU General Public License in all respects for
-// all of the code used other than OpenSSL.  If you modify file(s)
-// with this exception, you may extend this exception to your version
-// of the file(s), but you are not obligated to do so.  If you do not
-// wish to do so, delete this exception statement from your version.
-// If you delete this exception statement from all source files in the
-// program, then also delete it here.
-//
-// Contact:  Jari Sundell <jaris@ifi.uio.no>
-//
-//           Skomakerveien 33
-//           3185 Skoppum, NORWAY
-
 #include "config.h"
 
 #include <rak/allocators.h>
@@ -127,7 +91,7 @@ SCgiTask::event_read() {
     // receive all the data we need the first time.
     char* current;
 
-    int header_size = strtol(m_buffer, &current, 0);
+    int   header_size = strtol(m_buffer, &current, 0);
 
     if (current == m_position)
       return;
@@ -145,28 +109,28 @@ SCgiTask::event_read() {
     if (std::memcmp(current, "CONTENT_LENGTH", 15) != 0)
       goto event_read_failed;
 
-    std::string content_type = "";
-    size_t content_length = 0;
-    const char* header_end = current + header_size;
+    std::string content_type   = "";
+    size_t      content_length = 0;
+    const char* header_end     = current + header_size;
 
     // Parse out the null-terminated header keys and values, with
     // checks to ensure it doesn't scan beyond the limits of the
     // header
     while (current < header_end) {
-      char* key = current;
+      char* key     = current;
       char* key_end = static_cast<char*>(std::memchr(current, '\0', header_end - current));
       if (!key_end)
         goto event_read_failed;
 
-      current = key_end+1;
+      current = key_end + 1;
       if (current >= header_end)
         goto event_read_failed;
 
-      char* value = current;
+      char* value     = current;
       char* value_end = static_cast<char*>(std::memchr(current, '\0', header_end - current));
       if (!value_end)
         goto event_read_failed;
-      current = value_end+1;
+      current = value_end + 1;
 
       if (strcmp(key, "CONTENT_LENGTH") == 0) {
         char* content_pos;
@@ -184,7 +148,7 @@ SCgiTask::event_read() {
     if (content_length <= 0)
       goto event_read_failed;
 
-    m_body = current + 1;
+    m_body      = current + 1;
     header_size = std::distance(m_buffer, m_body);
 
     if (content_type == "") {
@@ -199,7 +163,7 @@ SCgiTask::event_read() {
     } else {
       goto event_read_failed;
     }
-    
+
     if ((unsigned int)(content_length + header_size) < m_bufferSize) {
       m_bufferSize = content_length + header_size;
 
@@ -208,13 +172,13 @@ SCgiTask::event_read() {
 
       std::memmove(m_buffer, m_body, std::distance(m_body, m_position));
       m_position = m_buffer + std::distance(m_body, m_position);
-      m_body = m_buffer;
+      m_body     = m_buffer;
 
     } else {
       realloc_buffer((m_bufferSize = content_length) + 1, m_body, std::distance(m_body, m_position));
 
       m_position = m_buffer + std::distance(m_body, m_position);
-      m_body = m_buffer;
+      m_body     = m_buffer;
     }
   }
 
@@ -241,14 +205,14 @@ SCgiTask::event_read() {
 
   return;
 
- event_read_failed:
-//   throw torrent::internal_error("SCgiTask::event_read() fault not handled.");
+event_read_failed:
+  //   throw torrent::internal_error("SCgiTask::event_read() fault not handled.");
   close();
 }
 
 void
 SCgiTask::event_write() {
-// Apple and Solaris do not support MSG_NOSIGNAL, 
+// Apple and Solaris do not support MSG_NOSIGNAL,
 // so disable this fix until we find a better solution
 #if defined(__APPLE__) || defined(__sun__)
   int bytes = ::send(m_fileDesc, m_position, m_bufferSize, 0);
@@ -285,15 +249,15 @@ SCgiTask::receive_write(const char* buffer, uint32_t length) {
     realloc_buffer(length + 256, NULL, 0);
 
   const auto header = m_content_type == ContentType::JSON
-    ? "Status: 200 OK\r\nContent-Type: application/json\r\nContent-Length: %i\r\n\r\n"
-    : "Status: 200 OK\r\nContent-Type: text/xml\r\nContent-Length: %i\r\n\r\n";
-  
+                        ? "Status: 200 OK\r\nContent-Type: application/json\r\nContent-Length: %i\r\n\r\n"
+                        : "Status: 200 OK\r\nContent-Type: text/xml\r\nContent-Length: %i\r\n\r\n";
+
   // Who ever bothers to check the return value?
   int headerSize = sprintf(m_buffer, header, length);
 
-  m_position = m_buffer;
+  m_position   = m_buffer;
   m_bufferSize = length + headerSize;
-  
+
   std::memcpy(m_buffer + headerSize, buffer, length);
 
   if (m_parent->log_fd() >= 0) {
@@ -310,4 +274,4 @@ SCgiTask::receive_write(const char* buffer, uint32_t length) {
   return true;
 }
 
-}
+} // namespace rpc
