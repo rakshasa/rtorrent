@@ -187,7 +187,7 @@ system_method_insert_object(const torrent::Object::list_type& args, int flags) {
   if (!(flags & rpc::object_storage::flag_static))
     cmd_flags |= rpc::CommandMap::flag_modifiable;
   if (!(flags & rpc::object_storage::flag_private))
-    cmd_flags |= rpc::CommandMap::flag_public_xmlrpc;
+    cmd_flags |= rpc::CommandMap::flag_public_rpc;
 
   if ((flags & rpc::object_storage::mask_type) == rpc::object_storage::flag_list_type) {
     torrent::Object             valueList     = torrent::Object::create_list();
@@ -360,7 +360,7 @@ system_method_redirect(const torrent::Object::list_type& args) {
   std::string new_key  = torrent::object_create_string(args.front());
   std::string dest_key = torrent::object_create_string(args.back());
 
-  rpc::commands.create_redirect(new_key, dest_key, rpc::CommandMap::flag_public_xmlrpc | rpc::CommandMap::flag_modifiable);
+  rpc::commands.create_redirect(new_key, dest_key, rpc::CommandMap::flag_public_rpc | rpc::CommandMap::flag_modifiable);
 
   return torrent::Object();
 }

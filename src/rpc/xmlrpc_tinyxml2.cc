@@ -189,7 +189,7 @@ print_object_xml(const torrent::Object& obj, tinyxml2::XMLPrinter* printer) {
 torrent::Object
 execute_command(std::string method_name, const tinyxml2::XMLElement* params_element) {
   CommandMap::iterator cmd_itr = commands.find(method_name.c_str());
-  if (cmd_itr == commands.end() || !(cmd_itr->second.m_flags & CommandMap::flag_public_xmlrpc)) {
+  if (cmd_itr == commands.end() || !(cmd_itr->second.m_flags & CommandMap::flag_public_rpc)) {
     throw rpc_error(XMLRPC_NO_SUCH_METHOD_ERROR, "method '" + method_name + "' not defined");
   }
   torrent::Object             params_raw = torrent::Object::create_list();

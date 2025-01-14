@@ -132,7 +132,7 @@ initialize_rpc() {
   unsigned int count = 0;
 
   for (rpc::CommandMap::const_iterator itr = rpc::commands.begin(), last = rpc::commands.end(); itr != last; itr++, count++) {
-    if (!(itr->second.m_flags & rpc::CommandMap::flag_public_xmlrpc))
+    if (!(itr->second.m_flags & rpc::CommandMap::flag_public_rpc))
       continue;
 
     rpc::rpc.insert_command(itr->first.c_str(), itr->second.m_parm, itr->second.m_doc);

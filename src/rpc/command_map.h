@@ -86,7 +86,7 @@ public:
   using base_type::find;
 
   static const int flag_dont_delete   = 0x1;
-  static const int flag_public_xmlrpc = 0x4;
+  static const int flag_public_rpc    = 0x4;
   static const int flag_modifiable    = 0x10;
   static const int flag_is_redirect   = 0x20;
   static const int flag_has_redirects = 0x40;
