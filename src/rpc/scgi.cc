@@ -142,7 +142,7 @@ SCgi::event_read() {
   utils::SocketFd fd;
 
   while ((fd = get_fd().accept(&sa)).is_valid()) {
-    SCgiTask* task = std::find_if(m_task, m_task + max_tasks, std::mem_fun_ref(&SCgiTask::is_available));
+    SCgiTask* task = std::find_if(m_task, m_task + max_tasks, std::mem_fn(&SCgiTask::is_available));
 
     if (task == m_task + max_tasks) {
       // Ergh... just closing for now.

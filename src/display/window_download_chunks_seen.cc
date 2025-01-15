@@ -110,7 +110,7 @@ WindowDownloadChunksSeen::redraw() {
       if (bitfield->get(chunk - seen)) {
         attr = A_NORMAL;
       } else if (itrTransfer != transferChunks.end() && (uint32_t)(chunk - seen) == (*itrTransfer)->index()) {
-        if (std::find_if((*itrTransfer)->begin(), (*itrTransfer)->end(), std::mem_fun_ref(&torrent::Block::is_transfering)) != (*itrTransfer)->end())
+        if (std::any_of((*itrTransfer)->begin(), (*itrTransfer)->end(), std::mem_fn(&torrent::Block::is_transfering)))
           attr = A_REVERSE;
         else
           attr = A_BOLD | A_UNDERLINE;

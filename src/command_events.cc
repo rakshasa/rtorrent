@@ -222,7 +222,7 @@ apply_close_low_diskspace(int64_t arg) {
   bool closed = false;
   core::Manager::DListItr itr = downloadList->begin();
 
-  while ((itr = std::find_if(itr, downloadList->end(), std::mem_fun(&core::Download::is_downloading)))
+  while ((itr = std::find_if(itr, downloadList->end(), std::mem_fn(&core::Download::is_downloading)))
          != downloadList->end()) {
     if ((*itr)->file_list()->free_diskspace() < (uint64_t)arg) {
       downloadList->close(*itr);
