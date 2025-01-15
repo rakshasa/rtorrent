@@ -419,7 +419,7 @@ path_expand(std::vector<std::string>* paths, const std::string& pattern) {
     currentCache.swap(nextCache);
   }
 
-  std::transform(currentCache.begin(), currentCache.end(), std::back_inserter(*paths), std::mem_fun_ref(&utils::Directory::path));
+  std::transform(currentCache.begin(), currentCache.end(), std::back_inserter(*paths), std::mem_fn(&utils::Directory::path));
 }
 
 bool
@@ -453,7 +453,7 @@ Manager::try_create_download_expand(const std::string& uri, int flags, command_l
 void
 Manager::receive_hashing_changed() {
   bool foundHashing = std::find_if(m_hashingView->begin_visible(), m_hashingView->end_visible(),
-                                   std::mem_fun(&Download::is_hash_checking)) != m_hashingView->end_visible();
+                                   std::mem_fn(&Download::is_hash_checking)) != m_hashingView->end_visible();
   
   // Try quick hashing all those with hashing == initial, set them to
   // something else when failed.
