@@ -107,6 +107,8 @@ libsub_root_a_SOURCES = \
 	rpc/exec_file.h \
 	rpc/fixed_key.h \
 	rpc/ip_table_list.h \
+	rpc/lua.h \
+	rpc/lua.cc \
 	rpc/object_storage.cc \
 	rpc/object_storage.h \
 	rpc/parse.cc \
@@ -125,9 +127,6 @@ libsub_root_a_SOURCES = \
 	rpc/xmlrpc_tinyxml2.cc \
 	rpc/tinyxml2/tinyxml2.h \
 	rpc/tinyxml2/tinyxml2.cc \
-	\
-	rpc/lua.h \
-	rpc/lua.cc \
 	\
 	ui/download.cc \
 	ui/download.h \
