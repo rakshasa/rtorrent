@@ -128,7 +128,7 @@ private:
 
   rpc::CommandScheduler*     m_commandScheduler;
   rpc::object_storage*       m_objectStorage;
-  rpc::LuaEngine*            m_luaEngine;
+  rpc::LuaEngine*            m_lua_engine;
   torrent::directory_events* m_directory_events;
 
   uint64_t            m_tick;
