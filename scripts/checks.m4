@@ -439,6 +439,25 @@ AC_DEFUN([TORRENT_WITH_TINYXML2], [
   ])
 ])
 
+AC_DEFUN([TORRENT_WITH_LUA], [
+  AC_ARG_WITH(lua,
+    AS_HELP_STRING([--with-lua],[enable LUA support]),
+  [
+    if test "$withval" = "no"; then
+      AC_MSG_RESULT(no)
+    else
+      AX_PROG_LUA
+      AX_LUA_LIBS
+      AX_LUA_HEADERS
+      AC_DEFINE(HAVE_LUA, 1, Use LUA.)
+      LIBS="$LIBS $LUA_LIB"
+      CXXFLAGS="$CXXFLAGS $LUA_INCLUDE"
+    fi
+  ],[
+    AC_MSG_RESULT(ignored)
+  ])
+])
+
 AC_DEFUN([TORRENT_WITH_INOTIFY], [
   AC_LANG_PUSH(C++)
 

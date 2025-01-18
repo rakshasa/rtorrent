@@ -107,6 +107,8 @@ libsub_root_a_SOURCES = \
 	rpc/exec_file.h \
 	rpc/fixed_key.h \
 	rpc/ip_table_list.h \
+	rpc/lua.h \
+	rpc/lua.cc \
 	rpc/object_storage.cc \
 	rpc/object_storage.h \
 	rpc/parse.cc \
