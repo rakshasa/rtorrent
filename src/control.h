@@ -103,7 +103,7 @@ public:
 
   rpc::CommandScheduler* command_scheduler()        { return m_commandScheduler; }
   rpc::object_storage*   object_storage()           { return m_objectStorage; }
-  rpc::LuaEngine*        lua_engine()               { return m_luaEngine; }
+  rpc::LuaEngine*        lua_engine()               { return m_lua_engine; }
 
   torrent::directory_events* directory_events()     { return m_directory_events; }
 
