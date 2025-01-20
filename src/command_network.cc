@@ -276,6 +276,7 @@ initialize_command_network() {
   CMD2_ANY_VALUE_V ("network.send_buffer.size.set",    std::bind(&torrent::ConnectionManager::set_send_buffer_size, cm, std::placeholders::_2));
   CMD2_ANY         ("network.receive_buffer.size",     std::bind(&torrent::ConnectionManager::receive_buffer_size, cm));
   CMD2_ANY_VALUE_V ("network.receive_buffer.size.set", std::bind(&torrent::ConnectionManager::set_receive_buffer_size, cm, std::placeholders::_2));
+  CMD2_VAR_VALUE   ("network.gzip_response_min_size",  -1);
   CMD2_ANY_STRING  ("network.tos.set",                 std::bind(&apply_tos, std::placeholders::_2));
 
   CMD2_ANY         ("network.bind_address",          std::bind(&core::Manager::bind_address, control->core()));
