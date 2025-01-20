@@ -233,7 +233,6 @@ void
 initialize_command_local() {
   core::DownloadList*    dList = control->core()->download_list();
   core::DownloadStore*   dStore = control->core()->download_store();
-  rpc::LuaEngine*        luaEngine = control->lua_engine();
   torrent::ChunkManager* chunkManager = torrent::chunk_manager();
   torrent::FileManager*  fileManager = torrent::file_manager();
 
@@ -318,8 +317,10 @@ initialize_command_local() {
   CMD2_ANY_V       ("session.save",            std::bind(&core::DownloadList::session_save, dList));
 
 #ifdef HAVE_LUA
-  CMD2_ANY         ("lua.execute",            std::bind(&rpc::execute_lua, luaEngine, std::placeholders::_1, std::placeholders::_2, 0));
-  CMD2_ANY         ("lua.execute.str",        std::bind(&rpc::execute_lua, luaEngine, std::placeholders::_1, std::placeholders::_2, rpc::LuaEngine::flag_string));
+  rpc::LuaEngine* lua_engine = control->lua_engine();
+
+  CMD2_ANY         ("lua.execute",            std::bind(&rpc::execute_lua, lua_engine, std::placeholders::_1, std::placeholders::_2, 0));
+  CMD2_ANY         ("lua.execute.str",        std::bind(&rpc::execute_lua, lua_engine, std::placeholders::_1, std::placeholders::_2, rpc::LuaEngine::flag_string));
 #endif
 
 #define CMD2_EXECUTE(key, flags)                                         \
