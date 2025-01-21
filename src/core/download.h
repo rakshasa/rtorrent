@@ -118,6 +118,8 @@ public:
   uint32_t            priority();
   void                set_priority(uint32_t p);
 
+  void                update_priorities(int flags = 0)         { m_download.update_priorities(flags); };
+
   uint32_t            resume_flags()                           { return m_resumeFlags; }
   void                set_resume_flags(uint32_t flags)         { m_resumeFlags = flags; }
 
