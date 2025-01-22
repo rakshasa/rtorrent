@@ -49,10 +49,12 @@ namespace core {
 template<typename Key, typename T, typename Compare = std::less<Key>,
          typename Alloc = std::allocator<std::pair<const Key, T> > >
 class RangeMap : private std::map<Key, std::pair<Key, T>, Compare,
-                                 typename Alloc::template rebind<std::pair<const Key, std::pair<Key, T> > >::other> {
+                                 typename std::allocator_traits<Alloc>::template rebind_alloc<std::pair<const Key, std::pair<Key, T>>>> {
 
   typedef std::map<Key, std::pair<Key, T>, Compare,
-                   typename Alloc::template rebind<std::pair<const Key, std::pair<Key, T> > >::other> base_type;
+                   typename std::allocator_traits<Alloc>::template rebind_alloc<std::pair<const Key, std::pair<Key, T>>>> base_type;
+
+  //std::allocator_traits<Alloc>::template rebind_alloc<std::pair<const Key, std::pair<Key, T>>>
 
 public:
   RangeMap() {}

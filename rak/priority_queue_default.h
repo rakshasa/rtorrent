@@ -37,6 +37,7 @@
 #ifndef RAK_PRIORITY_QUEUE_DEFAULT_H
 #define RAK_PRIORITY_QUEUE_DEFAULT_H
 
+#include <cassert>
 #include <functional>
 #include <rak/allocators.h>
 #include <rak/priority_queue.h>
@@ -52,8 +53,7 @@ public:
 
   priority_item() {}
   ~priority_item() {
-    if (is_queued())
-      throw torrent::internal_error("priority_item::~priority_item() called on a queued item.");
+    assert(!is_queued() && "priority_item::~priority_item() called on a queued item.");
 
     m_time = timer();
     m_slot = slot_void();
