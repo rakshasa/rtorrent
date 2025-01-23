@@ -1,14 +1,16 @@
 #include "config.h"
 
+#include "rpc/parse_commands.h"
+#include <cstdio>
 #include <rak/allocators.h>
 #include <rak/error_number.h>
-#include <cstdio>
-#include <vector>
-#include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/types.h>
 #include <torrent/exceptions.h>
 #include <torrent/poll.h>
 #include <torrent/utils/log.h>
+#include <vector>
+#include <zlib.h>
 
 #include "utils/socket_fd.h"
 
@@ -46,7 +48,7 @@ SCgiTask::open(SCgi* parent, int fd) {
   worker_thread->poll()->insert_read(this);
   worker_thread->poll()->insert_error(this);
 
-//   scgiTimer = rak::timer::current();
+  //   scgiTimer = rak::timer::current();
 }
 
 void
@@ -66,9 +68,9 @@ SCgiTask::close() {
   m_buffer = NULL;
 
   // Test
-//   char buffer[512];
-//   sprintf(buffer, "SCgi system call processed: %i", (int)(rak::timer::current() - scgiTimer).usec());
-//   control->core()->push_log(std::string(buffer));
+  //   char buffer[512];
+  //   sprintf(buffer, "SCgi system call processed: %i", (int)(rak::timer::current() - scgiTimer).usec());
+  //   control->core()->push_log(std::string(buffer));
 }
 
 void
@@ -139,6 +141,11 @@ SCgiTask::event_read() {
           goto event_read_failed;
       } else if (strcmp(key, "CONTENT_TYPE") == 0) {
         content_type = value;
+      } else if (strcmp(key, "ACCEPT_ENCODING") == 0) {
+        if (strstr(value, "gzip") != nullptr)
+          // This just marks it as possible to compress, it may not
+          // actually happen depending on the size of the response
+          m_compress_response = true;
       }
     }
 
@@ -212,12 +219,14 @@ event_read_failed:
 
 void
 SCgiTask::event_write() {
+  int bytes = -1;
+
 // Apple and Solaris do not support MSG_NOSIGNAL,
 // so disable this fix until we find a better solution
 #if defined(__APPLE__) || defined(__sun__)
-  int bytes = ::send(m_fileDesc, m_position, m_bufferSize, 0);
+  bytes = ::send(m_fileDesc, m_position, m_bufferSize, 0);
 #else
-  int bytes = ::send(m_fileDesc, m_position, m_bufferSize, MSG_NOSIGNAL);
+  bytes = ::send(m_fileDesc, m_position, m_bufferSize, MSG_NOSIGNAL);
 #endif
 
   if (bytes == -1) {
@@ -239,36 +248,99 @@ SCgiTask::event_error() {
   close();
 }
 
+// Convenience function similar to zlib's compress(), but uses a gzip
+// header. Returns an empty string on error, as even a compressed
+// empty string will have data.
+std::string
+gzip_compress(const char* buffer, uint32_t length) {
+  std::string compressed;
+
+  // The choice of 1/3 is based on some very rough tests of JSON/XML
+  // compression gains, aiming for just enough to skip the initial
+  // round of memory allocations
+  compressed.reserve(length / 3);
+  z_stream zs;
+  zs.zalloc = Z_NULL;
+  zs.zfree  = Z_NULL;
+  zs.opaque = Z_NULL;
+
+  constexpr int window_bits   = 15;
+  constexpr int gzip_encoding = 16;
+  constexpr int gzip_level    = 6;
+  constexpr int chunk_size    = 16384;
+
+  if (deflateInit2(&zs, Z_DEFAULT_COMPRESSION, Z_DEFLATED, window_bits | gzip_encoding, gzip_level, Z_DEFAULT_STRATEGY) != Z_OK)
+    return {};
+
+  zs.next_in  = (Bytef*)buffer;
+  zs.avail_in = length;
+  unsigned char out[chunk_size];
+  do {
+    zs.avail_out = sizeof(out);
+    zs.next_out  = out;
+    if (deflate(&zs, Z_FINISH) == Z_STREAM_ERROR)
+      return {};
+    compressed.append(reinterpret_cast<char*>(out), sizeof(out) - zs.avail_out);
+  } while (zs.avail_out == 0);
+
+  return compressed;
+}
+
 bool
 SCgiTask::receive_write(const char* buffer, uint32_t length) {
   if (buffer == NULL || length > (100 << 20))
     throw torrent::internal_error("SCgiTask::receive_write(...) received bad input.");
 
-  // Need to cast due to a bug in MacOSX gcc-4.0.1.
-  if (length + 256 > std::max(m_bufferSize, (unsigned int)default_buffer_size))
-    realloc_buffer(length + 256, NULL, 0);
+  std::string header = m_content_type == ContentType::JSON
+                         ? "Status: 200 OK\r\nContent-Type: application/json\r\nContent-Length: %i\r\n"
+                         : "Status: 200 OK\r\nContent-Type: text/xml\r\nContent-Length: %i\r\n";
 
-  const auto header = m_content_type == ContentType::JSON
-                        ? "Status: 200 OK\r\nContent-Type: application/json\r\nContent-Length: %i\r\n\r\n"
-                        : "Status: 200 OK\r\nContent-Type: text/xml\r\nContent-Length: %i\r\n\r\n";
-
-  // Who ever bothers to check the return value?
-  int headerSize = sprintf(m_buffer, header, length);
-
-  m_position   = m_buffer;
-  m_bufferSize = length + headerSize;
-
-  std::memcpy(m_buffer + headerSize, buffer, length);
-
+  // Write to log prior to possible compression
   if (m_parent->log_fd() >= 0) {
     int __UNUSED result;
     // Clean up logging, this is just plain ugly...
     //    write(m_logFd, "\n---\n", sizeof("\n---\n"));
-    result = write(m_parent->log_fd(), m_buffer, m_bufferSize);
+    result = write(m_parent->log_fd(), buffer, length);
     result = write(m_parent->log_fd(), "\n---\n", sizeof("\n---\n"));
   }
 
-  lt_log_print_dump(torrent::LOG_RPC_DUMP, m_buffer, m_bufferSize, "scgi", "RPC write.", 0);
+  lt_log_print_dump(torrent::LOG_RPC_DUMP, buffer, length, "scgi", "RPC write.", 0);
+
+  bool should_compress = false;
+  if (m_compress_response) {
+    auto min_size = rpc::call_command_value("network.gzip_response_min_size");
+    if (min_size >= 0 && length > min_size)
+      should_compress = true;
+  }
+
+  std::string compressed_buffer;
+  if (should_compress) {
+    compressed_buffer = gzip_compress(buffer, length);
+    if (compressed_buffer != "") {
+      header += "Content-Encoding: gzip\r\n";
+      length = compressed_buffer.size();
+    } else {
+      // Fall back to uncompressed response if compression fails
+      should_compress = false;
+    }
+  }
+  header += "\r\n";
+
+  int header_size = snprintf(NULL, 0, header.c_str(), length);
+
+  // Need to cast due to a bug in MacOSX gcc-4.0.1.
+  if (length + header_size > std::max(m_bufferSize, (unsigned int)default_buffer_size))
+    realloc_buffer(length + header_size, NULL, 0);
+
+  m_position   = m_buffer;
+  m_bufferSize = length + header_size;
+
+  snprintf(m_buffer, m_bufferSize, header.c_str(), length);
+  if (should_compress) {
+    std::memcpy(m_buffer + header_size, compressed_buffer.c_str(), length);
+  } else {
+    std::memcpy(m_buffer + header_size, buffer, length);
+  }
 
   event_write();
   return true;

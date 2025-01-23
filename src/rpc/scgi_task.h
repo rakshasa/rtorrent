@@ -85,6 +85,7 @@ private:
   unsigned int        m_bufferSize;
 
   ContentType         m_content_type{ XML };
+  bool                m_compress_response = false;
 };
 
 }
