@@ -115,7 +115,7 @@ advance_backward(_InputIter __first, _InputIter __last, _Distance __distance) {
 }
 
 template <typename _Value>
-struct compare_base : public std::binary_function<_Value, _Value, bool> {
+struct compare_base : public std::function<bool(_Value, _Value)> {
   bool operator () (const _Value& complete, const _Value& base) const {
     return !complete.compare(0, base.size(), base);
   }
