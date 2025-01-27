@@ -7,13 +7,17 @@ AC_CONFIG_MACRO_DIRS([scripts])
 AM_INIT_AUTOMAKE([foreign subdir-objects])
 AM_PROG_AR
 
-AC_DEFINE([API_VERSION], [10], [api version])
-
-AC_PROG_CXX
-AC_SYS_LARGEFILE
 LT_INIT
 
+AC_PROG_CXX
+AC_DEFINE([API_VERSION], [10], [api version])
+
+# Filter out unwanted flags added by autoconf on some systems, e.g. MacOS.
+TORRENT_REMOVE_UNWANTED(CXX, $CXX, -std=c++11 -std=gnu++11)
+
 AX_CXX_COMPILE_STDCXX([17], [noext], [mandatory])
+
+AC_SYS_LARGEFILE
 
 RAK_CHECK_CFLAGS
 RAK_CHECK_CXXFLAGS

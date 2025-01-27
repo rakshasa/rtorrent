@@ -13,11 +13,24 @@ AC_DEFUN([TORRENT_WITH_SYSROOT], [
         AC_MSG_ERROR(The sysroot option must point to a directory, like f.ex "/Developer/SDKs/MacOSX10.4u.sdk".)
       else
         AC_MSG_RESULT($withval)
-        
+
         CXXFLAGS="$CXXFLAGS -isysroot $withval"
         LDFLAGS="$LDFLAGS -Wl,-syslibroot,$withval"
       fi
     ])
+])
+
+
+AC_DEFUN([TORRENT_REMOVE_UNWANTED],
+[
+  values_to_check=`for i in $2; do echo $i; done`
+  unwanted_values=`for i in $3; do echo $i; done`
+  if test -z "${unwanted_values}"; then
+    $1="$2"
+  else
+    result=`echo "${values_to_check}" | $GREP -Fvx -- "${unwanted_values}" | $GREP -v '^$'`
+    $1=${result//$'\n'/ }
+  fi
 ])
 
 
