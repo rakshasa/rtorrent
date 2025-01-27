@@ -28,7 +28,7 @@ AC_DEFUN([TORRENT_REMOVE_UNWANTED],
   if test -z "${unwanted_values}"; then
     $1="$2"
   else
-    result=`$GREP -Fvx -- "${unwanted_values}" <<< "$values_to_check" | $GREP -v '^$'`
+    result=`echo "${values_to_check}" | $GREP -Fvx -- "${unwanted_values}" | $GREP -v '^$'`
     $1=${result//$'\n'/ }
   fi
 ])
