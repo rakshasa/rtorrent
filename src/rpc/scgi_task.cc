@@ -1,4 +1,3 @@
-#include "rpc/scgi_task.h"
 #include "config.h"
 
 #include <cstdio>
@@ -13,6 +12,7 @@
 
 #include "utils/socket_fd.h"
 
+#include "scgi_task.h"
 #include "control.h"
 #include "globals.h"
 #include "scgi.h"
