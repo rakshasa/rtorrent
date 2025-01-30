@@ -1,39 +1,3 @@
-// rTorrent - BitTorrent client
-// Copyright (C) 2005-2011, Jari Sundell
-//
-// This program is free software; you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation; either version 2 of the License, or
-// (at your option) any later version.
-// 
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-// 
-// You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-//
-// In addition, as a special exception, the copyright holders give
-// permission to link the code of portions of this program with the
-// OpenSSL library under certain conditions as described in each
-// individual source file, and distribute linked combinations
-// including the two.
-//
-// You must obey the GNU General Public License in all respects for
-// all of the code used other than OpenSSL.  If you modify file(s)
-// with this exception, you may extend this exception to your version
-// of the file(s), but you are not obligated to do so.  If you do not
-// wish to do so, delete this exception statement from your version.
-// If you delete this exception statement from all source files in the
-// program, then also delete it here.
-//
-// Contact:  Jari Sundell <jaris@ifi.uio.no>
-//
-//           Skomakerveien 33
-//           3185 Skoppum, NORWAY
-
 #include "config.h"
 
 #include <cstdio>
@@ -62,7 +26,7 @@ tracker_set_enabled(torrent::Tracker* tracker, bool state) {
 struct call_add_node_t {
   call_add_node_t(int port) : m_port(port) { }
 
-  void operator() (const sockaddr* sa, int err) {
+  void operator() (const sockaddr* sa, [[maybe_unused]] int err) {
     if (sa == NULL) {
       lt_log_print(torrent::LOG_DHT_WARN, "Could not resolve host.");
     } else {
@@ -103,7 +67,7 @@ apply_enable_trackers(int64_t arg) {
 
     if (arg && !rpc::call_command_value("trackers.use_udp"))
       (*itr)->enable_udp_trackers(false);
-  }    
+  }
 
   return torrent::Object();
 }
@@ -127,32 +91,30 @@ initialize_command_tracker() {
   CMD2_TRACKER        ("t.type",              std::bind(&torrent::Tracker::type, std::placeholders::_1));
   CMD2_TRACKER        ("t.id",                std::bind(&torrent::Tracker::tracker_id, std::placeholders::_1));
 
-  CMD2_TRACKER        ("t.latest_event",      std::bind(&torrent::Tracker::latest_event, std::placeholders::_1));
-  CMD2_TRACKER        ("t.latest_new_peers",  std::bind(&torrent::Tracker::latest_new_peers, std::placeholders::_1));
-  CMD2_TRACKER        ("t.latest_sum_peers",  std::bind(&torrent::Tracker::latest_sum_peers, std::placeholders::_1));
+  CMD2_TRACKER        ("t.latest_event",      [](torrent::Tracker* tracker, [[maybe_unused]] auto o) -> auto { return tracker->state().latest_event(); });
+  CMD2_TRACKER        ("t.latest_new_peers",  [](torrent::Tracker* tracker, [[maybe_unused]] auto o) -> auto { return tracker->state().latest_new_peers(); });
+  CMD2_TRACKER        ("t.latest_sum_peers",  [](torrent::Tracker* tracker, [[maybe_unused]] auto o) -> auto { return tracker->state().latest_sum_peers(); });
 
-  // Time since last connection, connection attempt.
+  CMD2_TRACKER        ("t.normal_interval",   [](torrent::Tracker* tracker, [[maybe_unused]] auto o) -> auto { return tracker->state().normal_interval(); });
+  CMD2_TRACKER        ("t.min_interval",      [](torrent::Tracker* tracker, [[maybe_unused]] auto o) -> auto { return tracker->state().min_interval(); });
 
-  CMD2_TRACKER        ("t.normal_interval",   std::bind(&torrent::Tracker::normal_interval, std::placeholders::_1));
-  CMD2_TRACKER        ("t.min_interval",      std::bind(&torrent::Tracker::min_interval, std::placeholders::_1));
+  CMD2_TRACKER        ("t.activity_time_next", [](torrent::Tracker* tracker, [[maybe_unused]] auto o) -> auto { return tracker->state().activity_time_next(); });
+  CMD2_TRACKER        ("t.activity_time_last", [](torrent::Tracker* tracker, [[maybe_unused]] auto o) -> auto { return tracker->state().activity_time_last(); });
 
-  CMD2_TRACKER        ("t.activity_time_next", std::bind(&torrent::Tracker::activity_time_next, std::placeholders::_1));
-  CMD2_TRACKER        ("t.activity_time_last", std::bind(&torrent::Tracker::activity_time_last, std::placeholders::_1));
+  CMD2_TRACKER        ("t.success_time_next", [](torrent::Tracker* tracker, [[maybe_unused]] auto o) -> auto { return tracker->state().success_time_next(); });
+  CMD2_TRACKER        ("t.success_time_last", [](torrent::Tracker* tracker, [[maybe_unused]] auto o) -> auto { return tracker->state().success_time_last(); });
+  CMD2_TRACKER        ("t.success_counter",   [](torrent::Tracker* tracker, [[maybe_unused]] auto o) -> auto { return tracker->state().success_counter(); });
 
-  CMD2_TRACKER        ("t.success_time_next", std::bind(&torrent::Tracker::success_time_next, std::placeholders::_1));
-  CMD2_TRACKER        ("t.success_time_last", std::bind(&torrent::Tracker::success_time_last, std::placeholders::_1));
-  CMD2_TRACKER        ("t.success_counter",   std::bind(&torrent::Tracker::success_counter, std::placeholders::_1));
+  CMD2_TRACKER        ("t.failed_time_next",  [](torrent::Tracker* tracker, [[maybe_unused]] auto o) -> auto { return tracker->state().failed_time_next(); });
+  CMD2_TRACKER        ("t.failed_time_last",  [](torrent::Tracker* tracker, [[maybe_unused]] auto o) -> auto { return tracker->state().failed_time_last(); });
+  CMD2_TRACKER        ("t.failed_counter",    [](torrent::Tracker* tracker, [[maybe_unused]] auto o) -> auto { return tracker->state().failed_counter(); });
 
-  CMD2_TRACKER        ("t.failed_time_next",  std::bind(&torrent::Tracker::failed_time_next, std::placeholders::_1));
-  CMD2_TRACKER        ("t.failed_time_last",  std::bind(&torrent::Tracker::failed_time_last, std::placeholders::_1));
-  CMD2_TRACKER        ("t.failed_counter",    std::bind(&torrent::Tracker::failed_counter, std::placeholders::_1));
+  CMD2_TRACKER        ("t.scrape_time_last",  [](torrent::Tracker* tracker, [[maybe_unused]] auto o) -> auto { return tracker->state().scrape_time_last(); });
+  CMD2_TRACKER        ("t.scrape_counter",    [](torrent::Tracker* tracker, [[maybe_unused]] auto o) -> auto { return tracker->state().scrape_counter(); });
 
-  CMD2_TRACKER        ("t.scrape_time_last",  std::bind(&torrent::Tracker::scrape_time_last, std::placeholders::_1));
-  CMD2_TRACKER        ("t.scrape_counter",    std::bind(&torrent::Tracker::scrape_counter, std::placeholders::_1));
-
-  CMD2_TRACKER        ("t.scrape_complete",   std::bind(&torrent::Tracker::scrape_complete, std::placeholders::_1));
-  CMD2_TRACKER        ("t.scrape_incomplete", std::bind(&torrent::Tracker::scrape_incomplete, std::placeholders::_1));
-  CMD2_TRACKER        ("t.scrape_downloaded", std::bind(&torrent::Tracker::scrape_downloaded, std::placeholders::_1));
+  CMD2_TRACKER        ("t.scrape_complete",   [](torrent::Tracker* tracker, [[maybe_unused]] auto o) -> auto { return tracker->state().scrape_complete(); });
+  CMD2_TRACKER        ("t.scrape_incomplete", [](torrent::Tracker* tracker, [[maybe_unused]] auto o) -> auto { return tracker->state().scrape_incomplete(); });
+  CMD2_TRACKER        ("t.scrape_downloaded", [](torrent::Tracker* tracker, [[maybe_unused]] auto o) -> auto { return tracker->state().scrape_downloaded(); });
 
   CMD2_ANY_VALUE      ("trackers.enable",     std::bind(&apply_enable_trackers, int64_t(1)));
   CMD2_ANY_VALUE      ("trackers.disable",    std::bind(&apply_enable_trackers, int64_t(0)));
