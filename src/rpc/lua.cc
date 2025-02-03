@@ -151,7 +151,7 @@ object_to_target(const torrent::Object& obj, int call_flags, rpc::target_type* t
     type  = target_string[delim_pos + 1];
     index = target_string.substr(delim_pos + 2);
   }
-  core::Download* download = xmlrpc.slot_find_download()(hash.c_str());
+  core::Download* download = rpc.slot_find_download()(hash.c_str());
 
   if (download == nullptr)
     throw torrent::input_error("invalid parameters: info-hash not found");
@@ -162,11 +162,11 @@ object_to_target(const torrent::Object& obj, int call_flags, rpc::target_type* t
       *target = rpc::make_target(download);
       break;
     case 'f':
-      *target = rpc::make_target(command_base::target_file, xmlrpc.slot_find_file()(download, std::stoi(std::string(index))));
+      *target = rpc::make_target(command_base::target_file, rpc.slot_find_file()(download, std::stoi(std::string(index))));
       break;
     case 't':
       *target =
-        rpc::make_target(command_base::target_tracker, xmlrpc.slot_find_tracker()(download, std::stoi(std::string(index))));
+        rpc::make_target(command_base::target_tracker, rpc.slot_find_tracker()(download, std::stoi(std::string(index))));
       break;
     case 'p': {
       if (index.size() < 40) {
@@ -174,7 +174,7 @@ object_to_target(const torrent::Object& obj, int call_flags, rpc::target_type* t
       }
       torrent::HashString hash;
       torrent::hash_string_from_hex_c_str(index.c_str(), hash);
-      *target = rpc::make_target(command_base::target_peer, xmlrpc.slot_find_peer()(download, hash));
+      *target = rpc::make_target(command_base::target_peer, rpc.slot_find_peer()(download, hash));
       break;
     }
     default:
