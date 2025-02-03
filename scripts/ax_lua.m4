@@ -626,6 +626,8 @@ AC_DEFUN([AX_LUA_LIBS],
         lua$LUA_SHORT_VERSION \
         lua-$LUA_VERSION \
         lua-$LUA_SHORT_VERSION \
+        :liblua-$LUA_VERSION.so.0 \
+        :liblua-$LUA_SHORT_VERSION.so.0 \
         lua \
       ],
       [_ax_found_lua_libs='yes'],
