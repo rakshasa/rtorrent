@@ -121,9 +121,10 @@ DownloadList::find_hex_ptr(const char* hash) {
 Download*
 DownloadList::create(torrent::Object* obj, bool printLog) {
   torrent::Download download;
+  int fallocate = rpc::call_command_value("system.file.allocate") ? torrent::Download::open_enable_fallocate : 0;
 
   try {
-    download = torrent::download_add(obj);
+    download = torrent::download_add(obj, fallocate);
 
   } catch (torrent::local_error& e) {
     delete obj;
@@ -158,7 +159,9 @@ DownloadList::create(std::istream* str, bool printLog) {
       return NULL;
     }
 
-    download = torrent::download_add(object);
+    int fallocate = rpc::call_command_value("system.file.allocate") ? torrent::Download::open_enable_fallocate : 0;
+
+    download = torrent::download_add(object, fallocate);
 
   } catch (torrent::local_error& e) {
     delete object;
@@ -341,8 +344,6 @@ DownloadList::resume(Download* download, int flags) {
     if (download->download()->info()->is_active())
       return;
 
-    rpc::parse_command_single(rpc::make_target(download), "view.set_visible=active");
-
     // We need to make sure the flags aren't reset if someone decideds
     // to call resume() while it is hashing, etc.
     if (download->resume_flags() == ~uint32_t())
@@ -368,9 +369,6 @@ DownloadList::resume(Download* download, int flags) {
 
     // This will never actually do anything due to the above hash check.
     // open_throw(download);
-
-    rpc::call_command("d.state_changed.set", cachedTime.seconds(), rpc::make_target(download));
-    rpc::call_command("d.state_counter.set", rpc::call_command_value("d.state_counter", rpc::make_target(download)) + 1, rpc::make_target(download));
 
     if (download->is_done()) {
       torrent::Object conn_current = rpc::call_command("d.connection_seed", torrent::Object(), rpc::make_target(download));
@@ -414,12 +412,32 @@ DownloadList::resume(Download* download, int flags) {
     // Update the priority to ensure it has the correct
     // seeding/unfinished modifiers.
     download->set_priority(download->priority());
-    download->download()->start(download->resume_flags());
 
-    download->set_resume_flags(~uint32_t());
+    int openFlags = download->resume_flags();
 
-    DL_TRIGGER_EVENT(download, "event.download.resumed");
+    if (rpc::call_command_value("system.file.allocate"))
+      openFlags |= torrent::Download::open_enable_fallocate;
 
+    try {
+      download->download()->start(openFlags);
+
+      rpc::parse_command_single(rpc::make_target(download), "view.set_visible=active");
+      rpc::call_command("d.state_changed.set", cachedTime.seconds(), rpc::make_target(download));
+      rpc::call_command("d.state_counter.set", rpc::call_command_value("d.state_counter", rpc::make_target(download)) + 1, rpc::make_target(download));
+
+      download->set_resume_flags(~uint32_t());
+
+      DL_TRIGGER_EVENT(download, "event.download.resumed");
+    } catch (torrent::internal_error& e) {
+      std::string errmsg = e.what();
+
+      if (errmsg == "Tried to start an already started download.") {
+        download->set_resume_flags(~uint32_t());
+      } else if (errmsg == "Tried to start a download with not enough disk space for it.") {
+        rpc::call_command("d.stop", torrent::Object(), rpc::make_target(download));
+        control->core()->push_log_std("Not enough disk space to start download " + download->download()->info()->name());
+      }
+    }
   } catch (torrent::local_error& e) {
     lt_log_print(torrent::LOG_TORRENT_ERROR, "Could not resume download: %s", e.what());
   }
