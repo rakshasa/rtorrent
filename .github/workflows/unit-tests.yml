@@ -39,6 +39,7 @@ jobs:
       run: |
         sudo apt-get install -y \
           libcppunit-dev \
+          zlib1g-dev \
           libcurl4-openssl-dev
     - name: Configure Project
       run: |
