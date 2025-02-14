@@ -38,6 +38,7 @@
 
 #include <rak/algorithm.h>
 #include <torrent/exceptions.h>
+#include <torrent/download.h>
 #include <torrent/data/file.h>
 #include <torrent/data/file_list.h>
 
@@ -46,6 +47,8 @@
 #include "display/text_element_string.h"
 #include "display/window_file_list.h"
 #include "input/manager.h"
+
+#include "rpc/parse_commands.h"
 
 #include "control.h"
 #include "element_file_list.h"
@@ -278,7 +281,8 @@ ElementFileList::receive_priority() {
     first++;
   }
 
-  m_download->download()->update_priorities();
+  int flags = rpc::call_command_value("system.file.allocate") ? torrent::Download::open_enable_fallocate : 0;
+  m_download->download()->update_priorities(flags);
   update_itr();
 }
 
@@ -293,7 +297,8 @@ ElementFileList::receive_change_all() {
   for (torrent::FileList::iterator itr = fl->begin(), last = fl->end(); itr != last; ++itr)
     (*itr)->set_priority(priority);
 
-  m_download->download()->update_priorities();
+  int flags = rpc::call_command_value("system.file.allocate") ? torrent::Download::open_enable_fallocate : 0;
+  m_download->download()->update_priorities(flags);
   update_itr();
 }
 
