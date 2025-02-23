@@ -1,17 +1,18 @@
 #include "config.h"
 
+#include <cstdio>
 #include <rak/allocators.h>
 #include <rak/error_number.h>
-#include <cstdio>
-#include <vector>
-#include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/types.h>
 #include <torrent/exceptions.h>
 #include <torrent/poll.h>
 #include <torrent/utils/log.h>
+#include <zlib.h>
 
 #include "utils/socket_fd.h"
 
+#include "scgi_task.h"
 #include "control.h"
 #include "globals.h"
 #include "scgi.h"
@@ -24,12 +25,16 @@
 
 namespace rpc {
 
+// Disable gzipping by default, but once enabled gzip everything
+bool SCgiTask::m_allow_compressed_response  = false;
+int  SCgiTask::m_min_compress_response_size = 0;
+
 // If bufferSize is zero then memcpy won't do anything.
 inline void
-SCgiTask::realloc_buffer(uint32_t size, const char* buffer, uint32_t bufferSize) {
+SCgiTask::realloc_buffer(uint32_t size, const char* buffer, uint32_t buffer_size) {
   char* tmp = rak::cacheline_allocator<char>::alloc_size(size);
 
-  std::memcpy(tmp, buffer, bufferSize);
+  std::memcpy(tmp, buffer, buffer_size);
   ::free(m_buffer);
   m_buffer = tmp;
 }
@@ -38,7 +43,7 @@ void
 SCgiTask::open(SCgi* parent, int fd) {
   m_parent   = parent;
   m_fileDesc = fd;
-  m_buffer   = rak::cacheline_allocator<char>::alloc_size((m_bufferSize = default_buffer_size) + 1);
+  m_buffer   = rak::cacheline_allocator<char>::alloc_size((m_buffer_size = default_buffer_size) + 1);
   m_position = m_buffer;
   m_body     = NULL;
 
@@ -46,7 +51,7 @@ SCgiTask::open(SCgi* parent, int fd) {
   worker_thread->poll()->insert_read(this);
   worker_thread->poll()->insert_error(this);
 
-//   scgiTimer = rak::timer::current();
+  //   scgiTimer = rak::timer::current();
 }
 
 void
@@ -66,14 +71,14 @@ SCgiTask::close() {
   m_buffer = NULL;
 
   // Test
-//   char buffer[512];
-//   sprintf(buffer, "SCgi system call processed: %i", (int)(rak::timer::current() - scgiTimer).usec());
-//   control->core()->push_log(std::string(buffer));
+  //   char buffer[512];
+  //   sprintf(buffer, "SCgi system call processed: %i", (int)(rak::timer::current() - scgiTimer).usec());
+  //   control->core()->push_log(std::string(buffer));
 }
 
 void
 SCgiTask::event_read() {
-  int bytes = ::recv(m_fileDesc, m_position, m_bufferSize - (m_position - m_buffer), 0);
+  int bytes = ::recv(m_fileDesc, m_position, m_buffer_size - (m_position - m_buffer), 0);
 
   if (bytes <= 0) {
     if (bytes == 0 || !rak::error_number::current().is_blocked_momentary())
@@ -139,6 +144,11 @@ SCgiTask::event_read() {
           goto event_read_failed;
       } else if (strcmp(key, "CONTENT_TYPE") == 0) {
         content_type = value;
+      } else if (strcmp(key, "ACCEPT_ENCODING") == 0) {
+        if (strstr(value, "gzip") != nullptr)
+          // This just marks it as possible to compress, it may not
+          // actually happen depending on the size of the response
+          m_client_accepts_compressed_response = true;
       }
     }
 
@@ -164,25 +174,25 @@ SCgiTask::event_read() {
       goto event_read_failed;
     }
 
-    if ((unsigned int)(content_length + header_size) < m_bufferSize) {
-      m_bufferSize = content_length + header_size;
+    if ((unsigned int)(content_length + header_size) < m_buffer_size) {
+      m_buffer_size = content_length + header_size;
 
     } else if ((unsigned int)content_length <= default_buffer_size) {
-      m_bufferSize = content_length;
+      m_buffer_size = content_length;
 
       std::memmove(m_buffer, m_body, std::distance(m_body, m_position));
       m_position = m_buffer + std::distance(m_body, m_position);
       m_body     = m_buffer;
 
     } else {
-      realloc_buffer((m_bufferSize = content_length) + 1, m_body, std::distance(m_body, m_position));
+      realloc_buffer((m_buffer_size = content_length) + 1, m_body, std::distance(m_body, m_position));
 
       m_position = m_buffer + std::distance(m_body, m_position);
       m_body     = m_buffer;
     }
   }
 
-  if ((unsigned int)std::distance(m_buffer, m_position) != m_bufferSize)
+  if ((unsigned int)std::distance(m_buffer, m_position) != m_buffer_size)
     return;
 
   worker_thread->poll()->remove_read(this);
@@ -193,14 +203,14 @@ SCgiTask::event_read() {
 
     // Clean up logging, this is just plain ugly...
     //    write(m_logFd, "\n---\n", sizeof("\n---\n"));
-    result = write(m_parent->log_fd(), m_buffer, m_bufferSize);
+    result = write(m_parent->log_fd(), m_buffer, m_buffer_size);
     result = write(m_parent->log_fd(), "\n---\n", sizeof("\n---\n"));
   }
 
-  lt_log_print_dump(torrent::LOG_RPC_DUMP, m_body, m_bufferSize - std::distance(m_buffer, m_body), "scgi", "RPC read.", 0);
+  lt_log_print_dump(torrent::LOG_RPC_DUMP, m_body, m_buffer_size - std::distance(m_buffer, m_body), "scgi", "RPC read.", 0);
 
   // Close if the call failed, else stay open to write back data.
-  if (!m_parent->receive_call(this, m_body, m_bufferSize - std::distance(m_buffer, m_body)))
+  if (!m_parent->receive_call(this, m_body, m_buffer_size - std::distance(m_buffer, m_body)))
     close();
 
   return;
@@ -212,12 +222,13 @@ event_read_failed:
 
 void
 SCgiTask::event_write() {
+  int bytes;
 // Apple and Solaris do not support MSG_NOSIGNAL,
 // so disable this fix until we find a better solution
 #if defined(__APPLE__) || defined(__sun__)
-  int bytes = ::send(m_fileDesc, m_position, m_bufferSize, 0);
+  bytes = ::send(m_fileDesc, m_position, m_bufferSize, 0);
 #else
-  int bytes = ::send(m_fileDesc, m_position, m_bufferSize, MSG_NOSIGNAL);
+  bytes = ::send(m_fileDesc, m_position, m_buffer_size, MSG_NOSIGNAL);
 #endif
 
   if (bytes == -1) {
@@ -228,9 +239,9 @@ SCgiTask::event_write() {
   }
 
   m_position += bytes;
-  m_bufferSize -= bytes;
+  m_buffer_size -= bytes;
 
-  if (bytes == 0 || m_bufferSize == 0)
+  if (bytes == 0 || m_buffer_size == 0)
     return close();
 }
 
@@ -239,36 +250,102 @@ SCgiTask::event_error() {
   close();
 }
 
+// On failure, returns false and the buffer is left in an
+// indeterminate state, but m_position and m_bufferSize remain the
+// same.
+bool
+SCgiTask::gzip_compress_response(const char* buffer, uint32_t length, std::string_view header_template) {
+  z_stream zs;
+  zs.zalloc = Z_NULL;
+  zs.zfree  = Z_NULL;
+  zs.opaque = Z_NULL;
+
+  constexpr int window_bits   = 15;
+  constexpr int gzip_encoding = 16;
+  constexpr int gzip_level    = 6;
+  constexpr int chunk_size    = 16384;
+
+  if (deflateInit2(&zs, Z_DEFAULT_COMPRESSION, Z_DEFLATED, window_bits | gzip_encoding, gzip_level, Z_DEFAULT_STRATEGY) != Z_OK)
+    return false;
+
+  // Calculate the maximum size the buffer could reach, note that the
+  // max repsonse size will usually be larger than the original length
+  const auto max_response_size = deflateBound(&zs, length);
+  if (max_response_size + max_header_size > std::max(m_buffer_size, (unsigned int)default_buffer_size))
+    realloc_buffer(max_response_size + max_header_size, NULL, 0);
+
+  auto output = m_buffer + max_header_size;
+  zs.next_in  = (Bytef*)buffer;
+  zs.avail_in = length;
+  do {
+    zs.avail_out = chunk_size;
+    zs.next_out  = (Bytef*)output;
+    if (deflate(&zs, Z_FINISH) == Z_STREAM_ERROR)
+      return false;
+    output += chunk_size - zs.avail_out;
+  } while (zs.avail_out == 0);
+
+  // Write the header directly to the buffer. If at any point
+  // max_header_size would be exceeded, fail gracefully.
+  const std::string_view header_end("Content-Encoding: gzip\r\n\r\n");
+  const int              response_size = output - (m_buffer + max_header_size);
+  int                    header_size   = snprintf(m_buffer, max_header_size, header_template.data(), response_size);
+  if (header_size < 0 || header_end.size() > max_header_size - header_size)
+    return false;
+  std::memcpy(m_buffer + header_size, header_end.data(), header_end.size());
+  header_size += header_end.size();
+
+  // Move the response back into position right after the headers
+  std::memmove(m_buffer + header_size, m_buffer + max_header_size, response_size);
+
+  m_position   = m_buffer;
+  m_buffer_size = header_size + response_size;
+  return true;
+}
+
 bool
 SCgiTask::receive_write(const char* buffer, uint32_t length) {
   if (buffer == NULL || length > (100 << 20))
     throw torrent::internal_error("SCgiTask::receive_write(...) received bad input.");
 
-  // Need to cast due to a bug in MacOSX gcc-4.0.1.
-  if (length + 256 > std::max(m_bufferSize, (unsigned int)default_buffer_size))
-    realloc_buffer(length + 256, NULL, 0);
+  std::string header = m_content_type == ContentType::JSON
+                         ? "Status: 200 OK\r\nContent-Type: application/json\r\nContent-Length: %i\r\n"
+                         : "Status: 200 OK\r\nContent-Type: text/xml\r\nContent-Length: %i\r\n";
 
-  const auto header = m_content_type == ContentType::JSON
-                        ? "Status: 200 OK\r\nContent-Type: application/json\r\nContent-Length: %i\r\n\r\n"
-                        : "Status: 200 OK\r\nContent-Type: text/xml\r\nContent-Length: %i\r\n\r\n";
-
-  // Who ever bothers to check the return value?
-  int headerSize = sprintf(m_buffer, header, length);
-
-  m_position   = m_buffer;
-  m_bufferSize = length + headerSize;
-
-  std::memcpy(m_buffer + headerSize, buffer, length);
-
+  // Write to log prior to possible compression
   if (m_parent->log_fd() >= 0) {
     int __UNUSED result;
     // Clean up logging, this is just plain ugly...
     //    write(m_logFd, "\n---\n", sizeof("\n---\n"));
-    result = write(m_parent->log_fd(), m_buffer, m_bufferSize);
+    result = write(m_parent->log_fd(), buffer, length);
     result = write(m_parent->log_fd(), "\n---\n", sizeof("\n---\n"));
   }
 
-  lt_log_print_dump(torrent::LOG_RPC_DUMP, m_buffer, m_bufferSize, "scgi", "RPC write.", 0);
+  lt_log_print_dump(torrent::LOG_RPC_DUMP, buffer, length, "scgi", "RPC write.", 0);
+
+  // Compress the response if possible
+  if (m_client_accepts_compressed_response &&
+      gzip_enabled() &&
+      length > gzip_min_size() &&
+      gzip_compress_response(buffer, length, header)) {
+    event_write();
+    return true;
+  }
+
+  // Otherwise (or if the compression fails), just copy the bytes
+  header += "\r\n";
+
+  int header_size = snprintf(NULL, 0, header.c_str(), length);
+
+  // Need to cast due to a bug in MacOSX gcc-4.0.1.
+  if (length + header_size > std::max(m_buffer_size, (unsigned int)default_buffer_size))
+    realloc_buffer(length + header_size, NULL, 0);
+
+  m_position   = m_buffer;
+  m_buffer_size = length + header_size;
+
+  snprintf(m_buffer, m_buffer_size, header.c_str(), length);
+  std::memcpy(m_buffer + header_size, buffer, length);
 
   event_write();
   return true;
