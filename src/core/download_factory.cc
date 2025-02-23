@@ -37,21 +37,20 @@ is_network_uri(const std::string& uri) {
     std::strncmp(uri.c_str(), "ftp://", 6) == 0;
 }
 
-static bool
-download_factory_add_stream(torrent::Object* root, const char* key, const char* filename) {
+static std::unique_ptr<torrent::Object>
+download_factory_load_stream(const char* filename) {
   std::fstream stream(filename, std::ios::in | std::ios::binary);
 
   if (!stream.is_open())
-    return false;
+    return std::unique_ptr<torrent::Object>();
 
-  torrent::Object obj;
-  stream >> obj;
+  auto obj = std::make_unique<torrent::Object>();
+  stream >> *obj;
 
   if (!stream.good())
-    return false;
+    return std::unique_ptr<torrent::Object>();
 
-  root->insert_key_move(key, obj);
-  return true;
+  return obj;
 }
 
 bool
@@ -173,9 +172,19 @@ DownloadFactory::receive_commit() {
 
 void
 DownloadFactory::receive_success() {
+  auto rtorrent_object = download_factory_load_stream((rak::path_expand(m_uri) + ".rtorrent").c_str());
+  auto libtorrent_resume_object = download_factory_load_stream((rak::path_expand(m_uri) + ".libtorrent_resume").c_str());
+
+  uint32_t tracker_key;
+
+  if (rtorrent_object && rtorrent_object->has_key_value("key"))
+    tracker_key = rtorrent_object->get_key_value("key");
+  else
+    tracker_key = random() % (std::numeric_limits<uint32_t>::max() - 1) + 1;
+
   Download* download = m_stream != NULL ?
-    m_manager->download_list()->create(m_stream, m_printLog) :
-    m_manager->download_list()->create(m_object, m_printLog);
+    m_manager->download_list()->create(m_stream, tracker_key, m_printLog) :
+    m_manager->download_list()->create(m_object, tracker_key, m_printLog);
 
   m_object = NULL;
 
@@ -200,8 +209,11 @@ DownloadFactory::receive_success() {
   }
 
   if (m_session) {
-    download_factory_add_stream(root, "rtorrent", (rak::path_expand(m_uri) + ".rtorrent").c_str());
-    download_factory_add_stream(root, "libtorrent_resume", (rak::path_expand(m_uri) + ".libtorrent_resume").c_str());
+    if (rtorrent_object)
+      root->insert_key_move("rtorrent", *rtorrent_object);
+
+    if (libtorrent_resume_object)
+      root->insert_key_move("libtorrent_resume", *libtorrent_resume_object);
 
   } else {
     // We only allow session torrents to keep their
@@ -212,6 +224,8 @@ DownloadFactory::receive_success() {
 
   torrent::Object* rtorrent = &root->insert_preserve_copy("rtorrent", torrent::Object::create_map()).first->second;
   torrent::Object& resumeObject = root->insert_preserve_copy("libtorrent_resume", torrent::Object::create_map()).first->second;
+
+  rtorrent->insert_key("key", download->tracker_list()->key());
 
   initialize_rtorrent(download, rtorrent);
 
@@ -377,14 +391,6 @@ DownloadFactory::initialize_rtorrent(Download* download, torrent::Object* rtorre
     rpc::call_command("d.priority.set", rtorrent->get_key_value("priority") % 4, rpc::make_target(download));
   else
     rpc::call_command("d.priority.set", (int64_t)2, rpc::make_target(download));
-
-  if (rtorrent->has_key_value("key")) {
-    download->tracker_list()->set_key(rtorrent->get_key_value("key"));
-
-  } else {
-    download->tracker_list()->set_key(random() % (std::numeric_limits<uint32_t>::max() - 1) + 1);
-    rtorrent->insert_key("key", download->tracker_list()->key());
-  }
 
   if (rtorrent->has_key_value("total_uploaded"))
     download->info()->mutable_up_rate()->set_total(rtorrent->get_key_value("total_uploaded"));
