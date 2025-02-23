@@ -1,39 +1,3 @@
-// rTorrent - BitTorrent client
-// Copyright (C) 2005-2011, Jari Sundell
-//
-// This program is free software; you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation; either version 2 of the License, or
-// (at your option) any later version.
-// 
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-// 
-// You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-//
-// In addition, as a special exception, the copyright holders give
-// permission to link the code of portions of this program with the
-// OpenSSL library under certain conditions as described in each
-// individual source file, and distribute linked combinations
-// including the two.
-//
-// You must obey the GNU General Public License in all respects for
-// all of the code used other than OpenSSL.  If you modify file(s)
-// with this exception, you may extend this exception to your version
-// of the file(s), but you are not obligated to do so.  If you do not
-// wish to do so, delete this exception statement from your version.
-// If you delete this exception statement from all source files in the
-// program, then also delete it here.
-//
-// Contact:  Jari Sundell <jaris@ifi.uio.no>
-//
-//           Skomakerveien 33
-//           3185 Skoppum, NORWAY
-
 #include "config.h"
 
 #include <algorithm>
@@ -70,7 +34,7 @@
 namespace core {
 
 inline void
-DownloadList::check_contains(Download* d) {
+DownloadList::check_contains([[maybe_unused]] Download* d) {
 #ifdef USE_EXTRA_DEBUG
   if (std::find(begin(), end(), d) == end())
     throw torrent::internal_error("DownloadList::check_contains(...) failed.");
@@ -119,11 +83,11 @@ DownloadList::find_hex_ptr(const char* hash) {
 }
 
 Download*
-DownloadList::create(torrent::Object* obj, bool printLog) {
+DownloadList::create(torrent::Object* obj, uint32_t tracker_key, bool printLog) {
   torrent::Download download;
 
   try {
-    download = torrent::download_add(obj);
+    download = torrent::download_add(obj, tracker_key);
 
   } catch (torrent::local_error& e) {
     delete obj;
@@ -140,13 +104,13 @@ DownloadList::create(torrent::Object* obj, bool printLog) {
 }
 
 Download*
-DownloadList::create(std::istream* str, bool printLog) {
+DownloadList::create(std::istream* str, uint32_t tracker_key, bool printLog) {
   torrent::Object* object = new torrent::Object;
   torrent::Download download;
 
   try {
     *str >> *object;
-    
+
     // Don't throw input_error from here as gcc-3.3.5 produces bad
     // code.
     if (str->fail()) {
@@ -158,7 +122,7 @@ DownloadList::create(std::istream* str, bool printLog) {
       return NULL;
     }
 
-    download = torrent::download_add(object);
+    download = torrent::download_add(object, tracker_key);
 
   } catch (torrent::local_error& e) {
     delete object;
