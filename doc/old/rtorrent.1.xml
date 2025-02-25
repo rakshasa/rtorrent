@@ -979,16 +979,6 @@ decent hash checking rate.
       </varlistentry>
 
       <varlistentry>
-        <term>safe_sync = <replaceable>yes|no</replaceable></term>
-        <listitem><para>
-
-Always use MS_SYNC rather than MS_ASYNC when syncing chunks. This may
-be nessesary in case of filesystem bugs like NFS in linux ~2.6.13.
-
-        </para></listitem>
-      </varlistentry>
-
-      <varlistentry>
         <term>max_open_files = <replaceable>value</replaceable></term>
         <listitem><para>
 
