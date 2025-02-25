@@ -499,10 +499,6 @@ Number of attempts to check the hash while using the mincore status,
 before forcing. Overworked systems might need lower values to get a
 decent hash checking rate.
 .TP
-\fBsafe_sync = \fIyes|no\fB\fR
-Always use MS_SYNC rather than MS_ASYNC when syncing chunks. This may
-be nessesary in case of filesystem bugs like NFS in linux ~2.6.13.
-.TP
 \fBmax_open_files = \fIvalue\fB\fR
 Number of files to simultaneously keep open. LibTorrent dynamically
 opens and closes files as necessary when mapping files to
