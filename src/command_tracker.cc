@@ -74,12 +74,15 @@ apply_enable_trackers(int64_t arg) {
 
 void
 initialize_command_tracker() {
-  CMD2_TRACKER        ("t.is_open",           std::bind(&torrent::Tracker::is_busy, std::placeholders::_1));
-  CMD2_TRACKER        ("t.is_enabled",        std::bind(&torrent::Tracker::is_enabled, std::placeholders::_1));
-  CMD2_TRACKER        ("t.is_usable",         std::bind(&torrent::Tracker::is_usable, std::placeholders::_1));
   CMD2_TRACKER        ("t.is_busy",           std::bind(&torrent::Tracker::is_busy, std::placeholders::_1));
+  CMD2_TRACKER        ("t.is_enabled",        std::bind(&torrent::Tracker::is_enabled, std::placeholders::_1));
   CMD2_TRACKER        ("t.is_extra_tracker",  std::bind(&torrent::Tracker::is_extra_tracker, std::placeholders::_1));
-  CMD2_TRACKER        ("t.can_scrape",        std::bind(&torrent::Tracker::can_scrape, std::placeholders::_1));
+  CMD2_TRACKER        ("t.is_open",           std::bind(&torrent::Tracker::is_busy, std::placeholders::_1));
+  CMD2_TRACKER        ("t.is_scrapable",      std::bind(&torrent::Tracker::is_scrapable, std::placeholders::_1));
+  CMD2_TRACKER        ("t.is_usable",         std::bind(&torrent::Tracker::is_usable, std::placeholders::_1));
+
+  // TODO: Deprecate.
+  CMD2_TRACKER        ("t.can_scrape",        std::bind(&torrent::Tracker::is_scrapable, std::placeholders::_1));
 
   CMD2_TRACKER_V      ("t.enable",            std::bind(&torrent::Tracker::enable, std::placeholders::_1));
   CMD2_TRACKER_V      ("t.disable",           std::bind(&torrent::Tracker::disable, std::placeholders::_1));
