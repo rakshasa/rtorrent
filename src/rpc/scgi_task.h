@@ -3,6 +3,7 @@
 
 #include <string>
 #include <torrent/event.h>
+#include <vector>
 
 namespace utils {
 class SocketFd;
@@ -45,23 +46,24 @@ public:
   utils::SocketFd& get_fd() { return *reinterpret_cast<utils::SocketFd*>(&m_fileDesc); }
 
 private:
-  inline void  realloc_buffer(uint32_t size, const char* buffer, uint32_t buffer_size);
+  int              read_header();
 
-  bool         gzip_compress_response(const char* buffer, uint32_t length, std::string_view header_template);
+  void             gzip_compress_response(const char* buffer, uint32_t length);
+  void             plaintext_response(const char* buffer, uint32_t length);
 
-  static bool  m_allow_compressed_response;
-  static int   m_min_compress_response_size;
+  static bool      m_allow_compressed_response;
+  static int       m_min_compress_response_size;
 
-  SCgi*        m_parent;
+  SCgi*            m_parent;
 
-  char*        m_buffer;
-  char*        m_position;
-  char*        m_body;
+  std::vector<char> m_buffer;
 
-  unsigned int m_buffer_size;
+  // TODO: Change to index.
+  char*             m_position;
+  char*             m_body;
 
-  ContentType  m_content_type{XML};
-  bool         m_client_accepts_compressed_response = false;
+  ContentType      m_content_type{XML};
+  bool             m_client_accepts_compressed_response{false};
 };
 
 } // namespace rpc
