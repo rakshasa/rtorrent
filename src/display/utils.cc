@@ -1,39 +1,3 @@
-// rTorrent - BitTorrent client
-// Copyright (C) 2005-2011, Jari Sundell
-//
-// This program is free software; you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation; either version 2 of the License, or
-// (at your option) any later version.
-// 
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-// 
-// You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-//
-// In addition, as a special exception, the copyright holders give
-// permission to link the code of portions of this program with the
-// OpenSSL library under certain conditions as described in each
-// individual source file, and distribute linked combinations
-// including the two.
-//
-// You must obey the GNU General Public License in all respects for
-// all of the code used other than OpenSSL.  If you modify file(s)
-// with this exception, you may extend this exception to your version
-// of the file(s), but you are not obligated to do so.  If you do not
-// wish to do so, delete this exception statement from your version.
-// If you delete this exception statement from all source files in the
-// program, then also delete it here.
-//
-// Contact:  Jari Sundell <jaris@ifi.uio.no>
-//
-//           Skomakerveien 33
-//           3185 Skoppum, NORWAY
-
 #include "config.h"
 
 #include <cstring>
@@ -47,8 +11,8 @@
 #include <torrent/rate.h>
 #include <torrent/throttle.h>
 #include <torrent/torrent.h>
-#include <torrent/tracker.h>
 #include <torrent/tracker_list.h>
+#include <torrent/tracker/tracker.h>
 #include <torrent/data/file_list.h>
 #include <torrent/data/file_manager.h>
 #include <torrent/download/resource_manager.h>
@@ -88,7 +52,7 @@ print_hhmmss(char* first, char* last, time_t t) {
 char*
 print_hhmmss_local(char* first, char* last, time_t t) {
   std::tm *u = std::localtime(&t);
-  
+
   if (u == NULL)
     //return "inv_time";
     throw torrent::internal_error("print_hhmmss_local(...) failed.");
@@ -107,7 +71,7 @@ print_ddhhmm(char* first, char* last, time_t t) {
 char*
 print_ddmmyyyy(char* first, char* last, time_t t) {
   std::tm *u = std::gmtime(&t);
-  
+
   if (u == NULL)
     //return "inv_time";
     throw torrent::internal_error("print_ddmmyyyy(...) failed.");
@@ -199,12 +163,11 @@ print_download_status(char* first, char* last, core::Download* d) {
   } else if (d->tracker_list()->has_active_not_scrape()) {
     torrent::TrackerList::iterator itr =
       std::find_if(d->tracker_list()->begin(), d->tracker_list()->end(),
-                   std::mem_fn(&torrent::Tracker::is_busy_not_scrape));
-    char status[128];
+                   std::mem_fn(&torrent::tracker::Tracker::is_busy_not_scrape));
+    auto status = (*itr)->status();
 
-    (*itr)->get_status(status, sizeof(status));
     first = print_buffer(first, last, "Tracker[%i:%i]: Connecting to %s %s",
-                         (*itr)->group(), std::distance(d->tracker_list()->begin(), itr), (*itr)->url().c_str(), status);
+                         (*itr)->group(), std::distance(d->tracker_list()->begin(), itr), (*itr)->url().c_str(), status.c_str());
 
   } else if (!d->message().empty()) {
     first = print_buffer(first, last, "%s", d->message().c_str());

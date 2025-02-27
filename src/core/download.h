@@ -1,6 +1,7 @@
 #ifndef RTORRENT_CORE_DOWNLOAD_H
 #define RTORRENT_CORE_DOWNLOAD_H
 
+#include <torrent/common.h>
 #include <torrent/download.h>
 #include <torrent/download_info.h>
 #include <torrent/hash_string.h>
@@ -9,11 +10,6 @@
 #include <torrent/peer/connection_list.h>
 
 #include "globals.h"
-
-namespace torrent {
-  class PeerList;
-  class TrackerList;
-}
 
 namespace core {
 

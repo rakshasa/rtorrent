@@ -3,9 +3,9 @@
 #include <rak/algorithm.h>
 #include <rak/string_manip.h>
 #include <torrent/exceptions.h>
-#include <torrent/tracker.h>
 #include <torrent/tracker_list.h>
 #include <torrent/tracker_controller.h>
+#include <torrent/tracker/tracker.h>
 
 #include "core/download.h"
 
@@ -45,7 +45,7 @@ WindowTrackerList::redraw() {
   unsigned int group = tl->at(range.first)->group();
 
   while (range.first != range.second) {
-    torrent::Tracker* tracker = tl->at(range.first);
+    auto tracker = tl->at(range.first);
 
     if (tracker->group() == group)
       m_canvas->print(0, pos, "%2i:", group++);

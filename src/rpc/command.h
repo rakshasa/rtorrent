@@ -3,19 +3,13 @@
 
 #include <functional>
 #include <limits>
+#include <torrent/common.h>
 #include <torrent/object.h>
 #include <torrent/data/file_list_iterator.h>
 
 // Move into config.h or something.
 namespace core {
   class Download;
-}
-
-namespace torrent {
-  class File;
-  class FileListIterator;
-  class Peer;
-  class Tracker;
 }
 
 namespace rpc {
@@ -89,7 +83,7 @@ public:
   typedef const torrent::Object (*file_slot)     (command_base*, torrent::File*, const torrent::Object&);
   typedef const torrent::Object (*file_itr_slot) (command_base*, torrent::FileListIterator*, const torrent::Object&);
   typedef const torrent::Object (*peer_slot)     (command_base*, torrent::Peer*, const torrent::Object&);
-  typedef const torrent::Object (*tracker_slot)  (command_base*, torrent::Tracker*, const torrent::Object&);
+  typedef const torrent::Object (*tracker_slot)  (command_base*, torrent::tracker::Tracker*, const torrent::Object&);
 
   typedef const torrent::Object (*download_pair_slot) (command_base*, core::Download*, core::Download*, const torrent::Object&);
 
@@ -138,10 +132,10 @@ public:
   static void             pop_stack(stack_type* stack, torrent::Object* last_stack);
 
   template <typename T>
-  void set_function(T s, int value = command_base_is_valid<T>::value) { _pod<T>() = s; }
+  void set_function(T s, [[maybe_unused]] int value = command_base_is_valid<T>::value) { _pod<T>() = s; }
 
   template <command_base_call_type T>
-  void set_function_2(typename command_base_is_type<T>::type s, int value = command_base_is_valid<typename command_base_is_type<T>::type>::value) {
+  void set_function_2(typename command_base_is_type<T>::type s, [[maybe_unused]] int value = command_base_is_valid<typename command_base_is_type<T>::type>::value) {
     _pod<typename command_base_is_type<T>::type>() = s;
   }
 
@@ -190,7 +184,7 @@ is_target_compatible(const target_type& target) { return target.first == target_
 inline bool is_target_pair(const target_type& target) { return target.first >= command_base::target_download_pair; }
 
 template <typename T> inline T
-get_target_cast(target_type target, int type = target_type_id<T>::value) { return (T)target.second; }
+get_target_cast(target_type target, [[maybe_unused]] int type = target_type_id<T>::value) { return (T)target.second; }
 
 inline target_type get_target_left(const target_type& target)  { return target_type(target.first - 5, target.second); }
 inline target_type get_target_right(const target_type& target) { return target_type(target.first - 5, target.third); }
@@ -213,7 +207,7 @@ command_base::_call(command_base* cmd, target_type target, Args args) {
   template <> struct command_base_is_valid<func_type<target_type>::type>                { static const int value = 1; }; \
   template <> struct command_base_is_valid<func_type<core::Download*>::type>            { static const int value = 1; }; \
   template <> struct command_base_is_valid<func_type<torrent::Peer*>::type>             { static const int value = 1; }; \
-  template <> struct command_base_is_valid<func_type<torrent::Tracker*>::type>          { static const int value = 1; }; \
+  template <> struct command_base_is_valid<func_type<torrent::tracker::Tracker*>::type> { static const int value = 1; }; \
   template <> struct command_base_is_valid<func_type<torrent::File*>::type>             { static const int value = 1; }; \
   template <> struct command_base_is_valid<func_type<torrent::FileListIterator*>::type> { static const int value = 1; };
 
@@ -230,8 +224,8 @@ COMMAND_BASE_TEMPLATE_TYPE(command_list_function,   torrent::Object (T, const to
   template <> struct command_base_is_type<func_name<target_type> >       { static const int value = 1; typedef func_type<target_type>::type type; }; \
   template <> struct command_base_is_type<func_name<core::Download*> >   { static const int value = 1; typedef func_type<core::Download*>::type type; }; \
   template <> struct command_base_is_type<func_name<torrent::Peer*> >    { static const int value = 1; typedef func_type<torrent::Peer*>::type type; }; \
-  template <> struct command_base_is_type<func_name<torrent::Tracker*> > { static const int value = 1; typedef func_type<torrent::Tracker*>::type type; }; \
-  template <> struct command_base_is_type<func_name<torrent::File*> >    { static const int value = 1; typedef func_type<torrent::File*>::type type; }; \
+  template <> struct command_base_is_type<func_name<torrent::tracker::Tracker*> > { static const int value = 1; typedef func_type<torrent::tracker::Tracker*>::type type; }; \
+  template <> struct command_base_is_type<func_name<torrent::File*> >             { static const int value = 1; typedef func_type<torrent::File*>::type type; }; \
   template <> struct command_base_is_type<func_name<torrent::FileListIterator*> > { static const int value = 1; typedef func_type<torrent::FileListIterator*>::type type; };
 
 COMMAND_BASE_TEMPLATE_CALL(command_base_call, command_function);

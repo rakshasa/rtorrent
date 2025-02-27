@@ -4,7 +4,7 @@
 #include <rak/address_info.h>
 #include <rak/error_number.h>
 #include <torrent/dht_manager.h>
-#include <torrent/tracker.h>
+#include <torrent/tracker/tracker.h>
 #include <torrent/utils/log.h>
 
 #include "core/download.h"
@@ -16,7 +16,7 @@
 #include "core/dht_manager.h"
 
 void
-tracker_set_enabled(torrent::Tracker* tracker, bool state) {
+tracker_set_enabled(torrent::tracker::Tracker* tracker, bool state) {
   if (state)
     tracker->enable();
   else
@@ -63,7 +63,7 @@ apply_dht_add_node(const std::string& arg) {
 torrent::Object
 apply_enable_trackers(int64_t arg) {
   for (core::Manager::DListItr itr = control->core()->download_list()->begin(), last = control->core()->download_list()->end(); itr != last; ++itr) {
-    std::for_each((*itr)->tracker_list()->begin(), (*itr)->tracker_list()->end(), std::mem_fn(arg ? &torrent::Tracker::enable : &torrent::Tracker::disable));
+    std::for_each((*itr)->tracker_list()->begin(), (*itr)->tracker_list()->end(), std::mem_fn(arg ? &torrent::tracker::Tracker::enable : &torrent::tracker::Tracker::disable));
 
     if (arg && !rpc::call_command_value("trackers.use_udp"))
       (*itr)->enable_udp_trackers(false);
@@ -74,50 +74,50 @@ apply_enable_trackers(int64_t arg) {
 
 void
 initialize_command_tracker() {
-  CMD2_TRACKER        ("t.is_busy",           std::bind(&torrent::Tracker::is_busy, std::placeholders::_1));
-  CMD2_TRACKER        ("t.is_enabled",        std::bind(&torrent::Tracker::is_enabled, std::placeholders::_1));
-  CMD2_TRACKER        ("t.is_extra_tracker",  std::bind(&torrent::Tracker::is_extra_tracker, std::placeholders::_1));
-  CMD2_TRACKER        ("t.is_open",           std::bind(&torrent::Tracker::is_busy, std::placeholders::_1));
-  CMD2_TRACKER        ("t.is_scrapable",      std::bind(&torrent::Tracker::is_scrapable, std::placeholders::_1));
-  CMD2_TRACKER        ("t.is_usable",         std::bind(&torrent::Tracker::is_usable, std::placeholders::_1));
+  CMD2_TRACKER        ("t.is_busy",           std::bind(&torrent::tracker::Tracker::is_busy, std::placeholders::_1));
+  CMD2_TRACKER        ("t.is_enabled",        std::bind(&torrent::tracker::Tracker::is_enabled, std::placeholders::_1));
+  CMD2_TRACKER        ("t.is_extra_tracker",  std::bind(&torrent::tracker::Tracker::is_extra_tracker, std::placeholders::_1));
+  CMD2_TRACKER        ("t.is_open",           std::bind(&torrent::tracker::Tracker::is_busy, std::placeholders::_1));
+  CMD2_TRACKER        ("t.is_scrapable",      std::bind(&torrent::tracker::Tracker::is_scrapable, std::placeholders::_1));
+  CMD2_TRACKER        ("t.is_usable",         std::bind(&torrent::tracker::Tracker::is_usable, std::placeholders::_1));
 
   // TODO: Deprecate.
-  CMD2_TRACKER        ("t.can_scrape",        std::bind(&torrent::Tracker::is_scrapable, std::placeholders::_1));
+  CMD2_TRACKER        ("t.can_scrape",        std::bind(&torrent::tracker::Tracker::is_scrapable, std::placeholders::_1));
 
-  CMD2_TRACKER_V      ("t.enable",            std::bind(&torrent::Tracker::enable, std::placeholders::_1));
-  CMD2_TRACKER_V      ("t.disable",           std::bind(&torrent::Tracker::disable, std::placeholders::_1));
+  CMD2_TRACKER_V      ("t.enable",            std::bind(&torrent::tracker::Tracker::enable, std::placeholders::_1));
+  CMD2_TRACKER_V      ("t.disable",           std::bind(&torrent::tracker::Tracker::disable, std::placeholders::_1));
 
   CMD2_TRACKER_VALUE_V("t.is_enabled.set",    std::bind(&tracker_set_enabled, std::placeholders::_1, std::placeholders::_2));
 
-  CMD2_TRACKER        ("t.url",               std::bind(&torrent::Tracker::url, std::placeholders::_1));
-  CMD2_TRACKER        ("t.group",             std::bind(&torrent::Tracker::group, std::placeholders::_1));
-  CMD2_TRACKER        ("t.type",              std::bind(&torrent::Tracker::type, std::placeholders::_1));
-  CMD2_TRACKER        ("t.id",                std::bind(&torrent::Tracker::tracker_id, std::placeholders::_1));
+  CMD2_TRACKER        ("t.url",               std::bind(&torrent::tracker::Tracker::url, std::placeholders::_1));
+  CMD2_TRACKER        ("t.group",             std::bind(&torrent::tracker::Tracker::group, std::placeholders::_1));
+  CMD2_TRACKER        ("t.type",              std::bind(&torrent::tracker::Tracker::type, std::placeholders::_1));
+  CMD2_TRACKER        ("t.id",                std::bind(&torrent::tracker::Tracker::tracker_id, std::placeholders::_1));
 
-  CMD2_TRACKER        ("t.latest_event",      [](torrent::Tracker* tracker, [[maybe_unused]] auto o) -> auto { return tracker->state().latest_event(); });
-  CMD2_TRACKER        ("t.latest_new_peers",  [](torrent::Tracker* tracker, [[maybe_unused]] auto o) -> auto { return tracker->state().latest_new_peers(); });
-  CMD2_TRACKER        ("t.latest_sum_peers",  [](torrent::Tracker* tracker, [[maybe_unused]] auto o) -> auto { return tracker->state().latest_sum_peers(); });
+  CMD2_TRACKER        ("t.latest_event",      [](torrent::tracker::Tracker* tracker, [[maybe_unused]] auto o) -> auto { return tracker->state().latest_event(); });
+  CMD2_TRACKER        ("t.latest_new_peers",  [](torrent::tracker::Tracker* tracker, [[maybe_unused]] auto o) -> auto { return tracker->state().latest_new_peers(); });
+  CMD2_TRACKER        ("t.latest_sum_peers",  [](torrent::tracker::Tracker* tracker, [[maybe_unused]] auto o) -> auto { return tracker->state().latest_sum_peers(); });
 
-  CMD2_TRACKER        ("t.normal_interval",   [](torrent::Tracker* tracker, [[maybe_unused]] auto o) -> auto { return tracker->state().normal_interval(); });
-  CMD2_TRACKER        ("t.min_interval",      [](torrent::Tracker* tracker, [[maybe_unused]] auto o) -> auto { return tracker->state().min_interval(); });
+  CMD2_TRACKER        ("t.normal_interval",   [](torrent::tracker::Tracker* tracker, [[maybe_unused]] auto o) -> auto { return tracker->state().normal_interval(); });
+  CMD2_TRACKER        ("t.min_interval",      [](torrent::tracker::Tracker* tracker, [[maybe_unused]] auto o) -> auto { return tracker->state().min_interval(); });
 
-  CMD2_TRACKER        ("t.activity_time_next", [](torrent::Tracker* tracker, [[maybe_unused]] auto o) -> auto { return tracker->state().activity_time_next(); });
-  CMD2_TRACKER        ("t.activity_time_last", [](torrent::Tracker* tracker, [[maybe_unused]] auto o) -> auto { return tracker->state().activity_time_last(); });
+  CMD2_TRACKER        ("t.activity_time_next", [](torrent::tracker::Tracker* tracker, [[maybe_unused]] auto o) -> auto { return tracker->state().activity_time_next(); });
+  CMD2_TRACKER        ("t.activity_time_last", [](torrent::tracker::Tracker* tracker, [[maybe_unused]] auto o) -> auto { return tracker->state().activity_time_last(); });
 
-  CMD2_TRACKER        ("t.success_time_next", [](torrent::Tracker* tracker, [[maybe_unused]] auto o) -> auto { return tracker->state().success_time_next(); });
-  CMD2_TRACKER        ("t.success_time_last", [](torrent::Tracker* tracker, [[maybe_unused]] auto o) -> auto { return tracker->state().success_time_last(); });
-  CMD2_TRACKER        ("t.success_counter",   [](torrent::Tracker* tracker, [[maybe_unused]] auto o) -> auto { return tracker->state().success_counter(); });
+  CMD2_TRACKER        ("t.success_time_next", [](torrent::tracker::Tracker* tracker, [[maybe_unused]] auto o) -> auto { return tracker->state().success_time_next(); });
+  CMD2_TRACKER        ("t.success_time_last", [](torrent::tracker::Tracker* tracker, [[maybe_unused]] auto o) -> auto { return tracker->state().success_time_last(); });
+  CMD2_TRACKER        ("t.success_counter",   [](torrent::tracker::Tracker* tracker, [[maybe_unused]] auto o) -> auto { return tracker->state().success_counter(); });
 
-  CMD2_TRACKER        ("t.failed_time_next",  [](torrent::Tracker* tracker, [[maybe_unused]] auto o) -> auto { return tracker->state().failed_time_next(); });
-  CMD2_TRACKER        ("t.failed_time_last",  [](torrent::Tracker* tracker, [[maybe_unused]] auto o) -> auto { return tracker->state().failed_time_last(); });
-  CMD2_TRACKER        ("t.failed_counter",    [](torrent::Tracker* tracker, [[maybe_unused]] auto o) -> auto { return tracker->state().failed_counter(); });
+  CMD2_TRACKER        ("t.failed_time_next",  [](torrent::tracker::Tracker* tracker, [[maybe_unused]] auto o) -> auto { return tracker->state().failed_time_next(); });
+  CMD2_TRACKER        ("t.failed_time_last",  [](torrent::tracker::Tracker* tracker, [[maybe_unused]] auto o) -> auto { return tracker->state().failed_time_last(); });
+  CMD2_TRACKER        ("t.failed_counter",    [](torrent::tracker::Tracker* tracker, [[maybe_unused]] auto o) -> auto { return tracker->state().failed_counter(); });
 
-  CMD2_TRACKER        ("t.scrape_time_last",  [](torrent::Tracker* tracker, [[maybe_unused]] auto o) -> auto { return tracker->state().scrape_time_last(); });
-  CMD2_TRACKER        ("t.scrape_counter",    [](torrent::Tracker* tracker, [[maybe_unused]] auto o) -> auto { return tracker->state().scrape_counter(); });
+  CMD2_TRACKER        ("t.scrape_time_last",  [](torrent::tracker::Tracker* tracker, [[maybe_unused]] auto o) -> auto { return tracker->state().scrape_time_last(); });
+  CMD2_TRACKER        ("t.scrape_counter",    [](torrent::tracker::Tracker* tracker, [[maybe_unused]] auto o) -> auto { return tracker->state().scrape_counter(); });
 
-  CMD2_TRACKER        ("t.scrape_complete",   [](torrent::Tracker* tracker, [[maybe_unused]] auto o) -> auto { return tracker->state().scrape_complete(); });
-  CMD2_TRACKER        ("t.scrape_incomplete", [](torrent::Tracker* tracker, [[maybe_unused]] auto o) -> auto { return tracker->state().scrape_incomplete(); });
-  CMD2_TRACKER        ("t.scrape_downloaded", [](torrent::Tracker* tracker, [[maybe_unused]] auto o) -> auto { return tracker->state().scrape_downloaded(); });
+  CMD2_TRACKER        ("t.scrape_complete",   [](torrent::tracker::Tracker* tracker, [[maybe_unused]] auto o) -> auto { return tracker->state().scrape_complete(); });
+  CMD2_TRACKER        ("t.scrape_incomplete", [](torrent::tracker::Tracker* tracker, [[maybe_unused]] auto o) -> auto { return tracker->state().scrape_incomplete(); });
+  CMD2_TRACKER        ("t.scrape_downloaded", [](torrent::tracker::Tracker* tracker, [[maybe_unused]] auto o) -> auto { return tracker->state().scrape_downloaded(); });
 
   CMD2_ANY_VALUE      ("trackers.enable",     std::bind(&apply_enable_trackers, int64_t(1)));
   CMD2_ANY_VALUE      ("trackers.disable",    std::bind(&apply_enable_trackers, int64_t(0)));
