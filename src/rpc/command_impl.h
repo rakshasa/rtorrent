@@ -20,7 +20,7 @@ template <> struct target_type_id<>                            { static const in
 template <> struct target_type_id<target_type>                 { static const int value = command_base::target_any;      static const int proper_type = 1; };
 template <> struct target_type_id<core::Download*>             { static const int value = command_base::target_download; static const int proper_type = 1; };
 template <> struct target_type_id<torrent::Peer*>              { static const int value = command_base::target_peer;     static const int proper_type = 1; };
-template <> struct target_type_id<torrent::Tracker*>           { static const int value = command_base::target_tracker;  static const int proper_type = 1; };
+template <> struct target_type_id<torrent::tracker::Tracker*>  { static const int value = command_base::target_tracker;  static const int proper_type = 1; };
 template <> struct target_type_id<torrent::File*>              { static const int value = command_base::target_file;     static const int proper_type = 1; };
 template <> struct target_type_id<torrent::FileListIterator*>  { static const int value = command_base::target_file_itr; static const int proper_type = 1; };
 

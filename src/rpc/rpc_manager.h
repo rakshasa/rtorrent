@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <functional>
+#include <torrent/common.h>
 
 #include "rpc/command.h"
 #include "rpc/jsonrpc.h"
@@ -11,12 +12,6 @@
 namespace core {
 class Download;
 }
-
-namespace torrent {
-class File;
-class Object;
-class Tracker;
-} // namespace torrent
 
 namespace rpc {
 
@@ -38,7 +33,7 @@ class RpcManager {
 public:
   using slot_download          = std::function<core::Download*(const char*)>;
   using slot_file              = std::function<torrent::File*(core::Download*, uint32_t)>;
-  using slot_tracker           = std::function<torrent::Tracker*(core::Download*, uint32_t)>;
+  using slot_tracker           = std::function<torrent::tracker::Tracker*(core::Download*, uint32_t)>;
   using slot_peer              = std::function<torrent::Peer*(core::Download*, const torrent::HashString&)>;
   using slot_response_callback = std::function<bool(const char*, uint32_t)>;
 
