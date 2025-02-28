@@ -513,8 +513,8 @@ DownloadList::hash_done(Download* download) {
     if (download->is_done()) {
       confirm_finished(download);
     } else {
-      download->set_message("Hash check on download completion found bad chunks, consider using \"safe_sync\".");
-      lt_log_print(torrent::LOG_TORRENT_ERROR, "Hash check on download completion found bad chunks, consider using \"safe_sync\".");
+      download->set_message("Hash check on download completion found bad chunks.");
+      lt_log_print(torrent::LOG_TORRENT_ERROR, "Hash check on download completion found bad chunks.");
       DL_TRIGGER_EVENT(download, "event.download.hash_final_failed");
     }
 
