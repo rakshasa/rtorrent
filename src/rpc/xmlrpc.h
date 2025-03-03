@@ -4,6 +4,7 @@
 #include <functional>
 #include <torrent/common.h>
 #include <torrent/hash_string.h>
+#include <torrent/tracker/tracker.h>
 
 #include "command.h"
 #include "scgi_task.h"
@@ -18,7 +19,7 @@ class XmlRpc {
 public:
   typedef std::function<core::Download* (const char*)>                                slot_download;
   typedef std::function<torrent::File* (core::Download*, uint32_t)>                   slot_file;
-  typedef std::function<torrent::tracker::Tracker* (core::Download*, uint32_t)>       slot_tracker;
+  typedef std::function<torrent::tracker::Tracker (core::Download*, uint32_t)>        slot_tracker;
   typedef std::function<torrent::Peer* (core::Download*, const torrent::HashString&)> slot_peer;
   typedef std::function<bool (const char*, uint32_t)>                                 slot_write;
 

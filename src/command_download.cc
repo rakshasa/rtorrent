@@ -68,7 +68,7 @@ apply_d_change_link(core::Download* download, const torrent::Object::list_type& 
   const std::string& type    = (itr++)->as_string();
   const std::string& prefix  = (itr++)->as_string();
   const std::string& postfix = (itr++)->as_string();
-  
+
   if (type.empty())
     throw torrent::input_error("Invalid arguments.");
 
@@ -401,7 +401,7 @@ t_multicall(core::Download* download, const torrent::Object::list_type& args) {
       const std::string& cmd = cItr->as_string();
       auto t = download->tracker_list()->at(itr);
 
-      row.push_back(rpc::parse_command(rpc::make_target(t), cmd.c_str(), cmd.c_str() + cmd.size()).first);
+      row.push_back(rpc::parse_command(rpc::make_target(&t), cmd.c_str(), cmd.c_str() + cmd.size()).first);
     }
   }
 

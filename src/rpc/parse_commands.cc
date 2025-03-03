@@ -36,7 +36,6 @@
 
 #include "config.h"
 
-#include "rpc/rpc_manager.h"
 #include <algorithm>
 #include <fstream>
 #include <string>
@@ -46,12 +45,9 @@
 
 #include "parse.h"
 #include "parse_commands.h"
+#include "rpc/rpc_manager.h"
 
 namespace rpc {
-
-CommandMap commands;
-RpcManager rpc;
-ExecFile   execFile;
 
 inline bool command_map_is_space(char c) {
   return c == ' ' || c == '\t';

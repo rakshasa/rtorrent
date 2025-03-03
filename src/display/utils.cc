@@ -164,10 +164,10 @@ print_download_status(char* first, char* last, core::Download* d) {
     torrent::TrackerList::iterator itr =
       std::find_if(d->tracker_list()->begin(), d->tracker_list()->end(),
                    std::mem_fn(&torrent::tracker::Tracker::is_busy_not_scrape));
-    auto status = (*itr)->status();
+    auto status = itr->status();
 
     first = print_buffer(first, last, "Tracker[%i:%i]: Connecting to %s %s",
-                         (*itr)->group(), std::distance(d->tracker_list()->begin(), itr), (*itr)->url().c_str(), status.c_str());
+                         itr->group(), std::distance(d->tracker_list()->begin(), itr), itr->url().c_str(), status.c_str());
 
   } else if (!d->message().empty()) {
     first = print_buffer(first, last, "%s", d->message().c_str());

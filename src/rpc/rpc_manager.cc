@@ -9,8 +9,12 @@
 
 namespace rpc {
 
+CommandMap commands;
+RpcManager rpc;
+ExecFile   execFile;
+
 void
-RpcManager::object_to_target(const torrent::Object& obj, int call_flags, rpc::target_type* target) {
+RpcManager::object_to_target(const torrent::Object& obj, int call_flags, rpc::target_type* target, std::function<void()>* deleter) {
   if (call_flags & CommandMap::flag_no_target)
     return;
 
@@ -31,6 +35,7 @@ RpcManager::object_to_target(const torrent::Object& obj, int call_flags, rpc::ta
   char        type = 'd';
   std::string hash;
   std::string index;
+
   const auto& delim_pos = target_string.find_first_of(':', 40);
   if (delim_pos == target_string.npos ||
       delim_pos + 2 >= target_string.size()) {
@@ -49,34 +54,43 @@ RpcManager::object_to_target(const torrent::Object& obj, int call_flags, rpc::ta
     throw torrent::input_error("invalid parameters: info-hash not found");
 
   try {
+    torrent::tracker::Tracker* tracker;
+
     switch (type) {
     case 'd':
       *target = rpc::make_target(download);
       break;
+
     case 'f':
-      *target = rpc::make_target(
-        command_base::target_file,
-        rpc.slot_find_file()(download, std::stoi(std::string(index))));
+      *target = rpc::make_target(command_base::target_file,
+                                 rpc.slot_find_file()(download, std::stoi(std::string(index))));
+
       break;
+
     case 't':
-      *target = rpc::make_target(
-        command_base::target_tracker,
-        rpc.slot_find_tracker()(download, std::stoi(std::string(index))));
+      tracker = new torrent::tracker::Tracker(rpc.slot_find_tracker()(download, std::stoi(std::string(index))));
+
+      *target = rpc::make_target(command_base::target_tracker, tracker);
+      *deleter = [tracker]() { delete tracker; };
       break;
+
     case 'p': {
       if (index.size() < 40) {
         throw torrent::input_error("invalid parameters: not a hash string.");
       }
+
       torrent::HashString hash;
       torrent::hash_string_from_hex_c_str(index.c_str(), hash);
-      *target = rpc::make_target(
-        command_base::target_peer,
-        rpc.slot_find_peer()(download, hash));
+
+      *target = rpc::make_target(command_base::target_peer,
+                                 rpc.slot_find_peer()(download, hash));
+
       break;
     }
     default:
       throw torrent::input_error("invalid parameters: unexpected target type");
     }
+
   } catch (const std::logic_error&) {
     throw torrent::input_error("invalid parameters: invalid index");
   }
