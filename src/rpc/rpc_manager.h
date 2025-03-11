@@ -6,6 +6,8 @@
 #include <torrent/common.h>
 
 #include "rpc/command.h"
+#include "rpc/command_map.h"
+#include "rpc/exec_file.h"
 #include "rpc/jsonrpc.h"
 #include "rpc/xmlrpc.h"
 
@@ -14,6 +16,9 @@ class Download;
 }
 
 namespace rpc {
+
+extern ExecFile   execFile;
+extern CommandMap commands;
 
 class rpc_error : public torrent::base_error {
 public:
@@ -33,7 +38,7 @@ class RpcManager {
 public:
   using slot_download          = std::function<core::Download*(const char*)>;
   using slot_file              = std::function<torrent::File*(core::Download*, uint32_t)>;
-  using slot_tracker           = std::function<torrent::tracker::Tracker*(core::Download*, uint32_t)>;
+  using slot_tracker           = std::function<torrent::tracker::Tracker(core::Download*, uint32_t)>;
   using slot_peer              = std::function<torrent::Peer*(core::Download*, const torrent::HashString&)>;
   using slot_response_callback = std::function<bool(const char*, uint32_t)>;
 
@@ -58,12 +63,13 @@ public:
   bool           process(RPCType type, const char* in_buffer, uint32_t length, slot_response_callback callback);
 
   void           insert_command(const char* name, const char* parm, const char* doc);
-  static void    object_to_target(const torrent::Object& obj, int callFlags, rpc::target_type* target);
 
   slot_download& slot_find_download() { return m_slot_find_download; }
   slot_file&     slot_find_file() { return m_slot_find_file; }
   slot_tracker&  slot_find_tracker() { return m_slot_find_tracker; }
   slot_peer&     slot_find_peer() { return m_slot_find_peer; }
+
+  static void    object_to_target(const torrent::Object& obj, int callFlags, rpc::target_type* target, std::function<void()>* deleter);
 
 private:
   XmlRpc        m_xmlrpc;
@@ -78,6 +84,9 @@ private:
   slot_tracker  m_slot_find_tracker;
   slot_peer     m_slot_find_peer;
 };
+
+extern RpcManager rpc;
+
 } // namespace rpc
 
 #endif

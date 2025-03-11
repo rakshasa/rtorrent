@@ -69,10 +69,10 @@ ElementTrackerList::receive_disable() {
 
   auto t = m_download->download()->tracker_list()->at(m_focus);
 
-  if (t->is_enabled())
-    t->disable();
+  if (t.is_enabled())
+    t.disable();
   else
-    t->enable();
+    t.enable();
 
   m_window->mark_dirty();
 }
@@ -114,7 +114,7 @@ ElementTrackerList::receive_cycle_group() {
   if (m_focus >= tl->size())
     throw torrent::internal_error("ui::ElementTrackerList::receive_group_cycle(...) called with an invalid focus");
 
-  tl->cycle_group(tl->at(m_focus)->group());
+  tl->cycle_group(tl->at(m_focus).group());
 
   m_window->mark_dirty();
 }

@@ -1,47 +1,11 @@
-// rTorrent - BitTorrent client
-// Copyright (C) 2005-2011, Jari Sundell
-//
-// This program is free software; you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation; either version 2 of the License, or
-// (at your option) any later version.
-// 
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-// 
-// You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-//
-// In addition, as a special exception, the copyright holders give
-// permission to link the code of portions of this program with the
-// OpenSSL library under certain conditions as described in each
-// individual source file, and distribute linked combinations
-// including the two.
-//
-// You must obey the GNU General Public License in all respects for
-// all of the code used other than OpenSSL.  If you modify file(s)
-// with this exception, you may extend this exception to your version
-// of the file(s), but you are not obligated to do so.  If you do not
-// wish to do so, delete this exception statement from your version.
-// If you delete this exception statement from all source files in the
-// program, then also delete it here.
-//
-// Contact:  Jari Sundell <jaris@ifi.uio.no>
-//
-//           Skomakerveien 33
-//           3185 Skoppum, NORWAY
-
 #include "config.h"
 
 #include <fstream>
 #include <sstream>
 #include <torrent/object.h>
-#include <torrent/dht_manager.h>
 #include <torrent/object_stream.h>
 #include <torrent/rate.h>
+#include <torrent/tracker/dht_controller.h>
 #include <torrent/utils/log.h>
 
 #include "rpc/parse_commands.h"
@@ -94,7 +58,7 @@ DhtManager::load_dht_cache() {
     LT_LOG_THIS("could not open cache file (path:%s)", cache_filename.c_str());
   }
 
-  torrent::dht_manager()->initialize(cache);
+  torrent::dht_controller()->initialize(cache);
 
   if (m_start == dht_on)
     start_dht();
@@ -104,31 +68,31 @@ void
 DhtManager::start_dht() {
   priority_queue_erase(&taskScheduler, &m_stopTimeout);
 
-  if (!torrent::dht_manager()->is_valid()) {
+  if (!torrent::dht_controller()->is_valid()) {
     LT_LOG_THIS("server start skipped, manager is uninitialized", 0);
     return;
   }
 
-  if (torrent::dht_manager()->is_active()) {
+  if (torrent::dht_controller()->is_active()) {
     LT_LOG_THIS("server start skipped, already active", 0);
     return;
   }
 
   torrent::ThrottlePair throttles = control->core()->get_throttle(m_throttleName);
-  torrent::dht_manager()->set_upload_throttle(throttles.first);
-  torrent::dht_manager()->set_download_throttle(throttles.second);
+  torrent::dht_controller()->set_upload_throttle(throttles.first);
+  torrent::dht_controller()->set_download_throttle(throttles.second);
 
   int port = rpc::call_command_value("dht.port");
 
   if (port <= 0)
     return;
 
-  if (!torrent::dht_manager()->start(port)) {
+  if (!torrent::dht_controller()->start(port)) {
     m_start = dht_off;
     return;
   }
 
-  torrent::dht_manager()->reset_statistics();
+  torrent::dht_controller()->reset_statistics();
 
   m_updateTimeout.slot() = std::bind(&DhtManager::update, this);
   priority_queue_insert(&taskScheduler, &m_updateTimeout, (cachedTime + rak::timer::from_seconds(60)).round_seconds());
@@ -146,17 +110,17 @@ DhtManager::stop_dht() {
   priority_queue_erase(&taskScheduler, &m_updateTimeout);
   priority_queue_erase(&taskScheduler, &m_stopTimeout);
 
-  if (torrent::dht_manager()->is_active()) {
+  if (torrent::dht_controller()->is_active()) {
     LT_LOG_THIS("stopping server", 0);
 
     log_statistics(true);
-    torrent::dht_manager()->stop();
+    torrent::dht_controller()->stop();
   }
 }
 
 void
 DhtManager::save_dht_cache() {
-  if (!control->core()->download_store()->is_enabled() || !torrent::dht_manager()->is_valid())
+  if (!control->core()->download_store()->is_enabled() || !torrent::dht_controller()->is_valid())
     return;
 
   std::string filename = control->core()->download_store()->path() + "rtorrent.dht_cache";
@@ -167,7 +131,7 @@ DhtManager::save_dht_cache() {
     return;
 
   torrent::Object cache = torrent::Object::create_map();
-  cache_file << *torrent::dht_manager()->store_cache(&cache);
+  cache_file << *torrent::dht_controller()->store_cache(&cache);
 
   if (!cache_file.good())
     return;
@@ -198,7 +162,7 @@ DhtManager::set_mode(const std::string& arg) {
 
 void
 DhtManager::update() {
-  if (!torrent::dht_manager()->is_active())
+  if (!torrent::dht_controller()->is_active())
     throw torrent::internal_error("DhtManager::update called with DHT inactive.");
 
   if (m_start == dht_auto && !m_stopTimeout.is_queued()) {
@@ -207,7 +171,7 @@ DhtManager::update() {
     for (itr = control->core()->download_list()->begin(), end = control->core()->download_list()->end(); itr != end; ++itr)
       if ((*itr)->download()->info()->is_active() && !(*itr)->download()->info()->is_private())
         break;
-      
+
     if (itr == end) {
       m_stopTimeout.slot() = std::bind(&DhtManager::stop_dht, this);
       priority_queue_insert(&taskScheduler, &m_stopTimeout, (cachedTime + rak::timer::from_seconds(15 * 60)).round_seconds());
@@ -223,17 +187,17 @@ DhtManager::update() {
 
 bool
 DhtManager::log_statistics(bool force) {
-  torrent::DhtManager::statistics_type stats = torrent::dht_manager()->get_statistics();
+  auto stats = torrent::dht_controller()->get_statistics();
 
   // Check for firewall problems.
 
   if (stats.cycle > 2 && stats.queries_sent - m_dhtPrevQueriesSent > 100 && stats.queries_received == m_dhtPrevQueriesReceived) {
     // We should have had clients ping us at least but have received
     // nothing, that means the UDP port is probably unreachable.
-    if (torrent::dht_manager()->can_receive_queries())
+    if (torrent::dht_controller()->is_receiving_requests())
       LT_LOG_THIS("listening port appears to be unreachable, no queries received", 0);
 
-    torrent::dht_manager()->set_can_receive(false);
+    torrent::dht_controller()->set_receive_requests(false);
   }
 
   if (stats.queries_sent - m_dhtPrevQueriesSent > stats.num_nodes * 2 + 20 && stats.replies_received == m_dhtPrevRepliesReceived) {
@@ -248,7 +212,7 @@ DhtManager::log_statistics(bool force) {
   m_warned = false;
 
   if (stats.queries_received > m_dhtPrevQueriesReceived)
-    torrent::dht_manager()->set_can_receive(true);
+    torrent::dht_controller()->set_receive_requests(true);
 
   // Nothing to log while bootstrapping, but check again every minute.
   if (stats.cycle <= 1) {
@@ -269,7 +233,7 @@ DhtManager::log_statistics(bool force) {
   // afterwards (i.e. every 2 hours), or when forced.
   if ((force && stats.cycle != m_dhtPrevCycle) || stats.cycle == 3 || stats.cycle > m_dhtPrevCycle + 7) {
     char buffer[256];
-    snprintf(buffer, sizeof(buffer), 
+    snprintf(buffer, sizeof(buffer),
              "DHT statistics: %d queries in, %d queries out, %d replies received, %lld bytes read, %lld bytes sent, "
              "%d known nodes in %d buckets, %d peers (highest: %d) tracked in %d torrents.",
              stats.queries_received - m_dhtPrevQueriesReceived,
@@ -301,11 +265,11 @@ DhtManager::dht_statistics() {
   torrent::Object dhtStats = torrent::Object::create_map();
 
   dhtStats.insert_key("dht",              dht_settings[m_start]);
-  dhtStats.insert_key("active",           torrent::dht_manager()->is_active());
+  dhtStats.insert_key("active",           torrent::dht_controller()->is_active());
   dhtStats.insert_key("throttle",         m_throttleName);
 
-  if (torrent::dht_manager()->is_active()) {
-    torrent::DhtManager::statistics_type stats = torrent::dht_manager()->get_statistics();
+  if (torrent::dht_controller()->is_active()) {
+    auto stats = torrent::dht_controller()->get_statistics();
 
     dhtStats.insert_key("cycle",            stats.cycle);
     dhtStats.insert_key("queries_received", stats.queries_received);
@@ -327,7 +291,7 @@ DhtManager::dht_statistics() {
 
 void
 DhtManager::set_throttle_name(const std::string& throttleName) {
-  if (torrent::dht_manager()->is_active())
+  if (torrent::dht_controller()->is_active())
     throw torrent::input_error("Cannot set DHT throttle while active.");
 
   m_throttleName = throttleName;

@@ -3,7 +3,7 @@
 #include <cstdio>
 #include <rak/address_info.h>
 #include <rak/error_number.h>
-#include <torrent/dht_manager.h>
+#include <torrent/tracker/dht_controller.h>
 #include <torrent/tracker/tracker.h>
 #include <torrent/utils/log.h>
 
@@ -30,7 +30,7 @@ struct call_add_node_t {
     if (sa == NULL) {
       lt_log_print(torrent::LOG_DHT_WARN, "Could not resolve host.");
     } else {
-      torrent::dht_manager()->add_node(sa, m_port);
+      torrent::dht_controller()->add_node(sa, m_port);
     }
   }
 
@@ -39,7 +39,7 @@ struct call_add_node_t {
 
 torrent::Object
 apply_dht_add_node(const std::string& arg) {
-  if (!torrent::dht_manager()->is_valid())
+  if (!torrent::dht_controller()->is_valid())
     throw torrent::input_error("DHT not enabled.");
 
   int port, ret;

@@ -58,40 +58,33 @@ apply_tos(const torrent::Object::string_type& arg) {
 
 torrent::Object apply_encoding_list(const std::string& arg) { torrent::encoding_list()->push_back(arg); return torrent::Object(); }
 
-torrent::File*
-rpc_find_file(core::Download* download, uint32_t index) {
-  if (index >= download->file_list()->size_files())
-    return NULL;
-
-  return (*download->file_list())[index];
-}
-
-// Ergh... time to update the Tracker API to allow proper ptrs.
-torrent::tracker::Tracker*
-rpc_find_tracker(core::Download* download, uint32_t index) {
-  if (index >= download->tracker_list()->size())
-    return NULL;
-
-  return download->tracker_list()->at(index);
-}
-
-torrent::Peer*
-rpc_find_peer(core::Download* download, const torrent::HashString& hash) {
-  torrent::ConnectionList::iterator itr = download->connection_list()->find(hash.c_str());
-
-  if (itr == download->connection_list()->end())
-    return NULL;
-
-  return *itr;
-}
-
 void
 initialize_rpc() {
   rpc::rpc.initialize();
-  rpc::rpc.slot_find_download() = [](const char* hash) { return control->core()->download_list()->find_hex_ptr(hash); };
-  rpc::rpc.slot_find_file() = [](core::Download* d, uint32_t index) { return rpc_find_file(d, index); };
-  rpc::rpc.slot_find_tracker() = [](core::Download* d, uint32_t index) { return rpc_find_tracker(d, index); };
-  rpc::rpc.slot_find_peer() = [](core::Download* d, const torrent::HashString& hash) { return rpc_find_peer(d, hash); };
+
+  rpc::rpc.slot_find_download() = [](const char* hash) {
+      return control->core()->download_list()->find_hex_ptr(hash);
+    };
+  rpc::rpc.slot_find_file() = [](core::Download* d, uint32_t index) -> torrent::File* {
+      if (index >= d->file_list()->size_files())
+        throw torrent::input_error("invalid parameters: index not found");
+
+      return (*d->file_list())[index];
+    };
+  rpc::rpc.slot_find_tracker() = [](core::Download* d, uint32_t index) -> torrent::tracker::Tracker {
+      if (index >= d->tracker_list()->size())
+        throw torrent::input_error("invalid parameters: index not found");
+
+      return d->tracker_list()->at(index);
+    };
+  rpc::rpc.slot_find_peer() = [](core::Download* d, const torrent::HashString& hash) -> torrent::Peer* {
+      auto itr = d->connection_list()->find(hash.c_str());
+
+      if (itr == d->connection_list()->end())
+        throw torrent::input_error("invalid parameters: hash not found");
+
+      return *itr;
+    };
 
   unsigned int count = 0;
 

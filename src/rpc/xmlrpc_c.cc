@@ -1,39 +1,3 @@
-// rTorrent - BitTorrent client
-// Copyright (C) 2005-2011, Jari Sundell
-//
-// This program is free software; you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation; either version 2 of the License, or
-// (at your option) any later version.
-// 
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-// 
-// You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-//
-// In addition, as a special exception, the copyright holders give
-// permission to link the code of portions of this program with the
-// OpenSSL library under certain conditions as described in each
-// individual source file, and distribute linked combinations
-// including the two.
-//
-// You must obey the GNU General Public License in all respects for
-// all of the code used other than OpenSSL.  If you modify file(s)
-// with this exception, you may extend this exception to your version
-// of the file(s), but you are not obligated to do so.  If you do not
-// wish to do so, delete this exception statement from your version.
-// If you delete this exception statement from all source files in the
-// program, then also delete it here.
-//
-// Contact:  Jari Sundell <jaris@ifi.uio.no>
-//
-//           Skomakerveien 33
-//           3185 Skoppum, NORWAY
-
 #include "config.h"
 
 #ifdef HAVE_XMLRPC_C
@@ -43,17 +7,16 @@
 
 #include <cctype>
 #include <string>
-
 #include <stdlib.h>
-#include <xmlrpc-c/server.h>
-
 #include <rak/string_manip.h>
 #include <torrent/object.h>
 #include <torrent/exceptions.h>
+#include <xmlrpc-c/server.h>
 
 #include "rpc_manager.h"
 #include "xmlrpc.h"
 #include "parse_commands.h"
+#include "utils/functional.h"
 
 namespace rpc {
 
@@ -71,7 +34,7 @@ private:
   const char*         m_msg;
 };
 
-torrent::Object xmlrpc_to_object(xmlrpc_env* env, xmlrpc_value* value, int callType = 0, rpc::target_type* target = NULL);
+torrent::Object xmlrpc_to_object(xmlrpc_env* env, xmlrpc_value* value, int call_type = 0, rpc::target_type* target = NULL, std::function<void()>* deleter = NULL);
 
 inline torrent::Object
 xmlrpc_list_entry_to_object(xmlrpc_env* env, xmlrpc_value* src, int index) {
@@ -135,59 +98,70 @@ xmlrpc_list_entry_to_value(xmlrpc_env* env, xmlrpc_value* src, int index) {
   }
 }
 
-rpc::target_type
-xmlrpc_to_target(xmlrpc_env* env, xmlrpc_value* value, int callType) {
+std::pair<rpc::target_type, std::function<void()>>
+xmlrpc_to_target(xmlrpc_env* env, xmlrpc_value* value, int call_type) {
   rpc::target_type target;
+  std::function<void()> deleter = []() {};
 
-  Rpc::object_to_target(xmlrpc_to_object(env, value, -1, nullptr), callType, &target);
-  return target;
+  RpcManager::object_to_target(xmlrpc_to_object(env, value, -1, nullptr), call_type, &target, &deleter);
+
+  return std::make_pair(target, deleter);
 }
 
-rpc::target_type
-xmlrpc_to_index_type(int index, int callType, core::Download* download) {
-  void* result;
+std::pair<rpc::target_type, std::function<void()>>
+xmlrpc_to_index_type(int index, int call_type, core::Download* download) {
+  void* result = nullptr;
+  std::function<void()> deleter = []() {};
 
-  switch (callType) {
-  case XmlRpc::call_file:    result = xmlrpc.slot_find_file()(download, index); break;
-  case XmlRpc::call_tracker: result = xmlrpc.slot_find_tracker()(download, index); break;
-  default: result = NULL; break;
+  try {
+
+    switch (call_type) {
+    case XmlRpc::call_file:
+      result = rpc.slot_find_file()(download, index);
+      break;
+
+    case XmlRpc::call_tracker:
+      result = new torrent::tracker::Tracker(rpc.slot_find_tracker()(download, index));
+      deleter = [result]() { delete (torrent::tracker::Tracker*)result; };
+      break;
+
+    default:
+      throw torrent::input_error("invalid parameters: unexpected target type");
+      break;
+    }
+
+  } catch (const torrent::input_error& e) {
+    throw xmlrpc_error_c(XMLRPC_TYPE_ERROR, e.what());
   }
 
-  if (result == NULL)
-    throw xmlrpc_error_c(XMLRPC_TYPE_ERROR, "Invalid index.");
-      
-  return rpc::make_target(callType, result);
+  return std::make_pair(rpc::make_target(call_type, result), deleter);
 }
 
 torrent::Object
-xmlrpc_to_object(xmlrpc_env* env, xmlrpc_value* value, int callType, rpc::target_type* target) {
+xmlrpc_to_object(xmlrpc_env* env, xmlrpc_value* value, int call_type, rpc::target_type* target, std::function<void()>* deleter) {
   switch (xmlrpc_value_type(value)) {
   case XMLRPC_TYPE_INT:
     int v;
     xmlrpc_read_int(env, value, &v);
-      
+
     return torrent::Object((int64_t)v);
 
 #ifdef XMLRPC_HAVE_I8
   case XMLRPC_TYPE_I8:
     xmlrpc_int64 v2;
     xmlrpc_read_i8(env, value, &v2);
-      
+
     return torrent::Object((int64_t)v2);
 #endif
 
-    //     case XMLRPC_TYPE_BOOL:
-    //     case XMLRPC_TYPE_DOUBLE:
-    //     case XMLRPC_TYPE_DATETIME:
-
   case XMLRPC_TYPE_STRING:
 
-    if (callType != XmlRpc::call_generic && target != nullptr) {
+    if (call_type != XmlRpc::call_generic && target != nullptr) {
       // When the call type is not supposed to be void, we'll try to
       // convert it to a command target. It's not that important that
       // it is converted to the right type here, as an mismatch will
       // be caught when executing the command.
-      *target = xmlrpc_to_target(env, value, callType);
+      std::tie(*target, *deleter) = xmlrpc_to_target(env, value, call_type);
       return torrent::Object();
 
     } else {
@@ -199,7 +173,6 @@ xmlrpc_to_object(xmlrpc_env* env, xmlrpc_value* value, int callType, rpc::target
 
       torrent::Object result = torrent::Object(std::string(valueString));
 
-      // Urgh, seriously?
       ::free((void*)valueString);
       return result;
     }
@@ -216,7 +189,6 @@ xmlrpc_to_object(xmlrpc_env* env, xmlrpc_value* value, int callType, rpc::target
 
     torrent::Object result = torrent::Object(std::string(valueString, valueSize));
 
-    // Urgh, seriously?
     ::free((void*)valueString);
     return result;
   }
@@ -229,7 +201,7 @@ xmlrpc_to_object(xmlrpc_env* env, xmlrpc_value* value, int callType, rpc::target
     if (env->fault_occurred)
       throw xmlrpc_error_c(env);
 
-    if (callType != XmlRpc::call_generic && last != 0) {
+    if (call_type != XmlRpc::call_generic && last != 0) {
       if (last < 1)
         throw xmlrpc_error_c(XMLRPC_TYPE_ERROR, "Too few arguments.");
 
@@ -240,14 +212,15 @@ xmlrpc_to_object(xmlrpc_env* env, xmlrpc_value* value, int callType, rpc::target
         throw xmlrpc_error_c(env);
 
       if (target != nullptr)
-        *target = xmlrpc_to_target(env, tmp, callType);
+        std::tie(*target, *deleter) = xmlrpc_to_target(env, tmp, call_type);
+
       xmlrpc_DECREF(tmp);
 
       if (env->fault_occurred)
         throw xmlrpc_error_c(env);
 
       if (target->first == XmlRpc::call_download &&
-          (callType == XmlRpc::call_file || callType == XmlRpc::call_tracker)) {
+          (call_type == XmlRpc::call_file || call_type == XmlRpc::call_tracker)) {
         // If we have a download target and the call type requires
         // another contained type, then we try to use the next
         // parameter as the index to support old-style calls.
@@ -255,7 +228,17 @@ xmlrpc_to_object(xmlrpc_env* env, xmlrpc_value* value, int callType, rpc::target
         if (current == last)
           throw xmlrpc_error_c(XMLRPC_TYPE_ERROR, "Too few arguments, missing index.");
 
-        *target = xmlrpc_to_index_type(xmlrpc_list_entry_to_value(env, value, current++), callType, (core::Download*)target->second);
+        {
+          std::function<void()> old_deleter, tmp_deleter;
+          std::tie(*target, tmp_deleter) = xmlrpc_to_index_type(xmlrpc_list_entry_to_value(env, value, current++),
+                                                                call_type,
+                                                                (core::Download*)target->second);
+          old_deleter.swap(*deleter);
+          *deleter = [old_deleter, tmp_deleter]() {
+              tmp_deleter();
+              old_deleter();
+            };
+        }
       }
     }
 
@@ -276,10 +259,6 @@ xmlrpc_to_object(xmlrpc_env* env, xmlrpc_value* value, int callType, rpc::target
     }
   }
 
-  //     case XMLRPC_TYPE_STRUCT:
-    //     case XMLRPC_TYPE_C_PTR:
-    //     case XMLRPC_TYPE_NIL:
-    //     case XMLRPC_TYPE_DEAD:
   default:
     throw xmlrpc_error_c(XMLRPC_TYPE_ERROR, "Unsupported type found.");
   }
@@ -291,7 +270,7 @@ object_to_xmlrpc(xmlrpc_env* env, const torrent::Object& object) {
   case torrent::Object::TYPE_VALUE:
 
 #ifdef XMLRPC_HAVE_I8
-    if (xmlrpc.dialect() != XmlRpc::dialect_generic)
+    if (rpc.dialect() != XmlRpc::dialect_generic)
       return xmlrpc_i8_new(env, object.as_value());
 #else
     return xmlrpc_int_new(env, object.as_value());
@@ -329,7 +308,7 @@ object_to_xmlrpc(xmlrpc_env* env, const torrent::Object& object) {
   case torrent::Object::TYPE_LIST:
   {
     xmlrpc_value* result = xmlrpc_array_new(env);
-    
+
     for (torrent::Object::list_const_iterator itr = object.as_list().begin(), last = object.as_list().end(); itr != last; itr++) {
       xmlrpc_value* item = object_to_xmlrpc(env, *itr);
       xmlrpc_array_append_item(env, result, item);
@@ -342,7 +321,7 @@ object_to_xmlrpc(xmlrpc_env* env, const torrent::Object& object) {
   case torrent::Object::TYPE_MAP:
   {
     xmlrpc_value* result = xmlrpc_struct_new(env);
-    
+
     for (torrent::Object::map_const_iterator itr = object.as_map().begin(), last = object.as_map().end(); itr != last; itr++) {
       xmlrpc_value* item = object_to_xmlrpc(env, itr->second);
       xmlrpc_struct_set_value(env, result, itr->first.c_str(), item);
@@ -355,11 +334,11 @@ object_to_xmlrpc(xmlrpc_env* env, const torrent::Object& object) {
   case torrent::Object::TYPE_DICT_KEY:
   {
     xmlrpc_value* result = xmlrpc_array_new(env);
-    
+
     xmlrpc_value* key_item = object_to_xmlrpc(env, object.as_dict_key());
     xmlrpc_array_append_item(env, result, key_item);
     xmlrpc_DECREF(key_item);
-    
+
     if (object.as_dict_obj().is_list()) {
       for (torrent::Object::list_const_iterator
              itr = object.as_dict_obj().as_list().begin(),
@@ -392,18 +371,21 @@ xmlrpc_call_command(xmlrpc_env* env, xmlrpc_value* args, void* voidServerInfo) {
     return NULL;
   }
 
+  std::function<void()> deleter = []() {};
+  utils::scope_guard    guard([&deleter]() { deleter(); });
+
   try {
     torrent::Object object;
     rpc::target_type target = rpc::make_target();
 
     if (itr->second.m_flags & CommandMap::flag_no_target)
-      xmlrpc_to_object(env, args, XmlRpc::call_generic, &target).swap(object);
+      xmlrpc_to_object(env, args, XmlRpc::call_generic, &target, &deleter).swap(object);
     else if (itr->second.m_flags & CommandMap::flag_file_target)
-      xmlrpc_to_object(env, args, XmlRpc::call_file, &target).swap(object);
+      xmlrpc_to_object(env, args, XmlRpc::call_file, &target, &deleter).swap(object);
     else if (itr->second.m_flags & CommandMap::flag_tracker_target)
-      xmlrpc_to_object(env, args, XmlRpc::call_tracker, &target).swap(object);
+      xmlrpc_to_object(env, args, XmlRpc::call_tracker, &target, &deleter).swap(object);
     else
-      xmlrpc_to_object(env, args, XmlRpc::call_any, &target).swap(object);
+      xmlrpc_to_object(env, args, XmlRpc::call_any, &target, &deleter).swap(object);
 
     if (env->fault_occurred)
       return NULL;
@@ -425,7 +407,7 @@ XmlRpc::initialize() {
 #ifndef XMLRPC_HAVE_I8
   m_dialect = dialect_generic;
 #endif
-  
+
   m_env = new xmlrpc_env;
 
   xmlrpc_env_init((xmlrpc_env*)m_env);

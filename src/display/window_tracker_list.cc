@@ -42,36 +42,36 @@ WindowTrackerList::redraw() {
   typedef std::pair<unsigned int, unsigned int> Range;
 
   Range range = rak::advance_bidirectional<unsigned int>(0, *m_focus, tl->size(), (m_canvas->height() - 1) / 2);
-  unsigned int group = tl->at(range.first)->group();
+  unsigned int group = tl->at(range.first).group();
 
   while (range.first != range.second) {
     auto tracker = tl->at(range.first);
 
-    if (tracker->group() == group)
+    if (tracker.group() == group)
       m_canvas->print(0, pos, "%2i:", group++);
 
     m_canvas->print(4, pos++, "%s",
-                    tracker->url().c_str());
+                    tracker.url().c_str());
 
     if (pos < m_canvas->height()) {
       const char* state;
 
-      if (tracker->is_busy_not_scrape())
+      if (tracker.is_busy_not_scrape())
         state = "req ";
-      else if (tracker->is_busy())
+      else if (tracker.is_busy())
         state = "scr ";
       else
         state = "    ";
 
-      auto tracker_state = tracker->state();
+      auto tracker_state = tracker.state();
 
       m_canvas->print(0, pos++, "%s Id: %s Counters: %uf / %us (%u) %s S/L/D: %u/%u/%u (%u/%u)",
                       state,
-                      rak::copy_escape_html(tracker->tracker_id()).c_str(),
+                      rak::copy_escape_html(tracker.tracker_id()).c_str(),
                       tracker_state.failed_counter(),
                       tracker_state.success_counter(),
                       tracker_state.scrape_counter(),
-                      tracker->is_usable() ? " on" : tracker->is_enabled() ? "err" : "off",
+                      tracker.is_usable() ? " on" : tracker.is_enabled() ? "err" : "off",
                       tracker_state.scrape_complete(),
                       tracker_state.scrape_incomplete(),
                       tracker_state.scrape_downloaded(),
@@ -84,7 +84,7 @@ WindowTrackerList::redraw() {
       m_canvas->set_attr(4, pos - 1, m_canvas->width(), is_focused() ? A_REVERSE : A_BOLD, COLOR_PAIR(0));
     }
 
-    if (tracker->is_busy()) {
+    if (tracker.is_busy()) {
       m_canvas->set_attr(0, pos - 2, 4, A_REVERSE, COLOR_PAIR(0));
       m_canvas->set_attr(0, pos - 1, 4, A_REVERSE, COLOR_PAIR(0));
     }

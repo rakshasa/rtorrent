@@ -40,8 +40,6 @@
 #include <string>
 #include <cstring>
 
-#include "command_map.h"
-#include "exec_file.h"
 #include "xmlrpc.h"
 #include "rpc_manager.h"
 
@@ -50,11 +48,6 @@ namespace core {
 }
 
 namespace rpc {
-
-// Move to another file?
-extern CommandMap commands;
-extern RpcManager rpc;
-extern ExecFile   execFile;
 
 typedef std::pair<torrent::Object, const char*> parse_command_type;
 

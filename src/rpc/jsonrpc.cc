@@ -2,21 +2,20 @@
 
 #include "rpc/jsonrpc.h"
 
-#include "rpc/rpc_manager.h"
-#include "torrent/exceptions.h"
-#include "torrent/object.h"
 #include <cstdint>
 #include <string>
-
 #include <torrent/common.h>
 #include <torrent/torrent.h>
 
+#include "thread_base.h"
+#include "rpc/rpc_manager.h"
 #include "rpc/command.h"
 #include "rpc/command_map.h"
+#include "rpc/nlohmann/json.h"
 #include "rpc/parse_commands.h"
-#include "thread_base.h"
-
-#include "nlohmann/json.h"
+#include "torrent/exceptions.h"
+#include "torrent/object.h"
+#include "utils/functional.h"
 
 namespace rpc {
 
@@ -123,6 +122,9 @@ jsonrpc_call_command(const std::string& method, const json& params) {
   auto&            params_object_list = params_object.as_list();
   rpc::target_type target             = rpc::make_target();
 
+  std::function<void()> deleter = []() {};
+  utils::scope_guard    guard([&deleter]() { deleter(); });
+
   if (!(itr->second.m_flags & CommandMap::flag_no_target)) {
     // Provide a blank target if none was provided
     if (params_object_list.empty())
@@ -131,7 +133,8 @@ jsonrpc_call_command(const std::string& method, const json& params) {
     if (!params_object_list.begin()->is_string())
       throw torrent::input_error("invalid parameters: target must be a string");
 
-    RpcManager::object_to_target(params_object_list.begin()->as_string(), itr->second.m_flags, &target);
+    RpcManager::object_to_target(params_object_list.begin()->as_string(), itr->second.m_flags, &target, &deleter);
+
     params_object_list.erase(params_object_list.begin());
   }
 
