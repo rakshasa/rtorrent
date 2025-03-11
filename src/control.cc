@@ -13,6 +13,10 @@
 
 #include "display/canvas.h"
 #include "display/window.h"
+#include "display/window_http_queue.h"
+#include "display/window_input.h"
+#include "display/window_statusbar.h"
+#include "display/window_title.h"
 #include "display/manager.h"
 #include "input/manager.h"
 #include "input/input_event.h"
