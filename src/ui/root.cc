@@ -1,39 +1,3 @@
-// rTorrent - BitTorrent client
-// Copyright (C) 2005-2011, Jari Sundell
-//
-// This program is free software; you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation; either version 2 of the License, or
-// (at your option) any later version.
-// 
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-// 
-// You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-//
-// In addition, as a special exception, the copyright holders give
-// permission to link the code of portions of this program with the
-// OpenSSL library under certain conditions as described in each
-// individual source file, and distribute linked combinations
-// including the two.
-//
-// You must obey the GNU General Public License in all respects for
-// all of the code used other than OpenSSL.  If you modify file(s)
-// with this exception, you may extend this exception to your version
-// of the file(s), but you are not obligated to do so.  If you do not
-// wish to do so, delete this exception statement from your version.
-// If you delete this exception statement from all source files in the
-// program, then also delete it here.
-//
-// Contact:  Jari Sundell <jaris@ifi.uio.no>
-//
-//           Skomakerveien 33
-//           3185 Skoppum, NORWAY
-
 #include "config.h"
 
 #include <fstream>
@@ -63,17 +27,7 @@
 
 namespace ui {
 
-Root::Root() :
-  m_control(NULL),
-  m_downloadList(NULL),
-  m_windowTitle(NULL),
-  m_windowHttpQueue(NULL),
-  m_windowInput(NULL),
-  m_windowStatusbar(NULL),
-  m_input_history_length(99),
-  m_input_history_last_input(""),
-  m_input_history_pointer_get(0) {
-
+Root::Root() {
   // Initialise prefilled m_input_history and m_input_history_pointers objects.
   for (int type = ui::DownloadList::INPUT_LOAD_DEFAULT; type != ui::DownloadList::INPUT_EOI; type++) {
     m_input_history.insert( std::make_pair(type, InputHistoryCategory(m_input_history_length)) );
@@ -84,25 +38,25 @@ Root::Root() :
 
 void
 Root::init(Control* c) {
-  if (m_control != NULL)
+  if (m_control != nullptr)
     throw std::logic_error("Root::init() called twice on the same object");
 
   m_control = c;
 
-  m_windowTitle     = new WTitle();
-  m_windowHttpQueue = new WHttpQueue(control->core()->http_queue());
-  m_windowInput     = new WInput();
-  m_windowStatusbar = new WStatusbar();
+  m_windowTitle     = std::make_unique<display::WindowTitle>();
+  m_windowHttpQueue = std::make_unique<WHttpQueue>(control->core()->http_queue());
+  m_windowInput     = std::make_unique<WInput>();
+  m_windowStatusbar = std::make_unique<WStatusbar>();
 
-  m_downloadList    = new DownloadList();
+  m_downloadList    = std::make_unique<DownloadList>();
 
   display::Frame* rootFrame = m_control->display()->root_frame();
 
   rootFrame->initialize_row(5);
-  rootFrame->frame(0)->initialize_window(m_windowTitle);
-  rootFrame->frame(2)->initialize_window(m_windowHttpQueue);
-  rootFrame->frame(3)->initialize_window(m_windowInput);
-  rootFrame->frame(4)->initialize_window(m_windowStatusbar);
+  rootFrame->frame(0)->initialize_window(m_windowTitle.get());
+  rootFrame->frame(2)->initialize_window(m_windowHttpQueue.get());
+  rootFrame->frame(3)->initialize_window(m_windowInput.get());
+  rootFrame->frame(4)->initialize_window(m_windowStatusbar.get());
 
   m_windowTitle->set_active(true);
   m_windowStatusbar->set_active(true);
@@ -122,15 +76,8 @@ Root::cleanup() {
     m_downloadList->disable();
 
   m_control->display()->root_frame()->clear();
-
-  delete m_downloadList;
-
-  delete m_windowTitle;
-  delete m_windowHttpQueue;
-  delete m_windowInput;
-  delete m_windowStatusbar;
-
   m_control->input()->erase(&m_bindings);
+
   m_control = NULL;
 }
 
@@ -248,7 +195,7 @@ Root::enable_input(const std::string& title, input::TextInput* input, ui::Downlo
   if (m_windowInput->input() != NULL)
     throw torrent::internal_error("Root::enable_input(...) m_windowInput->input() != NULL.");
 
-  input->slot_dirty(std::bind(&WInput::mark_dirty, m_windowInput));
+  input->slot_dirty(std::bind(&WInput::mark_dirty, m_windowInput.get()));
 
   m_windowStatusbar->set_active(false);
 
@@ -392,7 +339,7 @@ Root::set_input_history_size(int size) {
 
 void
 Root::load_input_history() {
-  if (m_control == NULL || !m_control->core()->download_store()->is_enabled()) {
+  if (m_control == nullptr || !m_control->core()->download_store()->is_enabled()) {
     lt_log_print(torrent::LOG_DEBUG, "ignoring input history file");
     return;
   }
@@ -411,7 +358,7 @@ Root::load_input_history() {
 
     while (std::getline(history_file, line)) {
       if (!line.empty()) {
-        int delim_pos = line.find("|");
+        auto delim_pos = line.find("|");
 
         if (delim_pos != std::string::npos) {
           int type = std::atoi(line.substr(0, delim_pos).c_str());
@@ -460,7 +407,7 @@ Root::load_input_history() {
 
 void
 Root::save_input_history() {
-  if (m_control == NULL || !m_control->core()->download_store()->is_enabled())
+  if (m_control == nullptr || !m_control->core()->download_store()->is_enabled())
     return;
 
   std::string history_filename = m_control->core()->download_store()->path() + "rtorrent.input_history";
