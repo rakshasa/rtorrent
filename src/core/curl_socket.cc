@@ -1,11 +1,13 @@
 #include "config.h"
 
+#include <cassert>
+
 #include <curl/curl.h>
 #include <curl/multi.h>
 
 #include <torrent/poll.h>
 #include <torrent/exceptions.h>
-#include <torrent/utils/thread_base.h>
+#include <torrent/utils/thread.h>
 
 #include "control.h"
 
@@ -15,7 +17,7 @@
 namespace core {
 
 int
-CurlSocket::receive_socket(void* easy_handle, curl_socket_t fd, int what, void* userp, void* socketp) {
+CurlSocket::receive_socket([[maybe_unused]] void* easy_handle, curl_socket_t fd, int what, void* userp, void* socketp) {
   CurlStack* stack = (CurlStack*)userp;
   CurlSocket* socket = (CurlSocket*)socketp;
 
@@ -58,8 +60,7 @@ CurlSocket::receive_socket(void* easy_handle, curl_socket_t fd, int what, void* 
 }
 
 CurlSocket::~CurlSocket() {
-  if (m_fileDesc != -1)
-    throw torrent::internal_error("CurlSocket::~CurlSocket() m_fileDesc != -1.");
+  assert(m_fileDesc == -1 && "CurlSocket::~CurlSocket() m_fileDesc != -1.");
 }
 
 void
