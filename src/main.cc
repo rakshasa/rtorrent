@@ -182,7 +182,7 @@ main(int argc, char** argv) {
     // platforms that do not properly pass signals to the target
     // threads. Use '--enable-interrupt-socket' when configuring
     // LibTorrent to enable this workaround.
-    if (torrent::thread_base::should_handle_sigusr1())
+    if (torrent::utils::Thread::should_handle_sigusr1())
       SignalHandler::set_handler(SIGUSR1, std::bind(&do_nothing));
 
     torrent::log_add_group_output(torrent::LOG_NOTICE, "important");
@@ -457,7 +457,7 @@ main(int argc, char** argv) {
 
     rpc::commands.call_catch("event.system.startup_done", rpc::make_target(), "startup_done", "System startup_done event action failed: ");
 
-    torrent::thread_base::event_loop(torrent::main_thread());
+    torrent::utils::Thread::event_loop(torrent::main_thread());
 
     control->core()->download_list()->session_save();
     control->cleanup();
