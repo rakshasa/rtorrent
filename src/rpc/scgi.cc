@@ -133,7 +133,7 @@ bool
 SCgi::receive_call(SCgiTask* task, const char* buffer, uint32_t length) {
   bool result = false;
 
-  torrent::ThreadBase::acquire_global_lock();
+  torrent::utils::Thread::acquire_global_lock();
   torrent::main_thread()->interrupt();
 
   switch (task->content_type()) {
@@ -145,7 +145,7 @@ SCgi::receive_call(SCgiTask* task, const char* buffer, uint32_t length) {
     break;
 
   }
-  torrent::ThreadBase::release_global_lock();
+  torrent::utils::Thread::release_global_lock();
 
   return result;
 }

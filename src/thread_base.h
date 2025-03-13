@@ -13,7 +13,7 @@
 
 class thread_queue_hack;
 
-class ThreadBase : public torrent::ThreadBase {
+class ThreadBase : public torrent::utils::Thread {
 public:
   typedef rak::priority_queue_default priority_queue;
   typedef void (*thread_base_func)(ThreadBase*);
