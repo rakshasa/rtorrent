@@ -18,6 +18,7 @@
 #include "core/download.h"
 #include "core/manager.h"
 #include "rpc/scgi.h"
+#include "rpc/scgi_task.h"
 #include "ui/root.h"
 #include "rpc/parse.h"
 #include "rpc/parse_commands.h"
@@ -233,6 +234,8 @@ initialize_command_network() {
   CMD2_ANY_VALUE_V ("network.send_buffer.size.set",    std::bind(&torrent::ConnectionManager::set_send_buffer_size, cm, std::placeholders::_2));
   CMD2_ANY         ("network.receive_buffer.size",     std::bind(&torrent::ConnectionManager::receive_buffer_size, cm));
   CMD2_ANY_VALUE_V ("network.receive_buffer.size.set", std::bind(&torrent::ConnectionManager::set_receive_buffer_size, cm, std::placeholders::_2));
+
+
   CMD2_ANY_STRING  ("network.tos.set",                 std::bind(&apply_tos, std::placeholders::_2));
 
   CMD2_ANY         ("network.bind_address",          std::bind(&core::Manager::bind_address, control->core()));
@@ -250,9 +253,14 @@ initialize_command_network() {
   CMD2_ANY         ("network.max_open_sockets",      std::bind(&torrent::ConnectionManager::max_size, cm));
   CMD2_ANY_VALUE_V ("network.max_open_sockets.set",  std::bind(&torrent::ConnectionManager::set_max_size, cm, std::placeholders::_2));
 
-  CMD2_ANY_STRING  ("network.scgi.open_port",        std::bind(&apply_scgi, std::placeholders::_2, 1));
-  CMD2_ANY_STRING  ("network.scgi.open_local",       std::bind(&apply_scgi, std::placeholders::_2, 2));
-  CMD2_VAR_BOOL    ("network.scgi.dont_route",       false);
+  CMD2_ANY_STRING  ("network.scgi.open_port",         std::bind(&apply_scgi, std::placeholders::_2, 1));
+  CMD2_ANY_STRING  ("network.scgi.open_local",        std::bind(&apply_scgi, std::placeholders::_2, 2));
+  CMD2_VAR_BOOL    ("network.scgi.dont_route",        false);
+
+  CMD2_ANY         ("network.scgi.gzip.min_size",     [](const auto&, const auto&) { return rpc::SCgiTask::gzip_min_size(); });
+  CMD2_ANY_VALUE_V ("network.scgi.gzip.min_size.set", [](const auto&, const auto& arg) { return rpc::SCgiTask::set_gzip_min_size(arg); });
+  CMD2_ANY         ("network.scgi.use_gzip",          [](const auto&, const auto&) { return rpc::SCgiTask::gzip_enabled(); });
+  CMD2_ANY_VALUE_V ("network.scgi.use_gzip.set",      [](const auto&, const auto& arg) { return rpc::SCgiTask::set_gzip_enabled(arg); });
 
   CMD2_ANY_STRING  ("network.xmlrpc.dialect.set",    [](const auto&, const auto& arg) { return apply_xmlrpc_dialect(arg); })
   CMD2_ANY         ("network.xmlrpc.size_limit",     [](const auto&, const auto&){ return rpc::rpc.size_limit(); });
