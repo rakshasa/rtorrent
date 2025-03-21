@@ -19,6 +19,7 @@
 #include <torrent/data/file.h>
 #include <torrent/data/file_list.h>
 #include <torrent/download/resource_manager.h>
+#include <torrent/net/resolver.h>
 #include <torrent/peer/connection_list.h>
 #include <torrent/peer/peer_list.h>
 #include <torrent/utils/log.h>
@@ -320,7 +321,8 @@ apply_d_add_peer(core::Download* download, const std::string& arg) {
   if (port < 1 || port > 65535)
     throw torrent::input_error("Invalid port number.");
 
-  torrent::connection_manager()->resolver()(host, (int)rak::socket_address::pf_unspec, SOCK_STREAM, call_add_d_peer_t(download, port));
+  // Currently discarding SOCK_STREAM.
+  torrent::main_thread()->resolver()->resolve(NULL, host, PF_UNSPEC, call_add_d_peer_t(download, port));
 }
 
 torrent::Object
