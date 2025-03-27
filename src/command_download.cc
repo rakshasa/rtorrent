@@ -1,8 +1,9 @@
 #include "config.h"
 
-#include <functional>
-#include <unistd.h>
 #include <cstdio>
+#include <functional>
+#include <netdb.h>
+#include <unistd.h>
 #include <rak/file_stat.h>
 #include <rak/error_number.h>
 #include <rak/path.h>
@@ -19,6 +20,8 @@
 #include <torrent/data/file.h>
 #include <torrent/data/file_list.h>
 #include <torrent/download/resource_manager.h>
+#include <torrent/net/resolver.h>
+#include <torrent/net/types.h>
 #include <torrent/peer/connection_list.h>
 #include <torrent/peer/peer_list.h>
 #include <torrent/utils/log.h>
@@ -283,21 +286,6 @@ retrieve_d_bitfield(core::Download* download) {
   return torrent::Object(rak::transform_hex(bitField->begin(), bitField->end()));
 }
 
-struct call_add_d_peer_t {
-  call_add_d_peer_t(core::Download* d, int port) : m_download(d), m_port(port) { }
-
-  void operator() (const sockaddr* sa, [[maybe_unused]] int err) {
-    if (sa == NULL) {
-      lt_log_print(torrent::LOG_TORRENT_WARN, "could not resolve hostname for added peer");
-    } else {
-      m_download->download()->add_peer(sa, m_port);
-    }
-  }
-
-  core::Download* m_download;
-  int m_port;
-};
-
 void
 apply_d_add_peer(core::Download* download, const std::string& arg) {
   int port, ret;
@@ -320,7 +308,15 @@ apply_d_add_peer(core::Download* download, const std::string& arg) {
   if (port < 1 || port > 65535)
     throw torrent::input_error("Invalid port number.");
 
-  torrent::connection_manager()->resolver()(host, (int)rak::socket_address::pf_unspec, SOCK_STREAM, call_add_d_peer_t(download, port));
+  // Currently discarding SOCK_STREAM.
+  torrent::main_thread()->resolver()->resolve_preferred(NULL, host, AF_UNSPEC, AF_INET, [download, port](torrent::c_sa_shared_ptr sa, int err) {
+      if (sa == nullptr) {
+        lt_log_print(torrent::LOG_TORRENT_WARN, "could not resolve hostname for added peer: %s", gai_strerror(err));
+        return;
+      }
+
+      download->download()->add_peer(sa.get(), port);
+  });
 }
 
 torrent::Object

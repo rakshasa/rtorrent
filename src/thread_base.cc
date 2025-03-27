@@ -91,6 +91,8 @@ ThreadBase::call_events() {
     call_queued_items();
 
   rak::priority_queue_perform(&m_taskScheduler, cachedTime);
+
+  process_callbacks();
 }
 
 void
