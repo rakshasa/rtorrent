@@ -69,7 +69,7 @@ initialize_rpc() {
       if (index >= d->file_list()->size_files())
         throw torrent::input_error("invalid parameters: index not found");
 
-      return (*d->file_list())[index];
+      return (*d->file_list())[index].get();
     };
   rpc::rpc.slot_find_tracker() = [](core::Download* d, uint32_t index) -> torrent::tracker::Tracker {
       if (index >= d->tracker_list()->size())

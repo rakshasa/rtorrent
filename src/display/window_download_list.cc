@@ -22,7 +22,7 @@ WindowDownloadList::WindowDownloadList() :
 WindowDownloadList::~WindowDownloadList() {
   if (m_view != NULL)
     m_view->signal_changed().erase(m_changed_itr);
-  
+
   m_view = NULL;
 }
 
@@ -101,7 +101,6 @@ WindowDownloadList::redraw() {
 
   m_canvas->set_attr(0, 0, -1, RCOLOR_TITLE);
 
-  int               layout_height;
   const std::string layout_name = rpc::call_command_string("ui.torrent_list.layout");
 
   typedef std::pair<core::View::iterator, core::View::iterator> Range;
