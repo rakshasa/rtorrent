@@ -20,6 +20,7 @@
 
 #include "download.h"
 #include "download_store.h"
+#include "rpc/parse_commands.h"
 
 namespace core {
 
@@ -93,12 +94,14 @@ DownloadStore::write_bencode(const std::string& filename, const torrent::Object&
   if (fd < 0)
     goto download_store_save_error;
 
+  if (rpc::call_command_value("system.files.session.fdatasync")) {
 #ifdef __APPLE__
-  fsync(fd);
+    fsync(fd);
 #else
-  fdatasync(fd);
+    fdatasync(fd);
 #endif
-  ::close(fd);
+    ::close(fd);
+  }
 
   return true;
 
@@ -141,7 +144,7 @@ DownloadStore::save(Download* d, int flags) {
 
   ::rename((base_filename + ".libtorrent_resume.new").c_str(), (base_filename + ".libtorrent_resume").c_str());
   ::rename((base_filename + ".rtorrent.new").c_str(), (base_filename + ".rtorrent").c_str());
-  
+
   if (!(flags & flag_skip_static) &&
       write_bencode(base_filename + ".new", *d->bencode(), torrent::Object::flag_session_data))
     ::rename((base_filename + ".new").c_str(), base_filename.c_str());

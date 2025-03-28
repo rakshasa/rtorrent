@@ -68,6 +68,5 @@ TAGS
 # rTorrent specific files
 ###########################
 src/rtorrent
-test/rtorrentTest
+test/rtorrent_Test*
 test-driver
-test/rtorrentTest.trs

@@ -28,7 +28,7 @@ apply_view_filter_on(const torrent::Object::list_type& args) {
     throw torrent::input_error("Too few arguments.");
 
   const std::string& name = args.front().as_string();
-  
+
   if (name.empty())
     throw torrent::input_error("First argument must be a string.");
 
@@ -99,7 +99,7 @@ apply_view_set(const torrent::Object::list_type& args) {
 }
 
 torrent::Object
-apply_print(rpc::target_type target, const torrent::Object& rawArgs) {
+apply_print([[maybe_unused]] rpc::target_type target, const torrent::Object& rawArgs) {
   char buffer[1024];
   rpc::print_object(buffer, buffer + 1024, &rawArgs, 0);
 
@@ -108,7 +108,7 @@ apply_print(rpc::target_type target, const torrent::Object& rawArgs) {
 }
 
 torrent::Object
-apply_cat(rpc::target_type target, const torrent::Object& rawArgs) {
+apply_cat([[maybe_unused]] rpc::target_type target, const torrent::Object& rawArgs) {
   std::string result;
 
   rpc::print_object_std(&result, &rawArgs, 0);
@@ -116,7 +116,7 @@ apply_cat(rpc::target_type target, const torrent::Object& rawArgs) {
 }
 
 torrent::Object
-apply_value(rpc::target_type target, const torrent::Object::list_type& args) {
+apply_value([[maybe_unused]] rpc::target_type target, const torrent::Object::list_type& args) {
   if (args.size() < 1)
     throw torrent::input_error("'value' takes at least a number argument!");
   if (args.size() > 2)
@@ -184,7 +184,7 @@ apply_not(rpc::target_type target, const torrent::Object& rawArgs) {
 }
 
 torrent::Object
-apply_false(rpc::target_type target, const torrent::Object& rawArgs) {
+apply_false([[maybe_unused]] rpc::target_type target, [[maybe_unused]] const torrent::Object& rawArgs) {
   return (int64_t)0;
 }
 
@@ -199,10 +199,10 @@ apply_and(rpc::target_type target, const torrent::Object& rawArgs) {
         return (int64_t)false;
 
     } else if (itr->is_value()) {
-      if (!itr->as_value())      
+      if (!itr->as_value())
         return (int64_t)false;
 
-    } else {        
+    } else {
       // TODO: Switch to new versions that only accept the new command syntax.
       if (!as_boolean(rpc::parse_command_single(target, itr->as_string())))
         return (int64_t)false;
@@ -222,10 +222,10 @@ apply_or(rpc::target_type target, const torrent::Object& rawArgs) {
         return (int64_t)true;
 
     } else if (itr->is_value()) {
-      if (itr->as_value())      
+      if (itr->as_value())
         return (int64_t)true;
 
-    } else {        
+    } else {
       if (as_boolean(rpc::parse_command_single(target, itr->as_string())))
         return (int64_t)true;
     }
@@ -262,7 +262,7 @@ apply_cmp(rpc::target_type target, const torrent::Object::list_type& args) {
 
   if (result1.type() != result2.type())
     throw torrent::input_error("Type mismatch.");
-    
+
   switch (result1.type()) {
   case torrent::Object::TYPE_VALUE:  return result1.as_value() - result2.as_value();
   case torrent::Object::TYPE_STRING: return result1.as_string().compare(result2.as_string());
@@ -391,7 +391,7 @@ apply_to_time(const torrent::Object& rawArgs, int flags) {
     u = std::localtime(&t);
   else
     u = std::gmtime(&t);
-  
+
   if (u == NULL)
     return torrent::Object();
 
@@ -434,7 +434,7 @@ apply_to_mb(const torrent::Object& rawArgs) {
 torrent::Object
 apply_to_xb(const torrent::Object& rawArgs) {
   char buffer[48];
-  int64_t arg = rawArgs.as_value();  
+  int64_t arg = rawArgs.as_value();
 
   if (arg < (int64_t(1000) << 10))
     snprintf(buffer, 48, "%5.1f KB", (double)arg / (int64_t(1) << 10));
@@ -450,7 +450,7 @@ apply_to_xb(const torrent::Object& rawArgs) {
 
 torrent::Object
 apply_to_throttle(const torrent::Object& rawArgs) {
-  int64_t arg = rawArgs.as_value();  
+  int64_t arg = rawArgs.as_value();
   if (arg < 0)
     return "---";
   else if (arg == 0)
@@ -548,7 +548,7 @@ cmd_view_size_not_visible(const torrent::Object::string_type& args) {
 torrent::Object
 cmd_view_persistent(const torrent::Object::string_type& args) {
   core::View* view = *control->view_manager()->find_throw(args);
-  
+
   if (!view->get_filter().is_empty() || !view->event_added().is_empty() || !view->event_removed().is_empty())
     throw torrent::input_error("Cannot set modified views as persitent.");
 
