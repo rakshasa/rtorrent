@@ -10,7 +10,6 @@ EXTRA_DIST= \
 	rak/error_number.h \
 	rak/file_stat.h \
 	rak/fs_stat.h \
-	rak/functional.h \
 	rak/path.h \
 	rak/partial_queue.h \
 	rak/priority_queue.h \
