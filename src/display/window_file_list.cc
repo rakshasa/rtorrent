@@ -1,39 +1,3 @@
-// rTorrent - BitTorrent client
-// Copyright (C) 2005-2011, Jari Sundell
-//
-// This program is free software; you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation; either version 2 of the License, or
-// (at your option) any later version.
-// 
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-// 
-// You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-//
-// In addition, as a special exception, the copyright holders give
-// permission to link the code of portions of this program with the
-// OpenSSL library under certain conditions as described in each
-// individual source file, and distribute linked combinations
-// including the two.
-//
-// You must obey the GNU General Public License in all respects for
-// all of the code used other than OpenSSL.  If you modify file(s)
-// with this exception, you may extend this exception to your version
-// of the file(s), but you are not obligated to do so.  If you do not
-// wish to do so, delete this exception statement from your version.
-// If you delete this exception statement from all source files in the
-// program, then also delete it here.
-//
-// Contact:  Jari Sundell <jaris@ifi.uio.no>
-//
-//           Skomakerveien 33
-//           3185 Skoppum, NORWAY
-
 #include "config.h"
 
 #include <locale>
@@ -83,7 +47,7 @@ wstring_width(const std::string& i_str, int width) {
   // Limit to width if it's too wide already.
   if (swidth == -1 || swidth > width) {
     length = swidth = 0;
-    
+
     while (result[length]) {
       int next = ::wcwidth(result[length]);
 
@@ -172,13 +136,13 @@ WindowFileList::redraw() {
 
     } else if (itr.is_entering()) {
       m_canvas->print(0, pos, "%*c %ls", 16 + itr.depth(), '\\',
-                      itr.depth() < (*itr)->path()->size() ? wstring_width((*itr)->path()->at(itr.depth()), filenameWidth - itr.depth() - 1).c_str() : L"UNKNOWN");
+                      itr.depth() < itr.file()->path()->size() ? wstring_width(itr.file()->path()->at(itr.depth()), filenameWidth - itr.depth() - 1).c_str() : L"UNKNOWN");
 
     } else if (itr.is_leaving()) {
       m_canvas->print(0, pos, "%*c %-*s", 16 + (itr.depth() - 1), '/', filenameWidth - (itr.depth() - 1), "");
 
     } else if (itr.is_file()) {
-      torrent::File* e = *itr;
+      torrent::File* e = itr.file();
 
       const char* priority;
 
@@ -203,7 +167,7 @@ WindowFileList::redraw() {
         m_canvas->print(8, pos, "%5.1f T", (double)val / (int64_t(1) << 40));
 
       m_canvas->print(15, pos, "%*c %ls", 1 + itr.depth(), '|',
-                      itr.depth() < (*itr)->path()->size() ? wstring_width((*itr)->path()->at(itr.depth()), filenameWidth - itr.depth() - 1).c_str() : L"UNKNOWN");
+                      itr.depth() < itr.file()->path()->size() ? wstring_width(itr.file()->path()->at(itr.depth()), filenameWidth - itr.depth() - 1).c_str() : L"UNKNOWN");
 
     } else {
       m_canvas->print(0, pos, "BORK BORK");

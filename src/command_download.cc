@@ -370,7 +370,7 @@ f_multicall(core::Download* download, const torrent::Object::list_type& args) {
 
     for (torrent::Object::list_const_iterator cItr = ++args.begin(); cItr != args.end(); cItr++) {
       const std::string& cmd = cItr->as_string();
-      row.push_back(rpc::parse_command(rpc::make_target(*itr), cmd.c_str(), cmd.c_str() + cmd.size()).first);
+      row.push_back(rpc::parse_command(rpc::make_target(itr->get()), cmd.c_str(), cmd.c_str() + cmd.size()).first);
     }
   }
 

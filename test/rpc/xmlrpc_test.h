@@ -22,9 +22,8 @@ public:
 
 private:
   rpc::XmlRpc m_xmlrpc;
-  
+
   rpc::CommandMap m_map;
 
   rpc::command_base m_commands[cmd_size];
-  rpc::command_base* m_commandItr;
 };

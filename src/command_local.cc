@@ -1,39 +1,3 @@
-// rTorrent - BitTorrent client
-// Copyright (C) 2005-2011, Jari Sundell
-//
-// This program is free software; you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation; either version 2 of the License, or
-// (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-//
-// In addition, as a special exception, the copyright holders give
-// permission to link the code of portions of this program with the
-// OpenSSL library under certain conditions as described in each
-// individual source file, and distribute linked combinations
-// including the two.
-//
-// You must obey the GNU General Public License in all respects for
-// all of the code used other than OpenSSL.  If you modify file(s)
-// with this exception, you may extend this exception to your version
-// of the file(s), but you are not obligated to do so.  If you do not
-// wish to do so, delete this exception statement from your version.
-// If you delete this exception statement from all source files in the
-// program, then also delete it here.
-//
-// Contact:  Jari Sundell <jaris@ifi.uio.no>
-//
-//           Skomakerveien 33
-//           3185 Skoppum, NORWAY
-
 #include "config.h"
 
 #include <fcntl.h>
@@ -242,6 +206,7 @@ initialize_command_local() {
   CMD2_VAR_C_STRING("system.api_version",           (int64_t)API_VERSION);
   CMD2_VAR_C_STRING("system.client_version",        PACKAGE_VERSION);
   CMD2_VAR_C_STRING("system.library_version",       torrent::version());
+
   CMD2_VAR_VALUE   ("system.file.allocate",         0);
   CMD2_VAR_VALUE   ("system.file.max_size",         (int64_t)512 << 30);
   CMD2_VAR_VALUE   ("system.file.split_size",       -1);
@@ -254,6 +219,9 @@ initialize_command_local() {
   CMD2_VAR_BOOL    ("file.prioritize_toc",          0);
   CMD2_VAR_LIST    ("file.prioritize_toc.first");
   CMD2_VAR_LIST    ("file.prioritize_toc.last");
+
+  CMD2_ANY         ("system.files.advise_random",      std::bind(&FM_t::advise_random, fileManager));
+  CMD2_ANY_VALUE_V ("system.files.advise_random.set",  std::bind(&FM_t::set_advise_random, fileManager, std::placeholders::_2));
 
   CMD2_ANY         ("system.files.opened_counter",     std::bind(&FM_t::files_opened_counter, fileManager));
   CMD2_ANY         ("system.files.closed_counter",     std::bind(&FM_t::files_closed_counter, fileManager));

@@ -10,7 +10,7 @@
 
 CPPUNIT_TEST_SUITE_REGISTRATION(XmlrpcTest);
 
-torrent::Object xmlrpc_cmd_test_reflect(rpc::target_type t, const torrent::Object& obj) { return obj; }
+torrent::Object xmlrpc_cmd_test_reflect([[maybe_unused]] rpc::target_type t, const torrent::Object& obj) { return obj; }
 
 void initialize_command_dynamic();
 
@@ -100,7 +100,6 @@ std::vector<std::tuple<std::string, std::string, std::string>> basic_requests = 
 
 void
 XmlrpcTest::setUp() {
-  m_commandItr = m_commands;
   m_xmlrpc = rpc::XmlRpc();
   m_xmlrpc.initialize();
   setlocale(LC_ALL, "");
