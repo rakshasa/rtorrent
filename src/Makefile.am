@@ -37,6 +37,7 @@ libsub_root_a_SOURCES = \
 	display/attributes.h \
 	display/canvas.cc \
 	display/canvas.h \
+	display/color_map.h \
 	display/frame.cc \
 	display/frame.h \
 	display/manager.cc \
