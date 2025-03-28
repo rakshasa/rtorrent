@@ -26,15 +26,15 @@ namespace rpc {
 // Taken from xmlrpc-c
 const int XMLRPC_INTERNAL_ERROR               = -500;
 const int XMLRPC_TYPE_ERROR                   = -501;
-const int XMLRPC_INDEX_ERROR                  = -502;
+// const int XMLRPC_INDEX_ERROR                  = -502;
 const int XMLRPC_PARSE_ERROR                  = -503;
-const int XMLRPC_NETWORK_ERROR                = -504;
-const int XMLRPC_TIMEOUT_ERROR                = -505;
+// const int XMLRPC_NETWORK_ERROR                = -504;
+// const int XMLRPC_TIMEOUT_ERROR                = -505;
 const int XMLRPC_NO_SUCH_METHOD_ERROR         = -506;
-const int XMLRPC_REQUEST_REFUSED_ERROR        = -507;
-const int XMLRPC_INTROSPECTION_DISABLED_ERROR = -508;
+// const int XMLRPC_REQUEST_REFUSED_ERROR        = -507;
+// const int XMLRPC_INTROSPECTION_DISABLED_ERROR = -508;
 const int XMLRPC_LIMIT_EXCEEDED_ERROR         = -509;
-const int XMLRPC_INVALID_UTF8_ERROR           = -510;
+// const int XMLRPC_INVALID_UTF8_ERROR           = -510;
 
 const tinyxml2::XMLElement*
 element_access(const tinyxml2::XMLElement* elem, std::initializer_list<std::string> names) {
@@ -189,35 +189,47 @@ print_object_xml(const torrent::Object& obj, tinyxml2::XMLPrinter* printer) {
 torrent::Object
 execute_command(std::string method_name, const tinyxml2::XMLElement* params_element) {
   CommandMap::iterator cmd_itr = commands.find(method_name.c_str());
+
   if (cmd_itr == commands.end() || !(cmd_itr->second.m_flags & CommandMap::flag_public_rpc)) {
     throw rpc_error(XMLRPC_NO_SUCH_METHOD_ERROR, "method '" + method_name + "' not defined");
   }
+
   torrent::Object             params_raw = torrent::Object::create_list();
   torrent::Object::list_type& params     = params_raw.as_list();
   rpc::target_type            target     = rpc::make_target();
+
   if (params_element != nullptr) {
     if (std::strncmp(params_element->Name(), "params", sizeof("params")) == 0) {
       // Parse out the target if available
       const auto* child = params_element->FirstChildElement("param");
+
       if (child != nullptr) {
         if (!(cmd_itr->second.m_flags & CommandMap::flag_no_target)) {
-          RpcManager::object_to_target(xml_value_to_object(child->FirstChildElement("value")), cmd_itr->second.m_flags, &target);
+          std::function<void()> deleter = []() {};
+
+          RpcManager::object_to_target(xml_value_to_object(child->FirstChildElement("value")), cmd_itr->second.m_flags, &target, &deleter);
           child = child->NextSiblingElement("param");
         }
+
         // Parse out any other params
         while (child != nullptr) {
           params.push_back(xml_value_to_object(child->FirstChildElement("value")));
           child = child->NextSiblingElement("param");
         }
       }
+
     } else if (params_element->FirstChildElement("data") != nullptr) {
       // If it's not a <params>, it's probably a <array> passed in via system.multicall
       const auto* child = params_element->FirstChildElement("data")->FirstChildElement("value");
+
       if (child != nullptr) {
         if (!(cmd_itr->second.m_flags & CommandMap::flag_no_target)) {
-          RpcManager::object_to_target(xml_value_to_object(child), cmd_itr->second.m_flags, &target);
+          std::function<void()> deleter = []() {};
+
+          RpcManager::object_to_target(xml_value_to_object(child), cmd_itr->second.m_flags, &target, &deleter);
           child = child->NextSiblingElement("value");
         }
+
         while (child != nullptr) {
           params.push_back(xml_value_to_object(child));
           child = child->NextSiblingElement("value");
@@ -225,9 +237,11 @@ execute_command(std::string method_name, const tinyxml2::XMLElement* params_elem
       }
     }
   }
+
   if (params.empty() && (cmd_itr->second.m_flags & (CommandMap::flag_file_target | CommandMap::flag_tracker_target))) {
     throw rpc_error(XMLRPC_TYPE_ERROR, "invalid parameters: too few");
   }
+
   return rpc::commands.call_command(cmd_itr, params_raw, target);
 }
 
