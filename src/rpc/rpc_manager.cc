@@ -99,22 +99,26 @@ RpcManager::object_to_target(const torrent::Object& obj, int call_flags, rpc::ta
 bool
 RpcManager::process(RPCType type, const char* in_buffer, uint32_t length, slot_response_callback callback) {
   switch (type) {
-  case RPCType::XML: {
+  case RPCType::XML:
     if (m_xmlrpc.is_valid() && rpc::call_command_value("network.rpc.use_xmlrpc")) {
       return m_xmlrpc.process(in_buffer, length, callback);
     } else {
       const std::string response = "<?xml version=\"1.0\"?><methodResponse><fault><struct><member><name>faultCode</name><value><i8>-501</i8></value></member><member><name>faultString</name><value><string>XML-RPC not supported</string></value></member></struct></fault></methodResponse>";
       return callback(response.c_str(), response.size());
     }
-  }
-  case RPCType::JSON: {
+    break;
+
+  case RPCType::JSON:
     if (rpc::call_command_value("network.rpc.use_jsonrpc")) {
       return m_jsonrpc.process(in_buffer, length, callback);
     } else {
       const std::string response = "{\"jsonrpc\":\"2.0\",\"error\":{\"code\":-32601,\"message\":\"JSON-RPC not supported\"},\"id\":null}";
       return callback(response.c_str(), response.size());
     }
-  }
+    break;
+
+  default:
+    throw torrent::input_error("invalid parameters: unknown RPC type");
   }
 }
 
@@ -139,6 +143,8 @@ RpcManager::is_type_enabled(RPCType type) const {
     return m_is_xmlrpc_enabled;
   case RPCType::JSON:
     return m_is_jsonrpc_enabled;
+  default:
+    throw torrent::input_error("invalid parameters: unknown RPC type");
   }
 }
 
@@ -147,8 +153,12 @@ RpcManager::set_type_enabled(RPCType type, bool enabled) {
   switch (type) {
   case RPCType::XML:
     m_is_xmlrpc_enabled = enabled;
+    break;
   case RPCType::JSON:
     m_is_jsonrpc_enabled = enabled;
+    break;
+  default:
+    throw torrent::input_error("invalid parameters: unknown RPC type");
   }
 }
 
