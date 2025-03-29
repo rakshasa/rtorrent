@@ -29,7 +29,7 @@ AC_DEFUN([TORRENT_REMOVE_UNWANTED],
     $1="$2"
   else
     result=`echo "${values_to_check}" | $GREP -Fvx -- "${unwanted_values}" | $GREP -v '^$'`
-    $1=${result//$'\n'/ }
+    $1=$(echo "$result" | tr -d '\n')
   fi
 ])
 
@@ -117,11 +117,26 @@ AC_DEFUN([TORRENT_CHECK_MADVISE], [
   AC_COMPILE_IFELSE([AC_LANG_SOURCE([
       #include <sys/types.h>
       #include <sys/mman.h>
-        void f() { static char test@<:@1024@:>@; madvise((void *)test, sizeof(test), MADV_NORMAL); }
+      void f() { static char test@<:@1024@:>@; madvise((void *)test, sizeof(test), MADV_NORMAL); }
       ])],
     [
       AC_MSG_RESULT(yes)
       AC_DEFINE(USE_MADVISE, 1, Use madvise)
+    ], [
+      AC_MSG_RESULT(no)
+  ])
+])
+
+AC_DEFUN([TORRENT_CHECK_POSIX_FADVISE], [
+  AC_MSG_CHECKING(for posix_fadvise)
+
+  AC_COMPILE_IFELSE([AC_LANG_SOURCE([
+      #include <fcntl.h>
+      void f() { posix_fadvise(0, 0, 0, POSIX_FADV_RANDOM); }
+      ])],
+    [
+      AC_MSG_RESULT(yes)
+      AC_DEFINE(USE_POSIX_FADVISE, 1, Use posix_fadvise)
     ], [
       AC_MSG_RESULT(no)
   ])
