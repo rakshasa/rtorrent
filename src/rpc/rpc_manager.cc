@@ -115,6 +115,8 @@ RpcManager::process(RPCType type, const char* in_buffer, uint32_t length, slot_r
       return callback(response.c_str(), response.size());
     }
   }
+  default:
+    return false;
   }
 }
 
@@ -139,6 +141,8 @@ RpcManager::is_type_enabled(RPCType type) const {
     return m_is_xmlrpc_enabled;
   case RPCType::JSON:
     return m_is_jsonrpc_enabled;
+  default:
+    return false; /* -Wreturn-type */
   }
 }
 

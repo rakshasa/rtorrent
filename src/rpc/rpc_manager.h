@@ -42,7 +42,7 @@ public:
   using slot_peer              = std::function<torrent::Peer*(core::Download*, const torrent::HashString&)>;
   using slot_response_callback = std::function<bool(const char*, uint32_t)>;
 
-  enum RPCType { XML,
+  enum class RPCType { XML,
                  JSON };
 
   RpcManager()  = default;
