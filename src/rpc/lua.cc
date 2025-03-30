@@ -86,19 +86,28 @@ int
 LuaEngine::lua_rtorrent_call(lua_State* l_state) {
   auto method = lua_tostring(l_state, 1);
   lua_remove(l_state, 1);
-  torrent::Object  object;
-  rpc::target_type target = rpc::make_target();
-  ;
+
   rpc::CommandMap::iterator itr = rpc::commands.find(std::string(method).c_str());
+
   if (itr == rpc::commands.end()) {
     throw torrent::input_error("method not found: " + std::string(method));
   }
-  object = lua_callstack_to_object(l_state, itr->second.m_flags, &target);
+
+  auto target  = rpc::make_target();
+  auto deleter = std::function<void()>();
+
+  auto object = lua_callstack_to_object(l_state, itr->second.m_flags, &target, &deleter);
+
   try {
     const auto& result = rpc::commands.call_command(itr, object, target);
+
     object_to_lua(l_state, result);
+    deleter();
+
     return 1;
+
   } catch (torrent::base_error& e) {
+    deleter();
     throw luaL_error(l_state, e.what());
   }
 }
@@ -107,27 +116,33 @@ int
 LuaEngine::lua_init_module(lua_State* l_state) {
   // Should this throw if it fails to find the file?
   auto lua_file = search_lua_path(l_state);
+
   if (!lua_file.empty()) {
     check_lua_status(l_state, luaL_loadfile(l_state, lua_file.c_str()));
   }
+
   lua_createtable(l_state, 0, 1);
   // Assign functions
   lua_pushliteral(l_state, "call");
   lua_pushcfunction(l_state, LuaEngine::lua_rtorrent_call);
   lua_settable(l_state, -3);
+
   if (!lua_file.empty()) {
     check_lua_status(l_state, lua_pcall(l_state, 1, 1, 0));
   }
+
   return 1;
 }
 
 void
-object_to_target(const torrent::Object& obj, int call_flags, rpc::target_type* target) {
+object_to_target(const torrent::Object& obj, int call_flags, rpc::target_type* target, std::function<void()>* deleter) {
   if (!obj.is_string()) {
     throw torrent::input_error("invalid parameters: target must be a string");
   }
+
   std::string target_string = obj.as_string();
   bool        require_index = (call_flags & (CommandMap::flag_tracker_target | CommandMap::flag_file_target));
+
   if (target_string.empty() && !require_index) {
     return;
   }
@@ -141,16 +156,20 @@ object_to_target(const torrent::Object& obj, int call_flags, rpc::target_type* t
   std::string hash;
   std::string index;
   const auto& delim_pos = target_string.find_first_of(':', 40);
+
   if (delim_pos == target_string.npos || delim_pos + 2 >= target_string.size()) {
     if (require_index) {
       throw torrent::input_error("invalid parameters: no index");
     }
+
     hash = target_string;
+
   } else {
     hash  = target_string.substr(0, delim_pos);
     type  = target_string[delim_pos + 1];
     index = target_string.substr(delim_pos + 2);
   }
+
   core::Download* download = rpc.slot_find_download()(hash.c_str());
 
   if (download == nullptr)
@@ -161,22 +180,32 @@ object_to_target(const torrent::Object& obj, int call_flags, rpc::target_type* t
     case 'd':
       *target = rpc::make_target(download);
       break;
+
     case 'f':
       *target = rpc::make_target(command_base::target_file, rpc.slot_find_file()(download, std::stoi(std::string(index))));
       break;
+
     case 't':
-      *target =
-        rpc::make_target(command_base::target_tracker, rpc.slot_find_tracker()(download, std::stoi(std::string(index))));
-      break;
-    case 'p': {
-      if (index.size() < 40) {
-        throw torrent::input_error("Not a hash string.");
+      {
+        auto tracker = new torrent::tracker::Tracker(rpc.slot_find_tracker()(download, std::stoi(std::string(index))));
+
+        *deleter = [tracker]() { delete tracker; };
+        *target = rpc::make_target(command_base::target_tracker, target);
       }
-      torrent::HashString hash;
-      torrent::hash_string_from_hex_c_str(index.c_str(), hash);
-      *target = rpc::make_target(command_base::target_peer, rpc.slot_find_peer()(download, hash));
       break;
-    }
+
+    case 'p':
+      {
+        if (index.size() < 40) {
+          throw torrent::input_error("Not a hash string.");
+        }
+
+        torrent::HashString hash;
+        torrent::hash_string_from_hex_c_str(index.c_str(), hash);
+        *target = rpc::make_target(command_base::target_peer, rpc.slot_find_peer()(download, hash));
+      }
+      break;
+
     default:
       throw torrent::input_error("invalid parameters: unexpected target type");
     }
@@ -291,8 +320,7 @@ lua_to_object(lua_State* l_state) {
 }
 
 torrent::Object
-lua_callstack_to_object(lua_State* l_state, int command_flags, rpc::target_type* target) {
-  torrent::Object object;
+lua_callstack_to_object(lua_State* l_state, int command_flags, rpc::target_type* target, std::function<void()>* deleter) {
   if (lua_gettop(l_state) == 0) {
     return torrent::Object();
   }
@@ -300,30 +328,28 @@ lua_callstack_to_object(lua_State* l_state, int command_flags, rpc::target_type*
   if (!lua_isstring(l_state, 1)) {
     throw torrent::input_error("invalid parameters: target must be a string");
   }
-  object_to_target(torrent::Object(lua_tostring(l_state, 1)), command_flags, target);
+
+  object_to_target(torrent::Object(lua_tostring(l_state, 1)), command_flags, target, deleter);
 
   // start from the second argument since the first is the target
   lua_remove(l_state, 1);
 
-  if (lua_gettop(l_state) == 0) {
+  if (lua_gettop(l_state) == 0)
     return torrent::Object();
-  } else {
-    torrent::Object             result   = torrent::Object::create_list();
-    torrent::Object::list_type& list_ref = result.as_list();
-    while (lua_gettop(l_state) != 0) {
-      list_ref.insert(list_ref.begin(), lua_to_object(l_state));
-      lua_remove(l_state, -1);
-    }
-    return result;
+
+  torrent::Object             result   = torrent::Object::create_list();
+  torrent::Object::list_type& list_ref = result.as_list();
+
+  while (lua_gettop(l_state) != 0) {
+    list_ref.insert(list_ref.begin(), lua_to_object(l_state));
+    lua_remove(l_state, -1);
   }
 
-  return object;
+  return result;
 }
 
 int
 lua_rtorrent_call(lua_State* l_state) {
-  torrent::Object  object;
-  rpc::target_type target = rpc::make_target();
   auto             method = lua_tostring(l_state, 1);
   lua_remove(l_state, 1);
 
@@ -331,12 +357,22 @@ lua_rtorrent_call(lua_State* l_state) {
   if (itr == rpc::commands.end()) {
     throw torrent::input_error("method not found: " + std::string(method));
   }
-  object = lua_callstack_to_object(l_state, itr->second.m_flags, &target);
+
+  auto target  = rpc::make_target();
+  auto deleter = std::function<void()>();
+
+  auto object = lua_callstack_to_object(l_state, itr->second.m_flags, &target, &deleter);
+
   try {
     const auto& result = rpc::commands.call_command(itr, object, target);
+
     object_to_lua(l_state, result);
+    deleter();
+
     return 1;
+
   } catch (torrent::base_error& e) {
+    deleter();
     throw luaL_error(l_state, e.what());
   }
 }
