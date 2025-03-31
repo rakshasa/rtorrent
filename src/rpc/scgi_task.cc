@@ -262,12 +262,14 @@ SCgiTask::receive_call(const char* buffer, uint32_t length) {
         rpc.process(RpcManager::RPCType::JSON, buffer, length,
                     [result_callback](const char* b, uint32_t l) { return result_callback(b, l); });
       });
+    break;
 
   case rpc::SCgiTask::ContentType::XML:
     torrent::main_thread()->callback(this, [buffer, length, result_callback]() {
         rpc.process(RpcManager::RPCType::XML, buffer, length,
                     [result_callback](const char* b, uint32_t l) { return result_callback(b, l); });
       });
+    break;
 
   default:
     throw torrent::internal_error("SCgiTask::receive_call(...) received bad input.");
