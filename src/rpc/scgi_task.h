@@ -41,7 +41,7 @@ private:
   inline void         realloc_buffer(uint32_t size, const char* buffer, uint32_t bufferSize);
 
   void                receive_call(const char* buffer, uint32_t length);
-  bool                receive_write(const char* buffer, uint32_t length);
+  void                receive_write(const char* buffer, uint32_t length);
 
   SCgi*               m_parent;
 

@@ -237,21 +237,19 @@ SCgiTask::event_error() {
 void
 SCgiTask::receive_call(const char* buffer, uint32_t length) {
   // TODO: Rewrite RpcManager.process to pass the result buffer instead of having to copy it.
-  auto result_callback = [this](const char* b, uint32_t l) {
-      bool result = receive_write(b, l);
 
-      torrent::thread_self->callback(this, [this, result]() {
+  auto scgi_thread = torrent::thread_self;
+
+  auto result_callback = [this, scgi_thread](const char* b, uint32_t l) {
+      receive_write(b, l);
+
+      scgi_thread->callback(this, [this]() {
           // Only need to lock once here as a memory barrier.
           m_result_mutex.lock();
           m_result_mutex.unlock();
 
-          if (result)
-            torrent::thread_self->poll()->insert_write(this);
-          else
-            close();
+          torrent::thread_self->poll()->insert_write(this);
         });
-
-      return result;
     };
 
   auto lock = std::lock_guard<std::mutex>(m_result_mutex);
@@ -260,14 +258,20 @@ SCgiTask::receive_call(const char* buffer, uint32_t length) {
   case rpc::SCgiTask::ContentType::JSON:
     torrent::main_thread()->callback(this, [buffer, length, result_callback]() {
         rpc.process(RpcManager::RPCType::JSON, buffer, length,
-                    [result_callback](const char* b, uint32_t l) { return result_callback(b, l); });
+                    [result_callback](const char* b, uint32_t l) {
+                      result_callback(b, l);
+                      return true;
+                    });
       });
     break;
 
   case rpc::SCgiTask::ContentType::XML:
     torrent::main_thread()->callback(this, [buffer, length, result_callback]() {
         rpc.process(RpcManager::RPCType::XML, buffer, length,
-                    [result_callback](const char* b, uint32_t l) { return result_callback(b, l); });
+                    [result_callback](const char* b, uint32_t l) {
+                      result_callback(b, l);
+                      return true;
+                    });
       });
     break;
 
@@ -276,7 +280,7 @@ SCgiTask::receive_call(const char* buffer, uint32_t length) {
   }
 }
 
-bool
+void
 SCgiTask::receive_write(const char* buffer, uint32_t length) {
   if (buffer == NULL || length > (100 << 20))
     throw torrent::internal_error("SCgiTask::receive_write(...) received bad input.");
@@ -306,8 +310,6 @@ SCgiTask::receive_write(const char* buffer, uint32_t length) {
   }
 
   lt_log_print_dump(torrent::LOG_RPC_DUMP, m_buffer, m_buffer_size, "scgi", "RPC write.", 0);
-
-  return true;
 }
 
 } // namespace rpc
