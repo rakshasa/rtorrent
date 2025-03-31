@@ -1,7 +1,5 @@
 #include "config.h"
 
-#include "rpc/scgi.h"
-
 #include <rak/error_number.h>
 #include <rak/socket_address.h>
 #include <sys/un.h>
@@ -14,6 +12,8 @@
 #include "globals.h"
 #include "rpc/scgi_task.h"
 #include "utils/socket_fd.h"
+
+#include "rpc/scgi.h"
 
 namespace rpc {
 
