@@ -253,7 +253,7 @@ SCgiTask::receive_write(const char* buffer, uint32_t length) {
                         : "Status: 200 OK\r\nContent-Type: text/xml\r\nContent-Length: %i\r\n\r\n";
 
   // Who ever bothers to check the return value?
-  int headerSize = sprintf(m_buffer, header, length);
+  int headerSize = snprintf(m_buffer, m_bufferSize, header, length);
 
   m_position   = m_buffer;
   m_bufferSize = length + headerSize;
