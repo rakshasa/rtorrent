@@ -1,6 +1,7 @@
 #include "config.h"
 
-#include "rpc/scgi_task.h"
+#include "scgi.h"
+
 #include <rak/error_number.h>
 #include <rak/socket_address.h>
 #include <sys/un.h>
@@ -9,12 +10,10 @@
 #include <torrent/torrent.h>
 #include <torrent/exceptions.h>
 
-#include "utils/socket_fd.h"
-
 #include "control.h"
 #include "globals.h"
-#include "scgi.h"
-#include "parse_commands.h"
+#include "rpc/scgi_task.h"
+#include "utils/socket_fd.h"
 
 namespace rpc {
 
@@ -127,27 +126,6 @@ SCgi::event_write() {
 void
 SCgi::event_error() {
   throw torrent::internal_error("SCGI listener port received an error event.");
-}
-
-bool
-SCgi::receive_call(SCgiTask* task, const char* buffer, uint32_t length) {
-  bool result = false;
-
-  torrent::utils::Thread::acquire_global_lock();
-  torrent::main_thread()->interrupt();
-
-  switch (task->content_type()) {
-  case rpc::SCgiTask::ContentType::JSON:
-    result = rpc.process(RpcManager::RPCType::JSON, buffer, length, [task](const char* b, uint32_t l) { return task->receive_write(b, l); });
-    break;
-  case rpc::SCgiTask::ContentType::XML:
-    result = rpc.process(RpcManager::RPCType::XML, buffer, length, [task](const char* b, uint32_t l) { return task->receive_write(b, l); });
-    break;
-
-  }
-  torrent::utils::Thread::release_global_lock();
-
-  return result;
 }
 
 }
