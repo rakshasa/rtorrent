@@ -17,7 +17,8 @@ rtorrent_Test_Common = \
 	helpers/progress_listener.cc \
 	helpers/progress_listener.h \
 	helpers/protectors.cc \
-	helpers/protectors.h
+	helpers/protectors.h \
+	helpers/utils.h
 
 rtorrent_Test_Rpc_SOURCES = $(rtorrent_Test_Common) \
 	rpc/command_test.cc \

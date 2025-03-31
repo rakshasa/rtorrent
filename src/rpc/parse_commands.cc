@@ -1,39 +1,3 @@
-// rTorrent - BitTorrent client
-// Copyright (C) 2005-2011, Jari Sundell
-//
-// This program is free software; you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation; either version 2 of the License, or
-// (at your option) any later version.
-// 
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-// 
-// You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-//
-// In addition, as a special exception, the copyright holders give
-// permission to link the code of portions of this program with the
-// OpenSSL library under certain conditions as described in each
-// individual source file, and distribute linked combinations
-// including the two.
-//
-// You must obey the GNU General Public License in all respects for
-// all of the code used other than OpenSSL.  If you modify file(s)
-// with this exception, you may extend this exception to your version
-// of the file(s), but you are not obligated to do so.  If you do not
-// wish to do so, delete this exception statement from your version.
-// If you delete this exception statement from all source files in the
-// program, then also delete it here.
-//
-// Contact:  Jari Sundell <jaris@ifi.uio.no>
-//
-//           Skomakerveien 33
-//           3185 Skoppum, NORWAY
-
 #include "config.h"
 
 #include <algorithm>
@@ -43,8 +7,8 @@
 #include <rak/path.h>
 #include <torrent/exceptions.h>
 
-#include "parse.h"
-#include "parse_commands.h"
+#include "rpc/parse.h"
+#include "rpc/parse_commands.h"
 #include "rpc/rpc_manager.h"
 
 namespace rpc {
@@ -128,12 +92,12 @@ parse_command(target_type target, const char* first, const char* last) {
 
   if (first == last || *first == '#')
     return std::make_pair(torrent::Object(), first);
-  
+
   char key[128];
 
   first = parse_command_name(first, last, key, key + 128);
   first = std::find_if(first, last, [&](char c) { return !command_map_is_space(c); });
-  
+
   if (first == last || *first != '=')
     throw torrent::input_error("Could not find '=' in command '" + std::string(key) + "'.");
 
@@ -144,7 +108,7 @@ parse_command(target_type target, const char* first, const char* last) {
   // the whitespace at the end. This ensures us that the caller
   // doesn't need to do this nor check for junk at the end.
   first = std::find_if(first, last, [&](char c) { return !command_map_is_space(c); });
-  
+
   if (first != last) {
     if (!command_map_is_newline(*first))
       throw torrent::input_error("Junk at end of input.");
@@ -189,7 +153,7 @@ parse_command_file(const std::string& path) {
 
     while (file.good()
            && !file.getline(buffer + getCount, 4096 - getCount).fail()) {
-      
+
       if (file.gcount() == 0)
         throw torrent::internal_error("parse_command_file(...) file.gcount() == 0.");
       int lineLength = file.gcount() - 1;
@@ -198,7 +162,7 @@ parse_command_file(const std::string& path) {
       // that the last would also be included in option line.
       if (file.eof() && file.get() != '\n')
         lineLength++;
-      
+
       int escaped = parse_count_escaped(buffer + getCount, buffer + getCount + lineLength);
 
       lineNumber++;
@@ -206,7 +170,7 @@ parse_command_file(const std::string& path) {
 
       if (getCount == 4096 - 1)
         throw torrent::input_error("Exceeded max line length.");
-      
+
       if (escaped & 0x1) {
         // Remove the escape characters and continue reading.
         getCount -= escaped;

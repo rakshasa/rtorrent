@@ -220,9 +220,11 @@ initialize_command_local() {
   CMD2_VAR_LIST    ("file.prioritize_toc.first");
   CMD2_VAR_LIST    ("file.prioritize_toc.last");
 
-  CMD2_ANY         ("system.files.advise_random",      std::bind(&FM_t::advise_random, fileManager));
-  CMD2_ANY_VALUE_V ("system.files.advise_random.set",  std::bind(&FM_t::set_advise_random, fileManager, std::placeholders::_2));
-  CMD2_VAR_BOOL    ("system.files.session.fdatasync",  true);
+  CMD2_ANY         ("system.files.advise_random",             std::bind(&FM_t::advise_random, fileManager));
+  CMD2_ANY_VALUE_V ("system.files.advise_random.set",         std::bind(&FM_t::set_advise_random, fileManager, std::placeholders::_2));
+  // CMD2_ANY         ("system.files.advise_random.hashing",     std::bind(&FM_t::advise_random_hashing, fileManager));
+  // CMD2_ANY_VALUE_V ("system.files.advise_random.hashing.set", std::bind(&FM_t::set_advise_random_hashing, fileManager, std::placeholders::_2));
+  CMD2_VAR_BOOL    ("system.files.session.fdatasync",         true);
 
   CMD2_ANY         ("system.files.opened_counter",     std::bind(&FM_t::files_opened_counter, fileManager));
   CMD2_ANY         ("system.files.closed_counter",     std::bind(&FM_t::files_closed_counter, fileManager));
