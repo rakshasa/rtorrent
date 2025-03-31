@@ -4,7 +4,8 @@
 #include <functional>
 #include <torrent/event.h>
 
-#include "scgi_task.h"
+#include "rpc/scgi_task.h"
+#include "utils/socket_fd.h"
 
 namespace utils {
   class SocketFd;
@@ -16,11 +17,10 @@ class SCgi : public torrent::Event {
 public:
   static const int max_tasks = 100;
 
-  // Global lock:
   SCgi() : m_logFd(-1) {}
   virtual ~SCgi();
 
-  const char*         type_name() const { return "scgi"; }
+  virtual const char* type_name() const { return "scgi"; }
 
   void                open_port(void* sa, unsigned int length, bool dontRoute);
   void                open_named(const std::string& filename);
@@ -33,7 +33,6 @@ public:
   int                 log_fd() const     { return m_logFd; }
   void                set_log_fd(int fd) { m_logFd = fd; }
 
-  // Thread local:
   virtual void        event_read();
   virtual void        event_write();
   virtual void        event_error();

@@ -1,6 +1,6 @@
 #include "config.h"
 
-#include "scgi.h"
+#include "rpc/scgi.h"
 
 #include <rak/error_number.h>
 #include <rak/socket_address.h>
