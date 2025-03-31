@@ -109,7 +109,6 @@ SCgi::event_read() {
     SCgiTask* task = std::find_if(m_task, m_task + max_tasks, std::mem_fn(&SCgiTask::is_available));
 
     if (task == m_task + max_tasks) {
-      // Ergh... just closing for now.
       fd.close();
       continue;
     }
