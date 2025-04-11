@@ -76,6 +76,8 @@ schedule2 = monitor_diskspace, 15, 60, ((close_low_diskspace, 1000M))
 ##network.http.capath.set = "/etc/ssl/certs"
 ##network.http.ssl_verify_peer.set = 0
 ##network.http.ssl_verify_host.set = 0
+#network.rpc.use_xmlrpc.set = true
+#network.rpc.use_jsonrpc.set = true
 
 # Some additional values and commands
 method.insert = system.startup_time, value|const, (system.time)
