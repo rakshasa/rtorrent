@@ -73,6 +73,10 @@
 #
 #network.port_random.set = no
 
+# Set RPC type
+#network.rpc.use_xmlrpc.set = true
+#network.rpc.use_jsonrpc.set = true
+
 # Check hash for finished torrents. Might be useful until the bug is
 # fixed that causes lack of disk-space not to be properly reported.
 #
