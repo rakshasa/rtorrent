@@ -16,6 +16,9 @@ jobs:
       # OPTIONAL: auto-closing conversations requires the `contents` permission
       contents: write
     steps:
+    - name: Sleep for 30 seconds
+      run: sleep 30s
+      shell: bash
     - name: Download analysis results
       uses: actions/github-script@v7
       with:

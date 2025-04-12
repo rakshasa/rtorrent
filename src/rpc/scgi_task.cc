@@ -39,9 +39,9 @@ SCgiTask::open(SCgi* parent, int fd) {
   m_position    = m_buffer;
   m_body        = NULL;
 
-  torrent::thread_self->poll()->open(this);
-  torrent::thread_self->poll()->insert_read(this);
-  torrent::thread_self->poll()->insert_error(this);
+  torrent::thread_self()->poll()->open(this);
+  torrent::thread_self()->poll()->insert_read(this);
+  torrent::thread_self()->poll()->insert_error(this);
 }
 
 void
@@ -50,12 +50,12 @@ SCgiTask::close() {
     return;
 
   torrent::main_thread()->cancel_callback_and_wait(this);
-  torrent::thread_self->cancel_callback(this);
+  torrent::thread_self()->cancel_callback(this);
 
-  torrent::thread_self->poll()->remove_read(this);
-  torrent::thread_self->poll()->remove_write(this);
-  torrent::thread_self->poll()->remove_error(this);
-  torrent::thread_self->poll()->close(this);
+  torrent::thread_self()->poll()->remove_read(this);
+  torrent::thread_self()->poll()->remove_write(this);
+  torrent::thread_self()->poll()->remove_error(this);
+  torrent::thread_self()->poll()->close(this);
 
   get_fd().close();
   get_fd().clear();
@@ -184,7 +184,7 @@ SCgiTask::event_read() {
   if ((unsigned int)std::distance(m_buffer, m_position) != m_buffer_size)
     return;
 
-  torrent::thread_self->poll()->remove_read(this);
+  torrent::thread_self()->poll()->remove_read(this);
 
   if (m_parent->log_fd() >= 0) {
     int __UNUSED result;
@@ -238,7 +238,7 @@ void
 SCgiTask::receive_call(const char* buffer, uint32_t length) {
   // TODO: Rewrite RpcManager.process to pass the result buffer instead of having to copy it.
 
-  auto scgi_thread = torrent::thread_self;
+  auto scgi_thread = torrent::thread_self();
 
   auto result_callback = [this, scgi_thread](const char* b, uint32_t l) {
       receive_write(b, l);
@@ -248,7 +248,7 @@ SCgiTask::receive_call(const char* buffer, uint32_t length) {
           m_result_mutex.lock();
           m_result_mutex.unlock();
 
-          torrent::thread_self->poll()->insert_write(this);
+          torrent::thread_self()->poll()->insert_write(this);
         });
     };
 

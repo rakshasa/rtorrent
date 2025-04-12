@@ -142,9 +142,10 @@ Control::handle_shutdown() {
   rpc::commands.call_catch("event.system.shutdown", rpc::make_target(), "shutdown", "System shutdown event action failed: ");
 
   if (!m_shutdownQuick) {
-    // Temporary hack:
     if (worker_thread->is_active())
-      worker_thread->queue_item(&ThreadBase::stop_thread);
+      worker_thread->callback(nullptr, []() {
+          worker_thread->queue_stop_thread();
+        });
 
     torrent::connection_manager()->listen_close();
     m_directory_events->close();
@@ -154,9 +155,10 @@ Control::handle_shutdown() {
       priority_queue_insert(&taskScheduler, &m_taskShutdown, cachedTime + rak::timer::from_seconds(5));
 
   } else {
-    // Temporary hack:
     if (worker_thread->is_active())
-      worker_thread->queue_item(&ThreadBase::stop_thread);
+      worker_thread->callback(nullptr, []() {
+          worker_thread->queue_stop_thread();
+        });
 
     m_core->shutdown(true);
   }
