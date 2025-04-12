@@ -34,7 +34,10 @@ ThreadWorker::set_scgi(rpc::SCgi* scgi) {
 
   change_rpc_log();
 
-  queue_item((thread_base_func)&start_scgi);
+  callback(nullptr, [this]() {
+      start_scgi(this);
+    });
+
   return true;
 }
 
@@ -42,7 +45,9 @@ void
 ThreadWorker::set_rpc_log(const std::string& filename) {
   m_rpcLog = filename;
 
-  queue_item((thread_base_func)&msg_change_rpc_log);
+  callback(nullptr, [this]() {
+      msg_change_rpc_log(this);
+    });
 }
 
 void

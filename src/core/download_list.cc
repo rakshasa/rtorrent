@@ -90,10 +90,10 @@ DownloadList::create(torrent::Object* obj, uint32_t tracker_key, bool printLog) 
     download = torrent::download_add(obj, tracker_key);
 
   } catch (torrent::local_error& e) {
-    delete obj;
-
     if (printLog)
       lt_log_print(torrent::LOG_TORRENT_ERROR, "Could not create download: %s", e.what());
+
+    delete obj;
 
     return NULL;
   }

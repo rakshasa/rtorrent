@@ -24,17 +24,17 @@ public:
   priority_queue&     task_scheduler() { return m_taskScheduler; }
 
   // Throw torrent::shutdown_exception to stop the thread.
-  static void         stop_thread(ThreadBase* thread);
+  void                queue_stop_thread();
 
   // ATM, only interaction with a thread's allowed by other threads is
   // through the queue_item call.
 
-  void                queue_item(thread_base_func newFunc);
+  // void                queue_item(thread_base_func newFunc);
 
 protected:
   int64_t             next_timeout_usec();
 
-  void                call_queued_items();
+  // void                call_queued_items();
   virtual void        call_events();
 
   // TODO: Add thread name.
@@ -47,7 +47,7 @@ protected:
 
   // Temporary hack to pass messages to a thread. This really needs to
   // be cleaned up and/or integrated into the priority queue itself.
-  std::unique_ptr<thread_queue_hack>  m_threadQueue;
+  // std::unique_ptr<thread_queue_hack>  m_threadQueue;
 };
 
 #endif
