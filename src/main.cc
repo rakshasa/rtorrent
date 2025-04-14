@@ -457,7 +457,7 @@ main(int argc, char** argv) {
 
     rpc::commands.call_catch("event.system.startup_done", rpc::make_target(), "startup_done", "System startup_done event action failed: ");
 
-    torrent::utils::Thread::event_loop(torrent::main_thread());
+    torrent::main_thread()->event_loop();
 
     control->core()->download_list()->session_save();
     control->cleanup();
