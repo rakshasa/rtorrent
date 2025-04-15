@@ -9,6 +9,7 @@
 #include <rak/error_number.h>
 #include <torrent/exceptions.h>
 #include <torrent/torrent.h>
+#include <torrent/utils/chrono.h>
 #include <torrent/utils/log.h>
 #include <unistd.h>
 
@@ -32,25 +33,23 @@ ThreadBase::queue_stop_thread() {
     priority_queue_insert(&m_taskScheduler, &m_taskShutdown, cachedTime);
 }
 
-int64_t
-ThreadBase::next_timeout_usec() {
+std::chrono::microseconds
+ThreadBase::next_timeout() {
   if (m_taskScheduler.empty())
-    return rak::timer::from_seconds(600).usec();
-  else if (m_taskScheduler.top()->time() <= cachedTime)
-    return 0;
-  else
-    return (m_taskScheduler.top()->time() - cachedTime).usec();
+    return std::chrono::microseconds(10min);
 
-  // TODO: Thread-specific cachedTime.
+  cachedTime = rak::timer::current();
 
-  // if (!taskScheduler.empty())
-  //   return std::max(taskScheduler.top()->time() - cachedTime, rak::timer()).usec();
-  // else
-  //   return rak::timer::from_seconds(600).usec();
+  if (m_taskScheduler.top()->time() <= cachedTime)
+    return std::chrono::microseconds(0);
+
+  return std::chrono::microseconds((m_taskScheduler.top()->time() - cachedTime).usec());
 }
 
 void
 ThreadBase::call_events() {
+  cachedTime = rak::timer::current();
+
   rak::priority_queue_perform(&m_taskScheduler, cachedTime);
 
   process_callbacks();

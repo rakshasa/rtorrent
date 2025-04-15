@@ -14,6 +14,7 @@
 #define RTORRENT_CORE_VIEW_DOWNLOADS_H
 
 #include <functional>
+#include <list>
 #include <string>
 #include <vector>
 

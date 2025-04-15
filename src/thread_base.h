@@ -32,10 +32,8 @@ public:
   // void                queue_item(thread_base_func newFunc);
 
 protected:
-  int64_t             next_timeout_usec();
-
-  // void                call_queued_items();
-  virtual void        call_events();
+  void                      call_events() override;
+  std::chrono::microseconds next_timeout() override;
 
   // TODO: Add thread name.
 
