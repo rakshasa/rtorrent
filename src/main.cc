@@ -191,8 +191,7 @@ main(int argc, char** argv) {
     torrent::Poll::slot_create_poll() = std::bind(&core::create_poll);
 
     torrent::initialize();
-    torrent::main_thread()->slot_do_work() = std::bind(&client_perform);
-    torrent::main_thread()->slot_next_timeout() = std::bind(&client_next_timeout);
+    torrent::set_main_thread_slots(std::bind(&client_perform), std::bind(&client_next_timeout));
 
     worker_thread = new ThreadWorker();
     worker_thread->init_thread();

@@ -86,6 +86,8 @@ SCgi::open(void* sa, unsigned int length) {
   }
 }
 
+// TODO: Verify this is run in correct thread, also only ever call poll methods from thread_self.
+
 void
 SCgi::activate() {
   worker_thread->poll()->open(this);
