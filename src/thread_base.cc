@@ -38,6 +38,8 @@ ThreadBase::next_timeout() {
   if (m_taskScheduler.empty())
     return std::chrono::microseconds(10min);
 
+  cachedTime = rak::timer::current();
+
   if (m_taskScheduler.top()->time() <= cachedTime)
     return std::chrono::microseconds(0);
 
@@ -46,6 +48,8 @@ ThreadBase::next_timeout() {
 
 void
 ThreadBase::call_events() {
+  cachedTime = rak::timer::current();
+
   rak::priority_queue_perform(&m_taskScheduler, cachedTime);
 
   process_callbacks();
