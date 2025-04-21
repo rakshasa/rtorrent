@@ -1,5 +1,6 @@
 #include "config.h"
 
+#include <cassert>
 #include <cstdio>
 #include <functional>
 #include <netdb.h>
@@ -308,8 +309,10 @@ apply_d_add_peer(core::Download* download, const std::string& arg) {
   if (port < 1 || port > 65535)
     throw torrent::input_error("Invalid port number.");
 
+  assert(std::this_thread::get_id() == torrent::main_thread()->thread_id());
+
   // Currently discarding SOCK_STREAM.
-  torrent::main_thread()->resolver()->resolve_preferred(NULL, host, AF_UNSPEC, AF_INET, [download, port](torrent::c_sa_shared_ptr sa, int err) {
+  torrent::this_thread::resolver()->resolve_preferred(NULL, host, AF_UNSPEC, AF_INET, [download, port](torrent::c_sa_shared_ptr sa, int err) {
       if (sa == nullptr) {
         lt_log_print(torrent::LOG_TORRENT_WARN, "could not resolve hostname for added peer: %s", gai_strerror(err));
         return;
