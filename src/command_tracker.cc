@@ -1,5 +1,6 @@
 #include "config.h"
 
+#include <cassert>
 #include <cstdio>
 #include <netdb.h>
 #include <rak/address_info.h>
@@ -44,8 +45,10 @@ apply_dht_add_node(const std::string& arg) {
   if (port < 1 || port > 65535)
     throw torrent::input_error("Invalid port number.");
 
+  assert(std::this_thread::get_id() == torrent::main_thread()->thread_id());
+
   // Currently discarding SOCK_STREAM.
-  torrent::main_thread()->resolver()->resolve_specific(nullptr, host, PF_INET, [port](torrent::c_sa_shared_ptr sa, int err) {
+  torrent::this_thread::resolver()->resolve_specific(nullptr, host, PF_INET, [port](torrent::c_sa_shared_ptr sa, int err) {
       if (sa == nullptr) {
         lt_log_print(torrent::LOG_DHT_WARN, "Could not resolve host: %s", gai_strerror(err));
         return;
