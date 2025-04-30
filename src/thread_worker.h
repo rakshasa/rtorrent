@@ -2,6 +2,7 @@
 #define RTORRENT_THREAD_WORKER_H
 
 #include <atomic>
+#include <string>
 #include <torrent/utils/thread.h>
 
 namespace rpc {
@@ -13,20 +14,17 @@ public:
   ThreadWorker() = default;
   ~ThreadWorker();
 
-  const char*         name() const override { return "rtorrent scgi"; }
+  const char*         name() const override      { return "rtorrent scgi"; }
 
   void                init_thread() override;
 
-  rpc::SCgi*          scgi() { return m_scgi; }
+  rpc::SCgi*          scgi()                     { return m_scgi; }
   bool                set_scgi(rpc::SCgi* scgi);
 
   void                set_rpc_log(const std::string& filename);
 
 private:
-  static void         start_scgi(ThreadWorker* thread);
-
   void                task_touch_log();
-
   void                change_rpc_log();
 
   void                      call_events() override;

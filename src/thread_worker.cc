@@ -1,8 +1,6 @@
 #include "config.h"
 
 #include "thread_worker.h"
-#include "globals.h"
-#include "control.h"
 
 #include <fcntl.h>
 #include <unistd.h>
@@ -11,12 +9,14 @@
 #include <torrent/exceptions.h>
 #include <torrent/poll.h>
 
+#include "globals.h"
+#include "control.h"
 #include "core/manager.h"
 #include "rpc/scgi.h"
 #include "rpc/parse_commands.h"
 
 ThreadWorker::~ThreadWorker() {
-  if (m_scgi)
+  if (m_scgi != nullptr)
     m_scgi.load()->deactivate();
 }
 
