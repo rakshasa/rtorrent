@@ -83,6 +83,8 @@ protected:
   Window(const Window&);
   void operator = (const Window&);
 
+  void                schedule_update(unsigned int wait_seconds = 0);
+
   static SlotTimer    m_slot_schedule;
   static SlotWindow   m_slot_unschedule;
   static Slot         m_slot_adjust;

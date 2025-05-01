@@ -103,7 +103,7 @@ XmlrpcTest::setUp() {
   m_xmlrpc = rpc::XmlRpc();
   m_xmlrpc.initialize();
   setlocale(LC_ALL, "");
-  cachedTime = rak::timer::current();
+  // cachedTime = rak::timer::current();
   control = new Control;
   if (rpc::commands.find("xmlrpc_reflect") == rpc::commands.end()) {
     CMD2_ANY("xmlrpc_reflect", &xmlrpc_cmd_test_reflect);

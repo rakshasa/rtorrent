@@ -78,7 +78,7 @@ WindowDownloadList::redraw() {
   if (m_canvas->daemon())
     return;
 
-  m_slotSchedule(this, (cachedTime + rak::timer::from_seconds(1)).round_seconds());
+  schedule_update();
 
   m_canvas->erase();
 
@@ -117,15 +117,15 @@ WindowDownloadList::redraw() {
     ++range.second;
 
   int   pos = 1;
-  char  buffer[m_canvas->width() + 1];
-  char* last = buffer + m_canvas->width() - 2 + 1;
+  std::string buffer(m_canvas->width() + 1, ' ');
+  char* last = buffer.data() + m_canvas->width() - 2 + 1;
 
   // Add a proper 'column info' method.
   if (layout_name == "compact") {
-    print_download_column_compact(buffer, last);
+    print_download_column_compact(buffer.data(), last);
 
     m_canvas->set_default_attributes(A_BOLD);
-    m_canvas->print(0, pos++, "  %s", buffer);
+    m_canvas->print(0, pos++, "  %s", buffer.data());
   }
 
   if (layout_name == "full") {
@@ -135,16 +135,16 @@ WindowDownloadList::redraw() {
       ColorKind focus_color = is_focused ? RCOLOR_FOCUS : RCOLOR_LABEL;
       auto      attr_color  = get_attr_color(range.first);
 
-      print_download_title(buffer, last, *range.first);
-      m_canvas->print(0, pos, "%c %s", focus_char, buffer);
+      print_download_title(buffer.data(), last, *range.first);
+      m_canvas->print(0, pos, "%c %s", focus_char, buffer.data());
       m_canvas->set_attr(2, pos++, -1, attr_color.first, attr_color.second);
 
-      print_download_info_full(buffer, last, *range.first);
-      m_canvas->print(0, pos, "%c %s", focus_char, buffer);
+      print_download_info_full(buffer.data(), last, *range.first);
+      m_canvas->print(0, pos, "%c %s", focus_char, buffer.data());
       m_canvas->set_attr(2, pos++, -1, focus_color);
 
-      print_download_status(buffer, last, *range.first);
-      m_canvas->print(0, pos, "%c %s", focus_char, buffer);
+      print_download_status(buffer.data(), last, *range.first);
+      m_canvas->print(0, pos, "%c %s", focus_char, buffer.data());
       m_canvas->set_attr(2, pos++, -1, focus_color);
 
       range.first++;
@@ -155,8 +155,8 @@ WindowDownloadList::redraw() {
       char focus_char = range.first == m_view->focus() ? '*' : ' ';
       auto attr_color = get_attr_color(range.first);
 
-      print_download_info_compact(buffer, last, *range.first);
-      m_canvas->print(0, pos, "%c %s", focus_char, buffer);
+      print_download_info_compact(buffer.data(), last, *range.first);
+      m_canvas->print(0, pos, "%c %s", focus_char, buffer.data());
       m_canvas->set_attr(2, pos++, -1, attr_color.first, attr_color.second);
 
       range.first++;

@@ -5,8 +5,8 @@
 #include <cinttypes>
 #include <sys/types.h>
 #include <rak/timer.h>
-#include <rak/priority_queue_default.h>
 #include <torrent/torrent.h>
+#include <torrent/utils/scheduler.h>
 
 namespace ui {
   class Root;
@@ -100,7 +100,7 @@ private:
   mode_t              m_umask;
   std::string         m_workingDirectory;
 
-  rak::priority_item  m_taskShutdown;
+  torrent::utils::SchedulerEntry m_task_shutdown;
 
   std::atomic<bool>   m_shutdownReceived;
   std::atomic<bool>   m_shutdownQuick;

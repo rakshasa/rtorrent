@@ -1,9 +1,8 @@
 #ifndef RTORRENT_CORE_DHT_MANAGER_H
 #define RTORRENT_CORE_DHT_MANAGER_H
 
-#include <rak/priority_queue_default.h>
-
 #include <torrent/object.h>
+#include <torrent/utils/scheduler.h>
 
 namespace core {
 
@@ -44,8 +43,9 @@ private:
   uint64_t            m_dhtPrevBytesUp;
   uint64_t            m_dhtPrevBytesDown;
 
-  rak::priority_item  m_updateTimeout;
-  rak::priority_item  m_stopTimeout;
+  torrent::utils::SchedulerEntry m_update_timeout;
+  torrent::utils::SchedulerEntry m_stop_timeout;
+
   bool                m_warned;
 
   int                 m_start;

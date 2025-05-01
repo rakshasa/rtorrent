@@ -13,7 +13,7 @@ namespace display {
 
 void
 WindowStatusbar::redraw() {
-  m_slot_schedule(this, torrent::utils::ceil_seconds(torrent::this_thread::cached_time() + 100ms));
+  schedule_update();
 
   m_canvas->erase();
 

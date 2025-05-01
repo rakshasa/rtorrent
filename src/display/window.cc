@@ -61,4 +61,12 @@ Window::resize(int x, int y, int w, int h) {
   m_canvas->resize(x, y, w, h);
 }
 
+void
+Window::schedule_update(unsigned int wait_seconds) {
+  if (wait_seconds == 0)
+    m_slot_schedule(this, torrent::utils::ceil_seconds(torrent::this_thread::cached_time() + 100ms));
+
+  m_slot_schedule(this, torrent::utils::ceil_seconds(torrent::this_thread::cached_time() + 1s*wait_seconds));
+}
+
 }

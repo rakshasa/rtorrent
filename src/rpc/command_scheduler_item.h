@@ -5,6 +5,7 @@
 
 #include <functional>
 #include <torrent/object.h>
+#include <torrent/utils/scheduler.h>
 
 namespace rpc {
 
@@ -17,7 +18,7 @@ public:
 
   bool                is_queued() const           { return m_task.is_scheduled(); }
 
-  void                enable(rak::timer t);
+  void                enable(std::chrono::microseconds t);
   void                disable();
 
   const std::string&  key() const                 { return m_key; }
@@ -27,8 +28,8 @@ public:
   uint32_t            interval() const            { return m_interval; }
   void                set_interval(uint32_t v)    { m_interval = v; }
 
-  rak::timer          time_scheduled() const      { return m_timeScheduled; }
-  rak::timer          next_time_scheduled() const;
+  std::chrono::microseconds time_scheduled() const { return m_time_scheduled; }
+  std::chrono::microseconds next_time_scheduled() const;
 
   slot_void&          slot()                      { return m_task.slot(); }
 
@@ -39,10 +40,10 @@ private:
   std::string         m_key;
   torrent::Object     m_command;
 
-  uint32_t            m_interval;
-  rak::timer          m_timeScheduled;
+  uint32_t                  m_interval;
+  std::chrono::microseconds m_time_scheduled;
 
-  rak::priority_item  m_task;
+  torrent::utils::SchedulerEntry m_task;
 
   // Flags for various things.
 };

@@ -408,7 +408,9 @@ apply_to_time(const torrent::Object& rawArgs, int flags) {
 
 torrent::Object
 apply_to_elapsed_time(const torrent::Object& rawArgs) {
-  uint64_t arg = cachedTime.seconds() - rawArgs.as_value();
+  auto cached_seconds = torrent::utils::cast_seconds(torrent::this_thread::cached_time()).count();
+
+  uint64_t arg = cached_seconds - rawArgs.as_value();
 
   char buffer[48];
   snprintf(buffer, 48, "%2d:%02d:%02d", (int)(arg / 3600), (int)((arg / 60) % 60), (int)(arg % 60));

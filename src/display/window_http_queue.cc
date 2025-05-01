@@ -27,8 +27,7 @@ WindowHttpQueue::WindowHttpQueue(core::HttpQueue* q) :
 
 void
 WindowHttpQueue::redraw() {
-  m_slot_schedule(this, torrent::utils::ceil_seconds(torrent::this_thread::cached_time() + 100ms));
-
+  schedule_update();
   cleanup_list();
 
   if (m_container.empty()) {
