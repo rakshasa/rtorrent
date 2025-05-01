@@ -200,8 +200,6 @@ libsub_root_a_SOURCES = \
 	option_parser.h \
 	signal_handler.cc \
 	signal_handler.h \
-	thread_base.cc \
-	thread_base.h \
 	thread_worker.cc \
 	thread_worker.h
 

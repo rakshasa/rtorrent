@@ -7,7 +7,6 @@
 #include <torrent/common.h>
 #include <torrent/torrent.h>
 
-#include "thread_base.h"
 #include "rpc/rpc_manager.h"
 #include "rpc/command.h"
 #include "rpc/command_map.h"
