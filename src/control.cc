@@ -96,7 +96,6 @@ Control::initialize() {
 
 void
 Control::cleanup() {
-  //  delete m_scgi; m_scgi = NULL;
   rpc::rpc.cleanup();
 
   priority_queue_erase(&taskScheduler, &m_taskShutdown);
@@ -118,8 +117,6 @@ Control::cleanup() {
 
 void
 Control::cleanup_exception() {
-  //  delete m_scgi; m_scgi = NULL;
-
   display::Canvas::cleanup();
 }
 
@@ -143,11 +140,10 @@ Control::handle_shutdown() {
 
   if (!m_shutdownQuick) {
     if (worker_thread->is_active())
-      worker_thread->callback(nullptr, []() {
-          worker_thread->queue_stop_thread();
-        });
+      worker_thread->stop_thread();
 
     torrent::connection_manager()->listen_close();
+
     m_directory_events->close();
     m_core->shutdown(false);
 
@@ -156,9 +152,7 @@ Control::handle_shutdown() {
 
   } else {
     if (worker_thread->is_active())
-      worker_thread->callback(nullptr, []() {
-          worker_thread->queue_stop_thread();
-        });
+      worker_thread->stop_thread_wait();
 
     m_core->shutdown(true);
   }
