@@ -165,7 +165,7 @@ DhtManager::update() {
   if (!torrent::dht_controller()->is_active())
     throw torrent::internal_error("DhtManager::update called with DHT inactive.");
 
-  if (m_start == dht_auto && !m_stopTimeout.is_queued()) {
+  if (m_start == dht_auto && !m_stopTimeout.is_scheduled()) {
     DownloadList::const_iterator itr, end;
 
     for (itr = control->core()->download_list()->begin(), end = control->core()->download_list()->end(); itr != end; ++itr)

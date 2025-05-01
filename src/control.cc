@@ -147,7 +147,7 @@ Control::handle_shutdown() {
     m_directory_events->close();
     m_core->shutdown(false);
 
-    if (!m_taskShutdown.is_queued())
+    if (!m_taskShutdown.is_scheduled())
       priority_queue_insert(&taskScheduler, &m_taskShutdown, cachedTime + rak::timer::from_seconds(5));
 
   } else {

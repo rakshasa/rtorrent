@@ -111,7 +111,7 @@ Manager::schedule_update(uint32_t minInterval) {
     return;
   }
 
-  if (!m_taskUpdate.is_queued() || m_taskUpdate.time() > m_scheduler.top()->time()) {
+  if (!m_taskUpdate.is_scheduled() || m_taskUpdate.time() > m_scheduler.top()->time()) {
     rak::priority_queue_update(&taskScheduler, &m_taskUpdate, std::max(m_scheduler.top()->time(), m_timeLastUpdate + minInterval));
   }
 }

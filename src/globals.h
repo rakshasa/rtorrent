@@ -14,8 +14,8 @@ class Control;
 // be reviewed and fixed in order to avoid any potential problems, and
 // then made updates properly sync'ed with memory barriers.
 
-extern rak::priority_queue_default taskScheduler;
-extern rak::timer                  cachedTime;
+// extern rak::priority_queue_default taskScheduler;
+// extern rak::timer                  cachedTime;
 extern rpc::ip_table_list          ip_tables;
 
 extern Control*      control;

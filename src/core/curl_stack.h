@@ -3,8 +3,7 @@
 
 #include <deque>
 #include <string>
-
-#include "rak/priority_queue_default.h"
+#include <torrent/utils/scheduler.h>
 
 namespace core {
 
@@ -80,7 +79,7 @@ class CurlStack : std::deque<CurlGet*> {
 
   void                receive_action(CurlSocket* socket, int type);
 
-  static int          set_timeout(void* handle, long timeout_ms, void* userp);
+  static int          set_timeout(void* handle, std::chrono::microseconds timeout, void* userp);
 
   void                transfer_done(void* handle, const char* msg);
 
@@ -103,7 +102,7 @@ class CurlStack : std::deque<CurlGet*> {
   unsigned int        m_active{0};
   unsigned int        m_max_active{32};
 
-  rak::priority_item  m_task_timeout;
+  torrent::utils::SchedulerEntry m_task_timeout;
 
   std::string         m_user_agent;
   std::string         m_http_proxy;

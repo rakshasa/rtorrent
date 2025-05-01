@@ -120,16 +120,6 @@ load_arg_torrents(char** first, char** last) {
   }
 }
 
-static uint64_t
-client_next_timeout() {
-  if (taskScheduler.empty())
-    return (control->is_shutdown_started() ? rak::timer::from_milliseconds(100) : rak::timer::from_seconds(60)).usec();
-  else if (taskScheduler.top()->time() <= cachedTime)
-    return 0;
-  else
-    return (taskScheduler.top()->time() - cachedTime).usec();
-}
-
 static void
 client_perform() {
   // Use throw exclusively.
@@ -140,9 +130,6 @@ client_perform() {
     control->handle_shutdown();
 
   control->inc_tick();
-
-  cachedTime = rak::timer::current();
-  rak::priority_queue_perform(&taskScheduler, cachedTime);
 }
 
 int
@@ -152,17 +139,20 @@ main(int argc, char** argv) {
     // Temporary.
     setlocale(LC_ALL, "");
 
-    cachedTime = rak::timer::current();
+    auto random_seed = []() -> unsigned int {
+        auto current_time = torrent::utils::time_since_epoch();
+
+        return (getpid() << 16) ^ getppid() ^
+          torrent::utils::cast_seconds(current_time).count() ^ current_time.count();
+      }();
+
+    srandom(random_seed);
+    srand48(random_seed);
 
     // Initialize logging:
     torrent::log_initialize();
 
     control = new Control;
-
-    unsigned int random_seed = cachedTime.seconds() ^ cachedTime.usec() ^ (getpid() << 16) ^ getppid();
-
-    srandom(random_seed);
-    srand48(random_seed);
 
     SignalHandler::set_ignore(SIGPIPE);
     SignalHandler::set_handler(SIGINT,   std::bind(&Control::receive_normal_shutdown, control));
@@ -191,7 +181,7 @@ main(int argc, char** argv) {
     torrent::Poll::slot_create_poll() = std::bind(&core::create_poll);
 
     torrent::initialize();
-    torrent::set_main_thread_slots(std::bind(&client_perform), std::bind(&client_next_timeout));
+    torrent::set_main_thread_slots(std::bind(&client_perform));
 
     worker_thread = new ThreadWorker();
     worker_thread->init_thread();
@@ -442,7 +432,9 @@ main(int argc, char** argv) {
     // session torrents are loaded before arg torrents.
     control->dht_manager()->load_dht_cache();
     load_session_torrents();
-    rak::priority_queue_perform(&taskScheduler, cachedTime);
+
+    // TODO: Check if this is required.
+    // rak::priority_queue_perform(&taskScheduler, cachedTime);
 
     load_arg_torrents(argv + firstArg, argv + argc);
 
