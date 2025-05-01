@@ -19,7 +19,7 @@ class CurlSocket;
 // removal of elements.
 
 class CurlStack : std::deque<CurlGet*> {
- public:
+public:
   friend class CurlGet;
 
   typedef std::deque<CurlGet*> base_type;
@@ -83,13 +83,13 @@ class CurlStack : std::deque<CurlGet*> {
 
   void                transfer_done(void* handle, const char* msg);
 
- protected:
+protected:
   void                add_get(CurlGet* get);
   void                remove_get(CurlGet* get);
 
- private:
-  CurlStack(const CurlStack&);
-  void operator = (const CurlStack&);
+private:
+  CurlStack(const CurlStack&) = delete;
+  void operator = (const CurlStack&) = delete;
 
   void                receive_timeout();
 

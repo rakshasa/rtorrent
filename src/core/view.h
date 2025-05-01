@@ -17,9 +17,8 @@
 #include <list>
 #include <string>
 #include <vector>
-
-#include <rak/timer.h>
 #include <torrent/object.h>
+#include <torrent/utils/scheduler.h>
 
 #include "globals.h"
 
@@ -114,8 +113,8 @@ public:
   //
   // Currently initialized to rak::timer(), though perhaps we should
   // use cachedTimer.
-  rak::timer last_changed() const { return m_lastChanged; }
-  void       set_last_changed(const rak::timer& t = ::cachedTime) { m_lastChanged = t; }
+  auto                last_changed() const { return m_last_changed; }
+  void                set_last_changed(std::chrono::microseconds t = torrent::this_thread::cached_time()) { m_last_changed = t; }
 
   // Don't connect any slots until after initialize else it get's
   // triggered when adding the Download's in DownloadList.
@@ -152,10 +151,10 @@ private:
   torrent::Object    m_event_added;
   torrent::Object    m_event_removed;
 
-  rak::timer         m_lastChanged;
+  std::chrono::microseconds m_last_changed{};
 
-  signal_void        m_signal_changed;
-  rak::priority_item m_delayChanged;
+  signal_void                    m_signal_changed;
+  torrent::utils::SchedulerEntry m_delay_changed;
 };
 
 } // namespace core
