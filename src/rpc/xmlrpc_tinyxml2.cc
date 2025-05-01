@@ -313,6 +313,7 @@ print_xmlrpc_fault(int faultCode, std::string faultString, tinyxml2::XMLPrinter*
 
   printer->OpenElement("methodResponse", true);
   printer->OpenElement("fault", true);
+  printer->OpenElement("value", true);
   printer->OpenElement("struct", true);
 
   printer->OpenElement("member", true);
@@ -337,6 +338,7 @@ print_xmlrpc_fault(int faultCode, std::string faultString, tinyxml2::XMLPrinter*
   printer->CloseElement(true);
   printer->CloseElement(true);
 
+  printer->CloseElement(true);
   printer->CloseElement(true);
   printer->CloseElement(true);
   printer->CloseElement(true);

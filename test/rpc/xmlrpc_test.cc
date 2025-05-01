@@ -67,35 +67,35 @@ std::vector<std::tuple<std::string, std::string, std::string>> basic_requests = 
 
   std::make_tuple("Invalid - missing method",
                   "<?xml version=\"1.0\"?><methodCall><methodName>no_such_method</methodName><params><param><value><i8>41</i8></value></param></params></methodCall>",
-                  "<?xml version=\"1.0\"?><methodResponse><fault><struct><member><name>faultCode</name><value><i8>-506</i8></value></member><member><name>faultString</name><value><string>method 'no_such_method' not defined</string></value></member></struct></fault></methodResponse>"),
+                  "<?xml version=\"1.0\"?><methodResponse><fault><value><struct><member><name>faultCode</name><value><i8>-506</i8></value></member><member><name>faultString</name><value><string>method 'no_such_method' not defined</string></value></member></struct></value></fault></methodResponse>"),
 
   std::make_tuple("Invalid - i8 target",
                   "<?xml version=\"1.0\"?><methodCall><methodName>xmlrpc_reflect</methodName><params><param><value><i8>41</i8></value></param></params></methodCall>",
-                  "<?xml version=\"1.0\"?><methodResponse><fault><struct><member><name>faultCode</name><value><i8>-500</i8></value></member><member><name>faultString</name><value><string>invalid parameters: target must be a string</string></value></member></struct></fault></methodResponse>"),
+                  "<?xml version=\"1.0\"?><methodResponse><fault><value><struct><member><name>faultCode</name><value><i8>-500</i8></value></member><member><name>faultString</name><value><string>invalid parameters: target must be a string</string></value></member></struct></value></fault></methodResponse>"),
 
   std::make_tuple("Invalid - empty int tag",
                   "<?xml version=\"1.0\"?><methodCall><methodName>xmlrpc_reflect</methodName><params><param><value><string></string></value></param><param><value><i8/></value></param></params></methodCall>",
-                  "<?xml version=\"1.0\"?><methodResponse><fault><struct><member><name>faultCode</name><value><i8>-501</i8></value></member><member><name>faultString</name><value><string>unable to parse empty integer</string></value></member></struct></fault></methodResponse>"),
+                  "<?xml version=\"1.0\"?><methodResponse><fault><value><struct><member><name>faultCode</name><value><i8>-501</i8></value></member><member><name>faultString</name><value><string>unable to parse empty integer</string></value></member></struct></value></fault></methodResponse>"),
 
   std::make_tuple("Invalid - empty int text",
                   "<?xml version=\"1.0\"?><methodCall><methodName>xmlrpc_reflect</methodName><params><param><value><string></string></value></param><param><value><i8></i8></value></param></params></methodCall>",
-                  "<?xml version=\"1.0\"?><methodResponse><fault><struct><member><name>faultCode</name><value><i8>-501</i8></value></member><member><name>faultString</name><value><string>unable to parse empty integer</string></value></member></struct></fault></methodResponse>"),
+                  "<?xml version=\"1.0\"?><methodResponse><fault><value><struct><member><name>faultCode</name><value><i8>-501</i8></value></member><member><name>faultString</name><value><string>unable to parse empty integer</string></value></member></struct></value></fault></methodResponse>"),
 
   std::make_tuple("Invalid - broken XML",
                   "thodCall><methodName>test_a</methodName><params><param><value><i8>41</i8></value></param></params></method",
-                  "<?xml version=\"1.0\"?><methodResponse><fault><struct><member><name>faultCode</name><value><i8>-503</i8></value></member><member><name>faultString</name><value><string>Error=XML_ERROR_PARSING_ELEMENT ErrorID=6 (0x6) Line number=1: XMLElement name=method</string></value></member></struct></fault></methodResponse>"),
+                  "<?xml version=\"1.0\"?><methodResponse><fault><value><struct><member><name>faultCode</name><value><i8>-503</i8></value></member><member><name>faultString</name><value><string>Error=XML_ERROR_PARSING_ELEMENT ErrorID=6 (0x6) Line number=1: XMLElement name=method</string></value></member></struct></value></fault></methodResponse>"),
 
   std::make_tuple("Invalid - non-integer i8",
                   "<?xml version=\"1.0\"?><methodCall><methodName>xmlrpc_reflect</methodName><params><param><value><i8>string value</i8></value></param></params></methodCall>",
-                  "<?xml version=\"1.0\"?><methodResponse><fault><struct><member><name>faultCode</name><value><i8>-501</i8></value></member><member><name>faultString</name><value><string>unable to parse integer value</string></value></member></struct></fault></methodResponse>"),
+                  "<?xml version=\"1.0\"?><methodResponse><fault><value><struct><member><name>faultCode</name><value><i8>-501</i8></value></member><member><name>faultString</name><value><string>unable to parse integer value</string></value></member></struct></value></fault></methodResponse>"),
 
   std::make_tuple("Invalid - float i8",
                   "<?xml version=\"1.0\"?><methodCall><methodName>xmlrpc_reflect</methodName><params><param><value><i8>3.14</i8></value></param></params></methodCall>",
-                  "<?xml version=\"1.0\"?><methodResponse><fault><struct><member><name>faultCode</name><value><i8>-501</i8></value></member><member><name>faultString</name><value><string>unable to parse integer value</string></value></member></struct></fault></methodResponse>"),
+                  "<?xml version=\"1.0\"?><methodResponse><fault><value><struct><member><name>faultCode</name><value><i8>-501</i8></value></member><member><name>faultString</name><value><string>unable to parse integer value</string></value></member></struct></value></fault></methodResponse>"),
 
   std::make_tuple("Invalid - non-boolean boolean",
                   "<?xml version=\"1.0\"?><methodCall><methodName>xmlrpc_reflect</methodName><params><param><value><boolean>string value</boolean></value></param></params></methodCall>",
-                  "<?xml version=\"1.0\"?><methodResponse><fault><struct><member><name>faultCode</name><value><i8>-501</i8></value></member><member><name>faultString</name><value><string>unknown boolean value: string value</string></value></member></struct></fault></methodResponse>")
+                  "<?xml version=\"1.0\"?><methodResponse><fault><value><struct><member><name>faultCode</name><value><i8>-501</i8></value></member><member><name>faultString</name><value><string>unknown boolean value: string value</string></value></member></struct></value></fault></methodResponse>")
 };
 
 void
@@ -134,7 +134,7 @@ XmlrpcTest::test_invalid_utf8() {
 void
 XmlrpcTest::test_size_limit() {
   std::string input = "<?xml version=\"1.0\"?><methodCall><methodName>xmlrpc_reflect</methodName><params><param><value><string></string></value></param><param><value><string>\xc3\x28</string></value></param></params></methodCall>";
-  std::string expected = "<?xml version=\"1.0\"?><methodResponse><fault><struct><member><name>faultCode</name><value><i8>-509</i8></value></member><member><name>faultString</name><value><string>Content size exceeds maximum XML-RPC limit</string></value></member></struct></fault></methodResponse>";
+  std::string expected = "<?xml version=\"1.0\"?><methodResponse><fault><value><struct><member><name>faultCode</name><value><i8>-509</i8></value></member><member><name>faultString</name><value><string>Content size exceeds maximum XML-RPC limit</string></value></member></struct></value></fault></methodResponse>";
   std::string output;
   m_xmlrpc.set_size_limit(1);
   m_xmlrpc.process(input.c_str(), input.size(), [&output](const char* c, uint32_t l){ output.append(c, l); return true;});
