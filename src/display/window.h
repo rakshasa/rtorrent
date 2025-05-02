@@ -1,44 +1,9 @@
-// rTorrent - BitTorrent client
-// Copyright (C) 2005-2011, Jari Sundell
-//
-// This program is free software; you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation; either version 2 of the License, or
-// (at your option) any later version.
-// 
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-// 
-// You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-//
-// In addition, as a special exception, the copyright holders give
-// permission to link the code of portions of this program with the
-// OpenSSL library under certain conditions as described in each
-// individual source file, and distribute linked combinations
-// including the two.
-//
-// You must obey the GNU General Public License in all respects for
-// all of the code used other than OpenSSL.  If you modify file(s)
-// with this exception, you may extend this exception to your version
-// of the file(s), but you are not obligated to do so.  If you do not
-// wish to do so, delete this exception statement from your version.
-// If you delete this exception statement from all source files in the
-// program, then also delete it here.
-//
-// Contact:  Jari Sundell <jaris@ifi.uio.no>
-//
-//           Skomakerveien 33
-//           3185 Skoppum, NORWAY
-
 #ifndef RTORRENT_WINDOW_BASE_H
 #define RTORRENT_WINDOW_BASE_H
 
-#include <rak/timer.h>
 #include <functional>
+#include <torrent/utils/scheduler.h>
+#include <torrent/utils/thread.h>
 
 #include "canvas.h"
 #include "globals.h"
@@ -51,9 +16,9 @@ class Window {
 public:
   typedef uint32_t extent_type;
 
-  typedef std::function<void()>                    Slot;
-  typedef std::function<void(Window*)>             SlotWindow;
-  typedef std::function<void(Window*, rak::timer)> SlotTimer;
+  typedef std::function<void()>                                   Slot;
+  typedef std::function<void(Window*)>                            SlotWindow;
+  typedef std::function<void(Window*, std::chrono::microseconds)> SlotTimer;
 
   static const int flag_active    = (1 << 0);
   static const int flag_offscreen = (1 << 1);
@@ -85,19 +50,19 @@ public:
   bool                is_bottom() const                    { return m_flags & flag_bottom; }
   void                set_bottom(bool state)               { if (state) m_flags |= flag_bottom; else m_flags &= ~flag_bottom; }
 
-  bool                is_width_dynamic() const             { return m_maxWidth > m_minWidth; }
-  bool                is_height_dynamic() const            { return m_maxHeight > m_minHeight; }
+  bool                is_width_dynamic() const             { return m_max_width > m_min_width; }
+  bool                is_height_dynamic() const            { return m_max_height > m_min_height; }
 
   // Do not call mark_dirty() from withing redraw() as it may cause
   // infinite looping in the display scheduler.
-  bool                is_dirty()                           { return m_taskUpdate.is_queued(); }
-  void                mark_dirty()                         { if (!is_active()) return; m_slotSchedule(this, cachedTime); }
+  bool                is_dirty()                           { return m_task_update.is_scheduled(); }
+  void                mark_dirty()                         { if (!is_active()) return; m_slot_schedule(this, torrent::this_thread::cached_time()); }
 
-  extent_type         min_width() const                    { return m_minWidth; }
-  extent_type         min_height() const                   { return m_minHeight; }
+  extent_type         min_width() const                    { return m_min_width; }
+  extent_type         min_height() const                   { return m_min_height; }
 
-  extent_type         max_width() const                    { return std::max(m_maxWidth, m_minWidth); }
-  extent_type         max_height() const                   { return std::max(m_maxHeight, m_minHeight); }
+  extent_type         max_width() const                    { return std::max(m_max_width, m_min_width); }
+  extent_type         max_height() const                   { return std::max(m_max_height, m_min_height); }
 
   extent_type         width() const                        { return m_canvas->width(); }
   extent_type         height() const                       { return m_canvas->height(); }
@@ -107,32 +72,34 @@ public:
 
   virtual void        redraw() = 0;
 
-  rak::priority_item* task_update()                        { return &m_taskUpdate; }
+  auto                task_update()                        { return &m_task_update; }
 
   // Slot for adjust and refresh.
-  static void         slot_schedule(SlotTimer s)           { m_slotSchedule = s; }
-  static void         slot_unschedule(SlotWindow s)        { m_slotUnschedule = s; }
-  static void         slot_adjust(Slot s)                  { m_slotAdjust = s; }
+  static void         slot_schedule(SlotTimer s)           { m_slot_schedule = s; }
+  static void         slot_unschedule(SlotWindow s)        { m_slot_unschedule = s; }
+  static void         slot_adjust(Slot s)                  { m_slot_adjust = s; }
 
 protected:
   Window(const Window&);
   void operator = (const Window&);
 
-  static SlotTimer    m_slotSchedule;
-  static SlotWindow   m_slotUnschedule;
-  static Slot         m_slotAdjust;
+  void                schedule_update(unsigned int wait_seconds = 0);
+
+  static SlotTimer    m_slot_schedule;
+  static SlotWindow   m_slot_unschedule;
+  static Slot         m_slot_adjust;
 
   Canvas*             m_canvas;
 
   int                 m_flags;
 
-  extent_type         m_minWidth;
-  extent_type         m_minHeight;
+  extent_type         m_min_width;
+  extent_type         m_min_height;
 
-  extent_type         m_maxWidth;
-  extent_type         m_maxHeight;
+  extent_type         m_max_width;
+  extent_type         m_max_height;
 
-  rak::priority_item  m_taskUpdate;
+  torrent::utils::SchedulerEntry m_task_update;
 };
 
 }

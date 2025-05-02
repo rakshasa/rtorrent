@@ -5,7 +5,6 @@
 #include <sstream>
 #include <iomanip>
 #include <rak/socket_address.h>
-#include <rak/timer.h>
 #include <torrent/exceptions.h>
 #include <torrent/connection_manager.h>
 #include <torrent/rate.h>

@@ -87,8 +87,6 @@ ThreadWorker::call_events() {
     throw torrent::shutdown_exception();
   }
 
-  cachedTime = rak::timer::current();
-
   process_callbacks();
 }
 

@@ -37,7 +37,8 @@ CurlStack::shutdown() {
     front()->close();
 
   curl_multi_cleanup((CURLM*)m_handle);
-  priority_queue_erase(&taskScheduler, &m_task_timeout);
+
+  torrent::this_thread::scheduler()->erase(&m_task_timeout);
 }
 
 CurlGet*
@@ -85,7 +86,7 @@ CurlStack::receive_action(CurlSocket* socket, int events) {
         ; // Do nothing.
 
       if (empty())
-        priority_queue_erase(&taskScheduler, &m_task_timeout);
+        torrent::this_thread::scheduler()->erase(&m_task_timeout);
     }
 
   } while (code == CURLM_CALL_MULTI_PERFORM);
@@ -140,12 +141,15 @@ void
 CurlStack::receive_timeout() {
   receive_action(NULL, 0);
 
-  // Sometimes libcurl forgets to reset the timeout. Try to poll the value in that case, or use 10 seconds.
-  if (!empty() && !m_task_timeout.is_queued()) {
-    long timeout;
-    curl_multi_timeout((CURLM*)m_handle, &timeout);
-    priority_queue_insert(&taskScheduler, &m_task_timeout,
-                          cachedTime + rak::timer::from_milliseconds(std::max<unsigned long>(timeout, 10000)));
+  if (!empty() && !m_task_timeout.is_scheduled()) {
+    // Sometimes libcurl forgets to reset the timeout. Try to poll the value in that case, or use 10
+    // seconds max.
+    long timeout_ms;
+    curl_multi_timeout((CURLM*)m_handle, &timeout_ms);
+
+    auto timeout = std::max<std::chrono::microseconds>(std::chrono::milliseconds(timeout_ms), 10s);
+
+    torrent::this_thread::scheduler()->wait_for_ceil_seconds(&m_task_timeout, timeout);
   }
 }
 
@@ -229,11 +233,10 @@ CurlStack::global_cleanup() {
 // TODO: Is this function supposed to set a per-handle timeout, or is
 // it the shortest timeout amongst all handles?
 int
-CurlStack::set_timeout(void* handle, long timeout_ms, void* userp) {
+CurlStack::set_timeout([[maybe_unused]] void* handle, std::chrono::microseconds timeout, void* userp) {
   CurlStack* stack = (CurlStack*)userp;
 
-  priority_queue_update(&taskScheduler, &stack->m_task_timeout, cachedTime + rak::timer::from_milliseconds(timeout_ms));
-
+  torrent::this_thread::scheduler()->update_wait_for_ceil_seconds(&stack->m_task_timeout, timeout);
   return 0;
 }
 

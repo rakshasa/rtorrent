@@ -25,15 +25,15 @@ WindowFileList::WindowFileList(const ui::ElementFileList* element) :
 // Convert std::string to std::wstring of given width (in screen positions),
 // taking into account that some characters may be occupying two screen positions.
 std::wstring
-wstring_width(const std::string& i_str, int width) {
-  wchar_t result[width + 1];
-  size_t length = std::mbstowcs(result, i_str.c_str(), width);
+wstring_width(const std::string& i_str, [[maybe_unused]] int width) {
+  std::wstring result(width + 1, L' ');
+  size_t length = std::mbstowcs(result.data(), i_str.c_str(), width);
 
   // If not valid UTF-8 encoding, at least copy the printable characters.
   if (length == (size_t)-1) {
-    wchar_t* out = result;
+    wchar_t* out = result.data();
 
-    for (std::string::const_iterator itr = i_str.begin(); out != result + width && itr != i_str.end(); ++itr)
+    for (std::string::const_iterator itr = i_str.begin(); out != result.data() + width && itr != i_str.end(); ++itr)
       if (!std::isprint(*itr, std::locale::classic()))
         *out++ = '?';
       else
@@ -42,23 +42,23 @@ wstring_width(const std::string& i_str, int width) {
      *out = 0;
   }
 
-  int swidth = wcswidth(result, width);
+  int swidth = wcswidth(result.data(), width);
 
   // Limit to width if it's too wide already.
   if (swidth == -1 || swidth > width) {
     length = swidth = 0;
 
-    while (result[length]) {
-      int next = ::wcwidth(result[length]);
+    while (result.data()[length]) {
+      int next = ::wcwidth(result.data()[length]);
 
       // Unprintable character?
       if (next == -1) {
-        result[length] = '?';
+        result.data()[length] = '?';
         next = 1;
       }
 
       if (swidth + next > width) {
-        result[length] = 0;
+        result.data()[length] = 0;
         break;
       }
 
@@ -69,18 +69,18 @@ wstring_width(const std::string& i_str, int width) {
 
   // Pad with spaces to given width.
   while (swidth < width && length <= (unsigned int)width) {
-    result[length++] = ' ';
+    result.data()[length++] = ' ';
     swidth++;
   }
 
-  result[length] = 0;
+  result.data()[length] = 0;
 
   return result;
 }
 
 void
 WindowFileList::redraw() {
-  m_slotSchedule(this, (cachedTime + rak::timer::from_seconds(10)).round_seconds());
+  schedule_update(10);
   m_canvas->erase();
 
   torrent::FileList* fl = m_element->download()->download()->file_list();

@@ -13,24 +13,24 @@ namespace display {
 
 void
 WindowStatusbar::redraw() {
-  m_slotSchedule(this, (cachedTime + rak::timer::from_seconds(1)).round_seconds());
+  schedule_update();
 
   m_canvas->erase();
 
-  // TODO: Make a buffer with size = get_width?
-  char buffer[m_canvas->width() + 1];
+  std::vector<char> buffer(m_canvas->width() + 1);
   char* position;
-  char* last = buffer + m_canvas->width();
+  char* last = buffer.data() + m_canvas->width();
 
-  position = print_status_info(buffer, last);
-  m_canvas->print(0, 0, "%s", buffer);
+  position = print_status_info(buffer.data(), last);
+  m_canvas->print(0, 0, "%s", buffer.data());
 
-  last = last - (position - buffer);
+  last = last - (position - buffer.data());
 
-  if (last > buffer) {
-    position = print_status_extra(buffer, last);
-    m_canvas->print(m_canvas->width() - (position - buffer), 0, "%s", buffer);
+  if (last > buffer.data()) {
+    position = print_status_extra(buffer.data(), last);
+    m_canvas->print(m_canvas->width() - (position - buffer.data()), 0, "%s", buffer.data());
   }
+
   m_canvas->set_attr(0, 0, -1, RCOLOR_FOOTER);
 
   m_lastTick = control->tick();

@@ -170,7 +170,7 @@ Canvas::build_colors() {
     // Check that fg & bg color index is valid
     if ((color[0] != -1 && color[0] >= get_colors()) || (color[1] != -1 && color[1] >= get_colors())) {
       char buf[33];
-      sprintf(buf, "%d", get_colors());
+      snprintf(buf, 33, "%d", get_colors());
       Canvas::cleanup();
       throw torrent::input_error(color_def + ": your terminal only supports " + buf + " colors.");
     }

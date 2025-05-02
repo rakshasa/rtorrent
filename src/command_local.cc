@@ -232,9 +232,15 @@ initialize_command_local() {
 
   CMD2_ANY_STRING  ("system.env",                      std::bind(&system_env, std::placeholders::_2));
 
-  CMD2_ANY         ("system.time",                     std::bind(&rak::timer::seconds, &cachedTime));
-  CMD2_ANY         ("system.time_seconds",             std::bind(&rak::timer::current_seconds));
-  CMD2_ANY         ("system.time_usec",                std::bind(&rak::timer::current_usec));
+  CMD2_ANY         ("system.time",                     []([[maybe_unused]] auto t, [[maybe_unused]] auto o) -> torrent::Object {
+      return torrent::this_thread::cached_seconds().count();
+    });
+  CMD2_ANY         ("system.time_seconds",             []([[maybe_unused]] auto t, [[maybe_unused]] auto o) -> torrent::Object {
+      return torrent::utils::cast_seconds(torrent::utils::time_since_epoch()).count();
+    });
+  CMD2_ANY         ("system.time_usec",                []([[maybe_unused]] auto t, [[maybe_unused]] auto o) -> torrent::Object {
+      return torrent::utils::time_since_epoch().count();
+    });
 
   CMD2_ANY_VALUE_V ("system.umask.set",                std::bind(&umask, std::placeholders::_2));
 

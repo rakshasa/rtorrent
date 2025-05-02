@@ -50,7 +50,7 @@ Control::Control() :
 
   m_inputStdin->slot_pressed(std::bind(&input::Manager::pressed, m_input, std::placeholders::_1));
 
-  m_taskShutdown.slot() = std::bind(&Control::handle_shutdown, this);
+  m_task_shutdown.slot() = std::bind(&Control::handle_shutdown, this);
 
   m_commandScheduler->set_slot_error_message([this](const std::string& msg) { m_core->push_log_std(msg); });
 }
@@ -75,7 +75,7 @@ Control::~Control() {
 void
 Control::initialize() {
   display::Canvas::initialize();
-  display::Window::slot_schedule([this](display::Window* w, rak::timer t) { m_display->schedule(w, t); });
+  display::Window::slot_schedule([this](display::Window* w, std::chrono::microseconds t) { m_display->schedule(w, t); });
   display::Window::slot_unschedule([this](display::Window* w) { m_display->unschedule(w); });
   display::Window::slot_adjust([this]() { m_display->adjust_layout(); });
 
@@ -98,7 +98,7 @@ void
 Control::cleanup() {
   rpc::rpc.cleanup();
 
-  priority_queue_erase(&taskScheduler, &m_taskShutdown);
+  torrent::this_thread::scheduler()->erase(&m_task_shutdown);
 
   if(!display::Canvas::daemon()) {
     m_inputStdin->remove(torrent::main_thread()->poll());
@@ -147,8 +147,8 @@ Control::handle_shutdown() {
     m_directory_events->close();
     m_core->shutdown(false);
 
-    if (!m_taskShutdown.is_queued())
-      priority_queue_insert(&taskScheduler, &m_taskShutdown, cachedTime + rak::timer::from_seconds(5));
+    if (!m_task_shutdown.is_scheduled())
+      torrent::this_thread::scheduler()->wait_for_ceil_seconds(&m_task_shutdown, 5s);
 
   } else {
     if (worker_thread->is_active())
