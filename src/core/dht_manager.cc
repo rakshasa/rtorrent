@@ -96,7 +96,7 @@ DhtManager::start_dht() {
 
   m_update_timeout.slot() = std::bind(&DhtManager::update, this);
 
-  torrent::this_thread::scheduler()->update_wait_for_ceil_seconds(&m_update_timeout, 60s);
+  torrent::this_thread::scheduler()->wait_for_ceil_seconds(&m_update_timeout, 60s);
 
   m_dhtPrevCycle = 0;
   m_dhtPrevQueriesSent = 0;
@@ -175,15 +175,15 @@ DhtManager::update() {
 
     if (itr == end) {
       m_stop_timeout.slot() = std::bind(&DhtManager::stop_dht, this);
-      torrent::this_thread::scheduler()->update_wait_for_ceil_seconds(&m_stop_timeout, 15 * 60s);
+      torrent::this_thread::scheduler()->wait_for_ceil_seconds(&m_stop_timeout, 15min);
     }
   }
 
   // While bootstrapping (log_statistics returns true), check every minute if it completed, otherwise update every 15 minutes.
   if (log_statistics(false))
-    torrent::this_thread::scheduler()->update_wait_for_ceil_seconds(&m_update_timeout, 60s);
+    torrent::this_thread::scheduler()->wait_for_ceil_seconds(&m_update_timeout, 1min);
   else
-    torrent::this_thread::scheduler()->update_wait_for_ceil_seconds(&m_update_timeout, 15 * 60s);
+    torrent::this_thread::scheduler()->wait_for_ceil_seconds(&m_update_timeout, 15min);
 }
 
 bool
