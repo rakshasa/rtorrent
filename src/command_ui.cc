@@ -4,7 +4,6 @@
 
 #include <ctime>
 #include <regex>
-
 #include <rak/algorithm.h>
 #include <torrent/utils/log.h>
 
@@ -608,8 +607,9 @@ apply_elapsed_less(const torrent::Object::list_type& args) {
     throw torrent::input_error("Wrong argument count.");
 
   int64_t start_time = rpc::convert_to_value(args.front());
+  auto cached_seconds = torrent::utils::cast_seconds(torrent::this_thread::cached_time()).count();
 
-  return (int64_t)(start_time != 0 && rak::timer::current_seconds() - start_time < rpc::convert_to_value(args.back()));
+  return (int64_t)(start_time != 0 && cached_seconds - start_time < rpc::convert_to_value(args.back()));
 }
 
 torrent::Object
@@ -618,8 +618,9 @@ apply_elapsed_greater(const torrent::Object::list_type& args) {
     throw torrent::input_error("Wrong argument count.");
 
   int64_t start_time = rpc::convert_to_value(args.front());
+  auto cached_seconds = torrent::utils::cast_seconds(torrent::this_thread::cached_time()).count();
 
-  return (int64_t)(start_time != 0 && rak::timer::current_seconds() - start_time > rpc::convert_to_value(args.back()));
+  return (int64_t)(start_time != 0 && cached_seconds - start_time > rpc::convert_to_value(args.back()));
 }
 
 inline std::vector<int64_t>

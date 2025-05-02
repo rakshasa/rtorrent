@@ -1,9 +1,10 @@
 #include "config.h"
 
+#include "display/text_element_value.h"
+
 #include <ctime>
 
 #include "globals.h"
-#include "text_element_value.h"
 
 namespace display {
 
@@ -38,7 +39,7 @@ TextElementValueBase::print(char* first, char* last, Canvas::attributes_list* at
     val = val - torrent::utils::cast_seconds(torrent::this_thread::cached_time()).count();
 
   if (m_flags & flag_usec)
-    val = rak::timer(val).seconds();
+    val = torrent::utils::cast_seconds(std::chrono::microseconds(val)).count();
 
   // Print the value.
   if (first == last) {
