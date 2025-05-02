@@ -366,7 +366,7 @@ DownloadFactory::receive_failed(const std::string& msg) {
 
 void
 DownloadFactory::initialize_rtorrent(Download* download, torrent::Object* rtorrent) {
-  auto cached_seconds = torrent::utils::cast_seconds(torrent::this_thread::cached_time()).count();
+  auto cached_seconds = torrent::this_thread::cached_seconds().count();
 
   if (!rtorrent->has_key_value("state") || rtorrent->get_key_value("state") > 1) {
     rtorrent->insert_key("state", (int64_t)m_start);

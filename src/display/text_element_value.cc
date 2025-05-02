@@ -34,9 +34,9 @@ TextElementValueBase::print(char* first, char* last, Canvas::attributes_list* at
 
   // Transform the value if needed.
   if (m_flags & flag_elapsed)
-    val = torrent::utils::cast_seconds(torrent::this_thread::cached_time()).count() - val;
+    val = torrent::this_thread::cached_seconds().count() - val;
   else if (m_flags & flag_remaining)
-    val = val - torrent::utils::cast_seconds(torrent::this_thread::cached_time()).count();
+    val = val - torrent::this_thread::cached_seconds().count();
 
   if (m_flags & flag_usec)
     val = torrent::utils::cast_seconds(std::chrono::microseconds(val)).count();

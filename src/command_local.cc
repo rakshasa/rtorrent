@@ -233,7 +233,7 @@ initialize_command_local() {
   CMD2_ANY_STRING  ("system.env",                      std::bind(&system_env, std::placeholders::_2));
 
   CMD2_ANY         ("system.time",                     []([[maybe_unused]] auto t, [[maybe_unused]] auto o) -> torrent::Object {
-      return torrent::utils::cast_seconds(torrent::this_thread::cached_time()).count();
+      return torrent::this_thread::cached_seconds().count();
     });
   CMD2_ANY         ("system.time_seconds",             []([[maybe_unused]] auto t, [[maybe_unused]] auto o) -> torrent::Object {
       return torrent::utils::cast_seconds(torrent::utils::time_since_epoch()).count();

@@ -85,14 +85,14 @@ WindowDownloadTransferList::rows() const {
 
 char
 WindowDownloadTransferList::key_id(torrent::BlockTransfer::key_type key) {
-  uint32_t current_time = torrent::utils::cast_seconds(torrent::this_thread::cached_time()).count();
+  uint32_t current_time = torrent::this_thread::cached_seconds().count();
   uint32_t oldest_time = current_time;
 
   assigned_vector::iterator oldestItr = m_assigned.begin();
 
   for (assigned_vector::iterator itr = m_assigned.begin(), last = m_assigned.end(); itr != last; ++itr) {
     if (itr->m_key == key) {
-      itr->m_last = torrent::utils::cast_seconds(torrent::this_thread::cached_time()).count();
+      itr->m_last = torrent::this_thread::cached_seconds().count();
       return itr->m_id;
     }
 

@@ -114,7 +114,7 @@ CommandScheduler::parse_absolute(const char* str) {
     return result.second;
 
   case 2:
-    t = torrent::utils::cast_seconds(torrent::this_thread::cached_time()).count();
+    t = torrent::this_thread::cached_seconds().count();
 
     if (localtime_r(&t, &local) == NULL)
       throw torrent::input_error("Could not convert unix time to local time.");
@@ -122,7 +122,7 @@ CommandScheduler::parse_absolute(const char* str) {
     return (result.second + 3600 - 60 * local.tm_min - local.tm_sec) % 3600;
 
   case 3:
-    t = torrent::utils::cast_seconds(torrent::this_thread::cached_time()).count();
+    t = torrent::this_thread::cached_seconds().count();
 
     if (localtime_r(&t, &local) == NULL)
       throw torrent::input_error("Could not convert unix time to local time.");

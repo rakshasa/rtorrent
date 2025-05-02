@@ -18,7 +18,7 @@ WindowLogComplete::~WindowLogComplete() {
 
 WindowLogComplete::iterator
 WindowLogComplete::find_older() {
-  return m_log->find_older(torrent::utils::cast_seconds(torrent::this_thread::cached_time()).count() - 60);
+  return m_log->find_older(torrent::this_thread::cached_seconds().count() - 60);
 }
 
 void
