@@ -4,7 +4,6 @@
 #include <atomic>
 #include <cinttypes>
 #include <sys/types.h>
-#include <rak/timer.h>
 #include <torrent/torrent.h>
 #include <torrent/utils/scheduler.h>
 
