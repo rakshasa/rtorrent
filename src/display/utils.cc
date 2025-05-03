@@ -62,9 +62,9 @@ print_hhmmss_local(char* first, char* last, time_t t) {
 char*
 print_ddhhmm(char* first, char* last, time_t t) {
   if (t / (24 * 3600) < 100)
-    return print_buffer(first, last, "%2id %2i:%02i", (int)t / (24 * 3600), ((int)t / 3600) % 24, ((int)t / 60) % 60);
+    return print_buffer(first, last, "%2id %2i:%02i ", (int)t / (24 * 3600), ((int)t / 3600) % 24, ((int)t / 60) % 60);
   else
-    return print_buffer(first, last, "--d --:--");
+    return print_buffer(first, last, "--d --:-- ");
 }
 
 char*
@@ -184,7 +184,7 @@ print_download_status(char* first, char* last, core::Download* d) {
 char*
 print_download_column_compact(char* first, char* last) {
   first = print_buffer(first, last, " %-64.64s", "Name");
-  first = print_buffer(first, last, "| Status | Downloaded | Size       | Done | Up Rate   | Down Rate | Uploaded   |  ETA      | Ratio| Misc ");
+  first = print_buffer(first, last, "| Status | Downloaded |    Size    | Done |  Up Rate  | Down Rate |  Uploaded  |    ETA    | Ratio | Misc ");
 
   if (first > last)
     throw torrent::internal_error("print_download_column_compact(...) wrote past end of the buffer.");
@@ -200,7 +200,7 @@ print_download_info_compact(char* first, char* last, core::Download* d) {
   if (!d->download()->info()->is_open())
     first = print_buffer(first, last, " CLOSED ");
   else if (!d->download()->info()->is_active())
-    first = print_buffer(first, last, " OPEN   ");
+    first = print_buffer(first, last, "  OPEN  ");
   else
     first = print_buffer(first, last, "        ");
 
@@ -223,9 +223,9 @@ print_download_info_compact(char* first, char* last, core::Download* d) {
   if (d->download()->info()->is_active() && !d->is_done())
     first = print_download_time_left(first, last, d);
   else
-    first = print_buffer(first, last, "         ");
+    first = print_buffer(first, last, "          ");
 
-  first = print_buffer(first, last, "| %4.2f ", (double)rpc::call_command_value("d.ratio", rpc::make_target(d)) / 1000.0);
+  first = print_buffer(first, last, "|  %4.2f ", (double)rpc::call_command_value("d.ratio", rpc::make_target(d)) / 1000.0);
   first = print_buffer(first, last, "| %c%c",
                        rpc::call_command_string("d.tied_to_file", rpc::make_target(d)).empty() ? ' ' : 'T',
                        rpc::call_command_value("d.ignore_commands", rpc::make_target(d)) == 0 ? ' ' : 'I',
@@ -248,7 +248,7 @@ print_download_time_left(char* first, char* last, core::Download* d) {
   uint32_t rate = d->info()->down_rate()->rate();
 
   if (rate < 512)
-    return print_buffer(first, last, "--d --:--");
+    return print_buffer(first, last, "--d --:-- ");
   
   time_t remaining = (d->download()->file_list()->size_bytes() - d->download()->bytes_done()) / (rate & ~(uint32_t)(512 - 1));
 
