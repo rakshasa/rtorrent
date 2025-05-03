@@ -4,6 +4,7 @@ SUBDIRS = \
 	test
 
 EXTRA_DIST= \
+	rtorrent.lua \
 	rak/address_info.h \
 	rak/algorithm.h \
 	rak/allocators.h \
