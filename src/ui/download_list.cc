@@ -363,11 +363,13 @@ DownloadList::setup_keys() {
 
   m_uiArray[DISPLAY_LOG]->bindings()[KEY_LEFT] =
     m_uiArray[DISPLAY_LOG]->bindings()['B' - '@'] =
-    m_uiArray[DISPLAY_LOG]->bindings()[' '] = std::bind(&DownloadList::activate_display, this, DISPLAY_DOWNLOAD_LIST);
+    m_uiArray[DISPLAY_LOG]->bindings()[' '] =
+    m_uiArray[DISPLAY_LOG]->bindings()['h'] = std::bind(&DownloadList::activate_display, this, DISPLAY_DOWNLOAD_LIST);
 
   m_uiArray[DISPLAY_DOWNLOAD_LIST]->bindings()[KEY_RIGHT] =
-    m_uiArray[DISPLAY_DOWNLOAD_LIST]->bindings()['F' - '@'] = std::bind(&DownloadList::activate_display, this, DISPLAY_DOWNLOAD);
-  m_uiArray[DISPLAY_DOWNLOAD_LIST]->bindings()['l'] = std::bind(&DownloadList::activate_display, this, DISPLAY_LOG);
+    m_uiArray[DISPLAY_DOWNLOAD_LIST]->bindings()['F' - '@'] =
+  m_uiArray[DISPLAY_DOWNLOAD_LIST]->bindings()['l'] = std::bind(&DownloadList::activate_display, this, DISPLAY_DOWNLOAD);
+  m_uiArray[DISPLAY_DOWNLOAD_LIST]->bindings()['L'] = std::bind(&DownloadList::activate_display, this, DISPLAY_LOG);
 }
 
 }

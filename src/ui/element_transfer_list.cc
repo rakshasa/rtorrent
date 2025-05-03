@@ -52,10 +52,10 @@ ElementTransferList::ElementTransferList(core::Download* d) :
   m_window(NULL),
   m_focus(0) {
 
-  m_bindings[KEY_LEFT] = m_bindings['B' - '@'] = std::bind(&slot_type::operator(), &m_slot_exit);
+  m_bindings[KEY_LEFT] = m_bindings['h'] = m_bindings['B' - '@'] = std::bind(&slot_type::operator(), &m_slot_exit);
 
-  m_bindings[KEY_DOWN]  = std::bind(&ElementTransferList::receive_next, this);
-  m_bindings[KEY_UP]    = std::bind(&ElementTransferList::receive_prev, this);
+  m_bindings[KEY_DOWN]  = m_bindings['j'] = std::bind(&ElementTransferList::receive_next, this);
+  m_bindings[KEY_UP]    = m_bindings['k'] = std::bind(&ElementTransferList::receive_prev, this);
   m_bindings[KEY_NPAGE] = std::bind(&ElementTransferList::receive_pagenext, this);
   m_bindings[KEY_PPAGE] = std::bind(&ElementTransferList::receive_pageprev, this);
 }

@@ -57,8 +57,8 @@ ElementDownloadList::ElementDownloadList() :
   m_bindings['9'] = std::bind(&ElementDownloadList::receive_change_view, this, "leeching");
   m_bindings['0'] = std::bind(&ElementDownloadList::receive_change_view, this, "active");
 
-  m_bindings[KEY_UP] = m_bindings['P' - '@'] = std::bind(&ElementDownloadList::receive_prev, this);
-  m_bindings[KEY_DOWN] = m_bindings['N' - '@'] = std::bind(&ElementDownloadList::receive_next, this);
+  m_bindings[KEY_UP]   = m_bindings['k'] = m_bindings['P' - '@'] = std::bind(&ElementDownloadList::receive_prev, this);
+  m_bindings[KEY_DOWN] = m_bindings['j'] = m_bindings['N' - '@'] = std::bind(&ElementDownloadList::receive_next, this);
 
   m_bindings[KEY_PPAGE] = m_bindings['U' - '@'] = [this] { receive_pageprev(); };
   m_bindings[KEY_NPAGE] = m_bindings['H' - '@'] = [this] { receive_pagenext(); };

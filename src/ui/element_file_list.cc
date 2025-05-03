@@ -63,8 +63,8 @@ ElementFileList::ElementFileList(core::Download* d) :
   m_selected(iterator(d->download()->file_list()->begin())),
   m_collapsed(false) {
 
-  m_bindings[KEY_LEFT]  = m_bindings['B' - '@'] = std::bind(&slot_type::operator(), &m_slot_exit);
-  m_bindings[KEY_RIGHT] = m_bindings['F' - '@'] = std::bind(&ElementFileList::receive_select, this);
+  m_bindings[KEY_LEFT]  = m_bindings['h'] = m_bindings['B' - '@'] = std::bind(&slot_type::operator(), &m_slot_exit);
+  m_bindings[KEY_RIGHT] = m_bindings['l'] = m_bindings['F' - '@'] = std::bind(&ElementFileList::receive_select, this);
 
   m_bindings[' '] = std::bind(&ElementFileList::receive_priority, this);
   m_bindings['*'] = std::bind(&ElementFileList::receive_change_all, this);
@@ -72,8 +72,8 @@ ElementFileList::ElementFileList(core::Download* d) :
   m_bindings[KEY_NPAGE] = std::bind(&ElementFileList::receive_pagenext, this);
   m_bindings[KEY_PPAGE] = std::bind(&ElementFileList::receive_pageprev, this);
 
-  m_bindings[KEY_DOWN] = m_bindings['N' - '@'] = std::bind(&ElementFileList::receive_next, this);
-  m_bindings[KEY_UP]   = m_bindings['P' - '@'] = std::bind(&ElementFileList::receive_prev, this);
+  m_bindings[KEY_DOWN] = m_bindings['j'] = m_bindings['N' - '@'] = std::bind(&ElementFileList::receive_next, this);
+  m_bindings[KEY_UP]   = m_bindings['k'] = m_bindings['P' - '@'] = std::bind(&ElementFileList::receive_prev, this);
 }
 
 inline ElementText*

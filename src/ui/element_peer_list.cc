@@ -75,14 +75,14 @@ ElementPeerList::ElementPeerList(core::Download* d) :
 
   m_elementInfo->slot_exit(std::bind(&ElementPeerList::activate_display, this, DISPLAY_LIST));
 
-  m_bindings['k']       = std::bind(&ElementPeerList::receive_disconnect_peer, this);
+  m_bindings['K']       = std::bind(&ElementPeerList::receive_disconnect_peer, this);
   m_bindings['*']       = std::bind(&ElementPeerList::receive_snub_peer, this);
   m_bindings['B']       = std::bind(&ElementPeerList::receive_ban_peer, this);
-  m_bindings[KEY_LEFT]  = m_bindings['B' - '@'] = std::bind(&slot_type::operator(), &m_slot_exit);
-  m_bindings[KEY_RIGHT] = m_bindings['F' - '@'] = std::bind(&ElementPeerList::activate_display, this, DISPLAY_INFO);
+  m_bindings[KEY_LEFT]  = m_bindings['h'] = m_bindings['B' - '@'] = std::bind(&slot_type::operator(), &m_slot_exit);
+  m_bindings[KEY_RIGHT] = m_bindings['l'] = m_bindings['F' - '@'] = std::bind(&ElementPeerList::activate_display, this, DISPLAY_INFO);
 
-  m_bindings[KEY_UP]   = m_bindings['P' - '@'] = std::bind(&ElementPeerList::receive_prev, this);
-  m_bindings[KEY_DOWN] = m_bindings['N' - '@'] = std::bind(&ElementPeerList::receive_next, this);
+  m_bindings[KEY_UP]   = m_bindings['k'] = m_bindings['P' - '@'] = std::bind(&ElementPeerList::receive_prev, this);
+  m_bindings[KEY_DOWN] = m_bindings['j'] = m_bindings['N' - '@'] = std::bind(&ElementPeerList::receive_next, this);
 }
 
 ElementPeerList::~ElementPeerList() {
