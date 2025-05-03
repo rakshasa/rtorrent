@@ -17,6 +17,7 @@
 #include <torrent/download/resource_manager.h>
 #include <torrent/peer/client_info.h>
 
+#include "core/curl_stack.h"
 #include "core/download.h"
 #include "core/manager.h"
 #include "rpc/parse_commands.h"

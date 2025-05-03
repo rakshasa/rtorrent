@@ -10,7 +10,6 @@
 #include <torrent/object.h>
 
 #include "download_list.h"
-#include "poll_manager.h"
 #include "range_map.h"
 
 namespace torrent {
@@ -23,6 +22,7 @@ class FileStatusCache;
 
 namespace core {
 
+class CurlStack;
 class DownloadStore;
 class HttpQueue;
 

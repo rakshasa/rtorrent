@@ -15,6 +15,7 @@
 #include <torrent/utils/log.h>
 #include <torrent/utils/option_strings.h>
 
+#include "core/curl_stack.h"
 #include "core/download.h"
 #include "core/manager.h"
 #include "rpc/scgi.h"
