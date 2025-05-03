@@ -185,7 +185,7 @@ print_download_status(char* first, char* last, core::Download* d) {
 char*
 print_download_column_compact(char* first, char* last) {
   first = print_buffer(first, last, " %-64.64s", "Name");
-  first = print_buffer(first, last, "| Status | Downloaded | Size       | Done | Up Rate   | Down Rate | Uploaded   |  ETA      | Ratio| Misc ");
+  first = print_buffer(first, last, "| Status | Downloaded |    Size    | Done |  Up Rate  | Down Rate |  Uploaded  |    ETA    | Ratio | Misc ");
 
   if (first > last)
     throw torrent::internal_error("print_download_column_compact(...) wrote past end of the buffer.");
@@ -201,7 +201,7 @@ print_download_info_compact(char* first, char* last, core::Download* d) {
   if (!d->download()->info()->is_open())
     first = print_buffer(first, last, " CLOSED ");
   else if (!d->download()->info()->is_active())
-    first = print_buffer(first, last, " OPEN   ");
+    first = print_buffer(first, last, "  OPEN  ");
   else
     first = print_buffer(first, last, "        ");
 
@@ -221,12 +221,14 @@ print_download_info_compact(char* first, char* last, core::Download* d) {
   first = print_buffer(first, last, "| %7.1f MB ", (double)d->info()->up_rate()->total() / (1 << 20));
   first = print_buffer(first, last, "| ");
 
-  if (d->download()->info()->is_active() && !d->is_done())
+  if (d->download()->info()->is_active() && !d->is_done()) {
     first = print_download_time_left(first, last, d);
-  else
-    first = print_buffer(first, last, "         ");
+    first = print_buffer(first, last, " ");
+  } else {
+    first = print_buffer(first, last, "          ");
+  }
 
-  first = print_buffer(first, last, "| %4.2f ", (double)rpc::call_command_value("d.ratio", rpc::make_target(d)) / 1000.0);
+  first = print_buffer(first, last, "| %5.2f ", (double)rpc::call_command_value("d.ratio", rpc::make_target(d)) / 1000.0);
   first = print_buffer(first, last, "| %c%c",
                        rpc::call_command_string("d.tied_to_file", rpc::make_target(d)).empty() ? ' ' : 'T',
                        rpc::call_command_value("d.ignore_commands", rpc::make_target(d)) == 0 ? ' ' : 'I',
