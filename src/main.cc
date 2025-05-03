@@ -394,6 +394,11 @@ main(int argc, char** argv) {
 
     CMD2_REDIRECT        ("torrent_list_layout", "ui.torrent_list.layout.set");
 
+    CMD2_REDIRECT_GENERIC("start_tied",    "tied.start");
+    CMD2_REDIRECT_GENERIC("stop_untied",   "untied.stop");
+    CMD2_REDIRECT_GENERIC("close_untied",  "untied.close");
+    CMD2_REDIRECT_GENERIC("remove_untied", "untied.remove");
+
     // Deprecated commands. Don't use these anymore.
 
     if (rpc::call_command_value("method.use_intermediate") == 1) {
