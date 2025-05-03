@@ -5,12 +5,12 @@
 #include <torrent/connection_manager.h>
 #include <torrent/utils/directory_events.h>
 
-#include "core/manager.h"
-#include "core/download_store.h"
-#include "core/view_manager.h"
+#include "core/curl_stack.h"
 #include "core/dht_manager.h"
+#include "core/download_store.h"
 #include "core/http_queue.h"
-
+#include "core/manager.h"
+#include "core/view_manager.h"
 #include "display/canvas.h"
 #include "display/window.h"
 #include "display/window_http_queue.h"

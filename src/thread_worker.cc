@@ -22,7 +22,7 @@ ThreadWorker::~ThreadWorker() {
 
 void
 ThreadWorker::init_thread() {
-  m_poll = std::unique_ptr<torrent::Poll>(core::create_poll());
+  m_poll = std::unique_ptr<torrent::Poll>(torrent::Poll::slot_create_poll()());
   m_state = STATE_INITIALIZED;
 }
 

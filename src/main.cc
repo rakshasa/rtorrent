@@ -132,6 +132,16 @@ client_perform() {
   control->inc_tick();
 }
 
+torrent::Poll*
+create_poll() {
+  torrent::Poll* poll = torrent::Poll::create(sysconf(_SC_OPEN_MAX));
+
+  if (poll == nullptr)
+    throw torrent::internal_error("Unable to create poll object: " + std::string(std::strerror(errno)));
+
+  return poll;
+}
+
 int
 main(int argc, char** argv) {
   try {
@@ -178,7 +188,7 @@ main(int argc, char** argv) {
     torrent::log_add_group_output(torrent::LOG_NOTICE, "important");
     torrent::log_add_group_output(torrent::LOG_INFO, "complete");
 
-    torrent::Poll::slot_create_poll() = std::bind(&core::create_poll);
+    torrent::Poll::slot_create_poll() = [](){ return create_poll(); };
 
     torrent::initialize();
     torrent::set_main_thread_slots(std::bind(&client_perform));
