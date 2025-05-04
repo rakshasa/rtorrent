@@ -267,7 +267,7 @@ SCgiTask::receive_call(const char* buffer, uint32_t length) {
   auto result_callback = [this, scgi_thread](const char* b, uint32_t l) {
       receive_write(b, l);
 
-      scgi_thread->callback(this, [this]() {
+      scgi_thread->callback_interrupt_pollling(this, [this]() {
           // Only need to lock once here as a memory barrier.
           m_result_mutex.lock();
           m_result_mutex.unlock();
@@ -280,7 +280,7 @@ SCgiTask::receive_call(const char* buffer, uint32_t length) {
 
   switch (content_type()) {
   case rpc::SCgiTask::ContentType::JSON:
-    torrent::main_thread()->callback(this, [buffer, length, result_callback]() {
+    torrent::main_thread()->callback_interrupt_pollling(this, [buffer, length, result_callback]() {
         rpc.process(RpcManager::RPCType::JSON, buffer, length,
                     [result_callback](const char* b, uint32_t l) {
                       result_callback(b, l);
@@ -290,7 +290,7 @@ SCgiTask::receive_call(const char* buffer, uint32_t length) {
     break;
 
   case rpc::SCgiTask::ContentType::XML:
-    torrent::main_thread()->callback(this, [buffer, length, result_callback]() {
+    torrent::main_thread()->callback_interrupt_pollling(this, [buffer, length, result_callback]() {
         rpc.process(RpcManager::RPCType::XML, buffer, length,
                     [result_callback](const char* b, uint32_t l) {
                       result_callback(b, l);
