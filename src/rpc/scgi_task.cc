@@ -20,16 +20,6 @@
 
 namespace rpc {
 
-// If bufferSize is zero then memcpy won't do anything.
-inline void
-SCgiTask::realloc_buffer(uint32_t size, const char* buffer, uint32_t bufferSize) {
-  char* tmp = new char[size];
-
-  std::memcpy(tmp, buffer, bufferSize);
-  ::free(m_buffer);
-  m_buffer = tmp;
-}
-
 void
 SCgiTask::open(SCgi* parent, int fd) {
   m_parent      = parent;
@@ -150,18 +140,8 @@ SCgiTask::event_read() {
     m_body      = current + 1;
     header_size = std::distance(m_buffer, m_body);
 
-    if (content_type == "") {
-      // If no CONTENT_TYPE was supplied, peek at the body to check if it's JSON
-      // { is a single request object, while [ is a batch array
-      if (*m_body == '{' || *m_body == '[')
-        m_content_type = ContentType::JSON;
-    } else if (content_type == "application/json") {
-      m_content_type = ContentType::JSON;
-    } else if (content_type == "text/xml") {
-      m_content_type = ContentType::XML;
-    } else {
+    if (!detect_content_type(content_type))
       goto event_read_failed;
-    }
 
     if ((unsigned int)(content_length + header_size) < m_buffer_size) {
       m_buffer_size = content_length + header_size;
@@ -232,6 +212,50 @@ SCgiTask::event_write() {
 void
 SCgiTask::event_error() {
   close();
+}
+
+static inline bool
+scgi_match_content_type(const std::string& content_type, const char* type) {
+  std::string::size_type pos = content_type.find_first_of(" ;");
+
+  if (pos == std::string::npos)
+    return content_type == type;
+
+  return content_type.compare(0, pos, type) == 0;
+}
+
+bool
+SCgiTask::detect_content_type(const std::string& content_type) {
+  if (content_type.empty()) {
+    // If no CONTENT_TYPE was supplied, peek at the body to check if it's JSON
+    // { is a single request object, while [ is a batch array
+    if (*m_body == '{' || *m_body == '[')
+      m_content_type = ContentType::JSON;
+    else
+      m_content_type = ContentType::XML;
+
+  } else if (scgi_match_content_type(content_type, "application/json")) {
+    m_content_type = ContentType::JSON;
+
+  } else if (scgi_match_content_type(content_type, "text/xml")) {
+    m_content_type = ContentType::XML;
+
+  } else {
+    // If the content type is not JSON or XML, we don't know how to handle it.
+    return false;
+  }
+
+  return true;
+}
+
+// If bufferSize is zero then memcpy won't do anything.
+void
+SCgiTask::realloc_buffer(uint32_t size, const char* buffer, uint32_t bufferSize) {
+  char* tmp = new char[size];
+
+  std::memcpy(tmp, buffer, bufferSize);
+  ::free(m_buffer);
+  m_buffer = tmp;
 }
 
 void

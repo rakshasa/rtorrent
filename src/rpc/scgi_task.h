@@ -38,7 +38,8 @@ public:
   utils::SocketFd&    get_fd()             { return *reinterpret_cast<utils::SocketFd*>(&m_fileDesc); }
 
 private:
-  inline void         realloc_buffer(uint32_t size, const char* buffer, uint32_t bufferSize);
+  bool                detect_content_type(const std::string& content_type);
+  void                realloc_buffer(uint32_t size, const char* buffer, uint32_t bufferSize);
 
   void                receive_call(const char* buffer, uint32_t length);
   void                receive_write(const char* buffer, uint32_t length);
