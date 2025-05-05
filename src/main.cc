@@ -395,25 +395,26 @@ main(int argc, char** argv) {
     CMD2_REDIRECT        ("torrent_list_layout", "ui.torrent_list.layout.set");
 
     // Deprecated commands. Don't use these anymore.
+    //
+    // It has been so long that we now re-create these commands with the new (old by now) command
+    // call style, where the first argument is the target.
 
-    if (rpc::call_command_value("method.use_intermediate") == 1) {
-      CMD2_REDIRECT_GENERIC("execute", "execute2");
+    // if (rpc::call_command_value("method.use_intermediate") == 1) {
+    //   CMD2_REDIRECT_GENERIC("execute", "execute2");
 
-      CMD2_REDIRECT_GENERIC("schedule", "schedule2");
-      CMD2_REDIRECT_GENERIC("schedule_remove", "schedule_remove2");
+    //   CMD2_REDIRECT_GENERIC("schedule", "schedule2");
+    //   CMD2_REDIRECT_GENERIC("schedule_remove", "schedule_remove2");
 
-    } else if (rpc::call_command_value("method.use_intermediate") == 2) {
-      // Allow for use in config files, etc, just don't export it.
-      CMD2_REDIRECT_GENERIC_NO_EXPORT("execute", "execute2");
+    // } else if (rpc::call_command_value("method.use_intermediate") == 2) {
+    //   Allow for use in config files, etc, just don't export it.
+    //   CMD2_REDIRECT_GENERIC_NO_EXPORT("execute", "execute2");
 
-      CMD2_REDIRECT_GENERIC_NO_EXPORT("schedule", "schedule2");
-      CMD2_REDIRECT_GENERIC_NO_EXPORT("schedule_remove", "schedule_remove2");
-    }
+    //   CMD2_REDIRECT_GENERIC_NO_EXPORT("schedule", "schedule2");
+    //   CMD2_REDIRECT_GENERIC_NO_EXPORT("schedule_remove", "schedule_remove2");
+    // }
 
-#if LT_SLIM_VERSION != 1
-    if (rpc::call_command_value("method.use_deprecated")) {
-    }
-#endif
+    // if (rpc::call_command_value("method.use_deprecated") == 1) {
+    // }
 
     int firstArg = parse_options(argc, argv);
 
@@ -607,6 +608,8 @@ print_help() {
   std::cout << std::endl;
   std::cout << "Usage: rtorrent [OPTIONS]... [FILE]... [URL]..." << std::endl;
   std::cout << "  -D                Enable deprecated commands" << std::endl;
+  std::cout << "  -I                Disable intermediate commands" << std::endl;
+  std::cout << "  -K                Allow intermediate commands without xmlrpc" << std::endl;
   std::cout << "  -h                Display this very helpful text" << std::endl;
   std::cout << "  -n                Don't try to load rtorrent.rc on startup" << std::endl;
   std::cout << "  -b <a.b.c.d>      Bind the listening socket to this IP" << std::endl;

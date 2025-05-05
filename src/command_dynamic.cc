@@ -407,12 +407,13 @@ cmd_catch(rpc::target_type target, const torrent::Object& args) {
 void
 initialize_command_dynamic() {
   // clang-format off
-  #ifdef HAVE_XMLRPC_TINYXML2
+#ifdef HAVE_XMLRPC_TINYXML2
   CMD2_ANY         ("system.listMethods", std::bind(&system_listMethods)); // only used by tinyxml2
-  #endif
+#endif
 
-  CMD2_VAR_BOOL    ("method.use_deprecated", true);
-  CMD2_VAR_VALUE   ("method.use_intermediate", 1);
+  // Keep these for future use when we deprecate more commands.
+  CMD2_VAR_BOOL    ("method.use_deprecated", false);
+  CMD2_VAR_VALUE   ("method.use_intermediate", 0);
 
   CMD2_ANY_LIST    ("method.insert",             std::bind(&system_method_insert, std::placeholders::_2));
   CMD2_ANY_LIST    ("method.insert.value",       std::bind(&system_method_insert_object, std::placeholders::_2, rpc::object_storage::flag_value_type));

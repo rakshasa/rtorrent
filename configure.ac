@@ -10,7 +10,7 @@ AM_PROG_AR
 LT_INIT
 
 AC_PROG_CXX
-AC_DEFINE([API_VERSION], [12], [api version])
+AC_DEFINE([API_VERSION], [13], [api version])
 
 # Filter out unwanted flags added by autoconf on some systems, e.g. MacOS.
 TORRENT_REMOVE_UNWANTED(CXX, $CXX, -std=c++11 -std=gnu++11)
