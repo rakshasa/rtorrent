@@ -323,7 +323,7 @@ initialize_command_events() {
   // TODO: Deprecate schedule2 in the future.
   CMD2_ANY_LIST    ("schedule",         std::bind(&apply_schedule, std::placeholders::_2));
   CMD2_ANY_LIST    ("schedule2",        std::bind(&apply_schedule, std::placeholders::_2));
-  CMD2_ANY_STRING_V("schedule_remove",  std::bind(&rpc::CommandScheduler::erase_str, control->command_scheduler(), std::placeholders::_2));
+  CMD2_ANY_STRING_V("schedule.remove",  std::bind(&rpc::CommandScheduler::erase_str, control->command_scheduler(), std::placeholders::_2));
   CMD2_ANY_STRING_V("schedule_remove2", std::bind(&rpc::CommandScheduler::erase_str, control->command_scheduler(), std::placeholders::_2));
 
   CMD2_ANY_STRING_V("import",          std::bind(&apply_import, std::placeholders::_2));
