@@ -395,25 +395,27 @@ main(int argc, char** argv) {
     CMD2_REDIRECT        ("torrent_list_layout", "ui.torrent_list.layout.set");
 
     // Deprecated commands. Don't use these anymore.
+    //
+    // It has been so long that we now re-create these commands with the new (old by now) command
+    // call style, where the first argument is the target.
 
     if (rpc::call_command_value("method.use_intermediate") == 1) {
-      CMD2_REDIRECT_GENERIC("execute", "execute2");
+      // CMD2_REDIRECT_GENERIC("execute", "execute2");
 
-      CMD2_REDIRECT_GENERIC("schedule", "schedule2");
-      CMD2_REDIRECT_GENERIC("schedule_remove", "schedule_remove2");
+      // CMD2_REDIRECT_GENERIC("schedule", "schedule2");
+      // CMD2_REDIRECT_GENERIC("schedule_remove", "schedule_remove2");
+
+      throw torrent::input_error("Deprecated commands are not supported anymore.");
 
     } else if (rpc::call_command_value("method.use_intermediate") == 2) {
       // Allow for use in config files, etc, just don't export it.
-      CMD2_REDIRECT_GENERIC_NO_EXPORT("execute", "execute2");
+      // CMD2_REDIRECT_GENERIC_NO_EXPORT("execute", "execute2");
 
-      CMD2_REDIRECT_GENERIC_NO_EXPORT("schedule", "schedule2");
-      CMD2_REDIRECT_GENERIC_NO_EXPORT("schedule_remove", "schedule_remove2");
-    }
+      // CMD2_REDIRECT_GENERIC_NO_EXPORT("schedule", "schedule2");
+      // CMD2_REDIRECT_GENERIC_NO_EXPORT("schedule_remove", "schedule_remove2");
 
-#if LT_SLIM_VERSION != 1
-    if (rpc::call_command_value("method.use_deprecated")) {
+      throw torrent::input_error("Deprecated commands are not supported anymore.");
     }
-#endif
 
     int firstArg = parse_options(argc, argv);
 

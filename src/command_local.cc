@@ -300,9 +300,10 @@ initialize_command_local() {
   CMD2_ANY         ("lua.execute.str",        std::bind(&rpc::execute_lua, lua_engine, std::placeholders::_1, std::placeholders::_2, rpc::LuaEngine::flag_string));
 #endif
 
-#define CMD2_EXECUTE(key, flags)                                         \
+#define CMD2_EXECUTE(key, flags)                                        \
   CMD2_ANY(key, std::bind(&rpc::ExecFile::execute_object, &rpc::execFile, std::placeholders::_2, flags));
 
+  CMD2_EXECUTE     ("execute",                rpc::ExecFile::flag_expand_tilde | rpc::ExecFile::flag_throw);
   CMD2_EXECUTE     ("execute2",                rpc::ExecFile::flag_expand_tilde | rpc::ExecFile::flag_throw);
   CMD2_EXECUTE     ("execute.throw",           rpc::ExecFile::flag_expand_tilde | rpc::ExecFile::flag_throw);
   CMD2_EXECUTE     ("execute.throw.bg",        rpc::ExecFile::flag_expand_tilde | rpc::ExecFile::flag_throw | rpc::ExecFile::flag_background);
