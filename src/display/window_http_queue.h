@@ -19,16 +19,15 @@ public:
   typedef std::list<slot_curl_get>             signal_curl_get;
 
   WindowHttpQueue(core::HttpQueue* q);
+  ~WindowHttpQueue() override;
 
-  virtual void        redraw();
+  void                redraw() override;
 
 private:
   struct Node {
     Node(core::CurlGet* h, const std::string& n) : m_http(h), m_name(n) {}
 
-    core::CurlGet* get_http() { return m_http; }
-
-    core::CurlGet*            m_http;
+    core::CurlGet*            m_http{};
     std::string               m_name;
     std::chrono::microseconds m_timer{};
   };
@@ -45,8 +44,10 @@ private:
   core::HttpQueue*    m_queue;
   Container           m_container;
 
-  signal_curl_get::iterator m_connInsert;
-  signal_curl_get::iterator m_connErase;
+  signal_curl_get::iterator m_conn_insert;
+  signal_curl_get::iterator m_conn_erase;
+
+  torrent::utils::SchedulerEntry m_task_deactivate;
 };
 
 }
