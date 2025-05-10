@@ -19,7 +19,7 @@ void
 CommandDynamicTest::setUp() {
   if (rpc::commands.find("method.insert") == rpc::commands.end()) {
     setlocale(LC_ALL, "");
-    cachedTime = rak::timer::current();
+    // cachedTime = rak::timer::current();
     control = new Control;
 
     initialize_command_dynamic();

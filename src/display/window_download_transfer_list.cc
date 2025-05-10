@@ -1,39 +1,3 @@
-// rTorrent - BitTorrent client
-// Copyright (C) 2005-2011, Jari Sundell
-//
-// This program is free software; you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation; either version 2 of the License, or
-// (at your option) any later version.
-// 
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-// 
-// You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-//
-// In addition, as a special exception, the copyright holders give
-// permission to link the code of portions of this program with the
-// OpenSSL library under certain conditions as described in each
-// individual source file, and distribute linked combinations
-// including the two.
-//
-// You must obey the GNU General Public License in all respects for
-// all of the code used other than OpenSSL.  If you modify file(s)
-// with this exception, you may extend this exception to your version
-// of the file(s), but you are not obligated to do so.  If you do not
-// wish to do so, delete this exception statement from your version.
-// If you delete this exception statement from all source files in the
-// program, then also delete it here.
-//
-// Contact:  Jari Sundell <jaris@ifi.uio.no>
-//
-//           Skomakerveien 33
-//           3185 Skoppum, NORWAY
-
 #include "config.h"
 
 #include <cmath>
@@ -48,7 +12,7 @@
 
 namespace display {
 
-WindowDownloadTransferList::WindowDownloadTransferList(core::Download* d, unsigned int *focus) :
+WindowDownloadTransferList::WindowDownloadTransferList(core::Download* d, [[maybe_unused]] unsigned int *focus) :
   Window(new Canvas, 0, 0, 0, extent_full, extent_full),
   m_download(d) {
 }
@@ -56,7 +20,7 @@ WindowDownloadTransferList::WindowDownloadTransferList(core::Download* d, unsign
 void
 WindowDownloadTransferList::redraw() {
   // TODO: Make this depend on tracker signal.
-  m_slotSchedule(this, (cachedTime + rak::timer::from_seconds(1)).round_seconds());
+  schedule_update();
   m_canvas->erase();
 
   if (m_canvas->height() < 3 || m_canvas->width() < 18)
@@ -90,7 +54,7 @@ WindowDownloadTransferList::redraw() {
       if (bItr->is_finished()) {
         attr = A_REVERSE;
         id = key_id(bItr->leader()->const_peer_info());
-        
+
       } else if (bItr->is_transfering()) {
         attr = A_BOLD;
         id = key_id(bItr->leader()->const_peer_info());
@@ -121,22 +85,24 @@ WindowDownloadTransferList::rows() const {
 
 char
 WindowDownloadTransferList::key_id(torrent::BlockTransfer::key_type key) {
-  uint32_t oldestTime = cachedTime.seconds();
+  uint32_t current_time = torrent::this_thread::cached_seconds().count();
+  uint32_t oldest_time = current_time;
+
   assigned_vector::iterator oldestItr = m_assigned.begin();
 
   for (assigned_vector::iterator itr = m_assigned.begin(), last = m_assigned.end(); itr != last; ++itr) {
     if (itr->m_key == key) {
-      itr->m_last = cachedTime.seconds();
+      itr->m_last = torrent::this_thread::cached_seconds().count();
       return itr->m_id;
     }
 
-    if (itr->m_last < oldestTime) {
-      oldestTime = itr->m_last;
+    if (itr->m_last < oldest_time) {
+      oldest_time = itr->m_last;
       oldestItr = itr;
     }
   }
 
-  if (oldestItr == m_assigned.end() || cachedTime.seconds() - oldestTime <= 60) {
+  if (oldestItr == m_assigned.end() || current_time - oldest_time <= 60) {
     // We didn't find any previously used id's to take over.
 
     // Return 'f' when we run out of characters.
@@ -145,7 +111,7 @@ WindowDownloadTransferList::key_id(torrent::BlockTransfer::key_type key) {
 
     char id = 'A' + m_assigned.size();
 
-    m_assigned.push_back(assigned_type(key, cachedTime.seconds(), id));
+    m_assigned.push_back(assigned_type(key, current_time, id));
     return id;
 
   } else {

@@ -333,7 +333,9 @@ DownloadList::resume(Download* download, int flags) {
     // This will never actually do anything due to the above hash check.
     // open_throw(download);
 
-    rpc::call_command("d.state_changed.set", cachedTime.seconds(), rpc::make_target(download));
+    auto cached_seconds = torrent::this_thread::cached_seconds().count();
+
+    rpc::call_command("d.state_changed.set", cached_seconds, rpc::make_target(download));
     rpc::call_command("d.state_counter.set", rpc::call_command_value("d.state_counter", rpc::make_target(download)) + 1, rpc::make_target(download));
 
     if (download->is_done()) {
@@ -415,13 +417,15 @@ DownloadList::pause(Download* download, int flags) {
 
     download->download()->stop(flags);
     torrent::resume_save_progress(*download->download(), download->download()->bencode()->get_key("libtorrent_resume"));
-    
+
     // TODO: This is actually for pause, not stop... And doesn't get
     // called when the download isn't active, but was in the 'started'
     // view.
     DL_TRIGGER_EVENT(download, "event.download.paused");
 
-    rpc::call_command("d.state_changed.set", cachedTime.seconds(), rpc::make_target(download));
+    auto cached_seconds = torrent::this_thread::cached_seconds().count();
+
+    rpc::call_command("d.state_changed.set", cached_seconds, rpc::make_target(download));
     rpc::call_command("d.state_counter.set", rpc::call_command_value("d.state_counter", rpc::make_target(download)), rpc::make_target(download));
 
     // If initial seeding is complete, don't try it again when restarting.

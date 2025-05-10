@@ -105,7 +105,7 @@ RpcManager::process(RPCType type, const char* in_buffer, uint32_t length, slot_r
       return m_xmlrpc.process(in_buffer, length, callback);
 
     } else {
-      const std::string response = "<?xml version=\"1.0\"?><methodResponse><fault><struct><member><name>faultCode</name><value><i8>-501</i8></value></member><member><name>faultString</name><value><string>XML-RPC not supported</string></value></member></struct></fault></methodResponse>";
+      const std::string response = "<?xml version=\"1.0\"?><methodResponse><fault><value><struct><member><name>faultCode</name><value><i8>-501</i8></value></member><member><name>faultString</name><value><string>XML-RPC not supported</string></value></member></struct></value></fault></methodResponse>";
       return callback(response.c_str(), response.size());
     }
     break;

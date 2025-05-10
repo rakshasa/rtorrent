@@ -11,7 +11,7 @@
 CPPUNIT_TEST_SUITE_REGISTRATION(JsonrpcTest);
 
 torrent::Object
-     jsonrpc_cmd_test_reflect(rpc::target_type t, const torrent::Object& obj) { return obj; }
+jsonrpc_cmd_test_reflect([[maybe_unused]] rpc::target_type t, const torrent::Object& obj) { return obj; }
 
 void initialize_command_dynamic();
 
@@ -121,7 +121,7 @@ JsonrpcTest::setUp() {
   m_jsonrpc = rpc::JsonRpc();
   m_jsonrpc.initialize();
   setlocale(LC_ALL, "");
-  cachedTime = rak::timer::current();
+  // cachedTime = rak::timer::current();
   control    = new Control;
   if (rpc::commands.find("jsonrpc_reflect") == rpc::commands.end()) {
     CMD2_ANY("jsonrpc_reflect", &jsonrpc_cmd_test_reflect);

@@ -5,7 +5,6 @@
 #include <sstream>
 #include <iomanip>
 #include <rak/socket_address.h>
-#include <rak/timer.h>
 #include <torrent/exceptions.h>
 #include <torrent/connection_manager.h>
 #include <torrent/rate.h>
@@ -18,6 +17,7 @@
 #include <torrent/download/resource_manager.h>
 #include <torrent/peer/client_info.h>
 
+#include "core/curl_stack.h"
 #include "core/download.h"
 #include "core/manager.h"
 #include "rpc/parse_commands.h"

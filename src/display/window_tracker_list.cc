@@ -22,7 +22,7 @@ WindowTrackerList::WindowTrackerList(core::Download* d, unsigned int* focus) :
 void
 WindowTrackerList::redraw() {
   // TODO: Make this depend on tracker signal.
-  m_slotSchedule(this, (cachedTime + rak::timer::from_seconds(10)).round_seconds());
+  schedule_update(10);
   m_canvas->erase();
 
   unsigned int pos = 0;

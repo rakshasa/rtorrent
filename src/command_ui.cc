@@ -4,7 +4,6 @@
 
 #include <ctime>
 #include <regex>
-
 #include <rak/algorithm.h>
 #include <torrent/utils/log.h>
 
@@ -95,7 +94,8 @@ apply_view_set(const torrent::Object::list_type& args) {
 //   if (args.front().as_string() == "main")
 //     control->ui()->download_list()->set_view(*itr);
 //   else
-    throw torrent::input_error("No such target.");
+
+  throw torrent::input_error("No such target.");
 }
 
 torrent::Object
@@ -407,7 +407,9 @@ apply_to_time(const torrent::Object& rawArgs, int flags) {
 
 torrent::Object
 apply_to_elapsed_time(const torrent::Object& rawArgs) {
-  uint64_t arg = cachedTime.seconds() - rawArgs.as_value();
+  auto cached_seconds = torrent::this_thread::cached_seconds().count();
+
+  uint64_t arg = cached_seconds - rawArgs.as_value();
 
   char buffer[48];
   snprintf(buffer, 48, "%2d:%02d:%02d", (int)(arg / 3600), (int)((arg / 60) % 60), (int)(arg % 60));
@@ -605,8 +607,9 @@ apply_elapsed_less(const torrent::Object::list_type& args) {
     throw torrent::input_error("Wrong argument count.");
 
   int64_t start_time = rpc::convert_to_value(args.front());
+  auto cached_seconds = torrent::this_thread::cached_seconds().count();
 
-  return (int64_t)(start_time != 0 && rak::timer::current_seconds() - start_time < rpc::convert_to_value(args.back()));
+  return (int64_t)(start_time != 0 && cached_seconds - start_time < rpc::convert_to_value(args.back()));
 }
 
 torrent::Object
@@ -615,8 +618,9 @@ apply_elapsed_greater(const torrent::Object::list_type& args) {
     throw torrent::input_error("Wrong argument count.");
 
   int64_t start_time = rpc::convert_to_value(args.front());
+  auto cached_seconds = torrent::this_thread::cached_seconds().count();
 
-  return (int64_t)(start_time != 0 && rak::timer::current_seconds() - start_time > rpc::convert_to_value(args.back()));
+  return (int64_t)(start_time != 0 && cached_seconds - start_time > rpc::convert_to_value(args.back()));
 }
 
 inline std::vector<int64_t>

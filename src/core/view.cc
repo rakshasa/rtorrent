@@ -113,7 +113,7 @@ struct view_downloads_filter : std::function<bool (Download*)> {
 
 void
 View::emit_changed() {
-  priority_queue_update(&taskScheduler, &m_delayChanged, cachedTime);
+  torrent::this_thread::scheduler()->update_wait_for(&m_delay_changed, 0ms);
 }
 
 void
@@ -127,7 +127,7 @@ View::~View() {
     return;
 
   clear_filter_on();
-  priority_queue_erase(&taskScheduler, &m_delayChanged);
+  torrent::this_thread::scheduler()->erase(&m_delay_changed);
 }
 
 void
@@ -148,8 +148,7 @@ View::initialize(const std::string& name) {
   m_size  = base_type::size();
   m_focus = 0;
 
-  set_last_changed(rak::timer());
-  m_delayChanged.slot() = std::bind(&View::emit_changed_now, this);
+  m_delay_changed.slot() = [this]() { emit_changed_now(); };
 }
 
 void

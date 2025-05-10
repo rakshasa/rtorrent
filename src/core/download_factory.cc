@@ -72,8 +72,8 @@ DownloadFactory::DownloadFactory(Manager* m) :
   m_isFile(false),
   m_initLoad(false) {
 
-  m_taskLoad.slot() = std::bind(&DownloadFactory::receive_load, this);
-  m_taskCommit.slot() = std::bind(&DownloadFactory::receive_commit, this);
+  m_task_load.slot() = std::bind(&DownloadFactory::receive_load, this);
+  m_task_commit.slot() = std::bind(&DownloadFactory::receive_commit, this);
 
   // m_variables["connection_leech"] = rpc::call_command("protocol.connection.leech");
   // m_variables["connection_seed"]  = rpc::call_command("protocol.connection.seed");
@@ -84,8 +84,8 @@ DownloadFactory::DownloadFactory(Manager* m) :
 }
 
 DownloadFactory::~DownloadFactory() {
-  priority_queue_erase(&taskScheduler, &m_taskLoad);
-  priority_queue_erase(&taskScheduler, &m_taskCommit);
+  torrent::this_thread::scheduler()->erase(&m_task_load);
+  torrent::this_thread::scheduler()->erase(&m_task_commit);
 
   delete m_stream;
   delete m_object;
@@ -95,7 +95,7 @@ DownloadFactory::~DownloadFactory() {
 void
 DownloadFactory::load(const std::string& uri) {
   m_uri = uri;
-  priority_queue_insert(&taskScheduler, &m_taskLoad, cachedTime);
+  torrent::this_thread::scheduler()->wait_for(&m_task_load, 0ms);
 }
 
 // This function must be called before DownloadFactory::commit().
@@ -110,7 +110,7 @@ DownloadFactory::load_raw_data(const std::string& input) {
 
 void
 DownloadFactory::commit() {
-  priority_queue_insert(&taskScheduler, &m_taskCommit, cachedTime);
+  torrent::this_thread::scheduler()->wait_for(&m_task_commit, 0ms);
 }
 
 void
@@ -366,15 +366,17 @@ DownloadFactory::receive_failed(const std::string& msg) {
 
 void
 DownloadFactory::initialize_rtorrent(Download* download, torrent::Object* rtorrent) {
+  auto cached_seconds = torrent::this_thread::cached_seconds().count();
+
   if (!rtorrent->has_key_value("state") || rtorrent->get_key_value("state") > 1) {
     rtorrent->insert_key("state", (int64_t)m_start);
-    rtorrent->insert_key("state_changed", cachedTime.seconds());
+    rtorrent->insert_key("state_changed", cached_seconds);
     rtorrent->insert_key("state_counter", int64_t());
 
   } else if (!rtorrent->has_key_value("state_changed") ||
-             rtorrent->get_key_value("state_changed") > cachedTime.seconds() || rtorrent->get_key_value("state_changed") == 0 ||
+             rtorrent->get_key_value("state_changed") > cached_seconds || rtorrent->get_key_value("state_changed") == 0 ||
              !rtorrent->has_key_value("state_counter") || (uint64_t)rtorrent->get_key_value("state_counter") > (1 << 20)) {
-    rtorrent->insert_key("state_changed", cachedTime.seconds());
+    rtorrent->insert_key("state_changed", cached_seconds);
     rtorrent->insert_key("state_counter", int64_t());
   }
 

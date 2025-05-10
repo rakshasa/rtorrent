@@ -26,8 +26,8 @@ namespace core {
 const char* DhtManager::dht_settings[dht_settings_num] = { "disable", "off", "auto", "on" };
 
 DhtManager::~DhtManager() {
-  priority_queue_erase(&taskScheduler, &m_updateTimeout);
-  priority_queue_erase(&taskScheduler, &m_stopTimeout);
+  torrent::this_thread::scheduler()->erase(&m_update_timeout);
+  torrent::this_thread::scheduler()->erase(&m_stop_timeout);
 }
 
 void
@@ -66,7 +66,7 @@ DhtManager::load_dht_cache() {
 
 void
 DhtManager::start_dht() {
-  priority_queue_erase(&taskScheduler, &m_stopTimeout);
+  torrent::this_thread::scheduler()->erase(&m_stop_timeout);
 
   if (!torrent::dht_controller()->is_valid()) {
     LT_LOG_THIS("server start skipped, manager is uninitialized", 0);
@@ -94,8 +94,9 @@ DhtManager::start_dht() {
 
   torrent::dht_controller()->reset_statistics();
 
-  m_updateTimeout.slot() = std::bind(&DhtManager::update, this);
-  priority_queue_insert(&taskScheduler, &m_updateTimeout, (cachedTime + rak::timer::from_seconds(60)).round_seconds());
+  m_update_timeout.slot() = std::bind(&DhtManager::update, this);
+
+  torrent::this_thread::scheduler()->wait_for_ceil_seconds(&m_update_timeout, 60s);
 
   m_dhtPrevCycle = 0;
   m_dhtPrevQueriesSent = 0;
@@ -107,8 +108,8 @@ DhtManager::start_dht() {
 
 void
 DhtManager::stop_dht() {
-  priority_queue_erase(&taskScheduler, &m_updateTimeout);
-  priority_queue_erase(&taskScheduler, &m_stopTimeout);
+  torrent::this_thread::scheduler()->erase(&m_update_timeout);
+  torrent::this_thread::scheduler()->erase(&m_stop_timeout);
 
   if (torrent::dht_controller()->is_active()) {
     LT_LOG_THIS("stopping server", 0);
@@ -165,7 +166,7 @@ DhtManager::update() {
   if (!torrent::dht_controller()->is_active())
     throw torrent::internal_error("DhtManager::update called with DHT inactive.");
 
-  if (m_start == dht_auto && !m_stopTimeout.is_queued()) {
+  if (m_start == dht_auto && !m_stop_timeout.is_scheduled()) {
     DownloadList::const_iterator itr, end;
 
     for (itr = control->core()->download_list()->begin(), end = control->core()->download_list()->end(); itr != end; ++itr)
@@ -173,16 +174,16 @@ DhtManager::update() {
         break;
 
     if (itr == end) {
-      m_stopTimeout.slot() = std::bind(&DhtManager::stop_dht, this);
-      priority_queue_insert(&taskScheduler, &m_stopTimeout, (cachedTime + rak::timer::from_seconds(15 * 60)).round_seconds());
+      m_stop_timeout.slot() = std::bind(&DhtManager::stop_dht, this);
+      torrent::this_thread::scheduler()->wait_for_ceil_seconds(&m_stop_timeout, 15min);
     }
   }
 
   // While bootstrapping (log_statistics returns true), check every minute if it completed, otherwise update every 15 minutes.
   if (log_statistics(false))
-    priority_queue_insert(&taskScheduler, &m_updateTimeout, (cachedTime + rak::timer::from_seconds(60)).round_seconds());
+    torrent::this_thread::scheduler()->wait_for_ceil_seconds(&m_update_timeout, 1min);
   else
-    priority_queue_insert(&taskScheduler, &m_updateTimeout, (cachedTime + rak::timer::from_seconds(15 * 60)).round_seconds());
+    torrent::this_thread::scheduler()->wait_for_ceil_seconds(&m_update_timeout, 15min);
 }
 
 bool

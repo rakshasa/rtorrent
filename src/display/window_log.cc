@@ -14,7 +14,7 @@ WindowLog::WindowLog(torrent::log_buffer* l) :
   Window(new Canvas, 0, 0, 0, extent_full, extent_static),
   m_log(l) {
 
-  m_taskUpdate.slot() = std::bind(&WindowLog::receive_update, this);
+  m_task_update.slot() = std::bind(&WindowLog::receive_update, this);
 
   unsigned int signal_index = torrent::main_thread()->signal_bitfield()->add_signal(std::bind(&WindowLog::receive_update, this));
 
@@ -24,13 +24,12 @@ WindowLog::WindowLog(torrent::log_buffer* l) :
 }
 
 WindowLog::~WindowLog() {
-  priority_queue_erase(&taskScheduler, &m_taskUpdate);
+  torrent::this_thread::scheduler()->erase(&m_task_update);
 }
 
 WindowLog::iterator
 WindowLog::find_older() {
-  return m_log->find_older(cachedTime.seconds() - 60);
-  // return m_log->begin();
+  return m_log->find_older(torrent::this_thread::cached_seconds().count() - 60);
 }
 
 void
@@ -59,20 +58,22 @@ WindowLog::receive_update() {
   iterator itr = find_older();
   extent_type height = std::min(std::distance(itr, (iterator)m_log->end()), (std::iterator_traits<iterator>::difference_type)10);
 
-  if (height != m_maxHeight) {
-    m_minHeight = height != 0 ? 1 : 0;
-    m_maxHeight = height;
+  if (height != m_max_height) {
+    m_min_height = height != 0 ? 1 : 0;
+    m_max_height = height;
     mark_dirty();
-    m_slotAdjust();
+    m_slot_adjust();
 
   } else {
     mark_dirty();
   }
 
-  priority_queue_erase(&taskScheduler, &m_taskUpdate);
+  if (height == 0) {
+    torrent::this_thread::scheduler()->erase(&m_task_update);
+    return;
+  }
 
-  if (height != 0)
-    priority_queue_insert(&taskScheduler, &m_taskUpdate, (cachedTime + rak::timer::from_seconds(5)).round_seconds());
+  torrent::this_thread::scheduler()->update_wait_for_ceil_seconds(&m_task_update, 5s);
 }
 
 }

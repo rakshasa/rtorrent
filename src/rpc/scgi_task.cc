@@ -20,16 +20,6 @@
 
 namespace rpc {
 
-// If bufferSize is zero then memcpy won't do anything.
-inline void
-SCgiTask::realloc_buffer(uint32_t size, const char* buffer, uint32_t bufferSize) {
-  char* tmp = new char[size];
-
-  std::memcpy(tmp, buffer, bufferSize);
-  ::free(m_buffer);
-  m_buffer = tmp;
-}
-
 void
 SCgiTask::open(SCgi* parent, int fd) {
   m_parent      = parent;
@@ -150,18 +140,8 @@ SCgiTask::event_read() {
     m_body      = current + 1;
     header_size = std::distance(m_buffer, m_body);
 
-    if (content_type == "") {
-      // If no CONTENT_TYPE was supplied, peek at the body to check if it's JSON
-      // { is a single request object, while [ is a batch array
-      if (*m_body == '{' || *m_body == '[')
-        m_content_type = ContentType::JSON;
-    } else if (content_type == "application/json") {
-      m_content_type = ContentType::JSON;
-    } else if (content_type == "text/xml") {
-      m_content_type = ContentType::XML;
-    } else {
+    if (!detect_content_type(content_type))
       goto event_read_failed;
-    }
 
     if ((unsigned int)(content_length + header_size) < m_buffer_size) {
       m_buffer_size = content_length + header_size;
@@ -234,6 +214,50 @@ SCgiTask::event_error() {
   close();
 }
 
+static inline bool
+scgi_match_content_type(const std::string& content_type, const char* type) {
+  std::string::size_type pos = content_type.find_first_of(" ;");
+
+  if (pos == std::string::npos)
+    return content_type == type;
+
+  return content_type.compare(0, pos, type) == 0;
+}
+
+bool
+SCgiTask::detect_content_type(const std::string& content_type) {
+  if (content_type.empty()) {
+    // If no CONTENT_TYPE was supplied, peek at the body to check if it's JSON
+    // { is a single request object, while [ is a batch array
+    if (*m_body == '{' || *m_body == '[')
+      m_content_type = ContentType::JSON;
+    else
+      m_content_type = ContentType::XML;
+
+  } else if (scgi_match_content_type(content_type, "application/json")) {
+    m_content_type = ContentType::JSON;
+
+  } else if (scgi_match_content_type(content_type, "text/xml")) {
+    m_content_type = ContentType::XML;
+
+  } else {
+    // If the content type is not JSON or XML, we don't know how to handle it.
+    return false;
+  }
+
+  return true;
+}
+
+// If bufferSize is zero then memcpy won't do anything.
+void
+SCgiTask::realloc_buffer(uint32_t size, const char* buffer, uint32_t bufferSize) {
+  char* tmp = new char[size];
+
+  std::memcpy(tmp, buffer, bufferSize);
+  ::free(m_buffer);
+  m_buffer = tmp;
+}
+
 void
 SCgiTask::receive_call(const char* buffer, uint32_t length) {
   // TODO: Rewrite RpcManager.process to pass the result buffer instead of having to copy it.
@@ -243,7 +267,7 @@ SCgiTask::receive_call(const char* buffer, uint32_t length) {
   auto result_callback = [this, scgi_thread](const char* b, uint32_t l) {
       receive_write(b, l);
 
-      scgi_thread->callback(this, [this]() {
+      scgi_thread->callback_interrupt_pollling(this, [this]() {
           // Only need to lock once here as a memory barrier.
           m_result_mutex.lock();
           m_result_mutex.unlock();
@@ -256,7 +280,7 @@ SCgiTask::receive_call(const char* buffer, uint32_t length) {
 
   switch (content_type()) {
   case rpc::SCgiTask::ContentType::JSON:
-    torrent::main_thread()->callback(this, [buffer, length, result_callback]() {
+    torrent::main_thread()->callback_interrupt_pollling(this, [buffer, length, result_callback]() {
         rpc.process(RpcManager::RPCType::JSON, buffer, length,
                     [result_callback](const char* b, uint32_t l) {
                       result_callback(b, l);
@@ -266,7 +290,7 @@ SCgiTask::receive_call(const char* buffer, uint32_t length) {
     break;
 
   case rpc::SCgiTask::ContentType::XML:
-    torrent::main_thread()->callback(this, [buffer, length, result_callback]() {
+    torrent::main_thread()->callback_interrupt_pollling(this, [buffer, length, result_callback]() {
         rpc.process(RpcManager::RPCType::XML, buffer, length,
                     [result_callback](const char* b, uint32_t l) {
                       result_callback(b, l);

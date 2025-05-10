@@ -26,17 +26,17 @@ WindowDownloadStatusbar::redraw() {
   if (m_canvas->daemon())
     return;
 
-  m_slotSchedule(this, (cachedTime + rak::timer::from_seconds(1)).round_seconds());
+  schedule_update();
 
   m_canvas->erase();
 
-  char buffer[m_canvas->width()];
-  char* last = buffer + m_canvas->width() - 2;
+  std::string buffer(m_canvas->width(), ' ');
+  char* last = buffer.data() + m_canvas->width() - 2;
 
-  print_download_info_full(buffer, last, m_download);
-  m_canvas->print(0, 0, "%s", buffer);
+  print_download_info_full(buffer.data(), last, m_download);
+  m_canvas->print(0, 0, "%s", buffer.data());
 
-  snprintf(buffer, last - buffer, "Peers: %i(%i) Min/Max: %i/%i Slots: U:%i/%i D:%i/%i U/I/C/A: %i/%i/%i/%i Unchoked: %u/%u Failed: %i",
+  snprintf(buffer.data(), last - buffer.data(), "Peers: %i(%i) Min/Max: %i/%i Slots: U:%i/%i D:%i/%i U/I/C/A: %i/%i/%i/%i Unchoked: %u/%u Failed: %i",
            (int)m_download->download()->connection_list()->size(),
            (int)m_download->download()->peer_list()->available_list_size(),
            (int)m_download->download()->connection_list()->min_size(),
@@ -53,13 +53,13 @@ WindowDownloadStatusbar::redraw() {
            (int)m_download->info()->download_unchoked(),
            (int)m_download->download()->transfer_list()->failed_count());
 
-  m_canvas->print(0, 1, "%s", buffer);
+  m_canvas->print(0, 1, "%s", buffer.data());
 
-  print_download_status(buffer, last, m_download);
+  print_download_status(buffer.data(), last, m_download);
   m_canvas->print(0, 2, "[%c:%i] %s",
                   m_download->tracker_list()->has_active() ? 'C' : ' ',
                   (int)(m_download->download()->tracker_controller().seconds_to_next_timeout()),
-                  buffer);
+                  buffer.data());
 }
 
 }

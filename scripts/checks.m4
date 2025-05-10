@@ -88,49 +88,11 @@ AC_DEFUN([TORRENT_CHECK_KQUEUE], [
     [
       AC_DEFINE(USE_KQUEUE, 1, Use kqueue.)
       AC_MSG_RESULT(yes)
-      TORRENT_CHECK_KQUEUE_SOCKET_ONLY
     ], [
       AC_MSG_RESULT(no)
     ])
 ])
 
-AC_DEFUN([TORRENT_CHECK_KQUEUE_SOCKET_ONLY], [
-  AC_MSG_CHECKING(whether kqueue supports pipes and ptys)
-
-  AC_LINK_IFELSE([AC_LANG_SOURCE([
-      #include <fcntl.h>
-      #include <stdlib.h>
-      #include <unistd.h>
-      #include <sys/event.h>
-      #include <sys/time.h>
-      int main() {
-        struct kevent ev@<:@2@:>@, ev_out@<:@2@:>@;
-        struct timespec ts = { 0, 0 };
-        int pfd@<:@2@:>@, pty@<:@2@:>@, kfd, n;
-        char buffer@<:@9001@:>@;
-        if (pipe(pfd) == -1) return 1;
-        if (fcntl(pfd@<:@1@:>@, F_SETFL, O_NONBLOCK) == -1) return 2;
-        while ((n = write(pfd@<:@1@:>@, buffer, sizeof(buffer))) == sizeof(buffer));
-        if ((pty@<:@0@:>@=posix_openpt(O_RDWR | O_NOCTTY)) == -1) return 3;
-        if ((pty@<:@1@:>@=grantpt(pty@<:@0@:>@)) == -1) return 4;
-        EV_SET(ev+0, pfd@<:@1@:>@, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
-        EV_SET(ev+1, pty@<:@1@:>@, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
-        if ((kfd = kqueue()) == -1) return 5;
-        if ((n = kevent(kfd, ev, 2, NULL, 0, NULL)) == -1) return 6;
-        if (ev_out@<:@0@:>@.flags & EV_ERROR) return 7;
-        if (ev_out@<:@1@:>@.flags & EV_ERROR) return 8;
-        read(pfd@<:@0@:>@, buffer, sizeof(buffer));
-        if ((n = kevent(kfd, NULL, 0, ev_out, 2, &ts)) < 1) return 9;
-        return 0;
-      }
-      ])],
-    [
-      AC_MSG_RESULT(yes)
-    ], [
-      AC_DEFINE(KQUEUE_SOCKET_ONLY, 1, kqueue only supports sockets.)
-      AC_MSG_RESULT(no)
-    ])
-])
 
 AC_DEFUN([TORRENT_WITH_KQUEUE], [
   AC_ARG_WITH(kqueue,

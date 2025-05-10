@@ -232,9 +232,15 @@ initialize_command_local() {
 
   CMD2_ANY_STRING  ("system.env",                      std::bind(&system_env, std::placeholders::_2));
 
-  CMD2_ANY         ("system.time",                     std::bind(&rak::timer::seconds, &cachedTime));
-  CMD2_ANY         ("system.time_seconds",             std::bind(&rak::timer::current_seconds));
-  CMD2_ANY         ("system.time_usec",                std::bind(&rak::timer::current_usec));
+  CMD2_ANY         ("system.time",                     []([[maybe_unused]] auto t, [[maybe_unused]] auto o) -> torrent::Object {
+      return torrent::this_thread::cached_seconds().count();
+    });
+  CMD2_ANY         ("system.time_seconds",             []([[maybe_unused]] auto t, [[maybe_unused]] auto o) -> torrent::Object {
+      return torrent::utils::cast_seconds(torrent::utils::time_since_epoch()).count();
+    });
+  CMD2_ANY         ("system.time_usec",                []([[maybe_unused]] auto t, [[maybe_unused]] auto o) -> torrent::Object {
+      return torrent::utils::time_since_epoch().count();
+    });
 
   CMD2_ANY_VALUE_V ("system.umask.set",                std::bind(&umask, std::placeholders::_2));
 
@@ -294,9 +300,10 @@ initialize_command_local() {
   CMD2_ANY         ("lua.execute.str",        std::bind(&rpc::execute_lua, lua_engine, std::placeholders::_1, std::placeholders::_2, rpc::LuaEngine::flag_string));
 #endif
 
-#define CMD2_EXECUTE(key, flags)                                         \
+#define CMD2_EXECUTE(key, flags)                                        \
   CMD2_ANY(key, std::bind(&rpc::ExecFile::execute_object, &rpc::execFile, std::placeholders::_2, flags));
 
+  CMD2_EXECUTE     ("execute",                rpc::ExecFile::flag_expand_tilde | rpc::ExecFile::flag_throw);
   CMD2_EXECUTE     ("execute2",                rpc::ExecFile::flag_expand_tilde | rpc::ExecFile::flag_throw);
   CMD2_EXECUTE     ("execute.throw",           rpc::ExecFile::flag_expand_tilde | rpc::ExecFile::flag_throw);
   CMD2_EXECUTE     ("execute.throw.bg",        rpc::ExecFile::flag_expand_tilde | rpc::ExecFile::flag_throw | rpc::ExecFile::flag_background);

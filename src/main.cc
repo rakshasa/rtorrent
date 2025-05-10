@@ -120,16 +120,6 @@ load_arg_torrents(char** first, char** last) {
   }
 }
 
-static uint64_t
-client_next_timeout() {
-  if (taskScheduler.empty())
-    return (control->is_shutdown_started() ? rak::timer::from_milliseconds(100) : rak::timer::from_seconds(60)).usec();
-  else if (taskScheduler.top()->time() <= cachedTime)
-    return 0;
-  else
-    return (taskScheduler.top()->time() - cachedTime).usec();
-}
-
 static void
 client_perform() {
   // Use throw exclusively.
@@ -140,9 +130,16 @@ client_perform() {
     control->handle_shutdown();
 
   control->inc_tick();
+}
 
-  cachedTime = rak::timer::current();
-  rak::priority_queue_perform(&taskScheduler, cachedTime);
+torrent::Poll*
+create_poll() {
+  torrent::Poll* poll = torrent::Poll::create(sysconf(_SC_OPEN_MAX));
+
+  if (poll == nullptr)
+    throw torrent::internal_error("Unable to create poll object: " + std::string(std::strerror(errno)));
+
+  return poll;
 }
 
 int
@@ -152,17 +149,20 @@ main(int argc, char** argv) {
     // Temporary.
     setlocale(LC_ALL, "");
 
-    cachedTime = rak::timer::current();
+    auto random_seed = []() -> unsigned int {
+        auto current_time = torrent::utils::time_since_epoch();
+
+        return (getpid() << 16) ^ getppid() ^
+          torrent::utils::cast_seconds(current_time).count() ^ current_time.count();
+      }();
+
+    srandom(random_seed);
+    srand48(random_seed);
 
     // Initialize logging:
     torrent::log_initialize();
 
     control = new Control;
-
-    unsigned int random_seed = cachedTime.seconds() ^ cachedTime.usec() ^ (getpid() << 16) ^ getppid();
-
-    srandom(random_seed);
-    srand48(random_seed);
 
     SignalHandler::set_ignore(SIGPIPE);
     SignalHandler::set_handler(SIGINT,   std::bind(&Control::receive_normal_shutdown, control));
@@ -188,11 +188,10 @@ main(int argc, char** argv) {
     torrent::log_add_group_output(torrent::LOG_NOTICE, "important");
     torrent::log_add_group_output(torrent::LOG_INFO, "complete");
 
-    torrent::Poll::slot_create_poll() = std::bind(&core::create_poll);
+    torrent::Poll::slot_create_poll() = [](){ return create_poll(); };
 
     torrent::initialize();
-    torrent::main_thread()->slot_do_work() = std::bind(&client_perform);
-    torrent::main_thread()->slot_next_timeout() = std::bind(&client_next_timeout);
+    torrent::set_main_thread_slots(std::bind(&client_perform));
 
     worker_thread = new ThreadWorker();
     worker_thread->init_thread();
@@ -396,25 +395,26 @@ main(int argc, char** argv) {
     CMD2_REDIRECT        ("torrent_list_layout", "ui.torrent_list.layout.set");
 
     // Deprecated commands. Don't use these anymore.
+    //
+    // It has been so long that we now re-create these commands with the new (old by now) command
+    // call style, where the first argument is the target.
 
-    if (rpc::call_command_value("method.use_intermediate") == 1) {
-      CMD2_REDIRECT_GENERIC("execute", "execute2");
+    // if (rpc::call_command_value("method.use_intermediate") == 1) {
+    //   CMD2_REDIRECT_GENERIC("execute", "execute2");
 
-      CMD2_REDIRECT_GENERIC("schedule", "schedule2");
-      CMD2_REDIRECT_GENERIC("schedule_remove", "schedule_remove2");
+    //   CMD2_REDIRECT_GENERIC("schedule", "schedule2");
+    //   CMD2_REDIRECT_GENERIC("schedule_remove", "schedule_remove2");
 
-    } else if (rpc::call_command_value("method.use_intermediate") == 2) {
-      // Allow for use in config files, etc, just don't export it.
-      CMD2_REDIRECT_GENERIC_NO_EXPORT("execute", "execute2");
+    // } else if (rpc::call_command_value("method.use_intermediate") == 2) {
+    //   Allow for use in config files, etc, just don't export it.
+    //   CMD2_REDIRECT_GENERIC_NO_EXPORT("execute", "execute2");
 
-      CMD2_REDIRECT_GENERIC_NO_EXPORT("schedule", "schedule2");
-      CMD2_REDIRECT_GENERIC_NO_EXPORT("schedule_remove", "schedule_remove2");
-    }
+    //   CMD2_REDIRECT_GENERIC_NO_EXPORT("schedule", "schedule2");
+    //   CMD2_REDIRECT_GENERIC_NO_EXPORT("schedule_remove", "schedule_remove2");
+    // }
 
-#if LT_SLIM_VERSION != 1
-    if (rpc::call_command_value("method.use_deprecated")) {
-    }
-#endif
+    // if (rpc::call_command_value("method.use_deprecated") == 1) {
+    // }
 
     int firstArg = parse_options(argc, argv);
 
@@ -443,7 +443,9 @@ main(int argc, char** argv) {
     // session torrents are loaded before arg torrents.
     control->dht_manager()->load_dht_cache();
     load_session_torrents();
-    rak::priority_queue_perform(&taskScheduler, cachedTime);
+
+    // TODO: Check if this is required.
+    // rak::priority_queue_perform(&taskScheduler, cachedTime);
 
     load_arg_torrents(argv + firstArg, argv + argc);
 
@@ -606,6 +608,8 @@ print_help() {
   std::cout << std::endl;
   std::cout << "Usage: rtorrent [OPTIONS]... [FILE]... [URL]..." << std::endl;
   std::cout << "  -D                Enable deprecated commands" << std::endl;
+  std::cout << "  -I                Disable intermediate commands" << std::endl;
+  std::cout << "  -K                Allow intermediate commands without xmlrpc" << std::endl;
   std::cout << "  -h                Display this very helpful text" << std::endl;
   std::cout << "  -n                Don't try to load rtorrent.rc on startup" << std::endl;
   std::cout << "  -b <a.b.c.d>      Bind the listening socket to this IP" << std::endl;
