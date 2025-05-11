@@ -30,18 +30,18 @@ rtorrent_Test_Common = \
 	helpers/utils.h
 
 rtorrent_Test_Rpc_SOURCES = $(rtorrent_Test_Common) \
-	rpc/command_test.cc \
-	rpc/command_test.h \
-	rpc/command_map_test.cc \
-	rpc/command_map_test.h \
-	rpc/jsonrpc_test.cc \
-	rpc/jsonrpc_test.h \
-	rpc/xmlrpc_test.cc \
-	rpc/xmlrpc_test.h \
-	rpc/command_slot_test.cc \
-	rpc/command_slot_test.h \
-	rpc/object_storage_test.cc \
-	rpc/object_storage_test.h \
+	rpc/test_command.cc \
+	rpc/test_command.h \
+	rpc/test_command_map.cc \
+	rpc/test_command_map.h \
+	rpc/test_jsonrpc.cc \
+	rpc/test_jsonrpc.h \
+	rpc/test_xmlrpc.cc \
+	rpc/test_xmlrpc.h \
+	rpc/test_command_slot.cc \
+	rpc/test_command_slot.h \
+	rpc/test_object_storage.cc \
+	rpc/test_object_storage.h \
 	rpc/test_parse_options.cc \
 	rpc/test_parse_options.h
 

@@ -156,5 +156,6 @@ void TestXmlrpc::test_invalid_utf8() {}
 void TestXmlrpc::test_basics() {}
 void TestXmlrpc::test_size_limit() {}
 void TestXmlrpc::setUp() {}
+void TestXmlrpc::tearDown() {}
 
 #endif
