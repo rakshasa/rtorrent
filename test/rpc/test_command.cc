@@ -1,8 +1,10 @@
 #include "config.h"
 
-#include "command_test.h"
+#include "test/rpc/test_command.h"
 
-CPPUNIT_TEST_SUITE_REGISTRATION(CommandTest);
+#include "rpc/command.h"
+
+CPPUNIT_TEST_SUITE_REGISTRATION(TestCommand);
 
 bool
 command_stack_all_empty() {
@@ -11,7 +13,7 @@ command_stack_all_empty() {
 }
 
 void
-CommandTest::test_stack() {
+TestCommand::test_stack() {
   torrent::Object::list_type args;
   rpc::command_base::stack_type stack;
   torrent::Object* last_stack;
@@ -50,7 +52,7 @@ CommandTest::test_stack() {
 }
 
 void
-CommandTest::test_stack_double() {
+TestCommand::test_stack_double() {
   torrent::Object::list_type args;
   rpc::command_base::stack_type stack_first;
   rpc::command_base::stack_type stack_second;

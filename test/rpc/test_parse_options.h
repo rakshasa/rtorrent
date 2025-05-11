@@ -1,7 +1,8 @@
-#include <cppunit/extensions/HelperMacros.h>
+#include "test/helpers/test_fixture.h"
 
-class TestParseOptions : public CppUnit::TestFixture {
+class TestParseOptions : public test_fixture {
   CPPUNIT_TEST_SUITE(TestParseOptions);
+
   CPPUNIT_TEST(test_flag_basic);
   CPPUNIT_TEST(test_flag_error);
 
@@ -14,12 +15,10 @@ class TestParseOptions : public CppUnit::TestFixture {
 
   CPPUNIT_TEST(test_flag_libtorrent);
   CPPUNIT_TEST(test_flags_libtorrent);
+
   CPPUNIT_TEST_SUITE_END();
 
 public:
-  void setUp() { }
-  void tearDown() {}
-
   void test_flag_basic();
   void test_flag_error();
 
