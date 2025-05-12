@@ -1,16 +1,17 @@
 #include "config.h"
 
-#include "object_storage_test.h"
+#include "test/rpc/test_object_storage.h"
+
 #include "helpers/assert.h"
 
-CPPUNIT_TEST_SUITE_REGISTRATION(ObjectStorageTest);
+CPPUNIT_TEST_SUITE_REGISTRATION(TestObjectStorage);
 
 void
-ObjectStorageTest::test_basics() {
+TestObjectStorage::test_basics() {
   rpc::object_storage::iterator itr;
 
   CPPUNIT_ASSERT(m_storage.empty());
-  
+
   itr = m_storage.insert("test_1", torrent::Object("a"), rpc::object_storage::flag_string_type);
 
   CPPUNIT_ASSERT(itr != m_storage.end());
@@ -32,7 +33,7 @@ ObjectStorageTest::test_basics() {
 }
 
 void
-ObjectStorageTest::test_conversions() {
+TestObjectStorage::test_conversions() {
   CPPUNIT_ASSERT(m_storage.insert("test_1", torrent::Object("a"), rpc::object_storage::flag_string_type) != m_storage.end());
   CPPUNIT_ASSERT(m_storage.insert_str(std::string("test_2"), torrent::Object("a"), rpc::object_storage::flag_string_type) != m_storage.end());
 
@@ -44,7 +45,7 @@ ObjectStorageTest::test_conversions() {
 }
 
 void
-ObjectStorageTest::test_validate_keys() {
+TestObjectStorage::test_validate_keys() {
   torrent::raw_string raw_string_4("test_4\0foo", 10);
 
   ASSERT_CATCH_INPUT_ERROR( { m_storage.insert(raw_string_4, torrent::Object("a"), rpc::object_storage::flag_string_type); } );
@@ -55,7 +56,7 @@ ObjectStorageTest::test_validate_keys() {
 // Test for various conversions of fixed_key_type.
 
 void
-ObjectStorageTest::test_access() {
+TestObjectStorage::test_access() {
   m_storage.insert("string_1", torrent::Object("gen_a"), rpc::object_storage::flag_string_type);
   m_storage.insert("value_1", int64_t(1), rpc::object_storage::flag_value_type);
 
@@ -68,7 +69,7 @@ ObjectStorageTest::test_access() {
   //  CPPUNIT_ASSERT(m_storage.set_c_str_value("value_1", "123").as_value() == 123);
   //  CPPUNIT_ASSERT(m_storage.set_c_str_value("value_1", torrent::raw_string::from_c_str("321")).as_value() == 321);
   //  CPPUNIT_ASSERT(m_storage.set_c_str_value("value_1", torrent::raw_bencode::from_c_str("i567e")).as_value() == 567);
-  
+
   //  ASSERT_CATCH_INPUT_ERROR( { m_storage.set_c_str_value("value_1", "e123"); } );
 
   // Test string from raw and normal, list, etc.

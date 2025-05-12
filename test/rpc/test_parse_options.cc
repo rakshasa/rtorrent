@@ -1,8 +1,6 @@
 #include "config.h"
 
-#include "test_parse_options.h"
-
-#include "helpers/assert.h"
+#include "test/rpc/test_parse_options.h"
 
 #include <array>
 #include <torrent/connection_manager.h>
@@ -10,6 +8,7 @@
 #include <torrent/utils/log.h>
 #include <torrent/utils/option_strings.h>
 
+#include "test/helpers/assert.h"
 #include "rpc/parse_options.h"
 
 CPPUNIT_TEST_SUITE_REGISTRATION(TestParseOptions);
@@ -37,7 +36,7 @@ flag_to_int(const std::string& flag) {
   for (auto f : flag_list)
     if (f.first == flag)
       return f.second;
-  
+
   throw torrent::input_error("unknown flag");
 }
 
@@ -86,7 +85,7 @@ TestParseOptions::test_flag_error() {
   FLAG_ASSERT_ERROR("");
   FLAG_ASSERT_ERROR("foo|bar");
   FLAG_ASSERT_ERROR("foo|bar|baz");
- 
+
   FLAG_ASSERT_ERROR("foo |bar");
   FLAG_ASSERT_ERROR("foo | bar| baz");
 }

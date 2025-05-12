@@ -4,7 +4,6 @@
 #include <iosfwd>
 #include <memory>
 #include <vector>
-
 #include <torrent/utils/log_buffer.h>
 #include <torrent/connection_manager.h>
 #include <torrent/object.h>
@@ -35,18 +34,15 @@ public:
   typedef DownloadList::iterator                    DListItr;
   typedef utils::FileStatusCache                    FileStatusCache;
 
-  // typedef std::function<void (DownloadList::iterator)> slot_ready;
-  // typedef std::function<void ()>                       slot_void;
-
   Manager();
   ~Manager();
 
-  DownloadList*       download_list()                     { return m_downloadList; }
-  DownloadStore*      download_store()                    { return m_downloadStore; }
-  FileStatusCache*    file_status_cache()                 { return m_fileStatusCache; }
+  DownloadList*       download_list()                     { return m_download_list.get(); }
+  DownloadStore*      download_store()                    { return m_download_store.get(); }
+  FileStatusCache*    file_status_cache()                 { return m_file_status_cache.get(); }
 
-  HttpQueue*          http_queue()                        { return m_httpQueue; }
-  CurlStack*          http_stack()                        { return m_httpStack; }
+  HttpQueue*          http_queue()                        { return m_http_queue.get(); }
+  CurlStack*          http_stack()                        { return m_http_stack.get(); }
 
   View*               hashing_view()                      { return m_hashingView; }
   void                set_hashing_view(View* v);
@@ -109,11 +105,11 @@ private:
   void                receive_http_failed(std::string msg);
   void                receive_hashing_changed();
 
-  DownloadList*       m_downloadList;
-  DownloadStore*      m_downloadStore;
-  FileStatusCache*    m_fileStatusCache;
-  HttpQueue*          m_httpQueue;
-  CurlStack*          m_httpStack;
+  std::unique_ptr<DownloadList>    m_download_list;
+  std::unique_ptr<DownloadStore>   m_download_store;
+  std::unique_ptr<FileStatusCache> m_file_status_cache;
+  std::unique_ptr<HttpQueue>       m_http_queue;
+  std::unique_ptr<CurlStack>       m_http_stack;
 
   View*               m_hashingView;
 

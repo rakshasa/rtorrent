@@ -159,7 +159,9 @@ main(int argc, char** argv) {
     srandom(random_seed);
     srand48(random_seed);
 
-    // Initialize logging:
+    torrent::Poll::slot_create_poll() = [](){ return create_poll(); };
+
+    torrent::initialize_main_thread();
     torrent::log_initialize();
 
     control = new Control;
@@ -187,8 +189,6 @@ main(int argc, char** argv) {
 
     torrent::log_add_group_output(torrent::LOG_NOTICE, "important");
     torrent::log_add_group_output(torrent::LOG_INFO, "complete");
-
-    torrent::Poll::slot_create_poll() = [](){ return create_poll(); };
 
     torrent::initialize();
     torrent::set_main_thread_slots(std::bind(&client_perform));

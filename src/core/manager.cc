@@ -51,15 +51,15 @@ Manager::push_log(const char* msg) {
 }
 
 Manager::Manager() :
-  m_hashingView(NULL),
-  m_log_important(torrent::log_open_log_buffer("important")),
-  m_log_complete(torrent::log_open_log_buffer("complete"))
-{
-  m_downloadStore   = new DownloadStore();
-  m_downloadList    = new DownloadList();
-  m_fileStatusCache = new FileStatusCache();
-  m_httpQueue       = new HttpQueue();
-  m_httpStack       = new CurlStack();
+    m_hashingView(nullptr),
+    m_log_important(torrent::log_open_log_buffer("important")),
+    m_log_complete(torrent::log_open_log_buffer("complete")) {
+
+  m_download_store    = std::make_unique<DownloadStore>();
+  m_download_list     = std::make_unique<DownloadList>();
+  m_file_status_cache = std::make_unique<FileStatusCache>();
+  m_http_queue        = std::make_unique<HttpQueue>();
+  m_http_stack        = std::make_unique<CurlStack>();
 
   torrent::Throttle* unthrottled = torrent::Throttle::create_throttle();
   unthrottled->set_max_rate(0);
@@ -68,19 +68,12 @@ Manager::Manager() :
 
 Manager::~Manager() {
   torrent::Throttle::destroy_throttle(m_throttles["NULL"].first);
-  delete m_downloadList;
-
-  // TODO: Clean up logs objects.
-
-  delete m_downloadStore;
-  delete m_httpQueue;
-  delete m_fileStatusCache;
 }
 
 void
 Manager::set_hashing_view(View* v) {
-  if (v == NULL || m_hashingView != NULL)
-    throw torrent::internal_error("Manager::set_hashing_view(...) received NULL or is already set.");
+  if (v == nullptr || m_hashingView != nullptr)
+    throw torrent::internal_error("Manager::set_hashing_view(...) received nullptr or is already set.");
 
   m_hashingView = v;
   m_hashingView->signal_changed().push_back(std::bind(&Manager::receive_hashing_changed, this));
@@ -89,12 +82,12 @@ Manager::set_hashing_view(View* v) {
 torrent::ThrottlePair
 Manager::get_throttle(const std::string& name) {
   ThrottleMap::const_iterator itr = m_throttles.find(name);
-  torrent::ThrottlePair throttles = (itr == m_throttles.end() ? torrent::ThrottlePair(NULL, NULL) : itr->second);
+  torrent::ThrottlePair throttles = (itr == m_throttles.end() ? torrent::ThrottlePair(nullptr, nullptr) : itr->second);
 
-  if (throttles.first == NULL)
+  if (throttles.first == nullptr)
     throttles.first = torrent::up_throttle_global();
 
-  if (throttles.second == NULL)
+  if (throttles.second == nullptr)
     throttles.second = torrent::down_throttle_global();
 
   return throttles;
@@ -108,7 +101,7 @@ Manager::set_address_throttle(uint32_t begin, uint32_t end, torrent::ThrottlePai
 
 torrent::ThrottlePair
 Manager::get_address_throttle(const sockaddr* addr) {
-  return m_addressThrottles.get(rak::socket_address::cast_from(addr)->sa_inet()->address_h(), torrent::ThrottlePair(NULL, NULL));
+  return m_addressThrottles.get(rak::socket_address::cast_from(addr)->sa_inet()->address_h(), torrent::ThrottlePair(nullptr, nullptr));
 }
 
 int64_t
@@ -121,7 +114,7 @@ Manager::retrieve_throttle_value(const torrent::Object::string_type& name, bool 
     torrent::Throttle* throttle = up ? itr->second.first : itr->second.second;
 
     // check whether the actual up/down throttle exist (one of the pair can be missing)
-    if (throttle == NULL)
+    if (throttle == nullptr)
       return (int64_t)-1;
 
     int64_t throttle_max = (int64_t)throttle->max_rate();
@@ -143,36 +136,36 @@ Manager::retrieve_throttle_value(const torrent::Object::string_type& name, bool 
 // Most of this should be possible to move out.
 void
 Manager::initialize_second() {
-  torrent::Http::slot_factory() = std::bind(&CurlStack::new_object, m_httpStack);
-  m_httpQueue->set_slot_factory(std::bind(&CurlStack::new_object, m_httpStack));
+  torrent::Http::slot_factory() = std::bind(&CurlStack::new_object, m_http_stack.get());
+  m_http_queue->set_slot_factory(std::bind(&CurlStack::new_object, m_http_stack.get()));
 
   CurlStack::global_init();
 }
 
 void
 Manager::cleanup() {
-  m_httpStack->shutdown();
+  m_http_stack->shutdown();
 
   // Need to disconnect log signals? Not really since we won't receive
   // any more.
 
-  m_downloadList->clear();
+  m_download_list->clear();
 
   // When we implement asynchronous DNS lookups, we need to cancel them
   // here before the torrent::* objects are deleted.
 
   torrent::cleanup();
 
-  delete m_httpStack;
+  m_http_stack.reset();
   CurlStack::global_cleanup();
 }
 
 void
 Manager::shutdown(bool force) {
   if (!force)
-    std::for_each(m_downloadList->begin(), m_downloadList->end(), [this](Download* d) { m_downloadList->pause_default(d); });
+    std::for_each(m_download_list->begin(), m_download_list->end(), [this](Download* d) { m_download_list->pause_default(d); });
   else
-    std::for_each(m_downloadList->begin(), m_downloadList->end(), [this](Download* d) { m_downloadList->close_quick(d); });
+    std::for_each(m_download_list->begin(), m_download_list->end(), [this](Download* d) { m_download_list->close_quick(d); });
 }
 
 void
@@ -226,7 +219,7 @@ Manager::set_bind_address(const std::string& addr) {
   if ((err = rak::address_info::get_address_info(addr.c_str(), PF_INET, SOCK_STREAM, &ai)) != 0 &&
       (err = rak::address_info::get_address_info(addr.c_str(), PF_INET6, SOCK_STREAM, &ai)) != 0)
     throw torrent::input_error("Could not set bind address: " + std::string(rak::address_info::strerror(err)) + ".");
-  
+
   try {
 
     if (torrent::connection_manager()->listen_port() != 0) {
@@ -238,7 +231,7 @@ Manager::set_bind_address(const std::string& addr) {
       torrent::connection_manager()->set_bind_address(ai->address()->c_sockaddr());
     }
 
-    m_httpStack->set_bind_address(!ai->address()->is_address_any() ? ai->address()->address_str() : std::string());
+    m_http_stack->set_bind_address(!ai->address()->is_address_any() ? ai->address()->address_str() : std::string());
 
     rak::address_info::free_address_info(ai);
 
@@ -477,13 +470,13 @@ void
 Manager::receive_hashing_changed() {
   bool foundHashing = std::find_if(m_hashingView->begin_visible(), m_hashingView->end_visible(),
                                    std::mem_fn(&Download::is_hash_checking)) != m_hashingView->end_visible();
-  
+
   // Try quick hashing all those with hashing == initial, set them to
   // something else when failed.
   for (View::iterator itr = m_hashingView->begin_visible(), last = m_hashingView->end_visible(); itr != last; ++itr) {
     if ((*itr)->is_hash_checked())
       throw torrent::internal_error("core::Manager::receive_hashing_changed() (*itr)->is_hash_checked().");
-  
+
     if ((*itr)->is_hash_checking() || (*itr)->is_hash_failed())
       continue;
 
@@ -495,7 +488,7 @@ Manager::receive_hashing_changed() {
       continue;
 
     try {
-      m_downloadList->open_throw(*itr);
+      m_download_list->open_throw(*itr);
 
       // Since the bitfield is allocated on loading of resume load or
       // hash start, and unallocated on close, we know that if it it
