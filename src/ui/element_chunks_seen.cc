@@ -41,9 +41,11 @@
 #include "display/frame.h"
 #include "display/window_download_chunks_seen.h"
 #include "input/manager.h"
+#include "input/navigation_keymap.h"
 
 #include "control.h"
 #include "element_chunks_seen.h"
+#include "root.h"
 
 namespace ui {
 
@@ -52,10 +54,10 @@ ElementChunksSeen::ElementChunksSeen(core::Download* d) :
   m_window(NULL),
   m_focus(0) {
 
-  m_bindings[KEY_LEFT] = m_bindings['B' - '@'] = std::bind(&slot_type::operator(), &m_slot_exit);
+  m_bindings[KEY_LEFT]  = m_bindings[control->ui()->get_keymap(input::RT_KEY_LEFT)] = std::bind(&slot_type::operator(), &m_slot_exit);
 
-  m_bindings[KEY_DOWN]  = m_bindings['N' - '@'] = std::bind(&ElementChunksSeen::receive_next, this);
-  m_bindings[KEY_UP]    = m_bindings['P' - '@'] = std::bind(&ElementChunksSeen::receive_prev, this);
+  m_bindings[KEY_DOWN]  = m_bindings[control->ui()->get_keymap(input::RT_KEY_DOWN)] = std::bind(&ElementChunksSeen::receive_next, this);
+  m_bindings[KEY_UP]    = m_bindings[control->ui()->get_keymap(input::RT_KEY_UP)]   = std::bind(&ElementChunksSeen::receive_prev, this);
   m_bindings[KEY_NPAGE] = std::bind(&ElementChunksSeen::receive_pagenext, this);
   m_bindings[KEY_PPAGE] = std::bind(&ElementChunksSeen::receive_pageprev, this);
 }

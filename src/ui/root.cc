@@ -16,6 +16,7 @@
 #include "display/window_input.h"
 #include "display/window_statusbar.h"
 #include "input/manager.h"
+#include "input/navigation_keymap.h"
 #include "input/text_input.h"
 #include "rpc/parse_commands.h"
 
@@ -449,6 +450,20 @@ Root::clear_input_history() {
 
     m_input_history_pointers[type] = 0;
   }
+}
+
+void
+Root::set_keymap_style(const std::string& style) {
+  m_keymap_style = style;
+}
+
+
+const int
+Root::get_keymap(int key) {
+  if (strcasecmp(m_keymap_style.c_str(), "vi") == 0)
+    return input::vi_keymap[key];
+  else
+    return input::emacs_keymap[key];
 }
 
 }
