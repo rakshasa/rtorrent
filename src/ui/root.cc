@@ -27,6 +27,34 @@
 
 namespace ui {
 
+static const int emacs_keymap[RT_KEYMAP_MAX] = {
+  'B' - '@',
+  'F' - '@',
+  'P' - '@',
+  'N' - '@',
+  'l',
+  'k',
+  'U' - '@',
+  'H' - '@',
+  'A' - '@',
+  'E' - '@',
+  'L'
+};
+
+static const int vi_keymap[RT_KEYMAP_MAX] = {
+  'h',
+  'l',
+  'k',
+  'j',
+  'L',
+  'K',
+  'B' - '@',
+  'D' - '@',
+  'H',
+  'G',
+  'L' - '@'
+};
+
 Root::Root() {
   // Initialise prefilled m_input_history and m_input_history_pointers objects.
   for (int type = ui::DownloadList::INPUT_LOAD_DEFAULT; type != ui::DownloadList::INPUT_EOI; type++) {
@@ -34,6 +62,9 @@ Root::Root() {
     m_input_history_pointers.insert( std::make_pair(type, 0) );
   }
 
+  // set default keymap to emacs
+  m_keymap_style = "emacs";
+  m_keymap = emacs_keymap;
 }
 
 void
@@ -449,6 +480,24 @@ Root::clear_input_history() {
 
     m_input_history_pointers[type] = 0;
   }
+}
+
+void
+Root::set_keymap_style(const std::string& style) {
+  if (style == "vi") {
+    m_keymap = vi_keymap;
+  } else if (style == "emacs") {
+    m_keymap = emacs_keymap;
+  } else {
+    throw torrent::input_error("Root::set_keymap_style() -> ui.keymap.style is configured with unknown keymap style: " + m_keymap_style);
+  }
+
+  m_keymap_style = style;
+}
+
+const int
+Root::navigation_key(NavigationKeymap key) {
+  return m_keymap[key];
 }
 
 }

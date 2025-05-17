@@ -50,6 +50,7 @@
 #include "control.h"
 #include "element_file_list.h"
 #include "element_text.h"
+#include "root.h"
 
 namespace ui {
 
@@ -57,8 +58,8 @@ ElementFileList::ElementFileList(core::Download* d) :
     m_download(d),
     m_selected(iterator(d->download()->file_list()->begin())) {
 
-  m_bindings[KEY_LEFT]  = m_bindings['B' - '@'] = std::bind(&slot_type::operator(), &m_slot_exit);
-  m_bindings[KEY_RIGHT] = m_bindings['F' - '@'] = std::bind(&ElementFileList::receive_select, this);
+  m_bindings[KEY_LEFT]  = m_bindings[control->ui()->navigation_key(RT_KEY_LEFT)]  = std::bind(&slot_type::operator(), &m_slot_exit);
+  m_bindings[KEY_RIGHT] = m_bindings[control->ui()->navigation_key(RT_KEY_RIGHT)] = std::bind(&ElementFileList::receive_select, this);
 
   m_bindings[' '] = std::bind(&ElementFileList::receive_priority, this);
   m_bindings['*'] = std::bind(&ElementFileList::receive_change_all, this);
@@ -66,8 +67,8 @@ ElementFileList::ElementFileList(core::Download* d) :
   m_bindings[KEY_NPAGE] = std::bind(&ElementFileList::receive_pagenext, this);
   m_bindings[KEY_PPAGE] = std::bind(&ElementFileList::receive_pageprev, this);
 
-  m_bindings[KEY_DOWN] = m_bindings['N' - '@'] = std::bind(&ElementFileList::receive_next, this);
-  m_bindings[KEY_UP]   = m_bindings['P' - '@'] = std::bind(&ElementFileList::receive_prev, this);
+  m_bindings[KEY_DOWN]  = m_bindings[control->ui()->navigation_key(RT_KEY_DOWN)]  = std::bind(&ElementFileList::receive_next, this);
+  m_bindings[KEY_UP]    = m_bindings[control->ui()->navigation_key(RT_KEY_UP)]    = std::bind(&ElementFileList::receive_prev, this);
 }
 
 inline ElementText*

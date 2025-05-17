@@ -360,12 +360,12 @@ DownloadList::setup_keys() {
   m_bindings['F']           = std::bind(&DownloadList::receive_view_input, this, INPUT_FILTER);
 
   m_uiArray[DISPLAY_LOG]->bindings()[KEY_LEFT] =
-    m_uiArray[DISPLAY_LOG]->bindings()['B' - '@'] =
+    m_uiArray[DISPLAY_LOG]->bindings()[control->ui()->navigation_key(RT_KEY_LEFT)] =
     m_uiArray[DISPLAY_LOG]->bindings()[' '] = std::bind(&DownloadList::activate_display, this, DISPLAY_DOWNLOAD_LIST);
 
   m_uiArray[DISPLAY_DOWNLOAD_LIST]->bindings()[KEY_RIGHT] =
-    m_uiArray[DISPLAY_DOWNLOAD_LIST]->bindings()['F' - '@'] = std::bind(&DownloadList::activate_display, this, DISPLAY_DOWNLOAD);
-  m_uiArray[DISPLAY_DOWNLOAD_LIST]->bindings()['l'] = std::bind(&DownloadList::activate_display, this, DISPLAY_LOG);
+    m_uiArray[DISPLAY_DOWNLOAD_LIST]->bindings()[control->ui()->navigation_key(RT_KEY_RIGHT)] = std::bind(&DownloadList::activate_display, this, DISPLAY_DOWNLOAD);
+  m_uiArray[DISPLAY_DOWNLOAD_LIST]->bindings()[control->ui()->navigation_key(RT_KEY_DISPLAY_LOG)] = std::bind(&DownloadList::activate_display, this, DISPLAY_LOG);
 }
 
 }

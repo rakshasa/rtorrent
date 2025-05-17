@@ -52,6 +52,7 @@
 #include "control.h"
 #include "element_peer_list.h"
 #include "element_text.h"
+#include "root.h"
 
 namespace ui {
 
@@ -74,14 +75,14 @@ ElementPeerList::ElementPeerList(core::Download* d) :
 
   m_elementInfo->slot_exit(std::bind(&ElementPeerList::activate_display, this, DISPLAY_LIST));
 
-  m_bindings['k']       = std::bind(&ElementPeerList::receive_disconnect_peer, this);
+  m_bindings[control->ui()->navigation_key(RT_KEY_DISCONNECT_PEER)] = std::bind(&ElementPeerList::receive_disconnect_peer, this);
   m_bindings['*']       = std::bind(&ElementPeerList::receive_snub_peer, this);
   m_bindings['B']       = std::bind(&ElementPeerList::receive_ban_peer, this);
-  m_bindings[KEY_LEFT]  = m_bindings['B' - '@'] = std::bind(&slot_type::operator(), &m_slot_exit);
-  m_bindings[KEY_RIGHT] = m_bindings['F' - '@'] = std::bind(&ElementPeerList::activate_display, this, DISPLAY_INFO);
+  m_bindings[KEY_LEFT]  = m_bindings[control->ui()->navigation_key(RT_KEY_LEFT)]  = std::bind(&slot_type::operator(), &m_slot_exit);
+  m_bindings[KEY_RIGHT] = m_bindings[control->ui()->navigation_key(RT_KEY_RIGHT)] = std::bind(&ElementPeerList::activate_display, this, DISPLAY_INFO);
 
-  m_bindings[KEY_UP]   = m_bindings['P' - '@'] = std::bind(&ElementPeerList::receive_prev, this);
-  m_bindings[KEY_DOWN] = m_bindings['N' - '@'] = std::bind(&ElementPeerList::receive_next, this);
+  m_bindings[KEY_UP]    = m_bindings[control->ui()->navigation_key(RT_KEY_UP)]    = std::bind(&ElementPeerList::receive_prev, this);
+  m_bindings[KEY_DOWN]  = m_bindings[control->ui()->navigation_key(RT_KEY_DOWN)]  = std::bind(&ElementPeerList::receive_next, this);
 }
 
 ElementPeerList::~ElementPeerList() {

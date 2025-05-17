@@ -15,6 +15,7 @@
 
 #include "control.h"
 #include "element_download_list.h"
+#include "root.h"
 
 namespace ui {
 
@@ -54,16 +55,16 @@ ElementDownloadList::ElementDownloadList() {
   m_bindings['9'] = std::bind(&ElementDownloadList::receive_change_view, this, "leeching");
   m_bindings['0'] = std::bind(&ElementDownloadList::receive_change_view, this, "active");
 
-  m_bindings[KEY_UP] = m_bindings['P' - '@'] = std::bind(&ElementDownloadList::receive_prev, this);
-  m_bindings[KEY_DOWN] = m_bindings['N' - '@'] = std::bind(&ElementDownloadList::receive_next, this);
+  m_bindings[KEY_UP]    = m_bindings[control->ui()->navigation_key(RT_KEY_UP)]    = std::bind(&ElementDownloadList::receive_prev, this);
+  m_bindings[KEY_DOWN]  = m_bindings[control->ui()->navigation_key(RT_KEY_DOWN)]  = std::bind(&ElementDownloadList::receive_next, this);
 
-  m_bindings[KEY_PPAGE] = m_bindings['U' - '@'] = [this] { receive_pageprev(); };
-  m_bindings[KEY_NPAGE] = m_bindings['H' - '@'] = [this] { receive_pagenext(); };
+  m_bindings[KEY_PPAGE] = m_bindings[control->ui()->navigation_key(RT_KEY_PPAGE)] = [this] { receive_pageprev(); };
+  m_bindings[KEY_NPAGE] = m_bindings[control->ui()->navigation_key(RT_KEY_NPAGE)] = [this] { receive_pagenext(); };
 
-  m_bindings[KEY_HOME] = m_bindings['A' - '@'] = [this] { receive_home(); };
-  m_bindings[KEY_END] = m_bindings['E' - '@'] = [this] { receive_end(); };
-
-  m_bindings['L'] = std::bind(&ElementDownloadList::toggle_layout, this);
+  m_bindings[KEY_HOME]  = m_bindings[control->ui()->navigation_key(RT_KEY_HOME)]  = [this] { receive_home(); };
+  m_bindings[KEY_END]   = m_bindings[control->ui()->navigation_key(RT_KEY_END)]   = [this] { receive_end(); };
+ 
+  m_bindings[control->ui()->navigation_key(RT_KEY_TOGGLE_LAYOUT)] = std::bind(&ElementDownloadList::toggle_layout, this);
 }
 
 void
