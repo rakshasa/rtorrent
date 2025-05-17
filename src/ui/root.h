@@ -23,6 +23,21 @@ namespace input {
 
 namespace ui {
 
+enum NavigationKeymap {
+  RT_KEY_LEFT,
+  RT_KEY_RIGHT,
+  RT_KEY_UP,
+  RT_KEY_DOWN,
+  RT_KEY_DISPLAY_LOG,
+  RT_KEY_DISCONNECT_PEER,
+  RT_KEY_PPAGE,
+  RT_KEY_NPAGE,
+  RT_KEY_HOME,
+  RT_KEY_END,
+  RT_KEY_TOGGLE_LAYOUT,
+  RT_KEYMAP_MAX,
+};
+
 class DownloadList;
 
 typedef std::vector<std::string> ThrottleNameList;
@@ -80,6 +95,10 @@ public:
   void                save_input_history();
   void                clear_input_history();
 
+  const std::string&  keymap_style()                          { return m_keymap_style; }
+  void                set_keymap_style(const std::string& style);
+  const int           navigation_key(NavigationKeymap key);
+
 private:
   void                setup_keys();
 
@@ -103,6 +122,9 @@ private:
   void                next_in_input_history(ui::DownloadList::Input type);
 
   void                reset_input_history_attributes(ui::DownloadList::Input type);
+
+  std::string         m_keymap_style;
+  const int*          m_keymap;
 
   ThrottleNameList    m_throttle_up_names;
   ThrottleNameList    m_throttle_down_names;

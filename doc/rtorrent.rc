@@ -119,6 +119,10 @@
 #
 #ui.torrent_list.layout.set = "full"
 
+# Set navigation keymap style ("vi", "emacs"). Default is "emacs".
+#
+#ui.keymap.style.set = "emacs"
+
 # Run rTorrent as a daemon, controlled via XMLRPC.
 #
 #system.daemon.set = false

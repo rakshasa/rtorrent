@@ -45,6 +45,7 @@
 
 #include "control.h"
 #include "element_menu.h"
+#include "root.h"
 
 namespace ui {
 
@@ -72,11 +73,11 @@ ElementMenu::ElementMenu() :
   m_entry(entry_invalid) {
 
   // Move bindings into a function that defines default bindings.
-  m_bindings[KEY_LEFT]  = m_bindings['B' - '@'] = std::bind(&slot_type::operator(), &m_slot_exit);
-  m_bindings[KEY_RIGHT] = m_bindings['F' - '@'] = std::bind(&ElementMenu::entry_select, this);
+  m_bindings[KEY_LEFT]  = m_bindings[control->ui()->navigation_key(RT_KEY_LEFT)]  = std::bind(&slot_type::operator(), &m_slot_exit);
+  m_bindings[KEY_RIGHT] = m_bindings[control->ui()->navigation_key(RT_KEY_RIGHT)] = std::bind(&ElementMenu::entry_select, this);
 
-  m_bindings[KEY_UP]   = m_bindings['P' - '@'] = std::bind(&ElementMenu::entry_prev, this);
-  m_bindings[KEY_DOWN] = m_bindings['N' - '@'] = std::bind(&ElementMenu::entry_next, this);
+  m_bindings[KEY_UP]    = m_bindings[control->ui()->navigation_key(RT_KEY_UP)]    = std::bind(&ElementMenu::entry_prev, this);
+  m_bindings[KEY_DOWN]  = m_bindings[control->ui()->navigation_key(RT_KEY_DOWN)]  = std::bind(&ElementMenu::entry_next, this);
 }
 
 ElementMenu::~ElementMenu() {
