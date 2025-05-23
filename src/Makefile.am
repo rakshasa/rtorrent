@@ -88,6 +88,7 @@ libsub_root_a_SOURCES = \
 	input/input_event.h \
 	input/manager.cc \
 	input/manager.h \
+	input/navigation_keymap.h \
 	input/path_input.cc \
 	input/path_input.h \
 	input/text_input.cc \

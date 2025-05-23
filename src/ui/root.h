@@ -80,6 +80,10 @@ public:
   void                save_input_history();
   void                clear_input_history();
 
+  const std::string&  get_keymap_style()                      { return m_keymap_style; }
+  void                set_keymap_style(const std::string& style);
+  const int           get_keymap(int key);
+
 private:
   void                setup_keys();
 
@@ -103,6 +107,8 @@ private:
   void                next_in_input_history(ui::DownloadList::Input type);
 
   void                reset_input_history_attributes(ui::DownloadList::Input type);
+
+  std::string         m_keymap_style{"emacs"};
 
   ThrottleNameList    m_throttle_up_names;
   ThrottleNameList    m_throttle_down_names;
