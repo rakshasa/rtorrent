@@ -140,7 +140,7 @@ Control::handle_shutdown() {
 
   if (!m_shutdownQuick) {
     if (worker_thread->is_active())
-      worker_thread->stop_thread();
+      worker_thread->stop_thread_wait();
 
     torrent::connection_manager()->listen_close();
 
