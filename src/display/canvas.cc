@@ -106,7 +106,7 @@ Canvas::build_colors() {
     return;
 
   // basic color names, index maps to ncurses COLOR_*
-  static const char* color_names[] = {
+  static constexpr std::array color_names{
     "black", "red", "green", "yellow", "blue", "magenta", "cyan", "white"};
 
   // Those hold the background colors of "odd" and "even"
