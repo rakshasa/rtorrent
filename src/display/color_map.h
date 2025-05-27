@@ -1,6 +1,7 @@
 #ifndef RTORRENT_DISPLAY_COLOR_MAP_H
 #define RTORRENT_DISPLAY_COLOR_MAP_H
 
+#include <array>
 #include <map>
 
 #include <curses.h>
@@ -26,8 +27,8 @@ enum ColorKind {
   RCOLOR_MAX,
 };
 
-static const char* color_vars[RCOLOR_MAX] = {
-  0,
+static const std::array<const char*, RCOLOR_MAX> color_vars{
+  nullptr,
   "ui.color.title",
   "ui.color.footer",
   "ui.color.focus",
