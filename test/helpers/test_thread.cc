@@ -16,25 +16,6 @@ const int test_thread::test_flag_do_work;
 const int test_thread::test_flag_pre_poke;
 const int test_thread::test_flag_post_poke;
 
-// TODO: Remove PollSelect.
-
-torrent::Poll*
-create_poll() {
-  torrent::Poll* poll = torrent::Poll::create(256);
-
-  if (poll == nullptr)
-    throw torrent::internal_error("Unable to create poll object");
-
-  return poll;
-}
-
-void
-set_create_poll() {
-  torrent::Poll::slot_create_poll() = []() {
-    return create_poll();
-  };
-}
-
 std::unique_ptr<test_thread>
 test_thread::create() {
   // Needs to be called before Thread is created.
@@ -60,8 +41,6 @@ void
 test_thread::init_thread() {
   m_state = STATE_INITIALIZED;
   m_test_state = TEST_PRE_START;
-
-  m_poll = std::unique_ptr<torrent::Poll>(create_poll());
 }
 
 void
