@@ -7,7 +7,6 @@
 #include <cassert>
 #include <rak/path.h>
 #include <torrent/exceptions.h>
-#include <torrent/poll.h>
 
 #include "globals.h"
 #include "control.h"
@@ -22,7 +21,6 @@ ThreadWorker::~ThreadWorker() {
 
 void
 ThreadWorker::init_thread() {
-  m_poll = std::unique_ptr<torrent::Poll>(torrent::Poll::slot_create_poll()());
   m_state = STATE_INITIALIZED;
 }
 

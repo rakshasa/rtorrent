@@ -11,7 +11,6 @@
 #include <torrent/http.h>
 #include <torrent/torrent.h>
 #include <torrent/exceptions.h>
-#include <torrent/poll.h>
 #include <torrent/data/chunk_utils.h>
 #include <torrent/utils/log.h>
 #include <rak/error_number.h>
@@ -132,16 +131,6 @@ client_perform() {
   control->inc_tick();
 }
 
-torrent::Poll*
-create_poll() {
-  torrent::Poll* poll = torrent::Poll::create(sysconf(_SC_OPEN_MAX));
-
-  if (poll == nullptr)
-    throw torrent::internal_error("Unable to create poll object: " + std::string(std::strerror(errno)));
-
-  return poll;
-}
-
 int
 main(int argc, char** argv) {
   try {
@@ -158,8 +147,6 @@ main(int argc, char** argv) {
 
     srandom(random_seed);
     srand48(random_seed);
-
-    torrent::Poll::slot_create_poll() = [](){ return create_poll(); };
 
     torrent::initialize_main_thread();
     torrent::log_initialize();

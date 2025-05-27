@@ -55,19 +55,4 @@ private:
   std::atomic_int m_loop_count{0};
 };
 
-void set_create_poll();
-
-// TODO: Need better cleanup here.
-// TODO: Replace these with class that holds the threads and cleans them up on destruction.
-
-#define SETUP_THREAD_DISK()                     \
-  auto thread_test = test_thread::create();     \
-  thread_test->init_thread();                   \
-  torrent::ThreadDisk::create_thread();         \
-  torrent::thread_disk()->init_thread();        \
-  torrent::thread_disk()->start_thread();
-
-#define CLEANUP_THREAD_DISK()                   \
-  torrent::ThreadDisk::destroy_thread();
-
 #endif

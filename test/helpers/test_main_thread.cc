@@ -11,9 +11,6 @@
 
 std::unique_ptr<TestMainThread>
 TestMainThread::create() {
-  if (torrent::Poll::slot_create_poll() == nullptr)
-    set_create_poll();
-
   // Needs to be called before Thread is created.
   mock_redirect_defaults();
 
@@ -29,10 +26,6 @@ TestMainThread::~TestMainThread() {
 
 void
 TestMainThread::init_thread() {
-  if (!torrent::Poll::slot_create_poll())
-    throw torrent::internal_error("ThreadMain::init_thread(): Poll::slot_create_poll() not valid.");
-
-  m_poll = std::unique_ptr<torrent::Poll>(torrent::Poll::slot_create_poll()());
   m_resolver = std::make_unique<torrent::net::Resolver>();
   m_state = STATE_INITIALIZED;
 
