@@ -6,7 +6,6 @@
 #include <rak/address_info.h>
 #include <rak/path.h>
 #include <torrent/connection_manager.h>
-#include <torrent/tracker_list.h>
 #include <torrent/tracker/tracker.h>
 #include <torrent/torrent.h>
 #include <torrent/rate.h>
@@ -73,10 +72,12 @@ initialize_rpc() {
       return (*d->file_list())[index].get();
     };
   rpc::rpc.slot_find_tracker() = [](core::Download* d, uint32_t index) -> torrent::tracker::Tracker {
-      if (index >= d->tracker_list()->size())
+      if (index >= d->tracker_controller().size())
         throw torrent::input_error("invalid parameters: index not found");
 
-      return d->tracker_list()->at(index);
+      // TODO: This should be rewritten to check if the tracker is valid and use a different
+      // function.
+      return d->tracker_controller().at(index);
     };
   rpc::rpc.slot_find_peer() = [](core::Download* d, const torrent::HashString& hash) -> torrent::Peer* {
       auto itr = d->connection_list()->find(hash.c_str());

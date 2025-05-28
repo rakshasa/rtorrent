@@ -1,7 +1,6 @@
 #include "config.h"
 
 #include <torrent/exceptions.h>
-#include <torrent/tracker_list.h>
 #include <torrent/tracker/tracker.h>
 
 #include "display/frame.h"
@@ -67,7 +66,10 @@ ElementTrackerList::receive_disable() {
   if (m_window == NULL)
     throw torrent::internal_error("ui::ElementTrackerList::receive_disable(...) called on a disabled object");
 
-  auto t = m_download->download()->tracker_list()->at(m_focus);
+  auto t = m_download->download()->tracker_controller().at(m_focus);
+
+  if (!t.is_valid())
+    return;
 
   if (t.is_enabled())
     t.disable();
@@ -82,7 +84,7 @@ ElementTrackerList::receive_next() {
   if (m_window == NULL)
     throw torrent::internal_error("ui::ElementTrackerList::receive_next(...) called on a disabled object");
 
-  if (++m_focus >= m_download->download()->tracker_list()->size())
+  if (++m_focus >= m_download->download()->tracker_controller().size())
     m_focus = 0;
 
   m_window->mark_dirty();
@@ -93,13 +95,13 @@ ElementTrackerList::receive_prev() {
   if (m_window == NULL)
     throw torrent::internal_error("ui::ElementTrackerList::receive_prev(...) called on a disabled object");
 
-  if (m_download->download()->tracker_list()->size() == 0)
+  if (m_download->download()->tracker_controller().size() == 0)
     return;
 
   if (m_focus != 0)
     --m_focus;
   else
-    m_focus = m_download->download()->tracker_list()->size() - 1;
+    m_focus = m_download->download()->tracker_controller().size() - 1;
 
   m_window->mark_dirty();
 }
@@ -109,12 +111,12 @@ ElementTrackerList::receive_cycle_group() {
   if (m_window == NULL)
     throw torrent::internal_error("ui::ElementTrackerList::receive_group_cycle(...) called on a disabled object");
 
-  torrent::TrackerList* tl = m_download->tracker_list();
+  auto tracker = m_download->download()->tracker_controller().at(m_focus);
 
-  if (m_focus >= tl->size())
-    throw torrent::internal_error("ui::ElementTrackerList::receive_group_cycle(...) called with an invalid focus");
+  if (!tracker.is_valid())
+    return;
 
-  tl->cycle_group(tl->at(m_focus).group());
+  m_download->download()->tracker_controller().cycle_group(tracker.group());
 
   m_window->mark_dirty();
 }

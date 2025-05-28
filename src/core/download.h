@@ -5,9 +5,9 @@
 #include <torrent/download.h>
 #include <torrent/download_info.h>
 #include <torrent/hash_string.h>
-#include <torrent/tracker_list.h>
 #include <torrent/data/file_list.h>
 #include <torrent/peer/connection_list.h>
+#include <torrent/tracker/wrappers.h>
 
 #include "globals.h"
 
@@ -62,8 +62,7 @@ public:
   torrent::Object*    bencode()                                { return m_download.bencode(); }
 
   auto                tracker_controller()                     { return m_download.tracker_controller(); }
-  tracker_list_type*  tracker_list()                           { return m_download.tracker_list(); }
-  uint32_t            tracker_list_size() const                { return m_download.tracker_list()->size(); }
+  uint32_t            tracker_list_size() const                { return m_download.c_tracker_controller().size(); }
 
   auto                connection_list()                        { return m_download.connection_list(); }
   uint32_t            connection_list_size() const;

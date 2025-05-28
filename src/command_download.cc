@@ -13,8 +13,6 @@
 #include <rak/regex.h>
 #include <torrent/rate.h>
 #include <torrent/throttle.h>
-#include <torrent/tracker_controller.h>
-#include <torrent/tracker_list.h>
 #include <torrent/tracker/tracker.h>
 #include <torrent/connection_manager.h>
 #include <torrent/data/download_data.h>
@@ -390,21 +388,24 @@ t_multicall(core::Download* download, const torrent::Object::list_type& args) {
 
   // Add some pre-parsing of the commands, so we don't spend time
   // parsing and searching command map for every single call.
-  torrent::Object             resultRaw = torrent::Object::create_list();
-  torrent::Object::list_type& result = resultRaw.as_list();
+  torrent::Object             result_raw = torrent::Object::create_list();
+  torrent::Object::list_type& result     = result_raw.as_list();
 
-  for (int itr = 0, last = download->tracker_list()->size(); itr != last; itr++) {
-    torrent::Object::list_type& row = result.insert(result.end(), torrent::Object::create_list())->as_list();
+  for (uint32_t idx = 0, last = download->tracker_list_size(); idx < last; idx++) {
+    auto& row = result.insert(result.end(), torrent::Object::create_list())->as_list();
+    auto  tracker = download->tracker_controller().at(idx);
+
+    if (!tracker.is_valid())
+      continue;
 
     for (torrent::Object::list_const_iterator cItr = ++args.begin(); cItr != args.end(); cItr++) {
       const std::string& cmd = cItr->as_string();
-      auto t = download->tracker_list()->at(itr);
 
-      row.push_back(rpc::parse_command(rpc::make_target(&t), cmd.c_str(), cmd.c_str() + cmd.size()).first);
+      row.push_back(rpc::parse_command(rpc::make_target(&tracker), cmd.c_str(), cmd.c_str() + cmd.size()).first);
     }
   }
 
-  return resultRaw;
+  return result_raw;
 }
 
 torrent::Object
@@ -485,7 +486,8 @@ download_tracker_insert(core::Download* download, const torrent::Object::list_ty
   if (group < 0 || group > 32)
     throw torrent::input_error("Tracker group number invalid.");
 
-  download->download()->tracker_list()->insert_url(group, args.back().as_string(), true);
+  download->tracker_controller().add_extra_tracker(group, args.back().as_string());
+
   return torrent::Object();
 }
 
@@ -589,7 +591,7 @@ d_list_remove(core::Download* download, const torrent::Object& rawArgs, const ch
 #define CMD2_BIND_CL std::bind(&core::Download::connection_list, std::placeholders::_1)
 #define CMD2_BIND_FL std::bind(&core::Download::file_list, std::placeholders::_1)
 #define CMD2_BIND_PL std::bind(&core::Download::c_peer_list, std::placeholders::_1)
-#define CMD2_BIND_TL std::bind(&core::Download::tracker_list, std::placeholders::_1)
+#define CMD2_BIND_TC std::bind(&core::Download::tracker_controller, std::placeholders::_1)
 
 #define CMD2_BIND_INFO std::bind(&core::Download::info, std::placeholders::_1)
 #define CMD2_BIND_DATA std::bind(&core::Download::data, std::placeholders::_1)
@@ -836,15 +838,15 @@ initialize_command_download() {
   CMD2_DL_V       ("d.tracker_announce",       std::bind(&torrent::Download::manual_request, CMD2_BIND_DL, false));
   CMD2_DL_V       ("d.tracker_announce.force", std::bind(&torrent::Download::manual_request, CMD2_BIND_DL, true));
 
-  CMD2_DL         ("d.tracker_numwant",      std::bind(&torrent::TrackerList::numwant, CMD2_BIND_TL));
-  CMD2_DL_VALUE_V ("d.tracker_numwant.set",  std::bind(&torrent::TrackerList::set_numwant, CMD2_BIND_TL, std::placeholders::_2));
+  CMD2_DL         ("d.tracker_numwant",      std::bind(&torrent::tracker::TrackerControllerWrapper::numwant, CMD2_BIND_TC));
+  CMD2_DL_VALUE_V ("d.tracker_numwant.set",  std::bind(&torrent::tracker::TrackerControllerWrapper::set_numwant, CMD2_BIND_TC, std::placeholders::_2));
   // TODO: Deprecate 'd.tracker_focus'.
   CMD2_DL         ("d.tracker_focus",        std::bind(&core::Download::tracker_list_size, std::placeholders::_1));
   CMD2_DL         ("d.tracker_size",         std::bind(&core::Download::tracker_list_size, std::placeholders::_1));
 
-  CMD2_DL         ("d.tracker.has_active",            std::bind(&torrent::TrackerList::has_active, CMD2_BIND_TL));
-  CMD2_DL         ("d.tracker.has_active_not_scrape", std::bind(&torrent::TrackerList::has_active_not_scrape, CMD2_BIND_TL));
-  CMD2_DL         ("d.tracker.has_usable",            std::bind(&torrent::TrackerList::has_usable, CMD2_BIND_TL));
+  CMD2_DL         ("d.tracker.has_active",            std::bind(&torrent::tracker::TrackerControllerWrapper::has_active_trackers, CMD2_BIND_TC));
+  CMD2_DL         ("d.tracker.has_active_not_scrape", std::bind(&torrent::tracker::TrackerControllerWrapper::has_active_trackers_not_scrape, CMD2_BIND_TC));
+  CMD2_DL         ("d.tracker.has_usable",            std::bind(&torrent::tracker::TrackerControllerWrapper::has_usable_trackers, CMD2_BIND_TC));
   CMD2_DL_LIST    ("d.tracker.insert",                std::bind(&download_tracker_insert, std::placeholders::_1, std::placeholders::_2));
   CMD2_DL_VALUE_V ("d.tracker.send_scrape",           [](auto download, uint64_t arg) { download->tracker_controller().scrape_request(arg); });
 
