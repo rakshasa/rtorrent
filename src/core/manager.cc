@@ -17,7 +17,6 @@
 #include <torrent/error.h>
 #include <torrent/exceptions.h>
 #include <torrent/object_stream.h>
-#include <torrent/tracker_list.h>
 #include <torrent/throttle.h>
 #include <torrent/utils/log.h>
 

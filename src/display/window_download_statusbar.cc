@@ -1,17 +1,15 @@
 #include "config.h"
 
+#include "window_download_statusbar.h"
+
 #include <torrent/rate.h>
 #include <torrent/data/transfer_list.h>
-#include <torrent/tracker_controller.h>
-#include <torrent/tracker_list.h>
 #include <torrent/peer/connection_list.h>
 #include <torrent/peer/peer_list.h>
 
 #include "canvas.h"
 #include "globals.h"
 #include "utils.h"
-#include "window_download_statusbar.h"
-
 #include "core/download.h"
 
 namespace display {
@@ -57,7 +55,7 @@ WindowDownloadStatusbar::redraw() {
 
   print_download_status(buffer.data(), last, m_download);
   m_canvas->print(0, 2, "[%c:%i] %s",
-                  m_download->tracker_list()->has_active() ? 'C' : ' ',
+                  m_download->tracker_controller().has_active_trackers() ? 'C' : ' ',
                   (int)(m_download->download()->tracker_controller().seconds_to_next_timeout()),
                   buffer.data());
 }

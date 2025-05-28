@@ -6,7 +6,6 @@
 #include <torrent/exceptions.h>
 #include <torrent/rate.h>
 #include <torrent/torrent.h>
-#include <torrent/tracker_list.h>
 #include <torrent/tracker/tracker.h>
 #include <torrent/data/file_list.h>
 
@@ -38,13 +37,17 @@ Download::~Download() {
 
 void
 Download::enable_udp_trackers(bool state) {
-  for (torrent::TrackerList::iterator itr = m_download.tracker_list()->begin(), last = m_download.tracker_list()->end(); itr != last; ++itr)
-    if (itr->type() == torrent::TRACKER_UDP) {
-      if (state)
-        itr->enable();
-      else
-        itr->disable();
-    }
+  for (int idx = 0, end = m_download.tracker_controller().size(); idx < end; ++idx) {
+    auto tracker = m_download.tracker_controller().at(idx);
+
+    if (tracker.type() != torrent::TRACKER_UDP)
+      continue;
+
+    if (state)
+      tracker.enable();
+    else
+      tracker.disable();
+  }
 }
 
 uint32_t
