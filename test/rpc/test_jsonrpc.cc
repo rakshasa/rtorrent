@@ -1,14 +1,15 @@
 #include "config.h"
-#include <string>
 
-#include "command_helpers.h"
-#include "rpc/command_map.h"
+#include "test/rpc/test_jsonrpc.h"
+
+#include <string>
 
 #include "control.h"
 #include "globals.h"
-#include "jsonrpc_test.h"
+#include "command_helpers.h"
+#include "rpc/command_map.h"
 
-CPPUNIT_TEST_SUITE_REGISTRATION(JsonrpcTest);
+CPPUNIT_TEST_SUITE_REGISTRATION(TestJsonrpc);
 
 torrent::Object
 jsonrpc_cmd_test_reflect([[maybe_unused]] rpc::target_type t, const torrent::Object& obj) { return obj; }
@@ -117,19 +118,27 @@ std::vector<std::tuple<std::string, std::string, std::string>> basic_jsonrpc_req
 };
 
 void
-JsonrpcTest::setUp() {
+TestJsonrpc::setUp() {
+  m_test_main_thread = TestMainThread::create();
+  m_test_main_thread->init_thread();
+
   m_jsonrpc = rpc::JsonRpc();
   m_jsonrpc.initialize();
   setlocale(LC_ALL, "");
-  // cachedTime = rak::timer::current();
-  control    = new Control;
+  control = new Control;
+
   if (rpc::commands.find("jsonrpc_reflect") == rpc::commands.end()) {
     CMD2_ANY("jsonrpc_reflect", &jsonrpc_cmd_test_reflect);
   }
 }
 
 void
-JsonrpcTest::test_basics() {
+TestJsonrpc::tearDown() {
+  m_test_main_thread.reset();
+}
+
+void
+TestJsonrpc::test_basics() {
   for (auto& test : basic_jsonrpc_requests) {
     std::string output;
     m_jsonrpc.process(std::get<1>(test).c_str(), std::get<1>(test).size(), [&output](const char* c, uint32_t l) { output.append(c, l); return true; });

@@ -8,7 +8,6 @@
 #include <torrent/connection_manager.h>
 #include <torrent/throttle.h>
 #include <torrent/torrent.h>
-#include <torrent/tracker_list.h>
 #include <torrent/data/file_list.h>
 #include <torrent/peer/connection_list.h>
 

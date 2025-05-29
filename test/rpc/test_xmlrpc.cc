@@ -1,14 +1,15 @@
 #include "config.h"
+
+#include "test/rpc/test_xmlrpc.h"
+
 #include <string>
 
+#include "control.h"
+#include "globals.h"
 #include "command_helpers.h"
 #include "rpc/command_map.h"
 
-#include "xmlrpc_test.h"
-#include "control.h"
-#include "globals.h"
-
-CPPUNIT_TEST_SUITE_REGISTRATION(XmlrpcTest);
+CPPUNIT_TEST_SUITE_REGISTRATION(TestXmlrpc);
 
 torrent::Object xmlrpc_cmd_test_reflect([[maybe_unused]] rpc::target_type t, const torrent::Object& obj) { return obj; }
 
@@ -99,19 +100,27 @@ std::vector<std::tuple<std::string, std::string, std::string>> basic_requests = 
 };
 
 void
-XmlrpcTest::setUp() {
+TestXmlrpc::setUp() {
+  m_test_main_thread = TestMainThread::create();
+  m_test_main_thread->init_thread();
+
   m_xmlrpc = rpc::XmlRpc();
   m_xmlrpc.initialize();
   setlocale(LC_ALL, "");
-  // cachedTime = rak::timer::current();
   control = new Control;
+
   if (rpc::commands.find("xmlrpc_reflect") == rpc::commands.end()) {
     CMD2_ANY("xmlrpc_reflect", &xmlrpc_cmd_test_reflect);
   }
 }
 
 void
-XmlrpcTest::test_basics() {
+TestXmlrpc::tearDown() {
+  m_test_main_thread.reset();
+}
+
+void
+TestXmlrpc::test_basics() {
   for (auto& test : basic_requests) {
     std::string output;
     m_xmlrpc.process(std::get<1>(test).c_str(), std::get<1>(test).size(), [&output](const char* c, uint32_t l){ output.append(c, l); return true;});
@@ -120,7 +129,7 @@ XmlrpcTest::test_basics() {
 }
 
 void
-XmlrpcTest::test_invalid_utf8() {
+TestXmlrpc::test_invalid_utf8() {
   // Surprisingly, this call doesn't fail. TinyXML-2 technically expects
   // valid UTF-8, but doesn't check strings, and Object strings are
   // just a series of bytes so it reflects just fine.
@@ -132,7 +141,7 @@ XmlrpcTest::test_invalid_utf8() {
 }
 
 void
-XmlrpcTest::test_size_limit() {
+TestXmlrpc::test_size_limit() {
   std::string input = "<?xml version=\"1.0\"?><methodCall><methodName>xmlrpc_reflect</methodName><params><param><value><string></string></value></param><param><value><string>\xc3\x28</string></value></param></params></methodCall>";
   std::string expected = "<?xml version=\"1.0\"?><methodResponse><fault><value><struct><member><name>faultCode</name><value><i8>-509</i8></value></member><member><name>faultString</name><value><string>Content size exceeds maximum XML-RPC limit</string></value></member></struct></value></fault></methodResponse>";
   std::string output;
@@ -140,9 +149,13 @@ XmlrpcTest::test_size_limit() {
   m_xmlrpc.process(input.c_str(), input.size(), [&output](const char* c, uint32_t l){ output.append(c, l); return true;});
   CPPUNIT_ASSERT_EQUAL(expected, output);
 }
+
 #else
-void XmlrpcTest::test_invalid_utf8() {}
-void XmlrpcTest::test_basics() {}
-void XmlrpcTest::test_size_limit() {}
-void XmlrpcTest::setUp() {}
+
+void TestXmlrpc::test_invalid_utf8() {}
+void TestXmlrpc::test_basics() {}
+void TestXmlrpc::test_size_limit() {}
+void TestXmlrpc::setUp() {}
+void TestXmlrpc::tearDown() {}
+
 #endif

@@ -225,7 +225,7 @@ DownloadFactory::receive_success() {
   torrent::Object* rtorrent = &root->insert_preserve_copy("rtorrent", torrent::Object::create_map()).first->second;
   torrent::Object& resumeObject = root->insert_preserve_copy("libtorrent_resume", torrent::Object::create_map()).first->second;
 
-  rtorrent->insert_key("key", download->tracker_list()->key());
+  rtorrent->insert_key("key", download->tracker_controller().key());
 
   initialize_rtorrent(download, rtorrent);
 

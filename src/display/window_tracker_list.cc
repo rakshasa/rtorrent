@@ -1,15 +1,13 @@
 #include "config.h"
 
+#include "window_tracker_list.h"
+
 #include <rak/algorithm.h>
 #include <rak/string_manip.h>
 #include <torrent/exceptions.h>
-#include <torrent/tracker_list.h>
-#include <torrent/tracker_controller.h>
 #include <torrent/tracker/tracker.h>
 
 #include "core/download.h"
-
-#include "window_tracker_list.h"
 
 namespace display {
 
@@ -25,27 +23,25 @@ WindowTrackerList::redraw() {
   schedule_update(10);
   m_canvas->erase();
 
-  unsigned int pos = 0;
-  auto tl = m_download->tracker_list();
+  auto pos = 0u;
   auto tc = m_download->tracker_controller();
+  auto tc_size = tc.size();
 
   m_canvas->print(2, pos, "Trackers: [Key: %08x] [%s %s %s]",
-                  tl->key(),
+                  tc.key(),
                   tc.is_requesting() ? "req" : "   ",
                   tc.is_promiscuous_mode() ? "prom" : "    ",
                   tc.is_failure_mode() ? "fail" : "    ");
   ++pos;
 
-  if (tl->size() == 0 || *m_focus >= tl->size())
+  if (tc_size == 0 || *m_focus >= tc_size)
     return;
 
-  typedef std::pair<unsigned int, unsigned int> Range;
-
-  Range range = rak::advance_bidirectional<unsigned int>(0, *m_focus, tl->size(), (m_canvas->height() - 1) / 2);
-  unsigned int group = tl->at(range.first).group();
+  auto range = rak::advance_bidirectional<unsigned int>(0, *m_focus, tc_size, (m_canvas->height() - 1) / 2);
+  auto group = tc.at(range.first).group();
 
   while (range.first != range.second) {
-    auto tracker = tl->at(range.first);
+    auto tracker = tc.at(range.first);
 
     if (tracker.group() == group)
       m_canvas->print(0, pos, "%2i:", group++);
@@ -93,7 +89,7 @@ WindowTrackerList::redraw() {
 
     // If we're at the end of the range, check if we can
     // show one more line for the following tracker.
-    if (range.first == range.second && pos < m_canvas->height() && range.first < tl->size())
+    if (range.first == range.second && pos < m_canvas->height() && range.first < tc_size)
       range.second++;
   }
 }
