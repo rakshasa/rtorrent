@@ -27,8 +27,8 @@ public:
 
   void               set_active(bool a) { m_active = a; }
 
-  double             size_done();
-  double             size_total();
+  curl_off_t         size_done();
+  curl_off_t         size_total();
 
   CURL*              handle()           { return m_handle; }
 

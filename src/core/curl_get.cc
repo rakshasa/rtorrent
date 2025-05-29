@@ -103,18 +103,18 @@ CurlGet::receive_timeout() {
   return m_stack->transfer_done(m_handle, "Timed out");
 }
 
-double
+curl_off_t
 CurlGet::size_done() {
-  double d = 0.0;
-  curl_easy_getinfo(m_handle, CURLINFO_SIZE_DOWNLOAD, &d);
+  curl_off_t d = 0;
+  curl_easy_getinfo(m_handle, CURLINFO_SIZE_DOWNLOAD_T, &d);
 
   return d;
 }
 
-double
+curl_off_t
 CurlGet::size_total() {
-  double d = 0.0;
-  curl_easy_getinfo(m_handle, CURLINFO_CONTENT_LENGTH_DOWNLOAD, &d);
+  curl_off_t d = 0;
+  curl_easy_getinfo(m_handle, CURLINFO_CONTENT_LENGTH_DOWNLOAD_T, &d);
 
   return d;
 }
