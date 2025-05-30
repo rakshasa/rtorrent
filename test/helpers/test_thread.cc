@@ -3,11 +3,10 @@
 #include "test_thread.h"
 
 #include <unistd.h>
-#include <cppunit/extensions/HelperMacros.h>
-#include <torrent/exceptions.h>
-#include <torrent/poll.h>
 
 #include "test/helpers/mock_function.h"
+#include "torrent/exceptions.h"
+#include "torrent/poll.h"
 
 const int test_thread::test_flag_pre_stop;
 const int test_thread::test_flag_long_timeout;
@@ -33,14 +32,16 @@ test_thread::test_thread() :
 test_thread::~test_thread() {
   if (is_active())
     stop_thread_wait();
-
-  m_self = nullptr;
 }
 
 void
 test_thread::init_thread() {
   m_state = STATE_INITIALIZED;
   m_test_state = TEST_PRE_START;
+}
+
+void
+test_thread::cleanup_thread() {
 }
 
 void
