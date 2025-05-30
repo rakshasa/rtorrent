@@ -18,10 +18,7 @@
 
 namespace ui {
 
-ElementDownloadList::ElementDownloadList() :
-    m_window(NULL),
-    m_view(NULL) {
-
+ElementDownloadList::ElementDownloadList() {
   receive_change_view("main");
 
   if (m_view == NULL)

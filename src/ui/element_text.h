@@ -102,8 +102,8 @@ public:
 private:
   WindowText*         m_window;
 
-  unsigned int        m_column;
-  extent_type         m_columnWidth;
+  unsigned int        m_column{};
+  extent_type         m_columnWidth{};
 };
 
 struct text_element_wrapper {

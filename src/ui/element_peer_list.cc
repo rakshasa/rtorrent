@@ -56,8 +56,7 @@
 namespace ui {
 
 ElementPeerList::ElementPeerList(core::Download* d) :
-  m_download(d),
-  m_state(DISPLAY_MAX_SIZE) {
+    m_download(d) {
 
   m_listItr = m_list.end();
 

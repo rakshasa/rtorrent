@@ -28,7 +28,7 @@ public:
   using base_type::empty;
   using base_type::size;
 
-  ViewManager() {}
+  ViewManager() = default;
   ~ViewManager() { clear(); }
 
   // Ffff... Just throwing together an interface, need to think some

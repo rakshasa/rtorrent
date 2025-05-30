@@ -60,17 +60,7 @@ is_magnet_uri(const std::string& uri) {
 }
 
 DownloadFactory::DownloadFactory(Manager* m) :
-  m_manager(m),
-  m_stream(NULL),
-  m_object(NULL),
-  m_commited(false),
-  m_loaded(false),
-
-  m_session(false),
-  m_start(false),
-  m_printLog(true),
-  m_isFile(false),
-  m_initLoad(false) {
+    m_manager(m) {
 
   m_task_load.slot() = std::bind(&DownloadFactory::receive_load, this);
   m_task_commit.slot() = std::bind(&DownloadFactory::receive_commit, this);

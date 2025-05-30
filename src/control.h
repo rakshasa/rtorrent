@@ -94,15 +94,15 @@ private:
   rpc::LuaEngine*            m_lua_engine;
   torrent::directory_events* m_directory_events;
 
-  uint64_t            m_tick;
+  uint64_t            m_tick{};
 
   mode_t              m_umask;
   std::string         m_workingDirectory;
 
   torrent::utils::SchedulerEntry m_task_shutdown;
 
-  std::atomic<bool>   m_shutdownReceived;
-  std::atomic<bool>   m_shutdownQuick;
+  std::atomic<bool>   m_shutdownReceived{};
+  std::atomic<bool>   m_shutdownQuick{};
 };
 
 #endif

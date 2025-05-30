@@ -63,18 +63,18 @@ private:
   void                initialize_rtorrent(Download* download, torrent::Object* rtorrent);
 
   Manager*            m_manager;
-  std::iostream*      m_stream;
-  torrent::Object*    m_object;
+  std::iostream*      m_stream{};
+  torrent::Object*    m_object{};
 
-  bool                m_commited;
-  bool                m_loaded;
+  bool                m_commited{};
+  bool                m_loaded{};
 
   std::string         m_uri;
-  bool                m_session;
-  bool                m_start;
-  bool                m_printLog;
-  bool                m_isFile;
-  bool                m_initLoad;
+  bool                m_session{};
+  bool                m_start{};
+  bool                m_printLog{true};
+  bool                m_isFile{};
+  bool                m_initLoad{};
 
   command_list_type         m_commands;
   torrent::Object::map_type m_variables;

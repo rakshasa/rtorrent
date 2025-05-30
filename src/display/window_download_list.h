@@ -24,7 +24,7 @@ public:
   int                 page_size();
 
 private:
-  core::View*         m_view;
+  core::View*         m_view{};
 
   std::pair<int, int> get_attr_color(core::View::iterator selected);
   signal_void_itr     m_changed_itr;

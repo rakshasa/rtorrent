@@ -47,10 +47,10 @@ public:
 
 private:
   rpc::target_type    m_target;
-  TextElement*        m_errorHandler;
+  TextElement*        m_errorHandler{};
 
   extent_type         m_margin;
-  uint32_t            m_interval;
+  uint32_t            m_interval{};
 };
 
 }

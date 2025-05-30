@@ -69,10 +69,10 @@ private:
   void                receive_cycle_group();
 
   core::Download*     m_download;
-  WTrackerList*       m_window;
+  WTrackerList*       m_window{};
   
   // Change to unsigned, please.
-  unsigned int        m_focus;
+  unsigned int        m_focus{};
 };
 
 }

@@ -10,13 +10,12 @@ namespace display {
 class WindowStatusbar : public Window {
 public:
   WindowStatusbar() :
-    Window(new Canvas, 0, 0, 1, extent_full, extent_static),
-    m_lastTick(0) {}
+      Window(new Canvas, 0, 0, 1, extent_full, extent_static) {}
 
   virtual void   redraw();
 
 private:
-  uint64_t       m_lastTick;
+  uint64_t m_lastTick{};
 };
 
 }

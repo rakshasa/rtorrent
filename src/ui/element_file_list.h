@@ -92,13 +92,13 @@ private:
 
   core::Download*     m_download;
 
-  Display             m_state;
-  WFileList*          m_window;
-  ElementText*        m_elementInfo;
-  
+  Display             m_state{DISPLAY_MAX_SIZE};
+  WFileList*          m_window{};
+  ElementText*        m_elementInfo{};
+
   // Change to unsigned, please.
   iterator            m_selected;
-  bool                m_collapsed;
+  bool                m_collapsed{};
 };
 
 }

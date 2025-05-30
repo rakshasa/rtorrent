@@ -24,16 +24,14 @@ public:
 
   using Base::push_back;
 
-  Manager() : m_textInput(NULL) {}
-
   void erase(Bindings* b);
 
   void pressed(int key);
 
-  void set_text_input(TextInput* input = NULL) { m_textInput = input; }
+  void set_text_input(TextInput* input = nullptr) { m_textInput = input; }
 
 private:
-  TextInput* m_textInput;
+  TextInput* m_textInput{};
 };
 
 }

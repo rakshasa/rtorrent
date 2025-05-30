@@ -49,9 +49,7 @@
 namespace ui {
 
 ElementText::ElementText(rpc::target_type target) :
-  m_window(new WindowText(target)),
-  m_column(0),
-  m_columnWidth(0) {
+    m_window(new WindowText(target)) {
 
   // Move bindings into a function that defines default bindings.
   m_bindings[KEY_LEFT] = m_bindings['B' - '@'] = std::bind(&slot_type::operator(), &m_slot_exit);

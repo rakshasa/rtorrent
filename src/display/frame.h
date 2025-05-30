@@ -56,7 +56,7 @@ public:
   };
 
   struct bounds_type {
-    bounds_type() {}
+    bounds_type() = default;
     bounds_type(extent_type minW, extent_type minH, extent_type maxW, extent_type maxH) :
       minWidth(minW), minHeight(minH), maxWidth(maxW), maxHeight(maxH) {}
 
@@ -73,8 +73,6 @@ public:
   typedef std::pair<Frame*, bounds_type> dynamic_type;
 
   static const size_type max_size = 5;
-
-  Frame();
 
   bool                is_width_dynamic() const;
   bool                is_height_dynamic() const;
@@ -116,12 +114,12 @@ private:
   inline void         balance_row(uint32_t x, uint32_t y, uint32_t width, uint32_t height);
   inline void         balance_column(uint32_t x, uint32_t y, uint32_t width, uint32_t height);
 
-  Type                m_type;
+  Type                m_type{TYPE_NONE};
 
-  uint32_t            m_positionX;
-  uint32_t            m_positionY;
-  uint32_t            m_width;
-  uint32_t            m_height;
+  uint32_t            m_positionX{};
+  uint32_t            m_positionY{};
+  uint32_t            m_width{};
+  uint32_t            m_height{};
 
   union {
     Window*             m_window;

@@ -24,7 +24,7 @@ class rpc_error : public torrent::base_error {
 public:
   rpc_error(int type, std::string msg) :
       m_type(type), m_msg(msg) {}
-  virtual ~rpc_error() throw() {}
+  virtual ~rpc_error() throw() = default;
 
   virtual int         type() const throw() { return m_type; }
   virtual const char* what() const throw() { return m_msg.c_str(); }

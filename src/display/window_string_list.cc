@@ -10,8 +10,7 @@ WindowStringList::WindowStringList() :
   Window(new Canvas, 0, 0, 0, extent_full, extent_full) {
 }
 
-WindowStringList::~WindowStringList() {
-}
+WindowStringList::~WindowStringList() = default;
 
 void
 WindowStringList::redraw() {

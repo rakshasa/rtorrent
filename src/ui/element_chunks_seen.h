@@ -68,10 +68,9 @@ private:
   void                receive_pageprev();
 
   core::Download*     m_download;
-  WChunksSeen*        m_window;
+  WChunksSeen*        m_window{};
 
-  unsigned int        m_focus;
-  
+  unsigned int        m_focus{};
 };
 
 }

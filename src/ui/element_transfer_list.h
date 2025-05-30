@@ -68,10 +68,9 @@ private:
   void                receive_pageprev();
 
   core::Download*     m_download;
-  WTransferList*      m_window;
+  WTransferList*      m_window{};
 
-  unsigned int        m_focus;
-  
+  unsigned int        m_focus{};
 };
 
 }

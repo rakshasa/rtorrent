@@ -110,10 +110,10 @@ private:
 
   core::Download*     m_download;
 
-  Display             m_state;
+  Display             m_state{DISPLAY_MAX_SIZE};
   ElementBase*        m_uiArray[DISPLAY_MAX_SIZE];
 
-  bool                m_focusDisplay;
+  bool                m_focusDisplay{};
 
   WDownloadStatus*    m_windowDownloadStatus;
 };

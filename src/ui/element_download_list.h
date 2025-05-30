@@ -50,8 +50,8 @@ public:
   void        toggle_layout();
 
 private:
-  WDownloadList* m_window;
-  core::View*    m_view;
+  WDownloadList* m_window{};
+  core::View*    m_view{};
 };
 
 } // namespace ui

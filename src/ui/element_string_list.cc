@@ -46,10 +46,6 @@
 
 namespace ui {
 
-ElementStringList::ElementStringList() :
-  m_window(NULL) {
-}
-
 void
 ElementStringList::activate(display::Frame* frame, bool focus) {
   if (is_active())

@@ -48,9 +48,7 @@
 namespace ui {
 
 ElementTransferList::ElementTransferList(core::Download* d) :
-  m_download(d),
-  m_window(NULL),
-  m_focus(0) {
+    m_download(d) {
 
   m_bindings[KEY_LEFT] = m_bindings['B' - '@'] = std::bind(&slot_type::operator(), &m_slot_exit);
 

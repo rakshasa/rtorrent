@@ -100,10 +100,10 @@ private:
 
   // Store the FileList instance so we can use slots etc on it.
   download_type       m_download;
-  bool                m_hashFailed;
+  bool                m_hashFailed{};
   std::string         m_message;
-  uint32_t            m_resumeFlags;
-  unsigned int        m_group;
+  uint32_t            m_resumeFlags{~uint32_t{}};
+  unsigned int        m_group{};
 };
 
 inline bool

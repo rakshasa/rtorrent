@@ -13,8 +13,7 @@ WindowLogComplete::WindowLogComplete(torrent::log_buffer* l) :
   m_log(l) {
 }
 
-WindowLogComplete::~WindowLogComplete() {
-}
+WindowLogComplete::~WindowLogComplete() = default;
 
 WindowLogComplete::iterator
 WindowLogComplete::find_older() {

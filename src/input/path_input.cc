@@ -49,10 +49,6 @@
 
 namespace input {
 
-PathInput::PathInput() :
-  m_showNext(false) {
-}
-
 bool
 PathInput::pressed(int key) {
   // Consider binding tab in m_bindings instead.

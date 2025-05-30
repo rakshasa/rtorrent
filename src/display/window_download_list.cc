@@ -15,8 +15,7 @@
 namespace display {
 
 WindowDownloadList::WindowDownloadList() :
-  Window(new Canvas, 0, 120, 1, extent_full, extent_full),
-  m_view(NULL) {
+    Window(new Canvas, 0, 120, 1, extent_full, extent_full) {
 }
 
 WindowDownloadList::~WindowDownloadList() {

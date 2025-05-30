@@ -24,7 +24,7 @@ public:
   using base_type::begin;
   using base_type::end;
 
-  CommandScheduler() {}
+  CommandScheduler() = default;
   ~CommandScheduler();
 
   void                set_slot_error_message(SlotString s) { m_slotErrorMessage = s; }

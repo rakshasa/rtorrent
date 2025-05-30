@@ -47,15 +47,6 @@
 
 namespace display {
 
-Frame::Frame() :
-  m_type(TYPE_NONE),
-
-  m_positionX(0),
-  m_positionY(0),
-  m_width(0),
-  m_height(0) {
-}
-
 bool
 Frame::is_width_dynamic() const {
   switch (m_type) {
