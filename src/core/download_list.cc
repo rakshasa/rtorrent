@@ -43,10 +43,14 @@ DownloadList::check_contains([[maybe_unused]] Download* d) {
 
 void
 DownloadList::clear() {
-  std::for_each(begin(), end(), [&](Download* d) { close(d); });
-  std::for_each(begin(), end(), [](Download* d) { delete d; });
+  while (!empty()) {
+    auto download = back();
+    base_type::pop_back();
 
-  base_type::clear();
+    close(download);
+    torrent::download_remove(*download->download());
+    delete download;
+  }
 }
 
 void
@@ -214,7 +218,7 @@ DownloadList::open_throw(Download* download) {
 
   if (download->download()->info()->is_open())
     return;
-  
+
   int openFlags = download->resume_flags();
 
   if (rpc::call_command_value("system.file.allocate"))
@@ -253,7 +257,7 @@ void
 DownloadList::close_quick(Download* download) {
   lt_log_print_info(torrent::LOG_TORRENT_INFO, download->info(), "download_list", "Closing download quickly.");
   close(download);
-  
+
   // Make sure we cancel any tracker requests. This should rather be
   // handled by some parameter to the close function, or some other
   // way of giving the client more control of when STOPPED requests

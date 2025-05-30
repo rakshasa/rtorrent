@@ -14,14 +14,17 @@
 #include "rpc/scgi.h"
 #include "rpc/parse_commands.h"
 
-ThreadWorker::~ThreadWorker() {
-  if (m_scgi != nullptr)
-    m_scgi.load()->deactivate();
-}
+ThreadWorker::~ThreadWorker() = default;
 
 void
 ThreadWorker::init_thread() {
   m_state = STATE_INITIALIZED;
+}
+
+void
+ThreadWorker::cleanup_thread() {
+  if (m_scgi != nullptr)
+    m_scgi.load()->deactivate();
 }
 
 bool
