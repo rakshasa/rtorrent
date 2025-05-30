@@ -106,17 +106,17 @@ initialize_command_file() {
   CMD2_FILE("f.is_create_queued",       std::bind(&torrent::File::is_create_queued, std::placeholders::_1));
   CMD2_FILE("f.is_resize_queued",       std::bind(&torrent::File::is_resize_queued, std::placeholders::_1));
 
-  CMD2_FILE_VALUE_V("f.set_create_queued",   std::bind(&torrent::File::set_flags,   std::placeholders::_1, torrent::File::flag_create_queued));
-  CMD2_FILE_VALUE_V("f.set_resize_queued",   std::bind(&torrent::File::set_flags,   std::placeholders::_1, torrent::File::flag_resize_queued));
-  CMD2_FILE_VALUE_V("f.unset_create_queued", std::bind(&torrent::File::unset_flags, std::placeholders::_1, torrent::File::flag_create_queued));
-  CMD2_FILE_VALUE_V("f.unset_resize_queued", std::bind(&torrent::File::unset_flags, std::placeholders::_1, torrent::File::flag_resize_queued));
+  CMD2_FILE_VALUE_V("f.set_create_queued",   std::bind(&torrent::File::set_flags,   std::placeholders::_1, torrent::File::flag::create_queued));
+  CMD2_FILE_VALUE_V("f.set_resize_queued",   std::bind(&torrent::File::set_flags,   std::placeholders::_1, torrent::File::flag::resize_queued));
+  CMD2_FILE_VALUE_V("f.unset_create_queued", std::bind(&torrent::File::unset_flags, std::placeholders::_1, torrent::File::flag::create_queued));
+  CMD2_FILE_VALUE_V("f.unset_resize_queued", std::bind(&torrent::File::unset_flags, std::placeholders::_1, torrent::File::flag::resize_queued));
 
-  CMD2_FILE  ("f.prioritize_first",         std::bind(&torrent::File::has_flags,   std::placeholders::_1, torrent::File::flag_prioritize_first));
-  CMD2_FILE_V("f.prioritize_first.enable",  std::bind(&torrent::File::set_flags,   std::placeholders::_1, torrent::File::flag_prioritize_first));
-  CMD2_FILE_V("f.prioritize_first.disable", std::bind(&torrent::File::unset_flags, std::placeholders::_1, torrent::File::flag_prioritize_first));
-  CMD2_FILE  ("f.prioritize_last",          std::bind(&torrent::File::has_flags,   std::placeholders::_1, torrent::File::flag_prioritize_last));
-  CMD2_FILE_V("f.prioritize_last.enable",   std::bind(&torrent::File::set_flags,   std::placeholders::_1, torrent::File::flag_prioritize_last));
-  CMD2_FILE_V("f.prioritize_last.disable",  std::bind(&torrent::File::unset_flags, std::placeholders::_1, torrent::File::flag_prioritize_last));
+  CMD2_FILE  ("f.prioritize_first",         std::bind(&torrent::File::has_flags,   std::placeholders::_1, torrent::File::flag::prioritize_first));
+  CMD2_FILE_V("f.prioritize_first.enable",  std::bind(&torrent::File::set_flags,   std::placeholders::_1, torrent::File::flag::prioritize_first));
+  CMD2_FILE_V("f.prioritize_first.disable", std::bind(&torrent::File::unset_flags, std::placeholders::_1, torrent::File::flag::prioritize_first));
+  CMD2_FILE  ("f.prioritize_last",          std::bind(&torrent::File::has_flags,   std::placeholders::_1, torrent::File::flag::prioritize_last));
+  CMD2_FILE_V("f.prioritize_last.enable",   std::bind(&torrent::File::set_flags,   std::placeholders::_1, torrent::File::flag::prioritize_last));
+  CMD2_FILE_V("f.prioritize_last.disable",  std::bind(&torrent::File::unset_flags, std::placeholders::_1, torrent::File::flag::prioritize_last));
 
   CMD2_FILE("f.size_bytes",             std::bind(&torrent::File::size_bytes, std::placeholders::_1));
   CMD2_FILE("f.size_chunks",            std::bind(&torrent::File::size_chunks, std::placeholders::_1));

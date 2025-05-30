@@ -808,8 +808,8 @@ initialize_command_download() {
   CMD2_DL_V       ("d.disconnect.seeders",        std::bind(&torrent::ConnectionList::erase_seeders, CMD2_BIND_CL));
 
   CMD2_DL         ("d.accepting_seeders",         CMD2_ON_INFO(is_accepting_seeders));
-  CMD2_DL_V       ("d.accepting_seeders.enable",  std::bind(&torrent::DownloadInfo::public_set_flags,   CMD2_BIND_INFO, torrent::DownloadInfo::flag_accepting_seeders));
-  CMD2_DL_V       ("d.accepting_seeders.disable", std::bind(&torrent::DownloadInfo::public_unset_flags, CMD2_BIND_INFO, torrent::DownloadInfo::flag_accepting_seeders));
+  CMD2_DL_V       ("d.accepting_seeders.enable",  std::bind(&torrent::DownloadInfo::public_set_flags,   CMD2_BIND_INFO, torrent::DownloadInfo::flag::accepting_seeders));
+  CMD2_DL_V       ("d.accepting_seeders.disable", std::bind(&torrent::DownloadInfo::public_unset_flags, CMD2_BIND_INFO, torrent::DownloadInfo::flag::accepting_seeders));
 
   CMD2_DL         ("d.throttle_name",     std::bind(&download_get_variable, std::placeholders::_1, "rtorrent", "throttle_name"));
   CMD2_DL_STRING_V("d.throttle_name.set", std::bind(&core::Download::set_throttle_name, std::placeholders::_1, std::placeholders::_2));

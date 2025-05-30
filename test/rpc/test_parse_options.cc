@@ -178,11 +178,11 @@ TestParseOptions::test_flag_libtorrent() {
 
 void
 TestParseOptions::test_flags_libtorrent() {
-  FLAGS_LT_ENCRYPTION_ASSERT("", torrent::ConnectionManager::encryption_none);
-  FLAGS_LT_ENCRYPTION_ASSERT("none", torrent::ConnectionManager::encryption_none);
-  FLAGS_LT_ENCRYPTION_ASSERT("require_rc4", torrent::ConnectionManager::encryption_require_RC4);
-  FLAGS_LT_ENCRYPTION_ASSERT("require_RC4", torrent::ConnectionManager::encryption_require_RC4);
-  FLAGS_LT_ENCRYPTION_ASSERT("require_RC4 | enable_retry", torrent::ConnectionManager::encryption_require_RC4 | torrent::ConnectionManager::encryption_enable_retry);
+  FLAGS_LT_ENCRYPTION_ASSERT("", torrent::ConnectionManager::encryption::none);
+  FLAGS_LT_ENCRYPTION_ASSERT("none", torrent::ConnectionManager::encryption::none);
+  FLAGS_LT_ENCRYPTION_ASSERT("require_rc4", torrent::ConnectionManager::encryption::require_RC4);
+  FLAGS_LT_ENCRYPTION_ASSERT("require_RC4", torrent::ConnectionManager::encryption::require_RC4);
+  FLAGS_LT_ENCRYPTION_ASSERT("require_RC4 | enable_retry", torrent::ConnectionManager::encryption::require_RC4 | torrent::ConnectionManager::encryption::enable_retry);
 
   FLAGS_LT_ENCRYPTION_ASSERT_ERROR("require_");
 }
