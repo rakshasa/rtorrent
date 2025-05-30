@@ -17,6 +17,7 @@ public:
   const char*         name() const override      { return "rtorrent scgi"; }
 
   void                init_thread() override;
+  void                cleanup_thread() override;
 
   rpc::SCgi*          scgi()                     { return m_scgi; }
   bool                set_scgi(rpc::SCgi* scgi);
