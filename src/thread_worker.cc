@@ -80,11 +80,11 @@ ThreadWorker::change_rpc_log() {
 
 void
 ThreadWorker::call_events() {
-  if ((m_flags & flag_do_shutdown)) {
-    if ((m_flags & flag_did_shutdown))
+  if ((m_flags & flag::do_shutdown)) {
+    if ((m_flags & flag::did_shutdown))
       throw torrent::internal_error("Already trigged shutdown.");
 
-    m_flags |= flag_did_shutdown;
+    m_flags |= flag::did_shutdown;
     throw torrent::shutdown_exception();
   }
 

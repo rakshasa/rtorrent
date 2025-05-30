@@ -306,7 +306,7 @@ directory_watch_added(const torrent::Object::list_type& args) {
     throw torrent::input_error("Could not open inotify:" + std::string(rak::error_number::current().c_str()));
 
   control->directory_events()->notify_on(path.c_str(),
-                                         torrent::directory_events::flag_on_added | torrent::directory_events::flag_on_updated,
+                                         torrent::directory_events::flag_on::added | torrent::directory_events::flag_on::updated,
                                          std::bind(&call_watch_command, command, std::placeholders::_1));
   return torrent::Object();
 }
