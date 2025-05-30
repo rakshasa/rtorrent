@@ -9,6 +9,7 @@
 
 #include "control.h"
 #include "element_tracker_list.h"
+#include "root.h"
 
 namespace ui {
 
@@ -17,13 +18,13 @@ ElementTrackerList::ElementTrackerList(core::Download* d) :
   m_window(NULL),
   m_focus(0) {
 
-  m_bindings[KEY_LEFT] = m_bindings['B' - '@'] = std::bind(&slot_type::operator(), &m_slot_exit);
+  m_bindings[KEY_LEFT] = m_bindings[control->ui()->get_keymap(RT_KEY_LEFT)] = std::bind(&slot_type::operator(), &m_slot_exit);
 
   m_bindings[' ']      = std::bind(&ElementTrackerList::receive_cycle_group, this);
   m_bindings['*']      = std::bind(&ElementTrackerList::receive_disable, this);
 
-  m_bindings[KEY_DOWN] = m_bindings['N' - '@'] = std::bind(&ElementTrackerList::receive_next, this);
-  m_bindings[KEY_UP]   = m_bindings['P' - '@'] = std::bind(&ElementTrackerList::receive_prev, this);
+  m_bindings[KEY_DOWN] = m_bindings[control->ui()->get_keymap(RT_KEY_DOWN)] = std::bind(&ElementTrackerList::receive_next, this);
+  m_bindings[KEY_UP]   = m_bindings[control->ui()->get_keymap(RT_KEY_UP)]   = std::bind(&ElementTrackerList::receive_prev, this);
 }
 
 void
