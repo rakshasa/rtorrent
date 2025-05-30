@@ -50,7 +50,6 @@ Manager::push_log(const char* msg) {
 }
 
 Manager::Manager() :
-    m_hashingView(nullptr),
     m_log_important(torrent::log_open_log_buffer("important")),
     m_log_complete(torrent::log_open_log_buffer("complete")) {
 

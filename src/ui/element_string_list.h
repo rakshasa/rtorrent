@@ -56,8 +56,6 @@ public:
   typedef display::WindowStringList     WStringList;
   typedef std::list<std::string>        List;
 
-  ElementStringList();
-
   void                activate(display::Frame* frame, bool focus = true);
   void                disable();
 
@@ -101,7 +99,7 @@ public:
   void                next_screen();
 
 private:
-  WStringList*        m_window;
+  WStringList*        m_window{};
   List                m_list;
 };
 

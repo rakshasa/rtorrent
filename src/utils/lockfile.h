@@ -52,8 +52,6 @@ class Lockfile {
 public:
   typedef std::pair<std::string, pid_t> process_type;
 
-  Lockfile() : m_locked(false) {}
-  
   bool                is_locked() const                 { return m_locked; }
   bool                is_stale();
 
@@ -70,7 +68,7 @@ public:
 
 private:
   std::string         m_path;
-  bool                m_locked;
+  bool                m_locked{};
 };
 
 }

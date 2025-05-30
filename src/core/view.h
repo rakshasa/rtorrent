@@ -39,7 +39,7 @@ public:
 
   using base_type::size_type;
 
-  View() {}
+  View() = default;
   ~View();
 
   void               initialize(const std::string& name);

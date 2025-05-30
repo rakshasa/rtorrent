@@ -34,9 +34,7 @@
 namespace ui {
 
 Download::Download(core::Download* d) :
-  m_download(d),
-  m_state(DISPLAY_MAX_SIZE),
-  m_focusDisplay(false) {
+    m_download(d) {
 
   m_windowDownloadStatus = new WDownloadStatus(d);
   m_windowDownloadStatus->set_bottom(true);

@@ -9,11 +9,9 @@
 namespace display {
 
 WindowText::WindowText(rpc::target_type target, extent_type margin) :
-  Window(new Canvas, 0, 0, 0, extent_static, extent_static),
-  m_target(target),
-  m_errorHandler(NULL),
-  m_margin(margin),
-  m_interval(0) {
+    Window(new Canvas, 0, 0, 0, extent_static, extent_static),
+    m_target(target),
+    m_margin(margin) {
 }
 
 void

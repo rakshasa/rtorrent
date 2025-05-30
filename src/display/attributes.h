@@ -35,7 +35,7 @@ public:
   static const int color_invalid = ~int();
   static const int color_default = 0;
 
-  Attributes() {}
+  Attributes() = default;
   Attributes(const char* pos, int attr, int col) :
     m_position(pos), m_attributes(attr), m_colors(col) {}
   Attributes(const char* pos, const Attributes& old) :

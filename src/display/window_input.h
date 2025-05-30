@@ -50,9 +50,7 @@ namespace display {
 class WindowInput : public Window {
 public:
   WindowInput() :
-    Window(new Canvas, 0, 0, 1, extent_full, 1),
-    m_input(NULL),
-    m_focus(false) {}
+      Window(new Canvas, 0, 0, 1, extent_full, 1) {}
 
   input::TextInput*   input()                            { return m_input; }
   void                set_input(input::TextInput* input) { m_input = input; }
@@ -66,10 +64,10 @@ public:
   virtual void        redraw();
 
 private:
-  input::TextInput*   m_input;
+  input::TextInput*   m_input{};
   std::string         m_title;
 
-  bool                m_focus;
+  bool                m_focus{};
 };
 
 }

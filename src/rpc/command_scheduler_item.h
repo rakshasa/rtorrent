@@ -13,7 +13,7 @@ class CommandSchedulerItem {
 public:
   typedef std::function<void ()> slot_void;
 
-  CommandSchedulerItem(const std::string& key) : m_key(key), m_interval(0) {}
+  CommandSchedulerItem(const std::string& key) : m_key(key) {}
   ~CommandSchedulerItem();
 
   bool                is_queued() const           { return m_task.is_scheduled(); }
@@ -40,7 +40,7 @@ private:
   std::string         m_key;
   torrent::Object     m_command;
 
-  uint32_t                  m_interval;
+  uint32_t                  m_interval{};
   std::chrono::microseconds m_time_scheduled;
 
   torrent::utils::SchedulerEntry m_task;

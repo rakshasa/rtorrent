@@ -20,9 +20,7 @@ struct command_map_data_type {
   command_map_data_type(int flags, const char* parm, const char* doc) :
     m_flags(flags), m_parm(parm), m_doc(doc) {}
 
-  command_map_data_type(const command_map_data_type& src) :
-    m_variable(src.m_variable), m_anySlot(src.m_anySlot),
-    m_flags(src.m_flags), m_parm(src.m_parm), m_doc(src.m_doc) {}
+  command_map_data_type(const command_map_data_type& src) = default;
 
   command_base             m_variable;
   command_base::any_slot   m_anySlot;
@@ -59,7 +57,7 @@ public:
   static const int flag_file_target    = 0x200;
   static const int flag_tracker_target = 0x400;
 
-  CommandMap() {}
+  CommandMap() = default;
 
   bool                has(const std::string& key) const { return base_type::find(key) != base_type::end(); }
 

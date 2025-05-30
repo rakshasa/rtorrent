@@ -17,7 +17,6 @@ class SCgi : public torrent::Event {
 public:
   static const int max_tasks = 100;
 
-  SCgi() : m_logFd(-1) {}
   ~SCgi() override;
 
   const char*         type_name() const override { return "scgi"; }
@@ -43,7 +42,7 @@ private:
   void                open(void* sa, unsigned int length);
 
   std::string         m_path;
-  int                 m_logFd;
+  int                 m_logFd{-1};
   SCgiTask            m_task[max_tasks];
 };
 

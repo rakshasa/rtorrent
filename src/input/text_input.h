@@ -54,8 +54,7 @@ public:
   using Base::size_type;
   using Base::npos;
 
-  TextInput() : m_pos(0) {}
-  virtual ~TextInput() {}
+  virtual ~TextInput() = default;
 
   size_type           get_pos()                  { return m_pos; }
   void                set_pos(size_type pos)     { m_pos = pos; }
@@ -72,7 +71,7 @@ public:
   Bindings&           bindings()                 { return m_bindings; }
 
 private:
-  size_type           m_pos;
+  size_type           m_pos{};
 
   slot_void           m_slot_dirty;
 

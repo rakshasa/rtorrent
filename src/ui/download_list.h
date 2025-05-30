@@ -116,7 +116,7 @@ private:
   void                setup_keys();
   void                setup_input();
 
-  Display             m_state;
+  Display             m_state{DISPLAY_MAX_SIZE};
 
   ElementBase*        m_uiArray[DISPLAY_MAX_SIZE];
   WLog*               m_windowLog;

@@ -21,9 +21,7 @@ curl_get_receive_write(void* data, size_t size, size_t nmemb, void* handle) {
 }
 
 CurlGet::CurlGet(CurlStack* s) :
-  m_active(false),
-  m_handle(NULL),
-  m_stack(s) {
+    m_stack(s) {
 
   m_task_timeout.slot() = [this]() { receive_timeout(); };
 }

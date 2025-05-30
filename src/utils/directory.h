@@ -80,7 +80,7 @@ public:
   static const int update_sort     = 0x1;
   static const int update_hide_dot = 0x2;
 
-  Directory() {}
+  Directory() = default;
   Directory(const std::string& path) : m_path(path) {}
 
   bool                is_valid() const;

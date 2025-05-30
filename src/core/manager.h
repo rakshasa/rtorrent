@@ -111,7 +111,7 @@ private:
   std::unique_ptr<HttpQueue>       m_http_queue;
   std::unique_ptr<CurlStack>       m_http_stack;
 
-  View*               m_hashingView;
+  View*               m_hashingView{};
 
   ThrottleMap         m_throttles;
   AddressThrottleMap  m_addressThrottles;

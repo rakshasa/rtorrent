@@ -55,8 +55,7 @@ public:
   typedef std::list<slot_void>                                    signal_void;
   typedef std::list<slot_itr_itr>                                 signal_itr_itr;
 
-  PathInput();
-  virtual ~PathInput() {}
+  virtual ~PathInput() = default;
 
   signal_void&        signal_show_next()  { return m_signal_show_next; }
   signal_itr_itr&     signal_show_range() { return m_signal_show_range; }
@@ -69,7 +68,7 @@ private:
   size_type           find_last_delim();
   range_type          find_incomplete(utils::Directory& d, const std::string& f);
 
-  bool                m_showNext;
+  bool                m_showNext{};
 
   signal_void         m_signal_show_next;
   signal_itr_itr      m_signal_show_range;

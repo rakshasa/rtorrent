@@ -54,14 +54,8 @@
 namespace ui {
 
 ElementFileList::ElementFileList(core::Download* d) :
-  m_download(d),
-
-  m_state(DISPLAY_MAX_SIZE),
-  m_window(NULL),
-  m_elementInfo(NULL),
-
-  m_selected(iterator(d->download()->file_list()->begin())),
-  m_collapsed(false) {
+    m_download(d),
+    m_selected(iterator(d->download()->file_list()->begin())) {
 
   m_bindings[KEY_LEFT]  = m_bindings['B' - '@'] = std::bind(&slot_type::operator(), &m_slot_exit);
   m_bindings[KEY_RIGHT] = m_bindings['F' - '@'] = std::bind(&ElementFileList::receive_select, this);

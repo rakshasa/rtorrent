@@ -51,8 +51,8 @@ public:
 
   static const extent_type extent_full   = ~extent_type();
 
-  TextElement() {}
-  virtual ~TextElement() {}
+  TextElement()          = default;
+  virtual ~TextElement() = default;
 
   // The last element must point to a valid memory location into which
   // the caller must write a '\0' to terminate the c string. The

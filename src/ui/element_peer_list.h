@@ -85,7 +85,7 @@ private:
 
   core::Download*     m_download;
   
-  Display             m_state;
+  Display             m_state{DISPLAY_MAX_SIZE};
   display::Window*    m_windowList;
   
   ElementText*        m_elementInfo;

@@ -40,12 +40,12 @@ private:
 
   void               receive_timeout();
 
-  bool               m_active;
+  bool               m_active{};
   bool               m_ipv6;
 
   torrent::utils::SchedulerEntry m_task_timeout;
 
-  CURL*              m_handle;
+  CURL*              m_handle{};
   CurlStack*         m_stack;
 };
 

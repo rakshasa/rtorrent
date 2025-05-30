@@ -39,7 +39,7 @@ public:
   using base_type::empty;
   using base_type::size;
 
-  DownloadList() { }
+  DownloadList() = default;
 
   void                clear();
 

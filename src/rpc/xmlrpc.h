@@ -38,8 +38,6 @@ public:
 
   static void object_to_target(const torrent::Object& obj, int callFlags, rpc::target_type* target);
 
-  XmlRpc() : m_env(NULL), m_registry(NULL), m_dialect(dialect_i8), m_sizeLimit(SCgiTask::max_content_size) {}
-
   bool                is_valid() const;
 
   void                initialize();
@@ -67,14 +65,14 @@ private:
   slot_peer           m_slotFindPeer;
 
   // Only used by xmlrpc-c
-  void*               m_env;
-  void*               m_registry;
+  void*               m_env{};
+  void*               m_registry{};
 
-  int                 m_dialect;
+  int                 m_dialect{dialect_i8};
 
   // Only used by tinyxml2
   bool                m_isValid;
-  uint64_t            m_sizeLimit;
+  uint64_t            m_sizeLimit{SCgiTask::max_content_size};
 
 };
 

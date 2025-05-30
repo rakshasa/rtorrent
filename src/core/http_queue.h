@@ -29,7 +29,7 @@ public:
   using base_type::empty;
   using base_type::size;
 
-  HttpQueue() {}
+  HttpQueue() = default;
   ~HttpQueue() { clear(); }
 
   // Note that any slots connected to the CurlGet signals must be

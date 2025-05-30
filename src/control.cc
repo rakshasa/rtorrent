@@ -29,19 +29,14 @@
 #include "control.h"
 
 Control::Control() :
-  m_ui(new ui::Root()),
-  m_display(new display::Manager()),
-  m_input(new input::Manager()),
-  m_inputStdin(new input::InputEvent(STDIN_FILENO)),
-
-  m_commandScheduler(new rpc::CommandScheduler()),
-  m_objectStorage(new rpc::object_storage()),
-  m_lua_engine(new rpc::LuaEngine()),
-  m_directory_events(new torrent::directory_events()),
-
-  m_tick(0),
-  m_shutdownReceived(false),
-  m_shutdownQuick(false) {
+    m_ui(new ui::Root()),
+    m_display(new display::Manager()),
+    m_input(new input::Manager()),
+    m_inputStdin(new input::InputEvent(STDIN_FILENO)),
+    m_commandScheduler(new rpc::CommandScheduler()),
+    m_objectStorage(new rpc::object_storage()),
+    m_lua_engine(new rpc::LuaEngine()),
+    m_directory_events(new torrent::directory_events()) {
 
   m_core        = new core::Manager();
   m_viewManager = new core::ViewManager();

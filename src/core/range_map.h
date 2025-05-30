@@ -57,7 +57,7 @@ class RangeMap : private std::map<Key, std::pair<Key, T>, Compare,
   //std::allocator_traits<Alloc>::template rebind_alloc<std::pair<const Key, std::pair<Key, T>>>
 
 public:
-  RangeMap() {}
+  RangeMap() = default;
   RangeMap(const Compare& c) : base_type(c) {}
 
   typedef typename base_type::iterator iterator;

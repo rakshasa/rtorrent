@@ -63,7 +63,7 @@ public:
 private:
   void                received_update();
 
-  WLogComplete*       m_window;
+  WLogComplete*       m_window{};
   
   torrent::log_buffer* m_log;
 };

@@ -64,7 +64,7 @@ public:
 
   using base_type::operator[];
 
-  Bindings() : m_enabled(true) {}
+  Bindings() = default;
 
   void                enable()           { m_enabled = true; }
   void                disable()          { m_enabled = false; }
@@ -74,7 +74,7 @@ public:
   void                ignore(int key)     { (*this)[key] = slot_void(); }
 
 private:
-  bool                m_enabled;
+  bool m_enabled{true};
 };
 
 }
