@@ -2,7 +2,6 @@
 
 #include "rpc/scgi_task.h"
 
-#include <rak/allocators.h>
 #include <rak/error_number.h>
 #include <cstdio>
 #include <vector>
