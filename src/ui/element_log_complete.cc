@@ -18,10 +18,10 @@ ElementLogComplete::ElementLogComplete(torrent::log_buffer* l) :
   m_window(NULL),
   m_log(l) {
 
-  unsigned int signal_index = torrent::main_thread()->signal_bitfield()->add_signal(std::bind(&ElementLogComplete::received_update, this));
+  unsigned int signal_index = torrent::main_thread::thread()->signal_bitfield()->add_signal(std::bind(&ElementLogComplete::received_update, this));
 
   m_log->lock_and_set_update_slot([signal_index]() {
-    torrent::main_thread()->send_event_signal(signal_index, false);
+    torrent::main_thread::thread()->send_event_signal(signal_index, false);
   });
 }
 

@@ -41,8 +41,8 @@ SCgiTask::close() {
   if (!get_fd().is_valid())
     return;
 
-  torrent::main_thread()->cancel_callback_and_wait(this);
-  torrent::thread_self()->cancel_callback(this);
+  torrent::main_thread::thread()->cancel_callback_and_wait(this);
+  torrent::utils::Thread::self()->cancel_callback(this);
 
   torrent::this_thread::poll()->remove_and_close(this);
 
@@ -261,7 +261,7 @@ void
 SCgiTask::receive_call(const char* buffer, uint32_t length) {
   // TODO: Rewrite RpcManager.process to pass the result buffer instead of having to copy it.
 
-  auto scgi_thread = torrent::thread_self();
+  auto scgi_thread = torrent::utils::Thread::self();
 
   auto result_callback = [this, scgi_thread](const char* b, uint32_t l) {
       receive_write(b, l);
@@ -279,7 +279,7 @@ SCgiTask::receive_call(const char* buffer, uint32_t length) {
 
   switch (content_type()) {
   case rpc::SCgiTask::ContentType::JSON:
-    torrent::main_thread()->callback_interrupt_pollling(this, [buffer, length, result_callback]() {
+    torrent::main_thread::thread()->callback_interrupt_pollling(this, [buffer, length, result_callback]() {
         rpc.process(RpcManager::RPCType::JSON, buffer, length,
                     [result_callback](const char* b, uint32_t l) {
                       result_callback(b, l);
@@ -289,7 +289,7 @@ SCgiTask::receive_call(const char* buffer, uint32_t length) {
     break;
 
   case rpc::SCgiTask::ContentType::XML:
-    torrent::main_thread()->callback_interrupt_pollling(this, [buffer, length, result_callback]() {
+    torrent::main_thread::thread()->callback_interrupt_pollling(this, [buffer, length, result_callback]() {
         rpc.process(RpcManager::RPCType::XML, buffer, length,
                     [result_callback](const char* b, uint32_t l) {
                       result_callback(b, l);
