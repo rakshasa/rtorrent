@@ -39,8 +39,8 @@ Download::Download(core::Download* d) :
   m_state(DISPLAY_MAX_SIZE),
   m_focusDisplay(false) {
 
-  m_windowDownloadStatus = new WDownloadStatus(d);
-  m_windowDownloadStatus->set_bottom(true);
+  // m_windowDownloadStatus = new WDownloadStatus(d);
+  // m_windowDownloadStatus->set_bottom(true);
 
   m_uiArray[DISPLAY_MENU]          = create_menu();
   m_uiArray[DISPLAY_PEER_LIST]     = new ElementPeerList(d);
@@ -98,6 +98,8 @@ Download::create_menu() {
   m_bindings['o'] = std::bind(&ElementMenu::set_entry_trigger, element, 1);
   m_bindings['i'] = std::bind(&ElementMenu::set_entry_trigger, element, 2);
   m_bindings['u'] = std::bind(&ElementMenu::set_entry_trigger, element, 3);
+  m_bindings[KEY_LEFT] = std::bind(&slot_type::operator(), &m_slot_exit);
+  m_bindings['y'] = std::bind(&slot_type::operator(), &m_slot_exit);
 
   return element;
 }
@@ -174,12 +176,13 @@ Download::activate(display::Frame* frame, [[maybe_unused]] bool focus) {
   control->input()->push_back(&m_bindings);
 
   m_frame = frame;
-  m_frame->initialize_row(2);
+  // m_frame->initialize_row(2);
+  m_frame->initialize_row(1);
 
-  m_frame->frame(1)->initialize_window(m_windowDownloadStatus);
-  m_windowDownloadStatus->set_active(true);
+  // m_frame->frame(1)->initialize_window(m_windowDownloadStatus);
+  // m_windowDownloadStatus->set_active(true);
 
-  activate_display_menu(DISPLAY_PEER_LIST);
+  activate_display_focus(DISPLAY_FILE_LIST);
 }
 
 void
@@ -191,7 +194,7 @@ Download::disable() {
 
   activate_display_focus(DISPLAY_MAX_SIZE);
 
-  m_windowDownloadStatus->set_active(false);
+  // m_windowDownloadStatus->set_active(false);
   m_frame->clear();
 
   m_frame = NULL;
@@ -218,7 +221,7 @@ Download::activate_display(Display displayType, bool focusDisplay) {
   case DISPLAY_TRACKER_LIST:
   case DISPLAY_CHUNKS_SEEN:
   case DISPLAY_TRANSFER_LIST:
-    m_uiArray[DISPLAY_MENU]->disable();
+    // m_uiArray[DISPLAY_MENU]->disable();
     m_uiArray[m_state]->disable();
 
     frame->clear();
@@ -240,10 +243,12 @@ Download::activate_display(Display displayType, bool focusDisplay) {
   case DISPLAY_TRACKER_LIST:
   case DISPLAY_CHUNKS_SEEN:
   case DISPLAY_TRANSFER_LIST:
-    frame->initialize_column(2);
-
-    m_uiArray[DISPLAY_MENU]->activate(frame->frame(0), !focusDisplay);
-    m_uiArray[displayType]->activate(frame->frame(1), focusDisplay);
+    // frame->initialize_column(2);
+    frame->initialize_column(1);
+    
+    // m_uiArray[DISPLAY_MENU]->activate(frame->frame(0), !focusDisplay);
+    // m_uiArray[displayType]->activate(frame->frame(1), focusDisplay);
+    m_uiArray[displayType]->activate(frame->frame(0), true);
     break;
 
   case DISPLAY_MENU:
@@ -349,7 +354,7 @@ Download::bind_keys() {
   m_bindings['#'] = std::bind(&Download::receive_max_downloads, this, -1);
   m_bindings['$'] = std::bind(&Download::receive_max_downloads, this, 1);
   m_bindings['5'] = std::bind(&Download::receive_min_peers, this, -5);
-  m_bindings['6'] = std::bind(&Download::receive_min_peers, this, 5);
+  // m_bindings['6'] = std::bind(&Download::receive_min_peers, this, 5);
   m_bindings['7'] = std::bind(&Download::receive_max_peers, this, -5);
   m_bindings['8'] = std::bind(&Download::receive_max_peers, this, 5);
   m_bindings['+'] = std::bind(&Download::receive_next_priority, this);
