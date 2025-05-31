@@ -93,16 +93,16 @@ void
 SCgi::activate() {
   assert(std::this_thread::get_id() == worker_thread->thread_id() && "SCgi::activate() must be called from the worker thread.");
 
-  torrent::this_thread::poll()->open(this);
-  torrent::this_thread::poll()->insert_read(this);
-  torrent::this_thread::poll()->insert_error(this);
+  torrent::this_thread::poll()->open(static_cast<Event*>(this));
+  torrent::this_thread::poll()->insert_read(static_cast<Event*>(this));
+  torrent::this_thread::poll()->insert_error(static_cast<Event*>(this));
 }
 
 void
 SCgi::deactivate() {
   assert(std::this_thread::get_id() == worker_thread->thread_id() && "SCgi::deactivate() must be called from the worker thread.");
 
-  torrent::this_thread::poll()->remove_and_close(this);
+  torrent::this_thread::poll()->remove_and_close(static_cast<Event*>(this));
 }
 
 void
