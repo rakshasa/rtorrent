@@ -43,14 +43,27 @@ DownloadList::check_contains([[maybe_unused]] Download* d) {
 
 void
 DownloadList::clear() {
+  int error_count = 0;
+
   while (!empty()) {
     auto download = back();
-    base_type::pop_back();
 
-    close(download);
-    torrent::download_remove(*download->download());
-    delete download;
+    try {
+      close(download);
+      base_type::pop_back();
+
+      torrent::download_remove(*download->download());
+      delete download;
+
+    } catch (torrent::internal_error& e) {
+      lt_log_print(torrent::LOG_ERROR, "DownloadList::clear() failed to close or remove download: %s", e.what());
+      error_count++;
+      continue;
+    }
   }
+
+  if (error_count > 0)
+    throw torrent::internal_error("DownloadList::clear() failed to close or remove " + std::to_string(error_count) + " downloads.");
 }
 
 void
