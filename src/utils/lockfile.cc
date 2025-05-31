@@ -100,7 +100,7 @@ Lockfile::try_lock() {
   if (pos == 0) {
     ssize_t len = std::strlen(buf);
     ::snprintf(buf + len, 255 - len, ":+%i\n", ::getpid());
-    int __UNUSED result = ::write(fd, buf, std::strlen(buf));
+    [[maybe_unused]] int result = ::write(fd, buf, std::strlen(buf));
   }
 
   ::close(fd);

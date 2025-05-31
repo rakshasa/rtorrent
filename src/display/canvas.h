@@ -136,7 +136,8 @@ Canvas::resize_term(std::pair<int, int> dim) {
 
 inline unsigned int
 Canvas::get_x() {
-  int x, __UNUSED y;
+  int x;
+  [[maybe_unused]] int y;
   if (!m_isDaemon) {
     getyx(m_window, y, x);
   } else {
@@ -158,7 +159,8 @@ Canvas::get_y() {
 
 inline unsigned int
 Canvas::width() {
-  int x, __UNUSED y;
+  int x;
+  [[maybe_unused]] int y;
   if (!m_isDaemon) {
     getmaxyx(m_window, y, x);
   } else {
@@ -259,7 +261,8 @@ Canvas::set_default_attributes(int attr) {
 
 inline int
 Canvas::get_screen_width() {
-  int x, __UNUSED y;
+  int x;
+  [[maybe_unused]] int y;
   if (!m_isDaemon) {
     getmaxyx(stdscr, y, x);
   } else {

@@ -165,7 +165,7 @@ SCgiTask::event_read() {
   torrent::this_thread::poll()->remove_read(this);
 
   if (m_parent->log_fd() >= 0) {
-    int __UNUSED result;
+    [[maybe_unused]] int result;
 
     // Clean up logging, this is just plain ugly...
     //    write(m_logFd, "\n---\n", sizeof("\n---\n"));
@@ -326,7 +326,7 @@ SCgiTask::receive_write(const char* buffer, uint32_t length) {
   std::memcpy(m_buffer + headerSize, buffer, length);
 
   if (m_parent->log_fd() >= 0) {
-    int result [[maybe_unused]];
+    [[maybe_unused]] int result;
     result = write(m_parent->log_fd(), m_buffer, m_buffer_size);
     result = write(m_parent->log_fd(), "\n---\n", sizeof("\n---\n"));
   }

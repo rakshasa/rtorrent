@@ -107,25 +107,6 @@ AC_DEFUN([CC_ATTRIBUTE_NONNULL], [
 	fi
 ])
 
-AC_DEFUN([CC_ATTRIBUTE_UNUSED], [
-	AC_CACHE_CHECK([if compiler supports __attribute__((unused))],
-		[cc_cv_attribute_unused],
-		[AC_COMPILE_IFELSE([AC_LANG_SOURCE([
-			void some_function(void *foo, __attribute__((unused)) void *bar);
-			])],
-			[cc_cv_attribute_unused=yes],
-			[cc_cv_attribute_unused=no])
-		])
-	
-	if test "x$cc_cv_attribute_unused" = "xyes"; then
-		AC_DEFINE([SUPPORT_ATTRIBUTE_UNUSED], 1, [Define this if the compiler supports the unused attribute])
-		$1
-	else
-		true
-		$2
-	fi
-])
-
 AC_DEFUN([CC_FUNC_EXPECT], [
 	AC_CACHE_CHECK([if compiler has __builtin_expect function],
 		[cc_cv_func_expect],

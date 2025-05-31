@@ -19,7 +19,7 @@ namespace rpc {
 int
 ExecFile::execute(const char* file, char* const* argv, int flags) {
   // Write the execued command and its parameters to the log fd.
-  int __UNUSED result;
+  [[maybe_unused]] int result;
 
   if (m_log_fd != -1) {
     for (char* const* itr = argv; *itr != NULL; itr++) {
@@ -89,7 +89,7 @@ ExecFile::execute(const char* file, char* const* argv, int flags) {
     for (int i = 3, last = sysconf(_SC_OPEN_MAX); i != last; i++)
       ::close(i);
 
-    int result = execvp(file, argv);
+    result = execvp(file, argv);
 
     _exit(result);
   }
