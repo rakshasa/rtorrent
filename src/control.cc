@@ -23,7 +23,6 @@
 #include "rpc/command_scheduler.h"
 #include "rpc/lua.h"
 #include "rpc/parse_commands.h"
-#include "rpc/scgi.h"
 #include "rpc/object_storage.h"
 #include "ui/root.h"
 
@@ -90,7 +89,7 @@ Control::initialize() {
   m_ui->init(this);
 
   if(!display::Canvas::daemon()) {
-    m_inputStdin->insert(torrent::main_thread()->poll());
+    m_inputStdin->insert(torrent::this_thread::poll());
   }
 }
 
@@ -101,7 +100,7 @@ Control::cleanup() {
   torrent::this_thread::scheduler()->erase(&m_task_shutdown);
 
   if(!display::Canvas::daemon()) {
-    m_inputStdin->remove(torrent::main_thread()->poll());
+    m_inputStdin->remove(torrent::this_thread::poll());
   }
 
   m_core->download_store()->disable();

@@ -1,5 +1,8 @@
 #include "config.h"
 
+#include "rpc/scgi.h"
+
+#include <cassert>
 #include <rak/error_number.h>
 #include <rak/socket_address.h>
 #include <sys/un.h>
@@ -12,8 +15,6 @@
 #include "globals.h"
 #include "rpc/scgi_task.h"
 #include "utils/socket_fd.h"
-
-#include "rpc/scgi.h"
 
 namespace rpc {
 
@@ -90,16 +91,18 @@ SCgi::open(void* sa, unsigned int length) {
 
 void
 SCgi::activate() {
-  worker_thread->poll()->open(this);
-  worker_thread->poll()->insert_read(this);
-  worker_thread->poll()->insert_error(this);
+  assert(std::this_thread::get_id() == worker_thread->thread_id() && "SCgi::activate() must be called from the worker thread.");
+
+  torrent::this_thread::poll()->open(this);
+  torrent::this_thread::poll()->insert_read(this);
+  torrent::this_thread::poll()->insert_error(this);
 }
 
 void
 SCgi::deactivate() {
-  worker_thread->poll()->remove_read(this);
-  worker_thread->poll()->remove_error(this);
-  worker_thread->poll()->close(this);
+  assert(std::this_thread::get_id() == worker_thread->thread_id() && "SCgi::deactivate() must be called from the worker thread.");
+
+  torrent::this_thread::poll()->remove_and_close(this);
 }
 
 void
