@@ -1,18 +1,15 @@
 #include "config.h"
 
+#include "curl_socket.h"
+
 #include <cassert>
-
-#include <curl/curl.h>
 #include <curl/multi.h>
-
 #include <torrent/poll.h>
 #include <torrent/exceptions.h>
 #include <torrent/utils/thread.h>
 
 #include "control.h"
-
-#include "curl_socket.h"
-#include "curl_stack.h"
+#include "core/curl_stack.h"
 
 namespace core {
 
@@ -39,22 +36,22 @@ CurlSocket::receive_socket([[maybe_unused]] void* easy_handle, curl_socket_t fd,
 
   if (socket == NULL) {
     socket = stack->new_socket(fd);
-    torrent::main_thread()->poll()->open(socket);
+    torrent::this_thread::poll()->open(socket);
 
     // No interface for libcurl to signal when it's interested in error events.
     // Assume that hence it must always be interested in them.
-    torrent::main_thread()->poll()->insert_error(socket);
+    torrent::this_thread::poll()->insert_error(socket);
   }
 
   if (what == CURL_POLL_NONE || what == CURL_POLL_OUT)
-    torrent::main_thread()->poll()->remove_read(socket);
+    torrent::this_thread::poll()->remove_read(socket);
   else
-    torrent::main_thread()->poll()->insert_read(socket);
+    torrent::this_thread::poll()->insert_read(socket);
 
   if (what == CURL_POLL_NONE || what == CURL_POLL_IN)
-    torrent::main_thread()->poll()->remove_write(socket);
+    torrent::this_thread::poll()->remove_write(socket);
   else
-    torrent::main_thread()->poll()->insert_write(socket);
+    torrent::this_thread::poll()->insert_write(socket);
 
   return 0;
 }
@@ -68,7 +65,7 @@ CurlSocket::close() {
   if (m_fileDesc == -1)
     throw torrent::internal_error("CurlSocket::close() m_fileDesc == -1.");
 
-  torrent::main_thread()->poll()->closed(this);
+  torrent::this_thread::poll()->closed(this);
   m_fileDesc = -1;
 }
 

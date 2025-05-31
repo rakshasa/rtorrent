@@ -18,9 +18,9 @@ public:
   static const int max_tasks = 100;
 
   SCgi() : m_logFd(-1) {}
-  virtual ~SCgi();
+  ~SCgi() override;
 
-  virtual const char* type_name() const { return "scgi"; }
+  const char*         type_name() const override { return "scgi"; }
 
   void                open_port(void* sa, unsigned int length, bool dontRoute);
   void                open_named(const std::string& filename);
@@ -33,9 +33,9 @@ public:
   int                 log_fd() const     { return m_logFd; }
   void                set_log_fd(int fd) { m_logFd = fd; }
 
-  virtual void        event_read();
-  virtual void        event_write();
-  virtual void        event_error();
+  void                event_read() override;
+  void                event_write() override;
+  void                event_error() override;
 
   utils::SocketFd&    get_fd()            { return *reinterpret_cast<utils::SocketFd*>(&m_fileDesc); }
 
