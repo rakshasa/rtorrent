@@ -72,11 +72,6 @@ AC_DEFINE(USER_AGENT, [std::string(PACKAGE "/" VERSION "/") + torrent::version()
 
 AC_CHECK_FUNCS(posix_memalign)
 
-CC_ATTRIBUTE_UNUSED(
-  AC_DEFINE([__UNUSED], [__attribute__((unused))], [Wrapper around unused attribute]),
-  AC_DEFINE([__UNUSED], [], [Null-wrapper if unused attribute is unsupported])
-)
-
 dnl Only update global build variables immediately before generating the output,
 dnl to avoid affecting the global build environment for other autoconf checks.
 LIBS="$PTHREAD_LIBS $CURSES_LIB $CURSES_LIBS $LIBCURL $LIBCURL_LIBS $DEPENDENCIES_LIBS $LIBS"
