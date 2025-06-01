@@ -12,12 +12,9 @@ EXTRA_DIST= \
 	rak/fs_stat.h \
 	rak/path.h \
 	rak/partial_queue.h \
-	rak/priority_queue.h \
-	rak/priority_queue_default.h \
 	rak/regex.h \
 	rak/socket_address.h \
 	rak/string_manip.h \
-	rak/timer.h \
 	rak/unordered_vector.h \
 	scripts/checks.m4 \
 	scripts/common.m4 \
