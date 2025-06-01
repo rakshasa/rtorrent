@@ -27,6 +27,7 @@ rtorrent_Test_Common = \
 	helpers/test_main_thread.h \
 	helpers/test_thread.cc \
 	helpers/test_thread.h \
+	helpers/test_utils.h \
 	helpers/utils.h
 
 rtorrent_Test_Rpc_SOURCES = $(rtorrent_Test_Common) \
