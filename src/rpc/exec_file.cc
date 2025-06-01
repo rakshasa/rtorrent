@@ -1,6 +1,7 @@
 #include "config.h"
 
 #include <cerrno>
+#include <cstring>
 #include <fcntl.h>
 #include <string>
 #include <unistd.h>
@@ -18,7 +19,7 @@ namespace rpc {
 
 int
 ExecFile::execute(const char* file, char* const* argv, int flags) {
-  // Write the execued command and its parameters to the log fd.
+  // Write the executed command and its parameters to the log fd.
   [[maybe_unused]] int result;
 
   if (m_log_fd != -1) {
@@ -117,18 +118,23 @@ ExecFile::execute(const char* file, char* const* argv, int flags) {
   }
 
   int status;
-  int wpid;
 
-  do {
-    wpid = waitpid(childPid, &status, 0);
-  } while (wpid == -1 && WIFEXITED(status) == 0);
-
-  if (wpid != childPid)
-    throw torrent::internal_error("ExecFile::execute(...) waitpid failed.");
+  while (waitpid(childPid, &status, 0) == -1) {
+    switch (errno) {
+    case EINTR:
+      continue;
+    case ECHILD:
+      throw torrent::internal_error("ExecFile::execute(...) waitpid failed with ECHILD, child process not found.");
+    case EINVAL:
+      throw torrent::internal_error("ExecFile::execute(...) waitpid failed with EINVAL.");
+    default:
+      throw torrent::internal_error("ExecFile::execute(...) waitpid failed with unexpected error: " + std::string(std::strerror(errno)));
+    }
+  };
 
   // Check return value?
   if (m_log_fd != -1) {
-    if (status == 0)
+    if (WIFEXITED(status) && WEXITSTATUS(status) == 0)
       result = write(m_log_fd, "\n--- Success ---\n", sizeof("\n--- Success ---\n"));
     else
       result = write(m_log_fd, "\n--- Error ---\n", sizeof("\n--- Error ---\n"));
