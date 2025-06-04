@@ -5,12 +5,6 @@ rtorrent_LDADD = libsub_root.a @PTHREAD_LIBS@
 rtorrent_SOURCES = main.cc
 
 libsub_root_a_SOURCES = \
-	core/curl_get.cc \
-	core/curl_get.h \
-	core/curl_socket.cc \
-	core/curl_socket.h \
-	core/curl_stack.cc \
-	core/curl_stack.h \
 	core/dht_manager.cc \
 	core/dht_manager.h \
 	core/download.cc \

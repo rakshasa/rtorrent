@@ -1,11 +1,12 @@
 #include "config.h"
 
+#include "download_factory.h"
+
 #include <cstdlib>
 #include <fstream>
 #include <functional>
 #include <sstream>
 #include <stdexcept>
-
 #include <rak/path.h>
 #include <torrent/utils/log.h>
 #include <torrent/utils/resume.h>
@@ -14,18 +15,15 @@
 #include <torrent/exceptions.h>
 #include <torrent/rate.h>
 #include <torrent/data/file_utils.h>
+#include <torrent/net/http_stack.h>
 
-#include "rpc/parse_commands.h"
-
-#include "curl_get.h"
 #include "control.h"
-#include "http_queue.h"
 #include "globals.h"
-#include "manager.h"
-
-#include "download.h"
-#include "download_factory.h"
-#include "download_store.h"
+#include "core/download.h"
+#include "core/download_store.h"
+#include "core/http_queue.h"
+#include "core/manager.h"
+#include "rpc/parse_commands.h"
 
 namespace core {
 
@@ -111,10 +109,11 @@ DownloadFactory::receive_load() {
   if (is_network_uri(m_uri)) {
     // Http handling here.
     m_stream = new std::stringstream;
+
     HttpQueue::iterator itr = m_manager->http_queue()->insert(m_uri, m_stream);
 
-    (*itr)->signal_done().push_front(std::bind(&DownloadFactory::receive_loaded, this));
-    (*itr)->signal_failed().push_front(std::bind(&DownloadFactory::receive_failed, this, std::placeholders::_1));
+    itr->add_done_slot([this]() { receive_loaded(); });
+    itr->add_failed_slot([this](const std::string& error) { receive_failed(error); });
 
     m_variables["tied_to_file"] = (int64_t)false;
 

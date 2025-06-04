@@ -3,8 +3,8 @@
 #include "display/window_http_queue.h"
 
 #include <stdexcept>
+#include <torrent/net/http_get.h>
 
-#include "core/curl_get.h"
 #include "core/http_queue.h"
 #include "display/canvas.h"
 
@@ -17,8 +17,9 @@ WindowHttpQueue::WindowHttpQueue(core::HttpQueue* q) :
   m_queue(q) {
 
   set_active(false);
-  m_conn_insert = m_queue->signal_insert().insert(m_queue->signal_insert().end(), [this](auto* h) { receive_insert(h); });
-  m_conn_erase  = m_queue->signal_erase().insert(m_queue->signal_insert().end(), [this](auto* h) { receive_erase(h); });
+
+  m_conn_insert = m_queue->signal_insert().insert(m_queue->signal_insert().end(), [this](auto h) { receive_insert(h); });
+  m_conn_erase  = m_queue->signal_erase().insert(m_queue->signal_insert().end(), [this](auto h) { receive_erase(h); });
 
   m_task_deactivate.slot() = [this] {
       if (!m_container.empty())
@@ -55,14 +56,14 @@ WindowHttpQueue::redraw() {
   Container::iterator itr = m_container.begin();
 
   while (itr != m_container.end() && pos + 10 < m_canvas->width()) {
-    if (itr->m_http == NULL)
+    if (!itr->m_http.is_valid())
       m_canvas->print(pos, 0, "[%s done]", itr->m_name.c_str());
 
-    else if (itr->m_http->size_total() == 0)
+    else if (itr->m_http.size_total() == 0)
       m_canvas->print(pos, 0, "[%s ---%%]", itr->m_name.c_str());
 
     else
-      m_canvas->print(pos, 0, "[%s %3i%%]", itr->m_name.c_str(), (int)(100.0 * itr->m_http->size_done() / itr->m_http->size_total()));
+      m_canvas->print(pos, 0, "[%s %3i%%]", itr->m_name.c_str(), (int)(100.0 * itr->m_http.size_done() / itr->m_http.size_total()));
 
     pos += itr->m_name.size() + 6;
     ++itr;
@@ -72,7 +73,7 @@ WindowHttpQueue::redraw() {
 void
 WindowHttpQueue::cleanup_list() {
   for (Container::iterator itr = m_container.begin(); itr != m_container.end(); ) {
-    if (itr->m_http == nullptr && itr->m_timer < torrent::this_thread::cached_time()) {
+    if (!itr->m_http.is_valid() && itr->m_timer < torrent::this_thread::cached_time()) {
       itr = m_container.erase(itr);
       continue;
     }
@@ -82,10 +83,10 @@ WindowHttpQueue::cleanup_list() {
 }
 
 std::string
-WindowHttpQueue::create_name(core::CurlGet* h) {
-  size_t p = h->url().rfind('/', h->url().size() - std::min<int>(10, h->url().size()));
+WindowHttpQueue::create_name(torrent::net::HttpGet http_get) {
+  size_t p = http_get.url().rfind('/', http_get.url().size() - std::min<int>(10, http_get.url().size()));
 
-  std::string n = p != std::string::npos ? h->url().substr(p) : h->url();
+  std::string n = p != std::string::npos ? http_get.url().substr(p) : http_get.url();
 
   if (n.empty())
     throw std::logic_error("WindowHttpQueue::create_name(...) made a bad string");
@@ -105,8 +106,8 @@ WindowHttpQueue::create_name(core::CurlGet* h) {
 }
 
 void
-WindowHttpQueue::receive_insert(core::CurlGet* h) {
-  m_container.push_back(Node(h, create_name(h)));
+WindowHttpQueue::receive_insert(torrent::net::HttpGet http_get) {
+  m_container.push_back(Node(http_get, create_name(http_get)));
 
   if (!is_active()) {
     set_active(true);
@@ -117,8 +118,10 @@ WindowHttpQueue::receive_insert(core::CurlGet* h) {
 }
 
 void
-WindowHttpQueue::receive_erase(core::CurlGet* h) {
-  Container::iterator itr = std::find_if(m_container.begin(), m_container.end(), [h](Node& n) { return h == n.m_http; });
+WindowHttpQueue::receive_erase(torrent::net::HttpGet http_get) {
+  Container::iterator itr = std::find_if(m_container.begin(),
+                                         m_container.end(),
+                                         [http_get](Node& n) { return http_get == n.m_http; });
 
   if (itr == m_container.end())
     throw std::logic_error("WindowHttpQueue::receive_erase(...) tried to remove an object we don't have");

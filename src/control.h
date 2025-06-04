@@ -3,6 +3,7 @@
 
 #include <atomic>
 #include <cinttypes>
+#include <memory>
 #include <sys/types.h>
 #include <torrent/torrent.h>
 #include <torrent/utils/scheduler.h>
@@ -55,20 +56,20 @@ public:
   void                receive_normal_shutdown()     { m_shutdownReceived = true; }
   void                receive_quick_shutdown()      { m_shutdownReceived = true; m_shutdownQuick = true; }
 
-  core::Manager*      core()                        { return m_core; }
-  core::ViewManager*  view_manager()                { return m_viewManager; }
-  core::DhtManager*   dht_manager()                 { return m_dhtManager; }
+  core::Manager*      core()                        { return m_core.get(); }
+  core::ViewManager*  view_manager()                { return m_viewManager.get(); }
+  core::DhtManager*   dht_manager()                 { return m_dhtManager.get(); }
 
-  ui::Root*           ui()                          { return m_ui; }
-  display::Manager*   display()                     { return m_display; }
-  input::Manager*     input()                       { return m_input; }
-  input::InputEvent*  input_stdin()                 { return m_inputStdin; }
+  ui::Root*           ui()                          { return m_ui.get(); }
+  display::Manager*   display()                     { return m_display.get(); }
+  input::Manager*     input()                       { return m_input.get(); }
+  input::InputEvent*  input_stdin()                 { return m_inputStdin.get(); }
 
-  rpc::CommandScheduler* command_scheduler()        { return m_commandScheduler; }
-  rpc::object_storage*   object_storage()           { return m_objectStorage; }
-  rpc::LuaEngine*        lua_engine()               { return m_lua_engine; }
+  rpc::CommandScheduler* command_scheduler()        { return m_commandScheduler.get(); }
+  rpc::object_storage*   object_storage()           { return m_objectStorage.get(); }
+  rpc::LuaEngine*        lua_engine()               { return m_lua_engine.get(); }
 
-  torrent::directory_events* directory_events()     { return m_directory_events; }
+  torrent::directory_events* directory_events()     { return m_directory_events.get(); }
 
   uint64_t            tick() const                  { return m_tick; }
   void                inc_tick()                    { m_tick++; }
@@ -80,19 +81,19 @@ private:
   Control(const Control&);
   void operator = (const Control&);
 
-  core::Manager*      m_core;
-  core::ViewManager*  m_viewManager;
-  core::DhtManager*   m_dhtManager;
+  std::unique_ptr<core::Manager>     m_core;
+  std::unique_ptr<core::ViewManager> m_viewManager;
+  std::unique_ptr<core::DhtManager>  m_dhtManager;
 
-  ui::Root*           m_ui;
-  display::Manager*   m_display;
-  input::Manager*     m_input;
-  input::InputEvent*  m_inputStdin;
+  std::unique_ptr<ui::Root>          m_ui;
+  std::unique_ptr<display::Manager>  m_display;
+  std::unique_ptr<input::Manager>    m_input;
+  std::unique_ptr<input::InputEvent> m_inputStdin;
 
-  rpc::CommandScheduler*     m_commandScheduler;
-  rpc::object_storage*       m_objectStorage;
-  rpc::LuaEngine*            m_lua_engine;
-  torrent::directory_events* m_directory_events;
+  std::unique_ptr<rpc::CommandScheduler>     m_commandScheduler;
+  std::unique_ptr<rpc::object_storage>       m_objectStorage;
+  std::unique_ptr<rpc::LuaEngine>            m_lua_engine;
+  std::unique_ptr<torrent::directory_events> m_directory_events;
 
   uint64_t            m_tick{};
 
