@@ -156,26 +156,6 @@ AC_DEFUN([TORRENT_CHECK_POPCOUNT], [
   ])
 ])
 
-AC_DEFUN([TORRENT_CHECK_CACHELINE], [
-  AC_MSG_CHECKING(for cacheline)
-
-  AC_COMPILE_IFELSE([AC_LANG_SOURCE([
-      #include <stdlib.h>
-          #include <linux/cache.h>
-          void* vptr __cacheline_aligned;
-          void f() { posix_memalign(&vptr, SMP_CACHE_BYTES, 42); }
-      ])],
-    [
-      AC_MSG_RESULT(found builtin)
-dnl   Need to fix this so that it uses the stuff defined by the system.
-
-      AC_DEFINE(LT_SMP_CACHE_BYTES, 128, Largest L1 cache size we know of should work on all archs.)
-    ], [
-      AC_MSG_RESULT(using default 128 bytes)
-      AC_DEFINE(LT_SMP_CACHE_BYTES, 128, Largest L1 cache size we know of should work on all archs.)
-  ])
-])
-
 AC_DEFUN([TORRENT_CHECK_ALIGNED], [
   AC_MSG_CHECKING(the byte alignment)
 
