@@ -118,19 +118,6 @@ AC_DEFUN([TORRENT_WITHOUT_KQUEUE], [
 ])
 
 
-AC_DEFUN([TORRENT_WITHOUT_VARIABLE_FDSET], [
-  AC_ARG_WITH(variable-fdset,
-    AS_HELP_STRING([--without-variable-fdset],[do not use non-portable variable sized fd_set's]),
-    [
-      if test "$withval" = "yes"; then
-        AC_DEFINE(USE_VARIABLE_FDSET, 1, defined when we allow the use of fd_set's of any size)
-      fi
-    ], [
-      AC_DEFINE(USE_VARIABLE_FDSET, 1, defined when we allow the use of fd_set's of any size)
-    ])
-])
-
-
 AC_DEFUN([TORRENT_CHECK_FALLOCATE], [
   AC_MSG_CHECKING(for fallocate)
 

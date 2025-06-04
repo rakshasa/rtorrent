@@ -28,8 +28,6 @@ RAK_ENABLE_WERROR
 TORRENT_ENABLE_ARCH
 TORRENT_WITH_SYSROOT
 
-TORRENT_WITHOUT_VARIABLE_FDSET
-
 AC_ARG_ENABLE(execinfo,
   AS_HELP_STRING([--disable-execinfo],
     [disable libexecinfo [[default=enable]]]),
