@@ -66,8 +66,6 @@ fi
 
 AC_DEFINE(USER_AGENT, [std::string(PACKAGE "/" VERSION "/") + torrent::version()], Http user agent)
 
-AC_CHECK_FUNCS(posix_memalign)
-
 dnl Only update global build variables immediately before generating the output,
 dnl to avoid affecting the global build environment for other autoconf checks.
 LIBS="$PTHREAD_LIBS $CURSES_LIB $CURSES_LIBS $DEPENDENCIES_LIBS $LIBS"
