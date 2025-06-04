@@ -223,14 +223,3 @@ AC_DEFUN([TORRENT_ENABLE_INTERRUPT_SOCKET], [
     ]
   )
 ])
-
-AC_DEFUN([TORRENT_DISABLE_IPV6], [
-  AC_ARG_ENABLE(ipv6,
-    AS_HELP_STRING([--enable-ipv6],
-      [enable ipv6 [[default=no]]]),
-    [
-        if test "$enableval" = "yes"; then
-            AC_DEFINE(RAK_USE_INET6, 1, enable ipv6 stuff)
-        fi
-    ])
-])
