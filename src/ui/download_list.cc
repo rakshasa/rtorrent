@@ -179,7 +179,7 @@ DownloadList::activate_display(Display displayType) {
   // Set title.
   switch (displayType) {
   case DISPLAY_DOWNLOAD_LIST:
-    control->ui()->window_title()->set_title("rTorrent " VERSION "/" +
+    control->ui()->window_title()->set_title("rTorrent " PACKAGE_VERSION "/" +
                                              std::string(torrent::version()) + " - " +
                                              rpc::call_command_string("session.name"));
     break;
