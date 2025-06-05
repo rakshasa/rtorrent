@@ -7,8 +7,8 @@
 #include <sstream>
 #include <string>
 #include <inttypes.h>
+#include <typeinfo>
 #include <unistd.h>
-#include <torrent/http.h>
 #include <torrent/torrent.h>
 #include <torrent/exceptions.h>
 #include <torrent/data/chunk_utils.h>
@@ -454,8 +454,10 @@ main(int argc, char** argv) {
   } catch (torrent::internal_error& e) {
     control->cleanup_exception();
 
-    std::cout << "Caught internal_error: " << e.what() << std::endl
+    std::cout << "rtorrent: caught torrent::internal_error: "
+              << e.what() << std::endl
               << e.backtrace();
+
     lt_log_print_dump(torrent::LOG_CRITICAL, e.backtrace().c_str(), e.backtrace().size(),
                       "Caught internal_error: '%s'.", e.what());
     return -1;
@@ -463,7 +465,8 @@ main(int argc, char** argv) {
   } catch (std::exception& e) {
     control->cleanup_exception();
 
-    std::cout << "rtorrent: " << e.what() << std::endl;
+    std::cout << "rtorrent: caught" << typeid(e).name() << " : " << e.what() << std::endl;
+
     lt_log_print(torrent::LOG_CRITICAL, "Caught exception: '%s'.", e.what());
     return -1;
   }

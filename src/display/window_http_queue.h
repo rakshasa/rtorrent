@@ -3,20 +3,20 @@
 
 #include <functional>
 #include <list>
+#include <torrent/net/http_get.h>
 
 #include "window.h"
 
 namespace core {
-  class CurlGet;
-  class HttpQueue;
+class HttpQueue;
 }
 
 namespace display {
 
 class WindowHttpQueue : public Window {
 public:
-  typedef std::function<void (core::CurlGet*)> slot_curl_get;
-  typedef std::list<slot_curl_get>             signal_curl_get;
+  typedef std::function<void (torrent::net::HttpGet)> slot_curl_get;
+  typedef std::list<slot_curl_get>                    signal_curl_get;
 
   WindowHttpQueue(core::HttpQueue* q);
   ~WindowHttpQueue() override;
@@ -25,9 +25,9 @@ public:
 
 private:
   struct Node {
-    Node(core::CurlGet* h, const std::string& n) : m_http(h), m_name(n) {}
+    Node(torrent::net::HttpGet h, const std::string& n) : m_http(h), m_name(n) {}
 
-    core::CurlGet*            m_http{};
+    torrent::net::HttpGet     m_http{};
     std::string               m_name;
     std::chrono::microseconds m_timer{};
   };
@@ -36,10 +36,10 @@ private:
 
   void                cleanup_list();
 
-  void                receive_insert(core::CurlGet* h);
-  void                receive_erase(core::CurlGet* h);
+  void                receive_insert(torrent::net::HttpGet h);
+  void                receive_erase(torrent::net::HttpGet h);
 
-  static std::string  create_name(core::CurlGet* h);
+  static std::string  create_name(torrent::net::HttpGet h);
 
   core::HttpQueue*    m_queue;
   Container           m_container;

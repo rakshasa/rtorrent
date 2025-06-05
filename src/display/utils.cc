@@ -1,5 +1,7 @@
 #include "config.h"
 
+#include "display/utils.h"
+
 #include <cstring>
 #include <cstdio>
 #include <sstream>
@@ -14,17 +16,15 @@
 #include <torrent/data/file_list.h>
 #include <torrent/data/file_manager.h>
 #include <torrent/download/resource_manager.h>
+#include <torrent/net/http_stack.h>
 #include <torrent/peer/client_info.h>
 
-#include "core/curl_stack.h"
+#include "control.h"
+#include "globals.h"
 #include "core/download.h"
 #include "core/manager.h"
 #include "rpc/parse_commands.h"
 #include "ui/root.h"
-
-#include "control.h"
-#include "globals.h"
-#include "utils.h"
 
 namespace display {
 
@@ -111,7 +111,7 @@ print_download_info_full(char* first, char* last, core::Download* d) {
     first = print_buffer(first, last, "%6.1f / %6.1f MB",
                          (double)d->download()->bytes_done() / (double)(1 << 20),
                          (double)d->download()->file_list()->size_bytes() / (double)(1 << 20));
-  
+
   first = print_buffer(first, last, " Rate: %5.1f / %5.1f KB Uploaded: %7.1f MB",
                        (double)d->info()->up_rate()->rate() / (1 << 10),
                        (double)d->info()->down_rate()->rate() / (1 << 10),
@@ -391,7 +391,7 @@ print_status_info(char* first, char* last) {
     first = print_address(first, last, torrent::connection_manager()->local_address());
     first = print_buffer(first, last, "]");
   }
-  
+
   if (first > last)
     throw torrent::internal_error("print_status_info(...) wrote past end of the buffer.");
 
@@ -415,14 +415,14 @@ print_status_extra(char* first, char* last) {
                        torrent::resource_manager()->max_download_unchoked());
 
   first = print_buffer(first, last, " [H %u/%u]",
-                       control->core()->http_stack()->active(),
-                       control->core()->http_stack()->max_active());                       
+                       torrent::net_thread::http_stack()->active(),
+                       torrent::net_thread::http_stack()->max_active());
 
   first = print_buffer(first, last, " [S %i/%i/%i]",
                        torrent::total_handshakes(),
                        torrent::connection_manager()->size(),
                        torrent::connection_manager()->max_size());
-                       
+
   first = print_buffer(first, last, " [F %i/%i]",
                        torrent::file_manager()->open_files(),
                        torrent::file_manager()->max_open_files());

@@ -21,7 +21,6 @@ class FileStatusCache;
 
 namespace core {
 
-class CurlStack;
 class DownloadStore;
 class HttpQueue;
 
@@ -42,7 +41,6 @@ public:
   FileStatusCache*    file_status_cache()                 { return m_file_status_cache.get(); }
 
   HttpQueue*          http_queue()                        { return m_http_queue.get(); }
-  CurlStack*          http_stack()                        { return m_http_stack.get(); }
 
   View*               hashing_view()                      { return m_hashingView; }
   void                set_hashing_view(View* v);
@@ -59,8 +57,6 @@ public:
   void                  set_address_throttle(uint32_t begin, uint32_t end, torrent::ThrottlePair throttles);
   torrent::ThrottlePair get_address_throttle(const sockaddr* addr);
 
-  // Really should find a more descriptive name.
-  void                initialize_second();
   void                cleanup();
 
   void                listen_open();
@@ -109,7 +105,6 @@ private:
   std::unique_ptr<DownloadStore>   m_download_store;
   std::unique_ptr<FileStatusCache> m_file_status_cache;
   std::unique_ptr<HttpQueue>       m_http_queue;
-  std::unique_ptr<CurlStack>       m_http_stack;
 
   View*               m_hashingView{};
 

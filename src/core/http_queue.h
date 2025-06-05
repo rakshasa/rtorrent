@@ -4,17 +4,18 @@
 #include <functional>
 #include <iosfwd>
 #include <list>
+#include <string>
+#include <torrent/net/http_get.h>
 
 namespace core {
 
-class CurlGet;
+// TODO: Remove this.
 
-class HttpQueue : private std::list<CurlGet*> {
+class HttpQueue : private std::list<torrent::net::HttpGet> {
 public:
-  typedef std::list<CurlGet*>            base_type;
-  typedef std::function<CurlGet* ()>     slot_factory;
-  typedef std::function<void (CurlGet*)> slot_curl_get;
-  typedef std::list<slot_curl_get>       signal_curl_get;
+  using base_type       = std::list<torrent::net::HttpGet>;
+  using slot_curl_get   = std::function<void (torrent::net::HttpGet)>;
+  using signal_curl_get = std::list<slot_curl_get>;
 
   using base_type::iterator;
   using base_type::const_iterator;
@@ -42,13 +43,10 @@ public:
 
   void        clear();
 
-  void             set_slot_factory(slot_factory s) { m_slot_factory = s; }
-
   signal_curl_get& signal_insert() { return m_signal_insert; }
   signal_curl_get& signal_erase()  { return m_signal_erase; }
 
 private:
-  slot_factory    m_slot_factory;
   signal_curl_get m_signal_insert;
   signal_curl_get m_signal_erase;
 };

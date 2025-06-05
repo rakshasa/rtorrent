@@ -1,11 +1,13 @@
 #include "config.h"
 
+#include "control.h"
+
 #include <unistd.h>
 #include <sys/stat.h>
 #include <torrent/connection_manager.h>
+#include <torrent/net/http_stack.h>
 #include <torrent/utils/directory_events.h>
 
-#include "core/curl_stack.h"
 #include "core/dht_manager.h"
 #include "core/download_store.h"
 #include "core/http_queue.h"
@@ -26,10 +28,8 @@
 #include "rpc/object_storage.h"
 #include "ui/root.h"
 
-#include "control.h"
-
-Control::Control() :
-    m_ui(new ui::Root()),
+Control::Control()
+  : m_ui(new ui::Root()),
     m_display(new display::Manager()),
     m_input(new input::Manager()),
     m_inputStdin(new input::InputEvent(STDIN_FILENO)),
@@ -38,11 +38,11 @@ Control::Control() :
     m_lua_engine(new rpc::LuaEngine()),
     m_directory_events(new torrent::directory_events()) {
 
-  m_core        = new core::Manager();
-  m_viewManager = new core::ViewManager();
-  m_dhtManager  = new core::DhtManager();
+  m_core        = std::make_unique<core::Manager>();
+  m_viewManager = std::make_unique<core::ViewManager>();
+  m_dhtManager  = std::make_unique<core::DhtManager>();
 
-  m_inputStdin->slot_pressed(std::bind(&input::Manager::pressed, m_input, std::placeholders::_1));
+  m_inputStdin->slot_pressed(std::bind(&input::Manager::pressed, m_input.get(), std::placeholders::_1));
 
   m_task_shutdown.slot() = std::bind(&Control::handle_shutdown, this);
 
@@ -50,20 +50,10 @@ Control::Control() :
 }
 
 Control::~Control() {
-  delete m_inputStdin;
-  delete m_input;
+  m_viewManager.reset();
 
-  delete m_viewManager;
-
-  delete m_ui;
-  delete m_display;
-  delete m_core;
-  delete m_dhtManager;
-
-  delete m_directory_events;
-  delete m_commandScheduler;
-  delete m_objectStorage;
-  delete m_lua_engine;
+  m_ui.reset();
+  m_display.reset();
 }
 
 void
@@ -73,9 +63,8 @@ Control::initialize() {
   display::Window::slot_unschedule([this](display::Window* w) { m_display->unschedule(w); });
   display::Window::slot_adjust([this]() { m_display->adjust_layout(); });
 
-  m_core->http_stack()->set_user_agent(USER_AGENT);
+  torrent::net_thread::http_stack()->set_user_agent(USER_AGENT);
 
-  m_core->initialize_second();
   m_core->listen_open();
   m_core->download_store()->enable(rpc::call_command_value("session.use_lock"));
 
@@ -122,7 +111,10 @@ Control::is_shutdown_completed() {
   // Tracker requests can be disowned, so wait for these to
   // finish. The edge case of torrent http downloads may delay
   // shutdown.
-  if (!core()->http_stack()->empty() || !core()->http_queue()->empty())
+
+  // TODO: We keep http requests in the queue for a while after, so improve this check to ignore
+  // those.
+  if (torrent::net_thread::http_stack()->active() != 0 || !core()->http_queue()->empty())
     return false;
 
   return torrent::is_inactive();

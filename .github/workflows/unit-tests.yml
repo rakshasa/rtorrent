@@ -11,6 +11,11 @@ jobs:
     - name: Update Packages
       run: |
         sudo apt-get update
+    - name: Install Dependencies
+      run: |
+        sudo apt-get install -y \
+          libcppunit-dev \
+          libcurl4-openssl-dev
     - name: Fetch libtorrent
       run: |
         git clone https://github.com/rakshasa/libtorrent
@@ -35,11 +40,6 @@ jobs:
       run: |
         git remote add upstream "https://github.com/${{ github.event.pull_request.base.repo.full_name }}"
         git fetch --no-tags --no-recurse-submodules upstream "${{ github.event.pull_request.base.ref }}"
-    - name: Install Dependencies
-      run: |
-        sudo apt-get install -y \
-          libcppunit-dev \
-          libcurl4-openssl-dev
     - name: Configure Project
       run: |
         libtoolize
@@ -53,4 +53,12 @@ jobs:
         make
     - name: Run Unit Tests
       run: |
+        ls /usr/local/lib/
+        export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/usr/local/lib"
         make check
+    - name: Archive test/test-suite.log
+      if: success() || failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-suite.log
+        path: test/test-suite.log

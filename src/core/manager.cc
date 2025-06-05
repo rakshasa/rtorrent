@@ -18,6 +18,7 @@
 #include <torrent/exceptions.h>
 #include <torrent/object_stream.h>
 #include <torrent/throttle.h>
+#include <torrent/net/http_stack.h>
 #include <torrent/utils/log.h>
 
 #include "rpc/parse_commands.h"
@@ -26,15 +27,13 @@
 #include "utils/file_status_cache.h"
 
 #include "globals.h"
-#include "curl_get.h"
-#include "curl_stack.h"
 #include "control.h"
-#include "download.h"
-#include "download_factory.h"
-#include "download_store.h"
-#include "http_queue.h"
-#include "manager.h"
-#include "view.h"
+#include "core/download.h"
+#include "core/download_factory.h"
+#include "core/download_store.h"
+#include "core/http_queue.h"
+#include "core/manager.h"
+#include "core/view.h"
 
 namespace core {
 
@@ -57,7 +56,6 @@ Manager::Manager() :
   m_download_list     = std::make_unique<DownloadList>();
   m_file_status_cache = std::make_unique<FileStatusCache>();
   m_http_queue        = std::make_unique<HttpQueue>();
-  m_http_stack        = std::make_unique<CurlStack>();
 
   torrent::Throttle* unthrottled = torrent::Throttle::create_throttle();
   unthrottled->set_max_rate(0);
@@ -131,31 +129,14 @@ Manager::retrieve_throttle_value(const torrent::Object::string_type& name, bool 
   }
 }
 
-// Most of this should be possible to move out.
-void
-Manager::initialize_second() {
-  torrent::Http::slot_factory() = std::bind(&CurlStack::new_object, m_http_stack.get());
-  m_http_queue->set_slot_factory(std::bind(&CurlStack::new_object, m_http_stack.get()));
-
-  CurlStack::global_init();
-}
-
 void
 Manager::cleanup() {
-  m_http_stack->shutdown();
-
   // Need to disconnect log signals? Not really since we won't receive
   // any more.
 
   m_download_list->clear();
 
-  // When we implement asynchronous DNS lookups, we need to cancel them
-  // here before the torrent::* objects are deleted.
-
   torrent::cleanup();
-
-  m_http_stack.reset();
-  CurlStack::global_cleanup();
 }
 
 void
@@ -229,7 +210,10 @@ Manager::set_bind_address(const std::string& addr) {
       torrent::connection_manager()->set_bind_address(ai->address()->c_sockaddr());
     }
 
-    m_http_stack->set_bind_address(!ai->address()->is_address_any() ? ai->address()->address_str() : std::string());
+    if (ai->address()->is_address_any())
+      torrent::net_thread::http_stack()->set_bind_address(std::string());
+    else
+      torrent::net_thread::http_stack()->set_bind_address(ai->address()->address_str());
 
     rak::address_info::free_address_info(ai);
 

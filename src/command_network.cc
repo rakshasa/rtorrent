@@ -5,16 +5,16 @@
 #include <unistd.h>
 #include <rak/address_info.h>
 #include <rak/path.h>
-#include <torrent/connection_manager.h>
-#include <torrent/tracker/tracker.h>
 #include <torrent/torrent.h>
 #include <torrent/rate.h>
+#include <torrent/connection_manager.h>
 #include <torrent/data/file_manager.h>
 #include <torrent/download/resource_manager.h>
+#include <torrent/net/http_stack.h>
+#include <torrent/tracker/tracker.h>
 #include <torrent/utils/log.h>
 #include <torrent/utils/option_strings.h>
 
-#include "core/curl_stack.h"
 #include "core/download.h"
 #include "core/manager.h"
 #include "rpc/scgi.h"
@@ -189,9 +189,9 @@ apply_xmlrpc_dialect(const std::string& arg) {
 
 void
 initialize_command_network() {
-  torrent::ConnectionManager* cm = torrent::connection_manager();
-  torrent::FileManager* fileManager = torrent::file_manager();
-  core::CurlStack* httpStack = control->core()->http_stack();
+  auto cm = torrent::connection_manager();
+  auto fileManager = torrent::file_manager();
+  auto http_stack = torrent::net_thread::http_stack();
 
   CMD2_ANY_STRING  ("encoding.add", std::bind(&apply_encoding_list, std::placeholders::_2));
 
@@ -215,21 +215,21 @@ initialize_command_network() {
   CMD2_VAR_STRING  ("protocol.choke_heuristics.down.leech", "download_leech");
   CMD2_VAR_STRING  ("protocol.choke_heuristics.down.seed",  "download_leech");
 
-  CMD2_ANY         ("network.http.cacert",                std::bind(&core::CurlStack::http_cacert, httpStack));
-  CMD2_ANY_STRING_V("network.http.cacert.set",            std::bind(&core::CurlStack::set_http_cacert, httpStack, std::placeholders::_2));
-  CMD2_ANY         ("network.http.capath",                std::bind(&core::CurlStack::http_capath, httpStack));
-  CMD2_ANY_STRING_V("network.http.capath.set",            std::bind(&core::CurlStack::set_http_capath, httpStack, std::placeholders::_2));
-  CMD2_ANY         ("network.http.dns_cache_timeout",     std::bind(&core::CurlStack::dns_timeout, httpStack));
-  CMD2_ANY_VALUE_V ("network.http.dns_cache_timeout.set", std::bind(&core::CurlStack::set_dns_timeout, httpStack, std::placeholders::_2));
-  CMD2_ANY         ("network.http.current_open",          std::bind(&core::CurlStack::active, httpStack));
-  CMD2_ANY         ("network.http.max_open",              std::bind(&core::CurlStack::max_active, httpStack));
-  CMD2_ANY_VALUE_V ("network.http.max_open.set",          std::bind(&core::CurlStack::set_max_active, httpStack, std::placeholders::_2));
-  CMD2_ANY         ("network.http.proxy_address",         std::bind(&core::CurlStack::http_proxy, httpStack));
-  CMD2_ANY_STRING_V("network.http.proxy_address.set",     std::bind(&core::CurlStack::set_http_proxy, httpStack, std::placeholders::_2));
-  CMD2_ANY         ("network.http.ssl_verify_host",       std::bind(&core::CurlStack::ssl_verify_host, httpStack));
-  CMD2_ANY_VALUE_V ("network.http.ssl_verify_host.set",   std::bind(&core::CurlStack::set_ssl_verify_host, httpStack, std::placeholders::_2));
-  CMD2_ANY         ("network.http.ssl_verify_peer",       std::bind(&core::CurlStack::ssl_verify_peer, httpStack));
-  CMD2_ANY_VALUE_V ("network.http.ssl_verify_peer.set",   std::bind(&core::CurlStack::set_ssl_verify_peer, httpStack, std::placeholders::_2));
+  CMD2_ANY         ("network.http.cacert",                [http_stack](auto, auto) { return http_stack->http_cacert(); });
+  CMD2_ANY_STRING_V("network.http.cacert.set",            [http_stack](auto, auto& str) { return http_stack->set_http_cacert(str); });
+  CMD2_ANY         ("network.http.capath",                [http_stack](auto, auto) { return http_stack->http_capath(); });
+  CMD2_ANY_STRING_V("network.http.capath.set",            [http_stack](auto, auto& str) { return http_stack->set_http_capath(str); });
+  CMD2_ANY         ("network.http.dns_cache_timeout",     [http_stack](auto, auto) { return http_stack->dns_timeout(); });
+  CMD2_ANY_VALUE_V ("network.http.dns_cache_timeout.set", [http_stack](auto, auto& value) { return http_stack->set_dns_timeout(value); });
+  CMD2_ANY         ("network.http.current_open",          [http_stack](auto, auto) { return http_stack->active(); });
+  CMD2_ANY         ("network.http.max_open",              [http_stack](auto, auto) { return http_stack->max_active(); });
+  CMD2_ANY_VALUE_V ("network.http.max_open.set",          [http_stack](auto, auto& value) { return http_stack->set_max_active(value); });
+  CMD2_ANY         ("network.http.proxy_address",         [http_stack](auto, auto) { return http_stack->http_proxy(); });
+  CMD2_ANY_STRING_V("network.http.proxy_address.set",     [http_stack](auto, auto& str) { return http_stack->set_http_proxy(str); });
+  CMD2_ANY         ("network.http.ssl_verify_host",       [http_stack](auto, auto) { return http_stack->ssl_verify_host(); });
+  CMD2_ANY_VALUE_V ("network.http.ssl_verify_host.set",   [http_stack](auto, auto& value) { return http_stack->set_ssl_verify_host(value); });
+  CMD2_ANY         ("network.http.ssl_verify_peer",       [http_stack](auto, auto) { return http_stack->ssl_verify_peer(); });
+  CMD2_ANY_VALUE_V ("network.http.ssl_verify_peer.set",   [http_stack](auto, auto& value) { return http_stack->set_ssl_verify_peer(value); });
 
   CMD2_ANY         ("network.send_buffer.size",        std::bind(&torrent::ConnectionManager::send_buffer_size, cm));
   CMD2_ANY_VALUE_V ("network.send_buffer.size.set",    std::bind(&torrent::ConnectionManager::set_send_buffer_size, cm, std::placeholders::_2));
