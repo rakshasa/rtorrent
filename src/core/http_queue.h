@@ -4,6 +4,7 @@
 #include <functional>
 #include <iosfwd>
 #include <list>
+#include <string>
 #include <torrent/net/http_get.h>
 
 namespace core {
