@@ -55,6 +55,7 @@ jobs:
       run: |
         make check
     - name: Archive test/test-suite.log
+      if: success() || failure()
       uses: actions/upload-artifact@v4
       with:
         name: test-suite.log
