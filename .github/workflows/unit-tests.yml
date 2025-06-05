@@ -53,6 +53,8 @@ jobs:
         make
     - name: Run Unit Tests
       run: |
+        ls /usr/local/lib/
+        export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/usr/local/lib"
         make check
     - name: Archive test/test-suite.log
       if: success() || failure()
