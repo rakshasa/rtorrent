@@ -9,7 +9,6 @@
 #include <inttypes.h>
 #include <typeinfo>
 #include <unistd.h>
-#include <torrent/http.h>
 #include <torrent/torrent.h>
 #include <torrent/exceptions.h>
 #include <torrent/data/chunk_utils.h>

@@ -49,7 +49,12 @@ Control::Control()
   m_commandScheduler->set_slot_error_message([this](const std::string& msg) { m_core->push_log_std(msg); });
 }
 
-Control::~Control() = default;
+Control::~Control() {
+  m_viewManager.reset();
+
+  m_ui.reset();
+  m_display.reset();
+}
 
 void
 Control::initialize() {
@@ -109,7 +114,7 @@ Control::is_shutdown_completed() {
 
   // TODO: We keep http requests in the queue for a while after, so improve this check to ignore
   // those.
-  if (!torrent::net_thread::http_stack()->active() || !core()->http_queue()->empty())
+  if (torrent::net_thread::http_stack()->active() != 0 || !core()->http_queue()->empty())
     return false;
 
   return torrent::is_inactive();
