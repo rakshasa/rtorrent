@@ -8,6 +8,8 @@
 
 namespace core {
 
+// TODO: Remove this.
+
 class HttpQueue : private std::list<torrent::net::HttpGet> {
 public:
   using base_type       = std::list<torrent::net::HttpGet>;
