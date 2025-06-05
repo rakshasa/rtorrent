@@ -54,3 +54,8 @@ jobs:
     - name: Run Unit Tests
       run: |
         make check
+    - name: Archive test/test-suite.log
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-suite.log
+        path: test/test-suite.log
