@@ -51,11 +51,11 @@ test_thread::call_events() {
   if ((m_test_flags & test_flag_pre_stop) && m_test_state == TEST_PRE_START && m_state == STATE_ACTIVE)
     m_test_state = TEST_PRE_STOP;
 
-  if ((m_flags & flag_do_shutdown)) {
-    if ((m_flags & flag_did_shutdown))
+  if ((m_flags & flag::do_shutdown)) {
+    if ((m_flags & flag::did_shutdown))
       throw torrent::internal_error("Already trigged shutdown.");
 
-    m_flags |= flag_did_shutdown;
+    m_flags |= flag::did_shutdown;
     throw torrent::shutdown_exception();
   }
 

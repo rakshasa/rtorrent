@@ -134,5 +134,5 @@ initialize_command_peer() {
   CMD2_PEER_VALUE_V("p.banned.set",  std::bind(&torrent::Peer::set_banned,  std::placeholders::_1, std::placeholders::_2));
 
   CMD2_PEER_V("p.disconnect",         std::bind(&torrent::Peer::disconnect, std::placeholders::_1, 0));
-  CMD2_PEER_V("p.disconnect_delayed", std::bind(&torrent::Peer::disconnect, std::placeholders::_1, torrent::ConnectionList::disconnect_delayed));
+  CMD2_PEER_V("p.disconnect_delayed", std::bind(&torrent::Peer::disconnect, std::placeholders::_1, torrent::ConnectionList::disconnect::delayed));
 }

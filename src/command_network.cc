@@ -28,13 +28,13 @@
 
 torrent::Object
 apply_encryption(const torrent::Object::list_type& args) {
-  uint32_t options_mask = torrent::ConnectionManager::encryption_none;
+  uint32_t options_mask = torrent::ConnectionManager::encryption::none;
 
   for (torrent::Object::list_const_iterator itr = args.begin(), last = args.end(); itr != last; itr++) {
     uint32_t opt = torrent::option_find_string(torrent::OPTION_ENCRYPTION, itr->as_string().c_str());
 
-    if (opt == torrent::ConnectionManager::encryption_none)
-      options_mask = torrent::ConnectionManager::encryption_none;
+    if (opt == torrent::ConnectionManager::encryption::none)
+      options_mask = torrent::ConnectionManager::encryption::none;
     else
       options_mask |= opt;
   }
