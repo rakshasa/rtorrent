@@ -233,10 +233,10 @@ CurlStack::global_cleanup() {
 // TODO: Is this function supposed to set a per-handle timeout, or is
 // it the shortest timeout amongst all handles?
 int
-CurlStack::set_timeout([[maybe_unused]] void* handle, std::chrono::microseconds timeout, void* userp) {
+CurlStack::set_timeout(void*, long timeout_ms, void* userp) {
   CurlStack* stack = (CurlStack*)userp;
 
-  torrent::this_thread::scheduler()->update_wait_for_ceil_seconds(&stack->m_task_timeout, timeout);
+  torrent::this_thread::scheduler()->update_wait_for_ceil_seconds(&stack->m_task_timeout, std::chrono::milliseconds(timeout_ms));
   return 0;
 }
 

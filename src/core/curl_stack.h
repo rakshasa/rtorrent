@@ -79,7 +79,7 @@ public:
 
   void                receive_action(CurlSocket* socket, int type);
 
-  static int          set_timeout(void* handle, std::chrono::microseconds timeout, void* userp);
+  static int          set_timeout(void*, long timeout_ms, void* userp);
 
   void                transfer_done(void* handle, const char* msg);
 
