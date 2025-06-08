@@ -14,6 +14,8 @@ jobs:
     - name: Fetch libtorrent
       run: |
         git clone https://github.com/rakshasa/libtorrent
+        cd libtorrent
+        git checkout stable-0.15
     - name: Build libtorrent
       run: |
         cd libtorrent
