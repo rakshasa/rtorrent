@@ -236,7 +236,11 @@ int
 CurlStack::set_timeout(void*, long timeout_ms, void* userp) {
   CurlStack* stack = (CurlStack*)userp;
 
-  torrent::this_thread::scheduler()->update_wait_for_ceil_seconds(&stack->m_task_timeout, std::chrono::milliseconds(timeout_ms));
+  if (timeout_ms == -1)
+    torrent::this_thread::scheduler()->erase(&stack->m_task_timeout);
+  else
+    torrent::this_thread::scheduler()->update_wait_for_ceil_seconds(&stack->m_task_timeout, std::chrono::milliseconds(timeout_ms));
+
   return 0;
 }
 
