@@ -31,11 +31,7 @@ function mt.__call (t, ...)
    return ret
 end
 function mt.__index (t, key)
-   ns = rawget(t, "__namestack")
-   if ns == nil then
-      if _G[key] ~= nil then return _G[key] end
-      ns = {}
-   end
+   ns = rawget(t, "__namestack") or {}
    table.insert(ns, key)
    return setmetatable({__namestack=ns}, mt)
 end
