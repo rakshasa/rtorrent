@@ -3,8 +3,10 @@ SUBDIRS = \
 	src \
 	test
 
+nobase_dist_pkgdata_DATA = \
+	lua/rtorrent.lua
+
 EXTRA_DIST= \
-	rtorrent.lua \
 	rak/address_info.h \
 	rak/algorithm.h \
 	rak/error_number.h \

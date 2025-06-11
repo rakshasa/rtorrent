@@ -14,6 +14,7 @@ class LuaEngine {
 public:
   static const int         flag_string = 0x1;
   static const std::string module_name;
+  static const std::string local_path;
 
   LuaEngine();
   ~LuaEngine();
@@ -23,6 +24,7 @@ public:
   static int lua_init_module(lua_State* l_state);
   static int lua_rtorrent_call(lua_State* l_state);
   void       set_package_preload();
+  void       override_package_path();
   lua_State* state() { return m_luaState; }
 
 private:

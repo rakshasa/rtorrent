@@ -25,6 +25,7 @@ namespace rpc {
 
 const int         LuaEngine::flag_string;
 const std::string LuaEngine::module_name = "rtorrent";
+const std::string LuaEngine::local_path = PACKAGE_DATADIR "/lua/?.lua;" PACKAGE_DATADIR "/lua/?/init.lua";
 
 #ifdef HAVE_LUA
 
@@ -32,6 +33,7 @@ LuaEngine::LuaEngine() {
   m_luaState = luaL_newstate();
   luaL_openlibs(m_luaState);
   set_package_preload();
+  override_package_path();
 }
 
 LuaEngine::~LuaEngine() { lua_close(m_luaState); }
@@ -43,6 +45,18 @@ LuaEngine::set_package_preload() {
   lua_getfield(l_state, -1, "preload");
   lua_pushcfunction(l_state, LuaEngine::lua_init_module);
   lua_setfield(l_state, -2, LuaEngine::module_name.c_str());
+  lua_pop(l_state, 2);
+}
+
+void
+LuaEngine::override_package_path() {
+  auto l_state = m_luaState;
+  lua_getglobal(l_state, "package");
+  lua_getfield(l_state, -1, "path");
+  std::string current_path(lua_tostring(l_state, -1));
+  std::string new_path = local_path + ';' + current_path;
+  lua_pushstring(l_state, new_path.c_str());
+  lua_setfield(l_state, -3, "path");
   lua_pop(l_state, 2);
 }
 
