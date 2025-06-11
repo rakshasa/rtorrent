@@ -108,12 +108,12 @@ LuaEngine::lua_rtorrent_call(lua_State* l_state) {
     const auto& result = rpc::commands.call_command(itr, object, target);
 
     object_to_lua(l_state, result);
-    deleter();
+    if (deleter) deleter();
 
     return 1;
 
   } catch (torrent::base_error& e) {
-    deleter();
+    if (deleter) deleter();
     throw luaL_error(l_state, e.what());
   }
 }
