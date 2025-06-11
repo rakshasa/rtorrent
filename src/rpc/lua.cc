@@ -225,7 +225,7 @@ object_to_lua(lua_State* l_state, torrent::Object const& object) {
   // Converts an object to a single Lua stack object
   switch (object.type()) {
   case torrent::Object::TYPE_VALUE:
-    lua_pushnumber(l_state, static_cast<double>(object.as_value()));
+    lua_pushinteger(l_state, static_cast<int64_t>(object.as_value()));
     break;
   case torrent::Object::TYPE_NONE:
     lua_pushnil(l_state);
