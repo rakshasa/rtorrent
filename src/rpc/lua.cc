@@ -354,35 +354,6 @@ lua_callstack_to_object(lua_State* l_state, int command_flags, rpc::target_type*
   return result;
 }
 
-int
-lua_rtorrent_call(lua_State* l_state) {
-  auto             method = lua_tostring(l_state, 1);
-  lua_remove(l_state, 1);
-
-  rpc::CommandMap::iterator itr = rpc::commands.find(method);
-  if (itr == rpc::commands.end()) {
-    throw torrent::input_error("method not found: " + std::string(method));
-  }
-
-  auto target  = rpc::make_target();
-  auto deleter = std::function<void()>();
-
-  auto object = lua_callstack_to_object(l_state, itr->second.m_flags, &target, &deleter);
-
-  try {
-    const auto& result = rpc::commands.call_command(itr, object, target);
-
-    object_to_lua(l_state, result);
-    deleter();
-
-    return 1;
-
-  } catch (torrent::base_error& e) {
-    deleter();
-    throw luaL_error(l_state, e.what());
-  }
-}
-
 torrent::Object
 execute_lua(LuaEngine* engine, rpc::target_type target_type, torrent::Object const& raw_args, int flags) {
   size_t      lua_argc = 1; // Target is always present, even if empty
