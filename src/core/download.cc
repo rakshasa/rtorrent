@@ -7,6 +7,7 @@
 #include <torrent/rate.h>
 #include <torrent/torrent.h>
 #include <torrent/tracker/tracker.h>
+#include <torrent/data/file.h>
 #include <torrent/data/file_list.h>
 
 #include "rpc/parse_commands.h"
