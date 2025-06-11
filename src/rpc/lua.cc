@@ -68,15 +68,21 @@ LuaEngine::search_lua_path(lua_State* l_state) {
   };
 
   // Tokenize path using ';' as delimiter
-  size_t pos = 0, end;
-  while ((end = lua_path.find(';', pos)) != std::string::npos) {
-    std::string file_path(lua_path.substr(pos, end - pos));
-    size_t      ppos = 0;
-    while ((ppos = file_path.find('?')) != std::string::npos) {
-      file_path.replace(ppos, 1, LuaEngine::module_name);
-    }
-    if (file_exists(file_path)) {
-      return file_path;
+  for (size_t pos = 0, end = 0; end != std::string::npos; pos = end + 1) {
+    end = lua_path.find(';', pos);
+
+    std::string file_path((end == std::string::npos)
+      ? lua_path.substr(pos)
+      : lua_path.substr(pos, end - pos));
+
+    if (!file_path.empty()) {
+      size_t ppos = 0;
+      while ((ppos = file_path.find('?')) != std::string::npos) {
+        file_path.replace(ppos, 1, LuaEngine::module_name);
+      }
+      if (file_exists(file_path)) {
+        return file_path;
+      }
     }
   }
   return "";
