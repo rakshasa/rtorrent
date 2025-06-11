@@ -1,4 +1,4 @@
--- the "rtorrent" table is passed in by the C++ code, modify and
+-- The "rtorrent" table is passed in by the C++ code, modify and
 -- return it for loading.
 local args = {...}
 local rtorrent = args[1]
@@ -19,8 +19,10 @@ function mt.__index (t, key)
 end
 rtorrent["autocall"] = setmetatable({}, mt)
 
--- Autocall-config Same as autocall, but passes an empty first target
--- implicitly, for syntax like `rtorrent.autocall_config.session.directory.set("/tmp/")`
+-- Autocall-config
+-- Same as autocall, but passes an empty first target implicitly, for syntax
+-- like `rtorrent.autocall_config.session.directory.set("/tmp/")` or
+-- like `rtorrent.autocall_config.session.directory = "/tmp/"`
 local mt = {}
 function mt.__call (t, ...)
    name = table.concat(rawget(t, "__namestack"), ".")
@@ -36,6 +38,9 @@ function mt.__index (t, key)
    end
    table.insert(ns, key)
    return setmetatable({__namestack=ns}, mt)
+end
+function mt.__newindex (t, key, value)
+   t[key].set(value)
 end
 rtorrent["autocall_config"] = setmetatable({}, mt)
 
