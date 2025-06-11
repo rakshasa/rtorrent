@@ -272,7 +272,7 @@ lua_to_object(lua_State* l_state) {
   case LUA_TBOOLEAN:
     return torrent::Object(lua_toboolean(l_state, -1));
   case LUA_TNIL:
-    return torrent::Object((torrent::Object::value_type)0);
+    return torrent::Object(torrent::Object());
   case LUA_TTABLE: {
     lua_pushnil(l_state);
     int status = lua_next(l_state, -2);
