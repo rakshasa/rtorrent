@@ -38,7 +38,7 @@ public:
   //
   // Consider adding a flag to indicate whetever HttpQueue should
   // delete the stream.
-  iterator    insert(const std::string& url, std::iostream* s);
+  iterator    insert(const std::string& url, std::iostream* stream);
   void        erase(iterator itr);
 
   void        clear();

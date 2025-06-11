@@ -126,7 +126,7 @@ WindowHttpQueue::receive_erase(torrent::net::HttpGet http_get) {
   if (itr == m_container.end())
     throw std::logic_error("WindowHttpQueue::receive_erase(...) tried to remove an object we don't have");
 
-  itr->m_http = nullptr;
+  itr->m_http = torrent::net::HttpGet();
   itr->m_timer = torrent::this_thread::cached_time() + 4s;
 
   mark_dirty();
