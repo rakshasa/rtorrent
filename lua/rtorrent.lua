@@ -58,4 +58,21 @@ for i, p in ipairs({ "d", "f", "p", "t", "load" }) do
    rtorrent[p] = function (target) return Target(target, p) end
 end
 
+-- Insert Lua method
+-- Allow insert global lua-finction `func_name` at rtorrent slot `name`
+-- @param name string rtorrent's slot
+-- @param func_name string name of global lua-function
+-- @param ... string list of rtorrent's arguments like `(d.name)` to be
+--                   passed to lua-function when it be called by rtorrent
+rtorrent["insert_lua_method"] = function (name, func_name, ...)
+   local args = {}
+   for i, v in ipairs({...}) do
+      args[i] = v or ("$argument." .. i-1 .. "=")
+   end
+
+   local arg_str = table.concat(args, ",")
+   if #arg_str > 0 then arg_str = ","..arg_str end
+   rtorrent.autocall.method.insert(name, "simple", 'lua.execute.str="return '..func_name..'(...)"'..arg_str)
+end
+
 return rtorrent
