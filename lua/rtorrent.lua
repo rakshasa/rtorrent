@@ -36,19 +36,26 @@ rtorrent["autocall"] = setmetatable({}, mt)
 
 -- Target-object
 -- Sets first argment for Autocall, for commands that require target.
+-- Second argument allows to add prefix to command.
 -- Allows syntax like:
 -- - `rtorrent.Target("some_infohash").d.name()` or
 -- - `rtorrent.Target:new("some_infohash").d.name()`
 -- Also can be stored as variable
 local Target = setmetatable({
-   new = function (self, target)
-      return self(target)
+   new = function (self, target, prefix)
+      return self(target, prefix)
    end;
 }, {
-   __call = function (self, target)
-      return setmetatable({__target=target}, mt)
+   __call = function (self, target, prefix)
+      return setmetatable(
+         {__namestack={prefix}, __target=target}, mt)
    end
 })
 rtorrent["Target"] = Target
+
+-- Some aliases for Target-commands
+for i, p in ipairs({ "d", "f", "p", "t", "load" }) do
+   rtorrent[p] = function (target) return Target(target, p) end
+end
 
 return rtorrent
