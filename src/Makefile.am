@@ -196,4 +196,4 @@ libsub_root_a_SOURCES = \
 	thread_worker.h
 
 
-AM_CPPFLAGS = -I$(srcdir) -I$(top_srcdir)
+AM_CPPFLAGS = -I$(srcdir) -I$(top_srcdir) -DPACKAGE_DATADIR=\"$(pkgdatadir)\"
