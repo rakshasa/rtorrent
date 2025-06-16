@@ -58,8 +58,8 @@ PathInput::pressed(int key) {
     return TextInput::pressed(key);
 
   } else if (m_showNext) {
-    for (signal_void::iterator itr = m_signal_show_next.begin(), last = m_signal_show_next.end(); itr != last; itr++)
-      (*itr)();
+    for (auto& itr : m_signal_show_next)
+      itr();
 
   } else {
     receive_do_complete();
@@ -118,8 +118,8 @@ PathInput::receive_do_complete() {
   if (m_showNext) {
     lt_log_print(torrent::LOG_UI_EVENTS, "path_input: show next page");
 
-    for (signal_itr_itr::iterator itr = m_signal_show_range.begin(), last = m_signal_show_range.end(); itr != last; itr++)
-      (*itr)(r.first, r.second);
+    for (auto& itr : m_signal_show_range)
+      itr(r.first, r.second);
   }
 }
 

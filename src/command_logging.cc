@@ -108,19 +108,18 @@ apply_log(const torrent::Object::string_type& arg, int logType) {
 
 torrent::Object
 log_vmmap_dump(const std::string& str) {
-  core::DownloadList* d_list = control->core()->download_list();
   std::vector<torrent::vm_mapping> all_mappings;
 
-  for (core::DownloadList::iterator itr = d_list->begin(), last = d_list->end(); itr != last; itr++) {
-    std::vector<torrent::vm_mapping> tmp_mappings = torrent::chunk_list_mapping((*itr)->download());
+  for (const auto& d : *control->core()->download_list()) {
+    std::vector<torrent::vm_mapping> tmp_mappings = torrent::chunk_list_mapping(d->download());
 
-    all_mappings.insert(all_mappings.end(), tmp_mappings.begin(), tmp_mappings.end());    
+    all_mappings.insert(all_mappings.end(), tmp_mappings.begin(), tmp_mappings.end());
   }
 
   FILE* log_file = fopen(str.c_str(), "w");
 
-  for (std::vector<torrent::vm_mapping>::iterator itr = all_mappings.begin(), last = all_mappings.end(); itr != last; itr++) {
-    fprintf(log_file, "%8p-%8p [%5llxk]\n", itr->ptr, (char*)itr->ptr + itr->length, (long long unsigned int)(itr->length / 1024));
+  for (auto& all_mapping : all_mappings) {
+    fprintf(log_file, "%8p-%8p [%5llxk]\n", all_mapping.ptr, (char*)all_mapping.ptr + all_mapping.length, (long long unsigned int)(all_mapping.length / 1024));
   }
 
   fclose(log_file);

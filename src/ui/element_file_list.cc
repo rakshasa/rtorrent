@@ -279,14 +279,13 @@ ElementFileList::receive_priority() {
 
 void
 ElementFileList::receive_change_all() {
-  if (m_window == NULL)
+  if (m_window == nullptr)
     return;
 
-  torrent::FileList* fl = m_download->download()->file_list();
   auto priority = torrent::priority_enum((m_selected.file()->priority() + 2) % 3);
 
-  for (torrent::FileList::iterator itr = fl->begin(), last = fl->end(); itr != last; ++itr)
-    (*itr)->set_priority(priority);
+  for (const auto& file : *m_download->download()->file_list())
+    file->set_priority(priority);
 
   m_download->download()->update_priorities();
   update_itr();

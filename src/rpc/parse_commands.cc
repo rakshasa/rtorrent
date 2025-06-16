@@ -43,11 +43,11 @@ parse_command_execute(target_type target, torrent::Object* object) {
   if (object->is_list()) {
     // For now, until we can flag the lists we want executed and those
     // we can't, disable recursion completely.
-    for (torrent::Object::list_iterator itr = object->as_list().begin(), last = object->as_list().end(); itr != last; itr++) {
-      if (itr->is_list())
+    for (auto& itr : object->as_list()) {
+      if (itr.is_list())
         continue;
 
-      parse_command_execute(target, &*itr);
+      parse_command_execute(target, &itr);
     }
 
   } else if (object->is_dict_key()) {
@@ -203,15 +203,15 @@ call_object(const torrent::Object& command, target_type target) {
   {
     torrent::Object result;
 
-    for (torrent::Object::list_const_iterator itr = command.as_list().begin(), last = command.as_list().end(); itr != last; itr++)
-      result = call_object(*itr, target);
+    for (const auto& itr : command.as_list())
+      result = call_object(itr, target);
 
     return result;
   }
   case torrent::Object::TYPE_MAP:
   {
-    for (torrent::Object::map_const_iterator itr = command.as_map().begin(), last = command.as_map().end(); itr != last; itr++)
-      call_object(itr->second, target);
+    for (const auto& itr : command.as_map())
+      call_object(itr.second, target);
 
     return torrent::Object();
   }

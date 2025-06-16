@@ -268,8 +268,8 @@ object_storage::rlookup_clear(const std::string& cmd_key) {
   if (r_itr == m_rlookup.end())
     return;
 
-  for (rlookup_mapped_iterator first = r_itr->second.begin(), last = r_itr->second.end(); first != last; first++)
-    (*first)->second.object.erase_key(cmd_key);
+  for (auto& first : r_itr->second)
+    first->second.object.erase_key(cmd_key);
 
   r_itr->second.clear();
 }

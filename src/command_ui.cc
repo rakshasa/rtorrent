@@ -75,8 +75,8 @@ apply_view_list() {
   torrent::Object rawResult = torrent::Object::create_list();
   torrent::Object::list_type& result = rawResult.as_list();
 
-  for (core::ViewManager::const_iterator itr = control->view_manager()->begin(), last = control->view_manager()->end(); itr != last; itr++)
-    result.push_back((*itr)->name());
+  for (auto itr : *control->view_manager())
+    result.push_back(itr->name());
 
   return rawResult;
 }
@@ -193,18 +193,18 @@ apply_and(rpc::target_type target, const torrent::Object& rawArgs) {
   if (rawArgs.type() != torrent::Object::TYPE_LIST)
     return as_boolean(rawArgs);
 
-  for (torrent::Object::list_const_iterator itr = rawArgs.as_list().begin(), last = rawArgs.as_list().end(); itr != last; itr++)
-    if (itr->is_dict_key()) {
-      if (!as_boolean(rpc::commands.call_command(itr->as_dict_key().c_str(), itr->as_dict_obj(), target)))
+  for (const auto& itr : rawArgs.as_list())
+    if (itr.is_dict_key()) {
+      if (!as_boolean(rpc::commands.call_command(itr.as_dict_key().c_str(), itr.as_dict_obj(), target)))
         return (int64_t)false;
 
-    } else if (itr->is_value()) {
-      if (!itr->as_value())
+    } else if (itr.is_value()) {
+      if (!itr.as_value())
         return (int64_t)false;
 
     } else {
       // TODO: Switch to new versions that only accept the new command syntax.
-      if (!as_boolean(rpc::parse_command_single(target, itr->as_string())))
+      if (!as_boolean(rpc::parse_command_single(target, itr.as_string())))
         return (int64_t)false;
     }
 
@@ -216,17 +216,17 @@ apply_or(rpc::target_type target, const torrent::Object& rawArgs) {
   if (rawArgs.type() != torrent::Object::TYPE_LIST)
     return as_boolean(rawArgs);
 
-  for (torrent::Object::list_const_iterator itr = rawArgs.as_list().begin(), last = rawArgs.as_list().end(); itr != last; itr++)
-    if (itr->is_dict_key()) {
-      if (as_boolean(rpc::commands.call_command(itr->as_dict_key().c_str(), itr->as_dict_obj(), target)))
+  for (const auto& itr : rawArgs.as_list())
+    if (itr.is_dict_key()) {
+      if (as_boolean(rpc::commands.call_command(itr.as_dict_key().c_str(), itr.as_dict_obj(), target)))
         return (int64_t)true;
 
-    } else if (itr->is_value()) {
-      if (itr->as_value())
+    } else if (itr.is_value()) {
+      if (itr.as_value())
         return (int64_t)true;
 
     } else {
-      if (as_boolean(rpc::parse_command_single(target, itr->as_string())))
+      if (as_boolean(rpc::parse_command_single(target, itr.as_string())))
         return (int64_t)true;
     }
 
@@ -526,9 +526,9 @@ apply_if(rpc::target_type target, const torrent::Object& rawArgs, int flags) {
     // nice to have a parse_command function that takes list
     // iterator...
 
-    for (torrent::Object::list_type::const_iterator cmdItr = itr->as_list().begin(), last = itr->as_list().end(); cmdItr != last; cmdItr++)
-      if (cmdItr->is_string())
-        rpc::parse_command(target, cmdItr->as_string().c_str(), cmdItr->as_string().c_str() + cmdItr->as_string().size());
+    for (const auto& cmdItr : itr->as_list())
+      if (cmdItr.is_string())
+        rpc::parse_command(target, cmdItr.as_string().c_str(), cmdItr.as_string().c_str() + cmdItr.as_string().size());
 
     return torrent::Object();
 
@@ -630,19 +630,18 @@ as_vector(const torrent::Object::list_type& args) {
 
   std::vector<int64_t> result;
 
-  for (torrent::Object::list_const_iterator itr = args.begin(), last = args.end(); itr != last; itr++) {
+  for (const auto& arg : args) {
 
-    if (itr->is_value()) {
-      result.push_back(itr->as_value());
-    } else if (itr->is_string()) {
-      result.push_back(rpc::convert_to_value(itr->as_string()));
-    } else if (itr->is_list()) {
-      std::vector<int64_t> subResult = as_vector(itr->as_list());
+    if (arg.is_value()) {
+      result.push_back(arg.as_value());
+    } else if (arg.is_string()) {
+      result.push_back(rpc::convert_to_value(arg.as_string()));
+    } else if (arg.is_list()) {
+      std::vector<int64_t> subResult = as_vector(arg.as_list());
       result.insert(result.end(), subResult.begin(), subResult.end());
     } else {
       throw torrent::input_error("Wrong type supplied to as_vector.");
     }
-
   }
 
   return result;
@@ -711,20 +710,19 @@ apply_arith_count(const torrent::Object::list_type& args) {
 
   int64_t val = 0;
 
-  for (torrent::Object::list_const_iterator itr = args.begin(), last = args.end(); itr != last; itr++) {
+  for (const auto& arg : args) {
 
-    switch (itr->type()) {
+    switch (arg.type()) {
     case torrent::Object::TYPE_VALUE:
     case torrent::Object::TYPE_STRING:
       val++;
       break;
     case torrent::Object::TYPE_LIST:
-      val += apply_arith_count(itr->as_list());
+      val += apply_arith_count(arg.as_list());
       break;
     default:
       throw torrent::input_error("Wrong type supplied to apply_arith_count.");
     }
-
   }
 
   return val;
@@ -752,9 +750,9 @@ cmd_status_throttle_names(bool up, const torrent::Object::list_type& args) {
 
   std::vector<std::string> throttle_name_list;
 
-  for (torrent::Object::list_const_iterator itr = args.begin(), last = args.end(); itr != last; itr++) {
-    if (itr->is_string())
-      throttle_name_list.push_back(itr->as_string());
+  for (const auto& arg : args) {
+    if (arg.is_string())
+      throttle_name_list.push_back(arg.as_string());
   }
 
   if (up)

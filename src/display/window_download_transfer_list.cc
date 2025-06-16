@@ -40,7 +40,7 @@ WindowDownloadTransferList::redraw() {
     m_canvas->print(0, y, "%5u [P: %u F: %u]", (*itr)->index(), (*itr)->priority(), (*itr)->failed());
 
     // Handle window size.
-    for (torrent::BlockList::const_iterator bItr = (*itr)->begin(), bLast = (*itr)->end(); bItr != bLast; ++bItr) {
+    for (const auto& bItr : **itr) {
       if (m_canvas->get_x() >= m_canvas->width() - 1) {
         if (++y >= m_canvas->height())
           break;
@@ -51,22 +51,22 @@ WindowDownloadTransferList::redraw() {
       char id;
       chtype attr = A_NORMAL;
 
-      if (bItr->is_finished()) {
+      if (bItr.is_finished()) {
         attr = A_REVERSE;
-        id = key_id(bItr->leader()->const_peer_info());
+        id   = key_id(bItr.leader()->const_peer_info());
 
-      } else if (bItr->is_transfering()) {
+      } else if (bItr.is_transfering()) {
         attr = A_BOLD;
-        id = key_id(bItr->leader()->const_peer_info());
+        id   = key_id(bItr.leader()->const_peer_info());
 
-      } else if (bItr->queued()->size() >= 1) {
-        id = std::tolower(key_id(bItr->queued()->back()->const_peer_info()));
+      } else if (bItr.queued()->size() >= 1) {
+        id = std::tolower(key_id(bItr.queued()->back()->const_peer_info()));
 
       } else {
         id = '.';
       }
 
-      if (bItr->size_all() > 1)
+      if (bItr.size_all() > 1)
         attr |= A_UNDERLINE;
 
       m_canvas->print_char(attr | id);

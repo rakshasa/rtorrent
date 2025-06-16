@@ -55,23 +55,23 @@ apply_on_ratio(const torrent::Object& rawArgs) {
 
   auto ratio_command = "group." + group_name + ".ratio.command";
 
-  for (std::vector<core::Download*>::iterator itr = downloads.begin(), last = downloads.end(); itr != last; itr++)
-    rpc::commands.call_catch(ratio_command, rpc::make_target(*itr), torrent::Object(), "Ratio reached, but command failed: ");
+  for (const auto& download : downloads)
+    rpc::commands.call_catch(ratio_command, rpc::make_target(download), torrent::Object(), "Ratio reached, but command failed: ");
 
   return torrent::Object();
 }
 
 torrent::Object
 apply_start_tied() {
-  for (auto itr = control->core()->download_list()->begin(); itr != control->core()->download_list()->end(); ++itr) {
-    if (rpc::call_command_value("d.state", rpc::make_target(*itr)) == 1)
+  for (const auto& download : *control->core()->download_list()) {
+    if (rpc::call_command_value("d.state", rpc::make_target(download)) == 1)
       continue;
 
     rak::file_stat fs;
-    const std::string& tied_to_file = rpc::call_command_string("d.tied_to_file", rpc::make_target(*itr));
+    const std::string& tied_to_file = rpc::call_command_string("d.tied_to_file", rpc::make_target(download));
 
     if (!tied_to_file.empty() && fs.update(rak::path_expand(tied_to_file)))
-      rpc::parse_command_single(rpc::make_target(*itr), "d.try_start=");
+      rpc::parse_command_single(rpc::make_target(download), "d.try_start=");
   }
 
   return torrent::Object();
@@ -79,15 +79,15 @@ apply_start_tied() {
 
 torrent::Object
 apply_stop_untied() {
-  for (auto itr = control->core()->download_list()->begin(); itr != control->core()->download_list()->end(); ++itr) {
-    if (rpc::call_command_value("d.state", rpc::make_target(*itr)) == 0)
+  for (const auto& download : *control->core()->download_list()) {
+    if (rpc::call_command_value("d.state", rpc::make_target(download)) == 0)
       continue;
 
     rak::file_stat fs;
-    const std::string& tied_to_file = rpc::call_command_string("d.tied_to_file", rpc::make_target(*itr));
+    const std::string& tied_to_file = rpc::call_command_string("d.tied_to_file", rpc::make_target(download));
 
     if (!tied_to_file.empty() && !fs.update(rak::path_expand(tied_to_file)))
-      rpc::parse_command_single(rpc::make_target(*itr), "d.try_stop=");
+      rpc::parse_command_single(rpc::make_target(download), "d.try_stop=");
   }
 
   return torrent::Object();
@@ -95,12 +95,12 @@ apply_stop_untied() {
 
 torrent::Object
 apply_close_untied() {
-  for (auto itr = control->core()->download_list()->begin(); itr != control->core()->download_list()->end(); ++itr) {
+  for (const auto& download : *control->core()->download_list()) {
     rak::file_stat fs;
-    const std::string& tied_to_file = rpc::call_command_string("d.tied_to_file", rpc::make_target(*itr));
+    const std::string& tied_to_file = rpc::call_command_string("d.tied_to_file", rpc::make_target(download));
 
-    if (rpc::call_command_value("d.ignore_commands", rpc::make_target(*itr)) == 0 && !tied_to_file.empty() && !fs.update(rak::path_expand(tied_to_file)))
-      rpc::parse_command_single(rpc::make_target(*itr), "d.try_close=");
+    if (rpc::call_command_value("d.ignore_commands", rpc::make_target(download)) == 0 && !tied_to_file.empty() && !fs.update(rak::path_expand(tied_to_file)))
+      rpc::parse_command_single(rpc::make_target(download), "d.try_close=");
   }
 
   return torrent::Object();
@@ -234,9 +234,7 @@ d_multicall(const torrent::Object::list_type& args) {
 
   // Add some pre-parsing of the commands, so we don't spend time
   // parsing and searching command map for every single call.
-  std::vector<core::Download*> dlist((*view_itr)->size_visible());
-
-  std::copy((*view_itr)->begin_visible(), (*view_itr)->end_visible(), dlist.data());
+  std::vector<core::Download*> dlist((*view_itr)->begin_visible(), (*view_itr)->end_visible());
 
   torrent::Object             resultRaw = torrent::Object::create_list();
   torrent::Object::list_type& result = resultRaw.as_list();
@@ -275,14 +273,14 @@ d_multicall_filtered(const torrent::Object::list_type& args) {
   torrent::Object::list_type& result = resultRaw.as_list();
   ++arg;  // skip to first command
 
-  for (core::View::iterator item = dlist.begin(); item != dlist.end(); ++item) {
+  for (const auto& item : dlist) {
     // Add empty row to result
     torrent::Object::list_type& row = result.insert(result.end(), torrent::Object::create_list())->as_list();
 
     // Call the provided commands and assemble their results
     for (torrent::Object::list_const_iterator command = arg; command != args.end(); command++) {
       auto& cmdstr = command->as_string();
-      row.push_back(rpc::parse_command(rpc::make_target(*item), cmdstr.c_str(), cmdstr.c_str() + cmdstr.size()).first);
+      row.push_back(rpc::parse_command(rpc::make_target(item), cmdstr.c_str(), cmdstr.c_str() + cmdstr.size()).first);
     }
   }
 

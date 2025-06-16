@@ -455,8 +455,8 @@ print_object(char* first, char* last, const torrent::Object* src, int flags) {
     if (first != last)
       *first = '\0';
 
-    for (torrent::Object::list_const_iterator itr = src->as_list().begin(), itrEnd = src->as_list().end(); itr != itrEnd; itr++) {
-      first = print_object(first, last, &*itr, flags);
+    for (const auto& itr : src->as_list()) {
+      first = print_object(first, last, &itr, flags);
 
       // Don't expand tilde after the first element in the list.
       flags &= ~print_expand_tilde;
@@ -497,8 +497,8 @@ print_object_std(std::string* dest, const torrent::Object* src, int flags) {
     return;
   }
   case torrent::Object::TYPE_LIST:
-    for (torrent::Object::list_const_iterator itr = src->as_list().begin(), itrEnd = src->as_list().end(); itr != itrEnd; itr++) {
-      print_object_std(dest, &*itr, flags);
+    for (const auto& itr : src->as_list()) {
+      print_object_std(dest, &itr, flags);
 
       // Don't expand tilde after the first element in the list.
       flags &= ~print_expand_tilde;
