@@ -25,46 +25,46 @@ ElementDownloadList::ElementDownloadList() {
   if (m_view == NULL)
     throw torrent::internal_error("View \"main\" must be present to initialize the main display.");
 
-  m_bindings['\x13'] = std::bind(&ElementDownloadList::receive_command, this, "d.start=");
-  m_bindings['\x04'] = std::bind(&ElementDownloadList::receive_command, this, "branch=d.state=,d.stop=,d.erase=");
-  m_bindings['\x0B'] = std::bind(&ElementDownloadList::receive_command, this, "d.ignore_commands.set=1; d.stop=; d.close=");
-  m_bindings['\x12'] = std::bind(&ElementDownloadList::receive_command, this, "d.complete.set=0; d.check_hash=");
-  m_bindings['\x05'] = std::bind(&ElementDownloadList::receive_command, this, "f.multicall=,f.set_create_queued=0,f.set_resize_queued=0; print=\"Queued create/resize of files in torrent.\"");
+  m_bindings['\x13'] = [this] { receive_command("d.start="); };
+  m_bindings['\x04'] = [this] { receive_command("branch=d.state=,d.stop=,d.erase="); };
+  m_bindings['\x0B'] = [this] { receive_command("d.ignore_commands.set=1; d.stop=; d.close="); };
+  m_bindings['\x12'] = [this] { receive_command("d.complete.set=0; d.check_hash="); };
+  m_bindings['\x05'] = [this] { receive_command("f.multicall=,f.set_create_queued=0,f.set_resize_queued=0; print=\"Queued create/resize of files in torrent.\""); };
 
-  m_bindings['+']       = std::bind(&ElementDownloadList::receive_next_priority, this);
-  m_bindings['-']       = std::bind(&ElementDownloadList::receive_prev_priority, this);
-  m_bindings['T' - '@'] = std::bind(&ElementDownloadList::receive_cycle_throttle, this);
-  m_bindings['I']       = std::bind(&ElementDownloadList::receive_command, this, "branch=d.ignore_commands=,"
-                                                                                 "{d.ignore_commands.set=0, print=\"Torrent set to heed commands.\"},"
-                                                                                 "{d.ignore_commands.set=1, print=\"Torrent set to ignore commands.\"}");
-  m_bindings['B' - '@'] = std::bind(&ElementDownloadList::receive_command, this, "branch=d.is_active=,"
-                                                                                 "{print=\"Cannot enable initial seeding on an active download.\"},"
-                                                                                 "{d.connection_seed.set=initial_seed, print=\"Enabled initial seeding for the selected download.\"}");
+  m_bindings['+']       = [this] { receive_next_priority(); };
+  m_bindings['-']       = [this] { receive_prev_priority(); };
+  m_bindings['T' - '@'] = [this] { receive_cycle_throttle(); };
+  m_bindings['I']       = [this] { receive_command("branch=d.ignore_commands=,"
+                                                   "{d.ignore_commands.set=0, print=\"Torrent set to heed commands.\"},"
+                                                   "{d.ignore_commands.set=1, print=\"Torrent set to ignore commands.\"}"); };
+  m_bindings['B' - '@'] = [this] { receive_command("branch=d.is_active=,"
+                                                   "{print=\"Cannot enable initial seeding on an active download.\"},"
+                                                   "{d.connection_seed.set=initial_seed, print=\"Enabled initial seeding for the selected download.\"}"); };
 
-  m_bindings['U'] = std::bind(&ElementDownloadList::receive_command, this, "d.delete_tied=; print=\"Cleared tied to file association for the selected download.\"");
+  m_bindings['U'] = [this] { receive_command("d.delete_tied=; print=\"Cleared tied to file association for the selected download.\""); };
 
   // These should also be commands.
-  m_bindings['1'] = std::bind(&ElementDownloadList::receive_change_view, this, "main");
-  m_bindings['2'] = std::bind(&ElementDownloadList::receive_change_view, this, "name");
-  m_bindings['3'] = std::bind(&ElementDownloadList::receive_change_view, this, "started");
-  m_bindings['4'] = std::bind(&ElementDownloadList::receive_change_view, this, "stopped");
-  m_bindings['5'] = std::bind(&ElementDownloadList::receive_change_view, this, "complete");
-  m_bindings['6'] = std::bind(&ElementDownloadList::receive_change_view, this, "incomplete");
-  m_bindings['7'] = std::bind(&ElementDownloadList::receive_change_view, this, "hashing");
-  m_bindings['8'] = std::bind(&ElementDownloadList::receive_change_view, this, "seeding");
-  m_bindings['9'] = std::bind(&ElementDownloadList::receive_change_view, this, "leeching");
-  m_bindings['0'] = std::bind(&ElementDownloadList::receive_change_view, this, "active");
+  m_bindings['1'] = [this] { receive_change_view("main"); };
+  m_bindings['2'] = [this] { receive_change_view("name"); };
+  m_bindings['3'] = [this] { receive_change_view("started"); };
+  m_bindings['4'] = [this] { receive_change_view("stopped"); };
+  m_bindings['5'] = [this] { receive_change_view("complete"); };
+  m_bindings['6'] = [this] { receive_change_view("incomplete"); };
+  m_bindings['7'] = [this] { receive_change_view("hashing"); };
+  m_bindings['8'] = [this] { receive_change_view("seeding"); };
+  m_bindings['9'] = [this] { receive_change_view("leeching"); };
+  m_bindings['0'] = [this] { receive_change_view("active"); };
 
-  m_bindings[KEY_UP]    = m_bindings[control->ui()->navigation_key(RT_KEY_UP)]    = std::bind(&ElementDownloadList::receive_prev, this);
-  m_bindings[KEY_DOWN]  = m_bindings[control->ui()->navigation_key(RT_KEY_DOWN)]  = std::bind(&ElementDownloadList::receive_next, this);
+  m_bindings[KEY_UP] = m_bindings[control->ui()->navigation_key(RT_KEY_UP)] = [this] { receive_prev(); };
+  m_bindings[KEY_DOWN] = m_bindings[control->ui()->navigation_key(RT_KEY_DOWN)] = [this] { receive_next(); };
 
   m_bindings[KEY_PPAGE] = m_bindings[control->ui()->navigation_key(RT_KEY_PPAGE)] = [this] { receive_pageprev(); };
   m_bindings[KEY_NPAGE] = m_bindings[control->ui()->navigation_key(RT_KEY_NPAGE)] = [this] { receive_pagenext(); };
 
   m_bindings[KEY_HOME]  = m_bindings[control->ui()->navigation_key(RT_KEY_HOME)]  = [this] { receive_home(); };
   m_bindings[KEY_END]   = m_bindings[control->ui()->navigation_key(RT_KEY_END)]   = [this] { receive_end(); };
- 
-  m_bindings[control->ui()->navigation_key(RT_KEY_TOGGLE_LAYOUT)] = std::bind(&ElementDownloadList::toggle_layout, this);
+
+  m_bindings[control->ui()->navigation_key(RT_KEY_TOGGLE_LAYOUT)] = [this] { toggle_layout(); };
 }
 
 void

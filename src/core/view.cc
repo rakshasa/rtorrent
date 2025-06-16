@@ -280,10 +280,10 @@ View::filter() {
   // set the elements to NULL as we trigger commands on them. Or
   // perhaps always clear them, thus not throwing anything.
   if (!m_event_removed.is_empty())
-    std::for_each(changed.begin(), splitChanged, std::bind(&rpc::call_object_d_nothrow, m_event_removed, std::placeholders::_1));
+    std::for_each(changed.begin(), splitChanged, [this](auto d) { return rpc::call_object_d_nothrow(m_event_removed, d); });
 
   if (!m_event_added.is_empty())
-    std::for_each(changed.begin(), splitChanged, std::bind(&rpc::call_object_d_nothrow, m_event_added, std::placeholders::_1));
+    std::for_each(changed.begin(), splitChanged, [this](auto d) { return rpc::call_object_d_nothrow(m_event_added, d); });
 
   emit_changed();
 }
