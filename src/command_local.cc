@@ -34,11 +34,10 @@ typedef torrent::FileManager  FM_t;
 torrent::Object
 apply_pieces_stats_total_size() {
   uint64_t size = 0;
-  core::DownloadList* d_list = control->core()->download_list();
 
-  for (core::DownloadList::iterator itr = d_list->begin(), last = d_list->end(); itr != last; itr++)
-    if ((*itr)->is_active())
-      size += (*itr)->file_list()->size_bytes();
+  for (const auto& d : *control->core()->download_list())
+    if (d->is_active())
+      size += d->file_list()->size_bytes();
 
   return size;
 }

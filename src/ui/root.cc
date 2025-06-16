@@ -349,20 +349,19 @@ Root::set_input_history_size(int size) {
   if (size < 1)
     throw torrent::input_error("Invalid input history size.");
 
-  for (InputHistory::iterator itr = m_input_history.begin(), last = m_input_history.end(); itr != last; itr++) {
+  for (auto& [entry, category] : m_input_history) {
     // Reserve the latest input history entries if new size is smaller than original.
     if (size < m_input_history_length) {
       int pointer_offset = m_input_history_length - size;
-      InputHistoryPointers::iterator pitr = m_input_history_pointers.find(itr->first);
-      InputHistoryCategory input_history_category_tmp = itr->second;
+      InputHistoryPointers::iterator pitr           = m_input_history_pointers.find(entry);
 
       for (int i=0; i != size; i++)
-        itr->second.at(i) = input_history_category_tmp.at((pitr->second + pointer_offset + i) % m_input_history_length);
+        category.at(i) = category.at((pitr->second + pointer_offset + i) % m_input_history_length);
 
       m_input_history_pointers[pitr->first] = 0;
     }
 
-    itr->second.resize(size);
+    category.resize(size);
   }
 
   m_input_history_length = size;
@@ -412,20 +411,20 @@ Root::load_input_history() {
       lt_log_print(torrent::LOG_DEBUG, "input history file read (path:%s)", history_filename.c_str());
     }
 
-    for (InputHistory::const_iterator itr = input_history_tmp.begin(), last = input_history_tmp.end(); itr != last; itr++) {
-      int input_history_tmp_category_length = itr->second.size();
-      InputHistory::iterator hitr = m_input_history.find(itr->first);
-      InputHistoryPointers::iterator pitr = m_input_history_pointers.find(itr->first);
+    for (const auto& [entry, category] : input_history_tmp) {
+      int                            input_history_tmp_category_length = category.size();
+      InputHistory::iterator         hitr                              = m_input_history.find(entry);
+      InputHistoryPointers::iterator pitr                              = m_input_history_pointers.find(entry);
 
       if (m_input_history_length < input_history_tmp_category_length) {
         int pointer_offset = input_history_tmp_category_length - m_input_history_length;
 
         for (int i=0; i != m_input_history_length; i++)
-          hitr->second.at(i) = itr->second.at((pointer_offset + i) % input_history_tmp_category_length);
+          hitr->second.at(i) = category.at((pointer_offset + i) % input_history_tmp_category_length);
 
         pitr->second = 0;
       } else {
-        hitr->second = itr->second;
+        hitr->second = category;
         hitr->second.resize(m_input_history_length);
 
         pitr->second = input_history_tmp_category_length % m_input_history_length;
@@ -450,12 +449,12 @@ Root::save_input_history() {
     return;
   }
 
-  for (InputHistory::const_iterator itr = m_input_history.begin(), last = m_input_history.end(); itr != last; itr++) {
-    InputHistoryPointers::const_iterator pitr = m_input_history_pointers.find(itr->first);
+  for (const auto& [entry, category] : m_input_history) {
+    InputHistoryPointers::const_iterator pitr = m_input_history_pointers.find(entry);
 
     for (int i=0; i != m_input_history_length; i++)
-      if (!itr->second.at((pitr->second + i) % m_input_history_length).empty())
-        history_file << itr->first << "|" + itr->second.at((pitr->second + i) % m_input_history_length) + "\n";
+      if (!category.at((pitr->second + i) % m_input_history_length).empty())
+        history_file << entry << "|" + category.at((pitr->second + i) % m_input_history_length) + "\n";
   }
 
   if (!history_file.good()) {

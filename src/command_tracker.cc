@@ -63,22 +63,22 @@ apply_dht_add_node(const std::string& arg) {
 torrent::Object
 apply_enable_trackers(int64_t arg) {
   if (arg == 0) {
-    for (auto itr : *control->core()->download_list())
-      itr->tracker_controller().for_each([](auto& tracker) { tracker.disable(); });
+    for (auto download : *control->core()->download_list())
+      download->tracker_controller().for_each([](auto& tracker) { tracker.disable(); });
 
   } else if (rpc::call_command_value("trackers.use_udp") == 0) {
-    for (auto itr : *control->core()->download_list()) {
-      itr->tracker_controller().for_each([](auto& tracker) {
-          if (tracker.type() == torrent::TRACKER_UDP)
-            tracker.disable();
-          else
-            tracker.enable();
-        });
+    for (auto download : *control->core()->download_list()) {
+      download->tracker_controller().for_each([](auto& tracker) {
+        if (tracker.type() == torrent::TRACKER_UDP)
+          tracker.disable();
+        else
+          tracker.enable();
+      });
     }
 
   } else {
-    for (auto itr : *control->core()->download_list())
-      itr->tracker_controller().for_each([](auto& tracker) { tracker.enable(); });
+    for (auto download : *control->core()->download_list())
+      download->tracker_controller().for_each([](auto& tracker) { tracker.enable(); });
   }
 
   return torrent::Object();

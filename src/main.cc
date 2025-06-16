@@ -86,11 +86,11 @@ void
 load_session_torrents() {
   utils::Directory entries = control->core()->download_store()->get_formated_entries();
 
-  for (utils::Directory::const_iterator first = entries.begin(), last = entries.end(); first != last; ++first) {
+  for (const auto& entry : entries) {
     // We don't really support session torrents that are links. These
     // would be overwritten anyway on exit, and thus not really be
     // useful.
-    if (!first->is_file())
+    if (!entry.is_file())
       continue;
 
     core::DownloadFactory* f = new core::DownloadFactory(control->core());
@@ -99,7 +99,7 @@ load_session_torrents() {
     f->set_session(true);
     f->set_init_load(true);
     f->slot_finished([f](){ delete f; });
-    f->load(entries.path() + first->s_name);
+    f->load(entries.path() + entry.s_name);
     f->commit();
   }
 }

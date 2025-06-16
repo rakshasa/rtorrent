@@ -88,8 +88,8 @@ ViewManager::set_filter_on(const std::string& name, const filter_args& args) {
 
   // TODO: Ensure the filter keys are rlookup.
 
-  for (filter_args::const_iterator itr = args.begin(); itr != args.end(); ++itr)
-    (*viewItr)->set_filter_on_event(*itr);
+  for (const auto& arg : args)
+    (*viewItr)->set_filter_on_event(arg);
 }
 
 }

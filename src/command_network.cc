@@ -30,8 +30,8 @@ torrent::Object
 apply_encryption(const torrent::Object::list_type& args) {
   uint32_t options_mask = torrent::ConnectionManager::encryption_none;
 
-  for (torrent::Object::list_const_iterator itr = args.begin(), last = args.end(); itr != last; itr++) {
-    uint32_t opt = torrent::option_find_string(torrent::OPTION_ENCRYPTION, itr->as_string().c_str());
+  for (const auto& arg : args) {
+    uint32_t opt = torrent::option_find_string(torrent::OPTION_ENCRYPTION, arg.as_string().c_str());
 
     if (opt == torrent::ConnectionManager::encryption_none)
       options_mask = torrent::ConnectionManager::encryption_none;
@@ -90,11 +90,12 @@ initialize_rpc() {
 
   unsigned int count = 0;
 
-  for (rpc::CommandMap::const_iterator itr = rpc::commands.begin(), last = rpc::commands.end(); itr != last; itr++, count++) {
-    if (!(itr->second.m_flags & rpc::CommandMap::flag_public_rpc))
+  for (const auto& [name, cmd] : rpc::commands) {
+    if (!(cmd.m_flags & rpc::CommandMap::flag_public_rpc))
       continue;
 
-    rpc::rpc.insert_command(itr->first.c_str(), itr->second.m_parm, itr->second.m_doc);
+    rpc::rpc.insert_command(name.c_str(), cmd.m_parm, cmd.m_doc);
+    ++count;
   }
 
   lt_log_print(torrent::LOG_RPC_EVENTS, "RPC initialized with %u functions.", count);

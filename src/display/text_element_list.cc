@@ -55,14 +55,14 @@ TextElementList::print(char* first, char* last, Canvas::attributes_list* attribu
 
   // Call print for each element even if first == last so that any
   // attributes gets added to the list.
-  for (iterator itr = begin(); itr != end(); ++itr)
+  for (auto& itr : *this)
     if (column-- > 0) {
       char* columnEnd = std::min(last, first + *m_columnWidth);
 
       if (columnEnd < first || columnEnd > last)
         throw torrent::internal_error("TextElementList::print(...) columnEnd < first || columnEnd > last.");
 
-      first = (*itr)->print(first, columnEnd, attributes, target);
+      first = itr->print(first, columnEnd, attributes, target);
 
       if (first > columnEnd)
         throw torrent::internal_error("TextElementList::print(...) first > columnEnd.");
@@ -71,7 +71,7 @@ TextElementList::print(char* first, char* last, Canvas::attributes_list* attribu
       first = columnEnd;
 
     } else {
-      first = (*itr)->print(first, last, attributes, target);
+      first = itr->print(first, last, attributes, target);
     }
 
   return first;
@@ -82,15 +82,15 @@ TextElementList::max_length() {
   extent_type length = 0;
   int column = m_columnWidth != NULL ? m_column : 0;
 
-  for (iterator itr = begin(); itr != end(); ++itr) {
-    extent_type l = column-- > 0 ? std::min((*itr)->max_length(), *m_columnWidth) : (*itr)->max_length();
+  for (auto& itr : *this) {
+    extent_type l = column-- > 0 ? std::min(itr->max_length(), *m_columnWidth) : itr->max_length();
 
     if (l == extent_full)
       return extent_full;
     
     length += l;
   }
-  
+
   return length;
 }
 

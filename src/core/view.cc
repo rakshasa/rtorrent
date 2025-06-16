@@ -118,8 +118,8 @@ View::emit_changed() {
 
 void
 View::emit_changed_now() {
-  for (signal_void::iterator itr = m_signal_changed.begin(), last = m_signal_changed.end(); itr != last; itr++)
-    (*itr)();
+  for (auto& itr : m_signal_changed)
+    itr();
 }
 
 View::~View() {
@@ -138,12 +138,11 @@ View::initialize(const std::string& name) {
   if (name.empty())
     throw torrent::internal_error("View::initialize(...) called with an empty name.");
 
-  core::DownloadList* dlist = control->core()->download_list();
-
   m_name = name;
 
   // Urgh, wrong. No filtering being done.
-  std::for_each(dlist->begin(), dlist->end(), [&](Download* d) { push_back(d); });
+  for (const auto& d : *control->core()->download_list())
+    push_back(d);
 
   m_size  = base_type::size();
   m_focus = 0;

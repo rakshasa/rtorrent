@@ -191,8 +191,8 @@ DownloadFactory::receive_success() {
 
     torrent::Object::list_type& commands = meta.insert_key("commands", torrent::Object::create_list()).as_list();
 
-    for (command_list_type::iterator itr = m_commands.begin(); itr != m_commands.end(); ++itr)
-      commands.push_back(*itr);
+    for (auto& m_command : m_commands)
+      commands.push_back(m_command);
   }
 
   if (m_session) {
@@ -333,8 +333,8 @@ DownloadFactory::log_created(Download* download, torrent::Object* rtorrent) {
 
   dump << "---COMMANDS---" << std::endl;
 
-  for (command_list_type::const_iterator itr = m_commands.begin(); itr != m_commands.end(); itr++) {
-    dump << *itr << std::endl;
+  for (const auto& m_command : m_commands) {
+    dump << m_command << std::endl;
   }
 
   std::string dump_str = dump.str();

@@ -295,15 +295,14 @@ print_status_throttle_limit(char* first, char* last, bool up, const ui::Throttle
   char* firstc = throttle_str;
   char* lastc = throttle_str + 40 - 1;
 
-  for (ui::ThrottleNameList::const_iterator itr = throttle_names.begin(), laste = throttle_names.end(); itr != laste; itr++) {
+  for (const auto& throttle_name : throttle_names) {
 
-    if (!(*itr).empty()) {
-      int64_t throttle_max = control->core()->retrieve_throttle_value(*itr, false, up);
+    if (!throttle_name.empty()) {
+      int64_t throttle_max = control->core()->retrieve_throttle_value(throttle_name, false, up);
 
       if (throttle_max > 0)
         firstc = print_buffer(firstc, lastc, "|%1.0f", (double)throttle_max / 1024.0);
     }
-
   }
 
   // Add temp buffer (chop first char first) into main buffer if temp buffer isn't empty
@@ -321,10 +320,10 @@ print_status_throttle_rate(char* first, char* last, bool up, const ui::ThrottleN
   char* firstc = throttle_str;
   char* lastc = throttle_str + 50 - 1;
 
-  for (ui::ThrottleNameList::const_iterator itr = throttle_names.begin(), laste = throttle_names.end(); itr != laste; itr++) {
+  for (const auto& throttle_name : throttle_names) {
 
-    if (!(*itr).empty() && (up ? torrent::up_throttle_global()->is_throttled() : torrent::down_throttle_global()->is_throttled())) {
-      int64_t throttle_rate_value = control->core()->retrieve_throttle_value(*itr, true, up);
+    if (!throttle_name.empty() && (up ? torrent::up_throttle_global()->is_throttled() : torrent::down_throttle_global()->is_throttled())) {
+      int64_t throttle_rate_value = control->core()->retrieve_throttle_value(throttle_name, true, up);
 
       if (throttle_rate_value > -1) {
         double throttle_rate = (double)throttle_rate_value / 1024.0;
@@ -333,7 +332,6 @@ print_status_throttle_rate(char* first, char* last, bool up, const ui::ThrottleN
         firstc = print_buffer(firstc, lastc, "|%3.1f", throttle_rate);
       }
     }
-
   }
 
   // Add temp buffer into main buffer if temp buffer isn't empty

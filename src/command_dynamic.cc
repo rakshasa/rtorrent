@@ -25,9 +25,9 @@ static std::vector<std::pair<const char*, int>> object_storage_flags = {
 
 static int
 object_storage_parse_flag(const std::string& flag) {
-  for (auto f : object_storage_flags)
-    if (f.first == flag)
-      return f.second;
+  for (auto [n, f] : object_storage_flags)
+    if (n == flag)
+      return f;
 
   throw torrent::input_error("unknown flag");
 }
@@ -380,13 +380,11 @@ system_method_set_key(const torrent::Object::list_type& args) {
 
 torrent::Object
 system_method_list_keys(const torrent::Object::string_type& args) {
-  const torrent::Object::map_type& multi_cmd = control->object_storage()->get_str(args).as_map();
-
   torrent::Object                  rawResult = torrent::Object::create_list();
   torrent::Object::list_type&      result    = rawResult.as_list();
 
-  for (torrent::Object::map_const_iterator itr = multi_cmd.begin(), last = multi_cmd.end(); itr != last; itr++)
-    result.push_back(itr->first);
+  for (const auto& itr : control->object_storage()->get_str(args).as_map())
+    result.push_back(itr.first);
 
   return rawResult;
 }

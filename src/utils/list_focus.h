@@ -38,6 +38,7 @@
 #define RTORRENT_UTILS_LIST_FOCUS_H
 
 #include <functional>
+#include <list>
 
 namespace utils {
 
@@ -57,7 +58,7 @@ public:
 
   typedef typename base_type::value_type             value_type;
 
-  ListFocus(base_type* b = NULL) : m_base(b) { if (b) m_focus = b->end(); }
+  ListFocus(base_type* b = nullptr) : m_base(b) { if (b) m_focus = b->end(); }
 
   // Convinience functions, would have added more through using, but
   // can't.
@@ -149,8 +150,8 @@ ListFocus<Base>::remove(const value_type& v) {
 template <typename Base>
 void
 ListFocus<Base>::emit_changed() {
-  for (signal_void::iterator itr = m_signal_changed.begin(), last = m_signal_changed.end(); itr != last; itr++)
-    (*itr)();
+  for (const auto& itr : m_signal_changed)
+    itr();
 }
 
 }
