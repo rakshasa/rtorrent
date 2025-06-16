@@ -100,8 +100,9 @@ DownloadStore::write_bencode(const std::string& filename, const torrent::Object&
 #else
     fdatasync(fd);
 #endif
-    ::close(fd);
   }
+
+  ::close(fd);
 
   return true;
 
