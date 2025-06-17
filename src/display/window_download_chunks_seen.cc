@@ -55,9 +55,8 @@ WindowDownloadChunksSeen::redraw() {
 
   const torrent::Bitfield* bitfield = m_download->download()->file_list()->bitfield();
   const torrent::TransferList* transfers = m_download->download()->transfer_list();
-  std::vector<torrent::BlockList*> transferChunks(transfers->size(), 0);
+  std::vector<torrent::BlockList*> transferChunks(transfers->begin(), transfers->end());
 
-  std::copy(transfers->begin(), transfers->end(), transferChunks.begin());
   std::sort(transferChunks.begin(), transferChunks.end());
 
   std::vector<torrent::BlockList*>::const_iterator itrTransfer = transferChunks.begin();
