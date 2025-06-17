@@ -408,16 +408,16 @@ path_expand(std::vector<std::string>* paths, const std::string& pattern) {
       itr->update((r.pattern()[0] != '.') ? utils::Directory::update_hide_dot : 0);
       itr->erase(std::remove_if(itr->begin(), itr->end(), [r](const utils::directory_entry& entry) { return !r(entry.s_name); }), itr->end());
 
-      std::transform(itr->begin(), itr->end(), std::back_inserter(nextCache), [itr](const utils::directory_entry& entry) {
-          return path_expand_transform(itr->path() + (itr->path() == "/" ? "" : "/"), entry);
-        });
+      for (const auto& cache : *itr)
+        nextCache.push_back(path_expand_transform(itr->path() + (itr->path() == "/" ? "" : "/"), cache));
     }
 
     currentCache.clear();
     currentCache.swap(nextCache);
   }
 
-  std::transform(currentCache.begin(), currentCache.end(), std::back_inserter(*paths), std::mem_fn(&utils::Directory::path));
+  for (const auto& cache : currentCache)
+    paths->push_back(cache.path());
 }
 
 bool
@@ -450,8 +450,8 @@ Manager::try_create_download_expand(const std::string& uri, int flags, command_l
 // hashing view and starts hashing if nessesary.
 void
 Manager::receive_hashing_changed() {
-  bool foundHashing = std::find_if(m_hashingView->begin_visible(), m_hashingView->end_visible(),
-                                   std::mem_fn(&Download::is_hash_checking)) != m_hashingView->end_visible();
+  bool foundHashing = std::any_of(m_hashingView->begin_visible(), m_hashingView->end_visible(),
+                                   std::mem_fn(&Download::is_hash_checking));
 
   // Try quick hashing all those with hashing == initial, set them to
   // something else when failed.
