@@ -347,7 +347,7 @@ View::clear_filter_on() {
 
 inline void
 View::insert_visible(Download* d) {
-  iterator itr = std::find_if(begin_visible(), end_visible(), [&d, this](Download* d2) { return view_downloads_compare(m_sortNew)(d, d2); });
+  auto itr = std::find_if(begin_visible(), end_visible(), [this, d](auto d2) { return view_downloads_compare(m_sortNew)(d, d2); });
 
   m_size++;
   m_focus += (m_focus >= position(itr));

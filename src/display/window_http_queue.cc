@@ -119,9 +119,9 @@ WindowHttpQueue::receive_insert(torrent::net::HttpGet http_get) {
 
 void
 WindowHttpQueue::receive_erase(torrent::net::HttpGet http_get) {
-  Container::iterator itr = std::find_if(m_container.begin(),
-                                         m_container.end(),
-                                         [http_get](Node& n) { return http_get == n.m_http; });
+  auto itr = std::find_if(m_container.begin(),
+                          m_container.end(),
+                          [http_get](auto& n) { return http_get == n.m_http; });
 
   if (itr == m_container.end())
     throw std::logic_error("WindowHttpQueue::receive_erase(...) tried to remove an object we don't have");
