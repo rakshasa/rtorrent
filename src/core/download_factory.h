@@ -62,9 +62,9 @@ private:
 
   void                initialize_rtorrent(Download* download, torrent::Object* rtorrent);
 
-  Manager*            m_manager;
-  std::iostream*      m_stream{};
-  torrent::Object*    m_object{};
+  Manager*                       m_manager;
+  std::shared_ptr<std::iostream> m_stream;
+  torrent::Object*               m_object{};
 
   bool                m_commited{};
   bool                m_loaded{};

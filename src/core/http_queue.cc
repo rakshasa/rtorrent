@@ -8,7 +8,7 @@
 namespace core {
 
 HttpQueue::iterator
-HttpQueue::insert(const std::string& url, std::iostream* stream) {
+HttpQueue::insert(const std::string& url, std::shared_ptr<std::ostream> stream) {
   auto itr = base_type::insert(end(), torrent::net::HttpGet(url, stream));
 
   itr->add_done_slot([this, itr]() { erase(itr); });
@@ -16,6 +16,7 @@ HttpQueue::insert(const std::string& url, std::iostream* stream) {
 
   torrent::net_thread::http_stack()->start_get(*itr);
 
+  // TODO: Move above?
   for (auto& slot : m_signal_insert)
     slot(*itr);
 
@@ -27,6 +28,7 @@ HttpQueue::erase(iterator signal_itr) {
   for (const auto& slot : m_signal_erase)
     slot(*signal_itr);
 
+  signal_itr->close();
   base_type::erase(signal_itr);
 }
 
