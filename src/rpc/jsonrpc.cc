@@ -7,10 +7,11 @@
 #include <torrent/common.h>
 #include <torrent/torrent.h>
 
+#include <nlohmann/json.hpp>
+
 #include "rpc/rpc_manager.h"
 #include "rpc/command.h"
 #include "rpc/command_map.h"
-#include "rpc/nlohmann/json.h"
 #include "rpc/parse_commands.h"
 #include "torrent/exceptions.h"
 #include "torrent/object.h"

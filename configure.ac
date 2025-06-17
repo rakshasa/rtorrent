@@ -47,6 +47,7 @@ if test "x$ax_cv_ncursesw" != xyes && test "x$ax_cv_ncurses" != xyes; then
 fi
 
 PKG_CHECK_MODULES([CPPUNIT], [cppunit],, [no_cppunit="yes"])
+PKG_CHECK_MODULES([JSON], [nlohmann_json])
 PKG_CHECK_MODULES([DEPENDENCIES], [libtorrent >= 0.15.4])
 
 AC_LANG_PUSH(C++)

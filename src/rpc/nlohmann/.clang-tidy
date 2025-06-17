@@ -1,2 +1,0 @@
-# third-party library, disable all checks in this folder.
-Checks: '-*'

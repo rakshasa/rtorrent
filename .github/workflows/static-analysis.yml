@@ -16,7 +16,8 @@ jobs:
         sudo apt-get install -y \
           bear \
           clang-tidy \
-          libcurl4-openssl-dev
+          libcurl4-openssl-dev \
+          nlohmann-json3-dev
     - name: Fetch libtorrent
       run: |
         git clone https://github.com/rakshasa/libtorrent

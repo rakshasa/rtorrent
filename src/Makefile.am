@@ -124,7 +124,6 @@ libsub_root_a_SOURCES = \
 	rpc/xmlrpc_tinyxml2.cc \
 	rpc/tinyxml2/tinyxml2.h \
 	rpc/tinyxml2/tinyxml2.cc \
-	rpc/nlohmann/json.h \
 	\
 	ui/download.cc \
 	ui/download.h \
