@@ -353,9 +353,8 @@ f_multicall(core::Download* download, const torrent::Object::list_type& args) {
   bool use_regex = true;
 
   if (args.front().is_list())
-    std::transform(args.front().as_list().begin(), args.front().as_list().end(),
-                   std::back_inserter(regex_list),
-                   std::bind(&torrent::Object::as_string_c, std::placeholders::_1));
+    for (const auto& o : args.front().as_list())
+      regex_list.push_back(o.as_string_c());
   else if (args.front().is_string() && !args.front().as_string().empty())
     regex_list.push_back(args.front().as_string());
   else

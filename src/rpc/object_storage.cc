@@ -255,8 +255,8 @@ object_storage::rlookup_list(const std::string& cmd_key) {
   rlookup_iterator r_itr = m_rlookup.find(cmd_key);
 
   if (r_itr != m_rlookup.end())
-    std::transform(r_itr->second.begin(), r_itr->second.end(), std::back_inserter(result),
-                   std::bind(&key_type::c_str, std::bind(std::mem_fn(&value_type::first), std::placeholders::_1)));
+    for (auto pair : r_itr->second)
+      result.push_back(pair->first.c_str());
 
   return result;
 }

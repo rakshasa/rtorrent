@@ -85,7 +85,7 @@ public:
 
   bool                is_valid() const;
 
-  const std::string&  path()                            { return m_path; }
+  const std::string&  path() const                      { return m_path; }
   void                set_path(const std::string& path) { m_path = path; }
 
   bool                update(int flags);

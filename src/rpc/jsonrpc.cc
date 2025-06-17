@@ -70,9 +70,8 @@ object_to_json(const torrent::Object& object) noexcept {
     return object.as_string();
   case torrent::Object::TYPE_LIST: {
     json result = json::array();
-    std::transform(object.as_list().cbegin(), object.as_list().cend(), std::back_inserter(result), [](const torrent::Object& element) {
-      return object_to_json(element);
-    });
+    for (const auto& obj : object.as_list())
+      result.push_back(object_to_json(obj));
     return result;
   }
   case torrent::Object::TYPE_MAP: {
@@ -88,9 +87,8 @@ object_to_json(const torrent::Object& object) noexcept {
 
     const auto& dict_obj = object.as_dict_obj();
     if (dict_obj.is_list()) {
-      std::transform(dict_obj.as_list().cbegin(), dict_obj.as_list().cend(), std::back_inserter(result), [](const torrent::Object& element) {
-        return object_to_json(element);
-      });
+      for (const auto& element : dict_obj.as_list())
+        result.push_back(object_to_json(element));
     } else {
       result.push_back(object_to_json(dict_obj));
     }
