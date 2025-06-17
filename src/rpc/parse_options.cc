@@ -57,7 +57,7 @@ parse_option_flag(const std::string& option, parse_option_flag_type ftor) {
   if (first == next)
     throw torrent::input_error(option);
 
-  if (std::find_if(next, last, [](char c) { return !std::isspace(c, std::locale::classic()); }) != last)
+  if (std::any_of(next, last, [](char c) { return !std::isspace(c, std::locale::classic()); }))
     throw torrent::input_error(option);
 
   return ftor(std::string(first, next));

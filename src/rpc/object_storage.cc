@@ -241,7 +241,7 @@ object_storage::set_multi_key_obj(const torrent::raw_string& key, const std::str
     if (r_itr == m_rlookup.end())
       r_itr = m_rlookup.insert(std::make_pair(cmd_key, rlookup_type::mapped_type())).first;
 
-    if (std::find_if(r_itr->second.begin(), r_itr->second.end(), [key](value_type* type) { return key == type->first; }) == r_itr->second.end())
+    if (std::none_of(r_itr->second.begin(), r_itr->second.end(), [key](auto type) { return key == type->first; }))
       r_itr->second.push_back(&*itr);
   }
 

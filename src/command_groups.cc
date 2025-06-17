@@ -180,8 +180,7 @@ apply_cg_insert(const std::string& arg) {
   if (rpc::parse_whole_value_nothrow(arg.c_str(), &dummy))
     throw torrent::input_error("Cannot use a value string as choke group name.");
 
-  if (arg.empty() ||
-      std::find_if(cg_list_hack.begin(), cg_list_hack.end(), [&arg](torrent::choke_group* cg) { return arg == cg->name(); }) != cg_list_hack.end())
+  if (arg.empty() || std::any_of(cg_list_hack.begin(), cg_list_hack.end(), [&arg](auto cg) { return arg == cg->name(); }))
     throw torrent::input_error("Duplicate name for choke group.");
 
   cg_list_hack.push_back(new torrent::choke_group());
