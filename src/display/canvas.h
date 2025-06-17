@@ -1,6 +1,7 @@
 #ifndef RTORRENT_DISPLAY_CANVAS_H
 #define RTORRENT_DISPLAY_CANVAS_H
 
+#include <cstdarg>
 #include <string>
 #include <unordered_map>
 #include <vector>
