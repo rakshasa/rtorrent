@@ -3,6 +3,7 @@
 
 #include <functional>
 #include <iosfwd>
+#include <memory>
 #include <list>
 #include <string>
 #include <torrent/net/http_get.h>
@@ -38,7 +39,7 @@ public:
   //
   // Consider adding a flag to indicate whetever HttpQueue should
   // delete the stream.
-  iterator    insert(const std::string& url, std::iostream* stream);
+  iterator    insert(const std::string& url, std::shared_ptr<std::ostream> stream);
   void        erase(iterator itr);
 
   void        clear();

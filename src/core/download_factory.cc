@@ -75,9 +75,7 @@ DownloadFactory::~DownloadFactory() {
   torrent::this_thread::scheduler()->erase(&m_task_load);
   torrent::this_thread::scheduler()->erase(&m_task_commit);
 
-  delete m_stream;
   delete m_object;
-  m_stream = NULL;
 }
 
 void
@@ -92,7 +90,7 @@ DownloadFactory::load_raw_data(const std::string& input) {
   if (m_stream)
     throw torrent::internal_error("DownloadFactory::load*() called on an object with m_stream != NULL");
 
-  m_stream = new std::stringstream(input);
+  m_stream.reset(new std::stringstream(input));
   m_loaded = true;
 }
 
@@ -108,7 +106,7 @@ DownloadFactory::receive_load() {
 
   if (is_network_uri(m_uri)) {
     // Http handling here.
-    m_stream = new std::stringstream;
+    m_stream.reset(new std::stringstream);
 
     HttpQueue::iterator itr = m_manager->http_queue()->insert(m_uri, m_stream);
 
@@ -119,7 +117,7 @@ DownloadFactory::receive_load() {
 
   } else if (is_magnet_uri(m_uri)) {
     // DEBUG: Use m_object.
-    m_stream = new std::stringstream();
+    m_stream.reset(new std::stringstream());
     *m_stream << "d10:magnet-uri" << m_uri.length() << ":" << m_uri << "e";
 
     m_variables["tied_to_file"] = (int64_t)false;
@@ -171,8 +169,8 @@ DownloadFactory::receive_success() {
   else
     tracker_key = random() % (std::numeric_limits<uint32_t>::max() - 1) + 1;
 
-  Download* download = m_stream != NULL ?
-    m_manager->download_list()->create(m_stream, tracker_key, m_printLog) :
+  Download* download = m_stream != nullptr ?
+    m_manager->download_list()->create(m_stream.get(), tracker_key, m_printLog) :
     m_manager->download_list()->create(m_object, tracker_key, m_printLog);
 
   m_object = NULL;
