@@ -58,11 +58,11 @@ public:
   void                init(Control* c);
   void                cleanup();
 
-  WTitle*             window_title()                          { return m_windowTitle.get(); }
-  WStatusbar*         window_statusbar()                      { return m_windowStatusbar.get(); }
-  WInput*             window_input()                          { return m_windowInput.get(); }
+  const auto&         window_title() const                    { return m_windowTitle; }
+  const auto&         window_statusbar() const                { return m_windowStatusbar; }
+  const auto&         window_input() const                    { return m_windowInput; }
 
-  DownloadList*       download_list()                         { return m_downloadList.get(); }
+  const auto&         download_list() const                   { return m_downloadList; }
 
   void                set_down_throttle(unsigned int throttle);
   void                set_up_throttle(unsigned int throttle);
