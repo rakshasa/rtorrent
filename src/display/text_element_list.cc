@@ -45,7 +45,8 @@ namespace display {
 
 void
 TextElementList::clear() {
-  std::for_each(begin(), end(), [](TextElement* t) { delete t; });
+  for (auto t : *this)
+    delete t;
   base_type::clear();
 }
 

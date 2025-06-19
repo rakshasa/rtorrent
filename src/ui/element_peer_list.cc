@@ -63,7 +63,8 @@ ElementPeerList::ElementPeerList(core::Download* d) :
 
   torrent::ConnectionList* connection_list = m_download->download()->connection_list();
 
-  std::for_each(connection_list->begin(), connection_list->end(), [&](torrent::Peer* peer) { m_list.push_back(peer); });
+  for (auto peer : *connection_list)
+    m_list.push_back(peer);
 
   m_peer_connected = connection_list->signal_connected().insert(connection_list->signal_connected().end(),
                                                                 std::bind(&ElementPeerList::receive_peer_connected, this, std::placeholders::_1));

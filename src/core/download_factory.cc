@@ -286,9 +286,8 @@ DownloadFactory::receive_success() {
     if (torrent::log_groups[torrent::LOG_TORRENT_DEBUG].valid())
       log_created(download, rtorrent);
 
-    std::for_each(m_commands.begin(), m_commands.end(), [&download](const std::string& cmd) {
-        rpc::parse_command_multiple_std(cmd, rpc::make_target(download));
-      });
+    for (const auto& command : m_commands)
+      rpc::parse_command_multiple_std(command, rpc::make_target(download));
 
     if (m_manager->download_list()->find(infohash) == m_manager->download_list()->end())
       throw torrent::input_error("The newly created download was removed.");

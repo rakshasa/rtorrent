@@ -167,8 +167,10 @@ DownloadList::insert(Download* download) {
 
     // This needs to be separated into two different calls to ensure
     // the download remains in the view.
-    std::for_each(control->view_manager()->begin(), control->view_manager()->end(), [&download](View* v) { v->insert(download); });
-    std::for_each(control->view_manager()->begin(), control->view_manager()->end(), [&download](View* v) { v->filter_download(download); });
+    for (auto v : *control->view_manager())
+      v->insert(download);
+    for (auto v : *control->view_manager())
+      v->filter_download(download);
 
     DL_TRIGGER_EVENT(*itr, "event.download.inserted");
 
@@ -201,7 +203,8 @@ DownloadList::erase(iterator itr) {
   control->core()->download_store()->remove(*itr);
 
   DL_TRIGGER_EVENT(*itr, "event.download.erased");
-  std::for_each(control->view_manager()->begin(), control->view_manager()->end(), [itr](View* v) { v->erase(*itr); });
+  for (auto v : *control->view_manager())
+    v->erase(*itr);
 
   torrent::download_remove(*(*itr)->download());
   delete *itr;
