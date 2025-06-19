@@ -7,21 +7,6 @@
 #include <torrent/utils/log.h>
 
 static void
-dump_failure_log(const failure_type& failure) {
-  if (failure.log->empty())
-    return;
-
-  std::cout << std::endl << failure.name << std::endl;
-
-  // Doesn't print dump messages as log_buffer drops them.
-  std::for_each(failure.log->begin(), failure.log->end(), [](const torrent::log_entry& entry) {
-      std::cout << entry.timestamp << ' ' << entry.message << '\n';
-    });
-
-  std::cout << std::flush;
-}
-
-static void
 dump_failures(const failure_list_type& failures) {
   if (failures.empty())
     return;
@@ -31,9 +16,19 @@ dump_failures(const failure_list_type& failures) {
             << "Failed Test Logs:" << std::endl
             << "=================" << std::endl;
 
-  std::for_each(failures.begin(), failures.end(), [](const failure_type& failure) {
-      dump_failure_log(failure);
-    });
+  for (const auto& failure : failures) {
+    if (failure.log->empty())
+      return;
+
+    std::cout << '\n'
+              << failure.name << '\n';
+
+    // Doesn't print dump messages as log_buffer drops them.
+    for (const auto& entry : *failure.log)
+      std::cout << entry.timestamp << ' ' << entry.message << '\n';
+
+    std::cout << std::flush;
+  }
   std::cout << std::endl;
 }
 

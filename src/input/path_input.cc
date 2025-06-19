@@ -68,17 +68,6 @@ PathInput::pressed(int key) {
   return true;
 }
 
-struct _transform_filename {
-  void operator () (utils::directory_entry& entry) {
-#ifdef __sun__
-    if (entry.s_type & S_IFDIR)
-#else
-    if (entry.s_type == DT_DIR)
-#endif
-      entry.s_name += '/';
-  }
-};
-
 void
 PathInput::receive_do_complete() {
   lt_log_print(torrent::LOG_UI_EVENTS, "path_input: received completion");
@@ -93,7 +82,14 @@ PathInput::receive_do_complete() {
     return;
   }
 
-  std::for_each(dir.begin(), dir.end(), _transform_filename());
+  for (auto& entry : dir) {
+#ifdef __sun__
+    if (entry.s_type & S_IFDIR)
+#else
+    if (entry.s_type == DT_DIR)
+#endif
+      entry.s_name += '/';
+  }
 
   range_type r = find_incomplete(dir, str().substr(dirEnd, get_pos()));
 
