@@ -647,8 +647,9 @@ as_vector(const torrent::Object::list_type& args) {
   return result;
 }
 
+template <typename Comp>
 int64_t
-apply_math_basic(const char* name, const std::function<int64_t(int64_t,int64_t)> op, const torrent::Object::list_type& args) {
+apply_math_basic(const char* name, Comp op, const torrent::Object::list_type& args) {
   int64_t val = 0, rhs = 0;
   bool divides = !strcmp(name, "math.div") || !strcmp(name, "math.mod");
 
@@ -677,8 +678,9 @@ apply_math_basic(const char* name, const std::function<int64_t(int64_t,int64_t)>
   return val;
 }
 
+template <typename Comp>
 int64_t
-apply_arith_basic(const std::function<int64_t(int64_t,int64_t)> op, const torrent::Object::list_type& args) {
+apply_arith_basic(Comp op, const torrent::Object::list_type& args) {
   if (args.size() == 0)
     throw torrent::input_error("Wrong argument count in apply_arith_basic.");
 
@@ -859,13 +861,13 @@ initialize_command_ui() {
   CMD2_ANY_VALUE("convert.xb",           std::bind(&apply_to_xb, std::placeholders::_2));
   CMD2_ANY_VALUE("convert.throttle",     std::bind(&apply_to_throttle, std::placeholders::_2));
 
-  CMD2_ANY_LIST("math.add",              std::bind(&apply_math_basic, "math.add", std::plus<int64_t>(), std::placeholders::_2));
-  CMD2_ANY_LIST("math.sub",              std::bind(&apply_math_basic, "math.sub", std::minus<int64_t>(), std::placeholders::_2));
-  CMD2_ANY_LIST("math.mul",              std::bind(&apply_math_basic, "math.mul", std::multiplies<int64_t>(), std::placeholders::_2));
-  CMD2_ANY_LIST("math.div",              std::bind(&apply_math_basic, "math.div", std::divides<int64_t>(), std::placeholders::_2));
-  CMD2_ANY_LIST("math.mod",              std::bind(&apply_math_basic, "math.mod", std::modulus<int64_t>(), std::placeholders::_2));
-  CMD2_ANY_LIST("math.min",              std::bind(&apply_arith_basic, std::less<int64_t>(), std::placeholders::_2));
-  CMD2_ANY_LIST("math.max",              std::bind(&apply_arith_basic, std::greater<int64_t>(), std::placeholders::_2));
+  CMD2_ANY_LIST("math.add",              [](auto, const auto& args) { return apply_math_basic("math.add", std::plus(), args); });
+  CMD2_ANY_LIST("math.sub",              [](auto, const auto& args) { return apply_math_basic("math.sub", std::minus(), args); });
+  CMD2_ANY_LIST("math.mul",              [](auto, const auto& args) { return apply_math_basic("math.mul", std::multiplies(), args); });
+  CMD2_ANY_LIST("math.div",              [](auto, const auto& args) { return apply_math_basic("math.div", std::divides(), args); });
+  CMD2_ANY_LIST("math.mod",              [](auto, const auto& args) { return apply_math_basic("math.mod", std::modulus(), args); });
+  CMD2_ANY_LIST("math.min",              [](auto, const auto& args) { return apply_arith_basic(std::less(), args); });
+  CMD2_ANY_LIST("math.max",              [](auto, const auto& args) { return apply_arith_basic(std::greater(), args); });
   CMD2_ANY_LIST("math.cnt",              std::bind(&apply_arith_count, std::placeholders::_2));
   CMD2_ANY_LIST("math.avg",              std::bind(&apply_arith_other, "average", std::placeholders::_2));
   CMD2_ANY_LIST("math.med",              std::bind(&apply_arith_other, "median", std::placeholders::_2));
