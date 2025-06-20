@@ -12,6 +12,7 @@
 #include <torrent/torrent.h>
 #include <torrent/exceptions.h>
 #include <torrent/data/chunk_utils.h>
+#include <torrent/utils/chrono.h>
 #include <torrent/utils/log.h>
 #include <rak/error_number.h>
 
