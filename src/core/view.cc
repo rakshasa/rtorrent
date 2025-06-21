@@ -16,7 +16,7 @@
 namespace core {
 
 // Also add focus thingie here?
-struct view_downloads_compare : std::function<bool (Download*, Download*)> {
+struct view_downloads_compare {
   view_downloads_compare(const torrent::Object& cmd) :
       m_command(cmd) {}
 
@@ -50,7 +50,7 @@ struct view_downloads_compare : std::function<bool (Download*, Download*)> {
   const torrent::Object& m_command;
 };
 
-struct view_downloads_filter : std::function<bool (Download*)> {
+struct view_downloads_filter {
   view_downloads_filter(const torrent::Object& cmd, const torrent::Object& cmd2) :
       m_command(cmd), m_command2(cmd2) {}
 
