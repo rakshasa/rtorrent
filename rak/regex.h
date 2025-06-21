@@ -50,7 +50,7 @@
 
 namespace rak {
 
-class regex : public std::function<bool (std::string)> {
+class regex {
 public:
   regex() {}
   regex(const std::string& p) : m_pattern(p) {}
