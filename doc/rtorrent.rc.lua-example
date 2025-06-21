@@ -1,0 +1,141 @@
+--[[
+  A minimal rTorrent configuration that provides the basic features
+   you want to have in addition to the built-in defaults.
+
+  See https://github.com/rakshasa/rtorrent/wiki/CONFIG-Template
+   for an up-to-date version.
+
+  How to use this file:
+
+  1. Copy to destination, remove '-example' suffix
+  2. Create rtorrent.rc, containing single command, which executes THIS file.
+     For example:
+
+     lua.execute = (cat, (system.env, HOME), "/.config/rtorrent/rtorrent.rc.lua")
+
+]]--
+
+--[[ Bootstrap START ]]--
+
+local rtorrent = require('rtorrent')
+rc = rtorrent.autocall
+
+--[[ Helper functions ]]--
+
+local function makeArgs(cmdline)
+   return 'sh', '-c', "'"..table.concat(cmdline, "' '").."'"
+end
+
+-- Instance layout (base paths)
+local home = os.getenv('HOME')
+
+local cfg <const> = {}
+cfg.basedir = home..'/rtorrent/'
+cfg.download = cfg.basedir..'download/'
+cfg.logs = cfg.basedir..'log/'
+cfg.logfile = cfg.logs..'rtorrent-'..rc.system.time()..'.log'
+cfg.session = cfg.basedir..'.session/'
+cfg.watch = cfg.basedir..'watch/'
+
+rc.method.insert('cfg.download', 'private|const|string', cfg.download)
+rc.method.insert('cfg.logs',     'private|const|string', cfg.logs)
+rc.method.insert('cfg.logfile',  'private|const|string', cfg.logfile)
+rc.method.insert('cfg.session',  'private|const|string', cfg.session)
+rc.method.insert('cfg.watch',    'private|const|string', cfg.watch)
+
+-- Create instance directories
+rc.execute.throw(
+   makeArgs({'mkdir', '-p',
+             cfg.download,
+             cfg.logs,
+             cfg.session,
+             cfg.watch..'/load',
+             cfg.watch..'/start'}))
+
+-- Listening port for incoming peer traffic (fixed; you can also randomize it)
+rc.network.port_range = '50000-50000'
+rc.network.port_random = false
+
+-- Tracker-less torrent and UDP tracker support
+-- (conservative settings for 'private' trackers, change for 'public')
+rc.dht.mode = 'disable'
+rc.protocol.pex = false
+rc.trackers.use_udp = false
+
+-- Peer settings
+rc.throttle.max_uploads = 100
+rc.throttle.max_uploads.global = 250
+
+rc.throttle.min_peers.normal = 20
+rc.throttle.max_peers.normal = 60
+rc.throttle.min_peers.seed = 30
+rc.throttle.max_peers.seed = 80
+rc.trackers.numwant = 80
+
+rc.protocol.encryption.set('allow_incoming', 'try_outgoing', 'enable_retry')
+
+-- Limits for file handle resources, this is optimized for
+-- an `ulimit` of 1024 (a common default). You MUST leave
+-- a ceiling of handles reserved for rTorrent's internal needs!
+rc.network.http.max_open = 50
+rc.network.max_open_files = 600
+rc.network.max_open_sockets = 300
+
+-- Memory resource usage (increase if you have a large number of items loaded,
+-- and/or the available resources to spend)
+rc.pieces.memory.max = '1800M'
+rc.network.xmlrpc.size_limit = '4M'
+
+-- Basic operational settings (no need to change these)
+rc.session.path = cfg.session
+rc.directory.default = cfg.download
+rc.log.execute(cfg.logs.."execute.log")
+--rc.log.xmlrpc(cfg.logs.."xmlrpc.log")
+rc.execute.nothrow(
+   "sh", "-c", table.concat(
+      {"echo >", rc.session.path(), "rtorrent.pid", " ", rc.system.pid()
+}))
+
+-- Other operational settings (check & adapt)
+rc.encoding.add('utf8')
+rc.system.umask = 0027
+rc.system.cwd = rc.directory.default()
+rc.network.http.dns_cache_timeout = 25
+rc.schedule2('monitor_diskspace', '15', '60', 'close_low_diskspace=1000M')
+--rc.pieces.hash.on_completion = false
+--rc.view.sort_current('seeding', 'greater=d.ratio=')
+--rc.keys.layout = 'qwerty'
+--rc.network.http.capath = '/etc/ssl/certs'
+--rc.network.http.ssl_verify_peer = 0
+--rc.network.http.ssl_verify_host = 0
+--rc.network.rpc.use_xmlrpc = true
+--rc.network.rpc.use_jsonrpc = true
+
+-- Some additional values and commands
+-- NOTE: just common names, not commands
+rc.method.insert('system.startup_time', 'value|const', rc.system.time())
+rc.method.insert('d.data_path', 'simple',
+	[[if=(d.is_multi_file),
+	 (cat, (d.directory), /),
+	 (cat, (d.directory), /, (d.name))]])
+rc.method.insert('d.session_file', 'simple', 'cat=(session.path), (d.hash), .torrent')
+
+-- Watch directories (add more as you like, but use unique schedule names)
+rc.schedule2('watch_start', '10', '10', 'load.start_verbose=(cat, (cfg.watch), "start/*.torrent")')
+rc.schedule2('watch_load', '11', '10', 'load.verbose=(cat, (cfg.watch), "load/*.torrent")')
+
+-- Run the rTorrent process as a daemon in the background
+-- (and control via XMLRPC sockets)
+--rc.system.daemon = true
+--rc.network.scgi.open_local(cfg.session..'rtorrent.sock')
+--rc.execute.nothrow('chmod', '770', cfg.session..'rtorrent.sock')
+
+-- Logging:
+--   Levels = critical error warn notice info debug
+--   Groups = connection_* dht_* peer_* rpc_* storage_* thread_* tracker_* torrent_*
+rc.print('Logging to '..rc.cfg.logfile())
+rc.log.open_file('log', rc.cfg.logfile())
+rc.log.add_output('info', 'log')
+--rc.log.add_output('tracker_debug', 'log')
+
+--[[ END of rtorrent.rc.lua ]]--
