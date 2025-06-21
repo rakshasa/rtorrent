@@ -36,9 +36,9 @@ public:
   Manager();
   ~Manager();
 
-  DownloadList*       download_list()                     { return m_download_list.get(); }
-  DownloadStore*      download_store()                    { return m_download_store.get(); }
-  FileStatusCache*    file_status_cache()                 { return m_file_status_cache.get(); }
+  const auto&         download_list() const               { return m_download_list; }
+  const auto&         download_store() const              { return m_download_store; }
+  const auto&         file_status_cache() const           { return m_file_status_cache; }
 
   HttpQueue*          http_queue()                        { return m_http_queue.get(); }
 
