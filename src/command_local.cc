@@ -12,6 +12,7 @@
 #include <torrent/chunk_manager.h>
 #include <torrent/data/file_manager.h>
 #include <torrent/data/chunk_utils.h>
+#include <torrent/utils/chrono.h>
 #include <torrent/utils/option_strings.h>
 
 #include "core/download.h"

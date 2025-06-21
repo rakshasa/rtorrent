@@ -4,6 +4,8 @@
 
 #include <stdexcept>
 
+#include <torrent/utils/chrono.h>
+
 namespace display {
 
 Window::SlotTimer  Window::m_slot_schedule;

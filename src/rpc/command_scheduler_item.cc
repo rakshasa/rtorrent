@@ -3,6 +3,7 @@
 #include "rpc/command_scheduler_item.h"
 
 #include <torrent/exceptions.h>
+#include <torrent/utils/chrono.h>
 
 namespace rpc {
 

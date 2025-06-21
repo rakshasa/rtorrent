@@ -4,6 +4,8 @@
 
 #include <ctime>
 
+#include <torrent/utils/chrono.h>
+
 #include "globals.h"
 
 namespace display {

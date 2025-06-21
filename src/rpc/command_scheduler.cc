@@ -7,6 +7,7 @@
 #include <time.h>
 #include <rak/string_manip.h>
 #include <torrent/exceptions.h>
+#include <torrent/utils/chrono.h>
 
 #include "rpc/command_scheduler_item.h"
 #include "rpc/parse_commands.h"
