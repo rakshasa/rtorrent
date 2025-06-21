@@ -17,7 +17,7 @@ namespace ui {
 ElementLogComplete::ElementLogComplete(torrent::log_buffer* l) :
     m_log(l) {
 
-  unsigned int signal_index = torrent::main_thread::thread()->signal_bitfield()->add_signal(std::bind(&ElementLogComplete::received_update, this));
+  unsigned int signal_index = torrent::main_thread::thread()->signal_bitfield()->add_signal([this] { received_update(); });
 
   m_log->lock_and_set_update_slot([signal_index]() {
     torrent::main_thread::thread()->send_event_signal(signal_index, false);

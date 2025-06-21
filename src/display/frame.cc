@@ -357,10 +357,7 @@ Frame::balance_row(uint32_t x, uint32_t y, uint32_t width, uint32_t height) {
   // following frames.
   //
   // Else if we're short, only give each what they require.
-  std::stable_sort(dynamicFrames, dynamicFrames + dynamicSize,
-                   std::bind(std::greater<extent_type>(),
-                                  std::bind(&dynamic_min_height, std::placeholders::_1),
-                                  std::bind(&dynamic_min_height, std::placeholders::_2)));
+  std::stable_sort(dynamicFrames, dynamicFrames + dynamicSize, [](const auto& a, const auto& b) { return dynamic_min_height(a) > dynamic_min_height(b); });
 
   bool retry;
 
@@ -432,10 +429,7 @@ Frame::balance_column(uint32_t x, uint32_t y, uint32_t width, uint32_t height) {
   // following frames.
   //
   // Else if we're short, only give each what they require.
-  std::stable_sort(dynamicFrames, dynamicFrames + dynamicSize,
-                   std::bind(std::greater<extent_type>(),
-                                  std::bind(&dynamic_min_width, std::placeholders::_1),
-                                  std::bind(&dynamic_min_width, std::placeholders::_2)));
+  std::stable_sort(dynamicFrames, dynamicFrames + dynamicSize, [](const auto& a, const auto& b) { return dynamic_min_height(a) > dynamic_min_height(b); });
 
   bool retry;
 

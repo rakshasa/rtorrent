@@ -72,7 +72,7 @@ Manager::set_hashing_view(View* v) {
     throw torrent::internal_error("Manager::set_hashing_view(...) received nullptr or is already set.");
 
   m_hashingView = v;
-  m_hashingView->signal_changed().push_back(std::bind(&Manager::receive_hashing_changed, this));
+  m_hashingView->signal_changed().push_back([this] { receive_hashing_changed(); });
 }
 
 torrent::ThrottlePair
@@ -92,7 +92,7 @@ Manager::get_throttle(const std::string& name) {
 void
 Manager::set_address_throttle(uint32_t begin, uint32_t end, torrent::ThrottlePair throttles) {
   m_addressThrottles.set_merge(begin, end, throttles);
-  torrent::connection_manager()->address_throttle() = std::bind(&core::Manager::get_address_throttle, control->core(), std::placeholders::_1);
+  torrent::connection_manager()->address_throttle() = [](auto addr) { return control->core()->get_address_throttle(addr); };
 }
 
 torrent::ThrottlePair

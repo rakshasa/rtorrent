@@ -47,13 +47,13 @@ Download::Download(core::Download* d) :
   m_uiArray[DISPLAY_CHUNKS_SEEN]   = new ElementChunksSeen(d);
   m_uiArray[DISPLAY_TRANSFER_LIST] = new ElementTransferList(d);
 
-  m_uiArray[DISPLAY_MENU]->slot_exit(std::bind(&slot_type::operator(), &m_slot_exit));
-  m_uiArray[DISPLAY_PEER_LIST]->slot_exit(std::bind(&Download::activate_display_menu, this, DISPLAY_PEER_LIST));
-  m_uiArray[DISPLAY_INFO]->slot_exit(std::bind(&Download::activate_display_menu, this, DISPLAY_INFO));
-  m_uiArray[DISPLAY_FILE_LIST]->slot_exit(std::bind(&Download::activate_display_menu, this, DISPLAY_FILE_LIST));
-  m_uiArray[DISPLAY_TRACKER_LIST]->slot_exit(std::bind(&Download::activate_display_menu, this, DISPLAY_TRACKER_LIST));
-  m_uiArray[DISPLAY_CHUNKS_SEEN]->slot_exit(std::bind(&Download::activate_display_menu, this, DISPLAY_CHUNKS_SEEN));
-  m_uiArray[DISPLAY_TRANSFER_LIST]->slot_exit(std::bind(&Download::activate_display_menu, this, DISPLAY_TRANSFER_LIST));
+  m_uiArray[DISPLAY_MENU]->slot_exit([this] { m_slot_exit(); });
+  m_uiArray[DISPLAY_PEER_LIST]->slot_exit([this] { activate_display_menu(DISPLAY_PEER_LIST); });
+  m_uiArray[DISPLAY_INFO]->slot_exit([this] { activate_display_menu(DISPLAY_INFO); });
+  m_uiArray[DISPLAY_FILE_LIST]->slot_exit([this] { activate_display_menu(DISPLAY_FILE_LIST); });
+  m_uiArray[DISPLAY_TRACKER_LIST]->slot_exit([this] { activate_display_menu(DISPLAY_TRACKER_LIST); });
+  m_uiArray[DISPLAY_CHUNKS_SEEN]->slot_exit([this] { activate_display_menu(DISPLAY_CHUNKS_SEEN); });
+  m_uiArray[DISPLAY_TRANSFER_LIST]->slot_exit([this] { activate_display_menu(DISPLAY_TRANSFER_LIST); });
 
   bind_keys();
 }
@@ -70,31 +70,19 @@ inline ElementBase*
 Download::create_menu() {
   ElementMenu* element = new ElementMenu;
 
-  element->push_back("Peer list",
-                     std::bind(&Download::activate_display_focus, this, DISPLAY_PEER_LIST),
-                     std::bind(&Download::activate_display_menu, this, DISPLAY_PEER_LIST));
-  element->push_back("Info",
-                     std::bind(&Download::activate_display_focus, this, DISPLAY_INFO),
-                     std::bind(&Download::activate_display_menu, this, DISPLAY_INFO));
-  element->push_back("File list",
-                     std::bind(&Download::activate_display_focus, this, DISPLAY_FILE_LIST),
-                     std::bind(&Download::activate_display_menu, this, DISPLAY_FILE_LIST));
-  element->push_back("Tracker list",
-                     std::bind(&Download::activate_display_focus, this, DISPLAY_TRACKER_LIST),
-                     std::bind(&Download::activate_display_menu, this, DISPLAY_TRACKER_LIST));
-  element->push_back("Chunks seen",
-                     std::bind(&Download::activate_display_focus, this, DISPLAY_CHUNKS_SEEN),
-                     std::bind(&Download::activate_display_menu, this, DISPLAY_CHUNKS_SEEN));
-  element->push_back("Transfer list",
-                     std::bind(&Download::activate_display_focus, this, DISPLAY_TRANSFER_LIST),
-                     std::bind(&Download::activate_display_menu, this, DISPLAY_TRANSFER_LIST));
+  element->push_back("Peer list", [this] { activate_display_focus(DISPLAY_PEER_LIST); }, [this] { activate_display_menu(DISPLAY_PEER_LIST); });
+  element->push_back("Info", [this] { activate_display_focus(DISPLAY_INFO); }, [this] { activate_display_menu(DISPLAY_INFO); });
+  element->push_back("File list", [this] { activate_display_focus(DISPLAY_FILE_LIST); }, [this] { activate_display_menu(DISPLAY_FILE_LIST); });
+  element->push_back("Tracker list", [this] { activate_display_focus(DISPLAY_TRACKER_LIST); }, [this] { activate_display_menu(DISPLAY_TRACKER_LIST); });
+  element->push_back("Chunks seen", [this] { activate_display_focus(DISPLAY_CHUNKS_SEEN); }, [this] { activate_display_menu(DISPLAY_CHUNKS_SEEN); });
+  element->push_back("Transfer list", [this] { activate_display_focus(DISPLAY_TRANSFER_LIST); }, [this] { activate_display_menu(DISPLAY_TRANSFER_LIST); });
 
   element->set_entry(0, false);
 
-  m_bindings['p'] = std::bind(&ElementMenu::set_entry_trigger, element, 0);
-  m_bindings['o'] = std::bind(&ElementMenu::set_entry_trigger, element, 1);
-  m_bindings['i'] = std::bind(&ElementMenu::set_entry_trigger, element, 2);
-  m_bindings['u'] = std::bind(&ElementMenu::set_entry_trigger, element, 3);
+  m_bindings['p'] = [element] { element->set_entry_trigger(0); };
+  m_bindings['o'] = [element] { element->set_entry_trigger(1); };
+  m_bindings['i'] = [element] { element->set_entry_trigger(2); };
+  m_bindings['u'] = [element] { element->set_entry_trigger(3); };
 
   return element;
 }
@@ -337,40 +325,40 @@ Download::adjust_up_throttle(int throttle) {
 
 void
 Download::bind_keys() {
-  m_bindings['1'] = std::bind(&Download::receive_min_uploads, this, -1);
-  m_bindings['2'] = std::bind(&Download::receive_min_uploads, this, 1);
-  m_bindings['3'] = std::bind(&Download::receive_max_uploads, this, -1);
-  m_bindings['4'] = std::bind(&Download::receive_max_uploads, this, 1);
-  m_bindings['!'] = std::bind(&Download::receive_min_downloads, this, -1);
-  m_bindings['@'] = std::bind(&Download::receive_min_downloads, this, 1);
-  m_bindings['#'] = std::bind(&Download::receive_max_downloads, this, -1);
-  m_bindings['$'] = std::bind(&Download::receive_max_downloads, this, 1);
-  m_bindings['5'] = std::bind(&Download::receive_min_peers, this, -5);
-  m_bindings['6'] = std::bind(&Download::receive_min_peers, this, 5);
-  m_bindings['7'] = std::bind(&Download::receive_max_peers, this, -5);
-  m_bindings['8'] = std::bind(&Download::receive_max_peers, this, 5);
-  m_bindings['+'] = std::bind(&Download::receive_next_priority, this);
-  m_bindings['-'] = std::bind(&Download::receive_prev_priority, this);
+  m_bindings['1'] = [this] { receive_min_uploads(-1); };
+  m_bindings['2'] = [this] { receive_min_uploads(1); };
+  m_bindings['3'] = [this] { receive_max_uploads(-1); };
+  m_bindings['4'] = [this] { receive_max_uploads(1); };
+  m_bindings['!'] = [this] { receive_min_downloads(-1); };
+  m_bindings['@'] = [this] { receive_min_downloads(1); };
+  m_bindings['#'] = [this] { receive_max_downloads(-1); };
+  m_bindings['$'] = [this] { receive_max_downloads(1); };
+  m_bindings['5'] = [this] { receive_min_peers(-5); };
+  m_bindings['6'] = [this] { receive_min_peers(5); };
+  m_bindings['7'] = [this] { receive_max_peers(-5); };
+  m_bindings['8'] = [this] { receive_max_peers(5); };
+  m_bindings['+'] = [this] { receive_next_priority(); };
+  m_bindings['-'] = [this] { receive_prev_priority(); };
 
-  m_bindings['t'] = std::bind(&torrent::Download::manual_request, m_download->download(), false);
-  m_bindings['T'] = std::bind(&torrent::Download::manual_request, m_download->download(), true);
+  m_bindings['t'] = [this] { m_download->download()->manual_request(false); };
+  m_bindings['T'] = [this] { m_download->download()->manual_request(true); };
 
   const char* keys = control->ui()->get_throttle_keys();
 
-  m_bindings[keys[ 0]] = std::bind(&Download::adjust_up_throttle, this, (int) rpc::call_command_value("ui.throttle.global.step.small"));
-  m_bindings[keys[ 1]] = std::bind(&Download::adjust_up_throttle, this, (int) -rpc::call_command_value("ui.throttle.global.step.small"));
-  m_bindings[keys[ 2]] = std::bind(&Download::adjust_down_throttle, this, (int) rpc::call_command_value("ui.throttle.global.step.small"));
-  m_bindings[keys[ 3]] = std::bind(&Download::adjust_down_throttle, this, (int) -rpc::call_command_value("ui.throttle.global.step.small"));
+  m_bindings[keys[0]] = [this] { adjust_up_throttle((int)rpc::call_command_value("ui.throttle.global.step.small")); };
+  m_bindings[keys[1]] = [this] { adjust_up_throttle((int)-rpc::call_command_value("ui.throttle.global.step.small")); };
+  m_bindings[keys[2]] = [this] { adjust_down_throttle((int)rpc::call_command_value("ui.throttle.global.step.small")); };
+  m_bindings[keys[3]] = [this] { adjust_down_throttle((int)-rpc::call_command_value("ui.throttle.global.step.small")); };
 
-  m_bindings[keys[ 4]] = std::bind(&Download::adjust_up_throttle, this, (int) rpc::call_command_value("ui.throttle.global.step.medium"));
-  m_bindings[keys[ 5]] = std::bind(&Download::adjust_up_throttle, this, (int) -rpc::call_command_value("ui.throttle.global.step.medium"));
-  m_bindings[keys[ 6]] = std::bind(&Download::adjust_down_throttle, this, (int) rpc::call_command_value("ui.throttle.global.step.medium"));
-  m_bindings[keys[ 7]] = std::bind(&Download::adjust_down_throttle, this, (int) -rpc::call_command_value("ui.throttle.global.step.medium"));
+  m_bindings[keys[4]] = [this] { adjust_up_throttle((int)rpc::call_command_value("ui.throttle.global.step.medium")); };
+  m_bindings[keys[5]] = [this] { adjust_up_throttle((int)-rpc::call_command_value("ui.throttle.global.step.medium")); };
+  m_bindings[keys[6]] = [this] { adjust_down_throttle((int)rpc::call_command_value("ui.throttle.global.step.medium")); };
+  m_bindings[keys[7]] = [this] { adjust_down_throttle((int)-rpc::call_command_value("ui.throttle.global.step.medium")); };
 
-  m_bindings[keys[ 8]] = std::bind(&Download::adjust_up_throttle, this, (int) rpc::call_command_value("ui.throttle.global.step.large"));
-  m_bindings[keys[ 9]] = std::bind(&Download::adjust_up_throttle, this, (int) -rpc::call_command_value("ui.throttle.global.step.large"));
-  m_bindings[keys[10]] = std::bind(&Download::adjust_down_throttle, this, (int) rpc::call_command_value("ui.throttle.global.step.large"));
-  m_bindings[keys[11]] = std::bind(&Download::adjust_down_throttle, this, (int) -rpc::call_command_value("ui.throttle.global.step.large"));
+  m_bindings[keys[8]]  = [this] { adjust_up_throttle((int)rpc::call_command_value("ui.throttle.global.step.large")); };
+  m_bindings[keys[9]]  = [this] { adjust_up_throttle((int)-rpc::call_command_value("ui.throttle.global.step.large")); };
+  m_bindings[keys[10]] = [this] { adjust_down_throttle((int)rpc::call_command_value("ui.throttle.global.step.large")); };
+  m_bindings[keys[11]] = [this] { adjust_down_throttle((int)-rpc::call_command_value("ui.throttle.global.step.large")); };
 }
 
 }

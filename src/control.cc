@@ -42,9 +42,9 @@ Control::Control()
   m_viewManager = std::make_unique<core::ViewManager>();
   m_dhtManager  = std::make_unique<core::DhtManager>();
 
-  m_inputStdin->slot_pressed(std::bind(&input::Manager::pressed, m_input.get(), std::placeholders::_1));
+  m_inputStdin->slot_pressed([this](int key) { m_input->pressed(key); });
 
-  m_task_shutdown.slot() = std::bind(&Control::handle_shutdown, this);
+  m_task_shutdown.slot() = [this] { handle_shutdown(); };
 
   m_commandScheduler->set_slot_error_message([this](const std::string& msg) { m_core->push_log_std(msg); });
 }

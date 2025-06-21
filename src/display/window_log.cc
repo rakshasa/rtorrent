@@ -14,9 +14,9 @@ WindowLog::WindowLog(torrent::log_buffer* l) :
   Window(new Canvas, 0, 0, 0, extent_full, extent_static),
   m_log(l) {
 
-  m_task_update.slot() = std::bind(&WindowLog::receive_update, this);
+  m_task_update.slot() = [this] { receive_update(); };
 
-  unsigned int signal_index = torrent::main_thread::thread()->signal_bitfield()->add_signal(std::bind(&WindowLog::receive_update, this));
+  unsigned int signal_index = torrent::main_thread::thread()->signal_bitfield()->add_signal([this] { receive_update(); });
 
   m_log->lock_and_set_update_slot([signal_index]() {
     torrent::main_thread::thread()->send_event_signal(signal_index, false);
