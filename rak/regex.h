@@ -43,16 +43,14 @@
 
 #include <sys/types.h>
 
-#include <algorithm>
-#include <functional>
 #include <string>
-#include <list>
+#include <unordered_set>
 
 namespace rak {
 
-class regex : public std::function<bool (std::string)> {
+class regex {
 public:
-  regex() {}
+  regex() = default;
   regex(const std::string& p) : m_pattern(p) {}
 
   const std::string& pattern() const { return m_pattern; }
@@ -71,13 +69,12 @@ regex::operator () (const std::string& text) const {
       (m_pattern[0] != '*' && m_pattern[0] != text[0]))
     return false;
 
-  // Replace with unordered_vector?
-  std::list<unsigned int> paths;
-  paths.push_front(0);
+  std::unordered_set<unsigned int> paths;
+  paths.insert(0);
 
-  for (std::string::const_iterator itrText = ++text.begin(), lastText = text.end(); itrText != lastText; ++itrText) {
+  for (auto itrText = ++text.begin(), lastText = text.end(); itrText != lastText; ++itrText) {
     
-    for (std::list<unsigned int>::iterator itrPaths = paths.begin(), lastPaths = paths.end(); itrPaths != lastPaths; ) {
+    for (auto itrPaths = paths.begin(), lastPaths = paths.end(); itrPaths != lastPaths; ) {
 
       unsigned int next = *itrPaths + 1;
 
@@ -93,17 +90,17 @@ regex::operator () (const std::string& text) const {
 
       // Push to the back so that '*' will match zero length strings.
       if (m_pattern[next] == '*')
-	paths.push_back(next);
+	paths.insert(next);
 
       if (m_pattern[next] == *itrText)
-	paths.push_front(next);
+	paths.insert(next);
     }
 
     if (paths.empty())
       return false;
   }
 
-  return std::find(paths.begin(), paths.end(), m_pattern.size() - 1) != paths.end();
+  return paths.find(m_pattern.size() - 1) != paths.end();
 }
 
 }
