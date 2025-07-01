@@ -61,20 +61,20 @@ parse_options(int argc, char** argv) {
     OptionParser optionParser;
 
     // Converted.
-    optionParser.insert_flag('h', std::bind(&print_help));
-    optionParser.insert_flag('n', std::bind(&do_nothing_str, std::placeholders::_1));
-    optionParser.insert_flag('D', std::bind(&do_nothing_str, std::placeholders::_1));
-    optionParser.insert_flag('I', std::bind(&do_nothing_str, std::placeholders::_1));
-    optionParser.insert_flag('K', std::bind(&do_nothing_str, std::placeholders::_1));
+    optionParser.insert_flag('h', [](const auto&) { print_help(); });
+    optionParser.insert_flag('n', [](const auto& str) { do_nothing_str(str); });
+    optionParser.insert_flag('D', [](const auto& str) { do_nothing_str(str); });
+    optionParser.insert_flag('I', [](const auto& str) { do_nothing_str(str); });
+    optionParser.insert_flag('K', [](const auto& str) { do_nothing_str(str); });
 
-    optionParser.insert_option('b', std::bind(&rpc::call_command_set_string, "network.bind_address.set", std::placeholders::_1));
-    optionParser.insert_option('d', std::bind(&rpc::call_command_set_string, "directory.default.set", std::placeholders::_1));
-    optionParser.insert_option('i', std::bind(&rpc::call_command_set_string, "ip", std::placeholders::_1));
-    optionParser.insert_option('p', std::bind(&rpc::call_command_set_string, "network.port_range.set", std::placeholders::_1));
-    optionParser.insert_option('s', std::bind(&rpc::call_command_set_string, "session", std::placeholders::_1));
+    optionParser.insert_option('b', [](const auto& arg) { rpc::call_command_set_string("network.bind_address.set", arg); });
+    optionParser.insert_option('d', [](const auto& arg) { rpc::call_command_set_string("directory.default.set", arg); });
+    optionParser.insert_option('i', [](const auto& arg) { rpc::call_command_set_string("ip", arg); });
+    optionParser.insert_option('p', [](const auto& arg) { rpc::call_command_set_string("network.port_range.set", arg); });
+    optionParser.insert_option('s', [](const auto& arg) { rpc::call_command_set_string("session", arg); });
 
-    optionParser.insert_option('O',      std::bind(&rpc::parse_command_single_std, std::placeholders::_1));
-    optionParser.insert_option_list('o', std::bind(&rpc::call_command_set_std_string, std::placeholders::_1, std::placeholders::_2));
+    optionParser.insert_option('O', [](const auto& arg) { rpc::parse_command_single_std(arg); });
+    optionParser.insert_option_list('o', [](const auto& key, const auto& arg) { rpc::call_command_set_std_string(key, arg); });
 
     return optionParser.process(argc, argv);
 
@@ -107,7 +107,8 @@ load_session_torrents() {
 
 void
 load_arg_torrents(char** first, char** last) {
-  //std::for_each(begin, end, std::bind1st(std::mem_fun(&core::Manager::insert), &control->get_core()));
+  // for (const auto& torrent : *this)
+  //   control->get_core().insert(torrent)
   for (; first != last; ++first) {
     core::DownloadFactory* f = new core::DownloadFactory(control->core());
 
@@ -155,13 +156,13 @@ main(int argc, char** argv) {
     control = new Control;
 
     SignalHandler::set_ignore(SIGPIPE);
-    SignalHandler::set_handler(SIGINT,   std::bind(&Control::receive_normal_shutdown, control));
-    SignalHandler::set_handler(SIGHUP,   std::bind(&Control::receive_normal_shutdown, control));
-    SignalHandler::set_handler(SIGTERM,  std::bind(&Control::receive_quick_shutdown, control));
-    SignalHandler::set_handler(SIGWINCH, std::bind(&display::Manager::force_redraw, control->display()));
-    SignalHandler::set_handler(SIGSEGV,  std::bind(&do_panic, SIGSEGV));
-    SignalHandler::set_handler(SIGILL,   std::bind(&do_panic, SIGILL));
-    SignalHandler::set_handler(SIGFPE,   std::bind(&do_panic, SIGFPE));
+    SignalHandler::set_handler(SIGINT, [] { control->receive_normal_shutdown(); });
+    SignalHandler::set_handler(SIGHUP, [] { control->receive_normal_shutdown(); });
+    SignalHandler::set_handler(SIGTERM, [] { control->receive_quick_shutdown(); });
+    SignalHandler::set_handler(SIGWINCH, [] { control->display()->force_redraw(); });
+    SignalHandler::set_handler(SIGSEGV, [] { do_panic(SIGSEGV); });
+    SignalHandler::set_handler(SIGILL, [] { do_panic(SIGILL); });
+    SignalHandler::set_handler(SIGFPE, [] { do_panic(SIGFPE); });
 
     SignalHandler::set_sigaction_handler(SIGBUS, &handle_sigbus);
 
@@ -173,13 +174,13 @@ main(int argc, char** argv) {
     // threads. Use '--enable-interrupt-socket' when configuring
     // LibTorrent to enable this workaround.
     if (torrent::utils::Thread::should_handle_sigusr1())
-      SignalHandler::set_handler(SIGUSR1, std::bind(&do_nothing));
+      SignalHandler::set_handler(SIGUSR1, [] { do_nothing(); });
 
     torrent::log_add_group_output(torrent::LOG_NOTICE, "important");
     torrent::log_add_group_output(torrent::LOG_INFO, "complete");
 
     torrent::initialize();
-    torrent::set_main_thread_slots(std::bind(&client_perform));
+    torrent::set_main_thread_slots([] { client_perform(); });
 
     worker_thread = new ThreadWorker();
     worker_thread->init_thread();

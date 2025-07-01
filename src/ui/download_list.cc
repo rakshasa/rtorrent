@@ -151,8 +151,8 @@ DownloadList::activate_display(Display displayType) {
       Download* download = new Download(*current_view()->focus());
 
       download->activate(m_frame);
-      download->slot_exit(std::bind(&DownloadList::activate_display, this, DISPLAY_DOWNLOAD_LIST));
-    
+      download->slot_exit([this] { activate_display(DISPLAY_DOWNLOAD_LIST); });
+
       m_uiArray[DISPLAY_DOWNLOAD] = download;
       break;
     }
@@ -247,22 +247,19 @@ DownloadList::receive_view_input(Input type) {
 
   ElementStringList* esl = dynamic_cast<ElementStringList*>(m_uiArray[DISPLAY_STRING_LIST]);
 
-  input->signal_show_next().push_back(std::bind(&DownloadList::activate_display, this, DISPLAY_STRING_LIST));
-  input->signal_show_next().push_back(std::bind(&ElementStringList::next_screen, esl));
+  input->signal_show_next().push_back([this] { activate_display(DISPLAY_STRING_LIST); });
+  input->signal_show_next().push_back([esl] { esl->next_screen(); });
 
-  input->signal_show_range().push_back(std::bind(&DownloadList::activate_display, this, DISPLAY_STRING_LIST));
-  input->signal_show_range().push_back(std::bind(&ElementStringList::set_range_dirent<utils::Directory::iterator>,
-                                                      esl,
-                                                      std::placeholders::_1,
-                                                      std::placeholders::_2));
+  input->signal_show_range().push_back([this](auto...) { activate_display(DISPLAY_STRING_LIST); });
+  input->signal_show_range().push_back([esl](auto f, auto l) { esl->set_range_dirent(f, l); });
 
   // reset ESC delay for input prompt
   set_escdelay(0);
 
-  input->bindings()['\n']      = std::bind(&DownloadList::receive_exit_input, this, type);
-  input->bindings()[KEY_ENTER] = std::bind(&DownloadList::receive_exit_input, this, type);
-  input->bindings()['\x07']    = std::bind(&DownloadList::receive_exit_input, this, INPUT_NONE); // ^G
-  input->bindings()['\x1B']    = std::bind(&DownloadList::receive_exit_input, this, INPUT_NONE); // ESC , ^[
+  input->bindings()['\n']      = [this, type] { receive_exit_input(type); };
+  input->bindings()[KEY_ENTER] = [this, type] { receive_exit_input(type); };
+  input->bindings()['\x07']    = [this] { receive_exit_input(INPUT_NONE); }; // ^G
+  input->bindings()['\x1B']    = [this] { receive_exit_input(INPUT_NONE); }; // ESC , ^[
 
   control->ui()->enable_input(title, input, type);
 }
@@ -351,21 +348,21 @@ DownloadList::receive_exit_input(Input type) {
 
 void
 DownloadList::setup_keys() {
-  m_bindings['\x7f']        = std::bind(&DownloadList::receive_view_input, this, INPUT_LOAD_DEFAULT);
-  m_bindings[KEY_BACKSPACE] = std::bind(&DownloadList::receive_view_input, this, INPUT_LOAD_DEFAULT);
-  m_bindings['\n']          = std::bind(&DownloadList::receive_view_input, this, INPUT_LOAD_MODIFIED);
-  m_bindings[KEY_ENTER]     = std::bind(&DownloadList::receive_view_input, this, INPUT_LOAD_MODIFIED);
-  m_bindings['\x0F']        = std::bind(&DownloadList::receive_view_input, this, INPUT_CHANGE_DIRECTORY);
-  m_bindings['X' - '@']     = std::bind(&DownloadList::receive_view_input, this, INPUT_COMMAND);
-  m_bindings['F']           = std::bind(&DownloadList::receive_view_input, this, INPUT_FILTER);
+  m_bindings['\x7f']        = [this] { receive_view_input(INPUT_LOAD_DEFAULT); };
+  m_bindings[KEY_BACKSPACE] = [this] { receive_view_input(INPUT_LOAD_DEFAULT); };
+  m_bindings['\n']          = [this] { receive_view_input(INPUT_LOAD_MODIFIED); };
+  m_bindings[KEY_ENTER]     = [this] { receive_view_input(INPUT_LOAD_MODIFIED); };
+  m_bindings['\x0F']        = [this] { receive_view_input(INPUT_CHANGE_DIRECTORY); };
+  m_bindings['X' - '@']     = [this] { receive_view_input(INPUT_COMMAND); };
+  m_bindings['F']           = [this] { receive_view_input(INPUT_FILTER); };
 
   m_uiArray[DISPLAY_LOG]->bindings()[KEY_LEFT] =
     m_uiArray[DISPLAY_LOG]->bindings()[control->ui()->navigation_key(RT_KEY_LEFT)] =
-    m_uiArray[DISPLAY_LOG]->bindings()[' '] = std::bind(&DownloadList::activate_display, this, DISPLAY_DOWNLOAD_LIST);
+      m_uiArray[DISPLAY_LOG]->bindings()[' '] = [this] { activate_display(DISPLAY_DOWNLOAD_LIST); };
 
   m_uiArray[DISPLAY_DOWNLOAD_LIST]->bindings()[KEY_RIGHT] =
-    m_uiArray[DISPLAY_DOWNLOAD_LIST]->bindings()[control->ui()->navigation_key(RT_KEY_RIGHT)] = std::bind(&DownloadList::activate_display, this, DISPLAY_DOWNLOAD);
-  m_uiArray[DISPLAY_DOWNLOAD_LIST]->bindings()[control->ui()->navigation_key(RT_KEY_DISPLAY_LOG)] = std::bind(&DownloadList::activate_display, this, DISPLAY_LOG);
+    m_uiArray[DISPLAY_DOWNLOAD_LIST]->bindings()[control->ui()->navigation_key(RT_KEY_RIGHT)]     = [this] { activate_display(DISPLAY_DOWNLOAD); };
+  m_uiArray[DISPLAY_DOWNLOAD_LIST]->bindings()[control->ui()->navigation_key(RT_KEY_DISPLAY_LOG)] = [this] { activate_display(DISPLAY_LOG); };
 }
 
 }

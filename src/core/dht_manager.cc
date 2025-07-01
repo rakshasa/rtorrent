@@ -94,7 +94,7 @@ DhtManager::start_dht() {
 
   torrent::dht_controller()->reset_statistics();
 
-  m_update_timeout.slot() = std::bind(&DhtManager::update, this);
+  m_update_timeout.slot() = [this] { update(); };
 
   torrent::this_thread::scheduler()->wait_for_ceil_seconds(&m_update_timeout, 60s);
 
@@ -174,7 +174,7 @@ DhtManager::update() {
         break;
 
     if (itr == end) {
-      m_stop_timeout.slot() = std::bind(&DhtManager::stop_dht, this);
+      m_stop_timeout.slot() = [this] { stop_dht(); };
       torrent::this_thread::scheduler()->wait_for_ceil_seconds(&m_stop_timeout, 15min);
     }
   }

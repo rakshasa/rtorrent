@@ -132,23 +132,23 @@ Root::setup_keys() {
 
   const char* keys = get_throttle_keys();
 
-  m_bindings[keys[ 0]]      = std::bind(&Root::adjust_up_throttle, this, (int) rpc::call_command_value("ui.throttle.global.step.small"));
-  m_bindings[keys[ 1]]      = std::bind(&Root::adjust_up_throttle, this, (int) -rpc::call_command_value("ui.throttle.global.step.small"));
-  m_bindings[keys[ 2]]      = std::bind(&Root::adjust_down_throttle, this, (int) rpc::call_command_value("ui.throttle.global.step.small"));
-  m_bindings[keys[ 3]]      = std::bind(&Root::adjust_down_throttle, this, (int) -rpc::call_command_value("ui.throttle.global.step.small"));
+  m_bindings[keys[0]] = [this] { adjust_up_throttle((int)rpc::call_command_value("ui.throttle.global.step.small")); };
+  m_bindings[keys[1]] = [this] { adjust_up_throttle((int)-rpc::call_command_value("ui.throttle.global.step.small")); };
+  m_bindings[keys[2]] = [this] { adjust_down_throttle((int)rpc::call_command_value("ui.throttle.global.step.small")); };
+  m_bindings[keys[3]] = [this] { adjust_down_throttle((int)-rpc::call_command_value("ui.throttle.global.step.small")); };
 
-  m_bindings[keys[ 4]]      = std::bind(&Root::adjust_up_throttle, this, (int) rpc::call_command_value("ui.throttle.global.step.medium"));
-  m_bindings[keys[ 5]]      = std::bind(&Root::adjust_up_throttle, this, (int) -rpc::call_command_value("ui.throttle.global.step.medium"));
-  m_bindings[keys[ 6]]      = std::bind(&Root::adjust_down_throttle, this, (int) rpc::call_command_value("ui.throttle.global.step.medium"));
-  m_bindings[keys[ 7]]      = std::bind(&Root::adjust_down_throttle, this, (int) -rpc::call_command_value("ui.throttle.global.step.medium"));
+  m_bindings[keys[4]] = [this] { adjust_up_throttle((int)rpc::call_command_value("ui.throttle.global.step.medium")); };
+  m_bindings[keys[5]] = [this] { adjust_up_throttle((int)-rpc::call_command_value("ui.throttle.global.step.medium")); };
+  m_bindings[keys[6]] = [this] { adjust_down_throttle((int)rpc::call_command_value("ui.throttle.global.step.medium")); };
+  m_bindings[keys[7]] = [this] { adjust_down_throttle((int)-rpc::call_command_value("ui.throttle.global.step.medium")); };
 
-  m_bindings[keys[ 8]]      = std::bind(&Root::adjust_up_throttle, this, (int) rpc::call_command_value("ui.throttle.global.step.large"));
-  m_bindings[keys[ 9]]      = std::bind(&Root::adjust_up_throttle, this, (int) -rpc::call_command_value("ui.throttle.global.step.large"));
-  m_bindings[keys[10]]      = std::bind(&Root::adjust_down_throttle, this, (int) rpc::call_command_value("ui.throttle.global.step.large"));
-  m_bindings[keys[11]]      = std::bind(&Root::adjust_down_throttle, this, (int) -rpc::call_command_value("ui.throttle.global.step.large"));
+  m_bindings[keys[8]]  = [this] { adjust_up_throttle((int)rpc::call_command_value("ui.throttle.global.step.large")); };
+  m_bindings[keys[9]]  = [this] { adjust_up_throttle((int)-rpc::call_command_value("ui.throttle.global.step.large")); };
+  m_bindings[keys[10]] = [this] { adjust_down_throttle((int)rpc::call_command_value("ui.throttle.global.step.large")); };
+  m_bindings[keys[11]] = [this] { adjust_down_throttle((int)-rpc::call_command_value("ui.throttle.global.step.large")); };
 
-  m_bindings['\x0C']        = std::bind(&display::Manager::force_redraw, m_control->display()); // ^L
-  m_bindings['\x11']        = std::bind(&Control::receive_normal_shutdown, m_control); // ^Q
+  m_bindings['\x0C'] = [this] { m_control->display()->force_redraw(); }; // ^L
+  m_bindings['\x11'] = [this] { m_control->receive_normal_shutdown(); }; // ^Q
 }
 
 void
@@ -226,7 +226,7 @@ Root::enable_input(const std::string& title, input::TextInput* input, ui::Downlo
   if (m_windowInput->input() != NULL)
     throw torrent::internal_error("Root::enable_input(...) m_windowInput->input() != NULL.");
 
-  input->slot_dirty(std::bind(&WInput::mark_dirty, m_windowInput.get()));
+  input->slot_dirty([this] { m_windowInput->mark_dirty(); });
 
   m_windowStatusbar->set_active(false);
 
@@ -237,12 +237,12 @@ Root::enable_input(const std::string& title, input::TextInput* input, ui::Downlo
 
   reset_input_history_attributes(type);
 
-  input->bindings()['\x0C'] = std::bind(&display::Manager::force_redraw, m_control->display()); // ^L
-  input->bindings()['\x11'] = std::bind(&Control::receive_normal_shutdown, m_control); // ^Q
-  input->bindings()[KEY_UP] = std::bind(&Root::prev_in_input_history, this, type); // UP arrow
-  input->bindings()['\x10'] = std::bind(&Root::prev_in_input_history, this, type); // ^P
-  input->bindings()[KEY_DOWN] = std::bind(&Root::next_in_input_history, this, type); // DOWN arrow
-  input->bindings()['\x0E'] = std::bind(&Root::next_in_input_history, this, type); // ^N
+  input->bindings()['\x0C']   = [this] { m_control->display()->force_redraw(); }; // ^L
+  input->bindings()['\x11']   = [this] { m_control->receive_normal_shutdown(); }; // ^Q
+  input->bindings()[KEY_UP]   = [this, type] { prev_in_input_history(type); };    // UP arrow
+  input->bindings()['\x10']   = [this, type] { prev_in_input_history(type); };    // ^P
+  input->bindings()[KEY_DOWN] = [this, type] { next_in_input_history(type); };    // DOWN arrow
+  input->bindings()['\x0E']   = [this, type] { next_in_input_history(type); };    // ^N
 
   control->input()->set_text_input(input);
   control->display()->adjust_layout();

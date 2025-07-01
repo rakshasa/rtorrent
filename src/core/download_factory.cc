@@ -60,8 +60,8 @@ is_magnet_uri(const std::string& uri) {
 DownloadFactory::DownloadFactory(Manager* m) :
     m_manager(m) {
 
-  m_task_load.slot() = std::bind(&DownloadFactory::receive_load, this);
-  m_task_commit.slot() = std::bind(&DownloadFactory::receive_commit, this);
+  m_task_load.slot()   = [this] { receive_load(); };
+  m_task_commit.slot() = [this] { receive_commit(); };
 
   // m_variables["connection_leech"] = rpc::call_command("protocol.connection.leech");
   // m_variables["connection_seed"]  = rpc::call_command("protocol.connection.seed");

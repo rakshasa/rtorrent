@@ -13,7 +13,7 @@ namespace display {
 Manager::Manager() {
   m_scheduler.external_set_thread_id(std::this_thread::get_id());
 
-  m_task_update.slot() = std::bind(&Manager::receive_update, this);
+  m_task_update.slot() = [this] { receive_update(); };
 }
 
 Manager::~Manager() {
