@@ -268,6 +268,8 @@ initialize_command_network() {
   CMD2_ANY_VALUE_V ("network.block.ipv4.set",        std::bind(&torrent::ConnectionManager::set_block_ipv4, cm, std::placeholders::_2));
   CMD2_ANY         ("network.block.ipv6",            std::bind(&torrent::ConnectionManager::is_block_ipv6, cm));
   CMD2_ANY_VALUE_V ("network.block.ipv6.set",        std::bind(&torrent::ConnectionManager::set_block_ipv6, cm, std::placeholders::_2));
+  CMD2_ANY         ("network.block.ipv4in6",         std::bind(&torrent::ConnectionManager::is_block_ipv4in6, cm));
+  CMD2_ANY_VALUE_V ("network.block.ipv4in6.set",     std::bind(&torrent::ConnectionManager::set_block_ipv4in6, cm, std::placeholders::_2));
 
   CMD2_ANY         ("network.prefer.ipv6",           std::bind(&torrent::ConnectionManager::is_prefer_ipv6, cm));
   CMD2_ANY_VALUE_V ("network.prefer.ipv6.set",       std::bind(&torrent::ConnectionManager::set_prefer_ipv6, cm, std::placeholders::_2));
