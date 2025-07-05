@@ -25,6 +25,7 @@ namespace rpc {
 
 const int         LuaEngine::flag_string;
 const std::string LuaEngine::module_name = "rtorrent";
+const std::string LuaEngine::local_path = PACKAGE_DATADIR "/lua/?.lua;" PACKAGE_DATADIR "/lua/?/init.lua";
 
 #ifdef HAVE_LUA
 
@@ -32,6 +33,7 @@ LuaEngine::LuaEngine() {
   m_luaState = luaL_newstate();
   luaL_openlibs(m_luaState);
   set_package_preload();
+  override_package_path();
 }
 
 LuaEngine::~LuaEngine() { lua_close(m_luaState); }
@@ -43,6 +45,18 @@ LuaEngine::set_package_preload() {
   lua_getfield(l_state, -1, "preload");
   lua_pushcfunction(l_state, LuaEngine::lua_init_module);
   lua_setfield(l_state, -2, LuaEngine::module_name.c_str());
+  lua_pop(l_state, 2);
+}
+
+void
+LuaEngine::override_package_path() {
+  auto l_state = m_luaState;
+  lua_getglobal(l_state, "package");
+  lua_getfield(l_state, -1, "path");
+  std::string current_path(lua_tostring(l_state, -1));
+  std::string new_path = local_path + ';' + current_path;
+  lua_pushstring(l_state, new_path.c_str());
+  lua_setfield(l_state, -3, "path");
   lua_pop(l_state, 2);
 }
 
@@ -68,15 +82,21 @@ LuaEngine::search_lua_path(lua_State* l_state) {
   };
 
   // Tokenize path using ';' as delimiter
-  size_t pos = 0, end;
-  while ((end = lua_path.find(';', pos)) != std::string::npos) {
-    std::string file_path(lua_path.substr(pos, end - pos));
-    size_t      ppos = 0;
-    while ((ppos = file_path.find('?')) != std::string::npos) {
-      file_path.replace(ppos, 1, LuaEngine::module_name);
-    }
-    if (file_exists(file_path)) {
-      return file_path;
+  for (size_t pos = 0, end = 0; end != std::string::npos; pos = end + 1) {
+    end = lua_path.find(';', pos);
+
+    std::string file_path((end == std::string::npos)
+      ? lua_path.substr(pos)
+      : lua_path.substr(pos, end - pos));
+
+    if (!file_path.empty()) {
+      size_t ppos = 0;
+      while ((ppos = file_path.find('?')) != std::string::npos) {
+        file_path.replace(ppos, 1, LuaEngine::module_name);
+      }
+      if (file_exists(file_path)) {
+        return file_path;
+      }
     }
   }
   return "";
@@ -102,12 +122,12 @@ LuaEngine::lua_rtorrent_call(lua_State* l_state) {
     const auto& result = rpc::commands.call_command(itr, object, target);
 
     object_to_lua(l_state, result);
-    deleter();
+    if (deleter) deleter();
 
     return 1;
 
   } catch (torrent::base_error& e) {
-    deleter();
+    if (deleter) deleter();
     throw luaL_error(l_state, e.what());
   }
 }
@@ -219,7 +239,7 @@ object_to_lua(lua_State* l_state, torrent::Object const& object) {
   // Converts an object to a single Lua stack object
   switch (object.type()) {
   case torrent::Object::TYPE_VALUE:
-    lua_pushnumber(l_state, static_cast<double>(object.as_value()));
+    lua_pushinteger(l_state, static_cast<int64_t>(object.as_value()));
     break;
   case torrent::Object::TYPE_NONE:
     lua_pushnil(l_state);
@@ -266,7 +286,7 @@ lua_to_object(lua_State* l_state) {
   case LUA_TBOOLEAN:
     return torrent::Object(lua_toboolean(l_state, -1));
   case LUA_TNIL:
-    return torrent::Object((torrent::Object::value_type)0);
+    return torrent::Object(torrent::Object());
   case LUA_TTABLE: {
     lua_pushnil(l_state);
     int status = lua_next(l_state, -2);
@@ -346,35 +366,6 @@ lua_callstack_to_object(lua_State* l_state, int command_flags, rpc::target_type*
   }
 
   return result;
-}
-
-int
-lua_rtorrent_call(lua_State* l_state) {
-  auto             method = lua_tostring(l_state, 1);
-  lua_remove(l_state, 1);
-
-  rpc::CommandMap::iterator itr = rpc::commands.find(method);
-  if (itr == rpc::commands.end()) {
-    throw torrent::input_error("method not found: " + std::string(method));
-  }
-
-  auto target  = rpc::make_target();
-  auto deleter = std::function<void()>();
-
-  auto object = lua_callstack_to_object(l_state, itr->second.m_flags, &target, &deleter);
-
-  try {
-    const auto& result = rpc::commands.call_command(itr, object, target);
-
-    object_to_lua(l_state, result);
-    deleter();
-
-    return 1;
-
-  } catch (torrent::base_error& e) {
-    deleter();
-    throw luaL_error(l_state, e.what());
-  }
 }
 
 torrent::Object
