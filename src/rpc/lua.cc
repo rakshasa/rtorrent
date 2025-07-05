@@ -53,8 +53,10 @@ LuaEngine::override_package_path() {
   auto l_state = m_luaState;
   lua_getglobal(l_state, "package");
   lua_getfield(l_state, -1, "path");
+
   std::string current_path(lua_tostring(l_state, -1));
   std::string new_path = local_path + ';' + current_path;
+
   lua_pushstring(l_state, new_path.c_str());
   lua_setfield(l_state, -3, "path");
   lua_pop(l_state, 2);
