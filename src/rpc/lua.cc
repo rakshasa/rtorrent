@@ -25,7 +25,7 @@ namespace rpc {
 
 const int         LuaEngine::flag_string;
 const std::string LuaEngine::module_name = "rtorrent";
-const std::string LuaEngine::local_path = PACKAGE_DATADIR "/lua/?.lua;" PACKAGE_DATADIR "/lua/?/init.lua";
+const std::string LuaEngine::local_path = LUA_DATADIR "/?.lua;" LUA_DATADIR "/?/init.lua";
 
 #ifdef HAVE_LUA
 
