@@ -284,7 +284,7 @@ AC_DEFUN([TORRENT_WITH_LUA], [
       AX_LUA_LIBS
       AX_LUA_HEADERS
       AC_DEFINE(HAVE_LUA, 1, Use LUA.)
-      AC_DEFINE_UNQUOTED(PACKAGE_DATADIR, ["${prefix}/share/rtorrent"], Use LUA.)
+      AC_DEFINE_UNQUOTED(LUA_DATADIR, ["${prefix}/share/rtorrent/lua"], Use LUA.)
       LIBS="$LIBS $LUA_LIB"
       CXXFLAGS="$CXXFLAGS $LUA_INCLUDE"
     fi
