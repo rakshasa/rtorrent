@@ -6,7 +6,6 @@
 
 #ifdef HAVE_LUA
 #include <lua.hpp>
-#define LUA_DATADIR PACKAGE_DATADIR "/lua"
 #endif
 
 namespace rpc {
