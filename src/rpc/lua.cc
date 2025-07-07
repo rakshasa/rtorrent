@@ -23,11 +23,11 @@
 
 namespace rpc {
 
+#ifdef HAVE_LUA
+
 const int         LuaEngine::flag_string;
 const std::string LuaEngine::module_name = "rtorrent";
 const std::string LuaEngine::local_path = LUA_DATADIR "/?.lua;" LUA_DATADIR "/?/init.lua";
-
-#ifdef HAVE_LUA
 
 LuaEngine::LuaEngine() {
   m_luaState = luaL_newstate();
