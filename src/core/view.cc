@@ -300,10 +300,17 @@ View::filter_by(const torrent::Object& condition, View::base_type& result) {
 
 void
 View::filter_download(core::Download* download) {
-  iterator itr = std::find(base_type::begin(), base_type::end(), download);
-
-  if (itr == base_type::end())
-    throw torrent::internal_error("View::filter_download(...) could not find download.");
+  iterator itr;
+  if (!base_type::empty() && base_type::back() == download) {
+    // Fast path: check if download is newly added (at end of vector)
+    itr = base_type::end() - 1;
+  } else {
+    // Fallback: search through entire vector
+    itr = std::find(base_type::begin(), base_type::end(), download);
+    
+    if (itr == base_type::end())
+      throw torrent::internal_error("View::filter_download(...) could not find download.");
+  }
 
   if (view_downloads_filter(m_filter, m_temp_filter)(download)) {
     if (itr >= end_visible()) {
