@@ -81,7 +81,11 @@ DownloadFactory::~DownloadFactory() {
 void
 DownloadFactory::load(const std::string& uri) {
   m_uri = uri;
-  torrent::this_thread::scheduler()->wait_for(&m_task_load, 0ms);
+  if (m_session) {
+    receive_load();
+  } else {
+    torrent::this_thread::scheduler()->wait_for(&m_task_load, 0ms);
+  }
 }
 
 // This function must be called before DownloadFactory::commit().
@@ -96,7 +100,11 @@ DownloadFactory::load_raw_data(const std::string& input) {
 
 void
 DownloadFactory::commit() {
-  torrent::this_thread::scheduler()->wait_for(&m_task_commit, 0ms);
+  if (m_session) {
+    receive_commit();
+  } else {
+    torrent::this_thread::scheduler()->wait_for(&m_task_commit, 0ms);
+  }
 }
 
 void
