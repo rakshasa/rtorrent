@@ -68,8 +68,6 @@ Control::initialize() {
   m_core->listen_open();
   m_core->download_store()->enable(rpc::call_command_value("session.use_lock"));
 
-  m_core->set_hashing_view(*m_viewManager->find_throw("hashing"));
-
   m_ui->init(this);
 
   if(!display::Canvas::daemon()) {

@@ -25,6 +25,7 @@
 #include "core/download_factory.h"
 #include "core/download_store.h"
 #include "core/manager.h"
+#include "core/view_manager.h"
 #include "display/canvas.h"
 #include "display/window.h"
 #include "display/manager.h"
@@ -431,6 +432,14 @@ main(int argc, char** argv) {
     // session torrents are loaded before arg torrents.
     control->dht_manager()->load_dht_cache();
     load_session_torrents();
+
+    // Initialize hashing view after session loading to batch-process all session torrents
+    control->core()->set_hashing_view(*control->view_manager()->find_throw("hashing"));
+    
+    // Trigger batch hash processing for session torrents already in the view
+    for (auto& handler : control->core()->hashing_view()->signal_changed()) {
+      handler();
+    }
 
     // TODO: Check if this is required.
     // rak::priority_queue_perform(&taskScheduler, cachedTime);
