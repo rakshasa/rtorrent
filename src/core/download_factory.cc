@@ -297,11 +297,11 @@ DownloadFactory::receive_success() {
     for (const auto& command : m_commands)
       rpc::parse_command_multiple_std(command, rpc::make_target(download));
 
-    if (m_manager->download_list()->find(infohash) == m_manager->download_list()->end())
-      throw torrent::input_error("The newly created download was removed.");
-
-    if (!m_session)
-       rpc::call_command("d.state.set", (int64_t)m_start, rpc::make_target(download));
+    if (!m_session) {
+      if (m_manager->download_list()->find(infohash) == m_manager->download_list()->end())
+        throw torrent::input_error("The newly created download was removed.");
+      rpc::call_command("d.state.set", (int64_t)m_start, rpc::make_target(download));
+    }
 
     rpc::commands.call_catch(m_session ? "event.download.inserted_session" : "event.download.inserted_new",
                              rpc::make_target(download), torrent::Object(), "Download event action failed: ");
