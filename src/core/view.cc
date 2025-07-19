@@ -346,7 +346,14 @@ View::clear_filter_on() {
 
 inline void
 View::insert_visible(Download* d) {
-  auto itr = std::find_if(begin_visible(), end_visible(), [this, d](auto d2) { return view_downloads_compare(m_sortNew)(d, d2); });
+  iterator itr;
+  if (m_sortNew.is_empty()) {
+    // Fast path: insert directly at end when sorting not required
+    itr = end_visible();
+  } else {
+    // Sorted insertion: find correct position
+    itr = std::find_if(begin_visible(), end_visible(), [this, d](auto d2) { return view_downloads_compare(m_sortNew)(d, d2); });
+  }
 
   m_size++;
   m_focus += (m_focus >= position(itr));
