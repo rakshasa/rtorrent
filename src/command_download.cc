@@ -551,12 +551,31 @@ d_list_push_back(core::Download* download, const torrent::Object& rawArgs, const
 }
 
 torrent::Object
+d_list_push_back_string(core::Download* download, const torrent::Object& rawArgs, const char* first_key, const char* second_key) {
+  auto& arg = rawArgs.as_string();
+  download_get_variable(download, first_key, second_key).as_list().push_back(arg);
+
+  return torrent::Object();
+}
+
+torrent::Object
 d_list_push_back_unique(core::Download* download, const torrent::Object& rawArgs, const char* first_key, const char* second_key) {
   const torrent::Object& args = (rawArgs.is_list() && !rawArgs.as_list().empty()) ? rawArgs.as_list().front() : rawArgs;
   torrent::Object::list_type& list = download_get_variable(download, first_key, second_key).as_list();
 
   if (std::none_of(list.begin(), list.end(), [args](const torrent::Object& obj) { return torrent::object_equal(obj, args); }))
     list.push_back(rawArgs);
+
+  return torrent::Object();
+}
+
+torrent::Object
+d_list_push_back_unique_string(core::Download* download, const torrent::Object& rawArgs, const char* first_key, const char* second_key) {
+  auto& arg = rawArgs.as_string();
+  torrent::Object::list_type& list = download_get_variable(download, first_key, second_key).as_list();
+
+  if (std::none_of(list.begin(), list.end(), [arg](const torrent::Object& obj) { return torrent::object_equal(obj, arg); }))
+    list.push_back(arg);
 
   return torrent::Object();
 }
@@ -773,8 +792,8 @@ initialize_command_download() {
   CMD2_DL         ("d.views",                  std::bind(&download_get_variable, std::placeholders::_1, "rtorrent", "views"));
   CMD2_DL         ("d.views.has",              std::bind(&d_list_has, std::placeholders::_1, std::placeholders::_2, "rtorrent", "views"));
   CMD2_DL         ("d.views.remove",           std::bind(&d_list_remove, std::placeholders::_1, std::placeholders::_2, "rtorrent", "views"));
-  CMD2_DL         ("d.views.push_back",        std::bind(&d_list_push_back, std::placeholders::_1, std::placeholders::_2, "rtorrent", "views"));
-  CMD2_DL         ("d.views.push_back_unique", std::bind(&d_list_push_back_unique, std::placeholders::_1, std::placeholders::_2, "rtorrent", "views"));
+  CMD2_DL         ("d.views.push_back",        std::bind(&d_list_push_back_string, std::placeholders::_1, std::placeholders::_2, "rtorrent", "views"));
+  CMD2_DL         ("d.views.push_back_unique", std::bind(&d_list_push_back_unique_string, std::placeholders::_1, std::placeholders::_2, "rtorrent", "views"));
 
   // This command really needs to be improved, so we have proper
   // logging support.
