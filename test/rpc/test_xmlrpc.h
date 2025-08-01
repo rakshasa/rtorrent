@@ -27,6 +27,4 @@ private:
   std::unique_ptr<TestMainThread> m_test_main_thread;
 
   rpc::XmlRpc       m_xmlrpc;
-  rpc::CommandMap   m_map;
-  rpc::command_base m_commands[cmd_size];
 };
