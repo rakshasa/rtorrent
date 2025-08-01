@@ -11,7 +11,15 @@
 
 CPPUNIT_TEST_SUITE_REGISTRATION(TestXmlrpc);
 
-torrent::Object xmlrpc_cmd_test_reflect([[maybe_unused]] rpc::target_type t, const torrent::Object& obj) { return obj; }
+torrent::Object
+xmlrpc_cmd_test_reflect([[maybe_unused]] rpc::target_type t, const torrent::Object& obj) {
+  return obj;
+}
+
+torrent::Object
+xmlrpc_cmd_([[maybe_unused]] rpc::target_type t, const torrent::Object& obj) {
+  return obj;
+}
 
 void initialize_command_dynamic();
 
@@ -109,9 +117,17 @@ TestXmlrpc::setUp() {
   setlocale(LC_ALL, "");
   control = new Control;
 
-  if (rpc::commands.find("xmlrpc_reflect") == rpc::commands.end()) {
+  if (rpc::commands.find("xmlrpc_reflect") == rpc::commands.end())
     CMD2_ANY("xmlrpc_reflect", &xmlrpc_cmd_test_reflect);
-  }
+
+  // TODO: Check if rtorrent:views must be initialized.
+  // TODO: Add checks to d.views that only allows strings.
+
+  // CMD2_DL         ("d.views",                  std::bind(&download_get_variable, std::placeholders::_1, "rtorrent", "views"));
+  // CMD2_DL         ("d.views.has",              std::bind(&d_list_has, std::placeholders::_1, std::placeholders::_2, "rtorrent", "views"));
+  // CMD2_DL         ("d.views.remove",           std::bind(&d_list_remove, std::placeholders::_1, std::placeholders::_2, "rtorrent", "views"));
+  // CMD2_DL         ("d.views.push_back",        std::bind(&d_list_push_back, std::placeholders::_1, std::placeholders::_2, "rtorrent", "views"));
+  // CMD2_DL         ("d.views.push_back_unique", std::bind(&d_list_push_back_unique, std::placeholders::_1, std::placeholders::_2, "rtorrent", "views"));
 }
 
 void
