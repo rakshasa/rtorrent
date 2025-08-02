@@ -17,7 +17,7 @@ xmlrpc_cmd_test_reflect([[maybe_unused]] rpc::target_type t, const torrent::Obje
 }
 
 torrent::Object
-xmlrpc_cmd_([[maybe_unused]] rpc::target_type t, const torrent::Object& obj) {
+xmlrpc_cmd_test_reflect_string([[maybe_unused]] rpc::target_type t, const std::string& obj) {
   return obj;
 }
 
@@ -104,7 +104,12 @@ std::vector<std::tuple<std::string, std::string, std::string>> basic_requests = 
 
   std::make_tuple("Invalid - non-boolean boolean",
                   "<?xml version=\"1.0\"?><methodCall><methodName>xmlrpc_reflect</methodName><params><param><value><boolean>string value</boolean></value></param></params></methodCall>",
-                  "<?xml version=\"1.0\"?><methodResponse><fault><value><struct><member><name>faultCode</name><value><i8>-501</i8></value></member><member><name>faultString</name><value><string>unknown boolean value: string value</string></value></member></struct></value></fault></methodResponse>")
+                  "<?xml version=\"1.0\"?><methodResponse><fault><value><struct><member><name>faultCode</name><value><i8>-501</i8></value></member><member><name>faultString</name><value><string>unknown boolean value: string value</string></value></member></struct></value></fault></methodResponse>"),
+
+  std::make_tuple("CMD2_ANY_STRING",
+                  "<?xml version=\"1.0\"?><methodCall><methodName>xmlrpc_reflect_string</methodName><params><param><value><string></string></value></param><param><value><string>test</string></value></param></params></methodCall>",
+                  "<?xml version=\"1.0\"?><methodResponse><params><param><value><string>test</string></value></param></params></methodResponse>")
+
 };
 
 void
@@ -120,14 +125,8 @@ TestXmlrpc::setUp() {
   if (rpc::commands.find("xmlrpc_reflect") == rpc::commands.end())
     CMD2_ANY("xmlrpc_reflect", &xmlrpc_cmd_test_reflect);
 
-  // TODO: Check if rtorrent:views must be initialized.
-  // TODO: Add checks to d.views that only allows strings.
-
-  // CMD2_DL         ("d.views",                  std::bind(&download_get_variable, std::placeholders::_1, "rtorrent", "views"));
-  // CMD2_DL         ("d.views.has",              std::bind(&d_list_has, std::placeholders::_1, std::placeholders::_2, "rtorrent", "views"));
-  // CMD2_DL         ("d.views.remove",           std::bind(&d_list_remove, std::placeholders::_1, std::placeholders::_2, "rtorrent", "views"));
-  // CMD2_DL         ("d.views.push_back",        std::bind(&d_list_push_back, std::placeholders::_1, std::placeholders::_2, "rtorrent", "views"));
-  // CMD2_DL         ("d.views.push_back_unique", std::bind(&d_list_push_back_unique, std::placeholders::_1, std::placeholders::_2, "rtorrent", "views"));
+  if (rpc::commands.find("xmlrpc_reflect_string") == rpc::commands.end())
+    CMD2_ANY_STRING("xmlrpc_reflect_string", &xmlrpc_cmd_test_reflect_string);
 }
 
 void
