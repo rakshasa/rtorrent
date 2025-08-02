@@ -33,7 +33,7 @@ WindowDownloadList::set_view(core::View* l) {
   m_view = l;
 
   if (m_view != NULL)
-    m_changed_itr = m_view->signal_changed().insert(m_view->signal_changed().begin(), std::bind(&Window::mark_dirty, this));
+    m_changed_itr = m_view->signal_changed().insert(m_view->signal_changed().begin(), [this] { mark_dirty(); });
 }
 
 // Return a pair of ints, representing a) the ncurses attributes and b) the ncurses color pair ID to use

@@ -16,13 +16,13 @@ namespace ui {
 ElementTrackerList::ElementTrackerList(core::Download* d) :
     m_download(d) {
 
-  m_bindings[KEY_LEFT] = m_bindings[control->ui()->navigation_key(RT_KEY_LEFT)] = std::bind(&slot_type::operator(), &m_slot_exit);
+  m_bindings[KEY_LEFT] = m_bindings[control->ui()->navigation_key(RT_KEY_LEFT)] = [this] { m_slot_exit(); };
 
-  m_bindings[' ']      = std::bind(&ElementTrackerList::receive_cycle_group, this);
-  m_bindings['*']      = std::bind(&ElementTrackerList::receive_disable, this);
+  m_bindings[' '] = [this] { receive_cycle_group(); };
+  m_bindings['*'] = [this] { receive_disable(); };
 
-  m_bindings[KEY_DOWN] = m_bindings[control->ui()->navigation_key(RT_KEY_DOWN)] = std::bind(&ElementTrackerList::receive_next, this);
-  m_bindings[KEY_UP]   = m_bindings[control->ui()->navigation_key(RT_KEY_UP)]   = std::bind(&ElementTrackerList::receive_prev, this);
+  m_bindings[KEY_DOWN] = m_bindings[control->ui()->navigation_key(RT_KEY_DOWN)] = [this] { receive_next(); };
+  m_bindings[KEY_UP] = m_bindings[control->ui()->navigation_key(RT_KEY_UP)] = [this] { receive_prev(); };
 }
 
 void

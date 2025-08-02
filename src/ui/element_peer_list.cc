@@ -66,24 +66,22 @@ ElementPeerList::ElementPeerList(core::Download* d) :
   for (auto peer : *connection_list)
     m_list.push_back(peer);
 
-  m_peer_connected = connection_list->signal_connected().insert(connection_list->signal_connected().end(),
-                                                                std::bind(&ElementPeerList::receive_peer_connected, this, std::placeholders::_1));
-  m_peer_disconnected = connection_list->signal_disconnected().insert(connection_list->signal_disconnected().end(),
-                                                                      std::bind(&ElementPeerList::receive_peer_disconnected, this, std::placeholders::_1));
+  m_peer_connected    = connection_list->signal_connected().insert(connection_list->signal_connected().end(), [this](auto p) { receive_peer_connected(p); });
+  m_peer_disconnected = connection_list->signal_disconnected().insert(connection_list->signal_disconnected().end(), [this](auto p) { receive_peer_disconnected(p); });
 
   m_windowList  = new display::WindowPeerList(m_download, &m_list, &m_listItr);
   m_elementInfo = create_info();
 
-  m_elementInfo->slot_exit(std::bind(&ElementPeerList::activate_display, this, DISPLAY_LIST));
+  m_elementInfo->slot_exit([this] { activate_display(DISPLAY_LIST); });
 
-  m_bindings[control->ui()->navigation_key(RT_KEY_DISCONNECT_PEER)] = std::bind(&ElementPeerList::receive_disconnect_peer, this);
-  m_bindings['*']       = std::bind(&ElementPeerList::receive_snub_peer, this);
-  m_bindings['B']       = std::bind(&ElementPeerList::receive_ban_peer, this);
-  m_bindings[KEY_LEFT]  = m_bindings[control->ui()->navigation_key(RT_KEY_LEFT)]  = std::bind(&slot_type::operator(), &m_slot_exit);
-  m_bindings[KEY_RIGHT] = m_bindings[control->ui()->navigation_key(RT_KEY_RIGHT)] = std::bind(&ElementPeerList::activate_display, this, DISPLAY_INFO);
+  m_bindings[control->ui()->navigation_key(RT_KEY_DISCONNECT_PEER)] = [this] { receive_disconnect_peer(); };
+  m_bindings['*']                                                   = [this] { receive_snub_peer(); };
+  m_bindings['B']                                                   = [this] { receive_ban_peer(); };
+  m_bindings[KEY_LEFT] = m_bindings[control->ui()->navigation_key(RT_KEY_LEFT)] = [this] { m_slot_exit(); };
+  m_bindings[KEY_RIGHT] = m_bindings[control->ui()->navigation_key(RT_KEY_RIGHT)] = [this] { activate_display(DISPLAY_INFO); };
 
-  m_bindings[KEY_UP]    = m_bindings[control->ui()->navigation_key(RT_KEY_UP)]    = std::bind(&ElementPeerList::receive_prev, this);
-  m_bindings[KEY_DOWN]  = m_bindings[control->ui()->navigation_key(RT_KEY_DOWN)]  = std::bind(&ElementPeerList::receive_next, this);
+  m_bindings[KEY_UP] = m_bindings[control->ui()->navigation_key(RT_KEY_UP)] = [this] { receive_prev(); };
+  m_bindings[KEY_DOWN] = m_bindings[control->ui()->navigation_key(RT_KEY_DOWN)] = [this] { receive_next(); };
 }
 
 ElementPeerList::~ElementPeerList() {

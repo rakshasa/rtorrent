@@ -21,8 +21,8 @@ namespace core {
 Download::Download(download_type d) :
     m_download(d) {
 
-  m_download.info()->signal_tracker_success().push_back(std::bind(&Download::receive_tracker_msg, this, ""));
-  m_download.info()->signal_tracker_failed().push_back(std::bind(&Download::receive_tracker_msg, this, std::placeholders::_1));
+  m_download.info()->signal_tracker_success().push_back([this] { receive_tracker_msg(""); });
+  m_download.info()->signal_tracker_failed().push_back([this](const auto& msg) { receive_tracker_msg(msg); });
 }
 
 Download::~Download() {
