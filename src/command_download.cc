@@ -544,27 +544,9 @@ download_set_variable_string(core::Download* download, const torrent::Object::st
 //
 
 torrent::Object
-d_list_push_back(core::Download* download, const torrent::Object& rawArgs, const char* first_key, const char* second_key) {
-  download_get_variable(download, first_key, second_key).as_list().push_back(rawArgs);
-
-  return torrent::Object();
-}
-
-torrent::Object
 d_list_push_back_string(core::Download* download, const torrent::Object& rawArgs, const char* first_key, const char* second_key) {
   auto& arg = rawArgs.as_string();
   download_get_variable(download, first_key, second_key).as_list().push_back(arg);
-
-  return torrent::Object();
-}
-
-torrent::Object
-d_list_push_back_unique(core::Download* download, const torrent::Object& rawArgs, const char* first_key, const char* second_key) {
-  const torrent::Object& args = (rawArgs.is_list() && !rawArgs.as_list().empty()) ? rawArgs.as_list().front() : rawArgs;
-  torrent::Object::list_type& list = download_get_variable(download, first_key, second_key).as_list();
-
-  if (std::none_of(list.begin(), list.end(), [args](const torrent::Object& obj) { return torrent::object_equal(obj, args); }))
-    list.push_back(rawArgs);
 
   return torrent::Object();
 }
