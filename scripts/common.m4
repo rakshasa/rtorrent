@@ -23,6 +23,7 @@ AC_DEFUN([TORRENT_WITH_SYSROOT], [
 
 AC_DEFUN([TORRENT_REMOVE_UNWANTED],
 [
+  AC_REQUIRE([AC_PROG_GREP])
   values_to_check=`for i in $2; do echo $i; done`
   unwanted_values=`for i in $3; do echo $i; done`
   if test -z "${unwanted_values}"; then
@@ -156,6 +157,26 @@ AC_DEFUN([TORRENT_CHECK_POPCOUNT], [
   ])
 ])
 
+AC_DEFUN([TORRENT_CHECK_CACHELINE], [
+  AC_MSG_CHECKING(for cacheline)
+
+  AC_COMPILE_IFELSE([AC_LANG_SOURCE([
+      #include <stdlib.h>
+          #include <linux/cache.h>
+          void* vptr __cacheline_aligned;
+          void f() { posix_memalign(&vptr, SMP_CACHE_BYTES, 42); }
+      ])],
+    [
+      AC_MSG_RESULT(found builtin)
+dnl   Need to fix this so that it uses the stuff defined by the system.
+
+      AC_DEFINE(LT_SMP_CACHE_BYTES, 128, Largest L1 cache size we know of should work on all archs.)
+    ], [
+      AC_MSG_RESULT(using default 128 bytes)
+      AC_DEFINE(LT_SMP_CACHE_BYTES, 128, Largest L1 cache size we know of should work on all archs.)
+  ])
+])
+
 AC_DEFUN([TORRENT_CHECK_ALIGNED], [
   AC_MSG_CHECKING(the byte alignment)
 
@@ -222,4 +243,15 @@ AC_DEFUN([TORRENT_ENABLE_INTERRUPT_SOCKET], [
       fi
     ]
   )
+])
+
+AC_DEFUN([TORRENT_DISABLE_IPV6], [
+  AC_ARG_ENABLE(ipv6,
+    AS_HELP_STRING([--enable-ipv6],
+      [enable ipv6 [[default=no]]]),
+    [
+        if test "$enableval" = "yes"; then
+            AC_DEFINE(RAK_USE_INET6, 1, enable ipv6 stuff)
+        fi
+    ])
 ])
