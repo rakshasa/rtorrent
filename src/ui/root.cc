@@ -39,7 +39,7 @@ static const int emacs_keymap[RT_KEYMAP_MAX] = {
   'A' - '@',
   'E' - '@',
   'L',
-  'D' - '@' // could be null instead to avoid confusion
+  'D' - '@'
 };
 
 static const int vi_keymap[RT_KEYMAP_MAX] = {
