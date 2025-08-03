@@ -38,7 +38,8 @@ static const int emacs_keymap[RT_KEYMAP_MAX] = {
   'H' - '@',
   'A' - '@',
   'E' - '@',
-  'L'
+  'L',
+  'D' - '@' // could be null instead to avoid confusion
 };
 
 static const int vi_keymap[RT_KEYMAP_MAX] = {
@@ -52,7 +53,8 @@ static const int vi_keymap[RT_KEYMAP_MAX] = {
   'D' - '@',
   'H',
   'G',
-  'L' - '@'
+  'L' - '@',
+  'x'
 };
 
 Root::Root() {

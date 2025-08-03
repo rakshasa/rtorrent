@@ -35,7 +35,8 @@ enum NavigationKeymap {
   RT_KEY_HOME,
   RT_KEY_END,
   RT_KEY_TOGGLE_LAYOUT,
-  RT_KEYMAP_MAX,
+  RT_KEY_STOP,
+  RT_KEYMAP_MAX
 };
 
 class DownloadList;

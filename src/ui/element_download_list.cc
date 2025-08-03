@@ -25,11 +25,11 @@ ElementDownloadList::ElementDownloadList() {
   if (m_view == NULL)
     throw torrent::internal_error("View \"main\" must be present to initialize the main display.");
 
-  m_bindings['\x13'] = std::bind(&ElementDownloadList::receive_command, this, "d.start=");
-  m_bindings['\x04'] = std::bind(&ElementDownloadList::receive_command, this, "branch=d.state=,d.stop=,d.erase=");
-  m_bindings['\x0B'] = std::bind(&ElementDownloadList::receive_command, this, "d.ignore_commands.set=1; d.stop=; d.close=");
-  m_bindings['\x12'] = std::bind(&ElementDownloadList::receive_command, this, "d.complete.set=0; d.check_hash=");
-  m_bindings['\x05'] = std::bind(&ElementDownloadList::receive_command, this, "f.multicall=,f.set_create_queued=0,f.set_resize_queued=0; print=\"Queued create/resize of files in torrent.\"");
+  m_bindings['\x13']   = std::bind(&ElementDownloadList::receive_command, this, "d.start=");
+  m_bindings[KEY_STOP] = m_bindings[control->ui()->navigation_key(RT_KEY_STOP)] = std::bind(&ElementDownloadList::receive_command, this, "branch=d.state=,d.stop=,d.erase=");
+  m_bindings['\x0B']   = std::bind(&ElementDownloadList::receive_command, this, "d.ignore_commands.set=1; d.stop=; d.close=");
+  m_bindings['\x12']   = std::bind(&ElementDownloadList::receive_command, this, "d.complete.set=0; d.check_hash=");
+  m_bindings['\x05']   = std::bind(&ElementDownloadList::receive_command, this, "f.multicall=,f.set_create_queued=0,f.set_resize_queued=0; print=\"Queued create/resize of files in torrent.\"");
 
   m_bindings['+']       = std::bind(&ElementDownloadList::receive_next_priority, this);
   m_bindings['-']       = std::bind(&ElementDownloadList::receive_prev_priority, this);
