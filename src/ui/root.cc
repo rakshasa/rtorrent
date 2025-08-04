@@ -32,14 +32,14 @@ static const int emacs_keymap[RT_KEYMAP_MAX] = {
   'F' - '@',
   'P' - '@',
   'N' - '@',
-  'l',
-  'k',
   'U' - '@',
   'H' - '@',
   'A' - '@',
   'E' - '@',
-  'L',
-  'D' - '@'
+  'D' - '@', // RT_KEY_DELETE_ITEM
+  'k',       // RT_KEY_DISCONNECT_PEER
+  'l',       // RT_KEY_DISPLAY_LOG
+  'L'        // RT_KEY_TOGGLE_LAYOUT
 };
 
 static const int vi_keymap[RT_KEYMAP_MAX] = {
@@ -47,14 +47,14 @@ static const int vi_keymap[RT_KEYMAP_MAX] = {
   'l',
   'k',
   'j',
-  'L',
-  'K',
   'B' - '@',
   'D' - '@',
   'H',
   'G',
-  'L' - '@',
-  'x'
+  'x',       // RT_KEY_DELETE_ITEM
+  'K',       // RT_KEY_DISCONNECT_PEER
+  'L',       // RT_KEY_DISPLAY_LOG
+  'L' - '@'  // RT_KEY_TOGGLE_LAYOUT
 };
 
 Root::Root() {
