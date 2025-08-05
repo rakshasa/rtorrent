@@ -29,7 +29,7 @@ end
 -- Instance layout (base paths)
 local home = os.getenv('HOME')
 
-local cfg <const> = {}
+local cfg = {}
 cfg.basedir = home..'/rtorrent/'
 cfg.download = cfg.basedir..'download/'
 cfg.logs = cfg.basedir..'log/'
