@@ -310,6 +310,8 @@ main(int argc, char** argv) {
        "schedule2 = prune_file_status,3600,86400,((system.file_status_cache.prune))\n"
 
        "protocol.encryption.set=allow_incoming,prefer_plaintext,enable_retry\n"
+
+       "ui.color.focus.set=reverse\n"
     );
 
     // Functions that might not get depracted as they are nice for

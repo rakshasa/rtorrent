@@ -768,6 +768,7 @@ cmd_status_throttle_names(bool up, const torrent::Object::list_type& args) {
 torrent::Object
 apply_set_color(int color_id, const torrent::Object::string_type& color_str) {
   control->object_storage()->set_str_string(display::color_vars[color_id], color_str);
+
   display::Canvas::build_colors();
   return torrent::Object();
 }
@@ -878,9 +879,11 @@ initialize_command_ui() {
   // Build set/get methods for all color definitions
   for (int color_id = 1; color_id < display::RCOLOR_MAX; color_id++) {
     control->object_storage()->insert_str(display::color_vars[color_id], "", rpc::object_storage::flag_string_type);
+
     CMD2_ANY_STRING(std::string(display::color_vars[color_id]) + ".set", [color_id](const auto&, const auto& arg) {
       return apply_set_color(color_id, arg);
     });
+
     CMD2_ANY(display::color_vars[color_id], [color_id](const auto&, const auto&) {
       return control->object_storage()->get_str(display::color_vars[color_id]);
     });
