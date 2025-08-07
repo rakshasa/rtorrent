@@ -25,6 +25,7 @@
 #include "core/download_factory.h"
 #include "core/download_store.h"
 #include "core/manager.h"
+#include "core/view_manager.h"
 #include "display/canvas.h"
 #include "display/window.h"
 #include "display/manager.h"
@@ -263,8 +264,6 @@ main(int argc, char** argv) {
        "view.add = default\n"
 
        "view.add = name\n"
-       "view.sort_new     = name,((less,((d.name))))\n"
-       "view.sort_current = name,((less,((d.name))))\n"
 
        "view.add = active\n"
        "view.filter = active,((false))\n"
@@ -302,9 +301,6 @@ main(int argc, char** argv) {
        "view.filter = leeching,((and,((d.state)),((not,((d.complete))))))\n"
        "view.filter_on = leeching,event.download.resumed,event.download.paused,event.download.finished\n"
 
-       "schedule2 = view.main,10,10,((view.sort,main,20))\n"
-       "schedule2 = view.name,10,10,((view.sort,name,20))\n"
-
        "schedule2 = session_save,1200,1200,((session.save))\n"
        "schedule2 = low_diskspace,5,60,((close_low_diskspace,500M))\n"
        "schedule2 = prune_file_status,3600,86400,((system.file_status_cache.prune))\n"
@@ -313,6 +309,17 @@ main(int argc, char** argv) {
 
        "ui.color.focus.set=reverse\n"
     );
+
+    // Only enable view sorting when not in daemon mode
+    if (!rpc::call_command_value("system.daemon")) {
+      rpc::parse_command_multiple
+        (rpc::make_target(),
+         "view.sort_new     = name,((less,((d.name))))\n"
+         "view.sort_current = name,((less,((d.name))))\n"
+         "schedule2 = view.main,10,10,((view.sort,main,20))\n"
+         "schedule2 = view.name,10,10,((view.sort,name,20))\n"
+        );
+    }
 
     // Functions that might not get depracted as they are nice for
     // configuration files, and thus might do with just some
@@ -433,6 +440,14 @@ main(int argc, char** argv) {
     // session torrents are loaded before arg torrents.
     control->dht_manager()->load_dht_cache();
     load_session_torrents();
+
+    // Initialize hashing view after session loading to batch-process all session torrents
+    control->core()->set_hashing_view(*control->view_manager()->find_throw("hashing"));
+    
+    // Trigger batch hash processing for session torrents already in the view
+    for (auto& handler : control->core()->hashing_view()->signal_changed()) {
+      handler();
+    }
 
     // TODO: Check if this is required.
     // rak::priority_queue_perform(&taskScheduler, cachedTime);
