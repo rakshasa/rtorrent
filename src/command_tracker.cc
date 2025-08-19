@@ -31,11 +31,11 @@ apply_dht_add_node(const std::string& arg) {
   if (!torrent::dht_controller()->is_valid())
     throw torrent::input_error("DHT not enabled.");
 
-  int port, ret;
+  int port;
   char dummy;
   char host[1024];
 
-  ret = std::sscanf(arg.c_str(), "%1023[^:]:%i%c", host, &port, &dummy);
+  int ret = std::sscanf(arg.c_str(), "%1023[^:]:%i%c", host, &port, &dummy);
 
   if (ret == 1)
     port = 6881;
@@ -47,13 +47,18 @@ apply_dht_add_node(const std::string& arg) {
 
   assert(std::this_thread::get_id() == torrent::main_thread::thread()->thread_id());
 
+  auto host_str = std::string(host);
+
+  // TODO: Move this lookup to DhtController.
+
   // Currently discarding SOCK_STREAM.
-  torrent::this_thread::resolver()->resolve_specific(nullptr, host, PF_INET, [port](torrent::c_sa_shared_ptr sa, int err) {
+  torrent::this_thread::resolver()->resolve_specific(nullptr, host_str, PF_INET, [host_str, port](torrent::c_sa_shared_ptr sa, int err) {
       if (sa == nullptr) {
-        lt_log_print(torrent::LOG_DHT_WARN, "Could not resolve host: %s", gai_strerror(err));
+        lt_log_print(torrent::LOG_DHT_ERROR, "dht.add_node : could not resolve host : %s (%s)", gai_strerror(err), host_str.c_str());
         return;
       }
 
+      lt_log_print(torrent::LOG_DHT_CONTROLLER, "dht.add_node : %s", host_str.c_str());
       torrent::dht_controller()->add_node(sa.get(), port);
   });
 
@@ -138,6 +143,7 @@ initialize_command_tracker() {
   CMD2_VAR_BOOL       ("trackers.use_udp",    true);
 
   CMD2_ANY_STRING_V   ("dht.mode.set",          std::bind(&core::DhtManager::set_mode, control->dht_manager(), std::placeholders::_2));
+  // TODO: This should query DhtController.
   CMD2_VAR_VALUE      ("dht.port",              int64_t(6881));
   CMD2_ANY_STRING     ("dht.add_node",          std::bind(&apply_dht_add_node, std::placeholders::_2));
   CMD2_ANY            ("dht.statistics",        std::bind(&core::DhtManager::dht_statistics, control->dht_manager()));

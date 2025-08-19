@@ -175,8 +175,12 @@ main(int argc, char** argv) {
     if (torrent::utils::Thread::should_handle_sigusr1())
       SignalHandler::set_handler(SIGUSR1, std::bind(&do_nothing));
 
-    torrent::log_add_group_output(torrent::LOG_NOTICE, "important");
-    torrent::log_add_group_output(torrent::LOG_INFO, "complete");
+    torrent::log_add_group_output(torrent::LOG_NOTICE,    "important");
+    torrent::log_add_group_output(torrent::LOG_DHT_ERROR, "important");
+
+    torrent::log_add_group_output(torrent::LOG_INFO,           "complete");
+    torrent::log_add_group_output(torrent::LOG_DHT_ERROR,      "complete");
+    torrent::log_add_group_output(torrent::LOG_DHT_CONTROLLER, "complete");
 
     torrent::initialize();
     torrent::set_main_thread_slots(std::bind(&client_perform));
