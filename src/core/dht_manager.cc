@@ -18,8 +18,11 @@
 #include "download_store.h"
 #include "manager.h"
 
-#define LT_LOG_THIS(log_fmt, ...)                                       \
-  lt_log_print_subsystem(torrent::LOG_DHT_MANAGER, "dht_manager", log_fmt, __VA_ARGS__);
+#define LT_LOG(log_fmt, ...)                                            \
+  lt_log_print_subsystem(torrent::LOG_DHT_CONTROLLER, "dht_manager", log_fmt, __VA_ARGS__);
+
+#define LT_LOG_ERROR(log_fmt, ...)                                      \
+  lt_log_print_subsystem(torrent::LOG_DHT_ERROR, "dht_manager", log_fmt, __VA_ARGS__);
 
 namespace core {
 
@@ -31,9 +34,19 @@ DhtManager::~DhtManager() {
 }
 
 void
+DhtManager::set_port(uint16_t port) {
+  if (torrent::dht_controller()->is_active()) {
+    LT_LOG_ERROR("cannot change port while DHT is active", 0);
+    throw torrent::input_error("cannot change port while DHT is active");
+  }
+
+  m_port = port;
+}
+
+void
 DhtManager::load_dht_cache() {
   if (m_start == dht_disable || !control->core()->download_store()->is_enabled()) {
-    LT_LOG_THIS("ignoring cache file", 0);
+    LT_LOG("ignoring cache file", 0);
     return;
   }
 
@@ -48,14 +61,14 @@ DhtManager::load_dht_cache() {
     // If the cache file is corrupted we will just discard it with an
     // error message.
     if (cache_stream.fail()) {
-      LT_LOG_THIS("cache file corrupted, discarding (path:%s)", cache_filename.c_str());
+      LT_LOG_ERROR("cache file corrupted, discarding (path:%s)", cache_filename.c_str());
       cache = torrent::Object::create_map();
     } else {
-      LT_LOG_THIS("cache file read (path:%s)", cache_filename.c_str());
+      LT_LOG("cache file read (path:%s)", cache_filename.c_str());
     }
 
   } else {
-    LT_LOG_THIS("could not open cache file (path:%s)", cache_filename.c_str());
+    LT_LOG("could not open cache file (path:%s)", cache_filename.c_str());
   }
 
   torrent::dht_controller()->initialize(cache);
@@ -69,12 +82,12 @@ DhtManager::start_dht() {
   torrent::this_thread::scheduler()->erase(&m_stop_timeout);
 
   if (!torrent::dht_controller()->is_valid()) {
-    LT_LOG_THIS("server start skipped, manager is uninitialized", 0);
+    LT_LOG_ERROR("server start skipped, manager is uninitialized", 0);
     return;
   }
 
   if (torrent::dht_controller()->is_active()) {
-    LT_LOG_THIS("server start skipped, already active", 0);
+    LT_LOG_ERROR("server start skipped, already active", 0);
     return;
   }
 
@@ -82,12 +95,14 @@ DhtManager::start_dht() {
   torrent::dht_controller()->set_upload_throttle(throttles.first);
   torrent::dht_controller()->set_download_throttle(throttles.second);
 
-  int port = rpc::call_command_value("dht.port");
-
-  if (port <= 0)
+  if (m_port <= 0) {
+    LT_LOG("server start skipped, port not set", 0);
     return;
+  }
 
-  if (!torrent::dht_controller()->start(port)) {
+  LT_LOG("starting server : port=%" PRIu16, m_port);
+
+  if (!torrent::dht_controller()->start(m_port)) {
     m_start = dht_off;
     return;
   }
@@ -112,7 +127,7 @@ DhtManager::stop_dht() {
   torrent::this_thread::scheduler()->erase(&m_stop_timeout);
 
   if (torrent::dht_controller()->is_active()) {
-    LT_LOG_THIS("stopping server", 0);
+    LT_LOG("stopping server", 0);
 
     log_statistics(true);
     torrent::dht_controller()->stop();
@@ -196,7 +211,7 @@ DhtManager::log_statistics(bool force) {
     // We should have had clients ping us at least but have received
     // nothing, that means the UDP port is probably unreachable.
     if (torrent::dht_controller()->is_receiving_requests())
-      LT_LOG_THIS("listening port appears to be unreachable, no queries received", 0);
+      LT_LOG("listening port appears to be unreachable, no queries received", 0);
 
     torrent::dht_controller()->set_receive_requests(false);
   }
@@ -204,7 +219,7 @@ DhtManager::log_statistics(bool force) {
   if (stats.queries_sent - m_dhtPrevQueriesSent > stats.num_nodes * 2 + 20 && stats.replies_received == m_dhtPrevRepliesReceived) {
     // No replies to over 20 queries plus two per node we have. Probably firewalled.
     if (!m_warned)
-      LT_LOG_THIS("listening port appears to be firewalled, no replies received", 0);
+      LT_LOG("listening port appears to be firewalled, no replies received", 0);
 
     m_warned = true;
     return false;

@@ -159,15 +159,11 @@ Manager::listen_open() {
   int portFirst, portLast;
   torrent::Object portRange = rpc::call_command("network.port_range");
 
-  if (portRange.is_string()) {
-    if (std::sscanf(portRange.as_string().c_str(), "%i-%i", &portFirst, &portLast) != 2)
-      throw torrent::input_error("Invalid port_range argument.");
+  if (!portRange.is_string())
+    throw torrent::input_error("Invalid port_range argument type.");
 
-//   } else if (portRange.is_list()) {
-
-  } else {
+  if (std::sscanf(portRange.as_string().c_str(), "%i-%i", &portFirst, &portLast) != 2)
     throw torrent::input_error("Invalid port_range argument.");
-  }
 
   if (portFirst > portLast || portLast >= (1 << 16))
     throw torrent::input_error("Invalid port range.");
