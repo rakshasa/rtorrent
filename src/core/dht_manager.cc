@@ -82,12 +82,12 @@ DhtManager::start_dht() {
   torrent::this_thread::scheduler()->erase(&m_stop_timeout);
 
   if (!torrent::dht_controller()->is_valid()) {
-    LT_LOG_ERROR("server start skipped, manager is uninitialized", 0);
+    LT_LOG("server start skipped, manager is uninitialized", 0);
     return;
   }
 
   if (torrent::dht_controller()->is_active()) {
-    LT_LOG_ERROR("server start skipped, already active", 0);
+    LT_LOG("server start skipped, already active", 0);
     return;
   }
 
