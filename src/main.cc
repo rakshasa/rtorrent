@@ -84,6 +84,35 @@ parse_options(int argc, char** argv) {
 }
 
 void
+initialize_rpc_slots() {
+  rpc::rpc.slot_find_download() = [](const char* hash) {
+      return control->core()->download_list()->find_hex_ptr(hash);
+    };
+  rpc::rpc.slot_find_file() = [](core::Download* d, uint32_t index) -> torrent::File* {
+      if (index >= d->file_list()->size_files())
+        throw torrent::input_error("invalid parameters: index not found");
+
+      return (*d->file_list())[index].get();
+    };
+  rpc::rpc.slot_find_tracker() = [](core::Download* d, uint32_t index) -> torrent::tracker::Tracker {
+      if (index >= d->tracker_controller().size())
+        throw torrent::input_error("invalid parameters: index not found");
+
+      // TODO: This should be rewritten to check if the tracker is valid and use a different
+      // function.
+      return d->tracker_controller().at(index);
+    };
+  rpc::rpc.slot_find_peer() = [](core::Download* d, const torrent::HashString& hash) -> torrent::Peer* {
+      auto itr = d->connection_list()->find(hash.c_str());
+
+      if (itr == d->connection_list()->end())
+        throw torrent::input_error("invalid parameters: hash not found");
+
+      return *itr;
+    };
+}
+
+void
 load_session_torrents() {
   utils::Directory entries = control->core()->download_store()->get_formated_entries();
 
@@ -181,6 +210,8 @@ main(int argc, char** argv) {
     torrent::log_add_group_output(torrent::LOG_INFO,           "complete");
     torrent::log_add_group_output(torrent::LOG_DHT_ERROR,      "complete");
     torrent::log_add_group_output(torrent::LOG_DHT_CONTROLLER, "complete");
+
+    initialize_rpc_slots();
 
     torrent::initialize();
     torrent::set_main_thread_slots(std::bind(&client_perform));
