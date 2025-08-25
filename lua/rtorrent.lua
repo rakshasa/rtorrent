@@ -2,6 +2,7 @@
 -- return it for loading.
 local args = {...}
 local rtorrent = args[1]
+local math = require('math')
 
 -- Autocall
 -- Passes an empty first argument implicitly, as "".
@@ -62,13 +63,36 @@ end
 -- Allow insert global lua-finction `func_name` at rtorrent slot `name`
 -- @param name string rtorrent's slot
 -- @param func_name string name of global lua-function
--- @param ... string list of rtorrent's arguments like `(d.name)` to be
---                   passed to lua-function when it be called by rtorrent
---                   NOTE: first one is always target, may be empty string
-rtorrent["insert_lua_method"] = function (name, func_name, ...)
+-- @param ... list of rtorrent's arguments like `(d.name)` to be
+--  passed to lua-function when it be called by rtorrent
+--  1) non-negative integer - number of first arguments
+--  2) table (array) of strings - concrete rtorrent strings,
+--     passed in specified order
+--  3) table (array) of non-negative integer - indexes, converted
+--     to $argument.0, $argument.1 ..., passed in specified order
+--  NOTE: first argement of func_name is always target,
+--  may be empty string
+rtorrent["insert_lua_method"] = function (name, func_name, method_args)
    local args = {}
-   for i, v in ipairs({...}) do
-      args[i] = v or ("$argument." .. i-1 .. "=")
+
+   if method_args == nil then method_args = 0 end
+
+   if math.type(method_args) == 'integer' and method_args >= 0 then
+      for i = 1, method_args do
+         args[i] = "$argument." .. i-1 .. "="
+      end
+   elseif type(method_args) == 'table' then
+      for i, v in ipairs(method_args) do
+         if type(v) == 'string' then
+            args[i] = v
+         elseif math.type(v) == 'integer' and v >= 0 then
+            args[i] = "$argument." .. v .. "="
+         else
+            error("Incorrect arguments")
+         end
+      end
+   else
+      error("Incorrect arguments")
    end
 
    local arg_str = table.concat(args, ",")
