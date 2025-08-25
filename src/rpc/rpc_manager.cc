@@ -21,8 +21,10 @@ RpcManager::object_to_target(const torrent::Object& obj, int call_flags, rpc::ta
   if (!obj.is_string()) {
     throw torrent::input_error("invalid parameters: target must be a string");
   }
+
   std::string target_string = obj.as_string();
   bool        require_index = (call_flags & (CommandMap::flag_tracker_target | CommandMap::flag_file_target));
+
   if (target_string.size() == 0 && !require_index) {
     return;
   }
@@ -37,24 +39,27 @@ RpcManager::object_to_target(const torrent::Object& obj, int call_flags, rpc::ta
   std::string index;
 
   const auto& delim_pos = target_string.find_first_of(':', 40);
+
   if (delim_pos == target_string.npos ||
       delim_pos + 2 >= target_string.size()) {
     if (require_index) {
       throw torrent::input_error("invalid parameters: no index");
     }
     hash = target_string;
+
   } else {
     hash  = target_string.substr(0, delim_pos);
     type  = target_string[delim_pos + 1];
     index = target_string.substr(delim_pos + 2);
   }
+
   core::Download* download = rpc.slot_find_download()(hash.c_str());
 
   if (download == nullptr)
     throw torrent::input_error("invalid parameters: info-hash not found");
 
   try {
-    torrent::tracker::Tracker* tracker;
+    torrent::tracker::Tracker* tracker{};
 
     switch (type) {
     case 'd':
@@ -126,15 +131,20 @@ RpcManager::process(RPCType type, const char* in_buffer, uint32_t length, slot_r
 }
 
 void
-RpcManager::initialize() {
+RpcManager::initialize_handlers() {
+  if (m_handlers_initialized)
+    throw torrent::internal_error("handlers already initialized");
+
   m_xmlrpc.initialize();
   m_jsonrpc.initialize();
 
-  m_initialized = true;
+  m_handlers_initialized = true;
 }
 
 void
 RpcManager::cleanup() {
+  m_handlers_initialized = false;
+
   m_xmlrpc.cleanup();
   m_jsonrpc.cleanup();
 }
@@ -163,11 +173,6 @@ RpcManager::set_type_enabled(RPCType type, bool enabled) {
   default:
     throw torrent::input_error("invalid parameters: unknown RPC type");
   }
-}
-
-bool
-RpcManager::is_initialized() const {
-  return m_initialized;
 }
 
 void

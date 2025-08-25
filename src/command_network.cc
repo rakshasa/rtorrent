@@ -59,34 +59,8 @@ apply_tos(const torrent::Object::string_type& arg) {
 torrent::Object apply_encoding_list(const std::string& arg) { torrent::encoding_list()->push_back(arg); return torrent::Object(); }
 
 void
-initialize_rpc() {
-  rpc::rpc.initialize();
-
-  rpc::rpc.slot_find_download() = [](const char* hash) {
-      return control->core()->download_list()->find_hex_ptr(hash);
-    };
-  rpc::rpc.slot_find_file() = [](core::Download* d, uint32_t index) -> torrent::File* {
-      if (index >= d->file_list()->size_files())
-        throw torrent::input_error("invalid parameters: index not found");
-
-      return (*d->file_list())[index].get();
-    };
-  rpc::rpc.slot_find_tracker() = [](core::Download* d, uint32_t index) -> torrent::tracker::Tracker {
-      if (index >= d->tracker_controller().size())
-        throw torrent::input_error("invalid parameters: index not found");
-
-      // TODO: This should be rewritten to check if the tracker is valid and use a different
-      // function.
-      return d->tracker_controller().at(index);
-    };
-  rpc::rpc.slot_find_peer() = [](core::Download* d, const torrent::HashString& hash) -> torrent::Peer* {
-      auto itr = d->connection_list()->find(hash.c_str());
-
-      if (itr == d->connection_list()->end())
-        throw torrent::input_error("invalid parameters: hash not found");
-
-      return *itr;
-    };
+initialize_rpc_handlers() {
+  rpc::rpc.initialize_handlers();
 
   unsigned int count = 0;
 
@@ -98,7 +72,7 @@ initialize_rpc() {
     ++count;
   }
 
-  lt_log_print(torrent::LOG_RPC_EVENTS, "RPC initialized with %u functions.", count);
+  lt_log_print(torrent::LOG_RPC_EVENTS, "RPC manager initialized with %u functions.", count);
 }
 
 torrent::Object
@@ -106,7 +80,7 @@ apply_scgi(const std::string& arg, int type) {
   if (worker_thread->scgi() != NULL)
     throw torrent::input_error("SCGI already enabled.");
 
-  initialize_rpc();
+  initialize_rpc_handlers();
 
   rpc::SCgi* scgi = new rpc::SCgi;
 
