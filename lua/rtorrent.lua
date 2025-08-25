@@ -64,6 +64,7 @@ end
 -- @param func_name string name of global lua-function
 -- @param ... string list of rtorrent's arguments like `(d.name)` to be
 --                   passed to lua-function when it be called by rtorrent
+--                   NOTE: first one is always target, may be empty string
 rtorrent["insert_lua_method"] = function (name, func_name, ...)
    local args = {}
    for i, v in ipairs({...}) do
