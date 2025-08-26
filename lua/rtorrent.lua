@@ -63,15 +63,39 @@ end
 -- Allow insert global lua-finction `func_name` at rtorrent slot `name`
 -- @param name string rtorrent's slot
 -- @param func_name string name of global lua-function
--- @param ... list of rtorrent's arguments like `(d.name)` to be
---  passed to lua-function when it be called by rtorrent
---  1) non-negative integer - number of first arguments
---  2) table (array) of strings - concrete rtorrent strings,
---     passed in specified order
---  3) table (array) of non-negative integer - indexes, converted
---     to $argument.0, $argument.1 ..., passed in specified order
---  NOTE: first argement of func_name is always target,
---  may be empty string
+-- @param method_args number|string[]|number[]
+--  rtorrent's arguments like `(d.name)` to be passed to lua-function when it be
+--  called by rtorrent:
+--
+--  1) non-negative integer - number of first arguments to be passed
+--
+--     example:
+--       rtorrent.insert_lua_method('d.watch_handler', 'watch_handler', 1)
+--
+--     gives following rtorrent event handler:
+--       d.watch_handler=$argument.0
+--
+--  2) table (array) of strings - concrete rtorrent strings, passed in specified
+--     order
+--
+--     example:
+--       rtorrent.insert_lua_method('d.watch_handler', 'watch_handler', { '$argument.0=' })
+--
+--     gives following rtorrent event handler:
+--       d.watch_handler=$argument.0
+--
+--  3) table (array) of non-negative integer - indexes, converted to
+--     $argument.0, $argument.1 ..., passed in specified order
+--
+--     example:
+--       rtorrent.insert_lua_method('d.watch_handler', 'watch_handler', { 1, 0 })
+--     or:
+--       rtorrent.insert_lua_method('d.watch_handler', 'watch_handler', { [1]=1, [2]=0 })
+--
+--     gives following rtorrent event handler:
+--       d.watch_handler=$argument.1,$argument.0
+--
+--  NOTE: first argement of func_name is always target, may be empty string
 rtorrent["insert_lua_method"] = function (name, func_name, method_args)
    local args = {}
 
