@@ -41,25 +41,23 @@ cd rtorrent
 
 ## Install build dependencies
 
-Example, Ubuntu
-
-```
-sudo apt install libncurses-dev 
-```
+Install [libtorrent](https://libtorrent.org/) with the same version rTorrent.
 
 Generate configure scripts:
+
 ```
-libtoolize && aclocal -I scripts && autoconf -i && autoheader && automake --add-missing"
+autoreconf -ivf
 ```
 
 Optionally, generate man pages:
+
 ```
 docbook2man rtorrent.1.xml
 ```
 
-man pages output to "doc/rtorrent.1"
+Man pages output to "doc/rtorrent.1".
 
-rtorrent follows the development of [libtorrent](https://libtorrent.org/) closely, and thus the versions must be in sync.
+RTorrent follows the development of [libtorrent](https://libtorrent.org/) closely, and thus the versions must be in sync.
 
 ## USAGE
 
