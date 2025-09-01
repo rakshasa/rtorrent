@@ -2,6 +2,7 @@
 
 #include "http_queue.h"
 
+#include <torrent/common.h>
 #include <torrent/net/http_get.h>
 #include <torrent/net/http_stack.h>
 
@@ -16,6 +17,9 @@ HttpQueue::insert(const std::string& url, std::shared_ptr<std::ostream> stream) 
 
   itr->add_done_slot([this, itr]() { erase(itr); });
   itr->add_failed_slot([this, itr](auto) { erase(itr); });
+
+  // TODO: Downloading http torrents doesn't seem to work.
+  // TODO: Quitting no longer works.
 
   torrent::net_thread::http_stack()->start_get(*itr);
 
