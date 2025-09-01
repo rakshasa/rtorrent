@@ -1,19 +1,23 @@
-[![Donate](https://rakshasa.github.io/rtorrent/donate_paypal_green.svg)](https://paypal.me/jarisundelljp)
-
 RTorrent BitTorrent Client
 ========
 
-# Introduction
+Introduction
+------------
+
 A ncurses-based command line torrent client for high performance. 
 
 To learn how to use rTorrent visit the [Wiki](https://github.com/rakshasa/rtorrent/wiki).
 
 Download the [latest stable release](https://github.com/rakshasa/rtorrent/releases/latest)
 
-## Related Projects
+Related Projects
+----------------
+
 * [https://github.com/rakshasa/rbedit](https://github.com/rakshasa/rbedit): A dependency-free bencode editor.
 
-## Donate to rTorrent development
+Donate to rTorrent development
+------------------------------
+
 * [Paypal](https://paypal.me/jarisundellno)
 * [Patreon](https://www.patreon.com/rtorrent)
 * [SubscribeStar](https://www.subscribestar.com/rtorrent)
@@ -26,15 +30,19 @@ Download the [latest stable release](https://github.com/rakshasa/rtorrent/releas
 Help keep rTorrent development going by donating to its creator.
 
 
-## BUILDING
+BUILDING
+--------
 
 Jump into the github cloned directory
+
 ```
 cd rtorrent
 ```
 
-### Install build dependencies
+## Install build dependencies
+
 Example, Ubuntu
+
 ```
 sudo apt install libncurses-dev 
 ```
@@ -48,9 +56,10 @@ Optionally, generate man pages:
 ```
 docbook2man rtorrent.1.xml
 ```
+
 man pages output to "doc/rtorrent.1"
 
-rtorrent follows the development of [libtorrent](https://libtorrent.org/) closely, and thus the versions must be in sync. This should not be nessesary in the future, when the library API stabilizes.
+rtorrent follows the development of [libtorrent](https://libtorrent.org/) closely, and thus the versions must be in sync.
 
 ## USAGE
 
@@ -69,7 +78,7 @@ compiled if the user wishes to avoid using OpenSSL.
 ## DEPENDENCIES
 
 * libcurl >= 7.12.0
-* libtorrent >= 0.15.4
+* libtorrent = (same version)
 * ncurses
 
 ## BUILD DEPENDENCIES
@@ -79,12 +88,3 @@ compiled if the user wishes to avoid using OpenSSL.
 * autoconf
 * autoheader
 * automake
-
-## CONTACT
-
-Jari Sundell   
-Skomakerveien 33   
-3185 Skoppum, NORWAY
-
-Send bug reports, suggestions and patches to  
-<sundell.software@gmail.com> or to the github issues list.
