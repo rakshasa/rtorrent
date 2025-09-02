@@ -29,10 +29,8 @@
 // If you delete this exception statement from all source files in the
 // program, then also delete it here.
 //
-// Contact:  Jari Sundell <jaris@ifi.uio.no>
-//
-//           Skomakerveien 33
-//           3185 Skoppum, NORWAY
+// Contact:  Jari Sundell <sundell.software@gmail.com>
+
 
 // This is a hacked up whole string pattern matching. Replace with
 // TR1's regex when that becomes widely available. It is intended for
