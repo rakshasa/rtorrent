@@ -31,7 +31,7 @@ HttpQueue::erase(iterator signal_itr) {
   for (const auto& slot : m_signal_erase)
     slot(*signal_itr);
 
-  signal_itr->close();
+  signal_itr->close_and_keep_callbacks();
   base_type::erase(signal_itr);
 }
 
