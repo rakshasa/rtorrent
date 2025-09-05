@@ -14,6 +14,12 @@ Stable
  * [https://github.com/rakshasa/rtorrent-archive/raw/master/libtorrent-0.15.7.tar.gz](https://github.com/rakshasa/rtorrent-archive/raw/master/libtorrent-0.15.7.tar.gz)
  * [https://github.com/rakshasa/rtorrent-archive/raw/master/rtorrent-0.15.7.tar.gz](https://github.com/rakshasa/rtorrent-archive/raw/master/rtorrent-0.15.7.tar.gz)
 
+Development
+-----------
+
+ * [https://github.com/rakshasa/rtorrent-archive/raw/master/libtorrent-0.16.0.tar.gz](https://github.com/rakshasa/rtorrent-archive/raw/master/libtorrent-0.16.0.tar.gz)
+ * [https://github.com/rakshasa/rtorrent-archive/raw/master/rtorrent-0.16.0.tar.gz](https://github.com/rakshasa/rtorrent-archive/raw/master/rtorrent-0.16.0.tar.gz)
+
 Related Projects
 ----------------
 
