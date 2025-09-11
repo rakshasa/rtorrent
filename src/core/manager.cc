@@ -185,11 +185,6 @@ Manager::listen_open() {
   throw torrent::input_error("Could not open/bind port for listening: " + std::string(rak::error_number::current().c_str()));
 }
 
-std::string
-Manager::bind_address() const {
-  return torrent::sa_addr_str(torrent::config::network_config()->bind_address().get());
-}
-
 void
 Manager::set_bind_address(const std::string& addr) {
   int err;
@@ -224,11 +219,6 @@ Manager::set_bind_address(const std::string& addr) {
   }
 }
 
-std::string
-Manager::local_address() const {
-  return torrent::sa_addr_str(torrent::config::network_config()->local_address().get());
-}
-
 void
 Manager::set_local_address(const std::string& addr) {
   int err;
@@ -247,11 +237,6 @@ Manager::set_local_address(const std::string& addr) {
     rak::address_info::free_address_info(ai);
     throw e;
   }
-}
-
-std::string
-Manager::proxy_address() const {
-  return torrent::sa_pretty_str(torrent::config::network_config()->proxy_address().get());
 }
 
 void
