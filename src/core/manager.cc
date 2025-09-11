@@ -206,11 +206,6 @@ Manager::set_bind_address(const std::string& addr) {
       torrent::config::network_config()->set_bind_address(ai->address()->c_sockaddr());
     }
 
-    if (ai->address()->is_address_any())
-      torrent::net_thread::http_stack()->set_bind_address(std::string());
-    else
-      torrent::net_thread::http_stack()->set_bind_address(ai->address()->address_str());
-
     rak::address_info::free_address_info(ai);
 
   } catch (torrent::input_error& e) {
