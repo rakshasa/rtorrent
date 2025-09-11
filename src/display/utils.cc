@@ -17,6 +17,8 @@
 #include <torrent/data/file_manager.h>
 #include <torrent/download/resource_manager.h>
 #include <torrent/net/http_stack.h>
+#include <torrent/net/network_config.h>
+#include <torrent/net/socket_address.h>
 #include <torrent/peer/client_info.h>
 
 #include "control.h"
@@ -384,18 +386,22 @@ print_status_info(char* first, char* last) {
 
   first = print_buffer(first, last, " [Port: %i]", (unsigned int)torrent::connection_manager()->listen_port());
 
-  if (!rak::socket_address::cast_from(torrent::connection_manager()->local_address())->is_address_any()) {
+  auto local_address = torrent::config::network_config()->local_address();
+
+  if (!torrent::sa_is_any(local_address.get())) {
     first = print_buffer(first, last, " [Local ");
-    first = print_address(first, last, torrent::connection_manager()->local_address());
+    first = print_address(first, last, local_address.get());
     first = print_buffer(first, last, "]");
   }
 
   if (first > last)
     throw torrent::internal_error("print_status_info(...) wrote past end of the buffer.");
 
-  if (!rak::socket_address::cast_from(torrent::connection_manager()->bind_address())->is_address_any()) {
+  auto bind_address = torrent::config::network_config()->bind_address();
+
+  if (!torrent::sa_is_any(bind_address.get())) {
     first = print_buffer(first, last, " [Bind ");
-    first = print_address(first, last, torrent::connection_manager()->bind_address());
+    first = print_address(first, last, bind_address.get());
     first = print_buffer(first, last, "]");
   }
 
