@@ -33,16 +33,6 @@ DhtManager::~DhtManager() {
   torrent::this_thread::scheduler()->erase(&m_stop_timeout);
 }
 
-// void
-// DhtManager::set_port(uint16_t port) {
-//   if (torrent::dht_controller()->is_active()) {
-//     LT_LOG_ERROR("cannot change port while DHT is active", 0);
-//     throw torrent::input_error("cannot change port while DHT is active");
-//   }
-
-//   m_port = port;
-// }
-
 void
 DhtManager::load_dht_cache() {
   if (m_start == dht_disable || !control->core()->download_store()->is_enabled()) {
