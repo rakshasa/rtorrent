@@ -145,14 +145,11 @@ initialize_command_tracker() {
   auto dht_manager = control->dht_manager();
 
   CMD2_ANY_STRING_V   ("dht.mode.set",          std::bind(&core::DhtManager::set_mode, control->dht_manager(), std::placeholders::_2));
-
   CMD2_ANY            ("dht.port",              std::bind(&torrent::tracker::DhtController::port, torrent::dht_controller()));
   CMD2_ANY_VALUE_V    ("dht.port.set",          [](auto, auto) {
       lt_log_print(torrent::LOG_DHT_ERROR, "dht.port.set is no longer supported, DHT port is now automatically managed.", 0);
     });
 
-  // TODO: This should query DhtController.
-  // CMD2_VAR_VALUE      ("dht.port",              int64_t(6881));
   CMD2_ANY_STRING     ("dht.add_node",          std::bind(&apply_dht_add_node, std::placeholders::_2));
   CMD2_ANY            ("dht.statistics",        std::bind(&core::DhtManager::dht_statistics, dht_manager));
   CMD2_ANY            ("dht.throttle.name",     std::bind(&core::DhtManager::throttle_name, dht_manager));
