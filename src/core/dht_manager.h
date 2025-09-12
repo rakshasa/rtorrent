@@ -10,9 +10,6 @@ class DhtManager {
 public:
   ~DhtManager();
 
-  uint16_t            port() const                 { return m_port; }
-  void                set_port(uint16_t port);
-
   void                load_dht_cache();
   void                save_dht_cache();
   torrent::Object     dht_statistics();
@@ -49,9 +46,7 @@ private:
   torrent::utils::SchedulerEntry m_stop_timeout;
 
   bool                m_warned{};
-
   int                 m_start{dht_off};
-  uint16_t            m_port{0};
 
   std::string         m_throttleName;
 };

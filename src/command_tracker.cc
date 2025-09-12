@@ -142,11 +142,18 @@ initialize_command_tracker() {
   CMD2_VAR_VALUE      ("trackers.numwant",    -1);
   CMD2_VAR_BOOL       ("trackers.use_udp",    true);
 
+  auto dht_manager = control->dht_manager();
+
   CMD2_ANY_STRING_V   ("dht.mode.set",          std::bind(&core::DhtManager::set_mode, control->dht_manager(), std::placeholders::_2));
+
+  CMD2_ANY            ("dht.port",              std::bind(&torrent::tracker::DhtController::port, torrent::dht_controller()));
+
+  // TODO: Deprecate "dht.port.set", print warning and tell it is no longer supported.
+
   // TODO: This should query DhtController.
-  CMD2_VAR_VALUE      ("dht.port",              int64_t(6881));
+  // CMD2_VAR_VALUE      ("dht.port",              int64_t(6881));
   CMD2_ANY_STRING     ("dht.add_node",          std::bind(&apply_dht_add_node, std::placeholders::_2));
-  CMD2_ANY            ("dht.statistics",        std::bind(&core::DhtManager::dht_statistics, control->dht_manager()));
-  CMD2_ANY            ("dht.throttle.name",     std::bind(&core::DhtManager::throttle_name, control->dht_manager()));
-  CMD2_ANY_STRING_V   ("dht.throttle.name.set", std::bind(&core::DhtManager::set_throttle_name, control->dht_manager(), std::placeholders::_2));
+  CMD2_ANY            ("dht.statistics",        std::bind(&core::DhtManager::dht_statistics, dht_manager));
+  CMD2_ANY            ("dht.throttle.name",     std::bind(&core::DhtManager::throttle_name, dht_manager));
+  CMD2_ANY_STRING_V   ("dht.throttle.name.set", std::bind(&core::DhtManager::set_throttle_name, dht_manager, std::placeholders::_2));
 }

@@ -384,7 +384,7 @@ print_status_info(char* first, char* last) {
 
   first = print_buffer(first, last, " KB]");
 
-  first = print_buffer(first, last, " [Port: %i]", (unsigned int)torrent::connection_manager()->listen_port());
+  first = print_buffer(first, last, " [Port: %i]", (unsigned int)torrent::config::network_config()->listen_port());
 
   auto local_address = torrent::config::network_config()->local_address();
 

@@ -33,15 +33,15 @@ DhtManager::~DhtManager() {
   torrent::this_thread::scheduler()->erase(&m_stop_timeout);
 }
 
-void
-DhtManager::set_port(uint16_t port) {
-  if (torrent::dht_controller()->is_active()) {
-    LT_LOG_ERROR("cannot change port while DHT is active", 0);
-    throw torrent::input_error("cannot change port while DHT is active");
-  }
+// void
+// DhtManager::set_port(uint16_t port) {
+//   if (torrent::dht_controller()->is_active()) {
+//     LT_LOG_ERROR("cannot change port while DHT is active", 0);
+//     throw torrent::input_error("cannot change port while DHT is active");
+//   }
 
-  m_port = port;
-}
+//   m_port = port;
+// }
 
 void
 DhtManager::load_dht_cache() {
@@ -95,14 +95,7 @@ DhtManager::start_dht() {
   torrent::dht_controller()->set_upload_throttle(throttles.first);
   torrent::dht_controller()->set_download_throttle(throttles.second);
 
-  if (m_port <= 0) {
-    LT_LOG("server start skipped, port not set", 0);
-    return;
-  }
-
-  LT_LOG("starting server : port=%" PRIu16, m_port);
-
-  if (!torrent::dht_controller()->start(m_port)) {
+  if (!torrent::dht_controller()->start()) {
     m_start = dht_off;
     return;
   }

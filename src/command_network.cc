@@ -177,8 +177,8 @@ initialize_command_network() {
   CMD2_VAR_BOOL    ("network.port_random", true);
   CMD2_VAR_STRING  ("network.port_range",  "6881-6999");
 
-  CMD2_ANY         ("network.listen.port",        std::bind(&torrent::ConnectionManager::listen_port, cm));
-  CMD2_ANY         ("network.listen.backlog",     std::bind(&torrent::ConnectionManager::listen_backlog, cm));
+  CMD2_ANY         ("network.listen.port",        std::bind(&torrent::net::NetworkConfig::listen_port, network_config));
+  CMD2_ANY         ("network.listen.backlog",     std::bind(&torrent::net::NetworkConfig::listen_backlog, network_config));
   CMD2_ANY_VALUE_V ("network.listen.backlog.set", std::bind(&torrent::ConnectionManager::set_listen_backlog, cm, std::placeholders::_2));
 
   CMD2_VAR_BOOL    ("protocol.pex",            true);
