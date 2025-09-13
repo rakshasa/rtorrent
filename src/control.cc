@@ -69,8 +69,6 @@ Control::initialize() {
   m_core->download_store()->enable(rpc::call_command_value("session.use_lock"));
   m_core->set_hashing_view(*m_viewManager->find_throw("hashing"));
 
-  m_dhtManager->set_port(torrent::connection_manager()->listen_port());
-
   m_ui->init(this);
 
   if(!display::Canvas::daemon())

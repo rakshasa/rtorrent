@@ -392,7 +392,6 @@ main(int argc, char** argv) {
     CMD2_REDIRECT        ("port_range", "network.port_range.set");
 
     CMD2_REDIRECT_GENERIC("dht",      "dht.mode.set");
-    CMD2_REDIRECT_GENERIC("dht_port", "dht.port.set");
 
     CMD2_REDIRECT        ("port_random", "network.port_random.set");
     CMD2_REDIRECT        ("proxy_address", "network.proxy_address.set");

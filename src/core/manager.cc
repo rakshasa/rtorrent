@@ -196,7 +196,7 @@ Manager::set_bind_address(const std::string& addr) {
 
   try {
 
-    if (torrent::connection_manager()->listen_port() != 0) {
+    if (torrent::connection_manager()->is_listen_open()) {
       torrent::connection_manager()->listen_close();
       torrent::config::network_config()->set_bind_address(ai->address()->c_sockaddr());
 
