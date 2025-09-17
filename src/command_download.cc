@@ -6,9 +6,7 @@
 #include <netdb.h>
 #include <unistd.h>
 #include <rak/file_stat.h>
-#include <rak/error_number.h>
 #include <rak/path.h>
-#include <rak/socket_address.h>
 #include <rak/string_manip.h>
 #include <rak/regex.h>
 #include <torrent/rate.h>
