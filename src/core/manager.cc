@@ -7,7 +7,6 @@
 #include <unistd.h>
 #include <sys/select.h>
 #include <rak/address_info.h>
-#include <rak/error_number.h>
 #include <rak/regex.h>
 #include <rak/path.h>
 #include <rak/string_manip.h>
@@ -99,7 +98,10 @@ Manager::set_address_throttle(uint32_t begin, uint32_t end, torrent::ThrottlePai
 
 torrent::ThrottlePair
 Manager::get_address_throttle(const sockaddr* addr) {
-  return m_addressThrottles.get(rak::socket_address::cast_from(addr)->sa_inet()->address_h(), torrent::ThrottlePair(nullptr, nullptr));
+  if (addr->sa_family != AF_INET)
+    return torrent::ThrottlePair(nullptr, nullptr);
+
+  return m_addressThrottles.get(ntohl(reinterpret_cast<const sockaddr_in*>(addr)->sin_addr.s_addr), torrent::ThrottlePair(nullptr, nullptr));
 }
 
 int64_t
@@ -182,7 +184,7 @@ Manager::listen_open() {
       return;
   }
 
-  throw torrent::input_error("Could not open/bind port for listening: " + std::string(rak::error_number::current().c_str()));
+  throw torrent::input_error("Could not open/bind port for listening: " + std::string(std::strerror(errno)));
 }
 
 void
