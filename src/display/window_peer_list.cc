@@ -1,10 +1,10 @@
 #include "config.h"
 
 #include <stdexcept>
-#include <rak/socket_address.h>
 #include <torrent/rate.h>
 #include <torrent/data/block_transfer.h>
 #include <torrent/data/piece.h>
+#include <torrent/net/socket_address.h>
 #include <torrent/peer/client_list.h>
 #include <torrent/peer/peer_info.h>
 
@@ -63,7 +63,7 @@ WindowPeerList::redraw() {
 
     x = 0;
 
-    std::string ip_address = rak::socket_address::cast_from(p->address())->address_str();
+    auto ip_address = torrent::sa_addr_str(p->address());
 
     if (ip_address.size() >= 24) {
       ip_address.replace(ip_address.begin() + 21, ip_address.end(), "...");
@@ -92,7 +92,7 @@ WindowPeerList::redraw() {
       peerType = 'u';
     else if (p->peer_info()->is_preferred())
       peerType = 'p';
-    else 
+    else
       peerType = ' ';
 
     m_canvas->print(x, y, "%c%c/%c%c/%c%c",

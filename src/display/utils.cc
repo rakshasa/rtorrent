@@ -6,7 +6,6 @@
 #include <cstdio>
 #include <sstream>
 #include <iomanip>
-#include <rak/socket_address.h>
 #include <torrent/exceptions.h>
 #include <torrent/connection_manager.h>
 #include <torrent/rate.h>
@@ -31,7 +30,7 @@
 namespace display {
 
 char*
-print_string(char* first, char* last, char* str) {
+print_string(char* first, char* last, const char* str) {
   if (first == last)
     return first;
 
@@ -80,17 +79,9 @@ print_ddmmyyyy(char* first, char* last, time_t t) {
   return print_buffer(first, last, "%02u/%02u/%04u", u->tm_mday, (u->tm_mon + 1), (1900 + u->tm_year));
 }
 
-char*
-print_address(char* first, char* last, const rak::socket_address* sa) {
-  if (!sa->address_c_str(first, last - first))
-    return first;
-
-  return std::find(first, last, '\0');
-}
-
 inline char*
 print_address(char* first, char* last, const sockaddr* sa) {
-  return print_address(first, last, rak::socket_address::cast_from(sa));
+  return print_string(first, last, torrent::sa_addr_str(sa).c_str());
 }
 
 char*

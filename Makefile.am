@@ -14,7 +14,6 @@ EXTRA_DIST= \
 	rak/path.h \
 	rak/partial_queue.h \
 	rak/regex.h \
-	rak/socket_address.h \
 	rak/string_manip.h \
 	rak/unordered_vector.h \
 	scripts/checks.m4 \

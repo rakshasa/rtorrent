@@ -6,9 +6,7 @@
 #include <netdb.h>
 #include <unistd.h>
 #include <rak/file_stat.h>
-#include <rak/error_number.h>
 #include <rak/path.h>
-#include <rak/socket_address.h>
 #include <rak/string_manip.h>
 #include <rak/regex.h>
 #include <torrent/rate.h>
@@ -104,22 +102,19 @@ apply_d_change_link(core::Download* download, const torrent::Object::list_type& 
 
   switch (changeType) {
   case 0:
-    if (symlink(target.c_str(), link.c_str()) == -1){
-      lt_log_print(torrent::LOG_TORRENT_WARN, "create_link failed: %s",
-                   rak::error_number::current().c_str());
-    }
+    if (symlink(target.c_str(), link.c_str()) == -1)
+      lt_log_print(torrent::LOG_TORRENT_WARN, "create_link failed: %s", std::strerror(errno));
+
     break;
 
   case 1:
   {
     rak::file_stat fileStat;
-    rak::error_number::clear_global();
+    errno = 0;
 
-    if (!fileStat.update_link(link) || !fileStat.is_link() ||
-        unlink(link.c_str()) == -1){
-      lt_log_print(torrent::LOG_TORRENT_WARN, "delete_link failed: %s",
-          rak::error_number::current().c_str());
-    }
+    if (!fileStat.update_link(link) || !fileStat.is_link() || unlink(link.c_str()) == -1)
+      lt_log_print(torrent::LOG_TORRENT_WARN, "delete_link failed: %s", std::strerror(errno));
+
     break;
   }
   default:
@@ -137,7 +132,7 @@ apply_d_delete_tied(core::Download* download) {
     return torrent::Object();
 
   if (::unlink(rak::path_expand(tie).c_str()) == -1)
-    control->core()->push_log_std("Could not unlink tied file: " + std::string(rak::error_number::current().c_str()));
+    control->core()->push_log_std("Could not unlink tied file: " + std::string(std::strerror(errno)));
 
   rpc::call_command("d.tied_to_file.set", std::string(), rpc::make_target(download));
   return torrent::Object();

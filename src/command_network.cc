@@ -12,6 +12,7 @@
 #include <torrent/download/resource_manager.h>
 #include <torrent/net/http_stack.h>
 #include <torrent/net/network_config.h>
+#include <torrent/net/socket_address.h>
 #include <torrent/tracker/tracker.h>
 #include <torrent/utils/log.h>
 #include <torrent/utils/option_strings.h>
@@ -86,8 +87,7 @@ apply_scgi(const std::string& arg, int type) {
   rpc::SCgi* scgi = new rpc::SCgi;
 
   rak::address_info* ai = NULL;
-  rak::socket_address sa;
-  rak::socket_address* saPtr;
+  torrent::sa_unique_ptr sa;
 
   try {
     int port, err;
@@ -98,17 +98,17 @@ apply_scgi(const std::string& arg, int type) {
     switch (type) {
     case 1:
       if (std::sscanf(arg.c_str(), ":%i%c", &port, &dummy) == 1) {
-        sa.sa_inet()->clear();
-        saPtr = &sa;
+        sa = torrent::sa_make_inet();
 
         lt_log_print(torrent::LOG_RPC_EVENTS, "SCGI socket is open to any address and is a security risk");
 
       } else if (std::sscanf(arg.c_str(), "%1023[^:]:%i%c", address, &port, &dummy) == 2 ||
                  std::sscanf(arg.c_str(), "[%64[^]]]:%i%c", address, &port, &dummy) == 2) { // [xx::xx]:port format
-        if ((err = rak::address_info::get_address_info(address,PF_UNSPEC, SOCK_STREAM, &ai)) != 0)
+
+        if ((err = rak::address_info::get_address_info(address, PF_UNSPEC, SOCK_STREAM, &ai)) != 0)
           throw torrent::input_error("Could not bind address: " + std::string(rak::address_info::strerror(err)) + ".");
 
-        saPtr = ai->address();
+        sa = torrent::sa_copy(ai->c_addrinfo()->ai_addr);
 
         lt_log_print(torrent::LOG_RPC_EVENTS, "SCGI socket is bound to an address and might be a security risk");
 
@@ -119,8 +119,8 @@ apply_scgi(const std::string& arg, int type) {
       if (port <= 0 || port >= (1 << 16))
         throw torrent::input_error("Invalid port number.");
 
-      saPtr->set_port(port);
-      scgi->open_port(saPtr, saPtr->length(), rpc::call_command_value("network.scgi.dont_route"));
+      torrent::sap_set_port(sa, port);
+      scgi->open_port(sa.get(), torrent::sap_length(sa), rpc::call_command_value("network.scgi.dont_route"));
 
       break;
 
