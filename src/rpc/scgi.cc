@@ -109,10 +109,7 @@ SCgi::deactivate() {
 void
 SCgi::event_read() {
   while (true) {
-    int fd;
-    torrent::sa_unique_ptr sa;
-
-    std::tie(fd, sa) = torrent::fd_accept(get_fd().get_fd());
+    int fd = torrent::fd_accept(get_fd().get_fd());
 
     if (fd == -1) {
       if (errno == EAGAIN || errno == EWOULDBLOCK)
