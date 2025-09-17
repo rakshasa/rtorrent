@@ -200,12 +200,12 @@ Manager::set_bind_address(const std::string& addr) {
 
     if (torrent::connection_manager()->is_listen_open()) {
       torrent::connection_manager()->listen_close();
-      torrent::config::network_config()->set_bind_address(ai->address()->c_sockaddr());
+      torrent::config::network_config()->set_bind_address(ai->c_addrinfo()->ai_addr);
 
       listen_open();
 
     } else {
-      torrent::config::network_config()->set_bind_address(ai->address()->c_sockaddr());
+      torrent::config::network_config()->set_bind_address(ai->c_addrinfo()->ai_addr);
     }
 
     rak::address_info::free_address_info(ai);
@@ -226,7 +226,7 @@ Manager::set_local_address(const std::string& addr) {
     throw torrent::input_error("Could not set local address: " + std::string(rak::address_info::strerror(err)) + ".");
 
   try {
-    torrent::config::network_config()->set_local_address(ai->address()->c_sockaddr());
+    torrent::config::network_config()->set_local_address(ai->c_addrinfo()->ai_addr);
 
     rak::address_info::free_address_info(ai);
 
@@ -256,8 +256,10 @@ Manager::set_proxy_address(const std::string& addr) {
 
   try {
 
-    ai->address()->set_port(port);
-    torrent::config::network_config()->set_proxy_address(ai->address()->c_sockaddr());
+    auto sa = torrent::sa_copy(ai->c_addrinfo()->ai_addr);
+    torrent::sap_set_port(sa, port);
+
+    torrent::config::network_config()->set_proxy_address(sa.get());
 
     rak::address_info::free_address_info(ai);
 

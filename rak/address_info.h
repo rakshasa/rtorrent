@@ -8,6 +8,7 @@
 #define RAK_ADDRESS_INFO_H
 
 #include <netdb.h>
+#include <cstring>
 
 namespace rak {
 
