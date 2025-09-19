@@ -18,21 +18,18 @@ RpcManager::object_to_target(const torrent::Object& obj, int call_flags, rpc::ta
   if (call_flags & CommandMap::flag_no_target)
     return;
 
-  if (!obj.is_string()) {
+  if (!obj.is_string())
     throw torrent::input_error("invalid parameters: target must be a string");
-  }
 
   std::string target_string = obj.as_string();
   bool        require_index = (call_flags & (CommandMap::flag_tracker_target | CommandMap::flag_file_target));
 
-  if (target_string.size() == 0 && !require_index) {
+  if (target_string.size() == 0 && !require_index)
     return;
-  }
 
   // Length of SHA1 hash is 40
-  if (target_string.size() < 40) {
+  if (target_string.size() < 40)
     throw torrent::input_error("invalid parameters: invalid target");
-  }
 
   char        type = 'd';
   std::string hash;
