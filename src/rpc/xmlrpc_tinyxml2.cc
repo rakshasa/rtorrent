@@ -204,12 +204,10 @@ execute_command(std::string method_name, const tinyxml2::XMLElement* params_elem
       const auto* child = params_element->FirstChildElement("param");
 
       if (child != nullptr) {
-        if (!(cmd_itr->second.m_flags & CommandMap::flag_no_target)) {
-          std::function<void()> deleter = []() {};
+        std::function<void()> deleter = []() {};
 
-          RpcManager::object_to_target(xml_value_to_object(child->FirstChildElement("value")), cmd_itr->second.m_flags, &target, &deleter);
-          child = child->NextSiblingElement("param");
-        }
+        RpcManager::object_to_target(xml_value_to_object(child->FirstChildElement("value")), cmd_itr->second.m_flags, &target, &deleter);
+        child = child->NextSiblingElement("param");
 
         // Parse out any other params
         while (child != nullptr) {
@@ -223,12 +221,10 @@ execute_command(std::string method_name, const tinyxml2::XMLElement* params_elem
       const auto* child = params_element->FirstChildElement("data")->FirstChildElement("value");
 
       if (child != nullptr) {
-        if (!(cmd_itr->second.m_flags & CommandMap::flag_no_target)) {
-          std::function<void()> deleter = []() {};
+        std::function<void()> deleter = []() {};
 
-          RpcManager::object_to_target(xml_value_to_object(child), cmd_itr->second.m_flags, &target, &deleter);
-          child = child->NextSiblingElement("value");
-        }
+        RpcManager::object_to_target(xml_value_to_object(child), cmd_itr->second.m_flags, &target, &deleter);
+        child = child->NextSiblingElement("value");
 
         while (child != nullptr) {
           params.push_back(xml_value_to_object(child));

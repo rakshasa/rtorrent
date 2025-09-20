@@ -25,7 +25,7 @@
 torrent::Object
 apply_on_ratio(const torrent::Object& rawArgs) {
   auto& group_name = rawArgs.as_string();
-  auto  view_itr = control->view_manager()->find(rpc::commands.call("group2." + group_name + ".view", rpc::make_target()).as_string());
+  auto  view_itr = control->view_manager()->find(rpc::commands.call("group." + group_name + ".view", rpc::make_target()).as_string());
 
   if (view_itr == control->view_manager()->end())
     throw torrent::input_error("Could not find view.");
@@ -33,9 +33,9 @@ apply_on_ratio(const torrent::Object& rawArgs) {
   // first argument:  minimum ratio to reach
   // second argument: minimum upload amount to reach [optional]
   // third argument:  maximum ratio to reach [optional]
-  int64_t min_ratio  = rpc::commands.call("group2." + group_name + ".ratio.min", rpc::make_target()).as_value();
-  int64_t max_ratio  = rpc::commands.call("group2." + group_name + ".ratio.max", rpc::make_target()).as_value();
-  int64_t min_upload = rpc::commands.call("group2." + group_name + ".ratio.upload", rpc::make_target()).as_value();
+  int64_t min_ratio  = rpc::commands.call("group." + group_name + ".ratio.min", rpc::make_target()).as_value();
+  int64_t max_ratio  = rpc::commands.call("group." + group_name + ".ratio.max", rpc::make_target()).as_value();
+  int64_t min_upload = rpc::commands.call("group." + group_name + ".ratio.upload", rpc::make_target()).as_value();
 
   std::vector<core::Download*> downloads;
 

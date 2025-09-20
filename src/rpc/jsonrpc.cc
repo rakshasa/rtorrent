@@ -122,18 +122,16 @@ jsonrpc_call_command(const std::string& method, const json& params) {
   std::function<void()> deleter = []() {};
   utils::scope_guard    guard([&deleter]() { deleter(); });
 
-  if (!(itr->second.m_flags & CommandMap::flag_no_target)) {
-    // Provide a blank target if none was provided
-    if (params_object_list.empty())
-      params_object_list.push_back("");
+  // Provide a blank target if none was provided
+  if (params_object_list.empty())
+    params_object_list.push_back("");
 
-    if (!params_object_list.begin()->is_string())
-      throw torrent::input_error("invalid parameters: target must be a string");
+  if (!params_object_list.begin()->is_string())
+    throw torrent::input_error("invalid parameters: target must be a string");
 
-    RpcManager::object_to_target(params_object_list.begin()->as_string(), itr->second.m_flags, &target, &deleter);
+  RpcManager::object_to_target(params_object_list.begin()->as_string(), itr->second.m_flags, &target, &deleter);
 
-    params_object_list.erase(params_object_list.begin());
-  }
+  params_object_list.erase(params_object_list.begin());
 
   const auto& result = rpc::commands.call_command(itr, params_object, target);
 

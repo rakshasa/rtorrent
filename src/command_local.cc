@@ -116,34 +116,22 @@ group_insert(const torrent::Object::list_type& args) {
                                                               "schedule_remove2=group." + name + ".ratio"));
   rpc::commands.call("method.insert", rpc::create_object_list("group."  + name + ".ratio.command", "simple",
                                                               "d.try_close= ;d.ignore_commands.set=1"));
-  rpc::commands.call("method.insert", rpc::create_object_list("group2." + name + ".view", "string", view));
-  rpc::commands.call("method.insert", rpc::create_object_list("group2." + name + ".ratio.min", "value", (int64_t)200));
-  rpc::commands.call("method.insert", rpc::create_object_list("group2." + name + ".ratio.max", "value", (int64_t)300));
-  rpc::commands.call("method.insert", rpc::create_object_list("group2." + name + ".ratio.upload", "value", (int64_t)20 << 20));
+  rpc::commands.call("method.insert", rpc::create_object_list("group." + name + ".view", "string", view));
+  rpc::commands.call("method.insert", rpc::create_object_list("group." + name + ".ratio.min", "value", (int64_t)200));
+  rpc::commands.call("method.insert", rpc::create_object_list("group." + name + ".ratio.max", "value", (int64_t)300));
+  rpc::commands.call("method.insert", rpc::create_object_list("group." + name + ".ratio.upload", "value", (int64_t)20 << 20));
 
-  if (rpc::call_command_value("method.use_intermediate") == 1) {
-    // Deprecated in 0.7.0:
+  if (rpc::call_command_value("method.use_intermediate") == 3) {
+    // Cleaned up in 0.16.1:
 
-    CMD2_REDIRECT_GENERIC_STR("group." + name + ".view",          "group2." + name + ".view");
-    CMD2_REDIRECT_GENERIC_STR("group." + name + ".view.set",      "group2." + name + ".view.set");
-    CMD2_REDIRECT_GENERIC_STR("group." + name + ".ratio.min",     "group2." + name + ".ratio.min");
-    CMD2_REDIRECT_GENERIC_STR("group." + name + ".ratio.min.set",    "group2." + name + ".ratio.min.set");
-    CMD2_REDIRECT_GENERIC_STR("group." + name + ".ratio.max",        "group2." + name + ".ratio.max");
-    CMD2_REDIRECT_GENERIC_STR("group." + name + ".ratio.max.set",    "group2." + name + ".ratio.max.set");
-    CMD2_REDIRECT_GENERIC_STR("group." + name + ".ratio.upload",     "group2." + name + ".ratio.upload");
-    CMD2_REDIRECT_GENERIC_STR("group." + name + ".ratio.upload.set", "group2." + name + ".ratio.upload.set");
-
-  } if (rpc::call_command_value("method.use_intermediate") == 2) {
-    // Deprecated in 0.7.0:
-
-    CMD2_REDIRECT_GENERIC_STR_NO_EXPORT("group." + name + ".view",          "group2." + name + ".view");
-    CMD2_REDIRECT_GENERIC_STR_NO_EXPORT("group." + name + ".view.set",      "group2." + name + ".view.set");
-    CMD2_REDIRECT_GENERIC_STR_NO_EXPORT("group." + name + ".ratio.min",     "group2." + name + ".ratio.min");
-    CMD2_REDIRECT_GENERIC_STR_NO_EXPORT("group." + name + ".ratio.min.set",    "group2." + name + ".ratio.min.set");
-    CMD2_REDIRECT_GENERIC_STR_NO_EXPORT("group." + name + ".ratio.max",        "group2." + name + ".ratio.max");
-    CMD2_REDIRECT_GENERIC_STR_NO_EXPORT("group." + name + ".ratio.max.set",    "group2." + name + ".ratio.max.set");
-    CMD2_REDIRECT_GENERIC_STR_NO_EXPORT("group." + name + ".ratio.upload",     "group2." + name + ".ratio.upload");
-    CMD2_REDIRECT_GENERIC_STR_NO_EXPORT("group." + name + ".ratio.upload.set", "group2." + name + ".ratio.upload.set");
+    CMD2_REDIRECT_STR_NO_EXPORT("group2." + name + ".view",          "group." + name + ".view");
+    CMD2_REDIRECT_STR_NO_EXPORT("group2." + name + ".view.set",      "group." + name + ".view.set");
+    CMD2_REDIRECT_STR_NO_EXPORT("group2." + name + ".ratio.min",     "group." + name + ".ratio.min");
+    CMD2_REDIRECT_STR_NO_EXPORT("group2." + name + ".ratio.min.set",    "group." + name + ".ratio.min.set");
+    CMD2_REDIRECT_STR_NO_EXPORT("group2." + name + ".ratio.max",        "group." + name + ".ratio.max");
+    CMD2_REDIRECT_STR_NO_EXPORT("group2." + name + ".ratio.max.set",    "group." + name + ".ratio.max.set");
+    CMD2_REDIRECT_STR_NO_EXPORT("group2." + name + ".ratio.upload",     "group." + name + ".ratio.upload");
+    CMD2_REDIRECT_STR_NO_EXPORT("group2." + name + ".ratio.upload.set", "group." + name + ".ratio.upload.set");
   }
 
   return name;
@@ -248,7 +236,7 @@ initialize_command_local() {
 
   CMD2_ANY_V       ("system.shutdown.normal",          std::bind(&Control::receive_normal_shutdown, control));
   CMD2_ANY_V       ("system.shutdown.quick",           std::bind(&Control::receive_quick_shutdown, control));
-  CMD2_REDIRECT_GENERIC_NO_EXPORT("system.shutdown", "system.shutdown.normal");
+  CMD2_REDIRECT_NO_EXPORT("system.shutdown", "system.shutdown.normal");
 
   CMD2_ANY         ("system.cwd",                      std::bind(&system_get_cwd));
   CMD2_ANY_STRING  ("system.cwd.set",                  std::bind(&system_set_cwd, std::placeholders::_2));

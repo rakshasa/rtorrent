@@ -411,7 +411,7 @@ initialize_command_dynamic() {
 
   // Keep these for future use when we deprecate more commands.
   CMD2_VAR_BOOL    ("method.use_deprecated", false);
-  CMD2_VAR_VALUE   ("method.use_intermediate", 0);
+  CMD2_VAR_VALUE   ("method.use_intermediate", 3);
 
   CMD2_ANY_LIST    ("method.insert",             std::bind(&system_method_insert, std::placeholders::_2));
   CMD2_ANY_LIST    ("method.insert.value",       std::bind(&system_method_insert_object, std::placeholders::_2, rpc::object_storage::flag_value_type));

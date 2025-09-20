@@ -375,9 +375,7 @@ xmlrpc_call_command(xmlrpc_env* env, xmlrpc_value* args, void* voidServerInfo) {
     torrent::Object object;
     rpc::target_type target = rpc::make_target();
 
-    if (itr->second.m_flags & CommandMap::flag_no_target)
-      xmlrpc_to_object(env, args, XmlRpc::call_generic, &target, &deleter).swap(object);
-    else if (itr->second.m_flags & CommandMap::flag_file_target)
+    if (itr->second.m_flags & CommandMap::flag_file_target)
       xmlrpc_to_object(env, args, XmlRpc::call_file, &target, &deleter).swap(object);
     else if (itr->second.m_flags & CommandMap::flag_tracker_target)
       xmlrpc_to_object(env, args, XmlRpc::call_tracker, &target, &deleter).swap(object);
