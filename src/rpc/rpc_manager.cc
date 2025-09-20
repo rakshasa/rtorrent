@@ -15,9 +15,6 @@ ExecFile   execFile;
 
 void
 RpcManager::object_to_target(const torrent::Object& obj, int call_flags, rpc::target_type* target, std::function<void()>* deleter) {
-  if (call_flags & CommandMap::flag_no_target)
-    return;
-
   if (!obj.is_string())
     throw torrent::input_error("invalid parameters: target must be a string");
 

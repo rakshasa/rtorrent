@@ -100,24 +100,19 @@ void initialize_commands();
   CMD2_ANY(key, std::bind(&rpc::command_function_call_object, torrent::Object(torrent::raw_string::from_c_str(cmds)), \
                                std::placeholders::_1, std::placeholders::_2));
 
-#define CMD2_REDIRECT(from_key, to_key) \
+#define CMD2_REDIRECT(from_key, to_key)                                 \
   rpc::commands.create_redirect(from_key, to_key, rpc::CommandMap::flag_public_rpc | rpc::CommandMap::flag_dont_delete);
-#define CMD2_REDIRECT_GENERIC(from_key, to_key) \
-  rpc::commands.create_redirect(from_key, to_key, rpc::CommandMap::flag_public_rpc | rpc::CommandMap::flag_no_target | rpc::CommandMap::flag_dont_delete);
-#define CMD2_REDIRECT_GENERIC_NO_EXPORT(from_key, to_key) \
-  rpc::commands.create_redirect(from_key, to_key, rpc::CommandMap::flag_no_target | rpc::CommandMap::flag_dont_delete);
+#define CMD2_REDIRECT_NO_EXPORT(from_key, to_key)                       \
+  rpc::commands.create_redirect(from_key, to_key, rpc::CommandMap::flag_dont_delete);
+#define CMD2_REDIRECT_STR(from_key, to_key)                             \
+  rpc::commands.create_redirect(from_key, to_key, rpc::CommandMap::flag_public_rpc;
+#define CMD2_REDIRECT_STR_NO_EXPORT(from_key, to_key)   \
+  rpc::commands.create_redirect(from_key, to_key, 0);
 #define CMD2_REDIRECT_FILE(from_key, to_key) \
   rpc::commands.create_redirect(from_key, to_key, rpc::CommandMap::flag_public_rpc | rpc::CommandMap::flag_file_target | rpc::CommandMap::flag_dont_delete);
 #define CMD2_REDIRECT_TRACKER(from_key, to_key) \
   rpc::commands.create_redirect(from_key, to_key, rpc::CommandMap::flag_public_rpc | rpc::CommandMap::flag_tracker_target | rpc::CommandMap::flag_dont_delete);
 
-#define CMD2_REDIRECT_GENERIC_STR(from_key, to_key)                     \
-  rpc::commands.create_redirect(from_key, to_key, \
-                                rpc::CommandMap::flag_public_rpc | rpc::CommandMap::flag_no_target);
-
-#define CMD2_REDIRECT_GENERIC_STR_NO_EXPORT(from_key, to_key)                     \
-  rpc::commands.create_redirect(from_key, to_key, \
-                                rpc::CommandMap::flag_no_target);
 
 //
 // Conversion of return types:

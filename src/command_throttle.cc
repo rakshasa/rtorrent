@@ -167,10 +167,10 @@ initialize_command_throttle() {
   CMD2_VAR_VALUE   ("throttle.max_downloads.div._val",    1);
   CMD2_VAR_VALUE   ("throttle.max_downloads.global._val", 0);
 
-  CMD2_REDIRECT_GENERIC("throttle.max_uploads.div",      "throttle.max_uploads.div._val");
-  CMD2_REDIRECT_GENERIC("throttle.max_uploads.global",   "throttle.max_uploads.global._val");
-  CMD2_REDIRECT_GENERIC("throttle.max_downloads.div",    "throttle.max_downloads.div._val");
-  CMD2_REDIRECT_GENERIC("throttle.max_downloads.global", "throttle.max_downloads.global._val");
+  CMD2_REDIRECT    ("throttle.max_uploads.div",      "throttle.max_uploads.div._val");
+  CMD2_REDIRECT    ("throttle.max_uploads.global",   "throttle.max_uploads.global._val");
+  CMD2_REDIRECT    ("throttle.max_downloads.div",    "throttle.max_downloads.div._val");
+  CMD2_REDIRECT    ("throttle.max_downloads.global", "throttle.max_downloads.global._val");
 
   CMD2_ANY_VALUE   ("throttle.max_uploads.div.set",      std::bind(&throttle_update, "throttle.max_uploads.div._val.set", std::placeholders::_2));
   CMD2_ANY_VALUE   ("throttle.max_uploads.global.set",   std::bind(&throttle_update, "throttle.max_uploads.global._val.set", std::placeholders::_2));

@@ -53,9 +53,8 @@ public:
   static const int flag_is_redirect   = 0x20;
   static const int flag_has_redirects = 0x40;
 
-  static const int flag_no_target      = 0x100;
-  static const int flag_file_target    = 0x200;
-  static const int flag_tracker_target = 0x400;
+  static const int flag_file_target    = 0x100;
+  static const int flag_tracker_target = 0x200;
 
   CommandMap() = default;
 
