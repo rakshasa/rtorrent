@@ -30,18 +30,18 @@
 
 torrent::Object
 apply_encryption(const torrent::Object::list_type& args) {
-  uint32_t options_mask = torrent::ConnectionManager::encryption_none;
+  uint32_t options_mask = torrent::net::NetworkConfig::encryption_none;
 
   for (const auto& arg : args) {
     uint32_t opt = torrent::option_find_string(torrent::OPTION_ENCRYPTION, arg.as_string().c_str());
 
-    if (opt == torrent::ConnectionManager::encryption_none)
-      options_mask = torrent::ConnectionManager::encryption_none;
+    if (opt == torrent::net::NetworkConfig::encryption_none)
+      options_mask = torrent::net::NetworkConfig::encryption_none;
     else
       options_mask |= opt;
   }
 
-  torrent::connection_manager()->set_encryption_options(options_mask);
+  torrent::config::network_config()->set_encryption_options(options_mask);
 
   return torrent::Object();
 }
@@ -53,7 +53,7 @@ apply_tos(const torrent::Object::string_type& arg) {
   if (!rpc::parse_whole_value_nothrow(arg.c_str(), &value, 16, 1))
     value = torrent::option_find_string(torrent::OPTION_IP_TOS, arg.c_str());
 
-  torrent::connection_manager()->set_priority(value);
+  torrent::config::network_config()->set_priority(value);
 
   return torrent::Object();
 }
@@ -208,10 +208,10 @@ initialize_command_network() {
   CMD2_ANY         ("network.http.ssl_verify_peer",       [http_stack](auto, auto) { return http_stack->ssl_verify_peer(); });
   CMD2_ANY_VALUE_V ("network.http.ssl_verify_peer.set",   [http_stack](auto, auto& value) { return http_stack->set_ssl_verify_peer(value); });
 
-  CMD2_ANY         ("network.send_buffer.size",        std::bind(&torrent::ConnectionManager::send_buffer_size, cm));
-  CMD2_ANY_VALUE_V ("network.send_buffer.size.set",    std::bind(&torrent::ConnectionManager::set_send_buffer_size, cm, std::placeholders::_2));
-  CMD2_ANY         ("network.receive_buffer.size",     std::bind(&torrent::ConnectionManager::receive_buffer_size, cm));
-  CMD2_ANY_VALUE_V ("network.receive_buffer.size.set", std::bind(&torrent::ConnectionManager::set_receive_buffer_size, cm, std::placeholders::_2));
+  CMD2_ANY         ("network.send_buffer.size",        std::bind(&torrent::net::NetworkConfig::send_buffer_size, network_config));
+  CMD2_ANY_VALUE_V ("network.send_buffer.size.set",    std::bind(&torrent::net::NetworkConfig::set_send_buffer_size, network_config, std::placeholders::_2));
+  CMD2_ANY         ("network.receive_buffer.size",     std::bind(&torrent::net::NetworkConfig::receive_buffer_size, network_config));
+  CMD2_ANY_VALUE_V ("network.receive_buffer.size.set", std::bind(&torrent::net::NetworkConfig::set_receive_buffer_size, network_config, std::placeholders::_2));
   CMD2_ANY_STRING  ("network.tos.set",                 std::bind(&apply_tos, std::placeholders::_2));
 
   CMD2_ANY         ("network.bind_address",          std::bind(&torrent::net::NetworkConfig::bind_address_str, network_config));
