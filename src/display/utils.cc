@@ -388,7 +388,7 @@ print_status_info(char* first, char* last) {
   if (first > last)
     throw torrent::internal_error("print_status_info(...) wrote past end of the buffer.");
 
-  auto bind_address = torrent::config::network_config()->bind_address();
+  auto bind_address = torrent::config::network_config()->bind_address_best_match();
 
   if (!torrent::sa_is_any(bind_address.get())) {
     first = print_buffer(first, last, " [Bind ");
