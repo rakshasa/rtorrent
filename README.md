@@ -41,7 +41,7 @@ cd rtorrent
 
 ## Install build dependencies
 
-Install [libtorrent](https://libtorrent.org/) with the same version rTorrent.
+Install [libtorrent](https://github.com/rakshasa/libtorrent) with the same version rTorrent.
 
 Generate configure scripts:
 
@@ -57,7 +57,7 @@ docbook2man rtorrent.1.xml
 
 Man pages output to "doc/rtorrent.1".
 
-RTorrent follows the development of [libtorrent](https://libtorrent.org/) closely, and thus the versions must be in sync.
+RTorrent follows the development of [libtorrent](https://github.com/rakshasa/libtorrent) closely, and thus the versions must be in sync.
 
 ## USAGE
 
