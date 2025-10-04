@@ -497,6 +497,8 @@ main(int argc, char** argv) {
 
     lt_log_print_dump(torrent::LOG_CRITICAL, e.backtrace().c_str(), e.backtrace().size(),
                       "Caught internal_error: '%s'.", e.what());
+
+    torrent::log_cleanup();
     return -1;
 
   } catch (std::exception& e) {
@@ -505,6 +507,8 @@ main(int argc, char** argv) {
     std::cout << "rtorrent: caught" << typeid(e).name() << " : " << e.what() << std::endl;
 
     lt_log_print(torrent::LOG_CRITICAL, "Caught exception: '%s'.", e.what());
+
+    torrent::log_cleanup();
     return -1;
   }
 
