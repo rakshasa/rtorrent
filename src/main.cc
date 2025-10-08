@@ -418,6 +418,11 @@ main(int argc, char** argv) {
 
     CMD2_REDIRECT("torrent_list_layout", "ui.torrent_list.layout.set");
 
+    // Deprecate:
+
+    CMD2_REDIRECT("network.http.max_open",     "network.http.max_total_connections");
+    CMD2_REDIRECT("network.http.max_open.set", "network.http.max_total_connections.set");
+
     // Deprecated commands. Don't use these anymore.
     //
     // It has been so long that we now re-create these commands with the new (old by now) command

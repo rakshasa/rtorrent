@@ -192,29 +192,31 @@ initialize_command_network() {
   CMD2_VAR_STRING  ("protocol.choke_heuristics.down.leech", "download_leech");
   CMD2_VAR_STRING  ("protocol.choke_heuristics.down.seed",  "download_leech");
 
-  CMD2_ANY         ("network.http.cacert",                [http_stack](auto, auto)        { return http_stack->http_cacert(); });
-  CMD2_ANY_STRING_V("network.http.cacert.set",            [http_stack](auto, auto& str)   { return http_stack->set_http_cacert(str); });
-  CMD2_ANY         ("network.http.capath",                [http_stack](auto, auto)        { return http_stack->http_capath(); });
-  CMD2_ANY_STRING_V("network.http.capath.set",            [http_stack](auto, auto& str)   { return http_stack->set_http_capath(str); });
-  CMD2_ANY         ("network.http.dns_cache_timeout",     [http_stack](auto, auto)        { return http_stack->dns_timeout(); });
-  CMD2_ANY_VALUE_V ("network.http.dns_cache_timeout.set", [http_stack](auto, auto& value) { return http_stack->set_dns_timeout(value); });
-  CMD2_ANY         ("network.http.current_open",          [http_stack](auto, auto)        { return http_stack->active(); });
-  CMD2_ANY         ("network.http.max_connects",          [http_stack](auto, auto)        { return http_stack->max_connections(); });
-  CMD2_ANY_VALUE_V ("network.http.max_connects.set",      [http_stack](auto, auto& value) { return http_stack->set_max_connections(value); });
-  CMD2_ANY         ("network.http.max_open",              [http_stack](auto, auto)        { return http_stack->max_active(); });
-  CMD2_ANY_VALUE_V ("network.http.max_open.set",          [http_stack](auto, auto& value) { return http_stack->set_max_active(value); });
-  CMD2_ANY         ("network.http.proxy_address",         [http_stack](auto, auto)        { return http_stack->http_proxy(); });
-  CMD2_ANY_STRING_V("network.http.proxy_address.set",     [http_stack](auto, auto& str)   { return http_stack->set_http_proxy(str); });
-  CMD2_ANY         ("network.http.ssl_verify_host",       [http_stack](auto, auto)        { return http_stack->ssl_verify_host(); });
-  CMD2_ANY_VALUE_V ("network.http.ssl_verify_host.set",   [http_stack](auto, auto& value) { return http_stack->set_ssl_verify_host(value); });
-  CMD2_ANY         ("network.http.ssl_verify_peer",       [http_stack](auto, auto)        { return http_stack->ssl_verify_peer(); });
-  CMD2_ANY_VALUE_V ("network.http.ssl_verify_peer.set",   [http_stack](auto, auto& value) { return http_stack->set_ssl_verify_peer(value); });
+  CMD2_ANY         ("network.http.cacert",                    [http_stack](auto, auto)        { return http_stack->http_cacert(); });
+  CMD2_ANY_STRING_V("network.http.cacert.set",                [http_stack](auto, auto& str)   { return http_stack->set_http_cacert(str); });
+  CMD2_ANY         ("network.http.capath",                    [http_stack](auto, auto)        { return http_stack->http_capath(); });
+  CMD2_ANY_STRING_V("network.http.capath.set",                [http_stack](auto, auto& str)   { return http_stack->set_http_capath(str); });
+  CMD2_ANY         ("network.http.dns_cache_timeout",         [http_stack](auto, auto)        { return http_stack->dns_timeout(); });
+  CMD2_ANY_VALUE_V ("network.http.dns_cache_timeout.set",     [http_stack](auto, auto& value) { return http_stack->set_dns_timeout(value); });
+  CMD2_ANY         ("network.http.current_open",              [http_stack](auto, auto)        { return http_stack->size(); });
+  CMD2_ANY         ("network.http.max_cache_connections",     [http_stack](auto, auto)        { return http_stack->max_cache_connections(); });
+  CMD2_ANY_VALUE_V ("network.http.max_cache_connections.set", [http_stack](auto, auto& value) { return http_stack->set_max_cache_connections(value); });
+  CMD2_ANY         ("network.http.max_host_connections",      [http_stack](auto, auto)        { return http_stack->max_host_connections(); });
+  CMD2_ANY_VALUE_V ("network.http.max_host_connections.set",  [http_stack](auto, auto& value) { return http_stack->set_max_host_connections(value); });
+  CMD2_ANY         ("network.http.max_total_connections",     [http_stack](auto, auto)        { return http_stack->max_total_connections(); });
+  CMD2_ANY_VALUE_V ("network.http.max_total_connections.set", [http_stack](auto, auto& value) { return http_stack->set_max_total_connections(value); });
+  CMD2_ANY         ("network.http.proxy_address",             [http_stack](auto, auto)        { return http_stack->http_proxy(); });
+  CMD2_ANY_STRING_V("network.http.proxy_address.set",         [http_stack](auto, auto& str)   { return http_stack->set_http_proxy(str); });
+  CMD2_ANY         ("network.http.ssl_verify_host",           [http_stack](auto, auto)        { return http_stack->ssl_verify_host(); });
+  CMD2_ANY_VALUE_V ("network.http.ssl_verify_host.set",       [http_stack](auto, auto& value) { return http_stack->set_ssl_verify_host(value); });
+  CMD2_ANY         ("network.http.ssl_verify_peer",           [http_stack](auto, auto)        { return http_stack->ssl_verify_peer(); });
+  CMD2_ANY_VALUE_V ("network.http.ssl_verify_peer.set",       [http_stack](auto, auto& value) { return http_stack->set_ssl_verify_peer(value); });
 
-  CMD2_ANY         ("network.send_buffer.size",           [network_config](auto, auto) { return network_config->send_buffer_size(); });
+  CMD2_ANY         ("network.send_buffer.size",           [network_config](auto, auto)        { return network_config->send_buffer_size(); });
   CMD2_ANY_VALUE_V ("network.send_buffer.size.set",       [network_config](auto, auto& value) { return network_config->set_send_buffer_size(value); });
-  CMD2_ANY         ("network.receive_buffer.size",        [network_config](auto, auto) { return network_config->receive_buffer_size(); });
+  CMD2_ANY         ("network.receive_buffer.size",        [network_config](auto, auto)        { return network_config->receive_buffer_size(); });
   CMD2_ANY_VALUE_V ("network.receive_buffer.size.set",    [network_config](auto, auto& value) { return network_config->set_receive_buffer_size(value); });
-  CMD2_ANY_STRING  ("network.tos.set",                    [](auto, auto& str) { return apply_tos(str); });
+  CMD2_ANY_STRING  ("network.tos.set",                    [](auto, auto& str)                 { return apply_tos(str); });
 
   CMD2_ANY         ("network.bind_address",               [network_config](auto, auto) { return network_config->bind_address_best_match_str(); });
   CMD2_ANY_STRING_V("network.bind_address.set",           [](auto, auto& str)          { return control->core()->set_bind_address(str); });
@@ -223,18 +225,18 @@ initialize_command_network() {
   CMD2_ANY         ("network.bind_address.ipv6",          [network_config](auto, auto) { return network_config->bind_inet6_address_str(); });
   CMD2_ANY_STRING_V("network.bind_address.ipv6.set",      [](auto, auto& str)          { return control->core()->set_bind_inet6_address(str); });
 
-  CMD2_ANY         ("network.local_address",         std::bind(&torrent::net::NetworkConfig::local_address_str, network_config));
-  CMD2_ANY_STRING_V("network.local_address.set",     std::bind(&core::Manager::set_local_address, control->core(), std::placeholders::_2));
-  CMD2_ANY         ("network.proxy_address",         std::bind(&torrent::net::NetworkConfig::proxy_address_str, network_config));
-  CMD2_ANY_STRING_V("network.proxy_address.set",     std::bind(&core::Manager::set_proxy_address, control->core(), std::placeholders::_2));
+  CMD2_ANY         ("network.local_address",         [network_config](auto, auto) { return network_config->local_address_str(); });
+  CMD2_ANY_STRING_V("network.local_address.set",     [](auto, auto& str)          { return control->core()->set_local_address(str); });
+  CMD2_ANY         ("network.proxy_address",         [network_config](auto, auto) { return network_config->proxy_address_str(); });
+  CMD2_ANY_STRING_V("network.proxy_address.set",     [](auto, auto& str)          { return control->core()->set_proxy_address(str); });
 
-  CMD2_ANY         ("network.open_files",            std::bind(&torrent::FileManager::open_files, file_manager));
-  CMD2_ANY         ("network.max_open_files",        std::bind(&torrent::FileManager::max_open_files, file_manager));
-  CMD2_ANY_VALUE_V ("network.max_open_files.set",    std::bind(&torrent::FileManager::set_max_open_files, file_manager, std::placeholders::_2));
-  CMD2_ANY         ("network.total_handshakes",      std::bind(&torrent::total_handshakes));
-  CMD2_ANY         ("network.open_sockets",          std::bind(&torrent::ConnectionManager::size, cm));
-  CMD2_ANY         ("network.max_open_sockets",      std::bind(&torrent::ConnectionManager::max_size, cm));
-  CMD2_ANY_VALUE_V ("network.max_open_sockets.set",  std::bind(&torrent::ConnectionManager::set_max_size, cm, std::placeholders::_2));
+  CMD2_ANY         ("network.open_files",            [file_manager](auto, auto)        { return file_manager->open_files(); });
+  CMD2_ANY         ("network.max_open_files",        [file_manager](auto, auto)        { return file_manager->max_open_files(); });
+  CMD2_ANY_VALUE_V ("network.max_open_files.set",    [file_manager](auto, auto& value) { return file_manager->set_max_open_files(value); });
+  CMD2_ANY         ("network.total_handshakes",      [](auto, auto)                    { return torrent::total_handshakes(); });
+  CMD2_ANY         ("network.open_sockets",          [cm](auto, auto)                  { return cm->size(); });
+  CMD2_ANY         ("network.max_open_sockets",      [cm](auto, auto)                  { return cm->max_size(); });
+  CMD2_ANY_VALUE_V ("network.max_open_sockets.set",  [cm](auto, auto& value)           { return cm->set_max_size(value); });
 
   CMD2_ANY_STRING  ("network.scgi.open_port",        std::bind(&apply_scgi, std::placeholders::_2, 1));
   CMD2_ANY_STRING  ("network.scgi.open_local",       std::bind(&apply_scgi, std::placeholders::_2, 2));
