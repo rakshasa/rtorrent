@@ -112,7 +112,7 @@ Control::is_shutdown_completed() {
 
   // TODO: We keep http requests in the queue for a while after, so improve this check to ignore
   // those.
-  if (torrent::net_thread::http_stack()->active() != 0 || !core()->http_queue()->empty())
+  if (torrent::net_thread::http_stack()->size() != 0 || !core()->http_queue()->empty())
     return false;
 
   return torrent::is_inactive();

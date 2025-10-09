@@ -410,8 +410,8 @@ print_status_extra(char* first, char* last) {
                        torrent::resource_manager()->max_download_unchoked());
 
   first = print_buffer(first, last, " [H %u/%u]",
-                       torrent::net_thread::http_stack()->active(),
-                       torrent::net_thread::http_stack()->max_active());
+                       torrent::net_thread::http_stack()->size(),
+                       torrent::net_thread::http_stack()->max_total_connections());
 
   first = print_buffer(first, last, " [S %i/%i/%i]",
                        torrent::total_handshakes(),
