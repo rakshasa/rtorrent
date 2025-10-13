@@ -377,7 +377,7 @@ print_status_info(char* first, char* last) {
 
   first = print_buffer(first, last, " [Port: %i]", (unsigned int)torrent::config::network_config()->listen_port());
 
-  auto local_address = torrent::config::network_config()->local_address();
+  auto local_address = torrent::config::network_config()->local_address_best_match();
 
   if (!torrent::sa_is_any(local_address.get())) {
     first = print_buffer(first, last, " [Local ");

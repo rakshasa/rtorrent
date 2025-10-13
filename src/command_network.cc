@@ -218,15 +218,20 @@ initialize_command_network() {
   CMD2_ANY_VALUE_V ("network.receive_buffer.size.set",    [network_config](auto, auto& value) { return network_config->set_receive_buffer_size(value); });
   CMD2_ANY_STRING  ("network.tos.set",                    [](auto, auto& str)                 { return apply_tos(str); });
 
-  CMD2_ANY         ("network.bind_address",               [network_config](auto, auto) { return network_config->bind_address_best_match_str(); });
-  CMD2_ANY_STRING_V("network.bind_address.set",           [](auto, auto& str)          { return control->core()->set_bind_address(str); });
-  CMD2_ANY         ("network.bind_address.ipv4",          [network_config](auto, auto) { return network_config->bind_inet_address_str(); });
-  CMD2_ANY_STRING_V("network.bind_address.ipv4.set",      [](auto, auto& str)          { return control->core()->set_bind_inet_address(str); });
-  CMD2_ANY         ("network.bind_address.ipv6",          [network_config](auto, auto) { return network_config->bind_inet6_address_str(); });
-  CMD2_ANY_STRING_V("network.bind_address.ipv6.set",      [](auto, auto& str)          { return control->core()->set_bind_inet6_address(str); });
+  CMD2_ANY         ("network.bind_address",               [network_config](auto, auto)        { return network_config->bind_address_best_match_str(); });
+  CMD2_ANY_STRING_V("network.bind_address.set",           [network_config](auto, auto& str)   { return network_config->set_bind_address_str(str); });
+  CMD2_ANY         ("network.bind_address.ipv4",          [network_config](auto, auto)        { return network_config->bind_inet_address_str(); });
+  CMD2_ANY_STRING_V("network.bind_address.ipv4.set",      [network_config](auto, auto& str)   { return network_config->set_bind_inet_address_str(str); });
+  CMD2_ANY         ("network.bind_address.ipv6",          [network_config](auto, auto)        { return network_config->bind_inet6_address_str(); });
+  CMD2_ANY_STRING_V("network.bind_address.ipv6.set",      [network_config](auto, auto& str)   { return network_config->set_bind_inet6_address_str(str); });
 
-  CMD2_ANY         ("network.local_address",         [network_config](auto, auto) { return network_config->local_address_str(); });
-  CMD2_ANY_STRING_V("network.local_address.set",     [](auto, auto& str)          { return control->core()->set_local_address(str); });
+  CMD2_ANY         ("network.local_address",              [network_config](auto, auto)        { return network_config->local_address_best_match_str(); });
+  CMD2_ANY_STRING_V("network.local_address.set",          [network_config](auto, auto& str)   { return network_config->set_local_address_str(str); });
+  CMD2_ANY         ("network.local_address.ipv4",         [network_config](auto, auto)        { return network_config->local_inet_address_str(); });
+  CMD2_ANY_STRING_V("network.local_address.ipv4.set",     [network_config](auto, auto& str)   { return network_config->set_local_inet_address_str(str); });
+  CMD2_ANY         ("network.local_address.ipv6",         [network_config](auto, auto)        { return network_config->local_inet6_address_str(); });
+  CMD2_ANY_STRING_V("network.local_address.ipv6.set",     [network_config](auto, auto& str)   { return network_config->set_local_inet6_address_str(str); });
+
   CMD2_ANY         ("network.proxy_address",         [network_config](auto, auto) { return network_config->proxy_address_str(); });
   CMD2_ANY_STRING_V("network.proxy_address.set",     [](auto, auto& str)          { return control->core()->set_proxy_address(str); });
 
