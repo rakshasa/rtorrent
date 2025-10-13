@@ -61,10 +61,6 @@ public:
 
   void                listen_open();
 
-  void                set_bind_address(const std::string& addr);
-  void                set_bind_inet_address(const std::string& addr);
-  void                set_bind_inet6_address(const std::string& addr);
-  void                set_local_address(const std::string& addr);
   void                set_proxy_address(const std::string& addr);
 
   void                shutdown(bool force);
