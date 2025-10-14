@@ -405,12 +405,12 @@ convert_to_value_nothrow(const torrent::Object& src, int64_t* value, int base, i
   case torrent::Object::TYPE_RAW_STRING: {
     const torrent::raw_string& str = src.as_raw_string();
 
-    char buffer[str.size() + 1];
-    std::memcpy(buffer, str.data(), str.size());
+    auto buffer = std::make_unique<char[]>(str.size() + 1);
+    std::memcpy(buffer.get(), str.data(), str.size());
     buffer[str.size()] = '\0';
 
-    return parse_skip_wspace(parse_value(buffer, value, base, unit), buffer + str.size())
-      == buffer + str.size();
+    return parse_skip_wspace(parse_value(buffer.get(), value, base, unit), buffer.get() + str.size())
+      == buffer.get() + str.size();
   }
   case torrent::Object::TYPE_NONE:
     *value = 0;

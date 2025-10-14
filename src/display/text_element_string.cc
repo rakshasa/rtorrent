@@ -50,16 +50,16 @@ TextElementStringBase::print(char* first, char* last, Canvas::attributes_list* a
     return first;
 
   if (m_flags & flag_escape_hex) {
-    char buffer[last - first];
-    char* bufferLast = copy_string(buffer, buffer + (last - first), target);
+    auto buffer = std::make_unique<char[]>(last - first);
+    char* bufferLast = copy_string(buffer.get(), buffer.get() + (last - first), target);
 
-    first = rak::transform_hex(buffer, bufferLast, first, last);
+    first = rak::transform_hex(buffer.get(), bufferLast, first, last);
 
   } else if (m_flags & flag_escape_html) {
-    char buffer[last - first];
-    char* bufferLast = copy_string(buffer, buffer + (last - first), target);
+    auto buffer = std::make_unique<char[]>(last - first);
+    char* bufferLast = copy_string(buffer.get(), buffer.get() + (last - first), target);
 
-    first = rak::copy_escape_html(buffer, bufferLast, first, last);
+    first = rak::copy_escape_html(buffer.get(), bufferLast, first, last);
 
   } else {
     first = copy_string(first, last, target);
