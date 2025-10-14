@@ -86,3 +86,29 @@ compiled if the user wishes to avoid using OpenSSL.
 * autoconf
 * autoheader
 * automake
+
+## Packaging status
+[![status](https://repology.org/badge/version-for-repo/alpine_3_22/rtorrent.svg)](https://repology.org/project/rtorrent/versions)  
+[![status](https://repology.org/badge/version-for-repo/alpine_edge/rtorrent.svg)](https://repology.org/project/rtorrent/versions)  
+[![status](https://repology.org/badge/version-for-repo/alt_p11/rtorrent.svg)](https://repology.org/project/rtorrent/versions)  
+[![status](https://repology.org/badge/version-for-repo/arch/rtorrent.svg)](https://repology.org/project/rtorrent/versions)  
+[![status](https://repology.org/badge/version-for-repo/crux_38/rtorrent.svg)](https://repology.org/project/rtorrent/versions)  
+[![status](https://repology.org/badge/version-for-repo/cygwin/rtorrent.svg)](https://repology.org/project/rtorrent/versions)  
+[![status](https://repology.org/badge/version-for-repo/debian_13/rtorrent.svg)](https://repology.org/project/rtorrent/versions)  
+[![status](https://repology.org/badge/version-for-repo/debian_unstable/rtorrent.svg)](https://repology.org/project/rtorrent/versions)  
+[![status](https://repology.org/badge/version-for-repo/epel_9/rtorrent.svg)](https://repology.org/project/rtorrent/versions)  
+[![status](https://repology.org/badge/version-for-repo/fedora_42/rtorrent.svg)](https://repology.org/project/rtorrent/versions)  
+[![status](https://repology.org/badge/version-for-repo/freebsd/rtorrent.svg)](https://repology.org/project/rtorrent/versions)  
+[![status](https://repology.org/badge/version-for-repo/gentoo/rtorrent.svg)](https://repology.org/project/rtorrent/versions)  
+[![status](https://repology.org/badge/version-for-repo/gnuguix/rtorrent.svg)](https://repology.org/project/rtorrent/versions)  
+[![status](https://repology.org/badge/version-for-repo/homebrew/rtorrent.svg)](https://repology.org/project/rtorrent/versions)  
+[![status](https://repology.org/badge/version-for-repo/macports/rtorrent.svg)](https://repology.org/project/rtorrent/versions)  
+[![status](https://repology.org/badge/version-for-repo/nix_unstable/rtorrent.svg)](https://repology.org/project/rtorrent/versions)  
+[![status](https://repology.org/badge/version-for-repo/openbsd/rtorrent.svg)](https://repology.org/project/rtorrent/versions)  
+[![status](https://repology.org/badge/version-for-repo/opensuse_leap_15_6/rtorrent.svg)](https://repology.org/project/rtorrent/versions)  
+[![status](https://repology.org/badge/version-for-repo/opensuse_tumbleweed/rtorrent.svg)](https://repology.org/project/rtorrent/versions)  
+[![status](https://repology.org/badge/version-for-repo/solus/rtorrent.svg)](https://repology.org/project/rtorrent/versions)  
+[![status](https://repology.org/badge/version-for-repo/termux/rtorrent.svg)](https://repology.org/project/rtorrent/versions)  
+[![status](https://repology.org/badge/version-for-repo/ubuntu_22_04/rtorrent.svg)](https://repology.org/project/rtorrent/versions)  
+[![status](https://repology.org/badge/version-for-repo/ubuntu_24_04/rtorrent.svg)](https://repology.org/project/rtorrent/versions)  
+[![status](https://repology.org/badge/version-for-repo/void_x86_64/rtorrent.svg)](https://repology.org/project/rtorrent/versions)
