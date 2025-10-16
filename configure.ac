@@ -1,6 +1,6 @@
 m4_pattern_allow([PKG_CHECK_EXISTS])
 
-AC_INIT([rtorrent],[0.16.0],[sundell.software@gmail.com])
+AC_INIT([rtorrent],[0.16.1],[sundell.software@gmail.com])
 
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIRS([scripts])
@@ -11,7 +11,7 @@ LT_INIT
 
 AC_PROG_CXX
 
-AC_DEFINE([API_VERSION], [16], [api version])
+AC_DEFINE([API_VERSION], [17], [api version])
 
 # Filter out unwanted flags added by autoconf on some systems, e.g. MacOS.
 TORRENT_REMOVE_UNWANTED(CXX, $CXX, -std=c++11 -std=gnu++11)
@@ -48,7 +48,7 @@ if test "x$ax_cv_ncursesw" != xyes && test "x$ax_cv_ncurses" != xyes; then
 fi
 
 PKG_CHECK_MODULES([CPPUNIT], [cppunit],, [no_cppunit="yes"])
-PKG_CHECK_MODULES([DEPENDENCIES], [libtorrent >= 0.16.0])
+PKG_CHECK_MODULES([DEPENDENCIES], [libtorrent >= 0.16.1])
 
 AC_LANG_PUSH(C++)
 TORRENT_WITH_XMLRPC_C
