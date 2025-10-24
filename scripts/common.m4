@@ -30,7 +30,8 @@ AC_DEFUN([TORRENT_REMOVE_UNWANTED],
     $1="$2"
   else
     result=`echo "${values_to_check}" | $GREP -Fvx -- "${unwanted_values}" | $GREP -v '^$'`
-    $1=$(echo "$result" | tr -d '\n')
+    # join with spaces, squeeze repeats, and trim trailing space
+    $1=$(printf '%s\n' "$result" | tr '\n' ' ' | sed 's/  */ /g; s/ *$//')
   fi
 ])
 
