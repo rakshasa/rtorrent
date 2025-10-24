@@ -40,7 +40,7 @@ Each log handle can be added to multiple different logging events.
     "debug"
 
 The above events receive logging events from all the sub-groups
-displayed below, and each event also reciving events from the event
+displayed below, and each event also receiving events from the event
 above in importance.
 
 Thus some high-volume sub-group events such as “tracker\_debug” are not
