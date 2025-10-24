@@ -5,7 +5,7 @@
 \begin{verbatim}
 # log.open_file = "log name", "file path"
 
-log.open_file = "rtorrent.log", (cat,/tmp/rtorrent.log.,(system.pid))  
+log.open_file = "rtorrent.log", (cat,/tmp/rtorrent.log.,(system.pid))
 \end{verbatim}
 
 A newly opened log file is not connected to any logging events.
@@ -20,8 +20,9 @@ Some control over formatting will be provided at a later date.
 
 log.add_output = "info", "rtorrent.log"
 
-log.add_output = "dht_debug", "tracker.log"
-log.add_output = "tracker_debug", "tracker.log"
+log.add_output = "dht_all", "tracker.log"
+log.add_output = "tracker_events", "tracker.log"
+log.add_output = "tracker_requests", "tracker.log"
 \end{verbatim}
 
 Each log handle can be added to multiple different logging events.
