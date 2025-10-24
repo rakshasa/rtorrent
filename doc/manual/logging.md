@@ -4,7 +4,7 @@
 
     # log.open_file = "log name", "file path"
 
-    log.open_file = "rtorrent.log", (cat,/tmp/rtorrent.log.,(system.pid))  
+    log.open_file = "rtorrent.log", (cat,/tmp/rtorrent.log.,(system.pid))
 
 A newly opened log file is not connected to any logging events.
 
@@ -25,8 +25,9 @@ restarts, you can use the `log.append_file` in place of the
 
     log.add_output = "info", "rtorrent.log"
 
-    log.add_output = "dht_debug", "tracker.log"
-    log.add_output = "tracker_debug", "tracker.log"
+    log.add_output = "dht_all", "tracker.log"
+    log.add_output = "tracker_events", "tracker.log"
+    log.add_output = "tracker_requests", "tracker.log"
 
 Each log handle can be added to multiple different logging events.
 
