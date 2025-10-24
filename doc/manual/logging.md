@@ -10,6 +10,15 @@ A newly opened log file is not connected to any logging events.
 
 Some control over formatting will be provided at a later date.
 
+## Appending to log files
+
+    log.append_file "rtorrent.log", "/tmp/rtorrent.log"
+
+The `log.open_file` clears any existing contents of the file. If you'd
+prefer to have a single log file that persists across application
+restarts, you can use the `log.append_file` in place of the
+`log.open_file` configuration key.
+
 ## Adding outputs to events
 
     # log.add_output = "logging event", "log name"
