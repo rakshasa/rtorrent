@@ -12,7 +12,7 @@ Some control over formatting will be provided at a later date.
 
 ## Appending to log files
 
-    log.append_file "rtorrent.log", "/tmp/rtorrent.log"
+    log.append_file = "rtorrent.log", "/tmp/rtorrent.log"
 
 The `log.open_file` clears any existing contents of the file. If you'd
 prefer to have a single log file that persists across application
