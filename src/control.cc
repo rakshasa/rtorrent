@@ -4,8 +4,8 @@
 
 #include <unistd.h>
 #include <sys/stat.h>
-#include <torrent/connection_manager.h>
 #include <torrent/net/http_stack.h>
+#include <torrent/net/network_manager.h>
 #include <torrent/utils/directory_events.h>
 
 #include "core/dht_manager.h"
@@ -38,9 +38,9 @@ Control::Control()
     m_lua_engine(new rpc::LuaEngine()),
     m_directory_events(new torrent::directory_events()) {
 
-  m_core        = std::make_unique<core::Manager>();
-  m_viewManager = std::make_unique<core::ViewManager>();
-  m_dhtManager  = std::make_unique<core::DhtManager>();
+  m_core         = std::make_unique<core::Manager>();
+  m_view_manager = std::make_unique<core::ViewManager>();
+  m_dht_manager  = std::make_unique<core::DhtManager>();
 
   m_inputStdin->slot_pressed(std::bind(&input::Manager::pressed, m_input.get(), std::placeholders::_1));
 
@@ -50,7 +50,7 @@ Control::Control()
 }
 
 Control::~Control() {
-  m_viewManager.reset();
+  m_view_manager.reset();
 
   m_ui.reset();
   m_display.reset();
@@ -67,7 +67,7 @@ Control::initialize() {
 
   m_core->listen_open();
   m_core->download_store()->enable(rpc::call_command_value("session.use_lock"));
-  m_core->set_hashing_view(*m_viewManager->find_throw("hashing"));
+  m_core->set_hashing_view(*m_view_manager->find_throw("hashing"));
 
   m_ui->init(this);
 
@@ -126,7 +126,7 @@ Control::handle_shutdown() {
     if (worker_thread->is_active())
       worker_thread->stop_thread_wait();
 
-    torrent::connection_manager()->listen_close();
+    torrent::runtime::network_manager()->listen_close();
 
     m_directory_events->close();
     m_core->shutdown(false);

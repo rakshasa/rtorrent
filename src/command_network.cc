@@ -7,11 +7,11 @@
 #include <rak/path.h>
 #include <torrent/torrent.h>
 #include <torrent/rate.h>
-#include <torrent/connection_manager.h>
 #include <torrent/data/file_manager.h>
 #include <torrent/download/resource_manager.h>
 #include <torrent/net/http_stack.h>
 #include <torrent/net/network_config.h>
+#include <torrent/net/network_manager.h>
 #include <torrent/net/socket_address.h>
 #include <torrent/tracker/tracker.h>
 #include <torrent/utils/log.h>
@@ -168,7 +168,8 @@ initialize_command_network() {
   auto cm = torrent::connection_manager();
   auto file_manager = torrent::file_manager();
   auto http_stack = torrent::net_thread::http_stack();
-  auto network_config = torrent::config::network_config();
+  auto nw_config = torrent::config::network_config();
+  auto nw_manager = torrent::runtime::network_manager();
 
   CMD2_ANY_STRING  ("encoding.add", std::bind(&apply_encoding_list, std::placeholders::_2));
 
@@ -177,18 +178,18 @@ initialize_command_network() {
   CMD2_VAR_BOOL    ("network.port_random", true);
   CMD2_VAR_STRING  ("network.port_range",  "6881-6999");
 
-  CMD2_ANY         ("network.listen.port",        std::bind(&torrent::net::NetworkConfig::listen_port, network_config));
-  CMD2_ANY         ("network.listen.backlog",     std::bind(&torrent::net::NetworkConfig::listen_backlog, network_config));
-  CMD2_ANY_VALUE_V ("network.listen.backlog.set", std::bind(&torrent::ConnectionManager::set_listen_backlog, cm, std::placeholders::_2));
+  CMD2_ANY         ("network.listen.port",        [nw_config](auto, auto)         { return nw_config->listen_port(); });
+  CMD2_ANY         ("network.listen.backlog",     [nw_manager](auto, auto)        { return nw_manager->listen_backlog(); });
+  CMD2_ANY_VALUE_V ("network.listen.backlog.set", [nw_manager](auto, auto& value) { return nw_manager->set_listen_backlog(value); });
 
-  CMD2_VAR_BOOL    ("protocol.pex",            true);
-  CMD2_ANY_LIST    ("protocol.encryption.set", std::bind(&apply_encryption, std::placeholders::_2));
+  CMD2_VAR_BOOL    ("protocol.pex",               true);
+  CMD2_ANY_LIST    ("protocol.encryption.set",    [](auto, auto& args)            { return apply_encryption(args); });
 
-  CMD2_VAR_STRING  ("protocol.connection.leech", "leech");
-  CMD2_VAR_STRING  ("protocol.connection.seed",  "seed");
+  CMD2_VAR_STRING  ("protocol.connection.leech",            "leech");
+  CMD2_VAR_STRING  ("protocol.connection.seed",             "seed");
 
-  CMD2_VAR_STRING  ("protocol.choke_heuristics.up.leech", "upload_leech");
-  CMD2_VAR_STRING  ("protocol.choke_heuristics.up.seed",  "upload_leech");
+  CMD2_VAR_STRING  ("protocol.choke_heuristics.up.leech",   "upload_leech");
+  CMD2_VAR_STRING  ("protocol.choke_heuristics.up.seed",    "upload_leech");
   CMD2_VAR_STRING  ("protocol.choke_heuristics.down.leech", "download_leech");
   CMD2_VAR_STRING  ("protocol.choke_heuristics.down.seed",  "download_leech");
 
@@ -212,28 +213,28 @@ initialize_command_network() {
   CMD2_ANY         ("network.http.ssl_verify_peer",           [http_stack](auto, auto)        { return http_stack->ssl_verify_peer(); });
   CMD2_ANY_VALUE_V ("network.http.ssl_verify_peer.set",       [http_stack](auto, auto& value) { return http_stack->set_ssl_verify_peer(value); });
 
-  CMD2_ANY         ("network.send_buffer.size",           [network_config](auto, auto)        { return network_config->send_buffer_size(); });
-  CMD2_ANY_VALUE_V ("network.send_buffer.size.set",       [network_config](auto, auto& value) { return network_config->set_send_buffer_size(value); });
-  CMD2_ANY         ("network.receive_buffer.size",        [network_config](auto, auto)        { return network_config->receive_buffer_size(); });
-  CMD2_ANY_VALUE_V ("network.receive_buffer.size.set",    [network_config](auto, auto& value) { return network_config->set_receive_buffer_size(value); });
+  CMD2_ANY         ("network.send_buffer.size",           [nw_config](auto, auto)        { return nw_config->send_buffer_size(); });
+  CMD2_ANY_VALUE_V ("network.send_buffer.size.set",       [nw_config](auto, auto& value) { return nw_config->set_send_buffer_size(value); });
+  CMD2_ANY         ("network.receive_buffer.size",        [nw_config](auto, auto)        { return nw_config->receive_buffer_size(); });
+  CMD2_ANY_VALUE_V ("network.receive_buffer.size.set",    [nw_config](auto, auto& value) { return nw_config->set_receive_buffer_size(value); });
   CMD2_ANY_STRING  ("network.tos.set",                    [](auto, auto& str)                 { return apply_tos(str); });
 
-  CMD2_ANY         ("network.bind_address",               [network_config](auto, auto)        { return network_config->bind_address_best_match_str(); });
-  CMD2_ANY_STRING_V("network.bind_address.set",           [network_config](auto, auto& str)   { return network_config->set_bind_address_str(str); });
-  CMD2_ANY         ("network.bind_address.ipv4",          [network_config](auto, auto)        { return network_config->bind_inet_address_str(); });
-  CMD2_ANY_STRING_V("network.bind_address.ipv4.set",      [network_config](auto, auto& str)   { return network_config->set_bind_inet_address_str(str); });
-  CMD2_ANY         ("network.bind_address.ipv6",          [network_config](auto, auto)        { return network_config->bind_inet6_address_str(); });
-  CMD2_ANY_STRING_V("network.bind_address.ipv6.set",      [network_config](auto, auto& str)   { return network_config->set_bind_inet6_address_str(str); });
+  CMD2_ANY         ("network.bind_address",               [nw_config](auto, auto)        { return nw_config->bind_address_best_match_str(); });
+  CMD2_ANY_STRING_V("network.bind_address.set",           [nw_config](auto, auto& str)   { return nw_config->set_bind_address_str(str); });
+  CMD2_ANY         ("network.bind_address.ipv4",          [nw_config](auto, auto)        { return nw_config->bind_inet_address_str(); });
+  CMD2_ANY_STRING_V("network.bind_address.ipv4.set",      [nw_config](auto, auto& str)   { return nw_config->set_bind_inet_address_str(str); });
+  CMD2_ANY         ("network.bind_address.ipv6",          [nw_config](auto, auto)        { return nw_config->bind_inet6_address_str(); });
+  CMD2_ANY_STRING_V("network.bind_address.ipv6.set",      [nw_config](auto, auto& str)   { return nw_config->set_bind_inet6_address_str(str); });
 
-  CMD2_ANY         ("network.local_address",              [network_config](auto, auto)        { return network_config->local_address_best_match_str(); });
-  CMD2_ANY_STRING_V("network.local_address.set",          [network_config](auto, auto& str)   { return network_config->set_local_address_str(str); });
-  CMD2_ANY         ("network.local_address.ipv4",         [network_config](auto, auto)        { return network_config->local_inet_address_str(); });
-  CMD2_ANY_STRING_V("network.local_address.ipv4.set",     [network_config](auto, auto& str)   { return network_config->set_local_inet_address_str(str); });
-  CMD2_ANY         ("network.local_address.ipv6",         [network_config](auto, auto)        { return network_config->local_inet6_address_str(); });
-  CMD2_ANY_STRING_V("network.local_address.ipv6.set",     [network_config](auto, auto& str)   { return network_config->set_local_inet6_address_str(str); });
+  CMD2_ANY         ("network.local_address",              [nw_config](auto, auto)        { return nw_config->local_address_best_match_str(); });
+  CMD2_ANY_STRING_V("network.local_address.set",          [nw_config](auto, auto& str)   { return nw_config->set_local_address_str(str); });
+  CMD2_ANY         ("network.local_address.ipv4",         [nw_config](auto, auto)        { return nw_config->local_inet_address_str(); });
+  CMD2_ANY_STRING_V("network.local_address.ipv4.set",     [nw_config](auto, auto& str)   { return nw_config->set_local_inet_address_str(str); });
+  CMD2_ANY         ("network.local_address.ipv6",         [nw_config](auto, auto)        { return nw_config->local_inet6_address_str(); });
+  CMD2_ANY_STRING_V("network.local_address.ipv6.set",     [nw_config](auto, auto& str)   { return nw_config->set_local_inet6_address_str(str); });
 
-  CMD2_ANY         ("network.proxy_address",         [network_config](auto, auto) { return network_config->proxy_address_str(); });
-  CMD2_ANY_STRING_V("network.proxy_address.set",     [](auto, auto& str)          { return control->core()->set_proxy_address(str); });
+  CMD2_ANY         ("network.proxy_address",         [nw_config](auto, auto)           { return nw_config->proxy_address_str(); });
+  CMD2_ANY_STRING_V("network.proxy_address.set",     [](auto, auto& str)               { return control->core()->set_proxy_address(str); });
 
   CMD2_ANY         ("network.open_files",            [file_manager](auto, auto)        { return file_manager->open_files(); });
   CMD2_ANY         ("network.max_open_files",        [file_manager](auto, auto)        { return file_manager->max_open_files(); });
@@ -248,20 +249,20 @@ initialize_command_network() {
   CMD2_VAR_BOOL    ("network.scgi.dont_route",       false);
 
   CMD2_ANY_STRING  ("network.xmlrpc.dialect.set",    [](const auto&, const auto& arg) { return apply_xmlrpc_dialect(arg); })
-  CMD2_ANY         ("network.xmlrpc.size_limit",     [](const auto&, const auto&){ return rpc::rpc.size_limit(); });
-  CMD2_ANY_VALUE_V ("network.xmlrpc.size_limit.set", [](const auto&, const auto& arg){ return rpc::rpc.set_size_limit(arg); });
+  CMD2_ANY         ("network.xmlrpc.size_limit",     [](const auto&, const auto&)     { return rpc::rpc.size_limit(); });
+  CMD2_ANY_VALUE_V ("network.xmlrpc.size_limit.set", [](const auto&, const auto& arg) { return rpc::rpc.set_size_limit(arg); });
 
   CMD2_VAR_BOOL    ("network.rpc.use_xmlrpc",        true);
   CMD2_VAR_BOOL    ("network.rpc.use_jsonrpc",       true);
 
-  CMD2_ANY         ("network.block.ipv4",            [network_config](auto, auto)        { return network_config->is_block_ipv4(); });
-  CMD2_ANY_VALUE_V ("network.block.ipv4.set",        [network_config](auto, auto& value) { return network_config->set_block_ipv4(value); });
-  CMD2_ANY         ("network.block.ipv6",            [network_config](auto, auto)        { return network_config->is_block_ipv6(); });
-  CMD2_ANY_VALUE_V ("network.block.ipv6.set",        [network_config](auto, auto& value) { return network_config->set_block_ipv6(value); });
-  CMD2_ANY         ("network.block.ipv4in6",         [network_config](auto, auto)        { return network_config->is_block_ipv4in6(); });
-  CMD2_ANY_VALUE_V ("network.block.ipv4in6.set",     [network_config](auto, auto& value) { return network_config->set_block_ipv4in6(value); });
-  CMD2_ANY         ("network.block.outgoing",        [network_config](auto, auto)        { return network_config->is_block_outgoing(); });
-  CMD2_ANY_VALUE_V ("network.block.outgoing.set",    [network_config](auto, auto& value) { return network_config->set_block_outgoing(value); });
-  CMD2_ANY         ("network.prefer.ipv6",           [network_config](auto, auto)        { return network_config->is_prefer_ipv6(); });
-  CMD2_ANY_VALUE_V ("network.prefer.ipv6.set",       [network_config](auto, auto& value) { return network_config->set_prefer_ipv6(value); });
+  CMD2_ANY         ("network.block.ipv4",            [nw_config](auto, auto)        { return nw_config->is_block_ipv4(); });
+  CMD2_ANY_VALUE_V ("network.block.ipv4.set",        [nw_config](auto, auto& value) { return nw_config->set_block_ipv4(value); });
+  CMD2_ANY         ("network.block.ipv6",            [nw_config](auto, auto)        { return nw_config->is_block_ipv6(); });
+  CMD2_ANY_VALUE_V ("network.block.ipv6.set",        [nw_config](auto, auto& value) { return nw_config->set_block_ipv6(value); });
+  CMD2_ANY         ("network.block.ipv4in6",         [nw_config](auto, auto)        { return nw_config->is_block_ipv4in6(); });
+  CMD2_ANY_VALUE_V ("network.block.ipv4in6.set",     [nw_config](auto, auto& value) { return nw_config->set_block_ipv4in6(value); });
+  CMD2_ANY         ("network.block.outgoing",        [nw_config](auto, auto)        { return nw_config->is_block_outgoing(); });
+  CMD2_ANY_VALUE_V ("network.block.outgoing.set",    [nw_config](auto, auto& value) { return nw_config->set_block_outgoing(value); });
+  CMD2_ANY         ("network.prefer.ipv6",           [nw_config](auto, auto)        { return nw_config->is_prefer_ipv6(); });
+  CMD2_ANY_VALUE_V ("network.prefer.ipv6.set",       [nw_config](auto, auto& value) { return nw_config->set_prefer_ipv6(value); });
 }

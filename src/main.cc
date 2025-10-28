@@ -1,7 +1,5 @@
 #include "config.h"
 
-#define __STDC_FORMAT_MACROS
-
 #include <cstdlib>
 #include <iostream>
 #include <sstream>
