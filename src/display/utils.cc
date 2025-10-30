@@ -401,7 +401,7 @@ print_status_info(char* first, char* last) {
 
     if (show_bind_inet6) {
       if (show_bind_inet)
-        first = print_buffer(first, last, "/");
+        first = print_buffer(first, last, " / ");
 
       first = print_address(first, last, bind_inet6_address.get());
     }
