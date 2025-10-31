@@ -17,6 +17,7 @@
 #include <torrent/download/resource_manager.h>
 #include <torrent/net/http_stack.h>
 #include <torrent/net/network_config.h>
+#include <torrent/net/network_manager.h>
 #include <torrent/net/socket_address.h>
 #include <torrent/peer/client_info.h>
 
@@ -375,7 +376,7 @@ print_status_info(char* first, char* last) {
 
   first = print_buffer(first, last, " KB]");
 
-  first = print_buffer(first, last, " [Port: %i]", (unsigned int)torrent::config::network_config()->listen_port());
+  first = print_buffer(first, last, " [Port: %i]", (unsigned int)torrent::runtime::network_manager()->listen_port());
 
   auto local_address = torrent::config::network_config()->local_address_best_match();
 

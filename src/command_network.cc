@@ -178,9 +178,9 @@ initialize_command_network() {
   CMD2_VAR_BOOL    ("network.port_random", true);
   CMD2_VAR_STRING  ("network.port_range",  "6881-6999");
 
-  CMD2_ANY         ("network.listen.port",        [nw_config](auto, auto)         { return nw_config->listen_port(); });
-  CMD2_ANY         ("network.listen.backlog",     [nw_manager](auto, auto)        { return nw_manager->listen_backlog(); });
-  CMD2_ANY_VALUE_V ("network.listen.backlog.set", [nw_manager](auto, auto& value) { return nw_manager->set_listen_backlog(value); });
+  CMD2_ANY         ("network.listen.port",        [nw_manager](auto, auto)       { return nw_manager->listen_port(); });
+  CMD2_ANY         ("network.listen.backlog",     [nw_config](auto, auto)        { return nw_config->listen_backlog(); });
+  CMD2_ANY_VALUE_V ("network.listen.backlog.set", [nw_config](auto, auto& value) { return nw_config->set_listen_backlog(value); });
 
   CMD2_VAR_BOOL    ("protocol.pex",               true);
   CMD2_ANY_LIST    ("protocol.encryption.set",    [](auto, auto& args)            { return apply_encryption(args); });
