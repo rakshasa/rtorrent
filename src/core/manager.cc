@@ -19,6 +19,7 @@
 #include <torrent/throttle.h>
 #include <torrent/net/http_stack.h>
 #include <torrent/net/network_config.h>
+#include <torrent/net/network_manager.h>
 #include <torrent/net/socket_address.h>
 #include <torrent/utils/log.h>
 
@@ -175,12 +176,12 @@ Manager::listen_open() {
   if (rpc::call_command_value("network.port_random")) {
     int boundary = portFirst + random() % (portLast - portFirst + 1);
 
-    if (torrent::connection_manager()->listen_open(boundary, portLast) ||
-        torrent::connection_manager()->listen_open(portFirst, boundary))
+    if (torrent::runtime::network_manager()->listen_open(boundary, portLast) ||
+        torrent::runtime::network_manager()->listen_open(portFirst, boundary))
       return;
 
   } else {
-    if (torrent::connection_manager()->listen_open(portFirst, portLast))
+    if (torrent::runtime::network_manager()->listen_open(portFirst, portLast))
       return;
   }
 

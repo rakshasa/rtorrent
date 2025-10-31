@@ -57,8 +57,8 @@ public:
   void                receive_quick_shutdown()      { m_shutdownReceived = true; m_shutdownQuick = true; }
 
   core::Manager*      core()                        { return m_core.get(); }
-  core::ViewManager*  view_manager()                { return m_viewManager.get(); }
-  core::DhtManager*   dht_manager()                 { return m_dhtManager.get(); }
+  core::ViewManager*  view_manager()                { return m_view_manager.get(); }
+  core::DhtManager*   dht_manager()                 { return m_dht_manager.get(); }
 
   ui::Root*           ui()                          { return m_ui.get(); }
   display::Manager*   display()                     { return m_display.get(); }
@@ -82,8 +82,8 @@ private:
   void operator = (const Control&);
 
   std::unique_ptr<core::Manager>     m_core;
-  std::unique_ptr<core::ViewManager> m_viewManager;
-  std::unique_ptr<core::DhtManager>  m_dhtManager;
+  std::unique_ptr<core::ViewManager> m_view_manager;
+  std::unique_ptr<core::DhtManager>  m_dht_manager;
 
   std::unique_ptr<ui::Root>          m_ui;
   std::unique_ptr<display::Manager>  m_display;
