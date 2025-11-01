@@ -104,8 +104,10 @@ void initialize_commands();
   rpc::commands.create_redirect(from_key, to_key, rpc::CommandMap::flag_public_rpc | rpc::CommandMap::flag_dont_delete);
 #define CMD2_REDIRECT_NO_EXPORT(from_key, to_key)                       \
   rpc::commands.create_redirect(from_key, to_key, rpc::CommandMap::flag_dont_delete);
+#define CMD2_REDIRECT_MUTABLE(from_key, to_key)                         \
+  rpc::commands.create_redirect(from_key, to_key, rpc::CommandMap::flag_public_rpc);
 #define CMD2_REDIRECT_STR(from_key, to_key)                             \
-  rpc::commands.create_redirect(from_key, to_key, rpc::CommandMap::flag_public_rpc;
+  rpc::commands.create_redirect(from_key, to_key, rpc::CommandMap::flag_public_rpc);
 #define CMD2_REDIRECT_STR_NO_EXPORT(from_key, to_key)   \
   rpc::commands.create_redirect(from_key, to_key, 0);
 #define CMD2_REDIRECT_FILE(from_key, to_key) \

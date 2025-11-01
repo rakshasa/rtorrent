@@ -124,14 +124,14 @@ group_insert(const torrent::Object::list_type& args) {
   if (rpc::call_command_value("method.use_intermediate") == 3) {
     // Cleaned up in 0.16.1:
 
-    CMD2_REDIRECT_STR_NO_EXPORT("group2." + name + ".view",          "group." + name + ".view");
-    CMD2_REDIRECT_STR_NO_EXPORT("group2." + name + ".view.set",      "group." + name + ".view.set");
-    CMD2_REDIRECT_STR_NO_EXPORT("group2." + name + ".ratio.min",     "group." + name + ".ratio.min");
-    CMD2_REDIRECT_STR_NO_EXPORT("group2." + name + ".ratio.min.set",    "group." + name + ".ratio.min.set");
-    CMD2_REDIRECT_STR_NO_EXPORT("group2." + name + ".ratio.max",        "group." + name + ".ratio.max");
-    CMD2_REDIRECT_STR_NO_EXPORT("group2." + name + ".ratio.max.set",    "group." + name + ".ratio.max.set");
-    CMD2_REDIRECT_STR_NO_EXPORT("group2." + name + ".ratio.upload",     "group." + name + ".ratio.upload");
-    CMD2_REDIRECT_STR_NO_EXPORT("group2." + name + ".ratio.upload.set", "group." + name + ".ratio.upload.set");
+    CMD2_REDIRECT_MUTABLE("group2." + name + ".view",             "group." + name + ".view");
+    CMD2_REDIRECT_MUTABLE("group2." + name + ".view.set",         "group." + name + ".view.set");
+    CMD2_REDIRECT_MUTABLE("group2." + name + ".ratio.min",        "group." + name + ".ratio.min");
+    CMD2_REDIRECT_MUTABLE("group2." + name + ".ratio.min.set",    "group." + name + ".ratio.min.set");
+    CMD2_REDIRECT_MUTABLE("group2." + name + ".ratio.max",        "group." + name + ".ratio.max");
+    CMD2_REDIRECT_MUTABLE("group2." + name + ".ratio.max.set",    "group." + name + ".ratio.max.set");
+    CMD2_REDIRECT_MUTABLE("group2." + name + ".ratio.upload",     "group." + name + ".ratio.upload");
+    CMD2_REDIRECT_MUTABLE("group2." + name + ".ratio.upload.set", "group." + name + ".ratio.upload.set");
   }
 
   return name;
