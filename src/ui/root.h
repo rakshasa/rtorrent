@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <memory>
 
+#ifndef HEADLESS
 #include "input/bindings.h"
 #include "download_list.h"
 
@@ -20,9 +21,11 @@ namespace display {
 namespace input {
   class TextInput;
 }
+#endif
 
 namespace ui {
 
+#ifndef HEADLESS
 enum NavigationKeymap {
   RT_KEY_LEFT,
   RT_KEY_RIGHT,
@@ -40,11 +43,13 @@ enum NavigationKeymap {
 };
 
 class DownloadList;
+#endif
 
 typedef std::vector<std::string> ThrottleNameList;
 
 class Root {
 public:
+#ifndef HEADLESS
   typedef display::WindowTitle     WTitle;
   typedef display::WindowHttpQueue WHttpQueue;
   typedef display::WindowInput     WInput;
@@ -53,9 +58,11 @@ public:
   typedef std::map<int, int> InputHistoryPointers;
   typedef std::vector<std::string> InputHistoryCategory;
   typedef std::map<int, InputHistoryCategory> InputHistory;
+#endif
 
   Root();
 
+#ifndef HEADLESS
   void                init(Control* c);
   void                cleanup();
 
@@ -64,6 +71,7 @@ public:
   const auto&         window_input() const                    { return m_windowInput; }
 
   const auto&         download_list() const                   { return m_downloadList; }
+#endif
 
   void                set_down_throttle(unsigned int throttle);
   void                set_up_throttle(unsigned int throttle);
@@ -72,10 +80,12 @@ public:
   void                set_down_throttle_i64(int64_t throttle) { set_down_throttle(throttle >> 10); }
   void                set_up_throttle_i64(int64_t throttle)   { set_up_throttle(throttle >> 10); }
 
+#ifndef HEADLESS
   void                adjust_down_throttle(int throttle);
   void                adjust_up_throttle(int throttle);
 
   const char*         get_throttle_keys();
+#endif
 
   ThrottleNameList&   get_status_throttle_up_names()          { return m_throttle_up_names; }
   ThrottleNameList&   get_status_throttle_down_names()        { return m_throttle_down_names; }
@@ -83,6 +93,7 @@ public:
   void                set_status_throttle_up_names(const ThrottleNameList& throttle_list)      { m_throttle_up_names = throttle_list; }
   void                set_status_throttle_down_names(const ThrottleNameList& throttle_list)    { m_throttle_down_names = throttle_list; }
 
+#ifndef HEADLESS
   void                enable_input(const std::string& title, input::TextInput* input, ui::DownloadList::Input type);
   void                disable_input();
 
@@ -126,6 +137,7 @@ private:
 
   std::string         m_keymap_style;
   const int*          m_keymap;
+#endif
 
   ThrottleNameList    m_throttle_up_names;
   ThrottleNameList    m_throttle_down_names;

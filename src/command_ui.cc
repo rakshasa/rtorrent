@@ -9,9 +9,13 @@
 
 #include "core/manager.h"
 #include "core/view_manager.h"
+#ifndef HEADLESS
 #include "display/canvas.h"
+#endif
 #include "ui/root.h"
+#ifndef HEADLESS
 #include "ui/download_list.h"
+#endif
 #include "display/color_map.h"
 #include "rpc/parse.h"
 
@@ -561,6 +565,7 @@ cmd_view_persistent(const torrent::Object::string_type& args) {
   return torrent::Object();
 }
 
+#ifndef HEADLESS
 // TODO: These don't need wrapper functions anymore...
 torrent::Object
 cmd_ui_set_view(const torrent::Object::string_type& args) {
@@ -579,6 +584,7 @@ cmd_ui_unfocus_download(core::Download* download) {
 
   return torrent::Object();
 }
+#endif
 
 torrent::Object
 cmd_view_filter_download(core::Download* download, const torrent::Object::string_type& args) {
@@ -769,7 +775,9 @@ torrent::Object
 apply_set_color(int color_id, const torrent::Object::string_type& color_str) {
   control->object_storage()->set_str_string(display::color_vars[color_id], color_str);
 
+#ifndef HEADLESS
   display::Canvas::build_colors();
+#endif
   return torrent::Object();
 }
 
@@ -807,6 +815,7 @@ initialize_command_ui() {
   CMD2_DL_STRING ("view.set_visible",     std::bind(&cmd_view_set_visible,     std::placeholders::_1, std::placeholders::_2));
   CMD2_DL_STRING ("view.set_not_visible", std::bind(&cmd_view_set_not_visible, std::placeholders::_1, std::placeholders::_2));
 
+#ifndef HEADLESS
   // Commands that affect the default rtorrent UI.
   CMD2_DL        ("ui.unfocus_download",   std::bind(&cmd_ui_unfocus_download, std::placeholders::_1));
   CMD2_ANY       ("ui.current_view",       std::bind(&cmd_ui_current_view));
@@ -815,6 +824,7 @@ initialize_command_ui() {
   CMD2_ANY        ("ui.input.history.size",     std::bind(&ui::Root::get_input_history_size, control->ui()));
   CMD2_ANY_VALUE_V("ui.input.history.size.set", std::bind(&ui::Root::set_input_history_size, control->ui(), std::placeholders::_2));
   CMD2_ANY_V      ("ui.input.history.clear",    std::bind(&ui::Root::clear_input_history, control->ui()));
+#endif
 
   CMD2_VAR_VALUE ("ui.throttle.global.step.small",  5);
   CMD2_VAR_VALUE ("ui.throttle.global.step.medium", 50);
@@ -822,11 +832,13 @@ initialize_command_ui() {
 
   CMD2_VAR_VALUE ("ui.focus.page_size", 0);
 
+#ifndef HEADLESS
   CMD2_ANY_LIST  ("ui.status.throttle.up.set",   std::bind(&cmd_status_throttle_names, true, std::placeholders::_2));
   CMD2_ANY_LIST  ("ui.status.throttle.down.set", std::bind(&cmd_status_throttle_names, false, std::placeholders::_2));
 
   CMD2_ANY         ("ui.keymap.style",     std::bind(&ui::Root::keymap_style, control->ui()));
   CMD2_ANY_STRING_V("ui.keymap.style.set", std::bind(&ui::Root::set_keymap_style, control->ui(), std::placeholders::_2));
+#endif
 
   // TODO: Add 'option_string' for rtorrent-specific options.
   CMD2_VAR_STRING("ui.torrent_list.layout", "full");

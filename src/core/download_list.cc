@@ -74,7 +74,9 @@ DownloadList::session_save() {
     lt_log_print(torrent::LOG_ERROR, "Failed to save session torrents.");
 
   control->dht_manager()->save_dht_cache();
+#ifndef HEADLESS
   control->ui()->save_input_history();
+#endif
 }
 
 DownloadList::iterator

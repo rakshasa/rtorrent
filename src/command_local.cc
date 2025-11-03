@@ -232,7 +232,11 @@ initialize_command_local() {
 
   CMD2_ANY_VALUE_V ("system.umask.set",                std::bind(&umask, std::placeholders::_2));
 
+#ifdef HEADLESS
+  CMD2_VAR_BOOL    ("system.daemon",                   true);
+#else
   CMD2_VAR_BOOL    ("system.daemon",                   false);
+#endif
 
   CMD2_ANY_V       ("system.shutdown.normal",          std::bind(&Control::receive_normal_shutdown, control));
   CMD2_ANY_V       ("system.shutdown.quick",           std::bind(&Control::receive_quick_shutdown, control));

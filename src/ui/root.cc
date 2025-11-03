@@ -10,6 +10,7 @@
 #include <torrent/utils/log.h>
 
 #include "core/manager.h"
+#ifndef HEADLESS
 #include "display/frame.h"
 #include "display/window_http_queue.h"
 #include "display/window_title.h"
@@ -17,16 +18,20 @@
 #include "display/window_statusbar.h"
 #include "input/manager.h"
 #include "input/text_input.h"
+#endif
 #include "rpc/parse_commands.h"
 
 #include "control.h"
+#ifndef HEADLESS
 #include "download_list.h"
+#endif
 #include "core/download_store.h"
 
 #include "root.h"
 
 namespace ui {
 
+#ifndef HEADLESS
 static const int emacs_keymap[RT_KEYMAP_MAX] = {
   'B' - '@',
   'F' - '@',
@@ -56,8 +61,10 @@ static const int vi_keymap[RT_KEYMAP_MAX] = {
   'L',       // RT_KEY_DISPLAY_LOG
   'L' - '@'  // RT_KEY_TOGGLE_LAYOUT
 };
+#endif
 
 Root::Root() {
+#ifndef HEADLESS
   // Initialise prefilled m_input_history and m_input_history_pointers objects.
   for (int type = ui::DownloadList::INPUT_LOAD_DEFAULT; type != ui::DownloadList::INPUT_EOI; type++) {
     m_input_history.insert( std::make_pair(type, InputHistoryCategory(m_input_history_length)) );
@@ -67,8 +74,10 @@ Root::Root() {
   // set default keymap to emacs
   m_keymap_style = "emacs";
   m_keymap = emacs_keymap;
+#endif
 }
 
+#ifndef HEADLESS
 void
 Root::init(Control* c) {
   if (m_control != nullptr)
@@ -152,11 +161,14 @@ Root::setup_keys() {
   m_bindings['\x0C']        = std::bind(&display::Manager::force_redraw, m_control->display()); // ^L
   m_bindings['\x11']        = std::bind(&Control::receive_normal_shutdown, m_control); // ^Q
 }
+#endif
 
 void
 Root::set_down_throttle(unsigned int throttle) {
+#ifndef HEADLESS
   if (m_windowStatusbar != NULL)
     m_windowStatusbar->mark_dirty();
+#endif
 
   torrent::down_throttle_global()->set_max_rate(throttle * 1024);
 
@@ -185,8 +197,10 @@ Root::set_down_throttle(unsigned int throttle) {
 
 void
 Root::set_up_throttle(unsigned int throttle) {
+#ifndef HEADLESS
   if (m_windowStatusbar != NULL)
     m_windowStatusbar->mark_dirty();
+#endif
 
   torrent::up_throttle_global()->set_max_rate(throttle * 1024);
 
@@ -213,6 +227,7 @@ Root::set_up_throttle(unsigned int throttle) {
     torrent::resource_manager()->set_max_upload_unchoked(maxUnchoked);
 }
 
+#ifndef HEADLESS
 void
 Root::adjust_down_throttle(int throttle) {
   set_down_throttle(std::max<int>(torrent::down_throttle_global()->max_rate() / 1024 + throttle, 0));
@@ -500,5 +515,6 @@ const int
 Root::navigation_key(NavigationKeymap key) {
   return m_keymap[key];
 }
+#endif
 
 }

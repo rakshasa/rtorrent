@@ -13,6 +13,7 @@
 #include "core/http_queue.h"
 #include "core/manager.h"
 #include "core/view_manager.h"
+#ifndef HEADLESS
 #include "display/canvas.h"
 #include "display/window.h"
 #include "display/window_http_queue.h"
@@ -22,6 +23,7 @@
 #include "display/manager.h"
 #include "input/manager.h"
 #include "input/input_event.h"
+#endif
 #include "rpc/command_scheduler.h"
 #include "rpc/lua.h"
 #include "rpc/parse_commands.h"
@@ -30,9 +32,11 @@
 
 Control::Control()
   : m_ui(new ui::Root()),
+#ifndef HEADLESS
     m_display(new display::Manager()),
     m_input(new input::Manager()),
     m_inputStdin(new input::InputEvent(STDIN_FILENO)),
+#endif
     m_commandScheduler(new rpc::CommandScheduler()),
     m_objectStorage(new rpc::object_storage()),
     m_lua_engine(new rpc::LuaEngine()),
@@ -42,7 +46,9 @@ Control::Control()
   m_view_manager = std::make_unique<core::ViewManager>();
   m_dht_manager  = std::make_unique<core::DhtManager>();
 
+#ifndef HEADLESS
   m_inputStdin->slot_pressed(std::bind(&input::Manager::pressed, m_input.get(), std::placeholders::_1));
+#endif
 
   m_task_shutdown.slot() = std::bind(&Control::handle_shutdown, this);
 
@@ -53,15 +59,19 @@ Control::~Control() {
   m_view_manager.reset();
 
   m_ui.reset();
+#ifndef HEADLESS
   m_display.reset();
+#endif
 }
 
 void
 Control::initialize() {
+#ifndef HEADLESS
   display::Canvas::initialize();
   display::Window::slot_schedule([this](display::Window* w, std::chrono::microseconds t) { m_display->schedule(w, t); });
   display::Window::slot_unschedule([this](display::Window* w) { m_display->unschedule(w); });
   display::Window::slot_adjust([this]() { m_display->adjust_layout(); });
+#endif
 
   torrent::net_thread::http_stack()->set_user_agent(USER_AGENT);
 
@@ -69,10 +79,12 @@ Control::initialize() {
   m_core->download_store()->enable(rpc::call_command_value("session.use_lock"));
   m_core->set_hashing_view(*m_view_manager->find_throw("hashing"));
 
+#ifndef HEADLESS
   m_ui->init(this);
 
   if(!display::Canvas::daemon())
     m_inputStdin->insert(torrent::this_thread::poll());
+#endif
 }
 
 void
@@ -81,24 +93,32 @@ Control::cleanup() {
 
   torrent::this_thread::scheduler()->erase(&m_task_shutdown);
 
+#ifndef HEADLESS
   if(!display::Canvas::daemon()) {
     m_inputStdin->remove(torrent::this_thread::poll());
   }
+#endif
 
   m_core->download_store()->disable();
 
+#ifndef HEADLESS
   m_ui->cleanup();
+#endif
   m_core->cleanup();
 
+#ifndef HEADLESS
   display::Canvas::erase_std();
   display::Canvas::refresh_std();
   display::Canvas::do_update();
   display::Canvas::cleanup();
+#endif
 }
 
 void
 Control::cleanup_exception() {
+#ifndef HEADLESS
   display::Canvas::cleanup();
+#endif
 }
 
 bool

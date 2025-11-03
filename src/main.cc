@@ -23,11 +23,13 @@
 #include "core/download_factory.h"
 #include "core/download_store.h"
 #include "core/manager.h"
+#ifndef HEADLESS
 #include "display/canvas.h"
 #include "display/window.h"
 #include "display/manager.h"
 #include "input/bindings.h"
 #include "ui/root.h"
+#endif
 
 #include "rpc/command_scheduler.h"
 #include "rpc/command_scheduler_item.h"
@@ -185,7 +187,9 @@ main(int argc, char** argv) {
     SignalHandler::set_handler(SIGINT,   std::bind(&Control::receive_normal_shutdown, control));
     SignalHandler::set_handler(SIGHUP,   std::bind(&Control::receive_normal_shutdown, control));
     SignalHandler::set_handler(SIGTERM,  std::bind(&Control::receive_quick_shutdown, control));
+#ifndef HEADLESS
     SignalHandler::set_handler(SIGWINCH, std::bind(&display::Manager::force_redraw, control->display()));
+#endif
     SignalHandler::set_handler(SIGSEGV,  std::bind(&do_panic, SIGSEGV));
     SignalHandler::set_handler(SIGILL,   std::bind(&do_panic, SIGILL));
     SignalHandler::set_handler(SIGFPE,   std::bind(&do_panic, SIGFPE));
@@ -265,8 +269,9 @@ main(int argc, char** argv) {
        "method.set_key = event.download.inserted_session, 1_prepare, {(branch,((d.state)),((view.set_visible,started)),((view.set_visible,stopped)) )}\n"
 
        "method.set_key = event.download.inserted, 1_prioritize_toc, \"branch=file.prioritize_toc=,{\\\"f.multicall=(file.prioritize_toc.first),f.prioritize_first.enable=\\\",\\\"f.multicall=(file.prioritize_toc.last),f.prioritize_last.enable=\\\",d.update_priorities=}\"\n"
-
+#ifndef HEADLESS
        "method.set_key = event.download.erased, !_download_list, ui.unfocus_download=\n"
+#endif
        "method.set_key = event.download.erased, ~_delete_tied, d.delete_tied=\n"
 
        "method.set_key = event.download.resumed,   !_timestamp, ((d.timestamp.started.set_if_z, ((system.time)) ))\n"
@@ -464,7 +469,9 @@ main(int argc, char** argv) {
     LT_LOG("seeded srandom and srand48 (seed:%u)", random_seed);
 
     control->initialize();
+#ifndef HEADLESS
     control->ui()->load_input_history();
+#endif
 
     // Load session torrents and perform scheduled tasks to ensure
     // session torrents are loaded before arg torrents.
@@ -476,11 +483,13 @@ main(int argc, char** argv) {
 
     load_arg_torrents(argv + firstArg, argv + argc);
 
+#ifndef HEADLESS
     // Make sure we update the display before any scheduled tasks can
     // run, so that loading of torrents doesn't look like it hangs on
     // startup.
     control->display()->adjust_layout();
     control->display()->receive_update();
+#endif
 
     worker_thread->start_thread();
 
@@ -529,7 +538,9 @@ handle_sigbus(int signum, siginfo_t* sa, [[maybe_unused]] void* ptr) {
     do_panic(signum);
 
   SignalHandler::set_default(signum);
+#ifndef HEADLESS
   display::Canvas::cleanup();
+#endif
 
   std::stringstream output;
   output << "Caught SIGBUS, dumping stack:" << std::endl;
@@ -599,7 +610,9 @@ do_panic(int signum) {
   // Use the default signal handler in the future to avoid infinit
   // loops.
   SignalHandler::set_default(signum);
+#ifndef HEADLESS
   display::Canvas::cleanup();
+#endif
 
   std::stringstream output;
 
