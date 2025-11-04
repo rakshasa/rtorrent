@@ -93,7 +93,9 @@ public:
   void                set_status_throttle_up_names(const ThrottleNameList& throttle_list)      { m_throttle_up_names = throttle_list; }
   void                set_status_throttle_down_names(const ThrottleNameList& throttle_list)    { m_throttle_down_names = throttle_list; }
 
-#ifndef HEADLESS
+#ifdef HEADLESS
+  void                save_input_history() {}
+#else
   void                enable_input(const std::string& title, input::TextInput* input, ui::DownloadList::Input type);
   void                disable_input();
 
