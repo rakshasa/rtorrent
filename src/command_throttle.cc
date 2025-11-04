@@ -140,10 +140,8 @@ torrent::Object
 throttle_update(const char* variable, int64_t value) {
   rpc::commands.call_command(variable, value);
 
-#ifndef HEADLESS
   control->ui()->adjust_up_throttle(0);
   control->ui()->adjust_down_throttle(0);
-#endif
   return torrent::Object();
 }
 

@@ -227,7 +227,6 @@ Root::set_up_throttle(unsigned int throttle) {
     torrent::resource_manager()->set_max_upload_unchoked(maxUnchoked);
 }
 
-#ifndef HEADLESS
 void
 Root::adjust_down_throttle(int throttle) {
   set_down_throttle(std::max<int>(torrent::down_throttle_global()->max_rate() / 1024 + throttle, 0));
@@ -238,6 +237,7 @@ Root::adjust_up_throttle(int throttle) {
   set_up_throttle(std::max<int>(torrent::up_throttle_global()->max_rate() / 1024 + throttle, 0));
 }
 
+#ifndef HEADLESS
 void
 Root::enable_input(const std::string& title, input::TextInput* input, ui::DownloadList::Input type) {
   if (m_windowInput->input() != NULL)
