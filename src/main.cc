@@ -28,8 +28,8 @@
 #include "display/window.h"
 #include "display/manager.h"
 #include "input/bindings.h"
-#include "ui/root.h"
 #endif
+#include "ui/root.h"
 
 #include "rpc/command_scheduler.h"
 #include "rpc/command_scheduler_item.h"
@@ -469,9 +469,7 @@ main(int argc, char** argv) {
     LT_LOG("seeded srandom and srand48 (seed:%u)", random_seed);
 
     control->initialize();
-#ifndef HEADLESS
     control->ui()->load_input_history();
-#endif
 
     // Load session torrents and perform scheduled tasks to ensure
     // session torrents are loaded before arg torrents.

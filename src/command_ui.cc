@@ -823,8 +823,8 @@ initialize_command_ui() {
 
   CMD2_ANY        ("ui.input.history.size",     std::bind(&ui::Root::get_input_history_size, control->ui()));
   CMD2_ANY_VALUE_V("ui.input.history.size.set", std::bind(&ui::Root::set_input_history_size, control->ui(), std::placeholders::_2));
-  CMD2_ANY_V      ("ui.input.history.clear",    std::bind(&ui::Root::clear_input_history, control->ui()));
 #endif
+  CMD2_ANY_V      ("ui.input.history.clear",    std::bind(&ui::Root::clear_input_history, control->ui()));
 
   CMD2_VAR_VALUE ("ui.throttle.global.step.small",  5);
   CMD2_VAR_VALUE ("ui.throttle.global.step.medium", 50);
