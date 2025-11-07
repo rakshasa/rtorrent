@@ -153,6 +153,4 @@ initialize_command_tracker() {
 
   CMD2_ANY_STRING     ("dht.add_node",          std::bind(&apply_dht_add_node, std::placeholders::_2));
   CMD2_ANY            ("dht.statistics",        std::bind(&core::DhtManager::dht_statistics, dht_manager));
-  CMD2_ANY            ("dht.throttle.name",     std::bind(&core::DhtManager::throttle_name, dht_manager));
-  CMD2_ANY_STRING_V   ("dht.throttle.name.set", std::bind(&core::DhtManager::set_throttle_name, dht_manager, std::placeholders::_2));
 }
