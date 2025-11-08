@@ -268,8 +268,8 @@ DhtManager::dht_statistics() {
     dhtStats.insert_key("replies_received", stats.replies_received);
     dhtStats.insert_key("errors_received",  stats.errors_received);
     dhtStats.insert_key("errors_caught",    stats.errors_caught);
-    dhtStats.insert_key("bytes_read",       uint64_t());
-    dhtStats.insert_key("bytes_written",    uint64_t());
+    dhtStats.insert_key("bytes_read",       int64_t());
+    dhtStats.insert_key("bytes_written",    int64_t());
     dhtStats.insert_key("nodes",            stats.num_nodes);
     dhtStats.insert_key("buckets",          stats.num_buckets);
     dhtStats.insert_key("peers",            stats.num_peers);
