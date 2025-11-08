@@ -350,73 +350,75 @@ main(int argc, char** argv) {
     // Functions that might not get depracted as they are nice for
     // configuration files, and thus might do with just some
     // cleanup.
-    CMD2_REDIRECT("upload_rate",   "throttle.global_up.max_rate.set_kb");
-    CMD2_REDIRECT("download_rate", "throttle.global_down.max_rate.set_kb");
+    CMD2_REDIRECT("upload_rate",           "throttle.global_up.max_rate.set_kb");
+    CMD2_REDIRECT("download_rate",         "throttle.global_down.max_rate.set_kb");
 
-    CMD2_REDIRECT("ratio.enable",     "group.seeding.ratio.enable");
-    CMD2_REDIRECT("ratio.disable",    "group.seeding.ratio.disable");
-    CMD2_REDIRECT("ratio.min",        "group.seeding.ratio.min");
-    CMD2_REDIRECT("ratio.max",        "group.seeding.ratio.max");
-    CMD2_REDIRECT("ratio.upload",     "group.seeding.ratio.upload");
-    CMD2_REDIRECT("ratio.min.set",    "group.seeding.ratio.min.set");
-    CMD2_REDIRECT("ratio.max.set",    "group.seeding.ratio.max.set");
-    CMD2_REDIRECT("ratio.upload.set", "group.seeding.ratio.upload.set");
+    CMD2_REDIRECT("ratio.enable",          "group.seeding.ratio.enable");
+    CMD2_REDIRECT("ratio.disable",         "group.seeding.ratio.disable");
+    CMD2_REDIRECT("ratio.min",             "group.seeding.ratio.min");
+    CMD2_REDIRECT("ratio.max",             "group.seeding.ratio.max");
+    CMD2_REDIRECT("ratio.upload",          "group.seeding.ratio.upload");
+    CMD2_REDIRECT("ratio.min.set",         "group.seeding.ratio.min.set");
+    CMD2_REDIRECT("ratio.max.set",         "group.seeding.ratio.max.set");
+    CMD2_REDIRECT("ratio.upload.set",      "group.seeding.ratio.upload.set");
 
-    CMD2_REDIRECT("encryption",    "protocol.encryption.set");
-    CMD2_REDIRECT("encoding_list", "encoding.add");
+    CMD2_REDIRECT("encryption",            "protocol.encryption.set");
+    CMD2_REDIRECT("encoding_list",         "encoding.add");
 
-    CMD2_REDIRECT("connection_leech", "protocol.connection.leech.set");
-    CMD2_REDIRECT("connection_seed",  "protocol.connection.seed.set");
+    CMD2_REDIRECT("connection_leech",      "protocol.connection.leech.set");
+    CMD2_REDIRECT("connection_seed",       "protocol.connection.seed.set");
 
-    CMD2_REDIRECT("min_peers",      "throttle.min_peers.normal.set");
-    CMD2_REDIRECT("max_peers",      "throttle.max_peers.normal.set");
-    CMD2_REDIRECT("min_peers_seed", "throttle.min_peers.seed.set");
-    CMD2_REDIRECT("max_peers_seed", "throttle.max_peers.seed.set");
+    CMD2_REDIRECT("min_peers",             "throttle.min_peers.normal.set");
+    CMD2_REDIRECT("max_peers",             "throttle.max_peers.normal.set");
+    CMD2_REDIRECT("min_peers_seed",        "throttle.min_peers.seed.set");
+    CMD2_REDIRECT("max_peers_seed",        "throttle.max_peers.seed.set");
 
-    CMD2_REDIRECT("min_uploads",   "throttle.min_uploads.set");
-    CMD2_REDIRECT("max_uploads",   "throttle.max_uploads.set");
-    CMD2_REDIRECT("min_downloads", "throttle.min_downloads.set");
-    CMD2_REDIRECT("max_downloads", "throttle.max_downloads.set");
+    CMD2_REDIRECT("min_uploads",           "throttle.min_uploads.set");
+    CMD2_REDIRECT("max_uploads",           "throttle.max_uploads.set");
+    CMD2_REDIRECT("min_downloads",         "throttle.min_downloads.set");
+    CMD2_REDIRECT("max_downloads",         "throttle.max_downloads.set");
 
-    CMD2_REDIRECT("max_uploads_div",      "throttle.max_uploads.div.set");
-    CMD2_REDIRECT("max_uploads_global",   "throttle.max_uploads.global.set");
-    CMD2_REDIRECT("max_downloads_div",    "throttle.max_downloads.div.set");
-    CMD2_REDIRECT("max_downloads_global", "throttle.max_downloads.global.set");
+    CMD2_REDIRECT("max_uploads_div",       "throttle.max_uploads.div.set");
+    CMD2_REDIRECT("max_uploads_global",    "throttle.max_uploads.global.set");
+    CMD2_REDIRECT("max_downloads_div",     "throttle.max_downloads.div.set");
+    CMD2_REDIRECT("max_downloads_global",  "throttle.max_downloads.global.set");
 
-    CMD2_REDIRECT("max_memory_usage", "pieces.memory.max.set");
+    CMD2_REDIRECT("max_memory_usage",      "pieces.memory.max.set");
 
-    CMD2_REDIRECT("bind",       "network.bind_address.set");
-    CMD2_REDIRECT("ip",         "network.local_address.set");
-    CMD2_REDIRECT("port_range", "network.port_range.set");
+    CMD2_REDIRECT("bind",                  "network.bind_address.set");
+    CMD2_REDIRECT("ip",                    "network.local_address.set");
+    CMD2_REDIRECT("port_range",            "network.port_range.set");
 
-    CMD2_REDIRECT("dht",        "dht.mode.set");
+    CMD2_REDIRECT("dht",                   "dht.mode.set");
 
-    CMD2_REDIRECT("port_random", "network.port_random.set");
-    CMD2_REDIRECT("proxy_address", "network.proxy_address.set");
+    CMD2_REDIRECT("port_random",           "network.port_random.set");
+    CMD2_REDIRECT("proxy_address",         "network.proxy_address.set");
 
-    CMD2_REDIRECT("scgi_port", "network.scgi.open_port");
-    CMD2_REDIRECT("scgi_local", "network.scgi.open_local");
+    CMD2_REDIRECT("scgi_port",             "network.scgi.open_port");
+    CMD2_REDIRECT("scgi_local",            "network.scgi.open_local");
 
-    CMD2_REDIRECT("directory", "directory.default.set");
-    CMD2_REDIRECT("session",   "session.path.set");
+    CMD2_REDIRECT("directory",             "directory.default.set");
+    CMD2_REDIRECT("session",               "session.path.set");
 
-    CMD2_REDIRECT("check_hash", "pieces.hash.on_completion.set");
+    CMD2_REDIRECT("check_hash",            "pieces.hash.on_completion.set");
 
-    CMD2_REDIRECT("key_layout", "keys.layout.set");
+    CMD2_REDIRECT("key_layout",            "keys.layout.set");
 
-    CMD2_REDIRECT("to_gm_time", "convert.gm_time");
-    CMD2_REDIRECT("to_gm_date", "convert.gm_date");
-    CMD2_REDIRECT("to_time", "convert.time");
-    CMD2_REDIRECT("to_date", "convert.date");
-    CMD2_REDIRECT("to_elapsed_time", "convert.elapsed_time");
-    CMD2_REDIRECT("to_kb", "convert.kb");
-    CMD2_REDIRECT("to_mb", "convert.mb");
-    CMD2_REDIRECT("to_xb", "convert.xb");
-    CMD2_REDIRECT("to_throttle", "convert.throttle");
+    CMD2_REDIRECT("to_gm_time",            "convert.gm_time");
+    CMD2_REDIRECT("to_gm_date",            "convert.gm_date");
+    CMD2_REDIRECT("to_time",               "convert.time");
+    CMD2_REDIRECT("to_date",               "convert.date");
+    CMD2_REDIRECT("to_elapsed_time",       "convert.elapsed_time");
+    CMD2_REDIRECT("to_kb",                 "convert.kb");
+    CMD2_REDIRECT("to_mb",                 "convert.mb");
+    CMD2_REDIRECT("to_xb",                 "convert.xb");
+    CMD2_REDIRECT("to_throttle",           "convert.throttle");
 
-    CMD2_REDIRECT("torrent_list_layout", "ui.torrent_list.layout.set");
+    CMD2_REDIRECT("torrent_list_layout",   "ui.torrent_list.layout.set");
 
     // Deprecate:
+
+    CMD2_VAR_STRING("dht.throttle.name",   "deprecated");
 
     CMD2_REDIRECT("network.http.max_open",     "network.http.max_total_connections");
     CMD2_REDIRECT("network.http.max_open.set", "network.http.max_total_connections.set");

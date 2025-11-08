@@ -81,10 +81,6 @@ DhtManager::start_dht() {
     return;
   }
 
-  torrent::ThrottlePair throttles = control->core()->get_throttle(m_throttleName);
-  torrent::dht_controller()->set_upload_throttle(throttles.first);
-  torrent::dht_controller()->set_download_throttle(throttles.second);
-
   if (!torrent::dht_controller()->start()) {
     m_start = dht_off;
     return;
@@ -233,13 +229,11 @@ DhtManager::log_statistics(bool force) {
   if ((force && stats.cycle != m_dhtPrevCycle) || stats.cycle == 3 || stats.cycle > m_dhtPrevCycle + 7) {
     char buffer[256];
     snprintf(buffer, sizeof(buffer),
-             "DHT statistics: %d queries in, %d queries out, %d replies received, %lld bytes read, %lld bytes sent, "
+             "DHT statistics: %d queries in, %d queries out, %d replies received, "
              "%d known nodes in %d buckets, %d peers (highest: %d) tracked in %d torrents.",
              stats.queries_received - m_dhtPrevQueriesReceived,
              stats.queries_sent - m_dhtPrevQueriesSent,
              stats.replies_received - m_dhtPrevRepliesReceived,
-             (long long unsigned int)(stats.down_rate.total() - m_dhtPrevBytesDown),
-             (long long unsigned int)(stats.up_rate.total() - m_dhtPrevBytesUp),
              stats.num_nodes,
              stats.num_buckets,
              stats.num_peers,
@@ -252,8 +246,6 @@ DhtManager::log_statistics(bool force) {
     m_dhtPrevQueriesSent = stats.queries_sent;
     m_dhtPrevRepliesReceived = stats.replies_received;
     m_dhtPrevQueriesReceived = stats.queries_received;
-    m_dhtPrevBytesUp = stats.up_rate.total();
-    m_dhtPrevBytesDown = stats.down_rate.total();
   }
 
  return false;
@@ -265,7 +257,7 @@ DhtManager::dht_statistics() {
 
   dhtStats.insert_key("dht",              dht_settings[m_start]);
   dhtStats.insert_key("active",           torrent::dht_controller()->is_active());
-  dhtStats.insert_key("throttle",         m_throttleName);
+  dhtStats.insert_key("throttle",         "");
 
   if (torrent::dht_controller()->is_active()) {
     auto stats = torrent::dht_controller()->get_statistics();
@@ -276,8 +268,8 @@ DhtManager::dht_statistics() {
     dhtStats.insert_key("replies_received", stats.replies_received);
     dhtStats.insert_key("errors_received",  stats.errors_received);
     dhtStats.insert_key("errors_caught",    stats.errors_caught);
-    dhtStats.insert_key("bytes_read",       stats.down_rate.total());
-    dhtStats.insert_key("bytes_written",    stats.up_rate.total());
+    dhtStats.insert_key("bytes_read",       int64_t());
+    dhtStats.insert_key("bytes_written",    int64_t());
     dhtStats.insert_key("nodes",            stats.num_nodes);
     dhtStats.insert_key("buckets",          stats.num_buckets);
     dhtStats.insert_key("peers",            stats.num_peers);
@@ -286,14 +278,6 @@ DhtManager::dht_statistics() {
   }
 
   return dhtStats;
-}
-
-void
-DhtManager::set_throttle_name(const std::string& throttleName) {
-  if (torrent::dht_controller()->is_active())
-    throw torrent::input_error("Cannot set DHT throttle while active.");
-
-  m_throttleName = throttleName;
 }
 
 }

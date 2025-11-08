@@ -20,9 +20,6 @@ public:
 
   void                set_mode(const std::string& arg);
 
-  void                set_throttle_name(const std::string& throttleName);
-  const std::string&  throttle_name() const        { return m_throttleName; }
-
 private:
   static const int    dht_disable = 0;
   static const int    dht_off     = 1;
@@ -47,8 +44,6 @@ private:
 
   bool                m_warned{};
   int                 m_start{dht_off};
-
-  std::string         m_throttleName;
 };
 
 }
