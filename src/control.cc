@@ -79,9 +79,9 @@ Control::initialize() {
   m_core->download_store()->enable(rpc::call_command_value("session.use_lock"));
   m_core->set_hashing_view(*m_view_manager->find_throw("hashing"));
 
-#ifndef HEADLESS
   m_ui->init(this);
 
+#ifndef HEADLESS
   if(!display::Canvas::daemon())
     m_inputStdin->insert(torrent::this_thread::poll());
 #endif

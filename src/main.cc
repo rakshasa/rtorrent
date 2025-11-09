@@ -269,9 +269,8 @@ main(int argc, char** argv) {
        "method.set_key = event.download.inserted_session, 1_prepare, {(branch,((d.state)),((view.set_visible,started)),((view.set_visible,stopped)) )}\n"
 
        "method.set_key = event.download.inserted, 1_prioritize_toc, \"branch=file.prioritize_toc=,{\\\"f.multicall=(file.prioritize_toc.first),f.prioritize_first.enable=\\\",\\\"f.multicall=(file.prioritize_toc.last),f.prioritize_last.enable=\\\",d.update_priorities=}\"\n"
-#ifndef HEADLESS
+
        "method.set_key = event.download.erased, !_download_list, ui.unfocus_download=\n"
-#endif
        "method.set_key = event.download.erased, ~_delete_tied, d.delete_tied=\n"
 
        "method.set_key = event.download.resumed,   !_timestamp, ((d.timestamp.started.set_if_z, ((system.time)) ))\n"

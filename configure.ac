@@ -67,9 +67,12 @@ AC_LANG_POP(C++)
 TORRENT_WITH_LUA
 TORRENT_WITH_TINYXML2
 
-if test ${with_xmlrpc_c+y} && test ${with_xmlrpc_tinyxml2+y}; then
+AS_IF([test "x$with_xmlrpc_c" = "xyes" && test "x$with_xmlrpc_tinyxml2" = "xyes"], [
   AC_MSG_ERROR([--with-xmlrpc-c and --with-xmlrpc-tinyxml2 cannot be used together. Please choose only one])
-fi
+])
+AS_IF([test "x$with_xmlrpc_c" != "xyes" && test "x$with_xmlrpc_tinyxml2" != "xyes" && test "x$enable_headless" = "xyes"], [
+  AC_MSG_ERROR([--enable-headless without xmlrpc is useless. Please choose --with-xmlrpc-c or --with-xmlrpc-tinyxml2])
+])
 
 AC_DEFINE(USER_AGENT, [std::string(PACKAGE "/" VERSION "/") + torrent::version()], Http user agent)
 

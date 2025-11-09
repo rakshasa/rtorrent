@@ -26,12 +26,12 @@
 #include "download_list.h"
 #endif
 #include "core/download_store.h"
+#include "core/view_manager.h"
 
 #include "root.h"
 
 namespace ui {
 
-#ifndef HEADLESS
 static const int emacs_keymap[RT_KEYMAP_MAX] = {
   'B' - '@',
   'F' - '@',
@@ -61,23 +61,23 @@ static const int vi_keymap[RT_KEYMAP_MAX] = {
   'L',       // RT_KEY_DISPLAY_LOG
   'L' - '@'  // RT_KEY_TOGGLE_LAYOUT
 };
-#endif
 
 Root::Root() {
-#ifndef HEADLESS
+#ifdef HEADLESS
+    m_dummyViewName = "unknown";
+#else
   // Initialise prefilled m_input_history and m_input_history_pointers objects.
   for (int type = ui::DownloadList::INPUT_LOAD_DEFAULT; type != ui::DownloadList::INPUT_EOI; type++) {
     m_input_history.insert( std::make_pair(type, InputHistoryCategory(m_input_history_length)) );
     m_input_history_pointers.insert( std::make_pair(type, 0) );
   }
+#endif
 
   // set default keymap to emacs
   m_keymap_style = "emacs";
   m_keymap = emacs_keymap;
-#endif
 }
 
-#ifndef HEADLESS
 void
 Root::init(Control* c) {
   if (m_control != nullptr)
@@ -85,6 +85,7 @@ Root::init(Control* c) {
 
   m_control = c;
 
+#ifndef HEADLESS
   m_windowTitle     = std::make_unique<display::WindowTitle>();
   m_windowHttpQueue = std::make_unique<WHttpQueue>(control->core()->http_queue());
   m_windowInput     = std::make_unique<WInput>();
@@ -105,8 +106,14 @@ Root::init(Control* c) {
   m_windowStatusbar->set_bottom(true);
 
   setup_keys();
+#endif
 
+#ifdef HEADLESS
+  // Initialize our dummy view name
+  cmd_ui_set_view("main");
+#else
   m_downloadList->activate(rootFrame->frame(1));
+#endif
 }
 
 void
@@ -114,15 +121,18 @@ Root::cleanup() {
   if (m_control == NULL)
     throw std::logic_error("Root::cleanup() called twice on the same object");
 
+#ifndef HEADLESS
   if (m_downloadList->is_active())
     m_downloadList->disable();
 
   m_control->display()->root_frame()->clear();
   m_control->input()->erase(&m_bindings);
+#endif
 
   m_control = NULL;
 }
 
+#ifndef HEADLESS
 const char*
 Root::get_throttle_keys() {
   const std::string& keyLayout = rpc::call_command_string("keys.layout");
@@ -360,12 +370,14 @@ Root::reset_input_history_attributes(ui::DownloadList::Input type) {
   m_input_history_last_input = "";
   m_input_history_pointer_get = itr->second;
 }
+#endif
 
 void
 Root::set_input_history_size(int size) {
   if (size < 1)
     throw torrent::input_error("Invalid input history size.");
 
+#ifndef HEADLESS
   for (auto& [entry, category] : m_input_history) {
     // Reserve the latest input history entries if new size is smaller than original.
     if (size < m_input_history_length) {
@@ -380,10 +392,12 @@ Root::set_input_history_size(int size) {
 
     category.resize(size);
   }
+#endif
 
   m_input_history_length = size;
 }
 
+#ifndef HEADLESS
 void
 Root::load_input_history() {
   if (m_control == nullptr || !m_control->core()->download_store()->is_enabled()) {
@@ -497,6 +511,7 @@ Root::clear_input_history() {
     m_input_history_pointers[type] = 0;
   }
 }
+#endif
 
 void
 Root::set_keymap_style(const std::string& style) {
@@ -515,6 +530,35 @@ const int
 Root::navigation_key(NavigationKeymap key) {
   return m_keymap[key];
 }
+
+void
+Root::cmd_ui_set_view(const std::string& name) {
+#ifdef HEADLESS
+  core::ViewManager::iterator itr = control->view_manager()->find(name);
+  if (itr == m_control->view_manager()->end()) {
+    m_control->core()->push_log_std("Could not find view \"" + name + "\".");
+    return;
+  }
+  m_dummyViewName = name;
+#else
+  m_downloadList->set_current_view(name);
 #endif
+}
+
+const std::string&
+Root::cmd_ui_current_view() {
+#ifdef HEADLESS
+  return m_dummyViewName;
+#else
+  return m_downloadList->current_view()->name();
+#endif
+}
+
+void
+Root::cmd_ui_unfocus_download(core::Download* d) {
+#ifndef HEADLESS
+  m_downloadList->unfocus_download(d);
+#endif
+}
 
 }

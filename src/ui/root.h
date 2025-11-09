@@ -7,9 +7,11 @@
 #ifndef HEADLESS
 #include "input/bindings.h"
 #include "download_list.h"
+#endif
 
 class Control;
 
+#ifndef HEADLESS
 namespace display {
   class Frame;
   class WindowTitle;
@@ -23,9 +25,13 @@ namespace input {
 }
 #endif
 
+namespace core {
+    class Download;
+    class View;
+}
+
 namespace ui {
 
-#ifndef HEADLESS
 enum NavigationKeymap {
   RT_KEY_LEFT,
   RT_KEY_RIGHT,
@@ -42,6 +48,7 @@ enum NavigationKeymap {
   RT_KEYMAP_MAX
 };
 
+#ifndef HEADLESS
 class DownloadList;
 #endif
 
@@ -62,14 +69,16 @@ public:
 
   Root();
 
-#ifndef HEADLESS
   void                init(Control* c);
   void                cleanup();
 
+#ifndef HEADLESS
   const auto&         window_title() const                    { return m_windowTitle; }
   const auto&         window_statusbar() const                { return m_windowStatusbar; }
   const auto&         window_input() const                    { return m_windowInput; }
+#endif
 
+#ifndef HEADLESS
   const auto&         download_list() const                   { return m_downloadList; }
 #endif
 
@@ -103,32 +112,45 @@ public:
 
   input::TextInput*   current_input();
 
-  int                 get_input_history_size()                { return m_input_history_length; }
-  void                set_input_history_size(int size);
   void                add_to_input_history(ui::DownloadList::Input type, std::string item);
 
   void                load_input_history();
   void                save_input_history();
   void                clear_input_history();
+#endif
+
+  int                 get_input_history_size()                { return m_input_history_length; }
+  void                set_input_history_size(int size);
 
   const std::string&  keymap_style()                          { return m_keymap_style; }
   void                set_keymap_style(const std::string& style);
   const int           navigation_key(NavigationKeymap key);
 
+  void                cmd_ui_set_view(const std::string& name);
+  const std::string&  cmd_ui_current_view();
+  void                cmd_ui_unfocus_download(core::Download* d);
+
 private:
+#ifndef HEADLESS
   void                setup_keys();
+#endif
 
   Control*                      m_control{nullptr};
+#ifndef HEADLESS
   std::unique_ptr<DownloadList> m_downloadList;
+#endif
 
+#ifndef HEADLESS
   std::unique_ptr<WTitle>       m_windowTitle;
   std::unique_ptr<WHttpQueue>   m_windowHttpQueue;
   std::unique_ptr<WInput>       m_windowInput;
   std::unique_ptr<WStatusbar>   m_windowStatusbar;
 
   input::Bindings      m_bindings;
+#endif
 
   int                  m_input_history_length{99};
+#ifndef HEADLESS
   std::string          m_input_history_last_input{""};
   int                  m_input_history_pointer_get{0};
   InputHistory         m_input_history;
@@ -138,13 +160,17 @@ private:
   void                next_in_input_history(ui::DownloadList::Input type);
 
   void                reset_input_history_attributes(ui::DownloadList::Input type);
+#endif
 
   std::string         m_keymap_style;
   const int*          m_keymap;
-#endif
 
   ThrottleNameList    m_throttle_up_names;
   ThrottleNameList    m_throttle_down_names;
+
+#ifdef HEADLESS
+  std::string         m_dummyViewName;
+#endif
 };
 
 }
