@@ -1,22 +1,22 @@
 #include "config.h"
 
+#include "dht_manager.h"
+
 #include <fstream>
 #include <sstream>
 #include <torrent/object.h>
 #include <torrent/object_stream.h>
+#include <torrent/net/network_manager.h>
 #include <torrent/rate.h>
 #include <torrent/tracker/dht_controller.h>
 #include <torrent/utils/log.h>
 
-#include "rpc/parse_commands.h"
-
-#include "globals.h"
-
 #include "control.h"
-#include "dht_manager.h"
 #include "download.h"
 #include "download_store.h"
+#include "globals.h"
 #include "manager.h"
+#include "rpc/parse_commands.h"
 
 #define LT_LOG(log_fmt, ...)                                            \
   lt_log_print_subsystem(torrent::LOG_DHT_CONTROLLER, "dht_manager", log_fmt, __VA_ARGS__);
@@ -61,7 +61,7 @@ DhtManager::load_dht_cache() {
     LT_LOG("could not open cache file (path:%s)", cache_filename.c_str());
   }
 
-  torrent::dht_controller()->initialize(cache);
+  torrent::runtime::network_manager()->dht_controller()->initialize(cache);
 
   if (m_start == dht_on)
     start_dht();
@@ -71,22 +71,22 @@ void
 DhtManager::start_dht() {
   torrent::this_thread::scheduler()->erase(&m_stop_timeout);
 
-  if (!torrent::dht_controller()->is_valid()) {
+  if (!torrent::runtime::network_manager()->is_dht_valid()) {
     LT_LOG("server start skipped, manager is uninitialized", 0);
     return;
   }
 
-  if (torrent::dht_controller()->is_active()) {
+  if (torrent::runtime::network_manager()->is_dht_active()) {
     LT_LOG("server start skipped, already active", 0);
     return;
   }
 
-  if (!torrent::dht_controller()->start()) {
+  if (!torrent::runtime::network_manager()->dht_controller()->start()) {
     m_start = dht_off;
     return;
   }
 
-  torrent::dht_controller()->reset_statistics();
+  torrent::runtime::network_manager()->dht_controller()->reset_statistics();
 
   m_update_timeout.slot() = std::bind(&DhtManager::update, this);
 
@@ -105,17 +105,19 @@ DhtManager::stop_dht() {
   torrent::this_thread::scheduler()->erase(&m_update_timeout);
   torrent::this_thread::scheduler()->erase(&m_stop_timeout);
 
-  if (torrent::dht_controller()->is_active()) {
+  if (torrent::runtime::network_manager()->is_dht_active()) {
     LT_LOG("stopping server", 0);
 
     log_statistics(true);
-    torrent::dht_controller()->stop();
+    torrent::runtime::network_manager()->dht_controller()->stop();
   }
 }
 
 void
 DhtManager::save_dht_cache() {
-  if (!control->core()->download_store()->is_enabled() || !torrent::dht_controller()->is_valid())
+  if (!control->core()->download_store()->is_enabled())
+    return;
+  if (!torrent::runtime::network_manager()->is_dht_valid())
     return;
 
   std::string filename = control->core()->download_store()->path() + "rtorrent.dht_cache";
@@ -126,7 +128,7 @@ DhtManager::save_dht_cache() {
     return;
 
   torrent::Object cache = torrent::Object::create_map();
-  cache_file << *torrent::dht_controller()->store_cache(&cache);
+  cache_file << *torrent::runtime::network_manager()->dht_controller()->store_cache(&cache);
 
   if (!cache_file.good())
     return;
@@ -157,7 +159,7 @@ DhtManager::set_mode(const std::string& arg) {
 
 void
 DhtManager::update() {
-  if (!torrent::dht_controller()->is_active())
+  if (!torrent::runtime::network_manager()->is_dht_active())
     throw torrent::internal_error("DhtManager::update called with DHT inactive.");
 
   if (m_start == dht_auto && !m_stop_timeout.is_scheduled()) {
@@ -182,17 +184,17 @@ DhtManager::update() {
 
 bool
 DhtManager::log_statistics(bool force) {
-  auto stats = torrent::dht_controller()->get_statistics();
+  auto stats = torrent::runtime::network_manager()->dht_controller()->get_statistics();
 
   // Check for firewall problems.
 
   if (stats.cycle > 2 && stats.queries_sent - m_dhtPrevQueriesSent > 100 && stats.queries_received == m_dhtPrevQueriesReceived) {
     // We should have had clients ping us at least but have received
     // nothing, that means the UDP port is probably unreachable.
-    if (torrent::dht_controller()->is_receiving_requests())
+    if (torrent::runtime::network_manager()->is_dht_active_and_receiving_requests())
       LT_LOG("listening port appears to be unreachable, no queries received", 0);
 
-    torrent::dht_controller()->set_receive_requests(false);
+    torrent::runtime::network_manager()->dht_controller()->set_receive_requests(false);
   }
 
   if (stats.queries_sent - m_dhtPrevQueriesSent > stats.num_nodes * 2 + 20 && stats.replies_received == m_dhtPrevRepliesReceived) {
@@ -207,7 +209,7 @@ DhtManager::log_statistics(bool force) {
   m_warned = false;
 
   if (stats.queries_received > m_dhtPrevQueriesReceived)
-    torrent::dht_controller()->set_receive_requests(true);
+    torrent::runtime::network_manager()->dht_controller()->set_receive_requests(true);
 
   // Nothing to log while bootstrapping, but check again every minute.
   if (stats.cycle <= 1) {
@@ -256,11 +258,11 @@ DhtManager::dht_statistics() {
   torrent::Object dhtStats = torrent::Object::create_map();
 
   dhtStats.insert_key("dht",              dht_settings[m_start]);
-  dhtStats.insert_key("active",           torrent::dht_controller()->is_active());
+  dhtStats.insert_key("active",           torrent::runtime::network_manager()->is_dht_active());
   dhtStats.insert_key("throttle",         "");
 
-  if (torrent::dht_controller()->is_active()) {
-    auto stats = torrent::dht_controller()->get_statistics();
+  if (torrent::runtime::network_manager()->is_dht_active()) {
+    auto stats = torrent::runtime::network_manager()->dht_controller()->get_statistics();
 
     dhtStats.insert_key("cycle",            stats.cycle);
     dhtStats.insert_key("queries_received", stats.queries_received);
