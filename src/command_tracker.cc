@@ -4,6 +4,7 @@
 #include <cstdio>
 #include <netdb.h>
 #include <torrent/net/network_config.h>
+#include <torrent/net/network_manager.h>
 #include <torrent/net/resolver.h>
 #include <torrent/tracker/dht_controller.h>
 #include <torrent/tracker/tracker.h>
@@ -27,7 +28,7 @@ tracker_set_enabled(torrent::tracker::Tracker* tracker, bool state) {
 
 torrent::Object
 apply_dht_add_node(const std::string& arg) {
-  if (!torrent::dht_controller()->is_valid())
+  if (!torrent::runtime::network_manager()->is_dht_valid())
     throw torrent::input_error("DHT not enabled.");
 
   int port;
@@ -58,7 +59,7 @@ apply_dht_add_node(const std::string& arg) {
       }
 
       lt_log_print(torrent::LOG_DHT_CONTROLLER, "dht.add_node : %s", host_str.c_str());
-      torrent::dht_controller()->add_node(sa.get(), port);
+      torrent::runtime::network_manager()->dht_add_peer_node(sa.get(), port);
   });
 
   return torrent::Object();
@@ -144,7 +145,7 @@ initialize_command_tracker() {
   auto dht_manager = control->dht_manager();
 
   CMD2_ANY_STRING_V   ("dht.mode.set",          std::bind(&core::DhtManager::set_mode, control->dht_manager(), std::placeholders::_2));
-  CMD2_ANY            ("dht.port",              std::bind(&torrent::tracker::DhtController::port, torrent::dht_controller()));
+  CMD2_ANY            ("dht.port",              [](auto, auto) { return torrent::runtime::network_manager()->dht_controller()->port(); });
   CMD2_ANY_VALUE_V    ("dht.port.set",          [](auto, auto) {
       lt_log_print(torrent::LOG_DHT_ERROR, "dht.port.set is no longer supported, use dht.override_port.set", 0);
     });
