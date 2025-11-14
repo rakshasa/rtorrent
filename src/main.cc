@@ -10,6 +10,7 @@
 #include <torrent/torrent.h>
 #include <torrent/exceptions.h>
 #include <torrent/data/chunk_utils.h>
+#include <torrent/net/fd.h>
 #include <torrent/utils/chrono.h>
 #include <torrent/utils/log.h>
 #include <rak/error_number.h>
@@ -444,6 +445,19 @@ main(int argc, char** argv) {
 
     // if (rpc::call_command_value("method.use_deprecated") == 1) {
     // }
+
+    {
+      auto fd = torrent::fd_open_family(torrent::fd_flag_stream, AF_INET6);
+
+      if (fd == -1) {
+        if (errno == EAFNOSUPPORT) {
+          lt_log_print(torrent::LOG_WARN, "disabling ipv6 support, not available on system");
+          rpc::call_command_set_value("network.block.ipv6.set", true);
+        }
+      } else {
+        torrent::fd_close(fd);
+      }
+    }
 
     int firstArg = parse_options(argc, argv);
 
