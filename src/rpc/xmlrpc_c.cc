@@ -8,9 +8,9 @@
 #include <cctype>
 #include <string>
 #include <stdlib.h>
-#include <rak/string_manip.h>
 #include <torrent/object.h>
 #include <torrent/exceptions.h>
+#include <torrent/utils/string_manip.h>
 #include <xmlrpc-c/server.h>
 
 #include "rpc_manager.h"
@@ -282,24 +282,20 @@ object_to_xmlrpc(xmlrpc_env* env, const torrent::Object& object) {
     // The versions that support I8 do implicit utf-8 validation.
     xmlrpc_value* result = xmlrpc_string_new(env, object.as_string().c_str());
 #else
+    xmlrpc_value* result{};
+
     // In older versions, xmlrpc-c doesn't validate the utf-8 encoding itself.
     xmlrpc_validate_utf8(env, object.as_string().c_str(), object.as_string().length());
 
-    xmlrpc_value* result = env->fault_occurred ? NULL : xmlrpc_string_new(env, object.as_string().c_str());
+    if (!env->fault_occurred)
+      result = xmlrpc_string_new(env, object.as_string().c_str());
 #endif
 
     if (env->fault_occurred) {
       xmlrpc_env_clean(env);
       xmlrpc_env_init(env);
 
-      const std::string& str = object.as_string();
-      char buffer[str.size() + 1];
-      char* dst = buffer;
-      for (char itr : str)
-        *dst++ = ((itr < 0x20 && itr != '\r' && itr != '\n' && itr != '\t') || (itr & 0x80)) ? '?' : itr;
-      *dst = 0;
-
-      result = xmlrpc_string_new(env, buffer);
+      return xmlrpc_string_new(env, torrent::utils::string_with_escape_codes(object.as_string()).c_str());
     }
 
     return result;
