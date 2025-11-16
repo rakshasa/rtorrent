@@ -11,23 +11,31 @@
 
 namespace display {
 
-bool Canvas::m_isInitialized = false;
-bool Canvas::m_isDaemon      = false;
+bool Canvas::m_initialized{};
+bool Canvas::m_daemon{};
+
 // Maps ncurses color IDs to a ncurses attribute int
 std::unordered_map<int, int> Canvas::m_attr_map = {};
 
 Canvas::Canvas(int x, int y, int width, int height) {
-  if (!m_isDaemon) {
+  if (!m_daemon) {
     m_window = newwin(height, width, y, x);
 
-    if (m_window == NULL)
+    if (m_window == nullptr)
       throw torrent::internal_error("Could not allocate ncurses canvas.");
+  }
+}
+
+Canvas::~Canvas() {
+  if (!m_daemon && m_window != nullptr) {
+    delwin(m_window);
+    m_window = nullptr;
   }
 }
 
 void
 Canvas::resize(int x, int y, int w, int h) {
-  if (!m_isDaemon) {
+  if (!m_daemon) {
     wresize(m_window, h, w);
     mvwin(m_window, y, x);
   }
@@ -35,7 +43,7 @@ Canvas::resize(int x, int y, int w, int h) {
 
 void
 Canvas::print_attributes(unsigned int x, unsigned int y, const char* first, const char* last, const attributes_list* attributes) {
-  if (!m_isDaemon) {
+  if (!m_daemon) {
     move(x, y);
 
     attr_t org_attr;
@@ -68,14 +76,13 @@ Canvas::print_attributes(unsigned int x, unsigned int y, const char* first, cons
 
 void
 Canvas::initialize() {
-  if (m_isInitialized)
-    return;
+  if (m_initialized)
+    throw torrent::internal_error("Canvas::initialize() called more than once.");
 
-  m_isDaemon = rpc::call_command_value("system.daemon");
+  m_daemon = rpc::call_command_value("system.daemon");
+  m_initialized = true;
 
-  m_isInitialized = true;
-
-  if (!m_isDaemon) {
+  if (!m_daemon) {
     initscr();
     start_color();
     use_default_colors();
@@ -85,6 +92,19 @@ Canvas::initialize() {
     nodelay(stdscr, TRUE);
     keypad(stdscr, TRUE);
     curs_set(0);
+  }
+}
+
+void
+Canvas::cleanup() {
+  if (!m_initialized)
+    return;
+
+  m_initialized = false;
+
+  if (!m_daemon) {
+    noraw();
+    endwin();
   }
 }
 
@@ -102,7 +122,7 @@ Canvas::build_colors() {
   // This may get called early in the start process by the config
   // file, so we need to delay building until initscr() has a chance
   // to run
-  if (!m_isInitialized || m_isDaemon)
+  if (!m_initialized || m_daemon)
     return;
 
   // basic color names, index maps to ncurses COLOR_*
@@ -115,7 +135,9 @@ Canvas::build_colors() {
 
   for (int k = 1; k < RCOLOR_MAX; k++) {
     init_pair(k, -1, -1);
+
     std::string color_def = rpc::call_command_string(color_vars[k]);
+
     if (color_def.empty())
       continue; // Use terminal default if definition is empty
 
@@ -126,6 +148,7 @@ Canvas::build_colors() {
 
     // Process string as space-separated words
     size_t start = 0, end = 0;
+
     while (true) {
       end              = color_def.find(' ', start);
       std::string word = color_def.substr(start, end - start);
@@ -169,10 +192,8 @@ Canvas::build_colors() {
 
     // Check that fg & bg color index is valid
     if ((color[0] != -1 && color[0] >= get_colors()) || (color[1] != -1 && color[1] >= get_colors())) {
-      char buf[33];
-      snprintf(buf, 33, "%d", get_colors());
       Canvas::cleanup();
-      throw torrent::input_error(color_def + ": your terminal only supports " + buf + " colors.");
+      throw torrent::input_error(color_def + ": your terminal only supports " + std::to_string(get_colors()) + " colors.");
     }
 
     m_attr_map[k] = attr; // overwrite or insert the value
@@ -196,24 +217,11 @@ Canvas::build_colors() {
   }
 }
 
-void
-Canvas::cleanup() {
-  if (!m_isInitialized)
-    return;
-
-  m_isInitialized = false;
-
-  if (!m_isDaemon) {
-    noraw();
-    endwin();
-  }
-}
-
 std::pair<int, int>
 Canvas::term_size() {
   struct winsize ws;
 
-  if (!m_isDaemon) {
+  if (!m_daemon) {
     if (ioctl(STDIN_FILENO, TIOCGWINSZ, &ws) == 0)
       return std::pair<int, int>(ws.ws_col, ws.ws_row);
   }

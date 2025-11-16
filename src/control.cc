@@ -58,6 +58,8 @@ Control::~Control() {
 
 void
 Control::initialize() {
+  worker_thread->start_thread();
+
   display::Canvas::initialize();
   display::Window::slot_schedule([this](display::Window* w, std::chrono::microseconds t) { m_display->schedule(w, t); });
   display::Window::slot_unschedule([this](display::Window* w) { m_display->unschedule(w); });
@@ -81,9 +83,8 @@ Control::cleanup() {
 
   torrent::this_thread::scheduler()->erase(&m_task_shutdown);
 
-  if(!display::Canvas::daemon()) {
+  if(!display::Canvas::daemon())
     m_inputStdin->remove(torrent::this_thread::poll());
-  }
 
   m_core->download_store()->disable();
 

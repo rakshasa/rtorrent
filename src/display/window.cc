@@ -31,8 +31,6 @@ Window::Window(Canvas* canvas, int flags, extent_type min_width, extent_type min
 Window::~Window() {
   if (is_active())
     m_slot_unschedule(this);
-
-  delete m_canvas;
 }
 
 void

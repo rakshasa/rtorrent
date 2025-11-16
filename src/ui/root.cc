@@ -83,13 +83,13 @@ Root::init(Control* c) {
 
   m_downloadList    = std::make_unique<DownloadList>();
 
-  display::Frame* rootFrame = m_control->display()->root_frame();
+  auto root_frame = m_control->display()->root_frame();
 
-  rootFrame->initialize_row(5);
-  rootFrame->frame(0)->initialize_window(m_windowTitle.get());
-  rootFrame->frame(2)->initialize_window(m_windowHttpQueue.get());
-  rootFrame->frame(3)->initialize_window(m_windowInput.get());
-  rootFrame->frame(4)->initialize_window(m_windowStatusbar.get());
+  root_frame->initialize_row(5);
+  root_frame->frame(0)->initialize_window(m_windowTitle.get());
+  root_frame->frame(2)->initialize_window(m_windowHttpQueue.get());
+  root_frame->frame(3)->initialize_window(m_windowInput.get());
+  root_frame->frame(4)->initialize_window(m_windowStatusbar.get());
 
   m_windowTitle->set_active(true);
   m_windowStatusbar->set_active(true);
@@ -97,7 +97,7 @@ Root::init(Control* c) {
 
   setup_keys();
 
-  m_downloadList->activate(rootFrame->frame(1));
+  m_downloadList->activate(root_frame->frame(1));
 }
 
 void
@@ -111,7 +111,14 @@ Root::cleanup() {
   m_control->display()->root_frame()->clear();
   m_control->input()->erase(&m_bindings);
 
-  m_control = NULL;
+  // Destroy windows in reverse order of creation.
+  m_windowStatusbar = nullptr;
+  m_windowInput     = nullptr;
+  m_windowHttpQueue = nullptr;
+  m_windowTitle     = nullptr;
+  m_downloadList    = nullptr;
+
+  m_control = nullptr;
 }
 
 const char*

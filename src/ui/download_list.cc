@@ -116,7 +116,7 @@ DownloadList::activate_display(Display displayType) {
     m_uiArray[m_state] = NULL;
 
     break;
-    
+
   case DISPLAY_DOWNLOAD_LIST:
     m_uiArray[DISPLAY_DOWNLOAD_LIST]->disable();
 
@@ -130,7 +130,7 @@ DownloadList::activate_display(Display displayType) {
   case DISPLAY_STRING_LIST:
     m_uiArray[m_state]->disable();
     break;
-    
+
   default:
     break;
   }
@@ -152,7 +152,7 @@ DownloadList::activate_display(Display displayType) {
 
       download->activate(m_frame);
       download->slot_exit(std::bind(&DownloadList::activate_display, this, DISPLAY_DOWNLOAD_LIST));
-    
+
       m_uiArray[DISPLAY_DOWNLOAD] = download;
       break;
     }
@@ -273,7 +273,7 @@ DownloadList::receive_exit_input(Input type) {
   set_escdelay(1000);
 
   input::TextInput* input = control->ui()->current_input();
-  
+
   // We should check that this object is the one holding the input.
   if (input == NULL)
     return;
