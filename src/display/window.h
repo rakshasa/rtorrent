@@ -89,7 +89,7 @@ protected:
   static SlotWindow   m_slot_unschedule;
   static Slot         m_slot_adjust;
 
-  Canvas*             m_canvas;
+  std::unique_ptr<Canvas> m_canvas;
 
   int                 m_flags;
 

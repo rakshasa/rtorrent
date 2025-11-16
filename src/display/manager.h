@@ -3,7 +3,7 @@
 
 #include <torrent/utils/scheduler.h>
 
-#include "frame.h"
+#include "display/frame.h"
 
 namespace display {
 

@@ -215,6 +215,7 @@ main(int argc, char** argv) {
     torrent::initialize();
     torrent::set_main_thread_slots(std::bind(&client_perform));
 
+    // TODO: Move to controller.
     worker_thread = new ThreadWorker();
     worker_thread->init_thread();
 
@@ -498,8 +499,6 @@ main(int argc, char** argv) {
     control->display()->adjust_layout();
     control->display()->receive_update();
 
-    worker_thread->start_thread();
-
     rpc::commands.call_catch("event.system.startup_done", rpc::make_target(), "startup_done", "System startup_done event action failed: ");
 
     torrent::utils::Thread::self()->event_loop();
@@ -534,7 +533,10 @@ main(int argc, char** argv) {
   torrent::log_cleanup();
 
   delete control;
+  control = nullptr;
+
   delete worker_thread;
+  worker_thread = nullptr;
 
   return 0;
 }
