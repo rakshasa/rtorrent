@@ -357,10 +357,12 @@ object_to_xmlrpc(xmlrpc_env* env, const torrent::Object& object) {
 
 xmlrpc_value*
 xmlrpc_call_command(xmlrpc_env* env, xmlrpc_value* args, void* voidServerInfo) {
-  CommandMap::iterator itr = commands.find((const char*)voidServerInfo);
+  auto server_info = static_cast<const char*>(voidServerInfo);
+
+  CommandMap::iterator itr = commands.find(server_info);
 
   if (itr == commands.end()) {
-    xmlrpc_env_set_fault(env, XMLRPC_PARSE_ERROR, ("Command \"" + std::string((const char*)voidServerInfo) + "\" does not exist.").c_str());
+    xmlrpc_env_set_fault(env, XMLRPC_PARSE_ERROR, ("Command \"" + std::string(server_info) + "\" does not exist.").c_str());
     return NULL;
   }
 
@@ -393,6 +395,11 @@ xmlrpc_call_command(xmlrpc_env* env, xmlrpc_value* args, void* voidServerInfo) {
   }
 }
 
+bool
+XmlRpc::is_valid() const {
+  return m_env != NULL;
+}
+
 void
 XmlRpc::initialize() {
 #ifndef XMLRPC_HAVE_I8
@@ -417,34 +424,42 @@ XmlRpc::cleanup() {
 
 bool
 XmlRpc::process(const char* inBuffer, uint32_t length, slot_write slotWrite) {
-  xmlrpc_env localEnv;
-  xmlrpc_env_init(&localEnv);
+  xmlrpc_env local_env;
+  xmlrpc_env_init(&local_env);
 
-  xmlrpc_mem_block* memblock = xmlrpc_registry_process_call(&localEnv, (xmlrpc_registry*)m_registry, NULL, inBuffer, length);
+  xmlrpc_mem_block* memblock = xmlrpc_registry_process_call(&local_env, (xmlrpc_registry*)m_registry, NULL, inBuffer, length);
 
-  if (localEnv.fault_occurred && localEnv.fault_code == XMLRPC_INTERNAL_ERROR)
+  if (local_env.fault_occurred && local_env.fault_code == XMLRPC_INTERNAL_ERROR)
     throw torrent::internal_error("Internal error in XMLRPC.");
 
   bool result = slotWrite((const char*)xmlrpc_mem_block_contents(memblock),
                           xmlrpc_mem_block_size(memblock));
 
   xmlrpc_mem_block_free(memblock);
-  xmlrpc_env_clean(&localEnv);
+  xmlrpc_env_clean(&local_env);
   return result;
 }
 
 void
 XmlRpc::insert_command(const char* name, const char* parm, const char* doc) {
-  xmlrpc_env localEnv;
-  xmlrpc_env_init(&localEnv);
+  xmlrpc_env local_env;
+  xmlrpc_env_init(&local_env);
 
-  xmlrpc_registry_add_method_w_doc(&localEnv, (xmlrpc_registry*)m_registry, NULL, name,
-                                   &xmlrpc_call_command, const_cast<char*>(name), parm, doc);
+  auto stored_name = store_command_name(name);
 
-  if (localEnv.fault_occurred)
+  xmlrpc_registry_add_method_w_doc(&local_env,
+                                   (xmlrpc_registry*)m_registry,
+                                   nullptr,
+                                   stored_name,
+                                   &xmlrpc_call_command,
+                                   (void*)stored_name,
+                                   parm,
+                                   doc);
+
+  if (local_env.fault_occurred)
     throw torrent::internal_error("Fault occured while inserting xmlrpc call.");
 
-  xmlrpc_env_clean(&localEnv);
+  xmlrpc_env_clean(&local_env);
 }
 
 void
@@ -452,8 +467,8 @@ XmlRpc::set_dialect(int dialect) {
   if (!is_valid())
     throw torrent::input_error("Cannot select XMLRPC dialect before it is initialized.");
 
-  xmlrpc_env localEnv;
-  xmlrpc_env_init(&localEnv);
+  xmlrpc_env local_env;
+  xmlrpc_env_init(&local_env);
 
   switch (dialect) {
   case dialect_generic:
@@ -461,25 +476,25 @@ XmlRpc::set_dialect(int dialect) {
 
 #ifdef XMLRPC_HAVE_I8
   case dialect_i8:
-    xmlrpc_registry_set_dialect(&localEnv, (xmlrpc_registry*)m_registry, xmlrpc_dialect_i8);
+    xmlrpc_registry_set_dialect(&local_env, (xmlrpc_registry*)m_registry, xmlrpc_dialect_i8);
     break;
 
   case dialect_apache:
-    xmlrpc_registry_set_dialect(&localEnv, (xmlrpc_registry*)m_registry, xmlrpc_dialect_apache);
+    xmlrpc_registry_set_dialect(&local_env, (xmlrpc_registry*)m_registry, xmlrpc_dialect_apache);
     break;
 #endif
 
   default:
-    xmlrpc_env_clean(&localEnv);
+    xmlrpc_env_clean(&local_env);
     throw torrent::input_error("Unsupported XMLRPC dialect selected.");
   }
 
-  if (localEnv.fault_occurred) {
-    xmlrpc_env_clean(&localEnv);
+  if (local_env.fault_occurred) {
+    xmlrpc_env_clean(&local_env);
     throw torrent::input_error("Unsupported XMLRPC dialect selected.");
   }
 
-  xmlrpc_env_clean(&localEnv);
+  xmlrpc_env_clean(&local_env);
   m_dialect = dialect;
 }
 
@@ -495,9 +510,6 @@ XmlRpc::set_size_limit(uint64_t size) {
 
   xmlrpc_limit_set(XMLRPC_XML_SIZE_LIMIT_ID, size);
 }
-
-bool
-XmlRpc::is_valid() const { return m_env != NULL; }
 
 } // namespace rpc
 
