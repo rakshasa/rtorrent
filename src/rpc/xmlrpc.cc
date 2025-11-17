@@ -4,9 +4,26 @@
 
 #include "parse_commands.h"
 
+#include <cstring>
 #include <torrent/exceptions.h>
 
 namespace rpc {
+
+std::vector<std::unique_ptr<const char>> XmlRpc::m_command_names;
+
+const char*
+XmlRpc::store_command_name(const char* name) {
+  if (::strnlen(name, 8192) == 8192)
+    throw torrent::input_error("XMLRPC command name too long, limit is 8192 characters.");
+
+  for (const auto& itr : m_command_names) {
+    if (::strcmp(itr.get(), name) == 0)
+      return itr.get();
+  }
+
+  m_command_names.push_back(std::unique_ptr<const char>(::strdup(name)));
+  return m_command_names.back().get();
+}
 
 #ifndef HAVE_XMLRPC_C
 #ifndef HAVE_XMLRPC_TINYXML2

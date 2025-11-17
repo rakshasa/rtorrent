@@ -59,6 +59,10 @@ public:
   void                set_size_limit(uint64_t size);
 
 private:
+  static const char*  store_command_name(const char* name);
+
+  static std::vector<std::unique_ptr<const char>> m_command_names;
+
   slot_download       m_slotFindDownload;
   slot_file           m_slotFindFile;
   slot_tracker        m_slotFindTracker;
@@ -73,7 +77,6 @@ private:
   // Only used by tinyxml2
   bool                m_isValid;
   uint64_t            m_sizeLimit{SCgiTask::max_content_size};
-
 };
 
 }
