@@ -6,7 +6,7 @@
 
 #include "test/helpers/mock_function.h"
 #include "torrent/exceptions.h"
-#include "torrent/poll.h"
+#include "torrent/net/poll.h"
 
 const int test_thread::test_flag_pre_stop;
 const int test_thread::test_flag_long_timeout;

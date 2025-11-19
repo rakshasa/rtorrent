@@ -4,7 +4,7 @@
 #include <functional>
 
 #include <torrent/event.h>
-#include <torrent/poll.h>
+#include <torrent/net/poll.h>
 
 namespace input {
 
@@ -14,8 +14,8 @@ public:
 
   InputEvent(int fd) { m_fileDesc = fd; }
 
-  void                insert(torrent::Poll* p);
-  void                remove(torrent::Poll* p);
+  void                insert(torrent::net::Poll* p);
+  void                remove(torrent::net::Poll* p);
 
   void                event_read();
   void                event_write();
