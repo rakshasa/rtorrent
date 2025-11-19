@@ -3,10 +3,10 @@
 #include <cassert>
 #include <sys/un.h>
 #include <torrent/connection_manager.h>
-#include <torrent/poll.h>
 #include <torrent/torrent.h>
 #include <torrent/exceptions.h>
 #include <torrent/net/fd.h>
+#include <torrent/net/poll.h>
 #include <torrent/net/socket_address.h>
 
 #include "control.h"

@@ -8,8 +8,8 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <torrent/exceptions.h>
-#include <torrent/poll.h>
 #include <torrent/torrent.h>
+#include <torrent/net/poll.h>
 #include <torrent/utils/log.h>
 #include <torrent/utils/thread.h>
 
