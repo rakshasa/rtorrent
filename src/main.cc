@@ -24,10 +24,12 @@
 #include "core/download_factory.h"
 #include "core/download_store.h"
 #include "core/manager.h"
+#ifndef HEADLESS
 #include "display/canvas.h"
 #include "display/window.h"
 #include "display/manager.h"
 #include "input/bindings.h"
+#endif
 #include "ui/root.h"
 
 #include "rpc/command_scheduler.h"
@@ -186,7 +188,9 @@ main(int argc, char** argv) {
     SignalHandler::set_handler(SIGINT,   std::bind(&Control::receive_normal_shutdown, control));
     SignalHandler::set_handler(SIGHUP,   std::bind(&Control::receive_normal_shutdown, control));
     SignalHandler::set_handler(SIGTERM,  std::bind(&Control::receive_quick_shutdown, control));
+#ifndef HEADLESS
     SignalHandler::set_handler(SIGWINCH, std::bind(&display::Manager::force_redraw, control->display()));
+#endif
     SignalHandler::set_handler(SIGSEGV,  std::bind(&do_panic, SIGSEGV));
     SignalHandler::set_handler(SIGILL,   std::bind(&do_panic, SIGILL));
     SignalHandler::set_handler(SIGFPE,   std::bind(&do_panic, SIGFPE));
@@ -493,11 +497,13 @@ main(int argc, char** argv) {
 
     load_arg_torrents(argv + firstArg, argv + argc);
 
+#ifndef HEADLESS
     // Make sure we update the display before any scheduled tasks can
     // run, so that loading of torrents doesn't look like it hangs on
     // startup.
     control->display()->adjust_layout();
     control->display()->receive_update();
+#endif
 
     rpc::commands.call_catch("event.system.startup_done", rpc::make_target(), "startup_done", "System startup_done event action failed: ");
 
@@ -547,7 +553,9 @@ handle_sigbus(int signum, siginfo_t* sa, [[maybe_unused]] void* ptr) {
     do_panic(signum);
 
   SignalHandler::set_default(signum);
+#ifndef HEADLESS
   display::Canvas::cleanup();
+#endif
 
   std::stringstream output;
   output << "Caught SIGBUS, dumping stack:" << std::endl;
@@ -617,7 +625,9 @@ do_panic(int signum) {
   // Use the default signal handler in the future to avoid infinit
   // loops.
   SignalHandler::set_default(signum);
+#ifndef HEADLESS
   display::Canvas::cleanup();
+#endif
 
   std::stringstream output;
 

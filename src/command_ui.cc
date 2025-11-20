@@ -9,9 +9,10 @@
 
 #include "core/manager.h"
 #include "core/view_manager.h"
+#ifndef HEADLESS
 #include "display/canvas.h"
+#endif
 #include "ui/root.h"
-#include "ui/download_list.h"
 #include "display/color_map.h"
 #include "rpc/parse.h"
 
@@ -564,18 +565,18 @@ cmd_view_persistent(const torrent::Object::string_type& args) {
 // TODO: These don't need wrapper functions anymore...
 torrent::Object
 cmd_ui_set_view(const torrent::Object::string_type& args) {
-  control->ui()->download_list()->set_current_view(args);
+  control->ui()->cmd_ui_set_view(args);
   return torrent::Object();
 }
 
 torrent::Object
 cmd_ui_current_view() {
-  return control->ui()->download_list()->current_view()->name();
+  return control->ui()->cmd_ui_current_view();
 }
 
 torrent::Object
 cmd_ui_unfocus_download(core::Download* download) {
-  control->ui()->download_list()->unfocus_download(download);
+  control->ui()->cmd_ui_unfocus_download(download);
 
   return torrent::Object();
 }
@@ -769,7 +770,9 @@ torrent::Object
 apply_set_color(int color_id, const torrent::Object::string_type& color_str) {
   control->object_storage()->set_str_string(display::color_vars[color_id], color_str);
 
+#ifndef HEADLESS
   display::Canvas::build_colors();
+#endif
   return torrent::Object();
 }
 

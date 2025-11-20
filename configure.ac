@@ -40,12 +40,22 @@ AC_ARG_ENABLE(execinfo,
     AX_EXECINFO
   ])
 
-AX_PTHREAD([], AC_MSG_ERROR([requires pthread]))
-AX_WITH_CURSES
+AC_ARG_ENABLE([headless],
+  AS_HELP_STRING([--enable-headless], [Enable headless build])
+)
+AS_IF([test "x$enable_headless" = "xyes"], [
+  AC_DEFINE([HEADLESS], [1], [headless build])
+  AC_MSG_NOTICE([Enabling HEADLESS build])
+])
+AM_CONDITIONAL([ENABLE_UI], [test "x$enable_headless" != "xyes"])
 
-if test "x$ax_cv_ncursesw" != xyes && test "x$ax_cv_ncurses" != xyes; then
-  AC_MSG_ERROR([requires either NcursesW or Ncurses library])
-fi
+AX_PTHREAD([], AC_MSG_ERROR([requires pthread]))
+AS_IF([test "x$enable_headless" != "xyes"], [
+    AX_WITH_CURSES
+    AS_IF([test "x$ax_cv_ncursesw" != xyes && test "x$ax_cv_ncurses" != xyes], [
+        AC_MSG_ERROR([requires either NcursesW or Ncurses library])
+    ])
+])
 
 PKG_CHECK_MODULES([CPPUNIT], [cppunit],, [no_cppunit="yes"])
 PKG_CHECK_MODULES([DEPENDENCIES], [libtorrent >= 0.16.2])
@@ -57,9 +67,12 @@ AC_LANG_POP(C++)
 TORRENT_WITH_LUA
 TORRENT_WITH_TINYXML2
 
-if test ${with_xmlrpc_c+y} && test ${with_xmlrpc_tinyxml2+y}; then
+AS_IF([test "x$with_xmlrpc_c" = "xyes" && test "x$with_xmlrpc_tinyxml2" = "xyes"], [
   AC_MSG_ERROR([--with-xmlrpc-c and --with-xmlrpc-tinyxml2 cannot be used together. Please choose only one])
-fi
+])
+AS_IF([test "x$with_xmlrpc_c" != "xyes" && test "x$with_xmlrpc_tinyxml2" != "xyes" && test "x$enable_headless" = "xyes"], [
+  AC_MSG_ERROR([--enable-headless without xmlrpc is useless. Please choose --with-xmlrpc-c or --with-xmlrpc-tinyxml2])
+])
 
 AC_DEFINE(USER_AGENT, [std::string(PACKAGE "/" VERSION "/") + torrent::version()], Http user agent)
 

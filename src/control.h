@@ -1,6 +1,8 @@
 #ifndef RTORRENT_CONTROL_H
 #define RTORRENT_CONTROL_H
 
+#include "config.h"
+
 #include <atomic>
 #include <cinttypes>
 #include <memory>
@@ -61,9 +63,11 @@ public:
   core::DhtManager*   dht_manager()                 { return m_dht_manager.get(); }
 
   ui::Root*           ui()                          { return m_ui.get(); }
+#ifndef HEADLESS
   display::Manager*   display()                     { return m_display.get(); }
   input::Manager*     input()                       { return m_input.get(); }
   input::InputEvent*  input_stdin()                 { return m_inputStdin.get(); }
+#endif
 
   rpc::CommandScheduler* command_scheduler()        { return m_commandScheduler.get(); }
   rpc::object_storage*   object_storage()           { return m_objectStorage.get(); }
@@ -86,9 +90,11 @@ private:
   std::unique_ptr<core::DhtManager>  m_dht_manager;
 
   std::unique_ptr<ui::Root>          m_ui;
+#ifndef HEADLESS
   std::unique_ptr<display::Manager>  m_display;
   std::unique_ptr<input::Manager>    m_input;
   std::unique_ptr<input::InputEvent> m_inputStdin;
+#endif
 
   std::unique_ptr<rpc::CommandScheduler>     m_commandScheduler;
   std::unique_ptr<rpc::object_storage>       m_objectStorage;

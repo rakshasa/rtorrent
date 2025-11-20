@@ -4,27 +4,8 @@ bin_PROGRAMS = rtorrent
 rtorrent_LDADD = libsub_root.a @PTHREAD_LIBS@
 rtorrent_SOURCES = main.cc
 
-libsub_root_a_SOURCES = \
-	core/dht_manager.cc \
-	core/dht_manager.h \
-	core/download.cc \
-	core/download.h \
-	core/download_factory.cc \
-	core/download_factory.h \
-	core/download_list.cc \
-	core/download_list.h \
-	core/download_store.cc \
-	core/download_store.h \
-	core/http_queue.cc \
-	core/http_queue.h \
-	core/manager.cc \
-	core/manager.h \
-	core/range_map.h \
-	core/view.cc \
-	core/view.h \
-	core/view_manager.cc \
-	core/view_manager.h \
-	\
+if ENABLE_UI
+ui_SOURCES = \
 	display/attributes.h \
 	display/canvas.cc \
 	display/canvas.h \
@@ -33,8 +14,6 @@ libsub_root_a_SOURCES = \
 	display/frame.h \
 	display/manager.cc \
 	display/manager.h \
-	display/utils.cc \
-	display/utils.h \
 	display/text_element.h \
 	display/text_element_list.cc \
 	display/text_element_list.h \
@@ -86,6 +65,55 @@ libsub_root_a_SOURCES = \
 	input/text_input.cc \
 	input/text_input.h \
 	\
+	ui/download.cc \
+	ui/download.h \
+	ui/download_list.cc \
+	ui/download_list.h \
+	ui/element_base.h \
+	ui/element_base.cc \
+	ui/element_chunks_seen.cc \
+	ui/element_chunks_seen.h \
+	ui/element_download_list.cc \
+	ui/element_download_list.h \
+	ui/element_file_list.cc \
+	ui/element_file_list.h \
+	ui/element_log_complete.cc \
+	ui/element_log_complete.h \
+	ui/element_menu.cc \
+	ui/element_menu.h \
+	ui/element_peer_list.cc \
+	ui/element_peer_list.h \
+	ui/element_string_list.cc \
+	ui/element_string_list.h \
+	ui/element_text.cc \
+	ui/element_text.h \
+	ui/element_tracker_list.cc \
+	ui/element_tracker_list.h \
+	ui/element_transfer_list.cc \
+	ui/element_transfer_list.h
+endif
+
+libsub_root_a_SOURCES = \
+	core/dht_manager.cc \
+	core/dht_manager.h \
+	core/download.cc \
+	core/download.h \
+	core/download_factory.cc \
+	core/download_factory.h \
+	core/download_list.cc \
+	core/download_list.h \
+	core/download_store.cc \
+	core/download_store.h \
+	core/http_queue.cc \
+	core/http_queue.h \
+	core/manager.cc \
+	core/manager.h \
+	core/range_map.h \
+	core/view.cc \
+	core/view.h \
+	core/view_manager.cc \
+	core/view_manager.h \
+	\
 	rpc/command.h \
 	rpc/command.cc \
 	rpc/command_impl.h \
@@ -125,32 +153,9 @@ libsub_root_a_SOURCES = \
 	rpc/tinyxml2/tinyxml2.cc \
 	rpc/nlohmann/json.h \
 	\
-	ui/download.cc \
-	ui/download.h \
-	ui/download_list.cc \
-	ui/download_list.h \
-	ui/element_base.h \
-	ui/element_base.cc \
-	ui/element_chunks_seen.cc \
-	ui/element_chunks_seen.h \
-	ui/element_download_list.cc \
-	ui/element_download_list.h \
-	ui/element_file_list.cc \
-	ui/element_file_list.h \
-	ui/element_log_complete.cc \
-	ui/element_log_complete.h \
-	ui/element_menu.cc \
-	ui/element_menu.h \
-	ui/element_peer_list.cc \
-	ui/element_peer_list.h \
-	ui/element_string_list.cc \
-	ui/element_string_list.h \
-	ui/element_text.cc \
-	ui/element_text.h \
-	ui/element_tracker_list.cc \
-	ui/element_tracker_list.h \
-	ui/element_transfer_list.cc \
-	ui/element_transfer_list.h \
+	display/utils.cc \
+	display/utils.h \
+	\
 	ui/root.cc \
 	ui/root.h \
 	\
@@ -192,7 +197,8 @@ libsub_root_a_SOURCES = \
 	signal_handler.cc \
 	signal_handler.h \
 	thread_worker.cc \
-	thread_worker.h
-
+	thread_worker.h \
+	\
+	$(ui_SOURCES)
 
 AM_CPPFLAGS = -I$(srcdir) -I$(top_srcdir) -DPACKAGE_DATADIR=\"$(pkgdatadir)\"
