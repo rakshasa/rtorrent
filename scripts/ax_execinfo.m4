@@ -30,7 +30,7 @@
 #   and this notice are preserved. This file is offered as-is, without any
 #   warranty.
 
-#serial 2
+#serial 3
 
 AC_DEFUN([AX_EXECINFO],
   [AC_CHECK_HEADERS([execinfo.h])
@@ -42,6 +42,7 @@ AC_DEFUN([AX_EXECINFO],
 	   AS_IF([test "${ax_cv_proto_backtrace_type}" = none],
 	     [ax_cv_proto_backtrace_type= ; break])
 	   AC_COMPILE_IFELSE([AC_LANG_PROGRAM([
+#include <stddef.h>
 #include <execinfo.h>
 extern
 ${ax_cv_proto_backtrace_type} backtrace(void **addrlist, ${ax_cv_proto_backtrace_type} len);
