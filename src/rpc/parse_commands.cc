@@ -156,9 +156,10 @@ parse_command_file(const std::string& path) {
 
       if (file.gcount() == 0)
         throw torrent::internal_error("parse_command_file(...) file.gcount() == 0.");
+
       int lineLength = file.gcount() - 1;
       // In case we are at the end of the file and the last character is
-      // not a line feed, we'll just increase the read character count so 
+      // not a line feed, we'll just increase the read character count so
       // that the last would also be included in option line.
       if (file.eof() && file.get() != '\n')
         lineLength++;
