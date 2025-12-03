@@ -619,7 +619,10 @@ d_list_remove(core::Download* download, const torrent::Object& rawArgs, const ch
   CMD2_DL_VALUE_P(key ".set_if_z", std::bind(&download_set_variable_value_ifz, \
                                              std::placeholders::_1, std::placeholders::_2, \
                                              first_key, second_key));   \
-  CMD2_DL(key ".or_zero", [](core::Download* download, auto) { return download_get_value_or_zero(download, first_key, second_key); });
+  CMD2_DL(key ".or_zero", [](core::Download* download, auto) {          \
+      return download_get_value_or_zero(download, first_key, second_key); }); \
+  CMD2_DL_VALUE(key ".elapsed", [](core::Download* download, auto value) { \
+      return download_get_value_or_zero(download, first_key, second_key).as_value() > value; });
 
 #define CMD2_DL_VAR_STRING(key, first_key, second_key)                   \
   CMD2_DL(key, std::bind(&download_get_variable, std::placeholders::_1, first_key, second_key)); \
