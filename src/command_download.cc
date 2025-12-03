@@ -496,6 +496,19 @@ download_get_variable(core::Download* download, const char* first_key, const cha
 }
 
 torrent::Object
+download_get_value_or_zero(core::Download* download, const char* first_key, const char* second_key = NULL) {
+  auto object = download_get_variable(download, first_key, second_key);
+
+  if (object.is_empty())
+    return int64_t(0);
+
+  if (!object.is_value())
+    throw torrent::bencode_error("Download variable is not a value.");
+
+  return object;
+}
+
+torrent::Object
 download_set_variable(core::Download* download, const torrent::Object& rawArgs, const char* first_key, const char* second_key = NULL) {
   if (second_key == NULL)
     return download->bencode()->get_key(first_key) = torrent::object_create_normal(rawArgs);
@@ -600,12 +613,13 @@ d_list_remove(core::Download* download, const torrent::Object& rawArgs, const ch
 
 #define CMD2_DL_TIMESTAMP(key, first_key, second_key)                   \
   CMD2_DL(key, std::bind(&download_get_variable, std::placeholders::_1, first_key, second_key)); \
-  CMD2_DL_VALUE_P(key ".set", std::bind(&download_set_variable_value, \
-                                             std::placeholders::_1, std::placeholders::_2, \
-                                             first_key, second_key)); \
+  CMD2_DL_VALUE_P(key ".set", std::bind(&download_set_variable_value,   \
+                                        std::placeholders::_1, std::placeholders::_2, \
+                                        first_key, second_key));        \
   CMD2_DL_VALUE_P(key ".set_if_z", std::bind(&download_set_variable_value_ifz, \
                                              std::placeholders::_1, std::placeholders::_2, \
                                              first_key, second_key));   \
+  CMD2_DL(key ".or_zero", [](core::Download* download, auto) { return download_get_value_or_zero(download, first_key, second_key); });
 
 #define CMD2_DL_VAR_STRING(key, first_key, second_key)                   \
   CMD2_DL(key, std::bind(&download_get_variable, std::placeholders::_1, first_key, second_key)); \
