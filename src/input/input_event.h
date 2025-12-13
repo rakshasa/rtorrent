@@ -14,12 +14,14 @@ public:
 
   InputEvent(int fd) { m_fileDesc = fd; }
 
+  const char*         type_name() const override { return "input"; }
+
   void                insert(torrent::net::Poll* p);
   void                remove(torrent::net::Poll* p);
 
-  void                event_read();
-  void                event_write();
-  void                event_error();
+  void                event_read() override;
+  void                event_write() override;
+  void                event_error() override;
 
   void                slot_pressed(slot_int s) { m_slotPressed = s; }
 

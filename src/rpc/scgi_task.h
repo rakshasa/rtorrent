@@ -23,6 +23,8 @@ public:
 
   SCgiTask() { m_fileDesc = -1; }
 
+  const char*         type_name() const override { return "scgi-task"; }
+
   bool                is_open() const      { return m_fileDesc != -1; }
   bool                is_available() const { return m_fileDesc == -1; }
 
@@ -31,9 +33,9 @@ public:
 
   ContentType         content_type() const { return m_content_type; }
 
-  virtual void        event_read();
-  virtual void        event_write();
-  virtual void        event_error();
+  void                event_read() override;
+  void                event_write() override;
+  void                event_error() override;
 
   utils::SocketFd&    get_fd()             { return *reinterpret_cast<utils::SocketFd*>(&m_fileDesc); }
 
