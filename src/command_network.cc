@@ -17,16 +17,16 @@
 #include <torrent/utils/log.h>
 #include <torrent/utils/option_strings.h>
 
+#include "globals.h"
+#include "control.h"
+#include "command_helpers.h"
+#include "thread_worker.h"
 #include "core/download.h"
 #include "core/manager.h"
 #include "rpc/scgi.h"
 #include "ui/root.h"
 #include "rpc/parse.h"
 #include "rpc/parse_commands.h"
-
-#include "globals.h"
-#include "control.h"
-#include "command_helpers.h"
 
 torrent::Object
 apply_encryption(const torrent::Object::list_type& args) {

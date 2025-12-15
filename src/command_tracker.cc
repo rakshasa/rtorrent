@@ -45,7 +45,7 @@ apply_dht_add_node(const std::string& arg) {
   if (port < 1 || port > 65535)
     throw torrent::input_error("Invalid port number.");
 
-  assert(std::this_thread::get_id() == torrent::main_thread::thread()->thread_id());
+  assert(std::this_thread::get_id() == torrent::main_thread::thread_id());
 
   auto host_str = std::string(host);
 

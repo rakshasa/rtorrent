@@ -8,6 +8,7 @@
 #include <torrent/net/network_manager.h>
 #include <torrent/utils/directory_events.h>
 
+#include "thread_worker.h"
 #include "core/dht_manager.h"
 #include "core/download_store.h"
 #include "core/http_queue.h"

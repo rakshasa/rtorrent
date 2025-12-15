@@ -1,8 +1,6 @@
 #ifndef RTORRENT_THREAD_WORKER_H
 #define RTORRENT_THREAD_WORKER_H
 
-#include <atomic>
-#include <string>
 #include <torrent/utils/thread.h>
 
 namespace rpc {
@@ -35,4 +33,4 @@ private:
   std::string               m_rpc_log_filename;
 };
 
-#endif
+#endif // RTORRENT_THREAD_WORKER_H

@@ -28,11 +28,11 @@
 #include "display/window.h"
 #include "display/manager.h"
 #include "input/bindings.h"
-#include "ui/root.h"
-
 #include "rpc/command_scheduler.h"
 #include "rpc/command_scheduler_item.h"
 #include "rpc/parse_commands.h"
+#include "session/thread_session.h"
+#include "ui/root.h"
 #include "utils/directory.h"
 
 #include "control.h"
@@ -218,6 +218,8 @@ main(int argc, char** argv) {
     // TODO: Move to controller.
     worker_thread = new ThreadWorker();
     worker_thread->init_thread();
+
+    session::ThreadSession::create_thread();
 
     // Initialize option handlers after libtorrent to ensure
     // torrent::ConnectionManager* are valid etc.
@@ -534,6 +536,8 @@ main(int argc, char** argv) {
 
   delete control;
   control = nullptr;
+
+  session::ThreadSession::destroy_thread();
 
   delete worker_thread;
   worker_thread = nullptr;

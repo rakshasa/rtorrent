@@ -5,6 +5,7 @@
 #include <fstream>
 #include <stdio.h>
 #include <fcntl.h>
+#include <sstream>
 #include <unistd.h>
 #include <rak/error_number.h>
 #include <rak/path.h>
@@ -149,6 +150,33 @@ DownloadStore::save(Download* d, int flags) {
   if (!(flags & flag_skip_static) &&
       write_bencode(base_filename + ".new", *d->bencode(), torrent::Object::flag_session_data))
     ::rename((base_filename + ".new").c_str(), base_filename.c_str());
+
+  // TODO: Replace with new threaded session save.
+
+  auto download_stream = std::unique_ptr<std::stringstream>();
+  auto resume_stream   = std::make_unique<std::stringstream>();
+  auto rtorrent_stream = std::make_unique<std::stringstream>();
+
+  if (!(flags & flag_skip_static)) {
+    download_stream = std::make_unique<std::stringstream>();
+    torrent::object_write_bencode(&*download_stream, d->bencode(), torrent::Object::flag_session_data);
+
+    if (!download_stream->good())
+      return false;
+  }
+
+  torrent::object_write_bencode(&*resume_stream, resume_base, 0);
+
+  // TODO: Add logging.
+  if (!resume_stream->good())
+    return false;
+
+  torrent::object_write_bencode(&*rtorrent_stream, rtorrent_base, 0);
+
+  if (!rtorrent_stream->good())
+    return false;
+
+  // TODO: Pass these streams to the session save thread.
 
   return true;
 }

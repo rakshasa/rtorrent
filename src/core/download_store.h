@@ -2,6 +2,7 @@
 #define RTORRENT_CORE_DOWNLOAD_STORE_H
 
 #include <string>
+#include <torrent/common.h>
 
 #include "utils/lockfile.h"
 

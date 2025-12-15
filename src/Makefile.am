@@ -125,6 +125,11 @@ libsub_root_a_SOURCES = \
 	rpc/tinyxml2/tinyxml2.cc \
 	rpc/nlohmann/json.h \
 	\
+	session/session_manager.cc \
+	session/session_manager.h \
+	session/thread_session.cc \
+	session/thread_session.h \
+	\
 	ui/download.cc \
 	ui/download.h \
 	ui/download_list.cc \
