@@ -3,8 +3,12 @@
 #include "session_manager.h"
 
 #include <cassert>
+#include <torrent/utils/log.h>
 
-// TODO: Add logging.
+#include "globals.h"
+
+#define LT_LOG(log_fmt, ...)                                            \
+  lt_log_print(torrent::LOG_SESSION_EVENTS, "session-events: " log_fmt, __VA_ARGS__);
 
 namespace session {
 
@@ -19,26 +23,38 @@ SessionManager::SessionManager(torrent::utils::Thread* thread)
 
 SessionManager::~SessionManager() = default;
 
+bool
+SessionManager::is_empty() {
+  std::lock_guard<std::mutex> guard(m_mutex);
+  return m_save_requests.empty();
+}
+
 // TODO: Derive path from download info hash.
 // TODO: Generate streams here, not in download store.
 void
 SessionManager::save_download(core::Download* download, std::string path, stream_ptr download_stream, stream_ptr rtorrent_stream, stream_ptr libtorrent_stream) {
   assert(m_thread != torrent::this_thread::thread());
 
-  std::lock_guard<std::mutex> guard(m_mutex);
+  {
+    std::lock_guard<std::mutex> guard(m_mutex);
 
-  // TODO: Add these to a temp structure
-  // TODO: When a download already exists, replace it.
+    LT_LOG("requesting save : download:%p path:%s", download, path.c_str());
 
-  m_save_requests.push_back(SaveRequest{
-      download,
-      std::move(path),
-      std::move(download_stream),
-      std::move(rtorrent_stream),
-      std::move(libtorrent_stream)
-    });
+    // TODO: Remove is already queued entries.
 
-  // TODO: Poke the session thread to process save requests.
+    // TODO: Add these to a temp structure
+    // TODO: When a download already exists, replace it.
+
+    m_save_requests.push_back(SaveRequest{
+        download,
+        std::move(path),
+        std::move(download_stream),
+        std::move(rtorrent_stream),
+        std::move(libtorrent_stream)
+      });
+  }
+
+  session_thread::callback(nullptr, [this]() { process_save_request(); });
 }
 
 void
@@ -49,9 +65,18 @@ SessionManager::cancel_download(core::Download* download) {
 
   // TODO: Add these to a temp structure, and remove from to-be-added temp struct.
 
-  m_save_requests.erase(std::remove_if(m_save_requests.begin(), m_save_requests.end(),
-                                       [download](auto& req) { return req.download == download; }),
-                        m_save_requests.end());
+  auto itr = std::remove_if(m_save_requests.begin(), m_save_requests.end(), [download](auto& req) {
+      return req.download == download;
+    });
+
+  if (itr == m_save_requests.end()) {
+    LT_LOG("skipping cancel save request : download:%p", download);
+    return;
+  }
+
+  LT_LOG("canceling save request : download:%p", download);
+
+  m_save_requests.erase(itr, m_save_requests.end());
 
   // TODO: Use atomic download ptr to check if we're currently processing this download
   // TODO: If so, use a lock to wait for save to finish before returning
@@ -73,10 +98,17 @@ SessionManager::process_save_request() {
   // Keep lock while processing to ensure cancellations do not interfere.
 
   save_download_unsafe(request);
+
+  if (!m_save_requests.empty())
+    session_thread::callback(nullptr, [this]() { process_save_request(); });
 }
+
+// TODO: Add threads/tasklets that calls fdisksync on shutdown.
+// TODO: Parallelize saves.
 
 void
 SessionManager::save_download_unsafe(const SaveRequest& request) {
+  LT_LOG("saving download : download:%p path:%s", request.download, request.path.c_str());
 }
 
 }  // namespace session

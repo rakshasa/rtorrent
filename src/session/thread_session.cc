@@ -23,6 +23,7 @@ ThreadSession::create_thread() {
   thread->m_manager = std::make_unique<SessionManager>(thread);
 
   m_thread_session = thread;
+  m_thread_session->m_state = STATE_INITIALIZED;
 }
 
 void
@@ -38,7 +39,6 @@ ThreadSession::thread_session() {
 
 void
 ThreadSession::init_thread() {
-  m_state = STATE_INITIALIZED;
 }
 
 // TODO: Make sure we trigger session save before main thread exits, that it adds all required
@@ -54,21 +54,28 @@ ThreadSession::call_events() {
 
   // TODO: Wait with shutdown until all session data is saved.
 
+  process_callbacks();
+
   if ((m_flags & flag_do_shutdown)) {
+    if (!m_manager->is_empty()) {
+      // TODO: Figure out a better way to wait for session save to complete.
+      // TODO: Sanity check to avoid getting stuck not shutting down.
+      // TODO: Should we depend on next_timeout() instead of callbacks?
+      return;
+    }
+
     if ((m_flags & flag_did_shutdown))
       throw torrent::internal_error("Already trigged shutdown.");
 
     m_flags |= flag_did_shutdown;
     throw torrent::shutdown_exception();
   }
-
-  process_callbacks();
-  // m_udns->flush();
-  // process_callbacks();
 }
 
 std::chrono::microseconds
 ThreadSession::next_timeout() {
+  // TODO: This leads to kqueue crash?
+  // return std::chrono::microseconds(1h);
   return std::chrono::microseconds(10s);
 }
 
@@ -83,6 +90,6 @@ void callback(void* target, std::function<void ()>&& fn) { session::ThreadSessio
 void cancel_callback(void* target)                       { session::ThreadSessionInternal::thread_session()->cancel_callback(target); }
 void cancel_callback_and_wait(void* target)              { session::ThreadSessionInternal::thread_session()->cancel_callback_and_wait(target); }
 
-// torrent::session::HttpStack* http_stack()                                    { return session::ThreadSessionInternal::http_stack(); }
+session::SessionManager* manager()                       { return session::ThreadSessionInternal::thread_session()->manager(); }
 
 } // namespace session_thread

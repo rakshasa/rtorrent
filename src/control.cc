@@ -59,6 +59,7 @@ Control::~Control() {
 
 void
 Control::initialize() {
+  session_thread::thread()->start_thread();
   worker_thread->start_thread();
 
   display::Canvas::initialize();
@@ -87,6 +88,10 @@ Control::cleanup() {
   if(!display::Canvas::daemon())
     m_inputStdin->remove(torrent::this_thread::poll());
 
+  // Wait for all session files to be written.
+  session_thread::thread()->stop_thread_wait();
+
+  // TODO: Change lock file to be deleted by ThreadSession shutdown instead.
   m_core->download_store()->disable();
 
   m_ui->cleanup();

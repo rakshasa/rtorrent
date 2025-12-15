@@ -20,6 +20,8 @@ public:
   void                init_thread() override;
   void                cleanup_thread() override;
 
+  SessionManager*     manager() const { return m_manager.get(); }
+
 protected:
   friend class ThreadSessionInternal;
 

@@ -17,11 +17,11 @@
 #include <torrent/rate.h>
 #include <torrent/object_stream.h>
 
-#include "utils/directory.h"
-
 #include "download.h"
 #include "download_store.h"
 #include "rpc/parse_commands.h"
+#include "session/session_manager.h"
+#include "utils/directory.h"
 
 namespace core {
 
@@ -176,13 +176,14 @@ DownloadStore::save(Download* d, int flags) {
   if (!rtorrent_stream->good())
     return false;
 
-  // TODO: Pass these streams to the session save thread.
-
+  session_thread::manager()->save_download(d, base_filename, std::move(download_stream), std::move(resume_stream), std::move(rtorrent_stream));
   return true;
 }
 
 void
 DownloadStore::remove(Download* d) {
+  session_thread::manager()->cancel_download(d);
+
   if (!is_enabled())
     return;
 

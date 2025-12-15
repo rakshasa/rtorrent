@@ -215,11 +215,11 @@ main(int argc, char** argv) {
     torrent::initialize();
     torrent::set_main_thread_slots(std::bind(&client_perform));
 
+    session::ThreadSession::create_thread();
+
     // TODO: Move to controller.
     worker_thread = new ThreadWorker();
     worker_thread->init_thread();
-
-    session::ThreadSession::create_thread();
 
     // Initialize option handlers after libtorrent to ensure
     // torrent::ConnectionManager* are valid etc.
@@ -532,8 +532,6 @@ main(int argc, char** argv) {
     return -1;
   }
 
-  torrent::log_cleanup();
-
   delete control;
   control = nullptr;
 
@@ -541,6 +539,8 @@ main(int argc, char** argv) {
 
   delete worker_thread;
   worker_thread = nullptr;
+
+  torrent::log_cleanup();
 
   return 0;
 }

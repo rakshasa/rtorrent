@@ -30,6 +30,8 @@ public:
   SessionManager(torrent::utils::Thread* thread);
   ~SessionManager();
 
+  bool                is_empty();
+
   void                save_download(core::Download* download, std::string path, stream_ptr download_stream, stream_ptr rtorrent_stream, stream_ptr libtorrent_stream);
   void                cancel_download(core::Download* download);
 
