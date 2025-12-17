@@ -25,6 +25,9 @@
 
 namespace core {
 
+// TODO: Move path to session manager.
+// TODO: Separate enable/disable with lock/unlock.
+
 void
 DownloadStore::enable(bool lock) {
   if (is_enabled())
@@ -53,6 +56,8 @@ DownloadStore::disable() {
 
   m_lockfile.unlock();
 }
+
+// TODO: Move path.
 
 void
 DownloadStore::set_path(const std::string& path) {
@@ -137,21 +142,6 @@ DownloadStore::save(Download* d, int flags) {
   // Temp fixing of all flags, move to a better place:
   resume_base->set_flags(torrent::Object::flag_session_data);
   rtorrent_base->set_flags(torrent::Object::flag_session_data);
-
-  std::string base_filename = create_filename(d);
-
-  if (!write_bencode(base_filename + ".libtorrent_resume.new", *resume_base, 0) ||
-      !write_bencode(base_filename + ".rtorrent.new", *rtorrent_base, 0))
-    return false;
-
-  ::rename((base_filename + ".libtorrent_resume.new").c_str(), (base_filename + ".libtorrent_resume").c_str());
-  ::rename((base_filename + ".rtorrent.new").c_str(), (base_filename + ".rtorrent").c_str());
-
-  if (!(flags & flag_skip_static) &&
-      write_bencode(base_filename + ".new", *d->bencode(), torrent::Object::flag_session_data))
-    ::rename((base_filename + ".new").c_str(), base_filename.c_str());
-
-  // TODO: Replace with new threaded session save.
 
   auto download_stream = std::unique_ptr<std::stringstream>();
   auto resume_stream   = std::make_unique<std::stringstream>();

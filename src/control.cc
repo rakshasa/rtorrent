@@ -60,6 +60,7 @@ Control::~Control() {
 void
 Control::initialize() {
   session_thread::thread()->start_thread();
+
   worker_thread->start_thread();
 
   display::Canvas::initialize();

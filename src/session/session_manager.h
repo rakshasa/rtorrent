@@ -18,7 +18,7 @@ namespace session {
 struct SaveRequest {
   core::Download*                    download;
   std::string                        path;
-  std::unique_ptr<std::stringstream> download_stream;
+  std::unique_ptr<std::stringstream> torrent_stream;
   std::unique_ptr<std::stringstream> rtorrent_stream;
   std::unique_ptr<std::stringstream> libtorrent_stream;
 };
@@ -32,13 +32,14 @@ public:
 
   bool                is_empty();
 
-  void                save_download(core::Download* download, std::string path, stream_ptr download_stream, stream_ptr rtorrent_stream, stream_ptr libtorrent_stream);
+  void                save_download(core::Download* download, std::string path, stream_ptr torrent_stream, stream_ptr rtorrent_stream, stream_ptr libtorrent_stream);
   void                cancel_download(core::Download* download);
 
 private:
   void                process_save_request();
 
   void                save_download_unsafe(const SaveRequest& request);
+  bool                save_download_stream_unsafe(const std::string& path, const std::unique_ptr<std::stringstream>& stream);
 
   torrent::utils::Thread* m_thread;
 
