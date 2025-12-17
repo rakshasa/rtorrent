@@ -51,7 +51,7 @@ public:
   void                freeze_info();
 
   void                save_download(core::Download* download, std::string path, stream_ptr torrent_stream, stream_ptr rtorrent_stream, stream_ptr libtorrent_stream);
-  void                cancel_download(core::Download* download);
+  void                remove_download(core::Download* download, std::string path);
 
 protected:
   friend class Control;

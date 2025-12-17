@@ -97,7 +97,7 @@ SessionManager::save_download(core::Download* download, std::string path, stream
 }
 
 void
-SessionManager::cancel_download(core::Download* download) {
+SessionManager::remove_download(core::Download* download, std::string base_path) {
   assert(torrent::this_thread::thread() == torrent::main_thread::thread());
 
   if (m_path.empty())
@@ -106,7 +106,7 @@ SessionManager::cancel_download(core::Download* download) {
   std::lock_guard<std::mutex> guard(m_mutex);
 
   if (!m_active)
-    throw torrent::internal_error("SessionManager::cancel_download() called while not active.");
+    throw torrent::internal_error("SessionManager::remove_download() called while not active.");
 
   // TODO: Add these to a temp structure, and remove from to-be-added temp struct.
 
@@ -114,17 +114,21 @@ SessionManager::cancel_download(core::Download* download) {
       return req.download == download;
     });
 
-  if (itr == m_save_requests.end()) {
-    LT_LOG("skipping cancel save request : download:%p", download);
-    return;
+  if (itr != m_save_requests.end()) {
+    LT_LOG("canceling save request : download:%p", download);
+    m_save_requests.erase(itr, m_save_requests.end());
   }
-
-  LT_LOG("canceling save request : download:%p", download);
-
-  m_save_requests.erase(itr, m_save_requests.end());
 
   // TODO: Use atomic download ptr to check if we're currently processing this download
   // TODO: If so, use a lock to wait for save to finish before returning
+
+  auto torrent_path    = base_path;
+  auto libtorrent_path = base_path + ".libtorrent_resume";
+  auto rtorrent_path   = base_path + ".rtorrent";
+
+  ::unlink(libtorrent_path.c_str());
+  ::unlink(rtorrent_path.c_str());
+  ::unlink(torrent_path.c_str());
 }
 
 void

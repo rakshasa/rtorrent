@@ -82,14 +82,7 @@ DownloadStore::save(Download* d, int flags) {
 
 void
 DownloadStore::remove(Download* d) {
-  session_thread::manager()->cancel_download(d);
-
-  if (!session_thread::manager()->is_used())
-    return;
-
-  ::unlink((create_filename(d) + ".libtorrent_resume").c_str());
-  ::unlink((create_filename(d) + ".rtorrent").c_str());
-  ::unlink(create_filename(d).c_str());
+  session_thread::manager()->remove_download(d, create_filename(d));
 }
 
 // This also needs to check that it isn't a directory.
