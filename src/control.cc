@@ -8,7 +8,6 @@
 #include <torrent/net/network_manager.h>
 #include <torrent/utils/directory_events.h>
 
-#include "thread_worker.h"
 #include "core/dht_manager.h"
 #include "core/download_store.h"
 #include "core/http_queue.h"
@@ -63,7 +62,7 @@ Control::initialize() {
   session_thread::manager()->start();
   session_thread::thread()->start_thread();
 
-  worker_thread->start_thread();
+  scgi_thread::thread()->start_thread();
 
   display::Canvas::initialize();
   display::Window::slot_schedule([this](display::Window* w, std::chrono::microseconds t) { m_display->schedule(w, t); });
@@ -90,6 +89,9 @@ Control::cleanup() {
   if(!display::Canvas::daemon())
     m_inputStdin->remove(torrent::this_thread::poll());
 
+  if (scgi_thread::thread()->is_active())
+    scgi_thread::thread()->stop_thread_wait();
+
   // Wait for all session files to be written.
   session_thread::thread()->stop_thread_wait();
 
@@ -109,7 +111,7 @@ Control::cleanup_exception() {
 
 bool
 Control::is_shutdown_completed() {
-  if (!m_shutdownQuick || worker_thread->is_active())
+  if (!m_shutdownQuick)
     return false;
 
   // Tracker requests can be disowned, so wait for these to
@@ -128,10 +130,10 @@ void
 Control::handle_shutdown() {
   rpc::commands.call_catch("event.system.shutdown", rpc::make_target(), "shutdown", "System shutdown event action failed: ");
 
-  if (!m_shutdownQuick) {
-    if (worker_thread->is_active())
-      worker_thread->stop_thread_wait();
+  if (scgi_thread::thread()->is_active())
+    scgi_thread::thread()->stop_thread_wait();
 
+  if (!m_shutdownQuick) {
     torrent::runtime::network_manager()->listen_close();
 
     m_directory_events->close();
@@ -141,9 +143,6 @@ Control::handle_shutdown() {
       torrent::this_thread::scheduler()->wait_for_ceil_seconds(&m_task_shutdown, 5s);
 
   } else {
-    if (worker_thread->is_active())
-      worker_thread->stop_thread_wait();
-
     m_core->shutdown(true);
   }
 

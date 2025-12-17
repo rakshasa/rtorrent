@@ -125,6 +125,9 @@ libsub_root_a_SOURCES = \
 	rpc/tinyxml2/tinyxml2.cc \
 	rpc/nlohmann/json.h \
 	\
+	scgi/thread_scgi.cc \
+	scgi/thread_scgi.h \
+	\
 	session/session_manager.cc \
 	session/session_manager.h \
 	session/thread_session.cc \
@@ -195,9 +198,7 @@ libsub_root_a_SOURCES = \
 	option_parser.cc \
 	option_parser.h \
 	signal_handler.cc \
-	signal_handler.h \
-	thread_worker.cc \
-	thread_worker.h
+	signal_handler.h
 
 
 AM_CPPFLAGS = -I$(srcdir) -I$(top_srcdir) -DPACKAGE_DATADIR=\"$(pkgdatadir)\"

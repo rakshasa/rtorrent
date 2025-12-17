@@ -185,7 +185,6 @@ cmd_file_append(const torrent::Object::list_type& args) {
 void
 initialize_command_local() {
   core::DownloadList*    dList = control->core()->download_list();
-  core::DownloadStore*   dStore = control->core()->download_store();
   torrent::ChunkManager* chunkManager = torrent::chunk_manager();
   torrent::FileManager*  fileManager = torrent::file_manager();
 

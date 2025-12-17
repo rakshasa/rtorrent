@@ -31,6 +31,7 @@
 #include "rpc/command_scheduler.h"
 #include "rpc/command_scheduler_item.h"
 #include "rpc/parse_commands.h"
+#include "scgi/thread_scgi.h"
 #include "session/thread_session.h"
 #include "ui/root.h"
 #include "utils/directory.h"
@@ -40,8 +41,6 @@
 #include "globals.h"
 #include "signal_handler.h"
 #include "option_parser.h"
-
-#include "thread_worker.h"
 
 #define LT_LOG(log_fmt, ...)                                    \
   lt_log_print(torrent::LOG_SYSTEM, "system: " log_fmt, __VA_ARGS__);
@@ -215,11 +214,8 @@ main(int argc, char** argv) {
     torrent::initialize();
     torrent::set_main_thread_slots(std::bind(&client_perform));
 
+    scgi::ThreadScgi::create_thread();
     session::ThreadSession::create_thread();
-
-    // TODO: Move to controller.
-    worker_thread = new ThreadWorker();
-    worker_thread->init_thread();
 
     // Initialize option handlers after libtorrent to ensure
     // torrent::ConnectionManager* are valid etc.
@@ -535,10 +531,8 @@ main(int argc, char** argv) {
   delete control;
   control = nullptr;
 
+  scgi::ThreadScgi::destroy_thread();
   session::ThreadSession::destroy_thread();
-
-  delete worker_thread;
-  worker_thread = nullptr;
 
   torrent::log_cleanup();
 
