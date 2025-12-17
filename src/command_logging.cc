@@ -11,7 +11,6 @@
 #include "globals.h"
 #include "control.h"
 #include "command_helpers.h"
-#include "thread_worker.h"
 #include "core/download.h"
 #include "core/download_list.h"
 #include "core/manager.h"
@@ -135,12 +134,13 @@ initialize_command_logging() {
   CMD2_ANY_LIST    ("log.append_file",      std::bind(&apply_log_open, log_flag_append_file, std::placeholders::_2));
   CMD2_ANY_LIST    ("log.append_gz_file",   std::bind(&apply_log_open, log_flag_append_file, std::placeholders::_2));
 
-  CMD2_ANY_STRING_V("log.close",      std::bind(&torrent::log_close_output_str, std::placeholders::_2));
+  CMD2_ANY_STRING_V("log.close",            std::bind(&torrent::log_close_output_str, std::placeholders::_2));
 
-  CMD2_ANY_LIST    ("log.add_output", std::bind(&apply_log_add_output, std::placeholders::_2));
+  CMD2_ANY_LIST    ("log.add_output",       std::bind(&apply_log_add_output, std::placeholders::_2));
 
-  CMD2_ANY_STRING  ("log.execute",    std::bind(&apply_log, std::placeholders::_2, 0));
-  CMD2_ANY_STRING  ("log.vmmap.dump", std::bind(&log_vmmap_dump, std::placeholders::_2));
-  CMD2_ANY_STRING_V("log.rpc",        std::bind(&ThreadWorker::set_rpc_log, worker_thread, std::placeholders::_2));
-  CMD2_REDIRECT    ("log.xmlrpc",     "log.rpc"); // For backwards compatibility
+  CMD2_ANY_STRING  ("log.execute",          std::bind(&apply_log, std::placeholders::_2, 0));
+  CMD2_ANY_STRING  ("log.vmmap.dump",       std::bind(&log_vmmap_dump, std::placeholders::_2));
+  CMD2_ANY_STRING_V("log.rpc",              [](const auto&, const auto& str) { scgi_thread::set_rpc_log(str); });
+
+  CMD2_REDIRECT    ("log.xmlrpc", "log.rpc"); // For backwards compatibility
 }

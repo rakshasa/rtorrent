@@ -76,7 +76,7 @@ std::chrono::microseconds
 ThreadSession::next_timeout() {
   // TODO: This leads to kqueue crash?
   // return std::chrono::microseconds(1h);
-  return std::chrono::microseconds(10s);
+  return std::chrono::microseconds(10min);
 }
 
 } // namespace session

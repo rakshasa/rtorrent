@@ -20,7 +20,6 @@
 #include "globals.h"
 #include "control.h"
 #include "command_helpers.h"
-#include "thread_worker.h"
 #include "core/download.h"
 #include "core/manager.h"
 #include "rpc/scgi.h"
@@ -79,7 +78,7 @@ initialize_rpc_handlers() {
 
 torrent::Object
 apply_scgi(const std::string& arg, int type) {
-  if (worker_thread->scgi() != NULL)
+  if (scgi_thread::scgi() != nullptr)
     throw torrent::input_error("SCGI already enabled.");
 
   initialize_rpc_handlers();
@@ -142,7 +141,7 @@ apply_scgi(const std::string& arg, int type) {
     throw torrent::input_error(e.what());
   }
 
-  worker_thread->set_scgi(scgi);
+  scgi_thread::set_scgi(scgi);
   return torrent::Object();
 }
 

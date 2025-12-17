@@ -11,7 +11,6 @@
 
 #include "control.h"
 #include "globals.h"
-#include "thread_worker.h"
 #include "rpc/scgi_task.h"
 #include "utils/socket_fd.h"
 
@@ -93,7 +92,7 @@ SCgi::open(void* sa, unsigned int length) {
 
 void
 SCgi::activate() {
-  assert(std::this_thread::get_id() == worker_thread->thread_id() && "SCgi::activate() must be called from the worker thread.");
+  assert(torrent::this_thread::thread() == scgi_thread::thread());
 
   torrent::this_thread::poll()->open(this);
   torrent::this_thread::poll()->insert_read(this);
@@ -102,7 +101,7 @@ SCgi::activate() {
 
 void
 SCgi::deactivate() {
-  assert(std::this_thread::get_id() == worker_thread->thread_id() && "SCgi::deactivate() must be called from the worker thread.");
+  assert(torrent::this_thread::thread() == scgi_thread::thread());
 
   torrent::this_thread::poll()->remove_and_close(this);
 }
