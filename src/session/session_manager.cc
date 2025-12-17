@@ -236,14 +236,14 @@ SessionManager::save_download_unsafe(const SaveRequest& request) {
   auto rtorrent_path   = request.path + ".rtorrent";
 
   if (request.torrent_stream) {
-    if (!save_download_stream_unsafe(torrent_path, request.torrent_stream))
+    if (!save_download_stream_unsafe(torrent_path + ".new", request.torrent_stream))
       return;
   }
 
-  if (!save_download_stream_unsafe(libtorrent_path, request.libtorrent_stream))
+  if (!save_download_stream_unsafe(libtorrent_path + ".new", request.libtorrent_stream))
     return;
 
-  if (!save_download_stream_unsafe(rtorrent_path, request.rtorrent_stream))
+  if (!save_download_stream_unsafe(rtorrent_path + ".new", request.rtorrent_stream))
     return;
 
   if (request.torrent_stream) {
