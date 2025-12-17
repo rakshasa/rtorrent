@@ -271,23 +271,22 @@ initialize_command_local() {
   CMD2_ANY         ("pieces.hash.queue_size",          std::bind(&torrent::main_thread::hash_queue_size));
   CMD2_VAR_BOOL    ("pieces.hash.on_completion",       true);
 
-  CMD2_VAR_STRING  ("directory.default",       "./");
+  CMD2_VAR_STRING  ("directory.default",               "./");
 
-  CMD2_VAR_STRING  ("session.name",            "");
-  CMD2_ANY         ("session.use_lock",        [](auto, auto)        { return session_thread::manager()->use_lock(); });
-  CMD2_ANY_VALUE_V ("session.use_lock.set",    [](auto, auto& value) { return session_thread::manager()->set_use_lock(value); });
-  CMD2_VAR_BOOL    ("session.on_completion",   true);
+  CMD2_VAR_STRING  ("session.name",                    "");
+  CMD2_ANY         ("session.path",                    [](auto, auto)        { return session_thread::manager()->path(); });
+  CMD2_ANY_STRING_V("session.path.set",                [](auto, auto& str)   { return session_thread::manager()->set_path(str); });
+  CMD2_ANY         ("session.use_lock",                [](auto, auto)        { return session_thread::manager()->use_lock(); });
+  CMD2_ANY_VALUE_V ("session.use_lock.set",            [](auto, auto& value) { return session_thread::manager()->set_use_lock(value); });
+  CMD2_VAR_BOOL    ("session.on_completion",           true);
 
-  CMD2_ANY         ("session.path",            std::bind(&core::DownloadStore::path, dStore));
-  CMD2_ANY_STRING_V("session.path.set",        std::bind(&core::DownloadStore::set_path, dStore, std::placeholders::_2));
-
-  CMD2_ANY_V       ("session.save",            std::bind(&core::DownloadList::session_save, dList));
+  CMD2_ANY_V       ("session.save",                    [dList](auto, auto)   { return dList->session_save(); });
 
 #ifdef HAVE_LUA
   rpc::LuaEngine* lua_engine = control->lua_engine();
 
-  CMD2_ANY         ("lua.execute",            std::bind(&rpc::execute_lua, lua_engine, std::placeholders::_1, std::placeholders::_2, 0));
-  CMD2_ANY         ("lua.execute.str",        std::bind(&rpc::execute_lua, lua_engine, std::placeholders::_1, std::placeholders::_2, rpc::LuaEngine::flag_string));
+  CMD2_ANY         ("lua.execute",                    std::bind(&rpc::execute_lua, lua_engine, std::placeholders::_1, std::placeholders::_2, 0));
+  CMD2_ANY         ("lua.execute.str",                std::bind(&rpc::execute_lua, lua_engine, std::placeholders::_1, std::placeholders::_2, rpc::LuaEngine::flag_string));
 #endif
 
 #define CMD2_EXECUTE(key, flags)                                        \

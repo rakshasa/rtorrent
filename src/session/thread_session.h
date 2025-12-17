@@ -18,7 +18,6 @@ public:
   const char*         name() const override      { return "rtorrent-session"; }
 
   void                init_thread() override;
-  void                init_thread_post_local() override;
   void                cleanup_thread() override;
 
   SessionManager*     manager() const { return m_manager.get(); }

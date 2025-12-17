@@ -34,6 +34,8 @@ public:
   SessionManager(torrent::utils::Thread* thread);
   ~SessionManager();
 
+  bool                is_used() const;
+
   // TODO: Replace with protected `bool shutdown_if_done()`.
   bool                is_empty();
   // bool                is_empty_and_done();
@@ -76,6 +78,7 @@ private:
   std::unique_ptr<utils::Lockfile> m_lockfile;
 };
 
+inline bool        SessionManager::is_used() const  { return !m_path.empty(); }
 inline std::string SessionManager::path() const     { return m_path; }
 inline bool        SessionManager::use_lock() const { return m_use_lock; }
 

@@ -46,7 +46,10 @@ SessionManager::set_path(const std::string& path) {
   if (m_freeze_info)
     throw torrent::input_error("Session path cannot be changed after startup.");
 
-  m_path = path;
+  if (path.empty() || path.back() == '/')
+    m_path = path;
+  else
+    m_path = path + '/';
 }
 
 void

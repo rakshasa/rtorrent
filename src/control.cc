@@ -73,7 +73,6 @@ Control::initialize() {
   torrent::net_thread::http_stack()->set_user_agent(USER_AGENT);
 
   m_core->listen_open();
-  m_core->download_store()->enable();
   m_core->set_hashing_view(*m_view_manager->find_throw("hashing"));
 
   m_ui->init(this);
@@ -93,9 +92,6 @@ Control::cleanup() {
 
   // Wait for all session files to be written.
   session_thread::thread()->stop_thread_wait();
-
-  // TODO: Change lock file to be deleted by ThreadSession shutdown instead.
-  m_core->download_store()->disable();
 
   m_ui->cleanup();
   m_core->cleanup();

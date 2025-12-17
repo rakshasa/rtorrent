@@ -22,7 +22,7 @@ ThreadSession::create_thread() {
 
   thread->m_manager = std::make_unique<SessionManager>(thread);
 
-  m_thread_session = thread;
+  m_thread_session          = thread;
   m_thread_session->m_state = STATE_INITIALIZED;
 }
 
@@ -42,17 +42,11 @@ void
 ThreadSession::init_thread() {
 }
 
-// TODO: Move to protected.
-void
-ThreadSession::init_thread_post_local() {
-  m_manager->start();
-}
-
 // TODO: Make sure we trigger session save before main thread exits, that it adds all required
 // downloads to the queue.
 void
 ThreadSession::cleanup_thread() {
-  // TODO: Do a final flush of all session data.
+  m_manager->cleanup();
 }
 
 void
