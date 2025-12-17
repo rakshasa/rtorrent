@@ -9,11 +9,11 @@
 
 namespace core {
 class Download;
-} // namespace core
+}
 
 namespace utils {
 class Lockfile;
-} // namespace utils
+}
 
 namespace session {
 

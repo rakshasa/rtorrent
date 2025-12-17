@@ -10,8 +10,7 @@ namespace session {
 
 class ThreadSessionInternal {
 public:
-  static ThreadSession*      thread_session() { return ThreadSession::internal_thread_session(); }
-  // static session::HttpStack* http_stack() { return ThreadSession::internal_thread_session()->http_stack(); }
+  static ThreadSession* thread_session() { return ThreadSession::internal_thread_session(); }
 };
 
 ThreadSession* ThreadSession::m_thread_session{nullptr};

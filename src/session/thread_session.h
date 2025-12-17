@@ -32,8 +32,6 @@ protected:
   void                      call_events() override;
   std::chrono::microseconds next_timeout() override;
 
-  // session::HttpStack*     http_stack() const { return m_http_stack.get(); }
-
 private:
   static ThreadSession*   m_thread_session;
 

@@ -264,6 +264,8 @@ SessionManager::save_download_unsafe(const SaveRequest& request) {
   }
 }
 
+// TODO: Rewrite to be all done in std::async, and from rdbuf directly to fd to avoid re-opening.
+
 bool
 SessionManager::save_download_stream_unsafe(const std::string& path, const std::unique_ptr<std::stringstream>& stream) {
   std::fstream output(path.c_str(), std::ios::out | std::ios::trunc);
