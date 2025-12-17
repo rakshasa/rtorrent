@@ -166,6 +166,8 @@ DownloadStore::save(Download* d, int flags) {
   if (!rtorrent_stream->good())
     return false;
 
+  auto base_filename = create_filename(d);
+
   session_thread::manager()->save_download(d, base_filename, std::move(download_stream), std::move(resume_stream), std::move(rtorrent_stream));
   return true;
 }

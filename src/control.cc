@@ -27,6 +27,7 @@
 #include "rpc/lua.h"
 #include "rpc/parse_commands.h"
 #include "rpc/object_storage.h"
+#include "session/session_manager.h"
 #include "ui/root.h"
 
 Control::Control()
@@ -59,6 +60,7 @@ Control::~Control() {
 
 void
 Control::initialize() {
+  session_thread::manager()->start();
   session_thread::thread()->start_thread();
 
   worker_thread->start_thread();
@@ -71,7 +73,7 @@ Control::initialize() {
   torrent::net_thread::http_stack()->set_user_agent(USER_AGENT);
 
   m_core->listen_open();
-  m_core->download_store()->enable(rpc::call_command_value("session.use_lock"));
+  m_core->download_store()->enable();
   m_core->set_hashing_view(*m_view_manager->find_throw("hashing"));
 
   m_ui->init(this);

@@ -22,6 +22,7 @@
 #include "rak/string_manip.h"
 #include "rpc/parse_commands.h"
 #include "rpc/scgi.h"
+#include "session/session_manager.h"
 #include "utils/file_status_cache.h"
 
 #include "globals.h"
@@ -273,7 +274,8 @@ initialize_command_local() {
   CMD2_VAR_STRING  ("directory.default",       "./");
 
   CMD2_VAR_STRING  ("session.name",            "");
-  CMD2_VAR_BOOL    ("session.use_lock",        true);
+  CMD2_ANY         ("session.use_lock",        [](auto, auto)        { return session_thread::manager()->use_lock(); });
+  CMD2_ANY_VALUE_V ("session.use_lock.set",    [](auto, auto& value) { return session_thread::manager()->set_use_lock(value); });
   CMD2_VAR_BOOL    ("session.on_completion",   true);
 
   CMD2_ANY         ("session.path",            std::bind(&core::DownloadStore::path, dStore));

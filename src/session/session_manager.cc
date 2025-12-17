@@ -3,12 +3,15 @@
 #include "session_manager.h"
 
 #include <cassert>
+#include <cerrno>
 #include <fstream>
 #include <fcntl.h>
 #include <unistd.h>
+#include <torrent/exceptions.h>
 #include <torrent/utils/log.h>
 
 #include "globals.h"
+#include "utils/lockfile.h"
 
 #define LT_LOG(log_fmt, ...)                                            \
   lt_log_print(torrent::LOG_SESSION_EVENTS, "session-events: " log_fmt, __VA_ARGS__);
@@ -18,7 +21,8 @@ namespace session {
 // TODO: Add session save scheduler that runs in main thread and passes download one-by-one to session manager.
 
 SessionManager::SessionManager(torrent::utils::Thread* thread)
-  : m_thread(thread) {
+  : m_thread(thread),
+    m_lockfile(std::make_unique<utils::Lockfile>()) {
 }
 
 SessionManager::~SessionManager() = default;
@@ -35,16 +39,42 @@ SessionManager::is_empty() {
   return m_save_requests.empty();
 }
 
+void
+SessionManager::set_path(const std::string& path) {
+  assert(torrent::this_thread::thread() == torrent::main_thread::thread());
+
+  if (m_freeze_info)
+    throw torrent::input_error("Session path cannot be changed after startup.");
+
+  m_path = path;
+}
+
+void
+SessionManager::set_use_lock(bool use_lock) {
+  assert(torrent::this_thread::thread() == torrent::main_thread::thread());
+
+  if (m_freeze_info)
+    throw torrent::input_error("Session lock option cannot be changed after startup.");
+
+  m_use_lock = use_lock;
+}
+
 // TODO: Derive path from download info hash.
 // TODO: Generate streams here, not in download store.
 void
 SessionManager::save_download(core::Download* download, std::string path, stream_ptr torrent_stream, stream_ptr rtorrent_stream, stream_ptr libtorrent_stream) {
-  assert(m_thread != torrent::this_thread::thread());
+  assert(torrent::this_thread::thread() == torrent::main_thread::thread());
+
+  if (m_path.empty())
+    return;
 
   {
     std::lock_guard<std::mutex> guard(m_mutex);
 
     LT_LOG("requesting save : download:%p path:%s", download, path.c_str());
+
+    if (!m_active)
+      throw torrent::internal_error("SessionManager::save_download() called while not active.");
 
     // TODO: Remove is already queued entries.
 
@@ -65,9 +95,15 @@ SessionManager::save_download(core::Download* download, std::string path, stream
 
 void
 SessionManager::cancel_download(core::Download* download) {
-  assert(m_thread != torrent::this_thread::thread());
+  assert(torrent::this_thread::thread() == torrent::main_thread::thread());
+
+  if (m_path.empty())
+    return;
 
   std::lock_guard<std::mutex> guard(m_mutex);
+
+  if (!m_active)
+    throw torrent::internal_error("SessionManager::cancel_download() called while not active.");
 
   // TODO: Add these to a temp structure, and remove from to-be-added temp struct.
 
@@ -89,10 +125,78 @@ SessionManager::cancel_download(core::Download* download) {
 }
 
 void
-SessionManager::process_save_request() {
+SessionManager::start() {
+  assert(torrent::this_thread::thread() == torrent::main_thread::thread());
+
+  std::lock_guard<std::mutex> guard(m_mutex);
+
+  if (m_active || m_freeze_info)
+    throw torrent::internal_error("SessionManager::start() called while already started.");
+
+  m_active      = true;
+  m_freeze_info = true;
+
+  if (m_path.empty()) {
+    LT_LOG("session manager started with empty path, disabling session management", 0);
+    return;
+  }
+
+  LT_LOG("starting session manager with path: %s", m_path.c_str());
+
+  if (m_use_lock) {
+    m_lockfile->set_path(m_path + "rtorrent.lock");
+
+    if (!m_lockfile->try_lock()) {
+      if (errno == ENOENT || errno == ENOTDIR || errno == EACCES)
+        throw torrent::input_error("Could not lock session directory: " + std::string(std::strerror(errno)) + " : " + m_path);
+      else
+        throw torrent::input_error("Could not lock session directory, held by: " + m_lockfile->locked_by_as_string() + " : " + m_path);
+    }
+
+    LT_LOG("locked session directory: %s", m_path.c_str());
+  }
+}
+
+void
+SessionManager::cleanup() {
   assert(m_thread == torrent::this_thread::thread());
 
   std::lock_guard<std::mutex> guard(m_mutex);
+
+  if (!m_active)
+    throw torrent::internal_error("SessionManager::cleanup() called while not active.");
+
+  m_active = false;
+
+  if (m_path.empty()) {
+    LT_LOG("session manager cleanup called with empty path, skipping", 0);
+    return;
+  }
+
+  LT_LOG("cleaning up session manager with path: %s", m_path.c_str());
+
+  if (m_use_lock) {
+    if (!m_lockfile->unlock())
+      LT_LOG("could not unlock session directory: %s", m_path.c_str());
+
+    LT_LOG("unlocked session directory: %s", m_path.c_str());
+  }
+}
+
+void
+SessionManager::process_save_request() {
+  assert(m_thread == torrent::this_thread::thread());
+
+  if (m_path.empty())
+    return;
+
+  std::lock_guard<std::mutex> guard(m_mutex);
+
+  if (!m_active)
+    throw torrent::internal_error("SessionManager::process_save_request() called while not active.");
+
+  if (m_save_requests.empty())
+    return;
 
   // pick first request
   // process it
@@ -116,6 +220,9 @@ SessionManager::process_save_request() {
 void
 SessionManager::save_download_unsafe(const SaveRequest& request) {
   LT_LOG("saving download : download:%p path:%s", request.download, request.path.c_str());
+
+  if (m_path.empty())
+    throw torrent::internal_error("SessionManager::save_download_unsafe() called with empty session path.");
 
   auto torrent_path    = request.path;
   auto libtorrent_path = request.path + ".libtorrent_resume";

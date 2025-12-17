@@ -8,12 +8,16 @@
 #include <torrent/common.h>
 
 namespace core {
-
 class Download;
-
 } // namespace core
 
+namespace utils {
+class Lockfile;
+} // namespace utils
+
 namespace session {
+
+class ThreadSession;
 
 struct SaveRequest {
   core::Download*                    download;
@@ -30,10 +34,28 @@ public:
   SessionManager(torrent::utils::Thread* thread);
   ~SessionManager();
 
+  // TODO: Replace with protected `bool shutdown_if_done()`.
   bool                is_empty();
+  // bool                is_empty_and_done();
+
+  void                start();
+
+  std::string         path() const;
+  void                set_path(const std::string& path);
+
+  bool                use_lock() const;
+  void                set_use_lock(bool use_lock);
+
+  void                freeze_info();
 
   void                save_download(core::Download* download, std::string path, stream_ptr torrent_stream, stream_ptr rtorrent_stream, stream_ptr libtorrent_stream);
   void                cancel_download(core::Download* download);
+
+protected:
+  friend class Control;
+  friend class ThreadSession;
+
+  void                cleanup();
 
 private:
   void                process_save_request();
@@ -43,9 +65,19 @@ private:
 
   torrent::utils::Thread* m_thread;
 
-  std::mutex              m_mutex;
-  std::deque<SaveRequest> m_save_requests;
+  bool                m_freeze_info{};
+  std::string         m_path;
+  bool                m_use_lock{true};
+
+  std::mutex          m_mutex;
+  bool                m_active{};
+
+  std::deque<SaveRequest>          m_save_requests;
+  std::unique_ptr<utils::Lockfile> m_lockfile;
 };
+
+inline std::string SessionManager::path() const     { return m_path; }
+inline bool        SessionManager::use_lock() const { return m_use_lock; }
 
 } // namespace session
 
