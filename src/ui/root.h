@@ -98,7 +98,8 @@ public:
 
   const std::string&  keymap_style()                          { return m_keymap_style; }
   void                set_keymap_style(const std::string& style);
-  const int           navigation_key(NavigationKeymap key);
+
+  int                 navigation_key(NavigationKeymap key);
 
 private:
   void                setup_keys();

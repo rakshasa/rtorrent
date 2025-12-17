@@ -8,6 +8,7 @@
 #include <torrent/net/network_manager.h>
 #include <torrent/utils/directory_events.h>
 
+#include "thread_worker.h"
 #include "core/dht_manager.h"
 #include "core/download_store.h"
 #include "core/http_queue.h"
@@ -26,6 +27,7 @@
 #include "rpc/lua.h"
 #include "rpc/parse_commands.h"
 #include "rpc/object_storage.h"
+#include "session/session_manager.h"
 #include "ui/root.h"
 
 Control::Control()
@@ -58,6 +60,9 @@ Control::~Control() {
 
 void
 Control::initialize() {
+  session_thread::manager()->start();
+  session_thread::thread()->start_thread();
+
   worker_thread->start_thread();
 
   display::Canvas::initialize();
@@ -68,7 +73,6 @@ Control::initialize() {
   torrent::net_thread::http_stack()->set_user_agent(USER_AGENT);
 
   m_core->listen_open();
-  m_core->download_store()->enable(rpc::call_command_value("session.use_lock"));
   m_core->set_hashing_view(*m_view_manager->find_throw("hashing"));
 
   m_ui->init(this);
@@ -86,7 +90,8 @@ Control::cleanup() {
   if(!display::Canvas::daemon())
     m_inputStdin->remove(torrent::this_thread::poll());
 
-  m_core->download_store()->disable();
+  // Wait for all session files to be written.
+  session_thread::thread()->stop_thread_wait();
 
   m_ui->cleanup();
   m_core->cleanup();

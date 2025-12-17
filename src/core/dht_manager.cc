@@ -17,6 +17,7 @@
 #include "globals.h"
 #include "manager.h"
 #include "rpc/parse_commands.h"
+#include "session/session_manager.h"
 
 #define LT_LOG(log_fmt, ...)                                            \
   lt_log_print_subsystem(torrent::LOG_DHT_CONTROLLER, "dht_manager", log_fmt, __VA_ARGS__);
@@ -35,13 +36,13 @@ DhtManager::~DhtManager() {
 
 void
 DhtManager::load_dht_cache() {
-  if (m_start == dht_disable || !control->core()->download_store()->is_enabled()) {
+  if (m_start == dht_disable || !session_thread::manager()->is_used()) {
     LT_LOG("ignoring cache file", 0);
     return;
   }
 
-  std::string cache_filename = control->core()->download_store()->path() + "rtorrent.dht_cache";
-  std::fstream cache_stream(cache_filename.c_str(), std::ios::in | std::ios::binary);
+  auto cache_filename = session_thread::manager()->path() + "rtorrent.dht_cache";
+  auto cache_stream   = std::fstream(cache_filename.c_str(), std::ios::in | std::ios::binary);
 
   torrent::Object cache = torrent::Object::create_map();
 
@@ -115,14 +116,15 @@ DhtManager::stop_dht() {
 
 void
 DhtManager::save_dht_cache() {
-  if (!control->core()->download_store()->is_enabled())
+  if (!session_thread::manager()->is_used())
     return;
+
   if (!torrent::runtime::network_manager()->is_dht_valid())
     return;
 
-  std::string filename = control->core()->download_store()->path() + "rtorrent.dht_cache";
-  std::string filename_tmp = filename + ".new";
-  std::fstream cache_file(filename_tmp.c_str(), std::ios::out | std::ios::trunc);
+  auto filename     = session_thread::manager()->path() + "rtorrent.dht_cache";
+  auto filename_tmp = filename + ".new";
+  auto cache_file   = std::fstream(filename_tmp.c_str(), std::ios::out | std::ios::trunc);
 
   if (!cache_file.is_open())
     return;

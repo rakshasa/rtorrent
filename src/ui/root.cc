@@ -1,5 +1,7 @@
 #include "config.h"
 
+#include "ui/root.h"
+
 #include <fstream>
 #include <stdexcept>
 #include <string.h>
@@ -9,6 +11,9 @@
 #include <torrent/download/resource_manager.h>
 #include <torrent/utils/log.h>
 
+#include "control.h"
+#include "core/download_list.h"
+#include "core/download_store.h"
 #include "core/manager.h"
 #include "display/frame.h"
 #include "display/window_http_queue.h"
@@ -18,12 +23,7 @@
 #include "input/manager.h"
 #include "input/text_input.h"
 #include "rpc/parse_commands.h"
-
-#include "control.h"
-#include "download_list.h"
-#include "core/download_store.h"
-
-#include "root.h"
+#include "session/session_manager.h"
 
 namespace ui {
 
@@ -378,13 +378,13 @@ Root::set_input_history_size(int size) {
 
 void
 Root::load_input_history() {
-  if (m_control == nullptr || !m_control->core()->download_store()->is_enabled()) {
+  if (m_control == nullptr || !session_thread::manager()->is_used()) {
     lt_log_print(torrent::LOG_DEBUG, "ignoring input history file");
     return;
   }
 
-  std::string history_filename = m_control->core()->download_store()->path() + "rtorrent.input_history";
-  std::fstream history_file(history_filename.c_str(), std::ios::in);
+  auto history_filename = session_thread::manager()->path() + "rtorrent.input_history";
+  auto history_file     = std::fstream(history_filename.c_str(), std::ios::in);
 
   if (history_file.is_open()) {
     // Create a temp object of the content since size of history categories can be smaller than this.
@@ -446,12 +446,12 @@ Root::load_input_history() {
 
 void
 Root::save_input_history() {
-  if (m_control == nullptr || !m_control->core()->download_store()->is_enabled())
+  if (m_control == nullptr || !session_thread::manager()->is_used())
     return;
 
-  std::string history_filename = m_control->core()->download_store()->path() + "rtorrent.input_history";
-  std::string history_filename_tmp = history_filename + ".new";
-  std::fstream history_file(history_filename_tmp.c_str(), std::ios::out | std::ios::trunc);
+  auto history_filename     = session_thread::manager()->path() + "rtorrent.input_history";
+  auto history_filename_tmp = history_filename + ".new";
+  auto history_file         = std::fstream(history_filename_tmp.c_str(), std::ios::out | std::ios::trunc);
 
   if (!history_file.is_open()) {
     lt_log_print(torrent::LOG_DEBUG, "could not open input history file for writing (path:%s)", history_filename.c_str());
@@ -503,7 +503,7 @@ Root::set_keymap_style(const std::string& style) {
   m_keymap_style = style;
 }
 
-const int
+int
 Root::navigation_key(NavigationKeymap key) {
   return m_keymap[key];
 }

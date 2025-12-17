@@ -35,4 +35,4 @@ private:
   std::string               m_rpc_log_filename;
 };
 
-#endif
+#endif // RTORRENT_THREAD_WORKER_H

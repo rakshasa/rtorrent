@@ -11,6 +11,7 @@
 
 #include "control.h"
 #include "globals.h"
+#include "thread_worker.h"
 #include "rpc/scgi_task.h"
 #include "utils/socket_fd.h"
 

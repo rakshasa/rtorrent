@@ -28,11 +28,11 @@
 #include "display/window.h"
 #include "display/manager.h"
 #include "input/bindings.h"
-#include "ui/root.h"
-
 #include "rpc/command_scheduler.h"
 #include "rpc/command_scheduler_item.h"
 #include "rpc/parse_commands.h"
+#include "session/thread_session.h"
+#include "ui/root.h"
 #include "utils/directory.h"
 
 #include "control.h"
@@ -214,6 +214,8 @@ main(int argc, char** argv) {
 
     torrent::initialize();
     torrent::set_main_thread_slots(std::bind(&client_perform));
+
+    session::ThreadSession::create_thread();
 
     // TODO: Move to controller.
     worker_thread = new ThreadWorker();
@@ -530,13 +532,15 @@ main(int argc, char** argv) {
     return -1;
   }
 
-  torrent::log_cleanup();
-
   delete control;
   control = nullptr;
 
+  session::ThreadSession::destroy_thread();
+
   delete worker_thread;
   worker_thread = nullptr;
+
+  torrent::log_cleanup();
 
   return 0;
 }

@@ -8,15 +8,15 @@
 #include <torrent/utils/log.h>
 #include <torrent/utils/option_strings.h>
 
+#include "globals.h"
+#include "control.h"
+#include "command_helpers.h"
+#include "thread_worker.h"
 #include "core/download.h"
 #include "core/download_list.h"
 #include "core/manager.h"
 #include "rak/path.h"
 #include "rpc/parse_commands.h"
-
-#include "globals.h"
-#include "control.h"
-#include "command_helpers.h"
 
 static const int log_flag_use_gz = 0x1;
 static const int log_flag_append_pid = 0x2;
@@ -62,7 +62,7 @@ torrent::Object
 apply_log_add_output(const torrent::Object::list_type& args) {
   if (args.size() != 2)
     throw torrent::input_error("Invalid number of arguments.");
-  
+
   log_add_group_output_str(args.front().as_string().c_str(),
                            args.back().as_string().c_str());
 
