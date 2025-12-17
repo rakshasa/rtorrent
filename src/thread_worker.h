@@ -1,6 +1,8 @@
 #ifndef RTORRENT_THREAD_WORKER_H
 #define RTORRENT_THREAD_WORKER_H
 
+#include <atomic>
+#include <string>
 #include <torrent/utils/thread.h>
 
 namespace rpc {
