@@ -37,7 +37,8 @@ public:
   typedef std::unique_ptr<std::stringstream> stream_ptr;
 
   // TODO: This should depend on max open sockets.
-  constexpr static int max_concurrent_saves = 10;
+  // constexpr static int max_concurrent_saves = 10;
+  constexpr static int max_concurrent_saves = 50;
 
   SessionManager(torrent::utils::Thread* thread);
   ~SessionManager();
