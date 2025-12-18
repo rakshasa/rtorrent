@@ -52,18 +52,9 @@ void
 ThreadSession::call_events() {
   // lt_log_print_locked(torrent::LOG_THREAD_NOTICE, "Got thread_disk tick.");
 
-  // TODO: Wait with shutdown until all session data is saved.
-
   process_callbacks();
 
   if ((m_flags & flag_do_shutdown)) {
-    if (!m_manager->is_empty()) {
-      // TODO: Figure out a better way to wait for session save to complete.
-      // TODO: Sanity check to avoid getting stuck not shutting down.
-      // TODO: Should we depend on next_timeout() instead of callbacks?
-      return;
-    }
-
     if ((m_flags & flag_did_shutdown))
       throw torrent::internal_error("Already trigged shutdown.");
 

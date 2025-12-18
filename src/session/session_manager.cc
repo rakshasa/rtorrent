@@ -27,18 +27,6 @@ SessionManager::SessionManager(torrent::utils::Thread* thread)
 
 SessionManager::~SessionManager() = default;
 
-// TODO:
-//  * Lock session directory.
-//  * On shutdown, wait for all saves to finish.
-//    * Add is_empty_and_done() that also include async fdisksync tasks.
-//  * Then unlock session directory.
-
-bool
-SessionManager::is_empty() {
-  std::lock_guard<std::mutex> guard(m_mutex);
-  return m_save_requests.empty();
-}
-
 void
 SessionManager::set_path(const std::string& path) {
   assert(torrent::this_thread::thread() == torrent::main_thread::thread());
@@ -50,6 +38,16 @@ SessionManager::set_path(const std::string& path) {
     m_path = path;
   else
     m_path = path + '/';
+}
+
+void
+SessionManager::set_use_fsyncdisk(bool use_fsyncdisk) {
+  assert(torrent::this_thread::thread() == torrent::main_thread::thread());
+
+  if (m_freeze_info)
+    throw torrent::input_error("Session fsyncdisk option cannot be changed after startup.");
+
+  m_use_fsyncdisk = use_fsyncdisk;
 }
 
 void
@@ -79,7 +77,8 @@ SessionManager::save_download(core::Download* download, std::string path, stream
     if (!m_active)
       throw torrent::internal_error("SessionManager::save_download() called while not active.");
 
-    // TODO: Remove is already queued entries.
+    if (remove_save_request_unsafe(download))
+      LT_LOG("replacing pending save request : download:%p", download);
 
     // TODO: Add these to a temp structure
     // TODO: When a download already exists, replace it.
@@ -110,14 +109,8 @@ SessionManager::remove_download(core::Download* download, std::string base_path)
 
   // TODO: Add these to a temp structure, and remove from to-be-added temp struct.
 
-  auto itr = std::remove_if(m_save_requests.begin(), m_save_requests.end(), [download](auto& req) {
-      return req.download == download;
-    });
-
-  if (itr != m_save_requests.end()) {
-    LT_LOG("canceling save request : download:%p", download);
-    m_save_requests.erase(itr, m_save_requests.end());
-  }
+  if (remove_save_request_unsafe(download))
+    LT_LOG("canceled pending save request : download:%p", download);
 
   // TODO: Use atomic download ptr to check if we're currently processing this download
   // TODO: If so, use a lock to wait for save to finish before returning
@@ -180,6 +173,17 @@ SessionManager::cleanup() {
     return;
   }
 
+  LT_LOG("flushing pending saves before cleanup", 0);
+
+  while (!m_save_requests.empty()) {
+    auto request = std::move(m_save_requests.front());
+    m_save_requests.pop_front();
+
+    save_download_unsafe(request);
+  }
+
+  // TODO: Wait for async fdisksync tasks to finish.
+
   LT_LOG("cleaning up session manager with path: %s", m_path.c_str());
 
   if (m_use_lock) {
@@ -205,10 +209,6 @@ SessionManager::process_save_request() {
   if (m_save_requests.empty())
     return;
 
-  // pick first request
-  // process it
-  // add us back to callbacks? we need to disable shutdown while processing all saves... do we do it at thread cleanup?
-
   auto request = std::move(m_save_requests.front());
   m_save_requests.pop_front();
 
@@ -220,10 +220,25 @@ SessionManager::process_save_request() {
     session_thread::callback(nullptr, [this]() { process_save_request(); });
 }
 
+bool
+SessionManager::remove_save_request_unsafe(core::Download* download) {
+  assert(m_thread == torrent::this_thread::thread());
+
+  auto itr = std::remove_if(m_save_requests.begin(), m_save_requests.end(), [download](auto& req) {
+      return req.download == download;
+    });
+
+  if (itr == m_save_requests.end())
+    return false;
+
+  m_save_requests.erase(itr, m_save_requests.end());
+  return true;
+}
+
 // TODO: Add threads/tasklets that calls fdisksync on shutdown.
 // TODO: Parallelize saves.
-
 // TODO: Properly handle errors.
+
 void
 SessionManager::save_download_unsafe(const SaveRequest& request) {
   LT_LOG("saving download : download:%p path:%s", request.download, request.path.c_str());
@@ -299,8 +314,7 @@ SessionManager::save_download_stream_unsafe(const std::string& path, const std::
   // TODO: Use an atomic counter / conditional variable to keep track of async operations count, and
   // wait for finished operations on shutdown.
 
-  // if (rpc::call_command_value("system.files.session.fdatasync")) {
-  if (true) {
+  if (m_use_fsyncdisk) {
 #ifdef __APPLE__
     ::fsync(fd);
 #else
