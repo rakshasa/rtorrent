@@ -1,11 +1,15 @@
 #ifndef RTORRENT_SESSION_SESSION_MANAGER_H
 #define RTORRENT_SESSION_SESSION_MANAGER_H
 
+#include <condition_variable>
 #include <deque>
+#include <future>
+#include <list>
 #include <memory>
 #include <mutex>
 #include <sstream>
 #include <string>
+#include <vector>
 #include <torrent/common.h>
 
 namespace core {
@@ -31,6 +35,9 @@ struct SaveRequest {
 class SessionManager {
 public:
   typedef std::unique_ptr<std::stringstream> stream_ptr;
+
+  // TODO: This should depend on max open sockets.
+  constexpr static int max_concurrent_saves = 10;
 
   SessionManager(torrent::utils::Thread* thread);
   ~SessionManager();
@@ -58,7 +65,13 @@ protected:
 
 private:
   void                process_save_request();
-  bool                remove_save_request_unsafe(core::Download* download);
+  void                process_next_save_request_unsafe();
+  void                process_finished_saves();
+
+  void                wait_for_one_save_unsafe(std::unique_lock<std::mutex>& lock);
+  void                flush_all_and_wait_unsafe(std::unique_lock<std::mutex>& lock);
+
+  bool                remove_save_request_unsafe(core::Download* download, std::unique_lock<std::mutex>& lock);
 
   void                save_download_unsafe(const SaveRequest& request);
   bool                save_download_stream_unsafe(const std::string& path, const std::unique_ptr<std::stringstream>& stream);
@@ -73,7 +86,13 @@ private:
   std::mutex          m_mutex;
   bool                m_active{};
 
-  std::deque<SaveRequest>          m_save_requests;
+  typedef std::pair<std::future<void>, SaveRequest> ProcessingSave;
+
+  std::deque<SaveRequest>   m_save_requests;
+  std::list<ProcessingSave> m_processing_saves;
+  std::condition_variable   m_finished_condition;
+  std::vector<SaveRequest>  m_finished_saves;
+
   std::unique_ptr<utils::Lockfile> m_lockfile;
 };
 

@@ -38,11 +38,6 @@ ThreadScgi::thread_scgi() {
   return m_thread_scgi;
 }
 
-// TODO: Remove '= 0'.
-void
-ThreadScgi::init_thread() {
-}
-
 void
 ThreadScgi::cleanup_thread() {
   if (m_scgi != nullptr)

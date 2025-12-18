@@ -36,9 +36,9 @@ ThreadSession::thread_session() {
   return m_thread_session;
 }
 
-// TODO: Remove '= 0'.
 void
-ThreadSession::init_thread() {
+ThreadSession::init_thread_pre_start() {
+  m_manager->start();
 }
 
 // TODO: Make sure we trigger session save before main thread exits, that it adds all required

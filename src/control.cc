@@ -59,9 +59,7 @@ Control::~Control() {
 
 void
 Control::initialize() {
-  session_thread::manager()->start();
   session_thread::thread()->start_thread();
-
   scgi_thread::thread()->start_thread();
 
   display::Canvas::initialize();
