@@ -61,7 +61,7 @@ SessionManager::set_use_lock(bool use_lock) {
 }
 
 // TODO: Derive path from download info hash.
-// TODO: Generate streams here, not in download store.
+// TODO: Generate streams here, not in download store?
 void
 SessionManager::save_download(core::Download* download, std::string path, stream_ptr torrent_stream, stream_ptr rtorrent_stream, stream_ptr libtorrent_stream) {
   assert(torrent::this_thread::thread() == torrent::main_thread::thread());
