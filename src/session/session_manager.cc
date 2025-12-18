@@ -176,9 +176,9 @@ SessionManager::cleanup() {
     LT_LOG("unlocked session directory: %s", m_path.c_str());
   }
 
-  session_thread::cancel_callback_and_wait(this);
-
   LT_LOG("session manager cleaned up", 0);
+
+  session_thread::cancel_callback(this);
 }
 
 void
