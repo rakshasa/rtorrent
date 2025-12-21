@@ -79,9 +79,6 @@ private:
 
   bool                remove_save_request_unsafe(core::Download* download, std::unique_lock<std::mutex>& lock);
 
-  void                save_download_unsafe(const SaveRequest& request);
-  bool                save_download_stream_unsafe(const std::string& path, const std::unique_ptr<std::stringstream>& stream);
-
   torrent::utils::Thread* m_thread;
 
   bool                m_freeze_info{};

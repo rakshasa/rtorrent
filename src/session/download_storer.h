@@ -25,9 +25,16 @@ public:
   void                build_streams(bool skip_static);
   std::string         build_path(const std::string& session_path);
 
+  void                unlink_files(const std::string& session_path);
+
   auto                torrent_stream()    { return std::move(m_torrent_stream); }
   auto                rtorrent_stream()   { return std::move(m_rtorrent_stream); }
   auto                libtorrent_stream() { return std::move(m_libtorrent_stream); }
+
+  static void         save_and_move_streams(const std::string& path, bool use_fsyncdisk,
+                                            const std::stringstream& torrent_stream,
+                                            const std::stringstream& rtorrent_stream,
+                                            const std::stringstream& libtorrent_stream);
 
   static utils::Directory get_formated_entries(const std::string& session_path);
 

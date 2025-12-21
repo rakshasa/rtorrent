@@ -3,10 +3,6 @@
 #include "session/session_manager.h"
 
 #include <cassert>
-#include <cerrno>
-#include <fstream>
-#include <fcntl.h>
-#include <unistd.h>
 #include <torrent/exceptions.h>
 #include <torrent/utils/log.h>
 
@@ -18,8 +14,6 @@
   lt_log_print(torrent::LOG_SESSION_EVENTS, "session-events: " log_fmt, __VA_ARGS__);
 
 namespace session {
-
-// TODO: Add session save scheduler that runs in main thread and passes download one-by-one to session manager.
 
 SessionManager::SessionManager(torrent::utils::Thread* thread)
   : m_thread(thread),
@@ -108,8 +102,6 @@ SessionManager::remove_download(core::Download* download) {
   if (m_path.empty())
     return;
 
-  auto base_path = DownloadStorer(download).build_path(m_path);
-
   std::unique_lock<std::mutex> lock(m_mutex);
 
   if (!m_active)
@@ -118,13 +110,7 @@ SessionManager::remove_download(core::Download* download) {
   if (remove_save_request_unsafe(download, lock))
     LT_LOG("canceled pending save request : download:%p", download);
 
-  auto torrent_path    = base_path;
-  auto libtorrent_path = base_path + ".libtorrent_resume";
-  auto rtorrent_path   = base_path + ".rtorrent";
-
-  ::unlink(libtorrent_path.c_str());
-  ::unlink(rtorrent_path.c_str());
-  ::unlink(torrent_path.c_str());
+  DownloadStorer(download).unlink_files(m_path);
 }
 
 void
@@ -225,7 +211,10 @@ SessionManager::process_next_save_request_unsafe() {
       // TODO: Properly handle errors here, and report back to session thread.
       // TODO: Consider adding a failed_saves with error info.
 
-      save_download_unsafe(itr->second);
+      DownloadStorer::save_and_move_streams(itr->second.path, m_use_fsyncdisk,
+                                            *itr->second.torrent_stream,
+                                            *itr->second.rtorrent_stream,
+                                            *itr->second.libtorrent_stream);
 
       {
         std::unique_lock<std::mutex> lock(m_mutex);
@@ -327,88 +316,6 @@ SessionManager::remove_save_request_unsafe(core::Download* download, std::unique
 // TODO: Properly handle errors.
 // TODO: If no more sockets can be opened, wait for a job to finish. if all is finished, use a
 // timeout nad try again.
-
-void
-SessionManager::save_download_unsafe(const SaveRequest& request) {
-  // LT_LOG("saving download : download:%p path:%s", request.download, request.path.c_str());
-
-  if (m_path.empty())
-    throw torrent::internal_error("SessionManager::save_download_unsafe() called with empty session path.");
-
-  auto torrent_path    = request.path;
-  auto libtorrent_path = request.path + ".libtorrent_resume";
-  auto rtorrent_path   = request.path + ".rtorrent";
-
-  if (request.torrent_stream) {
-    if (!save_download_stream_unsafe(torrent_path + ".new", request.torrent_stream))
-      return;
-  }
-
-  if (!save_download_stream_unsafe(libtorrent_path + ".new", request.libtorrent_stream))
-    return;
-
-  if (!save_download_stream_unsafe(rtorrent_path + ".new", request.rtorrent_stream))
-    return;
-
-  if (request.torrent_stream) {
-    if (::rename((torrent_path + ".new").c_str(), torrent_path.c_str()) == -1) {
-      // LT_LOG("failed to rename torrent file : %s", torrent_path.c_str());
-      return;
-    }
-  }
-
-  if (::rename((libtorrent_path + ".new").c_str(), libtorrent_path.c_str()) == -1) {
-    // LT_LOG("failed to rename libtorrent resume file : %s", libtorrent_path.c_str());
-    return;
-  }
-
-  if (::rename((rtorrent_path + ".new").c_str(), rtorrent_path.c_str()) == -1) {
-    // LT_LOG("failed to rename rtorrent resume file : %s", rtorrent_path.c_str());
-    return;
-  }
-}
-
-// TODO: Rewrite to be all done in std::async, and from rdbuf directly to fd to avoid re-opening.
-
-bool
-SessionManager::save_download_stream_unsafe(const std::string& path, const std::unique_ptr<std::stringstream>& stream) {
-  std::fstream output(path.c_str(), std::ios::out | std::ios::trunc);
-
-  // TODO: If we cannot open more files, wait for some to finish and try again.
-
-  if (!output.is_open()) {
-    // LT_LOG("failed to open file for writing : path:%s", path.c_str());
-    return false;
-  }
-
-  output << stream->rdbuf();
-
-  if (!output.good()) {
-    // LT_LOG("failed to write stream to file : path:%s", path.c_str());
-    return false;
-  }
-
-  output.close();
-
-  // Ensure that the new file is actually written to the disk
-  int fd = ::open(path.c_str(), O_WRONLY);
-
-  if (fd < 0) {
-    // LT_LOG("failed to open file descriptor for fdatasync : path:%s", path.c_str());
-    return false;
-  }
-
-  if (m_use_fsyncdisk) {
-#ifdef __APPLE__
-    ::fsync(fd);
-#else
-    ::fdatasync(fd);
-#endif
-  }
-
-  ::close(fd);
-  return true;
-}
 
 }  // namespace session
 
