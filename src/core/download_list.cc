@@ -22,10 +22,10 @@
 #include "view.h"
 #include "view_manager.h"
 
-#include "dht_manager.h"
-#include "download.h"
-#include "download_list.h"
-#include "download_store.h"
+#include "core/dht_manager.h"
+#include "core/download.h"
+#include "core/download_list.h"
+#include "session/session_manager.h"
 #include "ui/root.h"
 
 #define DL_TRIGGER_EVENT(download, event_name) \
@@ -68,10 +68,8 @@ DownloadList::clear() {
 
 void
 DownloadList::session_save() {
-  unsigned int c = std::count_if(begin(), end(), [&](Download* d) { return control->core()->download_store()->save_resume(d); });
-
-  if (c != size())
-    lt_log_print(torrent::LOG_ERROR, "Failed to save session torrents.");
+  for (auto& download : *this)
+    session_thread::manager()->save_resume_download(download);
 
   control->dht_manager()->save_dht_cache();
   control->ui()->save_input_history();
@@ -199,10 +197,10 @@ DownloadList::erase(iterator itr) {
   (*itr)->set_hash_failed(true);
 
   close(*itr);
-
-  control->core()->download_store()->remove(*itr);
+  session_thread::manager()->remove_download(*itr);
 
   DL_TRIGGER_EVENT(*itr, "event.download.erased");
+
   for (auto v : *control->view_manager())
     v->erase(*itr);
 
@@ -639,10 +637,8 @@ DownloadList::confirm_finished(Download* download) {
   // the download.
   //
   // Obsolete.
-  if (!download->is_active() && rpc::call_command_value("session.on_completion") != 0) {
-    //    torrent::resume_save_progress(*download->download(), download->download()->bencode()->get_key("libtorrent_resume"));
-    control->core()->download_store()->save_resume(download);
-  }
+  if (!download->is_active() && rpc::call_command_value("session.on_completion") != 0)
+    session_thread::manager()->save_resume_download(download);
 
   // Send the completed request before resuming so we don't reset the
   // up/downloaded baseline.
@@ -655,7 +651,7 @@ DownloadList::confirm_finished(Download* download) {
 
   if (find(infohash) == end())
     return;
-      
+
 //   if (download->resume_flags() != ~uint32_t())
 //     throw torrent::internal_error("DownloadList::confirm_finished(...) download->resume_flags() != ~uint32_t().");
 

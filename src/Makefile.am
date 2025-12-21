@@ -13,8 +13,6 @@ libsub_root_a_SOURCES = \
 	core/download_factory.h \
 	core/download_list.cc \
 	core/download_list.h \
-	core/download_store.cc \
-	core/download_store.h \
 	core/http_queue.cc \
 	core/http_queue.h \
 	core/manager.cc \
@@ -128,6 +126,8 @@ libsub_root_a_SOURCES = \
 	scgi/thread_scgi.cc \
 	scgi/thread_scgi.h \
 	\
+	session/download_storer.cc \
+	session/download_storer.h \
 	session/session_manager.cc \
 	session/session_manager.h \
 	session/thread_session.cc \

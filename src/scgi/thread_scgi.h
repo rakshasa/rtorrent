@@ -20,10 +20,7 @@ public:
   static void         destroy_thread();
   static ThreadScgi*  thread_scgi();
 
-  const char*         name() const override      { return "rtorrent-scgi"; }
-
-  void                init_thread() override;
-  void                cleanup_thread() override;
+  const char*         name() const override  { return "rtorrent-scgi"; }
 
   rpc::SCgi*          scgi();
   bool                set_scgi(rpc::SCgi* scgi);
@@ -37,6 +34,8 @@ protected:
 
   static auto         internal_thread_scgi() { return m_thread_scgi; }
 
+  void                cleanup_thread() override;
+
   void                      call_events() override;
   std::chrono::microseconds next_timeout() override;
 
@@ -46,10 +45,8 @@ private:
 
   static ThreadScgi*  m_thread_scgi;
 
-  std::atomic<rpc::SCgi*>   m_scgi{nullptr};
-  std::string               m_rpc_log_filename;
-
-  // std::unique_ptr<ScgiManager> m_manager;
+  std::atomic<rpc::SCgi*> m_scgi{nullptr};
+  std::string             m_rpc_log_filename;
 };
 
 } // namespace scgi

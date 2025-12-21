@@ -20,7 +20,6 @@
 #include "control.h"
 #include "globals.h"
 #include "core/download.h"
-#include "core/download_store.h"
 #include "core/http_queue.h"
 #include "core/manager.h"
 #include "rpc/parse_commands.h"

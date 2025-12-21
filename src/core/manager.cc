@@ -32,7 +32,6 @@
 #include "control.h"
 #include "core/download.h"
 #include "core/download_factory.h"
-#include "core/download_store.h"
 #include "core/http_queue.h"
 #include "core/manager.h"
 #include "core/view.h"
@@ -50,11 +49,10 @@ Manager::push_log(const char* msg) {
   m_log_complete->lock_and_push_log(msg, strlen(msg), 0);
 }
 
-Manager::Manager() :
-    m_log_important(torrent::log_open_log_buffer("important")),
+Manager::Manager()
+  : m_log_important(torrent::log_open_log_buffer("important")),
     m_log_complete(torrent::log_open_log_buffer("complete")) {
 
-  m_download_store    = std::make_unique<DownloadStore>();
   m_download_list     = std::make_unique<DownloadList>();
   m_file_status_cache = std::make_unique<FileStatusCache>();
   m_http_queue        = std::make_unique<HttpQueue>();

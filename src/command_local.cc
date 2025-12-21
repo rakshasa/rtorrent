@@ -17,7 +17,6 @@
 
 #include "core/download.h"
 #include "core/download_list.h"
-#include "core/download_store.h"
 #include "core/manager.h"
 #include "rak/string_manip.h"
 #include "rpc/parse_commands.h"
@@ -212,7 +211,8 @@ initialize_command_local() {
   CMD2_ANY_VALUE_V ("system.files.advise_random.set",         std::bind(&FM_t::set_advise_random, fileManager, std::placeholders::_2));
   CMD2_ANY         ("system.files.advise_random.hashing",     std::bind(&FM_t::advise_random_hashing, fileManager));
   CMD2_ANY_VALUE_V ("system.files.advise_random.hashing.set", std::bind(&FM_t::set_advise_random_hashing, fileManager, std::placeholders::_2));
-  CMD2_VAR_BOOL    ("system.files.session.fdatasync",         true);
+  CMD2_ANY         ("system.files.session.fdatasync",         [](auto, auto)        { return session_thread::manager()->use_fsyncdisk(); });
+  CMD2_ANY_VALUE_V ("system.files.session.fdatasync.set",     [](auto, auto& value) { return session_thread::manager()->set_use_fsyncdisk(value); });
 
   CMD2_ANY         ("system.files.opened_counter",     std::bind(&FM_t::files_opened_counter, fileManager));
   CMD2_ANY         ("system.files.closed_counter",     std::bind(&FM_t::files_closed_counter, fileManager));

@@ -13,7 +13,6 @@
 
 #include "control.h"
 #include "core/download_list.h"
-#include "core/download_store.h"
 #include "core/manager.h"
 #include "display/frame.h"
 #include "display/window_http_queue.h"

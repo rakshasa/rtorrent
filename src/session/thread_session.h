@@ -15,12 +15,9 @@ public:
   static void           destroy_thread();
   static ThreadSession* thread_session();
 
-  const char*         name() const override      { return "rtorrent-session"; }
+  const char*         name() const override     { return "rtorrent-session"; }
 
-  void                init_thread() override;
-  void                cleanup_thread() override;
-
-  SessionManager*     manager() const { return m_manager.get(); }
+  SessionManager*     manager() const           { return m_manager.get(); }
 
 protected:
   friend class ThreadSessionInternal;
@@ -28,6 +25,9 @@ protected:
   ThreadSession() = default;
 
   static auto         internal_thread_session() { return m_thread_session; }
+
+  void                init_thread_pre_start() override;
+  void                cleanup_thread() override;
 
   void                      call_events() override;
   std::chrono::microseconds next_timeout() override;
