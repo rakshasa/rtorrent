@@ -36,9 +36,9 @@ class SessionManager {
 public:
   typedef std::unique_ptr<std::stringstream> stream_ptr;
 
-  // TODO: This should depend on max open sockets.
-  // constexpr static int max_concurrent_saves = 10;
-  constexpr static int max_concurrent_saves = 50;
+  // TODO: This should depend on max open sockets / be configurable.
+  constexpr static int max_concurrent_saves = 16;
+  constexpr static int max_cleanup_saves    = 64;
 
   SessionManager(torrent::utils::Thread* thread);
   ~SessionManager();
@@ -54,12 +54,15 @@ public:
   bool                use_lock() const;
   void                set_use_lock(bool use_lock);
 
-  void                save_download(core::Download* download, std::string path, stream_ptr torrent_stream, stream_ptr rtorrent_stream, stream_ptr libtorrent_stream);
-  void                remove_download(core::Download* download, std::string path);
+  void                save_full_download(core::Download* download)   { save_download(download, false); }
+  void                save_resume_download(core::Download* download) { save_download(download, true);  }
+  void                remove_download(core::Download* download);
 
 protected:
   friend class Control;
   friend class ThreadSession;
+
+  void                save_download(core::Download* download, bool skip_static);
 
   void                start();
   void                cleanup();
@@ -70,6 +73,8 @@ private:
   void                process_finished_saves();
 
   void                wait_for_one_save_unsafe(std::unique_lock<std::mutex>& lock);
+
+  // Requires a higher number of open sockets, and should only be used during shutdown.
   void                flush_all_and_wait_unsafe(std::unique_lock<std::mutex>& lock);
 
   bool                remove_save_request_unsafe(core::Download* download, std::unique_lock<std::mutex>& lock);
@@ -88,6 +93,8 @@ private:
   bool                m_active{};
 
   typedef std::pair<std::future<void>, SaveRequest> ProcessingSave;
+
+  // TODO: Add deque of DownloadStorers requests that have yet to build streams.
 
   std::deque<SaveRequest>   m_save_requests;
   std::list<ProcessingSave> m_processing_saves;

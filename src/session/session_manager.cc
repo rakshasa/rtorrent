@@ -1,6 +1,6 @@
 #include "config.h"
 
-#include "session_manager.h"
+#include "session/session_manager.h"
 
 #include <cassert>
 #include <cerrno>
@@ -11,6 +11,7 @@
 #include <torrent/utils/log.h>
 
 #include "globals.h"
+#include "session/download_storer.h"
 #include "utils/lockfile.h"
 
 #define LT_LOG(log_fmt, ...)                                            \
@@ -60,19 +61,31 @@ SessionManager::set_use_lock(bool use_lock) {
   m_use_lock = use_lock;
 }
 
-// TODO: Derive path from download info hash.
-// TODO: Generate streams here, not in download store?
+// TODO: Add separate mutex for queuing save requests in session save.
+
 void
-SessionManager::save_download(core::Download* download, std::string path, stream_ptr torrent_stream, stream_ptr rtorrent_stream, stream_ptr libtorrent_stream) {
+SessionManager::save_download(core::Download* download, bool skip_static) {
   assert(torrent::this_thread::thread() == torrent::main_thread::thread());
 
   if (m_path.empty())
     return;
 
+  DownloadStorer storer(download);
+
+  storer.build_streams(skip_static);
+
+  auto save_request = SaveRequest{
+    download,
+    storer.build_path(m_path),
+    storer.torrent_stream(),
+    storer.rtorrent_stream(),
+    storer.libtorrent_stream()
+  };
+
   {
     std::unique_lock<std::mutex> lock(m_mutex);
 
-    LT_LOG("requesting save : download:%p path:%s", download, path.c_str());
+    LT_LOG("requesting save : download:%p path:%s", download, save_request.path.c_str());
 
     if (!m_active)
       throw torrent::internal_error("SessionManager::save_download() called while not active.");
@@ -80,24 +93,20 @@ SessionManager::save_download(core::Download* download, std::string path, stream
     if (remove_save_request_unsafe(download, lock))
       LT_LOG("replacing pending save request : download:%p", download);
 
-    m_save_requests.push_back(SaveRequest{
-        download,
-        std::move(path),
-        std::move(torrent_stream),
-        std::move(rtorrent_stream),
-        std::move(libtorrent_stream)
-      });
+    m_save_requests.push_back(std::move(save_request));
   }
 
   session_thread::callback(this, [this]() { process_save_request(); });
 }
 
 void
-SessionManager::remove_download(core::Download* download, std::string base_path) {
+SessionManager::remove_download(core::Download* download) {
   assert(torrent::this_thread::thread() == torrent::main_thread::thread());
 
   if (m_path.empty())
     return;
+
+  auto base_path = DownloadStorer(download).build_path(m_path);
 
   std::unique_lock<std::mutex> lock(m_mutex);
 
@@ -256,7 +265,7 @@ SessionManager::flush_all_and_wait_unsafe(std::unique_lock<std::mutex>& lock) {
   while (!m_save_requests.empty()) {
     process_next_save_request_unsafe();
 
-    if (m_processing_saves.size() >= max_concurrent_saves)
+    if (m_processing_saves.size() >= max_cleanup_saves)
       wait_for_one_save_unsafe(lock);
   }
 
@@ -306,6 +315,8 @@ SessionManager::remove_save_request_unsafe(core::Download* download, std::unique
 }
 
 // TODO: Properly handle errors.
+// TODO: If no more sockets can be opened, wait for a job to finish. if all is finished, use a
+// timeout nad try again.
 
 void
 SessionManager::save_download_unsafe(const SaveRequest& request) {
@@ -352,6 +363,8 @@ SessionManager::save_download_unsafe(const SaveRequest& request) {
 bool
 SessionManager::save_download_stream_unsafe(const std::string& path, const std::unique_ptr<std::stringstream>& stream) {
   std::fstream output(path.c_str(), std::ios::out | std::ios::trunc);
+
+  // TODO: If we cannot open more files, wait for some to finish and try again.
 
   if (!output.is_open()) {
     LT_LOG("failed to open file for writing : path:%s", path.c_str());

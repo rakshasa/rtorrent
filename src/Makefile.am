@@ -128,6 +128,8 @@ libsub_root_a_SOURCES = \
 	scgi/thread_scgi.cc \
 	scgi/thread_scgi.h \
 	\
+	session/download_storer.cc \
+	session/download_storer.h \
 	session/session_manager.cc \
 	session/session_manager.h \
 	session/thread_session.cc \

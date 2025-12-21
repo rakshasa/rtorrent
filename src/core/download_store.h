@@ -14,20 +14,12 @@ class Download;
 
 class DownloadStore {
 public:
-  static const int flag_skip_static = 0x1;
-
-  bool                save(Download* d, int flags);
-  bool                save_full(Download* d)   { return save(d, 0); }
-  bool                save_resume(Download* d) { return save(d, flag_skip_static); }
-  void                remove(Download* d);
+  // TODO: Move to session manager.
 
   // Currently shows all entries in the correct format.
   utils::Directory    get_formated_entries();
 
   static bool         is_correct_format(const std::string& f);
-
-private:
-  std::string         create_filename(Download* d);
 };
 
 }

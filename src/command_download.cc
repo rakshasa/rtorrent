@@ -25,9 +25,9 @@
 #include <torrent/utils/option_strings.h>
 
 #include "core/download.h"
-#include "core/download_store.h"
 #include "core/manager.h"
 #include "rpc/parse.h"
+#include "session/session_manager.h"
 
 #include "globals.h"
 #include "control.h"
@@ -700,8 +700,8 @@ initialize_command_download() {
   CMD2_DL_V       ("d.erase",      std::bind(&core::DownloadList::erase_ptr, control->core()->download_list(), std::placeholders::_1));
   CMD2_DL_V       ("d.check_hash", std::bind(&core::DownloadList::check_hash, control->core()->download_list(), std::placeholders::_1));
 
-  CMD2_DL         ("d.save_resume",       std::bind(&core::DownloadStore::save_resume, control->core()->download_store(), std::placeholders::_1));
-  CMD2_DL         ("d.save_full_session", std::bind(&core::DownloadStore::save_full, control->core()->download_store(), std::placeholders::_1));
+  CMD2_DL_V       ("d.save_resume",       [](core::Download* download, auto) { session_thread::manager()->save_resume_download(download); });
+  CMD2_DL_V       ("d.save_full_session", [](core::Download* download, auto) { session_thread::manager()->save_full_download(download); });
 
   CMD2_DL_V       ("d.update_priorities", CMD2_ON_DL(update_priorities));
 
