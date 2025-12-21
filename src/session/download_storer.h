@@ -10,6 +10,10 @@ namespace core {
 class Download;
 }
 
+namespace utils {
+  class Directory;
+}
+
 namespace session {
 
 class DownloadStorer {
@@ -24,6 +28,8 @@ public:
   auto                torrent_stream()    { return std::move(m_torrent_stream); }
   auto                rtorrent_stream()   { return std::move(m_rtorrent_stream); }
   auto                libtorrent_stream() { return std::move(m_libtorrent_stream); }
+
+  static utils::Directory get_formated_entries(const std::string& session_path);
 
 private:
   core::Download*     m_download;

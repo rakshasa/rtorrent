@@ -21,7 +21,6 @@ class FileStatusCache;
 
 namespace core {
 
-class DownloadStore;
 class HttpQueue;
 
 typedef std::map<std::string, torrent::ThrottlePair> ThrottleMap;
@@ -37,7 +36,6 @@ public:
   ~Manager();
 
   DownloadList*       download_list()                     { return m_download_list.get(); }
-  DownloadStore*      download_store()                    { return m_download_store.get(); }
   FileStatusCache*    file_status_cache()                 { return m_file_status_cache.get(); }
 
   HttpQueue*          http_queue()                        { return m_http_queue.get(); }
@@ -95,7 +93,6 @@ private:
   void                receive_hashing_changed();
 
   std::unique_ptr<DownloadList>    m_download_list;
-  std::unique_ptr<DownloadStore>   m_download_store;
   std::unique_ptr<FileStatusCache> m_file_status_cache;
   std::unique_ptr<HttpQueue>       m_http_queue;
 

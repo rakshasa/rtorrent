@@ -22,7 +22,6 @@
 #include "core/dht_manager.h"
 #include "core/download.h"
 #include "core/download_factory.h"
-#include "core/download_store.h"
 #include "core/manager.h"
 #include "display/canvas.h"
 #include "display/window.h"
@@ -32,7 +31,9 @@
 #include "rpc/command_scheduler_item.h"
 #include "rpc/parse_commands.h"
 #include "scgi/thread_scgi.h"
+#include "session/download_storer.h"
 #include "session/thread_session.h"
+#include "session/session_manager.h"
 #include "ui/root.h"
 #include "utils/directory.h"
 
@@ -112,7 +113,7 @@ initialize_rpc_slots() {
 
 void
 load_session_torrents() {
-  utils::Directory entries = control->core()->download_store()->get_formated_entries();
+  utils::Directory entries = session::DownloadStorer::get_formated_entries(session_thread::manager()->path());
 
   for (const auto& entry : entries) {
     // We don't really support session torrents that are links. These

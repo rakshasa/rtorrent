@@ -96,10 +96,10 @@ private:
 
   // TODO: Add deque of DownloadStorers requests that have yet to build streams.
 
-  std::deque<SaveRequest>   m_save_requests;
-  std::list<ProcessingSave> m_processing_saves;
-  std::condition_variable   m_finished_condition;
-  std::vector<SaveRequest>  m_finished_saves;
+  std::deque<SaveRequest>     m_save_requests;
+  std::list<ProcessingSave>   m_processing_saves;
+  std::condition_variable     m_finished_condition;
+  std::vector<ProcessingSave> m_finished_saves;
 
   std::unique_ptr<utils::Lockfile> m_lockfile;
 };

@@ -99,6 +99,8 @@ SessionManager::save_download(core::Download* download, bool skip_static) {
   session_thread::callback(this, [this]() { process_save_request(); });
 }
 
+// TODO: Move various low-level stuff to DownloadStorer.
+
 void
 SessionManager::remove_download(core::Download* download) {
   assert(torrent::this_thread::thread() == torrent::main_thread::thread());
@@ -220,16 +222,22 @@ SessionManager::process_next_save_request_unsafe() {
 
   itr->second = std::move(request);
   itr->first = std::async(std::launch::async, [this, itr]() {
-      std::unique_lock<std::mutex> lock(m_mutex);
+      // TODO: Properly handle errors here, and report back to session thread.
+      // TODO: Consider adding a failed_saves with error info.
 
-      // TODO: Make sure we check for exceptions on future.
       save_download_unsafe(itr->second);
 
-      if (m_finished_saves.empty())
-        session_thread::callback(this, [this]() { process_finished_saves(); });
+      {
+        std::unique_lock<std::mutex> lock(m_mutex);
 
-      m_finished_saves.push_back(std::move(itr->second));
-      m_processing_saves.erase(itr);
+        if (m_finished_saves.empty())
+          session_thread::callback(this, [this]() { process_finished_saves(); });
+
+        m_finished_saves.push_back(std::move(*itr));
+        m_processing_saves.erase(itr);
+
+        m_finished_condition.notify_all();
+      }
     });
 }
 
@@ -243,7 +251,7 @@ SessionManager::process_finished_saves() {
     throw torrent::internal_error("SessionManager::process_finished_saves() called while not active.");
 
   for (auto& request : m_finished_saves)
-    LT_LOG("finished saving download : download:%p path:%s", request.download, request.path.c_str());
+    LT_LOG("finished saving download : download:%p path:%s", request.second.download, request.second.path.c_str());
 
   m_finished_saves.clear();
 }
@@ -263,17 +271,19 @@ SessionManager::flush_all_and_wait_unsafe(std::unique_lock<std::mutex>& lock) {
   LT_LOG("flushing all pending saves", 0);
 
   while (!m_save_requests.empty()) {
-    process_next_save_request_unsafe();
-
-    if (m_processing_saves.size() >= max_cleanup_saves)
+    if (m_processing_saves.size() >= max_cleanup_saves) {
       wait_for_one_save_unsafe(lock);
+      continue;
+    }
+
+    process_next_save_request_unsafe();
   }
 
   while (!m_processing_saves.empty())
     wait_for_one_save_unsafe(lock);
 
   for (auto& request : m_finished_saves)
-    LT_LOG("finished saving download : download:%p path:%s", request.download, request.path.c_str());
+    LT_LOG("finished saving download : download:%p path:%s", request.second.download, request.second.path.c_str());
 
   m_finished_saves.clear();
 
@@ -320,7 +330,7 @@ SessionManager::remove_save_request_unsafe(core::Download* download, std::unique
 
 void
 SessionManager::save_download_unsafe(const SaveRequest& request) {
-  LT_LOG("saving download : download:%p path:%s", request.download, request.path.c_str());
+  // LT_LOG("saving download : download:%p path:%s", request.download, request.path.c_str());
 
   if (m_path.empty())
     throw torrent::internal_error("SessionManager::save_download_unsafe() called with empty session path.");
@@ -342,18 +352,18 @@ SessionManager::save_download_unsafe(const SaveRequest& request) {
 
   if (request.torrent_stream) {
     if (::rename((torrent_path + ".new").c_str(), torrent_path.c_str()) == -1) {
-      LT_LOG("failed to rename torrent file : %s", torrent_path.c_str());
+      // LT_LOG("failed to rename torrent file : %s", torrent_path.c_str());
       return;
     }
   }
 
   if (::rename((libtorrent_path + ".new").c_str(), libtorrent_path.c_str()) == -1) {
-    LT_LOG("failed to rename libtorrent resume file : %s", libtorrent_path.c_str());
+    // LT_LOG("failed to rename libtorrent resume file : %s", libtorrent_path.c_str());
     return;
   }
 
   if (::rename((rtorrent_path + ".new").c_str(), rtorrent_path.c_str()) == -1) {
-    LT_LOG("failed to rename rtorrent resume file : %s", rtorrent_path.c_str());
+    // LT_LOG("failed to rename rtorrent resume file : %s", rtorrent_path.c_str());
     return;
   }
 }
@@ -367,14 +377,14 @@ SessionManager::save_download_stream_unsafe(const std::string& path, const std::
   // TODO: If we cannot open more files, wait for some to finish and try again.
 
   if (!output.is_open()) {
-    LT_LOG("failed to open file for writing : path:%s", path.c_str());
+    // LT_LOG("failed to open file for writing : path:%s", path.c_str());
     return false;
   }
 
   output << stream->rdbuf();
 
   if (!output.good()) {
-    LT_LOG("failed to write stream to file : path:%s", path.c_str());
+    // LT_LOG("failed to write stream to file : path:%s", path.c_str());
     return false;
   }
 
@@ -384,7 +394,7 @@ SessionManager::save_download_stream_unsafe(const std::string& path, const std::
   int fd = ::open(path.c_str(), O_WRONLY);
 
   if (fd < 0) {
-    LT_LOG("failed to open file descriptor for fdatasync : path:%s", path.c_str());
+    // LT_LOG("failed to open file descriptor for fdatasync : path:%s", path.c_str());
     return false;
   }
 

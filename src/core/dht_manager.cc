@@ -13,7 +13,6 @@
 
 #include "control.h"
 #include "download.h"
-#include "download_store.h"
 #include "globals.h"
 #include "manager.h"
 #include "rpc/parse_commands.h"

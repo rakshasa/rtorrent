@@ -10,6 +10,7 @@
 
 #include "globals.h"
 #include "core/download.h"
+#include "utils/directory.h"
 
 namespace session {
 
@@ -72,9 +73,6 @@ std::string
 DownloadStorer::build_path(const std::string& session_path) {
   auto info_hash = m_download->info()->info_hash();
 
-  if (info_hash.size() < 40)
-    throw torrent::internal_error("DownloadStorer::build_path() invalid info hash size.");
-
   if (session_path.empty())
     throw torrent::internal_error("DownloadStorer::build_path() called with empty session path.");
 
@@ -82,6 +80,33 @@ DownloadStorer::build_path(const std::string& session_path) {
     throw torrent::internal_error("DownloadStorer::build_path() session path missing trailing slash.");
 
   return session_path + torrent::hash_string_to_hex_str(info_hash);
+}
+
+bool
+is_correct_format(const std::string& f) {
+  if (f.size() != 48 || f.substr(40) != ".torrent")
+    return false;
+
+  for (std::string::const_iterator itr = f.begin(); itr != f.end() - 8; ++itr)
+    if (!(*itr >= '0' && *itr <= '9') &&
+        !(*itr >= 'A' && *itr <= 'F'))
+      return false;
+
+  return true;
+}
+
+utils::Directory
+DownloadStorer::get_formated_entries(const std::string& session_path) {
+  if (session_path.empty())
+    return utils::Directory();
+
+  utils::Directory d(session_path);
+
+  if (!d.update(utils::Directory::update_hide_dot))
+    throw torrent::storage_error("session::DownloadStorer::update() could not open session directory: " + session_path);
+
+  d.erase(std::remove_if(d.begin(), d.end(), [](auto& entry) { return !is_correct_format(entry.s_name); }), d.end());
+  return d;
 }
 
 } // namespace session

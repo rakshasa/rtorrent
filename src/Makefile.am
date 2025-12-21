@@ -13,8 +13,6 @@ libsub_root_a_SOURCES = \
 	core/download_factory.h \
 	core/download_list.cc \
 	core/download_list.h \
-	core/download_store.cc \
-	core/download_store.h \
 	core/http_queue.cc \
 	core/http_queue.h \
 	core/manager.cc \
