@@ -77,7 +77,8 @@ private:
   // Requires a higher number of open sockets, and should only be used during shutdown.
   void                flush_all_and_wait_unsafe(std::unique_lock<std::mutex>& lock);
 
-  bool                remove_save_request_unsafe(core::Download* download, std::unique_lock<std::mutex>& lock);
+  bool                remove_or_replace_unsafe(SaveRequest& download);
+  bool                remove_completely_unsafe(core::Download* download, std::unique_lock<std::mutex>& lock);
 
   torrent::utils::Thread* m_thread;
 

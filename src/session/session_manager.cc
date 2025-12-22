@@ -56,6 +56,8 @@ SessionManager::set_use_lock(bool use_lock) {
 }
 
 // TODO: Add separate mutex for queuing save requests in session save.
+// TODO: Only need to save download arg, we always assume resume save is wanted.
+// TODO: Use callback to main thread, generic so remove_download() doesn't get affectred.
 
 void
 SessionManager::save_download(core::Download* download, bool skip_static) {
@@ -84,16 +86,24 @@ SessionManager::save_download(core::Download* download, bool skip_static) {
     if (!m_active)
       throw torrent::internal_error("SessionManager::save_download() called while not active.");
 
-    if (remove_save_request_unsafe(download, lock))
-      LT_LOG("replacing pending save request : download:%p", download);
+    // TODO: Saving requests for full torrent should never be replaced.
+    //
+    // TODO: Handle remove differenty here and with remove_download(), use a bool.
+    //
+    // TODO: When we have the initial partial save queue, do not remove save requests from m_save_requests.
 
-    m_save_requests.push_back(std::move(save_request));
+    // Rather, we should chck torrent_stream, if present we update the other streams. Remember to sanity check the path.
+
+    if (remove_or_replace_unsafe(save_request)) {
+      LT_LOG("updated pending save request : download:%p", download);
+    } else {
+      LT_LOG("queued save request : download:%p", download);
+      m_save_requests.push_back(std::move(save_request));
+    }
   }
 
   session_thread::callback(this, [this]() { process_save_request(); });
 }
-
-// TODO: Move various low-level stuff to DownloadStorer.
 
 void
 SessionManager::remove_download(core::Download* download) {
@@ -107,7 +117,7 @@ SessionManager::remove_download(core::Download* download) {
   if (!m_active)
     throw torrent::internal_error("SessionManager::remove_download() called while not active.");
 
-  if (remove_save_request_unsafe(download, lock))
+  if (remove_completely_unsafe(download, lock))
     LT_LOG("canceled pending save request : download:%p", download);
 
   DownloadStorer(download).unlink_files(m_path);
@@ -280,7 +290,32 @@ SessionManager::flush_all_and_wait_unsafe(std::unique_lock<std::mutex>& lock) {
 }
 
 bool
-SessionManager::remove_save_request_unsafe(core::Download* download, std::unique_lock<std::mutex>& lock) {
+SessionManager::remove_or_replace_unsafe(SaveRequest& save_request) {
+  // Can be run in any thread.
+
+  auto itr = std::remove_if(m_save_requests.begin(), m_save_requests.end(), [download = save_request.download](auto& req) {
+      return req.download == download;
+    });
+
+  if (itr == m_save_requests.end())
+    return false;
+
+  if (itr->path != save_request.path)
+    throw torrent::internal_error("SessionManager::remove_or_replace_unsafe() path mismatch on replace.");
+
+  // If this is a full save, we replace just the resume data.
+  itr->rtorrent_stream   = std::move(save_request.rtorrent_stream);
+  itr->libtorrent_stream = std::move(save_request.libtorrent_stream);
+
+  // Checking active after remove_save_request_unsafe to ensure we're calling this after shutdown.
+  if (!m_active)
+    throw torrent::internal_error("SessionManager::remove_or_replace_unsafe() called while not active.");
+
+  return true;
+}
+
+bool
+SessionManager::remove_completely_unsafe(core::Download* download, std::unique_lock<std::mutex>& lock) {
   // Can be run in any thread.
 
   {
@@ -294,7 +329,6 @@ SessionManager::remove_save_request_unsafe(core::Download* download, std::unique
     m_save_requests.erase(itr, m_save_requests.end());
   }
 
-  // check if in processing saves, then wait for it to finish using wait_for_one_save_unsafe()
   while (true) {
     auto itr = std::find_if(m_processing_saves.begin(), m_processing_saves.end(), [download](auto& req) {
         return req.second.download == download;
@@ -308,7 +342,7 @@ SessionManager::remove_save_request_unsafe(core::Download* download, std::unique
 
   // Checking active after remove_save_request_unsafe to ensure we're calling this after shutdown.
   if (!m_active)
-    throw torrent::internal_error("SessionManager::remove_save_request_unsafe() called while not active");
+    throw torrent::internal_error("SessionManager::remove_completely_unsafe() called while not active.");
 
   return true;
 }
