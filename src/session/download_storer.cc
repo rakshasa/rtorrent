@@ -82,7 +82,7 @@ DownloadStorer::build_path(const std::string& session_path) {
   if (session_path.back() != '/')
     throw torrent::internal_error("DownloadStorer::build_path() session path missing trailing slash.");
 
-  return session_path + torrent::hash_string_to_hex_str(info_hash);
+  return session_path + torrent::hash_string_to_hex_str(info_hash) + ".torrent";
 }
 
 void
