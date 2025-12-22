@@ -55,10 +55,6 @@ SessionManager::set_use_lock(bool use_lock) {
   m_use_lock = use_lock;
 }
 
-// TODO: Add separate mutex for queuing save requests in session save.
-// TODO: Only need to save download arg, we always assume resume save is wanted.
-// TODO: Use callback to main thread, generic so remove_download() doesn't get affectred.
-
 void
 SessionManager::save_resume_download(core::Download* download) {
   assert(torrent::this_thread::thread() == torrent::main_thread::thread());
