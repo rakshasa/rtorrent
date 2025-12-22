@@ -37,8 +37,12 @@ public:
   typedef std::unique_ptr<std::stringstream> stream_ptr;
 
   // TODO: This should depend on max open sockets / be configurable.
-  constexpr static int max_concurrent_saves = 16;
-  constexpr static int max_cleanup_saves    = 64;
+
+  // TODO: max_concurrent_requests should be checked before something, review.
+
+  constexpr static int max_concurrent_requests = 16;
+  constexpr static int max_concurrent_saves    = 16;
+  constexpr static int max_cleanup_saves       = 64;
 
   SessionManager(torrent::utils::Thread* thread);
   ~SessionManager();
@@ -54,8 +58,8 @@ public:
   bool                use_lock() const;
   void                set_use_lock(bool use_lock);
 
-  void                save_full_download(core::Download* download)   { save_download(download, false); }
-  void                save_resume_download(core::Download* download) { save_download(download, true);  }
+  void                save_full_download(core::Download* download);
+  void                save_resume_download(core::Download* download);
   void                remove_download(core::Download* download);
 
 protected:
@@ -68,7 +72,9 @@ protected:
   void                cleanup();
 
 private:
+  void                process_pending_resume_builds();
   void                process_save_request();
+  void                process_save_request_with_pending_callback();
   void                process_next_save_request_unsafe();
   void                process_finished_saves();
 
@@ -92,14 +98,16 @@ private:
 
   typedef std::pair<std::future<void>, SaveRequest> ProcessingSave;
 
-  // TODO: Add deque of DownloadStorers requests that have yet to build streams.
-
   std::deque<SaveRequest>     m_save_requests;
   std::list<ProcessingSave>   m_processing_saves;
   std::condition_variable     m_finished_condition;
   std::vector<ProcessingSave> m_finished_saves;
 
   std::unique_ptr<utils::Lockfile> m_lockfile;
+
+  // Pending builds are only ever locked by main thread.
+  std::mutex                  m_pending_builds_mutex;
+  std::deque<core::Download*> m_pending_builds;
 };
 
 inline bool        SessionManager::is_used() const       { return !m_path.empty(); }
