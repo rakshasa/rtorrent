@@ -91,7 +91,7 @@ SessionManager::save_full_download(core::Download* download) {
 
   DownloadStorer storer(download);
 
-  storer.build_streams(false);
+  storer.build_full_streams();
 
   auto save_request = SaveRequest{
     download,
@@ -223,8 +223,7 @@ SessionManager::process_pending_resume_builds() {
 
     DownloadStorer storer(download);
 
-    // TODO: Rename to build_resume_streams().
-    storer.build_streams(true);
+    storer.build_resume_streams();
 
     auto save_request = SaveRequest{
       download,
@@ -390,9 +389,9 @@ SessionManager::remove_or_replace_unsafe(SaveRequest& save_request) {
 
 bool
 SessionManager::remove_completely_unsafe(core::Download* download, std::unique_lock<std::mutex>& lock) {
-  // Can be run in any thread.
+  assert(torrent::this_thread::thread() == torrent::main_thread::thread());
 
-  {
+  auto remove_requests = [this, download]() {
     auto itr = std::remove_if(m_save_requests.begin(), m_save_requests.end(), [download](auto& req) {
         return req.download == download;
       });
@@ -401,7 +400,30 @@ SessionManager::remove_completely_unsafe(core::Download* download, std::unique_l
       return false;
 
     m_save_requests.erase(itr, m_save_requests.end());
-  }
+    return true;
+  };
+
+  auto remove_pending = [this, download]() {
+    std::unique_lock<std::mutex> pending_lock(m_pending_builds_mutex);
+
+    auto itr = std::remove_if(m_pending_builds.begin(), m_pending_builds.end(), [download](auto* req) {
+        return req == download;
+      });
+
+    if (itr == m_pending_builds.end())
+      return false;
+
+    m_pending_builds.erase(itr, m_pending_builds.end());
+    return true;
+  };
+
+  bool removed_something = false;
+
+  if (remove_pending())
+    removed_something = true;
+
+  if (remove_requests())
+    removed_something = true;
 
   while (true) {
     auto itr = std::find_if(m_processing_saves.begin(), m_processing_saves.end(), [download](auto& req) {
@@ -414,11 +436,15 @@ SessionManager::remove_completely_unsafe(core::Download* download, std::unique_l
     wait_for_one_save_unsafe(lock);
   }
 
+  // TODO: Do we need this?
+  if (remove_requests())
+    removed_something = true;
+
   // Checking active after remove_save_request_unsafe to ensure we're calling this after shutdown.
   if (!m_active)
     throw torrent::internal_error("SessionManager::remove_completely_unsafe() called while not active.");
 
-  return true;
+  return removed_something;
 }
 
 // TODO: Properly handle errors.
