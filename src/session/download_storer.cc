@@ -2,6 +2,9 @@
 
 #include "download_storer.h"
 
+#include <fcntl.h>
+#include <fstream>
+#include <unistd.h>
 #include <torrent/exceptions.h>
 #include <torrent/object.h>
 #include <torrent/object_stream.h>
@@ -79,8 +82,23 @@ DownloadStorer::build_path(const std::string& session_path) {
   if (session_path.back() != '/')
     throw torrent::internal_error("DownloadStorer::build_path() session path missing trailing slash.");
 
-  return session_path + torrent::hash_string_to_hex_str(info_hash);
+  return session_path + torrent::hash_string_to_hex_str(info_hash) + ".torrent";
 }
+
+void
+DownloadStorer::unlink_files(const std::string& session_path) {
+  auto base_path = build_path(session_path);
+
+  auto torrent_path    = base_path;
+  auto libtorrent_path = base_path + ".libtorrent_resume";
+  auto rtorrent_path   = base_path + ".rtorrent";
+
+  ::unlink(libtorrent_path.c_str());
+  ::unlink(rtorrent_path.c_str());
+  ::unlink(torrent_path.c_str());
+}
+
+namespace {
 
 bool
 is_correct_format(const std::string& f) {
@@ -93,6 +111,87 @@ is_correct_format(const std::string& f) {
       return false;
 
   return true;
+}
+
+bool
+save_stream(const std::string& path, bool use_fsyncdisk, const std::stringstream& stream) {
+  std::fstream output(path.c_str(), std::ios::out | std::ios::trunc);
+
+  // TODO: If we cannot open more files, wait for some to finish and try again.
+  if (!output.is_open()) {
+    // LT_LOG("failed to open file for writing : path:%s", path.c_str());
+    return false;
+  }
+
+  output << stream.rdbuf();
+
+  if (!output.good()) {
+    // LT_LOG("failed to write stream to file : path:%s", path.c_str());
+    return false;
+  }
+
+  output.close();
+
+  // Ensure that the new file is actually written to the disk
+  int fd = ::open(path.c_str(), O_WRONLY);
+
+  if (fd < 0) {
+    // LT_LOG("failed to open file descriptor for fdatasync : path:%s", path.c_str());
+    return false;
+  }
+
+  if (use_fsyncdisk) {
+#ifdef __APPLE__
+    ::fsync(fd);
+#else
+    ::fdatasync(fd);
+#endif
+  }
+
+  ::close(fd);
+  return true;
+}
+
+} // namespace anonymous
+
+void
+DownloadStorer::save_and_move_streams(const std::string& path, bool use_fsyncdisk,
+                                       const std::stringstream& torrent_stream,
+                                       const std::stringstream& rtorrent_stream,
+                                       const std::stringstream& libtorrent_stream) {
+  // LT_LOG("saving download : download:%p path:%s", download, path.c_str());
+
+  auto torrent_path    = path;
+  auto libtorrent_path = path + ".libtorrent_resume";
+  auto rtorrent_path   = path + ".rtorrent";
+
+  if (torrent_stream) {
+    if (!save_stream(torrent_path + ".new", use_fsyncdisk, torrent_stream))
+      return;
+  }
+
+  if (!save_stream(libtorrent_path + ".new", use_fsyncdisk, libtorrent_stream))
+    return;
+
+  if (!save_stream(rtorrent_path + ".new", use_fsyncdisk, rtorrent_stream))
+    return;
+
+  if (torrent_stream) {
+    if (::rename((torrent_path + ".new").c_str(), torrent_path.c_str()) == -1) {
+      // LT_LOG("failed to rename torrent file : %s", torrent_path.c_str());
+      return;
+    }
+  }
+
+  if (::rename((libtorrent_path + ".new").c_str(), libtorrent_path.c_str()) == -1) {
+    // LT_LOG("failed to rename libtorrent resume file : %s", libtorrent_path.c_str());
+    return;
+  }
+
+  if (::rename((rtorrent_path + ".new").c_str(), rtorrent_path.c_str()) == -1) {
+    // LT_LOG("failed to rename rtorrent resume file : %s", rtorrent_path.c_str());
+    return;
+  }
 }
 
 utils::Directory
