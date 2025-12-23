@@ -90,6 +90,7 @@ Control::cleanup() {
     scgi_thread::thread()->stop_thread_wait();
 
   // Wait for all session files to be written.
+  session_thread::manager()->flush_all_pending_builds();
   session_thread::thread()->stop_thread_wait();
 
   m_ui->cleanup();

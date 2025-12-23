@@ -182,6 +182,13 @@ SessionManager::cleanup() {
   if (!m_active)
     throw torrent::internal_error("SessionManager::cleanup() called while not active.");
 
+  {
+    std::unique_lock<std::mutex> pending_lock(m_pending_builds_mutex);
+
+    if (!m_pending_builds.empty())
+      throw torrent::internal_error("SessionManager::cleanup() called with pending builds.");
+  }
+
   m_active = false;
 
   if (m_path.empty()) {
@@ -353,8 +360,6 @@ SessionManager::wait_for_one_save_unsafe(std::unique_lock<std::mutex>& lock) {
 void
 SessionManager::flush_all_and_wait_unsafe(std::unique_lock<std::mutex>& lock) {
   LT_LOG("flushing all pending saves", 0);
-
-  process_pending_resume_builds(true);
 
   while (!m_save_requests.empty()) {
     if (m_processing_saves.size() >= max_cleanup_saves) {
