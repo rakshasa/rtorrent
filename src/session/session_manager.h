@@ -71,8 +71,10 @@ protected:
   void                start();
   void                cleanup();
 
+  void                flush_all_pending_builds();
+
 private:
-  void                process_pending_resume_builds();
+  void                process_pending_resume_builds(bool is_flushing);
   void                process_save_request();
   void                process_save_request_with_pending_callback();
   void                process_next_save_request_unsafe();

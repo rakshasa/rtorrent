@@ -156,9 +156,9 @@ save_stream(const std::string& path, bool use_fsyncdisk, const std::stringstream
 
 void
 DownloadStorer::save_and_move_streams(const std::string& path, bool use_fsyncdisk,
-                                       const std::stringstream& torrent_stream,
-                                       const std::stringstream& rtorrent_stream,
-                                       const std::stringstream& libtorrent_stream) {
+                                       const std::stringstream* torrent_stream,
+                                       const std::stringstream* rtorrent_stream,
+                                       const std::stringstream* libtorrent_stream) {
   // LT_LOG("saving download : download:%p path:%s", download, path.c_str());
 
   auto torrent_path    = path;
@@ -166,14 +166,14 @@ DownloadStorer::save_and_move_streams(const std::string& path, bool use_fsyncdis
   auto rtorrent_path   = path + ".rtorrent";
 
   if (torrent_stream) {
-    if (!save_stream(torrent_path + ".new", use_fsyncdisk, torrent_stream))
+    if (!save_stream(torrent_path + ".new", use_fsyncdisk, *torrent_stream))
       return;
   }
 
-  if (!save_stream(libtorrent_path + ".new", use_fsyncdisk, libtorrent_stream))
+  if (!save_stream(libtorrent_path + ".new", use_fsyncdisk, *libtorrent_stream))
     return;
 
-  if (!save_stream(rtorrent_path + ".new", use_fsyncdisk, rtorrent_stream))
+  if (!save_stream(rtorrent_path + ".new", use_fsyncdisk, *rtorrent_stream))
     return;
 
   if (torrent_stream) {
