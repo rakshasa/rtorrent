@@ -349,7 +349,7 @@ SessionManager::process_finished_saves() {
 
 void
 SessionManager::wait_for_one_save_unsafe(std::unique_lock<std::mutex>& lock) {
-  assert(m_thread == torrent::this_thread::thread());
+  // Can be called in any thread.
 
   if (m_processing_saves.empty())
     return;
