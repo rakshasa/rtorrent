@@ -12,6 +12,8 @@
 #include <vector>
 #include <torrent/common.h>
 
+class Control;
+
 namespace core {
 class Download;
 }
@@ -63,7 +65,7 @@ public:
   void                remove_download(core::Download* download);
 
 protected:
-  friend class Control;
+  friend class ::Control;
   friend class ThreadSession;
 
   void                save_download(core::Download* download, bool skip_static);
@@ -71,8 +73,10 @@ protected:
   void                start();
   void                cleanup();
 
+  void                flush_all_pending_builds();
+
 private:
-  void                process_pending_resume_builds();
+  void                process_pending_resume_builds(bool is_flushing);
   void                process_save_request();
   void                process_save_request_with_pending_callback();
   void                process_next_save_request_unsafe();
@@ -110,10 +114,11 @@ private:
   std::deque<core::Download*> m_pending_builds;
 };
 
-inline bool        SessionManager::is_used() const       { return !m_path.empty(); }
-inline std::string SessionManager::path() const          { return m_path; }
-inline bool        SessionManager::use_fsyncdisk() const { return true; }
-inline bool        SessionManager::use_lock() const      { return m_use_lock; }
+inline bool        SessionManager::is_used() const            { return !m_path.empty(); }
+inline std::string SessionManager::path() const               { return m_path; }
+inline bool        SessionManager::use_fsyncdisk() const      { return true; }
+inline bool        SessionManager::use_lock() const           { return m_use_lock; }
+inline void        SessionManager::flush_all_pending_builds() { process_pending_resume_builds(true); }
 
 } // namespace session
 

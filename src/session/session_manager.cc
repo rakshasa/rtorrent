@@ -76,7 +76,7 @@ SessionManager::save_resume_download(core::Download* download) {
     }
 
     if (m_pending_builds.empty())
-      torrent::main_thread::callback(this, [this]() { process_pending_resume_builds(); });
+      torrent::main_thread::callback(this, [this]() { process_pending_resume_builds(false); });
 
     m_pending_builds.push_back(download);
   }
@@ -182,6 +182,13 @@ SessionManager::cleanup() {
   if (!m_active)
     throw torrent::internal_error("SessionManager::cleanup() called while not active.");
 
+  {
+    std::unique_lock<std::mutex> pending_lock(m_pending_builds_mutex);
+
+    if (!m_pending_builds.empty())
+      throw torrent::internal_error("SessionManager::cleanup() called with pending builds.");
+  }
+
   m_active = false;
 
   if (m_path.empty()) {
@@ -207,48 +214,60 @@ SessionManager::cleanup() {
 }
 
 void
-SessionManager::process_pending_resume_builds() {
+SessionManager::process_pending_resume_builds(bool is_flushing) {
   assert(torrent::this_thread::thread() == torrent::main_thread::thread());
 
-  std::unique_lock<std::mutex> lock(m_pending_builds_mutex);
+  std::vector<SaveRequest> requests;
 
-  if (!m_active)
-    throw torrent::internal_error("SessionManager::process_pending_builds() called while not active.");
+  {
+    std::unique_lock<std::mutex> lock(m_pending_builds_mutex);
 
-  while (!m_pending_builds.empty() && m_pending_builds.size() < max_concurrent_requests) {
-    auto* download = m_pending_builds.front();
-    m_pending_builds.pop_front();
+    if (m_pending_builds.empty())
+      return;
 
-    LT_LOG("processing pending resume save : download:%p", download);
+    while (!m_pending_builds.empty()) {
+      if (!is_flushing && m_pending_builds.size() >= max_concurrent_requests)
+        break;
 
-    DownloadStorer storer(download);
+      auto* download = m_pending_builds.front();
+      m_pending_builds.pop_front();
 
-    storer.build_resume_streams();
+      LT_LOG("processing pending resume save : download:%p", download);
 
-    auto save_request = SaveRequest{
-      download,
-      storer.build_path(m_path),
-      nullptr,
-      storer.rtorrent_stream(),
-      storer.libtorrent_stream()
-    };
+      DownloadStorer storer(download);
 
-    {
-      std::unique_lock<std::mutex> save_lock(m_mutex);
+      storer.build_resume_streams();
 
-      if (!m_active)
-        throw torrent::internal_error("SessionManager::process_pending_builds() called while not active.");
+      auto save_request = SaveRequest{
+        download,
+        storer.build_path(m_path),
+        nullptr,
+        storer.rtorrent_stream(),
+        storer.libtorrent_stream()
+      };
 
+      requests.push_back(std::move(save_request));
+    }
+  }
+
+  {
+    std::unique_lock<std::mutex> save_lock(m_mutex);
+
+    if (!m_active)
+      throw torrent::internal_error("SessionManager::process_pending_builds() called while not active.");
+
+    for (auto& save_request : requests) {
       if (remove_or_replace_unsafe(save_request)) {
-        LT_LOG("updated pending resume save request : download:%p", download);
+        LT_LOG("updated pending resume save request : download:%p", save_request.download);
       } else {
-        LT_LOG("queued new resume save request : download:%p", download);
+        LT_LOG("queued new resume save request : download:%p", save_request.download);
         m_save_requests.push_back(std::move(save_request));
       }
     }
-
-    session_thread::callback(this, [this]() { process_save_request_with_pending_callback(); });
   }
+
+  if (!is_flushing)
+    session_thread::callback(this, [this]() { process_save_request_with_pending_callback(); });
 }
 
 void
@@ -279,7 +298,7 @@ SessionManager::process_save_request_with_pending_callback() {
   std::unique_lock<std::mutex> lock(m_pending_builds_mutex);
 
   if (!m_pending_builds.empty())
-    torrent::main_thread::callback(this, [this]() { process_pending_resume_builds(); });
+    torrent::main_thread::callback(this, [this]() { process_pending_resume_builds(false); });
 }
 
 void
@@ -295,9 +314,9 @@ SessionManager::process_next_save_request_unsafe() {
       // TODO: Consider adding a failed_saves with error info.
 
       DownloadStorer::save_and_move_streams(itr->second.path, m_use_fsyncdisk,
-                                            *itr->second.torrent_stream,
-                                            *itr->second.rtorrent_stream,
-                                            *itr->second.libtorrent_stream);
+                                            itr->second.torrent_stream.get(),
+                                            itr->second.rtorrent_stream.get(),
+                                            itr->second.libtorrent_stream.get());
 
       {
         std::unique_lock<std::mutex> lock(m_mutex);
@@ -330,7 +349,7 @@ SessionManager::process_finished_saves() {
 
 void
 SessionManager::wait_for_one_save_unsafe(std::unique_lock<std::mutex>& lock) {
-  assert(m_thread == torrent::this_thread::thread());
+  // Can be called in any thread.
 
   if (m_processing_saves.empty())
     return;
