@@ -109,15 +109,13 @@ SessionManager::save_full_download(core::Download* download) {
     if (!m_active)
       throw torrent::internal_error("SessionManager::save_download() called while not active.");
 
-    if (remove_or_replace_unsafe(save_request)) {
-      LT_LOG("updated pending full save request : download:%p", download);
+    if (replace_save_request_unsafe(save_request))
       throw torrent::internal_error("SessionManager::save_full_download() replacing existing save request, not supported?");
 
-    } else {
-      LT_LOG("queued new full save request : download:%p", download);
-      m_save_requests.push_back(std::move(save_request));
-      m_save_request_counter = m_save_requests.size();
-    }
+    m_save_requests.push_back(std::move(save_request));
+    m_save_request_counter = m_save_requests.size();
+
+    LT_LOG("queued new full save request : download:%p", download);
   }
 
   if (!m_processing_saves_callback_scheduled.exchange(true))
@@ -261,7 +259,7 @@ SessionManager::process_pending_resume_builds(bool is_flushing) {
       throw torrent::internal_error("SessionManager::process_pending_builds() called while not active.");
 
     for (auto& save_request : requests) {
-      if (remove_or_replace_unsafe(save_request)) {
+      if (replace_save_request_unsafe(save_request)) {
         LT_LOG("updated pending resume save request : download:%p", save_request.download);
         continue;
       }
@@ -378,10 +376,10 @@ SessionManager::flush_all_and_wait_unsafe(std::unique_lock<std::mutex>& lock) {
 }
 
 bool
-SessionManager::remove_or_replace_unsafe(SaveRequest& save_request) {
+SessionManager::replace_save_request_unsafe(SaveRequest& save_request) {
   // Can be run in any thread.
 
-  auto itr = std::remove_if(m_save_requests.begin(), m_save_requests.end(), [download = save_request.download](auto& req) {
+  auto itr = std::find_if(m_save_requests.begin(), m_save_requests.end(), [download = save_request.download](auto& req) {
       return req.download == download;
     });
 
@@ -389,15 +387,13 @@ SessionManager::remove_or_replace_unsafe(SaveRequest& save_request) {
     return false;
 
   if (itr->path != save_request.path)
-    throw torrent::internal_error("SessionManager::remove_or_replace_unsafe() path mismatch on replace.");
+    throw torrent::internal_error("SessionManager::replace_save_request_unsafe() path mismatch on replace: " + itr->path + " != " + save_request.path);
 
-  // If this is a full save, we replace just the resume data.
+  if (save_request.torrent_stream != nullptr)
+    throw torrent::internal_error("SessionManager::replace_save_request_unsafe() cannot replace full save requests.");
+
   itr->rtorrent_stream   = std::move(save_request.rtorrent_stream);
   itr->libtorrent_stream = std::move(save_request.libtorrent_stream);
-
-  // Checking active after remove_save_request_unsafe to ensure we're calling this after shutdown.
-  if (!m_active)
-    throw torrent::internal_error("SessionManager::remove_or_replace_unsafe() called while not active.");
 
   return true;
 }
