@@ -40,11 +40,9 @@ public:
 
   // TODO: This should depend on max open sockets / be configurable.
 
-  // TODO: max_concurrent_requests should be checked before something, review.
-
-  constexpr static int max_concurrent_requests = 16;
-  constexpr static int max_concurrent_saves    = 16;
-  constexpr static int max_cleanup_saves       = 64;
+  constexpr static int max_concurrent_requests   = 16;
+  constexpr static int max_concurrent_processing = 16;
+  constexpr static int max_cleanup_processing    = 64;
 
   SessionManager(torrent::utils::Thread* thread);
   ~SessionManager();
@@ -82,8 +80,6 @@ private:
   void                process_next_save_request_unsafe();
   void                process_finished_saves();
 
-  void                wait_for_one_save_unsafe(std::unique_lock<std::mutex>& lock);
-
   // Requires a higher number of open sockets, and should only be used during shutdown.
   void                flush_all_and_wait_unsafe(std::unique_lock<std::mutex>& lock);
 
@@ -103,7 +99,9 @@ private:
   typedef std::pair<std::future<void>, SaveRequest> ProcessingSave;
 
   std::deque<SaveRequest>     m_save_requests;
+  std::atomic<size_t>         m_save_request_counter{};
   std::list<ProcessingSave>   m_processing_saves;
+  std::atomic<bool>           m_processing_saves_callback_scheduled{};
   std::condition_variable     m_finished_condition;
   std::vector<ProcessingSave> m_finished_saves;
 
