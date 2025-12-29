@@ -224,9 +224,6 @@ SessionManager::process_pending_resume_builds(bool is_flushing) {
   {
     std::unique_lock<std::mutex> lock(m_pending_builds_mutex);
 
-    if (m_pending_builds.empty())
-      return;
-
     while (!m_pending_builds.empty()) {
       if (!is_flushing && m_save_request_counter + requests.size() >= max_concurrent_requests)
         break;
@@ -251,6 +248,9 @@ SessionManager::process_pending_resume_builds(bool is_flushing) {
       requests.push_back(std::move(save_request));
     }
   }
+
+  if (requests.empty())
+    return;
 
   {
     std::unique_lock<std::mutex> save_lock(m_mutex);
@@ -444,9 +444,6 @@ SessionManager::remove_completely_unsafe(core::Download* download, std::unique_l
       });
 
     if (itr == m_processing_saves.end())
-      break;
-
-    if (m_processing_saves.empty())
       break;
 
     m_finished_condition.wait(lock);
