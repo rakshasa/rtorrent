@@ -138,6 +138,8 @@ SessionManager::remove_download(core::Download* download) {
     LT_LOG("canceled pending save request : download:%p", download);
 
   DownloadStorer(download).unlink_files(m_path);
+
+  LT_LOG("removed session files : download:%p", download);
 }
 
 void
