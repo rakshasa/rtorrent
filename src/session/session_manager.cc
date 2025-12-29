@@ -65,13 +65,11 @@ SessionManager::save_resume_download(core::Download* download) {
   {
     std::unique_lock<std::mutex> lock(m_pending_builds_mutex);
 
-    LT_LOG("requesting resume save : download:%p", download);
-
     if (!m_active)
       throw torrent::internal_error("SessionManager::save_resume_download() called while not active.");
 
     if (std::find(m_pending_builds.begin(), m_pending_builds.end(), download) != m_pending_builds.end()) {
-      LT_LOG("download already pending resume save : download:%p", download);
+      LT_LOG("download already in pending build of resume save : download:%p", download);
       return;
     }
 
@@ -79,6 +77,8 @@ SessionManager::save_resume_download(core::Download* download) {
       torrent::main_thread::callback(this, [this]() { process_pending_resume_builds(false); });
 
     m_pending_builds.push_back(download);
+
+    LT_LOG("build of resume save data queued : download:%p", download);
   }
 }
 
@@ -291,6 +291,8 @@ SessionManager::process_save_request() {
 
   while (!m_save_requests.empty() && m_processing_saves.size() < max_concurrent_requests)
     process_next_save_request_unsafe();
+
+  m_processing_saves_callback_scheduled = false;
 }
 
 void
