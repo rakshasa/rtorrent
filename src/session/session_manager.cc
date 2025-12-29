@@ -276,7 +276,6 @@ SessionManager::process_pending_resume_builds(bool is_flushing) {
     session_thread::callback(this, [this]() { process_save_request_with_pending_callback(); });
 }
 
-// TODO: We should add an atomic bool to avoid flooding callbacks.
 void
 SessionManager::process_save_request() {
   assert(m_thread == torrent::this_thread::thread());
