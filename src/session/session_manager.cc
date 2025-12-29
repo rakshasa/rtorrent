@@ -65,13 +65,11 @@ SessionManager::save_resume_download(core::Download* download) {
   {
     std::unique_lock<std::mutex> lock(m_pending_builds_mutex);
 
-    LT_LOG("requesting resume save : download:%p", download);
-
     if (!m_active)
       throw torrent::internal_error("SessionManager::save_resume_download() called while not active.");
 
     if (std::find(m_pending_builds.begin(), m_pending_builds.end(), download) != m_pending_builds.end()) {
-      LT_LOG("download already pending resume save : download:%p", download);
+      LT_LOG("download already in pending build of resume save : download:%p", download);
       return;
     }
 
@@ -79,6 +77,8 @@ SessionManager::save_resume_download(core::Download* download) {
       torrent::main_thread::callback(this, [this]() { process_pending_resume_builds(false); });
 
     m_pending_builds.push_back(download);
+
+    LT_LOG("build of resume save data queued : download:%p", download);
   }
 }
 
@@ -109,17 +109,17 @@ SessionManager::save_full_download(core::Download* download) {
     if (!m_active)
       throw torrent::internal_error("SessionManager::save_download() called while not active.");
 
-    if (remove_or_replace_unsafe(save_request)) {
-      LT_LOG("updated pending full save request : download:%p", download);
+    if (replace_save_request_unsafe(save_request))
       throw torrent::internal_error("SessionManager::save_full_download() replacing existing save request, not supported?");
 
-    } else {
-      LT_LOG("queued new full save request : download:%p", download);
-      m_save_requests.push_back(std::move(save_request));
-    }
+    m_save_requests.push_back(std::move(save_request));
+    m_save_request_counter = m_save_requests.size();
+
+    LT_LOG("queued new full save request : download:%p", download);
   }
 
-  session_thread::callback(this, [this]() { process_save_request(); });
+  if (!m_processing_saves_callback_scheduled.exchange(true))
+    session_thread::callback(this, [this]() { process_save_request(); });
 }
 
 void
@@ -138,6 +138,8 @@ SessionManager::remove_download(core::Download* download) {
     LT_LOG("canceled pending save request : download:%p", download);
 
   DownloadStorer(download).unlink_files(m_path);
+
+  LT_LOG("removed session files : download:%p", download);
 }
 
 void
@@ -219,14 +221,13 @@ SessionManager::process_pending_resume_builds(bool is_flushing) {
 
   std::vector<SaveRequest> requests;
 
+  // Only main thread is allowed to process pending builds or remove downloads, as such it is safe
+  // to unlock before adding them to save requests.
   {
     std::unique_lock<std::mutex> lock(m_pending_builds_mutex);
 
-    if (m_pending_builds.empty())
-      return;
-
     while (!m_pending_builds.empty()) {
-      if (!is_flushing && m_pending_builds.size() >= max_concurrent_requests)
+      if (!is_flushing && m_save_request_counter + requests.size() >= max_concurrent_requests)
         break;
 
       auto* download = m_pending_builds.front();
@@ -250,6 +251,9 @@ SessionManager::process_pending_resume_builds(bool is_flushing) {
     }
   }
 
+  if (requests.empty())
+    return;
+
   {
     std::unique_lock<std::mutex> save_lock(m_mutex);
 
@@ -257,16 +261,20 @@ SessionManager::process_pending_resume_builds(bool is_flushing) {
       throw torrent::internal_error("SessionManager::process_pending_builds() called while not active.");
 
     for (auto& save_request : requests) {
-      if (remove_or_replace_unsafe(save_request)) {
+      if (replace_save_request_unsafe(save_request)) {
         LT_LOG("updated pending resume save request : download:%p", save_request.download);
-      } else {
-        LT_LOG("queued new resume save request : download:%p", save_request.download);
-        m_save_requests.push_back(std::move(save_request));
+        continue;
       }
+
+      m_save_requests.push_back(std::move(save_request));
+
+      LT_LOG("queued new resume save request : download:%p", save_request.download);
     }
+
+    m_save_request_counter = m_save_requests.size();
   }
 
-  if (!is_flushing)
+  if (!is_flushing && !m_processing_saves_callback_scheduled.exchange(true))
     session_thread::callback(this, [this]() { process_save_request_with_pending_callback(); });
 }
 
@@ -282,13 +290,10 @@ SessionManager::process_save_request() {
   if (!m_active)
     throw torrent::internal_error("SessionManager::process_save_request() called while not active.");
 
-  if (m_save_requests.empty() || m_processing_saves.size() >= max_concurrent_saves)
-    return;
+  while (!m_save_requests.empty() && m_processing_saves.size() < max_concurrent_requests)
+    process_next_save_request_unsafe();
 
-  process_next_save_request_unsafe();
-
-  if (!m_save_requests.empty())
-    session_thread::callback(this, [this]() { process_save_request(); });
+  m_processing_saves_callback_scheduled = false;
 }
 
 void
@@ -304,7 +309,9 @@ SessionManager::process_save_request_with_pending_callback() {
 void
 SessionManager::process_next_save_request_unsafe() {
   auto request = std::move(m_save_requests.front());
+
   m_save_requests.pop_front();
+  m_save_request_counter = m_save_requests.size();
 
   auto itr = m_processing_saves.insert(m_processing_saves.end(), ProcessingSave{});
 
@@ -325,9 +332,9 @@ SessionManager::process_next_save_request_unsafe() {
           session_thread::callback(this, [this]() { process_finished_saves(); });
 
         m_finished_saves.push_back(std::move(*itr));
-        m_processing_saves.erase(itr);
-
         m_finished_condition.notify_all();
+
+        m_processing_saves.erase(itr);
       }
     });
 }
@@ -348,22 +355,12 @@ SessionManager::process_finished_saves() {
 }
 
 void
-SessionManager::wait_for_one_save_unsafe(std::unique_lock<std::mutex>& lock) {
-  // Can be called in any thread.
-
-  if (m_processing_saves.empty())
-    return;
-
-  m_finished_condition.wait(lock);
-}
-
-void
 SessionManager::flush_all_and_wait_unsafe(std::unique_lock<std::mutex>& lock) {
   LT_LOG("flushing all pending saves", 0);
 
   while (!m_save_requests.empty()) {
-    if (m_processing_saves.size() >= max_cleanup_saves) {
-      wait_for_one_save_unsafe(lock);
+    if (m_processing_saves.size() >= max_cleanup_processing) {
+      m_finished_condition.wait(lock);
       continue;
     }
 
@@ -371,7 +368,7 @@ SessionManager::flush_all_and_wait_unsafe(std::unique_lock<std::mutex>& lock) {
   }
 
   while (!m_processing_saves.empty())
-    wait_for_one_save_unsafe(lock);
+    m_finished_condition.wait(lock);
 
   for (auto& request : m_finished_saves)
     LT_LOG("finished saving download : download:%p path:%s", request.second.download, request.second.path.c_str());
@@ -382,10 +379,10 @@ SessionManager::flush_all_and_wait_unsafe(std::unique_lock<std::mutex>& lock) {
 }
 
 bool
-SessionManager::remove_or_replace_unsafe(SaveRequest& save_request) {
+SessionManager::replace_save_request_unsafe(SaveRequest& save_request) {
   // Can be run in any thread.
 
-  auto itr = std::remove_if(m_save_requests.begin(), m_save_requests.end(), [download = save_request.download](auto& req) {
+  auto itr = std::find_if(m_save_requests.begin(), m_save_requests.end(), [download = save_request.download](auto& req) {
       return req.download == download;
     });
 
@@ -393,15 +390,13 @@ SessionManager::remove_or_replace_unsafe(SaveRequest& save_request) {
     return false;
 
   if (itr->path != save_request.path)
-    throw torrent::internal_error("SessionManager::remove_or_replace_unsafe() path mismatch on replace.");
+    throw torrent::internal_error("SessionManager::replace_save_request_unsafe() path mismatch on replace: " + itr->path + " != " + save_request.path);
 
-  // If this is a full save, we replace just the resume data.
+  if (save_request.torrent_stream != nullptr)
+    throw torrent::internal_error("SessionManager::replace_save_request_unsafe() cannot replace full save requests.");
+
   itr->rtorrent_stream   = std::move(save_request.rtorrent_stream);
   itr->libtorrent_stream = std::move(save_request.libtorrent_stream);
-
-  // Checking active after remove_save_request_unsafe to ensure we're calling this after shutdown.
-  if (!m_active)
-    throw torrent::internal_error("SessionManager::remove_or_replace_unsafe() called while not active.");
 
   return true;
 }
@@ -444,6 +439,7 @@ SessionManager::remove_completely_unsafe(core::Download* download, std::unique_l
   if (remove_requests())
     removed_something = true;
 
+  // This may block for a relatively long time if fdatasync is in use, however this is necessary.
   while (true) {
     auto itr = std::find_if(m_processing_saves.begin(), m_processing_saves.end(), [download](auto& req) {
         return req.second.download == download;
@@ -452,12 +448,10 @@ SessionManager::remove_completely_unsafe(core::Download* download, std::unique_l
     if (itr == m_processing_saves.end())
       break;
 
-    wait_for_one_save_unsafe(lock);
+    m_finished_condition.wait(lock);
   }
 
-  // TODO: Do we need this?
-  if (remove_requests())
-    removed_something = true;
+  // Since we're the main thread, no more requests for this download can be added.
 
   // Checking active after remove_save_request_unsafe to ensure we're calling this after shutdown.
   if (!m_active)
@@ -468,7 +462,7 @@ SessionManager::remove_completely_unsafe(core::Download* download, std::unique_l
 
 // TODO: Properly handle errors.
 // TODO: If no more sockets can be opened, wait for a job to finish. if all is finished, use a
-// timeout nad try again.
+// timeout and try again.
 
 }  // namespace session
 
