@@ -107,6 +107,9 @@ private:
 
   std::unique_ptr<utils::Lockfile> m_lockfile;
 
+  std::chrono::microseconds   m_last_storage_error_message{};
+  unsigned int                m_ignored_storage_error_count{};
+
   // Pending builds are only ever locked by main thread.
   std::mutex                  m_pending_builds_mutex;
   std::deque<core::Download*> m_pending_builds;

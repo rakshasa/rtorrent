@@ -317,25 +317,29 @@ SessionManager::process_next_save_request_unsafe() {
 
   itr->second = std::move(request);
   itr->first = std::async(std::launch::async, [this, itr]() {
-      // TODO: Properly handle errors here, and report back to session thread.
-      // TODO: Consider adding a failed_saves with error info.
+      auto cleanup_fn = [this, itr]() {
+          std::unique_lock<std::mutex> lock(m_mutex);
 
-      DownloadStorer::save_and_move_streams(itr->second.path, m_use_fsyncdisk,
-                                            itr->second.torrent_stream.get(),
-                                            itr->second.rtorrent_stream.get(),
-                                            itr->second.libtorrent_stream.get());
+          if (m_finished_saves.empty())
+            session_thread::callback(this, [this]() { process_finished_saves(); });
 
-      {
-        std::unique_lock<std::mutex> lock(m_mutex);
+          m_finished_saves.push_back(std::move(*itr));
+          m_finished_condition.notify_all();
 
-        if (m_finished_saves.empty())
-          session_thread::callback(this, [this]() { process_finished_saves(); });
+          m_processing_saves.erase(itr);
+        };
 
-        m_finished_saves.push_back(std::move(*itr));
-        m_finished_condition.notify_all();
-
-        m_processing_saves.erase(itr);
+      try {
+        DownloadStorer::save_and_move_streams(itr->second.path, m_use_fsyncdisk,
+                                              itr->second.torrent_stream.get(),
+                                              itr->second.rtorrent_stream.get(),
+                                              itr->second.libtorrent_stream.get());
+      } catch (...) {
+        cleanup_fn();
+        throw;
       }
+
+      cleanup_fn();
     });
 }
 
@@ -348,8 +352,35 @@ SessionManager::process_finished_saves() {
   if (!m_active)
     throw torrent::internal_error("SessionManager::process_finished_saves() called while not active.");
 
-  for (auto& request : m_finished_saves)
+  for (auto& request : m_finished_saves) {
+    try {
+      request.first.get();
+
+    } catch (torrent::storage_error& e) {
+      LT_LOG("error saving download : storage error :download:%p path:%s : %s", request.second.download, request.second.path.c_str(), e.what());
+
+      if (m_last_storage_error_message + std::chrono::minutes(5) > torrent::this_thread::cached_time()) {
+        m_ignored_storage_error_count++;
+        continue;
+      }
+
+      lt_log_print(torrent::LOG_ERROR, "Storage errors saving session data for download: ignored:%u : %s", m_ignored_storage_error_count, e.what());
+
+      m_last_storage_error_message = torrent::this_thread::cached_time();
+      m_ignored_storage_error_count = 0;
+      continue;
+
+    } catch (torrent::internal_error& e) {
+      LT_LOG("error saving download : internal error : download:%p path:%s : %s", request.second.download, request.second.path.c_str(), e.what());
+      throw;
+
+    } catch (...) {
+      LT_LOG("error saving download : unknown error : download:%p path:%s", request.second.download, request.second.path.c_str());
+      throw;
+    }
+
     LT_LOG("finished saving download : download:%p path:%s", request.second.download, request.second.path.c_str());
+  }
 
   m_finished_saves.clear();
 }
