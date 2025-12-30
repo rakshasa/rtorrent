@@ -113,32 +113,26 @@ is_correct_format(const std::string& f) {
   return true;
 }
 
-bool
+void
 save_stream(const std::string& path, bool use_fsyncdisk, const std::stringstream& stream) {
   std::fstream output(path.c_str(), std::ios::out | std::ios::trunc);
 
   // TODO: If we cannot open more files, wait for some to finish and try again.
-  if (!output.is_open()) {
-    // LT_LOG("failed to open file for writing : path:%s", path.c_str());
-    return false;
-  }
+  if (!output.is_open())
+    throw torrent::storage_error("failed to open file for writing : " + path);
 
   output << stream.rdbuf();
 
-  if (!output.good()) {
-    // LT_LOG("failed to write stream to file : path:%s", path.c_str());
-    return false;
-  }
+  if (!output.good())
+    throw torrent::storage_error("failed to write stream to file : " + path);
 
   output.close();
 
   // Ensure that the new file is actually written to the disk
   int fd = ::open(path.c_str(), O_WRONLY);
 
-  if (fd < 0) {
-    // LT_LOG("failed to open file descriptor for fdatasync : path:%s", path.c_str());
-    return false;
-  }
+  if (fd < 0)
+    throw torrent::storage_error("failed to open file descriptor for fsync : " + path);
 
   if (use_fsyncdisk) {
 #ifdef __APPLE__
@@ -149,7 +143,6 @@ save_stream(const std::string& path, bool use_fsyncdisk, const std::stringstream
   }
 
   ::close(fd);
-  return true;
 }
 
 } // namespace anonymous
@@ -159,39 +152,28 @@ DownloadStorer::save_and_move_streams(const std::string& path, bool use_fsyncdis
                                        const std::stringstream* torrent_stream,
                                        const std::stringstream* rtorrent_stream,
                                        const std::stringstream* libtorrent_stream) {
-  // LT_LOG("saving download : download:%p path:%s", download, path.c_str());
-
   auto torrent_path    = path;
   auto libtorrent_path = path + ".libtorrent_resume";
   auto rtorrent_path   = path + ".rtorrent";
 
-  if (torrent_stream) {
-    if (!save_stream(torrent_path + ".new", use_fsyncdisk, *torrent_stream))
-      return;
-  }
+  if (torrent_stream)
+    save_stream(torrent_path + ".new", use_fsyncdisk, *torrent_stream);
 
-  if (!save_stream(libtorrent_path + ".new", use_fsyncdisk, *libtorrent_stream))
-    return;
+  save_stream(libtorrent_path + ".new", use_fsyncdisk, *libtorrent_stream);
+  save_stream(rtorrent_path + ".new", use_fsyncdisk, *rtorrent_stream);
 
-  if (!save_stream(rtorrent_path + ".new", use_fsyncdisk, *rtorrent_stream))
-    return;
+  // TODO: Simulate error.
 
   if (torrent_stream) {
-    if (::rename((torrent_path + ".new").c_str(), torrent_path.c_str()) == -1) {
-      // LT_LOG("failed to rename torrent file : %s", torrent_path.c_str());
-      return;
-    }
+    if (::rename((torrent_path + ".new").c_str(), torrent_path.c_str()) == -1)
+      throw torrent::storage_error("failed to rename torrent file : " + torrent_path);
   }
 
-  if (::rename((libtorrent_path + ".new").c_str(), libtorrent_path.c_str()) == -1) {
-    // LT_LOG("failed to rename libtorrent resume file : %s", libtorrent_path.c_str());
-    return;
-  }
+  if (::rename((libtorrent_path + ".new").c_str(), libtorrent_path.c_str()) == -1)
+    throw torrent::storage_error("failed to rename libtorrent resume file : " + libtorrent_path);
 
-  if (::rename((rtorrent_path + ".new").c_str(), rtorrent_path.c_str()) == -1) {
-    // LT_LOG("failed to rename rtorrent resume file : %s", rtorrent_path.c_str());
-    return;
-  }
+  if (::rename((rtorrent_path + ".new").c_str(), rtorrent_path.c_str()) == -1)
+    throw torrent::storage_error("failed to rename rtorrent resume file : " + rtorrent_path);
 }
 
 utils::Directory
