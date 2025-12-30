@@ -162,8 +162,6 @@ DownloadStorer::save_and_move_streams(const std::string& path, bool use_fsyncdis
   save_stream(libtorrent_path + ".new", use_fsyncdisk, *libtorrent_stream);
   save_stream(rtorrent_path + ".new", use_fsyncdisk, *rtorrent_stream);
 
-  // TODO: Simulate error.
-
   if (torrent_stream) {
     if (::rename((torrent_path + ".new").c_str(), torrent_path.c_str()) == -1)
       throw torrent::storage_error("failed to rename torrent file : " + torrent_path);

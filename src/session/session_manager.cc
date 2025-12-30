@@ -317,22 +317,29 @@ SessionManager::process_next_save_request_unsafe() {
 
   itr->second = std::move(request);
   itr->first = std::async(std::launch::async, [this, itr]() {
-      DownloadStorer::save_and_move_streams(itr->second.path, m_use_fsyncdisk,
-                                            itr->second.torrent_stream.get(),
-                                            itr->second.rtorrent_stream.get(),
-                                            itr->second.libtorrent_stream.get());
+      auto cleanup_fn = [this, itr]() {
+          std::unique_lock<std::mutex> lock(m_mutex);
 
-      {
-        std::unique_lock<std::mutex> lock(m_mutex);
+          if (m_finished_saves.empty())
+            session_thread::callback(this, [this]() { process_finished_saves(); });
 
-        if (m_finished_saves.empty())
-          session_thread::callback(this, [this]() { process_finished_saves(); });
+          m_finished_saves.push_back(std::move(*itr));
+          m_finished_condition.notify_all();
 
-        m_finished_saves.push_back(std::move(*itr));
-        m_finished_condition.notify_all();
+          m_processing_saves.erase(itr);
+        };
 
-        m_processing_saves.erase(itr);
+      try {
+        DownloadStorer::save_and_move_streams(itr->second.path, m_use_fsyncdisk,
+                                              itr->second.torrent_stream.get(),
+                                              itr->second.rtorrent_stream.get(),
+                                              itr->second.libtorrent_stream.get());
+      } catch (...) {
+        cleanup_fn();
+        throw;
       }
+
+      cleanup_fn();
     });
 }
 
