@@ -133,6 +133,16 @@ Manager::retrieve_throttle_value(const torrent::Object::string_type& name, bool 
 }
 
 void
+Manager::set_magnet_path(const std::string& path) {
+  if (path.empty())
+    m_magnet_path.clear();
+  else if (path.back() == '/')
+    m_magnet_path = path;
+  else
+    m_magnet_path = path + '/';
+}
+
+void
 Manager::cleanup() {
   // Need to disconnect log signals? Not really since we won't receive
   // any more.
