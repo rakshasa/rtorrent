@@ -281,6 +281,9 @@ initialize_command_local() {
 
   CMD2_ANY_V       ("session.save",                    [dList](auto, auto)   { return dList->session_save(); });
 
+  CMD2_ANY         ("magnet.path",                     [](auto, auto)        { return control->core()->magnet_path(); });
+  CMD2_ANY_STRING_V("magnet.path.set",                 [](auto, auto& str)   { return control->core()->set_magnet_path(str); });
+
 #ifdef HAVE_LUA
   rpc::LuaEngine* lua_engine = control->lua_engine();
 

@@ -45,6 +45,7 @@ void                    cancel_callback(void* target);
 void                    cancel_callback_and_wait(void* target);
 
 session::SessionManager* manager();
+std::string              session_path();
 
 } // namespace torrent::session_thread
 

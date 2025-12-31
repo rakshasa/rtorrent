@@ -82,5 +82,6 @@ void cancel_callback(void* target)                       { session::ThreadSessio
 void cancel_callback_and_wait(void* target)              { session::ThreadSessionInternal::thread_session()->cancel_callback_and_wait(target); }
 
 session::SessionManager* manager()                       { return session::ThreadSessionInternal::thread_session()->manager(); }
+std::string              session_path()                  { return session::ThreadSessionInternal::thread_session()->manager()->path(); }
 
 } // namespace session_thread

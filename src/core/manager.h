@@ -61,6 +61,9 @@ public:
 
   void                set_proxy_address(const std::string& addr);
 
+  const std::string&  magnet_path();
+  void                set_magnet_path(const std::string& path);
+
   void                shutdown(bool force);
 
   void                push_log(const char* msg);
@@ -103,10 +106,14 @@ private:
 
   torrent::log_buffer_ptr m_log_important;
   torrent::log_buffer_ptr m_log_complete;
+
+  std::string         m_magnet_path;
 };
 
 // Meh, cleanup.
 extern void receive_tracker_dump(const std::string& url, const char* data, size_t size);
+
+inline const std::string& Manager::magnet_path() { return m_magnet_path; }
 
 }
 

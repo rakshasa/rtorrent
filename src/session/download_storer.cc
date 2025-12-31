@@ -92,10 +92,12 @@ DownloadStorer::unlink_files(const std::string& session_path) {
   auto torrent_path    = base_path;
   auto libtorrent_path = base_path + ".libtorrent_resume";
   auto rtorrent_path   = base_path + ".rtorrent";
+  auto metadata_path   = base_path + ".meta";
 
   ::unlink(libtorrent_path.c_str());
   ::unlink(rtorrent_path.c_str());
   ::unlink(torrent_path.c_str());
+  ::unlink(metadata_path.c_str());
 }
 
 namespace {
