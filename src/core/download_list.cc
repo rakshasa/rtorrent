@@ -488,7 +488,7 @@ DownloadList::hash_done(Download* download) {
 
   if (!download->is_hash_checked()) {
     download->set_hash_failed(true);
-    
+
     DL_TRIGGER_EVENT(download, "event.download.hash_failed");
     return;
   }
@@ -679,30 +679,36 @@ DownloadList::process_meta_download(Download* download) {
   rpc::call_command("d.stop", torrent::Object(), rpc::make_target(download));
   rpc::call_command("d.close", torrent::Object(), rpc::make_target(download));
 
-  std::string metafile = (*download->file_list()->begin())->frozen_path();
-  std::fstream file(metafile.c_str(), std::ios::in | std::ios::binary);
+  auto metafile = (*download->file_list()->begin())->frozen_path();
+  auto file     = std::fstream(metafile.c_str(), std::ios::in | std::ios::binary);
+
   if (!file.is_open()) {
     lt_log_print(torrent::LOG_TORRENT_ERROR, "Could not read download metadata.");
     return;
   }
 
-  torrent::Object* bencode = new torrent::Object(torrent::Object::create_map());
-  file >> bencode->insert_key("info", torrent::Object());
+  auto bencode = torrent::Object(torrent::Object::create_map());
+
+  file >> bencode.insert_key("info", torrent::Object());
+
   if (file.fail()) {
-    delete bencode;
     lt_log_print(torrent::LOG_TORRENT_ERROR, "Could not create download, the input is not a valid torrent.");
     return;
   }
+
   file.close();
 
   // Steal the keys we still need. The old download has no use for them.
-  bencode->insert_key("rtorrent_meta_download", torrent::Object()).swap(download->bencode()->get_key("rtorrent_meta_download"));
+  bencode.insert_key("rtorrent_meta_download", torrent::Object()).swap(download->bencode()->get_key("rtorrent_meta_download"));
+
   if (download->bencode()->has_key("announce"))
-    bencode->insert_key("announce", torrent::Object()).swap(download->bencode()->get_key("announce"));
+    bencode.insert_key("announce", torrent::Object()).swap(download->bencode()->get_key("announce"));
+
   if (download->bencode()->has_key("announce-list"))
-    bencode->insert_key("announce-list", torrent::Object()).swap(download->bencode()->get_key("announce-list"));
+    bencode.insert_key("announce-list", torrent::Object()).swap(download->bencode()->get_key("announce-list"));
 
   erase_ptr(download);
+
   control->core()->try_create_download_from_meta_download(bencode, metafile);
 }
 

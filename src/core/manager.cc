@@ -285,14 +285,15 @@ Manager::try_create_download(const std::string& uri, int flags, const command_li
 }
 
 void
-Manager::try_create_download_from_meta_download(torrent::Object* bencode, const std::string& metafile) {
+Manager::try_create_download_from_meta_download(const torrent::Object& bencode, const std::string& metafile) {
   DownloadFactory* f = new DownloadFactory(this);
 
   f->variables()["tied_to_file"] = (int64_t)true;
   f->variables()["tied_file"] = metafile;
 
-  torrent::Object& meta = bencode->get_key("rtorrent_meta_download");
-  torrent::Object::list_type& commands = meta.get_key_list("commands");
+  auto& meta     = bencode.get_key("rtorrent_meta_download");
+  auto& commands = meta.get_key_list("commands");
+
   for (const auto& command : commands)
     f->commands().insert(f->commands().end(), command.as_string());
 
@@ -303,8 +304,10 @@ Manager::try_create_download_from_meta_download(torrent::Object* bencode, const 
   // Bit of a waste to create the bencode repesentation here
   // only to have the DownloadFactory decode it.
   std::stringstream s;
+
   s.imbue(std::locale::classic());
-  s << *bencode;
+  s << bencode;
+
   f->load_raw_data(s.str());
   f->commit();
 }

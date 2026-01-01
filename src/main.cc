@@ -535,6 +535,7 @@ main(int argc, char** argv) {
   scgi::ThreadScgi::destroy_thread();
   session::ThreadSession::destroy_thread();
 
+  torrent::cleanup_main_thread();
   torrent::log_cleanup();
 
   return 0;

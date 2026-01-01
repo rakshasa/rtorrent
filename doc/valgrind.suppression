@@ -302,6 +302,24 @@
 
 {
    <insert_a_suppression_name_here>
+   Memcheck:Cond
+   ...
+   fun:Curl_macos_init
+   fun:global_init
+   fun:curl_global_init
+   fun:_ZN7torrent10initializeEv
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Free
+   ...
+   fun:_ZNSt3__113basic_filebufIcNS_11char_traitsIcEEE5closeEv
+   ...
+}
+
+{
+   <insert_a_suppression_name_here>
    Memcheck:Leak
    ...
    fun:loadlocale

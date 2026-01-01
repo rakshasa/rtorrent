@@ -83,7 +83,7 @@ apply_scgi(const std::string& arg, int type) {
 
   initialize_rpc_handlers();
 
-  rpc::SCgi* scgi = new rpc::SCgi;
+  auto scgi = std::make_unique<rpc::SCgi>();
 
   rak::address_info* ai = NULL;
   torrent::sa_unique_ptr sa;
@@ -132,16 +132,18 @@ apply_scgi(const std::string& arg, int type) {
       break;
     }
 
-    if (ai != NULL) rak::address_info::free_address_info(ai);
+    if (ai != NULL)
+      rak::address_info::free_address_info(ai);
 
   } catch (torrent::local_error& e) {
-    if (ai != NULL) rak::address_info::free_address_info(ai);
+    if (ai != NULL)
+      rak::address_info::free_address_info(ai);
 
-    delete scgi;
     throw torrent::input_error(e.what());
   }
 
-  scgi_thread::set_scgi(scgi);
+  scgi_thread::set_scgi(scgi.release());
+
   return torrent::Object();
 }
 

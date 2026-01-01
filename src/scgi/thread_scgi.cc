@@ -40,8 +40,11 @@ ThreadScgi::thread_scgi() {
 
 void
 ThreadScgi::cleanup_thread() {
-  if (m_scgi != nullptr)
-    m_scgi.load()->deactivate();
+  if (m_scgi == nullptr)
+    return;
+
+  delete m_scgi.load();
+  m_scgi = nullptr;
 }
 
 rpc::SCgi*

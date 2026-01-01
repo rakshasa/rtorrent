@@ -20,7 +20,6 @@
 #include "core/manager.h"
 #include "rak/string_manip.h"
 #include "rpc/parse_commands.h"
-#include "rpc/scgi.h"
 #include "session/session_manager.h"
 #include "utils/file_status_cache.h"
 
