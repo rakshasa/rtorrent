@@ -1,6 +1,7 @@
 #include "config.h"
 
 #include <cerrno>
+#include <cstring>
 #include <signal.h>
 #include <stdexcept>
 #include <string>
