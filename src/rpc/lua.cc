@@ -1,5 +1,6 @@
 #include "config.h"
 
+#include <cerrno>
 #include <fstream>
 #include <string>
 #include <sys/stat.h>
@@ -10,7 +11,6 @@
 #include <lua.hpp>
 #endif
 
-#include <rak/error_number.h>
 #include <rak/path.h>
 #include <rak/string_manip.h>
 #include <torrent/object.h>
@@ -417,12 +417,16 @@ execute_lua(LuaEngine* engine, rpc::target_type target_type, torrent::Object con
 }
 
 #else
+
 torrent::Object
-execute_lua(LuaEngine* engine, torrent::Object const& rawArgs, int flags) {
+execute_lua([[maybe_unused]] LuaEngine* engine, [[maybe_unused]] torrent::Object const& rawArgs, [[maybe_unused]] int flags) {
   throw torrent::input_error("Lua support not enabled");
   return torrent::Object();
 }
+
 LuaEngine::LuaEngine() {}
 LuaEngine::~LuaEngine() {}
+
 #endif
+
 } // namespace rpc

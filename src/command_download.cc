@@ -5,7 +5,6 @@
 #include <functional>
 #include <netdb.h>
 #include <unistd.h>
-#include <rak/file_stat.h>
 #include <rak/path.h>
 #include <rak/string_manip.h>
 #include <rak/regex.h>
@@ -21,6 +20,7 @@
 #include <torrent/net/types.h>
 #include <torrent/peer/connection_list.h>
 #include <torrent/peer/peer_list.h>
+#include <torrent/utils/file_stat.h>
 #include <torrent/utils/log.h>
 #include <torrent/utils/option_strings.h>
 
@@ -109,7 +109,7 @@ apply_d_change_link(core::Download* download, const torrent::Object::list_type& 
 
   case 1:
   {
-    rak::file_stat fileStat;
+    torrent::utils::FileStat fileStat;
     errno = 0;
 
     if (!fileStat.update_link(link) || !fileStat.is_link() || unlink(link.c_str()) == -1)

@@ -2,7 +2,6 @@
 
 #include "rpc/scgi_task.h"
 
-#include <rak/error_number.h>
 #include <cstdio>
 #include <vector>
 #include <sys/types.h>
@@ -59,7 +58,7 @@ SCgiTask::event_read() {
   int bytes = ::recv(m_fileDesc, m_position, m_buffer_size - (m_position - m_buffer), 0);
 
   if (bytes <= 0) {
-    if (bytes == 0 || !rak::error_number::current().is_blocked_momentary())
+    if (bytes == 0 || !(errno == EAGAIN || errno == EINTR))
       close();
 
     return;
@@ -194,7 +193,7 @@ SCgiTask::event_write() {
 #endif
 
   if (bytes == -1) {
-    if (!rak::error_number::current().is_blocked_momentary())
+    if (!(errno == EAGAIN || errno == EINTR))
       close();
 
     return;
