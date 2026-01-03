@@ -266,8 +266,10 @@ object_to_lua(lua_State* l_state, torrent::Object const& object) {
     lua_createtable(l_state, 0, static_cast<int>(object_map.size()));
     int table_idx = lua_gettop(l_state);
     for (const auto& itr : object_map) {
-      object_to_lua(l_state, itr.second);
+      // lua_rawset requires the value to be on top of the stack, with the
+      // key below it.
       lua_pushlstring(l_state, itr.first.c_str(), itr.first.size());
+      object_to_lua(l_state, itr.second);
       lua_rawset(l_state, table_idx);
     }
     break;
