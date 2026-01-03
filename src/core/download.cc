@@ -1,7 +1,8 @@
 #include "config.h"
 
+#include "core/download.h"
+
 #include <list>
-#include <rak/file_stat.h>
 #include <rak/path.h>
 #include <torrent/exceptions.h>
 #include <torrent/rate.h>
@@ -9,12 +10,12 @@
 #include <torrent/tracker/tracker.h>
 #include <torrent/data/file.h>
 #include <torrent/data/file_list.h>
+#include <torrent/utils/file_stat.h>
 
 #include "rpc/parse_commands.h"
 
 #include "control.h"
-#include "download.h"
-#include "manager.h"
+#include "core/manager.h"
 
 namespace core {
 
@@ -118,13 +119,14 @@ void
 Download::set_root_directory(const std::string& path) {
   // If the download is open, hashed and has completed chunks make
   // sure to verify that the download files are still present.
-  // 
+  //
   // This should ensure that no one tries to set the destination
   // directory 'after' moving files. In cases where the user wants to
   // override this behavior the download must first be closed or
   // 'd.directory_base.set' may be used.
-  rak::file_stat file_stat;
-  torrent::FileList* file_list = m_download.file_list();
+
+  torrent::utils::FileStat file_stat;
+  torrent::FileList*       file_list = m_download.file_list();
 
   if (is_hash_checked() && file_list->completed_chunks() != 0 &&
 

@@ -2,14 +2,13 @@
 
 #include <functional>
 #include <cstdio>
-#include <rak/error_number.h>
-#include <rak/file_stat.h>
 #include <rak/path.h>
 #include <rak/string_manip.h>
 #include <torrent/rate.h>
 #include <torrent/hash_string.h>
 #include <torrent/utils/log.h>
 #include <torrent/utils/directory_events.h>
+#include <torrent/utils/file_stat.h>
 
 #include "globals.h"
 #include "control.h"
@@ -67,7 +66,7 @@ apply_start_tied() {
     if (rpc::call_command_value("d.state", rpc::make_target(download)) == 1)
       continue;
 
-    rak::file_stat fs;
+    torrent::utils::FileStat fs;
     const std::string& tied_to_file = rpc::call_command_string("d.tied_to_file", rpc::make_target(download));
 
     if (!tied_to_file.empty() && fs.update(rak::path_expand(tied_to_file)))
@@ -83,7 +82,7 @@ apply_stop_untied() {
     if (rpc::call_command_value("d.state", rpc::make_target(download)) == 0)
       continue;
 
-    rak::file_stat fs;
+    torrent::utils::FileStat fs;
     const std::string& tied_to_file = rpc::call_command_string("d.tied_to_file", rpc::make_target(download));
 
     if (!tied_to_file.empty() && !fs.update(rak::path_expand(tied_to_file)))
@@ -96,7 +95,7 @@ apply_stop_untied() {
 torrent::Object
 apply_close_untied() {
   for (const auto& download : *control->core()->download_list()) {
-    rak::file_stat fs;
+    torrent::utils::FileStat fs;
     const std::string& tied_to_file = rpc::call_command_string("d.tied_to_file", rpc::make_target(download));
 
     if (rpc::call_command_value("d.ignore_commands", rpc::make_target(download)) == 0 && !tied_to_file.empty() && !fs.update(rak::path_expand(tied_to_file)))
@@ -109,7 +108,7 @@ apply_close_untied() {
 torrent::Object
 apply_remove_untied() {
   for (auto itr = control->core()->download_list()->begin(); itr != control->core()->download_list()->end(); ) {
-    rak::file_stat fs;
+    torrent::utils::FileStat fs;
     const std::string& tied_to_file = rpc::call_command_string("d.tied_to_file", rpc::make_target(*itr));
 
     if (!tied_to_file.empty() && !fs.update(rak::path_expand(tied_to_file))) {
@@ -301,7 +300,7 @@ directory_watch_added(const torrent::Object::list_type& args) {
   auto& command = args.back().as_string();
 
   if (!control->directory_events()->open())
-    throw torrent::input_error("Could not open inotify:" + std::string(rak::error_number::current().c_str()));
+    throw torrent::input_error("Could not open inotify:" + std::string(std::strerror(errno)));
 
   control->directory_events()->notify_on(path.c_str(),
                                          torrent::directory_events::flag_on_added | torrent::directory_events::flag_on_updated,

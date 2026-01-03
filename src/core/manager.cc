@@ -257,7 +257,7 @@ Manager::try_create_download(const std::string& uri, int flags, const command_li
       !is_network_uri(uri) &&
       !is_magnet_uri(uri) &&
       !is_data_uri(uri) &&
-      !file_status_cache()->insert(uri, 0))
+      !file_status_cache()->insert(uri))
     return;
 
   // Adding download.

@@ -13,7 +13,6 @@
 #include <torrent/net/fd.h>
 #include <torrent/utils/chrono.h>
 #include <torrent/utils/log.h>
-#include <rak/error_number.h>
 
 #ifdef HAVE_BACKTRACE
 #include <execinfo.h>
@@ -564,7 +563,7 @@ handle_sigbus(int signum, siginfo_t* sa, [[maybe_unused]] void* ptr) {
 #else
   output << "Stack dump not enabled." << std::endl;
 #endif
-  output << std::endl << "Error: " << rak::error_number(sa->si_errno).c_str() << std::endl;
+  output << std::endl << "Error: " << std::strerror(sa->si_errno) << std::endl;
 
   const char* signal_reason;
 
