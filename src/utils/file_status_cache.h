@@ -7,8 +7,8 @@
 namespace utils {
 
 struct file_status {
-  int      m_flags;
-  uint32_t m_mtime;
+  int     m_flags;
+  int64_t m_mtime;
 };
 
 class FileStatusCache : public std::map<std::string, file_status> {
@@ -30,8 +30,6 @@ public:
   using base_type::size;
 
   using base_type::erase;
-
-  //  static int flag_
 
   // Insert and return true if the entry does not exist or the new
   // file's mtime is more recent.
