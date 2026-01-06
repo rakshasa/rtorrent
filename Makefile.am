@@ -10,8 +10,6 @@ EXTRA_DIST= \
 	rak/address_info.h \
 	rak/algorithm.h \
 	rak/error_number.h \
-	rak/file_stat.h \
-	rak/path.h \
 	rak/partial_queue.h \
 	rak/regex.h \
 	rak/string_manip.h \

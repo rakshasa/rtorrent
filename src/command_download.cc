@@ -5,7 +5,6 @@
 #include <functional>
 #include <netdb.h>
 #include <unistd.h>
-#include <rak/path.h>
 #include <rak/string_manip.h>
 #include <rak/regex.h>
 #include <torrent/rate.h>
@@ -77,23 +76,23 @@ apply_d_change_link(core::Download* download, const torrent::Object::list_type& 
 
   if (type == "base_path") {
     target = rpc::call_command_string("d.base_path", rpc::make_target(download));
-    link = rak::path_expand(prefix + rpc::call_command_string("d.base_path", rpc::make_target(download)) + postfix);
+    link   = expand_path(prefix + rpc::call_command_string("d.base_path", rpc::make_target(download)) + postfix);
 
   } else if (type == "base_filename") {
     target = rpc::call_command_string("d.base_path", rpc::make_target(download));
-    link = rak::path_expand(prefix + rpc::call_command_string("d.base_filename", rpc::make_target(download)) + postfix);
+    link   = expand_path(prefix + rpc::call_command_string("d.base_filename", rpc::make_target(download)) + postfix);
 
 //   } else if (type == "directory_path") {
 //     target = rpc::call_command_string("d.directory", rpc::make_target(download));
 //     link = rak::path_expand(prefix + rpc::call_command_string("d.base_path", rpc::make_target(download)) + postfix);
 
   } else if (type == "tied") {
-    link = rak::path_expand(rpc::call_command_string("d.tied_to_file", rpc::make_target(download)));
+    link = expand_path(rpc::call_command_string("d.tied_to_file", rpc::make_target(download)));
 
     if (link.empty())
       return torrent::Object();
 
-    link = rak::path_expand(prefix + link + postfix);
+    link = expand_path(prefix + link + postfix);
     target = rpc::call_command_string("d.base_path", rpc::make_target(download));
 
   } else {
@@ -131,7 +130,7 @@ apply_d_delete_tied(core::Download* download) {
   if (tie.empty())
     return torrent::Object();
 
-  if (::unlink(rak::path_expand(tie).c_str()) == -1)
+  if (::unlink(expand_path(tie).c_str()) == -1)
     control->core()->push_log_std("Could not unlink tied file: " + std::string(std::strerror(errno)));
 
   rpc::call_command("d.tied_to_file.set", std::string(), rpc::make_target(download));

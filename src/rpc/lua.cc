@@ -11,7 +11,6 @@
 #include <lua.hpp>
 #endif
 
-#include <rak/path.h>
 #include <rak/string_manip.h>
 #include <torrent/object.h>
 

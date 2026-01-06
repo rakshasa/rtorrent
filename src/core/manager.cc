@@ -1,5 +1,7 @@
 #include "config.h"
 
+#include "core/manager.h"
+
 #include <cstdio>
 #include <cstring>
 #include <fstream>
@@ -8,7 +10,6 @@
 #include <sys/select.h>
 #include <rak/address_info.h>
 #include <rak/regex.h>
-#include <rak/path.h>
 #include <rak/string_manip.h>
 #include <torrent/utils/resume.h>
 #include <torrent/object.h>
@@ -33,7 +34,6 @@
 #include "core/download.h"
 #include "core/download_factory.h"
 #include "core/http_queue.h"
-#include "core/manager.h"
 #include "core/view.h"
 
 namespace core {

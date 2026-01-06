@@ -4,7 +4,6 @@
 #include <cstdio>
 #include <unistd.h>
 #include <rak/address_info.h>
-#include <rak/path.h>
 #include <torrent/torrent.h>
 #include <torrent/rate.h>
 #include <torrent/data/file_manager.h>
@@ -125,7 +124,7 @@ apply_scgi(const std::string& arg, int type) {
 
     case 2:
     default:
-      path = rak::path_expand(arg);
+      path = expand_path(arg);
 
       unlink(path.c_str());
       scgi->open_named(path);

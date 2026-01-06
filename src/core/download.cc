@@ -3,7 +3,6 @@
 #include "core/download.h"
 
 #include <list>
-#include <rak/path.h>
 #include <torrent/exceptions.h>
 #include <torrent/rate.h>
 #include <torrent/torrent.h>
@@ -19,8 +18,8 @@
 
 namespace core {
 
-Download::Download(download_type d) :
-    m_download(d) {
+Download::Download(download_type d)
+  : m_download(d) {
 
   m_download.info()->signal_tracker_success().push_back(std::bind(&Download::receive_tracker_msg, this, ""));
   m_download.info()->signal_tracker_failed().push_back(std::bind(&Download::receive_tracker_msg, this, std::placeholders::_1));
@@ -142,7 +141,7 @@ Download::set_root_directory(const std::string& path) {
   }
 
   control->core()->download_list()->close_directly(this);
-  file_list->set_root_dir(rak::path_expand(path));
+  file_list->set_root_dir(expand_path(path));
 
   bencode()->get_key("rtorrent").insert_key("directory", path);
 }

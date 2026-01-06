@@ -1,54 +1,18 @@
-// rTorrent - BitTorrent client
-// Copyright (C) 2005-2011, Jari Sundell
-//
-// This program is free software; you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation; either version 2 of the License, or
-// (at your option) any later version.
-// 
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-// 
-// You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-//
-// In addition, as a special exception, the copyright holders give
-// permission to link the code of portions of this program with the
-// OpenSSL library under certain conditions as described in each
-// individual source file, and distribute linked combinations
-// including the two.
-//
-// You must obey the GNU General Public License in all respects for
-// all of the code used other than OpenSSL.  If you modify file(s)
-// with this exception, you may extend this exception to your version
-// of the file(s), but you are not obligated to do so.  If you do not
-// wish to do so, delete this exception statement from your version.
-// If you delete this exception statement from all source files in the
-// program, then also delete it here.
-//
-// Contact:  Jari Sundell <sundell.software@gmail.com>
-
-
 #include "config.h"
 
 #include <fstream>
-#include <rak/path.h>
-#include <torrent/peer/peer_list.h>
-#include <torrent/utils/log.h>
-#include <torrent/utils/option_strings.h>
-
-#include "globals.h"
-#include "command_helpers.h"
-
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
+#include <torrent/peer/peer_list.h>
+#include <torrent/utils/log.h>
+#include <torrent/utils/option_strings.h>
+
+#include "globals.h"
+#include "command_helpers.h"
 
 bool ipv4_range_parse(const char* address, uint32_t* address_start, uint32_t* address_end);
 
@@ -89,7 +53,7 @@ apply_ip_tables_get(const torrent::Object::list_type& args) {
   if (table_itr == ip_tables.end())
     throw torrent::input_error("Could not find ip table.");
 
-  if (!ipv4_range_parse(address.c_str(), &address_start, &address_end)) 
+  if (!ipv4_range_parse(address.c_str(), &address_start, &address_end))
     throw torrent::input_error("Invalid address format.");
 
   if(!table_itr->table.defined(address_start, address_end))
@@ -298,7 +262,7 @@ apply_ipv4_filter_get(const std::string& args) {
   uint32_t address_start;
   uint32_t address_end;
 
-  if (!ipv4_range_parse(args.c_str(), &address_start, &address_end)) 
+  if (!ipv4_range_parse(args.c_str(), &address_start, &address_end))
     throw torrent::input_error("Invalid address format.");
 
   if(!torrent::PeerList::ipv4_filter()->defined(address_start, address_end))
@@ -326,8 +290,8 @@ apply_ipv4_filter_load(const torrent::Object::list_type& args) {
   std::string value_name = args.back().as_string();
   int value = torrent::option_find_string(torrent::OPTION_IP_FILTER, value_name.c_str());
 
-  std::fstream file(rak::path_expand(filename).c_str(), std::ios::in);
-  
+  std::fstream file(expand_path(filename).c_str(), std::ios::in);
+
   if (!file.is_open())
     throw torrent::input_error("Could not open ip filter file: " + filename);
 

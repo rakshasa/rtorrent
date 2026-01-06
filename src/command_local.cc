@@ -5,7 +5,6 @@
 #include <functional>
 #include <stdio.h>
 #include <unistd.h>
-#include <rak/path.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <torrent/torrent.h>

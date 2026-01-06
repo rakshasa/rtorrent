@@ -1,45 +1,11 @@
-// rTorrent - BitTorrent client
-// Copyright (C) 2005-2011, Jari Sundell
-//
-// This program is free software; you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation; either version 2 of the License, or
-// (at your option) any later version.
-// 
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-// 
-// You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-//
-// In addition, as a special exception, the copyright holders give
-// permission to link the code of portions of this program with the
-// OpenSSL library under certain conditions as described in each
-// individual source file, and distribute linked combinations
-// including the two.
-//
-// You must obey the GNU General Public License in all respects for
-// all of the code used other than OpenSSL.  If you modify file(s)
-// with this exception, you may extend this exception to your version
-// of the file(s), but you are not obligated to do so.  If you do not
-// wish to do so, delete this exception statement from your version.
-// If you delete this exception statement from all source files in the
-// program, then also delete it here.
-//
-// Contact:  Jari Sundell <sundell.software@gmail.com>
-
-
 #include "config.h"
 
 #include <cstring>
 #include <cstdio>
 #include <locale>
-#include <rak/path.h>
 #include <torrent/exceptions.h>
 
+#include "globals.h"
 #include "parse.h"
 
 namespace rpc {
@@ -90,7 +56,7 @@ parse_string(const char* first, const char* last, std::string* dest, bool (*deli
 
       dest->push_back(*first++);
     }
-  
+
     return first;
   }
 }
@@ -100,7 +66,7 @@ parse_whole_string(const char* first, const char* last, std::string* dest) {
   first = parse_skip_wspace(first, last);
   first = parse_string(first, last, dest);
   first = parse_skip_wspace(first, last);
-   
+
   if (first != last)
     throw torrent::input_error("Junk at end of input.");
 }
@@ -175,7 +141,7 @@ parse_object(const char* first, const char* last, torrent::Object* dest, bool (*
     *dest = torrent::Object::create_list();
     first = parse_list(first + 1, last, dest, &parse_is_delim_block);
     first = parse_skip_wspace(first, last);
-    
+
     if (first == last || *first != '}')
       throw torrent::input_error("Could not find closing '}'.");
 
@@ -238,7 +204,7 @@ parse_list(const char* first, const char* last, torrent::Object* dest, bool (*de
     first = parse_skip_wspace(first, last);
 
     dest->as_list().push_back(tmp);
-    
+
     if (first == last || !parse_is_seperator(*first))
       break;
 
@@ -284,12 +250,12 @@ convert_to_string(const torrent::Object& rawSrc) {
 
     if (src.as_raw_bencode().is_raw_string())
       return src.as_raw_bencode().as_raw_string().as_string();
-    
+
     if (src.as_raw_bencode().is_value())
       return src.as_raw_bencode().as_value_string();
 
   default: throw torrent::input_error("Not a string.");
-  }  
+  }
 }
 
 std::string
@@ -341,9 +307,9 @@ convert_list_to_command(torrent::Object::list_const_iterator first,
   if (first == last)
     throw torrent::input_error("Too few arguments.");
 
-  std::string dest = (first++)->as_string();
-  std::string::size_type quoteItr = dest.find('=');
-  
+  auto dest     = (first++)->as_string();
+  auto quoteItr = dest.find('=');
+
   if (quoteItr == std::string::npos)
     throw torrent::input_error("Could not find '=' in command.");
 
@@ -419,7 +385,7 @@ convert_to_value_nothrow(const torrent::Object& src, int64_t* value, int base, i
   default:
     return false;
   }
-  
+
   return true;
 }
 
@@ -430,20 +396,23 @@ print_object(char* first, char* last, const torrent::Object* src, int flags) {
   {
     const std::string& str = src->as_string();
 
+    if (first == last)
+      return first;
+
     if ((flags & print_expand_tilde) && *str.c_str() == '~') {
-      return rak::path_expand(str.c_str(), first, last);
+      auto expanded = expand_path(str);
 
-    } else {
-      if (first == last)
-        return first;
-
-      size_t n = std::min<size_t>(str.size(), std::distance(first, last) - 1);
-
-      std::memcpy(first, str.c_str(), n);
+      size_t n = std::min<size_t>(expanded.size(), std::distance(first, last) - 1);
+      std::memcpy(first, expanded.c_str(), n);
       *(first += n) = '\0';
 
-      return first;
+    } else {
+      size_t n = std::min<size_t>(str.size(), std::distance(first, last) - 1);
+      std::memcpy(first, str.c_str(), n);
+      *(first += n) = '\0';
     }
+
+    return first;
   }
 
   case torrent::Object::TYPE_VALUE:
@@ -480,7 +449,7 @@ print_object_std(std::string* dest, const torrent::Object* src, int flags) {
     const std::string& str = src->as_string();
 
     if ((flags & print_expand_tilde) && *str.c_str() == '~')
-      *dest += rak::path_expand(str);
+      *dest += expand_path(str);
     else
       *dest += str;
 

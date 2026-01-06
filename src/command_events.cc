@@ -2,7 +2,6 @@
 
 #include <functional>
 #include <cstdio>
-#include <rak/path.h>
 #include <rak/string_manip.h>
 #include <torrent/rate.h>
 #include <torrent/hash_string.h>
@@ -69,7 +68,7 @@ apply_start_tied() {
     torrent::utils::FileStat fs;
     const std::string& tied_to_file = rpc::call_command_string("d.tied_to_file", rpc::make_target(download));
 
-    if (!tied_to_file.empty() && fs.update(rak::path_expand(tied_to_file)))
+    if (!tied_to_file.empty() && fs.update(expand_path(tied_to_file)))
       rpc::parse_command_single(rpc::make_target(download), "d.try_start=");
   }
 
@@ -85,7 +84,7 @@ apply_stop_untied() {
     torrent::utils::FileStat fs;
     const std::string& tied_to_file = rpc::call_command_string("d.tied_to_file", rpc::make_target(download));
 
-    if (!tied_to_file.empty() && !fs.update(rak::path_expand(tied_to_file)))
+    if (!tied_to_file.empty() && !fs.update(expand_path(tied_to_file)))
       rpc::parse_command_single(rpc::make_target(download), "d.try_stop=");
   }
 
@@ -98,7 +97,7 @@ apply_close_untied() {
     torrent::utils::FileStat fs;
     const std::string& tied_to_file = rpc::call_command_string("d.tied_to_file", rpc::make_target(download));
 
-    if (rpc::call_command_value("d.ignore_commands", rpc::make_target(download)) == 0 && !tied_to_file.empty() && !fs.update(rak::path_expand(tied_to_file)))
+    if (rpc::call_command_value("d.ignore_commands", rpc::make_target(download)) == 0 && !tied_to_file.empty() && !fs.update(expand_path(tied_to_file)))
       rpc::parse_command_single(rpc::make_target(download), "d.try_close=");
   }
 
@@ -111,7 +110,7 @@ apply_remove_untied() {
     torrent::utils::FileStat fs;
     const std::string& tied_to_file = rpc::call_command_string("d.tied_to_file", rpc::make_target(*itr));
 
-    if (!tied_to_file.empty() && !fs.update(rak::path_expand(tied_to_file))) {
+    if (!tied_to_file.empty() && !fs.update(expand_path(tied_to_file))) {
       // Need to clear tied_to_file so it doesn't try to delete it.
       rpc::call_command("d.tied_to_file.set", std::string(), rpc::make_target(*itr));
 
