@@ -8,8 +8,9 @@
 class Control;
 
 extern rpc::ip_table_list ip_tables;
+extern Control*           control;
 
-extern Control*      control;
+std::string expand_path(const std::string& path);
 
 namespace rpc {
 class SCgi;

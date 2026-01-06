@@ -3,6 +3,7 @@
 #include "session/session_manager.h"
 
 #include <cassert>
+#include <cstdlib>
 #include <torrent/exceptions.h>
 #include <torrent/utils/log.h>
 
@@ -23,11 +24,13 @@ SessionManager::SessionManager(torrent::utils::Thread* thread)
 SessionManager::~SessionManager() = default;
 
 void
-SessionManager::set_path(const std::string& path) {
+SessionManager::set_path(std::string path) {
   assert(torrent::this_thread::thread() == torrent::main_thread::thread());
 
   if (m_freeze_info)
     throw torrent::input_error("Session path cannot be changed after startup.");
+
+  path = expand_path(path);
 
   if (path.empty() || path.back() == '/')
     m_path = path;

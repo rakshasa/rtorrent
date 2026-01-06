@@ -50,7 +50,7 @@ public:
   bool                is_used() const;
 
   std::string         path() const;
-  void                set_path(const std::string& path);
+  void                set_path(std::string path);
 
   bool                use_fsyncdisk() const;
   void                set_use_fsyncdisk(bool use_fsyncdisk);
