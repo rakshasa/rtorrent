@@ -4,10 +4,10 @@
 
 #include <fcntl.h>
 #include <unistd.h>
-#include <rak/path.h>
 #include <torrent/exceptions.h>
 #include <torrent/utils/log.h>
 
+#include "globals.h"
 #include "rpc/scgi.h"
 
 namespace scgi {
@@ -90,7 +90,7 @@ ThreadScgi::change_rpc_log() {
   if (m_rpc_log_filename.empty())
     return;
 
-  scgi()->set_log_fd(open(rak::path_expand(m_rpc_log_filename).c_str(), O_WRONLY | O_APPEND | O_CREAT, 0644));
+  scgi()->set_log_fd(open(expand_path(m_rpc_log_filename).c_str(), O_WRONLY | O_APPEND | O_CREAT, 0644));
 
   if (scgi()->log_fd() == -1) {
     lt_log_print(torrent::LOG_NOTICE, "Could not open RPC log file '%s'.", m_rpc_log_filename.c_str());

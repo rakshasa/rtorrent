@@ -1,6 +1,5 @@
 #include "config.h"
 
-#include <rak/path.h>
 #include <torrent/data/file.h>
 #include <torrent/data/file_list.h>
 #include <torrent/data/file_list_iterator.h>

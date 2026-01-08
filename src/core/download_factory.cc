@@ -7,7 +7,6 @@
 #include <functional>
 #include <sstream>
 #include <stdexcept>
-#include <rak/path.h>
 #include <torrent/utils/log.h>
 #include <torrent/utils/resume.h>
 #include <torrent/object.h>
@@ -123,7 +122,7 @@ DownloadFactory::receive_load() {
     receive_loaded();
 
   } else {
-    std::fstream stream(rak::path_expand(m_uri).c_str(), std::ios::in | std::ios::binary);
+    std::fstream stream(expand_path(m_uri).c_str(), std::ios::in | std::ios::binary);
 
     if (!stream.is_open())
       return receive_failed("Could not open file");
@@ -158,8 +157,8 @@ DownloadFactory::receive_commit() {
 
 void
 DownloadFactory::receive_success() {
-  auto rtorrent_object = download_factory_load_stream((rak::path_expand(m_uri) + ".rtorrent").c_str());
-  auto libtorrent_resume_object = download_factory_load_stream((rak::path_expand(m_uri) + ".libtorrent_resume").c_str());
+  auto rtorrent_object          = download_factory_load_stream((expand_path(m_uri) + ".rtorrent").c_str());
+  auto libtorrent_resume_object = download_factory_load_stream((expand_path(m_uri) + ".libtorrent_resume").c_str());
 
   uint32_t tracker_key;
 

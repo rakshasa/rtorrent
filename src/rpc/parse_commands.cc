@@ -4,9 +4,9 @@
 #include <fstream>
 #include <string>
 #include <functional>
-#include <rak/path.h>
 #include <torrent/exceptions.h>
 
+#include "globals.h"
 #include "rpc/parse.h"
 #include "rpc/parse_commands.h"
 #include "rpc/rpc_manager.h"
@@ -140,7 +140,7 @@ parse_command_multiple(target_type target, const char* first, const char* last) 
 
 bool
 parse_command_file(const std::string& path) {
-  std::fstream file(rak::path_expand(path).c_str(), std::ios::in);
+  std::fstream file(expand_path(path).c_str(), std::ios::in);
 
   if (!file.is_open())
     return false;

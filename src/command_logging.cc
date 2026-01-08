@@ -14,7 +14,6 @@
 #include "core/download.h"
 #include "core/download_list.h"
 #include "core/manager.h"
-#include "rak/path.h"
 #include "rpc/parse_commands.h"
 
 static const int log_flag_use_gz = 0x1;
@@ -34,8 +33,8 @@ apply_log_open(int output_flags, const torrent::Object::list_type& args) {
 
   torrent::Object::list_const_iterator itr = args.begin();
 
-  std::string output_id = (itr++)->as_string();
-  std::string file_name = rak::path_expand((itr++)->as_string());
+  auto output_id = (itr++)->as_string();
+  auto file_name = expand_path((itr++)->as_string());
 
   if ((output_flags & log_flag_append_pid)) {
     char buffer[32];
@@ -85,7 +84,7 @@ apply_log(const torrent::Object::string_type& arg, int logType) {
   }
 
   if (!arg.empty()) {
-    int logFd = open(rak::path_expand(arg).c_str(), O_WRONLY | O_APPEND | O_CREAT, 0644);
+    int logFd = open(expand_path(arg).c_str(), O_WRONLY | O_APPEND | O_CREAT, 0644);
 
     if (logFd < 0)
       throw torrent::input_error("Could not open execute log file.");

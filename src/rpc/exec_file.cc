@@ -5,7 +5,6 @@
 #include <fcntl.h>
 #include <string>
 #include <unistd.h>
-#include <rak/path.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <torrent/utils/thread.h>
