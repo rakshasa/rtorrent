@@ -6,8 +6,8 @@
 #include <sstream>
 #include <torrent/object.h>
 #include <torrent/object_stream.h>
-#include <torrent/net/network_manager.h>
 #include <torrent/rate.h>
+#include <torrent/runtime/network_manager.h>
 #include <torrent/tracker/dht_controller.h>
 #include <torrent/utils/log.h>
 

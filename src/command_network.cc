@@ -10,7 +10,6 @@
 #include <torrent/download/resource_manager.h>
 #include <torrent/net/http_stack.h>
 #include <torrent/net/network_config.h>
-#include <torrent/net/network_manager.h>
 #include <torrent/net/socket_address.h>
 #include <torrent/tracker/tracker.h>
 #include <torrent/utils/log.h>
@@ -167,7 +166,6 @@ initialize_command_network() {
   auto file_manager = torrent::file_manager();
   auto http_stack = torrent::net_thread::http_stack();
   auto nw_config = torrent::config::network_config();
-  auto nw_manager = torrent::runtime::network_manager();
 
   CMD2_ANY_STRING  ("encoding.add", std::bind(&apply_encoding_list, std::placeholders::_2));
 
@@ -176,12 +174,12 @@ initialize_command_network() {
   CMD2_VAR_BOOL    ("network.port_random", true);
   CMD2_VAR_STRING  ("network.port_range",  "6881-6999");
 
-  CMD2_ANY         ("network.listen.port",        [nw_manager](auto, auto)       { return nw_manager->listen_port(); });
+  CMD2_ANY         ("network.listen.port",        [](auto, auto)                 { return torrent::runtime::listen_port(); });
   CMD2_ANY         ("network.listen.backlog",     [nw_config](auto, auto)        { return nw_config->listen_backlog(); });
   CMD2_ANY_VALUE_V ("network.listen.backlog.set", [nw_config](auto, auto& value) { return nw_config->set_listen_backlog(value); });
 
   CMD2_VAR_BOOL    ("protocol.pex",               true);
-  CMD2_ANY_LIST    ("protocol.encryption.set",    [](auto, auto& args)            { return apply_encryption(args); });
+  CMD2_ANY_LIST    ("protocol.encryption.set",    [](auto, auto& args)           { return apply_encryption(args); });
 
   CMD2_VAR_STRING  ("protocol.connection.leech",            "leech");
   CMD2_VAR_STRING  ("protocol.connection.seed",             "seed");

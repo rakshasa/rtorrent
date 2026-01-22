@@ -4,8 +4,8 @@
 #include <cstdio>
 #include <netdb.h>
 #include <torrent/net/network_config.h>
-#include <torrent/net/network_manager.h>
 #include <torrent/net/resolver.h>
+#include <torrent/runtime/network_manager.h>
 #include <torrent/tracker/dht_controller.h>
 #include <torrent/tracker/tracker.h>
 #include <torrent/utils/log.h>
