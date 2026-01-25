@@ -27,6 +27,7 @@ SCgiTask::open(SCgi* parent, int fd) {
   m_fileDesc    = fd;
 
   m_buffer.reset(new char[default_buffer_size + 1]);
+
   m_buffer_size = default_buffer_size;
   m_position    = m_buffer.get();
   m_body        = nullptr;

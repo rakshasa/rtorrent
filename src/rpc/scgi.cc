@@ -9,7 +9,6 @@
 #include <torrent/net/fd.h>
 #include <torrent/net/poll.h>
 #include <torrent/net/socket_address.h>
-#include <torrent/runtime/socket_manager.h>
 
 #include "control.h"
 #include "globals.h"
