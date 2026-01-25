@@ -44,6 +44,7 @@ SCgiTask::close() {
 
   torrent::this_thread::poll()->remove_and_close(this);
 
+  // TODO: Deprecate this... and search both for it.
   get_fd().close();
   get_fd().clear();
 

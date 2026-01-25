@@ -1,6 +1,7 @@
 #include "config.h"
 
 #include <cassert>
+#include <unistd.h>
 #include <sys/un.h>
 #include <torrent/connection_manager.h>
 #include <torrent/torrent.h>
@@ -8,11 +9,11 @@
 #include <torrent/net/fd.h>
 #include <torrent/net/poll.h>
 #include <torrent/net/socket_address.h>
+#include <torrent/runtime/socket_manager.h>
 
 #include "control.h"
 #include "globals.h"
 #include "rpc/scgi_task.h"
-#include "utils/socket_fd.h"
 
 // TODO: Figure out why moving this to the top causes a build error.
 #include "rpc/scgi.h"
@@ -20,30 +21,48 @@
 namespace rpc {
 
 SCgi::~SCgi() {
-  if (!get_fd().is_valid())
+  if (!is_open())
     return;
 
   for (SCgiTask* itr = m_task, *last = m_task + max_tasks; itr != last; ++itr)
     if (itr->is_open())
       itr->close();
 
-  deactivate();
-  torrent::connection_manager()->dec_socket_count();
+  torrent::runtime::socket_manager()->close_event_or_throw(this, [this]() {
+      torrent::this_thread::poll()->remove_and_close(this);
 
-  get_fd().close();
-  get_fd().clear();
+      deactivate();
+
+      torrent::fd_close(file_descriptor());
+      set_file_descriptor(-1);
+    });
+
+  torrent::connection_manager()->dec_socket_count();
 
   if (!m_path.empty())
     ::unlink(m_path.c_str());
 }
 
 void
-SCgi::open_port(void* sa, unsigned int length, bool dontRoute) {
-  if (!get_fd().open_stream() ||
-      (dontRoute && !get_fd().set_dont_route(true)))
-    throw torrent::resource_error("Could not open socket for listening: " + std::string(std::strerror(errno)));
+SCgi::open_port(sockaddr* sa, unsigned int length, bool dont_route) {
+  torrent::runtime::socket_manager()->open_event_or_throw(this, [&]() {
+      int fd = torrent::fd_open_family(torrent::fd_flag_stream | torrent::fd_flag_nonblock | torrent::fd_flag_reuse_address,
+                                       reinterpret_cast<sockaddr*>(sa)->sa_family);
 
-  open(sa, length);
+      if (fd == -1)
+        throw torrent::resource_error("Could not open socket for listening: " + std::string(std::strerror(errno)));
+
+      if (dont_route && !torrent::fd_set_dont_route(fd, true)) {
+        torrent::fd_close(fd);
+        throw torrent::resource_error("Could not set socket option IP_DONTROUTE: " + std::string(std::strerror(errno)));
+      }
+
+      set_file_descriptor(fd);
+
+      open(reinterpret_cast<sockaddr*>(sa), length);
+    });
+
+  torrent::connection_manager()->inc_socket_count();
 }
 
 void
@@ -62,27 +81,37 @@ SCgi::open_named(const std::string& filename) {
 
   std::memcpy(sa->sun_path, filename.c_str(), filename.size() + 1);
 
-  if (!get_fd().open_local())
-    throw torrent::resource_error("Could not open socket for listening.");
+  torrent::runtime::socket_manager()->open_event_or_throw(this, [&]() {
+      int fd = ::socket(sa->sun_family, SOCK_STREAM, 0);
 
-  open(sa, offsetof(struct sockaddr_un, sun_path) + filename.size() + 1);
+      if (fd == -1)
+        throw torrent::resource_error("Could not open socket for listening: " + std::string(std::strerror(errno)));
+
+      if (!torrent::fd_set_nonblock(fd)) {
+        torrent::fd_close(fd);
+        throw torrent::resource_error("Could not set socket non-blocking: " + std::string(std::strerror(errno)));
+      }
+
+      open(reinterpret_cast<sockaddr*>(sa), offsetof(struct sockaddr_un, sun_path) + filename.size() + 1);
+    });
+
+  torrent::connection_manager()->inc_socket_count();
+
   m_path = filename;
 }
 
 void
-SCgi::open(void* sa, unsigned int length) {
+SCgi::open(sockaddr* sa, unsigned int length) {
   try {
-    if (!get_fd().set_nonblock() ||
-        !get_fd().set_reuse_address(true) ||
-        !get_fd().bind_sa(reinterpret_cast<sockaddr*>(sa), length) ||
-        !get_fd().listen(max_tasks))
+    if (::bind(file_descriptor(), sa, length) == -1)
+      throw torrent::resource_error("Could not bind socket for listening: " + std::string(std::strerror(errno)));
+
+    if (!torrent::fd_listen(file_descriptor(), max_tasks))
       throw torrent::resource_error("Could not prepare socket for listening: " + std::string(std::strerror(errno)));
 
-    torrent::connection_manager()->inc_socket_count();
-
   } catch (torrent::resource_error& e) {
-    get_fd().close();
-    get_fd().clear();
+    torrent::fd_close(file_descriptor());
+    set_file_descriptor(-1);
 
     throw e;
   }
@@ -99,6 +128,7 @@ SCgi::activate() {
   torrent::this_thread::poll()->insert_error(this);
 }
 
+// TODO: This should close the fd to avoid reuse.
 void
 SCgi::deactivate() {
   assert(torrent::this_thread::thread() == scgi_thread::thread());
@@ -109,7 +139,7 @@ SCgi::deactivate() {
 void
 SCgi::event_read() {
   while (true) {
-    int fd = torrent::fd_accept(get_fd().get_fd());
+    int fd = torrent::fd_accept(file_descriptor());
 
     if (fd == -1) {
       if (errno == EAGAIN || errno == EWOULDBLOCK)

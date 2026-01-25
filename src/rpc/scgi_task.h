@@ -5,10 +5,6 @@
 #include <mutex>
 #include <torrent/event.h>
 
-namespace utils {
-  class SocketFd;
-}
-
 namespace rpc {
 
 class SCgi;
@@ -36,8 +32,6 @@ public:
   void                event_read() override;
   void                event_write() override;
   void                event_error() override;
-
-  utils::SocketFd&    get_fd()             { return *reinterpret_cast<utils::SocketFd*>(&m_fileDesc); }
 
 private:
   bool                detect_content_type(const std::string& content_type);
