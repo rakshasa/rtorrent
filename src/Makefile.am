@@ -172,8 +172,6 @@ libsub_root_a_SOURCES = \
 	utils/list_focus.h \
 	utils/lockfile.cc \
 	utils/lockfile.h \
-	utils/socket_fd.cc \
-	utils/socket_fd.h \
 	\
 	command_download.cc \
 	command_dynamic.cc \
