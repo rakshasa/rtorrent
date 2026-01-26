@@ -20,24 +20,7 @@
 namespace rpc {
 
 SCgi::~SCgi() {
-  if (!is_open())
-    return;
-
-  for (SCgiTask* itr = m_task, *last = m_task + max_tasks; itr != last; ++itr)
-    if (itr->is_open())
-      itr->close();
-
-  torrent::this_thread::poll()->remove_and_close(this);
-
-  deactivate();
-
-  torrent::fd_close(file_descriptor());
-  set_file_descriptor(-1);
-
-  torrent::connection_manager()->dec_socket_count();
-
-  if (!m_path.empty())
-    ::unlink(m_path.c_str());
+  assert(!is_open() && "SCgi::~SCgi() called while open");
 }
 
 void
@@ -100,8 +83,6 @@ SCgi::open(sockaddr* sa, unsigned int length) {
   }
 }
 
-// TODO: Verify this is run in correct thread, also only ever call poll methods from thread_self.
-
 void
 SCgi::activate() {
   assert(torrent::this_thread::thread() == scgi_thread::thread());
@@ -111,12 +92,26 @@ SCgi::activate() {
   torrent::this_thread::poll()->insert_error(this);
 }
 
-// TODO: This should close the fd to avoid reuse.
 void
-SCgi::deactivate() {
+SCgi::stop() {
   assert(torrent::this_thread::thread() == scgi_thread::thread());
 
+  if (!is_open())
+    return;
+
+  for (SCgiTask* itr = m_task, *last = m_task + max_tasks; itr != last; ++itr)
+    if (itr->is_open())
+      itr->close();
+
   torrent::this_thread::poll()->remove_and_close(this);
+
+  torrent::fd_close(file_descriptor());
+  set_file_descriptor(-1);
+
+  torrent::connection_manager()->dec_socket_count();
+
+  if (!m_path.empty())
+    ::unlink(m_path.c_str());
 }
 
 void
