@@ -5,7 +5,7 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <torrent/net/http_stack.h>
-#include <torrent/net/network_manager.h>
+#include <torrent/runtime/network_manager.h>
 #include <torrent/utils/directory_events.h>
 
 #include "core/dht_manager.h"
