@@ -5,11 +5,6 @@
 #include <torrent/event.h>
 
 #include "rpc/scgi_task.h"
-#include "utils/socket_fd.h"
-
-namespace utils {
-  class SocketFd;
-}
 
 namespace rpc {
 
@@ -21,11 +16,12 @@ public:
 
   const char*         type_name() const override { return "scgi"; }
 
-  void                open_port(void* sa, unsigned int length, bool dontRoute);
+  void                open_port(sockaddr* sa, unsigned int length, bool dont_route);
   void                open_named(const std::string& filename);
 
   void                activate();
-  void                deactivate();
+
+  void                stop();
 
   const std::string&  path() const { return m_path; }
 
@@ -36,10 +32,8 @@ public:
   void                event_write() override;
   void                event_error() override;
 
-  utils::SocketFd&    get_fd()            { return *reinterpret_cast<utils::SocketFd*>(&m_fileDesc); }
-
 private:
-  void                open(void* sa, unsigned int length);
+  void                open(sockaddr* sa, unsigned int length);
 
   std::string         m_path;
   int                 m_logFd{-1};

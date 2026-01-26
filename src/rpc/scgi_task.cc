@@ -3,11 +3,13 @@
 #include "rpc/scgi_task.h"
 
 #include <cstdio>
+#include <unistd.h>
 #include <vector>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <torrent/exceptions.h>
 #include <torrent/torrent.h>
+#include <torrent/net/fd.h>
 #include <torrent/net/poll.h>
 #include <torrent/utils/log.h>
 #include <torrent/utils/thread.h>
@@ -16,7 +18,6 @@
 #include "globals.h"
 #include "scgi.h"
 #include "rpc/parse_commands.h"
-#include "utils/socket_fd.h"
 
 namespace rpc {
 
@@ -24,10 +25,12 @@ void
 SCgiTask::open(SCgi* parent, int fd) {
   m_parent      = parent;
   m_fileDesc    = fd;
-  m_buffer      = new char[default_buffer_size + 1];
+
+  m_buffer.reset(new char[default_buffer_size + 1]);
+
   m_buffer_size = default_buffer_size;
-  m_position    = m_buffer;
-  m_body        = NULL;
+  m_position    = m_buffer.get();
+  m_body        = nullptr;
 
   torrent::this_thread::poll()->open(this);
   torrent::this_thread::poll()->insert_read(this);
@@ -36,7 +39,7 @@ SCgiTask::open(SCgi* parent, int fd) {
 
 void
 SCgiTask::close() {
-  if (!get_fd().is_valid())
+  if (!is_open())
     return;
 
   torrent::main_thread::thread()->cancel_callback_and_wait(this);
@@ -44,18 +47,17 @@ SCgiTask::close() {
 
   torrent::this_thread::poll()->remove_and_close(this);
 
-  get_fd().close();
-  get_fd().clear();
+  torrent::fd_close(file_descriptor());
+  set_file_descriptor(-1);
 
   auto lock = std::lock_guard<std::mutex>(m_result_mutex);
 
-  delete[] m_buffer;
-  m_buffer = NULL;
+  m_buffer = nullptr;
 }
 
 void
 SCgiTask::event_read() {
-  int bytes = ::recv(m_fileDesc, m_position, m_buffer_size - (m_position - m_buffer), 0);
+  int bytes = ::recv(m_fileDesc, m_position, m_buffer_size - (m_position - m_buffer.get()), 0);
 
   if (bytes <= 0) {
     if (bytes == 0 || !(errno == EAGAIN || errno == EINTR))
@@ -73,14 +75,14 @@ SCgiTask::event_read() {
     // receive all the data we need the first time.
     char* current;
 
-    int   header_size = strtol(m_buffer, &current, 0);
+    int   header_size = strtol(m_buffer.get(), &current, 0);
 
     if (current == m_position)
       return;
 
     // If the request doesn't start with an integer or if it didn't
     // end in ':', then close the connection.
-    if (current == m_buffer || *current != ':' || header_size < 17 || header_size > max_header_size)
+    if (current == m_buffer.get() || *current != ':' || header_size < 17 || header_size > max_header_size)
       goto event_read_failed;
 
     if (std::distance(++current, m_position) < header_size + 1)
@@ -135,7 +137,7 @@ SCgiTask::event_read() {
       goto event_read_failed;
 
     m_body      = current + 1;
-    header_size = std::distance(m_buffer, m_body);
+    header_size = std::distance(m_buffer.get(), m_body);
 
     if (!detect_content_type(content_type))
       goto event_read_failed;
@@ -146,19 +148,19 @@ SCgiTask::event_read() {
     } else if ((unsigned int)content_length <= default_buffer_size) {
       m_buffer_size = content_length;
 
-      std::memmove(m_buffer, m_body, std::distance(m_body, m_position));
-      m_position = m_buffer + std::distance(m_body, m_position);
-      m_body     = m_buffer;
+      std::memmove(m_buffer.get(), m_body, std::distance(m_body, m_position));
+      m_position = m_buffer.get() + std::distance(m_body, m_position);
+      m_body     = m_buffer.get();
 
     } else {
       realloc_buffer((m_buffer_size = content_length) + 1, m_body, std::distance(m_body, m_position));
 
-      m_position = m_buffer + std::distance(m_body, m_position);
-      m_body     = m_buffer;
+      m_position = m_buffer.get() + std::distance(m_body, m_position);
+      m_body     = m_buffer.get();
     }
   }
 
-  if ((unsigned int)std::distance(m_buffer, m_position) != m_buffer_size)
+  if ((unsigned int)std::distance(m_buffer.get(), m_position) != m_buffer_size)
     return;
 
   torrent::this_thread::poll()->remove_read(this);
@@ -168,13 +170,13 @@ SCgiTask::event_read() {
 
     // Clean up logging, this is just plain ugly...
     //    write(m_logFd, "\n---\n", sizeof("\n---\n"));
-    result = write(m_parent->log_fd(), m_buffer, m_buffer_size);
-    result = write(m_parent->log_fd(), "\n---\n", sizeof("\n---\n"));
+    result = ::write(m_parent->log_fd(), m_buffer.get(), m_buffer_size);
+    result = ::write(m_parent->log_fd(), "\n---\n", sizeof("\n---\n"));
   }
 
-  lt_log_print_dump(torrent::LOG_RPC_DUMP, m_body, m_buffer_size - std::distance(m_buffer, m_body), "scgi", "RPC read.", 0);
+  lt_log_print_dump(torrent::LOG_RPC_DUMP, m_body, m_buffer_size - std::distance(m_buffer.get(), m_body), "scgi", "RPC read.", 0);
 
-  receive_call(m_body, m_buffer_size - std::distance(m_buffer, m_body));
+  receive_call(m_body, m_buffer_size - std::distance(m_buffer.get(), m_body));
   return;
 
 event_read_failed:
@@ -184,13 +186,7 @@ event_read_failed:
 
 void
 SCgiTask::event_write() {
-// Apple and Solaris do not support MSG_NOSIGNAL,
-// so disable this fix until we find a better solution
-#if defined(__APPLE__) || defined(__sun__)
-  int bytes = ::send(m_fileDesc, m_position, m_buffer_size, 0);
-#else
   int bytes = ::send(m_fileDesc, m_position, m_buffer_size, MSG_NOSIGNAL);
-#endif
 
   if (bytes == -1) {
     if (!(errno == EAGAIN || errno == EINTR))
@@ -248,11 +244,11 @@ SCgiTask::detect_content_type(const std::string& content_type) {
 // If bufferSize is zero then memcpy won't do anything.
 void
 SCgiTask::realloc_buffer(uint32_t size, const char* buffer, uint32_t bufferSize) {
-  char* tmp = new char[size];
+  auto tmp = new char[size];
 
   std::memcpy(tmp, buffer, bufferSize);
-  ::free(m_buffer);
-  m_buffer = tmp;
+
+  m_buffer.reset(tmp);
 }
 
 void
@@ -317,20 +313,20 @@ SCgiTask::receive_write(const char* buffer, uint32_t length) {
                         : "Status: 200 OK\r\nContent-Type: text/xml\r\nContent-Length: %i\r\n\r\n";
 
   // Who ever bothers to check the return value?
-  int headerSize = snprintf(m_buffer, m_buffer_size, header, length);
+  int headerSize = snprintf(m_buffer.get(), m_buffer_size, header, length);
 
-  m_position   = m_buffer;
+  m_position    = m_buffer.get();
   m_buffer_size = length + headerSize;
 
-  std::memcpy(m_buffer + headerSize, buffer, length);
+  std::memcpy(m_buffer.get() + headerSize, buffer, length);
 
   if (m_parent->log_fd() >= 0) {
     [[maybe_unused]] int result;
-    result = write(m_parent->log_fd(), m_buffer, m_buffer_size);
+    result = write(m_parent->log_fd(), m_buffer.get(), m_buffer_size);
     result = write(m_parent->log_fd(), "\n---\n", sizeof("\n---\n"));
   }
 
-  lt_log_print_dump(torrent::LOG_RPC_DUMP, m_buffer, m_buffer_size, "scgi", "RPC write.", 0);
+  lt_log_print_dump(torrent::LOG_RPC_DUMP, m_buffer.get(), m_buffer_size, "scgi", "RPC write.", 0);
 }
 
 } // namespace rpc
