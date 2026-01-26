@@ -20,8 +20,8 @@
 #include <torrent/throttle.h>
 #include <torrent/net/http_stack.h>
 #include <torrent/net/network_config.h>
-#include <torrent/net/network_manager.h>
 #include <torrent/net/socket_address.h>
+#include <torrent/runtime/network_manager.h>
 #include <torrent/utils/log.h>
 
 #include "rpc/parse_commands.h"
