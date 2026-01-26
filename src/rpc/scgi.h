@@ -20,7 +20,8 @@ public:
   void                open_named(const std::string& filename);
 
   void                activate();
-  void                deactivate();
+
+  void                stop();
 
   const std::string&  path() const { return m_path; }
 

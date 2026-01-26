@@ -40,13 +40,13 @@ private:
   void                receive_call(const char* buffer, uint32_t length);
   void                receive_write(const char* buffer, uint32_t length);
 
-  SCgi*               m_parent;
+  SCgi*               m_parent{};
 
   std::mutex          m_result_mutex;
 
-  char*               m_buffer{nullptr};
-  char*               m_position{nullptr};
-  char*               m_body{nullptr};
+  std::unique_ptr<char[]> m_buffer;
+  char*                   m_position{};
+  char*                   m_body{};
 
   unsigned int        m_buffer_size{0};
 

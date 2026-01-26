@@ -41,13 +41,15 @@ ThreadScgi::thread_scgi() {
 void
 ThreadScgi::cleanup_thread() {
   if (m_scgi != nullptr)
-    m_scgi.load()->deactivate();
+    m_scgi.load()->stop();
 }
 
 rpc::SCgi*
 ThreadScgi::scgi() {
   return m_scgi;
 }
+
+// TODO: Disable changing SCGI once set?
 
 bool
 ThreadScgi::set_scgi(rpc::SCgi* scgi) {
@@ -59,7 +61,7 @@ ThreadScgi::set_scgi(rpc::SCgi* scgi) {
   change_rpc_log();
 
   callback(nullptr, [this]() {
-      if (m_scgi == NULL)
+      if (m_scgi == nullptr)
         throw torrent::internal_error("Tried to start SCGI but object was not present.");
 
       m_scgi.load()->activate();
@@ -78,7 +80,7 @@ ThreadScgi::set_rpc_log(const std::string& filename) {
 
 void
 ThreadScgi::change_rpc_log() {
-  if (scgi() == NULL)
+  if (scgi() == nullptr)
     return;
 
   if (scgi()->log_fd() != -1) {

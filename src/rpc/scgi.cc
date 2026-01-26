@@ -21,26 +21,7 @@
 namespace rpc {
 
 SCgi::~SCgi() {
-  if (!is_open())
-    return;
-
-  for (SCgiTask* itr = m_task, *last = m_task + max_tasks; itr != last; ++itr)
-    if (itr->is_open())
-      itr->close();
-
-  torrent::runtime::socket_manager()->close_event_or_throw(this, [this]() {
-      torrent::this_thread::poll()->remove_and_close(this);
-
-      deactivate();
-
-      torrent::fd_close(file_descriptor());
-      set_file_descriptor(-1);
-    });
-
-  torrent::connection_manager()->dec_socket_count();
-
-  if (!m_path.empty())
-    ::unlink(m_path.c_str());
+  assert(!is_open() && "SCgi::~SCgi() called while open");
 }
 
 void
@@ -70,30 +51,19 @@ SCgi::open_named(const std::string& filename) {
   if (filename.empty() || filename.size() > 4096)
     throw torrent::resource_error("Invalid filename length.");
 
-  auto buffer = std::make_unique<char[]>(sizeof(sockaddr_un) + filename.size());
+  auto buffer = std::make_unique<char[]>(sizeof(sockaddr_un) + filename.size() + 1);
+
   sockaddr_un* sa = reinterpret_cast<sockaddr_un*>(buffer.get());
-
-#ifdef __sun__
-  sa->sun_family = AF_UNIX;
-#else
   sa->sun_family = AF_LOCAL;
-#endif
-
   std::memcpy(sa->sun_path, filename.c_str(), filename.size() + 1);
 
-  torrent::runtime::socket_manager()->open_event_or_throw(this, [&]() {
-      int fd = ::socket(sa->sun_family, SOCK_STREAM, 0);
+  int fd = torrent::fd_open_local(torrent::fd_flag_stream | torrent::fd_flag_nonblock | torrent::fd_flag_reuse_address);
 
-      if (fd == -1)
-        throw torrent::resource_error("Could not open socket for listening: " + std::string(std::strerror(errno)));
+  if (fd == -1)
+    throw torrent::resource_error("Could not open socket for listening: " + std::string(std::strerror(errno)));
 
-      if (!torrent::fd_set_nonblock(fd)) {
-        torrent::fd_close(fd);
-        throw torrent::resource_error("Could not set socket non-blocking: " + std::string(std::strerror(errno)));
-      }
-
-      open(reinterpret_cast<sockaddr*>(sa), offsetof(struct sockaddr_un, sun_path) + filename.size() + 1);
-    });
+  set_file_descriptor(fd);
+  open(reinterpret_cast<sockaddr*>(sa), offsetof(struct sockaddr_un, sun_path) + filename.size() + 1);
 
   torrent::connection_manager()->inc_socket_count();
 
@@ -117,8 +87,6 @@ SCgi::open(sockaddr* sa, unsigned int length) {
   }
 }
 
-// TODO: Verify this is run in correct thread, also only ever call poll methods from thread_self.
-
 void
 SCgi::activate() {
   assert(torrent::this_thread::thread() == scgi_thread::thread());
@@ -130,10 +98,25 @@ SCgi::activate() {
 
 // TODO: This should close the fd to avoid reuse.
 void
-SCgi::deactivate() {
+SCgi::stop() {
   assert(torrent::this_thread::thread() == scgi_thread::thread());
 
+  if (!is_open())
+    return;
+
+  for (SCgiTask* itr = m_task, *last = m_task + max_tasks; itr != last; ++itr)
+    if (itr->is_open())
+      itr->close();
+
   torrent::this_thread::poll()->remove_and_close(this);
+
+  torrent::fd_close(file_descriptor());
+  set_file_descriptor(-1);
+
+  torrent::connection_manager()->dec_socket_count();
+
+  if (!m_path.empty())
+    ::unlink(m_path.c_str());
 }
 
 void
