@@ -86,6 +86,7 @@ ThreadScgi::change_rpc_log() {
   if (scgi()->log_fd() != -1) {
     ::close(scgi()->log_fd());
     scgi()->set_log_fd(-1);
+
     lt_log_print(torrent::LOG_NOTICE, "Closed RPC log.", 0);
   }
 

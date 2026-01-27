@@ -28,7 +28,7 @@ void
 SCgi::open_port(sockaddr* sa, unsigned int length, bool dont_route) {
   torrent::runtime::socket_manager()->open_event_or_throw(this, [&]() {
       int fd = torrent::fd_open_family(torrent::fd_flag_stream | torrent::fd_flag_nonblock | torrent::fd_flag_reuse_address,
-                                       reinterpret_cast<sockaddr*>(sa)->sa_family);
+                                       sa->sa_family);
 
       if (fd == -1)
         throw torrent::resource_error("Could not open socket for listening: " + std::string(std::strerror(errno)));
@@ -57,13 +57,16 @@ SCgi::open_named(const std::string& filename) {
   sa->sun_family = AF_LOCAL;
   std::memcpy(sa->sun_path, filename.c_str(), filename.size() + 1);
 
-  int fd = torrent::fd_open_local(torrent::fd_flag_stream | torrent::fd_flag_nonblock | torrent::fd_flag_reuse_address);
+  torrent::runtime::socket_manager()->open_event_or_throw(this, [&]() {
+      int fd = torrent::fd_open_local(torrent::fd_flag_stream | torrent::fd_flag_nonblock | torrent::fd_flag_reuse_address);
 
-  if (fd == -1)
-    throw torrent::resource_error("Could not open socket for listening: " + std::string(std::strerror(errno)));
+      if (fd == -1)
+        throw torrent::resource_error("Could not open socket for listening: " + std::string(std::strerror(errno)));
 
-  set_file_descriptor(fd);
-  open(reinterpret_cast<sockaddr*>(sa), offsetof(struct sockaddr_un, sun_path) + filename.size() + 1);
+      set_file_descriptor(fd);
+
+      open(reinterpret_cast<sockaddr*>(sa), offsetof(struct sockaddr_un, sun_path) + filename.size() + 1);
+    });
 
   torrent::connection_manager()->inc_socket_count();
 
@@ -82,8 +85,7 @@ SCgi::open(sockaddr* sa, unsigned int length) {
   } catch (torrent::resource_error& e) {
     torrent::fd_close(file_descriptor());
     set_file_descriptor(-1);
-
-    throw e;
+    throw;
   }
 }
 
@@ -108,10 +110,12 @@ SCgi::stop() {
     if (itr->is_open())
       itr->close();
 
-  torrent::this_thread::poll()->remove_and_close(this);
+  torrent::runtime::socket_manager()->close_event_or_throw(this, [this]() {
+      torrent::this_thread::poll()->remove_and_close(this);
 
-  torrent::fd_close(file_descriptor());
-  set_file_descriptor(-1);
+      torrent::fd_close(file_descriptor());
+      set_file_descriptor(-1);
+    });
 
   torrent::connection_manager()->dec_socket_count();
 
@@ -122,23 +126,39 @@ SCgi::stop() {
 void
 SCgi::event_read() {
   while (true) {
-    int fd = torrent::fd_accept(file_descriptor());
-
-    if (fd == -1) {
-      if (errno == EAGAIN || errno == EWOULDBLOCK)
-        break;
-
-      throw torrent::resource_error("Listener port accept() failed: " + std::string(std::strerror(errno)));
-    }
-
-    SCgiTask* task = std::find_if(m_task, m_task + max_tasks, std::mem_fn(&SCgiTask::is_available));
+    auto* task = std::find_if(m_task, m_task + max_tasks, std::mem_fn(&SCgiTask::is_available));
 
     if (task == m_task + max_tasks) {
-      torrent::fd_close(fd);
+      // TODO: Currently just close, although we should remove ourselves from read.
+      int fd = torrent::fd_accept(file_descriptor());
+
+      if (fd != -1)
+        torrent::fd_close(fd);
+
       continue;
     }
 
-    task->open(this, fd);
+    auto open_func = [this, task]() {
+        int fd = torrent::fd_accept(file_descriptor());
+
+        if (fd == -1) {
+          if (errno == EAGAIN || errno == EWOULDBLOCK)
+            return;
+
+          throw torrent::resource_error("Listener port accept() failed: " + std::string(std::strerror(errno)));
+        }
+
+        task->open(this, fd);
+      };
+
+    auto cleanup_func = [task]() {
+        task->cancel_open();
+      };
+
+    bool result = torrent::runtime::socket_manager()->open_event_or_cleanup(task, open_func, cleanup_func);
+
+    if (!result)
+      break;
   }
 }
 
