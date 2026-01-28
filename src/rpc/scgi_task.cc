@@ -11,6 +11,7 @@
 #include <torrent/torrent.h>
 #include <torrent/net/fd.h>
 #include <torrent/net/poll.h>
+#include <torrent/runtime/socket_manager.h>
 #include <torrent/utils/log.h>
 #include <torrent/utils/thread.h>
 
@@ -23,11 +24,11 @@ namespace rpc {
 
 void
 SCgiTask::open(SCgi* parent, int fd) {
-  m_parent      = parent;
-  m_fileDesc    = fd;
+  set_file_descriptor(fd);
 
   m_buffer.reset(new char[default_buffer_size + 1]);
 
+  m_parent      = parent;
   m_buffer_size = default_buffer_size;
   m_position    = m_buffer.get();
   m_body        = nullptr;
@@ -38,6 +39,19 @@ SCgiTask::open(SCgi* parent, int fd) {
 }
 
 void
+SCgiTask::cancel_open() {
+  if (!is_open())
+    return;
+
+  torrent::runtime::socket_manager()->close_event_or_throw(this, [this]() {
+      torrent::this_thread::poll()->remove_and_close(this);
+
+      torrent::fd_close(file_descriptor());
+      set_file_descriptor(-1);
+    });
+};
+
+void
 SCgiTask::close() {
   if (!is_open())
     return;
@@ -45,10 +59,12 @@ SCgiTask::close() {
   torrent::main_thread::thread()->cancel_callback_and_wait(this);
   torrent::utils::Thread::self()->cancel_callback(this);
 
-  torrent::this_thread::poll()->remove_and_close(this);
+  torrent::runtime::socket_manager()->close_event_or_throw(this, [this]() {
+      torrent::this_thread::poll()->remove_and_close(this);
 
-  torrent::fd_close(file_descriptor());
-  set_file_descriptor(-1);
+      torrent::fd_close(file_descriptor());
+      set_file_descriptor(-1);
+    });
 
   auto lock = std::lock_guard<std::mutex>(m_result_mutex);
 

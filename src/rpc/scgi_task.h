@@ -25,6 +25,8 @@ public:
   bool                is_available() const { return m_fileDesc == -1; }
 
   void                open(SCgi* parent, int fd);
+  void                cancel_open();
+
   void                close();
 
   ContentType         content_type() const { return m_content_type; }
