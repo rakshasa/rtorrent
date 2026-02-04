@@ -55,6 +55,7 @@ Manager::receive_update() {
     m_force_redraw = false;
 
     display::Canvas::resize_term(display::Canvas::term_size());
+    keypad(stdscr, TRUE);
     Canvas::redraw_std();
 
     adjust_layout();
