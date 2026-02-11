@@ -59,7 +59,7 @@ apply_dht_add_node(const std::string& arg) {
       }
 
       lt_log_print(torrent::LOG_DHT_CONTROLLER, "dht.add_node : %s", host_str.c_str());
-      torrent::runtime::network_manager()->dht_add_peer_node(sa.get(), port);
+      torrent::runtime::network_manager()->dht_add_bootstrap_node(host_str.c_str(), port);
   });
 
   return torrent::Object();
