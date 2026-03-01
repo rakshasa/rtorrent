@@ -206,6 +206,10 @@ void initialize_commands();
   CMD2_ANY(key, std::bind(&rpc::command_function_call_object, torrent::Object(torrent::raw_string::from_c_str(cmds)), \
                                std::placeholders::_1, std::placeholders::_2));
 
+#define CMD2_FUNC_SINGLE_U(key, cmds)                                   \
+  CMD2_ANY_U(key, std::bind(&rpc::command_function_call_object, torrent::Object(torrent::raw_string::from_c_str(cmds)), \
+                               std::placeholders::_1, std::placeholders::_2));
+
 #define CMD2_REDIRECT(from_key, to_key)                                 \
   rpc::commands.create_redirect(from_key, to_key, rpc::CommandMap::flag_public_rpc | rpc::CommandMap::flag_dont_delete);
 #define CMD2_REDIRECT_NO_EXPORT(from_key, to_key)                       \
