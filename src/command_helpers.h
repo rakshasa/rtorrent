@@ -19,6 +19,11 @@ void initialize_commands();
   rpc::commands.insert_slot<rpc::command_base_is_type<rpc::function>::type>(key, slot, &rpc::function,   \
                             rpc::CommandMap::flag_dont_delete, NULL, NULL);
 
+#define CMD2_A_FUNCTION_U(key, function, slot, parm, doc)               \
+  rpc::commands.insert_slot<rpc::command_base_is_type<rpc::function>::type>(key, slot, &rpc::function, \
+                            rpc::CommandMap::flag_dont_delete | rpc::CommandMap::flag_public_rpc | \
+                            rpc::CommandMap::flag_untrusted_safe, NULL, NULL);
+
 #define CMD2_ANY(key, slot)          CMD2_A_FUNCTION(key, command_base_call<rpc::target_type>, slot, "i:", "")
 
 #define CMD2_ANY_P(key, slot)        CMD2_A_FUNCTION_PRIVATE(key, command_base_call<rpc::target_type>, slot, "i:", "")
@@ -34,6 +39,42 @@ void initialize_commands();
 #define CMD2_ANY_STRING_V(key, slot) CMD2_A_FUNCTION(key, command_base_call_string<rpc::target_type>, object_convert_void(slot), "i:s", "")
 
 #define CMD2_ANY_LIST(key, slot)     CMD2_A_FUNCTION(key, command_base_call_list<rpc::target_type>, slot, "i:", "")
+
+#define CMD2_ANY_U(key, slot)          CMD2_A_FUNCTION_U(key, command_base_call<rpc::target_type>, slot, "i:", "")
+#define CMD2_ANY_VOID_U(key, slot)     CMD2_A_FUNCTION_U(key, command_base_call<rpc::target_type>, object_convert_void(slot), "i:", "")
+#define CMD2_ANY_V_U(key, slot)        CMD2_A_FUNCTION_U(key, command_base_call_list<rpc::target_type>, object_convert_void(slot), "i:", "")
+#define CMD2_ANY_L_U(key, slot)        CMD2_A_FUNCTION_U(key, command_base_call_list<rpc::target_type>, slot, "A:", "")
+
+#define CMD2_ANY_VALUE_U(key, slot)    CMD2_A_FUNCTION_U(key, command_base_call_value<rpc::target_type>, slot, "i:i", "")
+#define CMD2_ANY_VALUE_V_U(key, slot)  CMD2_A_FUNCTION_U(key, command_base_call_value<rpc::target_type>, object_convert_void(slot), "i:i", "")
+#define CMD2_ANY_VALUE_KB_U(key, slot) CMD2_A_FUNCTION_U(key, command_base_call_value_kb<rpc::target_type>, object_convert_void(slot), "i:i", "")
+
+#define CMD2_ANY_STRING_U(key, slot)   CMD2_A_FUNCTION_U(key, command_base_call_string<rpc::target_type>, slot, "i:s", "")
+#define CMD2_ANY_STRING_V_U(key, slot) CMD2_A_FUNCTION_U(key, command_base_call_string<rpc::target_type>, object_convert_void(slot), "i:s", "")
+
+#define CMD2_ANY_LIST_U(key, slot)     CMD2_A_FUNCTION_U(key, command_base_call_list<rpc::target_type>, slot, "i:", "")
+
+#define CMD2_DL_U(key, slot)           CMD2_A_FUNCTION_U(key, command_base_call<core::Download*>, slot, "i:", "")
+#define CMD2_DL_V_U(key, slot)         CMD2_A_FUNCTION_U(key, command_base_call<core::Download*>, object_convert_void(slot), "i:", "")
+#define CMD2_DL_VALUE_U(key, slot)     CMD2_A_FUNCTION_U(key, command_base_call_value<core::Download*>, slot, "i:", "")
+#define CMD2_DL_VALUE_V_U(key, slot)   CMD2_A_FUNCTION_U(key, command_base_call_value<core::Download*>, object_convert_void(slot), "i:", "")
+#define CMD2_DL_STRING_U(key, slot)    CMD2_A_FUNCTION_U(key, command_base_call_string<core::Download*>, slot, "i:", "")
+#define CMD2_DL_STRING_V_U(key, slot)  CMD2_A_FUNCTION_U(key, command_base_call_string<core::Download*>, object_convert_void(slot), "i:", "")
+#define CMD2_DL_LIST_U(key, slot)      CMD2_A_FUNCTION_U(key, command_base_call_list<core::Download*>, slot, "i:", "")
+
+#define CMD2_FILE_U(key, slot)         CMD2_A_FUNCTION_U(key, command_base_call<torrent::File*>, slot, "i:", "")
+#define CMD2_FILE_V_U(key, slot)       CMD2_A_FUNCTION_U(key, command_base_call<torrent::File*>, object_convert_void(slot), "i:", "")
+#define CMD2_FILE_VALUE_V_U(key, slot) CMD2_A_FUNCTION_U(key, command_base_call_value<torrent::File*>, object_convert_void(slot), "i:i", "")
+
+#define CMD2_FILEITR_U(key, slot)      CMD2_A_FUNCTION_U(key, command_base_call<torrent::FileListIterator*>, slot, "i:", "")
+
+#define CMD2_PEER_U(key, slot)            CMD2_A_FUNCTION_U(key, command_base_call<torrent::Peer*>, slot, "i:", "")
+#define CMD2_PEER_V_U(key, slot)          CMD2_A_FUNCTION_U(key, command_base_call<torrent::Peer*>, object_convert_void(slot), "i:", "")
+#define CMD2_PEER_VALUE_V_U(key, slot)    CMD2_A_FUNCTION_U(key, command_base_call_value<torrent::Peer*>, object_convert_void(slot), "i:i", "")
+
+#define CMD2_TRACKER_U(key, slot)         CMD2_A_FUNCTION_U(key, command_base_call<torrent::tracker::Tracker*>, slot, "i:", "")
+#define CMD2_TRACKER_V_U(key, slot)       CMD2_A_FUNCTION_U(key, command_base_call<torrent::tracker::Tracker*>, object_convert_void(slot), "i:", "")
+#define CMD2_TRACKER_VALUE_V_U(key, slot) CMD2_A_FUNCTION_U(key, command_base_call_value<torrent::tracker::Tracker*>, object_convert_void(slot), "i:i", "")
 
 #define CMD2_DL(key, slot)           CMD2_A_FUNCTION(key, command_base_call<core::Download*>, slot, "i:", "")
 #define CMD2_DL_V(key, slot)         CMD2_A_FUNCTION(key, command_base_call<core::Download*>, object_convert_void(slot), "i:", "")
@@ -90,6 +131,71 @@ void initialize_commands();
 #define CMD2_VAR_LIST(key)                                              \
   control->object_storage()->insert_c_str(key, torrent::Object::create_list(), rpc::object_storage::flag_list_type); \
   CMD2_ANY(key, std::bind(&rpc::object_storage::get, control->object_storage(), \
+                               torrent::raw_string::from_c_str(key)));  \
+  CMD2_ANY_LIST(key ".set", std::bind(&rpc::object_storage::set_list, control->object_storage(), \
+                                           torrent::raw_string::from_c_str(key), std::placeholders::_2)); \
+  CMD2_ANY_VOID(key ".push_back", std::bind(&rpc::object_storage::list_push_back, control->object_storage(), \
+                                                 torrent::raw_string::from_c_str(key), std::placeholders::_2));
+
+#define CMD2_VAR_BOOL_U(key, value)                                       \
+  control->object_storage()->insert_c_str(key, int64_t(value), rpc::object_storage::flag_bool_type); \
+  CMD2_ANY_U(key, std::bind(&rpc::object_storage::get, control->object_storage(), \
+                               torrent::raw_string::from_c_str(key)));  \
+  CMD2_ANY_VALUE_U(key ".set", std::bind(&rpc::object_storage::set_bool, control->object_storage(), \
+                                            torrent::raw_string::from_c_str(key), std::placeholders::_2));
+
+#define CMD2_VAR_BOOL_U_GET(key, value)                                  \
+  control->object_storage()->insert_c_str(key, int64_t(value), rpc::object_storage::flag_bool_type); \
+  CMD2_ANY_U(key, std::bind(&rpc::object_storage::get, control->object_storage(), \
+                               torrent::raw_string::from_c_str(key)));  \
+  CMD2_ANY_VALUE(key ".set", std::bind(&rpc::object_storage::set_bool, control->object_storage(), \
+                                            torrent::raw_string::from_c_str(key), std::placeholders::_2));
+
+#define CMD2_VAR_VALUE_U(key, value)                                     \
+  control->object_storage()->insert_c_str(key, int64_t(value), rpc::object_storage::flag_value_type); \
+  CMD2_ANY_U(key, std::bind(&rpc::object_storage::get, control->object_storage(), \
+                               torrent::raw_string::from_c_str(key)));  \
+  CMD2_ANY_VALUE_U(key ".set", std::bind(&rpc::object_storage::set_value, control->object_storage(), \
+                                            torrent::raw_string::from_c_str(key), std::placeholders::_2));
+
+#define CMD2_VAR_VALUE_U_GET(key, value)                                 \
+  control->object_storage()->insert_c_str(key, int64_t(value), rpc::object_storage::flag_value_type); \
+  CMD2_ANY_U(key, std::bind(&rpc::object_storage::get, control->object_storage(), \
+                               torrent::raw_string::from_c_str(key)));  \
+  CMD2_ANY_VALUE(key ".set", std::bind(&rpc::object_storage::set_value, control->object_storage(), \
+                                            torrent::raw_string::from_c_str(key), std::placeholders::_2));
+
+#define CMD2_VAR_STRING_U(key, value)                                    \
+  control->object_storage()->insert_c_str(key, value, rpc::object_storage::flag_string_type); \
+  CMD2_ANY_U(key, std::bind(&rpc::object_storage::get, control->object_storage(), \
+                               torrent::raw_string::from_c_str(key)));  \
+  CMD2_ANY_STRING_U(key ".set", std::bind(&rpc::object_storage::set_string, control->object_storage(), \
+                                             torrent::raw_string::from_c_str(key), std::placeholders::_2));
+
+#define CMD2_VAR_STRING_U_GET(key, value)                                \
+  control->object_storage()->insert_c_str(key, value, rpc::object_storage::flag_string_type); \
+  CMD2_ANY_U(key, std::bind(&rpc::object_storage::get, control->object_storage(), \
+                               torrent::raw_string::from_c_str(key)));  \
+  CMD2_ANY_STRING(key ".set", std::bind(&rpc::object_storage::set_string, control->object_storage(), \
+                                             torrent::raw_string::from_c_str(key), std::placeholders::_2));
+
+#define CMD2_VAR_C_STRING_U(key, value)                                  \
+  control->object_storage()->insert_c_str(key, value, rpc::object_storage::flag_string_type); \
+  CMD2_ANY_U(key, std::bind(&rpc::object_storage::get, control->object_storage(), \
+                               torrent::raw_string::from_c_str(key)));
+
+#define CMD2_VAR_LIST_U(key)                                             \
+  control->object_storage()->insert_c_str(key, torrent::Object::create_list(), rpc::object_storage::flag_list_type); \
+  CMD2_ANY_U(key, std::bind(&rpc::object_storage::get, control->object_storage(), \
+                               torrent::raw_string::from_c_str(key)));  \
+  CMD2_ANY_LIST_U(key ".set", std::bind(&rpc::object_storage::set_list, control->object_storage(), \
+                                           torrent::raw_string::from_c_str(key), std::placeholders::_2)); \
+  CMD2_ANY_VOID_U(key ".push_back", std::bind(&rpc::object_storage::list_push_back, control->object_storage(), \
+                                                 torrent::raw_string::from_c_str(key), std::placeholders::_2));
+
+#define CMD2_VAR_LIST_U_GET(key)                                         \
+  control->object_storage()->insert_c_str(key, torrent::Object::create_list(), rpc::object_storage::flag_list_type); \
+  CMD2_ANY_U(key, std::bind(&rpc::object_storage::get, control->object_storage(), \
                                torrent::raw_string::from_c_str(key)));  \
   CMD2_ANY_LIST(key ".set", std::bind(&rpc::object_storage::set_list, control->object_storage(), \
                                            torrent::raw_string::from_c_str(key), std::placeholders::_2)); \

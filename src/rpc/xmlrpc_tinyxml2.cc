@@ -31,7 +31,7 @@ const int XMLRPC_PARSE_ERROR                  = -503;
 // const int XMLRPC_NETWORK_ERROR                = -504;
 // const int XMLRPC_TIMEOUT_ERROR                = -505;
 const int XMLRPC_NO_SUCH_METHOD_ERROR         = -506;
-// const int XMLRPC_REQUEST_REFUSED_ERROR        = -507;
+const int XMLRPC_REQUEST_REFUSED_ERROR        = -507;
 // const int XMLRPC_INTROSPECTION_DISABLED_ERROR = -508;
 const int XMLRPC_LIMIT_EXCEEDED_ERROR         = -509;
 // const int XMLRPC_INVALID_UTF8_ERROR           = -510;
@@ -238,7 +238,11 @@ execute_command(std::string method_name, const tinyxml2::XMLElement* params_elem
     throw rpc_error(XMLRPC_TYPE_ERROR, "invalid parameters: too few");
   }
 
-  return rpc::commands.call_command(cmd_itr, params_raw, target);
+  try {
+    return rpc::commands.call_command(cmd_itr, params_raw, target);
+  } catch (untrusted_error& e) {
+    throw rpc_error(XMLRPC_REQUEST_REFUSED_ERROR, e.what());
+  }
 }
 
 void
