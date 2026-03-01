@@ -396,14 +396,6 @@ xmlrpc_call_command(xmlrpc_env* env, xmlrpc_value* args, void* voidServerInfo) {
   } catch (torrent::local_error& e) {
     xmlrpc_env_set_fault(env, XMLRPC_PARSE_ERROR, e.what());
     return NULL;
-
-  } catch (std::exception& e) {
-    xmlrpc_env_set_fault(env, XMLRPC_PARSE_ERROR, e.what());
-    return NULL;
-
-  } catch (...) {
-    xmlrpc_env_set_fault(env, XMLRPC_PARSE_ERROR, "Unknown exception in command execution.");
-    return NULL;
   }
 }
 
