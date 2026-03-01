@@ -248,8 +248,8 @@ initialize_command_network() {
   CMD2_ANY_U         ("network.xmlrpc.size_limit",     [](const auto&, const auto&)     { return rpc::rpc.size_limit(); });
   CMD2_ANY_VALUE_V_U ("network.xmlrpc.size_limit.set", [](const auto&, const auto& arg) { return rpc::rpc.set_size_limit(arg); });
 
-  CMD2_VAR_BOOL    ("network.rpc.use_xmlrpc",        true);
-  CMD2_VAR_BOOL    ("network.rpc.use_jsonrpc",       true);
+  CMD2_VAR_BOOL_U  ("network.rpc.use_xmlrpc",        true);
+  CMD2_VAR_BOOL_U  ("network.rpc.use_jsonrpc",       true);
 
   CMD2_ANY         ("network.block.ipv4",            [nw_config](auto, auto)        { return nw_config->is_block_ipv4(); });
   CMD2_ANY_VALUE_V ("network.block.ipv4.set",        [nw_config](auto, auto& value) { return nw_config->set_block_ipv4(value); });
