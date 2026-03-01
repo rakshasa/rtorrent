@@ -406,11 +406,11 @@ void
 initialize_command_dynamic() {
   // clang-format off
 #ifdef HAVE_XMLRPC_TINYXML2
-  CMD2_ANY         ("system.listMethods", std::bind(&system_listMethods)); // only used by tinyxml2
+  CMD2_ANY_U       ("system.listMethods", std::bind(&system_listMethods)); // only used by tinyxml2
 #endif
 
   // Keep these for future use when we deprecate more commands.
-  CMD2_VAR_BOOL    ("method.use_deprecated", false);
+  CMD2_VAR_BOOL_U("method.use_deprecated", false);
   CMD2_VAR_VALUE   ("method.use_intermediate", 3);
 
   CMD2_ANY_LIST    ("method.insert",             std::bind(&system_method_insert, std::placeholders::_2));
@@ -426,33 +426,33 @@ initialize_command_dynamic() {
 
   CMD2_ANY_STRING  ("method.erase",     std::bind(&system_method_erase, std::placeholders::_2));
   CMD2_ANY_LIST    ("method.redirect",  std::bind(&system_method_redirect, std::placeholders::_2));
-  CMD2_ANY_STRING  ("method.get",       std::bind(&rpc::object_storage::get_str, control->object_storage(),
+  CMD2_ANY_STRING_U("method.get",       std::bind(&rpc::object_storage::get_str, control->object_storage(),
                                                        std::placeholders::_2));
   CMD2_ANY_LIST    ("method.set",       std::bind(&system_method_set_function, std::placeholders::_2));
 
-  CMD2_ANY_STRING  ("method.const",        std::bind(&rpc::object_storage::has_flag_str, control->object_storage(),
+  CMD2_ANY_STRING_U("method.const",        std::bind(&rpc::object_storage::has_flag_str, control->object_storage(),
                                                       std::placeholders::_2, rpc::object_storage::flag_constant));
   CMD2_ANY_STRING_V("method.const.enable", std::bind(&rpc::object_storage::enable_flag_str, control->object_storage(),
                                                      std::placeholders::_2, rpc::object_storage::flag_constant));
 
-  CMD2_ANY_LIST    ("method.has_key",   std::bind(&system_method_has_key, std::placeholders::_2));
+  CMD2_ANY_LIST_U    ("method.has_key",   std::bind(&system_method_has_key, std::placeholders::_2));
   CMD2_ANY_LIST    ("method.set_key",   std::bind(&system_method_set_key, std::placeholders::_2));
-  CMD2_ANY_STRING  ("method.list_keys", std::bind(&system_method_list_keys, std::placeholders::_2));
+  CMD2_ANY_STRING_U("method.list_keys", std::bind(&system_method_list_keys, std::placeholders::_2));
 
-  CMD2_ANY_STRING  ("method.rlookup",       std::bind(&rpc::object_storage::rlookup_obj_list, control->object_storage(), std::placeholders::_2));
+  CMD2_ANY_STRING_U("method.rlookup",       std::bind(&rpc::object_storage::rlookup_obj_list, control->object_storage(), std::placeholders::_2));
   CMD2_ANY_STRING_V("method.rlookup.clear", std::bind(&rpc::object_storage::rlookup_clear, control->object_storage(), std::placeholders::_2));
 
-  CMD2_ANY         ("catch", std::bind(&cmd_catch, std::placeholders::_1, std::placeholders::_2));
+  CMD2_ANY_U         ("catch", std::bind(&cmd_catch, std::placeholders::_1, std::placeholders::_2));
 
-  CMD2_ANY         ("strings.choke_heuristics",          std::bind(&torrent::option_list_strings, torrent::OPTION_CHOKE_HEURISTICS));
-  CMD2_ANY         ("strings.choke_heuristics.upload",   std::bind(&torrent::option_list_strings, torrent::OPTION_CHOKE_HEURISTICS_UPLOAD));
-  CMD2_ANY         ("strings.choke_heuristics.download", std::bind(&torrent::option_list_strings, torrent::OPTION_CHOKE_HEURISTICS_DOWNLOAD));
-  CMD2_ANY         ("strings.connection_type",           std::bind(&torrent::option_list_strings, torrent::OPTION_CONNECTION_TYPE));
-  CMD2_ANY         ("strings.encryption",                std::bind(&torrent::option_list_strings, torrent::OPTION_ENCRYPTION));
-  CMD2_ANY         ("strings.ip_filter",                 std::bind(&torrent::option_list_strings, torrent::OPTION_IP_FILTER));
-  CMD2_ANY         ("strings.ip_tos",                    std::bind(&torrent::option_list_strings, torrent::OPTION_IP_TOS));
-  CMD2_ANY         ("strings.log_group",                 std::bind(&torrent::option_list_strings, torrent::OPTION_LOG_GROUP));
-  CMD2_ANY         ("strings.tracker_event",             std::bind(&torrent::option_list_strings, torrent::OPTION_TRACKER_EVENT));
-  CMD2_ANY         ("strings.tracker_mode",              std::bind(&torrent::option_list_strings, torrent::OPTION_TRACKER_MODE));
+  CMD2_ANY_U         ("strings.choke_heuristics",          std::bind(&torrent::option_list_strings, torrent::OPTION_CHOKE_HEURISTICS));
+  CMD2_ANY_U         ("strings.choke_heuristics.upload",   std::bind(&torrent::option_list_strings, torrent::OPTION_CHOKE_HEURISTICS_UPLOAD));
+  CMD2_ANY_U         ("strings.choke_heuristics.download", std::bind(&torrent::option_list_strings, torrent::OPTION_CHOKE_HEURISTICS_DOWNLOAD));
+  CMD2_ANY_U         ("strings.connection_type",           std::bind(&torrent::option_list_strings, torrent::OPTION_CONNECTION_TYPE));
+  CMD2_ANY_U         ("strings.encryption",                std::bind(&torrent::option_list_strings, torrent::OPTION_ENCRYPTION));
+  CMD2_ANY_U         ("strings.ip_filter",                 std::bind(&torrent::option_list_strings, torrent::OPTION_IP_FILTER));
+  CMD2_ANY_U         ("strings.ip_tos",                    std::bind(&torrent::option_list_strings, torrent::OPTION_IP_TOS));
+  CMD2_ANY_U         ("strings.log_group",                 std::bind(&torrent::option_list_strings, torrent::OPTION_LOG_GROUP));
+  CMD2_ANY_U         ("strings.tracker_event",             std::bind(&torrent::option_list_strings, torrent::OPTION_TRACKER_EVENT));
+  CMD2_ANY_U         ("strings.tracker_mode",              std::bind(&torrent::option_list_strings, torrent::OPTION_TRACKER_MODE));
   // clang-format on
 }
