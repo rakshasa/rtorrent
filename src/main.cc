@@ -418,7 +418,7 @@ main(int argc, char** argv) {
 
     // Deprecate:
 
-    CMD2_VAR_STRING("dht.throttle.name",   "deprecated");
+    CMD2_VAR_STRING_U_GET("dht.throttle.name",   "deprecated");
 
     CMD2_REDIRECT("network.http.max_open",     "network.http.max_total_connections");
     CMD2_REDIRECT("network.http.max_open.set", "network.http.max_total_connections.set");

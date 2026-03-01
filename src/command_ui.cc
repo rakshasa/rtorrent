@@ -779,7 +779,7 @@ initialize_command_ui() {
 
   CMD2_ANY_STRING("view.add", object_convert_void(std::bind(&core::ViewManager::insert_throw, control->view_manager(), std::placeholders::_2)));
 
-  CMD2_ANY_L   ("view.list",          std::bind(&apply_view_list));
+  CMD2_ANY_L_U ("view.list",          std::bind(&apply_view_list));
   CMD2_ANY_LIST("view.set",           std::bind(&apply_view_set, std::placeholders::_2));
 
   CMD2_ANY_LIST  ("view.filter",      std::bind(&apply_view_event, &core::ViewManager::set_filter, std::placeholders::_2));
@@ -797,30 +797,30 @@ initialize_command_ui() {
 
   // Cleanup and add . to view.
 
-  CMD2_ANY_STRING("view.size",              std::bind(&cmd_view_size, std::placeholders::_2));
-  CMD2_ANY_STRING("view.size_not_visible",  std::bind(&cmd_view_size_not_visible, std::placeholders::_2));
+  CMD2_ANY_STRING_U("view.size",              std::bind(&cmd_view_size, std::placeholders::_2));
+  CMD2_ANY_STRING_U("view.size_not_visible",  std::bind(&cmd_view_size_not_visible, std::placeholders::_2));
   CMD2_ANY_STRING("view.persistent",        std::bind(&cmd_view_persistent, std::placeholders::_2));
 
-  CMD2_ANY_STRING_V("view.filter_all",      std::bind(&core::View::filter, std::bind(&core::ViewManager::find_ptr_throw, control->view_manager(), std::placeholders::_2)));
+  CMD2_ANY_STRING_V_U("view.filter_all",      std::bind(&core::View::filter, std::bind(&core::ViewManager::find_ptr_throw, control->view_manager(), std::placeholders::_2)));
 
-  CMD2_DL_STRING ("view.filter_download", std::bind(&cmd_view_filter_download, std::placeholders::_1, std::placeholders::_2));
-  CMD2_DL_STRING ("view.set_visible",     std::bind(&cmd_view_set_visible,     std::placeholders::_1, std::placeholders::_2));
-  CMD2_DL_STRING ("view.set_not_visible", std::bind(&cmd_view_set_not_visible, std::placeholders::_1, std::placeholders::_2));
+  CMD2_DL_STRING_U("view.filter_download", std::bind(&cmd_view_filter_download, std::placeholders::_1, std::placeholders::_2));
+  CMD2_DL_STRING_U("view.set_visible",     std::bind(&cmd_view_set_visible,     std::placeholders::_1, std::placeholders::_2));
+  CMD2_DL_STRING_U("view.set_not_visible", std::bind(&cmd_view_set_not_visible, std::placeholders::_1, std::placeholders::_2));
 
   // Commands that affect the default rtorrent UI.
-  CMD2_DL        ("ui.unfocus_download",   std::bind(&cmd_ui_unfocus_download, std::placeholders::_1));
-  CMD2_ANY       ("ui.current_view",       std::bind(&cmd_ui_current_view));
-  CMD2_ANY_STRING("ui.current_view.set",   std::bind(&cmd_ui_set_view, std::placeholders::_2));
+  CMD2_DL_U      ("ui.unfocus_download",   std::bind(&cmd_ui_unfocus_download, std::placeholders::_1));
+  CMD2_ANY_U     ("ui.current_view",       std::bind(&cmd_ui_current_view));
+  CMD2_ANY_STRING_U("ui.current_view.set",   std::bind(&cmd_ui_set_view, std::placeholders::_2));
 
-  CMD2_ANY        ("ui.input.history.size",     std::bind(&ui::Root::get_input_history_size, control->ui()));
+  CMD2_ANY_U      ("ui.input.history.size",     std::bind(&ui::Root::get_input_history_size, control->ui()));
   CMD2_ANY_VALUE_V("ui.input.history.size.set", std::bind(&ui::Root::set_input_history_size, control->ui(), std::placeholders::_2));
-  CMD2_ANY_V      ("ui.input.history.clear",    std::bind(&ui::Root::clear_input_history, control->ui()));
+  CMD2_ANY_V_U    ("ui.input.history.clear",    std::bind(&ui::Root::clear_input_history, control->ui()));
 
-  CMD2_VAR_VALUE ("ui.throttle.global.step.small",  5);
-  CMD2_VAR_VALUE ("ui.throttle.global.step.medium", 50);
-  CMD2_VAR_VALUE ("ui.throttle.global.step.large",  500);
+  CMD2_VAR_VALUE_U("ui.throttle.global.step.small",  5);
+  CMD2_VAR_VALUE_U("ui.throttle.global.step.medium", 50);
+  CMD2_VAR_VALUE_U("ui.throttle.global.step.large",  500);
 
-  CMD2_VAR_VALUE ("ui.focus.page_size", 0);
+  CMD2_VAR_VALUE_U("ui.focus.page_size", 0);
 
   CMD2_ANY_LIST  ("ui.status.throttle.up.set",   std::bind(&cmd_status_throttle_names, true, std::placeholders::_2));
   CMD2_ANY_LIST  ("ui.status.throttle.down.set", std::bind(&cmd_status_throttle_names, false, std::placeholders::_2));
@@ -829,38 +829,38 @@ initialize_command_ui() {
   CMD2_ANY_STRING_V("ui.keymap.style.set", std::bind(&ui::Root::set_keymap_style, control->ui(), std::placeholders::_2));
 
   // TODO: Add 'option_string' for rtorrent-specific options.
-  CMD2_VAR_STRING("ui.torrent_list.layout", "full");
+  CMD2_VAR_STRING_U_GET("ui.torrent_list.layout", "full");
 
   // Move.
-  CMD2_ANY("print", &apply_print);
-  CMD2_ANY("cat",   &apply_cat);
-  CMD2_ANY_LIST("value", &apply_value);
+  CMD2_ANY_U("print", &apply_print);
+  CMD2_ANY_U("cat",   &apply_cat);
+  CMD2_ANY_LIST_U("value", &apply_value);
   CMD2_ANY("try",   &apply_try);
-  CMD2_ANY("if",    std::bind(&apply_if, std::placeholders::_1, std::placeholders::_2, 0));
-  CMD2_ANY("not",   &apply_not);
+  CMD2_ANY_U("if",    std::bind(&apply_if, std::placeholders::_1, std::placeholders::_2, 0));
+  CMD2_ANY_U("not",   &apply_not);
   CMD2_ANY("false", &apply_false);
-  CMD2_ANY("and",   &apply_and);
-  CMD2_ANY("or",    &apply_or);
+  CMD2_ANY_U("and",   &apply_and);
+  CMD2_ANY_U("or",    &apply_or);
 
   // A temporary command for handling stuff until we get proper
   // support for seperation of commands and literals.
-  CMD2_ANY("branch", std::bind(&apply_if, std::placeholders::_1, std::placeholders::_2, 1));
+  CMD2_ANY_U("branch", std::bind(&apply_if, std::placeholders::_1, std::placeholders::_2, 1));
 
   CMD2_ANY_LIST("less",    &apply_less);
   CMD2_ANY_LIST("greater", &apply_greater);
   CMD2_ANY_LIST("equal",   &apply_equal);
-  CMD2_ANY_LIST("compare", &apply_compare);
+  CMD2_ANY_LIST_U("compare", &apply_compare);
   CMD2_ANY_LIST("match",   &apply_match);
 
-  CMD2_ANY_VALUE("convert.gm_time",      std::bind(&apply_to_time, std::placeholders::_2, 0));
-  CMD2_ANY_VALUE("convert.gm_date",      std::bind(&apply_to_time, std::placeholders::_2, 0x2));
-  CMD2_ANY_VALUE("convert.time",         std::bind(&apply_to_time, std::placeholders::_2, 0x1));
-  CMD2_ANY_VALUE("convert.date",         std::bind(&apply_to_time, std::placeholders::_2, 0x1 | 0x2));
-  CMD2_ANY_VALUE("convert.elapsed_time", std::bind(&apply_to_elapsed_time, std::placeholders::_2));
-  CMD2_ANY_VALUE("convert.kb",           std::bind(&apply_to_kb, std::placeholders::_2));
-  CMD2_ANY_VALUE("convert.mb",           std::bind(&apply_to_mb, std::placeholders::_2));
-  CMD2_ANY_VALUE("convert.xb",           std::bind(&apply_to_xb, std::placeholders::_2));
-  CMD2_ANY_VALUE("convert.throttle",     std::bind(&apply_to_throttle, std::placeholders::_2));
+  CMD2_ANY_VALUE_U("convert.gm_time",      std::bind(&apply_to_time, std::placeholders::_2, 0));
+  CMD2_ANY_VALUE_U("convert.gm_date",      std::bind(&apply_to_time, std::placeholders::_2, 0x2));
+  CMD2_ANY_VALUE_U("convert.time",         std::bind(&apply_to_time, std::placeholders::_2, 0x1));
+  CMD2_ANY_VALUE_U("convert.date",         std::bind(&apply_to_time, std::placeholders::_2, 0x1 | 0x2));
+  CMD2_ANY_VALUE_U("convert.elapsed_time", std::bind(&apply_to_elapsed_time, std::placeholders::_2));
+  CMD2_ANY_VALUE_U("convert.kb",           std::bind(&apply_to_kb, std::placeholders::_2));
+  CMD2_ANY_VALUE_U("convert.mb",           std::bind(&apply_to_mb, std::placeholders::_2));
+  CMD2_ANY_VALUE_U("convert.xb",           std::bind(&apply_to_xb, std::placeholders::_2));
+  CMD2_ANY_VALUE_U("convert.throttle",     std::bind(&apply_to_throttle, std::placeholders::_2));
 
   CMD2_ANY_LIST("math.add",              [](auto, const auto& args) { return apply_math_basic("math.add", std::plus(), args); });
   CMD2_ANY_LIST("math.sub",              [](auto, const auto& args) { return apply_math_basic("math.sub", std::minus(), args); });
@@ -873,8 +873,8 @@ initialize_command_ui() {
   CMD2_ANY_LIST("math.avg",              std::bind(&apply_arith_other, "average", std::placeholders::_2));
   CMD2_ANY_LIST("math.med",              std::bind(&apply_arith_other, "median", std::placeholders::_2));
 
-  CMD2_ANY_LIST ("elapsed.less",         std::bind(&apply_elapsed_less, std::placeholders::_2));
-  CMD2_ANY_LIST ("elapsed.greater",      std::bind(&apply_elapsed_greater, std::placeholders::_2));
+  CMD2_ANY_LIST_U ("elapsed.less",         std::bind(&apply_elapsed_less, std::placeholders::_2));
+  CMD2_ANY_LIST_U ("elapsed.greater",      std::bind(&apply_elapsed_greater, std::placeholders::_2));
 
   // Build set/get methods for all color definitions
   for (int color_id = 1; color_id < display::RCOLOR_MAX; color_id++) {

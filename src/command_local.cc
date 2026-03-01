@@ -133,6 +133,23 @@ group_insert(const torrent::Object::list_type& args) {
     CMD2_REDIRECT_MUTABLE("group2." + name + ".ratio.upload.set", "group." + name + ".ratio.upload.set");
   }
 
+  // Mark safe group.* commands for untrusted connections.
+  // group.*.ratio.enable, .disable, and .command are NOT safe
+  // (they call schedule2/schedule_remove2/execute arbitrary commands).
+  auto set_safe = [](const std::string& key) {
+    auto itr = rpc::commands.find(key);
+    if (itr != rpc::commands.end())
+      itr->second.m_flags |= rpc::CommandMap::flag_untrusted_safe;
+  };
+  set_safe("group." + name + ".view");
+  set_safe("group." + name + ".view.set");
+  set_safe("group." + name + ".ratio.min");
+  set_safe("group." + name + ".ratio.min.set");
+  set_safe("group." + name + ".ratio.max");
+  set_safe("group." + name + ".ratio.max.set");
+  set_safe("group." + name + ".ratio.upload");
+  set_safe("group." + name + ".ratio.upload.set");
+
   return name;
 }
 
@@ -190,101 +207,101 @@ initialize_command_local() {
   torrent::ChunkManager* chunkManager = torrent::chunk_manager();
   torrent::FileManager*  fileManager = torrent::file_manager();
 
-  CMD2_ANY         ("system.hostname", std::bind(&system_hostname));
-  CMD2_ANY         ("system.pid",      std::bind(&getpid));
+  CMD2_ANY_U       ("system.hostname", std::bind(&system_hostname));
+  CMD2_ANY_U       ("system.pid",      std::bind(&getpid));
 
-  CMD2_VAR_C_STRING("system.api_version",           (int64_t)API_VERSION);
-  CMD2_VAR_C_STRING("system.client_version",        PACKAGE_VERSION);
-  CMD2_VAR_C_STRING("system.library_version",       torrent::version());
+  CMD2_VAR_C_STRING_U("system.api_version",           (int64_t)API_VERSION);
+  CMD2_VAR_C_STRING_U("system.client_version",        PACKAGE_VERSION);
+  CMD2_VAR_C_STRING_U("system.library_version",       torrent::version());
 
-  CMD2_VAR_VALUE   ("system.file.allocate",         0);
-  CMD2_VAR_VALUE   ("system.file.max_size",         (int64_t)512 << 30);
-  CMD2_VAR_VALUE   ("system.file.split_size",       -1);
-  CMD2_VAR_STRING  ("system.file.split_suffix",     ".part");
+  CMD2_VAR_VALUE_U_GET("system.file.allocate",         0);
+  CMD2_VAR_VALUE_U_GET("system.file.max_size",         (int64_t)512 << 30);
+  CMD2_VAR_VALUE_U_GET("system.file.split_size",       -1);
+  CMD2_VAR_STRING_U_GET("system.file.split_suffix",     ".part");
 
-  CMD2_ANY         ("system.file_status_cache.size",   std::bind(&utils::FileStatusCache::size,
+  CMD2_ANY_U       ("system.file_status_cache.size",   std::bind(&utils::FileStatusCache::size,
                                                                  (utils::FileStatusCache::base_type*)control->core()->file_status_cache()));
-  CMD2_ANY_V       ("system.file_status_cache.prune",  std::bind(&utils::FileStatusCache::prune, control->core()->file_status_cache()));
+  CMD2_ANY_V_U     ("system.file_status_cache.prune",  std::bind(&utils::FileStatusCache::prune, control->core()->file_status_cache()));
 
-  CMD2_VAR_BOOL    ("file.prioritize_toc",          0);
-  CMD2_VAR_LIST    ("file.prioritize_toc.first");
-  CMD2_VAR_LIST    ("file.prioritize_toc.last");
+  CMD2_VAR_BOOL_U_GET("file.prioritize_toc",          0);
+  CMD2_VAR_LIST_U_GET("file.prioritize_toc.first");
+  CMD2_VAR_LIST_U_GET("file.prioritize_toc.last");
 
-  CMD2_ANY         ("system.files.advise_random",             std::bind(&FM_t::advise_random, fileManager));
+  CMD2_ANY_U       ("system.files.advise_random",             std::bind(&FM_t::advise_random, fileManager));
   CMD2_ANY_VALUE_V ("system.files.advise_random.set",         std::bind(&FM_t::set_advise_random, fileManager, std::placeholders::_2));
-  CMD2_ANY         ("system.files.advise_random.hashing",     std::bind(&FM_t::advise_random_hashing, fileManager));
+  CMD2_ANY_U       ("system.files.advise_random.hashing",     std::bind(&FM_t::advise_random_hashing, fileManager));
   CMD2_ANY_VALUE_V ("system.files.advise_random.hashing.set", std::bind(&FM_t::set_advise_random_hashing, fileManager, std::placeholders::_2));
-  CMD2_ANY         ("system.files.session.fdatasync",         [](auto, auto)        { return session_thread::manager()->use_fsyncdisk(); });
+  CMD2_ANY_U       ("system.files.session.fdatasync",         [](auto, auto)        { return session_thread::manager()->use_fsyncdisk(); });
   CMD2_ANY_VALUE_V ("system.files.session.fdatasync.set",     [](auto, auto& value) { return session_thread::manager()->set_use_fsyncdisk(value); });
 
-  CMD2_ANY         ("system.files.opened_counter",     std::bind(&FM_t::files_opened_counter, fileManager));
-  CMD2_ANY         ("system.files.closed_counter",     std::bind(&FM_t::files_closed_counter, fileManager));
-  CMD2_ANY         ("system.files.failed_counter",     std::bind(&FM_t::files_failed_counter, fileManager));
+  CMD2_ANY_U       ("system.files.opened_counter",     std::bind(&FM_t::files_opened_counter, fileManager));
+  CMD2_ANY_U       ("system.files.closed_counter",     std::bind(&FM_t::files_closed_counter, fileManager));
+  CMD2_ANY_U       ("system.files.failed_counter",     std::bind(&FM_t::files_failed_counter, fileManager));
 
   CMD2_ANY_STRING  ("system.env",                      std::bind(&system_env, std::placeholders::_2));
 
-  CMD2_ANY         ("system.time",                     []([[maybe_unused]] auto t, [[maybe_unused]] auto o) -> torrent::Object {
+  CMD2_ANY_U       ("system.time",                     []([[maybe_unused]] auto t, [[maybe_unused]] auto o) -> torrent::Object {
       return torrent::this_thread::cached_seconds().count();
     });
-  CMD2_ANY         ("system.time_seconds",             []([[maybe_unused]] auto t, [[maybe_unused]] auto o) -> torrent::Object {
+  CMD2_ANY_U       ("system.time_seconds",             []([[maybe_unused]] auto t, [[maybe_unused]] auto o) -> torrent::Object {
       return torrent::utils::cast_seconds(torrent::utils::time_since_epoch()).count();
     });
-  CMD2_ANY         ("system.time_usec",                []([[maybe_unused]] auto t, [[maybe_unused]] auto o) -> torrent::Object {
+  CMD2_ANY_U       ("system.time_usec",                []([[maybe_unused]] auto t, [[maybe_unused]] auto o) -> torrent::Object {
       return torrent::utils::time_since_epoch().count();
     });
 
   CMD2_ANY_VALUE_V ("system.umask.set",                std::bind(&umask, std::placeholders::_2));
 
-  CMD2_VAR_BOOL    ("system.daemon",                   false);
+  CMD2_VAR_BOOL_U_GET("system.daemon",                   false);
 
   CMD2_ANY_V       ("system.shutdown.normal",          std::bind(&Control::receive_normal_shutdown, control));
   CMD2_ANY_V       ("system.shutdown.quick",           std::bind(&Control::receive_quick_shutdown, control));
   CMD2_REDIRECT_NO_EXPORT("system.shutdown", "system.shutdown.normal");
 
-  CMD2_ANY         ("system.cwd",                      std::bind(&system_get_cwd));
+  CMD2_ANY_U       ("system.cwd",                      std::bind(&system_get_cwd));
   CMD2_ANY_STRING  ("system.cwd.set",                  std::bind(&system_set_cwd, std::placeholders::_2));
 
-  CMD2_ANY         ("pieces.sync.always_safe",         std::bind(&CM_t::safe_sync, chunkManager));
+  CMD2_ANY_U       ("pieces.sync.always_safe",         std::bind(&CM_t::safe_sync, chunkManager));
   CMD2_ANY_VALUE_V ("pieces.sync.always_safe.set",     std::bind(&CM_t::set_safe_sync, chunkManager, std::placeholders::_2));
-  CMD2_ANY         ("pieces.sync.safe_free_diskspace", std::bind(&CM_t::safe_free_diskspace, chunkManager));
-  CMD2_ANY         ("pieces.sync.timeout",             std::bind(&CM_t::timeout_sync, chunkManager));
+  CMD2_ANY_U       ("pieces.sync.safe_free_diskspace", std::bind(&CM_t::safe_free_diskspace, chunkManager));
+  CMD2_ANY_U       ("pieces.sync.timeout",             std::bind(&CM_t::timeout_sync, chunkManager));
   CMD2_ANY_VALUE_V ("pieces.sync.timeout.set",         std::bind(&CM_t::set_timeout_sync, chunkManager, std::placeholders::_2));
-  CMD2_ANY         ("pieces.sync.timeout_safe",        std::bind(&CM_t::timeout_safe_sync, chunkManager));
+  CMD2_ANY_U       ("pieces.sync.timeout_safe",        std::bind(&CM_t::timeout_safe_sync, chunkManager));
   CMD2_ANY_VALUE_V ("pieces.sync.timeout_safe.set",    std::bind(&CM_t::set_timeout_safe_sync, chunkManager, std::placeholders::_2));
-  CMD2_ANY         ("pieces.sync.queue_size",          std::bind(&CM_t::sync_queue_size, chunkManager));
+  CMD2_ANY_U       ("pieces.sync.queue_size",          std::bind(&CM_t::sync_queue_size, chunkManager));
 
-  CMD2_ANY         ("pieces.preload.type",             std::bind(&CM_t::preload_type, chunkManager));
+  CMD2_ANY_U       ("pieces.preload.type",             std::bind(&CM_t::preload_type, chunkManager));
   CMD2_ANY_VALUE_V ("pieces.preload.type.set",         std::bind(&CM_t::set_preload_type, chunkManager, std::placeholders::_2));
-  CMD2_ANY         ("pieces.preload.min_size",         std::bind(&CM_t::preload_min_size, chunkManager));
+  CMD2_ANY_U       ("pieces.preload.min_size",         std::bind(&CM_t::preload_min_size, chunkManager));
   CMD2_ANY_VALUE_V ("pieces.preload.min_size.set",     std::bind(&CM_t::set_preload_min_size, chunkManager, std::placeholders::_2));
-  CMD2_ANY         ("pieces.preload.min_rate",         std::bind(&CM_t::preload_required_rate, chunkManager));
+  CMD2_ANY_U       ("pieces.preload.min_rate",         std::bind(&CM_t::preload_required_rate, chunkManager));
   CMD2_ANY_VALUE_V ("pieces.preload.min_rate.set",     std::bind(&CM_t::set_preload_required_rate, chunkManager, std::placeholders::_2));
 
-  CMD2_ANY         ("pieces.memory.current",           std::bind(&CM_t::memory_usage, chunkManager));
-  CMD2_ANY         ("pieces.memory.sync_queue",        std::bind(&CM_t::sync_queue_memory_usage, chunkManager));
-  CMD2_ANY         ("pieces.memory.block_count",       std::bind(&CM_t::memory_block_count, chunkManager));
-  CMD2_ANY         ("pieces.memory.max",               std::bind(&CM_t::max_memory_usage, chunkManager));
+  CMD2_ANY_U       ("pieces.memory.current",           std::bind(&CM_t::memory_usage, chunkManager));
+  CMD2_ANY_U       ("pieces.memory.sync_queue",        std::bind(&CM_t::sync_queue_memory_usage, chunkManager));
+  CMD2_ANY_U       ("pieces.memory.block_count",       std::bind(&CM_t::memory_block_count, chunkManager));
+  CMD2_ANY_U       ("pieces.memory.max",               std::bind(&CM_t::max_memory_usage, chunkManager));
   CMD2_ANY_VALUE_V ("pieces.memory.max.set",           std::bind(&CM_t::set_max_memory_usage, chunkManager, std::placeholders::_2));
-  CMD2_ANY         ("pieces.stats_preloaded",          std::bind(&CM_t::stats_preloaded, chunkManager));
-  CMD2_ANY         ("pieces.stats_not_preloaded",      std::bind(&CM_t::stats_not_preloaded, chunkManager));
+  CMD2_ANY_U       ("pieces.stats_preloaded",          std::bind(&CM_t::stats_preloaded, chunkManager));
+  CMD2_ANY_U       ("pieces.stats_not_preloaded",      std::bind(&CM_t::stats_not_preloaded, chunkManager));
 
-  CMD2_ANY         ("pieces.stats.total_size",         std::bind(&apply_pieces_stats_total_size));
+  CMD2_ANY_U       ("pieces.stats.total_size",         std::bind(&apply_pieces_stats_total_size));
 
-  CMD2_ANY         ("pieces.hash.queue_size",          std::bind(&torrent::main_thread::hash_queue_size));
-  CMD2_VAR_BOOL    ("pieces.hash.on_completion",       true);
+  CMD2_ANY_U       ("pieces.hash.queue_size",          std::bind(&torrent::main_thread::hash_queue_size));
+  CMD2_VAR_BOOL_U_GET("pieces.hash.on_completion",       true);
 
-  CMD2_VAR_STRING  ("directory.default",               "./");
+  CMD2_VAR_STRING_U_GET("directory.default",               "./");
 
-  CMD2_VAR_STRING  ("session.name",                    "");
-  CMD2_ANY         ("session.path",                    [](auto, auto)        { return session_thread::manager()->path(); });
+  CMD2_VAR_STRING_U_GET("session.name",                    "");
+  CMD2_ANY_U       ("session.path",                    [](auto, auto)        { return session_thread::manager()->path(); });
   CMD2_ANY_STRING_V("session.path.set",                [](auto, auto& str)   { return session_thread::manager()->set_path(str); });
-  CMD2_ANY         ("session.use_lock",                [](auto, auto)        { return session_thread::manager()->use_lock(); });
+  CMD2_ANY_U       ("session.use_lock",                [](auto, auto)        { return session_thread::manager()->use_lock(); });
   CMD2_ANY_VALUE_V ("session.use_lock.set",            [](auto, auto& value) { return session_thread::manager()->set_use_lock(value); });
-  CMD2_VAR_BOOL    ("session.on_completion",           true);
+  CMD2_VAR_BOOL_U_GET("session.on_completion",           true);
 
   CMD2_ANY_V       ("session.save",                    [dList](auto, auto)   { return dList->session_save(); });
 
-  CMD2_ANY         ("magnet.path",                     [](auto, auto)        { return control->core()->magnet_path(); });
+  CMD2_ANY_U       ("magnet.path",                     [](auto, auto)        { return control->core()->magnet_path(); });
   CMD2_ANY_STRING_V("magnet.path.set",                 [](auto, auto& str)   { return control->core()->set_magnet_path(str); });
 
 #ifdef HAVE_LUA
