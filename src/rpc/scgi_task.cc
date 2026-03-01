@@ -3,7 +3,6 @@
 #include "rpc/scgi_task.h"
 
 #include <cstdio>
-#include <cstring>
 #include <unistd.h>
 #include <vector>
 #include <sys/types.h>
@@ -316,17 +315,7 @@ SCgiTask::receive_call(const char* buffer, uint32_t length) {
                     });
       } catch (...) {
         rpc::RpcManager::set_trusted(true);
-
-        // Send a generic error response instead of re-throwing, as the
-        // callback infrastructure may not support exception propagation.
-        const char* err_xml = "<?xml version=\"1.0\"?><methodResponse><fault><value><struct>"
-                              "<member><name>faultCode</name><value><i8>-500</i8></value></member>"
-                              "<member><name>faultString</name><value><string>Internal error</string></value></member>"
-                              "</struct></value></fault></methodResponse>";
-        const char* err_json = "{\"jsonrpc\":\"2.0\",\"error\":{\"code\":-32603,\"message\":\"Internal error\"},\"id\":null}";
-        const char* err = (rpc_type == RpcManager::RPCType::JSON) ? err_json : err_xml;
-        result_callback(err, std::strlen(err));
-        return;
+        throw;
       }
 
       rpc::RpcManager::set_trusted(true);
