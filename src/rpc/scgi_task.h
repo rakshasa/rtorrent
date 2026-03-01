@@ -53,6 +53,7 @@ private:
   unsigned int        m_buffer_size{0};
 
   ContentType         m_content_type{ XML };
+  bool                m_trusted{true};
 };
 
 }

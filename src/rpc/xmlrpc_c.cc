@@ -385,6 +385,10 @@ xmlrpc_call_command(xmlrpc_env* env, xmlrpc_value* args, void* voidServerInfo) {
 
     return object_to_xmlrpc(env, rpc::commands.call_command(itr, object, target));
 
+  } catch (untrusted_error& e) {
+    xmlrpc_env_set_fault(env, XMLRPC_REQUEST_REFUSED_ERROR, e.what());
+    return NULL;
+
   } catch (xmlrpc_error_c& e) {
     xmlrpc_env_set_fault(env, e.type(), e.what());
     return NULL;

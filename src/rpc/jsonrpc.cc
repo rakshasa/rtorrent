@@ -133,9 +133,12 @@ jsonrpc_call_command(const std::string& method, const json& params) {
 
   params_object_list.erase(params_object_list.begin());
 
-  const auto& result = rpc::commands.call_command(itr, params_object, target);
-
-  return object_to_json(result);
+  try {
+    const auto& result = rpc::commands.call_command(itr, params_object, target);
+    return object_to_json(result);
+  } catch (untrusted_error& e) {
+    throw rpc_error(JSONRPC_METHOD_NOT_FOUND_ERROR, e.what());
+  }
 }
 
 json

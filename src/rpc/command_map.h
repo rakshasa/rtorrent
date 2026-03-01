@@ -56,6 +56,8 @@ public:
   static const int flag_file_target    = 0x100;
   static const int flag_tracker_target = 0x200;
 
+  static const int flag_untrusted_safe = 0x400;
+
   CommandMap() = default;
 
   bool                has(const std::string& key) const { return base_type::find(key) != base_type::end(); }
