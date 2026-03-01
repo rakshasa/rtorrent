@@ -34,6 +34,17 @@ private:
   std::string m_msg;
 };
 
+class untrusted_error : public torrent::base_error {
+public:
+  untrusted_error(std::string msg) : m_msg(std::move(msg)) {}
+  virtual ~untrusted_error() throw() = default;
+
+  virtual const char* what() const throw() { return m_msg.c_str(); }
+
+private:
+  std::string m_msg;
+};
+
 class RpcManager {
 public:
   using slot_download          = std::function<core::Download*(const char*)>;
@@ -71,9 +82,17 @@ public:
   slot_tracker&  slot_find_tracker()  { return m_slot_find_tracker; }
   slot_peer&     slot_find_peer()     { return m_slot_find_peer; }
 
+  // Trusted/untrusted XMLRPC connection model.
+  // When an SCGI request includes the UNTRUSTED_CONNECTION header,
+  // commands without flag_untrusted_safe are blocked.
+  static bool    set_trusted(bool trusted);
+  static bool    is_trusted();
+
   static void    object_to_target(const torrent::Object& obj, int callFlags, rpc::target_type* target, std::function<void()>* deleter);
 
 private:
+  static thread_local bool m_trusted;
+
   XmlRpc        m_xmlrpc;
   JsonRpc       m_jsonrpc;
 

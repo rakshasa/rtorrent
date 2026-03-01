@@ -13,6 +13,28 @@ CommandMap commands;
 RpcManager rpc;
 ExecFile   execFile;
 
+// Trusted/untrusted XMLRPC connection model.
+//
+// The trust state is set per-request by the SCGI layer based on the
+// UNTRUSTED_CONNECTION header. Commands without flag_untrusted_safe
+// are blocked for untrusted connections. The check is in
+// CommandMap::call_command(), which catches all command execution
+// including nested calls through argument expansion.
+
+thread_local bool RpcManager::m_trusted = true;
+
+bool
+RpcManager::set_trusted(bool trusted) {
+  bool prev = m_trusted;
+  m_trusted = trusted;
+  return prev;
+}
+
+bool
+RpcManager::is_trusted() {
+  return m_trusted;
+}
+
 void
 RpcManager::object_to_target(const torrent::Object& obj, int call_flags, rpc::target_type* target, std::function<void()>* deleter) {
   if (!obj.is_string())
