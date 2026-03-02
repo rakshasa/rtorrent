@@ -28,9 +28,6 @@ tracker_set_enabled(torrent::tracker::Tracker* tracker, bool state) {
 
 torrent::Object
 apply_dht_add_node(const std::string& arg) {
-  if (!torrent::runtime::network_manager()->is_dht_valid())
-    throw torrent::input_error("DHT not enabled.");
-
   int port;
   char dummy;
   char host[1024];
