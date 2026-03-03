@@ -21,8 +21,6 @@ ExecFile   execFile;
 // CommandMap::call_command(), which catches all command execution
 // including nested calls through argument expansion.
 
-thread_local bool RpcManager::m_trusted = true;
-
 bool
 RpcManager::set_trusted(bool trusted) {
   bool prev = m_trusted;
@@ -31,7 +29,7 @@ RpcManager::set_trusted(bool trusted) {
 }
 
 bool
-RpcManager::is_trusted() {
+RpcManager::is_trusted() const {
   return m_trusted;
 }
 
@@ -146,6 +144,20 @@ RpcManager::process(RPCType type, const char* in_buffer, uint32_t length, slot_r
   }
 }
 
+bool
+RpcManager::process_untrusted(RPCType type, const char* in_buffer, uint32_t length, slot_response_callback callback) {
+  bool previous = set_trusted(false);
+
+  try {
+    bool result = process(type, in_buffer, length, callback);
+    set_trusted(previous);
+    return result;
+  } catch (...) {
+    set_trusted(previous);
+    throw;
+  }
+}
+
 void
 RpcManager::initialize_handlers() {
   if (m_handlers_initialized)
@@ -195,6 +207,16 @@ void
 RpcManager::insert_command(const char* name, const char* parm, const char* doc) {
   m_xmlrpc.insert_command(name, parm, doc);
   m_jsonrpc.insert_command(name, parm, doc);
+}
+
+void
+RpcManager::mark_safe(const std::string& key) {
+  auto itr = commands.find(key);
+
+  if (itr == commands.end())
+    return;
+
+  itr->second.m_flags |= CommandMap::flag_untrusted_safe;
 }
 
 } // namespace rpc

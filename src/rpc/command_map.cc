@@ -98,7 +98,7 @@ CommandMap::call_command(const key_type& key, const mapped_type& arg, const targ
   if (itr == base_type::end())
     throw torrent::input_error("Command \"" + std::string(key) + "\" does not exist.");
 
-  if (!RpcManager::is_trusted() && !(itr->second.m_flags & flag_untrusted_safe))
+  if (!rpc.is_trusted() && !(itr->second.m_flags & flag_untrusted_safe))
     throw untrusted_error("Command \"" + std::string(key) + "\" is not allowed for untrusted connections.");
 
   return itr->second.m_anySlot(&itr->second.m_variable, target, arg);
@@ -106,7 +106,7 @@ CommandMap::call_command(const key_type& key, const mapped_type& arg, const targ
 
 const CommandMap::mapped_type
 CommandMap::call_command(iterator itr, const mapped_type& arg, const target_type& target) {
-  if (!RpcManager::is_trusted() && !(itr->second.m_flags & flag_untrusted_safe))
+  if (!rpc.is_trusted() && !(itr->second.m_flags & flag_untrusted_safe))
     throw untrusted_error("Command \"" + itr->first + "\" is not allowed for untrusted connections.");
 
   return itr->second.m_anySlot(&itr->second.m_variable, target, arg);

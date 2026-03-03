@@ -147,47 +147,47 @@ throttle_update(const char* variable, int64_t value) {
 
 void
 initialize_command_throttle() {
-  CMD2_ANY_U         ("throttle.unchoked_uploads",       std::bind(&torrent::ResourceManager::currently_upload_unchoked, torrent::resource_manager()));
-  CMD2_ANY_U         ("throttle.max_unchoked_uploads",   std::bind(&torrent::ResourceManager::max_upload_unchoked, torrent::resource_manager()));
-  CMD2_ANY_U         ("throttle.unchoked_downloads",     std::bind(&torrent::ResourceManager::currently_download_unchoked, torrent::resource_manager()));
-  CMD2_ANY_U         ("throttle.max_unchoked_downloads", std::bind(&torrent::ResourceManager::max_download_unchoked, torrent::resource_manager()));
+  CMD2_ANY         ("throttle.unchoked_uploads",       std::bind(&torrent::ResourceManager::currently_upload_unchoked, torrent::resource_manager()));
+  CMD2_ANY         ("throttle.max_unchoked_uploads",   std::bind(&torrent::ResourceManager::max_upload_unchoked, torrent::resource_manager()));
+  CMD2_ANY         ("throttle.unchoked_downloads",     std::bind(&torrent::ResourceManager::currently_download_unchoked, torrent::resource_manager()));
+  CMD2_ANY         ("throttle.max_unchoked_downloads", std::bind(&torrent::ResourceManager::max_download_unchoked, torrent::resource_manager()));
 
-  CMD2_VAR_VALUE_U   ("throttle.min_peers.normal", 100);
-  CMD2_VAR_VALUE_U   ("throttle.max_peers.normal", 200);
-  CMD2_VAR_VALUE_U   ("throttle.min_peers.seed",   -1);
-  CMD2_VAR_VALUE_U   ("throttle.max_peers.seed",   -1);
+  CMD2_VAR_VALUE   ("throttle.min_peers.normal", 100);
+  CMD2_VAR_VALUE   ("throttle.max_peers.normal", 200);
+  CMD2_VAR_VALUE   ("throttle.min_peers.seed",   -1);
+  CMD2_VAR_VALUE   ("throttle.max_peers.seed",   -1);
 
-  CMD2_VAR_VALUE_U   ("throttle.min_uploads",      0);
-  CMD2_VAR_VALUE_U   ("throttle.max_uploads",      50);
-  CMD2_VAR_VALUE_U   ("throttle.min_downloads",    0);
-  CMD2_VAR_VALUE_U   ("throttle.max_downloads",    50);
+  CMD2_VAR_VALUE   ("throttle.min_uploads",      0);
+  CMD2_VAR_VALUE   ("throttle.max_uploads",      50);
+  CMD2_VAR_VALUE   ("throttle.min_downloads",    0);
+  CMD2_VAR_VALUE   ("throttle.max_downloads",    50);
 
-  CMD2_VAR_VALUE_U   ("throttle.max_uploads.div._val",      1);
-  CMD2_VAR_VALUE_U   ("throttle.max_uploads.global._val",   0);
-  CMD2_VAR_VALUE_U   ("throttle.max_downloads.div._val",    1);
-  CMD2_VAR_VALUE_U   ("throttle.max_downloads.global._val", 0);
+  CMD2_VAR_VALUE   ("throttle.max_uploads.div._val",      1);
+  CMD2_VAR_VALUE   ("throttle.max_uploads.global._val",   0);
+  CMD2_VAR_VALUE   ("throttle.max_downloads.div._val",    1);
+  CMD2_VAR_VALUE   ("throttle.max_downloads.global._val", 0);
 
   CMD2_REDIRECT    ("throttle.max_uploads.div",      "throttle.max_uploads.div._val");
   CMD2_REDIRECT    ("throttle.max_uploads.global",   "throttle.max_uploads.global._val");
   CMD2_REDIRECT    ("throttle.max_downloads.div",    "throttle.max_downloads.div._val");
   CMD2_REDIRECT    ("throttle.max_downloads.global", "throttle.max_downloads.global._val");
 
-  CMD2_ANY_VALUE_U   ("throttle.max_uploads.div.set",      std::bind(&throttle_update, "throttle.max_uploads.div._val.set", std::placeholders::_2));
-  CMD2_ANY_VALUE_U   ("throttle.max_uploads.global.set",   std::bind(&throttle_update, "throttle.max_uploads.global._val.set", std::placeholders::_2));
-  CMD2_ANY_VALUE_U   ("throttle.max_downloads.div.set",    std::bind(&throttle_update, "throttle.max_downloads.div._val.set", std::placeholders::_2));
-  CMD2_ANY_VALUE_U   ("throttle.max_downloads.global.set", std::bind(&throttle_update, "throttle.max_downloads.global._val.set", std::placeholders::_2));
+  CMD2_ANY_VALUE   ("throttle.max_uploads.div.set",      std::bind(&throttle_update, "throttle.max_uploads.div._val.set", std::placeholders::_2));
+  CMD2_ANY_VALUE   ("throttle.max_uploads.global.set",   std::bind(&throttle_update, "throttle.max_uploads.global._val.set", std::placeholders::_2));
+  CMD2_ANY_VALUE   ("throttle.max_downloads.div.set",    std::bind(&throttle_update, "throttle.max_downloads.div._val.set", std::placeholders::_2));
+  CMD2_ANY_VALUE   ("throttle.max_downloads.global.set", std::bind(&throttle_update, "throttle.max_downloads.global._val.set", std::placeholders::_2));
 
   // TODO: Move the logic into some libtorrent function.
-  CMD2_ANY_U         ("throttle.global_up.rate",              std::bind(&torrent::Rate::rate, torrent::up_rate()));
-  CMD2_ANY_U         ("throttle.global_up.total",             std::bind(&torrent::Rate::total, torrent::up_rate()));
-  CMD2_ANY_U         ("throttle.global_up.max_rate",          std::bind(&torrent::Throttle::max_rate, torrent::up_throttle_global()));
-  CMD2_ANY_VALUE_V_U ("throttle.global_up.max_rate.set",      std::bind(&ui::Root::set_up_throttle_i64, control->ui(), std::placeholders::_2));
-  CMD2_ANY_VALUE_KB_U("throttle.global_up.max_rate.set_kb",   std::bind(&ui::Root::set_up_throttle_i64, control->ui(), std::placeholders::_2));
-  CMD2_ANY_U         ("throttle.global_down.rate",            std::bind(&torrent::Rate::rate, torrent::down_rate()));
-  CMD2_ANY_U         ("throttle.global_down.total",           std::bind(&torrent::Rate::total, torrent::down_rate()));
-  CMD2_ANY_U         ("throttle.global_down.max_rate",        std::bind(&torrent::Throttle::max_rate, torrent::down_throttle_global()));
-  CMD2_ANY_VALUE_V_U ("throttle.global_down.max_rate.set",    std::bind(&ui::Root::set_down_throttle_i64, control->ui(), std::placeholders::_2));
-  CMD2_ANY_VALUE_KB_U("throttle.global_down.max_rate.set_kb", std::bind(&ui::Root::set_down_throttle_i64, control->ui(), std::placeholders::_2));
+  CMD2_ANY         ("throttle.global_up.rate",              std::bind(&torrent::Rate::rate, torrent::up_rate()));
+  CMD2_ANY         ("throttle.global_up.total",             std::bind(&torrent::Rate::total, torrent::up_rate()));
+  CMD2_ANY         ("throttle.global_up.max_rate",          std::bind(&torrent::Throttle::max_rate, torrent::up_throttle_global()));
+  CMD2_ANY_VALUE_V ("throttle.global_up.max_rate.set",      std::bind(&ui::Root::set_up_throttle_i64, control->ui(), std::placeholders::_2));
+  CMD2_ANY_VALUE_KB("throttle.global_up.max_rate.set_kb",   std::bind(&ui::Root::set_up_throttle_i64, control->ui(), std::placeholders::_2));
+  CMD2_ANY         ("throttle.global_down.rate",            std::bind(&torrent::Rate::rate, torrent::down_rate()));
+  CMD2_ANY         ("throttle.global_down.total",           std::bind(&torrent::Rate::total, torrent::down_rate()));
+  CMD2_ANY         ("throttle.global_down.max_rate",        std::bind(&torrent::Throttle::max_rate, torrent::down_throttle_global()));
+  CMD2_ANY_VALUE_V ("throttle.global_down.max_rate.set",    std::bind(&ui::Root::set_down_throttle_i64, control->ui(), std::placeholders::_2));
+  CMD2_ANY_VALUE_KB("throttle.global_down.max_rate.set_kb", std::bind(&ui::Root::set_down_throttle_i64, control->ui(), std::placeholders::_2));
 
   // Temporary names, need to change this to accept real rates rather
   // than kB.
@@ -195,8 +195,64 @@ initialize_command_throttle() {
   CMD2_ANY_LIST    ("throttle.down",                        std::bind(&apply_throttle, std::placeholders::_2, false));
   CMD2_ANY_LIST    ("throttle.ip",                          std::bind(&apply_address_throttle, std::placeholders::_2));
 
-  CMD2_ANY_STRING_U  ("throttle.up.max",    std::bind(&retrieve_throttle_info, std::placeholders::_2, throttle_info_up | throttle_info_max));
-  CMD2_ANY_STRING_U  ("throttle.up.rate",   std::bind(&retrieve_throttle_info, std::placeholders::_2, throttle_info_up | throttle_info_rate));
-  CMD2_ANY_STRING_U  ("throttle.down.max",  std::bind(&retrieve_throttle_info, std::placeholders::_2, throttle_info_down | throttle_info_max));
-  CMD2_ANY_STRING_U  ("throttle.down.rate", std::bind(&retrieve_throttle_info, std::placeholders::_2, throttle_info_down | throttle_info_rate));
+  CMD2_ANY_STRING  ("throttle.up.max",    std::bind(&retrieve_throttle_info, std::placeholders::_2, throttle_info_up | throttle_info_max));
+  CMD2_ANY_STRING  ("throttle.up.rate",   std::bind(&retrieve_throttle_info, std::placeholders::_2, throttle_info_up | throttle_info_rate));
+  CMD2_ANY_STRING  ("throttle.down.max",  std::bind(&retrieve_throttle_info, std::placeholders::_2, throttle_info_down | throttle_info_max));
+  CMD2_ANY_STRING  ("throttle.down.rate", std::bind(&retrieve_throttle_info, std::placeholders::_2, throttle_info_down | throttle_info_rate));
+
+  rpc::rpc.mark_safe("throttle.unchoked_uploads");
+  rpc::rpc.mark_safe("throttle.max_unchoked_uploads");
+  rpc::rpc.mark_safe("throttle.unchoked_downloads");
+  rpc::rpc.mark_safe("throttle.max_unchoked_downloads");
+
+  rpc::rpc.mark_safe("throttle.min_peers.normal");
+  rpc::rpc.mark_safe("throttle.min_peers.normal.set");
+  rpc::rpc.mark_safe("throttle.max_peers.normal");
+  rpc::rpc.mark_safe("throttle.max_peers.normal.set");
+  rpc::rpc.mark_safe("throttle.min_peers.seed");
+  rpc::rpc.mark_safe("throttle.min_peers.seed.set");
+  rpc::rpc.mark_safe("throttle.max_peers.seed");
+  rpc::rpc.mark_safe("throttle.max_peers.seed.set");
+
+  rpc::rpc.mark_safe("throttle.min_uploads");
+  rpc::rpc.mark_safe("throttle.min_uploads.set");
+  rpc::rpc.mark_safe("throttle.max_uploads");
+  rpc::rpc.mark_safe("throttle.max_uploads.set");
+  rpc::rpc.mark_safe("throttle.min_downloads");
+  rpc::rpc.mark_safe("throttle.min_downloads.set");
+  rpc::rpc.mark_safe("throttle.max_downloads");
+  rpc::rpc.mark_safe("throttle.max_downloads.set");
+
+  rpc::rpc.mark_safe("throttle.max_uploads.div");
+  rpc::rpc.mark_safe("throttle.max_uploads.div.set");
+  rpc::rpc.mark_safe("throttle.max_uploads.div._val");
+  rpc::rpc.mark_safe("throttle.max_uploads.div._val.set");
+  rpc::rpc.mark_safe("throttle.max_uploads.global");
+  rpc::rpc.mark_safe("throttle.max_uploads.global.set");
+  rpc::rpc.mark_safe("throttle.max_uploads.global._val");
+  rpc::rpc.mark_safe("throttle.max_uploads.global._val.set");
+  rpc::rpc.mark_safe("throttle.max_downloads.div");
+  rpc::rpc.mark_safe("throttle.max_downloads.div.set");
+  rpc::rpc.mark_safe("throttle.max_downloads.div._val");
+  rpc::rpc.mark_safe("throttle.max_downloads.div._val.set");
+  rpc::rpc.mark_safe("throttle.max_downloads.global");
+  rpc::rpc.mark_safe("throttle.max_downloads.global.set");
+  rpc::rpc.mark_safe("throttle.max_downloads.global._val");
+  rpc::rpc.mark_safe("throttle.max_downloads.global._val.set");
+
+  rpc::rpc.mark_safe("throttle.global_up.rate");
+  rpc::rpc.mark_safe("throttle.global_up.total");
+  rpc::rpc.mark_safe("throttle.global_up.max_rate");
+  rpc::rpc.mark_safe("throttle.global_up.max_rate.set");
+  rpc::rpc.mark_safe("throttle.global_up.max_rate.set_kb");
+  rpc::rpc.mark_safe("throttle.global_down.rate");
+  rpc::rpc.mark_safe("throttle.global_down.total");
+  rpc::rpc.mark_safe("throttle.global_down.max_rate");
+  rpc::rpc.mark_safe("throttle.global_down.max_rate.set");
+  rpc::rpc.mark_safe("throttle.global_down.max_rate.set_kb");
+
+  rpc::rpc.mark_safe("throttle.up.max");
+  rpc::rpc.mark_safe("throttle.up.rate");
+  rpc::rpc.mark_safe("throttle.down.max");
+  rpc::rpc.mark_safe("throttle.down.rate");
 }
