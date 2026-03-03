@@ -305,20 +305,15 @@ SCgiTask::receive_call(const char* buffer, uint32_t length) {
   }
 
   torrent::main_thread::thread()->callback_interrupt_polling(this, [buffer, length, result_callback, trusted, rpc_type]() {
-      rpc::RpcManager::set_trusted(trusted);
+      auto callback = [result_callback](const char* b, uint32_t l) {
+          result_callback(b, l);
+          return true;
+        };
 
-      try {
-        rpc.process(rpc_type, buffer, length,
-                    [result_callback](const char* b, uint32_t l) {
-                      result_callback(b, l);
-                      return true;
-                    });
-      } catch (...) {
-        rpc::RpcManager::set_trusted(true);
-        throw;
-      }
-
-      rpc::RpcManager::set_trusted(true);
+      if (trusted)
+        rpc.process(rpc_type, buffer, length, callback);
+      else
+        rpc.process_untrusted(rpc_type, buffer, length, callback);
     });
 }
 
