@@ -350,15 +350,6 @@ initialize_command_events() {
   rpc::rpc.mark_safe("close_untied");
   rpc::rpc.mark_safe("remove_untied");
 
-  rpc::rpc.mark_safe("load.normal");
-  rpc::rpc.mark_safe("load.verbose");
-  rpc::rpc.mark_safe("load.start");
-  rpc::rpc.mark_safe("load.start_verbose");
-  rpc::rpc.mark_safe("load.raw");
-  rpc::rpc.mark_safe("load.raw_verbose");
-  rpc::rpc.mark_safe("load.raw_start");
-  rpc::rpc.mark_safe("load.raw_start_verbose");
-
   rpc::rpc.mark_safe("close_low_diskspace");
   rpc::rpc.mark_safe("close_low_diskspace.normal");
   rpc::rpc.mark_safe("download_list");

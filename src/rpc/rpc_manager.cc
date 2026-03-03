@@ -22,13 +22,6 @@ ExecFile   execFile;
 // including nested calls through argument expansion.
 
 bool
-RpcManager::set_trusted(bool trusted) {
-  bool prev = m_trusted;
-  m_trusted = trusted;
-  return prev;
-}
-
-bool
 RpcManager::is_trusted() const {
   return m_trusted;
 }
@@ -146,14 +139,15 @@ RpcManager::process(RPCType type, const char* in_buffer, uint32_t length, slot_r
 
 bool
 RpcManager::process_untrusted(RPCType type, const char* in_buffer, uint32_t length, slot_response_callback callback) {
-  bool previous = set_trusted(false);
+  bool previous = m_trusted;
+  m_trusted = false;
 
   try {
     bool result = process(type, in_buffer, length, callback);
-    set_trusted(previous);
+    m_trusted = previous;
     return result;
   } catch (...) {
-    set_trusted(previous);
+    m_trusted = previous;
     throw;
   }
 }
