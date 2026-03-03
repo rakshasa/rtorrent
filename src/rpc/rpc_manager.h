@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <functional>
 #include <torrent/common.h>
+#include <torrent/exceptions.h>
 
 #include "rpc/command.h"
 #include "rpc/command_map.h"
@@ -34,15 +35,10 @@ private:
   std::string m_msg;
 };
 
-class untrusted_error : public torrent::base_error {
+class untrusted_error : public torrent::input_error {
 public:
-  untrusted_error(std::string msg) : m_msg(std::move(msg)) {}
+  using torrent::input_error::input_error;
   virtual ~untrusted_error() throw() = default;
-
-  virtual const char* what() const throw() { return m_msg.c_str(); }
-
-private:
-  std::string m_msg;
 };
 
 class RpcManager {
@@ -74,8 +70,10 @@ public:
   void           set_type_enabled(RPCType type, bool enabled);
 
   bool           process(RPCType type, const char* in_buffer, uint32_t length, slot_response_callback callback);
+  bool           process_untrusted(RPCType type, const char* in_buffer, uint32_t length, slot_response_callback callback);
 
   void           insert_command(const char* name, const char* parm, const char* doc);
+  void           mark_safe(const std::string& key);
 
   slot_download& slot_find_download() { return m_slot_find_download; }
   slot_file&     slot_find_file()     { return m_slot_find_file; }
@@ -85,13 +83,13 @@ public:
   // Trusted/untrusted XMLRPC connection model.
   // When an SCGI request includes the UNTRUSTED_CONNECTION header,
   // commands without flag_untrusted_safe are blocked.
-  static bool    set_trusted(bool trusted);
-  static bool    is_trusted();
+  bool           set_trusted(bool trusted);
+  bool           is_trusted() const;
 
   static void    object_to_target(const torrent::Object& obj, int callFlags, rpc::target_type* target, std::function<void()>* deleter);
 
 private:
-  static thread_local bool m_trusted;
+  bool          m_trusted{true};
 
   XmlRpc        m_xmlrpc;
   JsonRpc       m_jsonrpc;

@@ -635,63 +635,43 @@ d_list_remove(core::Download* download, const torrent::Object& rawArgs, const ch
                                             std::placeholders::_1, std::placeholders::_2, \
                                             first_key, second_key));
 
-#define CMD2_DL_VAR_VALUE_U(key, first_key, second_key)                  \
-  CMD2_DL_U(key, std::bind(&download_get_variable, std::placeholders::_1, first_key, second_key)); \
-  CMD2_DL_VALUE_P(key ".set", std::bind(&download_set_variable_value, \
-                                        std::placeholders::_1, std::placeholders::_2, first_key, second_key));
-
-#define CMD2_DL_VAR_VALUE_PUBLIC_U(key, first_key, second_key)           \
-  CMD2_DL_U(key, std::bind(&download_get_variable, std::placeholders::_1, first_key, second_key)); \
-  CMD2_DL_VALUE_U(key ".set", std::bind(&download_set_variable_value, \
-                                        std::placeholders::_1, std::placeholders::_2, first_key, second_key));
-
-#define CMD2_DL_VAR_STRING_U(key, first_key, second_key)                  \
-  CMD2_DL_U(key, std::bind(&download_get_variable, std::placeholders::_1, first_key, second_key)); \
-  CMD2_DL_STRING_P(key ".set", std::bind(&download_set_variable_string, \
-                                         std::placeholders::_1, std::placeholders::_2, first_key, second_key));
-
-#define CMD2_DL_VAR_STRING_PUBLIC_U(key, first_key, second_key)                  \
-  CMD2_DL_U(key, std::bind(&download_get_variable, std::placeholders::_1, first_key, second_key)); \
-  CMD2_DL_STRING_U(key ".set", std::bind(&download_set_variable_string, \
-                                         std::placeholders::_1, std::placeholders::_2, first_key, second_key));
-
 int64_t            cg_d_group(core::Download* download);
 const std::string& cg_d_group_name(core::Download* download);
 void               cg_d_group_set(core::Download* download, const torrent::Object& arg);
 
 void
 initialize_command_download() {
-  CMD2_DL_U("d.hash",          std::bind(&rak::transform_hex_str<torrent::HashString>, CMD2_ON_INFO(hash)));
-  CMD2_DL_U("d.local_id",      std::bind(&rak::transform_hex_str<torrent::HashString>, CMD2_ON_INFO(local_id)));
-  CMD2_DL_U("d.local_id_html", std::bind(&rak::copy_escape_html_str<torrent::HashString>, CMD2_ON_INFO(local_id)));
-  CMD2_DL_U("d.bitfield",      std::bind(&retrieve_d_bitfield, std::placeholders::_1));
-  CMD2_DL_U("d.base_path",     std::bind(&retrieve_d_base_path, std::placeholders::_1));
-  CMD2_DL_U("d.base_filename", std::bind(&retrieve_d_base_filename, std::placeholders::_1));
+  CMD2_DL("d.hash",          std::bind(&rak::transform_hex_str<torrent::HashString>, CMD2_ON_INFO(hash)));
+  CMD2_DL("d.local_id",      std::bind(&rak::transform_hex_str<torrent::HashString>, CMD2_ON_INFO(local_id)));
+  CMD2_DL("d.local_id_html", std::bind(&rak::copy_escape_html_str<torrent::HashString>, CMD2_ON_INFO(local_id)));
+  CMD2_DL("d.bitfield",      std::bind(&retrieve_d_bitfield, std::placeholders::_1));
+  CMD2_DL("d.base_path",     std::bind(&retrieve_d_base_path, std::placeholders::_1));
+  CMD2_DL("d.base_filename", std::bind(&retrieve_d_base_filename, std::placeholders::_1));
 
-  CMD2_DL_U("d.name",          CMD2_ON_INFO(name));
-  CMD2_DL_U("d.creation_date", CMD2_ON_INFO(creation_date));
-  CMD2_DL_U("d.load_date",     CMD2_ON_INFO(load_date));
+  CMD2_DL("d.name",          CMD2_ON_INFO(name));
+  CMD2_DL("d.creation_date", CMD2_ON_INFO(creation_date));
+  CMD2_DL("d.load_date",     CMD2_ON_INFO(load_date));
 
   //
   // Network related:
   //
 
-  CMD2_DL_U       ("d.up.rate",       std::bind(&torrent::Rate::rate,  CMD2_ON_INFO(up_rate)));
-  CMD2_DL_U       ("d.up.total",      std::bind(&torrent::Rate::total, CMD2_ON_INFO(up_rate)));
-  CMD2_DL_U       ("d.down.rate",     std::bind(&torrent::Rate::rate,  CMD2_ON_INFO(down_rate)));
-  CMD2_DL_U       ("d.down.total",    std::bind(&torrent::Rate::total, CMD2_ON_INFO(down_rate)));
-  CMD2_DL_U       ("d.skip.rate",     std::bind(&torrent::Rate::rate,  CMD2_ON_INFO(skip_rate)));
-  CMD2_DL_U       ("d.skip.total",    std::bind(&torrent::Rate::total, CMD2_ON_INFO(skip_rate)));
+  CMD2_DL         ("d.up.rate",       std::bind(&torrent::Rate::rate,  CMD2_ON_INFO(up_rate)));
+  CMD2_DL         ("d.up.total",      std::bind(&torrent::Rate::total, CMD2_ON_INFO(up_rate)));
+  CMD2_DL         ("d.down.rate",     std::bind(&torrent::Rate::rate,  CMD2_ON_INFO(down_rate)));
+  CMD2_DL         ("d.down.total",    std::bind(&torrent::Rate::total, CMD2_ON_INFO(down_rate)));
+  CMD2_DL         ("d.skip.rate",     std::bind(&torrent::Rate::rate,  CMD2_ON_INFO(skip_rate)));
+  CMD2_DL         ("d.skip.total",    std::bind(&torrent::Rate::total, CMD2_ON_INFO(skip_rate)));
 
-  CMD2_DL_U       ("d.peer_exchange",     CMD2_ON_INFO(is_pex_enabled));
-  CMD2_DL_VALUE_V_U("d.peer_exchange.set", std::bind(&torrent::Download::set_pex_enabled, CMD2_BIND_DL, std::placeholders::_2));
+  CMD2_DL         ("d.peer_exchange",     CMD2_ON_INFO(is_pex_enabled));
+  CMD2_DL_VALUE_V ("d.peer_exchange.set", std::bind(&torrent::Download::set_pex_enabled, CMD2_BIND_DL, std::placeholders::_2));
 
-  CMD2_DL_LIST_U  ("d.create_link", std::bind(&apply_d_change_link, std::placeholders::_1, std::placeholders::_2, 0));
-  CMD2_DL_LIST_U  ("d.delete_link", std::bind(&apply_d_change_link, std::placeholders::_1, std::placeholders::_2, 1));
-  CMD2_DL_U       ("d.delete_tied", std::bind(&apply_d_delete_tied, std::placeholders::_1));
+  CMD2_DL_LIST    ("d.create_link", std::bind(&apply_d_change_link, std::placeholders::_1, std::placeholders::_2, 0));
+  CMD2_DL_LIST    ("d.delete_link", std::bind(&apply_d_change_link, std::placeholders::_1, std::placeholders::_2, 1));
+  CMD2_DL         ("d.delete_tied", std::bind(&apply_d_delete_tied, std::placeholders::_1));
 
-  CMD2_FUNC_SINGLE_U("d.start",     "d.hashing_failed.set=0 ;view.set_visible=started");
-  CMD2_FUNC_SINGLE_U("d.stop",      "view.set_visible=stopped");
+  CMD2_FUNC_SINGLE("d.start",     "d.hashing_failed.set=0 ;view.set_visible=started");
+  CMD2_FUNC_SINGLE("d.stop",      "view.set_visible=stopped");
   CMD2_FUNC_SINGLE("d.try_start", "branch=\"or={d.hashing_failed=,d.ignore_commands=}\",{},{view.set_visible=started}");
   CMD2_FUNC_SINGLE("d.try_stop",  "branch=d.ignore_commands=, {}, {view.set_visible=stopped}");
   CMD2_FUNC_SINGLE("d.try_close", "branch=d.ignore_commands=, {}, {view.set_visible=stopped, d.close=}");
@@ -700,91 +680,91 @@ initialize_command_download() {
   // Control functinos:
   //
 
-  CMD2_DL_U       ("d.is_open",               CMD2_ON_INFO(is_open));
-  CMD2_DL_U       ("d.is_active",             CMD2_ON_INFO(is_active));
-  CMD2_DL_U       ("d.is_hash_checked",       std::bind(&torrent::Download::is_hash_checked, CMD2_BIND_DL));
-  CMD2_DL_U       ("d.is_hash_checking",      std::bind(&torrent::Download::is_hash_checking, CMD2_BIND_DL));
-  CMD2_DL_U       ("d.is_multi_file",         std::bind(&torrent::FileList::is_multi_file, CMD2_BIND_FL));
-  CMD2_DL_U       ("d.is_private",            CMD2_ON_INFO(is_private));
-  CMD2_DL_U       ("d.is_pex_active",         CMD2_ON_INFO(is_pex_active));
-  CMD2_DL_U       ("d.is_partially_done",     CMD2_ON_DATA(is_partially_done));
-  CMD2_DL_U       ("d.is_not_partially_done", CMD2_ON_DATA(is_not_partially_done));
-  CMD2_DL_U       ("d.is_meta",               CMD2_ON_INFO(is_meta_download));
+  CMD2_DL         ("d.is_open",               CMD2_ON_INFO(is_open));
+  CMD2_DL         ("d.is_active",             CMD2_ON_INFO(is_active));
+  CMD2_DL         ("d.is_hash_checked",       std::bind(&torrent::Download::is_hash_checked, CMD2_BIND_DL));
+  CMD2_DL         ("d.is_hash_checking",      std::bind(&torrent::Download::is_hash_checking, CMD2_BIND_DL));
+  CMD2_DL         ("d.is_multi_file",         std::bind(&torrent::FileList::is_multi_file, CMD2_BIND_FL));
+  CMD2_DL         ("d.is_private",            CMD2_ON_INFO(is_private));
+  CMD2_DL         ("d.is_pex_active",         CMD2_ON_INFO(is_pex_active));
+  CMD2_DL         ("d.is_partially_done",     CMD2_ON_DATA(is_partially_done));
+  CMD2_DL         ("d.is_not_partially_done", CMD2_ON_DATA(is_not_partially_done));
+  CMD2_DL         ("d.is_meta",               CMD2_ON_INFO(is_meta_download));
 
-  CMD2_DL_V_U     ("d.resume",     std::bind(&core::DownloadList::resume_default, control->core()->download_list(), std::placeholders::_1));
-  CMD2_DL_V_U     ("d.pause",      std::bind(&core::DownloadList::pause_default, control->core()->download_list(), std::placeholders::_1));
-  CMD2_DL_V_U     ("d.open",       std::bind(&core::DownloadList::open_throw, control->core()->download_list(), std::placeholders::_1));
-  CMD2_DL_V_U     ("d.close",      std::bind(&core::DownloadList::close_throw, control->core()->download_list(), std::placeholders::_1));
-  CMD2_DL_V_U     ("d.close.directly", std::bind(&core::DownloadList::close_directly, control->core()->download_list(), std::placeholders::_1));
-  CMD2_DL_V_U     ("d.erase",      std::bind(&core::DownloadList::erase_ptr, control->core()->download_list(), std::placeholders::_1));
-  CMD2_DL_V_U     ("d.check_hash", std::bind(&core::DownloadList::check_hash, control->core()->download_list(), std::placeholders::_1));
+  CMD2_DL_V       ("d.resume",     std::bind(&core::DownloadList::resume_default, control->core()->download_list(), std::placeholders::_1));
+  CMD2_DL_V       ("d.pause",      std::bind(&core::DownloadList::pause_default, control->core()->download_list(), std::placeholders::_1));
+  CMD2_DL_V       ("d.open",       std::bind(&core::DownloadList::open_throw, control->core()->download_list(), std::placeholders::_1));
+  CMD2_DL_V       ("d.close",      std::bind(&core::DownloadList::close_throw, control->core()->download_list(), std::placeholders::_1));
+  CMD2_DL_V       ("d.close.directly", std::bind(&core::DownloadList::close_directly, control->core()->download_list(), std::placeholders::_1));
+  CMD2_DL_V       ("d.erase",      std::bind(&core::DownloadList::erase_ptr, control->core()->download_list(), std::placeholders::_1));
+  CMD2_DL_V       ("d.check_hash", std::bind(&core::DownloadList::check_hash, control->core()->download_list(), std::placeholders::_1));
 
-  CMD2_DL_V_U     ("d.save_resume",       [](core::Download* download, auto) { session_thread::manager()->save_resume_download(download); });
-  CMD2_DL_V_U     ("d.save_full_session", [](core::Download* download, auto) { session_thread::manager()->save_full_download(download); });
+  CMD2_DL_V       ("d.save_resume",       [](core::Download* download, auto) { session_thread::manager()->save_resume_download(download); });
+  CMD2_DL_V       ("d.save_full_session", [](core::Download* download, auto) { session_thread::manager()->save_full_download(download); });
 
-  CMD2_DL_V_U     ("d.update_priorities", CMD2_ON_DL(update_priorities));
+  CMD2_DL_V       ("d.update_priorities", CMD2_ON_DL(update_priorities));
 
-  CMD2_DL_STRING_V_U("add_peer",   std::bind(&apply_d_add_peer, std::placeholders::_1, std::placeholders::_2));
+  CMD2_DL_STRING_V("add_peer",   std::bind(&apply_d_add_peer, std::placeholders::_1, std::placeholders::_2));
 
   //
   // Custom settings:
   //
 
-  CMD2_DL_STRING_U("d.custom",       std::bind(&retrieve_d_custom, std::placeholders::_1, std::placeholders::_2));
-  CMD2_DL_STRING_U("d.custom_throw", std::bind(&retrieve_d_custom_throw, std::placeholders::_1, std::placeholders::_2));
-  CMD2_DL_LIST_U  ("d.custom.set",   std::bind(&apply_d_custom, std::placeholders::_1, std::placeholders::_2));
-  CMD2_DL_LIST_U  ("d.custom.if_z",  std::bind(&retrieve_d_custom_if_z, std::placeholders::_1, std::placeholders::_2));
-  CMD2_DL_LIST_U  ("d.custom.keys",  std::bind(&retrieve_d_custom_map, std::placeholders::_1, true, std::placeholders::_2));
-  CMD2_DL_LIST_U  ("d.custom.items", std::bind(&retrieve_d_custom_map, std::placeholders::_1, false, std::placeholders::_2));
+  CMD2_DL_STRING("d.custom",       std::bind(&retrieve_d_custom, std::placeholders::_1, std::placeholders::_2));
+  CMD2_DL_STRING("d.custom_throw", std::bind(&retrieve_d_custom_throw, std::placeholders::_1, std::placeholders::_2));
+  CMD2_DL_LIST  ("d.custom.set",   std::bind(&apply_d_custom, std::placeholders::_1, std::placeholders::_2));
+  CMD2_DL_LIST  ("d.custom.if_z",  std::bind(&retrieve_d_custom_if_z, std::placeholders::_1, std::placeholders::_2));
+  CMD2_DL_LIST  ("d.custom.keys",  std::bind(&retrieve_d_custom_map, std::placeholders::_1, true, std::placeholders::_2));
+  CMD2_DL_LIST  ("d.custom.items", std::bind(&retrieve_d_custom_map, std::placeholders::_1, false, std::placeholders::_2));
 
-  CMD2_DL_VAR_STRING_PUBLIC_U("d.custom1", "rtorrent", "custom1");
-  CMD2_DL_VAR_STRING_PUBLIC_U("d.custom2", "rtorrent", "custom2");
-  CMD2_DL_VAR_STRING_PUBLIC_U("d.custom3", "rtorrent", "custom3");
-  CMD2_DL_VAR_STRING_PUBLIC_U("d.custom4", "rtorrent", "custom4");
-  CMD2_DL_VAR_STRING_PUBLIC_U("d.custom5", "rtorrent", "custom5");
+  CMD2_DL_VAR_STRING_PUBLIC("d.custom1", "rtorrent", "custom1");
+  CMD2_DL_VAR_STRING_PUBLIC("d.custom2", "rtorrent", "custom2");
+  CMD2_DL_VAR_STRING_PUBLIC("d.custom3", "rtorrent", "custom3");
+  CMD2_DL_VAR_STRING_PUBLIC("d.custom4", "rtorrent", "custom4");
+  CMD2_DL_VAR_STRING_PUBLIC("d.custom5", "rtorrent", "custom5");
 
   // 0 - stopped
   // 1 - started
-  CMD2_DL_VAR_VALUE_U("d.state",      "rtorrent", "state");
-  CMD2_DL_VAR_VALUE_U("d.complete",   "rtorrent", "complete");
+  CMD2_DL_VAR_VALUE("d.state",      "rtorrent", "state");
+  CMD2_DL_VAR_VALUE("d.complete",   "rtorrent", "complete");
 
-  CMD2_FUNC_SINGLE_U("d.incomplete", "not=(d.complete)");
+  CMD2_FUNC_SINGLE ("d.incomplete", "not=(d.complete)");
 
   // 0 off
   // 1 scheduled, being controlled by a download scheduler. Includes a priority.
   // 3 forced off
   // 2 forced on
-  CMD2_DL_VAR_VALUE_U("d.mode", "rtorrent", "mode");
+  CMD2_DL_VAR_VALUE("d.mode", "rtorrent", "mode");
 
   // 0 - Not hashing
   // 1 - Normal hashing
   // 2 - Download finished, hashing
   // 3 - Rehashing
-  CMD2_DL_VAR_VALUE_U("d.hashing", "rtorrent", "hashing");
+  CMD2_DL_VAR_VALUE("d.hashing", "rtorrent", "hashing");
 
   // 'tied_to_file' is the file the download is associated with, and
   // can be changed by the user.
   //
   // 'loaded_file' is the file this instance of the torrent was loaded
   // from, and should not be changed.
-  CMD2_DL_VAR_STRING_PUBLIC_U("d.tied_to_file", "rtorrent", "tied_to_file");
+  CMD2_DL_VAR_STRING_PUBLIC("d.tied_to_file", "rtorrent", "tied_to_file");
   CMD2_DL_VAR_STRING("d.loaded_file",  "rtorrent", "loaded_file");
 
   // The "state_changed" variable is required to be a valid unix time
   // value, it indicates the last time the torrent changed its state,
   // resume/pause.
-  CMD2_DL_VAR_VALUE_U("d.state_changed",          "rtorrent", "state_changed");
-  CMD2_DL_VAR_VALUE_U("d.state_counter",          "rtorrent", "state_counter");
-  CMD2_DL_VAR_VALUE_PUBLIC_U("d.ignore_commands", "rtorrent", "ignore_commands");
+  CMD2_DL_VAR_VALUE("d.state_changed",          "rtorrent", "state_changed");
+  CMD2_DL_VAR_VALUE("d.state_counter",          "rtorrent", "state_counter");
+  CMD2_DL_VAR_VALUE_PUBLIC("d.ignore_commands", "rtorrent", "ignore_commands");
 
   CMD2_DL_TIMESTAMP("d.timestamp.started",      "rtorrent", "timestamp.started");
   CMD2_DL_TIMESTAMP("d.timestamp.finished",     "rtorrent", "timestamp.finished");
 
-  CMD2_DL_U     ("d.connection_current",     std::bind(&torrent::option_as_string, torrent::OPTION_CONNECTION_TYPE, CMD2_ON_DL(connection_type)));
-  CMD2_DL_STRING_U("d.connection_current.set", std::bind(&apply_d_connection_type, std::placeholders::_1, std::placeholders::_2));
+  CMD2_DL       ("d.connection_current",     std::bind(&torrent::option_as_string, torrent::OPTION_CONNECTION_TYPE, CMD2_ON_DL(connection_type)));
+  CMD2_DL_STRING("d.connection_current.set", std::bind(&apply_d_connection_type, std::placeholders::_1, std::placeholders::_2));
 
-  CMD2_DL_VAR_STRING_U("d.connection_leech",      "rtorrent", "connection_leech");
-  CMD2_DL_VAR_STRING_U("d.connection_seed",       "rtorrent", "connection_seed");
+  CMD2_DL_VAR_STRING("d.connection_leech",      "rtorrent", "connection_leech");
+  CMD2_DL_VAR_STRING("d.connection_seed",       "rtorrent", "connection_seed");
 
   CMD2_DL       ("d.up.choke_heuristics",       std::bind(&torrent::option_as_string, torrent::OPTION_CHOKE_HEURISTICS, CMD2_ON_DL(upload_choke_heuristic)));
   CMD2_DL_STRING("d.up.choke_heuristics.set",   std::bind(&apply_d_choke_heuristics, std::placeholders::_1, std::placeholders::_2, false));
@@ -796,39 +776,39 @@ initialize_command_download() {
   CMD2_DL_VAR_STRING("d.down.choke_heuristics.leech", "rtorrent", "choke_heuristics.down.leech");
   CMD2_DL_VAR_STRING("d.down.choke_heuristics.seed",  "rtorrent", "choke_heuristics.down.seed");
 
-  CMD2_DL_U       ("d.hashing_failed",     std::bind(&core::Download::is_hash_failed, std::placeholders::_1));
-  CMD2_DL_VALUE_V_U("d.hashing_failed.set", std::bind(&core::Download::set_hash_failed, std::placeholders::_1, std::placeholders::_2));
+  CMD2_DL         ("d.hashing_failed",     std::bind(&core::Download::is_hash_failed, std::placeholders::_1));
+  CMD2_DL_VALUE_V ("d.hashing_failed.set", std::bind(&core::Download::set_hash_failed, std::placeholders::_1, std::placeholders::_2));
 
-  CMD2_DL_U       ("d.views",                  std::bind(&download_get_variable, std::placeholders::_1, "rtorrent", "views"));
+  CMD2_DL         ("d.views",                  std::bind(&download_get_variable, std::placeholders::_1, "rtorrent", "views"));
   CMD2_DL         ("d.views.has",              std::bind(&d_list_has, std::placeholders::_1, std::placeholders::_2, "rtorrent", "views"));
-  CMD2_DL_U       ("d.views.remove",           std::bind(&d_list_remove, std::placeholders::_1, std::placeholders::_2, "rtorrent", "views"));
-  CMD2_DL_STRING_U("d.views.push_back",        std::bind(&d_list_push_back_string, std::placeholders::_1, std::placeholders::_2, "rtorrent", "views"));
-  CMD2_DL_STRING_U("d.views.push_back_unique", std::bind(&d_list_push_back_unique_string, std::placeholders::_1, std::placeholders::_2, "rtorrent", "views"));
+  CMD2_DL         ("d.views.remove",           std::bind(&d_list_remove, std::placeholders::_1, std::placeholders::_2, "rtorrent", "views"));
+  CMD2_DL_STRING  ("d.views.push_back",        std::bind(&d_list_push_back_string, std::placeholders::_1, std::placeholders::_2, "rtorrent", "views"));
+  CMD2_DL_STRING  ("d.views.push_back_unique", std::bind(&d_list_push_back_unique_string, std::placeholders::_1, std::placeholders::_2, "rtorrent", "views"));
 
   // This command really needs to be improved, so we have proper
   // logging support.
-  CMD2_DL_U       ("d.message",     std::bind(&core::Download::message, std::placeholders::_1));
-  CMD2_DL_STRING_V_U("d.message.set", std::bind(&core::Download::set_message, std::placeholders::_1, std::placeholders::_2));
+  CMD2_DL         ("d.message",     std::bind(&core::Download::message, std::placeholders::_1));
+  CMD2_DL_STRING_V("d.message.set", std::bind(&core::Download::set_message, std::placeholders::_1, std::placeholders::_2));
 
   CMD2_DL         ("d.max_file_size",       CMD2_ON_FL(max_file_size));
   CMD2_DL_VALUE_V ("d.max_file_size.set",   std::bind(&torrent::FileList::set_max_file_size, CMD2_BIND_FL, std::placeholders::_2));
 
-  CMD2_DL_U       ("d.peers_min",           std::bind(&torrent::ConnectionList::min_size, CMD2_BIND_CL));
-  CMD2_DL_VALUE_V_U("d.peers_min.set",       std::bind(&torrent::ConnectionList::set_min_size, CMD2_BIND_CL, std::placeholders::_2));
-  CMD2_DL_U       ("d.peers_max",           std::bind(&torrent::ConnectionList::max_size, CMD2_BIND_CL));
-  CMD2_DL_VALUE_V_U("d.peers_max.set",       std::bind(&torrent::ConnectionList::set_max_size, CMD2_BIND_CL, std::placeholders::_2));
-  CMD2_DL_U       ("d.uploads_max",         std::bind(&torrent::Download::uploads_max, CMD2_BIND_DL));
-  CMD2_DL_VALUE_V_U("d.uploads_max.set",     std::bind(&torrent::Download::set_uploads_max, CMD2_BIND_DL, std::placeholders::_2));
+  CMD2_DL         ("d.peers_min",           std::bind(&torrent::ConnectionList::min_size, CMD2_BIND_CL));
+  CMD2_DL_VALUE_V ("d.peers_min.set",       std::bind(&torrent::ConnectionList::set_min_size, CMD2_BIND_CL, std::placeholders::_2));
+  CMD2_DL         ("d.peers_max",           std::bind(&torrent::ConnectionList::max_size, CMD2_BIND_CL));
+  CMD2_DL_VALUE_V ("d.peers_max.set",       std::bind(&torrent::ConnectionList::set_max_size, CMD2_BIND_CL, std::placeholders::_2));
+  CMD2_DL         ("d.uploads_max",         std::bind(&torrent::Download::uploads_max, CMD2_BIND_DL));
+  CMD2_DL_VALUE_V ("d.uploads_max.set",     std::bind(&torrent::Download::set_uploads_max, CMD2_BIND_DL, std::placeholders::_2));
   CMD2_DL         ("d.uploads_min",         std::bind(&torrent::Download::uploads_min, CMD2_BIND_DL));
   CMD2_DL_VALUE_V ("d.uploads_min.set",     std::bind(&torrent::Download::set_uploads_min, CMD2_BIND_DL, std::placeholders::_2));
-  CMD2_DL_U       ("d.downloads_max",         std::bind(&torrent::Download::downloads_max, CMD2_BIND_DL));
-  CMD2_DL_VALUE_V_U("d.downloads_max.set",     std::bind(&torrent::Download::set_downloads_max, CMD2_BIND_DL, std::placeholders::_2));
+  CMD2_DL         ("d.downloads_max",         std::bind(&torrent::Download::downloads_max, CMD2_BIND_DL));
+  CMD2_DL_VALUE_V ("d.downloads_max.set",     std::bind(&torrent::Download::set_downloads_max, CMD2_BIND_DL, std::placeholders::_2));
   CMD2_DL         ("d.downloads_min",         std::bind(&torrent::Download::downloads_min, CMD2_BIND_DL));
   CMD2_DL_VALUE_V ("d.downloads_min.set",     std::bind(&torrent::Download::set_downloads_min, CMD2_BIND_DL, std::placeholders::_2));
-  CMD2_DL_U       ("d.peers_connected",     std::bind(&torrent::ConnectionList::size, CMD2_BIND_CL));
-  CMD2_DL_U       ("d.peers_not_connected", std::bind(&torrent::PeerList::available_list_size, CMD2_BIND_PL));
+  CMD2_DL         ("d.peers_connected",     std::bind(&torrent::ConnectionList::size, CMD2_BIND_CL));
+  CMD2_DL         ("d.peers_not_connected", std::bind(&torrent::PeerList::available_list_size, CMD2_BIND_PL));
 
-  CMD2_DL_U       ("d.peers_complete",      CMD2_ON_DL(peers_complete));
+  CMD2_DL         ("d.peers_complete",      CMD2_ON_DL(peers_complete));
   CMD2_DL         ("d.peers_accounted",     CMD2_ON_DL(peers_accounted));
 
   CMD2_DL_V       ("d.disconnect.seeders",        std::bind(&torrent::ConnectionList::erase_seeders, CMD2_BIND_CL));
@@ -837,26 +817,26 @@ initialize_command_download() {
   CMD2_DL_V       ("d.accepting_seeders.enable",  std::bind(&torrent::DownloadInfo::public_set_flags,   CMD2_BIND_INFO, torrent::DownloadInfo::flag_accepting_seeders));
   CMD2_DL_V       ("d.accepting_seeders.disable", std::bind(&torrent::DownloadInfo::public_unset_flags, CMD2_BIND_INFO, torrent::DownloadInfo::flag_accepting_seeders));
 
-  CMD2_DL_U       ("d.throttle_name",     std::bind(&download_get_variable, std::placeholders::_1, "rtorrent", "throttle_name"));
-  CMD2_DL_STRING_V_U("d.throttle_name.set", std::bind(&core::Download::set_throttle_name, std::placeholders::_1, std::placeholders::_2));
+  CMD2_DL         ("d.throttle_name",     std::bind(&download_get_variable, std::placeholders::_1, "rtorrent", "throttle_name"));
+  CMD2_DL_STRING_V("d.throttle_name.set", std::bind(&core::Download::set_throttle_name, std::placeholders::_1, std::placeholders::_2));
 
-  CMD2_DL_U       ("d.bytes_done",     CMD2_ON_DL(bytes_done));
-  CMD2_DL_U       ("d.ratio",          std::bind(&retrieve_d_ratio, std::placeholders::_1));
-  CMD2_DL_U       ("d.chunks_hashed",  CMD2_ON_DL(chunks_hashed));
-  CMD2_DL_U       ("d.free_diskspace", CMD2_ON_FL(free_diskspace));
+  CMD2_DL         ("d.bytes_done",     CMD2_ON_DL(bytes_done));
+  CMD2_DL         ("d.ratio",          std::bind(&retrieve_d_ratio, std::placeholders::_1));
+  CMD2_DL         ("d.chunks_hashed",  CMD2_ON_DL(chunks_hashed));
+  CMD2_DL         ("d.free_diskspace", CMD2_ON_FL(free_diskspace));
 
   CMD2_DL         ("d.size_files",     CMD2_ON_FL(size_files));
-  CMD2_DL_U       ("d.size_bytes",     CMD2_ON_FL(size_bytes));
-  CMD2_DL_U       ("d.size_chunks",    CMD2_ON_FL(size_chunks));
-  CMD2_DL_U       ("d.chunk_size",     CMD2_ON_FL(chunk_size));
-  CMD2_DL_U       ("d.size_pex",       CMD2_ON_DL(size_pex));
+  CMD2_DL         ("d.size_bytes",     CMD2_ON_FL(size_bytes));
+  CMD2_DL         ("d.size_chunks",    CMD2_ON_FL(size_chunks));
+  CMD2_DL         ("d.chunk_size",     CMD2_ON_FL(chunk_size));
+  CMD2_DL         ("d.size_pex",       CMD2_ON_DL(size_pex));
   CMD2_DL         ("d.max_size_pex",   CMD2_ON_DL(max_size_pex));
 
   CMD2_DL         ("d.chunks_seen",      std::bind(&d_chunks_seen, std::placeholders::_1));
 
-  CMD2_DL_U       ("d.completed_bytes",  CMD2_ON_FL(completed_bytes));
-  CMD2_DL_U       ("d.completed_chunks", CMD2_ON_FL(completed_chunks));
-  CMD2_DL_U       ("d.left_bytes",       CMD2_ON_FL(left_bytes));
+  CMD2_DL         ("d.completed_bytes",  CMD2_ON_FL(completed_bytes));
+  CMD2_DL         ("d.completed_chunks", CMD2_ON_FL(completed_chunks));
+  CMD2_DL         ("d.left_bytes",       CMD2_ON_FL(left_bytes));
 
   CMD2_DL         ("d.wanted_chunks",    CMD2_ON_DATA(wanted_chunks));
 
@@ -864,10 +844,10 @@ initialize_command_download() {
   CMD2_DL_V       ("d.tracker_announce",       std::bind(&torrent::Download::manual_request, CMD2_BIND_DL, false));
   CMD2_DL_V       ("d.tracker_announce.force", std::bind(&torrent::Download::manual_request, CMD2_BIND_DL, true));
 
-  CMD2_DL_U       ("d.tracker_numwant",      std::bind(&torrent::tracker::TrackerControllerWrapper::numwant, CMD2_BIND_TC));
-  CMD2_DL_VALUE_V_U("d.tracker_numwant.set",  std::bind(&torrent::tracker::TrackerControllerWrapper::set_numwant, CMD2_BIND_TC, std::placeholders::_2));
+  CMD2_DL         ("d.tracker_numwant",      std::bind(&torrent::tracker::TrackerControllerWrapper::numwant, CMD2_BIND_TC));
+  CMD2_DL_VALUE_V ("d.tracker_numwant.set",  std::bind(&torrent::tracker::TrackerControllerWrapper::set_numwant, CMD2_BIND_TC, std::placeholders::_2));
   // TODO: Deprecate 'd.tracker_focus'.
-  CMD2_DL_U       ("d.tracker_focus",        std::bind(&core::Download::tracker_list_size, std::placeholders::_1));
+  CMD2_DL         ("d.tracker_focus",        std::bind(&core::Download::tracker_list_size, std::placeholders::_1));
   CMD2_DL         ("d.tracker_size",         std::bind(&core::Download::tracker_list_size, std::placeholders::_1));
 
   CMD2_DL         ("d.tracker.has_active",            std::bind(&torrent::tracker::TrackerControllerWrapper::has_active_trackers, CMD2_BIND_TC));
@@ -876,14 +856,14 @@ initialize_command_download() {
   CMD2_DL_LIST    ("d.tracker.insert",                std::bind(&download_tracker_insert, std::placeholders::_1, std::placeholders::_2));
   CMD2_DL_VALUE_V ("d.tracker.send_scrape",           [](auto download, uint64_t arg) { download->tracker_controller().scrape_request(arg); });
 
-  CMD2_DL_U       ("d.directory",          CMD2_ON_FL(root_dir));
-  CMD2_DL_STRING_V_U("d.directory.set",      std::bind(&apply_d_directory, std::placeholders::_1, std::placeholders::_2));
-  CMD2_DL_U       ("d.directory_base",     CMD2_ON_FL(root_dir));
-  CMD2_DL_STRING_V_U("d.directory_base.set", std::bind(&core::Download::set_root_directory, std::placeholders::_1, std::placeholders::_2));
+  CMD2_DL         ("d.directory",          CMD2_ON_FL(root_dir));
+  CMD2_DL_STRING_V("d.directory.set",      std::bind(&apply_d_directory, std::placeholders::_1, std::placeholders::_2));
+  CMD2_DL         ("d.directory_base",     CMD2_ON_FL(root_dir));
+  CMD2_DL_STRING_V("d.directory_base.set", std::bind(&core::Download::set_root_directory, std::placeholders::_1, std::placeholders::_2));
 
-  CMD2_DL_U       ("d.priority",     std::bind(&core::Download::priority, std::placeholders::_1));
-  CMD2_DL_U       ("d.priority_str", std::bind(&retrieve_d_priority_str, std::placeholders::_1));
-  CMD2_DL_VALUE_V_U("d.priority.set", std::bind(&core::Download::set_priority, std::placeholders::_1, std::placeholders::_2));
+  CMD2_DL         ("d.priority",     std::bind(&core::Download::priority, std::placeholders::_1));
+  CMD2_DL         ("d.priority_str", std::bind(&retrieve_d_priority_str, std::placeholders::_1));
+  CMD2_DL_VALUE_V ("d.priority.set", std::bind(&core::Download::set_priority, std::placeholders::_1, std::placeholders::_2));
 
   // CMD2_DL         ("d.group",     std::bind(&torrent::resource_manager_entry::group,
   //                                           std::bind(&torrent::ResourceManager::entry_at, torrent::resource_manager(),
@@ -899,9 +879,122 @@ initialize_command_download() {
   CMD2_DL         ("d.group.name", std::bind(&cg_d_group_name, std::placeholders::_1));
   CMD2_DL_V       ("d.group.set",  std::bind(&cg_d_group_set, std::placeholders::_1, std::placeholders::_2));
 
-  CMD2_DL_LIST_U  ("f.multicall", std::bind(&f_multicall, std::placeholders::_1, std::placeholders::_2));
-  CMD2_DL_LIST_U  ("p.multicall", std::bind(&p_multicall, std::placeholders::_1, std::placeholders::_2));
-  CMD2_DL_LIST_U  ("t.multicall", std::bind(&t_multicall, std::placeholders::_1, std::placeholders::_2));
+  CMD2_DL_LIST    ("f.multicall", std::bind(&f_multicall, std::placeholders::_1, std::placeholders::_2));
+  CMD2_DL_LIST    ("p.multicall", std::bind(&p_multicall, std::placeholders::_1, std::placeholders::_2));
+  CMD2_DL_LIST    ("t.multicall", std::bind(&t_multicall, std::placeholders::_1, std::placeholders::_2));
 
-  CMD2_ANY_LIST_U ("p.call_target", std::bind(&p_call_target, std::placeholders::_2));
+  CMD2_ANY_LIST   ("p.call_target", std::bind(&p_call_target, std::placeholders::_2));
+
+  rpc::rpc.mark_safe("add_peer");
+  rpc::rpc.mark_safe("d.hash");
+  rpc::rpc.mark_safe("d.local_id");
+  rpc::rpc.mark_safe("d.local_id_html");
+  rpc::rpc.mark_safe("d.bitfield");
+  rpc::rpc.mark_safe("d.base_path");
+  rpc::rpc.mark_safe("d.base_filename");
+  rpc::rpc.mark_safe("d.name");
+  rpc::rpc.mark_safe("d.directory");
+  rpc::rpc.mark_safe("d.directory.set");
+  rpc::rpc.mark_safe("d.directory_base");
+  rpc::rpc.mark_safe("d.directory_base.set");
+  rpc::rpc.mark_safe("d.creation_date");
+  rpc::rpc.mark_safe("d.load_date");
+  rpc::rpc.mark_safe("d.up.rate");
+  rpc::rpc.mark_safe("d.up.total");
+  rpc::rpc.mark_safe("d.down.rate");
+  rpc::rpc.mark_safe("d.down.total");
+  rpc::rpc.mark_safe("d.skip.rate");
+  rpc::rpc.mark_safe("d.skip.total");
+  rpc::rpc.mark_safe("d.is_open");
+  rpc::rpc.mark_safe("d.is_active");
+  rpc::rpc.mark_safe("d.is_hash_checked");
+  rpc::rpc.mark_safe("d.is_hash_checking");
+  rpc::rpc.mark_safe("d.is_multi_file");
+  rpc::rpc.mark_safe("d.is_private");
+  rpc::rpc.mark_safe("d.is_pex_active");
+  rpc::rpc.mark_safe("d.is_partially_done");
+  rpc::rpc.mark_safe("d.is_not_partially_done");
+  rpc::rpc.mark_safe("d.is_meta");
+  rpc::rpc.mark_safe("d.peer_exchange");
+  rpc::rpc.mark_safe("d.peer_exchange.set");
+  rpc::rpc.mark_safe("d.resume");
+  rpc::rpc.mark_safe("d.pause");
+  rpc::rpc.mark_safe("d.open");
+  rpc::rpc.mark_safe("d.close");
+  rpc::rpc.mark_safe("d.close.directly");
+  rpc::rpc.mark_safe("d.erase");
+  rpc::rpc.mark_safe("d.check_hash");
+  rpc::rpc.mark_safe("d.save_resume");
+  rpc::rpc.mark_safe("d.save_full_session");
+  rpc::rpc.mark_safe("d.update_priorities");
+  rpc::rpc.mark_safe("d.custom");
+  rpc::rpc.mark_safe("d.custom.set");
+  rpc::rpc.mark_safe("d.custom1");
+  rpc::rpc.mark_safe("d.custom1.set");
+  rpc::rpc.mark_safe("d.custom2");
+  rpc::rpc.mark_safe("d.custom2.set");
+  rpc::rpc.mark_safe("d.custom3");
+  rpc::rpc.mark_safe("d.custom3.set");
+  rpc::rpc.mark_safe("d.custom4");
+  rpc::rpc.mark_safe("d.custom4.set");
+  rpc::rpc.mark_safe("d.custom5");
+  rpc::rpc.mark_safe("d.custom5.set");
+  rpc::rpc.mark_safe("d.create_link");
+  rpc::rpc.mark_safe("d.delete_link");
+  rpc::rpc.mark_safe("d.delete_tied");
+  rpc::rpc.mark_safe("d.size_bytes");
+  rpc::rpc.mark_safe("d.size_chunks");
+  rpc::rpc.mark_safe("d.size_pex");
+  rpc::rpc.mark_safe("d.completed_bytes");
+  rpc::rpc.mark_safe("d.completed_chunks");
+  rpc::rpc.mark_safe("d.left_bytes");
+  rpc::rpc.mark_safe("d.chunk_size");
+  rpc::rpc.mark_safe("d.priority");
+  rpc::rpc.mark_safe("d.priority.set");
+  rpc::rpc.mark_safe("d.priority_str");
+  rpc::rpc.mark_safe("d.state");
+  rpc::rpc.mark_safe("d.state.set");
+  rpc::rpc.mark_safe("d.state_changed");
+  rpc::rpc.mark_safe("d.state_changed.set");
+  rpc::rpc.mark_safe("d.state_counter");
+  rpc::rpc.mark_safe("d.state_counter.set");
+  rpc::rpc.mark_safe("d.connection_current");
+  rpc::rpc.mark_safe("d.connection_current.set");
+  rpc::rpc.mark_safe("d.connection_leech");
+  rpc::rpc.mark_safe("d.connection_leech.set");
+  rpc::rpc.mark_safe("d.connection_seed");
+  rpc::rpc.mark_safe("d.connection_seed.set");
+  rpc::rpc.mark_safe("d.throttle_name");
+  rpc::rpc.mark_safe("d.throttle_name.set");
+  rpc::rpc.mark_safe("d.uploads_max");
+  rpc::rpc.mark_safe("d.uploads_max.set");
+  rpc::rpc.mark_safe("d.downloads_max");
+  rpc::rpc.mark_safe("d.downloads_max.set");
+  rpc::rpc.mark_safe("d.peers_min");
+  rpc::rpc.mark_safe("d.peers_min.set");
+  rpc::rpc.mark_safe("d.peers_max");
+  rpc::rpc.mark_safe("d.peers_max.set");
+  rpc::rpc.mark_safe("d.peers_connected");
+  rpc::rpc.mark_safe("d.peers_not_connected");
+  rpc::rpc.mark_safe("d.peers_complete");
+  rpc::rpc.mark_safe("d.tracker_numwant");
+  rpc::rpc.mark_safe("d.tracker_numwant.set");
+  rpc::rpc.mark_safe("d.tracker_focus");
+  rpc::rpc.mark_safe("d.message");
+  rpc::rpc.mark_safe("d.message.set");
+  rpc::rpc.mark_safe("d.tied_to_file");
+  rpc::rpc.mark_safe("d.tied_to_file.set");
+  rpc::rpc.mark_safe("d.hashing");
+  rpc::rpc.mark_safe("d.hashing.set");
+  rpc::rpc.mark_safe("d.hashing_failed");
+  rpc::rpc.mark_safe("d.hashing_failed.set");
+  rpc::rpc.mark_safe("d.free_diskspace");
+  rpc::rpc.mark_safe("d.views");
+  rpc::rpc.mark_safe("d.views.remove");
+  rpc::rpc.mark_safe("d.views.push_back_unique");
+  rpc::rpc.mark_safe("d.ratio");
+  rpc::rpc.mark_safe("f.multicall");
+  rpc::rpc.mark_safe("p.multicall");
+  rpc::rpc.mark_safe("p.call_target");
+  rpc::rpc.mark_safe("t.multicall");
 }
