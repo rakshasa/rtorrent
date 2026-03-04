@@ -9,7 +9,6 @@ nobase_dist_pkgdata_DATA = \
 EXTRA_DIST= \
 	rak/address_info.h \
 	rak/algorithm.h \
-	rak/error_number.h \
 	rak/partial_queue.h \
 	rak/regex.h \
 	rak/string_manip.h \
