@@ -1,5 +1,9 @@
 #include "config.h"
 
+// TODO: Figure out why moving this to the top causes a build error.
+#include "rpc/scgi.h"
+
+#include <algorithm>
 #include <cassert>
 #include <unistd.h>
 #include <sys/un.h>
@@ -15,10 +19,11 @@
 #include "globals.h"
 #include "rpc/scgi_task.h"
 
-// TODO: Figure out why moving this to the top causes a build error.
-#include "rpc/scgi.h"
-
 namespace rpc {
+
+SCgi::SCgi() {
+  std::generate(m_tasks.begin(), m_tasks.end(), []() { return std::make_unique<SCgiTask>(); });
+}
 
 SCgi::~SCgi() {
   assert(!is_open() && "SCgi::~SCgi() called while open");
@@ -106,9 +111,10 @@ SCgi::stop() {
   if (!is_open())
     return;
 
-  for (SCgiTask* itr = m_task, *last = m_task + max_tasks; itr != last; ++itr)
+  for (auto& itr : m_tasks) {
     if (itr->is_open())
       itr->close();
+  }
 
   torrent::runtime::socket_manager()->close_event_or_throw(this, [this]() {
       torrent::this_thread::poll()->remove_and_close(this);
@@ -126,9 +132,15 @@ SCgi::stop() {
 void
 SCgi::event_read() {
   while (true) {
-    auto* task = std::find_if(m_task, m_task + max_tasks, std::mem_fn(&SCgiTask::is_available));
+    // TODO: Optimize this by keeping track of count.
+    auto prev = m_current;
 
-    if (task == m_task + max_tasks) {
+    m_current = std::find_if(m_current + 1, m_tasks.end(), [](const auto& task) { return !task->is_open(); });
+
+    if (m_current == m_tasks.end())
+      m_current = std::find_if(m_tasks.begin(), prev, [](const auto& task) { return !task->is_open(); });
+
+    if (m_current == prev) {
       // TODO: Currently just close, although we should remove ourselves from read.
       int fd = torrent::fd_accept(file_descriptor());
 
@@ -138,7 +150,7 @@ SCgi::event_read() {
       continue;
     }
 
-    auto open_func = [this, task]() {
+    auto open_func = [this, task = m_current->get()]() {
         int fd = torrent::fd_accept(file_descriptor());
 
         if (fd == -1) {
@@ -151,11 +163,11 @@ SCgi::event_read() {
         task->open(this, fd);
       };
 
-    auto cleanup_func = [task]() {
+    auto cleanup_func = [task = m_current->get()]() {
         task->cancel_open();
       };
 
-    bool result = torrent::runtime::socket_manager()->open_event_or_cleanup(task, open_func, cleanup_func);
+    bool result = torrent::runtime::socket_manager()->open_event_or_cleanup(m_current->get(), open_func, cleanup_func);
 
     if (!result)
       break;
