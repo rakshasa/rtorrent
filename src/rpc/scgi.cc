@@ -154,7 +154,11 @@ SCgi::event_read() {
         int fd = torrent::fd_accept(file_descriptor());
 
         if (fd == -1) {
-          if (errno == EAGAIN || errno == EWOULDBLOCK)
+          if (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR)
+            return;
+
+          // Force a new event_read() call just to be sure we don't enter an infinite loop.
+          if (errno == ECONNABORTED)
             return;
 
           throw torrent::resource_error("Listener port accept() failed: " + std::string(std::strerror(errno)));
