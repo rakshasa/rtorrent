@@ -1,8 +1,5 @@
 #include "config.h"
 
-// TODO: Figure out why moving this to the top causes a build error.
-#include "rpc/scgi.h"
-
 #include <algorithm>
 #include <cassert>
 #include <unistd.h>
@@ -18,6 +15,9 @@
 #include "control.h"
 #include "globals.h"
 #include "rpc/scgi_task.h"
+
+// TODO: Figure out why moving this to the top causes a build error.
+#include "rpc/scgi.h"
 
 namespace rpc {
 
