@@ -21,10 +21,10 @@
 
 namespace rpc {
 
-SCgi::SCgi()
-  : m_current(m_tasks.end()) {
-
+SCgi::SCgi() {
   std::generate(m_tasks.begin(), m_tasks.end(), []() { return std::make_unique<SCgiTask>(); });
+
+  m_current = m_tasks.begin();
 }
 
 SCgi::~SCgi() {

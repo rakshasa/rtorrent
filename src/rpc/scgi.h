@@ -43,8 +43,8 @@ private:
   std::string         m_path;
   int                 m_logFd{-1};
 
-  task_list::iterator m_current;
   task_list           m_tasks;
+  task_list::iterator m_current;
 };
 
 }
