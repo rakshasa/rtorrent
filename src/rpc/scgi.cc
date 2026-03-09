@@ -21,7 +21,9 @@
 
 namespace rpc {
 
-SCgi::SCgi() {
+SCgi::SCgi()
+  : m_current(m_tasks.end()) {
+
   std::generate(m_tasks.begin(), m_tasks.end(), []() { return std::make_unique<SCgiTask>(); });
 }
 
@@ -131,6 +133,9 @@ SCgi::stop() {
 
 void
 SCgi::event_read() {
+  if (m_current < m_tasks.begin() || m_current >= m_tasks.end())
+    throw internal_error("SCgi::event_read() m_current is out of bounds");
+
   while (true) {
     // TODO: Optimize this by keeping track of count.
     auto prev = m_current;
