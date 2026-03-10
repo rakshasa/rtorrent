@@ -1,7 +1,9 @@
 #ifndef RTORRENT_RPC_SCGI_H
 #define RTORRENT_RPC_SCGI_H
 
+#include <array>
 #include <functional>
+#include <memory>
 #include <torrent/event.h>
 
 #include "rpc/scgi_task.h"
@@ -12,6 +14,7 @@ class SCgi : public torrent::Event {
 public:
   static const int max_tasks = 100;
 
+  SCgi();
   ~SCgi() override;
 
   const char*         type_name() const override { return "scgi"; }
@@ -33,11 +36,15 @@ public:
   void                event_error() override;
 
 private:
+  using task_list = std::array<std::unique_ptr<SCgiTask>, max_tasks>;
+
   void                open(sockaddr* sa, unsigned int length);
 
   std::string         m_path;
   int                 m_logFd{-1};
-  SCgiTask            m_task[max_tasks];
+
+  task_list           m_tasks;
+  task_list::iterator m_current;
 };
 
 }

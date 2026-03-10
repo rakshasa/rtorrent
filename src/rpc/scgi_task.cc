@@ -43,12 +43,10 @@ SCgiTask::cancel_open() {
   if (!is_open())
     return;
 
-  torrent::runtime::socket_manager()->close_event_or_throw(this, [this]() {
-      torrent::this_thread::poll()->remove_and_close(this);
+  torrent::this_thread::poll()->remove_and_close(this);
 
-      torrent::fd_close(file_descriptor());
-      set_file_descriptor(-1);
-    });
+  torrent::fd_close(file_descriptor());
+  set_file_descriptor(-1);
 };
 
 void

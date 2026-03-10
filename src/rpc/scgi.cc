@@ -1,5 +1,6 @@
 #include "config.h"
 
+#include <algorithm>
 #include <cassert>
 #include <unistd.h>
 #include <sys/un.h>
@@ -19,6 +20,12 @@
 #include "rpc/scgi.h"
 
 namespace rpc {
+
+SCgi::SCgi() {
+  std::generate(m_tasks.begin(), m_tasks.end(), []() { return std::make_unique<SCgiTask>(); });
+
+  m_current = m_tasks.begin();
+}
 
 SCgi::~SCgi() {
   assert(!is_open() && "SCgi::~SCgi() called while open");
@@ -106,9 +113,10 @@ SCgi::stop() {
   if (!is_open())
     return;
 
-  for (SCgiTask* itr = m_task, *last = m_task + max_tasks; itr != last; ++itr)
+  for (auto& itr : m_tasks) {
     if (itr->is_open())
       itr->close();
+  }
 
   torrent::runtime::socket_manager()->close_event_or_throw(this, [this]() {
       torrent::this_thread::poll()->remove_and_close(this);
@@ -125,10 +133,19 @@ SCgi::stop() {
 
 void
 SCgi::event_read() {
-  while (true) {
-    auto* task = std::find_if(m_task, m_task + max_tasks, std::mem_fn(&SCgiTask::is_available));
+  if (m_current < m_tasks.begin() || m_current >= m_tasks.end())
+    throw torrent::internal_error("SCgi::event_read() m_current is out of bounds");
 
-    if (task == m_task + max_tasks) {
+  while (true) {
+    // TODO: Optimize this by keeping track of count.
+    auto prev = m_current;
+
+    m_current = std::find_if(m_current + 1, m_tasks.end(), [](const auto& task) { return !task->is_open(); });
+
+    if (m_current == m_tasks.end())
+      m_current = std::find_if(m_tasks.begin(), prev, [](const auto& task) { return !task->is_open(); });
+
+    if (m_current == prev) {
       // TODO: Currently just close, although we should remove ourselves from read.
       int fd = torrent::fd_accept(file_descriptor());
 
@@ -138,11 +155,15 @@ SCgi::event_read() {
       continue;
     }
 
-    auto open_func = [this, task]() {
+    auto open_func = [this, task = m_current->get()]() {
         int fd = torrent::fd_accept(file_descriptor());
 
         if (fd == -1) {
-          if (errno == EAGAIN || errno == EWOULDBLOCK)
+          if (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR)
+            return;
+
+          // Force a new event_read() call just to be sure we don't enter an infinite loop.
+          if (errno == ECONNABORTED)
             return;
 
           throw torrent::resource_error("Listener port accept() failed: " + std::string(std::strerror(errno)));
@@ -151,11 +172,11 @@ SCgi::event_read() {
         task->open(this, fd);
       };
 
-    auto cleanup_func = [task]() {
+    auto cleanup_func = [task = m_current->get()]() {
         task->cancel_open();
       };
 
-    bool result = torrent::runtime::socket_manager()->open_event_or_cleanup(task, open_func, cleanup_func);
+    bool result = torrent::runtime::socket_manager()->open_event_or_cleanup(m_current->get(), open_func, cleanup_func);
 
     if (!result)
       break;
