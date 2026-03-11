@@ -829,9 +829,8 @@ initialize_command_ui() {
   CMD2_ANY_STRING_V("ui.keymap.style.set", std::bind(&ui::Root::set_keymap_style, control->ui(), std::placeholders::_2));
 
   // TODO: Add 'option_string' for rtorrent-specific options.
-  CMD2_VAR_STRING  ("ui.torrent_list.layout", "full");
-  CMD2_VAR_C_STRING("ui.torrent_list.rate_unit", "KB/s");
-  CMD2_ANY_STRING_V("ui.torrent_list.rate_unit.set", std::bind(&rpc::object_storage::set_string, control->object_storage(), torrent::raw_string::from_c_str("ui.torrent_list.rate_unit"), std::placeholders::_2));
+  CMD2_VAR_STRING("ui.torrent_list.layout", "full");
+  CMD2_VAR_STRING("ui.torrent_list.rate_unit", "KB/s");
 
   // Move.
   CMD2_ANY("print", &apply_print);
