@@ -119,6 +119,10 @@
 #
 #ui.torrent_list.layout.set = "full"
 
+# Set download list rate unit ("KB/s", "MB/s", "Mb/s"). Default is "KB/s".
+#
+#ui.torrent_list.rate_unit = "KB/s"
+
 # Set navigation keymap style ("vi", "emacs"). Default is "emacs".
 #
 #ui.keymap.style.set = "emacs"
