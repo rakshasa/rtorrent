@@ -105,7 +105,7 @@ print_download_info_full(char* first, char* last, core::Download* d) {
                          (double)d->download()->bytes_done() / (double)(1 << 20),
                          (double)d->download()->file_list()->size_bytes() / (double)(1 << 20));
 
-  const std::string& unit = rpc::call_command_string("ui.torrent_list.rate_unit");
+  const std::string& unit = rpc::call_command_string("ui.torrent_list.rate_unit_internal");
   double factor = (unit == "MB/s") ? (double)(1 << 20) : (unit == "Mb/s") ? 1e6 / 8.0 : (double)(1 << 10);
   int prec = (unit == "KB/s") ? 1 : 2;
 
@@ -217,7 +217,7 @@ print_download_info_compact(char* first, char* last, core::Download* d) {
   else
     first = print_buffer(first, last, "      ");
 
-  const std::string& unit = rpc::call_command_string("ui.torrent_list.rate_unit");
+  const std::string& unit = rpc::call_command_string("ui.torrent_list.rate_unit_internal");
   double factor = (unit == "MB/s") ? (double)(1 << 20) : (unit == "Mb/s") ? 1e6 / 8.0 : (double)(1 << 10);
   int prec = (unit == "KB/s") ? 1 : 2;
 

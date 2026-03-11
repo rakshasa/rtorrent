@@ -415,7 +415,6 @@ main(int argc, char** argv) {
     CMD2_REDIRECT("to_throttle",           "convert.throttle");
 
     CMD2_REDIRECT("torrent_list_layout",   "ui.torrent_list.layout.set");
-    CMD2_REDIRECT("ui.torrent_list.rate_unit", "ui.torrent_list.rate_unit.set");
 
     // Deprecate:
 
