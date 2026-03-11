@@ -85,18 +85,6 @@ print_address(char* first, char* last, const sockaddr* sa) {
 }
 
 char*
-print_download_rate(char* first, char* last, uint32_t rate) {
-  const std::string& unit = rpc::call_command_string("ui.torrent_list.rate_unit");
-
-  if (unit == "MB/s")
-    return print_buffer(first, last, "%6.2f MB/s", (double)rate / (1 << 20));
-  else if (unit == "Mb/s")
-    return print_buffer(first, last, "%6.2f Mb/s", (double)rate * 8 / 1e6);
-  else
-    return print_buffer(first, last, "%6.1f KB/s", (double)rate / (1 << 10));
-}
-
-char*
 print_download_title(char* first, char* last, core::Download* d) {
   return print_buffer(first, last, " %s", d->info()->name().c_str());
 }
@@ -117,11 +105,14 @@ print_download_info_full(char* first, char* last, core::Download* d) {
                          (double)d->download()->bytes_done() / (double)(1 << 20),
                          (double)d->download()->file_list()->size_bytes() / (double)(1 << 20));
 
-  first = print_buffer(first, last, " Rate: ");
-  first = print_download_rate(first, last, d->info()->up_rate()->rate());
-  first = print_buffer(first, last, " / ");
-  first = print_download_rate(first, last, d->info()->down_rate()->rate());
-  first = print_buffer(first, last, " Uploaded: %7.1f MB",
+  const std::string& unit = rpc::call_command_string("ui.torrent_list.rate_unit");
+  double factor = (unit == "MB/s") ? (double)(1 << 20) : (unit == "Mb/s") ? 1e6 / 8.0 : (double)(1 << 10);
+  int prec = (unit == "KB/s") ? 1 : 2;
+
+  first = print_buffer(first, last, " Rate: %6.*f / %6.*f %s Uploaded: %9.1f MB",
+                       prec, (double)d->info()->up_rate()->rate() / factor,
+                       prec, (double)d->info()->down_rate()->rate() / factor,
+                       unit.c_str(),
                        (double)d->info()->up_rate()->total() / (1 << 20));
 
   if (d->download()->info()->is_active() && !d->is_done()) {
@@ -195,7 +186,7 @@ print_download_status(char* first, char* last, core::Download* d) {
 char*
 print_download_column_compact(char* first, char* last) {
   first = print_buffer(first, last, " %-64.64s", "Name");
-  first = print_buffer(first, last, "| Status |  Downloaded  |     Size     | Done |    Up Rate    |   Down Rate   |   Uploaded   |    ETA    | Ratio | Misc ");
+  first = print_buffer(first, last, "| Status |  Downloaded  |     Size     | Done |   Up Rate   |  Down Rate  |   Uploaded   |    ETA    | Ratio | Misc ");
 
   if (first > last)
     throw torrent::internal_error("print_download_column_compact(...) wrote past end of the buffer.");
@@ -226,11 +217,13 @@ print_download_info_compact(char* first, char* last, core::Download* d) {
   else
     first = print_buffer(first, last, "      ");
 
-  first = print_buffer(first, last, "| ");
-  first = print_download_rate(first, last, d->info()->up_rate()->rate());
-  first = print_buffer(first, last, " | ");
-  first = print_download_rate(first, last, d->info()->down_rate()->rate());
-  first = print_buffer(first, last, " | %9.1f MB ", (double)d->info()->up_rate()->total() / (1 << 20));
+  const std::string& unit = rpc::call_command_string("ui.torrent_list.rate_unit");
+  double factor = (unit == "MB/s") ? (double)(1 << 20) : (unit == "Mb/s") ? 1e6 / 8.0 : (double)(1 << 10);
+  int prec = (unit == "KB/s") ? 1 : 2;
+
+  first = print_buffer(first, last, "| %6.*f %-4s ", prec, (double)d->info()->up_rate()->rate() / factor, unit.c_str());
+  first = print_buffer(first, last, "| %6.*f %-4s ", prec, (double)d->info()->down_rate()->rate() / factor, unit.c_str());
+  first = print_buffer(first, last, "| %9.1f MB ", (double)d->info()->up_rate()->total() / (1 << 20));
   first = print_buffer(first, last, "| ");
 
   if (d->download()->info()->is_active() && !d->is_done()) {
