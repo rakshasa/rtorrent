@@ -830,6 +830,7 @@ initialize_command_ui() {
 
   // TODO: Add 'option_string' for rtorrent-specific options.
   CMD2_VAR_STRING("ui.torrent_list.layout", "full");
+  CMD2_VAR_STRING("ui.torrent_list.rate_unit", "KB/s");
 
   // Move.
   CMD2_ANY("print", &apply_print);
