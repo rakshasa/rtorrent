@@ -426,11 +426,22 @@ SessionManager::replace_save_request_unsafe(SaveRequest& save_request) {
   if (itr->path != save_request.path)
     throw torrent::internal_error("SessionManager::replace_save_request_unsafe() path mismatch on replace: " + itr->path + " != " + save_request.path);
 
-  if (save_request.torrent_stream != nullptr)
-    throw torrent::internal_error("SessionManager::replace_save_request_unsafe() cannot replace full save requests.");
-
-  itr->rtorrent_stream   = std::move(save_request.rtorrent_stream);
-  itr->libtorrent_stream = std::move(save_request.libtorrent_stream);
+  // If the existing request is a full save (created during torrent initialization),
+  // keep its torrent_stream but update the resume streams with newer data.
+  // Otherwise, replace all streams.
+  if (itr->torrent_stream != nullptr) {
+    // Keep existing full-save torrent stream, only update resume streams
+    if (save_request.rtorrent_stream != nullptr)
+      itr->rtorrent_stream = std::move(save_request.rtorrent_stream);
+    
+    if (save_request.libtorrent_stream != nullptr)
+      itr->libtorrent_stream = std::move(save_request.libtorrent_stream);
+  } else {
+    // No full save pending, replace everything
+    itr->torrent_stream    = std::move(save_request.torrent_stream);
+    itr->rtorrent_stream   = std::move(save_request.rtorrent_stream);
+    itr->libtorrent_stream = std::move(save_request.libtorrent_stream);
+  }
 
   return true;
 }
