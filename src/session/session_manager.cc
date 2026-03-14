@@ -104,6 +104,8 @@ SessionManager::save_full_download(core::Download* download) {
     storer.libtorrent_stream()
   };
 
+  bool should_schedule = false;
+
   {
     std::unique_lock<std::mutex> lock(m_mutex);
 
@@ -112,16 +114,19 @@ SessionManager::save_full_download(core::Download* download) {
     if (!m_active)
       throw torrent::internal_error("SessionManager::save_download() called while not active.");
 
-    if (replace_save_request_unsafe(save_request))
-      throw torrent::internal_error("SessionManager::save_full_download() replacing existing save request, not supported?");
+    if (replace_save_request_unsafe(save_request)) {
+      LT_LOG("updated pending save request with full save data : download:%p", download);
+      should_schedule = true;
+    } else {
+      m_save_requests.push_back(std::move(save_request));
+      m_save_request_counter = m_save_requests.size();
 
-    m_save_requests.push_back(std::move(save_request));
-    m_save_request_counter = m_save_requests.size();
-
-    LT_LOG("queued new full save request : download:%p", download);
+      LT_LOG("queued new full save request : download:%p", download);
+      should_schedule = true;
+    }
   }
 
-  if (!m_processing_saves_callback_scheduled.exchange(true))
+  if (should_schedule && !m_processing_saves_callback_scheduled.exchange(true))
     session_thread::callback(this, [this]() { process_save_request(); });
 }
 
