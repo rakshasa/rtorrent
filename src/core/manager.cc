@@ -241,9 +241,10 @@ is_data_uri(const std::string& uri) {
 
 std::string
 decode_data_uri(const std::string& uri) {
-  const auto start = uri.find("base64,", 5) + 7;
-  if (start == std::string::npos)
+  const auto pos = uri.find("base64,", 5);
+  if (pos == std::string::npos)
     throw torrent::input_error("Invalid data uri: not base64 encoded.");
+  const auto start = pos + 7;
   if (start >= uri.size())
     throw torrent::input_error("Empty base64.");
   return utils::decode_base64(uri.substr(start));

@@ -1,6 +1,7 @@
 #include "config.h"
 
 #include <algorithm>
+#include <cstring>
 #include <fstream>
 #include <iostream>
 #include <rak/string_manip.h>
@@ -82,6 +83,9 @@ DownloadList::find(const torrent::HashString& hash) {
 
 DownloadList::iterator
 DownloadList::find_hex(const char* hash) {
+  if (strlen(hash) < 40)
+    return end();
+
   torrent::HashString key;
 
   for (torrent::HashString::iterator itr = key.begin(), last = key.end(); itr != last; itr++, hash += 2)

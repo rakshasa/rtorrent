@@ -258,9 +258,9 @@ command_function_call_object(const torrent::Object& cmd, target_type target, con
     rpc::command_base::pop_stack(&stack, last_stack);
     return result;
 
-  } catch (torrent::bencode_error& e) {
+  } catch (...) {
     rpc::command_base::pop_stack(&stack, last_stack);
-    throw e;
+    throw;
   }
 }
 

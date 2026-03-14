@@ -46,6 +46,8 @@ retrieve_d_base_filename(core::Download* download) {
 
   if (download->file_list()->is_multi_file())
     base = &download->file_list()->frozen_root_dir();
+  else if (download->file_list()->empty())
+    return std::string();
   else
     base = &download->file_list()->at(0)->frozen_path();
 
@@ -467,12 +469,14 @@ download_tracker_insert(core::Download* download, const torrent::Object::list_ty
   if (args.size() != 2)
     throw torrent::input_error("Wrong argument count.");
 
-  int64_t group;
+  int64_t group = 0;
 
-  if (args.front().is_string())
-    rpc::parse_whole_value_nothrow(args.front().as_string().c_str(), &group);
-  else
+  if (args.front().is_string()) {
+    if (!rpc::parse_whole_value_nothrow(args.front().as_string().c_str(), &group))
+      throw torrent::input_error("Invalid tracker group number.");
+  } else {
     group = args.front().as_value();
+  }
 
   if (group < 0 || group > 32)
     throw torrent::input_error("Tracker group number invalid.");

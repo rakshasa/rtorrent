@@ -8,7 +8,7 @@ std::string
 remove_newlines(const std::string& str) {
   std::string result;
   for (auto& itr : str) {
-    if (itr != '\n' || itr != '\n')
+    if (itr != '\n' && itr != '\r')
       result.push_back(itr);
   }
   return result;
