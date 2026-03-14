@@ -211,7 +211,7 @@ object_to_target(const torrent::Object& obj, int call_flags, rpc::target_type* t
         auto tracker = new torrent::tracker::Tracker(rpc.slot_find_tracker()(download, std::stoi(std::string(index))));
 
         *deleter = [tracker]() { delete tracker; };
-        *target = rpc::make_target(command_base::target_tracker, target);
+        *target = rpc::make_target(command_base::target_tracker, tracker);
       }
       break;
 

@@ -1,6 +1,7 @@
 #ifndef RTORRENT_RPC_XMLRPC_H
 #define RTORRENT_RPC_XMLRPC_H
 
+#include <cstdlib>
 #include <functional>
 #include <torrent/common.h>
 #include <torrent/hash_string.h>
@@ -61,7 +62,8 @@ public:
 private:
   static const char*  store_command_name(const char* name);
 
-  static std::vector<std::unique_ptr<const char>> m_command_names;
+  struct free_deleter { void operator()(const char* p) const { ::free(const_cast<char*>(p)); } };
+  static std::vector<std::unique_ptr<const char, free_deleter>> m_command_names;
 
   slot_download       m_slotFindDownload;
   slot_file           m_slotFindFile;

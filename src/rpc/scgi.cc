@@ -55,7 +55,7 @@ SCgi::open_port(sockaddr* sa, unsigned int length, bool dont_route) {
 
 void
 SCgi::open_named(const std::string& filename) {
-  if (filename.empty() || filename.size() > 4096)
+  if (filename.empty() || filename.size() > sizeof(sockaddr_un::sun_path) - 1)
     throw torrent::resource_error("Invalid filename length.");
 
   auto buffer = std::make_unique<char[]>(sizeof(sockaddr_un) + filename.size() + 1);

@@ -71,6 +71,9 @@ xml_value_to_object(const tinyxml2::XMLNode* elem) {
     throw rpc_error(XMLRPC_INTERNAL_ERROR, "received non-value element to convert");
   }
   auto root_element = elem->FirstChild();
+  if (root_element == nullptr) {
+    throw rpc_error(XMLRPC_TYPE_ERROR, "empty value element");
+  }
   auto root_type    = root_element->Value();
   if (std::strncmp(root_type, "string", sizeof("string")) == 0) {
     auto child_element = root_element->FirstChild();
@@ -83,6 +86,9 @@ xml_value_to_object(const tinyxml2::XMLNode* elem) {
              std::strncmp(root_type, "i8", sizeof("i8")) == 0) {
     return torrent::Object(element_to_int(root_element));
   } else if (std::strncmp(root_type, "boolean", sizeof("boolean")) == 0) {
+    if (root_element->FirstChild() == nullptr) {
+      throw rpc_error(XMLRPC_TYPE_ERROR, "unable to parse empty boolean");
+    }
     auto boolean_text = std::string(root_element->FirstChild()->ToText()->Value());
     if (boolean_text == "1") {
       return torrent::Object((int64_t)1);
@@ -104,7 +110,11 @@ xml_value_to_object(const tinyxml2::XMLNode* elem) {
     auto  map_raw = torrent::Object::create_map();
     auto& map     = map_raw.as_map();
     for (auto child = root_element->FirstChildElement("member"); child; child = child->NextSiblingElement("member")) {
-      auto key = child->FirstChildElement("name")->GetText();
+      auto name_element = child->FirstChildElement("name");
+      if (name_element == nullptr) {
+        throw rpc_error(XMLRPC_PARSE_ERROR, "struct member missing name element");
+      }
+      auto key = name_element->GetText();
       map[key] = std::move(xml_value_to_object(child->FirstChildElement("value")));
     }
     return map_raw;

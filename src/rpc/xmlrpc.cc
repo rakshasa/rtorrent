@@ -9,7 +9,7 @@
 
 namespace rpc {
 
-std::vector<std::unique_ptr<const char>> XmlRpc::m_command_names;
+std::vector<std::unique_ptr<const char, XmlRpc::free_deleter>> XmlRpc::m_command_names;
 
 const char*
 XmlRpc::store_command_name(const char* name) {
@@ -21,7 +21,7 @@ XmlRpc::store_command_name(const char* name) {
       return itr.get();
   }
 
-  m_command_names.push_back(std::unique_ptr<const char>(::strdup(name)));
+  m_command_names.push_back(std::unique_ptr<const char, free_deleter>(::strdup(name)));
   return m_command_names.back().get();
 }
 
