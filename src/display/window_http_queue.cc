@@ -19,7 +19,7 @@ WindowHttpQueue::WindowHttpQueue(core::HttpQueue* q) :
   set_active(false);
 
   m_conn_insert = m_queue->signal_insert().insert(m_queue->signal_insert().end(), [this](auto h) { receive_insert(h); });
-  m_conn_erase  = m_queue->signal_erase().insert(m_queue->signal_insert().end(), [this](auto h) { receive_erase(h); });
+  m_conn_erase  = m_queue->signal_erase().insert(m_queue->signal_erase().end(), [this](auto h) { receive_erase(h); });
 
   m_task_deactivate.slot() = [this] {
       if (!m_container.empty())

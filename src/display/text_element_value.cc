@@ -49,28 +49,28 @@ TextElementValueBase::print(char* first, char* last, Canvas::attributes_list* at
 
   } else if (m_flags & flag_kb) {
     // Just use a default width of 5 for now.
-    first += std::min<ptrdiff_t>(std::max(snprintf(first, last - first + 1, "%5.1f", (double)val / (1 << 10)), 0), last - first + 1);
+    first += std::min<ptrdiff_t>(std::max(snprintf(first, last - first, "%5.1f", (double)val / (1 << 10)), 0), last - first);
 
   } else if (m_flags & flag_mb) {
     // Just use a default width of 8 for now.
-    first += std::min<ptrdiff_t>(std::max(snprintf(first, last - first + 1, "%8.1f", (double)val / (1 << 20)), 0), last - first + 1);
+    first += std::min<ptrdiff_t>(std::max(snprintf(first, last - first, "%8.1f", (double)val / (1 << 20)), 0), last - first);
 
   } else if (m_flags & flag_xb) {
 
     if (val < (int64_t(1000) << 10))
-      first += std::min<ptrdiff_t>(std::max(snprintf(first, last - first + 1, "%5.1f KB", (double)val / (int64_t(1) << 10)), 0), last - first + 1);
+      first += std::min<ptrdiff_t>(std::max(snprintf(first, last - first, "%5.1f KB", (double)val / (int64_t(1) << 10)), 0), last - first);
     else if (val < (int64_t(1000) << 20))
-      first += std::min<ptrdiff_t>(std::max(snprintf(first, last - first + 1, "%5.1f MB", (double)val / (int64_t(1) << 20)), 0), last - first + 1);
+      first += std::min<ptrdiff_t>(std::max(snprintf(first, last - first, "%5.1f MB", (double)val / (int64_t(1) << 20)), 0), last - first);
     else if (val < (int64_t(1000) << 30))
-      first += std::min<ptrdiff_t>(std::max(snprintf(first, last - first + 1, "%5.1f GB", (double)val / (int64_t(1) << 30)), 0), last - first + 1);
+      first += std::min<ptrdiff_t>(std::max(snprintf(first, last - first, "%5.1f GB", (double)val / (int64_t(1) << 30)), 0), last - first);
     else
-      first += std::min<ptrdiff_t>(std::max(snprintf(first, last - first + 1, "%5.1f TB", (double)val / (int64_t(1) << 40)), 0), last - first + 1);
+      first += std::min<ptrdiff_t>(std::max(snprintf(first, last - first, "%5.1f TB", (double)val / (int64_t(1) << 40)), 0), last - first);
 
   } else if (m_flags & flag_timer) {
     if (val == 0)
-      first += std::min<ptrdiff_t>(std::max(snprintf(first, last - first + 1, "--:--:--"), 0), last - first + 1);
+      first += std::min<ptrdiff_t>(std::max(snprintf(first, last - first, "--:--:--"), 0), last - first);
     else
-      first += std::min<ptrdiff_t>(std::max(snprintf(first, last - first + 1, "%2d:%02d:%02d", (int)(val / 3600), (int)((val / 60) % 60), (int)(val % 60)), 0), last - first + 1);
+      first += std::min<ptrdiff_t>(std::max(snprintf(first, last - first, "%2d:%02d:%02d", (int)(val / 3600), (int)((val / 60) % 60), (int)(val % 60)), 0), last - first);
 
   } else if (m_flags & flag_date) {
     time_t t = val;
@@ -79,7 +79,7 @@ TextElementValueBase::print(char* first, char* last, Canvas::attributes_list* at
     if (u == NULL)
       return first;
 
-    first += std::min<ptrdiff_t>(std::max(snprintf(first, last - first + 1, "%02u/%02u/%04u", u->tm_mday, (u->tm_mon + 1), (1900 + u->tm_year)), 0), last - first + 1);
+    first += std::min<ptrdiff_t>(std::max(snprintf(first, last - first, "%02u/%02u/%04u", u->tm_mday, (u->tm_mon + 1), (1900 + u->tm_year)), 0), last - first);
 
   } else if (m_flags & flag_time) {
     time_t t = val;
@@ -88,10 +88,10 @@ TextElementValueBase::print(char* first, char* last, Canvas::attributes_list* at
     if (u == NULL)
       return first;
 
-    first += std::min<ptrdiff_t>(std::max(snprintf(first, last - first + 1, "%2d:%02d:%02d", u->tm_hour, u->tm_min, u->tm_sec), 0), last - first + 1);
+    first += std::min<ptrdiff_t>(std::max(snprintf(first, last - first, "%2d:%02d:%02d", u->tm_hour, u->tm_min, u->tm_sec), 0), last - first);
 
   } else {
-    first += std::min<ptrdiff_t>(std::max(snprintf(first, last - first + 1, "%lld", (long long int)val), 0), last - first + 1);
+    first += std::min<ptrdiff_t>(std::max(snprintf(first, last - first, "%lld", (long long int)val), 0), last - first);
   }
 
   push_attribute(attributes, Attributes(first, baseAttribute));

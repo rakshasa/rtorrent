@@ -167,6 +167,8 @@ ElementDownloadList::receive_home() {
 
 void
 ElementDownloadList::receive_end() {
+  if (m_view->size_visible() == 0)
+    return;
   m_view->set_focus(m_view->end_visible() - 1);
   m_view->set_last_changed();
 }
@@ -221,10 +223,10 @@ ElementDownloadList::receive_change_view(const std::string& name) {
 
   std::string old_name = view() ? view()->name() : "";
   if (!old_name.empty())
-    rpc::commands.call_catch("event.view.hide", rpc::make_target(), name, "View hide event action failed: ");
+    rpc::commands.call_catch("event.view.hide", rpc::make_target(), old_name, "View hide event action failed: ");
   set_view(*itr);
-  if (!old_name.empty())
-    rpc::commands.call_catch("event.view.show", rpc::make_target(), old_name, "View show event action failed: ");
+  if (!name.empty())
+    rpc::commands.call_catch("event.view.show", rpc::make_target(), name, "View show event action failed: ");
 }
 
 void

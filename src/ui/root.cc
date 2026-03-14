@@ -496,7 +496,7 @@ Root::set_keymap_style(const std::string& style) {
   } else if (style == "emacs") {
     m_keymap = emacs_keymap;
   } else {
-    throw torrent::input_error("Root::set_keymap_style() -> ui.keymap.style is configured with unknown keymap style: " + m_keymap_style);
+    throw torrent::input_error("Root::set_keymap_style() -> ui.keymap.style is configured with unknown keymap style: " + style);
   }
 
   m_keymap_style = style;

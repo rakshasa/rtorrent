@@ -361,7 +361,7 @@ Frame::balance_row(uint32_t x, uint32_t y, uint32_t width, uint32_t height) {
     (*itr)->balance(x, y, m_width, std::min((*itr)->m_height, height));
 
     y += (*itr)->m_height;
-    height -= (*itr)->m_height;
+    height = ((*itr)->m_height <= height) ? height - (*itr)->m_height : 0;
   }
 }
 
@@ -436,7 +436,7 @@ Frame::balance_column(uint32_t x, uint32_t y, uint32_t width, uint32_t height) {
     (*itr)->balance(x, y, std::min((*itr)->m_width, width), m_height);
 
     x += (*itr)->m_width;
-    width -= (*itr)->m_width;
+    width = ((*itr)->m_width <= width) ? width - (*itr)->m_width : 0;
   }
 }
 
