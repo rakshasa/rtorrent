@@ -173,9 +173,13 @@ cmd_file_append(const torrent::Object::list_type& args) {
   if (output == nullptr)
     throw torrent::input_error("Could not append to file '" + args.front().as_string() + "': " + std::strerror(errno));
 
-  file_print_list(++args.begin(), args.end(), output, file_print_delim_space);
-
-  fprintf(output, "\n");
+  try {
+    file_print_list(++args.begin(), args.end(), output, file_print_delim_space);
+    fprintf(output, "\n");
+  } catch (...) {
+    fclose(output);
+    throw;
+  }
   fclose(output);
   return torrent::Object();
 }

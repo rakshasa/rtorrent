@@ -41,8 +41,13 @@ ExecFile::execute(const char* file, char* const* argv, int flags) {
 
   pid_t childPid = fork();
 
-  if (childPid == -1)
+  if (childPid == -1) {
+    if (flags & flag_capture) {
+      ::close(pipeFd[0]);
+      ::close(pipeFd[1]);
+    }
     throw torrent::input_error("ExecFile::execute(...) Fork failed.");
+  }
 
   if (childPid == 0) {
     if (flags & flag_background) {
