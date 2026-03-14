@@ -120,11 +120,17 @@ parse_value_nothrow(const char* src, int64_t* value, int base, int unit) {
   case 'b':
   case 'B': ++last; break;
   case 'k':
-  case 'K': *value = *value << 10; ++last; break;
+  case 'K':
+    if (*value > (int64_t)0x1FFFFFFFFFFFFF) return src; // overflow guard
+    *value = *value << 10; ++last; break;
   case 'm':
-  case 'M': *value = *value << 20; ++last; break;
+  case 'M':
+    if (*value > (int64_t)0x7FFFFFFFFFF) return src; // overflow guard
+    *value = *value << 20; ++last; break;
   case 'g':
-  case 'G': *value = *value << 30; ++last; break;
+  case 'G':
+    if (*value > (int64_t)0x1FFFFFFFF) return src; // overflow guard
+    *value = *value << 30; ++last; break;
 //   case ' ':
 //   case '\0': *value = *value * unit; break;
 //   default: throw torrent::input_error("Could not parse value.");
