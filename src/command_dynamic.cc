@@ -461,7 +461,6 @@ initialize_command_dynamic() {
 #endif
 
   rpc::rpc.mark_safe("method.use_deprecated");
-  rpc::rpc.mark_safe("method.use_deprecated.set");
   rpc::rpc.mark_safe("method.const");
   rpc::rpc.mark_safe("method.has_key");
   rpc::rpc.mark_safe("method.list_keys");
