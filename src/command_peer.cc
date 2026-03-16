@@ -60,6 +60,8 @@ retrieve_p_options_str(torrent::Peer* peer) {
 
 torrent::Object
 retrieve_p_completed_percent(torrent::Peer* peer) {
+  if (peer->bitfield()->size_bits() == 0)
+    return int64_t(0);
   return (100 * peer->bitfield()->size_set()) / peer->bitfield()->size_bits();
 }
 
