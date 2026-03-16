@@ -150,7 +150,7 @@ print_download_status(char* first, char* last, core::Download* d) {
 
   if (d->is_hash_checking()) {
     first = print_buffer(first, last, "Checking hash [%2i%%]",
-                         (d->download()->chunks_hashed() * 100) / d->download()->file_list()->size_chunks());
+                         d->download()->file_list()->size_chunks() != 0 ? (d->download()->chunks_hashed() * 100) / d->download()->file_list()->size_chunks() : 0);
 
   } else if (d->tracker_controller().has_active_trackers_not_scrape()) {
     auto tracker = d->tracker_controller().find_if([](const auto& t) {
@@ -208,7 +208,7 @@ print_download_info_compact(char* first, char* last, core::Download* d) {
   if (d->is_done())
     first = print_buffer(first, last, " 100%% ");
   else if (d->is_open())
-    first = print_buffer(first, last, "  %2u%% ",(d->download()->file_list()->completed_chunks() * 100) / d->download()->file_list()->size_chunks());
+    first = print_buffer(first, last, "  %2u%% ", d->download()->file_list()->size_chunks() != 0 ? (d->download()->file_list()->completed_chunks() * 100) / d->download()->file_list()->size_chunks() : 0);
   else
     first = print_buffer(first, last, "      ");
 
@@ -260,7 +260,7 @@ print_download_percentage_done(char* first, char* last, core::Download* d) {
     //return print_buffer(first, last, "[--%%]");
     return print_buffer(first, last, "     ");
   else
-    return print_buffer(first, last, "[%2u%%]", (d->download()->file_list()->completed_chunks() * 100) / d->download()->file_list()->size_chunks());
+    return print_buffer(first, last, "[%2u%%]", d->download()->file_list()->size_chunks() != 0 ? (d->download()->file_list()->completed_chunks() * 100) / d->download()->file_list()->size_chunks() : 0);
 }
 
 char*
