@@ -378,20 +378,20 @@ print_status_info(char* first, char* last) {
   RateUnitInfo rateUnit = get_rate_unit_info();
 
   if (!torrent::up_throttle_global()->is_throttled()) {
-    first = print_buffer(first, last, "[Throttle off");
+    first = print_buffer(first, last, "[Throttle ▲ off");
   } else {
     double up_throttle = (double)torrent::up_throttle_global()->max_rate() / rateUnit.factor;
-    first = print_buffer(first, last, "[Throttle %3.*f", calculate_precision(up_throttle), up_throttle);
+    first = print_buffer(first, last, "[Throttle ▲ %3.*f", calculate_precision(up_throttle), up_throttle);
 
     if (!throttle_up_names.empty())
       first = print_status_throttle_limit(first, last, true, throttle_up_names, rateUnit.factor, -1);
   }
 
   if (!torrent::down_throttle_global()->is_throttled()) {
-    first = print_buffer(first, last, " - off %s]", rateUnit.unit.c_str());
+    first = print_buffer(first, last, " ▼ off %s]", rateUnit.unit.c_str());
   } else {
     double down_throttle = (double)torrent::down_throttle_global()->max_rate() / rateUnit.factor;
-    first = print_buffer(first, last, " - %3.*f", calculate_precision(down_throttle), down_throttle);
+    first = print_buffer(first, last, " ▼ %3.*f", calculate_precision(down_throttle), down_throttle);
 
     if (!throttle_down_names.empty())
       first = print_status_throttle_limit(first, last, false, throttle_down_names, rateUnit.factor, -1);
