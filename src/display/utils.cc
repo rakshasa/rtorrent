@@ -393,7 +393,7 @@ print_status_info(char* first, char* last) {
     first = print_status_throttle_rate(first, last, true, throttle_up_names, global_uprate, rateUnit.factor, rateUnit.prec);
 
   double global_downrate = (double)torrent::down_rate()->rate() / rateUnit.factor;
-  first = print_buffer(first, last, " ▼ %5.*f", rateUnit.prec, global_downrate);
+  first = print_buffer(first, last, " ▼%5.*f", rateUnit.prec, global_downrate);
 
   if (!throttle_down_names.empty())
     first = print_status_throttle_rate(first, last, false, throttle_down_names, global_downrate, rateUnit.factor, rateUnit.prec);
