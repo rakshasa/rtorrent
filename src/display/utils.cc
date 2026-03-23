@@ -102,6 +102,14 @@ get_rate_unit_info() {
   return { unit, factor, prec };
 }
 
+inline int
+calculate_precision(double value) {
+  if (value >= 1000.0) return 0;
+  if (value >= 100.0)  return 1;
+  if (value >= 10.0)   return 2;
+  return 3;
+}
+
 char*
 print_download_title(char* first, char* last, core::Download* d) {
   return print_buffer(first, last, " %s", d->info()->name().c_str());
@@ -316,8 +324,10 @@ print_status_throttle_limit(char* first, char* last, bool up, const ui::Throttle
     if (!throttle_name.empty()) {
       int64_t throttle_max = control->core()->retrieve_throttle_value(throttle_name, false, up);
 
-      if (throttle_max > 0)
-        firstc = print_buffer(firstc, lastc, "|%1.*f", prec, (double)throttle_max / factor);
+      if (throttle_max > 0) {
+        double val = (double)throttle_max / factor;
+        firstc = print_buffer(firstc, lastc, "|%1.*f", (prec < 0 ? calculate_precision(val) : prec), val);
+      }
     }
   }
 
@@ -345,7 +355,7 @@ print_status_throttle_rate(char* first, char* last, bool up, const ui::ThrottleN
         double throttle_rate = (double)throttle_rate_value / factor;
         main_rate = main_rate - throttle_rate;
 
-        firstc = print_buffer(firstc, lastc, "|%3.*f", prec, throttle_rate);
+        firstc = print_buffer(firstc, lastc, "|%3.*f", (prec < 0 ? calculate_precision(throttle_rate) : prec), throttle_rate);
       }
     }
   }
@@ -353,7 +363,8 @@ print_status_throttle_rate(char* first, char* last, bool up, const ui::ThrottleN
   // Add temp buffer into main buffer if temp buffer isn't empty
   if (throttle_str[0] != 0)
     first = print_buffer(first, last, "(%3.*f%s)",
-                    prec, main_rate < 0.0 ? 0.0 : main_rate,
+                    (prec < 0 ? calculate_precision(main_rate < 0.0 ? 0.0 : main_rate) : prec),
+                    main_rate < 0.0 ? 0.0 : main_rate,
                     throttle_str);
 
   return first;
@@ -369,34 +380,36 @@ print_status_info(char* first, char* last) {
   if (!torrent::up_throttle_global()->is_throttled()) {
     first = print_buffer(first, last, "[Throttle off");
   } else {
-    first = print_buffer(first, last, "[Throttle %3.*f", rateUnit.prec, (double)torrent::up_throttle_global()->max_rate() / rateUnit.factor);
+    double up_throttle = (double)torrent::up_throttle_global()->max_rate() / rateUnit.factor;
+    first = print_buffer(first, last, "[Throttle %3.*f", calculate_precision(up_throttle), up_throttle);
 
     if (!throttle_up_names.empty())
-      first = print_status_throttle_limit(first, last, true, throttle_up_names, rateUnit.factor, rateUnit.prec);
+      first = print_status_throttle_limit(first, last, true, throttle_up_names, rateUnit.factor, -1);
   }
 
   if (!torrent::down_throttle_global()->is_throttled()) {
     first = print_buffer(first, last, " ○ off %s]", rateUnit.unit.c_str());
   } else {
-    first = print_buffer(first, last, " ○ %3.*f", rateUnit.prec, (double)torrent::down_throttle_global()->max_rate() / rateUnit.factor);
+    double down_throttle = (double)torrent::down_throttle_global()->max_rate() / rateUnit.factor;
+    first = print_buffer(first, last, " ○ %3.*f", calculate_precision(down_throttle), down_throttle);
 
     if (!throttle_down_names.empty())
-      first = print_status_throttle_limit(first, last, false, throttle_down_names, rateUnit.factor, rateUnit.prec);
+      first = print_status_throttle_limit(first, last, false, throttle_down_names, rateUnit.factor, -1);
 
     first = print_buffer(first, last, " %s]", rateUnit.unit.c_str());
   }
 
   double global_uprate = (double)torrent::up_rate()->rate() / rateUnit.factor;
-  first = print_buffer(first, last, " [Rate ▲%5.*f", rateUnit.prec, global_uprate);
+  first = print_buffer(first, last, " [Rate ▲%5.*f", calculate_precision(global_uprate), global_uprate);
 
   if (!throttle_up_names.empty())
-    first = print_status_throttle_rate(first, last, true, throttle_up_names, global_uprate, rateUnit.factor, rateUnit.prec);
+    first = print_status_throttle_rate(first, last, true, throttle_up_names, global_uprate, rateUnit.factor, -1);
 
   double global_downrate = (double)torrent::down_rate()->rate() / rateUnit.factor;
-  first = print_buffer(first, last, " ▼%5.*f", rateUnit.prec, global_downrate);
+  first = print_buffer(first, last, " ▼ %5.*f", calculate_precision(global_downrate), global_downrate);
 
   if (!throttle_down_names.empty())
-    first = print_status_throttle_rate(first, last, false, throttle_down_names, global_downrate, rateUnit.factor, rateUnit.prec);
+    first = print_status_throttle_rate(first, last, false, throttle_down_names, global_downrate, rateUnit.factor, -1);
 
   first = print_buffer(first, last, " %s]", rateUnit.unit.c_str());
   first = print_buffer(first, last, " [Port: %i]", (unsigned int)torrent::runtime::listen_port());
