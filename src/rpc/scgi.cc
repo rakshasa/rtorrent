@@ -84,8 +84,7 @@ SCgi::open_named(const std::string& filename) {
 void
 SCgi::open_fd(int fd) {
   torrent::runtime::socket_manager()->open_event_or_throw(this, [&]() {
-      int flags = ::fcntl(fd, F_GETFL, 0);
-      if (flags == -1 || ::fcntl(fd, F_SETFL, flags | O_NONBLOCK) == -1)
+      if (!torrent::fd_set_nonblock(fd))
         throw torrent::resource_error("Could not set non-blocking on systemd fd: " +
                                       std::string(std::strerror(errno)));
       set_file_descriptor(fd);
