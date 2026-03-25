@@ -56,6 +56,7 @@ AC_LANG_POP(C++)
 
 TORRENT_WITH_LUA
 TORRENT_WITH_TINYXML2
+TORRENT_WITH_SYSTEMD
 
 if test ${with_xmlrpc_c+y} && test ${with_xmlrpc_tinyxml2+y}; then
   AC_MSG_ERROR([--with-xmlrpc-c and --with-xmlrpc-tinyxml2 cannot be used together. Please choose only one])
