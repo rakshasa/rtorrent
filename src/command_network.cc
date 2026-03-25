@@ -3,6 +3,10 @@
 #include <functional>
 #include <cstdio>
 #include <unistd.h>
+#ifdef HAVE_SYSTEMD
+#include <sys/socket.h>
+#include <systemd/sd-daemon.h>
+#endif
 #include <rak/address_info.h>
 #include <torrent/torrent.h>
 #include <torrent/rate.h>
@@ -143,6 +147,41 @@ apply_scgi(const std::string& arg, int type) {
   return torrent::Object();
 }
 
+#ifdef HAVE_SYSTEMD
+torrent::Object
+apply_scgi_systemd() {
+  if (scgi_thread::scgi() != nullptr)
+    throw torrent::input_error("SCGI already enabled.");
+
+  int n = sd_listen_fds(0);
+  if (n < 1)
+    throw torrent::input_error("No systemd socket(s) provided (sd_listen_fds returned " +
+                               std::to_string(n) + ").");
+
+  // Iterate over all provided fds. Use the first listening stream socket;
+  // close the rest. The systemd docs say unused fds should be closed.
+  int selected_fd = -1;
+  for (int i = 0; i < n; i++) {
+    int fd = SD_LISTEN_FDS_START + i;
+    if (selected_fd == -1 && sd_is_socket(fd, AF_UNSPEC, SOCK_STREAM, 1) > 0)
+      selected_fd = fd;
+    else
+      ::close(fd);
+  }
+
+  if (selected_fd == -1)
+    throw torrent::input_error("No listening stream socket found among systemd-provided fds.");
+
+  initialize_rpc_handlers();
+
+  rpc::SCgi* scgi = new rpc::SCgi;
+  scgi->open_fd(selected_fd);
+
+  scgi_thread::set_scgi(scgi);
+  return torrent::Object();
+}
+#endif
+
 torrent::Object
 apply_xmlrpc_dialect(const std::string& arg) {
   int value;
@@ -243,6 +282,9 @@ initialize_command_network() {
   CMD2_ANY_STRING  ("network.scgi.open_port",        std::bind(&apply_scgi, std::placeholders::_2, 1));
   CMD2_ANY_STRING  ("network.scgi.open_local",       std::bind(&apply_scgi, std::placeholders::_2, 2));
   CMD2_VAR_BOOL    ("network.scgi.dont_route",       false);
+#ifdef HAVE_SYSTEMD
+  CMD2_ANY_VALUE_V ("network.scgi.open_systemd",     [](auto, auto& value) { if (value != 0) apply_scgi_systemd(); });
+#endif
 
   CMD2_ANY_STRING  ("network.xmlrpc.dialect.set",    [](const auto&, const auto& arg) { return apply_xmlrpc_dialect(arg); })
   CMD2_ANY         ("network.xmlrpc.size_limit",     [](const auto&, const auto&)     { return rpc::rpc.size_limit(); });
