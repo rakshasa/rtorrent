@@ -358,3 +358,20 @@ AC_DEFUN([TORRENT_DISABLE_PTHREAD_SETNAME_NP], [
     ]
   )
 ])
+
+
+AC_DEFUN([TORRENT_WITH_SYSTEMD], [
+  AC_ARG_WITH(systemd,
+    AS_HELP_STRING([--with-systemd],[enable systemd socket activation support [[default=no]]]),
+    [
+      if test "$withval" = "yes"; then
+        PKG_CHECK_MODULES([SYSTEMD], [libsystemd],
+          [
+            CXXFLAGS="$CXXFLAGS $SYSTEMD_CFLAGS"
+            LIBS="$LIBS $SYSTEMD_LIBS"
+            AC_DEFINE(HAVE_SYSTEMD, 1, [Support for systemd socket activation.])
+          ],
+          [AC_MSG_ERROR([libsystemd not found. Install libsystemd-dev (or the equivalent for your distribution).])])
+      fi
+    ])
+])
