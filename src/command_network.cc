@@ -164,12 +164,26 @@ apply_scgi_systemd() {
   for (int i = 0; i < n; i++) {
     int fd = SD_LISTEN_FDS_START + i;
 
-    if (selected_fd != -1) // We've already selected an fd
+    if (selected_fd != -1) {
       ::close(fd);
-    else if (sd_is_socket(fd, AF_UNSPEC, SOCK_STREAM, 1) > 0) // Found an appropriate fd
-      selected_fd = fd;
-    else // It's some other type of fd, close it.
+      continue;
+    }
+
+    auto err = sd_is_socket(fd, AF_UNSPEC, SOCK_STREAM, 1);
+
+    if (err < 0) {
+      // Safe to ignore errors here - we just skip it and move on.
       ::close(fd);
+      continue;
+    }
+
+    if (err == 0) {
+      // Not the socket we're looking for.
+      ::close(fd);
+      continue;
+    }
+
+    selected_fd = fd;
   }
 
   if (selected_fd == -1)
