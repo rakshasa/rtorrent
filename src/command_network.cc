@@ -197,7 +197,7 @@ apply_scgi_systemd() {
   scgi_thread::set_scgi(scgi);
   return torrent::Object();
 #else
-  throw torrent::input_error("rtorrent was not built with systemd support.");
+  throw torrent::input_error("Systemd SCGI endpoint is not supported.");
 #endif
 }
 
@@ -301,7 +301,7 @@ initialize_command_network() {
   CMD2_ANY_STRING  ("network.scgi.open_port",        std::bind(&apply_scgi, std::placeholders::_2, 1));
   CMD2_ANY_STRING  ("network.scgi.open_local",       std::bind(&apply_scgi, std::placeholders::_2, 2));
   CMD2_VAR_BOOL    ("network.scgi.dont_route",       false);
-  CMD2_ANY_VALUE_V ("network.scgi.open_systemd",     [](auto, auto& value) { if (value != 0) apply_scgi_systemd(); });
+  CMD2_ANY         ("network.scgi.open_systemd",     [](auto, auto) { return apply_scgi_systemd(); });
 
   CMD2_ANY_STRING  ("network.xmlrpc.dialect.set",    [](const auto&, const auto& arg) { return apply_xmlrpc_dialect(arg); })
   CMD2_ANY         ("network.xmlrpc.size_limit",     [](const auto&, const auto&)     { return rpc::rpc.size_limit(); });
