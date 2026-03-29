@@ -342,6 +342,13 @@ initialize_command_network() {
   rpc::rpc.mark_safe("network.bind_address");
   rpc::rpc.mark_safe("network.local_address");
   rpc::rpc.mark_safe("network.xmlrpc.size_limit");
+  rpc::rpc.mark_safe("network.open_sockets");
+  rpc::rpc.mark_safe("network.http.cacert");
+  rpc::rpc.mark_safe("network.http.capath");
+  rpc::rpc.mark_safe("network.http.proxy_address");
+  rpc::rpc.mark_safe("network.proxy_address");
+  rpc::rpc.mark_safe("network.scgi.dont_route");
+  rpc::rpc.mark_safe("protocol.pex");
 
   rpc::rpc.mark_safe("network.rpc.use_xmlrpc");
   rpc::rpc.mark_safe("network.rpc.use_jsonrpc");
