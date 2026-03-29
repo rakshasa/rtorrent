@@ -180,4 +180,6 @@ initialize_command_tracker() {
   rpc::rpc.mark_safe("dht.override_port");
   rpc::rpc.mark_safe("dht.add_node");
   rpc::rpc.mark_safe("dht.statistics");
+  rpc::rpc.mark_safe("trackers.numwant");
+  rpc::rpc.mark_safe("trackers.use_udp");
 }

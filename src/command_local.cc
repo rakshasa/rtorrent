@@ -336,4 +336,21 @@ initialize_command_local() {
   rpc::rpc.mark_safe("system.api_version");
   rpc::rpc.mark_safe("system.client_version");
   rpc::rpc.mark_safe("system.library_version");
+  rpc::rpc.mark_safe("system.file.max_size");
+  rpc::rpc.mark_safe("system.file.split_size");
+  rpc::rpc.mark_safe("system.file.split_suffix");
+
+  rpc::rpc.mark_safe("directory.default");
+  rpc::rpc.mark_safe("session.path");
+  rpc::rpc.mark_safe("session.use_lock");
+  rpc::rpc.mark_safe("session.on_completion");
+
+  rpc::rpc.mark_safe("pieces.sync.always_safe");
+  rpc::rpc.mark_safe("pieces.sync.timeout");
+  rpc::rpc.mark_safe("pieces.sync.timeout_safe");
+  rpc::rpc.mark_safe("pieces.preload.type");
+  rpc::rpc.mark_safe("pieces.preload.min_size");
+  rpc::rpc.mark_safe("pieces.preload.min_rate");
+  rpc::rpc.mark_safe("pieces.memory.max");
+  rpc::rpc.mark_safe("pieces.hash.on_completion");
 }
