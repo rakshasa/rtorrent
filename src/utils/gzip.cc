@@ -2,14 +2,14 @@
 
 #include "utils/gzip.h"
 
-#include <torrent/exceptions.h>
 #include <zlib.h>
+#include <torrent/exceptions.h>
 
 namespace utils {
 
 void
 gzip_compress_to_vector(const char* buffer, unsigned int length, std::vector<char>& output, unsigned int offset) {
-  z_stream zs;
+  z_stream zs{};
   zs.zalloc = Z_NULL;
   zs.zfree  = Z_NULL;
   zs.opaque = Z_NULL;

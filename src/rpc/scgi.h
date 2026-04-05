@@ -26,10 +26,13 @@ public:
 
   void                stop();
 
-  const std::string&  path() const { return m_path; }
+  const std::string&  path() const                       { return m_path; }
 
-  int                 log_fd() const     { return m_logFd; }
-  void                set_log_fd(int fd) { m_logFd = fd; }
+  int                 log_fd() const                     { return m_logFd; }
+  void                set_log_fd(int fd)                 { m_logFd = fd; }
+
+  bool                allow_compression() const          { return m_allow_compression; }
+  unsigned int        min_compress_size() const          { return m_min_compress_size; }
 
   void                event_read() override;
   void                event_write() override;
@@ -45,6 +48,9 @@ private:
 
   task_list           m_tasks;
   task_list::iterator m_current;
+
+  bool                m_allow_compression{};
+  unsigned int        m_min_compress_size{};
 };
 
 }
