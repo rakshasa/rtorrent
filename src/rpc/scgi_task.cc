@@ -205,7 +205,7 @@ event_read_failed:
 
 void
 SCgiTask::event_write() {
-  int bytes = ::send(m_fileDesc, m_position, m_buffer_size, MSG_NOSIGNAL);
+  int bytes = ::send(m_fileDesc, m_position, m_buffer_size, 0);
 
   if (bytes == -1) {
     if (!(errno == EAGAIN || errno == EINTR))
