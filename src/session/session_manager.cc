@@ -335,6 +335,8 @@ SessionManager::process_save_request() {
 
     process_next_save_request_unsafe();
   }
+
+  callback_save_request();
 }
 
 void
