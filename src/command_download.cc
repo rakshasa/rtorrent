@@ -5,7 +5,6 @@
 #include <functional>
 #include <netdb.h>
 #include <unistd.h>
-#include <rak/string_manip.h>
 #include <rak/regex.h>
 #include <torrent/rate.h>
 #include <torrent/throttle.h>
@@ -22,6 +21,7 @@
 #include <torrent/utils/file_stat.h>
 #include <torrent/utils/log.h>
 #include <torrent/utils/option_strings.h>
+#include <torrent/utils/string_manip.h>
 
 #include "core/download.h"
 #include "core/manager.h"
@@ -276,7 +276,7 @@ retrieve_d_bitfield(core::Download* download) {
   if (bitField->empty())
     return torrent::Object("");
 
-  return torrent::Object(rak::transform_hex(bitField->begin(), bitField->end()));
+  return torrent::Object(torrent::utils::transform_to_hex_str(*bitField));
 }
 
 void
@@ -326,7 +326,8 @@ d_chunks_seen(core::Download* download) {
   std::string result;
   result.resize(size * 2);
 
-  rak::transform_hex((const char*)seen, (const char*)seen + size, result.begin());
+  torrent::utils::transform_to_hex(seen, seen + size, result.begin(), result.end());
+
   return result;
 }
 
@@ -444,9 +445,11 @@ p_call_target(const torrent::Object::list_type& args) {
 
   torrent::HashString hash;
 
-  if (peer_id.size() != 40 ||
-      torrent::hash_string_from_hex_c_str(peer_id.c_str(), hash) == peer_id.c_str())
-    throw torrent::input_error("Not a hash string.");
+  if (peer_id.size() != 40)
+    throw torrent::input_error("invalid argument: peer id target is not 40 bytes long");
+
+  if (torrent::utils::transform_from_hex(peer_id.c_str(), peer_id.c_str() + 40, hash.begin(), hash.end()) != hash.end())
+    throw torrent::input_error("invalid argument: peer id target is not a hex string");
 
   torrent::ConnectionList::iterator peerItr = download->connection_list()->find(hash.c_str());
 
@@ -641,9 +644,9 @@ void               cg_d_group_set(core::Download* download, const torrent::Objec
 
 void
 initialize_command_download() {
-  CMD2_DL("d.hash",          std::bind(&rak::transform_hex_str<torrent::HashString>, CMD2_ON_INFO(hash)));
-  CMD2_DL("d.local_id",      std::bind(&rak::transform_hex_str<torrent::HashString>, CMD2_ON_INFO(local_id)));
-  CMD2_DL("d.local_id_html", std::bind(&rak::copy_escape_html_str<torrent::HashString>, CMD2_ON_INFO(local_id)));
+  CMD2_DL("d.hash",          [](auto* download, auto) { return torrent::utils::transform_to_hex_str(download->info()->hash()); });
+  CMD2_DL("d.local_id",      [](auto* download, auto) { return torrent::utils::transform_to_hex_str(download->info()->local_id()); });
+  CMD2_DL("d.local_id_html", [](auto* download, auto) { return torrent::utils::copy_escape_html(download->info()->local_id()); });
   CMD2_DL("d.bitfield",      std::bind(&retrieve_d_bitfield, std::placeholders::_1));
   CMD2_DL("d.base_path",     std::bind(&retrieve_d_base_path, std::placeholders::_1));
   CMD2_DL("d.base_filename", std::bind(&retrieve_d_base_filename, std::placeholders::_1));

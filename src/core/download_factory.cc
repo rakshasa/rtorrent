@@ -15,6 +15,7 @@
 #include <torrent/rate.h>
 #include <torrent/data/file_utils.h>
 #include <torrent/net/http_stack.h>
+#include <torrent/utils/string_manip.h>
 
 #include "control.h"
 #include "globals.h"
@@ -327,7 +328,7 @@ void
 DownloadFactory::log_created(Download* download, torrent::Object* rtorrent) {
   std::stringstream dump;
 
-  dump << "info_hash = " << torrent::hash_string_to_hex_str(download->info()->hash()) << std::endl;
+  dump << "info_hash = " << torrent::utils::transform_to_hex_str(download->info()->hash()) << std::endl;
   dump << "session = " << (m_session ? "true" : "false") << std::endl;
 
   if (download->download()->info()->is_meta_download())
