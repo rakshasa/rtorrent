@@ -1,16 +1,16 @@
 #include "config.h"
 
+#include "display/window_download_chunks_seen.h"
+
 #include <cmath>
 #include <stdexcept>
-#include <rak/string_manip.h>
 #include <torrent/bitfield.h>
 #include <torrent/data/block.h>
 #include <torrent/data/block_list.h>
 #include <torrent/data/transfer_list.h>
+#include <torrent/utils/string_manip.h>
 
 #include "core/download.h"
-
-#include "window_download_chunks_seen.h"
 
 namespace display {
 
@@ -82,7 +82,7 @@ WindowDownloadChunksSeen::redraw() {
         attr = A_BOLD;
       }
 
-      m_canvas->print_char(attr | rak::value_to_hexchar<0>(std::min<uint8_t>(*chunk, 0xF)));
+      m_canvas->print_char(attr | torrent::utils::value_to_hex0(std::min<uint8_t>(*chunk, 0xF)));
       chunk++;
 
       if ((chunk - seen) % 10 == 0) {

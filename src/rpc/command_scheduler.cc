@@ -5,7 +5,6 @@
 #include <algorithm>
 #include <cstdlib>
 #include <time.h>
-#include <rak/string_manip.h>
 #include <torrent/exceptions.h>
 #include <torrent/utils/chrono.h>
 

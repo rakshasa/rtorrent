@@ -4,7 +4,6 @@
 
 #include <ctime>
 #include <regex>
-#include <rak/algorithm.h>
 #include <torrent/utils/log.h>
 
 #include "core/manager.h"
@@ -730,6 +729,26 @@ apply_arith_count(const torrent::Object::list_type& args) {
   return val;
 }
 
+// Get the median of an unordered set of numbers of arbitrary
+// type by modifing the underlying dataset
+template <typename T = double, typename _InputIter>
+T median(_InputIter __first, _InputIter __last) {
+  T __med;
+
+  unsigned int __size = __last - __first;
+  unsigned int __middle = __size / 2;
+  _InputIter __target1 = __first + __middle;
+  std::nth_element(__first, __target1, __last);
+  __med = *__target1;
+
+  if (__size % 2 == 0) {
+    _InputIter __target2 = std::max_element(__first, __target1);
+    __med = (__med + *__target2) / 2.0;
+  }
+
+  return __med;
+}
+
 int64_t
 apply_arith_other(const char* op, const torrent::Object::list_type& args) {
   if (args.size() == 0)
@@ -739,7 +758,8 @@ apply_arith_other(const char* op, const torrent::Object::list_type& args) {
     return (int64_t)(apply_math_basic(op, std::plus<int64_t>(), args) / apply_arith_count(args));
   } else if (strcmp(op, "median") == 0) {
     std::vector<int64_t> result = as_vector(args);
-    return (int64_t)rak::median(result.begin(), result.end());
+
+    return (int64_t)median(result.begin(), result.end());
   } else {
     throw torrent::input_error("Wrong operation supplied to apply_arith_other.");
   }
