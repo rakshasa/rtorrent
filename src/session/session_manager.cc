@@ -439,7 +439,7 @@ void
 SessionManager::flush_all_and_wait_unsafe(std::unique_lock<std::mutex>& lock) {
   LT_LOG("flushing all pending saves", 0);
 
-  // TODO: Also flush build?
+  // Caller already ensured pending builds are empty.
 
   while (!m_save_requests.empty()) {
     if (m_processing_save_counter >= max_cleanup_processing) {
