@@ -1,33 +1,18 @@
 #include "config.h"
 
-#include <rak/string_manip.h>
 #include <torrent/bitfield.h>
 #include <torrent/rate.h>
 #include <torrent/net/socket_address.h>
 #include <torrent/peer/connection_list.h>
 #include <torrent/peer/peer.h>
 #include <torrent/peer/peer_info.h>
-
-#include "core/manager.h"
-#include "display/utils.h"
+#include <torrent/utils/string_manip.h>
 
 #include "globals.h"
-#include "control.h"
 #include "command_helpers.h"
-
-torrent::Object
-retrieve_p_id(torrent::Peer* peer) {
-  const torrent::HashString* hashString = &peer->id();
-
-  return rak::transform_hex(hashString->begin(), hashString->end());
-}
-
-torrent::Object
-retrieve_p_id_html(torrent::Peer* peer) {
-  const torrent::HashString* hashString = &peer->id();
-
-  return rak::copy_escape_html(hashString->begin(), hashString->end());
-}
+#include "control.h"
+#include "core/manager.h"
+#include "display/utils.h"
 
 torrent::Object
 retrieve_p_address(torrent::Peer* peer) {
@@ -41,11 +26,6 @@ retrieve_p_address(torrent::Peer* peer) {
 }
 
 torrent::Object
-retrieve_p_port(torrent::Peer* peer) {
-  return torrent::sa_port(peer->peer_info()->socket_address());
-}
-
-torrent::Object
 retrieve_p_client_version(torrent::Peer* peer) {
   char buf[128];
   display::print_client_version(buf, buf + 128, peer->peer_info()->client_info());
@@ -55,7 +35,7 @@ retrieve_p_client_version(torrent::Peer* peer) {
 
 torrent::Object
 retrieve_p_options_str(torrent::Peer* peer) {
-  return rak::transform_hex(peer->peer_info()->options(), peer->peer_info()->options() + 8);
+  return torrent::utils::transform_to_hex_str(peer->peer_info()->options(), peer->peer_info()->options() + 8);
 }
 
 torrent::Object
@@ -67,8 +47,8 @@ retrieve_p_completed_percent(torrent::Peer* peer) {
 
 void
 initialize_command_peer() {
-  CMD2_PEER("p.id",                std::bind(&retrieve_p_id, std::placeholders::_1));
-  CMD2_PEER("p.id_html",           std::bind(&retrieve_p_id_html, std::placeholders::_1));
+  CMD2_PEER("p.id",                [](auto* peer, auto) { return torrent::utils::transform_to_hex_str(peer->id()); });
+  CMD2_PEER("p.id_html",           [](auto* peer, auto) { return torrent::utils::copy_escape_html(peer->id()); });
   CMD2_PEER("p.client_version",    std::bind(&retrieve_p_client_version, std::placeholders::_1));
 
   CMD2_PEER("p.options_str",       std::bind(&retrieve_p_options_str, std::placeholders::_1));
@@ -82,7 +62,7 @@ initialize_command_peer() {
   CMD2_PEER("p.is_preferred",      std::bind(&torrent::PeerInfo::is_preferred, std::bind(&torrent::Peer::peer_info, std::placeholders::_1)));
 
   CMD2_PEER("p.address",           std::bind(&retrieve_p_address, std::placeholders::_1));
-  CMD2_PEER("p.port",              std::bind(&retrieve_p_port, std::placeholders::_1));
+  CMD2_PEER("p.port",              [](auto* peer, auto) { return torrent::sa_port(peer->peer_info()->socket_address()); });
 
   CMD2_PEER("p.completed_percent", std::bind(&retrieve_p_completed_percent, std::placeholders::_1));
 

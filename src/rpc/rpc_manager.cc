@@ -93,7 +93,7 @@ RpcManager::object_to_target(const torrent::Object& obj, int call_flags, rpc::ta
 
       torrent::HashString hash;
 
-      if (torrent::utils::transform_from_hex(index.c_str(), index.c_str() + 40, hash.begin(), hash.end()) != hash.end())
+      if (torrent::utils::transform_from_hex(index.c_str(), index.c_str() + 40, hash) != hash.end())
         throw torrent::input_error("invalid parameters: target is not a hex string");
 
       *target = rpc::make_target(command_base::target_peer, rpc.slot_find_peer()(download, hash));

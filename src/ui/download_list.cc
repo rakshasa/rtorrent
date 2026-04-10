@@ -1,35 +1,31 @@
 #include "config.h"
 
+#include "ui/download_list.h"
+
 #include <cassert>
 #include <sstream>
-
-#include <rak/string_manip.h>
 #include <torrent/exceptions.h>
 #include <torrent/torrent.h>
 #include <torrent/utils/log.h>
+#include <torrent/utils/string_manip.h>
 
+#include "control.h"
 #include "core/download.h"
 #include "core/download_list.h"
 #include "core/manager.h"
 #include "core/view.h"
 #include "core/view_manager.h"
-
+#include "display/window_log.h"
+#include "display/window_title.h"
 #include "input/bindings.h"
 #include "input/manager.h"
 #include "input/path_input.h"
-
-#include "display/window_log.h"
-#include "display/window_title.h"
-
 #include "rpc/parse_commands.h"
-
-#include "control.h"
-#include "download.h"
-#include "download_list.h"
-#include "element_download_list.h"
-#include "element_log_complete.h"
-#include "element_string_list.h"
-#include "root.h"
+#include "ui/download.h"
+#include "ui/element_download_list.h"
+#include "ui/element_log_complete.h"
+#include "ui/element_string_list.h"
+#include "ui/root.h"
 
 namespace ui {
 
@@ -231,7 +227,7 @@ DownloadList::receive_view_input(Input type) {
 
       while(ss.good()) {
           std::getline(ss, view_name_var, ',');
-          if (current_view()->name() == rak::trim(view_name_var)) {
+          if (current_view()->name() == torrent::utils::trim_spaces_str(view_name_var)) {
               control->core()->push_log_std("View '" + current_view()->name() + "' can't be filtered.");
               return;
           }
@@ -304,7 +300,7 @@ DownloadList::receive_exit_input(Input type) {
       if ((*current_view()->focus())->is_open())
         throw torrent::input_error("Cannot change root directory on an open download.");
 
-      rpc::call_command("d.directory.set", rak::trim(input->str()), rpc::make_target(*current_view()->focus()));
+      rpc::call_command("d.directory.set", torrent::utils::trim_spaces_str(input->str()), rpc::make_target(*current_view()->focus()));
       control->core()->push_log_std("New root directory \"" + rpc::call_command_string("d.directory", rpc::make_target(*current_view()->focus())) + "\" for torrent.");
       break;
 

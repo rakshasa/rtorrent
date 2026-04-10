@@ -1,7 +1,6 @@
 #include "config.h"
 
 #include <functional>
-#include <rak/algorithm.h>
 
 #include <dirent.h>
 #include <sys/stat.h>
@@ -9,6 +8,52 @@
 #include <torrent/utils/log.h>
 
 #include "path_input.h"
+
+namespace {
+
+template <typename _Value>
+struct compare_base {
+  bool operator () (const _Value& complete, const _Value& base) const {
+    return !complete.compare(0, base.size(), base);
+  }
+};
+
+// Count the number of elements from the start of the containers to
+// the first inequal element.
+template <typename _InputIter1, typename _InputIter2>
+typename std::iterator_traits<_InputIter1>::difference_type
+count_base(_InputIter1 __first1, _InputIter1 __last1,
+	   _InputIter2 __first2, _InputIter2 __last2) {
+
+  typename std::iterator_traits<_InputIter1>::difference_type __n = 0;
+
+  for ( ;__first1 != __last1 && __first2 != __last2; ++__first1, ++__first2, ++__n)
+    if (*__first1 != *__first2)
+      return __n;
+
+  return __n;
+}
+
+template <typename _Return, typename _InputIter, typename _Ftor>
+_Return
+make_base(_InputIter __first, _InputIter __last, _Ftor __ftor) {
+  if (__first == __last)
+    return "";
+
+  _Return __base = __ftor(*__first++);
+
+  for ( ;__first != __last; ++__first) {
+    typename std::iterator_traits<_InputIter>::difference_type __pos = count_base(__base.begin(), __base.end(),
+										  __ftor(*__first).begin(), __ftor(*__first).end());
+
+    if (__pos < (typename std::iterator_traits<_InputIter>::difference_type)__base.size())
+      __base.resize(__pos);
+  }
+
+  return __base;
+}
+
+}
 
 namespace input {
 
@@ -59,7 +104,7 @@ PathInput::receive_do_complete() {
   if (r.first == r.second)
     return; // Show some nice colors here.
 
-  std::string base = rak::make_base<std::string>(r.first, r.second, std::mem_fn(&utils::directory_entry::s_name));
+  std::string base = make_base<std::string>(r.first, r.second, [](auto& de) { return de.s_name; });
 
   // Clear the path after the cursor to make this code cleaner. It's
   // not really nessesary to add the complexity just because someone
