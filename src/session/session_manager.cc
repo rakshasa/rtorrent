@@ -73,6 +73,7 @@ SessionManager::save_resume_download(core::Download* download) {
   {
     std::unique_lock<std::mutex> lock(m_pending_builds_mutex);
 
+    // TODO: This is under the wrong lock.
     if (!m_active)
       throw torrent::internal_error("SessionManager::save_resume_download() called while not active.");
 
@@ -229,7 +230,7 @@ SessionManager::callback_pending_builds() {
   if (m_save_request_counter >= max_concurrent_requests)
     return;
 
-  if (m_process_pending_builds_callback_scheduled.exchange(true))
+  if (m_callback_scheduled_process_pending_builds.exchange(true))
     return;
 
   torrent::main_thread::callback(this, [this]() { process_pending_builds(false); });
@@ -237,7 +238,13 @@ SessionManager::callback_pending_builds() {
 
 void
 SessionManager::callback_save_request() {
-  if (m_process_saves_request_callback_scheduled.exchange(true))
+  if (m_save_request_counter == 0)
+    return;
+
+  if (m_processing_save_counter >= max_concurrent_processing)
+    return;
+
+  if (m_callback_scheduled_process_saves_request.exchange(true))
     return;
 
   session_thread::callback(this, [this]() { process_save_request(); });
@@ -245,7 +252,7 @@ SessionManager::callback_save_request() {
 
 void
 SessionManager::callback_finished_saves() {
-  if (m_process_finished_saves_callback_scheduled.exchange(true))
+  if (m_callback_scheduled_process_finished_saves.exchange(true))
     return;
 
   session_thread::callback(this, [this]() { process_finished_saves(); });
@@ -262,7 +269,7 @@ SessionManager::process_pending_builds(bool is_flushing) {
   {
     std::unique_lock<std::mutex> lock(m_pending_builds_mutex);
 
-    m_process_pending_builds_callback_scheduled = false;
+    m_callback_scheduled_process_pending_builds = false;
 
     while (!m_pending_builds.empty()) {
       if (!is_flushing && m_save_request_counter + requests.size() >= max_concurrent_requests)
@@ -322,18 +329,20 @@ SessionManager::process_save_request() {
   if (m_path.empty())
     throw torrent::internal_error("SessionManager::process_save_request() called with empty path.");
 
-  std::unique_lock<std::mutex> lock(m_mutex);
+  {
+    std::unique_lock<std::mutex> lock(m_mutex);
 
-  m_process_saves_request_callback_scheduled = false;
+    m_callback_scheduled_process_saves_request = false;
 
-  if (!m_active)
-    throw torrent::internal_error("SessionManager::process_save_request() called while not active.");
+    if (!m_active)
+      throw torrent::internal_error("SessionManager::process_save_request() called while not active.");
 
-  while (!m_save_requests.empty()) {
-    if (m_processing_saves.size() >= max_concurrent_processing)
-      break;
+    while (!m_save_requests.empty()) {
+      if (m_processing_saves.size() >= max_concurrent_processing)
+        break;
 
-    process_next_save_request_unsafe();
+      process_next_save_request_unsafe();
+    }
   }
 
   callback_pending_builds();
@@ -347,6 +356,7 @@ SessionManager::process_next_save_request_unsafe() {
   m_save_request_counter = m_save_requests.size();
 
   auto itr = m_processing_saves.insert(m_processing_saves.end(), ProcessingSave{});
+  m_processing_save_counter = m_processing_saves.size();
 
   itr->second = std::move(request);
   itr->first = std::async(std::launch::async, [this, itr]() {
@@ -359,6 +369,7 @@ SessionManager::process_next_save_request_unsafe() {
           m_finished_condition.notify_all();
 
           m_processing_saves.erase(itr);
+          m_processing_save_counter = m_processing_saves.size();
         };
 
       try {
@@ -373,6 +384,8 @@ SessionManager::process_next_save_request_unsafe() {
 
       cleanup_fn();
     });
+
+  LT_LOG("started save of download : download:%p path:%s", itr->second.download, itr->second.path.c_str());
 }
 
 void
@@ -381,7 +394,7 @@ SessionManager::process_finished_saves() {
 
   std::unique_lock<std::mutex> lock(m_mutex);
 
-  m_process_finished_saves_callback_scheduled = false;
+  m_callback_scheduled_process_finished_saves = false;
 
   if (!m_active)
     throw torrent::internal_error("SessionManager::process_finished_saves() called while not active.");
@@ -418,14 +431,18 @@ SessionManager::process_finished_saves() {
   }
 
   m_finished_saves.clear();
+
+  callback_save_request();
 }
 
 void
 SessionManager::flush_all_and_wait_unsafe(std::unique_lock<std::mutex>& lock) {
   LT_LOG("flushing all pending saves", 0);
 
+  // TODO: Also flush build?
+
   while (!m_save_requests.empty()) {
-    if (m_processing_saves.size() >= max_cleanup_processing) {
+    if (m_processing_save_counter >= max_cleanup_processing) {
       m_finished_condition.wait(lock);
       continue;
     }
@@ -485,20 +502,6 @@ bool
 SessionManager::remove_completely_unsafe(core::Download* download, std::unique_lock<std::mutex>& lock) {
   assert(torrent::this_thread::thread() == torrent::main_thread::thread());
 
-  auto remove_requests = [this, download]() {
-    auto itr = std::remove_if(m_save_requests.begin(), m_save_requests.end(), [download](auto& req) {
-        return req.download == download;
-      });
-
-    if (itr == m_save_requests.end())
-      return false;
-
-    m_save_requests.erase(itr, m_save_requests.end());
-    m_save_request_counter = m_save_requests.size();
-
-    return true;
-  };
-
   auto remove_pending = [this, download]() {
     std::unique_lock<std::mutex> pending_lock(m_pending_builds_mutex);
 
@@ -513,13 +516,28 @@ SessionManager::remove_completely_unsafe(core::Download* download, std::unique_l
     return true;
   };
 
+  auto remove_requests = [this, download]() {
+    auto itr = std::remove_if(m_save_requests.begin(), m_save_requests.end(), [download](auto& req) {
+        return req.download == download;
+      });
+
+    if (itr == m_save_requests.end())
+      return false;
+
+    m_save_requests.erase(itr, m_save_requests.end());
+    m_save_request_counter = m_save_requests.size();
+    return true;
+  };
+
   bool removed_something = false;
 
   if (remove_pending())
     removed_something = true;
 
-  if (remove_requests())
+  if (remove_requests()) {
     removed_something = true;
+    callback_pending_builds();
+  }
 
   // This may block for a relatively long time if fdatasync is in use, however this is necessary.
   while (true) {

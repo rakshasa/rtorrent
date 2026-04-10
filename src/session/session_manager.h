@@ -104,12 +104,13 @@ private:
   std::deque<SaveRequest>     m_save_requests;
   std::atomic<size_t>         m_save_request_counter{};
   std::list<ProcessingSave>   m_processing_saves;
+  std::atomic<size_t>         m_processing_save_counter{};
   std::condition_variable     m_finished_condition;
   std::vector<ProcessingSave> m_finished_saves;
 
-  std::atomic<bool>           m_process_pending_builds_callback_scheduled{};
-  std::atomic<bool>           m_process_saves_request_callback_scheduled{};
-  std::atomic<bool>           m_process_finished_saves_callback_scheduled{};
+  std::atomic<bool>           m_callback_scheduled_process_pending_builds{};
+  std::atomic<bool>           m_callback_scheduled_process_saves_request{};
+  std::atomic<bool>           m_callback_scheduled_process_finished_saves{};
 
   std::unique_ptr<utils::Lockfile> m_lockfile;
 
