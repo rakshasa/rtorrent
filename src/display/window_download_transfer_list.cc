@@ -2,7 +2,6 @@
 
 #include <cmath>
 #include <stdexcept>
-#include <rak/string_manip.h>
 #include <torrent/data/block_list.h>
 #include <torrent/data/transfer_list.h>
 

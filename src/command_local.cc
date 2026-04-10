@@ -17,7 +17,6 @@
 #include "core/download.h"
 #include "core/download_list.h"
 #include "core/manager.h"
-#include "rak/string_manip.h"
 #include "rpc/parse_commands.h"
 #include "rpc/scgi.h"
 #include "session/session_manager.h"
@@ -95,8 +94,12 @@ post_increment(torrent::Object::list_const_iterator& itr, const torrent::Object:
 
 inline const std::string&
 check_name(const std::string& str) {
-  if (!rak::is_all_name(str))
-    throw torrent::input_error("Non-alphanumeric characters found.");
+  auto itr = std::find_if(str.begin(), str.end(), [](char c) {
+      return !std::isalnum(c, std::locale::classic()) && c != '_';
+    });
+
+  if (itr != str.end())
+    throw torrent::input_error("Invalid characters found in name.");
 
   return str;
 }

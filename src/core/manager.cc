@@ -8,9 +8,7 @@
 #include <sstream>
 #include <unistd.h>
 #include <sys/select.h>
-#include <rak/address_info.h>
 #include <rak/regex.h>
-#include <rak/string_manip.h>
 #include <torrent/utils/resume.h>
 #include <torrent/object.h>
 #include <torrent/connection_manager.h>
@@ -23,6 +21,7 @@
 #include <torrent/net/socket_address.h>
 #include <torrent/runtime/network_manager.h>
 #include <torrent/utils/log.h>
+#include <torrent/utils/string_manip.h>
 
 #include "rpc/parse_commands.h"
 #include "utils/directory.h"
@@ -199,7 +198,7 @@ Manager::listen_open() {
 void
 Manager::set_proxy_address(const std::string& addr) {
   int port;
-  rak::address_info* ai;
+  torrent::sa_unique_ptr sa;
 
   std::string buf(addr.length() + 1, '\0');
 
@@ -211,20 +210,18 @@ Manager::set_proxy_address(const std::string& addr) {
   if (err == 1)
     port = 80;
 
-  if ((err = rak::address_info::get_address_info(buf.data(), PF_INET, SOCK_STREAM, &ai)) != 0)
-    throw torrent::input_error("Could not set proxy address: " + std::string(rak::address_info::strerror(err)) + ".");
-
   try {
-
-    auto sa = torrent::sa_copy(ai->c_addrinfo()->ai_addr);
-    torrent::sap_set_port(sa, port);
-
-    torrent::config::network_config()->set_proxy_address(sa.get());
-
-    rak::address_info::free_address_info(ai);
+    sa = torrent::sa_copy(torrent::sa_lookup_address(buf, AF_INET).get());
 
   } catch (torrent::input_error& e) {
-    rak::address_info::free_address_info(ai);
+    throw torrent::input_error("Could not resolve proxy address: " + std::string(e.what()));
+  }
+
+  try {
+    torrent::sa_set_port(sa.get(), port);
+    torrent::config::network_config()->set_proxy_address(sa.get());
+
+  } catch (torrent::input_error& e) {
     throw e;
   }
 }
@@ -315,14 +312,70 @@ path_expand_transform(std::string path, const utils::directory_entry& entry) {
   return path + entry.s_name;
 }
 
+namespace {
+
+// Consider rewritting such that m_seq is replaced by first/last.
+template <typename Sequence>
+class split_iterator_t {
+public:
+  typedef typename Sequence::const_iterator const_iterator;
+  typedef typename Sequence::value_type     value_type;
+
+  split_iterator_t() {}
+
+  split_iterator_t(const Sequence& seq, value_type delim) :
+    m_seq(&seq),
+    m_delim(delim),
+    m_pos(seq.begin()),
+    m_next(std::find(seq.begin(), seq.end(), delim)) {
+  }
+
+  Sequence operator * () { return Sequence(m_pos, m_next); }
+
+  split_iterator_t& operator ++ () {
+    m_pos = m_next;
+
+    if (m_pos == m_seq->end())
+      return *this;
+
+    m_pos++;
+    m_next = std::find(m_pos, m_seq->end(), m_delim);
+
+    return *this;
+  }
+
+  bool operator == (const split_iterator_t&) const { return m_pos == m_seq->end(); }
+  bool operator != (const split_iterator_t&) const { return m_pos != m_seq->end(); }
+
+private:
+  const Sequence* m_seq;
+  value_type      m_delim;
+  const_iterator  m_pos;
+  const_iterator  m_next;
+};
+
+template <typename Sequence>
+inline split_iterator_t<Sequence>
+split_iterator(const Sequence& seq, typename Sequence::value_type delim) {
+  return split_iterator_t<Sequence>(seq, delim);
+}
+
+template <typename Sequence>
+inline split_iterator_t<Sequence>
+split_iterator(const Sequence&) {
+  return split_iterator_t<Sequence>();
+}
+
+}
+
 // Move this somewhere better.
 void
 path_expand(std::vector<std::string>* paths, const std::string& pattern) {
   std::vector<utils::Directory> currentCache;
   std::vector<utils::Directory> nextCache;
 
-  rak::split_iterator_t<std::string> first = rak::split_iterator(pattern, '/');
-  rak::split_iterator_t<std::string> last  = rak::split_iterator(pattern);
+  auto first = split_iterator(pattern, '/');
+  auto last  = split_iterator(pattern);
 
   if (first == last)
     return;
@@ -331,7 +384,7 @@ path_expand(std::vector<std::string>* paths, const std::string& pattern) {
   if ((*first).empty()) {
     currentCache.push_back(utils::Directory("/"));
     ++first;
-  } else if (rak::trim(*first) == "~") {
+  } else if (torrent::utils::trim_spaces_str(*first) == "~") {
     currentCache.push_back(utils::Directory("~"));
     ++first;
   } else {

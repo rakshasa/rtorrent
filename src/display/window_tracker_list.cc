@@ -2,10 +2,9 @@
 
 #include "window_tracker_list.h"
 
-#include <rak/algorithm.h>
-#include <rak/string_manip.h>
 #include <torrent/exceptions.h>
 #include <torrent/tracker/tracker.h>
+#include <torrent/utils/string_manip.h>
 
 #include "core/download.h"
 
@@ -37,7 +36,7 @@ WindowTrackerList::redraw() {
   if (tc_size == 0 || *m_focus >= tc_size)
     return;
 
-  auto range = rak::advance_bidirectional<unsigned int>(0, *m_focus, tc_size, (m_canvas->height() - 1) / 2);
+  auto range = advance_bidirectional<unsigned int>(0, *m_focus, tc_size, (m_canvas->height() - 1) / 2);
   auto group = tc.at(range.first).group();
 
   while (range.first != range.second) {
@@ -63,7 +62,7 @@ WindowTrackerList::redraw() {
 
       m_canvas->print(0, pos++, "%s Id: %s Counters: %uf / %us (%u) %s S/L/D: %u/%u/%u (%u/%u)",
                       state,
-                      rak::copy_escape_html(tracker.tracker_id()).c_str(),
+                      torrent::utils::copy_escape_html_str(tracker.tracker_id()).c_str(),
                       tracker_state.failed_counter(),
                       tracker_state.success_counter(),
                       tracker_state.scrape_counter(),

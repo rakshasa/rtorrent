@@ -4,7 +4,6 @@
 #include <cstring>
 #include <fstream>
 #include <iostream>
-#include <rak/string_manip.h>
 #include <torrent/data/file.h>
 #include <torrent/utils/resume.h>
 #include <torrent/exceptions.h>
@@ -14,6 +13,7 @@
 #include <torrent/object_stream.h>
 #include <torrent/torrent.h>
 #include <torrent/utils/log.h>
+#include <torrent/utils/string_manip.h>
 
 #include "rpc/parse_commands.h"
 
@@ -88,8 +88,8 @@ DownloadList::find_hex(const char* hash) {
 
   torrent::HashString key;
 
-  for (torrent::HashString::iterator itr = key.begin(), last = key.end(); itr != last; itr++, hash += 2)
-    *itr = (rak::hexchar_to_value(*hash) << 4) + rak::hexchar_to_value(*(hash + 1));
+  if (torrent::utils::transform_from_hex(hash, hash + 40, key) != key.end())
+    return end();
 
   return std::find_if(begin(), end(), [key](Download* d) { return key == d->info()->hash(); });
 }

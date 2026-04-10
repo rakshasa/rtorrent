@@ -86,7 +86,7 @@ apply_d_change_link(core::Download* download, const torrent::Object::list_type& 
 
 //   } else if (type == "directory_path") {
 //     target = rpc::call_command_string("d.directory", rpc::make_target(download));
-//     link = rak::path_expand(prefix + rpc::call_command_string("d.base_path", rpc::make_target(download)) + postfix);
+//     link = path_expand(prefix + rpc::call_command_string("d.base_path", rpc::make_target(download)) + postfix);
 
   } else if (type == "tied") {
     link = expand_path(rpc::call_command_string("d.tied_to_file", rpc::make_target(download)));
@@ -328,7 +328,7 @@ d_chunks_seen(core::Download* download) {
   std::string result;
   result.resize(size * 2);
 
-  torrent::utils::transform_to_hex(seen, seen + size, result.begin(), result.end());
+  torrent::utils::transform_to_hex(seen, seen + size, result);
 
   return result;
 }
@@ -450,7 +450,7 @@ p_call_target(const torrent::Object::list_type& args) {
   if (peer_id.size() != 40)
     throw torrent::input_error("invalid argument: peer id target is not 40 bytes long");
 
-  if (torrent::utils::transform_from_hex(peer_id.c_str(), peer_id.c_str() + 40, hash.begin(), hash.end()) != hash.end())
+  if (torrent::utils::transform_from_hex(peer_id.c_str(), peer_id.c_str() + 40, hash) != hash.end())
     throw torrent::input_error("invalid argument: peer id target is not a hex string");
 
   torrent::ConnectionList::iterator peerItr = download->connection_list()->find(hash.c_str());
@@ -650,7 +650,7 @@ void
 initialize_command_download() {
   CMD2_DL("d.hash",          [](auto* download, auto) { return torrent::utils::transform_to_hex_str(download->info()->hash()); });
   CMD2_DL("d.local_id",      [](auto* download, auto) { return torrent::utils::transform_to_hex_str(download->info()->local_id()); });
-  CMD2_DL("d.local_id_html", [](auto* download, auto) { return torrent::utils::copy_escape_html(download->info()->local_id()); });
+  CMD2_DL("d.local_id_html", [](auto* download, auto) { return torrent::utils::copy_escape_html_str(download->info()->local_id()); });
   CMD2_DL("d.bitfield",      std::bind(&retrieve_d_bitfield, std::placeholders::_1));
   CMD2_DL("d.base_path",     std::bind(&retrieve_d_base_path, std::placeholders::_1));
   CMD2_DL("d.base_filename", std::bind(&retrieve_d_base_filename, std::placeholders::_1));
