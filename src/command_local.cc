@@ -17,7 +17,6 @@
 #include "core/download.h"
 #include "core/download_list.h"
 #include "core/manager.h"
-#include "rak/string_manip.h"
 #include "rpc/parse_commands.h"
 #include "rpc/scgi.h"
 #include "session/session_manager.h"

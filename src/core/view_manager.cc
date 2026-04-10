@@ -35,7 +35,8 @@ ViewManager::insert(const std::string& name) {
   View* view = new View();
   view->initialize(name);
 
-  return base_type::insert(end(), view);
+  base_type::push_back(view);
+  return --end();
 }
 
 ViewManager::iterator

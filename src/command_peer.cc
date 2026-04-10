@@ -48,7 +48,7 @@ retrieve_p_completed_percent(torrent::Peer* peer) {
 void
 initialize_command_peer() {
   CMD2_PEER("p.id",                [](auto* peer, auto) { return torrent::utils::transform_to_hex_str(peer->id()); });
-  CMD2_PEER("p.id_html",           [](auto* peer, auto) { return torrent::utils::copy_escape_html(peer->id()); });
+  CMD2_PEER("p.id_html",           [](auto* peer, auto) { return torrent::utils::copy_escape_html_str(peer->id()); });
   CMD2_PEER("p.client_version",    std::bind(&retrieve_p_client_version, std::placeholders::_1));
 
   CMD2_PEER("p.options_str",       std::bind(&retrieve_p_options_str, std::placeholders::_1));

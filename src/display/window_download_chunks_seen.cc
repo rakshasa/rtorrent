@@ -4,7 +4,6 @@
 
 #include <cmath>
 #include <stdexcept>
-#include <rak/string_manip.h>
 #include <torrent/bitfield.h>
 #include <torrent/data/block.h>
 #include <torrent/data/block_list.h>

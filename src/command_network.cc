@@ -3,7 +3,6 @@
 #include <functional>
 #include <cstdio>
 #include <unistd.h>
-#include <rak/address_info.h>
 #include <torrent/torrent.h>
 #include <torrent/rate.h>
 #include <torrent/data/file_manager.h>

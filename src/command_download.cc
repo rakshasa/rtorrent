@@ -646,7 +646,7 @@ void
 initialize_command_download() {
   CMD2_DL("d.hash",          [](auto* download, auto) { return torrent::utils::transform_to_hex_str(download->info()->hash()); });
   CMD2_DL("d.local_id",      [](auto* download, auto) { return torrent::utils::transform_to_hex_str(download->info()->local_id()); });
-  CMD2_DL("d.local_id_html", [](auto* download, auto) { return torrent::utils::copy_escape_html(download->info()->local_id()); });
+  CMD2_DL("d.local_id_html", [](auto* download, auto) { return torrent::utils::copy_escape_html_str(download->info()->local_id()); });
   CMD2_DL("d.bitfield",      std::bind(&retrieve_d_bitfield, std::placeholders::_1));
   CMD2_DL("d.base_path",     std::bind(&retrieve_d_base_path, std::placeholders::_1));
   CMD2_DL("d.base_filename", std::bind(&retrieve_d_base_filename, std::placeholders::_1));

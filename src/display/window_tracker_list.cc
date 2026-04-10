@@ -62,7 +62,7 @@ WindowTrackerList::redraw() {
 
       m_canvas->print(0, pos++, "%s Id: %s Counters: %uf / %us (%u) %s S/L/D: %u/%u/%u (%u/%u)",
                       state,
-                      torrent::utils::copy_escape_html(tracker.tracker_id()).c_str(),
+                      torrent::utils::copy_escape_html_str(tracker.tracker_id()).c_str(),
                       tracker_state.failed_counter(),
                       tracker_state.success_counter(),
                       tracker_state.scrape_counter(),

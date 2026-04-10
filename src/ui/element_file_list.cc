@@ -178,7 +178,7 @@ ElementFileList::receive_pagenext() {
     m_selected = iterator(fl->begin());
 
   } else {
-    m_selected = advance_forward(m_selected, iterator(fl->end()), (m_window->height() - 1) / 2);
+    m_selected = display::advance_forward(m_selected, iterator(fl->end()), (m_window->height() - 1) / 2);
 
     if (m_selected == iterator(fl->end()))
       m_selected = --iterator(fl->end());
@@ -197,7 +197,7 @@ ElementFileList::receive_pageprev() {
   if (m_selected == iterator(fl->begin()))
     m_selected = --iterator(fl->end());
   else
-    m_selected = advance_backward(m_selected, iterator(fl->begin()), (m_window->height() - 1) / 2);
+    m_selected = display::advance_backward(m_selected, iterator(fl->begin()), (m_window->height() - 1) / 2);
 
   update_itr();
 }
