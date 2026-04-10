@@ -3,11 +3,6 @@
 #include <functional>
 #include <cstdio>
 #include <unistd.h>
-#ifdef HAVE_SYSTEMD
-#include <sys/socket.h>
-#include <systemd/sd-daemon.h>
-#endif
-#include <rak/address_info.h>
 #include <torrent/torrent.h>
 #include <torrent/rate.h>
 #include <torrent/data/file_manager.h>
@@ -28,6 +23,11 @@
 #include "ui/root.h"
 #include "rpc/parse.h"
 #include "rpc/parse_commands.h"
+
+#ifdef HAVE_SYSTEMD
+#include <sys/socket.h>
+#include <systemd/sd-daemon.h>
+#endif
 
 torrent::Object
 apply_encryption(const torrent::Object::list_type& args) {
@@ -85,14 +85,13 @@ apply_scgi(const std::string& arg, int type) {
 
   initialize_rpc_handlers();
 
-  rpc::SCgi* scgi = new rpc::SCgi;
-
-  rak::address_info* ai = NULL;
   torrent::sa_unique_ptr sa;
 
+  auto scgi = std::make_unique<rpc::SCgi>();
+
   try {
-    int port, err;
-    char dummy;
+    int port{};
+    char dummy{};
     char address[1024];
     std::string path;
 
@@ -106,10 +105,11 @@ apply_scgi(const std::string& arg, int type) {
       } else if (std::sscanf(arg.c_str(), "%1023[^:]:%i%c", address, &port, &dummy) == 2 ||
                  std::sscanf(arg.c_str(), "[%64[^]]]:%i%c", address, &port, &dummy) == 2) { // [xx::xx]:port format
 
-        if ((err = rak::address_info::get_address_info(address, PF_UNSPEC, SOCK_STREAM, &ai)) != 0)
-          throw torrent::input_error("Could not bind address: " + std::string(rak::address_info::strerror(err)) + ".");
-
-        sa = torrent::sa_copy(ai->c_addrinfo()->ai_addr);
+        try {
+          sa = torrent::sa_copy(torrent::sa_lookup_address(address, AF_UNSPEC).get());
+        } catch (torrent::input_error& e) {
+          throw torrent::input_error("Could not bind address: " + std::string(e.what()));
+        }
 
         lt_log_print(torrent::LOG_RPC_EVENTS, "SCGI socket is bound to an address and might be a security risk");
 
@@ -134,16 +134,11 @@ apply_scgi(const std::string& arg, int type) {
       break;
     }
 
-    if (ai != NULL) rak::address_info::free_address_info(ai);
-
   } catch (torrent::local_error& e) {
-    if (ai != NULL) rak::address_info::free_address_info(ai);
-
-    delete scgi;
     throw torrent::input_error(e.what());
   }
 
-  scgi_thread::set_scgi(scgi);
+  scgi_thread::set_scgi(scgi.release());
   return torrent::Object();
 }
 

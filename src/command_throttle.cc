@@ -8,7 +8,6 @@
 
 #include "core/manager.h"
 #include "ui/root.h"
-#include "rak/address_info.h"
 #include "rpc/parse.h"
 #include "rpc/parse_commands.h"
 
@@ -21,20 +20,25 @@ parse_address_range(const torrent::Object::list_type& args, torrent::Object::lis
   unsigned int prefixWidth, ret;
   char dummy;
   char host[1024];
-  rak::address_info* ai;
+  torrent::sa_unique_ptr sa;
 
   ret = std::sscanf(itr->as_string().c_str(), "%1023[^/]/%d%c", host, &prefixWidth, &dummy);
 
-  if (ret < 1 || rak::address_info::get_address_info(host, PF_INET, SOCK_STREAM, &ai) != 0)
-    throw torrent::input_error("Could not resolve host.");
+  if (ret < 1)
+    throw torrent::input_error("Invalid address/prefix.");
+
+  try {
+    sa = torrent::sa_copy(torrent::sa_lookup_address(host, AF_INET).get());
+
+  } catch (torrent::input_error& e) {
+    throw torrent::input_error("Could not resolve host: " + std::string(e.what()));
+  }
 
   uint32_t begin, end;
-  auto sa = torrent::sa_copy(ai->c_addrinfo()->ai_addr);
+
   auto sa_addr = htonl(reinterpret_cast<sockaddr_in*>(sa.get())->sin_addr.s_addr);
 
   begin = end = sa_addr;
-
-  rak::address_info::free_address_info(ai);
 
   if (ret == 2) {
     if (++itr != args.end())
@@ -48,13 +52,14 @@ parse_address_range(const torrent::Object::list_type& args, torrent::Object::lis
     end = sa_addr | ~netmask;
 
   } else if (++itr != args.end()) {
-    if (rak::address_info::get_address_info(itr->as_string().c_str(), PF_INET, SOCK_STREAM, &ai) != 0)
-      throw torrent::input_error("Could not resolve host.");
+    try {
+      sa = torrent::sa_copy(torrent::sa_lookup_address(itr->as_string(), AF_INET).get());
 
-    sa = torrent::sa_copy(ai->c_addrinfo()->ai_addr);
+    } catch (torrent::input_error& e) {
+      throw torrent::input_error("Could not resolve host: " + std::string(e.what()));
+    }
+
     sa_addr = htonl(reinterpret_cast<sockaddr_in*>(sa.get())->sin_addr.s_addr);
-
-    rak::address_info::free_address_info(ai);
     end = sa_addr;
   }
 

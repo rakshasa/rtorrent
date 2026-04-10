@@ -1,16 +1,14 @@
 #include "config.h"
 
 #include "display/color_map.h"
-#include <rak/algorithm.h>
 
+#include "globals.h"
 #include "core/download.h"
 #include "core/view.h"
+#include "display/canvas.h"
+#include "display/utils.h"
+#include "display/window_download_list.h"
 #include "rpc/parse_commands.h"
-
-#include "canvas.h"
-#include "globals.h"
-#include "utils.h"
-#include "window_download_list.h"
 
 namespace display {
 
@@ -104,10 +102,10 @@ WindowDownloadList::redraw() {
 
   typedef std::pair<core::View::iterator, core::View::iterator> Range;
 
-  Range range = rak::advance_bidirectional(m_view->begin_visible(),
-                                           m_view->focus() != m_view->end_visible() ? m_view->focus() : m_view->begin_visible(),
-                                           m_view->end_visible(),
-                                           page_size(layout_name));
+  Range range = advance_bidirectional(m_view->begin_visible(),
+                                      m_view->focus() != m_view->end_visible() ? m_view->focus() : m_view->begin_visible(),
+                                      m_view->end_visible(),
+                                      page_size(layout_name));
 
   // Make sure we properly fill out the last lines so it looks like
   // there are more torrents, yet don't hide it if we got the last one

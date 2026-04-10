@@ -11,7 +11,6 @@
 
 #include <stdlib.h>
 
-#include <rak/string_manip.h>
 #include <torrent/exceptions.h>
 #include <torrent/object.h>
 
