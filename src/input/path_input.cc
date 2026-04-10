@@ -1,5 +1,6 @@
 #include "config.h"
 
+#include <algorithm>
 #include <functional>
 
 #include <dirent.h>
@@ -43,8 +44,8 @@ make_base(_InputIter __first, _InputIter __last, _Ftor __ftor) {
   _Return __base = __ftor(*__first++);
 
   for ( ;__first != __last; ++__first) {
-    typename std::iterator_traits<_InputIter>::difference_type __pos = count_base(__base.begin(), __base.end(),
-										  __ftor(*__first).begin(), __ftor(*__first).end());
+    auto __pos = count_base(__base.begin(), __base.end(),
+                            __ftor(*__first).begin(), __ftor(*__first).end());
 
     if (__pos < (typename std::iterator_traits<_InputIter>::difference_type)__base.size())
       __base.resize(__pos);
