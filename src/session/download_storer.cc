@@ -10,6 +10,7 @@
 #include <torrent/object_stream.h>
 #include <torrent/utils/log.h>
 #include <torrent/utils/resume.h>
+#include <torrent/utils/string_manip.h>
 
 #include "globals.h"
 #include "core/download.h"
@@ -74,15 +75,13 @@ DownloadStorer::build_streams(bool skip_static) {
 
 std::string
 DownloadStorer::build_path(const std::string& session_path) {
-  auto info_hash = m_download->info()->info_hash();
-
   if (session_path.empty())
     throw torrent::internal_error("DownloadStorer::build_path() called with empty session path.");
 
   if (session_path.back() != '/')
     throw torrent::internal_error("DownloadStorer::build_path() session path missing trailing slash.");
 
-  return session_path + torrent::hash_string_to_hex_str(info_hash) + ".torrent";
+  return session_path + torrent::utils::transform_to_hex_str(m_download->info()->info_hash()) + ".torrent";
 }
 
 void

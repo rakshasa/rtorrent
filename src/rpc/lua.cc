@@ -7,12 +7,13 @@
 #include <unistd.h>
 
 #include "rpc/lua.h"
+
 #ifdef HAVE_LUA
 #include <lua.hpp>
 #endif
 
-#include <rak/string_manip.h>
 #include <torrent/object.h>
+#include <torrent/utils/string_manip.h>
 
 #include "core/download.h"
 #include "rpc/command.h"
@@ -169,19 +170,18 @@ object_to_target(const torrent::Object& obj, int call_flags, rpc::target_type* t
   }
 
   // Length of SHA1 hash is 40
-  if (target_string.size() < 40) {
+  if (target_string.size() < 40)
     throw torrent::input_error("invalid parameters: invalid target");
-  }
 
   char        type = 'd';
   std::string hash;
   std::string index;
+
   const auto& delim_pos = target_string.find_first_of(':', 40);
 
   if (delim_pos == target_string.npos || delim_pos + 2 >= target_string.size()) {
-    if (require_index) {
+    if (require_index)
       throw torrent::input_error("invalid parameters: no index");
-    }
 
     hash = target_string;
 
@@ -217,12 +217,14 @@ object_to_target(const torrent::Object& obj, int call_flags, rpc::target_type* t
 
     case 'p':
       {
-        if (index.size() < 40) {
-          throw torrent::input_error("Not a hash string.");
-        }
+        if (index.size() != 40)
+          throw torrent::input_error("invalid parameters: target is not 40 bytes long");
 
         torrent::HashString hash;
-        torrent::hash_string_from_hex_c_str(index.c_str(), hash);
+
+        if (torrent::utils::transform_from_hex(index.c_str(), index.c_str() + 40, hash.begin(), hash.end()) != hash.end())
+          throw torrent::input_error("invalid parameters: target is not a hex string");
+
         *target = rpc::make_target(command_base::target_peer, rpc.slot_find_peer()(download, hash));
       }
       break;
@@ -381,7 +383,7 @@ execute_lua(LuaEngine* engine, rpc::target_type target_type, torrent::Object con
   case (command_base::target_download):
     core::Download*     dl_target = (core::Download*)target_type.second;
     torrent::HashString infohash  = dl_target->info()->hash();
-    target_string                 = rak::transform_hex_str(infohash);
+    target_string                 = torrent::utils::transform_to_hex_str(infohash);
     break;
   }
 

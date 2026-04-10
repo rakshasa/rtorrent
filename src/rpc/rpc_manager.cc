@@ -3,6 +3,7 @@
 #include <cstring>
 
 #include <torrent/exceptions.h>
+#include <torrent/utils/string_manip.h>
 
 #include "parse_commands.h"
 #include "rpc/rpc_manager.h"
@@ -47,11 +48,11 @@ RpcManager::object_to_target(const torrent::Object& obj, int call_flags, rpc::ta
 
   const auto& delim_pos = target_string.find_first_of(':', 40);
 
-  if (delim_pos == target_string.npos ||
-      delim_pos + 2 >= target_string.size()) {
+  if (delim_pos == target_string.npos || delim_pos + 2 >= target_string.size()) {
     if (require_index) {
       throw torrent::input_error("invalid parameters: no index");
     }
+
     hash = target_string;
 
   } else {
@@ -87,15 +88,15 @@ RpcManager::object_to_target(const torrent::Object& obj, int call_flags, rpc::ta
       break;
 
     case 'p': {
-      if (index.size() < 40) {
-        throw torrent::input_error("invalid parameters: not a hash string.");
-      }
+      if (index.size() != 40)
+        throw torrent::input_error("invalid parameters: target is not 40 bytes long");
 
       torrent::HashString hash;
-      torrent::hash_string_from_hex_c_str(index.c_str(), hash);
 
-      *target = rpc::make_target(command_base::target_peer,
-                                 rpc.slot_find_peer()(download, hash));
+      if (torrent::utils::transform_from_hex(index.c_str(), index.c_str() + 40, hash.begin(), hash.end()) != hash.end())
+        throw torrent::input_error("invalid parameters: target is not a hex string");
+
+      *target = rpc::make_target(command_base::target_peer, rpc.slot_find_peer()(download, hash));
 
       break;
     }
