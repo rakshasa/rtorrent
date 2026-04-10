@@ -2,12 +2,12 @@
 
 #include <functional>
 #include <cstdio>
-#include <rak/string_manip.h>
 #include <torrent/rate.h>
 #include <torrent/hash_string.h>
 #include <torrent/utils/log.h>
 #include <torrent/utils/directory_events.h>
 #include <torrent/utils/file_stat.h>
+#include <torrent/utils/string_manip.h>
 
 #include "globals.h"
 #include "control.h"
@@ -208,7 +208,7 @@ apply_download_list(const torrent::Object::list_type& args) {
   for (core::View::const_iterator itr = (*view_itr)->begin_visible(), last = (*view_itr)->end_visible(); itr != last; itr++) {
     const torrent::HashString* hashString = &(*itr)->info()->hash();
 
-    resultList.push_back(rak::transform_hex(hashString->begin(), hashString->end()));
+    resultList.push_back(torrent::utils::transform_to_hex_str(*hashString));
   }
 
   return result;

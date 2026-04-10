@@ -1,37 +1,3 @@
-// rTorrent - BitTorrent client
-// Copyright (C) 2005-2011, Jari Sundell
-//
-// This program is free software; you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation; either version 2 of the License, or
-// (at your option) any later version.
-// 
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-// 
-// You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-//
-// In addition, as a special exception, the copyright holders give
-// permission to link the code of portions of this program with the
-// OpenSSL library under certain conditions as described in each
-// individual source file, and distribute linked combinations
-// including the two.
-//
-// You must obey the GNU General Public License in all respects for
-// all of the code used other than OpenSSL.  If you modify file(s)
-// with this exception, you may extend this exception to your version
-// of the file(s), but you are not obligated to do so.  If you do not
-// wish to do so, delete this exception statement from your version.
-// If you delete this exception statement from all source files in the
-// program, then also delete it here.
-//
-// Contact:  Jari Sundell <sundell.software@gmail.com>
-
-
 // The object_storage type is responsible for storing variables,
 // commands, command lists and other types encoded in torrent::Object
 // format.
@@ -42,8 +8,8 @@
 #include <cstring>
 #include <unordered_map>
 #include <torrent/object.h>
+#include <torrent/utils/unordered_vector.h>
 
-#include "rak/unordered_vector.h"
 #include "command.h"
 #include "fixed_key.h"
 
@@ -59,8 +25,8 @@ typedef std::unordered_map<fixed_key_type<64>, object_storage_node, hash_fixed_k
 class object_storage : private object_storage_base_type {
 public:
   // Should really change rlookup_type into a set with pair values.
-  typedef object_storage_base_type                                              base_type;
-  typedef std::map<std::string, rak::unordered_vector<base_type::value_type*> > rlookup_type;
+  typedef object_storage_base_type                                                         base_type;
+  typedef std::map<std::string, torrent::utils::unordered_vector<base_type::value_type*> > rlookup_type;
 
   using base_type::key_type;
   using base_type::value_type;
