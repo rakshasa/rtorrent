@@ -124,12 +124,13 @@ ListFocus<Base>::dec_focus() {
 template <typename Base>
 typename ListFocus<Base>::iterator
 ListFocus<Base>::erase(iterator itr) {
-  if (itr == m_focus)
-    return m_focus = m_base->erase(itr);
-  else
-    return m_base->erase(itr);  
+  if (itr == m_focus) {
+    m_focus = m_base->erase(itr);
+    emit_changed();
+    return m_focus;
+  }
 
-  emit_changed();
+  return m_base->erase(itr);
 }
 
 template <typename Base>
