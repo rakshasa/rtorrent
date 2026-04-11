@@ -74,9 +74,12 @@ protected:
   void                flush_all_pending_builds();
 
 private:
-  void                process_pending_resume_builds(bool is_flushing);
+  void                callback_pending_builds();
+  void                callback_save_request();
+  void                callback_finished_saves();
+
+  void                process_pending_builds(bool is_flushing);
   void                process_save_request();
-  void                process_save_request_with_pending_callback();
   void                process_next_save_request_unsafe();
   void                process_finished_saves();
 
@@ -101,9 +104,13 @@ private:
   std::deque<SaveRequest>     m_save_requests;
   std::atomic<size_t>         m_save_request_counter{};
   std::list<ProcessingSave>   m_processing_saves;
-  std::atomic<bool>           m_processing_saves_callback_scheduled{};
+  std::atomic<size_t>         m_processing_save_counter{};
   std::condition_variable     m_finished_condition;
   std::vector<ProcessingSave> m_finished_saves;
+
+  std::atomic<bool>           m_callback_scheduled_process_pending_builds{};
+  std::atomic<bool>           m_callback_scheduled_process_saves_request{};
+  std::atomic<bool>           m_callback_scheduled_process_finished_saves{};
 
   std::unique_ptr<utils::Lockfile> m_lockfile;
 
@@ -119,7 +126,7 @@ inline bool        SessionManager::is_used() const            { return !m_path.e
 inline std::string SessionManager::path() const               { return m_path; }
 inline bool        SessionManager::use_fsyncdisk() const      { return true; }
 inline bool        SessionManager::use_lock() const           { return m_use_lock; }
-inline void        SessionManager::flush_all_pending_builds() { process_pending_resume_builds(true); }
+inline void        SessionManager::flush_all_pending_builds() { process_pending_builds(true); }
 
 } // namespace session
 
