@@ -5,7 +5,6 @@
 #include <functional>
 #include <netdb.h>
 #include <unistd.h>
-#include <rak/string_manip.h>
 #include <rak/regex.h>
 #include <torrent/rate.h>
 #include <torrent/throttle.h>
@@ -22,6 +21,7 @@
 #include <torrent/utils/file_stat.h>
 #include <torrent/utils/log.h>
 #include <torrent/utils/option_strings.h>
+#include <torrent/utils/string_manip.h>
 
 #include "core/download.h"
 #include "core/manager.h"
@@ -84,7 +84,7 @@ apply_d_change_link(core::Download* download, const torrent::Object::list_type& 
 
 //   } else if (type == "directory_path") {
 //     target = rpc::call_command_string("d.directory", rpc::make_target(download));
-//     link = rak::path_expand(prefix + rpc::call_command_string("d.base_path", rpc::make_target(download)) + postfix);
+//     link = path_expand(prefix + rpc::call_command_string("d.base_path", rpc::make_target(download)) + postfix);
 
   } else if (type == "tied") {
     link = expand_path(rpc::call_command_string("d.tied_to_file", rpc::make_target(download)));
@@ -276,7 +276,7 @@ retrieve_d_bitfield(core::Download* download) {
   if (bitField->empty())
     return torrent::Object("");
 
-  return torrent::Object(rak::transform_hex(bitField->begin(), bitField->end()));
+  return torrent::Object(torrent::utils::transform_to_hex_str(*bitField));
 }
 
 void
@@ -326,7 +326,8 @@ d_chunks_seen(core::Download* download) {
   std::string result;
   result.resize(size * 2);
 
-  rak::transform_hex((const char*)seen, (const char*)seen + size, result.begin());
+  torrent::utils::transform_to_hex(seen, seen + size, result);
+
   return result;
 }
 
@@ -444,9 +445,11 @@ p_call_target(const torrent::Object::list_type& args) {
 
   torrent::HashString hash;
 
-  if (peer_id.size() != 40 ||
-      torrent::hash_string_from_hex_c_str(peer_id.c_str(), hash) == peer_id.c_str())
-    throw torrent::input_error("Not a hash string.");
+  if (peer_id.size() != 40)
+    throw torrent::input_error("invalid argument: peer id target is not 40 bytes long");
+
+  if (torrent::utils::transform_from_hex(peer_id.c_str(), peer_id.c_str() + 40, hash) != hash.end())
+    throw torrent::input_error("invalid argument: peer id target is not a hex string");
 
   torrent::ConnectionList::iterator peerItr = download->connection_list()->find(hash.c_str());
 
@@ -641,9 +644,9 @@ void               cg_d_group_set(core::Download* download, const torrent::Objec
 
 void
 initialize_command_download() {
-  CMD2_DL("d.hash",          std::bind(&rak::transform_hex_str<torrent::HashString>, CMD2_ON_INFO(hash)));
-  CMD2_DL("d.local_id",      std::bind(&rak::transform_hex_str<torrent::HashString>, CMD2_ON_INFO(local_id)));
-  CMD2_DL("d.local_id_html", std::bind(&rak::copy_escape_html_str<torrent::HashString>, CMD2_ON_INFO(local_id)));
+  CMD2_DL("d.hash",          [](auto* download, auto) { return torrent::utils::transform_to_hex_str(download->info()->hash()); });
+  CMD2_DL("d.local_id",      [](auto* download, auto) { return torrent::utils::transform_to_hex_str(download->info()->local_id()); });
+  CMD2_DL("d.local_id_html", [](auto* download, auto) { return torrent::utils::copy_escape_html_str(download->info()->local_id()); });
   CMD2_DL("d.bitfield",      std::bind(&retrieve_d_bitfield, std::placeholders::_1));
   CMD2_DL("d.base_path",     std::bind(&retrieve_d_base_path, std::placeholders::_1));
   CMD2_DL("d.base_filename", std::bind(&retrieve_d_base_filename, std::placeholders::_1));
@@ -884,4 +887,91 @@ initialize_command_download() {
   CMD2_DL_LIST    ("t.multicall", std::bind(&t_multicall, std::placeholders::_1, std::placeholders::_2));
 
   CMD2_ANY_LIST   ("p.call_target", std::bind(&p_call_target, std::placeholders::_2));
+
+  rpc::rpc.mark_safe("add_peer");
+  rpc::rpc.mark_safe("d.hash");
+  rpc::rpc.mark_safe("d.local_id");
+  rpc::rpc.mark_safe("d.local_id_html");
+  rpc::rpc.mark_safe("d.bitfield");
+  rpc::rpc.mark_safe("d.base_path");
+  rpc::rpc.mark_safe("d.base_filename");
+  rpc::rpc.mark_safe("d.name");
+  rpc::rpc.mark_safe("d.directory");
+  rpc::rpc.mark_safe("d.directory_base");
+  rpc::rpc.mark_safe("d.creation_date");
+  rpc::rpc.mark_safe("d.load_date");
+  rpc::rpc.mark_safe("d.up.rate");
+  rpc::rpc.mark_safe("d.up.total");
+  rpc::rpc.mark_safe("d.down.rate");
+  rpc::rpc.mark_safe("d.down.total");
+  rpc::rpc.mark_safe("d.skip.rate");
+  rpc::rpc.mark_safe("d.skip.total");
+  rpc::rpc.mark_safe("d.is_open");
+  rpc::rpc.mark_safe("d.is_active");
+  rpc::rpc.mark_safe("d.is_hash_checked");
+  rpc::rpc.mark_safe("d.is_hash_checking");
+  rpc::rpc.mark_safe("d.is_multi_file");
+  rpc::rpc.mark_safe("d.is_private");
+  rpc::rpc.mark_safe("d.is_pex_active");
+  rpc::rpc.mark_safe("d.is_partially_done");
+  rpc::rpc.mark_safe("d.is_not_partially_done");
+  rpc::rpc.mark_safe("d.is_meta");
+  rpc::rpc.mark_safe("d.peer_exchange");
+  rpc::rpc.mark_safe("d.resume");
+  rpc::rpc.mark_safe("d.pause");
+  rpc::rpc.mark_safe("d.open");
+  rpc::rpc.mark_safe("d.close");
+  rpc::rpc.mark_safe("d.close.directly");
+  rpc::rpc.mark_safe("d.erase");
+  rpc::rpc.mark_safe("d.check_hash");
+  rpc::rpc.mark_safe("d.save_resume");
+  rpc::rpc.mark_safe("d.save_full_session");
+  rpc::rpc.mark_safe("d.update_priorities");
+  rpc::rpc.mark_safe("d.custom");
+  rpc::rpc.mark_safe("d.custom1");
+  rpc::rpc.mark_safe("d.custom2");
+  rpc::rpc.mark_safe("d.custom3");
+  rpc::rpc.mark_safe("d.custom4");
+  rpc::rpc.mark_safe("d.custom5");
+  rpc::rpc.mark_safe("d.size_bytes");
+  rpc::rpc.mark_safe("d.size_chunks");
+  rpc::rpc.mark_safe("d.size_pex");
+  rpc::rpc.mark_safe("d.completed_bytes");
+  rpc::rpc.mark_safe("d.bytes_done");
+  rpc::rpc.mark_safe("d.peers_accounted");
+  rpc::rpc.mark_safe("d.chunks_hashed");
+  rpc::rpc.mark_safe("d.tracker_size");
+  rpc::rpc.mark_safe("d.completed_chunks");
+  rpc::rpc.mark_safe("d.left_bytes");
+  rpc::rpc.mark_safe("d.chunk_size");
+  rpc::rpc.mark_safe("d.priority");
+  rpc::rpc.mark_safe("d.priority_str");
+  rpc::rpc.mark_safe("d.state");
+  rpc::rpc.mark_safe("d.state_changed");
+  rpc::rpc.mark_safe("d.state_counter");
+  rpc::rpc.mark_safe("d.connection_current");
+  rpc::rpc.mark_safe("d.connection_leech");
+  rpc::rpc.mark_safe("d.connection_seed");
+  rpc::rpc.mark_safe("d.throttle_name");
+  rpc::rpc.mark_safe("d.uploads_max");
+  rpc::rpc.mark_safe("d.downloads_max");
+  rpc::rpc.mark_safe("d.peers_min");
+  rpc::rpc.mark_safe("d.peers_max");
+  rpc::rpc.mark_safe("d.peers_connected");
+  rpc::rpc.mark_safe("d.peers_not_connected");
+  rpc::rpc.mark_safe("d.peers_complete");
+  rpc::rpc.mark_safe("d.tracker_numwant");
+  rpc::rpc.mark_safe("d.tracker_focus");
+  rpc::rpc.mark_safe("d.message");
+  rpc::rpc.mark_safe("d.hashing");
+  rpc::rpc.mark_safe("d.hashing_failed");
+  rpc::rpc.mark_safe("d.free_diskspace");
+  rpc::rpc.mark_safe("d.views");
+  rpc::rpc.mark_safe("d.views.remove");
+  rpc::rpc.mark_safe("d.views.push_back_unique");
+  rpc::rpc.mark_safe("d.ratio");
+  rpc::rpc.mark_safe("f.multicall");
+  rpc::rpc.mark_safe("p.multicall");
+  rpc::rpc.mark_safe("p.call_target");
+  rpc::rpc.mark_safe("t.multicall");
 }

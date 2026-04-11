@@ -3,7 +3,6 @@
 #include <functional>
 #include <cstdio>
 #include <unistd.h>
-#include <rak/address_info.h>
 #include <torrent/torrent.h>
 #include <torrent/rate.h>
 #include <torrent/data/file_manager.h>
@@ -24,6 +23,11 @@
 #include "ui/root.h"
 #include "rpc/parse.h"
 #include "rpc/parse_commands.h"
+
+#ifdef HAVE_SYSTEMD
+#include <sys/socket.h>
+#include <systemd/sd-daemon.h>
+#endif
 
 torrent::Object
 apply_encryption(const torrent::Object::list_type& args) {
@@ -81,14 +85,13 @@ apply_scgi(const std::string& arg, int type) {
 
   initialize_rpc_handlers();
 
-  rpc::SCgi* scgi = new rpc::SCgi;
-
-  rak::address_info* ai = NULL;
   torrent::sa_unique_ptr sa;
 
+  auto scgi = std::make_unique<rpc::SCgi>();
+
   try {
-    int port, err;
-    char dummy;
+    int port{};
+    char dummy{};
     char address[1024];
     std::string path;
 
@@ -102,10 +105,11 @@ apply_scgi(const std::string& arg, int type) {
       } else if (std::sscanf(arg.c_str(), "%1023[^:]:%i%c", address, &port, &dummy) == 2 ||
                  std::sscanf(arg.c_str(), "[%64[^]]]:%i%c", address, &port, &dummy) == 2) { // [xx::xx]:port format
 
-        if ((err = rak::address_info::get_address_info(address, PF_UNSPEC, SOCK_STREAM, &ai)) != 0)
-          throw torrent::input_error("Could not bind address: " + std::string(rak::address_info::strerror(err)) + ".");
-
-        sa = torrent::sa_copy(ai->c_addrinfo()->ai_addr);
+        try {
+          sa = torrent::sa_copy(torrent::sa_lookup_address(address, AF_UNSPEC).get());
+        } catch (torrent::input_error& e) {
+          throw torrent::input_error("Could not bind address: " + std::string(e.what()));
+        }
 
         lt_log_print(torrent::LOG_RPC_EVENTS, "SCGI socket is bound to an address and might be a security risk");
 
@@ -130,17 +134,66 @@ apply_scgi(const std::string& arg, int type) {
       break;
     }
 
-    if (ai != NULL) rak::address_info::free_address_info(ai);
-
   } catch (torrent::local_error& e) {
-    if (ai != NULL) rak::address_info::free_address_info(ai);
-
-    delete scgi;
     throw torrent::input_error(e.what());
   }
 
+  scgi_thread::set_scgi(scgi.release());
+  return torrent::Object();
+}
+
+torrent::Object
+apply_scgi_systemd() {
+#ifdef HAVE_SYSTEMD
+  if (scgi_thread::scgi() != nullptr)
+    throw torrent::input_error("SCGI already enabled.");
+
+  int n = sd_listen_fds(0);
+  if (n < 1)
+    throw torrent::input_error("No systemd socket(s) provided (sd_listen_fds returned " +
+                               std::to_string(n) + ").");
+
+  // Iterate over all provided fds. Use the first listening stream socket;
+  // close the rest. The systemd docs say unused fds should be closed.
+  int selected_fd = -1;
+  for (int i = 0; i < n; i++) {
+    int fd = SD_LISTEN_FDS_START + i;
+
+    if (selected_fd != -1) {
+      ::close(fd);
+      continue;
+    }
+
+    auto err = sd_is_socket(fd, AF_UNSPEC, SOCK_STREAM, 1);
+
+    if (err < 0) {
+      // Safe to ignore errors here - we just skip it and move on.
+      ::close(fd);
+      continue;
+    }
+
+    if (err == 0) {
+      // Not the socket we're looking for.
+      ::close(fd);
+      continue;
+    }
+
+    selected_fd = fd;
+  }
+
+  if (selected_fd == -1)
+    throw torrent::input_error("No listening stream socket found among systemd-provided fds.");
+
+  initialize_rpc_handlers();
+
+  rpc::SCgi* scgi = new rpc::SCgi;
+  scgi->open_fd(selected_fd);
+
   scgi_thread::set_scgi(scgi);
   return torrent::Object();
+#else
+  throw torrent::input_error("Systemd SCGI endpoint is not supported.");
+#endif
 }
 
 torrent::Object
@@ -243,6 +296,7 @@ initialize_command_network() {
   CMD2_ANY_STRING  ("network.scgi.open_port",        std::bind(&apply_scgi, std::placeholders::_2, 1));
   CMD2_ANY_STRING  ("network.scgi.open_local",       std::bind(&apply_scgi, std::placeholders::_2, 2));
   CMD2_VAR_BOOL    ("network.scgi.dont_route",       false);
+  CMD2_ANY         ("network.scgi.open_systemd",     [](auto, auto) { return apply_scgi_systemd(); });
 
   CMD2_ANY_STRING  ("network.xmlrpc.dialect.set",    [](const auto&, const auto& arg) { return apply_xmlrpc_dialect(arg); })
   CMD2_ANY         ("network.xmlrpc.size_limit",     [](const auto&, const auto&)     { return rpc::rpc.size_limit(); });
@@ -261,4 +315,36 @@ initialize_command_network() {
   CMD2_ANY_VALUE_V ("network.block.outgoing.set",    [nw_config](auto, auto& value) { return nw_config->set_block_outgoing(value); });
   CMD2_ANY         ("network.prefer.ipv6",           [nw_config](auto, auto)        { return nw_config->is_prefer_ipv6(); });
   CMD2_ANY_VALUE_V ("network.prefer.ipv6.set",       [nw_config](auto, auto& value) { return nw_config->set_prefer_ipv6(value); });
+
+  rpc::rpc.mark_safe("network.port_open");
+  rpc::rpc.mark_safe("network.port_random");
+  rpc::rpc.mark_safe("network.port_range");
+  rpc::rpc.mark_safe("network.listen.port");
+  rpc::rpc.mark_safe("network.listen.backlog");
+
+  rpc::rpc.mark_safe("network.http.current_open");
+  rpc::rpc.mark_safe("network.http.max_cache_connections");
+  rpc::rpc.mark_safe("network.http.max_host_connections");
+  rpc::rpc.mark_safe("network.http.max_total_connections");
+
+  rpc::rpc.mark_safe("network.open_files");
+  rpc::rpc.mark_safe("network.max_open_files");
+  rpc::rpc.mark_safe("network.max_open_sockets");
+  rpc::rpc.mark_safe("network.total_handshakes");
+
+  rpc::rpc.mark_safe("network.send_buffer.size");
+  rpc::rpc.mark_safe("network.receive_buffer.size");
+  rpc::rpc.mark_safe("network.bind_address");
+  rpc::rpc.mark_safe("network.local_address");
+  rpc::rpc.mark_safe("network.xmlrpc.size_limit");
+  rpc::rpc.mark_safe("network.open_sockets");
+  rpc::rpc.mark_safe("network.http.cacert");
+  rpc::rpc.mark_safe("network.http.capath");
+  rpc::rpc.mark_safe("network.http.proxy_address");
+  rpc::rpc.mark_safe("network.proxy_address");
+  rpc::rpc.mark_safe("network.scgi.dont_route");
+  rpc::rpc.mark_safe("protocol.pex");
+
+  rpc::rpc.mark_safe("network.rpc.use_xmlrpc");
+  rpc::rpc.mark_safe("network.rpc.use_jsonrpc");
 }

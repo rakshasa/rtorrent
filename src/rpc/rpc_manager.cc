@@ -3,6 +3,7 @@
 #include <cstring>
 
 #include <torrent/exceptions.h>
+#include <torrent/utils/string_manip.h>
 
 #include "parse_commands.h"
 #include "rpc/rpc_manager.h"
@@ -12,6 +13,19 @@ namespace rpc {
 CommandMap commands;
 RpcManager rpc;
 ExecFile   execFile;
+
+// Trusted/untrusted XMLRPC connection model.
+//
+// The trust state is set per-request by the SCGI layer based on the
+// UNTRUSTED_CONNECTION header. Commands without flag_untrusted_safe
+// are blocked for untrusted connections. The check is in
+// CommandMap::call_command(), which catches all command execution
+// including nested calls through argument expansion.
+
+bool
+RpcManager::is_trusted() const {
+  return m_trusted;
+}
 
 void
 RpcManager::object_to_target(const torrent::Object& obj, int call_flags, rpc::target_type* target, std::function<void()>* deleter) {
@@ -34,11 +48,11 @@ RpcManager::object_to_target(const torrent::Object& obj, int call_flags, rpc::ta
 
   const auto& delim_pos = target_string.find_first_of(':', 40);
 
-  if (delim_pos == target_string.npos ||
-      delim_pos + 2 >= target_string.size()) {
+  if (delim_pos == target_string.npos || delim_pos + 2 >= target_string.size()) {
     if (require_index) {
       throw torrent::input_error("invalid parameters: no index");
     }
+
     hash = target_string;
 
   } else {
@@ -74,15 +88,15 @@ RpcManager::object_to_target(const torrent::Object& obj, int call_flags, rpc::ta
       break;
 
     case 'p': {
-      if (index.size() < 40) {
-        throw torrent::input_error("invalid parameters: not a hash string.");
-      }
+      if (index.size() != 40)
+        throw torrent::input_error("invalid parameters: target is not 40 bytes long");
 
       torrent::HashString hash;
-      torrent::hash_string_from_hex_c_str(index.c_str(), hash);
 
-      *target = rpc::make_target(command_base::target_peer,
-                                 rpc.slot_find_peer()(download, hash));
+      if (torrent::utils::transform_from_hex(index.c_str(), index.c_str() + 40, hash) != hash.end())
+        throw torrent::input_error("invalid parameters: target is not a hex string");
+
+      *target = rpc::make_target(command_base::target_peer, rpc.slot_find_peer()(download, hash));
 
       break;
     }
@@ -121,6 +135,21 @@ RpcManager::process(RPCType type, const char* in_buffer, uint32_t length, slot_r
 
   default:
     throw torrent::input_error("invalid parameters: unknown RPC type");
+  }
+}
+
+bool
+RpcManager::process_untrusted(RPCType type, const char* in_buffer, uint32_t length, slot_response_callback callback) {
+  bool previous = m_trusted;
+  m_trusted = false;
+
+  try {
+    bool result = process(type, in_buffer, length, callback);
+    m_trusted = previous;
+    return result;
+  } catch (...) {
+    m_trusted = previous;
+    throw;
   }
 }
 
@@ -173,6 +202,16 @@ void
 RpcManager::insert_command(const char* name, const char* parm, const char* doc) {
   m_xmlrpc.insert_command(name, parm, doc);
   m_jsonrpc.insert_command(name, parm, doc);
+}
+
+void
+RpcManager::mark_safe(const std::string& key) {
+  auto itr = commands.find(key);
+
+  if (itr == commands.end())
+    return;
+
+  itr->second.m_flags |= CommandMap::flag_untrusted_safe;
 }
 
 } // namespace rpc

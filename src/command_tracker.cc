@@ -151,4 +151,35 @@ initialize_command_tracker() {
 
   CMD2_ANY_STRING     ("dht.add_node",          std::bind(&apply_dht_add_node, std::placeholders::_2));
   CMD2_ANY            ("dht.statistics",        std::bind(&core::DhtManager::dht_statistics, dht_manager));
+
+  rpc::rpc.mark_safe("t.url");
+  rpc::rpc.mark_safe("t.group");
+  rpc::rpc.mark_safe("t.id");
+  rpc::rpc.mark_safe("t.type");
+  rpc::rpc.mark_safe("t.is_usable");
+  rpc::rpc.mark_safe("t.is_busy");
+  rpc::rpc.mark_safe("t.is_enabled");
+  rpc::rpc.mark_safe("t.is_enabled.set");
+  rpc::rpc.mark_safe("t.is_extra_tracker");
+  rpc::rpc.mark_safe("t.is_open");
+  rpc::rpc.mark_safe("t.normal_interval");
+  rpc::rpc.mark_safe("t.scrape_time_last");
+  rpc::rpc.mark_safe("t.scrape_counter");
+  rpc::rpc.mark_safe("t.success_time_last");
+  rpc::rpc.mark_safe("t.success_counter");
+  rpc::rpc.mark_safe("t.failed_time_last");
+  rpc::rpc.mark_safe("t.failed_counter");
+  rpc::rpc.mark_safe("t.activity_time_last");
+  rpc::rpc.mark_safe("t.activity_time_next");
+  rpc::rpc.mark_safe("t.scrape_complete");
+  rpc::rpc.mark_safe("t.scrape_incomplete");
+  rpc::rpc.mark_safe("t.scrape_downloaded");
+
+  rpc::rpc.mark_safe("dht.mode.set");
+  rpc::rpc.mark_safe("dht.port");
+  rpc::rpc.mark_safe("dht.override_port");
+  rpc::rpc.mark_safe("dht.add_node");
+  rpc::rpc.mark_safe("dht.statistics");
+  rpc::rpc.mark_safe("trackers.numwant");
+  rpc::rpc.mark_safe("trackers.use_udp");
 }

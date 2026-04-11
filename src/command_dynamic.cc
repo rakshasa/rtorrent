@@ -455,4 +455,27 @@ initialize_command_dynamic() {
   CMD2_ANY         ("strings.tracker_event",             std::bind(&torrent::option_list_strings, torrent::OPTION_TRACKER_EVENT));
   CMD2_ANY         ("strings.tracker_mode",              std::bind(&torrent::option_list_strings, torrent::OPTION_TRACKER_MODE));
   // clang-format on
+
+#ifdef HAVE_XMLRPC_TINYXML2
+  rpc::rpc.mark_safe("system.listMethods");
+#endif
+
+  rpc::rpc.mark_safe("method.use_deprecated");
+  rpc::rpc.mark_safe("method.const");
+  rpc::rpc.mark_safe("method.has_key");
+  rpc::rpc.mark_safe("method.list_keys");
+  rpc::rpc.mark_safe("method.get");
+  rpc::rpc.mark_safe("method.rlookup");
+  rpc::rpc.mark_safe("catch");
+
+  rpc::rpc.mark_safe("strings.choke_heuristics");
+  rpc::rpc.mark_safe("strings.choke_heuristics.upload");
+  rpc::rpc.mark_safe("strings.choke_heuristics.download");
+  rpc::rpc.mark_safe("strings.connection_type");
+  rpc::rpc.mark_safe("strings.encryption");
+  rpc::rpc.mark_safe("strings.ip_filter");
+  rpc::rpc.mark_safe("strings.ip_tos");
+  rpc::rpc.mark_safe("strings.log_group");
+  rpc::rpc.mark_safe("strings.tracker_event");
+  rpc::rpc.mark_safe("strings.tracker_mode");
 }

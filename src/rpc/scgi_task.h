@@ -65,6 +65,7 @@ private:
   ContentType         m_content_type{XML};
 
   bool                m_accepts_compression{};
+  bool                m_trusted{true};
 };
 
 }

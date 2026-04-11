@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <fcntl.h>
 #include <unistd.h>
 #include <sys/un.h>
 #include <torrent/connection_manager.h>
@@ -78,6 +79,19 @@ SCgi::open_named(const std::string& filename) {
   torrent::connection_manager()->inc_socket_count();
 
   m_path = filename;
+}
+
+void
+SCgi::open_fd(int fd) {
+  torrent::runtime::socket_manager()->open_event_or_throw(this, [&]() {
+      if (!torrent::fd_set_nonblock(fd))
+        throw torrent::resource_error("Could not set non-blocking on systemd fd: " +
+                                      std::string(std::strerror(errno)));
+      set_file_descriptor(fd);
+      // fd is already bound and listening; no bind()/listen() needed.
+    });
+
+  torrent::connection_manager()->inc_socket_count();
 }
 
 void

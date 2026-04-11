@@ -292,6 +292,7 @@ SCgiTask::receive_call(const char* buffer, uint32_t length) {
   // TODO: Rewrite RpcManager.process to pass the result buffer instead of having to copy it.
 
   auto scgi_thread = torrent::utils::Thread::self();
+  bool trusted = m_trusted;
 
   auto result_callback = [this, scgi_thread](const char* b, uint32_t l) {
       receive_write(b, l);
@@ -307,30 +308,30 @@ SCgiTask::receive_call(const char* buffer, uint32_t length) {
 
   auto lock = std::lock_guard<std::mutex>(m_result_mutex);
 
+  RpcManager::RPCType rpc_type;
+
   switch (content_type()) {
   case rpc::SCgiTask::ContentType::JSON:
-    torrent::main_thread::thread()->callback_interrupt_polling(this, [buffer, length, result_callback]() {
-        rpc.process(RpcManager::RPCType::JSON, buffer, length,
-                    [result_callback](const char* b, uint32_t l) {
-                      result_callback(b, l);
-                      return true;
-                    });
-      });
+    rpc_type = RpcManager::RPCType::JSON;
     break;
-
   case rpc::SCgiTask::ContentType::XML:
-    torrent::main_thread::thread()->callback_interrupt_polling(this, [buffer, length, result_callback]() {
-        rpc.process(RpcManager::RPCType::XML, buffer, length,
-                    [result_callback](const char* b, uint32_t l) {
-                      result_callback(b, l);
-                      return true;
-                    });
-      });
+    rpc_type = RpcManager::RPCType::XML;
     break;
-
   default:
     throw torrent::internal_error("SCgiTask::receive_call(...) received bad input.");
   }
+
+  torrent::main_thread::thread()->callback_interrupt_polling(this, [buffer, length, result_callback, trusted, rpc_type]() {
+      auto callback = [result_callback](const char* b, uint32_t l) {
+          result_callback(b, l);
+          return true;
+        };
+
+      if (trusted)
+        rpc.process(rpc_type, buffer, length, callback);
+      else
+        rpc.process_untrusted(rpc_type, buffer, length, callback);
+    });
 }
 
 void

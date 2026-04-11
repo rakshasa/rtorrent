@@ -1,6 +1,6 @@
 m4_pattern_allow([PKG_CHECK_EXISTS])
 
-AC_INIT([rtorrent],[0.16.8],[sundell.software@gmail.com])
+AC_INIT([rtorrent],[0.16.9],[sundell.software@gmail.com])
 
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIRS([scripts])
@@ -49,7 +49,7 @@ fi
 
 PKG_CHECK_MODULES([CPPUNIT], [cppunit],, [no_cppunit="yes"])
 PKG_CHECK_MODULES([ZLIB], [zlib])
-PKG_CHECK_MODULES([DEPENDENCIES], [libtorrent >= 0.16.8])
+PKG_CHECK_MODULES([DEPENDENCIES], [libtorrent >= 0.16.9])
 
 AC_LANG_PUSH(C++)
 TORRENT_WITH_XMLRPC_C
@@ -57,6 +57,7 @@ AC_LANG_POP(C++)
 
 TORRENT_WITH_LUA
 TORRENT_WITH_TINYXML2
+TORRENT_WITH_SYSTEMD
 
 if test ${with_xmlrpc_c+y} && test ${with_xmlrpc_tinyxml2+y}; then
   AC_MSG_ERROR([--with-xmlrpc-c and --with-xmlrpc-tinyxml2 cannot be used together. Please choose only one])

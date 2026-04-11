@@ -17,7 +17,6 @@
 #include "core/download.h"
 #include "core/download_list.h"
 #include "core/manager.h"
-#include "rak/string_manip.h"
 #include "rpc/parse_commands.h"
 #include "rpc/scgi.h"
 #include "session/session_manager.h"
@@ -95,8 +94,12 @@ post_increment(torrent::Object::list_const_iterator& itr, const torrent::Object:
 
 inline const std::string&
 check_name(const std::string& str) {
-  if (!rak::is_all_name(str))
-    throw torrent::input_error("Non-alphanumeric characters found.");
+  auto itr = std::find_if(str.begin(), str.end(), [](char c) {
+      return !std::isalnum(c, std::locale::classic()) && c != '_';
+    });
+
+  if (itr != str.end())
+    throw torrent::input_error("Invalid characters found in name.");
 
   return str;
 }
@@ -119,6 +122,15 @@ group_insert(const torrent::Object::list_type& args) {
   rpc::commands.call("method.insert", rpc::create_object_list("group." + name + ".ratio.min", "value", (int64_t)200));
   rpc::commands.call("method.insert", rpc::create_object_list("group." + name + ".ratio.max", "value", (int64_t)300));
   rpc::commands.call("method.insert", rpc::create_object_list("group." + name + ".ratio.upload", "value", (int64_t)20 << 20));
+
+  rpc::rpc.mark_safe("group." + name + ".view");
+  rpc::rpc.mark_safe("group." + name + ".view.set");
+  rpc::rpc.mark_safe("group." + name + ".ratio.min");
+  rpc::rpc.mark_safe("group." + name + ".ratio.min.set");
+  rpc::rpc.mark_safe("group." + name + ".ratio.max");
+  rpc::rpc.mark_safe("group." + name + ".ratio.max.set");
+  rpc::rpc.mark_safe("group." + name + ".ratio.upload");
+  rpc::rpc.mark_safe("group." + name + ".ratio.upload.set");
 
   if (rpc::call_command_value("method.use_intermediate") == 3) {
     // Cleaned up in 0.16.1:
@@ -323,4 +335,25 @@ initialize_command_local() {
   CMD2_ANY_P("argument.3", std::bind(&rpc::command_base::argument_ref, 3));
 
   CMD2_ANY_LIST  ("group.insert", std::bind(&group_insert, std::placeholders::_2));
+
+  rpc::rpc.mark_safe("system.api_version");
+  rpc::rpc.mark_safe("system.client_version");
+  rpc::rpc.mark_safe("system.library_version");
+  rpc::rpc.mark_safe("system.file.max_size");
+  rpc::rpc.mark_safe("system.file.split_size");
+  rpc::rpc.mark_safe("system.file.split_suffix");
+
+  rpc::rpc.mark_safe("directory.default");
+  rpc::rpc.mark_safe("session.path");
+  rpc::rpc.mark_safe("session.use_lock");
+  rpc::rpc.mark_safe("session.on_completion");
+
+  rpc::rpc.mark_safe("pieces.sync.always_safe");
+  rpc::rpc.mark_safe("pieces.sync.timeout");
+  rpc::rpc.mark_safe("pieces.sync.timeout_safe");
+  rpc::rpc.mark_safe("pieces.preload.type");
+  rpc::rpc.mark_safe("pieces.preload.min_size");
+  rpc::rpc.mark_safe("pieces.preload.min_rate");
+  rpc::rpc.mark_safe("pieces.memory.max");
+  rpc::rpc.mark_safe("pieces.hash.on_completion");
 }

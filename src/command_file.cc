@@ -103,4 +103,32 @@ initialize_command_file() {
 
   CMD2_FILEITR("fi.filename_last",      std::bind(&apply_fi_filename_last, std::placeholders::_1));
   CMD2_FILEITR("fi.is_file",            std::bind(&torrent::FileListIterator::is_file, std::placeholders::_1));
+
+  rpc::rpc.mark_safe("f.path");
+  rpc::rpc.mark_safe("f.path_components");
+  rpc::rpc.mark_safe("f.path_depth");
+  rpc::rpc.mark_safe("f.frozen_path");
+  rpc::rpc.mark_safe("f.offset");
+  rpc::rpc.mark_safe("f.size_bytes");
+  rpc::rpc.mark_safe("f.size_chunks");
+  rpc::rpc.mark_safe("f.completed_chunks");
+  rpc::rpc.mark_safe("f.range_first");
+  rpc::rpc.mark_safe("f.range_second");
+  rpc::rpc.mark_safe("f.priority");
+  rpc::rpc.mark_safe("f.priority.set");
+  rpc::rpc.mark_safe("f.is_created");
+  rpc::rpc.mark_safe("f.is_open");
+  rpc::rpc.mark_safe("f.is_create_queued");
+  rpc::rpc.mark_safe("f.is_resize_queued");
+  rpc::rpc.mark_safe("f.prioritize_first");
+  rpc::rpc.mark_safe("f.prioritize_first.enable");
+  rpc::rpc.mark_safe("f.prioritize_first.disable");
+  rpc::rpc.mark_safe("f.prioritize_last");
+  rpc::rpc.mark_safe("f.prioritize_last.enable");
+  rpc::rpc.mark_safe("f.prioritize_last.disable");
+  rpc::rpc.mark_safe("f.last_touched");
+  rpc::rpc.mark_safe("f.match_depth_prev");
+  rpc::rpc.mark_safe("f.match_depth_next");
+  rpc::rpc.mark_safe("fi.filename_last");
+  rpc::rpc.mark_safe("fi.is_file");
 }

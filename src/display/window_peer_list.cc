@@ -1,5 +1,7 @@
 #include "config.h"
 
+#include "display/window_peer_list.h"
+
 #include <stdexcept>
 #include <torrent/rate.h>
 #include <torrent/data/block_transfer.h>
@@ -9,11 +11,8 @@
 #include <torrent/peer/peer_info.h>
 
 #include "core/download.h"
-#include "rak/algorithm.h"
-
-#include "canvas.h"
-#include "utils.h"
-#include "window_peer_list.h"
+#include "display/canvas.h"
+#include "display/utils.h"
 
 namespace display {
 
@@ -50,10 +49,10 @@ WindowPeerList::redraw() {
 
   typedef std::pair<PList::iterator, PList::iterator> Range;
 
-  Range range = rak::advance_bidirectional(m_list->begin(),
-                                           *m_focus != m_list->end() ? *m_focus : m_list->begin(),
-                                           m_list->end(),
-                                           m_canvas->height() - y);
+  Range range = advance_bidirectional(m_list->begin(),
+                                      *m_focus != m_list->end() ? *m_focus : m_list->begin(),
+                                      m_list->end(),
+                                      m_canvas->height() - y);
 
   if (m_download->download()->file_list()->size_chunks() <= 0)
     throw std::logic_error("WindowPeerList::redraw() m_slotChunksTotal() returned invalid value");

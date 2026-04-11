@@ -8,7 +8,6 @@
 
 #include "core/manager.h"
 #include "ui/root.h"
-#include "rak/address_info.h"
 #include "rpc/parse.h"
 #include "rpc/parse_commands.h"
 
@@ -21,20 +20,25 @@ parse_address_range(const torrent::Object::list_type& args, torrent::Object::lis
   unsigned int prefixWidth, ret;
   char dummy;
   char host[1024];
-  rak::address_info* ai;
+  torrent::sa_unique_ptr sa;
 
   ret = std::sscanf(itr->as_string().c_str(), "%1023[^/]/%d%c", host, &prefixWidth, &dummy);
 
-  if (ret < 1 || rak::address_info::get_address_info(host, PF_INET, SOCK_STREAM, &ai) != 0)
-    throw torrent::input_error("Could not resolve host.");
+  if (ret < 1)
+    throw torrent::input_error("Invalid address/prefix.");
+
+  try {
+    sa = torrent::sa_copy(torrent::sa_lookup_address(host, AF_INET).get());
+
+  } catch (torrent::input_error& e) {
+    throw torrent::input_error("Could not resolve host: " + std::string(e.what()));
+  }
 
   uint32_t begin, end;
-  auto sa = torrent::sa_copy(ai->c_addrinfo()->ai_addr);
+
   auto sa_addr = htonl(reinterpret_cast<sockaddr_in*>(sa.get())->sin_addr.s_addr);
 
   begin = end = sa_addr;
-
-  rak::address_info::free_address_info(ai);
 
   if (ret == 2) {
     if (++itr != args.end())
@@ -48,13 +52,14 @@ parse_address_range(const torrent::Object::list_type& args, torrent::Object::lis
     end = sa_addr | ~netmask;
 
   } else if (++itr != args.end()) {
-    if (rak::address_info::get_address_info(itr->as_string().c_str(), PF_INET, SOCK_STREAM, &ai) != 0)
-      throw torrent::input_error("Could not resolve host.");
+    try {
+      sa = torrent::sa_copy(torrent::sa_lookup_address(itr->as_string(), AF_INET).get());
 
-    sa = torrent::sa_copy(ai->c_addrinfo()->ai_addr);
+    } catch (torrent::input_error& e) {
+      throw torrent::input_error("Could not resolve host: " + std::string(e.what()));
+    }
+
     sa_addr = htonl(reinterpret_cast<sockaddr_in*>(sa.get())->sin_addr.s_addr);
-
-    rak::address_info::free_address_info(ai);
     end = sa_addr;
   }
 
@@ -199,4 +204,60 @@ initialize_command_throttle() {
   CMD2_ANY_STRING  ("throttle.up.rate",   std::bind(&retrieve_throttle_info, std::placeholders::_2, throttle_info_up | throttle_info_rate));
   CMD2_ANY_STRING  ("throttle.down.max",  std::bind(&retrieve_throttle_info, std::placeholders::_2, throttle_info_down | throttle_info_max));
   CMD2_ANY_STRING  ("throttle.down.rate", std::bind(&retrieve_throttle_info, std::placeholders::_2, throttle_info_down | throttle_info_rate));
+
+  rpc::rpc.mark_safe("throttle.unchoked_uploads");
+  rpc::rpc.mark_safe("throttle.max_unchoked_uploads");
+  rpc::rpc.mark_safe("throttle.unchoked_downloads");
+  rpc::rpc.mark_safe("throttle.max_unchoked_downloads");
+
+  rpc::rpc.mark_safe("throttle.min_peers.normal");
+  rpc::rpc.mark_safe("throttle.min_peers.normal.set");
+  rpc::rpc.mark_safe("throttle.max_peers.normal");
+  rpc::rpc.mark_safe("throttle.max_peers.normal.set");
+  rpc::rpc.mark_safe("throttle.min_peers.seed");
+  rpc::rpc.mark_safe("throttle.min_peers.seed.set");
+  rpc::rpc.mark_safe("throttle.max_peers.seed");
+  rpc::rpc.mark_safe("throttle.max_peers.seed.set");
+
+  rpc::rpc.mark_safe("throttle.min_uploads");
+  rpc::rpc.mark_safe("throttle.min_uploads.set");
+  rpc::rpc.mark_safe("throttle.max_uploads");
+  rpc::rpc.mark_safe("throttle.max_uploads.set");
+  rpc::rpc.mark_safe("throttle.min_downloads");
+  rpc::rpc.mark_safe("throttle.min_downloads.set");
+  rpc::rpc.mark_safe("throttle.max_downloads");
+  rpc::rpc.mark_safe("throttle.max_downloads.set");
+
+  rpc::rpc.mark_safe("throttle.max_uploads.div");
+  rpc::rpc.mark_safe("throttle.max_uploads.div.set");
+  rpc::rpc.mark_safe("throttle.max_uploads.div._val");
+  rpc::rpc.mark_safe("throttle.max_uploads.div._val.set");
+  rpc::rpc.mark_safe("throttle.max_uploads.global");
+  rpc::rpc.mark_safe("throttle.max_uploads.global.set");
+  rpc::rpc.mark_safe("throttle.max_uploads.global._val");
+  rpc::rpc.mark_safe("throttle.max_uploads.global._val.set");
+  rpc::rpc.mark_safe("throttle.max_downloads.div");
+  rpc::rpc.mark_safe("throttle.max_downloads.div.set");
+  rpc::rpc.mark_safe("throttle.max_downloads.div._val");
+  rpc::rpc.mark_safe("throttle.max_downloads.div._val.set");
+  rpc::rpc.mark_safe("throttle.max_downloads.global");
+  rpc::rpc.mark_safe("throttle.max_downloads.global.set");
+  rpc::rpc.mark_safe("throttle.max_downloads.global._val");
+  rpc::rpc.mark_safe("throttle.max_downloads.global._val.set");
+
+  rpc::rpc.mark_safe("throttle.global_up.rate");
+  rpc::rpc.mark_safe("throttle.global_up.total");
+  rpc::rpc.mark_safe("throttle.global_up.max_rate");
+  rpc::rpc.mark_safe("throttle.global_up.max_rate.set");
+  rpc::rpc.mark_safe("throttle.global_up.max_rate.set_kb");
+  rpc::rpc.mark_safe("throttle.global_down.rate");
+  rpc::rpc.mark_safe("throttle.global_down.total");
+  rpc::rpc.mark_safe("throttle.global_down.max_rate");
+  rpc::rpc.mark_safe("throttle.global_down.max_rate.set");
+  rpc::rpc.mark_safe("throttle.global_down.max_rate.set_kb");
+
+  rpc::rpc.mark_safe("throttle.up.max");
+  rpc::rpc.mark_safe("throttle.up.rate");
+  rpc::rpc.mark_safe("throttle.down.max");
+  rpc::rpc.mark_safe("throttle.down.rate");
 }

@@ -385,4 +385,24 @@ initialize_command_groups() {
   CMD2_ANY         ("choke_group.down.heuristics",     std::bind(&torrent::option_as_string, torrent::OPTION_CHOKE_HEURISTICS,
                                                                  std::bind(&torrent::choke_queue::heuristics, CHOKE_GROUP(&torrent::choke_group::down_queue))));
   CMD2_ANY_LIST    ("choke_group.down.heuristics.set", std::bind(&apply_cg_heuristics_set, std::placeholders::_2, false));
+
+  rpc::rpc.mark_safe("choke_group.list");
+  rpc::rpc.mark_safe("choke_group.size");
+  rpc::rpc.mark_safe("choke_group.index_of");
+  rpc::rpc.mark_safe("choke_group.general.size");
+  rpc::rpc.mark_safe("choke_group.tracker.mode");
+  rpc::rpc.mark_safe("choke_group.up.rate");
+  rpc::rpc.mark_safe("choke_group.down.rate");
+  rpc::rpc.mark_safe("choke_group.up.max");
+  rpc::rpc.mark_safe("choke_group.up.max.unlimited");
+  rpc::rpc.mark_safe("choke_group.up.total");
+  rpc::rpc.mark_safe("choke_group.up.queued");
+  rpc::rpc.mark_safe("choke_group.up.unchoked");
+  rpc::rpc.mark_safe("choke_group.up.heuristics");
+  rpc::rpc.mark_safe("choke_group.down.max");
+  rpc::rpc.mark_safe("choke_group.down.max.unlimited");
+  rpc::rpc.mark_safe("choke_group.down.total");
+  rpc::rpc.mark_safe("choke_group.down.queued");
+  rpc::rpc.mark_safe("choke_group.down.unchoked");
+  rpc::rpc.mark_safe("choke_group.down.heuristics");
 }

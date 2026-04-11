@@ -2,12 +2,12 @@
 
 #include <functional>
 #include <cstdio>
-#include <rak/string_manip.h>
 #include <torrent/rate.h>
 #include <torrent/hash_string.h>
 #include <torrent/utils/log.h>
 #include <torrent/utils/directory_events.h>
 #include <torrent/utils/file_stat.h>
+#include <torrent/utils/string_manip.h>
 
 #include "globals.h"
 #include "control.h"
@@ -208,7 +208,7 @@ apply_download_list(const torrent::Object::list_type& args) {
   for (core::View::const_iterator itr = (*view_itr)->begin_visible(), last = (*view_itr)->end_visible(); itr != last; itr++) {
     const torrent::HashString* hashString = &(*itr)->info()->hash();
 
-    resultList.push_back(rak::transform_hex(hashString->begin(), hashString->end()));
+    resultList.push_back(torrent::utils::transform_to_hex_str(*hashString));
   }
 
   return result;
@@ -344,4 +344,15 @@ initialize_command_events() {
   CMD2_ANY_LIST    ("d.multicall.filtered", std::bind(&d_multicall_filtered, std::placeholders::_2));
 
   CMD2_ANY_LIST    ("directory.watch.added", std::bind(&directory_watch_added, std::placeholders::_2));
+
+  rpc::rpc.mark_safe("start_tied");
+  rpc::rpc.mark_safe("stop_untied");
+  rpc::rpc.mark_safe("close_untied");
+  rpc::rpc.mark_safe("remove_untied");
+
+  rpc::rpc.mark_safe("close_low_diskspace");
+  rpc::rpc.mark_safe("close_low_diskspace.normal");
+  rpc::rpc.mark_safe("download_list");
+  rpc::rpc.mark_safe("d.multicall2");
+  rpc::rpc.mark_safe("d.multicall.filtered");
 }

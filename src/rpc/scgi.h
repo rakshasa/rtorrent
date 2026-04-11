@@ -21,6 +21,7 @@ public:
 
   void                open_port(sockaddr* sa, unsigned int length, bool dont_route);
   void                open_named(const std::string& filename);
+  void                open_fd(int fd);
 
   void                activate();
 

@@ -2,7 +2,6 @@
 
 #include <cassert>
 
-#include <rak/string_manip.h>
 #include <torrent/exceptions.h>
 #include <torrent/chunk_manager.h>
 #include <torrent/connection_manager.h>
