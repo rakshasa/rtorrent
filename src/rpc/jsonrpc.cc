@@ -111,7 +111,7 @@ jsonrpc_call_command(const std::string& method, const json& params) {
 
   CommandMap::iterator itr = commands.find(method.c_str());
 
-  if (itr == commands.end()) {
+  if (itr == commands.end() || !(itr->second.m_flags & CommandMap::flag_public_rpc)) {
     throw rpc_error(JSONRPC_METHOD_NOT_FOUND_ERROR, "method not found: " + method);
   }
 

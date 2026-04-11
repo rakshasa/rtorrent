@@ -139,9 +139,10 @@ SCgiTask::event_read() {
 
       if (strcmp(key, "CONTENT_LENGTH") == 0) {
         char* content_pos;
-        content_length = strtol(value, &content_pos, 10);
-        if (*content_pos != '\0' || content_length <= 0 || content_length > max_content_size)
+        long content_length_raw = strtol(value, &content_pos, 10);
+        if (*content_pos != '\0' || content_length_raw <= 0 || static_cast<size_t>(content_length_raw) > max_content_size)
           goto event_read_failed;
+        content_length = static_cast<size_t>(content_length_raw);
       } else if (strcmp(key, "CONTENT_TYPE") == 0) {
         content_type = value;
       } else if (strcmp(key, "UNTRUSTED_CONNECTION") == 0 && strcmp(value, "1") == 0) {
@@ -329,8 +330,8 @@ SCgiTask::receive_write(const char* buffer, uint32_t length) {
     realloc_buffer(length + 256, NULL, 0);
 
   const auto header = m_content_type == ContentType::JSON
-                        ? "Status: 200 OK\r\nContent-Type: application/json\r\nContent-Length: %i\r\n\r\n"
-                        : "Status: 200 OK\r\nContent-Type: text/xml\r\nContent-Length: %i\r\n\r\n";
+                        ? "Status: 200 OK\r\nContent-Type: application/json\r\nContent-Length: %u\r\n\r\n"
+                        : "Status: 200 OK\r\nContent-Type: text/xml\r\nContent-Length: %u\r\n\r\n";
 
   // Who ever bothers to check the return value?
   int headerSize = snprintf(m_buffer.get(), m_buffer_size, header, length);
