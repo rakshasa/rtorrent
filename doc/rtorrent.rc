@@ -32,6 +32,9 @@
 # Global upload and download rate in KiB.
 # "0" for unlimited.
 #
+# When both throttles are disabled (set to 0), the throttle section is
+# hidden from the status bar.
+#
 #throttle.global_down.max_rate.set_kb = 0
 #throttle.global_up.max_rate.set_kb = 0
 
@@ -118,6 +121,10 @@
 # Set download list layout style ("full", "compact").
 #
 #ui.torrent_list.layout.set = "full"
+
+# Set download list and footer rate unit ("KB/s", "MB/s", "Mb/s", "GB/s", "Gb/s"). Default is "KB/s".
+#
+#ui.torrent_list.rate_unit = "KB/s"
 
 # Set navigation keymap style ("vi", "emacs"). Default is "emacs".
 #
