@@ -2,13 +2,14 @@
 
 #include "rpc/scgi_task.h"
 
+#include <atomic>
+#include <cassert>
+#include <charconv>
 #include <cstdio>
 #include <unistd.h>
-#include <vector>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <torrent/exceptions.h>
-#include <torrent/torrent.h>
 #include <torrent/net/fd.h>
 #include <torrent/net/poll.h>
 #include <torrent/runtime/socket_manager.h>
@@ -17,8 +18,9 @@
 
 #include "control.h"
 #include "globals.h"
-#include "scgi.h"
 #include "rpc/parse_commands.h"
+#include "rpc/scgi.h"
+#include "utils/gzip.h"
 
 namespace rpc {
 
@@ -26,16 +28,22 @@ void
 SCgiTask::open(SCgi* parent, int fd) {
   set_file_descriptor(fd);
 
-  m_buffer.reset(new char[default_buffer_size + 1]);
-
   m_parent      = parent;
-  m_buffer_size = default_buffer_size;
-  m_position    = m_buffer.get();
-  m_body        = nullptr;
+  m_position    = 0;
+  m_body        = 0;
+
+  m_content_length      = 0;
+  m_content_type        = XML;
+  m_accepts_compression = false;
 
   torrent::this_thread::poll()->open(this);
   torrent::this_thread::poll()->insert_read(this);
   torrent::this_thread::poll()->insert_error(this);
+
+  auto lock = std::lock_guard<std::mutex>(m_result_mutex);
+
+  // Leave room for terminating nul byte for parsing the header.
+  m_buffer.resize(default_buffer_size + 1);
 }
 
 void
@@ -64,14 +72,15 @@ SCgiTask::close() {
       set_file_descriptor(-1);
     });
 
+  // The callbacks are guaranteed to be finished/canceled at this point.
   auto lock = std::lock_guard<std::mutex>(m_result_mutex);
 
-  m_buffer = nullptr;
+  m_buffer.clear();
 }
 
 void
 SCgiTask::event_read() {
-  int bytes = ::recv(m_fileDesc, m_position, m_buffer_size - (m_position - m_buffer.get()), 0);
+  int bytes = ::recv(m_fileDesc, m_buffer.data() + m_position, m_buffer.size() - m_position, 0);
 
   if (bytes <= 0) {
     if (bytes == 0 || !(errno == EAGAIN || errno == EINTR))
@@ -82,104 +91,45 @@ SCgiTask::event_read() {
 
   // The buffer has space to nul-terminate to ease the parsing below.
   m_position += bytes;
-  *m_position = '\0';
 
-  if (m_body == NULL) {
-    // Don't bother caching the parsed values, as we're likely to
-    // receive all the data we need the first time.
-    char* current;
+  if (m_content_length == 0) {
+    // While reading the header, we leave room in the buffer for a nul byte.
+    m_buffer[m_position] = '\0';
 
-    int   header_size = strtol(m_buffer.get(), &current, 0);
+    // Don't bother caching the parsed values, as we're likely to receive all the data we need the
+    // first time.
+    unsigned int header_size{};
 
-    if (current == m_position)
+    auto [current, ec] = std::from_chars(m_buffer.data(), m_buffer.data() + m_position, header_size);
+
+    // If the request doesn't start with an integer or if it didn't end in ':', then close the
+    // connection.
+
+    if (current == m_buffer.data())
       return;
 
-    // If the request doesn't start with an integer or if it didn't
-    // end in ':', then close the connection.
-    if (current == m_buffer.get() || *current != ':' || header_size < 17 || header_size > max_header_size)
+    if (*current != ':' || header_size < 17 || header_size > max_header_size)
       goto event_read_failed;
 
-    if (std::distance(++current, m_position) < header_size + 1)
+    current++;
+
+    // The header size starts after the ':' and ends at the first ','.
+    if ((m_buffer.data() + m_position) - current < static_cast<int>(header_size) + 1)
       return;
 
-    // We'll parse this fully below, but the SCGI spec requires it to
-    // be the first header.
-    if (std::memcmp(current, "CONTENT_LENGTH", 15) != 0)
+    // Check for ',' after the header, if it's not there, then close the connection.
+    if (*(current + header_size) != ',')
       goto event_read_failed;
 
-    std::string content_type   = "";
-    size_t      content_length = 0;
-    const char* header_end     = current + header_size;
-
-    // Assume trusted until we find the UNTRUSTED_CONNECTION header.
-    m_trusted = true;
-
-    // Parse out the null-terminated header keys and values, with
-    // checks to ensure it doesn't scan beyond the limits of the
-    // header
-    while (current < header_end) {
-      char* key     = current;
-      char* key_end = static_cast<char*>(std::memchr(current, '\0', header_end - current));
-
-      if (!key_end)
-        goto event_read_failed;
-
-      current = key_end + 1;
-
-      if (current >= header_end)
-        goto event_read_failed;
-
-      char* value     = current;
-      char* value_end = static_cast<char*>(std::memchr(current, '\0', header_end - current));
-
-      if (!value_end)
-        goto event_read_failed;
-
-      current = value_end + 1;
-
-      if (strcmp(key, "CONTENT_LENGTH") == 0) {
-        char* content_pos;
-        content_length = strtol(value, &content_pos, 10);
-        if (*content_pos != '\0' || content_length <= 0 || content_length > max_content_size)
-          goto event_read_failed;
-      } else if (strcmp(key, "CONTENT_TYPE") == 0) {
-        content_type = value;
-      } else if (strcmp(key, "UNTRUSTED_CONNECTION") == 0 && strcmp(value, "1") == 0) {
-        m_trusted = false;
-      }
-    }
-
-    if (current != header_end)
+    // The header must start with "CONTENT_LENGTH" followed by a null byte.
+    if (std::memcmp(current, "CONTENT_LENGTH", 14+1) != 0)
       goto event_read_failed;
 
-    if (content_length <= 0)
+    if (!parse_headers(current, header_size))
       goto event_read_failed;
-
-    m_body      = current + 1;
-    header_size = std::distance(m_buffer.get(), m_body);
-
-    if (!detect_content_type(content_type))
-      goto event_read_failed;
-
-    if ((unsigned int)(content_length + header_size) < m_buffer_size) {
-      m_buffer_size = content_length + header_size;
-
-    } else if ((unsigned int)content_length <= default_buffer_size) {
-      m_buffer_size = content_length;
-
-      std::memmove(m_buffer.get(), m_body, std::distance(m_body, m_position));
-      m_position = m_buffer.get() + std::distance(m_body, m_position);
-      m_body     = m_buffer.get();
-
-    } else {
-      realloc_buffer((m_buffer_size = content_length) + 1, m_body, std::distance(m_body, m_position));
-
-      m_position = m_buffer.get() + std::distance(m_body, m_position);
-      m_body     = m_buffer.get();
-    }
   }
 
-  if ((unsigned int)std::distance(m_buffer.get(), m_position) != m_buffer_size)
+  if (m_position < m_body + m_content_length)
     return;
 
   torrent::this_thread::poll()->remove_read(this);
@@ -189,13 +139,13 @@ SCgiTask::event_read() {
 
     // Clean up logging, this is just plain ugly...
     //    write(m_logFd, "\n---\n", sizeof("\n---\n"));
-    result = ::write(m_parent->log_fd(), m_buffer.get(), m_buffer_size);
+    result = ::write(m_parent->log_fd(), m_buffer.data() + m_body, m_position - m_body);
     result = ::write(m_parent->log_fd(), "\n---\n", sizeof("\n---\n"));
   }
 
-  lt_log_print_dump(torrent::LOG_RPC_DUMP, m_body, m_buffer_size - std::distance(m_buffer.get(), m_body), "scgi", "RPC read.", 0);
+  lt_log_print_dump(torrent::LOG_RPC_DUMP, m_buffer.data() + m_body, m_content_length, "scgi", "RPC read.", 0);
 
-  receive_call(m_body, m_buffer_size - std::distance(m_buffer.get(), m_body));
+  receive_call(m_buffer.data() + m_body, m_content_length);
   return;
 
 event_read_failed:
@@ -205,25 +155,113 @@ event_read_failed:
 
 void
 SCgiTask::event_write() {
-  int bytes = ::send(m_fileDesc, m_position, m_buffer_size, 0);
+  int bytes = ::send(m_fileDesc, m_buffer.data() + m_position, m_buffer.size() - m_position, 0);
 
   if (bytes == -1) {
-    if (!(errno == EAGAIN || errno == EINTR))
+    if (!(errno == EAGAIN || errno == EINTR || errno == EPIPE))
       close();
 
     return;
   }
 
   m_position += bytes;
-  m_buffer_size -= bytes;
 
-  if (bytes == 0 || m_buffer_size == 0)
+  if (bytes == 0 || m_position == m_buffer.size())
     return close();
 }
 
 void
 SCgiTask::event_error() {
   close();
+}
+
+bool
+SCgiTask::parse_headers(const char* current, unsigned int header_length) {
+  std::string content_type;
+
+  const char* header_end  = current + header_length;
+
+  // Parse out the null-terminated header keys and values, with
+  // checks to ensure it doesn't scan beyond the limits of the
+  // header
+  while (current < header_end) {
+    auto* key     = current;
+    auto* key_end = static_cast<const char*>(std::memchr(current, '\0', header_end - current));
+
+    if (key_end == nullptr)
+      return false;
+
+    current = key_end + 1;
+
+    if (current >= header_end)
+      return false;
+
+    auto* value     = current;
+    auto* value_end = static_cast<const char*>(std::memchr(current, '\0', header_end - current));
+
+    if (value_end == nullptr)
+      return false;
+
+    current = value_end + 1;
+
+    if (std::strncmp(key, "CONTENT_LENGTH", 14+1) == 0) {
+      auto [content_pos, ec] = std::from_chars(value, value_end, m_content_length);
+
+      if (*content_pos != '\0' || m_content_length <= 0 || m_content_length > max_content_size)
+        return false;
+
+    } else if (std::strncmp(key, "CONTENT_TYPE", 12+1) == 0) {
+      content_type = value;
+
+    } else if (std::strncmp(key, "ACCEPT_ENCODING", 15+1) == 0) {
+      std::string accept_encoding(value, value_end - value);
+
+      if (accept_encoding.find("gzip") != std::string::npos)
+        m_accepts_compression = true;
+
+    } else if (std::strncmp(key, "UNTRUSTED_CONNECTION", 20+1) == 0) {
+      if (std::strncmp(value, "1", 1+1) == 0)
+        m_trusted = false;
+      else if (std::strncmp(value, "0", 1+1) == 0)
+        ; // Default is trusted, so do nothing.
+      else
+        return false;
+    }
+  }
+
+  if (current != header_end)
+    return false;
+
+  if (m_content_length == 0)
+    return false;
+
+  // Move past the ',' that ends the header.
+  current++;
+
+  if (current > m_buffer.data() + m_buffer.size())
+    throw torrent::internal_error("SCgiTask::event_read() header parsing overflow : body start is beyond buffer end");
+
+  m_body = current - m_buffer.data();
+
+  if (!detect_content_type(content_type))
+    return false;
+
+  if (m_body + m_content_length > m_buffer.size()) {
+    if (m_content_length > default_buffer_size) {
+      std::vector<char> tmp(m_content_length);
+
+      std::memcpy(tmp.data(), m_buffer.data() + m_body, m_position - m_body);
+      m_buffer.swap(tmp);
+
+    } else {
+      std::memmove(m_buffer.data(), m_buffer.data() + m_body, m_position - m_body);
+    }
+
+    m_position = m_position - m_body;
+    m_body     = 0;
+  }
+
+  return true;
 }
 
 static inline bool
@@ -241,7 +279,8 @@ SCgiTask::detect_content_type(const std::string& content_type) {
   if (content_type.empty()) {
     // If no CONTENT_TYPE was supplied, peek at the body to check if it's JSON
     // { is a single request object, while [ is a batch array
-    if (*m_body == '{' || *m_body == '[')
+
+    if (m_buffer[m_body] == '{' || m_buffer[m_body] == '[')
       m_content_type = ContentType::JSON;
     else
       m_content_type = ContentType::XML;
@@ -260,36 +299,9 @@ SCgiTask::detect_content_type(const std::string& content_type) {
   return true;
 }
 
-// If bufferSize is zero then memcpy won't do anything.
-void
-SCgiTask::realloc_buffer(uint32_t size, const char* buffer, uint32_t bufferSize) {
-  auto tmp = new char[size];
-
-  std::memcpy(tmp, buffer, bufferSize);
-
-  m_buffer.reset(tmp);
-}
-
 void
 SCgiTask::receive_call(const char* buffer, uint32_t length) {
-  // TODO: Rewrite RpcManager.process to pass the result buffer instead of having to copy it.
-
-  auto scgi_thread = torrent::utils::Thread::self();
-  bool trusted = m_trusted;
-
-  auto result_callback = [this, scgi_thread](const char* b, uint32_t l) {
-      receive_write(b, l);
-
-      scgi_thread->callback_interrupt_polling(this, [this]() {
-          // Only need to lock once here as a memory barrier.
-          m_result_mutex.lock();
-          m_result_mutex.unlock();
-
-          torrent::this_thread::poll()->insert_write(this);
-        });
-    };
-
-  auto lock = std::lock_guard<std::mutex>(m_result_mutex);
+  assert(torrent::utils::Thread::self() == scgi_thread::thread());
 
   RpcManager::RPCType rpc_type;
 
@@ -304,49 +316,121 @@ SCgiTask::receive_call(const char* buffer, uint32_t length) {
     throw torrent::internal_error("SCgiTask::receive_call(...) received bad input.");
   }
 
-  torrent::main_thread::thread()->callback_interrupt_polling(this, [buffer, length, result_callback, trusted, rpc_type]() {
-      auto callback = [result_callback](const char* b, uint32_t l) {
-          result_callback(b, l);
-          return true;
-        };
+  // TODO: Rewrite RpcManager.process to pass the result buffer instead of having to copy it.
+  // TODO: Also allow us to request RpcManager.process to reserve space for a header.
+  // TODO: Completely remove the mutex, and align m_buffer?
 
-      if (trusted)
-        rpc.process(rpc_type, buffer, length, callback);
+  auto result_callback = [this](const char* b, uint32_t l) {
+      receive_write(b, l);
+
+      // Memory barrier for the result data.
+      // std::atomic_thread_fence(std::memory_order_release);
+      m_result_mutex.lock();
+      m_result_mutex.unlock();
+
+      scgi_thread::thread()->callback_interrupt_polling(this, [this]() {
+          if (!is_open())
+            return;
+
+          torrent::this_thread::poll()->insert_write(this);
+
+          // Memory barrier for the result data.
+          // std::atomic_thread_fence(std::memory_order_acquire);
+          m_result_mutex.lock();
+          m_result_mutex.unlock();
+        });
+
+      return true;
+    };
+
+  // Memory barrier for the input data.
+  // std::atomic_thread_fence(std::memory_order_release);
+  m_result_mutex.lock();
+  m_result_mutex.unlock();
+
+  torrent::main_thread::thread()->callback_interrupt_polling(this, [this, rpc_type, buffer, length, result_callback]() {
+      // Memory barrier for the input data.
+      // std::atomic_thread_fence(std::memory_order_acquire);
+      m_result_mutex.lock();
+      m_result_mutex.unlock();
+
+      if (m_trusted)
+        rpc.process(rpc_type, buffer, length, result_callback);
       else
-        rpc.process_untrusted(rpc_type, buffer, length, callback);
+        rpc.process_untrusted(rpc_type, buffer, length, result_callback);
     });
 }
 
 void
 SCgiTask::receive_write(const char* buffer, uint32_t length) {
-  if (buffer == NULL || length > (100 << 20))
+  assert(torrent::utils::Thread::self() == torrent::main_thread::thread());
+
+  if (buffer == nullptr || length > (100 << 20))
     throw torrent::internal_error("SCgiTask::receive_write(...) received bad input.");
 
-  auto lock = std::lock_guard<std::mutex>(m_result_mutex);
+  // Main thread callback already locked this mutex.
+  // auto lock = std::lock_guard<std::mutex>(m_result_mutex);
 
-  // Need to cast due to a bug in MacOSX gcc-4.0.1.
-  if (length + 256 > std::max(m_buffer_size, (unsigned int)default_buffer_size))
-    realloc_buffer(length + 256, NULL, 0);
-
-  const auto header = m_content_type == ContentType::JSON
-                        ? "Status: 200 OK\r\nContent-Type: application/json\r\nContent-Length: %i\r\n\r\n"
-                        : "Status: 200 OK\r\nContent-Type: text/xml\r\nContent-Length: %i\r\n\r\n";
-
-  // Who ever bothers to check the return value?
-  int headerSize = snprintf(m_buffer.get(), m_buffer_size, header, length);
-
-  m_position    = m_buffer.get();
-  m_buffer_size = length + headerSize;
-
-  std::memcpy(m_buffer.get() + headerSize, buffer, length);
-
+  // Write to log prior to possible compression
   if (m_parent->log_fd() >= 0) {
-    [[maybe_unused]] int result;
-    result = write(m_parent->log_fd(), m_buffer.get(), m_buffer_size);
+    int result [[maybe_unused]];
+    // Clean up logging, this is just plain ugly...
+    //    write(m_logFd, "\n---\n", sizeof("\n---\n"));
+    result = write(m_parent->log_fd(), buffer, length);
     result = write(m_parent->log_fd(), "\n---\n", sizeof("\n---\n"));
   }
 
-  lt_log_print_dump(torrent::LOG_RPC_DUMP, m_buffer.get(), m_buffer_size, "scgi", "RPC write.", 0);
+  lt_log_print_dump(torrent::LOG_RPC_DUMP, buffer, length, "scgi", "RPC write.", 0);
+
+  if (m_accepts_compression && rpc.scgi_allow_compression() && length > rpc.scgi_min_compress_size())
+    gzip_response(buffer, length);
+  else
+    plaintext_response(buffer, length);
+}
+
+// We don't know the size of the content-length string, so leave sufficient space for the header
+// strings plus max length of content-length.
+
+void
+SCgiTask::plaintext_response(const char* buffer, uint32_t content_length) {
+  auto header_first      = content_type() == ContentType::XML ? header_xml : header_json;
+  auto header_first_size = content_type() == ContentType::XML ? header_xml_size : header_json_size;
+  auto length_str        = std::to_string(content_length);
+
+  m_buffer.resize(header_first_size + length_str.size() + header_last_size + content_length);
+
+  std::memcpy(m_buffer.data(),                                                            header_first, header_first_size);
+  std::memcpy(m_buffer.data() + header_first_size,                                        length_str.data(), length_str.size());
+  std::memcpy(m_buffer.data() + header_first_size + length_str.size(),                    header_last, header_last_size);
+  std::memcpy(m_buffer.data() + header_first_size + length_str.size() + header_last_size, buffer, content_length);
+
+  m_position = 0;
+}
+
+void
+SCgiTask::gzip_response(const char* buffer, uint32_t content_length) {
+  auto header_first      = content_type() == ContentType::XML ? header_xml : header_json;
+  auto header_first_size = content_type() == ContentType::XML ? header_xml_size : header_json_size;
+
+  unsigned int body_offset = header_first_size + 20 + header_last_size;
+
+  utils::gzip_compress_to_vector(buffer, content_length, m_buffer, body_offset);
+
+  auto length_str   = std::to_string(m_buffer.size() - body_offset);
+  auto header_size  = header_first_size + length_str.size() + header_last_size;
+  auto header_start = body_offset - header_size;
+
+  if (header_size > body_offset)
+    throw torrent::internal_error("SCgiTask::gzip_response(...) header overflow : start position is negative");
+
+  if (header_start > body_offset)
+    throw torrent::internal_error("SCgiTask::gzip_response(...) header overflow : start position is beyond buffer start");
+
+  std::memcpy(m_buffer.data() + header_start,                                         header_first, header_first_size);
+  std::memcpy(m_buffer.data() + header_start + header_first_size,                     length_str.data(), length_str.size());
+  std::memcpy(m_buffer.data() + header_start + header_first_size + length_str.size(), header_last, header_last_size);
+
+  m_position = header_start;
 }
 
 } // namespace rpc

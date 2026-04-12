@@ -2,7 +2,6 @@
 #define RTORRENT_RPC_SCGI_H
 
 #include <array>
-#include <functional>
 #include <memory>
 #include <torrent/event.h>
 
@@ -27,10 +26,10 @@ public:
 
   void                stop();
 
-  const std::string&  path() const { return m_path; }
+  const std::string&  path() const                             { return m_path; }
 
-  int                 log_fd() const     { return m_logFd; }
-  void                set_log_fd(int fd) { m_logFd = fd; }
+  int                 log_fd() const                           { return m_logFd; }
+  void                set_log_fd(int fd)                       { m_logFd = fd; }
 
   void                event_read() override;
   void                event_write() override;

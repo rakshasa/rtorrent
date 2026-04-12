@@ -1,6 +1,7 @@
 #ifndef RTORRENT_RPC_MANAGER_H
 #define RTORRENT_RPC_MANAGER_H
 
+#include <atomic>
 #include <cstdint>
 #include <functional>
 #include <torrent/common.h>
@@ -55,37 +56,44 @@ public:
   RpcManager()  = default;
   ~RpcManager() = default;
 
-  bool           is_handlers_initialized() const { return m_handlers_initialized; }
+  bool                is_handlers_initialized() const { return m_handlers_initialized; }
 
-  void           initialize_handlers();
-  void           cleanup();
+  void                initialize_handlers();
+  void                cleanup();
 
-  int64_t        size_limit()                  { return m_xmlrpc.size_limit(); };
-  void           set_size_limit(uint64_t size) { m_xmlrpc.set_size_limit(size); };
+  int64_t             size_limit()                  { return m_xmlrpc.size_limit(); };
+  void                set_size_limit(uint64_t size) { m_xmlrpc.set_size_limit(size); };
 
-  int            dialect()                     { return m_xmlrpc.dialect(); }
-  void           set_dialect(int dialect)      { m_xmlrpc.set_dialect(dialect); }
+  int                 dialect()                     { return m_xmlrpc.dialect(); }
+  void                set_dialect(int dialect)      { m_xmlrpc.set_dialect(dialect); }
 
-  bool           is_type_enabled(RPCType type) const;
-  void           set_type_enabled(RPCType type, bool enabled);
+  bool                is_type_enabled(RPCType type) const;
+  void                set_type_enabled(RPCType type, bool enabled);
 
-  bool           process(RPCType type, const char* in_buffer, uint32_t length, slot_response_callback callback);
-  bool           process_untrusted(RPCType type, const char* in_buffer, uint32_t length, slot_response_callback callback);
+  bool                process(RPCType type, const char* in_buffer, uint32_t length, slot_response_callback callback);
+  bool                process_untrusted(RPCType type, const char* in_buffer, uint32_t length, slot_response_callback callback);
 
-  void           insert_command(const char* name, const char* parm, const char* doc);
-  void           mark_safe(const std::string& key);
+  void                insert_command(const char* name, const char* parm, const char* doc);
+  void                mark_safe(const std::string& key);
 
-  slot_download& slot_find_download() { return m_slot_find_download; }
-  slot_file&     slot_find_file()     { return m_slot_find_file; }
-  slot_tracker&  slot_find_tracker()  { return m_slot_find_tracker; }
-  slot_peer&     slot_find_peer()     { return m_slot_find_peer; }
+  bool                scgi_allow_compression() const                { return m_scgi_allow_compression; }
+  void                set_scgi_allow_compression(bool allow)        { m_scgi_allow_compression = allow; }
+
+  unsigned int        scgi_min_compress_size() const                { return m_scgi_min_compress_size; }
+  void                set_scgi_min_compress_size(unsigned int size) { m_scgi_min_compress_size = size; }
+
+  slot_download&      slot_find_download() { return m_slot_find_download; }
+  slot_file&          slot_find_file()     { return m_slot_find_file; }
+  slot_tracker&       slot_find_tracker()  { return m_slot_find_tracker; }
+  slot_peer&          slot_find_peer()     { return m_slot_find_peer; }
 
   // Trusted/untrusted XMLRPC connection model.
+  //
   // When an SCGI request includes the UNTRUSTED_CONNECTION header,
   // commands without flag_untrusted_safe are blocked.
-  bool           is_trusted() const;
+  bool                is_trusted() const;
 
-  static void    object_to_target(const torrent::Object& obj, int callFlags, rpc::target_type* target, std::function<void()>* deleter);
+  static void         object_to_target(const torrent::Object& obj, int callFlags, rpc::target_type* target, std::function<void()>* deleter);
 
 private:
   bool          m_trusted{true};
@@ -96,6 +104,9 @@ private:
   bool          m_handlers_initialized{};
   bool          m_is_jsonrpc_enabled{true};
   bool          m_is_xmlrpc_enabled{true};
+
+  std::atomic<bool>         m_scgi_allow_compression{false};
+  std::atomic<unsigned int> m_scgi_min_compress_size{0};
 
   slot_download m_slot_find_download;
   slot_file     m_slot_find_file;

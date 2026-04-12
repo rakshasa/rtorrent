@@ -169,6 +169,8 @@ libsub_root_a_SOURCES = \
 	utils/file_status_cache.cc \
 	utils/file_status_cache.h \
 	utils/functional.h \
+	utils/gzip.cc \
+	utils/gzip.h \
 	utils/list_focus.h \
 	utils/lockfile.cc \
 	utils/lockfile.h \
