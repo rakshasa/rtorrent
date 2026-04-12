@@ -48,6 +48,7 @@ if test "x$ax_cv_ncursesw" != xyes && test "x$ax_cv_ncurses" != xyes; then
 fi
 
 PKG_CHECK_MODULES([CPPUNIT], [cppunit],, [no_cppunit="yes"])
+PKG_CHECK_MODULES([ZLIB], [zlib])
 PKG_CHECK_MODULES([DEPENDENCIES], [libtorrent >= 0.16.9])
 
 AC_LANG_PUSH(C++)
@@ -66,9 +67,9 @@ AC_DEFINE(USER_AGENT, [std::string(PACKAGE "/" VERSION "/") + torrent::version()
 
 dnl Only update global build variables immediately before generating the output,
 dnl to avoid affecting the global build environment for other autoconf checks.
-LIBS="$PTHREAD_LIBS $CURSES_LIB $CURSES_LIBS $DEPENDENCIES_LIBS $LIBS"
-CFLAGS="$CFLAGS $PTHREAD_CFLAGS $DEPENDENCIES_CFLAGS $CURSES_CFLAGS"
-CXXFLAGS="$CXXFLAGS $PTHREAD_CFLAGS $DEPENDENCIES_CFLAGS $CURSES_CFLAGS"
+LIBS="$PTHREAD_LIBS $CURSES_LIB $CURSES_LIBS $ZLIB_LIBS $DEPENDENCIES_LIBS $LIBS"
+CFLAGS="$CFLAGS $PTHREAD_CFLAGS $CURSES_CFLAGS $ZLIB_CFLAGS $DEPENDENCIES_CFLAGS"
+CXXFLAGS="$CXXFLAGS $PTHREAD_CFLAGS $CURSES_CFLAGS $ZLIB_CFLAGS $DEPENDENCIES_CFLAGS"
 
 TORRENT_CHECK_POPCOUNT()
 
