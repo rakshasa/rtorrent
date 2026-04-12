@@ -32,6 +32,9 @@
 # Global upload and download rate in KiB.
 # "0" for unlimited.
 #
+# When both throttles are disabled (set to 0), the throttle section is
+# hidden from the status bar.
+#
 #throttle.global_down.max_rate.set_kb = 0
 #throttle.global_up.max_rate.set_kb = 0
 
