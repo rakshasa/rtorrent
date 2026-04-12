@@ -298,9 +298,14 @@ initialize_command_network() {
   CMD2_VAR_BOOL    ("network.scgi.dont_route",       false);
   CMD2_ANY         ("network.scgi.open_systemd",     [](auto, auto) { return apply_scgi_systemd(); });
 
-  CMD2_ANY_STRING  ("network.xmlrpc.dialect.set",    [](const auto&, const auto& arg) { return apply_xmlrpc_dialect(arg); })
-  CMD2_ANY         ("network.xmlrpc.size_limit",     [](const auto&, const auto&)     { return rpc::rpc.size_limit(); });
-  CMD2_ANY_VALUE_V ("network.xmlrpc.size_limit.set", [](const auto&, const auto& arg) { return rpc::rpc.set_size_limit(arg); });
+  CMD2_ANY         ("network.scgi.use_gzip",          [](const auto&, const auto&)     { return rpc::rpc.scgi_allow_compression(); });
+  CMD2_ANY_VALUE_V ("network.scgi.use_gzip.set",      [](const auto&, const auto& arg) { return rpc::rpc.set_scgi_allow_compression(arg); });
+  CMD2_ANY         ("network.scgi.gzip.min_size",     [](const auto&, const auto&)     { return rpc::rpc.scgi_min_compress_size(); });
+  CMD2_ANY_VALUE_V ("network.scgi.gzip.min_size.set", [](const auto&, const auto& arg) { return rpc::rpc.set_scgi_min_compress_size(arg); });
+
+  CMD2_ANY_STRING  ("network.xmlrpc.dialect.set",     [](const auto&, const auto& arg) { return apply_xmlrpc_dialect(arg); })
+  CMD2_ANY         ("network.xmlrpc.size_limit",      [](const auto&, const auto&)     { return rpc::rpc.size_limit(); });
+  CMD2_ANY_VALUE_V ("network.xmlrpc.size_limit.set",  [](const auto&, const auto& arg) { return rpc::rpc.set_size_limit(arg); });
 
   CMD2_VAR_BOOL    ("network.rpc.use_xmlrpc",        true);
   CMD2_VAR_BOOL    ("network.rpc.use_jsonrpc",       true);

@@ -2,6 +2,8 @@
 
 #include "rpc/scgi_task.h"
 
+#include <atomic>
+#include <cassert>
 #include <charconv>
 #include <cstdio>
 #include <unistd.h>
@@ -26,9 +28,6 @@ void
 SCgiTask::open(SCgi* parent, int fd) {
   set_file_descriptor(fd);
 
-  // Leave room for terminating nul byte for parsing the header.
-  m_buffer.resize(default_buffer_size + 1);
-
   m_parent      = parent;
   m_position    = 0;
   m_body        = 0;
@@ -40,6 +39,11 @@ SCgiTask::open(SCgi* parent, int fd) {
   torrent::this_thread::poll()->open(this);
   torrent::this_thread::poll()->insert_read(this);
   torrent::this_thread::poll()->insert_error(this);
+
+  auto lock = std::lock_guard<std::mutex>(m_result_mutex);
+
+  // Leave room for terminating nul byte for parsing the header.
+  m_buffer.resize(default_buffer_size + 1);
 }
 
 void
@@ -68,6 +72,7 @@ SCgiTask::close() {
       set_file_descriptor(-1);
     });
 
+  // The callbacks are guaranteed to be finished/canceled at this point.
   auto lock = std::lock_guard<std::mutex>(m_result_mutex);
 
   m_buffer.clear();
@@ -94,6 +99,7 @@ SCgiTask::event_read() {
     // Don't bother caching the parsed values, as we're likely to receive all the data we need the
     // first time.
     unsigned int header_size{};
+
     auto [current, ec] = std::from_chars(m_buffer.data(), m_buffer.data() + m_position, header_size);
 
     // If the request doesn't start with an integer or if it didn't end in ':', then close the
@@ -199,7 +205,7 @@ SCgiTask::parse_headers(const char* current, unsigned int header_length) {
     current = value_end + 1;
 
     if (std::strncmp(key, "CONTENT_LENGTH", 14+1) == 0) {
-      auto [content_pos, ec] = std::from_chars(value, value + std::strlen(value), m_content_length);
+      auto [content_pos, ec] = std::from_chars(value, value_end, m_content_length);
 
       if (*content_pos != '\0' || m_content_length <= 0 || m_content_length > max_content_size)
         return false;
@@ -295,24 +301,7 @@ SCgiTask::detect_content_type(const std::string& content_type) {
 
 void
 SCgiTask::receive_call(const char* buffer, uint32_t length) {
-  // TODO: Rewrite RpcManager.process to pass the result buffer instead of having to copy it.
-
-  auto scgi_thread = torrent::utils::Thread::self();
-  bool trusted = m_trusted;
-
-  auto result_callback = [this, scgi_thread](const char* b, uint32_t l) {
-      receive_write(b, l);
-
-      scgi_thread->callback_interrupt_polling(this, [this]() {
-          // Only need to lock once here as a memory barrier.
-          m_result_mutex.lock();
-          m_result_mutex.unlock();
-
-          torrent::this_thread::poll()->insert_write(this);
-        });
-    };
-
-  auto lock = std::lock_guard<std::mutex>(m_result_mutex);
+  assert(torrent::utils::Thread::self() == scgi_thread::thread());
 
   RpcManager::RPCType rpc_type;
 
@@ -327,25 +316,60 @@ SCgiTask::receive_call(const char* buffer, uint32_t length) {
     throw torrent::internal_error("SCgiTask::receive_call(...) received bad input.");
   }
 
-  torrent::main_thread::thread()->callback_interrupt_polling(this, [buffer, length, result_callback, trusted, rpc_type]() {
-      auto callback = [result_callback](const char* b, uint32_t l) {
-          result_callback(b, l);
-          return true;
-        };
+  // TODO: Rewrite RpcManager.process to pass the result buffer instead of having to copy it.
+  // TODO: Also allow us to request RpcManager.process to reserve space for a header.
+  // TODO: Completely remove the mutex, and align m_buffer?
 
-      if (trusted)
-        rpc.process(rpc_type, buffer, length, callback);
+  auto result_callback = [this](const char* b, uint32_t l) {
+      receive_write(b, l);
+
+      // Memory barrier for the result data.
+      // std::atomic_thread_fence(std::memory_order_release);
+      m_result_mutex.lock();
+      m_result_mutex.unlock();
+
+      scgi_thread::thread()->callback_interrupt_polling(this, [this]() {
+          if (!is_open())
+            return;
+
+          torrent::this_thread::poll()->insert_write(this);
+
+          // Memory barrier for the result data.
+          // std::atomic_thread_fence(std::memory_order_acquire);
+          m_result_mutex.lock();
+          m_result_mutex.unlock();
+        });
+
+      return true;
+    };
+
+  // Memory barrier for the input data.
+  // std::atomic_thread_fence(std::memory_order_release);
+  m_result_mutex.lock();
+  m_result_mutex.unlock();
+
+  torrent::main_thread::thread()->callback_interrupt_polling(this, [this, rpc_type, buffer, length, result_callback]() {
+      // Memory barrier for the input data.
+      // std::atomic_thread_fence(std::memory_order_acquire);
+      m_result_mutex.lock();
+      m_result_mutex.unlock();
+
+      if (m_trusted)
+        rpc.process(rpc_type, buffer, length, result_callback);
       else
-        rpc.process_untrusted(rpc_type, buffer, length, callback);
+        rpc.process_untrusted(rpc_type, buffer, length, result_callback);
     });
 }
 
 void
 SCgiTask::receive_write(const char* buffer, uint32_t length) {
-  if (buffer == NULL || length > (100 << 20))
+  assert(torrent::utils::Thread::self() == torrent::main_thread::thread());
+
+  if (buffer == nullptr || length > (100 << 20))
     throw torrent::internal_error("SCgiTask::receive_write(...) received bad input.");
 
-  auto lock = std::lock_guard<std::mutex>(m_result_mutex);
+  // Main thread callback already locked this mutex.
+  // auto lock = std::lock_guard<std::mutex>(m_result_mutex);
 
   // Write to log prior to possible compression
   if (m_parent->log_fd() >= 0) {
@@ -358,12 +382,10 @@ SCgiTask::receive_write(const char* buffer, uint32_t length) {
 
   lt_log_print_dump(torrent::LOG_RPC_DUMP, buffer, length, "scgi", "RPC write.", 0);
 
-  if (m_accepts_compression && m_parent->allow_compression() && length > m_parent->min_compress_size())
+  if (m_accepts_compression && rpc.scgi_allow_compression() && length > rpc.scgi_min_compress_size())
     gzip_response(buffer, length);
   else
     plaintext_response(buffer, length);
-
-  event_write();
 }
 
 // We don't know the size of the content-length string, so leave sufficient space for the header
