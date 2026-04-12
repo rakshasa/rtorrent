@@ -1,6 +1,7 @@
 #ifndef RTORRENT_RPC_MANAGER_H
 #define RTORRENT_RPC_MANAGER_H
 
+#include <atomic>
 #include <cstdint>
 #include <functional>
 #include <torrent/common.h>

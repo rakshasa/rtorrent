@@ -1,9 +1,7 @@
 #ifndef RTORRENT_RPC_SCGI_H
 #define RTORRENT_RPC_SCGI_H
 
-#include <atomic>
 #include <array>
-#include <functional>
 #include <memory>
 #include <torrent/event.h>
 
