@@ -5,11 +5,9 @@
 #include <charconv>
 #include <cstdio>
 #include <unistd.h>
-#include <vector>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <torrent/exceptions.h>
-#include <torrent/torrent.h>
 #include <torrent/net/fd.h>
 #include <torrent/net/poll.h>
 #include <torrent/runtime/socket_manager.h>
@@ -18,8 +16,8 @@
 
 #include "control.h"
 #include "globals.h"
-#include "scgi.h"
 #include "rpc/parse_commands.h"
+#include "rpc/scgi.h"
 #include "utils/gzip.h"
 
 namespace rpc {
@@ -151,7 +149,7 @@ event_read_failed:
 
 void
 SCgiTask::event_write() {
-  int bytes = ::send(m_fileDesc, m_buffer.data() + m_position, m_buffer.size() - m_position, MSG_NOSIGNAL);
+  int bytes = ::send(m_fileDesc, m_buffer.data() + m_position, m_buffer.size() - m_position, 0);
 
   if (bytes == -1) {
     if (!(errno == EAGAIN || errno == EINTR || errno == EPIPE))
@@ -200,20 +198,28 @@ SCgiTask::parse_headers(const char* current, unsigned int header_length) {
 
     current = value_end + 1;
 
-    if (strncmp(key, "CONTENT_LENGTH", 14+1) == 0) {
+    if (std::strncmp(key, "CONTENT_LENGTH", 14+1) == 0) {
       auto [content_pos, ec] = std::from_chars(value, value + std::strlen(value), m_content_length);
 
       if (*content_pos != '\0' || m_content_length <= 0 || m_content_length > max_content_size)
         return false;
 
-    } else if (strncmp(key, "CONTENT_TYPE", 12+1) == 0) {
+    } else if (std::strncmp(key, "CONTENT_TYPE", 12+1) == 0) {
       content_type = value;
 
-    } else if (strcmp(key, "ACCEPT_ENCODING") == 0) {
+    } else if (std::strncmp(key, "ACCEPT_ENCODING", 15+1) == 0) {
       std::string accept_encoding(value, value_end - value);
 
       if (accept_encoding.find("gzip") != std::string::npos)
         m_accepts_compression = true;
+
+    } else if (std::strncmp(key, "UNTRUSTED_CONNECTION", 20+1) == 0) {
+      if (std::strncmp(value, "1", 1+1) == 0)
+        m_trusted = false;
+      else if (std::strncmp(value, "0", 1+1) == 0)
+        ; // Default is trusted, so do nothing.
+      else
+        return false;
     }
   }
 

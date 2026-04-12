@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <mutex>
+#include <vector>
 #include <torrent/event.h>
 
 namespace rpc {
