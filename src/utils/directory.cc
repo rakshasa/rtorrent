@@ -3,6 +3,7 @@
 #include "utils/directory.h"
 
 #include <algorithm>
+#include <cstdlib>
 #include <dirent.h>
 #include <functional>
 #include <sys/stat.h>

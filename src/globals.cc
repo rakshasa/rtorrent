@@ -2,6 +2,7 @@
 
 #include "globals.h"
 
+#include <cstdlib>
 #include <torrent/exceptions.h>
 
 rpc::ip_table_list ip_tables;
@@ -14,8 +15,8 @@ expand_path(const std::string& path) {
     return std::string();
 
   if (path[0] == '~') {
-    if (path.size() < 2 || path[1] != '/')
-      throw torrent::input_error("Could not expand ~ in session path, only ~/<path> is supported.");
+    if (path.size() >= 2 && path[1] != '/')
+      throw torrent::input_error("Could not expand ~ in session path, only '~' or '~/...' is supported.");
 
     const char* home = std::getenv("HOME");
 
