@@ -1,6 +1,7 @@
 #include "config.h"
 
 #include <algorithm>
+#include <cstring>
 #include <fstream>
 #include <iostream>
 #include <torrent/data/file.h>
@@ -82,6 +83,9 @@ DownloadList::find(const torrent::HashString& hash) {
 
 DownloadList::iterator
 DownloadList::find_hex(const char* hash) {
+  if (strlen(hash) < 40)
+    return end();
+
   torrent::HashString key;
 
   if (torrent::utils::transform_from_hex(hash, hash + 40, key) != key.end())

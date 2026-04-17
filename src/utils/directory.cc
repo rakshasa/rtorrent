@@ -20,7 +20,9 @@ Directory::is_valid() const {
     return false;
 
   DIR* d = opendir(expand_path(m_path).c_str());
-  closedir(d);
+
+  if (d != NULL)
+    closedir(d);
 
   return d;
 }

@@ -118,6 +118,9 @@ log_vmmap_dump(const std::string& str) {
 
   FILE* log_file = fopen(str.c_str(), "w");
 
+  if (log_file == NULL)
+    throw torrent::input_error("Could not open log file: " + str);
+
   for (auto& all_mapping : all_mappings) {
     fprintf(log_file, "%8p-%8p [%5llxk]\n", all_mapping.ptr, (char*)all_mapping.ptr + all_mapping.length, (long long unsigned int)(all_mapping.length / 1024));
   }

@@ -17,7 +17,7 @@ SignalHandler::slot_void SignalHandler::m_handlers[HIGHEST_SIGNAL];
 
 void
 SignalHandler::set_default(unsigned int signum) {
-  if (signum > HIGHEST_SIGNAL)
+  if (signum >= HIGHEST_SIGNAL)
     throw std::logic_error("SignalHandler::set_default(...) received invalid signal value.");
 
   signal(signum, SIG_DFL);
@@ -26,7 +26,7 @@ SignalHandler::set_default(unsigned int signum) {
 
 void
 SignalHandler::set_ignore(unsigned int signum) {
-  if (signum > HIGHEST_SIGNAL)
+  if (signum >= HIGHEST_SIGNAL)
     throw std::logic_error("SignalHandler::set_ignore(...) received invalid signal value.");
 
   signal(signum, SIG_IGN);
@@ -35,7 +35,7 @@ SignalHandler::set_ignore(unsigned int signum) {
 
 void
 SignalHandler::set_handler(unsigned int signum, slot_void slot) {
-  if (signum > HIGHEST_SIGNAL)
+  if (signum >= HIGHEST_SIGNAL)
     throw std::logic_error("SignalHandler::set_handler(...) received invalid signal value.");
 
   if (!slot)
@@ -54,7 +54,7 @@ SignalHandler::set_handler(unsigned int signum, slot_void slot) {
 
 void
 SignalHandler::set_sigaction_handler(unsigned int signum, handler_slot slot) {
-  if (signum > HIGHEST_SIGNAL)
+  if (signum >= HIGHEST_SIGNAL)
     throw std::logic_error("SignalHandler::set_handler(...) received invalid signal value.");
 
   struct sigaction sa;
@@ -69,7 +69,7 @@ SignalHandler::set_sigaction_handler(unsigned int signum, handler_slot slot) {
 
 void
 SignalHandler::caught(int signum) {
-  if ((unsigned)signum > HIGHEST_SIGNAL)
+  if ((unsigned)signum >= HIGHEST_SIGNAL)
     throw std::logic_error("SignalHandler::caught(...) received invalid signal from the kernel, bork bork bork.");
 
   if (!m_handlers[signum])
