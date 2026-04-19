@@ -8,51 +8,14 @@
 #include <torrent/utils/log.h>
 #include <torrent/utils/option_strings.h>
 
-#include "globals.h"
 #include "control.h"
 #include "command_helpers.h"
+#include "globals.h"
+#include "setup.h"
 #include "core/download.h"
 #include "core/download_list.h"
 #include "core/manager.h"
 #include "rpc/parse_commands.h"
-
-static const int log_flag_use_gz = 0x1;
-static const int log_flag_append_pid = 0x2;
-static const int log_flag_append_file = 0x4;
-static const int log_flag_flush = 0x8;
-
-void
-log_add_group_output_str(const std::string& group_name, const std::string& output_id) {
-  int log_group = torrent::option_find_string(torrent::OPTION_LOG_GROUP, group_name.c_str());
-  torrent::log_add_group_output(log_group, output_id.c_str());
-}
-
-void
-apply_log_open_str(int output_flags, const std::vector<std::string>& args) {
-  if (args.size() < 2)
-    throw torrent::input_error("Invalid number of arguments.");
-
-  auto output_id = args[0];
-  auto file_name = expand_path(args[1]);
-
-  if ((output_flags & log_flag_append_pid)) {
-    char buffer[32];
-    snprintf(buffer, 32, ".%li", (long)getpid());
-
-    file_name += buffer;
-  }
-
-  bool append = (output_flags & log_flag_append_file);
-  bool flush = (output_flags & log_flag_flush);
-
-  if ((output_flags & log_flag_use_gz))
-    torrent::log_open_gz_file_output(output_id.c_str(), file_name.c_str(), append);
-  else
-    torrent::log_open_file_output(output_id.c_str(), file_name.c_str(), append, flush);
-
-  for (size_t i = 2; i < args.size(); i++)
-    log_add_group_output_str(args[i], output_id);
-}
 
 torrent::Object
 apply_log_open(int output_flags, const torrent::Object::list_type& raw_args) {
