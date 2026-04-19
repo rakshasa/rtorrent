@@ -22,20 +22,18 @@ static const int log_flag_append_file = 0x4;
 static const int log_flag_flush = 0x8;
 
 void
-log_add_group_output_str(const char* group_name, const char* output_id) {
-  int log_group = torrent::option_find_string(torrent::OPTION_LOG_GROUP, group_name);
-  torrent::log_add_group_output(log_group, output_id);
+log_add_group_output_str(const std::string& group_name, const std::string& output_id) {
+  int log_group = torrent::option_find_string(torrent::OPTION_LOG_GROUP, group_name.c_str());
+  torrent::log_add_group_output(log_group, output_id.c_str());
 }
 
-torrent::Object
-apply_log_open(int output_flags, const torrent::Object::list_type& args) {
+void
+apply_log_open_str(int output_flags, const std::vector<std::string>& args) {
   if (args.size() < 2)
     throw torrent::input_error("Invalid number of arguments.");
 
-  torrent::Object::list_const_iterator itr = args.begin();
-
-  auto output_id = (itr++)->as_string();
-  auto file_name = expand_path((itr++)->as_string());
+  auto output_id = args[0];
+  auto file_name = expand_path(args[1]);
 
   if ((output_flags & log_flag_append_pid)) {
     char buffer[32];
@@ -52,9 +50,18 @@ apply_log_open(int output_flags, const torrent::Object::list_type& args) {
   else
     torrent::log_open_file_output(output_id.c_str(), file_name.c_str(), append, flush);
 
-  while (itr != args.end())
-    log_add_group_output_str((itr++)->as_string().c_str(), output_id.c_str());
+  for (size_t i = 2; i < args.size(); i++)
+    log_add_group_output_str(args[i], output_id);
+}
 
+torrent::Object
+apply_log_open(int output_flags, const torrent::Object::list_type& raw_args) {
+  std::vector<std::string> args;
+
+  for (const auto& arg : raw_args)
+    args.push_back(arg.as_string());
+
+  apply_log_open_str(output_flags, args);
   return torrent::Object();
 }
 
@@ -63,8 +70,7 @@ apply_log_add_output(const torrent::Object::list_type& args) {
   if (args.size() != 2)
     throw torrent::input_error("Invalid number of arguments.");
 
-  log_add_group_output_str(args.front().as_string().c_str(),
-                           args.back().as_string().c_str());
+  log_add_group_output_str(args.front().as_string(), args.back().as_string());
 
   return torrent::Object();
 }

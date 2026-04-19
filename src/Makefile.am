@@ -197,6 +197,8 @@ libsub_root_a_SOURCES = \
 	globals.h \
 	option_parser.cc \
 	option_parser.h \
+	setup.cc \
+	setup.h \
 	signal_handler.cc \
 	signal_handler.h
 

@@ -1,5 +1,7 @@
 #include "config.h"
 
+#include "option_parser.h"
+
 #include <algorithm>
 #include <cstring>
 #include <cstdio>
@@ -7,8 +9,6 @@
 #include <getopt.h>
 #include <stdexcept>
 #include <unistd.h>
-
-#include "option_parser.h"
 
 void
 OptionParser::insert_flag(char c, slot_string s) {

@@ -20,7 +20,6 @@
 
 #include "core/dht_manager.h"
 #include "core/download.h"
-#include "core/download_factory.h"
 #include "core/manager.h"
 #include "display/canvas.h"
 #include "display/window.h"
@@ -30,15 +29,15 @@
 #include "rpc/command_scheduler_item.h"
 #include "rpc/parse_commands.h"
 #include "scgi/thread_scgi.h"
-#include "session/download_storer.h"
-#include "session/thread_session.h"
 #include "session/session_manager.h"
+#include "session/thread_session.h"
 #include "ui/root.h"
 #include "utils/directory.h"
 
 #include "control.h"
 #include "command_helpers.h"
 #include "globals.h"
+#include "setup.h"
 #include "signal_handler.h"
 #include "option_parser.h"
 
@@ -49,37 +48,6 @@ void handle_sigbus(int signum, siginfo_t* sa, void* ptr);
 void do_panic(int signum);
 void print_help();
 void initialize_commands();
-
-void do_nothing() {}
-void do_nothing_str(const std::string&) {}
-
-int
-parse_options(int argc, char** argv) {
-  try {
-    OptionParser optionParser;
-
-    // Converted.
-    optionParser.insert_flag('h', std::bind(&print_help));
-    optionParser.insert_flag('n', std::bind(&do_nothing_str, std::placeholders::_1));
-    optionParser.insert_flag('D', std::bind(&do_nothing_str, std::placeholders::_1));
-    optionParser.insert_flag('I', std::bind(&do_nothing_str, std::placeholders::_1));
-    optionParser.insert_flag('K', std::bind(&do_nothing_str, std::placeholders::_1));
-
-    optionParser.insert_option('b', std::bind(&rpc::call_command_set_string, "network.bind_address.set", std::placeholders::_1));
-    optionParser.insert_option('d', std::bind(&rpc::call_command_set_string, "directory.default.set", std::placeholders::_1));
-    optionParser.insert_option('i', std::bind(&rpc::call_command_set_string, "ip", std::placeholders::_1));
-    optionParser.insert_option('p', std::bind(&rpc::call_command_set_string, "network.port_range.set", std::placeholders::_1));
-    optionParser.insert_option('s', std::bind(&rpc::call_command_set_string, "session", std::placeholders::_1));
-
-    optionParser.insert_option('O',      std::bind(&rpc::parse_command_single_std, std::placeholders::_1));
-    optionParser.insert_option_list('o', std::bind(&rpc::call_command_set_std_string, std::placeholders::_1, std::placeholders::_2));
-
-    return optionParser.process(argc, argv);
-
-  } catch (torrent::input_error& e) {
-    throw torrent::input_error("Failed to parse command line option: " + std::string(e.what()));
-  }
-}
 
 void
 initialize_rpc_slots() {
@@ -108,43 +76,6 @@ initialize_rpc_slots() {
 
       return *itr;
     };
-}
-
-void
-load_session_torrents() {
-  utils::Directory entries = session::DownloadStorer::get_formated_entries(session_thread::manager()->path());
-
-  for (const auto& entry : entries) {
-    // We don't really support session torrents that are links. These
-    // would be overwritten anyway on exit, and thus not really be
-    // useful.
-    if (!entry.is_file())
-      continue;
-
-    core::DownloadFactory* f = new core::DownloadFactory(control->core());
-
-    // Replace with session torrent flag.
-    f->set_session(true);
-    f->set_init_load(true);
-    f->slot_finished([f](){ delete f; });
-    f->load(entries.path() + entry.s_name);
-    f->commit();
-  }
-}
-
-void
-load_arg_torrents(char** first, char** last) {
-  //std::for_each(begin, end, std::bind1st(std::mem_fun(&core::Manager::insert), &control->get_core()));
-  for (; first != last; ++first) {
-    core::DownloadFactory* f = new core::DownloadFactory(control->core());
-
-    // Replace with session torrent flag.
-    f->set_start(true);
-    f->set_init_load(true);
-    f->slot_finished([f](){ delete f; });
-    f->load(*first);
-    f->commit();
-  }
 }
 
 static void
@@ -200,7 +131,7 @@ main(int argc, char** argv) {
     // threads. Use '--enable-interrupt-socket' when configuring
     // LibTorrent to enable this workaround.
     if (torrent::utils::Thread::should_handle_sigusr1())
-      SignalHandler::set_handler(SIGUSR1, std::bind(&do_nothing));
+      SignalHandler::set_handler(SIGUSR1, []() {});
 
     torrent::log_add_group_output(torrent::LOG_NOTICE,    "important");
     torrent::log_add_group_output(torrent::LOG_DHT_ERROR, "important");
@@ -459,23 +390,16 @@ main(int argc, char** argv) {
       }
     }
 
-    int firstArg = parse_options(argc, argv);
+    int firstArg = parse_main_options(argc, argv);
 
-    if (OptionParser::has_flag('n', argc, argv)) {
-      lt_log_print(torrent::LOG_WARN, "Ignoring rtorrent.rc.");
-    } else {
-      char* config_dir = std::getenv("XDG_CONFIG_HOME");
-      char* home_dir = std::getenv("HOME");
+    parse_config_file(argc, argv, [](auto& path) {
+        if (path.empty()) {
+          lt_log_print(torrent::LOG_WARN, "Ignoring rtorrent.rc.");
+          return;
+        }
 
-      if (config_dir != NULL && config_dir[0] == '/' &&
-          access((std::string(config_dir) + "/rtorrent/rtorrent.rc").c_str(), F_OK) != -1) {
-        rpc::parse_command_single(rpc::make_target(), "try_import = " + std::string(config_dir) + "/rtorrent/rtorrent.rc");
-      } else if (home_dir != NULL && access((std::string(home_dir) + "/.config/rtorrent/rtorrent.rc").c_str(), F_OK) != -1) {
-        rpc::parse_command_single(rpc::make_target(), "try_import = ~/.config/rtorrent/rtorrent.rc");
-      } else {
-        rpc::parse_command_single(rpc::make_target(), "try_import = ~/.rtorrent.rc");
-      }
-    }
+        rpc::parse_command_single(rpc::make_target(), "try_import=" + path);
+      });
 
     LT_LOG("seeded srandom and srand48 (seed:%u)", random_seed);
 
@@ -485,11 +409,8 @@ main(int argc, char** argv) {
     // Load session torrents and perform scheduled tasks to ensure
     // session torrents are loaded before arg torrents.
     control->dht_manager()->load_dht_cache();
-    load_session_torrents();
 
-    // TODO: Check if this is required.
-    // rak::priority_queue_perform(&taskScheduler, cachedTime);
-
+    load_session_torrents(session_thread::manager()->path());
     load_arg_torrents(argv + firstArg, argv + argc);
 
     // Make sure we update the display before any scheduled tasks can
