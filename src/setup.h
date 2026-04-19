@@ -6,6 +6,7 @@
 
 int  parse_main_options(int argc, char** argv);
 void parse_config_file(int argc, char** argv, std::function<void (const std::string&)> parse_fn);
+void parse_config_file_comments(const std::string& path);
 
 void load_session_torrents(const std::string& path);
 void load_arg_torrents(char** first, char** last);

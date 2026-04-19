@@ -5,6 +5,7 @@
 #include <fstream>
 #include <unistd.h>
 #include <torrent/exceptions.h>
+#include <torrent/utils/log.h>
 
 #include "control.h"
 #include "globals.h"
@@ -136,10 +137,12 @@ parse_config_file_comments(const std::string& path) {
     if (command.empty())
       throw torrent::input_error("Invalid command in config file comment: " + line);
 
-    if (command.compare(0, 4, "log.") == 0) {
+    if (command.compare(0, 4, "log.") == 0)
       config_comment_log(command, args);
-      continue;
-    }
+    else
+      throw torrent::input_error("Unknown command in config file comment: " + line);
+
+    lt_log_print(torrent::LOG_NOTICE, "Pre-config command: %s=%s", command.c_str(), args.c_str());
   }
 }
 

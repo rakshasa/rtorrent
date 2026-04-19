@@ -107,19 +107,35 @@ main(int argc, char** argv) {
     srandom(random_seed);
     srand48(random_seed);
 
-    torrent::initialize_main_thread();
     torrent::log_initialize();
+
+    SignalHandler::set_ignore(SIGPIPE);
+    SignalHandler::set_handler(SIGSEGV,  std::bind(&do_panic, SIGSEGV));
+    SignalHandler::set_handler(SIGILL,   std::bind(&do_panic, SIGILL));
+    SignalHandler::set_handler(SIGFPE,   std::bind(&do_panic, SIGFPE));
+
+    // Limited list of commands with the following format:
+    //
+    // cat ~/.rtorrent.rc:
+    //
+    // # do:log.open_file=system,/usr/rakshasa/system.log
+    // # do:log.add_output=system,system
+    //
+    parse_config_file(argc, argv, [](auto& path) {
+        if (path.empty())
+          return;
+
+        parse_config_file_comments(path);
+      });
+
+    torrent::initialize_main_thread();
 
     control = new Control;
 
-    SignalHandler::set_ignore(SIGPIPE);
     SignalHandler::set_handler(SIGINT,   std::bind(&Control::receive_normal_shutdown, control));
     SignalHandler::set_handler(SIGHUP,   std::bind(&Control::receive_normal_shutdown, control));
     SignalHandler::set_handler(SIGTERM,  std::bind(&Control::receive_quick_shutdown, control));
     SignalHandler::set_handler(SIGWINCH, std::bind(&display::Manager::force_redraw, control->display()));
-    SignalHandler::set_handler(SIGSEGV,  std::bind(&do_panic, SIGSEGV));
-    SignalHandler::set_handler(SIGILL,   std::bind(&do_panic, SIGILL));
-    SignalHandler::set_handler(SIGFPE,   std::bind(&do_panic, SIGFPE));
 
     SignalHandler::set_sigaction_handler(SIGBUS, &handle_sigbus);
 
@@ -537,7 +553,9 @@ do_panic(int signum) {
   // Use the default signal handler in the future to avoid infinit
   // loops.
   SignalHandler::set_default(signum);
-  display::Canvas::cleanup();
+
+  if (control != nullptr)
+    display::Canvas::cleanup();
 
   std::stringstream output;
 
