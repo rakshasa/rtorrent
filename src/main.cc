@@ -109,6 +109,9 @@ main(int argc, char** argv) {
 
     torrent::log_initialize();
 
+    // TODO: Create a fake thread object for initializing other processes and enabling logging.
+    torrent::initialize_main_thread();
+
     SignalHandler::set_ignore(SIGPIPE);
     SignalHandler::set_handler(SIGSEGV,  std::bind(&do_panic, SIGSEGV));
     SignalHandler::set_handler(SIGILL,   std::bind(&do_panic, SIGILL));
@@ -127,8 +130,6 @@ main(int argc, char** argv) {
 
         parse_config_file_comments(path);
       });
-
-    torrent::initialize_main_thread();
 
     control = new Control;
 
