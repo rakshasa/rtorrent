@@ -3,7 +3,7 @@
 
 #include <functional>
 #include <torrent/utils/scheduler.h>
-#include <torrent/utils/thread.h>
+#include <torrent/system/thread.h>
 
 #include "canvas.h"
 #include "globals.h"

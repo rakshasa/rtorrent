@@ -1,14 +1,14 @@
 #ifndef RTORRENT_SESSION_THREAD_SESSION_H
 #define RTORRENT_SESSION_THREAD_SESSION_H
 
-#include <torrent/utils/thread.h>
+#include <torrent/system/thread.h>
 
 namespace session {
 
 class SessionManager;
 class ThreadSessionInternal;
 
-class ThreadSession : public torrent::utils::Thread {
+class ThreadSession : public torrent::system::Thread {
 public:
 
   static void           create_thread();

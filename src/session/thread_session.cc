@@ -74,8 +74,8 @@ ThreadSession::next_timeout() {
 
 namespace session_thread {
 
-torrent::utils::Thread* thread()                         { return session::ThreadSessionInternal::thread_session(); }
-std::thread::id         thread_id()                      { return session::ThreadSessionInternal::thread_session()->thread_id(); }
+torrent::system::Thread* thread()                         { return session::ThreadSessionInternal::thread_session(); }
+std::thread::id          thread_id()                      { return session::ThreadSessionInternal::thread_session()->thread_id(); }
 
 void callback(void* target, std::function<void ()>&& fn) { session::ThreadSessionInternal::thread_session()->callback(target, std::move(fn)); }
 void cancel_callback(void* target)                       { session::ThreadSessionInternal::thread_session()->cancel_callback(target); }

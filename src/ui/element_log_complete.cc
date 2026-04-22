@@ -2,7 +2,7 @@
 
 #include <torrent/exceptions.h>
 #include <torrent/torrent.h>
-#include <torrent/utils/thread.h>
+#include <torrent/system/thread.h>
 
 #include "display/frame.h"
 #include "display/manager.h"

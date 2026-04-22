@@ -44,7 +44,7 @@ public:
   constexpr static int max_concurrent_processing = 16;
   constexpr static int max_cleanup_processing    = 64;
 
-  SessionManager(torrent::utils::Thread* thread);
+  SessionManager(torrent::system::Thread* thread);
   ~SessionManager();
 
   bool                is_used() const;
@@ -89,7 +89,7 @@ private:
   bool                replace_save_request_unsafe(SaveRequest& download);
   bool                remove_completely_unsafe(core::Download* download, std::unique_lock<std::mutex>& lock);
 
-  torrent::utils::Thread* m_thread;
+  torrent::system::Thread* m_thread;
 
   bool                m_freeze_info{};
   std::string         m_path;

@@ -7,7 +7,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-#include <torrent/utils/thread.h>
+#include <torrent/system/thread.h>
 
 #include "exec_file.h"
 #include "parse.h"

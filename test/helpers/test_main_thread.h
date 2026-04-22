@@ -6,9 +6,9 @@
 #include "test/helpers/test_fixture.h"
 #include "test/helpers/test_thread.h"
 #include "torrent/common.h"
-#include "torrent/utils/thread.h"
+#include "torrent/system/thread.h"
 
-class TestMainThread : public torrent::utils::Thread {
+class TestMainThread : public torrent::system::Thread {
 public:
   static std::unique_ptr<TestMainThread> create();
   static std::unique_ptr<TestMainThread> create_with_mock();

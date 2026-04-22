@@ -21,7 +21,7 @@
 
 namespace session {
 
-SessionManager::SessionManager(torrent::utils::Thread* thread)
+SessionManager::SessionManager(torrent::system::Thread* thread)
   : m_thread(thread),
     m_lockfile(std::make_unique<utils::Lockfile>()) {
 }

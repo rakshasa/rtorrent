@@ -3,7 +3,7 @@
 
 #include <atomic>
 #include <string>
-#include <torrent/utils/thread.h>
+#include <torrent/system/thread.h>
 
 namespace rpc {
 class SCgi;
@@ -13,7 +13,7 @@ namespace scgi {
 
 class ThreadScgiInternal;
 
-class ThreadScgi : public torrent::utils::Thread {
+class ThreadScgi : public torrent::system::Thread {
 public:
 
   static void         create_thread();

@@ -6,9 +6,9 @@
 
 #include "test/helpers/test_utils.h"
 #include "torrent/common.h"
-#include "torrent/utils/thread.h"
+#include "torrent/system/thread.h"
 
-class test_thread : public torrent::utils::Thread {
+class test_thread : public torrent::system::Thread {
 public:
   enum test_state {
     TEST_NONE,

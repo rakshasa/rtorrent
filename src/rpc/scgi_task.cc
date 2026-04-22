@@ -14,7 +14,7 @@
 #include <torrent/net/poll.h>
 #include <torrent/runtime/socket_manager.h>
 #include <torrent/utils/log.h>
-#include <torrent/utils/thread.h>
+#include <torrent/system/thread.h>
 
 #include "control.h"
 #include "globals.h"
@@ -63,7 +63,7 @@ SCgiTask::close() {
     return;
 
   torrent::main_thread::thread()->cancel_callback_and_wait(this);
-  torrent::utils::Thread::self()->cancel_callback(this);
+  torrent::system::Thread::self()->cancel_callback(this);
 
   torrent::runtime::socket_manager()->close_event_or_throw(this, [this]() {
       torrent::this_thread::poll()->remove_and_close(this);
@@ -301,7 +301,7 @@ SCgiTask::detect_content_type(const std::string& content_type) {
 
 void
 SCgiTask::receive_call(const char* buffer, uint32_t length) {
-  assert(torrent::utils::Thread::self() == scgi_thread::thread());
+  assert(torrent::system::Thread::self() == scgi_thread::thread());
 
   RpcManager::RPCType rpc_type;
 
@@ -363,7 +363,7 @@ SCgiTask::receive_call(const char* buffer, uint32_t length) {
 
 void
 SCgiTask::receive_write(const char* buffer, uint32_t length) {
-  assert(torrent::utils::Thread::self() == torrent::main_thread::thread());
+  assert(torrent::system::Thread::self() == torrent::main_thread::thread());
 
   if (buffer == nullptr || length > (100 << 20))
     throw torrent::internal_error("SCgiTask::receive_write(...) received bad input.");

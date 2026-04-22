@@ -127,8 +127,8 @@ ThreadScgi::next_timeout() {
 
 namespace scgi_thread {
 
-torrent::utils::Thread* thread()                         { return scgi::ThreadScgiInternal::thread_scgi(); }
-std::thread::id         thread_id()                      { return scgi::ThreadScgiInternal::thread_scgi()->thread_id(); }
+torrent::system::Thread* thread()                         { return scgi::ThreadScgiInternal::thread_scgi(); }
+std::thread::id          thread_id()                      { return scgi::ThreadScgiInternal::thread_scgi()->thread_id(); }
 
 void callback(void* target, std::function<void ()>&& fn) { scgi::ThreadScgiInternal::thread_scgi()->callback(target, std::move(fn)); }
 void cancel_callback(void* target)                       { scgi::ThreadScgiInternal::thread_scgi()->cancel_callback(target); }

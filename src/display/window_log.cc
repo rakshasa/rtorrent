@@ -2,7 +2,7 @@
 
 #include <ctime>
 #include <torrent/torrent.h>
-#include <torrent/utils/thread.h>
+#include <torrent/system/thread.h>
 
 #include "canvas.h"
 #include "utils.h"

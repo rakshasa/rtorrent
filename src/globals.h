@@ -22,8 +22,8 @@ class SessionManager;
 
 namespace scgi_thread {
 
-torrent::utils::Thread* thread();
-std::thread::id         thread_id();
+torrent::system::Thread* thread();
+std::thread::id          thread_id();
 
 void                    callback(void* target, std::function<void ()>&& fn);
 void                    cancel_callback(void* target);
@@ -38,8 +38,8 @@ void                    set_rpc_log(const std::string& filename);
 
 namespace session_thread {
 
-torrent::utils::Thread* thread();
-std::thread::id         thread_id();
+torrent::system::Thread* thread();
+std::thread::id          thread_id();
 
 void                    callback(void* target, std::function<void ()>&& fn);
 void                    cancel_callback(void* target);
