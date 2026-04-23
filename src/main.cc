@@ -11,6 +11,7 @@
 #include <torrent/exceptions.h>
 #include <torrent/data/chunk_utils.h>
 #include <torrent/net/fd.h>
+#include <torrent/system/process.h>
 #include <torrent/utils/chrono.h>
 #include <torrent/utils/log.h>
 
@@ -108,6 +109,17 @@ main(int argc, char** argv) {
     srand48(random_seed);
 
     torrent::log_initialize();
+
+    // TODO: Seems the child process doesn't die with the parent, fix this.
+
+    // torrent::system::Process exec_process;
+
+    // exec_process.start([]() {
+    //     for (int i = 0; i < 100; ++i) {
+    //       // LT_LOG("Child process running: itr:%d", i);
+    //       usleep(1000 * 100); // 100 ms
+    //     }
+    //   });
 
     // TODO: Create a fake thread object for initializing other processes and enabling logging.
     torrent::initialize_main_thread();
