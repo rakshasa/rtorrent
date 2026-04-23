@@ -80,7 +80,7 @@ SCgiTask::close() {
 
 void
 SCgiTask::event_read() {
-  int bytes = ::recv(m_fileDesc, m_buffer.data() + m_position, m_buffer.size() - m_position, 0);
+  int bytes = ::recv(m_fileDesc, m_buffer.data() + m_position, m_buffer.size() - m_position - (m_content_length == 0), 0);
 
   if (bytes <= 0) {
     if (bytes == 0 || !(errno == EAGAIN || errno == EINTR))
