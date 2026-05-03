@@ -209,7 +209,14 @@ main(int argc, char** argv) {
        "method.insert = event.download.hash_queued,multi|rlookup|static\n"
 
        "method.set_key = event.download.inserted,         1_send_scrape, ((d.tracker.send_scrape,30))\n"
-       "method.set_key = event.download.inserted_new,     1_prepare, {(branch,((d.state)),((view.set_visible,started)),((view.set_visible,stopped)) ),(d.save_full_session)}\n"
+       "method.set_key = event.download.inserted_new,     1_prepare,   {(branch,((d.state)),((view.set_visible,started)),((view.set_visible,stopped)) )}\n"
+       // d.save_full_session runs LAST (~ prefix is ASCII 0x7E, sorts after all alphanumerics,
+       // matching the existing ~_delete_tied precedent on event.download.erased) so the on-disk
+       // snapshot includes custom fields written by other inserted_new handlers (addtime,
+       // seedingtime, etc.). Was previously inside 1_prepare alongside view setup, which
+       // snapshotted bencode before later handlers ran, so d.set_custom=addtime did not reach
+       // .rtorrent until the next periodic resume save — a window where rtorrent restart lost them.
+       "method.set_key = event.download.inserted_new,     ~_save_full, ((d.save_full_session))\n"
        "method.set_key = event.download.inserted_session, 1_prepare, {(branch,((d.state)),((view.set_visible,started)),((view.set_visible,stopped)) )}\n"
 
        "method.set_key = event.download.inserted, 1_prioritize_toc, \"branch=file.prioritize_toc=,{\\\"f.multicall=(file.prioritize_toc.first),f.prioritize_first.enable=\\\",\\\"f.multicall=(file.prioritize_toc.last),f.prioritize_last.enable=\\\",d.update_priorities=}\"\n"
