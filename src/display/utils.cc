@@ -16,9 +16,9 @@
 #include <torrent/data/file_manager.h>
 #include <torrent/download/resource_manager.h>
 #include <torrent/net/http_stack.h>
-#include <torrent/net/network_config.h>
 #include <torrent/net/socket_address.h>
 #include <torrent/peer/client_info.h>
+#include <torrent/runtime/network_config.h>
 
 #include "control.h"
 #include "globals.h"
@@ -376,7 +376,7 @@ print_status_info(char* first, char* last) {
   first = print_buffer(first, last, " KB]");
   first = print_buffer(first, last, " [Port: %i]", (unsigned int)torrent::runtime::listen_port());
 
-  auto local_address = torrent::config::network_config()->local_address_best_match();
+  auto local_address = torrent::runtime::network_config()->local_address_best_match();
 
   if (!torrent::sa_is_any(local_address.get())) {
     first = print_buffer(first, last, " [Local ");
@@ -387,8 +387,8 @@ print_status_info(char* first, char* last) {
   if (first > last)
     throw torrent::internal_error("print_status_info(...) wrote past end of the buffer.");
 
-  auto bind_inet_address  = torrent::config::network_config()->bind_inet_address();
-  auto bind_inet6_address = torrent::config::network_config()->bind_inet6_address();
+  auto bind_inet_address  = torrent::runtime::network_config()->bind_inet_address();
+  auto bind_inet6_address = torrent::runtime::network_config()->bind_inet6_address();
   bool show_bind_inet     = !torrent::sa_is_any(bind_inet_address.get());
   bool show_bind_inet6    = !torrent::sa_is_any(bind_inet6_address.get());
 
