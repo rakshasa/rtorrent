@@ -3,8 +3,8 @@
 #include <cassert>
 #include <cstdio>
 #include <netdb.h>
-#include <torrent/net/network_config.h>
 #include <torrent/net/resolver.h>
+#include <torrent/runtime/network_config.h>
 #include <torrent/runtime/network_manager.h>
 #include <torrent/tracker/dht_controller.h>
 #include <torrent/tracker/tracker.h>
@@ -146,8 +146,8 @@ initialize_command_tracker() {
   CMD2_ANY_VALUE_V    ("dht.port.set",          [](auto, auto) {
       lt_log_print(torrent::LOG_DHT_ERROR, "dht.port.set is no longer supported, use dht.override_port.set", 0);
     });
-  CMD2_ANY            ("dht.override_port",     std::bind(&torrent::net::NetworkConfig::override_dht_port, torrent::config::network_config()));
-  CMD2_ANY_VALUE_V    ("dht.override_port.set", std::bind(&torrent::net::NetworkConfig::set_override_dht_port, torrent::config::network_config(), std::placeholders::_2));
+  CMD2_ANY            ("dht.override_port",     std::bind(&torrent::runtime::NetworkConfig::override_dht_port, torrent::runtime::network_config()));
+  CMD2_ANY_VALUE_V    ("dht.override_port.set", std::bind(&torrent::runtime::NetworkConfig::set_override_dht_port, torrent::runtime::network_config(), std::placeholders::_2));
 
   CMD2_ANY_STRING     ("dht.add_node",          std::bind(&apply_dht_add_node, std::placeholders::_2));
   CMD2_ANY            ("dht.statistics",        std::bind(&core::DhtManager::dht_statistics, dht_manager));

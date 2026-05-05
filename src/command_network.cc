@@ -8,8 +8,8 @@
 #include <torrent/data/file_manager.h>
 #include <torrent/download/resource_manager.h>
 #include <torrent/net/http_stack.h>
-#include <torrent/net/network_config.h>
 #include <torrent/net/socket_address.h>
+#include <torrent/runtime/network_config.h>
 #include <torrent/tracker/tracker.h>
 #include <torrent/utils/log.h>
 #include <torrent/utils/option_strings.h>
@@ -31,18 +31,18 @@
 
 torrent::Object
 apply_encryption(const torrent::Object::list_type& args) {
-  uint32_t options_mask = torrent::net::NetworkConfig::encryption_none;
+  uint32_t options_mask = torrent::runtime::NetworkConfig::encryption_none;
 
   for (const auto& arg : args) {
     uint32_t opt = torrent::option_find_string(torrent::OPTION_ENCRYPTION, arg.as_string().c_str());
 
-    if (opt == torrent::net::NetworkConfig::encryption_none)
-      options_mask = torrent::net::NetworkConfig::encryption_none;
+    if (opt == torrent::runtime::NetworkConfig::encryption_none)
+      options_mask = torrent::runtime::NetworkConfig::encryption_none;
     else
       options_mask |= opt;
   }
 
-  torrent::config::network_config()->set_encryption_options(options_mask);
+  torrent::runtime::network_config()->set_encryption_options(options_mask);
 
   return torrent::Object();
 }
@@ -54,7 +54,7 @@ apply_tos(const torrent::Object::string_type& arg) {
   if (!rpc::parse_whole_value_nothrow(arg.c_str(), &value, 16, 1))
     value = torrent::option_find_string(torrent::OPTION_IP_TOS, arg.c_str());
 
-  torrent::config::network_config()->set_priority(value);
+  torrent::runtime::network_config()->set_priority(value);
 
   return torrent::Object();
 }
@@ -215,10 +215,10 @@ apply_xmlrpc_dialect(const std::string& arg) {
 
 void
 initialize_command_network() {
-  auto cm = torrent::connection_manager();
+  auto cm           = torrent::connection_manager();
   auto file_manager = torrent::file_manager();
-  auto http_stack = torrent::net_thread::http_stack();
-  auto nw_config = torrent::config::network_config();
+  auto http_stack   = torrent::net_thread::http_stack();
+  auto nw_config    = torrent::runtime::network_config();
 
   CMD2_ANY_STRING  ("encoding.add", std::bind(&apply_encoding_list, std::placeholders::_2));
 

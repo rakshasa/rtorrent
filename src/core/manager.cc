@@ -17,8 +17,8 @@
 #include <torrent/object_stream.h>
 #include <torrent/throttle.h>
 #include <torrent/net/http_stack.h>
-#include <torrent/net/network_config.h>
 #include <torrent/net/socket_address.h>
+#include <torrent/runtime/network_config.h>
 #include <torrent/runtime/network_manager.h>
 #include <torrent/utils/log.h>
 #include <torrent/utils/string_manip.h>
@@ -219,7 +219,7 @@ Manager::set_proxy_address(const std::string& addr) {
 
   try {
     torrent::sa_set_port(sa.get(), port);
-    torrent::config::network_config()->set_proxy_address(sa.get());
+    torrent::runtime::network_config()->set_proxy_address(sa.get());
 
   } catch (torrent::input_error& e) {
     throw e;
