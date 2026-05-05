@@ -2,6 +2,8 @@
 
 #include <functional>
 #include <cstdio>
+#include <string>
+#include <vector>
 #include <torrent/rate.h>
 #include <torrent/hash_string.h>
 #include <torrent/utils/log.h>
@@ -291,20 +293,33 @@ call_watch_command(const std::string& command, const std::string& path) {
 }
 
 torrent::Object
-directory_watch_added(const torrent::Object::list_type& args) {
+directory_watch(const torrent::Object::list_type& args, int flags) {
   if (args.size() != 2)
     throw torrent::input_error("Too few arguments.");
 
   auto& path = args.front().as_string();
   auto& command = args.back().as_string();
+  std::string expanded_path = expand_path(path);
 
   if (!control->directory_events()->open())
     throw torrent::input_error("Could not open inotify:" + std::string(std::strerror(errno)));
 
-  control->directory_events()->notify_on(path.c_str(),
-                                         torrent::directory_events::flag_on_added | torrent::directory_events::flag_on_updated,
+  control->directory_events()->notify_on(expanded_path.c_str(), flags,
                                          std::bind(&call_watch_command, command, std::placeholders::_1));
   return torrent::Object();
+}
+
+torrent::Object
+directory_watch_added(const torrent::Object::list_type& args) {
+  return directory_watch(args,
+                         torrent::directory_events::flag_on_added |
+                         torrent::directory_events::flag_on_updated);
+}
+
+torrent::Object
+directory_watch_ready(const torrent::Object::list_type& args) {
+  return directory_watch(args,
+                         torrent::directory_events::flag_on_ready);
 }
 
 void
@@ -344,6 +359,7 @@ initialize_command_events() {
   CMD2_ANY_LIST    ("d.multicall.filtered", std::bind(&d_multicall_filtered, std::placeholders::_2));
 
   CMD2_ANY_LIST    ("directory.watch.added", std::bind(&directory_watch_added, std::placeholders::_2));
+  CMD2_ANY_LIST    ("directory.watch.ready", std::bind(&directory_watch_ready, std::placeholders::_2));
 
   rpc::rpc.mark_safe("start_tied");
   rpc::rpc.mark_safe("stop_untied");
