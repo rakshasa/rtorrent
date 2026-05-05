@@ -4,7 +4,7 @@
 
 #include <array>
 #include <torrent/exceptions.h>
-#include <torrent/net/network_config.h>
+#include <torrent/runtime/network_config.h>
 #include <torrent/utils/log.h>
 #include <torrent/utils/option_strings.h>
 
@@ -178,11 +178,11 @@ TestParseOptions::test_flag_libtorrent() {
 
 void
 TestParseOptions::test_flags_libtorrent() {
-  FLAGS_LT_ENCRYPTION_ASSERT("", torrent::net::NetworkConfig::encryption_none);
-  FLAGS_LT_ENCRYPTION_ASSERT("none", torrent::net::NetworkConfig::encryption_none);
-  FLAGS_LT_ENCRYPTION_ASSERT("require_rc4", torrent::net::NetworkConfig::encryption_require_RC4);
-  FLAGS_LT_ENCRYPTION_ASSERT("require_RC4", torrent::net::NetworkConfig::encryption_require_RC4);
-  FLAGS_LT_ENCRYPTION_ASSERT("require_RC4 | enable_retry", torrent::net::NetworkConfig::encryption_require_RC4 | torrent::net::NetworkConfig::encryption_enable_retry);
+  FLAGS_LT_ENCRYPTION_ASSERT("",                           torrent::runtime::NetworkConfig::encryption_none);
+  FLAGS_LT_ENCRYPTION_ASSERT("none",                       torrent::runtime::NetworkConfig::encryption_none);
+  FLAGS_LT_ENCRYPTION_ASSERT("require_rc4",                torrent::runtime::NetworkConfig::encryption_require_RC4);
+  FLAGS_LT_ENCRYPTION_ASSERT("require_RC4",                torrent::runtime::NetworkConfig::encryption_require_RC4);
+  FLAGS_LT_ENCRYPTION_ASSERT("require_RC4 | enable_retry", torrent::runtime::NetworkConfig::encryption_require_RC4 | torrent::runtime::NetworkConfig::encryption_enable_retry);
 
   FLAGS_LT_ENCRYPTION_ASSERT_ERROR("require_");
 }
