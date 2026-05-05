@@ -9,6 +9,7 @@ namespace utils {
 
 struct file_status {
   int      m_flags;
+  int64_t  m_size;
   uint32_t m_mtime;
 };
 
@@ -32,14 +33,14 @@ public:
 
   using base_type::erase;
 
-  // Insert and return true if the entry does not exist or the new
-  // file's mtime is more recent.
+  // Insert and return true if the entry does not exist or the file's
+  // status has changed.
   bool                insert(const std::string& path);
 
   // Add a function for pruning a sorted list of paths.
 
   // Function for pruning entries that no longer points to a file, or
-  // has a different mtime.
+  // has different status.
   void                prune();
 };
 
