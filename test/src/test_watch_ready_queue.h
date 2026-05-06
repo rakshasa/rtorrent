@@ -5,7 +5,7 @@ class TestWatchReadyQueue : public TestFixtureWithMainThread {
 
   CPPUNIT_TEST(test_repeated_events_reset_quiet_time);
   CPPUNIT_TEST(test_missing_paths_expire_without_dispatch);
-  CPPUNIT_TEST(test_disable_discards_pending_loads);
+  CPPUNIT_TEST(test_shutdown_discards_pending_loads);
 
   CPPUNIT_TEST_SUITE_END();
 
@@ -15,5 +15,5 @@ public:
 
   void test_repeated_events_reset_quiet_time();
   void test_missing_paths_expire_without_dispatch();
-  void test_disable_discards_pending_loads();
+  void test_shutdown_discards_pending_loads();
 };

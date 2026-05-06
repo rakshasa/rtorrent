@@ -293,11 +293,6 @@ call_watch_command(const std::string& command, const std::string& path) {
   rpc::commands.call_catch(command.c_str(), rpc::make_target(), path);
 }
 
-static void
-queue_ready_watch_command(const std::string& command, const std::string& path) {
-  control->watch_ready_queue()->push(command, path);
-}
-
 torrent::Object
 directory_watch(const torrent::Object::list_type& args, int flags) {
   if (args.size() != 2)
@@ -312,7 +307,7 @@ directory_watch(const torrent::Object::list_type& args, int flags) {
 
   torrent::directory_events::slot_string slot =
     flags == torrent::directory_events::flag_on_ready ?
-    torrent::directory_events::slot_string(std::bind(&queue_ready_watch_command, command, std::placeholders::_1)) :
+    torrent::directory_events::slot_string([command](auto& arg) { control->watch_ready_queue()->push(command, arg); }) :
     torrent::directory_events::slot_string(std::bind(&call_watch_command, command, std::placeholders::_1));
 
   control->directory_events()->notify_on(expanded_path.c_str(), flags, slot);

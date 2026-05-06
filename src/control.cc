@@ -128,7 +128,7 @@ Control::is_shutdown_completed() {
 
 void
 Control::handle_shutdown() {
-  m_watch_ready_queue->disable();
+  m_watch_ready_queue->shutdown();
 
   rpc::commands.call_catch("event.system.shutdown", rpc::make_target(), "shutdown", "System shutdown event action failed: ");
 

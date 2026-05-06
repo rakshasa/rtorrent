@@ -105,13 +105,13 @@ TestWatchReadyQueue::test_missing_paths_expire_without_dispatch() {
 }
 
 void
-TestWatchReadyQueue::test_disable_discards_pending_loads() {
+TestWatchReadyQueue::test_shutdown_discards_pending_loads() {
   auto path = temporary_path();
   write_file(path, "torrent");
 
   utils::WatchReadyQueue queue;
   queue.push(test_load_command, path);
-  queue.disable();
+  queue.shutdown();
 
   m_main_thread->test_add_cached_time(std::chrono::seconds(1));
   m_main_thread->test_process_events_without_cached_time();
