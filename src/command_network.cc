@@ -10,6 +10,7 @@
 #include <torrent/net/http_stack.h>
 #include <torrent/net/socket_address.h>
 #include <torrent/runtime/network_config.h>
+#include <torrent/runtime/socket_manager.h>
 #include <torrent/tracker/tracker.h>
 #include <torrent/utils/log.h>
 #include <torrent/utils/option_strings.h>
@@ -215,10 +216,9 @@ apply_xmlrpc_dialect(const std::string& arg) {
 
 void
 initialize_command_network() {
-  auto cm           = torrent::connection_manager();
-  auto file_manager = torrent::file_manager();
-  auto http_stack   = torrent::net_thread::http_stack();
-  auto nw_config    = torrent::runtime::network_config();
+  auto file_manager   = torrent::file_manager();
+  auto http_stack     = torrent::net_thread::http_stack();
+  auto nw_config      = torrent::runtime::network_config();
 
   CMD2_ANY_STRING  ("encoding.add", std::bind(&apply_encoding_list, std::placeholders::_2));
 
@@ -289,9 +289,9 @@ initialize_command_network() {
   CMD2_ANY         ("network.max_open_files",        [file_manager](auto, auto)        { return file_manager->max_open_files(); });
   CMD2_ANY_VALUE_V ("network.max_open_files.set",    [file_manager](auto, auto& value) { return file_manager->set_max_open_files(value); });
   CMD2_ANY         ("network.total_handshakes",      [](auto, auto)                    { return torrent::total_handshakes(); });
-  CMD2_ANY         ("network.open_sockets",          [cm](auto, auto)                  { return cm->size(); });
-  CMD2_ANY         ("network.max_open_sockets",      [cm](auto, auto)                  { return cm->max_size(); });
-  CMD2_ANY_VALUE_V ("network.max_open_sockets.set",  [cm](auto, auto& value)           { return cm->set_max_size(value); });
+  CMD2_ANY         ("network.open_sockets",          [](auto, auto)                    { return torrent::runtime::socket_manager()->size(); });
+  CMD2_ANY         ("network.max_open_sockets",      [](auto, auto)                    { return torrent::runtime::socket_manager()->max_size(); });
+  CMD2_ANY_VALUE_V ("network.max_open_sockets.set",  [](auto, auto& value)             { return torrent::runtime::socket_manager()->set_max_size(value); });
 
   CMD2_ANY_STRING  ("network.scgi.open_port",        std::bind(&apply_scgi, std::placeholders::_2, 1));
   CMD2_ANY_STRING  ("network.scgi.open_local",       std::bind(&apply_scgi, std::placeholders::_2, 2));

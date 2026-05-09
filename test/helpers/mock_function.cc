@@ -17,6 +17,7 @@
 #define MOCK_LOG(log_fmt, ...)                                          \
   lt_log_print(torrent::LOG_MOCK_CALLS, "%s: " log_fmt, __func__, __VA_ARGS__);
 
+namespace {
 void
 mock_clear(bool ignore_assert) {
   MOCK_CLEANUP_MAP(torrent::fd__accept);
@@ -28,23 +29,12 @@ mock_clear(bool ignore_assert) {
   MOCK_CLEANUP_MAP(torrent::fd__setsockopt_int);
   MOCK_CLEANUP_MAP(torrent::fd__socket);
 
-  MOCK_CLEANUP_MAP(torrent::this_thread::event_open);
-  MOCK_CLEANUP_MAP(torrent::this_thread::event_open_and_count);
-  MOCK_CLEANUP_MAP(torrent::this_thread::event_close_and_count);
-  MOCK_CLEANUP_MAP(torrent::this_thread::event_closed_and_count);
-  MOCK_CLEANUP_MAP(torrent::this_thread::event_insert_read);
-  MOCK_CLEANUP_MAP(torrent::this_thread::event_insert_write);
-  MOCK_CLEANUP_MAP(torrent::this_thread::event_insert_error);
-  MOCK_CLEANUP_MAP(torrent::this_thread::event_remove_read);
-  MOCK_CLEANUP_MAP(torrent::this_thread::event_remove_write);
-  MOCK_CLEANUP_MAP(torrent::this_thread::event_remove_error);
-  MOCK_CLEANUP_MAP(torrent::this_thread::event_remove_and_close);
-
   MOCK_CLEANUP_MAP(torrent::random_uniform_uint16);
   MOCK_CLEANUP_MAP(torrent::random_uniform_uint32);
 
   mock_compare_map<torrent::Event>::values.clear();
-};
+}
+} // namespace
 
 void
 mock_init() {
@@ -59,6 +49,10 @@ mock_cleanup() {
 
 void
 mock_redirect_defaults([[maybe_unused]] mock_redirect_flags flags) {
+  mock_redirect(torrent::fd__bind, std::function<int(int socket, const sockaddr *address, socklen_t address_len)>([](int socket, const sockaddr *address, socklen_t address_len) {
+      return ::bind(socket, address, address_len);
+    }));
+
   mock_redirect(torrent::fd__close, std::function<int(int fildes)>([](int fildes) { return ::close(fildes); }));
   mock_redirect(torrent::fd__fcntl_int, std::function<int(int fildes, int cmd, int arg)>([](int fildes, int cmd, int arg) { return ::fcntl(fildes, cmd, arg); }));
   mock_redirect(torrent::fd__setsockopt_int, std::function<int(int socket, int level, int option_name, int option_value)>([](int socket, int level, int option_name, int option_value) { return ::setsockopt(socket, level, option_name, &option_value, sizeof(int)); }));
