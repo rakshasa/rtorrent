@@ -5,7 +5,6 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/un.h>
-#include <torrent/connection_manager.h>
 #include <torrent/torrent.h>
 #include <torrent/exceptions.h>
 #include <torrent/net/fd.h>
@@ -34,24 +33,22 @@ SCgi::~SCgi() {
 
 void
 SCgi::open_port(sockaddr* sa, unsigned int length, bool dont_route) {
-  torrent::runtime::socket_manager()->open_event_or_throw(this, [&]() {
-      int fd = torrent::fd_open_family(torrent::fd_flag_stream | torrent::fd_flag_nonblock | torrent::fd_flag_reuse_address,
-                                       sa->sa_family);
+  int fd = torrent::fd_open_family(torrent::fd_flag_stream | torrent::fd_flag_nonblock | torrent::fd_flag_reuse_address,
+                                   sa->sa_family);
 
-      if (fd == -1)
-        throw torrent::resource_error("Could not open socket for listening: " + std::string(std::strerror(errno)));
+  if (fd == -1)
+    throw torrent::resource_error("Could not open socket for listening: " + std::string(std::strerror(errno)));
 
-      if (dont_route && !torrent::fd_set_dont_route(fd, true)) {
-        torrent::fd_close(fd);
-        throw torrent::resource_error("Could not set socket option IP_DONTROUTE: " + std::string(std::strerror(errno)));
-      }
+  if (dont_route && !torrent::fd_set_dont_route(fd, true)) {
+    torrent::fd_close(fd);
+    throw torrent::resource_error("Could not set socket option IP_DONTROUTE: " + std::string(std::strerror(errno)));
+  }
 
-      set_file_descriptor(fd);
+  set_file_descriptor(fd);
 
-      open(reinterpret_cast<sockaddr*>(sa), length);
-    });
+  open(reinterpret_cast<sockaddr*>(sa), length);
 
-  torrent::connection_manager()->inc_socket_count();
+  torrent::runtime::socket_manager()->register_event_or_throw(this, []() {});
 }
 
 void
@@ -63,35 +60,33 @@ SCgi::open_named(const std::string& filename) {
 
   sockaddr_un* sa = reinterpret_cast<sockaddr_un*>(buffer.get());
   sa->sun_family = AF_LOCAL;
+
   std::memcpy(sa->sun_path, filename.c_str(), filename.size() + 1);
 
-  torrent::runtime::socket_manager()->open_event_or_throw(this, [&]() {
-      int fd = torrent::fd_open_local(torrent::fd_flag_stream | torrent::fd_flag_nonblock | torrent::fd_flag_reuse_address);
+  int fd = torrent::fd_open_local(torrent::fd_flag_stream | torrent::fd_flag_nonblock | torrent::fd_flag_reuse_address);
 
-      if (fd == -1)
-        throw torrent::resource_error("Could not open socket for listening: " + std::string(std::strerror(errno)));
+  if (fd == -1)
+    throw torrent::resource_error("Could not open socket for listening: " + std::string(std::strerror(errno)));
 
-      set_file_descriptor(fd);
+  set_file_descriptor(fd);
 
-      open(reinterpret_cast<sockaddr*>(sa), offsetof(struct sockaddr_un, sun_path) + filename.size() + 1);
-    });
+  open(reinterpret_cast<sockaddr*>(sa), offsetof(struct sockaddr_un, sun_path) + filename.size() + 1);
 
-  torrent::connection_manager()->inc_socket_count();
+  torrent::runtime::socket_manager()->register_event_or_throw(this, []() {});
 
   m_path = filename;
 }
 
 void
 SCgi::open_fd(int fd) {
-  torrent::runtime::socket_manager()->open_event_or_throw(this, [&]() {
-      if (!torrent::fd_set_nonblock(fd))
-        throw torrent::resource_error("Could not set non-blocking on systemd fd: " +
-                                      std::string(std::strerror(errno)));
-      set_file_descriptor(fd);
-      // fd is already bound and listening; no bind()/listen() needed.
-    });
+  if (!torrent::fd_set_nonblock(fd))
+    throw torrent::resource_error("Could not set non-blocking on systemd fd: " +
+                                  std::string(std::strerror(errno)));
+  set_file_descriptor(fd);
 
-  torrent::connection_manager()->inc_socket_count();
+  // fd is already bound and listening; no bind()/listen() needed.
+
+  torrent::runtime::socket_manager()->register_event_or_throw(this, []() {});
 }
 
 void
@@ -132,14 +127,12 @@ SCgi::stop() {
       itr->close();
   }
 
-  torrent::runtime::socket_manager()->close_event_or_throw(this, [this]() {
+  torrent::runtime::socket_manager()->unregister_event_or_throw(this, [this]() {
       torrent::this_thread::poll()->remove_and_close(this);
 
       torrent::fd_close(file_descriptor());
       set_file_descriptor(-1);
     });
-
-  torrent::connection_manager()->dec_socket_count();
 
   if (!m_path.empty())
     ::unlink(m_path.c_str());
@@ -159,34 +152,34 @@ SCgi::event_read() {
     if (m_current == m_tasks.end())
       m_current = std::find_if(m_tasks.begin(), prev, [](const auto& task) { return !task->is_open(); });
 
+    int fd = torrent::fd_accept(file_descriptor());
+
+    if (fd == -1) {
+      if (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR)
+        return;
+
+      // Force a new event_read() call just to be sure we don't enter an infinite loop.
+      if (errno == ECONNABORTED)
+        return;
+
+      throw torrent::resource_error("Listener port accept() failed: " + std::string(std::strerror(errno)));
+    }
+
     if (m_current == prev) {
-      // TODO: Currently just close, although we should remove ourselves from read.
-      int fd = torrent::fd_accept(file_descriptor());
-
-      if (fd != -1)
-        torrent::fd_close(fd);
-
+      torrent::fd_close(fd);
       continue;
     }
 
-    auto open_func = [this, task = m_current->get()]() {
-        int fd = torrent::fd_accept(file_descriptor());
-
-        if (fd == -1) {
-          if (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR)
-            return;
-
-          // Force a new event_read() call just to be sure we don't enter an infinite loop.
-          if (errno == ECONNABORTED)
-            return;
-
-          throw torrent::resource_error("Listener port accept() failed: " + std::string(std::strerror(errno)));
-        }
-
+    auto open_func = [this, fd, task = m_current->get()]() {
         task->open(this, fd);
       };
 
-    auto cleanup_func = [task = m_current->get()]() {
+    auto cleanup_func = [fd, task = m_current->get()](bool opened) {
+        if (!opened) {
+          torrent::fd_close(fd);
+          return;
+        }
+
         task->cancel_open();
       };
 
