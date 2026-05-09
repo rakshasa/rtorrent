@@ -105,8 +105,8 @@ private:
   bool          m_is_jsonrpc_enabled{true};
   bool          m_is_xmlrpc_enabled{true};
 
-  std::atomic<bool>         m_scgi_allow_compression{false};
-  std::atomic<unsigned int> m_scgi_min_compress_size{0};
+  std::atomic<bool>         m_scgi_allow_compression{true};
+  std::atomic<unsigned int> m_scgi_min_compress_size{1000};
 
   slot_download m_slot_find_download;
   slot_file     m_slot_find_file;
