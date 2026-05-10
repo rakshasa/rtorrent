@@ -120,6 +120,9 @@ SCgiTask::event_read() {
     if (current == m_buffer.data())
       return;
 
+    if (current == m_buffer.data() + m_position)
+      return;
+
     if (*current != ':' || header_size < 17 || header_size > max_header_size)
       goto event_read_failed;
 
