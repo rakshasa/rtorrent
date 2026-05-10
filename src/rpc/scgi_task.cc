@@ -34,6 +34,7 @@ SCgiTask::open(SCgi* parent, int fd) {
 
   m_content_length      = 0;
   m_content_type        = XML;
+  m_content_type_set    = false;
   m_accepts_compression = false;
   m_trusted             = true;  // SCgiTask is pooled and reused; reset trust to default
                                  // so a prior untrusted connection does not leak its
@@ -159,6 +160,11 @@ SCgiTask::event_read() {
   }
 
   lt_log_print_dump(torrent::LOG_RPC_DUMP, m_buffer.data() + m_body, m_content_length, "scgi", "RPC read.", 0);
+
+  if (!m_content_type_set) {
+    if (m_buffer[m_body] == '{' || m_buffer[m_body] == '[')
+      m_content_type = ContentType::JSON;
+  }
 
   receive_call(m_buffer.data() + m_body, m_content_length);
   return;
@@ -293,19 +299,17 @@ scgi_match_content_type(const std::string& content_type, const char* type) {
 bool
 SCgiTask::detect_content_type(const std::string& content_type) {
   if (content_type.empty()) {
-    // If no CONTENT_TYPE was supplied, peek at the body to check if it's JSON
-    // { is a single request object, while [ is a batch array
-
-    if (m_buffer[m_body] == '{' || m_buffer[m_body] == '[')
-      m_content_type = ContentType::JSON;
-    else
-      m_content_type = ContentType::XML;
+    // Defer body-peek detection until the full body is received.
+    // event_read() will auto-detect from the first body byte after
+    // confirming m_position >= m_body + m_content_length.
 
   } else if (scgi_match_content_type(content_type, "application/json")) {
-    m_content_type = ContentType::JSON;
+    m_content_type     = ContentType::JSON;
+    m_content_type_set = true;
 
   } else if (scgi_match_content_type(content_type, "text/xml")) {
-    m_content_type = ContentType::XML;
+    m_content_type     = ContentType::XML;
+    m_content_type_set = true;
 
   } else {
     // If the content type is not JSON or XML, we don't know how to handle it.

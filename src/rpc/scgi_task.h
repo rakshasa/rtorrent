@@ -67,6 +67,7 @@ private:
 
   bool                m_accepts_compression{};
   bool                m_trusted{true};
+  bool                m_content_type_set{false};
 };
 
 }
