@@ -36,6 +36,15 @@ trackers.use_udp.set = no
 throttle.max_uploads.set = 100
 throttle.max_uploads.global.set = 250
 
+# Global upload and download rate in KiB.
+# "0" for unlimited.
+#
+# When both throttles are disabled (set to 0), the throttle section is
+# hidden from the status bar.
+#
+# throttle.global_down.max_rate.set_kb = 0
+# throttle.global_up.max_rate.set_kb = 0
+
 throttle.min_peers.normal.set = 20
 throttle.max_peers.normal.set = 60
 throttle.min_peers.seed.set = 30

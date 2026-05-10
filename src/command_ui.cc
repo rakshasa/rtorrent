@@ -850,6 +850,8 @@ initialize_command_ui() {
 
   // TODO: Add 'option_string' for rtorrent-specific options.
   CMD2_VAR_STRING("ui.torrent_list.layout", "full");
+  CMD2_VAR_STRING("ui.torrent_list.rate_unit_internal", "KB/s");
+  CMD2_REDIRECT("ui.torrent_list.rate_unit", "ui.torrent_list.rate_unit_internal.set");
 
   // Move.
   CMD2_ANY("print", &apply_print);

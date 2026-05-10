@@ -582,7 +582,8 @@ torrent::input_error exception on bad input.
         <term>set_upload_rate = <replaceable>TODO</replaceable></term>
         <term>set_download_rate = <replaceable>TODO</replaceable></term>
         <listitem><para>
-Set the maximum global uploand and download rates.
+Set the maximum global upload and download rates. When both are
+disabled, the throttle section is hidden from the status bar.
         </para></listitem>
       </varlistentry>
 
