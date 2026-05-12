@@ -45,19 +45,25 @@ private:
     bool        m_has_status{};
     time_type   m_first_seen{};
     time_type   m_last_changed{};
+    time_type   m_next_time{};
   };
 
   using ready_list = std::vector<std::pair<std::string, std::string>>;
+  using entry_list = std::vector<Entry*>;
 
   static FileStatus  file_status(const std::string& path);
   static bool        same_status(const FileStatus& lhs, const FileStatus& rhs);
+  static bool        compare_next_time(const Entry* lhs, const Entry* rhs);
 
   void               process();
+  void               push_entry(Entry* entry);
+  void               update_entry(Entry* entry);
+  void               update_next_time(Entry* entry);
   void               update_status(Entry* entry);
   void               schedule();
-  time_type          next_time(const Entry& entry) const;
 
   std::map<std::string, Entry>   m_entries;
+  entry_list                     m_entry_queue;
   torrent::utils::SchedulerEntry m_task_process;
   bool                           m_active{true};
 };

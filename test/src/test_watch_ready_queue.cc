@@ -91,6 +91,30 @@ TestWatchReadyQueue::test_repeated_events_reset_quiet_time() {
 }
 
 void
+TestWatchReadyQueue::test_unrelated_events_do_not_delay_missing_retry() {
+  auto path = temporary_path();
+  auto unrelated_path = temporary_path();
+
+  utils::WatchReadyQueue queue;
+  queue.push(test_load_command, path);
+
+  m_main_thread->test_add_cached_time(std::chrono::milliseconds(100));
+  queue.push(test_load_command, unrelated_path);
+
+  m_main_thread->test_add_cached_time(std::chrono::milliseconds(160));
+  write_file(path, "torrent");
+  m_main_thread->test_process_events_without_cached_time();
+  CPPUNIT_ASSERT(loaded_paths.empty());
+
+  m_main_thread->test_add_cached_time(std::chrono::milliseconds(501));
+  m_main_thread->test_process_events_without_cached_time();
+  CPPUNIT_ASSERT(loaded_paths.size() == 1);
+  CPPUNIT_ASSERT(loaded_paths.front() == path);
+
+  CPPUNIT_ASSERT(::unlink(path.c_str()) == 0);
+}
+
+void
 TestWatchReadyQueue::test_missing_paths_expire_without_dispatch() {
   auto path = temporary_path();
 
