@@ -10,6 +10,7 @@
 #include <torrent/data/file.h>
 #include <torrent/data/file_list.h>
 #include <torrent/utils/file_stat.h>
+#include <torrent/utils/log.h>
 
 #include "rpc/parse_commands.h"
 
@@ -72,10 +73,12 @@ Download::connection_list_size() const {
 
 void
 Download::receive_tracker_msg(std::string msg) {
-  if (msg.empty())
+  if (msg.empty()) {
     m_message = "";
-  else
+  } else {
     m_message = "Tracker: [" + msg + "]";
+    lt_log_print_info(torrent::LOG_WARN, m_download.info(), "tracker", "%s", m_message.c_str());
+  }
 }
 
 float
