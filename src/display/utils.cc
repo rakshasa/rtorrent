@@ -181,7 +181,7 @@ print_download_status(char* first, char* last, core::Download* d) {
 char*
 print_download_column_compact(char* first, char* last) {
   first = print_buffer(first, last, " %-64.64s", "Name");
-  first = print_buffer(first, last, "| Status | Downloaded |    Size    | Done |  Up Rate  | Down Rate |  Uploaded  |    ETA    | Ratio | Misc ");
+  first = print_buffer(first, last, "| Status |  Downloaded  |     Size     | Done |  Up Rate  | Down Rate |   Uploaded   |    ETA    | Ratio | Misc ");
 
   if (first > last)
     throw torrent::internal_error("print_download_column_compact(...) wrote past end of the buffer.");
@@ -201,8 +201,8 @@ print_download_info_compact(char* first, char* last, core::Download* d) {
   else
     first = print_buffer(first, last, "        ");
 
-  first = print_buffer(first, last, "| %7.1f MB ", (double)d->download()->bytes_done() / (double)(1 << 20));
-  first = print_buffer(first, last, "| %7.1f MB ", (double)d->download()->file_list()->size_bytes() / (double)(1 << 20));
+  first = print_buffer(first, last, "| %9.1f MB ", (double)d->download()->bytes_done() / (double)(1 << 20));
+  first = print_buffer(first, last, "| %9.1f MB ", (double)d->download()->file_list()->size_bytes() / (double)(1 << 20));
   first = print_buffer(first, last, "|");
 
   if (d->is_done())
@@ -214,7 +214,7 @@ print_download_info_compact(char* first, char* last, core::Download* d) {
 
   first = print_buffer(first, last, "| %6.1f KB ", (double)d->info()->up_rate()->rate() / (1 << 10));
   first = print_buffer(first, last, "| %6.1f KB ", (double)d->info()->down_rate()->rate() / (1 << 10));
-  first = print_buffer(first, last, "| %7.1f MB ", (double)d->info()->up_rate()->total() / (1 << 20));
+  first = print_buffer(first, last, "| %9.1f MB ", (double)d->info()->up_rate()->total() / (1 << 20));
   first = print_buffer(first, last, "| ");
 
   if (d->download()->info()->is_active() && !d->is_done()) {
