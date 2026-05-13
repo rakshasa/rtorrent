@@ -86,6 +86,18 @@ apply_enable_trackers(int64_t arg) {
   return torrent::Object();
 }
 
+torrent::Object
+apply_use_udp_trackers(int64_t arg) {
+  const bool use_udp = arg != 0;
+
+  control->object_storage()->set_bool(torrent::raw_string::from_c_str("trackers.use_udp"), use_udp);
+
+  for (auto download : *control->core()->download_list())
+    download->enable_udp_trackers(use_udp);
+
+  return torrent::Object(static_cast<int64_t>(use_udp));
+}
+
 void
 initialize_command_tracker() {
   CMD2_TRACKER        ("t.is_busy",           std::bind(&torrent::tracker::Tracker::is_busy, std::placeholders::_1));
@@ -137,7 +149,10 @@ initialize_command_tracker() {
   CMD2_ANY_VALUE      ("trackers.disable",    std::bind(&apply_enable_trackers, int64_t(0)));
   CMD2_VAR_BOOL       ("trackers.delay_scrape", false);
   CMD2_VAR_VALUE      ("trackers.numwant",    -1);
-  CMD2_VAR_BOOL       ("trackers.use_udp",    true);
+  control->object_storage()->insert_c_str("trackers.use_udp", int64_t(1), rpc::object_storage::flag_bool_type);
+  CMD2_ANY            ("trackers.use_udp",    std::bind(&rpc::object_storage::get, control->object_storage(),
+                                                        torrent::raw_string::from_c_str("trackers.use_udp")));
+  CMD2_ANY_VALUE      ("trackers.use_udp.set", std::bind(&apply_use_udp_trackers, std::placeholders::_2));
 
   auto dht_manager = control->dht_manager();
 
