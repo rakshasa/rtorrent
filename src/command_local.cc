@@ -209,6 +209,8 @@ initialize_command_local() {
   CMD2_VAR_C_STRING("system.client_version",        PACKAGE_VERSION);
   CMD2_VAR_C_STRING("system.library_version",       torrent::version());
 
+  CMD2_VAR_BOOL    ("system.config.ignore_errors",  true);
+
   CMD2_VAR_VALUE   ("system.file.allocate",         0);
   CMD2_VAR_VALUE   ("system.file.max_size",         (int64_t)512 << 30);
   CMD2_VAR_VALUE   ("system.file.split_size",       -1);
@@ -339,6 +341,7 @@ initialize_command_local() {
   rpc::rpc.mark_safe("system.api_version");
   rpc::rpc.mark_safe("system.client_version");
   rpc::rpc.mark_safe("system.library_version");
+  rpc::rpc.mark_safe("system.config.ignore_errors");
   rpc::rpc.mark_safe("system.file.max_size");
   rpc::rpc.mark_safe("system.file.split_size");
   rpc::rpc.mark_safe("system.file.split_suffix");

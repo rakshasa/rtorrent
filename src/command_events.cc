@@ -159,7 +159,10 @@ apply_load(const torrent::Object::list_type& args, int flags) {
 }
 
 void apply_import(const std::string& path)     { if (!rpc::parse_command_file(path)) throw torrent::input_error("Could not open option file: " + path); }
-void apply_try_import(const std::string& path) { if (!rpc::parse_command_file(path)) control->core()->push_log_std("Could not read resource file: " + path); }
+void apply_try_import(const std::string& path) {
+  if (!rpc::parse_command_file(path, rpc::call_command_value("system.config.ignore_errors") != 0))
+    control->core()->push_log_std("Could not read resource file: " + path);
+}
 
 torrent::Object
 apply_close_low_diskspace(int64_t arg, uint32_t skip_priority) {

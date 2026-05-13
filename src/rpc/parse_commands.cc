@@ -5,6 +5,7 @@
 #include <string>
 #include <functional>
 #include <torrent/exceptions.h>
+#include <torrent/utils/log.h>
 
 #include "globals.h"
 #include "rpc/parse.h"
@@ -139,7 +140,7 @@ parse_command_multiple(target_type target, const char* first, const char* last) 
 }
 
 bool
-parse_command_file(const std::string& path) {
+parse_command_file(const std::string& path, bool ignore_errors) {
   std::fstream file(expand_path(path).c_str(), std::ios::in);
 
   if (!file.is_open())
@@ -176,8 +177,17 @@ parse_command_file(const std::string& path) {
         continue;
       }
 
-      // Would be nice to make this zero-copy.
-      parse_command(make_target(), buffer, buffer + getCount);
+      try {
+        // Would be nice to make this zero-copy.
+        parse_command(make_target(), buffer, buffer + getCount);
+
+      } catch (torrent::input_error& e) {
+        if (!ignore_errors)
+          throw;
+
+        lt_log_print(torrent::LOG_WARN, "Ignoring option file error: %s:%u: %s", path.c_str(), lineNumber, e.what());
+      }
+
       getCount = 0;
     }
 

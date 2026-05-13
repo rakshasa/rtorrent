@@ -59,6 +59,8 @@ network.xmlrpc.size_limit.set = 4M
 # Basic operational settings (no need to change these)
 session.path.set = (cat, (cfg.session))
 directory.default.set = (cat, (cfg.download))
+# Continue startup after invalid configuration lines, logging each ignored error.
+#system.config.ignore_errors.set = true
 log.execute = (cat, (cfg.logs), "execute.log")
 ##log.xmlrpc = (cat, (cfg.logs), "xmlrpc.log")
 execute.nothrow = sh, -c, (cat, "echo >",\

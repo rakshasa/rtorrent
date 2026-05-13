@@ -59,7 +59,7 @@ void                   parse_command_execute(target_type target, torrent::Object
 inline torrent::Object parse_command_single(target_type target, const char* first)   { return parse_command(target, first, first + std::strlen(first)).first; }
 inline torrent::Object parse_command_multiple(target_type target, const char* first) { return parse_command_multiple(target, first, first + std::strlen(first)); }
 
-bool                   parse_command_file(const std::string& path);
+bool                   parse_command_file(const std::string& path, bool ignore_errors = false);
 const char*            parse_command_name(const char* first, const char* last, std::string* dest);
 
 inline torrent::Object

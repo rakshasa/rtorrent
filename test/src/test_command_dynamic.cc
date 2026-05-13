@@ -6,6 +6,10 @@
 #include "globals.h"
 #include "rpc/parse_commands.h"
 
+#include <cstdlib>
+#include <fstream>
+#include <unistd.h>
+
 CPPUNIT_TEST_SUITE_REGISTRATION(TestCommandDynamic);
 
 void initialize_command_dynamic();
@@ -60,4 +64,28 @@ TestCommandDynamic::test_old_style() {
 
   rpc::commands.call_command("method.insert", rpc::create_object_list("test_old_style.4", "simple", "cat=test.3"));
   CPPUNIT_ASSERT(rpc::commands.call_command("test_old_style.4", torrent::Object()).as_string() == "test.3");
+}
+
+void
+TestCommandDynamic::test_parse_command_file_ignore_errors() {
+  char path[] = "/tmp/rtorrent-command-file-XXXXXX";
+  int fd = mkstemp(path);
+  CPPUNIT_ASSERT(fd != -1);
+  close(fd);
+
+  {
+    std::ofstream file(path);
+
+    file << "method.insert.value = test_parse_command_file_ignore_errors.before,1\n";
+    file << "method.does_not_exist = broken\n";
+    file << "method.insert.value = test_parse_command_file_ignore_errors.after,2\n";
+  }
+
+  CPPUNIT_ASSERT_THROW(rpc::parse_command_file(path), torrent::input_error);
+  CPPUNIT_ASSERT(rpc::parse_command_file(path, true));
+
+  CPPUNIT_ASSERT(rpc::commands.call_command("test_parse_command_file_ignore_errors.before", torrent::Object()).as_value() == 1);
+  CPPUNIT_ASSERT(rpc::commands.call_command("test_parse_command_file_ignore_errors.after", torrent::Object()).as_value() == 2);
+
+  unlink(path);
 }
