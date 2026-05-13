@@ -63,7 +63,7 @@ if test ${with_xmlrpc_c+y} && test ${with_xmlrpc_tinyxml2+y}; then
   AC_MSG_ERROR([--with-xmlrpc-c and --with-xmlrpc-tinyxml2 cannot be used together. Please choose only one])
 fi
 
-AC_DEFINE(USER_AGENT, [std::string(PACKAGE "/" VERSION "/") + torrent::version()], Http user agent)
+AC_DEFINE(USER_AGENT, [std::string(PACKAGE "/" VERSION)], Http user agent)
 
 dnl Only update global build variables immediately before generating the output,
 dnl to avoid affecting the global build environment for other autoconf checks.

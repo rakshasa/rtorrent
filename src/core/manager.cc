@@ -65,6 +65,19 @@ Manager::~Manager() {
   torrent::Throttle::destroy_throttle(m_throttles["NULL"].first);
 }
 
+bool
+Manager::is_download_shutdown_completed() {
+  for (const auto& download : *download_list()) {
+    if (download->tracker_controller().is_active())
+      return false;
+
+    if (download->tracker_controller().has_active_trackers_not_dht())
+      return false;
+  }
+
+  return true;
+}
+
 void
 Manager::set_hashing_view(View* v) {
   if (v == nullptr || m_hashingView != nullptr)

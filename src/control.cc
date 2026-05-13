@@ -121,7 +121,7 @@ Control::is_shutdown_completed() {
   if (torrent::net_thread::http_stack()->size() != 0 || !core()->http_queue()->empty())
     return false;
 
-  return torrent::is_inactive();
+  return core()->is_download_shutdown_completed();
 }
 
 void

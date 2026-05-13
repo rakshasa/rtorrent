@@ -11,6 +11,7 @@
 #include <torrent/chunk_manager.h>
 #include <torrent/data/file_manager.h>
 #include <torrent/data/chunk_utils.h>
+#include <torrent/runtime/runtime.h>
 #include <torrent/utils/chrono.h>
 #include <torrent/utils/option_strings.h>
 
@@ -207,7 +208,7 @@ initialize_command_local() {
 
   CMD2_VAR_C_STRING("system.api_version",           (int64_t)API_VERSION);
   CMD2_VAR_C_STRING("system.client_version",        PACKAGE_VERSION);
-  CMD2_VAR_C_STRING("system.library_version",       torrent::version());
+  CMD2_VAR_C_STRING("system.library_version",       torrent::runtime::version());
 
   CMD2_VAR_VALUE   ("system.file.allocate",         0);
   CMD2_VAR_VALUE   ("system.file.max_size",         (int64_t)512 << 30);

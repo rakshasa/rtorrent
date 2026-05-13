@@ -35,6 +35,8 @@ public:
   Manager();
   ~Manager();
 
+  bool                is_download_shutdown_completed();
+
   DownloadList*       download_list()                     { return m_download_list.get(); }
   FileStatusCache*    file_status_cache()                 { return m_file_status_cache.get(); }
 

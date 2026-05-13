@@ -18,6 +18,7 @@
 #include <torrent/net/socket_address.h>
 #include <torrent/peer/client_info.h>
 #include <torrent/runtime/network_config.h>
+#include <torrent/runtime/runtime.h>
 #include <torrent/runtime/socket_manager.h>
 
 #include "control.h"
@@ -426,7 +427,7 @@ print_status_extra(char* first, char* last) {
                        torrent::net_thread::http_stack()->max_total_connections());
 
   first = print_buffer(first, last, " [S %i/%i/%i]",
-                       torrent::total_handshakes(),
+                       torrent::runtime::total_handshakes(),
                        torrent::runtime::socket_manager()->size(),
                        torrent::runtime::socket_manager()->max_size());
 
