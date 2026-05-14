@@ -12,7 +12,6 @@
 #include <torrent/utils/resume.h>
 #include <torrent/object.h>
 #include <torrent/connection_manager.h>
-#include <torrent/error.h>
 #include <torrent/exceptions.h>
 #include <torrent/object_stream.h>
 #include <torrent/throttle.h>
