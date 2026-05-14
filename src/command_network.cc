@@ -10,6 +10,7 @@
 #include <torrent/net/http_stack.h>
 #include <torrent/net/socket_address.h>
 #include <torrent/runtime/network_config.h>
+#include <torrent/runtime/runtime.h>
 #include <torrent/runtime/socket_manager.h>
 #include <torrent/tracker/tracker.h>
 #include <torrent/utils/log.h>
@@ -288,7 +289,7 @@ initialize_command_network() {
   CMD2_ANY         ("network.open_files",            [file_manager](auto, auto)        { return file_manager->open_files(); });
   CMD2_ANY         ("network.max_open_files",        [file_manager](auto, auto)        { return file_manager->max_open_files(); });
   CMD2_ANY_VALUE_V ("network.max_open_files.set",    [file_manager](auto, auto& value) { return file_manager->set_max_open_files(value); });
-  CMD2_ANY         ("network.total_handshakes",      [](auto, auto)                    { return torrent::total_handshakes(); });
+  CMD2_ANY         ("network.total_handshakes",      [](auto, auto)                    { return torrent::runtime::total_handshakes(); });
   CMD2_ANY         ("network.open_sockets",          [](auto, auto)                    { return torrent::runtime::socket_manager()->size(); });
   CMD2_ANY         ("network.max_open_sockets",      [](auto, auto)                    { return torrent::runtime::socket_manager()->max_size(); });
   CMD2_ANY_VALUE_V ("network.max_open_sockets.set",  [](auto, auto& value)             { return torrent::runtime::socket_manager()->set_max_size(value); });

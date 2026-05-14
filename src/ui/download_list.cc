@@ -6,6 +6,7 @@
 #include <sstream>
 #include <torrent/exceptions.h>
 #include <torrent/torrent.h>
+#include <torrent/runtime/runtime.h>
 #include <torrent/utils/log.h>
 #include <torrent/utils/string_manip.h>
 
@@ -176,7 +177,7 @@ DownloadList::activate_display(Display displayType) {
   switch (displayType) {
   case DISPLAY_DOWNLOAD_LIST:
     control->ui()->window_title()->set_title("rTorrent " PACKAGE_VERSION "/" +
-                                             std::string(torrent::version()) + " - " +
+                                             std::string(torrent::runtime::version()) + " - " +
                                              rpc::call_command_string("session.name"));
     break;
   case DISPLAY_LOG:

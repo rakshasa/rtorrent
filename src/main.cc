@@ -160,7 +160,7 @@ main(int argc, char** argv) {
     initialize_rpc_slots();
 
     torrent::initialize();
-    torrent::set_main_thread_slots(std::bind(&client_perform));
+    torrent::main_thread::set_client_callback(&client_perform);
 
     scgi::ThreadScgi::create_thread();
     session::ThreadSession::create_thread();

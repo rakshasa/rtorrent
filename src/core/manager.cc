@@ -12,7 +12,6 @@
 #include <torrent/utils/resume.h>
 #include <torrent/object.h>
 #include <torrent/connection_manager.h>
-#include <torrent/error.h>
 #include <torrent/exceptions.h>
 #include <torrent/object_stream.h>
 #include <torrent/throttle.h>
@@ -63,6 +62,19 @@ Manager::Manager()
 
 Manager::~Manager() {
   torrent::Throttle::destroy_throttle(m_throttles["NULL"].first);
+}
+
+bool
+Manager::is_download_shutdown_completed() {
+  for (const auto& download : *download_list()) {
+    if (download->tracker_controller().is_active())
+      return false;
+
+    if (download->tracker_controller().has_active_trackers_not_dht())
+      return false;
+  }
+
+  return true;
 }
 
 void
