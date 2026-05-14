@@ -9,6 +9,7 @@
 CPPUNIT_TEST_SUITE_REGISTRATION(TestCommandDynamic);
 
 void initialize_command_dynamic();
+void initialize_command_tracker_use_udp();
 void initialize_command_ui();
 
 void
@@ -60,4 +61,17 @@ TestCommandDynamic::test_old_style() {
 
   rpc::commands.call_command("method.insert", rpc::create_object_list("test_old_style.4", "simple", "cat=test.3"));
   CPPUNIT_ASSERT(rpc::commands.call_command("test_old_style.4", torrent::Object()).as_string() == "test.3");
+}
+
+void
+TestCommandDynamic::test_trackers_use_udp() {
+  initialize_command_tracker_use_udp();
+
+  CPPUNIT_ASSERT(rpc::commands.call_command("trackers.use_udp", torrent::Object()).as_value() == 1);
+
+  rpc::parse_command_single(rpc::make_target(), "trackers.use_udp.set = no");
+  CPPUNIT_ASSERT(rpc::commands.call_command("trackers.use_udp", torrent::Object()).as_value() == 0);
+
+  rpc::parse_command_single(rpc::make_target(), "trackers.use_udp.set = yes");
+  CPPUNIT_ASSERT(rpc::commands.call_command("trackers.use_udp", torrent::Object()).as_value() == 1);
 }
