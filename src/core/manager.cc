@@ -67,10 +67,11 @@ Manager::~Manager() {
 bool
 Manager::is_download_shutdown_completed() {
   for (const auto& download : *download_list()) {
-    if (download->tracker_controller().is_active())
-      return false;
+    // TODO: Why is this being checked?
+    // if (download->tracker_controller().is_active())
+    //   return false;
 
-    if (download->tracker_controller().has_active_trackers_not_dht())
+    if (download->tracker_controller().has_active_trackers_not_dht_scrape_disownable())
       return false;
   }
 
