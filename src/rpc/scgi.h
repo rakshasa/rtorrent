@@ -16,24 +16,24 @@ public:
   SCgi();
   ~SCgi() override;
 
-  const char*         type_name() const override { return "scgi"; }
+  const char*        type_name() const override { return "scgi"; }
 
-  void                open_port(sockaddr* sa, unsigned int length, bool dont_route);
-  void                open_named(const std::string& filename);
-  void                open_fd(int fd);
+  void               open_port(sockaddr* sa, unsigned int length, bool dont_route);
+  void               open_named(const std::string& filename);
+  void               open_fd(int fd);
 
-  void                activate();
+  void               activate();
 
-  void                stop();
+  void               stop();
 
-  const std::string&  path() const                             { return m_path; }
+  const std::string& path() const { return m_path; }
 
-  int                 log_fd() const                           { return m_logFd; }
-  void                set_log_fd(int fd)                       { m_logFd = fd; }
+  int                log_fd() const { return m_logFd; }
+  void               set_log_fd(int fd) { m_logFd = fd; }
 
-  void                event_read() override;
-  void                event_write() override;
-  void                event_error() override;
+  void               event_read() override;
+  void               event_write() override;
+  void               event_error() override;
 
 private:
   using task_list = std::array<std::unique_ptr<SCgiTask>, max_tasks>;
@@ -47,6 +47,6 @@ private:
   task_list::iterator m_current;
 };
 
-}
+} // namespace rpc
 
 #endif
