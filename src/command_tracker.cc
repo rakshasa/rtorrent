@@ -128,7 +128,7 @@ initialize_command_tracker() {
   CMD2_VAR_BOOL       ("trackers.delay_scrape", false);
   CMD2_VAR_VALUE      ("trackers.numwant",    -1);
 
-  CMD2_ANY            ("trackers.use_udp",     [](auto, auto) { return false; });
+  CMD2_ANY            ("trackers.use_udp",     [](auto, auto) { return true; });
   CMD2_ANY_VALUE_V    ("trackers.use_udp.set", [](auto, auto) {
       lt_log_print(torrent::LOG_ERROR, "trackers.use_udp.set is no longer supported", 0);
     })

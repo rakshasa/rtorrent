@@ -32,21 +32,6 @@ Download::~Download() {
   m_download = download_type();
 }
 
-void
-Download::enable_udp_trackers(bool state) {
-  for (int idx = 0, end = m_download.tracker_controller().size(); idx < end; ++idx) {
-    auto tracker = m_download.tracker_controller().at(idx);
-
-    if (tracker.type() != torrent::TRACKER_UDP)
-      continue;
-
-    if (state)
-      tracker.enable();
-    else
-      tracker.disable();
-  }
-}
-
 uint32_t
 Download::priority() {
   return bencode()->get_key("rtorrent").get_key_value("priority");

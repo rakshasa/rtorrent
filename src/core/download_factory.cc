@@ -238,9 +238,6 @@ DownloadFactory::receive_success() {
       rpc::call_command("d.peers_max.set", rpc::call_command("throttle.max_peers.seed"), rpc::make_target(download));
   }
 
-  if (!rpc::call_command_value("trackers.use_udp"))
-    download->enable_udp_trackers(false);
-
   // Skip forcing trackers to scrape when rtorrent starts
   if (m_initLoad && rpc::call_command_value("trackers.delay_scrape"))
     download->set_resume_flags(torrent::Download::start_skip_tracker);

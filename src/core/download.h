@@ -70,8 +70,6 @@ public:
   const std::string&  message() const                          { return m_message; }
   void                set_message(const std::string& msg)      { m_message = msg; }
 
-  void                enable_udp_trackers(bool state);
-
   uint32_t            priority();
   void                set_priority(uint32_t p);
 
