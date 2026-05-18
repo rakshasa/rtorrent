@@ -3,14 +3,14 @@
 #include <algorithm>
 #include <cassert>
 #include <fcntl.h>
-#include <unistd.h>
 #include <sys/un.h>
-#include <torrent/torrent.h>
 #include <torrent/exceptions.h>
 #include <torrent/net/fd.h>
 #include <torrent/net/poll.h>
 #include <torrent/net/socket_address.h>
 #include <torrent/runtime/socket_manager.h>
+#include <torrent/torrent.h>
+#include <unistd.h>
 
 #include "control.h"
 #include "globals.h"
@@ -22,6 +22,8 @@
 namespace rpc {
 
 SCgi::SCgi() {
+  torrent::runtime::socket_manager()->set_category_max_size(torrent::runtime::SocketManager::category_scgi, max_tasks + 1);
+
   std::generate(m_tasks.begin(), m_tasks.end(), []() { return std::make_unique<SCgiTask>(); });
 
   m_current = m_tasks.begin();
@@ -48,7 +50,7 @@ SCgi::open_port(sockaddr* sa, unsigned int length, bool dont_route) {
 
   open(reinterpret_cast<sockaddr*>(sa), length);
 
-  torrent::runtime::socket_manager()->register_event_or_throw(this, []() {});
+  torrent::runtime::socket_manager()->register_event_or_throw(this, []() {}, torrent::runtime::SocketManager::category_scgi);
 }
 
 void
@@ -56,10 +58,10 @@ SCgi::open_named(const std::string& filename) {
   if (filename.empty() || filename.size() > 4096)
     throw torrent::resource_error("Invalid filename length.");
 
-  auto buffer = std::make_unique<char[]>(sizeof(sockaddr_un) + filename.size() + 1);
+  auto         buffer = std::make_unique<char[]>(sizeof(sockaddr_un) + filename.size() + 1);
 
   sockaddr_un* sa = reinterpret_cast<sockaddr_un*>(buffer.get());
-  sa->sun_family = AF_LOCAL;
+  sa->sun_family  = AF_LOCAL;
 
   std::memcpy(sa->sun_path, filename.c_str(), filename.size() + 1);
 
@@ -72,7 +74,7 @@ SCgi::open_named(const std::string& filename) {
 
   open(reinterpret_cast<sockaddr*>(sa), offsetof(struct sockaddr_un, sun_path) + filename.size() + 1);
 
-  torrent::runtime::socket_manager()->register_event_or_throw(this, []() {});
+  torrent::runtime::socket_manager()->register_event_or_throw(this, []() {}, torrent::runtime::SocketManager::category_scgi);
 
   m_path = filename;
 }
@@ -86,7 +88,7 @@ SCgi::open_fd(int fd) {
 
   // fd is already bound and listening; no bind()/listen() needed.
 
-  torrent::runtime::socket_manager()->register_event_or_throw(this, []() {});
+  torrent::runtime::socket_manager()->register_event_or_throw(this, []() {}, torrent::runtime::SocketManager::category_scgi);
 }
 
 void
@@ -128,11 +130,11 @@ SCgi::stop() {
   }
 
   torrent::runtime::socket_manager()->unregister_event_or_throw(this, [this]() {
-      torrent::this_thread::poll()->remove_and_close(this);
+    torrent::this_thread::poll()->remove_and_close(this);
 
-      torrent::fd_close(file_descriptor());
-      set_file_descriptor(-1);
-    });
+    torrent::fd_close(file_descriptor());
+    set_file_descriptor(-1);
+  });
 
   if (!m_path.empty())
     ::unlink(m_path.c_str());
@@ -171,19 +173,19 @@ SCgi::event_read() {
     }
 
     auto open_func = [this, fd, task = m_current->get()]() {
-        task->open(this, fd);
-      };
+      task->open(this, fd);
+    };
 
     auto cleanup_func = [fd, task = m_current->get()](bool opened) {
-        if (!opened) {
-          torrent::fd_close(fd);
-          return;
-        }
+      if (!opened) {
+        torrent::fd_close(fd);
+        return;
+      }
 
-        task->cancel_open();
-      };
+      task->cancel_open();
+    };
 
-    bool result = torrent::runtime::socket_manager()->open_event_or_cleanup(m_current->get(), open_func, cleanup_func);
+    bool result = torrent::runtime::socket_manager()->open_event_or_cleanup(m_current->get(), open_func, cleanup_func, torrent::runtime::SocketManager::category_scgi);
 
     if (!result)
       break;
@@ -200,4 +202,4 @@ SCgi::event_error() {
   throw torrent::internal_error("SCGI listener port received an error event.");
 }
 
-}
+} // namespace rpc

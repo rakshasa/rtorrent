@@ -6,15 +6,15 @@
 #include <cassert>
 #include <charconv>
 #include <cstdio>
-#include <unistd.h>
-#include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/types.h>
 #include <torrent/exceptions.h>
 #include <torrent/net/fd.h>
 #include <torrent/net/poll.h>
 #include <torrent/runtime/socket_manager.h>
-#include <torrent/utils/log.h>
 #include <torrent/system/thread.h>
+#include <torrent/utils/log.h>
+#include <unistd.h>
 
 #include "control.h"
 #include "globals.h"
@@ -28,18 +28,18 @@ void
 SCgiTask::open(SCgi* parent, int fd) {
   set_file_descriptor(fd);
 
-  m_parent      = parent;
-  m_position    = 0;
-  m_body        = 0;
+  m_parent   = parent;
+  m_position = 0;
+  m_body     = 0;
 
   m_content_length      = 0;
   m_content_type        = XML;
   m_content_type_set    = false;
   m_accepts_compression = false;
-  m_trusted             = true;  // SCgiTask is pooled and reused; reset trust to default
-                                 // so a prior untrusted connection does not leak its
-                                 // m_trusted=false into the next reuse, given that the
-                                 // UNTRUSTED_CONNECTION=0 parse branch is a no-op.
+  m_trusted             = true; // SCgiTask is pooled and reused; reset trust to default
+                                // so a prior untrusted connection does not leak its
+                                // m_trusted=false into the next reuse, given that the
+                                // UNTRUSTED_CONNECTION=0 parse branch is a no-op.
 
   torrent::this_thread::poll()->open(this);
   torrent::this_thread::poll()->insert_read(this);
@@ -71,11 +71,11 @@ SCgiTask::close() {
   torrent::system::Thread::self()->cancel_callback(this);
 
   torrent::runtime::socket_manager()->close_event_or_throw(this, [this]() {
-      torrent::this_thread::poll()->remove_and_close(this);
+    torrent::this_thread::poll()->remove_and_close(this);
 
-      torrent::fd_close(file_descriptor());
-      set_file_descriptor(-1);
-    });
+    torrent::fd_close(file_descriptor());
+    set_file_descriptor(-1);
+  });
 
   // The callbacks are guaranteed to be finished/canceled at this point.
   auto lock = std::lock_guard<std::mutex>(m_result_mutex);
@@ -86,13 +86,13 @@ SCgiTask::close() {
 void
 SCgiTask::event_read() {
   int read_length = m_buffer.size() - m_position;
-  
+
   if (m_content_length == 0)
     read_length--;
 
   if (read_length <= 0)
     throw torrent::internal_error("SCgiTask::event_read() no space in buffer for event_read.");
-  
+
   int bytes = ::recv(m_fileDesc, m_buffer.data() + m_position, read_length, 0);
 
   if (bytes <= 0) {
@@ -138,7 +138,7 @@ SCgiTask::event_read() {
       goto event_read_failed;
 
     // The header must start with "CONTENT_LENGTH" followed by a null byte.
-    if (std::memcmp(current, "CONTENT_LENGTH", 14+1) != 0)
+    if (std::memcmp(current, "CONTENT_LENGTH", 14 + 1) != 0)
       goto event_read_failed;
 
     if (!parse_headers(current, header_size))
@@ -200,7 +200,7 @@ bool
 SCgiTask::parse_headers(const char* current, unsigned int header_length) {
   std::string content_type;
 
-  const char* header_end  = current + header_length;
+  const char* header_end = current + header_length;
 
   // Parse out the null-terminated header keys and values, with
   // checks to ensure it doesn't scan beyond the limits of the
@@ -225,27 +225,27 @@ SCgiTask::parse_headers(const char* current, unsigned int header_length) {
 
     current = value_end + 1;
 
-    if (std::strncmp(key, "CONTENT_LENGTH", 14+1) == 0) {
+    if (std::strncmp(key, "CONTENT_LENGTH", 14 + 1) == 0) {
       auto [content_pos, ec] = std::from_chars(value, value_end, m_content_length);
 
       if (*content_pos != '\0' || m_content_length <= 0 || m_content_length > max_content_size)
         return false;
 
-    } else if (std::strncmp(key, "CONTENT_TYPE", 12+1) == 0) {
+    } else if (std::strncmp(key, "CONTENT_TYPE", 12 + 1) == 0) {
       content_type = value;
 
-    } else if (std::strncmp(key, "ACCEPT_ENCODING", 15+1) == 0) {
+    } else if (std::strncmp(key, "ACCEPT_ENCODING", 15 + 1) == 0) {
       std::string accept_encoding(value, value_end - value);
 
       if (accept_encoding.find("gzip") != std::string::npos)
         m_accepts_compression = true;
 
-    } else if (std::strncmp(key, "UNTRUSTED_CONNECTION", 20+1) == 0) {
-      if (std::strncmp(value, "1", 1+1) == 0)
+    } else if (std::strncmp(key, "UNTRUSTED_CONNECTION", 20 + 1) == 0) {
+      if (std::strncmp(value, "1", 1 + 1) == 0)
         m_trusted = false;
-      else if (std::strncmp(value, "0", 1+1) == 0)
-        m_trusted = true;  // Explicit reset (open() also resets, but be defensive in case
-                           // future refactors stop pooling tasks or skip the open() reset).
+      else if (std::strncmp(value, "0", 1 + 1) == 0)
+        m_trusted = true; // Explicit reset (open() also resets, but be defensive in case
+                          // future refactors stop pooling tasks or skip the open() reset).
       else
         return false;
     }
@@ -341,27 +341,27 @@ SCgiTask::receive_call(const char* buffer, uint32_t length) {
   // TODO: Completely remove the mutex, and align m_buffer?
 
   auto result_callback = [this](const char* b, uint32_t l) {
-      receive_write(b, l);
+    receive_write(b, l);
+
+    // Memory barrier for the result data.
+    // std::atomic_thread_fence(std::memory_order_release);
+    m_result_mutex.lock();
+    m_result_mutex.unlock();
+
+    scgi_thread::thread()->callback_interrupt_polling(this, [this]() {
+      if (!is_open())
+        return;
+
+      torrent::this_thread::poll()->insert_write(this);
 
       // Memory barrier for the result data.
-      // std::atomic_thread_fence(std::memory_order_release);
+      // std::atomic_thread_fence(std::memory_order_acquire);
       m_result_mutex.lock();
       m_result_mutex.unlock();
+    });
 
-      scgi_thread::thread()->callback_interrupt_polling(this, [this]() {
-          if (!is_open())
-            return;
-
-          torrent::this_thread::poll()->insert_write(this);
-
-          // Memory barrier for the result data.
-          // std::atomic_thread_fence(std::memory_order_acquire);
-          m_result_mutex.lock();
-          m_result_mutex.unlock();
-        });
-
-      return true;
-    };
+    return true;
+  };
 
   // Memory barrier for the input data.
   // std::atomic_thread_fence(std::memory_order_release);
@@ -369,16 +369,16 @@ SCgiTask::receive_call(const char* buffer, uint32_t length) {
   m_result_mutex.unlock();
 
   torrent::main_thread::thread()->callback_interrupt_polling(this, [this, rpc_type, buffer, length, result_callback]() {
-      // Memory barrier for the input data.
-      // std::atomic_thread_fence(std::memory_order_acquire);
-      m_result_mutex.lock();
-      m_result_mutex.unlock();
+    // Memory barrier for the input data.
+    // std::atomic_thread_fence(std::memory_order_acquire);
+    m_result_mutex.lock();
+    m_result_mutex.unlock();
 
-      if (m_trusted)
-        rpc.process(rpc_type, buffer, length, result_callback);
-      else
-        rpc.process_untrusted(rpc_type, buffer, length, result_callback);
-    });
+    if (m_trusted)
+      rpc.process(rpc_type, buffer, length, result_callback);
+    else
+      rpc.process_untrusted(rpc_type, buffer, length, result_callback);
+  });
 }
 
 void
@@ -419,9 +419,9 @@ SCgiTask::plaintext_response(const char* buffer, uint32_t content_length) {
 
   m_buffer.resize(header_first_size + length_str.size() + header_last_size + content_length);
 
-  std::memcpy(m_buffer.data(),                                                            header_first, header_first_size);
-  std::memcpy(m_buffer.data() + header_first_size,                                        length_str.data(), length_str.size());
-  std::memcpy(m_buffer.data() + header_first_size + length_str.size(),                    header_last, header_last_size);
+  std::memcpy(m_buffer.data(), header_first, header_first_size);
+  std::memcpy(m_buffer.data() + header_first_size, length_str.data(), length_str.size());
+  std::memcpy(m_buffer.data() + header_first_size + length_str.size(), header_last, header_last_size);
   std::memcpy(m_buffer.data() + header_first_size + length_str.size() + header_last_size, buffer, content_length);
 
   m_position = 0;
@@ -429,8 +429,8 @@ SCgiTask::plaintext_response(const char* buffer, uint32_t content_length) {
 
 void
 SCgiTask::gzip_response(const char* buffer, uint32_t content_length) {
-  auto header_first      = content_type() == ContentType::XML ? header_xml : header_json;
-  auto header_first_size = content_type() == ContentType::XML ? header_xml_size : header_json_size;
+  auto         header_first      = content_type() == ContentType::XML ? header_xml : header_json;
+  auto         header_first_size = content_type() == ContentType::XML ? header_xml_size : header_json_size;
 
   unsigned int body_offset = header_first_size + 20 + header_last_size;
 
@@ -446,8 +446,8 @@ SCgiTask::gzip_response(const char* buffer, uint32_t content_length) {
   if (header_start > body_offset)
     throw torrent::internal_error("SCgiTask::gzip_response(...) header overflow : start position is beyond buffer start");
 
-  std::memcpy(m_buffer.data() + header_start,                                         header_first, header_first_size);
-  std::memcpy(m_buffer.data() + header_start + header_first_size,                     length_str.data(), length_str.size());
+  std::memcpy(m_buffer.data() + header_start, header_first, header_first_size);
+  std::memcpy(m_buffer.data() + header_start + header_first_size, length_str.data(), length_str.size());
   std::memcpy(m_buffer.data() + header_start + header_first_size + length_str.size(), header_last, header_last_size);
 
   m_position = header_start;
