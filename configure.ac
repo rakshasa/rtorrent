@@ -1,6 +1,6 @@
 m4_pattern_allow([PKG_CHECK_EXISTS])
 
-AC_INIT([rtorrent],[0.16.11],[sundell.software@gmail.com])
+AC_INIT([rtorrent],[0.16.12],[sundell.software@gmail.com])
 
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIRS([scripts])
@@ -49,7 +49,7 @@ fi
 
 PKG_CHECK_MODULES([CPPUNIT], [cppunit],, [no_cppunit="yes"])
 PKG_CHECK_MODULES([ZLIB], [zlib])
-PKG_CHECK_MODULES([DEPENDENCIES], [libtorrent >= 0.16.11])
+PKG_CHECK_MODULES([DEPENDENCIES], [libtorrent >= 0.16.12])
 
 AC_LANG_PUSH(C++)
 TORRENT_WITH_XMLRPC_C
