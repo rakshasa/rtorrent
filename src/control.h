@@ -38,6 +38,10 @@ namespace torrent {
   class directory_events;
 }
 
+namespace utils {
+  class WatchReadyQueue;
+}
+
 class Control {
 public:
   Control();
@@ -70,6 +74,7 @@ public:
   rpc::LuaEngine*        lua_engine()               { return m_lua_engine.get(); }
 
   torrent::directory_events* directory_events()     { return m_directory_events.get(); }
+  utils::WatchReadyQueue*    watch_ready_queue()    { return m_watch_ready_queue.get(); }
 
   uint64_t            tick() const                  { return m_tick; }
   void                inc_tick()                    { m_tick++; }
@@ -94,6 +99,7 @@ private:
   std::unique_ptr<rpc::object_storage>       m_objectStorage;
   std::unique_ptr<rpc::LuaEngine>            m_lua_engine;
   std::unique_ptr<torrent::directory_events> m_directory_events;
+  std::unique_ptr<utils::WatchReadyQueue>    m_watch_ready_queue;
 
   uint64_t            m_tick{};
 
