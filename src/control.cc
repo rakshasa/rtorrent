@@ -27,6 +27,7 @@
 #include "rpc/object_storage.h"
 #include "session/session_manager.h"
 #include "ui/root.h"
+#include "utils/watch_ready_queue.h"
 
 Control::Control()
   : m_ui(new ui::Root()),
@@ -36,7 +37,8 @@ Control::Control()
     m_commandScheduler(new rpc::CommandScheduler()),
     m_objectStorage(new rpc::object_storage()),
     m_lua_engine(new rpc::LuaEngine()),
-    m_directory_events(new torrent::directory_events()) {
+    m_directory_events(new torrent::directory_events()),
+    m_watch_ready_queue(new utils::WatchReadyQueue()) {
 
   m_core         = std::make_unique<core::Manager>();
   m_view_manager = std::make_unique<core::ViewManager>();
@@ -126,6 +128,8 @@ Control::is_shutdown_completed() {
 
 void
 Control::handle_shutdown() {
+  m_watch_ready_queue->shutdown();
+
   rpc::commands.call_catch("event.system.shutdown", rpc::make_target(), "shutdown", "System shutdown event action failed: ");
 
   if (scgi_thread::thread()->is_active())
@@ -147,4 +151,3 @@ Control::handle_shutdown() {
   m_shutdownQuick = true;
   m_shutdownReceived = false;
 }
-

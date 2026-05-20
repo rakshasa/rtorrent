@@ -21,13 +21,16 @@ FileStatusCache::insert(const std::string& path) {
 
   std::pair<iterator, bool> result = base_type::insert(value_type(path, file_status()));
 
-  // Return false if the file hasn't been modified since last time. We
-  // use 'equal to' instead of 'greater than' since the file might
-  // have been replaced by another file, and thus should be re-tried.
-  if (!result.second && result.first->second.m_mtime == (uint32_t)fs.modified_time())
+  // Return false if the file hasn't changed since last time. We use
+  // 'equal to' instead of 'greater than' since the file might have
+  // been replaced by another file, and thus should be re-tried.
+  if (!result.second &&
+      result.first->second.m_mtime == (uint32_t)fs.modified_time() &&
+      result.first->second.m_size == (int64_t)fs.size())
     return false;
 
   result.first->second.m_flags = 0;
+  result.first->second.m_size  = (int64_t)fs.size();
   result.first->second.m_mtime = fs.modified_time();
 
   return true;
@@ -41,7 +44,9 @@ FileStatusCache::prune() {
     torrent::utils::FileStat fs;
     iterator tmp = itr++;
 
-    if (!fs.update(expand_path(tmp->first)) || tmp->second.m_mtime != (uint32_t)fs.modified_time())
+    if (!fs.update(expand_path(tmp->first)) ||
+        tmp->second.m_mtime != (uint32_t)fs.modified_time() ||
+        tmp->second.m_size != (int64_t)fs.size())
       base_type::erase(tmp);
   }
 }
