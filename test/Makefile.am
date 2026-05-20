@@ -48,7 +48,9 @@ rtorrent_Test_Rpc_SOURCES = $(rtorrent_Test_Common) \
 
 rtorrent_Test_Src_SOURCES = $(rtorrent_Test_Common) \
 	src/test_command_dynamic.cc \
-	src/test_command_dynamic.h
+	src/test_command_dynamic.h \
+	src/test_watch_ready_queue.cc \
+	src/test_watch_ready_queue.h
 
 rtorrent_Test_Rpc_CXXFLAGS = $(CPPUNIT_CFLAGS)
 rtorrent_Test_Rpc_LDFLAGS = $(CPPUNIT_LIBS) -ldl

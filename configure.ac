@@ -52,6 +52,19 @@ PKG_CHECK_MODULES([ZLIB], [zlib])
 PKG_CHECK_MODULES([DEPENDENCIES], [libtorrent >= 0.16.12])
 
 AC_LANG_PUSH(C++)
+rtorrent_save_CXXFLAGS="$CXXFLAGS"
+CXXFLAGS="$CXXFLAGS $DEPENDENCIES_CFLAGS"
+AC_MSG_CHECKING([for libtorrent directory_events ready watch support])
+AC_COMPILE_IFELSE(
+  [AC_LANG_PROGRAM([[#include <torrent/utils/directory_events.h>]],
+                   [[return torrent::directory_events::flag_on_ready == 0;]])],
+  [AC_MSG_RESULT([yes])],
+  [AC_MSG_RESULT([no])
+   AC_MSG_ERROR([requires libtorrent with directory_events::flag_on_ready])])
+CXXFLAGS="$rtorrent_save_CXXFLAGS"
+AC_LANG_POP(C++)
+
+AC_LANG_PUSH(C++)
 TORRENT_WITH_XMLRPC_C
 AC_LANG_POP(C++)
 
