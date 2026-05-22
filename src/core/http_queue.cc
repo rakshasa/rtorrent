@@ -15,8 +15,8 @@ HttpQueue::insert(const std::string& url, std::shared_ptr<std::ostream> stream) 
   for (auto& slot : m_signal_insert)
     slot(*itr);
 
-  itr->add_done_slot([this, itr]() { erase(itr); });
-  itr->add_failed_slot([this, itr](auto) { erase(itr); });
+  itr->add_done_slot(torrent::this_thread::thread(), [this, itr]() { erase(itr); });
+  itr->add_failed_slot(torrent::this_thread::thread(), [this, itr](auto) { erase(itr); });
 
   // TODO: Downloading http torrents doesn't seem to work.
   // TODO: Quitting no longer works.
