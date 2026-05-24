@@ -25,9 +25,7 @@ namespace scgi_thread {
 torrent::system::Thread* thread();
 std::thread::id          thread_id();
 
-void                    callback(void* target, std::function<void ()>&& fn);
-void                    cancel_callback(void* target);
-void                    cancel_callback_and_wait(void* target);
+void                    callback_interrupt(torrent::system::callback_id& id, std::function<void ()>&& fn);
 
 rpc::SCgi*              scgi();
 void                    set_scgi(rpc::SCgi* scgi);

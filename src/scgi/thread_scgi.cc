@@ -12,11 +12,6 @@
 
 namespace scgi {
 
-class ThreadScgiInternal {
-public:
-  static ThreadScgi* thread_scgi() { return ThreadScgi::internal_thread_scgi(); }
-};
-
 ThreadScgi* ThreadScgi::m_thread_scgi{};
 
 void
@@ -127,15 +122,13 @@ ThreadScgi::next_timeout() {
 
 namespace scgi_thread {
 
-torrent::system::Thread* thread()                         { return scgi::ThreadScgiInternal::thread_scgi(); }
-std::thread::id          thread_id()                      { return scgi::ThreadScgiInternal::thread_scgi()->thread_id(); }
+torrent::system::Thread* thread()                         { return scgi::ThreadScgi::thread_scgi(); }
+std::thread::id          thread_id()                      { return scgi::ThreadScgi::thread_scgi()->thread_id(); }
 
-void callback(void* target, std::function<void ()>&& fn) { scgi::ThreadScgiInternal::thread_scgi()->callback(target, std::move(fn)); }
-void cancel_callback(void* target)                       { scgi::ThreadScgiInternal::thread_scgi()->cancel_callback(target); }
-void cancel_callback_and_wait(void* target)              { scgi::ThreadScgiInternal::thread_scgi()->cancel_callback_and_wait(target); }
+void        callback_interrupt(torrent::system::callback_id& id, std::function<void ()>&& fn) { scgi::ThreadScgi::thread_scgi()->callback_interrupt(id, std::move(fn)); }
 
-rpc::SCgi*  scgi()                                       { return scgi::ThreadScgiInternal::thread_scgi()->scgi(); }
-void        set_scgi(rpc::SCgi* scgi)                    { scgi::ThreadScgiInternal::thread_scgi()->set_scgi(scgi); }
-void        set_rpc_log(const std::string& filename)     { scgi::ThreadScgiInternal::thread_scgi()->set_rpc_log(filename); }
+rpc::SCgi*  scgi()                                       { return scgi::ThreadScgi::thread_scgi()->scgi(); }
+void        set_scgi(rpc::SCgi* scgi)                    { scgi::ThreadScgi::thread_scgi()->set_scgi(scgi); }
+void        set_rpc_log(const std::string& filename)     { scgi::ThreadScgi::thread_scgi()->set_rpc_log(filename); }
 
 } // namespace scgi_thread

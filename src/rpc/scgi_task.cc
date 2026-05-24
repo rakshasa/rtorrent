@@ -14,7 +14,7 @@
 #include <torrent/net/poll.h>
 #include <torrent/runtime/socket_manager.h>
 #include <torrent/utils/log.h>
-#include <torrent/system/thread.h>
+#include <torrent/system/callbacks.h>
 
 #include "control.h"
 #include "globals.h"
@@ -23,6 +23,12 @@
 #include "utils/gzip.h"
 
 namespace rpc {
+
+SCgiTask::SCgiTask()
+  : m_callback_id(torrent::system::make_callback_id()) {
+
+  set_file_descriptor(-1);
+}
 
 void
 SCgiTask::open(SCgi* parent, int fd) {
@@ -67,8 +73,7 @@ SCgiTask::close() {
   if (!is_open())
     return;
 
-  torrent::main_thread::thread()->cancel_callback_and_wait(this);
-  torrent::system::Thread::self()->cancel_callback(this);
+  torrent::system::cancel_callback_and_wait(m_callback_id, scgi_thread::thread(), torrent::main_thread::thread());
 
   torrent::runtime::socket_manager()->close_event_or_throw(this, [this]() {
       torrent::this_thread::poll()->remove_and_close(this);
@@ -86,13 +91,13 @@ SCgiTask::close() {
 void
 SCgiTask::event_read() {
   int read_length = m_buffer.size() - m_position;
-  
+
   if (m_content_length == 0)
     read_length--;
 
   if (read_length <= 0)
     throw torrent::internal_error("SCgiTask::event_read() no space in buffer for event_read.");
-  
+
   int bytes = ::recv(m_fileDesc, m_buffer.data() + m_position, read_length, 0);
 
   if (bytes <= 0) {
@@ -321,7 +326,7 @@ SCgiTask::detect_content_type(const std::string& content_type) {
 
 void
 SCgiTask::receive_call(const char* buffer, uint32_t length) {
-  assert(torrent::system::Thread::self() == scgi_thread::thread());
+  assert(torrent::this_thread::thread() == scgi_thread::thread());
 
   RpcManager::RPCType rpc_type;
 
@@ -348,7 +353,7 @@ SCgiTask::receive_call(const char* buffer, uint32_t length) {
       m_result_mutex.lock();
       m_result_mutex.unlock();
 
-      scgi_thread::thread()->callback_interrupt_polling(this, [this]() {
+      scgi_thread::callback_interrupt(m_callback_id, [this]() {
           if (!is_open())
             return;
 
@@ -368,7 +373,7 @@ SCgiTask::receive_call(const char* buffer, uint32_t length) {
   m_result_mutex.lock();
   m_result_mutex.unlock();
 
-  torrent::main_thread::thread()->callback_interrupt_polling(this, [this, rpc_type, buffer, length, result_callback]() {
+  torrent::main_thread::callback_interrupt(m_callback_id, [this, rpc_type, buffer, length, result_callback]() {
       // Memory barrier for the input data.
       // std::atomic_thread_fence(std::memory_order_acquire);
       m_result_mutex.lock();
@@ -383,7 +388,7 @@ SCgiTask::receive_call(const char* buffer, uint32_t length) {
 
 void
 SCgiTask::receive_write(const char* buffer, uint32_t length) {
-  assert(torrent::system::Thread::self() == torrent::main_thread::thread());
+  assert(torrent::this_thread::thread() == torrent::main_thread::thread());
 
   if (buffer == nullptr || length > (100 << 20))
     throw torrent::internal_error("SCgiTask::receive_write(...) received bad input.");

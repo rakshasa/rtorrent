@@ -79,7 +79,6 @@ std::thread::id          thread_id()                      { return session::Thre
 
 void callback(void* target, std::function<void ()>&& fn) { session::ThreadSessionInternal::thread_session()->callback(target, std::move(fn)); }
 void cancel_callback(void* target)                       { session::ThreadSessionInternal::thread_session()->cancel_callback(target); }
-void cancel_callback_and_wait(void* target)              { session::ThreadSessionInternal::thread_session()->cancel_callback_and_wait(target); }
 
 session::SessionManager* manager()                       { return session::ThreadSessionInternal::thread_session()->manager(); }
 std::string              session_path()                  { return session::ThreadSessionInternal::thread_session()->manager()->path(); }
