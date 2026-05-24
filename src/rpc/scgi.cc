@@ -11,6 +11,7 @@
 #include <torrent/net/poll.h>
 #include <torrent/net/socket_address.h>
 #include <torrent/runtime/socket_manager.h>
+#include <torrent/utils/log.h>
 
 #include "control.h"
 #include "globals.h"
@@ -22,6 +23,14 @@
 namespace rpc {
 
 SCgi::SCgi() {
+  auto category_max = max_tasks + 1;
+
+  torrent::runtime::socket_manager()->set_category_max_size(torrent::runtime::SocketManager::category_scgi, category_max);
+
+  if (category_max >= torrent::runtime::socket_manager()->max_size())
+    lt_log_print(torrent::LOG_WARN, "SCGI category max %u >= global max %u, SCGI could starve peer connections",
+                 category_max, torrent::runtime::socket_manager()->max_size());
+
   std::generate(m_tasks.begin(), m_tasks.end(), []() { return std::make_unique<SCgiTask>(); });
 
   m_current = m_tasks.begin();
@@ -48,7 +57,7 @@ SCgi::open_port(sockaddr* sa, unsigned int length, bool dont_route) {
 
   open(reinterpret_cast<sockaddr*>(sa), length);
 
-  torrent::runtime::socket_manager()->register_event_or_throw(this, []() {});
+  torrent::runtime::socket_manager()->register_event_or_throw(this, torrent::runtime::SocketManager::category_scgi, []() {});
 }
 
 void
@@ -72,7 +81,7 @@ SCgi::open_named(const std::string& filename) {
 
   open(reinterpret_cast<sockaddr*>(sa), offsetof(struct sockaddr_un, sun_path) + filename.size() + 1);
 
-  torrent::runtime::socket_manager()->register_event_or_throw(this, []() {});
+  torrent::runtime::socket_manager()->register_event_or_throw(this, torrent::runtime::SocketManager::category_scgi, []() {});
 
   m_path = filename;
 }
@@ -86,7 +95,7 @@ SCgi::open_fd(int fd) {
 
   // fd is already bound and listening; no bind()/listen() needed.
 
-  torrent::runtime::socket_manager()->register_event_or_throw(this, []() {});
+  torrent::runtime::socket_manager()->register_event_or_throw(this, torrent::runtime::SocketManager::category_scgi, []() {});
 }
 
 void
@@ -183,7 +192,7 @@ SCgi::event_read() {
         task->cancel_open();
       };
 
-    bool result = torrent::runtime::socket_manager()->open_event_or_cleanup(m_current->get(), open_func, cleanup_func);
+    bool result = torrent::runtime::socket_manager()->open_event_or_cleanup(m_current->get(), torrent::runtime::SocketManager::category_scgi, open_func, cleanup_func);
 
     if (!result)
       break;
