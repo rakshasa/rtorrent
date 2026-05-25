@@ -11,8 +11,6 @@ class SCgi;
 
 namespace scgi {
 
-class ThreadScgiInternal;
-
 class ThreadScgi : public torrent::system::Thread {
 public:
 
@@ -28,8 +26,6 @@ public:
   void                set_rpc_log(const std::string& filename);
 
 protected:
-  friend class ThreadScgiInternal;
-
   ThreadScgi() = default;
 
   static auto         internal_thread_scgi() { return m_thread_scgi; }
@@ -43,9 +39,9 @@ private:
   void                task_touch_log();
   void                change_rpc_log();
 
-  static ThreadScgi*  m_thread_scgi;
+  static ThreadScgi*      m_thread_scgi;
 
-  std::atomic<rpc::SCgi*> m_scgi{nullptr};
+  std::atomic<rpc::SCgi*> m_scgi{};
   std::string             m_rpc_log_filename;
 };
 

@@ -18,6 +18,7 @@
 #include <torrent/net/types.h>
 #include <torrent/peer/connection_list.h>
 #include <torrent/peer/peer_list.h>
+#include <torrent/system/callbacks.h>
 #include <torrent/utils/file_stat.h>
 #include <torrent/utils/log.h>
 #include <torrent/utils/option_strings.h>
@@ -305,8 +306,10 @@ apply_d_add_peer(core::Download* download, const std::string& arg) {
 
   assert(std::this_thread::get_id() == torrent::main_thread::thread_id());
 
+  auto callback_id = torrent::system::make_callback_id();
+
   // Currently discarding SOCK_STREAM.
-  torrent::this_thread::resolver()->resolve_preferred(NULL, host, AF_UNSPEC, AF_INET, [download, port](torrent::c_sa_shared_ptr sa, int err) {
+  torrent::this_thread::resolver()->resolve_preferred(callback_id, host, AF_UNSPEC, AF_INET, [download, port](torrent::c_sa_shared_ptr sa, int err) {
       if (sa == nullptr) {
         lt_log_print(torrent::LOG_TORRENT_WARN, "could not resolve hostname for added peer: %s", gai_strerror(err));
         return;
