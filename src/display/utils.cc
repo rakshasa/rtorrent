@@ -155,7 +155,7 @@ print_download_status(char* first, char* last, core::Download* d) {
 
   } else if (d->tracker_controller().has_active_trackers_not_scrape()) {
     auto tracker = d->tracker_controller().find_if([](const auto& t) {
-      return t.is_busy_not_scrape();
+      return t.is_requesting_not_scrape();
     });
 
     if (tracker.is_valid()) {
