@@ -55,7 +55,7 @@ ThreadScgi::set_scgi(rpc::SCgi* scgi) {
 
   change_rpc_log();
 
-  callback(nullptr, [this]() {
+  callback([this]() {
       if (m_scgi == nullptr)
         throw torrent::internal_error("Tried to start SCGI but object was not present.");
 
@@ -67,7 +67,7 @@ ThreadScgi::set_scgi(rpc::SCgi* scgi) {
 
 void
 ThreadScgi::set_rpc_log(const std::string& filename) {
-  callback(nullptr, [this, filename]() {
+  callback([this, filename]() {
       m_rpc_log_filename = filename;
       change_rpc_log();
     });
