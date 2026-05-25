@@ -25,13 +25,11 @@ namespace scgi_thread {
 torrent::system::Thread* thread();
 std::thread::id          thread_id();
 
-void                    callback(void* target, std::function<void ()>&& fn);
-void                    cancel_callback(void* target);
-void                    cancel_callback_and_wait(void* target);
+void                     callback_interrupt(torrent::system::callback_id& id, std::function<void ()>&& fn);
 
-rpc::SCgi*              scgi();
-void                    set_scgi(rpc::SCgi* scgi);
-void                    set_rpc_log(const std::string& filename);
+rpc::SCgi*               scgi();
+void                     set_scgi(rpc::SCgi* scgi);
+void                     set_rpc_log(const std::string& filename);
 
 } // namespace torrent::scgi_thread
 
@@ -41,9 +39,9 @@ namespace session_thread {
 torrent::system::Thread* thread();
 std::thread::id          thread_id();
 
-void                    callback(void* target, std::function<void ()>&& fn);
-void                    cancel_callback(void* target);
-void                    cancel_callback_and_wait(void* target);
+void                     callback(std::function<void ()>&& fn);
+void                     callback(torrent::system::callback_id& id, std::function<void ()>&& fn);
+void                     cancel_callback(torrent::system::callback_id& id);
 
 session::SessionManager* manager();
 std::string              session_path();

@@ -18,7 +18,7 @@ public:
 
   enum ContentType { XML, JSON };
 
-  SCgiTask() { m_fileDesc = -1; }
+  SCgiTask();
 
   const char*         type_name() const override { return "scgi-task"; }
 
@@ -54,7 +54,8 @@ private:
   void                plaintext_response(const char* buffer, uint32_t content_length);
   void                gzip_response(const char* buffer, uint32_t content_length);
 
-  SCgi*               m_parent{};
+  SCgi*                        m_parent{};
+  torrent::system::callback_id m_callback_id;
 
   std::mutex          m_result_mutex;
 

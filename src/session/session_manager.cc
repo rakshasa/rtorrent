@@ -5,6 +5,7 @@
 #include <cassert>
 #include <cstdlib>
 #include <torrent/exceptions.h>
+#include <torrent/system/callbacks.h>
 #include <torrent/utils/log.h>
 
 #include "globals.h"
@@ -23,6 +24,7 @@ namespace session {
 
 SessionManager::SessionManager(torrent::system::Thread* thread)
   : m_thread(thread),
+    m_callback_id(torrent::system::make_callback_id()),
     m_lockfile(std::make_unique<utils::Lockfile>()) {
 }
 
@@ -221,8 +223,7 @@ SessionManager::cleanup() {
 
   LT_LOG("session manager cleaned up", 0);
 
-  session_thread::cancel_callback(this);
-  torrent::main_thread::cancel_callback(this);
+  torrent::system::cancel_callback_and_wait(m_callback_id, session_thread::thread(), torrent::main_thread::thread());
 }
 
 void
@@ -233,7 +234,9 @@ SessionManager::callback_pending_builds() {
   if (m_callback_scheduled_process_pending_builds.exchange(true))
     return;
 
-  torrent::main_thread::callback(this, [this]() { process_pending_builds(false); });
+  torrent::main_thread::callback(m_callback_id, [this]() {
+      process_pending_builds(false);
+    });
 }
 
 void
@@ -247,7 +250,9 @@ SessionManager::callback_save_request() {
   if (m_callback_scheduled_process_saves_request.exchange(true))
     return;
 
-  session_thread::callback(this, [this]() { process_save_request(); });
+  session_thread::callback(m_callback_id, [this]() {
+      process_save_request();
+    });
 }
 
 void
@@ -255,7 +260,9 @@ SessionManager::callback_finished_saves() {
   if (m_callback_scheduled_process_finished_saves.exchange(true))
     return;
 
-  session_thread::callback(this, [this]() { process_finished_saves(); });
+  session_thread::callback(m_callback_id, [this]() {
+      process_finished_saves();
+    });
 }
 
 void
