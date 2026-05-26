@@ -17,7 +17,7 @@ namespace rpc {
 
 struct object_storage_node {
   torrent::Object object;
-  char            flags;
+  unsigned int    flags;
 };
 
 typedef std::unordered_map<fixed_key_type<64>, object_storage_node, hash_fixed_key_type> object_storage_base_type;

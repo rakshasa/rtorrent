@@ -66,56 +66,85 @@ xml_value_to_object(const tinyxml2::XMLNode* elem) {
   if (elem == nullptr) {
     throw rpc_error(XMLRPC_INTERNAL_ERROR, "received null element to convert");
   }
+
   if (std::strncmp(elem->Value(), "value", sizeof("value")) != 0) {
     throw rpc_error(XMLRPC_INTERNAL_ERROR, "received non-value element to convert");
   }
+
   auto root_element = elem->FirstChild();
+
+  if (root_element == nullptr)
+    throw rpc_error(XMLRPC_TYPE_ERROR, "empty value element");
+
   auto root_type    = root_element->Value();
+
   if (std::strncmp(root_type, "string", sizeof("string")) == 0) {
     auto child_element = root_element->FirstChild();
-    if (child_element == nullptr) {
+
+    if (child_element == nullptr)
       return torrent::Object("");
-    }
+
     return torrent::Object(child_element->ToText()->Value());
+
   } else if (std::strncmp(root_type, "int", sizeof("int")) == 0 ||
              std::strncmp(root_type, "i4", sizeof("i4")) == 0 ||
              std::strncmp(root_type, "i8", sizeof("i8")) == 0) {
     return torrent::Object(element_to_int(root_element));
+
   } else if (std::strncmp(root_type, "boolean", sizeof("boolean")) == 0) {
-    auto boolean_text = std::string(root_element->FirstChild()->ToText()->Value());
-    if (boolean_text == "1") {
+    auto child_element = root_element->FirstChild();
+
+    if (child_element == nullptr)
+      throw rpc_error(XMLRPC_TYPE_ERROR, "empty boolean element");
+
+    auto boolean_text = std::string(child_element->ToText()->Value());
+
+    if (boolean_text == "1")
       return torrent::Object((int64_t)1);
-    } else if (boolean_text == "0") {
+    else if (boolean_text == "0")
       return torrent::Object((int64_t)0);
-    }
+
     throw rpc_error(XMLRPC_TYPE_ERROR, "unknown boolean value: " + boolean_text);
+
   } else if (std::strncmp(root_type, "array", sizeof("array")) == 0) {
     auto  array_raw    = torrent::Object::create_list();
     auto& array        = array_raw.as_list();
     auto  data_element = root_element->ToElement()->FirstChildElement("data");
+
     if (data_element == nullptr)
       throw rpc_error(XMLRPC_PARSE_ERROR, "could not find expected data element in array");
-    for (auto child = data_element->FirstChildElement("value"); child; child = child->NextSiblingElement("value")) {
+
+    for (auto child = data_element->FirstChildElement("value"); child; child = child->NextSiblingElement("value"))
       array.push_back(xml_value_to_object(child));
-    }
+
     return array_raw;
   } else if (std::strncmp(root_type, "struct", sizeof("struct")) == 0) {
     auto  map_raw = torrent::Object::create_map();
     auto& map     = map_raw.as_map();
+
     for (auto child = root_element->FirstChildElement("member"); child; child = child->NextSiblingElement("member")) {
-      auto key = child->FirstChildElement("name")->GetText();
-      map[key] = std::move(xml_value_to_object(child->FirstChildElement("value")));
+      auto name_element = child->FirstChildElement("name");
+
+      if (name_element == nullptr)
+        throw rpc_error(XMLRPC_PARSE_ERROR, "struct member missing name element");
+
+      map[name_element->GetText()] = std::move(xml_value_to_object(child->FirstChildElement("value")));
     }
+
     return map_raw;
+
   } else if (std::strncmp(root_type, "base64", sizeof("base64")) == 0) {
     auto child_element = root_element->FirstChild();
-    if (child_element == nullptr) {
+
+    if (child_element == nullptr)
       return torrent::Object("");
-    }
+
     return torrent::Object(utils::decode_base64(utils::remove_newlines(child_element->ToText()->Value())));
+
   } else {
     throw rpc_error(XMLRPC_INTERNAL_ERROR, "received unsupported value type: " + std::string(root_type));
   }
+
   return torrent::Object();
 }
 
