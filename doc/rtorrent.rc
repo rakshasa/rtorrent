@@ -46,8 +46,12 @@
 #session.path.set = ./session
 
 # Watch a directory for new torrents, and stop those that have been
-# deleted.
+# deleted. Use directory.watch.ready for network shares or other watch
+# directories where files may be copied or written directly into place.
+# Do not mix directory.watch.ready and directory.watch.added on the same
+# watch directory.
 #
+#directory.watch.ready = ./watch, load.start
 #schedule2 = watch_directory,5,5,load.start=./watch/*.torrent
 
 # Close torrents when disk-space is low.

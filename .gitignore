@@ -69,4 +69,5 @@ TAGS
 ###########################
 src/rtorrent
 test/rtorrent_Test*
+test/test-suite.log.tmp
 test-driver

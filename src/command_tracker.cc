@@ -6,6 +6,7 @@
 #include <torrent/net/resolver.h>
 #include <torrent/runtime/network_config.h>
 #include <torrent/runtime/network_manager.h>
+#include <torrent/system/callbacks.h>
 #include <torrent/tracker/dht_controller.h>
 #include <torrent/tracker/tracker.h>
 #include <torrent/utils/log.h>
@@ -48,8 +49,10 @@ apply_dht_add_node(const std::string& arg) {
 
   // TODO: Move this lookup to DhtController.
 
+  auto callback_id = torrent::system::make_callback_id();
+
   // Currently discarding SOCK_STREAM.
-  torrent::this_thread::resolver()->resolve_specific(nullptr, host_str, PF_INET, [host_str, port](torrent::c_sa_shared_ptr sa, int err) {
+  torrent::this_thread::resolver()->resolve_specific(callback_id, host_str, PF_INET, [host_str, port](torrent::c_sa_shared_ptr sa, int err) {
       if (sa == nullptr) {
         lt_log_print(torrent::LOG_DHT_ERROR, "dht.add_node : could not resolve host : %s (%s)", gai_strerror(err), host_str.c_str());
         return;
@@ -78,10 +81,10 @@ apply_enable_trackers(int64_t arg) {
 
 void
 initialize_command_tracker() {
-  CMD2_TRACKER        ("t.is_busy",           std::bind(&torrent::tracker::Tracker::is_busy, std::placeholders::_1));
+  CMD2_TRACKER        ("t.is_busy",           std::bind(&torrent::tracker::Tracker::is_requesting, std::placeholders::_1));
   CMD2_TRACKER        ("t.is_enabled",        std::bind(&torrent::tracker::Tracker::is_enabled, std::placeholders::_1));
   CMD2_TRACKER        ("t.is_extra_tracker",  std::bind(&torrent::tracker::Tracker::is_extra_tracker, std::placeholders::_1));
-  CMD2_TRACKER        ("t.is_open",           std::bind(&torrent::tracker::Tracker::is_busy, std::placeholders::_1));
+  CMD2_TRACKER        ("t.is_open",           std::bind(&torrent::tracker::Tracker::is_requesting, std::placeholders::_1));
   CMD2_TRACKER        ("t.is_scrapable",      std::bind(&torrent::tracker::Tracker::is_scrapable, std::placeholders::_1));
   CMD2_TRACKER        ("t.is_usable",         std::bind(&torrent::tracker::Tracker::is_usable, std::placeholders::_1));
 

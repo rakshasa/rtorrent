@@ -4,14 +4,10 @@
 
 #include <torrent/exceptions.h>
 
+#include "globals.h"
 #include "session/session_manager.h"
 
 namespace session {
-
-class ThreadSessionInternal {
-public:
-  static ThreadSession* thread_session() { return ThreadSession::internal_thread_session(); }
-};
 
 ThreadSession* ThreadSession::m_thread_session{nullptr};
 
@@ -74,14 +70,14 @@ ThreadSession::next_timeout() {
 
 namespace session_thread {
 
-torrent::system::Thread* thread()                         { return session::ThreadSessionInternal::thread_session(); }
-std::thread::id          thread_id()                      { return session::ThreadSessionInternal::thread_session()->thread_id(); }
+torrent::system::Thread* thread()                                           { return session::ThreadSession::thread_session(); }
+std::thread::id          thread_id()                                        { return thread()->thread_id(); }
 
-void callback(void* target, std::function<void ()>&& fn) { session::ThreadSessionInternal::thread_session()->callback(target, std::move(fn)); }
-void cancel_callback(void* target)                       { session::ThreadSessionInternal::thread_session()->cancel_callback(target); }
-void cancel_callback_and_wait(void* target)              { session::ThreadSessionInternal::thread_session()->cancel_callback_and_wait(target); }
+void callback(std::function<void()>&& fn)                                   { thread()->callback(std::move(fn)); }
+void callback(torrent::system::callback_id& id, std::function<void()>&& fn) { thread()->callback(id, std::move(fn)); }
+void cancel_callback(torrent::system::callback_id& id)                      { thread()->cancel_callback(id); }
 
-session::SessionManager* manager()                       { return session::ThreadSessionInternal::thread_session()->manager(); }
-std::string              session_path()                  { return session::ThreadSessionInternal::thread_session()->manager()->path(); }
+session::SessionManager* manager()                                          { return session::ThreadSession::thread_session()->manager(); }
+std::string              session_path()                                     { return manager()->path(); }
 
 } // namespace session_thread

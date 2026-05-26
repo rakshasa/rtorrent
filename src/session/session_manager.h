@@ -89,37 +89,39 @@ private:
   bool                replace_save_request_unsafe(SaveRequest& download);
   bool                remove_completely_unsafe(core::Download* download, std::unique_lock<std::mutex>& lock);
 
-  torrent::system::Thread* m_thread;
+  using ProcessingSave = std::pair<std::future<void>, SaveRequest>;
 
-  bool                m_freeze_info{};
-  std::string         m_path;
-  bool                m_use_fsyncdisk{true};
-  bool                m_use_lock{true};
+  torrent::system::Thread*     m_thread;
+  torrent::system::callback_id m_callback_id;
 
-  std::mutex          m_mutex;
-  bool                m_active{};
+  bool                         m_freeze_info{};
+  std::string                  m_path;
+  bool                         m_use_fsyncdisk{true};
+  bool                         m_use_lock{true};
 
-  typedef std::pair<std::future<void>, SaveRequest> ProcessingSave;
+  align_cacheline std::mutex   m_mutex;
 
-  std::deque<SaveRequest>     m_save_requests;
-  std::atomic<size_t>         m_save_request_counter{};
-  std::list<ProcessingSave>   m_processing_saves;
-  std::atomic<size_t>         m_processing_save_counter{};
-  std::condition_variable     m_finished_condition;
-  std::vector<ProcessingSave> m_finished_saves;
+  bool                         m_active{};
 
-  std::atomic<bool>           m_callback_scheduled_process_pending_builds{};
-  std::atomic<bool>           m_callback_scheduled_process_saves_request{};
-  std::atomic<bool>           m_callback_scheduled_process_finished_saves{};
+  std::deque<SaveRequest>      m_save_requests;
+  std::atomic<size_t>          m_save_request_counter{};
+  std::list<ProcessingSave>    m_processing_saves;
+  std::atomic<size_t>          m_processing_save_counter{};
+  std::condition_variable      m_finished_condition;
+  std::vector<ProcessingSave>  m_finished_saves;
+
+  std::atomic<bool>            m_callback_scheduled_process_pending_builds{};
+  std::atomic<bool>            m_callback_scheduled_process_saves_request{};
+  std::atomic<bool>            m_callback_scheduled_process_finished_saves{};
 
   std::unique_ptr<utils::Lockfile> m_lockfile;
 
-  std::chrono::microseconds   m_last_storage_error_message{};
-  unsigned int                m_ignored_storage_error_count{};
+  std::chrono::microseconds    m_last_storage_error_message{};
+  unsigned int                 m_ignored_storage_error_count{};
 
   // Pending builds are only ever locked by main thread.
-  std::mutex                  m_pending_builds_mutex;
-  std::deque<core::Download*> m_pending_builds;
+  std::mutex                   m_pending_builds_mutex;
+  std::deque<core::Download*>  m_pending_builds;
 };
 
 inline bool        SessionManager::is_used() const            { return !m_path.empty(); }

@@ -51,9 +51,9 @@ WindowTrackerList::redraw() {
     if (pos < m_canvas->height()) {
       const char* state;
 
-      if (tracker.is_busy_not_scrape())
+      if (tracker.is_requesting_not_scrape())
         state = "req ";
-      else if (tracker.is_busy())
+      else if (tracker.is_requesting())
         state = "scr ";
       else
         state = "    ";
@@ -79,7 +79,7 @@ WindowTrackerList::redraw() {
       m_canvas->set_attr(4, pos - 1, m_canvas->width(), is_focused() ? A_REVERSE : A_BOLD, COLOR_PAIR(0));
     }
 
-    if (tracker.is_busy()) {
+    if (tracker.is_requesting()) {
       m_canvas->set_attr(0, pos - 2, 4, A_REVERSE, COLOR_PAIR(0));
       m_canvas->set_attr(0, pos - 1, 4, A_REVERSE, COLOR_PAIR(0));
     }
