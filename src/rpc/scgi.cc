@@ -11,7 +11,6 @@
 #include <torrent/net/poll.h>
 #include <torrent/net/socket_address.h>
 #include <torrent/runtime/socket_manager.h>
-#include <torrent/utils/log.h>
 
 #include "control.h"
 #include "globals.h"
@@ -23,14 +22,6 @@
 namespace rpc {
 
 SCgi::SCgi() {
-  auto category_max = max_tasks + 1;
-
-  torrent::runtime::socket_manager()->set_category_max_size(torrent::runtime::SocketManager::category_scgi, category_max);
-
-  if (category_max >= torrent::runtime::socket_manager()->max_size())
-    lt_log_print(torrent::LOG_WARN, "SCGI category max %u >= global max %u, SCGI could starve peer connections",
-                 category_max, torrent::runtime::socket_manager()->max_size());
-
   std::generate(m_tasks.begin(), m_tasks.end(), []() { return std::make_unique<SCgiTask>(); });
 
   m_current = m_tasks.begin();
