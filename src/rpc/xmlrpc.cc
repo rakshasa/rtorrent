@@ -9,20 +9,21 @@
 
 namespace rpc {
 
-std::vector<std::unique_ptr<const char>> XmlRpc::m_command_names;
+std::vector<std::string> XmlRpc::m_command_names;
 
 const char*
 XmlRpc::store_command_name(const char* name) {
-  if (::strnlen(name, 8192) == 8192)
+  if (::strnlen(name, 1024 + 1) > 1024)
     throw torrent::input_error("XMLRPC command name too long, limit is 8192 characters.");
 
   for (const auto& itr : m_command_names) {
-    if (::strcmp(itr.get(), name) == 0)
-      return itr.get();
+    if (itr == name)
+      return itr.c_str();
   }
 
-  m_command_names.push_back(std::unique_ptr<const char>(::strdup(name)));
-  return m_command_names.back().get();
+  m_command_names.push_back(name);
+
+  return m_command_names.back().c_str();
 }
 
 #ifndef HAVE_XMLRPC_C

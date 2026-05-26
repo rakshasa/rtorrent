@@ -272,9 +272,9 @@ object_to_xmlrpc(xmlrpc_env* env, const torrent::Object& object) {
 #ifdef XMLRPC_HAVE_I8
     if (rpc.dialect() != XmlRpc::dialect_generic)
       return xmlrpc_i8_new(env, object.as_value());
-#else
-    return xmlrpc_int_new(env, object.as_value());
 #endif
+
+    return xmlrpc_int_new(env, object.as_value());
 
   case torrent::Object::TYPE_STRING:
   {

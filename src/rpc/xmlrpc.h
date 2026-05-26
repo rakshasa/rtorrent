@@ -61,7 +61,7 @@ public:
 private:
   static const char*  store_command_name(const char* name);
 
-  static std::vector<std::unique_ptr<const char>> m_command_names;
+  static std::vector<std::string> m_command_names;
 
   slot_download       m_slotFindDownload;
   slot_file           m_slotFindFile;
