@@ -55,6 +55,9 @@ AC_LANG_PUSH(C++)
 TORRENT_WITH_XMLRPC_C
 AC_LANG_POP(C++)
 
+dnl We don't have LuaJIT support, and the script breaks if not disabled.
+AM_CONDITIONAL([LUAJIT], [false])
+
 TORRENT_WITH_LUA
 TORRENT_WITH_TINYXML2
 TORRENT_WITH_SYSTEMD
