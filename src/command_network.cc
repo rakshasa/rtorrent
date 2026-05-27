@@ -292,7 +292,7 @@ initialize_command_network() {
   CMD2_ANY         ("network.total_handshakes",      [](auto, auto)                    { return torrent::runtime::total_handshakes(); });
   CMD2_ANY         ("network.open_sockets",          [](auto, auto)                    { return torrent::runtime::socket_manager()->size(); });
   CMD2_ANY         ("network.max_open_sockets",      [](auto, auto)                    { return torrent::runtime::socket_manager()->max_size(); });
-  CMD2_ANY_VALUE_V ("network.max_open_sockets.set",  [](auto, auto& value)             { return torrent::runtime::socket_manager()->set_max_size(value); });
+  CMD2_ANY_VALUE_V ("network.max_open_sockets.set",  [](auto, auto& value)             { return torrent::runtime::socket_manager()->set_max_size_and_adjust(value); });
 
   CMD2_ANY_STRING  ("network.scgi.open_port",        std::bind(&apply_scgi, std::placeholders::_2, 1));
   CMD2_ANY_STRING  ("network.scgi.open_local",       std::bind(&apply_scgi, std::placeholders::_2, 2));
