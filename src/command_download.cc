@@ -33,31 +33,34 @@
 #include "control.h"
 #include "command_helpers.h"
 
-std::string
+torrent::string_utf8
 retrieve_d_base_path(core::Download* download) {
   if (download->file_list()->is_multi_file())
     return download->file_list()->frozen_root_dir();
-  else
-    return download->file_list()->empty() ? std::string() : download->file_list()->at(0)->frozen_path();
+
+  if (download->file_list()->empty())
+    return {};
+
+  return download->file_list()->at(0)->frozen_path();
 }
 
-std::string
+torrent::string_utf8
 retrieve_d_base_filename(core::Download* download) {
-  const std::string* base;
+  torrent::string_utf8 base_path;
 
   if (download->file_list()->is_multi_file())
-    base = &download->file_list()->frozen_root_dir();
-  else if (download->file_list()->empty())
-    return std::string();
+    base_path = download->file_list()->frozen_root_dir();
+  else if (!download->file_list()->empty())
+    base_path = download->file_list()->at(0)->frozen_path();
   else
-    base = &download->file_list()->at(0)->frozen_path();
+    return {};
 
-  std::string::size_type split = base->rfind('/');
+  auto split = base_path.str().rfind('/');
 
   if (split == std::string::npos)
-    return *base;
-  else
-    return base->substr(split + 1);
+    return base_path;
+
+  return torrent::string_utf8::from_string(base_path.str().substr(split + 1));
 }
 
 torrent::Object
@@ -270,16 +273,6 @@ retrieve_d_custom_map(core::Download* download, bool keys_only, const torrent::O
       result.as_map()[entry.first] = entry.second;
 
   return result;
-}
-
-torrent::Object
-retrieve_d_bitfield(core::Download* download) {
-  const torrent::Bitfield* bitField = download->download()->file_list()->bitfield();
-
-  if (bitField->empty())
-    return torrent::Object("");
-
-  return torrent::Object(torrent::utils::transform_to_hex_str(*bitField));
 }
 
 void
@@ -651,12 +644,16 @@ void               cg_d_group_set(core::Download* download, const torrent::Objec
 
 void
 initialize_command_download() {
-  CMD2_DL("d.hash",          [](auto* download, auto) { return torrent::utils::transform_to_hex_str(download->info()->hash()); });
-  CMD2_DL("d.local_id",      [](auto* download, auto) { return torrent::utils::transform_to_hex_str(download->info()->local_id()); });
-  CMD2_DL("d.local_id_html", [](auto* download, auto) { return torrent::utils::copy_escape_html_str(download->info()->local_id()); });
-  CMD2_DL("d.bitfield",      std::bind(&retrieve_d_bitfield, std::placeholders::_1));
-  CMD2_DL("d.base_path",     std::bind(&retrieve_d_base_path, std::placeholders::_1));
-  CMD2_DL("d.base_filename", std::bind(&retrieve_d_base_filename, std::placeholders::_1));
+  CMD2_DL("d.hash",                    [](auto* download, auto) { return torrent::utils::transform_to_hex_str(download->info()->hash()); });
+  CMD2_DL("d.local_id",                [](auto* download, auto) { return torrent::utils::transform_to_hex_str(download->info()->local_id()); });
+  CMD2_DL("d.local_id_html",           [](auto* download, auto) { return torrent::utils::copy_escape_html_str(download->info()->local_id()); });
+  CMD2_DL("d.bitfield",                [](auto* download, auto) { return torrent::utils::transform_to_hex_str(*download->download()->file_list()->bitfield()); });
+  CMD2_DL("d.base_path",               [](auto* download, auto) { return retrieve_d_base_path(download).str(); });
+  CMD2_DL("d.base_path.base64",        [](auto* download, auto) { return retrieve_d_base_path(download).object_base64(); });
+  CMD2_DL("d.base_path.or_base64",     [](auto* download, auto) { return retrieve_d_base_path(download).object_utf8_or_base64(); });
+  CMD2_DL("d.base_filename",           [](auto* download, auto) { return retrieve_d_base_filename(download).str(); });
+  CMD2_DL("d.base_filename.base64",    [](auto* download, auto) { return retrieve_d_base_filename(download).object_base64(); });
+  CMD2_DL("d.base_filename.or_base64", [](auto* download, auto) { return retrieve_d_base_filename(download).object_utf8_or_base64(); });
 
   CMD2_DL("d.name",           [](auto* download, auto) { return download->info()->name().str(); });
   CMD2_DL("d.name.base64",    [](auto* download, auto) { return download->info()->name().object_base64(); });
@@ -903,7 +900,11 @@ initialize_command_download() {
   rpc::rpc.mark_safe("d.local_id_html");
   rpc::rpc.mark_safe("d.bitfield");
   rpc::rpc.mark_safe("d.base_path");
+  rpc::rpc.mark_safe("d.base_path.base64");
+  rpc::rpc.mark_safe("d.base_path.or_base64");
   rpc::rpc.mark_safe("d.base_filename");
+  rpc::rpc.mark_safe("d.base_filename.base64");
+  rpc::rpc.mark_safe("d.base_filename.or_base64");
   rpc::rpc.mark_safe("d.name");
   rpc::rpc.mark_safe("d.name.base64");
   rpc::rpc.mark_safe("d.name.or_base64");

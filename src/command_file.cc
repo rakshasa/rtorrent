@@ -91,10 +91,12 @@ initialize_command_file() {
   CMD2_FILE("f.priority",               std::bind(&torrent::File::priority, std::placeholders::_1));
   CMD2_FILE_VALUE_V("f.priority.set",   std::bind(&apply_f_set_priority, std::placeholders::_1, std::placeholders::_2));
 
-  CMD2_FILE("f.path",                   std::bind(&apply_f_path, std::placeholders::_1));
-  CMD2_FILE("f.path_components",        std::bind(&apply_f_path_components, std::placeholders::_1));
-  CMD2_FILE("f.path_depth",             std::bind(&apply_f_path_depth, std::placeholders::_1));
-  CMD2_FILE("f.frozen_path",            std::bind(&torrent::File::frozen_path, std::placeholders::_1));
+  CMD2_FILE("f.path",                   [](auto* file, auto) { return apply_f_path(file); });
+  CMD2_FILE("f.path_components",        [](auto* file, auto) { return apply_f_path_components(file); });
+  CMD2_FILE("f.path_depth",             [](auto* file, auto) { return apply_f_path_depth(file); });
+  CMD2_FILE("f.frozen_path",            [](auto* file, auto) { return file->frozen_path().str(); });
+  CMD2_FILE("f.frozen_path.base64",     [](auto* file, auto) { return file->frozen_path().object_base64(); });
+  CMD2_FILE("f.frozen_path.or_base64",  [](auto* file, auto) { return file->frozen_path().object_utf8_or_base64(); });
 
   CMD2_FILE("f.match_depth_prev",       std::bind(&torrent::File::match_depth_prev, std::placeholders::_1));
   CMD2_FILE("f.match_depth_next",       std::bind(&torrent::File::match_depth_next, std::placeholders::_1));
@@ -108,6 +110,8 @@ initialize_command_file() {
   rpc::rpc.mark_safe("f.path_components");
   rpc::rpc.mark_safe("f.path_depth");
   rpc::rpc.mark_safe("f.frozen_path");
+  rpc::rpc.mark_safe("f.frozen_path.base64");
+  rpc::rpc.mark_safe("f.frozen_path.or_base64");
   rpc::rpc.mark_safe("f.offset");
   rpc::rpc.mark_safe("f.size_bytes");
   rpc::rpc.mark_safe("f.size_chunks");

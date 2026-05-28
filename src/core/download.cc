@@ -116,7 +116,7 @@ Download::set_root_directory(const std::string& path) {
 
       (file_list->is_multi_file() ?
        !file_list->is_root_dir_created() :
-       !file_stat.update(file_list->front()->frozen_path()))) {
+       !file_stat.update(file_list->front()->frozen_path().str()))) {
 
     set_message("Cannot change the directory of an open download after the files have been moved.");
     rpc::call_command("d.state.set", (int64_t)0, rpc::make_target(this));
