@@ -145,9 +145,9 @@ apply_d_directory(core::Download* download, const std::string& name) {
   if (!download->file_list()->is_multi_file())
     download->set_root_directory(name);
   else if (name.empty() || *name.rbegin() == '/')
-    download->set_root_directory(name + download->info()->name());
+    download->set_root_directory(name + download->info()->name().str());
   else
-    download->set_root_directory(name + "/" + download->info()->name());
+    download->set_root_directory(name + "/" + download->info()->name().str());
 }
 
 torrent::Object
@@ -658,23 +658,25 @@ initialize_command_download() {
   CMD2_DL("d.base_path",     std::bind(&retrieve_d_base_path, std::placeholders::_1));
   CMD2_DL("d.base_filename", std::bind(&retrieve_d_base_filename, std::placeholders::_1));
 
-  CMD2_DL("d.name",          CMD2_ON_INFO(name));
-  CMD2_DL("d.creation_date", CMD2_ON_INFO(creation_date));
-  CMD2_DL("d.load_date",     CMD2_ON_INFO(load_date));
+  CMD2_DL("d.name",           [](auto* download, auto) { return download->info()->name().str(); });
+  CMD2_DL("d.name.base64",    [](auto* download, auto) { return download->info()->name().object_base64(); });
+  CMD2_DL("d.name.or_base64", [](auto* download, auto) { return download->info()->name().object_utf8_or_base64(); });
+  CMD2_DL("d.creation_date",  [](auto* download, auto) { return download->info()->creation_date(); });
+  CMD2_DL("d.load_date",      [](auto* download, auto) { return download->info()->load_date(); });
 
   //
   // Network related:
   //
 
-  CMD2_DL         ("d.up.rate",       std::bind(&torrent::Rate::rate,  CMD2_ON_INFO(up_rate)));
-  CMD2_DL         ("d.up.total",      std::bind(&torrent::Rate::total, CMD2_ON_INFO(up_rate)));
-  CMD2_DL         ("d.down.rate",     std::bind(&torrent::Rate::rate,  CMD2_ON_INFO(down_rate)));
-  CMD2_DL         ("d.down.total",    std::bind(&torrent::Rate::total, CMD2_ON_INFO(down_rate)));
-  CMD2_DL         ("d.skip.rate",     std::bind(&torrent::Rate::rate,  CMD2_ON_INFO(skip_rate)));
-  CMD2_DL         ("d.skip.total",    std::bind(&torrent::Rate::total, CMD2_ON_INFO(skip_rate)));
+  CMD2_DL         ("d.up.rate",       [](auto* download, auto)           { return download->info()->up_rate()->rate(); });
+  CMD2_DL         ("d.up.total",      [](auto* download, auto)           { return download->info()->up_rate()->total(); });
+  CMD2_DL         ("d.down.rate",     [](auto* download, auto)           { return download->info()->down_rate()->rate(); });
+  CMD2_DL         ("d.down.total",    [](auto* download, auto)           { return download->info()->down_rate()->total(); });
+  CMD2_DL         ("d.skip.rate",     [](auto* download, auto)           { return download->info()->skip_rate()->rate(); });
+  CMD2_DL         ("d.skip.total",    [](auto* download, auto)           { return download->info()->skip_rate()->total(); });
 
-  CMD2_DL         ("d.peer_exchange",     CMD2_ON_INFO(is_pex_enabled));
-  CMD2_DL_VALUE_V ("d.peer_exchange.set", std::bind(&torrent::Download::set_pex_enabled, CMD2_BIND_DL, std::placeholders::_2));
+  CMD2_DL         ("d.peer_exchange",     [](auto* download, auto)       { return download->info()->is_pex_enabled(); });
+  CMD2_DL_VALUE_V ("d.peer_exchange.set", [](auto* download, auto value) { download->download()->set_pex_enabled(value); });
 
   CMD2_DL_LIST    ("d.create_link", std::bind(&apply_d_change_link, std::placeholders::_1, std::placeholders::_2, 0));
   CMD2_DL_LIST    ("d.delete_link", std::bind(&apply_d_change_link, std::placeholders::_1, std::placeholders::_2, 1));
@@ -690,16 +692,16 @@ initialize_command_download() {
   // Control functinos:
   //
 
-  CMD2_DL         ("d.is_open",               CMD2_ON_INFO(is_open));
-  CMD2_DL         ("d.is_active",             CMD2_ON_INFO(is_active));
+  CMD2_DL         ("d.is_open",               [](auto* download, auto) { return download->info()->is_open(); });
+  CMD2_DL         ("d.is_active",             [](auto* download, auto) { return download->info()->is_active(); });
   CMD2_DL         ("d.is_hash_checked",       std::bind(&torrent::Download::is_hash_checked, CMD2_BIND_DL));
   CMD2_DL         ("d.is_hash_checking",      std::bind(&torrent::Download::is_hash_checking, CMD2_BIND_DL));
   CMD2_DL         ("d.is_multi_file",         std::bind(&torrent::FileList::is_multi_file, CMD2_BIND_FL));
-  CMD2_DL         ("d.is_private",            CMD2_ON_INFO(is_private));
-  CMD2_DL         ("d.is_pex_active",         CMD2_ON_INFO(is_pex_active));
+  CMD2_DL         ("d.is_private",            [](auto* download, auto) { return download->info()->is_private(); });
+  CMD2_DL         ("d.is_pex_active",         [](auto* download, auto) { return download->info()->is_pex_active(); });
   CMD2_DL         ("d.is_partially_done",     CMD2_ON_DATA(is_partially_done));
   CMD2_DL         ("d.is_not_partially_done", CMD2_ON_DATA(is_not_partially_done));
-  CMD2_DL         ("d.is_meta",               CMD2_ON_INFO(is_meta_download));
+  CMD2_DL         ("d.is_meta",               [](auto* download, auto) { return download->info()->is_meta_download(); });
 
   CMD2_DL_V       ("d.resume",     std::bind(&core::DownloadList::resume_default, control->core()->download_list(), std::placeholders::_1));
   CMD2_DL_V       ("d.pause",      std::bind(&core::DownloadList::pause_default, control->core()->download_list(), std::placeholders::_1));
@@ -903,6 +905,8 @@ initialize_command_download() {
   rpc::rpc.mark_safe("d.base_path");
   rpc::rpc.mark_safe("d.base_filename");
   rpc::rpc.mark_safe("d.name");
+  rpc::rpc.mark_safe("d.name.base64");
+  rpc::rpc.mark_safe("d.name.or_base64");
   rpc::rpc.mark_safe("d.directory");
   rpc::rpc.mark_safe("d.directory_base");
   rpc::rpc.mark_safe("d.creation_date");
