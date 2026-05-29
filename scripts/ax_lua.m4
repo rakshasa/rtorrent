@@ -207,8 +207,8 @@ AC_DEFUN([AX_PROG_LUA],
 
   dnl Find a Lua interpreter.
   AM_COND_IF([LUAJIT],
-        [_ax_lua_interpreter_list='luajit luajit-2.1.0-beta3 luajit-2.0.5 luajit-2.0.4 luajit-2.0.3'],
-        [_ax_lua_interpreter_list='lua lua5.4 lua54 lua5.3 lua53 lua5.2 lua52 lua5.1 lua51 lua5.0 lua50'])
+        [_ax_lua_interpreter_list='luajit'],
+        [_ax_lua_interpreter_list='lua lua5.4 lua54 lua5.3 lua53 lua5.2 lua52 lua5.1 lua51 lua5.0 lua50 luajit'])
 
   m4_if([$1], [],
   [ dnl No version check is needed. Find any Lua interpreter.

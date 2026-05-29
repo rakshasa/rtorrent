@@ -280,6 +280,11 @@ AC_DEFUN([TORRENT_WITH_LUA], [
     if test "$withval" = "no"; then
       AC_MSG_RESULT(no)
     else
+      dnl Prefer LuaJIT over PUC Lua if available.
+      AC_PATH_PROG([_ax_luajit_check], [luajit], [no])
+      if test "x$_ax_luajit_check" != "xno"; then
+        AM_CONDITIONAL([LUAJIT], [true])
+      fi
       AX_PROG_LUA
       AX_LUA_LIBS
       AX_LUA_HEADERS

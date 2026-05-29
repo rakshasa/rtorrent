@@ -55,7 +55,7 @@ AC_LANG_PUSH(C++)
 TORRENT_WITH_XMLRPC_C
 AC_LANG_POP(C++)
 
-dnl We don't have LuaJIT support, and the script breaks if not disabled.
+dnl Default to false; TORRENT_WITH_LUA will set it to true if LuaJIT is found.
 AM_CONDITIONAL([LUAJIT], [false])
 
 TORRENT_WITH_LUA
