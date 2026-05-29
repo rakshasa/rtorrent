@@ -286,12 +286,27 @@ AC_DEFUN([TORRENT_WITH_LUA], [
         AM_CONDITIONAL([LUAJIT], [true])
       fi
       AX_PROG_LUA
-      AX_LUA_LIBS
-      AX_LUA_HEADERS
-      AC_DEFINE(HAVE_LUA, 1, Use LUA.)
-      AC_DEFINE(LUA_DATADIR, [PACKAGE_DATADIR "/lua"], [LUA data directory])
-      LIBS="$LIBS $LUA_LIB"
-      CXXFLAGS="$CXXFLAGS $LUA_INCLUDE"
+
+      # 1. Override AX_LUA_LIBS default crash behavior
+      AX_LUA_LIBS([have_lua_libs=yes], [have_lua_libs=no])
+
+      # 2. Override AX_LUA_HEADERS default crash behavior
+      AX_LUA_HEADERS([have_lua_headers=yes], [have_lua_headers=no])
+
+      # 3. Only inject if both checks completely pass
+      if test "x$have_lua_libs" = "xyes" && test "x$have_lua_headers" = "xyes"; then
+        AC_DEFINE(HAVE_LUA, 1, Use LUA.)
+        AC_DEFINE(LUA_DATADIR, [PACKAGE_DATADIR "/lua"], [LUA data directory])
+        LIBS="$LIBS $LUA_LIB"
+        CXXFLAGS="$CXXFLAGS $LUA_INCLUDE"
+      else
+        # Throw fatal error ONLY if user strictly ran --with-lua=yes
+        if test "$withval" = "yes"; then
+          AC_MSG_ERROR([Lua support explicitly requested, but compatible Lua libs/headers were not found.])
+        else
+          AC_MSG_WARN([Lua libs or headers missing. Proceeding without Lua support.])
+        fi
+      fi
     fi
   ],[
     AC_MSG_RESULT(ignored)
