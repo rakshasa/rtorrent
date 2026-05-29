@@ -250,7 +250,7 @@ Download::activate_display(Display displayType, bool focusDisplay) {
   // Set title.
   switch (displayType) {
   case DISPLAY_MAX_SIZE: break;
-  default: control->ui()->window_title()->set_title(m_download->info()->name()); break;
+  default: control->ui()->window_title()->set_title(m_download->info()->name().str()); break;
   }
 
   control->display()->adjust_layout();

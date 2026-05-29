@@ -278,6 +278,9 @@ object_to_xmlrpc(xmlrpc_env* env, const torrent::Object& object) {
 
   case torrent::Object::TYPE_STRING:
   {
+    if (object.flags() & torrent::Object::flag_base64)
+      return xmlrpc_base64_new(env, object.as_string().c_str(), object.as_string().size());
+
 #ifdef XMLRPC_HAVE_I8
     // The versions that support I8 do implicit utf-8 validation.
     xmlrpc_value* result = xmlrpc_string_new(env, object.as_string().c_str());

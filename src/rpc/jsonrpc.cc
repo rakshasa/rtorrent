@@ -6,6 +6,7 @@
 #include <string>
 #include <torrent/common.h>
 #include <torrent/torrent.h>
+#include <torrent/utils/string_manip.h>
 
 #include "rpc/rpc_manager.h"
 #include "rpc/command.h"
@@ -66,12 +67,23 @@ object_to_json(const torrent::Object& object) noexcept {
   switch (object.type()) {
   case torrent::Object::TYPE_VALUE:
     return object.as_value();
+
   case torrent::Object::TYPE_STRING:
+    if (object.flags() & torrent::Object::flag_base64) {
+      std::vector<uint8_t> binary_data;
+      torrent::utils::transform_from_hex(object.as_string(), binary_data);
+
+      return json::binary(binary_data);
+    }
+
     return object.as_string();
+
   case torrent::Object::TYPE_LIST: {
     json result = json::array();
+
     for (const auto& obj : object.as_list())
       result.push_back(object_to_json(obj));
+
     return result;
   }
   case torrent::Object::TYPE_MAP: {
@@ -135,7 +147,9 @@ jsonrpc_call_command(const std::string& method, const json& params) {
 
   try {
     const auto& result = rpc::commands.call_command(itr, params_object, target);
+
     return object_to_json(result);
+
   } catch (untrusted_error& e) {
     throw rpc_error(JSONRPC_METHOD_NOT_FOUND_ERROR, e.what());
   }

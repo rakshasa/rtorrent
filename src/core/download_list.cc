@@ -683,8 +683,10 @@ DownloadList::process_meta_download(Download* download) {
   rpc::call_command("d.stop", torrent::Object(), rpc::make_target(download));
   rpc::call_command("d.close", torrent::Object(), rpc::make_target(download));
 
-  std::string metafile = (*download->file_list()->begin())->frozen_path();
+  std::string  metafile = (*download->file_list()->begin())->frozen_path().str();
+
   std::fstream file(metafile.c_str(), std::ios::in | std::ios::binary);
+
   if (!file.is_open()) {
     lt_log_print(torrent::LOG_TORRENT_ERROR, "Could not read download metadata.");
     return;
@@ -692,11 +694,13 @@ DownloadList::process_meta_download(Download* download) {
 
   torrent::Object* bencode = new torrent::Object(torrent::Object::create_map());
   file >> bencode->insert_key("info", torrent::Object());
+
   if (file.fail()) {
     delete bencode;
     lt_log_print(torrent::LOG_TORRENT_ERROR, "Could not create download, the input is not a valid torrent.");
     return;
   }
+
   file.close();
 
   // Steal the keys we still need. The old download has no use for them.
@@ -707,6 +711,7 @@ DownloadList::process_meta_download(Download* download) {
     bencode->insert_key("announce-list", torrent::Object()).swap(download->bencode()->get_key("announce-list"));
 
   erase_ptr(download);
+
   control->core()->try_create_download_from_meta_download(bencode, metafile);
 }
 
