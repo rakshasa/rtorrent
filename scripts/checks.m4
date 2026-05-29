@@ -375,3 +375,20 @@ AC_DEFUN([TORRENT_WITH_SYSTEMD], [
       fi
     ])
 ])
+
+
+AC_DEFUN([TORRENT_WITHOUT_NCURSES], [
+  AC_ARG_WITH([ncurses],
+    [AS_HELP_STRING([--without-ncurses], [build without ncurses (daemon-only mode)])],
+    [with_ncurses=$withval],
+    [with_ncurses=yes])
+
+  if test "x$with_ncurses" = xno; then
+    AC_DEFINE([HAVE_NO_NCURSES], [1], [Define to 1 if building without ncurses])
+    CURSES_LIBS=""
+    CURSES_CFLAGS=""
+    CURSES_LIB=""
+  fi
+
+  AM_CONDITIONAL([NO_NCURSES], [test "x$with_ncurses" = xno])
+])
