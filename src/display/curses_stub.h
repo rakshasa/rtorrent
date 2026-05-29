@@ -99,6 +99,7 @@ inline int     init_pair(short, short, short) { return 0; }
 inline int     pair_content(short, short*, short*) { return 0; }
 inline int     resizeterm(int, int) { return 0; }
 inline int     getch() { return ERR; }
+inline int     set_escdelay(int) { return 0; }
 
 // getyx / getmaxyx are macros in real ncurses; stub them as no-ops
 #define getyx(w, y, x)     do { (y) = 0; (x) = 0; } while (0)
