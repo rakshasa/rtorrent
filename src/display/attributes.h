@@ -4,7 +4,9 @@
 #include <string>
 #include <vector>
 
-#if defined(HAVE_NCURSESW_CURSES_H)
+#if defined(HAVE_NO_NCURSES)
+#include "curses_stub.h"
+#elif defined(HAVE_NCURSESW_CURSES_H)
 #include <ncursesw/curses.h>
 #elif defined(HAVE_NCURSESW_H)
 #include <ncursesw.h>

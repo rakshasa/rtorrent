@@ -41,10 +41,20 @@ AC_ARG_ENABLE(execinfo,
   ])
 
 AX_PTHREAD([], AC_MSG_ERROR([requires pthread]))
-AX_WITH_CURSES
 
-if test "x$ax_cv_ncursesw" != xyes && test "x$ax_cv_ncurses" != xyes; then
-  AC_MSG_ERROR([requires either NcursesW or Ncurses library])
+AC_ARG_WITH([ncurses],
+  [AS_HELP_STRING([--without-ncurses], [build without ncurses (daemon-only mode)])],
+  [with_ncurses=$withval],
+  [with_ncurses=yes])
+
+if test "x$with_ncurses" != xno; then
+  AX_WITH_CURSES
+
+  if test "x$ax_cv_ncursesw" != xyes && test "x$ax_cv_ncurses" != xyes; then
+    AC_MSG_ERROR([requires either NcursesW or Ncurses library])
+  fi
+else
+  AC_DEFINE([HAVE_NO_NCURSES], [1], [Define to 1 if building without ncurses])
 fi
 
 PKG_CHECK_MODULES([CPPUNIT], [cppunit],, [no_cppunit="yes"])
@@ -70,9 +80,20 @@ AC_DEFINE(USER_AGENT, [std::string(PACKAGE "/" VERSION)], Http user agent)
 
 dnl Only update global build variables immediately before generating the output,
 dnl to avoid affecting the global build environment for other autoconf checks.
-LIBS="$PTHREAD_LIBS $CURSES_LIB $CURSES_LIBS $ZLIB_LIBS $DEPENDENCIES_LIBS $LIBS"
-CFLAGS="$CFLAGS $PTHREAD_CFLAGS $CURSES_CFLAGS $ZLIB_CFLAGS $DEPENDENCIES_CFLAGS"
-CXXFLAGS="$CXXFLAGS $PTHREAD_CFLAGS $CURSES_CFLAGS $ZLIB_CFLAGS $DEPENDENCIES_CFLAGS"
+if test "x$with_ncurses" != xno; then
+  LIBS="$PTHREAD_LIBS $CURSES_LIB $CURSES_LIBS $ZLIB_LIBS $DEPENDENCIES_LIBS $LIBS"
+else
+  LIBS="$PTHREAD_LIBS $ZLIB_LIBS $DEPENDENCIES_LIBS $LIBS"
+fi
+if test "x$with_ncurses" != xno; then
+  CFLAGS="$CFLAGS $PTHREAD_CFLAGS $CURSES_CFLAGS $ZLIB_CFLAGS $DEPENDENCIES_CFLAGS"
+  CXXFLAGS="$CXXFLAGS $PTHREAD_CFLAGS $CURSES_CFLAGS $ZLIB_CFLAGS $DEPENDENCIES_CFLAGS"
+else
+  CFLAGS="$CFLAGS $PTHREAD_CFLAGS $ZLIB_CFLAGS $DEPENDENCIES_CFLAGS"
+  CXXFLAGS="$CXXFLAGS $PTHREAD_CFLAGS $ZLIB_CFLAGS $DEPENDENCIES_CFLAGS"
+fi
+
+AM_CONDITIONAL([NO_NCURSES], [test "x$with_ncurses" = xno])
 
 TORRENT_CHECK_POPCOUNT()
 

@@ -205,4 +205,8 @@ libsub_root_a_SOURCES = \
 	signal_handler.h
 
 
+if NO_NCURSES
+libsub_root_a_SOURCES += display/curses_stub.cc display/curses_stub.h
+endif
+
 AM_CPPFLAGS = -I$(srcdir) -I$(top_srcdir) -DPACKAGE_DATADIR=\"$(pkgdatadir)\"
