@@ -4,7 +4,11 @@
 #include <array>
 #include <map>
 
+#if defined(HAVE_NO_NCURSES)
+#include "curses_stub.h"
+#else
 #include <curses.h>
+#endif
 
 namespace display {
 
