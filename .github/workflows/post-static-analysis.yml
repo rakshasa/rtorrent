@@ -14,7 +14,7 @@ jobs:
     permissions:
       pull-requests: write
       # OPTIONAL: auto-closing conversations requires the `contents` permission
-      contents: write
+      contents: read
     steps:
     - name: Sleep for 30 seconds
       run: sleep 30s
