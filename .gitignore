@@ -18,6 +18,7 @@
 .libs
 Makefile
 aclocal.m4
+‎actmp.*
 ar-lib
 autom4te.cache
 compile
