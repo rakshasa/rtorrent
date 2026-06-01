@@ -11,10 +11,10 @@
 #include <sys/socket.h>
 #include <torrent/exceptions.h>
 #include <torrent/net/fd.h>
-#include <torrent/net/poll.h>
 #include <torrent/runtime/socket_manager.h>
-#include <torrent/utils/log.h>
 #include <torrent/system/callbacks.h>
+#include <torrent/system/poll.h>
+#include <torrent/utils/log.h>
 
 #include "control.h"
 #include "globals.h"

@@ -7,13 +7,13 @@
 namespace input {
 
 void
-InputEvent::insert(torrent::net::Poll* p) {
+InputEvent::insert(torrent::system::Poll* p) {
   p->open(this);
   p->insert_read(this);
 }
 
 void
-InputEvent::remove(torrent::net::Poll* p) {
+InputEvent::remove(torrent::system::Poll* p) {
   p->remove_read(this);
   p->close(this);
 }

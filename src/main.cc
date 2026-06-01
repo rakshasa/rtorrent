@@ -112,6 +112,7 @@ main(int argc, char** argv) {
     // TODO: Create a fake thread object for initializing other processes and enabling logging.
     torrent::initialize_main_thread();
 
+    // All signal handlers must restore errno if they return.
     SignalHandler::set_ignore(SIGPIPE);
     SignalHandler::set_handler(SIGSEGV,  std::bind(&do_panic, SIGSEGV));
     SignalHandler::set_handler(SIGILL,   std::bind(&do_panic, SIGILL));

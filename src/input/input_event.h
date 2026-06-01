@@ -4,7 +4,7 @@
 #include <functional>
 
 #include <torrent/event.h>
-#include <torrent/net/poll.h>
+#include <torrent/system/poll.h>
 
 namespace input {
 
@@ -16,8 +16,8 @@ public:
 
   const char*         type_name() const override { return "input"; }
 
-  void                insert(torrent::net::Poll* p);
-  void                remove(torrent::net::Poll* p);
+  void                insert(torrent::system::Poll* p);
+  void                remove(torrent::system::Poll* p);
 
   void                event_read() override;
   void                event_write() override;
