@@ -2,6 +2,7 @@
 
 #include <torrent/exceptions.h>
 #include <torrent/torrent.h>
+#include <torrent/system/callbacks.h>
 #include <torrent/system/thread.h>
 
 #include "display/frame.h"
@@ -17,11 +18,12 @@ namespace ui {
 ElementLogComplete::ElementLogComplete(torrent::log_buffer* l) :
     m_log(l) {
 
-  unsigned int signal_index = torrent::main_thread::thread()->signal_bitfield()->add_signal(std::bind(&ElementLogComplete::received_update, this));
+  m_log->lock_and_set_update_slot([this]() {
+      if (m_log_updating.exchange(true) == true)
+        return;
 
-  m_log->lock_and_set_update_slot([signal_index]() {
-    torrent::main_thread::thread()->send_event_signal(signal_index, false);
-  });
+      torrent::main_thread::callback([this]() { received_update(); });
+    });
 }
 
 void
@@ -59,6 +61,8 @@ ElementLogComplete::window() {
 
 void
 ElementLogComplete::received_update() {
+  m_log_updating = false;
+
   if (m_window != NULL)
     m_window->mark_dirty();
 }

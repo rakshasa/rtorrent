@@ -141,16 +141,6 @@ main(int argc, char** argv) {
 
     SignalHandler::set_sigaction_handler(SIGBUS, &handle_sigbus);
 
-    // SIGUSR1 is used for interrupting polling, forcing the target
-    // thread to process new non-socket events.
-    //
-    // LibTorrent uses sockets for this purpose on Solaris and other
-    // platforms that do not properly pass signals to the target
-    // threads. Use '--enable-interrupt-socket' when configuring
-    // LibTorrent to enable this workaround.
-    if (torrent::system::Thread::should_handle_sigusr1())
-      SignalHandler::set_handler(SIGUSR1, []() {});
-
     torrent::log_add_group_output(torrent::LOG_NOTICE,    "important");
     torrent::log_add_group_output(torrent::LOG_DHT_ERROR, "important");
 

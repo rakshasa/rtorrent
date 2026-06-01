@@ -30,6 +30,8 @@ private:
   WLogComplete*       m_window{};
 
   torrent::log_buffer* m_log;
+
+  align_cacheline std::atomic<bool> m_log_updating{};
 };
 
 }
