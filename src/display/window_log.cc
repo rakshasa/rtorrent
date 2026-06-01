@@ -2,6 +2,7 @@
 
 #include <ctime>
 #include <torrent/torrent.h>
+#include <torrent/system/callbacks.h>
 #include <torrent/system/thread.h>
 
 #include "canvas.h"
@@ -14,13 +15,14 @@ WindowLog::WindowLog(torrent::log_buffer* l) :
   Window(new Canvas, 0, 0, 0, extent_full, extent_static),
   m_log(l) {
 
-  m_task_update.slot() = std::bind(&WindowLog::receive_update, this);
+  m_task_update.slot() = [this]() { receive_update(); };
 
-  unsigned int signal_index = torrent::main_thread::thread()->signal_bitfield()->add_signal(std::bind(&WindowLog::receive_update, this));
+  m_log->lock_and_set_update_slot([this]() {
+      if (m_log_updating.exchange(true) == true)
+        return;
 
-  m_log->lock_and_set_update_slot([signal_index]() {
-    torrent::main_thread::thread()->send_event_signal(signal_index, false);
-  });
+      torrent::main_thread::callback([this]() { receive_update(); });
+    });
 }
 
 WindowLog::~WindowLog() {
@@ -52,11 +54,13 @@ WindowLog::redraw() {
 // gets updated.
 void
 WindowLog::receive_update() {
+  m_log_updating = false;
+
   if (!is_active())
     return;
 
-  iterator itr = find_older();
-  extent_type height = std::min(std::distance(itr, (iterator)m_log->end()), (std::iterator_traits<iterator>::difference_type)10);
+  auto itr    = find_older();
+  auto height = std::min(std::distance(itr, (iterator)m_log->end()), (std::iterator_traits<iterator>::difference_type)10);
 
   if (height != m_max_height) {
     m_min_height = height != 0 ? 1 : 0;

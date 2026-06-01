@@ -24,6 +24,8 @@ private:
 
   torrent::log_buffer*           m_log;
   torrent::utils::SchedulerEntry m_task_update;
+
+  align_cacheline std::atomic<bool> m_log_updating{};
 };
 
 }
