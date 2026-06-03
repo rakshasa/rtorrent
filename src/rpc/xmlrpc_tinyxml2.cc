@@ -152,9 +152,17 @@ void
 print_object_xml(const torrent::Object& obj, tinyxml2::XMLPrinter* printer) {
   switch (obj.type()) {
   case torrent::Object::TYPE_STRING:
-    if (obj.flags() & torrent::Object::flag_base64) {
+    if (obj.flags() & torrent::Object::flag_as_binary) {
+      // It is optimal for tinyxml2 to pass base64 strings directly from torrent::string_utf8 sources.
+      if (obj.flags() & torrent::Object::flag_base64) {
+        printer->OpenElement("base64", true);
+        printer->PushText(obj.as_string().c_str());
+        printer->CloseElement(true);
+        break;
+      }
+
       printer->OpenElement("base64", true);
-      printer->PushText(obj.as_string().c_str());
+      printer->PushText(utils::openssl_base64_encode(obj.as_string()).c_str());
       printer->CloseElement(true);
       break;
     }
@@ -169,6 +177,7 @@ print_object_xml(const torrent::Object& obj, tinyxml2::XMLPrinter* printer) {
     printer->PushText(std::to_string(obj.as_value()).c_str());
     printer->CloseElement(true);
     break;
+
   case torrent::Object::TYPE_LIST:
     printer->OpenElement("array", true);
     printer->OpenElement("data", true);

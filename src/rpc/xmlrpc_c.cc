@@ -278,8 +278,20 @@ object_to_xmlrpc(xmlrpc_env* env, const torrent::Object& object) {
 
   case torrent::Object::TYPE_STRING:
   {
-    if (object.flags() & torrent::Object::flag_base64)
+    if (object.flags() & torrent::Object::flag_binary) {
+
+      // This causes decode-and-reencode for base64, as XMLRPC-C doesn't allow us to pass base64 strings.
+      if (object.flags() & torrent::Object::flag_base64) {
+        auto binary_data = utils::base64_to_vector_unsafe(object.as_string());
+
+        if (!binary_data.has_value())
+          throw torrent::input_error("invalid base64 string in base64-as-binary object");
+
+        return xmlrpc_base64_new(env, (const char*)binary_data->data(), binary_data->size());
+      }
+
       return xmlrpc_base64_new(env, object.as_string().c_str(), object.as_string().size());
+    }
 
 #ifdef XMLRPC_HAVE_I8
     // The versions that support I8 do implicit utf-8 validation.

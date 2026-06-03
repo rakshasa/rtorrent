@@ -644,33 +644,45 @@ void               cg_d_group_set(core::Download* download, const torrent::Objec
 
 void
 initialize_command_download() {
-  CMD2_DL("d.hash",                    [](auto* download, auto) { return torrent::utils::transform_to_hex_str(download->info()->hash()); });
-  CMD2_DL("d.local_id",                [](auto* download, auto) { return torrent::utils::transform_to_hex_str(download->info()->local_id()); });
-  CMD2_DL("d.local_id_html",           [](auto* download, auto) { return torrent::utils::copy_escape_html_str(download->info()->local_id()); });
-  CMD2_DL("d.bitfield",                [](auto* download, auto) { return torrent::utils::transform_to_hex_str(*download->download()->file_list()->bitfield()); });
-  CMD2_DL("d.base_path",               [](auto* download, auto) { return retrieve_d_base_path(download).str(); });
-  CMD2_DL("d.base_path.base64",        [](auto* download, auto) { return retrieve_d_base_path(download).object_base64(); });
-  CMD2_DL("d.base_path.or_base64",     [](auto* download, auto) { return retrieve_d_base_path(download).object_utf8_or_base64(); });
-  CMD2_DL("d.base_filename",           [](auto* download, auto) { return retrieve_d_base_filename(download).str(); });
-  CMD2_DL("d.base_filename.base64",    [](auto* download, auto) { return retrieve_d_base_filename(download).object_base64(); });
-  CMD2_DL("d.base_filename.or_base64", [](auto* download, auto) { return retrieve_d_base_filename(download).object_utf8_or_base64(); });
+  CMD2_DL("d.hash",                           [](auto* download, auto) { return torrent::utils::transform_to_hex_str(download->info()->hash()); });
+  CMD2_DL("d.local_id",                       [](auto* download, auto) { return torrent::utils::transform_to_hex_str(download->info()->local_id()); });
+  CMD2_DL("d.local_id_html",                  [](auto* download, auto) { return torrent::utils::copy_escape_html_str(download->info()->local_id()); });
+  CMD2_DL("d.bitfield",                       [](auto* download, auto) { return torrent::utils::transform_to_hex_str(*download->download()->file_list()->bitfield()); });
+  CMD2_DL("d.base_path",                      [](auto* download, auto) { return retrieve_d_base_path(download).str(); });
+  CMD2_DL("d.base_path.hex",                  [](auto* download, auto) { return retrieve_d_base_path(download).object_hex(); });
+  CMD2_DL("d.base_path.base64",               [](auto* download, auto) { return retrieve_d_base_path(download).object_base64(); });
+  CMD2_DL("d.base_path.base64_as_binary",     [](auto* download, auto) { return retrieve_d_base_path(download).object_base64_as_binary(); });
+  CMD2_DL("d.base_path.as_binary",            [](auto* download, auto) { return retrieve_d_base_path(download).object_as_binary(); });
+  CMD2_DL("d.base_path.or_base64",            [](auto* download, auto) { return retrieve_d_base_path(download).object_utf8_or_base64(); });
+  CMD2_DL("d.base_path.or_as_binary",         [](auto* download, auto) { return retrieve_d_base_path(download).object_utf8_or_as_binary(); });
+  CMD2_DL("d.base_filename",                  [](auto* download, auto) { return retrieve_d_base_filename(download).str(); });
+  CMD2_DL("d.base_filename.hex",              [](auto* download, auto) { return retrieve_d_base_filename(download).object_hex(); });
+  CMD2_DL("d.base_filename.base64",           [](auto* download, auto) { return retrieve_d_base_filename(download).object_base64(); });
+  CMD2_DL("d.base_filename.base64_as_binary", [](auto* download, auto) { return retrieve_d_base_filename(download).object_base64_as_binary(); });
+  CMD2_DL("d.base_filename.as_binary",        [](auto* download, auto) { return retrieve_d_base_filename(download).object_as_binary(); });
+  CMD2_DL("d.base_filename.or_base64",        [](auto* download, auto) { return retrieve_d_base_filename(download).object_utf8_or_base64(); });
+  CMD2_DL("d.base_filename.or_as_binary",     [](auto* download, auto) { return retrieve_d_base_filename(download).object_utf8_or_as_binary(); });
 
-  CMD2_DL("d.name",           [](auto* download, auto) { return download->info()->name().str(); });
-  CMD2_DL("d.name.base64",    [](auto* download, auto) { return download->info()->name().object_base64(); });
-  CMD2_DL("d.name.or_base64", [](auto* download, auto) { return download->info()->name().object_utf8_or_base64(); });
-  CMD2_DL("d.creation_date",  [](auto* download, auto) { return download->info()->creation_date(); });
-  CMD2_DL("d.load_date",      [](auto* download, auto) { return download->info()->load_date(); });
+  CMD2_DL("d.name",                           [](auto* download, auto) { return download->info()->name().str(); });
+  CMD2_DL("d.name.hex",                       [](auto* download, auto) { return download->info()->name().object_hex(); });
+  CMD2_DL("d.name.base64",                    [](auto* download, auto) { return download->info()->name().object_base64(); });
+  CMD2_DL("d.name.base64_as_binary",          [](auto* download, auto) { return download->info()->name().object_base64_as_binary(); });
+  CMD2_DL("d.name.as_binary",                 [](auto* download, auto) { return download->info()->name().object_as_binary(); });
+  CMD2_DL("d.name.or_base64",                 [](auto* download, auto) { return download->info()->name().object_utf8_or_base64(); });
+  CMD2_DL("d.name.or_as_binary",              [](auto* download, auto) { return download->info()->name().object_utf8_or_as_binary(); });
+  CMD2_DL("d.creation_date",                  [](auto* download, auto) { return download->info()->creation_date(); });
+  CMD2_DL("d.load_date",                      [](auto* download, auto) { return download->info()->load_date(); });
 
   //
   // Network related:
   //
 
-  CMD2_DL         ("d.up.rate",       [](auto* download, auto)           { return download->info()->up_rate()->rate(); });
-  CMD2_DL         ("d.up.total",      [](auto* download, auto)           { return download->info()->up_rate()->total(); });
-  CMD2_DL         ("d.down.rate",     [](auto* download, auto)           { return download->info()->down_rate()->rate(); });
-  CMD2_DL         ("d.down.total",    [](auto* download, auto)           { return download->info()->down_rate()->total(); });
-  CMD2_DL         ("d.skip.rate",     [](auto* download, auto)           { return download->info()->skip_rate()->rate(); });
-  CMD2_DL         ("d.skip.total",    [](auto* download, auto)           { return download->info()->skip_rate()->total(); });
+  CMD2_DL         ("d.up.rate",           [](auto* download, auto) { return download->info()->up_rate()->rate(); });
+  CMD2_DL         ("d.up.total",          [](auto* download, auto) { return download->info()->up_rate()->total(); });
+  CMD2_DL         ("d.down.rate",         [](auto* download, auto) { return download->info()->down_rate()->rate(); });
+  CMD2_DL         ("d.down.total",        [](auto* download, auto) { return download->info()->down_rate()->total(); });
+  CMD2_DL         ("d.skip.rate",         [](auto* download, auto) { return download->info()->skip_rate()->rate(); });
+  CMD2_DL         ("d.skip.total",        [](auto* download, auto) { return download->info()->skip_rate()->total(); });
 
   CMD2_DL         ("d.peer_exchange",     [](auto* download, auto)       { return download->info()->is_pex_enabled(); });
   CMD2_DL_VALUE_V ("d.peer_exchange.set", [](auto* download, auto value) { download->download()->set_pex_enabled(value); });
@@ -900,14 +912,26 @@ initialize_command_download() {
   rpc::rpc.mark_safe("d.local_id_html");
   rpc::rpc.mark_safe("d.bitfield");
   rpc::rpc.mark_safe("d.base_path");
+  rpc::rpc.mark_safe("d.base_path.hex");
   rpc::rpc.mark_safe("d.base_path.base64");
+  rpc::rpc.mark_safe("d.base_path.base64_as_binary");
+  rpc::rpc.mark_safe("d.base_path.as_binary");
   rpc::rpc.mark_safe("d.base_path.or_base64");
+  rpc::rpc.mark_safe("d.base_path.or_as_binary");
   rpc::rpc.mark_safe("d.base_filename");
+  rpc::rpc.mark_safe("d.base_filename.hex");
   rpc::rpc.mark_safe("d.base_filename.base64");
+  rpc::rpc.mark_safe("d.base_filename.base64_as_binary");
+  rpc::rpc.mark_safe("d.base_filename.as_binary");
   rpc::rpc.mark_safe("d.base_filename.or_base64");
+  rpc::rpc.mark_safe("d.base_filename.or_as_binary");
   rpc::rpc.mark_safe("d.name");
+  rpc::rpc.mark_safe("d.name.hex");
   rpc::rpc.mark_safe("d.name.base64");
+  rpc::rpc.mark_safe("d.name.base64_as_binary");
+  rpc::rpc.mark_safe("d.name.as_binary");
   rpc::rpc.mark_safe("d.name.or_base64");
+  rpc::rpc.mark_safe("d.name.or_as_binary");
   rpc::rpc.mark_safe("d.directory");
   rpc::rpc.mark_safe("d.directory_base");
   rpc::rpc.mark_safe("d.creation_date");

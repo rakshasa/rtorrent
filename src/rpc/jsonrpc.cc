@@ -16,6 +16,7 @@
 #include "torrent/exceptions.h"
 #include "torrent/object.h"
 #include "utils/functional.h"
+#include "utils/base64.h"
 
 namespace rpc {
 
@@ -62,18 +63,28 @@ json_to_object(const json& value) {
   }
 }
 
+// Note: Only throw rpc_errors here.
+
 json
-object_to_json(const torrent::Object& object) noexcept {
+object_to_json(const torrent::Object& object) {
   switch (object.type()) {
   case torrent::Object::TYPE_VALUE:
     return object.as_value();
 
   case torrent::Object::TYPE_STRING:
-    if (object.flags() & torrent::Object::flag_base64) {
-      std::vector<uint8_t> binary_data;
-      torrent::utils::transform_from_hex(object.as_string(), binary_data);
+    if (object.flags() & torrent::Object::flag_as_binary) {
 
-      return json::binary(binary_data);
+      // We should optimize our imported json library to support copying base64 strings directly.
+      if (object.flags() & torrent::Object::flag_base64) {
+        auto binary_data = utils::base64_to_vector_unsafe(object.as_string());
+
+        if (!binary_data.has_value())
+          throw rpc_error(JSONRPC_INTERNAL_ERROR, "invalid base64 string in base64-as-binary object");
+
+        return json::binary(*binary_data);
+      }
+
+      return json::binary({object.as_string().begin(), object.as_string().end()});
     }
 
     return object.as_string();

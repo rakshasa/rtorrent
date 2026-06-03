@@ -34,34 +34,22 @@ apply_f_path(torrent::File* file) {
 }
 
 torrent::Object
-apply_f_path_components(torrent::File* file) {
+apply_f_path_components(torrent::File* file, int output_type) {
   auto  result_raw = torrent::Object::create_list();
   auto& result = result_raw.as_list();
 
-  for (const auto& itr : *file->path())
-    result.push_back(itr.str());
-
-  return result_raw;
-}
-
-torrent::Object
-apply_f_path_components_base64(torrent::File* file) {
-  auto  result_raw = torrent::Object::create_list();
-  auto& result = result_raw.as_list();
-
-  for (const auto& itr : *file->path())
-    result.push_back(itr.object_base64());
-
-  return result_raw;
-}
-
-torrent::Object
-apply_f_path_components_or_base64(torrent::File* file) {
-  auto  result_raw = torrent::Object::create_list();
-  auto& result = result_raw.as_list();
-
-  for (const auto& itr : *file->path())
-    result.push_back(itr.object_utf8_or_base64());
+  for (const auto& itr : *file->path()) {
+    switch (output_type) {
+    case 0: result.push_back(itr.str());                      break;
+    case 1: result.push_back(itr.object_hex());               break;
+    case 2: result.push_back(itr.object_base64());            break;
+    case 3: result.push_back(itr.object_base64_as_binary());  break;
+    case 4: result.push_back(itr.object_as_binary());         break;
+    case 5: result.push_back(itr.object_utf8_or_base64());    break;
+    case 6: result.push_back(itr.object_utf8_or_as_binary()); break;
+    default: throw torrent::input_error("apply_f_path_components(): invalid output type");
+    };
+  }
 
   return result_raw;
 }
@@ -102,25 +90,32 @@ initialize_command_file() {
   CMD2_FILE_V("f.prioritize_last.enable",   std::bind(&torrent::File::set_flags,   std::placeholders::_1, torrent::File::flag_prioritize_last));
   CMD2_FILE_V("f.prioritize_last.disable",  std::bind(&torrent::File::unset_flags, std::placeholders::_1, torrent::File::flag_prioritize_last));
 
-  CMD2_FILE("f.size_bytes",             std::bind(&torrent::File::size_bytes, std::placeholders::_1));
-  CMD2_FILE("f.size_chunks",            std::bind(&torrent::File::size_chunks, std::placeholders::_1));
-  CMD2_FILE("f.completed_chunks",       std::bind(&torrent::File::completed_chunks, std::placeholders::_1));
+  CMD2_FILE("f.size_bytes",                       [](auto* file, auto)   { return file->size_bytes(); });
+  CMD2_FILE("f.size_chunks",                      [](auto* file, auto)   { return file->size_chunks(); });
+  CMD2_FILE("f.completed_chunks",                 [](auto* file, auto)   { return file->completed_chunks(); });
 
-  CMD2_FILE("f.offset",                 std::bind(&torrent::File::offset, std::placeholders::_1));
-  CMD2_FILE("f.range_first",            std::bind(&torrent::File::range_first, std::placeholders::_1));
-  CMD2_FILE("f.range_second",           std::bind(&torrent::File::range_second, std::placeholders::_1));
+  CMD2_FILE("f.offset",                           [](auto* file, auto)   { return file->offset(); });
+  CMD2_FILE("f.range_first",                      [](auto* file, auto)   { return file->range_first(); });
+  CMD2_FILE("f.range_second",                     [](auto* file, auto)   { return file->range_second(); });
 
-  CMD2_FILE("f.priority",               std::bind(&torrent::File::priority, std::placeholders::_1));
-  CMD2_FILE_VALUE_V("f.priority.set",   std::bind(&apply_f_set_priority, std::placeholders::_1, std::placeholders::_2));
+  CMD2_FILE("f.priority",                         [](auto* file, auto)   { return file->priority(); });
+  CMD2_FILE_VALUE_V("f.priority.set",             [](auto* file, auto v) { apply_f_set_priority(file, v); });
 
-  CMD2_FILE("f.path",                      [](auto* file, auto) { return apply_f_path(file); });
-  CMD2_FILE("f.path_components",           [](auto* file, auto) { return apply_f_path_components(file); });
-  CMD2_FILE("f.path_components.base64",    [](auto* file, auto) { return apply_f_path_components_base64(file); });
-  CMD2_FILE("f.path_components.or_base64", [](auto* file, auto) { return apply_f_path_components_or_base64(file); });
-  CMD2_FILE("f.path_depth",                [](auto* file, auto) { return apply_f_path_depth(file); });
-  CMD2_FILE("f.frozen_path",               [](auto* file, auto) { return file->frozen_path().str(); });
-  CMD2_FILE("f.frozen_path.base64",        [](auto* file, auto) { return file->frozen_path().object_base64(); });
-  CMD2_FILE("f.frozen_path.or_base64",     [](auto* file, auto) { return file->frozen_path().object_utf8_or_base64(); });
+  CMD2_FILE("f.path",                             [](auto* file, auto)   { return apply_f_path(file); });
+  CMD2_FILE("f.path_components",                  [](auto* file, auto)   { return apply_f_path_components(file, 0); });
+  CMD2_FILE("f.path_components.hex",              [](auto* file, auto)   { return apply_f_path_components(file, 1); });
+  CMD2_FILE("f.path_components.base64",           [](auto* file, auto)   { return apply_f_path_components(file, 2); });
+  CMD2_FILE("f.path_components.base64_as_binary", [](auto* file, auto)   { return apply_f_path_components(file, 3); });
+  CMD2_FILE("f.path_components.as_binary",        [](auto* file, auto)   { return apply_f_path_components(file, 4); });
+  CMD2_FILE("f.path_components.or_base64",        [](auto* file, auto)   { return apply_f_path_components(file, 5); });
+  CMD2_FILE("f.path_components.or_as_binary",     [](auto* file, auto)   { return apply_f_path_components(file, 6); });
+  CMD2_FILE("f.path_depth",                       [](auto* file, auto)   { return apply_f_path_depth(file); });
+  CMD2_FILE("f.frozen_path",                      [](auto* file, auto)   { return file->frozen_path().str(); });
+  CMD2_FILE("f.frozen_path.hex",                  [](auto* file, auto)   { return file->frozen_path().object_hex(); });
+  CMD2_FILE("f.frozen_path.base64",               [](auto* file, auto)   { return file->frozen_path().object_base64(); });
+  CMD2_FILE("f.frozen_path.as_binary",            [](auto* file, auto)   { return file->frozen_path().object_as_binary(); });
+  CMD2_FILE("f.frozen_path.or_base64",            [](auto* file, auto)   { return file->frozen_path().object_utf8_or_base64(); });
+  CMD2_FILE("f.frozen_path.or_as_binary",         [](auto* file, auto)   { return file->frozen_path().object_utf8_or_as_binary(); });
 
   CMD2_FILE("f.match_depth_prev",       std::bind(&torrent::File::match_depth_prev, std::placeholders::_1));
   CMD2_FILE("f.match_depth_next",       std::bind(&torrent::File::match_depth_next, std::placeholders::_1));
@@ -134,8 +129,12 @@ initialize_command_file() {
   rpc::rpc.mark_safe("f.path_components");
   rpc::rpc.mark_safe("f.path_depth");
   rpc::rpc.mark_safe("f.frozen_path");
+  rpc::rpc.mark_safe("f.frozen_path.hex");
   rpc::rpc.mark_safe("f.frozen_path.base64");
+  rpc::rpc.mark_safe("f.frozen_path.base64_as_binary");
+  rpc::rpc.mark_safe("f.frozen_path.as_binary");
   rpc::rpc.mark_safe("f.frozen_path.or_base64");
+  rpc::rpc.mark_safe("f.frozen_path.or_as_binary");
   rpc::rpc.mark_safe("f.offset");
   rpc::rpc.mark_safe("f.size_bytes");
   rpc::rpc.mark_safe("f.size_chunks");
