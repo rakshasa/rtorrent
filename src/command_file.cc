@@ -45,23 +45,29 @@ apply_f_path_components(torrent::File* file) {
 }
 
 torrent::Object
-apply_f_path_components_base64(torrent::File* file) {
+apply_f_path_components_hex_base64(torrent::File* file, bool hex_or_base64) {
   auto  result_raw = torrent::Object::create_list();
   auto& result = result_raw.as_list();
 
   for (const auto& itr : *file->path())
-    result.push_back(itr.object_base64());
+    if (hex_or_base64)
+      result.push_back(itr.object_hex());
+    else
+      result.push_back(itr.object_base64());
 
   return result_raw;
 }
 
 torrent::Object
-apply_f_path_components_or_base64(torrent::File* file) {
+apply_f_path_components_or_hex_base64(torrent::File* file, bool hex_or_base64) {
   auto  result_raw = torrent::Object::create_list();
   auto& result = result_raw.as_list();
 
   for (const auto& itr : *file->path())
-    result.push_back(itr.object_utf8_or_base64());
+    if (hex_or_base64)
+      result.push_back(itr.object_utf8_or_hex());
+    else
+      result.push_back(itr.object_utf8_or_base64());
 
   return result_raw;
 }
@@ -115,11 +121,15 @@ initialize_command_file() {
 
   CMD2_FILE("f.path",                      [](auto* file, auto) { return apply_f_path(file); });
   CMD2_FILE("f.path_components",           [](auto* file, auto) { return apply_f_path_components(file); });
-  CMD2_FILE("f.path_components.base64",    [](auto* file, auto) { return apply_f_path_components_base64(file); });
-  CMD2_FILE("f.path_components.or_base64", [](auto* file, auto) { return apply_f_path_components_or_base64(file); });
+  CMD2_FILE("f.path_components.hex",       [](auto* file, auto) { return apply_f_path_components_hex_base64(file, true); });
+  CMD2_FILE("f.path_components.base64",    [](auto* file, auto) { return apply_f_path_components_hex_base64(file, false); });
+  CMD2_FILE("f.path_components.or_hex",    [](auto* file, auto) { return apply_f_path_components_or_hex_base64(file, true); });
+  CMD2_FILE("f.path_components.or_base64", [](auto* file, auto) { return apply_f_path_components_or_hex_base64(file, false); });
   CMD2_FILE("f.path_depth",                [](auto* file, auto) { return apply_f_path_depth(file); });
   CMD2_FILE("f.frozen_path",               [](auto* file, auto) { return file->frozen_path().str(); });
+  CMD2_FILE("f.frozen_path.hex",           [](auto* file, auto) { return file->frozen_path().object_hex(); });
   CMD2_FILE("f.frozen_path.base64",        [](auto* file, auto) { return file->frozen_path().object_base64(); });
+  CMD2_FILE("f.frozen_path.or_hex",        [](auto* file, auto) { return file->frozen_path().object_utf8_or_hex(); });
   CMD2_FILE("f.frozen_path.or_base64",     [](auto* file, auto) { return file->frozen_path().object_utf8_or_base64(); });
 
   CMD2_FILE("f.match_depth_prev",       std::bind(&torrent::File::match_depth_prev, std::placeholders::_1));
@@ -134,7 +144,9 @@ initialize_command_file() {
   rpc::rpc.mark_safe("f.path_components");
   rpc::rpc.mark_safe("f.path_depth");
   rpc::rpc.mark_safe("f.frozen_path");
+  rpc::rpc.mark_safe("f.frozen_path.hex");
   rpc::rpc.mark_safe("f.frozen_path.base64");
+  rpc::rpc.mark_safe("f.frozen_path.or_hex");
   rpc::rpc.mark_safe("f.frozen_path.or_base64");
   rpc::rpc.mark_safe("f.offset");
   rpc::rpc.mark_safe("f.size_bytes");

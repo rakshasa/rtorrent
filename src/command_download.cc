@@ -649,17 +649,23 @@ initialize_command_download() {
   CMD2_DL("d.local_id_html",           [](auto* download, auto) { return torrent::utils::copy_escape_html_str(download->info()->local_id()); });
   CMD2_DL("d.bitfield",                [](auto* download, auto) { return torrent::utils::transform_to_hex_str(*download->download()->file_list()->bitfield()); });
   CMD2_DL("d.base_path",               [](auto* download, auto) { return retrieve_d_base_path(download).str(); });
+  CMD2_DL("d.base_path.hex",           [](auto* download, auto) { return retrieve_d_base_path(download).object_hex(); });
   CMD2_DL("d.base_path.base64",        [](auto* download, auto) { return retrieve_d_base_path(download).object_base64(); });
+  CMD2_DL("d.base_path.or_hex",        [](auto* download, auto) { return retrieve_d_base_path(download).object_utf8_or_hex(); });
   CMD2_DL("d.base_path.or_base64",     [](auto* download, auto) { return retrieve_d_base_path(download).object_utf8_or_base64(); });
   CMD2_DL("d.base_filename",           [](auto* download, auto) { return retrieve_d_base_filename(download).str(); });
+  CMD2_DL("d.base_filename.hex",       [](auto* download, auto) { return retrieve_d_base_filename(download).object_hex(); });
   CMD2_DL("d.base_filename.base64",    [](auto* download, auto) { return retrieve_d_base_filename(download).object_base64(); });
+  CMD2_DL("d.base_filename.or_hex",    [](auto* download, auto) { return retrieve_d_base_filename(download).object_utf8_or_hex(); });
   CMD2_DL("d.base_filename.or_base64", [](auto* download, auto) { return retrieve_d_base_filename(download).object_utf8_or_base64(); });
 
-  CMD2_DL("d.name",           [](auto* download, auto) { return download->info()->name().str(); });
-  CMD2_DL("d.name.base64",    [](auto* download, auto) { return download->info()->name().object_base64(); });
-  CMD2_DL("d.name.or_base64", [](auto* download, auto) { return download->info()->name().object_utf8_or_base64(); });
-  CMD2_DL("d.creation_date",  [](auto* download, auto) { return download->info()->creation_date(); });
-  CMD2_DL("d.load_date",      [](auto* download, auto) { return download->info()->load_date(); });
+  CMD2_DL("d.name",                    [](auto* download, auto) { return download->info()->name().str(); });
+  CMD2_DL("d.name.hex",                [](auto* download, auto) { return download->info()->name().object_hex(); });
+  CMD2_DL("d.name.base64",             [](auto* download, auto) { return download->info()->name().object_base64(); });
+  CMD2_DL("d.name.or_hex",             [](auto* download, auto) { return download->info()->name().object_utf8_or_hex(); });
+  CMD2_DL("d.name.or_base64",          [](auto* download, auto) { return download->info()->name().object_utf8_or_base64(); });
+  CMD2_DL("d.creation_date",           [](auto* download, auto) { return download->info()->creation_date(); });
+  CMD2_DL("d.load_date",               [](auto* download, auto) { return download->info()->load_date(); });
 
   //
   // Network related:
@@ -900,13 +906,19 @@ initialize_command_download() {
   rpc::rpc.mark_safe("d.local_id_html");
   rpc::rpc.mark_safe("d.bitfield");
   rpc::rpc.mark_safe("d.base_path");
+  rpc::rpc.mark_safe("d.base_path.hex");
   rpc::rpc.mark_safe("d.base_path.base64");
+  rpc::rpc.mark_safe("d.base_path.or_hex");
   rpc::rpc.mark_safe("d.base_path.or_base64");
   rpc::rpc.mark_safe("d.base_filename");
+  rpc::rpc.mark_safe("d.base_filename.hex");
   rpc::rpc.mark_safe("d.base_filename.base64");
+  rpc::rpc.mark_safe("d.base_filename.or_hex");
   rpc::rpc.mark_safe("d.base_filename.or_base64");
   rpc::rpc.mark_safe("d.name");
+  rpc::rpc.mark_safe("d.name.hex");
   rpc::rpc.mark_safe("d.name.base64");
+  rpc::rpc.mark_safe("d.name.or_hex");
   rpc::rpc.mark_safe("d.name.or_base64");
   rpc::rpc.mark_safe("d.directory");
   rpc::rpc.mark_safe("d.directory_base");
