@@ -282,7 +282,7 @@ object_to_xmlrpc(xmlrpc_env* env, const torrent::Object& object) {
 
       // This causes decode-and-reencode for base64, as XMLRPC-C doesn't allow us to pass base64 strings.
       if (object.flags() & torrent::Object::flag_base64) {
-        auto binary_data = utils::base64_to_vector_unsafe(object.as_string());
+        auto binary_data = torrent::utils::transform_from_base64_unsafe(object.as_string());
 
         if (!binary_data.has_value())
           throw torrent::input_error("invalid base64 string in base64-as-binary object");

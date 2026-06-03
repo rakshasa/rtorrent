@@ -16,7 +16,6 @@
 #include "torrent/exceptions.h"
 #include "torrent/object.h"
 #include "utils/functional.h"
-#include "utils/base64.h"
 
 namespace rpc {
 
@@ -35,24 +34,29 @@ json_to_object(const json& value) {
   case json::value_t::number_unsigned:
   case json::value_t::number_integer:
     return torrent::Object(value.get<int64_t>());
+
   case json::value_t::boolean:
     return value.get<bool>() ? torrent::Object(int64_t(1)) : torrent::Object(int64_t(0));
+
   case json::value_t::string:
     return torrent::Object(value.get<std::string>());
+
   case json::value_t::array: {
     auto  array_raw = torrent::Object::create_list();
     auto& array     = array_raw.as_list();
-    for (const auto& entry : value) {
+
+    for (const auto& entry : value)
       array.push_back(json_to_object(entry));
-    }
+
     return array_raw;
   }
   case json::value_t::object: {
     auto  map_raw = torrent::Object::create_map();
     auto& map     = map_raw.as_map();
-    for (const auto& entry : value.items()) {
+
+    for (const auto& entry : value.items())
       map[entry.key()] = json_to_object(entry.value());
-    }
+
     return map_raw;
   }
   case json::value_t::number_float:
@@ -76,7 +80,7 @@ object_to_json(const torrent::Object& object) {
 
       // We should optimize our imported json library to support copying base64 strings directly.
       if (object.flags() & torrent::Object::flag_base64) {
-        auto binary_data = utils::base64_to_vector_unsafe(object.as_string());
+        auto binary_data = torrent::utils::transform_from_base64_unsafe(object.as_string());
 
         if (!binary_data.has_value())
           throw rpc_error(JSONRPC_INTERNAL_ERROR, "invalid base64 string in base64-as-binary object");
