@@ -1,6 +1,7 @@
 #include "base64.h"
 
 #include <string>
+#include <openssl/evp.h>
 
 namespace utils {
 
@@ -70,4 +71,51 @@ decode_base64(const std::string& input) {
   }
   return decodedBytes;
 }
+
+// TODO: Move to torrent::utils.
+
+std::optional<std::vector<uint8_t>>
+base64_to_vector_unsafe(const std::string& src) {
+  if (src.empty())
+    return std::vector<uint8_t>{};
+
+  if (src.length() % 4)
+    return std::nullopt;
+
+  std::vector<uint8_t> bytes((src.length() * 3) / 4);
+
+  int decoded_len = EVP_DecodeBlock(bytes.data(), reinterpret_cast<const uint8_t*>(src.data()), src.length());
+
+  if (decoded_len <= 0)
+    return std::nullopt;
+
+  if (src.back() == '=')
+    decoded_len--;
+
+  if (src.length() > 1 && src[src.length() - 2] == '=')
+    decoded_len--;
+
+  // If the input contains extra padding characters, this could cause negative decoded_len.
+  if (decoded_len < 0)
+    return std::nullopt;
+
+  bytes.resize(decoded_len);
+
+  return bytes;
+}
+
+std::string
+openssl_base64_encode(const std::string& src) {
+  if (src.empty()) return {};
+
+  std::string result((4 * ((src.size() + 2) / 3)), '\0');
+
+  int actual_length = EVP_EncodeBlock(reinterpret_cast<unsigned char*>(result.data()),
+                                      reinterpret_cast<const unsigned char*>(src.data()),
+                                      src.size());
+
+  result.resize(actual_length);
+  return result;
+}
+
 } // namespace utils
