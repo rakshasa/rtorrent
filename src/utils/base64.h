@@ -8,10 +8,6 @@
 
 namespace utils {
 
-// TODO: Refactor and move to torrent/string_manip.h.
-std::optional<std::vector<uint8_t>> base64_to_vector_unsafe(const std::string& src);
-std::string                         openssl_base64_encode(const std::string& src);
-
 // TODO: Deprecate.
 std::string remove_newlines(const std::string& str);
 std::string decode_base64(const std::string& input);

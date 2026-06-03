@@ -13,6 +13,7 @@
 
 #include <torrent/exceptions.h>
 #include <torrent/object.h>
+#include <torrent/utils/string_manip.h>
 
 #include "parse_commands.h"
 #include "rpc/tinyxml2/tinyxml2.h"
@@ -162,7 +163,7 @@ print_object_xml(const torrent::Object& obj, tinyxml2::XMLPrinter* printer) {
       }
 
       printer->OpenElement("base64", true);
-      printer->PushText(utils::openssl_base64_encode(obj.as_string()).c_str());
+      printer->PushText(torrent::utils::transform_to_base64(obj.as_string()).c_str());
       printer->CloseElement(true);
       break;
     }
