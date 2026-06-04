@@ -26,6 +26,7 @@ WindowLog::WindowLog(torrent::log_buffer* l) :
 }
 
 WindowLog::~WindowLog() {
+  m_log->lock_and_set_update_slot(nullptr);
   torrent::this_thread::scheduler()->erase(&m_task_update);
 }
 

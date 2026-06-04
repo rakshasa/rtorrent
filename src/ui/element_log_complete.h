@@ -18,6 +18,7 @@ public:
   typedef display::WindowLogComplete    WLogComplete;
 
   ElementLogComplete(torrent::log_buffer* l);
+  virtual ~ElementLogComplete();
 
   void                activate(display::Frame* frame, bool focus = true);
   void                disable();

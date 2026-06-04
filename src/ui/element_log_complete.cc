@@ -26,6 +26,10 @@ ElementLogComplete::ElementLogComplete(torrent::log_buffer* l) :
     });
 }
 
+ElementLogComplete::~ElementLogComplete() {
+  m_log->lock_and_set_update_slot(nullptr);
+}
+
 void
 ElementLogComplete::activate(display::Frame* frame, [[maybe_unused]] bool focus) {
   if (is_active())
