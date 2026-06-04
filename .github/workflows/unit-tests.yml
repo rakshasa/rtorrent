@@ -47,7 +47,12 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         name: installed-libtorrent
-        path: /usr/local/
+        path: ./libtorrent-dist
+    - name: Move Artifacts to System Path
+      run: |
+        # Elevate permissions with sudo to safely place the files
+        sudo cp -r ./libtorrent-dist/usr/local/* /usr/local/
+        rm -rf ./libtorrent-dist
     - uses: actions/checkout@v4
     - name: Configure Project
       run: |
@@ -78,7 +83,11 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         name: installed-libtorrent
-        path: /usr/local/
+        path: ./libtorrent-dist
+    - name: Move Artifacts to System Path
+      run: |
+        sudo cp -r ./libtorrent-dist/usr/local/* /usr/local/
+        rm -rf ./libtorrent-dist
     - uses: actions/checkout@v4
     - name: Configure Project
       run: |
@@ -102,7 +111,11 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         name: installed-libtorrent
-        path: /usr/local/
+        path: ./libtorrent-dist
+    - name: Move Artifacts to System Path
+      run: |
+        sudo cp -r ./libtorrent-dist/usr/local/* /usr/local/
+        rm -rf ./libtorrent-dist
     - uses: actions/checkout@v4
     - name: Configure Project
       run: |
