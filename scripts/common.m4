@@ -90,7 +90,7 @@ AC_DEFUN([TORRENT_MINCORE_SIGNEDNESS], [
           AC_MSG_RESULT(signed)
         ],
         [
-          AC_MSG_ERROR([failed, do *not* attempt fix this with --disable-mincore unless you are running Win32.])
+          AC_MSG_ERROR([failed, do *not* attempt fix this with --disable-mincore unless you are running Win32 or OpenBSD.])
       ])
   ])
 
@@ -227,39 +227,72 @@ AC_DEFUN([TORRENT_CHECK_CACHELINE], [
   esac
 ])
 
-AC_DEFUN([TORRENT_CHECK_ALIGNED], [
-  AC_MSG_CHECKING(the byte alignment)
 
-  AC_RUN_IFELSE([AC_LANG_SOURCE([
-      #include <inttypes.h>
-      int main() {
-        char buf@<:@8@:>@ = { 0, 0, 0, 0, 1, 0, 0, 0 };
-	int i;
-        for (i = 1; i < 4; ++i)
-	  if (*(uint32_t*)(buf + i) == 0) return -1;
-	return 0;
-	}
+AC_DEFUN([TORRENT_CHECK_CUSTOM_ENDIAN64], [
+  AC_CHECK_HEADERS([endian.h sys/endian.h libkern/OSByteOrder.h])
+  AC_C_BIGENDIAN
+
+  AH_TEMPLATE([CUSTOM_ENDIAN_HEADER], [The system header to include for endian conversions.])
+  AH_TEMPLATE([custom_ntohll], [Convert 64-bit integer from network to host byte order.])
+  AH_TEMPLATE([custom_htonll], [Convert 64-bit integer from host to network byte order.])
+
+  dnl 1. Initialize our header variable tracking
+  endian_header_file='<stdint.h>'
+
+  dnl 2. Test if native be64toh works natively via <endian.h> (Standard Linux/glibc)
+  AC_MSG_CHECKING([for native be64toh via endian.h])
+  AC_LINK_IFELSE([AC_LANG_SOURCE([
+      #include <stdint.h>
+      #ifdef HAVE_ENDIAN_H
+      #  include <endian.h>
+      #endif
+      int main() { uint64_t x = be64toh(1); return 0; }
+    ])],
+    [has_native_be64=yes; endian_header_file='<endian.h>'],
+    [has_native_be64=no]
+  )
+  AC_MSG_RESULT([$has_native_be64])
+
+  dnl 3. If missing, test if it works via <sys/endian.h> (True BSD systems like FreeBSD)
+  if test "$has_native_be64" = "no"; then
+    AC_MSG_CHECKING([for native be64toh via sys/endian.h])
+    AC_LINK_IFELSE([AC_LANG_SOURCE([
+        #include <stdint.h>
+        #ifdef HAVE_SYS_ENDIAN_H
+        #  include <sys/endian.h>
+        #endif
+        int main() { uint64_t x = be64toh(1); return 0; }
       ])],
-    [
-      AC_MSG_RESULT(none needed)
-    ], [
-      AC_DEFINE(USE_ALIGNED, 1, Require byte alignment)
-      AC_MSG_RESULT(required)
-  ])
-])
+      [has_native_be64=yes; endian_header_file='<sys/endian.h>'],
+      [has_native_be64=no]
+    )
+    AC_MSG_RESULT([$has_native_be64])
+  fi
 
-
-AC_DEFUN([TORRENT_ENABLE_ALIGNED], [
-  AC_ARG_ENABLE(aligned,
-    AS_HELP_STRING([--enable-aligned],
-      [enable alignment safe code [[default=check]]]),
-    [
-        if test "$enableval" = "yes"; then
-          AC_DEFINE(USE_ALIGNED, 1, Require byte alignment)
-        fi
-    ],[
-        TORRENT_CHECK_ALIGNED
-  ])
+  dnl 4. Route definitions cleanly based on actual testing results
+  if test "$has_native_be64" = "yes"; then
+    dnl Linux or true BSD environment
+    AC_DEFINE_UNQUOTED([CUSTOM_ENDIAN_HEADER], [$endian_header_file], [The header containing native endian macros.])
+    AC_DEFINE([custom_ntohll(x)], [(be64toh(x))], [Use native platform be64toh])
+    AC_DEFINE([custom_htonll(x)], [(htobe64(x))], [Use native platform htobe64])
+  else
+    dnl Fallback block: Check if we are on macOS using Apple's optimized hardware libraries
+    if test "$ac_cv_header_libkern_OSByteOrder_h" = "yes"; then
+      AC_DEFINE([CUSTOM_ENDIAN_HEADER], [<libkern/OSByteOrder.h>], [The header containing native endian macros.])
+      AC_DEFINE([custom_ntohll(x)], [(OSSwapBigToHostInt64(x))], [Map missing be64toh to macOS native swap])
+      AC_DEFINE([custom_htonll(x)], [(OSSwapHostToBigInt64(x))], [Map missing htobe64 to macOS native swap])
+    else
+      dnl Fallback for platforms with no built-in architecture macros (compiler built-ins)
+      AC_DEFINE([CUSTOM_ENDIAN_HEADER], [<stdint.h>], [The header containing native endian macros.])
+      if test "$ac_cv_c_bigendian" = "yes"; then
+        AC_DEFINE([custom_ntohll(x)], [((uint64_t)(x))], [Fallback 64-bit conversion.])
+        AC_DEFINE([custom_htonll(x)], [((uint64_t)(x))], [Fallback 64-bit conversion.])
+      else
+        AC_DEFINE([custom_ntohll(x)], [(__builtin_bswap64((uint64_t)(x)))], [Fallback 64-bit conversion.])
+        AC_DEFINE([custom_htonll(x)], [(__builtin_bswap64((uint64_t)(x)))], [Fallback 64-bit conversion.])
+      fi
+    fi
+  fi
 ])
 
 
@@ -294,6 +327,32 @@ AC_DEFUN([TORRENT_ENABLE_INTERRUPT_SOCKET], [
     ]
   )
 ])
+
+
+AC_DEFUN([TORRENT_ENABLE_CUSTOM_STACK_SIZE], [
+  AC_ARG_ENABLE([pthread-setstacksize],
+    [AS_HELP_STRING([--enable-pthread-setstacksize], [explicitly set pthread stack size (auto-enabled for musl)])],
+    [enable_pthread_setstacksize=$enableval],
+    [enable_pthread_setstacksize=auto])
+
+  AC_CANONICAL_HOST
+  if test "x$enable_pthread_setstacksize" = "xauto"; then
+    case "$host" in
+      *-musl*)
+        enable_pthread_setstacksize=yes
+        ;;
+      *)
+        enable_pthread_setstacksize=no
+        ;;
+    esac
+  fi
+
+  if test "x$enable_pthread_setstacksize" = "xyes"; then
+    AC_DEFINE([USE_PTHREAD_SETSTACKSIZE], [1], [Use explicit pthread stack size])
+    AC_DEFINE([DEFAULT_PTHREAD_STACKSIZE], [(8 * 1024 * 1024)], [Default pthread stack size in bytes])
+  fi
+])
+
 
 AC_DEFUN([TORRENT_DISABLE_IPV6], [
   AC_ARG_ENABLE(ipv6,
