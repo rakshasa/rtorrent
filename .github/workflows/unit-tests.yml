@@ -4,9 +4,8 @@ on: pull_request
 
 jobs:
 
-  unit-tests:
+  ubuntu-base:
     runs-on: ubuntu-22.04
-
     steps:
     - name: Update Packages
       run: |
@@ -23,43 +22,80 @@ jobs:
     - name: Build libtorrent
       run: |
         cd libtorrent
-        libtoolize
-        aclocal -I scripts
-        autoconf -i
-        autoheader
-        automake --add-missing
+        autoreconf -fiv
         ./configure
         make
-        sudo make install
-        cd ..
-        rm -rf libtorrent
-    - uses: actions/checkout@v4
+        sudo make install DESTDIR=$GITHUB_WORKSPACE/libtorrent-dist
+    - name: Upload Build Artifacts
+      uses: actions/upload-artifact@v4
       with:
-        ref: ${{ github.event.pull_request.head.sha }}
-        fetch-depth: 0
-    - name: Fetch base branch
+        name: installed-libtorrent
+        path: libtorrent-dist/
+
+
+  unit-tests-default:
+    runs-on: ubuntu-22.04
+    needs: ubuntu-base
+    steps:
+    - name: Install Dependencies
       run: |
-        git remote add upstream "https://github.com/${{ github.event.pull_request.base.repo.full_name }}"
-        git fetch --no-tags --no-recurse-submodules upstream "${{ github.event.pull_request.base.ref }}"
+        sudo apt-get install -y \
+          libcppunit-dev \
+          zlib1g-dev \
+          libcurl4-openssl-dev
+    - name: Download Libtorrent Artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: installed-libtorrent
+        path: ./libtorrent-dist
+    - name: Move Artifacts to System Path
+      run: |
+        # Elevate permissions with sudo to safely place the files
+        sudo cp -r ./libtorrent-dist/usr/local/* /usr/local/
+        rm -rf ./libtorrent-dist
+    - uses: actions/checkout@v4
     - name: Configure Project
       run: |
-        libtoolize
-        aclocal -I scripts
-        autoconf -i
-        autoheader
-        automake --add-missing
+        autoreconf -fiv
         ./configure
-    - name: Build Project
-      run: |
         make
-    - name: Run Unit Tests
-      run: |
         ls /usr/local/lib/
-        export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/usr/local/lib"
-        make check
+        LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/usr/local/lib" make check
     - name: Archive test/test-suite.log
       if: success() || failure()
       uses: actions/upload-artifact@v4
       with:
         name: test-suite.log
         path: test/test-suite.log
+
+  unit-tests-variants:
+    runs-on: ubuntu-22.04
+    needs: unit-tests-default
+    strategy:
+      matrix:
+        config_flag: ["--with-xmlrpc-c", "--with-xmlrpc-tinyxml2"]
+    steps:
+    - name: Install Dependencies
+      run: |
+        sudo apt-get install -y \
+          libcppunit-dev \
+          zlib1g-dev \
+          libcurl4-openssl-dev \
+          libxmlrpc-c++8-dev
+    - name: Download Libtorrent Artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: installed-libtorrent
+        path: ./libtorrent-dist
+    - name: Move Artifacts to System Path
+      run: |
+        sudo cp -r ./libtorrent-dist/usr/local/* /usr/local/
+        rm -rf ./libtorrent-dist
+    - uses: actions/checkout@v4
+    - name: Configure Project
+      run: |
+        autoreconf -fiv
+        ./configure ${{ matrix.config_flag }}
+        make
+        ls /usr/local/lib/
+        LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/usr/local/lib" make check
