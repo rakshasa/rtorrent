@@ -4,9 +4,8 @@ on: pull_request
 
 jobs:
 
-  unit-tests:
+  ubuntu-base:
     runs-on: ubuntu-22.04
-
     steps:
     - name: Update Packages
       run: |
@@ -28,14 +27,28 @@ jobs:
         make
         sudo make install
         rm -rf ../libtorrent
-    - uses: actions/checkout@v4
+    - name: Upload Build Artifacts
+      uses: actions/upload-artifact@v4
       with:
-        ref: ${{ github.event.pull_request.head.sha }}
-        fetch-depth: 0
-    - name: Fetch base branch
+        name: installed-libtorrent
+        path: /usr/local/
+
+
+  unit-tests-default:
+    runs-on: ubuntu-22.04
+    needs: ubuntu-base
+    - name: Install Dependencies
       run: |
-        git remote add upstream "https://github.com/${{ github.event.pull_request.base.repo.full_name }}"
-        git fetch --no-tags --no-recurse-submodules upstream "${{ github.event.pull_request.base.ref }}"
+        sudo apt-get install -y \
+          libcppunit-dev \
+          zlib1g-dev \
+          libcurl4-openssl-dev
+    - name: Download Libtorrent Artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: installed-libtorrent
+        path: /usr/local/
+    - uses: actions/checkout@v4
     - name: Configure Project
       run: |
         autoreconf -fiv
