@@ -492,7 +492,11 @@ DownloadList::hash_done(Download* download) {
 
   if (!download->is_hash_checked()) {
     download->set_hash_failed(true);
-    
+
+    auto& msg = download->download()->hash_error_message();
+    if (!msg.empty())
+      download->set_message(msg);
+
     DL_TRIGGER_EVENT(download, "event.download.hash_failed");
     return;
   }
