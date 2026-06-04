@@ -68,9 +68,12 @@ jobs:
         name: test-suite.log
         path: test/test-suite.log
 
-  unit-tests-xmlrpc-c:
+  unit-tests-variants:
     runs-on: ubuntu-22.04
     needs: unit-tests-default
+    strategy:
+      matrix:
+        config_flag: ["--with-xmlrpc-c", "--with-xmlrpc-tinyxml2"]
     steps:
     - name: Install Dependencies
       run: |
@@ -92,35 +95,7 @@ jobs:
     - name: Configure Project
       run: |
         autoreconf -fiv
-        ./configure --with-xmlrpc-c
-        make
-        ls /usr/local/lib/
-        LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/usr/local/lib" make check
-
-  unit-tests-xmlrpc-tinyxml2:
-    runs-on: ubuntu-22.04
-    needs: unit-tests-default
-    steps:
-    - name: Install Dependencies
-      run: |
-        sudo apt-get install -y \
-          libcppunit-dev \
-          zlib1g-dev \
-          libcurl4-openssl-dev
-    - name: Download Libtorrent Artifacts
-      uses: actions/download-artifact@v4
-      with:
-        name: installed-libtorrent
-        path: ./libtorrent-dist
-    - name: Move Artifacts to System Path
-      run: |
-        sudo cp -r ./libtorrent-dist/usr/local/* /usr/local/
-        rm -rf ./libtorrent-dist
-    - uses: actions/checkout@v4
-    - name: Configure Project
-      run: |
-        autoreconf -fiv
-        ./configure --with-xmlrpc-tinyxml2
+        ./configure ${{ matrix.config_flag }}
         make
         ls /usr/local/lib/
         LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/usr/local/lib" make check
