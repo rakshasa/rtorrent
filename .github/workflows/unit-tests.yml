@@ -25,13 +25,12 @@ jobs:
         autoreconf -fiv
         ./configure
         make
-        sudo make install
-        rm -rf ../libtorrent
+        sudo make install DESTDIR=$GITHUB_WORKSPACE/libtorrent-dist
     - name: Upload Build Artifacts
       uses: actions/upload-artifact@v4
       with:
         name: installed-libtorrent
-        path: /usr/local/
+        path: libtorrent-dist/
 
 
   unit-tests-default:
