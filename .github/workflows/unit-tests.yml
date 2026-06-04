@@ -37,6 +37,7 @@ jobs:
   unit-tests-default:
     runs-on: ubuntu-22.04
     needs: ubuntu-base
+    steps:
     - name: Install Dependencies
       run: |
         sudo apt-get install -y \
