@@ -1,67 +1,3 @@
-AC_DEFUN([TORRENT_WITH_SYSROOT], [
-  AC_ARG_WITH(sysroot,
-    AS_HELP_STRING([--with-sysroot=PATH],
-      [compile and link with a specific sysroot]),
-    [
-      AC_MSG_CHECKING(for sysroot)
-
-      if test "$withval" = "no"; then
-        AC_MSG_RESULT(no)
-
-      elif test "$withval" = "yes"; then
-        AC_MSG_RESULT(not a path)
-        AC_MSG_ERROR(The sysroot option must point to a directory, like f.ex "/Developer/SDKs/MacOSX10.4u.sdk".)
-      else
-        AC_MSG_RESULT($withval)
-
-        CXXFLAGS="$CXXFLAGS -isysroot $withval"
-        LDFLAGS="$LDFLAGS -Wl,-syslibroot,$withval"
-      fi
-    ])
-])
-
-
-AC_DEFUN([TORRENT_REMOVE_UNWANTED],
-[
-  AC_REQUIRE([AC_PROG_GREP])
-  values_to_check=`for i in $2; do echo $i; done`
-  unwanted_values=`for i in $3; do echo $i; done`
-  if test -z "${unwanted_values}"; then
-    $1="$2"
-  else
-    result=`echo "${values_to_check}" | $GREP -Fvx -- "${unwanted_values}" | $GREP -v '^$'`
-    # join with spaces, squeeze repeats, and trim trailing space
-    $1=$(printf '%s\n' "$result" | tr '\n' ' ' | sed 's/  */ /g; s/ *$//')
-  fi
-])
-
-
-AC_DEFUN([TORRENT_ENABLE_ARCH], [
-  AC_ARG_ENABLE(arch,
-    AS_HELP_STRING([--enable-arch=ARCH],
-      [comma seprated list of architectures to compile for]),
-    [
-      AC_MSG_CHECKING(for target architectures)
-
-      if test "$enableval" = "yes"; then
-        AC_MSG_ERROR(no arch supplied)
-
-      elif test "$enableval" = "no"; then
-        AC_MSG_RESULT(using default)
-
-      else
-        AC_MSG_RESULT($enableval)
-
-        for i in `IFS=,; echo $enableval`; do
-          CFLAGS="$CFLAGS -march=$i"
-          CXXFLAGS="$CXXFLAGS -march=$i"
-          LDFLAGS="$LDFLAGS -march=$i"
-        done
-      fi
-    ])
-])
-
-
 AC_DEFUN([TORRENT_MINCORE_SIGNEDNESS], [
   AC_LANG_PUSH(C++)
   AC_MSG_CHECKING(signedness of mincore parameter)
@@ -139,20 +75,6 @@ AC_DEFUN([TORRENT_CHECK_POSIX_FADVISE], [
     [
       AC_MSG_RESULT(yes)
       AC_DEFINE(USE_POSIX_FADVISE, 1, Use posix_fadvise)
-    ], [
-      AC_MSG_RESULT(no)
-  ])
-])
-
-AC_DEFUN([TORRENT_CHECK_POPCOUNT], [
-  AC_MSG_CHECKING(for __builtin_popcount)
-
-  AC_COMPILE_IFELSE([AC_LANG_SOURCE([
-      int f() { return __builtin_popcount(0); }
-    ])],
-    [
-      AC_MSG_RESULT(yes)
-      AC_DEFINE(USE_BUILTIN_POPCOUNT, 1, Use __builtin_popcount.)
     ], [
       AC_MSG_RESULT(no)
   ])
@@ -296,36 +218,22 @@ AC_DEFUN([TORRENT_CHECK_CUSTOM_ENDIAN64], [
 ])
 
 
-AC_DEFUN([TORRENT_DISABLE_INSTRUMENTATION], [
+AC_DEFUN([TORRENT_ENABLE_INSTRUMENTATION], [
   AC_MSG_CHECKING([if instrumentation should be included])
 
   AC_ARG_ENABLE(instrumentation,
-    AS_HELP_STRING([--disable-instrumentation],
-      [disable instrumentation [[default=enabled]]]),
+    AS_HELP_STRING([--enable-instrumentation],
+      [enable instrumentation [[default=disabled]]]),
     [
       if test "$enableval" = "yes"; then
         AC_DEFINE(LT_INSTRUMENTATION, 1, enable instrumentation)
-	AC_MSG_RESULT(yes)
+        AC_MSG_RESULT(yes)
       else
-	AC_MSG_RESULT(no)
+        AC_MSG_RESULT(no)
       fi
     ],[
-      AC_DEFINE(LT_INSTRUMENTATION, 1, enable instrumentation)
-      AC_MSG_RESULT(yes)
+      AC_MSG_RESULT(no)
     ])
-])
-
-
-AC_DEFUN([TORRENT_ENABLE_INTERRUPT_SOCKET], [
-  AC_ARG_ENABLE(interrupt-socket,
-    AS_HELP_STRING([--enable-interrupt-socket],
-      [enable interrupt socket [[default=no]]]),
-    [
-      if test "$enableval" = "yes"; then
-        AC_DEFINE(USE_INTERRUPT_SOCKET, 1, Use interrupt socket instead of pthread_kill)
-      fi
-    ]
-  )
 ])
 
 
