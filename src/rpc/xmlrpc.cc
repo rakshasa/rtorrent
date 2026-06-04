@@ -1,3 +1,4 @@
+#include <deque>
 #include "config.h"
 
 #include "xmlrpc.h"
@@ -9,7 +10,7 @@
 
 namespace rpc {
 
-std::vector<std::string> XmlRpc::m_command_names;
+std::deque<std::string>  XmlRpc::m_command_names;
 
 const char*
 XmlRpc::store_command_name(const char* name) {
