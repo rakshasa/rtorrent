@@ -66,7 +66,7 @@ jobs:
 
   unit-tests-xmlrpc-c:
     runs-on: ubuntu-22.04
-    needs: ubuntu-base
+    needs: unit-tests-default
     steps:
     - name: Install Dependencies
       run: |
@@ -91,7 +91,7 @@ jobs:
 
   unit-tests-xmlrpc-tinyxml2:
     runs-on: ubuntu-22.04
-    needs: ubuntu-base
+    needs: unit-tests-default
     steps:
     - name: Install Dependencies
       run: |
