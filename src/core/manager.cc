@@ -513,6 +513,7 @@ Manager::receive_hashing_changed() {
 
       } else {
         (*itr)->set_hash_failed(true);
+        (*itr)->set_message("Hashing failed: " + std::string(e.what()));
         lt_log_print(torrent::LOG_TORRENT_ERROR, "Hashing failed: %s", e.what());
       }
     }
