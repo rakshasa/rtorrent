@@ -1,6 +1,7 @@
 #ifndef RTORRENT_RPC_XMLRPC_H
 #define RTORRENT_RPC_XMLRPC_H
 
+#include <deque>
 #include <functional>
 #include <torrent/common.h>
 #include <torrent/hash_string.h>
@@ -61,7 +62,7 @@ public:
 private:
   static const char*  store_command_name(const char* name);
 
-  static std::vector<std::string> m_command_names;
+  static std::deque<std::string>  m_command_names;
 
   slot_download       m_slotFindDownload;
   slot_file           m_slotFindFile;
