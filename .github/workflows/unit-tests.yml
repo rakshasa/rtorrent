@@ -63,3 +63,52 @@ jobs:
       with:
         name: test-suite.log
         path: test/test-suite.log
+
+  unit-tests-xmlrpc-c:
+    runs-on: ubuntu-22.04
+    needs: ubuntu-base
+    steps:
+    - name: Install Dependencies
+      run: |
+        sudo apt-get install -y \
+          libcppunit-dev \
+          zlib1g-dev \
+          libcurl4-openssl-dev \
+          libxmlrpc-c++8-dev
+    - name: Download Libtorrent Artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: installed-libtorrent
+        path: /usr/local/
+    - uses: actions/checkout@v4
+    - name: Configure Project
+      run: |
+        autoreconf -fiv
+        ./configure --with-xmlrpc-c
+        make
+        ls /usr/local/lib/
+        LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/usr/local/lib" make check
+
+  unit-tests-xmlrpc-tinyxml2:
+    runs-on: ubuntu-22.04
+    needs: ubuntu-base
+    steps:
+    - name: Install Dependencies
+      run: |
+        sudo apt-get install -y \
+          libcppunit-dev \
+          zlib1g-dev \
+          libcurl4-openssl-dev
+    - name: Download Libtorrent Artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: installed-libtorrent
+        path: /usr/local/
+    - uses: actions/checkout@v4
+    - name: Configure Project
+      run: |
+        autoreconf -fiv
+        ./configure --with-xmlrpc-tinyxml2
+        make
+        ls /usr/local/lib/
+        LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/usr/local/lib" make check
