@@ -114,9 +114,9 @@ group_insert(const torrent::Object::list_type& args) {
   const std::string& view = check_name(post_increment(itr, last)->as_string());
 
   rpc::commands.call("method.insert", rpc::create_object_list("group." + name + ".ratio.enable", "simple",
-                                                              "schedule2=group." + name + ".ratio,5,60,on_ratio=" + name));
+                                                              "schedule=group." + name + ".ratio,5,60,on_ratio=" + name));
   rpc::commands.call("method.insert", rpc::create_object_list("group." + name + ".ratio.disable", "simple",
-                                                              "schedule_remove2=group." + name + ".ratio"));
+                                                              "schedule_remove=group." + name + ".ratio"));
   rpc::commands.call("method.insert", rpc::create_object_list("group."  + name + ".ratio.command", "simple",
                                                               "d.try_close= ;d.ignore_commands.set=1"));
   rpc::commands.call("method.insert", rpc::create_object_list("group." + name + ".view", "string", view));

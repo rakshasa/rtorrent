@@ -281,12 +281,12 @@ main(int argc, char** argv) {
        "view.filter = leeching,((and,((d.state)),((not,((d.complete))))))\n"
        "view.filter_on = leeching,event.download.resumed,event.download.paused,event.download.finished\n"
 
-       "schedule2 = view.main,10,10,((view.sort,main,20))\n"
-       "schedule2 = view.name,10,10,((view.sort,name,20))\n"
+       "schedule = view.main,10,10,((view.sort,main,20))\n"
+       "schedule = view.name,10,10,((view.sort,name,20))\n"
 
-       "schedule2 = session_save,1200,1200,((session.save))\n"
-       "schedule2 = low_diskspace,5,60,((close_low_diskspace,500M))\n"
-       "schedule2 = prune_file_status,3600,86400,((system.file_status_cache.prune))\n"
+       "schedule = session_save,1200,1200,((session.save))\n"
+       "schedule = low_diskspace,5,60,((close_low_diskspace,500M))\n"
+       "schedule = prune_file_status,3600,86400,((system.file_status_cache.prune))\n"
 
        "protocol.encryption.set=allow_incoming,prefer_plaintext,enable_retry\n"
 
@@ -348,17 +348,9 @@ main(int argc, char** argv) {
 
 
     // if (rpc::call_command_value("method.use_intermediate") == 1) {
-    //   CMD2_REDIRECT("execute", "execute2");
-
-    //   CMD2_REDIRECT("schedule", "schedule2");
-    //   CMD2_REDIRECT("schedule_remove", "schedule_remove2");
 
     // } else if (rpc::call_command_value("method.use_intermediate") == 2) {
     //   Allow for use in config files, etc, just don't export it.
-    //   CMD2_REDIRECT_NO_EXPORT("execute", "execute2");
-
-    //   CMD2_REDIRECT_NO_EXPORT("schedule", "schedule2");
-    //   CMD2_REDIRECT_NO_EXPORT("schedule_remove", "schedule_remove2");
     // }
 
     if (rpc::call_command_value("method.use_deprecated") == 1) {
