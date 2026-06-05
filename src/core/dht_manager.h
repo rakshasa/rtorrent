@@ -8,6 +8,11 @@ namespace core {
 
 class DhtManager {
 public:
+  static constexpr int dht_disable = 0;
+  static constexpr int dht_off     = 1;
+  static constexpr int dht_auto    = 2;
+  static constexpr int dht_on      = 3;
+
   ~DhtManager();
 
   void                load_dht_cache();
@@ -18,16 +23,14 @@ public:
   void                stop_dht();
   void                auto_start()                 { if (m_start == dht_auto) start_dht(); }
 
-  void                set_mode(const std::string& arg);
+  void                set_mode_by_user(const std::string& arg);
+  void                set_mode_directly(unsigned int mode);
+
+  void                set_auto_if_untouched_and_has_session();
 
 private:
-  static const int    dht_disable = 0;
-  static const int    dht_off     = 1;
-  static const int    dht_auto    = 2;
-  static const int    dht_on      = 3;
-
-  static const int    dht_settings_num = 4;
-  static const char*  dht_settings[dht_settings_num];
+  static constexpr int dht_settings_num = 4;
+  static const char*   dht_settings[dht_settings_num];
 
   void                update();
   bool                log_statistics(bool force);
@@ -43,6 +46,7 @@ private:
   torrent::utils::SchedulerEntry m_stop_timeout;
 
   bool                m_warned{};
+  bool                m_set_by_user{};
   int                 m_start{dht_off};
 };
 

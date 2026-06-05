@@ -329,42 +329,40 @@ directory_watch_ready(const torrent::Object::list_type& args) {
 
 void
 initialize_command_events() {
-  CMD2_ANY_STRING  ("on_ratio",        std::bind(&apply_on_ratio, std::placeholders::_2));
+  CMD2_ANY_STRING  ("on_ratio",                   [](auto, auto& args) { return apply_on_ratio(args); });
 
-  CMD2_ANY         ("start_tied",      std::bind(&apply_start_tied));
-  CMD2_ANY         ("stop_untied",     std::bind(&apply_stop_untied));
-  CMD2_ANY         ("close_untied",    std::bind(&apply_close_untied));
-  CMD2_ANY         ("remove_untied",   std::bind(&apply_remove_untied));
+  CMD2_ANY         ("start_tied",                 [](auto, auto) { return apply_start_tied(); });
+  CMD2_ANY         ("stop_untied",                [](auto, auto) { return apply_stop_untied(); });
+  CMD2_ANY         ("close_untied",               [](auto, auto) { return apply_close_untied(); });
+  CMD2_ANY         ("remove_untied",              [](auto, auto) { return apply_remove_untied(); });
 
-  // TODO: Deprecate schedule2 in the future.
-  CMD2_ANY_LIST    ("schedule",         std::bind(&apply_schedule, std::placeholders::_2));
-  CMD2_ANY_LIST    ("schedule2",        std::bind(&apply_schedule, std::placeholders::_2));
-  CMD2_ANY_STRING_V("schedule.remove",  std::bind(&rpc::CommandScheduler::erase_str, control->command_scheduler(), std::placeholders::_2));
-  CMD2_ANY_STRING_V("schedule_remove2", std::bind(&rpc::CommandScheduler::erase_str, control->command_scheduler(), std::placeholders::_2));
+  CMD2_ANY_LIST    ("schedule",                   [](auto, auto& args) { return apply_schedule(args); });
+  CMD2_ANY_STRING_V("schedule.remove",            [](auto, auto& str) { return control->command_scheduler()->erase_str(str); });
 
-  CMD2_ANY_STRING_V("import",          std::bind(&apply_import, std::placeholders::_2));
-  CMD2_ANY_STRING_V("try_import",      std::bind(&apply_try_import, std::placeholders::_2));
+  CMD2_ANY_STRING_V("import",                     [](auto, auto& str) { return apply_import(str); });
+  CMD2_ANY_STRING_V("try_import",                 [](auto, auto& str) { return apply_try_import(str); });
 
-  CMD2_ANY_LIST    ("load.normal",        std::bind(&apply_load, std::placeholders::_2, core::Manager::create_quiet | core::Manager::create_tied));
-  CMD2_ANY_LIST    ("load.verbose",       std::bind(&apply_load, std::placeholders::_2, core::Manager::create_tied));
-  CMD2_ANY_LIST    ("load.start",         std::bind(&apply_load, std::placeholders::_2,
-                                                         core::Manager::create_quiet | core::Manager::create_tied | core::Manager::create_start));
-  CMD2_ANY_LIST    ("load.start_verbose", std::bind(&apply_load, std::placeholders::_2, core::Manager::create_tied  | core::Manager::create_start));
-  CMD2_ANY_LIST    ("load.raw",           std::bind(&apply_load, std::placeholders::_2, core::Manager::create_quiet | core::Manager::create_raw_data));
-  CMD2_ANY_LIST    ("load.raw_verbose",   std::bind(&apply_load, std::placeholders::_2, core::Manager::create_raw_data));
-  CMD2_ANY_LIST    ("load.raw_start",     std::bind(&apply_load, std::placeholders::_2,
-                                                         core::Manager::create_quiet | core::Manager::create_start | core::Manager::create_raw_data));
-  CMD2_ANY_LIST    ("load.raw_start_verbose", std::bind(&apply_load, std::placeholders::_2, core::Manager::create_start | core::Manager::create_raw_data));
+  CMD2_ANY_LIST    ("load.normal",                [](auto, auto& args) { return apply_load(args, core::Manager::create_quiet | core::Manager::create_tied); });
+  CMD2_ANY_LIST    ("load.verbose",               [](auto, auto& args) { return apply_load(args, core::Manager::create_tied); });
+  CMD2_ANY_LIST    ("load.start",                 [](auto, auto& args) { return apply_load(args, core::Manager::create_quiet | core::Manager::create_tied | core::Manager::create_start); });
+  CMD2_ANY_LIST    ("load.start_verbose",         [](auto, auto& args) { return apply_load(args, core::Manager::create_tied | core::Manager::create_start); });
+  CMD2_ANY_LIST    ("load.raw",                   [](auto, auto& args) { return apply_load(args, core::Manager::create_quiet | core::Manager::create_raw_data); });
+  CMD2_ANY_LIST    ("load.raw_verbose",           [](auto, auto& args) { return apply_load(args, core::Manager::create_raw_data); });
+  CMD2_ANY_LIST    ("load.raw_start",             [](auto, auto& args) { return apply_load(args, core::Manager::create_quiet | core::Manager::create_start | core::Manager::create_raw_data); });
+  CMD2_ANY_LIST    ("load.raw_start_verbose",     [](auto, auto& args) { return apply_load(args, core::Manager::create_start | core::Manager::create_raw_data); });
 
-  CMD2_ANY_VALUE   ("close_low_diskspace",        std::bind(&apply_close_low_diskspace, std::placeholders::_2, 99));
-  CMD2_ANY_VALUE   ("close_low_diskspace.normal", std::bind(&apply_close_low_diskspace, std::placeholders::_2, 3));
+  CMD2_ANY_VALUE   ("close_low_diskspace",        [](auto, auto& arg) { return apply_close_low_diskspace(arg, 99); });
+  CMD2_ANY_VALUE   ("close_low_diskspace.normal", [](auto, auto& arg) { return apply_close_low_diskspace(arg, 3); });
 
-  CMD2_ANY_LIST    ("download_list",       std::bind(&apply_download_list, std::placeholders::_2));
-  CMD2_ANY_LIST    ("d.multicall2",        std::bind(&d_multicall, std::placeholders::_2));
-  CMD2_ANY_LIST    ("d.multicall.filtered", std::bind(&d_multicall_filtered, std::placeholders::_2));
+  CMD2_ANY_LIST    ("download_list",              [](auto, auto& args) { return apply_download_list(args); });
 
-  CMD2_ANY_LIST    ("directory.watch.added", std::bind(&directory_watch_added, std::placeholders::_2));
-  CMD2_ANY_LIST    ("directory.watch.ready", std::bind(&directory_watch_ready, std::placeholders::_2));
+  // TODO: Deprecate d.multicall2. (6/2026)
+  CMD2_ANY_LIST    ("d.multicall",                [](auto, auto& args) { return d_multicall(args); });
+  CMD2_ANY_LIST    ("d.multicall2",               [](auto, auto& args) { return d_multicall(args); });
+  CMD2_ANY_LIST    ("d.multicall.filtered",       [](auto, auto& args) { return d_multicall_filtered(args); });
+
+  CMD2_ANY_LIST    ("directory.watch.added",      [](auto, auto& args) { return directory_watch_added(args); });
+  CMD2_ANY_LIST    ("directory.watch.ready",      [](auto, auto& args) { return directory_watch_ready(args); });
 
   rpc::rpc.mark_safe("start_tied");
   rpc::rpc.mark_safe("stop_untied");
@@ -374,6 +372,7 @@ initialize_command_events() {
   rpc::rpc.mark_safe("close_low_diskspace");
   rpc::rpc.mark_safe("close_low_diskspace.normal");
   rpc::rpc.mark_safe("download_list");
+  rpc::rpc.mark_safe("d.multicall");
   rpc::rpc.mark_safe("d.multicall2");
   rpc::rpc.mark_safe("d.multicall.filtered");
 }

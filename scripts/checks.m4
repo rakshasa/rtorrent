@@ -79,7 +79,7 @@ AC_DEFUN([TORRENT_WITHOUT_KQUEUE], [
 
 AC_DEFUN([TORRENT_WITH_ADDRESS_SPACE], [
   AC_ARG_WITH(address-space,
-    AS_HELP_STRING([--with-address-space=MB],[change the default address space size [[default=1024mb-or-32768mb]]]),
+    AS_HELP_STRING([--with-address-space=MB],[change the default address space size [default=1024mb-or-32768mb]]),
     [
       if test ! -z $withval -a "$withval" != "yes" -a "$withval" != "no"; then
         AC_DEFINE_UNQUOTED(DEFAULT_ADDRESS_SPACE_SIZE, [$withval])
@@ -96,6 +96,43 @@ AC_DEFUN([TORRENT_WITH_ADDRESS_SPACE], [
         AC_DEFINE(DEFAULT_ADDRESS_SPACE_SIZE, 1024, Default address space size.)
       fi
     ])
+])
+
+
+AC_DEFUN([TORRENT_CHECK_ATOMIC], [
+  AC_MSG_CHECKING([whether 64-bit atomic operations require -latomic])
+  AC_LANG_PUSH(C++)
+
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <cstdint>
+                                    #include <atomic>]],
+                                    [[std::atomic<uint64_t> x(0);
+                                    return x.load();]])],
+    [
+      AC_MSG_RESULT([no])
+      ATOMIC_LIBS=""
+    ],
+    [
+      save_LIBS="$LIBS"
+      LIBS="$LIBS -latomic"
+
+      AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <cstdint>
+                                        #include <atomic>]],
+                                        [[std::atomic<uint64_t> x(0);
+                                        return x.load();]])],
+        [
+          AC_MSG_RESULT([yes])
+          ATOMIC_LIBS="-latomic"
+        ],
+        [
+          AC_MSG_RESULT([unsupported])
+          AC_MSG_ERROR([Compiler target lacks proper 64-bit atomic support.])
+        ])
+
+      LIBS="$save_LIBS"
+    ])
+
+  AC_LANG_POP(C++)
+  AC_SUBST([ATOMIC_LIBS])
 ])
 
 
