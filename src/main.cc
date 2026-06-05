@@ -309,7 +309,8 @@ main(int argc, char** argv) {
     CMD2_REDIRECT("ratio.upload.set",      "group.seeding.ratio.upload.set");
 
     CMD2_REDIRECT("encryption",            "protocol.encryption.set");
-    CMD2_REDIRECT("encoding_list",         "encoding.add");
+
+    CMD2_REDIRECT("check_hash",            "pieces.hash.on_completion.set");
 
     CMD2_REDIRECT("connection_leech",      "protocol.connection.leech.set");
     CMD2_REDIRECT("connection_seed",       "protocol.connection.seed.set");
@@ -329,26 +330,11 @@ main(int argc, char** argv) {
     CMD2_REDIRECT("max_downloads_div",     "throttle.max_downloads.div.set");
     CMD2_REDIRECT("max_downloads_global",  "throttle.max_downloads.global.set");
 
-    CMD2_REDIRECT("max_memory_usage",      "pieces.memory.max.set");
-
-    CMD2_REDIRECT("bind",                  "network.bind_address.set");
-    CMD2_REDIRECT("ip",                    "network.local_address.set");
-    CMD2_REDIRECT("port_range",            "network.port_range.set");
-
-    CMD2_REDIRECT("dht",                   "dht.mode.set");
-
-    CMD2_REDIRECT("port_random",           "network.port_random.set");
-    CMD2_REDIRECT("proxy_address",         "network.proxy_address.set");
-
-    CMD2_REDIRECT("scgi_port",             "network.scgi.open_port");
-    CMD2_REDIRECT("scgi_local",            "network.scgi.open_local");
-
     CMD2_REDIRECT("directory",             "directory.default.set");
     CMD2_REDIRECT("session",               "session.path.set");
 
-    CMD2_REDIRECT("check_hash",            "pieces.hash.on_completion.set");
-
-    CMD2_REDIRECT("key_layout",            "keys.layout.set");
+    CMD2_REDIRECT("scgi_port",             "network.scgi.open_port");
+    CMD2_REDIRECT("scgi_local",            "network.scgi.open_local");
 
     CMD2_REDIRECT("to_gm_time",            "convert.gm_time");
     CMD2_REDIRECT("to_gm_date",            "convert.gm_date");
@@ -360,20 +346,6 @@ main(int argc, char** argv) {
     CMD2_REDIRECT("to_xb",                 "convert.xb");
     CMD2_REDIRECT("to_throttle",           "convert.throttle");
 
-    CMD2_REDIRECT("torrent_list_layout",   "ui.torrent_list.layout.set");
-
-    // Deprecate:
-
-    CMD2_VAR_STRING("dht.throttle.name",   "deprecated");
-    rpc::rpc.mark_safe("dht.throttle.name");
-
-    CMD2_REDIRECT("network.http.max_open",     "network.http.max_total_connections");
-    CMD2_REDIRECT("network.http.max_open.set", "network.http.max_total_connections.set");
-
-    // Deprecated commands. Don't use these anymore.
-    //
-    // It has been so long that we now re-create these commands with the new (old by now) command
-    // call style, where the first argument is the target.
 
     // if (rpc::call_command_value("method.use_intermediate") == 1) {
     //   CMD2_REDIRECT("execute", "execute2");
@@ -389,8 +361,31 @@ main(int argc, char** argv) {
     //   CMD2_REDIRECT_NO_EXPORT("schedule_remove", "schedule_remove2");
     // }
 
-    // if (rpc::call_command_value("method.use_deprecated") == 1) {
-    // }
+    if (rpc::call_command_value("method.use_deprecated") == 1) {
+      CMD2_REDIRECT("bind",                  "network.bind_address.set");
+      CMD2_REDIRECT("ip",                    "network.local_address.set");
+      CMD2_REDIRECT("port_range",            "network.port_range.set");
+
+      // TODO: Check if dht is on by default.
+      CMD2_REDIRECT("dht",                   "dht.mode.set");
+
+      CMD2_REDIRECT("port_random",           "network.port_random.set");
+      CMD2_REDIRECT("proxy_address",         "network.proxy_address.set");
+
+      CMD2_REDIRECT("key_layout",            "keys.layout.set");
+
+      CMD2_REDIRECT("torrent_list_layout",   "ui.torrent_list.layout.set");
+
+      CMD2_VAR_STRING("dht.throttle.name",   "deprecated");
+      rpc::rpc.mark_safe("dht.throttle.name");
+
+      CMD2_REDIRECT("network.http.max_open",     "network.http.max_total_connections");
+      CMD2_REDIRECT("network.http.max_open.set", "network.http.max_total_connections.set");
+
+      // Users should check their setups to see if they need to modify their use of these options.
+      CMD2_REDIRECT("max_memory_usage",      "pieces.memory.max.set");
+      CMD2_REDIRECT("encoding_list",         "encoding.add");
+    }
 
     {
       auto fd = torrent::fd_open_family(torrent::fd_flag_stream, AF_INET6);
@@ -421,16 +416,16 @@ main(int argc, char** argv) {
     control->initialize();
     control->ui()->load_input_history();
 
-    // Load session torrents and perform scheduled tasks to ensure
-    // session torrents are loaded before arg torrents.
+    // Load session torrents and perform scheduled tasks to ensure session torrents are loaded
+    // before arg torrents.
+    control->dht_manager()->set_auto_if_untouched_and_has_session();
     control->dht_manager()->load_dht_cache();
 
     load_session_torrents(session_thread::manager()->path());
     load_arg_torrents(argv + firstArg, argv + argc);
 
-    // Make sure we update the display before any scheduled tasks can
-    // run, so that loading of torrents doesn't look like it hangs on
-    // startup.
+    // Make sure we update the display before any scheduled tasks can run, so that loading of
+    // torrents doesn't look like it hangs on startup.
     control->display()->adjust_layout();
     control->display()->receive_update();
 

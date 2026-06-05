@@ -140,22 +140,41 @@ DhtManager::save_dht_cache() {
 }
 
 void
-DhtManager::set_mode(const std::string& arg) {
-  int i;
-  for (i = 0; i < dht_settings_num; i++) {
+DhtManager::set_mode_by_user(const std::string& arg) {
+  for (int i = 0; i < dht_settings_num; i++) {
     if (arg == dht_settings[i]) {
-      m_start = i;
-      break;
+      m_set_by_user = true;
+      return set_mode_directly(i);
     }
   }
+}
 
-  if (i == dht_settings_num)
+void
+DhtManager::set_mode_directly(unsigned int mode) {
+  if (mode >= dht_settings_num)
     throw torrent::input_error("Invalid argument.");
+
+  m_start = mode;
 
   if (m_start == dht_off)
     stop_dht();
   else if (m_start == dht_on)
     start_dht();
+}
+
+void
+DhtManager::set_auto_if_untouched_and_has_session() {
+  if (m_set_by_user)
+    return;
+
+  if (rpc::call_command_string("session.path").empty()) {
+    LT_LOG("DHT auto-start disabled, session path not set.", 0);
+    return;
+  }
+
+  set_mode_directly(dht_auto);
+
+  LT_LOG("DHT auto-start enabled.", 0);
 }
 
 void
