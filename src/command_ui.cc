@@ -795,61 +795,59 @@ apply_set_color(int color_id, const torrent::Object::string_type& color_str) {
 
 void
 initialize_command_ui() {
-  CMD2_VAR_STRING("keys.layout", "qwerty");
+  CMD2_VAR_STRING  ("keys.layout", "qwerty");
 
-  CMD2_ANY_STRING("view.add", object_convert_void(std::bind(&core::ViewManager::insert_throw, control->view_manager(), std::placeholders::_2)));
+  CMD2_ANY_STRING  ("view.add", object_convert_void(std::bind(&core::ViewManager::insert_throw, control->view_manager(), std::placeholders::_2)));
 
-  CMD2_ANY_L   ("view.list",          std::bind(&apply_view_list));
-  CMD2_ANY_LIST("view.set",           std::bind(&apply_view_set, std::placeholders::_2));
+  CMD2_ANY_L       ("view.list",          std::bind(&apply_view_list));
+  CMD2_ANY_LIST    ("view.set",           std::bind(&apply_view_set, std::placeholders::_2));
 
-  CMD2_ANY_LIST  ("view.filter",      std::bind(&apply_view_event, &core::ViewManager::set_filter, std::placeholders::_2));
-  CMD2_ANY_LIST  ("view.filter_on",   std::bind(&apply_view_filter_on, std::placeholders::_2));
-  CMD2_ANY_LIST  ("view.filter.temp", std::bind(&apply_view_event, &core::ViewManager::set_filter_temp, std::placeholders::_2));
-  CMD2_VAR_STRING("view.filter.temp.excluded", "default,started,stopped");
-  CMD2_VAR_BOOL  ("view.filter.temp.log", 0);
+  CMD2_ANY_LIST    ("view.filter",      std::bind(&apply_view_event, &core::ViewManager::set_filter, std::placeholders::_2));
+  CMD2_ANY_LIST    ("view.filter_on",   std::bind(&apply_view_filter_on, std::placeholders::_2));
+  CMD2_ANY_LIST    ("view.filter.temp", std::bind(&apply_view_event, &core::ViewManager::set_filter_temp, std::placeholders::_2));
+  CMD2_VAR_STRING  ("view.filter.temp.excluded", "default,started,stopped");
+  CMD2_VAR_BOOL    ("view.filter.temp.log", 0);
 
-  CMD2_ANY_LIST("view.sort",          std::bind(&apply_view_sort, std::placeholders::_2));
-  CMD2_ANY_LIST("view.sort_new",      std::bind(&apply_view_event, &core::ViewManager::set_sort_new, std::placeholders::_2));
-  CMD2_ANY_LIST("view.sort_current",  std::bind(&apply_view_event, &core::ViewManager::set_sort_current, std::placeholders::_2));
+  CMD2_ANY_LIST    ("view.sort",          std::bind(&apply_view_sort, std::placeholders::_2));
+  CMD2_ANY_LIST    ("view.sort_new",      std::bind(&apply_view_event, &core::ViewManager::set_sort_new, std::placeholders::_2));
+  CMD2_ANY_LIST    ("view.sort_current",  std::bind(&apply_view_event, &core::ViewManager::set_sort_current, std::placeholders::_2));
 
-  CMD2_ANY_LIST("view.event_added",   std::bind(&apply_view_event, &core::ViewManager::set_event_added, std::placeholders::_2));
-  CMD2_ANY_LIST("view.event_removed", std::bind(&apply_view_event, &core::ViewManager::set_event_removed, std::placeholders::_2));
+  CMD2_ANY_LIST    ("view.event_added",   std::bind(&apply_view_event, &core::ViewManager::set_event_added, std::placeholders::_2));
+  CMD2_ANY_LIST    ("view.event_removed", std::bind(&apply_view_event, &core::ViewManager::set_event_removed, std::placeholders::_2));
 
-  // Cleanup and add . to view.
-
-  CMD2_ANY_STRING("view.size",              std::bind(&cmd_view_size, std::placeholders::_2));
-  CMD2_ANY_STRING("view.size_not_visible",  std::bind(&cmd_view_size_not_visible, std::placeholders::_2));
-  CMD2_ANY_STRING("view.persistent",        std::bind(&cmd_view_persistent, std::placeholders::_2));
+  CMD2_ANY_STRING  ("view.size",              std::bind(&cmd_view_size, std::placeholders::_2));
+  CMD2_ANY_STRING  ("view.size_not_visible",  std::bind(&cmd_view_size_not_visible, std::placeholders::_2));
+  CMD2_ANY_STRING  ("view.persistent",        std::bind(&cmd_view_persistent, std::placeholders::_2));
 
   CMD2_ANY_STRING_V("view.filter_all",      std::bind(&core::View::filter, std::bind(&core::ViewManager::find_ptr_throw, control->view_manager(), std::placeholders::_2)));
 
-  CMD2_DL_STRING ("view.filter_download", std::bind(&cmd_view_filter_download, std::placeholders::_1, std::placeholders::_2));
-  CMD2_DL_STRING ("view.set_visible",     std::bind(&cmd_view_set_visible,     std::placeholders::_1, std::placeholders::_2));
-  CMD2_DL_STRING ("view.set_not_visible", std::bind(&cmd_view_set_not_visible, std::placeholders::_1, std::placeholders::_2));
+  CMD2_DL_STRING   ("view.filter_download", std::bind(&cmd_view_filter_download, std::placeholders::_1, std::placeholders::_2));
+  CMD2_DL_STRING   ("view.set_visible",     std::bind(&cmd_view_set_visible,     std::placeholders::_1, std::placeholders::_2));
+  CMD2_DL_STRING   ("view.set_not_visible", std::bind(&cmd_view_set_not_visible, std::placeholders::_1, std::placeholders::_2));
 
   // Commands that affect the default rtorrent UI.
-  CMD2_DL        ("ui.unfocus_download",   std::bind(&cmd_ui_unfocus_download, std::placeholders::_1));
-  CMD2_ANY       ("ui.current_view",       std::bind(&cmd_ui_current_view));
-  CMD2_ANY_STRING("ui.current_view.set",   std::bind(&cmd_ui_set_view, std::placeholders::_2));
+  CMD2_DL          ("ui.unfocus_download",   std::bind(&cmd_ui_unfocus_download, std::placeholders::_1));
+  CMD2_ANY         ("ui.current_view",       std::bind(&cmd_ui_current_view));
+  CMD2_ANY_STRING  ("ui.current_view.set",   std::bind(&cmd_ui_set_view, std::placeholders::_2));
 
-  CMD2_ANY        ("ui.input.history.size",     std::bind(&ui::Root::get_input_history_size, control->ui()));
-  CMD2_ANY_VALUE_V("ui.input.history.size.set", std::bind(&ui::Root::set_input_history_size, control->ui(), std::placeholders::_2));
-  CMD2_ANY_V      ("ui.input.history.clear",    std::bind(&ui::Root::clear_input_history, control->ui()));
+  CMD2_ANY         ("ui.input.history.size",     std::bind(&ui::Root::get_input_history_size, control->ui()));
+  CMD2_ANY_VALUE_V ("ui.input.history.size.set", std::bind(&ui::Root::set_input_history_size, control->ui(), std::placeholders::_2));
+  CMD2_ANY_V       ("ui.input.history.clear",    std::bind(&ui::Root::clear_input_history, control->ui()));
 
-  CMD2_VAR_VALUE ("ui.throttle.global.step.small",  5);
-  CMD2_VAR_VALUE ("ui.throttle.global.step.medium", 50);
-  CMD2_VAR_VALUE ("ui.throttle.global.step.large",  500);
+  CMD2_VAR_VALUE   ("ui.throttle.global.step.small",  5);
+  CMD2_VAR_VALUE   ("ui.throttle.global.step.medium", 50);
+  CMD2_VAR_VALUE   ("ui.throttle.global.step.large",  500);
 
-  CMD2_VAR_VALUE ("ui.focus.page_size", 0);
+  CMD2_VAR_VALUE   ("ui.focus.page_size", 0);
 
-  CMD2_ANY_LIST  ("ui.status.throttle.up.set",   std::bind(&cmd_status_throttle_names, true, std::placeholders::_2));
-  CMD2_ANY_LIST  ("ui.status.throttle.down.set", std::bind(&cmd_status_throttle_names, false, std::placeholders::_2));
+  CMD2_ANY_LIST    ("ui.status.throttle.up.set",   std::bind(&cmd_status_throttle_names, true, std::placeholders::_2));
+  CMD2_ANY_LIST    ("ui.status.throttle.down.set", std::bind(&cmd_status_throttle_names, false, std::placeholders::_2));
 
   CMD2_ANY         ("ui.keymap.style",     std::bind(&ui::Root::keymap_style, control->ui()));
   CMD2_ANY_STRING_V("ui.keymap.style.set", std::bind(&ui::Root::set_keymap_style, control->ui(), std::placeholders::_2));
 
   // TODO: Add 'option_string' for rtorrent-specific options.
-  CMD2_VAR_STRING("ui.torrent_list.layout", "full");
+  CMD2_VAR_STRING  ("ui.torrent_list.layout", "full");
 
   // Move.
   CMD2_ANY("print", &apply_print);

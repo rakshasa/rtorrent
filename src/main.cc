@@ -354,6 +354,12 @@ main(int argc, char** argv) {
     // }
 
     if (rpc::call_command_value("method.use_deprecated") == 1) {
+      CMD2_REDIRECT("execute2",         "execute");
+      CMD2_REDIRECT("schedule2",        "schedule");
+      CMD2_REDIRECT("schedule_remove2", "schedule.remove");
+
+      // TODO: Remove file.append when cleaning these up.
+
       CMD2_REDIRECT("bind",                  "network.bind_address.set");
       CMD2_REDIRECT("ip",                    "network.local_address.set");
       CMD2_REDIRECT("port_range",            "network.port_range.set");

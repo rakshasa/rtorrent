@@ -133,19 +133,6 @@ group_insert(const torrent::Object::list_type& args) {
   rpc::rpc.mark_safe("group." + name + ".ratio.upload");
   rpc::rpc.mark_safe("group." + name + ".ratio.upload.set");
 
-  if (rpc::call_command_value("method.use_intermediate") == 3) {
-    // Cleaned up in 0.16.1:
-
-    CMD2_REDIRECT_MUTABLE("group2." + name + ".view",             "group." + name + ".view");
-    CMD2_REDIRECT_MUTABLE("group2." + name + ".view.set",         "group." + name + ".view.set");
-    CMD2_REDIRECT_MUTABLE("group2." + name + ".ratio.min",        "group." + name + ".ratio.min");
-    CMD2_REDIRECT_MUTABLE("group2." + name + ".ratio.min.set",    "group." + name + ".ratio.min.set");
-    CMD2_REDIRECT_MUTABLE("group2." + name + ".ratio.max",        "group." + name + ".ratio.max");
-    CMD2_REDIRECT_MUTABLE("group2." + name + ".ratio.max.set",    "group." + name + ".ratio.max.set");
-    CMD2_REDIRECT_MUTABLE("group2." + name + ".ratio.upload",     "group." + name + ".ratio.upload");
-    CMD2_REDIRECT_MUTABLE("group2." + name + ".ratio.upload.set", "group." + name + ".ratio.upload.set");
-  }
-
   return name;
 }
 
@@ -202,6 +189,10 @@ initialize_command_local() {
   core::DownloadList*    dList = control->core()->download_list();
   torrent::ChunkManager* chunkManager = torrent::chunk_manager();
   torrent::FileManager*  fileManager = torrent::file_manager();
+
+  if (rpc::call_command_value("method.use_deprecated") == 1) {
+    CMD2_ANY_LIST    ("file.append",    std::bind(&cmd_file_append, std::placeholders::_2));
+  }
 
   CMD2_ANY         ("system.hostname", std::bind(&system_hostname));
   CMD2_ANY         ("system.pid",      std::bind(&getpid));
@@ -310,8 +301,7 @@ initialize_command_local() {
 #define CMD2_EXECUTE(key, flags)                                        \
   CMD2_ANY(key, std::bind(&rpc::ExecFile::execute_object, &rpc::execFile, std::placeholders::_2, flags));
 
-  CMD2_EXECUTE     ("execute",                rpc::ExecFile::flag_expand_tilde | rpc::ExecFile::flag_throw);
-  CMD2_EXECUTE     ("execute2",                rpc::ExecFile::flag_expand_tilde | rpc::ExecFile::flag_throw);
+  CMD2_EXECUTE     ("execute",                 rpc::ExecFile::flag_expand_tilde | rpc::ExecFile::flag_throw);
   CMD2_EXECUTE     ("execute.throw",           rpc::ExecFile::flag_expand_tilde | rpc::ExecFile::flag_throw);
   CMD2_EXECUTE     ("execute.throw.bg",        rpc::ExecFile::flag_expand_tilde | rpc::ExecFile::flag_throw | rpc::ExecFile::flag_background);
   CMD2_EXECUTE     ("execute.nothrow",         rpc::ExecFile::flag_expand_tilde);
@@ -322,8 +312,6 @@ initialize_command_local() {
   CMD2_EXECUTE     ("execute.raw_nothrow.bg",  rpc::ExecFile::flag_background);
   CMD2_EXECUTE     ("execute.capture",         rpc::ExecFile::flag_throw | rpc::ExecFile::flag_expand_tilde | rpc::ExecFile::flag_capture);
   CMD2_EXECUTE     ("execute.capture_nothrow", rpc::ExecFile::flag_expand_tilde | rpc::ExecFile::flag_capture);
-
-  CMD2_ANY_LIST    ("file.append",    std::bind(&cmd_file_append, std::placeholders::_2));
 
   // TODO: Convert to new command types:
   *rpc::command_base::argument(0) = "placeholder.0";
