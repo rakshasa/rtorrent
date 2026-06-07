@@ -331,7 +331,7 @@ DownloadList::resume(Download* download, int flags) {
 
     // We need to make sure the flags aren't reset if someone decideds
     // to call resume() while it is hashing, etc.
-    if (download->resume_flags() == ~uint32_t())
+    if (download->resume_flags() == Download::default_resume_flags)
       download->set_resume_flags(flags);
 
     // Manual or end-of-download rehashing clears the resume data so
@@ -404,7 +404,7 @@ DownloadList::resume(Download* download, int flags) {
     download->set_priority(download->priority());
     download->download()->start(download->resume_flags());
 
-    download->set_resume_flags(~uint32_t());
+    download->set_resume_flags(Download::default_resume_flags);
 
     DL_TRIGGER_EVENT(download, "event.download.resumed");
 
@@ -421,7 +421,7 @@ DownloadList::pause(Download* download, int flags) {
 
   try {
 
-    download->set_resume_flags(~uint32_t());
+    download->set_resume_flags(Download::default_resume_flags);
 
     rpc::parse_command_single(rpc::make_target(download), "view.set_not_visible=active");
 
@@ -660,8 +660,8 @@ DownloadList::confirm_finished(Download* download) {
   if (find(infohash) == end())
     return;
 
-//   if (download->resume_flags() != ~uint32_t())
-//     throw torrent::internal_error("DownloadList::confirm_finished(...) download->resume_flags() != ~uint32_t().");
+//   if (download->resume_flags() != Download::default_resume_flags)
+//     throw torrent::internal_error("DownloadList::confirm_finished(...) download->resume_flags() != Download::default_resume_flags.");
 
   // See #1292.
   //
@@ -671,7 +671,7 @@ DownloadList::confirm_finished(Download* download) {
   //
   // TODO: Add a check when setting the flags to see if the torrent is
   // being hashed.
-  download->set_resume_flags(~uint32_t());
+  download->set_resume_flags(Download::default_resume_flags);
 
   if (!download->is_active() && rpc::call_command_value("d.state", rpc::make_target(download)) == 1)
     resume(download,
