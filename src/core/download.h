@@ -22,6 +22,8 @@ public:
   typedef torrent::ConnectionList       connection_list_type;
   typedef download_type::ConnectionType connection_type;
 
+  static constexpr uint32_t default_resume_flags = ~uint32_t{} & ~torrent::Download::open_enable_fallocate;
+
   static const int variable_hashing_stopped = 0;
   static const int variable_hashing_initial = 1;
   static const int variable_hashing_last    = 2;
@@ -100,7 +102,7 @@ private:
   download_type       m_download;
   bool                m_hashFailed{};
   std::string         m_message;
-  uint32_t            m_resumeFlags{~uint32_t{}};
+  uint32_t            m_resumeFlags{default_resume_flags};
   unsigned int        m_group{};
 };
 
