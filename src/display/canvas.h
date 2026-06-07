@@ -144,7 +144,8 @@ Canvas::get_x() {
 
 inline unsigned int
 Canvas::get_y() {
-  int x, y;
+  int y;
+  [[maybe_unused]] int x;
   if (!m_daemon) {
     getyx(m_window, y, x);
   } else {
@@ -167,7 +168,8 @@ Canvas::width() {
 
 inline unsigned int
 Canvas::height() {
-  int x, y;
+  int y;
+  [[maybe_unused]] int x;
   if (!m_daemon) {
     getmaxyx(m_window, y, x);
   } else {
@@ -269,7 +271,8 @@ Canvas::get_screen_width() {
 
 inline int
 Canvas::get_screen_height() {
-  int x, y;
+  int y;
+  [[maybe_unused]] int x;
   if (!m_daemon) {
     getmaxyx(stdscr, y, x);
   } else {
