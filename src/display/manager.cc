@@ -80,10 +80,14 @@ Manager::schedule_update(std::chrono::microseconds min_interval) {
     return;
   }
 
-  if (m_task_update.is_scheduled() && m_task_update.time() <= m_scheduler.front()->time())
+  auto cached = torrent::this_thread::cached_time();
+  m_scheduler.external_set_cached_time(cached);
+  auto next = cached + m_scheduler.next_timeout(cached);
+
+  if (m_task_update.is_scheduled() && m_task_update.time_or_zero() <= next)
     return;
 
-  torrent::this_thread::scheduler()->update_wait_until(&m_task_update, std::max(m_scheduler.front()->time(), m_time_last_update + min_interval));
+  torrent::this_thread::scheduler()->update_wait_until(&m_task_update, std::max(next, m_time_last_update + min_interval));
 }
 
 }
