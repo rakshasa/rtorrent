@@ -186,8 +186,8 @@ apply_cg_insert(const std::string& arg) {
   cg_list_hack.push_back(new torrent::choke_group());
   cg_list_hack.back()->set_name(arg);
 
-  cg_list_hack.back()->up_queue()->set_heuristics(torrent::choke_queue::HEURISTICS_UPLOAD_LEECH);
-  cg_list_hack.back()->down_queue()->set_heuristics(torrent::choke_queue::HEURISTICS_DOWNLOAD_LEECH);
+  cg_list_hack.back()->up_queue()->set_heuristics(torrent::HEURISTICS_UPLOAD_LEECH);
+  cg_list_hack.back()->down_queue()->set_heuristics(torrent::HEURISTICS_DOWNLOAD_LEECH);
 
   return torrent::Object();
 }
