@@ -170,7 +170,7 @@ system_method_insert_object(const torrent::Object::list_type& args, int flags) {
 
     rpc::commands.insert_slot<rpc::command_base_is_type<rpc::command_base_call<rpc::target_type>>::type>(
       raw_key,
-      std::bind(&rpc::object_storage::call_function_str, control->object_storage(), raw_key, std::placeholders::_1, std::placeholders::_2),
+      [storage = control->object_storage(), k = raw_key](auto target, const auto& obj) { return storage->call_function_str(k, target, obj); },
       &rpc::command_base_call<rpc::target_type>,
       cmd_flags,
       NULL,
@@ -179,7 +179,7 @@ system_method_insert_object(const torrent::Object::list_type& args, int flags) {
   } else {
     rpc::commands.insert_slot<rpc::command_base_is_type<rpc::command_base_call<rpc::target_type>>::type>(
       raw_key,
-      std::bind(&rpc::object_storage::get_str, control->object_storage(), raw_key),
+      [storage = control->object_storage(), k = raw_key](auto, const auto&) { return storage->get_str(k); },
       &rpc::command_base_call<rpc::target_type>,
       cmd_flags,
       NULL,
