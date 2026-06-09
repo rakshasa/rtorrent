@@ -164,8 +164,8 @@ apply_d_connection_type(core::Download* download, const std::string& name) {
 
 torrent::Object
 apply_d_choke_heuristics(core::Download* download, const std::string& name, bool is_down) {
-  torrent::Download::HeuristicType t =
-    (torrent::Download::HeuristicType)torrent::option_find_string(torrent::OPTION_CHOKE_HEURISTICS, name.c_str());
+  torrent::heuristics_enum t =
+    static_cast<torrent::heuristics_enum>(torrent::option_find_string(torrent::OPTION_CHOKE_HEURISTICS, name.c_str()));
 
   if (is_down)
     download->download()->set_download_choke_heuristic(t);
