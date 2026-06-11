@@ -10,6 +10,10 @@
 
 #ifdef HAVE_LUA
 #include <lua.hpp>
+// LUA_OK was introduced in Lua 5.2; define for Lua 5.1 and LuaJIT2.0.
+#ifndef LUA_OK
+#define LUA_OK 0
+#endif
 #endif
 
 #include <torrent/object.h>
