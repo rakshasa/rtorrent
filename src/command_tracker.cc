@@ -105,21 +105,21 @@ initialize_command_tracker() {
   CMD2_TRACKER        ("t.latest_new_peers",   [](auto* tracker, auto) { return tracker->state().latest_new_peers(); });
   CMD2_TRACKER        ("t.latest_sum_peers",   [](auto* tracker, auto) { return tracker->state().latest_sum_peers(); });
 
-  CMD2_TRACKER        ("t.normal_interval",    [](auto* tracker, auto) { return tracker->state().normal_interval(); });
-  CMD2_TRACKER        ("t.min_interval",       [](auto* tracker, auto) { return tracker->state().min_interval(); });
+  CMD2_TRACKER        ("t.normal_interval",    [](auto* tracker, auto) { return tracker->state().normal_interval().count(); });
+  CMD2_TRACKER        ("t.min_interval",       [](auto* tracker, auto) { return tracker->state().min_interval().count(); });
 
-  CMD2_TRACKER        ("t.activity_time_next", [](auto* tracker, auto) { return tracker->state().activity_time_next(); });
-  CMD2_TRACKER        ("t.activity_time_last", [](auto* tracker, auto) { return tracker->state().activity_time_last(); });
+  CMD2_TRACKER        ("t.activity_time_next", [](auto* tracker, auto) { return tracker->state().activity_time_next().count(); });
+  CMD2_TRACKER        ("t.activity_time_last", [](auto* tracker, auto) { return tracker->state().activity_time_last().count(); });
 
-  CMD2_TRACKER        ("t.success_time_next",  [](auto* tracker, auto) { return tracker->state().success_time_next(); });
-  CMD2_TRACKER        ("t.success_time_last",  [](auto* tracker, auto) { return tracker->state().success_time_last(); });
+  CMD2_TRACKER        ("t.success_time_next",  [](auto* tracker, auto) { return tracker->state().success_time_next().count(); });
+  CMD2_TRACKER        ("t.success_time_last",  [](auto* tracker, auto) { return tracker->state().success_time_last().count(); });
   CMD2_TRACKER        ("t.success_counter",    [](auto* tracker, auto) { return tracker->state().success_counter(); });
 
-  CMD2_TRACKER        ("t.failed_time_next",   [](auto* tracker, auto) { return tracker->state().failed_time_next(); });
-  CMD2_TRACKER        ("t.failed_time_last",   [](auto* tracker, auto) { return tracker->state().failed_time_last(); });
+  CMD2_TRACKER        ("t.failed_time_next",   [](auto* tracker, auto) { return tracker->state().failed_time_next().count(); });
+  CMD2_TRACKER        ("t.failed_time_last",   [](auto* tracker, auto) { return tracker->state().failed_time_last().count(); });
   CMD2_TRACKER        ("t.failed_counter",     [](auto* tracker, auto) { return tracker->state().failed_counter(); });
 
-  CMD2_TRACKER        ("t.scrape_time_last",   [](auto* tracker, auto) { return tracker->state().scrape_time_last(); });
+  CMD2_TRACKER        ("t.scrape_time_last",   [](auto* tracker, auto) { return tracker->state().scrape_time_last().count(); });
   CMD2_TRACKER        ("t.scrape_counter",     [](auto* tracker, auto) { return tracker->state().scrape_counter(); });
 
   CMD2_TRACKER        ("t.scrape_complete",    [](auto* tracker, auto) { return tracker->state().scrape_complete(); });
