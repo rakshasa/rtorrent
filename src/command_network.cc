@@ -61,8 +61,6 @@ apply_tos(const torrent::Object::string_type& arg) {
   return torrent::Object();
 }
 
-torrent::Object apply_encoding_list(const std::string& arg) { torrent::encoding_list()->push_back(arg); return torrent::Object(); }
-
 void
 initialize_rpc_handlers() {
   rpc::rpc.initialize_handlers();
@@ -220,8 +218,6 @@ initialize_command_network() {
   auto file_manager   = torrent::file_manager();
   auto http_stack     = torrent::net_thread::http_stack();
   auto nw_config      = torrent::runtime::network_config();
-
-  CMD2_ANY_STRING  ("encoding.add", std::bind(&apply_encoding_list, std::placeholders::_2));
 
   // Isn't port_open used?
   CMD2_VAR_BOOL    ("network.port_open",   true);
