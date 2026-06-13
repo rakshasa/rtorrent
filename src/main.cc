@@ -383,6 +383,10 @@ main(int argc, char** argv) {
       // Users should check their setups to see if they need to modify their use of these options.
       CMD2_REDIRECT("max_memory_usage",      "pieces.memory.max.set");
       CMD2_REDIRECT("encoding_list",         "encoding.add");
+
+      CMD2_ANY_STRING_V("encoding.add", [](auto, auto) {
+          lt_log_print(torrent::LOG_WARN, "The 'encoding.add' command is deprecated and does nothing.");
+        });
     }
 
     {
