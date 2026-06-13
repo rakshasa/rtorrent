@@ -11,7 +11,6 @@
 #include <rak/regex.h>
 #include <torrent/utils/resume.h>
 #include <torrent/object.h>
-#include <torrent/connection_manager.h>
 #include <torrent/exceptions.h>
 #include <torrent/object_stream.h>
 #include <torrent/throttle.h>
@@ -87,10 +86,10 @@ Manager::set_hashing_view(View* v) {
   m_hashingView->signal_changed().push_back(std::bind(&Manager::receive_hashing_changed, this));
 }
 
-torrent::ThrottlePair
+ThrottlePair
 Manager::get_throttle(const std::string& name) {
-  ThrottleMap::const_iterator itr = m_throttles.find(name);
-  torrent::ThrottlePair throttles = (itr == m_throttles.end() ? torrent::ThrottlePair(nullptr, nullptr) : itr->second);
+  auto itr       = m_throttles.find(name);
+  auto throttles = (itr == m_throttles.end() ? ThrottlePair(nullptr, nullptr) : itr->second);
 
   if (throttles.first == nullptr)
     throttles.first = torrent::up_throttle_global();
@@ -99,20 +98,6 @@ Manager::get_throttle(const std::string& name) {
     throttles.second = torrent::down_throttle_global();
 
   return throttles;
-}
-
-void
-Manager::set_address_throttle(uint32_t begin, uint32_t end, torrent::ThrottlePair throttles) {
-  m_addressThrottles.set_merge(begin, end, throttles);
-  torrent::connection_manager()->address_throttle() = std::bind(&core::Manager::get_address_throttle, control->core(), std::placeholders::_1);
-}
-
-torrent::ThrottlePair
-Manager::get_address_throttle(const sockaddr* addr) {
-  if (addr->sa_family != AF_INET)
-    return torrent::ThrottlePair(nullptr, nullptr);
-
-  return m_addressThrottles.get(ntohl(reinterpret_cast<const sockaddr_in*>(addr)->sin_addr.s_addr), torrent::ThrottlePair(nullptr, nullptr));
 }
 
 int64_t

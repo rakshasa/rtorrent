@@ -70,33 +70,35 @@ parse_address_range(const torrent::Object::list_type& args, torrent::Object::lis
 
 torrent::Object
 apply_throttle(const torrent::Object::list_type& args, bool up) {
-  torrent::Object::list_const_iterator argItr = args.begin();
+  auto arg_itr = args.begin();
 
-  if (argItr == args.end())
+  if (arg_itr == args.end())
     throw torrent::input_error("Missing throttle name.");
 
-  const std::string& name = argItr->as_string();
+  const std::string& name = arg_itr->as_string();
   if (name.empty() || name == "NULL")
     throw torrent::input_error("Invalid throttle name '" + name + "'.");
 
-  if (++argItr == args.end() || argItr->as_string().empty())
+  if (++arg_itr == args.end() || arg_itr->as_string().empty())
     throw torrent::input_error("Missing throttle rate for '" + name + "'.");
 
   int64_t rate;
-  rpc::parse_whole_value_nothrow(argItr->as_string().c_str(), &rate);
+  rpc::parse_whole_value_nothrow(arg_itr->as_string().c_str(), &rate);
 
   if (rate < 0)
     throw torrent::input_error("Throttle rate must be non-negative.");
 
-  core::ThrottleMap::iterator itr = control->core()->throttles().find(name);
-  if (itr == control->core()->throttles().end())
-    itr = control->core()->throttles().insert(std::make_pair(name, torrent::ThrottlePair(NULL, NULL))).first;
+  auto itr = control->core()->throttles().find(name);
 
-  torrent::Throttle*& throttle = up ? itr->second.first : itr->second.second;
-  if (rate != 0 && throttle == NULL)
+  if (itr == control->core()->throttles().end())
+    itr = control->core()->throttles().insert(std::make_pair(name, core::ThrottlePair(nullptr, nullptr))).first;
+
+  auto*& throttle = up ? itr->second.first : itr->second.second;
+
+  if (rate != 0 && throttle == nullptr)
     throttle = (up ? torrent::up_throttle_global() : torrent::down_throttle_global())->create_slave();
 
-  if (throttle != NULL)
+  if (throttle != nullptr)
     throttle->set_max_rate(rate * 1024);
 
   return torrent::Object();
@@ -109,10 +111,10 @@ static const int throttle_info_rate = (1 << 3);
 
 torrent::Object
 retrieve_throttle_info(const torrent::Object::string_type& name, int flags) {
-  core::ThrottleMap::iterator itr = control->core()->throttles().find(name);
-  torrent::ThrottlePair throttles = itr == control->core()->throttles().end() ? torrent::ThrottlePair(NULL, NULL) : itr->second;
-  torrent::Throttle* throttle = flags & throttle_info_down ? throttles.second : throttles.first;
-  torrent::Throttle* global = flags & throttle_info_down ? torrent::down_throttle_global() : torrent::up_throttle_global();
+  auto  itr       = control->core()->throttles().find(name);
+  auto  throttles = (itr == control->core()->throttles().end()) ? core::ThrottlePair(nullptr, nullptr) : itr->second;
+  auto* throttle  = flags & throttle_info_down ? throttles.second : throttles.first;
+  auto* global    = flags & throttle_info_down ? torrent::down_throttle_global() : torrent::up_throttle_global();
 
   if (throttle == NULL && name.empty())
     throttle = global;
@@ -125,20 +127,6 @@ retrieve_throttle_info(const torrent::Object::string_type& name, int flags) {
     return (int64_t)throttle->rate()->rate();
   else
     return (int64_t)throttle->max_rate();
-}
-
-torrent::Object
-apply_address_throttle(const torrent::Object::list_type& args) {
-  if (args.size() < 2 || args.size() > 3)
-    throw torrent::input_error("Incorrect number of arguments.");
-
-  std::pair<uint32_t, uint32_t> range = parse_address_range(args, ++args.begin());
-  core::ThrottleMap::iterator throttleItr = control->core()->throttles().find(args.begin()->as_string().c_str());
-  if (throttleItr == control->core()->throttles().end())
-    throw torrent::input_error("Throttle not found.");
-
-  control->core()->set_address_throttle(range.first, range.second, throttleItr->second);
-  return torrent::Object();
 }
 
 torrent::Object
@@ -198,7 +186,6 @@ initialize_command_throttle() {
   // than kB.
   CMD2_ANY_LIST    ("throttle.up",                          std::bind(&apply_throttle, std::placeholders::_2, true));
   CMD2_ANY_LIST    ("throttle.down",                        std::bind(&apply_throttle, std::placeholders::_2, false));
-  CMD2_ANY_LIST    ("throttle.ip",                          std::bind(&apply_address_throttle, std::placeholders::_2));
 
   CMD2_ANY_STRING  ("throttle.up.max",    std::bind(&retrieve_throttle_info, std::placeholders::_2, throttle_info_up | throttle_info_max));
   CMD2_ANY_STRING  ("throttle.up.rate",   std::bind(&retrieve_throttle_info, std::placeholders::_2, throttle_info_up | throttle_info_rate));

@@ -88,15 +88,16 @@ Download::distributed_copies() const {
 }
 
 void
-Download::set_throttle_name(const std::string& throttleName) {
+Download::set_throttle_name(const std::string& name) {
   if (m_download.info()->is_active())
     throw torrent::input_error("Cannot set throttle on active download.");
 
-  torrent::ThrottlePair throttles = control->core()->get_throttle(throttleName);
+  auto throttles = control->core()->get_throttle(name);
+
   m_download.set_upload_throttle(throttles.first);
   m_download.set_download_throttle(throttles.second);
 
-  m_download.bencode()->get_key("rtorrent").insert_key("throttle_name", throttleName);
+  m_download.bencode()->get_key("rtorrent").insert_key("throttle_name", name);
 }
 
 void

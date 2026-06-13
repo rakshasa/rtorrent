@@ -9,7 +9,6 @@
 #include <torrent/rate.h>
 #include <torrent/throttle.h>
 #include <torrent/tracker/tracker.h>
-#include <torrent/connection_manager.h>
 #include <torrent/data/download_data.h>
 #include <torrent/data/file.h>
 #include <torrent/data/file_list.h>
