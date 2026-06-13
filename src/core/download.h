@@ -80,7 +80,7 @@ public:
 
   void                set_root_directory(const std::string& path);
 
-  void                set_throttle_name(const std::string& throttleName);
+  void                set_throttle_name(const std::string& name);
 
   bool                operator == (const std::string& str) const;
 

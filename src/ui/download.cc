@@ -4,7 +4,6 @@
 
 #include <torrent/exceptions.h>
 #include <torrent/chunk_manager.h>
-#include <torrent/connection_manager.h>
 #include <torrent/throttle.h>
 #include <torrent/torrent.h>
 #include <torrent/data/file_list.h>

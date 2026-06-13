@@ -387,6 +387,11 @@ main(int argc, char** argv) {
       CMD2_ANY_STRING_V("encoding.add", [](auto, auto) {
           lt_log_print(torrent::LOG_WARN, "The 'encoding.add' command is deprecated and does nothing.");
         });
+
+      CMD2_ANY_LIST ("throttle.ip", []( auto, auto) {
+          lt_log_print(torrent::LOG_WARN, "The 'throttle.ip' command is deprecated and does nothing.");
+          return torrent::Object();
+        });
     }
 
     {
