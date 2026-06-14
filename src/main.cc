@@ -353,7 +353,13 @@ main(int argc, char** argv) {
     //   Allow for use in config files, etc, just don't export it.
     // }
 
-    if (rpc::call_command_value("method.use_deprecated") == 1) {
+    // Deprecated-command aliases are registered unconditionally. Gating their
+    // registration on method.use_deprecated was a chicken-and-egg bug: that value is
+    // normally enabled from the config file (or by ruTorrent), but the config is parsed
+    // (parse_config_file, below) AFTER this point -- so config-based enabling never took
+    // effect; only the -D command-line flag did. Registering them unconditionally keeps
+    // them usable via `rtorrent -o import=<rc>` and ruTorrent, as in <= 0.16.13.
+    {
       CMD2_REDIRECT("execute2",         "execute");
       CMD2_REDIRECT("schedule2",        "schedule");
       CMD2_REDIRECT("schedule_remove2", "schedule.remove");
