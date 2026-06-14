@@ -1,6 +1,7 @@
 #ifndef RTORRENT_RPC_COMMAND_H
 #define RTORRENT_RPC_COMMAND_H
 
+#include <any>
 #include <functional>
 #include <limits>
 #include <torrent/common.h>
@@ -114,10 +115,10 @@ public:
     char buffer[sizeof(torrent::Object) * max_arguments];
   };
 
-  command_base() { new (&_pod<base_function>()) base_function(); }
-  command_base(const command_base& src) { new (&_pod<base_function>()) base_function(src._pod<base_function>()); }
+  command_base() : t_pod(base_function()) {}
+  command_base(const command_base& src) : t_pod(src.t_pod) {}
 
-  ~command_base() { _pod<base_function>().~base_function(); }
+  ~command_base() = default;
 
   static torrent::Object* argument(unsigned int index) { return current_stack.begin() + index; }
   static torrent::Object& argument_ref(unsigned int index) { return *(current_stack.begin() + index); }
@@ -132,44 +133,26 @@ public:
   static void             pop_stack(stack_type* stack, torrent::Object* last_stack);
 
   template <typename T>
-  void set_function(T s, [[maybe_unused]] int value = command_base_is_valid<T>::value) { _pod<T>() = s; }
+  void set_function(T s, [[maybe_unused]] int value = command_base_is_valid<T>::value) { t_pod = std::move(s); }
 
   template <command_base_call_type T>
   void set_function_2(typename command_base_is_type<T>::type s, [[maybe_unused]] int value = command_base_is_valid<typename command_base_is_type<T>::type>::value) {
-    _pod<typename command_base_is_type<T>::type>() = s;
+    t_pod = std::move(s);
   }
 
-  // The std::function object in GCC is castable between types with a
-  // pointer to a struct of ctor/dtor/calls for non-POD slots. As such
-  // it should be safe to cast between different std::function
-  // template types, yet what the C++0x standard will say about this I
-  // have no idea atm.
-  template <typename tmpl> tmpl& _pod() { return reinterpret_cast<tmpl&>(t_pod); }
-  template <typename tmpl> const tmpl& _pod() const { return reinterpret_cast<const tmpl&>(t_pod); }
+  template <typename tmpl> tmpl& _pod() { return std::any_cast<tmpl&>(t_pod); }
+  template <typename tmpl> const tmpl& _pod() const { return std::any_cast<const tmpl&>(t_pod); }
 
   template <typename Func, typename T, typename Args>
   static const torrent::Object _call(command_base* cmd, target_type target, Args args);
 
   command_base& operator = (const command_base& src) {
-    _pod<base_function>() = src._pod<base_function>();
+    t_pod = src.t_pod;
     return *this;
   }
 
 protected:
-  // For use by functions that need to use placeholders to arguments
-  // within commands. E.d. callable command strings where one of the
-  // arguments within the command needs to be supplied by the caller.
-
-#ifdef HAVE_CXX11
-  union {
-    base_function t_pod;
-    // char t_pod[sizeof(base_function)];
-  };
-#else
-  union {
-    char t_pod[sizeof(base_function)];
-  };
-#endif
+  std::any t_pod;
 };
 
 template <typename T1 = void, typename T2 = void>
