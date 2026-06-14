@@ -498,8 +498,9 @@ Manager::receive_hashing_changed() {
 
       } else {
         (*itr)->set_hash_failed(true);
-        (*itr)->set_message("Hashing failed: " + std::string(e.what()));
-        lt_log_print(torrent::LOG_TORRENT_ERROR, "Hashing failed: %s", e.what());
+        const char* err_msg = e.what();
+        (*itr)->set_message(std::string("Hashing failed: ") + (err_msg && err_msg[0] ? err_msg : "unknown error."));
+        lt_log_print(torrent::LOG_TORRENT_ERROR, "Hashing failed: %s", err_msg ? err_msg : "(null)");
       }
     }
   }
