@@ -12,6 +12,7 @@
 #include <torrent/data/file_manager.h>
 #include <torrent/data/chunk_utils.h>
 #include <torrent/runtime/runtime.h>
+#include <torrent/runtime/socket_manager.h>
 #include <torrent/utils/chrono.h>
 #include <torrent/utils/option_strings.h>
 
@@ -225,28 +226,38 @@ initialize_command_local() {
   CMD2_ANY         ("system.files.closed_counter",     std::bind(&FM_t::files_closed_counter, fileManager));
   CMD2_ANY         ("system.files.failed_counter",     std::bind(&FM_t::files_failed_counter, fileManager));
 
-  CMD2_ANY_STRING  ("system.env",                      std::bind(&system_env, std::placeholders::_2));
+  CMD2_ANY_STRING  ("system.env",                      [](auto, auto& str)   { return system_env(str); });
 
-  CMD2_ANY         ("system.time",                     []([[maybe_unused]] auto t, [[maybe_unused]] auto o) -> torrent::Object {
-      return torrent::this_thread::cached_seconds().count();
-    });
-  CMD2_ANY         ("system.time_seconds",             []([[maybe_unused]] auto t, [[maybe_unused]] auto o) -> torrent::Object {
-      return torrent::utils::cast_seconds(torrent::utils::time_since_epoch()).count();
-    });
-  CMD2_ANY         ("system.time_usec",                []([[maybe_unused]] auto t, [[maybe_unused]] auto o) -> torrent::Object {
-      return torrent::utils::time_since_epoch().count();
-    });
+  CMD2_ANY         ("system.time",                     [](auto, auto)        { return torrent::this_thread::cached_seconds().count(); });
+  CMD2_ANY         ("system.time_seconds",             [](auto, auto)        { return torrent::utils::cast_seconds(torrent::utils::time_since_epoch()).count(); });
+  CMD2_ANY         ("system.time_usec",                [](auto, auto)        { return torrent::utils::time_since_epoch().count(); });
 
-  CMD2_ANY_VALUE_V ("system.umask.set",                std::bind(&umask, std::placeholders::_2));
+  CMD2_ANY_VALUE_V ("system.umask.set",                [](auto, auto& value) { return ::umask(value); });
 
   CMD2_VAR_BOOL    ("system.daemon",                   false);
 
-  CMD2_ANY_V       ("system.shutdown.normal",          std::bind(&Control::receive_normal_shutdown, control));
-  CMD2_ANY_V       ("system.shutdown.quick",           std::bind(&Control::receive_quick_shutdown, control));
+  CMD2_ANY_V       ("system.shutdown.normal",          [](auto, auto)        { control->receive_normal_shutdown(); });
+  CMD2_ANY_V       ("system.shutdown.quick",           [](auto, auto)        { control->receive_quick_shutdown(); });
+
   CMD2_REDIRECT_NO_EXPORT("system.shutdown", "system.shutdown.normal");
 
-  CMD2_ANY         ("system.cwd",                      std::bind(&system_get_cwd));
-  CMD2_ANY_STRING  ("system.cwd.set",                  std::bind(&system_set_cwd, std::placeholders::_2));
+  CMD2_ANY         ("system.cwd",                      [](auto, auto)        { return system_get_cwd(); });
+  CMD2_ANY_STRING  ("system.cwd.set",                  [](auto, auto& str)   { return system_set_cwd(str); });
+
+  CMD2_ANY         ("system.sockets.size",             [](auto, auto)        { return torrent::runtime::socket_manager()->size(); });
+  CMD2_ANY         ("system.sockets.max_size",         [](auto, auto)        { return torrent::runtime::socket_manager()->max_size(); });
+  CMD2_ANY_VALUE_V ("system.sockets.max_size.set",     [](auto, auto& value) { return torrent::runtime::socket_manager()->set_max_size_and_adjust(value); });
+
+  for (int i = 0; i < static_cast<int>(torrent::runtime::SocketManager::category_count); i++) {
+    auto        category      = static_cast<torrent::runtime::socket_manager_category_t>(i);
+    std::string category_name = torrent::option_to_string_or_throw(torrent::OPTION_SOCKET_CATEGORY, i);
+
+    CMD2_ANY("system.sockets." + category_name + ".size",     [category](auto, auto) { return torrent::runtime::socket_manager()->category_managed_size(category); });
+    CMD2_ANY("system.sockets." + category_name + ".max_size", [category](auto, auto) { return torrent::runtime::socket_manager()->category_max_size(category); });
+
+    rpc::rpc.mark_safe("system.sockets." + category_name + ".size");
+    rpc::rpc.mark_safe("system.sockets." + category_name + ".max_size");
+  }
 
   CMD2_ANY         ("pieces.sync.always_safe",         std::bind(&CM_t::safe_sync, chunkManager));
   CMD2_ANY_VALUE_V ("pieces.sync.always_safe.set",     std::bind(&CM_t::set_safe_sync, chunkManager, std::placeholders::_2));

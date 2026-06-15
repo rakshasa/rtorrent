@@ -263,7 +263,7 @@ initialize_command_network() {
   CMD2_ANY_VALUE_V ("network.send_buffer.size.set",       [nw_config](auto, auto& value) { return nw_config->set_send_buffer_size(value); });
   CMD2_ANY         ("network.receive_buffer.size",        [nw_config](auto, auto)        { return nw_config->receive_buffer_size(); });
   CMD2_ANY_VALUE_V ("network.receive_buffer.size.set",    [nw_config](auto, auto& value) { return nw_config->set_receive_buffer_size(value); });
-  CMD2_ANY_STRING  ("network.tos.set",                    [](auto, auto& str)                 { return apply_tos(str); });
+  CMD2_ANY_STRING  ("network.tos.set",                    [](auto, auto& str)            { return apply_tos(str); });
 
   CMD2_ANY         ("network.bind_address",               [nw_config](auto, auto)        { return nw_config->bind_address_best_match_str(); });
   CMD2_ANY_STRING_V("network.bind_address.set",           [nw_config](auto, auto& str)   { return nw_config->set_bind_address_str(str); });
@@ -286,6 +286,8 @@ initialize_command_network() {
   CMD2_ANY         ("network.max_open_files",        [file_manager](auto, auto)        { return file_manager->max_open_files(); });
   CMD2_ANY_VALUE_V ("network.max_open_files.set",    [file_manager](auto, auto& value) { return file_manager->set_max_open_files(value); });
   CMD2_ANY         ("network.total_handshakes",      [](auto, auto)                    { return torrent::runtime::total_handshakes(); });
+
+  // TODO: Deprecate in favor of system.socket.*?
   CMD2_ANY         ("network.open_sockets",          [](auto, auto)                    { return torrent::runtime::socket_manager()->size(); });
   CMD2_ANY         ("network.max_open_sockets",      [](auto, auto)                    { return torrent::runtime::socket_manager()->max_size(); });
   CMD2_ANY_VALUE_V ("network.max_open_sockets.set",  [](auto, auto& value)             { return torrent::runtime::socket_manager()->set_max_size_and_adjust(value); });
