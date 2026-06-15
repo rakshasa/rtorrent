@@ -472,11 +472,14 @@ apply_to_throttle(const torrent::Object& rawArgs) {
 // if (cond1) { branch1 } else if (cond2) { branch2 } else { branch3 }
 // <cond1>,<branch1>,<cond2>,<branch2>,<branch3>
 torrent::Object
-apply_if(rpc::target_type target, const torrent::Object& rawArgs, int flags) {
-  const torrent::Object::list_type& args = rawArgs.as_list();
-  torrent::Object::list_const_iterator itr = args.begin();
+apply_if(rpc::target_type target, const torrent::Object& raw_args, int flags) {
+  auto& args = raw_args.as_list();
+  auto  itr  = args.begin();
 
-  while (itr != args.end() && itr != --args.end()) {
+  if (args.empty())
+    throw torrent::input_error("Empty argument list to " + std::string((flags & 0x1) ? "branch" : "if") + ".");
+
+  {
     torrent::Object tmp;
     const torrent::Object* conditional;
 
@@ -500,40 +503,44 @@ apply_if(rpc::target_type target, const torrent::Object& rawArgs, int flags) {
       result = false;
       break;
     default:
-      throw torrent::input_error("Type not supported by 'if'.");
+      throw torrent::input_error("Type not supported by " + std::string((flags & 0x1) ? "branch" : "if") + ".");
     };
 
     itr++;
 
-    if (result)
-      break;
-
-    itr++;
+    if (!result && itr != args.end())
+      itr++;
   }
 
   if (itr == args.end())
     return torrent::Object();
 
-  if (flags & 0x1 && itr->is_string()) {
-    return rpc::parse_command(target, itr->as_string().c_str(), itr->as_string().c_str() + itr->as_string().size()).first;
+  if (flags & 0x1) {
+    if (itr->is_string())
+      return rpc::parse_command(target, itr->as_string().c_str(), itr->as_string().c_str() + itr->as_string().size()).first;
 
-  } else if (flags & 0x1 && itr->is_dict_key()) {
-    return rpc::commands.call_command(itr->as_dict_key().c_str(), itr->as_dict_obj(), target);
+    if (itr->is_dict_key())
+      return rpc::commands.call_command(itr->as_dict_key().c_str(), itr->as_dict_obj(), target);
 
-  } else if (flags & 0x1 && itr->is_list()) {
-    // Move this into a special function or something. Also, might be
-    // nice to have a parse_command function that takes list
-    // iterator...
+    if (itr->is_list()) {
+      for (const auto& cmd_itr : itr->as_list()) {
+        if (cmd_itr.is_string())
+          rpc::parse_command(target, cmd_itr.as_string().c_str(), cmd_itr.as_string().c_str() + cmd_itr.as_string().size());
 
-    for (const auto& cmdItr : itr->as_list())
-      if (cmdItr.is_string())
-        rpc::parse_command(target, cmdItr.as_string().c_str(), cmdItr.as_string().c_str() + cmdItr.as_string().size());
+        else if (cmd_itr.is_dict_key())
+          rpc::commands.call_command(cmd_itr.as_dict_key().c_str(), cmd_itr.as_dict_obj(), target);
 
-    return torrent::Object();
+        else
+          throw torrent::input_error("Invalid command type in branch list.");
+      }
 
-  } else {
-    return *itr;
+      return torrent::Object();
+    }
+
+    throw torrent::input_error("Invalid command type in branch.");
   }
+
+  return *itr;
 }
 
 torrent::Object
