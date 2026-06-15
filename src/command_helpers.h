@@ -8,6 +8,25 @@
 void initialize_commands();
 
 //
+// Aliases with CMD_* for the below
+//
+
+#define CMD_ANY(key, slot)                CMD2_ANY(key, slot)
+#define CMD_ANY_P(key, slot)              CMD2_ANY_P(key, slot)
+#define CMD_REDIRECT(key, slot)           CMD2_REDIRECT(key, slot)
+#define CMD_REDIRECT_NO_EXPORT(key, slot) CMD2_REDIRECT_NO_EXPORT(key, slot)
+#define CMD_ANY_STRING(key, slot)         CMD2_ANY_STRING(key, slot)
+#define CMD_ANY_STRING_V(key, slot)       CMD2_ANY_STRING_V(key, slot)
+#define CMD_ANY_LIST(key, slot)           CMD2_ANY_LIST(key, slot)
+#define CMD_VAR_VALUE(key, value)         CMD2_VAR_VALUE(key, value)
+#define CMD_VAR_BOOL(key, value)          CMD2_VAR_BOOL(key, value)
+#define CMD_VAR_STRING(key, value)        CMD2_VAR_STRING(key, value)
+#define CMD_VAR_C_STRING(key, value)      CMD2_VAR_C_STRING(key, value)
+#define CMD_VAR_LIST(key)                 CMD2_VAR_LIST(key)
+#define CMD_ANY_V(key, slot)              CMD2_ANY_V(key, slot)
+#define CMD_ANY_VALUE_V(key, slot)        CMD2_ANY_VALUE_V(key, slot)
+
+//
 // New std::function based command_base helper functions:
 //
 
@@ -114,7 +133,6 @@ void initialize_commands();
   rpc::commands.create_redirect(from_key, to_key, rpc::CommandMap::flag_public_rpc | rpc::CommandMap::flag_file_target | rpc::CommandMap::flag_dont_delete);
 #define CMD2_REDIRECT_TRACKER(from_key, to_key) \
   rpc::commands.create_redirect(from_key, to_key, rpc::CommandMap::flag_public_rpc | rpc::CommandMap::flag_tracker_target | rpc::CommandMap::flag_dont_delete);
-
 
 //
 // Conversion of return types:

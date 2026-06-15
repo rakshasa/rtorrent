@@ -296,56 +296,63 @@ main(int argc, char** argv) {
     // Functions that might not get depracted as they are nice for
     // configuration files, and thus might do with just some
     // cleanup.
-    CMD2_REDIRECT("upload_rate",           "throttle.global_up.max_rate.set_kb");
-    CMD2_REDIRECT("download_rate",         "throttle.global_down.max_rate.set_kb");
+    CMD_REDIRECT("upload_rate",           "throttle.global_up.max_rate.set_kb");
+    CMD_REDIRECT("download_rate",         "throttle.global_down.max_rate.set_kb");
 
-    CMD2_REDIRECT("ratio.enable",          "group.seeding.ratio.enable");
-    CMD2_REDIRECT("ratio.disable",         "group.seeding.ratio.disable");
-    CMD2_REDIRECT("ratio.min",             "group.seeding.ratio.min");
-    CMD2_REDIRECT("ratio.max",             "group.seeding.ratio.max");
-    CMD2_REDIRECT("ratio.upload",          "group.seeding.ratio.upload");
-    CMD2_REDIRECT("ratio.min.set",         "group.seeding.ratio.min.set");
-    CMD2_REDIRECT("ratio.max.set",         "group.seeding.ratio.max.set");
-    CMD2_REDIRECT("ratio.upload.set",      "group.seeding.ratio.upload.set");
+    CMD_REDIRECT("ratio.enable",          "group.seeding.ratio.enable");
+    CMD_REDIRECT("ratio.disable",         "group.seeding.ratio.disable");
+    CMD_REDIRECT("ratio.min",             "group.seeding.ratio.min");
+    CMD_REDIRECT("ratio.max",             "group.seeding.ratio.max");
+    CMD_REDIRECT("ratio.upload",          "group.seeding.ratio.upload");
+    CMD_REDIRECT("ratio.min.set",         "group.seeding.ratio.min.set");
+    CMD_REDIRECT("ratio.max.set",         "group.seeding.ratio.max.set");
+    CMD_REDIRECT("ratio.upload.set",      "group.seeding.ratio.upload.set");
 
-    CMD2_REDIRECT("encryption",            "protocol.encryption.set");
+    CMD_REDIRECT("encryption",            "protocol.encryption.set");
 
-    CMD2_REDIRECT("check_hash",            "pieces.hash.on_completion.set");
+    CMD_REDIRECT("check_hash",            "pieces.hash.on_completion.set");
 
-    CMD2_REDIRECT("connection_leech",      "protocol.connection.leech.set");
-    CMD2_REDIRECT("connection_seed",       "protocol.connection.seed.set");
+    CMD_REDIRECT("connection_leech",      "protocol.connection.leech.set");
+    CMD_REDIRECT("connection_seed",       "protocol.connection.seed.set");
 
-    CMD2_REDIRECT("min_peers",             "throttle.min_peers.normal.set");
-    CMD2_REDIRECT("max_peers",             "throttle.max_peers.normal.set");
-    CMD2_REDIRECT("min_peers_seed",        "throttle.min_peers.seed.set");
-    CMD2_REDIRECT("max_peers_seed",        "throttle.max_peers.seed.set");
+    CMD_REDIRECT("min_peers",             "throttle.min_peers.normal.set");
+    CMD_REDIRECT("max_peers",             "throttle.max_peers.normal.set");
+    CMD_REDIRECT("min_peers_seed",        "throttle.min_peers.seed.set");
+    CMD_REDIRECT("max_peers_seed",        "throttle.max_peers.seed.set");
 
-    CMD2_REDIRECT("min_uploads",           "throttle.min_uploads.set");
-    CMD2_REDIRECT("max_uploads",           "throttle.max_uploads.set");
-    CMD2_REDIRECT("min_downloads",         "throttle.min_downloads.set");
-    CMD2_REDIRECT("max_downloads",         "throttle.max_downloads.set");
+    CMD_REDIRECT("min_uploads",           "throttle.min_uploads.set");
+    CMD_REDIRECT("max_uploads",           "throttle.max_uploads.set");
+    CMD_REDIRECT("min_downloads",         "throttle.min_downloads.set");
+    CMD_REDIRECT("max_downloads",         "throttle.max_downloads.set");
 
-    CMD2_REDIRECT("max_uploads_div",       "throttle.max_uploads.div.set");
-    CMD2_REDIRECT("max_uploads_global",    "throttle.max_uploads.global.set");
-    CMD2_REDIRECT("max_downloads_div",     "throttle.max_downloads.div.set");
-    CMD2_REDIRECT("max_downloads_global",  "throttle.max_downloads.global.set");
+    CMD_REDIRECT("max_uploads_div",       "throttle.max_uploads.div.set");
+    CMD_REDIRECT("max_uploads_global",    "throttle.max_uploads.global.set");
+    CMD_REDIRECT("max_downloads_div",     "throttle.max_downloads.div.set");
+    CMD_REDIRECT("max_downloads_global",  "throttle.max_downloads.global.set");
 
-    CMD2_REDIRECT("directory",             "directory.default.set");
-    CMD2_REDIRECT("session",               "session.path.set");
+    CMD_REDIRECT("directory",             "directory.default.set");
+    CMD_REDIRECT("session",               "session.path.set");
 
-    CMD2_REDIRECT("scgi_port",             "network.scgi.open_port");
-    CMD2_REDIRECT("scgi_local",            "network.scgi.open_local");
+    CMD_REDIRECT("scgi_port",             "network.scgi.open_port");
+    CMD_REDIRECT("scgi_local",            "network.scgi.open_local");
 
-    CMD2_REDIRECT("to_gm_time",            "convert.gm_time");
-    CMD2_REDIRECT("to_gm_date",            "convert.gm_date");
-    CMD2_REDIRECT("to_time",               "convert.time");
-    CMD2_REDIRECT("to_date",               "convert.date");
-    CMD2_REDIRECT("to_elapsed_time",       "convert.elapsed_time");
-    CMD2_REDIRECT("to_kb",                 "convert.kb");
-    CMD2_REDIRECT("to_mb",                 "convert.mb");
-    CMD2_REDIRECT("to_xb",                 "convert.xb");
-    CMD2_REDIRECT("to_throttle",           "convert.throttle");
+    CMD_REDIRECT("to_gm_time",            "convert.gm_time");
+    CMD_REDIRECT("to_gm_date",            "convert.gm_date");
+    CMD_REDIRECT("to_time",               "convert.time");
+    CMD_REDIRECT("to_date",               "convert.date");
+    CMD_REDIRECT("to_elapsed_time",       "convert.elapsed_time");
+    CMD_REDIRECT("to_kb",                 "convert.kb");
+    CMD_REDIRECT("to_mb",                 "convert.mb");
+    CMD_REDIRECT("to_xb",                 "convert.xb");
+    CMD_REDIRECT("to_throttle",           "convert.throttle");
 
+    // TODO: Deprecate these at some point a while after 1.1 release.
+
+    CMD_REDIRECT("network.open_sockets",          "system.sockets.size");
+    CMD_REDIRECT("network.max_open_sockets",      "system.sockets.max_size");
+    CMD_REDIRECT("network.max_open_sockets.set",  "system.sockets.max_size.set");
+
+    rpc::rpc.mark_safe("network.max_open_sockets");
 
     // if (rpc::call_command_value("method.use_intermediate") == 1) {
 
@@ -354,41 +361,41 @@ main(int argc, char** argv) {
     // }
 
     if (rpc::call_command_value("method.use_deprecated") == 1) {
-      CMD2_REDIRECT("execute2",         "execute");
-      CMD2_REDIRECT("schedule2",        "schedule");
-      CMD2_REDIRECT("schedule_remove2", "schedule.remove");
+      CMD_REDIRECT("execute2",         "execute");
+      CMD_REDIRECT("schedule2",        "schedule");
+      CMD_REDIRECT("schedule_remove2", "schedule.remove");
 
       // TODO: Remove file.append when cleaning these up.
 
-      CMD2_REDIRECT("bind",                  "network.bind_address.set");
-      CMD2_REDIRECT("ip",                    "network.local_address.set");
-      CMD2_REDIRECT("port_range",            "network.port_range.set");
+      CMD_REDIRECT("bind",                  "network.bind_address.set");
+      CMD_REDIRECT("ip",                    "network.local_address.set");
+      CMD_REDIRECT("port_range",            "network.port_range.set");
 
       // TODO: Check if dht is on by default.
-      CMD2_REDIRECT("dht",                   "dht.mode.set");
+      CMD_REDIRECT("dht",                   "dht.mode.set");
 
-      CMD2_REDIRECT("port_random",           "network.port_random.set");
-      CMD2_REDIRECT("proxy_address",         "network.proxy_address.set");
+      CMD_REDIRECT("port_random",           "network.port_random.set");
+      CMD_REDIRECT("proxy_address",         "network.proxy_address.set");
 
-      CMD2_REDIRECT("key_layout",            "keys.layout.set");
+      CMD_REDIRECT("key_layout",            "keys.layout.set");
 
-      CMD2_REDIRECT("torrent_list_layout",   "ui.torrent_list.layout.set");
+      CMD_REDIRECT("torrent_list_layout",   "ui.torrent_list.layout.set");
 
       CMD2_VAR_STRING("dht.throttle.name",   "deprecated");
       rpc::rpc.mark_safe("dht.throttle.name");
 
-      CMD2_REDIRECT("network.http.max_open",     "network.http.max_total_connections");
-      CMD2_REDIRECT("network.http.max_open.set", "network.http.max_total_connections.set");
+      CMD_REDIRECT("network.http.max_open",     "network.http.max_total_connections");
+      CMD_REDIRECT("network.http.max_open.set", "network.http.max_total_connections.set");
 
       // Users should check their setups to see if they need to modify their use of these options.
-      CMD2_REDIRECT("max_memory_usage",      "pieces.memory.max.set");
-      CMD2_REDIRECT("encoding_list",         "encoding.add");
+      CMD_REDIRECT("max_memory_usage",      "pieces.memory.max.set");
+      CMD_REDIRECT("encoding_list",         "encoding.add");
 
-      CMD2_ANY_STRING_V("encoding.add", [](auto, auto) {
+      CMD_ANY_STRING_V("encoding.add", [](auto, auto) {
           lt_log_print(torrent::LOG_WARN, "The 'encoding.add' command is deprecated and does nothing.");
         });
 
-      CMD2_ANY_LIST ("throttle.ip", []( auto, auto) {
+      CMD_ANY_LIST("throttle.ip", []( auto, auto) {
           lt_log_print(torrent::LOG_WARN, "The 'throttle.ip' command is deprecated and does nothing.");
           return torrent::Object();
         });
