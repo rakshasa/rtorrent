@@ -48,7 +48,7 @@ SCgi::open_port(sockaddr* sa, unsigned int length, bool dont_route) {
 
   open(reinterpret_cast<sockaddr*>(sa), length);
 
-  torrent::runtime::socket_manager()->register_event_or_throw(this, torrent::runtime::category_scgi, []() {});
+  torrent::runtime::socket_manager()->register_event_or_throw(this, torrent::runtime::category_rpc, []() {});
 }
 
 void
@@ -72,7 +72,7 @@ SCgi::open_named(const std::string& filename) {
 
   open(reinterpret_cast<sockaddr*>(sa), offsetof(struct sockaddr_un, sun_path) + filename.size() + 1);
 
-  torrent::runtime::socket_manager()->register_event_or_throw(this, torrent::runtime::category_scgi, []() {});
+  torrent::runtime::socket_manager()->register_event_or_throw(this, torrent::runtime::category_rpc, []() {});
 
   m_path = filename;
 }
@@ -86,7 +86,7 @@ SCgi::open_fd(int fd) {
 
   // fd is already bound and listening; no bind()/listen() needed.
 
-  torrent::runtime::socket_manager()->register_event_or_throw(this, torrent::runtime::category_scgi, []() {});
+  torrent::runtime::socket_manager()->register_event_or_throw(this, torrent::runtime::category_rpc, []() {});
 }
 
 void
@@ -183,7 +183,7 @@ SCgi::event_read() {
         task->cancel_open();
       };
 
-    bool result = torrent::runtime::socket_manager()->open_event_or_cleanup(m_current->get(), torrent::runtime::category_scgi, open_func, cleanup_func);
+    bool result = torrent::runtime::socket_manager()->open_event_or_cleanup(m_current->get(), torrent::runtime::category_rpc, open_func, cleanup_func);
 
     if (!result)
       break;
