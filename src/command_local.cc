@@ -247,17 +247,23 @@ initialize_command_local() {
   CMD_ANY         ("system.sockets.size",             [](auto, auto)        { return torrent::runtime::socket_manager()->size(); });
   CMD_ANY         ("system.sockets.max_size",         [](auto, auto)        { return torrent::runtime::socket_manager()->max_size(); });
   CMD_ANY_VALUE_V ("system.sockets.max_size.set",     [](auto, auto& value) { return torrent::runtime::socket_manager()->set_max_size_and_adjust(value); });
+  CMD_ANY_V       ("system.sockets.adjust_alloc",     [](auto, auto)        { torrent::runtime::socket_manager()->adjust_allocation(); });
 
-  CMD_ANY         ("system.sockets.generic.size",     [](auto, auto)        { return torrent::runtime::socket_manager()->category_managed_size(torrent::runtime::category_generic); });
-  CMD_ANY         ("system.sockets.generic.max_size", [](auto, auto)        { return torrent::runtime::socket_manager()->category_max_size(torrent::runtime::category_generic); });
-  CMD_ANY         ("system.sockets.http.size",        [](auto, auto)        { return torrent::runtime::socket_manager()->category_managed_size(torrent::runtime::category_http); });
-  CMD_ANY         ("system.sockets.http.max_size",    [](auto, auto)        { return torrent::runtime::socket_manager()->category_max_size(torrent::runtime::category_http); });
-  CMD_ANY         ("system.sockets.internal.size",    [](auto, auto)        { return torrent::runtime::socket_manager()->category_managed_size(torrent::runtime::category_internal); });
-  CMD_ANY         ("system.sockets.internal.max_size",[](auto, auto)        { return torrent::runtime::socket_manager()->category_max_size(torrent::runtime::category_internal); });
-  CMD_ANY         ("system.sockets.scgi.size",        [](auto, auto)        { return torrent::runtime::socket_manager()->category_managed_size(torrent::runtime::category_scgi); });
-  CMD_ANY         ("system.sockets.scgi.max_size",    [](auto, auto)        { return torrent::runtime::socket_manager()->category_max_size(torrent::runtime::category_scgi); });
-  CMD_ANY         ("system.sockets.files.size",       [](auto, auto)        { return torrent::runtime::socket_manager()->category_managed_size(torrent::runtime::category_files); });
-  CMD_ANY         ("system.sockets.files.max_size",   [](auto, auto)        { return torrent::runtime::socket_manager()->category_max_size(torrent::runtime::category_files); });
+  for (uint32_t i = 0; i < torrent::runtime::SocketManager::category_count; ++i) {
+    auto category      = static_cast<torrent::runtime::socket_manager_category_t>(i);
+    auto category_name = "system.sockets." + torrent::option_to_str_or_throw(torrent::OPTION_SOCKET_CATEGORY, i);
+
+    CMD_ANY        (category_name + ".size",      [category](auto, auto) { return torrent::runtime::socket_manager()->category_managed_size(category); });
+    CMD_ANY        (category_name + ".max_size",  [category](auto, auto) { return torrent::runtime::socket_manager()->category_max_size(category); });
+    CMD_ANY        (category_name + ".min_alloc", [category](auto, auto) { return torrent::runtime::socket_manager()->category_min_allocation(category); });
+    CMD_ANY        (category_name + ".max_alloc", [category](auto, auto) { return torrent::runtime::socket_manager()->category_max_allocation(category); });
+
+    if (i == 0)
+      continue;
+
+    CMD_ANY_VALUE_V(category_name + ".min_alloc.set", [category](auto, auto& value) { torrent::runtime::socket_manager()->set_category_min_allocation(category, value); });
+    CMD_ANY_VALUE_V(category_name + ".max_alloc.set", [category](auto, auto& value) { torrent::runtime::socket_manager()->set_category_max_allocation(category, value); });
+  }
 
   CMD_ANY         ("pieces.sync.always_safe",         std::bind(&CM_t::safe_sync, chunkManager));
   CMD_ANY_VALUE_V ("pieces.sync.always_safe.set",     std::bind(&CM_t::set_safe_sync, chunkManager, std::placeholders::_2));
@@ -345,16 +351,15 @@ initialize_command_local() {
 
   rpc::rpc.mark_safe("system.sockets.size");
   rpc::rpc.mark_safe("system.sockets.max_size");
-  rpc::rpc.mark_safe("system.sockets.generic.size");
-  rpc::rpc.mark_safe("system.sockets.generic.max_size");
-  rpc::rpc.mark_safe("system.sockets.http.size");
-  rpc::rpc.mark_safe("system.sockets.http.max_size");
-  rpc::rpc.mark_safe("system.sockets.internal.size");
-  rpc::rpc.mark_safe("system.sockets.internal.max_size");
-  rpc::rpc.mark_safe("system.sockets.scgi.size");
-  rpc::rpc.mark_safe("system.sockets.scgi.max_size");
-  rpc::rpc.mark_safe("system.sockets.files.size");
-  rpc::rpc.mark_safe("system.sockets.files.max_size");
+
+  for (uint32_t i = 0; i < torrent::runtime::SocketManager::category_count; ++i) {
+    auto category_name = "system.sockets." + torrent::option_to_str_or_throw(torrent::OPTION_SOCKET_CATEGORY, i);
+
+    rpc::rpc.mark_safe(category_name + ".size");
+    rpc::rpc.mark_safe(category_name + ".max_size");
+    rpc::rpc.mark_safe(category_name + ".min_alloc");
+    rpc::rpc.mark_safe(category_name + ".max_alloc");
+  }
 
   rpc::rpc.mark_safe("directory.default");
   rpc::rpc.mark_safe("session.path");

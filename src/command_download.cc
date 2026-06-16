@@ -780,15 +780,15 @@ initialize_command_download() {
   CMD2_DL_TIMESTAMP("d.timestamp.started",      "rtorrent", "timestamp.started");
   CMD2_DL_TIMESTAMP("d.timestamp.finished",     "rtorrent", "timestamp.finished");
 
-  CMD2_DL       ("d.connection_current",     std::bind(&torrent::option_as_string, torrent::OPTION_CONNECTION_TYPE, CMD2_ON_DL(connection_type)));
-  CMD2_DL_STRING("d.connection_current.set", std::bind(&apply_d_connection_type, std::placeholders::_1, std::placeholders::_2));
+  CMD2_DL         ("d.connection_current",     [](auto* d, auto)     { return torrent::option_to_c_str_or_throw(torrent::OPTION_CONNECTION_TYPE, d->download()->connection_type()); });
+  CMD2_DL_STRING_V("d.connection_current.set", [](auto* d, auto arg) { apply_d_connection_type(d, arg); });
 
   CMD2_DL_VAR_STRING("d.connection_leech",      "rtorrent", "connection_leech");
   CMD2_DL_VAR_STRING("d.connection_seed",       "rtorrent", "connection_seed");
 
-  CMD2_DL       ("d.up.choke_heuristics",       std::bind(&torrent::option_as_string, torrent::OPTION_CHOKE_HEURISTICS, CMD2_ON_DL(upload_choke_heuristic)));
+  CMD2_DL       ("d.up.choke_heuristics",       [](auto* d, auto)     { return torrent::option_to_c_str_or_throw(torrent::OPTION_CHOKE_HEURISTICS, d->download()->upload_choke_heuristic()); });
   CMD2_DL_STRING("d.up.choke_heuristics.set",   std::bind(&apply_d_choke_heuristics, std::placeholders::_1, std::placeholders::_2, false));
-  CMD2_DL       ("d.down.choke_heuristics",     std::bind(&torrent::option_as_string, torrent::OPTION_CHOKE_HEURISTICS, CMD2_ON_DL(download_choke_heuristic)));
+  CMD2_DL       ("d.down.choke_heuristics",     [](auto* d, auto)     { return torrent::option_to_c_str_or_throw(torrent::OPTION_CHOKE_HEURISTICS, d->download()->download_choke_heuristic()); });
   CMD2_DL_STRING("d.down.choke_heuristics.set", std::bind(&apply_d_choke_heuristics, std::placeholders::_1, std::placeholders::_2, true));
 
   CMD2_DL_VAR_STRING("d.up.choke_heuristics.leech", "rtorrent", "choke_heuristics.up.leech");

@@ -353,7 +353,7 @@ apply_ipv4_filter_dump() {
     inet_ntop(AF_INET, &net_start, start_str, INET_ADDRSTRLEN);
     inet_ntop(AF_INET, &net_end, end_str, INET_ADDRSTRLEN);
 
-    snprintf(buffer, 64, "%s-%s %s", start_str, end_str, torrent::option_as_string(torrent::OPTION_IP_FILTER, value));
+    snprintf(buffer, 64, "%s-%s %s", start_str, end_str, torrent::option_to_c_str_or_throw(torrent::OPTION_IP_FILTER, value));
 
     result.push_back((std::string)buffer);
 
