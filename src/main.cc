@@ -112,8 +112,16 @@ main(int argc, char** argv) {
     // TODO: Create a fake thread object for initializing other processes and enabling logging.
     torrent::initialize_main_thread();
 
+    // Block SIGCHLD until all threads are created, then unblock on main-thread, to avoid SIGCHLD
+    // interrupting other threads.
+    //
+    // This means only main-thread can fork and wait for child processes.
+
+    SignalHandler::set_block(SIGALRM);
+    SignalHandler::set_block(SIGPIPE);
+    SignalHandler::set_block(SIGCHLD);
+
     // All signal handlers must restore errno if they return.
-    SignalHandler::set_ignore(SIGPIPE);
     SignalHandler::set_handler(SIGSEGV,  std::bind(&do_panic, SIGSEGV));
     SignalHandler::set_handler(SIGILL,   std::bind(&do_panic, SIGILL));
     SignalHandler::set_handler(SIGFPE,   std::bind(&do_panic, SIGFPE));
@@ -149,12 +157,6 @@ main(int argc, char** argv) {
     torrent::log_add_group_output(torrent::LOG_DHT_CONTROLLER, "complete");
 
     initialize_rpc_slots();
-
-    // Block SIGCHLD until all threads are created, then unblock on main-thread, to avoid SIGCHLD
-    // interrupting other threads.
-    //
-    // This means only main-thread can fork and wait for child processes.
-    SignalHandler::set_block(SIGCHLD);
 
     torrent::initialize();
     torrent::main_thread::set_client_callback(&client_perform);
