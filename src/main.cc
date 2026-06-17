@@ -150,11 +150,19 @@ main(int argc, char** argv) {
 
     initialize_rpc_slots();
 
+    // Block SIGCHLD until all threads are created, then unblock on main-thread, to avoid SIGCHLD
+    // interrupting other threads.
+    //
+    // This means only main-thread can fork and wait for child processes.
+    SignalHandler::set_block(SIGCHLD);
+
     torrent::initialize();
     torrent::main_thread::set_client_callback(&client_perform);
 
     scgi::ThreadScgi::create_thread();
     session::ThreadSession::create_thread();
+
+    SignalHandler::set_unblock(SIGCHLD);
 
     // Initialize option handlers after libtorrent to ensure
     // torrent::ConnectionManager* are valid etc.
@@ -353,6 +361,14 @@ main(int argc, char** argv) {
     CMD_REDIRECT("network.max_open_sockets.set",  "system.sockets.max_size.set");
 
     rpc::rpc.mark_safe("network.max_open_sockets");
+
+    CMD2_ANY_VALUE_V("network.http.max_total_connections.set", [](auto, auto) {
+        lt_log_print(torrent::LOG_WARN, "network.http.max_total_connections.set is deprecated, use system.sockets.http.min_alloc.set instead.");
+      });
+
+    CMD2_ANY_VALUE_V("network.max_open_files.set", [](auto, auto) {
+        lt_log_print(torrent::LOG_WARN, "network.max_open_files.set is deprecated, use system.sockets.files.min_alloc.set instead.");
+      });
 
     // if (rpc::call_command_value("method.use_intermediate") == 1) {
 

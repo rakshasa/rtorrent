@@ -251,9 +251,6 @@ initialize_command_network() {
   CMD2_ANY         ("network.http.max_host_connections",      [http_stack](auto, auto)        { return http_stack->max_host_connections(); });
   CMD2_ANY_VALUE_V ("network.http.max_host_connections.set",  [http_stack](auto, auto& value) { return http_stack->set_max_host_connections(value); });
   CMD2_ANY         ("network.http.max_total_connections",     [http_stack](auto, auto)        { return http_stack->max_total_connections(); });
-
-  CMD2_ANY_VALUE_V ("network.http.max_total_connections.set", [http_stack](auto, auto& value) { return http_stack->set_max_total_connections(value); });
-
   CMD2_ANY         ("network.http.proxy_address",             [http_stack](auto, auto)        { return http_stack->http_proxy(); });
   CMD2_ANY_STRING_V("network.http.proxy_address.set",         [http_stack](auto, auto& str)   { return http_stack->set_http_proxy(str); });
   CMD2_ANY         ("network.http.ssl_verify_host",           [http_stack](auto, auto)        { return http_stack->ssl_verify_host(); });
@@ -286,9 +283,6 @@ initialize_command_network() {
 
   CMD2_ANY         ("network.open_files",            [file_manager](auto, auto)        { return file_manager->open_files(); });
   CMD2_ANY         ("network.max_open_files",        [file_manager](auto, auto)        { return file_manager->max_open_files(); });
-
-  CMD2_ANY_VALUE_V ("network.max_open_files.set",    [file_manager](auto, auto& value) { return file_manager->set_max_open_files(value); });
-
   CMD2_ANY         ("network.total_handshakes",      [](auto, auto)                    { return torrent::runtime::total_handshakes(); });
 
   CMD2_ANY_STRING  ("network.scgi.open_port",        std::bind(&apply_scgi, std::placeholders::_2, 1));
