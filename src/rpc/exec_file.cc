@@ -3,6 +3,7 @@
 #include <cerrno>
 #include <cstring>
 #include <fcntl.h>
+#include <spawn.h>
 #include <string>
 #include <unistd.h>
 #include <sys/types.h>
@@ -11,6 +12,9 @@
 
 #include "exec_file.h"
 #include "parse.h"
+
+// Standard POSIX environment pointer
+extern char** environ;
 
 namespace rpc {
 
@@ -34,86 +38,92 @@ ExecFile::execute(const char* file, char* const* argv, int flags) {
     result = write(m_log_fd, "\n---\n", sizeof("\n---\n"));
   }
 
-  int pipeFd[2];
+  int pipe_fd[2];
 
-  if ((flags & flag_capture) && pipe(pipeFd))
+  if ((flags & flag_capture) && pipe(pipe_fd))
     throw torrent::input_error("ExecFile::execute(...) Pipe creation failed.");
 
-  pid_t childPid = fork();
+  auto clean_fn = [pipe_fd, flags]() {
+      if (flags & flag_capture) {
+        ::close(pipe_fd[0]);
+        ::close(pipe_fd[1]);
+      }
+    };
 
-  if (childPid == -1) {
-    if (flags & flag_capture) {
-      ::close(pipeFd[0]);
-      ::close(pipeFd[1]);
-    }
-    throw torrent::input_error("ExecFile::execute(...) Fork failed.");
+  posix_spawn_file_actions_t actions{};
+
+  if (posix_spawn_file_actions_init(&actions) != 0) {
+    clean_fn();
+    throw torrent::internal_error("ExecFile::execute(...) posix_spawn_file_actions_init failed.");
   }
 
-  if (childPid == 0) {
-    if (flags & flag_background) {
-      pid_t detached_pid = fork();
+  // Handle standard input redirection (/dev/null), posix_spawn_file_actions_addopen handles opening
+  // and dup2 natively
+  if (posix_spawn_file_actions_addopen(&actions, 0, "/dev/null", O_RDWR, 0) != 0) {
+    // Fallback if open fails inside action setup
+    posix_spawn_file_actions_addclose(&actions, 0);
+  }
 
-      if (detached_pid == -1)
-        _exit(-1);
+  // Handle standard output redirection
+  if (flags & flag_capture) {
+    posix_spawn_file_actions_adddup2(&actions, pipe_fd[1], 1);
 
-      if (detached_pid != 0) {
-        if (m_log_fd != -1)
-          result = write(m_log_fd, "\n--- Background task ---\n", sizeof("\n--- Background task ---\n"));
+    // Ensure the write end of the pipe is closed in the child after duplicating.
+    posix_spawn_file_actions_addclose(&actions, pipe_fd[1]);
+    posix_spawn_file_actions_addclose(&actions, pipe_fd[0]);
 
-        _exit(0);
-      }
+  } else if (m_log_fd != -1) {
+    posix_spawn_file_actions_adddup2(&actions, m_log_fd, 1);
 
-      m_log_fd = -1;
-      flags &= ~flag_capture;
-    }
+  } else {
+    posix_spawn_file_actions_addopen(&actions, 1, "/dev/null", O_RDWR, 0);
+  }
 
-    int devNull = open("/dev/null", O_RDWR);
+  if (m_log_fd != -1) {
+    posix_spawn_file_actions_adddup2(&actions, m_log_fd, 2);
+  } else {
+    posix_spawn_file_actions_addopen(&actions, 2, "/dev/null", O_RDWR, 0);
+  }
 
-    if (devNull != -1)
-      dup2(devNull, 0);
-    else
-      ::close(0);
+  posix_spawnattr_t attr;
+  posix_spawnattr_init(&attr);
 
-    if (flags & flag_capture)
-      dup2(pipeFd[1], 1);
-    else if (m_log_fd != -1)
-      dup2(m_log_fd, 1);
-    else if (devNull != -1)
-      dup2(devNull, 1);
-    else
-      ::close(1);
+  // If you are using standard close-on-exec (O_CLOEXEC) across rtorrent, posix_spawn honors it
+  // automatically. If you want to explicitly enforce a clean slate, modern systems support
+  // POSIX_SPAWN_CLOEXEC_DEFAULT.
 
-    if (m_log_fd != -1)
-      dup2(m_log_fd, 2);
-    else if (devNull != -1)
-      dup2(devNull, 2);
-    else
-      ::close(2);
+#ifdef POSIX_SPAWN_CLOEXEC_DEFAULT
+  posix_spawnattr_setflags(&attr, POSIX_SPAWN_CLOEXEC_DEFAULT);
+#endif
 
-    // Close all fd's.
-    for (int i = 3, last = sysconf(_SC_OPEN_MAX); i != last; i++)
-      ::close(i);
+  pid_t child_pid{};
 
-    result = execvp(file, argv);
+  int spawn_status = posix_spawnp(&child_pid, file, &actions, &attr, argv, environ);
 
-    _exit(result);
+  posix_spawn_file_actions_destroy(&actions);
+  posix_spawnattr_destroy(&attr);
+
+  if (spawn_status != 0) {
+    clean_fn();
+    throw torrent::input_error("ExecFile::execute(...) posix_spawn failed: " + std::string(std::strerror(spawn_status)));
   }
 
   if (flags & flag_capture) {
     m_capture = std::string();
-    ::close(pipeFd[1]);
+    ::close(pipe_fd[1]);
 
     char buffer[4096];
     ssize_t length;
 
     do {
-      length = read(pipeFd[0], buffer, sizeof(buffer));
+      length = read(pipe_fd[0], buffer, sizeof(buffer));
 
       if (length > 0)
         m_capture += std::string(buffer, length);
+
     } while (length > 0);
 
-    ::close(pipeFd[0]);
+    ::close(pipe_fd[0]);
 
     if (m_log_fd != -1) {
       result = write(m_log_fd, "Captured output:\n", sizeof("Captured output:\n"));
@@ -123,7 +133,7 @@ ExecFile::execute(const char* file, char* const* argv, int flags) {
 
   int status;
 
-  while (waitpid(childPid, &status, 0) == -1) {
+  while (waitpid(child_pid, &status, 0) == -1) {
     switch (errno) {
     case EINTR:
       continue;
