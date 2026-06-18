@@ -3,6 +3,7 @@
 
 #include <functional>
 #include <limits>
+#include <new>
 #include <torrent/common.h>
 #include <torrent/object.h>
 #include <torrent/data/file_list_iterator.h>
@@ -28,7 +29,6 @@ struct target_wrapper<void> {
   typedef no_type*    cleaned_type;
 };
 
-// Since c++0x isn't out yet...
 template <typename T1, typename T2, typename T3>
 struct rt_triple : private std::pair<T1, T2> {
   typedef std::pair<T1, T2> base_type;
@@ -55,9 +55,6 @@ struct rt_triple : private std::pair<T1, T2> {
     base_type(src.first, src.second), third(src.third) {}
 };
 
-// Since it gets used so many places we might as well put it in the
-// rpc namespace.
-//typedef std::pair<int, void*> target_type;
 typedef rt_triple<int, void*, void*> target_type;
 
 class command_base;
@@ -114,10 +111,48 @@ public:
     char buffer[sizeof(torrent::Object) * max_arguments];
   };
 
-  command_base() { new (&_pod<base_function>()) base_function(); }
-  command_base(const command_base& src) { new (&_pod<base_function>()) base_function(src._pod<base_function>()); }
+  command_base() : m_copy_helper(nullptr), m_dest_helper(nullptr) {}
 
-  ~command_base() { _pod<base_function>().~base_function(); }
+  command_base(const command_base& src) {
+    m_copy_helper = src.m_copy_helper;
+    m_dest_helper = src.m_dest_helper;
+    if (src.m_copy_helper)
+      src.m_copy_helper(t_pod, src.t_pod);
+  }
+
+  command_base& operator=(const command_base& src) {
+    if (this != &src) {
+      if (m_dest_helper) m_dest_helper(t_pod);
+      m_copy_helper = src.m_copy_helper;
+      m_dest_helper = src.m_dest_helper;
+      if (src.m_copy_helper)
+        src.m_copy_helper(t_pod, src.t_pod);
+    }
+    return *this;
+  }
+
+  command_base(command_base&& src) noexcept {
+    m_copy_helper = src.m_copy_helper;
+    m_dest_helper = src.m_dest_helper;
+    if (src.m_copy_helper)
+      src.m_copy_helper(t_pod, src.t_pod);
+  }
+
+  command_base& operator=(command_base&& src) noexcept {
+    if (this != &src) {
+      if (m_dest_helper) m_dest_helper(t_pod);
+      m_copy_helper = src.m_copy_helper;
+      m_dest_helper = src.m_dest_helper;
+      if (src.m_copy_helper)
+        src.m_copy_helper(t_pod, src.t_pod);
+    }
+    return *this;
+  }
+
+  ~command_base() {
+    if (m_dest_helper)
+      m_dest_helper(t_pod);
+  }
 
   static torrent::Object* argument(unsigned int index) { return current_stack.begin() + index; }
   static torrent::Object& argument_ref(unsigned int index) { return *(current_stack.begin() + index); }
@@ -132,55 +167,50 @@ public:
   static void             pop_stack(stack_type* stack, torrent::Object* last_stack);
 
   template <typename T>
-  void set_function(T s, [[maybe_unused]] int value = command_base_is_valid<T>::value) { _pod<T>() = s; }
+  void set_function(T s, [[maybe_unused]] int value = command_base_is_valid<T>::value) {
+    static_assert(sizeof(T) <= sizeof(t_pod), "t_pod storage overflow");
+    static_assert(alignof(t_pod) % alignof(T) == 0, "t_pod alignment violation");
+
+    if (m_dest_helper) m_dest_helper(t_pod);
+
+    ::new (t_pod) T(std::move(s));
+
+    m_copy_helper = [](void* dest, const void* src) {
+      ::new (dest) T(*static_cast<const T*>(src));
+    };
+    m_dest_helper = [](void* ptr) {
+      static_cast<T*>(ptr)->~T();
+    };
+  }
 
   template <command_base_call_type T>
   void set_function_2(typename command_base_is_type<T>::type s, [[maybe_unused]] int value = command_base_is_valid<typename command_base_is_type<T>::type>::value) {
-    _pod<typename command_base_is_type<T>::type>() = s;
+    set_function<typename command_base_is_type<T>::type>(std::move(s));
   }
 
-  // The std::function object in GCC is castable between types with a
-  // pointer to a struct of ctor/dtor/calls for non-POD slots. As such
-  // it should be safe to cast between different std::function
-  // template types, yet what the C++0x standard will say about this I
-  // have no idea atm.
   template <typename tmpl> tmpl& _pod() { return reinterpret_cast<tmpl&>(t_pod); }
   template <typename tmpl> const tmpl& _pod() const { return reinterpret_cast<const tmpl&>(t_pod); }
 
   template <typename Func, typename T, typename Args>
   static const torrent::Object _call(command_base* cmd, target_type target, Args args);
 
-  command_base& operator = (const command_base& src) {
-    _pod<base_function>() = src._pod<base_function>();
-    return *this;
-  }
-
 protected:
-  // For use by functions that need to use placeholders to arguments
-  // within commands. E.d. callable command strings where one of the
-  // arguments within the command needs to be supplied by the caller.
+  using copy_fn_t = void (*)(void* dest, const void* src);
+  using dest_fn_t = void (*)(void* ptr);
 
-#ifdef HAVE_CXX11
-  union {
-    base_function t_pod;
-    // char t_pod[sizeof(base_function)];
-  };
-#else
-  union {
-    char t_pod[sizeof(base_function)];
-  };
-#endif
+  alignas(std::max_align_t) char t_pod[sizeof(base_function)];
+
+  copy_fn_t m_copy_helper;
+  dest_fn_t m_dest_helper;
 };
 
 template <typename T1 = void, typename T2 = void>
 struct target_type_id {
-  // Nothing here, so we cause an error.
 };
 
 template <typename T> inline bool
 is_target_compatible(const target_type& target) { return target.first == target_type_id<T>::value; }
 
-// Splitting pairs into separate targets.
 inline bool is_target_pair(const target_type& target) { return target.first >= command_base::target_download_pair; }
 
 template <typename T> inline T
@@ -203,15 +233,13 @@ command_base::_call(command_base* cmd, target_type target, Args args) {
 
 #define COMMAND_BASE_TEMPLATE_TYPE(func_type, func_parm)                \
   template <typename T, int proper = target_type_id<T>::proper_type> struct func_type { typedef std::function<func_parm> type; }; \
-                                                                        \
+                                                                         \
   template <> struct command_base_is_valid<func_type<target_type>::type>                { static const int value = 1; }; \
   template <> struct command_base_is_valid<func_type<core::Download*>::type>            { static const int value = 1; }; \
   template <> struct command_base_is_valid<func_type<torrent::Peer*>::type>             { static const int value = 1; }; \
   template <> struct command_base_is_valid<func_type<torrent::tracker::Tracker*>::type> { static const int value = 1; }; \
   template <> struct command_base_is_valid<func_type<torrent::File*>::type>             { static const int value = 1; }; \
   template <> struct command_base_is_valid<func_type<torrent::FileListIterator*>::type> { static const int value = 1; };
-
-//  template <typename Q> struct command_base_is_valid<typename func_type<Q>::type > { static const int value = 1; };
 
 COMMAND_BASE_TEMPLATE_TYPE(command_function,        torrent::Object (T, const torrent::Object&));
 COMMAND_BASE_TEMPLATE_TYPE(command_value_function,  torrent::Object (T, const torrent::Object::value_type&));
@@ -220,7 +248,7 @@ COMMAND_BASE_TEMPLATE_TYPE(command_list_function,   torrent::Object (T, const to
 
 #define COMMAND_BASE_TEMPLATE_CALL(func_name, func_type)                \
   template <typename T> const torrent::Object func_name(command_base* rawCommand, target_type target, const torrent::Object& args); \
-                                                                        \
+                                                                         \
   template <> struct command_base_is_type<func_name<target_type> >       { static const int value = 1; typedef func_type<target_type>::type type; }; \
   template <> struct command_base_is_type<func_name<core::Download*> >   { static const int value = 1; typedef func_type<core::Download*>::type type; }; \
   template <> struct command_base_is_type<func_name<torrent::Peer*> >    { static const int value = 1; typedef func_type<torrent::Peer*>::type type; }; \
