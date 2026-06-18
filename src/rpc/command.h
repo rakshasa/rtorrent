@@ -169,9 +169,11 @@ public:
   template <typename T>
   void set_function(T s, [[maybe_unused]] int value = command_base_is_valid<T>::value) {
     static_assert(sizeof(T) <= sizeof(t_pod), "t_pod storage overflow");
-    static_assert(alignof(t_pod) % alignof(T) == 0, "t_pod alignment violation");
+    static_assert(alignof(std::max_align_t) % alignof(T) == 0, "t_pod alignment insufficient for type");
+    static_assert(alignof(std::max_align_t) >= alignof(T), "t_pod structural capacity mismatch");
 
-    if (m_dest_helper) m_dest_helper(t_pod);
+    if (m_dest_helper)
+      m_dest_helper(t_pod);
 
     ::new (t_pod) T(std::move(s));
 

@@ -843,7 +843,7 @@ initialize_command_download() {
   CMD2_DL         ("d.bytes_done",     CMD2_ON_DL(bytes_done));
   CMD2_DL         ("d.ratio",          std::bind(&retrieve_d_ratio, std::placeholders::_1));
   CMD2_DL         ("d.chunks_hashed",  CMD2_ON_DL(chunks_hashed));
-  CMD2_DL         ("d.free_diskspace", CMD2_ON_FL(free_diskspace));
+  CMD2_DL         ("d.free_diskspace", [](auto* download, auto) { return download->file_list()->free_diskspace_no_cache(); });
 
   CMD2_DL         ("d.size_files",     CMD2_ON_FL(size_files));
   CMD2_DL         ("d.size_bytes",     CMD2_ON_FL(size_bytes));
