@@ -646,7 +646,15 @@ initialize_command_download() {
   CMD2_DL("d.hash",                           [](auto* download, auto) { return torrent::utils::transform_to_hex_str(download->info()->hash()); });
   CMD2_DL("d.local_id",                       [](auto* download, auto) { return torrent::utils::transform_to_hex_str(download->info()->local_id()); });
   CMD2_DL("d.local_id_html",                  [](auto* download, auto) { return torrent::utils::copy_escape_html_str(download->info()->local_id()); });
-  CMD2_DL("d.bitfield",                       [](auto* download, auto) { return torrent::utils::transform_to_hex_str(*download->download()->file_list()->bitfield()); });
+  CMD2_DL("d.bitfield",                       [](auto* download, auto) {
+      // A closed/unopened download has a Bitfield with size_bytes() > 0 but a freed
+      // (null) data buffer (empty() == m_data == nullptr). transform_to_hex_str() would
+      // then iterate [nullptr, nullptr + size_bytes()) and segfault -- reachable from
+      // ruTorrent/pymedusa polling d.bitfield via d.multicall2. Return empty for an
+      // unallocated bitfield instead of dereferencing null.
+      auto* bitfield = download->download()->file_list()->bitfield();
+      return bitfield->empty() ? std::string() : torrent::utils::transform_to_hex_str(*bitfield);
+    });
   CMD2_DL("d.base_path",                      [](auto* download, auto) { return retrieve_d_base_path(download).str(); });
   CMD2_DL("d.base_path.hex",                  [](auto* download, auto) { return retrieve_d_base_path(download).object_hex(); });
   CMD2_DL("d.base_path.base64",               [](auto* download, auto) { return retrieve_d_base_path(download).object_base64(); });
