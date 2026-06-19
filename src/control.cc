@@ -88,13 +88,6 @@ Control::cleanup() {
   if(!display::Canvas::daemon())
     m_inputStdin->remove(torrent::this_thread::poll());
 
-  // Close the directory watch (inotify) Event on every shutdown path.
-  // handle_shutdown() only closes it on a normal shutdown; a quick shutdown
-  // (SIGTERM -> receive_quick_shutdown) takes the m_shutdownQuick branch and
-  // skips it, leaving directory_events registered in the poll. ~Control() would
-  // then destroy it while still open and trip the Event::~Event() assert
-  // (m_poll_event == nullptr) -> SIGABRT. close() is idempotent (no-op when the
-  // normal path already closed it).
   m_directory_events->close();
 
   if (scgi_thread::thread()->is_active())
