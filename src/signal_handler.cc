@@ -20,23 +20,6 @@ SignalHandler::set_default(unsigned int signum) {
   if (signum >= HIGHEST_SIGNAL)
     throw std::logic_error("SignalHandler::set_default(...) received invalid signal value.");
 
-  // // Reset SIGCHLD to default behavior process-wide
-  // struct sigaction sa;
-
-  // sa.sa_handler = SIG_DFL;
-  // sigemptyset(&sa.sa_mask);
-  // sa.sa_flags = 0;
-
-  // sigaction(SIGCHLD, &sa, nullptr);
-
-  // // Unblock SIGCHLD in this thread so it can actually receive the default action
-  // sigset_t worker_mask;
-
-  // sigemptyset(&worker_mask);
-  // sigaddset(&worker_mask, SIGCHLD);
-
-  // pthread_sigmask(SIG_UNBLOCK, &worker_mask, nullptr);
-
   signal(signum, SIG_DFL);
   m_handlers[signum] = slot_void();
 }
