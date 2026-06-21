@@ -2,20 +2,27 @@
 
 #include "input_event.h"
 
+#include <torrent/common.h>
+#include <torrent/system/poll.h>
+
 #include "display/attributes.h"
 
 namespace input {
 
 void
-InputEvent::insert(torrent::system::Poll* p) {
-  p->open(this);
-  p->insert_read(this);
+InputEvent::insert() {
+  torrent::this_thread::poll()->open(this);
+  torrent::this_thread::poll()->insert_read(this);
+  torrent::this_thread::poll()->insert_error(this);
 }
 
 void
-InputEvent::remove(torrent::system::Poll* p) {
-  p->remove_read(this);
-  p->close(this);
+InputEvent::remove() {
+  if (!is_open())
+    return;
+
+  torrent::this_thread::poll()->remove_and_close(this);
+  set_file_descriptor(-1);
 }
 
 void
@@ -32,6 +39,8 @@ InputEvent::event_write() {
 
 void
 InputEvent::event_error() {
+  torrent::this_thread::poll()->remove_and_close(this);
+  set_file_descriptor(-1);
 }
 
 }

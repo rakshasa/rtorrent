@@ -168,12 +168,14 @@ torrent::Object
 apply_close_low_diskspace(int64_t arg, uint32_t skip_priority) {
   bool closed = false;
 
+  torrent::FileList::cache_list cache;
+
   for (auto download : *control->core()->download_list()) {
     if (!download->is_downloading())
       continue;
     if (download->priority() >= skip_priority)
       continue;
-    if (download->file_list()->free_diskspace() >= (uint64_t)arg)
+    if (download->file_list()->free_diskspace(cache) >= (uint64_t)arg)
       continue;
 
     control->core()->download_list()->close(download);
