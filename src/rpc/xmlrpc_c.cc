@@ -16,7 +16,7 @@
 #include "rpc_manager.h"
 #include "xmlrpc.h"
 #include "parse_commands.h"
-#include "utils/functional.h"
+#include "utils/scope_guard.h"
 
 namespace rpc {
 

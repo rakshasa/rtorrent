@@ -33,21 +33,23 @@ Help keep rTorrent development going by donating to its creator.
 BUILDING
 --------
 
-Jump into the github cloned directory
+Clone the repository:
 
 ```
+git clone https://github.com/rakshasa/rtorrent
 cd rtorrent
 ```
 
-## Install build dependencies
-
-Install [libtorrent](https://github.com/rakshasa/libtorrent) with the same version rTorrent.
-
-Generate configure scripts:
+Generate configure scripts and build:
 
 ```
 autoreconf -ivf
+./configure
+make -j$(nproc)
 ```
+
+This produces a self-contained `rtorrent` binary — libtorrent is built
+in-tree and linked statically.
 
 Optionally, generate man pages:
 
@@ -57,31 +59,25 @@ docbook2man rtorrent.1.xml
 
 Man pages output to "doc/rtorrent.1".
 
-RTorrent follows the development of [libtorrent](https://github.com/rakshasa/libtorrent) closely, and thus the versions must be in sync.
-
 ## USAGE
 
 Refer to User Guide: https://github.com/rakshasa/rtorrent/wiki/User-Guide
 
 ## LICENSE
 
-GNU GPL, see COPYING. "libtorrent/src/utils/sha_fast.{cc,h}" is
-originally from the Mozilla NSS and is under a triple license; MPL,
-LGPL and GPL. An exception to non-NSS code has been added for linking to OpenSSL as requested by Debian, though the author considers that library to be part of the Operative System and thus linking is allowed according to the GPL.
-
-Use whatever fits your purpose, the code required to compile with
-Mozilla's NSS implementation of SHA1 has been retained and can be
-compiled if the user wishes to avoid using OpenSSL.
+GNU GPL, see COPYING. An exception has been added for linking to
+OpenSSL as requested by Debian, though the author considers that
+library to be part of the Operative System and thus linking is
+allowed according to the GPL.
 
 ## DEPENDENCIES
 
 * libcurl >= 7.12.0
-* libtorrent = (same version)
-* ncurses
+* ncurses (optional, if running in daemon mode without TUI)
+* lua (optional)
 
 ## BUILD DEPENDENCIES
 
-* libtoolize
 * aclocal
 * autoconf
 * autoheader

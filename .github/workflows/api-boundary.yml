@@ -1,0 +1,17 @@
+name: API boundary check
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+
+jobs:
+  check-api-boundary:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: API boundary check
+        run: bash scripts/ci/check-api-boundary.sh src libtorrent

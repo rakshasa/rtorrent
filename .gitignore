@@ -44,6 +44,7 @@ scripts/lt*.m4
 .#*
 \#*#
 *~
+.clangd
 
 # Packages #
 ############
@@ -70,5 +71,10 @@ TAGS
 ###########################
 src/rtorrent
 test/rtorrent_Test*
+test/libtorrent/LibTorrent_Test*
 test/test-suite.log.tmp
+test/libtorrent/test-suite.log
+test/libtorrent/test-suite.log.tmp
 test-driver
+
+*.trs

@@ -15,7 +15,7 @@
 #include "rpc/parse_commands.h"
 #include "torrent/exceptions.h"
 #include "torrent/object.h"
-#include "utils/functional.h"
+#include "utils/scope_guard.h"
 
 namespace rpc {
 

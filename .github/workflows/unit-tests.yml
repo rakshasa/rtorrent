@@ -1,101 +1,131 @@
-name: Static analysis
+name: Unit tests
 
-on: pull_request
+on:
+  pull_request:
+  workflow_dispatch:
 
 jobs:
-
-  ubuntu-base:
-    runs-on: ubuntu-22.04
+  ubuntu:
+    runs-on: ubuntu-24.04
     steps:
-    - name: Update Packages
+    - name: Install Dependencies
       run: |
         sudo apt-get update
-    - name: Install Dependencies
-      run: |
         sudo apt-get install -y \
           libcppunit-dev \
+          libcurl4-openssl-dev \
           zlib1g-dev \
-          libcurl4-openssl-dev
-    - name: Fetch libtorrent
-      run: |
-        git clone https://github.com/rakshasa/libtorrent
-    - name: Build libtorrent
-      run: |
-        cd libtorrent
-        autoreconf -fiv
-        ./configure
-        make
-        sudo make install DESTDIR=$GITHUB_WORKSPACE/libtorrent-dist
-    - name: Upload Build Artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: installed-libtorrent
-        path: libtorrent-dist/
+          libncurses-dev \
+          liblua5.3-dev \
+          lua5.3
 
-
-  unit-tests-default:
-    runs-on: ubuntu-22.04
-    needs: ubuntu-base
-    steps:
-    - name: Install Dependencies
-      run: |
-        sudo apt-get install -y \
-          libcppunit-dev \
-          zlib1g-dev \
-          libcurl4-openssl-dev
-    - name: Download Libtorrent Artifacts
-      uses: actions/download-artifact@v4
-      with:
-        name: installed-libtorrent
-        path: ./libtorrent-dist
-    - name: Move Artifacts to System Path
-      run: |
-        # Elevate permissions with sudo to safely place the files
-        sudo cp -r ./libtorrent-dist/usr/local/* /usr/local/
-        rm -rf ./libtorrent-dist
     - uses: actions/checkout@v4
-    - name: Configure Project
+      with:
+        submodules: recursive
+
+    - name: Build monorepo
       run: |
         autoreconf -fiv
-        ./configure
-        make
-        ls /usr/local/lib/
-        LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/usr/local/lib" make check
-    - name: Archive test/test-suite.log
+        ./configure --with-lua
+        make -j$(nproc)
+
+    - name: Test rtorrent
+      run: make check
+
+    - name: Archive test logs (rtorrent)
       if: success() || failure()
       uses: actions/upload-artifact@v4
       with:
-        name: test-suite.log
+        name: rtorrent-test-suite.log
         path: test/test-suite.log
 
-  unit-tests-variants:
-    runs-on: ubuntu-22.04
-    needs: unit-tests-default
+    - name: Archive test logs (libtorrent)
+      if: success() || failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: libtorrent-test-suite.log
+        path: test/libtorrent/test-suite.log
+
+  ubuntu-variants:
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         config_flag: ["--with-xmlrpc-c", "--with-xmlrpc-tinyxml2"]
     steps:
     - name: Install Dependencies
       run: |
+        sudo apt-get update
         sudo apt-get install -y \
           libcppunit-dev \
-          zlib1g-dev \
           libcurl4-openssl-dev \
-          libxmlrpc-c++8-dev
-    - name: Download Libtorrent Artifacts
-      uses: actions/download-artifact@v4
-      with:
-        name: installed-libtorrent
-        path: ./libtorrent-dist
-    - name: Move Artifacts to System Path
-      run: |
-        sudo cp -r ./libtorrent-dist/usr/local/* /usr/local/
-        rm -rf ./libtorrent-dist
+          zlib1g-dev \
+          libxmlrpc-c++8-dev \
+          libncurses-dev \
+          liblua5.3-dev \
+          lua5.3
+
     - uses: actions/checkout@v4
-    - name: Configure Project
+      with:
+        submodules: recursive
+
+    - name: Build
       run: |
         autoreconf -fiv
         ./configure ${{ matrix.config_flag }}
-        make
-        ls /usr/local/lib/
-        LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/usr/local/lib" make check
+        make -j$(nproc)
+
+    - name: Test rtorrent
+      run: make check
+
+  macos:
+    needs: ubuntu
+    runs-on: macos-latest
+    env:
+      TEST_IGNORE_SIGNAL_INTERRUPT_LATENCY: "YES"
+    steps:
+    - name: Install Dependencies
+      run: |
+        brew install automake autoconf libtool cppunit curl
+
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Build
+      run: |
+        autoreconf -fiv
+        ./configure
+        make -j$(sysctl -n hw.logicalcpu)
+
+    - name: Test rtorrent
+      run: make check
+
+  alpine:
+    needs: ubuntu
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: ['x86_64']
+    defaults:
+      run:
+        shell: alpine.sh {0}
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - uses: jirutka/setup-alpine@v1
+      with:
+        branch: edge
+        arch: ${{ matrix.platform }}
+        packages: >
+          build-base automake autoconf cppunit-dev curl-dev
+          libtool linux-headers ncurses-dev openssl-dev pkgconf zlib-dev
+    - name: Build and Test
+      run: |
+        autoreconf -fiv
+        ./configure
+        grep LT_SMP_CACHE_BYTES config.h
+        make -j$(nproc)
+        make check

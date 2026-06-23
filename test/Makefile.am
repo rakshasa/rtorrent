@@ -1,11 +1,12 @@
+SUBDIRS = libtorrent
+
 TESTS = \
 	rtorrent_Test_Rpc \
 	rtorrent_Test_Src
 
 check_PROGRAMS = $(TESTS)
 
-rtorrent_Test_LDADD = \
-	../src/libsub_root.a
+rtorrent_Test_LDADD = $(top_builddir)/librtorrent.a $(CPPUNIT_LIBS) -ldl
 
 rtorrent_Test_Rpc_LDADD = $(rtorrent_Test_LDADD)
 rtorrent_Test_Src_LDADD = $(rtorrent_Test_LDADD)
@@ -53,8 +54,6 @@ rtorrent_Test_Src_SOURCES = $(rtorrent_Test_Common) \
 	src/test_watch_ready_queue.h
 
 rtorrent_Test_Rpc_CXXFLAGS = $(CPPUNIT_CFLAGS)
-rtorrent_Test_Rpc_LDFLAGS = $(CPPUNIT_LIBS) -ldl
 rtorrent_Test_Src_CXXFLAGS = $(CPPUNIT_CFLAGS)
-rtorrent_Test_Src_LDFLAGS = $(CPPUNIT_LIBS) -ldl
 
 AM_CPPFLAGS = -I$(srcdir) -I$(top_srcdir) -I$(top_srcdir)/src
