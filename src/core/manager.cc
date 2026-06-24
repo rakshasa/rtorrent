@@ -8,7 +8,7 @@
 #include <sstream>
 #include <unistd.h>
 #include <sys/select.h>
-#include <rak/regex.h>
+#include <fnmatch.h>
 #include <torrent/utils/resume.h>
 #include <torrent/object.h>
 #include <torrent/exceptions.h>
@@ -392,9 +392,9 @@ path_expand(std::vector<std::string>* paths, const std::string& pattern) {
   // Might be an idea to use depth-first search instead.
 
   for (; first != last; ++first) {
-    rak::regex r(*first);
+    const std::string& pattern = *first;
 
-    if (r.pattern().empty())
+    if (pattern.empty())
       continue;
 
     // Special case for ".."?
@@ -402,8 +402,8 @@ path_expand(std::vector<std::string>* paths, const std::string& pattern) {
     for (auto& itr : currentCache) {
       // Only include filenames starting with '.' if the pattern
       // starts with the same.
-      itr.update((r.pattern()[0] != '.') ? utils::Directory::update_hide_dot : 0);
-      itr.erase(std::remove_if(itr.begin(), itr.end(), [r](const utils::directory_entry& entry) { return !r(entry.s_name); }), itr.end());
+      itr.update((pattern[0] != '.') ? utils::Directory::update_hide_dot : 0);
+      itr.erase(std::remove_if(itr.begin(), itr.end(), [&pattern](const utils::directory_entry& entry) { return fnmatch(pattern.c_str(), entry.s_name.c_str(), 0) != 0; }), itr.end());
 
       for (const auto& cache : itr)
         nextCache.push_back(path_expand_transform(itr.path() + (itr.path() == "/" ? "" : "/"), cache));

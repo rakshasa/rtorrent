@@ -5,7 +5,7 @@
 #include <functional>
 #include <netdb.h>
 #include <unistd.h>
-#include <rak/regex.h>
+#include <fnmatch.h>
 #include <torrent/rate.h>
 #include <torrent/throttle.h>
 #include <torrent/tracker/tracker.h>
@@ -340,7 +340,7 @@ f_multicall(core::Download* download, const torrent::Object::list_type& args) {
   // parsing and searching command map for every single call.
   torrent::Object             resultRaw = torrent::Object::create_list();
   torrent::Object::list_type& result = resultRaw.as_list();
-  std::vector<rak::regex>     regex_list;
+  std::vector<std::string>    regex_list;
 
   bool use_regex = true;
 
@@ -354,7 +354,7 @@ f_multicall(core::Download* download, const torrent::Object::list_type& args) {
 
   for (const auto& file : *download->file_list()) {
     if (use_regex &&
-        std::none_of(regex_list.begin(), regex_list.end(), [&file](const auto& r) { return r(file->path()->as_string()); }))
+        std::none_of(regex_list.begin(), regex_list.end(), [&file](const auto& pattern) { return fnmatch(pattern.c_str(), file->path()->as_string().c_str(), 0) == 0; }))
       continue;
 
     torrent::Object::list_type& row = result.insert(result.end(), torrent::Object::create_list())->as_list();
