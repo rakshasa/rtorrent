@@ -6,6 +6,12 @@ jobs:
 
   ubuntu-base:
     runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        libtorrent:
+          - libt_configure_flags: "--enable-openssl"
+          - libt_configure_flags: ""
     steps:
     - name: Update Packages
       run: |
@@ -15,7 +21,8 @@ jobs:
         sudo apt-get install -y \
           libcppunit-dev \
           zlib1g-dev \
-          libcurl4-openssl-dev
+          libcurl4-openssl-dev \
+          libssl-dev
     - name: Fetch libtorrent
       run: |
         git clone https://github.com/rakshasa/libtorrent
@@ -23,13 +30,13 @@ jobs:
       run: |
         cd libtorrent
         autoreconf -fiv
-        ./configure
+        ./configure ${{ matrix.libtorrent.libt_configure_flags }}
         make
         sudo make install DESTDIR=$GITHUB_WORKSPACE/libtorrent-dist
     - name: Upload Build Artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: installed-libtorrent
+        name: installed-libtorrent-${{ matrix.libtorrent.libt_configure_flags == '' && 'default' || 'openssl' }}
         path: libtorrent-dist/
 
 
@@ -46,7 +53,7 @@ jobs:
     - name: Download Libtorrent Artifacts
       uses: actions/download-artifact@v4
       with:
-        name: installed-libtorrent
+        name: installed-libtorrent-default
         path: ./libtorrent-dist
     - name: Move Artifacts to System Path
       run: |
@@ -85,7 +92,7 @@ jobs:
     - name: Download Libtorrent Artifacts
       uses: actions/download-artifact@v4
       with:
-        name: installed-libtorrent
+        name: installed-libtorrent-default
         path: ./libtorrent-dist
     - name: Move Artifacts to System Path
       run: |
