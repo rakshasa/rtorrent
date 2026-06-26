@@ -21,6 +21,8 @@ public:
   int                 execute(const char* file, char* const* argv, int flags);
   torrent::Object     execute_object(const torrent::Object& rawArgs, int flags);
 
+  void                reap_background();
+
 private:
   int                 m_log_fd{-1};
   std::string         m_capture;

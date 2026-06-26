@@ -1,6 +1,8 @@
 #include "config.h"
 
+#include <cassert>
 #include <cerrno>
+#include <csignal>
 #include <cstring>
 #include <fcntl.h>
 #include <spawn.h>
@@ -19,6 +21,15 @@ extern char** environ;
 namespace rpc {
 
 // TODO: Access fd through torrent logging?
+
+void
+ExecFile::reap_background() {
+  while (true) {
+    pid_t pid = waitpid(-1, nullptr, WNOHANG);
+    if (pid == 0 || (pid == -1 && errno != EINTR))
+      break;
+  }
+}
 
 int
 ExecFile::execute(const char* file, char* const* argv, int flags) {
@@ -40,8 +51,13 @@ ExecFile::execute(const char* file, char* const* argv, int flags) {
 
   int pipe_fd[2];
 
-  if ((flags & flag_capture) && pipe(pipe_fd))
-    throw torrent::input_error("ExecFile::execute(...) Pipe creation failed.");
+  if (flags & flag_capture) {
+    if (flags & flag_background)
+      throw torrent::internal_error("ExecFile::execute(...) cannot capture a background task.");
+
+    if (pipe(pipe_fd) == -1)
+      throw torrent::input_error("ExecFile::execute(...) Pipe creation failed.");
+  }
 
   auto clean_fn = [pipe_fd, flags]() {
       if (flags & flag_capture) {
@@ -71,18 +87,20 @@ ExecFile::execute(const char* file, char* const* argv, int flags) {
     // Ensure the write end of the pipe is closed in the child after duplicating.
     posix_spawn_file_actions_addclose(&actions, pipe_fd[1]);
     posix_spawn_file_actions_addclose(&actions, pipe_fd[0]);
-
-  } else if (m_log_fd != -1) {
-    posix_spawn_file_actions_adddup2(&actions, m_log_fd, 1);
-
-  } else {
+  } else if (m_log_fd == -1) {
     posix_spawn_file_actions_addopen(&actions, 1, "/dev/null", O_RDWR, 0);
+  } else if (flags & flag_background) {
+    posix_spawn_file_actions_addopen(&actions, 1, "/dev/null", O_RDWR, 0);
+  } else {
+    posix_spawn_file_actions_adddup2(&actions, m_log_fd, 1);
   }
 
-  if (m_log_fd != -1) {
-    posix_spawn_file_actions_adddup2(&actions, m_log_fd, 2);
-  } else {
+  if (m_log_fd == -1) {
     posix_spawn_file_actions_addopen(&actions, 2, "/dev/null", O_RDWR, 0);
+  } else if (flags & flag_background) {
+    posix_spawn_file_actions_addopen(&actions, 2, "/dev/null", O_RDWR, 0);
+  } else {
+    posix_spawn_file_actions_adddup2(&actions, m_log_fd, 2);
   }
 
   posix_spawnattr_t attr;
@@ -92,9 +110,32 @@ ExecFile::execute(const char* file, char* const* argv, int flags) {
   // automatically. If you want to explicitly enforce a clean slate, modern systems support
   // POSIX_SPAWN_CLOEXEC_DEFAULT.
 
+  short spawn_flags = 0;
+
 #ifdef POSIX_SPAWN_CLOEXEC_DEFAULT
-  posix_spawnattr_setflags(&attr, POSIX_SPAWN_CLOEXEC_DEFAULT);
+  spawn_flags |= POSIX_SPAWN_CLOEXEC_DEFAULT;
 #endif
+
+  if (flags & flag_background) {
+    spawn_flags |= POSIX_SPAWN_SETPGROUP;
+    posix_spawnattr_setpgroup(&attr, 0);
+  }
+
+  posix_spawnattr_setflags(&attr, spawn_flags);
+
+  // Block SIGCHLD around the synchronous foreground wait so the SIGCHLD handler's waitpid(-1)
+  // can't reap (and discard the status of) the child we are about to wait on. Background tasks
+  // are left unblocked; the handler reaps them.
+  sigset_t old_mask;
+
+  if (!(flags & flag_background)) {
+    assert(torrent::this_thread::thread() == torrent::main_thread::thread());
+
+    sigset_t block_mask;
+    sigemptyset(&block_mask);
+    sigaddset(&block_mask, SIGCHLD);
+    pthread_sigmask(SIG_BLOCK, &block_mask, &old_mask);
+  }
 
   pid_t child_pid{};
 
@@ -104,8 +145,18 @@ ExecFile::execute(const char* file, char* const* argv, int flags) {
   posix_spawnattr_destroy(&attr);
 
   if (spawn_status != 0) {
+    if (!(flags & flag_background))
+      pthread_sigmask(SIG_SETMASK, &old_mask, nullptr);
+
     clean_fn();
     throw torrent::input_error("ExecFile::execute(...) posix_spawn failed: " + std::string(std::strerror(spawn_status)));
+  }
+
+  if (flags & flag_background) {
+    if (m_log_fd != -1)
+      result = write(m_log_fd, "\n--- Background task ---\n", sizeof("\n--- Background task ---\n"));
+
+    return 0;
   }
 
   if (flags & flag_capture) {
@@ -132,19 +183,29 @@ ExecFile::execute(const char* file, char* const* argv, int flags) {
   }
 
   int status;
+  int wait_errno = 0;
 
   while (waitpid(child_pid, &status, 0) == -1) {
-    switch (errno) {
-    case EINTR:
+    if (errno == EINTR)
       continue;
-    case ECHILD:
-      throw torrent::internal_error("ExecFile::execute(...) waitpid failed with ECHILD, child process not found.");
-    case EINVAL:
-      throw torrent::internal_error("ExecFile::execute(...) waitpid failed with EINVAL.");
-    default:
-      throw torrent::internal_error("ExecFile::execute(...) waitpid failed with unexpected error: " + std::string(std::strerror(errno)));
-    }
-  };
+
+    wait_errno = errno;
+    break;
+  }
+
+  if (!(flags & flag_background))
+    pthread_sigmask(SIG_SETMASK, &old_mask, nullptr);
+
+  switch (wait_errno) {
+  case 0:
+    break;
+  case ECHILD:
+    throw torrent::internal_error("ExecFile::execute(...) waitpid failed with ECHILD, child process not found.");
+  case EINVAL:
+    throw torrent::internal_error("ExecFile::execute(...) waitpid failed with EINVAL.");
+  default:
+    throw torrent::internal_error("ExecFile::execute(...) waitpid failed with unexpected error: " + std::string(std::strerror(wait_errno)));
+  }
 
   // Check return value?
   if (m_log_fd != -1) {

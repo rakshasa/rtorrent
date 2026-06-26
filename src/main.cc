@@ -164,6 +164,7 @@ main(int argc, char** argv) {
     scgi::ThreadScgi::create_thread();
     session::ThreadSession::create_thread();
 
+    SignalHandler::set_handler(SIGCHLD, []() { rpc::execFile.reap_background(); });
     SignalHandler::set_unblock(SIGCHLD);
 
     // Initialize option handlers after libtorrent to ensure
@@ -464,6 +465,8 @@ main(int argc, char** argv) {
     rpc::commands.call_catch("event.system.startup_done", rpc::make_target(), "startup_done", "System startup_done event action failed: ");
 
     torrent::system::Thread::self()->event_loop();
+
+    SignalHandler::set_default(SIGCHLD);
 
     control->core()->download_list()->session_save();
     control->cleanup();
