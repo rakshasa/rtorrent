@@ -6,6 +6,18 @@ jobs:
 
   ubuntu-base:
     runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        libtorrent:
+          - name: default
+            libtorrent_repo: rakshasa/libtorrent
+            libtorrent_ref: master
+            libt_configure_flags: --disable-webtorrent
+          - name: webtorrent
+            libtorrent_repo: kingomarwashere/libtorrent
+            libtorrent_ref: webtorrent-support
+            libt_configure_flags: --enable-webtorrent
     steps:
     - name: Update Packages
       run: |
@@ -15,21 +27,40 @@ jobs:
         sudo apt-get install -y \
           libcppunit-dev \
           zlib1g-dev \
-          libcurl4-openssl-dev
+          libcurl4-openssl-dev \
+          libssl-dev \
+          nlohmann-json3-dev \
+          pkg-config \
+          cmake
+    - name: Install libdatachannel
+      if: matrix.libtorrent.name == 'webtorrent'
+      run: |
+        if apt-cache show libdatachannel-dev >/dev/null 2>&1; then
+          sudo apt-get install -y libdatachannel-dev
+        else
+          git clone --recursive --depth 1 https://github.com/paullouisageneau/libdatachannel
+          cmake -S libdatachannel -B libdatachannel/build \
+            -DNO_EXAMPLES=ON \
+            -DNO_TESTS=ON \
+            -DUSE_GNUTLS=0
+          cmake --build libdatachannel/build --parallel
+          sudo cmake --install libdatachannel/build
+          sudo ldconfig
+        fi
     - name: Fetch libtorrent
       run: |
-        git clone https://github.com/rakshasa/libtorrent
+        git clone --branch "${{ matrix.libtorrent.libtorrent_ref }}" "https://github.com/${{ matrix.libtorrent.libtorrent_repo }}" libtorrent
     - name: Build libtorrent
       run: |
         cd libtorrent
         autoreconf -fiv
-        ./configure
+        ./configure ${{ matrix.libtorrent.libt_configure_flags }}
         make
         sudo make install DESTDIR=$GITHUB_WORKSPACE/libtorrent-dist
     - name: Upload Build Artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: installed-libtorrent
+        name: installed-libtorrent-${{ matrix.libtorrent.name }}
         path: libtorrent-dist/
 
 
@@ -46,7 +77,7 @@ jobs:
     - name: Download Libtorrent Artifacts
       uses: actions/download-artifact@v4
       with:
-        name: installed-libtorrent
+        name: installed-libtorrent-default
         path: ./libtorrent-dist
     - name: Move Artifacts to System Path
       run: |
@@ -57,7 +88,7 @@ jobs:
     - name: Configure Project
       run: |
         autoreconf -fiv
-        ./configure
+        ./configure --disable-webtorrent
         make
         ls /usr/local/lib/
         LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/usr/local/lib" make check
@@ -85,7 +116,7 @@ jobs:
     - name: Download Libtorrent Artifacts
       uses: actions/download-artifact@v4
       with:
-        name: installed-libtorrent
+        name: installed-libtorrent-default
         path: ./libtorrent-dist
     - name: Move Artifacts to System Path
       run: |
@@ -95,7 +126,37 @@ jobs:
     - name: Configure Project
       run: |
         autoreconf -fiv
-        ./configure ${{ matrix.config_flag }}
+        ./configure --disable-webtorrent ${{ matrix.config_flag }}
+        make
+        ls /usr/local/lib/
+        LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/usr/local/lib" make check
+
+  unit-tests-webtorrent:
+    runs-on: ubuntu-22.04
+    needs: ubuntu-base
+    steps:
+    - name: Install Dependencies
+      run: |
+        sudo apt-get install -y \
+          libcppunit-dev \
+          zlib1g-dev \
+          libcurl4-openssl-dev \
+          libssl-dev \
+          nlohmann-json3-dev
+    - name: Download Libtorrent Artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: installed-libtorrent-webtorrent
+        path: ./libtorrent-dist
+    - name: Move Artifacts to System Path
+      run: |
+        sudo cp -r ./libtorrent-dist/usr/local/* /usr/local/
+        rm -rf ./libtorrent-dist
+    - uses: actions/checkout@v4
+    - name: Configure Project
+      run: |
+        autoreconf -fiv
+        ./configure --enable-webtorrent
         make
         ls /usr/local/lib/
         LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/usr/local/lib" make check

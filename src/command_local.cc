@@ -201,6 +201,13 @@ initialize_command_local() {
   CMD_VAR_C_STRING("system.api_version",           (int64_t)API_VERSION);
   CMD_VAR_C_STRING("system.client_version",        PACKAGE_VERSION);
   CMD_VAR_C_STRING("system.library_version",       torrent::runtime::version());
+  CMD_VAR_C_STRING("system.has_webtorrent",
+#ifdef HAVE_LIBUTORRENT_WEBTORRENT
+                   int64_t(1)
+#else
+                   int64_t(0)
+#endif
+                   );
 
   CMD_VAR_VALUE   ("system.file.allocate",         0);
   CMD_VAR_VALUE   ("system.file.max_size",         (int64_t)512 << 30);
@@ -344,6 +351,7 @@ initialize_command_local() {
 
   rpc::rpc.mark_safe("system.api_version");
   rpc::rpc.mark_safe("system.client_version");
+  rpc::rpc.mark_safe("system.has_webtorrent");
   rpc::rpc.mark_safe("system.library_version");
   rpc::rpc.mark_safe("system.file.max_size");
   rpc::rpc.mark_safe("system.file.split_size");

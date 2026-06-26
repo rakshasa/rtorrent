@@ -119,6 +119,13 @@
 #
 #protocol.pex.set = yes
 
+# Enable WebTorrent support when built against a WebTorrent-enabled
+# rakshasa/libtorrent. WebSocket trackers (ws:// and wss://) are handled by
+# libtorrent. Enabled by default when available.
+#
+#protocol.webtorrent.set = yes
+#protocol.webtorrent.set = no
+
 # Set download list layout style ("full", "compact").
 #
 #ui.torrent_list.layout.set = "full"

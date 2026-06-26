@@ -110,6 +110,7 @@ ElementPeerList::create_info() {
   element->push_column("Id:",        te_command("p.id_html="));
   element->push_column("Client:",    te_command("p.client_version="));
   element->push_column("Options:",   te_command("p.options_str="));
+  element->push_column("Transport:", te_command("if=$p.is_webtorrent=,WebRTC,TCP"));
   element->push_column("Connected:", te_command("if=$p.is_incoming=,incoming,outgoing"));
   element->push_column("Encrypted:", te_command("if=$p.is_encrypted=,yes,$p.is_obfuscated=,handshake,no"));
 

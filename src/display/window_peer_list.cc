@@ -32,6 +32,7 @@ WindowPeerList::redraw() {
   int y = 0;
 
   m_canvas->print(x, y, "IP");      x += 25;
+  m_canvas->print(x, y, "TR");      x += 4;
   m_canvas->print(x, y, "UP");      x += 7;
   m_canvas->print(x, y, "DOWN");    x += 7;
   m_canvas->print(x, y, "PEER");    x += 7;
@@ -72,6 +73,15 @@ WindowPeerList::redraw() {
                     range.first == *m_focus ? '*' : ' ',
                     ip_address.c_str());
     x += 27;
+
+    m_canvas->print(x, y, "%s",
+#ifdef HAVE_LIBUTORRENT_WEBTORRENT
+                    p->is_webtorrent() ? "WT" : "--"
+#else
+                    "--"
+#endif
+                    );
+    x += 4;
 
     m_canvas->print(x, y, "%.1f", (double)p->up_rate()->rate() / 1024); x += 7;
     m_canvas->print(x, y, "%.1f", (double)p->down_rate()->rate() / 1024); x += 7;
