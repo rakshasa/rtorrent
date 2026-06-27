@@ -972,6 +972,8 @@ initialize_command_download() {
   rpc::rpc.mark_safe("d.size_chunks");
   rpc::rpc.mark_safe("d.size_pex");
   rpc::rpc.mark_safe("d.completed_bytes");
+  rpc::rpc.mark_safe("d.complete");
+  rpc::rpc.mark_safe("d.timestamp.finished");
   rpc::rpc.mark_safe("d.bytes_done");
   rpc::rpc.mark_safe("d.peers_accounted");
   rpc::rpc.mark_safe("d.chunks_hashed");
