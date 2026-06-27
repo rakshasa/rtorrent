@@ -10,6 +10,7 @@
 #include <torrent/net/http_stack.h>
 #include <torrent/net/socket_address.h>
 #include <torrent/runtime/network_config.h>
+#include <torrent/runtime/proxy_manager.h>
 #include <torrent/runtime/runtime.h>
 #include <torrent/runtime/socket_manager.h>
 #include <torrent/tracker/tracker.h>
@@ -220,98 +221,99 @@ initialize_command_network() {
   auto nw_config      = torrent::runtime::network_config();
 
   // Isn't port_open used?
-  CMD2_VAR_BOOL    ("network.port_open",   true);
-  CMD2_VAR_BOOL    ("network.port_random", true);
-  CMD2_VAR_STRING  ("network.port_range",  "6881-6999");
+  CMD_VAR_BOOL    ("network.port_open",   true);
+  CMD_VAR_BOOL    ("network.port_random", true);
+  CMD_VAR_STRING  ("network.port_range",  "6881-6999");
 
-  CMD2_ANY         ("network.listen.port",        [](auto, auto)                 { return torrent::runtime::listen_port(); });
-  CMD2_ANY         ("network.listen.backlog",     [nw_config](auto, auto)        { return nw_config->listen_backlog(); });
-  CMD2_ANY_VALUE_V ("network.listen.backlog.set", [nw_config](auto, auto& value) { return nw_config->set_listen_backlog(value); });
+  CMD_ANY         ("network.listen.port",        [](auto, auto)                 { return torrent::runtime::listen_port(); });
+  CMD_ANY         ("network.listen.backlog",     [nw_config](auto, auto)        { return nw_config->listen_backlog(); });
+  CMD_ANY_VALUE_V ("network.listen.backlog.set", [nw_config](auto, auto& value) { return nw_config->set_listen_backlog(value); });
 
-  CMD2_VAR_BOOL    ("protocol.pex",               true);
-  CMD2_ANY_LIST    ("protocol.encryption.set",    [](auto, auto& args)           { return apply_encryption(args); });
+  CMD_VAR_BOOL    ("protocol.pex",               true);
+  CMD_ANY_LIST    ("protocol.encryption.set",    [](auto, auto& args)           { return apply_encryption(args); });
 
-  CMD2_VAR_STRING  ("protocol.connection.leech",            "leech");
-  CMD2_VAR_STRING  ("protocol.connection.seed",             "seed");
+  CMD_VAR_STRING  ("protocol.connection.leech",            "leech");
+  CMD_VAR_STRING  ("protocol.connection.seed",             "seed");
 
-  CMD2_VAR_STRING  ("protocol.choke_heuristics.up.leech",   "upload_leech");
-  CMD2_VAR_STRING  ("protocol.choke_heuristics.up.seed",    "upload_leech");
-  CMD2_VAR_STRING  ("protocol.choke_heuristics.down.leech", "download_leech");
-  CMD2_VAR_STRING  ("protocol.choke_heuristics.down.seed",  "download_leech");
+  CMD_VAR_STRING  ("protocol.choke_heuristics.up.leech",   "upload_leech");
+  CMD_VAR_STRING  ("protocol.choke_heuristics.up.seed",    "upload_leech");
+  CMD_VAR_STRING  ("protocol.choke_heuristics.down.leech", "download_leech");
+  CMD_VAR_STRING  ("protocol.choke_heuristics.down.seed",  "download_leech");
 
-  CMD2_ANY         ("network.http.cacert",                    [http_stack](auto, auto)        { return http_stack->http_cacert(); });
-  CMD2_ANY_STRING_V("network.http.cacert.set",                [http_stack](auto, auto& str)   { return http_stack->set_http_cacert(str); });
-  CMD2_ANY         ("network.http.capath",                    [http_stack](auto, auto)        { return http_stack->http_capath(); });
-  CMD2_ANY_STRING_V("network.http.capath.set",                [http_stack](auto, auto& str)   { return http_stack->set_http_capath(str); });
-  CMD2_ANY         ("network.http.dns_cache_timeout",         [http_stack](auto, auto)        { return http_stack->dns_timeout(); });
-  CMD2_ANY_VALUE_V ("network.http.dns_cache_timeout.set",     [http_stack](auto, auto& value) { return http_stack->set_dns_timeout(value); });
-  CMD2_ANY         ("network.http.current_open",              [http_stack](auto, auto)        { return http_stack->size(); });
-  CMD2_ANY         ("network.http.max_cache_connections",     [http_stack](auto, auto)        { return http_stack->max_cache_connections(); });
-  CMD2_ANY_VALUE_V ("network.http.max_cache_connections.set", [http_stack](auto, auto& value) { return http_stack->set_max_cache_connections(value); });
-  CMD2_ANY         ("network.http.max_host_connections",      [http_stack](auto, auto)        { return http_stack->max_host_connections(); });
-  CMD2_ANY_VALUE_V ("network.http.max_host_connections.set",  [http_stack](auto, auto& value) { return http_stack->set_max_host_connections(value); });
-  CMD2_ANY         ("network.http.max_total_connections",     [http_stack](auto, auto)        { return http_stack->max_total_connections(); });
-  CMD2_ANY         ("network.http.proxy_address",             [http_stack](auto, auto)        { return http_stack->http_proxy(); });
-  CMD2_ANY_STRING_V("network.http.proxy_address.set",         [http_stack](auto, auto& str)   { return http_stack->set_http_proxy(str); });
-  CMD2_ANY         ("network.http.ssl_verify_host",           [http_stack](auto, auto)        { return http_stack->ssl_verify_host(); });
-  CMD2_ANY_VALUE_V ("network.http.ssl_verify_host.set",       [http_stack](auto, auto& value) { return http_stack->set_ssl_verify_host(value); });
-  CMD2_ANY         ("network.http.ssl_verify_peer",           [http_stack](auto, auto)        { return http_stack->ssl_verify_peer(); });
-  CMD2_ANY_VALUE_V ("network.http.ssl_verify_peer.set",       [http_stack](auto, auto& value) { return http_stack->set_ssl_verify_peer(value); });
+  CMD_ANY         ("network.http.cacert",                    [http_stack](auto, auto)        { return http_stack->http_cacert(); });
+  CMD_ANY_STRING_V("network.http.cacert.set",                [http_stack](auto, auto& str)   { return http_stack->set_http_cacert(str); });
+  CMD_ANY         ("network.http.capath",                    [http_stack](auto, auto)        { return http_stack->http_capath(); });
+  CMD_ANY_STRING_V("network.http.capath.set",                [http_stack](auto, auto& str)   { return http_stack->set_http_capath(str); });
+  CMD_ANY         ("network.http.dns_cache_timeout",         [http_stack](auto, auto)        { return http_stack->dns_timeout(); });
+  CMD_ANY_VALUE_V ("network.http.dns_cache_timeout.set",     [http_stack](auto, auto& value) { return http_stack->set_dns_timeout(value); });
+  CMD_ANY         ("network.http.current_open",              [http_stack](auto, auto)        { return http_stack->size(); });
+  CMD_ANY         ("network.http.max_cache_connections",     [http_stack](auto, auto)        { return http_stack->max_cache_connections(); });
+  CMD_ANY_VALUE_V ("network.http.max_cache_connections.set", [http_stack](auto, auto& value) { return http_stack->set_max_cache_connections(value); });
+  CMD_ANY         ("network.http.max_host_connections",      [http_stack](auto, auto)        { return http_stack->max_host_connections(); });
+  CMD_ANY_VALUE_V ("network.http.max_host_connections.set",  [http_stack](auto, auto& value) { return http_stack->set_max_host_connections(value); });
+  CMD_ANY         ("network.http.max_total_connections",     [http_stack](auto, auto)        { return http_stack->max_total_connections(); });
 
-  CMD2_ANY         ("network.send_buffer.size",           [nw_config](auto, auto)        { return nw_config->send_buffer_size(); });
-  CMD2_ANY_VALUE_V ("network.send_buffer.size.set",       [nw_config](auto, auto& value) { return nw_config->set_send_buffer_size(value); });
-  CMD2_ANY         ("network.receive_buffer.size",        [nw_config](auto, auto)        { return nw_config->receive_buffer_size(); });
-  CMD2_ANY_VALUE_V ("network.receive_buffer.size.set",    [nw_config](auto, auto& value) { return nw_config->set_receive_buffer_size(value); });
-  CMD2_ANY_STRING  ("network.tos.set",                    [](auto, auto& str)            { return apply_tos(str); });
+  CMD_ANY         ("network.http.ssl_verify_host",           [http_stack](auto, auto)        { return http_stack->ssl_verify_host(); });
+  CMD_ANY_VALUE_V ("network.http.ssl_verify_host.set",       [http_stack](auto, auto& value) { return http_stack->set_ssl_verify_host(value); });
+  CMD_ANY         ("network.http.ssl_verify_peer",           [http_stack](auto, auto)        { return http_stack->ssl_verify_peer(); });
+  CMD_ANY_VALUE_V ("network.http.ssl_verify_peer.set",       [http_stack](auto, auto& value) { return http_stack->set_ssl_verify_peer(value); });
 
-  CMD2_ANY         ("network.bind_address",               [nw_config](auto, auto)        { return nw_config->bind_address_best_match_str(); });
-  CMD2_ANY_STRING_V("network.bind_address.set",           [nw_config](auto, auto& str)   { return nw_config->set_bind_address_str(str); });
-  CMD2_ANY         ("network.bind_address.ipv4",          [nw_config](auto, auto)        { return nw_config->bind_inet_address_str(); });
-  CMD2_ANY_STRING_V("network.bind_address.ipv4.set",      [nw_config](auto, auto& str)   { return nw_config->set_bind_inet_address_str(str); });
-  CMD2_ANY         ("network.bind_address.ipv6",          [nw_config](auto, auto)        { return nw_config->bind_inet6_address_str(); });
-  CMD2_ANY_STRING_V("network.bind_address.ipv6.set",      [nw_config](auto, auto& str)   { return nw_config->set_bind_inet6_address_str(str); });
+  CMD_ANY         ("network.send_buffer.size",               [nw_config](auto, auto)         { return nw_config->send_buffer_size(); });
+  CMD_ANY_VALUE_V ("network.send_buffer.size.set",           [nw_config](auto, auto& value)  { return nw_config->set_send_buffer_size(value); });
+  CMD_ANY         ("network.receive_buffer.size",            [nw_config](auto, auto)         { return nw_config->receive_buffer_size(); });
+  CMD_ANY_VALUE_V ("network.receive_buffer.size.set",        [nw_config](auto, auto& value)  { return nw_config->set_receive_buffer_size(value); });
+  CMD_ANY_STRING  ("network.tos.set",                        [](auto, auto& str)             { return apply_tos(str); });
 
-  CMD2_ANY         ("network.local_address",              [nw_config](auto, auto)        { return nw_config->local_address_best_match_str(); });
-  CMD2_ANY_STRING_V("network.local_address.set",          [nw_config](auto, auto& str)   { return nw_config->set_local_address_str(str); });
-  CMD2_ANY         ("network.local_address.ipv4",         [nw_config](auto, auto)        { return nw_config->local_inet_address_str(); });
-  CMD2_ANY_STRING_V("network.local_address.ipv4.set",     [nw_config](auto, auto& str)   { return nw_config->set_local_inet_address_str(str); });
-  CMD2_ANY         ("network.local_address.ipv6",         [nw_config](auto, auto)        { return nw_config->local_inet6_address_str(); });
-  CMD2_ANY_STRING_V("network.local_address.ipv6.set",     [nw_config](auto, auto& str)   { return nw_config->set_local_inet6_address_str(str); });
+  CMD_ANY         ("network.bind_address",                   [nw_config](auto, auto)         { return nw_config->bind_address_best_match_str(); });
+  CMD_ANY_STRING_V("network.bind_address.set",               [nw_config](auto, auto& str)    { return nw_config->set_bind_address_str(str); });
+  CMD_ANY         ("network.bind_address.ipv4",              [nw_config](auto, auto)         { return nw_config->bind_inet_address_str(); });
+  CMD_ANY_STRING_V("network.bind_address.ipv4.set",          [nw_config](auto, auto& str)    { return nw_config->set_bind_inet_address_str(str); });
+  CMD_ANY         ("network.bind_address.ipv6",              [nw_config](auto, auto)         { return nw_config->bind_inet6_address_str(); });
+  CMD_ANY_STRING_V("network.bind_address.ipv6.set",          [nw_config](auto, auto& str)    { return nw_config->set_bind_inet6_address_str(str); });
 
-  CMD2_ANY         ("network.proxy_address",         [nw_config](auto, auto)           { return nw_config->proxy_address_str(); });
-  CMD2_ANY_STRING_V("network.proxy_address.set",     [](auto, auto& str)               { return control->core()->set_proxy_address(str); });
+  CMD_ANY         ("network.local_address",                  [nw_config](auto, auto)         { return nw_config->local_address_best_match_str(); });
+  CMD_ANY_STRING_V("network.local_address.set",              [nw_config](auto, auto& str)    { return nw_config->set_local_address_str(str); });
+  CMD_ANY         ("network.local_address.ipv4",             [nw_config](auto, auto)         { return nw_config->local_inet_address_str(); });
+  CMD_ANY_STRING_V("network.local_address.ipv4.set",         [nw_config](auto, auto& str)    { return nw_config->set_local_inet_address_str(str); });
+  CMD_ANY         ("network.local_address.ipv6",             [nw_config](auto, auto)         { return nw_config->local_inet6_address_str(); });
+  CMD_ANY_STRING_V("network.local_address.ipv6.set",         [nw_config](auto, auto& str)    { return nw_config->set_local_inet6_address_str(str); });
 
-  CMD2_ANY         ("network.open_files",            [file_manager](auto, auto)        { return file_manager->open_files(); });
-  CMD2_ANY         ("network.max_open_files",        [file_manager](auto, auto)        { return file_manager->max_open_files(); });
-  CMD2_ANY         ("network.total_handshakes",      [](auto, auto)                    { return torrent::runtime::total_handshakes(); });
+  CMD_ANY         ("network.proxy.global",                   [](auto, auto)                  { return torrent::runtime::proxy_manager()->proxy_url(); });
+  CMD_ANY_STRING_V("network.proxy.global.set",               [](auto, auto& str)             { return torrent::runtime::proxy_manager()->set_proxy_url(str); });
+  CMD_ANY         ("network.proxy.http",                     [](auto, auto)                  { return torrent::runtime::proxy_manager()->http_proxy_url(); });
+  CMD_ANY_STRING_V("network.proxy.http.set",                 [](auto, auto& str)             { return torrent::runtime::proxy_manager()->set_http_proxy_url(str); });
 
-  CMD2_ANY_STRING  ("network.scgi.open_port",        std::bind(&apply_scgi, std::placeholders::_2, 1));
-  CMD2_ANY_STRING  ("network.scgi.open_local",       std::bind(&apply_scgi, std::placeholders::_2, 2));
-  CMD2_VAR_BOOL    ("network.scgi.dont_route",       false);
-  CMD2_ANY         ("network.scgi.open_systemd",     [](auto, auto) { return apply_scgi_systemd(); });
+  CMD_ANY         ("network.open_files",                     [file_manager](auto, auto)      { return file_manager->open_files(); });
+  CMD_ANY         ("network.max_open_files",                 [file_manager](auto, auto)      { return file_manager->max_open_files(); });
+  CMD_ANY         ("network.total_handshakes",               [](auto, auto)                  { return torrent::runtime::total_handshakes(); });
 
-  CMD2_ANY         ("network.scgi.use_gzip",          [](const auto&, const auto&)     { return rpc::rpc.scgi_allow_compression(); });
-  CMD2_ANY_VALUE_V ("network.scgi.use_gzip.set",      [](const auto&, const auto& arg) { return rpc::rpc.set_scgi_allow_compression(arg); });
-  CMD2_ANY         ("network.scgi.gzip.min_size",     [](const auto&, const auto&)     { return rpc::rpc.scgi_min_compress_size(); });
-  CMD2_ANY_VALUE_V ("network.scgi.gzip.min_size.set", [](const auto&, const auto& arg) { return rpc::rpc.set_scgi_min_compress_size(arg); });
+  CMD_ANY_STRING  ("network.scgi.open_port",                 [](auto, auto& arg)             { return apply_scgi(arg, 1); });
+  CMD_ANY_STRING  ("network.scgi.open_local",                [](auto, auto& arg)             { return apply_scgi(arg, 2); });
+  CMD_VAR_BOOL    ("network.scgi.dont_route",                false);
+  CMD_ANY         ("network.scgi.open_systemd",              [](auto, auto)                  { return apply_scgi_systemd(); });
 
-  CMD2_ANY_STRING  ("network.xmlrpc.dialect.set",     [](const auto&, const auto& arg) { return apply_xmlrpc_dialect(arg); })
-  CMD2_ANY         ("network.xmlrpc.size_limit",      [](const auto&, const auto&)     { return rpc::rpc.size_limit(); });
-  CMD2_ANY_VALUE_V ("network.xmlrpc.size_limit.set",  [](const auto&, const auto& arg) { return rpc::rpc.set_size_limit(arg); });
+  CMD_ANY         ("network.scgi.use_gzip",                  [](auto, auto)                  { return rpc::rpc.scgi_allow_compression(); });
+  CMD_ANY_VALUE_V ("network.scgi.use_gzip.set",              [](auto, auto& arg)             { return rpc::rpc.set_scgi_allow_compression(arg); });
+  CMD_ANY         ("network.scgi.gzip.min_size",             [](auto, auto)                  { return rpc::rpc.scgi_min_compress_size(); });
+  CMD_ANY_VALUE_V ("network.scgi.gzip.min_size.set",         [](auto, auto& arg)             { return rpc::rpc.set_scgi_min_compress_size(arg); });
 
-  CMD2_VAR_BOOL    ("network.rpc.use_xmlrpc",        true);
-  CMD2_VAR_BOOL    ("network.rpc.use_jsonrpc",       true);
+  CMD_ANY_STRING  ("network.xmlrpc.dialect.set",             [](auto, auto& arg)             { return apply_xmlrpc_dialect(arg); })
+  CMD_ANY         ("network.xmlrpc.size_limit",              [](auto, auto)                  { return rpc::rpc.size_limit(); });
+  CMD_ANY_VALUE_V ("network.xmlrpc.size_limit.set",          [](auto, auto& arg)             { return rpc::rpc.set_size_limit(arg); });
 
-  CMD2_ANY         ("network.block.ipv4",            [nw_config](auto, auto)        { return nw_config->is_block_ipv4(); });
-  CMD2_ANY_VALUE_V ("network.block.ipv4.set",        [nw_config](auto, auto& value) { return nw_config->set_block_ipv4(value); });
-  CMD2_ANY         ("network.block.ipv6",            [nw_config](auto, auto)        { return nw_config->is_block_ipv6(); });
-  CMD2_ANY_VALUE_V ("network.block.ipv6.set",        [nw_config](auto, auto& value) { return nw_config->set_block_ipv6(value); });
-  CMD2_ANY         ("network.block.ipv4in6",         [nw_config](auto, auto)        { return nw_config->is_block_ipv4in6(); });
-  CMD2_ANY_VALUE_V ("network.block.ipv4in6.set",     [nw_config](auto, auto& value) { return nw_config->set_block_ipv4in6(value); });
-  CMD2_ANY         ("network.block.outgoing",        [nw_config](auto, auto)        { return nw_config->is_block_outgoing(); });
-  CMD2_ANY_VALUE_V ("network.block.outgoing.set",    [nw_config](auto, auto& value) { return nw_config->set_block_outgoing(value); });
-  CMD2_ANY         ("network.prefer.ipv6",           [nw_config](auto, auto)        { return nw_config->is_prefer_ipv6(); });
-  CMD2_ANY_VALUE_V ("network.prefer.ipv6.set",       [nw_config](auto, auto& value) { return nw_config->set_prefer_ipv6(value); });
+  CMD_VAR_BOOL    ("network.rpc.use_xmlrpc",                 true);
+  CMD_VAR_BOOL    ("network.rpc.use_jsonrpc",                true);
+
+  CMD_ANY         ("network.block.ipv4",                     [nw_config](auto, auto)         { return nw_config->is_block_ipv4(); });
+  CMD_ANY_VALUE_V ("network.block.ipv4.set",                 [nw_config](auto, auto& value)  { return nw_config->set_block_ipv4(value); });
+  CMD_ANY         ("network.block.ipv6",                     [nw_config](auto, auto)         { return nw_config->is_block_ipv6(); });
+  CMD_ANY_VALUE_V ("network.block.ipv6.set",                 [nw_config](auto, auto& value)  { return nw_config->set_block_ipv6(value); });
+  CMD_ANY         ("network.block.ipv4in6",                  [nw_config](auto, auto)         { return nw_config->is_block_ipv4in6(); });
+  CMD_ANY_VALUE_V ("network.block.ipv4in6.set",              [nw_config](auto, auto& value)  { return nw_config->set_block_ipv4in6(value); });
+  CMD_ANY         ("network.block.outgoing",                 [nw_config](auto, auto)         { return nw_config->is_block_outgoing(); });
+  CMD_ANY_VALUE_V ("network.block.outgoing.set",             [nw_config](auto, auto& value)  { return nw_config->set_block_outgoing(value); });
+  CMD_ANY         ("network.prefer.ipv6",                    [nw_config](auto, auto)         { return nw_config->is_prefer_ipv6(); });
+  CMD_ANY_VALUE_V ("network.prefer.ipv6.set",                [nw_config](auto, auto& value)  { return nw_config->set_prefer_ipv6(value); });
 
   rpc::rpc.mark_safe("network.port_open");
   rpc::rpc.mark_safe("network.port_random");
@@ -334,11 +336,13 @@ initialize_command_network() {
   rpc::rpc.mark_safe("network.local_address");
   rpc::rpc.mark_safe("network.xmlrpc.size_limit");
   rpc::rpc.mark_safe("network.open_sockets");
+
   rpc::rpc.mark_safe("network.http.cacert");
   rpc::rpc.mark_safe("network.http.capath");
-  rpc::rpc.mark_safe("network.http.proxy_address");
-  rpc::rpc.mark_safe("network.proxy_address");
+  rpc::rpc.mark_safe("network.proxy.global");
+  rpc::rpc.mark_safe("network.proxy.http");
   rpc::rpc.mark_safe("network.scgi.dont_route");
+
   rpc::rpc.mark_safe("protocol.pex");
 
   rpc::rpc.mark_safe("network.rpc.use_xmlrpc");

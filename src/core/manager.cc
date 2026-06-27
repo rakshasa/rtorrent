@@ -194,37 +194,6 @@ Manager::listen_open() {
 }
 
 void
-Manager::set_proxy_address(const std::string& addr) {
-  int port;
-  torrent::sa_unique_ptr sa;
-
-  std::string buf(addr.length() + 1, '\0');
-
-  int err = std::sscanf(addr.c_str(), "%[^:]:%i", buf.data(), &port);
-
-  if (err <= 0)
-    throw torrent::input_error("Could not parse proxy address.");
-
-  if (err == 1)
-    port = 80;
-
-  try {
-    sa = torrent::sa_copy(torrent::sa_lookup_address(buf, AF_INET).get());
-
-  } catch (torrent::input_error& e) {
-    throw torrent::input_error("Could not resolve proxy address: " + std::string(e.what()));
-  }
-
-  try {
-    torrent::sa_set_port(sa.get(), port);
-    torrent::runtime::network_config()->set_proxy_address(sa.get());
-
-  } catch (torrent::input_error& e) {
-    throw e;
-  }
-}
-
-void
 Manager::receive_http_failed(std::string msg) {
   push_log_std("Http download error: \"" + msg + "\"");
 }

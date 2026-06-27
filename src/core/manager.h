@@ -57,8 +57,6 @@ public:
 
   void                listen_open();
 
-  void                set_proxy_address(const std::string& addr);
-
   const std::string&  magnet_path();
   void                set_magnet_path(const std::string& path);
 

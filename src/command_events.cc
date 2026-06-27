@@ -258,11 +258,12 @@ torrent::Object
 d_multicall_filtered(const torrent::Object::list_type& args) {
   if (args.size() < 2)
     throw torrent::input_error("d.multicall.filtered requires at least 2 arguments.");
-  torrent::Object::list_const_iterator arg = args.begin();
+
+  auto arg = args.begin();
 
   // Find the given view
-  core::ViewManager* viewManager = control->view_manager();
-  core::ViewManager::iterator view_itr = viewManager->find(arg->as_string().empty() ? "default" : arg->as_string());
+  auto* viewManager = control->view_manager();
+  auto  view_itr    = viewManager->find(arg->as_string().empty() ? "default" : arg->as_string());
 
   if (view_itr == viewManager->end())
     throw torrent::input_error("Could not find view '" + arg->as_string() + "'.");
@@ -272,8 +273,9 @@ d_multicall_filtered(const torrent::Object::list_type& args) {
   (*view_itr)->filter_by(*++arg, dlist);
 
   // Generate result by iterating over all items
-  torrent::Object             resultRaw = torrent::Object::create_list();
-  torrent::Object::list_type& result = resultRaw.as_list();
+  auto  resultRaw = torrent::Object::create_list();
+  auto& result    = resultRaw.as_list();
+
   ++arg;  // skip to first command
 
   for (const auto& item : dlist) {
@@ -360,7 +362,6 @@ initialize_command_events() {
 
   // TODO: Deprecate d.multicall2. (6/2026)
   CMD2_ANY_LIST    ("d.multicall",                [](auto, auto& args) { return d_multicall(args); });
-  CMD2_ANY_LIST    ("d.multicall2",               [](auto, auto& args) { return d_multicall(args); });
   CMD2_ANY_LIST    ("d.multicall.filtered",       [](auto, auto& args) { return d_multicall_filtered(args); });
 
   CMD2_ANY_LIST    ("directory.watch.added",      [](auto, auto& args) { return directory_watch_added(args); });
@@ -375,6 +376,5 @@ initialize_command_events() {
   rpc::rpc.mark_safe("close_low_diskspace.normal");
   rpc::rpc.mark_safe("download_list");
   rpc::rpc.mark_safe("d.multicall");
-  rpc::rpc.mark_safe("d.multicall2");
   rpc::rpc.mark_safe("d.multicall.filtered");
 }

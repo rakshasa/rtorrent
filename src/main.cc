@@ -358,11 +358,16 @@ main(int argc, char** argv) {
 
     // TODO: Deprecate these at some point a while after 1.1 release.
 
-    CMD_REDIRECT("network.open_sockets",          "system.sockets.size");
-    CMD_REDIRECT("network.max_open_sockets",      "system.sockets.max_size");
-    CMD_REDIRECT("network.max_open_sockets.set",  "system.sockets.max_size.set");
+    CMD_REDIRECT("d.multicall2",                   "d.multicall");
+    CMD_REDIRECT("network.open_sockets",           "system.sockets.size");
+    CMD_REDIRECT("network.max_open_sockets",       "system.sockets.max_size");
+    CMD_REDIRECT("network.max_open_sockets.set",   "system.sockets.max_size.set");
+    CMD_REDIRECT("network.http.proxy_address",     "network.proxy.http");
+    CMD_REDIRECT("network.http.proxy_address.set", "network.proxy.http.set");
 
+    rpc::rpc.mark_safe("d.multicall2");
     rpc::rpc.mark_safe("network.max_open_sockets");
+    rpc::rpc.mark_safe("network.http.proxy_address");
 
     CMD2_ANY_VALUE_V("network.http.max_total_connections.set", [](auto, auto) {
         lt_log_print(torrent::LOG_WARN, "network.http.max_total_connections.set is deprecated, use system.sockets.http.min_alloc.set instead.");

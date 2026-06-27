@@ -378,18 +378,19 @@ t_multicall(core::Download* download, const torrent::Object::list_type& args) {
 
   // Add some pre-parsing of the commands, so we don't spend time
   // parsing and searching command map for every single call.
-  torrent::Object             result_raw = torrent::Object::create_list();
-  torrent::Object::list_type& result     = result_raw.as_list();
+
+  auto  result_raw = torrent::Object::create_list();
+  auto& result     = result_raw.as_list();
 
   for (uint32_t idx = 0, last = download->tracker_list_size(); idx < last; idx++) {
-    auto& row = result.insert(result.end(), torrent::Object::create_list())->as_list();
+    auto& row     = result.insert(result.end(), torrent::Object::create_list())->as_list();
     auto  tracker = download->tracker_controller().at(idx);
 
     if (!tracker.is_valid())
       continue;
 
-    for (torrent::Object::list_const_iterator cItr = ++args.begin(); cItr != args.end(); cItr++) {
-      const std::string& cmd = cItr->as_string();
+    for (auto cItr = ++args.begin(); cItr != args.end(); cItr++) {
+      auto& cmd = cItr->as_string();
 
       row.push_back(rpc::parse_command(rpc::make_target(&tracker), cmd.c_str(), cmd.c_str() + cmd.size()).first);
     }
@@ -408,13 +409,13 @@ p_multicall(core::Download* download, const torrent::Object::list_type& args) {
 
   // Add some pre-parsing of the commands, so we don't spend time
   // parsing and searching command map for every single call.
-  torrent::Object             resultRaw = torrent::Object::create_list();
-  torrent::Object::list_type& result = resultRaw.as_list();
+  auto  resultRaw = torrent::Object::create_list();
+  auto& result    = resultRaw.as_list();
 
   for (const auto& connection : *download->connection_list()) {
     torrent::Object::list_type& row = result.insert(result.end(), torrent::Object::create_list())->as_list();
 
-    for (torrent::Object::list_const_iterator cItr = ++args.begin(); cItr != args.end(); cItr++) {
+    for (auto cItr = ++args.begin(); cItr != args.end(); cItr++) {
       const std::string& cmd = cItr->as_string();
 
       row.push_back(rpc::parse_command(rpc::make_target(connection), cmd.c_str(), cmd.c_str() + cmd.size()).first);
