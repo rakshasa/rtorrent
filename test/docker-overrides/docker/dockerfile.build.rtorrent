@@ -1,0 +1,52 @@
+# syntax=docker/dockerfile:experimental
+
+ARG REPOSITORY
+ARG TAG_APPEND
+
+
+FROM "${REPOSITORY}/build/rtorrent/compiler:${TAG_APPEND}" AS builder
+
+COPY /rtorrent.tar.gz /stage/
+
+ARG RTORRENT_ARGS=""
+
+RUN set -xe; \
+  \
+  mkdir -p /build/rtorrent/source; \
+  \
+  tar ${RDO_TAR_X_ARGS} /stage/rtorrent.tar.gz \
+    --directory '/build/rtorrent/source'; \
+  \
+  cd /build/rtorrent/source; \
+  \
+  autoreconf -fi; \
+  \
+  cat /env.configure; \
+  . /env.configure; \
+  \
+  ./configure \
+    --prefix=/prefix \
+    INSTALL="/usr/bin/install -C" \
+    --enable-debug \
+    --enable-extra-debug \
+    --disable-execinfo \
+    ${RTORRENT_ARGS} \
+    || cat config.log; \
+  \
+  make -j12; \
+  make -j12 install
+
+
+FROM "${REPOSITORY}/build/rtorrent/run:${TAG_APPEND}"
+
+WORKDIR /run/rtorrent
+
+ENV PATH="/prefix/bin:${PATH}"
+
+RUN mkdir -p "/torrents"
+
+COPY --from=builder /prefix/ /prefix/
+COPY bash_profile /root/.bash_profile
+COPY entrypoint.sh /
+
+ENTRYPOINT /entrypoint.sh

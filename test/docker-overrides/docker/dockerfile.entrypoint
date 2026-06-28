@@ -1,0 +1,29 @@
+FROM golang:1.16.4-alpine3.13 AS builder
+
+WORKDIR /build
+
+RUN set -xe; \
+  apk add --no-cache \
+    curl \
+    gcc \
+    musl-dev
+
+ENV CGO_ENABLED=0
+ENV GO111MODULE=on
+ENV GOARCH=amd64
+ENV GOOS=linux
+
+COPY go.mod go.sum ./
+
+RUN go mod download
+
+COPY . ./
+
+RUN go build \
+  -v \
+  -ldflags "-linkmode external -extldflags '-static -fno-PIC' -s -w"
+
+
+FROM scratch
+
+COPY --from=builder /build/entrypoint /

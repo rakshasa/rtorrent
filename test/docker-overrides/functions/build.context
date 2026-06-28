@@ -1,0 +1,86 @@
+#!/usr/bin/env bash
+
+include_header build.context
+
+rdo_build__context__ancestor() {
+  local context_name="ancestor"
+  local context_path="./context/${context_name}"
+
+  rm -r "${context_path}/bin" 2> /dev/null || :
+  mkdir -p "${context_path}/bin"
+
+  cp ./misc/{pkg,rdo}-*[!~] "${context_path}/bin/"
+
+  rdo docker build --context "${context_path}" "${@}"
+}
+
+rdo_build__context__empty() {
+  local context_name="empty"
+  local context_path="./context/${context_name}"
+
+  mkdir -p "${context_path}"
+
+  rdo docker build --context "${context_path}" "${@}"
+}
+
+rdo_build__context__run() {
+  local context_tag="${1:?Missing context tag argument.}"
+  shift
+
+  local context_name="run"
+  local context_path="./context/${context_name}/${context_tag}"
+  local tag_full="${@:${#}}"
+  local tag_append="${tag_full##*:}"
+
+  if [[ -z "${context_tag##-*}" ]]; then
+    print_error "rdo_build__context__run requires the first argument to be the context tag, which cannot start with a '-'."
+    return 1
+  fi
+
+  if [[ "${tag_full}" == "${tag_append}" ]]; then
+    print_error "rdo_build__context__run requires the build tag to be a full tag"
+    return 1
+  fi
+
+  mkdir -p "${context_path}"
+
+  local bash_profile_path
+  bash_profile_path="$(mktemp)"
+
+  "./misc/gen-bash-profile" "${context_name}" "${tag_full}" > "${bash_profile_path}"
+  "./misc/rdo-file-move" "${bash_profile_path}" "${context_path}/bash_profile"
+  rm -f "${bash_profile_path}"
+
+  cp "./misc/entrypoint.sh" "${context_path}/entrypoint.sh"
+
+  rdo docker build --context "${context_path}" "${@}"
+}
+
+rdo_build__context__rtorrent() {
+  local context_name="rtorrent"
+  local context_path="./context/${context_name}"
+  local tag_full="${@:${#}}"
+  local tag_append="${tag_full##*:}"
+
+  if [[ "${tag_full}" == "${tag_append}" ]]; then
+    print_error "rdo_build__context__run requires the build tag to be a full tag"
+    return 1
+  fi
+
+  mkdir -p "${context_path}"
+
+  ./misc/rsync-stage-compile ./data/rtorrent/ "${context_path}/rtorrent/"
+
+  rdo__call_tar_cf "${context_path}/rtorrent.tar.gz" --directory "${context_path}/rtorrent" .
+
+  local bash_profile_path
+  bash_profile_path="$(mktemp)"
+
+  "./misc/gen-bash-profile" "${context_name}" "${tag_full}" > "${bash_profile_path}"
+  "./misc/rdo-file-move" "${bash_profile_path}" "${context_path}/bash_profile"
+  rm -f "${bash_profile_path}"
+
+  cp "./misc/entrypoint.sh" "${context_path}/entrypoint.sh"
+
+  rdo docker build --context "${context_path}" "${@}"
+}

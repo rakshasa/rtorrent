@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+#
+# - Add fallback to anonymouse git repositories.
+# - Store default remote and allow user to change it.
+
+include_header git
+
+rdo_git() {
+  eval "$(args::init_subcommand "rdo build" "Build project.")"
+
+  args::new_command "clone" empty "Clone all repositories" \
+                    'rdo_git_clone'
+
+  eval "$(args::process)"
+}
+
+rdo_git_clone() {
+  rdo_git__clone_repository "rtorrent" "git@github.com:rakshasa/rtorrent.git"
+  # libtorrent is now in-tree — no separate clone needed
+}
+
+# Helper functions
+
+rdo_git__clone_repository() {
+  local name="${1:?Missing name argument.}"
+  local repository="${2:?Missing repository argument.}"
+
+  local path="./data/${name}"
+
+  if ! [ -d "${path}" ]; then
+    git clone "${repository}" "${path}"
+  else
+    print_progress "repository '${repository}' already exists, skipping"
+  fi
+
+  if ! (cd "${path}" && git status) &> /dev/null; then
+    print_progress "repository '${repository}' is not valid, git status failed"
+  fi
+}

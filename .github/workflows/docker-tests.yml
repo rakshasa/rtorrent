@@ -1,0 +1,110 @@
+name: Docker Integration Tests
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+concurrency:
+  group: docker-tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  docker-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Set up rtorrent-docker
+        run: bash scripts/ci/setup-docker-tests.sh
+
+      - name: Build entrypoint
+        run: |
+          cd test/docker
+          docker build -t rdo/build/entrypoint:global -f docker/dockerfile.entrypoint entrypoint/
+
+      - name: Build ancestor images
+        run: |
+          cd test/docker
+          mkdir -p context/ancestor/bin
+          cp misc/pkg-* misc/rdo-*[!~] context/ancestor/bin/
+          docker build -t rdo/ancestor/build:alpine-3 \
+            -f docker/dockerfile.ancestor \
+            --build-arg BASE_IMAGE=alpine:3.21 \
+            --build-arg ANCESTOR_PROJECT=build \
+            context/ancestor/
+          docker build -t rdo/ancestor/run:alpine-3 \
+            -f docker/dockerfile.ancestor \
+            --build-arg BASE_IMAGE=alpine:3.21 \
+            --build-arg ANCESTOR_PROJECT=run \
+            context/ancestor/
+
+      - name: Build stage image
+        run: |
+          cd test/docker
+          mkdir -p context/empty
+          docker build -t rdo/stage:global \
+            -f docker/dockerfile.stage \
+            --build-arg REPOSITORY=rdo \
+            context/empty/
+
+      - name: Build run images
+        run: |
+          cd test/docker
+          for svc in dns opentracker router; do
+            mkdir -p "context/run/${svc}"
+            ./misc/gen-bash-profile run "rdo/run/${svc}:global" > "context/run/${svc}/bash_profile"
+            cp misc/entrypoint.sh "context/run/${svc}/entrypoint.sh"
+            docker build -t "rdo/run/${svc}:global" \
+              -f "docker/dockerfile.run.${svc}" \
+              --build-arg REPOSITORY=rdo \
+              "context/run/${svc}/"
+          done
+
+      - name: Build compiler image
+        run: |
+          cd test/docker
+          docker build -t rdo/build/rtorrent/compiler:alpine-3 \
+            -f docker/dockerfile.build.rtorrent.alpine \
+            --build-arg REPOSITORY=rdo \
+            --target compiler \
+            docker/
+          docker build -t rdo/build/rtorrent/run:alpine-3 \
+            -f docker/dockerfile.build.rtorrent.alpine \
+            --build-arg REPOSITORY=rdo \
+            --target run \
+            docker/
+
+      - name: Build rtorrent (monorepo)
+        run: |
+          cd test/docker
+          git -C ../.. submodule update --init --recursive
+          mkdir -p context/rtorrent
+          tar czf context/rtorrent/rtorrent.tar.gz \
+            --directory ../.. \
+            --exclude='.git' \
+            --exclude='test/docker' \
+            .
+          ./misc/gen-bash-profile rtorrent "rdo/run/rtorrent:alpine-3" > context/rtorrent/bash_profile
+          cp misc/entrypoint.sh context/rtorrent/entrypoint.sh
+          docker build -t rdo/run/rtorrent:alpine-3 \
+            -f docker/dockerfile.build.rtorrent \
+            --build-arg REPOSITORY=rdo \
+            --build-arg TAG_APPEND=alpine-3 \
+            context/rtorrent/
+
+      - name: Smoke test
+        run: |
+          docker run --rm --entrypoint rtorrent rdo/run/rtorrent:alpine-3 -h
+
+      - name: Integration test
+        run: |
+          cd test/docker
+          docker tag rdo/run/rtorrent:alpine-3 rdo/run/rtorrent:default
+          export RDO_BASH_SESSION=yes RDO_DOCKER_TYPE=engine RDO_REPOSITORY=rdo
+          ./rdo batch tests/ci-torrents
