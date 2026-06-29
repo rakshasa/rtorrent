@@ -151,12 +151,13 @@ Manager::cleanup() {
 
 void
 Manager::shutdown(bool force) {
-  if (!force)
+  if (!force) {
     for (auto d : *m_download_list)
       m_download_list->pause_default(d);
-  else
+  } else {
     for (auto d : *m_download_list)
       m_download_list->close_quick(d);
+  }
 }
 
 void

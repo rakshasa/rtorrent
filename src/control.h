@@ -48,17 +48,18 @@ public:
   ~Control();
 
   bool                is_shutdown_completed();
-  bool                is_shutdown_received()        { return m_shutdownReceived; }
-  bool                is_shutdown_started()         { return m_shutdownQuick; }
+  bool                is_shutdown_received()        { return m_shutdown_received; }
+  bool                is_shutdown_started()         { return m_shutdown_quick; }
 
   void                initialize();
   void                cleanup();
   void                cleanup_exception();
 
   void                handle_shutdown();
+  void                handle_shutdown_clear_requests();
 
-  void                receive_normal_shutdown()     { m_shutdownReceived = true; }
-  void                receive_quick_shutdown()      { m_shutdownReceived = true; m_shutdownQuick = true; }
+  void                receive_normal_shutdown()     { m_shutdown_received = true; }
+  void                receive_quick_shutdown()      { m_shutdown_received = true; m_shutdown_quick = true; }
 
   core::Manager*      core()                        { return m_core.get(); }
   core::ViewManager*  view_manager()                { return m_view_manager.get(); }
@@ -107,9 +108,14 @@ private:
   std::string         m_workingDirectory;
 
   torrent::utils::SchedulerEntry m_task_shutdown;
+  torrent::utils::SchedulerEntry m_task_shutdown_clear_requests;
 
-  std::atomic<bool>   m_shutdownReceived{};
-  std::atomic<bool>   m_shutdownQuick{};
+  int                 m_clear_requests_count{};
+
+  align_cacheline
+
+  std::atomic<bool>   m_shutdown_received{};
+  std::atomic<bool>   m_shutdown_quick{};
 };
 
 #endif
