@@ -412,11 +412,6 @@ main(int argc, char** argv) {
 
       // Users should check their setups to see if they need to modify their use of these options.
       CMD_REDIRECT("max_memory_usage",      "pieces.memory.max.set");
-      CMD_REDIRECT("encoding_list",         "encoding.add");
-
-      CMD_ANY_STRING_V("encoding.add", [](auto, auto) {
-          lt_log_print(torrent::LOG_WARN, "The 'encoding.add' command is deprecated and does nothing.");
-        });
 
       CMD_ANY_LIST("throttle.ip", []( auto, auto) {
           lt_log_print(torrent::LOG_WARN, "The 'throttle.ip' command is deprecated and does nothing.");
