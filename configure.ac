@@ -49,6 +49,42 @@ PKG_CHECK_MODULES([CPPUNIT], [cppunit],, [no_cppunit="yes"])
 PKG_CHECK_MODULES([ZLIB], [zlib])
 PKG_CHECK_MODULES([DEPENDENCIES], [libtorrent >= 0.16.15])
 
+AC_ARG_ENABLE(webtorrent,
+  AS_HELP_STRING([--disable-webtorrent],
+    [disable WebTorrent support [[default=enable]]]),
+  [], [enable_webtorrent=yes])
+
+AS_IF([test "x$enable_webtorrent" != "xno"], [
+  AC_LANG_PUSH([C++])
+  rtorrent_save_CXXFLAGS="$CXXFLAGS"
+  CXXFLAGS="$CXXFLAGS $DEPENDENCIES_CFLAGS"
+  AC_COMPILE_IFELSE(
+    [AC_LANG_PROGRAM(
+      [[
+        #include <torrent/common.h>
+        #include <torrent/peer/peer.h>
+        #include <torrent/runtime/runtime.h>
+        #ifndef LIBTORRENT_HAS_WEBTORRENT
+        #error "libtorrent was not built with WebTorrent support"
+        #endif
+      ]],
+      [[
+        bool supported = torrent::runtime::webtorrent_supported();
+        torrent::runtime::set_webtorrent_enabled(supported);
+        bool enabled = torrent::runtime::webtorrent_enabled();
+        torrent::tracker_enum tracker_type = torrent::TRACKER_WEBSOCKET;
+        torrent::Peer* peer = nullptr;
+        bool is_webtorrent = peer != nullptr && peer->is_webtorrent();
+        (void)enabled;
+        (void)tracker_type;
+        (void)is_webtorrent;
+      ]])],
+    [AC_DEFINE([HAVE_LIBUTORRENT_WEBTORRENT], [1], [Define if libtorrent exposes WebTorrent support.])],
+    [AC_MSG_ERROR([WebTorrent support requested but installed libtorrent does not expose the required WebTorrent API. Install a WebTorrent-enabled rakshasa/libtorrent or configure with --disable-webtorrent.])])
+  CXXFLAGS="$rtorrent_save_CXXFLAGS"
+  AC_LANG_POP([C++])
+])
+
 AC_LANG_PUSH(C++)
 TORRENT_WITH_XMLRPC_C
 AC_LANG_POP(C++)

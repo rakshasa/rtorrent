@@ -60,6 +60,10 @@ rc.network.port_random = false
 -- (conservative settings for 'private' trackers, change for 'public')
 rc.dht.mode = 'disable'
 rc.protocol.pex = false
+-- WebTorrent requires a WebTorrent-enabled rakshasa/libtorrent. WebSocket
+-- trackers (ws:// and wss://) are handled by libtorrent.
+--rc.protocol.webtorrent = true
+--rc.protocol.webtorrent = false
 rc.trackers.use_udp = false
 
 -- Peer settings

@@ -45,6 +45,24 @@ retrieve_p_completed_percent(torrent::Peer* peer) {
   return (100 * peer->bitfield()->size_set()) / peer->bitfield()->size_bits();
 }
 
+torrent::Object
+retrieve_p_is_webtorrent(torrent::Peer* peer) {
+#ifdef HAVE_LIBUTORRENT_WEBTORRENT
+  return int64_t(peer->is_webtorrent());
+#else
+  return int64_t(0);
+#endif
+}
+
+torrent::Object
+retrieve_p_transport(torrent::Peer* peer) {
+#ifdef HAVE_LIBUTORRENT_WEBTORRENT
+  return peer->is_webtorrent() ? std::string("webrtc") : std::string("tcp");
+#else
+  return std::string("tcp");
+#endif
+}
+
 void
 initialize_command_peer() {
   CMD2_PEER("p.id",                [](auto* peer, auto) { return torrent::utils::transform_to_hex_str(peer->id()); });
@@ -56,6 +74,8 @@ initialize_command_peer() {
   CMD2_PEER("p.is_encrypted",      std::bind(&torrent::Peer::is_encrypted, std::placeholders::_1));
   CMD2_PEER("p.is_incoming",       std::bind(&torrent::Peer::is_incoming, std::placeholders::_1));
   CMD2_PEER("p.is_obfuscated",     std::bind(&torrent::Peer::is_obfuscated, std::placeholders::_1));
+  CMD2_PEER("p.is_webtorrent",     std::bind(&retrieve_p_is_webtorrent, std::placeholders::_1));
+  CMD2_PEER("p.transport",         std::bind(&retrieve_p_transport, std::placeholders::_1));
   CMD2_PEER("p.is_snubbed",        std::bind(&torrent::Peer::is_snubbed, std::placeholders::_1));
 
   CMD2_PEER("p.is_unwanted",       std::bind(&torrent::PeerInfo::is_unwanted,  std::bind(&torrent::Peer::peer_info, std::placeholders::_1)));
@@ -96,6 +116,8 @@ initialize_command_peer() {
   rpc::rpc.mark_safe("p.is_encrypted");
   rpc::rpc.mark_safe("p.is_incoming");
   rpc::rpc.mark_safe("p.is_obfuscated");
+  rpc::rpc.mark_safe("p.is_webtorrent");
+  rpc::rpc.mark_safe("p.transport");
   rpc::rpc.mark_safe("p.is_snubbed");
   rpc::rpc.mark_safe("p.is_unwanted");
   rpc::rpc.mark_safe("p.is_preferred");

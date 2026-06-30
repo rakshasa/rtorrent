@@ -30,6 +30,10 @@ network.port_random.set = no
 # (conservative settings for 'private' trackers, change for 'public')
 dht.mode.set = disable
 protocol.pex.set = no
+# WebTorrent requires a WebTorrent-enabled rakshasa/libtorrent. WebSocket
+# trackers (ws:// and wss://) are handled by libtorrent.
+#protocol.webtorrent.set = yes
+#protocol.webtorrent.set = no
 trackers.use_udp.set = no
 
 # Peer settings

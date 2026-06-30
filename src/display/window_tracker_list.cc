@@ -10,6 +10,24 @@
 
 namespace display {
 
+namespace {
+
+const char*
+tracker_type_name(torrent::tracker_enum type) {
+  switch (type) {
+  case torrent::TRACKER_HTTP: return "http";
+  case torrent::TRACKER_UDP: return "udp";
+  case torrent::TRACKER_DHT: return "dht";
+#ifdef HAVE_LIBUTORRENT_WEBTORRENT
+  case torrent::TRACKER_WEBSOCKET: return "websocket";
+#endif
+  case torrent::TRACKER_NONE:
+  default: return "none";
+  }
+}
+
+} // namespace
+
 WindowTrackerList::WindowTrackerList(core::Download* d, unsigned int* focus) :
   Window(new Canvas, 0, 0, 0, extent_full, extent_full),
   m_download(d),
@@ -60,8 +78,9 @@ WindowTrackerList::redraw() {
 
       auto tracker_state = tracker.state();
 
-      m_canvas->print(0, pos++, "%s Id: %s Counters: %uf / %us (%u) %s S/L/D: %u/%u/%u (%u/%u)",
+      m_canvas->print(0, pos++, "%s Type: %s Id: %s Counters: %uf / %us (%u) %s S/L/D: %u/%u/%u (%u/%u)",
                       state,
+                      tracker_type_name(tracker.type()),
                       torrent::utils::copy_escape_html_str(tracker.tracker_id()).c_str(),
                       tracker_state.failed_counter(),
                       tracker_state.success_counter(),

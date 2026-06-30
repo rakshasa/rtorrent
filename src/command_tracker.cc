@@ -79,6 +79,20 @@ apply_enable_trackers(int64_t arg) {
   return torrent::Object();
 }
 
+const char*
+tracker_type_name(torrent::tracker_enum type) {
+  switch (type) {
+  case torrent::TRACKER_HTTP: return "http";
+  case torrent::TRACKER_UDP: return "udp";
+  case torrent::TRACKER_DHT: return "dht";
+#ifdef HAVE_LIBUTORRENT_WEBTORRENT
+  case torrent::TRACKER_WEBSOCKET: return "websocket";
+#endif
+  case torrent::TRACKER_NONE:
+  default: return "none";
+  }
+}
+
 void
 initialize_command_tracker() {
   CMD2_TRACKER        ("t.is_busy",            [](auto* tracker, auto) { return tracker->is_requesting(); });
@@ -99,6 +113,7 @@ initialize_command_tracker() {
   CMD2_TRACKER        ("t.url",                [](auto* tracker, auto) { return tracker->url(); });
   CMD2_TRACKER        ("t.group",              [](auto* tracker, auto) { return tracker->group(); });
   CMD2_TRACKER        ("t.type",               [](auto* tracker, auto) { return tracker->type(); });
+  CMD2_TRACKER        ("t.type_str",           [](auto* tracker, auto) { return std::string(tracker_type_name(tracker->type())); });
   CMD2_TRACKER        ("t.id",                 [](auto* tracker, auto) { return tracker->tracker_id(); });
 
   CMD2_TRACKER        ("t.latest_event",       [](auto* tracker, auto) { return tracker->state().latest_event(); });
@@ -151,6 +166,7 @@ initialize_command_tracker() {
   rpc::rpc.mark_safe("t.group");
   rpc::rpc.mark_safe("t.id");
   rpc::rpc.mark_safe("t.type");
+  rpc::rpc.mark_safe("t.type_str");
   rpc::rpc.mark_safe("t.is_usable");
   rpc::rpc.mark_safe("t.is_busy");
   rpc::rpc.mark_safe("t.is_enabled");

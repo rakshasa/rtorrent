@@ -213,7 +213,7 @@ DownloadFactory::receive_success() {
 
   rtorrent->insert_key("key", download->tracker_controller().key());
 
-  initialize_rtorrent(download, rtorrent);
+  initialize_rtorrent(download, rtorrent, resumeObject);
 
   if (!rtorrent->has_key_string("custom1")) rtorrent->insert_key("custom1", std::string());
   if (!rtorrent->has_key_string("custom2")) rtorrent->insert_key("custom2", std::string());
@@ -357,7 +357,7 @@ DownloadFactory::receive_failed(const std::string& msg) {
 }
 
 void
-DownloadFactory::initialize_rtorrent(Download* download, torrent::Object* rtorrent) {
+DownloadFactory::initialize_rtorrent(Download* download, torrent::Object* rtorrent, torrent::Object& resumeObject) {
   auto cached_seconds = torrent::this_thread::cached_seconds().count();
 
   if (!rtorrent->has_key_value("state") || rtorrent->get_key_value("state") > 1) {
@@ -392,8 +392,13 @@ DownloadFactory::initialize_rtorrent(Download* download, torrent::Object* rtorre
   if (rtorrent->has_key_value("total_downloaded"))
     download->info()->mutable_down_rate()->set_total(rtorrent->get_key_value("total_downloaded"));
 
-  if (rtorrent->has_key_value("chunks_done") && rtorrent->has_key_value("chunks_wanted"))
+  if (rtorrent->has_key_value("complete") && rtorrent->get_key_value("complete")) {
+    torrent::resume_load_progress(*download->download(), resumeObject);
+    download->download()->set_bitfield(true);
+
+  } else if (rtorrent->has_key_value("chunks_done") && rtorrent->has_key_value("chunks_wanted")) {
     download->download()->set_chunks_done(rtorrent->get_key_value("chunks_done"), rtorrent->get_key_value("chunks_wanted"));
+  }
 
   download->set_throttle_name(rtorrent->has_key_string("throttle_name")
                               ? rtorrent->get_key_string("throttle_name")

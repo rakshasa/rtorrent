@@ -137,6 +137,7 @@ Download::create_info() {
   element->push_back("");
   element->push_column("Connection type:",  te_command("cat=(d.connection_current),\" \",(if,(d.accepting_seeders),"",\"no_seeders\")"));
   element->push_column("Choke heuristic:",  te_command("cat=(d.up.choke_heuristics),\", \",(d.down.choke_heuristics),\", \",(d.group)"));
+  element->push_column("WebTorrent:",       te_command("if=$system.has_webtorrent=,$if=$protocol.webtorrent=,enabled,disabled,\"not built\""));
   element->push_column("Safe sync:",        te_command("if=$pieces.sync.always_safe=,yes,no"));
   element->push_column("Send buffer:",      te_command("cat=$convert.kb=$network.send_buffer.size=,\" KB\""));
   element->push_column("Receive buffer:",   te_command("cat=$convert.kb=$network.receive_buffer.size=,\" KB\""));

@@ -61,6 +61,27 @@ apply_tos(const torrent::Object::string_type& arg) {
   return torrent::Object();
 }
 
+torrent::Object
+retrieve_protocol_webtorrent() {
+#ifdef HAVE_LIBUTORRENT_WEBTORRENT
+  return int64_t(torrent::runtime::webtorrent_supported() && torrent::runtime::webtorrent_enabled());
+#else
+  return int64_t(0);
+#endif
+}
+
+torrent::Object
+apply_protocol_webtorrent(int64_t value) {
+#ifdef HAVE_LIBUTORRENT_WEBTORRENT
+  torrent::runtime::set_webtorrent_enabled(value != 0);
+#else
+  if (value != 0)
+    throw torrent::input_error("WebTorrent support is not available in this build.");
+#endif
+
+  return torrent::Object();
+}
+
 void
 initialize_rpc_handlers() {
   rpc::rpc.initialize_handlers();
@@ -229,6 +250,8 @@ initialize_command_network() {
   CMD2_ANY_VALUE_V ("network.listen.backlog.set", [nw_config](auto, auto& value) { return nw_config->set_listen_backlog(value); });
 
   CMD2_VAR_BOOL    ("protocol.pex",               true);
+  CMD2_ANY         ("protocol.webtorrent",         [](auto, auto)        { return retrieve_protocol_webtorrent(); });
+  CMD2_ANY_VALUE_V ("protocol.webtorrent.set",     [](auto, auto& value) { return apply_protocol_webtorrent(value); });
   CMD2_ANY_LIST    ("protocol.encryption.set",    [](auto, auto& args)           { return apply_encryption(args); });
 
   CMD2_VAR_STRING  ("protocol.connection.leech",            "leech");
@@ -340,6 +363,7 @@ initialize_command_network() {
   rpc::rpc.mark_safe("network.proxy_address");
   rpc::rpc.mark_safe("network.scgi.dont_route");
   rpc::rpc.mark_safe("protocol.pex");
+  rpc::rpc.mark_safe("protocol.webtorrent");
 
   rpc::rpc.mark_safe("network.rpc.use_xmlrpc");
   rpc::rpc.mark_safe("network.rpc.use_jsonrpc");

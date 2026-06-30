@@ -60,7 +60,7 @@ private:
 
   void                log_created(Download* download, torrent::Object* rtorrent);
 
-  void                initialize_rtorrent(Download* download, torrent::Object* rtorrent);
+  void                initialize_rtorrent(Download* download, torrent::Object* rtorrent, torrent::Object& resumeObject);
 
   Manager*                       m_manager;
   std::shared_ptr<std::iostream> m_stream;
