@@ -88,17 +88,25 @@ ExecFile::execute(const char* file, char* const* argv, int flags) {
   posix_spawnattr_t attr;
   posix_spawnattr_init(&attr);
 
-  // If you are using standard close-on-exec (O_CLOEXEC) across rtorrent, posix_spawn honors it
-  // automatically. If you want to explicitly enforce a clean slate, modern systems support
-  // POSIX_SPAWN_CLOEXEC_DEFAULT.
+  short spawn_flags = 0;
 
 #ifdef POSIX_SPAWN_CLOEXEC_DEFAULT
-  posix_spawnattr_setflags(&attr, POSIX_SPAWN_CLOEXEC_DEFAULT);
+  spawn_flags |= POSIX_SPAWN_CLOEXEC_DEFAULT;
 #endif
 
-  pid_t child_pid{};
+  if (flags & flag_background) {
+#ifdef POSIX_SPAWN_SETSID
+    spawn_flags |= POSIX_SPAWN_SETSID;
+#else
+    spawn_flags |= POSIX_SPAWN_SETPGROUP;
+    posix_spawnattr_setpgroup(&attr, 0);
+#endif
+  }
 
-  int spawn_status = posix_spawnp(&child_pid, file, &actions, &attr, argv, environ);
+  posix_spawnattr_setflags(&attr, spawn_flags);
+
+  pid_t child_pid{};
+  int   spawn_status = posix_spawnp(&child_pid, file, &actions, &attr, argv, environ);
 
   posix_spawn_file_actions_destroy(&actions);
   posix_spawnattr_destroy(&attr);
@@ -106,6 +114,13 @@ ExecFile::execute(const char* file, char* const* argv, int flags) {
   if (spawn_status != 0) {
     clean_fn();
     throw torrent::input_error("ExecFile::execute(...) posix_spawn failed: " + std::string(std::strerror(spawn_status)));
+  }
+
+  if (flags & flag_background) {
+    if (m_log_fd != -1)
+      result = write(m_log_fd, "\n--- Running in Background ---\n", sizeof("\n--- Running in Background ---\n"));
+
+    return 0;
   }
 
   if (flags & flag_capture) {
