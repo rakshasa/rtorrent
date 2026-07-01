@@ -39,7 +39,8 @@ public:
   //
   // Consider adding a flag to indicate whetever HttpQueue should
   // delete the stream.
-  iterator    insert(const std::string& url, std::shared_ptr<std::ostream> stream);
+  iterator    insert(const std::string& url, std::shared_ptr<std::ostream> stream,
+                     std::function<void()> done_fn, std::function<void(const std::string&)> failed_fn);
   void        erase(iterator itr);
 
   void        clear();
