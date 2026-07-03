@@ -113,17 +113,17 @@ ExecFile::execute(const char* file, char* const* argv, int flags) {
 
   if (spawn_status != 0) {
     if (pipe_0 != -1)
-      ::close(pipe_0);
+      torrent::fd_close(pipe_0);
 
     if (pipe_1 != -1)
-      ::close(pipe_1);
+      torrent::fd_close(pipe_1);
 
     throw torrent::input_error("ExecFile::execute() posix_spawn failed: " + torrent::system::errno_enum_str(spawn_status));
   }
 
   if (flags & flag_capture) {
     m_capture = std::string();
-    ::close(pipe_1);
+    torrent::fd_close(pipe_1);
 
     char buffer[4096];
     ssize_t length;
@@ -136,7 +136,7 @@ ExecFile::execute(const char* file, char* const* argv, int flags) {
 
     } while (length > 0);
 
-    ::close(pipe_0);
+    torrent::fd_close(pipe_0);
 
     if (m_log_fd != -1) {
       result = write(m_log_fd, "Captured output:\n", sizeof("Captured output:\n"));
@@ -153,7 +153,7 @@ ExecFile::execute(const char* file, char* const* argv, int flags) {
 
   int status;
 
-  while (waitpid(child_pid, &status, 0) == -1) {
+  while (::waitpid(child_pid, &status, 0) == -1) {
     switch (errno) {
     case EINTR:
       continue;
