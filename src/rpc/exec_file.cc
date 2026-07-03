@@ -38,24 +38,10 @@ ExecFile::execute(const char* file, char* const* argv, int flags) {
     result = write(m_log_fd, "\n---\n", sizeof("\n---\n"));
   }
 
-  int pipe_fd[2];
-
-  if ((flags & flag_capture) && pipe(pipe_fd))
-    throw torrent::input_error("ExecFile::execute(...) Pipe creation failed.");
-
-  auto clean_fn = [pipe_fd, flags]() {
-      if (flags & flag_capture) {
-        ::close(pipe_fd[0]);
-        ::close(pipe_fd[1]);
-      }
-    };
-
   posix_spawn_file_actions_t actions{};
 
-  if (posix_spawn_file_actions_init(&actions) != 0) {
-    clean_fn();
+  if (posix_spawn_file_actions_init(&actions) != 0)
     throw torrent::internal_error("ExecFile::execute(...) posix_spawn_file_actions_init failed.");
-  }
 
   // Handle standard input redirection (/dev/null), posix_spawn_file_actions_addopen handles opening
   // and dup2 natively
@@ -63,6 +49,11 @@ ExecFile::execute(const char* file, char* const* argv, int flags) {
     // Fallback if open fails inside action setup
     posix_spawn_file_actions_addclose(&actions, 0);
   }
+
+  int pipe_fd[2] = {-1, -1};
+
+  if ((flags & flag_capture) && pipe(pipe_fd))
+    throw torrent::input_error("ExecFile::execute(...) Pipe creation failed.");
 
   // Handle standard output redirection
   if (flags & flag_capture) {
@@ -112,15 +103,13 @@ ExecFile::execute(const char* file, char* const* argv, int flags) {
   posix_spawnattr_destroy(&attr);
 
   if (spawn_status != 0) {
-    clean_fn();
+    if (pipe_fd[0] != -1)
+      ::close(pipe_fd[0]);
+
+    if (pipe_fd[1] != -1)
+      ::close(pipe_fd[1]);
+
     throw torrent::input_error("ExecFile::execute(...) posix_spawn failed: " + std::string(std::strerror(spawn_status)));
-  }
-
-  if (flags & flag_background) {
-    if (m_log_fd != -1)
-      result = write(m_log_fd, "\n--- Running in Background ---\n", sizeof("\n--- Running in Background ---\n"));
-
-    return 0;
   }
 
   if (flags & flag_capture) {
@@ -144,6 +133,13 @@ ExecFile::execute(const char* file, char* const* argv, int flags) {
       result = write(m_log_fd, "Captured output:\n", sizeof("Captured output:\n"));
       result = write(m_log_fd, m_capture.data(), m_capture.length());
     }
+  }
+
+  if (flags & flag_background) {
+    if (m_log_fd != -1)
+      result = write(m_log_fd, "\n--- Running in Background ---\n", sizeof("\n--- Running in Background ---\n"));
+
+    return 0;
   }
 
   int status;
