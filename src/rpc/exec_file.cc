@@ -8,6 +8,8 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <torrent/net/fd.h>
+#include <torrent/system/system.h>
 #include <torrent/system/thread.h>
 
 #include "exec_file.h"
@@ -46,18 +48,10 @@ ExecFile::execute(const char* file, char* const* argv, int flags) {
   posix_spawnattr_t attr;
   posix_spawnattr_init(&attr);
 
-  short spawn_flags = 0;
-
   // Try to avoid leaking open fds to the spawned process. Prefer POSIX_SPAWN_CLOEXEC_DEFAULT
   // (macOS-only) or posix_spawn_file_actions_addclosefrom_np (glibc >= 2.34, FreeBSD >= 13.1).
   //
   // Other platforms like musl libc, OpenBSD and NetBSD must rely on explicit O_CLOEXEC.
-
-#if defined(POSIX_SPAWN_CLOEXEC_DEFAULT)
-  spawn_flags |= POSIX_SPAWN_CLOEXEC_DEFAULT;
-#elif defined(HAVE_POSIX_SPAWN_FILE_ACTIONS_ADDCLOSEFROM_NP)
-  posix_spawn_file_actions_addclosefrom_np(&actions, 3);
-#endif
 
   // Handle standard input redirection (/dev/null), posix_spawn_file_actions_addopen handles opening
   // and dup2 natively
@@ -66,18 +60,18 @@ ExecFile::execute(const char* file, char* const* argv, int flags) {
     posix_spawn_file_actions_addclose(&actions, 0);
   }
 
-  int pipe_fd[2] = {-1, -1};
-
-  if ((flags & flag_capture) && pipe(pipe_fd))
-    throw torrent::input_error("ExecFile::execute(...) Pipe creation failed.");
+  int pipe_0 = -1;
+  int pipe_1 = -1;
 
   // Handle standard output redirection
   if (flags & flag_capture) {
-    posix_spawn_file_actions_adddup2(&actions, pipe_fd[1], 1);
+    torrent::fd_open_pipe(pipe_0, pipe_1);
+
+    posix_spawn_file_actions_adddup2(&actions, pipe_1, 1);
 
     // Ensure the write end of the pipe is closed in the child after duplicating.
-    posix_spawn_file_actions_addclose(&actions, pipe_fd[1]);
-    posix_spawn_file_actions_addclose(&actions, pipe_fd[0]);
+    posix_spawn_file_actions_addclose(&actions, pipe_0);
+    posix_spawn_file_actions_addclose(&actions, pipe_1);
 
   } else if (m_log_fd != -1) {
     posix_spawn_file_actions_adddup2(&actions, m_log_fd, 1);
@@ -91,6 +85,14 @@ ExecFile::execute(const char* file, char* const* argv, int flags) {
   } else {
     posix_spawn_file_actions_addopen(&actions, 2, "/dev/null", O_RDWR, 0);
   }
+
+  short spawn_flags = 0;
+
+#if defined(POSIX_SPAWN_CLOEXEC_DEFAULT)
+  spawn_flags |= POSIX_SPAWN_CLOEXEC_DEFAULT;
+#elif defined(HAVE_POSIX_SPAWN_FILE_ACTIONS_ADDCLOSEFROM_NP)
+  posix_spawn_file_actions_addclosefrom_np(&actions, 3);
+#endif
 
   if (flags & flag_background) {
 #ifdef POSIX_SPAWN_SETSID
@@ -110,31 +112,31 @@ ExecFile::execute(const char* file, char* const* argv, int flags) {
   posix_spawnattr_destroy(&attr);
 
   if (spawn_status != 0) {
-    if (pipe_fd[0] != -1)
-      ::close(pipe_fd[0]);
+    if (pipe_0 != -1)
+      ::close(pipe_0);
 
-    if (pipe_fd[1] != -1)
-      ::close(pipe_fd[1]);
+    if (pipe_1 != -1)
+      ::close(pipe_1);
 
-    throw torrent::input_error("ExecFile::execute(...) posix_spawn failed: " + std::string(std::strerror(spawn_status)));
+    throw torrent::input_error("ExecFile::execute() posix_spawn failed: " + torrent::system::errno_enum_str(spawn_status));
   }
 
   if (flags & flag_capture) {
     m_capture = std::string();
-    ::close(pipe_fd[1]);
+    ::close(pipe_1);
 
     char buffer[4096];
     ssize_t length;
 
     do {
-      length = read(pipe_fd[0], buffer, sizeof(buffer));
+      length = read(pipe_0, buffer, sizeof(buffer));
 
       if (length > 0)
         m_capture += std::string(buffer, length);
 
     } while (length > 0);
 
-    ::close(pipe_fd[0]);
+    ::close(pipe_0);
 
     if (m_log_fd != -1) {
       result = write(m_log_fd, "Captured output:\n", sizeof("Captured output:\n"));
