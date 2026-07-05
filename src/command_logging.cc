@@ -1,6 +1,7 @@
 #include "config.h"
 
 #include <fcntl.h>
+#include <iterator>
 #include <stdio.h>
 #include <unistd.h>
 #include <torrent/data/chunk_utils.h>
@@ -15,6 +16,7 @@
 #include "core/download.h"
 #include "core/download_list.h"
 #include "core/manager.h"
+#include "rpc/parse.h"
 #include "rpc/parse_commands.h"
 
 torrent::Object
@@ -35,6 +37,32 @@ apply_log_add_output(const torrent::Object::list_type& args) {
 
   log_add_group_output_str(args.front().as_string(), args.back().as_string());
 
+  return torrent::Object();
+}
+
+torrent::Object
+apply_log_print(const torrent::Object::list_type& args) {
+  if (args.size() < 2)
+    throw torrent::input_error("Invalid number of arguments.");
+
+  torrent::Object::value_type group;
+
+  if (args.front().is_value())
+    group = args.front().as_value();
+  else if (args.front().is_string())
+    group = torrent::option_find_string_str(torrent::OPTION_LOG_GROUP, args.front().as_string());
+  else
+    throw torrent::input_error("Invalid log group.");
+
+  if (group < 0 || group >= torrent::LOG_GROUP_MAX_SIZE)
+    throw torrent::input_error("Invalid log group.");
+
+  std::string message;
+
+  for (auto itr = std::next(args.begin()); itr != args.end(); ++itr)
+    rpc::print_object_std(&message, &*itr, 0);
+
+  torrent::log_groups[group].internal_print(message);
   return torrent::Object();
 }
 
@@ -112,6 +140,7 @@ initialize_command_logging() {
   CMD2_ANY_STRING_V("log.close",            std::bind(&torrent::log_close_output_str, std::placeholders::_2));
 
   CMD2_ANY_LIST    ("log.add_output",       std::bind(&apply_log_add_output, std::placeholders::_2));
+  CMD2_ANY_LIST    ("log.print",            std::bind(&apply_log_print, std::placeholders::_2));
 
   CMD2_ANY_STRING  ("log.execute",          std::bind(&apply_log, std::placeholders::_2, 0));
   CMD2_ANY_STRING  ("log.vmmap.dump",       std::bind(&log_vmmap_dump, std::placeholders::_2));

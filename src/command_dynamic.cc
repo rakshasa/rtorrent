@@ -444,6 +444,8 @@ initialize_command_dynamic() {
 
   CMD2_ANY         ("catch", std::bind(&cmd_catch, std::placeholders::_1, std::placeholders::_2));
 
+  CMD2_ANY_STRING  ("enum.log_group",                    [](auto, const auto& str) { return torrent::option_find_string_str(torrent::OPTION_LOG_GROUP, str); });
+
   CMD2_ANY         ("strings.choke_heuristics",          [](auto, auto) { return torrent::option_list_strings(torrent::OPTION_CHOKE_HEURISTICS); });
   CMD2_ANY         ("strings.choke_heuristics.upload",   [](auto, auto) { return torrent::option_list_strings(torrent::OPTION_CHOKE_HEURISTICS_UPLOAD); });
   CMD2_ANY         ("strings.choke_heuristics.download", [](auto, auto) { return torrent::option_list_strings(torrent::OPTION_CHOKE_HEURISTICS_DOWNLOAD); });
@@ -469,6 +471,8 @@ initialize_command_dynamic() {
   rpc::rpc.mark_safe("method.get");
   rpc::rpc.mark_safe("method.rlookup");
   rpc::rpc.mark_safe("catch");
+
+  rpc::rpc.mark_safe("enum.log_group");
 
   rpc::rpc.mark_safe("strings.choke_heuristics");
   rpc::rpc.mark_safe("strings.choke_heuristics.upload");
