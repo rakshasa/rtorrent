@@ -281,6 +281,11 @@ initialize_command_local() {
   CMD_ANY         ("pieces.preload.min_rate",         std::bind(&CM_t::preload_required_rate, chunkManager));
   CMD_ANY_VALUE_V ("pieces.preload.min_rate.set",     std::bind(&CM_t::set_preload_required_rate, chunkManager, std::placeholders::_2));
 
+  CMD_ANY         ("pieces.sendfile",                 std::bind(&CM_t::use_sendfile, chunkManager));
+  CMD_ANY_VALUE_V ("pieces.sendfile.set",             std::bind(&CM_t::set_use_sendfile, chunkManager, std::placeholders::_2));
+  CMD_ANY         ("pieces.stats_sendfile",           std::bind(&CM_t::stats_sendfile, chunkManager));
+  CMD_ANY         ("pieces.stats_sendfile_fallback",  std::bind(&CM_t::stats_sendfile_fallback, chunkManager));
+
   CMD_ANY         ("pieces.memory.current",           std::bind(&CM_t::memory_usage, chunkManager));
   CMD_ANY         ("pieces.memory.sync_queue",        std::bind(&CM_t::sync_queue_memory_usage, chunkManager));
   CMD_ANY         ("pieces.memory.block_count",       std::bind(&CM_t::memory_block_count, chunkManager));
