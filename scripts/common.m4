@@ -118,6 +118,10 @@ AC_DEFUN([TORRENT_CHECK_CACHELINE], [
             AC_MSG_RESULT([linux fallback enterprise 128 bytes])
             AC_DEFINE([LT_SMP_CACHE_BYTES], 128, [Fallback 128-byte alignment for Linux enterprise hardware.])
             ;;
+          riscv32*|riscv64*)
+            AC_MSG_RESULT([linux fallback RISC-V 64 bytes])
+            AC_DEFINE([LT_SMP_CACHE_BYTES], 64, [Fallback 64-byte alignment for Linux RISC-V hardware.])
+            ;;
           *)
             AC_MSG_RESULT([unrecognized CPU arch on Linux header fallback])
             AC_MSG_FAILURE([Unrecognized CPU architecture ($host_cpu) on Linux fallback path. Aborting build.])

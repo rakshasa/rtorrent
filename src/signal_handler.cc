@@ -82,6 +82,18 @@ SignalHandler::set_unblock(unsigned int signum) {
 }
 
 void
+SignalHandler::set_sigchild_ignore() {
+  struct sigaction sa;
+  sa.sa_handler = SIG_IGN;
+  sa.sa_flags   = SA_NOCLDWAIT | SA_RESTART;
+
+  sigemptyset(&sa.sa_mask);
+
+  if (sigaction(SIGCHLD, &sa, NULL) == -1)
+    throw std::logic_error("Could not set sigaction (ignore) for SIGCHLD: " + std::string(std::strerror(errno)));
+}
+
+void
 SignalHandler::set_sigaction_handler(unsigned int signum, handler_slot slot) {
   if (signum >= HIGHEST_SIGNAL)
     throw std::logic_error("SignalHandler::set_handler(...) received invalid signal value.");

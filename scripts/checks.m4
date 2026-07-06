@@ -298,6 +298,24 @@ AC_DEFUN([TORRENT_DISABLE_PTHREAD_SETNAME_NP], [
 ])
 
 
+AC_DEFUN([TORRENT_CHECK_POSIX_SPAWN_ADDCLOSEFROM_NP], [
+  AC_MSG_CHECKING(for posix_spawn_file_actions_addclosefrom_np)
+
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([[
+    #define _GNU_SOURCE
+    #include <spawn.h>
+  ]], [[
+    posix_spawn_file_actions_t actions;
+    posix_spawn_file_actions_addclosefrom_np(&actions, 3);
+  ]])],[
+    AC_DEFINE(HAVE_POSIX_SPAWN_FILE_ACTIONS_ADDCLOSEFROM_NP, 1, [Define if posix_spawn_file_actions_addclosefrom_np is available.])
+    AC_MSG_RESULT(yes)
+  ],[
+    AC_MSG_RESULT(no)
+  ])
+])
+
+
 AC_DEFUN([TORRENT_WITH_SYSTEMD], [
   AC_ARG_WITH(systemd,
     AS_HELP_STRING([--with-systemd],[enable systemd socket activation support [[default=no]]]),

@@ -13,6 +13,9 @@ HttpQueue::insert(const std::string& url, std::shared_ptr<std::ostream> stream,
                   std::function<void()> done_fn, std::function<void(const std::string&)> failed_fn) {
   auto itr = base_type::insert(end(), torrent::net::HttpGet(url, stream));
 
+  itr->set_max_file_size(15 << 20);
+  itr->set_redirect_only_http_https();
+
   for (auto& slot : m_signal_insert)
     slot(*itr);
 

@@ -37,6 +37,9 @@ jobs:
     runs-on: ubuntu-22.04
     needs: ubuntu-base
     steps:
+    - name: Update Packages
+      run: |
+        sudo apt-get update
     - name: Install Dependencies
       run: |
         sudo apt-get install -y \
@@ -75,6 +78,9 @@ jobs:
       matrix:
         config_flag: ["--with-xmlrpc-c", "--with-xmlrpc-tinyxml2"]
     steps:
+    - name: Update Packages
+      run: |
+        sudo apt-get update
     - name: Install Dependencies
       run: |
         sudo apt-get install -y \

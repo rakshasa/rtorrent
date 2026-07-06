@@ -38,24 +38,26 @@ ExecFile::execute(const char* file, char* const* argv, int flags) {
     result = write(m_log_fd, "\n---\n", sizeof("\n---\n"));
   }
 
-  int pipe_fd[2];
-
-  if ((flags & flag_capture) && pipe(pipe_fd))
-    throw torrent::input_error("ExecFile::execute(...) Pipe creation failed.");
-
-  auto clean_fn = [pipe_fd, flags]() {
-      if (flags & flag_capture) {
-        ::close(pipe_fd[0]);
-        ::close(pipe_fd[1]);
-      }
-    };
-
   posix_spawn_file_actions_t actions{};
 
-  if (posix_spawn_file_actions_init(&actions) != 0) {
-    clean_fn();
+  if (posix_spawn_file_actions_init(&actions) != 0)
     throw torrent::internal_error("ExecFile::execute(...) posix_spawn_file_actions_init failed.");
-  }
+
+  posix_spawnattr_t attr;
+  posix_spawnattr_init(&attr);
+
+  short spawn_flags = 0;
+
+  // Try to avoid leaking open fds to the spawned process. Prefer POSIX_SPAWN_CLOEXEC_DEFAULT
+  // (macOS-only) or posix_spawn_file_actions_addclosefrom_np (glibc >= 2.34, FreeBSD >= 13.1).
+  //
+  // Other platforms like musl libc, OpenBSD and NetBSD must rely on explicit O_CLOEXEC.
+
+#if defined(POSIX_SPAWN_CLOEXEC_DEFAULT)
+  spawn_flags |= POSIX_SPAWN_CLOEXEC_DEFAULT;
+#elif defined(HAVE_POSIX_SPAWN_FILE_ACTIONS_ADDCLOSEFROM_NP)
+  posix_spawn_file_actions_addclosefrom_np(&actions, 3);
+#endif
 
   // Handle standard input redirection (/dev/null), posix_spawn_file_actions_addopen handles opening
   // and dup2 natively
@@ -63,6 +65,11 @@ ExecFile::execute(const char* file, char* const* argv, int flags) {
     // Fallback if open fails inside action setup
     posix_spawn_file_actions_addclose(&actions, 0);
   }
+
+  int pipe_fd[2] = {-1, -1};
+
+  if ((flags & flag_capture) && pipe(pipe_fd))
+    throw torrent::input_error("ExecFile::execute(...) Pipe creation failed.");
 
   // Handle standard output redirection
   if (flags & flag_capture) {
@@ -85,26 +92,30 @@ ExecFile::execute(const char* file, char* const* argv, int flags) {
     posix_spawn_file_actions_addopen(&actions, 2, "/dev/null", O_RDWR, 0);
   }
 
-  posix_spawnattr_t attr;
-  posix_spawnattr_init(&attr);
-
-  // If you are using standard close-on-exec (O_CLOEXEC) across rtorrent, posix_spawn honors it
-  // automatically. If you want to explicitly enforce a clean slate, modern systems support
-  // POSIX_SPAWN_CLOEXEC_DEFAULT.
-
-#ifdef POSIX_SPAWN_CLOEXEC_DEFAULT
-  posix_spawnattr_setflags(&attr, POSIX_SPAWN_CLOEXEC_DEFAULT);
+  if (flags & flag_background) {
+#ifdef POSIX_SPAWN_SETSID
+    spawn_flags |= POSIX_SPAWN_SETSID;
+#else
+    spawn_flags |= POSIX_SPAWN_SETPGROUP;
+    posix_spawnattr_setpgroup(&attr, 0);
 #endif
+  }
+
+  posix_spawnattr_setflags(&attr, spawn_flags);
 
   pid_t child_pid{};
-
-  int spawn_status = posix_spawnp(&child_pid, file, &actions, &attr, argv, environ);
+  int   spawn_status = posix_spawnp(&child_pid, file, &actions, &attr, argv, environ);
 
   posix_spawn_file_actions_destroy(&actions);
   posix_spawnattr_destroy(&attr);
 
   if (spawn_status != 0) {
-    clean_fn();
+    if (pipe_fd[0] != -1)
+      ::close(pipe_fd[0]);
+
+    if (pipe_fd[1] != -1)
+      ::close(pipe_fd[1]);
+
     throw torrent::input_error("ExecFile::execute(...) posix_spawn failed: " + std::string(std::strerror(spawn_status)));
   }
 
@@ -129,6 +140,13 @@ ExecFile::execute(const char* file, char* const* argv, int flags) {
       result = write(m_log_fd, "Captured output:\n", sizeof("Captured output:\n"));
       result = write(m_log_fd, m_capture.data(), m_capture.length());
     }
+  }
+
+  if (flags & flag_background) {
+    if (m_log_fd != -1)
+      result = write(m_log_fd, "\n--- Running in Background ---\n", sizeof("\n--- Running in Background ---\n"));
+
+    return 0;
   }
 
   int status;

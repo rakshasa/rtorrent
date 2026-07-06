@@ -25,6 +25,8 @@ public:
   static void         set_block(unsigned int signum);
   static void         set_unblock(unsigned int signum);
 
+  static void         set_sigchild_ignore();
+
   static void         set_sigaction_handler(unsigned int signum, handler_slot slot);
 
   static const char*  as_string(unsigned int signum);
