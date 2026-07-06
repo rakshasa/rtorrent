@@ -104,40 +104,42 @@ DownloadFactory::receive_load() {
     throw torrent::internal_error("DownloadFactory::load*() called on an object with m_stream != NULL");
 
   if (is_network_uri(m_uri)) {
-    // Http handling here.
     m_stream.reset(new std::stringstream);
 
-    m_manager->http_queue()->insert(m_uri, m_stream,
-                                    [this]() { receive_loaded(); },
-                                    [this](const std::string& error) { receive_failed(error); }
-                                   );
+    auto done_fn   = [this]() { receive_loaded(); };
+    auto failed_fn = [this](const std::string& error) { receive_failed(error); };
+
+    m_manager->http_queue()->insert(m_uri, m_stream, done_fn, failed_fn);
 
     m_variables["tied_to_file"] = (int64_t)false;
+    return;
+  }
 
-  } else if (is_magnet_uri(m_uri)) {
+  if (is_magnet_uri(m_uri)) {
     // DEBUG: Use m_object.
     m_stream.reset(new std::stringstream());
     *m_stream << "d10:magnet-uri" << m_uri.length() << ":" << m_uri << "e";
 
     m_variables["tied_to_file"] = (int64_t)false;
-    receive_loaded();
-
-  } else {
-    std::fstream stream(expand_path(m_uri).c_str(), std::ios::in | std::ios::binary);
-
-    if (!stream.is_open())
-      return receive_failed("Could not open file");
-
-    m_object = new torrent::Object;
-    stream >> *m_object;
-
-    if (!stream.good())
-      return receive_failed("Reading torrent file failed");
-
-    m_isFile = true;
 
     receive_loaded();
+    return;
   }
+
+  std::fstream stream(expand_path(m_uri).c_str(), std::ios::in | std::ios::binary);
+
+  if (!stream.is_open())
+    return receive_failed("Could not open file");
+
+  m_object = new torrent::Object;
+  stream >> *m_object;
+
+  if (!stream.good())
+    return receive_failed("Reading torrent file failed");
+
+  m_isFile = true;
+
+  receive_loaded();
 }
 
 void
