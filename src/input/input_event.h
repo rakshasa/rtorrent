@@ -11,7 +11,7 @@ class InputEvent : public torrent::Event {
 public:
   typedef std::function<void (int)> slot_int;
 
-  InputEvent(int fd) { m_fileDesc = fd; }
+  InputEvent(int fd) { set_file_descriptor(fd); }
 
   const char*         type_name() const override { return "input"; }
 

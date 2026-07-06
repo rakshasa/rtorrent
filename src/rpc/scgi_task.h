@@ -22,8 +22,8 @@ public:
 
   const char*         type_name() const override { return "scgi-task"; }
 
-  bool                is_open() const      { return m_fileDesc != -1; }
-  bool                is_available() const { return m_fileDesc == -1; }
+  bool                is_open() const      { return file_descriptor() != -1; }
+  bool                is_available() const { return file_descriptor() == -1; }
 
   void                open(SCgi* parent, int fd);
   void                cancel_open();

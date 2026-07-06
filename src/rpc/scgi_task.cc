@@ -27,7 +27,7 @@ namespace rpc {
 SCgiTask::SCgiTask()
   : m_callback_id(torrent::system::make_callback_id()) {
 
-  set_file_descriptor(-1);
+  reset_file_descriptor();
 }
 
 void
@@ -49,7 +49,6 @@ SCgiTask::open(SCgi* parent, int fd) {
 
   torrent::this_thread::poll()->open(this);
   torrent::this_thread::poll()->insert_read(this);
-  torrent::this_thread::poll()->insert_error(this);
 
   auto lock = std::lock_guard<std::mutex>(m_result_mutex);
 
@@ -65,7 +64,7 @@ SCgiTask::cancel_open() {
   torrent::this_thread::poll()->remove_and_close(this);
 
   torrent::fd_close(file_descriptor());
-  set_file_descriptor(-1);
+  reset_file_descriptor();
 };
 
 void
@@ -79,7 +78,7 @@ SCgiTask::close() {
       torrent::this_thread::poll()->remove_and_close(this);
 
       torrent::fd_close(file_descriptor());
-      set_file_descriptor(-1);
+      reset_file_descriptor();
     });
 
   // The callbacks are guaranteed to be finished/canceled at this point.
@@ -98,7 +97,7 @@ SCgiTask::event_read() {
   if (read_length <= 0)
     throw torrent::internal_error("SCgiTask::event_read() no space in buffer for event_read.");
 
-  int bytes = ::recv(m_fileDesc, m_buffer.data() + m_position, read_length, 0);
+  int bytes = ::recv(file_descriptor(), m_buffer.data() + m_position, read_length, 0);
 
   if (bytes <= 0) {
     if (bytes == 0 || !(errno == EAGAIN || errno == EINTR))
@@ -181,7 +180,7 @@ event_read_failed:
 
 void
 SCgiTask::event_write() {
-  int bytes = ::send(m_fileDesc, m_buffer.data() + m_position, m_buffer.size() - m_position, 0);
+  int bytes = ::send(file_descriptor(), m_buffer.data() + m_position, m_buffer.size() - m_position, 0);
 
   if (bytes == -1) {
     if (!(errno == EAGAIN || errno == EINTR))

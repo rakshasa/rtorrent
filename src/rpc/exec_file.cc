@@ -1,5 +1,6 @@
 #include "config.h"
 
+#include <cassert>
 #include <cerrno>
 #include <cstring>
 #include <fcntl.h>
@@ -24,6 +25,8 @@ namespace rpc {
 
 int
 ExecFile::execute(const char* file, char* const* argv, int flags) {
+  assert(!((flags & flag_capture) && (flags & flag_background)));
+
   // Write the executed command and its parameters to the log fd.
   [[maybe_unused]] int result;
 
