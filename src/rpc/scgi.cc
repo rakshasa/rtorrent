@@ -111,7 +111,6 @@ SCgi::activate() {
 
   torrent::this_thread::poll()->open(this);
   torrent::this_thread::poll()->insert_read(this);
-  torrent::this_thread::poll()->insert_error(this);
 }
 
 // TODO: This should close the fd to avoid reuse.

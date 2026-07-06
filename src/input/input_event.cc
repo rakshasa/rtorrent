@@ -13,7 +13,6 @@ void
 InputEvent::insert() {
   torrent::this_thread::poll()->open(this);
   torrent::this_thread::poll()->insert_read(this);
-  torrent::this_thread::poll()->insert_error(this);
 }
 
 void
