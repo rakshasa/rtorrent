@@ -27,7 +27,7 @@ namespace rpc {
 SCgiTask::SCgiTask()
   : m_callback_id(torrent::system::make_callback_id()) {
 
-  set_file_descriptor(-1);
+  reset_file_descriptor();
 }
 
 void
@@ -64,7 +64,7 @@ SCgiTask::cancel_open() {
   torrent::this_thread::poll()->remove_and_close(this);
 
   torrent::fd_close(file_descriptor());
-  set_file_descriptor(-1);
+  reset_file_descriptor();
 };
 
 void
@@ -78,7 +78,7 @@ SCgiTask::close() {
       torrent::this_thread::poll()->remove_and_close(this);
 
       torrent::fd_close(file_descriptor());
-      set_file_descriptor(-1);
+      reset_file_descriptor();
     });
 
   // The callbacks are guaranteed to be finished/canceled at this point.
