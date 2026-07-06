@@ -107,10 +107,10 @@ DownloadFactory::receive_load() {
     // Http handling here.
     m_stream.reset(new std::stringstream);
 
-    HttpQueue::iterator itr = m_manager->http_queue()->insert(m_uri, m_stream);
-
-    itr->add_done_slot(torrent::this_thread::thread(), [this]() { receive_loaded(); });
-    itr->add_failed_slot(torrent::this_thread::thread(), [this](const std::string& error) { receive_failed(error); });
+    m_manager->http_queue()->insert(m_uri, m_stream,
+                                    [this]() { receive_loaded(); },
+                                    [this](const std::string& error) { receive_failed(error); }
+                                   );
 
     m_variables["tied_to_file"] = (int64_t)false;
 
