@@ -10,8 +10,8 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <torrent/net/fd.h>
-#include <torrent/system/system.h>
 #include <torrent/system/thread.h>
+#include <torrent/system/types.h>
 
 #include "exec_file.h"
 #include "parse.h"
