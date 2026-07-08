@@ -169,7 +169,7 @@ public:
   template <typename T>
   void set_function(T s, [[maybe_unused]] int value = command_base_is_valid<T>::value) {
     static_assert(sizeof(T) <= sizeof(t_pod), "t_pod storage overflow");
-    static_assert(alignof(decltype(t_pod)) >= alignof(T), "t_pod alignment insufficient for type");
+    static_assert(optimal_alignment >= alignof(T), "t_pod alignment insufficient for type");
 
     if (m_dest_helper)
       m_dest_helper(t_pod);
