@@ -55,12 +55,11 @@ struct rt_triple : private std::pair<T1, T2> {
     base_type(src.first, src.second), third(src.third) {}
 };
 
-typedef rt_triple<int, void*, void*> target_type;
-
 class command_base;
 
-typedef const torrent::Object (*command_base_call_type)(command_base*, target_type, const torrent::Object&);
-typedef std::function<torrent::Object (target_type, const torrent::Object&)> base_function;
+using target_type            = rt_triple<int, void*, void*>;
+using base_function          = std::function<torrent::Object (target_type, const torrent::Object&)>;
+using command_base_call_type = const torrent::Object (command_base*, target_type, const torrent::Object&);
 
 template <typename tmpl> struct command_base_is_valid {};
 template <command_base_call_type tmpl_func> struct command_base_is_type {};
@@ -84,17 +83,18 @@ public:
 
   typedef const torrent::Object (*download_pair_slot) (command_base*, core::Download*, core::Download*, const torrent::Object&);
 
-  static const int target_generic  = 0;
-  static const int target_any      = 1;
-  static const int target_download = 2;
-  static const int target_peer     = 3;
-  static const int target_tracker  = 4;
-  static const int target_file     = 5;
-  static const int target_file_itr = 6;
+  static constexpr int target_generic       = 0;
+  static constexpr int target_any           = 1;
+  static constexpr int target_download      = 2;
+  static constexpr int target_peer          = 3;
+  static constexpr int target_tracker       = 4;
+  static constexpr int target_file          = 5;
+  static constexpr int target_file_itr      = 6;
+  static constexpr int target_download_pair = 7;
 
-  static const int target_download_pair = 7;
+  static constexpr unsigned int max_arguments = 10;
 
-  static const unsigned int max_arguments = 10;
+  static constexpr std::size_t optimal_alignment = std::max(alignof(std::max_align_t), alignof(base_function));
 
   struct stack_type {
     torrent::Object*       begin() { return reinterpret_cast<torrent::Object*>(buffer); }
@@ -169,8 +169,7 @@ public:
   template <typename T>
   void set_function(T s, [[maybe_unused]] int value = command_base_is_valid<T>::value) {
     static_assert(sizeof(T) <= sizeof(t_pod), "t_pod storage overflow");
-    static_assert(alignof(std::max_align_t) % alignof(T) == 0, "t_pod alignment insufficient for type");
-    static_assert(alignof(std::max_align_t) >= alignof(T), "t_pod structural capacity mismatch");
+    static_assert(optimal_alignment >= alignof(T), "t_pod alignment insufficient for type");
 
     if (m_dest_helper)
       m_dest_helper(t_pod);
@@ -200,7 +199,7 @@ protected:
   using copy_fn_t = void (*)(void* dest, const void* src);
   using dest_fn_t = void (*)(void* ptr);
 
-  alignas(std::max_align_t) char t_pod[sizeof(base_function)];
+  alignas(optimal_alignment) char t_pod[sizeof(base_function)];
 
   copy_fn_t m_copy_helper;
   dest_fn_t m_dest_helper;
