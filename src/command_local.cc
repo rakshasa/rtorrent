@@ -12,6 +12,7 @@
 #include <torrent/data/file_manager.h>
 #include <torrent/data/chunk_utils.h>
 #include <torrent/runtime/runtime.h>
+#include <torrent/runtime/memory_manager.h>
 #include <torrent/runtime/socket_manager.h>
 #include <torrent/utils/chrono.h>
 #include <torrent/utils/option_strings.h>
@@ -281,11 +282,11 @@ initialize_command_local() {
   CMD_ANY         ("pieces.preload.min_rate",         std::bind(&CM_t::preload_required_rate, chunkManager));
   CMD_ANY_VALUE_V ("pieces.preload.min_rate.set",     std::bind(&CM_t::set_preload_required_rate, chunkManager, std::placeholders::_2));
 
-  CMD_ANY         ("pieces.memory.current",           std::bind(&CM_t::memory_usage, chunkManager));
+  CMD_ANY         ("pieces.memory.current",           [](auto, auto)        { return torrent::runtime::memory_manager()->memory_usage(); });
   CMD_ANY         ("pieces.memory.sync_queue",        std::bind(&CM_t::sync_queue_memory_usage, chunkManager));
-  CMD_ANY         ("pieces.memory.block_count",       std::bind(&CM_t::memory_block_count, chunkManager));
-  CMD_ANY         ("pieces.memory.max",               std::bind(&CM_t::max_memory_usage, chunkManager));
-  CMD_ANY_VALUE_V ("pieces.memory.max.set",           std::bind(&CM_t::set_max_memory_usage, chunkManager, std::placeholders::_2));
+  CMD_ANY         ("pieces.memory.block_count",       [](auto, auto)        { return torrent::runtime::memory_manager()->memory_block_count(); });
+  CMD_ANY         ("pieces.memory.max",               [](auto, auto)        { return torrent::runtime::memory_manager()->max_memory_usage(); });
+  CMD_ANY_VALUE_V ("pieces.memory.max.set",           [](auto, auto& value) { return torrent::runtime::memory_manager()->set_max_memory_usage(value); });
   CMD_ANY         ("pieces.stats_preloaded",          std::bind(&CM_t::stats_preloaded, chunkManager));
   CMD_ANY         ("pieces.stats_not_preloaded",      std::bind(&CM_t::stats_not_preloaded, chunkManager));
 

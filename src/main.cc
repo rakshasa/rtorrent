@@ -11,6 +11,7 @@
 #include <torrent/exceptions.h>
 #include <torrent/data/chunk_utils.h>
 #include <torrent/net/fd.h>
+#include <torrent/runtime/memory_manager.h>
 #include <torrent/utils/chrono.h>
 #include <torrent/utils/log.h>
 
@@ -149,8 +150,8 @@ main(int argc, char** argv) {
 
     SignalHandler::set_sigaction_handler(SIGBUS, &handle_sigbus);
 
-    torrent::log_add_group_output(torrent::LOG_NOTICE,    "important");
-    torrent::log_add_group_output(torrent::LOG_DHT_ERROR, "important");
+    torrent::log_add_group_output(torrent::LOG_NOTICE,         "important");
+    torrent::log_add_group_output(torrent::LOG_DHT_ERROR,      "important");
 
     torrent::log_add_group_output(torrent::LOG_INFO,           "complete");
     torrent::log_add_group_output(torrent::LOG_DHT_ERROR,      "complete");
@@ -444,6 +445,7 @@ main(int argc, char** argv) {
       });
 
     LT_LOG("seeded srandom and srand48 (seed:%u)", random_seed);
+    LT_LOG("max memory usage: %" PRIu64, torrent::runtime::memory_manager()->max_memory_usage());
 
     control->initialize();
     control->ui()->load_input_history();
