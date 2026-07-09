@@ -273,7 +273,7 @@ initialize_command_local() {
   CMD_ANY_VALUE_V ("pieces.sync.timeout.set",         std::bind(&CM_t::set_timeout_sync, chunkManager, std::placeholders::_2));
   CMD_ANY         ("pieces.sync.timeout_safe",        std::bind(&CM_t::timeout_safe_sync, chunkManager));
   CMD_ANY_VALUE_V ("pieces.sync.timeout_safe.set",    std::bind(&CM_t::set_timeout_safe_sync, chunkManager, std::placeholders::_2));
-  CMD_ANY         ("pieces.sync.queue_size",          std::bind(&CM_t::sync_queue_size, chunkManager));
+  CMD_ANY         ("pieces.sync.queue_size",          [](auto, auto)        { return torrent::runtime::memory_manager()->sync_queue_block_count(); });
 
   CMD_ANY         ("pieces.preload.type",             std::bind(&CM_t::preload_type, chunkManager));
   CMD_ANY_VALUE_V ("pieces.preload.type.set",         std::bind(&CM_t::set_preload_type, chunkManager, std::placeholders::_2));
@@ -283,7 +283,7 @@ initialize_command_local() {
   CMD_ANY_VALUE_V ("pieces.preload.min_rate.set",     std::bind(&CM_t::set_preload_required_rate, chunkManager, std::placeholders::_2));
 
   CMD_ANY         ("pieces.memory.current",           [](auto, auto)        { return torrent::runtime::memory_manager()->memory_usage(); });
-  CMD_ANY         ("pieces.memory.sync_queue",        std::bind(&CM_t::sync_queue_memory_usage, chunkManager));
+  CMD_ANY         ("pieces.memory.sync_queue",        [](auto, auto)        { return torrent::runtime::memory_manager()->sync_queue_memory_usage(); });
   CMD_ANY         ("pieces.memory.block_count",       [](auto, auto)        { return torrent::runtime::memory_manager()->memory_block_count(); });
   CMD_ANY         ("pieces.memory.max",               [](auto, auto)        { return torrent::runtime::memory_manager()->max_memory_usage(); });
   CMD_ANY_VALUE_V ("pieces.memory.max.set",           [](auto, auto& value) { return torrent::runtime::memory_manager()->set_max_memory_usage(value); });
