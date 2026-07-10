@@ -11,7 +11,9 @@
 #include <torrent/exceptions.h>
 #include <torrent/data/chunk_utils.h>
 #include <torrent/net/fd.h>
+#include <torrent/net/http_stack.h>
 #include <torrent/runtime/memory_manager.h>
+#include <torrent/runtime/runtime.h>
 #include <torrent/utils/chrono.h>
 #include <torrent/utils/log.h>
 
@@ -449,6 +451,11 @@ main(int argc, char** argv) {
 
     control->initialize();
     control->ui()->load_input_history();
+
+    torrent::net_thread::http_stack()->set_user_agent(USER_AGENT);
+    torrent::runtime::initialize_network();
+
+    control->core()->listen_open();
 
     // Load session torrents and perform scheduled tasks to ensure session torrents are loaded
     // before arg torrents.
