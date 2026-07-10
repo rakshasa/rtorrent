@@ -3,7 +3,6 @@
 #include <cassert>
 
 #include <torrent/exceptions.h>
-#include <torrent/chunk_manager.h>
 #include <torrent/throttle.h>
 #include <torrent/torrent.h>
 #include <torrent/data/file_list.h>
@@ -31,10 +30,10 @@
 
 namespace ui {
 
-Download::Download(core::Download* d) :
-    m_download(d) {
+Download::Download(core::Download* d)
+  : m_download(d) {
 
-  m_windowDownloadStatus = new WDownloadStatus(d);
+  m_windowDownloadStatus = std::make_unique<WDownloadStatus>(d);
   m_windowDownloadStatus->set_bottom(true);
 
   m_uiArray[DISPLAY_MENU]          = create_menu();
@@ -60,8 +59,6 @@ Download::~Download() {
   assert(!is_active() && "ui::Download::~Download() called on an active object.");
 
   std::for_each(m_uiArray, m_uiArray + DISPLAY_MAX_SIZE, [](ElementBase* eb) { delete eb; });
-
-  delete m_windowDownloadStatus;
 }
 
 inline ElementBase*
@@ -171,7 +168,7 @@ Download::activate(display::Frame* frame, [[maybe_unused]] bool focus) {
   m_frame = frame;
   m_frame->initialize_row(2);
 
-  m_frame->frame(1)->initialize_window(m_windowDownloadStatus);
+  m_frame->frame(1)->initialize_window(m_windowDownloadStatus.get());
   m_windowDownloadStatus->set_active(true);
 
   activate_display_menu(DISPLAY_PEER_LIST);
