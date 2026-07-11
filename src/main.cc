@@ -455,7 +455,9 @@ main(int argc, char** argv) {
     torrent::net_thread::http_stack()->set_user_agent(USER_AGENT);
     torrent::runtime::initialize_network();
 
-    control->core()->listen_open();
+    // TODO: Move to initialize_network().
+    if (torrent::runtime::listen_port() == 0)
+      control->core()->listen_open();
 
     // Load session torrents and perform scheduled tasks to ensure session torrents are loaded
     // before arg torrents.

@@ -226,6 +226,7 @@ initialize_command_network() {
   CMD_VAR_STRING  ("network.port_range",  "6881-6999");
 
   CMD_ANY         ("network.listen.port",        [](auto, auto)                 { return torrent::runtime::listen_port(); });
+  CMD_ANY_VALUE_V ("network.listen.port.set",    [](auto, auto& value)          { return torrent::runtime::set_listen_port(); });
   CMD_ANY         ("network.listen.backlog",     [nw_config](auto, auto)        { return nw_config->listen_backlog(); });
   CMD_ANY_VALUE_V ("network.listen.backlog.set", [nw_config](auto, auto& value) { return nw_config->set_listen_backlog(value); });
 
