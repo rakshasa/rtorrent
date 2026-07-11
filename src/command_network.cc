@@ -10,6 +10,7 @@
 #include <torrent/net/http_stack.h>
 #include <torrent/net/socket_address.h>
 #include <torrent/runtime/network_config.h>
+#include <torrent/runtime/network_manager.h>
 #include <torrent/runtime/proxy_manager.h>
 #include <torrent/runtime/runtime.h>
 #include <torrent/runtime/socket_manager.h>
@@ -225,8 +226,8 @@ initialize_command_network() {
   CMD_VAR_BOOL    ("network.port_random", true);
   CMD_VAR_STRING  ("network.port_range",  "6881-6999");
 
-  CMD_ANY         ("network.listen.port",        [](auto, auto)                 { return torrent::runtime::listen_port(); });
-  CMD_ANY_VALUE_V ("network.listen.port.set",    [](auto, auto& value)          { return torrent::runtime::set_listen_port(); });
+  CMD_ANY         ("network.listen.port",        [](auto, auto)                 { return torrent::runtime::network_manager()->listen_port(); });
+  CMD_ANY_VALUE_V ("network.listen.port.set",    [](auto, auto& value)          { return torrent::runtime::network_manager()->set_listen_port(value); });
   CMD_ANY         ("network.listen.backlog",     [nw_config](auto, auto)        { return nw_config->listen_backlog(); });
   CMD_ANY_VALUE_V ("network.listen.backlog.set", [nw_config](auto, auto& value) { return nw_config->set_listen_backlog(value); });
 
