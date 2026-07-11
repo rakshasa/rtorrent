@@ -33,6 +33,8 @@
 #include "core/http_queue.h"
 #include "core/view.h"
 
+#include <torrent/runtime/client_config.h>
+
 namespace core {
 
 const int Manager::create_start;
@@ -164,30 +166,32 @@ void
 Manager::listen_open() {
   // This stuff really should be moved outside of manager, make it
   // part of the init script.
-  if (!rpc::call_command_value("network.port_open"))
-    return;
+  // if (!rpc::call_command_value("network.port_open"))
+  //   return;
 
-  int portFirst, portLast;
-  torrent::Object portRange = rpc::call_command("network.port_range");
+  // int portFirst, portLast;
+  // torrent::Object portRange = rpc::call_command("network.port_range");
 
-  if (!portRange.is_string())
-    throw torrent::input_error("Invalid port_range argument type.");
+  // if (!portRange.is_string())
+  //   throw torrent::input_error("Invalid port_range argument type.");
 
-  if (std::sscanf(portRange.as_string().c_str(), "%i-%i", &portFirst, &portLast) != 2)
-    throw torrent::input_error("Invalid port_range argument.");
+  // if (std::sscanf(portRange.as_string().c_str(), "%i-%i", &portFirst, &portLast) != 2)
+  //   throw torrent::input_error("Invalid port_range argument.");
 
-  if (portFirst > portLast || portLast >= (1 << 16))
-    throw torrent::input_error("Invalid port range.");
+  // if (portFirst > portLast || portLast >= (1 << 16))
+  //   throw torrent::input_error("Invalid port range.");
 
-  if (rpc::call_command_value("network.port_random")) {
-    int boundary = portFirst + random() % (portLast - portFirst + 1);
+  auto port_range = torrent::runtime::client_config()->port_range();
 
-    if (torrent::runtime::network_manager()->listen_open(boundary, portLast) ||
-        torrent::runtime::network_manager()->listen_open(portFirst, boundary))
+  if (torrent::runtime::client_config()->port_random()) {
+    uint16_t boundary = port_range.first + (random() % (port_range.second - port_range.first + 1));
+
+    if (torrent::runtime::network_manager()->listen_open(boundary, port_range.second) ||
+        torrent::runtime::network_manager()->listen_open(port_range.first, boundary))
       return;
 
   } else {
-    if (torrent::runtime::network_manager()->listen_open(portFirst, portLast))
+    if (torrent::runtime::network_manager()->listen_open(port_range.first, port_range.second))
       return;
   }
 
