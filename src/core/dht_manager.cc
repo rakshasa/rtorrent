@@ -8,6 +8,7 @@
 #include <torrent/object_stream.h>
 #include <torrent/rate.h>
 #include <torrent/runtime/network_manager.h>
+#include <torrent/runtime/runtime.h>
 #include <torrent/tracker/dht_controller.h>
 #include <torrent/utils/log.h>
 
@@ -141,18 +142,29 @@ DhtManager::save_dht_cache() {
 
 void
 DhtManager::set_mode_by_user(const std::string& arg) {
-  for (int i = 0; i < dht_settings_num; i++) {
-    if (arg == dht_settings[i]) {
-      m_set_by_user = true;
-      return set_mode_directly(i);
-    }
+  unsigned int mode = [arg]() {
+      for (int i = 0; i < dht_settings_num; i++) {
+        if (arg == dht_settings[i])
+          return i;
+      }
+
+      throw torrent::input_error("Invalid dht mode: " + arg);
+    }();
+
+  m_set_by_user = true;
+
+  if (!torrent::runtime::is_network_initialized()) {
+    m_start = mode;
+    return;
   }
+
+  set_mode_directly(mode);
 }
 
 void
 DhtManager::set_mode_directly(unsigned int mode) {
   if (mode >= dht_settings_num)
-    throw torrent::input_error("Invalid argument.");
+    throw torrent::input_error("Invalid dht mode.");
 
   m_start = mode;
 
@@ -164,8 +176,10 @@ DhtManager::set_mode_directly(unsigned int mode) {
 
 void
 DhtManager::set_auto_if_untouched_and_has_session() {
-  if (m_set_by_user)
+  if (m_set_by_user) {
+    set_mode_directly(m_start);
     return;
+  }
 
   if (rpc::call_command_string("session.path").empty()) {
     LT_LOG("DHT auto-start disabled, session path not set.", 0);

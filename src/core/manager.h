@@ -55,8 +55,6 @@ public:
 
   void                cleanup();
 
-  void                listen_open();
-
   const std::string&  magnet_path();
   void                set_magnet_path(const std::string& path);
 
