@@ -242,22 +242,14 @@ initialize_command_network() {
   auto http_stack     = torrent::net_thread::http_stack();
   auto nw_config      = torrent::runtime::network_config();
 
-  // Isn't port_open used?
-
-  // TODO: Remove port_open
-  // CMD_VAR_BOOL    ("network.port_open",   true);
-  // CMD_VAR_BOOL    ("network.port_random", true);
-  // CMD_VAR_STRING  ("network.port_range",  "6881-6999");
-
-  CMD_ANY         ("network.port_random",        [](auto, auto)                 { return torrent::runtime::client_config()->listen_port_random(); });
-  CMD_ANY_VALUE_V ("network.port_random.set",    [](auto, auto& value)          { return torrent::runtime::client_config()->set_listen_port_random(value); });
-  CMD_ANY         ("network.port_range",         [](auto, auto)                 { return listen_port_range(); });
-  CMD_ANY_STRING_V("network.port_range.set",     [](auto, auto& value)          { return set_listen_port_range(value); });
-
-  CMD_ANY         ("network.listen.port",        [](auto, auto)                 { return torrent::runtime::network_manager()->listen_port(); });
-  CMD_ANY_VALUE_V ("network.listen.port.set",    [](auto, auto& value)          { return torrent::runtime::network_manager()->set_listen_port(value); });
-  CMD_ANY         ("network.listen.backlog",     [nw_config](auto, auto)        { return nw_config->listen_backlog(); });
-  CMD_ANY_VALUE_V ("network.listen.backlog.set", [nw_config](auto, auto& value) { return nw_config->set_listen_backlog(value); });
+  CMD_ANY         ("network.listen.port",            [](auto, auto)        { return torrent::runtime::network_manager()->listen_port(); });
+  CMD_ANY_VALUE_V ("network.listen.port.set",        [](auto, auto& value) { return torrent::runtime::network_manager()->set_listen_port(value); });
+  CMD_ANY         ("network.listen.port.random",     [](auto, auto)        { return torrent::runtime::client_config()->listen_port_random(); });
+  CMD_ANY_VALUE_V ("network.listen.port.random.set", [](auto, auto& value) { return torrent::runtime::client_config()->set_listen_port_random(value); });
+  CMD_ANY         ("network.listen.port.range",      [](auto, auto)        { return listen_port_range(); });
+  CMD_ANY_STRING_V("network.listen.port.range.set",  [](auto, auto& value) { return set_listen_port_range(value); });
+  CMD_ANY         ("network.listen.backlog",         [](auto, auto)        { return torrent::runtime::network_config()->listen_backlog(); });
+  CMD_ANY_VALUE_V ("network.listen.backlog.set",     [](auto, auto& value) { return torrent::runtime::network_config()->set_listen_backlog(value); });
 
   CMD_VAR_BOOL    ("protocol.pex",               true);
   CMD_ANY_LIST    ("protocol.encryption.set",    [](auto, auto& args)           { return apply_encryption(args); });

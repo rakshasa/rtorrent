@@ -420,6 +420,20 @@ main(int argc, char** argv) {
           lt_log_print(torrent::LOG_WARN, "The 'throttle.ip' command is deprecated and does nothing.");
           return torrent::Object();
         });
+
+      CMD_ANY("network.port_open", [](auto, auto) {
+          lt_log_print(torrent::LOG_WARN, "The 'network.port_open' command is deprecated and does nothing.");
+          return torrent::Object();
+        });
+      CMD_ANY("network.port_open.set", [](auto, auto) {
+          lt_log_print(torrent::LOG_WARN, "The 'network.port_open.set' command is deprecated and does nothing.");
+          return torrent::Object();
+        });
+
+      CMD_REDIRECT("network.port_random",     "network.listen.port.random");
+      CMD_REDIRECT("network.port_random.set", "network.listen.port.random.set");
+      CMD_REDIRECT("network.port_range",      "network.listen.port.range");
+      CMD_REDIRECT("network.port_range.set",  "network.listen.port.range.set");
     }
 
     {
