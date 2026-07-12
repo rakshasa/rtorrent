@@ -11,7 +11,9 @@
 #include <torrent/exceptions.h>
 #include <torrent/data/chunk_utils.h>
 #include <torrent/net/fd.h>
+#include <torrent/net/http_stack.h>
 #include <torrent/runtime/memory_manager.h>
+#include <torrent/runtime/runtime.h>
 #include <torrent/utils/chrono.h>
 #include <torrent/utils/log.h>
 
@@ -418,6 +420,20 @@ main(int argc, char** argv) {
           lt_log_print(torrent::LOG_WARN, "The 'throttle.ip' command is deprecated and does nothing.");
           return torrent::Object();
         });
+
+      CMD_ANY("network.port_open", [](auto, auto) {
+          lt_log_print(torrent::LOG_WARN, "The 'network.port_open' command is deprecated and does nothing.");
+          return torrent::Object();
+        });
+      CMD_ANY("network.port_open.set", [](auto, auto) {
+          lt_log_print(torrent::LOG_WARN, "The 'network.port_open.set' command is deprecated and does nothing.");
+          return torrent::Object();
+        });
+
+      CMD_REDIRECT("network.port_random",     "network.listen.port.random");
+      CMD_REDIRECT("network.port_random.set", "network.listen.port.random.set");
+      CMD_REDIRECT("network.port_range",      "network.listen.port.range");
+      CMD_REDIRECT("network.port_range.set",  "network.listen.port.range.set");
     }
 
     {
@@ -449,6 +465,9 @@ main(int argc, char** argv) {
 
     control->initialize();
     control->ui()->load_input_history();
+
+    torrent::net_thread::http_stack()->set_user_agent(USER_AGENT);
+    torrent::runtime::initialize_network();
 
     // Load session torrents and perform scheduled tasks to ensure session torrents are loaded
     // before arg torrents.

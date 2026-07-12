@@ -70,9 +70,6 @@ Control::initialize() {
   display::Window::slot_unschedule([this](display::Window* w) { m_display->unschedule(w); });
   display::Window::slot_adjust([this]() { m_display->adjust_layout(); });
 
-  torrent::net_thread::http_stack()->set_user_agent(USER_AGENT);
-
-  m_core->listen_open();
   m_core->set_hashing_view(*m_view_manager->find_throw("hashing"));
 
   m_ui->init(this);
