@@ -444,16 +444,18 @@ initialize_command_dynamic() {
 
   CMD2_ANY         ("catch", std::bind(&cmd_catch, std::placeholders::_1, std::placeholders::_2));
 
-  CMD2_ANY         ("strings.choke_heuristics",          std::bind(&torrent::option_list_strings, torrent::OPTION_CHOKE_HEURISTICS));
-  CMD2_ANY         ("strings.choke_heuristics.upload",   std::bind(&torrent::option_list_strings, torrent::OPTION_CHOKE_HEURISTICS_UPLOAD));
-  CMD2_ANY         ("strings.choke_heuristics.download", std::bind(&torrent::option_list_strings, torrent::OPTION_CHOKE_HEURISTICS_DOWNLOAD));
-  CMD2_ANY         ("strings.connection_type",           std::bind(&torrent::option_list_strings, torrent::OPTION_CONNECTION_TYPE));
-  CMD2_ANY         ("strings.encryption",                std::bind(&torrent::option_list_strings, torrent::OPTION_ENCRYPTION));
-  CMD2_ANY         ("strings.ip_filter",                 std::bind(&torrent::option_list_strings, torrent::OPTION_IP_FILTER));
-  CMD2_ANY         ("strings.ip_tos",                    std::bind(&torrent::option_list_strings, torrent::OPTION_IP_TOS));
-  CMD2_ANY         ("strings.log_group",                 std::bind(&torrent::option_list_strings, torrent::OPTION_LOG_GROUP));
-  CMD2_ANY         ("strings.tracker_event",             std::bind(&torrent::option_list_strings, torrent::OPTION_TRACKER_EVENT));
-  CMD2_ANY         ("strings.tracker_mode",              std::bind(&torrent::option_list_strings, torrent::OPTION_TRACKER_MODE));
+  CMD2_ANY         ("strings.choke_heuristics",          [](auto, auto) { return torrent::option_list_strings(torrent::OPTION_CHOKE_HEURISTICS); });
+  CMD2_ANY         ("strings.choke_heuristics.upload",   [](auto, auto) { return torrent::option_list_strings(torrent::OPTION_CHOKE_HEURISTICS_UPLOAD); });
+  CMD2_ANY         ("strings.choke_heuristics.download", [](auto, auto) { return torrent::option_list_strings(torrent::OPTION_CHOKE_HEURISTICS_DOWNLOAD); });
+  CMD2_ANY         ("strings.connection_type",           [](auto, auto) { return torrent::option_list_strings(torrent::OPTION_CONNECTION_TYPE); });
+  CMD2_ANY         ("strings.encryption",                [](auto, auto) { return torrent::Object::create_list(); });
+  CMD2_ANY         ("strings.encryption.handshake",      [](auto, auto) { return torrent::option_list_strings(torrent::OPTION_ENCRYPTION_HANDSHAKE); });
+  CMD2_ANY         ("strings.encryption.stream",         [](auto, auto) { return torrent::option_list_strings(torrent::OPTION_ENCRYPTION_STREAM); });
+  CMD2_ANY         ("strings.ip_filter",                 [](auto, auto) { return torrent::option_list_strings(torrent::OPTION_IP_FILTER); });
+  CMD2_ANY         ("strings.ip_tos",                    [](auto, auto) { return torrent::option_list_strings(torrent::OPTION_IP_TOS); });
+  CMD2_ANY         ("strings.log_group",                 [](auto, auto) { return torrent::option_list_strings(torrent::OPTION_LOG_GROUP); });
+  CMD2_ANY         ("strings.tracker_event",             [](auto, auto) { return torrent::option_list_strings(torrent::OPTION_TRACKER_EVENT); });
+  CMD2_ANY         ("strings.tracker_mode",              [](auto, auto) { return torrent::option_list_strings(torrent::OPTION_TRACKER_MODE); });
   // clang-format on
 
 #ifdef HAVE_XMLRPC_TINYXML2

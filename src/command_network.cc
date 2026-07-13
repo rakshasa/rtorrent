@@ -55,21 +55,95 @@ set_listen_port_range(const std::string& arg) {
 }
 
 torrent::Object
-apply_encryption(const torrent::Object::list_type& args) {
-  uint32_t options_mask = torrent::runtime::NetworkConfig::encryption_none;
+get_encryption() {
+  auto encryption_modes = torrent::runtime::network_config()->encryption_modes();
 
-  for (const auto& arg : args) {
-    uint32_t opt = torrent::option_find_string(torrent::OPTION_ENCRYPTION, arg.as_string().c_str());
+  return torrent::option_to_str_or_throw(torrent::OPTION_ENCRYPTION_HANDSHAKE, encryption_modes.first) + "," +
+    torrent::option_to_str_or_throw(torrent::OPTION_ENCRYPTION_STREAM, encryption_modes.second);
+}
 
-    if (opt == torrent::runtime::NetworkConfig::encryption_none)
-      options_mask = torrent::runtime::NetworkConfig::encryption_none;
-    else
-      options_mask |= opt;
+torrent::Object
+get_handshake_encryption() {
+  auto encryption_modes = torrent::runtime::network_config()->encryption_modes();
+
+  return torrent::option_to_str_or_throw(torrent::OPTION_ENCRYPTION_MODE, encryption_modes.first);
+}
+
+torrent::Object
+get_stream_encryption() {
+  auto encryption_modes = torrent::runtime::network_config()->encryption_modes();
+
+  return torrent::option_to_str_or_throw(torrent::OPTION_ENCRYPTION_MODE, encryption_modes.second);
+}
+
+torrent::Object
+apply_obsolete_encryption(const torrent::Object::list_type& args) {
+  torrent::encryption_mode handshake_mode{torrent::ENCRYPTION_MODE_ALLOW};
+  torrent::encryption_mode stream_mode{torrent::ENCRYPTION_MODE_ALLOW};
+
+  for (auto& itr : args) {
+    auto arg = itr.as_string();
+
+    if (arg == "none") {
+      handshake_mode = torrent::ENCRYPTION_MODE_DENY;
+      stream_mode    = torrent::ENCRYPTION_MODE_DENY;
+      break;
+
+    } else if (arg == "allow_incoming") {
+    } else if (arg == "try_outgoing") {
+    } else if (arg == "require") {
+      handshake_mode = torrent::ENCRYPTION_MODE_REQUIRE;
+
+    } else if (arg == "require_RC4" || arg == "require_rc4") {
+      handshake_mode = torrent::ENCRYPTION_MODE_REQUIRE;
+      stream_mode    = torrent::ENCRYPTION_MODE_REQUIRE;
+      break;
+
+    } else if (arg == "enable_retry") {
+    } else if (arg == "prefer_plaintext") {
+    } else {
+      throw torrent::input_error("Invalid encryption option: '" + arg + "'");
+    }
   }
 
-  torrent::runtime::network_config()->set_encryption_options(options_mask);
+  lt_log_print(torrent::LOG_WARN, "Obsolete encryption options used, use 'handshake_{deny,allow,prefer,require}, stream_{deny,allow,prefer,require}' instead.");
 
-  return torrent::Object();
+  torrent::runtime::network_config()->set_encryption_modes(handshake_mode, stream_mode);
+  return {};
+}
+
+torrent::Object
+apply_encryption(const torrent::Object::list_type& args) {
+  if (args.empty())
+    throw torrent::input_error("No encryption options specified.");
+
+  torrent::encryption_mode encryption_mode, handshake_mode, stream_mode;
+
+  if (args.size() == 1) {
+    try {
+      encryption_mode = static_cast<torrent::encryption_mode>(torrent::option_find_string_str(torrent::OPTION_ENCRYPTION_MODE, args.front().as_string()));
+
+    } catch (torrent::input_error& e) {
+      return apply_obsolete_encryption(args);
+    }
+
+    torrent::runtime::network_config()->set_encryption_modes(encryption_mode, encryption_mode);
+    return {};
+  }
+
+  if (args.size() != 2)
+    return apply_obsolete_encryption(args);
+
+  try {
+    handshake_mode = static_cast<torrent::encryption_mode>(torrent::option_find_string_str(torrent::OPTION_ENCRYPTION_HANDSHAKE, args.front().as_string()));
+    stream_mode    = static_cast<torrent::encryption_mode>(torrent::option_find_string_str(torrent::OPTION_ENCRYPTION_STREAM, args.back().as_string()));
+
+  } catch (torrent::input_error& e) {
+    return apply_obsolete_encryption(args);
+  }
+
+  torrent::runtime::network_config()->set_encryption_modes(handshake_mode, stream_mode);
+  return {};
 }
 
 torrent::Object
@@ -251,8 +325,12 @@ initialize_command_network() {
   CMD_ANY         ("network.listen.backlog",         [](auto, auto)        { return torrent::runtime::network_config()->listen_backlog(); });
   CMD_ANY_VALUE_V ("network.listen.backlog.set",     [](auto, auto& value) { return torrent::runtime::network_config()->set_listen_backlog(value); });
 
-  CMD_VAR_BOOL    ("protocol.pex",               true);
-  CMD_ANY_LIST    ("protocol.encryption.set",    [](auto, auto& args)           { return apply_encryption(args); });
+  CMD_VAR_BOOL    ("protocol.pex",                   true);
+
+  CMD_ANY_LIST    ("protocol.encryption",            [](auto, auto)        { return get_encryption(); });
+  CMD_ANY_LIST    ("protocol.encryption.set",        [](auto, auto& args)  { return apply_encryption(args); });
+  CMD_ANY_LIST    ("protocol.encryption.handshake",  [](auto, auto)        { return get_handshake_encryption(); });
+  CMD_ANY_LIST    ("protocol.encryption.stream",     [](auto, auto)        { return get_stream_encryption(); });
 
   CMD_VAR_STRING  ("protocol.connection.leech",            "leech");
   CMD_VAR_STRING  ("protocol.connection.seed",             "seed");
