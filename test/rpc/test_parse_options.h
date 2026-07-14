@@ -14,7 +14,6 @@ class TestParseOptions : public test_fixture {
   CPPUNIT_TEST(test_flags_print_flags);
 
   CPPUNIT_TEST(test_flag_libtorrent);
-  CPPUNIT_TEST(test_flags_libtorrent);
 
   CPPUNIT_TEST_SUITE_END();
 
@@ -30,5 +29,4 @@ public:
   void test_flags_print_flags();
 
   void test_flag_libtorrent();
-  void test_flags_libtorrent();
 };
