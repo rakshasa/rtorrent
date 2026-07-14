@@ -190,10 +190,6 @@ initialize_command_local() {
   core::DownloadList*    dList = control->core()->download_list();
   torrent::FileManager*  fileManager = torrent::file_manager();
 
-  if (rpc::call_command_value("method.use_deprecated") == 1) {
-    CMD_ANY_LIST    ("file.append",    std::bind(&cmd_file_append, std::placeholders::_2));
-  }
-
   CMD_ANY         ("system.hostname", std::bind(&system_hostname));
   CMD_ANY         ("system.pid",      std::bind(&getpid));
 

@@ -67,8 +67,11 @@ public:
   int                 dialect()                     { return m_xmlrpc.dialect(); }
   void                set_dialect(int dialect)      { m_xmlrpc.set_dialect(dialect); }
 
-  bool                is_type_enabled(RPCType type) const;
-  void                set_type_enabled(RPCType type, bool enabled);
+  bool                use_xmlrpc() const;
+  void                set_use_xmlrpc(bool v);
+
+  bool                use_jsonrpc() const;
+  void                set_use_jsonrpc(bool v);
 
   bool                process(RPCType type, const char* in_buffer, uint32_t length, slot_response_callback callback);
   bool                process_untrusted(RPCType type, const char* in_buffer, uint32_t length, slot_response_callback callback);
@@ -102,8 +105,9 @@ private:
   JsonRpc       m_jsonrpc;
 
   bool          m_handlers_initialized{};
-  bool          m_is_jsonrpc_enabled{true};
-  bool          m_is_xmlrpc_enabled{true};
+
+  bool          m_use_jsonrpc{true};
+  bool          m_use_xmlrpc{true};
 
   std::atomic<bool>         m_scgi_allow_compression{true};
   std::atomic<unsigned int> m_scgi_min_compress_size{1000};
@@ -115,6 +119,11 @@ private:
 };
 
 extern RpcManager rpc;
+
+inline bool RpcManager::use_xmlrpc() const      { return m_use_xmlrpc; }
+inline void RpcManager::set_use_xmlrpc(bool v)  { m_use_xmlrpc = v; }
+inline bool RpcManager::use_jsonrpc() const     { return m_use_jsonrpc; }
+inline void RpcManager::set_use_jsonrpc(bool v) { m_use_jsonrpc = v; }
 
 } // namespace rpc
 
