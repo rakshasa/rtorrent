@@ -15,6 +15,7 @@
 #include <torrent/rate.h>
 #include <torrent/data/file_utils.h>
 #include <torrent/net/http_stack.h>
+#include <torrent/runtime/client_config.h>
 #include <torrent/utils/string_manip.h>
 
 #include "control.h"
@@ -271,7 +272,7 @@ DownloadFactory::receive_success() {
   if (!m_session && m_variables["tied_to_file"].as_value())
     rpc::call_command("d.tied_to_file.set", m_uri.empty() ? m_variables["tied_file"] : m_uri, rpc::make_target(download));
 
-  rpc::call_command("d.peer_exchange.set", rpc::call_command_value("protocol.pex"), rpc::make_target(download));
+  rpc::call_command("d.peer_exchange.set", torrent::runtime::client_config()->is_pex_enabled(), rpc::make_target(download));
 
   torrent::resume_load_addresses(*download->download(), resumeObject);
   torrent::resume_load_file_priorities(*download->download(), resumeObject);

@@ -325,7 +325,8 @@ initialize_command_network() {
   CMD_ANY         ("network.listen.backlog",         [](auto, auto)        { return torrent::runtime::network_config()->listen_backlog(); });
   CMD_ANY_VALUE_V ("network.listen.backlog.set",     [](auto, auto& value) { return torrent::runtime::network_config()->set_listen_backlog(value); });
 
-  CMD_VAR_BOOL    ("protocol.pex",                   true);
+  CMD_ANY         ("protocol.pex",                   [](auto, auto)        { return torrent::runtime::client_config()->is_pex_enabled(); });
+  CMD_ANY_VALUE_V ("protocol.pex.set",               [](auto, auto& value) { return torrent::runtime::client_config()->set_pex_enabled(value); });
 
   CMD_ANY_LIST    ("protocol.encryption",            [](auto, auto)        { return get_encryption(); });
   CMD_ANY_LIST    ("protocol.encryption.set",        [](auto, auto& args)  { return apply_encryption(args); });
@@ -401,8 +402,10 @@ initialize_command_network() {
   CMD_ANY         ("network.xmlrpc.size_limit",              [](auto, auto)                  { return rpc::rpc.size_limit(); });
   CMD_ANY_VALUE_V ("network.xmlrpc.size_limit.set",          [](auto, auto& arg)             { return rpc::rpc.set_size_limit(arg); });
 
-  CMD_VAR_BOOL    ("network.rpc.use_xmlrpc",                 true);
-  CMD_VAR_BOOL    ("network.rpc.use_jsonrpc",                true);
+  CMD_ANY         ("network.rpc.use_xmlrpc",                 [](auto, auto)                  { return rpc::rpc.use_xmlrpc(); });
+  CMD_ANY_VALUE_V ("network.rpc.use_xmlrpc.set",             [](auto, auto& arg)             { return rpc::rpc.set_use_xmlrpc(arg); });
+  CMD_ANY         ("network.rpc.use_jsonrpc",                [](auto, auto)                  { return rpc::rpc.use_jsonrpc(); });
+  CMD_ANY_VALUE_V ("network.rpc.use_jsonrpc.set",            [](auto, auto& arg)             { return rpc::rpc.set_use_jsonrpc(arg); });
 
   CMD_ANY         ("network.block.ipv4",                     [nw_config](auto, auto)         { return nw_config->is_block_ipv4(); });
   CMD_ANY_VALUE_V ("network.block.ipv4.set",                 [nw_config](auto, auto& value)  { return nw_config->set_block_ipv4(value); });

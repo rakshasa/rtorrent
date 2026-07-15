@@ -113,25 +113,20 @@ bool
 RpcManager::process(RPCType type, const char* in_buffer, uint32_t length, slot_response_callback callback) {
   switch (type) {
   case RPCType::XML:
-    // TODO: 'network.rpc.use_xmlrpc' should be a bool in RpcManager, not a command variable.
-    if (m_xmlrpc.is_valid() && rpc::call_command_value("network.rpc.use_xmlrpc")) {
-      return m_xmlrpc.process(in_buffer, length, callback);
-
-    } else {
+    if (!m_xmlrpc.is_valid() || !m_use_xmlrpc) {
       const std::string response = "<?xml version=\"1.0\"?><methodResponse><fault><value><struct><member><name>faultCode</name><value><i8>-501</i8></value></member><member><name>faultString</name><value><string>XML-RPC not supported</string></value></member></struct></value></fault></methodResponse>";
       return callback(response.c_str(), response.size());
     }
-    break;
+
+    return m_xmlrpc.process(in_buffer, length, callback);
 
   case RPCType::JSON:
-    if (rpc::call_command_value("network.rpc.use_jsonrpc")) {
-      return m_jsonrpc.process(in_buffer, length, callback);
-
-    } else {
+    if (!m_use_jsonrpc) {
       const std::string response = "{\"jsonrpc\":\"2.0\",\"error\":{\"code\":-32601,\"message\":\"JSON-RPC not supported\"},\"id\":null}";
       return callback(response.c_str(), response.size());
     }
-    break;
+
+    return m_jsonrpc.process(in_buffer, length, callback);
 
   default:
     throw torrent::input_error("invalid parameters: unknown RPC type");
@@ -170,32 +165,6 @@ RpcManager::cleanup() {
 
   m_xmlrpc.cleanup();
   m_jsonrpc.cleanup();
-}
-
-bool
-RpcManager::is_type_enabled(RPCType type) const {
-  switch (type) {
-  case RPCType::XML:
-    return m_is_xmlrpc_enabled;
-  case RPCType::JSON:
-    return m_is_jsonrpc_enabled;
-  default:
-    throw torrent::input_error("invalid parameters: unknown RPC type");
-  }
-}
-
-void
-RpcManager::set_type_enabled(RPCType type, bool enabled) {
-  switch (type) {
-  case RPCType::XML:
-    m_is_xmlrpc_enabled = enabled;
-    break;
-  case RPCType::JSON:
-    m_is_jsonrpc_enabled = enabled;
-    break;
-  default:
-    throw torrent::input_error("invalid parameters: unknown RPC type");
-  }
 }
 
 void
