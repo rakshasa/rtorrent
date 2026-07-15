@@ -16,9 +16,9 @@ ExecFile   execFile;
 
 // Trusted/untrusted XMLRPC connection model.
 //
-// The trust state is set per-request by the SCGI layer based on the
-// UNTRUSTED_CONNECTION header. Commands without flag_untrusted_safe
-// are blocked for untrusted connections. The check is in
+// The SCGI listener establishes the trust state from its transport.
+// UNTRUSTED_CONNECTION may only reduce trust. Commands without
+// flag_untrusted_safe are blocked for untrusted connections. The check is in
 // CommandMap::call_command(), which catches all command execution
 // including nested calls through argument expansion.
 

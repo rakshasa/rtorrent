@@ -136,5 +136,6 @@
 # schedule can be used to set permissions on the unix socket.
 #
 #network.scgi.open_port = "127.0.0.1:5000"
+# TCP SCGI requests are untrusted. Use a Unix socket for trusted local control.
 #network.scgi.open_local = (cat,(session.path),/rpc.sock)
 #schedule2 = socket_chmod, 0, 0, "execute.nothrow=chmod,770,(cat,(session.path),/rpc.sock)"

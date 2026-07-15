@@ -33,6 +33,8 @@ SCgi::~SCgi() {
 
 void
 SCgi::open_port(sockaddr* sa, unsigned int length, bool dont_route) {
+  m_transport_trusted = false;
+
   int fd = torrent::fd_open_family(torrent::fd_flag_stream | torrent::fd_flag_nonblock | torrent::fd_flag_reuse_address,
                                    sa->sa_family);
 
@@ -53,6 +55,8 @@ SCgi::open_port(sockaddr* sa, unsigned int length, bool dont_route) {
 
 void
 SCgi::open_named(const std::string& filename) {
+  m_transport_trusted = true;
+
   if (filename.empty() || filename.size() >= sizeof(sockaddr_un::sun_path))
     throw torrent::resource_error("Invalid filename length.");
 
@@ -79,6 +83,14 @@ SCgi::open_named(const std::string& filename) {
 
 void
 SCgi::open_fd(int fd) {
+  sockaddr_storage sa{};
+  socklen_t length = sizeof(sa);
+
+  if (::getsockname(fd, reinterpret_cast<sockaddr*>(&sa), &length) == -1)
+    throw torrent::resource_error("Could not inspect systemd SCGI socket: " + std::string(std::strerror(errno)));
+
+  m_transport_trusted = sa.ss_family == AF_LOCAL;
+
   if (!torrent::fd_set_nonblock(fd))
     throw torrent::resource_error("Could not set non-blocking on systemd fd: " +
                                   std::string(std::strerror(errno)));
@@ -170,7 +182,7 @@ SCgi::event_read() {
     }
 
     auto open_func = [this, fd, task = m_current->get()]() {
-        task->open(this, fd);
+        task->open(this, fd, m_transport_trusted);
       };
 
     auto cleanup_func = [fd, task = m_current->get()](bool opened) {

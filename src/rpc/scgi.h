@@ -42,6 +42,7 @@ private:
 
   std::string         m_path;
   int                 m_logFd{-1};
+  bool                m_transport_trusted{false};
 
   task_list           m_tasks;
   task_list::iterator m_current;

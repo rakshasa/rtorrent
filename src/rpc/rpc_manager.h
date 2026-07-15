@@ -92,8 +92,8 @@ public:
 
   // Trusted/untrusted XMLRPC connection model.
   //
-  // When an SCGI request includes the UNTRUSTED_CONNECTION header,
-  // commands without flag_untrusted_safe are blocked.
+  // The SCGI transport determines trust. UNTRUSTED_CONNECTION can only
+  // reduce trust, and commands without flag_untrusted_safe are blocked.
   bool                is_trusted() const;
 
   static void         object_to_target(const torrent::Object& obj, int callFlags, rpc::target_type* target, std::function<void()>* deleter);

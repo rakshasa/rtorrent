@@ -31,7 +31,7 @@ SCgiTask::SCgiTask()
 }
 
 void
-SCgiTask::open(SCgi* parent, int fd) {
+SCgiTask::open(SCgi* parent, int fd, bool trusted) {
   set_file_descriptor(fd);
 
   m_parent      = parent;
@@ -42,10 +42,7 @@ SCgiTask::open(SCgi* parent, int fd) {
   m_content_type        = XML;
   m_content_type_set    = false;
   m_accepts_compression = false;
-  m_trusted             = true;  // SCgiTask is pooled and reused; reset trust to default
-                                 // so a prior untrusted connection does not leak its
-                                 // m_trusted=false into the next reuse, given that the
-                                 // UNTRUSTED_CONNECTION=0 parse branch is a no-op.
+  m_trusted             = trusted;
 
   torrent::this_thread::poll()->open(this);
   torrent::this_thread::poll()->insert_read(this);
@@ -247,11 +244,9 @@ SCgiTask::parse_headers(const char* current, unsigned int header_length) {
     } else if (std::strncmp(key, "UNTRUSTED_CONNECTION", 20+1) == 0) {
       if (std::strncmp(value, "1", 1+1) == 0)
         m_trusted = false;
-      else if (std::strncmp(value, "0", 1+1) == 0)
-        m_trusted = true;  // Explicit reset (open() also resets, but be defensive in case
-                           // future refactors stop pooling tasks or skip the open() reset).
-      else
+      else if (std::strncmp(value, "0", 1+1) != 0)
         return false;
+      // A request header may reduce trust but must never grant it.
     }
   }
 

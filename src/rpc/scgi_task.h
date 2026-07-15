@@ -25,7 +25,7 @@ public:
   bool                is_open() const      { return file_descriptor() != -1; }
   bool                is_available() const { return file_descriptor() == -1; }
 
-  void                open(SCgi* parent, int fd);
+  void                open(SCgi* parent, int fd, bool trusted);
   void                cancel_open();
 
   void                close();
