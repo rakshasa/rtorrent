@@ -301,7 +301,7 @@ main(int argc, char** argv) {
        "schedule = low_diskspace,5,60,((close_low_diskspace,500M))\n"
        "schedule = prune_file_status,3600,86400,((system.file_status_cache.prune))\n"
 
-       "protocol.encryption.set=allow_incoming,prefer_plaintext,enable_retry\n"
+       "protocol.encryption.set=allow\n"
 
        "ui.color.focus.set=reverse\n"
     );
