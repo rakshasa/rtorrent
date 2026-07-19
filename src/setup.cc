@@ -38,7 +38,7 @@ parse_main_options(int argc, char** argv) {
     optionParser.insert_option('b', [](auto& arg) { rpc::call_command_set_string("network.bind_address.set", arg); });
     optionParser.insert_option('d', [](auto& arg) { rpc::call_command_set_string("directory.default.set", arg); });
     optionParser.insert_option('i', [](auto& arg) { rpc::call_command_set_string("ip", arg); });
-    optionParser.insert_option('p', [](auto& arg) { rpc::call_command_set_string("network.port_range.set", arg); });
+    optionParser.insert_option('p', [](auto& arg) { rpc::call_command_set_string("network.listen.port.range.set", arg); });
     optionParser.insert_option('s', [](auto& arg) { rpc::call_command_set_string("session", arg); });
 
     optionParser.insert_option('O',      [](auto& arg) { rpc::parse_command_single_std(arg); });

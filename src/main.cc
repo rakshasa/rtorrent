@@ -301,8 +301,6 @@ main(int argc, char** argv) {
        "schedule = low_diskspace,5,60,((close_low_diskspace,500M))\n"
        "schedule = prune_file_status,3600,86400,((system.file_status_cache.prune))\n"
 
-       "protocol.encryption.set=allow_incoming,prefer_plaintext,enable_retry\n"
-
        "ui.color.focus.set=reverse\n"
     );
 
@@ -346,8 +344,9 @@ main(int argc, char** argv) {
     CMD_REDIRECT("directory",             "directory.default.set");
     CMD_REDIRECT("session",               "session.path.set");
 
-    CMD_REDIRECT("scgi_port",             "network.scgi.open_port");
-    CMD_REDIRECT("scgi_local",            "network.scgi.open_local");
+    CMD_REDIRECT_NO_EXPORT("port_range",  "network.listen.port.range.set");
+    CMD_REDIRECT_NO_EXPORT("scgi_port",   "network.scgi.open_port");
+    CMD_REDIRECT_NO_EXPORT("scgi_local",  "network.scgi.open_local");
 
     CMD_REDIRECT("to_gm_time",            "convert.gm_time");
     CMD_REDIRECT("to_gm_date",            "convert.gm_date");
@@ -390,8 +389,6 @@ main(int argc, char** argv) {
       CMD_REDIRECT("execute2",         "execute");
       CMD_REDIRECT("schedule2",        "schedule");
       CMD_REDIRECT("schedule_remove2", "schedule.remove");
-
-      // TODO: Remove file.append when cleaning these up.
 
       CMD_REDIRECT("bind",                  "network.bind_address.set");
       CMD_REDIRECT("ip",                    "network.local_address.set");
