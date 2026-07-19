@@ -344,7 +344,7 @@ main(int argc, char** argv) {
     CMD_REDIRECT("directory",             "directory.default.set");
     CMD_REDIRECT("session",               "session.path.set");
 
-    CMD_REDIRECT_NO_EXPORT("port_range",  "network.listen.port_range.set");
+    CMD_REDIRECT_NO_EXPORT("port_range",  "network.listen.port.range.set");
     CMD_REDIRECT_NO_EXPORT("scgi_port",   "network.scgi.open_port");
     CMD_REDIRECT_NO_EXPORT("scgi_local",  "network.scgi.open_local");
 
