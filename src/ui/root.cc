@@ -194,6 +194,8 @@ Root::set_up_throttle(unsigned int throttle) {
   if (m_windowStatusbar != NULL)
     m_windowStatusbar->mark_dirty();
 
+  m_upThrottleZero = false;
+
   torrent::up_throttle_global()->set_max_rate(throttle * 1024);
 
   unsigned int div    = std::max<int>(rpc::call_command_value("throttle.max_uploads.div"), 0);
@@ -217,6 +219,40 @@ Root::set_up_throttle(unsigned int throttle) {
     torrent::resource_manager()->set_max_upload_unchoked(std::min(maxUnchoked, global));
   else
     torrent::resource_manager()->set_max_upload_unchoked(maxUnchoked);
+}
+
+void
+Root::set_down_throttle_i64(int64_t throttle) {
+  if (throttle < 0)
+    throttle = 0;
+
+  set_down_throttle(throttle >> 10);
+}
+
+void
+Root::set_up_throttle_i64(int64_t throttle) {
+  if (throttle < 0) {
+    set_up_throttle_zero();
+  } else {
+    m_upThrottleZero = false;
+    set_up_throttle(throttle >> 10);
+  }
+}
+
+void
+Root::set_up_throttle_zero() {
+  if (m_windowStatusbar != nullptr)
+    m_windowStatusbar->mark_dirty();
+
+  // 0 is "unlimited" in libtorrent, so we cannot use it for a true
+  // zero rate.  Set the rate to 1 byte/second, which is below the
+  // minimum chunk size, and reset the throttle so any queued quota
+  // is discarded.  This leaves upload slots open while ensuring no
+  // piece data is ever sent.
+  torrent::up_throttle_global()->set_max_rate(0);
+  torrent::up_throttle_global()->set_max_rate(1);
+
+  m_upThrottleZero = true;
 }
 
 void

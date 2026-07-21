@@ -173,7 +173,11 @@ initialize_command_throttle() {
   // TODO: Move the logic into some libtorrent function.
   CMD2_ANY         ("throttle.global_up.rate",              std::bind(&torrent::Rate::rate, torrent::up_rate()));
   CMD2_ANY         ("throttle.global_up.total",             std::bind(&torrent::Rate::total, torrent::up_rate()));
-  CMD2_ANY         ("throttle.global_up.max_rate",          std::bind(&torrent::Throttle::max_rate, torrent::up_throttle_global()));
+  CMD2_ANY         ("throttle.global_up.max_rate",          std::bind([]() -> int64_t {
+    if (control->ui() != nullptr && control->ui()->is_up_throttle_zero())
+      return (int64_t)0;
+    return (int64_t)torrent::up_throttle_global()->max_rate();
+  }));
   CMD2_ANY_VALUE_V ("throttle.global_up.max_rate.set",      std::bind(&ui::Root::set_up_throttle_i64, control->ui(), std::placeholders::_2));
   CMD2_ANY_VALUE_KB("throttle.global_up.max_rate.set_kb",   std::bind(&ui::Root::set_up_throttle_i64, control->ui(), std::placeholders::_2));
   CMD2_ANY         ("throttle.global_down.rate",            std::bind(&torrent::Rate::rate, torrent::down_rate()));

@@ -69,8 +69,10 @@ public:
   void                set_up_throttle(unsigned int throttle);
 
   // Rename to raw or something, make base function.
-  void                set_down_throttle_i64(int64_t throttle) { set_down_throttle(throttle >> 10); }
-  void                set_up_throttle_i64(int64_t throttle)   { set_up_throttle(throttle >> 10); }
+  void                set_down_throttle_i64(int64_t throttle);
+  void                set_up_throttle_i64(int64_t throttle);
+
+  bool                is_up_throttle_zero() const             { return m_upThrottleZero; }
 
   void                adjust_down_throttle(int throttle);
   void                adjust_up_throttle(int throttle);
@@ -103,6 +105,7 @@ public:
 
 private:
   void                setup_keys();
+  void                set_up_throttle_zero();
 
   Control*                      m_control{nullptr};
   std::unique_ptr<DownloadList> m_downloadList;
@@ -130,6 +133,8 @@ private:
 
   ThrottleNameList    m_throttle_up_names;
   ThrottleNameList    m_throttle_down_names;
+
+  bool                m_upThrottleZero{false};
 };
 
 }
