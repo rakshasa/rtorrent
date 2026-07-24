@@ -358,27 +358,6 @@ main(int argc, char** argv) {
     CMD_REDIRECT("to_xb",                 "convert.xb");
     CMD_REDIRECT("to_throttle",           "convert.throttle");
 
-    // TODO: Deprecate these at some point a while after 1.1 release.
-
-    CMD_REDIRECT("d.multicall2",                   "d.multicall");
-    CMD_REDIRECT("network.open_sockets",           "system.sockets.size");
-    CMD_REDIRECT("network.max_open_sockets",       "system.sockets.max_size");
-    CMD_REDIRECT("network.max_open_sockets.set",   "system.sockets.max_size.set");
-    CMD_REDIRECT("network.http.proxy_address",     "network.proxy.http");
-    CMD_REDIRECT("network.http.proxy_address.set", "network.proxy.http.set");
-
-    rpc::rpc.mark_safe("d.multicall2");
-    rpc::rpc.mark_safe("network.max_open_sockets");
-    rpc::rpc.mark_safe("network.http.proxy_address");
-
-    CMD2_ANY_VALUE_V("network.http.max_total_connections.set", [](auto, auto) {
-        lt_log_print(torrent::LOG_WARN, "network.http.max_total_connections.set is deprecated, use system.sockets.http.min_alloc.set instead.");
-      });
-
-    CMD2_ANY_VALUE_V("network.max_open_files.set", [](auto, auto) {
-        lt_log_print(torrent::LOG_WARN, "network.max_open_files.set is deprecated, use system.sockets.files.min_alloc.set instead.");
-      });
-
     // if (rpc::call_command_value("method.use_intermediate") == 1) {
 
     // } else if (rpc::call_command_value("method.use_intermediate") == 2) {
@@ -386,26 +365,8 @@ main(int argc, char** argv) {
     // }
 
     if (rpc::call_command_value("method.use_deprecated") == 1) {
-      CMD_REDIRECT("execute2",         "execute");
-      CMD_REDIRECT("schedule2",        "schedule");
-      CMD_REDIRECT("schedule_remove2", "schedule.remove");
-
-      CMD_REDIRECT("bind",                  "network.bind_address.set");
-      CMD_REDIRECT("ip",                    "network.local_address.set");
-      CMD_REDIRECT("port_range",            "network.port_range.set");
-
-      // TODO: Check if dht is on by default.
-      CMD_REDIRECT("dht",                   "dht.mode.set");
-
-      CMD_REDIRECT("port_random",           "network.port_random.set");
+      CMD_REDIRECT("port_random",           "network.listen.port.random.set");
       CMD_REDIRECT("proxy_address",         "network.proxy_address.set");
-
-      CMD_REDIRECT("key_layout",            "keys.layout.set");
-
-      CMD_REDIRECT("torrent_list_layout",   "ui.torrent_list.layout.set");
-
-      CMD2_VAR_STRING("dht.throttle.name",   "deprecated");
-      rpc::rpc.mark_safe("dht.throttle.name");
 
       CMD_REDIRECT("network.http.max_open",     "network.http.max_total_connections");
       CMD_REDIRECT("network.http.max_open.set", "network.http.max_total_connections.set");
@@ -431,6 +392,27 @@ main(int argc, char** argv) {
       CMD_REDIRECT("network.port_random.set", "network.listen.port.random.set");
       CMD_REDIRECT("network.port_range",      "network.listen.port.range");
       CMD_REDIRECT("network.port_range.set",  "network.listen.port.range.set");
+
+      // TODO: Deprecate these at some point a while after 1.1 release.
+
+      CMD_REDIRECT("d.multicall2",                   "d.multicall");
+      CMD_REDIRECT("network.open_sockets",           "system.sockets.size");
+      CMD_REDIRECT("network.max_open_sockets",       "system.sockets.max_size");
+      CMD_REDIRECT("network.max_open_sockets.set",   "system.sockets.max_size.set");
+      CMD_REDIRECT("network.http.proxy_address",     "network.proxy.http");
+      CMD_REDIRECT("network.http.proxy_address.set", "network.proxy.http.set");
+
+      rpc::rpc.mark_safe("d.multicall2");
+      rpc::rpc.mark_safe("network.max_open_sockets");
+      rpc::rpc.mark_safe("network.http.proxy_address");
+
+      CMD2_ANY_VALUE_V("network.http.max_total_connections.set", [](auto, auto) {
+          lt_log_print(torrent::LOG_WARN, "network.http.max_total_connections.set is deprecated, use system.sockets.http.min_alloc.set instead.");
+        });
+
+      CMD2_ANY_VALUE_V("network.max_open_files.set", [](auto, auto) {
+          lt_log_print(torrent::LOG_WARN, "network.max_open_files.set is deprecated, use system.sockets.files.min_alloc.set instead.");
+        });
     }
 
     {
