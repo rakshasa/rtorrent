@@ -112,8 +112,7 @@ main(int argc, char** argv) {
 
     torrent::log_initialize();
 
-    // TODO: Create a fake thread object for initializing other processes and enabling logging.
-    torrent::initialize_main_thread();
+    torrent::runtime::initialize_worker_process_and_main_thread();
 
     // Block SIGCHLD until all threads are created, then unblock on main-thread, to avoid SIGCHLD
     // interrupting other threads.
