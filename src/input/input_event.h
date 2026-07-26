@@ -2,12 +2,11 @@
 #define RTORRENT_INPUT_INPUT_EVENT_H
 
 #include <functional>
-
-#include <torrent/event.h>
+#include <torrent/system/event.h>
 
 namespace input {
 
-class InputEvent : public torrent::Event {
+class InputEvent : public torrent::system::Event {
 public:
   typedef std::function<void (int)> slot_int;
 
