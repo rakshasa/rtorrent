@@ -3,13 +3,13 @@
 
 #include <array>
 #include <memory>
-#include <torrent/event.h>
+#include <torrent/system/event.h>
 
 #include "rpc/scgi_task.h"
 
 namespace rpc {
 
-class SCgi : public torrent::Event {
+class SCgi : public torrent::system::Event {
 public:
   static const int max_tasks = 100;
 
