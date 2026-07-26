@@ -4,13 +4,13 @@
 #include <memory>
 #include <mutex>
 #include <vector>
-#include <torrent/event.h>
+#include <torrent/system/event.h>
 
 namespace rpc {
 
 class SCgi;
 
-class SCgiTask : public torrent::Event {
+class SCgiTask : public torrent::system::Event {
 public:
   static constexpr int default_buffer_size = 8191;
   static constexpr int max_header_size     = 2000;

@@ -2,9 +2,10 @@
 #define LIBTORRENT_HELPERS_MOCK_COMPARE_H
 
 #include <algorithm>
+#include <map>
 #include <type_traits>
-#include <torrent/event.h>
 #include <torrent/net/socket_address.h>
+#include <torrent/system/event.h>
 
 // Compare arguments to mock functions with what is expected. The lhs
 // are the expected arguments, rhs are the ones called with.
@@ -13,13 +14,13 @@ template <typename Arg>
 inline bool mock_compare_arg(Arg lhs, Arg rhs) { return lhs == rhs; }
 
 template <int I, typename A, typename... Args>
-typename std::enable_if<I == 1, int>::type
+std::enable_if_t<I == 1, int>
 mock_compare_tuple(const std::tuple<A, Args...>& lhs, const std::tuple<Args...>& rhs) {
   return mock_compare_arg(std::get<I>(lhs), std::get<I - 1>(rhs)) ? 0 : 1;
 }
 
 template <int I, typename A, typename... Args>
-typename std::enable_if<1 < I, int>::type
+std::enable_if_t<1 < I, int>
 mock_compare_tuple(const std::tuple<A, Args...>& lhs, const std::tuple<Args...>& rhs) {
   auto res = mock_compare_tuple<I - 1>(lhs, rhs);
 
@@ -70,24 +71,37 @@ void mock_compare_add(T* v) {
 // Specialize:
 //
 
+constexpr int mock_compare_gt_two_int = -0xFD30;
+
+template <>
+inline bool mock_compare_arg<int>(int lhs, int rhs) {
+  if (lhs == mock_compare_gt_two_int)
+    return rhs > 2;
+  if (rhs == mock_compare_gt_two_int)
+    return lhs > 2;
+
+  return lhs == rhs;
+}
+
 template <>
 inline bool mock_compare_arg<sockaddr*>(sockaddr* lhs, sockaddr* rhs) {
   return lhs != nullptr && rhs != nullptr && torrent::sa_equal(lhs, rhs);
 }
+
 template <>
 inline bool mock_compare_arg<const sockaddr*>(const sockaddr* lhs, const sockaddr* rhs) {
   return lhs != nullptr && rhs != nullptr && torrent::sa_equal(lhs, rhs);
 }
 
 template <>
-inline bool mock_compare_arg<torrent::Event*>(torrent::Event* lhs, torrent::Event* rhs) {
-  if (mock_compare_map<torrent::Event>::is_key(lhs)) {
-    if (!mock_compare_map<torrent::Event>::has_value(rhs)) {
-      mock_compare_map<torrent::Event>::values[lhs] = rhs;
+inline bool mock_compare_arg<torrent::system::Event*>(torrent::system::Event* lhs, torrent::system::Event* rhs) {
+  if (mock_compare_map<torrent::system::Event>::is_key(lhs)) {
+    if (!mock_compare_map<torrent::system::Event>::has_value(rhs)) {
+      mock_compare_map<torrent::system::Event>::values[lhs] = rhs;
       return true;
     }
 
-    return mock_compare_map<torrent::Event>::has_key(lhs) && mock_compare_map<torrent::Event>::get(lhs) == rhs;
+    return mock_compare_map<torrent::system::Event>::has_key(lhs) && mock_compare_map<torrent::system::Event>::get(lhs) == rhs;
   }
 
   return lhs == rhs;
