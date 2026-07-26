@@ -6,9 +6,9 @@
 #include <iostream>
 #include <unistd.h>
 
-#include "torrent/event.h"
 #include "torrent/net/socket_address.h"
 #include "torrent/net/fd.h"
+#include "torrent/system/event.h"
 #include "torrent/utils/log.h"
 #include "torrent/utils/random.h"
 
@@ -32,7 +32,7 @@ mock_clear(bool ignore_assert) {
   MOCK_CLEANUP_MAP(torrent::random_uniform_uint16);
   MOCK_CLEANUP_MAP(torrent::random_uniform_uint32);
 
-  mock_compare_map<torrent::Event>::values.clear();
+  mock_compare_map<torrent::system::Event>::values.clear();
 }
 } // namespace
 
@@ -55,7 +55,9 @@ mock_redirect_defaults([[maybe_unused]] mock_redirect_flags flags) {
 
   mock_redirect(torrent::fd__close, std::function<int(int fildes)>([](int fildes) { return ::close(fildes); }));
   mock_redirect(torrent::fd__fcntl_int, std::function<int(int fildes, int cmd, int arg)>([](int fildes, int cmd, int arg) { return ::fcntl(fildes, cmd, arg); }));
-  mock_redirect(torrent::fd__setsockopt_int, std::function<int(int socket, int level, int option_name, int option_value)>([](int socket, int level, int option_name, int option_value) { return ::setsockopt(socket, level, option_name, &option_value, sizeof(int)); }));
+  mock_redirect(torrent::fd__setsockopt_int, std::function<int(int socket, int level, int option_name, int option_value)>([](int socket, int level, int option_name, int option_value) {
+      return ::setsockopt(socket, level, option_name, &option_value, sizeof(int));
+    }));
   mock_redirect(torrent::fd__socket, std::function<int(int domain, int type, int protocol)>([](int domain, int type, int protocol) { return ::socket(domain, type, protocol); }));
 }
 
@@ -110,69 +112,6 @@ int fd__setsockopt_int(int socket, int level, int option_name, int option_value)
 int fd__socket(int domain, int type, int protocol) {
   MOCK_LOG("domain:%i type:%i protocol:%i", domain, type, protocol);
   return mock_call<int>(__func__, &torrent::fd__socket, domain, type, protocol);
-}
-
-//
-// Mock functions for 'torrent/common.h':
-//
-
-namespace this_thread {
-
-void event_open(Event* event) {
-  MOCK_LOG("fd:%i type_name:%s", event->file_descriptor(), event->type_name());
-  return mock_call<void>(__func__, &torrent::this_thread::event_open, event);
-}
-
-void event_open_and_count(Event* event) {
-  MOCK_LOG("fd:%i type_name:%s", event->file_descriptor(), event->type_name());
-  return mock_call<void>(__func__, &torrent::this_thread::event_open_and_count, event);
-}
-
-void event_close_and_count(Event* event) {
-  MOCK_LOG("fd:%i type_name:%s", event->file_descriptor(), event->type_name());
-  return mock_call<void>(__func__, &torrent::this_thread::event_close_and_count, event);
-}
-
-void event_closed_and_count(Event* event) {
-  MOCK_LOG("fd:%i type_name:%s", event->file_descriptor(), event->type_name());
-  return mock_call<void>(__func__, &torrent::this_thread::event_closed_and_count, event);
-}
-
-void event_insert_read(Event* event) {
-  MOCK_LOG("fd:%i type_name:%s", event->file_descriptor(), event->type_name());
-  return mock_call<void>(__func__, &torrent::this_thread::event_insert_read, event);
-}
-
-void event_insert_write(Event* event) {
-  MOCK_LOG("fd:%i type_name:%s", event->file_descriptor(), event->type_name());
-  return mock_call<void>(__func__, &torrent::this_thread::event_insert_write, event);
-}
-
-void event_insert_error(Event* event) {
-  MOCK_LOG("fd:%i type_name:%s", event->file_descriptor(), event->type_name());
-  return mock_call<void>(__func__, &torrent::this_thread::event_insert_error, event);
-}
-
-void event_remove_read(Event* event) {
-  MOCK_LOG("fd:%i type_name:%s", event->file_descriptor(), event->type_name());
-  return mock_call<void>(__func__, &torrent::this_thread::event_remove_read, event);
-}
-
-void event_remove_write(Event* event) {
-  MOCK_LOG("fd:%i type_name:%s", event->file_descriptor(), event->type_name());
-  return mock_call<void>(__func__, &torrent::this_thread::event_remove_write, event);
-}
-
-void event_remove_error(Event* event) {
-  MOCK_LOG("fd:%i type_name:%s", event->file_descriptor(), event->type_name());
-  return mock_call<void>(__func__, &torrent::this_thread::event_remove_error, event);
-}
-
-void event_remove_and_close(Event* event) {
-  MOCK_LOG("fd:%i type_name:%s", event->file_descriptor(), event->type_name());
-  return mock_call<void>(__func__, &torrent::this_thread::event_remove_and_close, event);
-}
-
 }
 
 //
