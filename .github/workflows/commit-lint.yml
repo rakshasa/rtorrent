@@ -1,0 +1,65 @@
+name: "Lint Commit Message Size"
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  check-commit-bounds:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate Line Count, Width, and Spacing
+        run: |
+          # Fetch commit hashes unique to this PR branch
+          COMMITS=$(git log --no-merges --pretty=format:"%H" origin/${{ github.base_ref }}..HEAD)
+
+          MAX_LINES=3
+          MAX_CHARS=90
+          FAILED=0
+
+          for commit in $COMMITS; do
+            SUBJECT=$(git log --format="%s" -n 1 $commit)
+
+            # Extract clean commit message, trimming trailing blank lines
+            RAW_MSG=$(git log --format="%B" -n 1 $commit)
+            CLEAN_MSG=$(echo "$RAW_MSG" | awk '{msg[NR]=$0} END {while(NR>0 && msg[NR]=="") NR--; for(i=1;i<=NR;i++) print msg[i]}')
+
+            # 1. Check total line count
+            LINE_COUNT=$(echo "$CLEAN_MSG" | wc -l)
+            if [ "$LINE_COUNT" -gt "$MAX_LINES" ]; then
+              echo "❌ Error: Commit message has too many lines ($LINE_COUNT/$MAX_LINES)."
+              echo "   Commit: '$SUBJECT'"
+              FAILED=1
+            fi
+
+            # 2. Check for multiple consecutive blank lines
+            # This regex looks for 2 or more empty lines anywhere in the message
+            if echo "$CLEAN_MSG" | grep -pz '(\r?\n){3,}'; then
+              echo "❌ Error: Commit message contains multiple consecutive line breaks."
+              echo "   Commit: '$SUBJECT'"
+              FAILED=1
+            fi
+
+            # 3. Check maximum width of any individual line
+            while IFS= read -r line; do
+              LINE_LENGTH=${#line}
+              if [ "$LINE_LENGTH" -gt "$MAX_CHARS" ]; then
+                echo "❌ Error: Line length exceeds limit ($LINE_LENGTH / $MAX_CHARS chars)."
+                echo "   Offending line: '$line'"
+                FAILED=1
+              fi
+            done <<< "$CLEAN_MSG"
+
+          done
+
+          # Fail the job if any check failed
+          if [ "$FAILED" -ne 0 ]; then
+            exit 1
+          fi
+
+          echo "✅ All commit messages passed style rules!"
