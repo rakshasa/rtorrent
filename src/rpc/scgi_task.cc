@@ -47,8 +47,7 @@ SCgiTask::open(SCgi* parent, int fd) {
                                  // m_trusted=false into the next reuse, given that the
                                  // UNTRUSTED_CONNECTION=0 parse branch is a no-op.
 
-  torrent::this_thread::poll()->open(this);
-  torrent::this_thread::poll()->insert_read(this);
+  torrent::this_thread::poll()->open_and_insert_read(this);
 
   auto lock = std::lock_guard<std::mutex>(m_result_mutex);
 

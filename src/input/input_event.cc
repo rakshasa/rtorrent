@@ -11,8 +11,7 @@ namespace input {
 
 void
 InputEvent::insert() {
-  torrent::this_thread::poll()->open(this);
-  torrent::this_thread::poll()->insert_read(this);
+  torrent::this_thread::poll()->open_and_insert_read(this);
 }
 
 void

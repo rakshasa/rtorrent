@@ -109,8 +109,7 @@ void
 SCgi::activate() {
   assert(torrent::this_thread::thread() == scgi_thread::thread());
 
-  torrent::this_thread::poll()->open(this);
-  torrent::this_thread::poll()->insert_read(this);
+  torrent::this_thread::poll()->open_and_insert_read(this);
 }
 
 // TODO: This should close the fd to avoid reuse.
