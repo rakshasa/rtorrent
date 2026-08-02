@@ -1,5 +1,6 @@
 #include "config.h"
 
+#include <algorithm>
 #include <cassert>
 #include <cerrno>
 #include <cstring>
@@ -23,9 +24,18 @@ namespace rpc {
 
 // TODO: Access fd through torrent logging?
 
+void
+ExecFile::reap_background_processes() {
+  m_background_pids.erase(std::remove_if(m_background_pids.begin(), m_background_pids.end(),
+                                         [](pid_t pid) { return ::waitpid(pid, nullptr, WNOHANG) != 0; }),
+                          m_background_pids.end());
+}
+
 int
 ExecFile::execute(const char* file, char* const* argv, int flags) {
   assert(!((flags & flag_capture) && (flags & flag_background)));
+
+  reap_background_processes();
 
   // Write the executed command and its parameters to the log fd.
   [[maybe_unused]] int result;
@@ -148,6 +158,8 @@ ExecFile::execute(const char* file, char* const* argv, int flags) {
   }
 
   if (flags & flag_background) {
+    m_background_pids.push_back(child_pid);
+
     if (m_log_fd != -1)
       result = write(m_log_fd, "\n--- Running in Background ---\n", sizeof("\n--- Running in Background ---\n"));
 

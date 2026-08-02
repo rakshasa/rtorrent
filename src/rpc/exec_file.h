@@ -1,6 +1,9 @@
 #ifndef RTORRENT_RPC_EXEC_FILE_H
 #define RTORRENT_RPC_EXEC_FILE_H
 
+#include <sys/types.h>
+#include <vector>
+
 #include <torrent/object.h>
 
 namespace rpc {
@@ -22,8 +25,11 @@ public:
   torrent::Object     execute_object(const torrent::Object& rawArgs, int flags);
 
 private:
+  void                reap_background_processes();
+
   int                 m_log_fd{-1};
   std::string         m_capture;
+  std::vector<pid_t>  m_background_pids;
 };
 
 }
