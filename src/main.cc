@@ -392,13 +392,12 @@ main(int argc, char** argv) {
 
       CMD_REDIRECT("bind",                  "network.bind_address.set");
       CMD_REDIRECT("ip",                    "network.local_address.set");
-      CMD_REDIRECT("port_range",            "network.port_range.set");
 
       // TODO: Check if dht is on by default.
       CMD_REDIRECT("dht",                   "dht.mode.set");
 
-      CMD_REDIRECT("port_random",           "network.port_random.set");
-      CMD_REDIRECT("proxy_address",         "network.proxy_address.set");
+      CMD_REDIRECT("port_random",           "network.listen.port.random.set");
+      CMD_REDIRECT("proxy_address",         "network.proxy.http.set");
 
       CMD_REDIRECT("key_layout",            "keys.layout.set");
 
