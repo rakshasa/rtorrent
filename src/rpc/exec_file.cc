@@ -148,6 +148,8 @@ ExecFile::execute(const char* file, char* const* argv, int flags) {
   }
 
   if (flags & flag_background) {
+    m_waitpid_queue.close_pid(child_pid);
+
     if (m_log_fd != -1)
       result = write(m_log_fd, "\n--- Running in Background ---\n", sizeof("\n--- Running in Background ---\n"));
 
