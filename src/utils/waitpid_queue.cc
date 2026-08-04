@@ -52,7 +52,7 @@ WaitpidQueue::WaitpidQueue() {
 
         wait_time = std::min(10 * 1000ms, wait_time * 2);
 
-        for (int pid : queue) {
+        for (auto pid : queue) {
           if (::waitpid(pid, nullptr, WNOHANG) == 0)
             continue;
 
