@@ -16,31 +16,31 @@ WaitpidQueue::WaitpidQueue() {
         if (!m_queue.empty()) {
           auto start_time = std::chrono::steady_clock::now();
 
-          while (!m_wakeup_worker.load(std::memory_order_acquire) && !m_should_shutdown) {
-            auto elapsed = std::chrono::steady_clock::now() - start_time;
-
-            if (elapsed >= wait_time)
-              break;
+          while (std::chrono::steady_clock::now() - start_time < wait_time) {
+            if (m_should_shutdown.load(std::memory_order_acquire))
+              return;
 
             std::this_thread::sleep_for(50ms);
+
+            if (m_wakeup_worker.load(std::memory_order_acquire))
+              break;
           }
 
         } else {
           m_wakeup_worker.wait(false, std::memory_order_acquire);
-          std::this_thread::sleep_for(50ms);
         }
+
+        // Adds a small delay to allow new processes to finish if they're quickly spawned and
+        // terminated.
+        std::this_thread::sleep_for(50ms);
 
         std::set<pid_t> queue;
 
         {
           std::lock_guard<std::mutex> guard(m_mutex);
 
-          if (m_should_shutdown) {
-            if (m_queue.empty())
-              return;
-
-            is_running = false;
-          }
+          if (m_should_shutdown)
+            return;
 
           if (m_queue.empty())
             throw torrent::internal_error("WaitpidQueue worker thread woke up but queue is empty.");
