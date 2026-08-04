@@ -22,7 +22,7 @@ WaitpidQueue::WaitpidQueue() {
             if (elapsed >= wait_time)
               break;
 
-            std::this_thread::sleep_for(100ms);
+            std::this_thread::sleep_for(50ms);
           }
 
         } else {
@@ -49,7 +49,7 @@ WaitpidQueue::WaitpidQueue() {
           m_wakeup_worker.store(false, std::memory_order_release);
         }
 
-        wait_time = std::max(10s, wait_time * 2);
+        wait_time = std::min(10s, wait_time * 2);
 
         for (int pid : queue) {
           if (::waitpid(pid, nullptr, WNOHANG) == 0)
@@ -98,10 +98,10 @@ WaitpidQueue::close_pid(pid_t pid) {
   {
     std::lock_guard<std::mutex> guard(m_mutex);
 
-    if (!m_queue.empty()) {
-      m_queue.push_back(pid);
-      return;
-    }
+    // if (!m_queue.empty()) {
+    //   m_queue.push_back(pid);
+    //   return;
+    // }
 
     m_queue.push_back(pid);
   }
