@@ -3,6 +3,8 @@
 
 #include <torrent/object.h>
 
+#include "utils/waitpid_queue.h"
+
 namespace rpc {
 
 class ExecFile {
@@ -24,6 +26,8 @@ public:
 private:
   int                 m_log_fd{-1};
   std::string         m_capture;
+
+  utils::WaitpidQueue m_waitpid_queue;
 };
 
 }

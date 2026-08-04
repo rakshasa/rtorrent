@@ -1,7 +1,7 @@
 #ifndef RTORRENT_DISPLAY_MANAGER_H
 #define RTORRENT_DISPLAY_MANAGER_H
 
-#include <torrent/utils/scheduler.h>
+#include <torrent/system/scheduler.h>
 
 #include "display/frame.h"
 
@@ -31,9 +31,9 @@ private:
   bool                m_force_redraw{false};
   Frame               m_root_frame;
 
-  std::chrono::microseconds         m_time_last_update{};
-  torrent::utils::ExternalScheduler m_scheduler;
-  torrent::utils::SchedulerEntry    m_task_update;
+  std::chrono::microseconds          m_time_last_update{};
+  torrent::system::ExternalScheduler m_scheduler;
+  torrent::system::SchedulerEntry    m_task_update;
 };
 
 }

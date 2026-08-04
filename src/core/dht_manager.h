@@ -2,7 +2,7 @@
 #define RTORRENT_CORE_DHT_MANAGER_H
 
 #include <torrent/object.h>
-#include <torrent/utils/scheduler.h>
+#include <torrent/system/scheduler.h>
 
 namespace core {
 
@@ -42,8 +42,8 @@ private:
   uint64_t            m_dhtPrevBytesUp;
   uint64_t            m_dhtPrevBytesDown;
 
-  torrent::utils::SchedulerEntry m_update_timeout;
-  torrent::utils::SchedulerEntry m_stop_timeout;
+  torrent::system::SchedulerEntry m_update_timeout;
+  torrent::system::SchedulerEntry m_stop_timeout;
 
   bool                m_warned{};
   bool                m_set_by_user{};

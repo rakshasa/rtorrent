@@ -9,7 +9,7 @@
 #include <utility>
 #include <vector>
 
-#include <torrent/utils/scheduler.h>
+#include <torrent/system/scheduler.h>
 
 namespace utils {
 
@@ -49,10 +49,12 @@ private:
   void               update_status(Entry* entry);
   void               schedule();
 
-  std::map<std::string, Entry>   m_entries;
-  std::vector<Entry*>            m_entry_queue;
-  torrent::utils::SchedulerEntry m_task_process;
-  bool                           m_active{true};
+  std::map<std::string, Entry> m_entries;
+  std::vector<Entry*>          m_entry_queue;
+
+  bool                         m_active{true};
+
+  torrent::system::SchedulerEntry m_task_process;
 };
 
 }
