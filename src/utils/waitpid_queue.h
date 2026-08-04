@@ -3,6 +3,7 @@
 
 #include <deque>
 #include <future>
+#include <vector>
 #include <torrent/system/common.h>
 
 namespace utils {
