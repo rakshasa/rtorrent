@@ -18,7 +18,7 @@
 #include <string>
 #include <vector>
 #include <torrent/object.h>
-#include <torrent/utils/scheduler.h>
+#include <torrent/system/scheduler.h>
 
 #include "globals.h"
 
@@ -153,8 +153,8 @@ private:
 
   std::chrono::microseconds m_last_changed{};
 
-  signal_void                    m_signal_changed;
-  torrent::utils::SchedulerEntry m_delay_changed;
+  signal_void                     m_signal_changed;
+  torrent::system::SchedulerEntry m_delay_changed;
 };
 
 } // namespace core

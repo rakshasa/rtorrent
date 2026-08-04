@@ -6,7 +6,7 @@
 #include <memory>
 #include <sys/types.h>
 #include <torrent/torrent.h>
-#include <torrent/utils/scheduler.h>
+#include <torrent/system/scheduler.h>
 
 namespace ui {
   class Root;
@@ -107,8 +107,8 @@ private:
   mode_t              m_umask;
   std::string         m_workingDirectory;
 
-  torrent::utils::SchedulerEntry m_task_shutdown;
-  torrent::utils::SchedulerEntry m_task_shutdown_clear_requests;
+  torrent::system::SchedulerEntry m_task_shutdown;
+  torrent::system::SchedulerEntry m_task_shutdown_clear_requests;
 
   int                 m_clear_requests_count{};
 

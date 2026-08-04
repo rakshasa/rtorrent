@@ -5,7 +5,7 @@
 
 #include <functional>
 #include <torrent/object.h>
-#include <torrent/utils/scheduler.h>
+#include <torrent/system/scheduler.h>
 
 namespace rpc {
 
@@ -43,7 +43,7 @@ private:
   uint32_t                  m_interval{};
   std::chrono::microseconds m_time_scheduled;
 
-  torrent::utils::SchedulerEntry m_task;
+  torrent::system::SchedulerEntry m_task;
 
   // Flags for various things.
 };
