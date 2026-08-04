@@ -9,10 +9,9 @@ namespace utils {
 
 WaitpidQueue::WaitpidQueue() {
   m_worker = std::async(std::launch::async, [this]() {
-      bool is_running = true;
       auto wait_time  = 50ms;
 
-      while (is_running) {
+      while (true) {
         if (!m_queue.empty()) {
           auto start_time = std::chrono::steady_clock::now();
 
@@ -72,6 +71,7 @@ WaitpidQueue::WaitpidQueue() {
     });
 }
 
+// We don't wait for the worker thread to finish as waitpid isn't needed to be called on shutdown.
 WaitpidQueue::~WaitpidQueue() {
   {
     std::lock_guard<std::mutex> guard(m_mutex);
@@ -80,8 +80,6 @@ WaitpidQueue::~WaitpidQueue() {
 
   m_wakeup_worker.store(true, std::memory_order_release);
   m_wakeup_worker.notify_all();
-
-  // m_worker.wait();
 }
 
 void
@@ -93,12 +91,6 @@ WaitpidQueue::close_pid(pid_t pid) {
 
   {
     std::lock_guard<std::mutex> guard(m_mutex);
-
-    // if (!m_queue.empty()) {
-    //   m_queue.push_back(pid);
-    //   return;
-    // }
-
     m_queue.insert(pid);
   }
 
