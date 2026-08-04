@@ -174,6 +174,8 @@ libsub_root_a_SOURCES = \
 	utils/list_focus.h \
 	utils/lockfile.cc \
 	utils/lockfile.h \
+	utils/waitpid_queue.cc \
+	utils/waitpid_queue.h \
 	utils/watch_ready_queue.cc \
 	utils/watch_ready_queue.h \
 	\

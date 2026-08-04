@@ -1,8 +1,8 @@
 #ifndef RTORRENT_DISPLAY_WINDOW_LOG_H
 #define RTORRENT_DISPLAY_WINDOW_LOG_H
 
+#include <torrent/system/scheduler.h>
 #include <torrent/utils/log_buffer.h>
-#include <torrent/utils/scheduler.h>
 
 #include "window.h"
 
@@ -22,10 +22,12 @@ public:
 private:
   inline iterator     find_older();
 
-  torrent::log_buffer*           m_log;
-  torrent::utils::SchedulerEntry m_task_update;
+  torrent::log_buffer*            m_log;
+  torrent::system::SchedulerEntry m_task_update;
 
-  align_cacheline std::atomic<bool> m_log_updating{};
+  align_cacheline
+
+  std::atomic<bool>   m_log_updating{};
 };
 
 }

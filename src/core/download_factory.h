@@ -9,7 +9,7 @@
 #include <iosfwd>
 
 #include <torrent/object.h>
-#include <torrent/utils/scheduler.h>
+#include <torrent/system/scheduler.h>
 
 #include "http_queue.h"
 
@@ -79,9 +79,9 @@ private:
   command_list_type         m_commands;
   torrent::Object::map_type m_variables;
 
-  slot_void                      m_slot_finished;
-  torrent::utils::SchedulerEntry m_task_load;
-  torrent::utils::SchedulerEntry m_task_commit;
+  slot_void                       m_slot_finished;
+  torrent::system::SchedulerEntry m_task_load;
+  torrent::system::SchedulerEntry m_task_commit;
 };
 
 bool is_network_uri(const std::string& uri);

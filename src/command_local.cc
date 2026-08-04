@@ -250,12 +250,12 @@ initialize_command_local() {
 
     CMD_ANY        (category_name + ".size",      [category](auto, auto) { return torrent::runtime::socket_manager()->category_managed_size(category); });
     CMD_ANY        (category_name + ".max_size",  [category](auto, auto) { return torrent::runtime::socket_manager()->category_max_size(category); });
-    CMD_ANY        (category_name + ".min_alloc", [category](auto, auto) { return torrent::runtime::socket_manager()->category_min_allocation(category); });
-    CMD_ANY        (category_name + ".max_alloc", [category](auto, auto) { return torrent::runtime::socket_manager()->category_max_allocation(category); });
 
     if (i == 0)
       continue;
 
+    CMD_ANY        (category_name + ".min_alloc",     [category](auto, auto) { return torrent::runtime::socket_manager()->category_min_allocation(category); });
+    CMD_ANY        (category_name + ".max_alloc",     [category](auto, auto) { return torrent::runtime::socket_manager()->category_max_allocation(category); });
     CMD_ANY_VALUE_V(category_name + ".min_alloc.set", [category](auto, auto& value) { torrent::runtime::socket_manager()->set_category_min_allocation(category, value); });
     CMD_ANY_VALUE_V(category_name + ".max_alloc.set", [category](auto, auto& value) { torrent::runtime::socket_manager()->set_category_max_allocation(category, value); });
   }
@@ -354,6 +354,10 @@ initialize_command_local() {
 
     rpc::rpc.mark_safe(category_name + ".size");
     rpc::rpc.mark_safe(category_name + ".max_size");
+
+    if (i == 0)
+      continue;
+
     rpc::rpc.mark_safe(category_name + ".min_alloc");
     rpc::rpc.mark_safe(category_name + ".max_alloc");
   }

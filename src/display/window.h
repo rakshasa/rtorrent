@@ -2,7 +2,7 @@
 #define RTORRENT_WINDOW_BASE_H
 
 #include <functional>
-#include <torrent/utils/scheduler.h>
+#include <torrent/system/scheduler.h>
 #include <torrent/system/thread.h>
 
 #include "canvas.h"
@@ -99,7 +99,7 @@ protected:
   extent_type         m_max_width;
   extent_type         m_max_height;
 
-  torrent::utils::SchedulerEntry m_task_update;
+  torrent::system::SchedulerEntry m_task_update;
 };
 
 // Return a range with a distance of no more than __distance and
