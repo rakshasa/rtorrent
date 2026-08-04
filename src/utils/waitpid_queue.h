@@ -29,11 +29,11 @@ private:
   std::mutex          m_mutex;
   std::set<pid_t>     m_queue;
 
-  bool                m_should_shutdown{};
-
   align_cacheline
 
   std::atomic<bool>     m_wakeup_worker{};
+  std::atomic<bool>     m_should_shutdown{};
+
   std::atomic<uint32_t> m_remaining{};
 };
 
