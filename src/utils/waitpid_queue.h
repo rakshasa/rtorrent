@@ -1,9 +1,8 @@
 #ifndef RTORRENT_UTILS_WAITPID_QUEUE_H
 #define RTORRENT_UTILS_WAITPID_QUEUE_H
 
-#include <deque>
 #include <future>
-#include <vector>
+#include <set>
 #include <torrent/system/common.h>
 
 namespace utils {
@@ -28,7 +27,7 @@ private:
   align_cacheline
 
   std::mutex          m_mutex;
-  std::vector<pid_t>  m_queue;
+  std::set<pid_t>     m_queue;
 
   bool                m_should_shutdown{};
 
@@ -40,6 +39,6 @@ private:
 
 inline uint32_t WaitpidQueue::size() const { return m_remaining.load(std::memory_order_acquire); }
 
-} // namespace torrent::utils
+} // namespace utils
 
 #endif

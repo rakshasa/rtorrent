@@ -2,7 +2,7 @@
 
 #include "utils/waitpid_queue.h"
 
-#include <unistd.h>
+#include <sys/wait.h>
 #include <torrent/exceptions.h>
 
 namespace utils {
@@ -10,7 +10,7 @@ namespace utils {
 WaitpidQueue::WaitpidQueue() {
   m_worker = std::async(std::launch::async, [this]() {
       bool is_running = true;
-      auto wait_time  = 1s;
+      auto wait_time  = 50ms;
 
       while (is_running) {
         if (!m_queue.empty()) {
@@ -27,9 +27,10 @@ WaitpidQueue::WaitpidQueue() {
 
         } else {
           m_wakeup_worker.wait(false, std::memory_order_acquire);
+          std::this_thread::sleep_for(50ms);
         }
 
-        std::vector<int> queue;
+        std::set<pid_t> queue;
 
         {
           std::lock_guard<std::mutex> guard(m_mutex);
@@ -49,7 +50,7 @@ WaitpidQueue::WaitpidQueue() {
           m_wakeup_worker.store(false, std::memory_order_release);
         }
 
-        wait_time = std::min(10s, wait_time * 2);
+        wait_time = std::min(10 * 1000ms, wait_time * 2);
 
         for (int pid : queue) {
           if (::waitpid(pid, nullptr, WNOHANG) == 0)
@@ -58,16 +59,11 @@ WaitpidQueue::WaitpidQueue() {
           {
             std::lock_guard<std::mutex> guard(m_mutex);
 
-            auto itr = std::find(m_queue.begin(), m_queue.end(), pid);
-
-            if (itr == m_queue.end())
+            if (m_queue.erase(pid) != 1)
               throw torrent::internal_error("WaitpidQueue worker thread could not find pid in queue.");
-
-            *itr = m_queue.back();
-            m_queue.pop_back();
           }
 
-          wait_time = 1s;
+          wait_time = std::max(50ms, wait_time / 2);
 
           m_remaining.fetch_sub(1, std::memory_order_release);
           m_remaining.notify_all();
@@ -103,7 +99,7 @@ WaitpidQueue::close_pid(pid_t pid) {
     //   return;
     // }
 
-    m_queue.push_back(pid);
+    m_queue.insert(pid);
   }
 
   m_wakeup_worker.store(true, std::memory_order_release);
