@@ -47,7 +47,7 @@ private:
   signal_curl_get::iterator m_conn_insert;
   signal_curl_get::iterator m_conn_erase;
 
-  torrent::utils::SchedulerEntry m_task_deactivate;
+  torrent::system::SchedulerEntry m_task_deactivate;
 };
 
 }

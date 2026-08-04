@@ -76,4 +76,61 @@ ExecFile::execute(const char* file, char* const* argv, int flags) {
   return spawn_process.wait_for_child();
 }
 
+torrent::Object
+ExecFile::execute_object(const torrent::Object& rawArgs, int flags) {
+  char*  argsBuffer[max_args];
+  char** argsCurrent = argsBuffer;
+
+  // Size of value strings are less than 24.
+  char   valueBuffer[buffer_size+1];
+  char*  valueCurrent = valueBuffer;
+
+  if (rawArgs.is_list()) {
+    const torrent::Object::list_type& args = rawArgs.as_list();
+
+    if (args.empty())
+      throw torrent::input_error("Too few arguments.");
+
+    for (torrent::Object::list_const_iterator itr = args.begin(), last = args.end(); itr != last; itr++, argsCurrent++) {
+      if (argsCurrent == argsBuffer + max_args - 1)
+        throw torrent::input_error("Too many arguments.");
+
+      if (itr->is_string() && (!(flags & flag_expand_tilde) || *itr->as_string().c_str() != '~')) {
+        *argsCurrent = const_cast<char*>(itr->as_string().c_str());
+
+      } else {
+        *argsCurrent = valueCurrent;
+        valueCurrent = print_object(valueCurrent, valueBuffer + buffer_size, &*itr, flags) + 1;
+
+        if (valueCurrent >= valueBuffer + buffer_size)
+          throw torrent::input_error("Overflowed execute arg buffer.");
+      }
+    }
+
+  } else {
+    const torrent::Object::string_type& args = rawArgs.as_string();
+
+    if ((flags & flag_expand_tilde) && args.c_str()[0] == '~') {
+      *argsCurrent = valueCurrent;
+      valueCurrent = print_object(valueCurrent, valueBuffer + buffer_size, &rawArgs, flags) + 1;
+    } else {
+      *argsCurrent = const_cast<char*>(args.c_str());
+    }
+
+    argsCurrent++;
+  }
+
+  *argsCurrent = NULL;
+
+  int status = execute(argsBuffer[0], argsBuffer, flags);
+
+  if ((flags & flag_throw) && status != 0)
+    throw torrent::input_error("Bad return code.");
+
+  if (flags & flag_capture)
+    return m_capture;
+
+  return torrent::Object((int64_t)status);
+}
+
 } // namespace rpc

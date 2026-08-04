@@ -8,7 +8,6 @@
 #include "torrent/exceptions.h"
 #include "torrent/net/resolver.h"
 #include "torrent/utils/log.h"
-#include "torrent/utils/scheduler.h"
 
 std::unique_ptr<TestMainThread>
 TestMainThread::create() {
