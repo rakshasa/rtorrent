@@ -45,8 +45,8 @@ TestCommandLocal::test_socket_category_commands() {
 
     CPPUNIT_ASSERT(rpc::commands.has(name + ".size"));
     CPPUNIT_ASSERT(rpc::commands.has(name + ".max_size"));
+    CPPUNIT_ASSERT(rpc::commands.has(name + ".min_alloc"));
 
-    CPPUNIT_ASSERT_EQUAL(has_allocation, rpc::commands.has(name + ".min_alloc"));
     CPPUNIT_ASSERT_EQUAL(has_allocation, rpc::commands.has(name + ".max_alloc"));
     CPPUNIT_ASSERT_EQUAL(has_allocation, rpc::commands.has(name + ".min_alloc.set"));
     CPPUNIT_ASSERT_EQUAL(has_allocation, rpc::commands.has(name + ".max_alloc.set"));
