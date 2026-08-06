@@ -23,8 +23,8 @@ execute.throw = sh, -c, (cat,\
     "\"",(cfg.watch),"/start\" ")
 
 # Listening port for incoming peer traffic (fixed; you can also randomize it)
-network.port_range.set = 50000-50000
-network.port_random.set = no
+network.listen.port.range.set = 50000-50000
+network.listen.port.random.set = no
 
 # Tracker-less torrent and UDP tracker support
 # (conservative settings for 'private' trackers, change for 'public')
