@@ -71,11 +71,11 @@
 
 # Port range to use for listening.
 #
-#network.port_range.set = 6890-6999
+#network.listen.port.range.set = 6890-6999
 
 # Start opening ports at a random position within the port range.
 #
-#network.port_random.set = no
+#network.listen.port.random.set = no
 
 # Set RPC type
 #network.rpc.use_xmlrpc.set = true
