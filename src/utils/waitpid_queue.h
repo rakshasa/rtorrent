@@ -18,6 +18,8 @@ public:
 
   void                wait_for(uint32_t max_remaining);
 
+  // TODO: Add a signal handler to tell the worker thread to wake up. Use a counter to batch wakeups.
+
 private:
   WaitpidQueue(const WaitpidQueue&) = delete;
   WaitpidQueue& operator=(const WaitpidQueue&) = delete;

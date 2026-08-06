@@ -243,6 +243,8 @@ initialize_command_local() {
   CMD_ANY         ("system.sockets.max_size",         [](auto, auto)        { return torrent::runtime::socket_manager()->max_size(); });
   CMD_ANY_VALUE_V ("system.sockets.max_size.set",     [](auto, auto& value) { return torrent::runtime::socket_manager()->set_max_size_and_adjust(value); });
   CMD_ANY_V       ("system.sockets.adjust_alloc",     [](auto, auto)        { torrent::runtime::socket_manager()->adjust_allocation(); });
+  CMD_ANY         ("system.sockets.reserved_alloc",   [](auto, auto)        { return torrent::runtime::socket_manager()->reserved_allocation(); });
+  CMD_ANY         ("system.sockets.available_alloc",  [](auto, auto)        { return torrent::runtime::socket_manager()->available_allocation(); });
 
   for (uint32_t i = 0; i < torrent::runtime::SocketManager::category_count; ++i) {
     auto category      = static_cast<torrent::runtime::socket_manager_category_t>(i);
@@ -251,8 +253,10 @@ initialize_command_local() {
     CMD_ANY        (category_name + ".size",      [category](auto, auto) { return torrent::runtime::socket_manager()->category_managed_size(category); });
     CMD_ANY        (category_name + ".max_size",  [category](auto, auto) { return torrent::runtime::socket_manager()->category_max_size(category); });
 
-    if (i == 0)
+    if (i == 0) {
+      CMD_ANY      (category_name + ".min_alloc",   [](auto, auto) { return torrent::runtime::socket_manager()->generic_min_allocation(); });
       continue;
+    }
 
     CMD_ANY        (category_name + ".min_alloc",     [category](auto, auto) { return torrent::runtime::socket_manager()->category_min_allocation(category); });
     CMD_ANY        (category_name + ".max_alloc",     [category](auto, auto) { return torrent::runtime::socket_manager()->category_max_allocation(category); });
@@ -348,6 +352,8 @@ initialize_command_local() {
 
   rpc::rpc.mark_safe("system.sockets.size");
   rpc::rpc.mark_safe("system.sockets.max_size");
+  rpc::rpc.mark_safe("system.sockets.reserved_alloc");
+  rpc::rpc.mark_safe("system.sockets.available_alloc");
 
   for (uint32_t i = 0; i < torrent::runtime::SocketManager::category_count; ++i) {
     auto category_name = "system.sockets." + torrent::option_to_str_or_throw(torrent::OPTION_SOCKET_CATEGORY, i);
@@ -355,8 +361,10 @@ initialize_command_local() {
     rpc::rpc.mark_safe(category_name + ".size");
     rpc::rpc.mark_safe(category_name + ".max_size");
 
-    if (i == 0)
+    if (i == 0) {
+      rpc::rpc.mark_safe(category_name + ".min_alloc");
       continue;
+    }
 
     rpc::rpc.mark_safe(category_name + ".min_alloc");
     rpc::rpc.mark_safe(category_name + ".max_alloc");
