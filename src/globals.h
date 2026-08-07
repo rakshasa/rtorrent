@@ -11,6 +11,8 @@ extern rpc::ip_table_list ip_tables;
 extern Control*           control;
 
 std::string expand_path(const std::string& path);
+std::string resolve_path(const std::string& path);
+std::string resolve_path_or_throw(const std::string& path);
 
 namespace rpc {
 class SCgi;
