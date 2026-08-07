@@ -51,6 +51,8 @@ rtorrent_Test_Src_SOURCES = $(rtorrent_Test_Common) \
 	src/test_command_dynamic.h \
 	src/test_command_local.cc \
 	src/test_command_local.h \
+	src/test_command_path.cc \
+	src/test_command_path.h \
 	src/test_command_string.cc \
 	src/test_command_string.h \
 	src/test_watch_ready_queue.cc \

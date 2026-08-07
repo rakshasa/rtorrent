@@ -655,6 +655,8 @@ initialize_command_download() {
   CMD2_DL("d.base_path.as_binary",            [](auto* download, auto) { return retrieve_d_base_path(download).object_as_binary(); });
   CMD2_DL("d.base_path.or_base64",            [](auto* download, auto) { return retrieve_d_base_path(download).object_utf8_or_base64(); });
   CMD2_DL("d.base_path.or_as_binary",         [](auto* download, auto) { return retrieve_d_base_path(download).object_utf8_or_as_binary(); });
+  CMD2_DL("d.base_path.realpath.or_empty",    [](auto* download, auto) { return resolve_path(retrieve_d_base_path(download).str()); });
+  CMD2_DL("d.base_path.realpath.or_throw",    [](auto* download, auto) { return resolve_path_or_throw(retrieve_d_base_path(download).str()); });
   CMD2_DL("d.base_filename",                  [](auto* download, auto) { return retrieve_d_base_filename(download).str(); });
   CMD2_DL("d.base_filename.hex",              [](auto* download, auto) { return retrieve_d_base_filename(download).object_hex(); });
   CMD2_DL("d.base_filename.base64",           [](auto* download, auto) { return retrieve_d_base_filename(download).object_base64(); });
@@ -771,6 +773,11 @@ initialize_command_download() {
   CMD2_DL_VAR_STRING_PUBLIC("d.tied_to_file", "rtorrent", "tied_to_file");
   CMD2_DL_VAR_STRING("d.loaded_file",  "rtorrent", "loaded_file");
 
+  CMD2_DL("d.tied_to_file.realpath.or_empty", [](auto* download, auto) { return resolve_path(rpc::convert_to_string(download_get_variable(download, "rtorrent", "tied_to_file"))); });
+  CMD2_DL("d.tied_to_file.realpath.or_throw", [](auto* download, auto) { return resolve_path_or_throw(rpc::convert_to_string(download_get_variable(download, "rtorrent", "tied_to_file"))); });
+  CMD2_DL("d.loaded_file.realpath.or_empty",  [](auto* download, auto) { return resolve_path(rpc::convert_to_string(download_get_variable(download, "rtorrent", "loaded_file"))); });
+  CMD2_DL("d.loaded_file.realpath.or_throw",  [](auto* download, auto) { return resolve_path_or_throw(rpc::convert_to_string(download_get_variable(download, "rtorrent", "loaded_file"))); });
+
   // The "state_changed" variable is required to be a valid unix time
   // value, it indicates the last time the torrent changed its state,
   // resume/pause.
@@ -878,6 +885,8 @@ initialize_command_download() {
   CMD2_DL_VALUE_V ("d.tracker.send_scrape",           [](auto download, uint64_t arg) { download->tracker_controller().scrape_request(arg); });
 
   CMD2_DL         ("d.directory",          CMD2_ON_FL(root_dir));
+  CMD2_DL         ("d.directory.realpath.or_empty", [](auto* download, auto) { return resolve_path(download->file_list()->root_dir()); });
+  CMD2_DL         ("d.directory.realpath.or_throw", [](auto* download, auto) { return resolve_path_or_throw(download->file_list()->root_dir()); });
   CMD2_DL_STRING_V("d.directory.set",      std::bind(&apply_d_directory, std::placeholders::_1, std::placeholders::_2));
   CMD2_DL         ("d.directory_base",     CMD2_ON_FL(root_dir));
   CMD2_DL_STRING_V("d.directory_base.set", std::bind(&core::Download::set_root_directory, std::placeholders::_1, std::placeholders::_2));
@@ -912,6 +921,14 @@ initialize_command_download() {
   rpc::rpc.mark_safe("d.local_id_html");
   rpc::rpc.mark_safe("d.bitfield");
   rpc::rpc.mark_safe("d.base_path");
+  rpc::rpc.mark_safe("d.base_path.realpath.or_empty");
+  rpc::rpc.mark_safe("d.base_path.realpath.or_throw");
+  rpc::rpc.mark_safe("d.directory.realpath.or_empty");
+  rpc::rpc.mark_safe("d.directory.realpath.or_throw");
+  rpc::rpc.mark_safe("d.tied_to_file.realpath.or_empty");
+  rpc::rpc.mark_safe("d.tied_to_file.realpath.or_throw");
+  rpc::rpc.mark_safe("d.loaded_file.realpath.or_empty");
+  rpc::rpc.mark_safe("d.loaded_file.realpath.or_throw");
   rpc::rpc.mark_safe("d.base_path.hex");
   rpc::rpc.mark_safe("d.base_path.base64");
   rpc::rpc.mark_safe("d.base_path.base64_as_binary");
