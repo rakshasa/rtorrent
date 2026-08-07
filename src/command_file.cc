@@ -116,6 +116,8 @@ initialize_command_file() {
   CMD2_FILE("f.frozen_path.as_binary",            [](auto* file, auto)   { return file->frozen_path().object_as_binary(); });
   CMD2_FILE("f.frozen_path.or_base64",            [](auto* file, auto)   { return file->frozen_path().object_utf8_or_base64(); });
   CMD2_FILE("f.frozen_path.or_as_binary",         [](auto* file, auto)   { return file->frozen_path().object_utf8_or_as_binary(); });
+  CMD2_FILE("f.frozen_path.realpath.or_empty",    [](auto* file, auto)   { return resolve_path(file->frozen_path().str()); });
+  CMD2_FILE("f.frozen_path.realpath.or_throw",    [](auto* file, auto)   { return resolve_path_or_throw(file->frozen_path().str()); });
 
   CMD2_FILE("f.match_depth_prev",       std::bind(&torrent::File::match_depth_prev, std::placeholders::_1));
   CMD2_FILE("f.match_depth_next",       std::bind(&torrent::File::match_depth_next, std::placeholders::_1));
@@ -129,6 +131,8 @@ initialize_command_file() {
   rpc::rpc.mark_safe("f.path_components");
   rpc::rpc.mark_safe("f.path_depth");
   rpc::rpc.mark_safe("f.frozen_path");
+  rpc::rpc.mark_safe("f.frozen_path.realpath.or_empty");
+  rpc::rpc.mark_safe("f.frozen_path.realpath.or_throw");
   rpc::rpc.mark_safe("f.frozen_path.hex");
   rpc::rpc.mark_safe("f.frozen_path.base64");
   rpc::rpc.mark_safe("f.frozen_path.base64_as_binary");

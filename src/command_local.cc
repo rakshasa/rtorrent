@@ -299,9 +299,13 @@ initialize_command_local() {
   CMD_VAR_BOOL    ("pieces.hash.on_completion",       true);
 
   CMD_VAR_STRING  ("directory.default",               "./");
+  CMD_ANY         ("directory.default.realpath.or_empty", [](auto, auto)    { return resolve_path(rpc::call_command_string("directory.default")); });
+  CMD_ANY         ("directory.default.realpath.or_throw", [](auto, auto)    { return resolve_path_or_throw(rpc::call_command_string("directory.default")); });
 
   CMD_VAR_STRING  ("session.name",                    "");
   CMD_ANY         ("session.path",                    [](auto, auto)        { return session_thread::manager()->path(); });
+  CMD_ANY         ("session.path.realpath.or_empty",  [](auto, auto)        { return resolve_path(session_thread::manager()->path()); });
+  CMD_ANY         ("session.path.realpath.or_throw",  [](auto, auto)        { return resolve_path_or_throw(session_thread::manager()->path()); });
   CMD_ANY_STRING_V("session.path.set",                [](auto, auto& str)   { return session_thread::manager()->set_path(str); });
   CMD_ANY         ("session.use_lock",                [](auto, auto)        { return session_thread::manager()->use_lock(); });
   CMD_ANY_VALUE_V ("session.use_lock.set",            [](auto, auto& value) { return session_thread::manager()->set_use_lock(value); });
@@ -375,6 +379,10 @@ initialize_command_local() {
 
   rpc::rpc.mark_safe("directory.default");
   rpc::rpc.mark_safe("session.path");
+  rpc::rpc.mark_safe("session.path.realpath.or_empty");
+  rpc::rpc.mark_safe("session.path.realpath.or_throw");
+  rpc::rpc.mark_safe("directory.default.realpath.or_empty");
+  rpc::rpc.mark_safe("directory.default.realpath.or_throw");
   rpc::rpc.mark_safe("session.use_lock");
   rpc::rpc.mark_safe("session.on_completion");
 
