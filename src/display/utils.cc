@@ -345,7 +345,7 @@ print_status_info(char* first, char* last) {
   if (!torrent::up_throttle_global()->is_throttled()) {
     first = print_buffer(first, last, "[Throttle off");
   } else {
-    first = print_buffer(first, last, "[Throttle %3i", torrent::up_throttle_global()->max_rate() / 1024);
+    first = print_buffer(first, last, "[Throttle %3i", (int)(torrent::up_throttle_global()->max_rate() / 1024));
 
     if (!throttle_up_names.empty())
       first = print_status_throttle_limit(first, last, true, throttle_up_names);
@@ -354,7 +354,7 @@ print_status_info(char* first, char* last) {
   if (!torrent::down_throttle_global()->is_throttled()) {
     first = print_buffer(first, last, " / off KB]");
   } else {
-    first = print_buffer(first, last, " / %3i", torrent::down_throttle_global()->max_rate() / 1024);
+    first = print_buffer(first, last, " / %3i", (int)(torrent::down_throttle_global()->max_rate() / 1024));
 
     if (!throttle_down_names.empty())
       first = print_status_throttle_limit(first, last, false, throttle_down_names);
