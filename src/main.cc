@@ -163,6 +163,8 @@ main(int argc, char** argv) {
     torrent::initialize();
     torrent::main_thread::set_client_callback(&client_perform);
 
+    torrent::runtime::initialize_worker_process();
+
     scgi::ThreadScgi::create_thread();
     session::ThreadSession::create_thread();
 
