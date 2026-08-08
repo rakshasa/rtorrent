@@ -4,6 +4,7 @@
 
 #include <fstream>
 #include <stdexcept>
+#include <string>
 #include <string.h>
 #include <torrent/throttle.h>
 #include <torrent/torrent.h>
@@ -354,8 +355,9 @@ Root::reset_input_history_attributes(ui::DownloadList::Input type) {
 
 void
 Root::set_input_history_size(int size) {
-  if (size < 1)
-    throw torrent::input_error("Invalid input history size.");
+  if (size < 1 || size > max_input_history_size)
+    throw torrent::input_error("Input history size must be between 1 and " +
+                               std::to_string(max_input_history_size) + ".");
 
   for (auto& [entry, category] : m_input_history) {
     // Reserve the latest input history entries if new size is smaller than original.
