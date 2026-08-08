@@ -22,6 +22,8 @@ RAK_ENABLE_DEBUG
 RAK_ENABLE_EXTRA_DEBUG
 RAK_ENABLE_WERROR
 
+TORRENT_CHECK_ATOMIC
+
 AC_ARG_ENABLE(execinfo,
   AS_HELP_STRING([--disable-execinfo],
     [disable libexecinfo [[default=enable]]]),
@@ -68,7 +70,7 @@ AC_DEFINE(USER_AGENT, [std::string(PACKAGE "/" VERSION)], Http user agent)
 
 dnl Only update global build variables immediately before generating the output,
 dnl to avoid affecting the global build environment for other autoconf checks.
-LIBS="$PTHREAD_LIBS $CURSES_LIB $CURSES_LIBS $ZLIB_LIBS $DEPENDENCIES_LIBS $LIBS"
+LIBS="$ATOMIC_LIBS $PTHREAD_LIBS $CURSES_LIB $CURSES_LIBS $ZLIB_LIBS $DEPENDENCIES_LIBS $LIBS"
 CFLAGS="$CFLAGS $PTHREAD_CFLAGS $CURSES_CFLAGS $ZLIB_CFLAGS $DEPENDENCIES_CFLAGS"
 CXXFLAGS="$CXXFLAGS $PTHREAD_CFLAGS $CURSES_CFLAGS $ZLIB_CFLAGS $DEPENDENCIES_CFLAGS"
 
