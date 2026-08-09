@@ -108,6 +108,6 @@ OptionParser::call_int_pair(slot_int_pair slot, const std::string& arg) {
 
   if (a < 0 || b < 0)
     throw std::runtime_error("Invalid argument, \"" + arg + "\" should be positive numbers");
-  
+
   slot(a, b);
 }

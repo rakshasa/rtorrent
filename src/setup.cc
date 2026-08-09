@@ -108,18 +108,22 @@ config_comment_log(const std::string& command, const std::string& raw_args) {
     throw torrent::input_error("Unknown log command: " + command);
 }
 
-// Call special commands in the format "# do:command=args" in the config file.
+// Call special commands in the format "# do:command=args" or "# do-<category>:command=args" in the config file.
 void
-parse_config_file_comments(const std::string& path) {
+parse_config_file_comments(const std::string& category, const std::string& path) {
+  if (path.empty())
+    return;
+
   std::fstream file(path, std::ios::in);
 
   if (!file.is_open())
     return;
 
   std::string line;
+  std::string prefix = category.empty() ? "# do:" : "# do-" + category + ":";
 
   while (std::getline(file, line)) {
-    if (line.size() <= 5 || line.compare(0, 5, "# do:") != 0)
+    if (line.size() <= prefix.size() || line.compare(0, prefix.size(), prefix) != 0)
       continue;
 
     auto equal_pos = line.find('=');

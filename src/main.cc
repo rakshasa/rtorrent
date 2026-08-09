@@ -112,7 +112,9 @@ main(int argc, char** argv) {
 
     torrent::log_initialize();
 
-    torrent::runtime::initialize_worker_process_and_main_thread();
+    torrent::runtime::initialize_worker_process_and_main_thread([argc, argv]() {
+        parse_config_file(argc, argv, [](auto& path) { parse_config_file_comments("worker", path); });
+      });
 
     // Block SIGCHLD until all threads are created, then unblock on main-thread, to avoid SIGCHLD
     // interrupting other threads.
@@ -135,12 +137,10 @@ main(int argc, char** argv) {
     // # do:log.open_file=system,/usr/rakshasa/system.log
     // # do:log.add_output=system,system
     //
-    parse_config_file(argc, argv, [](auto& path) {
-        if (path.empty())
-          return;
-
-        parse_config_file_comments(path);
-      });
+    // # do-worker:log.open_file=system,/usr/rakshasa/system-worker.log
+    // # do-worker:log.add_output=system,system
+    //
+    parse_config_file(argc, argv, [](auto& path) { parse_config_file_comments("", path); });
 
     control = new Control;
 
