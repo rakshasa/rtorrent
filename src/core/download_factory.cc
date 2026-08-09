@@ -35,8 +35,10 @@ is_network_uri(const std::string& uri) {
     std::strncmp(uri.c_str(), "ftp://", 6) == 0;
 }
 
+static constexpr const char* session_invalid_message = "Session data is invalid, ignoring it";
+
 static std::unique_ptr<torrent::Object>
-download_factory_load_stream(const char* filename) {
+download_factory_load_stream(const char* filename, bool* is_invalid) {
   std::fstream stream(filename, std::ios::in | std::ios::binary);
 
   if (!stream.is_open())
@@ -45,8 +47,10 @@ download_factory_load_stream(const char* filename) {
   auto obj = std::make_unique<torrent::Object>();
   stream >> *obj;
 
-  if (!stream.good())
+  if (!stream.good() || !obj->is_map()) {
+    *is_invalid = true;
     return std::unique_ptr<torrent::Object>();
+  }
 
   return obj;
 }
@@ -161,8 +165,13 @@ DownloadFactory::receive_commit() {
 
 void
 DownloadFactory::receive_success() {
-  auto rtorrent_object          = download_factory_load_stream((expand_path(m_uri) + ".rtorrent").c_str());
-  auto libtorrent_resume_object = download_factory_load_stream((expand_path(m_uri) + ".libtorrent_resume").c_str());
+  bool session_invalid = false;
+
+  auto rtorrent_object          = download_factory_load_stream((expand_path(m_uri) + ".rtorrent").c_str(), &session_invalid);
+  auto libtorrent_resume_object = download_factory_load_stream((expand_path(m_uri) + ".libtorrent_resume").c_str(), &session_invalid);
+
+  if (session_invalid)
+    lt_log_print(torrent::LOG_ERROR, "%s: %s", session_invalid_message, m_uri.c_str());
 
   uint32_t tracker_key;
 
@@ -182,6 +191,14 @@ DownloadFactory::receive_success() {
     // the log.
     m_slot_finished();
     return;
+  }
+
+  if (session_invalid) {
+    download->set_hash_failed(true);
+    download->set_message(session_invalid_message);
+
+    if (m_printLog)
+      m_manager->push_log_std(std::string(session_invalid_message) + ": \"" + m_uri + "\"");
   }
 
   torrent::Object* root = download->bencode();
@@ -274,9 +291,22 @@ DownloadFactory::receive_success() {
 
   rpc::call_command("d.peer_exchange.set", torrent::runtime::client_config()->is_pex_enabled(), rpc::make_target(download));
 
-  torrent::resume_load_addresses(*download->download(), resumeObject);
-  torrent::resume_load_file_priorities(*download->download(), resumeObject);
-  torrent::resume_load_tracker_settings(*download->download(), resumeObject);
+  try {
+    torrent::resume_load_addresses(*download->download(), resumeObject);
+    torrent::resume_load_file_priorities(*download->download(), resumeObject);
+    torrent::resume_load_tracker_settings(*download->download(), resumeObject);
+
+  } catch (const torrent::input_error& e) {
+    std::string msg = std::string(session_invalid_message) + ": " + e.what();
+
+    lt_log_print(torrent::LOG_ERROR, "%s: %s", msg.c_str(), m_uri.c_str());
+
+    if (m_printLog)
+      m_manager->push_log_std(msg + ": \"" + m_uri + "\"");
+
+    download->set_hash_failed(true);
+    download->set_message(msg);
+  }
 
   // The action of inserting might cause the torrent to be
   // opened/started or such. Figure out a nicer way of handling this.
