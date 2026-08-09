@@ -131,8 +131,8 @@ parse_config_file_comments(const std::string& category, const std::string& path)
     if (equal_pos == std::string::npos)
       throw torrent::input_error("Invalid command in config file comment: " + line);
 
-    std::string command = line.substr(5, equal_pos - 5);
-    std::string args    = line.substr(equal_pos + 1);
+    auto command = line.substr(prefix.size(), equal_pos - prefix.size());
+    auto args    = line.substr(equal_pos + 1);
 
     if (command.empty())
       throw torrent::input_error("Invalid command in config file comment: " + line);

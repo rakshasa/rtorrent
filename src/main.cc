@@ -126,9 +126,9 @@ main(int argc, char** argv) {
     SignalHandler::set_block(SIGCHLD);
 
     // All signal handlers must restore errno if they return.
-    SignalHandler::set_handler(SIGSEGV,  std::bind(&do_panic, SIGSEGV));
-    SignalHandler::set_handler(SIGILL,   std::bind(&do_panic, SIGILL));
-    SignalHandler::set_handler(SIGFPE,   std::bind(&do_panic, SIGFPE));
+    SignalHandler::set_handler(SIGSEGV,  []() { do_panic(SIGSEGV); });
+    SignalHandler::set_handler(SIGILL,   []() { do_panic(SIGILL); });
+    SignalHandler::set_handler(SIGFPE,   []() { do_panic(SIGFPE); });
 
     // Limited list of commands with the following format:
     //
@@ -144,10 +144,10 @@ main(int argc, char** argv) {
 
     control = new Control;
 
-    SignalHandler::set_handler(SIGINT,   std::bind(&Control::receive_normal_shutdown, control));
-    SignalHandler::set_handler(SIGHUP,   std::bind(&Control::receive_normal_shutdown, control));
-    SignalHandler::set_handler(SIGTERM,  std::bind(&Control::receive_quick_shutdown, control));
-    SignalHandler::set_handler(SIGWINCH, std::bind(&display::Manager::force_redraw, control->display()));
+    SignalHandler::set_handler(SIGINT,   []() { control->receive_normal_shutdown(); });
+    SignalHandler::set_handler(SIGHUP,   []() { control->receive_normal_shutdown(); });
+    SignalHandler::set_handler(SIGTERM,  []() { control->receive_quick_shutdown(); });
+    SignalHandler::set_handler(SIGWINCH, []() { control->display()->force_redraw(); });
 
     SignalHandler::set_sigaction_handler(SIGBUS, &handle_sigbus);
 
@@ -162,8 +162,6 @@ main(int argc, char** argv) {
 
     torrent::initialize();
     torrent::main_thread::set_client_callback(&client_perform);
-
-    torrent::runtime::initialize_worker_process();
 
     scgi::ThreadScgi::create_thread();
     session::ThreadSession::create_thread();
@@ -464,6 +462,8 @@ main(int argc, char** argv) {
     control->ui()->load_input_history();
 
     torrent::net_thread::http_stack()->set_user_agent(USER_AGENT);
+
+    torrent::runtime::initialize_worker_process();
     torrent::runtime::initialize_network();
 
     // Load session torrents and perform scheduled tasks to ensure session torrents are loaded
