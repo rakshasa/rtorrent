@@ -54,6 +54,8 @@ public:
   typedef std::vector<std::string> InputHistoryCategory;
   typedef std::map<int, InputHistoryCategory> InputHistory;
 
+  static constexpr int max_input_history_size = 4096;
+
   Root();
 
   void                init(Control* c);

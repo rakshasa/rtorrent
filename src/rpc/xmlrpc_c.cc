@@ -451,6 +451,11 @@ XmlRpc::process(const char* inBuffer, uint32_t length, slot_write slotWrite) {
   if (local_env.fault_occurred && local_env.fault_code == XMLRPC_INTERNAL_ERROR)
     throw torrent::internal_error("Internal error in XMLRPC.");
 
+  if (memblock == nullptr) {
+    xmlrpc_env_clean(&local_env);
+    return false;
+  }
+
   bool result = slotWrite((const char*)xmlrpc_mem_block_contents(memblock),
                           xmlrpc_mem_block_size(memblock));
 
