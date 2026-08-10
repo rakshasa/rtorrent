@@ -63,6 +63,14 @@
 #network.local_address.set = 127.0.0.1
 #network.local_address.set = rakshasa.no
 
+# The port reported to the tracker, separate for ipv4/ipv6. A value of 0
+# (the default) falls back to reporting the listening port. network.local_port.set
+# sets both the ipv4 and ipv6 ports at once.
+#
+#network.local_port.set = 6881
+#network.local_port.ipv4.set = 6881
+#network.local_port.ipv6.set = 6882
+
 # The IP address the listening socket and outgoing connections is
 # bound to.
 #
