@@ -46,6 +46,8 @@ void
 DownloadList::clear() {
   int error_count = 0;
 
+  m_change_counter++;
+
   while (!empty()) {
     auto download = back();
 
@@ -161,6 +163,8 @@ DownloadList::iterator
 DownloadList::insert(Download* download) {
   iterator itr = base_type::insert(end(), download);
 
+  m_change_counter++;
+
   lt_log_print_info(torrent::LOG_TORRENT_INFO, download->info(), "download_list", "Inserting download.");
 
   try {
@@ -194,6 +198,8 @@ DownloadList::iterator
 DownloadList::erase(iterator itr) {
   if (itr == end())
     throw torrent::internal_error("DownloadList::erase(...) could not find download.");
+
+  m_change_counter++;
 
   lt_log_print_info(torrent::LOG_TORRENT_INFO, (*itr)->info(), "download_list", "Erasing download.");
 

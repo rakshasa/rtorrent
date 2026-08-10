@@ -2,6 +2,7 @@
 #define RTORRENT_CORE_DOWNLOAD_LIST_H
 
 #include <iosfwd>
+#include <cstdint>
 #include <list>
 #include <string>
 
@@ -38,6 +39,10 @@ public:
 
   using base_type::empty;
   using base_type::size;
+
+  // Bumped whenever a download is added or removed, so an iteration over a
+  // snapshot of the list can tell that its pointers went stale.
+  uint32_t            change_counter() const                       { return m_change_counter; }
 
   DownloadList() = default;
 
@@ -129,6 +134,8 @@ private:
   void                confirm_finished(Download* d);
 
   void                process_meta_download(Download* d);
+
+  uint32_t            m_change_counter{0};
 };
 
 }

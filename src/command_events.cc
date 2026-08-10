@@ -242,10 +242,16 @@ d_multicall(const torrent::Object::list_type& args) {
   torrent::Object             resultRaw = torrent::Object::create_list();
   torrent::Object::list_type& result = resultRaw.as_list();
 
+  auto* download_list  = control->core()->download_list();
+  auto  change_counter = download_list->change_counter();
+
   for (auto download : dlist) {
     torrent::Object::list_type& row = result.insert(result.end(), torrent::Object::create_list())->as_list();
 
     for (torrent::Object::list_const_iterator cItr = ++args.begin(); cItr != args.end(); cItr++) {
+      if (download_list->change_counter() != change_counter)
+        throw torrent::input_error("The download list changed during the multicall.");
+
       auto& cmd = cItr->as_string();
       row.push_back(rpc::parse_command(rpc::make_target(download), cmd.c_str(), cmd.c_str() + cmd.size()).first);
     }
@@ -278,12 +284,18 @@ d_multicall_filtered(const torrent::Object::list_type& args) {
 
   ++arg;  // skip to first command
 
+  auto* download_list  = control->core()->download_list();
+  auto  change_counter = download_list->change_counter();
+
   for (const auto& item : dlist) {
     // Add empty row to result
     torrent::Object::list_type& row = result.insert(result.end(), torrent::Object::create_list())->as_list();
 
     // Call the provided commands and assemble their results
     for (torrent::Object::list_const_iterator command = arg; command != args.end(); command++) {
+      if (download_list->change_counter() != change_counter)
+        throw torrent::input_error("The download list changed during the multicall.");
+
       auto& cmdstr = command->as_string();
       row.push_back(rpc::parse_command(rpc::make_target(item), cmdstr.c_str(), cmdstr.c_str() + cmdstr.size()).first);
     }
