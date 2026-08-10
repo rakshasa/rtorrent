@@ -94,8 +94,12 @@ SCgiTask::event_read() {
   if (m_content_length == 0)
     read_length--;
 
-  if (read_length <= 0)
+  if (read_length <= 0) {
+    if (m_content_length == 0)
+      return close();
+
     throw torrent::internal_error("SCgiTask::event_read() no space in buffer for event_read.");
+  }
 
   int bytes = ::recv(file_descriptor(), m_buffer.data() + m_position, read_length, 0);
 
