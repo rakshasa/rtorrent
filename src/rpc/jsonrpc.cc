@@ -258,11 +258,8 @@ JsonRpc::process(const char* in_buffer, uint32_t length, slot_write callback) {
 
     return callback(response_str.c_str(), response_str.size());
 
-  } catch (json::parse_error& e) {
-    auto err_str = json_error(JSONRPC_PARSE_ERROR, e.what(), nullptr).dump(-1, ' ', false, json::error_handler_t::replace);
-    return callback(err_str.c_str(), err_str.size());
-  } catch (json::type_error& e) {
-    // Type errors may be caused by invalid UTF-8 strings in exception strings, hence the ::replace
+  } catch (json::exception& e) {
+    // Exception strings may contain invalid UTF-8, hence the ::replace
     auto err_str = json_error(JSONRPC_PARSE_ERROR, e.what(), nullptr).dump(-1, ' ', false, json::error_handler_t::replace);
     return callback(err_str.c_str(), err_str.size());
   }
