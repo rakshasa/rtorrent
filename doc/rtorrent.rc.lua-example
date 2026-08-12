@@ -53,8 +53,8 @@ rc.execute.throw(
              cfg.watch..'/start'}))
 
 -- Listening port for incoming peer traffic (fixed; you can also randomize it)
-rc.network.port_range = '50000-50000'
-rc.network.port_random = false
+rc.network.listen.port.range = '50000-50000'
+rc.network.listen.port.random = false
 
 -- Tracker-less torrent and UDP tracker support
 -- (conservative settings for 'private' trackers, change for 'public')
