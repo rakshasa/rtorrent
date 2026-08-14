@@ -19,7 +19,7 @@
 
 namespace {
 
-constexpr int64_t max_string_pad_size = 1 << 20;
+constexpr int64_t max_string_pad_size = 1 << 14;
 
 const std::string whitespace_characters = " \t\n\r\f\v";
 
