@@ -35,6 +35,8 @@ rtorrent_Test_Rpc_SOURCES = $(rtorrent_Test_Common) \
 	rpc/test_command.h \
 	rpc/test_command_map.cc \
 	rpc/test_command_map.h \
+	rpc/test_command_scheduler.cc \
+	rpc/test_command_scheduler.h \
 	rpc/test_jsonrpc.cc \
 	rpc/test_jsonrpc.h \
 	rpc/test_xmlrpc.cc \
