@@ -37,7 +37,7 @@ namespace core {
 inline void
 DownloadList::check_contains([[maybe_unused]] Download* d) {
 #ifdef USE_EXTRA_DEBUG
-  if (std::find(begin(), end(), d) == end())
+  if (std::find_if(begin(), end(), [d](const auto& entry) { return entry.get() == d; }) == end())
     throw torrent::internal_error("DownloadList::check_contains(...) failed.");
 #endif
 }
@@ -54,7 +54,6 @@ DownloadList::clear() {
       base_type::pop_back();
 
       torrent::download_remove(*download->download());
-      delete download;
 
     } catch (torrent::internal_error& e) {
       lt_log_print(torrent::LOG_ERROR, "DownloadList::clear() failed to close or remove download: %s", e.what());
@@ -70,7 +69,7 @@ DownloadList::clear() {
 void
 DownloadList::session_save() {
   for (auto& download : *this)
-    session_thread::manager()->save_resume_download(download);
+    session_thread::manager()->save_resume_download(download.get());
 
   control->dht_manager()->save_dht_cache();
   control->ui()->save_input_history();
@@ -78,7 +77,7 @@ DownloadList::session_save() {
 
 DownloadList::iterator
 DownloadList::find(const torrent::HashString& hash) {
-  return std::find_if(begin(), end(), [hash](Download* d) { return hash == d->info()->hash(); });
+  return std::find_if(begin(), end(), [hash](const auto& d) { return hash == d->info()->hash(); });
 }
 
 DownloadList::iterator
@@ -91,14 +90,14 @@ DownloadList::find_hex(const char* hash) {
   if (torrent::utils::transform_from_hex(hash, hash + 40, key) != key.end())
     return end();
 
-  return std::find_if(begin(), end(), [key](Download* d) { return key == d->info()->hash(); });
+  return std::find_if(begin(), end(), [key](const auto& d) { return key == d->info()->hash(); });
 }
 
 Download*
 DownloadList::find_hex_ptr(const char* hash) {
   iterator itr = find_hex(hash);
 
-  return itr != end() ? *itr : NULL;
+  return itr != end() ? itr->get() : NULL;
 }
 
 Download*
@@ -159,7 +158,7 @@ DownloadList::create(std::istream* str, uint32_t tracker_key, bool printLog) {
 
 DownloadList::iterator
 DownloadList::insert(Download* download) {
-  iterator itr = base_type::insert(end(), download);
+  iterator itr = base_type::insert(end(), std::shared_ptr<Download>(download));
 
   lt_log_print_info(torrent::LOG_TORRENT_INFO, download->info(), "download_list", "Inserting download.");
 
@@ -170,7 +169,7 @@ DownloadList::insert(Download* download) {
     // This needs to be separated into two different calls to ensure
     // the download remains in the view.
     for (auto v : *control->view_manager())
-      v->insert(download);
+      v->insert(*itr);
     for (auto v : *control->view_manager())
       v->filter_download(download);
 
@@ -187,7 +186,7 @@ DownloadList::insert(Download* download) {
 
 void
 DownloadList::erase_ptr(Download* download) {
-  erase(std::find(begin(), end(), download));
+  erase(std::find_if(begin(), end(), [download](const auto& entry) { return entry.get() == download; }));
 }
 
 DownloadList::iterator
@@ -201,15 +200,14 @@ DownloadList::erase(iterator itr) {
   (*itr)->set_hash_failed(true);
 
   close(*itr);
-  session_thread::manager()->remove_download(*itr);
+  session_thread::manager()->remove_download(itr->get());
 
   DL_TRIGGER_EVENT(*itr, "event.download.erased");
 
   for (auto v : *control->view_manager())
-    v->erase(*itr);
+    v->erase(itr->get());
 
   torrent::download_remove(*(*itr)->download());
-  delete *itr;
 
   return base_type::erase(itr);
 }

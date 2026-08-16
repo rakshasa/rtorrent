@@ -37,7 +37,7 @@ WindowDownloadList::set_view(core::View* l) {
 // Return a pair of ints, representing a) the ncurses attributes and b) the ncurses color pair ID to use
 std::pair<int, int>
 WindowDownloadList::get_attr_color(core::View::iterator selected) {
-  core::Download* item       = *selected;
+  core::Download* item       = selected->get();
   unsigned long   focus_attr = selected == m_view->focus() ? m_canvas->attr_map().at(RCOLOR_FOCUS) : 0;
   int             offset     = (((selected - m_view->begin_visible()) & 1) + 1) * RCOLOR_MAX; // Determine the even/odd offset for the color pair
   bool            active     = item->is_open() && item->is_active();
@@ -132,15 +132,15 @@ WindowDownloadList::redraw() {
       ColorKind focus_color = is_focused ? RCOLOR_FOCUS : RCOLOR_LABEL;
       auto      attr_color  = get_attr_color(range.first);
 
-      print_download_title(buffer.data(), last, *range.first);
+      print_download_title(buffer.data(), last, range.first->get());
       m_canvas->print(0, pos, "%c %s", focus_char, buffer.data());
       m_canvas->set_attr(2, pos++, -1, attr_color.first, attr_color.second);
 
-      print_download_info_full(buffer.data(), last, *range.first);
+      print_download_info_full(buffer.data(), last, range.first->get());
       m_canvas->print(0, pos, "%c %s", focus_char, buffer.data());
       m_canvas->set_attr(2, pos++, -1, focus_color);
 
-      print_download_status(buffer.data(), last, *range.first);
+      print_download_status(buffer.data(), last, range.first->get());
       m_canvas->print(0, pos, "%c %s", focus_char, buffer.data());
       m_canvas->set_attr(2, pos++, -1, focus_color);
 
@@ -152,7 +152,7 @@ WindowDownloadList::redraw() {
       char focus_char = range.first == m_view->focus() ? '*' : ' ';
       auto attr_color = get_attr_color(range.first);
 
-      print_download_info_compact(buffer.data(), last, *range.first);
+      print_download_info_compact(buffer.data(), last, range.first->get());
       m_canvas->print(0, pos, "%c %s", focus_char, buffer.data());
       m_canvas->set_attr(2, pos++, -1, attr_color.first, attr_color.second);
 
