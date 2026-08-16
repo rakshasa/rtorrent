@@ -19,6 +19,8 @@
 
 namespace {
 
+constexpr int64_t max_string_pad_size = 1 << 14;
+
 const std::string whitespace_characters = " \t\n\r\f\v";
 
 // The byte offset of every utf-8 character in 'text', terminated by the offset
@@ -249,10 +251,14 @@ apply_string_pad(const char* name, const torrent::Object::list_type& args, bool 
   if (pad_size <= text_length || padding.empty())
     return text;
 
+  if (pad_size - text_length > max_string_pad_size)
+    throw torrent::input_error(std::string(name) + ": padding is too large.");
+
   auto padding_offsets = utf8_offsets(padding);
   auto padding_length  = static_cast<int64_t>(padding_offsets.size() - 1);
 
   std::string result;
+  result.reserve(pad_size - text_length);
 
   for (int64_t i = 0; i < pad_size - text_length; i++) {
     auto index = static_cast<size_t>(i % padding_length);

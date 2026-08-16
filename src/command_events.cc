@@ -128,7 +128,7 @@ apply_remove_untied() {
 }
 
 torrent::Object
-apply_schedule(const torrent::Object::list_type& args) {
+apply_schedule(const torrent::Object::list_type& args, bool if_absent) {
   if (args.size() != 4)
     throw torrent::input_error("Wrong number of arguments.");
 
@@ -137,6 +137,9 @@ apply_schedule(const torrent::Object::list_type& args) {
   auto& arg1 = (itr++)->as_string();
   auto& arg2 = (itr++)->as_string();
   auto& arg3 = (itr++)->as_string();
+
+  if (if_absent && control->command_scheduler()->find(arg1) != control->command_scheduler()->end())
+    return torrent::Object();
 
   control->command_scheduler()->parse(arg1, arg2, arg3, *itr);
 
@@ -340,7 +343,8 @@ initialize_command_events() {
   CMD2_ANY         ("close_untied",               [](auto, auto) { return apply_close_untied(); });
   CMD2_ANY         ("remove_untied",              [](auto, auto) { return apply_remove_untied(); });
 
-  CMD2_ANY_LIST    ("schedule",                   [](auto, auto& args) { return apply_schedule(args); });
+  CMD2_ANY_LIST    ("schedule",                   [](auto, auto& args) { return apply_schedule(args, false); });
+  CMD2_ANY_LIST    ("schedule.if_absent",         [](auto, auto& args) { return apply_schedule(args, true); });
   CMD2_ANY_STRING_V("schedule.remove",            [](auto, auto& str) { return control->command_scheduler()->erase_str(str); });
 
   CMD2_ANY_STRING_V("import",                     [](auto, auto& str) { return apply_import(str); });
