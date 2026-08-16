@@ -51,7 +51,7 @@ apply_on_ratio(const torrent::Object& rawArgs) {
         !(max_ratio > 0 && total_upload * 100 > total_done * max_ratio))
       continue;
 
-    downloads.push_back(*itr);
+    downloads.push_back(itr->get());
   }
 
   auto ratio_command = "group." + group_name + ".ratio.command";
@@ -173,7 +173,7 @@ apply_close_low_diskspace(int64_t arg, uint32_t skip_priority) {
 
   torrent::FileList::cache_list cache;
 
-  for (auto download : *control->core()->download_list()) {
+  for (const auto& download : *control->core()->download_list()) {
     if (!download->is_downloading())
       continue;
     if (download->priority() >= skip_priority)
@@ -240,15 +240,25 @@ d_multicall(const torrent::Object::list_type& args) {
 
   // Add some pre-parsing of the commands, so we don't spend time
   // parsing and searching command map for every single call.
-  std::vector<core::Download*> dlist((*view_itr)->begin_visible(), (*view_itr)->end_visible());
+  // Hold a reference to each download so a command that erases one does not
+  // leave the rest of the loop dispatching on freed memory.
+  core::View::base_type dlist((*view_itr)->begin_visible(), (*view_itr)->end_visible());
 
   torrent::Object             resultRaw = torrent::Object::create_list();
   torrent::Object::list_type& result = resultRaw.as_list();
 
-  for (auto download : dlist) {
+  for (const auto& download : dlist) {
+    if (download.use_count() == 1)
+      continue;
+
     torrent::Object::list_type& row = result.insert(result.end(), torrent::Object::create_list())->as_list();
 
     for (torrent::Object::list_const_iterator cItr = ++args.begin(); cItr != args.end(); cItr++) {
+      // A command may erase this download, which destroys the torrent object it
+      // wraps; the list dropping its reference is what tells us.
+      if (download.use_count() == 1)
+        break;
+
       auto& cmd = cItr->as_string();
       row.push_back(rpc::parse_command(rpc::make_target(download), cmd.c_str(), cmd.c_str() + cmd.size()).first);
     }
@@ -271,9 +281,11 @@ d_multicall_filtered(const torrent::Object::list_type& args) {
   if (view_itr == viewManager->end())
     throw torrent::input_error("Could not find view '" + arg->as_string() + "'.");
 
-  // Make a filtered copy of the current item list
+  // Make a filtered copy of the current item list, holding a reference to each
+  // download so a command that erases one cannot free it under us.
   core::View::base_type dlist;
   (*view_itr)->filter_by(*++arg, dlist);
+
 
   // Generate result by iterating over all items
   auto  resultRaw = torrent::Object::create_list();
@@ -282,11 +294,17 @@ d_multicall_filtered(const torrent::Object::list_type& args) {
   ++arg;  // skip to first command
 
   for (const auto& item : dlist) {
+    if (item.use_count() == 1)
+      continue;
+
     // Add empty row to result
     torrent::Object::list_type& row = result.insert(result.end(), torrent::Object::create_list())->as_list();
 
     // Call the provided commands and assemble their results
     for (torrent::Object::list_const_iterator command = arg; command != args.end(); command++) {
+      if (item.use_count() == 1)
+        break;
+
       auto& cmdstr = command->as_string();
       row.push_back(rpc::parse_command(rpc::make_target(item), cmdstr.c_str(), cmdstr.c_str() + cmdstr.size()).first);
     }

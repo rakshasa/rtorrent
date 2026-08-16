@@ -1,3 +1,4 @@
+#include <memory>
 #include "config.h"
 
 #include <cassert>
@@ -30,8 +31,10 @@
 
 namespace ui {
 
-Download::Download(core::Download* d)
-  : m_download(d) {
+Download::Download(const std::shared_ptr<core::Download>& download)
+  : m_download(download.get()) {
+
+  auto* d = download.get();
 
   m_windowDownloadStatus = std::make_unique<WDownloadStatus>(d);
   m_windowDownloadStatus->set_bottom(true);

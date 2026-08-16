@@ -1,6 +1,7 @@
 #ifndef RTORRENT_CORE_DOWNLOAD_H
 #define RTORRENT_CORE_DOWNLOAD_H
 
+#include <memory>
 #include <torrent/common.h>
 #include <torrent/download.h>
 #include <torrent/download_info.h>

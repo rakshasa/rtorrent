@@ -196,7 +196,7 @@ ElementDownloadList::receive_cycle_throttle() {
   if (m_view->focus() == m_view->end_visible())
     return;
 
-  core::Download* download = *m_view->focus();
+  core::Download* download = m_view->focus()->get();
   if (download->is_active()) {
     lt_log_print(torrent::LOG_TORRENT_WARN, "Cannot change throttle on active download.");
     return;
