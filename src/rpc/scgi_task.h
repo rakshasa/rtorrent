@@ -1,10 +1,12 @@
 #ifndef RTORRENT_RPC_SCGI_TASK_H
 #define RTORRENT_RPC_SCGI_TASK_H
 
+#include <chrono>
 #include <memory>
 #include <mutex>
 #include <vector>
 #include <torrent/system/event.h>
+#include <torrent/system/scheduler.h>
 
 namespace rpc {
 
@@ -15,6 +17,8 @@ public:
   static constexpr int default_buffer_size = 8191;
   static constexpr int max_header_size     = 2000;
   static constexpr int max_content_size    = (2 << 23);
+
+  static constexpr auto timeout_request = std::chrono::seconds(60);
 
   enum ContentType { XML, JSON };
 
@@ -54,8 +58,9 @@ private:
   void                plaintext_response(const char* buffer, uint32_t content_length);
   void                gzip_response(const char* buffer, uint32_t content_length);
 
-  SCgi*                        m_parent{};
-  torrent::system::callback_id m_callback_id;
+  SCgi*                           m_parent{};
+  torrent::system::callback_id    m_callback_id;
+  torrent::system::SchedulerEntry m_task_timeout;
 
   std::mutex          m_result_mutex;
 

@@ -14,6 +14,7 @@
 #include <torrent/runtime/socket_manager.h>
 #include <torrent/system/callbacks.h>
 #include <torrent/system/poll.h>
+#include <torrent/system/scheduler.h>
 #include <torrent/utils/log.h>
 
 #include "control.h"
@@ -26,6 +27,8 @@ namespace rpc {
 
 SCgiTask::SCgiTask()
   : m_callback_id(torrent::system::make_callback_id()) {
+
+  m_task_timeout.slot() = [this]() { close(); };
 
   reset_file_descriptor();
 }
@@ -50,6 +53,8 @@ SCgiTask::open(SCgi* parent, int fd) {
   torrent::this_thread::poll()->open(this);
   torrent::this_thread::poll()->insert_read(this);
 
+  torrent::this_thread::scheduler()->update_wait_for_ceil_seconds(&m_task_timeout, timeout_request);
+
   auto lock = std::lock_guard<std::mutex>(m_result_mutex);
 
   // Leave room for terminating nul byte for parsing the header.
@@ -61,6 +66,8 @@ SCgiTask::cancel_open() {
   if (!is_open())
     return;
 
+  torrent::this_thread::scheduler()->erase(&m_task_timeout);
+
   torrent::this_thread::poll()->remove_and_close(this);
 
   torrent::fd_close(file_descriptor());
@@ -71,6 +78,8 @@ void
 SCgiTask::close() {
   if (!is_open())
     return;
+
+  torrent::this_thread::scheduler()->erase(&m_task_timeout);
 
   torrent::system::cancel_callback_and_wait(m_callback_id, scgi_thread::thread(), torrent::main_thread::thread());
 
@@ -157,6 +166,8 @@ SCgiTask::event_read() {
     return;
 
   torrent::this_thread::poll()->remove_read(this);
+
+  torrent::this_thread::scheduler()->update_wait_for_ceil_seconds(&m_task_timeout, timeout_request);
 
   if (m_parent->log_fd() >= 0) {
     [[maybe_unused]] int result;
