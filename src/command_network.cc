@@ -54,6 +54,14 @@ set_listen_port_range(const std::string& arg) {
   torrent::runtime::client_config()->set_listen_port_range(port_first, port_last);
 }
 
+uint16_t
+checked_local_port_value(int64_t value, const char* label) {
+  if (value < 0 || value > 65535)
+    throw torrent::input_error(std::string("Invalid ") + label + " port number.");
+
+  return static_cast<uint16_t>(value);
+}
+
 torrent::Object
 get_encryption() {
   auto encryption_modes = torrent::runtime::network_config()->encryption_modes();
@@ -380,23 +388,11 @@ initialize_command_network() {
   CMD_ANY_STRING_V("network.local_address.ipv6.set",         [nw_config](auto, auto& str)    { return nw_config->set_local_inet6_address_str(str); });
 
   CMD_ANY         ("network.local_port",                     [nw_config](auto, auto)         { return nw_config->local_port_best_match(); });
-  CMD_ANY_VALUE_V ("network.local_port.set",                 [nw_config](auto, auto& value) {
-    if (value < 0 || value > 65535)
-      throw torrent::input_error("Invalid local port number.");
-    return nw_config->set_local_port(value);
-  });
+  CMD_ANY_VALUE_V ("network.local_port.set",                 [nw_config](auto, auto& value) { return nw_config->set_local_port(checked_local_port_value(value, "local")); });
   CMD_ANY         ("network.local_port.ipv4",                [nw_config](auto, auto)         { return nw_config->local_inet_port(); });
-  CMD_ANY_VALUE_V ("network.local_port.ipv4.set",            [nw_config](auto, auto& value) {
-    if (value < 0 || value > 65535)
-      throw torrent::input_error("Invalid local port number.");
-    return nw_config->set_local_inet_port(value);
-  });
+  CMD_ANY_VALUE_V ("network.local_port.ipv4.set",            [nw_config](auto, auto& value) { return nw_config->set_local_inet_port(checked_local_port_value(value, "local ipv4")); });
   CMD_ANY         ("network.local_port.ipv6",                [nw_config](auto, auto)         { return nw_config->local_inet6_port(); });
-  CMD_ANY_VALUE_V ("network.local_port.ipv6.set",            [nw_config](auto, auto& value) {
-    if (value < 0 || value > 65535)
-      throw torrent::input_error("Invalid local port number.");
-    return nw_config->set_local_inet6_port(value);
-  });
+  CMD_ANY_VALUE_V ("network.local_port.ipv6.set",            [nw_config](auto, auto& value) { return nw_config->set_local_inet6_port(checked_local_port_value(value, "local ipv6")); });
 
   CMD_ANY         ("network.proxy.global",                   [](auto, auto)                  { return torrent::runtime::proxy_manager()->proxy_url(); });
   CMD_ANY_STRING_V("network.proxy.global.set",               [](auto, auto& str)             { return torrent::runtime::proxy_manager()->set_proxy_url(str); });
@@ -457,6 +453,8 @@ initialize_command_network() {
   rpc::rpc.mark_safe("network.bind_address");
   rpc::rpc.mark_safe("network.local_address");
   rpc::rpc.mark_safe("network.local_port");
+  rpc::rpc.mark_safe("network.local_port.ipv4");
+  rpc::rpc.mark_safe("network.local_port.ipv6");
   rpc::rpc.mark_safe("network.xmlrpc.size_limit");
   rpc::rpc.mark_safe("network.open_sockets");
 
