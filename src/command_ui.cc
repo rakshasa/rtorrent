@@ -3,6 +3,7 @@
 #include <sys/types.h>
 
 #include <ctime>
+#include <limits>
 #include <regex>
 #include <torrent/utils/log.h>
 
@@ -674,8 +675,13 @@ apply_math_basic(const char* name, Comp op, const torrent::Object::list_type& ar
       throw torrent::input_error(std::string(name) + ": Wrong argument type");
     }
 
-    if (divides && !rhs && itr != args.begin())
-      throw torrent::input_error(std::string(name) + ": Division by zero!");
+    if (divides && itr != args.begin()) {
+      if (rhs == 0)
+        throw torrent::input_error(std::string(name) + ": Division by zero!");
+
+      if (val == std::numeric_limits<int64_t>::min() && rhs == -1)
+        throw torrent::input_error(std::string(name) + ": Division overflow!");
+    }
 
     val = itr == args.begin() ? rhs : op(val, rhs);
 
