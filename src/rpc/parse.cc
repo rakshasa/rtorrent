@@ -10,6 +10,8 @@
 
 namespace rpc {
 
+constexpr uint32_t max_parse_depth = 1024;
+
 const char*
 parse_skip_wspace(const char* first, const char* last) {
   while (first != last && parse_is_space(*first))
@@ -142,10 +144,13 @@ parse_value_nothrow(const char* src, int64_t* value, int base, int unit) {
 
 // Somewhat ugly...
 const char*
-parse_object(const char* first, const char* last, torrent::Object* dest, bool (*delim)(const char)) {
+parse_object(const char* first, const char* last, torrent::Object* dest, bool (*delim)(const char), uint32_t depth) {
+  if (++depth >= max_parse_depth)
+    throw torrent::input_error("Max parse depth reached.");
+
   if (*first == '{') {
     *dest = torrent::Object::create_list();
-    first = parse_list(first + 1, last, dest, &parse_is_delim_block);
+    first = parse_list(first + 1, last, dest, &parse_is_delim_block, depth);
     first = parse_skip_wspace(first, last);
 
     if (first == last || *first != '}')
@@ -154,18 +159,18 @@ parse_object(const char* first, const char* last, torrent::Object* dest, bool (*
     return ++first;
 
   } else if (*first == '(') {
-    int32_t depth = 1;
+    int32_t parentheses = 1;
 
     while (first + 1 != last && *(first + 1) == '(') {
       first++;
-      depth++;
+      parentheses++;
     }
 
-    if (depth > 3)
+    if (parentheses > 3)
       throw torrent::input_error("Max 3 parentheses per object allowed.");
 
     *dest = torrent::Object::create_dict_key();
-    dest->set_flags(torrent::Object::flag_function << (depth - 1));
+    dest->set_flags(torrent::Object::flag_function << (parentheses - 1));
 
     first = parse_string(first + 1, last, &dest->as_dict_key(), &parse_is_delim_func);
     first = parse_skip_wspace(first, last);
@@ -176,16 +181,16 @@ parse_object(const char* first, const char* last, torrent::Object* dest, bool (*
     if (*first == ',') {
       // This will always create a list even for single argument functions...
       dest->as_dict_obj() = torrent::Object::create_list();
-      first = parse_list(first + 1, last, &dest->as_dict_obj(), &parse_is_delim_func);
+      first = parse_list(first + 1, last, &dest->as_dict_obj(), &parse_is_delim_func, depth);
       first = parse_skip_wspace(first, last);
     }
 
-    while (depth != 0 && first != last && *first == ')') {
+    while (parentheses != 0 && first != last && *first == ')') {
       first++;
-      depth--;
+      parentheses--;
     }
 
-    if (depth != 0)
+    if (parentheses != 0)
       throw torrent::input_error("Parentheses mismatch.");
 
     return first;
@@ -198,7 +203,7 @@ parse_object(const char* first, const char* last, torrent::Object* dest, bool (*
 }
 
 const char*
-parse_list(const char* first, const char* last, torrent::Object* dest, bool (*delim)(const char)) {
+parse_list(const char* first, const char* last, torrent::Object* dest, bool (*delim)(const char), uint32_t depth) {
   if (!dest->is_list())
     throw torrent::internal_error("parse_list(...) !dest->is_list().");
 
@@ -206,7 +211,7 @@ parse_list(const char* first, const char* last, torrent::Object* dest, bool (*de
     torrent::Object tmp;
 
     first = parse_skip_wspace(first, last);
-    first = parse_object(first, last, &tmp, delim);
+    first = parse_object(first, last, &tmp, delim, depth);
     first = parse_skip_wspace(first, last);
 
     dest->as_list().push_back(tmp);
@@ -221,9 +226,9 @@ parse_list(const char* first, const char* last, torrent::Object* dest, bool (*de
 }
 
 const char*
-parse_whole_list(const char* first, const char* last, torrent::Object* dest, bool (*delim)(const char)) {
+parse_whole_list(const char* first, const char* last, torrent::Object* dest, bool (*delim)(const char), uint32_t depth) {
   first = parse_skip_wspace(first, last);
-  first = parse_object(first, last, dest, delim);
+  first = parse_object(first, last, dest, delim, depth);
   first = parse_skip_wspace(first, last);
 
   if (first != last && parse_is_seperator(*first)) {
@@ -231,7 +236,7 @@ parse_whole_list(const char* first, const char* last, torrent::Object* dest, boo
     tmp.swap(*dest);
 
     dest->as_list().push_back(tmp);
-    first = parse_list(++first, last, dest, delim);
+    first = parse_list(++first, last, dest, delim, depth);
   }
 
   return first;
