@@ -2,6 +2,7 @@
 
 #include <cstring>
 #include <cstdio>
+#include <limits>
 #include <locale>
 #include <torrent/exceptions.h>
 
@@ -134,7 +135,13 @@ parse_value_nothrow(const char* src, int64_t* value, int base, int unit) {
 //   case ' ':
 //   case '\0': *value = *value * unit; break;
 //   default: throw torrent::input_error("Could not parse value.");
-  default: *value = *value * unit; break;
+  default:
+    if (*value > std::numeric_limits<int64_t>::max() / unit ||
+        *value < std::numeric_limits<int64_t>::min() / unit)
+      return src; // overflow guard
+
+    *value = *value * unit;
+    break;
   }
 
   return last;
