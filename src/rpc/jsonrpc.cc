@@ -26,10 +26,12 @@ constexpr int JSONRPC_METHOD_NOT_FOUND_ERROR = -32601;
 constexpr int JSONRPC_INVALID_PARAMS_ERROR   = -32602;
 constexpr int JSONRPC_INTERNAL_ERROR         = -32000;
 
+constexpr uint32_t max_json_depth = 1024;
+
 using json = nlohmann::json;
 
 torrent::Object
-json_to_object(const json& value) {
+json_to_object(const json& value, uint32_t depth = 0) {
   switch (value.type()) {
   case json::value_t::number_unsigned:
   case json::value_t::number_integer:
@@ -42,20 +44,26 @@ json_to_object(const json& value) {
     return torrent::Object(value.get<std::string>());
 
   case json::value_t::array: {
+    if (++depth >= max_json_depth)
+      throw torrent::input_error("invalid parameters: max depth reached");
+
     auto  array_raw = torrent::Object::create_list();
     auto& array     = array_raw.as_list();
 
     for (const auto& entry : value)
-      array.push_back(json_to_object(entry));
+      array.push_back(json_to_object(entry, depth));
 
     return array_raw;
   }
   case json::value_t::object: {
+    if (++depth >= max_json_depth)
+      throw torrent::input_error("invalid parameters: max depth reached");
+
     auto  map_raw = torrent::Object::create_map();
     auto& map     = map_raw.as_map();
 
     for (const auto& entry : value.items())
-      map[entry.key()] = json_to_object(entry.value());
+      map[entry.key()] = json_to_object(entry.value(), depth);
 
     return map_raw;
   }
