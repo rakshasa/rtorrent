@@ -3,6 +3,7 @@
 #include <cerrno>
 #include <fcntl.h>
 #include <functional>
+#include <limits>
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/types.h>
@@ -185,6 +186,14 @@ cmd_file_append(const torrent::Object::list_type& args) {
   return torrent::Object();
 }
 
+uint32_t
+checked_socket_value(int64_t value, const char* label) {
+  if (value < 0 || value > std::numeric_limits<uint32_t>::max())
+    throw torrent::input_error(std::string("Invalid ") + label + " value.");
+
+  return static_cast<uint32_t>(value);
+}
+
 void
 initialize_command_local() {
   core::DownloadList*    dList = control->core()->download_list();
@@ -244,7 +253,7 @@ initialize_command_local() {
 
   CMD_ANY         ("system.sockets.size",             [](auto, auto)        { return torrent::runtime::socket_manager()->size(); });
   CMD_ANY         ("system.sockets.max_size",         [](auto, auto)        { return torrent::runtime::socket_manager()->max_size(); });
-  CMD_ANY_VALUE_V ("system.sockets.max_size.set",     [](auto, auto& value) { return torrent::runtime::socket_manager()->set_max_size_and_adjust(value); });
+  CMD_ANY_VALUE_V ("system.sockets.max_size.set",     [](auto, auto& value) { return torrent::runtime::socket_manager()->set_max_size_and_adjust(checked_socket_value(value, "socket max size")); });
   CMD_ANY_V       ("system.sockets.adjust_alloc",     [](auto, auto)        { torrent::runtime::socket_manager()->adjust_allocation(); });
   CMD_ANY         ("system.sockets.reserved_alloc",   [](auto, auto)        { return torrent::runtime::socket_manager()->reserved_allocation(); });
   CMD_ANY         ("system.sockets.available_alloc",  [](auto, auto)        { return torrent::runtime::socket_manager()->available_allocation(); });
@@ -265,8 +274,8 @@ initialize_command_local() {
     CMD_ANY        (category_name + ".min_alloc.limit", [category](auto, auto) { return torrent::runtime::socket_manager()->category_alloc_minimum(category); });
     CMD_ANY        (category_name + ".min_alloc",     [category](auto, auto) { return torrent::runtime::socket_manager()->category_min_allocation(category); });
     CMD_ANY        (category_name + ".max_alloc",     [category](auto, auto) { return torrent::runtime::socket_manager()->category_max_allocation(category); });
-    CMD_ANY_VALUE_V(category_name + ".min_alloc.set", [category](auto, auto& value) { torrent::runtime::socket_manager()->set_category_min_allocation(category, value); });
-    CMD_ANY_VALUE_V(category_name + ".max_alloc.set", [category](auto, auto& value) { torrent::runtime::socket_manager()->set_category_max_allocation(category, value); });
+    CMD_ANY_VALUE_V(category_name + ".min_alloc.set", [category](auto, auto& value) { torrent::runtime::socket_manager()->set_category_min_allocation(category, checked_socket_value(value, "socket min alloc")); });
+    CMD_ANY_VALUE_V(category_name + ".max_alloc.set", [category](auto, auto& value) { torrent::runtime::socket_manager()->set_category_max_allocation(category, checked_socket_value(value, "socket max alloc")); });
   }
 
   CMD_ANY         ("pieces.sync.always_safe",         [](auto, auto)        { return torrent::runtime::memory_manager()->safe_sync(); });
