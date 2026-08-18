@@ -922,6 +922,7 @@ initialize_command_ui() {
 
   rpc::rpc.mark_safe("view.set_visible");
   rpc::rpc.mark_safe("view.set_not_visible");
+  rpc::rpc.mark_safe("view.list");
 
   rpc::rpc.mark_safe("cat");
   rpc::rpc.mark_safe("if");
