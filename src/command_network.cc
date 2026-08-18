@@ -413,6 +413,9 @@ initialize_command_network() {
   CMD_ANY         ("network.scgi.gzip.min_size",             [](auto, auto)                  { return rpc::rpc.scgi_min_compress_size(); });
   CMD_ANY_VALUE_V ("network.scgi.gzip.min_size.set",         [](auto, auto& arg)             { return rpc::rpc.set_scgi_min_compress_size(arg); });
 
+  CMD_ANY         ("network.scgi.trusted",                   [](auto, auto)                  { return rpc::rpc.scgi_trusted(); });
+  CMD_ANY_VALUE_V ("network.scgi.trusted.set",               [](auto, auto& arg)             { return rpc::rpc.set_scgi_trusted(arg); });
+
   CMD_ANY_STRING  ("network.xmlrpc.dialect.set",             [](auto, auto& arg)             { return apply_xmlrpc_dialect(arg); })
   CMD_ANY         ("network.xmlrpc.size_limit",              [](auto, auto)                  { return rpc::rpc.size_limit(); });
   CMD_ANY_VALUE_V ("network.xmlrpc.size_limit.set",          [](auto, auto& arg)             { return rpc::rpc.set_size_limit(arg); });

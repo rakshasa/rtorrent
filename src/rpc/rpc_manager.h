@@ -85,6 +85,9 @@ public:
   unsigned int        scgi_min_compress_size() const                { return m_scgi_min_compress_size; }
   void                set_scgi_min_compress_size(unsigned int size) { m_scgi_min_compress_size = size; }
 
+  bool                scgi_trusted() const                          { return m_scgi_trusted; }
+  void                set_scgi_trusted(bool trusted)                { m_scgi_trusted = trusted; }
+
   slot_download&      slot_find_download() { return m_slot_find_download; }
   slot_file&          slot_find_file()     { return m_slot_find_file; }
   slot_tracker&       slot_find_tracker()  { return m_slot_find_tracker; }
@@ -110,6 +113,7 @@ private:
   bool          m_use_xmlrpc{true};
 
   std::atomic<bool>         m_scgi_allow_compression{true};
+  std::atomic<bool>         m_scgi_trusted{true};
   std::atomic<unsigned int> m_scgi_min_compress_size{1000};
 
   slot_download m_slot_find_download;
