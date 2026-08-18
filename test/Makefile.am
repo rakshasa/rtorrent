@@ -46,7 +46,9 @@ rtorrent_Test_Rpc_SOURCES = $(rtorrent_Test_Common) \
 	rpc/test_object_storage.cc \
 	rpc/test_object_storage.h \
 	rpc/test_parse_options.cc \
-	rpc/test_parse_options.h
+	rpc/test_parse_options.h \
+	rpc/test_trust_scope.cc \
+	rpc/test_trust_scope.h
 
 rtorrent_Test_Src_SOURCES = $(rtorrent_Test_Common) \
 	src/test_command_dynamic.cc \

@@ -135,17 +135,18 @@ RpcManager::process(RPCType type, const char* in_buffer, uint32_t length, slot_r
 
 bool
 RpcManager::process_untrusted(RPCType type, const char* in_buffer, uint32_t length, slot_response_callback callback) {
-  bool previous = m_trusted;
-  m_trusted = false;
+  trust_scope scope(false);
 
-  try {
-    bool result = process(type, in_buffer, length, callback);
-    m_trusted = previous;
-    return result;
-  } catch (...) {
-    m_trusted = previous;
-    throw;
-  }
+  return process(type, in_buffer, length, callback);
+}
+
+trust_scope::trust_scope(bool state) :
+    m_previous(rpc.is_trusted()) {
+  rpc.set_trusted(state);
+}
+
+trust_scope::~trust_scope() {
+  rpc.set_trusted(m_previous);
 }
 
 void

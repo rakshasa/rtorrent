@@ -99,6 +99,10 @@ public:
   static void         object_to_target(const torrent::Object& obj, int callFlags, rpc::target_type* target, std::function<void()>* deleter);
 
 private:
+  friend class trust_scope;
+
+  void          set_trusted(bool state) { m_trusted = state; }
+
   bool          m_trusted{true};
 
   XmlRpc        m_xmlrpc;
@@ -119,6 +123,18 @@ private:
 };
 
 extern RpcManager rpc;
+
+class trust_scope {
+public:
+  explicit trust_scope(bool state);
+  ~trust_scope();
+
+  trust_scope(const trust_scope&) = delete;
+  trust_scope& operator=(const trust_scope&) = delete;
+
+private:
+  bool          m_previous;
+};
 
 inline bool RpcManager::use_xmlrpc() const      { return m_use_xmlrpc; }
 inline void RpcManager::set_use_xmlrpc(bool v)  { m_use_xmlrpc = v; }

@@ -24,6 +24,7 @@
 #include "core/http_queue.h"
 #include "core/manager.h"
 #include "rpc/parse_commands.h"
+#include "rpc/rpc_manager.h"
 
 namespace core {
 
@@ -62,7 +63,8 @@ is_magnet_uri(const std::string& uri) {
 }
 
 DownloadFactory::DownloadFactory(Manager* m) :
-    m_manager(m) {
+    m_manager(m),
+    m_trusted(rpc::rpc.is_trusted()) {
 
   m_task_load.slot() = std::bind(&DownloadFactory::receive_load, this);
   m_task_commit.slot() = std::bind(&DownloadFactory::receive_commit, this);
@@ -325,8 +327,12 @@ DownloadFactory::receive_success() {
     if (torrent::log_groups[torrent::LOG_TORRENT_DEBUG].valid())
       log_created(download, rtorrent);
 
-    for (const auto& command : m_commands)
-      rpc::parse_command_multiple_std(command, rpc::make_target(download));
+    {
+      rpc::trust_scope scope(m_trusted);
+
+      for (const auto& command : m_commands)
+        rpc::parse_command_multiple_std(command, rpc::make_target(download));
+    }
 
     if (m_manager->download_list()->find(infohash) == m_manager->download_list()->end())
       throw torrent::input_error("The newly created download was removed.");

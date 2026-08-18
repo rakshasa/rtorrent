@@ -75,6 +75,7 @@ private:
   bool                m_printLog{true};
   bool                m_isFile{};
   bool                m_initLoad{};
+  bool                m_trusted{true};
 
   command_list_type         m_commands;
   torrent::Object::map_type m_variables;
