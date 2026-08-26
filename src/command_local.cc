@@ -15,6 +15,7 @@
 #include <torrent/runtime/memory_manager.h>
 #include <torrent/runtime/socket_manager.h>
 #include <torrent/utils/chrono.h>
+#include <torrent/utils/log.h>
 #include <torrent/utils/option_strings.h>
 
 #include "core/download.h"
@@ -283,10 +284,10 @@ initialize_command_local() {
   CMD_ANY         ("pieces.sync.safe_free_diskspace", [](auto, auto)        { return torrent::runtime::memory_manager()->sync_safe_free_diskspace(); });
   CMD_ANY         ("pieces.sync.timeout",             [](auto, auto)        { return torrent::runtime::memory_manager()->timeout_sync().count(); });
   CMD_ANY_VALUE_V ("pieces.sync.timeout.set",         [](auto, auto& value) { return torrent::runtime::memory_manager()->set_timeout_sync(value); });
-  // CMD_ANY         ("pieces.sync.timeout_safe",        [](auto, auto)        { return torrent::runtime::memory_manager()->timeout_safe_sync(); });
-  // CMD_ANY_VALUE_V ("pieces.sync.timeout_safe.set",    [](auto, auto& value) { return torrent::runtime::memory_manager()->set_timeout_safe_sync(value); });
   CMD_ANY         ("pieces.sync.timeout_safe",        [](auto, auto)        { return 0; });
-  CMD_ANY_VALUE_V ("pieces.sync.timeout_safe.set",    [](auto, auto)        { });
+  CMD_ANY_VALUE_V ("pieces.sync.timeout_safe.set",    [](auto, auto)        {
+      lt_log_print(torrent::LOG_WARN, "pieces.sync.timeout_safe.set is no longer supported and does nothing.");
+    });
   CMD_ANY         ("pieces.sync.queue_size",          [](auto, auto)        { return torrent::runtime::memory_manager()->sync_queue_block_count(); });
 
   CMD_ANY         ("pieces.preload.type",             [](auto, auto)        { return torrent::runtime::memory_manager()->preload_type(); });
