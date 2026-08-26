@@ -168,6 +168,14 @@ RpcManager::cleanup() {
 }
 
 void
+RpcManager::set_size_limit(uint64_t size) {
+  if (size > SCgiTask::max_content_size)
+    throw torrent::input_error("XMLRPC size limit cannot exceed the SCGI content size limit.");
+
+  m_xmlrpc.set_size_limit(size);
+}
+
+void
 RpcManager::insert_command(const char* name, const char* parm, const char* doc) {
   m_xmlrpc.insert_command(name, parm, doc);
   m_jsonrpc.insert_command(name, parm, doc);

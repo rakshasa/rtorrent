@@ -62,7 +62,7 @@ public:
   void                cleanup();
 
   int64_t             size_limit()                  { return m_xmlrpc.size_limit(); };
-  void                set_size_limit(uint64_t size) { m_xmlrpc.set_size_limit(size); };
+  void                set_size_limit(uint64_t size);
 
   int                 dialect()                     { return m_xmlrpc.dialect(); }
   void                set_dialect(int dialect)      { m_xmlrpc.set_dialect(dialect); }
