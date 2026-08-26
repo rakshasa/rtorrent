@@ -529,9 +529,6 @@ XmlRpc::size_limit() {
 
 void
 XmlRpc::set_size_limit(uint64_t size) {
-  if (size >= (64 << 20))
-    throw torrent::input_error("Invalid XMLRPC limit size.");
-
   xmlrpc_limit_set(XMLRPC_XML_SIZE_LIMIT_ID, size);
 }
 
