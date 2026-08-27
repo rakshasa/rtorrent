@@ -197,8 +197,7 @@ checked_socket_value(int64_t value, const char* label) {
 
 void
 initialize_command_local() {
-  core::DownloadList*    dList = control->core()->download_list();
-  torrent::FileManager*  fileManager = torrent::file_manager();
+  core::DownloadList* dList = control->core()->download_list();
 
   CMD_ANY         ("system.hostname", std::bind(&system_hostname));
   CMD_ANY         ("system.pid",      std::bind(&getpid));
@@ -220,16 +219,19 @@ initialize_command_local() {
   CMD_VAR_LIST    ("file.prioritize_toc.first");
   CMD_VAR_LIST    ("file.prioritize_toc.last");
 
-  CMD_ANY         ("system.files.advise_random",             std::bind(&FM_t::advise_random, fileManager));
-  CMD_ANY_VALUE_V ("system.files.advise_random.set",         std::bind(&FM_t::set_advise_random, fileManager, std::placeholders::_2));
-  CMD_ANY         ("system.files.advise_random.hashing",     std::bind(&FM_t::advise_random_hashing, fileManager));
-  CMD_ANY_VALUE_V ("system.files.advise_random.hashing.set", std::bind(&FM_t::set_advise_random_hashing, fileManager, std::placeholders::_2));
+  CMD_ANY         ("system.files.advise_random",             [](auto, auto)        { return torrent::file_manager()->advise_random(); });
+  CMD_ANY_VALUE_V ("system.files.advise_random.set",         [](auto, auto& value) { return torrent::file_manager()->set_advise_random(value); });
+  CMD_ANY         ("system.files.advise_random.hashing",     [](auto, auto)        { return torrent::file_manager()->advise_random_hashing(); });
+  CMD_ANY_VALUE_V ("system.files.advise_random.hashing.set", [](auto, auto& value) { return torrent::file_manager()->set_advise_random_hashing(value); });
   CMD_ANY         ("system.files.session.fdatasync",         [](auto, auto)        { return session_thread::manager()->use_fsyncdisk(); });
   CMD_ANY_VALUE_V ("system.files.session.fdatasync.set",     [](auto, auto& value) { return session_thread::manager()->set_use_fsyncdisk(value); });
 
-  CMD_ANY         ("system.files.opened_counter",     std::bind(&FM_t::files_opened_counter, fileManager));
-  CMD_ANY         ("system.files.closed_counter",     std::bind(&FM_t::files_closed_counter, fileManager));
-  CMD_ANY         ("system.files.failed_counter",     std::bind(&FM_t::files_failed_counter, fileManager));
+  CMD_ANY         ("system.files.close_idle",         [](auto, auto)        { return torrent::file_manager()->close_idle_timeout().count(); });
+  CMD_ANY_VALUE_V ("system.files.close_idle.set",     [](auto, auto& value) { return torrent::file_manager()->set_close_idle_timeout(value * 1s); });
+
+  CMD_ANY         ("system.files.opened_counter",     [](auto, auto)        { return torrent::file_manager()->files_opened_counter(); });
+  CMD_ANY         ("system.files.closed_counter",     [](auto, auto)        { return torrent::file_manager()->files_closed_counter(); });
+  CMD_ANY         ("system.files.failed_counter",     [](auto, auto)        { return torrent::file_manager()->files_failed_counter(); });
 
   CMD_ANY_STRING  ("system.env",                      [](auto, auto& str)   { return system_env(str); });
 
