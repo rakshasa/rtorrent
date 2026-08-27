@@ -197,8 +197,7 @@ checked_socket_value(int64_t value, const char* label) {
 
 void
 initialize_command_local() {
-  core::DownloadList*    dList = control->core()->download_list();
-  torrent::FileManager*  fileManager = torrent::file_manager();
+  core::DownloadList* dList = control->core()->download_list();
 
   CMD_ANY         ("system.hostname", std::bind(&system_hostname));
   CMD_ANY         ("system.pid",      std::bind(&getpid));
@@ -227,8 +226,8 @@ initialize_command_local() {
   CMD_ANY         ("system.files.session.fdatasync",         [](auto, auto)        { return session_thread::manager()->use_fsyncdisk(); });
   CMD_ANY_VALUE_V ("system.files.session.fdatasync.set",     [](auto, auto& value) { return session_thread::manager()->set_use_fsyncdisk(value); });
 
-  CMD_ANY         ("system.files.close_idle",         [](auto, auto)        { return torrent::file_manager()->close_idle(); });
-  CMD_ANY_VALUE_V ("system.files.close_idle.set",     [](auto, auto& value) { return torrent::file_manager()->set_close_idle(value); });
+  CMD_ANY         ("system.files.close_idle",         [](auto, auto)        { return torrent::file_manager()->close_idle_timeout().count(); });
+  CMD_ANY_VALUE_V ("system.files.close_idle.set",     [](auto, auto& value) { return torrent::file_manager()->set_close_idle_timeout(value * 1s); });
 
   CMD_ANY         ("system.files.opened_counter",     [](auto, auto)        { return torrent::file_manager()->files_opened_counter(); });
   CMD_ANY         ("system.files.closed_counter",     [](auto, auto)        { return torrent::file_manager()->files_closed_counter(); });
