@@ -78,8 +78,8 @@ initialize_command_system() {
   CMD_VAR_C_STRING("system.client_version",        PACKAGE_VERSION);
   CMD_VAR_C_STRING("system.library_version",       torrent::runtime::version());
 
-  CMD_ANY         ("system.torrent_name.replace_slash",     [](auto, auto)        { return torrent::runtime::client_config()->torrent_name_use_sanitized(); });
-  CMD_ANY_VALUE_V ("system.torrent_name.replace_slash.set", [](auto, auto& value) { return torrent::runtime::client_config()->set_torrent_name_use_sanitized(value); });
+  CMD_ANY         ("system.torrent_name.use_sanitized",     [](auto, auto)        { return torrent::runtime::client_config()->torrent_name_use_sanitized(); });
+  CMD_ANY_VALUE_V ("system.torrent_name.use_sanitized.set", [](auto, auto& value) { return torrent::runtime::client_config()->set_torrent_name_use_sanitized(value); });
 
   CMD_VAR_VALUE   ("system.file.allocate",         0);
   CMD_VAR_VALUE   ("system.file.max_size",         (int64_t)512 << 30);
