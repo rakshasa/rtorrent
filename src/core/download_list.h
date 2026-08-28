@@ -75,6 +75,7 @@ public:
 
   void                close(Download* d);
   void                close_directly(Download* d);
+  void                close_files(Download* d);
   void                close_quick(Download* d);
   void                close_throw(Download* d);
 

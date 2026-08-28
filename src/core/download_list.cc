@@ -254,9 +254,11 @@ DownloadList::close(Download* download) {
   }
 }
 
+// Releases the files without changing the download's state, for callers that
+// need the files closed and will keep using the download.
 void
-DownloadList::close_directly(Download* download) {
-  lt_log_print_info(torrent::LOG_TORRENT_INFO, download->info(), "download_list", "Closing download directly.");
+DownloadList::close_files(Download* download) {
+  lt_log_print_info(torrent::LOG_TORRENT_INFO, download->info(), "download_list", "Closing download files.");
 
   if (download->download()->info()->is_active()) {
     download->download()->stop(torrent::Download::stop_skip_tracker);
@@ -267,6 +269,13 @@ DownloadList::close_directly(Download* download) {
 
   if (download->download()->info()->is_open())
     download->download()->close();
+}
+
+void
+DownloadList::close_directly(Download* download) {
+  lt_log_print_info(torrent::LOG_TORRENT_INFO, download->info(), "download_list", "Closing download directly.");
+
+  close_files(download);
 }
 
 void

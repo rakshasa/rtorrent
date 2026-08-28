@@ -126,7 +126,7 @@ Download::set_root_directory(const std::string& path) {
     throw torrent::input_error("Cannot change the directory of an open download after the files have been moved.");
   }
 
-  control->core()->download_list()->close_directly(this);
+  control->core()->download_list()->close_files(this);
   file_list->set_root_dir(expand_path(path));
 
   bencode()->get_key("rtorrent").insert_key("directory", path);
