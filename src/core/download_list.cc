@@ -554,7 +554,7 @@ DownloadList::hash_done(Download* download) {
     // If the download was previously completed but the files were
     // f.ex deleted, then we clear the state and complete.
     if (rpc::call_command_value("d.complete", rpc::make_target(download)) && !download->is_done()) {
-      rpc::call_command("d.state.set", (int64_t)0, rpc::make_target(download));
+      set_state_stopped(download);
       download->set_message("Download registered as completed, but hash check returned unfinished chunks.");
     }
 
