@@ -133,6 +133,9 @@ private:
   void                hash_done(Download* d);
   void                hash_queue(Download* d, int type);
 
+  void                set_state_stopped(Download* d);
+  void                update_paused_state(Download* d);
+
   inline void         check_contains(Download* d);
 
   void                received_finished(Download* d);
