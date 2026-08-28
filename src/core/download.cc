@@ -120,7 +120,6 @@ Download::set_root_directory(const std::string& path) {
        !file_stat.update(file_list->front()->frozen_path().str()))) {
 
     set_message("Cannot change the directory of an open download after the files have been moved.");
-    rpc::call_command("d.state.set", (int64_t)0, rpc::make_target(this));
     control->core()->download_list()->close_directly(this);
 
     throw torrent::input_error("Cannot change the directory of an open download after the files have been moved.");

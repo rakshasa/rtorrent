@@ -275,7 +275,38 @@ void
 DownloadList::close_directly(Download* download) {
   lt_log_print_info(torrent::LOG_TORRENT_INFO, download->info(), "download_list", "Closing download directly.");
 
+  bool was_active = download->download()->info()->is_active();
+  bool was_open   = download->download()->info()->is_open();
+
   close_files(download);
+  set_state_stopped(download);
+
+  if (was_active) {
+    DL_TRIGGER_EVENT(download, "event.download.paused");
+    update_paused_state(download);
+  }
+
+  if (was_open) {
+    DL_TRIGGER_EVENT(download, "event.download.hash_removed");
+    DL_TRIGGER_EVENT(download, "event.download.closed");
+  }
+}
+
+void
+DownloadList::set_state_stopped(Download* download) {
+  control->view_manager()->find_ptr_throw("stopped")->set_visible(download);
+  rpc::call_command("d.state.set", (int64_t)0, rpc::make_target(download));
+}
+
+void
+DownloadList::update_paused_state(Download* download) {
+  rpc::call_command("d.state_changed.set", torrent::this_thread::cached_seconds().count(), rpc::make_target(download));
+  rpc::call_command("d.state_counter.set", rpc::call_command_value("d.state_counter", rpc::make_target(download)), rpc::make_target(download));
+
+  // If initial seeding is complete, don't try it again when restarting.
+  if (download->is_done() &&
+      rpc::call_command("d.connection_current", torrent::Object(), rpc::make_target(download)).as_string() == "initial_seed")
+    rpc::call_command("d.connection_seed.set", rpc::call_command("d.connection_current", torrent::Object(), rpc::make_target(download)), rpc::make_target(download));
 }
 
 void
@@ -452,15 +483,7 @@ DownloadList::pause(Download* download, int flags) {
     // view.
     DL_TRIGGER_EVENT(download, "event.download.paused");
 
-    auto cached_seconds = torrent::this_thread::cached_seconds().count();
-
-    rpc::call_command("d.state_changed.set", cached_seconds, rpc::make_target(download));
-    rpc::call_command("d.state_counter.set", rpc::call_command_value("d.state_counter", rpc::make_target(download)), rpc::make_target(download));
-
-    // If initial seeding is complete, don't try it again when restarting.
-    if (download->is_done() &&
-        rpc::call_command("d.connection_current", torrent::Object(), rpc::make_target(download)).as_string() == "initial_seed")
-      rpc::call_command("d.connection_seed.set", rpc::call_command("d.connection_current", torrent::Object(), rpc::make_target(download)), rpc::make_target(download));
+    update_paused_state(download);
 
     // Save the state after all the slots, etc have been called so we
     // include the modifications they may make.
