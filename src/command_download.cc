@@ -142,16 +142,6 @@ apply_d_delete_tied(core::Download* download) {
   return torrent::Object();
 }
 
-void
-apply_d_directory(core::Download* download, const std::string& name) {
-  if (!download->file_list()->is_multi_file())
-    download->set_root_directory(name);
-  else if (name.empty() || *name.rbegin() == '/')
-    download->set_root_directory(name + download->info()->name().str());
-  else
-    download->set_root_directory(name + "/" + download->info()->name().str());
-}
-
 torrent::Object
 apply_d_connection_type(core::Download* download, const std::string& name) {
   torrent::Download::ConnectionType t =
@@ -884,12 +874,11 @@ initialize_command_download() {
   CMD2_DL_LIST    ("d.tracker.insert",                std::bind(&download_tracker_insert, std::placeholders::_1, std::placeholders::_2));
   CMD2_DL_VALUE_V ("d.tracker.send_scrape",           [](auto download, uint64_t arg) { download->tracker_controller().scrape_request(arg); });
 
-  CMD2_DL         ("d.directory",          CMD2_ON_FL(root_dir));
-  CMD2_DL         ("d.directory.realpath.or_empty", [](auto* download, auto) { return resolve_path(download->file_list()->root_dir()); });
-  CMD2_DL         ("d.directory.realpath.or_throw", [](auto* download, auto) { return resolve_path_or_throw(download->file_list()->root_dir()); });
-  CMD2_DL_STRING_V("d.directory.set",      std::bind(&apply_d_directory, std::placeholders::_1, std::placeholders::_2));
-  CMD2_DL         ("d.directory_base",     CMD2_ON_FL(root_dir));
-  CMD2_DL_STRING_V("d.directory_base.set", std::bind(&core::Download::set_root_directory, std::placeholders::_1, std::placeholders::_2));
+  CMD2_DL         ("d.directory",                   CMD2_ON_FL(root_dir));
+  CMD2_DL         ("d.directory.realpath.or_empty", [](auto* download, auto)     { return resolve_path(download->file_list()->root_dir()); });
+  CMD2_DL         ("d.directory.realpath.or_throw", [](auto* download, auto)     { return resolve_path_or_throw(download->file_list()->root_dir()); });
+  CMD2_DL_STRING_V("d.directory.set",               [](auto* download, auto arg) { download->set_directory(arg); });
+  CMD2_DL_STRING_V("d.directory.base.set",          [](auto* download, auto arg) { download->set_base_directory(arg); });
 
   CMD2_DL         ("d.priority",     std::bind(&core::Download::priority, std::placeholders::_1));
   CMD2_DL         ("d.priority_str", std::bind(&retrieve_d_priority_str, std::placeholders::_1));
@@ -950,7 +939,6 @@ initialize_command_download() {
   rpc::rpc.mark_safe("d.name.or_base64");
   rpc::rpc.mark_safe("d.name.or_as_binary");
   rpc::rpc.mark_safe("d.directory");
-  rpc::rpc.mark_safe("d.directory_base");
   rpc::rpc.mark_safe("d.creation_date");
   rpc::rpc.mark_safe("d.load_date");
   rpc::rpc.mark_safe("d.up.rate");

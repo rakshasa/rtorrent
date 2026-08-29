@@ -379,6 +379,12 @@ main(int argc, char** argv) {
         lt_log_print(torrent::LOG_WARN, "network.max_open_files.set is deprecated, use system.sockets.files.min_alloc.set instead.");
       });
 
+    // TODO: Keep d.directory_base for a while as it is widely used.
+    CMD_REDIRECT("d.directory_base",     "d.directory");
+    CMD_REDIRECT("d.directory_base.set", "d.directory.base.set");
+
+    rpc::rpc.mark_safe("d.directory_base");
+
     // if (rpc::call_command_value("method.use_intermediate") == 1) {
 
     // } else if (rpc::call_command_value("method.use_intermediate") == 2) {
