@@ -1,6 +1,6 @@
 #include "config.h"
 
-#include "test/src/test_command_local.h"
+#include "test/src/test_command_system.h"
 
 #include <torrent/torrent.h>
 #include <torrent/runtime/socket_manager.h>
@@ -10,12 +10,12 @@
 #include "globals.h"
 #include "rpc/parse_commands.h"
 
-CPPUNIT_TEST_SUITE_REGISTRATION(TestCommandLocal);
+CPPUNIT_TEST_SUITE_REGISTRATION(TestCommandSystem);
 
-void initialize_command_local();
+void initialize_command_system();
 
 void
-TestCommandLocal::setUp() {
+TestCommandSystem::setUp() {
   torrent::initialize_main_thread();
   torrent::initialize();
 
@@ -23,16 +23,16 @@ TestCommandLocal::setUp() {
     control = new Control;
 
   if (!rpc::commands.has("system.sockets.size"))
-    initialize_command_local();
+    initialize_command_system();
 }
 
 void
-TestCommandLocal::tearDown() {
+TestCommandSystem::tearDown() {
   torrent::cleanup();
 }
 
 void
-TestCommandLocal::test_socket_category_commands() {
+TestCommandSystem::test_socket_category_commands() {
   for (uint32_t i = 0; i < torrent::runtime::SocketManager::category_count; ++i) {
     auto category = static_cast<torrent::runtime::socket_manager_category_t>(i);
     auto name     = "system.sockets." + torrent::option_to_str_or_throw(torrent::OPTION_SOCKET_CATEGORY, i);

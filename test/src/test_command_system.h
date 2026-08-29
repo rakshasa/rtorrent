@@ -1,7 +1,7 @@
 #include "test/helpers/test_fixture.h"
 
-class TestCommandLocal : public test_fixture {
-  CPPUNIT_TEST_SUITE(TestCommandLocal);
+class TestCommandSystem : public test_fixture {
+  CPPUNIT_TEST_SUITE(TestCommandSystem);
 
   CPPUNIT_TEST(test_socket_category_commands);
 

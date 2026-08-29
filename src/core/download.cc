@@ -101,7 +101,18 @@ Download::set_throttle_name(const std::string& name) {
 }
 
 void
-Download::set_root_directory(const std::string& path) {
+Download::set_directory(const std::string& path) {
+  if (!m_download.file_list()->is_multi_file())
+    return set_base_directory(path);
+
+  if (path.empty() || *path.rbegin() == '/')
+    return set_base_directory(path + m_download.info()->name_sanitized());
+
+  set_base_directory(path + "/" + m_download.info()->name_sanitized());
+}
+
+void
+Download::set_base_directory(const std::string& path) {
   // If the download is open, hashed and has completed chunks make
   // sure to verify that the download files are still present.
   //

@@ -195,6 +195,7 @@ libsub_root_a_SOURCES = \
 	command_tracker.cc \
 	command_scheduler.cc \
 	command_string.cc \
+	command_system.cc \
 	command_ui.cc \
 	control.cc \
 	control.h \

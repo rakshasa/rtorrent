@@ -79,7 +79,8 @@ public:
   uint32_t            resume_flags()                           { return m_resumeFlags; }
   void                set_resume_flags(uint32_t flags)         { m_resumeFlags = flags; }
 
-  void                set_root_directory(const std::string& path);
+  void                set_directory(const std::string& path);
+  void                set_base_directory(const std::string& path);
 
   void                set_throttle_name(const std::string& name);
 
