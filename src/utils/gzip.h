@@ -2,6 +2,7 @@
 #define RTORRENT_UTILS_GZIP_H
 
 #include <functional>
+#include <vector>
 
 namespace utils {
 
