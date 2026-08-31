@@ -52,8 +52,7 @@ public:
   Download*           find_hex_ptr(const char* hash);
 
   // Might move this to DownloadFactory.
-  Download*           create(std::istream* str, uint32_t tracker_key, bool printLog);
-  Download*           create(torrent::Object* obj, uint32_t tracker_key, bool printLog);
+  Download*           create(std::unique_ptr<torrent::Object> obj, uint32_t tracker_key, bool printLog);
 
   iterator            insert(Download* d);
 

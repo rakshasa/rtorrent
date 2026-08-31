@@ -78,6 +78,8 @@ public:
   void                try_create_download_expand(const std::string& uri, int flags, command_list_type commands = command_list_type());
   void                try_create_download_from_meta_download(torrent::Object* bencode, const std::string& metafile);
 
+  void                try_create_download_untrusted(const std::string& uri, int flags, const command_list_type& commands);
+
 private:
   void                create_http(const std::string& uri);
   void                create_final(std::istream* s);

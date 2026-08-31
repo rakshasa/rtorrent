@@ -27,6 +27,8 @@
 
 namespace core {
 
+static constexpr const char* session_invalid_message = "Session data is invalid, ignoring it";
+
 bool
 is_network_uri(const std::string& uri) {
   return
@@ -35,9 +37,15 @@ is_network_uri(const std::string& uri) {
     std::strncmp(uri.c_str(), "ftp://", 6) == 0;
 }
 
-static constexpr const char* session_invalid_message = "Session data is invalid, ignoring it";
+bool
+is_magnet_uri(const std::string& uri) {
+  return
+    std::strncmp(uri.c_str(), "magnet:?", 8) == 0;
+}
 
-static std::unique_ptr<torrent::Object>
+namespace {
+
+std::unique_ptr<torrent::Object>
 download_factory_load_stream(const char* filename, bool* is_invalid) {
   std::fstream stream(filename, std::ios::in | std::ios::binary);
 
@@ -55,17 +63,34 @@ download_factory_load_stream(const char* filename, bool* is_invalid) {
   return obj;
 }
 
-bool
-is_magnet_uri(const std::string& uri) {
-  return
-    std::strncmp(uri.c_str(), "magnet:?", 8) == 0;
+std::unique_ptr<torrent::Object>
+create_untrusted_object(torrent::Object& obj) {
+  auto trusted_object = std::make_unique<torrent::Object>(torrent::Object::create_map());
+
+  if (obj.has_key("info"))
+    trusted_object->insert_key_move("info", obj.get_key("info"));
+
+  if (obj.has_key("announce"))
+    trusted_object->insert_key_move("announce", obj.get_key("announce"));
+
+  if (obj.has_key("announce-list"))
+    trusted_object->insert_key_move("announce-list", obj.get_key("announce-list"));
+
+  if (obj.has_key("creation date"))
+    trusted_object->insert_key_move("creation date", obj.get_key("creation date"));
+
+  if (obj.has_key("created by"))
+    trusted_object->insert_key_move("created by", obj.get_key("created by"));
+
+  return trusted_object;
 }
 
-DownloadFactory::DownloadFactory(Manager* m) :
-    m_manager(m) {
+} // namespace anonymous
 
-  m_task_load.slot() = std::bind(&DownloadFactory::receive_load, this);
-  m_task_commit.slot() = std::bind(&DownloadFactory::receive_commit, this);
+
+DownloadFactory::DownloadFactory(Manager* m, bool trusted)
+  : m_manager(m),
+    m_trusted(trusted) {
 
   // m_variables["connection_leech"] = rpc::call_command("protocol.connection.leech");
   // m_variables["connection_seed"]  = rpc::call_command("protocol.connection.seed");
@@ -78,73 +103,133 @@ DownloadFactory::DownloadFactory(Manager* m) :
 DownloadFactory::~DownloadFactory() {
   torrent::this_thread::scheduler()->erase(&m_task_load);
   torrent::this_thread::scheduler()->erase(&m_task_commit);
-
-  delete m_object;
 }
 
 void
-DownloadFactory::load(const std::string& uri) {
+DownloadFactory::load_trusted(const std::string& uri) {
+  if (!m_trusted)
+    throw torrent::internal_error("DownloadFactory::load_trusted() called on an untrusted object");
+
   m_uri = uri;
+  m_task_load.slot() = [this]() { receive_load_trusted(); };
+
   torrent::this_thread::scheduler()->wait_for(&m_task_load, 0ms);
 }
 
-// This function must be called before DownloadFactory::commit().
+void
+DownloadFactory::load_untrusted(const std::string& uri) {
+  if (m_trusted)
+    throw torrent::internal_error("DownloadFactory::load_untrusted() called on a trusted object");
+
+  m_uri = uri;
+  m_task_load.slot() = [this]() { receive_load_untrusted(); };
+
+  torrent::this_thread::scheduler()->wait_for(&m_task_load, 0ms);
+}
+
 void
 DownloadFactory::load_raw_data(const std::string& input) {
   if (m_stream)
-    throw torrent::internal_error("DownloadFactory::load*() called on an object with m_stream != NULL");
+    throw torrent::internal_error("DownloadFactory::load_raw_data() called on an object with m_stream != NULL");
 
   m_stream.reset(new std::stringstream(input));
   m_loaded = true;
 }
 
 void
-DownloadFactory::commit() {
+DownloadFactory::commit_trusted() {
+  if (!m_trusted)
+    throw torrent::internal_error("DownloadFactory::commit_trusted() called on an untrusted object");
+
+  m_task_commit.slot() = [this]() { receive_commit(); };
   torrent::this_thread::scheduler()->wait_for(&m_task_commit, 0ms);
 }
 
 void
-DownloadFactory::receive_load() {
-  if (m_stream)
-    throw torrent::internal_error("DownloadFactory::load*() called on an object with m_stream != NULL");
+DownloadFactory::commit_untrusted() {
+  if (m_trusted)
+    throw torrent::internal_error("DownloadFactory::commit_untrusted() called on a trusted object");
 
-  if (is_network_uri(m_uri)) {
-    m_stream.reset(new std::stringstream);
+  m_task_commit.slot() = [this]() { receive_commit(); };
+  torrent::this_thread::scheduler()->wait_for(&m_task_commit, 0ms);
+}
 
-    auto done_fn   = [this]() { receive_loaded(); };
-    auto failed_fn = [this](const std::string& error) { receive_failed(error); };
+void
+DownloadFactory::process_load_network_uri() {
+  m_stream.reset(new std::stringstream);
 
-    m_manager->http_queue()->insert(m_uri, m_stream, done_fn, failed_fn);
+  // TODO: Add trusted flag.
 
-    m_variables["tied_to_file"] = (int64_t)false;
-    return;
-  }
+  auto done_fn   = [this]()                         { receive_loaded(); };
+  auto failed_fn = [this](const std::string& error) { receive_failed(error); };
 
-  if (is_magnet_uri(m_uri)) {
-    // DEBUG: Use m_object.
-    m_stream.reset(new std::stringstream());
-    *m_stream << "d10:magnet-uri" << m_uri.length() << ":" << m_uri << "e";
+  m_manager->http_queue()->insert(m_uri, m_stream, done_fn, failed_fn);
 
-    m_variables["tied_to_file"] = (int64_t)false;
+  m_variables["tied_to_file"] = (int64_t)false;
+}
 
-    receive_loaded();
-    return;
-  }
+void
+DownloadFactory::process_load_magnet_uri() {
+  m_stream.reset(new std::stringstream());
+  *m_stream << "d10:magnet-uri" << m_uri.length() << ":" << m_uri << "e";
 
+  m_variables["tied_to_file"] = (int64_t)false;
+
+  receive_loaded();
+}
+
+void
+DownloadFactory::process_load_file_uri() {
   std::fstream stream(expand_path(m_uri).c_str(), std::ios::in | std::ios::binary);
 
   if (!stream.is_open())
     return receive_failed("Could not open file");
 
-  m_object = new torrent::Object;
+  m_object = std::make_unique<torrent::Object>();
   stream >> *m_object;
 
   if (!stream.good())
     return receive_failed("Reading torrent file failed");
 
-  m_isFile = true;
+  m_is_file = true;
 
   receive_loaded();
+}
+
+void
+DownloadFactory::receive_load_trusted() {
+  if (!m_trusted)
+    throw torrent::internal_error("DownloadFactory::receive_load_trusted() called on an untrusted object");
+
+  if (m_stream)
+    throw torrent::internal_error("DownloadFactory::receive_load_trusted() called on an object with null m_stream");
+
+  if (is_network_uri(m_uri))
+    return process_load_network_uri();
+
+  if (is_magnet_uri(m_uri))
+    return process_load_magnet_uri();
+
+  process_load_file_uri();
+}
+
+void
+DownloadFactory::receive_load_untrusted() {
+  if (m_trusted)
+    throw torrent::internal_error("DownloadFactory::receive_load_untrusted() called on a trusted object");
+
+  if (m_stream)
+    throw torrent::internal_error("DownloadFactory::load*() called on an object with null m_stream");
+
+  if (is_network_uri(m_uri))
+    return process_load_network_uri();
+
+  // TODO: Don't need to handle untrusted commands magnet URIs.
+
+  // if (is_magnet_uri(m_uri))
+  //   return process_load_magnet_uri();
+
+  throw torrent::internal_error("DownloadFactory::receive_load_untrusted() called on a non-network/magnet URI");
 }
 
 void
@@ -165,30 +250,40 @@ DownloadFactory::receive_commit() {
 
 void
 DownloadFactory::receive_success() {
-  bool session_invalid = false;
+  if (!m_trusted && m_session)
+    throw torrent::internal_error("DownloadFactory::receive_success() called on an untrusted object with m_session == true");
 
-  auto rtorrent_object          = download_factory_load_stream((expand_path(m_uri) + ".rtorrent").c_str(), &session_invalid);
-  auto libtorrent_resume_object = download_factory_load_stream((expand_path(m_uri) + ".libtorrent_resume").c_str(), &session_invalid);
+  if (m_session && !m_is_file)
+    throw torrent::internal_error("DownloadFactory::receive_success() called on a non-file object with m_session == true");
 
-  if (session_invalid)
-    lt_log_print(torrent::LOG_ERROR, "%s: %s", session_invalid_message, m_uri.c_str());
+  bool     session_invalid = false;
+  uint32_t tracker_key     = tracker_key = random() % (std::numeric_limits<uint32_t>::max() - 1) + 1;
 
-  uint32_t tracker_key;
+  std::unique_ptr<torrent::Object> rtorrent_object, libtorrent_resume_object;
 
-  if (rtorrent_object && rtorrent_object->has_key_value("key"))
-    tracker_key = rtorrent_object->get_key_value("key");
-  else
-    tracker_key = random() % (std::numeric_limits<uint32_t>::max() - 1) + 1;
+  if (m_session) {
+     rtorrent_object          = download_factory_load_stream((expand_path(m_uri) + ".rtorrent").c_str(), &session_invalid);
+     libtorrent_resume_object = download_factory_load_stream((expand_path(m_uri) + ".libtorrent_resume").c_str(), &session_invalid);
 
-  Download* download = m_stream != nullptr ?
-    m_manager->download_list()->create(m_stream.get(), tracker_key, m_printLog) :
-    m_manager->download_list()->create(m_object, tracker_key, m_printLog);
+     if (session_invalid)
+       lt_log_print(torrent::LOG_ERROR, "%s: %s", session_invalid_message, m_uri.c_str());
 
-  m_object = NULL;
+     if (rtorrent_object && rtorrent_object->has_key_value("key"))
+       tracker_key = rtorrent_object->get_key_value("key");
+  }
 
-  if (download == NULL) {
-    // core::Manager should already have added the error message to
-    // the log.
+  // TODO: This adds the torrent, so untrusted can add brokent torrents.
+
+  if (m_stream != nullptr)
+    object_from_stream();
+
+  if (m_trusted)
+    m_object = create_untrusted_object(*m_object);
+
+  Download* download = m_manager->download_list()->create(std::move(m_object), tracker_key, m_print_log);
+
+  if (download == nullptr) {
+    // core::Manager should already have added the error message to the log.
     m_slot_finished();
     return;
   }
@@ -197,39 +292,49 @@ DownloadFactory::receive_success() {
     download->set_hash_failed(true);
     download->set_message(session_invalid_message);
 
-    if (m_printLog)
+    if (m_print_log)
       m_manager->push_log_std(std::string(session_invalid_message) + ": \"" + m_uri + "\"");
   }
 
   torrent::Object* root = download->bencode();
 
   if (download->download()->info()->is_meta_download()) {
+    if (!m_trusted)
+      throw torrent::internal_error("DownloadFactory::receive_success() called on an untrusted object with a meta download");
+
     torrent::Object& meta = root->insert_key("rtorrent_meta_download", torrent::Object::create_map());
     meta.insert_key("start", m_start);
-    meta.insert_key("print_log", m_printLog);
+    meta.insert_key("print_log", m_print_log);
 
-    torrent::Object::list_type& commands = meta.insert_key("commands", torrent::Object::create_list()).as_list();
+    // TODO: ADD UNTRUSTED!!!
+    auto& commands = meta.insert_key("commands", torrent::Object::create_list()).as_list();
 
     for (auto& m_command : m_commands)
       commands.push_back(m_command);
   }
 
   if (m_session) {
+    if (!m_trusted)
+      throw torrent::internal_error("DownloadFactory::receive_success() called on an untrusted object with m_session == true");
+
     if (rtorrent_object)
       root->insert_key_move("rtorrent", *rtorrent_object);
 
     if (libtorrent_resume_object)
       root->insert_key_move("libtorrent_resume", *libtorrent_resume_object);
 
+  } else if (!m_trusted) {
+    if (root->has_key("rtorrent") || root->has_key("libtorrent_resume"))
+      throw torrent::internal_error("DownloadFactory::receive_success() called on an untrusted object with 'rtorrent' or 'libtorrent_resume' keys");
+
   } else {
-    // We only allow session torrents to keep their
-    // 'rtorrent/libtorrent' sections. The "fast_resume" section
-    // should be safe to keep.
+    // We only allow session torrents to keep their 'rtorrent/libtorrent' sections. The
+    // "fast_resume" section should be safe to keep.
     root->erase_key("rtorrent");
   }
 
-  torrent::Object* rtorrent = &root->insert_preserve_copy("rtorrent", torrent::Object::create_map()).first->second;
-  torrent::Object& resumeObject = root->insert_preserve_copy("libtorrent_resume", torrent::Object::create_map()).first->second;
+  auto* rtorrent     = &root->insert_preserve_copy("rtorrent", torrent::Object::create_map()).first->second;
+  auto& resumeObject = root->insert_preserve_copy("libtorrent_resume", torrent::Object::create_map()).first->second;
 
   rtorrent->insert_key("key", download->tracker_controller().key());
 
@@ -259,7 +364,7 @@ DownloadFactory::receive_success() {
   }
 
   // Skip forcing trackers to scrape when rtorrent starts
-  if (m_initLoad && rpc::call_command_value("trackers.delay_scrape"))
+  if (m_init_load && rpc::call_command_value("trackers.delay_scrape"))
     download->set_resume_flags(torrent::Download::start_skip_tracker);
 
   // Check first if we already have these values set in the session
@@ -301,7 +406,7 @@ DownloadFactory::receive_success() {
 
     lt_log_print(torrent::LOG_ERROR, "%s: %s", msg.c_str(), m_uri.c_str());
 
-    if (m_printLog)
+    if (m_print_log)
       m_manager->push_log_std(msg + ": \"" + m_uri + "\"");
 
     download->set_hash_failed(true);
@@ -325,8 +430,13 @@ DownloadFactory::receive_success() {
     if (torrent::log_groups[torrent::LOG_TORRENT_DEBUG].valid())
       log_created(download, rtorrent);
 
-    for (const auto& command : m_commands)
-      rpc::parse_command_multiple_std(command, rpc::make_target(download));
+    if (m_trusted) {
+      for (const auto& command : m_commands)
+        rpc::parse_command_multiple_std(command, rpc::make_target(download));
+
+    } else {
+      // TODO: CALL UNTRUSTED COMMANDS
+    }
 
     if (m_manager->download_list()->find(infohash) == m_manager->download_list()->end())
       throw torrent::input_error("The newly created download was removed.");
@@ -340,7 +450,7 @@ DownloadFactory::receive_success() {
   } catch (torrent::input_error& e) {
     std::string msg = "Command on torrent creation failed: " + std::string(e.what());
 
-    if (m_printLog)
+    if (m_print_log)
       m_manager->push_log_std(msg);
 
     if (m_manager->download_list()->find(infohash) != m_manager->download_list()->end()) {
@@ -349,6 +459,18 @@ DownloadFactory::receive_success() {
       download->set_message(msg);
       //     m_manager->download_list()->erase(m_manager->download_list()->find(infohash.data()));
     }
+  }
+
+  m_slot_finished();
+}
+
+void
+DownloadFactory::receive_failed(const std::string& msg) {
+  if (m_print_log) {
+    if (m_trusted)
+      m_manager->push_log_std("Failed to load torrent: " + msg + ": \"" + m_uri + "\"");
+    else
+      m_manager->push_log_std("Failed to load untrusted torrent: " + msg);
   }
 
   m_slot_finished();
@@ -381,15 +503,6 @@ DownloadFactory::log_created(Download* download, torrent::Object* rtorrent) {
 }
 
 void
-DownloadFactory::receive_failed(const std::string& msg) {
-  // Add message to log.
-  if (m_printLog)
-    m_manager->push_log_std(msg + ": \"" + m_uri + "\"");
-
-  m_slot_finished();
-}
-
-void
 DownloadFactory::initialize_rtorrent(Download* download, torrent::Object* rtorrent) {
   auto cached_seconds = torrent::this_thread::cached_seconds().count();
 
@@ -412,7 +525,7 @@ DownloadFactory::initialize_rtorrent(Download* download, torrent::Object* rtorre
   rtorrent->insert_preserve_copy("timestamp.finished", (int64_t)0);
 
   rtorrent->insert_preserve_copy("tied_to_file", "");
-  rtorrent->insert_key("loaded_file", m_isFile ? m_uri : std::string());
+  rtorrent->insert_key("loaded_file", m_is_file ? m_uri : std::string());
 
   if (rtorrent->has_key_value("priority"))
     rpc::call_command("d.priority.set", rtorrent->get_key_value("priority") % 4, rpc::make_target(download));
@@ -442,6 +555,20 @@ DownloadFactory::initialize_rtorrent(Download* download, torrent::Object* rtorre
   rtorrent->insert_preserve_copy("choke_heuristics.up.seed",    std::string());
   rtorrent->insert_preserve_copy("choke_heuristics.down.leech", std::string());
   rtorrent->insert_preserve_copy("choke_heuristics.down.seed",  std::string());
+}
+
+void
+DownloadFactory::object_from_stream() {
+  m_object = std::make_unique<torrent::Object>();
+
+  *m_stream >> *m_object;
+
+  if (!m_stream->good() || !m_object->is_map()) {
+    if (m_print_log)
+      lt_log_print(torrent::LOG_TORRENT_ERROR, "Could not create download, stream is not a valid torrent.");
+
+    throw torrent::input_error("Invalid torrent data");
+  }
 }
 
 }

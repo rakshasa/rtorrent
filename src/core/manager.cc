@@ -37,6 +37,8 @@
 
 namespace core {
 
+void path_expand(std::vector<std::string>* paths, const std::string& pattern);
+
 const int Manager::create_start;
 const int Manager::create_tied;
 const int Manager::create_quiet;
@@ -204,18 +206,40 @@ Manager::try_create_download(const std::string& uri, int flags, const command_li
   f->set_print_log(!(flags & create_quiet));
   f->slot_finished([f]() { delete f; });
 
-  if (is_data_uri(uri)) {
+  if (flags & create_raw_data) {
+    f->load_raw_data(uri);
+
+  } else if (is_data_uri(uri)) {
     // Allow the use of data URIs, primarily for JSON-RPC which
     // doesn't have a defined mechanism for binary data
     f->load_raw_data(decode_data_uri(uri));
     f->variables()["tied_to_file"] = (int64_t)false;
-  } else if (flags & create_raw_data) {
-    f->load_raw_data(uri);
+
   } else {
     f->load(uri);
   }
 
   f->commit();
+}
+
+void
+Manager::try_create_download_expand(const std::string& uri, int flags, command_list_type commands) {
+  if (flags & create_raw_data) {
+    try_create_download(uri, flags, commands);
+    return;
+  }
+
+  std::vector<std::string> paths;
+  paths.reserve(256);
+
+  path_expand(&paths, uri);
+
+  if (!paths.empty())
+    for (auto& path : paths)
+      try_create_download(path, flags, commands);
+
+  else
+    try_create_download(uri, flags, commands);
 }
 
 void
@@ -243,9 +267,42 @@ Manager::try_create_download_from_meta_download(torrent::Object* bencode, const 
   f->commit();
 }
 
-utils::Directory
-path_expand_transform(std::string path, const utils::directory_entry& entry) {
-  return path + entry.s_name;
+void
+Manager::try_create_download_untrusted(const std::string& uri, int flags, const command_list_type& commands) {
+  // TODO: Need to check if we are allowed, also rate limit.
+
+  if (!(flags & create_raw_data) &&
+      !is_network_uri(uri) &&
+      !is_magnet_uri(uri) &&
+      !is_data_uri(uri)) {
+    push_log_std("URI type not allowed for untrusted loads.");
+    return;
+  }
+
+  // Adding download.
+  DownloadFactory* f = new DownloadFactory(this);
+
+  f->commands().insert(f->commands().end(), commands.begin(), commands.end());
+
+  f->set_start(flags & create_start);
+  f->set_print_log(!(flags & create_quiet));
+  f->slot_finished([f]() { delete f; });
+
+  if (flags & create_raw_data) {
+    f->load_raw_data_untrusted(uri);
+
+  } else if (is_data_uri(uri)) {
+    // Allow the use of data URIs, primarily for JSON-RPC which
+    // doesn't have a defined mechanism for binary data
+    f->load_raw_data_untrusted(decode_data_uri(uri));
+    f->variables()["tied_to_file"] = (int64_t)false;
+
+  } else {
+    // f->load_untrusted(uri);
+    throw internal_error("Manager::try_create_download_untrusted() unimplemented.");
+  }
+
+  f->commit_untrusted();
 }
 
 namespace {
@@ -304,6 +361,11 @@ split_iterator(const Sequence&) {
 
 }
 
+utils::Directory
+path_expand_transform(std::string path, const utils::directory_entry& entry) {
+  return path + entry.s_name;
+}
+
 // Move this somewhere better.
 void
 path_expand(std::vector<std::string>* paths, const std::string& pattern) {
@@ -358,26 +420,6 @@ path_expand(std::vector<std::string>* paths, const std::string& pattern) {
 bool
 manager_equal_tied(const std::string& path, Download* download) {
   return path == rpc::call_command_string("d.tied_to_file", rpc::make_target(download));
-}
-
-void
-Manager::try_create_download_expand(const std::string& uri, int flags, command_list_type commands) {
-  if (flags & create_raw_data) {
-    try_create_download(uri, flags, commands);
-    return;
-  }
-
-  std::vector<std::string> paths;
-  paths.reserve(256);
-
-  path_expand(&paths, uri);
-
-  if (!paths.empty())
-    for (auto& path : paths)
-      try_create_download(path, flags, commands);
-
-  else
-    try_create_download(uri, flags, commands);
 }
 
 // DownloadList's hashing related functions don't actually start the

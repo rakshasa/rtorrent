@@ -24,15 +24,19 @@ public:
   typedef std::vector<std::string> command_list_type;
 
   // Do not destroy this object while it is in a HttpQueue.
-  DownloadFactory(Manager* m);
+  DownloadFactory(Manager* m, bool trusted);
   ~DownloadFactory();
 
   // Calling of receive_load() is delayed so you can change whatever
   // you want without fear of the slots being triggered as you call
   // load() or commit().
-  void                load(const std::string& uri);
+  void                load_trusted(const std::string& uri);
+  void                load_untrusted(const std::string& uri);
+
   void                load_raw_data(const std::string& input);
-  void                commit();
+
+  void                commit_trusted();
+  void                commit_untrusted();
 
   command_list_type&         commands()     { return m_commands; }
   torrent::Object::map_type& variables()    { return m_variables; }
@@ -43,16 +47,21 @@ public:
   bool                get_start() const     { return m_start; }
   void                set_start(bool v)     { m_start = v; }
 
-  bool                get_init_load() const { return m_initLoad; }
-  void                set_init_load(bool v) { m_initLoad = v; }
+  bool                get_init_load() const { return m_init_load; }
+  void                set_init_load(bool v) { m_init_load = v; }
 
-  bool                print_log() const     { return m_printLog; }
-  void                set_print_log(bool v) { m_printLog = v; }
+  bool                print_log() const     { return m_print_log; }
+  void                set_print_log(bool v) { m_print_log = v; }
 
   void                slot_finished(slot_void s) { m_slot_finished = s; }
 
 private:
-  void                receive_load();
+  void                process_load_network_uri();
+  void                process_load_magnet_uri();
+  void                process_load_file_uri();
+
+  void                receive_load_trusted();
+  void                receive_load_untrusted();
   void                receive_loaded();
   void                receive_commit();
   void                receive_success();
@@ -62,19 +71,23 @@ private:
 
   void                initialize_rtorrent(Download* download, torrent::Object* rtorrent);
 
-  Manager*                       m_manager;
-  std::shared_ptr<std::iostream> m_stream;
-  torrent::Object*               m_object{};
+  void                object_from_stream();
 
+  Manager*            m_manager;
+
+  std::shared_ptr<std::iostream>   m_stream;
+  std::unique_ptr<torrent::Object> m_object{};
+
+  bool                m_trusted{};
   bool                m_commited{};
   bool                m_loaded{};
 
   std::string         m_uri;
   bool                m_session{};
   bool                m_start{};
-  bool                m_printLog{true};
-  bool                m_isFile{};
-  bool                m_initLoad{};
+  bool                m_print_log{true};
+  bool                m_is_file{};
+  bool                m_init_load{};
 
   command_list_type         m_commands;
   torrent::Object::map_type m_variables;

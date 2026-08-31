@@ -101,49 +101,17 @@ DownloadList::find_hex_ptr(const char* hash) {
 }
 
 Download*
-DownloadList::create(torrent::Object* obj, uint32_t tracker_key, bool printLog) {
+DownloadList::create(std::unique_ptr<torrent::Object> obj, uint32_t tracker_key, bool printLog) {
   torrent::Download download;
 
-  try {
-    download = torrent::download_add(obj, tracker_key);
-
-  } catch (torrent::local_error& e) {
-    if (printLog)
-      lt_log_print(torrent::LOG_TORRENT_ERROR, "Could not create download: %s", e.what());
-
-    delete obj;
-
-    return NULL;
-  }
-
-  // There's no non-critical exceptions that should be throwable by
-  // the ctor, so don't catch.
-  return new Download(download);
-}
-
-Download*
-DownloadList::create(std::istream* str, uint32_t tracker_key, bool printLog) {
-  torrent::Object* object = new torrent::Object;
-  torrent::Download download;
+  auto obj_ptr = obj.get();
 
   try {
-    *str >> *object;
-
-    // Don't throw input_error from here as gcc-3.3.5 produces bad
-    // code.
-    if (str->fail()) {
-      delete object;
-
-      if (printLog)
-        lt_log_print(torrent::LOG_TORRENT_ERROR, "Could not create download, the input is not a valid torrent.");
-
-      return NULL;
-    }
-
-    download = torrent::download_add(object, tracker_key);
+    download = torrent::download_add(obj.release(), tracker_key);
 
   } catch (torrent::local_error& e) {
-    delete object;
+    // TODO: Fix download_add so it takes the unique_ptr.
+    delete obj_ptr;
 
     if (printLog)
       lt_log_print(torrent::LOG_TORRENT_ERROR, "Could not create download: %s", e.what());
