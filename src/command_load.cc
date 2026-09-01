@@ -62,5 +62,20 @@ initialize_command_load() {
   CMD2_ANY_LIST    ("load.untrusted.raw_start",         [](auto, auto& args) { return apply_load_untrusted(args, core::Manager::create_quiet | core::Manager::create_start | core::Manager::create_raw_data); });
   CMD2_ANY_LIST    ("load.untrusted.raw_start_verbose", [](auto, auto& args) { return apply_load_untrusted(args, core::Manager::create_start | core::Manager::create_raw_data); });
 
-  // TODO: Add a command to mark load.untrusted.* as safe.
+  CMD2_ANY_VALUE_V("load.untrusted.mark_safe", [](auto, auto& arg) {
+    if (arg == 0)
+      return;
+
+    // TODO: Add a bool to core::Manager.
+
+    rpc::rpc.mark_safe("load.untrusted.normal");
+    rpc::rpc.mark_safe("load.untrusted.verbose");
+    rpc::rpc.mark_safe("load.untrusted.start");
+    rpc::rpc.mark_safe("load.untrusted.start_verbose");
+    rpc::rpc.mark_safe("load.untrusted.raw");
+    rpc::rpc.mark_safe("load.untrusted.raw_verbose");
+    rpc::rpc.mark_safe("load.untrusted.raw_start");
+    rpc::rpc.mark_safe("load.untrusted.raw_start_verbose");
+  });
+
 }
