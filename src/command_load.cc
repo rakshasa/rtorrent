@@ -53,10 +53,10 @@ initialize_command_load() {
   CMD2_ANY_LIST    ("load.raw_start",         [](auto, auto& args) { return apply_load_trusted(args, core::Manager::create_quiet | core::Manager::create_start | core::Manager::create_raw_data); });
   CMD2_ANY_LIST    ("load.raw_start_verbose", [](auto, auto& args) { return apply_load_trusted(args, core::Manager::create_start | core::Manager::create_raw_data); });
 
-  CMD2_ANY_LIST    ("load.untrusted.normal",            [](auto, auto& args) { return apply_load_untrusted(args, core::Manager::create_quiet | core::Manager::create_tied); });
-  CMD2_ANY_LIST    ("load.untrusted.verbose",           [](auto, auto& args) { return apply_load_untrusted(args, core::Manager::create_tied); });
-  CMD2_ANY_LIST    ("load.untrusted.start",             [](auto, auto& args) { return apply_load_untrusted(args, core::Manager::create_quiet | core::Manager::create_tied | core::Manager::create_start); });
-  CMD2_ANY_LIST    ("load.untrusted.start_verbose",     [](auto, auto& args) { return apply_load_untrusted(args, core::Manager::create_tied | core::Manager::create_start); });
+  CMD2_ANY_LIST    ("load.untrusted.normal",            [](auto, auto& args) { return apply_load_untrusted(args, core::Manager::create_quiet); });
+  CMD2_ANY_LIST    ("load.untrusted.verbose",           [](auto, auto& args) { return apply_load_untrusted(args, 0); });
+  CMD2_ANY_LIST    ("load.untrusted.start",             [](auto, auto& args) { return apply_load_untrusted(args, core::Manager::create_quiet | core::Manager::create_start); });
+  CMD2_ANY_LIST    ("load.untrusted.start_verbose",     [](auto, auto& args) { return apply_load_untrusted(args, core::Manager::create_start); });
   CMD2_ANY_LIST    ("load.untrusted.raw",               [](auto, auto& args) { return apply_load_untrusted(args, core::Manager::create_quiet | core::Manager::create_raw_data); });
   CMD2_ANY_LIST    ("load.untrusted.raw_verbose",       [](auto, auto& args) { return apply_load_untrusted(args, core::Manager::create_raw_data); });
   CMD2_ANY_LIST    ("load.untrusted.raw_start",         [](auto, auto& args) { return apply_load_untrusted(args, core::Manager::create_quiet | core::Manager::create_start | core::Manager::create_raw_data); });
