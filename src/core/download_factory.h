@@ -33,10 +33,10 @@ public:
   void                load_trusted(const std::string& uri);
   void                load_untrusted(const std::string& uri);
 
-  void                load_raw_data(const std::string& input);
+  void                load_raw_data_trusted(const std::string& input);
+  void                load_raw_data_untrusted(const std::string& input);
 
-  void                commit_trusted();
-  void                commit_untrusted();
+  void                commit();
 
   command_list_type&         commands()     { return m_commands; }
   torrent::Object::map_type& variables()    { return m_variables; }

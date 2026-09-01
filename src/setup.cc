@@ -157,12 +157,12 @@ load_session_torrents(const std::string& path) {
     if (!entry.is_file())
       continue;
 
-    auto* f = new core::DownloadFactory(control->core());
+    auto* f = new core::DownloadFactory(control->core(), true);
 
     f->set_session(true);
     f->set_init_load(true);
     f->slot_finished([f](){ delete f; });
-    f->load(entries.path() + entry.s_name);
+    f->load_trusted(entries.path() + entry.s_name);
     f->commit();
   }
 }
@@ -170,12 +170,12 @@ load_session_torrents(const std::string& path) {
 void
 load_arg_torrents(char** first, char** last) {
   for (; first != last; ++first) {
-    auto* f = new core::DownloadFactory(control->core());
+    auto* f = new core::DownloadFactory(control->core(), true);
 
     f->set_start(true);
     f->set_init_load(true);
     f->slot_finished([f](){ delete f; });
-    f->load(*first);
+    f->load_trusted(*first);
     f->commit();
   }
 }

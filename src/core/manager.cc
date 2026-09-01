@@ -197,7 +197,7 @@ Manager::try_create_download(const std::string& uri, int flags, const command_li
     return;
 
   // Adding download.
-  DownloadFactory* f = new DownloadFactory(this);
+  DownloadFactory* f = new DownloadFactory(this, true);
 
   f->variables()["tied_to_file"] = (int64_t)(bool)(flags & create_tied);
   f->commands().insert(f->commands().end(), commands.begin(), commands.end());
@@ -207,16 +207,16 @@ Manager::try_create_download(const std::string& uri, int flags, const command_li
   f->slot_finished([f]() { delete f; });
 
   if (flags & create_raw_data) {
-    f->load_raw_data(uri);
+    f->load_raw_data_trusted(uri);
 
   } else if (is_data_uri(uri)) {
     // Allow the use of data URIs, primarily for JSON-RPC which
     // doesn't have a defined mechanism for binary data
-    f->load_raw_data(decode_data_uri(uri));
+    f->load_raw_data_trusted(decode_data_uri(uri));
     f->variables()["tied_to_file"] = (int64_t)false;
 
   } else {
-    f->load(uri);
+    f->load_trusted(uri);
   }
 
   f->commit();
@@ -244,13 +244,14 @@ Manager::try_create_download_expand(const std::string& uri, int flags, command_l
 
 void
 Manager::try_create_download_from_meta_download(torrent::Object* bencode, const std::string& metafile) {
-  DownloadFactory* f = new DownloadFactory(this);
+  DownloadFactory* f = new DownloadFactory(this, true);
 
   f->variables()["tied_to_file"] = (int64_t)true;
-  f->variables()["tied_file"] = metafile;
+  f->variables()["tied_file"]    = metafile;
 
   torrent::Object& meta = bencode->get_key("rtorrent_meta_download");
   torrent::Object::list_type& commands = meta.get_key_list("commands");
+
   for (const auto& command : commands)
     f->commands().insert(f->commands().end(), command.as_string());
 
@@ -263,7 +264,8 @@ Manager::try_create_download_from_meta_download(torrent::Object* bencode, const 
   std::stringstream s;
   s.imbue(std::locale::classic());
   s << *bencode;
-  f->load_raw_data(s.str());
+
+  f->load_raw_data_trusted(s.str());
   f->commit();
 }
 
@@ -279,8 +281,7 @@ Manager::try_create_download_untrusted(const std::string& uri, int flags, const 
     return;
   }
 
-  // Adding download.
-  DownloadFactory* f = new DownloadFactory(this);
+  DownloadFactory* f = new DownloadFactory(this, false);
 
   f->commands().insert(f->commands().end(), commands.begin(), commands.end());
 
@@ -299,10 +300,10 @@ Manager::try_create_download_untrusted(const std::string& uri, int flags, const 
 
   } else {
     // f->load_untrusted(uri);
-    throw internal_error("Manager::try_create_download_untrusted() unimplemented.");
+    throw torrent::internal_error("Manager::try_create_download_untrusted() unimplemented.");
   }
 
-  f->commit_untrusted();
+  f->commit();
 }
 
 namespace {

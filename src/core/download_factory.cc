@@ -128,27 +128,33 @@ DownloadFactory::load_untrusted(const std::string& uri) {
 }
 
 void
-DownloadFactory::load_raw_data(const std::string& input) {
+DownloadFactory::load_raw_data_trusted(const std::string& input) {
+  if (!m_trusted)
+    throw torrent::internal_error("DownloadFactory::load_raw_data_trusted() called on an untrusted object");
+
   if (m_stream)
-    throw torrent::internal_error("DownloadFactory::load_raw_data() called on an object with m_stream != NULL");
+    throw torrent::internal_error("DownloadFactory::load_raw_data_trusted() called on an object with m_stream != NULL");
 
   m_stream.reset(new std::stringstream(input));
   m_loaded = true;
 }
 
 void
-DownloadFactory::commit_trusted() {
-  if (!m_trusted)
-    throw torrent::internal_error("DownloadFactory::commit_trusted() called on an untrusted object");
+DownloadFactory::load_raw_data_untrusted(const std::string& input) {
+  if (m_trusted)
+    throw torrent::internal_error("DownloadFactory::load_raw_data_untrusted() called on an trusted object");
 
-  m_task_commit.slot() = [this]() { receive_commit(); };
-  torrent::this_thread::scheduler()->wait_for(&m_task_commit, 0ms);
+  if (m_stream)
+    throw torrent::internal_error("DownloadFactory::load_raw_data_untrusted() called on an object with m_stream != NULL");
+
+  m_stream.reset(new std::stringstream(input));
+  m_loaded = true;
 }
 
 void
-DownloadFactory::commit_untrusted() {
-  if (m_trusted)
-    throw torrent::internal_error("DownloadFactory::commit_untrusted() called on a trusted object");
+DownloadFactory::commit() {
+  if (!m_trusted)
+    throw torrent::internal_error("DownloadFactory::commit() called on an untrusted object");
 
   m_task_commit.slot() = [this]() { receive_commit(); };
   torrent::this_thread::scheduler()->wait_for(&m_task_commit, 0ms);
