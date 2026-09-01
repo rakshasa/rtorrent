@@ -1,25 +1,17 @@
 #include "config.h"
 
-#include <functional>
-#include <cstdio>
-#include <string>
-#include <vector>
-#include <torrent/rate.h>
-#include <torrent/hash_string.h>
+#include <torrent/exceptions.h>
 #include <torrent/utils/log.h>
 #include <torrent/utils/directory_events.h>
 #include <torrent/utils/file_stat.h>
 #include <torrent/utils/string_manip.h>
 
-#include "globals.h"
 #include "control.h"
 #include "command_helpers.h"
 #include "core/download.h"
-#include "core/download_list.h"
 #include "core/manager.h"
 #include "core/view_manager.h"
 #include "rpc/command_scheduler.h"
-#include "rpc/parse.h"
 #include "rpc/parse_commands.h"
 #include "utils/watch_ready_queue.h"
 
@@ -142,24 +134,6 @@ apply_schedule(const torrent::Object::list_type& args, bool if_absent) {
     return torrent::Object();
 
   control->command_scheduler()->parse(arg1, arg2, arg3, *itr);
-
-  return torrent::Object();
-}
-
-torrent::Object
-apply_load(const torrent::Object::list_type& args, int flags) {
-  torrent::Object::list_const_iterator argsItr = args.begin();
-
-  if (argsItr == args.end())
-    throw torrent::input_error("Too few arguments.");
-
-  auto& filename = argsItr->as_string();
-  core::Manager::command_list_type commands;
-
-  while (++argsItr != args.end())
-    commands.push_back(argsItr->as_string());
-
-  control->core()->try_create_download_expand(filename, flags, commands);
 
   return torrent::Object();
 }
@@ -367,15 +341,6 @@ initialize_command_events() {
 
   CMD2_ANY_STRING_V("import",                     [](auto, auto& str) { return apply_import(str); });
   CMD2_ANY_STRING_V("try_import",                 [](auto, auto& str) { return apply_try_import(str); });
-
-  CMD2_ANY_LIST    ("load.normal",                [](auto, auto& args) { return apply_load(args, core::Manager::create_quiet | core::Manager::create_tied); });
-  CMD2_ANY_LIST    ("load.verbose",               [](auto, auto& args) { return apply_load(args, core::Manager::create_tied); });
-  CMD2_ANY_LIST    ("load.start",                 [](auto, auto& args) { return apply_load(args, core::Manager::create_quiet | core::Manager::create_tied | core::Manager::create_start); });
-  CMD2_ANY_LIST    ("load.start_verbose",         [](auto, auto& args) { return apply_load(args, core::Manager::create_tied | core::Manager::create_start); });
-  CMD2_ANY_LIST    ("load.raw",                   [](auto, auto& args) { return apply_load(args, core::Manager::create_quiet | core::Manager::create_raw_data); });
-  CMD2_ANY_LIST    ("load.raw_verbose",           [](auto, auto& args) { return apply_load(args, core::Manager::create_raw_data); });
-  CMD2_ANY_LIST    ("load.raw_start",             [](auto, auto& args) { return apply_load(args, core::Manager::create_quiet | core::Manager::create_start | core::Manager::create_raw_data); });
-  CMD2_ANY_LIST    ("load.raw_start_verbose",     [](auto, auto& args) { return apply_load(args, core::Manager::create_start | core::Manager::create_raw_data); });
 
   CMD2_ANY_VALUE   ("close_low_diskspace",        [](auto, auto& arg) { return apply_close_low_diskspace(arg, 99); });
   CMD2_ANY_VALUE   ("close_low_diskspace.normal", [](auto, auto& arg) { return apply_close_low_diskspace(arg, 3); });
