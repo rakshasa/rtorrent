@@ -3,6 +3,7 @@
 
 #include <functional>
 #include <string>
+#include <vector>
 
 int  parse_main_options(int argc, char** argv);
 void parse_config_file(int argc, char** argv, std::function<void (const std::string&)> parse_fn);
