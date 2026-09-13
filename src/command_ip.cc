@@ -131,7 +131,7 @@ ipv4_range_parse(const char* address, uint32_t* address_start, uint32_t* address
   // copy everything up to '#'  to address_copy and work from there
   while(address[address_start_index] != '#' && address[address_start_index] != '\r' &&
         address[address_start_index] != '\n' && address[address_start_index] != '\0' &&
-        address_start_index < 4096 ) {
+        address_start_index < 4095 ) {
 
     address_copy[address_start_index] = address[address_start_index];
     address_start_index++;
