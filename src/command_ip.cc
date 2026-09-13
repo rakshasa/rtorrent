@@ -206,6 +206,9 @@ ipv4_range_parse(const char* address, uint32_t* address_start, uint32_t* address
         if (mask_bits == 0) {
           mask = 0;
           end_mask = ~(uint32_t)0;
+        } else if (mask_bits == 32) {
+          mask = ~(uint32_t)0;
+          end_mask = 0;
         } else {
           mask = (~mask) << (32-mask_bits);
           end_mask = (~end_mask) >> mask_bits;
