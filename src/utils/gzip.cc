@@ -5,6 +5,8 @@
 #include <zlib.h>
 #include <torrent/exceptions.h>
 
+#include "utils/functional.h"
+
 namespace utils {
 
 void
@@ -20,6 +22,8 @@ gzip_compress_to_vector(const char* buffer, unsigned int length, std::vector<cha
 
   if (deflateInit2(&zs, Z_DEFAULT_COMPRESSION, Z_DEFLATED, window_bits | gzip_encoding, gzip_level, Z_DEFAULT_STRATEGY) != Z_OK)
     throw torrent::internal_error("gzip_compress_to_vector(...) could not initialize gzip deflate.");
+
+  scope_guard guard([&zs]() { deflateEnd(&zs); });
 
   auto max_response_size = deflateBound(&zs, length);
 
