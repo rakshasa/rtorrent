@@ -17,8 +17,7 @@ Stable
 Development
 -----------
 
- * [libtorrent-0.16.13.tar.gz](https://github.com/rakshasa/rtorrent-archive/raw/master/libtorrent-0.16.13.tar.gz)
- * [rtorrent-0.16.13.tar.gz](https://github.com/rakshasa/rtorrent-archive/raw/master/rtorrent-0.16.13.tar.gz)
+See [Release Page](https://github.com/rakshasa/rtorrent/releases/).
 
 Related Projects
 ----------------
