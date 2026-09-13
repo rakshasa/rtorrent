@@ -77,16 +77,18 @@ xmlrpc_list_entry_to_value(xmlrpc_env* env, xmlrpc_value* src, int index) {
   {
     const char* str;
     xmlrpc_read_string(env, tmp, &str);
+    xmlrpc_DECREF(tmp);
 
     if (env->fault_occurred)
       throw xmlrpc_error_c(env);
 
     const char* end = str;
     int64_t v3 = ::strtoll(str, (char**)&end, 0);
+    bool invalid = *str == '\0' || *end != '\0';
 
     ::free((void*)str);
 
-    if (*str == '\0' || *end != '\0')
+    if (invalid)
       throw xmlrpc_error_c(XMLRPC_TYPE_ERROR, "Invalid index.");
 
     return v3;
