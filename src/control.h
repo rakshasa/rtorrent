@@ -118,4 +118,6 @@ private:
   std::atomic<bool>   m_shutdown_quick{};
 };
 
+extern Control* control;
+
 #endif

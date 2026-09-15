@@ -37,7 +37,7 @@ namespace core {
 inline void
 DownloadList::check_contains([[maybe_unused]] Download* d) {
 #ifdef USE_EXTRA_DEBUG
-  if (std::find(begin(), end(), d) == end())
+  if (std::find_if(begin(), end(), [d](const auto& entry) { return entry.get() == d; }) == end())
     throw torrent::internal_error("DownloadList::check_contains(...) failed.");
 #endif
 }
@@ -54,7 +54,6 @@ DownloadList::clear() {
       base_type::pop_back();
 
       torrent::download_remove(*download->download());
-      delete download;
 
     } catch (torrent::internal_error& e) {
       lt_log_print(torrent::LOG_ERROR, "DownloadList::clear() failed to close or remove download: %s", e.what());
@@ -70,7 +69,7 @@ DownloadList::clear() {
 void
 DownloadList::session_save() {
   for (auto& download : *this)
-    session_thread::manager()->save_resume_download(download);
+    session_thread::manager()->save_resume_download(download.get());
 
   control->dht_manager()->save_dht_cache();
   control->ui()->save_input_history();
@@ -78,7 +77,7 @@ DownloadList::session_save() {
 
 DownloadList::iterator
 DownloadList::find(const torrent::HashString& hash) {
-  return std::find_if(begin(), end(), [hash](Download* d) { return hash == d->info()->hash(); });
+  return std::find_if(begin(), end(), [hash](const auto& d) { return hash == d->info()->hash(); });
 }
 
 DownloadList::iterator
@@ -91,14 +90,14 @@ DownloadList::find_hex(const char* hash) {
   if (torrent::utils::transform_from_hex(hash, hash + 40, key) != key.end())
     return end();
 
-  return std::find_if(begin(), end(), [key](Download* d) { return key == d->info()->hash(); });
+  return std::find_if(begin(), end(), [key](const auto& d) { return key == d->info()->hash(); });
 }
 
 Download*
 DownloadList::find_hex_ptr(const char* hash) {
   iterator itr = find_hex(hash);
 
-  return itr != end() ? *itr : NULL;
+  return itr != end() ? itr->get() : NULL;
 }
 
 Download*
@@ -159,7 +158,7 @@ DownloadList::create(std::istream* str, uint32_t tracker_key, bool printLog) {
 
 DownloadList::iterator
 DownloadList::insert(Download* download) {
-  iterator itr = base_type::insert(end(), download);
+  iterator itr = base_type::insert(end(), std::shared_ptr<Download>(download));
 
   lt_log_print_info(torrent::LOG_TORRENT_INFO, download->info(), "download_list", "Inserting download.");
 
@@ -170,7 +169,7 @@ DownloadList::insert(Download* download) {
     // This needs to be separated into two different calls to ensure
     // the download remains in the view.
     for (auto v : *control->view_manager())
-      v->insert(download);
+      v->insert(*itr);
     for (auto v : *control->view_manager())
       v->filter_download(download);
 
@@ -187,7 +186,7 @@ DownloadList::insert(Download* download) {
 
 void
 DownloadList::erase_ptr(Download* download) {
-  erase(std::find(begin(), end(), download));
+  erase(std::find_if(begin(), end(), [download](const auto& entry) { return entry.get() == download; }));
 }
 
 DownloadList::iterator
@@ -201,15 +200,14 @@ DownloadList::erase(iterator itr) {
   (*itr)->set_hash_failed(true);
 
   close(*itr);
-  session_thread::manager()->remove_download(*itr);
+  session_thread::manager()->remove_download(itr->get());
 
   DL_TRIGGER_EVENT(*itr, "event.download.erased");
 
   for (auto v : *control->view_manager())
-    v->erase(*itr);
+    v->erase(itr->get());
 
   torrent::download_remove(*(*itr)->download());
-  delete *itr;
 
   return base_type::erase(itr);
 }
@@ -256,9 +254,11 @@ DownloadList::close(Download* download) {
   }
 }
 
+// Releases the files without changing the download's state, for callers that
+// need the files closed and will keep using the download.
 void
-DownloadList::close_directly(Download* download) {
-  lt_log_print_info(torrent::LOG_TORRENT_INFO, download->info(), "download_list", "Closing download directly.");
+DownloadList::close_files(Download* download) {
+  lt_log_print_info(torrent::LOG_TORRENT_INFO, download->info(), "download_list", "Closing download files.");
 
   if (download->download()->info()->is_active()) {
     download->download()->stop(torrent::Download::stop_skip_tracker);
@@ -269,6 +269,44 @@ DownloadList::close_directly(Download* download) {
 
   if (download->download()->info()->is_open())
     download->download()->close();
+}
+
+void
+DownloadList::close_directly(Download* download) {
+  lt_log_print_info(torrent::LOG_TORRENT_INFO, download->info(), "download_list", "Closing download directly.");
+
+  bool was_active = download->download()->info()->is_active();
+  bool was_open   = download->download()->info()->is_open();
+
+  close_files(download);
+  set_state_stopped(download);
+
+  if (was_active) {
+    DL_TRIGGER_EVENT(download, "event.download.paused");
+    update_paused_state(download);
+  }
+
+  if (was_open) {
+    DL_TRIGGER_EVENT(download, "event.download.hash_removed");
+    DL_TRIGGER_EVENT(download, "event.download.closed");
+  }
+}
+
+void
+DownloadList::set_state_stopped(Download* download) {
+  control->view_manager()->find_ptr_throw("stopped")->set_visible(download);
+  rpc::call_command("d.state.set", (int64_t)0, rpc::make_target(download));
+}
+
+void
+DownloadList::update_paused_state(Download* download) {
+  rpc::call_command("d.state_changed.set", torrent::this_thread::cached_seconds().count(), rpc::make_target(download));
+  rpc::call_command("d.state_counter.set", rpc::call_command_value("d.state_counter", rpc::make_target(download)), rpc::make_target(download));
+
+  // If initial seeding is complete, don't try it again when restarting.
+  if (download->is_done() &&
+      rpc::call_command("d.connection_current", torrent::Object(), rpc::make_target(download)).as_string() == "initial_seed")
+    rpc::call_command("d.connection_seed.set", rpc::call_command("d.connection_current", torrent::Object(), rpc::make_target(download)), rpc::make_target(download));
 }
 
 void
@@ -445,15 +483,7 @@ DownloadList::pause(Download* download, int flags) {
     // view.
     DL_TRIGGER_EVENT(download, "event.download.paused");
 
-    auto cached_seconds = torrent::this_thread::cached_seconds().count();
-
-    rpc::call_command("d.state_changed.set", cached_seconds, rpc::make_target(download));
-    rpc::call_command("d.state_counter.set", rpc::call_command_value("d.state_counter", rpc::make_target(download)), rpc::make_target(download));
-
-    // If initial seeding is complete, don't try it again when restarting.
-    if (download->is_done() &&
-        rpc::call_command("d.connection_current", torrent::Object(), rpc::make_target(download)).as_string() == "initial_seed")
-      rpc::call_command("d.connection_seed.set", rpc::call_command("d.connection_current", torrent::Object(), rpc::make_target(download)), rpc::make_target(download));
+    update_paused_state(download);
 
     // Save the state after all the slots, etc have been called so we
     // include the modifications they may make.
@@ -524,7 +554,7 @@ DownloadList::hash_done(Download* download) {
     // If the download was previously completed but the files were
     // f.ex deleted, then we clear the state and complete.
     if (rpc::call_command_value("d.complete", rpc::make_target(download)) && !download->is_done()) {
-      rpc::call_command("d.state.set", (int64_t)0, rpc::make_target(download));
+      set_state_stopped(download);
       download->set_message("Download registered as completed, but hash check returned unfinished chunks.");
     }
 

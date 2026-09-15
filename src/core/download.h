@@ -1,6 +1,7 @@
 #ifndef RTORRENT_CORE_DOWNLOAD_H
 #define RTORRENT_CORE_DOWNLOAD_H
 
+#include <memory>
 #include <torrent/common.h>
 #include <torrent/download.h>
 #include <torrent/download_info.h>
@@ -78,7 +79,8 @@ public:
   uint32_t            resume_flags()                           { return m_resumeFlags; }
   void                set_resume_flags(uint32_t flags)         { m_resumeFlags = flags; }
 
-  void                set_root_directory(const std::string& path);
+  void                set_directory(const std::string& path);
+  void                set_base_directory(const std::string& path);
 
   void                set_throttle_name(const std::string& name);
 

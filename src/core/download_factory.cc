@@ -7,6 +7,7 @@
 #include <functional>
 #include <sstream>
 #include <stdexcept>
+#include <sys/stat.h>
 #include <torrent/utils/log.h>
 #include <torrent/utils/resume.h>
 #include <torrent/object.h>
@@ -39,6 +40,11 @@ static constexpr const char* session_invalid_message = "Session data is invalid,
 
 static std::unique_ptr<torrent::Object>
 download_factory_load_stream(const char* filename, bool* is_invalid) {
+  struct stat sb;
+
+  if (stat(filename, &sb) != 0 || !S_ISREG(sb.st_mode))
+    return std::unique_ptr<torrent::Object>();
+
   std::fstream stream(filename, std::ios::in | std::ios::binary);
 
   if (!stream.is_open())
@@ -167,11 +173,19 @@ void
 DownloadFactory::receive_success() {
   bool session_invalid = false;
 
-  auto rtorrent_object          = download_factory_load_stream((expand_path(m_uri) + ".rtorrent").c_str(), &session_invalid);
-  auto libtorrent_resume_object = download_factory_load_stream((expand_path(m_uri) + ".libtorrent_resume").c_str(), &session_invalid);
+  std::unique_ptr<torrent::Object> rtorrent_object;
+  std::unique_ptr<torrent::Object> libtorrent_resume_object;
 
-  if (session_invalid)
-    lt_log_print(torrent::LOG_ERROR, "%s: %s", session_invalid_message, m_uri.c_str());
+  if (m_session) {
+    if (m_uri.empty())
+      throw torrent::input_error("Session torrent URI is empty.");
+
+    rtorrent_object          = download_factory_load_stream((expand_path(m_uri) + ".rtorrent").c_str(), &session_invalid);
+    libtorrent_resume_object = download_factory_load_stream((expand_path(m_uri) + ".libtorrent_resume").c_str(), &session_invalid);
+
+    if (session_invalid)
+      lt_log_print(torrent::LOG_ERROR, "%s: %s", session_invalid_message, m_uri.c_str());
+  }
 
   uint32_t tracker_key;
 

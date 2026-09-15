@@ -127,7 +127,11 @@ save_stream(const std::string& path, bool use_fsyncdisk, const std::stringstream
   if (!output.good())
     throw torrent::storage_error("failed to write stream to file : " + path);
 
+  // The data only reaches the kernel here, so this is where a full disk is seen.
   output.close();
+
+  if (!output.good())
+    throw torrent::storage_error("failed to flush stream to file : " + path);
 
   // Ensure that the new file is actually written to the disk
   int fd = ::open(path.c_str(), O_WRONLY);
@@ -137,13 +141,19 @@ save_stream(const std::string& path, bool use_fsyncdisk, const std::stringstream
 
   if (use_fsyncdisk) {
 #ifdef __APPLE__
-    ::fsync(fd);
+    int sync_result = ::fsync(fd);
 #else
-    ::fdatasync(fd);
+    int sync_result = ::fdatasync(fd);
 #endif
+
+    if (sync_result == -1) {
+      ::close(fd);
+      throw torrent::storage_error("failed to sync file to disk : " + path);
+    }
   }
 
-  ::close(fd);
+  if (::close(fd) == -1)
+    throw torrent::storage_error("failed to close file descriptor : " + path);
 }
 
 } // namespace anonymous

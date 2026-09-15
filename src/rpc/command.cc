@@ -1,5 +1,7 @@
 #include "config.h"
 
+#include <limits>
+
 #include "core/download.h"
 #include "parse.h"
 
@@ -41,7 +43,13 @@ command_base_call_value_base(command_base* command_raw, target_type target, cons
     return command_base::_call<typename command_value_function<T>::type, T>(command_raw, target, val);
   }
 
-  return command_base::_call<typename command_value_function<T>::type, T>(command_raw, target, unit * arg.as_value());
+  auto value = arg.as_value();
+
+  if (value > std::numeric_limits<int64_t>::max() / unit ||
+      value < std::numeric_limits<int64_t>::min() / unit)
+    throw torrent::input_error("Value out of range.");
+
+  return command_base::_call<typename command_value_function<T>::type, T>(command_raw, target, unit * value);
 }
 
 template <typename T> const torrent::Object

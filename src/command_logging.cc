@@ -135,7 +135,7 @@ initialize_command_logging() {
   CMD2_ANY_LIST    ("log.open_gz_file_pid",   std::bind(&apply_log_open, log_flag_append_pid | log_flag_use_gz, std::placeholders::_2));
   CMD2_ANY_LIST    ("log.append_file",        std::bind(&apply_log_open, log_flag_append_file, std::placeholders::_2));
   CMD2_ANY_LIST    ("log.append_file.flush",  std::bind(&apply_log_open, log_flag_append_file | log_flag_flush, std::placeholders::_2));
-  CMD2_ANY_LIST    ("log.append_gz_file",     std::bind(&apply_log_open, log_flag_append_file, std::placeholders::_2));
+  CMD2_ANY_LIST    ("log.append_gz_file",     std::bind(&apply_log_open, log_flag_append_file | log_flag_use_gz, std::placeholders::_2));
 
   CMD2_ANY_STRING_V("log.close",            std::bind(&torrent::log_close_output_str, std::placeholders::_2));
 

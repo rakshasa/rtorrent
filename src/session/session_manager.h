@@ -126,7 +126,7 @@ private:
 
 inline bool        SessionManager::is_used() const            { return !m_path.empty(); }
 inline std::string SessionManager::path() const               { return m_path; }
-inline bool        SessionManager::use_fsyncdisk() const      { return true; }
+inline bool        SessionManager::use_fsyncdisk() const      { return m_use_fsyncdisk; }
 inline bool        SessionManager::use_lock() const           { return m_use_lock; }
 inline void        SessionManager::flush_all_pending_builds() { process_pending_builds(true); }
 

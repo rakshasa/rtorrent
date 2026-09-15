@@ -68,11 +68,11 @@ apply_dht_add_node(const std::string& arg) {
 torrent::Object
 apply_enable_trackers(int64_t arg) {
   if (arg == 0) {
-    for (auto download : *control->core()->download_list())
+    for (const auto& download : *control->core()->download_list())
       download->tracker_controller().for_each([](auto& tracker) { tracker.disable(); });
 
   } else {
-    for (auto download : *control->core()->download_list())
+    for (const auto& download : *control->core()->download_list())
       download->tracker_controller().for_each([](auto& tracker) { tracker.enable(); });
   }
 

@@ -154,10 +154,10 @@ Manager::cleanup() {
 void
 Manager::shutdown(bool force) {
   if (!force) {
-    for (auto d : *m_download_list)
-      m_download_list->pause_default(d);
+    for (const auto& d : *m_download_list)
+      m_download_list->pause_default(d.get());
   } else {
-    for (auto d : *m_download_list)
+    for (const auto& d : *m_download_list)
       m_download_list->close_quick(d);
   }
 }
@@ -405,7 +405,7 @@ Manager::receive_hashing_changed() {
       continue;
 
     try {
-      m_download_list->open_throw(*itr);
+      m_download_list->open_throw(itr->get());
 
       // Since the bitfield is allocated on loading of resume load or
       // hash start, and unallocated on close, we know that if it it

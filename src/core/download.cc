@@ -101,7 +101,18 @@ Download::set_throttle_name(const std::string& name) {
 }
 
 void
-Download::set_root_directory(const std::string& path) {
+Download::set_directory(const std::string& path) {
+  if (!m_download.file_list()->is_multi_file())
+    return set_base_directory(path);
+
+  if (path.empty() || *path.rbegin() == '/')
+    return set_base_directory(path + m_download.info()->name_sanitized());
+
+  set_base_directory(path + "/" + m_download.info()->name_sanitized());
+}
+
+void
+Download::set_base_directory(const std::string& path) {
   // If the download is open, hashed and has completed chunks make
   // sure to verify that the download files are still present.
   //
@@ -120,13 +131,12 @@ Download::set_root_directory(const std::string& path) {
        !file_stat.update(file_list->front()->frozen_path().str()))) {
 
     set_message("Cannot change the directory of an open download after the files have been moved.");
-    rpc::call_command("d.state.set", (int64_t)0, rpc::make_target(this));
     control->core()->download_list()->close_directly(this);
 
     throw torrent::input_error("Cannot change the directory of an open download after the files have been moved.");
   }
 
-  control->core()->download_list()->close_directly(this);
+  control->core()->download_list()->close_files(this);
   file_list->set_root_dir(expand_path(path));
 
   bencode()->get_key("rtorrent").insert_key("directory", path);
