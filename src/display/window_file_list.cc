@@ -25,7 +25,10 @@ WindowFileList::WindowFileList(const ui::ElementFileList* element) :
 // Convert std::string to std::wstring of given width (in screen positions),
 // taking into account that some characters may be occupying two screen positions.
 std::wstring
-wstring_width(const std::string& i_str, [[maybe_unused]] int width) {
+wstring_width(const std::string& i_str, int width) {
+  if (width < 0)
+    width = 0;
+
   std::wstring result(width + 1, L' ');
   size_t length = std::mbstowcs(result.data(), i_str.c_str(), width);
 
