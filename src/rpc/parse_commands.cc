@@ -181,6 +181,11 @@ parse_command_file(const std::string& path) {
       getCount = 0;
     }
 
+    if (file.fail() && !file.eof()) {
+      lineNumber++;
+      throw torrent::input_error("Exceeded max line length.");
+    }
+
   } catch (torrent::input_error& e) {
     snprintf(buffer, 2048, "Error in option file: %s:%u: %s", path.c_str(), lineNumber, e.what());
 
