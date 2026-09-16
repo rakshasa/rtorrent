@@ -19,6 +19,7 @@
 #include "rpc/tinyxml2/tinyxml2.h"
 #include "rpc/rpc_manager.h"
 #include "utils/base64.h"
+#include "utils/functional.h"
 #include "xmlrpc.h"
 
 namespace rpc {
@@ -258,6 +259,8 @@ execute_command(std::string method_name, const tinyxml2::XMLElement* params_elem
   torrent::Object             params_raw = torrent::Object::create_list();
   torrent::Object::list_type& params     = params_raw.as_list();
   rpc::target_type            target     = rpc::make_target();
+  std::function<void()>       deleter    = []() {};
+  utils::scope_guard          guard([&deleter]() { deleter(); });
 
   if (params_element != nullptr) {
     if (std::strncmp(params_element->Name(), "params", sizeof("params")) == 0) {
@@ -265,8 +268,6 @@ execute_command(std::string method_name, const tinyxml2::XMLElement* params_elem
       const auto* child = params_element->FirstChildElement("param");
 
       if (child != nullptr) {
-        std::function<void()> deleter = []() {};
-
         RpcManager::object_to_target(xml_value_to_object(child->FirstChildElement("value")), cmd_itr->second.m_flags, &target, &deleter);
         child = child->NextSiblingElement("param");
 
@@ -282,8 +283,6 @@ execute_command(std::string method_name, const tinyxml2::XMLElement* params_elem
       const auto* child = params_element->FirstChildElement("data")->FirstChildElement("value");
 
       if (child != nullptr) {
-        std::function<void()> deleter = []() {};
-
         RpcManager::object_to_target(xml_value_to_object(child), cmd_itr->second.m_flags, &target, &deleter);
         child = child->NextSiblingElement("value");
 
