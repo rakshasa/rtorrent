@@ -61,3 +61,24 @@ TestCommandDynamic::test_old_style() {
   rpc::commands.call_command("method.insert", rpc::create_object_list("test_old_style.4", "simple", "cat=test.3"));
   CPPUNIT_ASSERT(rpc::commands.call_command("test_old_style.4", torrent::Object()).as_string() == "test.3");
 }
+
+void
+TestCommandDynamic::test_insert_list() {
+  torrent::Object key_only = torrent::Object::create_list();
+  key_only.as_list().push_back("test_insert_list.1");
+
+  rpc::commands.call_command("method.insert.list", key_only);
+
+  torrent::Object result = rpc::commands.call_command("test_insert_list.1", torrent::Object());
+
+  CPPUNIT_ASSERT(result.is_list());
+  CPPUNIT_ASSERT(result.as_list().empty());
+
+  rpc::commands.call_command("method.insert.list",
+                             rpc::create_object_list("test_insert_list.2", rpc::create_object_list("a", "b")));
+
+  torrent::Object filled = rpc::commands.call_command("test_insert_list.2", torrent::Object());
+
+  CPPUNIT_ASSERT(filled.is_list());
+  CPPUNIT_ASSERT_EQUAL((size_t)2, filled.as_list().size());
+}

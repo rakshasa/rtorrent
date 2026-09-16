@@ -157,7 +157,7 @@ system_method_insert_object(const torrent::Object::list_type& args, int flags) {
     torrent::Object             valueList     = torrent::Object::create_list();
     torrent::Object::list_type& valueListType = valueList.as_list();
 
-    if ((itrArgs)->is_list())
+    if (itrArgs != args.end() && (itrArgs)->is_list())
       valueListType = (itrArgs)->as_list();
 
     control->object_storage()->insert_str(raw_key, valueList, flags);

@@ -7,6 +7,7 @@ class TestCommandDynamic : public test_fixture {
   CPPUNIT_TEST(test_basics);
   CPPUNIT_TEST(test_get_set);
   CPPUNIT_TEST(test_old_style);
+  CPPUNIT_TEST(test_insert_list);
 
   CPPUNIT_TEST_SUITE_END();
 
@@ -18,6 +19,7 @@ public:
   void test_get_set();
 
   void test_old_style();
+  void test_insert_list();
 
 private:
   std::unique_ptr<TestMainThread> m_test_main_thread;
