@@ -132,10 +132,11 @@ DhtManager::save_dht_cache() {
   torrent::Object cache = torrent::Object::create_map();
   cache_file << *torrent::runtime::network_manager()->dht_controller()->store_cache(&cache);
 
+  // The data only reaches the kernel here, so this is where a full disk is seen.
+  cache_file.close();
+
   if (!cache_file.good())
     return;
-
-  cache_file.close();
 
   ::rename(filename_tmp.c_str(), filename.c_str());
 }

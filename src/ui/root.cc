@@ -467,14 +467,15 @@ Root::save_input_history() {
         history_file << entry << "|" + category.at((pitr->second + i) % m_input_history_length) + "\n";
   }
 
+  // The data only reaches the kernel here, so this is where a full disk is seen.
+  history_file.close();
+
   if (!history_file.good()) {
     lt_log_print(torrent::LOG_DEBUG, "input history file corrupted during writing, discarding (path:%s)", history_filename.c_str());
     return;
   } else {
     lt_log_print(torrent::LOG_DEBUG, "input history file written (path:%s)", history_filename.c_str());
   }
-
-  history_file.close();
 
   std::rename(history_filename_tmp.c_str(), history_filename.c_str());
 }
