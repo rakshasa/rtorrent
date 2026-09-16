@@ -319,6 +319,11 @@ apply_ipv4_filter_load(const torrent::Object::list_type& args) {
       ipv4_filter_parse(buffer, value);
     }
 
+    if (file.fail() && !file.eof()) {
+      lineNumber++;
+      throw torrent::input_error("Exceeded max line length.");
+    }
+
   } catch (torrent::input_error& e) {
     snprintf(buffer, 2048, "Error in ip filter file: %s:%u: %s", filename.c_str(), lineNumber, e.what());
 
