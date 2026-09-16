@@ -216,7 +216,7 @@ View::set_not_visible(Download* download) {
 
 void
 View::next_focus(unsigned int i) {
-  if (empty())
+  if (empty_visible())
     return;
 
   // If at the boundary, roll over
@@ -239,7 +239,7 @@ View::next_focus(unsigned int i) {
 
 void
 View::prev_focus(unsigned int i) {
-  if (empty())
+  if (empty_visible())
     return;
 
   // If at the boundary, roll over
