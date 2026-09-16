@@ -44,10 +44,9 @@ xmlrpc_list_entry_to_object(xmlrpc_env* env, xmlrpc_value* src, int index) {
   if (env->fault_occurred)
     throw xmlrpc_error_c(env);
 
-  torrent::Object obj = xmlrpc_to_object(env, tmp);
-  xmlrpc_DECREF(tmp);
+  utils::scope_guard guard([tmp]() { xmlrpc_DECREF(tmp); });
 
-  return obj;
+  return xmlrpc_to_object(env, tmp);
 }
 
 int64_t
@@ -213,10 +212,10 @@ xmlrpc_to_object(xmlrpc_env* env, xmlrpc_value* value, int call_type, rpc::targe
       if (env->fault_occurred)
         throw xmlrpc_error_c(env);
 
+      utils::scope_guard guard([tmp]() { xmlrpc_DECREF(tmp); });
+
       if (target != nullptr)
         std::tie(*target, *deleter) = xmlrpc_to_target(env, tmp, call_type);
-
-      xmlrpc_DECREF(tmp);
 
       if (env->fault_occurred)
         throw xmlrpc_error_c(env);
