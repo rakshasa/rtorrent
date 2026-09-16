@@ -219,7 +219,7 @@ Manager::try_create_download(const std::string& uri, int flags, const command_li
 }
 
 void
-Manager::try_create_download_from_meta_download(torrent::Object* bencode, const std::string& metafile) {
+Manager::try_create_download_from_meta_download(std::unique_ptr<torrent::Object> bencode, const std::string& metafile) {
   DownloadFactory* f = new DownloadFactory(this);
 
   f->variables()["tied_to_file"] = (int64_t)true;
