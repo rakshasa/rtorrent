@@ -122,7 +122,10 @@ log_vmmap_dump(const std::string& str) {
     fprintf(log_file, "%8p-%8p [%5llxk]\n", all_mapping.ptr, (char*)all_mapping.ptr + all_mapping.length, (long long unsigned int)(all_mapping.length / 1024));
   }
 
-  fclose(log_file);
+  // The buffered output only reaches the kernel here.
+  if (fclose(log_file) != 0)
+    throw torrent::input_error("Could not write log file: " + str);
+
   return torrent::Object();
 }
 
