@@ -27,11 +27,11 @@ public:
   virtual ~xmlrpc_error_c() throw() {}
 
   virtual int         type() const throw() { return m_type; }
-  virtual const char* what() const throw() { return m_msg; }
+  virtual const char* what() const throw() { return m_msg.c_str(); }
 
 private:
   int                 m_type;
-  const char*         m_msg;
+  std::string         m_msg;
 };
 
 torrent::Object xmlrpc_to_object(xmlrpc_env* env, xmlrpc_value* value, int call_type = 0, rpc::target_type* target = NULL, std::function<void()>* deleter = NULL);
