@@ -374,25 +374,31 @@ initialize_command_network() {
   CMD_ANY_STRING  ("network.tos.set",                        [](auto, auto& str)             { return apply_tos(str); });
 
   CMD_ANY         ("network.bind_address",                   [nw_config](auto, auto)         { return nw_config->bind_address_best_match_str(); });
-  CMD_ANY_STRING_V("network.bind_address.set",               [nw_config](auto, auto& str)    { return nw_config->set_bind_address_str(str); });
+  CMD_ANY_STRING_V("network.bind_address.set",               [nw_config](auto, auto& str)    { return nw_config->set_bind_address(str); });
   CMD_ANY         ("network.bind_address.ipv4",              [nw_config](auto, auto)         { return nw_config->bind_inet_address_str(); });
-  CMD_ANY_STRING_V("network.bind_address.ipv4.set",          [nw_config](auto, auto& str)    { return nw_config->set_bind_inet_address_str(str); });
+  CMD_ANY_STRING_V("network.bind_address.ipv4.set",          [nw_config](auto, auto& str)    { return nw_config->set_bind_inet_address(str); });
   CMD_ANY         ("network.bind_address.ipv6",              [nw_config](auto, auto)         { return nw_config->bind_inet6_address_str(); });
-  CMD_ANY_STRING_V("network.bind_address.ipv6.set",          [nw_config](auto, auto& str)    { return nw_config->set_bind_inet6_address_str(str); });
+  CMD_ANY_STRING_V("network.bind_address.ipv6.set",          [nw_config](auto, auto& str)    { return nw_config->set_bind_inet6_address(str); });
+
+  CMD_ANY_STRING_V("network.bind_device.set",                [nw_config](auto, auto& str)    { return nw_config->set_bind_device_name(str); });
+  CMD_ANY         ("network.bind_device.ipv4",               [nw_config](auto, auto)         { return nw_config->bind_inet_device_name(); });
+  CMD_ANY_STRING_V("network.bind_device.ipv4.set",           [nw_config](auto, auto& str)    { return nw_config->set_bind_inet_device_name(str); });
+  CMD_ANY         ("network.bind_device.ipv6",               [nw_config](auto, auto)         { return nw_config->bind_inet6_device_name(); });
+  CMD_ANY_STRING_V("network.bind_device.ipv6.set",           [nw_config](auto, auto& str)    { return nw_config->set_bind_inet6_device_name(str); });
 
   CMD_ANY         ("network.local_address",                  [nw_config](auto, auto)         { return nw_config->local_address_best_match_str(); });
-  CMD_ANY_STRING_V("network.local_address.set",              [nw_config](auto, auto& str)    { return nw_config->set_local_address_str(str); });
+  CMD_ANY_STRING_V("network.local_address.set",              [nw_config](auto, auto& str)    { return nw_config->set_local_address(str); });
   CMD_ANY         ("network.local_address.ipv4",             [nw_config](auto, auto)         { return nw_config->local_inet_address_str(); });
-  CMD_ANY_STRING_V("network.local_address.ipv4.set",         [nw_config](auto, auto& str)    { return nw_config->set_local_inet_address_str(str); });
+  CMD_ANY_STRING_V("network.local_address.ipv4.set",         [nw_config](auto, auto& str)    { return nw_config->set_local_inet_address(str); });
   CMD_ANY         ("network.local_address.ipv6",             [nw_config](auto, auto)         { return nw_config->local_inet6_address_str(); });
-  CMD_ANY_STRING_V("network.local_address.ipv6.set",         [nw_config](auto, auto& str)    { return nw_config->set_local_inet6_address_str(str); });
+  CMD_ANY_STRING_V("network.local_address.ipv6.set",         [nw_config](auto, auto& str)    { return nw_config->set_local_inet6_address(str); });
 
   CMD_ANY         ("network.local_port",                     [nw_config](auto, auto)         { return nw_config->local_port_best_match(); });
-  CMD_ANY_VALUE_V ("network.local_port.set",                 [nw_config](auto, auto& value) { return nw_config->set_local_port(checked_local_port_value(value, "local")); });
+  CMD_ANY_VALUE_V ("network.local_port.set",                 [nw_config](auto, auto& value)  { return nw_config->set_local_port(checked_local_port_value(value, "local")); });
   CMD_ANY         ("network.local_port.ipv4",                [nw_config](auto, auto)         { return nw_config->local_inet_port(); });
-  CMD_ANY_VALUE_V ("network.local_port.ipv4.set",            [nw_config](auto, auto& value) { return nw_config->set_local_inet_port(checked_local_port_value(value, "local ipv4")); });
+  CMD_ANY_VALUE_V ("network.local_port.ipv4.set",            [nw_config](auto, auto& value)  { return nw_config->set_local_inet_port(checked_local_port_value(value, "local ipv4")); });
   CMD_ANY         ("network.local_port.ipv6",                [nw_config](auto, auto)         { return nw_config->local_inet6_port(); });
-  CMD_ANY_VALUE_V ("network.local_port.ipv6.set",            [nw_config](auto, auto& value) { return nw_config->set_local_inet6_port(checked_local_port_value(value, "local ipv6")); });
+  CMD_ANY_VALUE_V ("network.local_port.ipv6.set",            [nw_config](auto, auto& value)  { return nw_config->set_local_inet6_port(checked_local_port_value(value, "local ipv6")); });
 
   CMD_ANY         ("network.proxy.global",                   [](auto, auto)                  { return torrent::runtime::proxy_manager()->proxy_url(); });
   CMD_ANY_STRING_V("network.proxy.global.set",               [](auto, auto& str)             { return torrent::runtime::proxy_manager()->set_proxy_url(str); });
