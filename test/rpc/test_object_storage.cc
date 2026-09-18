@@ -49,6 +49,17 @@ TestObjectStorage::test_validate_keys() {
   torrent::raw_string raw_string_4("test_4\0foo", 10);
 
   ASSERT_CATCH_INPUT_ERROR( { m_storage.insert(raw_string_4, torrent::Object("a"), rpc::object_storage::flag_string_type); } );
+  ASSERT_CATCH_INPUT_ERROR( { m_storage.insert_str("", torrent::Object("a"), rpc::object_storage::flag_string_type); } );
+
+  std::string key_max(rpc::object_storage::key_size - 1, 'k');
+
+  CPPUNIT_ASSERT(m_storage.insert_str(key_max, torrent::Object("a"), rpc::object_storage::flag_string_type)->first == key_max);
+  ASSERT_CATCH_INPUT_ERROR( { m_storage.insert_str(key_max + 'k', torrent::Object("a"), rpc::object_storage::flag_string_type); } );
+
+  // The over-long key must not have been stored as the empty key.
+  CPPUNIT_ASSERT(m_storage.find_raw_string(torrent::raw_string::from_c_str("")) == m_storage.end());
+
+  m_storage.clear();
 }
 
 // And test many other bad/good string combos.
