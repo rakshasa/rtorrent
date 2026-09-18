@@ -301,7 +301,7 @@ DownloadList::set_state_stopped(Download* download) {
 void
 DownloadList::update_paused_state(Download* download) {
   rpc::call_command("d.state_changed.set", torrent::this_thread::cached_seconds().count(), rpc::make_target(download));
-  rpc::call_command("d.state_counter.set", rpc::call_command_value("d.state_counter", rpc::make_target(download)), rpc::make_target(download));
+  rpc::call_command("d.state_counter.set", rpc::call_command_value("d.state_counter", rpc::make_target(download)) + 1, rpc::make_target(download));
 
   // If initial seeding is complete, don't try it again when restarting.
   if (download->is_done() &&
