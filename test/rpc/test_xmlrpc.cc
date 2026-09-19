@@ -192,12 +192,54 @@ TestXmlrpc::test_response_size_limit() {
   CPPUNIT_ASSERT_EQUAL(expected, output);
 }
 
+namespace {
+
+const std::string multicall_method_name =
+  "<member><name>methodName</name><value><string>xmlrpc_reflect</string></value></member>";
+const std::string multicall_params =
+  "<member><name>params</name><value><array><data>"
+  "<value><string></string></value><value><string>a</string></value>"
+  "</data></array></value></member>";
+
+std::string
+multicall_request(const std::string& members) {
+  return "<?xml version=\"1.0\"?><methodCall><methodName>system.multicall</methodName>"
+         "<params><param><value><array><data><value><struct>" + members +
+         "</struct></value></data></array></value></param></params></methodCall>";
+}
+
+}
+
+void
+TestXmlrpc::test_multicall_member_order() {
+  auto call = [this](const std::string& input) {
+    std::string output;
+    m_xmlrpc.process(input.c_str(), input.size(), [&output](const char* c, uint32_t l){ output.append(c, l); return true;});
+    return output;
+  };
+
+  // methodName first is the only order accepted; the positive control proves
+  // the harness drives the real code path rather than a stub.
+  std::string ordered = call(multicall_request(multicall_method_name + multicall_params));
+  CPPUNIT_ASSERT(ordered.find("faultCode") == std::string::npos);
+
+  // params before methodName is rejected with a clear top-level fault,
+  // instead of the "could not find expected element string" of a positional read.
+  std::string expected_fault =
+    "<?xml version=\"1.0\"?><methodResponse><fault><value><struct>"
+    "<member><name>faultCode</name><value><i8>-503</i8></value></member>"
+    "<member><name>faultString</name><value><string>multicall struct's first member must be methodName</string></value></member>"
+    "</struct></value></fault></methodResponse>";
+  CPPUNIT_ASSERT_EQUAL(expected_fault, call(multicall_request(multicall_params + multicall_method_name)));
+}
+
 #else
 
 void TestXmlrpc::test_invalid_utf8() {}
 void TestXmlrpc::test_basics() {}
 void TestXmlrpc::test_size_limit() {}
 void TestXmlrpc::test_response_size_limit() {}
+void TestXmlrpc::test_multicall_member_order() {}
 void TestXmlrpc::setUp() {}
 void TestXmlrpc::tearDown() {}
 
