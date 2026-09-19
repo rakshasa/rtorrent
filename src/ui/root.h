@@ -2,7 +2,9 @@
 #define RTORRENT_UI_ROOT_H
 
 #include <cstdint>
+#include <limits>
 #include <memory>
+#include <torrent/exceptions.h>
 
 #include "input/bindings.h"
 #include "download_list.h"
@@ -67,12 +69,19 @@ public:
 
   const auto&         download_list() const                   { return m_downloadList; }
 
+  static unsigned int throttle_rate_to_kb(int64_t rate) {
+    if (rate < 0 || rate > std::numeric_limits<unsigned int>::max() - 1)
+      throw torrent::input_error("Throttle rate must be between 0 and 4294967294.");
+
+    return static_cast<unsigned int>(rate >> 10);
+  }
+
   void                set_down_throttle(unsigned int throttle);
   void                set_up_throttle(unsigned int throttle);
 
   // Rename to raw or something, make base function.
-  void                set_down_throttle_i64(int64_t throttle) { set_down_throttle(throttle >> 10); }
-  void                set_up_throttle_i64(int64_t throttle)   { set_up_throttle(throttle >> 10); }
+  void                set_down_throttle_i64(int64_t throttle) { set_down_throttle(throttle_rate_to_kb(throttle)); }
+  void                set_up_throttle_i64(int64_t throttle)   { set_up_throttle(throttle_rate_to_kb(throttle)); }
 
   void                adjust_down_throttle(int throttle);
   void                adjust_up_throttle(int throttle);
