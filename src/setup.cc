@@ -86,9 +86,13 @@ config_comment_log(const std::string& command, const std::string& raw_args) {
     pos = next_pos + 1;
   }
 
-  if (command == "log.add_output")
+  if (command == "log.add_output") {
+    if (args.size() != 2)
+      throw torrent::input_error("Invalid number of arguments.");
+
     log_add_group_output_str(args[0], args[1]);
-  else if (command == "log.open_file")
+
+  } else if (command == "log.open_file")
     apply_log_open_str(0, args);
   else if (command == "log.open_file.flush")
     apply_log_open_str(log_flag_flush, args);
