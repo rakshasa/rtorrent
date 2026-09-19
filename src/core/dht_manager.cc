@@ -4,6 +4,7 @@
 
 #include <fstream>
 #include <sstream>
+#include <torrent/exceptions.h>
 #include <torrent/object.h>
 #include <torrent/object_stream.h>
 #include <torrent/rate.h>
@@ -62,7 +63,14 @@ DhtManager::load_dht_cache() {
     LT_LOG("could not open cache file (path:%s)", cache_filename.c_str());
   }
 
-  torrent::runtime::network_manager()->dht_controller()->initialize(cache);
+  try {
+    torrent::runtime::network_manager()->dht_controller()->initialize(cache);
+
+  } catch (const torrent::base_error& e) {
+    LT_LOG_ERROR("cache file rejected, discarding (path:%s errmsg:%s)", cache_filename.c_str(), e.what());
+
+    torrent::runtime::network_manager()->dht_controller()->initialize(torrent::Object::create_map());
+  }
 
   if (m_start == dht_on)
     start_dht();
