@@ -301,7 +301,7 @@ View::filter() {
     std::for_each(changed.begin(), splitChanged, [this](const auto& d) { rpc::call_object_d_nothrow(m_event_removed, d.get()); });
 
   if (!m_event_added.is_empty())
-    std::for_each(changed.begin(), splitChanged, [this](const auto& d) { rpc::call_object_d_nothrow(m_event_added, d.get()); });
+    std::for_each(splitChanged, changed.end(), [this](const auto& d) { rpc::call_object_d_nothrow(m_event_added, d.get()); });
 
   emit_changed();
 }
