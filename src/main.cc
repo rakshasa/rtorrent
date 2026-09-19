@@ -550,8 +550,6 @@ handle_sigbus(int signum, siginfo_t* sa, [[maybe_unused]] void* ptr) {
 #else
   output << "Stack dump not enabled." << std::endl;
 #endif
-  output << std::endl << "Error: " << std::strerror(sa->si_errno) << std::endl;
-
   const char* signal_reason;
 
   switch (sa->si_code) {
