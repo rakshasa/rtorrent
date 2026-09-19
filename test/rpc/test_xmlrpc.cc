@@ -8,6 +8,7 @@
 #include "globals.h"
 #include "command_helpers.h"
 #include "rpc/command_map.h"
+#include "rpc/scgi_task.h"
 
 CPPUNIT_TEST_SUITE_REGISTRATION(TestXmlrpc);
 
@@ -19,6 +20,11 @@ xmlrpc_cmd_test_reflect([[maybe_unused]] rpc::target_type t, const torrent::Obje
 torrent::Object
 xmlrpc_cmd_test_reflect_string([[maybe_unused]] rpc::target_type t, const std::string& obj) {
   return obj;
+}
+
+torrent::Object
+xmlrpc_cmd_test_oversized([[maybe_unused]] rpc::target_type t, [[maybe_unused]] const torrent::Object& obj) {
+  return torrent::Object(std::string(rpc::SCgiTask::max_response_size + (1 << 20), 'a'));
 }
 
 void initialize_command_dynamic();
@@ -127,6 +133,9 @@ TestXmlrpc::setUp() {
 
   if (rpc::commands.find("xmlrpc_reflect_string") == rpc::commands.end())
     CMD2_ANY_STRING("xmlrpc_reflect_string", &xmlrpc_cmd_test_reflect_string);
+
+  if (rpc::commands.find("xmlrpc_oversized") == rpc::commands.end())
+    CMD2_ANY("xmlrpc_oversized", &xmlrpc_cmd_test_oversized);
 }
 
 void
@@ -165,11 +174,30 @@ TestXmlrpc::test_size_limit() {
   CPPUNIT_ASSERT_EQUAL(expected, output);
 }
 
+// A command whose result does not fit in the SCGI response buffer must be
+// answered with a fault, not handed to the writer. SCgiTask::receive_write
+// treats an oversized body as an internal_error, which is not caught by any
+// RPC handler and terminates the process.
+void
+TestXmlrpc::test_response_size_limit() {
+  std::string input = "<?xml version=\"1.0\"?><methodCall><methodName>xmlrpc_oversized</methodName><params><param><value><string></string></value></param></params></methodCall>";
+  std::string expected = "<?xml version=\"1.0\"?><methodResponse><fault><value><struct><member><name>faultCode</name><value><i8>-509</i8></value></member><member><name>faultString</name><value><string>Response size exceeds maximum XML-RPC limit</string></value></member></struct></value></fault></methodResponse>";
+  std::string output;
+
+  m_xmlrpc.process(input.c_str(), input.size(), [&output](const char* c, uint32_t l){ output.append(c, l); return true;});
+
+  CPPUNIT_ASSERT_MESSAGE("response handed to the writer is " + std::to_string(output.size()) +
+                         " bytes, over the " + std::to_string(rpc::SCgiTask::max_response_size) + " byte SCGI limit",
+                         output.size() <= rpc::SCgiTask::max_response_size);
+  CPPUNIT_ASSERT_EQUAL(expected, output);
+}
+
 #else
 
 void TestXmlrpc::test_invalid_utf8() {}
 void TestXmlrpc::test_basics() {}
 void TestXmlrpc::test_size_limit() {}
+void TestXmlrpc::test_response_size_limit() {}
 void TestXmlrpc::setUp() {}
 void TestXmlrpc::tearDown() {}
 

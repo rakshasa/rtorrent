@@ -2,6 +2,7 @@
 #define RTORRENT_RPC_SCGI_TASK_H
 
 #include <chrono>
+#include <cstdint>
 #include <memory>
 #include <mutex>
 #include <vector>
@@ -17,6 +18,8 @@ public:
   static constexpr int default_buffer_size = 8191;
   static constexpr int max_header_size     = 2000;
   static constexpr int max_content_size    = (1 << 26);
+
+  static constexpr uint32_t max_response_size = (100 << 20);
 
   static constexpr auto timeout_request = std::chrono::seconds(60);
 

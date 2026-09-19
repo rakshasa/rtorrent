@@ -8,6 +8,7 @@ class TestJsonrpc : public test_fixture {
   CPPUNIT_TEST_SUITE(TestJsonrpc);
 
   CPPUNIT_TEST(test_basics);
+  CPPUNIT_TEST(test_response_size_limit);
 
   CPPUNIT_TEST_SUITE_END();
 
@@ -16,6 +17,7 @@ public:
   void tearDown();
 
   void test_basics();
+  void test_response_size_limit();
 
 private:
   std::unique_ptr<TestMainThread> m_test_main_thread;

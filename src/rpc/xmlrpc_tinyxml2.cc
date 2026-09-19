@@ -425,6 +425,14 @@ XmlRpc::process(const char* inBuffer, uint32_t length, slot_write slotWrite) {
     // remains.
     tinyxml2::XMLPrinter printer(nullptr, true, 0);
     process_document(&doc, &printer);
+
+    if (printer.CStrSize() - 1 > static_cast<int>(SCgiTask::max_response_size)) {
+      tinyxml2::XMLPrinter fault_printer(nullptr, true, 0);
+      print_xmlrpc_fault(XMLRPC_LIMIT_EXCEEDED_ERROR, "Response size exceeds maximum XML-RPC limit", &fault_printer);
+
+      return slotWrite(fault_printer.CStr(), fault_printer.CStrSize() - 1);
+    }
+
     return slotWrite(printer.CStr(), printer.CStrSize() - 1);
   } catch (rpc_error& e) {
     tinyxml2::XMLPrinter printer(nullptr, true, 0);
