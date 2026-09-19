@@ -2,6 +2,7 @@
 
 #include "download_storer.h"
 
+#include <cerrno>
 #include <fcntl.h>
 #include <fstream>
 #include <unistd.h>
@@ -116,28 +117,36 @@ is_correct_format(const std::string& f) {
 
 void
 save_stream(const std::string& path, bool use_fsyncdisk, const std::stringstream& stream) {
-  std::fstream output(path.c_str(), std::ios::out | std::ios::trunc);
+  // Remove any leftover temporary file first so that O_EXCL only ever fails on
+  // an entry that appeared after the unlink, and O_NOFOLLOW keeps a symlink
+  // planted in the session directory from redirecting the write.
+  if (::unlink(path.c_str()) == -1 && errno != ENOENT)
+    throw torrent::storage_error("failed to remove stale file : " + path);
 
   // TODO: If we cannot open more files, wait for some to finish and try again.
-  if (!output.is_open())
-    throw torrent::storage_error("failed to open file for writing : " + path);
-
-  output << stream.rdbuf();
-
-  if (!output.good())
-    throw torrent::storage_error("failed to write stream to file : " + path);
-
-  // The data only reaches the kernel here, so this is where a full disk is seen.
-  output.close();
-
-  if (!output.good())
-    throw torrent::storage_error("failed to flush stream to file : " + path);
-
-  // Ensure that the new file is actually written to the disk
-  int fd = ::open(path.c_str(), O_WRONLY);
+  int fd = ::open(path.c_str(), O_WRONLY | O_CREAT | O_EXCL | O_NOFOLLOW, 0600);
 
   if (fd < 0)
-    throw torrent::storage_error("failed to open file descriptor for fsync : " + path);
+    throw torrent::storage_error("failed to open file for writing : " + path);
+
+  const auto  data      = stream.view();
+  std::size_t remaining = data.size();
+  const char* cursor    = data.data();
+
+  while (remaining != 0) {
+    ssize_t result = ::write(fd, cursor, remaining);
+
+    if (result == -1) {
+      if (errno == EINTR)
+        continue;
+
+      ::close(fd);
+      throw torrent::storage_error("failed to write stream to file : " + path);
+    }
+
+    cursor    += result;
+    remaining -= result;
+  }
 
   if (use_fsyncdisk) {
 #ifdef __APPLE__
@@ -152,6 +161,7 @@ save_stream(const std::string& path, bool use_fsyncdisk, const std::stringstream
     }
   }
 
+  // A full disk may only be seen when the descriptor is closed.
   if (::close(fd) == -1)
     throw torrent::storage_error("failed to close file descriptor : " + path);
 }
