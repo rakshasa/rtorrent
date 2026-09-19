@@ -173,6 +173,7 @@ RpcManager::set_size_limit(uint64_t size) {
     throw torrent::input_error("XMLRPC size limit cannot exceed the SCGI content size limit.");
 
   m_xmlrpc.set_size_limit(size);
+  m_jsonrpc.set_size_limit(size);
 }
 
 void
