@@ -172,6 +172,9 @@ RpcManager::set_size_limit(uint64_t size) {
   if (size > SCgiTask::max_content_size)
     throw torrent::input_error("XMLRPC size limit cannot exceed the SCGI content size limit.");
 
+  if (size < min_size_limit)
+    throw torrent::input_error("XMLRPC size limit is too small to hold a request.");
+
   m_xmlrpc.set_size_limit(size);
 }
 
