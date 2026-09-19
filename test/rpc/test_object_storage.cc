@@ -59,6 +59,23 @@ TestObjectStorage::test_validate_keys() {
   // The over-long key must not have been stored as the empty key.
   CPPUNIT_ASSERT(m_storage.find_raw_string(torrent::raw_string::from_c_str("")) == m_storage.end());
 
+  // An over-long key must not be truncated into a match either.
+  CPPUNIT_ASSERT(m_storage.find_raw_string(torrent::raw_string::from_string(key_max + 'k')) == m_storage.end());
+
+  // set_c_str puts the terminating nul at m_data[size()], so size() has to
+  // stay below max_size for that write to land inside the array.
+  rpc::object_storage::key_type key_long;
+  key_long.set_c_str(std::string(rpc::object_storage::key_size + 1, 'k').c_str());
+
+  CPPUNIT_ASSERT(key_long.size() < rpc::object_storage::key_size);
+
+  m_storage.clear();
+  m_storage.insert_str("test_5", torrent::Object("a"), rpc::object_storage::flag_string_type);
+
+  // insert rejects a key holding a nul-char, so a lookup must not match past one.
+  CPPUNIT_ASSERT(m_storage.find_raw_string(torrent::raw_string("test_5\0x", 8)) == m_storage.end());
+  CPPUNIT_ASSERT(m_storage.find_raw_string(torrent::raw_string::from_c_str("test_5")) != m_storage.end());
+
   m_storage.clear();
 }
 
