@@ -2,6 +2,8 @@
 
 #include "test/src/test_command_dynamic.h"
 
+#include "helpers/assert.h"
+
 #include "control.h"
 #include "globals.h"
 #include "rpc/parse_commands.h"
@@ -81,4 +83,31 @@ TestCommandDynamic::test_insert_list() {
 
   CPPUNIT_ASSERT(filled.is_list());
   CPPUNIT_ASSERT_EQUAL((size_t)2, filled.as_list().size());
+}
+
+void
+TestCommandDynamic::test_value_base() {
+  auto value = [](std::initializer_list<torrent::Object> objects) {
+    auto args = torrent::Object::create_list();
+
+    for (const auto& object : objects)
+      args.as_list().push_back(object);
+
+    return rpc::commands.call_command("value", args).as_value();
+  };
+
+  CPPUNIT_ASSERT_EQUAL(int64_t(10), value({"10"}));
+  CPPUNIT_ASSERT_EQUAL(int64_t(255), value({"ff", int64_t(16)}));
+
+  // strtoll only defines base 0 and base 2 through 36.
+  ASSERT_CATCH_INPUT_ERROR( { value({"10", int64_t(1)}); } );
+  ASSERT_CATCH_INPUT_ERROR( { value({"10", int64_t(37)}); } );
+  ASSERT_CATCH_INPUT_ERROR( { value({"10", int64_t(-1)}); } );
+
+  // An out-of-range base must not be narrowed into a valid one.
+  ASSERT_CATCH_INPUT_ERROR( { value({"10", int64_t(1) << 40}); } );
+  ASSERT_CATCH_INPUT_ERROR( { value({"ff", (int64_t(1) << 32) + 16}); } );
+
+  // A number too large for the result must be rejected, not clamped.
+  ASSERT_CATCH_INPUT_ERROR( { value({"99999999999999999999999"}); } );
 }
