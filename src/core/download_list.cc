@@ -82,7 +82,7 @@ DownloadList::find(const torrent::HashString& hash) {
 
 DownloadList::iterator
 DownloadList::find_hex(const char* hash) {
-  if (strlen(hash) < 40)
+  if (strlen(hash) != 40)
     return end();
 
   torrent::HashString key;
