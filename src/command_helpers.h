@@ -1,11 +1,24 @@
 #ifndef RTORRENT_UTILS_COMMAND_HELPERS_H
 #define RTORRENT_UTILS_COMMAND_HELPERS_H
 
+#include <cstdint>
+#include <limits>
+#include <string>
+#include <torrent/exceptions.h>
+
 #include "rpc/command.h"
 #include "rpc/parse_commands.h"
 #include "rpc/object_storage.h"
 
 void initialize_commands();
+
+inline uint16_t
+checked_port_value(int64_t value, const char* label) {
+  if (value < 0 || value > std::numeric_limits<uint16_t>::max())
+    throw torrent::input_error(std::string("Invalid ") + label + " port number.");
+
+  return static_cast<uint16_t>(value);
+}
 
 //
 // Aliases with CMD_* for the below
