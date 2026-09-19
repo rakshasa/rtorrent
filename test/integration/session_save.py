@@ -138,23 +138,26 @@ class SessionSaveTest(unittest.TestCase):
         return torrent_hash
 
     def wait_for_blocked_save(self, torrent_hash):
-        trace = self.root / 'trace-1.log'
-        sidecar = str(self.session / (torrent_hash + '.torrent.rtorrent.new'))
-        wait_for(lambda: f'"{sidecar}", O_WRONLY <unfinished ...>' in trace.read_text(),
-                 'Full-save worker did not reach its delayed reopen')
+        sidecar = self.session / (torrent_hash + '.torrent.rtorrent.new')
+        # strace may buffer an unfinished syscall until another thread runs.
+        # The sidecar is written just before the delayed reopen; verify the
+        # syscall delay itself in the completed trace after shutdown.
+        wait_for(lambda: sidecar.exists() and sidecar.stat().st_size > 0,
+                 'Full-save worker did not write its sidecar')
         self.assertFalse((self.session / (torrent_hash + '.torrent')).exists())
 
     def verify_restart(self, expected):
         self.stop()
         trace = (self.root / 'trace-1.log').read_text()
-        # Match the worker's unfinished open with its delayed completion.
+        # Accept single-line and unfinished/resumed forms of the delayed open.
         for torrent_hash in expected:
             path = re.escape(str(self.session / (torrent_hash + '.torrent.rtorrent.new')))
             match = re.search(r'^(\d+)\s+[^\n]*openat\([^\n]*"' + path +
-                              r'", O_WRONLY <unfinished', trace, re.M)
+                              r'", O_WRONLY(?:\)| <unfinished)[^\n]*', trace, re.M)
             self.assertIsNotNone(match, 'Missing delayed session open in trace')
-            self.assertRegex(trace, r'(?m)^' + match.group(1) +
-                             r'\s+[^\n]*<\.\.\. openat resumed>[^\n]*\(DELAYED\)')
+            if '(DELAYED)' not in match.group(0):
+                self.assertRegex(trace, r'(?m)^' + match.group(1) +
+                                 r'\s+[^\n]*<\.\.\. openat resumed>[^\n]*\(DELAYED\)')
         self.assertNotIn('Storage errors saving session data', (self.root / 'engine-1.log').read_text())
         self.assertFalse(list(self.session.glob('*.new')), 'Uncommitted session files remain')
         self.start(delay=False)
