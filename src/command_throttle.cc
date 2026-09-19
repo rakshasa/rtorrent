@@ -89,6 +89,24 @@ throttle_update(const char* variable, int64_t value) {
   return torrent::Object();
 }
 
+static unsigned int
+throttle_rate_to_kb(int64_t rate) {
+  if (rate < 0 || rate > std::numeric_limits<unsigned int>::max() - 1)
+    throw torrent::input_error("Throttle rate must be between 0 and 4294967294.");
+
+  return static_cast<unsigned int>(rate >> 10);
+}
+
+static void
+set_up_throttle_i64(ui::Root* root, int64_t rate) {
+  root->set_up_throttle(throttle_rate_to_kb(rate));
+}
+
+static void
+set_down_throttle_i64(ui::Root* root, int64_t rate) {
+  root->set_down_throttle(throttle_rate_to_kb(rate));
+}
+
 void
 initialize_command_throttle() {
   CMD2_ANY         ("throttle.unchoked_uploads",       std::bind(&torrent::ResourceManager::currently_upload_unchoked, torrent::resource_manager()));
@@ -125,13 +143,13 @@ initialize_command_throttle() {
   CMD2_ANY         ("throttle.global_up.rate",              std::bind(&torrent::Rate::rate, torrent::up_rate()));
   CMD2_ANY         ("throttle.global_up.total",             std::bind(&torrent::Rate::total, torrent::up_rate()));
   CMD2_ANY         ("throttle.global_up.max_rate",          std::bind(&torrent::Throttle::max_rate, torrent::up_throttle_global()));
-  CMD2_ANY_VALUE_V ("throttle.global_up.max_rate.set",      std::bind(&ui::Root::set_up_throttle_i64, control->ui(), std::placeholders::_2));
-  CMD2_ANY_VALUE_KB("throttle.global_up.max_rate.set_kb",   std::bind(&ui::Root::set_up_throttle_i64, control->ui(), std::placeholders::_2));
+  CMD2_ANY_VALUE_V ("throttle.global_up.max_rate.set",      std::bind(&set_up_throttle_i64, control->ui(), std::placeholders::_2));
+  CMD2_ANY_VALUE_KB("throttle.global_up.max_rate.set_kb",   std::bind(&set_up_throttle_i64, control->ui(), std::placeholders::_2));
   CMD2_ANY         ("throttle.global_down.rate",            std::bind(&torrent::Rate::rate, torrent::down_rate()));
   CMD2_ANY         ("throttle.global_down.total",           std::bind(&torrent::Rate::total, torrent::down_rate()));
   CMD2_ANY         ("throttle.global_down.max_rate",        std::bind(&torrent::Throttle::max_rate, torrent::down_throttle_global()));
-  CMD2_ANY_VALUE_V ("throttle.global_down.max_rate.set",    std::bind(&ui::Root::set_down_throttle_i64, control->ui(), std::placeholders::_2));
-  CMD2_ANY_VALUE_KB("throttle.global_down.max_rate.set_kb", std::bind(&ui::Root::set_down_throttle_i64, control->ui(), std::placeholders::_2));
+  CMD2_ANY_VALUE_V ("throttle.global_down.max_rate.set",    std::bind(&set_down_throttle_i64, control->ui(), std::placeholders::_2));
+  CMD2_ANY_VALUE_KB("throttle.global_down.max_rate.set_kb", std::bind(&set_down_throttle_i64, control->ui(), std::placeholders::_2));
 
   // Temporary names, need to change this to accept real rates rather
   // than kB.
