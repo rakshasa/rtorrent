@@ -75,7 +75,6 @@ SessionManager::save_resume_download(core::Download* download) {
   {
     std::unique_lock<std::mutex> lock(m_pending_builds_mutex);
 
-    // TODO: This is under the wrong lock.
     if (!m_active)
       throw torrent::internal_error("SessionManager::save_resume_download() called while not active.");
 
