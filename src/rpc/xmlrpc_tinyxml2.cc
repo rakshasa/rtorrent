@@ -326,15 +326,20 @@ process_document(const tinyxml2::XMLDocument* doc, tinyxml2::XMLPrinter* printer
     auto& result_list     = result.as_list();
     auto  parent_elements = element_access(doc->RootElement(), {"params", "param", "value", "array", "data"});
     for (auto child = parent_elements->FirstChildElement("value"); child; child = child->NextSiblingElement("value")) {
-      auto sub_method_name = element_access(child, {"struct", "member", "value", "string"})->GetText();
+      auto method_name_member = element_access(child, {"struct", "member"});
+      auto member_name        = method_name_member->FirstChildElement("name");
+
+      if (member_name == nullptr || member_name->GetText() == nullptr ||
+          std::strncmp(member_name->GetText(), "methodName", sizeof("methodName")) != 0)
+        throw rpc_error(XMLRPC_PARSE_ERROR, "multicall struct's first member must be methodName");
+
+      auto sub_method_name = element_access(method_name_member, {"value", "string"})->GetText();
 
       if (sub_method_name == nullptr)
         throw rpc_error(XMLRPC_PARSE_ERROR, "multicall methodName element is empty");
       // If sub_params ends up a nullptr at the end of this if-chian,
       // execute_command will turn it into an empty list
-      auto sub_params = element_access(child, {"struct", "member"});
-      if (sub_params != nullptr)
-        sub_params = sub_params->NextSiblingElement("member");
+      auto sub_params = method_name_member->NextSiblingElement("member");
       if (sub_params != nullptr)
         sub_params = sub_params->FirstChildElement("value");
       if (sub_params != nullptr)
