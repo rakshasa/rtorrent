@@ -1,6 +1,7 @@
 #ifndef RTORRENT_SESSION_SESSION_MANAGER_H
 #define RTORRENT_SESSION_SESSION_MANAGER_H
 
+#include <atomic>
 #include <condition_variable>
 #include <deque>
 #include <future>
@@ -101,7 +102,7 @@ private:
 
   align_cacheline std::mutex   m_mutex;
 
-  bool                         m_active{};
+  std::atomic<bool>            m_active{};
 
   std::deque<SaveRequest>      m_save_requests;
   std::atomic<size_t>          m_save_request_counter{};
