@@ -2,14 +2,14 @@
 #define RTORRENT_UTILS_DIRECTORY_H
 
 #include <cstdint>
+#include <dirent.h>
 #include <string>
 #include <vector>
 
 namespace utils {
 
 struct directory_entry {
-  // Fix.
-  bool is_file() const { return true; }
+  bool is_file() const { return s_type == DT_REG; }
 
   // The name and types should match POSIX.
   uint32_t            s_fileno;

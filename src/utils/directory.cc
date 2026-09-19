@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cstdlib>
 #include <dirent.h>
+#include <fcntl.h>
 #include <functional>
 #include <sys/stat.h>
 #include <torrent/exceptions.h>
@@ -12,6 +13,24 @@
 #include "globals.h"
 
 namespace utils {
+
+namespace {
+
+uint8_t
+entry_type_from_mode(mode_t mode) {
+  if (S_ISREG(mode))
+    return DT_REG;
+
+  if (S_ISDIR(mode))
+    return DT_DIR;
+
+  if (S_ISLNK(mode))
+    return DT_LNK;
+
+  return DT_UNKNOWN;
+}
+
+} // namespace
 
 // Keep this?
 bool
@@ -38,9 +57,6 @@ Directory::update(int flags) {
     return false;
 
   struct dirent* entry;
-#ifdef __sun__
-  struct stat s;
-#endif
 
   while ((entry = readdir(d)) != NULL) {
     if ((flags & update_hide_dot) && entry->d_name[0] == '.')
@@ -49,15 +65,21 @@ Directory::update(int flags) {
     iterator itr = base_type::insert(end(), value_type());
 
 #ifdef __sun__
-    stat(entry->d_name, &s);
     itr->s_fileno = entry->d_ino;
     itr->s_reclen = 0;
-    itr->s_type = s.st_mode;
+    itr->s_type   = DT_UNKNOWN;
 #else
     itr->s_fileno = entry->d_fileno;
     itr->s_reclen = entry->d_reclen;
     itr->s_type   = entry->d_type;
 #endif
+
+    if (itr->s_type == DT_UNKNOWN) {
+      struct stat st;
+
+      if (fstatat(dirfd(d), entry->d_name, &st, AT_SYMLINK_NOFOLLOW) == 0)
+        itr->s_type = entry_type_from_mode(st.st_mode);
+    }
 
 #ifdef DIRENT_NAMLEN_EXISTS_FOOBAR
     itr->s_name   = std::string(entry->d_name, entry->d_name + entry->d_namlen);
