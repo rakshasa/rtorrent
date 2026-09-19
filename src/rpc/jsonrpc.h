@@ -5,6 +5,8 @@
 
 #include <cstdint>
 
+#include "rpc/scgi_task.h"
+
 namespace rpc {
 
 class JsonRpc {
@@ -17,6 +19,11 @@ public:
   bool process(const char* in_buffer, uint32_t length, slot_write callback);
 
   void insert_command(const char* name, const char* parm, const char* doc) {};
+
+  void set_size_limit(uint64_t size) { m_size_limit = size; }
+
+private:
+  uint64_t m_size_limit{SCgiTask::max_content_size};
 };
 
 } // namespace rpc
