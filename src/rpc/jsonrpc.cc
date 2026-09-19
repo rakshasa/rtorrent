@@ -223,10 +223,70 @@ handle_notification(const json& request) noexcept {
   }
 }
 
+// The parser materialises the whole document before json_to_object can see how
+// deep it is, and json_to_object only ever walks "params", so the bound has to
+// be applied to the input.
+bool
+json_within_depth_limit(const char* buffer, uint32_t length) {
+  uint32_t depth     = 0;
+  bool     in_string = false;
+  bool     escaped   = false;
+
+  for (uint32_t i = 0; i < length; i++) {
+    if (in_string) {
+      if (escaped)
+        escaped = false;
+      else if (buffer[i] == '\\')
+        escaped = true;
+      else if (buffer[i] == '"')
+        in_string = false;
+
+      continue;
+    }
+
+    switch (buffer[i]) {
+    case '"':
+      in_string = true;
+      break;
+
+    case '[':
+    case '{':
+      if (++depth > max_json_depth)
+        return false;
+
+      break;
+
+    case ']':
+    case '}':
+      if (depth != 0)
+        depth--;
+
+      break;
+
+    default:
+      break;
+    }
+  }
+
+  return true;
+}
+
 bool
 JsonRpc::process(const char* in_buffer, uint32_t length, slot_write callback) {
   json response;
   json body;
+
+  if (length > m_size_limit) {
+    auto err_str = json_error(JSONRPC_INVALID_REQUEST_ERROR, "content size exceeds maximum RPC limit", nullptr).dump();
+
+    return callback(err_str.c_str(), err_str.size());
+  }
+
+  if (!json_within_depth_limit(in_buffer, length)) {
+    auto err_str = json_error(JSONRPC_INVALID_REQUEST_ERROR, "maximum nesting depth exceeded", nullptr).dump();
+
+    return callback(err_str.c_str(), err_str.size());
+  }
 
   try {
     body = json::parse(in_buffer, in_buffer + length);

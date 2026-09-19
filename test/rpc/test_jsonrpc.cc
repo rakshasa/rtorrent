@@ -173,3 +173,64 @@ TestJsonrpc::test_response_size_limit() {
                          output.size() <= rpc::SCgiTask::max_response_size);
   CPPUNIT_ASSERT_EQUAL(expected, output);
 }
+
+// Nesting has to be rejected by scanning the input, not by parsing it:
+// nlohmann materialises the whole tree first, costing tens of bytes of heap
+// per input byte, and json_to_object only ever walks "params".
+void
+TestJsonrpc::test_depth_limit() {
+  // A JSON string holding a quote and brackets that must not be counted.
+  const std::string tricky = R"("\"[[[")";
+
+  std::vector<std::tuple<std::string, std::string, std::string>> requests = {
+    std::make_tuple("Nesting under the limit is accepted",
+                    R"({"jsonrpc": "2.0", "method": "jsonrpc_reflect", "params": ["", )" +
+                      std::string(1000, '[') + std::string(1000, ']') + R"(], "id": 1})",
+                    R"({"id":1,"jsonrpc":"2.0","result":[)" +
+                      std::string(1000, '[') + std::string(1000, ']') + R"(]})"),
+
+    // Nesting outside "params" is never converted, so only a scan of the
+    // input can reject it before the parser has paid for it.
+    std::make_tuple("Nesting outside params is rejected",
+                    R"({"jsonrpc": "2.0", "method": "jsonrpc_reflect", "params": [""], "id": 1, "x": )" +
+                      std::string(2000, '[') + std::string(2000, ']') + R"(})",
+                    R"({"error":{"code":-32600,"message":"maximum nesting depth exceeded"},"id":null,"jsonrpc":"2.0"})"),
+
+    std::make_tuple("Nesting over the limit is rejected",
+                    R"({"jsonrpc": "2.0", "method": "jsonrpc_reflect", "params": ["", )" +
+                      std::string(2000, '[') + std::string(2000, ']') + R"(], "id": 1})",
+                    R"({"error":{"code":-32600,"message":"maximum nesting depth exceeded"},"id":null,"jsonrpc":"2.0"})"),
+
+    std::make_tuple("Brackets inside a string are not nesting",
+                    R"({"jsonrpc": "2.0", "method": "jsonrpc_reflect", "params": ["", ")" +
+                      std::string(2000, '[') + R"("], "id": 1})",
+                    R"({"id":1,"jsonrpc":"2.0","result":[")" +
+                      std::string(2000, '[') + R"("]})"),
+
+    std::make_tuple("An escaped quote does not end a string",
+                    R"({"jsonrpc": "2.0", "method": "jsonrpc_reflect", "params": ["", )" + tricky + R"(, ")" +
+                      std::string(2000, '[') + R"("], "id": 1})",
+                    R"({"id":1,"jsonrpc":"2.0","result":[)" + tricky + R"(,")" +
+                      std::string(2000, '[') + R"("]})"),
+  };
+
+  for (auto& test : requests) {
+    std::string output;
+    m_jsonrpc.process(std::get<1>(test).c_str(), std::get<1>(test).size(), [&output](const char* c, uint32_t l) { output.append(c, l); return true; });
+    CPPUNIT_ASSERT_EQUAL_MESSAGE(std::get<0>(test), std::get<2>(test), output);
+  }
+}
+
+// network.xmlrpc.size_limit is the only knob bounding how much input a single
+// request may spend memory on, and it has to bound the JSON path too.
+void
+TestJsonrpc::test_size_limit() {
+  const std::string request = R"({"jsonrpc": "2.0", "method": "jsonrpc_reflect", "params": [""], "id": 1})";
+  const std::string expected = R"({"error":{"code":-32600,"message":"content size exceeds maximum RPC limit"},"id":null,"jsonrpc":"2.0"})";
+
+  std::string output;
+  m_jsonrpc.set_size_limit(1);
+  m_jsonrpc.process(request.c_str(), request.size(), [&output](const char* c, uint32_t l) { output.append(c, l); return true; });
+
+  CPPUNIT_ASSERT_EQUAL(expected, output);
+}
