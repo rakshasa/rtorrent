@@ -2,6 +2,8 @@ TESTS = \
 	rtorrent_Test_Rpc \
 	rtorrent_Test_Src
 
+EXTRA_DIST = integration/session_save.py
+
 check_PROGRAMS = $(TESTS)
 
 rtorrent_Test_LDADD = \
