@@ -80,7 +80,7 @@ private:
 
   void                process_pending_builds(bool is_flushing);
   void                process_save_request();
-  void                process_next_save_request_unsafe();
+  bool                process_next_save_request_unsafe();
   void                process_finished_saves();
 
   // Requires a higher number of open sockets, and should only be used during shutdown.
