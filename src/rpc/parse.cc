@@ -1,5 +1,7 @@
 #include "config.h"
 
+#include <cctype>
+#include <charconv>
 #include <cstring>
 #include <cstdio>
 #include <limits>
@@ -113,10 +115,28 @@ parse_value_nothrow(const char* src, int64_t* value, int base, int unit) {
   if (unit <= 0)
     throw torrent::input_error("Command::string_to_value_unit(...) received unit <= 0.");
 
-  char* last;
-  *value = strtoll(src, &last, base);
+  const char* first = src;
 
-  if (last == src) {
+  while (std::isspace(static_cast<unsigned char>(*first)))
+    first++;
+
+  if ((base == 0 || base == 16) && first[0] == '0' && (first[1] == 'x' || first[1] == 'X') &&
+      std::isxdigit(static_cast<unsigned char>(first[2]))) {
+    first += 2;
+    base = 16;
+
+  } else if (base == 0) {
+    base = 10;
+  }
+
+  const auto result = std::from_chars(first, first + std::strlen(first), *value, base);
+
+  if (result.ec == std::errc::result_out_of_range)
+    return src;
+
+  if (result.ec != std::errc()) {
+    *value = 0;
+
     if (strcasecmp(src, "no") == 0) { *value = 0; return src + strlen("no"); }
     if (strcasecmp(src, "yes") == 0) { *value = 1; return src + strlen("yes"); }
     if (strcasecmp(src, "true") == 0) { *value = 1; return src + strlen("true"); }
@@ -124,6 +144,8 @@ parse_value_nothrow(const char* src, int64_t* value, int base, int unit) {
 
     return src;
   }
+
+  const char* last = result.ptr;
 
   switch (*last) {
   case 'b':
