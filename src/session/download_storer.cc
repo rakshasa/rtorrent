@@ -17,6 +17,13 @@
 #include "core/download.h"
 #include "utils/directory.h"
 
+// O_DIRECTORY makes the open refuse anything that is not a directory. A
+// platform that does not define it still gets the read-only directory
+// handle fsync needs, so fall back to no extra flag.
+#ifndef O_DIRECTORY
+#define O_DIRECTORY 0
+#endif
+
 namespace session {
 
 DownloadStorer::DownloadStorer(core::Download* download)
@@ -166,6 +173,26 @@ save_stream(const std::string& path, bool use_fsyncdisk, const std::stringstream
     throw torrent::storage_error("failed to close file descriptor : " + path);
 }
 
+void
+sync_directory_of(const std::string& path) {
+  auto separator = path.rfind('/');
+  auto directory = separator == std::string::npos ? std::string(".") :
+                   separator == 0                 ? std::string("/") : path.substr(0, separator);
+
+  int fd = ::open(directory.c_str(), O_RDONLY | O_DIRECTORY);
+
+  if (fd < 0)
+    throw torrent::storage_error("failed to open session directory for sync : " + directory);
+
+  if (::fsync(fd) == -1) {
+    ::close(fd);
+    throw torrent::storage_error("failed to sync session directory : " + directory);
+  }
+
+  if (::close(fd) == -1)
+    throw torrent::storage_error("failed to close session directory : " + directory);
+}
+
 } // namespace anonymous
 
 void
@@ -193,6 +220,11 @@ DownloadStorer::save_and_move_streams(const std::string& path, bool use_fsyncdis
 
   if (::rename((rtorrent_path + ".new").c_str(), rtorrent_path.c_str()) == -1)
     throw torrent::storage_error("failed to rename rtorrent resume file : " + rtorrent_path);
+
+  // Syncing the files themselves does not persist the renames; the directory
+  // holding them has to be synced for the new names to survive a crash.
+  if (use_fsyncdisk)
+    sync_directory_of(path);
 }
 
 utils::Directory
