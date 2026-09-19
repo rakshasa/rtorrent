@@ -344,8 +344,8 @@ apply_ipv4_filter_dump() {
   torrent::Object raw_result = torrent::Object::create_list();
   torrent::Object::list_type& result = raw_result.as_list();
 
-  torrent::ipv4_table::range_map_type range_map = torrent::PeerList::ipv4_filter()->range_map;
-  torrent::ipv4_table::range_map_type::iterator iter = range_map.begin();
+  const torrent::ipv4_table::range_map_type& range_map = torrent::PeerList::ipv4_filter()->range_map;
+  torrent::ipv4_table::range_map_type::const_iterator iter = range_map.begin();
 
   while(iter != range_map.end()) {
     char buffer[64];
