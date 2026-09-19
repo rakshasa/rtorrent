@@ -1,4 +1,5 @@
 TESTS = \
+	rtorrent_Test_Core \
 	rtorrent_Test_Rpc \
 	rtorrent_Test_Src
 
@@ -7,6 +8,7 @@ check_PROGRAMS = $(TESTS)
 rtorrent_Test_LDADD = \
 	../src/libsub_root.a
 
+rtorrent_Test_Core_LDADD = $(rtorrent_Test_LDADD)
 rtorrent_Test_Rpc_LDADD = $(rtorrent_Test_LDADD)
 rtorrent_Test_Src_LDADD = $(rtorrent_Test_LDADD)
 
@@ -29,6 +31,10 @@ rtorrent_Test_Common = \
 	helpers/test_thread.h \
 	helpers/test_utils.h \
 	helpers/utils.h
+
+rtorrent_Test_Core_SOURCES = $(rtorrent_Test_Common) \
+	core/test_view.cc \
+	core/test_view.h
 
 rtorrent_Test_Rpc_SOURCES = $(rtorrent_Test_Common) \
 	rpc/test_command.cc \
@@ -62,6 +68,8 @@ rtorrent_Test_Src_SOURCES = $(rtorrent_Test_Common) \
 	src/test_watch_ready_queue.cc \
 	src/test_watch_ready_queue.h
 
+rtorrent_Test_Core_CXXFLAGS = $(CPPUNIT_CFLAGS)
+rtorrent_Test_Core_LDFLAGS = $(CPPUNIT_LIBS) -ldl
 rtorrent_Test_Rpc_CXXFLAGS = $(CPPUNIT_CFLAGS)
 rtorrent_Test_Rpc_LDFLAGS = $(CPPUNIT_LIBS) -ldl
 rtorrent_Test_Src_CXXFLAGS = $(CPPUNIT_CFLAGS)
