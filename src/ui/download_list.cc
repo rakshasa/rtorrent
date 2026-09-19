@@ -30,6 +30,38 @@
 
 namespace ui {
 
+std::string
+create_filter_pattern(const std::string& input) {
+  std::string pattern = input;
+
+  if (pattern.empty())
+    return pattern;
+
+  if (pattern.back() != '$')
+    pattern = pattern + ".*";
+  if (pattern.front() != '^')
+    pattern = ".*" + pattern;
+
+  std::transform(pattern.begin(), pattern.end(), pattern.begin(), ::tolower);
+  return pattern;
+}
+
+torrent::Object
+create_filter_command(const std::string& pattern) {
+  torrent::Object name = torrent::Object::create_dict_key();
+  name.as_dict_key() = "d.name";
+
+  torrent::Object args = torrent::Object::create_list();
+  args.as_list().push_back(name);
+  args.as_list().push_back(torrent::Object(pattern));
+
+  torrent::Object command = torrent::Object::create_dict_key();
+  command.as_dict_key() = "match";
+  command.as_dict_obj() = args;
+
+  return command;
+}
+
 DownloadList::DownloadList() {
   m_uiArray[DISPLAY_DOWNLOAD]      = NULL;
   m_uiArray[DISPLAY_DOWNLOAD_LIST] = new ElementDownloadList();
@@ -319,16 +351,12 @@ DownloadList::receive_exit_input(Input type) {
         current_view()->filter();
         current_view()->sort();
       } else {
-        std::string pattern = input->str();
-        if (pattern.back() != '$')
-          pattern = pattern + ".*";
-        if (pattern.front() != '^')
-          pattern = ".*" + pattern;
-        std::transform(pattern.begin(), pattern.end(), pattern.begin(), ::tolower);
-        std::string temp_filter = "match={d.name=," + pattern + "}";
+        std::string pattern = create_filter_pattern(input->str());
+
         if (rpc::call_command_value("view.filter.temp.log"))
           control->core()->push_log_std("Temporary filter on '" + current_view()->name() + "' view: " + pattern);
-        current_view()->set_filter_temp(temp_filter);
+
+        current_view()->set_filter_temp(create_filter_command(pattern));
         current_view()->filter();
       }
       break;

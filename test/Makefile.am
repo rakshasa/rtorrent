@@ -67,6 +67,8 @@ rtorrent_Test_Src_SOURCES = $(rtorrent_Test_Common) \
 	src/test_command_string.h \
 	src/test_setup.cc \
 	src/test_setup.h \
+	src/test_ui_download_list.cc \
+	src/test_ui_download_list.h \
 	src/test_watch_ready_queue.cc \
 	src/test_watch_ready_queue.h
 
