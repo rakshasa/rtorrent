@@ -1,6 +1,8 @@
 #include "config.h"
 
 #include <ctime>
+#include <mutex>
+#include <vector>
 #include <torrent/torrent.h>
 #include <torrent/system/callbacks.h>
 #include <torrent/system/thread.h>
@@ -41,13 +43,20 @@ WindowLog::redraw() {
 
   int pos = m_canvas->height();
 
-  for (iterator itr = m_log->end(), last = find_older(); itr != last && pos > 0; --pos) {
-    itr--;
+  std::vector<torrent::log_entry> entries;
 
+  {
+    std::lock_guard<torrent::log_buffer> guard(*m_log);
+
+    for (iterator itr = m_log->end(), last = find_older(); itr != last && entries.size() < static_cast<size_t>(pos); )
+      entries.push_back(*--itr);
+  }
+
+  for (const auto& entry : entries) {
     char buffer[16];
-    print_hhmmss_local(buffer, buffer + 16, static_cast<time_t>(itr->timestamp));
+    print_hhmmss_local(buffer, buffer + 16, static_cast<time_t>(entry.timestamp));
 
-    m_canvas->print(0, pos - 1, "(%s) %s", buffer, itr->message.c_str());
+    m_canvas->print(0, --pos, "(%s) %s", buffer, entry.message.c_str());
   }
 }
 
@@ -60,8 +69,13 @@ WindowLog::receive_update() {
   if (!is_active())
     return;
 
-  auto itr    = find_older();
-  auto height = std::min(std::distance(itr, (iterator)m_log->end()), (std::iterator_traits<iterator>::difference_type)10);
+  std::iterator_traits<iterator>::difference_type height;
+
+  {
+    std::lock_guard<torrent::log_buffer> guard(*m_log);
+
+    height = std::min(std::distance(find_older(), (iterator)m_log->end()), (std::iterator_traits<iterator>::difference_type)10);
+  }
 
   if (height != m_max_height) {
     m_min_height = height != 0 ? 1 : 0;
