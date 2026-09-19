@@ -53,6 +53,10 @@ public:
   enum RPCType { XML,
                  JSON };
 
+  // A limit below the shortest useful request rejects every request, the one
+  // that would raise it again included.
+  static constexpr uint64_t min_size_limit = 1024;
+
   RpcManager()  = default;
   ~RpcManager() = default;
 
