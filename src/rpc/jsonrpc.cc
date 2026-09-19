@@ -13,6 +13,7 @@
 #include "rpc/command_map.h"
 #include "rpc/nlohmann/json.h"
 #include "rpc/parse_commands.h"
+#include "rpc/scgi_task.h"
 #include "torrent/exceptions.h"
 #include "torrent/object.h"
 #include "utils/functional.h"
@@ -263,6 +264,13 @@ JsonRpc::process(const char* in_buffer, uint32_t length, slot_write callback) {
     }
 
     std::string response_str = response.dump();
+
+    if (response_str.size() > SCgiTask::max_response_size) {
+      const auto& id = response.is_object() && response.contains("id") ? response["id"] : json(nullptr);
+      auto err_str = json_error(JSONRPC_INTERNAL_ERROR, "response size exceeds maximum RPC limit", id).dump();
+
+      return callback(err_str.c_str(), err_str.size());
+    }
 
     return callback(response_str.c_str(), response_str.size());
 

@@ -8,11 +8,17 @@
 #include "globals.h"
 #include "command_helpers.h"
 #include "rpc/command_map.h"
+#include "rpc/scgi_task.h"
 
 CPPUNIT_TEST_SUITE_REGISTRATION(TestJsonrpc);
 
 torrent::Object
 jsonrpc_cmd_test_reflect([[maybe_unused]] rpc::target_type t, const torrent::Object& obj) { return obj; }
+
+torrent::Object
+jsonrpc_cmd_test_oversized([[maybe_unused]] rpc::target_type t, [[maybe_unused]] const torrent::Object& obj) {
+  return torrent::Object(std::string(rpc::SCgiTask::max_response_size + (1 << 20), 'a'));
+}
 
 void initialize_command_dynamic();
 
@@ -130,6 +136,10 @@ TestJsonrpc::setUp() {
   if (rpc::commands.find("jsonrpc_reflect") == rpc::commands.end()) {
     CMD2_ANY("jsonrpc_reflect", &jsonrpc_cmd_test_reflect);
   }
+
+  if (rpc::commands.find("jsonrpc_oversized") == rpc::commands.end()) {
+    CMD2_ANY("jsonrpc_oversized", &jsonrpc_cmd_test_oversized);
+  }
 }
 
 void
@@ -144,4 +154,22 @@ TestJsonrpc::test_basics() {
     m_jsonrpc.process(std::get<1>(test).c_str(), std::get<1>(test).size(), [&output](const char* c, uint32_t l) { output.append(c, l); return true; });
     CPPUNIT_ASSERT_EQUAL_MESSAGE(std::get<0>(test), std::get<2>(test), output);
   }
+}
+
+// A command whose result does not fit in the SCGI response buffer must be
+// answered with a fault, not handed to the writer. SCgiTask::receive_write
+// treats an oversized body as an internal_error, which is not caught by any
+// RPC handler and terminates the process.
+void
+TestJsonrpc::test_response_size_limit() {
+  const std::string request = R"({"jsonrpc": "2.0", "method": "jsonrpc_oversized", "params": [""], "id": 1})";
+  const std::string expected = R"({"error":{"code":-32000,"message":"response size exceeds maximum RPC limit"},"id":1,"jsonrpc":"2.0"})";
+
+  std::string output;
+  m_jsonrpc.process(request.c_str(), request.size(), [&output](const char* c, uint32_t l) { output.append(c, l); return true; });
+
+  CPPUNIT_ASSERT_MESSAGE("response handed to the writer is " + std::to_string(output.size()) +
+                         " bytes, over the " + std::to_string(rpc::SCgiTask::max_response_size) + " byte SCGI limit",
+                         output.size() <= rpc::SCgiTask::max_response_size);
+  CPPUNIT_ASSERT_EQUAL(expected, output);
 }
