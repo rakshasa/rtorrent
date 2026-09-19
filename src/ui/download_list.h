@@ -1,6 +1,9 @@
 #ifndef RTORRENT_UI_DOWNLOAD_LIST_H
 #define RTORRENT_UI_DOWNLOAD_LIST_H
 
+#include <string>
+#include <torrent/object.h>
+
 #include "element_base.h"
 #include "globals.h"
 #include "display/manager.h"
@@ -28,6 +31,12 @@ namespace display {
 namespace ui {
 
 class Download;
+
+// Wrap a user-typed download name pattern in the anchors 'match' expects.
+std::string     create_filter_pattern(const std::string& input);
+
+// Build the 'match' command the temporary view filter runs against d.name.
+torrent::Object create_filter_command(const std::string& pattern);
 
 class DownloadList : public ElementBase {
 public:
