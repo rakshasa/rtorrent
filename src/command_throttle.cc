@@ -1,11 +1,9 @@
 #include "config.h"
 
-#include <cstdio>
 #include <limits>
 #include <torrent/throttle.h>
 #include <torrent/rate.h>
 #include <torrent/download/resource_manager.h>
-#include <torrent/net/socket_address.h>
 
 #include "core/manager.h"
 #include "ui/root.h"
@@ -15,59 +13,6 @@
 #include "globals.h"
 #include "control.h"
 #include "command_helpers.h"
-
-std::pair<uint32_t, uint32_t>
-parse_address_range(const torrent::Object::list_type& args, torrent::Object::list_type::const_iterator itr) {
-  unsigned int prefixWidth, ret;
-  char dummy;
-  char host[1024];
-  torrent::sa_unique_ptr sa;
-
-  ret = std::sscanf(itr->as_string().c_str(), "%1023[^/]/%d%c", host, &prefixWidth, &dummy);
-
-  if (ret < 1)
-    throw torrent::input_error("Invalid address/prefix.");
-
-  try {
-    sa = torrent::sa_copy(torrent::sa_lookup_address(host, AF_INET).get());
-
-  } catch (torrent::input_error& e) {
-    throw torrent::input_error("Could not resolve host: " + std::string(e.what()));
-  }
-
-  uint32_t begin, end;
-
-  auto sa_addr = htonl(reinterpret_cast<sockaddr_in*>(sa.get())->sin_addr.s_addr);
-
-  begin = end = sa_addr;
-
-  if (ret == 2) {
-    if (++itr != args.end())
-      throw torrent::input_error("Cannot specify both network and range end.");
-
-    uint32_t netmask = std::numeric_limits<uint32_t>::max() << (32 - prefixWidth);
-
-    if (prefixWidth >= 32 || sa_addr & ~netmask)
-      throw torrent::input_error("Invalid address/prefix.");
-
-    end = sa_addr | ~netmask;
-
-  } else if (++itr != args.end()) {
-    try {
-      sa = torrent::sa_copy(torrent::sa_lookup_address(itr->as_string(), AF_INET).get());
-
-    } catch (torrent::input_error& e) {
-      throw torrent::input_error("Could not resolve host: " + std::string(e.what()));
-    }
-
-    sa_addr = htonl(reinterpret_cast<sockaddr_in*>(sa.get())->sin_addr.s_addr);
-    end = sa_addr;
-  }
-
-  // convert to [begin, end) making sure the end doesn't overflow
-  // (this precludes 255.255.255.255 from ever matching, but that's not a real IP anyway)
-  return std::make_pair((uint32_t)begin, (uint32_t)std::max(end, end + 1));
-}
 
 torrent::Object
 apply_throttle(const torrent::Object::list_type& args, bool up) {
