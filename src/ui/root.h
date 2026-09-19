@@ -70,10 +70,6 @@ public:
   void                set_down_throttle(unsigned int throttle);
   void                set_up_throttle(unsigned int throttle);
 
-  // Rename to raw or something, make base function.
-  void                set_down_throttle_i64(int64_t throttle) { set_down_throttle(throttle >> 10); }
-  void                set_up_throttle_i64(int64_t throttle)   { set_up_throttle(throttle >> 10); }
-
   void                adjust_down_throttle(int throttle);
   void                adjust_up_throttle(int throttle);
 
