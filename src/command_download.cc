@@ -402,13 +402,21 @@ p_multicall(core::Download* download, const torrent::Object::list_type& args) {
   auto  resultRaw = torrent::Object::create_list();
   auto& result    = resultRaw.as_list();
 
-  for (const auto& connection : *download->connection_list()) {
+  auto*      connection_list = download->connection_list();
+  const auto change_counter  = connection_list->change_counter();
+
+  for (const auto& connection : *connection_list) {
     torrent::Object::list_type& row = result.insert(result.end(), torrent::Object::create_list())->as_list();
 
     for (auto cItr = ++args.begin(); cItr != args.end(); cItr++) {
       const std::string& cmd = cItr->as_string();
 
       row.push_back(rpc::parse_command(rpc::make_target(connection), cmd.c_str(), cmd.c_str() + cmd.size()).first);
+
+      // Erasing a peer frees it and swaps the last element into its place, so
+      // neither this peer nor the iteration survives a change to the list.
+      if (connection_list->change_counter() != change_counter)
+        throw torrent::input_error("Command changed the connection list during p.multicall.");
     }
   }
 
