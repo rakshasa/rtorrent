@@ -2,6 +2,7 @@
 
 #include "session/session_manager.h"
 
+#include <algorithm>
 #include <cassert>
 #include <cstdlib>
 #include <torrent/exceptions.h>
@@ -348,18 +349,30 @@ SessionManager::process_save_request() {
       if (m_processing_saves.size() >= max_concurrent_processing)
         break;
 
-      process_next_save_request_unsafe();
+      if (!process_next_save_request_unsafe())
+        break;
     }
   }
 
   callback_pending_builds();
 }
 
-void
+bool
 SessionManager::process_next_save_request_unsafe() {
-  auto request = std::move(m_save_requests.front());
+  // Saves for one path share temporary files and must finish in order. Keep
+  // other downloads moving while a save for an earlier request is still active.
+  auto request_itr = std::find_if(m_save_requests.begin(), m_save_requests.end(), [this](auto& request) {
+      return std::none_of(m_processing_saves.begin(), m_processing_saves.end(), [&request](auto& processing) {
+          return processing.second.path == request.path;
+        });
+    });
 
-  m_save_requests.pop_front();
+  if (request_itr == m_save_requests.end())
+    return false;
+
+  auto request = std::move(*request_itr);
+
+  m_save_requests.erase(request_itr);
   m_save_request_counter = m_save_requests.size();
 
   auto itr = m_processing_saves.insert(m_processing_saves.end(), ProcessingSave{});
@@ -393,6 +406,8 @@ SessionManager::process_next_save_request_unsafe() {
     });
 
   LT_LOG("started save of download : download:%p path:%s", itr->second.download, itr->second.path.c_str());
+
+  return true;
 }
 
 void
@@ -449,12 +464,9 @@ SessionManager::flush_all_and_wait_unsafe(std::unique_lock<std::mutex>& lock) {
   // Caller already ensured pending builds are empty.
 
   while (!m_save_requests.empty()) {
-    if (m_processing_save_counter >= max_cleanup_processing) {
+    if (m_processing_save_counter >= max_cleanup_processing || !process_next_save_request_unsafe()) {
       m_finished_condition.wait(lock);
-      continue;
     }
-
-    process_next_save_request_unsafe();
   }
 
   while (!m_processing_saves.empty())
