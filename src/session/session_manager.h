@@ -100,9 +100,8 @@ private:
   bool                         m_use_fsyncdisk{true};
   bool                         m_use_lock{true};
 
-  align_cacheline std::mutex   m_mutex;
-
-  std::atomic<bool>            m_active{};
+  align_cacheline std::mutex        m_mutex;
+  align_cacheline std::atomic<bool> m_active{};
 
   std::deque<SaveRequest>      m_save_requests;
   std::atomic<size_t>          m_save_request_counter{};
