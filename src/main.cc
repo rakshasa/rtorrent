@@ -492,7 +492,8 @@ main(int argc, char** argv) {
     control->cleanup();
 
   } catch (torrent::internal_error& e) {
-    control->cleanup_exception();
+    if (control != nullptr)
+      control->cleanup_exception();
 
     std::cout << "rtorrent: caught torrent::internal_error: "
               << e.what() << std::endl
@@ -505,7 +506,8 @@ main(int argc, char** argv) {
     return -1;
 
   } catch (std::exception& e) {
-    control->cleanup_exception();
+    if (control != nullptr)
+      control->cleanup_exception();
 
     std::cout << "rtorrent: caught" << typeid(e).name() << " : " << e.what() << std::endl;
 
