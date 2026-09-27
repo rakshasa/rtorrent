@@ -100,7 +100,7 @@ PathInput::receive_do_complete() {
       entry.s_name += '/';
   }
 
-  range_type r = find_incomplete(dir, str().substr(dirEnd, get_pos()));
+  range_type r = find_incomplete(dir, str().substr(dirEnd, get_pos() - dirEnd));
 
   if (r.first == r.second)
     return; // Show some nice colors here.
