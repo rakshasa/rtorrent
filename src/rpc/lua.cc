@@ -394,6 +394,10 @@ execute_lua(LuaEngine* engine, rpc::target_type target_type, torrent::Object con
   switch (raw_args.type()) {
   case torrent::Object::TYPE_LIST: {
     const torrent::Object::list_type& args = raw_args.as_list();
+
+    if (args.empty())
+      throw torrent::input_error("Too few arguments.");
+
     if (flags & LuaEngine::flag_string) {
       check_lua_status(l_state, luaL_loadstring(l_state, args.begin()->as_string().c_str()));
     } else {
