@@ -63,8 +63,10 @@ SignalHandler::set_block(unsigned int signum) {
   sigemptyset(&mask);
   sigaddset(&mask, signum);
 
-  if (pthread_sigmask(SIG_BLOCK, &mask, NULL) == -1)
-    throw std::logic_error("Could not block signal: " + std::string(std::strerror(errno)));
+  int result = pthread_sigmask(SIG_BLOCK, &mask, NULL);
+
+  if (result != 0)
+    throw std::logic_error("Could not block signal: " + std::string(std::strerror(result)));
 }
 
 void
@@ -77,8 +79,10 @@ SignalHandler::set_unblock(unsigned int signum) {
   sigemptyset(&mask);
   sigaddset(&mask, signum);
 
-  if (pthread_sigmask(SIG_UNBLOCK, &mask, NULL) == -1)
-    throw std::logic_error("Could not unblock signal: " + std::string(std::strerror(errno)));
+  int result = pthread_sigmask(SIG_UNBLOCK, &mask, NULL);
+
+  if (result != 0)
+    throw std::logic_error("Could not unblock signal: " + std::string(std::strerror(result)));
 }
 
 void
