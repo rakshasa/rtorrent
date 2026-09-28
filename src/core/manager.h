@@ -8,7 +8,6 @@
 #include <torrent/object.h>
 
 #include "download_list.h"
-#include "range_map.h"
 
 namespace torrent {
   class Bencode;
