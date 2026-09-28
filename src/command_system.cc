@@ -167,6 +167,7 @@ initialize_command_system() {
   rpc::rpc.mark_safe("system.time");
   rpc::rpc.mark_safe("system.time_seconds");
   rpc::rpc.mark_safe("system.time_usec");
+  rpc::rpc.mark_safe("system.file.allocate");
   rpc::rpc.mark_safe("system.file.max_size");
   rpc::rpc.mark_safe("system.file.split_size");
   rpc::rpc.mark_safe("system.file.split_suffix");
