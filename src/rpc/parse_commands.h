@@ -67,6 +67,86 @@ parse_command_single(target_type target, const std::string& cmd) {
   return parse_command(target, cmd.c_str(), cmd.c_str() + cmd.size()).first;
 }
 
+// True when the parsed arguments contain anything that requires a
+// per-target execution pass ('$' substitution or function objects).
+// Callers reusing a parsed command must then copy the arguments and
+// run parse_command_execute before call_command instead of using the
+// parsed form directly.
+bool                   command_args_need_execute(const torrent::Object& object);
+
+// For comparator commands whose string arguments are themselves
+// commands evaluated per comparison (less/greater/equal via
+// apply_cmp, compare via apply_compare), pre-parse those arguments
+// so the per-comparison path uses call_command instead of re-parsing.
+// '$' arguments and unparseable strings are kept as-is, preserving
+// the original evaluation path and error behavior.
+void                   preparse_cmp_args(torrent::Object* object);
+
+// Parses a single command without executing it, returning a dict_key
+// Object that can be executed later with call_object(). Callers that
+// evaluate the same command repeatedly (view sorting, filtering,
+// multicalls) can parse once instead of on every evaluation. Returns
+// an empty Object for empty or comment-only input.
+torrent::Object        parse_command_object(const char* first, const char* last);
+
+inline torrent::Object parse_command_object(const std::string& cmd) {
+  return parse_command_object(cmd.c_str(), cmd.c_str() + cmd.size());
+}
+
+// A command parsed into a (method, args) table entry for repeated
+// execution. 'empty' marks input that parsed to no command (empty or
+// comment-only), which evaluates to an empty Object, matching
+// parse_command.
+struct multicall_command {
+  std::string     method;
+  torrent::Object args;
+  bool            empty = false;
+};
+
+// Builds the table lazily on first use: a multicall whose commands
+// never match an item is never parsed (or failed on), exactly as
+// before.
+struct preparsed_commands {
+  const std::vector<multicall_command>&
+  get(const torrent::Object::list_type& args) {
+    if (!initialized) {
+      initialized = true;
+
+      for (auto itr = ++args.begin(); itr != args.end(); ++itr) {
+        torrent::Object parsed = parse_command_object(itr->as_string());
+
+        if (!parsed.is_empty())
+          preparse_cmp_args(&parsed);
+
+        if (parsed.is_empty())
+          table.push_back(multicall_command{std::string(), torrent::Object(), true});
+        else
+          table.push_back(multicall_command{parsed.as_dict_key(), parsed.as_dict_obj(), false});
+      }
+    }
+
+    return table;
+  }
+
+  std::vector<multicall_command> table;
+  bool                           initialized = false;
+};
+
+// Executes one table entry for a target. The parsed args are copied
+// so per-target substitution ('$' arguments and function objects)
+// evaluates exactly as parse_command does, without re-parsing.
+inline torrent::Object
+call_multicall_command(const multicall_command& cmd, target_type target) {
+  if (cmd.empty)
+    return torrent::Object();
+
+  torrent::Object args = cmd.args;
+
+  parse_command_execute(target, &args);
+
+  return commands.call_command(cmd.method.c_str(), args, target);
+}
+
 inline torrent::Object
 parse_command_multiple_std(const std::string& cmd, target_type target = rpc::make_target()) {
   return parse_command_multiple(target, cmd.c_str(), cmd.c_str() + cmd.size());
