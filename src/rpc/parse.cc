@@ -414,7 +414,7 @@ convert_to_value_nothrow(const torrent::Object& src, int64_t* value, int base, i
       == unpacked.as_string().c_str() + unpacked.as_string().size();
 
   case torrent::Object::TYPE_RAW_STRING: {
-    const torrent::raw_string& str = src.as_raw_string();
+    const torrent::raw_string& str = unpacked.as_raw_string();
 
     auto buffer = std::make_unique<char[]>(str.size() + 1);
     std::memcpy(buffer.get(), str.data(), str.size());
