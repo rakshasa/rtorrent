@@ -6,7 +6,6 @@
 #include <torrent/peer/peer.h>
 
 #include "display/manager.h"
-#include "utils/list_focus.h"
 
 #include "element_base.h"
 
