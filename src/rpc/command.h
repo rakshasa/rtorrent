@@ -108,7 +108,7 @@ public:
 
     static stack_type* from_data(char* data) { return reinterpret_cast<stack_type*>(data); }
 
-    char buffer[sizeof(torrent::Object) * max_arguments];
+    alignas(optimal_alignment) char buffer[sizeof(torrent::Object) * max_arguments];
   };
 
   command_base() : m_copy_helper(nullptr), m_dest_helper(nullptr) {}
