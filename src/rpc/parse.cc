@@ -182,7 +182,7 @@ parse_object(const char* first, const char* last, torrent::Object* dest, bool (*
   if (++depth >= max_parse_depth)
     throw torrent::input_error("Max parse depth reached.");
 
-  if (*first == '{') {
+  if (first != last && *first == '{') {
     *dest = torrent::Object::create_list();
     first = parse_list(first + 1, last, dest, &parse_is_delim_block, depth);
     first = parse_skip_wspace(first, last);
@@ -192,7 +192,7 @@ parse_object(const char* first, const char* last, torrent::Object* dest, bool (*
 
     return ++first;
 
-  } else if (*first == '(') {
+  } else if (first != last && *first == '(') {
     int32_t parentheses = 1;
 
     while (first + 1 != last && *(first + 1) == '(') {
