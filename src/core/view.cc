@@ -22,9 +22,59 @@ entry_is(Download* download) {
   return [download](const std::shared_ptr<Download>& entry) { return entry.get() == download; };
 }
 
+// Pre-parse a string command once so that repeated evaluation (per
+// comparison or per download) executes an already-parsed command
+// instead of re-parsing the same string. Comparator arguments (e.g.
+// 'd.name=' in 'less=d.name=') are pre-parsed as well. On parse
+// errors, and for input that does not compile to an executable
+// command, the original object is kept so errors are reported on the
+// evaluation path exactly as before.
+struct view_preparsed_command {
+  torrent::Object object;
+
+  // True when the parsed arguments contain '$' substitutions or
+  // function objects: evaluation then copies the arguments and runs
+  // parse_command_execute per target, exactly as parse_command does.
+  bool            execute_args = false;
+};
+
+inline view_preparsed_command
+view_preparse_command(const torrent::Object& cmd) {
+  if (!cmd.is_string() || cmd.as_string().empty())
+    return {cmd, false};
+
+  torrent::Object parsed;
+
+  try {
+    parsed = rpc::parse_command_object(cmd.as_string());
+  } catch (torrent::input_error& e) {
+    return {cmd, false};
+  }
+
+  if (parsed.is_empty())
+    return {cmd, false};
+
+  rpc::preparse_cmp_args(&parsed);
+
+  return {parsed, rpc::command_args_need_execute(parsed.as_dict_obj())};
+}
+
+inline torrent::Object
+view_call_command(const view_preparsed_command& cmd, rpc::target_type target) {
+  if (cmd.execute_args) {
+    torrent::Object args = cmd.object.as_dict_obj();
+
+    rpc::parse_command_execute(target, &args);
+
+    return rpc::commands.call_command(cmd.object.as_dict_key().c_str(), args, target);
+  }
+
+  return rpc::commands.call_command(cmd.object.as_dict_key().c_str(), cmd.object.as_dict_obj(), target);
+}
+
 struct view_downloads_compare {
   view_downloads_compare(const torrent::Object& cmd) :
-      m_command(cmd) {}
+      m_command(view_preparse_command(cmd)) {}
 
   bool operator()(const std::shared_ptr<Download>& d1, const std::shared_ptr<Download>& d2) const {
     return (*this)(d1.get(), d2.get());
@@ -32,23 +82,13 @@ struct view_downloads_compare {
 
   bool operator()(Download* d1, Download* d2) const {
     try {
-      if (m_command.is_empty())
+      if (m_command.object.is_empty())
         return false;
 
-      if (!m_command.is_dict_key())
-        return rpc::parse_command_single(rpc::make_target_pair(d1, d2), m_command.as_string()).as_value();
+      if (!m_command.object.is_dict_key())
+        return rpc::parse_command_single(rpc::make_target_pair(d1, d2), m_command.object.as_string()).as_value();
 
-      // torrent::Object tmp_command = m_command;
-
-      // uint32_t flags = tmp_command.flags() & torrent::Object::mask_function;
-      // tmp_command.unset_flags(torrent::Object::mask_function);
-      // tmp_command.set_flags((flags >> 1) & torrent::Object::mask_function);
-
-      // rpc::parse_command_execute(rpc::make_target_pair(d1, d2), &tmp_command);
-      // return rpc::commands.call_command(tmp_command.as_dict_key().c_str(), tmp_command.as_dict_obj(),
-      //                                   rpc::make_target_pair(d1, d2)).as_value();
-
-      return rpc::commands.call_command(m_command.as_dict_key().c_str(), m_command.as_dict_obj(), rpc::make_target_pair(d1, d2)).as_value();
+      return view_call_command(m_command, rpc::make_target_pair(d1, d2)).as_value();
 
     } catch (torrent::input_error& e) {
       control->core()->push_log(e.what());
@@ -57,12 +97,12 @@ struct view_downloads_compare {
     }
   }
 
-  const torrent::Object& m_command;
+  view_preparsed_command m_command;
 };
 
 struct view_downloads_filter {
   view_downloads_filter(const torrent::Object& cmd, const torrent::Object& cmd2) :
-      m_command(cmd), m_command2(cmd2) {}
+      m_command(view_preparse_command(cmd)), m_command2(view_preparse_command(cmd2)) {}
 
   bool operator()(const std::shared_ptr<Download>& d1) const {
     return (*this)(d1.get());
@@ -72,28 +112,18 @@ struct view_downloads_filter {
     return this->evalCmd(m_command, d1) && this->evalCmd(m_command2, d1);
   }
 
-  bool evalCmd(const torrent::Object& cmd, Download* d1) const {
-    if (cmd.is_empty())
+  bool evalCmd(const view_preparsed_command& cmd, Download* d1) const {
+    if (cmd.object.is_empty())
       return true;
 
     try {
       torrent::Object result;
 
-      if (cmd.is_dict_key()) {
-        // torrent::Object tmp_command = cmd;
-
-        // uint32_t flags = tmp_command.flags() & torrent::Object::mask_function;
-        // tmp_command.unset_flags(torrent::Object::mask_function);
-        // tmp_command.set_flags((flags >> 1) & torrent::Object::mask_function);
-
-        // rpc::parse_command_execute(rpc::make_target(d1), &tmp_command);
-        // result = rpc::commands.call_command(tmp_command.as_dict_key().c_str(), tmp_command.as_dict_obj(),
-        //                                     rpc::make_target(d1));
-
-        result = rpc::commands.call_command(cmd.as_dict_key().c_str(), cmd.as_dict_obj(), rpc::make_target(d1));
+      if (cmd.object.is_dict_key()) {
+        result = view_call_command(cmd, rpc::make_target(d1));
 
       } else {
-        result = rpc::parse_command_single(rpc::make_target(d1), cmd.as_string());
+        result = rpc::parse_command_single(rpc::make_target(d1), cmd.object.as_string());
       }
 
       switch (result.type()) {
@@ -121,8 +151,8 @@ struct view_downloads_filter {
     }
   }
 
-  const torrent::Object& m_command;
-  const torrent::Object& m_command2;
+  view_preparsed_command m_command;
+  view_preparsed_command m_command2;
 };
 
 void

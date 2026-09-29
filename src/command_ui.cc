@@ -311,9 +311,18 @@ apply_compare(rpc::target_type target, const torrent::Object::list_type& args) {
   torrent::Object result2;
 
   for (torrent::Object::list_const_iterator last = args.end(); itr != last; itr++) {
-    std::string field = itr->as_string();
-    result1 = rpc::parse_command_single(rpc::get_target_left(target), field);
-    result2 = rpc::parse_command_single(rpc::get_target_right(target), field);
+    // Fields arrive pre-parsed as dict_keys when the compare command
+    // itself was pre-parsed (view sorting); strings keep the
+    // parse-on-evaluation path.
+    std::string field = itr->is_dict_key() ? itr->as_dict_key() : itr->as_string();
+
+    if (itr->is_dict_key()) {
+      result1 = rpc::commands.call_command(itr->as_dict_key().c_str(), itr->as_dict_obj(), rpc::get_target_left(target));
+      result2 = rpc::commands.call_command(itr->as_dict_key().c_str(), itr->as_dict_obj(), rpc::get_target_right(target));
+    } else {
+      result1 = rpc::parse_command_single(rpc::get_target_left(target), field);
+      result2 = rpc::parse_command_single(rpc::get_target_right(target), field);
+    }
 
     if (result1.type() != result2.type())
       throw torrent::input_error(std::string("Type mismatch in compare of ") + field);

@@ -123,6 +123,108 @@ parse_command(target_type target, const char* first, const char* last) {
   return std::make_pair(commands.call_command(key, args, target), first);
 }
 
+bool
+command_args_need_execute(const torrent::Object& object) {
+  if (object.is_list()) {
+    // Mirrors parse_command_execute: nested lists are not traversed.
+    for (const auto& itr : object.as_list())
+      if (!itr.is_list() && command_args_need_execute(itr))
+        return true;
+
+    return false;
+
+  } else if (object.is_dict_key()) {
+    return (object.flags() & torrent::Object::flag_function) != 0 ||
+           command_args_need_execute(object.as_dict_obj());
+
+  } else if (object.is_string()) {
+    return !object.as_string().empty() && *object.as_string().c_str() == '$';
+  }
+
+  return false;
+}
+
+void
+preparse_cmp_args(torrent::Object* object) {
+  if (!object->is_dict_key() || !object->as_dict_obj().is_list())
+    return;
+
+  const std::string& key = object->as_dict_key();
+
+  // Only comparators evaluate string arguments as commands.
+  // 'compare' takes the order string as its first argument.
+  size_t first_arg;
+
+  if (key == "less" || key == "greater" || key == "equal")
+    first_arg = 0;
+  else if (key == "compare")
+    first_arg = 1;
+  else
+    return;
+
+  torrent::Object::list_type& args = object->as_dict_obj().as_list();
+
+  for (auto itr = args.begin() + std::min(first_arg, args.size()); itr != args.end(); ++itr) {
+    if (!itr->is_string())
+      continue;
+
+    const std::string& str = itr->as_string();
+
+    // '$' arguments are substituted per target on the evaluation
+    // path; keep them as strings so that behavior is unchanged.
+    if (str.empty() || str.find('$') != std::string::npos)
+      continue;
+
+    try {
+      torrent::Object parsed = parse_command_object(str);
+
+      // Arguments that need a per-target execution pass ('$'
+      // substitution or function objects) keep the original string so
+      // the evaluation path handles them exactly as before.
+      if (!parsed.is_empty() && !command_args_need_execute(parsed.as_dict_obj()))
+        *itr = parsed;
+
+    } catch (torrent::input_error& e) {
+      // Keep the original string; the error is reported on the
+      // evaluation path exactly as before.
+    }
+  }
+}
+
+torrent::Object
+parse_command_object(const char* first, const char* last) {
+  first = std::find_if(first, last, [&](char c) { return !command_map_is_space(c); });
+
+  if (first == last || *first == '#')
+    return torrent::Object();
+
+  char key[128];
+
+  first = parse_command_name(first, last, key, key + 128);
+  first = std::find_if(first, last, [&](char c) { return !command_map_is_space(c); });
+
+  if (first == last || *first != '=')
+    throw torrent::input_error("Could not find '=' in command '" + std::string(key) + "'.");
+
+  torrent::Object result = torrent::Object::create_dict_key();
+
+  result.as_dict_key() = key;
+
+  first = parse_whole_list(first + 1, last, &result.as_dict_obj(), &parse_is_delim_command);
+
+  // Find the last character that is part of this command, skipping
+  // the whitespace at the end.
+  first = std::find_if(first, last, [&](char c) { return !command_map_is_space(c); });
+
+  if (first != last && !command_map_is_newline(*first))
+    throw torrent::input_error("Junk at end of input.");
+
+  // Anything after the first command is ignored, matching
+  // parse_command_single.
+
+  return result;
+}
+
 torrent::Object
 parse_command_multiple(target_type target, const char* first, const char* last) {
   parse_command_type result;
