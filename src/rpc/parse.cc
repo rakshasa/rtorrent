@@ -118,18 +118,20 @@ parse_value_nothrow(const char* src, int64_t* value, int base, int unit) {
   if (base != 0 && base != 8 && base != 10 && base != 16)
     throw torrent::input_error("Command::string_to_value_unit(...) received invalid base.");
 
+  const char* first = src;
+
   while (parse_is_space(*src))
     src++;
 
   if (src[0] == '+')
-    return src;
+    return first;
 
   if (src[0] == '-') {
     if (base == 8 || base == 16)
-      return src;
+      return first;
 
     if (src[1] == '0')
-      return src;
+      return first;
   }
 
   char* last{};
@@ -138,7 +140,7 @@ parse_value_nothrow(const char* src, int64_t* value, int base, int unit) {
   *value = strtoll(src, &last, base);
 
   if (errno == ERANGE)
-    return src;
+    return first;
 
   if (last == src) {
     *value = 0;
@@ -148,7 +150,7 @@ parse_value_nothrow(const char* src, int64_t* value, int base, int unit) {
     if (strcasecmp(src, "true") == 0)  { *value = 1; return src + strlen("true"); }
     if (strcasecmp(src, "false") == 0) { *value = 0; return src + strlen("false"); }
 
-    return src;
+    return first;
   }
 
   switch (*last) {
@@ -156,15 +158,15 @@ parse_value_nothrow(const char* src, int64_t* value, int base, int unit) {
   case 'B': ++last; break;
   case 'k':
   case 'K':
-    if (!value_fits_shifted(*value, 10)) return src; // overflow guard
+    if (!value_fits_shifted(*value, 10)) return first; // overflow guard
     *value = *value << 10; ++last; break;
   case 'm':
   case 'M':
-    if (!value_fits_shifted(*value, 20)) return src; // overflow guard
+    if (!value_fits_shifted(*value, 20)) return first; // overflow guard
     *value = *value << 20; ++last; break;
   case 'g':
   case 'G':
-    if (!value_fits_shifted(*value, 30)) return src; // overflow guard
+    if (!value_fits_shifted(*value, 30)) return first; // overflow guard
     *value = *value << 30; ++last; break;
 //   case ' ':
 //   case '\0': *value = *value * unit; break;
@@ -172,7 +174,7 @@ parse_value_nothrow(const char* src, int64_t* value, int base, int unit) {
   default:
     if (*value > std::numeric_limits<int64_t>::max() / unit ||
         *value < std::numeric_limits<int64_t>::min() / unit)
-      return src; // overflow guard
+      return first; // overflow guard
 
     *value = *value * unit;
     break;
