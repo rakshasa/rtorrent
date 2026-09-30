@@ -134,6 +134,9 @@ parse_value_nothrow(const char* src, int64_t* value, int base, int unit) {
       return first;
   }
 
+  if (base == 10 && src[0] == '0' && (src[1] >= '0' && src[1] <= '9'))
+    return first;
+
   char* last{};
 
   errno  = 0;
