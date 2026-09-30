@@ -1,5 +1,6 @@
 #include "config.h"
 
+#include <limits>
 #include <memory>
 
 #include <torrent/download/resource_manager.h>
@@ -231,6 +232,9 @@ apply_cg_max_set(const torrent::Object::list_type& args, bool is_up) {
 
   int64_t second_arg = 0;
   rpc::parse_whole_value(args.back().as_string().c_str(), &second_arg);
+
+  if (second_arg < -1 || second_arg > std::numeric_limits<uint32_t>::max())
+    throw torrent::input_error("Max unchoked must be between -1 and 4294967295.");
 
   if (is_up)
     cg_get_group(args.front())->up_queue()->set_max_unchoked(second_arg);

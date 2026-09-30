@@ -1,5 +1,7 @@
 #include "config.h"
 
+#include <cctype>
+#include <charconv>
 #include <cstring>
 #include <cstdio>
 #include <limits>
@@ -113,13 +115,37 @@ parse_value_nothrow(const char* src, int64_t* value, int base, int unit) {
   if (unit <= 0)
     throw torrent::input_error("Command::string_to_value_unit(...) received unit <= 0.");
 
-  char* last;
+  if (base != 0 && base != 8 && base != 10 && base != 16)
+    throw torrent::input_error("Command::string_to_value_unit(...) received invalid base.");
+
+  while (parse_is_space(*src))
+    src++;
+
+  if (src[0] == '+')
+    return src;
+
+  if (src[0] == '-') {
+    if (base == 8 || base == 16)
+      return src;
+
+    if (src[1] == '0')
+      return src;
+  }
+
+  char* last{};
+
+  errno  = 0;
   *value = strtoll(src, &last, base);
 
+  if (errno == ERANGE)
+    return src;
+
   if (last == src) {
-    if (strcasecmp(src, "no") == 0) { *value = 0; return src + strlen("no"); }
-    if (strcasecmp(src, "yes") == 0) { *value = 1; return src + strlen("yes"); }
-    if (strcasecmp(src, "true") == 0) { *value = 1; return src + strlen("true"); }
+    *value = 0;
+
+    if (strcasecmp(src, "no") == 0)    { *value = 0; return src + strlen("no"); }
+    if (strcasecmp(src, "yes") == 0)   { *value = 1; return src + strlen("yes"); }
+    if (strcasecmp(src, "true") == 0)  { *value = 1; return src + strlen("true"); }
     if (strcasecmp(src, "false") == 0) { *value = 0; return src + strlen("false"); }
 
     return src;
