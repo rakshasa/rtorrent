@@ -71,10 +71,18 @@ rtorrent_Test_Src_SOURCES = $(rtorrent_Test_Common) \
 	src/test_command_path.h \
 	src/test_command_string.cc \
 	src/test_command_string.h \
+	src/test_command_throttle.cc \
+	src/test_command_throttle.h \
 	src/test_command_tracker.cc \
 	src/test_command_tracker.h \
 	src/test_download_list.cc \
 	src/test_download_list.h \
+	src/test_input_path_input.cc \
+	src/test_input_path_input.h \
+	src/test_session_commit.cc \
+	src/test_session_commit.h \
+	src/test_session_storer.cc \
+	src/test_session_storer.h \
 	src/test_setup.cc \
 	src/test_setup.h \
 	src/test_ui_download_list.cc \
