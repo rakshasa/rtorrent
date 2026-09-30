@@ -42,7 +42,11 @@ TestParse::test_whole_value_bases() {
   CPPUNIT_ASSERT(!rpc::parse_whole_value_nothrow("-0x1f", &value));
 
   CPPUNIT_ASSERT(rpc::parse_whole_value_nothrow("0022", &value));
-  CPPUNIT_ASSERT_EQUAL(int64_t{22}, value);
+  CPPUNIT_ASSERT_EQUAL(int64_t{022}, value);
+
+  CPPUNIT_ASSERT(!rpc::parse_whole_value_nothrow("0028", &value));
+  CPPUNIT_ASSERT(!rpc::parse_whole_value_nothrow("+022", &value));
+  CPPUNIT_ASSERT(!rpc::parse_whole_value_nothrow("-022", &value));
 
   CPPUNIT_ASSERT(rpc::parse_whole_value_nothrow("22", &value));
   CPPUNIT_ASSERT_EQUAL(int64_t{22}, value);
@@ -53,13 +57,19 @@ TestParse::test_whole_value_bases() {
   CPPUNIT_ASSERT(rpc::parse_whole_value_nothrow("0x1f", &value, 16));
   CPPUNIT_ASSERT_EQUAL(int64_t{31}, value);
 
+  CPPUNIT_ASSERT(rpc::parse_whole_value_nothrow("22", &value, 8));
+  CPPUNIT_ASSERT_EQUAL(int64_t{022}, value);
+
+  CPPUNIT_ASSERT(rpc::parse_whole_value_nothrow("022", &value, 8));
+  CPPUNIT_ASSERT_EQUAL(int64_t{022}, value);
+
   const char* no_digits = "0x";
   CPPUNIT_ASSERT(!rpc::parse_whole_value_nothrow(no_digits, &value));
-  CPPUNIT_ASSERT_EQUAL(no_digits, rpc::parse_value_nothrow(no_digits, &value));
+  CPPUNIT_ASSERT_EQUAL(no_digits + 1, rpc::parse_value_nothrow(no_digits, &value));
 
   const char* bad_digits = "0xzz";
   CPPUNIT_ASSERT(!rpc::parse_whole_value_nothrow(bad_digits, &value));
-  CPPUNIT_ASSERT_EQUAL(bad_digits, rpc::parse_value_nothrow(bad_digits, &value));
+  CPPUNIT_ASSERT_EQUAL(bad_digits + 1, rpc::parse_value_nothrow(bad_digits, &value));
 }
 
 void
