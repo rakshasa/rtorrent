@@ -69,8 +69,6 @@ public:
 
   bool                pressed(int key);
 
-  void                ignore(int key)     { (*this)[key] = slot_void(); }
-
 private:
   bool m_enabled{true};
 };
