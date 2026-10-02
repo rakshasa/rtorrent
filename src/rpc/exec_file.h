@@ -10,7 +10,11 @@ namespace rpc {
 class ExecFile {
 public:
   static constexpr unsigned int max_args    = 128;
-  static constexpr unsigned int buffer_size = 4096;
+  // Room for the arguments that are not strings already (values, lists, a command's result), printed one after
+  // the other: Linux's own limit for a single argument (MAX_ARG_STRLEN, 128 KiB). 4096 bytes overflowed on a
+  // torrent with a couple of hundred trackers, whose URLs ruTorrent's History plugin passes as one argument, and
+  // the exception ended the whole event handler chain (event.download.erased skipped ~_delete_tied).
+  static constexpr unsigned int buffer_size = 128 * 1024;
 
   static constexpr int flag_expand_tilde = 0x1;
   static constexpr int flag_throw        = 0x2;

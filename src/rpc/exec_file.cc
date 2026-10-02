@@ -1,5 +1,7 @@
 #include "config.h"
 
+#include <memory>
+
 #include "rpc/exec_file.h"
 
 // #include <cassert>
@@ -81,8 +83,9 @@ ExecFile::execute_object(const torrent::Object& rawArgs, int flags) {
   char*  argsBuffer[max_args];
   char** argsCurrent = argsBuffer;
 
-  // Size of value strings are less than 24.
-  char   valueBuffer[buffer_size+1];
+  // On the heap: a buffer of buffer_size does not belong on the stack of whichever thread runs the command.
+  auto   valueStorage = std::make_unique<char[]>(buffer_size + 1);
+  char*  valueBuffer  = valueStorage.get();
   char*  valueCurrent = valueBuffer;
 
   if (rawArgs.is_list()) {
