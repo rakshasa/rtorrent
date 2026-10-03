@@ -334,6 +334,11 @@ f_multicall(core::Download* download, const torrent::Object::list_type& args) {
 
   bool use_regex = true;
 
+  rpc::preparsed_commands commands([&args](auto& cmds) {
+    for (auto cItr = ++args.begin(); cItr != args.end(); ++cItr)
+      cmds.push_back(rpc::parse_command_object(cItr->as_string()));
+  });
+
   if (args.front().is_list())
     for (const auto& o : args.front().as_list())
       regex_list.push_back(o.as_string_c());
@@ -349,10 +354,10 @@ f_multicall(core::Download* download, const torrent::Object::list_type& args) {
 
     torrent::Object::list_type& row = result.insert(result.end(), torrent::Object::create_list())->as_list();
 
-    for (torrent::Object::list_const_iterator cItr = ++args.begin(); cItr != args.end(); cItr++) {
-      const std::string& cmd = cItr->as_string();
-      row.push_back(rpc::parse_command(rpc::make_target(file.get()), cmd.c_str(), cmd.c_str() + cmd.size()).first);
-    }
+    // Defer parsing until a file actually matches the multicall selection.
+    commands.prepare_if_needed();
+    for (auto& itr : commands)
+      row.push_back(rpc::call_object(itr, rpc::make_target(file.get())));
   }
 
   return resultRaw;
@@ -372,6 +377,11 @@ t_multicall(core::Download* download, const torrent::Object::list_type& args) {
   auto  result_raw = torrent::Object::create_list();
   auto& result     = result_raw.as_list();
 
+  rpc::preparsed_commands commands([&args](auto& cmds) {
+    for (auto cItr = ++args.begin(); cItr != args.end(); ++cItr)
+      cmds.push_back(rpc::parse_command_object(cItr->as_string()));
+  });
+
   for (uint32_t idx = 0, last = download->tracker_list_size(); idx < last; idx++) {
     auto& row     = result.insert(result.end(), torrent::Object::create_list())->as_list();
     auto  tracker = download->tracker_controller().at(idx);
@@ -379,11 +389,10 @@ t_multicall(core::Download* download, const torrent::Object::list_type& args) {
     if (!tracker.is_valid())
       continue;
 
-    for (auto cItr = ++args.begin(); cItr != args.end(); cItr++) {
-      auto& cmd = cItr->as_string();
-
-      row.push_back(rpc::parse_command(rpc::make_target(&tracker), cmd.c_str(), cmd.c_str() + cmd.size()).first);
-    }
+    // Do not parse columns when there are no valid tracker targets.
+    commands.prepare_if_needed();
+    for (auto& itr : commands)
+      row.push_back(rpc::call_object(itr, rpc::make_target(&tracker)));
   }
 
   return result_raw;
@@ -405,13 +414,18 @@ p_multicall(core::Download* download, const torrent::Object::list_type& args) {
   auto*      connection_list = download->connection_list();
   const auto change_counter  = connection_list->change_counter();
 
+  rpc::preparsed_commands commands([&args](auto& cmds) {
+    for (auto cItr = ++args.begin(); cItr != args.end(); ++cItr)
+      cmds.push_back(rpc::parse_command_object(cItr->as_string()));
+  });
+
   for (const auto& connection : *connection_list) {
     torrent::Object::list_type& row = result.insert(result.end(), torrent::Object::create_list())->as_list();
 
-    for (auto cItr = ++args.begin(); cItr != args.end(); cItr++) {
-      const std::string& cmd = cItr->as_string();
-
-      row.push_back(rpc::parse_command(rpc::make_target(connection), cmd.c_str(), cmd.c_str() + cmd.size()).first);
+    // Prepare only after a peer exists, preserving empty-list laziness.
+    commands.prepare_if_needed();
+    for (auto& itr : commands) {
+      row.push_back(rpc::call_object(itr, rpc::make_target(connection)));
 
       // Erasing a peer frees it and swaps the last element into its place, so
       // neither this peer nor the iteration survives a change to the list.

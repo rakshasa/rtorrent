@@ -124,6 +124,39 @@ parse_command(target_type target, const char* first, const char* last) {
 }
 
 torrent::Object
+parse_command_object(const char* first, const char* last) {
+  first = std::find_if(first, last, [&](char c) { return !command_map_is_space(c); });
+
+  if (first == last || *first == '#')
+    return torrent::Object();
+
+  char key[128];
+
+  first = parse_command_name(first, last, key, key + 128);
+  first = std::find_if(first, last, [&](char c) { return !command_map_is_space(c); });
+
+  if (first == last || *first != '=')
+    throw torrent::input_error("Could not find '=' in command '" + std::string(key) + "'.");
+
+  torrent::Object result = torrent::Object::create_dict_key();
+
+  result.as_dict_key() = key;
+
+  first = parse_whole_list(first + 1, last, &result.as_dict_obj(), &parse_is_delim_command);
+
+  // Find the last character that is part of this command, skipping
+  // the whitespace at the end.
+  first = std::find_if(first, last, [&](char c) { return !command_map_is_space(c); });
+
+  // This helper accepts exactly one command and cannot return where a next
+  // command begins, so reject every non-whitespace suffix, including ';'.
+  if (first != last && *first != '\0')
+    throw torrent::input_error("Junk at end of input.");
+
+  return result;
+}
+
+torrent::Object
 parse_command_multiple(target_type target, const char* first, const char* last) {
   parse_command_type result;
 

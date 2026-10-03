@@ -37,6 +37,9 @@
 
 #include <string>
 #include <cstring>
+#include <functional>
+#include <utility>
+#include <vector>
 
 #include "xmlrpc.h"
 #include "rpc_manager.h"
@@ -66,6 +69,34 @@ inline torrent::Object
 parse_command_single(target_type target, const std::string& cmd) {
   return parse_command(target, cmd.c_str(), cmd.c_str() + cmd.size()).first;
 }
+
+// Parse one RPC command without executing it. Repeated evaluations can use
+// call_object on the result, which handles per-target argument expansion.
+torrent::Object        parse_command_object(const char* first, const char* last);
+
+inline torrent::Object parse_command_object(const std::string& cmd) {
+  return parse_command_object(cmd.c_str(), cmd.c_str() + cmd.size());
+}
+
+// Prepare a multicall's commands once, on the first target that uses them. This
+// keeps empty target lists from parsing commands that would never be evaluated.
+struct preparsed_commands : public std::vector<torrent::Object> {
+  explicit preparsed_commands(std::function<void(preparsed_commands&)> prepare)
+    : m_prepare(std::move(prepare)) {}
+
+  void prepare_if_needed() {
+    if (m_prepare) {
+      // Clear before invoking: the callback may inspect this vector, and a
+      // throwing callback must not be run again against partially added items.
+      auto prepare = std::move(m_prepare);
+      m_prepare = {};
+      prepare(*this);
+    }
+  }
+
+private:
+  std::function<void(preparsed_commands&)> m_prepare;
+};
 
 inline torrent::Object
 parse_command_multiple_std(const std::string& cmd, target_type target = rpc::make_target()) {
