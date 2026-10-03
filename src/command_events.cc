@@ -247,20 +247,26 @@ d_multicall(const torrent::Object::list_type& args) {
   torrent::Object             resultRaw = torrent::Object::create_list();
   torrent::Object::list_type& result = resultRaw.as_list();
 
+  rpc::preparsed_commands commands([&args](auto& cmds) {
+    for (auto cItr = ++args.begin(); cItr != args.end(); ++cItr)
+      cmds.push_back(rpc::parse_command_object(cItr->as_string()));
+  });
+
   for (const auto& download : dlist) {
     if (download.use_count() == 1)
       continue;
 
     torrent::Object::list_type& row = result.insert(result.end(), torrent::Object::create_list())->as_list();
 
-    for (torrent::Object::list_const_iterator cItr = ++args.begin(); cItr != args.end(); cItr++) {
+    // Skip parsing if there are no usable download targets in the view.
+    commands.prepare_if_needed();
+    for (auto& itr : commands) {
       // A command may erase this download, which destroys the torrent object it
       // wraps; the list dropping its reference is what tells us.
       if (download.use_count() == 1)
         break;
 
-      auto& cmd = cItr->as_string();
-      row.push_back(rpc::parse_command(rpc::make_target(download), cmd.c_str(), cmd.c_str() + cmd.size()).first);
+      row.push_back(rpc::call_object(itr, rpc::make_target(download)));
     }
   }
 
