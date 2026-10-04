@@ -86,8 +86,10 @@ initialize_command_system() {
   CMD_VAR_VALUE   ("system.file.split_size",       -1);
   CMD_VAR_STRING  ("system.file.split_suffix",     ".part");
 
-  CMD_ANY         ("system.file_name.replace_slash",     [](auto, auto)      { return torrent::runtime::client_config()->file_name_replace_slash(); });
-  CMD_ANY_STRING_V("system.file_name.replace_slash.set", [](auto, auto& str) { return torrent::runtime::client_config()->set_file_name_replace_slash(str); });
+  CMD_ANY         ("system.file_name.replace_slash",         [](auto, auto)        { return torrent::runtime::client_config()->file_name_replace_slash(); });
+  CMD_ANY_STRING_V("system.file_name.replace_slash.set",     [](auto, auto& str)   { return torrent::runtime::client_config()->set_file_name_replace_slash(str); });
+  CMD_ANY         ("system.file_name.allow_legacy_utf8",     [](auto, auto)        { return torrent::runtime::client_config()->file_name_allow_legacy_utf8(); });
+  CMD_ANY_VALUE_V ("system.file_name.allow_legacy_utf8.set", [](auto, auto& value) { return torrent::runtime::client_config()->set_file_name_allow_legacy_utf8(value); });
 
   CMD_ANY         ("system.file_status_cache.size",      [](auto, auto)      { return control->core()->file_status_cache()->size(); });
   CMD_ANY_V       ("system.file_status_cache.prune",     [](auto, auto)      { return control->core()->file_status_cache()->prune(); });
@@ -167,10 +169,13 @@ initialize_command_system() {
   rpc::rpc.mark_safe("system.time");
   rpc::rpc.mark_safe("system.time_seconds");
   rpc::rpc.mark_safe("system.time_usec");
+  rpc::rpc.mark_safe("system.torrent_name.use_sanitized");
   rpc::rpc.mark_safe("system.file.allocate");
   rpc::rpc.mark_safe("system.file.max_size");
   rpc::rpc.mark_safe("system.file.split_size");
   rpc::rpc.mark_safe("system.file.split_suffix");
+  rpc::rpc.mark_safe("system.file_name.replace_slash");
+  rpc::rpc.mark_safe("system.file_name.allow_legacy_utf8");
 
   rpc::rpc.mark_safe("system.sockets.size");
   rpc::rpc.mark_safe("system.sockets.max_size");
