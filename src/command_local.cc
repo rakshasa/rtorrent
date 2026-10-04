@@ -77,54 +77,6 @@ group_insert(const torrent::Object::list_type& args) {
   return name;
 }
 
-static const int file_print_use_space = 0x1;
-static const int file_print_delim_space = 0x2;
-
-void
-file_print_list(torrent::Object::list_const_iterator first, torrent::Object::list_const_iterator last, FILE* output, int flags) {
-  while (first != last) {
-    switch (first->type()) {
-    case torrent::Object::TYPE_STRING:
-      fprintf(output, (const char*)" %s" + !(flags & file_print_use_space), first->as_string().c_str());
-      break;
-    case torrent::Object::TYPE_VALUE:
-      fprintf(output, (const char*)" %" PRIi64 + !(flags & file_print_use_space), first->as_value());
-      break;
-    case torrent::Object::TYPE_LIST:
-      file_print_list(first->as_list().begin(), first->as_list().end(), output, 0);
-      break;
-    case torrent::Object::TYPE_NONE:
-      break;
-    default:
-      throw torrent::input_error("Invalid type.");
-    }
-
-    flags |= (flags & file_print_delim_space) >> 1;
-    first++;
-  }
-}
-
-torrent::Object
-cmd_file_append(const torrent::Object::list_type& args) {
-  if (args.empty())
-    throw torrent::input_error("Invalid number of arguments.");
-
-  FILE* output = fopen(args.front().as_string().c_str(), "a");
-
-  if (output == nullptr)
-    throw torrent::input_error("Could not append to file '" + args.front().as_string() + "': " + std::strerror(errno));
-
-  try {
-    file_print_list(++args.begin(), args.end(), output, file_print_delim_space);
-    fprintf(output, "\n");
-  } catch (...) {
-    fclose(output);
-    throw;
-  }
-  fclose(output);
-  return torrent::Object();
-}
-
 void
 initialize_command_local() {
   core::DownloadList* dList = control->core()->download_list();

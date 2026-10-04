@@ -51,6 +51,8 @@ rtorrent_Test_Rpc_SOURCES = $(rtorrent_Test_Common) \
 	rpc/test_command_slot.h \
 	rpc/test_object_storage.cc \
 	rpc/test_object_storage.h \
+	rpc/test_parse.cc \
+	rpc/test_parse.h \
 	rpc/test_parse_options.cc \
 	rpc/test_parse_options.h \
 	rpc/test_rpc_manager.cc \
@@ -59,6 +61,8 @@ rtorrent_Test_Rpc_SOURCES = $(rtorrent_Test_Common) \
 rtorrent_Test_Src_SOURCES = $(rtorrent_Test_Common) \
 	src/test_command_dynamic.cc \
 	src/test_command_dynamic.h \
+	src/test_command_groups.cc \
+	src/test_command_groups.h \
 	src/test_command_ip.cc \
 	src/test_command_ip.h \
 	src/test_command_system.cc \
@@ -69,6 +73,10 @@ rtorrent_Test_Src_SOURCES = $(rtorrent_Test_Common) \
 	src/test_command_string.h \
 	src/test_command_throttle.cc \
 	src/test_command_throttle.h \
+	src/test_command_tracker.cc \
+	src/test_command_tracker.h \
+	src/test_download_list.cc \
+	src/test_download_list.h \
 	src/test_input_path_input.cc \
 	src/test_input_path_input.h \
 	src/test_session_commit.cc \

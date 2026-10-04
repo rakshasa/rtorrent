@@ -179,7 +179,7 @@ ElementMenu::set_entry(size_type idx, bool triggerSlot) {
   m_entry = idx;
   focus_entry(m_entry);
 
-  if (triggerSlot)
+  if (triggerSlot && m_entry < size())
     base_type::operator[](m_entry).m_slotFocus();
 
   m_window->mark_dirty();

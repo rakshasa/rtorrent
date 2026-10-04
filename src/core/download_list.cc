@@ -82,7 +82,7 @@ DownloadList::find(const torrent::HashString& hash) {
 
 DownloadList::iterator
 DownloadList::find_hex(const char* hash) {
-  if (strlen(hash) < 40)
+  if (strlen(hash) != 40)
     return end();
 
   torrent::HashString key;
@@ -708,6 +708,10 @@ DownloadList::confirm_finished(Download* download) {
   if (conn_current.is_string_empty()) conn_current = rpc::call_command("protocol.connection.seed", torrent::Object(), rpc::make_target(download));
   if (choke_up.is_string_empty())     choke_up     = rpc::call_command("protocol.choke_heuristics.up.seed", torrent::Object(), rpc::make_target(download));
   if (choke_down.is_string_empty())   choke_down   = rpc::call_command("protocol.choke_heuristics.down.seed", torrent::Object(), rpc::make_target(download));
+
+  // libtorrent refuses initial seeding on an active download.
+  if (download->is_active() && conn_current.as_string() == "initial_seed")
+    conn_current = "seed";
 
   rpc::call_command("d.connection_current.set",    conn_current, rpc::make_target(download));
   rpc::call_command("d.up.choke_heuristics.set",   choke_up, rpc::make_target(download));

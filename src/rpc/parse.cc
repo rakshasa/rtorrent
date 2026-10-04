@@ -1,5 +1,7 @@
 #include "config.h"
 
+#include <cctype>
+#include <charconv>
 #include <cstring>
 #include <cstdio>
 #include <limits>
@@ -113,16 +115,45 @@ parse_value_nothrow(const char* src, int64_t* value, int base, int unit) {
   if (unit <= 0)
     throw torrent::input_error("Command::string_to_value_unit(...) received unit <= 0.");
 
-  char* last;
+  if (base != 0 && base != 8 && base != 10 && base != 16)
+    throw torrent::input_error("Command::string_to_value_unit(...) received invalid base.");
+
+  const char* first = src;
+
+  while (parse_is_space(*src))
+    src++;
+
+  if (src[0] == '+')
+    return first;
+
+  if (src[0] == '-') {
+    if (base == 8 || base == 16)
+      return first;
+
+    if (src[1] == '0')
+      return first;
+  }
+
+  if (base == 10 && src[0] == '0' && (src[1] >= '0' && src[1] <= '9'))
+    return first;
+
+  char* last{};
+
+  errno  = 0;
   *value = strtoll(src, &last, base);
 
+  if (errno == ERANGE)
+    return first;
+
   if (last == src) {
-    if (strcasecmp(src, "no") == 0) { *value = 0; return src + strlen("no"); }
-    if (strcasecmp(src, "yes") == 0) { *value = 1; return src + strlen("yes"); }
-    if (strcasecmp(src, "true") == 0) { *value = 1; return src + strlen("true"); }
+    *value = 0;
+
+    if (strcasecmp(src, "no") == 0)    { *value = 0; return src + strlen("no"); }
+    if (strcasecmp(src, "yes") == 0)   { *value = 1; return src + strlen("yes"); }
+    if (strcasecmp(src, "true") == 0)  { *value = 1; return src + strlen("true"); }
     if (strcasecmp(src, "false") == 0) { *value = 0; return src + strlen("false"); }
 
-    return src;
+    return first;
   }
 
   switch (*last) {
@@ -130,15 +161,15 @@ parse_value_nothrow(const char* src, int64_t* value, int base, int unit) {
   case 'B': ++last; break;
   case 'k':
   case 'K':
-    if (!value_fits_shifted(*value, 10)) return src; // overflow guard
+    if (!value_fits_shifted(*value, 10)) return first; // overflow guard
     *value = *value << 10; ++last; break;
   case 'm':
   case 'M':
-    if (!value_fits_shifted(*value, 20)) return src; // overflow guard
+    if (!value_fits_shifted(*value, 20)) return first; // overflow guard
     *value = *value << 20; ++last; break;
   case 'g':
   case 'G':
-    if (!value_fits_shifted(*value, 30)) return src; // overflow guard
+    if (!value_fits_shifted(*value, 30)) return first; // overflow guard
     *value = *value << 30; ++last; break;
 //   case ' ':
 //   case '\0': *value = *value * unit; break;
@@ -146,7 +177,7 @@ parse_value_nothrow(const char* src, int64_t* value, int base, int unit) {
   default:
     if (*value > std::numeric_limits<int64_t>::max() / unit ||
         *value < std::numeric_limits<int64_t>::min() / unit)
-      return src; // overflow guard
+      return first; // overflow guard
 
     *value = *value * unit;
     break;
@@ -161,7 +192,7 @@ parse_object(const char* first, const char* last, torrent::Object* dest, bool (*
   if (++depth >= max_parse_depth)
     throw torrent::input_error("Max parse depth reached.");
 
-  if (*first == '{') {
+  if (first != last && *first == '{') {
     *dest = torrent::Object::create_list();
     first = parse_list(first + 1, last, dest, &parse_is_delim_block, depth);
     first = parse_skip_wspace(first, last);
@@ -171,7 +202,7 @@ parse_object(const char* first, const char* last, torrent::Object* dest, bool (*
 
     return ++first;
 
-  } else if (*first == '(') {
+  } else if (first != last && *first == '(') {
     int32_t parentheses = 1;
 
     while (first + 1 != last && *(first + 1) == '(') {
@@ -393,7 +424,7 @@ convert_to_value_nothrow(const torrent::Object& src, int64_t* value, int base, i
       == unpacked.as_string().c_str() + unpacked.as_string().size();
 
   case torrent::Object::TYPE_RAW_STRING: {
-    const torrent::raw_string& str = src.as_raw_string();
+    const torrent::raw_string& str = unpacked.as_raw_string();
 
     auto buffer = std::make_unique<char[]>(str.size() + 1);
     std::memcpy(buffer.get(), str.data(), str.size());
