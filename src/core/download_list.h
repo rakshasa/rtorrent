@@ -1,6 +1,7 @@
 #ifndef RTORRENT_CORE_DOWNLOAD_LIST_H
 #define RTORRENT_CORE_DOWNLOAD_LIST_H
 
+#include <cstdint>
 #include <iosfwd>
 #include <list>
 #include <memory>
