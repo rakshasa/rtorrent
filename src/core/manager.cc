@@ -440,7 +440,8 @@ Manager::receive_hashing_changed() {
       } else {
         (*itr)->set_hash_failed(true);
         (*itr)->set_message("Hashing failed: " + std::string(e.what()));
-        lt_log_print(torrent::LOG_TORRENT_ERROR, "Hashing failed: %s", e.what());
+
+        lt_log_print_hash_only(torrent::LOG_TORRENT_EVENTS, (*itr)->info()->hash(), "hashing failed : %s", e.what());
       }
     }
   }

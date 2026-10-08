@@ -20,9 +20,6 @@
 // For cg_d_group.
 #include "core/download.h"
 
-#define LT_LOG_SUBSYSTEM(log_fmt, ...)                                  \
-  lt_log_print_subsystem(torrent::LOG_TORRENT_INFO, "choke_queue", log_fmt, __VA_ARGS__);
-
 // A hack to allow testing of the new choke_group API without the
 // working parts present.
 #define USE_CHOKE_GROUP 0
@@ -207,7 +204,7 @@ apply_cg_index_of(const std::string& arg) {
 
 torrent::Object
 apply_cg_all_update_balance(bool is_up) {
-  LT_LOG_SUBSYSTEM("apply update balance: hack is_up:%i", (int)is_up);
+  lt_log_print(torrent::LOG_TORRENT_DEBUG, "choke_queue : applying update balance : is_up:%i", (int)is_up);
 
   for (const auto& itr : cg_list_hack) {
     if (is_up)
