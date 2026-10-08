@@ -107,7 +107,7 @@ apply_d_change_link(core::Download* download, const torrent::Object::list_type& 
   switch (changeType) {
   case 0:
     if (symlink(target.c_str(), link.c_str()) == -1)
-      lt_log_print(torrent::LOG_TORRENT_WARN, "create_link failed: %s", std::strerror(errno));
+      lt_log_print(torrent::LOG_TORRENT_DEBUG, "create_link failed: %s", std::strerror(errno));
 
     break;
 
@@ -117,7 +117,7 @@ apply_d_change_link(core::Download* download, const torrent::Object::list_type& 
     errno = 0;
 
     if (!fileStat.update_link(link) || !fileStat.is_link() || unlink(link.c_str()) == -1)
-      lt_log_print(torrent::LOG_TORRENT_WARN, "delete_link failed: %s", std::strerror(errno));
+      lt_log_print(torrent::LOG_TORRENT_DEBUG, "delete_link failed: %s", std::strerror(errno));
 
     break;
   }
@@ -135,7 +135,7 @@ apply_d_delete_tied(core::Download* download) {
   if (tie.empty())
     return torrent::Object();
 
-  if (::unlink(expand_path(tie).c_str()) == -1)
+  if (unlink(expand_path(tie).c_str()) == -1)
     control->core()->push_log_std("Could not unlink tied file: " + std::string(std::strerror(errno)));
 
   rpc::call_command("d.tied_to_file.set", std::string(), rpc::make_target(download));
@@ -293,7 +293,7 @@ apply_d_add_peer(core::Download* download, const std::string& arg) {
   // Currently discarding SOCK_STREAM.
   torrent::this_thread::resolver()->resolve_preferred(callback_id, host, AF_UNSPEC, AF_INET, [download, port](torrent::c_sa_shared_ptr sa, int err) {
       if (sa == nullptr) {
-        lt_log_print(torrent::LOG_TORRENT_WARN, "could not resolve hostname for added peer: %s", gai_strerror(err));
+        lt_log_print(torrent::LOG_TORRENT_DEBUG, "could not resolve hostname for added peer: %s", gai_strerror(err));
         return;
       }
 
