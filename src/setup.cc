@@ -142,7 +142,7 @@ parse_config_file_comments(const std::string& path) {
     else
       throw torrent::input_error("Unknown command in config file comment: " + line);
 
-    lt_log_print(torrent::LOG_NOTICE, "Pre-config command: %s=%s", command.c_str(), args.c_str());
+    lt_log_print(torrent::LOG_EVENTS, "Pre-config command: %s=%s", command.c_str(), args.c_str());
   }
 }
 

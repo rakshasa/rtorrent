@@ -106,7 +106,7 @@ apply_obsolete_encryption(const torrent::Object::list_type& args) {
     }
   }
 
-  lt_log_print(torrent::LOG_WARN, "Obsolete encryption options used, use 'handshake_{deny,allow,prefer,require}, stream_{deny,allow,prefer,require}' instead.");
+  lt_log_print(torrent::LOG_ERRORS, "Obsolete encryption options used, use 'handshake_{deny,allow,prefer,require}, stream_{deny,allow,prefer,require}' instead.");
 
   torrent::runtime::network_config()->set_encryption_modes(handshake_mode, stream_mode);
   return {};

@@ -380,7 +380,7 @@ Root::set_input_history_size(int size) {
 void
 Root::load_input_history() {
   if (m_control == nullptr || !session_thread::manager()->is_used()) {
-    lt_log_print(torrent::LOG_DEBUG, "ignoring input history file");
+    lt_log_print(torrent::LOG_DEBUG_TRACE, "ignoring input history file");
     return;
   }
 
@@ -415,10 +415,10 @@ Root::load_input_history() {
     }
 
     if (history_file.bad()) {
-      lt_log_print(torrent::LOG_DEBUG, "input history file corrupted, discarding (path:%s)", history_filename.c_str());
+      lt_log_print(torrent::LOG_DEBUG_TRACE, "input history file corrupted, discarding (path:%s)", history_filename.c_str());
       return;
     } else {
-      lt_log_print(torrent::LOG_DEBUG, "input history file read (path:%s)", history_filename.c_str());
+      lt_log_print(torrent::LOG_DEBUG_TRACE, "input history file read (path:%s)", history_filename.c_str());
     }
 
     for (const auto& [entry, category] : input_history_tmp) {
@@ -441,7 +441,7 @@ Root::load_input_history() {
       }
     }
   } else {
-    lt_log_print(torrent::LOG_DEBUG, "could not open input history file (path:%s)", history_filename.c_str());
+    lt_log_print(torrent::LOG_DEBUG_TRACE, "could not open input history file (path:%s)", history_filename.c_str());
   }
 }
 
@@ -455,7 +455,7 @@ Root::save_input_history() {
   auto history_file         = std::fstream(history_filename_tmp.c_str(), std::ios::out | std::ios::trunc);
 
   if (!history_file.is_open()) {
-    lt_log_print(torrent::LOG_DEBUG, "could not open input history file for writing (path:%s)", history_filename.c_str());
+    lt_log_print(torrent::LOG_DEBUG_TRACE, "could not open input history file for writing (path:%s)", history_filename.c_str());
     return;
   }
 
@@ -471,10 +471,10 @@ Root::save_input_history() {
   history_file.close();
 
   if (!history_file.good()) {
-    lt_log_print(torrent::LOG_DEBUG, "input history file corrupted during writing, discarding (path:%s)", history_filename.c_str());
+    lt_log_print(torrent::LOG_DEBUG_TRACE, "input history file corrupted during writing, discarding (path:%s)", history_filename.c_str());
     return;
   } else {
-    lt_log_print(torrent::LOG_DEBUG, "input history file written (path:%s)", history_filename.c_str());
+    lt_log_print(torrent::LOG_DEBUG_TRACE, "input history file written (path:%s)", history_filename.c_str());
   }
 
   std::rename(history_filename_tmp.c_str(), history_filename.c_str());

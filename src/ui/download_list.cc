@@ -366,7 +366,7 @@ DownloadList::receive_exit_input(Input type) {
     }
 
   } catch (torrent::input_error& e) {
-    lt_log_print(torrent::LOG_WARN, "Input failed: %s", e.what());
+    lt_log_print(torrent::LOG_ERRORS, "Input failed: %s", e.what());
   }
 
   activate_display(DISPLAY_DOWNLOAD_LIST);

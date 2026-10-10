@@ -394,7 +394,7 @@ cmd_catch(rpc::target_type target, const torrent::Object& args) {
   try {
     return rpc::call_object(args, target);
   } catch (torrent::input_error& e) {
-    lt_log_print(torrent::LOG_WARN, "Caught exception: '%s'.", e.what());
+    lt_log_print(torrent::LOG_ERRORS, "Caught exception: '%s'.", e.what());
     return torrent::Object();
   }
 }

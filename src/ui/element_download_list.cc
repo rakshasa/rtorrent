@@ -119,7 +119,7 @@ ElementDownloadList::receive_command(const char* cmd) {
     m_view->set_last_changed();
 
   } catch (torrent::input_error& e) {
-    lt_log_print(torrent::LOG_WARN, "Command failed: %s", e.what());
+    lt_log_print(torrent::LOG_ERRORS, "Command failed: %s", e.what());
     return;
   }
 }

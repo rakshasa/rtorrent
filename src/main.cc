@@ -152,10 +152,11 @@ main(int argc, char** argv) {
 
     SignalHandler::set_sigaction_handler(SIGBUS, &handle_sigbus);
 
-    torrent::log_add_group_output(torrent::LOG_NOTICE,         "important");
+    torrent::log_add_group_output(torrent::LOG_ERRORS,         "important");
     torrent::log_add_group_output(torrent::LOG_DHT_ERROR,      "important");
 
-    torrent::log_add_group_output(torrent::LOG_INFO,           "complete");
+    torrent::log_add_group_output(torrent::LOG_ERRORS,         "complete");
+    torrent::log_add_group_output(torrent::LOG_EVENTS,         "complete");
     torrent::log_add_group_output(torrent::LOG_DHT_ERROR,      "complete");
     torrent::log_add_group_output(torrent::LOG_DHT_CONTROLLER, "complete");
 
@@ -175,17 +176,17 @@ main(int argc, char** argv) {
 
     if (OptionParser::has_flag('D', argc, argv)) {
       rpc::call_command_set_value("method.use_deprecated.set", true);
-      lt_log_print(torrent::LOG_WARN, "Enabled deprecated commands.");
+      lt_log_print(torrent::LOG_ERRORS, "Enabled deprecated commands.");
     }
 
     if (OptionParser::has_flag('I', argc, argv)) {
       rpc::call_command_set_value("method.use_intermediate.set", 0);
-      lt_log_print(torrent::LOG_WARN, "Disabled intermediate commands.");
+      lt_log_print(torrent::LOG_ERRORS, "Disabled intermediate commands.");
     }
 
     if (OptionParser::has_flag('K', argc, argv)) {
       rpc::call_command_set_value("method.use_intermediate.set", 2);
-      lt_log_print(torrent::LOG_WARN, "Allowing intermediate commands without xmlrpc.");
+      lt_log_print(torrent::LOG_ERRORS, "Allowing intermediate commands without xmlrpc.");
     }
 
     rpc::parse_command_multiple
@@ -372,11 +373,11 @@ main(int argc, char** argv) {
     rpc::rpc.mark_safe("network.http.proxy_address");
 
     CMD2_ANY_VALUE_V("network.http.max_total_connections.set", [](auto, auto) {
-        lt_log_print(torrent::LOG_WARN, "network.http.max_total_connections.set is deprecated, use system.sockets.http.min_alloc.set instead.");
+        lt_log_print(torrent::LOG_ERRORS, "network.http.max_total_connections.set is deprecated, use system.sockets.http.min_alloc.set instead.");
       });
 
     CMD2_ANY_VALUE_V("network.max_open_files.set", [](auto, auto) {
-        lt_log_print(torrent::LOG_WARN, "network.max_open_files.set is deprecated, use system.sockets.files.min_alloc.set instead.");
+        lt_log_print(torrent::LOG_ERRORS, "network.max_open_files.set is deprecated, use system.sockets.files.min_alloc.set instead.");
       });
 
     // TODO: Keep d.directory_base for a while as it is widely used.
@@ -419,16 +420,16 @@ main(int argc, char** argv) {
       CMD_REDIRECT("max_memory_usage",      "pieces.memory.max.set");
 
       CMD_ANY_LIST("throttle.ip", []( auto, auto) {
-          lt_log_print(torrent::LOG_WARN, "The 'throttle.ip' command is deprecated and does nothing.");
+          lt_log_print(torrent::LOG_ERRORS, "The 'throttle.ip' command is deprecated and does nothing.");
           return torrent::Object();
         });
 
       CMD_ANY("network.port_open", [](auto, auto) {
-          lt_log_print(torrent::LOG_WARN, "The 'network.port_open' command is deprecated and does nothing.");
+          lt_log_print(torrent::LOG_ERRORS, "The 'network.port_open' command is deprecated and does nothing.");
           return torrent::Object();
         });
       CMD_ANY("network.port_open.set", [](auto, auto) {
-          lt_log_print(torrent::LOG_WARN, "The 'network.port_open.set' command is deprecated and does nothing.");
+          lt_log_print(torrent::LOG_ERRORS, "The 'network.port_open.set' command is deprecated and does nothing.");
           return torrent::Object();
         });
 
@@ -443,7 +444,7 @@ main(int argc, char** argv) {
 
       if (fd == -1) {
         if (errno == EAFNOSUPPORT) {
-          lt_log_print(torrent::LOG_WARN, "disabling ipv6 support, not available on system");
+          lt_log_print(torrent::LOG_ERRORS, "disabling ipv6 support, not available on system");
           rpc::call_command_set_value("network.block.ipv6.set", true);
         }
       } else {
@@ -455,7 +456,7 @@ main(int argc, char** argv) {
 
     parse_config_file(argc, argv, [](auto& path) {
         if (path.empty()) {
-          lt_log_print(torrent::LOG_WARN, "Ignoring rtorrent.rc.");
+          lt_log_print(torrent::LOG_ERRORS, "Ignoring rtorrent.rc.");
           return;
         }
 
@@ -499,7 +500,7 @@ main(int argc, char** argv) {
               << e.what() << std::endl
               << e.backtrace();
 
-    lt_log_print_dump(torrent::LOG_CRITICAL, e.backtrace().c_str(), e.backtrace().size(),
+    lt_log_print_dump(torrent::LOG_ERRORS, e.backtrace().c_str(), e.backtrace().size(),
                       "Caught internal_error: '%s'.", e.what());
 
     torrent::log_cleanup();
@@ -511,7 +512,7 @@ main(int argc, char** argv) {
 
     std::cout << "rtorrent: caught" << typeid(e).name() << " : " << e.what() << std::endl;
 
-    lt_log_print(torrent::LOG_CRITICAL, "Caught exception: '%s'.", e.what());
+    lt_log_print(torrent::LOG_ERRORS, "Caught exception: '%s'.", e.what());
 
     torrent::log_cleanup();
     return -1;
@@ -588,9 +589,9 @@ handle_sigbus(int signum, siginfo_t* sa, [[maybe_unused]] void* ptr) {
 handle_sigbus_exit:
   std::cout << output.rdbuf();
 
-  if (lt_log_is_valid(torrent::LOG_CRITICAL)) {
+  if (lt_log_is_valid(torrent::LOG_ERRORS)) {
     std::string dump = output.str();
-    lt_log_print_dump(torrent::LOG_CRITICAL, dump.c_str(), dump.size(), "Caught signal: '%s'.", signal_reason);
+    lt_log_print_dump(torrent::LOG_ERRORS, dump.c_str(), dump.size(), "Caught signal: '%s'.", signal_reason);
   }
 
   torrent::log_cleanup();
@@ -629,9 +630,9 @@ do_panic(int signum) {
 
   std::cout << output.rdbuf();
 
-  if (lt_log_is_valid(torrent::LOG_CRITICAL)) {
+  if (lt_log_is_valid(torrent::LOG_ERRORS)) {
     std::string dump = output.str();
-    lt_log_print_dump(torrent::LOG_CRITICAL, dump.c_str(), dump.size(), "Caught signal: '%s.", strsignal(signum));
+    lt_log_print_dump(torrent::LOG_ERRORS, dump.c_str(), dump.size(), "Caught signal: '%s.", strsignal(signum));
   }
 
   torrent::log_cleanup();

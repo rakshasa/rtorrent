@@ -104,7 +104,8 @@ print = (cat, "Logging to ", (cfg.logfile))
 
 log.open_file = "log", (cfg.logfile)
 
-log.add_output = "info", "log"
+log.add_output = "errors", "log"
+log.add_output = "events", "log"
 #log.add_output = "tracker_events", "log"
 #log.add_output = "tracker_requests", "log"
 
