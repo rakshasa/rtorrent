@@ -417,7 +417,7 @@ SessionManager::process_finished_saves() {
         continue;
       }
 
-      lt_log_print(torrent::LOG_ERROR, "Storage errors saving session data for download: ignored:%u : %s", m_ignored_storage_error_count, e.what());
+      lt_log_print(torrent::LOG_ERRORS, "Storage errors saving session data for download: ignored:%u : %s", m_ignored_storage_error_count, e.what());
 
       m_last_storage_error_message = torrent::this_thread::cached_time();
       m_ignored_storage_error_count = 0;

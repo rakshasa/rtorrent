@@ -184,7 +184,7 @@ DownloadFactory::receive_success() {
     libtorrent_resume_object = download_factory_load_stream((expand_path(m_uri) + ".libtorrent_resume").c_str(), &session_invalid);
 
     if (session_invalid)
-      lt_log_print(torrent::LOG_ERROR, "%s: %s", session_invalid_message, m_uri.c_str());
+      lt_log_print(torrent::LOG_ERRORS, "%s: %s", session_invalid_message, m_uri.c_str());
   }
 
   uint32_t tracker_key;
@@ -313,7 +313,7 @@ DownloadFactory::receive_success() {
   } catch (const torrent::input_error& e) {
     std::string msg = std::string(session_invalid_message) + ": " + e.what();
 
-    lt_log_print(torrent::LOG_ERROR, "%s: %s", msg.c_str(), m_uri.c_str());
+    lt_log_print(torrent::LOG_ERRORS, "%s: %s", msg.c_str(), m_uri.c_str());
 
     if (m_printLog)
       m_manager->push_log_std(msg + ": \"" + m_uri + "\"");

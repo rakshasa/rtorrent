@@ -82,7 +82,7 @@ ThreadScgi::change_rpc_log() {
     ::close(scgi()->log_fd());
     scgi()->set_log_fd(-1);
 
-    lt_log_print(torrent::LOG_NOTICE, "Closed RPC log.", 0);
+    lt_log_print(torrent::LOG_EVENTS, "Closed RPC log.", 0);
   }
 
   if (m_rpc_log_filename.empty())
@@ -91,11 +91,11 @@ ThreadScgi::change_rpc_log() {
   scgi()->set_log_fd(open(expand_path(m_rpc_log_filename).c_str(), O_WRONLY | O_APPEND | O_CREAT, 0644));
 
   if (scgi()->log_fd() == -1) {
-    lt_log_print(torrent::LOG_NOTICE, "Could not open RPC log file '%s'.", m_rpc_log_filename.c_str());
+    lt_log_print(torrent::LOG_EVENTS, "Could not open RPC log file '%s'.", m_rpc_log_filename.c_str());
     return;
   }
 
-  lt_log_print(torrent::LOG_NOTICE, "Logging RPC events to '%s'.", m_rpc_log_filename.c_str());
+  lt_log_print(torrent::LOG_EVENTS, "Logging RPC events to '%s'.", m_rpc_log_filename.c_str());
 }
 
 void

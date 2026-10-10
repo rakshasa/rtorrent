@@ -18,7 +18,8 @@ Some control over formatting will be provided at a later date.
 \begin{verbatim}
 # log.add_output = "logging event", "log name"
 
-log.add_output = "info", "rtorrent.log"
+log.add_output = "errors", "rtorrent.log"
+log.add_output = "events", "rtorrent.log"
 
 log.add_output = "dht_all", "tracker.log"
 log.add_output = "tracker_events", "tracker.log"
@@ -31,21 +32,16 @@ Each log handle can be added to multiple different logging events.
 \subsection{Logging events}
 
 \begin{verbatim}
-"critical"
-"error"
-"warn"
-"notice"
-"info"
-"debug"
+"errors"
+"events"
+"debug_trace"
 \end{verbatim}
 
-The above events receive logging events from all the sub-groups
-displayed below, and each event also reciving events from the event
-above in importance.
+The above events are not cascading, so add both ``errors'' and
+``events'' to an output to receive both.
 
-Thus some high-volume sub-group events such as ``tracker\_debug'' are
-not part of ``debug'' and every ``warn'' event will receive events
-from ``error'', ``critical''.
+High-volume sub-group events such as ``tracker\_debug'' are not part
+of ``debug\_trace''.
 
 \begin{verbatim}
 "connection_*"

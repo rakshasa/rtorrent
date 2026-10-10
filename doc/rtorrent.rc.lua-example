@@ -135,7 +135,8 @@ rc.schedule2('watch_load', '11', '10', 'load.verbose=(cat, (cfg.watch), "load/*.
 --   Groups = connection_* dht_* peer_* rpc_* storage_* thread_* tracker_* torrent_*
 rc.print('Logging to '..rc.cfg.logfile())
 rc.log.open_file('log', rc.cfg.logfile())
-rc.log.add_output('info', 'log')
+rc.log.add_output('errors', 'log')
+rc.log.add_output('events', 'log')
 --rc.log.add_output('tracker_events', 'log')
 --rc.log.add_output('tracker_requests', 'log')
 

@@ -57,7 +57,7 @@ assert_arg_count_error(const std::string& line) {
 
 void
 TestSetup::test_config_comment_log_add_output() {
-  temp_config_file file("# do:log.add_output=debug,test_output");
+  temp_config_file file("# do:log.add_output=debug_trace,test_output");
 
   CPPUNIT_ASSERT_NO_THROW(parse_config_file_comments(file.path()));
 }
@@ -69,10 +69,10 @@ TestSetup::test_config_comment_log_add_output_no_args() {
 
 void
 TestSetup::test_config_comment_log_add_output_one_arg() {
-  assert_arg_count_error("# do:log.add_output=debug");
+  assert_arg_count_error("# do:log.add_output=debug_trace");
 }
 
 void
 TestSetup::test_config_comment_log_add_output_too_many_args() {
-  assert_arg_count_error("# do:log.add_output=debug,test_output,extra");
+  assert_arg_count_error("# do:log.add_output=debug_trace,test_output,extra");
 }

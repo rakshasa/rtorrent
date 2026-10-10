@@ -61,7 +61,7 @@ DownloadList::clear() {
       torrent::download_remove(*download->download());
 
     } catch (torrent::internal_error& e) {
-      lt_log_print(torrent::LOG_ERROR, "DownloadList::clear() failed to close or remove download: %s", e.what());
+      lt_log_print(torrent::LOG_ERRORS, "DownloadList::clear() failed to close or remove download: %s", e.what());
       error_count++;
       continue;
     }
