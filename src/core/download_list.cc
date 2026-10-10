@@ -30,9 +30,9 @@
 #include "ui/root.h"
 
 #define LT_LOG_DOWNLOAD_DEBUG(log_fmt, ...)                             \
-  lt_log_print_hash_only(torrent::LOG_TORRENT_DEBUG, download->info()->hash(), "download_list : " log_fmt, __VA_ARGS__);
+  lt_log_print_hash(torrent::LOG_TORRENT_DEBUG, download->info()->hash(), "download_list : " log_fmt, __VA_ARGS__);
 #define LT_LOG_DOWNLOAD_EVENTS(log_fmt, ...)                             \
-  lt_log_print_info(torrent::LOG_TORRENT_EVENTS, download->info(), "download_list", log_fmt, __VA_ARGS__);
+  lt_log_print_info(torrent::LOG_TORRENT_EVENTS, download->info(), "download_list : " log_fmt, __VA_ARGS__);
 
 #define DL_TRIGGER_EVENT(download, event_name)                          \
   rpc::commands.call_catch(event_name, rpc::make_target(download), torrent::Object(), "Event '" event_name "' failed: ");
@@ -205,7 +205,7 @@ DownloadList::erase(iterator itr) {
 
   (*itr)->set_erasing();
 
-  lt_log_print_hash_only(torrent::LOG_TORRENT_DEBUG, (*itr)->info()->hash(), "download_list : removing download");
+  lt_log_print_hash(torrent::LOG_TORRENT_DEBUG, (*itr)->info()->hash(), "download_list : removing download");
 
   // Makes sure close doesn't restart hashing of this download.
   (*itr)->set_hash_failed(true);
@@ -242,7 +242,7 @@ void
 DownloadList::open_throw(Download* download) {
   check_contains(download);
 
-  lt_log_print_hash_only(torrent::LOG_TORRENT_DEBUG, download->info()->hash(), "download_list : opening download");
+  lt_log_print_hash(torrent::LOG_TORRENT_DEBUG, download->info()->hash(), "download_list : opening download");
 
   if (download->download()->info()->is_open())
     return;
@@ -271,7 +271,7 @@ DownloadList::close(Download* download) {
 // need the files closed and will keep using the download.
 void
 DownloadList::close_files(Download* download) {
-  lt_log_print_hash_only(torrent::LOG_TORRENT_DEBUG, download->info()->hash(), "download_list : closing download files");
+  lt_log_print_hash(torrent::LOG_TORRENT_DEBUG, download->info()->hash(), "download_list : closing download files");
 
   if (download->download()->info()->is_active()) {
     download->download()->stop(torrent::Download::stop_skip_tracker);
@@ -286,7 +286,7 @@ DownloadList::close_files(Download* download) {
 
 void
 DownloadList::close_directly(Download* download) {
-  lt_log_print_hash_only(torrent::LOG_TORRENT_DEBUG, download->info()->hash(), "download_list : closing download directly");
+  lt_log_print_hash(torrent::LOG_TORRENT_DEBUG, download->info()->hash(), "download_list : closing download directly");
 
   auto lifetime   = download->lifetime();
   bool was_active = download->download()->info()->is_active();
@@ -333,7 +333,7 @@ DownloadList::update_paused_state(Download* download) {
 
 void
 DownloadList::close_quick(Download* download) {
-  lt_log_print_hash_only(torrent::LOG_TORRENT_DEBUG, download->info()->hash(), "download_list : closing download quickly.");
+  lt_log_print_hash(torrent::LOG_TORRENT_DEBUG, download->info()->hash(), "download_list : closing download quickly.");
 
   close(download);
 

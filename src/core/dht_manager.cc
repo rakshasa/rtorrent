@@ -21,10 +21,10 @@
 #include "session/session_manager.h"
 
 #define LT_LOG(log_fmt, ...)                                            \
-  lt_log_print_subsystem(torrent::LOG_DHT_CONTROLLER, "dht_manager", log_fmt, __VA_ARGS__);
+  lt_log_print(torrent::LOG_DHT_CONTROLLER, "dht_manager : " log_fmt, __VA_ARGS__);
 
 #define LT_LOG_ERROR(log_fmt, ...)                                      \
-  lt_log_print_subsystem(torrent::LOG_DHT_ERROR, "dht_manager", log_fmt, __VA_ARGS__);
+  lt_log_print(torrent::LOG_DHT_ERROR, "dht_manager : " log_fmt, __VA_ARGS__);
 
 namespace core {
 
