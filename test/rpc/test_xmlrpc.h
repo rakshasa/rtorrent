@@ -9,9 +9,13 @@ class TestXmlrpc : public test_fixture {
 
   CPPUNIT_TEST(test_basics);
   CPPUNIT_TEST(test_invalid_utf8);
+  CPPUNIT_TEST(test_xml_string_bytes);
+  CPPUNIT_TEST(test_xml_fault_bytes);
+  CPPUNIT_TEST(test_xml_member_name);
   CPPUNIT_TEST(test_size_limit);
   CPPUNIT_TEST(test_response_size_limit);
   CPPUNIT_TEST(test_multicall_member_order);
+  CPPUNIT_TEST(test_multicall_bytes);
 
   CPPUNIT_TEST_SUITE_END();
 
@@ -23,9 +27,13 @@ public:
 
   void test_basics();
   void test_invalid_utf8();
+  void test_xml_string_bytes();
+  void test_xml_fault_bytes();
+  void test_xml_member_name();
   void test_size_limit();
   void test_response_size_limit();
   void test_multicall_member_order();
+  void test_multicall_bytes();
 
 private:
   std::unique_ptr<TestMainThread> m_test_main_thread;

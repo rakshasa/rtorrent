@@ -9,6 +9,7 @@
 #include "command_helpers.h"
 #include "rpc/command_map.h"
 #include "rpc/scgi_task.h"
+#include <torrent/utils/string_manip.h>
 
 CPPUNIT_TEST_SUITE_REGISTRATION(TestXmlrpc);
 
@@ -20,6 +21,14 @@ xmlrpc_cmd_test_reflect([[maybe_unused]] rpc::target_type t, const torrent::Obje
 torrent::Object
 xmlrpc_cmd_test_reflect_string([[maybe_unused]] rpc::target_type t, const std::string& obj) {
   return obj;
+}
+
+torrent::Object
+xmlrpc_cmd_test_map([[maybe_unused]] rpc::target_type t, const std::string& key) {
+  auto result = torrent::Object::create_map();
+  result.as_map()["partial-safe-key"] = "safe";
+  result.as_map()[key] = "value";
+  return result;
 }
 
 torrent::Object
@@ -134,6 +143,9 @@ TestXmlrpc::setUp() {
   if (rpc::commands.find("xmlrpc_reflect_string") == rpc::commands.end())
     CMD2_ANY_STRING("xmlrpc_reflect_string", &xmlrpc_cmd_test_reflect_string);
 
+  if (rpc::commands.find("xmlrpc_map") == rpc::commands.end())
+    CMD2_ANY_STRING("xmlrpc_map", &xmlrpc_cmd_test_map);
+
   if (rpc::commands.find("xmlrpc_oversized") == rpc::commands.end())
     CMD2_ANY("xmlrpc_oversized", &xmlrpc_cmd_test_oversized);
 }
@@ -154,14 +166,88 @@ TestXmlrpc::test_basics() {
 
 void
 TestXmlrpc::test_invalid_utf8() {
-  // Surprisingly, this call doesn't fail. TinyXML-2 technically expects
-  // valid UTF-8, but doesn't check strings, and Object strings are
-  // just a series of bytes so it reflects just fine.
+  // TinyXML-2 accepts these input bytes, but the response must be valid XML.
   std::string input = "<?xml version=\"1.0\"?><methodCall><methodName>xmlrpc_reflect</methodName><params><param><value><string></string></value></param><param><value><string>\xc3\x28</string></value></param></params></methodCall>";
-  std::string expected = "<?xml version=\"1.0\"?><methodResponse><params><param><value><array><data><value><string>\xc3\x28</string></value></data></array></value></param></params></methodResponse>";
+  std::string expected = "<?xml version=\"1.0\"?><methodResponse><params><param><value><array><data><value><base64>wyg=</base64></value></data></array></value></param></params></methodResponse>";
   std::string output;
   m_xmlrpc.process(input.c_str(), input.size(), [&output](const char* c, uint32_t l){ output.append(c, l); return true;});
   CPPUNIT_ASSERT_EQUAL(expected, output);
+}
+
+void
+TestXmlrpc::test_xml_string_bytes() {
+  auto reflect = [this](const std::string& raw) {
+    const auto input = "<?xml version=\"1.0\"?><methodCall><methodName>xmlrpc_reflect_string</methodName>"
+      "<params><param><value><string></string></value></param><param><value><base64>" +
+      torrent::utils::transform_to_base64(raw) + "</base64></value></param></params></methodCall>";
+    std::string output;
+    m_xmlrpc.process(input.c_str(), input.size(), [&output](const char* c, uint32_t l){ output.append(c, l); return true;});
+    return output;
+  };
+  auto expect = [&reflect](const std::string& raw, const std::string& value) {
+    CPPUNIT_ASSERT_EQUAL("<?xml version=\"1.0\"?><methodResponse><params><param><value>" + value +
+                         "</value></param></params></methodResponse>", reflect(raw));
+  };
+  auto binary = [&expect](const std::string& raw) {
+    expect(raw, "<base64>" + torrent::utils::transform_to_base64(raw) + "</base64>");
+  };
+
+  // A control byte in a metainfo name must survive strict XML decoding.
+  binary("ctl\x01name.bin");
+  for (unsigned char ch = 0; ch < 0x20; ++ch) {
+    const auto raw = std::string("before") + static_cast<char>(ch) + "after";
+    if (ch == '\t' || ch == '\n')
+      expect(raw, "<string>" + raw + "</string>");
+    else
+      binary(raw);
+  }
+
+  for (const auto& raw : {std::string("\xc3\x28"), std::string("\x80"), std::string("\xe2\x82"),
+                          std::string("\xc0\x80"), std::string("\xc1\xbf"), std::string("\xe0\x80\x80"),
+                          std::string("\xed\xa0\x80"), std::string("\xf0\x80\x80\x80"),
+                          std::string("\xf4\x90\x80\x80"), std::string("\xf5\x80\x80\x80"),
+                          std::string("\xef\xbf\xbe"), std::string("\xef\xbf\xbf")})
+    binary(raw);
+
+  expect("", "<string></string>");
+  expect("normal", "<string>normal</string>");
+  expect("<&>\"'", "<string>&lt;&amp;&gt;\"'</string>");
+  const std::string valid = "чао😊\x7f\xc2\x80\xed\x9f\xbf\xee\x80\x80\xef\xbf\xbd\xf4\x8f\xbf\xbf";
+  expect(valid, "<string>" + valid + "</string>");
+}
+
+void
+TestXmlrpc::test_xml_fault_bytes() {
+  // The missing method's name is echoed in a top-level fault, not a result.
+  const std::string input = "<?xml version=\"1.0\"?><methodCall><methodName>bad\x01method</methodName></methodCall>";
+  std::string output;
+  m_xmlrpc.process(input.c_str(), input.size(), [&output](const char* c, uint32_t l){ output.append(c, l); return true;});
+  CPPUNIT_ASSERT(output.find("<name>faultCode</name><value><i8>-506</i8>") != std::string::npos);
+  CPPUNIT_ASSERT(output.find("<name>faultString</name><value><string>escaped bytes: method 'bad\\x01method' not defined</string>") != std::string::npos);
+}
+
+void
+TestXmlrpc::test_xml_member_name() {
+  const std::string expected = "<?xml version=\"1.0\"?><methodResponse><fault><value><struct>"
+    "<member><name>faultCode</name><value><i8>-501</i8></value></member>"
+    "<member><name>faultString</name><value><string>struct member name is not XML 1.0 text</string></value></member>"
+    "</struct></value></fault></methodResponse>";
+  for (const auto& key : {std::string("unsafe\x01key"), std::string("nul\0key", 7), std::string("cr\rkey"),
+                          std::string("\xc0\x80"), std::string("\xef\xbf\xbf")}) {
+    const std::string input = "<?xml version=\"1.0\"?><methodCall><methodName>xmlrpc_map</methodName>"
+      "<params><param><value><string></string></value></param><param><value><base64>" +
+      torrent::utils::transform_to_base64(key) + "</base64></value></param></params></methodCall>";
+    std::string output;
+    unsigned writes = 0;
+    m_xmlrpc.process(input.c_str(), input.size(), [&output, &writes](const char* c, uint32_t l) {
+      ++writes;
+      output.append(c, l);
+      return true;
+    });
+    // A partly printed result must never reach the writer before the fault.
+    CPPUNIT_ASSERT_EQUAL(1u, writes);
+    CPPUNIT_ASSERT_EQUAL(expected, output);
+  }
 }
 
 void
@@ -211,6 +297,40 @@ multicall_request(const std::string& members) {
 }
 
 void
+TestXmlrpc::test_multicall_bytes() {
+  auto call = [this](const std::string& name, const std::string& value) {
+    const auto input = multicall_request(
+      "<member><name>methodName</name><value><string>" + name + "</string></value></member>"
+      "<member><name>params</name><value><array><data><value><string></string></value>" +
+      value + "</data></array></value></member>");
+    std::string output;
+    unsigned writes = 0;
+    m_xmlrpc.process(input.c_str(), input.size(), [&output, &writes](const char* c, uint32_t l) {
+      ++writes;
+      output.append(c, l);
+      return true;
+    });
+    CPPUNIT_ASSERT_EQUAL(1u, writes);
+    return output;
+  };
+  const std::string binary = "<value><base64>AAENCv8=</base64></value>";
+  const auto output = call("xmlrpc_reflect_string", binary);
+  CPPUNIT_ASSERT_EQUAL(std::string("<?xml version=\"1.0\"?><methodResponse><params><param><value>"
+    "<array><data><value><array><data>") + binary +
+    "</data></array></value></data></array></value></param></params></methodResponse>", output);
+
+  const auto fault = call("bad\x01method", "");
+  CPPUNIT_ASSERT(fault.find("<name>faultString</name><value><string>escaped bytes: method 'bad\\x01method' not defined</string>") != std::string::npos);
+  CPPUNIT_ASSERT(fault.find("<base64>") == std::string::npos);
+
+  const auto key_fault = call("xmlrpc_map", binary);
+  CPPUNIT_ASSERT_EQUAL(std::string("<?xml version=\"1.0\"?><methodResponse><fault><value><struct>"
+    "<member><name>faultCode</name><value><i8>-501</i8></value></member>"
+    "<member><name>faultString</name><value><string>struct member name is not XML 1.0 text</string></value></member>"
+    "</struct></value></fault></methodResponse>"), key_fault);
+}
+
+void
 TestXmlrpc::test_multicall_member_order() {
   auto call = [this](const std::string& input) {
     std::string output;
@@ -236,10 +356,14 @@ TestXmlrpc::test_multicall_member_order() {
 #else
 
 void TestXmlrpc::test_invalid_utf8() {}
+void TestXmlrpc::test_xml_string_bytes() {}
+void TestXmlrpc::test_xml_fault_bytes() {}
+void TestXmlrpc::test_xml_member_name() {}
 void TestXmlrpc::test_basics() {}
 void TestXmlrpc::test_size_limit() {}
 void TestXmlrpc::test_response_size_limit() {}
 void TestXmlrpc::test_multicall_member_order() {}
+void TestXmlrpc::test_multicall_bytes() {}
 void TestXmlrpc::setUp() {}
 void TestXmlrpc::tearDown() {}
 
