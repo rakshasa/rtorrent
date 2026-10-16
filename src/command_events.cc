@@ -253,7 +253,7 @@ d_multicall(const torrent::Object::list_type& args) {
   });
 
   for (const auto& download : dlist) {
-    if (download.use_count() == 1)
+    if (download->lifetime().expired())
       continue;
 
     torrent::Object::list_type& row = result.insert(result.end(), torrent::Object::create_list())->as_list();
@@ -261,9 +261,9 @@ d_multicall(const torrent::Object::list_type& args) {
     // Skip parsing if there are no usable download targets in the view.
     commands.prepare_if_needed();
     for (auto& itr : commands) {
-      // A command may erase this download, which destroys the torrent object it
-      // wraps; the list dropping its reference is what tells us.
-      if (download.use_count() == 1)
+      // Other callback snapshots may retain this wrapper after erase. Only
+      // its lifetime token attests that the underlying torrent still exists.
+      if (download->lifetime().expired())
         break;
 
       row.push_back(rpc::call_object(itr, rpc::make_target(download)));
@@ -300,7 +300,7 @@ d_multicall_filtered(const torrent::Object::list_type& args) {
   ++arg;  // skip to first command
 
   for (const auto& item : dlist) {
-    if (item.use_count() == 1)
+    if (item->lifetime().expired())
       continue;
 
     // Add empty row to result
@@ -308,7 +308,7 @@ d_multicall_filtered(const torrent::Object::list_type& args) {
 
     // Call the provided commands and assemble their results
     for (torrent::Object::list_const_iterator command = arg; command != args.end(); command++) {
-      if (item.use_count() == 1)
+      if (item->lifetime().expired())
         break;
 
       auto& cmdstr = command->as_string();
