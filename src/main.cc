@@ -489,7 +489,11 @@ main(int argc, char** argv) {
 
     torrent::system::Thread::self()->event_loop();
 
-    control->core()->download_list()->session_save();
+    // A quick shutdown with no tracker request pending leaves the loop before
+    // handle_shutdown() could save.
+    if (!control->is_shutdown_session_saved())
+      control->core()->download_list()->session_save();
+
     control->cleanup();
 
   } catch (torrent::internal_error& e) {

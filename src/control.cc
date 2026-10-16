@@ -10,6 +10,7 @@
 #include <torrent/utils/directory_events.h>
 
 #include "core/dht_manager.h"
+#include "core/download_list.h"
 #include "core/http_queue.h"
 #include "core/manager.h"
 #include "core/view_manager.h"
@@ -150,6 +151,15 @@ Control::handle_shutdown() {
   } else {
     torrent::runtime::quick_shutdown();
     m_core->shutdown(true);
+  }
+
+  if (!m_shutdown_session_saved) {
+    // Transfers are stopped, so this is the final state; write it before the
+    // stopped announces can hold the shutdown. A shutdown hook may already
+    // have queued these resume builds.
+    m_core->download_list()->session_save();
+    session_thread::manager()->flush_shutdown_saves();
+    m_shutdown_session_saved = true;
   }
 
   if (!m_task_shutdown_clear_requests.is_scheduled())
