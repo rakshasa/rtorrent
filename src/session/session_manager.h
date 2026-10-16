@@ -79,6 +79,7 @@ protected:
   void                cleanup();
 
   void                flush_all_pending_builds();
+  void                flush_shutdown_saves();
 
 private:
   void                callback_pending_builds();
@@ -97,6 +98,9 @@ private:
   bool                remove_completely_unsafe(core::Download* download, std::unique_lock<std::mutex>& lock);
 
   using ProcessingSave = std::pair<std::future<void>, SaveRequest>;
+
+  void                consume_finished_save_unsafe(ProcessingSave& request);
+  void                report_storage_error_unsafe(const std::string& what);
 
   torrent::system::Thread*     m_thread;
   torrent::system::callback_id m_callback_id;

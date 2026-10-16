@@ -50,6 +50,7 @@ public:
   bool                is_shutdown_completed();
   bool                is_shutdown_received()        { return m_shutdown_received; }
   bool                is_shutdown_started()         { return m_shutdown_quick; }
+  bool                is_shutdown_session_saved()   { return m_shutdown_session_saved; }
 
   void                initialize();
   void                cleanup();
@@ -114,6 +115,7 @@ private:
 
   align_cacheline
 
+  bool                m_shutdown_session_saved{};
   std::atomic<bool>   m_shutdown_received{};
   std::atomic<bool>   m_shutdown_quick{};
 };
