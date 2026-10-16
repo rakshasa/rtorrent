@@ -10,6 +10,7 @@
 #include <torrent/utils/directory_events.h>
 
 #include "core/dht_manager.h"
+#include "core/download_list.h"
 #include "core/http_queue.h"
 #include "core/manager.h"
 #include "core/view_manager.h"
@@ -136,6 +137,14 @@ Control::handle_shutdown() {
 
   if (scgi_thread::thread()->is_active())
     scgi_thread::thread()->stop_thread_wait();
+
+  if (!m_shutdown_session_saved) {
+    // Flush the latest state before stopped announces can consume the timeout.
+    // A shutdown hook may already have queued these resume builds.
+    m_core->download_list()->session_save();
+    session_thread::manager()->flush_shutdown_saves();
+    m_shutdown_session_saved = true;
+  }
 
   if (!m_shutdown_quick) {
     torrent::runtime::network_manager()->listen_close();
