@@ -165,13 +165,69 @@ xml_value_to_object(const tinyxml2::XMLNode* elem) {
   return torrent::Object();
 }
 
+namespace {
+
+bool
+is_xml_string(const std::string& text) {
+  if (!torrent::utils::is_valid_utf8(text))
+    return false;
+
+  for (size_t i = 0; i < text.size(); ++i) {
+    const auto byte = static_cast<unsigned char>(text[i]);
+    // XML 1.0 Char excludes C0 except TAB/LF/CR. Encode CR as binary too:
+    // XML parsers normalize literal CR to LF, losing the original bytes.
+    if (byte < 0x20 && byte != '\t' && byte != '\n')
+      return false;
+
+    // The shared validator checks continuation shape, not Unicode scalar
+    // bounds or shortest forms. These boundaries add strict UTF-8 admission.
+    if (byte == 0xc0 || byte == 0xc1 || byte >= 0xf5)
+      return false;
+    if (byte == 0xe0 || byte == 0xed || byte == 0xf0 || byte == 0xf4) {
+      const auto next = static_cast<unsigned char>(text[i + 1]);
+      if ((byte == 0xe0 && next < 0xa0) || (byte == 0xed && next >= 0xa0) ||
+          (byte == 0xf0 && next < 0x90) || (byte == 0xf4 && next >= 0x90))
+        return false;
+    }
+  }
+
+  // The remaining XML 1.0 exclusions are U+FFFE and U+FFFF; the UTF-8
+  // boundaries above already exclude surrogates and values above U+10FFFF.
+  return text.find("\xef\xbf\xbe") == std::string::npos &&
+         text.find("\xef\xbf\xbf") == std::string::npos;
+}
+
+std::string
+xml_fault_text(const std::string& text) {
+  if (is_xml_string(text))
+    return text;
+
+  // XML-RPC requires faultString to be a string. Unlike result metadata,
+  // unsafe diagnostics use reversible printable byte escapes, not base64.
+  // Exception callers expose only the C string from what(): a suffix after
+  // an embedded NUL is unavailable through that existing API.
+  std::string result = "escaped bytes: ";
+  for (unsigned char byte : text) {
+    if (byte < 0x20 || byte > 0x7e || byte == '\\') {
+      result += "\\x";
+      result += torrent::utils::value_to_hex1(byte);
+      result += torrent::utils::value_to_hex0(byte);
+    } else {
+      result += byte;
+    }
+  }
+  return result;
+}
+
+} // namespace
+
 void
 print_object_xml(const torrent::Object& obj, tinyxml2::XMLPrinter* printer) {
   switch (obj.type()) {
   case torrent::Object::TYPE_STRING:
-    if (obj.flags() & torrent::Object::flag_as_binary) {
+    if ((obj.flags() & torrent::Object::flag_as_binary) || !is_xml_string(obj.as_string())) {
       // It is optimal for tinyxml2 to pass base64 strings directly from torrent::string_utf8 sources.
-      if (obj.flags() & torrent::Object::flag_base64) {
+      if ((obj.flags() & torrent::Object::flag_as_binary) && (obj.flags() & torrent::Object::flag_base64)) {
         printer->OpenElement("base64", true);
         printer->PushText(obj.as_string().c_str());
         printer->CloseElement(true);
@@ -209,6 +265,11 @@ print_object_xml(const torrent::Object& obj, tinyxml2::XMLPrinter* printer) {
   case torrent::Object::TYPE_MAP:
     printer->OpenElement("struct", true);
     for (const auto& itr : obj.as_map()) {
+      // XML-RPC names cannot carry base64. Refuse instead of corrupting or
+      // rewriting user-owned keys; d.custom.keys exposes them as values.
+      if (!is_xml_string(itr.first))
+        throw rpc_error(XMLRPC_TYPE_ERROR, "struct member name is not XML 1.0 text");
+
       printer->OpenElement("member", true);
       printer->OpenElement("name", true);
       printer->PushText(itr.first.c_str());
@@ -350,12 +411,12 @@ process_document(const tinyxml2::XMLDocument* doc, tinyxml2::XMLPrinter* printer
         result_list.push_back(sub_result);
       } catch (rpc_error& e) {
         auto fault                    = torrent::Object::create_map();
-        fault.as_map()["faultString"] = e.what();
+        fault.as_map()["faultString"] = xml_fault_text(e.what());
         fault.as_map()["faultCode"]   = e.type();
         result_list.push_back(fault);
       } catch (torrent::local_error& e) {
         auto fault                    = torrent::Object::create_map();
-        fault.as_map()["faultString"] = e.what();
+        fault.as_map()["faultString"] = xml_fault_text(e.what());
         fault.as_map()["faultCode"]   = XMLRPC_INTERNAL_ERROR;
         result_list.push_back(fault);
       }
@@ -403,9 +464,7 @@ print_xmlrpc_fault(int faultCode, std::string faultString, tinyxml2::XMLPrinter*
   printer->PushText("faultString");
   printer->CloseElement(true);
   printer->OpenElement("value", true);
-  printer->OpenElement("string", true);
-  printer->PushText(faultString.c_str());
-  printer->CloseElement(true);
+  print_object_xml(xml_fault_text(faultString), printer);
   printer->CloseElement(true);
   printer->CloseElement(true);
 
