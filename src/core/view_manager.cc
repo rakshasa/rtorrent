@@ -56,14 +56,15 @@ ViewManager::find_throw(const std::string& name) {
 
 void
 ViewManager::sort(const std::string& name, uint32_t timeout) {
-  iterator viewItr = find_throw(name);
+  View* view = find_ptr_throw(name);
 
-  if ((*viewItr)->last_changed() + std::chrono::seconds(timeout) > torrent::this_thread::cached_time())
+  if (view->last_changed() + std::chrono::seconds(timeout) > torrent::this_thread::cached_time())
     return;
 
   // Should we rename sort, or add a seperate function?
-  (*viewItr)->filter();
-  (*viewItr)->sort();
+  // A filter may add views and reallocate the manager vector.
+  view->filter();
+  view->sort();
 }
 
 void

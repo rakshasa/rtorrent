@@ -164,6 +164,7 @@ DownloadList::create(std::istream* str, uint32_t tracker_key, bool printLog) {
 DownloadList::iterator
 DownloadList::insert(Download* download) {
   iterator itr = base_type::insert(end(), std::shared_ptr<Download>(download));
+  const auto lifetime = download->lifetime();
 
   LT_LOG_DOWNLOAD_DEBUG("inserting download", 0);
 
@@ -175,10 +176,16 @@ DownloadList::insert(Download* download) {
     // the download remains in the view.
     for (auto v : *control->view_manager())
       v->insert(*itr);
-    for (auto v : *control->view_manager())
-      v->filter_download(download);
+    // Filters can erase the target or add views. Do not retain manager iterators
+    // across callbacks, and stop before accessing an erased download.
+    const std::vector<View*> views(control->view_manager()->begin(), control->view_manager()->end());
+    for (auto view : views) {
+      view->filter_download(download);
+      if (lifetime.expired()) return end();
+    }
 
-    DL_TRIGGER_EVENT(*itr, "event.download.inserted");
+    DL_TRIGGER_EVENT(download, "event.download.inserted");
+    if (lifetime.expired()) return end();
 
   } catch (torrent::local_error& e) {
     // Should perhaps relax this, just print an error and remove the
@@ -205,6 +212,10 @@ DownloadList::erase(iterator itr) {
 
   (*itr)->set_erasing();
 
+  // Callbacks can add views. New views omit erasing downloads; existing
+  // views are visited through stable pointers rather than manager iterators.
+  const std::vector<View*> views(control->view_manager()->begin(), control->view_manager()->end());
+
   lt_log_print_hash(torrent::LOG_TORRENT_DEBUG, (*itr)->info()->hash(), "download_list : removing download");
 
   // Makes sure close doesn't restart hashing of this download.
@@ -215,8 +226,8 @@ DownloadList::erase(iterator itr) {
 
   DL_TRIGGER_EVENT(*itr, "event.download.erased");
 
-  for (auto v : *control->view_manager())
-    v->erase(itr->get());
+  for (auto view : views)
+    view->erase(itr->get());
 
   (*itr)->release_lifetime();
   torrent::download_remove(*(*itr)->download());
