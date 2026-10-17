@@ -52,11 +52,11 @@
 # watch directory.
 #
 #directory.watch.ready = ./watch, load.start
-#schedule2 = watch_directory,5,5,load.start=./watch/*.torrent
+#schedule = watch_directory,5,5,load.start=./watch/*.torrent
 
 # Close torrents when disk-space is low.
 #
-#schedule2 = low_diskspace,5,60,close_low_diskspace=100M
+#schedule = low_diskspace,5,60,close_low_diskspace=100M
 
 # The IP address reported to the tracker.
 #
@@ -100,8 +100,8 @@
 
 # Alternative calls to bind and IP that should handle dynamic IP's.
 #
-#schedule2 = ip_tick,0,1800,ip=rakshasa
-#schedule2 = bind_tick,0,1800,bind=rakshasa
+#schedule = ip_tick,0,1800,ip=rakshasa
+#schedule = bind_tick,0,1800,bind=rakshasa
 
 # Encryption options, set to none (default) or any combination of the following:
 # allow_incoming, try_outgoing, require, require_RC4, enable_retry, prefer_plaintext
@@ -145,4 +145,4 @@
 #
 #network.scgi.open_port = "127.0.0.1:5000"
 #network.scgi.open_local = (cat,(session.path),/rpc.sock)
-#schedule2 = socket_chmod, 0, 0, "execute.nothrow=chmod,770,(cat,(session.path),/rpc.sock)"
+#schedule = socket_chmod, 0, 0, "execute.nothrow=chmod,770,(cat,(session.path),/rpc.sock)"
