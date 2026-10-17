@@ -114,6 +114,7 @@ private:
 
   align_cacheline
 
+  bool                m_shutdown_session_saved{};
   std::atomic<bool>   m_shutdown_received{};
   std::atomic<bool>   m_shutdown_quick{};
 };

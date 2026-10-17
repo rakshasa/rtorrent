@@ -405,40 +405,62 @@ SessionManager::process_finished_saves() {
   if (!m_active)
     throw torrent::internal_error("SessionManager::process_finished_saves() called while not active.");
 
-  for (auto& request : m_finished_saves) {
-    try {
-      request.first.get();
-
-    } catch (torrent::storage_error& e) {
-      LT_LOG("error saving download : storage error :download:%p path:%s : %s", request.second.download, request.second.path.c_str(), e.what());
-
-      if (m_last_storage_error_message + std::chrono::minutes(5) > torrent::this_thread::cached_time()) {
-        m_ignored_storage_error_count++;
-        continue;
-      }
-
-      lt_log_print(torrent::LOG_ERRORS, "Storage errors saving session data for download: ignored:%u : %s", m_ignored_storage_error_count, e.what());
-
-      m_last_storage_error_message = torrent::this_thread::cached_time();
-      m_ignored_storage_error_count = 0;
-
-      continue;
-
-    } catch (torrent::internal_error& e) {
-      LT_LOG("error saving download : internal error : download:%p path:%s : %s", request.second.download, request.second.path.c_str(), e.what());
-      throw;
-
-    } catch (...) {
-      LT_LOG("error saving download : unknown error : download:%p path:%s", request.second.download, request.second.path.c_str());
-      throw;
-    }
-
-    LT_LOG("finished saving download : download:%p path:%s", request.second.download, request.second.path.c_str());
-  }
+  for (auto& request : m_finished_saves)
+    consume_finished_save_unsafe(request);
 
   m_finished_saves.clear();
 
   callback_save_request();
+}
+
+// Storage errors share a five-minute log limit and count what they suppress.
+// Returns true when this one was suppressed. Callers hold m_mutex.
+bool
+SessionManager::report_storage_error_unsafe(const std::string& what) {
+  if (m_last_storage_error_message + std::chrono::minutes(5) > torrent::this_thread::cached_time()) {
+    m_ignored_storage_error_count++;
+    return true;
+  }
+
+  lt_log_print(torrent::LOG_ERRORS, "Storage errors saving session data for download: ignored:%u : %s", m_ignored_storage_error_count, what.c_str());
+
+  m_last_storage_error_message = torrent::this_thread::cached_time();
+  m_ignored_storage_error_count = 0;
+  return false;
+}
+
+// The one policy for a finished save, on the session thread and in shutdown
+// flushes: storage errors go to report_storage_error_unsafe(), internal and
+// unknown errors propagate. Callers hold m_mutex. Returns true when a storage
+// error was suppressed.
+bool
+SessionManager::consume_finished_save_unsafe(ProcessingSave& request) {
+  try {
+    request.first.get();
+
+  } catch (torrent::storage_error& e) {
+    LT_LOG("error saving download : storage error :download:%p path:%s : %s", request.second.download, request.second.path.c_str(), e.what());
+    return report_storage_error_unsafe(e.what());
+
+  } catch (torrent::internal_error& e) {
+    LT_LOG("error saving download : internal error : download:%p path:%s : %s", request.second.download, request.second.path.c_str(), e.what());
+    throw;
+
+  } catch (...) {
+    LT_LOG("error saving download : unknown error : download:%p path:%s", request.second.download, request.second.path.c_str());
+    throw;
+  }
+
+  LT_LOG("finished saving download : download:%p path:%s", request.second.download, request.second.path.c_str());
+  return false;
+}
+
+void
+SessionManager::flush_shutdown_saves() {
+  assert(torrent::this_thread::thread() == torrent::main_thread::thread());
+  flush_all_pending_builds();
+  std::unique_lock<std::mutex> lock(m_mutex);
+  flush_all_and_wait_unsafe(lock);
 }
 
 void
@@ -459,10 +481,19 @@ SessionManager::flush_all_and_wait_unsafe(std::unique_lock<std::mutex>& lock) {
   while (!m_processing_saves.empty())
     m_finished_condition.wait(lock);
 
+  unsigned int suppressed = 0;
   for (auto& request : m_finished_saves)
-    LT_LOG("finished saving download : download:%p path:%s", request.second.download, request.second.path.c_str());
+    suppressed += consume_finished_save_unsafe(request) ? 1 : 0;
 
   m_finished_saves.clear();
+
+  // Report and reset here; a later session-thread pass would otherwise fold
+  // these into its own count. Name the two counts apart.
+  if (m_ignored_storage_error_count != 0) {
+    lt_log_print(torrent::LOG_ERRORS, "Storage errors flushing session data: ignored:%u, earlier ignored:%u",
+                 suppressed, m_ignored_storage_error_count - suppressed);
+    m_ignored_storage_error_count = 0;
+  }
 
   LT_LOG("flushed all pending saves", 0);
 }
