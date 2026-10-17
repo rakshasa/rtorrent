@@ -60,7 +60,6 @@ rc.network.listen.port.random = false
 -- (conservative settings for 'private' trackers, change for 'public')
 rc.dht.mode = 'disable'
 rc.protocol.pex = false
-rc.trackers.use_udp = false
 
 -- Peer settings
 rc.throttle.max_uploads = 100
@@ -72,14 +71,11 @@ rc.throttle.min_peers.seed = 30
 rc.throttle.max_peers.seed = 80
 rc.trackers.numwant = 80
 
-rc.protocol.encryption.set('allow_incoming', 'try_outgoing', 'enable_retry')
-
 -- Limits for file handle resources, this is optimized for
 -- an `ulimit` of 1024 (a common default). You MUST leave
 -- a ceiling of handles reserved for rTorrent's internal needs!
-rc.network.http.max_open = 50
-rc.network.max_open_files = 600
-rc.network.max_open_sockets = 300
+
+-- Deprecated, see: https://github.com/rakshasa/rtorrent/wiki/Socket-Manager-and-Resource-Allocation
 
 -- Memory resource usage (increase if you have a large number of items loaded,
 -- and/or the available resources to spend)
@@ -97,11 +93,10 @@ rc.execute.nothrow(
 }))
 
 -- Other operational settings (check & adapt)
-rc.encoding.add('utf8')
 rc.system.umask = 0027
 rc.system.cwd = rc.directory.default()
 rc.network.http.dns_cache_timeout = 25
-rc.schedule2('monitor_diskspace', '15', '60', 'close_low_diskspace=1000M')
+rc.schedule('monitor_diskspace', '15', '60', 'close_low_diskspace=1000M')
 --rc.pieces.hash.on_completion = false
 --rc.view.sort_current('seeding', 'greater=d.ratio=')
 --rc.keys.layout = 'qwerty'
@@ -121,8 +116,8 @@ rc.method.insert('d.data_path', 'simple',
 rc.method.insert('d.session_file', 'simple', 'cat=(session.path), (d.hash), .torrent')
 
 -- Watch directories (add more as you like, but use unique schedule names)
-rc.schedule2('watch_start', '10', '10', 'load.start_verbose=(cat, (cfg.watch), "start/*.torrent")')
-rc.schedule2('watch_load', '11', '10', 'load.verbose=(cat, (cfg.watch), "load/*.torrent")')
+rc.schedule('watch_start', '10', '10', 'load.start_verbose=(cat, (cfg.watch), "start/*.torrent")')
+rc.schedule('watch_load', '11', '10', 'load.verbose=(cat, (cfg.watch), "load/*.torrent")')
 
 -- Run the rTorrent process as a daemon in the background
 -- (and control via XMLRPC sockets)
