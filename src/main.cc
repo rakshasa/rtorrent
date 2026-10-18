@@ -7,10 +7,10 @@
 #include <inttypes.h>
 #include <typeinfo>
 #include <unistd.h>
+#include <sys/socket.h>
 #include <torrent/torrent.h>
 #include <torrent/exceptions.h>
 #include <torrent/data/chunk_utils.h>
-#include <torrent/net/fd.h>
 #include <torrent/net/http_stack.h>
 #include <torrent/runtime/memory_manager.h>
 #include <torrent/runtime/runtime.h>
@@ -439,19 +439,6 @@ main(int argc, char** argv) {
       CMD_REDIRECT("network.port_range.set",  "network.listen.port.range.set");
     }
 
-    {
-      auto fd = torrent::fd_open_family(torrent::fd_flag_stream, AF_INET6);
-
-      if (fd == -1) {
-        if (errno == EAFNOSUPPORT) {
-          lt_log_print(torrent::LOG_ERRORS, "disabling ipv6 support, not available on system");
-          rpc::call_command_set_value("network.block.ipv6.set", true);
-        }
-      } else {
-        torrent::fd_close(fd);
-      }
-    }
-
     int firstArg = parse_main_options(argc, argv);
 
     parse_config_file(argc, argv, [](auto& path) {
@@ -462,6 +449,22 @@ main(int argc, char** argv) {
 
         rpc::parse_command_single(rpc::make_target(), "try_import=" + path);
       });
+
+    // Probe after the command line and rtorrent.rc, so that their
+    // 'network.block.ipv6.set = no' cannot re-enable IPv6 on a system without
+    // it. Call socket() directly, as fd_open_family() falls back to IPv4.
+    {
+      int fd = ::socket(AF_INET6, SOCK_STREAM, 0);
+
+      if (fd == -1) {
+        if (errno == EAFNOSUPPORT) {
+          lt_log_print(torrent::LOG_ERRORS, "disabling ipv6 support, not available on system");
+          rpc::call_command_set_value("network.block.ipv6.set", true);
+        }
+      } else {
+        ::close(fd);
+      }
+    }
 
     LT_LOG("seeded srandom and srand48 (seed:%u)", random_seed);
     LT_LOG("max memory usage: %" PRIu64, torrent::runtime::memory_manager()->max_memory_usage());
