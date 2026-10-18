@@ -228,6 +228,25 @@ parse_command_file(const std::string& path) {
   return true;
 }
 
+bool
+is_valid_command(const torrent::Object& command) {
+  if (!command.is_string())
+    return false;
+
+  auto first = command.as_string().begin();
+  auto last  = command.as_string().end();
+
+  first = std::find_if(first, last, [](char c) { return !command_map_is_space(c); });
+
+  if (first == last || !std::isalpha(static_cast<unsigned char>(*first)))
+    return false;
+
+  first = std::find_if(first, last, [](unsigned char c) { return !std::isalnum(c) && c != '_' && c != '.'; });
+  first = std::find_if(first, last, [](char c) { return !command_map_is_space(c); });
+
+  return first != last && *first == '=';
+}
+
 torrent::Object
 call_object(const torrent::Object& command, target_type target) {
   switch (command.type()) {
