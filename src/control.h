@@ -112,9 +112,10 @@ private:
 
   int                 m_clear_requests_count{};
 
+  bool                m_shutdown_session_saved{};
+
   align_cacheline
 
-  bool                m_shutdown_session_saved{};
   std::atomic<bool>   m_shutdown_received{};
   std::atomic<bool>   m_shutdown_quick{};
 };

@@ -139,10 +139,11 @@ Control::handle_shutdown() {
     scgi_thread::thread()->stop_thread_wait();
 
   if (!m_shutdown_session_saved) {
-    // Flush the latest state before stopped announces can consume the timeout.
-    // A shutdown hook may already have queued these resume builds.
+    // Flush the latest state before stopped announces can consume the timeout. A shutdown hook may
+    // already have queued these resume builds.
     m_core->download_list()->session_save();
     session_thread::manager()->flush_shutdown_saves();
+
     m_shutdown_session_saved = true;
   }
 

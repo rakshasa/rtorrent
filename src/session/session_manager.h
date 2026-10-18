@@ -76,6 +76,7 @@ protected:
   void                flush_shutdown_saves();
 
 private:
+
   void                callback_pending_builds();
   void                callback_save_request();
   void                callback_finished_saves();
@@ -94,7 +95,7 @@ private:
   using ProcessingSave = std::pair<std::future<void>, SaveRequest>;
 
   bool                consume_finished_save_unsafe(ProcessingSave& request);
-  bool                report_storage_error_unsafe(const std::string& what);
+  bool                report_storage_error_unsafe(const std::string& msg);
 
   torrent::system::Thread*     m_thread;
   torrent::system::callback_id m_callback_id;
