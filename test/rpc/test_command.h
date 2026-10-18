@@ -5,6 +5,7 @@ class TestCommand : public test_fixture {
 
   CPPUNIT_TEST(test_stack);
   CPPUNIT_TEST(test_stack_double);
+  CPPUNIT_TEST(test_is_valid_command);
   CPPUNIT_TEST(test_preparsed_commands);
   CPPUNIT_TEST(test_parse_command_object);
 
@@ -13,6 +14,7 @@ class TestCommand : public test_fixture {
 public:
   void test_stack();
   void test_stack_double();
+  void test_is_valid_command();
   void test_preparsed_commands();
   void test_parse_command_object();
 };

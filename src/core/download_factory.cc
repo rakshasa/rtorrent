@@ -2,6 +2,7 @@
 
 #include "download_factory.h"
 
+#include <algorithm>
 #include <cstdlib>
 #include <fstream>
 #include <functional>
@@ -37,6 +38,23 @@ is_network_uri(const std::string& uri) {
 }
 
 static constexpr const char* session_invalid_message = "Session data is invalid, ignoring it";
+
+// A session reload has no load options of its own. Keep the start flag and
+// commands the metadata placeholder was saved with, if they are well formed.
+// A new load always rebuilds the section, so one in the loaded data is never used.
+static bool
+has_meta_download_options(const torrent::Object& root) {
+  if (!root.has_key_map("rtorrent_meta_download"))
+    return false;
+
+  const auto& meta = root.get_key("rtorrent_meta_download");
+
+  if (!meta.has_key_value("start") || !meta.has_key_value("print_log") || !meta.has_key_list("commands"))
+    return false;
+
+  const auto& commands = meta.get_key_list("commands");
+  return std::all_of(commands.begin(), commands.end(), rpc::is_valid_command);
+}
 
 static std::unique_ptr<torrent::Object>
 download_factory_load_stream(const char* filename, bool* is_invalid) {
@@ -217,7 +235,7 @@ DownloadFactory::receive_success() {
 
   torrent::Object* root = download->bencode();
 
-  if (download->download()->info()->is_meta_download()) {
+  if (download->download()->info()->is_meta_download() && !(m_session && has_meta_download_options(*root))) {
     torrent::Object& meta = root->insert_key("rtorrent_meta_download", torrent::Object::create_map());
     meta.insert_key("start", m_start);
     meta.insert_key("print_log", m_printLog);

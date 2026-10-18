@@ -88,6 +88,21 @@ TestCommand::test_stack_double() {
 }
 
 void
+TestCommand::test_is_valid_command() {
+  CPPUNIT_ASSERT(rpc::is_valid_command(std::string("d.custom1.set=label")));
+  CPPUNIT_ASSERT(rpc::is_valid_command(std::string(" \td.stop = ")));
+  CPPUNIT_ASSERT(rpc::is_valid_command(std::string("d.start=;d.stop=")));
+
+  CPPUNIT_ASSERT(!rpc::is_valid_command(std::string()));
+  CPPUNIT_ASSERT(!rpc::is_valid_command(std::string("d.stop")));
+  CPPUNIT_ASSERT(!rpc::is_valid_command(std::string("=label")));
+  CPPUNIT_ASSERT(!rpc::is_valid_command(std::string("1d.stop=")));
+  CPPUNIT_ASSERT(!rpc::is_valid_command(std::string("d stop=")));
+  CPPUNIT_ASSERT(!rpc::is_valid_command(int64_t(1)));
+  CPPUNIT_ASSERT(!rpc::is_valid_command(torrent::Object::create_list()));
+}
+
+void
 TestCommand::test_preparsed_commands() {
   unsigned int prepare_count = 0;
   rpc::preparsed_commands commands([&prepare_count](auto& prepared) {

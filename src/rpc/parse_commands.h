@@ -138,6 +138,10 @@ call_command_d_range(const char* key, core::Download* download, torrent::Object:
   return commands.call_command_d(key, download, rawArgs);
 }
 
+// A command that call_object() can run. Only 'foo=...' strings for now, as the
+// bencode parser cannot hold the dict_key form that '(foo, ...)' parses into.
+bool            is_valid_command(const torrent::Object& command);
+
 torrent::Object call_object(const torrent::Object& command, target_type target = make_target());
 
 inline torrent::Object
