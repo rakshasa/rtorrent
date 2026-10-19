@@ -278,12 +278,21 @@ DownloadFactory::receive_success() {
 
   // Check first if we already have these values set in the session
   // torrent, so that it is safe to change the values.
-  //
-  // Need to also catch the exceptions.
-  if (rpc::call_command_value("system.file.split_size") >= 0)
-    torrent::file_split_all(download->download()->file_list(),
-                            rpc::call_command_value("system.file.split_size"),
-                            rpc::call_command_string("system.file.split_suffix"));
+  try {
+    if (rpc::call_command_value("system.file.split_size") >= 0)
+      torrent::file_split_all(download->download()->file_list(),
+                              rpc::call_command_value("system.file.split_size"),
+                              rpc::call_command_string("system.file.split_suffix"));
+  } catch (const torrent::input_error& e) {
+    std::string msg = "Could not split files: " + std::string(e.what());
+
+    lt_log_print(torrent::LOG_ERRORS, "%s: %s", msg.c_str(), m_uri.c_str());
+
+    torrent::download_remove(*download->download());
+    delete download;
+
+    return receive_failed(msg);
+  }
 
   if (rtorrent->has_key_string("directory")) {
     rpc::call_command("d.directory_base.set", rtorrent->get_key("directory"), rpc::make_target(download));
