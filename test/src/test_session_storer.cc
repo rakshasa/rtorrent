@@ -39,12 +39,12 @@ read_file(const std::string& path) {
 }
 
 void
-save_session_files(const std::string& path) {
+save_session_files(const std::string& path, mode_t file_mode = 0600) {
   std::stringstream torrent_stream("torrent-data");
   std::stringstream rtorrent_stream("rtorrent-data");
   std::stringstream libtorrent_stream("libtorrent-data");
 
-  session::DownloadStorer::save_and_move_streams(path, false, &torrent_stream, &rtorrent_stream, &libtorrent_stream);
+  session::DownloadStorer::save_and_move_streams(path, false, file_mode, &torrent_stream, &rtorrent_stream, &libtorrent_stream);
 }
 
 unsigned int
@@ -128,6 +128,21 @@ TestSessionStorer::test_saved_files_are_owner_only() {
   CPPUNIT_ASSERT_EQUAL(0600u, permissions_of(path));
   CPPUNIT_ASSERT_EQUAL(0600u, permissions_of(path + ".rtorrent"));
   CPPUNIT_ASSERT_EQUAL(0600u, permissions_of(path + ".libtorrent_resume"));
+}
+
+void
+TestSessionStorer::test_saved_files_use_configured_mode() {
+  for (mode_t mode : {0660, 0640}) {
+    auto path       = m_session_dir + "/" + entry_name;
+    auto prev_umask = ::umask(0);
+
+    save_session_files(path, mode);
+    ::umask(prev_umask);
+
+    CPPUNIT_ASSERT_EQUAL((unsigned int)mode, permissions_of(path));
+    CPPUNIT_ASSERT_EQUAL((unsigned int)mode, permissions_of(path + ".rtorrent"));
+    CPPUNIT_ASSERT_EQUAL((unsigned int)mode, permissions_of(path + ".libtorrent_resume"));
+  }
 }
 
 // Entries listed for loading must report their real type so that a symlink in

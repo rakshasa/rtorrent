@@ -73,7 +73,7 @@ TestSessionCommit::commit_and_verify(bool use_fsyncdisk) {
   std::stringstream rtorrent_stream("rtorrent-data");
   std::stringstream libtorrent_stream("libtorrent-data");
 
-  session::DownloadStorer::save_and_move_streams(path, use_fsyncdisk, &torrent_stream, &rtorrent_stream, &libtorrent_stream);
+  session::DownloadStorer::save_and_move_streams(path, use_fsyncdisk, 0600, &torrent_stream, &rtorrent_stream, &libtorrent_stream);
 
   CPPUNIT_ASSERT_EQUAL(std::string("torrent-data"), read_file(path));
   CPPUNIT_ASSERT_EQUAL(std::string("rtorrent-data"), read_file(path + ".rtorrent"));

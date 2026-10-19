@@ -66,6 +66,22 @@ SessionManager::set_use_lock(bool use_lock) {
 }
 
 void
+SessionManager::set_umask(int64_t umask) {
+  assert(torrent::this_thread::thread() == torrent::main_thread::thread());
+
+  if (m_freeze_info)
+    throw torrent::input_error("Session umask option cannot be changed after startup.");
+
+  if (umask < 0 || umask > 0777)
+    throw torrent::input_error("Session umask must be in the range 0 to 0777.");
+
+  if ((umask & 0600) != 0)
+    throw torrent::input_error("Session umask must not mask owner read/write permissions (0600).");
+
+  m_umask = umask;
+}
+
+void
 SessionManager::save_resume_download(core::Download* download) {
   assert(torrent::this_thread::thread() == torrent::main_thread::thread());
 
@@ -379,7 +395,7 @@ SessionManager::process_next_save_request_unsafe() {
         };
 
       try {
-        DownloadStorer::save_and_move_streams(itr->second.path, m_use_fsyncdisk,
+        DownloadStorer::save_and_move_streams(itr->second.path, m_use_fsyncdisk, file_mode(),
                                               itr->second.torrent_stream.get(),
                                               itr->second.rtorrent_stream.get(),
                                               itr->second.libtorrent_stream.get());

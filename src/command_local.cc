@@ -123,6 +123,8 @@ initialize_command_local() {
   CMD_ANY_STRING_V("session.path.set",                [](auto, auto& str)   { return session_thread::manager()->set_path(str); });
   CMD_ANY         ("session.use_lock",                [](auto, auto)        { return session_thread::manager()->use_lock(); });
   CMD_ANY_VALUE_V ("session.use_lock.set",            [](auto, auto& value) { return session_thread::manager()->set_use_lock(value); });
+  CMD_ANY         ("session.umask",                   [](auto, auto)        { return session_thread::manager()->umask(); });
+  CMD_ANY_VALUE_V ("session.umask.set",               [](auto, auto& value) { return session_thread::manager()->set_umask(value); });
   CMD_VAR_BOOL    ("session.on_completion",           true);
 
   CMD_ANY_V       ("session.save",                    [dList](auto, auto)   { return dList->session_save(); });
@@ -171,6 +173,7 @@ initialize_command_local() {
   rpc::rpc.mark_safe("directory.default.realpath.or_empty");
   rpc::rpc.mark_safe("directory.default.realpath.or_throw");
   rpc::rpc.mark_safe("session.use_lock");
+  rpc::rpc.mark_safe("session.umask");
   rpc::rpc.mark_safe("session.on_completion");
 
   rpc::rpc.mark_safe("pieces.sync.always_safe");
