@@ -6,6 +6,8 @@
 #include <deque>
 #include <future>
 #include <list>
+#include <cstdint>
+#include <sys/types.h>
 #include <memory>
 #include <mutex>
 #include <sstream>
@@ -59,6 +61,10 @@ public:
   bool                use_lock() const;
   void                set_use_lock(bool use_lock);
 
+  int                 umask() const;
+  void                set_umask(int64_t umask);
+  mode_t              file_mode() const;
+
   void                save_full_download(core::Download* download);
   void                save_resume_download(core::Download* download);
   void                remove_download(core::Download* download);
@@ -99,6 +105,7 @@ private:
   std::string                  m_path;
   bool                         m_use_fsyncdisk{true};
   bool                         m_use_lock{true};
+  int                          m_umask{};
 
   align_cacheline
 
@@ -133,6 +140,7 @@ inline bool        SessionManager::is_used() const            { return !m_path.e
 inline std::string SessionManager::path() const               { return m_path; }
 inline bool        SessionManager::use_fsyncdisk() const      { return m_use_fsyncdisk; }
 inline bool        SessionManager::use_lock() const           { return m_use_lock; }
+inline int         SessionManager::umask() const              { return m_umask; }
 inline void        SessionManager::flush_all_pending_builds() { process_pending_builds(true); }
 
 } // namespace session

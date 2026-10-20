@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <sstream>
+#include <sys/types.h>
 #include <string>
 #include <torrent/common.h>
 
@@ -33,7 +34,7 @@ public:
   auto                rtorrent_stream()      { return std::move(m_rtorrent_stream); }
   auto                libtorrent_stream()    { return std::move(m_libtorrent_stream); }
 
-  static void         save_and_move_streams(const std::string& path, bool use_fsyncdisk,
+  static void         save_and_move_streams(const std::string& path, bool use_fsyncdisk, mode_t file_mode,
                                             const std::stringstream* torrent_stream,
                                             const std::stringstream* rtorrent_stream,
                                             const std::stringstream* libtorrent_stream);
