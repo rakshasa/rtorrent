@@ -138,7 +138,7 @@ save_stream(const std::string& path, bool use_fsyncdisk, mode_t file_mode, const
     throw torrent::storage_error("failed to open file for writing : " + path);
 
   // open() applies the process umask, so set the configured mode explicitly.
-  if (::fchmod(fd, file_mode) == -1) {
+  if (file_mode != 0 && ::fchmod(fd, file_mode) == -1) {
     ::close(fd);
     throw torrent::storage_error("failed to set file permissions : " + path);
   }

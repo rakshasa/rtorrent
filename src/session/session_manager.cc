@@ -65,6 +65,14 @@ SessionManager::set_use_lock(bool use_lock) {
   m_use_lock = use_lock;
 }
 
+mode_t
+SessionManager::file_mode() const {
+  if (m_umask == 0)
+    return 0;
+
+  return 0666 & ~m_umask;
+}
+
 void
 SessionManager::set_umask(int64_t umask) {
   assert(torrent::this_thread::thread() == torrent::main_thread::thread());
@@ -75,7 +83,7 @@ SessionManager::set_umask(int64_t umask) {
   if (umask < 0 || umask > 0777)
     throw torrent::input_error("Session umask must be in the range 0 to 0777.");
 
-  if ((umask & 0600) != 0)
+  if (umask != 0 && (umask & 0600) != 0)
     throw torrent::input_error("Session umask must not mask owner read/write permissions (0600).");
 
   m_umask = umask;

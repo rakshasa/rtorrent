@@ -45,13 +45,6 @@
 #
 #session.path.set = ./session
 
-# Umask for files written to the session directory, default 0077 (files
-# are mode 0600). Use 0007 for 0660 or 0027 for 0640. The owner must keep
-# read/write access. Session files contain tracker announce URLs
-# (potentially passkeys), so loosening permissions is a user choice.
-#
-#session.umask.set = 0077
-
 # Watch a directory for new torrents, and stop those that have been
 # deleted. Use directory.watch.ready for network shares or other watch
 # directories where files may be copied or written directly into place.

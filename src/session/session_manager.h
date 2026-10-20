@@ -105,7 +105,7 @@ private:
   std::string                  m_path;
   bool                         m_use_fsyncdisk{true};
   bool                         m_use_lock{true};
-  int                          m_umask{0077};
+  int                          m_umask{};
 
   align_cacheline
 
@@ -141,7 +141,6 @@ inline std::string SessionManager::path() const               { return m_path; }
 inline bool        SessionManager::use_fsyncdisk() const      { return m_use_fsyncdisk; }
 inline bool        SessionManager::use_lock() const           { return m_use_lock; }
 inline int         SessionManager::umask() const              { return m_umask; }
-inline mode_t      SessionManager::file_mode() const          { return 0666 & ~m_umask; }
 inline void        SessionManager::flush_all_pending_builds() { process_pending_builds(true); }
 
 } // namespace session
