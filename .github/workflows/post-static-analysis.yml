@@ -64,6 +64,8 @@ jobs:
         repository: ${{ env.PR_HEAD_REPO }}
         ref: ${{ env.PR_HEAD_SHA }}
         persist-credentials: false
+        # Only read by the comment action, never built or run.
+        allow-unsafe-pr-checkout: true
     - name: Redownload analysis results
       uses: actions/github-script@v7
       with:
