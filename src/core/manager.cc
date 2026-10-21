@@ -436,8 +436,9 @@ Manager::receive_hashing_changed() {
       if (tryQuick) {
         // Make sure we don't repeat the quick hashing.
         rpc::call_command_set_value("d.hashing.set", Download::variable_hashing_rehash, rpc::make_target(*itr));
+      }
 
-      } else {
+      if (!tryQuick || !foundHashing) {
         (*itr)->set_hash_failed(true);
         (*itr)->set_message("Hashing failed: " + std::string(e.what()));
 
