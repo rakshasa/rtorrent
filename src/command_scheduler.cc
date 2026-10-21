@@ -60,7 +60,7 @@ cmd_scheduler_simple_update([[maybe_unused]] core::Download* download) {
 
   if (viewActive->size_visible() < maxActive) {
     for (core::View::iterator itr = viewStarted->begin_visible(), last = viewStarted->end_visible(); itr != last; itr++) {
-      if ((*itr)->is_active())
+      if (*itr == nullptr || (*itr)->is_active())
         continue;
 
       control->core()->download_list()->resume(*itr);
