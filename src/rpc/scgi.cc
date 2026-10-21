@@ -10,6 +10,8 @@
 #include <torrent/net/fd.h>
 #include <torrent/net/socket_address.h>
 #include <torrent/system/poll.h>
+#include <torrent/system/scheduler.h>
+#include <torrent/utils/log.h>
 #include <torrent/runtime/socket_manager.h>
 
 #include "control.h"
@@ -25,6 +27,8 @@ SCgi::SCgi() {
   std::generate(m_tasks.begin(), m_tasks.end(), []() { return std::make_unique<SCgiTask>(); });
 
   m_current = m_tasks.begin();
+
+  m_resume_accept.slot() = [this] { resume_accept(); };
 }
 
 SCgi::~SCgi() {
@@ -121,6 +125,9 @@ SCgi::stop() {
   if (!is_open())
     return;
 
+  if (m_resume_accept.is_scheduled())
+    torrent::this_thread::scheduler()->erase(&m_resume_accept);
+
   for (auto& itr : m_tasks) {
     if (itr->is_open())
       itr->close();
@@ -158,8 +165,15 @@ SCgi::event_read() {
         return;
 
       // Force a new event_read() call just to be sure we don't enter an infinite loop.
-      if (errno == ECONNABORTED)
+      if (errno == ECONNABORTED || errno == EPROTO || errno == EPERM)
         return;
+
+      // Out of file descriptors or memory: the connection stays queued and the socket stays readable,
+      // so stop reading it for a while instead of spinning.
+      if (errno == EMFILE || errno == ENFILE || errno == ENOBUFS || errno == ENOMEM) {
+        pause_accept(errno);
+        return;
+      }
 
       throw torrent::resource_error("Listener port accept() failed: " + std::string(std::strerror(errno)));
     }
@@ -187,6 +201,22 @@ SCgi::event_read() {
     if (!result)
       break;
   }
+}
+
+void
+SCgi::pause_accept(int error) {
+  lt_log_print(torrent::LOG_ERRORS, "scgi: accept() failed: %s : not accepting connections for a second", std::strerror(error));
+
+  torrent::this_thread::poll()->remove_read(this);
+  torrent::this_thread::scheduler()->update_wait_for(&m_resume_accept, std::chrono::seconds(1));
+}
+
+void
+SCgi::resume_accept() {
+  if (!is_open())
+    return;
+
+  torrent::this_thread::poll()->insert_read(this);
 }
 
 void
