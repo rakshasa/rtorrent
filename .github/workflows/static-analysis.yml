@@ -50,16 +50,19 @@ jobs:
         autoconf -i
         autoheader
         automake --add-missing
-        ./configure
+        mkdir build
+        cd build
+        "${GITHUB_WORKSPACE}/configure"
     - name: Prepare compile_commands.json
       run: |
-        bear -- make
+        cd build
+        bear -- make check TESTS=
     - name: Create results directory
       run: |
         mkdir clang-tidy-result
     - name: Analyze
       run: |
-        git diff -U0 "$(git merge-base HEAD "upstream/${{ github.event.pull_request.base.ref }}")" | clang-tidy-diff -p1 -path build -export-fixes clang-tidy-result/fixes.yml "-extra-arg=-include/${PWD}/config.h"
+        git diff -U0 "$(git merge-base HEAD "upstream/${{ github.event.pull_request.base.ref }}")" | clang-tidy-diff -p1 -path build -export-fixes clang-tidy-result/fixes.yml "-extra-arg=-include/${PWD}/build/config.h"
     - name: Save PR metadata
       run: |
         echo "${{ github.event.number }}" > clang-tidy-result/pr-id.txt
