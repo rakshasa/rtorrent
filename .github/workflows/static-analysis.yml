@@ -16,6 +16,7 @@ jobs:
         sudo apt-get install -y \
           bear \
           clang-tidy \
+          libcppunit-dev \
           libcurl4-openssl-dev \
           zlib1g-dev
     - name: Fetch libtorrent
