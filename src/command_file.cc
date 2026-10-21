@@ -40,13 +40,13 @@ apply_f_path_components(torrent::File* file, int output_type) {
 
   for (const auto& itr : *file->path()) {
     switch (output_type) {
-    case 0: result.push_back(itr.str());                      break;
-    case 1: result.push_back(itr.object_hex());               break;
-    case 2: result.push_back(itr.object_base64());            break;
-    case 3: result.push_back(itr.object_base64_as_binary());  break;
-    case 4: result.push_back(itr.object_as_binary());         break;
-    case 5: result.push_back(itr.object_utf8_or_base64());    break;
-    case 6: result.push_back(itr.object_utf8_or_as_binary()); break;
+    case 0: result.push_back(itr.str());                           break;
+    case 1: result.push_back(itr.object_hex());                    break;
+    case 2: result.push_back(itr.object_base64());                 break;
+    case 3: result.push_back(itr.object_base64_as_binary());       break;
+    case 4: result.push_back(itr.object_as_binary());              break;
+    case 5: result.push_back(itr.object_utf8_text_or_base64());    break;
+    case 6: result.push_back(itr.object_utf8_text_or_as_binary()); break;
     default: throw torrent::input_error("apply_f_path_components(): invalid output type");
     };
   }
@@ -114,8 +114,8 @@ initialize_command_file() {
   CMD2_FILE("f.frozen_path.hex",                  [](auto* file, auto)   { return file->frozen_path().object_hex(); });
   CMD2_FILE("f.frozen_path.base64",               [](auto* file, auto)   { return file->frozen_path().object_base64(); });
   CMD2_FILE("f.frozen_path.as_binary",            [](auto* file, auto)   { return file->frozen_path().object_as_binary(); });
-  CMD2_FILE("f.frozen_path.or_base64",            [](auto* file, auto)   { return file->frozen_path().object_utf8_or_base64(); });
-  CMD2_FILE("f.frozen_path.or_as_binary",         [](auto* file, auto)   { return file->frozen_path().object_utf8_or_as_binary(); });
+  CMD2_FILE("f.frozen_path.or_base64",            [](auto* file, auto)   { return file->frozen_path().object_utf8_text_or_base64(); });
+  CMD2_FILE("f.frozen_path.or_as_binary",         [](auto* file, auto)   { return file->frozen_path().object_utf8_text_or_as_binary(); });
   CMD2_FILE("f.frozen_path.realpath.or_empty",    [](auto* file, auto)   { return resolve_path(file->frozen_path().str()); });
   CMD2_FILE("f.frozen_path.realpath.or_throw",    [](auto* file, auto)   { return resolve_path_or_throw(file->frozen_path().str()); });
 

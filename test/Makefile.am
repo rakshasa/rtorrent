@@ -59,6 +59,8 @@ rtorrent_Test_Rpc_SOURCES = $(rtorrent_Test_Common) \
 	rpc/test_rpc_manager.h
 
 rtorrent_Test_Src_SOURCES = $(rtorrent_Test_Common) \
+	src/test_command_download.cc \
+	src/test_command_download.h \
 	src/test_command_dynamic.cc \
 	src/test_command_dynamic.h \
 	src/test_command_groups.cc \
