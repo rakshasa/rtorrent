@@ -2,8 +2,10 @@
 
 #include "test/rpc/test_command.h"
 
+#include <cstring>
 #include <torrent/exceptions.h>
 
+#include "command_helpers.h"
 #include "rpc/command.h"
 #include "rpc/parse_commands.h"
 
@@ -147,4 +149,36 @@ TestCommand::test_parse_command_object() {
   // multicall command and must reject newline boundaries, including CRLF.
   CPPUNIT_ASSERT_THROW(rpc::parse_command_object("string.length=abc\nstring.length=def"), torrent::input_error);
   CPPUNIT_ASSERT_THROW(rpc::parse_command_object("string.length=abc\r\nstring.length=def"), torrent::input_error);
+}
+
+// The callback runs after each command of a ';'-separated string, and a throw
+// from it stops the commands that follow.
+void
+TestCommand::test_parse_command_multiple_after_each() {
+  static int64_t command_count = 0;
+
+  if (!rpc::commands.has("test.command.count"))
+    CMD2_ANY("test.command.count", [](auto, auto&) { return torrent::Object(++command_count); });
+
+  const char* commands = "test.command.count=;test.command.count=;test.command.count=";
+  const char* last     = commands + std::strlen(commands);
+  int         calls    = 0;
+
+  command_count = 0;
+  rpc::parse_command_multiple(rpc::make_target(), commands, last, [&calls]() { calls++; });
+
+  CPPUNIT_ASSERT_EQUAL(int64_t(3), command_count);
+  CPPUNIT_ASSERT_EQUAL(3, calls);
+
+  command_count = 0;
+  calls         = 0;
+
+  CPPUNIT_ASSERT_THROW(rpc::parse_command_multiple(rpc::make_target(), commands, last, [&calls]() {
+                           if (++calls == 2)
+                             throw torrent::input_error("stop");
+                         }),
+                       torrent::input_error);
+
+  CPPUNIT_ASSERT_EQUAL(int64_t(2), command_count);
+  CPPUNIT_ASSERT_EQUAL(2, calls);
 }

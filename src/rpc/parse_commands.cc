@@ -157,7 +157,7 @@ parse_command_object(const char* first, const char* last) {
 }
 
 torrent::Object
-parse_command_multiple(target_type target, const char* first, const char* last) {
+parse_command_multiple(target_type target, const char* first, const char* last, const std::function<void()>& after_each) {
   parse_command_type result;
 
   while (first != last) {
@@ -166,6 +166,9 @@ parse_command_multiple(target_type target, const char* first, const char* last) 
     result = parse_command(target, first, last);
 
     first = result.second;
+
+    if (after_each)
+      after_each();
   }
 
   return result.first;

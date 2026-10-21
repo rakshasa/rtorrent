@@ -41,7 +41,7 @@ apply_on_ratio(const torrent::Object& rawArgs) {
   std::vector<core::Download*> downloads;
 
   for  (auto itr = (*view_itr)->begin_visible(), last = (*view_itr)->end_visible(); itr != last; itr++) {
-    if (!(*itr)->is_seeding() || rpc::call_command_value("d.ignore_commands", rpc::make_target(*itr)) != 0)
+    if (*itr == nullptr || !(*itr)->is_seeding() || rpc::call_command_value("d.ignore_commands", rpc::make_target(*itr)) != 0)
       continue;
 
     int64_t total_done   = (*itr)->download()->bytes_done();
@@ -214,6 +214,9 @@ apply_download_list(const torrent::Object::list_type& args) {
   torrent::Object::list_type& resultList = result.as_list();
 
   for (core::View::const_iterator itr = (*view_itr)->begin_visible(), last = (*view_itr)->end_visible(); itr != last; itr++) {
+    if (*itr == nullptr)
+      continue;
+
     const torrent::HashString* hashString = &(*itr)->info()->hash();
 
     resultList.push_back(torrent::utils::transform_to_hex_str(*hashString));
@@ -253,7 +256,9 @@ d_multicall(const torrent::Object::list_type& args) {
   });
 
   for (const auto& download : dlist) {
-    if (download.use_count() == 1)
+    // A filter or sort command reading its own view finds the entry the
+    // algorithm moved out empty.
+    if (download == nullptr || download->lifetime().expired())
       continue;
 
     torrent::Object::list_type& row = result.insert(result.end(), torrent::Object::create_list())->as_list();
@@ -261,9 +266,9 @@ d_multicall(const torrent::Object::list_type& args) {
     // Skip parsing if there are no usable download targets in the view.
     commands.prepare_if_needed();
     for (auto& itr : commands) {
-      // A command may erase this download, which destroys the torrent object it
-      // wraps; the list dropping its reference is what tells us.
-      if (download.use_count() == 1)
+      // A command may erase this download while an outer caller still holds
+      // it, so check its lifetime rather than the use count.
+      if (download->lifetime().expired())
         break;
 
       row.push_back(rpc::call_object(itr, rpc::make_target(download)));
@@ -300,7 +305,7 @@ d_multicall_filtered(const torrent::Object::list_type& args) {
   ++arg;  // skip to first command
 
   for (const auto& item : dlist) {
-    if (item.use_count() == 1)
+    if (item == nullptr || item->lifetime().expired())
       continue;
 
     // Add empty row to result
@@ -308,7 +313,7 @@ d_multicall_filtered(const torrent::Object::list_type& args) {
 
     // Call the provided commands and assemble their results
     for (torrent::Object::list_const_iterator command = arg; command != args.end(); command++) {
-      if (item.use_count() == 1)
+      if (item->lifetime().expired())
         break;
 
       auto& cmdstr = command->as_string();

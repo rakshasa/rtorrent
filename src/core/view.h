@@ -76,6 +76,10 @@ public:
   void insert(const std::shared_ptr<Download>& download) { base_type::push_back(download); }
   void erase(Download* download);
 
+  // Throws while a filter or sort command runs, as changing views or downloads
+  // then would invalidate the iterators of the running algorithm.
+  static void check_unlocked();
+
   void set_visible(Download* download);
   void set_not_visible(Download* download);
 
@@ -87,8 +91,8 @@ public:
 
   void sort();
 
-  void set_sort_new(const torrent::Object& s) { m_sortNew = s; }
-  void set_sort_current(const torrent::Object& s) { m_sortCurrent = s; }
+  void set_sort_new(const torrent::Object& s) { check_unlocked(); m_sortNew = s; }
+  void set_sort_current(const torrent::Object& s) { check_unlocked(); m_sortCurrent = s; }
 
   // Need to explicity trigger filtering.
   void                   filter();
@@ -96,9 +100,9 @@ public:
   void                   filter_download(core::Download* download);
 
   const torrent::Object& get_filter() const { return m_filter; }
-  void                   set_filter(const torrent::Object& s) { m_filter = s; }
+  void                   set_filter(const torrent::Object& s) { check_unlocked(); m_filter = s; }
   const torrent::Object& get_filter_temp() const { return m_temp_filter; }
-  void                   set_filter_temp(const torrent::Object& s) { m_temp_filter = s; }
+  void                   set_filter_temp(const torrent::Object& s) { check_unlocked(); m_temp_filter = s; }
   void                   set_filter_on_event(const std::string& event);
 
   void                   clear_filter_on();

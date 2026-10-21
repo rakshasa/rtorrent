@@ -352,25 +352,24 @@ DownloadFactory::receive_success() {
   // The action of inserting might cause the torrent to be
   // opened/started or such. Figure out a nicer way of handling this.
   if (m_manager->download_list()->insert(download) == m_manager->download_list()->end()) {
-    // ATM doesn't really ever get here.
-    delete download;
+    // The list owns the download, also when an event handler erased it.
 
     m_slot_finished();
     return;
   }
 
-  // Save the info-hash just in case the commands decide to delete it.
-  torrent::HashString infohash = download->info()->hash();
+  // The commands may erase the download.
+  const auto lifetime = download->lifetime();
 
   try {
     if (torrent::log_groups[torrent::LOG_TORRENT_DEBUG].valid())
       log_created(download, rtorrent);
 
     for (const auto& command : m_commands)
-      rpc::parse_command_multiple_std(command, rpc::make_target(download));
-
-    if (m_manager->download_list()->find(infohash) == m_manager->download_list()->end())
-      throw torrent::input_error("The newly created download was removed.");
+      rpc::parse_command_multiple_std(command, rpc::make_target(download), [&lifetime]() {
+          if (lifetime.expired())
+            throw torrent::input_error("The newly created download was removed.");
+        });
 
     if (!m_session)
        rpc::call_command("d.state.set", (int64_t)m_start, rpc::make_target(download));
@@ -384,11 +383,10 @@ DownloadFactory::receive_success() {
     if (m_printLog)
       m_manager->push_log_std(msg);
 
-    if (m_manager->download_list()->find(infohash) != m_manager->download_list()->end()) {
+    if (!lifetime.expired()) {
       // Should stop it, mark it bad. Perhaps even delete it?
       download->set_hash_failed(true);
       download->set_message(msg);
-      //     m_manager->download_list()->erase(m_manager->download_list()->find(infohash.data()));
     }
   }
 

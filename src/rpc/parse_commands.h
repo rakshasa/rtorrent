@@ -55,7 +55,11 @@ typedef std::pair<torrent::Object, const char*> parse_command_type;
 // The generic parse command function, used by the rest. At some point
 // the 'download' parameter should be replaced by a more generic one.
 parse_command_type     parse_command(target_type target, const char* first, const char* last);
-torrent::Object        parse_command_multiple(target_type target, const char* first, const char* last);
+
+// The optional 'after_each' is called after every command, and may throw to
+// stop the rest.
+torrent::Object        parse_command_multiple(target_type target, const char* first, const char* last,
+                                              const std::function<void()>& after_each = {});
 
 void                   parse_command_execute(target_type target, torrent::Object* object);
 
@@ -99,8 +103,9 @@ private:
 };
 
 inline torrent::Object
-parse_command_multiple_std(const std::string& cmd, target_type target = rpc::make_target()) {
-  return parse_command_multiple(target, cmd.c_str(), cmd.c_str() + cmd.size());
+parse_command_multiple_std(const std::string& cmd, target_type target = rpc::make_target(),
+                           const std::function<void()>& after_each = {}) {
+  return parse_command_multiple(target, cmd.c_str(), cmd.c_str() + cmd.size(), after_each);
 }
 
 inline void

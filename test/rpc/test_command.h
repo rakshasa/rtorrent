@@ -8,6 +8,7 @@ class TestCommand : public test_fixture {
   CPPUNIT_TEST(test_is_valid_command);
   CPPUNIT_TEST(test_preparsed_commands);
   CPPUNIT_TEST(test_parse_command_object);
+  CPPUNIT_TEST(test_parse_command_multiple_after_each);
 
   CPPUNIT_TEST_SUITE_END();
 
@@ -17,4 +18,5 @@ public:
   void test_is_valid_command();
   void test_preparsed_commands();
   void test_parse_command_object();
+  void test_parse_command_multiple_after_each();
 };
