@@ -94,6 +94,7 @@ rc.execute.nothrow(
 
 -- Other operational settings (check & adapt)
 rc.system.umask = 0027
+--rc.session.umask = 0027
 rc.system.cwd = rc.directory.default()
 rc.network.http.dns_cache_timeout = 25
 rc.schedule('monitor_diskspace', '15', '60', 'close_low_diskspace=1000M')
