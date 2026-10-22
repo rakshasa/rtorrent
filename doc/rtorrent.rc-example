@@ -73,6 +73,7 @@ execute.nothrow = sh, -c, (cat, "echo >",\
 
 # Other operational settings (check & adapt)
 system.umask.set = 0027
+#session.umask.set = 0027
 system.cwd.set = (directory.default)
 network.http.dns_cache_timeout.set = 25
 schedule = monitor_diskspace, 15, 60, ((close_low_diskspace, 1000M))
