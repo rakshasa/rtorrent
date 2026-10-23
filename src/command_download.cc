@@ -3,6 +3,7 @@
 #include <cassert>
 #include <cstdio>
 #include <functional>
+#include <limits>
 #include <netdb.h>
 #include <unistd.h>
 #include <fnmatch.h>
@@ -741,6 +742,23 @@ initialize_command_download() {
   CMD2_DL_V       ("d.save_full_session", [](core::Download* download, auto) { session_thread::manager()->save_full_download(download); });
 
   CMD2_DL_V       ("d.update_priorities", CMD2_ON_DL(update_priorities));
+  // d.seek = <first chunk>, <window size in chunks>
+  CMD2_DL_LIST    ("d.seek", [](core::Download* download, const torrent::Object::list_type& args) {
+      if (args.size() != 2)
+        throw torrent::input_error("d.seek takes <first chunk>,<window size>.");
+
+      if (download->info()->is_meta_download())
+        throw torrent::input_error("d.seek: metadata not yet received.");
+
+      int64_t first = rpc::convert_to_value(args.front());
+      int64_t size  = rpc::convert_to_value(args.back());
+
+      if (first < 0 || size < 0 || size > std::numeric_limits<uint32_t>::max() || first >= download->file_list()->size_chunks())
+        throw torrent::input_error("d.seek: value out of range.");
+
+      download->download()->seek(static_cast<uint32_t>(first), static_cast<uint32_t>(size));
+      return torrent::Object();
+    });
 
   CMD2_DL_STRING_V("add_peer",   std::bind(&apply_d_add_peer, std::placeholders::_1, std::placeholders::_2));
 
@@ -993,6 +1011,7 @@ initialize_command_download() {
   rpc::rpc.mark_safe("d.save_resume");
   rpc::rpc.mark_safe("d.save_full_session");
   rpc::rpc.mark_safe("d.update_priorities");
+  rpc::rpc.mark_safe("d.seek");
   rpc::rpc.mark_safe("d.custom");
   rpc::rpc.mark_safe("d.custom1");
   rpc::rpc.mark_safe("d.custom2");
