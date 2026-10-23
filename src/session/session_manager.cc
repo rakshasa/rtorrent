@@ -402,17 +402,20 @@ SessionManager::process_next_save_request_unsafe() {
           m_processing_save_counter = m_processing_saves.size();
         };
 
+      int mode_error;
+
       try {
-        DownloadStorer::save_and_move_streams(itr->second.path, m_use_fsyncdisk, file_mode(),
-                                              itr->second.torrent_stream.get(),
-                                              itr->second.rtorrent_stream.get(),
-                                              itr->second.libtorrent_stream.get());
+        mode_error = DownloadStorer::save_and_move_streams(itr->second.path, m_use_fsyncdisk, file_mode(),
+                                                           itr->second.torrent_stream.get(),
+                                                           itr->second.rtorrent_stream.get(),
+                                                           itr->second.libtorrent_stream.get());
       } catch (...) {
         cleanup_fn();
         throw;
       }
 
       cleanup_fn();
+      return mode_error;
     });
 
   LT_LOG("started save of download : download:%p path:%s", itr->second.download, itr->second.path.c_str());
@@ -458,7 +461,10 @@ SessionManager::report_storage_error_unsafe(const std::string& what) {
 void
 SessionManager::consume_finished_save_unsafe(ProcessingSave& request) {
   try {
-    request.first.get();
+    int mode_error = request.first.get();
+
+    if (mode_error != 0)
+      report_storage_error_unsafe("saved with owner-only permissions, failed to set file mode : " + request.second.path + " : " + std::strerror(mode_error));
 
   } catch (torrent::storage_error& e) {
     LT_LOG("error saving download : storage error :download:%p path:%s : %s", request.second.download, request.second.path.c_str(), e.what());

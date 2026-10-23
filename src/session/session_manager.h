@@ -97,7 +97,7 @@ private:
   bool                replace_save_request_unsafe(SaveRequest& download);
   bool                remove_completely_unsafe(core::Download* download, std::unique_lock<std::mutex>& lock);
 
-  using ProcessingSave = std::pair<std::future<void>, SaveRequest>;
+  using ProcessingSave = std::pair<std::future<int>, SaveRequest>;
 
   void                consume_finished_save_unsafe(ProcessingSave& request);
   void                report_storage_error_unsafe(const std::string& what);
