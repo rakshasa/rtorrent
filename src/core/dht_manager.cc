@@ -320,6 +320,17 @@ DhtManager::dht_statistics() {
     dhtStats.insert_key("peers",            stats.num_peers);
     dhtStats.insert_key("peers_max",        stats.max_peers);
     dhtStats.insert_key("torrents",         stats.num_trackers);
+
+    // The IPv6 DHT (BEP 32, libtorrent-dht-ipv6.patch): its own table beside the IPv4 one.
+    dhtStats.insert_key("active6",           stats.active6);
+    dhtStats.insert_key("cycle6",            stats.cycle6);
+    dhtStats.insert_key("queries_received6", stats.queries_received6);
+    dhtStats.insert_key("queries_sent6",     stats.queries_sent6);
+    dhtStats.insert_key("replies_received6", stats.replies_received6);
+    dhtStats.insert_key("nodes6",            stats.num_nodes6);
+    dhtStats.insert_key("buckets6",          stats.num_buckets6);
+    dhtStats.insert_key("peers6",            stats.num_peers6);
+    dhtStats.insert_key("torrents6",         stats.num_trackers6);
   }
 
   return dhtStats;
