@@ -29,8 +29,6 @@ SCgiTask::SCgiTask()
   : m_callback_id(torrent::system::make_callback_id()) {
 
   m_task_timeout.slot() = [this]() { close(); };
-
-  reset_file_descriptor();
 }
 
 void
@@ -67,11 +65,9 @@ SCgiTask::cancel_open() {
     return;
 
   torrent::this_thread::scheduler()->erase(&m_task_timeout);
-
   torrent::this_thread::poll()->remove_and_close(this);
 
-  torrent::fd_close(file_descriptor());
-  reset_file_descriptor();
+  torrent::fd_close_and_clear(file_descriptor_ref());
 };
 
 void
@@ -85,9 +81,7 @@ SCgiTask::close() {
 
   torrent::runtime::socket_manager()->close_event_or_throw(this, [this]() {
       torrent::this_thread::poll()->remove_and_close(this);
-
-      torrent::fd_close(file_descriptor());
-      reset_file_descriptor();
+      torrent::fd_close_and_clear(file_descriptor_ref());
     });
 
   // The callbacks are guaranteed to be finished/canceled at this point.
