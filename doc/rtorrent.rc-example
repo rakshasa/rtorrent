@@ -113,7 +113,7 @@ log.open_file = "log", (cfg.logfile)
 
 log.add_output = "errors", "log"
 log.add_output = "events", "log"
-#log.add_output = "tracker_debug", "log"
+#log.add_output = "tracker_events", "log"
 #log.add_output = "tracker_requests", "log"
 
 ### END of rtorrent.rc ###
