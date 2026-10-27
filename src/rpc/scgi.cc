@@ -103,8 +103,7 @@ SCgi::open(sockaddr* sa, unsigned int length) {
       throw torrent::resource_error("Could not prepare socket for listening: " + std::string(std::strerror(errno)));
 
   } catch (torrent::resource_error& e) {
-    torrent::fd_close(file_descriptor());
-    set_file_descriptor(-1);
+    torrent::fd_close_and_clear(file_descriptor_ref());
     throw;
   }
 }
@@ -135,9 +134,7 @@ SCgi::stop() {
 
   torrent::runtime::socket_manager()->unregister_event_or_throw(this, [this]() {
       torrent::this_thread::poll()->remove_and_close(this);
-
-      torrent::fd_close(file_descriptor());
-      set_file_descriptor(-1);
+      torrent::fd_close_and_clear(file_descriptor_ref());
     });
 
   if (!m_path.empty())

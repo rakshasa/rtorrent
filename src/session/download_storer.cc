@@ -123,7 +123,7 @@ is_correct_format(const std::string& f) {
   return true;
 }
 
-void
+int
 save_stream(const std::string& path, bool use_fsyncdisk, mode_t file_mode, const std::stringstream& stream) {
   // Remove any leftover temporary file first so that O_EXCL only ever fails on
   // an entry that appeared after the unlink, and O_NOFOLLOW keeps a symlink
@@ -138,10 +138,11 @@ save_stream(const std::string& path, bool use_fsyncdisk, mode_t file_mode, const
     throw torrent::storage_error("failed to open file for writing : " + path);
 
   // open() applies the process umask, so set the configured mode explicitly.
-  if (file_mode != 0 && ::fchmod(fd, file_mode) == -1) {
-    ::close(fd);
-    throw torrent::storage_error("failed to set file permissions : " + path);
-  }
+  // If adjustment is unavailable, keep the restrictive file and save its data.
+  int mode_error = 0;
+
+  if (file_mode != 0 && ::fchmod(fd, file_mode) == -1)
+    mode_error = errno;
 
   const auto  data      = stream.view();
   std::size_t remaining = data.size();
@@ -178,6 +179,8 @@ save_stream(const std::string& path, bool use_fsyncdisk, mode_t file_mode, const
   // A full disk may only be seen when the descriptor is closed.
   if (::close(fd) == -1)
     throw torrent::storage_error("failed to close file descriptor : " + path);
+
+  return mode_error;
 }
 
 void
@@ -202,7 +205,7 @@ sync_directory_of(const std::string& path) {
 
 } // namespace anonymous
 
-void
+int
 DownloadStorer::save_and_move_streams(const std::string& path, bool use_fsyncdisk, mode_t file_mode,
                                        const std::stringstream* torrent_stream,
                                        const std::stringstream* rtorrent_stream,
@@ -210,12 +213,16 @@ DownloadStorer::save_and_move_streams(const std::string& path, bool use_fsyncdis
   auto torrent_path    = path;
   auto libtorrent_path = path + ".libtorrent_resume";
   auto rtorrent_path   = path + ".rtorrent";
+  int  mode_error      = 0;
 
   if (torrent_stream)
-    save_stream(torrent_path + ".new", use_fsyncdisk, file_mode, *torrent_stream);
+    mode_error = save_stream(torrent_path + ".new", use_fsyncdisk, file_mode, *torrent_stream);
 
-  save_stream(libtorrent_path + ".new", use_fsyncdisk, file_mode, *libtorrent_stream);
-  save_stream(rtorrent_path + ".new", use_fsyncdisk, file_mode, *rtorrent_stream);
+  int libtorrent_error = save_stream(libtorrent_path + ".new", use_fsyncdisk, file_mode, *libtorrent_stream);
+  int rtorrent_error   = save_stream(rtorrent_path + ".new", use_fsyncdisk, file_mode, *rtorrent_stream);
+
+  if (mode_error == 0)
+    mode_error = libtorrent_error != 0 ? libtorrent_error : rtorrent_error;
 
   if (torrent_stream) {
     if (::rename((torrent_path + ".new").c_str(), torrent_path.c_str()) == -1)
@@ -232,6 +239,8 @@ DownloadStorer::save_and_move_streams(const std::string& path, bool use_fsyncdis
   // holding them has to be synced for the new names to survive a crash.
   if (use_fsyncdisk)
     sync_directory_of(path);
+
+  return mode_error;
 }
 
 utils::Directory

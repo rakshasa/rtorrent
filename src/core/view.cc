@@ -22,6 +22,14 @@ entry_is(Download* download) {
   return [download](const std::shared_ptr<Download>& entry) { return entry.get() == download; };
 }
 
+// Held while a filter or sort command runs, see View::check_unlocked().
+static unsigned int view_lock_count = 0;
+
+struct view_lock {
+  view_lock() { view_lock_count++; }
+  ~view_lock() { view_lock_count--; }
+};
+
 struct view_downloads_compare {
   view_downloads_compare(const torrent::Object& cmd) :
       m_command(cmd) {}
@@ -34,6 +42,8 @@ struct view_downloads_compare {
     try {
       if (m_command.is_empty())
         return false;
+
+      view_lock lock;
 
       if (!m_command.is_dict_key())
         return rpc::parse_command_single(rpc::make_target_pair(d1, d2), m_command.as_string()).as_value();
@@ -77,6 +87,7 @@ struct view_downloads_filter {
       return true;
 
     try {
+      view_lock lock;
       torrent::Object result;
 
       if (cmd.is_dict_key()) {
@@ -124,6 +135,12 @@ struct view_downloads_filter {
   const torrent::Object& m_command;
   const torrent::Object& m_command2;
 };
+
+void
+View::check_unlocked() {
+  if (view_lock_count != 0)
+    throw torrent::input_error("View filter and sort commands cannot change views or downloads.");
+}
 
 void
 View::emit_changed() {
@@ -179,6 +196,8 @@ View::erase(Download* download) {
 
 void
 View::set_visible(Download* download) {
+  check_unlocked();
+
   iterator itr = std::find_if(begin_filtered(), end_filtered(), entry_is(download));
 
   if (itr == end_filtered())
@@ -196,6 +215,8 @@ View::set_visible(Download* download) {
 
 void
 View::set_not_visible(Download* download) {
+  check_unlocked();
+
   iterator itr = std::find_if(begin_visible(), end_visible(), entry_is(download));
 
   if (itr == end_visible())
@@ -259,6 +280,8 @@ View::prev_focus(unsigned int i) {
 
 void
 View::sort() {
+  check_unlocked();
+
   Download* curFocus = focus() != end_visible() ? focus()->get() : NULL;
 
   // Don't go randomly switching around equivalent elements.
@@ -270,6 +293,8 @@ View::sort() {
 
 void
 View::filter() {
+  check_unlocked();
+
   // Do NOT allow filter STARTED and STOPPED views: they are special
   if (m_name == "started" || m_name == "stopped")
     return;
@@ -287,21 +312,19 @@ View::filter() {
   // Fix this...
   m_focus = std::min(m_focus, m_size);
 
-  // The commands are allowed to remove itself from or change View
-  // sorting since the commands are being called on the 'changed'
-  // vector. But this will cause undefined behavior if elements are
-  // removed.
-  //
-  // Consider if View should lock itself (and throw) if erase events
-  // are triggered on a Download in the 'changed' list. This can be
-  // done by using a base_type* member variable, and making sure we
-  // set the elements to NULL as we trigger commands on them. Or
-  // perhaps always clear them, thus not throwing anything.
+  // The events run on the 'changed' copy after the filter commands, so
+  // they may change views. Skip downloads an earlier event erased.
   if (!m_event_removed.is_empty())
-    std::for_each(changed.begin(), splitChanged, [this](const auto& d) { rpc::call_object_d_nothrow(m_event_removed, d.get()); });
+    std::for_each(changed.begin(), splitChanged, [this](const auto& d) {
+        if (!d->lifetime().expired())
+          rpc::call_object_d_nothrow(m_event_removed, d.get());
+      });
 
   if (!m_event_added.is_empty())
-    std::for_each(splitChanged, changed.end(), [this](const auto& d) { rpc::call_object_d_nothrow(m_event_added, d.get()); });
+    std::for_each(splitChanged, changed.end(), [this](const auto& d) {
+        if (!d->lifetime().expired())
+          rpc::call_object_d_nothrow(m_event_added, d.get());
+      });
 
   emit_changed();
 }
@@ -312,12 +335,14 @@ View::filter_by(const torrent::Object& condition, View::base_type& result) {
   view_downloads_filter matches = view_downloads_filter(condition, m_temp_filter);
 
   for (iterator itr = begin_visible(); itr != end_visible(); ++itr)
-    if (matches(itr->get()))
+    if (*itr != nullptr && matches(itr->get()))
       result.push_back(*itr);
 }
 
 void
 View::filter_download(core::Download* download) {
+  check_unlocked();
+
   iterator itr = std::find_if(base_type::begin(), base_type::end(), entry_is(download));
 
   if (itr == base_type::end())

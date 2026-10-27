@@ -161,9 +161,18 @@ DownloadList::create(std::istream* str, uint32_t tracker_key, bool printLog) {
   return new Download(download);
 }
 
+// Event handlers must not add views while a download is inserted or erased,
+// as the loops below iterate over the view manager.
+static void
+check_view_count(ViewManager::size_type count) {
+  if (control->view_manager()->size() != count)
+    throw torrent::internal_error("DownloadList: an event handler added a view while a download was inserted or erased.");
+}
+
 DownloadList::iterator
 DownloadList::insert(Download* download) {
   iterator itr = base_type::insert(end(), std::shared_ptr<Download>(download));
+  auto lifetime = download->lifetime();
 
   LT_LOG_DOWNLOAD_DEBUG("inserting download", 0);
 
@@ -175,10 +184,22 @@ DownloadList::insert(Download* download) {
     // the download remains in the view.
     for (auto v : *control->view_manager())
       v->insert(*itr);
-    for (auto v : *control->view_manager())
+
+    auto view_count = control->view_manager()->size();
+
+    for (auto v : *control->view_manager()) {
       v->filter_download(download);
+      check_view_count(view_count);
+
+      // The filter events may erase the download.
+      if (lifetime.expired())
+        return end();
+    }
 
     DL_TRIGGER_EVENT(*itr, "event.download.inserted");
+
+    if (lifetime.expired())
+      return end();
 
   } catch (torrent::local_error& e) {
     // Should perhaps relax this, just print an error and remove the
@@ -196,6 +217,8 @@ DownloadList::erase_ptr(Download* download) {
 
 DownloadList::iterator
 DownloadList::erase(iterator itr) {
+  View::check_unlocked();
+
   if (itr == end())
     throw torrent::internal_error("DownloadList::erase(...) could not find download.");
 
@@ -204,6 +227,8 @@ DownloadList::erase(iterator itr) {
     return std::next(itr);
 
   (*itr)->set_erasing();
+
+  auto view_count = control->view_manager()->size();
 
   lt_log_print_hash(torrent::LOG_TORRENT_DEBUG, (*itr)->info()->hash(), "download_list : removing download");
 
@@ -215,8 +240,10 @@ DownloadList::erase(iterator itr) {
 
   DL_TRIGGER_EVENT(*itr, "event.download.erased");
 
-  for (auto v : *control->view_manager())
+  for (auto v : *control->view_manager()) {
     v->erase(itr->get());
+    check_view_count(view_count);
+  }
 
   (*itr)->release_lifetime();
   torrent::download_remove(*(*itr)->download());
@@ -286,6 +313,9 @@ DownloadList::close_files(Download* download) {
 
 void
 DownloadList::close_directly(Download* download) {
+  // set_state_stopped() would refuse only after the files are closed.
+  View::check_unlocked();
+
   lt_log_print_hash(torrent::LOG_TORRENT_DEBUG, download->info()->hash(), "download_list : closing download directly");
 
   auto lifetime   = download->lifetime();
@@ -388,6 +418,8 @@ DownloadList::close_throw(Download* download) {
 
 void
 DownloadList::resume(Download* download, int flags) {
+  // Refuse before the catch below hides the refusal of the view change.
+  View::check_unlocked();
   check_contains(download);
 
   LT_LOG_DOWNLOAD_DEBUG("resuming download : flags:%0x.", flags);
@@ -485,6 +517,8 @@ DownloadList::resume(Download* download, int flags) {
 
 void
 DownloadList::pause(Download* download, int flags) {
+  // Refuse before the catch below hides the refusal of the view change.
+  View::check_unlocked();
   check_contains(download);
 
   LT_LOG_DOWNLOAD_DEBUG("pausing download : flags:%0x.", flags);
@@ -536,6 +570,8 @@ DownloadList::pause(Download* download, int flags) {
 
 void
 DownloadList::check_hash(Download* download) {
+  // hash_queue() clears the progress of a closed download before any view change.
+  View::check_unlocked();
   check_contains(download);
 
   LT_LOG_DOWNLOAD_DEBUG("checking hash", 0);

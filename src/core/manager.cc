@@ -388,6 +388,8 @@ Manager::try_create_download_expand(const std::string& uri, int flags, command_l
 // hashing view and starts hashing if nessesary.
 void
 Manager::receive_hashing_changed() {
+  constexpr auto hashing_failed_message = "Hashing failed: ";
+
   bool foundHashing = std::any_of(m_hashingView->begin_visible(), m_hashingView->end_visible(),
                                    std::mem_fn(&Download::is_hash_checking));
 
@@ -409,6 +411,10 @@ Manager::receive_hashing_changed() {
 
     try {
       m_download_list->open_throw(itr->get());
+
+      // An open that works retires the failure an earlier pass reported.
+      if ((*itr)->message().compare(0, std::strlen(hashing_failed_message), hashing_failed_message) == 0)
+        (*itr)->set_message("");
 
       // Since the bitfield is allocated on loading of resume load or
       // hash start, and unallocated on close, we know that if it it
@@ -440,7 +446,7 @@ Manager::receive_hashing_changed() {
 
       if (!tryQuick || !foundHashing) {
         (*itr)->set_hash_failed(true);
-        (*itr)->set_message("Hashing failed: " + std::string(e.what()));
+        (*itr)->set_message(hashing_failed_message + std::string(e.what()));
 
         lt_log_print_hash(torrent::LOG_TORRENT_EVENTS, (*itr)->info()->hash(), "hashing failed : %s", e.what());
       }
