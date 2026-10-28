@@ -43,7 +43,8 @@ cmd_scheduler_simple_removed(core::Download* download) {
 
     control->core()->download_list()->resume(*itr);
 
-    if ((int64_t)++numActive >= maxActive)
+    // A download that failed to start has left 'active' again, so count the view.
+    if ((int64_t)viewActive->size_visible() >= maxActive)
       break;
   }
 
@@ -55,7 +56,6 @@ cmd_scheduler_simple_update([[maybe_unused]] core::Download* download) {
   core::View* viewActive = *control->view_manager()->find("active");
   core::View* viewStarted = *control->view_manager()->find("started");
 
-  unsigned int numActive = viewActive->size_visible();
   uint64_t maxActive = rpc::call_command("scheduler.max_active", torrent::Object()).as_value();
 
   if (viewActive->size_visible() < maxActive) {
@@ -65,7 +65,7 @@ cmd_scheduler_simple_update([[maybe_unused]] core::Download* download) {
 
       control->core()->download_list()->resume(*itr);
 
-      if (++numActive >= maxActive)
+      if (viewActive->size_visible() >= maxActive)
         break;
     }
 
