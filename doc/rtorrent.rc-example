@@ -105,8 +105,8 @@ schedule = watch_start, 10, 10, ((load.start_verbose, (cat, (cfg.watch), "start/
 #execute.nothrow = chmod,770,(cat,(session.path),rpc.socket)
 
 ## Logging:
-##   Levels = critical error warn notice info debug
-##   Groups = connection_* dht_* peer_* rpc_* storage_* thread_* tracker_* torrent_*
+##   Levels = errors events debug_trace
+##   Groups = connection_* dht_* peer_* rpc_* session_* storage_* torrent_* tracker_*
 print = (cat, "Logging to ", (cfg.logfile))
 
 log.open_file = "log", (cfg.logfile)
