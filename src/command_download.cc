@@ -3,6 +3,7 @@
 #include <cassert>
 #include <cstdio>
 #include <functional>
+#include <limits>
 #include <netdb.h>
 #include <unistd.h>
 #include <fnmatch.h>
@@ -909,6 +910,21 @@ initialize_command_download() {
   CMD2_DL         ("d.priority_str", std::bind(&retrieve_d_priority_str, std::placeholders::_1));
   CMD2_DL_VALUE_V ("d.priority.set", std::bind(&core::Download::set_priority, std::placeholders::_1, std::placeholders::_2));
 
+  // d.priority.window.set = <first chunk>, <size in chunks>; a size of 0 clears the window.
+  CMD2_DL_LIST    ("d.priority.window.set", [](core::Download* download, const torrent::Object::list_type& args) {
+      if (args.size() != 2)
+        throw torrent::input_error("d.priority.window.set takes <first chunk>,<size in chunks>.");
+
+      int64_t first = rpc::convert_to_value(args.front());
+      int64_t size  = rpc::convert_to_value(args.back());
+
+      if (first < 0 || size < 0 || first > std::numeric_limits<uint32_t>::max() || size > std::numeric_limits<uint32_t>::max())
+        throw torrent::input_error("d.priority.window.set: value out of range.");
+
+      download->download()->set_priority_window(static_cast<uint32_t>(first), static_cast<uint32_t>(size));
+      return torrent::Object();
+    });
+
   // CMD2_DL         ("d.group",     std::bind(&torrent::resource_manager_entry::group,
   //                                           std::bind(&torrent::ResourceManager::entry_at, torrent::resource_manager(),
   //                                                     std::bind(&core::Download::main, std::placeholders::_1))));
@@ -993,6 +1009,7 @@ initialize_command_download() {
   rpc::rpc.mark_safe("d.save_resume");
   rpc::rpc.mark_safe("d.save_full_session");
   rpc::rpc.mark_safe("d.update_priorities");
+  rpc::rpc.mark_safe("d.priority.window.set");
   rpc::rpc.mark_safe("d.custom");
   rpc::rpc.mark_safe("d.custom1");
   rpc::rpc.mark_safe("d.custom2");
