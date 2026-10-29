@@ -99,13 +99,17 @@ AC_DEFUN([TORRENT_WITH_ADDRESS_SPACE], [
 ])
 
 
+# The atomic is global and modified with a read-modify-write operation,
+# otherwise the compiler can optimize the operations away and the program
+# links without libatomic even on targets that need it.
 AC_DEFUN([TORRENT_CHECK_ATOMIC], [
   AC_MSG_CHECKING([whether 64-bit atomic operations require -latomic])
   AC_LANG_PUSH(C++)
 
   AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <cstdint>
-                                    #include <atomic>]],
-                                    [[std::atomic<uint64_t> x(0);
+                                    #include <atomic>
+                                    std::atomic<uint64_t> x(0);]],
+                                    [[x.fetch_add(1);
                                     return x.load();]])],
     [
       AC_MSG_RESULT([no])
@@ -116,8 +120,9 @@ AC_DEFUN([TORRENT_CHECK_ATOMIC], [
       LIBS="$LIBS -latomic"
 
       AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <cstdint>
-                                        #include <atomic>]],
-                                        [[std::atomic<uint64_t> x(0);
+                                        #include <atomic>
+                                        std::atomic<uint64_t> x(0);]],
+                                        [[x.fetch_add(1);
                                         return x.load();]])],
         [
           AC_MSG_RESULT([yes])
