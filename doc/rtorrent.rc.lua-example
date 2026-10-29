@@ -127,8 +127,8 @@ rc.schedule('watch_load', '11', '10', 'load.verbose=(cat, (cfg.watch), "load/*.t
 --rc.execute.nothrow('chmod', '770', cfg.session..'rtorrent.sock')
 
 -- Logging:
---   Levels = critical error warn notice info debug
---   Groups = connection_* dht_* peer_* rpc_* storage_* thread_* tracker_* torrent_*
+--   Levels = errors events debug_trace
+--   Groups = connection_* dht_* peer_* rpc_* session_* storage_* torrent_* tracker_*
 rc.print('Logging to '..rc.cfg.logfile())
 rc.log.open_file('log', rc.cfg.logfile())
 rc.log.add_output('errors', 'log')
