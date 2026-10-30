@@ -63,6 +63,8 @@ rtorrent_Test_Src_SOURCES = $(rtorrent_Test_Common) \
 	src/test_command_download.h \
 	src/test_command_dynamic.cc \
 	src/test_command_dynamic.h \
+	src/test_command_events.cc \
+	src/test_command_events.h \
 	src/test_command_groups.cc \
 	src/test_command_groups.h \
 	src/test_command_ip.cc \
