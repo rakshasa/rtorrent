@@ -18,11 +18,12 @@ TestCommandDynamic::setUp() {
   m_test_main_thread = TestMainThread::create();
   m_test_main_thread->init_thread();
 
+  if (control == nullptr)
+    control = new Control;
+
   if (rpc::commands.find("method.insert") == rpc::commands.end()) {
     setlocale(LC_ALL, "");
     // cachedTime = rak::timer::current();
-    control = new Control;
-
     initialize_command_dynamic();
     initialize_command_ui();
   }
