@@ -49,6 +49,9 @@ std::function<void()>                compare_action;
 std::function<void(core::Download*)> added_action;
 std::function<void(core::Download*)> removed_action;
 
+// Runs from every comparator command, until cleared.
+std::function<void()> every_compare_action;
+
 core::Download*
 new_download() {
   torrent::Object info = torrent::Object::create_map();
@@ -142,6 +145,9 @@ cmd_compare(rpc::target_type target, const torrent::Object&) {
   if (compare_action)
     std::exchange(compare_action, {})();
 
+  if (every_compare_action)
+    every_compare_action();
+
   auto left  = static_cast<core::Download*>(target.second);
   auto right = static_cast<core::Download*>(target.third);
 
@@ -220,6 +226,8 @@ TestView::setUp() {
 
 void
 TestView::tearDown() {
+  every_compare_action = {};
+
   control->core()->download_list()->clear();
   control->view_manager()->clear();
 
@@ -478,9 +486,10 @@ TestView::test_insert_stops_at_erased_download() {
   CPPUNIT_ASSERT_EQUAL(size_t(0), list->size());
 }
 
-// A comparator may read the view it sorts, while std::stable_sort holds one of
-// its entries outside and leaves a moved-from one in its place. The commands
-// that read a view skip that entry, also when no command would use it.
+// A comparator may read the view it sorts, while std::stable_sort holds some
+// of its entries outside and leaves moved-from ones in their place. The
+// commands that read a view skip those entries, also when no command would
+// use them.
 void
 TestView::test_multicall_skips_moved_entries() {
   auto d0 = insert_download();
@@ -491,35 +500,30 @@ TestView::test_multicall_skips_moved_entries() {
   sort_rank = {{d0, 0}, {d1, 1}, {d2, 2}};
   matches_filter = {nullptr, d0, d1, d2};
 
-  torrent::Object rows;
-  torrent::Object filtered_rows;
-  torrent::Object named_rows;
-  torrent::Object hashes;
+  size_t comparisons  = 0;
+  size_t wrong_counts = 0;
 
-  // The insertion sort moves d1 out after the first comparison returns false.
-  compare_action = [&]() {
-    compare_action = [&]() {
-      auto args = torrent::Object::create_list();
-      args.as_list().push_back(std::string("test_view"));
-      rows = rpc::call_command("d.multicall", args);
+  every_compare_action = [&]() {
+    comparisons++;
 
-      hashes = rpc::call_command("download_list", args);
+    size_t present = std::count_if(view->begin_visible(), view->end_visible(), [](const auto& d) { return d != nullptr; });
 
-      args.as_list().push_back(command_object(filter_command));
-      filtered_rows = rpc::call_command("d.multicall.filtered", args);
+    auto args = torrent::Object::create_list();
+    args.as_list().push_back(std::string("test_view"));
+    wrong_counts += rpc::call_command("d.multicall", args).as_list().size() != present;
+    wrong_counts += rpc::call_command("download_list", args).as_list().size() != present;
 
-      args.as_list().back() = command_object(name_command);
-      named_rows = rpc::call_command("d.multicall.filtered", args);
-    };
+    args.as_list().push_back(command_object(filter_command));
+    wrong_counts += rpc::call_command("d.multicall.filtered", args).as_list().size() != present;
+
+    args.as_list().back() = command_object(name_command);
+    wrong_counts += rpc::call_command("d.multicall.filtered", args).as_list().size() != present;
   };
 
   view->set_sort_current(command_object(compare_command));
   view->sort();
 
-  CPPUNIT_ASSERT(rows.is_list() && filtered_rows.is_list() && named_rows.is_list() && hashes.is_list());
-  CPPUNIT_ASSERT_EQUAL(size_t(2), rows.as_list().size());
-  CPPUNIT_ASSERT_EQUAL(size_t(2), filtered_rows.as_list().size());
-  CPPUNIT_ASSERT_EQUAL(size_t(2), named_rows.as_list().size());
-  CPPUNIT_ASSERT_EQUAL(size_t(2), hashes.as_list().size());
+  CPPUNIT_ASSERT(comparisons > 0);
+  CPPUNIT_ASSERT_EQUAL(size_t{0}, wrong_counts);
   CPPUNIT_ASSERT_EQUAL(std::string("d0,d1,d2"), describe_visible(*view));
 }
