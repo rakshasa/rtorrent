@@ -38,7 +38,7 @@ apply_on_ratio(const torrent::Object& rawArgs) {
   int64_t max_ratio  = rpc::commands.call("group." + group_name + ".ratio.max", rpc::make_target()).as_value();
   int64_t min_upload = rpc::commands.call("group." + group_name + ".ratio.upload", rpc::make_target()).as_value();
 
-  std::vector<core::Download*> downloads;
+  core::View::base_type downloads;
 
   for  (auto itr = (*view_itr)->begin_visible(), last = (*view_itr)->end_visible(); itr != last; itr++) {
     if (*itr == nullptr || !(*itr)->is_seeding() || rpc::call_command_value("d.ignore_commands", rpc::make_target(*itr)) != 0)
@@ -51,7 +51,7 @@ apply_on_ratio(const torrent::Object& rawArgs) {
         !(max_ratio > 0 && total_upload * 100 > total_done * max_ratio))
       continue;
 
-    downloads.push_back(itr->get());
+    downloads.push_back(*itr);
   }
 
   auto ratio_command = "group." + group_name + ".ratio.command";
@@ -65,6 +65,8 @@ apply_on_ratio(const torrent::Object& rawArgs) {
 torrent::Object
 apply_start_tied() {
   for (const auto& download : *control->core()->download_list()) {
+    auto lifetime = download->lifetime();
+
     if (rpc::call_command_value("d.state", rpc::make_target(download)) == 1)
       continue;
 
@@ -73,6 +75,9 @@ apply_start_tied() {
 
     if (!tied_to_file.empty() && fs.update(expand_path(tied_to_file)))
       rpc::parse_command_single(rpc::make_target(download), "d.try_start=");
+
+    if (lifetime.expired())
+      break;
   }
 
   return torrent::Object();
@@ -81,6 +86,8 @@ apply_start_tied() {
 torrent::Object
 apply_stop_untied() {
   for (const auto& download : *control->core()->download_list()) {
+    auto lifetime = download->lifetime();
+
     if (rpc::call_command_value("d.state", rpc::make_target(download)) == 0)
       continue;
 
@@ -89,6 +96,9 @@ apply_stop_untied() {
 
     if (!tied_to_file.empty() && !fs.update(expand_path(tied_to_file)))
       rpc::parse_command_single(rpc::make_target(download), "d.try_stop=");
+
+    if (lifetime.expired())
+      break;
   }
 
   return torrent::Object();
@@ -97,11 +107,16 @@ apply_stop_untied() {
 torrent::Object
 apply_close_untied() {
   for (const auto& download : *control->core()->download_list()) {
+    auto                     lifetime = download->lifetime();
+
     torrent::utils::FileStat fs;
     const std::string& tied_to_file = rpc::call_command_string("d.tied_to_file", rpc::make_target(download));
 
     if (rpc::call_command_value("d.ignore_commands", rpc::make_target(download)) == 0 && !tied_to_file.empty() && !fs.update(expand_path(tied_to_file)))
       rpc::parse_command_single(rpc::make_target(download), "d.try_close=");
+
+    if (lifetime.expired())
+      break;
   }
 
   return torrent::Object();
@@ -181,12 +196,16 @@ apply_close_low_diskspace(int64_t arg, uint32_t skip_priority) {
     if (download->file_list()->free_diskspace(cache) >= (uint64_t)arg)
       continue;
 
+    auto lifetime = download->lifetime();
+
     control->core()->download_list()->close(download);
+    closed++;
+
+    if (lifetime.expired())
+      break;
 
     download->set_hash_failed(true);
     download->set_message(std::string("Low diskspace."));
-
-    closed++;
   }
 
   if (closed != 0)
