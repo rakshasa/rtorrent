@@ -16,6 +16,7 @@
 #include <torrent/utils/string_manip.h>
 
 #include "rpc/parse_commands.h"
+#include "utils/functional.h"
 
 #include "control.h"
 #include "globals.h"
@@ -38,6 +39,9 @@
   rpc::commands.call_catch(event_name, rpc::make_target(download), torrent::Object(), "Event '" event_name "' failed: ");
 
 namespace core {
+
+// Set while resume() reports a failed start to the 'active' removal hooks.
+static bool resume_failure_reporting = false;
 
 inline void
 DownloadList::check_contains([[maybe_unused]] Download* d) {
@@ -422,7 +426,13 @@ DownloadList::resume(Download* download, int flags) {
   View::check_unlocked();
   check_contains(download);
 
+  // A removal hook that resumes again would repeat the failed start without end.
+  if (resume_failure_reporting)
+    throw torrent::input_error("Cannot resume a download while a failed start is reported.");
+
   LT_LOG_DOWNLOAD_DEBUG("resuming download : flags:%0x.", flags);
+
+  constexpr auto resume_failed_message = "Could not resume download: ";
 
   try {
 
@@ -506,12 +516,25 @@ DownloadList::resume(Download* download, int flags) {
     download->set_priority(download->priority());
     download->download()->start(download->resume_flags());
 
+    // A start that works retires the failure an earlier resume reported.
+    if (download->message().starts_with(resume_failed_message))
+      download->set_message("");
+
     download->set_resume_flags(Download::default_resume_flags);
 
     DL_TRIGGER_EVENT(download, "event.download.resumed");
 
   } catch (torrent::local_error& e) {
     LT_LOG_DOWNLOAD_EVENTS("could not resume download : %s", e.what());
+
+    // The download did not start: report why and give up its slot in the 'active' view,
+    // which the scheduler counts. The state stays as the user set it.
+    download->set_message(resume_failed_message + std::string(e.what()));
+
+    resume_failure_reporting = true;
+    utils::scope_guard guard([]() { resume_failure_reporting = false; });
+
+    control->view_manager()->find_ptr_throw("active")->set_not_visible(download);
   }
 }
 
