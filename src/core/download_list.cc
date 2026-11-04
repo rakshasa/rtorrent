@@ -1,9 +1,9 @@
 #include "config.h"
 
-#include <algorithm>
 #include <cstring>
 #include <fstream>
 #include <iostream>
+#include <string_view>
 #include <torrent/data/file.h>
 #include <torrent/utils/resume.h>
 #include <torrent/exceptions.h>
@@ -42,7 +42,7 @@ namespace core {
 inline void
 DownloadList::check_contains([[maybe_unused]] Download* d) {
 #ifdef USE_EXTRA_DEBUG
-  if (std::find_if(begin(), end(), [d](const auto& entry) { return entry.get() == d; }) == end())
+  if (find(d->info()->hash()) == end())
     throw torrent::internal_error("DownloadList::check_contains(...) failed.");
 #endif
 }
@@ -80,9 +80,34 @@ DownloadList::session_save() {
   control->ui()->save_input_history();
 }
 
+size_t
+DownloadListHash::operator()(const torrent::HashString& hash) const {
+  return std::hash<std::string_view>{}(std::string_view(hash.data(), hash.size()));
+}
+
+size_t
+DownloadListHash::operator()(const std::shared_ptr<Download>& download) const {
+  return (*this)(download->info()->hash());
+}
+
+bool
+DownloadListEqual::operator()(const torrent::HashString& hash, const std::shared_ptr<Download>& download) const {
+  return hash == download->info()->hash();
+}
+
+bool
+DownloadListEqual::operator()(const std::shared_ptr<Download>& download, const torrent::HashString& hash) const {
+  return download->info()->hash() == hash;
+}
+
+bool
+DownloadListEqual::operator()(const std::shared_ptr<Download>& lhs, const std::shared_ptr<Download>& rhs) const {
+  return lhs->info()->hash() == rhs->info()->hash();
+}
+
 DownloadList::iterator
 DownloadList::find(const torrent::HashString& hash) {
-  return std::find_if(begin(), end(), [hash](const auto& d) { return hash == d->info()->hash(); });
+  return base_type::find(hash);
 }
 
 DownloadList::iterator
@@ -95,7 +120,7 @@ DownloadList::find_hex(const char* hash) {
   if (torrent::utils::transform_from_hex(hash, hash + 40, key) != key.end())
     return end();
 
-  return std::find_if(begin(), end(), [key](const auto& d) { return key == d->info()->hash(); });
+  return find(key);
 }
 
 Download*
@@ -171,8 +196,11 @@ check_view_count(ViewManager::size_type count) {
 
 DownloadList::iterator
 DownloadList::insert(Download* download) {
-  iterator itr = base_type::insert(end(), std::shared_ptr<Download>(download));
-  auto lifetime = download->lifetime();
+  if (!base_type::insert_back(std::shared_ptr<Download>(download)))
+    throw torrent::internal_error("DownloadList::insert(...) info hash already in the list.");
+
+  iterator itr      = find(download->info()->hash());
+  auto     lifetime = download->lifetime();
 
   LT_LOG_DOWNLOAD_DEBUG("inserting download", 0);
 
@@ -212,7 +240,7 @@ DownloadList::insert(Download* download) {
 
 void
 DownloadList::erase_ptr(Download* download) {
-  erase(std::find_if(begin(), end(), [download](const auto& entry) { return entry.get() == download; }));
+  erase(find(download->info()->hash()));
 }
 
 DownloadList::iterator
@@ -246,9 +274,13 @@ DownloadList::erase(iterator itr) {
   }
 
   (*itr)->release_lifetime();
-  torrent::download_remove(*(*itr)->download());
 
-  return base_type::erase(itr);
+  auto download = *itr;
+  auto next     = base_type::erase(itr);
+
+  torrent::download_remove(*download->download());
+
+  return next;
 }
 
 bool
