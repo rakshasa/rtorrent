@@ -151,6 +151,25 @@ TestCommand::test_parse_command_object() {
   CPPUNIT_ASSERT_THROW(rpc::parse_command_object("string.length=abc\r\nstring.length=def"), torrent::input_error);
 }
 
+// A comment runs to the end of its line, so the next command starts after the
+// ';' or newline that ends it.
+void
+TestCommand::test_parse_command_comment() {
+  const char* commands = " #comment;#comment\n#comment";
+  const char* last     = commands + std::strlen(commands);
+
+  auto        result = rpc::parse_command(rpc::make_target(), commands, last);
+  CPPUNIT_ASSERT_EQUAL(std::string("#comment\n#comment"), std::string(result.second, last));
+
+  result = rpc::parse_command(rpc::make_target(), result.second, last);
+  CPPUNIT_ASSERT_EQUAL(std::string("#comment"), std::string(result.second, last));
+
+  result = rpc::parse_command(rpc::make_target(), result.second, last);
+  CPPUNIT_ASSERT(result.second == last);
+
+  CPPUNIT_ASSERT(rpc::parse_command_multiple(rpc::make_target(), commands, last).is_empty());
+}
+
 // The callback runs after each command of a ';'-separated string, and a throw
 // from it stops the commands that follow.
 void

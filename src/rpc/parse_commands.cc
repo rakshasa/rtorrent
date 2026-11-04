@@ -90,8 +90,11 @@ parse_command_type
 parse_command(target_type target, const char* first, const char* last) {
   first = std::find_if(first, last, [&](char c) { return !command_map_is_space(c); });
 
-  if (first == last || *first == '#')
-    return std::make_pair(torrent::Object(), first);
+  // A comment runs to the end of its line, return where the next command starts.
+  if (first == last || *first == '#') {
+    first = std::find_if(first, last, &command_map_is_newline);
+    return std::make_pair(torrent::Object(), first != last ? first + 1 : first);
+  }
 
   char key[128];
 
