@@ -6,6 +6,7 @@
 #include <functional>
 #include <torrent/exceptions.h>
 
+#include "core/download.h"
 #include "globals.h"
 #include "rpc/parse.h"
 #include "rpc/parse_commands.h"
@@ -19,6 +20,19 @@ inline bool command_map_is_space(char c) {
 
 inline bool command_map_is_newline(char c) {
   return c == '\n' || c == '\0' || c == ';';
+}
+
+// A command may erase the download it was called on, which must then not be
+// passed to the commands after it. The check throws once that happened.
+static std::function<void()>
+erased_download_check(target_type target) {
+  if (target.first != command_base::target_download)
+    return [] {};
+
+  return [lifetime = static_cast<core::Download*>(target.second)->lifetime()] {
+    if (lifetime.expired())
+      throw torrent::input_error("The download was erased by an earlier command.");
+  };
 }
 
 // Only escape eol on odd number of escape characters. We know that
@@ -159,8 +173,11 @@ parse_command_object(const char* first, const char* last) {
 torrent::Object
 parse_command_multiple(target_type target, const char* first, const char* last, const std::function<void()>& after_each) {
   parse_command_type result;
+  auto               throw_if_erased = erased_download_check(target);
 
   while (first != last) {
+    throw_if_erased();
+
     // Should we check the return value? Probably not necessary as
     // parse_args throws on unquoted multi-word input.
     result = parse_command(target, first, last);
@@ -261,16 +278,23 @@ call_object(const torrent::Object& command, target_type target) {
   case torrent::Object::TYPE_LIST:
   {
     torrent::Object result;
+    auto            throw_if_erased = erased_download_check(target);
 
-    for (const auto& itr : command.as_list())
+    for (const auto& itr : command.as_list()) {
+      throw_if_erased();
       result = call_object(itr, target);
+    }
 
     return result;
   }
   case torrent::Object::TYPE_MAP:
   {
-    for (const auto& itr : command.as_map())
+    auto throw_if_erased = erased_download_check(target);
+
+    for (const auto& itr : command.as_map()) {
+      throw_if_erased();
       call_object(itr.second, target);
+    }
 
     return torrent::Object();
   }
