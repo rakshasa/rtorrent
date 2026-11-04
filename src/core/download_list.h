@@ -3,9 +3,9 @@
 
 #include <cstdint>
 #include <iosfwd>
-#include <list>
 #include <memory>
 #include <string>
+#include <torrent/utils/linked_unordered_set.h>
 
 namespace torrent {
   class HashString;
@@ -16,27 +16,35 @@ namespace core {
 
 class Download;
 
+struct DownloadListHash {
+  using is_transparent = void;
+
+  size_t operator()(const torrent::HashString& hash) const;
+  size_t operator()(const std::shared_ptr<Download>& download) const;
+};
+
+struct DownloadListEqual {
+  using is_transparent = void;
+
+  bool operator()(const torrent::HashString& hash, const std::shared_ptr<Download>& download) const;
+  bool operator()(const std::shared_ptr<Download>& download, const torrent::HashString& hash) const;
+  bool operator()(const std::shared_ptr<Download>& lhs, const std::shared_ptr<Download>& rhs) const;
+};
+
 // Container for all downloads. Add slots to the slot maps to cause
 // some action to be taken when the torrent changes states. Don't
 // change the states from outside of core.
-//
-// Fix apply_on_ratio if the base_type is changed.
 
-class DownloadList : private std::list<std::shared_ptr<Download>> {
+class DownloadList : private torrent::utils::linked_unordered_set<std::shared_ptr<Download>, DownloadListHash, DownloadListEqual> {
 public:
-  typedef std::list<std::shared_ptr<Download>> base_type;
+  using base_type  = torrent::utils::linked_unordered_set<std::shared_ptr<Download>, DownloadListHash, DownloadListEqual>;
+  using value_type = std::shared_ptr<Download>;
 
   using base_type::iterator;
   using base_type::const_iterator;
-  using base_type::reverse_iterator;
-  using base_type::const_reverse_iterator;
-  using base_type::value_type;
-  using base_type::pointer;
 
   using base_type::begin;
   using base_type::end;
-  using base_type::rbegin;
-  using base_type::rend;
 
   using base_type::empty;
   using base_type::size;
