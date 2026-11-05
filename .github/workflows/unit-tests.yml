@@ -76,7 +76,7 @@ jobs:
     needs: unit-tests-default
     strategy:
       matrix:
-        config_flag: ["--with-xmlrpc-c", "--with-xmlrpc-tinyxml2"]
+        config_flag: ["--with-xmlrpc-c", "--with-xmlrpc-tinyxml2", "--enable-extra-debug"]
     steps:
     - name: Update Packages
       run: |
