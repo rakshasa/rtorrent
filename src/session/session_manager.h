@@ -5,7 +5,7 @@
 #include <condition_variable>
 #include <deque>
 #include <future>
-#include <list>
+#include <map>
 #include <cstdint>
 #include <sys/types.h>
 #include <memory>
@@ -16,6 +16,7 @@
 #include <torrent/common.h>
 
 class Control;
+class TestSessionManager;
 
 namespace core {
 class Download;
@@ -72,6 +73,7 @@ public:
 protected:
   friend class ::Control;
   friend class ThreadSession;
+  friend class ::TestSessionManager;
 
   void                save_download(core::Download* download, bool skip_static);
 
@@ -88,7 +90,7 @@ private:
 
   void                process_pending_builds(bool is_flushing);
   void                process_save_request();
-  void                process_next_save_request_unsafe();
+  bool                process_next_save_request_unsafe();
   void                process_finished_saves();
 
   // Requires a higher number of open sockets, and should only be used during shutdown.
@@ -121,7 +123,7 @@ private:
 
   std::deque<SaveRequest>      m_save_requests;
   std::atomic<size_t>          m_save_request_counter{};
-  std::list<ProcessingSave>    m_processing_saves;
+  std::map<std::string, ProcessingSave> m_processing_saves;
   std::atomic<size_t>          m_processing_save_counter{};
   std::condition_variable      m_finished_condition;
   std::vector<ProcessingSave>  m_finished_saves;
