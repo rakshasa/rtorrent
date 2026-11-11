@@ -458,6 +458,9 @@ DownloadList::resume(Download* download, int flags) {
   View::check_unlocked();
   check_contains(download);
 
+  if (download->is_hash_failed())
+    return;
+
   // A removal hook that resumes again would repeat the failed start without end.
   if (resume_failure_reporting)
     throw torrent::input_error("Cannot resume a download while a failed start is reported.");
@@ -484,11 +487,6 @@ DownloadList::resume(Download* download, int flags) {
     // It is also assumed the is_hash_checked flag gets cleared when
     // 'hashing' was set.
     if (!download->is_hash_checked()) {
-      // If the hash failed flag wasn't cleared then hashing won't be
-      // initiated.
-      if (download->is_hash_failed())
-        return;
-
       if (rpc::call_command_value("d.hashing", rpc::make_target(download)) == Download::variable_hashing_stopped)
         rpc::call_command("d.hashing.set", Download::variable_hashing_initial, rpc::make_target(download));
 
@@ -657,6 +655,13 @@ DownloadList::hash_done(Download* download) {
     auto& msg = download->download()->hash_error_message();
     if (!msg.empty())
       download->set_message(msg);
+
+    auto lifetime = download->lifetime();
+
+    control->view_manager()->find_ptr_throw("active")->set_not_visible(download);
+
+    if (lifetime.expired())
+      return;
 
     DL_TRIGGER_EVENT(download, "event.download.hash_failed");
     return;
