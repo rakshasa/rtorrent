@@ -153,12 +153,25 @@ Manager::cleanup() {
 
 void
 Manager::shutdown(bool force) {
-  if (!force) {
-    for (const auto& d : *m_download_list)
-      m_download_list->pause_default(d.get());
-  } else {
-    for (const auto& d : *m_download_list)
-      m_download_list->close_quick(d);
+  auto                prev = m_download_list->end();
+  std::weak_ptr<void> prev_lifetime;
+
+  for (auto itr = m_download_list->begin(); itr != m_download_list->end();) {
+    auto lifetime = (*itr)->lifetime();
+
+    if (!force)
+      m_download_list->pause_default(itr->get());
+    else
+      m_download_list->close_quick(*itr);
+
+    if (!lifetime.expired()) {
+      prev          = itr++;
+      prev_lifetime = lifetime;
+    } else if (!prev_lifetime.expired()) {
+      itr = std::next(prev);
+    } else {
+      itr = m_download_list->begin();
+    }
   }
 }
 
@@ -409,8 +422,16 @@ Manager::receive_hashing_changed() {
     if (!tryQuick && foundHashing)
       continue;
 
+    auto download = itr->get();
+    auto lifetime = download->lifetime();
+    auto size     = m_hashingView->size_visible();
+    auto changed  = [&]() { return lifetime.expired() || m_hashingView->size_visible() != size || itr->get() != download; };
+
     try {
-      m_download_list->open_throw(itr->get());
+      m_download_list->open_throw(download);
+
+      if (changed())
+        return;
 
       // An open that works retires the failure an earlier pass reported.
       if ((*itr)->message().compare(0, std::strlen(hashing_failed_message), hashing_failed_message) == 0)
@@ -439,6 +460,11 @@ Manager::receive_hashing_changed() {
       foundHashing = true;
 
     } catch (torrent::local_error& e) {
+      if (changed()) {
+        lt_log_print(torrent::LOG_TORRENT_EVENTS, "hashing failed : %s", e.what());
+        return;
+      }
+
       if (tryQuick) {
         // Make sure we don't repeat the quick hashing.
         rpc::call_command_set_value("d.hashing.set", Download::variable_hashing_rehash, rpc::make_target(*itr));
