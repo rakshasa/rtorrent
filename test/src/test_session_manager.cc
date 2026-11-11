@@ -168,3 +168,51 @@ TestSessionManager::test_flush_waits_for_save_of_same_download() {
   CPPUNIT_ASSERT_EQUAL(size_t{1}, queued.get());
   CPPUNIT_ASSERT(manager->m_save_requests.empty());
 }
+
+bool
+TestSessionManager::remove_waits_for_save_of(core::Download* saving) {
+  auto                         manager  = session_thread::manager();
+  bool                         removing = true;
+  std::future<bool>            finished_while_removing;
+  std::unique_lock<std::mutex> lock(manager->m_mutex);
+
+  finished_while_removing = std::async(std::launch::async, [manager, &removing] {
+      std::lock_guard<std::mutex> guard(manager->m_mutex);
+      manager->m_processing_saves.clear();
+      manager->m_finished_condition.notify_all();
+      return removing;
+    });
+
+  manager->m_processing_saves["test"].second.download = saving;
+
+  bool removed = manager->remove_completely_unsafe(m_downloads[0], lock);
+  removing     = false;
+  lock.unlock();
+
+  CPPUNIT_ASSERT(!removed);
+  return finished_while_removing.get();
+}
+
+void
+TestSessionManager::test_remove_waits_for_matching_save() {
+  CPPUNIT_ASSERT(remove_waits_for_save_of(m_downloads[0]));
+}
+
+void
+TestSessionManager::test_remove_does_not_wait_for_other_save() {
+  CPPUNIT_ASSERT(!remove_waits_for_save_of(m_downloads[1]));
+}
+
+void
+TestSessionManager::test_remove_cancels_pending_build() {
+  auto manager = session_thread::manager();
+
+  manager->save_resume_download(m_downloads[0]);
+  manager->save_resume_download(m_downloads[1]);
+  manager->remove_download(m_downloads[0]);
+
+  auto pending = manager->m_pending_builds;
+  manager->process_pending_builds(false);
+  CPPUNIT_ASSERT_EQUAL(size_t{1}, pending.size());
+  CPPUNIT_ASSERT(pending.front() == m_downloads[1]);
+}
