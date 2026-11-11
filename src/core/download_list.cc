@@ -361,6 +361,9 @@ DownloadList::close_directly(Download* download) {
   close_files(download);
   set_state_stopped(download);
 
+  if (lifetime.expired())
+    return;
+
   if (was_active) {
     DL_TRIGGER_EVENT(download, "event.download.paused");
 
@@ -382,7 +385,13 @@ DownloadList::close_directly(Download* download) {
 
 void
 DownloadList::set_state_stopped(Download* download) {
+  auto lifetime = download->lifetime();
+
   control->view_manager()->find_ptr_throw("stopped")->set_visible(download);
+
+  if (lifetime.expired())
+    return;
+
   rpc::call_command("d.state.set", (int64_t)0, rpc::make_target(download));
 }
 
@@ -401,7 +410,12 @@ void
 DownloadList::close_quick(Download* download) {
   lt_log_print_hash(torrent::LOG_TORRENT_DEBUG, download->info()->hash(), "download_list : closing download quickly.");
 
+  auto lifetime = download->lifetime();
+
   close(download);
+
+  if (lifetime.expired())
+    return;
 
   // Make sure we cancel any tracker requests. This should rather be
   // handled by some parameter to the close function, or some other
@@ -469,12 +483,17 @@ DownloadList::resume(Download* download, int flags) {
 
   constexpr auto resume_failed_message = "Could not resume download: ";
 
+  auto           lifetime = download->lifetime();
+
   try {
 
     if (download->download()->info()->is_active())
       return;
 
     rpc::parse_command_single(rpc::make_target(download), "view.set_visible=active");
+
+    if (lifetime.expired())
+      return;
 
     // We need to make sure the flags aren't reset if someone decideds
     // to call resume() while it is hashing, etc.
@@ -555,6 +574,11 @@ DownloadList::resume(Download* download, int flags) {
     DL_TRIGGER_EVENT(download, "event.download.resumed");
 
   } catch (torrent::local_error& e) {
+    if (lifetime.expired()) {
+      lt_log_print(torrent::LOG_TORRENT_EVENTS, "download_list : could not resume download : %s", e.what());
+      return;
+    }
+
     LT_LOG_DOWNLOAD_EVENTS("could not resume download : %s", e.what());
 
     // The download did not start: report why and give up its slot in the 'active' view,
@@ -583,6 +607,9 @@ DownloadList::pause(Download* download, int flags) {
     download->set_resume_flags(Download::default_resume_flags);
 
     rpc::parse_command_single(rpc::make_target(download), "view.set_not_visible=active");
+
+    if (lifetime.expired())
+      return;
 
     // Always clear hashing on pause. When a hashing request is added,
     // it should have cleared the hash resume data.
@@ -617,6 +644,11 @@ DownloadList::pause(Download* download, int flags) {
     //control->core()->download_store()->save(download);
 
   } catch (torrent::local_error& e) {
+    if (lifetime.expired()) {
+      lt_log_print(torrent::LOG_TORRENT_EVENTS, "download_list : could not pause download : %s", e.what());
+      return;
+    }
+
     LT_LOG_DOWNLOAD_EVENTS("could not pause download : %s", e.what());
   }
 }
@@ -629,6 +661,8 @@ DownloadList::check_hash(Download* download) {
 
   LT_LOG_DOWNLOAD_DEBUG("checking hash", 0);
 
+  auto lifetime = download->lifetime();
+
   try {
     if (rpc::call_command_value("d.hashing", rpc::make_target(download)) != Download::variable_hashing_stopped)
       return;
@@ -636,6 +670,11 @@ DownloadList::check_hash(Download* download) {
     hash_queue(download, Download::variable_hashing_rehash);
 
   } catch (torrent::local_error& e) {
+    if (lifetime.expired()) {
+      lt_log_print(torrent::LOG_TORRENT_EVENTS, "download_list : could not check hash : %s", e.what());
+      return;
+    }
+
     LT_LOG_DOWNLOAD_EVENTS("could not check hash : %s", e.what());
   }
 }
@@ -707,7 +746,13 @@ DownloadList::hash_done(Download* download) {
     // If the download was previously completed but the files were
     // f.ex deleted, then we clear the state and complete.
     if (rpc::call_command_value("d.complete", rpc::make_target(download)) && !download->is_done()) {
+      auto lifetime = download->lifetime();
+
       set_state_stopped(download);
+
+      if (lifetime.expired())
+        return;
+
       download->set_message(completed_unfinished_message);
     }
 
@@ -891,8 +936,17 @@ void
 DownloadList::process_meta_download(Download* download) {
   LT_LOG_DOWNLOAD_DEBUG("processing meta download", 0);
 
+  auto lifetime = download->lifetime();
+
   rpc::call_command("d.stop", torrent::Object(), rpc::make_target(download));
+
+  if (lifetime.expired())
+    return;
+
   rpc::call_command("d.close", torrent::Object(), rpc::make_target(download));
+
+  if (lifetime.expired())
+    return;
 
   std::string  metafile = (*download->file_list()->begin())->frozen_path().str();
 
