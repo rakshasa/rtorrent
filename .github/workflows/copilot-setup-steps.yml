@@ -1,0 +1,41 @@
+name: Copilot Setup Steps
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - .github/workflows/copilot-setup-steps.yml
+  pull_request:
+    paths:
+      - .github/workflows/copilot-setup-steps.yml
+
+jobs:
+  copilot-setup-steps:
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            autoconf \
+            automake \
+            build-essential \
+            libcppunit-dev \
+            libcurl4-openssl-dev \
+            libncurses-dev \
+            libtool \
+            libxmlrpc-c++8-dev \
+            pkg-config \
+            zlib1g-dev
+      - name: Build and install libtorrent
+        run: |
+          git clone --depth 1 https://github.com/rakshasa/libtorrent.git ../libtorrent
+          cd ../libtorrent
+          autoreconf -fiv
+          ./configure
+          make -j"$(nproc)"
+          sudo make install
+          sudo ldconfig
