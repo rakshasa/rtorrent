@@ -12,6 +12,7 @@ class TestXmlrpc : public test_fixture {
   CPPUNIT_TEST(test_size_limit);
   CPPUNIT_TEST(test_response_size_limit);
   CPPUNIT_TEST(test_multicall_member_order);
+  CPPUNIT_TEST(test_multicall_fault_utf8);
 
   CPPUNIT_TEST_SUITE_END();
 
@@ -26,6 +27,7 @@ public:
   void test_size_limit();
   void test_response_size_limit();
   void test_multicall_member_order();
+  void test_multicall_fault_utf8();
 
 private:
   std::unique_ptr<TestMainThread> m_test_main_thread;

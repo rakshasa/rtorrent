@@ -305,6 +305,14 @@ execute_command(std::string method_name, const tinyxml2::XMLElement* params_elem
   }
 }
 
+std::string
+utf8_text_or_escaped(const std::string& message) {
+  if (torrent::utils::is_valid_utf8_text(message))
+    return message;
+
+  return "invalid UTF-8 text: " + torrent::utils::string_with_escape_codes(message);
+}
+
 void
 process_document(const tinyxml2::XMLDocument* doc, tinyxml2::XMLPrinter* printer) {
   if (doc->Error())
@@ -350,12 +358,12 @@ process_document(const tinyxml2::XMLDocument* doc, tinyxml2::XMLPrinter* printer
         result_list.push_back(sub_result);
       } catch (rpc_error& e) {
         auto fault                    = torrent::Object::create_map();
-        fault.as_map()["faultString"] = e.what();
+        fault.as_map()["faultString"] = utf8_text_or_escaped(e.what());
         fault.as_map()["faultCode"]   = e.type();
         result_list.push_back(fault);
       } catch (torrent::local_error& e) {
         auto fault                    = torrent::Object::create_map();
-        fault.as_map()["faultString"] = e.what();
+        fault.as_map()["faultString"] = utf8_text_or_escaped(e.what());
         fault.as_map()["faultCode"]   = XMLRPC_INTERNAL_ERROR;
         result_list.push_back(fault);
       }
@@ -404,7 +412,7 @@ print_xmlrpc_fault(int faultCode, std::string faultString, tinyxml2::XMLPrinter*
   printer->CloseElement(true);
   printer->OpenElement("value", true);
   printer->OpenElement("string", true);
-  printer->PushText(faultString.c_str());
+  printer->PushText(utf8_text_or_escaped(faultString).c_str());
   printer->CloseElement(true);
   printer->CloseElement(true);
   printer->CloseElement(true);
