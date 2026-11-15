@@ -303,6 +303,7 @@ DownloadList::open(Download* download) {
 
 void
 DownloadList::open_throw(Download* download) {
+  View::check_unlocked();
   check_contains(download);
 
   lt_log_print_hash(torrent::LOG_TORRENT_DEBUG, download->info()->hash(), "download_list : opening download");
@@ -334,6 +335,8 @@ DownloadList::close(Download* download) {
 // need the files closed and will keep using the download.
 void
 DownloadList::close_files(Download* download) {
+  View::check_unlocked();
+
   lt_log_print_hash(torrent::LOG_TORRENT_DEBUG, download->info()->hash(), "download_list : closing download files");
 
   if (download->download()->info()->is_active()) {

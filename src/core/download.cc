@@ -15,6 +15,7 @@
 
 #include "control.h"
 #include "core/manager.h"
+#include "core/view.h"
 
 namespace core {
 
@@ -113,6 +114,8 @@ Download::set_directory(const std::string& path) {
 
 void
 Download::set_base_directory(const std::string& path) {
+  View::check_unlocked();
+
   // If the download is open, hashed and has completed chunks make
   // sure to verify that the download files are still present.
   //
