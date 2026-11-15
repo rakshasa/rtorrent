@@ -8,9 +8,12 @@
 #include <memory>
 #include <set>
 #include <string>
+#include <type_traits>
 #include <utility>
 #include <vector>
+#include <torrent/data/download_data.h>
 #include <torrent/exceptions.h>
+#include <torrent/system/scheduler.h>
 #include <torrent/torrent.h>
 
 #include "command_helpers.h"
@@ -27,8 +30,14 @@
 CPPUNIT_TEST_SUITE_REGISTRATION(TestView);
 
 void initialize_command_events();
+void initialize_command_download();
+void initialize_command_system();
 
 namespace {
+
+struct TestSchedulerAccess : torrent::system::Scheduler {
+  using torrent::system::Scheduler::perform;
+};
 
 const char* filter_command  = "test.view.filter";
 const char* compare_command = "test.view.compare";
@@ -62,6 +71,7 @@ new_download() {
 
   auto object = new torrent::Object(torrent::Object::create_map());
   object->insert_key("info", info);
+  object->insert_key("rtorrent", torrent::Object::create_map());
 
   auto download = new core::Download(torrent::download_add(object, 0));
   test_downloads.push_back(download);
@@ -200,6 +210,12 @@ TestView::setUp() {
 
   if (control == nullptr)
     control = new Control;
+
+  if (!rpc::commands.has("d.open"))
+    initialize_command_download();
+
+  if (!rpc::commands.has("system.file.allocate"))
+    initialize_command_system();
 
   if (!rpc::commands.has("d.multicall"))
     initialize_command_events();
@@ -356,6 +372,17 @@ void
 TestView::test_filter_refuses_view_changes() {
   auto d0 = insert_download();
   auto d1 = insert_download();
+  d1->set_base_directory("/dev/null");
+  d1->download()->open();
+  d1->download()->set_bitfield(true);
+  d1->data()->slot_initial_hash() = [] {};
+  CPPUNIT_ASSERT(d1->download()->hash_check(true));
+  auto perform = &TestSchedulerAccess::perform;
+  static_assert(std::is_same_v<decltype(perform), void (torrent::system::Scheduler::*)(torrent::system::Scheduler::time_type)>);
+  (torrent::this_thread::scheduler()->*perform)(torrent::this_thread::cached_time());
+  CPPUNIT_ASSERT(d1->is_hash_checked());
+  CPPUNIT_ASSERT(d1->is_done());
+  d1->set_message("sentinel");
 
   core::View view;
   view.initialize("test_view");
@@ -367,6 +394,11 @@ TestView::test_filter_refuses_view_changes() {
   filter_action = [&](core::Download*) {
     refusals += refused([&] { control->core()->download_list()->erase_ptr(d1); });
     refusals += refused([&] { control->core()->download_list()->close_throw(d1); });
+    refusals += refused([&] { control->core()->download_list()->open_throw(d1); });
+    refusals += refused([&] { control->core()->download_list()->close_files(d1); });
+    refusals += refused([&] { d1->set_base_directory("test"); });
+    refusals += refused([&] { rpc::call_command("d.open", torrent::Object(), rpc::make_target(d1)); });
+    refusals += refused([&] { rpc::call_command("d.directory.base.set", torrent::Object("test"), rpc::make_target(d1)); });
     refusals += refused([&] { control->core()->download_list()->close_directly(d1); });
     refusals += refused([&] { control->core()->download_list()->check_hash(d1); });
     refusals += refused([&] { control->core()->download_list()->pause(d1); });
@@ -381,7 +413,8 @@ TestView::test_filter_refuses_view_changes() {
   view.set_filter(command_object(filter_command));
   view.filter();
 
-  CPPUNIT_ASSERT_EQUAL(std::string("11111111111"), refusals);
+  CPPUNIT_ASSERT_EQUAL(std::string("1111111111111111"), refusals);
+  CPPUNIT_ASSERT_EQUAL(std::string("sentinel"), d1->message());
   CPPUNIT_ASSERT_EQUAL(std::string("d0,d1"), describe_visible(view));
   CPPUNIT_ASSERT_EQUAL(size_t(0), control->view_manager()->size());
   CPPUNIT_ASSERT_EQUAL(size_t(2), control->core()->download_list()->size());
