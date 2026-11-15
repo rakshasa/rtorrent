@@ -4,6 +4,8 @@
 
 #include <string>
 
+#include <torrent/exceptions.h>
+
 #include "control.h"
 #include "globals.h"
 #include "command_helpers.h"
@@ -20,6 +22,11 @@ xmlrpc_cmd_test_reflect([[maybe_unused]] rpc::target_type t, const torrent::Obje
 torrent::Object
 xmlrpc_cmd_test_reflect_string([[maybe_unused]] rpc::target_type t, const std::string& obj) {
   return obj;
+}
+
+torrent::Object
+xmlrpc_cmd_test_throw_string([[maybe_unused]] rpc::target_type t, const std::string& obj) {
+  throw torrent::input_error("bad value: " + obj);
 }
 
 torrent::Object
@@ -112,6 +119,22 @@ std::vector<std::tuple<std::string, std::string, std::string>> basic_requests = 
                   "<?xml version=\"1.0\"?><methodCall><methodName>xmlrpc_reflect</methodName><params><param><value><boolean>string value</boolean></value></param></params></methodCall>",
                   "<?xml version=\"1.0\"?><methodResponse><fault><value><struct><member><name>faultCode</name><value><i8>-501</i8></value></member><member><name>faultString</name><value><string>unknown boolean value: string value</string></value></member></struct></value></fault></methodResponse>"),
 
+  std::make_tuple("Invalid - UTF-8 fault string is unchanged",
+                  "<?xml version=\"1.0\"?><methodCall><methodName>no_such_чао</methodName><params></params></methodCall>",
+                  "<?xml version=\"1.0\"?><methodResponse><fault><value><struct><member><name>faultCode</name><value><i8>-506</i8></value></member><member><name>faultString</name><value><string>method 'no_such_чао' not defined</string></value></member></struct></value></fault></methodResponse>"),
+
+  std::make_tuple("Invalid - non-UTF-8 fault string",
+                  "<?xml version=\"1.0\"?><methodCall><methodName>no_such_\xc3\x28</methodName><params></params></methodCall>",
+                  "<?xml version=\"1.0\"?><methodResponse><fault><value><struct><member><name>faultCode</name><value><i8>-506</i8></value></member><member><name>faultString</name><value><string>invalid UTF-8 text: method 'no_such_%C3(' not defined</string></value></member></struct></value></fault></methodResponse>"),
+
+  std::make_tuple("Invalid - control character in fault string",
+                  "<?xml version=\"1.0\"?><methodCall><methodName>no_such_\x01</methodName><params></params></methodCall>",
+                  "<?xml version=\"1.0\"?><methodResponse><fault><value><struct><member><name>faultCode</name><value><i8>-506</i8></value></member><member><name>faultString</name><value><string>invalid UTF-8 text: method 'no_such_%01' not defined</string></value></member></struct></value></fault></methodResponse>"),
+
+  std::make_tuple("Invalid - non-UTF-8 fault string from a command",
+                  "<?xml version=\"1.0\"?><methodCall><methodName>xmlrpc_throw_string</methodName><params><param><value><string></string></value></param><param><value><string>\xc3\x28</string></value></param></params></methodCall>",
+                  "<?xml version=\"1.0\"?><methodResponse><fault><value><struct><member><name>faultCode</name><value><i8>-500</i8></value></member><member><name>faultString</name><value><string>invalid UTF-8 text: bad value: %C3(</string></value></member></struct></value></fault></methodResponse>"),
+
   std::make_tuple("CMD2_ANY_STRING",
                   "<?xml version=\"1.0\"?><methodCall><methodName>xmlrpc_reflect_string</methodName><params><param><value><string></string></value></param><param><value><string>test</string></value></param></params></methodCall>",
                   "<?xml version=\"1.0\"?><methodResponse><params><param><value><string>test</string></value></param></params></methodResponse>")
@@ -133,6 +156,9 @@ TestXmlrpc::setUp() {
 
   if (rpc::commands.find("xmlrpc_reflect_string") == rpc::commands.end())
     CMD2_ANY_STRING("xmlrpc_reflect_string", &xmlrpc_cmd_test_reflect_string);
+
+  if (rpc::commands.find("xmlrpc_throw_string") == rpc::commands.end())
+    CMD2_ANY_STRING("xmlrpc_throw_string", &xmlrpc_cmd_test_throw_string);
 
   if (rpc::commands.find("xmlrpc_oversized") == rpc::commands.end())
     CMD2_ANY("xmlrpc_oversized", &xmlrpc_cmd_test_oversized);
@@ -233,6 +259,33 @@ TestXmlrpc::test_multicall_member_order() {
   CPPUNIT_ASSERT_EQUAL(expected_fault, call(multicall_request(multicall_params + multicall_method_name)));
 }
 
+void
+TestXmlrpc::test_multicall_fault_utf8() {
+  auto call = [this](const std::string& input) {
+    std::string output;
+    m_xmlrpc.process(input.c_str(), input.size(), [&output](const char* c, uint32_t l){ output.append(c, l); return true;});
+    return output;
+  };
+
+  const std::string rpc_error_request = multicall_request("<member><name>methodName</name><value><string>no_such_\xc3\x28</string></value></member>" + multicall_params);
+  const std::string rpc_error_fault =
+    "<?xml version=\"1.0\"?><methodResponse><params><param><value><array><data><value><struct>"
+    "<member><name>faultCode</name><value><i8>-506</i8></value></member>"
+    "<member><name>faultString</name><value><string>invalid UTF-8 text: method 'no_such_%C3(' not defined</string></value></member>"
+    "</struct></value></data></array></value></param></params></methodResponse>";
+
+  const std::string local_error_request = multicall_request("<member><name>methodName</name><value><string>xmlrpc_throw_string</string></value></member>"
+                                                            "<member><name>params</name><value><array><data><value><string></string></value><value><string>\xc3\x28</string></value></data></array></value></member>");
+  const std::string local_error_fault =
+    "<?xml version=\"1.0\"?><methodResponse><params><param><value><array><data><value><struct>"
+    "<member><name>faultCode</name><value><i8>-500</i8></value></member>"
+    "<member><name>faultString</name><value><string>invalid UTF-8 text: bad value: %C3(</string></value></member>"
+    "</struct></value></data></array></value></param></params></methodResponse>";
+
+  CPPUNIT_ASSERT_EQUAL(rpc_error_fault, call(rpc_error_request));
+  CPPUNIT_ASSERT_EQUAL(local_error_fault, call(local_error_request));
+}
+
 #else
 
 void TestXmlrpc::test_invalid_utf8() {}
@@ -240,6 +293,7 @@ void TestXmlrpc::test_basics() {}
 void TestXmlrpc::test_size_limit() {}
 void TestXmlrpc::test_response_size_limit() {}
 void TestXmlrpc::test_multicall_member_order() {}
+void TestXmlrpc::test_multicall_fault_utf8() {}
 void TestXmlrpc::setUp() {}
 void TestXmlrpc::tearDown() {}
 
