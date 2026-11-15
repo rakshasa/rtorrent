@@ -63,6 +63,8 @@ torrent::Object        parse_command_multiple(target_type target, const char* fi
 
 void                   parse_command_execute(target_type target, torrent::Object* object);
 
+void                   log_nothrow_input_error(const torrent::input_error& e);
+
 inline torrent::Object parse_command_single(target_type target, const char* first)   { return parse_command(target, first, first + std::strlen(first)).first; }
 inline torrent::Object parse_command_multiple(target_type target, const char* first) { return parse_command_multiple(target, first, first + std::strlen(first)); }
 
@@ -118,7 +120,7 @@ parse_command_multiple_d_nothrow(core::Download* download, const std::string& cm
   try {
     return parse_command_multiple(make_target(download), cmd.c_str(), cmd.c_str() + cmd.size());
   } catch (torrent::input_error& e) {
-    // Log?
+    log_nothrow_input_error(e);
     return torrent::Object();
   }
 }
@@ -151,12 +153,22 @@ torrent::Object call_object(const torrent::Object& command, target_type target =
 
 inline torrent::Object
 call_object_nothrow(const torrent::Object& command, target_type target = make_target()) {
-  try { return call_object(command, target); } catch (torrent::input_error& e) { return torrent::Object(); }
+  try {
+    return call_object(command, target);
+  } catch (torrent::input_error& e) {
+    log_nothrow_input_error(e);
+    return torrent::Object();
+  }
 }
 
 inline torrent::Object
 call_object_d_nothrow(const torrent::Object& command, core::Download* download) {
-  try { return call_object(command, make_target(download)); } catch (torrent::input_error& e) { return torrent::Object(); }
+  try {
+    return call_object(command, make_target(download));
+  } catch (torrent::input_error& e) {
+    log_nothrow_input_error(e);
+    return torrent::Object();
+  }
 }
 
 //
