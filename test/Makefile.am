@@ -53,6 +53,8 @@ rtorrent_Test_Rpc_SOURCES = $(rtorrent_Test_Common) \
 	rpc/test_object_storage.h \
 	rpc/test_parse.cc \
 	rpc/test_parse.h \
+	rpc/test_parse_commands.cc \
+	rpc/test_parse_commands.h \
 	rpc/test_parse_options.cc \
 	rpc/test_parse_options.h \
 	rpc/test_rpc_manager.cc \

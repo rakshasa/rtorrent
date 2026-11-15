@@ -1,10 +1,12 @@
 #include "config.h"
 
 #include <algorithm>
+#include <chrono>
 #include <fstream>
 #include <string>
 #include <functional>
 #include <torrent/exceptions.h>
+#include <torrent/utils/log.h>
 
 #include "core/download.h"
 #include "globals.h"
@@ -249,6 +251,22 @@ parse_command_file(const std::string& path) {
   }
 
   return true;
+}
+
+void
+log_nothrow_input_error(const torrent::input_error& e) {
+  static std::chrono::microseconds last_message{};
+  static unsigned int              ignored_count{};
+
+  if (last_message + std::chrono::minutes(1) > torrent::this_thread::cached_time()) {
+    ignored_count++;
+    return;
+  }
+
+  lt_log_print(torrent::LOG_ERRORS, "Event command caught input_error: ignored:%u : %s", ignored_count, e.what());
+
+  last_message  = torrent::this_thread::cached_time();
+  ignored_count = 0;
 }
 
 bool
