@@ -32,8 +32,8 @@ SignalHandler::set_ignore(unsigned int signum) {
   struct sigaction sa;
 
   sigemptyset(&sa.sa_mask);
+  sa.sa_flags   = SA_RESTART;
   sa.sa_handler = SIG_IGN;
-  sa.sa_flags = 0;
 
   m_handlers[signum] = slot_void();
 }
@@ -49,7 +49,7 @@ SignalHandler::set_handler(unsigned int signum, slot_void slot) {
   struct sigaction sa;
 
   sigemptyset(&sa.sa_mask);
-  sa.sa_flags = SA_RESTART;
+  sa.sa_flags   = SA_RESTART;
   sa.sa_handler = &SignalHandler::caught;
 
   if (sigaction(signum, &sa, NULL) == -1)
@@ -109,7 +109,7 @@ SignalHandler::set_sigaction_handler(unsigned int signum, handler_slot slot) {
 
   struct sigaction sa;
   sa.sa_sigaction = slot;
-  sa.sa_flags = SA_SIGINFO;
+  sa.sa_flags     = SA_SIGINFO;
 
   sigemptyset(&sa.sa_mask);
 
