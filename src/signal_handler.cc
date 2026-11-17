@@ -35,7 +35,8 @@ SignalHandler::set_ignore(unsigned int signum) {
   sa.sa_flags   = SA_RESTART;
   sa.sa_handler = SIG_IGN;
 
-  m_handlers[signum] = slot_void();
+  if (sigaction(signum, &sa, NULL) == -1)
+    throw std::logic_error("Could not set sigaction: " + std::string(std::strerror(errno)));
 }
 
 void
