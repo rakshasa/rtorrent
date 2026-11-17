@@ -120,8 +120,9 @@ main(int argc, char** argv) {
     //
     // This means only main-thread can fork and wait for child processes.
 
+    SignalHandler::set_ignore(SIGPIPE);
+
     SignalHandler::set_block(SIGALRM);
-    SignalHandler::set_block(SIGPIPE);
     SignalHandler::set_block(SIGCHLD);
 
     // All signal handlers must restore errno if they return.

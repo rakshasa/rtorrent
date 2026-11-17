@@ -29,7 +29,12 @@ SignalHandler::set_ignore(unsigned int signum) {
   if (signum >= HIGHEST_SIGNAL)
     throw std::logic_error("SignalHandler::set_ignore(...) received invalid signal value.");
 
-  signal(signum, SIG_IGN);
+  struct sigaction sa;
+
+  sigemptyset(&sa.sa_mask);
+  sa.sa_handler = SIG_IGN;
+  sa.sa_flags = 0;
+
   m_handlers[signum] = slot_void();
 }
 
