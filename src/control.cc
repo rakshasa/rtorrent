@@ -8,6 +8,7 @@
 #include <torrent/runtime/network_manager.h>
 #include <torrent/runtime/runtime.h>
 #include <torrent/utils/directory_events.h>
+#include <torrent/utils/log.h>
 
 #include "core/dht_manager.h"
 #include "core/download_list.h"
@@ -30,6 +31,9 @@
 #include "session/session_manager.h"
 #include "ui/root.h"
 #include "utils/watch_ready_queue.h"
+
+#define LT_LOG_EVENTS(log_fmt, ...)                                     \
+  lt_log_print(torrent::LOG_EVENTS, "%s : " log_fmt, torrent::this_thread::thread()->name(), __VA_ARGS__);
 
 Control::Control()
   : m_ui(new ui::Root()),
@@ -135,10 +139,14 @@ Control::handle_shutdown() {
 
   rpc::commands.call_catch("event.system.shutdown", rpc::make_target(), "shutdown", "System shutdown event action failed: ");
 
-  if (scgi_thread::thread()->is_active())
+  if (scgi_thread::thread()->is_active()) {
+    LT_LOG_EVENTS("shutdown : stopping scgi thread", 0);
     scgi_thread::thread()->stop_thread_wait();
+  }
 
   if (!m_shutdown_quick) {
+    LT_LOG_EVENTS("shutdown : closing network connections and stopping downloads", 0);
+
     torrent::runtime::network_manager()->listen_close();
     torrent::runtime::shutdown();
 
@@ -149,11 +157,15 @@ Control::handle_shutdown() {
       torrent::this_thread::scheduler()->wait_for_ceil_seconds(&m_task_shutdown, 5s);
 
   } else {
+    LT_LOG_EVENTS("shutdown : quick shutdown, force closing network connections and stopping downloads", 0);
+
     torrent::runtime::quick_shutdown();
     m_core->shutdown(true);
   }
 
   if (!m_shutdown_session_saved) {
+    LT_LOG_EVENTS("shutdown : saving session", 0);
+
     // Transfers are stopped, so this is the final state; write it before the
     // stopped announces can hold the shutdown. A shutdown hook may already
     // have queued these resume builds.
@@ -171,6 +183,8 @@ Control::handle_shutdown() {
 
 void
 Control::handle_shutdown_clear_requests() {
+  LT_LOG_EVENTS("shutdown : clearing http requests", 0);
+
   torrent::net_thread::http_stack()->clear_requests();
 
   // Use 5s for the initial wait to ensure trackers get a chance to finish both IPv4 and IPv6 requests.
