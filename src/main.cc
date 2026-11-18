@@ -47,6 +47,9 @@
 #define LT_LOG(log_fmt, ...)                                    \
   lt_log_print(torrent::LOG_SYSTEM, "system: " log_fmt, __VA_ARGS__);
 
+#define LT_LOG_EVENTS(log_fmt, ...)                                     \
+  lt_log_print(torrent::LOG_EVENTS, "%s : " log_fmt, torrent::this_thread::thread()->name(), __VA_ARGS__);
+
 void handle_sigbus(int signum, siginfo_t* sa, void* ptr);
 void do_panic(int signum);
 void print_help();
@@ -120,8 +123,9 @@ main(int argc, char** argv) {
     //
     // This means only main-thread can fork and wait for child processes.
 
+    SignalHandler::set_ignore(SIGPIPE);
+
     SignalHandler::set_block(SIGALRM);
-    SignalHandler::set_block(SIGPIPE);
     SignalHandler::set_block(SIGCHLD);
 
     // All signal handlers must restore errno if they return.
@@ -489,10 +493,14 @@ main(int argc, char** argv) {
 
     torrent::system::Thread::self()->event_loop();
 
+    LT_LOG_EVENTS("shutdown : event loop exited", 0);
+
     // A quick shutdown with no tracker request pending leaves the loop before
     // handle_shutdown() could save.
-    if (!control->is_shutdown_session_saved())
+    if (!control->is_shutdown_session_saved()) {
+      LT_LOG_EVENTS("shutdown : saving session", 0);
       control->core()->download_list()->session_save();
+    }
 
     control->cleanup();
 

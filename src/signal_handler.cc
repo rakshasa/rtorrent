@@ -29,8 +29,14 @@ SignalHandler::set_ignore(unsigned int signum) {
   if (signum >= HIGHEST_SIGNAL)
     throw std::logic_error("SignalHandler::set_ignore(...) received invalid signal value.");
 
-  signal(signum, SIG_IGN);
-  m_handlers[signum] = slot_void();
+  struct sigaction sa;
+
+  sigemptyset(&sa.sa_mask);
+  sa.sa_flags   = SA_RESTART;
+  sa.sa_handler = SIG_IGN;
+
+  if (sigaction(signum, &sa, NULL) == -1)
+    throw std::logic_error("Could not set sigaction: " + std::string(std::strerror(errno)));
 }
 
 void
@@ -44,7 +50,7 @@ SignalHandler::set_handler(unsigned int signum, slot_void slot) {
   struct sigaction sa;
 
   sigemptyset(&sa.sa_mask);
-  sa.sa_flags = SA_RESTART;
+  sa.sa_flags   = SA_RESTART;
   sa.sa_handler = &SignalHandler::caught;
 
   if (sigaction(signum, &sa, NULL) == -1)
@@ -104,7 +110,7 @@ SignalHandler::set_sigaction_handler(unsigned int signum, handler_slot slot) {
 
   struct sigaction sa;
   sa.sa_sigaction = slot;
-  sa.sa_flags = SA_SIGINFO;
+  sa.sa_flags     = SA_SIGINFO;
 
   sigemptyset(&sa.sa_mask);
 
