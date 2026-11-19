@@ -470,6 +470,24 @@ DownloadList::close_throw(Download* download) {
 }
 
 void
+DownloadList::close_keep_hash_queue(Download* download) {
+  if (!download->is_hash_checking() && !download->is_hash_failed() &&
+      rpc::call_command_value("d.state", rpc::make_target(download)) == 1 &&
+      rpc::call_command_value("d.hashing", rpc::make_target(download)) != Download::variable_hashing_stopped) {
+    bool was_open = download->is_open();
+
+    close_files(download);
+
+    if (was_open)
+      DL_TRIGGER_EVENT(download, "event.download.closed");
+
+    return;
+  }
+
+  close_throw(download);
+}
+
+void
 DownloadList::resume(Download* download, int flags) {
   // Refuse before the catch below hides the refusal of the view change.
   View::check_unlocked();
