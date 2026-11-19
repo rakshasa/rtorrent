@@ -24,8 +24,12 @@ class TestCommandEvents : public test_fixture {
   CPPUNIT_TEST(test_quick_shutdown_closes_open_download);
   CPPUNIT_TEST(test_hashing_pass_stops_after_view_change);
   CPPUNIT_TEST(test_hashing_pass_stops_after_reallocated_view);
+  CPPUNIT_TEST(test_hashing_pass_survives_hidden_additions_in_opened_handler);
   CPPUNIT_TEST(test_hashing_pass_stops_after_same_size_view_change);
   CPPUNIT_TEST(test_hashing_pass_logs_failure_after_view_change);
+  CPPUNIT_TEST(test_hashing_pass_skips_downloads_removed_by_callbacks);
+  CPPUNIT_TEST(test_hashing_pass_runs_callbacks_between_downloads);
+  CPPUNIT_TEST(test_hashing_pass_leaves_added_downloads_for_the_next_call);
   CPPUNIT_TEST(test_hash_done_stops_after_stopped_handler_erases);
   CPPUNIT_TEST(test_meta_download_stops_after_stop_handler_erases);
   CPPUNIT_TEST(test_meta_download_stops_after_close_handler_erases);
@@ -63,8 +67,12 @@ public:
   void test_quick_shutdown_closes_open_download();
   void test_hashing_pass_stops_after_view_change();
   void test_hashing_pass_stops_after_reallocated_view();
+  void test_hashing_pass_survives_hidden_additions_in_opened_handler();
   void test_hashing_pass_stops_after_same_size_view_change();
   void test_hashing_pass_logs_failure_after_view_change();
+  void test_hashing_pass_skips_downloads_removed_by_callbacks();
+  void test_hashing_pass_runs_callbacks_between_downloads();
+  void test_hashing_pass_leaves_added_downloads_for_the_next_call();
   void test_hash_done_stops_after_stopped_handler_erases();
   void test_meta_download_stops_after_stop_handler_erases();
   void test_meta_download_stops_after_close_handler_erases();
