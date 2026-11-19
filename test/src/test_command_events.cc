@@ -525,6 +525,87 @@ TestCommandEvents::test_hashing_pass_logs_failure_after_view_change() {
 }
 
 void
+TestCommandEvents::test_hashing_pass_skips_downloads_removed_by_callbacks() {
+  core::Manager manager;
+  auto hashing = *control->view_manager()->insert("hashing");
+  auto downloads = insert_downloads(1, missing_file, manager.download_list());
+  manager.set_hashing_view(hashing);
+
+  torrent::this_thread::thread()->callback_interrupt([&]() {
+      manager.download_list()->erase_ptr(downloads[1]);
+      hashing->set_not_visible(downloads[2]);
+    });
+
+  hashing->signal_changed().front()();
+
+  CPPUNIT_ASSERT(downloads[0]->is_open());
+  CPPUNIT_ASSERT(!downloads[2]->is_open());
+  CPPUNIT_ASSERT(downloads[3]->is_open());
+  CPPUNIT_ASSERT(downloads[4]->is_open());
+  CPPUNIT_ASSERT_EQUAL(size_t(4), manager.download_list()->size());
+
+  for (auto download : {downloads[0], downloads[3], downloads[4]})
+    download->download()->close();
+
+  manager.download_list()->clear();
+}
+
+void
+TestCommandEvents::test_hashing_pass_runs_callbacks_between_downloads() {
+  core::Manager manager;
+  auto hashing = *control->view_manager()->insert("hashing");
+  auto downloads = insert_downloads(1, missing_file, manager.download_list());
+  manager.set_hashing_view(hashing);
+  opened_action = [&](core::Download* download) {
+    if (download == downloads[0])
+      torrent::this_thread::thread()->callback_interrupt([&]() { manager.download_list()->erase_ptr(downloads[2]); });
+  };
+
+  hashing->signal_changed().front()();
+
+  CPPUNIT_ASSERT(downloads[0]->is_open());
+  CPPUNIT_ASSERT(downloads[1]->is_open());
+  CPPUNIT_ASSERT(downloads[3]->is_open());
+  CPPUNIT_ASSERT(downloads[4]->is_open());
+  CPPUNIT_ASSERT_EQUAL(size_t(4), manager.download_list()->size());
+
+  for (auto download : {downloads[0], downloads[1], downloads[3], downloads[4]})
+    download->download()->close();
+
+  manager.download_list()->clear();
+}
+
+void
+TestCommandEvents::test_hashing_pass_leaves_added_downloads_for_the_next_call() {
+  core::Manager manager;
+  auto hashing = *control->view_manager()->insert("hashing");
+  auto downloads = insert_downloads(1, missing_file, manager.download_list(), 0, 2);
+  manager.set_hashing_view(hashing);
+
+  core::Download* added = nullptr;
+
+  torrent::this_thread::thread()->callback_interrupt([&]() {
+      added = insert_downloads(1, missing_file, manager.download_list(), 2, 1)[0];
+    });
+
+  hashing->signal_changed().front()();
+
+  CPPUNIT_ASSERT(added != nullptr);
+  CPPUNIT_ASSERT(downloads[0]->is_open());
+  CPPUNIT_ASSERT(downloads[1]->is_open());
+  CPPUNIT_ASSERT(!added->is_open());
+
+  hashing->signal_changed().front()();
+
+  CPPUNIT_ASSERT(added->is_open());
+
+  for (auto download : {downloads[0], downloads[1], added})
+    download->download()->close();
+
+  manager.download_list()->clear();
+}
+
+void
 TestCommandEvents::test_quick_shutdown_closes_open_download() {
   auto downloads = insert_downloads(1, missing_file);
   control->view_manager()->insert("active");
@@ -610,6 +691,34 @@ TestCommandEvents::test_hashing_pass_stops_after_reallocated_view() {
   CPPUNIT_ASSERT_EQUAL(size_t(5), hashing->size_visible());
   CPPUNIT_ASSERT(!downloads[1]->is_open());
   CPPUNIT_ASSERT(!downloads[1]->is_hash_failed());
+  manager.download_list()->clear();
+}
+
+void
+TestCommandEvents::test_hashing_pass_survives_hidden_additions_in_opened_handler() {
+  core::Manager manager;
+  auto hashing = *control->view_manager()->insert("hashing");
+  control->view_manager()->insert("active");
+  auto downloads = insert_downloads(1, missing_file, manager.download_list());
+  manager.set_hashing_view(hashing);
+  auto storage = [&] { return static_cast<const void*>(&*hashing->begin_visible()); };
+  auto original_storage = storage();
+  bool moved = false;
+  opened_action = [&](core::Download* download) {
+    if (download != downloads[0])
+      return;
+
+    for (int i = 0; storage() == original_storage && i < 4096; i++)
+      hashing->set_not_visible(insert_downloads(1, missing_file, manager.download_list(), 100 + i, 1)[0]);
+
+    moved = storage() != original_storage;
+  };
+
+  hashing->signal_changed().front()();
+
+  CPPUNIT_ASSERT(moved);
+  CPPUNIT_ASSERT_EQUAL(size_t(5), hashing->size_visible());
+  CPPUNIT_ASSERT(downloads[0]->is_open());
   manager.download_list()->clear();
 }
 

@@ -18,6 +18,7 @@
 #include <torrent/net/socket_address.h>
 #include <torrent/runtime/network_config.h>
 #include <torrent/runtime/network_manager.h>
+#include <torrent/system/thread.h>
 #include <torrent/utils/log.h>
 #include <torrent/utils/string_manip.h>
 
@@ -408,7 +409,17 @@ Manager::receive_hashing_changed() {
 
   // Try quick hashing all those with hashing == initial, set them to
   // something else when failed.
-  for (View::iterator itr = m_hashingView->begin_visible(), last = m_hashingView->end_visible(); itr != last; ++itr) {
+  auto downloads = std::vector<std::shared_ptr<Download>>(m_hashingView->begin_visible(), m_hashingView->end_visible());
+
+  for (auto itr = downloads.begin(); itr != downloads.end(); ++itr) {
+    auto download = itr->get();
+    auto lifetime = download->lifetime();
+
+    torrent::this_thread::thread()->process_interrupt_callbacks();
+
+    if (lifetime.expired())
+      continue;
+
     if ((*itr)->is_hash_checked())
       throw torrent::internal_error("core::Manager::receive_hashing_changed() (*itr)->is_hash_checked().");
 
@@ -422,10 +433,13 @@ Manager::receive_hashing_changed() {
     if (!tryQuick && foundHashing)
       continue;
 
-    auto download = itr->get();
-    auto lifetime = download->lifetime();
-    auto size     = m_hashingView->size_visible();
-    auto changed  = [&]() { return lifetime.expired() || m_hashingView->size_visible() != size || itr->get() != download; };
+    auto size    = m_hashingView->size_visible();
+    auto changed = [&]() {
+      return lifetime.expired() || m_hashingView->size_visible() != size || std::find(m_hashingView->begin_visible(), m_hashingView->end_visible(), *itr) == m_hashingView->end_visible();
+    };
+
+    if (changed())
+      continue;
 
     try {
       m_download_list->open_throw(download);
