@@ -30,6 +30,13 @@ class TestCommandEvents : public test_fixture {
   CPPUNIT_TEST(test_meta_download_stops_after_close_handler_erases);
   CPPUNIT_TEST(test_check_hash_logs_after_erasing_and_failing_handler);
 
+  CPPUNIT_TEST(test_close_keeps_queued_hash_check);
+  CPPUNIT_TEST(test_close_keeps_queued_hash_check_of_closed_download);
+  CPPUNIT_TEST(test_close_stops_running_hash_check);
+  CPPUNIT_TEST(test_close_clears_stopped_hash_queue);
+  CPPUNIT_TEST(test_close_clears_failed_hash_queue);
+  CPPUNIT_TEST(test_stop_removes_queued_hash_check);
+
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -60,4 +67,10 @@ public:
   void test_meta_download_stops_after_stop_handler_erases();
   void test_meta_download_stops_after_close_handler_erases();
   void test_check_hash_logs_after_erasing_and_failing_handler();
+  void test_close_keeps_queued_hash_check();
+  void test_close_keeps_queued_hash_check_of_closed_download();
+  void test_close_stops_running_hash_check();
+  void test_close_clears_stopped_hash_queue();
+  void test_close_clears_failed_hash_queue();
+  void test_stop_removes_queued_hash_check();
 };
