@@ -433,6 +433,31 @@ TestCommandEvents::test_quick_shutdown_with_erasing_handlers() {
 }
 
 void
+TestCommandEvents::test_clear_refuses_erasing_handlers() {
+  core::Manager manager;
+  auto fresh = insert_downloads(1, missing_file, manager.download_list(), 0, 1);
+
+  manager.download_list()->erase_ptr(fresh[0]);
+
+  CPPUNIT_ASSERT(manager.download_list()->empty());
+
+  auto downloads = insert_downloads(1, missing_file);
+  control->view_manager()->insert("active");
+  erase_on = {{downloads[4], {downloads[3], downloads[4]}}};
+
+  control->core()->download_list()->clear();
+
+  CPPUNIT_ASSERT_EQUAL(std::string("d4,d3,d2,d1,d0"), handled);
+  CPPUNIT_ASSERT(control->core()->download_list()->empty());
+
+  auto later = insert_downloads(1, missing_file, control->core()->download_list(), 5, 1);
+  erase_on.clear();
+  control->core()->download_list()->erase_ptr(later[0]);
+
+  CPPUNIT_ASSERT(control->core()->download_list()->empty());
+}
+
+void
 TestCommandEvents::test_hashing_pass_stops_after_view_change() {
   core::Manager manager;
   auto hashing = *control->view_manager()->insert("hashing");

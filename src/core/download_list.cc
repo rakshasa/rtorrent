@@ -53,6 +53,9 @@ DownloadList::check_contains([[maybe_unused]] Download* d) {
 
 void
 DownloadList::clear() {
+  m_clearing = true;
+  utils::scope_guard guard([this]() { m_clearing = false; });
+
   int error_count = 0;
 
   while (!empty()) {
@@ -250,6 +253,9 @@ DownloadList::erase_ptr(Download* download) {
 DownloadList::iterator
 DownloadList::erase(iterator itr) {
   View::check_unlocked();
+
+  if (m_clearing)
+    throw torrent::input_error("Cannot erase a download while the download list is being cleared.");
 
   if (itr == end())
     throw torrent::internal_error("DownloadList::erase(...) could not find download.");

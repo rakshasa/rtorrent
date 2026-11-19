@@ -152,6 +152,8 @@ private:
   void                confirm_finished(Download* d);
 
   void                process_meta_download(Download* d);
+
+  bool                m_clearing{};
 };
 
 }
