@@ -87,6 +87,7 @@ public:
   void                close_files(Download* d);
   void                close_quick(Download* d);
   void                close_throw(Download* d);
+  void                close_keep_hash_queue(Download* d);
 
   void                resume(Download* d, int flags = 0);
   void                pause(Download* d, int flags = 0);

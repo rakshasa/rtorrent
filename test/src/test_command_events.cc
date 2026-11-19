@@ -48,6 +48,7 @@ std::string                                             captured_log;
 std::function<void(core::Download*)>                    opened_action;
 std::function<void(core::Download*)>                    queued_action;
 int                                                     hash_failed_events;
+int                                                     closed_events;
 
 std::map<core::Download*, std::vector<core::Download*>> erase_on;
 
@@ -90,6 +91,12 @@ cmd_failing_event(core::Download* download, const torrent::Object& args) {
 torrent::Object
 cmd_hash_failed(core::Download*, const torrent::Object&) {
   hash_failed_events++;
+  return torrent::Object();
+}
+
+torrent::Object
+cmd_closed(core::Download*, const torrent::Object&) {
+  closed_events++;
   return torrent::Object();
 }
 
@@ -201,6 +208,7 @@ TestCommandEvents::setUp() {
     CMD2_DL(event_command, &cmd_event);
     CMD2_DL("event.download.hash_removed", &cmd_event);
     CMD2_DL("event.download.hash_failed", &cmd_hash_failed);
+    CMD2_DL("event.download.closed", &cmd_closed);
     CMD2_DL("event.download.opened", &cmd_opened);
     CMD2_DL("event.download.hash_queued", &cmd_queued);
     CMD2_DL("test.command_events.failing_event", &cmd_failing_event);
@@ -211,6 +219,7 @@ TestCommandEvents::setUp() {
   opened_action = {};
   queued_action = {};
   hash_failed_events = 0;
+  closed_events = 0;
   erase_on.clear();
 }
 
@@ -250,6 +259,11 @@ TestCommandEvents::test_close_untied_with_erasing_handlers() {
 
   insert_hidden_view("stopped", downloads);
   control->view_manager()->insert("active");
+
+  for (auto download : downloads) {
+    download->download()->open();
+    rpc::call_command("d.hashing.set", int64_t{0}, rpc::make_target(download));
+  }
 
   check_erasing_handlers("close_untied", downloads);
 }
@@ -591,4 +605,86 @@ TestCommandEvents::test_check_hash_logs_after_erasing_and_failing_handler() {
 
   CPPUNIT_ASSERT_MESSAGE(captured_log, captured_log.find("could not check hash : controlled hash queue failure") != std::string::npos);
   CPPUNIT_ASSERT_EQUAL(size_t(4), control->core()->download_list()->size());
+}
+
+void
+TestCommandEvents::test_close_keeps_queued_hash_check() {
+  auto hashing   = *control->view_manager()->insert("hashing");
+  auto downloads = insert_downloads(1, missing_file, nullptr, 0, 1);
+  auto active    = *control->view_manager()->insert("active");
+
+  hashing->set_filter(torrent::Object("d.hashing="));
+
+  rpc::call_command("d.open", torrent::Object(), rpc::make_target(downloads[0]));
+  rpc::call_command("d.close", torrent::Object(), rpc::make_target(downloads[0]));
+  hashing->filter();
+
+  CPPUNIT_ASSERT(!downloads[0]->is_open());
+  CPPUNIT_ASSERT_EQUAL(int64_t{1}, rpc::call_command_value("d.hashing", rpc::make_target(downloads[0])));
+  CPPUNIT_ASSERT_EQUAL(size_t(1), hashing->size_visible());
+  CPPUNIT_ASSERT_EQUAL(size_t(1), active->size_visible());
+  CPPUNIT_ASSERT_EQUAL(1, closed_events);
+  CPPUNIT_ASSERT_EQUAL(std::string(), handled);
+}
+
+void
+TestCommandEvents::test_close_keeps_queued_hash_check_of_closed_download() {
+  auto downloads = insert_downloads(1, missing_file);
+  control->view_manager()->insert("active");
+
+  rpc::call_command("d.close", torrent::Object(), rpc::make_target(downloads[0]));
+
+  CPPUNIT_ASSERT_EQUAL(int64_t{1}, rpc::call_command_value("d.hashing", rpc::make_target(downloads[0])));
+  CPPUNIT_ASSERT_EQUAL(0, closed_events);
+  CPPUNIT_ASSERT_EQUAL(std::string(), handled);
+}
+
+void
+TestCommandEvents::test_close_stops_running_hash_check() {
+  auto downloads = insert_downloads(1, missing_file);
+  control->view_manager()->insert("active");
+  downloads[0]->download()->open();
+  downloads[0]->download()->hash_check(false);
+  CPPUNIT_ASSERT(downloads[0]->is_hash_checking());
+
+  rpc::call_command("d.close", torrent::Object(), rpc::make_target(downloads[0]));
+
+  CPPUNIT_ASSERT(!downloads[0]->is_open());
+  CPPUNIT_ASSERT_EQUAL(int64_t{0}, rpc::call_command_value("d.hashing", rpc::make_target(downloads[0])));
+}
+
+void
+TestCommandEvents::test_close_clears_stopped_hash_queue() {
+  auto downloads = insert_downloads(0, missing_file);
+  control->view_manager()->insert("active");
+
+  rpc::call_command("d.close", torrent::Object(), rpc::make_target(downloads[0]));
+
+  CPPUNIT_ASSERT_EQUAL(int64_t{0}, rpc::call_command_value("d.hashing", rpc::make_target(downloads[0])));
+}
+
+void
+TestCommandEvents::test_close_clears_failed_hash_queue() {
+  auto downloads = insert_downloads(1, missing_file);
+  control->view_manager()->insert("active");
+  downloads[0]->set_hash_failed(true);
+
+  rpc::call_command("d.close", torrent::Object(), rpc::make_target(downloads[0]));
+
+  CPPUNIT_ASSERT_EQUAL(int64_t{0}, rpc::call_command_value("d.hashing", rpc::make_target(downloads[0])));
+}
+
+void
+TestCommandEvents::test_stop_removes_queued_hash_check() {
+  auto downloads = insert_downloads(1, missing_file);
+  auto started   = *control->view_manager()->insert("started");
+  auto stopped   = insert_hidden_view("stopped", downloads);
+  control->view_manager()->insert("active");
+  started->set_event_removed(torrent::Object("scheduler.simple.removed="));
+  stopped->set_event_added(torrent::Object("view.set_not_visible=started"));
+
+  rpc::call_command("d.stop", torrent::Object(), rpc::make_target(downloads[0]));
+
+  CPPUNIT_ASSERT_EQUAL(int64_t{0}, rpc::call_command_value("d.hashing", rpc::make_target(downloads[0])));
+  CPPUNIT_ASSERT_EQUAL(std::string("d0"), handled);
 }
