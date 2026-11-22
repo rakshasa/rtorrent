@@ -47,6 +47,7 @@ std::string                                             handled;
 std::string                                             captured_log;
 std::function<void(core::Download*)>                    opened_action;
 std::function<void(core::Download*)>                    queued_action;
+std::function<void(core::Download*)>                    event_action;
 int                                                     hash_failed_events;
 int                                                     closed_events;
 
@@ -61,6 +62,9 @@ cmd_event(core::Download* download, const torrent::Object&) {
     handled += ',';
 
   handled += download->info()->name().c_str();
+
+  if (event_action)
+    event_action(download);
 
   for (auto target : erase_on[download])
     control->core()->download_list()->erase_ptr(target);
@@ -218,6 +222,7 @@ TestCommandEvents::setUp() {
   captured_log.clear();
   opened_action = {};
   queued_action = {};
+  event_action = {};
   hash_failed_events = 0;
   closed_events = 0;
   erase_on.clear();
@@ -225,6 +230,7 @@ TestCommandEvents::setUp() {
 
 void
 TestCommandEvents::tearDown() {
+  event_action = {};
   erase_on.clear();
   torrent::log_close_output("test_events_log");
 
@@ -454,6 +460,47 @@ TestCommandEvents::test_clear_refuses_erasing_handlers() {
   erase_on.clear();
   control->core()->download_list()->erase_ptr(later[0]);
 
+  CPPUNIT_ASSERT(control->core()->download_list()->empty());
+}
+
+void
+TestCommandEvents::test_clear_keeps_downloads_for_handlers() {
+  auto downloads = insert_downloads(1, missing_file);
+  control->view_manager()->insert("active");
+  size_t      size = 0;
+  std::string name;
+  event_action = [&](core::Download* download) {
+    if (download != downloads[3])
+      return;
+
+    size = control->core()->download_list()->size();
+    name = rpc::call_command_string("d.name", rpc::make_target(downloads[4]));
+  };
+
+  control->core()->download_list()->clear();
+
+  torrent::DList remaining;
+  torrent::download_list(remaining);
+
+  CPPUNIT_ASSERT(remaining.empty());
+  CPPUNIT_ASSERT_EQUAL(size_t(5), size);
+  CPPUNIT_ASSERT_EQUAL(std::string("d4"), name);
+  CPPUNIT_ASSERT(control->core()->download_list()->empty());
+}
+
+void
+TestCommandEvents::test_clear_closes_the_rest_after_failed_close() {
+  auto downloads = insert_downloads(1, missing_file);
+  control->view_manager()->insert("active");
+  downloads[2]->download()->open();
+  event_action = [&](core::Download* download) {
+    if (download == downloads[2])
+      rpc::call_command_set_value("d.hashing.set", int64_t{1}, rpc::make_target(download));
+  };
+
+  CPPUNIT_ASSERT_THROW(control->core()->download_list()->clear(), torrent::internal_error);
+
+  CPPUNIT_ASSERT_EQUAL(std::string("d4,d3,d2,d1,d0"), handled);
   CPPUNIT_ASSERT(control->core()->download_list()->empty());
 }
 

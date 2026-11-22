@@ -4,6 +4,7 @@
 #include <fstream>
 #include <iostream>
 #include <string_view>
+#include <vector>
 #include <torrent/data/file.h>
 #include <torrent/utils/resume.h>
 #include <torrent/exceptions.h>
@@ -56,22 +57,23 @@ DownloadList::clear() {
   m_clearing = true;
   utils::scope_guard guard([this]() { m_clearing = false; });
 
-  int error_count = 0;
+  int  error_count = 0;
+  auto downloads   = std::vector<std::shared_ptr<Download>>(begin(), end());
 
-  while (!empty()) {
-    auto download = back();
-
+  for (auto itr = downloads.rbegin(); itr != downloads.rend(); ++itr) {
     try {
-      close(download);
-      base_type::pop_back();
-
-      torrent::download_remove(*download->download());
+      close(*itr);
 
     } catch (torrent::internal_error& e) {
-      lt_log_print(torrent::LOG_ERRORS, "DownloadList::clear() failed to close or remove download: %s", e.what());
+      lt_log_print(torrent::LOG_ERRORS, "DownloadList::clear() failed to close download: %s", e.what());
       error_count++;
-      continue;
     }
+  }
+
+  while (!empty()) {
+    auto download = base_type::pop_back();
+
+    torrent::download_remove(*download->download());
   }
 
   if (error_count > 0)
