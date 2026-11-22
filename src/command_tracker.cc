@@ -101,6 +101,9 @@ initialize_command_tracker() {
   CMD2_TRACKER        ("t.type",               [](auto* tracker, auto) { return tracker->type(); });
   CMD2_TRACKER        ("t.id",                 [](auto* tracker, auto) { return tracker->tracker_id(); });
 
+  CMD2_TRACKER        ("t.error_message",      [](auto* tracker, auto) { return tracker->error_message(); });
+  CMD2_TRACKER        ("t.warning_message",    [](auto* tracker, auto) { return tracker->warning_message(); });
+
   CMD2_TRACKER        ("t.latest_event",       [](auto* tracker, auto) { return tracker->state().latest_event(); });
   CMD2_TRACKER        ("t.latest_new_peers",   [](auto* tracker, auto) { return tracker->state().latest_new_peers(); });
   CMD2_TRACKER        ("t.latest_sum_peers",   [](auto* tracker, auto) { return tracker->state().latest_sum_peers(); });
@@ -150,6 +153,8 @@ initialize_command_tracker() {
   rpc::rpc.mark_safe("t.url");
   rpc::rpc.mark_safe("t.group");
   rpc::rpc.mark_safe("t.id");
+  rpc::rpc.mark_safe("t.error_message");
+  rpc::rpc.mark_safe("t.warning_message");
   rpc::rpc.mark_safe("t.type");
   rpc::rpc.mark_safe("t.is_usable");
   rpc::rpc.mark_safe("t.is_busy");
