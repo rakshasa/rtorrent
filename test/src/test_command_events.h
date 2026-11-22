@@ -21,6 +21,8 @@ class TestCommandEvents : public test_fixture {
   CPPUNIT_TEST(test_close_directly_open_with_erasing_handler);
   CPPUNIT_TEST(test_quick_shutdown_with_erasing_handlers);
   CPPUNIT_TEST(test_clear_refuses_erasing_handlers);
+  CPPUNIT_TEST(test_clear_keeps_downloads_for_handlers);
+  CPPUNIT_TEST(test_clear_closes_the_rest_after_failed_close);
   CPPUNIT_TEST(test_quick_shutdown_closes_open_download);
   CPPUNIT_TEST(test_hashing_pass_stops_after_view_change);
   CPPUNIT_TEST(test_hashing_pass_stops_after_reallocated_view);
@@ -64,6 +66,8 @@ public:
   void test_close_directly_open_with_erasing_handler();
   void test_quick_shutdown_with_erasing_handlers();
   void test_clear_refuses_erasing_handlers();
+  void test_clear_keeps_downloads_for_handlers();
+  void test_clear_closes_the_rest_after_failed_close();
   void test_quick_shutdown_closes_open_download();
   void test_hashing_pass_stops_after_view_change();
   void test_hashing_pass_stops_after_reallocated_view();
