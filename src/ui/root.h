@@ -65,7 +65,7 @@ public:
   const auto&         window_statusbar() const                { return m_windowStatusbar; }
   const auto&         window_input() const                    { return m_windowInput; }
 
-  const auto&         download_list() const                   { return m_downloadList; }
+  DownloadList*       download_list() const;
 
   void                set_down_throttle(unsigned int throttle);
   void                set_up_throttle(unsigned int throttle);

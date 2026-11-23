@@ -6,6 +6,7 @@
 #include <stdexcept>
 #include <string>
 #include <string.h>
+#include <torrent/exceptions.h>
 #include <torrent/throttle.h>
 #include <torrent/torrent.h>
 #include <torrent/download/resource_manager.h>
@@ -119,6 +120,14 @@ Root::cleanup() {
   m_downloadList    = nullptr;
 
   m_control = nullptr;
+}
+
+DownloadList*
+Root::download_list() const {
+  if (m_downloadList == nullptr)
+    throw torrent::input_error("UI is not available.");
+
+  return m_downloadList.get();
 }
 
 const char*
