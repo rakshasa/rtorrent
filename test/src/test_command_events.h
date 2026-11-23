@@ -20,6 +20,7 @@ class TestCommandEvents : public test_fixture {
   CPPUNIT_TEST(test_shutdown_with_erasing_handlers);
   CPPUNIT_TEST(test_close_directly_open_with_erasing_handler);
   CPPUNIT_TEST(test_quick_shutdown_with_erasing_handlers);
+  CPPUNIT_TEST(test_ui_command_from_closed_event_during_cleanup);
   CPPUNIT_TEST(test_clear_refuses_erasing_handlers);
   CPPUNIT_TEST(test_clear_keeps_downloads_for_handlers);
   CPPUNIT_TEST(test_clear_closes_the_rest_after_failed_close);
@@ -65,6 +66,7 @@ public:
   void test_shutdown_with_erasing_handlers();
   void test_close_directly_open_with_erasing_handler();
   void test_quick_shutdown_with_erasing_handlers();
+  void test_ui_command_from_closed_event_during_cleanup();
   void test_clear_refuses_erasing_handlers();
   void test_clear_keeps_downloads_for_handlers();
   void test_clear_closes_the_rest_after_failed_close();

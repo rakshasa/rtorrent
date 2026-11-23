@@ -21,19 +21,30 @@
 #include "core/manager.h"
 #include "core/view.h"
 #include "core/view_manager.h"
+#include "display/canvas.h"
+#include "display/window.h"
 #include "globals.h"
 #include "rpc/parse_commands.h"
 #include "session/thread_session.h"
+#include "ui/root.h"
+#include "utils/functional.h"
 
 CPPUNIT_TEST_SUITE_REGISTRATION(TestCommandEvents);
 
 void initialize_command_download();
 void initialize_command_events();
+void initialize_command_local();
 void initialize_command_scheduler();
 void initialize_command_system();
 void initialize_command_ui();
 
 namespace {
+
+struct WindowSlots : display::Window {
+  static auto schedule() { return m_slot_schedule; }
+  static auto unschedule() { return m_slot_unschedule; }
+  static auto adjust() { return m_slot_adjust; }
+};
 
 struct SchedulerAccess : torrent::system::Scheduler {
   using torrent::system::Scheduler::perform;
@@ -45,6 +56,7 @@ const char*                                             missing_file  = "test_co
 
 std::string                                             handled;
 std::string                                             captured_log;
+std::function<void(core::Download*)>                    closed_action;
 std::function<void(core::Download*)>                    opened_action;
 std::function<void(core::Download*)>                    queued_action;
 std::function<void(core::Download*)>                    event_action;
@@ -99,8 +111,10 @@ cmd_hash_failed(core::Download*, const torrent::Object&) {
 }
 
 torrent::Object
-cmd_closed(core::Download*, const torrent::Object&) {
+cmd_closed(core::Download* download, const torrent::Object&) {
   closed_events++;
+  if (closed_action)
+    closed_action(download);
   return torrent::Object();
 }
 
@@ -220,6 +234,7 @@ TestCommandEvents::setUp() {
 
   handled.clear();
   captured_log.clear();
+  closed_action = {};
   opened_action = {};
   queued_action = {};
   event_action = {};
@@ -231,6 +246,7 @@ TestCommandEvents::setUp() {
 void
 TestCommandEvents::tearDown() {
   event_action = {};
+  closed_action = {};
   erase_on.clear();
   torrent::log_close_output("test_events_log");
 
@@ -436,6 +452,70 @@ TestCommandEvents::test_quick_shutdown_with_erasing_handlers() {
 
   CPPUNIT_ASSERT_EQUAL(std::string("d0,d1,d2,d3,d4"), handled);
   CPPUNIT_ASSERT_EQUAL(size_t(2), control->core()->download_list()->size());
+}
+
+void
+TestCommandEvents::test_ui_command_from_closed_event_during_cleanup() {
+  control->view_manager()->insert("main");
+  if (!rpc::commands.has("session.name"))
+    initialize_command_local();
+  auto daemon = rpc::call_command_value("system.daemon");
+  rpc::call_command_set_value("system.daemon.set", int64_t{1});
+  utils::scope_guard restore_daemon([&] { rpc::call_command_set_value("system.daemon.set", daemon); });
+  display::Canvas::initialize();
+  utils::scope_guard restore_canvas([] { display::Canvas::cleanup(); });
+  auto schedule = WindowSlots::schedule();
+  auto unschedule = WindowSlots::unschedule();
+  auto adjust = WindowSlots::adjust();
+  utils::scope_guard restore_slots([&] {
+    display::Window::slot_schedule(schedule);
+    display::Window::slot_unschedule(unschedule);
+    display::Window::slot_adjust(adjust);
+  });
+  display::Window::slot_schedule([](display::Window*, std::chrono::microseconds) {});
+  display::Window::slot_unschedule([](display::Window*) {});
+  display::Window::slot_adjust([] {});
+  bool ui_active = false;
+  utils::scope_guard restore_ui([&] {
+    if (ui_active)
+      control->ui()->cleanup();
+  });
+  control->ui()->init(control);
+  ui_active = true;
+
+  auto downloads = insert_downloads(0, existing_file, nullptr, 0, 1);
+  rpc::call_command_set_value("d.hashing.set", int64_t{0}, rpc::make_target(downloads[0]));
+  downloads[0]->download()->open();
+  rpc::call_command("ui.current_view.set", torrent::Object("main"));
+  CPPUNIT_ASSERT_EQUAL(std::string("main"), rpc::call_command_string("ui.current_view"));
+  rpc::call_command("ui.unfocus_download", torrent::Object(), rpc::make_target(downloads[0]));
+  control->ui()->cleanup();
+  ui_active = false;
+
+  int refused = 0;
+  closed_action = [&](core::Download* download) {
+    try {
+      rpc::call_command("ui.current_view.set", torrent::Object("main"));
+    } catch (const torrent::input_error&) {
+      refused++;
+    }
+    try {
+      rpc::call_command("ui.current_view", torrent::Object());
+    } catch (const torrent::input_error&) {
+      refused++;
+    }
+    try {
+      rpc::call_command("ui.unfocus_download", torrent::Object(), rpc::make_target(download));
+    } catch (const torrent::input_error&) {
+      refused++;
+    }
+  };
+  control->core()->download_list()->clear();
+  closed_action = {};
+
+  CPPUNIT_ASSERT_EQUAL(1, closed_events);
+  CPPUNIT_ASSERT_EQUAL(3, refused);
+  CPPUNIT_ASSERT(control->core()->download_list()->empty());
 }
 
 void
