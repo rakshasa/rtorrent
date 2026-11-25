@@ -67,10 +67,12 @@ SessionManager::set_use_lock(bool use_lock) {
 
 mode_t
 SessionManager::file_mode() const {
-  if (m_umask == 0)
-    return 0;
+  return file_mode(0666);
+}
 
-  return 0666 & ~m_umask;
+mode_t
+SessionManager::file_mode(mode_t mode) const {
+  return m_umask == 0 ? 0 : mode & ~m_umask;
 }
 
 void
@@ -199,7 +201,7 @@ SessionManager::start() {
   if (m_use_lock) {
     m_lockfile->set_path(m_path + "rtorrent.lock");
 
-    if (!m_lockfile->try_lock()) {
+    if (!m_lockfile->try_lock(file_mode(0444))) {
       if (errno == ENOENT || errno == ENOTDIR || errno == EACCES)
         throw torrent::input_error("Could not lock session directory: " + std::string(std::strerror(errno)) + " : " + m_path);
       else

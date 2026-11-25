@@ -10,6 +10,7 @@ class Download;
 class TestSessionManager : public test_fixture {
   CPPUNIT_TEST_SUITE(TestSessionManager);
 
+  CPPUNIT_TEST(test_file_mode);
   CPPUNIT_TEST(test_save_waits_for_save_of_same_download);
   CPPUNIT_TEST(test_flush_waits_for_save_of_same_download);
   CPPUNIT_TEST(test_remove_waits_for_matching_save);
@@ -22,6 +23,7 @@ public:
   void setUp();
   void tearDown();
 
+  void test_file_mode();
   void test_save_waits_for_save_of_same_download();
   void test_flush_waits_for_save_of_same_download();
   void test_remove_waits_for_matching_save();

@@ -6,6 +6,7 @@
 #include <stdexcept>
 #include <string>
 #include <string.h>
+#include <sys/stat.h>
 #include <torrent/exceptions.h>
 #include <torrent/throttle.h>
 #include <torrent/torrent.h>
@@ -465,6 +466,12 @@ Root::save_input_history() {
 
   if (!history_file.is_open()) {
     lt_log_print(torrent::LOG_DEBUG_TRACE, "could not open input history file for writing (path:%s)", history_filename.c_str());
+    return;
+  }
+
+  auto file_mode = session_thread::manager()->file_mode();
+  if (file_mode != 0 && ::chmod(history_filename_tmp.c_str(), file_mode) == -1) {
+    lt_log_print(torrent::LOG_DEBUG_TRACE, "could not set input history file permissions (path:%s)", history_filename_tmp.c_str());
     return;
   }
 

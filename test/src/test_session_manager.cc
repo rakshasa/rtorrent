@@ -118,6 +118,18 @@ TestSessionManager::tearDown() {
 }
 
 void
+TestSessionManager::test_file_mode() {
+  session::SessionManager manager(nullptr);
+
+  CPPUNIT_ASSERT_EQUAL(mode_t{0}, manager.file_mode());
+
+  manager.set_umask(0027);
+
+  CPPUNIT_ASSERT_EQUAL(mode_t{0640}, manager.file_mode());
+  CPPUNIT_ASSERT_EQUAL(mode_t{0440}, manager.file_mode(0444));
+}
+
+void
 TestSessionManager::test_save_waits_for_save_of_same_download() {
   auto manager = session_thread::manager();
 

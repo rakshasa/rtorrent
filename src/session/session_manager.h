@@ -65,6 +65,7 @@ public:
   int                 umask() const;
   void                set_umask(int64_t umask);
   mode_t              file_mode() const;
+  mode_t              file_mode(mode_t mode) const;
 
   void                save_full_download(core::Download* download);
   void                save_resume_download(core::Download* download);
