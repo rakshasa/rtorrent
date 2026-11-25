@@ -76,7 +76,7 @@ Lockfile::is_stale() {
 }
 
 bool
-Lockfile::try_lock() {
+Lockfile::try_lock(mode_t file_mode) {
   if (m_path.empty()) {
     m_locked = true;
     return true;
@@ -87,10 +87,18 @@ Lockfile::try_lock() {
 
   // Just do a simple locking for now that isn't safe for network
   // devices.
-  int fd = ::open(m_path.c_str(), O_RDWR | O_CREAT | O_EXCL, 0444);
+  int fd = ::open(m_path.c_str(), O_RDWR | O_CREAT | O_EXCL, file_mode == 0 ? 0444 : 0600);
 
   if (fd == -1)
     return false;
+
+  if (file_mode != 0 && ::fchmod(fd, file_mode) == -1) {
+    int error = errno;
+    ::close(fd);
+    ::unlink(m_path.c_str());
+    errno = error;
+    return false;
+  }
 
   char buf[256];
   int pos = ::gethostname(buf, 255);

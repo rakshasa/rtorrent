@@ -21,7 +21,7 @@ public:
 
   // If the path is empty no lock file will be created, although
   // is_locked() will return true.
-  bool                try_lock();
+  bool                try_lock(mode_t file_mode = 0);
   bool                unlock();
 
   const std::string&  path() const                      { return m_path; }

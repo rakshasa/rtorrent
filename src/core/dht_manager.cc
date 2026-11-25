@@ -4,6 +4,7 @@
 
 #include <fstream>
 #include <sstream>
+#include <sys/stat.h>
 #include <torrent/exceptions.h>
 #include <torrent/object.h>
 #include <torrent/object_stream.h>
@@ -136,6 +137,12 @@ DhtManager::save_dht_cache() {
 
   if (!cache_file.is_open())
     return;
+
+  auto file_mode = session_thread::manager()->file_mode();
+  if (file_mode != 0 && ::chmod(filename_tmp.c_str(), file_mode) == -1) {
+    LT_LOG_ERROR("could not set cache file permissions (path:%s)", filename_tmp.c_str());
+    return;
+  }
 
   torrent::Object cache = torrent::Object::create_map();
   cache_file << *torrent::runtime::network_manager()->dht_controller()->store_cache(&cache);
