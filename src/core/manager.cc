@@ -42,6 +42,7 @@ const int Manager::create_start;
 const int Manager::create_tied;
 const int Manager::create_quiet;
 const int Manager::create_raw_data;
+const int Manager::create_edited;
 
 void
 Manager::push_log(const char* msg) {
@@ -215,6 +216,7 @@ Manager::try_create_download(const std::string& uri, int flags, const command_li
   f->commands().insert(f->commands().end(), commands.begin(), commands.end());
 
   f->set_start(flags & create_start);
+  f->set_edited(flags & create_edited);
   f->set_print_log(!(flags & create_quiet));
   f->slot_finished([factory = f.get()]() { delete factory; });
 

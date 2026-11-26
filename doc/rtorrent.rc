@@ -53,6 +53,11 @@
 #
 #directory.watch.ready = ./watch, load.start
 #schedule = watch_directory,5,5,load.start=./watch/*.torrent
+#
+# Normal loads discard embedded fast-resume progress. Use the corresponding
+# load.*_edited command (for example load.start_edited) only for trusted,
+# deliberately generated or edited resume data. Incorrect resume data can
+# cause unverified pieces to be uploaded.
 
 # Close torrents when disk-space is low.
 #

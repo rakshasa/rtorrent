@@ -6,6 +6,9 @@
 # rtorrent_fast_resume.pl [base-directory] < plain.torrent > with_fast_resume.torrent
 # -OR-
 # rtorrent_fast_resume.pl [base-directory] plain.torrent [with_fast_resume.torrent]
+#
+# Load the result with a load.*_edited command to retain its resume progress.
+# Only use this for files whose contents are already known to match the torrent.
 
 use strict;
 use warnings;

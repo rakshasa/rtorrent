@@ -407,6 +407,15 @@ initialize_command_events() {
   CMD2_ANY_LIST    ("load.raw_start",             [](auto, auto& args) { return apply_load(args, core::Manager::create_quiet | core::Manager::create_start | core::Manager::create_raw_data); });
   CMD2_ANY_LIST    ("load.raw_start_verbose",     [](auto, auto& args) { return apply_load(args, core::Manager::create_start | core::Manager::create_raw_data); });
 
+  CMD2_ANY_LIST    ("load.normal_edited",            [](auto, auto& args) { return apply_load(args, core::Manager::create_quiet | core::Manager::create_tied | core::Manager::create_edited); });
+  CMD2_ANY_LIST    ("load.verbose_edited",           [](auto, auto& args) { return apply_load(args, core::Manager::create_tied | core::Manager::create_edited); });
+  CMD2_ANY_LIST    ("load.start_edited",             [](auto, auto& args) { return apply_load(args, core::Manager::create_quiet | core::Manager::create_tied | core::Manager::create_start | core::Manager::create_edited); });
+  CMD2_ANY_LIST    ("load.start_verbose_edited",     [](auto, auto& args) { return apply_load(args, core::Manager::create_tied | core::Manager::create_start | core::Manager::create_edited); });
+  CMD2_ANY_LIST    ("load.raw_edited",               [](auto, auto& args) { return apply_load(args, core::Manager::create_quiet | core::Manager::create_raw_data | core::Manager::create_edited); });
+  CMD2_ANY_LIST    ("load.raw_verbose_edited",       [](auto, auto& args) { return apply_load(args, core::Manager::create_raw_data | core::Manager::create_edited); });
+  CMD2_ANY_LIST    ("load.raw_start_edited",         [](auto, auto& args) { return apply_load(args, core::Manager::create_quiet | core::Manager::create_start | core::Manager::create_raw_data | core::Manager::create_edited); });
+  CMD2_ANY_LIST    ("load.raw_start_verbose_edited", [](auto, auto& args) { return apply_load(args, core::Manager::create_start | core::Manager::create_raw_data | core::Manager::create_edited); });
+
   CMD2_ANY_VALUE   ("close_low_diskspace",        [](auto, auto& arg) { return apply_close_low_diskspace(arg, 99); });
   CMD2_ANY_VALUE   ("close_low_diskspace.normal", [](auto, auto& arg) { return apply_close_low_diskspace(arg, 3); });
 

@@ -40,6 +40,8 @@ public:
   bool                get_session() const   { return m_session; }
   void                set_session(bool v)   { m_session = v; }
 
+  void                set_edited(bool v)    { m_edited = v; }
+
   bool                get_start() const     { return m_start; }
   void                set_start(bool v)     { m_start = v; }
 
@@ -71,6 +73,7 @@ private:
 
   std::string         m_uri;
   bool                m_session{};
+  bool                m_edited{};
   bool                m_start{};
   bool                m_printLog{true};
   bool                m_isFile{};
