@@ -254,14 +254,15 @@ DownloadFactory::receive_success() {
       root->insert_key_move("libtorrent_resume", *libtorrent_resume_object);
 
   } else {
-    // We only allow session torrents to keep their
-    // 'rtorrent/libtorrent' sections. The "fast_resume" section
-    // should be safe to keep.
+    // Only session torrents keep their rtorrent section.
     root->erase_key("rtorrent");
   }
 
   torrent::Object* rtorrent = &root->insert_preserve_copy("rtorrent", torrent::Object::create_map()).first->second;
   torrent::Object& resumeObject = root->insert_preserve_copy("libtorrent_resume", torrent::Object::create_map()).first->second;
+
+  if (!m_session && !m_edited)
+    torrent::resume_clear_progress(*download->download(), resumeObject);
 
   rtorrent->insert_key("key", download->tracker_controller().key());
 

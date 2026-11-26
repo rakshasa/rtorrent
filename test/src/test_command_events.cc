@@ -2,13 +2,17 @@
 
 #include "test/src/test_command_events.h"
 
+#include <fstream>
 #include <functional>
 #include <map>
+#include <sstream>
 #include <string>
+#include <unistd.h>
 #include <torrent/data/download_data.h>
 #include <torrent/download_info.h>
 #include <torrent/exceptions.h>
 #include <torrent/object.h>
+#include <torrent/object_stream.h>
 #include <torrent/torrent.h>
 #include <torrent/system/scheduler.h>
 #include <torrent/utils/log.h>
@@ -17,6 +21,7 @@
 #include "command_helpers.h"
 #include "control.h"
 #include "core/download.h"
+#include "core/download_factory.h"
 #include "core/download_list.h"
 #include "core/manager.h"
 #include "core/view.h"
@@ -36,6 +41,8 @@ void initialize_command_events();
 void initialize_command_local();
 void initialize_command_scheduler();
 void initialize_command_system();
+void initialize_command_throttle();
+void initialize_command_tracker();
 void initialize_command_ui();
 
 namespace {
@@ -49,6 +56,61 @@ struct WindowSlots : display::Window {
 struct SchedulerAccess : torrent::system::Scheduler {
   using torrent::system::Scheduler::perform;
 };
+
+class TemporaryTorrent {
+public:
+  explicit TemporaryTorrent(const std::string& data) {
+    char path[] = "/tmp/rtorrent-load-resume-XXXXXX";
+    int fd = ::mkstemp(path);
+    CPPUNIT_ASSERT(fd != -1);
+    CPPUNIT_ASSERT(::close(fd) == 0);
+    m_path = path;
+    std::ofstream file(m_path, std::ios::binary);
+    file << data;
+    CPPUNIT_ASSERT(file.good());
+  }
+
+  ~TemporaryTorrent() {
+    ::unlink(m_path.c_str());
+    ::unlink((m_path + ".libtorrent_resume").c_str());
+  }
+
+  const std::string& path() const { return m_path; }
+
+private:
+  std::string m_path;
+};
+
+std::string
+resume_torrent(int64_t mtime) {
+  auto root = torrent::Object::create_map();
+  auto info = torrent::Object::create_map();
+  info.insert_key("name", "resume-test");
+  info.insert_key("length", int64_t{16});
+  info.insert_key("piece length", int64_t{262144});
+  info.insert_key("pieces", std::string(20, char(0)));
+  root.insert_key("info", info);
+
+  auto resume = torrent::Object::create_map();
+  resume.insert_key("bitfield", int64_t{1});
+  auto files = torrent::Object::create_list();
+  auto file = torrent::Object::create_map();
+  file.insert_key("mtime", mtime);
+  file.insert_key("priority", int64_t{1});
+  files.as_list().push_back(file);
+  resume.insert_key("files", files);
+  root.insert_key("libtorrent_resume", resume);
+
+  std::ostringstream stream;
+  stream << root;
+  return stream.str();
+}
+
+void
+perform_scheduled() {
+  auto perform = &SchedulerAccess::perform;
+  (torrent::this_thread::scheduler()->*perform)(torrent::this_thread::cached_time());
+}
 
 const char*                                             event_command = "test.command_events.event";
 const char*                                             existing_file = ".";
@@ -222,6 +284,15 @@ TestCommandEvents::setUp() {
   if (!rpc::commands.has("system.file.allocate"))
     initialize_command_system();
 
+  if (!rpc::commands.has("directory.default"))
+    initialize_command_local();
+
+  if (!rpc::commands.has("throttle.min_uploads"))
+    initialize_command_throttle();
+
+  if (!rpc::commands.has("trackers.numwant"))
+    initialize_command_tracker();
+
   if (!rpc::commands.has(event_command)) {
     CMD2_DL(event_command, &cmd_event);
     CMD2_DL("event.download.hash_removed", &cmd_event);
@@ -241,6 +312,79 @@ TestCommandEvents::setUp() {
   hash_failed_events = 0;
   closed_events = 0;
   erase_on.clear();
+}
+
+void
+TestCommandEvents::test_load_resume_progress() {
+  struct LoadCase {
+    const char* command;
+    bool raw;
+    bool edited;
+    bool start;
+  };
+  const LoadCase cases[] = {
+    {"load.normal", false, false, false},
+    {"load.verbose", false, false, false},
+    {"load.start", false, false, true},
+    {"load.start_verbose", false, false, true},
+    {"load.raw", true, false, false},
+    {"load.raw_verbose", true, false, false},
+    {"load.raw_start", true, false, true},
+    {"load.raw_start_verbose", true, false, true},
+    {"load.edited", false, true, false},
+    {"load.verbose_edited", false, true, false},
+    {"load.start_edited", false, true, true},
+    {"load.start_verbose_edited", false, true, true},
+    {"load.raw_edited", true, true, false},
+    {"load.raw_verbose_edited", true, true, false},
+    {"load.raw_start_edited", true, true, true},
+    {"load.raw_start_verbose_edited", true, true, true},
+  };
+
+  for (int64_t mtime : {int64_t{-4}, int64_t{1700000000}}) {
+    const auto data = resume_torrent(mtime);
+    for (const auto& test : cases) {
+      TemporaryTorrent file(data);
+      auto args = torrent::Object::create_list();
+      args.as_list().push_back(test.raw ? data : file.path());
+      rpc::call_command(test.command, args);
+      perform_scheduled();
+
+      CPPUNIT_ASSERT_EQUAL_MESSAGE(test.command, size_t{1}, control->core()->download_list()->size());
+      auto download = control->core()->download_list()->begin()->get();
+      const auto& resume = download->bencode()->get_key("libtorrent_resume");
+      CPPUNIT_ASSERT_EQUAL_MESSAGE(test.command, test.edited, resume.has_key_value("bitfield"));
+      if (test.edited)
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(test.command, int64_t{1}, resume.get_key_value("bitfield"));
+      CPPUNIT_ASSERT_EQUAL_MESSAGE(test.command, test.start, rpc::call_command_value("d.state", rpc::make_target(download)) != 0);
+      CPPUNIT_ASSERT_EQUAL_MESSAGE(test.command, test.raw ? std::string() : file.path(),
+                                   rpc::call_command_string("d.tied_to_file", rpc::make_target(download)));
+      CPPUNIT_ASSERT_EQUAL_MESSAGE(test.command, int64_t{1}, resume.get_key_list("files").front().get_key_value("priority"));
+      control->core()->download_list()->clear();
+    }
+  }
+}
+
+void
+TestCommandEvents::test_session_load_resume_progress() {
+  TemporaryTorrent file(resume_torrent(-4));
+  auto sidecar = torrent::Object::create_map();
+  sidecar.insert_key("bitfield", int64_t{0});
+  std::ofstream output(file.path() + ".libtorrent_resume", std::ios::binary);
+  output << sidecar;
+  output.close();
+  CPPUNIT_ASSERT(output.good());
+
+  auto factory = new core::DownloadFactory(control->core());
+  factory->set_session(true);
+  factory->slot_finished([factory]() { delete factory; });
+  factory->load(file.path());
+  factory->commit();
+  perform_scheduled();
+
+  CPPUNIT_ASSERT_EQUAL(size_t{1}, control->core()->download_list()->size());
+  const auto& resume = control->core()->download_list()->begin()->get()->bencode()->get_key("libtorrent_resume");
+  CPPUNIT_ASSERT_EQUAL(int64_t{0}, resume.get_key_value("bitfield"));
 }
 
 void

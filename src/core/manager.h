@@ -69,6 +69,7 @@ public:
   static const int create_tied     = 0x2;
   static const int create_quiet    = 0x4;
   static const int create_raw_data = 0x8;
+  static const int create_edited   = 0x10;
 
   typedef std::vector<std::string> command_list_type;
 

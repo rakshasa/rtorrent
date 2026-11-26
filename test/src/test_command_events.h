@@ -44,6 +44,8 @@ class TestCommandEvents : public test_fixture {
   CPPUNIT_TEST(test_close_clears_stopped_hash_queue);
   CPPUNIT_TEST(test_close_clears_failed_hash_queue);
   CPPUNIT_TEST(test_stop_removes_queued_hash_check);
+  CPPUNIT_TEST(test_load_resume_progress);
+  CPPUNIT_TEST(test_session_load_resume_progress);
 
   CPPUNIT_TEST_SUITE_END();
 
@@ -89,4 +91,6 @@ public:
   void test_close_clears_stopped_hash_queue();
   void test_close_clears_failed_hash_queue();
   void test_stop_removes_queued_hash_check();
+  void test_load_resume_progress();
+  void test_session_load_resume_progress();
 };
