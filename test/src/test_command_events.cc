@@ -331,7 +331,7 @@ TestCommandEvents::test_load_resume_progress() {
     {"load.raw_verbose", true, false, false},
     {"load.raw_start", true, false, true},
     {"load.raw_start_verbose", true, false, true},
-    {"load.normal_edited", false, true, false},
+    {"load.edited", false, true, false},
     {"load.verbose_edited", false, true, false},
     {"load.start_edited", false, true, true},
     {"load.start_verbose_edited", false, true, true},
