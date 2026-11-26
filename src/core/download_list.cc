@@ -140,11 +140,11 @@ DownloadList::find_hex_ptr(const char* hash) {
 }
 
 Download*
-DownloadList::create(torrent::Object* obj, uint32_t tracker_key, bool printLog) {
+DownloadList::create(torrent::Object* obj, uint32_t tracker_key, bool printLog, bool is_session) {
   torrent::Download download;
 
   try {
-    download = torrent::download_add(obj, tracker_key);
+    download = is_session ? torrent::download_add_session(obj, tracker_key) : torrent::download_add(obj, tracker_key);
 
   } catch (torrent::local_error& e) {
     if (printLog)
@@ -161,7 +161,7 @@ DownloadList::create(torrent::Object* obj, uint32_t tracker_key, bool printLog) 
 }
 
 Download*
-DownloadList::create(std::istream* str, uint32_t tracker_key, bool printLog) {
+DownloadList::create(std::istream* str, uint32_t tracker_key, bool printLog, bool is_session) {
   torrent::Object* object = new torrent::Object;
   torrent::Download download;
 
@@ -179,7 +179,7 @@ DownloadList::create(std::istream* str, uint32_t tracker_key, bool printLog) {
       return NULL;
     }
 
-    download = torrent::download_add(object, tracker_key);
+    download = is_session ? torrent::download_add_session(object, tracker_key) : torrent::download_add(object, tracker_key);
 
   } catch (torrent::local_error& e) {
     delete object;

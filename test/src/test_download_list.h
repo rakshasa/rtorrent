@@ -11,6 +11,7 @@ class TestDownloadList : public test_fixture {
   CPPUNIT_TEST(test_find_hex_after_erase);
   CPPUNIT_TEST(test_insertion_order);
   CPPUNIT_TEST(test_insert_duplicate);
+  CPPUNIT_TEST(test_meta_download_session);
 
   CPPUNIT_TEST_SUITE_END();
 
@@ -23,6 +24,7 @@ public:
   void test_find_hex_after_erase();
   void test_insertion_order();
   void test_insert_duplicate();
+  void test_meta_download_session();
 
 private:
   core::DownloadList m_list;
