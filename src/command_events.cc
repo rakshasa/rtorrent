@@ -407,7 +407,7 @@ initialize_command_events() {
   CMD2_ANY_LIST    ("load.raw_start",             [](auto, auto& args) { return apply_load(args, core::Manager::create_quiet | core::Manager::create_start | core::Manager::create_raw_data); });
   CMD2_ANY_LIST    ("load.raw_start_verbose",     [](auto, auto& args) { return apply_load(args, core::Manager::create_start | core::Manager::create_raw_data); });
 
-  CMD2_ANY_LIST    ("load.normal_edited",            [](auto, auto& args) { return apply_load(args, core::Manager::create_quiet | core::Manager::create_tied | core::Manager::create_edited); });
+  CMD2_ANY_LIST    ("load.edited",                   [](auto, auto& args) { return apply_load(args, core::Manager::create_quiet | core::Manager::create_tied | core::Manager::create_edited); });
   CMD2_ANY_LIST    ("load.verbose_edited",           [](auto, auto& args) { return apply_load(args, core::Manager::create_tied | core::Manager::create_edited); });
   CMD2_ANY_LIST    ("load.start_edited",             [](auto, auto& args) { return apply_load(args, core::Manager::create_quiet | core::Manager::create_tied | core::Manager::create_start | core::Manager::create_edited); });
   CMD2_ANY_LIST    ("load.start_verbose_edited",     [](auto, auto& args) { return apply_load(args, core::Manager::create_tied | core::Manager::create_start | core::Manager::create_edited); });
