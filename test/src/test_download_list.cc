@@ -3,11 +3,13 @@
 #include "test/src/test_download_list.h"
 
 #include <cstdio>
+#include <sstream>
 #include <torrent/download.h>
 #include <torrent/download_info.h>
 #include <torrent/exceptions.h>
 #include <torrent/hash_string.h>
 #include <torrent/object.h>
+#include <torrent/object_stream.h>
 #include <torrent/torrent.h>
 #include <vector>
 
@@ -136,4 +138,32 @@ TestDownloadList::test_insert_duplicate() {
   auto d0 = m_list.find_hex_ptr(m_hex.c_str());
 
   CPPUNIT_ASSERT_THROW(m_list.insert(new core::Download(*d0->download())), torrent::internal_error);
+}
+
+void
+TestDownloadList::test_meta_download_session() {
+  torrent::Object object = torrent::Object::create_map();
+  auto& info = object.insert_key("info", torrent::Object::create_map());
+  info.insert_key("meta_download", int64_t{1});
+  info.insert_key("name", std::string(40, '5') + ".meta");
+  info.insert_key("pieces", std::string(20, '\x55'));
+
+  CPPUNIT_ASSERT(m_list.create(new torrent::Object(object), 0, false, false) == nullptr);
+  auto download = m_list.create(new torrent::Object(object), 0, false, true);
+  CPPUNIT_ASSERT(download != nullptr);
+  CPPUNIT_ASSERT(download->info()->is_meta_download());
+  torrent::download_remove(*download->download());
+  delete download;
+
+  std::stringstream external;
+  external << object;
+  CPPUNIT_ASSERT(m_list.create(&external, 0, false, false) == nullptr);
+
+  std::stringstream session;
+  session << object;
+  download = m_list.create(&session, 0, false, true);
+  CPPUNIT_ASSERT(download != nullptr);
+  CPPUNIT_ASSERT(download->info()->is_meta_download());
+  torrent::download_remove(*download->download());
+  delete download;
 }

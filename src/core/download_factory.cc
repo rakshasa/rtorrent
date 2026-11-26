@@ -213,8 +213,8 @@ DownloadFactory::receive_success() {
     tracker_key = random() % (std::numeric_limits<uint32_t>::max() - 1) + 1;
 
   Download* download = m_stream != nullptr ?
-    m_manager->download_list()->create(m_stream.get(), tracker_key, m_printLog) :
-    m_manager->download_list()->create(m_object, tracker_key, m_printLog);
+    m_manager->download_list()->create(m_stream.get(), tracker_key, m_printLog, m_session) :
+    m_manager->download_list()->create(m_object, tracker_key, m_printLog, m_session);
 
   m_object = NULL;
 
